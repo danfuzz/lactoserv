@@ -8,10 +8,10 @@
     "node": ">=18"
   },
 
-  "workspaces": {
+  "workspaces": [
     "@milk/just-a-test",
     "@milk/top-server"
-  },
+  ],
 
   "main": "index.js",
 
