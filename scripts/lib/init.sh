@@ -1,18 +1,15 @@
-# Copyright 2022 Dan Bornstein. All rights reserved.
-# All code and assets are considered proprietary and unlicensed.
+# Copyright 2022 Dan Bornstein.
+# Licensed AS IS and WITHOUT WARRANTY under the Apache License, Version 2.0.
+# Details: <http://www.apache.org/licenses/LICENSE-2.0>
 
-if [[ ${_sites_libDir} != '' ]]; then
+if [[ ${_init_libDir} != '' ]]; then
     error-msg 'Warning: Not reinitializing library!'
     return 1
 fi
 
 #
-# Global variable setup
+# Global setup
 #
-
-# Environment variable prefix, to (try to) avoid clashes with other uses of
-# similar scripts.
-_init_envVarPrefix='_MILK_SITES'
 
 # The symlink-resolved path of the command that is running (that is, the
 # top-level script).
@@ -31,13 +28,8 @@ else
     _init_mainDir="${_init_cmdPath%/*}"
 fi
 
-
-#
-# Sibling libararies
-#
-
-. "${_init_libDir}/stderr-messages.sh"  # Error and progress messages.
-. "${_init_libDir}/arg-processor.sh"    # Argument processor.
+# Load product-specific initialization code (including loading other libraries).
+. "${_init_libDir}/init-product.sh" # Product-specific init code.
 
 
 #
@@ -47,9 +39,9 @@ fi
 # call, instead of re-re-...-doing it multiple times.
 #
 
-_init_envVarName="${_init_envVarPrefix}_PREREQUISITES_DONE"
+_init_envVarName="$(_init_product-name | tr a-z- A-Z_)_PREREQUISITES_DONE"
 if [[ ${!_init_envVarName} != 1 ]]; then
-    . "${_init_libDir}/init-check-prereqs.sh" \
+    _init_check-prerequisites \
     || {
         error-msg 'Failed one or more prerequisite checks!'
         return 1
