@@ -20,7 +20,7 @@ _init_cmdPath="$(readlink -f "$0")" || return "$?"
 
 # Figure out the symlink-resolved directory of this script.
 _init_libDir="$(readlink -f "${BASH_SOURCE[0]}")" || return "$?"
-_init_libDir="${_initlibDir%/*}"
+_init_libDir="${_init_libDir%/*}"
 
 # Figure out the "main" directory. If `cmdDir` is the same as `libDir`, then
 # we're running a library script, and the main directory is the parent of
@@ -66,19 +66,19 @@ fi
 # Gets the directory of this command, "this command" being the main script that
 # is running.
 function this-cmd-dir {
-    echo "${_initcmdPath%/*}"
+    echo "${_init_cmdPath%/*}"
 }
 
 # Gets the name of this command, that is, "this command" being the main script
 # that is running.
 function this-cmd-name {
-    echo "${_initcmdPath##*/}"
+    echo "${_init_cmdPath##*/}"
 }
 
 # Gets the full path of this command, "this command" being the main script that
 # is running.
 function this-cmd-path {
-    echo "${_initcmdPath}"
+    echo "${_init_cmdPath}"
 }
 
 # Calls through to an arbitrary library script.
@@ -94,12 +94,12 @@ function lib {
     if ! [[ ${name} =~ ^[-a-z]+$ ]]; then
         error-msg 'Weird script name:' "${name}"
         return 1
-    elif [[ -x "${_initlibDir}/${name}" ]]; then
+    elif [[ -x "${_init_libDir}/${name}" ]]; then
         # It's in the internal helper library.
-        "${_initlibDir}/${name}" "$@"
-    elif [[ -x "${_initmainDir}/${name}" ]]; then
+        "${_init_libDir}/${name}" "$@"
+    elif [[ -x "${_init_mainDir}/${name}" ]]; then
         # It's an exposed script.
-        "${_initmainDir}/${name}" "$@"
+        "${_init_mainDir}/${name}" "$@"
     else
         error-msg 'No such library script:' "${name}"
         return 1
