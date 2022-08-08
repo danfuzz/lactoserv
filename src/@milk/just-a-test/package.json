@@ -1,7 +1,11 @@
 {
   "name": "@milk/just-a-test",
   "version": "0.0.1",
+
   "type": "module",
+  "exports": {
+    "Something": "Something.js"
+  }
 
   "dependencies": {
     "@milk/just-a-test-2": "*"

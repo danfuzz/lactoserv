@@ -2,4 +2,8 @@
   "name": "@milk/just-a-test-2",
   "version": "0.0.1",
   "type": "module",
+
+  "exports": {
+    "SomethingElse": "SomethingElse.js"
+  }
 }
