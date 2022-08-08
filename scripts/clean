@@ -1,0 +1,60 @@
+#!/bin/bash
+#
+# Copyright 2022 Dan Bornstein. All rights reserved.
+# All code and assets are considered proprietary and unlicensed.
+
+. "$(dirname "$(readlink -f "$0")")/lib/init.sh" || exit "$?"
+
+
+#
+# Argument parsing
+#
+
+function usage {
+    print-usage $'
+    Usage:
+
+    ${name} [<opt> ...]
+      Cleans the build output directory.
+
+    --create
+      Create the directory (leaving it empty). Without this option, the
+      directory is just removed if it exists.
+    --out=<dir>
+      Directory where built output goes. Defaults to `out` directly under the
+      main product directory.
+
+    ${name} [--help | -h]
+      Displays this message.
+    '
+
+    exit "$@"
+}
+
+# Want help?
+opt-action --call='{ usage }' help/h
+
+# Create the directory?
+opt-toggle --var=createDir create
+
+# Built output directory.
+opt-value --var=outDir out
+
+process-args "$@" || usage "$?"
+
+
+#
+# Main script
+#
+
+if [[ ${outDir} == '' ]]; then
+    outDir="$(dirname "$(this-cmd-dir)")/out"
+fi
+
+rm -rf "${outDir}" \
+|| exit "$?"
+
+if (( createDir )); then
+    mkdir -p "${outDir}" \
+    || exit "$?"
+fi

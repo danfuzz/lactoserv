@@ -1,1 +1,6 @@
 #!/bin/bash
+#
+# Copyright 2022 Dan Bornstein. All rights reserved.
+# All code and assets are considered proprietary and unlicensed.
+
+. "$(dirname "$(readlink -f "$0")")/lib/init.sh" || exit "$?"
