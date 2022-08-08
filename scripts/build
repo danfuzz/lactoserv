@@ -40,11 +40,26 @@ process-args "$@" || usage "$?"
 # Main script
 #
 
+baseDir="$(dirname "$(this-cmd-dir)")"
+srcDir="${baseDir}/src"
+etcDir="${baseDir}/etc"
+
 if [[ ${outDir} == '' ]]; then
-    outDir="$(dirname "$(this-cmd-dir)")/out"
+    outDir="${baseDir}/out"
 fi
 
 mkdir -p "${outDir}" \
 || exit "$?"
 
-# TODO: DO STUFF
+cd "${outDir}"
+
+cp "${srcDir}/{package.json,index.js}" .
+
+# TODO: Hoist dependencies from workspace packages into package.json
+
+npm install \
+|| exit "$?"
+
+mkdir -p bin
+cp "${etcDir}/bin-src/run" bin
+chmod 755 bin/run
