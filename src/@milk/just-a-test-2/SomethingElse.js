@@ -4,7 +4,7 @@
 /**
  * Just a test.
  */
-export class Something {
+export class SomethingElse {
   constructor() {
     console.log('More yay!');
   }

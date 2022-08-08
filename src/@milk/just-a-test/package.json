@@ -4,7 +4,8 @@
 
   "type": "module",
   "exports": {
-    "Something": "Something.js"
+    ".": "./index.js",
+    "./Something": "./Something.js"
   },
 
   "dependencies": {
