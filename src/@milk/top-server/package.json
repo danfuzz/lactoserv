@@ -3,9 +3,9 @@
   "version": "0.0.1",
 
   "type": "module",
-  "exports": {
-    ".": "./index.js",
-    "./Server": "./Server.js"
+  "exports": "./index.js",
+  "imports": {
+    "#x/*": "./*.js"
   },
 
   "dependencies": {
