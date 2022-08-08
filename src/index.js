@@ -3,4 +3,7 @@
 
 import { Server } from '@milk/top-server';
 
-Server.runAndExit(process.argv);
+console.log('Hello!');
+const exitCode = await Server.runAndExit(process.argv);
+console.log('Exit code: ' + exitCode);
+process.exit(exitCode);

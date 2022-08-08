@@ -1,6 +1,7 @@
 {
   "name": "@milk/top-server",
   "version": "0.0.1",
+  "type": "module",
 
   "dependencies": {
     "@milk/just-a-test": "*"
