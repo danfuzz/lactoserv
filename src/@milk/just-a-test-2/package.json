@@ -5,6 +5,6 @@
   "type": "module",
   "exports": "./index.js",
   "imports": {
-    "#x/*": "./*.js"
+    "#x/*": "./export/*.js"
   }
 }
