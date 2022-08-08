@@ -9,9 +9,9 @@
   },
 
   "workspaces": [
-    "@milk/just-a-test",
-    "@milk/just-a-test-2",
-    "@milk/top-server"
+    "milk/just-a-test",
+    "milk/just-a-test-2",
+    "milk/top-server"
   ],
 
   "type": "module",
