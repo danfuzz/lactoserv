@@ -1,2 +1,23 @@
 {
+  "name": "@milk/sites-server",
+  "version": "0.0.1",
+  "license": "UNLICENSED",
+  "private": true,
+
+  "engines": {
+    "node": ">=18"
+  },
+
+  "workspaces": {
+    "@milk/just-a-test",
+    "@milk/top-server"
+  },
+
+  "main": "index.js",
+
+  "dependencies": {
+    "chalk": "^5.0.1",
+    "express": "^4.18.1",
+    "lodash": "^4.17.21"
+  }
 }
