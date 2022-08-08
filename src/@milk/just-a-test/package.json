@@ -5,7 +5,7 @@
   "type": "module",
   "exports": {
     "Something": "Something.js"
-  }
+  },
 
   "dependencies": {
     "@milk/just-a-test-2": "*"
