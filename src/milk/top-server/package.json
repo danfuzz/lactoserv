@@ -1,14 +1,17 @@
 {
   "name": "@milk/top-server",
   "version": "0.0.1",
-
   "type": "module",
+
   "exports": "./index.js",
   "imports": {
     "#x/*": "./export/*.js"
   },
 
   "dependencies": {
-    "@milk/just-a-test": "*"
+    "@milk/just-a-test": "*",
+    "chalk": "^5.0.1",
+    "express": "^4.18.1",
+    "lodash": "^4.17.21"
   }
 }

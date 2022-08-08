@@ -53,7 +53,13 @@ mkdir -p "${outDir}" \
 
 cd "${outDir}"
 
-cp "${srcDir}/{package.json,index.js}" .
+cp "${srcDir}/index.js" .
+
+# Rewrite workspaces as absolute.
+jq <"${srcDir}/package.json" >"package.json" \
+    --arg prefix "${srcDir}" '
+    .workspaces = (.workspaces | map(. | $prefix + "/" + .))
+    '
 
 # TODO: Hoist dependencies from workspace packages into package.json
 
