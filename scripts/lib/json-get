@@ -15,13 +15,17 @@ function usage {
     print-usage $'
     Usage:
 
-    ${name} [<opt> ...] [--] <json-value> [<jval-expr> ...]
+    ${name} [<opt> ...] [--] <value> [<jval-expr> ...]
+    ${name} [--file=<path> <opt> ...] [--] [<jval-expr> ...]
       Performs an operation on a single JSON value (at least with typical usage).
-      More specifically, <json-value> is used as the sole input to a `json-val`
-      invocation consisting of the rest of the arguments. If no expression is
-      given, it is taken to be `.`, which will end up just formatting the input
-      value as implied/specified by the output options.
+      More specifically, a given <value> or the content of a file is used as the
+      sole input to a `json-val` invocation consisting of the rest of the
+      arguments. If no expression is given, it is taken to be `.`, which will
+      end up just formatting the input value as implied/specified by the output
+      options.
 
+      --file=<path>
+        Read from the file instead of taking a value as a positional argument.
       --output=<style>
         `compact` -- Output in compact (single line) JSON form.
         `json` -- Output in multiline JSON form. This is the default.
@@ -43,11 +47,15 @@ function usage {
 # Want help?
 opt-action --call='{ usage }' help/h
 
+# File to read.
+opt-value --var=filePath file
+
 # Output style.
 opt-value --var=outputStyle --init=json \
     --enum='compact json lines none raw words' output
 
-# Value to operate on.
+# Value to operate on. (Will actually be the first expression if `--file` is
+# used.)
 positional-arg --required --var=value value
 
 # Expressions to operate on the value.
@@ -55,14 +63,31 @@ rest-arg --var=exprArgs jval-exprs
 
 process-args "$@" || usage "$?"
 
-
-#
-# Main script
-#
+if [[ ${filePath} != '' ]]; then
+    if [[ ${value} != '' ]]; then
+        exprArgs=("${value}" "${exprArgs[@]}")
+        value=''
+    fi
+fi
 
 if (( ${#exprArgs[@]} == 0 )); then
     exprArgs=('.')
 fi
 
-lib json-val <<< "${value}" --output="${outputStyle}" --input=read -- \
-    "${exprArgs[@]}"
+
+#
+# Main script
+#
+
+
+jvalArgs=(--output="${outputStyle}" --input=read -- "${exprArgs[@]}")
+
+if [[ ${filePath} != '' ]]; then
+    if [[ ! -r "${filePath}" ]]; then
+        error-msg "Cannot read file: ${filePath}"
+        exit 1
+    fi
+    lib json-val "${jvalArgs[@]}" <"${filePath}"
+else
+    lib json-val "${jvalArgs[@]}" <<<"${value}"
+fi
