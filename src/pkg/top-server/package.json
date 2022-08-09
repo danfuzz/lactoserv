@@ -1,5 +1,5 @@
 {
-  "name": "@milk/top-server",
+  "name": "@this/top-server",
   "version": "0.0.1",
   "type": "module",
 
@@ -9,7 +9,7 @@
   },
 
   "dependencies": {
-    "@milk/just-a-test": "*",
+    "@this/just-a-test": "*",
     "chalk": "^5.0.1",
     "express": "^4.18.1",
     "lodash": "^4.17.21"

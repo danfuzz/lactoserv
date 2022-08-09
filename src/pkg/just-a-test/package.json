@@ -1,5 +1,5 @@
 {
-  "name": "@milk/just-a-test",
+  "name": "@this/just-a-test",
   "version": "0.0.1",
 
   "type": "module",
@@ -9,6 +9,6 @@
   },
 
   "dependencies": {
-    "@milk/just-a-test-2": "*"
+    "@this/just-a-test-2": "*"
   }
 }

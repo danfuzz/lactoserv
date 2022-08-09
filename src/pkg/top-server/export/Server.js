@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { Something } from '@milk/just-a-test'; // TODO: Remove!
+import { Something } from '@this/just-a-test'; // TODO: Remove!
 
 /**
  * Top-level logic for starting a server.
