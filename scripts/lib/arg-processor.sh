@@ -1,4 +1,4 @@
-# arg-processor v1.0 -- Copyright 2022 Dan Bornstein.
+# arg-processor v1.1 -- Copyright 2022 Dan Bornstein.
 # Licensed AS IS and WITHOUT WARRANTY under the Apache License, Version 2.0.
 # Details: <http://www.apache.org/licenses/LICENSE-2.0>
 
@@ -267,7 +267,7 @@ function positional-arg {
 function print-usage {
     local msg="$1"
 
-    error-msg --no-name --exec \
+    info-msg --no-name --exec \
     awk <<<"${msg}" -v name="${_argproc_cmdName}" \
     '
     BEGIN {
