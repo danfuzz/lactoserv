@@ -102,7 +102,7 @@ localDependencies="$(
 )"
 
 # Inject the dependencies!
-jval <"${srcDir}/package.json" >"${outDir}/package.json" --input=read \
+jget >"${outDir}/package.json" --file="${srcDir}/package.json" \
     dir='local-packages' \
     localDependencies:json="${localDependencies}" \
 '
@@ -114,7 +114,7 @@ if .dependencies == null then .dependencies = {} else . end
 # Remove any local packages from the `node_modules` directory, to force them to
 # get re-copied (because their code might have changed).
 for p in "${localPackages[@]}"; do
-    name="$(jval <"${packageDestDir}/${p}.json" --output=raw --input=read '.name')"
+    name="$(jget --file="${packageDestDir}/${p}.json" --output=raw '.name')"
     path="${outDir}/node_modules/${name}"
     if [[ -e ${path} ]]; then
         echo "Removing code for ${name}, for rebuild..."
