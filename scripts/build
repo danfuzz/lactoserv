@@ -89,7 +89,7 @@ done
 localDependencies="$(
     (
         for p in "${localPackages[@]}";  do
-            jval <"${packageDestDir}/${p}.json" --input=read \
+            jget --file="${packageDestDir}/${p}.json" \
             '
             (
                 .filename
