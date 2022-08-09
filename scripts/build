@@ -111,6 +111,17 @@ if .dependencies == null then .dependencies = {} else . end
 .dependencies += ($localDependencies | map_values("file:" + $dir + "/" + .))
 '
 
+# Remove any local packages from the `node_modules` directory, to force them to
+# get re-copied (because their code might have changed).
+for p in "${localPackages[@]}"; do
+    name="$(jval <"${packageDestDir}/${p}.json" --output=raw --input=read '.name')"
+    path="${outDir}/node_modules/${name}"
+    if [[ -e ${path} ]]; then
+        echo "Removing code for ${name}, for rebuild..."
+        rm -rf "${path}"
+    fi
+done
+
 # Let `npm` do its thing.
 
 (
