@@ -76,7 +76,7 @@ for p in "${localPackages[@]}"; do
         # (because some invocations can emit multiple packages), but it's
         # superfluous here, so unwrap.
         npm pack --json --pack-destination="${packageDestDir}" \
-        | jq '.[0]' >"${packageDestDir}/${p}.json"
+        | jval --input=read '.[0]' >"${packageDestDir}/${p}.json"
     ) \
     || exit "$?"
 done
@@ -89,8 +89,7 @@ done
 localDependencies="$(
     (
         for p in "${localPackages[@]}";  do
-            jq <"${packageDestDir}/${p}.json" \
-                --arg dir "local-packages" \
+            jval <"${packageDestDir}/${p}.json" --input=read \
             '
             (
                 .filename
@@ -103,9 +102,9 @@ localDependencies="$(
 )"
 
 # Inject the dependencies!
-jq <"${srcDir}/package.json" >"${outDir}/package.json" \
-    --arg dir "local-packages" \
-    --argjson localDependencies "${localDependencies}" \
+jval <"${srcDir}/package.json" >"${outDir}/package.json" --input=read \
+    dir='local-packages' \
+    localDependencies:json="${localDependencies}" \
 '
 if .dependencies == null then .dependencies = {} else . end
 |
@@ -149,11 +148,8 @@ done
 # logic to the package info file cleanup above.
 defunct=($(
     (
-        jq --null-input --raw-output \
-            --argjson localDependencies "${localDependencies}" \
-        '
-        $localDependencies | to_entries | map(.value) | .[]
-        '
+        jget --output=raw "${localDependencies}" \
+            'to_entries | map(.value) | .[]'
         find "${packageDestDir}" -name '*.tgz' -exec basename '{}' ';'
     ) | sort | uniq -c | awk '$1 != 2 { print $2 }'
 ))
