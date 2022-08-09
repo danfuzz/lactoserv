@@ -1,0 +1,56 @@
+#!/bin/bash
+#
+# Copyright 2022 Dan Bornstein. All rights reserved.
+# All code and assets are considered proprietary and unlicensed.
+
+. "$(dirname "$(readlink -f "$0")")/lib/init.sh" || exit "$?"
+
+
+#
+# Argument parsing
+#
+
+function usage {
+    print-usage $'
+    Usage:
+
+    ${name} [<opt> ...]
+      Runs the product, building it first if necessary.
+
+    --out=<dir>
+      Directory where built output goes. Defaults to `out` directly under the
+      main product directory.
+
+    ${name} [--help | -h]
+      Displays this message.
+    '
+
+    exit "$@"
+}
+
+# Want help?
+opt-action --call='{ usage }' help/h
+
+# Built output directory.
+opt-value --var=outDir out
+
+process-args "$@" || usage "$?"
+
+
+#
+# Main script
+#
+
+if [[ ${outDir} == '' ]]; then
+    outDir="$(dirname "$(this-cmd-dir)")/out"
+fi
+
+outRun="${outDir}/bin/run"
+
+if [[ ! -x "${outRun}" ]]; then
+    lib build --out="${outDir}" \
+    || exit "$?"
+    echo ''
+fi
+
+exec "${outRun}"
