@@ -59,7 +59,7 @@ cp "${srcDir}/index.js" .
 
 # Create tarballs of each local package.
 
-packageSrcDir="${srcDir}/milk"
+packageSrcDir="${srcDir}/pkg"
 localPackages=($(
     cd "${packageSrcDir}"
     find . -mindepth 2 -maxdepth 2 -name package.json | awk -F/ '{ print $2 }' | sort
