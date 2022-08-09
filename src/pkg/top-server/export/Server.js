@@ -1,6 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { StaticServer } from '@this/static-server';
 import { Something } from '@this/just-a-test'; // TODO: Remove!
 
 /**
@@ -16,7 +17,10 @@ export class Server {
    */
   static async run(args) {
     console.log('TODO!')
-    new Something(); // Just a test! TODO: Remove!
+
+    // Way more TODO.
+    const server = new StaticServer();
+    server.start();
 
     return 0;
   }

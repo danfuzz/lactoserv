@@ -1,0 +1,14 @@
+{
+  "name": "@this/static-server",
+  "version": "0.0.1",
+  "type": "module",
+
+  "exports": "./index.js",
+  "imports": {
+    "#x/*": "./export/*.js"
+  },
+
+  "dependencies": {
+    "express": "^4.18.1"
+  }
+}
