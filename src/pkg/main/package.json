@@ -1,5 +1,5 @@
 {
-  "name": "@this/top-server",
+  "name": "@this/main",
   "version": "0.0.1",
   "type": "module",
 
@@ -9,9 +9,6 @@
   },
 
   "dependencies": {
-    "@this/just-a-test": "*",
-    "chalk": "^5.0.1",
-    "express": "^4.18.1",
-    "lodash": "^4.17.21"
+    "@this/static-server": "*"
   }
 }
