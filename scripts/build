@@ -98,7 +98,7 @@ localDependencies="$(
             | { (.name): $filename }
             '
         done
-    ) | jq --slurp 'reduce .[] as $item ({}; . + $item)'
+    ) | jval --input=slurp 'reduce .[] as $item ({}; . + $item)'
 )"
 
 # Inject the dependencies!
