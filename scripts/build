@@ -48,8 +48,6 @@ if [[ ${outDir} == '' ]]; then
     outDir="${baseDir}/out"
 fi
 
-echo '###### OUT DIR:' "${outDir}"
-
 mkdir -p "${outDir}" \
 || exit "$?"
 
