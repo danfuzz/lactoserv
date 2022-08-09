@@ -1,0 +1,68 @@
+#!/bin/bash
+#
+# Copyright 2022 Dan Bornstein.
+# Licensed AS IS and WITHOUT WARRANTY under the Apache License, Version 2.0.
+# Details: <http://www.apache.org/licenses/LICENSE-2.0>
+
+# Load the helper libraries.
+. "$(dirname "$(readlink -f "$0")")/init.sh" || exit "$?"
+
+#
+# Argument parsing
+#
+
+function usage {
+    print-usage $'
+    Usage:
+
+    ${name} [<opt> ...] [--] <json-value> [<jval-expr> ...]
+      Performs an operation on a single JSON value (at least with typical usage).
+      More specifically, <json-value> is used as the sole input to a `json-val`
+      invocation consisting of the rest of the arguments. If no expression is
+      given, it is taken to be `.`, which will end up just formatting the input
+      value as implied/specified by the output options.
+
+      --output=<style>
+        `compact` -- Output in compact (single line) JSON form.
+        `json` -- Output in multiline JSON form. This is the default.
+        `lines` -- Output each item as a single line. Similar to `raw`, except
+          that strings with newlines or CRs in them get treated as non-raw so as
+          to maintain the guarantee of item-per-line.
+        `none` -- Suppress all non-error output.
+        `raw` -- Output strings as raw text (and other values as `compact`).
+        `words` -- Like `lines`, except that the guarantee is a word per line.
+          As such, strings containing whitespace get treated as non-raw.
+
+    ${name} [--help | -h]
+      Displays this message.
+    '
+
+    exit "$@"
+}
+
+# Want help?
+opt-action --call='{ usage }' help/h
+
+# Output style.
+opt-value --var=outputStyle --init=json \
+    --enum='compact json lines none raw words' output
+
+# Value to operate on.
+positional-arg --required --var=value value
+
+# Expressions to operate on the value.
+rest-arg --var=exprArgs jval-exprs
+
+process-args "$@" || usage "$?"
+
+
+#
+# Main script
+#
+
+if (( ${#exprArgs[@]} == 0 )); then
+    exprArgs=('.')
+fi
+
+lib json-val <<< "${value}" --output="${outputStyle}" --input=read -- \
+    "${exprArgs[@]}"
