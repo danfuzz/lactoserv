@@ -55,17 +55,82 @@ cd "${outDir}"
 
 cp "${srcDir}/index.js" .
 
-# Rewrite workspaces as absolute.
-jq <"${srcDir}/package.json" >"package.json" \
-    --arg prefix "${srcDir}" '
-    .workspaces = (.workspaces | map(. | "../src/" + .))
-    '
+# TODO: Hoist dependencies from local packages into package.json
 
-# TODO: Hoist dependencies from workspace packages into package.json
+# Create tarballs of each local package.
+
+packageSrcDir="${srcDir}/milk"
+localPackages=($(
+    cd "${packageSrcDir}"
+    find . -mindepth 2 -maxdepth 2 -name package.json | awk -F/ '{ print $2 }' | sort
+))
+
+packageDestDir="${outDir}/local-packages"
+mkdir -p "${packageDestDir}"
+for p in "${localPackages[@]}"; do
+    echo "Tarring ${p}..."
+    (
+        cd "${packageSrcDir}/${p}"
+        # The JSON output from `npm pack` is wrapped in a top-level array
+        # (because some invocations can emit multiple packages), but it's
+        # superfluous here, so unwrap.
+        npm pack --json --pack-destination="${packageDestDir}" \
+        | jq '.[0]' >"${packageDestDir}/${p}.json"
+    ) \
+    || exit "$?"
+done
+
+# Copy over main `package.json`, adding a top-level dependency on each of the
+# local packages, pointing to the tarballs we just made.
+
+# Pull the package name and file out of each of the info files, and mangle it
+# into the form expected in a dependencies list.
+localDependencies="$(
+    (
+        for p in "${localPackages[@]}";  do
+            jq <"${packageDestDir}/${p}.json" \
+                --arg dir "local-packages" '
+                  (.id | sub("^(?<name>.+/[^@]+)(@.*)$"; .name)) as $id
+                | (.filename | sub("^@(?<scope>[^/]+)/(?<name>.*)$"; .scope + "-" + .name)) as $filename
+                | { ($id): ("file:" + $dir + "/" + $filename) }
+            '
+        done
+    ) | jq --slurp 'reduce .[] as $item ({}; . + $item)'
+)"
+
+# Inject the dependencies!
+jq <"${srcDir}/package.json" >"package.json" \
+    --argjson localDependencies "${localDependencies}" '
+    if .dependencies == null then .dependencies = {} else . end
+    |
+    .dependencies += $localDependencies
+'
+
+# Let `npm` do its thing.
 
 npm install \
 || exit "$?"
 
+# Copy over the script binaries.
+
 mkdir -p bin
 cp "${etcDir}/bin-src/run" bin
 chmod 755 bin/run
+
+# Clean things up a bit.
+
+# Remove defunct package info files. Kinda cheesy: Take the list of currently-
+# valid names and the list of all the ones that are in the package output
+# directory, and remove all of the names that don't appear twice.
+defunctPackages=($(
+    (
+        printf '%s\n' "${localPackages[@]}"
+        find "${packageDestDir}" -name '*.json' -exec basename '{}' '.json' ';'
+    ) | sort | uniq -c | awk '$1 != 2 { print $2 }'
+))
+for p in "${defunctPackages[@]}"; do
+    echo "Removing defunct package info for ${p}..."
+    rm -f "${packageDestDir}/${p}.json"
+done
+
+# TODO: Remove defunct local package `.tgz` files.
