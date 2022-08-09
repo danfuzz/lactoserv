@@ -58,7 +58,7 @@ cp "${srcDir}/index.js" .
 # Rewrite workspaces as absolute.
 jq <"${srcDir}/package.json" >"package.json" \
     --arg prefix "${srcDir}" '
-    .workspaces = (.workspaces | map(. | $prefix + "/" + .))
+    .workspaces = (.workspaces | map(. | "../src/" + .))
     '
 
 # TODO: Hoist dependencies from workspace packages into package.json
