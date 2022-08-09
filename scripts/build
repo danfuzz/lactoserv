@@ -48,14 +48,17 @@ if [[ ${outDir} == '' ]]; then
     outDir="${baseDir}/out"
 fi
 
+echo '###### OUT DIR:' "${outDir}"
+
 mkdir -p "${outDir}" \
 || exit "$?"
 
-cd "${outDir}"
-
-cp "${srcDir}/index.js" .
-
-# TODO: Hoist dependencies from local packages into package.json
+# Copy the top-level code.
+(
+    cd "${srcDir}"
+    find . -name pkg -prune -o -type f -name '*.js' -exec \
+        cp '{}' "${outDir}/{}" ';'
+)
 
 # Create tarballs of each local package.
 
@@ -102,7 +105,7 @@ localDependencies="$(
 )"
 
 # Inject the dependencies!
-jq <"${srcDir}/package.json" >"package.json" \
+jq <"${srcDir}/package.json" >"${outDir}/package.json" \
     --arg dir "local-packages" \
     --argjson localDependencies "${localDependencies}" \
 '
@@ -113,14 +116,20 @@ if .dependencies == null then .dependencies = {} else . end
 
 # Let `npm` do its thing.
 
-npm install \
-|| exit "$?"
+(
+    cd "${outDir}"
+    npm install \
+    || exit "$?"
+)
 
 # Copy over the script binaries.
-
-mkdir -p bin
-cp "${etcDir}/bin-src/run" bin
-chmod 755 bin/run
+mkdir -p "${outDir}/bin"
+(
+    cd "${etcDir}/bin-src"
+    find . -type f \
+        -exec cp '{}' "${outDir}/bin/{}" ';' \
+        -exec chmod 755 "${outDir}/bin/{}" ';'
+)
 
 # Clean things up a bit.
 
