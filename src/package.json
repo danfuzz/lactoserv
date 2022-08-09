@@ -8,18 +8,6 @@
     "node": ">=18"
   },
 
-  "workspaces": [
-    "milk/just-a-test",
-    "milk/just-a-test-2",
-    "milk/top-server"
-  ],
-
   "type": "module",
-  "main": "index.js",
-
-  "dependencies": {
-    "chalk": "^5.0.1",
-    "express": "^4.18.1",
-    "lodash": "^4.17.21"
-  }
+  "main": "index.js"
 }
