@@ -1,4 +1,12 @@
 #!/bin/bash
 
+# Figure out the symlink-resolved program name and directory.
+cmdName="$(readlink -f "$0")" || exit "$?"
+cmdDir="${cmdName%/*}"
+cmdName="${cmdName##*/}"
+baseDir="${cmdDir%/*}"
+
 # TODO: Check for version of Node.
 # TODO: Run the thing!
+
+node "${baseDir}/index.js"
