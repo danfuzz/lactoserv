@@ -93,7 +93,8 @@ localDependencies="$(
             '
             (
                 .filename
-                    | sub("^@(?<scope>[^/]+)/(?<name>.*)$"; .scope + "-" + .name))
+                    | sub("^@(?<scope>[^/]+)/(?<name>.*)$"; .scope + "-" + .name)
+            )
                 as $filename
             | { (.name): $filename }
             '
