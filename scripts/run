@@ -17,8 +17,10 @@ function usage {
     ${name} [<opt> ...]
       Runs the product, building it first if necessary.
 
-    --clean
-      Do a clean build.
+    --do=<action>
+      `build` -- Always build, even if there is something to run.
+      `clean` -- Always do a clean build.
+      `run` -- Build only if there is nothing to run. This is the default.
     --out=<dir>
       Directory where built output goes. Defaults to `out` directly under the
       main product directory.
@@ -33,8 +35,8 @@ function usage {
 # Want help?
 opt-action --call='{ usage }' help/h
 
-# Clean build?
-opt-toggle --var=clean clean
+# What to do?
+opt-value --var=action --init=run --enum='build clean run' do
 
 # Built output directory.
 opt-value --var=outDir out
@@ -56,12 +58,21 @@ outRun="${outDir}/bin/run"
 
 buildCmd=(lib build --out="${outDir}")
 doBuild=0
-if (( clean )); then
-    doBuild=1
-    buildCmd+=(--clean)
-elif [[ ! -x "${outRun}" ]]; then
-    doBuild=1
-fi
+
+case "${action}" in
+    build)
+        doBuild=1
+        ;;
+    clean)
+        buildCmd+=(--clean)
+        doBuild=1
+        ;;
+    run)
+        if [[ ! -x "${outRun}" ]]; then
+            doBuild=1
+        fi
+        ;;
+esac
 
 if (( doBuild )); then
     progress-msg 'Doing build...'
