@@ -4,6 +4,7 @@
 import express from 'express';
 
 import * as http from 'http';
+import * as https from 'https';
 import * as path from 'node:path';
 import * as url from 'url';
 
@@ -17,6 +18,9 @@ export class ActualServer {
   /** {int} Port to listen on. */
   #port;
 
+  /** {string} Protocol to use. */
+  #protocol;
+
   /** {http.Server|null} Active HTTP server instance. */
   #server;
 
@@ -24,10 +28,12 @@ export class ActualServer {
    * Constructs an instance.
    *
    * @param {int} [port = 8000] Port to listen on.
+   * @param {string} [protocol = 'http'] What protocol to use.
    */
-  constructor(port = 8000) {
+  constructor(port = 8000, protocol = 'http') {
     this.#app = express();
     this.#port = port;
+    this.#protocol = protocol;
     this.#server = null;
 
     this.#addRoutes();
@@ -76,7 +82,7 @@ export class ActualServer {
       app.on('listening', handleListening);
       app.on('error',     handleError);
 
-      const server = http.createServer(app);
+      const server = this.#createServer();
       server.on('listening', handleListening);
       server.on('error',     handleError);
       server.listen(listenOptions);
@@ -157,5 +163,28 @@ export class ActualServer {
     // TODO: Way more stuff. For now, just serve some static files.
     const assetsDir = url.fileURLToPath(new URL('../assets', import.meta.url));
     this.#app.use('/', express.static(assetsDir))
+  }
+
+  /**
+   * Creates a server for the protocol as indicated during construction.
+   *
+   * @returns {net.Server} An appropriate server object.
+   */
+  #createServer() {
+    const app = this.#app;
+
+    switch (this.#protocol) {
+      case 'http': {
+        return http.createServer(app);
+      }
+
+      case 'https': {
+        return https.createServer(app);
+      }
+
+      default: {
+        throw new Error('Unknown protocol: ' + this.#protocol)
+      }
+    }
   }
 }
