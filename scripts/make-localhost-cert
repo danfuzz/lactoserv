@@ -1,0 +1,97 @@
+#!/bin/bash
+#
+# Copyright 2022 Dan Bornstein. All rights reserved.
+# All code and assets are considered proprietary and unlicensed.
+
+. "$(dirname "$(readlink -f "$0")")/lib/init.sh" || exit "$?"
+
+
+#
+# Argument parsing
+#
+
+function usage {
+    print-usage $'
+    Usage:
+
+    ${name} [<opt> ...]
+      Makes a certificate and associated key which can be used when serving HTTPS
+      (or HTTP2 maybe?) from `localhost`. The files are stored in the built output
+      directory. The certificate needs to be added as a trusted root to the web
+      browser.
+
+      For more information, see:
+          <https://letsencrypt.org/docs/certificates-for-localhost/>
+
+    --force
+      Create new files, even if they already exist.
+    --out=<dir>
+      Directory where built output goes. Defaults to `out` directly under the
+      main product directory.
+
+    ${name} [--help | -h]
+      Displays this message.
+    '
+
+    exit "$@"
+}
+
+# Want help?
+opt-action --call='{ usage }' help/h
+
+# Force creation?
+opt-toggle --var=force force
+
+# Built output directory.
+opt-value --var=outDir out
+
+process-args "$@" || usage "$?"
+
+
+#
+# Main script
+#
+
+progress-msg --enable
+
+if [[ ${outDir} == '' ]]; then
+    outDir="$(dirname "$(this-cmd-dir)")/out"
+fi
+
+certDir="${outDir}/certs"
+certFile='localhost.crt'
+keyFile='localhost.key'
+
+if (( !force )) && [[ -d "${certDir}" ]]; then
+  cd "${certDir}"
+  if [[ -r "${certFile}" && -r "${keyFile}" ]]; then
+    info-msg 'Certificate files already exist. Not overwriting.'
+    info-msg 'Use --force to overwrite with new files.'
+    exit
+  fi
+fi
+
+mkdir -p "${certDir}"
+cd "${certDir}"
+
+progress-msg 'Creating certificate files...'
+
+# This `openssl` command found here (except a bit messier):
+# <https://letsencrypt.org/docs/certificates-for-localhost/>
+
+config='
+    [dn]
+    CN=localhost
+    [req]
+    distinguished_name = dn
+    [EXT]
+    subjectAltName=DNS:localhost
+    keyUsage=digitalSignature
+    extendedKeyUsage=serverAuth
+'
+
+openssl req -x509 -out "${certFile}" -keyout "${keyFile}" \
+  -newkey rsa:2048 -nodes -sha256 -subj '/CN=localhost' -extensions EXT \
+  -config <(echo "${config}")
+
+progress-msg 'Done!'
