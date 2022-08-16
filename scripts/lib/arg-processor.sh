@@ -267,7 +267,7 @@ function positional-arg {
 function print-usage {
     local msg="$1"
 
-    info-msg --no-name --exec \
+    info-msg --exec \
     awk <<<"${msg}" -v name="${_argproc_cmdName}" \
     '
     BEGIN {
