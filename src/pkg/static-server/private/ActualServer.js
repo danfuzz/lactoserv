@@ -3,6 +3,7 @@
 
 import express from 'express';
 
+import * as http from 'http';
 import path from 'path';
 import * as url from 'url';
 
@@ -75,13 +76,10 @@ export class ActualServer {
       app.on('listening', handleListening);
       app.on('error',     handleError);
 
-      // TODO: Replace with this expansion:
-      // const server = http.createServer(this);
-      // server.listen(listenOptions);
-      const server = app.listen(listenOptions);
-
+      const server = http.createServer(app);
       server.on('listening', handleListening);
       server.on('error',     handleError);
+      server.listen(listenOptions);
       this.#server = server;
 
       console.log('### actual 3');
