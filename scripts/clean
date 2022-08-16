@@ -47,14 +47,21 @@ process-args "$@" || usage "$?"
 # Main script
 #
 
+progress-msg --enable
+
 if [[ ${outDir} == '' ]]; then
     outDir="$(dirname "$(this-cmd-dir)")/out"
 fi
+
+progress-msg 'Cleaning...'
 
 rm -rf "${outDir}" \
 || exit "$?"
 
 if (( createDir )); then
+    progress-msg 'Creating output directory...'
     mkdir -p "${outDir}" \
     || exit "$?"
 fi
+
+progress-msg 'Done cleaning!'

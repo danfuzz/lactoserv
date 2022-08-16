@@ -17,6 +17,8 @@ function usage {
     ${name} [<opt> ...]
       Runs the product, building it first if necessary.
 
+    --clean
+      Do a clean build.
     --out=<dir>
       Directory where built output goes. Defaults to `out` directly under the
       main product directory.
@@ -31,6 +33,9 @@ function usage {
 # Want help?
 opt-action --call='{ usage }' help/h
 
+# Clean build?
+opt-toggle --var=clean clean
+
 # Built output directory.
 opt-value --var=outDir out
 
@@ -41,16 +46,29 @@ process-args "$@" || usage "$?"
 # Main script
 #
 
+progress-msg --enable
+
 if [[ ${outDir} == '' ]]; then
     outDir="$(dirname "$(this-cmd-dir)")/out"
 fi
 
 outRun="${outDir}/bin/run"
 
-if [[ ! -x "${outRun}" ]]; then
-    lib build --out="${outDir}" \
-    || exit "$?"
-    echo ''
+buildCmd=(lib build --out="${outDir}")
+doBuild=0
+if (( clean )); then
+    doBuild=1
+    buildCmd+=(--clean)
+elif [[ ! -x "${outRun}" ]]; then
+    doBuild=1
+fi
+
+if (( doBuild )); then
+    progress-msg 'Doing build...'
+    "${buildCmd[@]}" || exit "$?"
+    progress-msg
+    progress-msg 'Running...'
+    progress-msg
 fi
 
 exec "${outRun}"
