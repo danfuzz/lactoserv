@@ -21,4 +21,20 @@ export class StaticServer {
     await this.#actual.start();
     console.log('### static 2');
   }
+
+  /**
+   * Stops the server.
+   */
+  async stop() {
+    return this.#actual.stop();
+  }
+
+  /**
+   * Returns when the server becomes stopped (stops listening / closes its
+   * server socket). In the case of closing due to an error, this throws the
+   * error.
+   */
+  async whenStopped() {
+    return this.#actual.whenStopped();
+  }
 }

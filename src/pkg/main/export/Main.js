@@ -3,6 +3,8 @@
 
 import { StaticServer } from '@this/static-server';
 
+import * as timers from 'timers';
+
 /**
  * Top-level logic for starting a server.
  */
@@ -22,6 +24,16 @@ export class Main {
     console.log('### main 1');
     await server.start();
     console.log('### main 2');
+
+    function doStop() {
+      console.log('### main 4: stopping!');
+      server.stop();
+    }
+
+    timers.setTimeout(doStop, 10 * 1000);
+
+    await server.whenStopped();
+    console.log('### main 3');
 
     return 0;
   }

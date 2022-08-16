@@ -16,6 +16,9 @@ export class ActualServer {
   /** {int} Port to listen on. */
   #port;
 
+  /** {http.Server|null} Active HTTP server instance. */
+  #server;
+
   /**
    * Constructs an instance.
    *
@@ -23,6 +26,9 @@ export class ActualServer {
    */
   constructor(port = 8000) {
     this.#app = express();
+    this.#port = port;
+    this.#server = null;
+
     this.#addRoutes();
   }
 
@@ -68,7 +74,16 @@ export class ActualServer {
 
       app.on('listening', handleListening);
       app.on('error',     handleError);
-      app.listen(listenOptions);
+
+      // TODO: Replace with this expansion:
+      // const server = http.createServer(this);
+      // server.listen(listenOptions);
+      const server = app.listen(listenOptions);
+
+      server.on('listening', handleListening);
+      server.on('error',     handleError);
+      this.#server = server;
+
       console.log('### actual 3');
     });
 
@@ -76,10 +91,65 @@ export class ActualServer {
     console.log('### actual 4');
     console.log('Started server. Yay?');
 
-    const gotPort = app.address().port;
+    const gotPort = this.#server.address().port;
 
     console.log('Listening on port ' + gotPort);
     this.#port = gotPort;
+  }
+
+  /**
+   * Stops the server. This returns when the server is actually stopped (socket
+   * is closed).
+   */
+  async stop() {
+    const server = this.#server;
+
+    if (server.listening) {
+      server.close();
+    }
+
+    return this.whenStopped();
+  }
+
+  /**
+   * Returns when the server becomes stopped (stops listening / closes its
+   * server socket). In the case of closing due to an error, this throws the
+   * error.
+   */
+  async whenStopped() {
+    const server = this.#server;
+
+    if (!server.listening) {
+      return;
+    }
+
+    await new Promise((resolve, reject) => {
+      console.log('### close 1');
+      function done(err) {
+        server.removeListener('close', handleClose);
+        server.removeListener('error', handleError);
+
+        if (err !== null) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      }
+
+      function handleClose() {
+        console.log('### close 3-yay');
+        done(null);
+      }
+
+      function handleError(err) {
+        console.log('### close 3-boo');
+        done(err);
+      }
+
+      server.on('close', handleClose);
+      server.on('error', handleError);
+      console.log('### close 2');
+    });
   }
 
   /**
