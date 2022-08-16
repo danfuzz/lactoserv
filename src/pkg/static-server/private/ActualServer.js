@@ -4,7 +4,7 @@
 import express from 'express';
 
 import * as http from 'http';
-import path from 'path';
+import * as path from 'node:path';
 import * as url from 'url';
 
 /**
