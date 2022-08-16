@@ -5,9 +5,12 @@
  * Static content server.
  */
 export class StaticServer {
+  #testPrivate;
+
   constructor() {
     // TODO!
     console.log('Constructed server.');
+    this.#testPrivate = "hello!";
   }
 
   /**
@@ -15,6 +18,6 @@ export class StaticServer {
    */
   start() {
     // TODO!
-    console.log('Started server.');
+    console.log('Started server. Hmmm: ' + this.#testPrivate);
   }
 }
