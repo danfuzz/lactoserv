@@ -1,23 +1,24 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { ActualServer } from '#p/ActualServer';
+
 /**
  * Static content server.
  */
 export class StaticServer {
-  #testPrivate;
+  #actual;
 
   constructor() {
-    // TODO!
-    console.log('Constructed server.');
-    this.#testPrivate = "hello!";
+    this.#actual = new ActualServer();
   }
 
   /**
    * Starts the server.
    */
-  start() {
-    // TODO!
-    console.log('Started server. Hmmm: ' + this.#testPrivate);
+  async start() {
+    console.log('### static 1');
+    await this.#actual.start();
+    console.log('### static 2');
   }
 }

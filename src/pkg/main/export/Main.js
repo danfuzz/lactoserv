@@ -19,7 +19,9 @@ export class Main {
 
     // Way more TODO.
     const server = new StaticServer();
-    server.start();
+    console.log('### main 1');
+    await server.start();
+    console.log('### main 2');
 
     return 0;
   }

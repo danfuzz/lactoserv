@@ -5,7 +5,8 @@
 
   "exports": "./index.js",
   "imports": {
-    "#x/*": "./export/*.js"
+    "#x/*": "./export/*.js",
+    "#p/*": "./private/*.js"
   },
 
   "dependencies": {
