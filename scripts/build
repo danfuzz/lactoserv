@@ -45,6 +45,64 @@ process-args "$@" || usage "$?"
 # Helper functions
 #
 
+# Fills in the `<hash>`es of the given local package set, based on the
+# contents of the package JSON files.
+function local-packages-fill-in-hashes {
+    local localPackageSet="$1"
+
+    local jsonFiles=($(jget --output=raw "${localPackageSet}" '.[] | .destJsonFile'))
+    local f
+    for f in "${jsonFiles[@]}"; do
+        jget --file="${f}" \
+            '{
+                name: (.name | sub("^@[^/]+/(?<name>.*)$"; .name)),
+                hash: .shasum[0:20]
+            }'
+    done \
+    | jval --input=slurp result:json="${localPackageSet}" \
+        'reduce .[] as $item ($result;
+            .[$item.name].destPkgFile = 
+                (.[$item.name].destPkgFile | sub("<hash>"; $item.hash))
+        )'
+}
+
+# Gets the set of local packages, as a JSON object mapped from name to info
+# objects. The result leaves the destination package file with a `<hash>` hole
+# to be filled in.
+function local-packages {
+    local pkgSrcDir="${srcDir}/pkg"
+    local pkgDestDir="${outDir}/local-pkg"
+    local srcPaths
+
+    srcPaths=($(
+        find "${pkgSrcDir}" -mindepth 2 -maxdepth 2 -name package.json \
+            -exec dirname '{}' ';' \
+            | sort
+        ))
+
+    (
+        local p
+        for p in "${srcPaths[@]}"; do
+            jval \
+                pkgDestDir="${pkgDestDir}" \
+                name="$(basename "${p}")" \
+                srcPath="${p}" \
+                '
+                ($pkgDestDir + "/" + $name) as $destPathBase
+                |
+                {
+                    ($name): {
+                        name:         $name,
+                        srcPath:      $srcPath,
+                        destPathBase: $destPathBase,
+                        destJsonFile: ($destPathBase + ".json"),
+                        destPkgFile:  ($destPathBase + "-<hash>.tgz")
+                    }
+                }'
+        done
+    ) | jval --input=slurp 'reduce .[] as $item ({}; . + $item)'
+}
+
 # Sets up the output directory.
 function set-up-out-dir {
     local extraOpts=()
