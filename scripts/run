@@ -38,7 +38,7 @@ opt-action --call='{ usage }' help/h
 # What to do?
 opt-value --var=action --init=run --enum='build clean run' do
 
-# Built output directory.
+# Build-output directory.
 opt-value --var=outDir out
 
 process-args "$@" || usage "$?"
@@ -50,12 +50,10 @@ process-args "$@" || usage "$?"
 
 progress-msg --enable
 
-if [[ ${outDir} == '' ]]; then
-    outDir="$(dirname "$(this-cmd-dir)")/out"
-fi
+outDir="$(lib out-dir --out="${outDir}")" \
+|| exit "$?"
 
 outRun="${outDir}/bin/run"
-
 buildCmd=(lib build --out="${outDir}")
 doBuild=0
 
@@ -75,7 +73,7 @@ case "${action}" in
 esac
 
 if (( doBuild )); then
-    progress-msg 'Doing build...'
+    progress-msg 'Building...'
     "${buildCmd[@]}" || exit "$?"
     progress-msg
     progress-msg 'Running...'
