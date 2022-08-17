@@ -148,35 +148,20 @@ jget >"${outDir}/package.json" \
     deps:json="${localDepsObj}" \
     '.dependencies += $deps'
 
-# Remove any local packages from the `node_modules` directory, to force them to
-# get re-copied (because their code might have changed).
-for p in "${localPackages[@]}"; do
-    name="$(jget --file="${packageDestDir}/${p}.json" --output=raw '.name')"
-    path="${outDir}/node_modules/${name}"
-    if [[ -e ${path} ]]; then
-        progress-msg "Removing code for ${name}, for rebuild..."
-        rm -rf "${path}"
-    fi
-done
-
 # Let `npm` do its thing.
-
-(
-    progress-msg 'Fetching and installing dependencies...'
-    cd "${outDir}"
-    npm install --omit=dev \
-    || exit "$?"
-)
+progress-msg 'Fetching and installing dependencies...'
+cd "${outDir}"
+npm install --omit=dev \
+|| exit "$?"
 
 # Copy over the script binaries.
+progress-msg 'Copying script binaries...'
 mkdir -p "${outDir}/bin"
-(
-    progress-msg 'Copying script binaries...'
-    cd "${etcDir}/bin-src"
-    find . -type f \
-        -exec cp '{}' "${outDir}/bin/{}" ';' \
-        -exec chmod 755 "${outDir}/bin/{}" ';'
-)
+cd "${etcDir}/bin-src"
+find . -type f \
+    -exec cp '{}' "${outDir}/bin/{}" ';' \
+    -exec chmod 755 "${outDir}/bin/{}" ';' \
+|| exit "$?"
 
 # Clean things up a bit.
 
