@@ -63,6 +63,9 @@ function local-packages-fill-in-hashes {
         'reduce .[] as $item ($result;
             .[$item.name].destPkgFile =
                 (.[$item.name].destPkgFile | sub("<hash>"; $item.hash))
+            |
+            .[$item.name].destPkgUri =
+                (.[$item.name].destPkgUri | sub("<hash>"; $item.hash))
         )'
 }
 
@@ -70,8 +73,8 @@ function local-packages-fill-in-hashes {
 # objects. The result leaves the destination package file with a `<hash>` hole
 # to be filled in.
 function local-packages {
+    local pkgDirName='local-pkg'
     local pkgSrcDir="${srcDir}/pkg"
-    local pkgDestDir="${outDir}/local-pkg"
     local srcPaths
 
     srcPaths=($(
@@ -84,21 +87,24 @@ function local-packages {
         local p
         for p in "${srcPaths[@]}"; do
             jval \
-                pkgDestDir="${pkgDestDir}" \
+                outDir="${outDir}" \
+                pkgDirName="${pkgDirName}" \
                 name="$(basename "${p}")" \
                 srcPath="${p}" \
                 '
-                ($pkgDestDir + "/" + $name) as $destPathBase
+                ($pkgDirName + "/" + $name) as $nameBase
+                |
+                ($nameBase + "-<hash>.tgz") as $pkgFile
                 |
                 {
                     ($name): {
                         name:         $name,
                         scopedName:   ("@this/" + $name),
                         srcPath:      $srcPath,
-                        destDir:      $pkgDestDir,
-                        destPathBase: $destPathBase,
-                        destJsonFile: ($destPathBase + ".json"),
-                        destPkgFile:  ($destPathBase + "-<hash>.tgz")
+                        destDir:      ($outDir + "/" + $pkgDirName),
+                        destJsonFile: ($outDir + "/" + $nameBase + ".json"),
+                        destPkgFile:  ($outDir + "/" + $pkgFile),
+                        destPkgUri:   ("file:" + $pkgFile)
                     }
                 }'
         done
