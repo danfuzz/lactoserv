@@ -106,7 +106,6 @@ fi
 
 
 if (( doCreate || doRemove )); then
-    progress-msg '  Done!'
     progress-msg "  ${outDir}"
 fi
 

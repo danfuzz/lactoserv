@@ -33,13 +33,27 @@ function usage {
 opt-action --call='{ usage }' help/h
 
 # Clean build?
-opt-toggle --var=clean clean
+opt-toggle --var=doClean clean
 
 # Built output directory.
 opt-value --var=outDir out
 
 process-args "$@" || usage "$?"
 
+
+#
+# Helper functions
+#
+
+# Sets up the output directory.
+function set-up-out-dir {
+    local extraOpts=()
+    if (( doClean )); then
+        extraOpts=(--remove)
+    fi
+
+    lib out-dir --out="${outDir}" --create --print "${extraOpts[@]}"
+}
 
 #
 # Main script
@@ -50,18 +64,7 @@ progress-msg --enable
 baseDir="$(dirname "$(this-cmd-dir)")"
 srcDir="${baseDir}/src"
 etcDir="${baseDir}/etc"
-
-if [[ ${outDir} == '' ]]; then
-    outDir="${baseDir}/out"
-fi
-
-if (( clean )); then
-    lib clean --out="${outDir}" --create \
-    || exit "$?"
-else
-    mkdir -p "${outDir}" \
-    || exit "$?"
-fi
+outDir="$(set-up-out-dir)"
 
 # Copy the top-level code.
 (
