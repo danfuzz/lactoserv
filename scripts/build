@@ -61,7 +61,7 @@ function local-packages-fill-in-hashes {
     done \
     | jval --input=slurp result:json="${localPackageSet}" \
         'reduce .[] as $item ($result;
-            .[$item.name].destPkgFile = 
+            .[$item.name].destPkgFile =
                 (.[$item.name].destPkgFile | sub("<hash>"; $item.hash))
         )'
 }
@@ -94,6 +94,7 @@ function local-packages {
                     ($name): {
                         name:         $name,
                         srcPath:      $srcPath,
+                        destDir:      $pkgDestDir,
                         destPathBase: $destPathBase,
                         destJsonFile: ($destPathBase + ".json"),
                         destPkgFile:  ($destPathBase + "-<hash>.tgz")
@@ -101,6 +102,35 @@ function local-packages {
                 }'
         done
     ) | jval --input=slurp 'reduce .[] as $item ({}; . + $item)'
+}
+
+# Packs all the local packages.
+function pack-local-packages {
+    local localPackageSet="$1"
+
+    local allNames=($(jget --output=raw "${localPackageSet}" 'keys | .[]'))
+    local n
+    for n in "${allNames[@]}"; do
+        progress-msg "Packing local package ${n}..."
+
+        local paths="$(jget "${localPackageSet}" name="${n}" '.[$name]')"
+        local destDir="$(jget --output=raw "${paths}" '.destDir')"
+
+        mkdir -p "${destDir}" || return "$?"
+
+        cd "$(jget --output=raw "${paths}" '.srcPath')"
+
+        local packageInfo
+        packageInfo="$(npm pack --json --pack-destination="${destDir}")" \
+        || exit "$?"
+
+        # The JSON output from `npm pack` is wrapped in a top-level array
+        # (because some invocations can emit multiple packages), but it's
+        # superfluous here, so we unwrap with `.[0]`.
+        packageInfo="$(jget "${packageInfo}" '.[0]')"
+
+        cat <<<"${packageInfo}" >"$(jget --output=raw "${paths}" '.destJsonFile')"
+    done
 }
 
 # Sets up the output directory.
