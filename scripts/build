@@ -176,6 +176,45 @@ function set-up-out-dir {
     lib out-dir --out="${outDir}" --create --print "${extraOpts[@]}"
 }
 
+# Tidies things up after a successful build. Specifically, removes local
+# packages and package info files that aren't used (anymore) by the build.
+function tidy-up {
+    local localPackageSet="$1"
+
+    # Cheesy tactic used here: We combine the lists of "things that are used"
+    # and "all the things" into a single sorted/counted list. If an item shows
+    # up twice (it's in both lists), then it's used. If it only shows up once,
+    # it's defunct and should be removed.
+
+    local usedFiles=($(
+        jget --output=raw "${localPackageSet}" \
+            'to_entries[] | .value.destJsonFile, .value.destPkgFile'
+    ))
+
+    local dirs=($(
+        for d in "${usedFiles[@]}"; do
+            dirname "${d}"
+        done \
+        | sort | uniq
+    ))
+
+    local defunct=($(
+        (
+            printf '%s\n' "${usedFiles[@]}"
+            find "${dirs[@]}" -type f
+        ) \
+        | sort | uniq -c | awk '$1 != 2 { print $2 }'
+    ))
+
+    if (( ${#defunct[@]} != 0 )); then
+        progress-msg 'Removing defunct local package files:'
+        for d in "${defunct[@]}"; do
+            progress-msg "  $(basename "${d}")"
+            rm -f "${d}"
+        done
+    fi
+}
+
 #
 # Main script
 #
@@ -241,35 +280,8 @@ find . -type f \
 || exit "$?"
 
 # Clean things up a bit.
-
-# Remove defunct package info files. Kinda cheesy: Take the list of currently-
-# valid names and the list of all the ones that are in the package output
-# directory, and remove all of the names that don't appear twice.
-defunct=($(
-    (
-        printf '%s\n' "${localPackages[@]}"
-        find "${packageDestDir}" -name '*.json' -exec basename '{}' '.json' ';'
-    ) | sort | uniq -c | awk '$1 != 2 { print $2 }'
-))
-for d in "${defunct[@]}"; do
-    progress-msg "Removing defunct local package info for ${d}..."
-    rm -f "${packageDestDir}/${d}.json"
-done
-
-# Remove defunct local package `tgz` files. Similar -- and similarly cheesy --
-# logic to the package info file cleanup above.
-defunct=($(
-    (
-        for p in "${localPackages[@]}"; do
-            jget --file="${packageDestDir}/${p}.json" --output=raw '.hashname'
-        done
-        find "${packageDestDir}" -name '*.tgz' -exec basename '{}' ';'
-    ) | sort | uniq -c | awk '$1 != 2 { print $2 }'
-))
-for d in "${defunct[@]}"; do
-    progress-msg "Removing defunct local package ${d}..."
-    rm -f "${packageDestDir}/${d}"
-done
+tidy-up "${localPackageSet}" \
+|| exit "$?"
 
 progress-msg
 progress-msg 'Build complete!'
