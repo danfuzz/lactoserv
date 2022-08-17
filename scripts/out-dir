@@ -1,0 +1,94 @@
+#!/bin/bash
+#
+# Copyright 2022 Dan Bornstein. All rights reserved.
+# All code and assets are considered proprietary and unlicensed.
+
+. "$(dirname "$(readlink -f "$0")")/lib/init.sh" || exit "$?"
+
+
+#
+# Argument parsing
+#
+
+function usage {
+    print-usage $'
+    Usage:
+
+    ${name} [<opt> ...]
+      Deal with the build output directory in various ways.
+
+    --out=<dir>
+      Directory where built output goes. Defaults to `out` directly under the
+      main product directory.
+
+    Actions:
+
+    --create
+      Create the directory, if it doesn\'t already exist.
+    --print
+      Print the full path of the directory. This is the default action, if no
+      actions are explicitly requested.
+    --remove
+      Remove the directory. If both this and `--create` are specified, then the
+      removal happens first.
+
+    ${name} [--help | -h]
+      Displays this message.
+    '
+
+    exit "$@"
+}
+
+# Want help?
+opt-action --call='{ usage }' help/h
+
+# Built output directory.
+opt-value --var=outDir out
+
+# Actions (see `usage`).
+opt-toggle --var=doCreate create
+opt-toggle --var=doPrint print
+opt-toggle --var=doRemove remove
+
+process-args "$@" || usage "$?"
+
+
+#
+# Main script
+#
+
+progress-msg --enable
+
+if [[ ${outDir} == '' ]]; then
+    outDir="$(dirname "$(this-cmd-dir)")/out"
+fi
+
+if (( doCreate || doRemove )); then
+    progress-msg "Out dir: ${outDir}"
+else
+    doPrint=1
+fi
+
+if (( doRemove )); then
+    progress-msg '  Removing...'
+    rm -rf "${outDir}" \
+    || exit "$?"
+fi
+
+if (( doCreate )); then
+    if [[ -d ${outDir} ]]; then
+        progress-msg '  Not creating; already exists.'
+    else
+        progress-msg '  Creating...'
+        mkdir -p "${outDir}" \
+        || exit "$?"
+    fi
+fi
+
+if (( doCreate || doRemove )); then
+    progress-msg '  Done!'
+fi
+
+if (( doPrint )); then
+    echo "${outDir}"
+fi
