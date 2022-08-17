@@ -7,6 +7,5 @@ cmdName="${cmdName##*/}"
 baseDir="${cmdDir%/*}"
 
 # TODO: Check for version of Node.
-# TODO: Run the thing!
 
-node "${baseDir}/index.js"
+node "${baseDir}/code/index.js"

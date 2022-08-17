@@ -87,7 +87,7 @@ function local-packages {
         local p
         for p in "${srcPaths[@]}"; do
             jval \
-                outDir="${outDir}" \
+                outCodeDir="${outCodeDir}" \
                 pkgDirName="${pkgDirName}" \
                 name="$(basename "${p}")" \
                 srcPath="${p}" \
@@ -101,9 +101,9 @@ function local-packages {
                         name:         $name,
                         scopedName:   ("@this/" + $name),
                         srcPath:      $srcPath,
-                        destDir:      ($outDir + "/" + $pkgDirName),
-                        destJsonFile: ($outDir + "/" + $nameBase + ".json"),
-                        destPkgFile:  ($outDir + "/" + $pkgFile),
+                        destDir:      ($outCodeDir + "/" + $pkgDirName),
+                        destJsonFile: ($outCodeDir + "/" + $nameBase + ".json"),
+                        destPkgFile:  ($outCodeDir + "/" + $pkgFile),
                         destPkgUri:   ("file:" + $pkgFile)
                     }
                 }'
@@ -229,6 +229,7 @@ baseDir="$(dirname "$(this-cmd-dir)")"
 srcDir="${baseDir}/src"
 etcDir="${baseDir}/etc"
 outDir="$(set-up-out-dir)"
+outCodeDir="${outDir}/code"
 
 # Copy over the script binaries.
 progress-msg 'Copying script binaries...'
@@ -242,11 +243,12 @@ progress-msg 'Copying script binaries...'
 || exit "$?"
 
 # Copy the top-level code.
+progress-msg 'Copying top-level code...'
 (
-    progress-msg 'Copying top-level code...'
+    mkdir -p "${outCodeDir}"
     cd "${srcDir}"
     find . -name pkg -prune -o -type f -name '*.js' -exec \
-        cp '{}' "${outDir}/{}" ';'
+        cp '{}' "${outCodeDir}/{}" ';'
 ) \
 || exit "$?"
 
@@ -266,7 +268,7 @@ rename-local-packages "${localPackageSet}" \
 || exit "$?"
 
 # Save the local package info for ease of human reference.
-cat <<<"${localPackageSet}" >"${outDir}/local-pkg.json"
+cat <<<"${localPackageSet}" >"${outCodeDir}/local-pkg.json"
 
 # Prep for and then run `npm install`.
 
@@ -277,14 +279,14 @@ localDepsObj="$(json-get "${localPackageSet}" \
 )"
 
 # Copy over main `package.json`, adding the local package dependencies.
-jget >"${outDir}/package.json" \
+jget >"${outCodeDir}/package.json" \
     --file="${srcDir}/package.json" \
     deps:json="${localDepsObj}" \
     '.dependencies += $deps'
 
 # Let `npm` do its thing.
 progress-msg 'Fetching and installing dependencies...'
-cd "${outDir}"
+cd "${outCodeDir}"
 npm install --omit=dev \
 || exit "$?"
 
