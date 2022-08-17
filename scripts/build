@@ -107,6 +107,8 @@ for p in "${localPackages[@]}"; do
                     (.name | sub("^@[^/]+/(?<name>.*)$"; .name)) + "-" +
                     .shasum[0:20] + ".tgz"
                 )
+                |
+                .dependencyEntry = { (.name): .hashname }
             '
         )"
 
@@ -131,8 +133,7 @@ done
 localDependencies="$(
     (
         for p in "${localPackages[@]}";  do
-            jget --file="${packageDestDir}/${p}.json" \
-                '{ (.name): .hashname }'
+            jget --file="${packageDestDir}/${p}.json" '.dependencyEntry'
         done
     ) | jval --input=slurp 'reduce .[] as $item ({}; . + $item)'
 )"
