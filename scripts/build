@@ -115,10 +115,12 @@ function local-packages {
 function pack-local-packages {
     local localPackageSet="$1"
 
+    progress-msg "Packing local packages:"
+
     local allNames=($(jget --output=raw "${localPackageSet}" 'keys | .[]'))
     local n
     for n in "${allNames[@]}"; do
-        progress-msg "Packing local package ${n}..."
+        progress-msg "  ${n}"
 
         local paths="$(jget "${localPackageSet}" name="${n}" '.[$name]')"
         local destDir="$(jget --output=raw "${paths}" '.destDir')"
@@ -144,10 +146,12 @@ function pack-local-packages {
 function rename-local-packages {
     local localPackageSet="$1"
 
+    progress-msg "Moving local packages:"
+
     local allNames=($(jget --output=raw "${localPackageSet}" 'keys | .[]'))
     local n
     for n in "${allNames[@]}"; do
-        progress-msg "Moving local package ${n}..."
+        progress-msg "  ${n}"
 
         local paths="$(jget "${localPackageSet}" name="${n}" '.[$name]')"
         local pkgFrom="$(jget --output=raw "${paths}" '.destDir')/"
