@@ -232,11 +232,13 @@ outDir="$(set-up-out-dir)"
 
 # Copy over the script binaries.
 progress-msg 'Copying script binaries...'
-mkdir -p "${outDir}/bin"
-cd "${etcDir}/bin-src"
-find . -type f \
-    -exec cp '{}' "${outDir}/bin/{}" ';' \
-    -exec chmod 755 "${outDir}/bin/{}" ';' \
+(
+    mkdir -p "${outDir}/bin"
+    cd "${etcDir}/bin-src"
+    find . -type f \
+        -exec cp '{}' "${outDir}/bin/{}" ';' \
+        -exec chmod 755 "${outDir}/bin/{}" ';'
+) \
 || exit "$?"
 
 # Copy the top-level code.
@@ -245,7 +247,8 @@ find . -type f \
     cd "${srcDir}"
     find . -name pkg -prune -o -type f -name '*.js' -exec \
         cp '{}' "${outDir}/{}" ';'
-)
+) \
+|| exit "$?"
 
 # Create package tarballs of each local package, and also gather up all the info
 # for putting in the top-level `dependencies`.
