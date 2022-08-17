@@ -70,9 +70,13 @@ else
 fi
 
 if (( doRemove )); then
-    progress-msg '  Removing...'
-    rm -rf "${outDir}" \
-    || exit "$?"
+    if [[ -d ${outDir} ]]; then
+        progress-msg '  Removing...'
+        rm -rf "${outDir}" \
+        || exit "$?"
+    else
+        progress-msg '  Not removing; already gone.'
+    fi
 fi
 
 if (( doCreate )); then
