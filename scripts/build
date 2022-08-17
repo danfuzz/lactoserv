@@ -71,82 +71,82 @@ fi
         cp '{}' "${outDir}/{}" ';'
 )
 
-# Create tarballs of each local package.
+# Create tarballs of each local package, and also gather up all the info for
+# putting in the top-level `dependencies`.
 
+packageDirName='local-pkg'
 packageSrcDir="${srcDir}/pkg"
+packageDestDir="${outDir}/${packageDirName}"
+localDependencies=()
 localPackages=($(
     cd "${packageSrcDir}"
     find . -mindepth 2 -maxdepth 2 -name package.json | awk -F/ '{ print $2 }' | sort
 ))
 
-packageDestDir="${outDir}/local-packages"
 mkdir -p "${packageDestDir}"
+
 for p in "${localPackages[@]}"; do
-    progress-msg "Tarring local package ${p}..."
-    (
-        cd "${packageSrcDir}/${p}"
-        jsonFile="${packageDestDir}/${p}.json"
+    progress-msg "Packing local package ${p}..."
 
-        packageInfo="$(
-            npm pack --json --pack-destination="${packageDestDir}"
-        )" \
-        || exit "$?"
+    cd "${packageSrcDir}/${p}"
+    jsonFile="${packageDestDir}/${p}.json"
 
-        # The JSON output from `npm pack` is wrapped in a top-level array
-        # (because some invocations can emit multiple packages), but it's
-        # superfluous here, so unwrap with `.[0]`.
-        packageInfo="$(jget "${packageInfo}" '
-                .[0]
-                |
-                .filename = (
-                    .filename
-                        | sub("^@(?<scope>[^/]+)/(?<name>.*)$"; .scope + "-" + .name)
-                )
-                |
-                .hashname = (
-                    (.name | sub("^@[^/]+/(?<name>.*)$"; .name)) + "-" +
-                    .shasum[0:20] + ".tgz"
-                )
-                |
-                .dependencyEntry = { (.name): .hashname }
-            '
-        )"
+    packageInfo="$(
+        npm pack --json --pack-destination="${packageDestDir}"
+    )" \
+    || exit "$?"
 
-        cat <<<"${packageInfo}" >"${jsonFile}"
+    # The JSON output from `npm pack` is wrapped in a top-level array (because
+    # some invocations can emit multiple packages), but it's superfluous here,
+    # so unwrap with `.[0]`.
+    packageInfo="$(jget "${packageInfo}" \
+        dir="${packageDirName}" \
+        '
+            .[0]
+            |
+            ("file:" + $dir + "/") as $dirPrefix
+            |
+            .filename = (
+                .filename
+                    | sub("^@(?<scope>[^/]+)/(?<name>.*)$"; .scope + "-" + .name)
+            )
+            |
+            .hashname = (
+                (.name | sub("^@[^/]+/(?<name>.*)$"; .name)) + "-" +
+                .shasum[0:20] + ".tgz"
+            )
+            |
+            .dependencyEntry = { (.name): ($dirPrefix + .hashname) }
+        '
+    )" \
+    || exit "$?"
 
-        # Give the package a name- and hash-based file name. This keeps `npm`
-        # happier, in that it will properly install changed local packages
-        # instead of pulling the stale code from its cache.
-        cd "${packageDestDir}"
-        mv "$(jget --output=raw "${packageInfo}" '.filename')" \
-            "$(jget --output=raw "${packageInfo}" '.hashname')" \
-        || exit "$?"
-    ) \
+    cat <<<"${packageInfo}" >"${jsonFile}"
+
+    localDependencies+=("$(jget "${packageInfo}" '.dependencyEntry')")
+
+    # Give the package a name- and hash-based file name. This keeps `npm`
+    # happier, in that it will properly install changed local packages
+    # instead of pulling the stale code from its cache.
+    cd "${packageDestDir}"
+    mv "$(jget --output=raw "${packageInfo}" '.filename')" \
+        "$(jget --output=raw "${packageInfo}" '.hashname')" \
     || exit "$?"
 done
 
 # Copy over main `package.json`, adding a top-level dependency on each of the
 # local packages, pointing to the tarballs we just made.
 
-# Pull the package name and file out of each of the info files, and combine into
-# a single object.
-localDependencies="$(
-    (
-        for p in "${localPackages[@]}";  do
-            jget --file="${packageDestDir}/${p}.json" '.dependencyEntry'
-        done
-    ) | jval --input=slurp 'reduce .[] as $item ({}; . + $item)'
+# Combine local dependencies into a single object.
+localDepsObj="$(jget "$(jarray "${localDependencies[@]}")" \
+    'reduce .[] as $item ({}; . + $item)'
 )"
 
 # Inject the dependencies!
-jget >"${outDir}/package.json" --file="${srcDir}/package.json" \
-    dir='local-packages' \
-    localDependencies:json="${localDependencies}" \
-'
-if .dependencies == null then .dependencies = {} else . end
-|
-.dependencies += ($localDependencies | map_values("file:" + $dir + "/" + .))
-'
+jget >"${outDir}/package.json" \
+    --file="${srcDir}/package.json" \
+    deps:json="${localDepsObj}" \
+    '.dependencies += $deps'
 
 # Remove any local packages from the `node_modules` directory, to force them to
 # get re-copied (because their code might have changed).
@@ -198,8 +198,9 @@ done
 # logic to the package info file cleanup above.
 defunct=($(
     (
-        jget --output=raw "${localDependencies}" \
-            'to_entries | map(.value) | .[]'
+        for p in "${localPackages[@]}"; do
+            jget --file="${packageDestDir}/${p}.json" --output=raw '.hashname'
+        done
         find "${packageDestDir}" -name '*.tgz' -exec basename '{}' ';'
     ) | sort | uniq -c | awk '$1 != 2 { print $2 }'
 ))
