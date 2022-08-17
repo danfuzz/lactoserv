@@ -85,11 +85,40 @@ for p in "${localPackages[@]}"; do
     progress-msg "Tarring local package ${p}..."
     (
         cd "${packageSrcDir}/${p}"
+        jsonFile="${packageDestDir}/${p}.json"
+
+        packageInfo="$(
+            npm pack --json --pack-destination="${packageDestDir}"
+        )" \
+        || exit "$?"
+
         # The JSON output from `npm pack` is wrapped in a top-level array
         # (because some invocations can emit multiple packages), but it's
-        # superfluous here, so unwrap.
-        npm pack --json --pack-destination="${packageDestDir}" \
-        | jval --input=read '.[0]' >"${packageDestDir}/${p}.json"
+        # superfluous here, so unwrap with `.[0]`.
+        packageInfo="$(jget "${packageInfo}" '
+                .[0]
+                |
+                .filename = (
+                    .filename
+                        | sub("^@(?<scope>[^/]+)/(?<name>.*)$"; .scope + "-" + .name)
+                )
+                |
+                .hashname = (
+                    (.name | sub("^@[^/]+/(?<name>.*)$"; .name)) + "-" +
+                    .shasum[0:20] + ".tgz"
+                )
+            '
+        )"
+
+        cat <<<"${packageInfo}" >"${jsonFile}"
+
+        # Give the package a name- and hash-based file name. This keeps `npm`
+        # happier, in that it will properly install changed local packages
+        # instead of pulling the stale code from its cache.
+        cd "${packageDestDir}"
+        mv "$(jget --output=raw "${packageInfo}" '.filename')" \
+            "$(jget --output=raw "${packageInfo}" '.hashname')" \
+        || exit "$?"
     ) \
     || exit "$?"
 done
@@ -103,14 +132,7 @@ localDependencies="$(
     (
         for p in "${localPackages[@]}";  do
             jget --file="${packageDestDir}/${p}.json" \
-            '
-            (
-                .filename
-                    | sub("^@(?<scope>[^/]+)/(?<name>.*)$"; .scope + "-" + .name)
-            )
-                as $filename
-            | { (.name): $filename }
-            '
+                '{ (.name): .hashname }'
         done
     ) | jval --input=slurp 'reduce .[] as $item ({}; . + $item)'
 )"
@@ -141,7 +163,7 @@ done
 (
     progress-msg 'Fetching and installing dependencies...'
     cd "${outDir}"
-    npm install \
+    npm install --omit=dev \
     || exit "$?"
 )
 
