@@ -262,16 +262,16 @@ localPackageSet="$(local-packages-fill-in-hashes "${localPackageSet}")" \
 rename-local-packages "${localPackageSet}" \
 || exit "$?"
 
+# Save the local package info for ease of human reference.
+cat <<<"${localPackageSet}" >"${outDir}/local-pkg.json"
+
+# Prep for and then run `npm install`.
+
 # Derive the `dependencies` to use in the top-level `package.json` to represent
 # the local packages.
 localDepsObj="$(json-get "${localPackageSet}" \
     'with_entries(.key = .value.scopedName | .value = .value.destPkgUri)'
 )"
-
-# Save the local package info for ease of human reference.
-cat <<<"${localPackageSet}" >"${outDir}/local-pkg.json"
-
-# Prep for and then run `npm install`.
 
 # Copy over main `package.json`, adding the local package dependencies.
 jget >"${outDir}/package.json" \
