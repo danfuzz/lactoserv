@@ -15,11 +15,9 @@ function usage {
     Usage:
 
     ${name} [<opt> ...]
-      Cleans the build output directory.
+      Removes the build-output directory. This is just a convenient shorthand for
+      `out-dir --remove`.
 
-    --create
-      Create the directory (leaving it empty). Without this option, the
-      directory is just removed if it exists.
     --out=<dir>
       Directory where built output goes. Defaults to `out` directly under the
       main product directory.
@@ -34,9 +32,6 @@ function usage {
 # Want help?
 opt-action --call='{ usage }' help/h
 
-# Create the directory?
-opt-toggle --var=createDir create
-
 # Built output directory.
 opt-value --var=outDir out
 
@@ -49,19 +44,7 @@ process-args "$@" || usage "$?"
 
 progress-msg --enable
 
-if [[ ${outDir} == '' ]]; then
-    outDir="$(dirname "$(this-cmd-dir)")/out"
-fi
-
-progress-msg 'Cleaning...'
-
-rm -rf "${outDir}" \
+lib out-dir --out="${outDir}" --remove \
 || exit "$?"
 
-if (( createDir )); then
-    progress-msg 'Creating output directory...'
-    mkdir -p "${outDir}" \
-    || exit "$?"
-fi
-
-progress-msg 'Done cleaning!'
+progress-msg 'Clean!'

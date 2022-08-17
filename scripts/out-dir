@@ -15,10 +15,10 @@ function usage {
     Usage:
 
     ${name} [<opt> ...]
-      Deal with the build output directory in various ways.
+      Deal with the build-output directory in various ways.
 
     --out=<dir>
-      Directory where built output goes. Defaults to `out` directly under the
+      Directory where build-output goes. Defaults to `out` directly under the
       main product directory.
 
     Actions:
@@ -42,7 +42,7 @@ function usage {
 # Want help?
 opt-action --call='{ usage }' help/h
 
-# Built output directory.
+# Build-output directory.
 opt-value --var=outDir out
 
 # Actions (see `usage`).
@@ -75,7 +75,7 @@ if [[ -d "${outDir}" ]]; then
 fi
 
 if (( doCreate || doRemove )); then
-    progress-msg "Built output directory:"
+    progress-msg "Build-output directory:"
 else
     doPrint=1
 fi
