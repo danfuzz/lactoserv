@@ -26,8 +26,8 @@ function usage {
     --create
       Create the directory, if it doesn\'t already exist.
     --print
-      Print the full path of the directory. This is the default action, if no
-      actions are explicitly requested.
+      Print the fully-resolved path of the directory. This is the default action,
+      if no actions are explicitly requested.
     --remove
       Remove the directory. If both this and `--create` are specified, then the
       removal happens first.
@@ -61,10 +61,21 @@ progress-msg --enable
 
 if [[ ${outDir} == '' ]]; then
     outDir="$(dirname "$(this-cmd-dir)")/out"
+elif [[ ! (${outDir} =~ ^/) ]]; then
+    # Make it an absolute path.
+    outDir="$(/bin/pwd -P)/${outDir}"
+    #outDir="$(readlink -f "$(/bin/pwd -P)/${outDir}")"
+fi
+
+if [[ -d "${outDir}" ]]; then
+    # Resolve path eagerly, if the directory currently exists. (Won't be able to
+    # do so after removal.)
+    outDir="$(readlink -f "${outDir}")" \
+    || exit "$?"
 fi
 
 if (( doCreate || doRemove )); then
-    progress-msg "Out dir: ${outDir}"
+    progress-msg "Built output directory:"
 else
     doPrint=1
 fi
@@ -86,11 +97,17 @@ if (( doCreate )); then
         progress-msg '  Creating...'
         mkdir -p "${outDir}" \
         || exit "$?"
+
+        # Resolve path; we know for sure it exists now.
+        outDir="$(readlink -f "${outDir}")" \
+        || exit "$?"
     fi
 fi
 
+
 if (( doCreate || doRemove )); then
     progress-msg '  Done!'
+    progress-msg "  ${outDir}"
 fi
 
 if (( doPrint )); then
