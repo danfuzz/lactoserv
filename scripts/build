@@ -226,6 +226,15 @@ srcDir="${baseDir}/src"
 etcDir="${baseDir}/etc"
 outDir="$(set-up-out-dir)"
 
+# Copy over the script binaries.
+progress-msg 'Copying script binaries...'
+mkdir -p "${outDir}/bin"
+cd "${etcDir}/bin-src"
+find . -type f \
+    -exec cp '{}' "${outDir}/bin/{}" ';' \
+    -exec chmod 755 "${outDir}/bin/{}" ';' \
+|| exit "$?"
+
 # Copy the top-level code.
 (
     progress-msg 'Copying top-level code...'
@@ -258,6 +267,8 @@ localDepsObj="$(json-get "${localPackageSet}" \
 # Save the local package info for ease of human reference.
 cat <<<"${localPackageSet}" >"${outDir}/local-pkg.json"
 
+# Prep for and then run `npm install`.
+
 # Copy over main `package.json`, adding the local package dependencies.
 jget >"${outDir}/package.json" \
     --file="${srcDir}/package.json" \
@@ -270,14 +281,7 @@ cd "${outDir}"
 npm install --omit=dev \
 || exit "$?"
 
-# Copy over the script binaries.
-progress-msg 'Copying script binaries...'
-mkdir -p "${outDir}/bin"
-cd "${etcDir}/bin-src"
-find . -type f \
-    -exec cp '{}' "${outDir}/bin/{}" ';' \
-    -exec chmod 755 "${outDir}/bin/{}" ';' \
-|| exit "$?"
+# Denoument.
 
 # Clean things up a bit.
 tidy-up "${localPackageSet}" \
