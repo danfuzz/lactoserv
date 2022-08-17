@@ -54,19 +54,17 @@ process-args "$@" || usage "$?"
 
 progress-msg --enable
 
-if [[ ${outDir} == '' ]]; then
-    outDir="$(dirname "$(this-cmd-dir)")/out"
-fi
+outDir="$(lib out-dir --out="${outDir}")" \
+|| exit "$?"
 
-certDir="${outDir}/certs"
+certDir="${outDir}/etc/certs"
 certFile='localhost.crt'
 keyFile='localhost.key'
 
 if (( !force )) && [[ -d "${certDir}" ]]; then
   cd "${certDir}"
-  if [[ -r "${certFile}" && -r "${keyFile}" ]]; then
-    info-msg 'Certificate files already exist. Not overwriting.'
-    info-msg 'Use --force to overwrite with new files.'
+  if [[ -r "${certFile}" || -r "${keyFile}" ]]; then
+    info-msg 'Certificate file(s) already exist. Not overwriting.'
     exit
   fi
 fi

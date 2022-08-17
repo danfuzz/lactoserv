@@ -231,6 +231,10 @@ etcDir="${baseDir}/etc"
 outDir="$(set-up-out-dir)"
 outCodeDir="${outDir}/code"
 
+# Make sure there's a cert to use.
+lib make-localhost-cert \
+|| exit "$?"
+
 # Copy over the script binaries.
 progress-msg 'Copying script binaries...'
 (
