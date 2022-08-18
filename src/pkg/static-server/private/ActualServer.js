@@ -25,10 +25,10 @@ export class ActualServer {
    * Constructs an instance.
    *
    * @param {object|null} config Configuration object; `null` to get a default
-   *   of listening for HTTP on port 8000.
+   *   of listening for HTTP on port 8080.
    */
   constructor(config = null) {
-    this.#config = config ?? { port: 8000, protocol: 'http' };
+    this.#config = config ?? { port: 8080, protocol: 'http' };
 
     this.#app = express();
     this.#server = null;
