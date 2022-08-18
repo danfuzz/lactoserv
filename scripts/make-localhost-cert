@@ -80,13 +80,13 @@ progress-msg 'Creating certificate files...'
 
 config='
     [dn]
-    CN=localhost
+    CN = localhost
     [req]
     distinguished_name = dn
     [EXT]
-    subjectAltName=DNS:localhost
-    keyUsage=digitalSignature
-    extendedKeyUsage=serverAuth
+    subjectAltName = DNS:localhost
+    keyUsage = digitalSignature
+    extendedKeyUsage = serverAuth
 '
 
 openssl req -x509 -out "${certFile}" -keyout "${keyFile}" \
