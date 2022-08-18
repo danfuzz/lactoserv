@@ -34,20 +34,18 @@ export class Main {
       cert:     await fs.readFile(certsDir + '/localhost.crt')
     };
 
-    const server = new StaticServer(httpConfig);
-    console.log('### main 1');
+    const server = new StaticServer(httpsConfig);
     await server.start();
-    console.log('### main 2');
 
     function doStop() {
-      console.log('### main 4: stopping!');
+      console.log('Stopping...');
       server.stop();
     }
 
-    timers.setTimeout(doStop, 10 * 1000);
+    timers.setTimeout(doStop, 30 * 1000);
 
     await server.whenStopped();
-    console.log('### main 3');
+    console.log('Stopped!');
 
     return 0;
   }
