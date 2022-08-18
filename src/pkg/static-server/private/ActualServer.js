@@ -26,8 +26,6 @@ export class ActualServer {
    *
    * @param {object|null} config Configuration object; `null` to get a default
    *   of listening for HTTP on port 8000.
-   * @param {int} [port = 8000] Port to listen on.
-   * @param {string} [protocol = 'http'] What protocol to use.
    */
   constructor(config = null) {
     this.#config = config ?? { port: 8000, protocol: 'http' };

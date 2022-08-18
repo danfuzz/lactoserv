@@ -7,10 +7,17 @@ import { ActualServer } from '#p/ActualServer';
  * Static content server.
  */
 export class StaticServer {
+  /** {ActualServer} Underlying server instance. */
   #actual;
 
-  constructor() {
-    this.#actual = new ActualServer();
+  /**
+   * Constructs an instance.
+   *
+   * @param {object|null} config Configuration object, or `null` to get a
+   *   default of listening for HTTP on port 8000.
+   */
+  constructor(config) {
+    this.#actual = new ActualServer(config);
   }
 
   /**
