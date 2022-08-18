@@ -83,7 +83,8 @@ config='
     CN = localhost
     [req]
     distinguished_name = dn
-    [EXT]
+    x509_extensions = x509_ext
+    [x509_ext]
     subjectAltName = DNS:localhost
     keyUsage = digitalSignature
     extendedKeyUsage = serverAuth
@@ -91,6 +92,6 @@ config='
 
 openssl req -x509 -out "${certFile}" -keyout "${keyFile}" \
   -newkey rsa:4096 -nodes -sha256 -subj '/CN=localhost' -days 365 \
-  -extensions EXT -config <(echo "${config}")
+  -config <(echo "${config}")
 
 progress-msg 'Done!'
