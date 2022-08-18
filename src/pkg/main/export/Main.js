@@ -2,7 +2,9 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { StaticServer } from '@this/static-server';
+import { Dirs } from '@this/util-server';
 
+import * as fs from 'node:fs/promises';
 import * as timers from 'timers';
 
 /**
@@ -13,14 +15,26 @@ export class Main {
    * Runs the system, based on the given command-line arguments.
    *
    * @param {array<string>} args Command-line arguments to parse and act upon.
-   * @returns {Int|null} Process exit code, or `null` to indicate that the
-   *   process should not exit once the immediate action is complete.
+   * @returns {Int} Process exit code.
    */
   static async run(args) {
+    // Way more TODO.
     console.log('TODO!')
 
-    // Way more TODO.
-    const server = new StaticServer();
+    const httpConfig = {
+      protocol: 'http',
+      port:     8080
+    };
+
+    const certsDir = Dirs.basePath('etc/certs');
+    const httpsConfig = {
+      protocol: 'https',
+      port:     8443,
+      key:      await fs.readFile(certsDir + '/localhost.key'),
+      cert:     await fs.readFile(certsDir + '/localhost.crt')
+    };
+
+    const server = new StaticServer(httpConfig);
     console.log('### main 1');
     await server.start();
     console.log('### main 2');
