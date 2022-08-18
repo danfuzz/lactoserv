@@ -12,14 +12,11 @@ import * as url from 'url';
  * Actual Http(s) server.
  */
 export class ActualServer {
+  /** {object} Configuration info. */
+  #config;
+
   /** {express} Express server application. */
   #app;
-
-  /** {int} Port to listen on. */
-  #port;
-
-  /** {string} Protocol to use. */
-  #protocol;
 
   /** {http.Server|null} Active HTTP server instance. */
   #server;
@@ -27,13 +24,15 @@ export class ActualServer {
   /**
    * Constructs an instance.
    *
+   * @param {object|null} config Configuration object; `null` to get a default
+   *   of listening for HTTP on port 8000.
    * @param {int} [port = 8000] Port to listen on.
    * @param {string} [protocol = 'http'] What protocol to use.
    */
-  constructor(port = 8000, protocol = 'http') {
+  constructor(config = null) {
+    this.#config = config ?? { port: 8000, protocol: 'http' };
+
     this.#app = express();
-    this.#port = port;
-    this.#protocol = protocol;
     this.#server = null;
 
     this.#addRoutes();
@@ -47,7 +46,7 @@ export class ActualServer {
 
     const listenOptions = {
       host: '::',
-      port: this.#port
+      port: this.#config.port
     };
 
     console.log('### actual 1');
@@ -98,7 +97,6 @@ export class ActualServer {
     const gotPort = this.#server.address().port;
 
     console.log('Listening on port ' + gotPort);
-    this.#port = gotPort;
   }
 
   /**
@@ -172,8 +170,9 @@ export class ActualServer {
    */
   #createServer() {
     const app = this.#app;
+    const config = this.#config;
 
-    switch (this.#protocol) {
+    switch (config.protocol) {
       case 'http': {
         return http.createServer(app);
       }
@@ -183,7 +182,7 @@ export class ActualServer {
       }
 
       default: {
-        throw new Error('Unknown protocol: ' + this.#protocol)
+        throw new Error('Unknown protocol: ' + config.protocol)
       }
     }
   }
