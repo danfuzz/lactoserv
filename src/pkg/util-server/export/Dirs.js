@@ -31,7 +31,7 @@ export class Dirs {
       }
 
       Dirs.#baseDirUrl =
-        new URL('file://' + pathParts.slice(0, codeAt).join('/'));
+        new URL('file://' + pathParts.slice(0, codeAt).join('/') + '/');
     }
 
     return Dirs.#baseDirUrl;
