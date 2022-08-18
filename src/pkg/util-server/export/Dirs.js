@@ -7,33 +7,47 @@ import * as url from 'url';
  * Utilities for getting at various local directories.
  */
 export class Dirs {
-  static #baseDir = null;
+  /** {URL} URL representing the base directory, if known. */
+  static #baseDirUrl = null;
 
   /** {string} The base directory of the application installation. */
   static get BASE_DIR() {
-    if (Dirs.#baseDir == null) {
-      Dirs.#baseDir = Dirs.#findBaseDir();
+    return Dirs.#BASE_DIR_URL.pathname;
+  }
+
+  /** {URL} URL representing the base directory. This is private because URLs
+   * aren't immutable.
+   */
+  static get #BASE_DIR_URL() {
+    if (Dirs.#baseDirUrl == null) {
+      // This assumes that the "closest" directory called `code` lives in the
+      // base directory.
+      const here = import.meta.url;
+      const pathParts = new URL(here).pathname.split('/');
+      const codeAt = pathParts.findLastIndex((p) => p == 'code');
+
+      if (codeAt == -1) {
+        throw new Error('Cannot find base directory from: ' + here);
+      }
+
+      Dirs.#baseDirUrl =
+        new URL('file://' + pathParts.slice(0, codeAt).join('/'));
     }
 
-    return Dirs.#baseDir;
+    return Dirs.#baseDirUrl;
   }
 
   /**
-   * Determines the value for {@link #BASE_DIR}.
+   * Concatenates the base directory with an indicated relative path.
    *
-   * @returns {string} The base directory.
+   * @param {string} relativePath Relative path from the base directory.
+   * @returns {string} The concatenated path.
    */
-  static #findBaseDir() {
-    // This assumes that the "closest" directory called `code` lives in the base
-    // directory.
-    const here = import.meta.url;
-    const pathParts = new URL(here).pathname.split('/');
-    const codeAt = pathParts.findLastIndex((p) => p == 'code');
-
-    if (codeAt == -1) {
-      throw new Error('Cannot find base directory from: ' + here);
+  static basePath(relativePath) {
+    if (relativePath.startsWith('/')) {
+      throw new Error('`relativePath` must be relative.');
     }
 
-    return pathParts.slice(0, codeAt).join('/');
+    return new URL(relativePath, Dirs.#BASE_DIR_URL).pathname;
   }
 }
