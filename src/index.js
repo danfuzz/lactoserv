@@ -3,7 +3,12 @@
 
 import { Main } from '@this/main';
 
-console.log('Hello!');
 const exitCode = await Main.run(process.argv);
-console.log('Exit code: ' + exitCode);
+
+if (exitCode == 0) {
+  console.log('Top-level application exiting without error.');
+} else {
+  console.log('Top-level application exiting with error code: %d', exitCode);
+}
+
 process.exit(exitCode);
