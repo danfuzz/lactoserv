@@ -30,8 +30,8 @@ export class Main {
     const httpsConfig = {
       protocol: 'https',
       port:     8443,
-      key:      await fs.readFile(certsDir + '/localhost.key'),
-      cert:     await fs.readFile(certsDir + '/localhost.crt')
+      key:      await fs.readFile(certsDir + '/localhost-key.pem'),
+      cert:     await fs.readFile(certsDir + '/localhost-cert.pem')
     };
 
     const server = new StaticServer(httpsConfig);

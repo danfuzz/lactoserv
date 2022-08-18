@@ -58,8 +58,8 @@ outDir="$(lib out-dir --out="${outDir}")" \
 || exit "$?"
 
 certDir="${outDir}/etc/certs"
-certFile='localhost.crt'
-keyFile='localhost.key'
+certFile='localhost-cert.pem'
+keyFile='localhost-key.pem'
 
 if (( !force )) && [[ -d "${certDir}" ]]; then
   cd "${certDir}"
@@ -74,8 +74,9 @@ cd "${certDir}"
 
 progress-msg 'Creating certificate files...'
 
-# This `openssl` command found here (except a bit messier):
-# <https://letsencrypt.org/docs/certificates-for-localhost/>
+# This `openssl` command is based on the info from
+# <https://letsencrypt.org/docs/certificates-for-localhost/>, with a couple
+# tweaks (longer key, later expiration, different file names).
 
 config='
     [dn]
@@ -89,7 +90,7 @@ config='
 '
 
 openssl req -x509 -out "${certFile}" -keyout "${keyFile}" \
-  -newkey rsa:2048 -nodes -sha256 -subj '/CN=localhost' -extensions EXT \
-  -config <(echo "${config}")
+  -newkey rsa:4096 -nodes -sha256 -subj '/CN=localhost' -days 365 \
+  -extensions EXT -config <(echo "${config}")
 
 progress-msg 'Done!'
