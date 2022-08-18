@@ -94,11 +94,17 @@ config='
 
 # `openssl req` -- Create a CSR (certificate signing request), or...
 # `-x509` -- Actually, make a self-signed certificate.
+# `-newkey rsa` -- Use RSA for the keypair.
+# `-nodes` -- "No DES." Don't require a passphrase for the key.
+# `-subj ...` -- The "subject" of the certificate.
+# `-days 365` -- The certificate should be valid for a year.
+# `-config ...` -- Additional config (see above).
 #
 # Useful docs:
 # * `openssl req` -- <https://www.openssl.org/docs/man1.0.2/man1/openssl-req.html>
 # * config file for X509 -- <https://www.openssl.org/docs/manmaster/man5/x509v3_config.html>
-openssl req -x509 -out "${certFile}" -keyout "${keyFile}" \
-  -newkey rsa -nodes -subj '/CN=localhost' -days 365 -config <(echo "${config}")
+openssl req -x509 -newkey rsa -nodes -subj '/CN=localhost' -days 365 \
+  -config <(echo "${config}") \
+  -out "${certFile}" -keyout "${keyFile}"
 
 progress-msg 'Done!'
