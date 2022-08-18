@@ -12,14 +12,14 @@ export class Dirs {
 
   /** {string} The base directory of the application installation. */
   static get BASE_DIR() {
-    return Dirs.#BASE_DIR_URL.pathname;
+    return this.#BASE_DIR_URL.pathname;
   }
 
   /** {URL} URL representing the base directory. This is private because URLs
    * aren't immutable.
    */
   static get #BASE_DIR_URL() {
-    if (Dirs.#baseDirUrl == null) {
+    if (this.#baseDirUrl == null) {
       // This assumes that the "closest" directory called `code` lives in the
       // base directory.
       const here = import.meta.url;
@@ -30,11 +30,11 @@ export class Dirs {
         throw new Error('Cannot find base directory from: ' + here);
       }
 
-      Dirs.#baseDirUrl =
+      this.#baseDirUrl =
         new URL('file://' + pathParts.slice(0, codeAt).join('/') + '/');
     }
 
-    return Dirs.#baseDirUrl;
+    return this.#baseDirUrl;
   }
 
   /**
