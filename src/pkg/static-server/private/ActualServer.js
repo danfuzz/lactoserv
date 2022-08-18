@@ -2,8 +2,10 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import express from 'express';
+import http2ExpressBridge from 'http2-express-bridge';
 
 import * as http from 'http';
+import * as http2 from 'node:http2';
 import * as https from 'https';
 import * as path from 'node:path';
 import * as url from 'url';
@@ -30,7 +32,7 @@ export class ActualServer {
   constructor(config = null) {
     this.#config = config ?? { port: 8080, protocol: 'http' };
 
-    this.#app = express();
+    this.#app = this.#createApp();
     this.#server = null;
 
     this.#addRoutes();
@@ -150,6 +152,20 @@ export class ActualServer {
   }
 
   /**
+   * Creates the Express(-like) application object.
+   *
+   * @returns {object} The application object.
+   */
+  #createApp() {
+    if (this.#config.protocol === 'http2') {
+      // Express needs to be wrapped in order to use HTTP2.
+      return http2ExpressBridge(express);
+    } else {
+      return express();
+    }
+  }
+
+  /**
    * Creates a server for the protocol as indicated during construction.
    *
    * @returns {net.Server} An appropriate server object.
@@ -161,6 +177,15 @@ export class ActualServer {
     switch (config.protocol) {
       case 'http': {
         return http.createServer(app);
+      }
+
+      case 'http2': {
+        const options = {
+          key: config.key,
+          cert: config.cert,
+          allowHTTP1: true
+        }
+        return http2.createSecureServer(config, app);
       }
 
       case 'https': {

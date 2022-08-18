@@ -21,14 +21,22 @@ export class Main {
     // Way more TODO.
     console.log('TODO!')
 
+    const certsDir = Dirs.basePath('etc/certs');
+
     const httpConfig = {
       protocol: 'http',
       port:     8080
     };
 
-    const certsDir = Dirs.basePath('etc/certs');
     const httpsConfig = {
       protocol: 'https',
+      port:     8443,
+      key:      await fs.readFile(certsDir + '/localhost-key.pem'),
+      cert:     await fs.readFile(certsDir + '/localhost-cert.pem')
+    };
+
+    const http2Config = {
+      protocol: 'http2',
       port:     8443,
       key:      await fs.readFile(certsDir + '/localhost-key.pem'),
       cert:     await fs.readFile(certsDir + '/localhost-cert.pem')
