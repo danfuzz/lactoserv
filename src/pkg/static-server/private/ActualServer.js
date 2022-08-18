@@ -47,14 +47,11 @@ export class ActualServer {
       port: this.#config.port
     };
 
-    console.log('### actual 1');
-
     // This `await new Promise` arrangement is done to get the `listen` call to
     // be a good async citizen. Notably, the callback passed to
     // `Server.listen()` cannot (historically) be counted on to get used as an
     // error callback. TODO: Maybe there is a better way to do this these days?
     await new Promise((resolve, reject) => {
-      console.log('### actual 2');
       function done(err) {
         app.removeListener('listening', handleListening);
         app.removeListener('error',     handleError);
@@ -67,12 +64,10 @@ export class ActualServer {
       }
 
       function handleListening() {
-        console.log('### actual 2-yay');
         done(null);
       }
 
       function handleError(err) {
-        console.log('### actual 2-boo');
         done(err);
       }
 
@@ -84,17 +79,14 @@ export class ActualServer {
       server.on('error',     handleError);
       server.listen(listenOptions);
       this.#server = server;
-
-      console.log('### actual 3');
     });
 
     // TODO: More stuff?
-    console.log('### actual 4');
-    console.log('Started server. Yay?');
+    console.log('Started server.');
 
     const gotPort = this.#server.address().port;
 
-    console.log('Listening on port ' + gotPort);
+    console.log('Listening for %s on port %o.', this.#config.protocol, gotPort);
   }
 
   /**
@@ -124,7 +116,6 @@ export class ActualServer {
     }
 
     await new Promise((resolve, reject) => {
-      console.log('### close 1');
       function done(err) {
         server.removeListener('close', handleClose);
         server.removeListener('error', handleError);
@@ -137,18 +128,15 @@ export class ActualServer {
       }
 
       function handleClose() {
-        console.log('### close 3-yay');
         done(null);
       }
 
       function handleError(err) {
-        console.log('### close 3-boo');
         done(err);
       }
 
       server.on('close', handleClose);
       server.on('error', handleError);
-      console.log('### close 2');
     });
   }
 
@@ -176,7 +164,11 @@ export class ActualServer {
       }
 
       case 'https': {
-        return https.createServer(app);
+        const options = {
+          key: config.key,
+          cert: config.cert
+        }
+        return https.createServer(config, app);
       }
 
       default: {

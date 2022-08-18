@@ -24,9 +24,7 @@ export class StaticServer {
    * Starts the server.
    */
   async start() {
-    console.log('### static 1');
     await this.#actual.start();
-    console.log('### static 2');
   }
 
   /**
