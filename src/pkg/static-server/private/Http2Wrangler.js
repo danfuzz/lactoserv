@@ -70,14 +70,7 @@ export class Http2Wrangler extends ServerWrangler {
 
   /** Per superclass requirement. */
   async sub_whenStopped() {
-    // If there are any remaining sessions, wait for them to stop. We can just
-    // check the size of the `#sessions` set, because other code removes items
-    // as they're closed.
-    while (this.#sessions.size !== 0) {
-      console.log('Waiting...');
-      await this.#whenFullyStopped;
-      console.log('Done waiting.');
-    }
+    await this.#whenFullyStopped;
   }
 
   /**
