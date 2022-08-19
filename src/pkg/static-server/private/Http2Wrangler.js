@@ -7,12 +7,19 @@ import express from 'express';
 import http2ExpressBridge from 'http2-express-bridge';
 
 import * as http2 from 'node:http2';
-import { setTimeout } from 'node:timers/promises';
 
 /**
  * Wrangler for `Http2SecureServer`.
  */
 export class Http2Wrangler extends ServerWrangler {
+  /** {Promise} Promise that resolves when sessions are no longer accepted and
+   * all sessions have been closed. */
+  #whenFullyStopped = false;
+
+  /** {function} Function to call in order to resolve
+   * {@link #whenFullyStopped}. */
+  #resolveWhenFullyStopped;
+
   /**
    * Constructs an instance.
    *
@@ -31,6 +38,10 @@ export class Http2Wrangler extends ServerWrangler {
     const app = http2ExpressBridge(express);
 
     super(config, server, app);
+
+    this.#whenFullyStopped = new Promise((resolve) => {
+      this.#resolveWhenFullyStopped = () => resolve(true);
+    });
   }
 
   /** Per superclass requirement. */
@@ -61,7 +72,7 @@ export class Http2Wrangler extends ServerWrangler {
     // as they're closed.
     while (this.#sessions.size !== 0) {
       console.log('Waiting...');
-      await setTimeout(1000);
+      await this.#whenFullyStopped;
       console.log('Done waiting.');
     }
   }
@@ -75,9 +86,13 @@ export class Http2Wrangler extends ServerWrangler {
     sessions.add(session);
     console.log('### Added session %d', id);
 
-    function removeSession() {
-      console.log('### Removed session %d', id);
+    const removeSession = () => {
       sessions.delete(session);
+      console.log('### Removed session %d; %s %d', id, this.stopping, sessions.size);
+      if (this.stopping && (sessions.size == 0)) {
+        console.log('### FULLY STOPPED');
+        this.#resolveWhenFullyStopped();
+      }
     }
 
     session.on('close', removeSession);
