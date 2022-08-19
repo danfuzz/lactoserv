@@ -45,7 +45,7 @@ export class Main {
       cert:     await fs.readFile(certsDir + '/localhost-cert.pem')
     };
 
-    const server = new StaticServer(http2Config);
+    const server = new StaticServer(httpsConfig);
     await server.start();
 
     function doStop() {

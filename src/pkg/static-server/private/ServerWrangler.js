@@ -1,14 +1,6 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import express from 'express';
-import http2ExpressBridge from 'http2-express-bridge';
-
-import * as http2 from 'node:http2';
-import * as path from 'node:path';
-import { setTimeout } from 'node:timers/promises';
-import * as url from 'url';
-
 /**
  * Common interface for "wrangling" each of the different server protocols.
  */
@@ -119,6 +111,7 @@ export class ServerWrangler {
       this.#server.removeListener('request', this.#app);
       this.#server.close();
       this.#stopping = true;
+      this.#resolveWhenStopping();
     }
 
     return this.whenStopped();

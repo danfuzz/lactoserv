@@ -12,10 +12,9 @@ import { setTimeout } from 'node:timers/promises';
 import * as url from 'url';
 
 /**
- * Interface for `Http2Server`.
+ * Wrangler for `Http2SecureServer`.
  */
 export class Http2Interface extends ServerWrangler {
-
   /**
    * Constructs an instance.
    *
@@ -36,10 +35,7 @@ export class Http2Interface extends ServerWrangler {
     super(config, server, app);
   }
 
-  /**
-   * Starts listening for connections. Returns after listening has actually
-   * begun.
-   */
+  /** Per superclass requirement. */
   async sub_start() {
     const server = this.server;
     const handleSession = (session) => this.#addSession(session);
@@ -50,10 +46,7 @@ export class Http2Interface extends ServerWrangler {
     server.on('error', () => server.removeListener('session', handleSession));
   }
 
-  /**
-   * Stops the server. This returns when the server is actually stopped (socket
-   * is closed).
-   */
+  /** Per superclass requirement. */
   async sub_stop() {
     // Node docs indicate one has to explicitly close all HTTP2 sessions.
     for (const s of this.#sessions) {
@@ -63,11 +56,7 @@ export class Http2Interface extends ServerWrangler {
     }
   }
 
-  /**
-   * Returns when the server becomes stopped (stops listening / closes its
-   * server socket). In the case of closing due to an error, this throws the
-   * error.
-   */
+  /** Per superclass requirement. */
   async sub_whenStopped() {
     // If there are any remaining sessions, wait for them to stop. We can just
     // check the size of the `#sessions` set, because other code removes items

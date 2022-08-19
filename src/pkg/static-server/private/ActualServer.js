@@ -2,13 +2,11 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { Http2Interface } from '#p/Http2Interface';
+import { HttpsWrangler } from '#p/HttpsWrangler';
 
 import express from 'express';
-import http2ExpressBridge from 'http2-express-bridge';
 
 import * as http from 'http';
-import * as http2 from 'node:http2';
-import * as https from 'https';
 import * as path from 'node:path';
 import { setTimeout } from 'node:timers/promises';
 import * as url from 'url';
@@ -37,14 +35,19 @@ export class ActualServer {
     this.#config = config;
 
     switch (config.protocol) {
-      case 'http':
-      case 'https': {
+      case 'http': {
         this.#app = express();
         this.#server = this.#createServer();
         break;
       }
       case 'http2': {
         this.#serverInterface = new Http2Interface(config);
+        this.#app = this.#serverInterface.app;
+        this.#server = null;
+        break;
+      }
+      case 'https': {
+        this.#serverInterface = new HttpsWrangler(config);
         this.#app = this.#serverInterface.app;
         this.#server = null;
         break;
