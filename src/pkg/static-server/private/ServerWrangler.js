@@ -99,6 +99,11 @@ export class ServerWrangler {
 
       server.listen(listenOptions);
     });
+
+    const gotPort = this.#server.address().port;
+
+    console.log('Started server.');
+    console.log('Listening for %s on port %o.', this.#config.protocol, gotPort);
   }
 
   /**

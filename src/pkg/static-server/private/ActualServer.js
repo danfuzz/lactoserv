@@ -7,8 +7,6 @@ import { HttpsWrangler } from '#p/HttpsWrangler';
 
 import express from 'express';
 
-import * as path from 'node:path';
-import { setTimeout } from 'node:timers/promises';
 import * as url from 'url';
 
 /**
@@ -62,51 +60,7 @@ export class ActualServer {
    * Starts the server.
    */
   async start() {
-    if (this.#serverInterface !== null) {
-      return this.#serverInterface.start();
-    }
-
-    const app = this.#app;
-
-    const listenOptions = {
-      host: '::',
-      port: this.#config.port
-    };
-
-    // This `await new Promise` arrangement is done to get the `listen` call to
-    // be a good async citizen. Notably, the callback passed to
-    // `Server.listen()` cannot (historically) be counted on to get used as an
-    // error callback. TODO: Maybe there is a better way to do this these days?
-    await new Promise((resolve, reject) => {
-      function done(err) {
-        if (err !== null) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      }
-
-      function handleListening() {
-        done(null);
-      }
-
-      function handleError(err) {
-        done(err);
-      }
-
-      const server = this.#server;
-      server.on('listening', handleListening);
-      server.on('error',     handleError);
-      server.listen(listenOptions);
-      this.#server = server;
-    });
-
-    // TODO: More stuff?
-    console.log('Started server.');
-
-    const gotPort = this.#server.address().port;
-
-    console.log('Listening for %s on port %o.', this.#config.protocol, gotPort);
+    return this.#serverInterface.start();
   }
 
   /**
@@ -114,19 +68,7 @@ export class ActualServer {
    * is closed).
    */
   async stop() {
-    if (this.#serverInterface !== null) {
-      return this.#serverInterface.stop();
-    }
-
-    const server = this.#server;
-
-    if (server.listening) {
-      server.close();
-    }
-
-    server.closeAllConnections();
-
-    return this.whenStopped();
+    return this.#serverInterface.stop();
   }
 
   /**
@@ -135,39 +77,7 @@ export class ActualServer {
    * error.
    */
   async whenStopped() {
-    if (this.#serverInterface !== null) {
-      return this.#serverInterface.whenStopped();
-    }
-
-    const server = this.#server;
-
-    if (!server.listening) {
-      return;
-    }
-
-    await new Promise((resolve, reject) => {
-      function done(err) {
-        server.removeListener('close', handleClose);
-        server.removeListener('error', handleError);
-
-        if (err !== null) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      }
-
-      function handleClose() {
-        done(null);
-      }
-
-      function handleError(err) {
-        done(err);
-      }
-
-      server.on('close', handleClose);
-      server.on('error', handleError);
-    });
+    return this.#serverInterface.whenStopped();
   }
 
   /**
@@ -180,33 +90,5 @@ export class ActualServer {
     // TODO: Way more stuff. For now, just serve some static files.
     const assetsDir = url.fileURLToPath(new URL('../assets', import.meta.url));
     app.use('/', express.static(assetsDir))
-  }
-
-  /**
-   * Creates a server for the protocol as indicated during construction.
-   *
-   * @returns {net.Server} An appropriate server object.
-   */
-  #createServer() {
-    const app = this.#app;
-    const config = this.#config;
-
-    switch (config.protocol) {
-      case 'http': {
-        return http.createServer(app);
-      }
-
-      case 'https': {
-        const options = {
-          key: config.key,
-          cert: config.cert
-        }
-        return https.createServer(config, app);
-      }
-
-      default: {
-        throw new Error('Unknown protocol: ' + config.protocol)
-      }
-    }
   }
 }
