@@ -80,19 +80,17 @@ export class Http2Wrangler extends ServerWrangler {
     }
   }
 
-  #zzz_count = 0;
+  /**
+   * Called whenever a new HTTP2 session gets initiated.
+   */
   #addSession(session) {
-    const id = this.#zzz_count++;
     const sessions = this.#sessions;
 
     sessions.add(session);
-    console.log('### Added session %d', id);
 
     const removeSession = () => {
       sessions.delete(session);
-      console.log('### Removed session %d; %s %d', id, this.stopping, sessions.size);
       if (this.stopping && (sessions.size == 0)) {
-        console.log('### FULLY STOPPED');
         this.#resolveWhenFullyStopped();
       }
     }
@@ -103,7 +101,8 @@ export class Http2Wrangler extends ServerWrangler {
     session.on('goaway', removeSession);
 
     if (this.stopping) {
-      console.log('### Immediately closing session %d', id);
+      // Immediately close a session that managed to slip in while we're trying
+      // to stop.
       session.close();
     }
   }
