@@ -3,6 +3,9 @@
 
 /**
  * Common interface for "wrangling" each of the different server protocols.
+ * Concrete instances of this class remain "hidden" behind a public-facing
+ * server instance, so as to prevent clients of this package from reaching in
+ * and messing with internals.
  */
 export class ServerWrangler {
   /** {object} Configuration info. */
