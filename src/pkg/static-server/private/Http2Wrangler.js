@@ -12,9 +12,12 @@ import * as http2 from 'node:http2';
  * Wrangler for `Http2SecureServer`.
  */
 export class Http2Wrangler extends ServerWrangler {
+  /** {Set} Set of all currently-known sessions. */
+  #sessions = new Set();
+
   /** {Promise} Promise that resolves when sessions are no longer accepted and
    * all sessions have been closed. */
-  #whenFullyStopped = false;
+  #whenFullyStopped;
 
   /** {function} Function to call in order to resolve
    * {@link #whenFullyStopped}. */
@@ -77,7 +80,6 @@ export class Http2Wrangler extends ServerWrangler {
     }
   }
 
-  #sessions = new Set();
   #zzz_count = 0;
   #addSession(session) {
     const id = this.#zzz_count++;

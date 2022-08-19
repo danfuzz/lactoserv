@@ -21,7 +21,7 @@ export class ServerWrangler {
   #stopping = false;
 
   /** {Promise} Promise that resolves when {@link #stopping} becomes true. */
-  #whenStopping = false;
+  #whenStopping;
 
   /** {function} Function to call in order to resolve {@link #whenStopping}. */
   #resolveWhenStopping;
