@@ -25,11 +25,13 @@ export class Main {
 
     const httpConfig = {
       protocol: 'http',
+      host:     '::',
       port:     8080
     };
 
     const httpsConfig = {
       protocol: 'https',
+      host:     '::',
       port:     8443,
       key:      await fs.readFile(certsDir + '/localhost-key.pem'),
       cert:     await fs.readFile(certsDir + '/localhost-cert.pem')
@@ -37,12 +39,13 @@ export class Main {
 
     const http2Config = {
       protocol: 'http2',
+      host:     '::',
       port:     8443,
       key:      await fs.readFile(certsDir + '/localhost-key.pem'),
       cert:     await fs.readFile(certsDir + '/localhost-cert.pem')
     };
 
-    const server = new StaticServer(httpsConfig);
+    const server = new StaticServer(http2Config);
     await server.start();
 
     function doStop() {
@@ -50,7 +53,7 @@ export class Main {
       server.stop();
     }
 
-    timers.setTimeout(doStop, 30 * 1000);
+    timers.setTimeout(doStop, 15 * 1000);
 
     await server.whenStopped();
     console.log('Stopped!');

@@ -1,40 +1,40 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import express from 'express';
-import http2ExpressBridge from 'http2-express-bridge';
+import { HttpWrangler } from '#p/HttpWrangler';
+import { Http2Wrangler } from '#p/Http2Wrangler';
+import { HttpsWrangler } from '#p/HttpsWrangler';
 
-import * as http from 'http';
-import * as http2 from 'node:http2';
-import * as https from 'https';
-import * as path from 'node:path';
+import express from 'express';
+
 import * as url from 'url';
+
+const wranglerClasses = new Map(Object.entries({
+  http:  HttpWrangler,
+  http2: Http2Wrangler,
+  https: HttpsWrangler
+}));
 
 /**
  * Actual Http(s) server.
  */
 export class ActualServer {
-  /** {object} Configuration info. */
-  #config;
-
-  /** {express} Express server application. */
-  #app;
-
-  /** {http.Server|null} Active HTTP server instance. */
-  #server;
+  /** {ServerWrangler} Protocol-specific "wrangler." */
+  #wrangler = null;
 
   /**
    * Constructs an instance.
    *
-   * @param {object|null} config Configuration object; `null` to get a default
-   *   of listening for HTTP on port 8080.
+   * @param {object} config Configuration object.
    */
-  constructor(config = null) {
-    this.#config = config ?? { port: 8080, protocol: 'http' };
+  constructor(config) {
+    const wranglerClass = wranglerClasses.get(config.protocol);
 
-    this.#app = this.#createApp();
-    this.#server = null;
+    if (wranglerClass === null) {
+      throw new Error('Unknown protocol: ' + config.protocol);
+    }
 
+    this.#wrangler = new wranglerClass(config);
     this.#addRoutes();
   }
 
@@ -42,53 +42,7 @@ export class ActualServer {
    * Starts the server.
    */
   async start() {
-    const app = this.#app;
-
-    const listenOptions = {
-      host: '::',
-      port: this.#config.port
-    };
-
-    // This `await new Promise` arrangement is done to get the `listen` call to
-    // be a good async citizen. Notably, the callback passed to
-    // `Server.listen()` cannot (historically) be counted on to get used as an
-    // error callback. TODO: Maybe there is a better way to do this these days?
-    await new Promise((resolve, reject) => {
-      function done(err) {
-        app.removeListener('listening', handleListening);
-        app.removeListener('error',     handleError);
-
-        if (err !== null) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      }
-
-      function handleListening() {
-        done(null);
-      }
-
-      function handleError(err) {
-        done(err);
-      }
-
-      app.on('listening', handleListening);
-      app.on('error',     handleError);
-
-      const server = this.#createServer();
-      server.on('listening', handleListening);
-      server.on('error',     handleError);
-      server.listen(listenOptions);
-      this.#server = server;
-    });
-
-    // TODO: More stuff?
-    console.log('Started server.');
-
-    const gotPort = this.#server.address().port;
-
-    console.log('Listening for %s on port %o.', this.#config.protocol, gotPort);
+    return this.#wrangler.start();
   }
 
   /**
@@ -96,13 +50,7 @@ export class ActualServer {
    * is closed).
    */
   async stop() {
-    const server = this.#server;
-
-    if (server.listening) {
-      server.close();
-    }
-
-    return this.whenStopped();
+    return this.#wrangler.stop();
   }
 
   /**
@@ -111,94 +59,17 @@ export class ActualServer {
    * error.
    */
   async whenStopped() {
-    const server = this.#server;
-
-    if (!server.listening) {
-      return;
-    }
-
-    await new Promise((resolve, reject) => {
-      function done(err) {
-        server.removeListener('close', handleClose);
-        server.removeListener('error', handleError);
-
-        if (err !== null) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      }
-
-      function handleClose() {
-        done(null);
-      }
-
-      function handleError(err) {
-        done(err);
-      }
-
-      server.on('close', handleClose);
-      server.on('error', handleError);
-    });
+    return this.#wrangler.whenStopped();
   }
 
   /**
    * Adds routes to the Express instance.
    */
   #addRoutes() {
+    const app = this.#wrangler.app;
+
     // TODO: Way more stuff. For now, just serve some static files.
     const assetsDir = url.fileURLToPath(new URL('../assets', import.meta.url));
-    this.#app.use('/', express.static(assetsDir))
-  }
-
-  /**
-   * Creates the Express(-like) application object.
-   *
-   * @returns {object} The application object.
-   */
-  #createApp() {
-    if (this.#config.protocol === 'http2') {
-      // Express needs to be wrapped in order to use HTTP2.
-      return http2ExpressBridge(express);
-    } else {
-      return express();
-    }
-  }
-
-  /**
-   * Creates a server for the protocol as indicated during construction.
-   *
-   * @returns {net.Server} An appropriate server object.
-   */
-  #createServer() {
-    const app = this.#app;
-    const config = this.#config;
-
-    switch (config.protocol) {
-      case 'http': {
-        return http.createServer(app);
-      }
-
-      case 'http2': {
-        const options = {
-          key: config.key,
-          cert: config.cert,
-          allowHTTP1: true
-        }
-        return http2.createSecureServer(config, app);
-      }
-
-      case 'https': {
-        const options = {
-          key: config.key,
-          cert: config.cert
-        }
-        return https.createServer(config, app);
-      }
-
-      default: {
-        throw new Error('Unknown protocol: ' + config.protocol)
-      }
-    }
+    app.use('/', express.static(assetsDir))
   }
 }
