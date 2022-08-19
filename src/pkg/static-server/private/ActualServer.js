@@ -9,6 +9,12 @@ import express from 'express';
 
 import * as url from 'url';
 
+const wranglerClasses = new Map(Object.entries({
+  http:  HttpWrangler,
+  http2: Http2Wrangler,
+  https: HttpsWrangler
+}));
+
 /**
  * Actual Http(s) server.
  */
@@ -22,21 +28,13 @@ export class ActualServer {
    * @param {object} config Configuration object.
    */
   constructor(config) {
-    switch (config.protocol) {
-      case 'http': {
-        this.#wrangler = new HttpWrangler(config);
-        break;
-      }
-      case 'http2': {
-        this.#wrangler = new Http2Wrangler(config);
-        break;
-      }
-      case 'https': {
-        this.#wrangler = new HttpsWrangler(config);
-        break;
-      }
+    const wranglerClass = wranglerClasses.get(config.protocol);
+
+    if (wranglerClass === null) {
+      throw new Error('Unknown protocol: ' + config.protocol);
     }
 
+    this.#wrangler = new wranglerClass(config);
     this.#addRoutes();
   }
 
