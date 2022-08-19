@@ -7,9 +7,7 @@ import express from 'express';
 import http2ExpressBridge from 'http2-express-bridge';
 
 import * as http2 from 'node:http2';
-import * as path from 'node:path';
 import { setTimeout } from 'node:timers/promises';
-import * as url from 'url';
 
 /**
  * Wrangler for `Http2SecureServer`.
