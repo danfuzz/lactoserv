@@ -1,6 +1,8 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { Http2Interface } from '#p/Http2Interface';
+
 import express from 'express';
 import http2ExpressBridge from 'http2-express-bridge';
 
@@ -8,6 +10,7 @@ import * as http from 'http';
 import * as http2 from 'node:http2';
 import * as https from 'https';
 import * as path from 'node:path';
+import { setTimeout } from 'node:timers/promises';
 import * as url from 'url';
 
 /**
@@ -23,17 +26,30 @@ export class ActualServer {
   /** {http.Server|null} Active HTTP server instance. */
   #server;
 
+  #serverInterface = null;
+
   /**
    * Constructs an instance.
    *
-   * @param {object|null} config Configuration object; `null` to get a default
-   *   of listening for HTTP on port 8080.
+   * @param {object} config Configuration object.
    */
-  constructor(config = null) {
-    this.#config = config ?? { port: 8080, protocol: 'http' };
+  constructor(config) {
+    this.#config = config;
 
-    this.#app = this.#createApp();
-    this.#server = null;
+    switch (config.protocol) {
+      case 'http':
+      case 'https': {
+        this.#app = express();
+        this.#server = this.#createServer();
+        break;
+      }
+      case 'http2': {
+        this.#serverInterface = new Http2Interface(config);
+        this.#app = this.#serverInterface.app;
+        this.#server = null;
+        break;
+      }
+    }
 
     this.#addRoutes();
   }
@@ -42,6 +58,10 @@ export class ActualServer {
    * Starts the server.
    */
   async start() {
+    if (this.#serverInterface !== null) {
+      return this.#serverInterface.start();
+    }
+
     const app = this.#app;
 
     const listenOptions = {
@@ -55,9 +75,6 @@ export class ActualServer {
     // error callback. TODO: Maybe there is a better way to do this these days?
     await new Promise((resolve, reject) => {
       function done(err) {
-        app.removeListener('listening', handleListening);
-        app.removeListener('error',     handleError);
-
         if (err !== null) {
           reject(err);
         } else {
@@ -73,10 +90,7 @@ export class ActualServer {
         done(err);
       }
 
-      app.on('listening', handleListening);
-      app.on('error',     handleError);
-
-      const server = this.#createServer();
+      const server = this.#server;
       server.on('listening', handleListening);
       server.on('error',     handleError);
       server.listen(listenOptions);
@@ -96,11 +110,17 @@ export class ActualServer {
    * is closed).
    */
   async stop() {
+    if (this.#serverInterface !== null) {
+      return this.#serverInterface.stop();
+    }
+
     const server = this.#server;
 
     if (server.listening) {
       server.close();
     }
+
+    server.closeAllConnections();
 
     return this.whenStopped();
   }
@@ -111,6 +131,10 @@ export class ActualServer {
    * error.
    */
   async whenStopped() {
+    if (this.#serverInterface !== null) {
+      return this.#serverInterface.whenStopped();
+    }
+
     const server = this.#server;
 
     if (!server.listening) {
@@ -146,23 +170,12 @@ export class ActualServer {
    * Adds routes to the Express instance.
    */
   #addRoutes() {
+    const app = (this.#serverInterface === null)
+      ? this.#app : this.#serverInterface.app;
+
     // TODO: Way more stuff. For now, just serve some static files.
     const assetsDir = url.fileURLToPath(new URL('../assets', import.meta.url));
-    this.#app.use('/', express.static(assetsDir))
-  }
-
-  /**
-   * Creates the Express(-like) application object.
-   *
-   * @returns {object} The application object.
-   */
-  #createApp() {
-    if (this.#config.protocol === 'http2') {
-      // Express needs to be wrapped in order to use HTTP2.
-      return http2ExpressBridge(express);
-    } else {
-      return express();
-    }
+    app.use('/', express.static(assetsDir))
   }
 
   /**
@@ -177,15 +190,6 @@ export class ActualServer {
     switch (config.protocol) {
       case 'http': {
         return http.createServer(app);
-      }
-
-      case 'http2': {
-        const options = {
-          key: config.key,
-          cert: config.cert,
-          allowHTTP1: true
-        }
-        return http2.createSecureServer(config, app);
       }
 
       case 'https': {
