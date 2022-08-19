@@ -1,12 +1,12 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { HttpWrangler } from '#p/HttpWrangler';
 import { Http2Wrangler } from '#p/Http2Wrangler';
 import { HttpsWrangler } from '#p/HttpsWrangler';
 
 import express from 'express';
 
-import * as http from 'http';
 import * as path from 'node:path';
 import { setTimeout } from 'node:timers/promises';
 import * as url from 'url';
@@ -36,8 +36,9 @@ export class ActualServer {
 
     switch (config.protocol) {
       case 'http': {
-        this.#app = express();
-        this.#server = this.#createServer();
+        this.#serverInterface = new HttpWrangler(config);
+        this.#app = this.#serverInterface.app;
+        this.#server = null;
         break;
       }
       case 'http2': {
