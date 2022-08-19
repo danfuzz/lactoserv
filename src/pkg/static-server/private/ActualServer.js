@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { Http2Interface } from '#p/Http2Interface';
+import { Http2Wrangler } from '#p/Http2Wrangler';
 import { HttpsWrangler } from '#p/HttpsWrangler';
 
 import express from 'express';
@@ -41,7 +41,7 @@ export class ActualServer {
         break;
       }
       case 'http2': {
-        this.#serverInterface = new Http2Interface(config);
+        this.#serverInterface = new Http2Wrangler(config);
         this.#app = this.#serverInterface.app;
         this.#server = null;
         break;

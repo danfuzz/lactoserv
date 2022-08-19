@@ -14,7 +14,7 @@ import * as url from 'url';
 /**
  * Wrangler for `Http2SecureServer`.
  */
-export class Http2Interface extends ServerWrangler {
+export class Http2Wrangler extends ServerWrangler {
   /**
    * Constructs an instance.
    *
