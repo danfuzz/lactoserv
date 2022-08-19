@@ -13,16 +13,8 @@ import * as url from 'url';
  * Actual Http(s) server.
  */
 export class ActualServer {
-  /** {object} Configuration info. */
-  #config;
-
-  /** {express} Express server application. */
-  #app;
-
-  /** {http.Server|null} Active HTTP server instance. */
-  #server;
-
-  #serverInterface = null;
+  /** {ServerWrangler} Protocol-specific "wrangler." */
+  #wrangler = null;
 
   /**
    * Constructs an instance.
@@ -30,25 +22,17 @@ export class ActualServer {
    * @param {object} config Configuration object.
    */
   constructor(config) {
-    this.#config = config;
-
     switch (config.protocol) {
       case 'http': {
-        this.#serverInterface = new HttpWrangler(config);
-        this.#app = this.#serverInterface.app;
-        this.#server = null;
+        this.#wrangler = new HttpWrangler(config);
         break;
       }
       case 'http2': {
-        this.#serverInterface = new Http2Wrangler(config);
-        this.#app = this.#serverInterface.app;
-        this.#server = null;
+        this.#wrangler = new Http2Wrangler(config);
         break;
       }
       case 'https': {
-        this.#serverInterface = new HttpsWrangler(config);
-        this.#app = this.#serverInterface.app;
-        this.#server = null;
+        this.#wrangler = new HttpsWrangler(config);
         break;
       }
     }
@@ -60,7 +44,7 @@ export class ActualServer {
    * Starts the server.
    */
   async start() {
-    return this.#serverInterface.start();
+    return this.#wrangler.start();
   }
 
   /**
@@ -68,7 +52,7 @@ export class ActualServer {
    * is closed).
    */
   async stop() {
-    return this.#serverInterface.stop();
+    return this.#wrangler.stop();
   }
 
   /**
@@ -77,15 +61,14 @@ export class ActualServer {
    * error.
    */
   async whenStopped() {
-    return this.#serverInterface.whenStopped();
+    return this.#wrangler.whenStopped();
   }
 
   /**
    * Adds routes to the Express instance.
    */
   #addRoutes() {
-    const app = (this.#serverInterface === null)
-      ? this.#app : this.#serverInterface.app;
+    const app = this.#wrangler.app;
 
     // TODO: Way more stuff. For now, just serve some static files.
     const assetsDir = url.fileURLToPath(new URL('../assets', import.meta.url));
