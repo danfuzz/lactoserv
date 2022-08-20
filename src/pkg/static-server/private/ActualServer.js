@@ -83,7 +83,9 @@ export class ActualServer {
     // Means paths `/foo` and `/Foo` are different.
     app.set('case sensitive routing', true);
 
-    // A/O/T `development`.
+    // A/O/T `development`. Note: Per Express docs, this makes error messages be
+    // "less verbose," so it may be reasonable to turn it off when debugging
+    // things like Express routing weirdness etc.
     app.set('env', 'production');
 
     // Means paths `/foo` and `/foo/` are different.
