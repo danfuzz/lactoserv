@@ -35,6 +35,7 @@ export class ActualServer {
     }
 
     this.#wrangler = new wranglerClass(config);
+    this.#configureApplication();
     this.#addRoutes();
   }
 
@@ -71,5 +72,24 @@ export class ActualServer {
     // TODO: Way more stuff. For now, just serve some static files.
     const assetsDir = url.fileURLToPath(new URL('../assets', import.meta.url));
     app.use('/', express.static(assetsDir))
+  }
+
+  /**
+   * Configures top-level application settings.
+   */
+  #configureApplication() {
+    const app = this.#wrangler.app;
+
+    // Means paths `/foo` and `/Foo` are different.
+    app.set('case sensitive routing', true);
+
+    // A/O/T `development`.
+    app.set('env', 'production');
+
+    // Means paths `/foo` and `/foo/` are different.
+    app.set('strict routing', true);
+
+    // Squelches the response header advertisement.
+    app.set('x-powered-by', false);
   }
 }
