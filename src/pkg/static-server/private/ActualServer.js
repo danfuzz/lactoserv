@@ -5,10 +5,6 @@ import { HttpWrangler } from '#p/HttpWrangler';
 import { Http2Wrangler } from '#p/Http2Wrangler';
 import { HttpsWrangler } from '#p/HttpsWrangler';
 
-import express from 'express';
-
-import * as url from 'url';
-
 const wranglerClasses = new Map(Object.entries({
   http:  HttpWrangler,
   http2: Http2Wrangler,
@@ -36,7 +32,11 @@ export class ActualServer {
 
     this.#wrangler = new wranglerClass(config);
     this.#configureApplication();
-    this.#addRoutes();
+  }
+
+  /** {express} The Express(-like) application instance. */
+  get app() {
+    return this.#wrangler.app;
   }
 
   /**
@@ -64,21 +64,10 @@ export class ActualServer {
   }
 
   /**
-   * Adds routes to the Express instance.
-   */
-  #addRoutes() {
-    const app = this.#wrangler.app;
-
-    // TODO: Way more stuff. For now, just serve some static files.
-    const assetsDir = url.fileURLToPath(new URL('../assets', import.meta.url));
-    app.use('/', express.static(assetsDir))
-  }
-
-  /**
    * Configures top-level application settings.
    */
   #configureApplication() {
-    const app = this.#wrangler.app;
+    const app = this.app;
 
     // Means paths `/foo` and `/Foo` are different.
     app.set('case sensitive routing', true);

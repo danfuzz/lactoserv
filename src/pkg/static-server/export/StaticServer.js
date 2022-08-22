@@ -3,6 +3,10 @@
 
 import { ActualServer } from '#p/ActualServer';
 
+import express from 'express';
+
+import * as url from 'url';
+
 /**
  * Static content server.
  */
@@ -18,6 +22,7 @@ export class StaticServer {
    */
   constructor(config) {
     this.#actual = new ActualServer(config);
+    this.#addRoutes();
   }
 
   /**
@@ -41,5 +46,16 @@ export class StaticServer {
    */
   async whenStopped() {
     return this.#actual.whenStopped();
+  }
+
+  /**
+   * Adds routes to the application instance.
+   */
+  #addRoutes() {
+    const app = this.#actual.app;
+
+    // TODO: Way more stuff. For now, just serve some static files.
+    const assetsDir = url.fileURLToPath(new URL('../assets', import.meta.url));
+    app.use('/', express.static(assetsDir))
   }
 }
