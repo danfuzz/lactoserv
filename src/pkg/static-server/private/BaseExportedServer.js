@@ -2,24 +2,17 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { ActualServer } from '#p/ActualServer';
+import { PROTECTED_ACCESS } from '#p/PROTECTED_ACCESS';
 
 /**
  * Base class for the exported (public) server classes.
  */
 export class BaseExportedServer {
-  /** {object} Unique object used to grant access to innards. */
-  static #ACCESS_TOKEN = Symbol(this.name);
-
   /** {object} Access token for innards. */
   #accessToken;
 
   /** {ActualServer} Underlying server instance. */
   #actual;
-
-  /** {object} Unique object used to grant access to innards. */
-  static get ACCESS_TOKEN() {
-    return this.#ACCESS_TOKEN;
-  }
 
   /**
    * Constructs an instance.
@@ -32,17 +25,13 @@ export class BaseExportedServer {
 
   /**
    * Gets the internal `ActualServer` instance, but only if this method is
-   * presented with the designated access token.
+   * presented with the designated protected-access token.
    *
-   * This arrangement in effect makes this a "protected method" in the usual
-   * sense. (More specifically, it's usable by subclasses in this module but not
-   * by clients of this module.)
-   *
-   * @param {object} acccessToken Access token.
+   * @param {object} accessToken Access token.
    * @returns {ActualServer} Underlying server instance.
    */
   getActual(accessToken) {
-    if (accessToken !== BaseExportedServer.#ACCESS_TOKEN) {
+    if (accessToken !== PROTECTED_ACCESS) {
       throw new Error('Access token mismatch.');
     }
 
