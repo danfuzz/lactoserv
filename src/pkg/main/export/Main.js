@@ -33,16 +33,16 @@ export class Main {
       protocol: 'https',
       host:     '::',
       port:     8443,
-      key:      await fs.readFile(certsDir + '/localhost-key.pem'),
-      cert:     await fs.readFile(certsDir + '/localhost-cert.pem')
+      key:      await fs.readFile(certsDir + '/localhost-key.pem', 'utf-8'),
+      cert:     await fs.readFile(certsDir + '/localhost-cert.pem', 'utf-8')
     };
 
     const http2Config = {
       protocol: 'http2',
       host:     '::',
       port:     8443,
-      key:      await fs.readFile(certsDir + '/localhost-key.pem'),
-      cert:     await fs.readFile(certsDir + '/localhost-cert.pem')
+      key:      await fs.readFile(certsDir + '/localhost-key.pem', 'utf-8'),
+      cert:     await fs.readFile(certsDir + '/localhost-cert.pem', 'utf-8')
     };
 
     const server = new StaticServer(http2Config);
