@@ -3,10 +3,6 @@
 
 import { ActualServer } from '#p/ActualServer';
 
-import express from 'express';
-
-import * as url from 'url';
-
 /**
  * Base class for the exported (public) server classes.
  */
