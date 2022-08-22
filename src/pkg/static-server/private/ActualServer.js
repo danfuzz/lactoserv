@@ -19,7 +19,7 @@ const wranglerClasses = new Map(Object.entries({
  * Actual Http(s) server.
  */
 export class ActualServer {
-  /** {ServerWrangler} Protocol-specific "wrangler." */
+  /** {BaseWrangler} Protocol-specific "wrangler." */
   #wrangler = null;
 
   /**

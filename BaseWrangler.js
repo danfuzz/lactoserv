@@ -7,7 +7,7 @@
  * server instance, so as to prevent clients of this package from reaching in
  * and messing with internals.
  */
-export class ServerWrangler {
+export class BaseWrangler {
   /** {object} Configuration info. */
   #config;
 

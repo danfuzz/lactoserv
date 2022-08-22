@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { ServerWrangler } from '#p/ServerWrangler';
+import { BaseWrangler } from '#p/BaseWrangler';
 
 import express from 'express';
 
@@ -10,7 +10,7 @@ import * as https from 'https';
 /**
  * Wrangler for `HttpsServer`.
  */
-export class HttpsWrangler extends ServerWrangler {
+export class HttpsWrangler extends BaseWrangler {
   /**
    * Constructs an instance.
    *

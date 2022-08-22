@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { ServerWrangler } from '#p/ServerWrangler';
+import { BaseWrangler } from '#p/BaseWrangler';
 
 import express from 'express';
 import http2ExpressBridge from 'http2-express-bridge';
@@ -11,7 +11,7 @@ import * as http2 from 'node:http2';
 /**
  * Wrangler for `Http2SecureServer`.
  */
-export class Http2Wrangler extends ServerWrangler {
+export class Http2Wrangler extends BaseWrangler {
   /** {Set} Set of all currently-known sessions. */
   #sessions = new Set();
 
