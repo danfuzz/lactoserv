@@ -14,11 +14,10 @@ export class HttpsWrangler extends BaseWrangler {
   /**
    * Constructs an instance.
    *
-   * @param {object} config Configuration object.
    * @param {ActualServer} actual Controlling instance.
    */
-  constructor(config, actual) {
-    super(config, actual);
+  constructor(actual) {
+    super(actual);
   }
 
   /** Per superclass requirement. */

@@ -8,18 +8,16 @@
  * and messing with internals.
  */
 export class BaseWrangler {
-  /** {object} Configuration info. */
-  #config;
-
   /** {ActualServer} Controlling instance. */
   #actual;
 
   /**
    * Constructs an instance.
+   *
+   * @param {ActualServer} actual Controlling instance.
    */
-  constructor(config, actual) {
+  constructor(actual) {
     this.#actual = actual;
-    this.#config = config;
   }
 
   /** {ActualServer} Controlling instance. */

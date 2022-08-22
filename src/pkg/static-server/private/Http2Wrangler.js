@@ -26,21 +26,10 @@ export class Http2Wrangler extends BaseWrangler {
   /**
    * Constructs an instance.
    *
-   * @param {object} config Configuration object.
+   * @param {ActualServer} actual Controlling instance.
    */
-  constructor(config, actual) {
-    const serverOptions = {
-      key: config.key,
-      cert: config.cert,
-      allowHTTP1: true
-    }
-
-    const server = http2.createSecureServer(serverOptions);
-
-    // Express needs to be wrapped in order to use HTTP2.
-    const app = http2ExpressBridge(express);
-
-    super(config, actual, server, app);
+  constructor(actual) {
+    super(actual);
 
     this.#whenFullyStopped = new Promise((resolve) => {
       this.#resolveWhenFullyStopped = () => resolve(true);

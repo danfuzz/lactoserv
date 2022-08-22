@@ -50,7 +50,7 @@ export class ActualServer {
       throw new Error('Unknown protocol: ' + config.protocol);
     }
 
-    this.#wrangler = new wranglerClass(config, this);
+    this.#wrangler = new wranglerClass(this);
     this.#server = this.#wrangler.createServer();
     this.#app = this.#wrangler.createApplication();
     this.#configureApplication();
