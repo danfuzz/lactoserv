@@ -6,6 +6,7 @@ import { Dirs } from '@this/util-server';
 
 import * as fs from 'node:fs/promises';
 import * as timers from 'timers';
+import * as url from 'url';
 
 /**
  * Top-level logic for starting a server.
@@ -21,28 +22,35 @@ export class Main {
     // Way more TODO.
     console.log('TODO!')
 
-    const certsDir = Dirs.basePath('etc/certs');
+    const certsPath = Dirs.basePath('etc/certs');
+    const assetsPath = url.fileURLToPath(new URL('../assets', import.meta.url));
 
     const httpConfig = {
-      protocol: 'http',
-      host:     '::',
-      port:     8080
+      protocol:   'http',
+      host:       '::',
+      port:       8080,
+      what:       'static-server',
+      assetsPath: assetsPath
     };
 
     const httpsConfig = {
-      protocol: 'https',
-      host:     '::',
-      port:     8443,
-      key:      await fs.readFile(certsDir + '/localhost-key.pem'),
-      cert:     await fs.readFile(certsDir + '/localhost-cert.pem')
+      protocol:   'https',
+      host:       '::',
+      port:       8443,
+      key:        await fs.readFile(certsPath + '/localhost-key.pem', 'utf-8'),
+      cert:       await fs.readFile(certsPath + '/localhost-cert.pem', 'utf-8'),
+      what:       'static-server',
+      assetsPath: assetsPath
     };
 
     const http2Config = {
-      protocol: 'http2',
-      host:     '::',
-      port:     8443,
-      key:      await fs.readFile(certsDir + '/localhost-key.pem'),
-      cert:     await fs.readFile(certsDir + '/localhost-cert.pem')
+      protocol:   'http2',
+      host:       '::',
+      port:       8443,
+      key:        await fs.readFile(certsPath + '/localhost-key.pem', 'utf-8'),
+      cert:       await fs.readFile(certsPath + '/localhost-cert.pem', 'utf-8'),
+      what:       'static-server',
+      assetsPath: assetsPath
     };
 
     const server = new StaticServer(http2Config);
