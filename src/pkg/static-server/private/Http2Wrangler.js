@@ -28,7 +28,7 @@ export class Http2Wrangler extends BaseWrangler {
    *
    * @param {object} config Configuration object.
    */
-  constructor(config) {
+  constructor(config, actual) {
     const serverOptions = {
       key: config.key,
       cert: config.cert,
@@ -40,7 +40,7 @@ export class Http2Wrangler extends BaseWrangler {
     // Express needs to be wrapped in order to use HTTP2.
     const app = http2ExpressBridge(express);
 
-    super(config, server, app);
+    super(config, actual, server, app);
 
     this.#whenFullyStopped = new Promise((resolve) => {
       this.#resolveWhenFullyStopped = () => resolve(true);

@@ -16,11 +16,11 @@ export class HttpWrangler extends BaseWrangler {
    *
    * @param {object} config Configuration object.
    */
-  constructor(config) {
+  constructor(config, actual) {
     const server = http.createServer();
     const app = express();
 
-    super(config, server, app);
+    super(config, actual, server, app);
   }
 
   /** Per superclass requirement. */

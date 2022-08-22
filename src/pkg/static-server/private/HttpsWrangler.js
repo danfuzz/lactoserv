@@ -16,7 +16,7 @@ export class HttpsWrangler extends BaseWrangler {
    *
    * @param {object} config Configuration object.
    */
-  constructor(config) {
+  constructor(config, actual) {
     const serverOptions = {
       key: config.key,
       cert: config.cert
@@ -25,7 +25,7 @@ export class HttpsWrangler extends BaseWrangler {
     const server = https.createServer(config);
     const app = express();
 
-    super(config, server, app);
+    super(config, actual, server, app);
   }
 
   /** Per superclass requirement. */

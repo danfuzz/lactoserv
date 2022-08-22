@@ -11,25 +11,20 @@ export class BaseWrangler {
   /** {object} Configuration info. */
   #config;
 
+  /** {ActualServer} Controlling server instance. */
+  #actual;
+
   /** {HttpServer} `HttpServer`(-like) instance. */
   #server;
 
   /** {Express} `Express`(-like) application object. */
   #app;
 
-  /** {boolean} Is the server stopped or trying to stop? */
-  #stopping = false;
-
-  /** {Promise} Promise that resolves when {@link #stopping} becomes true. */
-  #whenStopping;
-
-  /** {function} Function to call in order to resolve {@link #whenStopping}. */
-  #resolveWhenStopping;
-
   /**
    * Constructs an instance.
    */
-  constructor(config, server, app) {
+  constructor(config, actual, server, app) {
+    this.#actual = actual;
     this.#config = config;
     this.#server = server;
     this.#app = app;
