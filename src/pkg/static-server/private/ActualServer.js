@@ -27,6 +27,15 @@ export class ActualServer {
   /** {Express} `Express`(-like) application object. */
   #app;
 
+  /** {boolean} Is the server stopped or trying to stop? */
+  #stopping = false;
+
+  /** {Promise} Promise that resolves when {@link #stopping} becomes true. */
+  #whenStopping;
+
+  /** {function} Function to call in order to resolve {@link #whenStopping}. */
+  #resolveWhenStopping;
+
   /**
    * Constructs an instance.
    *
@@ -45,6 +54,10 @@ export class ActualServer {
     this.#server = this.#wrangler.server;
     this.#app = this.#wrangler.app;
     this.#configureApplication();
+
+    this.#whenStopping = new Promise((resolve) => {
+      this.#resolveWhenStopping = () => resolve(true);
+    });
   }
 
   /** {express} The Express(-like) application instance. */
@@ -52,11 +65,63 @@ export class ActualServer {
     return this.#wrangler.app;
   }
 
+  /** {boolean} Is the server stopped or trying to stop? */
+  get stopping() {
+    return this.#stopping;
+  }
+
   /**
    * Starts the server.
    */
   async start() {
-    return this.#wrangler.start();
+    if (this.#stopping) {
+      throw new Error('Server stopping or already stopped.');
+    }
+
+    await this.#wrangler.sub_start();
+
+    // This `await new Promise` arrangement is done to get the `listen` call to
+    // be a good async citizen. Notably, the callback passed to
+    // `Server.listen()` cannot (historically) be counted on to get used as an
+    // error callback. TODO: Maybe there is a better way to do this these days?
+    await new Promise((resolve, reject) => {
+      const server = this.#server;
+
+      function done(err) {
+        server.removeListener('listening', handleListening);
+        server.removeListener('error',     handleError);
+
+        if (err !== null) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      }
+
+      function handleListening() {
+        done(null);
+      }
+
+      function handleError(err) {
+        done(err);
+      }
+
+      server.on('listening', handleListening);
+      server.on('error',     handleError);
+      server.on('request',   this.#app);
+
+      const listenOptions = {
+        host: this.#config.host,
+        port: this.#config.port
+      };
+
+      server.listen(listenOptions);
+    });
+
+    const gotPort = this.#server.address().port;
+
+    console.log('Started server.');
+    console.log('Listening for %s on port %o.', this.#config.protocol, gotPort);
   }
 
   /**
@@ -64,7 +129,15 @@ export class ActualServer {
    * is closed).
    */
   async stop() {
-    return this.#wrangler.stop();
+    if (!this.#stopping) {
+      await this.#wrangler.sub_stop();
+      this.#server.removeListener('request', this.#app);
+      this.#server.close();
+      this.#stopping = true;
+      this.#resolveWhenStopping();
+    }
+
+    return this.whenStopped();
   }
 
   /**
@@ -73,7 +146,41 @@ export class ActualServer {
    * error.
    */
   async whenStopped() {
-    return this.#wrangler.whenStopped();
+    if (!this.#stopping) {
+      await this.#whenStopping;
+    }
+
+    await this.#wrangler.sub_whenStopped();
+
+    const server = this.#server;
+
+    // If the server is still listening for connections, wait for it to claim
+    // to have stopped.
+    while (server.listening) {
+      await new Promise((resolve, reject) => {
+        function done(err) {
+          server.removeListener('close', handleClose);
+          server.removeListener('error', handleError);
+
+          if (err !== null) {
+            reject(err);
+          } else {
+            resolve();
+          }
+        }
+
+        function handleClose() {
+          done(null);
+        }
+
+        function handleError(err) {
+          done(err);
+        }
+
+        server.on('close', handleClose);
+        server.on('error', handleError);
+      });
+    }
   }
 
   /**

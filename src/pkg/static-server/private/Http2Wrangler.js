@@ -83,7 +83,7 @@ export class Http2Wrangler extends BaseWrangler {
 
     const removeSession = () => {
       sessions.delete(session);
-      if (this.stopping && (sessions.size == 0)) {
+      if (this.actual.stopping && (sessions.size == 0)) {
         this.#resolveWhenFullyStopped();
       }
     }
@@ -93,7 +93,7 @@ export class Http2Wrangler extends BaseWrangler {
     session.on('frameError', removeSession);
     session.on('goaway', removeSession);
 
-    if (this.stopping) {
+    if (this.actual.stopping) {
       // Immediately close a session that managed to slip in while we're trying
       // to stop.
       session.close();
