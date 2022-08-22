@@ -82,10 +82,6 @@ export class BaseExportedServer {
   static #validateConfig(config) {
     const v = new Validator();
 
-    const options = {
-      throwAll: true
-    };
-
     // See <https://json-schema.org/>.
     const schema = {
       allOf: [
