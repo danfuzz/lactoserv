@@ -17,8 +17,7 @@ export class StaticServer {
   /**
    * Constructs an instance.
    *
-   * @param {object|null} config Configuration object, or `null` to get a
-   *   default of listening for HTTP on port 8080.
+   * @param {object} config Configuration object.
    */
   constructor(config) {
     this.#actual = new ActualServer(config);
