@@ -51,8 +51,8 @@ export class ActualServer {
     }
 
     this.#wrangler = new wranglerClass(config, this);
-    this.#server = this.#wrangler.server;
-    this.#app = this.#wrangler.app;
+    this.#server = this.#wrangler.createServer();
+    this.#app = this.#wrangler.createApplication();
     this.#configureApplication();
 
     this.#whenStopping = new Promise((resolve) => {
@@ -62,7 +62,17 @@ export class ActualServer {
 
   /** {express} The Express(-like) application instance. */
   get app() {
-    return this.#wrangler.app;
+    return this.#app;
+  }
+
+  /** {object} Configuration object. */
+  get config() {
+    return this.#config;
+  }
+
+  /** {HttpServer} `HttpServer`(-like) instance. */
+  get server() {
+    return this.#server;
   }
 
   /** {boolean} Is the server stopped or trying to stop? */
@@ -187,7 +197,7 @@ export class ActualServer {
    * Configures top-level application settings.
    */
   #configureApplication() {
-    const app = this.app;
+    const app = this.#app;
 
     // Means paths `/foo` and `/Foo` are different.
     app.set('case sensitive routing', true);

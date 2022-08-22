@@ -15,12 +15,20 @@ export class HttpWrangler extends BaseWrangler {
    * Constructs an instance.
    *
    * @param {object} config Configuration object.
+   * @param {ActualServer} actual Controlling instance.
    */
   constructor(config, actual) {
-    const server = http.createServer();
-    const app = express();
+    super(config, actual);
+  }
 
-    super(config, actual, server, app);
+  /** Per superclass requirement. */
+  createApplication() {
+    return express();
+  }
+
+  /** Per superclass requirement. */
+  createServer() {
+    return http.createServer();
   }
 
   /** Per superclass requirement. */

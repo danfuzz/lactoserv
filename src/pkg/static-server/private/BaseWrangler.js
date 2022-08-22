@@ -14,20 +14,12 @@ export class BaseWrangler {
   /** {ActualServer} Controlling instance. */
   #actual;
 
-  /** {HttpServer} `HttpServer`(-like) instance. */
-  #server;
-
-  /** {Express} `Express`(-like) application object. */
-  #app;
-
   /**
    * Constructs an instance.
    */
-  constructor(config, actual, server, app) {
+  constructor(config, actual) {
     this.#actual = actual;
     this.#config = config;
-    this.#server = server;
-    this.#app = app;
   }
 
   /** {ActualServer} Controlling instance. */
@@ -35,14 +27,22 @@ export class BaseWrangler {
     return this.#actual;
   }
 
-  /** {Express} `Express`(-like) application object. */
-  get app() {
-    return this.#app;
+  /**
+   * Makes the underlying application instance, i.e. an instance of
+   * `express:Express` or thing that is (approximately) compatible with same.
+   * This method must be overridden in the subclass.
+   */
+  createApplication() {
+    throw new Error('Abstract method.');
   }
 
-  /** {HttpServer} `HttpServer`(-like) instance. */
-  get server() {
-    return this.#server;
+  /**
+   * Makes the underlying server instance, i.e. an instance of `node:HttpServer`
+   * or thing that is (approximately) compatible with same. This method must be
+   * overridden in the subclass.
+   */
+  createServer() {
+    throw new Error('Abstract method.');
   }
 
   /**

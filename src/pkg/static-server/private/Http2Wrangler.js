@@ -48,8 +48,26 @@ export class Http2Wrangler extends BaseWrangler {
   }
 
   /** Per superclass requirement. */
+  createApplication() {
+    // Express needs to be wrapped in order to use HTTP2.
+    return http2ExpressBridge(express);
+  }
+
+  /** Per superclass requirement. */
+  createServer() {
+    const config = this.actual.config;
+    const serverOptions = {
+      key: config.key,
+      cert: config.cert,
+      allowHTTP1: true
+    }
+
+    return http2.createSecureServer(serverOptions);
+  }
+
+  /** Per superclass requirement. */
   async sub_start() {
-    const server = this.server;
+    const server = this.actual.server;
     const handleSession = (session) => this.#addSession(session);
 
     server.on('session', handleSession);
