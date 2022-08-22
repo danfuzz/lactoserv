@@ -8,4 +8,4 @@ baseDir="${cmdDir%/*}"
 
 # TODO: Check for version of Node.
 
-node "${baseDir}/code/index.js"
+node --trace-warnings "${baseDir}/code/index.js"
