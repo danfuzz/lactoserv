@@ -15,8 +15,17 @@ const wranglerClasses = new Map(Object.entries({
  * Actual Http(s) server.
  */
 export class ActualServer {
+  /** {object} Configuration object. */
+  #config;
+
   /** {BaseWrangler} Protocol-specific "wrangler." */
-  #wrangler = null;
+  #wrangler;
+
+  /** {HttpServer} `HttpServer`(-like) instance. */
+  #server;
+
+  /** {Express} `Express`(-like) application object. */
+  #app;
 
   /**
    * Constructs an instance.
@@ -24,13 +33,17 @@ export class ActualServer {
    * @param {object} config Configuration object.
    */
   constructor(config) {
+    this.#config = config;
+
     const wranglerClass = wranglerClasses.get(config.protocol);
 
     if (wranglerClass === null) {
       throw new Error('Unknown protocol: ' + config.protocol);
     }
 
-    this.#wrangler = new wranglerClass(config);
+    this.#wrangler = new wranglerClass(config, this);
+    this.#server = this.#wrangler.server;
+    this.#app = this.#wrangler.app;
     this.#configureApplication();
   }
 
