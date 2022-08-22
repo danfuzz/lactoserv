@@ -11,30 +11,30 @@ import * as http from 'http';
  * Wrangler for `HttpServer`.
  */
 export class HttpWrangler extends BaseWrangler {
-  /**
-   * Constructs an instance.
-   *
-   * @param {object} config Configuration object.
-   */
-  constructor(config) {
-    const server = http.createServer();
-    const app = express();
+  // Note: Default constructor is fine here.
 
-    super(config, server, app);
+  /** Per superclass requirement. */
+  createApplication() {
+    return express();
   }
 
   /** Per superclass requirement. */
-  async sub_start() {
+  createServer() {
+    return http.createServer();
+  }
+
+  /** Per superclass requirement. */
+  async protocolStart() {
     // Nothing to do in this case.
   }
 
   /** Per superclass requirement. */
-  async sub_stop() {
+  async protocolStop() {
     // Nothing to do in this case.
   }
 
   /** Per superclass requirement. */
-  async sub_whenStopped() {
+  async protocolWhenStopped() {
     // Nothing to do in this case.
   }
 }

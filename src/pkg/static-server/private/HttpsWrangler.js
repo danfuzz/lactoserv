@@ -11,35 +11,36 @@ import * as https from 'https';
  * Wrangler for `HttpsServer`.
  */
 export class HttpsWrangler extends BaseWrangler {
-  /**
-   * Constructs an instance.
-   *
-   * @param {object} config Configuration object.
-   */
-  constructor(config) {
+  // Note: Default constructor is fine here.
+
+  /** Per superclass requirement. */
+  createApplication() {
+    return express();
+  }
+
+  /** Per superclass requirement. */
+  createServer() {
+    const config = this.actual.config;
     const serverOptions = {
       key: config.key,
       cert: config.cert
     }
 
-    const server = https.createServer(config);
-    const app = express();
-
-    super(config, server, app);
+    return https.createServer(serverOptions);
   }
 
   /** Per superclass requirement. */
-  async sub_start() {
+  async protocolStart() {
     // Nothing to do in this case.
   }
 
   /** Per superclass requirement. */
-  async sub_stop() {
+  async protocolStop() {
     // Nothing to do in this case.
   }
 
   /** Per superclass requirement. */
-  async sub_whenStopped() {
+  async protocolWhenStopped() {
     // Nothing to do in this case.
   }
 }

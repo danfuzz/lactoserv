@@ -15,8 +15,26 @@ const wranglerClasses = new Map(Object.entries({
  * Actual Http(s) server.
  */
 export class ActualServer {
+  /** {object} Configuration object. */
+  #config;
+
   /** {BaseWrangler} Protocol-specific "wrangler." */
-  #wrangler = null;
+  #wrangler;
+
+  /** {HttpServer} `HttpServer`(-like) instance. */
+  #server;
+
+  /** {Express} `Express`(-like) application object. */
+  #app;
+
+  /** {boolean} Is the server stopped or trying to stop? */
+  #stopping = false;
+
+  /** {Promise} Promise that resolves when {@link #stopping} becomes true. */
+  #whenStopping;
+
+  /** {function} Function to call in order to resolve {@link #whenStopping}. */
+  #resolveWhenStopping;
 
   /**
    * Constructs an instance.
@@ -24,26 +42,96 @@ export class ActualServer {
    * @param {object} config Configuration object.
    */
   constructor(config) {
+    this.#config = config;
+
     const wranglerClass = wranglerClasses.get(config.protocol);
 
     if (wranglerClass === null) {
       throw new Error('Unknown protocol: ' + config.protocol);
     }
 
-    this.#wrangler = new wranglerClass(config);
+    this.#wrangler = new wranglerClass(this);
+    this.#server = this.#wrangler.createServer();
+    this.#app = this.#wrangler.createApplication();
     this.#configureApplication();
+
+    this.#whenStopping = new Promise((resolve) => {
+      this.#resolveWhenStopping = () => resolve(true);
+    });
   }
 
   /** {express} The Express(-like) application instance. */
   get app() {
-    return this.#wrangler.app;
+    return this.#app;
+  }
+
+  /** {object} Configuration object. */
+  get config() {
+    return this.#config;
+  }
+
+  /** {HttpServer} `HttpServer`(-like) instance. */
+  get server() {
+    return this.#server;
+  }
+
+  /** {boolean} Is the server stopped or trying to stop? */
+  get stopping() {
+    return this.#stopping;
   }
 
   /**
    * Starts the server.
    */
   async start() {
-    return this.#wrangler.start();
+    if (this.#stopping) {
+      throw new Error('Server stopping or already stopped.');
+    }
+
+    await this.#wrangler.protocolStart();
+
+    // This `await new Promise` arrangement is done to get the `listen` call to
+    // be a good async citizen. Notably, the callback passed to
+    // `Server.listen()` cannot (historically) be counted on to get used as an
+    // error callback. TODO: Maybe there is a better way to do this these days?
+    await new Promise((resolve, reject) => {
+      const server = this.#server;
+
+      function done(err) {
+        server.removeListener('listening', handleListening);
+        server.removeListener('error',     handleError);
+
+        if (err !== null) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      }
+
+      function handleListening() {
+        done(null);
+      }
+
+      function handleError(err) {
+        done(err);
+      }
+
+      server.on('listening', handleListening);
+      server.on('error',     handleError);
+      server.on('request',   this.#app);
+
+      const listenOptions = {
+        host: this.#config.host,
+        port: this.#config.port
+      };
+
+      server.listen(listenOptions);
+    });
+
+    const gotPort = this.#server.address().port;
+
+    console.log('Started server.');
+    console.log('Listening for %s on port %o.', this.#config.protocol, gotPort);
   }
 
   /**
@@ -51,7 +139,15 @@ export class ActualServer {
    * is closed).
    */
   async stop() {
-    return this.#wrangler.stop();
+    if (!this.#stopping) {
+      await this.#wrangler.protocolStop();
+      this.#server.removeListener('request', this.#app);
+      this.#server.close();
+      this.#stopping = true;
+      this.#resolveWhenStopping();
+    }
+
+    return this.whenStopped();
   }
 
   /**
@@ -60,14 +156,48 @@ export class ActualServer {
    * error.
    */
   async whenStopped() {
-    return this.#wrangler.whenStopped();
+    if (!this.#stopping) {
+      await this.#whenStopping;
+    }
+
+    await this.#wrangler.protocolWhenStopped();
+
+    const server = this.#server;
+
+    // If the server is still listening for connections, wait for it to claim
+    // to have stopped.
+    while (server.listening) {
+      await new Promise((resolve, reject) => {
+        function done(err) {
+          server.removeListener('close', handleClose);
+          server.removeListener('error', handleError);
+
+          if (err !== null) {
+            reject(err);
+          } else {
+            resolve();
+          }
+        }
+
+        function handleClose() {
+          done(null);
+        }
+
+        function handleError(err) {
+          done(err);
+        }
+
+        server.on('close', handleClose);
+        server.on('error', handleError);
+      });
+    }
   }
 
   /**
    * Configures top-level application settings.
    */
   #configureApplication() {
-    const app = this.app;
+    const app = this.#app;
 
     // Means paths `/foo` and `/Foo` are different.
     app.set('case sensitive routing', true);

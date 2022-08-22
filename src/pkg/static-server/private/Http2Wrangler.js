@@ -26,21 +26,10 @@ export class Http2Wrangler extends BaseWrangler {
   /**
    * Constructs an instance.
    *
-   * @param {object} config Configuration object.
+   * @param {ActualServer} actual Controlling instance.
    */
-  constructor(config) {
-    const serverOptions = {
-      key: config.key,
-      cert: config.cert,
-      allowHTTP1: true
-    }
-
-    const server = http2.createSecureServer(serverOptions);
-
-    // Express needs to be wrapped in order to use HTTP2.
-    const app = http2ExpressBridge(express);
-
-    super(config, server, app);
+  constructor(actual) {
+    super(actual);
 
     this.#whenFullyStopped = new Promise((resolve) => {
       this.#resolveWhenFullyStopped = () => resolve(true);
@@ -48,8 +37,26 @@ export class Http2Wrangler extends BaseWrangler {
   }
 
   /** Per superclass requirement. */
-  async sub_start() {
-    const server = this.server;
+  createApplication() {
+    // Express needs to be wrapped in order to use HTTP2.
+    return http2ExpressBridge(express);
+  }
+
+  /** Per superclass requirement. */
+  createServer() {
+    const config = this.actual.config;
+    const serverOptions = {
+      key: config.key,
+      cert: config.cert,
+      allowHTTP1: true
+    }
+
+    return http2.createSecureServer(serverOptions);
+  }
+
+  /** Per superclass requirement. */
+  async protocolStart() {
+    const server = this.actual.server;
     const handleSession = (session) => this.#addSession(session);
 
     server.on('session', handleSession);
@@ -59,7 +66,7 @@ export class Http2Wrangler extends BaseWrangler {
   }
 
   /** Per superclass requirement. */
-  async sub_stop() {
+  async protocolStop() {
     // Node docs indicate one has to explicitly close all HTTP2 sessions.
     for (const s of this.#sessions) {
       if (!s.closed) {
@@ -69,7 +76,7 @@ export class Http2Wrangler extends BaseWrangler {
   }
 
   /** Per superclass requirement. */
-  async sub_whenStopped() {
+  async protocolWhenStopped() {
     await this.#whenFullyStopped;
   }
 
@@ -83,7 +90,7 @@ export class Http2Wrangler extends BaseWrangler {
 
     const removeSession = () => {
       sessions.delete(session);
-      if (this.stopping && (sessions.size == 0)) {
+      if (this.actual.stopping && (sessions.size == 0)) {
         this.#resolveWhenFullyStopped();
       }
     }
@@ -93,7 +100,7 @@ export class Http2Wrangler extends BaseWrangler {
     session.on('frameError', removeSession);
     session.on('goaway', removeSession);
 
-    if (this.stopping) {
+    if (this.actual.stopping) {
       // Immediately close a session that managed to slip in while we're trying
       // to stop.
       session.close();
