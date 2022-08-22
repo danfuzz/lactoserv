@@ -11,14 +11,7 @@ import * as https from 'https';
  * Wrangler for `HttpsServer`.
  */
 export class HttpsWrangler extends BaseWrangler {
-  /**
-   * Constructs an instance.
-   *
-   * @param {ActualServer} actual Controlling instance.
-   */
-  constructor(actual) {
-    super(actual);
-  }
+  // Note: Default constructor is fine here.
 
   /** Per superclass requirement. */
   createApplication() {
