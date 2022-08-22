@@ -32,17 +32,17 @@ export class HttpWrangler extends BaseWrangler {
   }
 
   /** Per superclass requirement. */
-  async sub_start() {
+  async protocolStart() {
     // Nothing to do in this case.
   }
 
   /** Per superclass requirement. */
-  async sub_stop() {
+  async protocolStop() {
     // Nothing to do in this case.
   }
 
   /** Per superclass requirement. */
-  async sub_whenStopped() {
+  async protocolWhenStopped() {
     // Nothing to do in this case.
   }
 }

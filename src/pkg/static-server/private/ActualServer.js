@@ -88,7 +88,7 @@ export class ActualServer {
       throw new Error('Server stopping or already stopped.');
     }
 
-    await this.#wrangler.sub_start();
+    await this.#wrangler.protocolStart();
 
     // This `await new Promise` arrangement is done to get the `listen` call to
     // be a good async citizen. Notably, the callback passed to
@@ -140,7 +140,7 @@ export class ActualServer {
    */
   async stop() {
     if (!this.#stopping) {
-      await this.#wrangler.sub_stop();
+      await this.#wrangler.protocolStop();
       this.#server.removeListener('request', this.#app);
       this.#server.close();
       this.#stopping = true;
@@ -160,7 +160,7 @@ export class ActualServer {
       await this.#whenStopping;
     }
 
-    await this.#wrangler.sub_whenStopped();
+    await this.#wrangler.protocolWhenStopped();
 
     const server = this.#server;
 

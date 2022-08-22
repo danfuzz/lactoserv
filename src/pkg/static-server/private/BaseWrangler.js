@@ -49,7 +49,7 @@ export class BaseWrangler {
    * Performs protocol-specific actions for {@link #start}. This method must be
    * overridden in the subclass.
    */
-  sub_start() {
+  protocolStart() {
     throw new Error('Abstract method.');
   }
 
@@ -57,7 +57,7 @@ export class BaseWrangler {
    * Performs protocol-specific actions for {@link #stop}. This method must be
    * overridden in the subclass.
    */
-  sub_stop() {
+  protocolStop() {
     throw new Error('Abstract method.');
   }
 
@@ -65,7 +65,7 @@ export class BaseWrangler {
    * Performs protocol-specific actions for {@link #whenStopped}. This method
    * must be overridden in the subclass.
    */
-  sub_whenStopped() {
+  protocolWhenStopped() {
     throw new Error('Abstract method.');
   }
 }

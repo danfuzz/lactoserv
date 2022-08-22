@@ -66,7 +66,7 @@ export class Http2Wrangler extends BaseWrangler {
   }
 
   /** Per superclass requirement. */
-  async sub_start() {
+  async protocolStart() {
     const server = this.actual.server;
     const handleSession = (session) => this.#addSession(session);
 
@@ -77,7 +77,7 @@ export class Http2Wrangler extends BaseWrangler {
   }
 
   /** Per superclass requirement. */
-  async sub_stop() {
+  async protocolStop() {
     // Node docs indicate one has to explicitly close all HTTP2 sessions.
     for (const s of this.#sessions) {
       if (!s.closed) {
@@ -87,7 +87,7 @@ export class Http2Wrangler extends BaseWrangler {
   }
 
   /** Per superclass requirement. */
-  async sub_whenStopped() {
+  async protocolWhenStopped() {
     await this.#whenFullyStopped;
   }
 
