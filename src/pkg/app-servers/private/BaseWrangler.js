@@ -38,8 +38,11 @@ export class BaseWrangler {
    * Makes the underlying server instance, i.e. an instance of `node:HttpServer`
    * or thing that is (approximately) compatible with same. This method must be
    * overridden in the subclass.
+   *
+   * @param {CertificateManager|null} certificateManager Certificate manager to
+   *   use, or `null` if one is not expected to be used.
    */
-  createServer() {
+  createServer(certificateManager) {
     throw new Error('Abstract method.');
   }
 

@@ -12,7 +12,7 @@ import { Validator } from 'jsonschema';
  *
  * * `{string} protocol` -- Name of the protocol to answer to. One of `http`,
  *   `http2`, or `https`.
- * * `{string} host` -- Name/address of the interface to listen on. `::` to
+ * * `{string} interface` -- Name/address of the interface to listen on. `::` to
  *   listen on all interfaces.
  * * `{int} port` -- Port number to listen on.
  *
@@ -103,13 +103,13 @@ export class BaseExportedServer {
         {
           title: 'server-core',
           type: 'object',
-          required: ['protocol', 'host', 'port'],
+          required: ['protocol', 'interface', 'port'],
           properties: {
             protocol: {
               type: 'string',
               enum: ['http', 'http2', 'https']
             },
-            host: {
+            interface: {
               type: 'string'
             },
             port: {

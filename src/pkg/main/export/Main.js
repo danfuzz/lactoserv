@@ -27,7 +27,7 @@ export class Main {
 
     const httpConfig = {
       protocol:   'http',
-      host:       '::',
+      interface:  '::',
       port:       8080,
       what:       'static-server',
       assetsPath: assetsPath
@@ -35,7 +35,7 @@ export class Main {
 
     const httpsConfig = {
       protocol:   'https',
-      host:       '::',
+      interface:  '::',
       port:       8443,
       key:        await fs.readFile(certsPath + '/localhost-key.pem', 'utf-8'),
       cert:       await fs.readFile(certsPath + '/localhost-cert.pem', 'utf-8'),
@@ -45,7 +45,7 @@ export class Main {
 
     const http2Config = {
       protocol:   'http2',
-      host:       '::',
+      interface:  '::',
       port:       8443,
       key:        await fs.readFile(certsPath + '/localhost-key.pem', 'utf-8'),
       cert:       await fs.readFile(certsPath + '/localhost-cert.pem', 'utf-8'),
@@ -54,10 +54,10 @@ export class Main {
     };
 
     const httpRedirectConfig = {
-      protocol: 'http',
-      host:     '::',
-      port:     8080,
-      what:     'redirect-server',
+      protocol:  'http',
+      interface: '::',
+      port:      8080,
+      what:      'redirect-server',
       redirects: [
         {
           fromPath: '/',
