@@ -9,14 +9,14 @@ import express from 'express';
 import { Validator } from 'jsonschema';
 
 /**
- * Static content server.
+ * Static content server. Configuration object details:
+ *
+ * * `{string} assetsPath` -- Absolute path to the base directory for the
+ *   static assets.
  */
 export class StaticServer extends BaseExportedServer {
   /**
-   * Constructs an instance. Configuration object details:
-   *
-   * * `{string} assetsPath` -- Absolute path to the base directory for the
-   *   static assets.
+   * Constructs an instance.
    *
    * @param {object} config Configuration object.
    */

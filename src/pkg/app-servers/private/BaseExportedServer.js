@@ -7,7 +7,18 @@ import { PROTECTED_ACCESS } from '#p/PROTECTED_ACCESS';
 import { Validator } from 'jsonschema';
 
 /**
- * Base class for the exported (public) server classes.
+ * Base class for the exported (public) server classes. Configuration object
+ * details:
+ *
+ * * `{string} protocol` -- Name of the protocol to answer to. One of `http`,
+ *   `http2`, or `https`.
+ * * `{string} host` -- Name/address of the interface to listen on. `::` to
+ *   listen on all interfaces.
+ * * `{int} port` -- Port number to listen on.
+ *
+ * Additional configuration for `http2` and `https`:
+ * * `{string} cert` -- Certificate to present.
+ * * `{string} key` -- Private key associated with `cert`.
  */
 export class BaseExportedServer {
   /** {object} Access token for innards. */
@@ -17,17 +28,7 @@ export class BaseExportedServer {
   #actual;
 
   /**
-   * Constructs an instance. Configuration object details:
-   *
-   * * `{string} protocol` -- Name of the protocol to answer to. One of `http`,
-   *   `http2`, or `https`.
-   * * `{string} host` -- Name/address of the interface to listen on. `::` to
-   *   listen on all interfaces.
-   * * `{int} port` -- Port number to listen on.
-   *
-   * Additional configuration for `http2` and `https`:
-   * * `{string} cert` -- Certificate to present.
-   * * `{string} key` -- Private key associated with `cert`.
+   * Constructs an instance.
    *
    * @param {object} config Configuration object.
    */
