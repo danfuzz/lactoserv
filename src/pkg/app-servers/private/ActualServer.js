@@ -121,7 +121,7 @@ export class ActualServer {
       server.on('request',   this.#app);
 
       const listenOptions = {
-        host: this.#config.host,
+        host: this.#config.interface,
         port: this.#config.port
       };
 
@@ -131,7 +131,9 @@ export class ActualServer {
     const gotPort = this.#server.address().port;
 
     console.log('Started server.');
-    console.log('Listening for %s on port %o.', this.#config.protocol, gotPort);
+    console.log('  protocol:  %s', this.#config.protocol);
+    console.log('  listening: interface %s, port %d',
+      this.#config.interface, gotPort);
   }
 
   /**
