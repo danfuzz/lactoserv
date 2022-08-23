@@ -2,7 +2,7 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { StaticServer } from '@this/app-servers';
-import { Dirs } from '@this/util-server';
+import { Dirs } from '@this/util-host';
 
 import * as fs from 'node:fs/promises';
 import * as timers from 'timers';
