@@ -19,7 +19,7 @@ export class HttpsWrangler extends BaseWrangler {
   }
 
   /** Per superclass requirement. */
-  createServer() {
+  createServer(certificateManager) {
     const config = this.actual.config;
     const serverOptions = {
       key: config.key,
