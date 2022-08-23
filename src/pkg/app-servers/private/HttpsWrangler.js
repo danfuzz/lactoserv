@@ -20,11 +20,16 @@ export class HttpsWrangler extends BaseWrangler {
 
   /** Per superclass requirement. */
   createServer(certificateManager) {
-    const config = this.actual.config;
+    // The `key` and `cert` bound here are for cases where the client doesn't
+    // invoke the server-name extension. Hence, it's the wildcard.
+    const wildcard = certificateManager.findInfo('*');
+    const sniCallback =
+      (serverName, cb) => certificateManager.sniCallback(serverName, cb);
     const serverOptions = {
-      key: config.key,
-      cert: config.cert
-    }
+      SNICallback: sniCallback,
+      cert:        wildcard.cert,
+      key:         wildcard.key
+    };
 
     return https.createServer(serverOptions);
   }
