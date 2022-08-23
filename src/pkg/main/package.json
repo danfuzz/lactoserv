@@ -10,7 +10,7 @@
   },
 
   "dependencies": {
-    "@this/util-server": "*",
-    "@this/static-server": "*"
+    "@this/app-servers": "*",
+    "@this/util-host": "*"
   }
 }

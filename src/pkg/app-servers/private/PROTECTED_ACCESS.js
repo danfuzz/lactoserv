@@ -5,4 +5,4 @@
  * this module. Use of this object in effect makes it possible to define
  * "module-protected methods" in the usual sense.
  */
-export const PROTECTED_ACCESS = Symbol('static-server PROTECTED_ACCESS');
+export const PROTECTED_ACCESS = Symbol('app-servers PROTECTED_ACCESS');
