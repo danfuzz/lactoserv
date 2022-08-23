@@ -83,17 +83,18 @@ export class BaseExportedServer {
   static #validateConfig(config) {
     const v = new Validator();
 
-    const pemLinesPattern = '([/+a-zA-Z0-9]{0,80}\n){1,500}';
+    const base64Line = '[/+a-zA-Z0-9]{0,80}';
+    const pemLines = `(${base64Line}\n){1,500}${base64Line}={0,3}\n`;
     const certPattern =
       '^\n*' +
       '-----BEGIN CERTIFICATE-----\n' +
-      pemLinesPattern +
+      pemLines +
       '-----END CERTIFICATE-----' +
       '\n*$';
     const keyPattern =
       '^\n*' +
       '-----BEGIN PRIVATE KEY-----\n' +
-      pemLinesPattern +
+      pemLines +
       '-----END PRIVATE KEY-----' +
       '\n*$';
 
