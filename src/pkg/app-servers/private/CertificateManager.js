@@ -100,8 +100,8 @@ export class CertificateManager {
       if (this.#wildcardSecureContext === null) {
         const config = this.#config;
         this.#wildcardSecureContext = tls.createSecureContext({
-          key:  config.key,
-          cert: config.cert
+          cert: config.cert,
+          key:  config.key
         });
       }
 
