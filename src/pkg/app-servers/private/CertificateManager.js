@@ -82,7 +82,7 @@ export class CertificateManager {
    * See <https://nodejs.org/dist/latest-v18.x/docs/api/tls.html#tlscreateserveroptions-secureconnectionlistener>
    * for details.
    *
-   * @param {string|null} serverName Name of the server to find, or `*` to
+   * @param {string} serverName Name of the server to find, or `*` to
    *   explicitly request the wildcard / fallback certificate.
    */
   findContext(serverName) {
@@ -110,4 +110,24 @@ export class CertificateManager {
       throw new Error('TODO');
     }
   }
+
+  /**
+   * Wrapper for {@link #findContext} in the exact form that is expected as an
+   * `SNICallback` configured in the options of a call to (something like)
+   * `http2.createSecureServer()`.
+   *
+   * See <https://nodejs.org/dist/latest-v18.x/docs/api/tls.html#tlscreateserveroptions-secureconnectionlistener>
+   * for details.
+   *
+   * @param {string} serverName Name of the server to find, or `*` to
+   *   explicitly request the wildcard / fallback certificate.
+   * @param {function} callback Callback to present with the results.
+   */
+   sniCallback(serverName, callback) {
+     try {
+       callback(null, this.findContext(serverName));
+     } catch (e) {
+       callback(e, null);
+     }
+   }
 }
