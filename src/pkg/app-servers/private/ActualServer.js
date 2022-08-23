@@ -1,6 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { CertificateManager } from '#p/CertificateManager';
 import { HttpWrangler } from '#p/HttpWrangler';
 import { Http2Wrangler } from '#p/Http2Wrangler';
 import { HttpsWrangler } from '#p/HttpsWrangler';
@@ -20,6 +21,10 @@ export class ActualServer {
 
   /** {BaseWrangler} Protocol-specific "wrangler." */
   #wrangler;
+
+  /** {CertificateManager|null} Certificate manager, for TLS contexts. Will be
+   * `null` for the `http` protocol. */
+  #certificateManager;
 
   /** {HttpServer} `HttpServer`(-like) instance. */
   #server;
@@ -45,13 +50,12 @@ export class ActualServer {
     this.#config = config;
 
     const wranglerClass = wranglerClasses.get(config.protocol);
-
     if (wranglerClass === null) {
       throw new Error('Unknown protocol: ' + config.protocol);
     }
-
     this.#wrangler = new wranglerClass(this);
-    this.#server = this.#wrangler.createServer();
+    this.#certificateManager = CertificateManager.fromConfig(config);
+    this.#server = this.#wrangler.createServer(this.#certificateManager);
     this.#app = this.#wrangler.createApplication();
     this.#configureApplication();
 
