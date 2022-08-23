@@ -1,6 +1,4 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { Dirs } from '#x/Dirs';
-
-export { Dirs };
+export * from '#x/Dirs';

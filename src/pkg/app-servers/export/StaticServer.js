@@ -33,7 +33,7 @@ export class StaticServer extends BaseExportedServer {
    * @param {string} assetsPath Base directory for the static assets.
    */
   #addRoutes(assetsPath) {
-    const actual = this.getActual(PROTECTED_ACCESS)
+    const actual = this.getActual(PROTECTED_ACCESS);
     const app = actual.app;
 
     app.use('/', express.static(assetsPath))
