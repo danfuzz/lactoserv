@@ -82,6 +82,20 @@ export class BaseExportedServer {
   static #validateConfig(config) {
     const v = new Validator();
 
+    const pemLinesPattern = '([/+a-zA-Z0-9]{0,80}\n){1,500}';
+    const certPattern =
+      '^\n*' +
+      '-----BEGIN CERTIFICATE-----\n' +
+      pemLinesPattern +
+      '-----END CERTIFICATE-----' +
+      '\n*$';
+    const keyPattern =
+      '^\n*' +
+      '-----BEGIN PRIVATE KEY-----\n' +
+      pemLinesPattern +
+      '-----END PRIVATE KEY-----' +
+      '\n*$';
+
     // See <https://json-schema.org/>.
     const schema = {
       allOf: [
@@ -120,10 +134,12 @@ export class BaseExportedServer {
             required: ['cert', 'key'],
             properties: {
               cert: {
-                type: 'string'
+                type: 'string',
+                pattern: certPattern
               },
               key: {
-                type: 'string'
+                type: 'string',
+                pattern: keyPattern
               }
             }
           }
