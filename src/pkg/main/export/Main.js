@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { StaticServer } from '@this/static-server';
+import { StaticServer } from '@this/app-servers';
 import { Dirs } from '@this/util-server';
 
 import * as fs from 'node:fs/promises';
