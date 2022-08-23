@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { StaticServer } from '@this/app-servers';
+import { RedirectServer, StaticServer } from '@this/app-servers';
 import { Dirs } from '@this/util-host';
 
 import * as fs from 'node:fs/promises';
@@ -53,18 +53,59 @@ export class Main {
       assetsPath: assetsPath
     };
 
-    const server = new StaticServer(http2Config);
-    await server.start();
-
-    function doStop() {
-      console.log('Stopping...');
-      server.stop();
+    const httpRedirectConfig = {
+      protocol: 'http',
+      host:     '::',
+      port:     8080,
+      what:     'redirect-server',
+      redirects: [
+        {
+          fromPath: '/',
+          toUri:    'https://milk.com/boop/'
+        }
+      ]
     }
 
-    timers.setTimeout(doStop, 15 * 1000);
+    const server1 = new StaticServer(http2Config);
+    const server2 = new RedirectServer(httpRedirectConfig);
 
-    await server.whenStopped();
-    console.log('Stopped!');
+    if (server1) {
+      console.log('Starting 1...');
+      await server1.start();
+      console.log('Started 1.');
+
+      async function doStop1() {
+        console.log('Stopping 1...');
+        await server1.stop();
+        console.log('Stopped 1.');
+      }
+
+      timers.setTimeout(doStop1, 15 * 1000);
+    }
+
+    if (server2) {
+      console.log('Starting 2...');
+      await server2.start();
+      console.log('Started 2.');
+
+      async function doStop1() {
+        console.log('Stopping 2...');
+        await server2.stop();
+        console.log('Stopped 2.');
+      }
+
+      timers.setTimeout(doStop1, 15 * 1000);
+    }
+
+    if (server1) {
+      await server1.whenStopped();
+      console.log('Server 1 stopped!');
+    }
+
+    if (server2) {
+      await server2.whenStopped();
+      console.log('Server 2 stopped!');
+    }
 
     return 0;
   }
