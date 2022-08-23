@@ -15,7 +15,8 @@ export class StaticServer extends BaseExportedServer {
   /**
    * Constructs an instance. Configuration object details:
    *
-   * * `{string} assetsPath` -- Base directory for the static assets.
+   * * `{string} assetsPath` -- Absolute path to the base directory for the
+   *   static assets.
    *
    * @param {object} config Configuration object.
    */
@@ -46,6 +47,14 @@ export class StaticServer extends BaseExportedServer {
   static #validateConfig(config) {
     const v = new Validator();
 
+    const pathPattern =
+      '^' +
+      '(?!.*/[.]{1,2}/)' + // No dot or double-dot internal component.
+      '(?!.*/[.]{1,2}$)' + // No dot or double-dot final component.
+      '(?!.*//)' +         // No empty components.
+      '(?!.*/$)' +         // No slash at the end.
+      '/[^/]';             // Starts with a slash. Has at least one component.
+
     const schema = {
       title: 'static-server',
       type: 'object',
@@ -55,7 +64,8 @@ export class StaticServer extends BaseExportedServer {
           const: 'static-server'
         },
         assetsPath: {
-          type: 'string'
+          type: 'string',
+          pattern: pathPattern
         }
       }
     };
