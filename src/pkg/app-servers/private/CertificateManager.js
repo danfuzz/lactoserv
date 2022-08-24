@@ -28,7 +28,7 @@ import { Validator } from 'jsonschema';
  * Exactly one of `name` or `names` must be present, per host info element.
  */
 export class CertificateManager {
-  /** {Map<string, CertInfo} Map from each hostname / wildcard to the
+  /** {Map<string, CertInfo>} Map from each hostname / wildcard to the
    * {@link CertInfo} object that should be used for it. */
   #infos = new Map();
 
