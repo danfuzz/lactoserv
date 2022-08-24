@@ -210,6 +210,15 @@ export class CertificateManager {
       '-----END PRIVATE KEY-----' +
       '\n*$';
 
+    // Allows regular dotted names, a regular name prefixed with a wildcard
+    // (`*.<name>`), or just a wildcard (`*`).
+    const simpleName = '(?!-)[-a-zA-Z0-9]+(?<!-)';
+    const hostNamePattern =
+      '^' +
+      '[*]|' +
+      `([*][.])?(${simpleName}[.])*${simpleName}`
+      '$';
+
     const schema = {
       title: 'certificate-info',
       allOf: [
@@ -271,9 +280,7 @@ export class CertificateManager {
                 {
                   type: 'object',
                   properties: {
-                    name: {
-                      type: 'string'
-                    }
+                    name: { $ref: '#/$defs/hostName' }
                   }
                 },
                 {
@@ -282,15 +289,17 @@ export class CertificateManager {
                     names: {
                       type: 'array',
                       uniqueItems: true,
-                      items: {
-                        type: 'string'
-                      }
+                      items: { $ref: '#/$defs/hostName' }
                     }
                   }
                 }
               ]
             }
           ]
+        },
+        hostName: {
+          type: 'string',
+          pattern: hostNamePattern
         }
       }
     };
