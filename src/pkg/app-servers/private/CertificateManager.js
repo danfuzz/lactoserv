@@ -72,7 +72,8 @@ export class CertificateManager {
       '\n*$';
 
     // Allows regular dotted names, a regular name prefixed with a wildcard
-    // (`*.<name>`), or just a wildcard (`*`).
+    // (`*.<name>`), or just a wildcard (`*`). Note that name components must
+    // not start or end with a dash.
     const simpleName = '(?!-)[-a-zA-Z0-9]+(?<!-)';
     const hostNamePattern =
       '^' +
@@ -81,7 +82,7 @@ export class CertificateManager {
       '$';
 
     const schema = {
-      title: 'certificate-info',
+      title: 'host-config',
       oneOf: [
         {
           title: 'host',
