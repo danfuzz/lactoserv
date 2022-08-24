@@ -123,13 +123,6 @@ export class CertificateManager {
               }
             },
             {
-              // Can't have both `name` and `names`.
-              not: {
-                type: 'object',
-                required: ['name', 'names']
-              }
-            },
-            {
               oneOf: [
                 {
                   type: 'object',
