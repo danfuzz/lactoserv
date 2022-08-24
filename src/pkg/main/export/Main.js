@@ -23,6 +23,14 @@ export class Main {
     console.log('TODO!')
 
     const certsPath = Dirs.basePath('etc/certs');
+    const hostsConfig = [
+      {
+        name: '*',
+        cert: await fs.readFile(certsPath + '/localhost-cert.pem', 'utf-8'),
+        key:  await fs.readFile(certsPath + '/localhost-key.pem', 'utf-8')
+      }
+    ];
+
     const assetsPath = url.fileURLToPath(new URL('../assets', import.meta.url));
 
     const httpConfig = {
@@ -34,21 +42,19 @@ export class Main {
     };
 
     const httpsConfig = {
+      hosts:      hostsConfig,
       protocol:   'https',
       interface:  '::',
       port:       8443,
-      key:        await fs.readFile(certsPath + '/localhost-key.pem', 'utf-8'),
-      cert:       await fs.readFile(certsPath + '/localhost-cert.pem', 'utf-8'),
       what:       'static-server',
       assetsPath: assetsPath
     };
 
     const http2Config = {
+      hosts:      hostsConfig,
       protocol:   'http2',
       interface:  '::',
       port:       8443,
-      key:        await fs.readFile(certsPath + '/localhost-key.pem', 'utf-8'),
-      cert:       await fs.readFile(certsPath + '/localhost-cert.pem', 'utf-8'),
       what:       'static-server',
       assetsPath: assetsPath
     };
