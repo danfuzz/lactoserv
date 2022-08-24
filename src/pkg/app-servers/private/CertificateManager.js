@@ -170,7 +170,7 @@ class CertInfo {
    * object.
    */
   constructor(hostConfig) {
-    const nameArray = (hostConfig.name === null) ? [] : [hostConfig.name]);
+    const nameArray = (hostConfig.name === null) ? [] : [hostConfig.name];
     const namesArray = hostConfig.names ?? [];
     this.#names = [...nameArray, ...namesArray];
 
