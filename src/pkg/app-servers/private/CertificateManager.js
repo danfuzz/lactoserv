@@ -84,6 +84,7 @@ export class CertificateManager {
       title: 'certificate-info',
       oneOf: [
         {
+          title: 'host',
           type: 'object',
           required: ['host'],
           properties: {
@@ -91,6 +92,7 @@ export class CertificateManager {
           }
         },
         {
+          title: 'hosts',
           type: 'object',
           required: ['hosts'],
           properties: {
@@ -120,12 +122,14 @@ export class CertificateManager {
           },
           oneOf: [
             {
+              title: 'name',
               required: ['name'],
               properties: {
                 name: { $ref: '#/$defs/hostName' }
               }
             },
             {
+              title: 'names',
               required: ['names'],
               properties: {
                 names: {
