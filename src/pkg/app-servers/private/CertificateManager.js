@@ -210,56 +210,6 @@ export class CertificateManager {
       '-----END PRIVATE KEY-----' +
       '\n*$';
 
-    const hostItemSchema = {
-      allOf: [
-        {
-          type: 'object',
-          required: ['cert', 'key'],
-          properties: {
-            cert: {
-              type: 'string',
-              pattern: certPattern
-            },
-            key: {
-              type: 'string',
-              pattern: keyPattern
-            }
-          }
-        },
-        {
-          // Can't have both `name` and `names`.
-          not: {
-            type: 'object',
-            required: ['name', 'names']
-          }
-        },
-        {
-          oneOf: [
-            {
-              type: 'object',
-              properties: {
-                name: {
-                  type: 'string'
-                }
-              }
-            },
-            {
-              type: 'object',
-              properties: {
-                names: {
-                  type: 'array',
-                  uniqueItems: true,
-                  items: {
-                    type: 'string'
-                  }
-                }
-              }
-            }
-          ]
-        }
-      ]
-    };
-
     const schema = {
       title: 'certificate-info',
       allOf: [
@@ -275,7 +225,7 @@ export class CertificateManager {
             {
               type: 'object',
               properties: {
-                host: hostItemSchema
+                host: { $ref: '#/$defs/hostItem' }
               }
             },
             {
@@ -284,13 +234,65 @@ export class CertificateManager {
                 hosts: {
                   type: 'array',
                   uniqueItems: true,
-                  items: hostItemSchema
+                  items: { $ref: '#/$defs/hostItem' }
                 }
               }
             }
           ]
         }
-      ]
+      ],
+
+      $defs: {
+        hostItem: {
+          allOf: [
+            {
+              type: 'object',
+              required: ['cert', 'key'],
+              properties: {
+                cert: {
+                  type: 'string',
+                  pattern: certPattern
+                },
+                key: {
+                  type: 'string',
+                  pattern: keyPattern
+                }
+              }
+            },
+            {
+              // Can't have both `name` and `names`.
+              not: {
+                type: 'object',
+                required: ['name', 'names']
+              }
+            },
+            {
+              oneOf: [
+                {
+                  type: 'object',
+                  properties: {
+                    name: {
+                      type: 'string'
+                    }
+                  }
+                },
+                {
+                  type: 'object',
+                  properties: {
+                    names: {
+                      type: 'array',
+                      uniqueItems: true,
+                      items: {
+                        type: 'string'
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
     };
 
     const result = v.validate(config, schema);
