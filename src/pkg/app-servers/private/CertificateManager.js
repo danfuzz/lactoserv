@@ -81,71 +81,37 @@ export class CertificateManager {
   }
 
   /**
-   * Finds the cert/key pair associated with the given server name, or `*` to
-   * indicate the wildcard / fallback certificate.
+   * Finds the cert/key pair associated with the given host name.
    *
-   * @param {string} serverName Name of the server to find, or `*` to explicitly
-   *   request the wildcard / fallback certificate.
+   * @param {string} name Host name to look for, which may be a partial or full
+   *   wildcard.
+   * @returns {object|null} Object mapping `cert` and `key`; or `null` if no
+   *   host name match is found.
    */
-  findInfo(serverName) {
-    if (serverName === '*') {
-      console.log('Need wildcard info.');
-    } else {
-      console.log(`Need info for: ${serverName}`);
+  findInfo(name) {
+    const info = this.#findInfo(name);
+
+    if (!info) {
+      return null;
     }
 
-    // For, now, just use the single cert entry from the configuration. TODO:
-    // Extend this to be able to find host-specific configs.
-    serverName = '*';
-
-    if (serverName === '*') {
-      const config = this.#config;
-      return {
-        cert: config.cert,
-        key:  config.key
-      }
-    } else {
-      // TODO!
-      throw new Error('TODO');
+    return {
+      cert: info.cert,
+      key:  info.key
     }
   }
 
   /**
-   * Figures out which cert/key to use, based on the server name as provided by
-   * the client. This is meant to be called within the `SNICallback` set up in
-   * the server options in a call to (something like)
-   * `http2.createSecureServer()`.
+   * Finds the TLS {@link SecureContext} to use, based on the given host name.
    *
-   * See <https://nodejs.org/dist/latest-v18.x/docs/api/tls.html#tlscreateserveroptions-secureconnectionlistener>
-   * for details.
-   *
-   * @param {string} serverName Name of the server to find, or `*` to
-   *   explicitly request the wildcard / fallback certificate.
+   * @param {string} name Host name to look for, which may be a partial or full
+   *   wildcard.
+   * @returns {SecureContext|null} The associated {@link SecureContext}, or
+   *   `null` if no host name match is found.
    */
-  findContext(serverName) {
-    if (serverName === '*') {
-      console.log('Need wildcard context.');
-    } else {
-      console.log(`Need context for: ${serverName}`);
-    }
-
-    // For, now, just use the single cert entry from the configuration. TODO:
-    // Extend this to be able to find host-specific configs.
-    serverName = '*';
-
-    if (serverName === '*') {
-      if (this.#wildcardSecureContext === null) {
-        const config = this.#config;
-        this.#wildcardSecureContext = tls.createSecureContext({
-          cert: config.cert,
-          key:  config.key
-        });
-      }
-
-      return this.#wildcardSecureContext;
-    } else {
-      throw new Error('TODO');
-    }
+  findContext(name) {
+    const info = this.#findInfo(name);
+    return info ? info.secureContext : null;
   }
 
   /**
@@ -183,6 +149,39 @@ export class CertificateManager {
         throw new Error(`Duplicate hostname: ${name}`);
       }
       this.#infos.set(name, info);
+    }
+  }
+
+  /**
+   * Finds the most-specific {@link CertInfo} for a given host name.
+   *
+   * @param {string} name Host name to look for, which may be a partial or full
+   *   wildcard.
+   * @returns {CertInfo|null} The associated information, or `null` if nothing
+   *   suitable is found.
+   */
+  #findInfo(name) {
+    for (;;) {
+      const info = this.#infos.get(name);
+      if (info) {
+        return info;
+      }
+
+      if (name === '*') {
+        // We just failed to find a wildcard match.
+        return null;
+      }
+
+      // Strip off the leading wildcard (if any) and first name component, and
+      // add a wildcard back on.
+      const newName = name.replace(/^([*][.])?[^.]+([.]|$)/, '*.');
+      if ((name === newName) || (newName === '*.')) {
+        // `name === newName` avoids an infinite loop when the original `name`
+        // is either undotted or not in the expected/valid syntax.
+        name = '*';
+      } else {
+        name = newName;
+      }
     }
   }
 
