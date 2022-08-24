@@ -106,43 +106,34 @@ export class CertificateManager {
       $defs: {
         hostItem: {
           title: 'host-info',
-          allOf: [
+          type: 'object',
+          required: ['cert', 'key'],
+          properties: {
+            cert: {
+              type: 'string',
+              pattern: certPattern
+            },
+            key: {
+              type: 'string',
+              pattern: keyPattern
+            }
+          },
+          oneOf: [
             {
-              title: 'cert-and-key',
-              type: 'object',
-              required: ['cert', 'key'],
+              required: ['name'],
               properties: {
-                cert: {
-                  type: 'string',
-                  pattern: certPattern
-                },
-                key: {
-                  type: 'string',
-                  pattern: keyPattern
-                }
+                name: { $ref: '#/$defs/hostName' }
               }
             },
             {
-              oneOf: [
-                {
-                  type: 'object',
-                  required: ['name'],
-                  properties: {
-                    name: { $ref: '#/$defs/hostName' }
-                  }
-                },
-                {
-                  type: 'object',
-                  required: ['names'],
-                  properties: {
-                    names: {
-                      type: 'array',
-                      uniqueItems: true,
-                      items: { $ref: '#/$defs/hostName' }
-                    }
-                  }
+              required: ['names'],
+              properties: {
+                names: {
+                  type: 'array',
+                  uniqueItems: true,
+                  items: { $ref: '#/$defs/hostName' }
                 }
-              ]
+              }
             }
           ]
         },
