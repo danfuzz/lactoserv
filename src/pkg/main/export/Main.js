@@ -26,8 +26,8 @@ export class Main {
     const hostsConfig = [
       {
         name: '*',
-        cert:       await fs.readFile(certsPath + '/localhost-cert.pem', 'utf-8'),
-        key:        await fs.readFile(certsPath + '/localhost-key.pem', 'utf-8')
+        cert: await fs.readFile(certsPath + '/localhost-cert.pem', 'utf-8'),
+        key:  await fs.readFile(certsPath + '/localhost-key.pem', 'utf-8')
       }
     ];
 
@@ -46,8 +46,6 @@ export class Main {
       protocol:   'https',
       interface:  '::',
       port:       8443,
-      key:        await fs.readFile(certsPath + '/localhost-key.pem', 'utf-8'),
-      cert:       await fs.readFile(certsPath + '/localhost-cert.pem', 'utf-8'),
       what:       'static-server',
       assetsPath: assetsPath
     };
@@ -57,8 +55,6 @@ export class Main {
       protocol:   'http2',
       interface:  '::',
       port:       8443,
-      key:        await fs.readFile(certsPath + '/localhost-key.pem', 'utf-8'),
-      cert:       await fs.readFile(certsPath + '/localhost-cert.pem', 'utf-8'),
       what:       'static-server',
       assetsPath: assetsPath
     };

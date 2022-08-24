@@ -49,6 +49,132 @@ export class CertificateManager {
   }
 
   /**
+   * Adds the config schema for this class to the given validator.
+   *
+   * @param {Validator} validator The validator to add to.
+   */
+  static addConfigSchemaTo(validator) {
+    const base64Line = '[/+a-zA-Z0-9]{0,80}';
+    const pemLines = `(${base64Line}\n){1,500}${base64Line}={0,2}\n`;
+
+    const certPattern =
+      '^\n*' +
+      '-----BEGIN CERTIFICATE-----\n' +
+      pemLines +
+      '-----END CERTIFICATE-----' +
+      '\n*$';
+
+    const keyPattern =
+      '^\n*' +
+      '-----BEGIN PRIVATE KEY-----\n' +
+      pemLines +
+      '-----END PRIVATE KEY-----' +
+      '\n*$';
+
+    // Allows regular dotted names, a regular name prefixed with a wildcard
+    // (`*.<name>`), or just a wildcard (`*`).
+    const simpleName = '(?!-)[-a-zA-Z0-9]+(?<!-)';
+    const hostNamePattern =
+      '^' +
+      '[*]|' +
+      `([*][.])?(${simpleName}[.])*${simpleName}`
+      '$';
+
+    const schema = {
+      title: 'certificate-info',
+      allOf: [
+        {
+          // Can't have both `host` and `hosts`.
+          not: {
+            type: 'object',
+            required: ['host', 'hosts']
+          }
+        },
+        {
+          oneOf: [
+            {
+              type: 'object',
+              required: ['host'],
+              properties: {
+                host: { $ref: '#/$defs/hostItem' }
+              }
+            },
+            {
+              type: 'object',
+              required: ['hosts'],
+              properties: {
+                hosts: {
+                  type: 'array',
+                  uniqueItems: true,
+                  items: { $ref: '#/$defs/hostItem' }
+                }
+              }
+            }
+          ]
+        }
+      ],
+
+      $defs: {
+        hostItem: {
+          title: 'host-info',
+          allOf: [
+            {
+              title: 'cert-and-key',
+              type: 'object',
+              required: ['cert', 'key'],
+              properties: {
+                cert: {
+                  type: 'string',
+                  pattern: certPattern
+                },
+                key: {
+                  type: 'string',
+                  pattern: keyPattern
+                }
+              }
+            },
+            {
+              // Can't have both `name` and `names`.
+              not: {
+                type: 'object',
+                required: ['name', 'names']
+              }
+            },
+            {
+              oneOf: [
+                {
+                  type: 'object',
+                  required: ['name'],
+                  properties: {
+                    name: { $ref: '#/$defs/hostName' }
+                  }
+                },
+                {
+                  type: 'object',
+                  required: ['names'],
+                  properties: {
+                    names: {
+                      type: 'array',
+                      uniqueItems: true,
+                      items: { $ref: '#/$defs/hostName' }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        hostName: {
+          type: 'string',
+          pattern: hostNamePattern
+        }
+      }
+    };
+
+    validator.addSchema(schema, '/CertificateManager');
+  }
+
+  /**
    * Constructs an instance.
    *
    * @param {object} config Configuration object.
@@ -179,118 +305,9 @@ export class CertificateManager {
    */
   static #validateConfig(config) {
     const v = new Validator();
-    const base64Line = '[/+a-zA-Z0-9]{0,80}';
-    const pemLines = `(${base64Line}\n){1,500}${base64Line}={0,2}\n`;
+    this.addConfigSchemaTo(v);
 
-    const certPattern =
-      '^\n*' +
-      '-----BEGIN CERTIFICATE-----\n' +
-      pemLines +
-      '-----END CERTIFICATE-----' +
-      '\n*$';
-
-    const keyPattern =
-      '^\n*' +
-      '-----BEGIN PRIVATE KEY-----\n' +
-      pemLines +
-      '-----END PRIVATE KEY-----' +
-      '\n*$';
-
-    // Allows regular dotted names, a regular name prefixed with a wildcard
-    // (`*.<name>`), or just a wildcard (`*`).
-    const simpleName = '(?!-)[-a-zA-Z0-9]+(?<!-)';
-    const hostNamePattern =
-      '^' +
-      '[*]|' +
-      `([*][.])?(${simpleName}[.])*${simpleName}`
-      '$';
-
-    const schema = {
-      title: 'certificate-info',
-      allOf: [
-        {
-          // Can't have both `host` and `hosts`.
-          not: {
-            type: 'object',
-            required: ['host', 'hosts']
-          }
-        },
-        {
-          oneOf: [
-            {
-              type: 'object',
-              properties: {
-                host: { $ref: '#/$defs/hostItem' }
-              }
-            },
-            {
-              type: 'object',
-              properties: {
-                hosts: {
-                  type: 'array',
-                  uniqueItems: true,
-                  items: { $ref: '#/$defs/hostItem' }
-                }
-              }
-            }
-          ]
-        }
-      ],
-
-      $defs: {
-        hostItem: {
-          allOf: [
-            {
-              type: 'object',
-              required: ['cert', 'key'],
-              properties: {
-                cert: {
-                  type: 'string',
-                  pattern: certPattern
-                },
-                key: {
-                  type: 'string',
-                  pattern: keyPattern
-                }
-              }
-            },
-            {
-              // Can't have both `name` and `names`.
-              not: {
-                type: 'object',
-                required: ['name', 'names']
-              }
-            },
-            {
-              oneOf: [
-                {
-                  type: 'object',
-                  properties: {
-                    name: { $ref: '#/$defs/hostName' }
-                  }
-                },
-                {
-                  type: 'object',
-                  properties: {
-                    names: {
-                      type: 'array',
-                      uniqueItems: true,
-                      items: { $ref: '#/$defs/hostName' }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        hostName: {
-          type: 'string',
-          pattern: hostNamePattern
-        }
-      }
-    };
-
-    const result = v.validate(config, schema);
+    const result = v.validate(config, { $ref: '/CertificateManager' });
     const errors = result.errors;
 
     if (errors.length != 0) {

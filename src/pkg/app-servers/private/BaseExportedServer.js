@@ -2,6 +2,7 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { ActualServer } from '#p/ActualServer';
+import { CertificateManager } from '#p/CertificateManager';
 import { PROTECTED_ACCESS } from '#p/PROTECTED_ACCESS';
 
 import { Validator } from 'jsonschema';
@@ -82,21 +83,7 @@ export class BaseExportedServer {
    */
   static #validateConfig(config) {
     const v = new Validator();
-
-    const base64Line = '[/+a-zA-Z0-9]{0,80}';
-    const pemLines = `(${base64Line}\n){1,500}${base64Line}={0,3}\n`;
-    const certPattern =
-      '^\n*' +
-      '-----BEGIN CERTIFICATE-----\n' +
-      pemLines +
-      '-----END CERTIFICATE-----' +
-      '\n*$';
-    const keyPattern =
-      '^\n*' +
-      '-----BEGIN PRIVATE KEY-----\n' +
-      pemLines +
-      '-----END PRIVATE KEY-----' +
-      '\n*$';
+    CertificateManager.addConfigSchemaTo(v);
 
     // See <https://json-schema.org/>.
     const schema = {
@@ -131,20 +118,7 @@ export class BaseExportedServer {
               }
             }
           },
-          then: {
-            type: 'object',
-            required: ['cert', 'key'],
-            properties: {
-              cert: {
-                type: 'string',
-                pattern: certPattern
-              },
-              key: {
-                type: 'string',
-                pattern: keyPattern
-              }
-            }
-          }
+          then: { $ref: '/CertificateManager' }
         }
       ]
     };
