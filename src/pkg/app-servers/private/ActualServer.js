@@ -132,12 +132,10 @@ export class ActualServer {
       server.listen(listenOptions);
     });
 
-    const gotPort = this.#server.address().port;
-
     console.log('Started server.');
     console.log('  protocol:  %s', this.#config.protocol);
     console.log('  listening: interface %s, port %d',
-      this.#config.interface, gotPort);
+      this.#config.interface, this.#server.address().port);
   }
 
   /**
@@ -146,6 +144,10 @@ export class ActualServer {
    */
   async stop() {
     if (!this.#stopping) {
+      console.log('Stopping server.');
+      console.log('  protocol:  %s', this.#config.protocol);
+      console.log('  listening: interface %s, port %d',
+        this.#config.interface, this.#server.address().port);
       await this.#wrangler.protocolStop();
       this.#server.removeListener('request', this.#app);
       this.#server.close();
