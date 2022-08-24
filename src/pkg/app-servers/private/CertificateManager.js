@@ -5,6 +5,21 @@ import * as tls from 'node:tls';
 
 /**
  * Manager for dealing with all the certificate/key pairs used by a server.
+ * Configuration object details:
+ *
+ * * `{object[]} hosts` -- Array of objects representing per-host or wildcard
+ *   mapping to certificate info.
+ *
+ * Host info details:
+ *
+ * * `{string} name` -- Name of the host associated with this entry. Can be in
+ *   the form `*.<name>` to match any subdomain of `<name>`, or `*` to be a
+ *   complete wildcard (that is, matches any name not otherwise mentioned).
+ * * `{string[]} names` -- Array of names, each in the same format as specified
+ *   by `name`. This can be used to bind multiple names to the same certificate
+ *   info.
+ * * `{string} cert` -- Certificate to present, in PEM form.
+ * * `{string} key` -- Private key associated with `cert`, in PEM form.
  */
 export class CertificateManager {
   /** {object} Configuration object. */
@@ -130,4 +145,61 @@ export class CertificateManager {
        callback(e, null);
      }
    }
+}
+
+/**
+ * Holder for a single set of certificate information.
+ */
+class CertInfo {
+  /** {string[]} List of hostnames, including partial or full wildcards. */
+  #names;
+
+  /** {string} Certificate, in PEM form. */
+  #cert;
+
+  /** {string} Key, in PEM form. */
+  #key;
+
+  /** {SecureContext} TLS context representing this instance's info. */
+  #secureContext;
+
+  /**
+   * Constructs an insance.
+   *
+   * @param {object} hostConfig Element of a `hosts` array from a configuration
+   * object.
+   */
+  constructor(hostConfig) {
+    const nameArray = (hostConfig.name === null) ? [] : [hostConfig.name]);
+    const namesArray = hostConfig.names ?? [];
+    this.#names = [...nameArray, ...namesArray];
+
+    this.#cert = hostConfig.cert;
+    this.#key = hostConfig.key;
+
+    this.#secureContext = tls.createSecureContext({
+      cert: this.#cert,
+      key:  this.#key
+    });
+  }
+
+  /** {string[]} List of hostnames, including partial or full wildcards. */
+  get names() {
+    return this.#names;
+  }
+
+  /** {string} Certificate, in PEM form. */
+  get cert() {
+    return this.#cert;
+  }
+
+  /** {string} Key, in PEM form. */
+  get key() {
+    return this.#key;
+  }
+
+  /** {SecureContext} TLS context representing this instance's info. */
+  get secureContext() {
+      return this.#secureContext;
+  }
 }
