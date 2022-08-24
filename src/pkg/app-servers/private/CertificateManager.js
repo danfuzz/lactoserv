@@ -317,8 +317,7 @@ class CertInfo {
   /**
    * Constructs an insance.
    *
-   * @param {object} hostConfig Element of a `hosts` array from a configuration
-   * object.
+   * @param {object} hostConfig Host configuration item.
    */
   constructor(hostConfig) {
     const nameArray = hostConfig.name ? [hostConfig.name] : [];
