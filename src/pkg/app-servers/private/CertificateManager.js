@@ -82,35 +82,24 @@ export class CertificateManager {
 
     const schema = {
       title: 'certificate-info',
-      allOf: [
+      oneOf: [
         {
-          // Can't have both `host` and `hosts`.
-          not: {
-            type: 'object',
-            required: ['host', 'hosts']
+          type: 'object',
+          required: ['host'],
+          properties: {
+            host: { $ref: '#/$defs/hostItem' }
           }
         },
         {
-          oneOf: [
-            {
-              type: 'object',
-              required: ['host'],
-              properties: {
-                host: { $ref: '#/$defs/hostItem' }
-              }
-            },
-            {
-              type: 'object',
-              required: ['hosts'],
-              properties: {
-                hosts: {
-                  type: 'array',
-                  uniqueItems: true,
-                  items: { $ref: '#/$defs/hostItem' }
-                }
-              }
+          type: 'object',
+          required: ['hosts'],
+          properties: {
+            hosts: {
+              type: 'array',
+              uniqueItems: true,
+              items: { $ref: '#/$defs/hostItem' }
             }
-          ]
+          }
         }
       ],
 
