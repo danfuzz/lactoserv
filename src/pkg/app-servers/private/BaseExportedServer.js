@@ -16,10 +16,6 @@ import { Validator } from 'jsonschema';
  * * `{string} interface` -- Name/address of the interface to listen on. `::` to
  *   listen on all interfaces.
  * * `{int} port` -- Port number to listen on.
- *
- * Additional configuration for `http2` and `https`:
- * * `{string} cert` -- Certificate to present.
- * * `{string} key` -- Private key associated with `cert`.
  */
 export class BaseExportedServer {
   /** {object} Access token for innards. */
