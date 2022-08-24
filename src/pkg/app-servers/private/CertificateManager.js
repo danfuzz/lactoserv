@@ -3,12 +3,15 @@
 
 import * as tls from 'node:tls';
 
+import { Validator } from 'jsonschema';
+
 /**
  * Manager for dealing with all the certificate/key pairs used by a server.
  * Configuration object details:
  *
- * * `{object[]} hosts` -- Array of objects representing per-host or wildcard
- *   mapping to certificate info.
+ * * `{object} host` -- Object representing certificate information associated
+ *   with an indicated (possibly wildcarded) hostname.
+ * * `{object[]} hosts` -- Array of host information objects.
  *
  * Host info details:
  *
@@ -20,10 +23,17 @@ import * as tls from 'node:tls';
  *   info.
  * * `{string} cert` -- Certificate to present, in PEM form.
  * * `{string} key` -- Private key associated with `cert`, in PEM form.
+ *
+ * **Note:** Exactly one of `host` or `hosts` must be present at the top level.
+ * Exactly one of `name` or `names` must be present, per host info element.
  */
 export class CertificateManager {
   /** {object} Configuration object. */
   #config;
+
+  /** {Map<string, CertInfo} Map from each hostname / wildcard to the
+   * {@link CertInfo} object that should be used for it. */
+  #infos = new Map();
 
   /** {Map<string, SecureContext>} Map from each hostname to the TLS secure
    * context that it should use. Lazily initialized. */
@@ -42,7 +52,7 @@ export class CertificateManager {
    *   or `null` if none is required.
    */
   static fromConfig(config) {
-    if ((config.cert === null) || (config.key === null)) {
+    if (!config.hosts) {
       return null;
     }
 
@@ -56,6 +66,18 @@ export class CertificateManager {
    */
   constructor(config) {
     this.#config = config;
+
+    CertificateManager.#validateConfig(config);
+
+    if (config.host) {
+      this.#addInfoFor(config.host);
+    }
+
+    if (config.hosts) {
+      for (const host of config.hosts) {
+        this.#addInfoFor(host);
+      }
+    }
   }
 
   /**
@@ -137,14 +159,152 @@ export class CertificateManager {
    * @param {string} serverName Name of the server to find, or `*` to
    *   explicitly request the wildcard / fallback certificate.
    * @param {function} callback Callback to present with the results.
+  */
+  sniCallback(serverName, callback) {
+    try {
+      callback(null, this.findContext(serverName));
+    } catch (e) {
+      callback(e, null);
+    }
+  }
+
+  /**
+   * Constructs a {@link CertInfo} based on the given information, and adds
+   * mappings to {@link #infos} so it can be found.
+   *
+   * @param {object} hostItem Single host item from a configuration object.
    */
-   sniCallback(serverName, callback) {
-     try {
-       callback(null, this.findContext(serverName));
-     } catch (e) {
-       callback(e, null);
-     }
-   }
+  #addInfoFor(hostItem) {
+    const info = new CertInfo(hostItem);
+
+    for (const name of info.names) {
+      console.log(`Binding ${name}.`);
+      if (this.#infos.has(name)) {
+        throw new Error(`Duplicate hostname: ${name}`);
+      }
+      this.#infos.set(name, info);
+    }
+  }
+
+  /**
+   * Validates the given configuration object.
+   *
+   * @param {object} config Configuration object.
+   */
+  static #validateConfig(config) {
+    const v = new Validator();
+    const base64Line = '[/+a-zA-Z0-9]{0,80}';
+    const pemLines = `(${base64Line}\n){1,500}${base64Line}={0,2}\n`;
+
+    const certPattern =
+      '^\n*' +
+      '-----BEGIN CERTIFICATE-----\n' +
+      pemLines +
+      '-----END CERTIFICATE-----' +
+      '\n*$';
+
+    const keyPattern =
+      '^\n*' +
+      '-----BEGIN PRIVATE KEY-----\n' +
+      pemLines +
+      '-----END PRIVATE KEY-----' +
+      '\n*$';
+
+    const hostItemSchema = {
+      allOf: [
+        {
+          type: 'object',
+          required: ['cert', 'key'],
+          properties: {
+            cert: {
+              type: 'string',
+              pattern: certPattern
+            },
+            key: {
+              type: 'string',
+              pattern: keyPattern
+            }
+          }
+        },
+        {
+          // Can't have both `name` and `names`.
+          not: {
+            type: 'object',
+            required: ['name', 'names']
+          }
+        },
+        {
+          oneOf: [
+            {
+              type: 'object',
+              properties: {
+                name: {
+                  type: 'string'
+                }
+              }
+            },
+            {
+              type: 'object',
+              properties: {
+                names: {
+                  type: 'array',
+                  uniqueItems: true,
+                  items: {
+                    type: 'string'
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    };
+
+    const schema = {
+      title: 'certificate-info',
+      allOf: [
+        {
+          // Can't have both `host` and `hosts`.
+          not: {
+            type: 'object',
+            required: ['host', 'hosts']
+          }
+        },
+        {
+          oneOf: [
+            {
+              type: 'object',
+              properties: {
+                host: hostItemSchema
+              }
+            },
+            {
+              type: 'object',
+              properties: {
+                hosts: {
+                  type: 'array',
+                  uniqueItems: true,
+                  items: hostItemSchema
+                }
+              }
+            }
+          ]
+        }
+      ]
+    };
+
+    const result = v.validate(config, schema);
+    const errors = result.errors;
+
+    if (errors.length != 0) {
+      console.log('Configuration error%s:', (errors.length == 1) ? '' : 's');
+      for (const e of errors) {
+        console.log('  %s', e.stack);
+      }
+
+      throw new Error('Invalid configuration.');
+    }
+  }
 }
 
 /**
@@ -170,7 +330,7 @@ class CertInfo {
    * object.
    */
   constructor(hostConfig) {
-    const nameArray = (hostConfig.name === null) ? [] : [hostConfig.name];
+    const nameArray = hostConfig.name ? [hostConfig.name] : [];
     const namesArray = hostConfig.names ?? [];
     this.#names = [...nameArray, ...namesArray];
 
