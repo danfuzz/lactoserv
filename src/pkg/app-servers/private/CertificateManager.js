@@ -28,20 +28,9 @@ import { Validator } from 'jsonschema';
  * Exactly one of `name` or `names` must be present, per host info element.
  */
 export class CertificateManager {
-  /** {object} Configuration object. */
-  #config;
-
   /** {Map<string, CertInfo} Map from each hostname / wildcard to the
    * {@link CertInfo} object that should be used for it. */
   #infos = new Map();
-
-  /** {Map<string, SecureContext>} Map from each hostname to the TLS secure
-   * context that it should use. Lazily initialized. */
-  #secureContexts = new Map();
-
-  /** {SecureContext|null} "Wildcard" TLS context, to use when no specific
-   * hostname binding is available. */
-  #wildcardSecureContext = null;
 
   /**
    * Constructs and returns an instance from the given configuration, or returns
@@ -65,8 +54,6 @@ export class CertificateManager {
    * @param {object} config Configuration object.
    */
   constructor(config) {
-    this.#config = config;
-
     CertificateManager.#validateConfig(config);
 
     if (config.host) {
