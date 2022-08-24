@@ -41,7 +41,7 @@ export class CertificateManager {
    *   or `null` if none is required.
    */
   static fromConfig(config) {
-    if (!config.hosts) {
+    if (!(config.hosts || config.host)) {
       return null;
     }
 
