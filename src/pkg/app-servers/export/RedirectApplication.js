@@ -27,7 +27,7 @@ import { URL } from 'node:url';
  *
  * [*] unless implied by the protocol.
  */
-export class RedirectServer extends BaseApplication {
+export class RedirectApplication extends BaseApplication {
   /**
    * Constructs an instance.
    *
@@ -37,7 +37,7 @@ export class RedirectServer extends BaseApplication {
     super(warehouse);
 
     const config = warehouse.config;
-    RedirectServer.#validateConfig(config);
+    RedirectApplication.#validateConfig(config);
 
     this.#addRoutes(config.redirects);
   }
