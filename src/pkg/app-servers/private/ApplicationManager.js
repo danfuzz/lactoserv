@@ -52,7 +52,7 @@ export class ApplicationManager {
           type: 'object',
           required: ['app'],
           properties: {
-            server: { $ref: '#/$defs/appItem' }
+            app: { $ref: '#/$defs/appItem' }
           }
         },
         {
@@ -60,7 +60,7 @@ export class ApplicationManager {
           type: 'object',
           required: ['apps'],
           properties: {
-            servers: {
+            apps: {
               type: 'array',
               uniqueItems: true,
               items: { $ref: '#/$defs/appItem' }
