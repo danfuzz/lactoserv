@@ -64,25 +64,8 @@ export class Main {
       }
     };
 
-    const http2Config = {
-      hosts:      hostsConfig,
-      servers: [
-        {
-          name:       'secure',
-          interface:  '::',
-          port:       8443,
-          protocol:   'http2'
-        }
-      ],
-      app: {
-        name:       'my-static-fun',
-        mount:      '//secure/',
-        type:       'static-server',
-        assetsPath: assetsPath
-      }
-    };
-
     const comboConfig = {
+      hosts: hostsConfig,
       servers: [
         {
           name:       'insecure',
@@ -97,23 +80,30 @@ export class Main {
           protocol:   'http2'
         }
       ],
-      app: {
-        name: 'my-wacky-redirector',
-        mount: '//insecure/',
-        type: 'redirect-server',
-        redirects: [
-          {
-            fromPath: '/',
-            toUri:    'https://milk.com/boop/'
-          }
-        ]
-      }
+      apps: [
+        {
+          name: 'my-wacky-redirector',
+          mount: '//insecure/',
+          type: 'redirect-server',
+          redirects: [
+            {
+              fromPath: '/',
+              toUri:    'https://milk.com/boop/'
+            }
+          ]
+        },
+        {
+          name: 'my-static-fun',
+          mount: '//secure/',
+          type: 'static-server',
+          assetsPath: assetsPath
+        },
+      ]
     };
 
-    const server1 =
-      new Warehouse(http2Config).makeSingleApplicationServer('my-static-fun');
-    const server2 =
-      new Warehouse(comboConfig).makeSingleApplicationServer('my-wacky-redirector');
+    const warehouse = new Warehouse(comboConfig);
+    const server1 = warehouse.makeSingleApplicationServer('my-static-fun');
+    const server2 = warehouse.makeSingleApplicationServer('my-wacky-redirector');
 
     if (server1) {
       console.log('Starting 1...');
