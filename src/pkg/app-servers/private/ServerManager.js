@@ -48,7 +48,7 @@ export class ServerManager {
           type: 'object',
           required: ['server'],
           properties: {
-            host: { $ref: '#/$defs/serverItem' }
+            server: { $ref: '#/$defs/serverItem' }
           }
         },
         {
@@ -56,7 +56,7 @@ export class ServerManager {
           type: 'object',
           required: ['servers'],
           properties: {
-            hosts: {
+            servers: {
               type: 'array',
               uniqueItems: true,
               items: { $ref: '#/$defs/serverItem' }
