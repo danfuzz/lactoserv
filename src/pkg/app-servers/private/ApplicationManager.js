@@ -132,7 +132,7 @@ export class ApplicationManager {
     }
 
     if (config.apps) {
-      for (const app of config.app) {
+      for (const app of config.apps) {
         this.#addInfoFor(app);
       }
     }
