@@ -29,7 +29,15 @@ export class BaseApplication {
    */
   constructor(info, warehouse) {
     this.#info = info;
-    this.#actual = new ActualServer(warehouse.hostManager, warehouse.serverManager);
+
+    const mounts = info.mounts;
+    if (mounts.length !== 1) {
+      throw new Error(`No unique mount for application: ${info.name}`);
+    }
+    const serverName = mounts[0].server;
+    const serverConfig = warehouse.serverManager.findConfig(serverName);
+
+    this.#actual = new ActualServer(warehouse.hostManager, serverConfig);
   }
 
   /**

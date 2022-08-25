@@ -115,6 +115,22 @@ export class ServerManager {
   }
 
   /**
+   * Gets the configuration info for the server with the given name.
+   *
+   * @param {string} name Server name to look for.
+   * @returns {object} The associated information.
+   */
+  findConfig(name) {
+    const info = this.#infos.get(name);
+
+    if (!info) {
+      throw new Error(`No such server: ${name}`);
+    }
+
+    return info.configObject;
+  }
+
+  /**
    * Gets configuration info for the only configured server. This will throw an
    * error if there is more than one configured server.
    *

@@ -12,8 +12,8 @@ import { WranglerFactory } from '#p/WranglerFactory';
  * Actual Http(s) server.
  */
 export class ActualServer {
-  /** {ServerManager} Server manager, for all server bindings. */
-  #serverManager;
+  /** {object} Server configuration object. */
+  #serverConfig;
 
   /** {BaseWrangler} Protocol-specific "wrangler." */
   #wrangler;
@@ -37,14 +37,11 @@ export class ActualServer {
    * Constructs an instance.
    *
    * @param {HostManager} hostManager Host / certificate manager.
-   * @param {ServerManager} serverManager Server manager.
+   * @param {object} serverConfig Server configuration object.
    */
-  constructor(hostManager, serverManager) {
-    this.#serverManager = serverManager;
-
-    const serverConfig = this.#serverManager.getUniqueConfig();
+  constructor(hostManager, serverConfig) {
+    this.#serverConfig = serverConfig;
     this.#wrangler = WranglerFactory.forProtocol(serverConfig.protocol);
-
     this.#server = this.#wrangler.createServer(hostManager);
     this.#app = this.#wrangler.createApplication();
     this.#configureApplication();
@@ -78,7 +75,6 @@ export class ActualServer {
     }
 
     await this.#wrangler.protocolStart(this.#server);
-    const serverConfig = this.#serverManager.getUniqueConfig();
 
     // This `await new Promise` arrangement is done to get the `listen` call to
     // be a good async citizen. Notably, the callback passed to
@@ -111,17 +107,17 @@ export class ActualServer {
       server.on('request',   this.#app);
 
       const listenOptions = {
-        host: serverConfig.interface,
-        port: serverConfig.port
+        host: this.#serverConfig.interface,
+        port: this.#serverConfig.port
       };
 
       server.listen(listenOptions);
     });
 
     console.log('Started server.');
-    console.log('  protocol:  %s', serverConfig.protocol);
+    console.log('  protocol:  %s', this.#serverConfig.protocol);
     console.log('  listening: interface %s, port %d',
-      serverConfig.interface, this.#server.address().port);
+      this.#serverConfig.interface, this.#server.address().port);
   }
 
   /**
@@ -130,11 +126,10 @@ export class ActualServer {
    */
   async stop() {
     if (!this.#stopping) {
-      const serverConfig = this.#serverManager.getUniqueConfig();
       console.log('Stopping server.');
-      console.log('  protocol:  %s', serverConfig.protocol);
+      console.log('  protocol:  %s', this.#serverConfig.protocol);
       console.log('  listening: interface %s, port %d',
-        serverConfig.interface, this.#server.address().port);
+        this.#serverConfig.interface, this.#server.address().port);
       await this.#wrangler.protocolStop();
       this.#server.removeListener('request', this.#app);
       this.#server.close();
