@@ -1,0 +1,76 @@
+// Copyright 2022 Dan Bornstein. All rights reserved.
+// All code and assets are considered proprietary and unlicensed.
+
+import { CertificateManager } from '#p/CertificateManager';
+import { ServerManager } from '#p/ServerManager';
+
+import { Validator } from 'jsonschema';
+
+/**
+ * "Warehouse" of bits and pieces created from a top-level configuration.
+ */
+export class Warehouse {
+  /** {object} Configuration object. */
+  #config;
+
+  /** {CertificateManager|null} Certificate manager, for TLS contexts. Can be
+   * `null` if all servers are insecure. */
+  #certificateManager;
+
+  /** {ServerManager} Server manager, for all server bindings. */
+  #serverManager;
+
+  /**
+   * Constructs an instance.
+   *
+   * @param {object} config Configuration object.
+   */
+  constructor(config) {
+    Warehouse.#validateConfig(config);
+
+    this.#config = config;
+    this.#serverManager = new ServerManager(config);
+    this.#certificateManager = CertificateManager.fromConfig(config);
+  }
+
+  /** {CertificateManager|null} Certificate manager, for TLS contexts. Can be
+   * `null` if all servers are insecure. */
+  get certificateManager() {
+    return this.#certificateManager;
+  }
+
+  /** {ServerManager} Server manager, for all server bindings. */
+  get serverManager() {
+    return this.#serverManager;
+  }
+
+  /**
+   * Validates the given configuration object.
+   *
+   * @param {object} config Configuration object.
+   */
+  static #validateConfig(config) {
+    const v = new Validator();
+    CertificateManager.addConfigSchemaTo(v);
+    ServerManager.addConfigSchemaTo(v);
+
+    const schema = {
+      allOf: [
+        { $ref: '/ServerManager' },
+        { $ref: '/OptionalCertificateManager' }
+      ]
+    };
+
+    const result = v.validate(config, schema);
+    const errors = result.errors;
+
+    if (errors.length != 0) {
+      console.log('Configuration error%s:', (errors.length == 1) ? '' : 's');
+      for (const e of errors) {
+        console.log('  %s', e.stack);
+      }
+
+      throw new Error('Invalid configuration.');
+    }
+  }
+}
