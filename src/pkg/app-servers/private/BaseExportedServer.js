@@ -31,7 +31,6 @@ export class BaseExportedServer {
    */
   constructor(warehouse) {
     const config = warehouse.config;
-    BaseExportedServer.#validateConfig(config);
     this.#actual = new ActualServer(warehouse);
   }
 
@@ -71,35 +70,5 @@ export class BaseExportedServer {
    */
   async whenStopped() {
     return this.#actual.whenStopped();
-  }
-
-  /**
-   * Validates the given configuration object.
-   *
-   * @param {object} config Configuration object.
-   */
-  static #validateConfig(config) {
-    const v = new Validator();
-    CertificateManager.addConfigSchemaTo(v);
-    ServerManager.addConfigSchemaTo(v);
-
-    const schema = {
-      allOf: [
-        { $ref: '/ServerManager' },
-        { $ref: '/OptionalCertificateManager' }
-      ]
-    };
-
-    const result = v.validate(config, schema);
-    const errors = result.errors;
-
-    if (errors.length != 0) {
-      console.log('Configuration error%s:', (errors.length == 1) ? '' : 's');
-      for (const e of errors) {
-        console.log('  %s', e.stack);
-      }
-
-      throw new Error('Invalid configuration.');
-    }
   }
 }
