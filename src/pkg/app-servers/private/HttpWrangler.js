@@ -19,7 +19,7 @@ export class HttpWrangler extends BaseWrangler {
   }
 
   /** Per superclass requirement. */
-  createServer(certificateManager) {
+  createServer(hostManager) {
     return http.createServer();
   }
 

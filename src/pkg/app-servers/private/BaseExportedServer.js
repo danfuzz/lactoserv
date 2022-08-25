@@ -2,9 +2,9 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { ActualServer } from '#p/ActualServer';
-import { CertificateManager } from '#p/CertificateManager';
 import { ServerManager } from '#p/ServerManager';
 import { PROTECTED_ACCESS } from '#p/PROTECTED_ACCESS';
+import { Warehouse } from '#x/Warehouse';
 
 import { Validator } from 'jsonschema';
 
@@ -26,11 +26,11 @@ export class BaseExportedServer {
   /**
    * Constructs an instance.
    *
-   * @param {object} config Configuration object.
+   * @param {Warehouse} warehouse Warehouse of configured pieces.
    */
-  constructor(config) {
-    BaseExportedServer.#validateConfig(config);
-    this.#actual = new ActualServer(config);
+  constructor(warehouse) {
+    const config = warehouse.config;
+    this.#actual = new ActualServer(warehouse);
   }
 
   /**
@@ -69,35 +69,5 @@ export class BaseExportedServer {
    */
   async whenStopped() {
     return this.#actual.whenStopped();
-  }
-
-  /**
-   * Validates the given configuration object.
-   *
-   * @param {object} config Configuration object.
-   */
-  static #validateConfig(config) {
-    const v = new Validator();
-    CertificateManager.addConfigSchemaTo(v);
-    ServerManager.addConfigSchemaTo(v);
-
-    const schema = {
-      allOf: [
-        { $ref: '/ServerManager' },
-        { $ref: '/OptionalCertificateManager' }
-      ]
-    };
-
-    const result = v.validate(config, schema);
-    const errors = result.errors;
-
-    if (errors.length != 0) {
-      console.log('Configuration error%s:', (errors.length == 1) ? '' : 's');
-      for (const e of errors) {
-        console.log('  %s', e.stack);
-      }
-
-      throw new Error('Invalid configuration.');
-    }
   }
 }

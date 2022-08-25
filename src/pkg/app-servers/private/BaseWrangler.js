@@ -24,10 +24,10 @@ export class BaseWrangler {
    * or thing that is (approximately) compatible with same. This method must be
    * overridden in the subclass.
    *
-   * @param {CertificateManager|null} certificateManager Certificate manager to
-   *   use, or `null` if one is not expected to be used.
+   * @param {HostManager|null} hostManager Host manager to use, or `null` if not
+   *   configured.
    */
-  createServer(certificateManager) {
+  createServer(hostManager) {
     throw new Error('Abstract method.');
   }
 

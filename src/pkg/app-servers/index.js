@@ -3,3 +3,4 @@
 
 export * from '#x/RedirectServer';
 export * from '#x/StaticServer';
+export * from '#x/Warehouse';

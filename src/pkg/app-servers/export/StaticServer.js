@@ -4,6 +4,7 @@
 import { ActualServer } from '#p/ActualServer';
 import { BaseExportedServer } from '#p/BaseExportedServer';
 import { PROTECTED_ACCESS } from '#p/PROTECTED_ACCESS';
+import { Warehouse } from '#x/Warehouse';
 
 import express from 'express';
 import { Validator } from 'jsonschema';
@@ -18,10 +19,12 @@ export class StaticServer extends BaseExportedServer {
   /**
    * Constructs an instance.
    *
-   * @param {object} config Configuration object.
+   * @param {Warehouse} warehouse Warehouse of configured pieces.
    */
-  constructor(config) {
-    super(config);
+  constructor(warehouse) {
+    super(warehouse);
+
+    const config = warehouse.config;
     StaticServer.#validateConfig(config);
 
     this.#addRoutes(config.assetsPath);

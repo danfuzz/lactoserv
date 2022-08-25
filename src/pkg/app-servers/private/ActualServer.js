@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { CertificateManager } from '#p/CertificateManager';
+import { HostManager } from '#p/HostManager';
 import { HttpWrangler } from '#p/HttpWrangler';
 import { Http2Wrangler } from '#p/Http2Wrangler';
 import { HttpsWrangler } from '#p/HttpsWrangler';
@@ -12,12 +12,8 @@ import { WranglerFactory } from '#p/WranglerFactory';
  * Actual Http(s) server.
  */
 export class ActualServer {
-  /** {object} Configuration object. */
-  #config;
-
-  /** {CertificateManager|null} Certificate manager, for TLS contexts. Can be
-   * `null` if all servers are insecure. */
-  #certificateManager;
+  /** {HostManager|null} Host manager, or `null` if not configured. */
+  #hostManager;
 
   /** {ServerManager} Server manager, for all server bindings. */
   #serverManager;
@@ -43,17 +39,16 @@ export class ActualServer {
   /**
    * Constructs an instance.
    *
-   * @param {object} config Configuration object.
+   * @param {Warehouse} warehouse Warehouse of configured pieces.
    */
-  constructor(config) {
-    this.#config = config;
-    this.#certificateManager = CertificateManager.fromConfig(config);
-    this.#serverManager = new ServerManager(config);
+  constructor(warehouse) {
+    this.#hostManager = warehouse.hostManager;
+    this.#serverManager = warehouse.serverManager;
 
     const serverConfig = this.#serverManager.getUniqueConfig();
     this.#wrangler = WranglerFactory.forProtocol(serverConfig.protocol);
 
-    this.#server = this.#wrangler.createServer(this.#certificateManager);
+    this.#server = this.#wrangler.createServer(this.#hostManager);
     this.#app = this.#wrangler.createApplication();
     this.#configureApplication();
 
@@ -65,11 +60,6 @@ export class ActualServer {
   /** {express} The Express(-like) application instance. */
   get app() {
     return this.#app;
-  }
-
-  /** {object} Configuration object. */
-  get config() {
-    return this.#config;
   }
 
   /** {HttpServer} `HttpServer`(-like) instance. */
