@@ -15,7 +15,7 @@ import { Validator } from 'jsonschema';
  * * `{string} assetsPath` -- Absolute path to the base directory for the
  *   static assets.
  */
-export class StaticServer extends BaseApplication {
+export class StaticApplication extends BaseApplication {
   /**
    * Constructs an instance.
    *
@@ -25,7 +25,7 @@ export class StaticServer extends BaseApplication {
     super(warehouse);
 
     const config = warehouse.config;
-    StaticServer.#validateConfig(config);
+    StaticApplication.#validateConfig(config);
 
     this.#addRoutes(config.assetsPath);
   }

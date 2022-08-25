@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { RedirectApplication, StaticServer, Warehouse } from '@this/app-servers';
+import { RedirectApplication, StaticApplication, Warehouse } from '@this/app-servers';
 import { Dirs } from '@this/util-host';
 
 import * as fs from 'node:fs/promises';
@@ -86,7 +86,7 @@ export class Main {
       ]
     }
 
-    const server1 = new StaticServer(new Warehouse(http2Config));
+    const server1 = new StaticApplication(new Warehouse(http2Config));
     const server2 = new RedirectApplication(new Warehouse(httpRedirectConfig));
 
     if (server1) {
