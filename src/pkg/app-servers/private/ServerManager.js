@@ -130,8 +130,8 @@ export class ServerManager {
   }
 
   /**
-   * Constructs a {@link ServerInfo} based on the given information, and adds
-   * mappings to {@link #infos} so it can be found.
+   * Constructs a {@link ServerInfo} based on the given information, and adds a
+   * mapping to {@link #infos} so it can be found.
    *
    * @param {object} serverItem Single server item from a configuration object.
    */
