@@ -37,6 +37,10 @@ export class BaseApplication {
     const serverName = mounts[0].server;
     const serverConfig = warehouse.serverManager.findConfig(serverName);
 
+    if (mounts[0].path !== '/') {
+      throw new Error(`Only top-level mounts for now, not: ${mounts[0].path}`);
+    }
+
     this.#actual = new ActualServer(warehouse.hostManager, serverConfig);
   }
 

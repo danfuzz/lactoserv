@@ -276,7 +276,7 @@ class ApplicationInfo {
    * @returns {object} Components thereof.
    */
   static #parseMount(mount) {
-    const result = /^[/][/](?<server>[^/]+)[/](?<path>.*)$/.exec(mount);
+    const result = /^[/][/](?<server>[^/]+)(?<path>[/].*)$/.exec(mount);
     if (!result) {
       throw new Error(`Strange mount point: ${mount}`);
     }
