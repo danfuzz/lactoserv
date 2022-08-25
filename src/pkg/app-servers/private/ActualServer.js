@@ -6,12 +6,7 @@ import { HttpWrangler } from '#p/HttpWrangler';
 import { Http2Wrangler } from '#p/Http2Wrangler';
 import { HttpsWrangler } from '#p/HttpsWrangler';
 import { ServerManager } from '#p/ServerManager';
-
-const wranglerClasses = new Map(Object.entries({
-  http:  HttpWrangler,
-  http2: Http2Wrangler,
-  https: HttpsWrangler
-}));
+import { WranglerFactory } from '#p/WranglerFactory';
 
 /**
  * Actual Http(s) server.
@@ -56,11 +51,7 @@ export class ActualServer {
     this.#serverManager = new ServerManager(config);
 
     const serverConfig = this.#serverManager.getUniqueConfig();
-    const wranglerClass = wranglerClasses.get(serverConfig.protocol);
-    if (wranglerClass === null) {
-      throw new Error('Unknown protocol: ' + serverConfig.protocol);
-    }
-    this.#wrangler = new wranglerClass(this);
+    this.#wrangler = WranglerFactory.forProtocol(serverConfig.protocol, this);
 
     this.#server = this.#wrangler.createServer(this.#certificateManager);
     this.#app = this.#wrangler.createApplication();
