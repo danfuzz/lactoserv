@@ -49,8 +49,10 @@ export class BaseWrangler {
   /**
    * Performs protocol-specific actions for {@link #start}. This method must be
    * overridden in the subclass.
+   *
+   * @param {net.Server} server Server instance to be wrangled.
    */
-  protocolStart() {
+  protocolStart(server) {
     throw new Error('Abstract method.');
   }
 

@@ -90,7 +90,7 @@ export class ActualServer {
       throw new Error('Server stopping or already stopped.');
     }
 
-    await this.#wrangler.protocolStart();
+    await this.#wrangler.protocolStart(this.#server);
     const serverConfig = this.#serverManager.getUniqueConfig();
 
     // This `await new Promise` arrangement is done to get the `listen` call to

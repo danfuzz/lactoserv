@@ -12,6 +12,12 @@ import * as http2 from 'node:http2';
  * Wrangler for `Http2SecureServer`.
  */
 export class Http2Wrangler extends BaseWrangler {
+  /** {net.Server|null} Server being wrangled, once known. */
+  #server = null;
+
+  /** {boolean} Is the server stopped or trying to stop? */
+  #stopping = false;
+
   /** {Set} Set of all currently-known sessions. */
   #sessions = new Set();
 
@@ -60,8 +66,8 @@ export class Http2Wrangler extends BaseWrangler {
   }
 
   /** Per superclass requirement. */
-  async protocolStart() {
-    const server = this.actual.server;
+  async protocolStart(server) {
+    this.#server = server;
     const handleSession = (session) => this.#addSession(session);
 
     server.on('session', handleSession);
@@ -72,6 +78,8 @@ export class Http2Wrangler extends BaseWrangler {
 
   /** Per superclass requirement. */
   async protocolStop() {
+    this.#stopping = true;
+
     // Node docs indicate one has to explicitly close all HTTP2 sessions.
     for (const s of this.#sessions) {
       if (!s.closed) {
@@ -95,7 +103,7 @@ export class Http2Wrangler extends BaseWrangler {
 
     const removeSession = () => {
       sessions.delete(session);
-      if (this.actual.stopping && (sessions.size == 0)) {
+      if (this.#stopping && (sessions.size == 0)) {
         this.#resolveWhenFullyStopped();
       }
     }
@@ -105,7 +113,7 @@ export class Http2Wrangler extends BaseWrangler {
     session.on('frameError', removeSession);
     session.on('goaway', removeSession);
 
-    if (this.actual.stopping) {
+    if (this.#stopping) {
       // Immediately close a session that managed to slip in while we're trying
       // to stop.
       session.close();
