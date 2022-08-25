@@ -148,7 +148,7 @@ export class ApplicationManager {
 
     console.log(`Binding application ${name}.`);
 
-    if (this.#infos.has(type)) {
+    if (this.#infos.has(name)) {
       throw new Error(`Duplicate application: ${name}`);
     }
 
@@ -163,8 +163,8 @@ export class ApplicationManager {
    *   nothing suitable is found.
    */
   #findInfo(name) {
-      const info = this.#infos.get(name);
-      return info ?? null;
+    const info = this.#infos.get(name);
+    return info ?? null;
   }
 
   /**
