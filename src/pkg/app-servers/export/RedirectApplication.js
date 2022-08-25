@@ -31,12 +31,13 @@ export class RedirectApplication extends BaseApplication {
   /**
    * Constructs an instance.
    *
+   * @param {ApplicationInfo} info Configured application info.
    * @param {Warehouse} warehouse Warehouse of configured pieces.
    */
-  constructor(warehouse) {
-    super(warehouse);
+  constructor(info, warehouse) {
+    super(info, warehouse);
 
-    const config = warehouse.config;
+    const config = info.extraConfig;
     RedirectApplication.#validateConfig(config);
 
     this.#addRoutes(config.redirects);
@@ -117,11 +118,8 @@ export class RedirectApplication extends BaseApplication {
     const schema = {
       title: 'redirect-server',
       type: 'object',
-      required: ['what', 'redirects'],
+      required: ['redirects'],
       properties: {
-        what: {
-          const: 'redirect-server'
-        },
         redirects: {
           type: 'array',
           minItems: 1,

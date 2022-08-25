@@ -15,16 +15,20 @@ export class BaseApplication {
   /** {object} Access token for innards. */
   #accessToken;
 
+  /** {ApplicationInfo} Application info. */
+  #info;
+
   /** {ActualServer} Underlying server instance. */
   #actual;
 
   /**
    * Constructs an instance.
    *
+   * @param {ApplicationInfo} info Configured application info.
    * @param {Warehouse} warehouse Warehouse of configured pieces.
    */
-  constructor(warehouse) {
-    const config = warehouse.config;
+  constructor(info, warehouse) {
+    this.#info = info;
     this.#actual = new ActualServer(warehouse);
   }
 

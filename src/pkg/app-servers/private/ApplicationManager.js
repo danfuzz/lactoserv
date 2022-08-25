@@ -153,7 +153,7 @@ export class ApplicationManager {
       throw new Error(`No such app: ${name}`);
     }
 
-    return ApplicationFactory.forType(info.type, warehouse);
+    return ApplicationFactory.forType(info.type, info, warehouse);
   }
 
   /**
