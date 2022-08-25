@@ -131,21 +131,6 @@ export class ServerManager {
   }
 
   /**
-   * Gets configuration info for the only configured server. This will throw an
-   * error if there is more than one configured server.
-   *
-   * TODO: Remove this. This is scaffolding for the transition between single-
-   * and multi-server support.
-   */
-  getUniqueConfig() {
-    if (this.#infos.size !== 1) {
-      throw new Error('No unique server configuration!');
-    }
-
-    return [...this.#infos.values()][0].configObject;
-  }
-
-  /**
    * Constructs a {@link ServerInfo} based on the given information, and adds a
    * mapping to {@link #infos} so it can be found.
    *
