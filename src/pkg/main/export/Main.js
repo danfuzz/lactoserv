@@ -115,8 +115,10 @@ export class Main {
       ]
     }
 
-    const server1 = new StaticApplication(new Warehouse(http2Config));
-    const server2 = new RedirectApplication(new Warehouse(httpRedirectConfig));
+    const server1 =
+      new Warehouse(http2Config).makeSingleApplicationServer('my-static-fun');
+    const server2 =
+      new Warehouse(httpRedirectConfig).makeSingleApplicationServer('my-wacky-redirector');
 
     if (server1) {
       console.log('Starting 1...');
