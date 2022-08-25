@@ -39,6 +39,12 @@ export class Warehouse {
     return this.#certificateManager;
   }
 
+  /** {object} The original configuration object. TODO: This shouldn't be
+   * exposed. */
+  get config() {
+    return this.#config;
+  }
+
   /** {ServerManager} Server manager, for all server bindings. */
   get serverManager() {
     return this.#serverManager;
