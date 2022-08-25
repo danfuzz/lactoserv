@@ -2,7 +2,7 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { ActualServer } from '#p/ActualServer';
-import { BaseExportedServer } from '#p/BaseExportedServer';
+import { BaseApplication } from '#p/BaseApplication';
 import { PROTECTED_ACCESS } from '#p/PROTECTED_ACCESS';
 import { Warehouse } from '#x/Warehouse';
 
@@ -27,7 +27,7 @@ import { URL } from 'node:url';
  *
  * [*] unless implied by the protocol.
  */
-export class RedirectServer extends BaseExportedServer {
+export class RedirectServer extends BaseApplication {
   /**
    * Constructs an instance.
    *

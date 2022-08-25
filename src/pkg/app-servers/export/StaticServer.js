@@ -2,7 +2,7 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { ActualServer } from '#p/ActualServer';
-import { BaseExportedServer } from '#p/BaseExportedServer';
+import { BaseApplication } from '#p/BaseApplication';
 import { PROTECTED_ACCESS } from '#p/PROTECTED_ACCESS';
 import { Warehouse } from '#x/Warehouse';
 
@@ -15,7 +15,7 @@ import { Validator } from 'jsonschema';
  * * `{string} assetsPath` -- Absolute path to the base directory for the
  *   static assets.
  */
-export class StaticServer extends BaseExportedServer {
+export class StaticServer extends BaseApplication {
   /**
    * Constructs an instance.
    *
