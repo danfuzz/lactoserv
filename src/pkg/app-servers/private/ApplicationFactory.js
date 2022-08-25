@@ -27,15 +27,15 @@ export class ApplicationFactory {
    * Constructs an instance of the given application type.
    *
    * @param {string} type Type name of the application.
-   * @param {Warehouse} warehouse Warehouse of configured parts.
+   * @param {array} rest Construction arguments.
    * @returns {BaseApplication} Constructed application instance.
    */
-  static forType(type, warehouse) {
+  static forType(type, ...rest) {
     const cls = this.#APPLICATION_CLASSES.get(type);
     if (!cls) {
-      throw new Error(`Unknown protocol: ${protocol}`);
+      throw new Error(`Unknown applicaton type: ${type}`);
     }
 
-    return new cls(warehouse);
+    return new cls(...rest);
   }
 }
