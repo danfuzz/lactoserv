@@ -126,7 +126,7 @@ export class ServerManager {
       throw new Error('No unique server configuration!');
     }
 
-    return [...this.#infos.values][0].configObject;
+    return [...this.#infos.values()][0].configObject;
   }
 
   /**
@@ -137,7 +137,7 @@ export class ServerManager {
    */
   #addInfoFor(serverItem) {
     const info = new ServerInfo(serverItem);
-    const name = server.name;
+    const name = info.name;
 
     console.log(`Binding server ${name}.`);
 
