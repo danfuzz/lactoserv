@@ -294,6 +294,24 @@ cd "${outCodeDir}"
 npm install --omit=dev \
 || exit "$?"
 
+# Check for files installed by `npm` that seem "suspect" for a cross-platform
+# build.
+cd "${outCodeDir}/node_modules"
+suspectFiles="$(
+    find . -type f \
+        '!' '(' \
+            -name '*.js' -o -name '*.json' -o -name '*.html' -o -name '*.md' \
+        ')' \
+        -exec file '{}' ';' \
+    | grep -Ev 'ASCII|JSON|UTF-8|empty' \
+    | awk '{ sub(/^\.\//, "  "); sub(/: .*$/, ""); print; }'
+)"
+if [[ ${suspectFiles} != '' ]]; then
+    error-msg 'Files possibly containing platform-specific binaries:'
+    error-msg -- "${suspectFiles}"
+    exit 1
+fi
+
 # Denoument.
 
 # Clean things up a bit.
