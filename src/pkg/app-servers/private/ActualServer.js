@@ -5,12 +5,8 @@ import { CertificateManager } from '#p/CertificateManager';
 import { HttpWrangler } from '#p/HttpWrangler';
 import { Http2Wrangler } from '#p/Http2Wrangler';
 import { HttpsWrangler } from '#p/HttpsWrangler';
-
-const wranglerClasses = new Map(Object.entries({
-  http:  HttpWrangler,
-  http2: Http2Wrangler,
-  https: HttpsWrangler
-}));
+import { ServerManager } from '#p/ServerManager';
+import { WranglerFactory } from '#p/WranglerFactory';
 
 /**
  * Actual Http(s) server.
@@ -19,12 +15,15 @@ export class ActualServer {
   /** {object} Configuration object. */
   #config;
 
+  /** {CertificateManager|null} Certificate manager, for TLS contexts. Can be
+   * `null` if all servers are insecure. */
+  #certificateManager;
+
+  /** {ServerManager} Server manager, for all server bindings. */
+  #serverManager;
+
   /** {BaseWrangler} Protocol-specific "wrangler." */
   #wrangler;
-
-  /** {CertificateManager|null} Certificate manager, for TLS contexts. Will be
-   * `null` for the `http` protocol. */
-  #certificateManager;
 
   /** {HttpServer} `HttpServer`(-like) instance. */
   #server;
@@ -48,13 +47,12 @@ export class ActualServer {
    */
   constructor(config) {
     this.#config = config;
-
-    const wranglerClass = wranglerClasses.get(config.protocol);
-    if (wranglerClass === null) {
-      throw new Error('Unknown protocol: ' + config.protocol);
-    }
-    this.#wrangler = new wranglerClass(this);
     this.#certificateManager = CertificateManager.fromConfig(config);
+    this.#serverManager = new ServerManager(config);
+
+    const serverConfig = this.#serverManager.getUniqueConfig();
+    this.#wrangler = WranglerFactory.forProtocol(serverConfig.protocol);
+
     this.#server = this.#wrangler.createServer(this.#certificateManager);
     this.#app = this.#wrangler.createApplication();
     this.#configureApplication();
@@ -92,7 +90,8 @@ export class ActualServer {
       throw new Error('Server stopping or already stopped.');
     }
 
-    await this.#wrangler.protocolStart();
+    await this.#wrangler.protocolStart(this.#server);
+    const serverConfig = this.#serverManager.getUniqueConfig();
 
     // This `await new Promise` arrangement is done to get the `listen` call to
     // be a good async citizen. Notably, the callback passed to
@@ -125,17 +124,17 @@ export class ActualServer {
       server.on('request',   this.#app);
 
       const listenOptions = {
-        host: this.#config.interface,
-        port: this.#config.port
+        host: serverConfig.interface,
+        port: serverConfig.port
       };
 
       server.listen(listenOptions);
     });
 
     console.log('Started server.');
-    console.log('  protocol:  %s', this.#config.protocol);
+    console.log('  protocol:  %s', serverConfig.protocol);
     console.log('  listening: interface %s, port %d',
-      this.#config.interface, this.#server.address().port);
+      serverConfig.interface, this.#server.address().port);
   }
 
   /**
@@ -144,10 +143,11 @@ export class ActualServer {
    */
   async stop() {
     if (!this.#stopping) {
+      const serverConfig = this.#serverManager.getUniqueConfig();
       console.log('Stopping server.');
-      console.log('  protocol:  %s', this.#config.protocol);
+      console.log('  protocol:  %s', serverConfig.protocol);
       console.log('  listening: interface %s, port %d',
-        this.#config.interface, this.#server.address().port);
+        serverConfig.interface, this.#server.address().port);
       await this.#wrangler.protocolStop();
       this.#server.removeListener('request', this.#app);
       this.#server.close();

@@ -20,7 +20,7 @@ export class Main {
    */
   static async run(args) {
     // Way more TODO.
-    console.log('TODO!')
+    console.log('TODO!');
 
     const certsPath = Dirs.basePath('etc/certs');
     const hostsConfig = [
@@ -34,35 +34,49 @@ export class Main {
     const assetsPath = url.fileURLToPath(new URL('../assets', import.meta.url));
 
     const httpConfig = {
-      protocol:   'http',
-      interface:  '::',
-      port:       8080,
+      server: {
+        name:       'insecure',
+        interface:  '::',
+        port:       8080,
+        protocol:   'http',
+      },
       what:       'static-server',
       assetsPath: assetsPath
     };
 
     const httpsConfig = {
       hosts:      hostsConfig,
-      protocol:   'https',
-      interface:  '::',
-      port:       8443,
+      server: {
+        name:       'secure',
+        interface:  '::',
+        port:       8443,
+        protocol:   'https'
+      },
       what:       'static-server',
       assetsPath: assetsPath
     };
 
     const http2Config = {
       hosts:      hostsConfig,
-      protocol:   'http2',
-      interface:  '::',
-      port:       8443,
+      servers: [
+        {
+          name:       'secure',
+          interface:  '::',
+          port:       8443,
+          protocol:   'http2'
+        }
+      ],
       what:       'static-server',
       assetsPath: assetsPath
     };
 
     const httpRedirectConfig = {
-      protocol:  'http',
-      interface: '::',
-      port:      8080,
+      server: {
+        name:       'insecure',
+        interface:  '::',
+        port:       8080,
+        protocol:   'http'
+      },
       what:      'redirect-server',
       redirects: [
         {

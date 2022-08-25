@@ -8,22 +8,7 @@
  * and messing with internals.
  */
 export class BaseWrangler {
-  /** {ActualServer} Controlling instance. */
-  #actual;
-
-  /**
-   * Constructs an instance.
-   *
-   * @param {ActualServer} actual Controlling instance.
-   */
-  constructor(actual) {
-    this.#actual = actual;
-  }
-
-  /** {ActualServer} Controlling instance. */
-  get actual() {
-    return this.#actual;
-  }
+  // Note: Default constructor is fine here.
 
   /**
    * Makes the underlying application instance, i.e. an instance of
@@ -49,8 +34,10 @@ export class BaseWrangler {
   /**
    * Performs protocol-specific actions for {@link #start}. This method must be
    * overridden in the subclass.
+   *
+   * @param {net.Server} server Server instance to be wrangled.
    */
-  protocolStart() {
+  protocolStart(server) {
     throw new Error('Abstract method.');
   }
 

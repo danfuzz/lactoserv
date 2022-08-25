@@ -149,7 +149,24 @@ export class CertificateManager {
       }
     };
 
+    const optionalSchema = {
+      if: {
+        anyOf: [
+          {
+            type: 'object',
+            required: ['host']
+          },
+          {
+            type: 'object',
+            required: ['hosts']
+          }
+        ]
+      },
+      then: { $ref: '/CertificateManager' }
+    };
+
     validator.addSchema(schema, '/CertificateManager');
+    validator.addSchema(optionalSchema, '/OptionalCertificateManager');
   }
 
   /**
