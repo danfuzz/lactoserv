@@ -252,7 +252,7 @@ export class HostManager {
     const info = new CertInfo(hostItem);
 
     for (const name of info.names) {
-      console.log(`Binding ${name}.`);
+      console.log(`Binding hostname ${name}.`);
       if (this.#infos.has(name)) {
         throw new Error(`Duplicate hostname: ${name}`);
       }
