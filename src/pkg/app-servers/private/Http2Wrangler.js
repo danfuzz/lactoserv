@@ -31,11 +31,9 @@ export class Http2Wrangler extends BaseWrangler {
 
   /**
    * Constructs an instance.
-   *
-   * @param {ActualServer} actual Controlling instance.
    */
-  constructor(actual) {
-    super(actual);
+  constructor() {
+    super();
 
     this.#whenFullyStopped = new Promise((resolve) => {
       this.#resolveWhenFullyStopped = () => resolve(true);

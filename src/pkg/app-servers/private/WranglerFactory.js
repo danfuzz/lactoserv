@@ -21,16 +21,15 @@ export class WranglerFactory {
    * Constructs an instance for the given protocol.
    *
    * @param {string} protocol Protocol to use.
-   * @param {ActualServer|null} actual Controlling instance.
    * @returns {BaseWrangler} Appropriately-constructed instance of a subclass of
    *   this class.
    */
-  static forProtocol(protocol, actual) {
+  static forProtocol(protocol) {
     const cls = this.#WRANGLER_CLASSES.get(protocol);
     if (cls === null) {
       throw new Error(`Unknown protocol: ${protocol}`);
     }
 
-    return new cls(actual);
+    return new cls();
   }
 }

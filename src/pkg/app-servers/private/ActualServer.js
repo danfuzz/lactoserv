@@ -51,7 +51,7 @@ export class ActualServer {
     this.#serverManager = new ServerManager(config);
 
     const serverConfig = this.#serverManager.getUniqueConfig();
-    this.#wrangler = WranglerFactory.forProtocol(serverConfig.protocol, this);
+    this.#wrangler = WranglerFactory.forProtocol(serverConfig.protocol);
 
     this.#server = this.#wrangler.createServer(this.#certificateManager);
     this.#app = this.#wrangler.createApplication();

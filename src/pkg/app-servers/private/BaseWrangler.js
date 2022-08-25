@@ -8,22 +8,7 @@
  * and messing with internals.
  */
 export class BaseWrangler {
-  /** {ActualServer} Controlling instance. */
-  #actual;
-
-  /**
-   * Constructs an instance.
-   *
-   * @param {ActualServer} actual Controlling instance.
-   */
-  constructor(actual) {
-    this.#actual = actual;
-  }
-
-  /** {ActualServer} Controlling instance. */
-  get actual() {
-    return this.#actual;
-  }
+  // Note: Default constructor is fine here.
 
   /**
    * Makes the underlying application instance, i.e. an instance of
