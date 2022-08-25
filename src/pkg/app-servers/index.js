@@ -4,3 +4,10 @@
 export * from '#x/RedirectApplication';
 export * from '#x/StaticApplication';
 export * from '#x/Warehouse';
+
+// Register all the built-in application types.
+import { ApplicationFactory } from '#p/ApplicationFactory';
+import { RedirectApplication } from '#x/RedirectApplication';
+import { StaticApplication } from '#x/StaticApplication';
+ApplicationFactory.register('static-server', StaticApplication);
+ApplicationFactory.register('redirect-server', RedirectApplication);

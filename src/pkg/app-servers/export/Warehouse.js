@@ -1,6 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { ApplicationManager } from '#p/ApplicationManager';
 import { HostManager } from '#p/HostManager';
 import { ServerManager } from '#p/ServerManager';
 
@@ -14,10 +15,14 @@ import { Validator } from 'jsonschema';
  * * `{object} host` or `{object[]} hosts` -- Host / certificate configuration.
  *   Required if a server is configured to listen for secure connections.
  * * `{object} server` or `{object[]} servers` -- Server configuration.
+ * * `{object} app` or `{object[]} apps` -- Application configuration.
  */
 export class Warehouse {
   /** {object} Configuration object. */
   #config;
+
+  /** {ApplicationManager} Application manager. */
+  #applicationManager;
 
   /** {HostManager|null} Host manager, if configured. */
   #hostManager;
@@ -34,8 +39,14 @@ export class Warehouse {
     Warehouse.#validateConfig(config);
 
     this.#config = config;
+    this.#applicationManager = new ApplicationManager(config);
     this.#serverManager = new ServerManager(config);
     this.#hostManager = HostManager.fromConfig(config);
+  }
+
+  /** {ApplicationManager} Application manager. */
+  get applicationManager() {
+    return this.#applicationManager;
   }
 
   /** {HostManager|null} Host manager secure contexts, if needed. Can be `null`
@@ -62,13 +73,15 @@ export class Warehouse {
    */
   static #validateConfig(config) {
     const v = new Validator();
+    ApplicationManager.addConfigSchemaTo(v);
     HostManager.addConfigSchemaTo(v);
     ServerManager.addConfigSchemaTo(v);
 
     const schema = {
       allOf: [
-        { $ref: '/ServerManager' },
-        { $ref: '/OptionalHostManager' }
+        { $ref: '/ApplicationManager' },
+        { $ref: '/OptionalHostManager' },
+        { $ref: '/ServerManager' }
       ]
     };
 
@@ -83,5 +96,16 @@ export class Warehouse {
 
       throw new Error('Invalid configuration.');
     }
+  }
+
+  /**
+   * Creates a server for a single app. TODO: This is scaffolding for the
+   * transition from single- to multi-app support.
+   *
+   * @param {string} name Name of the application to serve.
+   * @returns {BaseApplication} Appropriately-constructed instance.
+   */
+  makeSingleApplicationServer(name) {
+    return this.#applicationManager.makeSingleApplicationServer(name, this)
   }
 }

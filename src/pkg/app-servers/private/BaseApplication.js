@@ -15,17 +15,33 @@ export class BaseApplication {
   /** {object} Access token for innards. */
   #accessToken;
 
+  /** {ApplicationInfo} Application info. */
+  #info;
+
   /** {ActualServer} Underlying server instance. */
   #actual;
 
   /**
    * Constructs an instance.
    *
+   * @param {ApplicationInfo} info Configured application info.
    * @param {Warehouse} warehouse Warehouse of configured pieces.
    */
-  constructor(warehouse) {
-    const config = warehouse.config;
-    this.#actual = new ActualServer(warehouse);
+  constructor(info, warehouse) {
+    this.#info = info;
+
+    const mounts = info.mounts;
+    if (mounts.length !== 1) {
+      throw new Error(`No unique mount for application: ${info.name}`);
+    }
+    const serverName = mounts[0].server;
+    const serverConfig = warehouse.serverManager.findConfig(serverName);
+
+    if (mounts[0].path !== '/') {
+      throw new Error(`Only top-level mounts for now, not: ${mounts[0].path}`);
+    }
+
+    this.#actual = new ActualServer(warehouse.hostManager, serverConfig);
   }
 
   /**

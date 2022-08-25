@@ -33,17 +33,6 @@ export class Main {
 
     const assetsPath = url.fileURLToPath(new URL('../assets', import.meta.url));
 
-    const httpConfig = {
-      server: {
-        name:       'insecure',
-        interface:  '::',
-        port:       8080,
-        protocol:   'http',
-      },
-      what:       'static-server',
-      assetsPath: assetsPath
-    };
-
     const httpsConfig = {
       hosts:      hostsConfig,
       server: {
@@ -52,13 +41,29 @@ export class Main {
         port:       8443,
         protocol:   'https'
       },
-      what:       'static-server',
-      assetsPath: assetsPath
+      app: {
+        name:       'my-static-fun',
+        mount:      '//secure/',
+        type:       'static-server',
+        assetsPath: assetsPath
+      }
     };
 
-    const http2Config = {
-      hosts:      hostsConfig,
+    const comboConfig = {
+      hosts: hostsConfig,
       servers: [
+        {
+          name:       'insecure',
+          interface:  '::',
+          port:       8080,
+          protocol:   'http'
+        },
+        {
+          name:       'also-insecure',
+          interface:  '::',
+          port:       8081,
+          protocol:   'http',
+        },
         {
           name:       'secure',
           interface:  '::',
@@ -66,28 +71,37 @@ export class Main {
           protocol:   'http2'
         }
       ],
-      what:       'static-server',
-      assetsPath: assetsPath
-    };
-
-    const httpRedirectConfig = {
-      server: {
-        name:       'insecure',
-        interface:  '::',
-        port:       8080,
-        protocol:   'http'
-      },
-      what:      'redirect-server',
-      redirects: [
+      apps: [
         {
-          fromPath: '/',
-          toUri:    'https://milk.com/boop/'
+          name: 'my-wacky-redirector',
+          mount: '//insecure/',
+          type: 'redirect-server',
+          redirects: [
+            {
+              fromPath: '/',
+              toUri:    'https://milk.com/boop/'
+            }
+          ]
+        },
+        {
+          name: 'my-static-fun',
+          mount: '//secure/',
+          type: 'static-server',
+          assetsPath: assetsPath
+        },
+        {
+          name: 'my-insecure-static-fun',
+          mount: '//also-insecure/',
+          type: 'static-server',
+          assetsPath: assetsPath
         }
       ]
-    }
+    };
 
-    const server1 = new StaticApplication(new Warehouse(http2Config));
-    const server2 = new RedirectApplication(new Warehouse(httpRedirectConfig));
+    const warehouse = new Warehouse(comboConfig);
+    const server1 = warehouse.makeSingleApplicationServer('my-static-fun');
+    //const server1 = warehouse.makeSingleApplicationServer('my-insecure-static-fun');
+    const server2 = warehouse.makeSingleApplicationServer('my-wacky-redirector');
 
     if (server1) {
       console.log('Starting 1...');

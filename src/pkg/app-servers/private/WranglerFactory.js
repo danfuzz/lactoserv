@@ -6,7 +6,7 @@ import { Http2Wrangler } from '#p/Http2Wrangler';
 import { HttpsWrangler } from '#p/HttpsWrangler';
 
 /**
- * Utility class which constructs of concrete {@link BaseWrangler} instances.
+ * Utility class which constructs concrete {@link BaseWrangler} instances.
  */
 export class WranglerFactory {
   /** {Map<string, class>} Map from each protocol name to the wrangler subclass

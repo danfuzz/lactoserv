@@ -19,12 +19,13 @@ export class StaticApplication extends BaseApplication {
   /**
    * Constructs an instance.
    *
+   * @param {ApplicationInfo} info Configured application info.
    * @param {Warehouse} warehouse Warehouse of configured pieces.
    */
-  constructor(warehouse) {
-    super(warehouse);
+  constructor(info, warehouse) {
+    super(info, warehouse);
 
-    const config = warehouse.config;
+    const config = info.extraConfig;
     StaticApplication.#validateConfig(config);
 
     this.#addRoutes(config.assetsPath);
@@ -61,11 +62,8 @@ export class StaticApplication extends BaseApplication {
     const schema = {
       title: 'static-server',
       type: 'object',
-      required: ['what', 'assetsPath'],
+      required: ['assetsPath'],
       properties: {
-        what: {
-          const: 'static-server'
-        },
         assetsPath: {
           type: 'string',
           pattern: pathPattern

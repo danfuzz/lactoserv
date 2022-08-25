@@ -115,23 +115,24 @@ export class ServerManager {
   }
 
   /**
-   * Gets configuration info for the only configured server. This will throw an
-   * error if there is more than one configured server.
+   * Gets the configuration info for the server with the given name.
    *
-   * TODO: Remove this. This is scaffolding for the transition between single-
-   * and multi-server support.
+   * @param {string} name Server name to look for.
+   * @returns {object} The associated information.
    */
-  getUniqueConfig() {
-    if (this.#infos.size !== 1) {
-      throw new Error('No unique server configuration!');
+  findConfig(name) {
+    const info = this.#infos.get(name);
+
+    if (!info) {
+      throw new Error(`No such server: ${name}`);
     }
 
-    return [...this.#infos.values()][0].configObject;
+    return info.configObject;
   }
 
   /**
-   * Constructs a {@link ServerInfo} based on the given information, and adds
-   * mappings to {@link #infos} so it can be found.
+   * Constructs a {@link ServerInfo} based on the given information, and adds a
+   * mapping to {@link #infos} so it can be found.
    *
    * @param {object} serverItem Single server item from a configuration object.
    */
@@ -156,8 +157,8 @@ export class ServerManager {
    *   suitable is found.
    */
   #findInfo(name) {
-      const info = this.#infos.get(name);
-      return info ?? null;
+    const info = this.#infos.get(name);
+    return info ?? null;
   }
 
   /**
