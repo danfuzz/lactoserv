@@ -6,8 +6,8 @@ import * as tls from 'node:tls';
 import { Validator } from 'jsonschema';
 
 /**
- * Manager for dealing with all the certificate/key pairs used by a server.
- * Configuration object details:
+ * Manager for dealing with all the certificate/key pairs associated with a
+ * named host. Configuration object details:
  *
  * * `{object} host` -- Object representing certificate information associated
  *   with an indicated (possibly wildcarded) hostname.
@@ -27,7 +27,7 @@ import { Validator } from 'jsonschema';
  * **Note:** Exactly one of `host` or `hosts` must be present at the top level.
  * Exactly one of `name` or `names` must be present, per host info element.
  */
-export class CertificateManager {
+export class HostManager {
   /** {Map<string, CertInfo>} Map from each hostname / wildcard to the
    * {@link CertInfo} object that should be used for it. */
   #infos = new Map();
@@ -37,15 +37,15 @@ export class CertificateManager {
    * `null` if the configuration doesn't need any secure contexts.
    *
    * @param {object} config Configuration object.
-   * @returns {CertificateManager|null} An appropriately-constructed instance,
-   *   or `null` if none is required.
+   * @returns {HostManager|null} An appropriately-constructed instance,
+   *   or `null` if none is configured.
    */
   static fromConfig(config) {
     if (!(config.hosts || config.host)) {
       return null;
     }
 
-    return new CertificateManager(config);
+    return new HostManager(config);
   }
 
   /**
@@ -162,11 +162,11 @@ export class CertificateManager {
           }
         ]
       },
-      then: { $ref: '/CertificateManager' }
+      then: { $ref: '/HostManager' }
     };
 
-    validator.addSchema(schema, '/CertificateManager');
-    validator.addSchema(optionalSchema, '/OptionalCertificateManager');
+    validator.addSchema(schema, '/HostManager');
+    validator.addSchema(optionalSchema, '/OptionalHostManager');
   }
 
   /**
@@ -175,7 +175,7 @@ export class CertificateManager {
    * @param {object} config Configuration object.
    */
   constructor(config) {
-    CertificateManager.#validateConfig(config);
+    HostManager.#validateConfig(config);
 
     if (config.host) {
       this.#addInfoFor(config.host);
@@ -302,7 +302,7 @@ export class CertificateManager {
     const v = new Validator();
     this.addConfigSchemaTo(v);
 
-    const result = v.validate(config, { $ref: '/CertificateManager' });
+    const result = v.validate(config, { $ref: '/HostManager' });
     const errors = result.errors;
 
     if (errors.length != 0) {

@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { CertificateManager } from '#p/CertificateManager';
+import { HostManager } from '#p/HostManager';
 import { HttpWrangler } from '#p/HttpWrangler';
 import { Http2Wrangler } from '#p/Http2Wrangler';
 import { HttpsWrangler } from '#p/HttpsWrangler';
@@ -12,8 +12,7 @@ import { WranglerFactory } from '#p/WranglerFactory';
  * Actual Http(s) server.
  */
 export class ActualServer {
-  /** {CertificateManager|null} Certificate manager, for TLS contexts. Can be
-   * `null` if all servers are insecure. */
+  /** {HostManager|null} Host manager, or `null` if not configured. */
   #certificateManager;
 
   /** {ServerManager} Server manager, for all server bindings. */
@@ -43,7 +42,7 @@ export class ActualServer {
    * @param {Warehouse} warehouse Warehouse of configured pieces.
    */
   constructor(warehouse) {
-    this.#certificateManager = warehouse.certificateManager;
+    this.#certificateManager = warehouse.hostManager;
     this.#serverManager = warehouse.serverManager;
 
     const serverConfig = this.#serverManager.getUniqueConfig();

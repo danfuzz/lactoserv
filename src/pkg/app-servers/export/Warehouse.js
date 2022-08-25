@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { CertificateManager } from '#p/CertificateManager';
+import { HostManager } from '#p/HostManager';
 import { ServerManager } from '#p/ServerManager';
 
 import { Validator } from 'jsonschema';
@@ -13,9 +13,8 @@ export class Warehouse {
   /** {object} Configuration object. */
   #config;
 
-  /** {CertificateManager|null} Certificate manager, for TLS contexts. Can be
-   * `null` if all servers are insecure. */
-  #certificateManager;
+  /** {HostManager|null} Host manager, if configured. */
+  #hostManager;
 
   /** {ServerManager} Server manager, for all server bindings. */
   #serverManager;
@@ -30,13 +29,13 @@ export class Warehouse {
 
     this.#config = config;
     this.#serverManager = new ServerManager(config);
-    this.#certificateManager = CertificateManager.fromConfig(config);
+    this.#hostManager = HostManager.fromConfig(config);
   }
 
-  /** {CertificateManager|null} Certificate manager, for TLS contexts. Can be
-   * `null` if all servers are insecure. */
-  get certificateManager() {
-    return this.#certificateManager;
+  /** {HostManager|null} Host manager secure contexts, if needed. Can be `null`
+   * if all servers are insecure. */
+  get hostManager() {
+    return this.#hostManager;
   }
 
   /** {object} The original configuration object. TODO: This shouldn't be
@@ -57,13 +56,13 @@ export class Warehouse {
    */
   static #validateConfig(config) {
     const v = new Validator();
-    CertificateManager.addConfigSchemaTo(v);
+    HostManager.addConfigSchemaTo(v);
     ServerManager.addConfigSchemaTo(v);
 
     const schema = {
       allOf: [
         { $ref: '/ServerManager' },
-        { $ref: '/OptionalCertificateManager' }
+        { $ref: '/OptionalHostManager' }
       ]
     };
 
