@@ -12,10 +12,11 @@ export class ApplicationFactory {
   /**
    * Registers a type/application binding.
    *
-   * @param {string} type Type name of the application.
-   * @param {class} applicationClass Corresponding application class.
+   * @param {class} applicationClass Application class.
    */
-  static register(type, applicationClass) {
+  static register(applicationClass) {
+    const type = applicationClass.TYPE;
+
     if (this.#APPLICATION_CLASSES.has(type)) {
       throw new Error(`Already registered: ${type}`);
     }

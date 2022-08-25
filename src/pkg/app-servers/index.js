@@ -9,5 +9,5 @@ export * from '#x/Warehouse';
 import { ApplicationFactory } from '#p/ApplicationFactory';
 import { RedirectApplication } from '#x/RedirectApplication';
 import { StaticApplication } from '#x/StaticApplication';
-ApplicationFactory.register('static-server', StaticApplication);
-ApplicationFactory.register('redirect-server', RedirectApplication);
+ApplicationFactory.register(StaticApplication);
+ApplicationFactory.register(RedirectApplication);

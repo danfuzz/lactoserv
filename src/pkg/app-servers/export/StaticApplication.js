@@ -16,6 +16,11 @@ import { Validator } from 'jsonschema';
  *   static assets.
  */
 export class StaticApplication extends BaseApplication {
+  /** {string} Application type as used in configuration objects. */
+  static get TYPE() {
+    return 'static-server';
+  }
+
   /**
    * Constructs an instance.
    *

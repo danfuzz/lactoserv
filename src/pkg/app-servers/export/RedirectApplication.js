@@ -28,6 +28,11 @@ import { URL } from 'node:url';
  * [*] unless implied by the protocol.
  */
 export class RedirectApplication extends BaseApplication {
+  /** {string} Application type as used in configuration objects. */
+  static get TYPE() {
+    return 'redirect-server';
+  }
+
   /**
    * Constructs an instance.
    *
