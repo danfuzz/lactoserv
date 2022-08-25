@@ -5,6 +5,7 @@ import { ActualServer } from '#p/ActualServer';
 import { CertificateManager } from '#p/CertificateManager';
 import { ServerManager } from '#p/ServerManager';
 import { PROTECTED_ACCESS } from '#p/PROTECTED_ACCESS';
+import { Warehouse } from '#x/Warehouse';
 
 import { Validator } from 'jsonschema';
 
@@ -26,9 +27,10 @@ export class BaseExportedServer {
   /**
    * Constructs an instance.
    *
-   * @param {object} config Configuration object.
+   * @param {Warehouse} warehouse Warehouse of configured pieces.
    */
-  constructor(config) {
+  constructor(warehouse) {
+    const config = warehouse.config;
     BaseExportedServer.#validateConfig(config);
     this.#actual = new ActualServer(config);
   }

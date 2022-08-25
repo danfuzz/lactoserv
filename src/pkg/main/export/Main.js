@@ -86,10 +86,8 @@ export class Main {
       ]
     }
 
-    const warehouse = new Warehouse(httpRedirectConfig);
-
-    const server1 = new StaticServer(http2Config);
-    const server2 = new RedirectServer(httpRedirectConfig);
+    const server1 = new StaticServer(new Warehouse(http2Config));
+    const server2 = new RedirectServer(new Warehouse(httpRedirectConfig));
 
     if (server1) {
       console.log('Starting 1...');
