@@ -9,14 +9,9 @@ import { Warehouse } from '#x/Warehouse';
 import { Validator } from 'jsonschema';
 
 /**
- * Base class for the exported (public) server classes. Configuration object
- * details:
- *
- * * `{object} host` or `{object[]} hosts` -- Host / certificate configuration.
- *   Required if a server is configured to listen for secure connections.
- * * `{object} server` or `{object[]} servers` -- Server configuration.
+ * Base class for the exported (public) application classes.
  */
-export class BaseExportedServer {
+export class BaseApplication {
   /** {object} Access token for innards. */
   #accessToken;
 

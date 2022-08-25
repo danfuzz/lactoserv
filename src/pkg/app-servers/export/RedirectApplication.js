@@ -2,7 +2,7 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { ActualServer } from '#p/ActualServer';
-import { BaseExportedServer } from '#p/BaseExportedServer';
+import { BaseApplication } from '#p/BaseApplication';
 import { PROTECTED_ACCESS } from '#p/PROTECTED_ACCESS';
 import { Warehouse } from '#x/Warehouse';
 
@@ -27,7 +27,7 @@ import { URL } from 'node:url';
  *
  * [*] unless implied by the protocol.
  */
-export class RedirectServer extends BaseExportedServer {
+export class RedirectApplication extends BaseApplication {
   /**
    * Constructs an instance.
    *
@@ -37,7 +37,7 @@ export class RedirectServer extends BaseExportedServer {
     super(warehouse);
 
     const config = warehouse.config;
-    RedirectServer.#validateConfig(config);
+    RedirectApplication.#validateConfig(config);
 
     this.#addRoutes(config.redirects);
   }

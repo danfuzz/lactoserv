@@ -8,6 +8,12 @@ import { Validator } from 'jsonschema';
 
 /**
  * "Warehouse" of bits and pieces created from a top-level configuration.
+ *
+ * Configuration object details:
+ *
+ * * `{object} host` or `{object[]} hosts` -- Host / certificate configuration.
+ *   Required if a server is configured to listen for secure connections.
+ * * `{object} server` or `{object[]} servers` -- Server configuration.
  */
 export class Warehouse {
   /** {object} Configuration object. */
