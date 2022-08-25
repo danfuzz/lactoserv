@@ -82,13 +82,21 @@ export class Main {
       }
     };
 
-    const httpRedirectConfig = {
-      server: {
-        name:       'insecure',
-        interface:  '::',
-        port:       8080,
-        protocol:   'http'
-      },
+    const comboConfig = {
+      servers: [
+        {
+          name:       'insecure',
+          interface:  '::',
+          port:       8080,
+          protocol:   'http'
+        },
+        {
+          name:       'secure',
+          interface:  '::',
+          port:       8443,
+          protocol:   'http2'
+        }
+      ],
       app: {
         name: 'my-wacky-redirector',
         mount: '//insecure/',
@@ -105,7 +113,7 @@ export class Main {
     const server1 =
       new Warehouse(http2Config).makeSingleApplicationServer('my-static-fun');
     const server2 =
-      new Warehouse(httpRedirectConfig).makeSingleApplicationServer('my-wacky-redirector');
+      new Warehouse(comboConfig).makeSingleApplicationServer('my-wacky-redirector');
 
     if (server1) {
       console.log('Starting 1...');
