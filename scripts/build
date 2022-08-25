@@ -278,7 +278,7 @@ cat <<<"${localPackageSet}" >"${outCodeDir}/local-pkg.json"
 
 # Derive the `dependencies` to use in the top-level `package.json` to represent
 # the local packages.
-localDepsObj="$(json-get "${localPackageSet}" \
+localDepsObj="$(jget "${localPackageSet}" \
     'with_entries(.key = .value.scopedName | .value = .value.destPkgUri)'
 )"
 
