@@ -45,9 +45,7 @@ export class Main {
         mount:      '//insecure/',
         type:       'static-server',
         assetsPath: assetsPath
-      },
-      what:       'static-server',
-      assetsPath: assetsPath
+      }
     };
 
     const httpsConfig = {
@@ -63,9 +61,7 @@ export class Main {
         mount:      '//secure/',
         type:       'static-server',
         assetsPath: assetsPath
-      },
-      what:       'static-server',
-      assetsPath: assetsPath
+      }
     };
 
     const http2Config = {
@@ -83,9 +79,7 @@ export class Main {
         mount:      '//secure/',
         type:       'static-server',
         assetsPath: assetsPath
-      },
-      what:       'static-server',
-      assetsPath: assetsPath
+      }
     };
 
     const httpRedirectConfig = {
@@ -105,15 +99,8 @@ export class Main {
             toUri:    'https://milk.com/boop/'
           }
         ]
-      },
-      what:      'redirect-server',
-      redirects: [
-        {
-          fromPath: '/',
-          toUri:    'https://milk.com/boop/'
-        }
-      ]
-    }
+      }
+    };
 
     const server1 =
       new Warehouse(http2Config).makeSingleApplicationServer('my-static-fun');
