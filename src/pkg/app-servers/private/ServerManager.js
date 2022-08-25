@@ -156,8 +156,8 @@ export class ServerManager {
    *   suitable is found.
    */
   #findInfo(name) {
-      const info = this.#infos.get(name);
-      return info ?? null;
+    const info = this.#infos.get(name);
+    return info ?? null;
   }
 
   /**
