@@ -33,21 +33,6 @@ export class Main {
 
     const assetsPath = url.fileURLToPath(new URL('../assets', import.meta.url));
 
-    const httpConfig = {
-      server: {
-        name:       'insecure',
-        interface:  '::',
-        port:       8080,
-        protocol:   'http',
-      },
-      app: {
-        name:       'my-static-fun',
-        mount:      '//insecure/',
-        type:       'static-server',
-        assetsPath: assetsPath
-      }
-    };
-
     const httpsConfig = {
       hosts:      hostsConfig,
       server: {
@@ -74,6 +59,12 @@ export class Main {
           protocol:   'http'
         },
         {
+          name:       'also-insecure',
+          interface:  '::',
+          port:       8081,
+          protocol:   'http',
+        },
+        {
           name:       'secure',
           interface:  '::',
           port:       8443,
@@ -98,11 +89,18 @@ export class Main {
           type: 'static-server',
           assetsPath: assetsPath
         },
+        {
+          name: 'my-insecure-static-fun',
+          mount: '//also-insecure/',
+          type: 'static-server',
+          assetsPath: assetsPath
+        }
       ]
     };
 
     const warehouse = new Warehouse(comboConfig);
     const server1 = warehouse.makeSingleApplicationServer('my-static-fun');
+    //const server1 = warehouse.makeSingleApplicationServer('my-insecure-static-fun');
     const server2 = warehouse.makeSingleApplicationServer('my-wacky-redirector');
 
     if (server1) {
