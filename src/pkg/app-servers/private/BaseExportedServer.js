@@ -32,7 +32,7 @@ export class BaseExportedServer {
   constructor(warehouse) {
     const config = warehouse.config;
     BaseExportedServer.#validateConfig(config);
-    this.#actual = new ActualServer(config);
+    this.#actual = new ActualServer(warehouse);
   }
 
   /**

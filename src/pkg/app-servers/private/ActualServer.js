@@ -40,11 +40,11 @@ export class ActualServer {
   /**
    * Constructs an instance.
    *
-   * @param {object} config Configuration object.
+   * @param {Warehouse} warehouse Warehouse of configured pieces.
    */
-  constructor(config) {
-    this.#certificateManager = CertificateManager.fromConfig(config);
-    this.#serverManager = new ServerManager(config);
+  constructor(warehouse) {
+    this.#certificateManager = warehouse.certificateManager;
+    this.#serverManager = warehouse.serverManager;
 
     const serverConfig = this.#serverManager.getUniqueConfig();
     this.#wrangler = WranglerFactory.forProtocol(serverConfig.protocol);
