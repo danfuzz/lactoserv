@@ -220,7 +220,7 @@ class ApplicationInfo {
   /** {string} Application type. */
   #type;
 
-  /** {string[]} Mount points. */
+  /** {object[]} Mount points, as an array of pairs of `{server, path}`. */
   #mounts;
 
   /** {object} Application-specific configuration. */
@@ -237,7 +237,9 @@ class ApplicationInfo {
 
     const mountArray = appConfig.mount ? [appConfig.mount] : [];
     const mountsArray = appConfig.mounts ?? [];
-    this.#mounts = [...mountArray, ...mountsArray];
+    this.#mounts = Object.freeze(
+      [...mountArray, ...mountsArray].map((mount) => ApplicationInfo.#parseMount(mount))
+    );
 
     const extraConfig = {...appConfig};
     delete extraConfig.name;
@@ -257,7 +259,7 @@ class ApplicationInfo {
     return this.#type;
   }
 
-  /** {string[]} Mount points. */
+  /** {object[]} Mount points, as an array of pairs of `{server, path}`. */
   get mounts() {
     return this.#mounts;
   }
@@ -265,5 +267,23 @@ class ApplicationInfo {
   /** {object} Application-specific configuration. */
   get extraConfig() {
     return this.#extraConfig;
+  }
+
+  /**
+   * Parses a mount point into its two components.
+   *
+   * @param {string} mount Mount point.
+   * @returns {object} Components thereof.
+   */
+  static #parseMount(mount) {
+    const result = /^[/][/](?<server>[^/]+)[/](?<path>.*)$/.exec(mount);
+    if (!result) {
+      throw new Error(`Strange mount point: ${mount}`);
+    }
+
+    return Object.freeze({
+      server: result.groups.server,
+      path:   result.groups.path
+    })
   }
 }
