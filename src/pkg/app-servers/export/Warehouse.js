@@ -97,4 +97,15 @@ export class Warehouse {
       throw new Error('Invalid configuration.');
     }
   }
+
+  /**
+   * Creates a server for a single app. TODO: This is scaffolding for the
+   * transition from single- to multi-app support.
+   *
+   * @param {string} name Name of the application to serve.
+   * @returns {BaseApplication} Appropriately-constructed instance.
+   */
+  makeSingleApplicationServer(name) {
+    return this.#applicationManager.makeSingleApplicationServer(name, this)
+  }
 }

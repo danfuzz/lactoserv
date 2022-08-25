@@ -1,6 +1,8 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { ApplicationFactory } from '#p/ApplicationFactory';
+
 import { Validator } from 'jsonschema';
 
 /**
@@ -134,6 +136,24 @@ export class ApplicationManager {
         this.#addInfoFor(app);
       }
     }
+  }
+
+  /**
+   * Creates a single-app server. TODO: This is scaffolding for the transition
+   * from single- to multi-app support.
+   *
+   * @param {string} name Name of the application to serve.
+   * @param {Warehouse} warehouse Warehouse of configured parts.
+   * @returns {BaseApplication} Appropriately-constructed instance.
+   */
+  makeSingleApplicationServer(name, warehouse) {
+    const info = this.#findInfo(name);
+
+    if (info === null) {
+      throw new Error(`No such app: ${name}`);
+    }
+
+    return ApplicationFactory.forType(info.type, warehouse);
   }
 
   /**
