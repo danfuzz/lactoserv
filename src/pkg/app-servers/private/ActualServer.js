@@ -12,9 +12,6 @@ import { WranglerFactory } from '#p/WranglerFactory';
  * Actual Http(s) server.
  */
 export class ActualServer {
-  /** {object} Configuration object. */
-  #config;
-
   /** {CertificateManager|null} Certificate manager, for TLS contexts. Can be
    * `null` if all servers are insecure. */
   #certificateManager;
@@ -46,7 +43,6 @@ export class ActualServer {
    * @param {object} config Configuration object.
    */
   constructor(config) {
-    this.#config = config;
     this.#certificateManager = CertificateManager.fromConfig(config);
     this.#serverManager = new ServerManager(config);
 
@@ -65,11 +61,6 @@ export class ActualServer {
   /** {express} The Express(-like) application instance. */
   get app() {
     return this.#app;
-  }
-
-  /** {object} Configuration object. */
-  get config() {
-    return this.#config;
   }
 
   /** {HttpServer} `HttpServer`(-like) instance. */
