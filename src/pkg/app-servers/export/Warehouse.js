@@ -1,6 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { ApplicationManager } from '#p/ApplicationManager';
 import { HostManager } from '#p/HostManager';
 import { ServerManager } from '#p/ServerManager';
 
@@ -14,10 +15,14 @@ import { Validator } from 'jsonschema';
  * * `{object} host` or `{object[]} hosts` -- Host / certificate configuration.
  *   Required if a server is configured to listen for secure connections.
  * * `{object} server` or `{object[]} servers` -- Server configuration.
+ * * `{object} app` or `{object[]} apps` -- Application configuration.
  */
 export class Warehouse {
   /** {object} Configuration object. */
   #config;
+
+  /** {ApplicationManager} Application manager. */
+  #applicationManager;
 
   /** {HostManager|null} Host manager, if configured. */
   #hostManager;
@@ -36,6 +41,11 @@ export class Warehouse {
     this.#config = config;
     this.#serverManager = new ServerManager(config);
     this.#hostManager = HostManager.fromConfig(config);
+  }
+
+  /** {ApplicationManager} Application manager. */
+  get applicationManager() {
+    return this.#applicationManager;
   }
 
   /** {HostManager|null} Host manager secure contexts, if needed. Can be `null`
@@ -62,13 +72,15 @@ export class Warehouse {
    */
   static #validateConfig(config) {
     const v = new Validator();
+    ApplicationManager.addConfigSchemaTo(v);
     HostManager.addConfigSchemaTo(v);
     ServerManager.addConfigSchemaTo(v);
 
     const schema = {
       allOf: [
-        { $ref: '/ServerManager' },
-        { $ref: '/OptionalHostManager' }
+        { $ref: '/ApplicationManager' },
+        { $ref: '/OptionalHostManager' },
+        { $ref: '/ServerManager' }
       ]
     };
 

@@ -40,6 +40,12 @@ export class Main {
         port:       8080,
         protocol:   'http',
       },
+      app: {
+        name:       'my-static-fun',
+        mount:      '//insecure/',
+        type:       'static-server',
+        assetsPath: assetsPath
+      },
       what:       'static-server',
       assetsPath: assetsPath
     };
@@ -51,6 +57,12 @@ export class Main {
         interface:  '::',
         port:       8443,
         protocol:   'https'
+      },
+      app: {
+        name:       'my-static-fun',
+        mount:      '//secure/',
+        type:       'static-server',
+        assetsPath: assetsPath
       },
       what:       'static-server',
       assetsPath: assetsPath
@@ -66,6 +78,12 @@ export class Main {
           protocol:   'http2'
         }
       ],
+      app: {
+        name:       'my-static-fun',
+        mount:      '//secure/',
+        type:       'static-server',
+        assetsPath: assetsPath
+      },
       what:       'static-server',
       assetsPath: assetsPath
     };
@@ -76,6 +94,17 @@ export class Main {
         interface:  '::',
         port:       8080,
         protocol:   'http'
+      },
+      app: {
+        name: 'my-wacky-redirector',
+        mount: '//insecure/',
+        type: 'redirect-server',
+        redirects: [
+          {
+            fromPath: '/',
+            toUri:    'https://milk.com/boop/'
+          }
+        ]
       },
       what:      'redirect-server',
       redirects: [
