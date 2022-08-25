@@ -12,9 +12,6 @@ import { WranglerFactory } from '#p/WranglerFactory';
  * Actual Http(s) server.
  */
 export class ActualServer {
-  /** {HostManager|null} Host manager, or `null` if not configured. */
-  #hostManager;
-
   /** {ServerManager} Server manager, for all server bindings. */
   #serverManager;
 
@@ -39,16 +36,16 @@ export class ActualServer {
   /**
    * Constructs an instance.
    *
+   * @param {HostManager} hostManager Host / certificate manager.
    * @param {Warehouse} warehouse Warehouse of configured pieces.
    */
-  constructor(warehouse) {
-    this.#hostManager = warehouse.hostManager;
+  constructor(hostManager, warehouse) {
     this.#serverManager = warehouse.serverManager;
 
     const serverConfig = this.#serverManager.getUniqueConfig();
     this.#wrangler = WranglerFactory.forProtocol(serverConfig.protocol);
 
-    this.#server = this.#wrangler.createServer(this.#hostManager);
+    this.#server = this.#wrangler.createServer(hostManager);
     this.#app = this.#wrangler.createApplication();
     this.#configureApplication();
 

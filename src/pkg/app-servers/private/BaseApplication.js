@@ -29,7 +29,7 @@ export class BaseApplication {
    */
   constructor(info, warehouse) {
     this.#info = info;
-    this.#actual = new ActualServer(warehouse);
+    this.#actual = new ActualServer(warehouse.hostManager, warehouse);
   }
 
   /**
