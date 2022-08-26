@@ -98,7 +98,11 @@ if [[ ! -x ${lintBinary} ]]; then
     || exit "$?"
 fi
 
-cd "${srcDir}"
+if (( ${#lintArgs[@]} == 0 )); then
+    # Run over all of source by default.
+    lintArgs=("${srcDir}")
+fi
+
 "${lintBinary}" \
     --config "${configFile}" \
     --cache --cache-location "${lintDir}/cache" \
