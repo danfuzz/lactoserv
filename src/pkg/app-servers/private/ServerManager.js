@@ -19,7 +19,7 @@ import { Validator } from 'jsonschema';
  *   bindings to indicate which server(s) an application is served from.
  * * `{string} interface` -- Address of the physical interface that the server
  *   is to listen on. `*` indicates that all interfaces should be listened on.
- *   (This is the same as specifying `::` or `0.0.0.0`.)
+ *   Note: `::` and `0.0.0.0` are not allowed; use `*` instead.
  * * `{int} port` -- Port number that the server is to listen on.
  * * `{string} protocol` -- Protocol that the server is to speak. Must be one of
  *   `http`, `http2`, or `https`.
@@ -41,6 +41,13 @@ export class ServerManager {
     // Allows alphanumeric strings that contain dashes, but don't start or end
     // with a dash.
     const serverNamePattern = '^(?!-)[-a-zA-Z0-9]+(?<!-)$';
+
+    const interfacePattern =
+      '^' +
+      '(?!::|(0+\.){0,3}0+)' // No IPv4 or IPv6 "any" addresses.
+      '\*'                   // The one allowed "any" address.
+      '(?![-.])[-.:a-zA-Z0-9]+(?<![-.])' // A bit over-permissive here.
+      '$';
 
     const schema = {
       title: 'server-config',
@@ -74,7 +81,8 @@ export class ServerManager {
           required: ['interface', 'name', 'port', 'protocol'],
           properties: {
             interface: {
-              type: 'string'
+              type: 'string',
+              pattern: interfacePattern
             },
             name: {
               type: 'string',
