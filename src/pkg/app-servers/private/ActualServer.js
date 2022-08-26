@@ -8,9 +8,6 @@ export class ActualServer {
   /** {ServerController} Server controller. */
   #serverController;
 
-  /** {Express} `Express`(-like) application object. */
-  #app;
-
   /** {boolean} Is the server stopped or trying to stop? */
   #stopping = false;
 
@@ -27,8 +24,6 @@ export class ActualServer {
    */
   constructor(serverController) {
     this.#serverController = serverController;
-    this.#app = this.#serverController.serverApp;
-
     this.#whenStopping = new Promise((resolve) => {
       this.#resolveWhenStopping = () => resolve(true);
     });
@@ -71,7 +66,7 @@ export class ActualServer {
 
       server.on('listening', handleListening);
       server.on('error',     handleError);
-      server.on('request',   this.#app);
+      server.on('request',   this.#serverController.serverApp);
 
       server.listen(this.#serverController.listenOptions);
     });
@@ -88,7 +83,7 @@ export class ActualServer {
       const server = this.#serverController.server;
       this.#log('Stopping server.');
       await this.#serverController.wrangler.protocolStop();
-      server.removeListener('request', this.#app);
+      server.removeListener('request', this.#serverController.serverApp);
       server.close();
       this.#stopping = true;
       this.#resolveWhenStopping();
