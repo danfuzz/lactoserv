@@ -10,9 +10,6 @@ export class ApplicationController {
   /** {string} Application name. */
   #name;
 
-  /** {string} Application type. */
-  #type;
-
   /** {object[]} Mount points, as an array of pairs of `{server, path}`. */
   #mounts;
 
@@ -26,7 +23,6 @@ export class ApplicationController {
    */
   constructor(appConfig) {
     this.#name = appConfig.name;
-    this.#type = appConfig.type;
 
     const mountArray = appConfig.mount ? [appConfig.mount] : [];
     const mountsArray = appConfig.mounts ?? [];
@@ -40,7 +36,7 @@ export class ApplicationController {
     delete extraConfig.type;
     delete extraConfig.mount;
     delete extraConfig.mounts;
-    this.#app = ApplicationFactory.forType(this.#type, extraConfig);
+    this.#app = ApplicationFactory.forType(appConfig.type, extraConfig);
   }
 
   /** {BaseApplication} The controlled application instance. */
@@ -51,11 +47,6 @@ export class ApplicationController {
   /** {string} Application name. */
   get name() {
     return this.#name;
-  }
-
-  /** {string} Application type. */
-  get type() {
-    return this.#type;
   }
 
   /** {object[]} Mount points, as an array of pairs of `{server, path}`. */
