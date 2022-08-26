@@ -150,7 +150,7 @@ export class ServerManager {
    * @param {HostManager} hostManager Host / certificate manager.
    */
   #addControllerFor(serverItem, hostManager) {
-    const controller = new ServerController(serverItem);
+    const controller = new ServerController(serverItem, hostManager);
     const name = controller.name;
 
     console.log(`Binding server ${name}.`);

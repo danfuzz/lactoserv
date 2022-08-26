@@ -26,8 +26,9 @@ export class ServerController {
    * Constructs an insance.
    *
    * @param {object} serverConfig Server information configuration item.
+   * @param {HostManager} hostManager Host / certificate manager.
    */
-  constructor(serverConfig) {
+  constructor(serverConfig, hostManager) {
     this.#name      = serverConfig.name;
     this.#interface = serverConfig.interface;
     this.#port      = serverConfig.port;
