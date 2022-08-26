@@ -99,18 +99,10 @@ export class ActualServer {
       server.on('error',     handleError);
       server.on('request',   this.#app);
 
-      const listenOptions = {
-        host: this.#serverController.interface,
-        port: this.#serverController.port
-      };
-
-      server.listen(listenOptions);
+      server.listen(this.#serverController.listenOptions);
     });
 
-    console.log('Started server.');
-    console.log('  protocol:  %s', this.#serverController.protocol);
-    console.log('  listening: interface %s, port %d',
-      this.#serverController.interface, this.#server.address().port);
+    this.#log('Started server.');
   }
 
   /**
@@ -119,10 +111,7 @@ export class ActualServer {
    */
   async stop() {
     if (!this.#stopping) {
-      console.log('Stopping server.');
-      console.log('  protocol:  %s', this.#serverController.protocol);
-      console.log('  listening: interface %s, port %d',
-        this.#serverController.interface, this.#server.address().port);
+      this.#log('Stopping server.');
       await this.#serverController.wrangler.protocolStop();
       this.#server.removeListener('request', this.#app);
       this.#server.close();
@@ -197,5 +186,30 @@ export class ActualServer {
 
     // Squelches the response header advertisement for Express.
     app.set('x-powered-by', false);
+  }
+
+  /**
+   * Logs a message about the instance, including the protocol, interface, and
+   * port.
+   *
+   * @param {string} msg The topline of the message.
+   */
+  #log(msg) {
+    const info = this.#serverController.loggableInfo;
+    const address = this.#server.address();
+
+    console.log('%s', msg);
+    console.log(`  name:      ${info.name}`);
+    console.log(`  protocol:  ${info.protocol}`);
+    console.log(`  interface: ${info.interface}`);
+    console.log(`  port:      ${info.port}`);
+
+    if (address) {
+      // More pleasant presentation for IPv6.
+      const ip = /:/.test(address.address)
+        ? `[${address.address}]`
+        : address.address;
+      console.log(`  listening: ${ip}:${address.port}`);
+    }
   }
 }
