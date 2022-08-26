@@ -80,8 +80,8 @@ export class StaticApplication extends BaseApplication {
     const result = v.validate(config, schema);
     const errors = result.errors;
 
-    if (errors.length != 0) {
-      console.log('Configuration error%s:', (errors.length == 1) ? '' : 's');
+    if (errors.length !== 0) {
+      console.log('Configuration error%s:', (errors.length === 1) ? '' : 's');
       for (const e of errors) {
         console.log('  %s', e.stack);
       }

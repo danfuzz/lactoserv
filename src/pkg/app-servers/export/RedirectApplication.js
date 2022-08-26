@@ -70,7 +70,7 @@ export class RedirectApplication extends BaseApplication {
     // <https://github.com/pillarjs/path-to-regexp> for details on the path
     // syntax used by Express.
     function literalPath(p) {
-      p = p.replaceAll(/[.?*+^$(){}\[\]\\|]/g, '\\$&');
+      p = p.replaceAll(/[.?*+^$(){}\\|]|\[|\]/g, '\\$&');
       return new RegExp(p);
     }
 
@@ -112,7 +112,7 @@ export class RedirectApplication extends BaseApplication {
       } catch {
         return false;
       }
-    }
+    };
 
     // Additional restrictions on `toUri`, beyond basic URI syntax.
     v.customFormats.toUri = (input) => {
@@ -167,8 +167,8 @@ export class RedirectApplication extends BaseApplication {
     const result = v.validate(config, schema);
     const errors = result.errors;
 
-    if (errors.length != 0) {
-      console.log('Configuration error%s:', (errors.length == 1) ? '' : 's');
+    if (errors.length !== 0) {
+      console.log('Configuration error%s:', (errors.length === 1) ? '' : 's');
       for (const e of errors) {
         console.log('  %s', e.stack);
       }
