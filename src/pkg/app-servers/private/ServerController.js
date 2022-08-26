@@ -40,6 +40,26 @@ export class ServerController {
     return this.#interface;
   }
 
+  /** {object} Options for doing a `listen()` on a server socket. Includes
+   * `host` and `port`, where `host` in this case corresponds to the network
+   * interface. */
+  get listenOptions() {
+    return {
+      host: (this.#interface === '*') ? '::' : this.#interface,
+      port: this.#port
+    };
+  }
+
+  /** {object} Object with bindings for reasonably-useful logging. */
+  get loggableInfo() {
+    return {
+      name:      this.#name,
+      interface: (this.#interface === '*') ? '<any>' : this.#interface,
+      port:      this.#port,
+      protocol:  this.#protocol
+    }
+  }
+
   /** {string} Server name. */
   get name() {
     return this.#name;
