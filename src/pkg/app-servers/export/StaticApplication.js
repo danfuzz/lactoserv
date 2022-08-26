@@ -16,6 +16,9 @@ import { Validator } from 'jsonschema';
  *   static assets.
  */
 export class StaticApplication extends BaseApplication {
+  /* {function} "Middleware" handler function for this instance. */
+  #handleRequest;
+
   /** {string} Application type as used in configuration objects. */
   static get TYPE() {
     return 'static-server';
@@ -33,19 +36,34 @@ export class StaticApplication extends BaseApplication {
     const config = info.extraConfig;
     StaticApplication.#validateConfig(config);
 
-    this.#addRoutes(config.assetsPath);
+    this.#handleRequest = StaticApplication.#makeHandler(config);
+    this.#addRoutes();
+  }
+
+  /** Per superclass requirement. */
+  handleRequest(req, res, next) {
+    this.#handleRequest(req, res, next);
   }
 
   /**
    * Adds routes to the application instance.
-   *
-   * @param {string} assetsPath Base directory for the static assets.
    */
-  #addRoutes(assetsPath) {
+  #addRoutes() {
     const actual = this.getActual(PROTECTED_ACCESS);
     const app = actual.app;
 
-    app.use('/', express.static(assetsPath))
+    app.use('/', this.#handleRequest);
+  }
+
+  /**
+   * Makes a request handler function for an instance of this class.
+   *
+   * @param {object} config Configuration object.
+   * @returns {function} The middleware function.
+   */
+  static #makeHandler(config) {
+    const assetsPath = config.assetsPath;
+    return express.static(assetsPath);
   }
 
   /**

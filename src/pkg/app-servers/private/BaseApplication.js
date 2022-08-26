@@ -15,6 +15,9 @@ export class BaseApplication {
   /** {object} Access token for innards. */
   #accessToken;
 
+  /** {function} Middleware function which activates this instance. */
+  #middleware;
+
   /** {ApplicationInfo} Application info. */
   #info;
 
@@ -42,6 +45,28 @@ export class BaseApplication {
     }
 
     this.#actual = new ActualServer(warehouse.hostManager, serverConfig);
+
+    this.#middleware =
+      (req, res, next) => this.handleRequest(req, res, next);
+  }
+
+  /** "Middleware" handler function which activates this instance by calling
+   * through to {@link #handleRequest}. */
+  get middleware() {
+    return this.#middleware;
+  }
+
+  /**
+   * Handles a request, as defined by the Express middleware spec. Subclasses
+   * must override this method.
+   *
+   * @param {express:Request} req Request object.
+   * @param {express:Response} res Response object.
+   * @param {function} next Function which causes the next-bound middleware to
+   *   run.
+   */
+  handleRequest(req, res, next) {
+    throw new Error('Abstract method.');
   }
 
   /**
