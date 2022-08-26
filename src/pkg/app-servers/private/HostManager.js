@@ -189,14 +189,15 @@ export class HostManager {
   }
 
   /**
-   * Finds the cert/key pair associated with the given host name.
+   * Finds the configuration info (cert/key pair) associated with the given
+   * hostname.
    *
    * @param {string} name Host name to look for, which may be a partial or full
    *   wildcard.
    * @returns {object|null} Object mapping `cert` and `key`; or `null` if no
    *   host name match is found.
    */
-  findInfo(name) {
+  findConfig(name) {
     const controller = this.#findController(name);
 
     if (!controller) {
@@ -210,7 +211,7 @@ export class HostManager {
   }
 
   /**
-   * Finds the TLS {@link SecureContext} to use, based on the given host name.
+   * Finds the TLS {@link SecureContext} to use, based on the given hostname.
    *
    * @param {string} name Host name to look for, which may be a partial or full
    *   wildcard.
