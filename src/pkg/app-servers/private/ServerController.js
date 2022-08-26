@@ -35,16 +35,6 @@ export class ServerController {
     this.#wrangler  = WranglerFactory.forProtocol(this.#protocol);
   }
 
-  /** {object} Plain object which recapitulates the original configuration. */
-  get configObject() {
-    return {
-      name:      this.#name,
-      interface: this.#interface,
-      port:      this.#port,
-      protocol:  this.#protocol
-    }
-  }
-
   /** {string} Interface address. */
   get interface() {
     return this.#interface;

@@ -117,16 +117,6 @@ export class ServerManager {
   }
 
   /**
-   * Gets the configuration info for the server with the given name.
-   *
-   * @param {string} name Server name to look for.
-   * @returns {object} The associated information.
-   */
-  findConfig(name) {
-    return this.findController(name).configObject;
-  }
-
-  /**
    * Finds the {@link ServerController} for a given server name.
    *
    * @param {string} name Server name to look for.
