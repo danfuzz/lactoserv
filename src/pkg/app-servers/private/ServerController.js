@@ -35,11 +35,6 @@ export class ServerController {
     this.#wrangler  = WranglerFactory.forProtocol(this.#protocol);
   }
 
-  /** {string} Interface address. */
-  get interface() {
-    return this.#interface;
-  }
-
   /** {object} Options for doing a `listen()` on a server socket. Includes
    * `host` and `port`, where `host` in this case corresponds to the network
    * interface. */
@@ -63,16 +58,6 @@ export class ServerController {
   /** {string} Server name. */
   get name() {
     return this.#name;
-  }
-
-  /** {int} Port number. */
-  get port() {
-    return this.#port;
-  }
-
-  /** {string} Protocol. */
-  get protocol() {
-    return this.#protocol;
   }
 
   /** {BaseWrangler} The protocol wrangler. */
