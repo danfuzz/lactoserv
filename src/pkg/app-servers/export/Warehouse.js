@@ -88,8 +88,8 @@ export class Warehouse {
     const result = v.validate(config, schema);
     const errors = result.errors;
 
-    if (errors.length != 0) {
-      console.log('Configuration error%s:', (errors.length == 1) ? '' : 's');
+    if (errors.length !== 0) {
+      console.log('Configuration error%s:', (errors.length === 1) ? '' : 's');
       for (const e of errors) {
         console.log('  %s', e.stack);
       }
@@ -106,6 +106,6 @@ export class Warehouse {
    * @returns {BaseApplication} Appropriately-constructed instance.
    */
   makeSingleApplicationServer(name) {
-    return this.#applicationManager.makeSingleApplicationServer(name, this)
+    return this.#applicationManager.makeSingleApplicationServer(name, this);
   }
 }
