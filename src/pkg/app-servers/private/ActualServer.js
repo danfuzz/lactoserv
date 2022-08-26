@@ -8,9 +8,6 @@ export class ActualServer {
   /** {ServerController} Server controller. */
   #serverController;
 
-  /** {HttpServer} `HttpServer`(-like) instance. */
-  #server;
-
   /** {Express} `Express`(-like) application object. */
   #app;
 
@@ -30,7 +27,6 @@ export class ActualServer {
    */
   constructor(serverController) {
     this.#serverController = serverController;
-    this.#server = this.#serverController.server;
     this.#app = this.#serverController.serverApp;
 
     this.#whenStopping = new Promise((resolve) => {
@@ -46,15 +42,14 @@ export class ActualServer {
       throw new Error('Server stopping or already stopped.');
     }
 
-    await this.#serverController.wrangler.protocolStart(this.#server);
+    const server = this.#serverController.server;
+    await this.#serverController.wrangler.protocolStart(server);
 
     // This `await new Promise` arrangement is done to get the `listen` call to
     // be a good async citizen. Notably, the callback passed to
     // `Server.listen()` cannot (historically) be counted on to get used as an
     // error callback. TODO: Maybe there is a better way to do this these days?
     await new Promise((resolve, reject) => {
-      const server = this.#server;
-
       function done(err) {
         server.removeListener('listening', handleListening);
         server.removeListener('error',     handleError);
@@ -90,10 +85,11 @@ export class ActualServer {
    */
   async stop() {
     if (!this.#stopping) {
+      const server = this.#serverController.server;
       this.#log('Stopping server.');
       await this.#serverController.wrangler.protocolStop();
-      this.#server.removeListener('request', this.#app);
-      this.#server.close();
+      server.removeListener('request', this.#app);
+      server.close();
       this.#stopping = true;
       this.#resolveWhenStopping();
     }
@@ -113,7 +109,7 @@ export class ActualServer {
 
     await this.#serverController.wrangler.protocolWhenStopped();
 
-    const server = this.#server;
+    const server = this.#serverController.server;
 
     // If the server is still listening for connections, wait for it to claim
     // to have stopped.
@@ -152,7 +148,7 @@ export class ActualServer {
    */
   #log(msg) {
     const info = this.#serverController.loggableInfo;
-    const address = this.#server.address();
+    const address = this.#serverController.server.address();
 
     console.log('%s', msg);
     console.log(`  name:      ${info.name}`);
