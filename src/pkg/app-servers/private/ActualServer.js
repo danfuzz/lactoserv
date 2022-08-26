@@ -1,28 +1,13 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { HostManager } from '#p/HostManager';
-import { HttpWrangler } from '#p/HttpWrangler';
-import { Http2Wrangler } from '#p/Http2Wrangler';
-import { HttpsWrangler } from '#p/HttpsWrangler';
-import { ServerManager } from '#p/ServerManager';
-import { WranglerFactory } from '#p/WranglerFactory';
-
 /**
- * Actual Http(s) server.
+ * Actual Http(s) server. TODO: This class should be folded into
+ * {@link ServerController}.
  */
 export class ActualServer {
-  /** {object} Server configuration object. */
-  #serverConfig;
-
-  /** {BaseWrangler} Protocol-specific "wrangler." */
-  #wrangler;
-
-  /** {HttpServer} `HttpServer`(-like) instance. */
-  #server;
-
-  /** {Express} `Express`(-like) application object. */
-  #app;
+  /** {ServerController} Server controller. */
+  #serverController;
 
   /** {boolean} Is the server stopped or trying to stop? */
   #stopping = false;
@@ -36,34 +21,13 @@ export class ActualServer {
   /**
    * Constructs an instance.
    *
-   * @param {HostManager} hostManager Host / certificate manager.
-   * @param {object} serverConfig Server configuration object.
+   * @param {ServerController} serverController Server controller.
    */
-  constructor(hostManager, serverConfig) {
-    this.#serverConfig = serverConfig;
-    this.#wrangler = WranglerFactory.forProtocol(serverConfig.protocol);
-    this.#server = this.#wrangler.createServer(hostManager);
-    this.#app = this.#wrangler.createApplication();
-    this.#configureApplication();
-
+  constructor(serverController) {
+    this.#serverController = serverController;
     this.#whenStopping = new Promise((resolve) => {
       this.#resolveWhenStopping = () => resolve(true);
     });
-  }
-
-  /** {express} The Express(-like) application instance. */
-  get app() {
-    return this.#app;
-  }
-
-  /** {HttpServer} `HttpServer`(-like) instance. */
-  get server() {
-    return this.#server;
-  }
-
-  /** {boolean} Is the server stopped or trying to stop? */
-  get stopping() {
-    return this.#stopping;
   }
 
   /**
@@ -74,15 +38,14 @@ export class ActualServer {
       throw new Error('Server stopping or already stopped.');
     }
 
-    await this.#wrangler.protocolStart(this.#server);
+    const server = this.#serverController.server;
+    await this.#serverController.wrangler.protocolStart(server);
 
     // This `await new Promise` arrangement is done to get the `listen` call to
     // be a good async citizen. Notably, the callback passed to
     // `Server.listen()` cannot (historically) be counted on to get used as an
     // error callback. TODO: Maybe there is a better way to do this these days?
     await new Promise((resolve, reject) => {
-      const server = this.#server;
-
       function done(err) {
         server.removeListener('listening', handleListening);
         server.removeListener('error',     handleError);
@@ -104,20 +67,12 @@ export class ActualServer {
 
       server.on('listening', handleListening);
       server.on('error',     handleError);
-      server.on('request',   this.#app);
+      server.on('request',   this.#serverController.serverApp);
 
-      const listenOptions = {
-        host: this.#serverConfig.interface,
-        port: this.#serverConfig.port
-      };
-
-      server.listen(listenOptions);
+      server.listen(this.#serverController.listenOptions);
     });
 
-    console.log('Started server.');
-    console.log('  protocol:  %s', this.#serverConfig.protocol);
-    console.log('  listening: interface %s, port %d',
-      this.#serverConfig.interface, this.#server.address().port);
+    this.#log('Started server.');
   }
 
   /**
@@ -125,19 +80,25 @@ export class ActualServer {
    * is closed).
    */
   async stop() {
-    if (!this.#stopping) {
-      console.log('Stopping server.');
-      console.log('  protocol:  %s', this.#serverConfig.protocol);
-      console.log('  listening: interface %s, port %d',
-        this.#serverConfig.interface, this.#server.address().port);
-      await this.#wrangler.protocolStop();
-      this.#server.removeListener('request', this.#app);
-      this.#server.close();
-      this.#stopping = true;
-      this.#resolveWhenStopping();
+    if (this.#stopping) {
+      // Already stopping, just wait for the existing procedure to complete.
+      return this.whenStopped();
     }
 
-    return this.whenStopped();
+    this.#log('Stopping server.');
+
+    await this.#serverController.wrangler.protocolStop();
+
+    const server = this.#serverController.server;
+    server.removeListener('request', this.#serverController.serverApp);
+    server.close();
+
+    this.#stopping = true;
+    this.#resolveWhenStopping();
+
+    await this.whenStopped();
+
+    this.#log('Server stopped.');
   }
 
   /**
@@ -150,9 +111,9 @@ export class ActualServer {
       await this.#whenStopping;
     }
 
-    await this.#wrangler.protocolWhenStopped();
+    await this.#serverController.wrangler.protocolWhenStopped();
 
-    const server = this.#server;
+    const server = this.#serverController.server;
 
     // If the server is still listening for connections, wait for it to claim
     // to have stopped.
@@ -184,25 +145,22 @@ export class ActualServer {
   }
 
   /**
-   * Configures top-level application settings.
+   * Logs a message about the instance, including the protocol, interface, and
+   * port.
+   *
+   * @param {string} msg The topline of the message.
    */
-  #configureApplication() {
-    const app = this.#app;
+  #log(msg) {
+    const info = this.#serverController.loggableInfo;
 
-    // Means paths `/foo` and `/Foo` are different.
-    app.set('case sensitive routing', true);
+    console.log('%s', msg);
+    console.log(`  name:      ${info.name}`);
+    console.log(`  protocol:  ${info.protocol}`);
+    console.log(`  interface: ${info.interface}`);
+    console.log(`  port:      ${info.port}`);
 
-    // A/O/T `development`. Note: Per Express docs, this makes error messages be
-    // "less verbose," so it may be reasonable to turn it off when debugging
-    // things like Express routing weirdness etc. Or, maybe this project's needs
-    // are so modest that it's better to just leave it in `development` mode
-    // permanently.
-    app.set('env', 'production');
-
-    // Means paths `/foo` and `/foo/` are different.
-    app.set('strict routing', true);
-
-    // Squelches the response header advertisement for Express.
-    app.set('x-powered-by', false);
+    if (info.listening) {
+      console.log(`  listening: ${info.listening}`);
+    }
   }
 }

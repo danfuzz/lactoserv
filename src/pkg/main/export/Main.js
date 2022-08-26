@@ -37,7 +37,7 @@ export class Main {
       hosts:      hostsConfig,
       server: {
         name:       'secure',
-        interface:  '::',
+        interface:  '*',
         port:       8443,
         protocol:   'https'
       },
@@ -54,19 +54,19 @@ export class Main {
       servers: [
         {
           name:       'insecure',
-          interface:  '::',
+          interface:  '*',
           port:       8080,
           protocol:   'http'
         },
         {
           name:       'also-insecure',
-          interface:  '::',
+          interface:  '*',
           port:       8081,
           protocol:   'http',
         },
         {
           name:       'secure',
-          interface:  '::',
+          interface:  '*',
           port:       8443,
           protocol:   'http2'
         }

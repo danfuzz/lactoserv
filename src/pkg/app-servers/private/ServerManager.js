@@ -19,7 +19,7 @@ import { Validator } from 'jsonschema';
  *   bindings to indicate which server(s) an application is served from.
  * * `{string} interface` -- Address of the physical interface that the server
  *   is to listen on. `*` indicates that all interfaces should be listened on.
- *   (This is the same as specifying `::` or `0.0.0.0`.)
+ *   Note: `::` and `0.0.0.0` are not allowed; use `*` instead.
  * * `{int} port` -- Port number that the server is to listen on.
  * * `{string} protocol` -- Protocol that the server is to speak. Must be one of
  *   `http`, `http2`, or `https`.
@@ -41,6 +41,13 @@ export class ServerManager {
     // Allows alphanumeric strings that contain dashes, but don't start or end
     // with a dash.
     const serverNamePattern = '^(?!-)[-a-zA-Z0-9]+(?<!-)$';
+
+    const interfacePattern =
+      '^' +
+      '(?!::|(0+\.){0,3}0+)' // No IPv4 or IPv6 "any" addresses.
+      '\*'                   // The one allowed "any" address.
+      '(?![-.])[-.:a-zA-Z0-9]+(?<![-.])' // A bit over-permissive here.
+      '$';
 
     const schema = {
       title: 'server-config',
@@ -74,7 +81,8 @@ export class ServerManager {
           required: ['interface', 'name', 'port', 'protocol'],
           properties: {
             interface: {
-              type: 'string'
+              type: 'string',
+              pattern: interfacePattern
             },
             name: {
               type: 'string',
@@ -101,35 +109,37 @@ export class ServerManager {
    * Constructs an instance.
    *
    * @param {object} config Configuration object.
+   * @param {HostManager} hostManager Host / certificate manager.
    */
-  constructor(config) {
+  constructor(config, hostManager) {
     ServerManager.#validateConfig(config);
 
     if (config.server) {
-      this.#addControllerFor(config.server);
+      this.#addControllerFor(config.server, hostManager);
     }
 
     if (config.servers) {
       for (const server of config.servers) {
-        this.#addControllerFor(server);
+        this.#addControllerFor(server, hostManager);
       }
     }
   }
 
   /**
-   * Gets the configuration info for the server with the given name.
+   * Finds the {@link ServerController} for a given server name.
    *
    * @param {string} name Server name to look for.
-   * @returns {object} The associated information.
+   * @returns {ServerController} The associated controller.
+   * @throws {Error} Thrown if there is no controller with the given name.
    */
-  findConfig(name) {
-    const controller = this.#findController(name);
+  findController(name) {
+    const controller = this.#controllers.get(name);
 
     if (!controller) {
       throw new Error(`No such server: ${name}`);
     }
 
-    return controller.configObject;
+    return controller;
   }
 
   /**
@@ -137,9 +147,10 @@ export class ServerManager {
    * adds a mapping to {@link #controllers} so it can be found.
    *
    * @param {object} serverItem Single server item from a configuration object.
+   * @param {HostManager} hostManager Host / certificate manager.
    */
-  #addControllerFor(serverItem) {
-    const controller = new ServerController(serverItem);
+  #addControllerFor(serverItem, hostManager) {
+    const controller = new ServerController(serverItem, hostManager);
     const name = controller.name;
 
     console.log(`Binding server ${name}.`);
@@ -149,18 +160,6 @@ export class ServerManager {
     }
 
     this.#controllers.set(name, controller);
-  }
-
-  /**
-   * Finds the {@link ServerController} for a given server name.
-   *
-   * @param {string} name Server name to look for.
-   * @returns {ServerController|null} The associated information, or `null` if
-   *   nothing suitable is found.
-   */
-  #findController(name) {
-    const controller = this.#controllers.get(name);
-    return controller ?? null;
   }
 
   /**
