@@ -19,12 +19,12 @@ export class HttpWrangler extends BaseWrangler {
   }
 
   /** Per superclass requirement. */
-  createServer(hostManager) {
+  createServer(hostManager_unused) {
     return http.createServer();
   }
 
   /** Per superclass requirement. */
-  async protocolStart(server) {
+  async protocolStart(server_unused) {
     // Nothing to do in this case.
   }
 

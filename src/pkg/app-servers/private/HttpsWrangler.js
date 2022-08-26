@@ -35,7 +35,7 @@ export class HttpsWrangler extends BaseWrangler {
   }
 
   /** Per superclass requirement. */
-  async protocolStart(server) {
+  async protocolStart(server_unused) {
     // Nothing to do in this case.
   }
 

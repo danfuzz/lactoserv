@@ -101,10 +101,10 @@ export class Http2Wrangler extends BaseWrangler {
 
     const removeSession = () => {
       sessions.delete(session);
-      if (this.#stopping && (sessions.size == 0)) {
+      if (this.#stopping && (sessions.size === 0)) {
         this.#resolveWhenFullyStopped();
       }
-    }
+    };
 
     session.on('close', removeSession);
     session.on('error', removeSession);
