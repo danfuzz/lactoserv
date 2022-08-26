@@ -123,13 +123,24 @@ export class ServerManager {
    * @returns {object} The associated information.
    */
   findConfig(name) {
-    const controller = this.#findController(name);
+    return this.findController(name).configObject;
+  }
+
+  /**
+   * Finds the {@link ServerController} for a given server name.
+   *
+   * @param {string} name Server name to look for.
+   * @returns {ServerController} The associated controller.
+   * @throws {Error} Thrown if there is no controller with the given name.
+   */
+  findController(name) {
+    const controller = this.#controllers.get(name);
 
     if (!controller) {
       throw new Error(`No such server: ${name}`);
     }
 
-    return controller.configObject;
+    return controller;
   }
 
   /**
@@ -149,18 +160,6 @@ export class ServerManager {
     }
 
     this.#controllers.set(name, controller);
-  }
-
-  /**
-   * Finds the {@link ServerController} for a given server name.
-   *
-   * @param {string} name Server name to look for.
-   * @returns {ServerController|null} The associated information, or `null` if
-   *   nothing suitable is found.
-   */
-  #findController(name) {
-    const controller = this.#controllers.get(name);
-    return controller ?? null;
   }
 
   /**

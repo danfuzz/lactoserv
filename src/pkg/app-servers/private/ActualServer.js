@@ -9,11 +9,8 @@ import { WranglerFactory } from '#p/WranglerFactory';
  * Actual Http(s) server.
  */
 export class ActualServer {
-  /** {object} Server configuration object. */
-  #serverConfig;
-
-  /** {BaseWrangler} Protocol-specific "wrangler." */
-  #wrangler;
+  /** {ServerController} Server controller. */
+  #serverController;
 
   /** {HttpServer} `HttpServer`(-like) instance. */
   #server;
@@ -34,13 +31,12 @@ export class ActualServer {
    * Constructs an instance.
    *
    * @param {HostManager} hostManager Host / certificate manager.
-   * @param {object} serverConfig Server configuration object.
+   * @param {ServerController} serverController Server controller.
    */
-  constructor(hostManager, serverConfig) {
-    this.#serverConfig = serverConfig;
-    this.#wrangler = WranglerFactory.forProtocol(serverConfig.protocol);
-    this.#server = this.#wrangler.createServer(hostManager);
-    this.#app = this.#wrangler.createApplication();
+  constructor(hostManager, serverController) {
+    this.#serverController = serverController;
+    this.#server = this.#serverController.wrangler.createServer(hostManager);
+    this.#app = this.#serverController.wrangler.createApplication();
     this.#configureApplication();
 
     this.#whenStopping = new Promise((resolve) => {
@@ -71,7 +67,7 @@ export class ActualServer {
       throw new Error('Server stopping or already stopped.');
     }
 
-    await this.#wrangler.protocolStart(this.#server);
+    await this.#serverController.wrangler.protocolStart(this.#server);
 
     // This `await new Promise` arrangement is done to get the `listen` call to
     // be a good async citizen. Notably, the callback passed to
@@ -104,17 +100,17 @@ export class ActualServer {
       server.on('request',   this.#app);
 
       const listenOptions = {
-        host: this.#serverConfig.interface,
-        port: this.#serverConfig.port
+        host: this.#serverController.interface,
+        port: this.#serverController.port
       };
 
       server.listen(listenOptions);
     });
 
     console.log('Started server.');
-    console.log('  protocol:  %s', this.#serverConfig.protocol);
+    console.log('  protocol:  %s', this.#serverController.protocol);
     console.log('  listening: interface %s, port %d',
-      this.#serverConfig.interface, this.#server.address().port);
+      this.#serverController.interface, this.#server.address().port);
   }
 
   /**
@@ -124,10 +120,10 @@ export class ActualServer {
   async stop() {
     if (!this.#stopping) {
       console.log('Stopping server.');
-      console.log('  protocol:  %s', this.#serverConfig.protocol);
+      console.log('  protocol:  %s', this.#serverController.protocol);
       console.log('  listening: interface %s, port %d',
-        this.#serverConfig.interface, this.#server.address().port);
-      await this.#wrangler.protocolStop();
+        this.#serverController.interface, this.#server.address().port);
+      await this.#serverController.wrangler.protocolStop();
       this.#server.removeListener('request', this.#app);
       this.#server.close();
       this.#stopping = true;
@@ -147,7 +143,7 @@ export class ActualServer {
       await this.#whenStopping;
     }
 
-    await this.#wrangler.protocolWhenStopped();
+    await this.#serverController.wrangler.protocolWhenStopped();
 
     const server = this.#server;
 
