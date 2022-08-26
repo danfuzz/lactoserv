@@ -106,7 +106,7 @@ fi
 "${lintBinary}" \
     --config "${configFile}" \
     --cache --cache-location "${lintDir}/cache" \
-    --max-warnings 0 --debug \
+    --max-warnings 0 \
     -- "${lintArgs[@]}"
 status="$?"
 
