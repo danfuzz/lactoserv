@@ -39,9 +39,9 @@ export class Warehouse {
     Warehouse.#validateConfig(config);
 
     this.#config = config;
-    this.#applicationManager = new ApplicationManager(config);
-    this.#serverManager = new ServerManager(config);
     this.#hostManager = HostManager.fromConfig(config);
+    this.#serverManager = new ServerManager(config, this.#hostManager);
+    this.#applicationManager = new ApplicationManager(config);
   }
 
   /** {ApplicationManager} Application manager. */

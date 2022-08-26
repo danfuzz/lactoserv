@@ -109,17 +109,18 @@ export class ServerManager {
    * Constructs an instance.
    *
    * @param {object} config Configuration object.
+   * @param {HostManager} hostManager Host / certificate manager.
    */
-  constructor(config) {
+  constructor(config, hostManager) {
     ServerManager.#validateConfig(config);
 
     if (config.server) {
-      this.#addControllerFor(config.server);
+      this.#addControllerFor(config.server, hostManager);
     }
 
     if (config.servers) {
       for (const server of config.servers) {
-        this.#addControllerFor(server);
+        this.#addControllerFor(server, hostManager);
       }
     }
   }
@@ -146,8 +147,9 @@ export class ServerManager {
    * adds a mapping to {@link #controllers} so it can be found.
    *
    * @param {object} serverItem Single server item from a configuration object.
+   * @param {HostManager} hostManager Host / certificate manager.
    */
-  #addControllerFor(serverItem) {
+  #addControllerFor(serverItem, hostManager) {
     const controller = new ServerController(serverItem);
     const name = controller.name;
 
