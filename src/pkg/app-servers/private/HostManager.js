@@ -77,8 +77,8 @@ export class HostManager {
     const simpleName = '(?!-)[-a-zA-Z0-9]+(?<!-)';
     const hostNamePattern =
       '^' +
-      '[*]|' +
-      `([*][.])?(${simpleName}[.])*${simpleName}`
+      '[*]' +
+      `|([*][.])?(${simpleName}[.])*${simpleName}` +
       '$';
 
     const schema = {
@@ -207,7 +207,7 @@ export class HostManager {
     return {
       cert: controller.cert,
       key:  controller.key
-    }
+    };
   }
 
   /**
@@ -306,8 +306,8 @@ export class HostManager {
     const result = v.validate(config, { $ref: '/HostManager' });
     const errors = result.errors;
 
-    if (errors.length != 0) {
-      console.log('Configuration error%s:', (errors.length == 1) ? '' : 's');
+    if (errors.length !== 0) {
+      console.log('Configuration error%s:', (errors.length === 1) ? '' : 's');
       for (const e of errors) {
         console.log('  %s', e.stack);
       }
