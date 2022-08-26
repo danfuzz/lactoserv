@@ -43,11 +43,6 @@ export class ActualServer {
     return this.#server;
   }
 
-  /** {boolean} Is the server stopped or trying to stop? */
-  get stopping() {
-    return this.#stopping;
-  }
-
   /**
    * Starts the server.
    */
