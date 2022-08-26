@@ -24,6 +24,7 @@ export class BaseWrangler {
    * or thing that is (approximately) compatible with same. This method must be
    * overridden in the subclass.
    *
+   * @abstract
    * @param {HostManager|null} hostManager Host manager to use, or `null` if not
    *   configured.
    */
@@ -35,6 +36,7 @@ export class BaseWrangler {
    * Performs protocol-specific actions for {@link #start}. This method must be
    * overridden in the subclass.
    *
+   * @abstract
    * @param {net.Server} server Server instance to be wrangled.
    */
   protocolStart(server) {
@@ -44,6 +46,8 @@ export class BaseWrangler {
   /**
    * Performs protocol-specific actions for {@link #stop}. This method must be
    * overridden in the subclass.
+   *
+   * @abstract
    */
   protocolStop() {
     throw new Error('Abstract method.');
@@ -52,6 +56,8 @@ export class BaseWrangler {
   /**
    * Performs protocol-specific actions for {@link #whenStopped}. This method
    * must be overridden in the subclass.
+   *
+   * @abstract
    */
   protocolWhenStopped() {
     throw new Error('Abstract method.');
