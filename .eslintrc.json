@@ -59,8 +59,8 @@
       {
         "vars": "all",
         "args": "all",
-        "varsIgnorePattern": "[uU]nused",
-        "argsIgnorePattern": "[uU]nused"
+        "varsIgnorePattern": "_unused$",
+        "argsIgnorePattern": "_unused$"
       }
     ],
     "no-var": "error",
