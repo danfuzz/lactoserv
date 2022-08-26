@@ -45,7 +45,7 @@ export class ApplicationManager {
     // with a dash.
     const nameComponent = '(?!-)[-a-zA-Z0-9]+(?<!-)';
     const namePattern = `^${nameComponent}$`;
-    const mountPattern = `//${nameComponent}(/${nameComponent})*/`
+    const mountPattern = `//${nameComponent}(/${nameComponent})*/`;
 
     const schema = {
       title: 'application-config',
@@ -214,8 +214,8 @@ export class ApplicationManager {
     const result = v.validate(config, { $ref: '/ApplicationManager' });
     const errors = result.errors;
 
-    if (errors.length != 0) {
-      console.log('Configuration error%s:', (errors.length == 1) ? '' : 's');
+    if (errors.length !== 0) {
+      console.log('Configuration error%s:', (errors.length === 1) ? '' : 's');
       for (const e of errors) {
         console.log('  %s', e.stack);
       }

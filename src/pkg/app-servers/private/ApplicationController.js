@@ -27,11 +27,11 @@ export class ApplicationController {
     const mountArray = appConfig.mount ? [appConfig.mount] : [];
     const mountsArray = appConfig.mounts ?? [];
     this.#mounts = Object.freeze(
-      [...mountArray, ...mountsArray].map((mount) =>
+      [...mountArray, ...mountsArray].map(mount =>
         ApplicationController.#parseMount(mount))
     );
 
-    const extraConfig = {...appConfig};
+    const extraConfig = { ...appConfig };
     delete extraConfig.name;
     delete extraConfig.type;
     delete extraConfig.mount;
@@ -69,6 +69,6 @@ export class ApplicationController {
     return Object.freeze({
       server: result.groups.server,
       path:   result.groups.path
-    })
+    });
   }
 }
