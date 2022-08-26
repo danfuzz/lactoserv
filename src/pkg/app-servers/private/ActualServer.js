@@ -2,7 +2,8 @@
 // All code and assets are considered proprietary and unlicensed.
 
 /**
- * Actual Http(s) server.
+ * Actual Http(s) server. TODO: This class should be folded into
+ * {@link ServerController}.
  */
 export class ActualServer {
   /** {ServerController} Server controller. */
