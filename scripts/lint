@@ -1,0 +1,103 @@
+#!/bin/bash
+#
+# Copyright 2022 Dan Bornstein. All rights reserved.
+# All code and assets are considered proprietary and unlicensed.
+
+. "$(dirname "$(readlink -f "$0")")/lib/init.sh" || exit "$?"
+
+ESLINT_VERSION='8.22.0'
+
+#
+# Argument parsing
+#
+
+function usage {
+    print-usage $'
+    Usage:
+
+    ${name} [<opt> ...] <lint-arg> ...
+      Runs the linter.
+
+    --out=<dir>
+      Directory where built output goes. Defaults to `out` directly under the
+      main product directory.
+
+    ${name} [--help | -h]
+      Displays this message.
+    '
+
+    exit "$@"
+}
+
+# Want help?
+opt-action --call='{ usage }' help/h
+
+# Built output directory.
+opt-value --var=outDir out
+
+# Arbitrary linter args.
+rest-arg --var=lintArgs lint-args
+
+process-args "$@" || usage "$?"
+
+
+#
+# Helper functions
+#
+
+# Builds the linter.
+function build-lint {
+    local name="$1"
+
+    rm -rf node_modules "${name}" *.json
+
+    jval >package.json \
+        version="${ESLINT_VERSION}" \
+        '{
+            dependencies: {
+                eslint: ("^" + $version)
+            }
+        }'
+
+    npm install \
+    || return "$?"
+
+    ln -s node_modules/.bin/eslint "${name}"
+}
+
+
+#
+# Main script
+#
+
+baseDir="$(dirname "$(this-cmd-dir)")"
+srcDir="${baseDir}/src"
+outDir="$(lib out-dir --out="${outDir}")" \
+|| exit "$?"
+
+lintDir="${outDir}/linter"
+lintBinName='lint'
+lintBinary="${lintDir}/${lintBinName}"
+
+if [[ ! -x ${lintBinary} ]]; then
+    mkdir -p "${lintDir}"
+    cd "${lintDir}"
+    build-lint "${lintBinName}" \
+    || exit "$?"
+fi
+
+cd "${srcDir}"
+"${lintBinary}" --cache --cache-location "${lintDir}/cache" \
+    --ignore-pattern "/$(basename "${outDir}")/" \
+    --max-warnings 0 \
+    -- "${lintArgs[@]}"
+status="$?"
+
+info-msg
+
+if (( ${status} == 0 )); then
+    info-msg 'No linter errors! Yay!'
+else
+    error-msg --no-name 'Linter errors. Alas.'
+    exit "${status}"
+fi
