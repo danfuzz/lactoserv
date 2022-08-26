@@ -79,6 +79,18 @@ lintDir="${outDir}/linter"
 lintBinName='lint'
 lintBinary="${lintDir}/${lintBinName}"
 
+configFile=($(
+    find "${baseDir}" -mindepth 1 -maxdepth 1 -name '.eslintrc*'
+))
+if (( ${#configFile[@]} != 1 )); then
+    if (( ${#configFile[@]} == 0 )); then
+        error-msg 'No ESLint config file!'
+    else
+        error-msg 'No unique ESLint config file!'
+    fi
+    exit 1
+fi
+
 if [[ ! -x ${lintBinary} ]]; then
     mkdir -p "${lintDir}"
     cd "${lintDir}"
@@ -87,9 +99,10 @@ if [[ ! -x ${lintBinary} ]]; then
 fi
 
 cd "${srcDir}"
-"${lintBinary}" --cache --cache-location "${lintDir}/cache" \
-    --ignore-pattern "/$(basename "${outDir}")/" \
-    --max-warnings 0 \
+"${lintBinary}" \
+    --config "${configFile}" \
+    --cache --cache-location "${lintDir}/cache" \
+    --max-warnings 0 --debug \
     -- "${lintArgs[@]}"
 status="$?"
 
