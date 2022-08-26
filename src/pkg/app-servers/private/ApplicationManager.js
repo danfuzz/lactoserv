@@ -33,7 +33,7 @@ import { Validator } from 'jsonschema';
 export class ApplicationManager {
   /** {Map<string, ServerInfo>} Map from each hostname / wildcard to the
    * {@link ServerInfo} object that should be used for it. */
-  #infos = new Map();
+  #controllers = new Map();
 
   /**
    * Adds the config schema for this class to the given validator.
@@ -129,12 +129,12 @@ export class ApplicationManager {
     ApplicationManager.#validateConfig(config);
 
     if (config.app) {
-      this.#addInfoFor(config.app);
+      this.#addControllerFor(config.app);
     }
 
     if (config.apps) {
       for (const app of config.apps) {
-        this.#addInfoFor(app);
+        this.#addControllerFor(app);
       }
     }
   }
@@ -148,18 +148,18 @@ export class ApplicationManager {
    * @returns {ActualServer} Appropriately-constructed instance.
    */
   makeSingleApplicationServer(name, warehouse) {
-    const info = this.#findInfo(name);
+    const controller = this.#findController(name);
 
-    if (info === null) {
+    if (controller === null) {
       throw new Error(`No such app: ${name}`);
     }
 
-    const app =
-      ApplicationFactory.forType(info.type, info.extraConfig, warehouse);
+    const app = ApplicationFactory.forType(
+      controller.type, controller.extraConfig, warehouse);
 
-    const mounts = info.mounts;
+    const mounts = controller.mounts;
     if (mounts.length !== 1) {
-      throw new Error(`No unique mount for application: ${info.name}`);
+      throw new Error(`No unique mount for application: ${controller.name}`);
     } else if (mounts[0].path !== '/') {
       throw new Error(`Only top-level mounts for now, not: ${mounts[0].path}`);
     }
@@ -174,34 +174,35 @@ export class ApplicationManager {
   }
 
   /**
-   * Constructs a {@link ApplicationInfo} based on the given information, and
-   * adds a mapping to {@link #infos} so it can be found.
+   * Constructs a {@link ApplicationController} based on the given information,
+   * and adds a mapping to {@link #controllers} so it can be found.
    *
-   * @param {object} appItem Single application item from a configuration object.
+   * @param {object} appItem Single application item from a configuration
+   * object.
    */
-  #addInfoFor(appItem) {
-    const info = new ApplicationInfo(appItem);
-    const name = info.name;
+  #addControllerFor(appItem) {
+    const controller = new ApplicationController(appItem);
+    const name = controller.name;
 
     console.log(`Binding application ${name}.`);
 
-    if (this.#infos.has(name)) {
+    if (this.#controllers.has(name)) {
       throw new Error(`Duplicate application: ${name}`);
     }
 
-    this.#infos.set(name, info);
+    this.#controllers.set(name, controller);
   }
 
   /**
-   * Finds the {@link ApplicationInfo} for a given application name.
+   * Finds the {@link ApplicationController} for a given application name.
    *
    * @param {string} name Application name to look for.
-   * @returns {ApplicationInfo|null} The associated information, or `null` if
-   *   nothing suitable is found.
+   * @returns {ApplicationController|null} The associated information, or `null`
+   *   if nothing suitable is found.
    */
-  #findInfo(name) {
-    const info = this.#infos.get(name);
-    return info ?? null;
+  #findController(name) {
+    const controller = this.#controllers.get(name);
+    return controller ?? null;
   }
 
   /**
@@ -228,9 +229,9 @@ export class ApplicationManager {
 }
 
 /**
- * Holder for a single set of application information.
+ * "Controller" for a single application.
  */
-class ApplicationInfo {
+class ApplicationController {
   /** {string} Application name. */
   #name;
 
@@ -249,13 +250,14 @@ class ApplicationInfo {
    * @param {object} appConfig Server information configuration item.
    */
   constructor(appConfig) {
-    this.#name      = appConfig.name;
-    this.#type      = appConfig.type;
+    this.#name = appConfig.name;
+    this.#type = appConfig.type;
 
     const mountArray = appConfig.mount ? [appConfig.mount] : [];
     const mountsArray = appConfig.mounts ?? [];
     this.#mounts = Object.freeze(
-      [...mountArray, ...mountsArray].map((mount) => ApplicationInfo.#parseMount(mount))
+      [...mountArray, ...mountsArray].map((mount) =>
+        ApplicationController.#parseMount(mount))
     );
 
     const extraConfig = {...appConfig};
