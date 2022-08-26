@@ -3,7 +3,6 @@
 
 import { ActualServer } from '#p/ActualServer';
 import { ApplicationController } from '#p/ApplicationController';
-import { ApplicationFactory } from '#p/ApplicationFactory';
 
 import { Validator } from 'jsonschema';
 
