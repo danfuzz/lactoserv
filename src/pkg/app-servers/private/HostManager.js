@@ -28,8 +28,10 @@ import { Validator } from 'jsonschema';
  * Exactly one of `name` or `names` must be present, per host info element.
  */
 export class HostManager {
-  /** {Map<string, HostController>} Map from each hostname / wildcard to the
-   * {@link HostController} object that should be used for it. */
+  /**
+   * {Map<string, HostController>} Map from each hostname / wildcard to the
+   * {@link HostController} object that should be used for it.
+   */
   #controllers = new Map();
 
   /**

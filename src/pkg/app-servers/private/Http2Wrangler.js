@@ -21,12 +21,15 @@ export class Http2Wrangler extends BaseWrangler {
   /** {Set} Set of all currently-known sessions. */
   #sessions = new Set();
 
-  /** {Promise} Promise that resolves when sessions are no longer accepted and
-   * all sessions have been closed. */
+  /**
+   * {Promise} Promise that resolves when sessions are no longer accepted and
+   * all sessions have been closed.
+   */
   #whenFullyStopped;
 
-  /** {function} Function to call in order to resolve
-   * {@link #whenFullyStopped}. */
+  /**
+   * {function} Function to call in order to resolve {@link #whenFullyStopped}.
+   */
   #resolveWhenFullyStopped;
 
   /**

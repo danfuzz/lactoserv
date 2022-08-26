@@ -49,14 +49,18 @@ export class Warehouse {
     return this.#applicationManager;
   }
 
-  /** {HostManager|null} Host manager secure contexts, if needed. Can be `null`
-   * if all servers are insecure. */
+  /**
+   * {HostManager|null} Host manager secure contexts, if needed. Can be `null`
+   * if all servers are insecure.
+   */
   get hostManager() {
     return this.#hostManager;
   }
 
-  /** {object} The original configuration object. TODO: This shouldn't be
-   * exposed. */
+  /**
+   * {object} The original configuration object. TODO: This shouldn't be
+   * exposed.
+   */
   get config() {
     return this.#config;
   }

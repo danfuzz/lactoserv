@@ -28,8 +28,10 @@ import { Validator } from 'jsonschema';
  * level.
  */
 export class ServerManager {
-  /** {Map<string, ServerController>} Map from each hostname / wildcard to the
-   * {@link ServerController} object that should be used for it. */
+  /**
+   * {Map<string, ServerController>} Map from each hostname / wildcard to the
+   * {@link ServerController} object that should be used for it.
+   */
   #controllers = new Map();
 
   /**

@@ -16,8 +16,10 @@ export class BaseApplication {
       (req, res, next) => this.handleRequest(req, res, next);
   }
 
-  /** "Middleware" handler function which activates this instance by calling
-   * through to {@link #handleRequest}. */
+  /**
+   * "Middleware" handler function which activates this instance by calling
+   * through to {@link #handleRequest}.
+   */
   get middleware() {
     return this.#middleware;
   }

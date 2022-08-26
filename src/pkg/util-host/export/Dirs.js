@@ -13,7 +13,8 @@ export class Dirs {
     return this.#BASE_DIR_URL.pathname;
   }
 
-  /** {URL} URL representing the base directory. This is private because URLs
+  /**
+   * {URL} URL representing the base directory. This is private because URLs
    * aren't immutable.
    */
   static get #BASE_DIR_URL() {

@@ -5,8 +5,10 @@
  * Utility class which constructs of concrete {@link BaseApplication} instances.
  */
 export class ApplicationFactory {
-  /** {Map<string, class>} Map from each application type to the application
-   * subclass that handles it. */
+  /**
+   * {Map<string, class>} Map from each application type to the application
+   * subclass that handles it.
+   */
   static #APPLICATION_CLASSES = new Map();
 
   /**

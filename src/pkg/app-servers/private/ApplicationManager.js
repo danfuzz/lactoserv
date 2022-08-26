@@ -31,8 +31,10 @@ import { Validator } from 'jsonschema';
  * **Note:** Exactly one of `app` or `apps` must be present at the top level.
  */
 export class ApplicationManager {
-  /** {Map<string, ServerInfo>} Map from each hostname / wildcard to the
-   * {@link ServerInfo} object that should be used for it. */
+  /**
+   * {Map<string, ServerInfo>} Map from each hostname / wildcard to the
+   * {@link ServerInfo} object that should be used for it.
+   */
   #controllers = new Map();
 
   /**

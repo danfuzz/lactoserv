@@ -27,8 +27,10 @@ export class ServerController {
   /** {net.Server} Server instance (the direct networking thingy). */
   #server;
 
-  /** {express.Application} Application instance which exclusively handles the
-   * underlying server of this instance. */
+  /**
+   * {express.Application} Application instance which exclusively handles the
+   * underlying server of this instance.
+   */
   #serverApp;
 
   /**
@@ -49,9 +51,11 @@ export class ServerController {
     this.#configureServerApp();
   }
 
-  /** {object} Options for doing a `listen()` on a server socket. Includes
+  /**
+   * {object} Options for doing a `listen()` on a server socket. Includes
    * `host` and `port`, where `host` in this case corresponds to the network
-   * interface. */
+   * interface.
+   */
   get listenOptions() {
     return {
       host: (this.#interface === '*') ? '::' : this.#interface,
@@ -89,8 +93,10 @@ export class ServerController {
     return this.#server;
   }
 
-  /** {express.Application} Application instance which exclusively handles the
-   * underlying server of this instance. */
+  /**
+   * {express.Application} Application instance which exclusively handles the
+   * underlying server of this instance.
+   */
   get serverApp() {
     return this.#serverApp;
   }
