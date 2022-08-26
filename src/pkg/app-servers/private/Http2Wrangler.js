@@ -66,7 +66,7 @@ export class Http2Wrangler extends BaseWrangler {
   /** Per superclass requirement. */
   async protocolStart(server) {
     this.#server = server;
-    const handleSession = (session) => this.#addSession(session);
+    const handleSession = session => this.#addSession(session);
 
     server.on('session', handleSession);
 
