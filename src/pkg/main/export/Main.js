@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { RedirectApplication, StaticApplication, Warehouse } from '@this/app-servers';
+import { Warehouse } from '@this/app-servers';
 import { Dirs } from '@this/util-host';
 
 import * as fs from 'node:fs/promises';
@@ -15,10 +15,11 @@ export class Main {
   /**
    * Runs the system, based on the given command-line arguments.
    *
-   * @param {array<string>} args Command-line arguments to parse and act upon.
+   * @param {array<string>} args_unused Command-line arguments to parse and act
+   *   upon.
    * @returns {Int} Process exit code.
    */
-  static async run(args) {
+  static async run(args_unused) {
     // Way more TODO.
     console.log('TODO!');
 
@@ -45,7 +46,7 @@ export class Main {
         name:       'my-static-fun',
         mount:      '//secure/',
         type:       'static-server',
-        assetsPath: assetsPath
+        assetsPath
       }
     };
 
@@ -87,13 +88,13 @@ export class Main {
           name: 'my-static-fun',
           mount: '//secure/',
           type: 'static-server',
-          assetsPath: assetsPath
+          assetsPath
         },
         {
           name: 'my-insecure-static-fun',
           mount: '//also-insecure/',
           type: 'static-server',
-          assetsPath: assetsPath
+          assetsPath
         }
       ]
     };
