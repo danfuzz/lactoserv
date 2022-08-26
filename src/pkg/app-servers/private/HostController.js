@@ -56,6 +56,6 @@ export class HostController {
 
   /** {SecureContext} TLS context representing this instance's info. */
   get secureContext() {
-      return this.#secureContext;
+    return this.#secureContext;
   }
 }
