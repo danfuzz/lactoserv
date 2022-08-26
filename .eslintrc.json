@@ -1,5 +1,11 @@
 {
-  "extends": ["eslint:recommended"],
+  "plugins": [
+    "jsdoc"
+  ],
+  "extends": [
+    "eslint:recommended",
+    "plugin:jsdoc/recommended"
+  ],
   "env": {
     "es2020": true,
     "node": true
@@ -87,17 +93,6 @@
         "asyncArrow": "always"
       }
     ],
-    "symbol-description": "error",
-    "valid-jsdoc": [
-      "warn",
-      {
-        "prefer": {
-          "arg": "param",
-          "argument": "param",
-          "return": "returns"
-        },
-        "requireReturn": false
-      }
-    ]
+    "symbol-description": "error"
   }
 }

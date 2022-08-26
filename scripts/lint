@@ -6,6 +6,7 @@
 . "$(dirname "$(readlink -f "$0")")/lib/init.sh" || exit "$?"
 
 ESLINT_VERSION='8.22.0'
+JSDOC_VERSION='39.3.6'
 
 #
 # Argument parsing
@@ -52,10 +53,12 @@ function build-lint {
     rm -rf node_modules "${name}" *.json
 
     jval >package.json \
-        version="${ESLINT_VERSION}" \
+        eslintVersion="${ESLINT_VERSION}" \
+        jsdocVersion="${JSDOC_VERSION}" \
         '{
             dependencies: {
-                eslint: ("^" + $version)
+                "eslint": ("^" + $eslintVersion),
+                "eslint-plugin-jsdoc": ("^" + $jsdocVersion)
             }
         }'
 
@@ -105,6 +108,7 @@ fi
 
 "${lintBinary}" \
     --config "${configFile}" \
+    --resolve-plugins-relative-to "${lintDir}" \
     --cache --cache-location "${lintDir}/cache" \
     --max-warnings 0 \
     -- "${lintArgs[@]}"
