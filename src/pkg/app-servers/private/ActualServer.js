@@ -38,11 +38,6 @@ export class ActualServer {
     });
   }
 
-  /** {HttpServer} `HttpServer`(-like) instance. */
-  get server() {
-    return this.#server;
-  }
-
   /**
    * Starts the server.
    */
