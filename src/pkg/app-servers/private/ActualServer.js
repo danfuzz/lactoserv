@@ -1,10 +1,6 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { HostManager } from '#p/HostManager';
-import { ServerManager } from '#p/ServerManager';
-import { WranglerFactory } from '#p/WranglerFactory';
-
 /**
  * Actual Http(s) server.
  */
@@ -30,13 +26,12 @@ export class ActualServer {
   /**
    * Constructs an instance.
    *
-   * @param {HostManager} hostManager Host / certificate manager.
    * @param {ServerController} serverController Server controller.
    */
-  constructor(hostManager, serverController) {
+  constructor(serverController) {
     this.#serverController = serverController;
-    this.#server = this.#serverController.wrangler.createServer(hostManager);
-    this.#app = this.#serverController.wrangler.createApplication();
+    this.#server = this.#serverController.server;
+    this.#app = this.#serverController.serverApp;
     this.#configureApplication();
 
     this.#whenStopping = new Promise((resolve) => {

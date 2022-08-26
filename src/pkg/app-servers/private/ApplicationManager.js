@@ -166,7 +166,7 @@ export class ApplicationManager {
     const serverName = mounts[0].server;
     const serverController = warehouse.serverManager.findController(serverName);
 
-    const actual = new ActualServer(warehouse.hostManager, serverController);
+    const actual = new ActualServer(serverController);
     actual.app.use('/', app.middleware);
 
     return actual;

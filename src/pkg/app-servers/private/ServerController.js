@@ -4,7 +4,9 @@
 import { WranglerFactory } from '#p/WranglerFactory';
 
 /**
- * "Controller" for a single server.
+ * "Controller" for a single server. This wraps both a (concrete subclass of a)
+ * {@link net.Server} object _and_ an {@link express.Application} which
+ * _exclusively_ handles that server.
  */
 export class ServerController {
   /** {string} Server name. */
@@ -22,6 +24,13 @@ export class ServerController {
   /** {BaseWrangler} Protocol-specific "wrangler." */
   #wrangler;
 
+  /** {net.Server} Server instance (the direct networking thingy). */
+  #server;
+
+  /** {express.Application} Application instance which exclusively handles the
+   * underlying server of this instance. */
+  #serverApp;
+
   /**
    * Constructs an insance.
    *
@@ -34,6 +43,8 @@ export class ServerController {
     this.#port      = serverConfig.port;
     this.#protocol  = serverConfig.protocol;
     this.#wrangler  = WranglerFactory.forProtocol(this.#protocol);
+    this.#server    = this.#wrangler.createServer(hostManager);
+    this.#serverApp = this.#wrangler.createApplication();
   }
 
   /** {object} Options for doing a `listen()` on a server socket. Includes
@@ -59,6 +70,17 @@ export class ServerController {
   /** {string} Server name. */
   get name() {
     return this.#name;
+  }
+
+  /** {net.Server} Server instance (the direct networking thingy). */
+  get server() {
+    return this.#server;
+  }
+
+  /** {express.Application} Application instance which exclusively handles the
+   * underlying server of this instance. */
+  get serverApp() {
+    return this.#serverApp;
   }
 
   /** {BaseWrangler} The protocol wrangler. */
