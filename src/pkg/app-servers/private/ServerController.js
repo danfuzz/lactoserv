@@ -45,6 +45,8 @@ export class ServerController {
     this.#wrangler  = WranglerFactory.forProtocol(this.#protocol);
     this.#server    = this.#wrangler.createServer(hostManager);
     this.#serverApp = this.#wrangler.createApplication();
+
+    this.#configureServerApp();
   }
 
   /** {object} Options for doing a `listen()` on a server socket. Includes
@@ -86,5 +88,28 @@ export class ServerController {
   /** {BaseWrangler} The protocol wrangler. */
   get wrangler() {
     return this.#wrangler;
+  }
+
+  /**
+   * Configures {@link #serverApp}.
+   */
+  #configureServerApp() {
+    const app = this.#serverApp;
+
+    // Means paths `/foo` and `/Foo` are different.
+    app.set('case sensitive routing', true);
+
+    // A/O/T `development`. Note: Per Express docs, this makes error messages be
+    // "less verbose," so it may be reasonable to turn it off when debugging
+    // things like Express routing weirdness etc. Or, maybe this project's needs
+    // are so modest that it's better to just leave it in `development` mode
+    // permanently.
+    app.set('env', 'production');
+
+    // Means paths `/foo` and `/foo/` are different.
+    app.set('strict routing', true);
+
+    // Squelches the response header advertisement for Express.
+    app.set('x-powered-by', false);
   }
 }

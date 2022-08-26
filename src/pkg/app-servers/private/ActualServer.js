@@ -32,7 +32,6 @@ export class ActualServer {
     this.#serverController = serverController;
     this.#server = this.#serverController.server;
     this.#app = this.#serverController.serverApp;
-    this.#configureApplication();
 
     this.#whenStopping = new Promise((resolve) => {
       this.#resolveWhenStopping = () => resolve(true);
@@ -158,29 +157,6 @@ export class ActualServer {
         server.on('error', handleError);
       });
     }
-  }
-
-  /**
-   * Configures top-level application settings.
-   */
-  #configureApplication() {
-    const app = this.#app;
-
-    // Means paths `/foo` and `/Foo` are different.
-    app.set('case sensitive routing', true);
-
-    // A/O/T `development`. Note: Per Express docs, this makes error messages be
-    // "less verbose," so it may be reasonable to turn it off when debugging
-    // things like Express routing weirdness etc. Or, maybe this project's needs
-    // are so modest that it's better to just leave it in `development` mode
-    // permanently.
-    app.set('env', 'production');
-
-    // Means paths `/foo` and `/foo/` are different.
-    app.set('strict routing', true);
-
-    // Squelches the response header advertisement for Express.
-    app.set('x-powered-by', false);
   }
 
   /**
