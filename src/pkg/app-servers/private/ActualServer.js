@@ -80,17 +80,25 @@ export class ActualServer {
    * is closed).
    */
   async stop() {
-    if (!this.#stopping) {
-      const server = this.#serverController.server;
-      this.#log('Stopping server.');
-      await this.#serverController.wrangler.protocolStop();
-      server.removeListener('request', this.#serverController.serverApp);
-      server.close();
-      this.#stopping = true;
-      this.#resolveWhenStopping();
+    if (this.#stopping) {
+      // Already stopping, just wait for the existing procedure to complete.
+      return this.whenStopped();
     }
 
-    return this.whenStopped();
+    this.#log('Stopping server.');
+
+    await this.#serverController.wrangler.protocolStop();
+
+    const server = this.#serverController.server;
+    server.removeListener('request', this.#serverController.serverApp);
+    server.close();
+
+    this.#stopping = true;
+    this.#resolveWhenStopping();
+
+    await this.whenStopped();
+
+    this.#log('Server stopped.');
   }
 
   /**
