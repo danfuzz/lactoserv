@@ -1,6 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { ActualServer } from '#p/ActualServer';
 import { ApplicationFactory } from '#p/ApplicationFactory';
 
 import { Validator } from 'jsonschema';
@@ -144,7 +145,7 @@ export class ApplicationManager {
    *
    * @param {string} name Name of the application to serve.
    * @param {Warehouse} warehouse Warehouse of configured parts.
-   * @returns {BaseApplication} Appropriately-constructed instance.
+   * @returns {ActualServer} Appropriately-constructed instance.
    */
   makeSingleApplicationServer(name, warehouse) {
     const info = this.#findInfo(name);
@@ -153,7 +154,23 @@ export class ApplicationManager {
       throw new Error(`No such app: ${name}`);
     }
 
-    return ApplicationFactory.forType(info.type, info, warehouse);
+    const app =
+      ApplicationFactory.forType(info.type, info.extraConfig, warehouse);
+
+    const mounts = info.mounts;
+    if (mounts.length !== 1) {
+      throw new Error(`No unique mount for application: ${info.name}`);
+    } else if (mounts[0].path !== '/') {
+      throw new Error(`Only top-level mounts for now, not: ${mounts[0].path}`);
+    }
+
+    const serverName = mounts[0].server;
+    const serverConfig = warehouse.serverManager.findConfig(serverName);
+
+    const actual = new ActualServer(warehouse.hostManager, serverConfig);
+    actual.app.use('/', app.middleware);
+
+    return actual;
   }
 
   /**

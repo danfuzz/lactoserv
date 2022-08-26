@@ -27,32 +27,19 @@ export class StaticApplication extends BaseApplication {
   /**
    * Constructs an instance.
    *
-   * @param {ApplicationInfo} info Configured application info.
+   * @param {object} config Application-specific configuration object.
    * @param {Warehouse} warehouse Warehouse of configured pieces.
    */
-  constructor(info, warehouse) {
-    super(info, warehouse);
+  constructor(config, warehouse) {
+    super();
 
-    const config = info.extraConfig;
     StaticApplication.#validateConfig(config);
-
     this.#handleRequest = StaticApplication.#makeHandler(config);
-    this.#addRoutes();
   }
 
   /** Per superclass requirement. */
   handleRequest(req, res, next) {
     this.#handleRequest(req, res, next);
-  }
-
-  /**
-   * Adds routes to the application instance.
-   */
-  #addRoutes() {
-    const actual = this.getActual(PROTECTED_ACCESS);
-    const app = actual.app;
-
-    app.use('/', this.#handleRequest);
   }
 
   /**

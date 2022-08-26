@@ -39,34 +39,19 @@ export class RedirectApplication extends BaseApplication {
   /**
    * Constructs an instance.
    *
-   * @param {ApplicationInfo} info Configured application info.
+   * @param {object} config Application-specific configuration object.
    * @param {Warehouse} warehouse Warehouse of configured pieces.
    */
-  constructor(info, warehouse) {
-    super(info, warehouse);
+  constructor(config, warehouse) {
+    super();
 
-    const config = info.extraConfig;
     RedirectApplication.#validateConfig(config);
-
     this.#router = RedirectApplication.#makeRouter(config);
-    this.#addRoutes();
   }
 
   /** Per superclass requirement. */
   handleRequest(req, res, next) {
     this.#router(req, res, next);
-  }
-
-  /**
-   * Adds routes to the application instance.
-   *
-   * @param {object[]} redirects List of redirections.
-   */
-  #addRoutes(redirects) {
-    const actual = this.getActual(PROTECTED_ACCESS);
-    const app = actual.app;
-
-    app.use('/', this.#router);
   }
 
   /**
