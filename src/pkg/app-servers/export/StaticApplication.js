@@ -28,9 +28,8 @@ export class StaticApplication extends BaseApplication {
    * Constructs an instance.
    *
    * @param {object} config Application-specific configuration object.
-   * @param {Warehouse} warehouse Warehouse of configured pieces.
    */
-  constructor(config, warehouse) {
+  constructor(config) {
     super();
 
     StaticApplication.#validateConfig(config);

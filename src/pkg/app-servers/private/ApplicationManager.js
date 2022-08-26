@@ -155,8 +155,8 @@ export class ApplicationManager {
       throw new Error(`No such app: ${name}`);
     }
 
-    const app = ApplicationFactory.forType(
-      controller.type, controller.extraConfig, warehouse);
+    const app =
+      ApplicationFactory.forType(controller.type, controller.extraConfig);
 
     const mounts = controller.mounts;
     if (mounts.length !== 1) {
