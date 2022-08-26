@@ -16,9 +16,6 @@ export class ApplicationController {
   /** {object[]} Mount points, as an array of pairs of `{server, path}`. */
   #mounts;
 
-  /** {object} Application-specific configuration. */
-  #extraConfig;
-
   /** {BaseApplication} Actual application instance. */
   #app;
 
@@ -43,7 +40,6 @@ export class ApplicationController {
     delete extraConfig.type;
     delete extraConfig.mount;
     delete extraConfig.mounts;
-    this.#extraConfig = extraConfig;
     this.#app = ApplicationFactory.forType(this.#type, extraConfig);
   }
 
@@ -65,11 +61,6 @@ export class ApplicationController {
   /** {object[]} Mount points, as an array of pairs of `{server, path}`. */
   get mounts() {
     return this.#mounts;
-  }
-
-  /** {object} Application-specific configuration. */
-  get extraConfig() {
-    return this.#extraConfig;
   }
 
   /**
