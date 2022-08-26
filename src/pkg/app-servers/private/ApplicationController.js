@@ -1,6 +1,8 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { ApplicationFactory } from '#p/ApplicationFactory';
+
 /**
  * "Controller" for a single application.
  */
@@ -16,6 +18,9 @@ export class ApplicationController {
 
   /** {object} Application-specific configuration. */
   #extraConfig;
+
+  /** {BaseApplication} Actual application instance. */
+  #app;
 
   /**
    * Constructs an insance.
@@ -39,6 +44,12 @@ export class ApplicationController {
     delete extraConfig.mount;
     delete extraConfig.mounts;
     this.#extraConfig = extraConfig;
+    this.#app = ApplicationFactory.forType(this.#type, extraConfig);
+  }
+
+  /** {BaseApplication} The controlled application instance. */
+  get app() {
+    return this.#app;
   }
 
   /** {string} Application name. */
