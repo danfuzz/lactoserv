@@ -9,8 +9,10 @@ import { HttpsWrangler } from '#p/HttpsWrangler';
  * Utility class which constructs concrete {@link BaseWrangler} instances.
  */
 export class WranglerFactory {
-  /** {Map<string, class>} Map from each protocol name to the wrangler subclass
-   * that handles it. */
+  /**
+   * {Map<string, class>} Map from each protocol name to the wrangler subclass
+   * that handles it.
+   */
   static #WRANGLER_CLASSES = new Map(Object.entries({
     http:  HttpWrangler,
     http2: Http2Wrangler,
