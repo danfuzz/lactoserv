@@ -26,9 +26,9 @@ import { Validator } from 'jsonschema';
  * level.
  */
 export class ServerManager {
-  /** {Map<string, ServerInfo>} Map from each hostname / wildcard to the
-   * {@link ServerInfo} object that should be used for it. */
-  #infos = new Map();
+  /** {Map<string, ServerController>} Map from each hostname / wildcard to the
+   * {@link ServerController} object that should be used for it. */
+  #controllers = new Map();
 
   /**
    * Adds the config schema for this class to the given validator.
@@ -104,12 +104,12 @@ export class ServerManager {
     ServerManager.#validateConfig(config);
 
     if (config.server) {
-      this.#addInfoFor(config.server);
+      this.#addControllerFor(config.server);
     }
 
     if (config.servers) {
       for (const server of config.servers) {
-        this.#addInfoFor(server);
+        this.#addControllerFor(server);
       }
     }
   }
@@ -121,44 +121,44 @@ export class ServerManager {
    * @returns {object} The associated information.
    */
   findConfig(name) {
-    const info = this.#infos.get(name);
+    const controller = this.#findController(name);
 
-    if (!info) {
+    if (!controller) {
       throw new Error(`No such server: ${name}`);
     }
 
-    return info.configObject;
+    return controller.configObject;
   }
 
   /**
-   * Constructs a {@link ServerInfo} based on the given information, and adds a
-   * mapping to {@link #infos} so it can be found.
+   * Constructs a {@link ServerController} based on the given information, and
+   * adds a mapping to {@link #controllers} so it can be found.
    *
    * @param {object} serverItem Single server item from a configuration object.
    */
-  #addInfoFor(serverItem) {
-    const info = new ServerInfo(serverItem);
-    const name = info.name;
+  #addControllerFor(serverItem) {
+    const controller = new ServerController(serverItem);
+    const name = controller.name;
 
     console.log(`Binding server ${name}.`);
 
-    if (this.#infos.has(name)) {
+    if (this.#controllers.has(name)) {
       throw new Error(`Duplicate server name: ${name}`);
     }
 
-    this.#infos.set(name, info);
+    this.#controllers.set(name, controller);
   }
 
   /**
-   * Finds the {@link ServerInfo} for a given server name.
+   * Finds the {@link ServerController} for a given server name.
    *
    * @param {string} name Server name to look for.
-   * @returns {ServerInfo|null} The associated information, or `null` if nothing
-   *   suitable is found.
+   * @returns {ServerController|null} The associated information, or `null` if
+   *   nothing suitable is found.
    */
-  #findInfo(name) {
-    const info = this.#infos.get(name);
-    return info ?? null;
+  #findController(name) {
+    const controller = this.#controllers.get(name);
+    return controller ?? null;
   }
 
   /**
@@ -185,9 +185,9 @@ export class ServerManager {
 }
 
 /**
- * Holder for a single set of server information.
+ * "Controller" for a single server.
  */
-class ServerInfo {
+class ServerController {
   /** {string} Server name. */
   #name;
 

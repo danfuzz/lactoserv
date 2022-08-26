@@ -28,9 +28,9 @@ import { Validator } from 'jsonschema';
  * Exactly one of `name` or `names` must be present, per host info element.
  */
 export class HostManager {
-  /** {Map<string, CertInfo>} Map from each hostname / wildcard to the
-   * {@link CertInfo} object that should be used for it. */
-  #infos = new Map();
+  /** {Map<string, HostController>} Map from each hostname / wildcard to the
+   * {@link HostController} object that should be used for it. */
+  #controllers = new Map();
 
   /**
    * Constructs and returns an instance from the given configuration, or returns
@@ -178,12 +178,12 @@ export class HostManager {
     HostManager.#validateConfig(config);
 
     if (config.host) {
-      this.#addInfoFor(config.host);
+      this.#addControllerFor(config.host);
     }
 
     if (config.hosts) {
       for (const host of config.hosts) {
-        this.#addInfoFor(host);
+        this.#addControllerFor(host);
       }
     }
   }
@@ -197,15 +197,15 @@ export class HostManager {
    *   host name match is found.
    */
   findInfo(name) {
-    const info = this.#findInfo(name);
+    const controller = this.#findController(name);
 
-    if (!info) {
+    if (!controller) {
       return null;
     }
 
     return {
-      cert: info.cert,
-      key:  info.key
+      cert: controller.cert,
+      key:  controller.key
     }
   }
 
@@ -218,8 +218,8 @@ export class HostManager {
    *   `null` if no host name match is found.
    */
   findContext(name) {
-    const info = this.#findInfo(name);
-    return info ? info.secureContext : null;
+    const controller = this.#findController(name);
+    return controller ? controller.secureContext : null;
   }
 
   /**
@@ -243,36 +243,36 @@ export class HostManager {
   }
 
   /**
-   * Constructs a {@link CertInfo} based on the given information, and adds
-   * mappings to {@link #infos} so it can be found.
+   * Constructs a {@link HostController} based on the given information, and
+   * adds mappings to {@link #controllers} so it can be found.
    *
    * @param {object} hostItem Single host item from a configuration object.
    */
-  #addInfoFor(hostItem) {
-    const info = new CertInfo(hostItem);
+  #addControllerFor(hostItem) {
+    const controller = new HostController(hostItem);
 
-    for (const name of info.names) {
+    for (const name of controller.names) {
       console.log(`Binding hostname ${name}.`);
-      if (this.#infos.has(name)) {
+      if (this.#controllers.has(name)) {
         throw new Error(`Duplicate hostname: ${name}`);
       }
-      this.#infos.set(name, info);
+      this.#controllers.set(name, controller);
     }
   }
 
   /**
-   * Finds the most-specific {@link CertInfo} for a given host name.
+   * Finds the most-specific {@link HostController} for a given host name.
    *
    * @param {string} name Host name to look for, which may be a partial or full
    *   wildcard.
-   * @returns {CertInfo|null} The associated information, or `null` if nothing
-   *   suitable is found.
+   * @returns {HostController|null} The associated controller, or `null` if
+   *   nothing suitable is found.
    */
-  #findInfo(name) {
+  #findController(name) {
     for (;;) {
-      const info = this.#infos.get(name);
-      if (info) {
-        return info;
+      const controller = this.#controllers.get(name);
+      if (controller) {
+        return controller;
       }
 
       if (name === '*') {
@@ -317,9 +317,10 @@ export class HostManager {
 }
 
 /**
- * Holder for a single set of certificate information.
+ * "Controller" for a single host entry, which can notably offer services for
+ * multiple different hosts.
  */
-class CertInfo {
+class HostController {
   /** {string[]} List of hostnames, including partial or full wildcards. */
   #names;
 

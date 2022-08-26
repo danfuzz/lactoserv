@@ -28,6 +28,9 @@ import { URL } from 'node:url';
  * [*] unless implied by the protocol.
  */
 export class RedirectApplication extends BaseApplication {
+  /** {express:Router} Router with all the redirects. */
+  #router;
+
   /** {string} Application type as used in configuration objects. */
   static get TYPE() {
     return 'redirect-server';
@@ -36,34 +39,42 @@ export class RedirectApplication extends BaseApplication {
   /**
    * Constructs an instance.
    *
-   * @param {ApplicationInfo} info Configured application info.
+   * @param {object} config Application-specific configuration object.
    * @param {Warehouse} warehouse Warehouse of configured pieces.
    */
-  constructor(info, warehouse) {
-    super(info, warehouse);
+  constructor(config, warehouse) {
+    super();
 
-    const config = info.extraConfig;
     RedirectApplication.#validateConfig(config);
+    this.#router = RedirectApplication.#makeRouter(config);
+  }
 
-    this.#addRoutes(config.redirects);
+  /** Per superclass requirement. */
+  handleRequest(req, res, next) {
+    this.#router(req, res, next);
   }
 
   /**
-   * Adds routes to the application instance.
+   * Makes a request router for an instance of this class.
    *
-   * @param {object[]} redirects List of redirections.
+   * @param {object} config Configuration object.
+   * @returns {function} The middleware function.
    */
-  #addRoutes(redirects) {
-    const actual = this.getActual(PROTECTED_ACCESS);
-    const app = actual.app;
+  static #makeRouter(config) {
+    const router = express.Router();
+    const redirects = config.redirects;
 
-    // Convert a literal string into a regex that matches that string,
-    // "escaping" special regex characters. We do this because the user-supplied
-    // `fromPath`s might inadvertently use characters from Express's "path
-    // pattern" syntax. We aren't trying to expose this Express facility, so the
-    // easiest thing to do is always give Express regexes for the paths.
-    function regexFromPath(p) {
-      p = p.replaceAll(/[\\\[\].?*+^$(){}|]/g, '\\$&');
+    // Returns a literal-string matching regex suitable for use with an Express
+    // router. We do this because the user-supplied `fromPath`s might
+    // inadvertently use characters from Express's "path pattern" syntax, and we
+    // aren't trying to expose this Express facility. Rather than _just_ detect
+    // if Express might be confused, we simply _always_ convert the path to
+    // a regex. This doesn't cost anything at runtime, because Express itself
+    // always converts paths to regexes anyway. That said and FWIW, see
+    // <https://github.com/pillarjs/path-to-regexp> for details on the path
+    // syntax used by Express.
+    function literalPath(p) {
+      p = p.replaceAll(/[.?*+^$(){}\[\]\\|]/g, '\\$&');
       return new RegExp(p);
     }
 
@@ -75,8 +86,10 @@ export class RedirectApplication extends BaseApplication {
         res.redirect(`${toUri}${req.path}`);
       };
 
-      app.all(regexFromPath(r.fromPath), redirector);
+      router.all(literalPath(r.fromPath), redirector);
     }
+
+    return router;
   }
 
   /**
