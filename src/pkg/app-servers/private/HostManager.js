@@ -28,8 +28,8 @@ import { Validator } from 'jsonschema';
  * Exactly one of `name` or `names` must be present, per host info element.
  */
 export class HostManager {
-  /** {Map<string, CertInfo>} Map from each hostname / wildcard to the
-   * {@link CertInfo} object that should be used for it. */
+  /** {Map<string, HostInfo>} Map from each hostname / wildcard to the
+   * {@link HostInfo} object that should be used for it. */
   #infos = new Map();
 
   /**
@@ -243,13 +243,13 @@ export class HostManager {
   }
 
   /**
-   * Constructs a {@link CertInfo} based on the given information, and adds
+   * Constructs a {@link HostInfo} based on the given information, and adds
    * mappings to {@link #infos} so it can be found.
    *
    * @param {object} hostItem Single host item from a configuration object.
    */
   #addInfoFor(hostItem) {
-    const info = new CertInfo(hostItem);
+    const info = new HostInfo(hostItem);
 
     for (const name of info.names) {
       console.log(`Binding hostname ${name}.`);
@@ -261,11 +261,11 @@ export class HostManager {
   }
 
   /**
-   * Finds the most-specific {@link CertInfo} for a given host name.
+   * Finds the most-specific {@link HostInfo} for a given host name.
    *
    * @param {string} name Host name to look for, which may be a partial or full
    *   wildcard.
-   * @returns {CertInfo|null} The associated information, or `null` if nothing
+   * @returns {HostInfo|null} The associated information, or `null` if nothing
    *   suitable is found.
    */
   #findInfo(name) {
@@ -319,7 +319,7 @@ export class HostManager {
 /**
  * Holder for a single set of certificate information.
  */
-class CertInfo {
+class HostInfo {
   /** {string[]} List of hostnames, including partial or full wildcards. */
   #names;
 
