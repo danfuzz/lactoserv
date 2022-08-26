@@ -61,12 +61,22 @@ export class ServerController {
 
   /** {object} Object with bindings for reasonably-useful logging. */
   get loggableInfo() {
-    return {
+    const address = this.#server.address();
+    const info = {
       name:      this.#name,
       interface: (this.#interface === '*') ? '<any>' : this.#interface,
       port:      this.#port,
       protocol:  this.#protocol
+    };
+
+    if (address) {
+      const ip = /:/.test(address.address)
+        ? `[${address.address}]` // More pleasant presentation for IPv6.
+        : address.address;
+      info.listening = `${ip}:${address.port}`;
     }
+
+    return info;
   }
 
   /** {string} Server name. */

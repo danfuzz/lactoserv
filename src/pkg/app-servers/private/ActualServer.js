@@ -144,7 +144,6 @@ export class ActualServer {
    */
   #log(msg) {
     const info = this.#serverController.loggableInfo;
-    const address = this.#serverController.server.address();
 
     console.log('%s', msg);
     console.log(`  name:      ${info.name}`);
@@ -152,12 +151,8 @@ export class ActualServer {
     console.log(`  interface: ${info.interface}`);
     console.log(`  port:      ${info.port}`);
 
-    if (address) {
-      // More pleasant presentation for IPv6.
-      const ip = /:/.test(address.address)
-        ? `[${address.address}]`
-        : address.address;
-      console.log(`  listening: ${ip}:${address.port}`);
+    if (info.listening) {
+      console.log(`  listening: ${info.listening}`);
     }
   }
 }
