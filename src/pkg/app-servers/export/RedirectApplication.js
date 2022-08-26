@@ -3,7 +3,6 @@
 
 import { ActualServer } from '#p/ActualServer';
 import { BaseApplication } from '#p/BaseApplication';
-import { PROTECTED_ACCESS } from '#p/PROTECTED_ACCESS';
 import { Warehouse } from '#x/Warehouse';
 
 import express from 'express';
