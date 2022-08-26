@@ -3,7 +3,6 @@
 
 import { ActualServer } from '#p/ActualServer';
 import { ApplicationController } from '#p/ApplicationController';
-import { ApplicationFactory } from '#p/ApplicationFactory';
 
 import { Validator } from 'jsonschema';
 
@@ -155,10 +154,9 @@ export class ApplicationManager {
       throw new Error(`No such app: ${name}`);
     }
 
-    const app = ApplicationFactory.forType(
-      controller.type, controller.extraConfig, warehouse);
-
+    const app = controller.app;
     const mounts = controller.mounts;
+
     if (mounts.length !== 1) {
       throw new Error(`No unique mount for application: ${controller.name}`);
     } else if (mounts[0].path !== '/') {
