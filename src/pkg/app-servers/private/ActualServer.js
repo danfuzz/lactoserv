@@ -38,11 +38,6 @@ export class ActualServer {
     });
   }
 
-  /** {express} The Express(-like) application instance. */
-  get app() {
-    return this.#app;
-  }
-
   /** {HttpServer} `HttpServer`(-like) instance. */
   get server() {
     return this.#server;
