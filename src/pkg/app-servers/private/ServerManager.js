@@ -44,9 +44,9 @@ export class ServerManager {
 
     const interfacePattern =
       '^' +
-      '(?!::|(0+\.){0,3}0+)' // No IPv4 or IPv6 "any" addresses.
-      '\*'                   // The one allowed "any" address.
-      '(?![-.])[-.:a-zA-Z0-9]+(?<![-.])' // A bit over-permissive here.
+      '(?!::|(0+[.]){0,3}0+)' + // No IPv4 or IPv6 "any" addresses.
+      '[*]' +                   // The one allowed "any" address.
+      '|(?![-.])[-.:a-zA-Z0-9]+(?<![-.])' + // A bit over-permissive here.
       '$';
 
     const schema = {
@@ -174,8 +174,8 @@ export class ServerManager {
     const result = v.validate(config, { $ref: '/ServerManager' });
     const errors = result.errors;
 
-    if (errors.length != 0) {
-      console.log('Configuration error%s:', (errors.length == 1) ? '' : 's');
+    if (errors.length !== 0) {
+      console.log('Configuration error%s:', (errors.length === 1) ? '' : 's');
       for (const e of errors) {
         console.log('  %s', e.stack);
       }
