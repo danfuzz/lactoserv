@@ -9,15 +9,16 @@
  */
 export class ApplicationFactory {
   /**
-   * {Map<string, class>} Map from each application type to the application
-   * subclass that handles it.
+   * {Map<string, function(new:BaseApplication, ...*)} Map from each application
+   * type to the application subclass that handles it.
    */
   static #APPLICATION_CLASSES = new Map();
 
   /**
    * Registers a type/application binding.
    *
-   * @param {class} applicationClass Application class.
+   * @param {function(new:BaseApplication, ...*)} applicationClass Application
+   *   class.
    */
   static register(applicationClass) {
     const type = applicationClass.TYPE;
