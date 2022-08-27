@@ -105,6 +105,9 @@ const jsdocRules = {
     {
       allowWhitespace: true
     }
+  ],
+  "jsdoc/require-property": [
+    "off"
   ]
 };
 

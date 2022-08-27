@@ -6,6 +6,9 @@ import { ApplicationController } from '#p/ApplicationController';
 
 import { Validator } from 'jsonschema';
 
+// Types referenced in doc comments.
+/** @typedef {object} Warehouse */
+
 /**
  * Manager for dealing with all the high-level applications that are running or
  * to be run in the system. Configuration object details:

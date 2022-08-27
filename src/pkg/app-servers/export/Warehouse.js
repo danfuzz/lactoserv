@@ -7,6 +7,9 @@ import { ServerManager } from '#p/ServerManager';
 
 import { Validator } from 'jsonschema';
 
+// Types referenced in doc comments.
+/** @typedef {object} BaseApplication */
+
 /**
  * "Warehouse" of bits and pieces created from a top-level configuration.
  *

@@ -3,6 +3,9 @@
 
 import * as tls from 'node:tls';
 
+// Types referenced in doc comments.
+/** @typedef {object} SecureContext */
+
 /**
  * "Controller" for a single host entry, which can notably offer services for
  * multiple different hosts.

@@ -1,6 +1,9 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+// Types referenced in doc comments.
+/** @typedef {object} ServerController */
+
 /**
  * Actual Http(s) server. TODO: This class should be folded into
  * {@link ServerController}.
