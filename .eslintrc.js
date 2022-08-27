@@ -99,10 +99,19 @@ const mainRules = {
   "symbol-description": "error"
 };
 
+const jsdocRules = {
+  "jsdoc/no-multi-asterisks": [
+    "error",
+    {
+      allowWhitespace: true
+    }
+  ]
+};
+
 module.exports = {
   plugins,
   extends: extendsList,
   env,
   parserOptions,
-  rules: mainRules
+  rules: {...mainRules, ...jsdocRules}
 };
