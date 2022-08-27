@@ -39,17 +39,19 @@ export class ApplicationController {
     this.#app = ApplicationFactory.forType(appConfig.type, extraConfig);
   }
 
-  /** {BaseApplication} The controlled application instance. */
+  /** @returns {BaseApplication} The controlled application instance. */
   get app() {
     return this.#app;
   }
 
-  /** {string} Application name. */
+  /** @returns {string} Application name. */
   get name() {
     return this.#name;
   }
 
-  /** {object[]} Mount points, as an array of pairs of `{server, path}`. */
+  /**
+   * @returns {object[]} Mount points, as an array of pairs of `{server, path}`.
+   */
   get mounts() {
     return this.#mounts;
   }

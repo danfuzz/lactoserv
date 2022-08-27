@@ -39,22 +39,24 @@ export class HostController {
     });
   }
 
-  /** {string[]} List of hostnames, including partial or full wildcards. */
+  /**
+   * @returns {string[]} List of hostnames, including partial or full wildcards.
+   */
   get names() {
     return this.#names;
   }
 
-  /** {string} Certificate, in PEM form. */
+  /** @returns {string} Certificate, in PEM form. */
   get cert() {
     return this.#cert;
   }
 
-  /** {string} Key, in PEM form. */
+  /** @returns {string} Key, in PEM form. */
   get key() {
     return this.#key;
   }
 
-  /** {SecureContext} TLS context representing this instance's info. */
+  /** @returns {SecureContext} TLS context representing this instance's info. */
   get secureContext() {
     return this.#secureContext;
   }
