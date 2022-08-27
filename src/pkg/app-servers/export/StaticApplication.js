@@ -33,7 +33,7 @@ export class StaticApplication extends BaseApplication {
     this.#handleRequest = StaticApplication.#makeHandler(config);
   }
 
-  /** Per superclass requirement. */
+  // Per superclass requirement.
   handleRequest(req, res, next) {
     this.#handleRequest(req, res, next);
   }
