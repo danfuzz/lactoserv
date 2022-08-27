@@ -25,7 +25,7 @@ export class BaseWrangler {
    * overridden in the subclass.
    *
    * @abstract
-   * @param {HostManager|null} hostManager Host manager to use, or `null` if not
+   * @param {?HostManager} hostManager Host manager to use, or `null` if not
    *   configured.
    */
   createServer(hostManager) {

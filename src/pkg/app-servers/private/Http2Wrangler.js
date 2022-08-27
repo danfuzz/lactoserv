@@ -12,7 +12,7 @@ import * as http2 from 'node:http2';
  * Wrangler for `Http2SecureServer`.
  */
 export class Http2Wrangler extends BaseWrangler {
-  /** {net.Server|null} Server being wrangled, once known. */
+  /** {?net.Server} Server being wrangled, once known. */
   #server = null;
 
   /** {boolean} Is the server stopped or trying to stop? */

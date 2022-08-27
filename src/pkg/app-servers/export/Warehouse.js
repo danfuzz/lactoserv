@@ -24,7 +24,7 @@ export class Warehouse {
   /** {ApplicationManager} Application manager. */
   #applicationManager;
 
-  /** {HostManager|null} Host manager, if configured. */
+  /** {?HostManager} Host manager, if configured. */
   #hostManager;
 
   /** {ServerManager} Server manager, for all server bindings. */
@@ -50,7 +50,7 @@ export class Warehouse {
   }
 
   /**
-   * {HostManager|null} Host manager secure contexts, if needed. Can be `null`
+   * {?HostManager} Host manager secure contexts, if needed. Can be `null`
    * if all servers are insecure.
    */
   get hostManager() {

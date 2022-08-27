@@ -196,7 +196,7 @@ export class ApplicationManager {
    * Finds the {@link ApplicationController} for a given application name.
    *
    * @param {string} name Application name to look for.
-   * @returns {ApplicationController|null} The associated information, or `null`
+   * @returns {?ApplicationController} The associated information, or `null`
    *   if nothing suitable is found.
    */
   #findController(name) {

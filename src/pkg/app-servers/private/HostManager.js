@@ -39,8 +39,8 @@ export class HostManager {
    * `null` if the configuration doesn't need any secure contexts.
    *
    * @param {object} config Configuration object.
-   * @returns {HostManager|null} An appropriately-constructed instance,
-   *   or `null` if none is configured.
+   * @returns {?HostManager} An appropriately-constructed instance, or `null` if
+   *   none is configured.
    */
   static fromConfig(config) {
     if (!(config.hosts || config.host)) {
@@ -196,8 +196,8 @@ export class HostManager {
    *
    * @param {string} name Hostname to look for, which may be a partial or full
    *   wildcard.
-   * @returns {object|null} Object mapping `cert` and `key`; or `null` if no
-   *   hostname match is found.
+   * @returns {?{cert: string, key: string}} Object mapping `cert` and `key`; or
+   *  `null` if no hostname match is found.
    */
   findConfig(name) {
     const controller = this.#findController(name);
@@ -217,8 +217,8 @@ export class HostManager {
    *
    * @param {string} name Hostname to look for, which may be a partial or full
    *   wildcard.
-   * @returns {SecureContext|null} The associated {@link SecureContext}, or
-   *   `null` if no hostname match is found.
+   * @returns {?SecureContext} The associated {@link SecureContext}, or `null`
+   *   if no hostname match is found.
    */
   findContext(name) {
     const controller = this.#findController(name);
@@ -268,8 +268,8 @@ export class HostManager {
    *
    * @param {string} name Hostname to look for, which may be a partial or full
    *   wildcard.
-   * @returns {HostController|null} The associated controller, or `null` if
-   *   nothing suitable is found.
+   * @returns {?HostController} The associated controller, or `null` if nothing
+   *   suitable is found.
    */
   #findController(name) {
     for (;;) {
