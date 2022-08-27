@@ -8,14 +8,14 @@ export class Dirs {
   /** {URL} URL representing the base directory, if known. */
   static #baseDirUrl = null;
 
-  /** {string} The base directory of the application installation. */
+  /** @returns {string} The base directory of the application installation. */
   static get BASE_DIR() {
     return this.#BASE_DIR_URL.pathname;
   }
 
   /**
-   * {URL} URL representing the base directory. This is private because URLs
-   * aren't immutable.
+   * @returns {URL} URL representing the base directory. This is private because
+   * URLs aren't immutable.
    */
   static get #BASE_DIR_URL() {
     if (this.#baseDirUrl === null) {
