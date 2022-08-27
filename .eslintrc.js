@@ -1,20 +1,28 @@
-sd;fkojsd flsfhi sodif
+const plugins = [
+  "jsdoc"
+];
+
+const extendsList = [
+  "eslint:recommended",
+  "plugin:jsdoc/recommended"
+];
+
+const env = {
+  "es2020": true,
+  "node": true
+};
+
+const parserOptions = {
+  "sourceType": "module",
+  "ecmaVersion": "2022"
+}
+
 module.exports = {
-  "plugins": [
-    "jsdoc"
-  ],
-  "extends": [
-    "eslint:recommended",
-    "plugin:jsdoc/recommended"
-  ],
-  "env": {
-    "es2020": true,
-    "node": true
-  },
-  "parserOptions": {
-    "sourceType": "module",
-    "ecmaVersion": "2022"
-  },
+  plugins,
+  extends: extendsList,
+  env,
+  parserOptions,
+
   "rules" : {
     "array-bracket-spacing": "error",
     "arrow-parens": ["error", "as-needed", { "requireForBlockBody": true }],
