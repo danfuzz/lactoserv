@@ -30,7 +30,7 @@ export class ApplicationFactory {
    * Constructs an instance of the given application type.
    *
    * @param {string} type Type name of the application.
-   * @param {Array} rest Construction arguments.
+   * @param {...*} rest Construction arguments.
    * @returns {BaseApplication} Constructed application instance.
    */
   static forType(type, ...rest) {
