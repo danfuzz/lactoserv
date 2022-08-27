@@ -16,7 +16,7 @@ export class StaticApplication extends BaseApplication {
   /* {function} "Middleware" handler function for this instance. */
   #handleRequest;
 
-  /** {string} Application type as used in configuration objects. */
+  /** @returns {string} Application type as used in configuration objects. */
   static get TYPE() {
     return 'static-server';
   }

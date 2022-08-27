@@ -17,8 +17,8 @@ export class BaseApplication {
   }
 
   /**
-   * "Middleware" handler function which activates this instance by calling
-   * through to {@link #handleRequest}.
+   * @returns {Function} "Middleware" handler function which activates this
+   * instance by calling through to {@link #handleRequest}.
    */
   get middleware() {
     return this.#middleware;

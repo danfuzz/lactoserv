@@ -28,7 +28,7 @@ export class RedirectApplication extends BaseApplication {
   /** {express:Router} Router with all the redirects. */
   #router;
 
-  /** {string} Application type as used in configuration objects. */
+  /** @returns {string} Application type as used in configuration objects. */
   static get TYPE() {
     return 'redirect-server';
   }
