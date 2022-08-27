@@ -15,7 +15,7 @@ export class Main {
   /**
    * Runs the system, based on the given command-line arguments.
    *
-   * @param {array<string>} args_unused Command-line arguments to parse and act
+   * @param {string[]} args_unused Command-line arguments to parse and act
    *   upon.
    * @returns {Int} Process exit code.
    */
