@@ -1,4 +1,5 @@
-{
+sd;fkojsd flsfhi sodif
+module.exports = {
   "plugins": [
     "jsdoc"
   ],
