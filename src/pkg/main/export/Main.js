@@ -17,7 +17,7 @@ export class Main {
    *
    * @param {string[]} args_unused Command-line arguments to parse and act
    *   upon.
-   * @returns {Int} Process exit code.
+   * @returns {number} Process exit code.
    */
   static async run(args_unused) {
     // Way more TODO.

@@ -5,6 +5,9 @@ import { HostController } from '#p/HostController';
 
 import { Validator } from 'jsonschema';
 
+// Types referenced in doc comments.
+/** @typedef {object} SecureContext */
+
 /**
  * Manager for dealing with all the certificate/key pairs associated with a
  * named host. Configuration object details:
