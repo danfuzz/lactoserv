@@ -2,7 +2,7 @@
 // All code and assets are considered proprietary and unlicensed.
 
 // Types referenced in doc comments.
-/** @typedef {object} ApplicationFactory */
+/** @typedef {object} BaseApplication */
 
 /**
  * Utility class which constructs of concrete {@link BaseApplication} instances.
