@@ -5,6 +5,9 @@ import { HttpWrangler } from '#p/HttpWrangler';
 import { Http2Wrangler } from '#p/Http2Wrangler';
 import { HttpsWrangler } from '#p/HttpsWrangler';
 
+// Types referenced in doc comments.
+/** @typedef {object} BaseWrangler */
+
 /**
  * Utility class which constructs concrete {@link BaseWrangler} instances.
  */

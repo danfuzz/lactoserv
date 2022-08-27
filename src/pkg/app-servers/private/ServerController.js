@@ -3,6 +3,10 @@
 
 import { WranglerFactory } from '#p/WranglerFactory';
 
+// Types referenced in doc comments.
+/** @typedef {object} BaseWrangler */
+/** @typedef {object} HostManager */
+
 /**
  * "Controller" for a single server. This wraps both a (concrete subclass of a)
  * {@link net.Server} object _and_ an {@link express.Application} which

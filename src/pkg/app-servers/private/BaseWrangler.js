@@ -1,6 +1,9 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+// Types referenced in doc comments.
+/** @typedef {object} HostManager */
+
 /**
  * Common interface for "wrangling" each of the different server protocols.
  * Concrete instances of this class remain "hidden" behind a public-facing
