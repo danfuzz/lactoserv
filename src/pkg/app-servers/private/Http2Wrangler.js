@@ -28,7 +28,7 @@ export class Http2Wrangler extends BaseWrangler {
   #whenFullyStopped;
 
   /**
-   * {function} Function to call in order to resolve {@link #whenFullyStopped}.
+   * {Function} Function to call in order to resolve {@link #whenFullyStopped}.
    */
   #resolveWhenFullyStopped;
 

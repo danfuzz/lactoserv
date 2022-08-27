@@ -54,7 +54,7 @@ export class RedirectApplication extends BaseApplication {
    * Makes a request router for an instance of this class.
    *
    * @param {object} config Configuration object.
-   * @returns {function} The middleware function.
+   * @returns {Function} The middleware function.
    */
   static #makeRouter(config) {
     const router = express.Router();

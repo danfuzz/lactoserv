@@ -30,7 +30,7 @@ export class BaseApplication {
    *
    * @param {express:Request} req Request object.
    * @param {express:Response} res Response object.
-   * @param {function} next Function which causes the next-bound middleware to
+   * @param {Function} next Function which causes the next-bound middleware to
    *   run.
    */
   handleRequest(req, res, next) {

@@ -235,7 +235,7 @@ export class HostManager {
    *
    * @param {string} serverName Name of the server to find, or `*` to
    *   explicitly request the wildcard / fallback certificate.
-   * @param {function} callback Callback to present with the results.
+   * @param {Function} callback Callback to present with the results.
    */
   sniCallback(serverName, callback) {
     try {
