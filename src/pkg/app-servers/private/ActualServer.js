@@ -15,7 +15,7 @@ export class ActualServer {
   /** {Promise} Promise that resolves when {@link #stopping} becomes true. */
   #whenStopping;
 
-  /** {function} Function to call in order to resolve {@link #whenStopping}. */
+  /** {Function} Function to call in order to resolve {@link #whenStopping}. */
   #resolveWhenStopping;
 
   /**

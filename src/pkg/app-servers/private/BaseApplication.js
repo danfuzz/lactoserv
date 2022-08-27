@@ -5,7 +5,7 @@
  * Base class for the exported (public) application classes.
  */
 export class BaseApplication {
-  /** {function} Middleware function which activates this instance. */
+  /** {Function} Middleware function which activates this instance. */
   #middleware;
 
   /**
