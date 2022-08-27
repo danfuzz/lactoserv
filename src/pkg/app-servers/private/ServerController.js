@@ -52,9 +52,9 @@ export class ServerController {
   }
 
   /**
-   * {object} Options for doing a `listen()` on a server socket. Includes
-   * `host` and `port`, where `host` in this case corresponds to the network
-   * interface.
+   * @returns {object} Options for doing a `listen()` on a server socket.
+   * Includes `host` and `port`, where `host` in this case corresponds to the
+   * network interface.
    */
   get listenOptions() {
     return {
@@ -63,7 +63,7 @@ export class ServerController {
     };
   }
 
-  /** {object} Object with bindings for reasonably-useful logging. */
+  /** @returns {object} Object with bindings for reasonably-useful logging. */
   get loggableInfo() {
     const address = this.#server.address();
     const info = {
@@ -83,25 +83,25 @@ export class ServerController {
     return info;
   }
 
-  /** {string} Server name. */
+  /** @returns {string} Server name. */
   get name() {
     return this.#name;
   }
 
-  /** {net.Server} Server instance (the direct networking thingy). */
+  /** @returns {net.Server} Server instance (the direct networking thingy). */
   get server() {
     return this.#server;
   }
 
   /**
-   * {express.Application} Application instance which exclusively handles the
-   * underlying server of this instance.
+   * @returns {express.Application} Application instance which exclusively
+   * handles the underlying server of this instance.
    */
   get serverApp() {
     return this.#serverApp;
   }
 
-  /** {BaseWrangler} The protocol wrangler. */
+  /** @returns {BaseWrangler} The protocol wrangler. */
   get wrangler() {
     return this.#wrangler;
   }
