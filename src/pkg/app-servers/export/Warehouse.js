@@ -47,28 +47,28 @@ export class Warehouse {
     this.#applicationManager = new ApplicationManager(config);
   }
 
-  /** {ApplicationManager} Application manager. */
+  /** @returns {ApplicationManager} Application manager. */
   get applicationManager() {
     return this.#applicationManager;
   }
 
   /**
-   * {?HostManager} Host manager secure contexts, if needed. Can be `null`
-   * if all servers are insecure.
+   * @returns {?HostManager} Host manager secure contexts, if needed. Can be
+   * `null` * if all servers are insecure.
    */
   get hostManager() {
     return this.#hostManager;
   }
 
   /**
-   * {object} The original configuration object. TODO: This shouldn't be
-   * exposed.
+   * @returns {object} The original configuration object. TODO: This shouldn't
+   * be exposed.
    */
   get config() {
     return this.#config;
   }
 
-  /** {ServerManager} Server manager, for all server bindings. */
+  /** @returns {ServerManager} Server manager, for all server bindings. */
   get serverManager() {
     return this.#serverManager;
   }

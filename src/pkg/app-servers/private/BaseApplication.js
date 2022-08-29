@@ -28,6 +28,7 @@ export class BaseApplication {
    * Handles a request, as defined by the Express middleware spec. Subclasses
    * must override this method.
    *
+   * @abstract
    * @param {express:Request} req Request object.
    * @param {express:Response} res Response object.
    * @param {Function} next Function which causes the next-bound middleware to

@@ -109,11 +109,11 @@ export class Main {
       await server1.start();
       console.log('Started 1.');
 
-      async function doStop1() {
+      const doStop1 = async () => {
         console.log('Stopping 1...');
         await server1.stop();
         console.log('Stopped 1.');
-      }
+      };
 
       timers.setTimeout(doStop1, 15 * 1000);
     }
@@ -123,13 +123,13 @@ export class Main {
       await server2.start();
       console.log('Started 2.');
 
-      async function doStop1() {
+      const doStop2 = async () => {
         console.log('Stopping 2...');
         await server2.stop();
         console.log('Stopped 2.');
-      }
+      };
 
-      timers.setTimeout(doStop1, 15 * 1000);
+      timers.setTimeout(doStop2, 15 * 1000);
     }
 
     if (server1) {
