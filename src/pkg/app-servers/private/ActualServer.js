@@ -1,6 +1,8 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { Condition } from '@this/async';
+
 // Types referenced only in doc comments.
 import { ServerController } from '#p/ServerController';
 
@@ -12,14 +14,8 @@ export class ActualServer {
   /** {ServerController} Server controller. */
   #serverController;
 
-  /** {boolean} Is the server stopped or trying to stop? */
-  #stopping = false;
-
-  /** {Promise} Promise that resolves when {@link #stopping} becomes true. */
-  #whenStopping;
-
-  /** {Function} Function to call in order to resolve {@link #whenStopping}. */
-  #resolveWhenStopping;
+  /** {Condition} Is the server stopped or trying to stop? */
+  #stopping = new Condition();
 
   /**
    * Constructs an instance.
@@ -28,16 +24,13 @@ export class ActualServer {
    */
   constructor(serverController) {
     this.#serverController = serverController;
-    this.#whenStopping = new Promise((resolve) => {
-      this.#resolveWhenStopping = () => resolve(true);
-    });
   }
 
   /**
    * Starts the server.
    */
   async start() {
-    if (this.#stopping) {
+    if (this.#stopping.value) {
       throw new Error('Server stopping or already stopped.');
     }
 
@@ -83,7 +76,7 @@ export class ActualServer {
    * is closed).
    */
   async stop() {
-    if (this.#stopping) {
+    if (this.#stopping.value) {
       // Already stopping, just wait for the existing procedure to complete.
       await this.whenStopped();
       return;
@@ -97,8 +90,7 @@ export class ActualServer {
     server.removeListener('request', this.#serverController.serverApp);
     server.close();
 
-    this.#stopping = true;
-    this.#resolveWhenStopping();
+    this.#stopping.value = true;
 
     await this.whenStopped();
 
@@ -111,10 +103,7 @@ export class ActualServer {
    * error.
    */
   async whenStopped() {
-    if (!this.#stopping) {
-      await this.#whenStopping;
-    }
-
+    await this.#stopping.whenTrue();
     await this.#serverController.wrangler.protocolWhenStopped();
 
     const server = this.#serverController.server;
