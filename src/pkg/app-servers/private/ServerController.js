@@ -3,9 +3,9 @@
 
 import { WranglerFactory } from '#p/WranglerFactory';
 
-// Types referenced in doc comments.
-/** @typedef {object} BaseWrangler */
-/** @typedef {object} HostManager */
+// Types referenced only in doc comments.
+import { BaseWrangler } from '#p/BaseWrangler';
+import { HostManager } from '#p/HostManager';
 
 /**
  * "Controller" for a single server. This wraps both a (concrete subclass of a)

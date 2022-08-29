@@ -1,8 +1,8 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-// Types referenced in doc comments.
-/** @typedef {object} BaseApplication */
+// Types referenced only in doc comments.
+import { BaseApplication } from '#p/BaseApplication';
 
 /**
  * Utility class which constructs of concrete {@link BaseApplication} instances.

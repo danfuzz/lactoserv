@@ -3,8 +3,8 @@
 
 import { ApplicationFactory } from '#p/ApplicationFactory';
 
-// Types referenced in doc comments.
-/** @typedef {object} BaseApplication */
+// Types referenced only in doc comments.
+import { BaseApplication } from '#p/BaseApplication';
 
 /**
  * "Controller" for a single application.

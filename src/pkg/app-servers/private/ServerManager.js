@@ -5,8 +5,8 @@ import { ServerController } from '#p/ServerController';
 
 import { Validator } from 'jsonschema';
 
-// Types referenced in doc comments.
-/** @typedef {object} HostManager */
+// Types referenced only in doc comments.
+import { HostManager } from '#p/HostManager';
 
 /**
  * Manager for dealing with all the network-bound server endpoints of a system.

@@ -3,8 +3,8 @@
 
 import * as tls from 'node:tls';
 
-// Types referenced in doc comments.
-/** @typedef {object} SecureContext */
+// Types referenced only in doc comments.
+import { SecureContext } from '#p/SecureContext';
 
 /**
  * "Controller" for a single host entry, which can notably offer services for
