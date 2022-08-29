@@ -4,7 +4,7 @@
 import * as tls from 'node:tls';
 
 // Types referenced only in doc comments.
-import { SecureContext } from '#p/SecureContext';
+import { SecureContext } from 'node:tls';
 
 /**
  * "Controller" for a single host entry, which can notably offer services for
