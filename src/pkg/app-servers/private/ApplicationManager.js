@@ -1,12 +1,12 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { ActualServer } from '#p/ActualServer';
 import { ApplicationController } from '#p/ApplicationController';
 
 import { Validator } from 'jsonschema';
 
 // Types referenced only in doc comments.
+import { ServerController } from '#p/ServerController';
 import { Warehouse } from '#x/Warehouse';
 
 /**
@@ -150,7 +150,7 @@ export class ApplicationManager {
    *
    * @param {string} name Name of the application to serve.
    * @param {Warehouse} warehouse Warehouse of configured parts.
-   * @returns {ActualServer} Appropriately-constructed instance.
+   * @returns {ServerController} Appropriately-constructed instance.
    */
   makeSingleApplicationServer(name, warehouse) {
     const controller = this.#findController(name);
@@ -172,7 +172,7 @@ export class ApplicationManager {
     const serverController = warehouse.serverManager.findController(serverName);
     serverController.serverApp.use('/', app.middleware);
 
-    return new ActualServer(serverController);
+    return serverController;
   }
 
   /**
