@@ -186,9 +186,9 @@ export class ServerController {
   }
 
   /**
-   * @returns {object} Options for doing a `listen()` on a server socket.
-   * Includes `host` and `port`, where `host` in this case corresponds to the
-   * network interface.
+   * @returns {{host: string, port: number}} Options for doing a `listen()` on a
+   * server socket. `host` in the return value corresponds to the network
+   * interface.
    */
   get #listenOptions() {
     return {
@@ -197,7 +197,10 @@ export class ServerController {
     };
   }
 
-  /** @returns {object} Object with bindings for reasonably-useful logging. */
+  /**
+   * @returns {{name: string, interface: string, port: number, protocol:
+   * string}} Object with bindings for reasonably-useful logging.
+   */
   get #loggableInfo() {
     const address = this.#server.address();
     const info = {
