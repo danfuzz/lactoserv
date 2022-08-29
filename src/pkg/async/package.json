@@ -1,0 +1,11 @@
+{
+  "name": "@this/util-host",
+  "version": "0.0.1",
+  "type": "module",
+
+  "exports": "./index.js",
+  "imports": {
+    "#x/*": "./export/*.js",
+    "#p/*": "./private/*.js"
+  }
+}
