@@ -96,6 +96,8 @@ export class Http2Wrangler extends BaseWrangler {
 
   /**
    * Called whenever a new HTTP2 session gets initiated.
+   *
+   * @param {http2.ServerHttp2Session} session The new session.
    */
   #addSession(session) {
     const sessions = this.#sessions;

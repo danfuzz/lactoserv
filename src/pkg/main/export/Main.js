@@ -34,7 +34,7 @@ export class Main {
 
     const assetsPath = url.fileURLToPath(new URL('../assets', import.meta.url));
 
-    const httpsConfig = {
+    const httpsConfig_unused = {
       hosts:      hostsConfig,
       server: {
         name:       'secure',
@@ -101,7 +101,8 @@ export class Main {
 
     const warehouse = new Warehouse(comboConfig);
     const server1 = warehouse.makeSingleApplicationServer('my-static-fun');
-    //const server1 = warehouse.makeSingleApplicationServer('my-insecure-static-fun');
+    //const server1 =
+    //    warehouse.makeSingleApplicationServer('my-insecure-static-fun');
     const server2 = warehouse.makeSingleApplicationServer('my-wacky-redirector');
 
     if (server1) {
