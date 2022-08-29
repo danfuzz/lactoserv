@@ -1,6 +1,8 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { Methods } from '@this/typey';
+
 // Types referenced in doc comments.
 /** @typedef {object} HostManager */
 
@@ -16,53 +18,50 @@ export class BaseWrangler {
   /**
    * Makes the underlying application instance, i.e. an instance of
    * `express:Express` or thing that is (approximately) compatible with same.
-   * This method must be overridden in the subclass.
+   *
+   * @abstract
    */
   createApplication() {
-    throw new Error('Abstract method.');
+    Methods.abstract();
   }
 
   /**
    * Makes the underlying server instance, i.e. an instance of `node:HttpServer`
-   * or thing that is (approximately) compatible with same. This method must be
-   * overridden in the subclass.
+   * or thing that is (approximately) compatible with same.
    *
    * @abstract
    * @param {?HostManager} hostManager Host manager to use, or `null` if not
    *   configured.
    */
   createServer(hostManager) {
-    throw new Error('Abstract method.');
+    Methods.abstract(hostManager);
   }
 
   /**
-   * Performs protocol-specific actions for {@link #start}. This method must be
-   * overridden in the subclass.
+   * Performs protocol-specific actions for {@link #start}.
    *
    * @abstract
    * @param {net.Server} server Server instance to be wrangled.
    */
   protocolStart(server) {
-    throw new Error('Abstract method.');
+    Methods.abstract(server);
   }
 
   /**
-   * Performs protocol-specific actions for {@link #stop}. This method must be
-   * overridden in the subclass.
+   * Performs protocol-specific actions for {@link #stop}.
    *
    * @abstract
    */
   protocolStop() {
-    throw new Error('Abstract method.');
+    Methods.abstract();
   }
 
   /**
-   * Performs protocol-specific actions for {@link #whenStopped}. This method
-   * must be overridden in the subclass.
+   * Performs protocol-specific actions for {@link #whenStopped}.
    *
    * @abstract
    */
   protocolWhenStopped() {
-    throw new Error('Abstract method.');
+    Methods.abstract();
   }
 }

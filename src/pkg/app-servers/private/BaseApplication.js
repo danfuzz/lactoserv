@@ -1,6 +1,8 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { Methods } from '@this/typey';
+
 /**
  * Base class for the exported (public) application classes.
  */
@@ -25,8 +27,7 @@ export class BaseApplication {
   }
 
   /**
-   * Handles a request, as defined by the Express middleware spec. Subclasses
-   * must override this method.
+   * Handles a request, as defined by the Express middleware spec.
    *
    * @abstract
    * @param {express:Request} req Request object.
@@ -35,6 +36,6 @@ export class BaseApplication {
    *   run.
    */
   handleRequest(req, res, next) {
-    throw new Error('Abstract method.');
+    Methods.abstract(req, res, next);
   }
 }
