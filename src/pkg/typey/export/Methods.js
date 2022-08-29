@@ -11,7 +11,7 @@ export class Methods {
    * won't be considered unused and so can be documented with their natural
    * names.
    *
-   * @param {...*} ...rest_unused Anything that one wants to be "used."
+   * @param {...*} rest_unused Anything that one wants to be "used."
    */
   abstract(...rest_unused) {
     throw new Error('Abstract method.');
