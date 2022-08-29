@@ -43,7 +43,7 @@ export class Condition {
   }
 
   /**
-   * Sets the current value. Can cause waiters to stop waiting should the value
+   * Sets the current value. Causes waiters to stop waiting should the value
    * change.
    *
    * @param {boolean} value The new value.
