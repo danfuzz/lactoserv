@@ -3,6 +3,8 @@
 
 import { BaseWrangler } from '#p/BaseWrangler';
 
+import { Condition } from '@this/async';
+
 import express from 'express';
 import http2ExpressBridge from 'http2-express-bridge';
 
@@ -15,33 +17,16 @@ export class Http2Wrangler extends BaseWrangler {
   /** {?net.Server} Server being wrangled, once known. */
   #server = null;
 
-  /** {boolean} Is the server stopped or trying to stop? */
+  /** {boolean} Is this instance stopped or trying to stop? */
   #stopping = false;
+
+  /** {Condition} Has this instance fully stopped? */
+  #fullyStopped = new Condition();
 
   /** {Set} Set of all currently-known sessions. */
   #sessions = new Set();
 
-  /**
-   * {Promise} Promise that resolves when sessions are no longer accepted and
-   * all sessions have been closed.
-   */
-  #whenFullyStopped;
-
-  /**
-   * {Function} Function to call in order to resolve {@link #whenFullyStopped}.
-   */
-  #resolveWhenFullyStopped;
-
-  /**
-   * Constructs an instance.
-   */
-  constructor() {
-    super();
-
-    this.#whenFullyStopped = new Promise((resolve) => {
-      this.#resolveWhenFullyStopped = () => resolve(true);
-    });
-  }
+  // Note: Default constructor suffices.
 
   /** @override */
   createApplication() {
@@ -91,7 +76,7 @@ export class Http2Wrangler extends BaseWrangler {
 
   /** @override */
   async protocolWhenStopped() {
-    await this.#whenFullyStopped;
+    await this.#fullyStopped.whenTrue();
   }
 
   /**
@@ -107,7 +92,7 @@ export class Http2Wrangler extends BaseWrangler {
     const removeSession = () => {
       sessions.delete(session);
       if (this.#stopping && (sessions.size === 0)) {
-        this.#resolveWhenFullyStopped();
+        this.#fullyStopped.value = true;
       }
     };
 
