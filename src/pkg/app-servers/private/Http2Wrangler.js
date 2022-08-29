@@ -43,13 +43,13 @@ export class Http2Wrangler extends BaseWrangler {
     });
   }
 
-  // Per superclass requirement.
+  /** @override */
   createApplication() {
     // Express needs to be wrapped in order to use HTTP2.
     return http2ExpressBridge(express);
   }
 
-  // Per superclass requirement.
+  /** @override */
   createServer(hostManager) {
     // The `key` and `cert` bound here are for cases where the client doesn't
     // invoke the server-name extension. Hence, it's the wildcard.
@@ -66,7 +66,7 @@ export class Http2Wrangler extends BaseWrangler {
     return http2.createSecureServer(serverOptions);
   }
 
-  // Per superclass requirement.
+  /** @override */
   async protocolStart(server) {
     this.#server = server;
     const handleSession = session => this.#addSession(session);
@@ -77,7 +77,7 @@ export class Http2Wrangler extends BaseWrangler {
     server.on('error', () => server.removeListener('session', handleSession));
   }
 
-  // Per superclass requirement.
+  /** @override */
   async protocolStop() {
     this.#stopping = true;
 
@@ -89,7 +89,7 @@ export class Http2Wrangler extends BaseWrangler {
     }
   }
 
-  // Per superclass requirement.
+  /** @override */
   async protocolWhenStopped() {
     await this.#whenFullyStopped;
   }

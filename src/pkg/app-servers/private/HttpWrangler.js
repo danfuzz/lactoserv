@@ -13,27 +13,27 @@ import * as http from 'http';
 export class HttpWrangler extends BaseWrangler {
   // Note: Default constructor is fine here.
 
-  // Per superclass requirement.
+  /** @override */
   createApplication() {
     return express();
   }
 
-  // Per superclass requirement.
+  /** @override */
   createServer(hostManager_unused) {
     return http.createServer();
   }
 
-  // Per superclass requirement.
+  /** @override */
   async protocolStart(server_unused) {
     // Nothing to do in this case.
   }
 
-  // Per superclass requirement.
+  /** @override */
   async protocolStop() {
     // Nothing to do in this case.
   }
 
-  // Per superclass requirement.
+  /** @override */
   async protocolWhenStopped() {
     // Nothing to do in this case.
   }

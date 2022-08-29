@@ -45,7 +45,7 @@ export class RedirectApplication extends BaseApplication {
     this.#router = RedirectApplication.#makeRouter(config);
   }
 
-  // Per superclass requirement.
+  /** @override */
   handleRequest(req, res, next) {
     this.#router(req, res, next);
   }

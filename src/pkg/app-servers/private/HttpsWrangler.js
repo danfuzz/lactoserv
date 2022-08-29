@@ -13,12 +13,12 @@ import * as https from 'https';
 export class HttpsWrangler extends BaseWrangler {
   // Note: Default constructor is fine here.
 
-  // Per superclass requirement.
+  /** @override */
   createApplication() {
     return express();
   }
 
-  // Per superclass requirement.
+  /** @override */
   createServer(hostManager) {
     // The `key` and `cert` bound here are for cases where the client doesn't
     // invoke the server-name extension. Hence, it's the wildcard.
@@ -34,17 +34,17 @@ export class HttpsWrangler extends BaseWrangler {
     return https.createServer(serverOptions);
   }
 
-  // Per superclass requirement.
+  /** @override */
   async protocolStart(server_unused) {
     // Nothing to do in this case.
   }
 
-  // Per superclass requirement.
+  /** @override */
   async protocolStop() {
     // Nothing to do in this case.
   }
 
-  // Per superclass requirement.
+  /** @override */
   async protocolWhenStopped() {
     // Nothing to do in this case.
   }
