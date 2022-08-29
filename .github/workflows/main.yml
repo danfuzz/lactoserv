@@ -22,25 +22,23 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # We want Node:
-      - name: Get Node
+      - name: Get Node.
         uses: actions/setup-node@v1
         with:
           node-version: '18.x'
 
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - name: Check out code
+      # Note: Checks out into $GITHUB_WORKSPACE, which is also the CWD.
+      - name: Clone repo.
         uses: actions/checkout@v3
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo THIS IS A TEST
+      - name: Run the linter.
+        run: ./scripts/lint
 
       # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: |
-          echo THIS IS ALSO
-          echo A TEST.
-          echo "Workspace: ${GITHUB_WORKSPACE}"
-          ls -alF "${GITHUB_WORKSPACE}"
-          pwd
+      #- name: Run a multi-line script
+      #  run: |
+      #    echo THIS IS ALSO
+      #    echo A TEST.
+      #    echo "Workspace: ${GITHUB_WORKSPACE}"
+      #    ls -alF "${GITHUB_WORKSPACE}"
+      #    pwd
