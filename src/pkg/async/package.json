@@ -7,5 +7,9 @@
   "imports": {
     "#x/*": "./export/*.js",
     "#p/*": "./private/*.js"
+  },
+
+  "dependencies": {
+    "@this/typey": "*"
   }
 }
