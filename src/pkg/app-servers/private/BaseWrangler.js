@@ -3,8 +3,9 @@
 
 import { Methods } from '@this/typey';
 
-// Types referenced in doc comments.
-/** @typedef {object} HostManager */
+// Types referenced only in doc comments.
+import { HostManager } from '#p/HostManager';
+import * as net from 'node:net';
 
 /**
  * Common interface for "wrangling" each of the different server protocols.

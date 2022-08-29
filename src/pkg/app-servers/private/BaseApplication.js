@@ -3,6 +3,9 @@
 
 import { Methods } from '@this/typey';
 
+// Types referenced only in doc comments.
+import * as express from '@express';
+
 /**
  * Base class for the exported (public) application classes.
  */
@@ -30,8 +33,8 @@ export class BaseApplication {
    * Handles a request, as defined by the Express middleware spec.
    *
    * @abstract
-   * @param {express:Request} req Request object.
-   * @param {express:Response} res Response object.
+   * @param {express.Request} req Request object.
+   * @param {express.Response} res Response object.
    * @param {Function} next Function which causes the next-bound middleware to
    *   run.
    */
