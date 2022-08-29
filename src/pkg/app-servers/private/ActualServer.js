@@ -85,7 +85,8 @@ export class ActualServer {
   async stop() {
     if (this.#stopping) {
       // Already stopping, just wait for the existing procedure to complete.
-      return this.whenStopped();
+      await this.whenStopped();
+      return;
     }
 
     this.#log('Stopping server.');
