@@ -39,7 +39,7 @@ export class Condition {
 
   /** @returns {boolean} The current value. */
   get value() {
-    return this._value;
+    return this.#value;
   }
 
   /**
