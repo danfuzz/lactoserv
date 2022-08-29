@@ -62,38 +62,6 @@ export class ServerController {
     this.#configureServerApp();
   }
 
-  /**
-   * @returns {object} Options for doing a `listen()` on a server socket.
-   * Includes `host` and `port`, where `host` in this case corresponds to the
-   * network interface.
-   */
-  get #listenOptions() {
-    return {
-      host: (this.#interface === '*') ? '::' : this.#interface,
-      port: this.#port
-    };
-  }
-
-  /** @returns {object} Object with bindings for reasonably-useful logging. */
-  get #loggableInfo() {
-    const address = this.#server.address();
-    const info = {
-      name:      this.#name,
-      interface: (this.#interface === '*') ? '<any>' : this.#interface,
-      port:      this.#port,
-      protocol:  this.#protocol
-    };
-
-    if (address) {
-      const ip = /:/.test(address.address)
-        ? `[${address.address}]` // More pleasant presentation for IPv6.
-        : address.address;
-      info.listening = `${ip}:${address.port}`;
-    }
-
-    return info;
-  }
-
   /** @returns {string} Server name. */
   get name() {
     return this.#name;
@@ -225,6 +193,38 @@ export class ServerController {
         server.on('error', handleError);
       });
     }
+  }
+
+  /**
+   * @returns {object} Options for doing a `listen()` on a server socket.
+   * Includes `host` and `port`, where `host` in this case corresponds to the
+   * network interface.
+   */
+  get #listenOptions() {
+    return {
+      host: (this.#interface === '*') ? '::' : this.#interface,
+      port: this.#port
+    };
+  }
+
+  /** @returns {object} Object with bindings for reasonably-useful logging. */
+  get #loggableInfo() {
+    const address = this.#server.address();
+    const info = {
+      name:      this.#name,
+      interface: (this.#interface === '*') ? '<any>' : this.#interface,
+      port:      this.#port,
+      protocol:  this.#protocol
+    };
+
+    if (address) {
+      const ip = /:/.test(address.address)
+        ? `[${address.address}]` // More pleasant presentation for IPv6.
+        : address.address;
+      info.listening = `${ip}:${address.port}`;
+    }
+
+    return info;
   }
 
   /**
