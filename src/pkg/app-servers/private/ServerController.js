@@ -67,22 +67,12 @@ export class ServerController {
     return this.#name;
   }
 
-  /** @returns {net.Server} Server instance (the direct networking thingy). */
-  get server() {
-    return this.#server;
-  }
-
   /**
    * @returns {express.Application} Application instance which exclusively
    * handles the underlying server of this instance.
    */
   get serverApp() {
     return this.#serverApp;
-  }
-
-  /** @returns {BaseWrangler} The protocol wrangler. */
-  get wrangler() {
-    return this.#wrangler;
   }
 
   /**
