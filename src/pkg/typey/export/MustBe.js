@@ -12,7 +12,7 @@ export class MustBe {
    * @returns {boolean} `value` if it is of type `boolean`.
    * @throws {Error} Thrown if `value` is of any other type.
    */
-  boolean(value) {
+  static boolean(value) {
     if (typeof value === 'boolean') {
       return value;
     }
