@@ -168,18 +168,20 @@ export class HostManager {
   //
 
   /**
-   * {string} Regex pattern which matches a hostname. This allows regular dotted
-   * names (`foo.example.com`), regular names prefixed with a wildcard
-   * (`*.example.com`), and complete wildcards (`*`). Name components must not
-   * start or end with a dash.
+   * {string} Regex pattern which matches a hostname, but _not_ anchored to only
+   * match a full string.
+   *
+   * This pattern allows regular dotted names (`foo.example.com`), regular names
+   * prefixed with a wildcard (`*.example.com`), and complete wildcards (`*`).
+   * Name components must not start or end with a dash.
    */
   static get HOSTNAME_PATTERN() {
     const simpleName = '(?!-)[-a-zA-Z0-9]+(?<!-)';
-    return '^(' +
+    return '(?:' +
           '[*]' +
           '|' +
-          `([*][.])?(${simpleName}[.])*${simpleName}` +
-          ')$';
+          `(?:[*][.])?(?:${simpleName}[.])*${simpleName}` +
+          ')';
   }
 
   /**
@@ -269,7 +271,7 @@ export class HostManager {
         },
         hostname: {
           type: 'string',
-          pattern: this.HOSTNAME_PATTERN
+          pattern: `^${this.HOSTNAME_PATTERN}$`
         }
       }
     };
