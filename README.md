@@ -14,6 +14,18 @@ This is a web server which knows how to serve a couple different types of
 ### Canonical order of items in a class declaration
 
 ```javascript
+import { SomeClass } from '#p/this-package';
+...
+
+import { SomeOtherClass } from '@this/this-codebase';
+...
+
+import * as something from 'npm-sourced-package';
+...
+
+import * as builtIn from 'node:built-in-package';
+...
+
 class Florp {
     #privateField;
     ...
