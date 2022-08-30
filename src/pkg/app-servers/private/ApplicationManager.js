@@ -126,8 +126,7 @@ export class ApplicationManager {
     if (main) {
       validator.addMainSchema(schema);
     } else {
-      // TODO: Remove second argument.
-      validator.addSchema(schema, '/ApplicationManager');
+      validator.addSchema(schema);
     }
   }
 

@@ -180,9 +180,8 @@ export class HostManager {
     if (main) {
       validator.addMainSchema(schema);
     } else {
-      // TODO: Remove the second argument.
-      validator.addSchema(schema, '/HostManager');
-      validator.addSchema(optionalSchema, '/OptionalHostManager');
+      validator.addSchema(schema);
+      validator.addSchema(optionalSchema);
     }
   }
 

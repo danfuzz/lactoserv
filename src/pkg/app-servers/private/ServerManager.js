@@ -114,8 +114,7 @@ export class ServerManager {
     if (main) {
       validator.addMainSchema(schema);
     } else {
-      // TODO: Remove second argument.
-      validator.addSchema(schema, '/ServerManager');
+      validator.addSchema(schema);
     }
   }
 
