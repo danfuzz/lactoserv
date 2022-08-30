@@ -194,7 +194,7 @@ export class ServerManager {
         },
         hostname: {
           type: 'string',
-          pattern: `^${HostManager.HOSTNAME_PATTERN}$`
+          pattern: HostManager.HOSTNAME_PATTERN
         }
       }
     };

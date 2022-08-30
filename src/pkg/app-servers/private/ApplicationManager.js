@@ -136,7 +136,7 @@ export class ApplicationManager {
     const nameComponent = '(?!-)[-a-zA-Z0-9]+(?<!-)';
     const namePattern = `^${nameComponent}$`;
     const mountPattern =
-      `^//${HostManager.HOSTNAME_PATTERN}(/${nameComponent})*/$`;
+      `^//${HostManager.HOSTNAME_PATTERN_FRAGMENT}(/${nameComponent})*/$`;
 
     const schema = {
       $id: '/ApplicationManager',
