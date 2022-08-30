@@ -13,7 +13,7 @@ export class ApplicationController {
   /** {string} Application name. */
   #name;
 
-  /** {object[]} Mount points, as an array of pairs of `{server, path}`. */
+  /** {{hostname: string, path: string}[]} Mount points. */
   #mounts;
 
   /** {BaseApplication} Actual application instance. */
@@ -52,9 +52,7 @@ export class ApplicationController {
     return this.#name;
   }
 
-  /**
-   * @returns {object[]} Mount points, as an array of pairs of `{server, path}`.
-   */
+  /** @returns {{hostname: string, path: string}[]} Mount points. */
   get mounts() {
     return this.#mounts;
   }
@@ -71,14 +69,14 @@ export class ApplicationController {
    * @returns {object} Components thereof.
    */
   static #parseMount(mount) {
-    const result = /^[/][/](?<server>[^/]+)(?<path>[/].*)$/.exec(mount);
+    const result = /^[/][/](?<hostname>[^/]+)(?<path>[/].*)$/.exec(mount);
     if (!result) {
       throw new Error(`Strange mount point: ${mount}`);
     }
 
     return Object.freeze({
-      server: result.groups.server,
-      path:   result.groups.path
+      hostname: result.groups.hostname,
+      path:     result.groups.path
     });
   }
 }

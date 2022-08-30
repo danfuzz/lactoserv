@@ -8,7 +8,7 @@ import { ServerManager } from '#p/ServerManager';
 import { JsonSchema } from '@this/typey';
 
 // Types referenced only in doc comments.
-import { BaseApplication } from '#p/BaseApplication';
+import { ServerController } from '#p/ServerController';
 
 /**
  * "Warehouse" of bits and pieces created from a top-level configuration.
@@ -77,11 +77,17 @@ export class Warehouse {
    * Creates a server for a single app. TODO: This is scaffolding for the
    * transition from single- to multi-app support.
    *
-   * @param {string} name Name of the application to serve.
-   * @returns {BaseApplication} Appropriately-constructed instance.
+   * @param {string} appName Name of the application to serve.
+   * @param {string} serverName Name of the server to serve from.
+   * @returns {ServerController} Appropriately-constructed instance.
    */
-  makeSingleApplicationServer(name) {
-    return this.#applicationManager.makeSingleApplicationServer(name, this);
+  makeSingleApplicationServer(appName, serverName) {
+    const serverController = this.#serverManager.findController(serverName);
+
+    this.#applicationManager.makeSingleApplicationServer(
+      appName, serverController);
+
+    return serverController;
   }
 
 

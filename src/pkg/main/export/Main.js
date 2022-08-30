@@ -38,6 +38,7 @@ export class Main {
       hosts:      hostsConfig,
       server: {
         name:       'secure',
+        host:       '*',
         interface:  '*',
         port:       8443,
         protocol:   'https'
@@ -55,18 +56,21 @@ export class Main {
       servers: [
         {
           name:       'insecure',
+          host:       '*',
           interface:  '*',
           port:       8080,
           protocol:   'http'
         },
         {
           name:       'also-insecure',
+          hosts:      ['*'],
           interface:  '*',
           port:       8081,
           protocol:   'http',
         },
         {
           name:       'secure',
+          host:       '*',
           interface:  '*',
           port:       8443,
           protocol:   'http2'
@@ -100,10 +104,12 @@ export class Main {
     };
 
     const warehouse = new Warehouse(comboConfig);
-    const server1 = warehouse.makeSingleApplicationServer('my-static-fun');
+    const server1 =
+      warehouse.makeSingleApplicationServer('my-static-fun', 'secure');
     //const server1 =
     //    warehouse.makeSingleApplicationServer('my-insecure-static-fun');
-    const server2 = warehouse.makeSingleApplicationServer('my-wacky-redirector');
+    const server2 =
+      warehouse.makeSingleApplicationServer('my-wacky-redirector', 'insecure');
 
     if (server1) {
       console.log('Starting 1...');

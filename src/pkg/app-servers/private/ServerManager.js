@@ -1,12 +1,11 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { HostManager } from '#p/HostManager';
 import { ServerController } from '#p/ServerController';
 
 import { JsonSchema } from '@this/typey';
 
-// Types referenced only in doc comments.
-import { HostManager } from '#p/HostManager';
 
 /**
  * Manager for dealing with all the network-bound server endpoints of a system.
@@ -20,6 +19,8 @@ import { HostManager } from '#p/HostManager';
  *
  * * `{string} name` -- Symbolic name of the server. This is used in application
  *   bindings to indicate which server(s) an application is served from.
+ * * `{string} host` or `{string[]} hosts` -- Names of hosts which this server
+ *   should accept as valid. Can include partial or complete wildcards.
  * * `{string} interface` -- Address of the physical interface that the server
  *   is to listen on. `*` indicates that all interfaces should be listened on.
  *   Note: `::` and `0.0.0.0` are not allowed; use `*` instead.
@@ -168,7 +169,32 @@ export class ServerManager {
               type: 'string',
               enum: ['http', 'http2', 'https']
             }
-          }
+          },
+          oneOf: [
+            {
+              type: 'object',
+              required: ['host'],
+              properties: {
+                host: { $ref: '#/$defs/hostname' }
+              }
+            },
+            {
+              title: 'servers',
+              type: 'object',
+              required: ['hosts'],
+              properties: {
+                servers: {
+                  type: 'array',
+                  uniqueItems: true,
+                  items: { $ref: '#/$defs/hostname' }
+                }
+              }
+            }
+          ]
+        },
+        hostname: {
+          type: 'string',
+          pattern: HostManager.HOSTNAME_PATTERN
         }
       }
     };

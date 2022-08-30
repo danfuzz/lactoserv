@@ -20,6 +20,9 @@ export class ServerController {
   /** {string} Server name. */
   #name;
 
+  /** {string[]} Hosts to consider valid. */
+  #hosts;
+
   /** {string} Interface address. */
   #interface;
 
@@ -52,6 +55,11 @@ export class ServerController {
    */
   constructor(serverConfig, hostManager) {
     this.#name      = serverConfig.name;
+
+    const hostArray = serverConfig.host ? [serverConfig.host] : [];
+    const hostsArray = serverConfig.hosts ?? [];
+    this.#hosts = Object.freeze([...hostArray, ...hostsArray]);
+
     this.#interface = serverConfig.interface;
     this.#port      = serverConfig.port;
     this.#protocol  = serverConfig.protocol;

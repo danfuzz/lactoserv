@@ -2,12 +2,12 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { ApplicationController } from '#p/ApplicationController';
+import { HostManager } from '#p/HostManager';
 
 import { JsonSchema } from '@this/typey';
 
 // Types referenced only in doc comments.
 import { ServerController } from '#p/ServerController';
-import { Warehouse } from '#x/Warehouse';
 
 /**
  * Manager for dealing with all the high-level applications that are running or
@@ -21,10 +21,10 @@ import { Warehouse } from '#x/Warehouse';
  * * `{string} name` -- Symbolic name of the application. This is used in
  *   logging and messaging.
  * * `{string} mount` or `{string[]} mounts` -- Mount points for the
- *   application. Each mount point is of the form `//<server-name>/` or
- *   `//<server-name>/<base-path>/`, where `server-name` is the name of a
- *   configured server, and `base-path` is the absolute path which the
- *   application should respond to.
+ *   application. Each mount point is of the form `//<hostname>/` or
+ *   `//<hostname>/<base-path>/`, where `hostname` is the name of a configured
+ *   host, and `base-path` is the absolute path which the application should
+ *   respond to on that host.
  * * `{string} type` -- The type (class) of server. Several built-in types are
  *   available, and it is possible for clients of this system to define new
  *   types.
@@ -60,34 +60,30 @@ export class ApplicationManager {
   }
 
   /**
-   * Creates a single-app server. TODO: This is scaffolding for the transition
-   * from single- to multi-app support.
+   * Attaches an app to a server, making it a (presumed) single-app server.
+   * TODO: This is scaffolding for the transition from single- to multi-app
+   * support.
    *
    * @param {string} name Name of the application to serve.
-   * @param {Warehouse} warehouse Warehouse of configured parts.
-   * @returns {ServerController} Appropriately-constructed instance.
+   * @param {ServerController} serverController Server controller to attach to.
    */
-  makeSingleApplicationServer(name, warehouse) {
-    const controller = this.#findController(name);
+  makeSingleApplicationServer(name, serverController) {
+    const appController = this.#findController(name);
 
-    if (controller === null) {
+    if (appController === null) {
       throw new Error(`No such app: ${name}`);
     }
 
-    const app = controller.app;
-    const mounts = controller.mounts;
+    const app = appController.app;
+    const mounts = appController.mounts;
 
     if (mounts.length !== 1) {
-      throw new Error(`No unique mount for application: ${controller.name}`);
+      throw new Error(`No unique mount for application: ${appController.name}`);
     } else if (mounts[0].path !== '/') {
       throw new Error(`Only top-level mounts for now, not: ${mounts[0].path}`);
     }
 
-    const serverName = mounts[0].server;
-    const serverController = warehouse.serverManager.findController(serverName);
     serverController.serverApp.use('/', app.middleware);
-
-    return serverController;
   }
 
   /**
@@ -138,7 +134,8 @@ export class ApplicationManager {
     // with a dash.
     const nameComponent = '(?!-)[-a-zA-Z0-9]+(?<!-)';
     const namePattern = `^${nameComponent}$`;
-    const mountPattern = `//${nameComponent}(/${nameComponent})*/`;
+    const mountPattern =
+      `^//${HostManager.HOSTNAME_PATTERN_FRAGMENT}(/${nameComponent})*/$`;
 
     const schema = {
       $id: '/ApplicationManager',
