@@ -3,10 +3,9 @@
 
 import { BaseApplication } from '#p/BaseApplication';
 
+import { JsonSchema } from '@this/typey';
+
 import express from 'express';
-import { Validator } from 'jsonschema';
-import Ajv from 'ajv';
-import ajvFormats from 'ajv-formats';
 
 import { URL } from 'node:url';
 
@@ -96,19 +95,11 @@ export class RedirectApplication extends BaseApplication {
    * @param {object} config Configuration object.
    */
   static #validateConfig(config) {
-    const v = new Ajv({
-      allErrors: true,
-      verbose: true
-      // discriminator: true,
-      // formats: { name: format, ... },
-      // schemas: { id: { ... }, ...},
-      // logger: ...
-    });
-    ajvFormats(v);
+    const validator = new JsonSchema('Redirector Configuration');
 
     // Validator for `fromPath`, mostly done by treating it as the path part of
-    // a URL. (Note: Can add formats via constructor option.)
-    v.addFormat('fromPath', {
+    // a URL.
+    validator.addFormat('fromPath', {
       validate: (input) => {
         // Must start with a slash.
         if (! /^[/]/.test(input)) {
@@ -127,7 +118,7 @@ export class RedirectApplication extends BaseApplication {
     });
 
     // Additional restrictions on `toUri`, beyond basic URI syntax.
-    v.addFormat('toUri', {
+    validator.addFormat('toUri', {
       validate: (input) => {
         try {
           const url = new URL(input);
@@ -143,7 +134,7 @@ export class RedirectApplication extends BaseApplication {
       }
     });
 
-    const schema = {
+    validator.addMainSchema({
       $id: '/RedirectApplication',
       title: 'redirect-application',
       type: 'object',
@@ -177,21 +168,13 @@ export class RedirectApplication extends BaseApplication {
           }
         }
       }
-    };
-    v.addSchema(schema);
+    });
 
-    const result = v.validate('/RedirectApplication', config);
-    if (result) {
-      return;
+    const error = validator.validate(config);
+
+    if (error) {
+      error.log(console);
+      error.throwError();
     }
-
-    const errors = v.errors;
-
-    console.log('Configuration error%s:', (errors.length === 1) ? '' : 's');
-    for (const e of errors) {
-      console.log('%s:\n  %s\n  got: %o', e.instancePath, e.message, e.data);
-    }
-
-    throw new Error('Invalid configuration.');
   }
 }
