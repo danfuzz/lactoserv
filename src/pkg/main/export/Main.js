@@ -104,10 +104,12 @@ export class Main {
     };
 
     const warehouse = new Warehouse(comboConfig);
-    const server1 = warehouse.makeSingleApplicationServer('my-static-fun');
+    const server1 =
+      warehouse.makeSingleApplicationServer('my-static-fun', 'secure');
     //const server1 =
     //    warehouse.makeSingleApplicationServer('my-insecure-static-fun');
-    const server2 = warehouse.makeSingleApplicationServer('my-wacky-redirector');
+    const server2 =
+      warehouse.makeSingleApplicationServer('my-wacky-redirector', 'insecure');
 
     if (server1) {
       console.log('Starting 1...');

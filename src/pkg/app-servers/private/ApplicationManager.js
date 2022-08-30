@@ -61,34 +61,30 @@ export class ApplicationManager {
   }
 
   /**
-   * Creates a single-app server. TODO: This is scaffolding for the transition
-   * from single- to multi-app support.
+   * Attaches an app to a server, making it a (presumed) single-app server.
+   * TODO: This is scaffolding for the transition from single- to multi-app
+   * support.
    *
    * @param {string} name Name of the application to serve.
-   * @param {Warehouse} warehouse Warehouse of configured parts.
-   * @returns {ServerController} Appropriately-constructed instance.
+   * @param {ServerController} serverController Server controller to attach to.
    */
-  makeSingleApplicationServer(name, warehouse) {
-    const controller = this.#findController(name);
+  makeSingleApplicationServer(name, serverController) {
+    const appController = this.#findController(name);
 
-    if (controller === null) {
+    if (appController === null) {
       throw new Error(`No such app: ${name}`);
     }
 
-    const app = controller.app;
-    const mounts = controller.mounts;
+    const app = appController.app;
+    const mounts = appController.mounts;
 
     if (mounts.length !== 1) {
-      throw new Error(`No unique mount for application: ${controller.name}`);
+      throw new Error(`No unique mount for application: ${appController.name}`);
     } else if (mounts[0].path !== '/') {
       throw new Error(`Only top-level mounts for now, not: ${mounts[0].path}`);
     }
 
-    const serverName = mounts[0].hostname; // TODO: TEMPORARY! SHOULD BE A SERVER NAME NOT A HOSTNAME!
-    const serverController = warehouse.serverManager.findController(serverName);
     serverController.serverApp.use('/', app.middleware);
-
-    return serverController;
   }
 
   /**
