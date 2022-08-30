@@ -84,6 +84,7 @@ export class Warehouse {
     return this.#applicationManager.makeSingleApplicationServer(name, this);
   }
 
+
   //
   // Static members
   //
