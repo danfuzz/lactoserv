@@ -49,11 +49,14 @@ export class ServerManager {
     const serverNamePattern = '^(?!-)[-a-zA-Z0-9]+(?<!-)$';
 
     const interfacePattern =
-      '^' +
-      '(?!::|(0+[.]){0,3}0+)' + // No IPv4 or IPv6 "any" addresses.
+      '^(' +
       '[*]' +                   // The one allowed "any" address.
-      '|(?![-.])[-.:a-zA-Z0-9]+(?<![-.])' + // A bit over-permissive here.
-      '$';
+      '|' +
+      '(?!::|(0+[.]){0,3}0+)' + // No IPv4 or IPv6 "any" addresses.
+      '(?![-.])' +              // Doesn't start with `-` or `.`.
+      '[-.:a-zA-Z0-9]+' +       // A bit over-permissive here.
+      '(?<![-.])' +             // Doesn't end with `-` or `.`.
+      ')$';
 
     const schema = {
       $id: '/ServerManager',

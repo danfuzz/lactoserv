@@ -84,7 +84,8 @@ export class HostManager {
     const hostNamePattern =
       '^(' +
       '[*]' +
-      `|([*][.])?(${simpleName}[.])*${simpleName}` +
+      '|' +
+      `([*][.])?(${simpleName}[.])*${simpleName}` +
       ')$';
 
     const schema = {
