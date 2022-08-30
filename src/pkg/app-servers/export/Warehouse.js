@@ -5,7 +5,7 @@ import { ApplicationManager } from '#p/ApplicationManager';
 import { HostManager } from '#p/HostManager';
 import { ServerManager } from '#p/ServerManager';
 
-import { Validator } from 'jsonschema';
+import { JsonSchema } from '@this/typey';
 
 // Types referenced only in doc comments.
 import { BaseApplication } from '#p/BaseApplication';
@@ -79,29 +79,25 @@ export class Warehouse {
    * @param {object} config Configuration object.
    */
   static #validateConfig(config) {
-    const v = new Validator();
-    ApplicationManager.addConfigSchemaTo(v);
-    HostManager.addConfigSchemaTo(v);
-    ServerManager.addConfigSchemaTo(v);
+    const validator = new JsonSchema('LactoServ Configuration');
+    ApplicationManager.addConfigSchemaTo(validator);
+    HostManager.addConfigSchemaTo(validator);
+    ServerManager.addConfigSchemaTo(validator);
 
-    const schema = {
+    validator.addMainSchema({
+      $id: '/Warehouse',
       allOf: [
         { $ref: '/ApplicationManager' },
         { $ref: '/OptionalHostManager' },
         { $ref: '/ServerManager' }
       ]
-    };
+    });
 
-    const result = v.validate(config, schema);
-    const errors = result.errors;
+    const error = validator.validate(config);
 
-    if (errors.length !== 0) {
-      console.log('Configuration error%s:', (errors.length === 1) ? '' : 's');
-      for (const e of errors) {
-        console.log('  %s', e.stack);
-      }
-
-      throw new Error('Invalid configuration.');
+    if (error) {
+      error.log(console);
+      error.throwError();
     }
   }
 

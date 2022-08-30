@@ -3,7 +3,7 @@
 
 import { HostController } from '#p/HostController';
 
-import { Validator } from 'jsonschema';
+import { JsonSchema } from '@this/typey';
 
 // Types referenced only in doc comments.
 import { SecureContext } from 'node:tls';
@@ -56,9 +56,10 @@ export class HostManager {
   /**
    * Adds the config schema for this class to the given validator.
    *
-   * @param {Validator} validator The validator to add to.
+   * @param {JsonSchema} validator The validator to add to.
+   * @param {boolean} [main = false] Is this the main schema?
    */
-  static addConfigSchemaTo(validator) {
+  static addConfigSchemaTo(validator, main = false) {
     const base64Line = '[/+a-zA-Z0-9]{0,80}';
     const pemLines = `(${base64Line}\n){1,500}${base64Line}={0,2}\n`;
 
@@ -81,13 +82,14 @@ export class HostManager {
     // not start or end with a dash.
     const simpleName = '(?!-)[-a-zA-Z0-9]+(?<!-)';
     const hostNamePattern =
-      '^' +
+      '^(' +
       '[*]' +
-      `|([*][.])?(${simpleName}[.])*${simpleName}` +
-      '$';
+      '|' +
+      `([*][.])?(${simpleName}[.])*${simpleName}` +
+      ')$';
 
     const schema = {
-      title: 'host-config',
+      $id: '/HostManager',
       oneOf: [
         {
           title: 'host',
@@ -131,7 +133,11 @@ export class HostManager {
               title: 'name',
               required: ['name'],
               properties: {
-                name: { $ref: '#/$defs/hostName' }
+                name: {
+                  type: 'string',
+                  pattern: hostNamePattern
+                  //$ref: '#/$defs/hostName'
+                }
               }
             },
             {
@@ -155,6 +161,7 @@ export class HostManager {
     };
 
     const optionalSchema = {
+      $id: '/OptionalHostManager',
       if: {
         anyOf: [
           {
@@ -170,8 +177,12 @@ export class HostManager {
       then: { $ref: '/HostManager' }
     };
 
-    validator.addSchema(schema, '/HostManager');
-    validator.addSchema(optionalSchema, '/OptionalHostManager');
+    if (main) {
+      validator.addMainSchema(schema);
+    } else {
+      validator.addSchema(schema);
+      validator.addSchema(optionalSchema);
+    }
   }
 
   /**
@@ -305,19 +316,14 @@ export class HostManager {
    * @param {object} config Configuration object.
    */
   static #validateConfig(config) {
-    const v = new Validator();
-    this.addConfigSchemaTo(v);
+    const validator = new JsonSchema();
+    this.addConfigSchemaTo(validator, true);
 
-    const result = v.validate(config, { $ref: '/HostManager' });
-    const errors = result.errors;
+    const error = validator.validate(config);
 
-    if (errors.length !== 0) {
-      console.log('Configuration error%s:', (errors.length === 1) ? '' : 's');
-      for (const e of errors) {
-        console.log('  %s', e.stack);
-      }
-
-      throw new Error('Invalid configuration.');
+    if (error) {
+      error.log(console);
+      error.throwError();
     }
   }
 }
