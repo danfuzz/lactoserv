@@ -84,7 +84,7 @@ export class ApplicationManager {
       throw new Error(`Only top-level mounts for now, not: ${mounts[0].path}`);
     }
 
-    const serverName = mounts[0].server;
+    const serverName = mounts[0].hostname; // TODO: TEMPORARY! SHOULD BE A SERVER NAME NOT A HOSTNAME!
     const serverController = warehouse.serverManager.findController(serverName);
     serverController.serverApp.use('/', app.middleware);
 
