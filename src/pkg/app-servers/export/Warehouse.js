@@ -74,6 +74,21 @@ export class Warehouse {
   }
 
   /**
+   * Creates a server for a single app. TODO: This is scaffolding for the
+   * transition from single- to multi-app support.
+   *
+   * @param {string} name Name of the application to serve.
+   * @returns {BaseApplication} Appropriately-constructed instance.
+   */
+  makeSingleApplicationServer(name) {
+    return this.#applicationManager.makeSingleApplicationServer(name, this);
+  }
+
+  //
+  // Static members
+  //
+
+  /**
    * Validates the given configuration object.
    *
    * @param {object} config Configuration object.
@@ -99,16 +114,5 @@ export class Warehouse {
       error.log(console);
       error.throwError();
     }
-  }
-
-  /**
-   * Creates a server for a single app. TODO: This is scaffolding for the
-   * transition from single- to multi-app support.
-   *
-   * @param {string} name Name of the application to serve.
-   * @returns {BaseApplication} Appropriately-constructed instance.
-   */
-  makeSingleApplicationServer(name) {
-    return this.#applicationManager.makeSingleApplicationServer(name, this);
   }
 }

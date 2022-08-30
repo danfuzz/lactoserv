@@ -17,11 +17,6 @@ export class StaticApplication extends BaseApplication {
   /* {function} "Middleware" handler function for this instance. */
   #handleRequest;
 
-  /** @returns {string} Application type as used in configuration objects. */
-  static get TYPE() {
-    return 'static-server';
-  }
-
   /**
    * Constructs an instance.
    *
@@ -37,6 +32,16 @@ export class StaticApplication extends BaseApplication {
   /** @override */
   handleRequest(req, res, next) {
     this.#handleRequest(req, res, next);
+  }
+
+
+  //
+  // Static members
+  //
+
+  /** @returns {string} Application type as used in configuration objects. */
+  static get TYPE() {
+    return 'static-server';
   }
 
   /**
