@@ -8,6 +8,10 @@ import ajvFormats from 'ajv-formats';
 
 /**
  * Simple interface for JSON Schema validation.
+ *
+ * Useful links:
+ * * JSON Schema spec: <https://json-schema.org/>
+ * * AJV implementation: <https://ajv.js.org/>
  */
 export class JsonSchema {
   /** {string} Schema title. */
