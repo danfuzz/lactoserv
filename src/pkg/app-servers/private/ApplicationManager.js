@@ -8,7 +8,6 @@ import { JsonSchema } from '@this/typey';
 
 // Types referenced only in doc comments.
 import { ServerController } from '#p/ServerController';
-import { Warehouse } from '#x/Warehouse';
 
 /**
  * Manager for dealing with all the high-level applications that are running or

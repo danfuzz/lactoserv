@@ -8,7 +8,7 @@ import { ServerManager } from '#p/ServerManager';
 import { JsonSchema } from '@this/typey';
 
 // Types referenced only in doc comments.
-import { BaseApplication } from '#p/BaseApplication';
+import { ServerController } from '#p/ServerController';
 
 /**
  * "Warehouse" of bits and pieces created from a top-level configuration.
