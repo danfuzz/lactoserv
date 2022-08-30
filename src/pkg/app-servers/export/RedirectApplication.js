@@ -29,11 +29,6 @@ export class RedirectApplication extends BaseApplication {
   /** {express:Router} Router with all the redirects. */
   #router;
 
-  /** @returns {string} Application type as used in configuration objects. */
-  static get TYPE() {
-    return 'redirect-server';
-  }
-
   /**
    * Constructs an instance.
    *
@@ -49,6 +44,16 @@ export class RedirectApplication extends BaseApplication {
   /** @override */
   handleRequest(req, res, next) {
     this.#router(req, res, next);
+  }
+
+
+  //
+  // Static members
+  //
+
+  /** @returns {string} Application type as used in configuration objects. */
+  static get TYPE() {
+    return 'redirect-server';
   }
 
   /**

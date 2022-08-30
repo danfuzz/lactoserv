@@ -38,20 +38,134 @@ export class HostManager {
   #controllers = new Map();
 
   /**
-   * Constructs and returns an instance from the given configuration, or returns
-   * `null` if the configuration doesn't need any secure contexts.
+   * Constructs an instance.
    *
    * @param {object} config Configuration object.
-   * @returns {?HostManager} An appropriately-constructed instance, or `null` if
-   *   none is configured.
    */
-  static fromConfig(config) {
-    if (!(config.hosts || config.host)) {
+  constructor(config) {
+    HostManager.#validateConfig(config);
+
+    if (config.host) {
+      this.#addControllerFor(config.host);
+    }
+
+    if (config.hosts) {
+      for (const host of config.hosts) {
+        this.#addControllerFor(host);
+      }
+    }
+  }
+
+  /**
+   * Finds the configuration info (cert/key pair) associated with the given
+   * hostname.
+   *
+   * @param {string} name Hostname to look for, which may be a partial or full
+   *   wildcard.
+   * @returns {?{cert: string, key: string}} Object mapping `cert` and `key`; or
+   *  `null` if no hostname match is found.
+   */
+  findConfig(name) {
+    const controller = this.#findController(name);
+
+    if (!controller) {
       return null;
     }
 
-    return new HostManager(config);
+    return {
+      cert: controller.cert,
+      key:  controller.key
+    };
   }
+
+  /**
+   * Finds the TLS {@link SecureContext} to use, based on the given hostname.
+   *
+   * @param {string} name Hostname to look for, which may be a partial or full
+   *   wildcard.
+   * @returns {?SecureContext} The associated {@link SecureContext}, or `null`
+   *   if no hostname match is found.
+   */
+  findContext(name) {
+    const controller = this.#findController(name);
+    return controller ? controller.secureContext : null;
+  }
+
+  /**
+   * Wrapper for {@link #findContext} in the exact form that is expected as an
+   * `SNICallback` configured in the options of a call to (something like)
+   * `http2.createSecureServer()`.
+   *
+   * See <https://nodejs.org/dist/latest-v18.x/docs/api/tls.html#tlscreateserveroptions-secureconnectionlistener>
+   * for details.
+   *
+   * @param {string} serverName Name of the server to find, or `*` to
+   *   explicitly request the wildcard / fallback certificate.
+   * @param {Function} callback Callback to present with the results.
+   */
+  sniCallback(serverName, callback) {
+    try {
+      callback(null, this.findContext(serverName));
+    } catch (e) {
+      callback(e, null);
+    }
+  }
+
+  /**
+   * Constructs a {@link HostController} based on the given information, and
+   * adds mappings to {@link #controllers} so it can be found.
+   *
+   * @param {object} hostItem Single host item from a configuration object.
+   */
+  #addControllerFor(hostItem) {
+    const controller = new HostController(hostItem);
+
+    for (const name of controller.names) {
+      console.log(`Binding hostname ${name}.`);
+      if (this.#controllers.has(name)) {
+        throw new Error(`Duplicate hostname: ${name}`);
+      }
+      this.#controllers.set(name, controller);
+    }
+  }
+
+  /**
+   * Finds the most-specific {@link HostController} for a given hostname.
+   *
+   * @param {string} name Hostname to look for, which may be a partial or full
+   *   wildcard.
+   * @returns {?HostController} The associated controller, or `null` if nothing
+   *   suitable is found.
+   */
+  #findController(name) {
+    for (;;) {
+      const controller = this.#controllers.get(name);
+      if (controller) {
+        return controller;
+      }
+
+      if (name === '*') {
+        // We just failed to find a wildcard match.
+        return null;
+      }
+
+      // Strip off the leading wildcard (if any) and first name component, and
+      // add a wildcard back on.
+      const newName = name.replace(/^([*][.])?[^.]+([.]|$)/, '*.');
+      if ((name === newName) || (newName === '*.')) {
+        // `name === newName` avoids an infinite loop when the original `name`
+        // is either undotted or not in the expected/valid syntax.
+        name = '*';
+      } else {
+        name = newName;
+      }
+    }
+  }
+
+
+  //
+  // Static members
+  //
 
   /**
    * Adds the config schema for this class to the given validator.
@@ -186,128 +300,19 @@ export class HostManager {
   }
 
   /**
-   * Constructs an instance.
+   * Constructs and returns an instance from the given configuration, or returns
+   * `null` if the configuration doesn't need any secure contexts.
    *
    * @param {object} config Configuration object.
+   * @returns {?HostManager} An appropriately-constructed instance, or `null` if
+   *   none is configured.
    */
-  constructor(config) {
-    HostManager.#validateConfig(config);
-
-    if (config.host) {
-      this.#addControllerFor(config.host);
-    }
-
-    if (config.hosts) {
-      for (const host of config.hosts) {
-        this.#addControllerFor(host);
-      }
-    }
-  }
-
-  /**
-   * Finds the configuration info (cert/key pair) associated with the given
-   * hostname.
-   *
-   * @param {string} name Hostname to look for, which may be a partial or full
-   *   wildcard.
-   * @returns {?{cert: string, key: string}} Object mapping `cert` and `key`; or
-   *  `null` if no hostname match is found.
-   */
-  findConfig(name) {
-    const controller = this.#findController(name);
-
-    if (!controller) {
+  static fromConfig(config) {
+    if (!(config.hosts || config.host)) {
       return null;
     }
 
-    return {
-      cert: controller.cert,
-      key:  controller.key
-    };
-  }
-
-  /**
-   * Finds the TLS {@link SecureContext} to use, based on the given hostname.
-   *
-   * @param {string} name Hostname to look for, which may be a partial or full
-   *   wildcard.
-   * @returns {?SecureContext} The associated {@link SecureContext}, or `null`
-   *   if no hostname match is found.
-   */
-  findContext(name) {
-    const controller = this.#findController(name);
-    return controller ? controller.secureContext : null;
-  }
-
-  /**
-   * Wrapper for {@link #findContext} in the exact form that is expected as an
-   * `SNICallback` configured in the options of a call to (something like)
-   * `http2.createSecureServer()`.
-   *
-   * See <https://nodejs.org/dist/latest-v18.x/docs/api/tls.html#tlscreateserveroptions-secureconnectionlistener>
-   * for details.
-   *
-   * @param {string} serverName Name of the server to find, or `*` to
-   *   explicitly request the wildcard / fallback certificate.
-   * @param {Function} callback Callback to present with the results.
-   */
-  sniCallback(serverName, callback) {
-    try {
-      callback(null, this.findContext(serverName));
-    } catch (e) {
-      callback(e, null);
-    }
-  }
-
-  /**
-   * Constructs a {@link HostController} based on the given information, and
-   * adds mappings to {@link #controllers} so it can be found.
-   *
-   * @param {object} hostItem Single host item from a configuration object.
-   */
-  #addControllerFor(hostItem) {
-    const controller = new HostController(hostItem);
-
-    for (const name of controller.names) {
-      console.log(`Binding hostname ${name}.`);
-      if (this.#controllers.has(name)) {
-        throw new Error(`Duplicate hostname: ${name}`);
-      }
-      this.#controllers.set(name, controller);
-    }
-  }
-
-  /**
-   * Finds the most-specific {@link HostController} for a given hostname.
-   *
-   * @param {string} name Hostname to look for, which may be a partial or full
-   *   wildcard.
-   * @returns {?HostController} The associated controller, or `null` if nothing
-   *   suitable is found.
-   */
-  #findController(name) {
-    for (;;) {
-      const controller = this.#controllers.get(name);
-      if (controller) {
-        return controller;
-      }
-
-      if (name === '*') {
-        // We just failed to find a wildcard match.
-        return null;
-      }
-
-      // Strip off the leading wildcard (if any) and first name component, and
-      // add a wildcard back on.
-      const newName = name.replace(/^([*][.])?[^.]+([.]|$)/, '*.');
-      if ((name === newName) || (newName === '*.')) {
-        // `name === newName` avoids an infinite loop when the original `name`
-        // is either undotted or not in the expected/valid syntax.
-        name = '*';
-      } else {
-        name = newName;
-      }
-    }
+    return new HostManager(config);
   }
 
   /**

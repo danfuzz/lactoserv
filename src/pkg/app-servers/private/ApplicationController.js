@@ -59,6 +59,11 @@ export class ApplicationController {
     return this.#mounts;
   }
 
+
+  //
+  // Static members
+  //
+
   /**
    * Parses a mount point into its two components.
    *

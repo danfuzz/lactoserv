@@ -41,6 +41,93 @@ export class ApplicationManager {
   #controllers = new Map();
 
   /**
+   * Constructs an instance.
+   *
+   * @param {object} config Configuration object.
+   */
+  constructor(config) {
+    ApplicationManager.#validateConfig(config);
+
+    if (config.app) {
+      this.#addControllerFor(config.app);
+    }
+
+    if (config.apps) {
+      for (const app of config.apps) {
+        this.#addControllerFor(app);
+      }
+    }
+  }
+
+  /**
+   * Creates a single-app server. TODO: This is scaffolding for the transition
+   * from single- to multi-app support.
+   *
+   * @param {string} name Name of the application to serve.
+   * @param {Warehouse} warehouse Warehouse of configured parts.
+   * @returns {ServerController} Appropriately-constructed instance.
+   */
+  makeSingleApplicationServer(name, warehouse) {
+    const controller = this.#findController(name);
+
+    if (controller === null) {
+      throw new Error(`No such app: ${name}`);
+    }
+
+    const app = controller.app;
+    const mounts = controller.mounts;
+
+    if (mounts.length !== 1) {
+      throw new Error(`No unique mount for application: ${controller.name}`);
+    } else if (mounts[0].path !== '/') {
+      throw new Error(`Only top-level mounts for now, not: ${mounts[0].path}`);
+    }
+
+    const serverName = mounts[0].server;
+    const serverController = warehouse.serverManager.findController(serverName);
+    serverController.serverApp.use('/', app.middleware);
+
+    return serverController;
+  }
+
+  /**
+   * Constructs a {@link ApplicationController} based on the given information,
+   * and adds a mapping to {@link #controllers} so it can be found.
+   *
+   * @param {object} appItem Single application item from a configuration
+   * object.
+   */
+  #addControllerFor(appItem) {
+    const controller = new ApplicationController(appItem);
+    const name = controller.name;
+
+    console.log(`Binding application ${name}.`);
+
+    if (this.#controllers.has(name)) {
+      throw new Error(`Duplicate application: ${name}`);
+    }
+
+    this.#controllers.set(name, controller);
+  }
+
+  /**
+   * Finds the {@link ApplicationController} for a given application name.
+   *
+   * @param {string} name Application name to look for.
+   * @returns {?ApplicationController} The associated information, or `null`
+   *   if nothing suitable is found.
+   */
+  #findController(name) {
+    const controller = this.#controllers.get(name);
+    return controller ?? null;
+  }
+
+
+  //
+  // Static members
+  //
+
+  /**
    * Adds the config schema for this class to the given validator.
    *
    * @param {JsonSchema} validator The validator to add to.
@@ -128,88 +215,6 @@ export class ApplicationManager {
     } else {
       validator.addSchema(schema);
     }
-  }
-
-  /**
-   * Constructs an instance.
-   *
-   * @param {object} config Configuration object.
-   */
-  constructor(config) {
-    ApplicationManager.#validateConfig(config);
-
-    if (config.app) {
-      this.#addControllerFor(config.app);
-    }
-
-    if (config.apps) {
-      for (const app of config.apps) {
-        this.#addControllerFor(app);
-      }
-    }
-  }
-
-  /**
-   * Creates a single-app server. TODO: This is scaffolding for the transition
-   * from single- to multi-app support.
-   *
-   * @param {string} name Name of the application to serve.
-   * @param {Warehouse} warehouse Warehouse of configured parts.
-   * @returns {ServerController} Appropriately-constructed instance.
-   */
-  makeSingleApplicationServer(name, warehouse) {
-    const controller = this.#findController(name);
-
-    if (controller === null) {
-      throw new Error(`No such app: ${name}`);
-    }
-
-    const app = controller.app;
-    const mounts = controller.mounts;
-
-    if (mounts.length !== 1) {
-      throw new Error(`No unique mount for application: ${controller.name}`);
-    } else if (mounts[0].path !== '/') {
-      throw new Error(`Only top-level mounts for now, not: ${mounts[0].path}`);
-    }
-
-    const serverName = mounts[0].server;
-    const serverController = warehouse.serverManager.findController(serverName);
-    serverController.serverApp.use('/', app.middleware);
-
-    return serverController;
-  }
-
-  /**
-   * Constructs a {@link ApplicationController} based on the given information,
-   * and adds a mapping to {@link #controllers} so it can be found.
-   *
-   * @param {object} appItem Single application item from a configuration
-   * object.
-   */
-  #addControllerFor(appItem) {
-    const controller = new ApplicationController(appItem);
-    const name = controller.name;
-
-    console.log(`Binding application ${name}.`);
-
-    if (this.#controllers.has(name)) {
-      throw new Error(`Duplicate application: ${name}`);
-    }
-
-    this.#controllers.set(name, controller);
-  }
-
-  /**
-   * Finds the {@link ApplicationController} for a given application name.
-   *
-   * @param {string} name Application name to look for.
-   * @returns {?ApplicationController} The associated information, or `null`
-   *   if nothing suitable is found.
-   */
-  #findController(name) {
-    const controller = this.#controllers.get(name);
-    return controller ?? null;
   }
 
   /**
