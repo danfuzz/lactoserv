@@ -3,8 +3,9 @@
 
 import { BaseApplication } from '#p/BaseApplication';
 
+import { JsonSchema } from '@this/typey';
+
 import express from 'express';
-import { Validator } from 'jsonschema';
 
 /**
  * Static content server. Configuration object details:
@@ -55,7 +56,7 @@ export class StaticApplication extends BaseApplication {
    * @param {object} config Configuration object.
    */
   static #validateConfig(config) {
-    const v = new Validator();
+    const validator = new JsonSchema('Static Server Configuration');
 
     const pathPattern =
       '^' +
@@ -65,8 +66,8 @@ export class StaticApplication extends BaseApplication {
       '(?!.*/$)' +         // No slash at the end.
       '/[^/]';             // Starts with a slash. Has at least one component.
 
-    const schema = {
-      title: 'static-server',
+    validator.addMainSchema({
+      $id: '/StaticApplication',
       type: 'object',
       required: ['assetsPath'],
       properties: {
@@ -75,18 +76,13 @@ export class StaticApplication extends BaseApplication {
           pattern: pathPattern
         }
       }
-    };
+    });
 
-    const result = v.validate(config, schema);
-    const errors = result.errors;
+    const error = validator.validate(config);
 
-    if (errors.length !== 0) {
-      console.log('Configuration error%s:', (errors.length === 1) ? '' : 's');
-      for (const e of errors) {
-        console.log('  %s', e.stack);
-      }
-
-      throw new Error('Invalid configuration.');
+    if (error) {
+      error.log(console);
+      error.throwError();
     }
   }
 }

@@ -136,7 +136,6 @@ export class RedirectApplication extends BaseApplication {
 
     validator.addMainSchema({
       $id: '/RedirectApplication',
-      title: 'redirect-application',
       type: 'object',
       required: ['redirects'],
       properties: {
