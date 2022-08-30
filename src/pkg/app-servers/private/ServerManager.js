@@ -3,7 +3,7 @@
 
 import { ServerController } from '#p/ServerController';
 
-import { Validator } from 'jsonschema';
+import { JsonSchema } from '@this/typey';
 
 // Types referenced only in doc comments.
 import { HostManager } from '#p/HostManager';
@@ -41,8 +41,9 @@ export class ServerManager {
    * Adds the config schema for this class to the given validator.
    *
    * @param {Validator} validator The validator to add to.
+   * @param {boolean} [main = false] Is this the main schema?
    */
-  static addConfigSchemaTo(validator) {
+  static addConfigSchemaTo(validator, main) {
     // Allows alphanumeric strings that contain dashes, but don't start or end
     // with a dash.
     const serverNamePattern = '^(?!-)[-a-zA-Z0-9]+(?<!-)$';
@@ -55,7 +56,7 @@ export class ServerManager {
       '$';
 
     const schema = {
-      title: 'server-config',
+      $id: '/ServerManager',
       oneOf: [
         {
           title: 'server',
@@ -107,7 +108,12 @@ export class ServerManager {
       }
     };
 
-    validator.addSchema(schema, '/ServerManager');
+    if (main) {
+      validator.addMainSchema(schema);
+    } else {
+      // TODO: Remove second argument.
+      validator.addSchema(schema, '/ServerManager');
+    }
   }
 
   /**
@@ -173,19 +179,14 @@ export class ServerManager {
    * @param {object} config Configuration object.
    */
   static #validateConfig(config) {
-    const v = new Validator();
-    this.addConfigSchemaTo(v);
+    const validator = new JsonSchema();
+    this.addConfigSchemaTo(validator, true);
 
-    const result = v.validate(config, { $ref: '/ServerManager' });
-    const errors = result.errors;
+    const error = validator.validate(config);
 
-    if (errors.length !== 0) {
-      console.log('Configuration error%s:', (errors.length === 1) ? '' : 's');
-      for (const e of errors) {
-        console.log('  %s', e.stack);
-      }
-
-      throw new Error('Invalid configuration.');
+    if (error) {
+      error.log(console);
+      error.throwError();
     }
   }
 }
