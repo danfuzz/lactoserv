@@ -5,6 +5,8 @@ import { BaseApplication } from '#p/BaseApplication';
 
 import express from 'express';
 import { Validator } from 'jsonschema';
+import Ajv from 'ajv';
+import ajvFormats from 'ajv-formats';
 
 import { URL } from 'node:url';
 
@@ -94,43 +96,56 @@ export class RedirectApplication extends BaseApplication {
    * @param {object} config Configuration object.
    */
   static #validateConfig(config) {
-    const v = new Validator();
+    const v = new Ajv({
+      allErrors: true,
+      verbose: true
+      // discriminator: true,
+      // formats: { name: format, ... },
+      // schemas: { id: { ... }, ...},
+      // logger: ...
+    });
+    ajvFormats(v);
 
     // Validator for `fromPath`, mostly done by treating it as the path part of
-    // a URL.
-    v.customFormats.fromPath = (input) => {
-      // Must start with a slash.
-      if (! /^[/]/.test(input)) {
-        return false;
-      }
+    // a URL. (Note: Can add formats via constructor option.)
+    v.addFormat('fromPath', {
+      validate: (input) => {
+        // Must start with a slash.
+        if (! /^[/]/.test(input)) {
+          return false;
+        }
 
-      try {
-        const url = new URL(`http://x${input}`);
-        return (url.pathname === input)
-          && (! /[/]{2}/.test(url.pathname)) // No empty components.
-          && (/[/]$/.test(url.pathname));    // Path ends with a slash.
-      } catch {
-        return false;
+        try {
+          const url = new URL(`http://x${input}`);
+          return (url.pathname === input)
+            && (! /[/]{2}/.test(url.pathname)) // No empty components.
+            && (/[/]$/.test(url.pathname));    // Path ends with a slash.
+        } catch {
+          return false;
+        }
       }
-    };
+    });
 
     // Additional restrictions on `toUri`, beyond basic URI syntax.
-    v.customFormats.toUri = (input) => {
-      try {
-        const url = new URL(input);
-        return (/^https?:$/.test(url.protocol))
-          && (url.username === '')
-          && (url.password === '')
-          && (input.endsWith(url.pathname))
-          && (! /[/]{2}/.test(url.pathname)) // No empty components.
-          && (/[/]$/.test(url.pathname));    // Path ends with a slash.
-      } catch {
-        return false;
+    v.addFormat('toUri', {
+      validate: (input) => {
+        try {
+          const url = new URL(input);
+          return (/^https?:$/.test(url.protocol))
+            && (url.username === '')
+            && (url.password === '')
+            && (input.endsWith(url.pathname))
+            && (! /[/]{2}/.test(url.pathname)) // No empty components.
+            && (/[/]$/.test(url.pathname));    // Path ends with a slash.
+        } catch {
+          return false;
+        }
       }
-    };
+    });
 
     const schema = {
-      title: 'redirect-server',
+      $id: '/RedirectApplication',
+      title: 'redirect-application',
       type: 'object',
       required: ['redirects'],
       properties: {
@@ -163,17 +178,20 @@ export class RedirectApplication extends BaseApplication {
         }
       }
     };
+    v.addSchema(schema);
 
-    const result = v.validate(config, schema);
-    const errors = result.errors;
-
-    if (errors.length !== 0) {
-      console.log('Configuration error%s:', (errors.length === 1) ? '' : 's');
-      for (const e of errors) {
-        console.log('  %s', e.stack);
-      }
-
-      throw new Error('Invalid configuration.');
+    const result = v.validate('/RedirectApplication', config);
+    if (result) {
+      return;
     }
+
+    const errors = v.errors;
+
+    console.log('Configuration error%s:', (errors.length === 1) ? '' : 's');
+    for (const e of errors) {
+      console.log('%s:\n  %s\n  got: %o', e.instancePath, e.message, e.data);
+    }
+
+    throw new Error('Invalid configuration.');
   }
 }
