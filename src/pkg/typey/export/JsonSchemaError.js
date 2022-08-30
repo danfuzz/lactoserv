@@ -28,7 +28,8 @@ export class JsonSchemaError {
    * Prints out this instance in a reasonably human-friendly form.
    *
    * @param {Function|{log: Function}} logger Function or `log`-function-bearing
-   *   object to use for printing.
+   *   object to use for printing. Note: This is expected to behave like
+   *   `console.log()`, in terms of `%`-formatting and `\n`-appending.
    */
   log(logger) {
     if (((typeof logger) === 'object') && logger.log) {
@@ -36,13 +37,26 @@ export class JsonSchemaError {
       logger = (...args) => origLogger.log(...args);
     }
 
-    logger('%s\n', `${this.#getMessage()}:`);
+    logger('%s', `${this.#getMessage()}:`);
 
     for (const e of this.#errors) {
-      console.log('%s:\n  %s\n  got: %o', e.instancePath, e.message, e.data);
+      const origPath = e.instancePath.replace(/^[/]/, '').split('/');
+      const path = [];
+      for (const component of origPath) {
+        if (component.match(/^[0-9]+$/)) {
+          path.push(`[${component}]`);
+        } else if (path.length === 0) {
+          path.push(component);
+        } else {
+          path.push(`.${component}`);
+        }
+      }
+
+      console.log('  %s:\n    %s\n    got: %o',
+        path.join(''), e.message, e.data);
     }
 
-    logger('\n');
+    logger();
   }
 
   /**
