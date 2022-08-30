@@ -3,7 +3,7 @@
 
 import { ApplicationController } from '#p/ApplicationController';
 
-import { Validator } from 'jsonschema';
+import { JsonSchema } from '@this/typey';
 
 // Types referenced only in doc comments.
 import { ServerController } from '#p/ServerController';
@@ -44,8 +44,9 @@ export class ApplicationManager {
    * Adds the config schema for this class to the given validator.
    *
    * @param {Validator} validator The validator to add to.
+   * @param {boolean} [main = false] Is this the main schema?
    */
-  static addConfigSchemaTo(validator) {
+  static addConfigSchemaTo(validator, main = false) {
     // Allows alphanumeric strings that contain dashes, but don't start or end
     // with a dash.
     const nameComponent = '(?!-)[-a-zA-Z0-9]+(?<!-)';
@@ -53,7 +54,7 @@ export class ApplicationManager {
     const mountPattern = `//${nameComponent}(/${nameComponent})*/`;
 
     const schema = {
-      title: 'application-config',
+      $id: '/ApplicationManager',
       oneOf: [
         {
           title: 'app',
@@ -122,7 +123,12 @@ export class ApplicationManager {
       }
     };
 
-    validator.addSchema(schema, '/ApplicationManager');
+    if (main) {
+      validator.addMainSchema(schema);
+    } else {
+      // TODO: Remove second argument.
+      validator.addSchema(schema, '/ApplicationManager');
+    }
   }
 
   /**
@@ -213,19 +219,14 @@ export class ApplicationManager {
    * @param {object} config Configuration object.
    */
   static #validateConfig(config) {
-    const v = new Validator();
-    this.addConfigSchemaTo(v);
+    const validator = new JsonSchema('Application Manager Configuration');
+    this.addConfigSchemaTo(validator, true);
 
-    const result = v.validate(config, { $ref: '/ApplicationManager' });
-    const errors = result.errors;
+    const error = validator.validate(config);
 
-    if (errors.length !== 0) {
-      console.log('Configuration error%s:', (errors.length === 1) ? '' : 's');
-      for (const e of errors) {
-        console.log('  %s', e.stack);
-      }
-
-      throw new Error('Invalid configuration.');
+    if (error) {
+      error.log(console);
+      error.throwError();
     }
   }
 }
