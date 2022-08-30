@@ -35,8 +35,6 @@ export class JsonSchema {
       allErrors: true,
       verbose: true
       // discriminator: true,
-      // formats: { name: format, ... },
-      // schemas: { id: { ... }, ...},
       // logger: ...
     });
 
