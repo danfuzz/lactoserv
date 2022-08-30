@@ -168,6 +168,21 @@ export class HostManager {
   //
 
   /**
+   * {string} Regex pattern which matches a hostname. This allows regular dotted
+   * names (`foo.example.com`), regular names prefixed with a wildcard
+   * (`*.example.com`), and complete wildcards (`*`). Name components must not
+   * start or end with a dash.
+   */
+  static get HOSTNAME_PATTERN() {
+    const simpleName = '(?!-)[-a-zA-Z0-9]+(?<!-)';
+    return '^(' +
+          '[*]' +
+          '|' +
+          `([*][.])?(${simpleName}[.])*${simpleName}` +
+          ')$';
+  }
+
+  /**
    * Adds the config schema for this class to the given validator.
    *
    * @param {JsonSchema} validator The validator to add to.
@@ -190,17 +205,6 @@ export class HostManager {
       pemLines +
       '-----END PRIVATE KEY-----' +
       '\n*$';
-
-    // Allows regular dotted names, a regular name prefixed with a wildcard
-    // (`*.<name>`), or just a wildcard (`*`). Note that name components must
-    // not start or end with a dash.
-    const simpleName = '(?!-)[-a-zA-Z0-9]+(?<!-)';
-    const hostNamePattern =
-      '^(' +
-      '[*]' +
-      '|' +
-      `([*][.])?(${simpleName}[.])*${simpleName}` +
-      ')$';
 
     const schema = {
       $id: '/HostManager',
@@ -247,11 +251,7 @@ export class HostManager {
               title: 'name',
               required: ['name'],
               properties: {
-                name: {
-                  type: 'string',
-                  pattern: hostNamePattern
-                  //$ref: '#/$defs/hostName'
-                }
+                name: { $ref: '#/$defs/hostname' }
               }
             },
             {
@@ -261,15 +261,15 @@ export class HostManager {
                 names: {
                   type: 'array',
                   uniqueItems: true,
-                  items: { $ref: '#/$defs/hostName' }
+                  items: { $ref: '#/$defs/hostname' }
                 }
               }
             }
           ]
         },
-        hostName: {
+        hostname: {
           type: 'string',
-          pattern: hostNamePattern
+          pattern: this.HOSTNAME_PATTERN
         }
       }
     };

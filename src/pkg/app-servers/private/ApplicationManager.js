@@ -21,10 +21,10 @@ import { Warehouse } from '#x/Warehouse';
  * * `{string} name` -- Symbolic name of the application. This is used in
  *   logging and messaging.
  * * `{string} mount` or `{string[]} mounts` -- Mount points for the
- *   application. Each mount point is of the form `//<server-name>/` or
- *   `//<server-name>/<base-path>/`, where `server-name` is the name of a
- *   configured server, and `base-path` is the absolute path which the
- *   application should respond to.
+ *   application. Each mount point is of the form `//<hostname>/` or
+ *   `//<hostname>/<base-path>/`, where `hostname` is the name of a configured
+ *   host, and `base-path` is the absolute path which the application should
+ *   respond to on that host.
  * * `{string} type` -- The type (class) of server. Several built-in types are
  *   available, and it is possible for clients of this system to define new
  *   types.
