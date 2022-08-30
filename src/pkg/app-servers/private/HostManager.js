@@ -62,8 +62,8 @@ export class HostManager {
    *
    * @param {string} name Hostname to look for, which may be a partial or full
    *   wildcard.
-   * @returns {?{cert: string, key: string}} Object mapping `cert` and `key`; or
-   *  `null` if no hostname match is found.
+   * @returns {?{cert: string, key: string}} Configuration info, or `null` if no
+   *  hostname match is found.
    */
   findConfig(name) {
     const controller = this.#findController(name);
