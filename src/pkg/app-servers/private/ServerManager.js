@@ -40,7 +40,7 @@ export class ServerManager {
   /**
    * Adds the config schema for this class to the given validator.
    *
-   * @param {Validator} validator The validator to add to.
+   * @param {JsonSchema} validator The validator to add to.
    * @param {boolean} [main = false] Is this the main schema?
    */
   static addConfigSchemaTo(validator, main) {
