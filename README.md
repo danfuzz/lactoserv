@@ -32,6 +32,7 @@ class Florp {
     #privateMethod() { ... }
     ...
 
+
     //
     // Static members
     //
