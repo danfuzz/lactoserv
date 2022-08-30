@@ -20,14 +20,15 @@ class Florp {
 
     constructor() { ... }
 
-    get accessor() { ... }
-    set accessor() { ... }
-    get another() { ... }
+    get publicAccessor() { ... }
+    set publicAccessor() { ... }
+    get anotherPublic() { ... }
     ...
 
     publicMethod() { ... }
     ...
 
+    get #privateAccessor() { ... }
     #privateMethod() { ... }
     ...
 
@@ -38,7 +39,13 @@ class Florp {
     static #privateField;
     ...
 
+    static get publicAccessor() { ... }
+    ...
+
     static publicMethod() { ... }
+    ...
+
+    static get #privateAccessor() { ... }
     ...
 
     static #privateMethod() { ... }
