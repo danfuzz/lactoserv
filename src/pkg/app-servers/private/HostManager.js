@@ -82,10 +82,10 @@ export class HostManager {
     // not start or end with a dash.
     const simpleName = '(?!-)[-a-zA-Z0-9]+(?<!-)';
     const hostNamePattern =
-      '^' +
+      '^(' +
       '[*]' +
       `|([*][.])?(${simpleName}[.])*${simpleName}` +
-      '$';
+      ')$';
 
     const schema = {
       $id: '/HostManager',
@@ -132,7 +132,11 @@ export class HostManager {
               title: 'name',
               required: ['name'],
               properties: {
-                name: { $ref: '#/$defs/hostName' }
+                name: {
+                  type: 'string',
+                  pattern: hostNamePattern
+                  //$ref: '#/$defs/hostName'
+                }
               }
             },
             {
