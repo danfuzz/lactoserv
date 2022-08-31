@@ -2,6 +2,7 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { HostController } from '#p/HostController';
+import { TreePathMap } from '#p/TreePathMap';
 
 import { JsonSchema } from '@this/typey';
 
@@ -32,26 +33,29 @@ import { SecureContext } from 'node:tls';
  */
 export class HostManager {
   /**
-   * {Map<string, HostController>} Map from each hostname / wildcard to the
+   * {TreePathMap<HostController>} Map from each componentized hostname to the
    * {@link HostController} object that should be used for it.
    */
-  #controllers = new Map();
+  #controllers = new TreePathMap();
 
   /**
    * Constructs an instance.
    *
-   * @param {object} config Configuration object.
+   * @param {?object} [config = null] Configuration object. If `null`, this
+   *   constructs an empty instance.
    */
-  constructor(config) {
-    HostManager.#validateConfig(config);
+  constructor(config = null) {
+    if (config !== null) {
+      HostManager.#validateConfig(config);
 
-    if (config.host) {
-      this.#addControllerFor(config.host);
-    }
+      if (config.host) {
+        this.#addControllerFor(config.host);
+      }
 
-    if (config.hosts) {
-      for (const host of config.hosts) {
-        this.#addControllerFor(host);
+      if (config.hosts) {
+        for (const host of config.hosts) {
+          this.#addControllerFor(host);
+        }
       }
     }
   }
@@ -92,6 +96,31 @@ export class HostManager {
   }
 
   /**
+   * Makes an instance with a subset of bindings.
+   *
+   * @param {string[]} names Hostnames (including wildcards) which are to be
+   *   included in the subset.
+   * @returns {HostManager} Subsetted instance.
+   * @throws {Error} Thrown if any of the `names` isn't bound in this instance.
+   */
+  makeSubset(names) {
+    const result = new HostManager();
+
+    for (const name of names) {
+      const info = HostController.pathFromName(name, true);
+      const found = this.#controllers.find(info.path, info.wildcard);
+
+      if (!found) {
+        throw new Error(`No binding for hostname: ${name}`);
+      }
+
+      result.#controllers.add(info.path, info.wildcard, found.value);
+    }
+
+    return result;
+  }
+
+  /**
    * Wrapper for {@link #findContext} in the exact form that is expected as an
    * `SNICallback` configured in the options of a call to (something like)
    * `http2.createSecureServer()`.
@@ -121,11 +150,9 @@ export class HostManager {
     const controller = new HostController(hostItem);
 
     for (const name of controller.names) {
+      const info = HostController.pathFromName(name, true);
       console.log(`Binding hostname ${name}.`);
-      if (this.#controllers.has(name)) {
-        throw new Error(`Duplicate hostname: ${name}`);
-      }
-      this.#controllers.set(name, controller);
+      this.#controllers.add(info.path, info.wildcard, controller);
     }
   }
 
@@ -138,28 +165,10 @@ export class HostManager {
    *   suitable is found.
    */
   #findController(name) {
-    for (;;) {
-      const controller = this.#controllers.get(name);
-      if (controller) {
-        return controller;
-      }
+    const info = HostController.pathFromName(name, true);
+    const found = this.#controllers.find(info.path, info.wildcard);
 
-      if (name === '*') {
-        // We just failed to find a wildcard match.
-        return null;
-      }
-
-      // Strip off the leading wildcard (if any) and first name component, and
-      // add a wildcard back on.
-      const newName = name.replace(/^([*][.])?[^.]+([.]|$)/, '*.');
-      if ((name === newName) || (newName === '*.')) {
-        // `name === newName` avoids an infinite loop when the original `name`
-        // is either undotted or not in the expected/valid syntax.
-        name = '*';
-      } else {
-        name = newName;
-      }
-    }
+    return found ? found.value : null;
   }
 
 
