@@ -2,7 +2,7 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { ApplicationController } from '#p/ApplicationController';
-import { HostManager } from '#p/HostManager';
+import { HostController } from '#p/HostController';
 
 import { JsonSchema } from '@this/typey';
 
@@ -135,7 +135,7 @@ export class ApplicationManager {
     const nameComponent = '(?!-)[-a-zA-Z0-9]+(?<!-)';
     const namePattern = `^${nameComponent}$`;
     const mountPattern =
-      `^//${HostManager.HOSTNAME_PATTERN_FRAGMENT}(/${nameComponent})*/$`;
+      `^//${HostController.HOSTNAME_PATTERN_FRAGMENT}(/${nameComponent})*/$`;
 
     const schema = {
       $id: '/ApplicationManager',

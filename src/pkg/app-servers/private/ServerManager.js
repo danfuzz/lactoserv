@@ -1,6 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { HostController } from '#p/HostController';
 import { HostManager } from '#p/HostManager';
 import { ServerController } from '#p/ServerController';
 
@@ -204,7 +205,7 @@ export class ServerManager {
         },
         hostname: {
           type: 'string',
-          pattern: HostManager.HOSTNAME_PATTERN
+          pattern: HostController.HOSTNAME_PATTERN
         }
       }
     };

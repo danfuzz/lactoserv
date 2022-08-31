@@ -177,31 +177,6 @@ export class HostManager {
   //
 
   /**
-   * @returns {string} Regex pattern which matches a hostname, but _not_
-   * anchored to only match a full string.
-   */
-  static get HOSTNAME_PATTERN_FRAGMENT() {
-    const simpleName = '(?!-)[-a-zA-Z0-9]+(?<!-)';
-    return '(?:' +
-          '[*]' +
-          '|' +
-          `(?:[*][.])?(?:${simpleName}[.])*${simpleName}` +
-          ')';
-  }
-
-  /**
-   * @returns {string} Regex pattern which matches a hostname, anchored so that
-   * it matches a complete string.
-   *
-   * This pattern allows regular dotted names (`foo.example.com`), regular names
-   * prefixed with a wildcard (`*.example.com`), and complete wildcards (`*`).
-   * Name components must not start or end with a dash.
-   */
-  static get HOSTNAME_PATTERN() {
-    return `^${this.HOSTNAME_PATTERN_FRAGMENT}$`;
-  }
-
-  /**
    * Adds the config schema for this class to the given validator.
    *
    * @param {JsonSchema} validator The validator to add to.
@@ -288,7 +263,7 @@ export class HostManager {
         },
         hostname: {
           type: 'string',
-          pattern: this.HOSTNAME_PATTERN
+          pattern: HostController.HOSTNAME_PATTERN
         }
       }
     };
