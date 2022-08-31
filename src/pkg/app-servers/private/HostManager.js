@@ -2,6 +2,7 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { HostController } from '#p/HostController';
+import { TreePathMap } from '#p/TreePathMap';
 
 import { JsonSchema } from '@this/typey';
 
@@ -32,10 +33,10 @@ import { SecureContext } from 'node:tls';
  */
 export class HostManager {
   /**
-   * {Map<string, HostController>} Map from each hostname / wildcard to the
+   * {TreePathMap<HostController>} Map from each componentized hostname to the
    * {@link HostController} object that should be used for it.
    */
-  #controllers = new Map();
+  #controllers = new TreePathMap();
 
   /**
    * Constructs an instance.
@@ -121,11 +122,9 @@ export class HostManager {
     const controller = new HostController(hostItem);
 
     for (const name of controller.names) {
+      const info = HostController.pathFromName(name, true);
       console.log(`Binding hostname ${name}.`);
-      if (this.#controllers.has(name)) {
-        throw new Error(`Duplicate hostname: ${name}`);
-      }
-      this.#controllers.set(name, controller);
+      this.#controllers.add(info.path, info.wildcard, controller);
     }
   }
 
@@ -138,28 +137,10 @@ export class HostManager {
    *   suitable is found.
    */
   #findController(name) {
-    for (;;) {
-      const controller = this.#controllers.get(name);
-      if (controller) {
-        return controller;
-      }
+    const info = HostController.pathFromName(name, true);
+    const found = this.#controllers.find(info.path, info.wildcard);
 
-      if (name === '*') {
-        // We just failed to find a wildcard match.
-        return null;
-      }
-
-      // Strip off the leading wildcard (if any) and first name component, and
-      // add a wildcard back on.
-      const newName = name.replace(/^([*][.])?[^.]+([.]|$)/, '*.');
-      if ((name === newName) || (newName === '*.')) {
-        // `name === newName` avoids an infinite loop when the original `name`
-        // is either undotted or not in the expected/valid syntax.
-        name = '*';
-      } else {
-        name = newName;
-      }
-    }
+    return found ? found.value : null;
   }
 
 
