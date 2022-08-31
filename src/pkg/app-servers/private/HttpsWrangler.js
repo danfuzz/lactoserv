@@ -5,7 +5,7 @@ import { BaseWrangler } from '#p/BaseWrangler';
 
 import express from 'express';
 
-import * as https from 'https';
+import * as https from 'node:https';
 
 /**
  * Wrangler for `HttpsServer`.

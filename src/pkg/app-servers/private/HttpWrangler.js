@@ -5,7 +5,7 @@ import { BaseWrangler } from '#p/BaseWrangler';
 
 import express from 'express';
 
-import * as http from 'http';
+import * as http from 'node:http';
 
 /**
  * Wrangler for `HttpServer`.

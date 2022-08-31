@@ -5,8 +5,8 @@ import { Warehouse } from '@this/app-servers';
 import { Dirs } from '@this/util-host';
 
 import * as fs from 'node:fs/promises';
-import * as timers from 'timers';
-import * as url from 'url';
+import * as timers from 'node:timers';
+import * as url from 'node:url';
 
 /**
  * Top-level logic for starting a server.
