@@ -111,9 +111,9 @@ export class TreePathMap {
         value:         foundValue,
         wildcard:      true
       };
-    } else {
-      return null;
     }
+
+    return null;
   }
 
   /**

@@ -22,7 +22,8 @@ export class ServerController {
 
   /**
    * {HostManager} Host manager with bindings for all valid hostnames for this
-   * instance. */
+   * instance.
+   */
   #hostManager;
 
   /** {string} Interface address. */
