@@ -6,6 +6,42 @@
  */
 export class MustBe {
   /**
+   * Checks for type `*[]`.
+   *
+   * @param {*} value Arbitrary value.
+   * @returns {*[]} `value` if it is of type `*[]`.
+   * @throws {Error} Thrown if `value` is of any other type.
+   */
+  static array(value) {
+    if ((typeof value === 'object') && (value.constructor === Array)) {
+      return value;
+    }
+
+    throw new Error('Must be of type `*[]` (array of anything).');
+  }
+
+  /**
+   * Checks for type `string[]`.
+   *
+   * @param {*} value Arbitrary value.
+   * @returns {string[]} `value` if it is of type `string[]`.
+   * @throws {Error} Thrown if `value` is of any other type.
+   */
+  static arrayOfString(value) {
+    check:
+    if ((typeof value === 'object') && (value.constructor === Array)) {
+      for (const v of value) {
+        if (typeof v !== 'string') {
+          break check;
+        }
+      }
+      return value;
+    }
+
+    throw new Error('Must be of type `string[]`.');
+  }
+
+  /**
    * Checks for type `boolean`.
    *
    * @param {*} value Arbitrary value.
