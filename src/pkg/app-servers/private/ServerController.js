@@ -20,8 +20,10 @@ export class ServerController {
   /** {string} Server name. */
   #name;
 
-  /** {string[]} Hosts to consider valid. */
-  #hosts;
+  /**
+   * {HostManager} Host manager with bindings for all valid hostnames for this
+   * instance. */
+  #hostManager;
 
   /** {string} Interface address. */
   #interface;
@@ -58,13 +60,13 @@ export class ServerController {
 
     const hostArray = serverConfig.host ? [serverConfig.host] : [];
     const hostsArray = serverConfig.hosts ?? [];
-    this.#hosts = Object.freeze([...hostArray, ...hostsArray]);
+    this.#hostManager = hostManager.makeSubset([...hostArray, ...hostsArray]);
 
     this.#interface = serverConfig.interface;
     this.#port      = serverConfig.port;
     this.#protocol  = serverConfig.protocol;
     this.#wrangler  = WranglerFactory.forProtocol(this.#protocol);
-    this.#server    = this.#wrangler.createServer(hostManager);
+    this.#server    = this.#wrangler.createServer(this.#hostManager);
     this.#serverApp = this.#wrangler.createApplication();
 
     this.#configureServerApp();

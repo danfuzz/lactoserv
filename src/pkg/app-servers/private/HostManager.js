@@ -41,18 +41,21 @@ export class HostManager {
   /**
    * Constructs an instance.
    *
-   * @param {object} config Configuration object.
+   * @param {?object} [config = null] Configuration object. If `null`, this
+   *   constructs an empty instance.
    */
-  constructor(config) {
-    HostManager.#validateConfig(config);
+  constructor(config = null) {
+    if (config !== null) {
+      HostManager.#validateConfig(config);
 
-    if (config.host) {
-      this.#addControllerFor(config.host);
-    }
+      if (config.host) {
+        this.#addControllerFor(config.host);
+      }
 
-    if (config.hosts) {
-      for (const host of config.hosts) {
-        this.#addControllerFor(host);
+      if (config.hosts) {
+        for (const host of config.hosts) {
+          this.#addControllerFor(host);
+        }
       }
     }
   }
@@ -90,6 +93,31 @@ export class HostManager {
   findContext(name) {
     const controller = this.#findController(name);
     return controller ? controller.secureContext : null;
+  }
+
+  /**
+   * Makes an instance with a subset of bindings.
+   *
+   * @param {string[]} names Hostnames (including wildcards) which are to be
+   *   included in the subset.
+   * @returns {HostManager} Subsetted instance.
+   * @throws {Error} Thrown if any of the `names` isn't bound in this instance.
+   */
+  makeSubset(names) {
+    const result = new HostManager();
+
+    for (const name of names) {
+      const info = HostController.pathFromName(name, true);
+      const found = this.#controllers.find(info.path, info.wildcard);
+
+      if (!found) {
+        throw new Error(`No binding for hostname: ${name}`);
+      }
+
+      result.#controllers.add(info.path, info.wildcard, found.value);
+    }
+
+    return result;
   }
 
   /**
