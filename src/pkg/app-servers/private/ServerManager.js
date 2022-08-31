@@ -83,7 +83,17 @@ export class ServerManager {
    * @param {HostManager} hostManager Host / certificate manager.
    */
   #addControllerFor(serverItem, hostManager) {
-    const controller = new ServerController(serverItem, hostManager);
+    const hostArray = serverItem.host ? [serverItem.host] : [];
+    const hostsArray = serverItem.hosts ?? [];
+
+    const config = {
+      ...serverItem,
+      hostManager: hostManager.makeSubset([...hostArray, ...hostsArray])
+    };
+    delete config.host;
+    delete config.hosts;
+
+    const controller = new ServerController(config);
     const name = controller.name;
 
     console.log(`Binding server ${name}.`);

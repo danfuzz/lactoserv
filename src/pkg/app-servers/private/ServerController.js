@@ -7,7 +7,7 @@ import { Condition } from '@this/async';
 
 // Types referenced only in doc comments.
 //import { BaseWrangler } from '#p/BaseWrangler';
-import { HostManager } from '#p/HostManager';
+//import { HostManager } from '#p/HostManager';
 import * as express from 'express';
 //import * as net from 'node:net';
 
@@ -53,22 +53,19 @@ export class ServerController {
   /**
    * Constructs an insance.
    *
-   * @param {object} serverConfig Server information configuration item.
-   * @param {HostManager} hostManager Host / certificate manager.
+   * @param {object} serverConfig Server information configuration item. Same
+   *   as what's in the exposed config object, except with `host` / `hosts`
+   *   replaced with `hostManager`.
    */
-  constructor(serverConfig, hostManager) {
-    this.#name      = serverConfig.name;
-
-    const hostArray = serverConfig.host ? [serverConfig.host] : [];
-    const hostsArray = serverConfig.hosts ?? [];
-    this.#hostManager = hostManager.makeSubset([...hostArray, ...hostsArray]);
-
-    this.#interface = serverConfig.interface;
-    this.#port      = serverConfig.port;
-    this.#protocol  = serverConfig.protocol;
-    this.#wrangler  = WranglerFactory.forProtocol(this.#protocol);
-    this.#server    = this.#wrangler.createServer(this.#hostManager);
-    this.#serverApp = this.#wrangler.createApplication();
+  constructor(serverConfig) {
+    this.#name        = serverConfig.name;
+    this.#hostManager = serverConfig.hostManager;
+    this.#interface   = serverConfig.interface;
+    this.#port        = serverConfig.port;
+    this.#protocol    = serverConfig.protocol;
+    this.#wrangler    = WranglerFactory.forProtocol(this.#protocol);
+    this.#server      = this.#wrangler.createServer(this.#hostManager);
+    this.#serverApp   = this.#wrangler.createApplication();
 
     this.#configureServerApp();
   }
