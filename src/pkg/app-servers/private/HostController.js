@@ -5,9 +5,6 @@ import { MustBe } from '@this/typey';
 
 import * as tls from 'node:tls';
 
-// Types referenced only in doc comments.
-import { SecureContext } from 'node:tls';
-
 /**
  * "Controller" for a single host entry, which can notably offer services for
  * multiple different hosts.
@@ -24,7 +21,9 @@ export class HostController {
   /** @type {string} Key, in PEM form. */
   #key;
 
-  /** @type {SecureContext} TLS context representing this instance's info. */
+  /**
+   * @type {tls.SecureContext} TLS context representing this instance's info.
+   */
   #secureContext;
 
   /**
@@ -63,7 +62,9 @@ export class HostController {
     return this.#key;
   }
 
-  /** @returns {SecureContext} TLS context representing this instance's info. */
+  /**
+   * @returns {tls.SecureContext} TLS context representing this instance's info.
+   */
   get secureContext() {
     return this.#secureContext;
   }
