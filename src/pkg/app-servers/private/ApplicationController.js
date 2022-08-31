@@ -10,13 +10,13 @@ import { BaseApplication } from '#p/BaseApplication';
  * "Controller" for a single application.
  */
 export class ApplicationController {
-  /** {string} Application name. */
+  /** @type {string} Application name. */
   #name;
 
-  /** {{hostname: string, path: string}[]} Mount points. */
+  /** @type {{hostname: string, path: string}[]} Mount points. */
   #mounts;
 
-  /** {BaseApplication} Actual application instance. */
+  /** @type {BaseApplication} Actual application instance. */
   #app;
 
   /**

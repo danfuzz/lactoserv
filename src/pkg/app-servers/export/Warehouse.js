@@ -21,16 +21,16 @@ import { ServerController } from '#p/ServerController';
  * * `{object} app` or `{object[]} apps` -- Application configuration.
  */
 export class Warehouse {
-  /** {object} Configuration object. */
+  /** @type {object} Configuration object. */
   #config;
 
-  /** {ApplicationManager} Application manager. */
+  /** @type {ApplicationManager} Application manager. */
   #applicationManager;
 
-  /** {?HostManager} Host manager, if configured. */
+  /** @type {?HostManager} Host manager, if configured. */
   #hostManager;
 
-  /** {ServerManager} Server manager, for all server bindings. */
+  /** @type {ServerManager} Server manager, for all server bindings. */
   #serverManager;
 
   /**
