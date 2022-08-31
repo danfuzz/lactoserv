@@ -1,6 +1,8 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { MustBe } from '@this/typey';
+
 import * as util from 'node:util';
 
 /**
@@ -46,6 +48,9 @@ export class TreePathMap {
    *   `{path, wildcard}` combination.
    */
   add(path, wildcard, value) {
+    MustBe.arrayOfString(path);
+    MustBe.boolean(wildcard);
+
     this.#add0(path, wildcard, value, 0);
   }
 
