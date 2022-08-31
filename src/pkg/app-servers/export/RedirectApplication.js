@@ -26,7 +26,7 @@ import { URL } from 'node:url';
  * [*] unless implied by the protocol.
  */
 export class RedirectApplication extends BaseApplication {
-  /** {express:Router} Router with all the redirects. */
+  /** @type {express.Router} Router with all the redirects. */
   #router;
 
   /**

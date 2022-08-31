@@ -8,7 +8,7 @@ import { MustBe } from '@this/typey';
  * Boolean condition with promise-attached level triggers.
  */
 export class Condition {
-  /** {boolean} Current value. */
+  /** @type {boolean} Current value. */
   #value;
 
   /**

@@ -6,10 +6,10 @@ import { WranglerFactory } from '#p/WranglerFactory';
 import { Condition } from '@this/async';
 
 // Types referenced only in doc comments.
-//import { BaseWrangler } from '#p/BaseWrangler';
-//import { HostManager } from '#p/HostManager';
+import { BaseWrangler } from '#p/BaseWrangler';
+import { HostManager } from '#p/HostManager';
 import * as express from 'express';
-//import * as net from 'node:net';
+import * as net from 'node:net';
 
 /**
  * "Controller" for a single server. This wraps both a (concrete subclass of a)
@@ -17,37 +17,37 @@ import * as express from 'express';
  * _exclusively_ handles that server.
  */
 export class ServerController {
-  /** {string} Server name. */
+  /** @type {string} Server name. */
   #name;
 
   /**
-   * {HostManager} Host manager with bindings for all valid hostnames for this
-   * instance.
+   * @type {HostManager} Host manager with bindings for all valid hostnames for
+   * this instance.
    */
   #hostManager;
 
-  /** {string} Interface address. */
+  /** @type {string} Interface address. */
   #interface;
 
-  /** {int} Port number. */
+  /** @type {number} Port number. */
   #port;
 
-  /** {string} Protocol. */
+  /** @type {string} Protocol. */
   #protocol;
 
-  /** {BaseWrangler} Protocol-specific "wrangler." */
+  /** @type {BaseWrangler} Protocol-specific "wrangler." */
   #wrangler;
 
-  /** {net.Server} Server instance (the direct networking thingy). */
+  /** @type {net.Server} Server instance (the direct networking thingy). */
   #server;
 
   /**
-   * {express.Application} Application instance which exclusively handles the
-   * underlying server of this instance.
+   * @type {express.Application} Application instance which exclusively handles
+   * the underlying server of this instance.
    */
   #serverApp;
 
-  /** {Condition} Is the server stopped or trying to stop? */
+  /** @type {Condition} Is the server stopped or trying to stop? */
   #stopping = new Condition();
 
   /**

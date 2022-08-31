@@ -10,20 +10,23 @@ import http2ExpressBridge from 'http2-express-bridge';
 
 import * as http2 from 'node:http2';
 
+// Types referenced only in doc comments.
+import * as net from 'node:net';
+
 /**
  * Wrangler for `Http2SecureServer`.
  */
 export class Http2Wrangler extends BaseWrangler {
-  /** {?net.Server} Server being wrangled, once known. */
+  /** @type {?net.Server} Server being wrangled, once known. */
   #server = null;
 
-  /** {boolean} Is this instance stopped or trying to stop? */
+  /** @type {boolean} Is this instance stopped or trying to stop? */
   #stopping = false;
 
-  /** {Condition} Has this instance fully stopped? */
+  /** @type {Condition} Has this instance fully stopped? */
   #fullyStopped = new Condition();
 
-  /** {Set} Set of all currently-known sessions. */
+  /** @type {Set} Set of all currently-known sessions. */
   #sessions = new Set();
 
   // Note: Default constructor suffices.

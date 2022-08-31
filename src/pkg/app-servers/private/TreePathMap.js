@@ -17,16 +17,16 @@ export class TreePathMap {
    */
   #subtrees = new Map();
 
-  /** {*} Empty-path binding. */
+  /** @type {*} Empty-path binding. */
   #emptyValue = null;
 
-  /** {boolean} Is there an empty-path binding? */
+  /** @type {boolean} Is there an empty-path binding? */
   #hasEmpty = false;
 
-  /** {*} Wildcard binding. */
+  /** @type {*} Wildcard binding. */
   #wildcardValue = null;
 
-  /** {boolean} Is there a wildcard binding? */
+  /** @type {boolean} Is there a wildcard binding? */
   #hasWildcard = false;
 
   /**

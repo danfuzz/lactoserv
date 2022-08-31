@@ -11,16 +11,18 @@ import { SecureContext } from 'node:tls';
  * multiple different hosts.
  */
 export class HostController {
-  /** {string[]} List of hostnames, including partial or full wildcards. */
+  /**
+   * @type {string[]} List of hostnames, including partial or full wildcards.
+   */
   #names;
 
-  /** {string} Certificate, in PEM form. */
+  /** @type {string} Certificate, in PEM form. */
   #cert;
 
-  /** {string} Key, in PEM form. */
+  /** @type {string} Key, in PEM form. */
   #key;
 
-  /** {SecureContext} TLS context representing this instance's info. */
+  /** @type {SecureContext} TLS context representing this instance's info. */
   #secureContext;
 
   /**

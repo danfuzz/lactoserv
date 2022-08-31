@@ -10,7 +10,7 @@ import * as express from 'express';
  * Base class for the exported (public) application classes.
  */
 export class BaseApplication {
-  /** {Function} Middleware function which activates this instance. */
+  /** @type {Function} Middleware function which activates this instance. */
   #middleware;
 
   /**
