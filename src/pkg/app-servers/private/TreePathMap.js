@@ -58,6 +58,7 @@ export class TreePathMap {
    * Finds the most-specific binding for the given path.
    *
    * @param {string[]} path Path to look up.
+   * @param {boolean} [wildcard = false] Must the result be a wildcard binding?
    * @returns {?{path: string[], pathRemainder: string[], value: *,
    *   wildcard: boolean}} Information about the found result, or `null` if
    *   there was no match at all.
@@ -68,20 +69,15 @@ export class TreePathMap {
    *   * `value` -- The bound value that was found.
    *   * `wildcard` -- Was this a wildcard match?
    */
-  find(path) {
+  find(path, wildcard = false) {
     let subtree = this;
     let foundIndex = -1;
-    let result = {
-      path: null,
-      pathRemainder: null,
-      value: null,
-      wildcard: true
-    };
+    let foundValue = null;
 
     let at;
     for (at = 0; at < path.length; at++) {
       if (subtree.#hasWildcard) {
-        result.value = subtree.#wildcardValue;
+        foundValue = subtree.#wildcardValue;
         foundIndex = at;
       }
       subtree = subtree.#subtrees.get(path[at]);
@@ -90,20 +86,61 @@ export class TreePathMap {
       }
     }
 
-    if ((at === path.length) && subtree.#hasEmpty) {
-      // There's an exact match for the path.
-      result.path = [... path];
-      result.pathRemainder = [];
-      result.value = subtree.#emptyValue;
-      result.wildcard = false;
+    if (at === path.length) {
+      if (subtree.#hasEmpty && !wildcard) {
+        // There's an exact match for the path.
+        return {
+          path:          [... path],
+          pathRemainder: [],
+          value:         subtree.#emptyValue,
+          wildcard:      false
+        };
+      } else if (subtree.#hasWildcard) {
+        // There's a matching wildcard at the end of the path.
+        return {
+          path:          [... path],
+          pathRemainder: [],
+          value:         subtree.#wildcardValue,
+          wildcard:      true
+        };
+      }
     } else if (foundIndex >= 0) {
-      result.path = path.slice(0, foundIndex);
-      result.pathRemainder = path.slice(foundIndex);
+      return {
+        path:          path.slice(0, foundIndex),
+        pathRemainder: path.slice(foundIndex),
+        value:         foundValue,
+        wildcard:      true
+      };
     } else {
-      result = null;
+      return null;
+    }
+  }
+
+  /**
+   * Finds the exact given binding.
+   *
+   * @param {string[]} path The path to find.
+   * @param {boolean} wildcard Whether to find a wildcard path (`true`) or not
+   *   (`false`).
+   * @param {*} [ifNotFound = null] What to return if the binding is not found.
+   * @returns {*} The value bound for the given `{path, wildcard}` pair, or
+   *   `ifNotFound` if there is no such binding.
+   */
+  findExact(path, wildcard, ifNotFound = null) {
+    let subtree = this;
+
+    for (const p of path) {
+      subtree = subtree.#subtrees.get(p);
+      if (!subtree) {
+        return ifNotFound;
+      }
     }
 
-    return result;
+    if (wildcard) {
+      return subtree.#hasWildcard ? subtree.#wildcardValue : ifNotFound;
+    } else {
+      return subtree.#hasEmpty ? subtree.#emptyValue : ifNotFound;
+    }
   }
 
   /**
@@ -119,7 +156,7 @@ export class TreePathMap {
    *   `{path, wildcard}` combination.
    */
   #add0(path, wildcard, value, pathIndex) {
-    if (pathIndex === (path.length - 1)) {
+    if (pathIndex === path.length) {
       // Base case: Store directly in this instance.
       if (wildcard) {
         if (this.#hasWildcard) {
