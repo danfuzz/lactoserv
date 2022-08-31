@@ -249,6 +249,14 @@ export class ServerController {
 
     // Squelches the response header advertisement for Express.
     app.set('x-powered-by', false);
+
+    // TODO: Temporary logging to see what's going on.
+    app.use('/', (req, res_unused, next) => {
+      console.log('##### request: %o', {
+        hostname: req.hostname, subdomains: req.subdomains
+      });
+      next();
+    });
   }
 
   /**
