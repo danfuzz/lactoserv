@@ -7,10 +7,10 @@ import * as util from 'node:util';
  * Error result from use of {@link JsonSchema}.
  */
 export class JsonSchemaError {
-  /** {string} Schema title. */
+  /** @type {string} Schema title. */
   #title;
 
-  /** {object[]} Validation errors. */
+  /** @type {object[]} Validation errors. */
   #errors;
 
   /**

@@ -14,13 +14,13 @@ import ajvFormats from 'ajv-formats';
  * * AJV implementation: <https://ajv.js.org/>
  */
 export class JsonSchema {
-  /** {string} Schema title. */
+  /** @type {string} Schema title. */
   #title;
 
-  /** {Ajv} Underlying validator instance. */
+  /** @type {Ajv} Underlying validator instance. */
   #validator;
 
-  /** {?string} The main schema's ID, if known. */
+  /** @type {?string} The main schema's ID, if known. */
   #mainSchemaId = null;
 
   /**
