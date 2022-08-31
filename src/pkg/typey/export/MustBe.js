@@ -55,4 +55,26 @@ export class MustBe {
 
     throw new Error('Must be of type `boolean`.');
   }
+
+  /**
+   * Checks for type `string`.
+   *
+   * @param {*} value Arbitrary value.
+   * @param {?RegExp} [match = null] Optional regular expression that `value`
+   *   must match.
+   * @returns {string} `value` if it is of type `string`, and if specified which
+   *   matches `match`.
+   * @throws {Error} Thrown if `value` is of any other type or doesn't match.
+   */
+  static string(value, match = null) {
+    if (typeof value !== 'string') {
+      throw new Error('Must be of type `string`.');
+    }
+
+    if (match && !match.test(value)) {
+      throw new Error(`Must match pattern: ${match}`);
+    }
+
+    return value;
+  }
 }

@@ -1,6 +1,8 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { MustBe } from '@this/typey';
+
 import * as tls from 'node:tls';
 
 // Types referenced only in doc comments.
@@ -97,6 +99,14 @@ export class HostController {
   }
 
   /**
+   * @returns {RegExp} Regular expression that matches {@link
+   * #HOSTNAME_PATTERN}.
+   */
+  static get HOSTNAME_REGEXP() {
+    return new RegExp(this.HOSTNAME_PATTERN);
+  }
+
+  /**
    * Parses a possibly-wildcarded hostname into an object with path info.
    *
    * @param {string} name Hostname to parse.
@@ -108,6 +118,7 @@ export class HostController {
    * @throws {Error} Thrown if `name` is invalid.
    */
   static pathFromName(name, allowWildcards = false) {
+    MustBe.string(name, this.HOSTNAME_REGEXP);
     const path = name.split('.').reverse();
     let wildcard = false;
 
