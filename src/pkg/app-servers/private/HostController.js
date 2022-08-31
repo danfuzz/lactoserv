@@ -63,4 +63,36 @@ export class HostController {
   get secureContext() {
     return this.#secureContext;
   }
+
+
+  //
+  // Static members.
+  //
+
+  /**
+   * Parses a possibly-wildcarded hostname into an object with path info.
+   *
+   * @param {string} name Hostname to parse.
+   * @param {boolean} [allowWildcards = false] Is a wildcard form allowed for
+   *   `name`?
+   * @returns {{path: string[], wildcard: boolean}} Binding info. Because
+   *   hostname wildcards are at the front of the name, the `path` lists
+   *   components in back-to-front order.
+   * @throws {Error} Thrown if `name` is invalid.
+   */
+  static pathFromName(name, allowWildcards = false) {
+    const path = name.split('.').reverse();
+    let wildcard = false;
+
+    if (path[path.length - 1] === '*') {
+      path.pop();
+      wildcard = true;
+    }
+
+    if (wildcard && !allowWildcards) {
+      throw Error(`Wildcard not allowed for name: ${name}`);
+    }
+
+    return { path, wildcard };
+  }
 }
