@@ -107,7 +107,7 @@ export class HostManager {
     const result = new HostManager();
 
     for (const name of names) {
-      const info = HostController.pathFromName(name, true);
+      const info = HostController.parseName(name, true);
       const found = this.#controllers.find(info.path, info.wildcard);
 
       if (!found) {
@@ -150,7 +150,7 @@ export class HostManager {
     const controller = new HostController(hostItem);
 
     for (const name of controller.names) {
-      const info = HostController.pathFromName(name, true);
+      const info = HostController.parseName(name, true);
       console.log(`Binding hostname ${name}.`);
       this.#controllers.add(info.path, info.wildcard, controller);
     }
@@ -165,7 +165,7 @@ export class HostManager {
    *   suitable is found.
    */
   #findController(name) {
-    const info = HostController.pathFromName(name, true);
+    const info = HostController.parseName(name, true);
     const found = this.#controllers.find(info.path, info.wildcard);
 
     return found ? found.value : null;

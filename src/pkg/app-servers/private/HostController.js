@@ -118,7 +118,7 @@ export class HostController {
    *   components in back-to-front order.
    * @throws {Error} Thrown if `name` is invalid.
    */
-  static pathFromName(name, allowWildcards = false) {
+  static parseName(name, allowWildcards = false) {
     MustBe.string(name, this.HOSTNAME_REGEXP);
     const path = name.split('.').reverse();
     let wildcard = false;
