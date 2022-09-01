@@ -57,7 +57,31 @@ export class MustBe {
   }
 
   /**
-   * Checks for type `string`.
+   * Checks for type `object`, and optionally being an instance of a particular
+   * class.
+   *
+   * @param {*} value Arbitrary value.
+   * @param {?Function} [cls = null] Optional class (constructor function) that
+   *   `value` must be an instance of.
+   * @returns {object} `value` if it is of type `object`, and if specified which
+   *   is an instance of `cls`.
+   * @throws {Error} Thrown if `value` is of any other type.
+   */
+  static object(value, cls = null) {
+    if (typeof value !== 'object') {
+      throw new Error('Must be of type `object`.');
+    }
+
+    if (cls && !(value instanceof cls)) {
+      throw new Error(`Must be instance of class \`${cls.name}\`.`);
+    }
+
+    return value;
+  }
+
+  /**
+   * Checks for type `string`, and optionally matching a particular regular
+   * expression.
    *
    * @param {*} value Arbitrary value.
    * @param {?RegExp} [match = null] Optional regular expression that `value`
