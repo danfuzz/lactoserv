@@ -54,8 +54,9 @@ export class ServerController {
    * Constructs an insance.
    *
    * @param {object} serverConfig Server information configuration item. Same
-   *   as what's in the exposed config object, except with `host` / `hosts`
-   *   replaced with `hostManager`.
+   *   as what's in the exposed config object, except with `app` / `apps`
+   *   replaced by `appMounts`, and with `host` / `hosts` replaced by
+   *  `hostManager`.
    */
   constructor(serverConfig) {
     this.#name        = serverConfig.name;
@@ -67,7 +68,7 @@ export class ServerController {
     this.#server      = this.#wrangler.createServer(this.#hostManager);
     this.#serverApp   = this.#wrangler.createApplication();
 
-    this.#configureServerApp();
+    this.#configureServerApp(serverConfig.appMounts);
   }
 
   /** @returns {string} Server name. */
@@ -230,8 +231,11 @@ export class ServerController {
 
   /**
    * Configures {@link #serverApp}.
+   *
+   * @param {object[]} appMounts_unused Application mounts, in the form produced
+   *   by {@link ApplicationManager#makeMountList}.
    */
-  #configureServerApp() {
+  #configureServerApp(appMounts_unused) {
     const app = this.#serverApp;
 
     // Means paths `/foo` and `/Foo` are different.

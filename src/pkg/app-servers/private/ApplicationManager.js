@@ -34,8 +34,8 @@ import { ServerController } from '#p/ServerController';
  */
 export class ApplicationManager {
   /**
-   * @type {Map<string, ApplicationController>} Map from each hostname /
-   * wildcard to the controller that should be used for it.
+   * @type {Map<string, ApplicationController>} Map from each application name
+   * to the controller that should be used for it.
    */
   #controllers = new Map();
 
@@ -56,6 +56,36 @@ export class ApplicationManager {
         this.#addControllerFor(app);
       }
     }
+  }
+
+  /**
+   * Makes a deep-frozen "mount list" which lists bindings of mount points to
+   * corresponding {@link ApplicationController} instances, for all the given
+   * named applications.
+   *
+   * @param {string[]} names Names of all the applications to represent in the
+   *   result.
+   * @returns {{hostname: TreePathKey, path: TreePathKey,
+   *   app: ApplicationController}[]} Array of mount points with corresponding
+   *   application controllers, deep-frozen.
+   * @throws {Error} Thrown if any element of `names` does not correspond to
+   *   a defined application.
+   */
+  makeMountList(names) {
+    const result = [];
+
+    for (const name of names) {
+      const controller = this.#controllers.get(name);
+      if (!controller) {
+        throw new Error(`No such app: ${name}`);
+      }
+
+      for (const mount of controller.mounts) {
+        result.push(Object.freeze({ ...mount, app: controller }));
+      }
+    }
+
+    return Object.freeze(result);
   }
 
   /**

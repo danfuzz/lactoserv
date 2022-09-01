@@ -46,17 +46,18 @@ export class ServerManager {
    *
    * @param {object} config Configuration object.
    * @param {HostManager} hostManager Host / certificate manager.
+   * @param {ApplicationManager} applicationManager Application manager.
    */
-  constructor(config, hostManager) {
+  constructor(config, hostManager, applicationManager) {
     ServerManager.#validateConfig(config);
 
     if (config.server) {
-      this.#addControllerFor(config.server, hostManager);
+      this.#addControllerFor(config.server, hostManager, applicationManager);
     }
 
     if (config.servers) {
       for (const server of config.servers) {
-        this.#addControllerFor(server, hostManager);
+        this.#addControllerFor(server, hostManager, applicationManager);
       }
     }
   }
@@ -84,16 +85,22 @@ export class ServerManager {
    *
    * @param {object} serverItem Single server item from a configuration object.
    * @param {HostManager} hostManager Host / certificate manager.
+   * @param {ApplicationManager} applicationManager Application manager.
    */
-  #addControllerFor(serverItem, hostManager) {
-    const { host, hosts } = serverItem;
+  #addControllerFor(serverItem, hostManager, applicationManager) {
+    const { app, apps, host, hosts } = serverItem;
     const hmSubset = hostManager.makeSubset(
       JsonSchemaUtil.singularPluralCombo(host, hosts));
+    const appMounts = applicationManager.makeMountList(
+      JsonSchemaUtil.singularPluralCombo(app, apps));
 
     const config = {
       ...serverItem,
+      appMounts,
       hostManager: hmSubset
     };
+    delete config.app;
+    delete config.apps;
     delete config.host;
     delete config.hosts;
 
