@@ -2,7 +2,6 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { ApplicationController } from '#p/ApplicationController';
-import { HostController } from '#p/HostController';
 
 import { JsonSchema } from '@this/typey';
 
@@ -130,13 +129,6 @@ export class ApplicationManager {
    * @param {boolean} [main = false] Is this the main schema?
    */
   static addConfigSchemaTo(validator, main = false) {
-    // Allows alphanumeric strings that contain dashes, but don't start or end
-    // with a dash.
-    const nameComponent = '(?!-)[-a-zA-Z0-9]+(?<!-)';
-    const namePattern = `^${nameComponent}$`;
-    const mountPattern =
-      `^//${HostController.HOSTNAME_PATTERN_FRAGMENT}(/${nameComponent})*/$`;
-
     const schema = {
       $id: '/ApplicationManager',
       oneOf: [
@@ -170,11 +162,11 @@ export class ApplicationManager {
           properties: {
             name: {
               type: 'string',
-              pattern: namePattern
+              pattern: ApplicationController.NAME_PATTERN
             },
             type: {
               type: 'string',
-              pattern: namePattern
+              pattern: ApplicationController.TYPE_PATTERN
             }
           },
           oneOf: [
@@ -184,7 +176,7 @@ export class ApplicationManager {
               properties: {
                 mount: {
                   type: 'string',
-                  pattern: mountPattern
+                  pattern: ApplicationController.MOUNT_PATTERN
                 }
               }
             },
@@ -197,7 +189,7 @@ export class ApplicationManager {
                   uniqueItems: true,
                   items: {
                     type: 'string',
-                    pattern: mountPattern
+                    pattern: ApplicationController.MOUNT_PATTERN
                   }
                 }
               }
