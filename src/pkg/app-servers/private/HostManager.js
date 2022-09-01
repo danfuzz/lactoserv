@@ -108,7 +108,7 @@ export class HostManager {
 
     for (const name of names) {
       const key = HostController.parseName(name, true);
-      const found = this.#controllers.find_old(key.path, key.wildcard);
+      const found = this.#controllers.find(key);
 
       if (!found) {
         throw new Error(`No binding for hostname: ${name}`);
@@ -166,7 +166,7 @@ export class HostManager {
    */
   #findController(name) {
     const key = HostController.parseName(name, true);
-    const found = this.#controllers.find_old(key.path, key.wildcard);
+    const found = this.#controllers.find(key);
 
     return found ? found.value : null;
   }
