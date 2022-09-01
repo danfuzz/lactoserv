@@ -4,8 +4,6 @@
 import { TreePathKey } from '#p/TreePathKey';
 import { MustBe } from '@this/typey';
 
-import * as util from 'node:util';
-
 /**
  * Map from paths or partial paths to arbitrary bindings. A "path" in this case
  * is a series of zero or more string components, possibly followed by a
@@ -118,11 +116,9 @@ export class TreePathMap {
   /**
    * Helper for {@link #add}, which does most of the work.
    *
-   * @param {string[]} path Path to bind.
-   * @param {boolean} wildcard Is `path` a wildcard?
-   * @param {*} value Value to bind at the path.
-   * @throws {Error} Thrown if there is already a binding for the given
-   *   `{path, wildcard}` combination.
+   * @param {TreePathKey} key Key to bind.
+   * @param {*} value Value to bind.
+   * @throws {Error} Thrown if there is already a binding `key`.
    */
   #add0(key, value) {
     let subtree = this;
