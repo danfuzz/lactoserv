@@ -49,14 +49,12 @@ export class TreePathMap {
    * @throws {Error} Thrown if there is already a binding for the given `key`.
    */
   add(key, value) {
-    const { path, wildcard } = key;
-
     if (! (key instanceof TreePathKey)) {
-      MustBe.arrayOfString(path);
-      MustBe.boolean(wildcard);
+      MustBe.arrayOfString(key.path);
+      MustBe.boolean(key.wildcard);
     }
 
-    this.#add0(path, wildcard, value, 0);
+    this.#add0(key, value, 0);
   }
 
   /**
@@ -147,18 +145,20 @@ export class TreePathMap {
    * @throws {Error} Thrown if there is already a binding for the given
    *   `{path, wildcard}` combination.
    */
-  #add0(path, wildcard, value, pathIndex) {
+  #add0(key, value, pathIndex) {
+    const { path, wildcard } = key;
+
     if (pathIndex === path.length) {
       // Base case: Store directly in this instance.
       if (wildcard) {
         if (this.#hasWildcard) {
-          throw this.#errorMessage('Path already bound', path, wildcard);
+          throw this.#errorMessage('Path already bound', key);
         }
         this.#wildcardValue = value;
         this.#hasWildcard = value;
       } else {
         if (this.#hasEmpty) {
-          throw this.#errorMessage('Path already bound', path, wildcard);
+          throw this.#errorMessage('Path already bound', key);
         }
         this.#emptyValue = value;
         this.#hasEmpty = value;
@@ -171,7 +171,7 @@ export class TreePathMap {
         subtree = new TreePathMap();
         this.#subtrees.set(pathItem, subtree);
       }
-      subtree.#add0(path, wildcard, value, pathIndex + 1);
+      subtree.#add0(key, value, pathIndex + 1);
     }
   }
 
@@ -233,16 +233,15 @@ export class TreePathMap {
    * Returns a composed error message, suitable for `throw`ing.
    *
    * @param {string} msg Basic message.
-   * @param {string[]} path Path in question.
-   * @param {boolean} wildcard Is `path` a wildcard?
+   * @param {TreePathKey} key Key in question.
    * @returns {string} The composed error message.
    */
-  #errorMessage(msg, path, wildcard) {
-    const pathStrings = path.map(s => util.format('%o', s));
-    if (wildcard) {
-      pathStrings.push('*');
-    }
-
-    return `${msg}: [${pathStrings.join(', ')}]`;
+  #errorMessage(msg, key) {
+    return key.toString({
+      prefix:    `${msg}: [`,
+      suffix:    ']',
+      quote:     true,
+      separator: ', '
+    });
   }
 }
