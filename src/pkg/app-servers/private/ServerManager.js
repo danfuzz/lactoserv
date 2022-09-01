@@ -1,6 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { ApplicationController } from '#p/ApplicationController';
 import { HostController } from '#p/HostController';
 import { HostManager } from '#p/HostManager';
 import { ServerController } from '#p/ServerController';
@@ -22,6 +23,8 @@ import { JsonSchema } from '@this/typey';
  *   bindings to indicate which server(s) an application is served from.
  * * `{string} host` or `{string[]} hosts` -- Names of hosts which this server
  *   should accept as valid. Can include partial or complete wildcards.
+ * * `{string} app` or `{string[]} apps` -- Names of apps which this server
+ *   should provide access to.
  * * `{string} interface` -- Address of the physical interface that the server
  *   is to listen on. `*` indicates that all interfaces should be listened on.
  *   Note: `::` and `0.0.0.0` are not allowed; use `*` instead.
@@ -157,47 +160,79 @@ export class ServerManager {
 
       $defs: {
         serverItem: {
-          type: 'object',
-          required: ['interface', 'name', 'port', 'protocol'],
-          properties: {
-            interface: {
-              type: 'string',
-              pattern: interfacePattern
-            },
-            name: {
-              type: 'string',
-              pattern: serverNamePattern
-            },
-            port: {
-              type: 'integer',
-              minimum: 1,
-              maximum: 65535
-            },
-            protocol: {
-              type: 'string',
-              enum: ['http', 'http2', 'https']
-            }
-          },
-          oneOf: [
+          allOf: [
             {
               type: 'object',
-              required: ['host'],
+              required: ['interface', 'name', 'port', 'protocol'],
               properties: {
-                host: { $ref: '#/$defs/hostname' }
-              }
-            },
-            {
-              type: 'object',
-              required: ['hosts'],
-              properties: {
-                servers: {
-                  type: 'array',
-                  uniqueItems: true,
-                  items: { $ref: '#/$defs/hostname' }
+                interface: {
+                  type: 'string',
+                  pattern: interfacePattern
+                },
+                name: {
+                  type: 'string',
+                  pattern: serverNamePattern
+                },
+                port: {
+                  type: 'integer',
+                  minimum: 1,
+                  maximum: 65535
+                },
+                protocol: {
+                  type: 'string',
+                  enum: ['http', 'http2', 'https']
                 }
               }
+            },
+            {
+              oneOf: [
+                {
+                  type: 'object',
+                  required: ['host'],
+                  properties: {
+                    host: { $ref: '#/$defs/hostname' }
+                  }
+                },
+                {
+                  type: 'object',
+                  required: ['hosts'],
+                  properties: {
+                    hosts: {
+                      type: 'array',
+                      uniqueItems: true,
+                      items: { $ref: '#/$defs/hostname' }
+                    }
+                  }
+                },
+              ]
+            },
+            {
+              oneOf: [
+                {
+                  type: 'object',
+                  required: ['app'],
+                  properties: {
+                    app: { $ref: '#/$defs/appName' }
+                  }
+                },
+                {
+                  type: 'object',
+                  required: ['apps'],
+                  properties: {
+                    apps: {
+                      type: 'array',
+                      uniqueItems: true,
+                      items: { $ref: '#/$defs/appName' }
+                    }
+                  }
+                }
+              ]
             }
           ]
+        },
+        appName: {
+          type: 'string',
+          pattern: ApplicationController.NAME_PATTERN
         },
         hostname: {
           type: 'string',

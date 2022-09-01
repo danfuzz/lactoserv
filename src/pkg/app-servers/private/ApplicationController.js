@@ -140,9 +140,9 @@ export class ApplicationController {
     const { hostname, path } = topParse.groups;
     const pathParts = path ? path.split('/') : [];
 
-    // `true` below because all mounts are effectively wildcards.
+    // `TreePathKey...true` below because all mounts are effectively wildcards.
     return Object.freeze({
-      hostname: HostController.parseName(hostname),
+      hostname: HostController.parseName(hostname, true),
       path:     new TreePathKey(pathParts, true)
     });
   }
