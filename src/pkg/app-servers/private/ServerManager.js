@@ -6,7 +6,7 @@ import { HostController } from '#p/HostController';
 import { HostManager } from '#p/HostManager';
 import { ServerController } from '#p/ServerController';
 
-import { JsonSchema } from '@this/typey';
+import { JsonSchema, JsonSchemaUtil } from '@this/typey';
 
 
 /**
@@ -137,26 +137,8 @@ export class ServerManager {
 
     const schema = {
       $id: '/ServerManager',
-      oneOf: [
-        {
-          type: 'object',
-          required: ['server'],
-          properties: {
-            server: { $ref: '#/$defs/serverItem' }
-          }
-        },
-        {
-          type: 'object',
-          required: ['servers'],
-          properties: {
-            servers: {
-              type: 'array',
-              uniqueItems: true,
-              items: { $ref: '#/$defs/serverItem' }
-            }
-          }
-        }
-      ],
+      ... JsonSchemaUtil
+        .singularOrPlural('server', 'servers', { $ref: '#/$defs/serverItem' }),
 
       $defs: {
         serverItem: {
@@ -184,50 +166,10 @@ export class ServerManager {
                 }
               }
             },
-            {
-              oneOf: [
-                {
-                  type: 'object',
-                  required: ['host'],
-                  properties: {
-                    host: { $ref: '#/$defs/hostname' }
-                  }
-                },
-                {
-                  type: 'object',
-                  required: ['hosts'],
-                  properties: {
-                    hosts: {
-                      type: 'array',
-                      uniqueItems: true,
-                      items: { $ref: '#/$defs/hostname' }
-                    }
-                  }
-                },
-              ]
-            },
-            {
-              oneOf: [
-                {
-                  type: 'object',
-                  required: ['app'],
-                  properties: {
-                    app: { $ref: '#/$defs/appName' }
-                  }
-                },
-                {
-                  type: 'object',
-                  required: ['apps'],
-                  properties: {
-                    apps: {
-                      type: 'array',
-                      uniqueItems: true,
-                      items: { $ref: '#/$defs/appName' }
-                    }
-                  }
-                }
-              ]
-            }
+            JsonSchemaUtil
+              .singularOrPlural('host', 'hosts', { $ref: '#/$defs/hostname' }),
+            JsonSchemaUtil
+              .singularOrPlural('app', 'apps', { $ref: '#/$defs/appName' })
           ]
         },
         appName: {
