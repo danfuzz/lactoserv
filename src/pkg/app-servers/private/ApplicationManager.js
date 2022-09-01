@@ -34,8 +34,8 @@ import { ServerController } from '#p/ServerController';
  */
 export class ApplicationManager {
   /**
-   * @type {Map<string, ServerInfo>} Map from each hostname / wildcard to the
-   * {@link ServerInfo} object that should be used for it.
+   * @type {Map<string, ApplicationController>} Map from each hostname /
+   * wildcard to the controller that should be used for it.
    */
   #controllers = new Map();
 

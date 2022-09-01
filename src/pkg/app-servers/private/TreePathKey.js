@@ -34,12 +34,12 @@ export class TreePathKey {
     this.#wildcard = wildcard;
   }
 
-  /** @return {string[]} The path. */
+  /** @returns {string[]} The path. */
   get path() {
     return this.#path;
   }
 
-  /** @return {boolean} The wildcard indicator. */
+  /** @returns {boolean} The wildcard indicator. */
   get wildcard() {
     return this.#wildcard;
   }
