@@ -92,7 +92,7 @@ export class TreePathMap {
    *   * `value` -- The bound value that was found.
    *   * `wildcard` -- Was this a wildcard match?
    */
-  find(path, wildcard = false) {
+  find_old(path, wildcard = false) {
     let subtree = this;
     let foundIndex = -1;
     let foundValue = null;
