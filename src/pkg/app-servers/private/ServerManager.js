@@ -13,9 +13,8 @@ import { JsonSchema, JsonSchemaUtil } from '@this/typey';
  * Manager for dealing with all the network-bound server endpoints of a system.
  * Configuration object details:
  *
- * * `{object} server` -- Object representing endpoint information for a single
- *   server.
- * * `{object[]} servers` -- Array of server information objects.
+ * * `{object} server` or `{object[]} servers`-- Objects, each of which
+ *   represents endpoint information for a single server.
  *
  * Server info details:
  *

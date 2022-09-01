@@ -12,8 +12,8 @@ import { ServerController } from '#p/ServerController';
  * Manager for dealing with all the high-level applications that are running or
  * to be run in the system. Configuration object details:
  *
- * * `{object} app` -- Object representing information for a single application.
- * * `{object[]} apps` -- Array of application information objects.
+ * * `{object} app` or `{object[]} apps` -- Objects which each represents
+ *   information for a single application.
  *
  * Application info details:
  *
