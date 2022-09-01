@@ -48,7 +48,7 @@ export class TreePathMap {
    * @throws {Error} Thrown if there is already a binding for the given
    *   `{path, wildcard}` combination.
    */
-  add(path, wildcard, value) {
+  add_old(path, wildcard, value) {
     MustBe.arrayOfString(path);
     MustBe.boolean(wildcard);
 
