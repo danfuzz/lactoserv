@@ -163,26 +163,31 @@ export class TreePathMap {
   }
 
   /**
-   * Finds the exact given binding.
+   * Finds the exact given binding. This will only find bindings that were added
+   * with the exact same pair of `path` and `wildcard` as are being looked up.
    *
-   * @param {string[]} path The path to find.
-   * @param {boolean} wildcard Whether to find a wildcard path (`true`) or not
-   *   (`false`).
-   * @param {*} [ifNotFound = null] What to return if the binding is not found.
-   * @returns {*} The value bound for the given `{path, wildcard}` pair, or
-   *   `ifNotFound` if there is no such binding.
+   * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to look
+   *   up.
+   * @param {*} [ifNotFound = null] What to return if a binding is not found.
+   * @returns {*} The value bound for the given `key`, or `ifNotFound` if there
+   *   is no such binding.
    */
-  findExact(path, wildcard, ifNotFound = null) {
+  findExact(key, ifNotFound = null) {
+    if (! (key instanceof TreePathKey)) {
+      MustBe.arrayOfString(key.path);
+      MustBe.boolean(key.wildcard);
+    }
+
     let subtree = this;
 
-    for (const p of path) {
+    for (const p of key.path) {
       subtree = subtree.#subtrees.get(p);
       if (!subtree) {
         return ifNotFound;
       }
     }
 
-    if (wildcard) {
+    if (key.wildcard) {
       return subtree.#hasWildcard ? subtree.#wildcardValue : ifNotFound;
     } else {
       return subtree.#hasEmpty ? subtree.#emptyValue : ifNotFound;
