@@ -14,7 +14,7 @@ import express from 'express';
  *   static assets.
  */
 export class StaticApplication extends BaseApplication {
-  /* {function} "Middleware" handler function for this instance. */
+  /* @type {function} "Middleware" handler function for this instance. */
   #handleRequest;
 
   /**

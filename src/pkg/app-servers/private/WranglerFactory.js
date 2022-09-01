@@ -13,8 +13,8 @@ import { BaseWrangler } from '#p/BaseWrangler';
  */
 export class WranglerFactory {
   /**
-   * {Map<string, class>} Map from each protocol name to the wrangler subclass
-   * that handles it.
+   * @type {Map<string, class>} Map from each protocol name to the wrangler
+   * subclass that handles it.
    */
   static #WRANGLER_CLASSES = new Map(Object.entries({
     http:  HttpWrangler,

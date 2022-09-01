@@ -34,8 +34,8 @@ import { JsonSchema } from '@this/typey';
  */
 export class ServerManager {
   /**
-   * {Map<string, ServerController>} Map from each hostname / wildcard to the
-   * {@link ServerController} object that should be used for it.
+   * @type {Map<string, ServerController>} Map from each hostname / wildcard to
+   * the {@link ServerController} object that should be used for it.
    */
   #controllers = new Map();
 

@@ -33,8 +33,8 @@ import { SecureContext } from 'node:tls';
  */
 export class HostManager {
   /**
-   * {TreePathMap<HostController>} Map from each componentized hostname to the
-   * {@link HostController} object that should be used for it.
+   * @type {TreePathMap<HostController>} Map from each componentized hostname to
+   * the {@link HostController} object that should be used for it.
    */
   #controllers = new TreePathMap();
 

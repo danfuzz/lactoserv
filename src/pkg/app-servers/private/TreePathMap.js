@@ -12,8 +12,9 @@ import * as util from 'node:util';
  */
 export class TreePathMap {
   /**
-   * {Map<string, TreePathMap>} Bindings from each initial path component to a
-   * {@link TreePathMap} instance which contains mappings for that component.
+   * @type {Map<string, TreePathMap>} Bindings from each initial path component
+   * to a {@link TreePathMap} instance which contains mappings for that
+   * component.
    */
   #subtrees = new Map();
 
