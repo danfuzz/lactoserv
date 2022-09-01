@@ -41,4 +41,21 @@ export class JsonSchemaUtil {
       ]
     };
   }
+
+  /**
+   * Combines an optional single item with an optional array to produce an
+   * array of all elements. This is used to conveniently merge a pair of
+   * singular-or-plural property pairs, as validated for example by a schema
+   * produced by {@link #singularOrPlural} into a unified and frozen whole.
+   *
+   * @param {?*} item Optional single item.
+   * @param {?*[]} items Optional array.
+   * @returns {*[]} Combined array, which is also frozen.
+   */
+  static singularPluralCombo(item, items) {
+    const itemArray = item ? [item] : [];
+    const itemsArray = items ?? [];
+
+    return Object.freeze([...itemArray, ...itemsArray]);
+  }
 }
