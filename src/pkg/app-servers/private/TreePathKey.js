@@ -70,27 +70,26 @@ export class TreePathKey {
 
     options = options ? { ...defaultOptions, ...options } : defaultOptions;
 
-    const path = quote
+    const path = options.quote
       ? this.#path.map(p => util.format('%o', p))
       : [...this.#path];
 
     if (this.#wildcard) {
-      path.push(wildcard);
+      path.push(options.wildcard);
     }
 
-    if (reverse) {
+    if (options.reverse) {
       path.reverse();
     }
 
     const result = [];
     for (const p of path) {
-      const sepOrPre = (result.length === 0) ? prefix : separator;
       result.push(
-        (result.length === 0) ? prefix : separator,
+        (result.length === 0) ? options.prefix : options.separator,
         p);
     }
 
-    result.push(suffix);
+    result.push(options.suffix);
     return result.join('');
   }
 }
