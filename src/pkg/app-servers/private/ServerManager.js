@@ -86,12 +86,13 @@ export class ServerManager {
    * @param {HostManager} hostManager Host / certificate manager.
    */
   #addControllerFor(serverItem, hostManager) {
-    const hostArray = serverItem.host ? [serverItem.host] : [];
-    const hostsArray = serverItem.hosts ?? [];
+    const { host, hosts } = serverItem;
+    const hmSubset = hostManager.makeSubset(
+      JsonSchemaUtil.singularPluralCombo(host, hosts));
 
     const config = {
       ...serverItem,
-      hostManager: hostManager.makeSubset([...hostArray, ...hostsArray])
+      hostManager: hmSubset
     };
     delete config.host;
     delete config.hosts;
