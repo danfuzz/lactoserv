@@ -80,7 +80,8 @@ export class HostController {
    *
    * This pattern allows regular dotted names (`foo.example.com`), regular names
    * prefixed with a wildcard (`*.example.com`), and complete wildcards (`*`).
-   * Name components must not start or end with a dash.
+   * Name components are non-empty strings of alphanumerics plus `-`, which
+   * furthermore must not start or end with a dash.
    */
   static get HOSTNAME_PATTERN() {
     return `^${this.HOSTNAME_PATTERN_FRAGMENT}$`;
