@@ -321,7 +321,7 @@ export class ServerController {
       '(?!(.*:){8})' +         // No more than seven colons total.
       '(?=(::|[^:]))' +        // Must start with double-colon or digit.
       '[:0-9A-Fa-f]{2,39}' +   // (Bunch of valid characters.)
-      '(?<=(::|[^:]))'         // Must end with double-colon or digit.
+      '(?<=(::|[^:]))';        // Must end with double-colon or digit.
 
     return `^(${anyAddress}|${dnsName}|${ipv4Address}|${ipv6Address})$`;
   }
