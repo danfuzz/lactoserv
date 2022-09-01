@@ -2,7 +2,8 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { TreePathKey } from '#p/TreePathKey';
-import { MustBe } from '@this/typey';
+
+import { JsonSchemaUtil, MustBe } from '@this/typey';
 
 import * as tls from 'node:tls';
 
@@ -33,17 +34,12 @@ export class HostController {
    * @param {object} hostConfig Host configuration item.
    */
   constructor(hostConfig) {
-    const nameArray = hostConfig.name ? [hostConfig.name] : [];
-    const namesArray = hostConfig.names ?? [];
-    this.#names = [...nameArray, ...namesArray];
+    const { cert, key, name, names } = hostConfig;
 
-    this.#cert = hostConfig.cert;
-    this.#key = hostConfig.key;
-
-    this.#secureContext = tls.createSecureContext({
-      cert: this.#cert,
-      key:  this.#key
-    });
+    this.#names         = JsonSchemaUtil.singularPluralCombo(name, names);
+    this.#cert          = cert;
+    this.#key           = key;
+    this.#secureContext = tls.createSecureContext({ cert, key });
   }
 
   /**

@@ -5,7 +5,7 @@ import { ApplicationFactory } from '#p/ApplicationFactory';
 import { HostController } from '#p/HostController';
 import { TreePathKey } from '#p/TreePathKey';
 
-import { MustBe } from '@this/typey';
+import { JsonSchemaUtil, MustBe } from '@this/typey';
 
 // Types referenced only in doc comments.
 import { BaseApplication } from '#p/BaseApplication';
@@ -31,12 +31,9 @@ export class ApplicationController {
   constructor(appConfig) {
     this.#name = appConfig.name;
 
-    const mountArray = appConfig.mount ? [appConfig.mount] : [];
-    const mountsArray = appConfig.mounts ?? [];
-    this.#mounts = Object.freeze(
-      [...mountArray, ...mountsArray].map(mount =>
-        ApplicationController.#parseMount(mount))
-    );
+    this.#mounts =
+      Object.freeze(JsonSchemaUtil.singularPluralCombo(appConfig.mount, appConfig.mounts))
+        .map(mount => ApplicationController.#parseMount(mount));
 
     const extraConfig = { ...appConfig };
     delete extraConfig.name;
