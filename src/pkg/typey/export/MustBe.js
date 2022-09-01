@@ -61,8 +61,8 @@ export class MustBe {
    * class.
    *
    * @param {*} value Arbitrary value.
-   * @param {?Function} [cls = null] Optional class (constructor function) that
-   *   `value` must be an instance of.
+   * @param {?function(new:*, ...*)} [cls = null] Optional class (constructor
+   *   function) that `value` must be an instance of.
    * @returns {object} `value` if it is of type `object`, and if specified which
    *   is an instance of `cls`.
    * @throws {Error} Thrown if `value` is of any other type.
