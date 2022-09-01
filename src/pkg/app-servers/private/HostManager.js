@@ -204,7 +204,6 @@ export class HostManager {
       $id: '/HostManager',
       oneOf: [
         {
-          title: 'host',
           type: 'object',
           required: ['host'],
           properties: {
@@ -212,7 +211,6 @@ export class HostManager {
           }
         },
         {
-          title: 'hosts',
           type: 'object',
           required: ['hosts'],
           properties: {
@@ -227,7 +225,6 @@ export class HostManager {
 
       $defs: {
         hostItem: {
-          title: 'host-info',
           type: 'object',
           required: ['cert', 'key'],
           properties: {
@@ -242,14 +239,12 @@ export class HostManager {
           },
           oneOf: [
             {
-              title: 'name',
               required: ['name'],
               properties: {
                 name: { $ref: '#/$defs/hostname' }
               }
             },
             {
-              title: 'names',
               required: ['names'],
               properties: {
                 names: {

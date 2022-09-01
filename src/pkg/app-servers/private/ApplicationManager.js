@@ -133,7 +133,6 @@ export class ApplicationManager {
       $id: '/ApplicationManager',
       oneOf: [
         {
-          title: 'app',
           type: 'object',
           required: ['app'],
           properties: {
@@ -141,7 +140,6 @@ export class ApplicationManager {
           }
         },
         {
-          title: 'apps',
           type: 'object',
           required: ['apps'],
           properties: {
@@ -156,7 +154,6 @@ export class ApplicationManager {
 
       $defs: {
         appItem: {
-          title: 'app-item',
           type: 'object',
           required: ['name', 'type'],
           properties: {
