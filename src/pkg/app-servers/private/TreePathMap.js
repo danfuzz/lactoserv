@@ -1,6 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { TreePathKey } from '#p/TreePathKey';
 import { MustBe } from '@this/typey';
 
 import * as util from 'node:util';
@@ -35,6 +36,27 @@ export class TreePathMap {
    */
   constructor() {
     // Nothing to do here.
+  }
+
+  /**
+   * Adds a binding for the given path.
+   *
+   * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to bind.
+   *   If `.wildcard` is `false`, then this method only binds the `.path`. If
+   *   `key.wildcard` is `true`, then this method binds all paths with `.path`
+   *   as a prefix, including `.path` itself.
+   * @param {*} value Value to bind at `key`.
+   * @throws {Error} Thrown if there is already a binding for the given `key`.
+   */
+  add(key, value) {
+    const { path, wildcard } = key;
+
+    if (! (key instanceof TreePathKey)) {
+      MustBe.arrayOfString(path);
+      MustBe.boolean(wildcard);
+    }
+
+    this.#add0(path, wildcard, value, 0);
   }
 
   /**
