@@ -47,14 +47,9 @@ export class ApplicationManager {
   constructor(config) {
     ApplicationManager.#validateConfig(config);
 
-    if (config.app) {
-      this.#addControllerFor(config.app);
-    }
-
-    if (config.apps) {
-      for (const app of config.apps) {
-        this.#addControllerFor(app);
-      }
+    const apps = JsonSchemaUtil.singularPluralCombo(config.app, config.apps);
+    for (const app of apps) {
+      this.#addControllerFor(app);
     }
   }
 

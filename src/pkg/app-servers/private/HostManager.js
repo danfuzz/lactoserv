@@ -45,14 +45,10 @@ export class HostManager {
     if (config !== null) {
       HostManager.#validateConfig(config);
 
-      if (config.host) {
-        this.#addControllerFor(config.host);
-      }
-
-      if (config.hosts) {
-        for (const host of config.hosts) {
-          this.#addControllerFor(host);
-        }
+      const hosts =
+        JsonSchemaUtil.singularPluralCombo(config.host, config.hosts);
+      for (const host of hosts) {
+        this.#addControllerFor(host);
       }
     }
   }

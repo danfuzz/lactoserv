@@ -51,14 +51,10 @@ export class ServerManager {
   constructor(config, hostManager, applicationManager) {
     ServerManager.#validateConfig(config);
 
-    if (config.server) {
-      this.#addControllerFor(config.server, hostManager, applicationManager);
-    }
-
-    if (config.servers) {
-      for (const server of config.servers) {
-        this.#addControllerFor(server, hostManager, applicationManager);
-      }
+    const servers =
+      JsonSchemaUtil.singularPluralCombo(config.server, config.servers);
+    for (const server of servers) {
+      this.#addControllerFor(server, hostManager, applicationManager);
     }
   }
 
