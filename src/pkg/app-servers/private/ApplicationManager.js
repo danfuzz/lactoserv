@@ -7,6 +7,7 @@ import { JsonSchema, JsonSchemaUtil } from '@this/typey';
 
 // Types referenced only in doc comments.
 import { ServerController } from '#p/ServerController';
+import { TreePathKey } from '#p/TreePathKey';
 
 /**
  * Manager for dealing with all the high-level applications that are running or

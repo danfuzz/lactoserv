@@ -8,6 +8,8 @@ import { ServerController } from '#p/ServerController';
 
 import { JsonSchema, JsonSchemaUtil } from '@this/typey';
 
+// Types referenced only in doc comments.
+import { ApplicationManager } from '#p/ApplicationManager';
 
 /**
  * Manager for dealing with all the network-bound server endpoints of a system.
