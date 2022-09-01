@@ -3,7 +3,7 @@
 
 import { ApplicationController } from '#p/ApplicationController';
 
-import { JsonSchema } from '@this/typey';
+import { JsonSchema, JsonSchemaUtil } from '@this/typey';
 
 // Types referenced only in doc comments.
 import { ServerController } from '#p/ServerController';
@@ -131,26 +131,8 @@ export class ApplicationManager {
   static addConfigSchemaTo(validator, main = false) {
     const schema = {
       $id: '/ApplicationManager',
-      oneOf: [
-        {
-          type: 'object',
-          required: ['app'],
-          properties: {
-            app: { $ref: '#/$defs/appItem' }
-          }
-        },
-        {
-          type: 'object',
-          required: ['apps'],
-          properties: {
-            apps: {
-              type: 'array',
-              uniqueItems: true,
-              items: { $ref: '#/$defs/appItem' }
-            }
-          }
-        }
-      ],
+      ... JsonSchemaUtil
+        .singularOrPlural('app', 'apps', { $ref: '#/$defs/appItem' }),
 
       $defs: {
         appItem: {
@@ -166,32 +148,12 @@ export class ApplicationManager {
               pattern: ApplicationController.TYPE_PATTERN
             }
           },
-          oneOf: [
-            {
-              type: 'object',
-              required: ['mount'],
-              properties: {
-                mount: {
-                  type: 'string',
-                  pattern: ApplicationController.MOUNT_PATTERN
-                }
-              }
-            },
-            {
-              type: 'object',
-              required: ['mounts'],
-              properties: {
-                mounts: {
-                  type: 'array',
-                  uniqueItems: true,
-                  items: {
-                    type: 'string',
-                    pattern: ApplicationController.MOUNT_PATTERN
-                  }
-                }
-              }
-            }
-          ]
+          ... JsonSchemaUtil
+            .singularOrPlural('mount', 'mounts', { $ref: '#/$defs/mountItem' }),
+        },
+        mountItem: {
+          type: 'string',
+          pattern: ApplicationController.MOUNT_PATTERN
         }
       }
     };

@@ -87,9 +87,9 @@ export class Main {
       ],
       apps: [
         {
-          name: 'my-wacky-redirector',
-          mount: '//*/',
-          type: 'redirect-server',
+          name:      'my-wacky-redirector',
+          mounts:    ['//*/'],
+          type:      'redirect-server',
           redirects: [
             {
               fromPath: '/',
