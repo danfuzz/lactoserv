@@ -1,8 +1,6 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import * as util from 'node:util';
-
 /**
  * Utilities for dealing with JSON Schema.
  */
