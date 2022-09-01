@@ -316,10 +316,12 @@ export class ServerController {
       '(?=.*:)' +              // AFAWC, IPv6 requires a colon _somewhere_.
       '(?![:0]+)' +            // No IPv6 "any" addresses.
       '(?!.*:::)' +            // No triple-colons (or quad-, etc.).
-      '(?!.*::.*::)' +         // No more than one double-colon.
+      '(?!.*::{2})' +          // No more than one double-colon.
       '(?!.*[0-9A-Fa-f]{5})' + // No more than four digits in a row.
       '(?!(.*:){8})' +         // No more than seven colons total.
-      '[:0-9A-Fa-f]{2,39}';
+      '(?=(::|[^:]))' +        // Must start with double-colon or digit.
+      '[:0-9A-Fa-f]{2,39}' +   // (Bunch of valid characters.)
+      '(?<=(::|[^:]))'         // Must end with double-colon or digit.
 
     return `^(${anyAddress}|${dnsName}|${ipv4Address}|${ipv6Address})$`;
   }
