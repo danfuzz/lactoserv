@@ -289,6 +289,36 @@ export class ServerController {
   //
 
   /**
+   * @returns {string} Regex pattern which matches an interface name or
+   * address, anchored so that it matches a complete string.
+   *
+   * This pattern allows normal dotted DNS names, numeric IPv4 and IPv6 names
+   * _except_ not "any" addresses, or the special "name" `*` to represent the
+   * "any" address.
+   */
+  static get INTERFACE_PATTERN() {
+    // The one allowed "any" address.
+    const anyAddress = '[*]';
+
+    // Normal DNS names.
+    const nameComponent = '(?![-0-9])[-a-zA-Z0-9]+(?<!-)';
+    const dnsName       = `${nameComponent}(?:[.]${nameComponent})*`;
+
+    // IPv4 address.
+    const ipv4Address =
+      '(?!0+[.]0+[.]0+[.]0+)' + // No IPv4 "any" addresses.
+      '[0-9]{1,3}(?:[.][0-9]{1,3}){3}';
+
+    // IPv6 address.
+    const ipv6Address =
+      '(?=.*:)' +      // AFAWC, IPv6 addresses need a colon _somewhere_.
+      '(?![:0]+)' +    // No IPv6 "any" addresses.
+      '[:0-9A-Fa-f]+'; // A bit over-permissive here.
+
+    return `^(${anyAddress}|${dnsName}|${ipv4Address}|${ipv6Address})$`;
+  }
+
+  /**
    * @returns {string} Regex pattern which matches a server name, anchored so
    * that it matches a complete string.
    *

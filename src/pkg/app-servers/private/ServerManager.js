@@ -126,16 +126,6 @@ export class ServerManager {
    * @param {boolean} [main = false] Is this the main schema?
    */
   static addConfigSchemaTo(validator, main) {
-    const interfacePattern =
-      '^(' +
-      '[*]' +                   // The one allowed "any" address.
-      '|' +
-      '(?!::|(0+[.]){0,3}0+)' + // No IPv4 or IPv6 "any" addresses.
-      '(?![-.])' +              // Doesn't start with `-` or `.`.
-      '[-.:a-zA-Z0-9]+' +       // A bit over-permissive here.
-      '(?<![-.])' +             // Doesn't end with `-` or `.`.
-      ')$';
-
     const schema = {
       $id: '/ServerManager',
       ... JsonSchemaUtil
@@ -150,7 +140,7 @@ export class ServerManager {
               properties: {
                 interface: {
                   type: 'string',
-                  pattern: interfacePattern
+                  pattern: ServerController.INTERFACE_PATTERN
                 },
                 name: {
                   type: 'string',
