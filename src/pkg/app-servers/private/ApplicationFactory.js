@@ -9,8 +9,8 @@ import { BaseApplication } from '#p/BaseApplication';
  */
 export class ApplicationFactory {
   /**
-   * {Map<string, function(new:BaseApplication, ...*)} Map from each application
-   * type to the application subclass that handles it.
+   * @type {Map<string, function(new:BaseApplication, ...*)>} Map from each
+   * application type to the application subclass that handles it.
    */
   static #APPLICATION_CLASSES = new Map();
 

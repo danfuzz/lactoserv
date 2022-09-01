@@ -34,8 +34,8 @@ import { JsonSchema } from '@this/typey';
  */
 export class ServerManager {
   /**
-   * {Map<string, ServerController>} Map from each hostname / wildcard to the
-   * {@link ServerController} object that should be used for it.
+   * @type {Map<string, ServerController>} Map from each hostname / wildcard to
+   * the {@link ServerController} object that should be used for it.
    */
   #controllers = new Map();
 
@@ -136,7 +136,6 @@ export class ServerManager {
       $id: '/ServerManager',
       oneOf: [
         {
-          title: 'server',
           type: 'object',
           required: ['server'],
           properties: {
@@ -144,7 +143,6 @@ export class ServerManager {
           }
         },
         {
-          title: 'servers',
           type: 'object',
           required: ['servers'],
           properties: {
@@ -159,7 +157,6 @@ export class ServerManager {
 
       $defs: {
         serverItem: {
-          title: 'server-item',
           type: 'object',
           required: ['interface', 'name', 'port', 'protocol'],
           properties: {
@@ -190,7 +187,6 @@ export class ServerManager {
               }
             },
             {
-              title: 'servers',
               type: 'object',
               required: ['hosts'],
               properties: {

@@ -45,7 +45,8 @@ export class JsonSchema {
    * Adds a string format validator.
    *
    * @param {string} name The format's name.
-   * @param {Function} formatValidator The format validator function.
+   * @param {function(*): boolean} formatValidator The format validator
+   *   function.
    */
   addFormat(name, formatValidator) {
     this.#validator.addFormat(name, formatValidator);

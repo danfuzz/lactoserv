@@ -34,8 +34,8 @@ import { ServerController } from '#p/ServerController';
  */
 export class ApplicationManager {
   /**
-   * {Map<string, ServerInfo>} Map from each hostname / wildcard to the
-   * {@link ServerInfo} object that should be used for it.
+   * @type {Map<string, ApplicationController>} Map from each hostname /
+   * wildcard to the controller that should be used for it.
    */
   #controllers = new Map();
 
@@ -133,7 +133,6 @@ export class ApplicationManager {
       $id: '/ApplicationManager',
       oneOf: [
         {
-          title: 'app',
           type: 'object',
           required: ['app'],
           properties: {
@@ -141,7 +140,6 @@ export class ApplicationManager {
           }
         },
         {
-          title: 'apps',
           type: 'object',
           required: ['apps'],
           properties: {
@@ -156,7 +154,6 @@ export class ApplicationManager {
 
       $defs: {
         appItem: {
-          title: 'app-item',
           type: 'object',
           required: ['name', 'type'],
           properties: {

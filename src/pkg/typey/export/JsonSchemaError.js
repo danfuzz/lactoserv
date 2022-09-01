@@ -27,9 +27,10 @@ export class JsonSchemaError {
   /**
    * Prints out this instance in a reasonably human-friendly form.
    *
-   * @param {Function|{log: Function}} logger Function or `log`-function-bearing
-   *   object to use for printing. Note: This is expected to behave like
-   *   `console.log()`, in terms of `%`-formatting and `\n`-appending.
+   * @param {function(...*)|{log: function(...*)}} logger Function or object
+   *   which bears a `.log` function, to use for printing. This is expected to
+   *   behave like `console.log()`, in terms of `%`-formatting and
+   *   `\n`-appending.
    */
   log(logger) {
     if (((typeof logger) === 'object') && logger.log) {

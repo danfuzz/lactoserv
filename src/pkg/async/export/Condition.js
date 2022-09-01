@@ -12,17 +12,17 @@ export class Condition {
   #value;
 
   /**
-   * {Promise<boolean>[]} Promises which get resolved when {@link #value} is
-   * `false` (index `0`) or `true` (index `1`). Will be `null` for both indexes
-   * when there are no waiters. Will only ever be non-null for one index at a
-   * time. When non-null, the corresponding element of {@link #trigger} is the
-   * resolver for the promise.
+   * @type {Promise<boolean>[]} Promises which get resolved when {@link #value}
+   * is `false` (index `0`) or `true` (index `1`). Will be `null` for both
+   * indexes when there are no waiters. Will only ever be non-null for one index
+   * at a time. When non-null, the corresponding element of {@link #trigger} is
+   * the resolver for the promise.
    */
   #became = [null, null];
 
   /**
-   * {Function[]} Trigger functions corresponding to {@link #became}. Elements
-   * are only non-null when there is a corresponding waiter.
+   * @type {(function())[]} Trigger functions corresponding to {@link #became}.
+   * Elements are only non-null when there is a corresponding waiter.
    */
   #trigger = [null, null];
 

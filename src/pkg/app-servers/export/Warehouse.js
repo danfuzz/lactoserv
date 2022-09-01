@@ -21,9 +21,6 @@ import { ServerController } from '#p/ServerController';
  * * `{object} app` or `{object[]} apps` -- Application configuration.
  */
 export class Warehouse {
-  /** @type {object} Configuration object. */
-  #config;
-
   /** @type {ApplicationManager} Application manager. */
   #applicationManager;
 
@@ -41,10 +38,9 @@ export class Warehouse {
   constructor(config) {
     Warehouse.#validateConfig(config);
 
-    this.#config = config;
     this.#hostManager = HostManager.fromConfig(config);
-    this.#serverManager = new ServerManager(config, this.#hostManager);
     this.#applicationManager = new ApplicationManager(config);
+    this.#serverManager = new ServerManager(config, this.#hostManager);
   }
 
   /** @returns {ApplicationManager} Application manager. */
@@ -58,14 +54,6 @@ export class Warehouse {
    */
   get hostManager() {
     return this.#hostManager;
-  }
-
-  /**
-   * @returns {object} The original configuration object. TODO: This shouldn't
-   * be exposed.
-   */
-  get config() {
-    return this.#config;
   }
 
   /** @returns {ServerManager} Server manager, for all server bindings. */

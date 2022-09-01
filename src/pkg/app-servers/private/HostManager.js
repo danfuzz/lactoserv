@@ -33,8 +33,8 @@ import { SecureContext } from 'node:tls';
  */
 export class HostManager {
   /**
-   * {TreePathMap<HostController>} Map from each componentized hostname to the
-   * {@link HostController} object that should be used for it.
+   * @type {TreePathMap<HostController>} Map from each componentized hostname to
+   * the {@link HostController} object that should be used for it.
    */
   #controllers = new TreePathMap();
 
@@ -107,14 +107,14 @@ export class HostManager {
     const result = new HostManager();
 
     for (const name of names) {
-      const info = HostController.parseName(name, true);
-      const found = this.#controllers.find(info.path, info.wildcard);
+      const key = HostController.parseName(name, true);
+      const found = this.#controllers.find(key);
 
       if (!found) {
         throw new Error(`No binding for hostname: ${name}`);
       }
 
-      result.#controllers.add(info.path, info.wildcard, found.value);
+      result.#controllers.add(key, found.value);
     }
 
     return result;
@@ -130,7 +130,8 @@ export class HostManager {
    *
    * @param {string} serverName Name of the server to find, or `*` to
    *   explicitly request the wildcard / fallback certificate.
-   * @param {Function} callback Callback to present with the results.
+   * @param {function(?object, ?SecureContext)} callback Callback to present
+   *   with the results.
    */
   sniCallback(serverName, callback) {
     try {
@@ -150,9 +151,9 @@ export class HostManager {
     const controller = new HostController(hostItem);
 
     for (const name of controller.names) {
-      const info = HostController.parseName(name, true);
+      const key = HostController.parseName(name, true);
       console.log(`Binding hostname ${name}.`);
-      this.#controllers.add(info.path, info.wildcard, controller);
+      this.#controllers.add(key, controller);
     }
   }
 
@@ -165,8 +166,8 @@ export class HostManager {
    *   suitable is found.
    */
   #findController(name) {
-    const info = HostController.parseName(name, true);
-    const found = this.#controllers.find(info.path, info.wildcard);
+    const key = HostController.parseName(name, true);
+    const found = this.#controllers.find(key);
 
     return found ? found.value : null;
   }
@@ -204,7 +205,6 @@ export class HostManager {
       $id: '/HostManager',
       oneOf: [
         {
-          title: 'host',
           type: 'object',
           required: ['host'],
           properties: {
@@ -212,7 +212,6 @@ export class HostManager {
           }
         },
         {
-          title: 'hosts',
           type: 'object',
           required: ['hosts'],
           properties: {
@@ -227,7 +226,6 @@ export class HostManager {
 
       $defs: {
         hostItem: {
-          title: 'host-info',
           type: 'object',
           required: ['cert', 'key'],
           properties: {
@@ -242,14 +240,12 @@ export class HostManager {
           },
           oneOf: [
             {
-              title: 'name',
               required: ['name'],
               properties: {
                 name: { $ref: '#/$defs/hostname' }
               }
             },
             {
-              title: 'names',
               required: ['names'],
               properties: {
                 names: {

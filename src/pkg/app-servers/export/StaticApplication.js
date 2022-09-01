@@ -14,7 +14,7 @@ import express from 'express';
  *   static assets.
  */
 export class StaticApplication extends BaseApplication {
-  /* {function} "Middleware" handler function for this instance. */
+  /* @type {function} "Middleware" handler function for this instance. */
   #handleRequest;
 
   /**
@@ -48,7 +48,7 @@ export class StaticApplication extends BaseApplication {
    * Makes a request handler function for an instance of this class.
    *
    * @param {object} config Configuration object.
-   * @returns {Function} The middleware function.
+   * @returns {function(...*)} The middleware function.
    */
   static #makeHandler(config) {
     const assetsPath = config.assetsPath;

@@ -1,6 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { TreePathKey } from '#p/TreePathKey';
 import { MustBe } from '@this/typey';
 
 import * as tls from 'node:tls';
@@ -109,14 +110,16 @@ export class HostController {
   }
 
   /**
-   * Parses a possibly-wildcarded hostname into an object with path info.
+   * Parses a possibly-wildcarded hostname into a {@link TreePathKey}.
+   *
+   * **Note:** Because hostname hierarchy is from right-to-left (e.g., wildcards
+   * are at the front of a hostname not the back), the `.path` of the result
+   * contains the name components in back-to-front order.
    *
    * @param {string} name Hostname to parse.
    * @param {boolean} [allowWildcards = false] Is a wildcard form allowed for
    *   `name`?
-   * @returns {{path: string[], wildcard: boolean}} Binding info. Because
-   *   hostname wildcards are at the front of the name, the `path` lists
-   *   components in back-to-front order.
+   * @returns {TreePathKey} Parsed key.
    * @throws {Error} Thrown if `name` is invalid.
    */
   static parseName(name, allowWildcards = false) {
@@ -133,6 +136,6 @@ export class HostController {
       throw Error(`Wildcard not allowed for name: ${name}`);
     }
 
-    return { path, wildcard };
+    return new TreePathKey(path, wildcard);
   }
 }
