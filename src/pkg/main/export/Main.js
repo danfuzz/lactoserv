@@ -31,7 +31,7 @@ export class Main {
         key:  await fs.readFile(certsPath + '/localhost-key.pem', 'utf-8')
       },
       {
-        names: ['localhost', '*.localhost', 'milk.com', 'example.milk.com'],
+        names: ['localhost', '*.localhost', 'milk.com', '*.milk.com', 'example.milk.com'],
         cert: await fs.readFile(certsPath + '/localhost-cert.pem', 'utf-8'),
         key:  await fs.readFile(certsPath + '/localhost-key.pem', 'utf-8')
       }
