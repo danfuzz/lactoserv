@@ -10,7 +10,9 @@ import * as express from 'express';
  * Base class for the exported (public) application classes.
  */
 export class BaseApplication {
-  /** @type {Function} Middleware function which activates this instance. */
+  /**
+   * @type {function(...*)} Middleware function which activates this instance.
+   */
   #middleware;
 
   /**
@@ -22,8 +24,8 @@ export class BaseApplication {
   }
 
   /**
-   * @returns {Function} "Middleware" handler function which activates this
-   * instance by calling through to {@link #handleRequest}.
+   * @returns {function(...*)} "Middleware" handler function which activates
+   * this instance by calling through to {@link #handleRequest}.
    */
   get middleware() {
     return this.#middleware;
@@ -35,8 +37,8 @@ export class BaseApplication {
    * @abstract
    * @param {express.Request} req Request object.
    * @param {express.Response} res Response object.
-   * @param {Function} next Function which causes the next-bound middleware to
-   *   run.
+   * @param {function(?object=)} next Function which causes the next-bound
+   *   middleware to run.
    */
   handleRequest(req, res, next) {
     Methods.abstract(req, res, next);
