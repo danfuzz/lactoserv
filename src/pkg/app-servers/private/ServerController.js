@@ -313,11 +313,12 @@ export class ServerController {
 
     // IPv6 address.
     const ipv6Address =
-      '(?=.*:)' +            // AFAWC, IPv6 addresses need a colon _somewhere_.
-      '(?![:0]+)' +          // No IPv6 "any" addresses.
-      '(?!.*:::)' +          // No triple-colons (or quad-, etc.).
-      '(?!.*::.*::)' +       // No more than one double-colon.
-      '(?![0-9A-Fa-f]{5})' + // No more than four digits in a row.
+      '(?=.*:)' +              // AFAWC, IPv6 requires a colon _somewhere_.
+      '(?![:0]+)' +            // No IPv6 "any" addresses.
+      '(?!.*:::)' +            // No triple-colons (or quad-, etc.).
+      '(?!.*::.*::)' +         // No more than one double-colon.
+      '(?!.*[0-9A-Fa-f]{5})' + // No more than four digits in a row.
+      '(?!(.*:){8})' +         // No more than seven colons total.
       '[:0-9A-Fa-f]{2,39}';
 
     return `^(${anyAddress}|${dnsName}|${ipv4Address}|${ipv6Address})$`;
