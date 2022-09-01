@@ -78,7 +78,7 @@ export class ApplicationManager {
 
     if (mounts.length !== 1) {
       throw new Error(`No unique mount for application: ${appController.name}`);
-    } else if (mounts[0].path !== '/') {
+    } else if (mounts[0].path.path.length !== 0) {
       throw new Error(`Only top-level mounts for now, not: ${mounts[0].path}`);
     }
 
