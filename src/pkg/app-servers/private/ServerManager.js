@@ -126,10 +126,6 @@ export class ServerManager {
    * @param {boolean} [main = false] Is this the main schema?
    */
   static addConfigSchemaTo(validator, main) {
-    // Allows alphanumeric strings that contain dashes, but don't start or end
-    // with a dash.
-    const serverNamePattern = '^(?!-)[-a-zA-Z0-9]+(?<!-)$';
-
     const interfacePattern =
       '^(' +
       '[*]' +                   // The one allowed "any" address.
@@ -158,7 +154,7 @@ export class ServerManager {
                 },
                 name: {
                   type: 'string',
-                  pattern: serverNamePattern
+                  pattern: ServerController.NAME_PATTERN
                 },
                 port: {
                   type: 'integer',

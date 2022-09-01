@@ -282,4 +282,20 @@ export class ServerController {
       console.log(`  listening: ${info.listening}`);
     }
   }
+
+
+  //
+  // Static members.
+  //
+
+  /**
+   * @returns {string} Regex pattern which matches a server name, anchored so
+   * that it matches a complete string.
+   *
+   * This pattern allows non-empty alphanumeric strings that contain dashes, but
+   * don't start or end with a dash.
+   */
+  static get NAME_PATTERN() {
+    return '^(?!-)[-a-zA-Z0-9]+(?<!-)$';
+  }
 }
