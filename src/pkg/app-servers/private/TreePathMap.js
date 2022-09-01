@@ -58,24 +58,6 @@ export class TreePathMap {
   }
 
   /**
-   * Adds a binding for the given path.
-   *
-   * @param {string[]} path Path to bind.
-   * @param {boolean} wildcard Is this a wildcard? That is, should `path` only
-   *   be considered for exact matches (`false`), or should it match on prefixes
-   *   as well (`true`)?
-   * @param {*} value Value to bind at the path.
-   * @throws {Error} Thrown if there is already a binding for the given
-   *   `{path, wildcard}` combination.
-   */
-  add_old(path, wildcard, value) {
-    MustBe.arrayOfString(path);
-    MustBe.boolean(wildcard);
-
-    this.#add0(path, wildcard, value, 0);
-  }
-
-  /**
    * Finds the most-specific binding for the given path.
    *
    * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to look
