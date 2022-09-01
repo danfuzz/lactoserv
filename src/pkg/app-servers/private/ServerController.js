@@ -300,9 +300,11 @@ export class ServerController {
     // The one allowed "any" address.
     const anyAddress = '[*]';
 
-    // Normal DNS names.
-    const nameComponent = '(?![-0-9])[-a-zA-Z0-9]+(?<!-)';
-    const dnsName       = `${nameComponent}(?:[.]${nameComponent})*`;
+    // Normal DNS names. Note: Per RFC1035, the maximum allowed length for a
+    // "label" (name component) is 63, and the maximum allowed total length is
+    // 255.
+    const nameComponent = '(?![-0-9])[-a-zA-Z0-9]{1,63}(?<!-)';
+    const dnsName       = `(?!.{256})${nameComponent}(?:[.]${nameComponent})*`;
 
     // IPv4 address.
     const ipv4Address =
@@ -311,9 +313,9 @@ export class ServerController {
 
     // IPv6 address.
     const ipv6Address =
-      '(?=.*:)' +      // AFAWC, IPv6 addresses need a colon _somewhere_.
-      '(?![:0]+)' +    // No IPv6 "any" addresses.
-      '[:0-9A-Fa-f]+'; // A bit over-permissive here.
+      '(?=.*:)' +           // AFAWC, IPv6 addresses need a colon _somewhere_.
+      '(?![:0]+)' +         // No IPv6 "any" addresses.
+      '[:0-9A-Fa-f]{2,40}'; // A bit over-permissive here.
 
     return `^(${anyAddress}|${dnsName}|${ipv4Address}|${ipv6Address})$`;
   }
