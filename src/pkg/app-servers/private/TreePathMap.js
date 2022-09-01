@@ -104,65 +104,6 @@ export class TreePathMap {
   }
 
   /**
-   * Finds the most-specific binding for the given path.
-   *
-   * @param {string[]} path Path to look up.
-   * @param {boolean} [wildcard = false] Must the result be a wildcard binding?
-   * @returns {?{path: string[], pathRemainder: string[], value: *,
-   *   wildcard: boolean}} Information about the found result, or `null` if
-   *   there was no match at all.
-   *   * `path` -- The path that was explicitly matched. This is guaranteed to
-   *     be a different instance than the `path` that was passed.
-   *   * `pathRemainder` -- The portion of `path` that was matched by the
-   *     wildcard, if this was a wildcard match.
-   *   * `value` -- The bound value that was found.
-   *   * `wildcard` -- Was this a wildcard match?
-   */
-  find_old(path, wildcard = false) {
-    let subtree = this;
-    let foundIndex = -1;
-    let foundValue = null;
-
-    let at;
-    for (at = 0; at < path.length; at++) {
-      if (subtree.#hasWildcard) {
-        foundValue = subtree.#wildcardValue;
-        foundIndex = at;
-      }
-      subtree = subtree.#subtrees.get(path[at]);
-      if (!subtree) {
-        break;
-      }
-    }
-
-    if (at === path.length) {
-      if (subtree.#hasEmpty && !wildcard) {
-        // There's an exact match for the path.
-        return {
-          key:        new TreePathKey(path, false),
-          pathSuffix: [],
-          value:      subtree.#emptyValue
-        };
-      } else if (subtree.#hasWildcard) {
-        // There's a matching wildcard at the end of the path.
-        return {
-          key:        new TreePathKey(path, true),
-          pathSuffix: [],
-          value:      subtree.#wildcardValue,
-        };
-      }
-    } else if (foundIndex >= 0) {
-      return {
-        key:        new TreePathKey(path.slice(0, foundIndex), true),
-        pathSuffix: path.slice(foundIndex),
-        value:      foundValue
-      };
-    }
-
-    return null;
-  }
-
-  /**
    * Finds the exact given binding. This will only find bindings that were added
    * with the exact same pair of `path` and `wildcard` as are being looked up.
    *
