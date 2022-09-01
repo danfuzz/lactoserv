@@ -3,8 +3,9 @@
 
 import { ApplicationFactory } from '#p/ApplicationFactory';
 import { HostController } from '#p/HostController';
+import { TreePathKey } from '#p/TreePathKey';
 
-import { MustBe } from '@this/typey';
+import { JsonSchemaUtil, MustBe } from '@this/typey';
 
 // Types referenced only in doc comments.
 import { BaseApplication } from '#p/BaseApplication';
@@ -16,7 +17,7 @@ export class ApplicationController {
   /** @type {string} Application name. */
   #name;
 
-  /** @type {{hostname: string, path: string}[]} Mount points. */
+  /** @type {{hostname: TreePathKey, path: TreePathKey}[]} Mount points. */
   #mounts;
 
   /** @type {BaseApplication} Actual application instance. */
@@ -30,12 +31,9 @@ export class ApplicationController {
   constructor(appConfig) {
     this.#name = appConfig.name;
 
-    const mountArray = appConfig.mount ? [appConfig.mount] : [];
-    const mountsArray = appConfig.mounts ?? [];
-    this.#mounts = Object.freeze(
-      [...mountArray, ...mountsArray].map(mount =>
-        ApplicationController.#parseMount(mount))
-    );
+    this.#mounts =
+      Object.freeze(JsonSchemaUtil.singularPluralCombo(appConfig.mount, appConfig.mounts))
+        .map(mount => ApplicationController.#parseMount(mount));
 
     const extraConfig = { ...appConfig };
     delete extraConfig.name;
@@ -55,7 +53,7 @@ export class ApplicationController {
     return this.#name;
   }
 
-  /** @returns {{hostname: string, path: string}[]} Mount points. */
+  /** @returns {{hostname: TreePathKey, path: TreePathKey}[]} Mount points. */
   get mounts() {
     return this.#mounts;
   }
@@ -122,19 +120,27 @@ export class ApplicationController {
    * Parses a mount point into its two components.
    *
    * @param {string} mount Mount point.
-   * @returns {object} Components thereof.
+   * @returns {{hostname: TreePathKey, path: TreePathKey}} Components thereof.
    */
   static #parseMount(mount) {
     MustBe.string(mount, this.MOUNT_REGEXP);
 
-    const result = /^[/][/](?<hostname>[^/]+)(?<path>[/].*)$/.exec(mount);
-    if (!result) {
+    // Somewhat simplified regexp, because we already know that `mount` is
+    // syntactically correct, per `MustBe...` above.
+    const topParse = /^[/][/](?<hostname>[^/]+)[/](?:(?<path>.*)[/])?$/
+      .exec(mount);
+
+    if (!topParse) {
       throw new Error(`Strange mount point: ${mount}`);
     }
 
+    const { hostname, path } = topParse.groups;
+    const pathParts = path ? path.split('/') : [];
+
+    // `TreePathKey...true` below because all mounts are effectively wildcards.
     return Object.freeze({
-      hostname: result.groups.hostname,
-      path:     result.groups.path
+      hostname: HostController.parseName(hostname, true),
+      path:     new TreePathKey(pathParts, true)
     });
   }
 }

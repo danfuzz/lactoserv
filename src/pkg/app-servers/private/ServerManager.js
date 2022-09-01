@@ -1,20 +1,22 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { ApplicationController } from '#p/ApplicationController';
 import { HostController } from '#p/HostController';
 import { HostManager } from '#p/HostManager';
 import { ServerController } from '#p/ServerController';
 
-import { JsonSchema } from '@this/typey';
+import { JsonSchema, JsonSchemaUtil } from '@this/typey';
 
+// Types referenced only in doc comments.
+import { ApplicationManager } from '#p/ApplicationManager';
 
 /**
  * Manager for dealing with all the network-bound server endpoints of a system.
  * Configuration object details:
  *
- * * `{object} server` -- Object representing endpoint information for a single
- *   server.
- * * `{object[]} servers` -- Array of server information objects.
+ * * `{object} server` or `{object[]} servers`-- Objects, each of which
+ *   represents endpoint information for a single server.
  *
  * Server info details:
  *
@@ -22,6 +24,8 @@ import { JsonSchema } from '@this/typey';
  *   bindings to indicate which server(s) an application is served from.
  * * `{string} host` or `{string[]} hosts` -- Names of hosts which this server
  *   should accept as valid. Can include partial or complete wildcards.
+ * * `{string} app` or `{string[]} apps` -- Names of apps which this server
+ *   should provide access to.
  * * `{string} interface` -- Address of the physical interface that the server
  *   is to listen on. `*` indicates that all interfaces should be listened on.
  *   Note: `::` and `0.0.0.0` are not allowed; use `*` instead.
@@ -44,18 +48,15 @@ export class ServerManager {
    *
    * @param {object} config Configuration object.
    * @param {HostManager} hostManager Host / certificate manager.
+   * @param {ApplicationManager} applicationManager Application manager.
    */
-  constructor(config, hostManager) {
+  constructor(config, hostManager, applicationManager) {
     ServerManager.#validateConfig(config);
 
-    if (config.server) {
-      this.#addControllerFor(config.server, hostManager);
-    }
-
-    if (config.servers) {
-      for (const server of config.servers) {
-        this.#addControllerFor(server, hostManager);
-      }
+    const servers =
+      JsonSchemaUtil.singularPluralCombo(config.server, config.servers);
+    for (const server of servers) {
+      this.#addControllerFor(server, hostManager, applicationManager);
     }
   }
 
@@ -82,15 +83,22 @@ export class ServerManager {
    *
    * @param {object} serverItem Single server item from a configuration object.
    * @param {HostManager} hostManager Host / certificate manager.
+   * @param {ApplicationManager} applicationManager Application manager.
    */
-  #addControllerFor(serverItem, hostManager) {
-    const hostArray = serverItem.host ? [serverItem.host] : [];
-    const hostsArray = serverItem.hosts ?? [];
+  #addControllerFor(serverItem, hostManager, applicationManager) {
+    const { app, apps, host, hosts } = serverItem;
+    const hmSubset = hostManager.makeSubset(
+      JsonSchemaUtil.singularPluralCombo(host, hosts));
+    const appMounts = applicationManager.makeMountList(
+      JsonSchemaUtil.singularPluralCombo(app, apps));
 
     const config = {
       ...serverItem,
-      hostManager: hostManager.makeSubset([...hostArray, ...hostsArray])
+      appMounts,
+      hostManager: hmSubset
     };
+    delete config.app;
+    delete config.apps;
     delete config.host;
     delete config.hosts;
 
@@ -134,70 +142,44 @@ export class ServerManager {
 
     const schema = {
       $id: '/ServerManager',
-      oneOf: [
-        {
-          type: 'object',
-          required: ['server'],
-          properties: {
-            server: { $ref: '#/$defs/serverItem' }
-          }
-        },
-        {
-          type: 'object',
-          required: ['servers'],
-          properties: {
-            servers: {
-              type: 'array',
-              uniqueItems: true,
-              items: { $ref: '#/$defs/serverItem' }
-            }
-          }
-        }
-      ],
+      ... JsonSchemaUtil
+        .singularOrPlural('server', 'servers', { $ref: '#/$defs/serverItem' }),
 
       $defs: {
         serverItem: {
-          type: 'object',
-          required: ['interface', 'name', 'port', 'protocol'],
-          properties: {
-            interface: {
-              type: 'string',
-              pattern: interfacePattern
-            },
-            name: {
-              type: 'string',
-              pattern: serverNamePattern
-            },
-            port: {
-              type: 'integer',
-              minimum: 1,
-              maximum: 65535
-            },
-            protocol: {
-              type: 'string',
-              enum: ['http', 'http2', 'https']
-            }
-          },
-          oneOf: [
+          allOf: [
             {
               type: 'object',
-              required: ['host'],
+              required: ['interface', 'name', 'port', 'protocol'],
               properties: {
-                host: { $ref: '#/$defs/hostname' }
-              }
-            },
-            {
-              type: 'object',
-              required: ['hosts'],
-              properties: {
-                servers: {
-                  type: 'array',
-                  uniqueItems: true,
-                  items: { $ref: '#/$defs/hostname' }
+                interface: {
+                  type: 'string',
+                  pattern: interfacePattern
+                },
+                name: {
+                  type: 'string',
+                  pattern: serverNamePattern
+                },
+                port: {
+                  type: 'integer',
+                  minimum: 1,
+                  maximum: 65535
+                },
+                protocol: {
+                  type: 'string',
+                  enum: ['http', 'http2', 'https']
                 }
               }
-            }
+            },
+            JsonSchemaUtil
+              .singularOrPlural('host', 'hosts', { $ref: '#/$defs/hostname' }),
+            JsonSchemaUtil
+              .singularOrPlural('app', 'apps', { $ref: '#/$defs/appName' })
           ]
+        },
+        appName: {
+          type: 'string',
+          pattern: ApplicationController.NAME_PATTERN
         },
         hostname: {
           type: 'string',

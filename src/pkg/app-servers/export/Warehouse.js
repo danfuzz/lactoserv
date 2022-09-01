@@ -40,7 +40,8 @@ export class Warehouse {
 
     this.#hostManager = HostManager.fromConfig(config);
     this.#applicationManager = new ApplicationManager(config);
-    this.#serverManager = new ServerManager(config, this.#hostManager);
+    this.#serverManager =
+      new ServerManager(config, this.#hostManager, this.#applicationManager);
   }
 
   /** @returns {ApplicationManager} Application manager. */

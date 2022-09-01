@@ -4,7 +4,7 @@
 import { HostController } from '#p/HostController';
 import { TreePathMap } from '#p/TreePathMap';
 
-import { JsonSchema } from '@this/typey';
+import { JsonSchema, JsonSchemaUtil } from '@this/typey';
 
 // Types referenced only in doc comments.
 import { SecureContext } from 'node:tls';
@@ -13,18 +13,15 @@ import { SecureContext } from 'node:tls';
  * Manager for dealing with all the certificate/key pairs associated with a
  * named host. Configuration object details:
  *
- * * `{object} host` -- Object representing certificate information associated
- *   with an indicated (possibly wildcarded) hostname.
- * * `{object[]} hosts` -- Array of host information objects.
+ * * `{object} host` or `{object[]} hosts` -- Objects representing certificate
+ *   information associated with one or more (possibly wildcarded) hostnames.
  *
  * Host info details:
  *
- * * `{string} name` -- Name of the host associated with this entry. Can be in
- *   the form `*.<name>` to match any subdomain of `<name>`, or `*` to be a
- *   complete wildcard (that is, matches any name not otherwise mentioned).
- * * `{string[]} names` -- Array of names, each in the same format as specified
- *   by `name`. This can be used to bind multiple names to the same certificate
- *   info.
+ * * `{string} name` or `{string[]} names` -- Names of the hosts associated with
+ *   this entry. Names can in the form `*.<name>` to match any subdomain of
+ *   `<name>`, or `*` to be a complete wildcard (that is, matches any name not
+ *   otherwise mentioned).
  * * `{string} cert` -- Certificate to present, in PEM form.
  * * `{string} key` -- Private key associated with `cert`, in PEM form.
  *
@@ -48,14 +45,10 @@ export class HostManager {
     if (config !== null) {
       HostManager.#validateConfig(config);
 
-      if (config.host) {
-        this.#addControllerFor(config.host);
-      }
-
-      if (config.hosts) {
-        for (const host of config.hosts) {
-          this.#addControllerFor(host);
-        }
+      const hosts =
+        JsonSchemaUtil.singularPluralCombo(config.host, config.hosts);
+      for (const host of hosts) {
+        this.#addControllerFor(host);
       }
     }
   }
@@ -203,26 +196,8 @@ export class HostManager {
 
     const schema = {
       $id: '/HostManager',
-      oneOf: [
-        {
-          type: 'object',
-          required: ['host'],
-          properties: {
-            host: { $ref: '#/$defs/hostItem' }
-          }
-        },
-        {
-          type: 'object',
-          required: ['hosts'],
-          properties: {
-            hosts: {
-              type: 'array',
-              uniqueItems: true,
-              items: { $ref: '#/$defs/hostItem' }
-            }
-          }
-        }
-      ],
+      ... JsonSchemaUtil
+        .singularOrPlural('host', 'hosts', { $ref: '#/$defs/hostItem' }),
 
       $defs: {
         hostItem: {
@@ -238,24 +213,8 @@ export class HostManager {
               pattern: keyPattern
             }
           },
-          oneOf: [
-            {
-              required: ['name'],
-              properties: {
-                name: { $ref: '#/$defs/hostname' }
-              }
-            },
-            {
-              required: ['names'],
-              properties: {
-                names: {
-                  type: 'array',
-                  uniqueItems: true,
-                  items: { $ref: '#/$defs/hostname' }
-                }
-              }
-            }
-          ]
+          ... JsonSchemaUtil
+            .singularOrPlural('name', 'names', { $ref: '#/$defs/hostname' })
         },
         hostname: {
           type: 'string',

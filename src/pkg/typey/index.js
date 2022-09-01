@@ -3,5 +3,6 @@
 
 export * from '#x/JsonSchema';
 export * from '#x/JsonSchemaError';
+export * from '#x/JsonSchemaUtil';
 export * from '#x/Methods';
 export * from '#x/MustBe';

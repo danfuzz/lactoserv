@@ -43,6 +43,7 @@ export class Main {
       hosts:      hostsConfig,
       server: {
         name:       'secure',
+        app:        'my-static-fun',
         host:       '*',
         interface:  '*',
         port:       8443,
@@ -61,6 +62,7 @@ export class Main {
       servers: [
         {
           name:       'insecure',
+          app:        'my-wacky-redirector',
           host:       '*',
           interface:  '*',
           port:       8080,
@@ -68,6 +70,7 @@ export class Main {
         },
         {
           name:       'also-insecure',
+          apps:       ['my-static-fun'],
           hosts:      ['*'],
           interface:  '*',
           port:       8081,
@@ -75,6 +78,7 @@ export class Main {
         },
         {
           name:       'secure',
+          apps:       ['my-static-fun'],
           host:       '*',
           interface:  '*',
           port:       8443,
@@ -83,9 +87,9 @@ export class Main {
       ],
       apps: [
         {
-          name: 'my-wacky-redirector',
-          mount: '//insecure/',
-          type: 'redirect-server',
+          name:      'my-wacky-redirector',
+          mounts:    ['//*/'],
+          type:      'redirect-server',
           redirects: [
             {
               fromPath: '/',
@@ -95,13 +99,7 @@ export class Main {
         },
         {
           name: 'my-static-fun',
-          mount: '//secure/',
-          type: 'static-server',
-          assetsPath
-        },
-        {
-          name: 'my-insecure-static-fun',
-          mount: '//also-insecure/',
+          mount: '//*/',
           type: 'static-server',
           assetsPath
         }

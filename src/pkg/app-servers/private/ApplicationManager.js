@@ -3,17 +3,18 @@
 
 import { ApplicationController } from '#p/ApplicationController';
 
-import { JsonSchema } from '@this/typey';
+import { JsonSchema, JsonSchemaUtil } from '@this/typey';
 
 // Types referenced only in doc comments.
 import { ServerController } from '#p/ServerController';
+import { TreePathKey } from '#p/TreePathKey';
 
 /**
  * Manager for dealing with all the high-level applications that are running or
  * to be run in the system. Configuration object details:
  *
- * * `{object} app` -- Object representing information for a single application.
- * * `{object[]} apps` -- Array of application information objects.
+ * * `{object} app` or `{object[]} apps` -- Objects which each represents
+ *   information for a single application.
  *
  * Application info details:
  *
@@ -34,8 +35,8 @@ import { ServerController } from '#p/ServerController';
  */
 export class ApplicationManager {
   /**
-   * @type {Map<string, ApplicationController>} Map from each hostname /
-   * wildcard to the controller that should be used for it.
+   * @type {Map<string, ApplicationController>} Map from each application name
+   * to the controller that should be used for it.
    */
   #controllers = new Map();
 
@@ -47,15 +48,40 @@ export class ApplicationManager {
   constructor(config) {
     ApplicationManager.#validateConfig(config);
 
-    if (config.app) {
-      this.#addControllerFor(config.app);
+    const apps = JsonSchemaUtil.singularPluralCombo(config.app, config.apps);
+    for (const app of apps) {
+      this.#addControllerFor(app);
     }
+  }
 
-    if (config.apps) {
-      for (const app of config.apps) {
-        this.#addControllerFor(app);
+  /**
+   * Makes a deep-frozen "mount list" which lists bindings of mount points to
+   * corresponding {@link ApplicationController} instances, for all the given
+   * named applications.
+   *
+   * @param {string[]} names Names of all the applications to represent in the
+   *   result.
+   * @returns {{hostname: TreePathKey, path: TreePathKey,
+   *   app: ApplicationController}[]} Array of mount points with corresponding
+   *   application controllers, deep-frozen.
+   * @throws {Error} Thrown if any element of `names` does not correspond to
+   *   a defined application.
+   */
+  makeMountList(names) {
+    const result = [];
+
+    for (const name of names) {
+      const controller = this.#controllers.get(name);
+      if (!controller) {
+        throw new Error(`No such app: ${name}`);
+      }
+
+      for (const mount of controller.mounts) {
+        result.push(Object.freeze({ ...mount, app: controller }));
       }
     }
+
+    return Object.freeze(result);
   }
 
   /**
@@ -78,7 +104,7 @@ export class ApplicationManager {
 
     if (mounts.length !== 1) {
       throw new Error(`No unique mount for application: ${appController.name}`);
-    } else if (mounts[0].path !== '/') {
+    } else if (mounts[0].path.path.length !== 0) {
       throw new Error(`Only top-level mounts for now, not: ${mounts[0].path}`);
     }
 
@@ -131,26 +157,8 @@ export class ApplicationManager {
   static addConfigSchemaTo(validator, main = false) {
     const schema = {
       $id: '/ApplicationManager',
-      oneOf: [
-        {
-          type: 'object',
-          required: ['app'],
-          properties: {
-            app: { $ref: '#/$defs/appItem' }
-          }
-        },
-        {
-          type: 'object',
-          required: ['apps'],
-          properties: {
-            apps: {
-              type: 'array',
-              uniqueItems: true,
-              items: { $ref: '#/$defs/appItem' }
-            }
-          }
-        }
-      ],
+      ... JsonSchemaUtil
+        .singularOrPlural('app', 'apps', { $ref: '#/$defs/appItem' }),
 
       $defs: {
         appItem: {
@@ -166,32 +174,12 @@ export class ApplicationManager {
               pattern: ApplicationController.TYPE_PATTERN
             }
           },
-          oneOf: [
-            {
-              type: 'object',
-              required: ['mount'],
-              properties: {
-                mount: {
-                  type: 'string',
-                  pattern: ApplicationController.MOUNT_PATTERN
-                }
-              }
-            },
-            {
-              type: 'object',
-              required: ['mounts'],
-              properties: {
-                mounts: {
-                  type: 'array',
-                  uniqueItems: true,
-                  items: {
-                    type: 'string',
-                    pattern: ApplicationController.MOUNT_PATTERN
-                  }
-                }
-              }
-            }
-          ]
+          ... JsonSchemaUtil
+            .singularOrPlural('mount', 'mounts', { $ref: '#/$defs/mountItem' }),
+        },
+        mountItem: {
+          type: 'string',
+          pattern: ApplicationController.MOUNT_PATTERN
         }
       }
     };
