@@ -54,7 +54,7 @@ export class TreePathMap {
       MustBe.boolean(key.wildcard);
     }
 
-    this.#add0(key, value, 0);
+    this.#add0(key, value);
   }
 
   /**
@@ -116,44 +116,41 @@ export class TreePathMap {
   }
 
   /**
-   * Helper for {@link #add}, which does most of the work, including
-   * recursive steps, while still allowing for error messages that refer to the
-   * original public call.
+   * Helper for {@link #add}, which does most of the work.
    *
    * @param {string[]} path Path to bind.
    * @param {boolean} wildcard Is `path` a wildcard?
    * @param {*} value Value to bind at the path.
-   * @param {number} pathIndex Index into the path currently being worked on.
    * @throws {Error} Thrown if there is already a binding for the given
    *   `{path, wildcard}` combination.
    */
-  #add0(key, value, pathIndex) {
-    const { path, wildcard } = key;
+  #add0(key, value) {
+    let subtree = this;
 
-    if (pathIndex === path.length) {
-      // Base case: Store directly in this instance.
-      if (wildcard) {
-        if (this.#hasWildcard) {
-          throw this.#errorMessage('Path already bound', key);
-        }
-        this.#wildcardValue = value;
-        this.#hasWildcard = value;
-      } else {
-        if (this.#hasEmpty) {
-          throw this.#errorMessage('Path already bound', key);
-        }
-        this.#emptyValue = value;
-        this.#hasEmpty = value;
+    // Add any required subtrees to represent `key.path`, leaving `subtree` as
+    // the instance to modify.
+    for (const p of key.path) {
+      let nextSubtree = subtree.#subtrees.get(p);
+      if (!nextSubtree) {
+        nextSubtree = new TreePathMap();
+        subtree.#subtrees.set(p, nextSubtree);
       }
+      subtree = nextSubtree;
+    }
+
+    // Put a new binding directly into `subtree`, or report the salient problem.
+    if (key.wildcard) {
+      if (subtree.#hasWildcard) {
+        throw this.#errorMessage('Path already bound', key);
+      }
+      subtree.#wildcardValue = value;
+      subtree.#hasWildcard = value;
     } else {
-      // Recursive case: Find or create a subtree, and operate on it.
-      const pathItem = path[pathIndex];
-      let subtree = this.#subtrees.get(pathItem);
-      if (!subtree) {
-        subtree = new TreePathMap();
-        this.#subtrees.set(pathItem, subtree);
+      if (subtree.#hasEmpty) {
+        throw this.#errorMessage('Path already bound', key);
       }
-      subtree.#add0(key, value, pathIndex + 1);
+      subtree.#emptyValue = value;
+      subtree.#hasEmpty = value;
     }
   }
 
