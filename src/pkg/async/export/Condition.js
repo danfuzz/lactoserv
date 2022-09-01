@@ -21,7 +21,7 @@ export class Condition {
   #became = [null, null];
 
   /**
-   * @type {Function[]} Trigger functions corresponding to {@link #became}.
+   * @type {(function())[]} Trigger functions corresponding to {@link #became}.
    * Elements are only non-null when there is a corresponding waiter.
    */
   #trigger = [null, null];
