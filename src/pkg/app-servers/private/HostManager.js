@@ -4,7 +4,7 @@
 import { HostController } from '#p/HostController';
 import { TreePathMap } from '#p/TreePathMap';
 
-import { JsonSchema } from '@this/typey';
+import { JsonSchema, JsonSchemaUtil } from '@this/typey';
 
 // Types referenced only in doc comments.
 import { SecureContext } from 'node:tls';
@@ -203,26 +203,8 @@ export class HostManager {
 
     const schema = {
       $id: '/HostManager',
-      oneOf: [
-        {
-          type: 'object',
-          required: ['host'],
-          properties: {
-            host: { $ref: '#/$defs/hostItem' }
-          }
-        },
-        {
-          type: 'object',
-          required: ['hosts'],
-          properties: {
-            hosts: {
-              type: 'array',
-              uniqueItems: true,
-              items: { $ref: '#/$defs/hostItem' }
-            }
-          }
-        }
-      ],
+      ... JsonSchemaUtil
+        .singularOrPlural('host', 'hosts', { $ref: '#/$defs/hostItem' }),
 
       $defs: {
         hostItem: {
@@ -238,24 +220,8 @@ export class HostManager {
               pattern: keyPattern
             }
           },
-          oneOf: [
-            {
-              required: ['name'],
-              properties: {
-                name: { $ref: '#/$defs/hostname' }
-              }
-            },
-            {
-              required: ['names'],
-              properties: {
-                names: {
-                  type: 'array',
-                  uniqueItems: true,
-                  items: { $ref: '#/$defs/hostname' }
-                }
-              }
-            }
-          ]
+          ... JsonSchemaUtil
+            .singularOrPlural('name', 'names', { $ref: '#/$defs/hostname' })
         },
         hostname: {
           type: 'string',
