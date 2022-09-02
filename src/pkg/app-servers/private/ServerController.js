@@ -1,6 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { TreePathKey } from '#p/TreePathKey';
 import { WranglerFactory } from '#p/WranglerFactory';
 
 import { Condition } from '@this/async';
@@ -270,10 +271,12 @@ export class ServerController {
    *   middleware to run.
    */
   #handleRequest(req, res_unused, next) {
-    const { hostname, subdomains } = req;
+    // Freeze `subdomains` to let `new TreePathKey()` avoid making a copy.
+    const subdomains = Object.freeze(req.subdomains);
+    const hostKey    = new TreePathKey(subdomains, false);
 
     // TODO: Temporary logging to see what's going on.
-    console.log('##### request: %o', { hostname, subdomains });
+    console.log('##### request: %s :: %s', hostKey, req.path);
 
     next();
   }
