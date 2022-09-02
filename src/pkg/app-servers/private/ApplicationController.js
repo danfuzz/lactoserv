@@ -88,6 +88,11 @@ export class ApplicationController {
    *   `_`, or `.`; which must furthermore start and end with an alphanumeric
    *   character.
    * * It must start with `//` and end with `/`.
+   *
+   * **Note:** Mount paths are more restrictive than what is acceptable in
+   * general for paths, e.g. a path passed in from a network request can
+   * legitimately _not_ match a mount path while still being syntactically
+   * correct.
    */
   static get MOUNT_PATTERN() {
     const alnum = 'a-zA-Z0-9';
@@ -114,6 +119,27 @@ export class ApplicationController {
    */
   static get TYPE_PATTERN() {
     return this.NAME_PATTERN;
+  }
+
+  /**
+   * Parses a path into a non-wildcard key. The only syntactic check performed
+   * by this method is to ensure that `path` begins with a slash (`/`).
+   *
+   * **Note:** The result will have an empty-string path component at the
+   * end if the given `path` ends with a slash.
+   *
+   * @param {string} path Path to parse.
+   * @returns {TreePathKey} Parsed form.
+   * @throws {Error} Thrown if `path` is not valid.
+   */
+  static parsePath(path) {
+    MustBe.string(path, /^[/]/);
+
+    const parts = path.split('/');
+    parts.shift(); // Shift off the empty component from the initial slash.
+
+    // Freezing `parts` lets `new TreePathKey()` avoid making a copy.
+    return new TreePathKey(Object.freeze(parts), false);
   }
 
   /**

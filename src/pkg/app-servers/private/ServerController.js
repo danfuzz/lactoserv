@@ -1,7 +1,9 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { ApplicationController } from '#p/ApplicationController';
 import { TreePathKey } from '#p/TreePathKey';
+import { TreePathMap } from '#p/TreePathMap';
 import { WranglerFactory } from '#p/WranglerFactory';
 
 import { Condition } from '@this/async';
@@ -26,6 +28,12 @@ export class ServerController {
    * this instance.
    */
   #hostManager;
+
+  /**
+   * @type {TreePathMap<TreePathMap<ApplicationController>>} Map from hostnames
+   * to paths to application controllers. See {@link #makeMountMap} for details.
+   */
+  #mountMap;
 
   /** @type {string} Interface address. */
   #interface;
@@ -62,6 +70,7 @@ export class ServerController {
   constructor(serverConfig) {
     this.#name        = serverConfig.name;
     this.#hostManager = serverConfig.hostManager;
+    this.#mountMap    = ServerController.#makeMountMap(serverConfig.appMounts);
     this.#interface   = serverConfig.interface;
     this.#port        = serverConfig.port;
     this.#protocol    = serverConfig.protocol;
@@ -69,7 +78,7 @@ export class ServerController {
     this.#server      = this.#wrangler.createServer(this.#hostManager);
     this.#serverApp   = this.#wrangler.createApplication();
 
-    this.#configureServerApp(serverConfig.appMounts);
+    this.#configureServerApp();
   }
 
   /** @returns {string} Server name. */
@@ -127,7 +136,7 @@ export class ServerController {
       server.listen(this.#listenOptions);
     });
 
-    this.#log('Started server.');
+    this.#log(`Started server: ${this.name}`);
   }
 
   /**
@@ -141,7 +150,7 @@ export class ServerController {
       return;
     }
 
-    this.#log('Stopping server.');
+    this.#log(`Stopping server: ${this.name}`);
 
     await this.#wrangler.protocolStop();
 
@@ -152,7 +161,7 @@ export class ServerController {
 
     await this.whenStopped();
 
-    this.#log('Server stopped.');
+    this.#log(`Server stopped: ${this.name}`);
   }
 
   /**
@@ -232,11 +241,8 @@ export class ServerController {
 
   /**
    * Configures {@link #serverApp}.
-   *
-   * @param {object[]} appMounts_unused Application mounts, in the form produced
-   *   by {@link ApplicationManager#makeMountList}.
    */
-  #configureServerApp(appMounts_unused) {
+  #configureServerApp() {
     const app = this.#serverApp;
 
     // Means paths `/foo` and `/Foo` are different.
@@ -266,19 +272,40 @@ export class ServerController {
    * Handles a request, as defined by the Express middleware spec.
    *
    * @param {express.Request} req Request object.
-   * @param {express.Response} res_unused Response object.
+   * @param {express.Response} res Response object.
    * @param {function(?object=)} next Function which causes the next-bound
    *   middleware to run.
    */
-  #handleRequest(req, res_unused, next) {
-    // Freeze `subdomains` to let `new TreePathKey()` avoid making a copy.
-    const subdomains = Object.freeze(req.subdomains);
-    const hostKey    = new TreePathKey(subdomains, false);
+  #handleRequest(req, res, next) {
+    const { path, subdomains } = req;
+
+    // Freezing `subdomains` lets `new TreePathKey()` avoid making a copy.
+    const hostKey = new TreePathKey(Object.freeze(subdomains), false);
+    const pathKey = ApplicationController.parsePath(path);
 
     // TODO: Temporary logging to see what's going on.
-    console.log('##### request: %s :: %s', hostKey, req.path);
+    console.log('##### request: %s :: %s', hostKey, pathKey);
 
-    next();
+    // Find the mount map for the most-specific matching host.
+    const hostMap = this.#mountMap.find(hostKey)?.value;
+    if (!hostMap) {
+      // No matching host.
+      console.log('##### No host match for: %s', hostKey);
+      next();
+      return;
+    }
+
+    const controller = hostMap.find(pathKey)?.value;
+    if (!controller) {
+      // No matching path.
+      console.log('##### No path match for: %s :: %s', hostKey, pathKey);
+      next();
+      return;
+    }
+
+    // Call the app!
+    console.log('##### FOUND APP!');
+    controller.app.handleRequest(req, res, next);
   }
 
   /**
@@ -368,5 +395,33 @@ export class ServerController {
    */
   static get NAME_PATTERN() {
     return '^(?!-)[-a-zA-Z0-9]+(?<!-)$';
+  }
+
+  /**
+   * Makes the map from each (possibly wildcarded) hostname that this server
+   * handles to the map from each (typically wildcarded) path (that is, a path
+   * _prefix_ when wildcarded) to the application which handles it.
+   *
+   * @param {object[]} mounts Mounts, in the form returned from {@link
+   *   ApplicationController.makeMountList}
+   * @returns {TreePathMap<TreePathMap<ApplicationController>>} The constructed
+   *   mount map.
+   */
+  static #makeMountMap(mounts) {
+    const result = new TreePathMap();
+
+    for (const mount of mounts) {
+      const { hostname, path, app } = mount;
+
+      let hostMounts = result.findExact(hostname);
+      if (!hostMounts) {
+        hostMounts = new TreePathMap();
+        result.add(hostname, hostMounts);
+      }
+
+      hostMounts.add(path, app);
+    }
+
+    return result;
   }
 }
