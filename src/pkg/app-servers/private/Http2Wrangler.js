@@ -90,26 +90,25 @@ export class Http2Wrangler extends BaseWrangler {
    * @param {http2.ServerHttp2Session} session The new session.
    */
   #addSession(session) {
-    const sessions = this.#sessions;
+    if (this.#stopping) {
+      // Immediately close a session that managed to slip in while we're trying
+      // to stop.
+      session.close();
+      return;
+    }
 
-    sessions.add(session);
+    this.#sessions.add(session);
 
     const removeSession = () => {
-      sessions.delete(session);
+      this.#sessions.delete(session);
       if (this.#stopping && (sessions.size === 0)) {
         this.#fullyStopped.value = true;
       }
     };
 
-    session.on('close', removeSession);
-    session.on('error', removeSession);
+    session.on('close',      removeSession);
+    session.on('error',      removeSession);
     session.on('frameError', removeSession);
-    session.on('goaway', removeSession);
-
-    if (this.#stopping) {
-      // Immediately close a session that managed to slip in while we're trying
-      // to stop.
-      session.close();
-    }
+    session.on('goaway',     removeSession);
   }
 }
