@@ -79,7 +79,9 @@ export class Http2Wrangler extends BaseWrangler {
 
   /** @override */
   async protocolWhenStopped() {
-    await this.#fullyStopped.whenTrue();
+    if (this.#sessions.size !== 0) {
+      await this.#fullyStopped.whenTrue();
+    }
   }
 
   /**
