@@ -124,7 +124,7 @@ export class Main {
         console.log(`### Stopping server: ${s.name}`);
         await s.stop();
         console.log(`### Stopped server: ${s.name}`);
-      }
+      };
 
       timers.setTimeout(doStop, 15 * 1000);
     }
@@ -139,7 +139,7 @@ export class Main {
       })();
     });
 
-    const result = await Promise.all(stops);
+    await Promise.all(stops);
     console.log('### All stopped!');
 
     return 0;
