@@ -315,13 +315,14 @@ export class ServerController {
     const ipv6Address =
       '(?=.*:)' +              // AFAWC, IPv6 requires a colon _somewhere_.
       '(?![:0]+)' +            // No IPv6 "any" addresses.
+      '(?!.*[^:]{5})' +        // No more than four digits in a row.
+      '(?!(.*::){2})' +        // No more than one `::`.
       '(?!.*:::)' +            // No triple-colons (or quad-, etc.).
-      '(?!.*::{2})' +          // No more than one double-colon.
-      '(?!.*[0-9A-Fa-f]{5})' + // No more than four digits in a row.
-      '(?!(.*:){8})' +         // No more than seven colons total.
-      '(?=(::|[^:]))' +        // Must start with double-colon or digit.
+      '(?!([^:]*:){8})' +      // No more than seven colons total.
+      '(?=.*::|([^:]*:){7}[^:]*$)' + // Contains `::` or exactly seven colons.
+      '(?=(::|[^:]))' +        // Must start with `::` or digit.
       '[:0-9A-Fa-f]{2,39}' +   // (Bunch of valid characters.)
-      '(?<=(::|[^:]))';        // Must end with double-colon or digit.
+      '(?<=(::|[^:]))';        // Must end with `::` or digit.
 
     return `^(${anyAddress}|${dnsName}|${ipv4Address}|${ipv6Address})$`;
   }
