@@ -12,7 +12,7 @@ import * as util from 'node:util';
  *
  * * `{ $defs: { <key>: <value>, ... } }` -- At the top level, recognized as a
  *   set of definitions which can be referenced. Is omitted from the result of
- *   expansion. Not recognized anywhere other than the top level.
+ *   expansion. Not allowed anywhere other than the top level.
  * * `{ $ref: "#/$defs/<key>" }` -- Expanded into the value defined under
  *   `$defs`.
  */
