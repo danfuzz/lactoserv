@@ -3,8 +3,8 @@
 
 import { ApplicationFactory } from '#p/ApplicationFactory';
 import { HostController } from '#p/HostController';
-import { TreePathKey } from '#p/TreePathKey';
 
+import { TreePathKey } from '@this/collections';
 import { JsonSchemaUtil, MustBe } from '@this/typey';
 
 // Types referenced only in doc comments.

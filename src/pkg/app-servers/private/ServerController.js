@@ -2,11 +2,10 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { ApplicationController } from '#p/ApplicationController';
-import { TreePathKey } from '#p/TreePathKey';
-import { TreePathMap } from '#p/TreePathMap';
 import { WranglerFactory } from '#p/WranglerFactory';
 
 import { Condition } from '@this/async';
+import { TreePathKey, TreePathMap } from '@this/collections';
 
 // Types referenced only in doc comments.
 import { BaseWrangler } from '#p/BaseWrangler';
