@@ -89,7 +89,7 @@ export class Main {
       apps: [
         {
           name:      'my-wacky-redirector',
-          mounts:    ['//*/'],
+          mounts:    [{ $ref: '#/$defs/wildcardTopMount' }],
           type:      'redirect-server',
           redirects: [
             {
@@ -100,11 +100,15 @@ export class Main {
         },
         {
           name: 'my-static-fun',
-          mount: '//*/',
+          mount: { $ref: '#/$defs/wildcardTopMount' },
           type: 'static-server',
           assetsPath
         }
-      ]
+      ],
+      // Just for testing / example
+      $defs: {
+        wildcardTopMount: '//*/'
+      }
     };
 
     const jx = new JsonExpander();
