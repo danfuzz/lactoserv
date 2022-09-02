@@ -2,6 +2,7 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { TreePathKey } from '#p/TreePathKey';
+import { TreePathMap } from '#p/TreePathMap';
 import { WranglerFactory } from '#p/WranglerFactory';
 
 import { Condition } from '@this/async';
@@ -26,6 +27,12 @@ export class ServerController {
    * this instance.
    */
   #hostManager;
+
+  /**
+   * @type {TreePathMap<TreePathMap<ApplicationController>>} Map from hostnames
+   * to paths to application controllers. See {@link #makeMountMap} for details.
+   */
+  #mountMap;
 
   /** @type {string} Interface address. */
   #interface;
@@ -62,6 +69,7 @@ export class ServerController {
   constructor(serverConfig) {
     this.#name        = serverConfig.name;
     this.#hostManager = serverConfig.hostManager;
+    this.#mountMap    = ServerController.#makeMountMap(serverConfig.appMounts);
     this.#interface   = serverConfig.interface;
     this.#port        = serverConfig.port;
     this.#protocol    = serverConfig.protocol;
@@ -69,7 +77,7 @@ export class ServerController {
     this.#server      = this.#wrangler.createServer(this.#hostManager);
     this.#serverApp   = this.#wrangler.createApplication();
 
-    this.#configureServerApp(serverConfig.appMounts);
+    this.#configureServerApp();
   }
 
   /** @returns {string} Server name. */
@@ -232,11 +240,8 @@ export class ServerController {
 
   /**
    * Configures {@link #serverApp}.
-   *
-   * @param {object[]} appMounts_unused Application mounts, in the form produced
-   *   by {@link ApplicationManager#makeMountList}.
    */
-  #configureServerApp(appMounts_unused) {
+  #configureServerApp() {
     const app = this.#serverApp;
 
     // Means paths `/foo` and `/Foo` are different.
@@ -368,5 +373,33 @@ export class ServerController {
    */
   static get NAME_PATTERN() {
     return '^(?!-)[-a-zA-Z0-9]+(?<!-)$';
+  }
+
+  /**
+   * Makes the map from each (possibly wildcarded) hostname that this server
+   * handles to the map from each (typically wildcarded) path (that is, a path
+   * _prefix_ when wildcarded) to the application which handles it.
+   *
+   * @param {object[]} mounts Mounts, in the form returned from {@link
+   *   ApplicationController.makeMountList}
+   * @returns {TreePathMap<TreePathMap<ApplicationController>>} The constructed
+   *   mount map.
+   */
+  static #makeMountMap(mounts) {
+    const result = new TreePathMap();
+
+    for (const mount of mounts) {
+      const { hostname, path, app } = mount;
+
+      let hostMounts = result.findExact(hostname);
+      if (!hostMounts) {
+        hostMounts = new TreePathMap();
+        result.add(hostname, hostMounts);
+      }
+
+      hostMounts.add(path, app);
+    }
+
+    return result;
   }
 }
