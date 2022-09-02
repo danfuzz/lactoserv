@@ -300,11 +300,21 @@ export class ServerController {
     // The one allowed "any" address.
     const anyAddress = '[*]';
 
-    // Normal DNS names. Note: Per RFC1035, the maximum allowed length for a
-    // "label" (name component) is 63, and the maximum allowed total length is
-    // 255.
-    const nameComponent = '(?![-0-9])[-a-zA-Z0-9]{1,63}(?<!-)';
-    const dnsName       = `(?!.{256})${nameComponent}(?:[.]${nameComponent})*`;
+    // Normal DNS names. See RFC1035 for details. Notes:
+    // * The maximum allowed length for a "label" (name component) is 63.
+    // * The maximum allowed total length is 255.
+    // * The spec seems to require each label to start with a letter, but in
+    //   practice that's commonly violated, e.g. there are many `<digits>.com`
+    //   registrations, and `<digits>.<digits>...in-addr.arpa` is commonly used.
+    //   So, we instead require labels not start with a dash and that there is
+    //   at least one non-digit somewhere in the entire name. This is enough to
+    //   disambiguate between a DNS name and an IPv4 address, and to cover
+    //   existing uses.
+    const dnsLabel = '(?!-)[-a-zA-Z0-9]{1,63}(?<!-)';
+    const dnsName  =
+      '(?!.{256})' +                    // No more than 255 characters total.
+      '(?=.*[a-zA-Z])' +                // At least one letter _somewhere_.
+      `${dnsLabel}(?:[.]${dnsLabel})*`; // `.`-delimited sequence of labels.
 
     // IPv4 address.
     const ipv4Address =
