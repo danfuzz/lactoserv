@@ -251,6 +251,9 @@ export class ServerController {
     // Means paths `/foo` and `/foo/` are different.
     app.set('strict routing', true);
 
+    // Do not strip off any parts from the parsed hostname.
+    app.set('subdomain offset', 0);
+
     // Squelches the response header advertisement for Express.
     app.set('x-powered-by', false);
 
