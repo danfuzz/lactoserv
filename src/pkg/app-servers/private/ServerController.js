@@ -254,13 +254,25 @@ export class ServerController {
     // Squelches the response header advertisement for Express.
     app.set('x-powered-by', false);
 
+    // Hook up our handler.
+    app.use('/', (req, res, next) => { this.#handleRequest(req, res, next); });
+  }
+
+  /**
+   * Handles a request, as defined by the Express middleware spec.
+   *
+   * @param {express.Request} req Request object.
+   * @param {express.Response} res_unused Response object.
+   * @param {function(?object=)} next Function which causes the next-bound
+   *   middleware to run.
+   */
+  #handleRequest(req, res_unused, next) {
+    const { hostname, subdomains } = req;
+
     // TODO: Temporary logging to see what's going on.
-    app.use('/', (req, res_unused, next) => {
-      console.log('##### request: %o', {
-        hostname: req.hostname, subdomains: req.subdomains
-      });
-      next();
-    });
+    console.log('##### request: %o', { hostname, subdomains });
+
+    next();
   }
 
   /**
