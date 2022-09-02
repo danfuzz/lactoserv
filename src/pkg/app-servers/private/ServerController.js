@@ -1,6 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { ApplicationController } from '#p/ApplicationController';
 import { TreePathKey } from '#p/TreePathKey';
 import { TreePathMap } from '#p/TreePathMap';
 import { WranglerFactory } from '#p/WranglerFactory';
@@ -271,19 +272,40 @@ export class ServerController {
    * Handles a request, as defined by the Express middleware spec.
    *
    * @param {express.Request} req Request object.
-   * @param {express.Response} res_unused Response object.
+   * @param {express.Response} res Response object.
    * @param {function(?object=)} next Function which causes the next-bound
    *   middleware to run.
    */
-  #handleRequest(req, res_unused, next) {
-    // Freeze `subdomains` to let `new TreePathKey()` avoid making a copy.
-    const subdomains = Object.freeze(req.subdomains);
-    const hostKey    = new TreePathKey(subdomains, false);
+  #handleRequest(req, res, next) {
+    const { path, subdomains } = req;
+
+    // Freezing `subdomains` lets `new TreePathKey()` avoid making a copy.
+    const hostKey = new TreePathKey(Object.freeze(subdomains), false);
+    const pathKey = ApplicationController.parsePath(path);
 
     // TODO: Temporary logging to see what's going on.
-    console.log('##### request: %s :: %s', hostKey, req.path);
+    console.log('##### request: %s :: %s', hostKey, pathKey);
 
-    next();
+    // Find the mount map for the most-specific matching host.
+    const hostMap = this.#mountMap.find(hostKey)?.value;
+    if (!hostMap) {
+      // No matching host.
+      console.log('##### No host match for: %s', hostKey);
+      next();
+      return;
+    }
+
+    const controller = hostMap.find(pathKey)?.value;
+    if (!controller) {
+      // No matching path.
+      console.log('##### No path match for: %s :: %s', hostKey, pathKey);
+      next();
+      return;
+    }
+
+    // Call the app!
+    console.log('##### FOUND APP!');
+    controller.app.handleRequest(req, res, next);
   }
 
   /**
