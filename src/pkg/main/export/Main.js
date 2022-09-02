@@ -131,7 +131,7 @@ export class Main {
 
     console.log('### Waiting for servers to stop...');
 
-    const stops = servers.map(s => {
+    const stops = servers.map((s) => {
       return (async () => {
         console.log(`### Waiting for server: ${s.name}`);
         await s.whenStopped();
