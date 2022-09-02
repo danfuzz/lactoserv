@@ -100,7 +100,8 @@ export class Http2Wrangler extends BaseWrangler {
     this.#sessions.add(session);
 
     const removeSession = () => {
-      this.#sessions.delete(session);
+      const sessions = this.#sessions;
+      sessions.delete(session);
       if (this.#stopping && (sessions.size === 0)) {
         this.#fullyStopped.value = true;
       }
