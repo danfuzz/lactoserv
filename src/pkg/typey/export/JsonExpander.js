@@ -160,7 +160,7 @@ class Workspace {
         let   subValue  = value[key];
 
         if (directive) {
-          subValue = directive.process(path, subPath, subValue);
+          subValue = directive.process(pass, subPath, subValue);
           if (subValue?.$replaceOuter) {
             value = subValue.$replaceOuter;
             continue outer;
@@ -213,7 +213,8 @@ class DefsDirective extends Directive {
    * @throws {Error} Thrown if there is no such definition.
    */
   getDef(name) {
-    const def = this.#defs?.get(name);
+    const defs = this.#defs;
+    const def  = defs ? defs.get(name) : null;
 
     if (!def) {
       throw new Error(`No definition for: ${name}`);
@@ -228,8 +229,8 @@ class DefsDirective extends Directive {
       return value;
     }
 
-    if (path.length === 0) {
-      this.#defs = value;
+    if (path.length === 1) {
+      this.#defs = new Map(Object.entries(value));
       return undefined;
     } else {
       throw new Error('`$defs` only allowed at top level.');
