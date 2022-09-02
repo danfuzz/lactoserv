@@ -107,50 +107,40 @@ export class Main {
     };
 
     const warehouse = new Warehouse(comboConfig);
-    const server1 =
-      warehouse.makeSingleApplicationServer('my-static-fun', 'secure');
-    //const server1 =
-    //    warehouse.makeSingleApplicationServer('my-insecure-static-fun');
-    const server2 =
-      warehouse.makeSingleApplicationServer('my-wacky-redirector', 'insecure');
+    const sm = warehouse.serverManager;
+    const servers = [
+      sm.findController('secure'),
+      sm.findController('insecure'),
+      sm.findController('also-insecure')
+    ];
 
-    if (server1) {
-      console.log('Starting 1...');
-      await server1.start();
-      console.log('Started 1.');
+    for (const s of servers) {
+      console.log(`### Starting server: ${s.name}`);
+      await s.start();
+      console.log('### Started.');
+      console.log();
 
-      const doStop1 = async () => {
-        console.log('Stopping 1...');
-        await server1.stop();
-        console.log('Stopped 1.');
-      };
+      const doStop = async () => {
+        console.log(`### Stopping server: ${s.name}`);
+        await s.stop();
+        console.log(`### Stopped server: ${s.name}`);
+      }
 
-      timers.setTimeout(doStop1, 15 * 1000);
+      timers.setTimeout(doStop, 15 * 1000);
     }
 
-    if (server2) {
-      console.log('Starting 2...');
-      await server2.start();
-      console.log('Started 2.');
+    console.log('### Waiting for servers to stop...');
 
-      const doStop2 = async () => {
-        console.log('Stopping 2...');
-        await server2.stop();
-        console.log('Stopped 2.');
-      };
+    const stops = servers.map(s => {
+      return (async () => {
+        console.log(`### Waiting for server: ${s.name}`);
+        await s.whenStopped();
+        console.log(`### Server now stopped: ${s.name}`);
+      })();
+    });
 
-      timers.setTimeout(doStop2, 15 * 1000);
-    }
-
-    if (server1) {
-      await server1.whenStopped();
-      console.log('Server 1 stopped!');
-    }
-
-    if (server2) {
-      await server2.whenStopped();
-      console.log('Server 2 stopped!');
-    }
+    const result = await Promise.all(stops);
+    console.log('### All stopped!');
 
     return 0;
   }
