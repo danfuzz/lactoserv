@@ -319,6 +319,10 @@ export class ServerController {
     // IPv4 address.
     const ipv4Address =
       '(?!0+[.]0+[.]0+[.]0+)' + // No IPv4 "any" addresses.
+      '(?!.*[^.]{4})' +         // No more than three digits in a row.
+      '(?!.*[3-9][^.]{2})' +    // No 3-digit number over `299`.
+      '(?!.*2[6-9][^.])' +      // No `2xx` number over `259`.
+      '(?!.*25[6-9])' +         // No `25x` number over `255`.
       '[0-9]{1,3}(?:[.][0-9]{1,3}){3}';
 
     // IPv6 address.
