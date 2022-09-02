@@ -136,7 +136,7 @@ export class ServerController {
       server.listen(this.#listenOptions);
     });
 
-    this.#log('Started server.');
+    this.#log(`Started server: ${this.name}`);
   }
 
   /**
@@ -150,7 +150,7 @@ export class ServerController {
       return;
     }
 
-    this.#log('Stopping server.');
+    this.#log(`Stopping server: ${this.name}`);
 
     await this.#wrangler.protocolStop();
 
@@ -161,7 +161,7 @@ export class ServerController {
 
     await this.whenStopped();
 
-    this.#log('Server stopped.');
+    this.#log(`Server stopped: ${this.name}`);
   }
 
   /**
