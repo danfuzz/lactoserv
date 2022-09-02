@@ -6,7 +6,7 @@ import { ApplicationController } from '#p/ApplicationController';
 import { JsonSchema, JsonSchemaUtil } from '@this/typey';
 
 // Types referenced only in doc comments.
-import { TreePathKey } from '#p/TreePathKey';
+import { TreePathKey } from '@this/collections';
 
 /**
  * Manager for dealing with all the high-level applications that are running or

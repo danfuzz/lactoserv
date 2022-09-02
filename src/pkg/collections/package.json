@@ -1,5 +1,5 @@
 {
-  "name": "@this/app-servers",
+  "name": "@this/collections",
   "version": "0.0.1",
   "type": "module",
 
@@ -10,10 +10,6 @@
   },
 
   "dependencies": {
-    "@this/async": "*",
-    "@this/collections": "*",
-    "@this/typey": "*",
-    "express": "^4.18.1",
-    "http2-express-bridge": "^1.0.7"
+    "@this/typey": "*"
   }
 }

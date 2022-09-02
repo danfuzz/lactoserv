@@ -1,8 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { TreePathKey } from '#p/TreePathKey';
-
+import { TreePathKey } from '@this/collections';
 import { JsonSchemaUtil, MustBe } from '@this/typey';
 
 import * as tls from 'node:tls';

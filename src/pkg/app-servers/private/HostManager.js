@@ -2,8 +2,8 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { HostController } from '#p/HostController';
-import { TreePathMap } from '#p/TreePathMap';
 
+import { TreePathMap } from '@this/collections';
 import { JsonSchema, JsonSchemaUtil } from '@this/typey';
 
 // Types referenced only in doc comments.

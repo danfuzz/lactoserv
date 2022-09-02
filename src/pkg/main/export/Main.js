@@ -2,6 +2,7 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { Warehouse } from '@this/app-servers';
+import { JsonExpander } from '@this/typey';
 import { Dirs } from '@this/util-host';
 
 import * as fs from 'node:fs/promises';
@@ -88,7 +89,7 @@ export class Main {
       apps: [
         {
           name:      'my-wacky-redirector',
-          mounts:    ['//*/'],
+          mounts:    [{ $ref: '#/$defs/wildcardTopMount' }],
           type:      'redirect-server',
           redirects: [
             {
@@ -99,14 +100,21 @@ export class Main {
         },
         {
           name: 'my-static-fun',
-          mount: '//*/',
+          mount: { $ref: '#/$defs/wildcardTopMount' },
           type: 'static-server',
           assetsPath
         }
-      ]
+      ],
+      // Just for testing / example
+      $defs: {
+        wildcardTopMount: '//*/'
+      }
     };
 
-    const warehouse = new Warehouse(comboConfig);
+    const jx = new JsonExpander();
+    const finalConfig = jx.expand(comboConfig);
+
+    const warehouse = new Warehouse(finalConfig);
     const sm = warehouse.serverManager;
     const servers = [
       sm.findController('secure'),
