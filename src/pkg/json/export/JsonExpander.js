@@ -73,7 +73,7 @@ export class JsonExpander {
    * @param {*} value The original value.
    * @returns {*} The expanded version of `value`.
    */
-  expandAsync(value) {
+  async expandAsync(value) {
     return this.#expand0(value, true);
   }
 
@@ -91,6 +91,8 @@ export class JsonExpander {
       workspace.addDirective(name, new cls(workspace));
     }
 
-    return workspace.process();
+    return doAsync
+      ? workspace.processAsync()
+      : workspace.process();
   }
 }

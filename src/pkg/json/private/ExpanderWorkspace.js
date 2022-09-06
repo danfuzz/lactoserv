@@ -107,6 +107,17 @@ export class ExpanderWorkspace {
   }
 
   /**
+   * Performs the expansion asynchronously.
+   *
+   * @returns {*} The result of expansion.
+   * @throws {Error} Thrown if there was any trouble during expansion.
+   */
+  async processAsync() {
+    // TODO!
+    return this.process();
+  }
+
+  /**
    * Performs the main work of expansion.
    *
    * @param {function()} subProcess Function to call to recursively process.
