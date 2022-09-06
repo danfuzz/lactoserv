@@ -1,5 +1,5 @@
 {
-  "name": "@this/typey",
+  "name": "@this/json",
   "version": "0.0.1",
   "type": "module",
 
@@ -7,5 +7,10 @@
   "imports": {
     "#x/*": "./export/*.js",
     "#p/*": "./private/*.js"
+  },
+
+  "dependencies": {
+    "ajv": "^8.11.0",
+    "ajv-formats": "^2.1.1"
   }
 }

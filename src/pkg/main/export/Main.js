@@ -2,7 +2,7 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { Warehouse } from '@this/app-servers';
-import { JsonExpander } from '@this/typey';
+import { JsonExpander } from '@this/json';
 import { Dirs } from '@this/util-host';
 
 import * as fs from 'node:fs/promises';

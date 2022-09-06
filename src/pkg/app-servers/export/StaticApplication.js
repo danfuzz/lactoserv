@@ -3,7 +3,7 @@
 
 import { BaseApplication } from '#p/BaseApplication';
 
-import { JsonSchema } from '@this/typey';
+import { JsonSchema } from '@this/json';
 
 import express from 'express';
 

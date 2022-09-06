@@ -4,7 +4,7 @@
 import { HostController } from '#p/HostController';
 
 import { TreePathMap } from '@this/collections';
-import { JsonSchema, JsonSchemaUtil } from '@this/typey';
+import { JsonSchema, JsonSchemaUtil } from '@this/json';
 
 // Types referenced only in doc comments.
 import { SecureContext } from 'node:tls';
