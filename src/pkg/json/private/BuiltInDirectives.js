@@ -2,6 +2,7 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { DefsDirective } from '#p/DefsDirective';
+import { JsonDirective } from '#x/JsonDirective';
 import { RefDirective } from '#p/RefDirective';
 
 /**
@@ -9,8 +10,8 @@ import { RefDirective } from '#p/RefDirective';
  */
 export class BuiltInDirectives {
   /**
-   * @type {Map<string, function(new:JsonDirective)>} Map from each directive name
-   * the directive class which implements it.
+   * @type {Map<string, function(new:JsonDirective)>} Map from each directive
+   * name the directive class which implements it.
    */
   static #DIRECTIVE_CLASSES = this.#makeMap(
     DefsDirective,
