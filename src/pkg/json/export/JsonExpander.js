@@ -14,7 +14,9 @@ import * as util from 'node:util';
  *   set of definitions which can be referenced. Is omitted from the result of
  *   expansion. Not allowed anywhere other than the top level.
  * * `{ $ref: "#/$defs/<key>" }` -- Expanded into the value defined under
- *   `$defs`.
+ *   `$defs`. The path is intentionally more restrictive than what one gets with
+ *   JSON Schema and really has to begin `#/$defs/`. This will be loosened up if
+ *   and when there is an actual need.
  */
 export class JsonExpander {
   /**
