@@ -44,12 +44,13 @@ export class JsonExpander {
   }
 
   /**
-   * Adds a directive, specifically a handler class for a directive.
+   * Adds a directive, specifically a handler class for a directive. One only
+   * needs to call this method to use non-built-in directives.
    *
    * @param {function(new:JsonDirective)} directive The directive to add.
    */
   addDirective(directive) {
-    const key = directive.KEY;
+    const key = directive.NAME;
 
     if (!key.startsWith('$')) {
       throw new Error('Directive keys must start with `$`.');

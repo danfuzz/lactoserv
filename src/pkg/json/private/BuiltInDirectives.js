@@ -75,7 +75,7 @@ export class BuiltInDirectives {
     const result = new Map();
 
     for (const c of classes) {
-      result.set(c.KEY, c);
+      result.set(c.NAME, c);
     }
 
     return result;

@@ -48,8 +48,8 @@ export class RefDirective extends JsonDirective {
   // Static members
   //
 
-  /** @type {string} Key to identify this directive. */
-  static get KEY() {
+  /** @type {string} Name of this directive. */
+  static get NAME() {
     return '$ref';
   }
 }
