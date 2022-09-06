@@ -21,13 +21,12 @@ export class JsonDirective {
    *     from the enclosing object (or array).
    *   `replace: <value>` -- `value` should be used to replace the original
    *     binding. With no additional properties, just the binding for the
-   *     directive name is to be replaced. With additional property `outer:
-   *     true`, the enclosing object should be replaced, not just the directive
-   *     property.
-   *   `replaceAwait: <promise>` -- The value should be replaced with the
-   *     asynchrounously yielded result from the given promise. This form is
-   *     only accepted when the outer {@link JsonExpander} is being run
-   *     asynchronously.
+   *     directive name is to be replaced with the given `value`. With
+   *     additional bindings:
+   *     * `await: true` -- `value` is `await`ed. This form is only accepted
+   *       when the outer {@link JsonExpander} is being run asynchronously.
+   *     * `outer: true` -- The enclosing object should be replaced, not just the
+   *       directive property.
    *   `same: true` -- The value should remain unchanged.
    * @returns {*} Result, as per {@link ExpanderWorkspace.process}.
    */
