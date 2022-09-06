@@ -2,7 +2,7 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { JsonDirective } from '#x/JsonDirective';
-import { DefsDirective, RefDirective } from '#p/BasicDirectives';
+import { BuiltInDirectives } from '#p/BuiltInDirectives';
 
 import { Methods } from '@this/typey';
 
@@ -31,15 +31,14 @@ export class JsonExpander {
   #directives = new Map();
 
   /**
-   * Constructs a new instance.
+   * Constructs a new instance. By default, it includes all built-in directives.
    *
    * @param {boolean} [builtInDirectives = true] Should the built-in directives
    *   be recognized by this instance?
    */
   constructor(builtInDirectives = true) {
     if (builtInDirectives) {
-      this.addDirective(DefsDirective);
-      this.addDirective(RefDirective);
+      BuiltInDirectives.addAllDirectivesTo(this.#directives);
     }
   }
 
