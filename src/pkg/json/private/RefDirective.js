@@ -3,6 +3,8 @@
 
 import { JsonDirective } from '#x/JsonDirective';
 
+import * as util from 'node:util';
+
 /**
  * Directive `$ref`, for looking up something from the `$defs`.
  */

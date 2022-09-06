@@ -4,10 +4,6 @@
 import { JsonDirective } from '#x/JsonDirective';
 import { BuiltInDirectives } from '#p/BuiltInDirectives';
 
-import { Methods } from '@this/typey';
-
-import * as util from 'node:util';
-
 /**
  * Processor for JSON objects, which knows how to expand it by following
  * embedded directives. Directives are in the form of objects with distinctive

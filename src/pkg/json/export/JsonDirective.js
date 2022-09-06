@@ -1,6 +1,8 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { Methods } from '@this/typey';
+
 /**
  * Base class for directives used by {@link JsonExpander}.
  */
@@ -15,7 +17,7 @@ export class JsonDirective {
    * @returns {*} Result, as per {@link Workspace.process}.
    */
   process(pass, path, value) {
-    Methods.abstract(pass, path, value);
+    throw Methods.abstract(pass, path, value);
   }
 
 
@@ -28,6 +30,6 @@ export class JsonDirective {
    * @returns {string} Name of this directive.
    */
   static get NAME() {
-    Methods.abstract();
+    throw Methods.abstract();
   }
 }
