@@ -20,6 +20,10 @@ export class JsonDirective {
    *   `delete: true` -- The key/value pair (or array element) should be removed
    *     from the enclosing object (or array).
    *   `replace: <value>` -- The value should be replaced with the given one.
+   *   `replaceAwait: <promise>` -- The value should be replaced with the
+   *     asynchrounously yielded result from the given promise. This form is
+   *     only accepted when the outer {@link JsonExpander} is being run
+   *     asynchronously.
    *   `replaceOuter: <value>` -- The enclosing object should be replaced with
    *     the given one.
    *   `same: true` -- The value should remain unchanged.

@@ -57,13 +57,35 @@ export class JsonExpander {
   }
 
   /**
-   * Expands the given JSON value.
+   * Expands the given JSON value, with no asynchrony.
    *
    * @param {*} value The original value.
    * @returns {*} The expanded version of `value`.
    */
   expand(value) {
-    const workspace = new ExpanderWorkspace(value);
+    return this.#expand0(value, false);
+  }
+
+  /**
+   * Expands the given JSON value, with promises allowed as intermediate
+   * results.
+   *
+   * @param {*} value The original value.
+   * @returns {*} The expanded version of `value`.
+   */
+  expandAsync(value) {
+    return this.#expand0(value, true);
+  }
+
+  /**
+   * Common code between {@link #expand} and {@link #expandAsync}.
+   *
+   * @param {*} value The original value.
+   * @param {boolean} doAsync Run asynchronously?
+   * @returns {*} The expanded version of `value`, or a promise thereto.
+   */
+  #expand0(value, doAsync) {
+    const workspace = new ExpanderWorkspace(value, doAsync);
 
     for (const [name, cls] of this.#directives) {
       workspace.addDirective(name, new cls(workspace));

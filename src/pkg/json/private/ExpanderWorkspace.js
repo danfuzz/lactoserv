@@ -18,6 +18,9 @@ export class ExpanderWorkspace {
    */
   #directives = new Map();
 
+  /** {boolean} Operate asynchronously? */
+  #doAsync;
+
   /** @type {*} Original value being worked on. */
   #originalValue;
 
@@ -25,9 +28,11 @@ export class ExpanderWorkspace {
    * Constructs an instance.
    *
    * @param {*} value Value to be worked on.
+   * @param {boolean} doAsync Operate asynchronoulsy?
    */
-  constructor(value) {
+  constructor(value, doAsync) {
     this.#originalValue = value;
+    this.#doAsync = doAsync;
   }
 
   /**
