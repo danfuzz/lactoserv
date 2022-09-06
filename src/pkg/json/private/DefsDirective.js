@@ -40,7 +40,7 @@ export class DefsDirective extends JsonDirective {
       this.#defs = new Map(Object.entries(value));
       return { delete: true };
     } else {
-      throw new Error('`$defs` only allowed at top level.');
+      throw new Error(`\`${DefsDirective.NAME}\` only allowed at top level.`);
     }
   }
 
