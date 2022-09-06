@@ -82,23 +82,19 @@ export class ExpanderWorkspace {
   }
 
   /**
-   * Performs the expansion.
+   * Performs the expansion synchronously.
    *
    * @returns {*} The result of expansion.
    * @throws {Error} Thrown if there was any trouble during expansion.
    */
   process() {
+    const subProcess =
+      (pass, path, value) => this.#process0(subProcess, pass, path, value);
     let value = this.#originalValue;
 
     for (let pass = 1; pass <= 2; pass++) {
-      const result = this.#process0(pass, [], value);
-      if (result.delete) {
-        // Odd result, but...uh...ok.
-        return null;
-      } else if (result.replace !== undefined) {
-        if (result.outer) {
-          throw new Error('Cannot `replace outer` at top level.');
-        }
+      const result = subProcess(pass, [], value);
+      if (result.replace !== undefined) {
         value = result.replace;
       } else if (result.same) {
         // Nothing to do here.
@@ -113,34 +109,33 @@ export class ExpanderWorkspace {
   /**
    * Performs the main work of expansion.
    *
+   * @param {function()} subProcess Function to call to recursively process.
    * @param {number} pass Which pass is this?
    * @param {(string|number)[]} path Path within the value being worked on.
    * @param {*} value Sub-value at `path`.
    * @returns {object} Replacement for `value`, per the documentation of
-   *   {@link JsonDirective.process}, plus `iterate: <value>` to help implement
-   *   outer replacements.
+   *   {@link JsonDirective.process}. Will not return `{ delete }`,
+   *   `{ replace...await }`, or `{ replace...outer }`.
    */
-  #process0(pass, path, value) {
+  #process0(subProcess, pass, path, value) {
     const origValue = value;
-    let   result;
+    let   result    = null;
 
     for (;;) {
       if ((value === null) || (typeof value !== 'object')) {
         result = { same: true };
         break;
       } else if (value instanceof Array) {
-        result = this.#process0Array(pass, path, value);
-        if (result.iterate === undefined) {
-          break;
-        }
-        value = result.iterate;
+        result = this.#process0Array(subProcess, pass, path, value);
       } else {
-        result = this.#process0Object(pass, path, value);
-        if (result.iterate === undefined) {
-          break;
-        }
-        value = result.iterate;
+        result = this.#process0Object(subProcess, pass, path, value);
       }
+
+      if (result.iterate === undefined) {
+        break;
+      }
+
+      value = result.iterate;
     }
 
     if (result.delete || result.replace?.outer) {
@@ -157,20 +152,23 @@ export class ExpanderWorkspace {
   /**
    * Performs the work of {@link #process0}, specifically for arrays.
    *
+   * @param {function()} subProcess Function to call to recursively process.
    * @param {number} pass Which pass is this?
    * @param {(string|number)[]} path Path within the value being worked on.
    * @param {*} value Sub-value at `path`.
    * @returns {object} Replacement for `value`, per the documentation of
-   *   {@link JsonDirective.process}.
+   *   {@link JsonDirective.process}, plus `{ iterate: <value>, async:
+   *   <boolean> }` to help implement outer replacements. Will not return
+   *   `{ delete }` or `{ replace...outer }`.
    */
-  #process0Array(pass, path, value) {
+  #process0Array(subProcess, pass, path, value) {
     const newValue    = [];
     let   allSame     = true;
     let   outerResult = null;
 
     for (let i = 0; i < value.length; i++) {
       const origValue = value[i];
-      const result    = this.#process0(pass, [...path, i], origValue);
+      const result    = subProcess(pass, [...path, i], origValue);
       MustBe.object(result);
 
       if (result.delete) {
@@ -202,21 +200,24 @@ export class ExpanderWorkspace {
   /**
    * Performs the work of {@link #process0}, specifically for non-array objects.
    *
+   * @param {function()} subProcess Function to call to recursively process.
    * @param {number} pass Which pass is this?
    * @param {(string|number)[]} path Path within the value being worked on.
    * @param {*} value Sub-value at `path`.
    * @returns {object} Replacement for `value`, per the documentation of
-   *   {@link JsonDirective.process}.
+   *   {@link JsonDirective.process}, plus `{ iterate: <value>, async:
+   *   <boolean> }` to help implement outer replacements. Will not return
+   *   `{ delete }` or `{ replace...outer }`.
    */
-  #process0Object(pass, path, value) {
+  #process0Object(subProcess, pass, path, value) {
     const newValue    = {};
     let   allSame     = true;
     let   outerResult = null;
 
-    // Go over all values, processing them as values (ignoring directiveness).
+    // Go over all bindings, processing them as values (ignoring directiveness).
     for (const key of Object.keys(value)) {
       const origValue = value[key];
-      const result    = this.#process0(pass, [...path, key], origValue);
+      const result    = subProcess(pass, [...path, key], origValue);
       MustBe.object(result);
 
       if (result.delete) {
