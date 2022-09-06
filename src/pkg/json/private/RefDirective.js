@@ -1,6 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { ExpanderWorkspace } from '#p/ExpanderWorkspace';
 import { JsonDirective } from '#x/JsonDirective';
 
 import * as util from 'node:util';
@@ -9,7 +10,7 @@ import * as util from 'node:util';
  * Directive `$ref`, for looking up something from the `$defs`.
  */
 export class RefDirective extends JsonDirective {
-  /** {Workspace} Associated workspace. */
+  /** {ExpanderWorkspace} Associated workspace. */
   #workspace;
 
   /** {?DefsDirective} The `$defs` directive, if known. */
@@ -18,7 +19,7 @@ export class RefDirective extends JsonDirective {
   /**
    * Constructs an instance.
    *
-   * @param {Workspace} workspace The associated workspace.
+   * @param {ExpanderWorkspace} workspace The associated workspace.
    */
   constructor(workspace) {
     super();
