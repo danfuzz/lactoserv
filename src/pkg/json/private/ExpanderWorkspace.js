@@ -18,11 +18,17 @@ export class ExpanderWorkspace {
    */
   #directives = new Map();
 
+  /** @type {*} Original value being worked on. */
+  #originalValue;
+
   /** {boolean} Operate asynchronously? */
   #doAsync;
 
-  /** @type {*} Original value being worked on. */
-  #originalValue;
+  /**
+   * {{then: function(function(*), function(*))}[]} Array of promises /
+   * `then`ables that need resolution.
+   */
+  #promises = [];
 
   /**
    * Constructs an instance.
@@ -43,6 +49,19 @@ export class ExpanderWorkspace {
    */
   addDirective(name, directive) {
     this.#directives.set(name, directive);
+  }
+
+  /**
+   * Adds a pending promise / `then`able.
+   *
+   * @param {{then: function(function(*), function(*))}} promise Promise to add.
+   */
+  addPromise(promise) {
+    if (!this.#doAsync) {
+      throw new Error('Not being run asynchronously.');
+    }
+
+    this.#promises.push(promise);
   }
 
   /**
@@ -262,5 +281,20 @@ export class ExpanderWorkspace {
     }
 
     return allSame ? { same: true } : { replace: newValue };
+  }
+
+  /**
+   * Awaits all pending promises.
+   */
+  async #resolveAllPromises() {
+    // This arrangement is meant to ensure that parallel calls to this method
+    // don't mess each other up and all eventually complete.
+    while (this.#promises.length !== 0) {
+      const item = this.#promises[this.#promises.length - 1];
+      await item;
+      if (this.#promises[this.#promises.length - 1]) {
+        this.#promises.pop();
+      }
+    }
   }
 }
