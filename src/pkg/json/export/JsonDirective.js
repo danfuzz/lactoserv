@@ -8,7 +8,8 @@ import { Methods } from '@this/typey';
  */
 export class JsonDirective {
   /**
-   * Process the given directive value.
+   * Process the given directive value. Each directive is called twice, once
+   * with `pass === 1` and then again with `pass === 2`.
    *
    * @abstract
    * @param {number} pass Which pass is this?
