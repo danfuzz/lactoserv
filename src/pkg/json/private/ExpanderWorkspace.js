@@ -145,10 +145,9 @@ export class ExpanderWorkspace {
    *   {@link JsonDirective.process}.
    */
   #process0Array(pass, path, value) {
-    const newValue      = [];
-    let   allSame       = true;
-    let   newOuter      = null;
-    let   outerReplaced = false;
+    const newValue    = [];
+    let   allSame     = true;
+    let   outerResult = null;
 
     for (let i = 0; i < value.length; i++) {
       const origValue = value[i];
@@ -159,11 +158,10 @@ export class ExpanderWorkspace {
         allSame = false;
       } else if (result.replace !== undefined) {
         if (result.outer) {
-          if (outerReplaced) {
+          if (outerResult) {
             throw new Error('Conflicting outer replacements.');
           }
-          newOuter = result.replace;
-          outerReplaced = true;
+          outerResult = { iterate: result.replace, await: !!result.await };
         } else {
           newValue.push(result.replace);
         }
@@ -175,8 +173,8 @@ export class ExpanderWorkspace {
       }
     }
 
-    if (outerReplaced) {
-      return { iterate: newOuter };
+    if (outerResult) {
+      return outerResult;
     } else {
       return allSame ? { same: true } : { replace: newValue };
     }
@@ -192,10 +190,9 @@ export class ExpanderWorkspace {
    *   {@link JsonDirective.process}.
    */
   #process0Object(pass, path, value) {
-    const newValue      = {};
-    let   allSame       = true;
-    let   newOuter      = null;
-    let   outerReplaced = false;
+    const newValue    = {};
+    let   allSame     = true;
+    let   outerResult = null;
 
     // Go over all values, processing them as values (ignoring directiveness).
     for (const key of Object.keys(value)) {
@@ -207,11 +204,10 @@ export class ExpanderWorkspace {
         allSame = false;
       } else if (result.replace !== undefined) {
         if (result.outer) {
-          if (outerReplaced) {
+          if (outerResult) {
             throw new Error('Conflicting outer replacements.');
           }
-          newOuter = result.replace;
-          outerReplaced = true;
+          outerResult = { iterate: result.replace, await: !!result.await };
         } else {
           newValue[key] = result.replace;
         }
@@ -223,8 +219,8 @@ export class ExpanderWorkspace {
       }
     }
 
-    if (outerReplaced) {
-      return { iterate: newOuter };
+    if (outerResult) {
+      return outerResult;
     }
 
     // See if the post-processing result contains any directives. If so, then
@@ -254,7 +250,7 @@ export class ExpanderWorkspace {
         allSame = false;
       } else if (result.replace !== undefined) {
         if (result.outer) {
-          return { iterate: result.replace };
+          return { iterate: result.replace, await: !!result.await }
         }
         newValue[directiveName] = result.replace;
         allSame = false;
