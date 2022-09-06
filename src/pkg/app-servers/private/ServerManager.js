@@ -6,7 +6,7 @@ import { HostController } from '#p/HostController';
 import { HostManager } from '#p/HostManager';
 import { ServerController } from '#p/ServerController';
 
-import { JsonSchema, JsonSchemaUtil } from '@this/typey';
+import { JsonSchema, JsonSchemaUtil } from '@this/json';
 
 // Types referenced only in doc comments.
 import { ApplicationManager } from '#p/ApplicationManager';

@@ -5,7 +5,7 @@ import { ApplicationManager } from '#p/ApplicationManager';
 import { HostManager } from '#p/HostManager';
 import { ServerManager } from '#p/ServerManager';
 
-import { JsonSchema } from '@this/typey';
+import { JsonSchema } from '@this/json';
 
 /**
  * "Warehouse" of bits and pieces created from a top-level configuration.

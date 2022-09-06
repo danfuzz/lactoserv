@@ -2,7 +2,8 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { TreePathKey } from '@this/collections';
-import { JsonSchemaUtil, MustBe } from '@this/typey';
+import { JsonSchemaUtil } from '@this/json';
+import { MustBe } from '@this/typey';
 
 import * as tls from 'node:tls';
 
