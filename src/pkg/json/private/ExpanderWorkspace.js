@@ -3,6 +3,10 @@
 
 import { JsonDirective } from '#x/JsonDirective';
 
+import { MustBe } from '@this/typey';
+
+import * as util from 'node:util';
+
 /**
  * Workspace for running an expansion set up by {@link JsonExpander}, including
  * code to do most of the work (other than what's defined by most directives).
@@ -60,10 +64,25 @@ export class ExpanderWorkspace {
    * @throws {Error} Thrown if there was any trouble during expansion.
    */
   process() {
-    const pass1Value = this.#process0(1, [], this.#originalValue);
-    const pass2Value = this.#process0(2, [], pass1Value);
+    let value = this.#originalValue;
 
-    return pass2Value;
+    for (let pass = 1; pass <= 2; pass++) {
+      const result = this.#process0(pass, [], value);
+      if (result.delete) {
+        // Odd result, but...uh...ok.
+        return null;
+      } else if (result.replace !== undefined) {
+        value = result.replace;
+      } else if (result.replaceOuter !== undefined) {
+        throw new Error('Cannot `replaceOuter` at top level.');
+      } else if (result.same) {
+        // Nothing to do here.
+      } else {
+        throw new Error(`Unrecognized processing result: ${util.format(result)}`);
+      }
+    }
+
+    return value;
   }
 
   /**
@@ -72,47 +91,170 @@ export class ExpanderWorkspace {
    * @param {number} pass Which pass is this?
    * @param {(string|number)[]} path Path within the value being worked on.
    * @param {*} value Sub-value at `path`.
-   * @returns {*} Replacement for `value`, or with a `$replaceOuter` form the
-   *   replacement for the object that `value` is in, or `undefined` to delete
-   *   the property which originally held `value`.
+   * @returns {object} Replacement for `value`, per the documentation of
+   *   {@link JsonDirective.process}, plus `iterate: <value>` to help implement
+   *   outer replacements.
    */
   #process0(pass, path, value) {
-    outer: for (;;) {
-      if (typeof value !== 'object') {
-        return value;
+    const origValue = value;
+    let   result;
+
+    for (;;) {
+      if ((value === null) || (typeof value !== 'object')) {
+        result = { same: true };
+        break;
       } else if (value instanceof Array) {
-        const newValue = [];
-        for (let i = 0; i < value.length; i++) {
-          const v = this.#process0(pass, [...path, i], value[i]);
-          if (v !== undefined) {
-            newValue.push(v);
-          }
+        result = this.#process0Array(pass, path, value);
+        if (result.iterate === undefined) {
+          break;
         }
-        return newValue;
+        value = result.iterate;
+      } else {
+        result = this.#process0Object(pass, path, value);
+        if (result.iterate === undefined) {
+          break;
+        }
+        value = result.iterate;
       }
-
-      const newValue = {};
-
-      for (const key of Object.keys(value).sort()) {
-        const directive = this.#directives.get(key);
-        const subPath   = [...path, key];
-        let   subValue  = value[key];
-
-        if (directive) {
-          subValue = directive.process(pass, subPath, subValue);
-          if (subValue?.$replaceOuter) {
-            value = subValue.$replaceOuter;
-            continue outer;
-          }
-        }
-
-        subValue = this.#process0(pass, subPath, subValue);
-        if (subValue !== undefined) {
-          newValue[key] = subValue;
-        }
-      }
-
-      return newValue;
     }
+
+    if (result.delete || (result.replaceOuter !== undefined)) {
+      return result;
+    } else {
+      if (result.replace !== undefined) {
+        value = result.replace;
+      }
+      return (value === origValue) ? { same: true } : { replace: value };
+    }
+  }
+
+  /**
+   * Performs the work of {@link #process0}, specifically for arrays.
+   *
+   * @param {number} pass Which pass is this?
+   * @param {(string|number)[]} path Path within the value being worked on.
+   * @param {*} value Sub-value at `path`.
+   * @returns {object} Replacement for `value`, per the documentation of
+   *   {@link JsonDirective.process}.
+   */
+  #process0Array(pass, path, value) {
+    const newValue      = [];
+    let   allSame       = true;
+    let   newOuter      = null;
+    let   outerReplaced = false;
+
+    for (let i = 0; i < value.length; i++) {
+      const origValue = value[i];
+      const result    = this.#process0(pass, [...path, i], origValue);
+      MustBe.object(result);
+
+      if (result.delete) {
+        allSame = false;
+      } else if (result.replace !== undefined) {
+        newValue.push(result.replace);
+        allSame = false;
+      } else if (result.replaceOuter !== undefined) {
+        if (outerReplaced) {
+          throw new Error('Conflicting outer replacements.');
+        }
+        newOuter = result.replaceOuter;
+        outerReplaced = true;
+        allSame = false;
+      } else if (result.same) {
+        newValue.push(origValue);
+      } else {
+        throw new Error(`Unrecognized processing result: ${util.format(result)}`);
+      }
+    }
+
+    if (outerReplaced) {
+      return { iterate: newOuter };
+    } else {
+      return allSame ? { same: true } : { replace: newValue };
+    }
+  }
+
+  /**
+   * Performs the work of {@link #process0}, specifically for non-array objects.
+   *
+   * @param {number} pass Which pass is this?
+   * @param {(string|number)[]} path Path within the value being worked on.
+   * @param {*} value Sub-value at `path`.
+   * @returns {object} Replacement for `value`, per the documentation of
+   *   {@link JsonDirective.process}.
+   */
+  #process0Object(pass, path, value) {
+    const newValue      = {};
+    let   allSame       = true;
+    let   newOuter      = null;
+    let   outerReplaced = false;
+
+    // Go over all values, processing them as values (ignoring directiveness).
+    for (const key of Object.keys(value)) {
+      const origValue = value[key];
+      const result    = this.#process0(pass, [...path, key], origValue);
+      MustBe.object(result);
+
+      if (result.delete) {
+        allSame = false;
+      } else if (result.replace !== undefined) {
+        newValue[key] = result.replace;
+        allSame = false;
+      } else if (result.replaceOuter !== undefined) {
+        if (outerReplaced) {
+          throw new Error('Conflicting outer replacements.');
+        }
+        newOuter = result.replaceOuter;
+        outerReplaced = true;
+        allSame = false;
+      } else if (result.same) {
+        newValue[key] = origValue;
+      } else {
+        throw new Error(`Unrecognized processing result: ${util.format(result)}`);
+      }
+    }
+
+    if (outerReplaced) {
+      return { iterate: newOuter };
+    }
+
+    // See if the post-processing result contains any directives. If so, then
+    // either run it (if there's exactly one) or complain (if there's more than
+    // one).
+
+    let directiveName = null;
+    let directive     = null;
+
+    for (const key of Object.keys(newValue)) {
+      const d = this.#directives.get(key);
+      if (d) {
+        if (directive !== null) {
+          throw new Error(`Multiple directives: ${directiveName} and ${key} (and maybe more).`);
+        }
+        directiveName = key;
+        directive     = d;
+      }
+    }
+
+    if (directive) {
+      const result = directive.process(
+        pass, [...path, directiveName], newValue[directiveName]);
+
+      if (result.delete) {
+        delete newValue[directiveName];
+        allSame = false;
+      } else if (result.replace !== undefined) {
+        newValue[directiveName] = result.replace;
+        allSame = false;
+      } else if (result.replaceOuter !== undefined) {
+        return { iterate: result.replaceOuter };
+      } else if (result.same) {
+        // Nothing to do here.
+      } else {
+        throw new Error(`Unrecognized processing result: ${util.format(result)}`);
+      }
+    }
+
+    return allSame ? { same: true } : { replace: newValue };
   }
 }

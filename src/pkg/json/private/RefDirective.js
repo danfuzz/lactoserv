@@ -34,7 +34,7 @@ export class RefDirective extends JsonDirective {
       } else if (!value.startsWith('#/$defs/')) {
         throw new Error(`Bad syntax for reference: ${value}`);
       }
-      return value;
+      return { same: true };
     }
 
     const { name } = value.match(/^#[/][$]defs[/](?<name>.*)$/).groups;
@@ -43,7 +43,7 @@ export class RefDirective extends JsonDirective {
       this.#defs = this.#workspace.getDirective('$defs');
     }
 
-    return { $replaceOuter: this.#defs.getDef(name) };
+    return { replaceOuter: this.#defs.getDef(name) };
   }
 
 

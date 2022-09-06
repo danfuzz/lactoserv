@@ -15,7 +15,15 @@ export class JsonDirective {
    * @param {number} pass Which pass is this?
    * @param {(string|number)[]} path Path within the value being worked on.
    * @param {*} value Sub-value at `path`.
-   * @returns {*} Result, as per {@link Workspace.process}.
+   * @returns {object} Replacement for `value`, indicated as an object with
+   *   one of these bindings:
+   *   `delete: true` -- The key/value pair (or array element) should be removed
+   *     from the enclosing object (or array).
+   *   `replace: <value>` -- The value should be replaced with the given one.
+   *   `replaceOuter: <value>` -- The enclosing object should be replaced with
+   *     the given one.
+   *   `same: true` -- The value should remain unchanged.
+   * @returns {*} Result, as per {@link ExpanderWorkspace.process}.
    */
   process(pass, path, value) {
     throw Methods.abstract(pass, path, value);

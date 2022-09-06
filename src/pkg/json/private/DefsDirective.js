@@ -33,12 +33,12 @@ export class DefsDirective extends JsonDirective {
   /** @override */
   process(pass, path, value) {
     if (pass !== 1) {
-      return value;
+      return { same: true };
     }
 
     if (path.length === 1) {
       this.#defs = new Map(Object.entries(value));
-      return undefined;
+      return { delete: true };
     } else {
       throw new Error('`$defs` only allowed at top level.');
     }
