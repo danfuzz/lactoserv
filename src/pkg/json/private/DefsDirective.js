@@ -53,4 +53,9 @@ export class DefsDirective extends JsonDirective {
   static get NAME() {
     return '$defs';
   }
+
+  /** @override */
+  static get REQUIRES() {
+    return Object.freeze([]);
+  }
 }

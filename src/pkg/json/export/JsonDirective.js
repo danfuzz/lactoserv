@@ -32,4 +32,12 @@ export class JsonDirective {
   static get NAME() {
     throw Methods.abstract();
   }
+
+  /**
+   * @abstract
+   * @returns {string[]} Names of directives that this one depends on.
+   */
+  static get REQUIRES() {
+    throw Methods.abstract();
+  }
 }
