@@ -48,7 +48,7 @@ export class RefDirective extends JsonDirective {
   // Static members
   //
 
-  /** @type {string} Name of this directive. */
+  /** @override */
   static get NAME() {
     return '$ref';
   }

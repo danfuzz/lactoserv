@@ -17,4 +17,17 @@ export class JsonDirective {
   process(pass, path, value) {
     Methods.abstract(pass, path, value);
   }
+
+
+  //
+  // Static members
+  //
+
+  /**
+   * @abstract
+   * @returns {string} Name of this directive.
+   */
+  static get NAME() {
+    Methods.abstract();
+  }
 }
