@@ -69,7 +69,7 @@ export class BuiltInDirectives {
    * Makes a map for the given directive classes, based on the name defined in
    * each.
    *
-   * @param {function(new:JsonDirective)[]} classes Classes to map-ify.
+   * @param {(function(new:JsonDirective))[]} classes Classes to map-ify.
    * @returns {Map<string, function(new:JsonDirective)>} Corresponding map.
    */
   static #makeMap(...classes) {
