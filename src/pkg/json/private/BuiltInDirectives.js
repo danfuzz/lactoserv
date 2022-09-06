@@ -1,7 +1,8 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { DefsDirective, RefDirective } from '#p/BasicDirectives';
+import { DefsDirective } from '#p/DefsDirective';
+import { RefDirective } from '#p/RefDirective';
 
 /**
  * Repository for all the built-in directives.
