@@ -43,7 +43,10 @@ export class RefDirective extends JsonDirective {
       this.#defs = this.#workspace.getDirective('$defs');
     }
 
-    return { replaceOuter: this.#defs.getDef(name) };
+    return {
+      replace: this.#defs.getDef(name),
+      outer:   true
+    };
   }
 
 

@@ -19,13 +19,15 @@ export class JsonDirective {
    *   one of these bindings:
    *   `delete: true` -- The key/value pair (or array element) should be removed
    *     from the enclosing object (or array).
-   *   `replace: <value>` -- The value should be replaced with the given one.
+   *   `replace: <value>` -- `value` should be used to replace the original
+   *     binding. With no additional properties, just the binding for the
+   *     directive name is to be replaced. With additional property `outer:
+   *     true`, the enclosing object should be replaced, not just the directive
+   *     property.
    *   `replaceAwait: <promise>` -- The value should be replaced with the
    *     asynchrounously yielded result from the given promise. This form is
    *     only accepted when the outer {@link JsonExpander} is being run
    *     asynchronously.
-   *   `replaceOuter: <value>` -- The enclosing object should be replaced with
-   *     the given one.
    *   `same: true` -- The value should remain unchanged.
    * @returns {*} Result, as per {@link ExpanderWorkspace.process}.
    */

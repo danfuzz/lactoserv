@@ -77,9 +77,10 @@ export class ExpanderWorkspace {
         // Odd result, but...uh...ok.
         return null;
       } else if (result.replace !== undefined) {
+        if (result.outer) {
+          throw new Error('Cannot `replace outer` at top level.');
+        }
         value = result.replace;
-      } else if (result.replaceOuter !== undefined) {
-        throw new Error('Cannot `replaceOuter` at top level.');
       } else if (result.same) {
         // Nothing to do here.
       } else {
@@ -123,14 +124,15 @@ export class ExpanderWorkspace {
       }
     }
 
-    if (result.delete || (result.replaceOuter !== undefined)) {
+    if (result.delete || result.replace?.outer) {
       return result;
-    } else {
-      if (result.replace !== undefined) {
-        value = result.replace;
-      }
-      return (value === origValue) ? { same: true } : { replace: value };
     }
+
+    if (result.replace !== undefined) {
+      value = result.replace;
+    }
+
+    return (value === origValue) ? { same: true } : { replace: value };
   }
 
   /**
@@ -156,14 +158,15 @@ export class ExpanderWorkspace {
       if (result.delete) {
         allSame = false;
       } else if (result.replace !== undefined) {
-        newValue.push(result.replace);
-        allSame = false;
-      } else if (result.replaceOuter !== undefined) {
-        if (outerReplaced) {
-          throw new Error('Conflicting outer replacements.');
+        if (result.outer) {
+          if (outerReplaced) {
+            throw new Error('Conflicting outer replacements.');
+          }
+          newOuter = result.replace;
+          outerReplaced = true;
+        } else {
+          newValue.push(result.replace);
         }
-        newOuter = result.replaceOuter;
-        outerReplaced = true;
         allSame = false;
       } else if (result.same) {
         newValue.push(origValue);
@@ -203,14 +206,15 @@ export class ExpanderWorkspace {
       if (result.delete) {
         allSame = false;
       } else if (result.replace !== undefined) {
-        newValue[key] = result.replace;
-        allSame = false;
-      } else if (result.replaceOuter !== undefined) {
-        if (outerReplaced) {
-          throw new Error('Conflicting outer replacements.');
+        if (result.outer) {
+          if (outerReplaced) {
+            throw new Error('Conflicting outer replacements.');
+          }
+          newOuter = result.replace;
+          outerReplaced = true;
+        } else {
+          newValue[key] = result.replace;
         }
-        newOuter = result.replaceOuter;
-        outerReplaced = true;
         allSame = false;
       } else if (result.same) {
         newValue[key] = origValue;
@@ -249,10 +253,11 @@ export class ExpanderWorkspace {
         delete newValue[directiveName];
         allSame = false;
       } else if (result.replace !== undefined) {
+        if (result.outer) {
+          return { iterate: result.replace };
+        }
         newValue[directiveName] = result.replace;
         allSame = false;
-      } else if (result.replaceOuter !== undefined) {
-        return { iterate: result.replaceOuter };
       } else if (result.same) {
         // Nothing to do here.
       } else {
