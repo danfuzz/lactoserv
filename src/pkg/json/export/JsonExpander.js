@@ -25,8 +25,9 @@ import * as util from 'node:util';
  */
 export class JsonExpander {
   /**
-   * @type {Map<string, function(new:Directive)>} Directives recognized by this
-   * instance.
+   * @type {Map<string, function(new:JsonDirective)>} Map from names to
+   * corresponding directive-handler classes, for all directives recognized by
+   * this instance.
    */
   #directives = new Map();
 
@@ -43,9 +44,9 @@ export class JsonExpander {
   }
 
   /**
-   * Adds a directive.
+   * Adds a directive, specifically a handler class for a directive.
    *
-   * @param {function(new:Directive)} directive The directive to add.
+   * @param {function(new:JsonDirective)} directive The directive to add.
    */
   addDirective(directive) {
     const key = directive.KEY;
@@ -78,7 +79,10 @@ export class JsonExpander {
  * Workspace for running an expansion.
  */
 class Workspace {
-  /** @type {Map<string, Directive>} Directives recognized by this instance. */
+  /**
+   * @type {Map<string, JsonDirective>} Map from directive names to
+   * corresponding directive instances.
+   */
   #directives = new Map();
 
   /** @type {*} Original value being worked on. */
@@ -97,7 +101,7 @@ class Workspace {
    * Adds a directive _instance_.
    *
    * @param {string} name The name of the directive.
-   * @param {Directive} directive The directive instance.
+   * @param {JsonDirective} directive The directive instance.
    */
   addDirective(name, directive) {
     this.#directives.set(name, directive);
@@ -107,7 +111,7 @@ class Workspace {
    * Gets an existing directive _instance_.
    *
    * @param {string} name The name of the directive.
-   * @returns {Directive} The directive instance.
+   * @returns {JsonDirective} The directive instance.
    * @throws {Error} Thrown if there is no directive with the given name.
    */
   getDirective(name) {
