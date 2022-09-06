@@ -31,8 +31,8 @@ export class JsonExpander {
   /**
    * Constructs a new instance. By default, it includes all built-in directives.
    *
-   * @param {boolean} [builtInDirectives = true] Should the built-in directives
-   *   be recognized by this instance?
+   * @param {boolean} [builtInDirectives = true] Should all the built-in
+   *   directives be recognized by this instance?
    */
   constructor(builtInDirectives = true) {
     if (builtInDirectives) {

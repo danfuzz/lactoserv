@@ -42,11 +42,22 @@ export class BuiltInDirectives {
    *   names.
    */
   static addDirectivesTo(map, ...names) {
-    for (const name of names) {
-      if (!map.has(name)) {
-        map.set(name, this.getDirective(name));
-        // TODO: Handle dependencies.
+    for (;;) {
+      const reqs = [];
+
+      for (const name of names) {
+        if (!map.has(name)) {
+          const directive = this.getDirective(name);
+          map.set(name, directive);
+          reqs.push(...directive.REQUIRES);
+        }
       }
+
+      if (reqs.length === 0) {
+        break;
+      }
+
+      names = reqs;
     }
   }
 
