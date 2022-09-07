@@ -3,6 +3,7 @@
 
 import { JsonDirective } from '#x/JsonDirective';
 
+import { Condition } from '@this/async';
 import { MustBe } from '@this/typey';
 
 import * as util from 'node:util';
@@ -59,27 +60,21 @@ export class ExpanderWorkspace {
     this.#directives.set(name, directive);
   }
 
+  /**
+   * Perform expansion asynchronously.
+   *
+   * @returns {*} The result of expansion.
+   * @throws {Error} Thrown if there was any trouble during expansion.
+   */
   async expandAsync() {
     if (this.#hasResult) {
       // Note: `#result` might be an as-yet unresolved promise, but that's okay.
       return this.#result;
     }
 
-    const complete = (action, v) => {
-      // TODO!!!
-      this.#result    = v;
-      this.#hasResult = true;
-    };
-
     this.#running   = true;
     this.#workQueue = [];
     this.#nextQueue = [];
-    this.#addToNextQueue({
-      pass:  1,
-      path:  [],
-      value: this.#originalValue,
-      complete
-    });
 
     this.#result    = this.#expandAsync0(); // Intentionally no `await` here!
     this.#hasResult = true;
@@ -89,13 +84,58 @@ export class ExpanderWorkspace {
     return this.#result;
   }
 
+  /**
+   * Perform the main part of expansion, asynchronously.
+   *
+   * @returns {*} The result of expansion.
+   * @throws {Error} Thrown if there was any trouble during expansion.
+   */
   async #expandAsync0() {
+    const completed = new Condition();
+    let result = null;
+
+    const complete = (action, v) => {
+      console.log('####### ASYNC COMPLETE %s :: %o', action, v);
+      switch (action) {
+        case 'delete': {
+          // Kinda weird, but...uh...okay.
+          result = null;
+          break;
+        }
+        case 'resolve': {
+          result = v;
+          break;
+        }
+        default: {
+          throw new Error(`Unrecognised completion action: ${action}`);
+        }
+      }
+      completed.value = true;
+    };
+
+    this.#addToNextQueue({
+      pass:  1,
+      path:  [],
+      value: this.#originalValue,
+      complete
+    });
+
     while (this.#nextQueue.length !== 0) {
       this.#addToWorkQueue(this.#nextQueue.shift());
       this.#drainWorkQueue();
+      // TODO: Something about awaiting on stuff here.
     }
+
+    await completed.whenTrue();
+    return result;
   }
 
+  /**
+   * Perform expansion asynchronously.
+   *
+   * @returns {*} The result of expansion.
+   * @throws {Error} Thrown if there was any trouble during expansion.
+   */
   expandSync() {
     if (this.#hasResult) {
       // Note: In the unusual case where `processAsync()` has already been
@@ -119,6 +159,9 @@ export class ExpanderWorkspace {
         case 'resolve': {
           this.#result = v;
           break;
+        }
+        default: {
+          throw new Error(`Unrecognised completion action: ${action}`);
         }
       }
       this.#hasResult = true;
