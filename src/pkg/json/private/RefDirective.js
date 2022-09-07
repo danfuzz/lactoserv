@@ -22,7 +22,7 @@ export class RefDirective extends JsonDirective {
    * @param {ExpanderWorkspace} workspace The associated workspace.
    */
   constructor(workspace) {
-    super();
+    super(workspace);
     this.#workspace = workspace;
   }
 

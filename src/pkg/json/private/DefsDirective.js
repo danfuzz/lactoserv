@@ -10,7 +10,54 @@ export class DefsDirective extends JsonDirective {
   /** {Map<string, *>} Map of replacements. */
   #defs = null;
 
-  // Note: The default constructor is fine here.
+  #value = null;
+
+  #hasDefs = false;
+  #hasValue = false;
+
+  #queueItems;
+
+  constructor(workspace, path, dirArg, dirValue) {
+    console.log('##### DEFS AT %o', path);
+    if (path.length !== 1) {
+      throw new Error(`\`${DefsDirective.NAME}\` only allowed at top level.`);
+    }
+
+    this.#queueItems = [
+      {
+        value:    dirValue,
+        complete: (v) => {
+          this.#value = v;
+          this.#hasValue = true;
+        }
+      },
+      {
+        value: dirArg,
+        complete: (v) => {
+          this.#defs = new Map(Object.entries(v));
+          this.#hasDefs = true;
+        }
+      }
+    ];
+  }
+
+  /** @override */
+  process() {
+    if (this.#queueItems) {
+      const items = this.#queueItems;
+      this.#queueItems = null;
+      return {
+        action:  'again',
+        enqueue: items
+      };
+    }
+
+    if (!(this.#hasDefs && this.#hasValue)) {
+      return { action: 'again' };
+    }
+
+    return { action: 'resolve', value: this.#value };
+  }
 
   /**
    * Gets the replacement for the given named definition.
@@ -28,20 +75,6 @@ export class DefsDirective extends JsonDirective {
     }
 
     return def;
-  }
-
-  /** @override */
-  process(pass, path, value) {
-    if (pass !== 1) {
-      return { same: true };
-    }
-
-    if (path.length === 1) {
-      this.#defs = new Map(Object.entries(value));
-      return { delete: true };
-    } else {
-      throw new Error(`\`${DefsDirective.NAME}\` only allowed at top level.`);
-    }
   }
 
 

@@ -85,14 +85,11 @@ export class JsonExpander {
    * @returns {*} The expanded version of `value`, or a promise thereto.
    */
   #expand0(value, doAsync) {
-    const workspace = new ExpanderWorkspace(value, doAsync);
-
-    for (const [name, cls] of this.#directives) {
-      workspace.addDirective(name, new cls(workspace));
-    }
+    const directives = new Map(this.#directives);
+    const workspace  = new ExpanderWorkspace(directives, value);
 
     return doAsync
       ? workspace.processAsync()
-      : workspace.process();
+      : workspace.processSync();
   }
 }

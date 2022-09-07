@@ -13,32 +13,40 @@ import * as util from 'node:util';
  */
 export class ExpanderWorkspace {
   /**
-   * @type {Map<string, JsonDirective>} Map from directive names to
-   * corresponding directive instances.
+   * @type {Map<string, function(new:JsonDirective)>} Map from names to
+   * corresponding directive-handler classes, for all directives recognized by
+   * this instance.
    */
   #directives = new Map();
 
   /** @type {*} Original value being worked on. */
   #originalValue;
 
-  /** {boolean} Operate asynchronously? */
-  #doAsync;
+  /** ..... */
+  #running = false;
 
-  /**
-   * {{then: function(function(*), function(*))}[]} Array of promises /
-   * `then`ables that need resolution.
-   */
-  #promises = [];
+  /** ..... */
+  #workQueue = null;
+
+  /** ..... */
+  #nextQueue = null;
+
+  /** ..... */
+  #result = null;
+
+  /** .... */
+  #hasResult = false;
 
   /**
    * Constructs an instance.
    *
+   * @param {Map<string, function(new:JsonDirective)>} directives Map of
+   *   directive classes.
    * @param {*} value Value to be worked on.
-   * @param {boolean} doAsync Operate asynchronoulsy?
    */
-  constructor(value, doAsync) {
+  constructor(directives, value) {
+    this.#directives    = directives;
     this.#originalValue = value;
-    this.#doAsync = doAsync;
   }
 
   /**
@@ -49,19 +57,6 @@ export class ExpanderWorkspace {
    */
   addDirective(name, directive) {
     this.#directives.set(name, directive);
-  }
-
-  /**
-   * Adds a pending promise / `then`able.
-   *
-   * @param {{then: function(function(*), function(*))}} promise Promise to add.
-   */
-  addPromise(promise) {
-    if (!this.#doAsync) {
-      throw new Error('Not being run asynchronously.');
-    }
-
-    this.#promises.push(promise);
   }
 
   /**
@@ -81,15 +76,282 @@ export class ExpanderWorkspace {
     return result;
   }
 
+  processSync() {
+    if (this.#hasResult) {
+      // Note: In the unusual case where `processAsync()` has already been
+      // called but hasn't completed, `#result` will be an as-yet unresolved
+      // promise.
+      return this.#result;
+    } else if (this.#running) {
+      // We are in a recursive call from within the expander itself. Weird case,
+      // _maybe_ can't actually happen?
+      throw new Error('Processing already in progress.');
+    }
+
+    const complete = (action, v) => {
+      console.log('####### COMPLETE %s :: %o', action, v);
+      switch (action) {
+        case 'delete': {
+          // Kinda weird, but...uh...okay.
+          this.#result = null;
+          break;
+        }
+        case 'resolve': {
+          this.#result = v;
+          break;
+        }
+      }
+      this.#hasResult = true;
+    };
+
+    this.#running   = true;
+    this.#workQueue = [];
+    this.#nextQueue = [];
+    this.#addToNextQueue({
+      pass:  1,
+      path:  [],
+      value: this.#originalValue,
+      complete
+    });
+
+    try {
+      while (this.#nextQueue.length !== 0) {
+        this.#addToWorkQueue(this.#nextQueue.shift());
+        this.#drainWorkQueue();
+      }
+    } finally {
+      // Don't leave the instance in a weird state; reset it.
+      this.#running   = false;
+      this.#workQueue = null;
+      this.#nextQueue = null;
+    }
+
+    if (!this.#hasResult) {
+      // We exhausted the queue without actually completing the top-level item.
+      throw new Error('Expander livelock.');
+    }
+
+    return this.#result;
+  }
+
+  async processAsync() {
+    if (this.#hasResult) {
+      // Note: `#result` might be an as-yet unresolved promise, but that's okay.
+      return this.#result;
+    }
+
+    const complete = (action, v) => {
+      // TODO!!!
+      this.#result    = v;
+      this.#hasResult = true;
+    };
+
+    this.#running   = true;
+    this.#workQueue = [];
+    this.#nextQueue = [];
+    this.#addToNextQueue({
+      pass:  1,
+      path:  [],
+      value: this.#originalValue,
+      complete
+    });
+
+    this.#result    = this.#processAsync0(); // Intentionally no `await` here!
+    this.#hasResult = true;
+
+    // Per above, `#result` is definitely an as-yet unresolved promise at this
+    // point.
+    return this.#result;
+  }
+
+  #addToWorkQueue(item) {
+    console.log('#### Queued work item: %o', item);
+    this.#workQueue.push(item);
+  }
+
+  #addToNextQueue(item) {
+    if (item.pass > 3) {
+      throw new Error('Expander deadlock.');
+    }
+    console.log('#### Queued next item: %o', item);
+    this.#nextQueue.push(item);
+  }
+
+  async #processAsync0() {
+    while (this.#nextQueue.length !== 0) {
+      this.#addToWorkQueue(this.#nextQueue.shift());
+      this.#drainWorkQueue();
+    }
+  }
+
+  #drainWorkQueue() {
+    while (this.#workQueue.length !== 0) {
+      const item = this.#workQueue.shift();
+      console.log('#### Working on: %o', item);
+      this.#processWorkItem(item);
+    }
+  }
+
+  #processWorkItem(item) {
+    const { pass, path, value, complete } = item;
+    let processedValue;
+
+    if ((value === null) || (typeof value !== 'object')) {
+      complete('resolve', value);
+    } else if (value instanceof JsonDirective) {
+      this.#processDirective(item);
+    } else if (value instanceof Array) {
+      this.#processArray(item);
+    } else {
+      this.#processObject(item);
+    }
+  }
+
+  #processArray(item) {
+    const { pass, path, value, complete } = item;
+    const result = [];
+    const deletions = [];
+    let resultsRemaining = value.length;
+
+    const update = (idx, action, arg) => {
+      switch (action) {
+        case 'delete': {
+          deletions.push(idx);
+          break;
+        }
+        case 'resolve': {
+          result[idx] = arg;
+          break;
+        }
+        default: {
+          throw new Error(`Unrecognised completion action: ${action}`);
+        }
+      }
+
+      if (--resultsRemaining === 0) {
+        deletions.sort();
+        while (deletions.length !== 0) {
+          result.splice(deletions.pop(), 1);
+        }
+        complete('resolve', result);
+      }
+    };
+
+    for (let index = 0; index < value.length; index++) {
+      this.#addToWorkQueue({
+        pass,
+        path:     [...path, index],
+        value:    value[index],
+        complete: (...args) => update(index, ...args)
+      });
+    }
+  }
+
+  #processDirective(item) {
+    console.log('#### processing directive: %o', item);
+    const { pass, path, value, complete } = item;
+
+    const { action, enqueue, value: result } = value.process();
+
+    switch (action) {
+      case 'again': {
+        // Not resolved. Requeue for the next pass.
+        if (enqueue) {
+          for (const e of enqueue) {
+            this.#addToNextQueue({ ...e, pass: pass + 1, path });
+          }
+        }
+        this.#addToNextQueue({ ...item, pass: pass + 1 });
+        break;
+      }
+      case 'delete': {
+        complete('delete');
+        break;
+      }
+      case 'resolve': {
+        complete('resolve', result);
+        break;
+      }
+      default: {
+        throw new Error(`Unrecognised directive action: ${action}`);
+      }
+    }
+  }
+
+  #processObject(item) {
+    const { pass, path, value, complete } = item;
+    const keys = Object.keys(value).sort();
+
+    // If there is a directive key, convert the element to a directive, and
+    // queue it up for the next pass.
+    for (const k of keys) {
+      const directiveClass = this.#directives.get(k);
+      if (directiveClass) {
+        const dirArg   = value[k];
+        const dirValue = { ...value };
+        delete dirValue[k];
+        const directive = new directiveClass(this, path, dirArg, dirValue);
+        this.#addToNextQueue({
+          pass: pass + 1,
+          path,
+          value: directive,
+          complete
+        });
+        return directive;
+      }
+    }
+
+    // No directive; just queue up all bindings for regular conversion.
+
+    const result = {};
+    let resultsRemaining = keys.length;
+
+    const update = (key, action, arg) => {
+      switch (action) {
+        case 'delete': {
+          // No need to do anything for this case.
+          break;
+        }
+        case 'resolve': {
+          result[key] = arg;
+          break;
+        }
+        default: {
+          throw new Error(`Unrecognised completion action: ${action}`);
+        }
+      }
+
+      if (--resultsRemaining === 0) {
+        complete('resolve', result);
+      }
+    };
+
+    for (const k of keys) {
+      this.#addToWorkQueue({
+        pass,
+        path:     [...path, k],
+        value:    value[k],
+        complete: (...args) => update(k, ...args)
+      });
+    }
+  }
+
+
+
+
+
+
+
+
   /**
    * Performs the expansion synchronously.
    *
    * @returns {*} The result of expansion.
    * @throws {Error} Thrown if there was any trouble during expansion.
    */
-  process() {
+  zzz_process() {
     const subProcess =
-      (pass, path, value) => this.#process0(subProcess, pass, path, value);
+      (pass, path, value) => this.#zzz_process0(subProcess, pass, path, value);
     let value = this.#originalValue;
 
     for (let pass = 1; pass <= 2; pass++) {
@@ -112,7 +374,7 @@ export class ExpanderWorkspace {
    * @returns {*} The result of expansion.
    * @throws {Error} Thrown if there was any trouble during expansion.
    */
-  async processAsync() {
+  async zzz_processAsync() {
     // TODO!
     return this.process();
   }
@@ -128,7 +390,7 @@ export class ExpanderWorkspace {
    *   {@link JsonDirective.process}. Will not return `{ delete }`,
    *   `{ replace...await }`, or `{ replace...outer }`.
    */
-  #process0(subProcess, pass, path, value) {
+  #zzz_process0(subProcess, pass, path, value) {
     const origValue = value;
     let   result    = null;
 
@@ -137,20 +399,25 @@ export class ExpanderWorkspace {
         result = { same: true };
         break;
       } else if (value instanceof Array) {
-        result = this.#process0Array(subProcess, pass, path, value);
+        result = this.#zzz_process0Array(subProcess, pass, path, value);
       } else {
-        result = this.#process0Object(subProcess, pass, path, value);
+        result = this.#zzz_process0Object(subProcess, pass, path, value);
       }
 
       if (result.iterate === undefined) {
         break;
       }
 
+      if (result.await) {
+        // TODO
+      }
       value = result.iterate;
     }
 
-    if (result.delete || result.replace?.outer) {
-      return result;
+    if (result.replace?.await) {
+      // TODO
+      console.log('###### promise-main at %o :: %o', path, result.replace);
+      result = { replace: '<promise-placeholder-main>' };
     }
 
     if (result.replace !== undefined) {
@@ -172,7 +439,7 @@ export class ExpanderWorkspace {
    *   <boolean> }` to help implement outer replacements. Will not return
    *   `{ delete }` or `{ replace...outer }`.
    */
-  #process0Array(subProcess, pass, path, value) {
+  #zzz_process0Array(subProcess, pass, path, value) {
     const newValue    = [];
     let   allSame     = true;
     let   outerResult = null;
@@ -190,6 +457,10 @@ export class ExpanderWorkspace {
             throw new Error('Conflicting outer replacements.');
           }
           outerResult = { iterate: result.replace, await: !!result.await };
+        } else if (result.await) {
+          // TODO
+          console.log('###### promise-array at %o :: %o', path, result.replace);
+          newValue.push('<promise-placeholder-array>');
         } else {
           newValue.push(result.replace);
         }
@@ -220,7 +491,7 @@ export class ExpanderWorkspace {
    *   <boolean> }` to help implement outer replacements. Will not return
    *   `{ delete }` or `{ replace...outer }`.
    */
-  #process0Object(subProcess, pass, path, value) {
+  #zzz_process0Object(subProcess, pass, path, value) {
     const newValue    = {};
     let   allSame     = true;
     let   outerResult = null;
@@ -239,6 +510,10 @@ export class ExpanderWorkspace {
             throw new Error('Conflicting outer replacements.');
           }
           outerResult = { iterate: result.replace, await: !!result.await };
+        } else if (result.await) {
+          // TODO
+          console.log('###### promise-obj at %o :: %o', path, result.replace);
+          newValue[key] = '<promise-placeholder-obj>';
         } else {
           newValue[key] = result.replace;
         }
@@ -282,6 +557,10 @@ export class ExpanderWorkspace {
       } else if (result.replace !== undefined) {
         if (result.outer) {
           return { iterate: result.replace, await: !!result.await }
+        } else if (result.await) {
+          // TODO
+          console.log('###### promise-dir at %o :: %o', path, result.replace);
+          newValue[directiveName] = '<promise-placeholder-replacement>';
         }
         newValue[directiveName] = result.replace;
         allSame = false;
@@ -293,20 +572,5 @@ export class ExpanderWorkspace {
     }
 
     return allSame ? { same: true } : { replace: newValue };
-  }
-
-  /**
-   * Awaits all pending promises.
-   */
-  async #resolveAllPromises() {
-    // This arrangement is meant to ensure that parallel calls to this method
-    // don't mess each other up and all eventually complete.
-    while (this.#promises.length !== 0) {
-      const item = this.#promises[this.#promises.length - 1];
-      await item;
-      if (this.#promises[this.#promises.length - 1]) {
-        this.#promises.pop();
-      }
-    }
   }
 }
