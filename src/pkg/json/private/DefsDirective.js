@@ -1,7 +1,10 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { ExpanderWorkspace } from '#p/ExpanderWorkspace';
 import { JsonDirective } from '#x/JsonDirective';
+
+import { MustBe } from '@this/typey';
 
 /**
  * Directive `$defs`, for defining a dictionary of replacements.
@@ -18,23 +21,53 @@ export class DefsDirective extends JsonDirective {
   #queueItems;
 
   constructor(workspace, path, dirArg, dirValue) {
+    super();
     console.log('##### DEFS AT %o', path);
-    if (path.length !== 1) {
+
+    if (path.length !== 0) {
       throw new Error(`\`${DefsDirective.NAME}\` only allowed at top level.`);
     }
+
+    DefsDirective.#instances.set(workspace, this);
 
     this.#queueItems = [
       {
         value:    dirValue,
-        complete: (v) => {
-          this.#value = v;
+        complete: (action, v) => {
+          switch (action) {
+            case 'delete': {
+              // Weird result, but try to deal gracefully.
+              this.#value = null;
+              break;
+            }
+            case 'resolve': {
+              this.#value = v;
+              break;
+            }
+            default: {
+              throw new Error(`Unrecognised completion action: ${action}`);
+            }
+          }
           this.#hasValue = true;
         }
       },
       {
         value: dirArg,
-        complete: (v) => {
-          this.#defs = new Map(Object.entries(v));
+        complete: (action, v) => {
+          switch (action) {
+            case 'delete': {
+              // Weird result, but try to deal gracefully.
+              this.#defs = new Map();
+              break;
+            }
+            case 'resolve': {
+              this.#defs = new Map(Object.entries(v));
+              break;
+            }
+            default: {
+              throw new Error(`Unrecognised completion action: ${action}`);
+            }
+          }
           this.#hasDefs = true;
         }
       }
@@ -52,7 +85,7 @@ export class DefsDirective extends JsonDirective {
       };
     }
 
-    if (!(this.#hasDefs && this.#hasValue)) {
+    if (!this.#hasValue) {
       return { action: 'again' };
     }
 
@@ -60,27 +93,36 @@ export class DefsDirective extends JsonDirective {
   }
 
   /**
-   * Gets the replacement for the given named definition.
+   * Processes a named reference.
    *
-   * @param {string} name Definition name.
-   * @returns {*} The replacement.
-   * @throws {Error} Thrown if there is no such definition.
+   * @param {string} name Reference name.
+   * @returns {*} Replacement, as specified by {@link #process}.
    */
-  getDef(name) {
-    const defs = this.#defs;
-    const def  = defs ? defs.get(name) : null;
+  #processRef(name) {
+    if (!this.#hasDefs) {
+      return { action: 'again' };
+    }
+
+    const def = this.#defs.get(name);
 
     if (!def) {
+      console.log('\n################# DEFS:\n%o\n', this.#defs);
       throw new Error(`No definition for: ${name}`);
     }
 
-    return def;
+    return { action: 'resolve', value: def };
   }
 
 
   //
   // Static members
   //
+
+  /**
+   * @type {WeakMap<ExpanderWorkspace, DefsDirective>} Weak map from workspaces
+   * to corresponding instances of this class.
+   */
+  static #instances = new WeakMap();
 
   /** @override */
   static get NAME() {
@@ -90,5 +132,30 @@ export class DefsDirective extends JsonDirective {
   /** @override */
   static get REQUIRES() {
     return Object.freeze([]);
+  }
+
+  /**
+   * Processes a reference.
+   *
+   * @param {ExpanderWorkspace} workspace The workspace.
+   * @param {string} path Path to the reference.
+   * @returns {?{value: *}} Found value, or `null` if the definitions have
+   *   possibly not yet been found.
+   */
+  static processRef(workspace, path) {
+    MustBe.object(workspace, ExpanderWorkspace);
+    MustBe.string(path);
+
+    const instance = this.#instances.get(workspace);
+    if (!instance) {
+      throw new Error('Unregistered workspace.');
+    }
+
+    const { name } = path.match(/^#[/][$]defs[/](?<name>.*)$/).groups;
+    if (!name) {
+      throw new Error(`Bad syntax for reference: ${path}`);
+    }
+
+    return instance.#processRef(name);
   }
 }
