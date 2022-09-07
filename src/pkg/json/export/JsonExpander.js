@@ -87,7 +87,7 @@ export class JsonExpander {
     const workspace  = new ExpanderWorkspace(directives, value);
 
     return doAsync
-      ? workspace.processAsync()
-      : workspace.processSync();
+      ? workspace.expandAsync()
+      : workspace.expandSync();
   }
 }
