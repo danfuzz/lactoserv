@@ -4,9 +4,6 @@
 import { JsonDirective } from '#x/JsonDirective';
 
 import { Condition } from '@this/async';
-import { MustBe } from '@this/typey';
-
-import * as util from 'node:util';
 
 /**
  * Workspace for running an expansion set up by {@link JsonExpander}, including

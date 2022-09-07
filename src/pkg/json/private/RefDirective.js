@@ -7,8 +7,6 @@ import { JsonDirective } from '#x/JsonDirective';
 
 import { MustBe } from '@this/typey';
 
-import * as util from 'node:util';
-
 /**
  * Directive `$ref`, for looking up something from the `$defs`.
  */
@@ -24,7 +22,7 @@ export class RefDirective extends JsonDirective {
     super(workspace, path, dirArg, dirValue);
     console.log('##### REFS AT %o :: %s', path, dirArg);
     if (Object.entries(dirValue).length !== 0) {
-      throw new Error(`\`${RefsDirective.NAME}\` does not accept additional object values.`);
+      throw new Error(`\`${RefDirective.NAME}\` does not accept additional object values.`);
     }
 
     this.#workspace = MustBe.object(workspace, ExpanderWorkspace);
