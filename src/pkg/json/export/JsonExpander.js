@@ -17,8 +17,6 @@ import { JsonDirective } from '#x/JsonDirective';
  *   `$defs`. The path is intentionally more restrictive than what one gets with
  *   JSON Schema and really has to begin `#/$defs/`. This will be loosened up if
  *   and when there is an actual need.
- * * `{ $replaceOuter: <value> }` -- Indicates that the object in which this
- *   appears should be replaced entirely by the listed `value`.
  */
 export class JsonExpander {
   /**

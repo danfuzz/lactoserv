@@ -139,7 +139,7 @@ export class Main {
         beep: ["beep", "beep"]
       }
     };
-    const testResult = jx.expand(testJson2);
+    const testResult = jx.expand(testJson3);
     console.log('\n##################### FINAL RESULT: \n');
     console.log('%o', testResult);
     console.log('\n#####################\n');
