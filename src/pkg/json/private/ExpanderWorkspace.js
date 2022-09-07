@@ -197,6 +197,11 @@ export class ExpanderWorkspace {
     return this.#result;
   }
 
+  /**
+   * Adds an item to {@link #nextQueue}.
+   *
+   * @param {{pass, path, value, complete}} item Item to add.
+   */
   #addToNextQueue(item) {
     if (item.pass > 10) {
       throw new Error('Expander deadlock.');
@@ -205,11 +210,20 @@ export class ExpanderWorkspace {
     this.#nextQueue.push(item);
   }
 
+  /**
+   * Adds an item to {@link #workQueue}.
+   *
+   * @param {{pass, path, value, complete}} item Item to add.
+   */
   #addToWorkQueue(item) {
     console.log('#### Queued work item: %o', item);
     this.#workQueue.push(item);
   }
 
+  /**
+   * Removes and processes items from the fromt of {@link #workQueue}, until
+   * the queue is empty.
+   */
   #drainWorkQueue() {
     while (this.#workQueue.length !== 0) {
       const item = this.#workQueue.shift();
@@ -218,6 +232,11 @@ export class ExpanderWorkspace {
     }
   }
 
+  /**
+   * Helper for {@link #processQueueItem}, which handles an array.
+   *
+   * @param {{pass, path, value: *[], complete}} item Item to process.
+   */
   #processArray(item) {
     const { pass, path, value, complete } = item;
     const result = [];
@@ -258,6 +277,11 @@ export class ExpanderWorkspace {
     }
   }
 
+  /**
+   * Helper for {@link #processQueueItem}, which handles a directive instance.
+   *
+   * @param {{pass, path, value: JsonDirective, complete}} item Item to process.
+   */
   #processDirective(item) {
     console.log('#### processing directive: %o', item);
     const { pass, path, value, complete } = item;
@@ -289,6 +313,11 @@ export class ExpanderWorkspace {
     }
   }
 
+  /**
+   * Helper for {@link #processQueueItem}, which handles a plain object.
+   *
+   * @param {{pass, path, value: object, complete}} item Item to process.
+   */
   #processObject(item) {
     const { pass, path, value, complete } = item;
     const keys = Object.keys(value).sort();
@@ -349,6 +378,11 @@ export class ExpanderWorkspace {
     }
   }
 
+  /**
+   * Processes an item which had been placed on {@link #workQueue}.
+   *
+   * @param {{pass, path, value: *, complete}} item Item to process.
+   */
   #processQueueItem(item) {
     const { pass, path, value, complete } = item;
     let processedValue;
