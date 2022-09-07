@@ -115,7 +115,7 @@ export class Main {
 
     console.log('\n#####################\n');
     const testJson1 = {
-      a: { $await: () => "hello" },
+      a: { $await: () => 'hello' },
       b: [1, 2, 3, { $await: () => [1, 2, 3] }],
       c: {
         x: 10,
@@ -125,18 +125,18 @@ export class Main {
     };
     const testJson2 = {
       a: [1, 2, 3],
-      b: { x: "xx", y: "yy", z: ["z", "zz", "zzz"], q: null, tf: [true, false] },
+      b: { x: 'xx', y: 'yy', z: ['z', 'zz', 'zzz'], q: null, tf: [true, false] },
       c: true,
       d: null
     };
     const testJson3 = {
-      a: [1, 2, 3, { $ref: "#/$defs/boop" }],
-      b: { x: "xx", y: "yy", z: ["z", "zz", "zzz", { $ref: "#/$defs/boop" }], q: null, tf: [true, false] },
-      c: { $ref: "#/$defs/boop" },
-      d: { $ref: "#/$defs/beep" },
+      a: [1, 2, 3, { $ref: '#/$defs/boop' }],
+      b: { x: 'xx', y: 'yy', z: ['z', 'zz', 'zzz', { $ref: '#/$defs/boop' }], q: null, tf: [true, false] },
+      c: { $ref: '#/$defs/boop' },
+      d: { $ref: '#/$defs/beep' },
       $defs: {
-        boop: "BOOP!",
-        beep: ["beep", "beep"]
+        boop: 'BOOP!',
+        beep: ['beep', 'beep']
       }
     };
     const testResult = jx.expand(testJson3);
