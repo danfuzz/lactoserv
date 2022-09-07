@@ -21,7 +21,7 @@ export class DefsDirective extends JsonDirective {
   #queueItems;
 
   constructor(workspace, path, dirArg, dirValue) {
-    super();
+    super(workspace, path, dirArg, dirValue);
     console.log('##### DEFS AT %o', path);
 
     if (path.length !== 0) {

@@ -20,7 +20,7 @@ export class RefDirective extends JsonDirective {
   #refPath;
 
   constructor(workspace, path, dirArg, dirValue) {
-    super();
+    super(workspace, path, dirArg, dirValue);
     console.log('##### REFS AT %o :: %s', path, dirArg);
     if (Object.entries(dirValue).length !== 0) {
       throw new Error(`\`${RefsDirective.NAME}\` does not accept additional object values.`);

@@ -1,37 +1,52 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { Methods } from '@this/typey';
+import { ExpanderWorkspace } from '#p/ExpanderWorkspace';
+
+import { Methods, MustBe } from '@this/typey';
 
 /**
  * Base class for directives used by {@link JsonExpander}.
  */
 export class JsonDirective {
   /**
-   * Process the given directive value. Each directive is called twice, once
-   * with `pass === 1` and then again with `pass === 2`.
+   * Constructs an instance. This base class constructor merely validates the
+   * arguments. It's up to subclasses to do something useful with them.
+   *
+   * @param {ExpanderWorkspace} workspace Associated workspace.
+   * @param {string} path Path within the result where this directive resides.
+   * @param {*} dirArg Directive argument. This is the `arg` in `{ $directive:
+   *   arg }`.
+   * @param {object} dirValue The object in which the directive appeared, minus
+   *   the directive binding.
+   */
+  // eslint-disable-next-line no-unused-vars
+  constructor(workspace, path, dirArg, dirValue) {
+    MustBe.object(workspace, ExpanderWorkspace);
+    MustBe.array(path);
+    MustBe.object(dirValue);
+  }
+
+  /**
+   * Process the directive defined by this instance.
    *
    * @abstract
-   * @param {number} pass Which pass is this?
-   * @param {(string|number)[]} path Path within the value being worked on.
-   * @param {*} value Sub-value at `path`.
-   * @returns {object} Replacement for `value`, indicated as an object with
-   *   one of these bindings:
-   *   `delete: true` -- The key/value pair (or array element) should be removed
-   *     from the enclosing object (or array).
-   *   `replace: <value>` -- `value` should be used to replace the original
-   *     binding. With no additional properties, just the binding for the
-   *     directive name is to be replaced with the given `value`. With
-   *     additional bindings:
-   *     * `await: true` -- `value` is `await`ed. This form is only accepted
-   *       when the outer {@link JsonExpander} is being run asynchronously.
-   *     * `outer: true` -- The enclosing object should be replaced, not just the
-   *       directive property.
-   *   `same: true` -- The value should remain unchanged.
+   * @returns {{action: string}} Action to take, indicated as an object with one
+   *   of these `action` values:
+   *   * `again` with optional `{ enqueue: object[] }` -- The directive should
+   *     be queued up for reprocessing, along with (optionally) a set of other
+   *     items for processing. Each item should be an object of the form
+   *     `{ value: *, complete: function }`.
+   *   * `delete` -- The directive resolved to "emptiness." There should be no
+   *     result value for the directive, not even a `null` hole if possible. If
+   *     there _must_ be some value due to other constraints, then it should be
+   *     `null`.
+   *   * `resolve` with `{ value: * }` -- `value` should be used to replace the
+   *     directive in the result.
    * @returns {*} Result, as per {@link ExpanderWorkspace.process}.
    */
-  process(pass, path, value) {
-    throw Methods.abstract(pass, path, value);
+  process() {
+    throw Methods.abstract();
   }
 
 
