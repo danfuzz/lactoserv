@@ -170,7 +170,7 @@ export class ExpanderWorkspace {
   }
 
   #addToNextQueue(item) {
-    if (item.pass > 3) {
+    if (item.pass > 10) {
       throw new Error('Expander deadlock.');
     }
     console.log('#### Queued next item: %o', item);
@@ -303,7 +303,7 @@ export class ExpanderWorkspace {
 
     // No directive; just queue up all bindings for regular conversion.
 
-    const result = {};
+    const result = [];
     let resultsRemaining = keys.length;
 
     const update = (key, action, arg) => {
@@ -313,7 +313,7 @@ export class ExpanderWorkspace {
           break;
         }
         case 'resolve': {
-          result[key] = arg;
+          result.push([key, arg]);
           break;
         }
         default: {
@@ -322,7 +322,9 @@ export class ExpanderWorkspace {
       }
 
       if (--resultsRemaining === 0) {
-        complete('resolve', result);
+        // Sort by key, for more consistent results.
+        result.sort((a, b) => (a[0] < b[0]) ? -1 : 1);
+        complete('resolve', Object.fromEntries(result));
       }
     };
 
