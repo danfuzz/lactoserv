@@ -352,6 +352,7 @@ export class ExpanderWorkspace {
           value: directive,
           complete
         });
+        return; // Don't _also_ queue up a regular object expansion.
       }
     }
 
