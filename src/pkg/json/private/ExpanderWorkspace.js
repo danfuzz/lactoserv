@@ -26,16 +26,27 @@ export class ExpanderWorkspace {
   /** @type {boolean} Is expansion currently in-progress? */
   #running = false;
 
-  /** ..... */
+  /**
+   * @type {?{pass, path, value, complete}[]} Items in need of processing. These
+   * are handled in FIFO order.
+   */
   #workQueue = null;
 
-  /** ..... */
+  /**
+   * @type {?{pass, path, value, complete}[]} Items in need of processing, but
+   * only after {@link #workQueue} is drained (becomes empty). Elements from
+   * this queue get added one at a time to {@link #workQueue}, in between which
+   * {@link #workQueue} gets drained.
+   */
   #nextQueue = null;
 
-  /** ..... */
+  /**
+   * @type {*} Final result of expansion, if known. "Known" takes the form of a
+   * promise when this instance is run asynchronously.
+   */
   #result = null;
 
-  /** .... */
+  /** @type {boolean} Is {@link #result} known? */
   #hasResult = false;
 
   /**
