@@ -37,9 +37,9 @@ export class AwaitDirective extends JsonDirective {
     }
 
     if (typeof dirArg === 'function') {
-      this.#promise = value();
+      this.#promise = dirArg();
     } else if (typeof dirArg?.then === 'function') {
-      this.#promise = value;
+      this.#promise = dirArg;
     } else {
       throw new Error(`Bad value for \`${AwaitDirective.NAME}\` at ${util.format('%o', path)}.`);
     }
@@ -48,6 +48,9 @@ export class AwaitDirective extends JsonDirective {
       try {
         this.#resolvedValue = await this.#promise;
         this.#isResolved    = true;
+      } catch {
+        // Ignore the error. It should get "revealed" from `ExpanderWorkspace`
+        // dealing with an `await` response from `process()`.
       }
     })();
   }
