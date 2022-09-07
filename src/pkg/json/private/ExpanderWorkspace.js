@@ -23,7 +23,7 @@ export class ExpanderWorkspace {
   /** @type {*} Original value being worked on. */
   #originalValue;
 
-  /** ..... */
+  /** @type {boolean} Is expansion currently in-progress? */
   #running = false;
 
   /** ..... */
@@ -120,10 +120,17 @@ export class ExpanderWorkspace {
       complete
     });
 
-    while (this.#nextQueue.length !== 0) {
-      this.#addToWorkQueue(this.#nextQueue.shift());
-      this.#drainWorkQueue();
-      // TODO: Something about awaiting on stuff here.
+    try {
+      while (this.#nextQueue.length !== 0) {
+        this.#addToWorkQueue(this.#nextQueue.shift());
+        this.#drainWorkQueue();
+        // TODO: Something about awaiting on stuff here.
+      }
+    } finally {
+      // Don't leave the instance in a weird state; reset it.
+      this.#running   = false;
+      this.#workQueue = null;
+      this.#nextQueue = null;
     }
 
     await completed.whenTrue();
