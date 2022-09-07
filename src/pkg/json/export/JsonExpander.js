@@ -55,21 +55,24 @@ export class JsonExpander {
   }
 
   /**
-   * Expands the given JSON value, with no asynchrony.
+   * Expands the given JSON value, synchronously. This will report an error if
+   * expansion comes to a moment where it has to `await` to make progress.
    *
    * @param {*} value The original value.
    * @returns {*} The expanded version of `value`.
+   * @throws {Error} Thrown if there is any trouble with the expansion.
    */
   expand(value) {
     return this.#expand0(value, false);
   }
 
   /**
-   * Expands the given JSON value, with promises allowed as intermediate
-   * results.
+   * Expands the given JSON value asynchronously, that is with promises allowed
+   * as intermediate results.
    *
    * @param {*} value The original value.
    * @returns {*} The expanded version of `value`.
+   * @throws {Error} Thrown if there is any trouble with the expansion.
    */
   async expandAsync(value) {
     return this.#expand0(value, true);
