@@ -31,6 +31,7 @@ export class DefsDirective extends JsonDirective {
   /** @override */
   constructor(workspace, path, dirArg, dirValue) {
     super(workspace, path, dirArg, dirValue);
+
     console.log('##### DEFS AT %o', path);
 
     if (path.length !== 0) {
