@@ -27,20 +27,11 @@ export class AwaitDirective extends JsonDirective {
   /** @type {boolean} Has this been resolved? */
   #isResolved = false;
 
-  /**
-   * Constructs an instance.
-   *
-   * @param {ExpanderWorkspace} workspace The associated workspace.
-   */
-  constructor(workspace) {
-    super(workspace);
+  /** @override */
+  constructor(workspace, path, dirArg, dirValue) {
+    super(workspace, path, dirArg, dirValue);
     this.#workspace = workspace;
   }
-
-  /**
-   * Gets the resolved value.
-   *
-   * @return
 
   /** @override */
   process(pass, path, value) {

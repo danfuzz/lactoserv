@@ -10,7 +10,7 @@ import { MustBe } from '@this/typey';
  * Directive `$defs`, for defining a dictionary of replacements.
  */
 export class DefsDirective extends JsonDirective {
-  /** {Map<string, *>} Map of replacements. */
+  /** @type {Map<string, *>} Map of replacements. */
   #defs = null;
 
   #value = null;
@@ -20,6 +20,7 @@ export class DefsDirective extends JsonDirective {
 
   #queueItems;
 
+  /** @override */
   constructor(workspace, path, dirArg, dirValue) {
     super(workspace, path, dirArg, dirValue);
     console.log('##### DEFS AT %o', path);

@@ -19,6 +19,7 @@ export class RefDirective extends JsonDirective {
   /** @type {string} Path to the value. */
   #refPath;
 
+  /** @override */
   constructor(workspace, path, dirArg, dirValue) {
     super(workspace, path, dirArg, dirValue);
     console.log('##### REFS AT %o :: %s', path, dirArg);

@@ -13,7 +13,10 @@ export class BaseDirDirective extends JsonDirective {
   /** {?string} The base directory, if known. */
   #baseDir = null;
 
-  // Note: The default constructor is fine here.
+  /** @override */
+  constructor(workspace, path, dirArg, dirValue) {
+    super(workspace, path, dirArg, dirValue);
+  }
 
   /**
    * @returns {string} The base directory.
