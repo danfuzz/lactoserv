@@ -31,69 +31,40 @@ export class AwaitDirective extends JsonDirective {
   /** @override */
   constructor(workspace, path, dirArg, dirValue) {
     super(workspace, path, dirArg, dirValue);
-    this.#workspace = workspace;
-  }
 
-  /** @override */
-  process(pass, path, value) {
-    switch (pass) {
-      case 1:  return this.#pass1(path, value);
-      case 2:  return this.#pass2(path, value);
-      default: throw new Error(`Bad pass: ${pass}`);
+    if (Object.entries(dirValue).length !== 0) {
+      throw new Error(`\`${AwaitDirective.NAME}\` does not accept additional object values.`);
     }
-  }
 
-  /**
-   * Runs pass 1.
-   *
-   * @param {(string|number)[]} path_unused Path within the value being worked
-   *   on.
-   * @param {*} value Sub-value at `path`.
-   * @returns {object} Replacement for `value`, per the documentation of
-   *   {@link JsonDirective.process}.
-   */
-  #pass1(path, value) {
-    if (typeof value === 'function') {
+    if (typeof dirArg === 'function') {
       this.#promise = value();
-    } else if (typeof value?.then === 'function') {
+    } else if (typeof dirArg?.then === 'function') {
       this.#promise = value;
     } else {
       throw new Error(`Bad value for \`${AwaitDirective.NAME}\` at ${util.format('%o', path)}.`);
     }
 
-    return { same: true };
-
-    /*
-    this.#workspace.addPromise(
-      (async () => {
+    (async () => {
+      try {
         this.#resolvedValue = await this.#promise;
-        this.#isResolved = true;
-      })());
-    */
+        this.#isResolved    = true;
+      }
+    })();
   }
 
-  /**
-   * Runs pass 2.
-   *
-   * @param {(string|number)[]} path Path within the value being worked on.
-   * @param {*} value Sub-value at `path`.
-   * @returns {object} Replacement for `value`, per the documentation of
-   *   {@link JsonDirective.process}.
-   */
-  #pass2(path, value) {
-    return {
-      replace: this.#promise,
-      await:   true,
-      outer:   true
-    };
-
-    /*
-    if (!this.#isResolved) {
-      throw new Error(`Unresolved value at `${util.format('%o', path)}.`);
+  /** @override */
+  process() {
+    if (this.#isResolved) {
+      return {
+        action: 'resolve',
+        value: this.#resolvedValue
+      };
+    } else {
+      return {
+        action: 'await',
+        value:  this.#promise
+      };
     }
-
-    return this.#resolvedValue;
-    */
   }
 
 
