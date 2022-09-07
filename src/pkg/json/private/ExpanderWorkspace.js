@@ -398,8 +398,7 @@ export class ExpanderWorkspace {
    * @param {{pass, path, value: *, complete}} item Item to process.
    */
   #processQueueItem(item) {
-    const { pass, path, value, complete } = item;
-    let processedValue;
+    const { value, complete } = item;
 
     if ((value === null) || (typeof value !== 'object')) {
       complete('resolve', value);
