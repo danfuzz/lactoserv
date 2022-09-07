@@ -13,11 +13,19 @@ export class DefsDirective extends JsonDirective {
   /** @type {Map<string, *>} Map of replacements. */
   #defs = null;
 
+  /** @type {boolean} Is {@link #defs} ready? */
+  #hasDefs = false;
+
+  /**
+   * @type {?object} Directive replacement value, if known. This is ultimately
+   * the result of processing the `dirValue` as passed into the constructor.
+   */
   #value = null;
 
-  #hasDefs = false;
+  /** @type {boolean} Is {@link #value} ready? */
   #hasValue = false;
 
+  /** @type {?object[]} Items that need to be enqueued during processing. */
   #queueItems;
 
   /** @override */
