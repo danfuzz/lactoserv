@@ -352,7 +352,6 @@ export class ExpanderWorkspace {
           value: directive,
           complete
         });
-        return directive;
       }
     }
 
