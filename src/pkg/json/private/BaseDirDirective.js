@@ -11,7 +11,7 @@ import { MustBe } from '@this/typey';
  * resolution of relative filesystem paths in other directives.
  */
 export class BaseDirDirective extends JsonDirective {
-  /** {?tring} The base directory. */
+  /** @type {?string} The base directory. */
   #baseDir;
 
   /** @type {?object[]} Items that need to be enqueued during processing. */
