@@ -5,6 +5,10 @@ import { BuiltInDirectives } from '#p/BuiltInDirectives';
 import { ExpanderWorkspace } from '#p/ExpanderWorkspace';
 import { JsonDirective } from '#x/JsonDirective';
 
+import { MustBe } from '@this/typey';
+
+import * as Path from 'node:path';
+
 /**
  * Processor for JSON objects, which knows how to expand it by following
  * embedded directives. Directives are in the form of objects with distinctive
@@ -21,12 +25,33 @@ export class JsonExpander {
   #directives = new Map();
 
   /**
+   * @type {?string} Base directory to use when expanding filesystem-based
+   * directives, if one is to be used.
+   */
+  #baseDir;
+
+  /**
    * Constructs a new instance. By default, it includes all built-in directives.
    *
+   * @param {?string} [baseDir = null] Base directory to use when expanding
+   *   filesystem-based directives, or `null` if none is to be used (in which
+   *   case all specified paths must be absolute _or_ all expanded values must
+   *   include an explicit `$baseDir`). If non-`null`:
+   *   * The value is resolved into an absolute path (based in the current
+   *     directory if relative) during the constructor call.
+   *   * The instance is expected to define the directives `$baseDir` and
+   *     `$value`.
    * @param {boolean} [builtInDirectives = true] Should all the built-in
    *   directives be recognized by this instance?
    */
-  constructor(builtInDirectives = true) {
+  constructor(baseDir = null, builtInDirectives = true) {
+    if (baseDir !== null) {
+      MustBe.string(baseDir);
+      baseDir = Path.resolve(baseDir);
+    }
+
+    this.#baseDir = baseDir;
+
     if (builtInDirectives) {
       BuiltInDirectives.addAllDirectivesTo(this.#directives);
     }
@@ -80,6 +105,14 @@ export class JsonExpander {
    * @returns {*} The expanded version of `value`, or a promise thereto.
    */
   #expand0(value, doAsync) {
+    if (this.#baseDir !== null) {
+      // Provide the base directory passed in during construction.
+      value = {
+        $baseDir: this.#baseDir,
+        $value:   value
+      };
+    }
+
     const directives = new Map(this.#directives);
     const workspace  = new ExpanderWorkspace(directives, value);
 
