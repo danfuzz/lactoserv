@@ -10,20 +10,11 @@ import * as util from 'node:util';
  * Directive `$baseDir`. See the package README for more details.
  */
 export class AwaitDirective extends JsonDirective {
-  /** @type {ExpanderWorkspace} Associated workspace. */
-  #workspace;
-
   /**
    * @type {{then: function(function(*), function(*))}} Promise (or `then`able)
    * which resolves to the ultimate replacement for this instance.
    */
   #promise = null;
-
-  /** @type {*} Resolved value, if known. */
-  #resolvedValue = null;
-
-  /** @type {boolean} Has this been resolved? */
-  #isResolved = false;
 
   /** @override */
   constructor(workspace, path, dirArg, dirValue) {
@@ -40,31 +31,15 @@ export class AwaitDirective extends JsonDirective {
     } else {
       throw new Error(`Bad value for \`${AwaitDirective.NAME}\` at ${util.format('%o', path)}.`);
     }
-
-    (async () => {
-      try {
-        this.#resolvedValue = await this.#promise;
-        this.#isResolved    = true;
-      } catch {
-        // Ignore the error. It should get "revealed" from `ExpanderWorkspace`
-        // dealing with an `await` response from `process()`.
-      }
-    })();
   }
 
   /** @override */
   process() {
-    if (this.#isResolved) {
-      return {
-        action: 'resolve',
-        value: this.#resolvedValue
-      };
-    } else {
-      return {
-        action: 'await',
-        value:  this.#promise
-      };
-    }
+    return {
+      action: 'resolve',
+      value:  this.#promise,
+      await:  true
+    };
   }
 
 

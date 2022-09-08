@@ -47,8 +47,10 @@ export class JsonDirective {
    *     result value for the directive, not even a `null` hole if possible. If
    *     there _must_ be some value due to other constraints, then it should be
    *     `null`.
-   *   * `resolve` with `{ value: * }` -- `value` should be used to replace the
-   *     directive in the result.
+   *   * `resolve` with `{ value: * }` and optional `{ await: true }` -- `value`
+   *     should be used to replace the directive in the result. With `await`,
+   *     the value is `await`ed, and the resolved result becomes the
+   *     replacement.
    * @returns {*} Result, as per {@link ExpanderWorkspace.process}.
    */
   process() {
