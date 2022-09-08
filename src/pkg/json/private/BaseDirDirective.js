@@ -14,10 +14,9 @@ export class BaseDirDirective extends JsonDirective {
   #baseDir;
 
   /**
-   * @type {object} The unprocessed value, which is to be expanded to produce
-   * the replacement for this directive
+   * @type {object} The processing action to be reported back to the workspace.
    */
-  #unprocessedValue;
+  #actionResult;
 
   /** @override */
   constructor(workspace, path, dirArg, dirValue) {
@@ -30,8 +29,11 @@ export class BaseDirDirective extends JsonDirective {
 
     BaseDirDirective.#instances.set(workspace, this);
 
-    this.#baseDir          = dirArg;
-    this.#unprocessedValue = dirValue;
+    this.#baseDir      = dirArg;
+    this.#actionResult = {
+      action: 'again',
+      value:  dirValue
+    };
   }
 
   /**
@@ -43,10 +45,7 @@ export class BaseDirDirective extends JsonDirective {
 
   /** @override */
   process() {
-    return {
-      action: 'again',
-      value:  this.#unprocessedValue
-    }
+    return this.#actionResult;
   }
 
 
