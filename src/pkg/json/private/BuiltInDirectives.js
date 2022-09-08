@@ -7,6 +7,7 @@ import { DefsDirective } from '#p/DefsDirective';
 import { JsonDirective } from '#x/JsonDirective';
 import { RefDirective } from '#p/RefDirective';
 import { TextFileDirective } from '#p/TextFileDirective';
+import { ValueDirective } from '#p/ValueDirective';
 
 /**
  * Repository for all the built-in directives.
@@ -21,7 +22,8 @@ export class BuiltInDirectives {
     BaseDirDirective,
     DefsDirective,
     RefDirective,
-    TextFileDirective);
+    TextFileDirective,
+    ValueDirective);
 
   /**
    * Adds all the built-in directive classes to the given map.
