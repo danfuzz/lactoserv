@@ -112,10 +112,7 @@ export class ExpanderWorkspace {
         await this.#drainQueuedAwaits();
       }
     } finally {
-      // Don't leave the instance in a weird state; reset it.
-      this.#running   = false;
-      this.#workQueue = null;
-      this.#nextQueue = null;
+      this.#expandCleanup();
     }
 
     await completed.whenTrue();
@@ -153,10 +150,7 @@ export class ExpanderWorkspace {
         throw new Error('Asynchronous operation required.');
       }
     } finally {
-      // Don't leave the instance in a weird state; reset it.
-      this.#running   = false;
-      this.#workQueue = null;
-      this.#nextQueue = null;
+      this.#expandCleanup();
     }
 
     if (!this.#hasResult) {
@@ -165,6 +159,16 @@ export class ExpanderWorkspace {
     }
 
     return this.#result;
+  }
+
+  /**
+   * Cleans up the instance state, after finishing an expansion (whether or not
+   * successful).
+   */
+  #expandCleanup() {
+    this.#running   = false;
+    this.#workQueue = null;
+    this.#nextQueue = null;
   }
 
   #expandSetup(complete) {
