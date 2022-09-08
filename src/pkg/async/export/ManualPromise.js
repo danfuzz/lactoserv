@@ -16,6 +16,9 @@ export class ManualPromise {
   /** @type {function(*)} The `reject()` function. */
   #reject;
 
+  /** @type {boolean} Has `#promise` settled? */
+  #isSettled = false;
+
   /**
    * Constructs an instance.
    */
@@ -32,11 +35,23 @@ export class ManualPromise {
   }
 
   /**
+   * Gets an indicator of whether or not the underlying promise has been
+   * settled (either as resolved or rejected).
+   *
+   * @returns {boolean} Whenter (`true`) or not (`false`) the underlying
+   *   promise is settled.
+   */
+  isSettled() {
+    return this.#isSettled;
+  }
+
+  /**
    * Rejects the underlying promise, with the given rejection cause.
    *
    * @param {*} cause The rejection cause.
    */
   reject(cause) {
+    this.#isSettled = true;
     this.#reject(cause);
   }
 
@@ -46,6 +61,7 @@ export class ManualPromise {
    * @param {*} result The result value.
    */
   resolve(result) {
+    this.#isSettled = true;
     this.#resolve(result);
   }
 }
