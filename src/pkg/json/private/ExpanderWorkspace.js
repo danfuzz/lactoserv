@@ -81,7 +81,6 @@ export class ExpanderWorkspace {
 
     const result   = new ManualPromise();
     const complete = (v) => {
-      console.log('####### ASYNC COMPLETE %o', v);
       result.resolve(v);
     };
 
@@ -121,7 +120,6 @@ export class ExpanderWorkspace {
     }
 
     const complete = (v) => {
-      console.log('####### SYNC COMPLETE %o', v);
       this.#result    = v;
       this.#hasResult = true;
     };
@@ -169,7 +167,6 @@ export class ExpanderWorkspace {
     }
 
     const innerComplete = (action, v) => {
-      console.log('####### COMPLETE %s :: %o', action, v);
       switch (action) {
         case 'delete': {
           // Kinda weird, but...uh...okay.
