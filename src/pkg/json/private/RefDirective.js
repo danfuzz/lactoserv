@@ -8,7 +8,7 @@ import { JsonDirective } from '#x/JsonDirective';
 import { MustBe } from '@this/typey';
 
 /**
- * Directive `$ref`, for looking up something from the `$defs`.
+ * Directive `$ref`. See the package README for more details.
  */
 export class RefDirective extends JsonDirective {
   /** @type {ExpanderWorkspace} Associated workspace. */
