@@ -33,12 +33,16 @@ export class JsonDirective {
    * @abstract
    * @returns {{action: string}} Action to take, indicated as an object with one
    *   of these `action` values:
-   *   * `again` with optional `{ enqueue: object[] }` -- The directive should
-   *     be queued up for reprocessing, along with (optionally) a set of other
-   *     items for processing. Each item should be an object of the form
-   *     `{ path: *(number|string)[], value: *, complete: function }`. In this
-   *     case, `path` is the _partial_ path underneath the directive that
-   *     (in some form) represents the location of the value being processed.
+   *   * `again` with optional `{ enqueue: object[], value: * }` -- Queue up
+   *     more processing. With no additional bindings, the same directive is
+   *     requeued as-is. Other bindings:
+   *     * `{ value: * }` -- Instead of the original directive, queue up the
+   *       given value for expansion. The directive is considered complete.
+   *     * `{ enqueue: object[] }` -- _Also_ queue up more values for expansion.
+   *       Each item of the `enqueue` array must be an object of the form
+   *       `{ path: *(number|string)[], value: *, complete: function }`. In this
+   *       case, `path` is the _partial_ path underneath the directive that
+   *       (in some form) represents the location of the value being processed.
    *   * `delete` -- The directive resolved to "emptiness." There should be no
    *     result value for the directive, not even a `null` hole if possible. If
    *     there _must_ be some value due to other constraints, then it should be

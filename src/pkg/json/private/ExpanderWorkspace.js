@@ -319,7 +319,18 @@ export class ExpanderWorkspace {
             });
           }
         }
-        this.#addToNextQueue({ ...item, pass: pass + 1 });
+        if (result) {
+          this.#addToNextQueue({
+            ...item,
+            pass: pass + 1,
+            value: result
+          });
+        } else {
+          this.#addToNextQueue({
+            ...item,
+            pass: pass + 1
+          });
+        }
         break;
       }
       case 'delete': {
