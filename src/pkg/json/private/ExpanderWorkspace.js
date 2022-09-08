@@ -210,6 +210,29 @@ export class ExpanderWorkspace {
     return this.#result;
   }
 
+  /**
+   * Adds an item to {@link #nextQueue}.
+   *
+   * @param {{pass, path, value, complete}} item Item to add.
+   */
+  #addToNextQueue(item) {
+    if (item.pass > 10) {
+      throw new Error('Expander deadlock.');
+    }
+    //console.log('#### Queued next item: %o', item);
+    this.#nextQueue.push(item);
+  }
+
+  /**
+   * Adds an item to {@link #workQueue}.
+   *
+   * @param {{pass, path, value, complete}} item Item to add.
+   */
+  #addToWorkQueue(item) {
+    //console.log('#### Queued work item: %o', item);
+    this.#workQueue.push(item);
+  }
+
   async #drainQueuedAwaits() {
     while (this.#nextQueue.length !== 0) {
       const item = this.#nextQueue[0];
@@ -255,29 +278,6 @@ export class ExpanderWorkspace {
     this.#nextQueue.push(...awaitItems);
 
     return (this.#workQueue.length !== 0) || (this.#nextQueue.length !== 0);
-  }
-
-  /**
-   * Adds an item to {@link #nextQueue}.
-   *
-   * @param {{pass, path, value, complete}} item Item to add.
-   */
-  #addToNextQueue(item) {
-    if (item.pass > 10) {
-      throw new Error('Expander deadlock.');
-    }
-    //console.log('#### Queued next item: %o', item);
-    this.#nextQueue.push(item);
-  }
-
-  /**
-   * Adds an item to {@link #workQueue}.
-   *
-   * @param {{pass, path, value, complete}} item Item to add.
-   */
-  #addToWorkQueue(item) {
-    //console.log('#### Queued work item: %o', item);
-    this.#workQueue.push(item);
   }
 
   /**
@@ -344,9 +344,9 @@ export class ExpanderWorkspace {
             MustBe.arrayOfIndex(e.path);
             MustBe.function(e.complete);
             this.#addToNextQueue({
-              pass:  pass + 1,
-              path:  [...path, ...e.path],
-              value: e.value,
+              pass:     pass + 1,
+              path:     [...path, ...e.path],
+              value:    e.value,
               complete: e.complete
             });
           }
@@ -355,7 +355,7 @@ export class ExpanderWorkspace {
           console.log('#### DIRECTIVE SELF-REPLACED: %o :: %o', path, result);
           this.#addToNextQueue({
             ...item,
-            pass: pass + 1,
+            pass:  pass + 1,
             value: result
           });
         } else {
