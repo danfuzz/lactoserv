@@ -8,15 +8,9 @@ import { JsonDirective } from '#x/JsonDirective';
 /**
  * Processor for JSON objects, which knows how to expand it by following
  * embedded directives. Directives are in the form of objects with distinctive
- * keys. The built-in directives are:
+ * keys.
  *
- * * `{ $defs: { <key>: <value>, ... } }` -- At the top level, recognized as a
- *   set of definitions which can be referenced. Is omitted from the result of
- *   expansion. Not allowed anywhere other than the top level.
- * * `{ $ref: "#/$defs/<key>" }` -- Expanded into the value defined under
- *   `$defs`. The path is intentionally more restrictive than what one gets with
- *   JSON Schema and really has to begin `#/$defs/`. This will be loosened up if
- *   and when there is an actual need.
+ * **Note:** See the package README for a list of built-in directives.
  */
 export class JsonExpander {
   /**
