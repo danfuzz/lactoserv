@@ -288,6 +288,14 @@ export class ExpanderWorkspace {
    */
   #processArray(item) {
     const { pass, path, value, complete } = item;
+
+    if (value.length === 0) {
+      // Empty array! Resolve as a special case here, to avoid having to chain
+      // the `complete` function.
+      complete('resolve', item.value);
+      return;
+    }
+
     const result = [];
     const deletions = [];
     let resultsRemaining = value.length;
@@ -352,7 +360,7 @@ export class ExpanderWorkspace {
             });
           }
         }
-        if (result) {
+        if (result !== undefined) {
           this.#addToNextQueue({
             ...item,
             pass:  pass + 1,
@@ -398,6 +406,13 @@ export class ExpanderWorkspace {
   #processObject(item) {
     const { pass, path, value, complete } = item;
     const keys = Object.keys(value).sort();
+
+    if (keys.length === 0) {
+      // Empty object! Resolve as a special case here, to avoid having to chain
+      // the `complete` function.
+      complete('resolve', item.value);
+      return;
+    }
 
     // If there is a directive key, convert the element to a directive, and
     // queue it up for the next pass. If any directives are found that don't
