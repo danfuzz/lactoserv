@@ -104,7 +104,7 @@ export class ExpanderWorkspace {
     let result = null;
 
     const complete = (action, v) => {
-      console.log('####### ASYNC COMPLETE %s :: %o', action, v);
+      //console.log('####### ASYNC COMPLETE %s :: %o', action, v);
       switch (action) {
         case 'delete': {
           // Kinda weird, but...uh...okay.
@@ -165,7 +165,7 @@ export class ExpanderWorkspace {
     }
 
     const complete = (action, v) => {
-      console.log('####### COMPLETE %s :: %o', action, v);
+      //console.log('####### COMPLETE %s :: %o', action, v);
       switch (action) {
         case 'delete': {
           // Kinda weird, but...uh...okay.
@@ -222,7 +222,7 @@ export class ExpanderWorkspace {
     if (item.pass > 10) {
       throw new Error('Expander deadlock.');
     }
-    console.log('#### Queued next item: %o', item);
+    //console.log('#### Queued next item: %o', item);
     this.#nextQueue.push(item);
   }
 
@@ -232,7 +232,7 @@ export class ExpanderWorkspace {
    * @param {{pass, path, value, complete}} item Item to add.
    */
   #addToWorkQueue(item) {
-    console.log('#### Queued work item: %o', item);
+    //console.log('#### Queued work item: %o', item);
     this.#workQueue.push(item);
   }
 
@@ -243,7 +243,7 @@ export class ExpanderWorkspace {
   #drainWorkQueue() {
     while (this.#workQueue.length !== 0) {
       const item = this.#workQueue.shift();
-      console.log('#### Working on: %o', item);
+      //console.log('#### Working on: %o', item);
       this.#processQueueItem(item);
     }
   }
@@ -299,7 +299,7 @@ export class ExpanderWorkspace {
    * @param {{pass, path, value: JsonDirective, complete}} item Item to process.
    */
   #processDirective(item) {
-    console.log('#### processing directive: %o', item);
+    //console.log('#### processing directive: %o', item);
     const { pass, path, value, complete } = item;
 
     const { action, enqueue, value: result } = value.process();
