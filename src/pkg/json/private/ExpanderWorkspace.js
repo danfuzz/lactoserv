@@ -81,10 +81,6 @@ export class ExpanderWorkspace {
       return this.#result;
     }
 
-    this.#running   = true;
-    this.#workQueue = [];
-    this.#nextQueue = [];
-
     this.#result    = this.#expandAsync0(); // Intentionally no `await` here!
     this.#hasResult = true;
 
@@ -103,31 +99,13 @@ export class ExpanderWorkspace {
     const completed = new Condition();
     let result = null;
 
-    const complete = (action, v) => {
-      //console.log('####### ASYNC COMPLETE %s :: %o', action, v);
-      switch (action) {
-        case 'delete': {
-          // Kinda weird, but...uh...okay.
-          result = null;
-          break;
-        }
-        case 'resolve': {
-          result = v;
-          break;
-        }
-        default: {
-          throw new Error(`Unrecognized completion action: ${action}`);
-        }
-      }
+    const complete = (v) => {
+      console.log('####### ASYNC COMPLETE %o', v);
+      result = v;
       completed.value = true;
     };
 
-    this.#addToWorkQueue({
-      pass:  1,
-      path:  [],
-      value: this.#originalValue,
-      complete
-    });
+    this.#expandSetup(complete);
 
     try {
       while (this.#drainQueuesUntilAsync()) {
@@ -162,34 +140,13 @@ export class ExpanderWorkspace {
       throw new Error('Processing already in progress.');
     }
 
-    const complete = (action, v) => {
-      //console.log('####### COMPLETE %s :: %o', action, v);
-      switch (action) {
-        case 'delete': {
-          // Kinda weird, but...uh...okay.
-          this.#result = null;
-          break;
-        }
-        case 'resolve': {
-          this.#result = v;
-          break;
-        }
-        default: {
-          throw new Error(`Unrecognized completion action: ${action}`);
-        }
-      }
+    const complete = (v) => {
+      console.log('####### SYNC COMPLETE %o', v);
+      this.#result    = v;
       this.#hasResult = true;
     };
 
-    this.#running   = true;
-    this.#workQueue = [];
-    this.#nextQueue = [];
-    this.#addToWorkQueue({
-      pass:  1,
-      path:  [],
-      value: this.#originalValue,
-      complete
-    });
+    this.#expandSetup(complete);
 
     try {
       if (this.#drainQueuesUntilAsync()) {
@@ -208,6 +165,38 @@ export class ExpanderWorkspace {
     }
 
     return this.#result;
+  }
+
+  #expandSetup(complete) {
+    const innerComplete = (action, v) => {
+      console.log('####### COMPLETE %s :: %o', action, v);
+      switch (action) {
+        case 'delete': {
+          // Kinda weird, but...uh...okay.
+          v = null;
+          break;
+        }
+        case 'resolve': {
+          // Nothing to do here.
+          break;
+        }
+        default: {
+          throw new Error(`Unrecognized completion action: ${action}`);
+        }
+      }
+      complete(v);
+    };
+
+    this.#running   = true;
+    this.#workQueue = [];
+    this.#nextQueue = [];
+
+    this.#addToWorkQueue({
+      pass:     1,
+      path:     [],
+      value:    this.#originalValue,
+      complete: innerComplete
+    });
   }
 
   /**
