@@ -171,6 +171,13 @@ export class ExpanderWorkspace {
     this.#nextQueue = null;
   }
 
+  /**
+   * Does initial setup just before running the expansion loop (either
+   * synchronously or asynchronously).
+   *
+   * @param {function(*)} complete Completion function to call with the final
+   *   result of expansion.
+   */
   #expandSetup(complete) {
     const innerComplete = (action, v) => {
       console.log('####### COMPLETE %s :: %o', action, v);
