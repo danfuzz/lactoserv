@@ -98,6 +98,11 @@ export class ExpanderWorkspace {
       this.#expandCleanup();
     }
 
+    if (!result.isSettled()) {
+      // We exhausted the queue without actually completing the top-level item.
+      throw new Error('Expander livelock.');
+    }
+
     return this.#result;
   }
 
