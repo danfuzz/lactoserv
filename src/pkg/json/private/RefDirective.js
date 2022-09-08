@@ -14,24 +14,36 @@ export class RefDirective extends JsonDirective {
   /** @type {ExpanderWorkspace} Associated workspace. */
   #workspace;
 
-  /** @type {string} Path to the value. */
-  #refPath;
+  /** @type {string} Name of the definition to look up. */
+  #name;
 
   /** @override */
   constructor(workspace, path, dirArg, dirValue) {
+    MustBe.string(dirArg);
     super(workspace, path, dirArg, dirValue);
 
     if (Object.entries(dirValue).length !== 0) {
       throw new Error(`\`${RefDirective.NAME}\` does not accept additional object values.`);
     }
 
+    const { name } = dirArg.match(/^#[/][$]defs[/](?<name>.*)$/).groups;
+    if (!name) {
+      throw new Error(`Bad syntax for reference: ${dirArg}`);
+    }
+
     this.#workspace = MustBe.object(workspace, ExpanderWorkspace);
-    this.#refPath   = MustBe.string(dirArg);
+    this.#name      = name;
   }
 
   /** @override */
   process() {
-    return DefsDirective.processRef(this.#workspace, this.#refPath);
+    const defs = DefsDirective.getRootInstance(this.#workspace);
+
+    if (!defs) {
+      return { action: 'again' };
+    }
+
+    return { action: 'resolve', value: defs.get(this.#name) };
   }
 
 

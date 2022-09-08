@@ -60,29 +60,26 @@ export class DefsDirective extends JsonDirective {
     };
   }
 
-  /** @override */
-  process() {
-    return this.#actionResult;
-  }
-
   /**
-   * Processes a named reference.
+   * Gets the definition associated with the given name.
    *
-   * @param {string} name Reference name.
-   * @returns {*} Replacement, as specified by {@link #process}.
+   * @param {string} name The name to look up.
+   * @return {*} The associated value.
+   * @throws {Error} Thrown if there is no binding for `name`.
    */
-  #processRef(name) {
-    if (!this.#hasDefs) {
-      return { action: 'again' };
-    }
+  get(name) {
+    const result = this.#defs.get(name);
 
-    const def = this.#defs.get(name);
-
-    if (!def) {
+    if (result === undefined) {
       throw new Error(`No definition for: ${name}`);
     }
 
-    return { action: 'resolve', value: def };
+    return result;
+  }
+
+  /** @override */
+  process() {
+    return this.#actionResult;
   }
 
 
@@ -107,27 +104,16 @@ export class DefsDirective extends JsonDirective {
   }
 
   /**
-   * Processes a reference.
+   * Gets the instance of this class associated with the root of the given
+   * workspace, if known _and_ has definitions.
    *
    * @param {ExpanderWorkspace} workspace The workspace.
-   * @param {string} path Path to the reference.
-   * @returns {?{value: *}} Found value, or `null` if the definitions have
-   *   possibly not yet been found.
    */
-  static processRef(workspace, path) {
+  static getRootInstance(workspace) {
     MustBe.object(workspace, ExpanderWorkspace);
-    MustBe.string(path);
 
     const instance = this.#instances.get(workspace);
-    if (!instance) {
-      return { action: 'again' };
-    }
 
-    const { name } = path.match(/^#[/][$]defs[/](?<name>.*)$/).groups;
-    if (!name) {
-      throw new Error(`Bad syntax for reference: ${path}`);
-    }
-
-    return instance.#processRef(name);
+    return (instance && instance.#hasDefs) ? instance : null;
   }
 }
