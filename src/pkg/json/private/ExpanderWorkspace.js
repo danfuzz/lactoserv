@@ -39,8 +39,8 @@ export class ExpanderWorkspace {
   #nextQueue = null;
 
   /**
-   * @type {*} Final result of expansion, if known. "Known" takes the form of a
-   * promise when this instance is run asynchronously.
+   * @type {*} Final result of expansion, if known. This is always a promise
+   * when this instance is run asynchronously.
    */
   #result = null;
 
@@ -81,27 +81,14 @@ export class ExpanderWorkspace {
       return this.#result;
     }
 
-    this.#result    = this.#expandAsync0(); // Intentionally no `await` here!
-    this.#hasResult = true;
-
-    // Per above, `#result` is definitely an as-yet unresolved promise at this
-    // point.
-    return this.#result;
-  }
-
-  /**
-   * Perform the main part of expansion, asynchronously.
-   *
-   * @returns {*} The result of expansion.
-   * @throws {Error} Thrown if there was any trouble during expansion.
-   */
-  async #expandAsync0() {
-    const result = new ManualPromise();
-
+    const result   = new ManualPromise();
     const complete = (v) => {
       console.log('####### ASYNC COMPLETE %o', v);
       result.resolve(v);
     };
+
+    this.#result    = result.promise;
+    this.#hasResult = true;
 
     this.#expandSetup(complete);
 
@@ -113,7 +100,7 @@ export class ExpanderWorkspace {
       this.#expandCleanup();
     }
 
-    return result.promise;
+    return this.#result;
   }
 
   /**
