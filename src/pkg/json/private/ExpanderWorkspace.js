@@ -3,7 +3,7 @@
 
 import { JsonDirective } from '#x/JsonDirective';
 
-import { Condition } from '@this/async';
+import { ManualPromise } from '@this/async';
 import { MustBe } from '@this/typey';
 
 /**
@@ -32,15 +32,13 @@ export class ExpanderWorkspace {
 
   /**
    * @type {?{pass, path, value, complete}[]} Items in need of processing, but
-   * only after {@link #workQueue} is drained (becomes empty). Elements from
-   * this queue get added one at a time to {@link #workQueue}, in between which
-   * {@link #workQueue} gets drained.
+   * only after {@link #workQueue} is drained (becomes empty).
    */
   #nextQueue = null;
 
   /**
-   * @type {*} Final result of expansion, if known. "Known" takes the form of a
-   * promise when this instance is run asynchronously.
+   * @type {*} Final result of expansion, if known. This is always a promise
+   * when this instance is run asynchronously.
    */
   #result = null;
 
@@ -81,67 +79,31 @@ export class ExpanderWorkspace {
       return this.#result;
     }
 
-    this.#running   = true;
-    this.#workQueue = [];
-    this.#nextQueue = [];
-
-    this.#result    = this.#expandAsync0(); // Intentionally no `await` here!
-    this.#hasResult = true;
-
-    // Per above, `#result` is definitely an as-yet unresolved promise at this
-    // point.
-    return this.#result;
-  }
-
-  /**
-   * Perform the main part of expansion, asynchronously.
-   *
-   * @returns {*} The result of expansion.
-   * @throws {Error} Thrown if there was any trouble during expansion.
-   */
-  async #expandAsync0() {
-    const completed = new Condition();
-    let result = null;
-
-    const complete = (action, v) => {
-      //console.log('####### ASYNC COMPLETE %s :: %o', action, v);
-      switch (action) {
-        case 'delete': {
-          // Kinda weird, but...uh...okay.
-          result = null;
-          break;
-        }
-        case 'resolve': {
-          result = v;
-          break;
-        }
-        default: {
-          throw new Error(`Unrecognized completion action: ${action}`);
-        }
-      }
-      completed.value = true;
+    const result   = new ManualPromise();
+    const complete = (v) => {
+      console.log('####### ASYNC COMPLETE %o', v);
+      result.resolve(v);
     };
 
-    this.#addToWorkQueue({
-      pass:  1,
-      path:  [],
-      value: this.#originalValue,
-      complete
-    });
+    this.#result    = result.promise;
+    this.#hasResult = true;
+
+    this.#expandSetup(complete);
 
     try {
       while (this.#drainQueuesUntilAsync()) {
         await this.#drainQueuedAwaits();
       }
     } finally {
-      // Don't leave the instance in a weird state; reset it.
-      this.#running   = false;
-      this.#workQueue = null;
-      this.#nextQueue = null;
+      this.#expandCleanup();
     }
 
-    await completed.whenTrue();
-    return result;
+    if (!result.isSettled()) {
+      // We exhausted the queue without actually completing the top-level item.
+      throw new Error('Expander livelock.');
+    }
+
+    return this.#result;
   }
 
   /**
@@ -156,50 +118,22 @@ export class ExpanderWorkspace {
       // called but hasn't completed, `#result` will be an as-yet unresolved
       // promise.
       return this.#result;
-    } else if (this.#running) {
-      // We are in a recursive call from within the expander itself. Weird case,
-      // _maybe_ can't actually happen?
-      throw new Error('Processing already in progress.');
     }
 
-    const complete = (action, v) => {
-      //console.log('####### COMPLETE %s :: %o', action, v);
-      switch (action) {
-        case 'delete': {
-          // Kinda weird, but...uh...okay.
-          this.#result = null;
-          break;
-        }
-        case 'resolve': {
-          this.#result = v;
-          break;
-        }
-        default: {
-          throw new Error(`Unrecognized completion action: ${action}`);
-        }
-      }
+    const complete = (v) => {
+      console.log('####### SYNC COMPLETE %o', v);
+      this.#result    = v;
       this.#hasResult = true;
     };
 
-    this.#running   = true;
-    this.#workQueue = [];
-    this.#nextQueue = [];
-    this.#addToWorkQueue({
-      pass:  1,
-      path:  [],
-      value: this.#originalValue,
-      complete
-    });
+    this.#expandSetup(complete);
 
     try {
       if (this.#drainQueuesUntilAsync()) {
         throw new Error('Asynchronous operation required.');
       }
     } finally {
-      // Don't leave the instance in a weird state; reset it.
-      this.#running   = false;
-      this.#workQueue = null;
-      this.#nextQueue = null;
+      this.#expandCleanup();
     }
 
     if (!this.#hasResult) {
@@ -208,6 +142,61 @@ export class ExpanderWorkspace {
     }
 
     return this.#result;
+  }
+
+  /**
+   * Cleans up the instance state, after finishing an expansion (whether or not
+   * successful).
+   */
+  #expandCleanup() {
+    this.#running   = false;
+    this.#workQueue = null;
+    this.#nextQueue = null;
+  }
+
+  /**
+   * Does initial setup just before running the expansion loop (either
+   * synchronously or asynchronously).
+   *
+   * @param {function(*)} complete Completion function to call with the final
+   *   result of expansion.
+   */
+  #expandSetup(complete) {
+    if (this.#running) {
+      // We are in a recursive call from within the expander itself. Weird case,
+      // though it probably can be made to happen if one tries hard enough.
+      throw new Error('Processing already in progress.');
+    }
+
+    const innerComplete = (action, v) => {
+      console.log('####### COMPLETE %s :: %o', action, v);
+      switch (action) {
+        case 'delete': {
+          // Kinda weird, but...uh...okay.
+          v = null;
+          break;
+        }
+        case 'resolve': {
+          // Nothing to do here.
+          break;
+        }
+        default: {
+          throw new Error(`Unrecognized completion action: ${action}`);
+        }
+      }
+      complete(v);
+    };
+
+    this.#running   = true;
+    this.#workQueue = [];
+    this.#nextQueue = [];
+
+    this.#addToWorkQueue({
+      pass:     1,
+      path:     [],
+      value:    this.#originalValue,
+      complete: innerComplete
+    });
   }
 
   /**
