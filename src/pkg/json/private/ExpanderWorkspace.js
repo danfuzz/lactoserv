@@ -393,7 +393,7 @@ export class ExpanderWorkspace {
             pass:  pass + 1,
             value: result,
             await: true
-          })
+          });
         } else {
           complete('resolve', result);
         }

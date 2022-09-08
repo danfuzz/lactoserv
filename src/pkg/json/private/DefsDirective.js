@@ -57,7 +57,7 @@ export class DefsDirective extends JsonDirective {
           }
         }
       ]
-    }
+    };
   }
 
   /** @override */
