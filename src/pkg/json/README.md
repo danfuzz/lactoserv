@@ -7,12 +7,41 @@ Stuff for dealing with JSON.
 
 ## `JsonExpander` Built-In Directives
 
-### `{ $defs: { <key>: <value>, ... } }`
+### `{ $baseDir: "<path>", ... }`
 
-This is recognized as a top-level binding, providing a set of definitions that
-can be referenced in the rest of the value (or within the definitions
-themselves). The expanded result is the _remaining_ bindings, without the
-original `$defs`. See `$ref` for more details.
+This defines an absolute base directory in the filesystem, which other
+filesystem-using directives can use when encountering relative paths. `<path>`
+must start with a slash (`/`) and _not_ end with a slash (`/`). The expanded
+result is the _remaining_ bindings in the object in which the directive appears,
+but without the original directive binding.
+
+This is recognized as a top-level binding _only_, and is an error everywhere
+else.
+
+```json
+{
+  "a": [1, 2, 3],
+  "$baseDir": "/home/danfuzz"
+}
+
+=>
+
+{
+  "a": [1, 2, 3]
+}
+```
+
+### `{ $defs: { <key>: <value>, ... }, ... }`
+
+This provides a set of definitions that can be referenced in the rest of
+the value (or within the definitions themselves). The expanded result is the
+_remaining_ bindings in the object in which the directive appears, but without
+the original directive binding.
+
+This is recognized as a top-level binding _only_, and is an error everywhere
+else.
+
+See `$ref` for details about how this directive gets used.
 
 ```json
 {

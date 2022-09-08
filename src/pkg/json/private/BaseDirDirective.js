@@ -7,8 +7,7 @@ import { JsonDirective } from '#x/JsonDirective';
 import { MustBe } from '@this/typey';
 
 /**
- * Directive `$baseDir`, for defining a base directory in the filesystem for the
- * resolution of relative filesystem paths in other directives.
+ * Directive `$baseDir`. See the package README for more details.
  */
 export class BaseDirDirective extends JsonDirective {
   /** @type {?string} The base directory. */
