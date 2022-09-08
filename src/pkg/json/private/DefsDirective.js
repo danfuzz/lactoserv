@@ -94,6 +94,11 @@ export class DefsDirective extends JsonDirective {
   static #instances = new WeakMap();
 
   /** @override */
+  static get ALLOW_OTHER_BINDINGS() {
+    return true;
+  }
+
+  /** @override */
   static get NAME() {
     return '$defs';
   }

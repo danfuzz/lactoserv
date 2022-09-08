@@ -59,6 +59,11 @@ export class TextFileDirective extends JsonDirective {
   //
 
   /** @override */
+  static get ALLOW_OTHER_BINDINGS() {
+    return false;
+  }
+
+  /** @override */
   static get NAME() {
     return '$textFile';
   }
