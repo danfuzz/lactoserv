@@ -21,6 +21,29 @@ export class MustBe {
   }
 
   /**
+   * Checks for type `(string|number)[]`, which is to say values that are valid
+   * to use as object or array indices.
+   *
+   * @param {*} value Arbitrary value.
+   * @returns {string[]} `value` if it is of type `(string|number)[]`.
+   * @throws {Error} Thrown if `value` is of any other type.
+   */
+  static arrayOfIndex(value) {
+    check:
+    if ((typeof value === 'object') && (value.constructor === Array)) {
+      for (const v of value) {
+        const t = typeof v;
+        if ((t !== 'string') && (t !== 'number')) {
+          break check;
+        }
+      }
+      return value;
+    }
+
+    throw new Error('Must be of type `(string|number)[]`.');
+  }
+
+  /**
    * Checks for type `string[]`.
    *
    * @param {*} value Arbitrary value.
@@ -54,6 +77,21 @@ export class MustBe {
     }
 
     throw new Error('Must be of type `boolean`.');
+  }
+
+  /**
+   * Checks for type `function`.
+   *
+   * @param {*} value Arbitrary value.
+   * @returns {boolean} `value` if it is of type `function`.
+   * @throws {Error} Thrown if `value` is of any other type.
+   */
+  static function(value) {
+    if (typeof value === 'function') {
+      return value;
+    }
+
+    throw new Error('Must be of type `function`.');
   }
 
   /**

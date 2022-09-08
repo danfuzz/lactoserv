@@ -4,6 +4,7 @@
 import { JsonDirective } from '#x/JsonDirective';
 
 import { Condition } from '@this/async';
+import { MustBe } from '@this/typey';
 
 /**
  * Workspace for running an expansion set up by {@link JsonExpander}, including
@@ -308,6 +309,8 @@ export class ExpanderWorkspace {
         // Not resolved. Requeue for the next pass.
         if (enqueue) {
           for (const e of enqueue) {
+            MustBe.arrayOfIndex(e.path);
+            MustBe.function(e.complete);
             this.#addToNextQueue({
               pass:  pass + 1,
               path:  [...path, ...e.path],

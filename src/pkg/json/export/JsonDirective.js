@@ -23,7 +23,7 @@ export class JsonDirective {
   // eslint-disable-next-line no-unused-vars
   constructor(workspace, path, dirArg, dirValue) {
     MustBe.object(workspace, ExpanderWorkspace);
-    MustBe.array(path);
+    MustBe.arrayOfIndex(path);
     MustBe.object(dirValue);
   }
 
