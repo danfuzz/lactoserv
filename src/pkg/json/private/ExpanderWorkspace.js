@@ -400,23 +400,39 @@ export class ExpanderWorkspace {
     const keys = Object.keys(value).sort();
 
     // If there is a directive key, convert the element to a directive, and
-    // queue it up for the next pass.
+    // queue it up for the next pass. If any directives are found that don't
+    // accept additional bindings when this object _does_ have more bindings,
+    // note it for a possible error message at the end of this pass.
+    let unacceptableDirectives = [];
     for (const k of keys) {
       const directiveClass = this.#directives.get(k);
       if (directiveClass) {
-        const dirArg   = value[k];
-        const dirValue = { ...value };
-        delete dirValue[k];
-        console.log('#### Directive %s: %o', k, path);
-        const directive = new directiveClass(this, path, dirArg, dirValue);
-        this.#addToNextQueue({
-          pass: pass + 1,
-          path,
-          value: directive,
-          complete
-        });
-        return; // Don't _also_ queue up a regular object expansion.
+        if ((keys.length !== 1) && !directiveClass.ALLOW_OTHER_BINDINGS) {
+          unacceptableDirectives.push(k);
+          continue;
+        }
+      } else {
+        continue;
       }
+
+      const dirArg   = value[k];
+      const dirValue = { ...value };
+      delete dirValue[k];
+      console.log('#### Directive %s: %o', k, path);
+      const directive = new directiveClass(this, path, dirArg, dirValue);
+      this.#addToNextQueue({
+        pass: pass + 1,
+        path,
+        value: directive,
+        complete
+      });
+
+      return; // Don't _also_ queue up a regular object expansion.
+    }
+
+    if (unacceptableDirectives.length !== 0) {
+      const names = unacceptableDirectives.join(', ');
+      throw new Error(`Cannot take additional bindings: ${names}`);
     }
 
     // No directive; just queue up all bindings for regular conversion.
