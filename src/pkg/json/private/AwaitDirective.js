@@ -37,7 +37,7 @@ export class AwaitDirective extends JsonDirective {
     }
 
     if (typeof dirArg === 'function') {
-      this.#promise = dirArg();
+      this.#promise = (async () => dirArg())();
     } else if (typeof dirArg?.then === 'function') {
       this.#promise = dirArg;
     } else {
