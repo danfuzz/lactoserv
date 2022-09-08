@@ -320,6 +320,7 @@ export class ExpanderWorkspace {
           }
         }
         if (result) {
+          console.log('#### DIRECTIVE SELF-REPLACED: %o :: %o', path, result);
           this.#addToNextQueue({
             ...item,
             pass: pass + 1,

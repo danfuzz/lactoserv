@@ -13,24 +13,16 @@ export class BaseDirDirective extends JsonDirective {
   /** @type {?string} The base directory. */
   #baseDir;
 
-  /** @type {?object[]} Items that need to be enqueued during processing. */
-  #queueItems;
-
   /**
-   * @type {?object} Directive replacement value, if known. This is ultimately
-   * the result of processing the `dirValue` as passed into the constructor.
+   * @type {object} The unprocessed value, which is to be expanded to produce
+   * the replacement for this directive
    */
-  #value = null;
-
-  /** @type {boolean} Is {@link #value} ready? */
-  #hasValue = false;
+  #unprocessedValue;
 
   /** @override */
   constructor(workspace, path, dirArg, dirValue) {
     MustBe.string(dirArg, BaseDirDirective.#BASE_DIR_REGEXP);
     super(workspace, path, dirArg, dirValue);
-
-    console.log('##### BASE DIR AT %o', path);
 
     if (path.length !== 0) {
       throw new Error(`\`${BaseDirDirective.NAME}\` only allowed at top level.`);
@@ -38,31 +30,8 @@ export class BaseDirDirective extends JsonDirective {
 
     BaseDirDirective.#instances.set(workspace, this);
 
-    this.#baseDir = dirValue;
-
-    this.#queueItems = [
-      {
-        path:     ['<value>'],
-        value:    dirValue,
-        complete: (action, v) => {
-          switch (action) {
-            case 'delete': {
-              // Weird result, but try to deal gracefully.
-              this.#value = null;
-              break;
-            }
-            case 'resolve': {
-              this.#value = v;
-              break;
-            }
-            default: {
-              throw new Error(`Unrecognized completion action: ${action}`);
-            }
-          }
-          this.#hasValue = true;
-        }
-      }
-    ];
+    this.#baseDir          = dirArg;
+    this.#unprocessedValue = dirValue;
   }
 
   /**
@@ -74,20 +43,10 @@ export class BaseDirDirective extends JsonDirective {
 
   /** @override */
   process() {
-    if (this.#queueItems) {
-      const items = this.#queueItems;
-      this.#queueItems = null;
-      return {
-        action:  'again',
-        enqueue: items
-      };
+    return {
+      action: 'again',
+      value:  this.#unprocessedValue
     }
-
-    if (!this.#hasValue) {
-      return { action: 'again' };
-    }
-
-    return { action: 'resolve', value: this.#value };
   }
 
 
