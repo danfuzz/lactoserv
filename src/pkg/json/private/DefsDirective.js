@@ -7,7 +7,7 @@ import { JsonDirective } from '#x/JsonDirective';
 import { MustBe } from '@this/typey';
 
 /**
- * Directive `$defs`, for defining a dictionary of replacements.
+ * Directive `$def`. See the package README for more details.
  */
 export class DefsDirective extends JsonDirective {
   /** @type {Map<string, *>} Map of replacements. */
