@@ -42,6 +42,7 @@ export class DefsDirective extends JsonDirective {
 
     this.#queueItems = [
       {
+        path:     ['<value>'],
         value:    dirValue,
         complete: (action, v) => {
           switch (action) {
@@ -62,6 +63,7 @@ export class DefsDirective extends JsonDirective {
         }
       },
       {
+        path:  ['<defs>'],
         value: dirArg,
         complete: (action, v) => {
           switch (action) {

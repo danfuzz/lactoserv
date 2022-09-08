@@ -308,7 +308,12 @@ export class ExpanderWorkspace {
         // Not resolved. Requeue for the next pass.
         if (enqueue) {
           for (const e of enqueue) {
-            this.#addToNextQueue({ ...e, pass: pass + 1, path });
+            this.#addToNextQueue({
+              pass:  pass + 1,
+              path:  [...path, ...e.path],
+              value: e.value,
+              complete: e.complete
+            });
           }
         }
         this.#addToNextQueue({ ...item, pass: pass + 1 });

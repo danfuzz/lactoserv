@@ -43,6 +43,7 @@ export class BaseDirDirective extends JsonDirective {
 
     this.#queueItems = [
       {
+        path:     ['<value>'],
         value:    dirValue,
         complete: (action, v) => {
           switch (action) {
