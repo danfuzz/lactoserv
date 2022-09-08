@@ -122,7 +122,7 @@ export class ExpanderWorkspace {
       completed.value = true;
     };
 
-    this.#addToNextQueue({
+    this.#addToWorkQueue({
       pass:  1,
       path:  [],
       value: this.#originalValue,
@@ -130,9 +130,8 @@ export class ExpanderWorkspace {
     });
 
     try {
-      while (this.#nextQueue.length !== 0) {
-        this.#drainQueuesUntilAsync();
-        // TODO: Handle `await` items.
+      while (this.#drainQueuesUntilAsync()) {
+        await this.#drainQueuedAwaits();
       }
     } finally {
       // Don't leave the instance in a weird state; reset it.
@@ -185,7 +184,7 @@ export class ExpanderWorkspace {
     this.#running   = true;
     this.#workQueue = [];
     this.#nextQueue = [];
-    this.#addToNextQueue({
+    this.#addToWorkQueue({
       pass:  1,
       path:  [],
       value: this.#originalValue,
@@ -193,8 +192,7 @@ export class ExpanderWorkspace {
     });
 
     try {
-      this.#drainQueuesUntilAsync();
-      if (this.#nextQueue.length !== 0) {
+      if (this.#drainQueuesUntilAsync()) {
         throw new Error('Asynchronous operation required.');
       }
     } finally {
@@ -210,6 +208,22 @@ export class ExpanderWorkspace {
     }
 
     return this.#result;
+  }
+
+  async #drainQueuedAwaits() {
+    while (this.#nextQueue.length !== 0) {
+      const item = this.#nextQueue[0];
+
+      if (!item.await) {
+        break;
+      }
+
+      this.#nextQueue.shift();
+
+      console.log('#### Waiting on: %o', item.path);
+      const result = await item.value;
+      item.complete('resolve', result);
+    }
   }
 
   #drainQueuesUntilAsync() {
@@ -239,6 +253,8 @@ export class ExpanderWorkspace {
 
     // All that remains are items to `await` (possibly none).
     this.#nextQueue.push(...awaitItems);
+
+    return (this.#workQueue.length !== 0) || (this.#nextQueue.length !== 0);
   }
 
   /**
@@ -318,7 +334,7 @@ export class ExpanderWorkspace {
     //console.log('#### processing directive: %o', item);
     const { pass, path, value, complete } = item;
 
-    const { action, enqueue, value: result } = value.process();
+    const { action, await: isAwait, enqueue, value: result } = value.process();
 
     switch (action) {
       case 'again': {
@@ -355,7 +371,17 @@ export class ExpanderWorkspace {
         break;
       }
       case 'resolve': {
-        complete('resolve', result);
+        if (isAwait) {
+          console.log('##### QUEUED AWAIT %o :: %o', path, result);
+          this.#addToNextQueue({
+            ...item,
+            pass:  pass + 1,
+            value: result,
+            await: true
+          })
+        } else {
+          complete('resolve', result);
+        }
         break;
       }
       default: {
