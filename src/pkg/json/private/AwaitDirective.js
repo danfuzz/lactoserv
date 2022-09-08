@@ -7,10 +7,7 @@ import { JsonDirective } from '#x/JsonDirective';
 import * as util from 'node:util';
 
 /**
- * Directive `$await`, for deferring an arbitrary computation. This is used
- * internally to implement other asynchronous directives. The bound value is
- * expected to be either a promise or a function which returns something which
- * is to be `await`ed.
+ * Directive `$baseDir`. See the package README for more details.
  */
 export class AwaitDirective extends JsonDirective {
   /** @type {ExpanderWorkspace} Associated workspace. */

@@ -7,6 +7,21 @@ Stuff for dealing with JSON.
 
 ## `JsonExpander` Built-In Directives
 
+### `{ $await: <function-or-promise> }`
+
+This defines a deferred computation to be inserted into the expanded value.
+`<function-or-promise>` should in fact be a function (of no arguments) or
+a promise; notably this means that the binding here isn't JSON data per se
+(though it's expected to resolve to it). The expanded result is in fact
+whatever the promise or the return value from the call resolves to. If the
+promise is rejected or the call throws, then the expansion will fail.
+
+This directive may not be used in expansions that run synchronously.
+
+**Note:** This directive can be used in service of implementing other
+directives that wish to operate asynchronously, so that those directives can
+avoid (re)implementing much of the semantics.
+
 ### `{ $baseDir: "<path>", ... }`
 
 This defines an absolute base directory in the filesystem, which other
