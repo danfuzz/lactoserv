@@ -25,10 +25,16 @@ avoid (re)implementing much of the semantics.
 ### `{ $baseDir: "<path>", ... }`
 
 This defines an absolute base directory in the filesystem, which other
-filesystem-using directives can use when encountering relative paths. `<path>`
-must start with a slash (`/`) and _not_ end with a slash (`/`). The expanded
-result is the _remaining_ bindings in the object in which the directive appears,
-but without the original directive binding.
+filesystem-using directives can use when encountering relative paths. The
+expanded result is the _remaining_ bindings in the object in which the directive
+appears, but without the original directive binding.
+
+Requirements for `<path>`:
+
+* It must start with a slash (`/`).
+* It must _not_ end with a slash (`/`) unless the entire path is just `/`.
+* It must not contain any double-slashes (or triples, etc.), e.g. not `/x//y`.
+* It must not contain `.` or `..` as a path component.
 
 This is recognized as a top-level binding _only_, and is an error everywhere
 else.

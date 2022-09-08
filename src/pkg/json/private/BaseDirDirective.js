@@ -27,7 +27,7 @@ export class BaseDirDirective extends JsonDirective {
 
   /** @override */
   constructor(workspace, path, dirArg, dirValue) {
-    MustBe.string(dirArg);
+    MustBe.string(dirArg, BaseDirDirective.#BASE_DIR_REGEXP);
     super(workspace, path, dirArg, dirValue);
 
     console.log('##### BASE DIR AT %o', path);
@@ -94,6 +94,23 @@ export class BaseDirDirective extends JsonDirective {
   //
   // Static members
   //
+
+  /**
+   * @type {RegExp} Pattern which matches only valid base directory paths, as
+   * specified by this class.
+   */
+  static #BASE_DIR_REGEXP;
+  static {
+    const pattern =
+      '^' +
+      '(?!.*//)' +        // No double-or-more slashes.
+      '(?!.*/[.][.]?/)' + // No `.` or `..` component at the start or middle.
+      '/(.*[^/])?' +      // Be just `/`, or start but not end with `/`.
+      '(?<!/[.][.]?)' +   // No `.` or `..` component at the end.
+      '$';
+
+    this.#BASE_DIR_REGEXP = new RegExp(pattern);
+  }
 
   /**
    * @type {WeakMap<ExpanderWorkspace, BaseDirDirective>} Weak map from
