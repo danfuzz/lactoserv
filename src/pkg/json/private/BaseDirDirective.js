@@ -1,50 +1,105 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { ExpanderWorkspace } from '#p/ExpanderWorkspace';
 import { JsonDirective } from '#x/JsonDirective';
 
 import { MustBe } from '@this/typey';
 
 /**
- * Directive `$baseDir`, for defining a base directory in the filesystem for the
- * resolution of relative filesystem paths in other directives.
+ * Directive `$baseDir`. See the package README for more details.
  */
 export class BaseDirDirective extends JsonDirective {
-  /** {?string} The base directory, if known. */
-  #baseDir = null;
+  /** @type {?string} The base directory. */
+  #baseDir;
 
-  // Note: The default constructor is fine here.
+  /** @type {?object[]} Items that need to be enqueued during processing. */
+  #queueItems;
+
+  /**
+   * @type {?object} Directive replacement value, if known. This is ultimately
+   * the result of processing the `dirValue` as passed into the constructor.
+   */
+  #value = null;
+
+  /** @type {boolean} Is {@link #value} ready? */
+  #hasValue = false;
+
+  /** @override */
+  constructor(workspace, path, dirArg, dirValue) {
+    MustBe.string(dirArg);
+    super(workspace, path, dirArg, dirValue);
+
+    console.log('##### BASE DIR AT %o', path);
+
+    if (path.length !== 0) {
+      throw new Error(`\`${BaseDirDirective.NAME}\` only allowed at top level.`);
+    }
+
+    BaseDirDirective.#instances.set(workspace, this);
+
+    this.#baseDir = dirValue;
+
+    this.#queueItems = [
+      {
+        path:     ['<value>'],
+        value:    dirValue,
+        complete: (action, v) => {
+          switch (action) {
+            case 'delete': {
+              // Weird result, but try to deal gracefully.
+              this.#value = null;
+              break;
+            }
+            case 'resolve': {
+              this.#value = v;
+              break;
+            }
+            default: {
+              throw new Error(`Unrecognized completion action: ${action}`);
+            }
+          }
+          this.#hasValue = true;
+        }
+      }
+    ];
+  }
 
   /**
    * @returns {string} The base directory.
    */
   get value() {
-    if (this.#baseDir === null) {
-      throw new Error('Base directory not (yet) known.');
-    }
-
     return this.#baseDir;
   }
 
   /** @override */
-  process(pass, path, value) {
-    if (pass !== 1) {
-      return { same: true };
+  process() {
+    if (this.#queueItems) {
+      const items = this.#queueItems;
+      this.#queueItems = null;
+      return {
+        action:  'again',
+        enqueue: items
+      };
     }
 
-    if (path.length === 1) {
-      MustBe.string(value, /^[/].*[^/]/);
-      this.#baseDir = value;
-      return { delete: true };
-    } else {
-      throw new Error(`\`${BaseDirDirective.NAME}\` only allowed at top level.`);
+    if (!this.#hasValue) {
+      return { action: 'again' };
     }
+
+    return { action: 'resolve', value: this.#value };
   }
 
 
   //
   // Static members
   //
+
+  /**
+   * @type {WeakMap<ExpanderWorkspace, BaseDirDirective>} Weak map from
+   * workspaces to corresponding instances of this class.
+   */
+  static #instances = new WeakMap();
 
   /** @override */
   static get NAME() {

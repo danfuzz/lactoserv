@@ -1,6 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { AwaitDirective } from '#p/AwaitDirective';
 import { BaseDirDirective } from '#p/BaseDirDirective';
 import { DefsDirective } from '#p/DefsDirective';
 import { JsonDirective } from '#x/JsonDirective';
@@ -15,6 +16,7 @@ export class BuiltInDirectives {
    * name the directive class which implements it.
    */
   static #DIRECTIVE_CLASSES = this.#makeMap(
+    AwaitDirective,
     BaseDirDirective,
     DefsDirective,
     RefDirective);

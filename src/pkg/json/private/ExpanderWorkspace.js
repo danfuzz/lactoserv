@@ -3,9 +3,8 @@
 
 import { JsonDirective } from '#x/JsonDirective';
 
+import { Condition } from '@this/async';
 import { MustBe } from '@this/typey';
-
-import * as util from 'node:util';
 
 /**
  * Workspace for running an expansion set up by {@link JsonExpander}, including
@@ -13,20 +12,50 @@ import * as util from 'node:util';
  */
 export class ExpanderWorkspace {
   /**
-   * @type {Map<string, JsonDirective>} Map from directive names to
-   * corresponding directive instances.
+   * @type {Map<string, function(new:JsonDirective)>} Map from names to
+   * corresponding directive-handler classes, for all directives recognized by
+   * this instance.
    */
   #directives = new Map();
 
   /** @type {*} Original value being worked on. */
   #originalValue;
 
+  /** @type {boolean} Is expansion currently in-progress? */
+  #running = false;
+
+  /**
+   * @type {?{pass, path, value, complete}[]} Items in need of processing. These
+   * are handled in FIFO order.
+   */
+  #workQueue = null;
+
+  /**
+   * @type {?{pass, path, value, complete}[]} Items in need of processing, but
+   * only after {@link #workQueue} is drained (becomes empty). Elements from
+   * this queue get added one at a time to {@link #workQueue}, in between which
+   * {@link #workQueue} gets drained.
+   */
+  #nextQueue = null;
+
+  /**
+   * @type {*} Final result of expansion, if known. "Known" takes the form of a
+   * promise when this instance is run asynchronously.
+   */
+  #result = null;
+
+  /** @type {boolean} Is {@link #result} known? */
+  #hasResult = false;
+
   /**
    * Constructs an instance.
    *
+   * @param {Map<string, function(new:JsonDirective)>} directives Map of
+   *   directive classes.
    * @param {*} value Value to be worked on.
    */
-  constructor(value) {
+  constructor(directives, value) {
+    this.#directives    = directives;
     this.#originalValue = value;
   }
 
@@ -41,220 +70,353 @@ export class ExpanderWorkspace {
   }
 
   /**
-   * Gets an existing directive _instance_.
-   *
-   * @param {string} name The name of the directive.
-   * @returns {JsonDirective} The directive instance.
-   * @throws {Error} Thrown if there is no directive with the given name.
-   */
-  getDirective(name) {
-    const result = this.#directives.get(name);
-
-    if (!result) {
-      throw new Error(`No such directive: ${name}`);
-    }
-
-    return result;
-  }
-
-  /**
-   * Performs the expansion.
+   * Perform expansion asynchronously.
    *
    * @returns {*} The result of expansion.
    * @throws {Error} Thrown if there was any trouble during expansion.
    */
-  process() {
-    let value = this.#originalValue;
-
-    for (let pass = 1; pass <= 2; pass++) {
-      const result = this.#process0(pass, [], value);
-      if (result.delete) {
-        // Odd result, but...uh...ok.
-        return null;
-      } else if (result.replace !== undefined) {
-        value = result.replace;
-      } else if (result.replaceOuter !== undefined) {
-        throw new Error('Cannot `replaceOuter` at top level.');
-      } else if (result.same) {
-        // Nothing to do here.
-      } else {
-        throw new Error(`Unrecognized processing result: ${util.format(result)}`);
-      }
+  async expandAsync() {
+    if (this.#hasResult) {
+      // Note: `#result` might be an as-yet unresolved promise, but that's okay.
+      return this.#result;
     }
 
-    return value;
+    this.#running   = true;
+    this.#workQueue = [];
+    this.#nextQueue = [];
+
+    this.#result    = this.#expandAsync0(); // Intentionally no `await` here!
+    this.#hasResult = true;
+
+    // Per above, `#result` is definitely an as-yet unresolved promise at this
+    // point.
+    return this.#result;
   }
 
   /**
-   * Performs the main work of expansion.
+   * Perform the main part of expansion, asynchronously.
    *
-   * @param {number} pass Which pass is this?
-   * @param {(string|number)[]} path Path within the value being worked on.
-   * @param {*} value Sub-value at `path`.
-   * @returns {object} Replacement for `value`, per the documentation of
-   *   {@link JsonDirective.process}, plus `iterate: <value>` to help implement
-   *   outer replacements.
+   * @returns {*} The result of expansion.
+   * @throws {Error} Thrown if there was any trouble during expansion.
    */
-  #process0(pass, path, value) {
-    const origValue = value;
-    let   result;
+  async #expandAsync0() {
+    const completed = new Condition();
+    let result = null;
 
-    for (;;) {
-      if ((value === null) || (typeof value !== 'object')) {
-        result = { same: true };
+    const complete = (action, v) => {
+      //console.log('####### ASYNC COMPLETE %s :: %o', action, v);
+      switch (action) {
+        case 'delete': {
+          // Kinda weird, but...uh...okay.
+          result = null;
+          break;
+        }
+        case 'resolve': {
+          result = v;
+          break;
+        }
+        default: {
+          throw new Error(`Unrecognized completion action: ${action}`);
+        }
+      }
+      completed.value = true;
+    };
+
+    this.#addToNextQueue({
+      pass:  1,
+      path:  [],
+      value: this.#originalValue,
+      complete
+    });
+
+    try {
+      while (this.#nextQueue.length !== 0) {
+        this.#addToWorkQueue(this.#nextQueue.shift());
+        this.#drainWorkQueue();
+        // TODO: Something about awaiting on stuff here.
+      }
+    } finally {
+      // Don't leave the instance in a weird state; reset it.
+      this.#running   = false;
+      this.#workQueue = null;
+      this.#nextQueue = null;
+    }
+
+    await completed.whenTrue();
+    return result;
+  }
+
+  /**
+   * Perform expansion asynchronously.
+   *
+   * @returns {*} The result of expansion.
+   * @throws {Error} Thrown if there was any trouble during expansion.
+   */
+  expandSync() {
+    if (this.#hasResult) {
+      // Note: In the unusual case where `processAsync()` has already been
+      // called but hasn't completed, `#result` will be an as-yet unresolved
+      // promise.
+      return this.#result;
+    } else if (this.#running) {
+      // We are in a recursive call from within the expander itself. Weird case,
+      // _maybe_ can't actually happen?
+      throw new Error('Processing already in progress.');
+    }
+
+    const complete = (action, v) => {
+      //console.log('####### COMPLETE %s :: %o', action, v);
+      switch (action) {
+        case 'delete': {
+          // Kinda weird, but...uh...okay.
+          this.#result = null;
+          break;
+        }
+        case 'resolve': {
+          this.#result = v;
+          break;
+        }
+        default: {
+          throw new Error(`Unrecognized completion action: ${action}`);
+        }
+      }
+      this.#hasResult = true;
+    };
+
+    this.#running   = true;
+    this.#workQueue = [];
+    this.#nextQueue = [];
+    this.#addToNextQueue({
+      pass:  1,
+      path:  [],
+      value: this.#originalValue,
+      complete
+    });
+
+    try {
+      while (this.#nextQueue.length !== 0) {
+        this.#addToWorkQueue(this.#nextQueue.shift());
+        this.#drainWorkQueue();
+      }
+    } finally {
+      // Don't leave the instance in a weird state; reset it.
+      this.#running   = false;
+      this.#workQueue = null;
+      this.#nextQueue = null;
+    }
+
+    if (!this.#hasResult) {
+      // We exhausted the queue without actually completing the top-level item.
+      throw new Error('Expander livelock.');
+    }
+
+    return this.#result;
+  }
+
+  /**
+   * Adds an item to {@link #nextQueue}.
+   *
+   * @param {{pass, path, value, complete}} item Item to add.
+   */
+  #addToNextQueue(item) {
+    if (item.pass > 10) {
+      throw new Error('Expander deadlock.');
+    }
+    //console.log('#### Queued next item: %o', item);
+    this.#nextQueue.push(item);
+  }
+
+  /**
+   * Adds an item to {@link #workQueue}.
+   *
+   * @param {{pass, path, value, complete}} item Item to add.
+   */
+  #addToWorkQueue(item) {
+    //console.log('#### Queued work item: %o', item);
+    this.#workQueue.push(item);
+  }
+
+  /**
+   * Removes and processes items from the fromt of {@link #workQueue}, until
+   * the queue is empty.
+   */
+  #drainWorkQueue() {
+    while (this.#workQueue.length !== 0) {
+      const item = this.#workQueue.shift();
+      //console.log('#### Working on: %o', item);
+      this.#processQueueItem(item);
+    }
+  }
+
+  /**
+   * Helper for {@link #processQueueItem}, which handles an array.
+   *
+   * @param {{pass, path, value: *[], complete}} item Item to process.
+   */
+  #processArray(item) {
+    const { pass, path, value, complete } = item;
+    const result = [];
+    const deletions = [];
+    let resultsRemaining = value.length;
+
+    const update = (idx, action, arg) => {
+      switch (action) {
+        case 'delete': {
+          deletions.push(idx);
+          break;
+        }
+        case 'resolve': {
+          result[idx] = arg;
+          break;
+        }
+        default: {
+          throw new Error(`Unrecognized completion action: ${action}`);
+        }
+      }
+
+      if (--resultsRemaining === 0) {
+        deletions.sort();
+        while (deletions.length !== 0) {
+          result.splice(deletions.pop(), 1);
+        }
+        complete('resolve', result);
+      }
+    };
+
+    for (let index = 0; index < value.length; index++) {
+      this.#addToWorkQueue({
+        pass,
+        path:     [...path, index],
+        value:    value[index],
+        complete: (...args) => update(index, ...args)
+      });
+    }
+  }
+
+  /**
+   * Helper for {@link #processQueueItem}, which handles a directive instance.
+   *
+   * @param {{pass, path, value: JsonDirective, complete}} item Item to process.
+   */
+  #processDirective(item) {
+    //console.log('#### processing directive: %o', item);
+    const { pass, path, value, complete } = item;
+
+    const { action, enqueue, value: result } = value.process();
+
+    switch (action) {
+      case 'again': {
+        // Not resolved. Requeue for the next pass.
+        if (enqueue) {
+          for (const e of enqueue) {
+            MustBe.arrayOfIndex(e.path);
+            MustBe.function(e.complete);
+            this.#addToNextQueue({
+              pass:  pass + 1,
+              path:  [...path, ...e.path],
+              value: e.value,
+              complete: e.complete
+            });
+          }
+        }
+        this.#addToNextQueue({ ...item, pass: pass + 1 });
         break;
-      } else if (value instanceof Array) {
-        result = this.#process0Array(pass, path, value);
-        if (result.iterate === undefined) {
-          break;
-        }
-        value = result.iterate;
-      } else {
-        result = this.#process0Object(pass, path, value);
-        if (result.iterate === undefined) {
-          break;
-        }
-        value = result.iterate;
       }
-    }
-
-    if (result.delete || (result.replaceOuter !== undefined)) {
-      return result;
-    } else {
-      if (result.replace !== undefined) {
-        value = result.replace;
+      case 'delete': {
+        complete('delete');
+        break;
       }
-      return (value === origValue) ? { same: true } : { replace: value };
+      case 'resolve': {
+        complete('resolve', result);
+        break;
+      }
+      default: {
+        throw new Error(`Unrecognized directive action: ${action}`);
+      }
     }
   }
 
   /**
-   * Performs the work of {@link #process0}, specifically for arrays.
+   * Helper for {@link #processQueueItem}, which handles a plain object.
    *
-   * @param {number} pass Which pass is this?
-   * @param {(string|number)[]} path Path within the value being worked on.
-   * @param {*} value Sub-value at `path`.
-   * @returns {object} Replacement for `value`, per the documentation of
-   *   {@link JsonDirective.process}.
+   * @param {{pass, path, value: object, complete}} item Item to process.
    */
-  #process0Array(pass, path, value) {
-    const newValue      = [];
-    let   allSame       = true;
-    let   newOuter      = null;
-    let   outerReplaced = false;
+  #processObject(item) {
+    const { pass, path, value, complete } = item;
+    const keys = Object.keys(value).sort();
 
-    for (let i = 0; i < value.length; i++) {
-      const origValue = value[i];
-      const result    = this.#process0(pass, [...path, i], origValue);
-      MustBe.object(result);
-
-      if (result.delete) {
-        allSame = false;
-      } else if (result.replace !== undefined) {
-        newValue.push(result.replace);
-        allSame = false;
-      } else if (result.replaceOuter !== undefined) {
-        if (outerReplaced) {
-          throw new Error('Conflicting outer replacements.');
-        }
-        newOuter = result.replaceOuter;
-        outerReplaced = true;
-        allSame = false;
-      } else if (result.same) {
-        newValue.push(origValue);
-      } else {
-        throw new Error(`Unrecognized processing result: ${util.format(result)}`);
+    // If there is a directive key, convert the element to a directive, and
+    // queue it up for the next pass.
+    for (const k of keys) {
+      const directiveClass = this.#directives.get(k);
+      if (directiveClass) {
+        const dirArg   = value[k];
+        const dirValue = { ...value };
+        delete dirValue[k];
+        const directive = new directiveClass(this, path, dirArg, dirValue);
+        this.#addToNextQueue({
+          pass: pass + 1,
+          path,
+          value: directive,
+          complete
+        });
+        return; // Don't _also_ queue up a regular object expansion.
       }
     }
 
-    if (outerReplaced) {
-      return { iterate: newOuter };
-    } else {
-      return allSame ? { same: true } : { replace: newValue };
+    // No directive; just queue up all bindings for regular conversion.
+
+    const result = [];
+    let resultsRemaining = keys.length;
+
+    const update = (key, action, arg) => {
+      switch (action) {
+        case 'delete': {
+          // No need to do anything for this case.
+          break;
+        }
+        case 'resolve': {
+          result.push([key, arg]);
+          break;
+        }
+        default: {
+          throw new Error(`Unrecognized completion action: ${action}`);
+        }
+      }
+
+      if (--resultsRemaining === 0) {
+        // Sort by key, for more consistent results.
+        result.sort((a, b) => (a[0] < b[0]) ? -1 : 1);
+        complete('resolve', Object.fromEntries(result));
+      }
+    };
+
+    for (const k of keys) {
+      this.#addToWorkQueue({
+        pass,
+        path:     [...path, k],
+        value:    value[k],
+        complete: (...args) => update(k, ...args)
+      });
     }
   }
 
   /**
-   * Performs the work of {@link #process0}, specifically for non-array objects.
+   * Processes an item which had been placed on {@link #workQueue}.
    *
-   * @param {number} pass Which pass is this?
-   * @param {(string|number)[]} path Path within the value being worked on.
-   * @param {*} value Sub-value at `path`.
-   * @returns {object} Replacement for `value`, per the documentation of
-   *   {@link JsonDirective.process}.
+   * @param {{pass, path, value: *, complete}} item Item to process.
    */
-  #process0Object(pass, path, value) {
-    const newValue      = {};
-    let   allSame       = true;
-    let   newOuter      = null;
-    let   outerReplaced = false;
+  #processQueueItem(item) {
+    const { value, complete } = item;
 
-    // Go over all values, processing them as values (ignoring directiveness).
-    for (const key of Object.keys(value)) {
-      const origValue = value[key];
-      const result    = this.#process0(pass, [...path, key], origValue);
-      MustBe.object(result);
-
-      if (result.delete) {
-        allSame = false;
-      } else if (result.replace !== undefined) {
-        newValue[key] = result.replace;
-        allSame = false;
-      } else if (result.replaceOuter !== undefined) {
-        if (outerReplaced) {
-          throw new Error('Conflicting outer replacements.');
-        }
-        newOuter = result.replaceOuter;
-        outerReplaced = true;
-        allSame = false;
-      } else if (result.same) {
-        newValue[key] = origValue;
-      } else {
-        throw new Error(`Unrecognized processing result: ${util.format(result)}`);
-      }
+    if ((value === null) || (typeof value !== 'object')) {
+      complete('resolve', value);
+    } else if (value instanceof JsonDirective) {
+      this.#processDirective(item);
+    } else if (value instanceof Array) {
+      this.#processArray(item);
+    } else {
+      this.#processObject(item);
     }
-
-    if (outerReplaced) {
-      return { iterate: newOuter };
-    }
-
-    // See if the post-processing result contains any directives. If so, then
-    // either run it (if there's exactly one) or complain (if there's more than
-    // one).
-
-    let directiveName = null;
-    let directive     = null;
-
-    for (const key of Object.keys(newValue)) {
-      const d = this.#directives.get(key);
-      if (d) {
-        if (directive !== null) {
-          throw new Error(`Multiple directives: ${directiveName} and ${key} (and maybe more).`);
-        }
-        directiveName = key;
-        directive     = d;
-      }
-    }
-
-    if (directive) {
-      const result = directive.process(
-        pass, [...path, directiveName], newValue[directiveName]);
-
-      if (result.delete) {
-        delete newValue[directiveName];
-        allSame = false;
-      } else if (result.replace !== undefined) {
-        newValue[directiveName] = result.replace;
-        allSame = false;
-      } else if (result.replaceOuter !== undefined) {
-        return { iterate: result.replaceOuter };
-      } else if (result.same) {
-        // Nothing to do here.
-      } else {
-        throw new Error(`Unrecognized processing result: ${util.format(result)}`);
-      }
-    }
-
-    return allSame ? { same: true } : { replace: newValue };
   }
 }

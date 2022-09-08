@@ -1,49 +1,39 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { DefsDirective } from '#p/DefsDirective';
 import { ExpanderWorkspace } from '#p/ExpanderWorkspace';
 import { JsonDirective } from '#x/JsonDirective';
 
-import * as util from 'node:util';
+import { MustBe } from '@this/typey';
 
 /**
- * Directive `$ref`, for looking up something from the `$defs`.
+ * Directive `$ref`. See the package README for more details.
  */
 export class RefDirective extends JsonDirective {
-  /** {ExpanderWorkspace} Associated workspace. */
+  /** @type {ExpanderWorkspace} Associated workspace. */
   #workspace;
 
-  /** {?DefsDirective} The `$defs` directive, if known. */
-  #defs = null;
+  /** @type {string} Path to the value. */
+  #refPath;
 
-  /**
-   * Constructs an instance.
-   *
-   * @param {ExpanderWorkspace} workspace The associated workspace.
-   */
-  constructor(workspace) {
-    super();
-    this.#workspace = workspace;
+  /** @override */
+  constructor(workspace, path, dirArg, dirValue) {
+    super(workspace, path, dirArg, dirValue);
+
+    console.log('##### REFS AT %o :: %s', path, dirArg);
+
+    if (Object.entries(dirValue).length !== 0) {
+      throw new Error(`\`${RefDirective.NAME}\` does not accept additional object values.`);
+    }
+
+    this.#workspace = MustBe.object(workspace, ExpanderWorkspace);
+    this.#refPath   = MustBe.string(dirArg);
   }
 
   /** @override */
-  process(pass, path, value) {
-    if (pass !== 2) {
-      if (typeof value !== 'string') {
-        throw new Error(`Bad value for reference at ${util.format('%o', path)}`);
-      } else if (!value.startsWith('#/$defs/')) {
-        throw new Error(`Bad syntax for reference: ${value}`);
-      }
-      return { same: true };
-    }
-
-    const { name } = value.match(/^#[/][$]defs[/](?<name>.*)$/).groups;
-
-    if (!this.#defs) {
-      this.#defs = this.#workspace.getDirective('$defs');
-    }
-
-    return { replaceOuter: this.#defs.getDef(name) };
+  process() {
+    return DefsDirective.processRef(this.#workspace, this.#refPath);
   }
 
 

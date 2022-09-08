@@ -8,17 +8,9 @@ import { JsonDirective } from '#x/JsonDirective';
 /**
  * Processor for JSON objects, which knows how to expand it by following
  * embedded directives. Directives are in the form of objects with distinctive
- * keys. The built-in directives are:
+ * keys.
  *
- * * `{ $defs: { <key>: <value>, ... } }` -- At the top level, recognized as a
- *   set of definitions which can be referenced. Is omitted from the result of
- *   expansion. Not allowed anywhere other than the top level.
- * * `{ $ref: "#/$defs/<key>" }` -- Expanded into the value defined under
- *   `$defs`. The path is intentionally more restrictive than what one gets with
- *   JSON Schema and really has to begin `#/$defs/`. This will be loosened up if
- *   and when there is an actual need.
- * * `{ $replaceOuter: <value> }` -- Indicates that the object in which this
- *   appears should be replaced entirely by the listed `value`.
+ * **Note:** See the package README for a list of built-in directives.
  */
 export class JsonExpander {
   /**
@@ -57,18 +49,42 @@ export class JsonExpander {
   }
 
   /**
-   * Expands the given JSON value.
+   * Expands the given JSON value, synchronously. This will report an error if
+   * expansion comes to a moment where it has to `await` to make progress.
    *
    * @param {*} value The original value.
    * @returns {*} The expanded version of `value`.
+   * @throws {Error} Thrown if there is any trouble with the expansion.
    */
   expand(value) {
-    const workspace = new ExpanderWorkspace(value);
+    return this.#expand0(value, false);
+  }
 
-    for (const [name, cls] of this.#directives) {
-      workspace.addDirective(name, new cls(workspace));
-    }
+  /**
+   * Expands the given JSON value asynchronously, that is with promises allowed
+   * as intermediate results.
+   *
+   * @param {*} value The original value.
+   * @returns {*} The expanded version of `value`.
+   * @throws {Error} Thrown if there is any trouble with the expansion.
+   */
+  async expandAsync(value) {
+    return this.#expand0(value, true);
+  }
 
-    return workspace.process();
+  /**
+   * Common code between {@link #expand} and {@link #expandAsync}.
+   *
+   * @param {*} value The original value.
+   * @param {boolean} doAsync Run asynchronously?
+   * @returns {*} The expanded version of `value`, or a promise thereto.
+   */
+  #expand0(value, doAsync) {
+    const directives = new Map(this.#directives);
+    const workspace  = new ExpanderWorkspace(directives, value);
+
+    return doAsync
+      ? workspace.expandAsync()
+      : workspace.expandSync();
   }
 }

@@ -112,6 +112,46 @@ export class Main {
     };
 
     const jx = new JsonExpander();
+
+    /*
+    console.log('\n#####################\n');
+    const testJson1 = {
+      a: { $await: () => 'hello' },
+      b: [1, 2, 3, { $await: () => [1, 2, 3] }],
+      c: {
+        x: 10,
+        y: { $await: () => 20 },
+        z: 30
+      }
+    };
+    const testJson2 = {
+      a: [1, 2, 3],
+      b: {
+        x: 'xx', y: 'yy', z: ['z', 'zz', 'zzz'], q: null, tf: [true, false]
+      },
+      c: true,
+      d: null
+    };
+    const testJson3 = {
+      a: [1, 2, 3, { $ref: '#/$defs/boop' }],
+      b: {
+        x: 'xx', y: 'yy', z: ['z', 'zz', 'zzz', { $ref: '#/$defs/boop' }],
+        q: null, tf: [true, false]
+      },
+      c: { $ref: '#/$defs/boop' },
+      d: { $ref: '#/$defs/beep' },
+      $defs: {
+        boop: 'BOOP!',
+        beep: ['beep', 'beep']
+      }
+    };
+    const testResult = jx.expand(testJson3);
+    console.log('\n##################### FINAL RESULT: \n');
+    console.log('%o', testResult);
+    console.log('\n#####################\n');
+    process.exit(1);
+    */
+
     const finalConfig = jx.expand(comboConfig);
 
     const warehouse = new Warehouse(finalConfig);

@@ -10,6 +10,7 @@
   },
 
   "dependencies": {
+    "@this/async": "*",
     "@this/typey": "*",
     "ajv": "^8.11.0",
     "ajv-formats": "^2.1.1"
