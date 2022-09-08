@@ -353,7 +353,6 @@ export class ExpanderWorkspace {
           }
         }
         if (result) {
-          console.log('#### DIRECTIVE SELF-REPLACED: %o :: %o', path, result);
           this.#addToNextQueue({
             ...item,
             pass:  pass + 1,
@@ -408,7 +407,7 @@ export class ExpanderWorkspace {
         const dirArg   = value[k];
         const dirValue = { ...value };
         delete dirValue[k];
-        console.log('### DIRECTIVE %s at %o', k, path);
+        console.log('#### Directive %s: %o', k, path);
         const directive = new directiveClass(this, path, dirArg, dirValue);
         this.#addToNextQueue({
           pass: pass + 1,
