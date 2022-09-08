@@ -10,7 +10,7 @@ import { MustBe } from '@this/typey';
  * Directive `$baseDir`. See the package README for more details.
  */
 export class BaseDirDirective extends JsonDirective {
-  /** @type {?string} The base directory. */
+  /** @type {string} The base directory. */
   #baseDir;
 
   /**
@@ -84,5 +84,20 @@ export class BaseDirDirective extends JsonDirective {
   /** @override */
   static get REQUIRES() {
     return Object.freeze([]);
+  }
+
+  /**
+   * Gets the base directory associated with the given workspace, if known.
+   *
+   * @param {ExpanderWorkspace} workspace The workspace.
+   * @returns {?string} The base directory, or `null` if not yet known.
+   */
+  static getDir(workspace) {
+    MustBe.object(workspace, ExpanderWorkspace);
+    MustBe.string(path);
+
+    const instance = this.#instances.get(workspace);
+
+    return (instance === null) ? null : instance.value;
   }
 }
