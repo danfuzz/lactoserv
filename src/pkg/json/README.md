@@ -104,3 +104,10 @@ and when there is an actual need.
   "a": [1, 2, 3, "florp"]
 }
 ```
+
+### `{ $textFile: "<path>" }`
+
+This provides a way to include the text contents of another file as an expanded
+value. `<path>` is a filesystem path, which is expected to point at a regular
+file (an existing non-directory). If `<path>` is relative, it is resolved
+against the base directory specified by a top-level `$baseDir` directive.

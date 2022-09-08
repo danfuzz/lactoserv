@@ -96,7 +96,6 @@ export class BaseDirDirective extends JsonDirective {
     MustBe.object(workspace, ExpanderWorkspace);
 
     const instance = this.#instances.get(workspace);
-
-    return (instance === null) ? null : instance.value;
+    return instance ? instance.value : null;
   }
 }
