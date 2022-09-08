@@ -116,7 +116,7 @@ export class ExpanderWorkspace {
           break;
         }
         default: {
-          throw new Error(`Unrecognised completion action: ${action}`);
+          throw new Error(`Unrecognized completion action: ${action}`);
         }
       }
       completed.value = true;
@@ -177,7 +177,7 @@ export class ExpanderWorkspace {
           break;
         }
         default: {
-          throw new Error(`Unrecognised completion action: ${action}`);
+          throw new Error(`Unrecognized completion action: ${action}`);
         }
       }
       this.#hasResult = true;
@@ -270,7 +270,7 @@ export class ExpanderWorkspace {
           break;
         }
         default: {
-          throw new Error(`Unrecognised completion action: ${action}`);
+          throw new Error(`Unrecognized completion action: ${action}`);
         }
       }
 
@@ -331,7 +331,7 @@ export class ExpanderWorkspace {
         break;
       }
       default: {
-        throw new Error(`Unrecognised directive action: ${action}`);
+        throw new Error(`Unrecognized directive action: ${action}`);
       }
     }
   }
@@ -380,7 +380,7 @@ export class ExpanderWorkspace {
           break;
         }
         default: {
-          throw new Error(`Unrecognised completion action: ${action}`);
+          throw new Error(`Unrecognized completion action: ${action}`);
         }
       }
 

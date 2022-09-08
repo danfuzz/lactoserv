@@ -56,7 +56,7 @@ export class BaseDirDirective extends JsonDirective {
               break;
             }
             default: {
-              throw new Error(`Unrecognised completion action: ${action}`);
+              throw new Error(`Unrecognized completion action: ${action}`);
             }
           }
           this.#hasValue = true;
