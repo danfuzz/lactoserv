@@ -3,7 +3,7 @@
 
 import { JsonDirective } from '#x/JsonDirective';
 
-import { Condition } from '@this/async';
+import { ManualPromise } from '@this/async';
 import { MustBe } from '@this/typey';
 
 /**
@@ -96,13 +96,11 @@ export class ExpanderWorkspace {
    * @throws {Error} Thrown if there was any trouble during expansion.
    */
   async #expandAsync0() {
-    const completed = new Condition();
-    let result = null;
+    const result = new ManualPromise();
 
     const complete = (v) => {
       console.log('####### ASYNC COMPLETE %o', v);
-      result = v;
-      completed.value = true;
+      result.resolve(v);
     };
 
     this.#expandSetup(complete);
@@ -115,8 +113,7 @@ export class ExpanderWorkspace {
       this.#expandCleanup();
     }
 
-    await completed.whenTrue();
-    return result;
+    return result.promise;
   }
 
   /**
