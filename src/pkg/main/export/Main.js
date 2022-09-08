@@ -143,9 +143,14 @@ export class Main {
       $defs: {
         boop: 'BOOP!',
         beep: ['beep', 'beep']
-      }
+      },
+      $baseDir: '/home/danfuzz/florp'
     };
-    const testResult = jx.expand(testJson3);
+    const testJson4 = {
+      yo: { $await: () => 'hello' }
+    };
+    //const testResult = jx.expand(testJson4);
+    const testResult = await jx.expandAsync(testJson4);
     console.log('\n##################### FINAL RESULT: \n');
     console.log('%o', testResult);
     console.log('\n#####################\n');

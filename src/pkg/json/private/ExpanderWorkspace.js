@@ -122,7 +122,7 @@ export class ExpanderWorkspace {
       completed.value = true;
     };
 
-    this.#addToNextQueue({
+    this.#addToWorkQueue({
       pass:  1,
       path:  [],
       value: this.#originalValue,
@@ -130,10 +130,8 @@ export class ExpanderWorkspace {
     });
 
     try {
-      while (this.#nextQueue.length !== 0) {
-        this.#addToWorkQueue(this.#nextQueue.shift());
-        this.#drainWorkQueue();
-        // TODO: Something about awaiting on stuff here.
+      while (this.#drainQueuesUntilAsync()) {
+        await this.#drainQueuedAwaits();
       }
     } finally {
       // Don't leave the instance in a weird state; reset it.
@@ -186,7 +184,7 @@ export class ExpanderWorkspace {
     this.#running   = true;
     this.#workQueue = [];
     this.#nextQueue = [];
-    this.#addToNextQueue({
+    this.#addToWorkQueue({
       pass:  1,
       path:  [],
       value: this.#originalValue,
@@ -194,9 +192,8 @@ export class ExpanderWorkspace {
     });
 
     try {
-      while (this.#nextQueue.length !== 0) {
-        this.#addToWorkQueue(this.#nextQueue.shift());
-        this.#drainWorkQueue();
+      if (this.#drainQueuesUntilAsync()) {
+        throw new Error('Asynchronous operation required.');
       }
     } finally {
       // Don't leave the instance in a weird state; reset it.
@@ -237,14 +234,64 @@ export class ExpanderWorkspace {
   }
 
   /**
-   * Removes and processes items from the fromt of {@link #workQueue}, until
-   * the queue is empty.
+   * Drains all `awaits` at the front of `#nextQueue`.
    */
-  #drainWorkQueue() {
-    while (this.#workQueue.length !== 0) {
-      const item = this.#workQueue.shift();
-      //console.log('#### Working on: %o', item);
-      this.#processQueueItem(item);
+  async #drainQueuedAwaits() {
+    while (this.#nextQueue.length !== 0) {
+      const item = this.#nextQueue[0];
+
+      if (!item.await) {
+        break;
+      }
+
+      this.#nextQueue.shift();
+
+      console.log('#### Waiting on: %o', item.path);
+      const result = await item.value;
+      item.complete('resolve', result);
+    }
+  }
+
+  /**
+   * Drains both queues, until only `await` items remain. Specifically, this
+   * processes `#workQueue` completely, then adds a single non-`await` item from
+   * `#nextQueue`, and iterates. Once all that remains in `#nextQueue` are
+   * `await` items, this method returns.
+   *
+   * @returns {boolean} Whether (`true`) or not (`false`) any `await` items
+   *   remain to be processed.
+   */
+  #drainQueuesUntilAsync() {
+    const awaitItems = [];
+
+    outer:
+    for (;;) {
+      while (this.#workQueue.length !== 0) {
+        const item = this.#workQueue.shift();
+        console.log('#### Working on: %o', item.path);
+        this.#processQueueItem(item);
+      }
+
+      while (this.#nextQueue.length !== 0) {
+        const item = this.#nextQueue.shift();
+        console.log('#### Next item: %o', item.path);
+        if (item.await) {
+          awaitItems.push(item);
+        } else {
+          this.#workQueue.push(item);
+          continue outer;
+        }
+      }
+
+      break;
+    }
+
+    // All that remains are items to `await` (possibly none).
+    if (awaitItems.length === 0) {
+      return false;
+    } else {
+      this.#nextQueue.push(...awaitItems);
+      return true;
     }
   }
 
@@ -302,7 +349,7 @@ export class ExpanderWorkspace {
     //console.log('#### processing directive: %o', item);
     const { pass, path, value, complete } = item;
 
-    const { action, enqueue, value: result } = value.process();
+    const { action, await: isAwait, enqueue, value: result } = value.process();
 
     switch (action) {
       case 'again': {
@@ -312,14 +359,26 @@ export class ExpanderWorkspace {
             MustBe.arrayOfIndex(e.path);
             MustBe.function(e.complete);
             this.#addToNextQueue({
-              pass:  pass + 1,
-              path:  [...path, ...e.path],
-              value: e.value,
+              pass:     pass + 1,
+              path:     [...path, ...e.path],
+              value:    e.value,
               complete: e.complete
             });
           }
         }
-        this.#addToNextQueue({ ...item, pass: pass + 1 });
+        if (result) {
+          console.log('#### DIRECTIVE SELF-REPLACED: %o :: %o', path, result);
+          this.#addToNextQueue({
+            ...item,
+            pass:  pass + 1,
+            value: result
+          });
+        } else {
+          this.#addToNextQueue({
+            ...item,
+            pass: pass + 1
+          });
+        }
         break;
       }
       case 'delete': {
@@ -327,7 +386,17 @@ export class ExpanderWorkspace {
         break;
       }
       case 'resolve': {
-        complete('resolve', result);
+        if (isAwait) {
+          console.log('##### QUEUED AWAIT %o :: %o', path, result);
+          this.#addToNextQueue({
+            ...item,
+            pass:  pass + 1,
+            value: result,
+            await: true
+          });
+        } else {
+          complete('resolve', result);
+        }
         break;
       }
       default: {
@@ -353,6 +422,7 @@ export class ExpanderWorkspace {
         const dirArg   = value[k];
         const dirValue = { ...value };
         delete dirValue[k];
+        console.log('### DIRECTIVE %s at %o', k, path);
         const directive = new directiveClass(this, path, dirArg, dirValue);
         this.#addToNextQueue({
           pass: pass + 1,

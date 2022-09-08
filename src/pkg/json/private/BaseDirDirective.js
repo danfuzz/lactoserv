@@ -13,24 +13,15 @@ export class BaseDirDirective extends JsonDirective {
   /** @type {?string} The base directory. */
   #baseDir;
 
-  /** @type {?object[]} Items that need to be enqueued during processing. */
-  #queueItems;
-
   /**
-   * @type {?object} Directive replacement value, if known. This is ultimately
-   * the result of processing the `dirValue` as passed into the constructor.
+   * @type {object} The processing action to be reported back to the workspace.
    */
-  #value = null;
-
-  /** @type {boolean} Is {@link #value} ready? */
-  #hasValue = false;
+  #actionResult;
 
   /** @override */
   constructor(workspace, path, dirArg, dirValue) {
-    MustBe.string(dirArg);
+    MustBe.string(dirArg, BaseDirDirective.#BASE_DIR_REGEXP);
     super(workspace, path, dirArg, dirValue);
-
-    console.log('##### BASE DIR AT %o', path);
 
     if (path.length !== 0) {
       throw new Error(`\`${BaseDirDirective.NAME}\` only allowed at top level.`);
@@ -38,31 +29,11 @@ export class BaseDirDirective extends JsonDirective {
 
     BaseDirDirective.#instances.set(workspace, this);
 
-    this.#baseDir = dirValue;
-
-    this.#queueItems = [
-      {
-        path:     ['<value>'],
-        value:    dirValue,
-        complete: (action, v) => {
-          switch (action) {
-            case 'delete': {
-              // Weird result, but try to deal gracefully.
-              this.#value = null;
-              break;
-            }
-            case 'resolve': {
-              this.#value = v;
-              break;
-            }
-            default: {
-              throw new Error(`Unrecognized completion action: ${action}`);
-            }
-          }
-          this.#hasValue = true;
-        }
-      }
-    ];
+    this.#baseDir      = dirArg;
+    this.#actionResult = {
+      action: 'again',
+      value:  dirValue
+    };
   }
 
   /**
@@ -74,26 +45,30 @@ export class BaseDirDirective extends JsonDirective {
 
   /** @override */
   process() {
-    if (this.#queueItems) {
-      const items = this.#queueItems;
-      this.#queueItems = null;
-      return {
-        action:  'again',
-        enqueue: items
-      };
-    }
-
-    if (!this.#hasValue) {
-      return { action: 'again' };
-    }
-
-    return { action: 'resolve', value: this.#value };
+    return this.#actionResult;
   }
 
 
   //
   // Static members
   //
+
+  /**
+   * @type {RegExp} Pattern which matches only valid base directory paths, as
+   * specified by this class.
+   */
+  static #BASE_DIR_REGEXP;
+  static {
+    const pattern =
+      '^' +
+      '(?!.*//)' +        // No double-or-more slashes.
+      '(?!.*/[.][.]?/)' + // No `.` or `..` component at the start or middle.
+      '/(.*[^/])?' +      // Be just `/`, or start but not end with `/`.
+      '(?<!/[.][.]?)' +   // No `.` or `..` component at the end.
+      '$';
+
+    this.#BASE_DIR_REGEXP = new RegExp(pattern);
+  }
 
   /**
    * @type {WeakMap<ExpanderWorkspace, BaseDirDirective>} Weak map from
