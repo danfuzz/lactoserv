@@ -17,16 +17,9 @@ export class DefsDirective extends JsonDirective {
   #hasDefs = false;
 
   /**
-   * @type {?object} Directive replacement value, if known. This is ultimately
-   * the result of processing the `dirValue` as passed into the constructor.
+   * @type {object} The processing action to be reported back to the workspace.
    */
-  #value = null;
-
-  /** @type {boolean} Is {@link #value} ready? */
-  #hasValue = false;
-
-  /** @type {?object[]} Items that need to be enqueued during processing. */
-  #queueItems;
+  #actionResult;
 
   /** @override */
   constructor(workspace, path, dirArg, dirValue) {
@@ -38,68 +31,38 @@ export class DefsDirective extends JsonDirective {
 
     DefsDirective.#instances.set(workspace, this);
 
-    this.#queueItems = [
-      {
-        path:     ['<value>'],
-        value:    dirValue,
-        complete: (action, v) => {
-          switch (action) {
-            case 'delete': {
-              // Weird result, but try to deal gracefully.
-              this.#value = null;
-              break;
+    this.#actionResult = {
+      action:  'again',
+      value:   dirValue,
+      enqueue: [
+        {
+          path:     ['<defs>'],
+          value:    dirArg,
+          complete: (action, v) => {
+            switch (action) {
+              case 'delete': {
+                // Weird result, but try to deal gracefully.
+                this.#defs = new Map();
+                break;
+              }
+              case 'resolve': {
+                this.#defs = new Map(Object.entries(v));
+                break;
+              }
+              default: {
+                throw new Error(`Unrecognized completion action: ${action}`);
+              }
             }
-            case 'resolve': {
-              this.#value = v;
-              break;
-            }
-            default: {
-              throw new Error(`Unrecognized completion action: ${action}`);
-            }
+            this.#hasDefs = true;
           }
-          this.#hasValue = true;
         }
-      },
-      {
-        path:  ['<defs>'],
-        value: dirArg,
-        complete: (action, v) => {
-          switch (action) {
-            case 'delete': {
-              // Weird result, but try to deal gracefully.
-              this.#defs = new Map();
-              break;
-            }
-            case 'resolve': {
-              this.#defs = new Map(Object.entries(v));
-              break;
-            }
-            default: {
-              throw new Error(`Unrecognized completion action: ${action}`);
-            }
-          }
-          this.#hasDefs = true;
-        }
-      }
-    ];
+      ]
+    }
   }
 
   /** @override */
   process() {
-    if (this.#queueItems) {
-      const items = this.#queueItems;
-      this.#queueItems = null;
-      return {
-        action:  'again',
-        enqueue: items
-      };
-    }
-
-    if (!this.#hasValue) {
-      return { action: 'again' };
-    }
-
-    return { action: 'resolve', value: this.#value };
+    return this.#actionResult;
   }
 
   /**

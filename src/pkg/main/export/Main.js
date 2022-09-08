@@ -113,7 +113,6 @@ export class Main {
 
     const jx = new JsonExpander();
 
-    /*
     console.log('\n#####################\n');
     const testJson1 = {
       a: { $await: () => 'hello' },
@@ -143,14 +142,14 @@ export class Main {
       $defs: {
         boop: 'BOOP!',
         beep: ['beep', 'beep']
-      }
+      },
+      $baseDir: "/home/danfuzz/florp"
     };
     const testResult = jx.expand(testJson3);
     console.log('\n##################### FINAL RESULT: \n');
     console.log('%o', testResult);
     console.log('\n#####################\n');
     process.exit(1);
-    */
 
     const finalConfig = jx.expand(comboConfig);
 
