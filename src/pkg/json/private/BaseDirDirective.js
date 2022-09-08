@@ -94,7 +94,6 @@ export class BaseDirDirective extends JsonDirective {
    */
   static getDir(workspace) {
     MustBe.object(workspace, ExpanderWorkspace);
-    MustBe.string(path);
 
     const instance = this.#instances.get(workspace);
 
