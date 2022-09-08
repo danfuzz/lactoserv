@@ -118,10 +118,6 @@ export class ExpanderWorkspace {
       // called but hasn't completed, `#result` will be an as-yet unresolved
       // promise.
       return this.#result;
-    } else if (this.#running) {
-      // We are in a recursive call from within the expander itself. Weird case,
-      // _maybe_ can't actually happen?
-      throw new Error('Processing already in progress.');
     }
 
     const complete = (v) => {
@@ -166,6 +162,12 @@ export class ExpanderWorkspace {
    *   result of expansion.
    */
   #expandSetup(complete) {
+    if (this.#running) {
+      // We are in a recursive call from within the expander itself. Weird case,
+      // though it probably can be made to happen if one tries hard enough.
+      throw new Error('Processing already in progress.');
+    }
+
     const innerComplete = (action, v) => {
       console.log('####### COMPLETE %s :: %o', action, v);
       switch (action) {
