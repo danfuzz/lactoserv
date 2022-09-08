@@ -32,8 +32,6 @@ export class DefsDirective extends JsonDirective {
   constructor(workspace, path, dirArg, dirValue) {
     super(workspace, path, dirArg, dirValue);
 
-    console.log('##### DEFS AT %o', path);
-
     if (path.length !== 0) {
       throw new Error(`\`${DefsDirective.NAME}\` only allowed at top level.`);
     }

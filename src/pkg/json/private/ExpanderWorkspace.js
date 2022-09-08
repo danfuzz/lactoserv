@@ -353,6 +353,7 @@ export class ExpanderWorkspace {
         const dirArg   = value[k];
         const dirValue = { ...value };
         delete dirValue[k];
+        console.log('### DIRECTIVE %s at %o', k, path);
         const directive = new directiveClass(this, path, dirArg, dirValue);
         this.#addToNextQueue({
           pass: pass + 1,
