@@ -233,6 +233,9 @@ export class ExpanderWorkspace {
     this.#workQueue.push(item);
   }
 
+  /**
+   * Drains all `awaits` at the front of `#nextQueue`.
+   */
   async #drainQueuedAwaits() {
     while (this.#nextQueue.length !== 0) {
       const item = this.#nextQueue[0];
@@ -249,6 +252,15 @@ export class ExpanderWorkspace {
     }
   }
 
+  /**
+   * Drains both queues, until only `await` items remain. Specifically, this
+   * processes `#workQueue` completely, then adds a single non-`await` item from
+   * `#nextQueue`, and iterates. Once all that remains in `#nextQueue` are
+   * `await` items, this method returns.
+   *
+   * @returns {boolean} Whether (`true`) or not (`false`) any `await` items
+   *   remain to be processed.
+   */
   #drainQueuesUntilAsync() {
     const awaitItems = [];
 
@@ -275,9 +287,12 @@ export class ExpanderWorkspace {
     }
 
     // All that remains are items to `await` (possibly none).
-    this.#nextQueue.push(...awaitItems);
-
-    return (this.#workQueue.length !== 0) || (this.#nextQueue.length !== 0);
+    if (awaitItems.length === 0) {
+      return false;
+    } else {
+      this.#nextQueue.push(...awaitItems);
+      return true;
+    }
   }
 
   /**
