@@ -32,9 +32,7 @@ export class ExpanderWorkspace {
 
   /**
    * @type {?{pass, path, value, complete}[]} Items in need of processing, but
-   * only after {@link #workQueue} is drained (becomes empty). Elements from
-   * this queue get added one at a time to {@link #workQueue}, in between which
-   * {@link #workQueue} gets drained.
+   * only after {@link #workQueue} is drained (becomes empty).
    */
   #nextQueue = null;
 
