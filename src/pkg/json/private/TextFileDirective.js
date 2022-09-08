@@ -25,10 +25,6 @@ export class TextFileDirective extends JsonDirective {
     MustBe.string(dirArg);
     super(workspace, path, dirArg, dirValue);
 
-    if (Object.entries(dirValue).length !== 0) {
-      throw new Error(`\`${TextFileDirective.NAME}\` does not accept additional object values.`);
-    }
-
     this.#workspace = workspace;
     this.#filePath  = dirArg;
   }

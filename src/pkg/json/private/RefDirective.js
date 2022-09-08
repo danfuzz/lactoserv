@@ -22,10 +22,6 @@ export class RefDirective extends JsonDirective {
     MustBe.string(dirArg);
     super(workspace, path, dirArg, dirValue);
 
-    if (Object.entries(dirValue).length !== 0) {
-      throw new Error(`\`${RefDirective.NAME}\` does not accept additional object values.`);
-    }
-
     const { name } = dirArg.match(/^#[/][$]defs[/](?<name>.*)$/).groups;
     if (!name) {
       throw new Error(`Bad syntax for reference: ${dirArg}`);

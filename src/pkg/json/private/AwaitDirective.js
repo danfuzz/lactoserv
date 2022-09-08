@@ -19,10 +19,6 @@ export class AwaitDirective extends JsonDirective {
   constructor(workspace, path, dirArg, dirValue) {
     super(workspace, path, dirArg, dirValue);
 
-    if (Object.entries(dirValue).length !== 0) {
-      throw new Error(`\`${AwaitDirective.NAME}\` does not accept additional object values.`);
-    }
-
     if (typeof dirArg === 'function') {
       this.#promise = (async () => dirArg())();
     } else if (typeof dirArg?.then === 'function') {
