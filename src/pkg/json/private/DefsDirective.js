@@ -79,7 +79,6 @@ export class DefsDirective extends JsonDirective {
     const def = this.#defs.get(name);
 
     if (!def) {
-      console.log('\n################# DEFS:\n%o\n', this.#defs);
       throw new Error(`No definition for: ${name}`);
     }
 
@@ -121,7 +120,7 @@ export class DefsDirective extends JsonDirective {
 
     const instance = this.#instances.get(workspace);
     if (!instance) {
-      throw new Error('Unregistered workspace.');
+      return { action: 'again' };
     }
 
     const { name } = path.match(/^#[/][$]defs[/](?<name>.*)$/).groups;
