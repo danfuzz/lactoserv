@@ -131,9 +131,8 @@ export class ExpanderWorkspace {
 
     try {
       while (this.#nextQueue.length !== 0) {
-        this.#addToWorkQueue(this.#nextQueue.shift());
-        this.#drainWorkQueue();
-        // TODO: Something about awaiting on stuff here.
+        this.#drainQueuesUntilAsync();
+        // TODO: Handle `await` items.
       }
     } finally {
       // Don't leave the instance in a weird state; reset it.
@@ -194,9 +193,9 @@ export class ExpanderWorkspace {
     });
 
     try {
-      while (this.#nextQueue.length !== 0) {
-        this.#addToWorkQueue(this.#nextQueue.shift());
-        this.#drainWorkQueue();
+      this.#drainQueuesUntilAsync();
+      if (this.#nextQueue.length !== 0) {
+        throw new Error('Asynchronous operation required.');
       }
     } finally {
       // Don't leave the instance in a weird state; reset it.
@@ -211,6 +210,35 @@ export class ExpanderWorkspace {
     }
 
     return this.#result;
+  }
+
+  #drainQueuesUntilAsync() {
+    const awaitItems = [];
+
+    outer:
+    for (;;) {
+      while (this.#workQueue.length !== 0) {
+        const item = this.#workQueue.shift();
+        console.log('#### Working on: %o', item.path);
+        this.#processQueueItem(item);
+      }
+
+      while (this.#nextQueue.length !== 0) {
+        const item = this.#nextQueue.shift();
+        console.log('#### Next item: %o', item.path);
+        if (item.await) {
+          awaitItems.push(item);
+        } else {
+          this.#workQueue.push(item);
+          continue outer;
+        }
+      }
+
+      break;
+    }
+
+    // All that remains are items to `await` (possibly none).
+    this.#nextQueue.push(...awaitItems);
   }
 
   /**
@@ -234,18 +262,6 @@ export class ExpanderWorkspace {
   #addToWorkQueue(item) {
     //console.log('#### Queued work item: %o', item);
     this.#workQueue.push(item);
-  }
-
-  /**
-   * Removes and processes items from the fromt of {@link #workQueue}, until
-   * the queue is empty.
-   */
-  #drainWorkQueue() {
-    while (this.#workQueue.length !== 0) {
-      const item = this.#workQueue.shift();
-      //console.log('#### Working on: %o', item);
-      this.#processQueueItem(item);
-    }
   }
 
   /**
