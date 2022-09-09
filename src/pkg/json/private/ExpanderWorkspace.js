@@ -65,16 +65,6 @@ export class ExpanderWorkspace {
   }
 
   /**
-   * Adds a directive _instance_.
-   *
-   * @param {string} name The name of the directive.
-   * @param {JsonDirective} directive The directive instance.
-   */
-  addDirective(name, directive) {
-    this.#directives.set(name, directive);
-  }
-
-  /**
    * Perform expansion asynchronously.
    *
    * @returns {*} The result of expansion.
