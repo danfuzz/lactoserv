@@ -113,6 +113,7 @@ export class Main {
 
     const jx = new JsonExpander();
 
+    /*
     console.log('\n#####################\n');
     const testJson1 = {
       a: { $await: () => 'hello' },
@@ -167,6 +168,7 @@ export class Main {
     console.log('%o', testResult);
     console.log('\n#####################\n');
     process.exit(1);
+    */
 
     const finalConfig = jx.expand(comboConfig);
 
