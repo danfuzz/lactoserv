@@ -102,16 +102,6 @@ export class JsonExpander {
    * @returns {*} The expanded version of `value`, or a promise thereto.
    */
   #expand0(value, doAsync) {
-    if ((this.#baseDir !== null) && !value?.$baseDir) {
-      console.log('#### BOOP !!!!!!!!!!!!');
-      // Provide the base directory passed in during construction, since `value`
-      // doesn't have one.
-      value = {
-        $baseDir: this.#baseDir,
-        $value:   value
-      };
-    }
-
     const directives = new Map(this.#directives);
     const workspace  = new ExpanderWorkspace(directives, this.#baseDir, value);
 

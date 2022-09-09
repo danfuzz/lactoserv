@@ -59,8 +59,17 @@ export class ExpanderWorkspace {
    * @param {*} value Value to be worked on.
    */
   constructor(directives, baseDir, value) {
-    this.#directives    = directives;
-    this.#baseDir       = baseDir;
+    this.#directives = directives;
+    this.#baseDir    = baseDir;
+
+    if ((baseDir !== null) && !value?.$baseDir) {
+      // No `$baseDir` in `value`. Provide the one passed in here.
+      value = {
+        $baseDir: baseDir,
+        $value:   value
+      };
+    }
+
     this.#originalValue = value;
   }
 
