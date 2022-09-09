@@ -29,7 +29,7 @@ export class DefsDirective extends JsonDirective {
       throw new Error(`\`${DefsDirective.NAME}\` only allowed at top level.`);
     }
 
-    DefsDirective.#instances.set(workspace, this);
+    DefsDirective.#registerRootInstance(workspace, this);
 
     this.#actionResult = {
       action:  'again',
@@ -120,5 +120,19 @@ export class DefsDirective extends JsonDirective {
     const instance = this.#instances.get(workspace);
 
     return (instance && instance.#hasDefs) ? instance : null;
+  }
+
+  /**
+   * Registers a top-level instance.
+   *
+   * @param {ExpanderWorkspace} workspace The workspace.
+   * @param {DefsDirective} instance The instance.
+   */
+  static #registerRootInstance(workspace, instance) {
+    if (this.#instances.has(workspace)) {
+      throw new Error(`Another ${this.NAME} is already registered.`);
+    }
+
+    this.#instances.set(workspace, instance);
   }
 }
