@@ -402,17 +402,11 @@ export class ExpanderWorkspace {
    * Helper for {@link #processQueueItem}, which handles a plain object.
    *
    * @param {{pass, path, value: object, complete}} item Item to process.
+   * @param {[string, *][]} entries Result of `Object.entries(value)`.
    */
-  #processObject(item) {
+  #processNonEmptyObject(item, entries) {
     const { pass, path, value, complete } = item;
     const keys = Object.keys(value).sort();
-
-    if (keys.length === 0) {
-      // Empty object! Resolve as a special case here, to avoid having to chain
-      // the `complete` function.
-      complete('resolve', item.value);
-      return;
-    }
 
     // If there is a directive key, convert the element to a directive, and
     // queue it up for the next pass. If any directives are found that don't
@@ -502,7 +496,15 @@ export class ExpanderWorkspace {
     } else if (value instanceof Array) {
       this.#processArray(item);
     } else {
-      this.#processObject(item);
+      const entries = Object.entries(item.value);
+      if (entries.length === 0) {
+        // Empty object! Resolve as a special case here, to avoid a lot of
+        // unnecessary work and to avoid putting other special cases in the
+        // code in much trickier locations.
+        complete('resolve', {});
+      } else {
+        this.#processNonEmptyObject(item, entries);
+      }
     }
   }
 }
