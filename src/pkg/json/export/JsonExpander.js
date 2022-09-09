@@ -24,10 +24,7 @@ export class JsonExpander {
    */
   #directives = new Map();
 
-  /**
-   * @type {?string} Base directory to use when expanding filesystem-based
-   * directives, if one is to be used.
-   */
+  /** @type {?string} Base directory for filesystem-using directives. */
   #baseDir;
 
   /**
@@ -116,7 +113,7 @@ export class JsonExpander {
     }
 
     const directives = new Map(this.#directives);
-    const workspace  = new ExpanderWorkspace(directives, value);
+    const workspace  = new ExpanderWorkspace(directives, this.#baseDir, value);
 
     return doAsync
       ? workspace.expandAsync()

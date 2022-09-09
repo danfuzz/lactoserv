@@ -20,6 +20,9 @@ export class ExpanderWorkspace {
    */
   #directives = new Map();
 
+  /** @type {?string} Base directory for filesystem-using directives. */
+  #baseDir;
+
   /** @type {*} Original value being worked on. */
   #originalValue;
 
@@ -52,10 +55,12 @@ export class ExpanderWorkspace {
    *
    * @param {Map<string, function(new:JsonDirective)>} directives Map of
    *   directive classes.
+   * @param {?string} baseDir Base directory for filesystem-using directives.
    * @param {*} value Value to be worked on.
    */
-  constructor(directives, value) {
+  constructor(directives, baseDir, value) {
     this.#directives    = directives;
+    this.#baseDir       = baseDir;
     this.#originalValue = value;
   }
 
@@ -142,6 +147,21 @@ export class ExpanderWorkspace {
     }
 
     return this.#result;
+  }
+
+  /**
+   * Performs a "sub-expansion" asynchronously. This takes the given value and
+   * expands it in a fresh workspace configured just like this one.
+   *
+   * @param {*} value Value to expand.
+   * @param {?string} [baseDir = null] Base directory to use when expanding
+   *   filesystem-based directives, or `null` to "inherit" the value from this
+   *   instance (including possibly null).
+   * @returns {*} The result of expansion.
+   */
+  subExpandAsync(value, baseDir = null) {
+    // TODO!
+    throw new Error('TODO');
   }
 
   /**
