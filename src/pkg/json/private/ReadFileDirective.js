@@ -63,6 +63,13 @@ export class ReadFileDirective extends JsonDirective {
     };
   }
 
+  /**
+   * Parses the given promised JSON, and wraps any parse errors.
+   *
+   * @param {Promise<string>} textPromise Promise for the text to parse.
+   * @returns {*} Parsed result.
+   * @throws {Error} Thrown if there is any reading or parsing problem.
+   */
   async #parseJson(textPromise) {
     const text = await textPromise;
 
