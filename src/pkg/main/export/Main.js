@@ -150,10 +150,10 @@ export class Main {
     };
     const testJson4 = {
       yo: { $await: () => 'hello' },
-      wow1: { $textFile: './florp.txt', type: 'text' },
-      wow2: { $textFile: './florp.json', type: 'rawJson' },
-      wow3: { $textFile: './florp.json', type: 'json' },
-      zomg: [1, 2, 3, { $textFile: './florp.txt' }, { $ref: '#/$defs/yay' }],
+      wow1: { $readFile: './florp.txt', type: 'text' },
+      wow2: { $readFile: './florp.json', type: 'rawJson' },
+      wow3: { $readFile: './florp.json', type: 'json' },
+      zomg: [1, 2, 3, { $readFile: './florp.txt' }, { $ref: '#/$defs/yay' }],
       $defs: {
         yay: 'YAY!!'
       }

@@ -16,9 +16,9 @@ import * as Path from 'node:path';
 /** @type {string} */ const TYPE_TEXT     = 'text';
 
 /**
- * Directive `$textFile`. See the package README for more details.
+ * Directive `$readFile`. See the package README for more details.
  */
-export class TextFileDirective extends JsonDirective {
+export class ReadFileDirective extends JsonDirective {
   /** @type {ExpanderWorkspace} Associated workspace. */
   #workspace;
 
@@ -34,7 +34,7 @@ export class TextFileDirective extends JsonDirective {
     super(workspace, path, dirArg, dirValue);
 
     const type = dirArg.type ?? 'text';
-    if (!TextFileDirective.#FILE_TYPES.has(type)) {
+    if (!ReadFileDirective.#FILE_TYPES.has(type)) {
       throw new Error(`Unrecognized file type: ${type}`);
     }
 
@@ -101,7 +101,7 @@ export class TextFileDirective extends JsonDirective {
 
   /** @override */
   static get NAME() {
-    return '$textFile';
+    return '$readFile';
   }
 
   /** @override */
