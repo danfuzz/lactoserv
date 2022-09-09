@@ -282,52 +282,6 @@ export class ExpanderWorkspace {
   }
 
   /**
-   * Helper for {@link #processQueueItem}, which handles an array.
-   *
-   * @param {{pass, path, value: *[], complete}} item Item to process.
-   */
-  #processNonEmptyArray(item) {
-    const { pass, path, value, complete } = item;
-
-    const result = [];
-    const deletions = [];
-    let resultsRemaining = value.length;
-
-    const update = (idx, action, arg) => {
-      switch (action) {
-        case 'delete': {
-          deletions.push(idx);
-          break;
-        }
-        case 'resolve': {
-          result[idx] = arg;
-          break;
-        }
-        default: {
-          throw new Error(`Unrecognized completion action: ${action}`);
-        }
-      }
-
-      if (--resultsRemaining === 0) {
-        deletions.sort();
-        while (deletions.length !== 0) {
-          result.splice(deletions.pop(), 1);
-        }
-        complete('resolve', result);
-      }
-    };
-
-    for (let index = 0; index < value.length; index++) {
-      this.#addToWorkQueue({
-        pass,
-        path:     [...path, index],
-        value:    value[index],
-        complete: (...args) => update(index, ...args)
-      });
-    }
-  }
-
-  /**
    * Helper for {@link #processQueueItem}, which handles a directive instance.
    *
    * @param {{pass, path, value: JsonDirective, complete}} item Item to process.
@@ -392,7 +346,54 @@ export class ExpanderWorkspace {
   }
 
   /**
-   * Helper for {@link #processQueueItem}, which handles a plain object.
+   * Helper for {@link #processQueueItem}, which handles a non-empty array.
+   *
+   * @param {{pass, path, value: *[], complete}} item Item to process.
+   */
+  #processNonEmptyArray(item) {
+    const { pass, path, value, complete } = item;
+
+    const result = [];
+    const deletions = [];
+    let resultsRemaining = value.length;
+
+    const update = (idx, action, arg) => {
+      switch (action) {
+        case 'delete': {
+          deletions.push(idx);
+          break;
+        }
+        case 'resolve': {
+          result[idx] = arg;
+          break;
+        }
+        default: {
+          throw new Error(`Unrecognized completion action: ${action}`);
+        }
+      }
+
+      if (--resultsRemaining === 0) {
+        deletions.sort();
+        while (deletions.length !== 0) {
+          result.splice(deletions.pop(), 1);
+        }
+        complete('resolve', result);
+      }
+    };
+
+    for (let index = 0; index < value.length; index++) {
+      this.#addToWorkQueue({
+        pass,
+        path:     [...path, index],
+        value:    value[index],
+        complete: (...args) => update(index, ...args)
+      });
+    }
+  }
+
+  /**
+   * Helper for {@link #processQueueItem}, which handles a non-empty plain
+   * object.
    *
    * @param {{pass, path, value: object, complete}} item Item to process.
    * @param {[string, *][]} entries Result of `Object.entries(value)`.
