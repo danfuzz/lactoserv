@@ -94,7 +94,7 @@ export class DefsDirective extends JsonDirective {
   static #instances = new WeakMap();
 
   /** @override */
-  static get ALLOW_OTHER_BINDINGS() {
+  static get ALLOW_EXTRA_BINDINGS() {
     return true;
   }
 

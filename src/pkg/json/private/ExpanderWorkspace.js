@@ -457,7 +457,7 @@ export class ExpanderWorkspace {
     for (const [key] of entries) {
       const directiveClass = this.#directives.get(key);
       if (directiveClass) {
-        if ((entries.length === 1) || directiveClass.ALLOW_OTHER_BINDINGS) {
+        if ((entries.length === 1) || directiveClass.ALLOW_EXTRA_BINDINGS) {
           goodDirectives.push(directiveClass);
         } else {
           badDirectives.push(key);

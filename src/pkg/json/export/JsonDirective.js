@@ -65,10 +65,10 @@ export class JsonDirective {
   /**
    * @abstract
    * @returns {boolean} `false` if instances of this directive can only appear
-   *   in otherwise-empty objects, or `true` if other bindings can appear along
+   *   in otherwise-empty objects, or `true` if extra bindings can appear along
    *   side the directive binding.
    */
-  static get ALLOW_OTHER_BINDINGS() {
+  static get ALLOW_EXTRA_BINDINGS() {
     throw Methods.abstract();
   }
 
