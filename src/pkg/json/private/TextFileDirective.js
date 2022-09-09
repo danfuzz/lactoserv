@@ -65,6 +65,11 @@ export class TextFileDirective extends JsonDirective {
   }
 
   /** @override */
+  static get NAMED_ARGS() {
+    return [];
+  }
+
+  /** @override */
   static get REQUIRES() {
     return Object.freeze(['$baseDir']);
   }
