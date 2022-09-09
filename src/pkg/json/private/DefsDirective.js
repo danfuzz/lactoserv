@@ -29,7 +29,7 @@ export class DefsDirective extends JsonDirective {
       throw new Error(`\`${DefsDirective.NAME}\` only allowed at top level.`);
     }
 
-    DefsDirective.#instances.set(workspace, this);
+    DefsDirective.#registerRootInstance(workspace, this);
 
     this.#actionResult = {
       action:  'again',
@@ -60,30 +60,26 @@ export class DefsDirective extends JsonDirective {
     };
   }
 
-  /** @override */
-  process() {
-    return this.#actionResult;
-  }
-
   /**
-   * Processes a named reference.
+   * Gets the definition associated with the given name.
    *
-   * @param {string} name Reference name.
-   * @returns {*} Replacement, as specified by {@link #process}.
+   * @param {string} name The name to look up.
+   * @returns {*} The associated value.
+   * @throws {Error} Thrown if there is no binding for `name`.
    */
-  #processRef(name) {
-    if (!this.#hasDefs) {
-      return { action: 'again' };
-    }
+  get(name) {
+    const result = this.#defs.get(name);
 
-    const def = this.#defs.get(name);
-
-    if (!def) {
-      console.log('\n################# DEFS:\n%o\n', this.#defs);
+    if (result === undefined) {
       throw new Error(`No definition for: ${name}`);
     }
 
-    return { action: 'resolve', value: def };
+    return result;
+  }
+
+  /** @override */
+  process() {
+    return this.#actionResult;
   }
 
 
@@ -98,6 +94,11 @@ export class DefsDirective extends JsonDirective {
   static #instances = new WeakMap();
 
   /** @override */
+  static get ALLOW_OTHER_BINDINGS() {
+    return true;
+  }
+
+  /** @override */
   static get NAME() {
     return '$defs';
   }
@@ -108,27 +109,31 @@ export class DefsDirective extends JsonDirective {
   }
 
   /**
-   * Processes a reference.
+   * Gets the instance of this class associated with the root of the given
+   * workspace, if known _and_ has definitions.
    *
    * @param {ExpanderWorkspace} workspace The workspace.
-   * @param {string} path Path to the reference.
-   * @returns {?{value: *}} Found value, or `null` if the definitions have
-   *   possibly not yet been found.
+   * @returns {?DefsDirective} The associated directive, if known and ready.
    */
-  static processRef(workspace, path) {
+  static getRootInstance(workspace) {
     MustBe.object(workspace, ExpanderWorkspace);
-    MustBe.string(path);
 
     const instance = this.#instances.get(workspace);
-    if (!instance) {
-      throw new Error('Unregistered workspace.');
+
+    return (instance && instance.#hasDefs) ? instance : null;
+  }
+
+  /**
+   * Registers a top-level instance.
+   *
+   * @param {ExpanderWorkspace} workspace The workspace.
+   * @param {DefsDirective} instance The instance.
+   */
+  static #registerRootInstance(workspace, instance) {
+    if (this.#instances.has(workspace)) {
+      throw new Error(`Another ${this.NAME} is already registered.`);
     }
 
-    const { name } = path.match(/^#[/][$]defs[/](?<name>.*)$/).groups;
-    if (!name) {
-      throw new Error(`Bad syntax for reference: ${path}`);
-    }
-
-    return instance.#processRef(name);
+    this.#instances.set(workspace, instance);
   }
 }

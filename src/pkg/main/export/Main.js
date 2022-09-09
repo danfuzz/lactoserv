@@ -147,10 +147,23 @@ export class Main {
       $baseDir: '/home/danfuzz/florp'
     };
     const testJson4 = {
-      yo: { $await: () => 'hello' }
+      yo: { $await: () => 'hello' },
+      wow: { $textFile: './florp.txt' },
+      whee: { $textFile: './florp.txt' },
+      zomg: [1, 2, 3, { $textFile: './florp.txt' }, { $ref: '#/$defs/yay' }],
+      $defs: {
+        yay: 'YAY!!'
+      }
     };
-    //const testResult = jx.expand(testJson4);
-    const testResult = await jx.expandAsync(testJson4);
+    const testJson5 = {
+      $defs: {
+        hi: 'HI'
+      },
+      $value: [1, 2, 3, { $ref: '#/$defs/hi' }]
+    }
+    const testJx = new JsonExpander('.');
+    //const testResult = testJx.expand(testJson4);
+    const testResult = await testJx.expandAsync(testJson4);
     console.log('\n##################### FINAL RESULT: \n');
     console.log('%o', testResult);
     console.log('\n#####################\n');

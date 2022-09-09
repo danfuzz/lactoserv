@@ -104,3 +104,32 @@ and when there is an actual need.
   "a": [1, 2, 3, "florp"]
 }
 ```
+
+### `{ $textFile: "<path>" }`
+
+This provides a way to include the text contents of another file as an expanded
+value. `<path>` is a filesystem path, which is expected to point at a regular
+file (an existing non-directory). If `<path>` is relative, it is resolved
+against the base directory specified by a top-level `$baseDir` directive (which
+must in fact be included in the original value to be expanded).
+
+**Note:** This directive always operates asynchronously.
+
+### `{ $value: <value> }`
+
+This provides a way to have a non-object value as the result in a context where
+other directives are necessarily being used (especially at the top level). The
+given value is simply processed and then becomes the result of expansion.
+
+```json
+{
+  "$value": [1, 2, 3, { "$ref": "#/$defs/like" }],
+  "$defs": {
+    "like": "florp"
+  }
+}
+
+=>
+
+[1, 2, 3, "florp"]
+```

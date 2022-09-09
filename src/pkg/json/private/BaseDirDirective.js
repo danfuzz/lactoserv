@@ -10,7 +10,7 @@ import { MustBe } from '@this/typey';
  * Directive `$baseDir`. See the package README for more details.
  */
 export class BaseDirDirective extends JsonDirective {
-  /** @type {?string} The base directory. */
+  /** @type {string} The base directory. */
   #baseDir;
 
   /**
@@ -27,7 +27,7 @@ export class BaseDirDirective extends JsonDirective {
       throw new Error(`\`${BaseDirDirective.NAME}\` only allowed at top level.`);
     }
 
-    BaseDirDirective.#instances.set(workspace, this);
+    BaseDirDirective.#registerRootInstance(workspace, this);
 
     this.#baseDir      = dirArg;
     this.#actionResult = {
@@ -77,6 +77,11 @@ export class BaseDirDirective extends JsonDirective {
   static #instances = new WeakMap();
 
   /** @override */
+  static get ALLOW_OTHER_BINDINGS() {
+    return true;
+  }
+
+  /** @override */
   static get NAME() {
     return '$baseDir';
   }
@@ -84,5 +89,32 @@ export class BaseDirDirective extends JsonDirective {
   /** @override */
   static get REQUIRES() {
     return Object.freeze([]);
+  }
+
+  /**
+   * Gets the base directory associated with the given workspace, if known.
+   *
+   * @param {ExpanderWorkspace} workspace The workspace.
+   * @returns {?string} The base directory, or `null` if not yet known.
+   */
+  static getDir(workspace) {
+    MustBe.object(workspace, ExpanderWorkspace);
+
+    const instance = this.#instances.get(workspace);
+    return instance ? instance.value : null;
+  }
+
+  /**
+   * Registers a top-level instance.
+   *
+   * @param {ExpanderWorkspace} workspace The workspace.
+   * @param {BaseDirDirective} instance The instance.
+   */
+  static #registerRootInstance(workspace, instance) {
+    if (this.#instances.has(workspace)) {
+      throw new Error(`Another ${this.NAME} is already registered.`);
+    }
+
+    this.#instances.set(workspace, instance);
   }
 }
