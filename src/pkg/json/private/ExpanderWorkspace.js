@@ -158,9 +158,11 @@ export class ExpanderWorkspace {
    *   instance (including possibly null).
    * @returns {*} The result of expansion.
    */
-  subExpandAsync(value, baseDir = null) {
-    // TODO!
-    throw new Error('TODO');
+  async subExpandAsync(value, baseDir = null) {
+    const workspace =
+      new ExpanderWorkspace(this.#directives, baseDir ?? this.#baseDir, value);
+
+    return workspace.expandAsync();
   }
 
   /**
