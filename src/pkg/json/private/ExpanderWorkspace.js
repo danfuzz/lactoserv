@@ -398,7 +398,7 @@ export class ExpanderWorkspace {
    * object.
    *
    * @param {{pass, path, value: object, complete}} item Item to process.
-   * @param {[string, *][]} entries Result of `Object.entries(value)`.
+   * @param {*[][]} entries Result of `Object.entries(value)`.
    */
   #processNonEmptyObject(item, entries) {
     const { pass, path, complete } = item;
@@ -443,7 +443,7 @@ export class ExpanderWorkspace {
    * object if it turns out to be in the form of a directive.
    *
    * @param {{pass, path, value: object, complete}} item Item to process.
-   * @param {[string, *][]} entries Result of `Object.entries(value)`.
+   * @param {*[][]} entries Result of `Object.entries(value)`.
    * @returns {boolean} `true` if this method in fact handled the object, or
    *   `false` if not.
    * @throws {Error} Thrown if the object is a problematic directive form.
