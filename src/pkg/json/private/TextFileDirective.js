@@ -67,14 +67,22 @@ export class TextFileDirective extends JsonDirective {
    * Main implementation of file reading and (sometimes) parsing.
    */
   async #readAndProcess() {
-    const text = fs.readFile(this.#filePath, 'utf-8');
+    const textPromise = fs.readFile(this.#filePath, 'utf-8');
 
-    if (this.#fileType === TYPE_TEXT) {
-      return text;
+    switch (this.#fileType) {
+      case TYPE_JSON: {
+        throw new Error(`Can't yet handle type ${this.#fileType}.`);
+      }
+      case TYPE_RAW_JSON: {
+        return JSON.parse(await textPromise);
+      }
+      case TYPE_TEXT: {
+        return textPromise;
+      }
+      default: {
+        throw new Error(`Unrecognized file type: ${this.#fileType}`);
+      }
     }
-
-    // TODO!
-    throw new Error(`Can't yet handle type ${this.#fileType}.`);
   }
 
 
