@@ -20,94 +20,22 @@ export class Main {
    * @returns {number} Process exit code.
    */
   static async run(args_unused) {
-    const certsPath = Dirs.basePath('etc/certs');
-    const hostsConfig = [
-      {
-        name: '*',
-        cert: await fs.readFile(certsPath + '/localhost-cert.pem', 'utf-8'),
-        key:  await fs.readFile(certsPath + '/localhost-key.pem', 'utf-8')
-      },
-      {
-        names: ['localhost', '*.localhost', 'milk.com', '*.milk.com', 'example.milk.com'],
-        cert: await fs.readFile(certsPath + '/localhost-cert.pem', 'utf-8'),
-        key:  await fs.readFile(certsPath + '/localhost-key.pem', 'utf-8')
-      }
-    ];
+    const setupDir  = Dirs.basePath('etc/example-setup');
+    const jx        = new JsonExpander(setupDir);
+    const config    = await jx.expandFileAsync('config/config.json');
+    const warehouse = new Warehouse(config);
 
-    const assetsPath = url.fileURLToPath(new URL('../assets', import.meta.url));
+    console.log('\n### Starting all servers...\n');
+    await warehouse.startAllServers();
+    console.log('\n### Started all servers.\n');
 
-    const httpsConfig_unused = {
-      hosts:      hostsConfig,
-      server: {
-        name:       'secure',
-        app:        'my-static-fun',
-        host:       '*',
-        interface:  '*',
-        port:       8443,
-        protocol:   'https'
-      },
-      app: {
-        name:       'my-static-fun',
-        mount:      '//secure/',
-        type:       'static-server',
-        assetsPath
-      }
-    };
+    await timers.setTimeout(15 * 1000);
 
-    const comboConfig = {
-      hosts: hostsConfig,
-      servers: [
-        {
-          name:       'insecure',
-          app:        'my-wacky-redirector',
-          host:       '*',
-          interface:  '*',
-          port:       8080,
-          protocol:   'http'
-        },
-        {
-          name:       'also-insecure',
-          apps:       ['my-static-fun'],
-          hosts:      ['*'],
-          interface:  '*',
-          port:       8081,
-          protocol:   'http',
-        },
-        {
-          name:       'secure',
-          apps:       ['my-static-fun'],
-          host:       '*',
-          interface:  '*',
-          port:       8443,
-          protocol:   'http2'
-        }
-      ],
-      apps: [
-        {
-          name:      'my-wacky-redirector',
-          mounts:    [{ $ref: '#/$defs/wildcardTopMount' }],
-          type:      'redirect-server',
-          redirects: [
-            {
-              fromPath: '/',
-              toUri:    'https://milk.com/boop/'
-            }
-          ]
-        },
-        {
-          name: 'my-static-fun',
-          mount: { $ref: '#/$defs/wildcardTopMount' },
-          type: 'static-server',
-          assetsPath
-        }
-      ],
-      // Just for testing / example
-      $defs: {
-        wildcardTopMount: '//*/'
-      }
-    };
+    console.log('\n### Stopping all servers...\n');
+    await warehouse.stopAllServers();
+    console.log('\n### Stopped all servers.\n');
 
-    const jx = new JsonExpander();
+    return 0;
 
     /*
     console.log('\n#####################\n');
@@ -168,21 +96,5 @@ export class Main {
     console.log('\n#####################\n');
     process.exit(1);
     */
-
-    const finalConfig = jx.expand(comboConfig);
-
-    const warehouse = new Warehouse(finalConfig);
-
-    console.log('\n### Starting all servers...\n');
-    await warehouse.startAllServers();
-    console.log('\n### Started all servers.\n');
-
-    await timers.setTimeout(15 * 1000);
-
-    console.log('\n### Stopping all servers...\n');
-    await warehouse.stopAllServers();
-    console.log('\n### Stopped all servers.\n');
-
-    return 0;
   }
 }
