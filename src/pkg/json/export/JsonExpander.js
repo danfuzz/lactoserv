@@ -95,6 +95,34 @@ export class JsonExpander {
   }
 
   /**
+   * Reads and expands the indicated file, asynchronously.
+   *
+   * **Note:** This is achieved by using a top-level `$readFile` directive, and
+   * as such that directive must be defined by this instance in order for it to
+   * work.
+   *
+   * @param {string} filePath Path of the file to read. If relative and this
+   *   instance has no defined base directory, then this path is resolved to an
+   *   absolute path relative to the current directory immediately before
+   *   processing.
+   * @returns {*} The expanded version of the file.
+   * @throws {Error} Thrown if there is any trouble with the expansion.
+   */
+  async expandFileAsync(filePath) {
+    MustBe.string(filePath);
+
+    if (!this.#baseDir) {
+      // No base directory for this instance; resolve now.
+      filePath = Path.resolve(filePath);
+    }
+
+    return this.expandAsync({
+      $readFile: filePath,
+      type:      'json'
+    });
+  }
+
+  /**
    * Common code between {@link #expand} and {@link #expandAsync}.
    *
    * @param {*} value The original value.
