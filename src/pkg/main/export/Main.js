@@ -6,7 +6,7 @@ import { JsonExpander } from '@this/json';
 import { Dirs } from '@this/util-host';
 
 import * as fs from 'node:fs/promises';
-import * as timers from 'node:timers';
+import * as timers from 'node:timers/promises';
 import * as url from 'node:url';
 
 /**
@@ -21,9 +21,6 @@ export class Main {
    * @returns {number} Process exit code.
    */
   static async run(args_unused) {
-    // Way more TODO.
-    console.log('TODO!');
-
     const certsPath = Dirs.basePath('etc/certs');
     const hostsConfig = [
       {
@@ -176,40 +173,16 @@ export class Main {
     const finalConfig = jx.expand(comboConfig);
 
     const warehouse = new Warehouse(finalConfig);
-    const sm = warehouse.serverManager;
-    const servers = [
-      sm.findController('secure'),
-      sm.findController('insecure'),
-      sm.findController('also-insecure')
-    ];
 
-    for (const s of servers) {
-      console.log(`### Starting server: ${s.name}`);
-      await s.start();
-      console.log('### Started.');
-      console.log();
+    console.log('\n### Starting all servers...\n');
+    await warehouse.startAllServers();
+    console.log('\n### Started all servers.\n');
 
-      const doStop = async () => {
-        console.log(`### Stopping server: ${s.name}`);
-        await s.stop();
-        console.log(`### Stopped server: ${s.name}`);
-      };
+    await timers.setTimeout(15 * 1000);
 
-      timers.setTimeout(doStop, 15 * 1000);
-    }
-
-    console.log('### Waiting for servers to stop...');
-
-    const stops = servers.map((s) => {
-      return (async () => {
-        console.log(`### Waiting for server: ${s.name}`);
-        await s.whenStopped();
-        console.log(`### Server now stopped: ${s.name}`);
-      })();
-    });
-
-    await Promise.all(stops);
-    console.log('### All stopped!');
+    console.log('\n### Stopping all servers...\n');
+    await warehouse.stopAllServers();
+    console.log('\n### Stopped all servers.\n');
 
     return 0;
   }
