@@ -418,7 +418,7 @@ export class ExpanderWorkspace {
     // queue it up for the next pass. If any directives are found that don't
     // accept additional bindings when this object _does_ have more bindings,
     // note it for a possible error message at the end of this pass.
-    let unacceptableDirectives = [];
+    const unacceptableDirectives = [];
     for (const k of keys) {
       const directiveClass = this.#directives.get(k);
       if (directiveClass) {

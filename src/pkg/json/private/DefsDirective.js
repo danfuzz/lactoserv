@@ -64,7 +64,7 @@ export class DefsDirective extends JsonDirective {
    * Gets the definition associated with the given name.
    *
    * @param {string} name The name to look up.
-   * @return {*} The associated value.
+   * @returns {*} The associated value.
    * @throws {Error} Thrown if there is no binding for `name`.
    */
   get(name) {
@@ -113,6 +113,7 @@ export class DefsDirective extends JsonDirective {
    * workspace, if known _and_ has definitions.
    *
    * @param {ExpanderWorkspace} workspace The workspace.
+   * @returns {?DefsDirective} The associated directive, if known and ready.
    */
   static getRootInstance(workspace) {
     MustBe.object(workspace, ExpanderWorkspace);

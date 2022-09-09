@@ -1,11 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { DefsDirective } from '#p/DefsDirective';
-import { ExpanderWorkspace } from '#p/ExpanderWorkspace';
 import { JsonDirective } from '#x/JsonDirective';
-
-import { MustBe } from '@this/typey';
 
 /**
  * Directive `$value`. See the package README for more details.
