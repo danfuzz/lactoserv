@@ -59,6 +59,40 @@ export class Warehouse {
     return this.#serverManager;
   }
 
+  /**
+   * Starts all servers. This async-returns once all servers are started.
+   *
+   * @throws {Error} Thrown if any server had trouble starting.
+   */
+  async startAllServers() {
+    const servers = this.#serverManager.getAll();
+    const results = servers.map(s => s.start());
+
+    return Promise.all(results);
+  }
+
+  /**
+   * Stops all servers. This async-returns once all servers are stopped.
+   *
+   * @throws {Error} Thrown if any server had trouble stopping.
+   */
+  async stopAllServers() {
+    const servers = this.#serverManager.getAll();
+    const results = servers.map(s => s.stop());
+
+    return Promise.all(results);
+  }
+
+  /**
+   * Returns a promise that becomes fulfilled when all servers are stopped.
+   */
+  async whenAllServersStopped() {
+    const servers = this.#serverManager.getAll();
+    const results = servers.map(s => s.whenStopped());
+
+    return Promise.all(results);
+  }
+
 
   //
   // Static members
