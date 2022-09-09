@@ -455,12 +455,25 @@ export class ExpanderWorkspace {
     const goodDirectives = [];
 
     for (const [key] of entries) {
-      const directiveClass = this.#directives.get(key);
-      if (directiveClass) {
-        if ((entries.length === 1) || directiveClass.ALLOW_EXTRA_BINDINGS) {
-          goodDirectives.push(directiveClass);
+      const dirClass = this.#directives.get(key);
+      if (dirClass) {
+        if ((entries.length === 1) || dirClass.ALLOW_EXTRA_BINDINGS) {
+          // The easy cases.
+          goodDirectives.push(dirClass);
         } else {
-          badDirectives.push(key);
+          // The hard case: The directive is good if there are no bindings other
+          // than itself and any named arguments.
+          let namedArgCount = 0;
+          for (const name of dirClass.NAMED_ARGS) {
+            if (Object.hasOwn(value, name)) {
+              namedArgCount++;
+            }
+          }
+          if (entries.length <= (namedArgCount + 1)) {
+            goodDirectives.push(dirClass);
+          } else {
+            badDirectives.push(key);
+          }
         }
       }
     }
@@ -476,11 +489,27 @@ export class ExpanderWorkspace {
 
     // For consistency in execution, if there are multiple good directives,
     // pick the one which is alphabetically earliest.
-    const dirClass = goodDirectives.sort((a, b) => (a.NAME < b.NAME) ? -1 : 1)[0];
-    const dirName  = dirClass.NAME;
-    const dirArg   = value[dirName];
-    const dirValue = { ...value };
+    const dirClass  = goodDirectives.sort((a, b) => (a.NAME < b.NAME) ? -1 : 1)[0];
+    const dirName   = dirClass.NAME;
+    const dirValue  = { ...value };
+    const mainArg   = value[dirName];
+    const namedArgs = dirClass.NAMED_ARGS;
+    let   dirArg;
+
+    // Set up `dirArg` and `dirValue`.
     delete dirValue[dirName];
+    if (namedArgs.length === 0) {
+      dirArg = mainArg;
+    } else {
+      dirArg = { $arg: mainArg };
+      for (const name of namedArgs) {
+        if (Object.has(dirValue, name)) {
+          dirArg[name] = dirValue[name];
+          delete dirValue[name];
+        }
+      }
+    }
+
     console.log('#### Directive %s: %o', dirName, path);
 
     const instance = new dirClass(this, path, dirArg, dirValue);
