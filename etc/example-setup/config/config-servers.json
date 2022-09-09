@@ -13,7 +13,7 @@
     "hosts":      ["*"],
     "interface":  "*",
     "port":       8081,
-    "protocol":   "http",
+    "protocol":   "http"
   },
   {
     "name":       "secure",
