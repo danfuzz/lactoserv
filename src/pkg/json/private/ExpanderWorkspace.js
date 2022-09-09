@@ -6,6 +6,8 @@ import { JsonDirective } from '#x/JsonDirective';
 import { ManualPromise } from '@this/async';
 import { MustBe } from '@this/typey';
 
+import * as util from 'node:util';
+
 /**
  * Workspace for running an expansion set up by {@link JsonExpander}, including
  * code to do most of the work (other than what's defined by most directives).
@@ -448,45 +450,48 @@ export class ExpanderWorkspace {
    */
   #processObjectAsDirectiveIfPossible(item, entries) {
     const { pass, path, value, complete } = item;
-    const keys = Object.keys(value).sort();
 
-    // If there is a directive key, convert the element to a directive, and
-    // queue it up for the next pass. If any directives are found that don't
-    // accept additional bindings when this object _does_ have more bindings,
-    // note it for a possible error message at the end of this pass.
-    const unacceptableDirectives = [];
-    for (const k of keys) {
-      const directiveClass = this.#directives.get(k);
+    const badDirectives  = [];
+    const goodDirectives = [];
+
+    for (const [key] of entries) {
+      const directiveClass = this.#directives.get(key);
       if (directiveClass) {
-        if ((keys.length !== 1) && !directiveClass.ALLOW_OTHER_BINDINGS) {
-          unacceptableDirectives.push(k);
-          continue;
+        if ((entries.length === 1) || directiveClass.ALLOW_OTHER_BINDINGS) {
+          goodDirectives.push(directiveClass);
+        } else {
+          badDirectives.push(key);
         }
-      } else {
-        continue;
       }
-
-      const dirArg   = value[k];
-      const dirValue = { ...value };
-      delete dirValue[k];
-      console.log('#### Directive %s: %o', k, path);
-      const directive = new directiveClass(this, path, dirArg, dirValue);
-      this.#addToNextQueue({
-        pass: pass + 1,
-        path,
-        value: directive,
-        complete
-      });
-
-      return true;
     }
 
-    if (unacceptableDirectives.length !== 0) {
-      const names = unacceptableDirectives.join(', ');
-      throw new Error(`Cannot take additional bindings: ${names}`);
+    if (goodDirectives.length === 0) {
+      if (badDirectives.length !== 0) {
+        const names   = badDirectives.join(', ');
+        const pathStr = util.format('%O', path);
+        throw new Error(`Additional bindings not allowed for ${names} at: ${pathStr}`);
+      }
+      return false;
     }
 
-    return false;
+    // For consistency in execution, if there are multiple good directives,
+    // pick the one which is alphabetically earliest.
+    const dirClass = goodDirectives.sort((a, b) => (a.NAME < b.NAME) ? -1 : 1)[0];
+    const dirName  = dirClass.NAME;
+    const dirArg   = value[dirName];
+    const dirValue = { ...value };
+    delete dirValue[dirName];
+    console.log('#### Directive %s: %o', dirName, path);
+
+    const instance = new dirClass(this, path, dirArg, dirValue);
+    this.#addToNextQueue({
+      pass: pass + 1,
+      path,
+      value: instance,
+      complete
+    });
+
+    return true;
   }
 
   /**
