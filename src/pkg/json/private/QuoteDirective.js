@@ -49,6 +49,6 @@ export class QuoteDirective extends JsonDirective {
 
   /** @override */
   static get REQUIRES() {
-    return Object.freeze([]);
+    return [];
   }
 }

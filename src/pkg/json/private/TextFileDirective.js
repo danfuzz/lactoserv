@@ -71,6 +71,6 @@ export class TextFileDirective extends JsonDirective {
 
   /** @override */
   static get REQUIRES() {
-    return Object.freeze(['$baseDir']);
+    return ['$baseDir'];
   }
 }

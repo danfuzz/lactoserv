@@ -64,6 +64,6 @@ export class RefDirective extends JsonDirective {
 
   /** @override */
   static get REQUIRES() {
-    return Object.freeze(['$defs']);
+    return ['$defs'];
   }
 }

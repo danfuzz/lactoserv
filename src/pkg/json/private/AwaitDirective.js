@@ -59,6 +59,6 @@ export class AwaitDirective extends JsonDirective {
 
   /** @override */
   static get REQUIRES() {
-    return Object.freeze([]);
+    return [];
   }
 }

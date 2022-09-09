@@ -110,7 +110,7 @@ export class DefsDirective extends JsonDirective {
 
   /** @override */
   static get REQUIRES() {
-    return Object.freeze([]);
+    return [];
   }
 
   /**
