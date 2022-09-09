@@ -286,15 +286,8 @@ export class ExpanderWorkspace {
    *
    * @param {{pass, path, value: *[], complete}} item Item to process.
    */
-  #processArray(item) {
+  #processNonEmptyArray(item) {
     const { pass, path, value, complete } = item;
-
-    if (value.length === 0) {
-      // Empty array! Resolve as a special case here, to avoid having to chain
-      // the `complete` function.
-      complete('resolve', item.value);
-      return;
-    }
 
     const result = [];
     const deletions = [];
@@ -494,13 +487,19 @@ export class ExpanderWorkspace {
     } else if (value instanceof JsonDirective) {
       this.#processDirective(item);
     } else if (value instanceof Array) {
-      this.#processArray(item);
+      if (value.length === 0) {
+        // Empty array: Resolve as a special case here, to avoid a lot of
+        // unnecessary work and to avoid putting other special cases in the
+        // code in much trickier locations.
+        complete('resolve', []);
+      } else {
+        this.#processNonEmptyArray(item);
+      }
     } else {
       const entries = Object.entries(item.value);
       if (entries.length === 0) {
-        // Empty object! Resolve as a special case here, to avoid a lot of
-        // unnecessary work and to avoid putting other special cases in the
-        // code in much trickier locations.
+        // Empty object: Resolve as a special case here; same rationale as for
+        // empty arrays above.
         complete('resolve', {});
       } else {
         this.#processNonEmptyObject(item, entries);
