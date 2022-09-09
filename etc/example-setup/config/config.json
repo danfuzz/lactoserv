@@ -1,16 +1,16 @@
 {
   "hosts": {
-    "$readFile": "./config-hosts.json"
+    "$readFile": "./config-hosts.json",
     "type":      "json"
   },
 
   "servers": {
-    "$readFile": "./config-servers.json"
+    "$readFile": "./config-servers.json",
     "type":      "json"
   },
 
   "apps": {
-    "$readFile": "./config-apps.json"
+    "$readFile": "./config-apps.json",
     "type":      "json"
   }
 }
