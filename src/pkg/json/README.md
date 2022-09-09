@@ -79,6 +79,31 @@ See `$ref` for details about how this directive gets used.
 }
 ```
 
+### `{ $quote: <value> }`
+
+This quotes a value literally, preventing any expansion to be done in the value.
+It's useful if one needs to represent data that _might_ (or definitely _does_)
+contain bindings that would otherwise be recognized as directives, in a context
+where that recognition is undesirable.
+
+```json
+{
+  "$quote": {
+    "$ref": "Not really."
+  }
+}
+
+=>
+
+{
+  "$ref": "Not really."
+}
+```
+
+
+
+
+
 ### `{ $ref: "<path>" }`
 
 This is a reference to a definition from a `$defs` directive. `<path>` must

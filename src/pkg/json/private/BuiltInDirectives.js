@@ -5,6 +5,7 @@ import { AwaitDirective } from '#p/AwaitDirective';
 import { BaseDirDirective } from '#p/BaseDirDirective';
 import { DefsDirective } from '#p/DefsDirective';
 import { JsonDirective } from '#x/JsonDirective';
+import { QuoteDirective } from '#p/QuoteDirective';
 import { RefDirective } from '#p/RefDirective';
 import { TextFileDirective } from '#p/TextFileDirective';
 import { ValueDirective } from '#p/ValueDirective';
@@ -21,6 +22,7 @@ export class BuiltInDirectives {
     AwaitDirective,
     BaseDirDirective,
     DefsDirective,
+    QuoteDirective,
     RefDirective,
     TextFileDirective,
     ValueDirective);
