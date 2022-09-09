@@ -250,8 +250,9 @@ progress-msg 'Copying script binaries...'
 # Copy over the example setup.
 progress-msg 'Copying example setup...'
 (
-    rm -rf "${outDir}/example-setup"
-    cp -r "${etcDir}/example-setup" "${outDir}"
+    rm -rf "${outDir}/etc/example-setup"
+    mkdir -p "${outDir}/etc"
+    cp -r "${etcDir}/example-setup" "${outDir}/etc"
 ) \
 || exit "$?"
 
