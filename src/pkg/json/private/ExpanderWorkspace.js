@@ -503,7 +503,7 @@ export class ExpanderWorkspace {
     } else {
       dirArg = { $arg: mainArg };
       for (const name of namedArgs) {
-        if (Object.has(dirValue, name)) {
+        if (Object.hasOwn(dirValue, name)) {
           dirArg[name] = dirValue[name];
           delete dirValue[name];
         }
