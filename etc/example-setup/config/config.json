@@ -1,41 +1,16 @@
 {
   "hosts": {
     "$readFile": "./config-hosts.json"
-    "type:"      "json"
+    "type":      "json"
   },
 
   "servers": {
     "$readFile": "./config-servers.json"
-    "type:"      "json"
+    "type":      "json"
   },
 
   "apps": {
     "$readFile": "./config-apps.json"
-    "type:"      "json"
+    "type":      "json"
   }
 }
-
-      apps: [
-        {
-          name:      'my-wacky-redirector',
-          mounts:    [{ $ref: '#/$defs/wildcardTopMount' }],
-          type:      'redirect-server',
-          redirects: [
-            {
-              fromPath: '/',
-              toUri:    'https://milk.com/boop/'
-            }
-          ]
-        },
-        {
-          name: 'my-static-fun',
-          mount: { $ref: '#/$defs/wildcardTopMount' },
-          type: 'static-server',
-          assetsPath
-        }
-      ],
-      // Just for testing / example
-      $defs: {
-        wildcardTopMount: '//*/'
-      }
-    };
