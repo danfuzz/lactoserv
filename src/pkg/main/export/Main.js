@@ -140,6 +140,8 @@ export class Main {
       },
       c: { $ref: '#/$defs/boop' },
       d: { $ref: '#/$defs/beep' },
+      e: [[], {}, null, false, ''],
+      yes: { $quote: { $ref: 'not-a-ref' } },
       $defs: {
         boop: 'BOOP!',
         beep: ['beep', 'beep']
@@ -148,8 +150,9 @@ export class Main {
     };
     const testJson4 = {
       yo: { $await: () => 'hello' },
-      wow: { $textFile: './florp.txt' },
-      whee: { $textFile: './florp.txt' },
+      wow1: { $textFile: './florp.txt', type: 'text' },
+      wow2: { $textFile: './florp.json', type: 'rawJson' },
+      wow3: { $textFile: './florp.json', type: 'json' },
       zomg: [1, 2, 3, { $textFile: './florp.txt' }, { $ref: '#/$defs/yay' }],
       $defs: {
         yay: 'YAY!!'
@@ -160,7 +163,7 @@ export class Main {
         hi: 'HI'
       },
       $value: [1, 2, 3, { $ref: '#/$defs/hi' }]
-    }
+    };
     const testJx = new JsonExpander('.');
     //const testResult = testJx.expand(testJson4);
     const testResult = await testJx.expandAsync(testJson4);
