@@ -16,8 +16,7 @@ export class Main {
   /**
    * Runs the system, based on the given command-line arguments.
    *
-   * @param {string[]} args_unused Command-line arguments to parse and act
-   *   upon.
+   * @param {string[]} args_unused Command-line arguments to parse and act upon.
    * @returns {number} Process exit code.
    */
   static async run(args_unused) {
