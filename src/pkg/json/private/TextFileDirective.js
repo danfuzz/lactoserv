@@ -71,7 +71,9 @@ export class TextFileDirective extends JsonDirective {
 
     switch (this.#fileType) {
       case TYPE_JSON: {
-        throw new Error(`Can't yet handle type ${this.#fileType}.`);
+        const json     = JSON.parse(await textPromise);
+        const baseDir  = Path.resolve(this.#filePath, '..');
+        return this.#workspace.subExpandAsync(json, baseDir);
       }
       case TYPE_RAW_JSON: {
         return JSON.parse(await textPromise);
