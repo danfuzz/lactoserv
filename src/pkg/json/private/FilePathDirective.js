@@ -37,7 +37,7 @@ export class FilePathDirective extends JsonDirective {
       return {
         action: 'resolve',
         value:  Path.resolve(filePath)
-      }
+      };
     } else {
       // It's a relative path, so we need to get the base directory.
       const baseDir = BaseDirDirective.getDir(this.#workspace);
@@ -49,7 +49,7 @@ export class FilePathDirective extends JsonDirective {
       return {
         action: 'resolve',
         value:  Path.resolve(baseDir, filePath)
-      }
+      };
     }
   }
 

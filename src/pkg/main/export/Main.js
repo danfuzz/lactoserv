@@ -5,9 +5,7 @@ import { Warehouse } from '@this/app-servers';
 import { JsonExpander } from '@this/json';
 import { Dirs } from '@this/util-host';
 
-import * as fs from 'node:fs/promises';
 import * as timers from 'node:timers/promises';
-import * as url from 'node:url';
 
 /**
  * Top-level logic for starting a server.
