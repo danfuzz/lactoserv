@@ -79,6 +79,48 @@ See `$ref` for details about how this directive gets used.
 }
 ```
 
+### `{ $quote: <value> }`
+
+This quotes a value literally, preventing any expansion to be done in the value.
+It's useful if one needs to represent data that _might_ (or definitely _does_)
+contain bindings that would otherwise be recognized as directives, in a context
+where that recognition is undesirable.
+
+```json
+{
+  "$quote": {
+    "$ref": "Not really."
+  }
+}
+
+=>
+
+{
+  "$ref": "Not really."
+}
+```
+
+### `{ $readFile: "<path>", ?type: "<type>" }`
+
+This provides a way to include the contents of another file as an expanded
+value. `<path>` is a filesystem path, which is expected to point at a regular
+file (an existing non-directory). If `<path>` is relative, it is resolved
+against the base directory specified by a top-level `$baseDir` directive (which
+must in fact be included in the original value to be expanded).
+
+The optional `type` binding specifies the type of the file (affecting its
+processing):
+
+* `text` (the default) -- The file is simply read as text. A string of its
+  contents is the expanded result.
+* `json` -- The file is parsed as JSON. The parsed JSON value is then expanded
+  in a fresh environment configured with the same directives, but with an
+  implied `$baseDir` that refers to the director that the file is in.
+* `rawJson` -- The file is parsed as JSON. The parsed JSON value (with no
+  further processing) is the expanded result.
+
+**Note:** This directive always operates asynchronously.
+
 ### `{ $ref: "<path>" }`
 
 This is a reference to a definition from a `$defs` directive. `<path>` must
@@ -104,16 +146,6 @@ and when there is an actual need.
   "a": [1, 2, 3, "florp"]
 }
 ```
-
-### `{ $textFile: "<path>" }`
-
-This provides a way to include the text contents of another file as an expanded
-value. `<path>` is a filesystem path, which is expected to point at a regular
-file (an existing non-directory). If `<path>` is relative, it is resolved
-against the base directory specified by a top-level `$baseDir` directive (which
-must in fact be included in the original value to be expanded).
-
-**Note:** This directive always operates asynchronously.
 
 ### `{ $value: <value> }`
 

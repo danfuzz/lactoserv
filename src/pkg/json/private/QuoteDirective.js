@@ -4,9 +4,9 @@
 import { JsonDirective } from '#x/JsonDirective';
 
 /**
- * Directive `$value`. See the package README for more details.
+ * Directive `$quote`. See the package README for more details.
  */
-export class ValueDirective extends JsonDirective {
+export class QuoteDirective extends JsonDirective {
   /**
    * @type {object} The processing action to be reported back to the workspace.
    */
@@ -17,7 +17,7 @@ export class ValueDirective extends JsonDirective {
     super(workspace, path, dirArg, dirValue);
 
     this.#actionResult = {
-      action: 'again',
+      action: 'resolve',
       value:  dirArg
     };
   }
@@ -39,7 +39,7 @@ export class ValueDirective extends JsonDirective {
 
   /** @override */
   static get NAME() {
-    return '$value';
+    return '$quote';
   }
 
   /** @override */

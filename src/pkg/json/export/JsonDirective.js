@@ -15,8 +15,11 @@ export class JsonDirective {
    *
    * @param {ExpanderWorkspace} workspace Associated workspace.
    * @param {string} path Path within the result where this directive resides.
-   * @param {*} dirArg Directive argument. This is the `arg` in `{ $directive:
-   *   arg }`.
+   * @param {*} dirArg Directive argument. If the directive has no named
+   *   arguments (see {@link #NAMED_ARGS}), this is just the `arg` in
+   *   `{ $directive: arg }`. If the directive _has_ named arguments, then this
+   *   is an object which binds `$arg` for the main argument, plus bindings for
+   *   any of the named arguments which are present.
    * @param {object} dirValue The object in which the directive appeared, minus
    *   the directive binding.
    */
@@ -65,10 +68,10 @@ export class JsonDirective {
   /**
    * @abstract
    * @returns {boolean} `false` if instances of this directive can only appear
-   *   in otherwise-empty objects, or `true` if other bindings can appear along
+   *   in otherwise-empty objects, or `true` if extra bindings can appear along
    *   side the directive binding.
    */
-  static get ALLOW_OTHER_BINDINGS() {
+  static get ALLOW_EXTRA_BINDINGS() {
     throw Methods.abstract();
   }
 
@@ -77,6 +80,15 @@ export class JsonDirective {
    * @returns {string} Name of this directive.
    */
   static get NAME() {
+    throw Methods.abstract();
+  }
+
+  /**
+   * @abstract
+   * @returns {string[]} Names of all the keys other than the directive itself
+   *   which are taken as arguments to the directive.
+   */
+  static get NAMED_ARGS() {
     throw Methods.abstract();
   }
 

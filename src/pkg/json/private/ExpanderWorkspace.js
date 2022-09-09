@@ -20,6 +20,9 @@ export class ExpanderWorkspace {
    */
   #directives = new Map();
 
+  /** @type {?string} Base directory for filesystem-using directives. */
+  #baseDir;
+
   /** @type {*} Original value being worked on. */
   #originalValue;
 
@@ -52,21 +55,22 @@ export class ExpanderWorkspace {
    *
    * @param {Map<string, function(new:JsonDirective)>} directives Map of
    *   directive classes.
+   * @param {?string} baseDir Base directory for filesystem-using directives.
    * @param {*} value Value to be worked on.
    */
-  constructor(directives, value) {
-    this.#directives    = directives;
-    this.#originalValue = value;
-  }
+  constructor(directives, baseDir, value) {
+    this.#directives = directives;
+    this.#baseDir    = baseDir;
 
-  /**
-   * Adds a directive _instance_.
-   *
-   * @param {string} name The name of the directive.
-   * @param {JsonDirective} directive The directive instance.
-   */
-  addDirective(name, directive) {
-    this.#directives.set(name, directive);
+    if ((baseDir !== null) && !value?.$baseDir) {
+      // No `$baseDir` in `value`. Provide the one passed in here.
+      value = {
+        $baseDir: baseDir,
+        $value:   value
+      };
+    }
+
+    this.#originalValue = value;
   }
 
   /**
@@ -145,6 +149,23 @@ export class ExpanderWorkspace {
   }
 
   /**
+   * Performs a "sub-expansion" asynchronously. This takes the given value and
+   * expands it in a fresh workspace configured just like this one.
+   *
+   * @param {*} value Value to expand.
+   * @param {?string} [baseDir = null] Base directory to use when expanding
+   *   filesystem-based directives, or `null` to "inherit" the value from this
+   *   instance (including possibly null).
+   * @returns {*} The result of expansion.
+   */
+  async subExpandAsync(value, baseDir = null) {
+    const workspace =
+      new ExpanderWorkspace(this.#directives, baseDir ?? this.#baseDir, value);
+
+    return workspace.expandAsync();
+  }
+
+  /**
    * Cleans up the instance state, after finishing an expansion (whether or not
    * successful).
    */
@@ -207,7 +228,6 @@ export class ExpanderWorkspace {
     if (item.pass > 10) {
       throw new Error('Expander deadlock.');
     }
-    //console.log('#### Queued next item: %o', item);
     this.#nextQueue.push(item);
   }
 
@@ -217,7 +237,6 @@ export class ExpanderWorkspace {
    * @param {{pass, path, value, complete}} item Item to add.
    */
   #addToWorkQueue(item) {
-    //console.log('#### Queued work item: %o', item);
     this.#workQueue.push(item);
   }
 
@@ -234,7 +253,6 @@ export class ExpanderWorkspace {
 
       this.#nextQueue.shift();
 
-      console.log('#### Waiting on: %o', item.path);
       const result = await item.value;
       item.complete('resolve', result);
     }
@@ -289,7 +307,6 @@ export class ExpanderWorkspace {
    * @param {{pass, path, value: JsonDirective, complete}} item Item to process.
    */
   #processDirective(item) {
-    //console.log('#### processing directive: %o', item);
     const { pass, path, value, complete } = item;
 
     const { action, await: isAwait, enqueue, value: result } = value.process();
@@ -329,7 +346,6 @@ export class ExpanderWorkspace {
       }
       case 'resolve': {
         if (isAwait) {
-          console.log('##### QUEUED AWAIT %o :: %o', path, result);
           this.#addToNextQueue({
             ...item,
             pass:  pass + 1,
@@ -455,12 +471,25 @@ export class ExpanderWorkspace {
     const goodDirectives = [];
 
     for (const [key] of entries) {
-      const directiveClass = this.#directives.get(key);
-      if (directiveClass) {
-        if ((entries.length === 1) || directiveClass.ALLOW_OTHER_BINDINGS) {
-          goodDirectives.push(directiveClass);
+      const dirClass = this.#directives.get(key);
+      if (dirClass) {
+        if ((entries.length === 1) || dirClass.ALLOW_EXTRA_BINDINGS) {
+          // The easy cases.
+          goodDirectives.push(dirClass);
         } else {
-          badDirectives.push(key);
+          // The hard case: The directive is good if there are no bindings other
+          // than itself and any named arguments.
+          let namedArgCount = 0;
+          for (const name of dirClass.NAMED_ARGS) {
+            if (Object.hasOwn(value, name)) {
+              namedArgCount++;
+            }
+          }
+          if (entries.length <= (namedArgCount + 1)) {
+            goodDirectives.push(dirClass);
+          } else {
+            badDirectives.push(key);
+          }
         }
       }
     }
@@ -476,11 +505,27 @@ export class ExpanderWorkspace {
 
     // For consistency in execution, if there are multiple good directives,
     // pick the one which is alphabetically earliest.
-    const dirClass = goodDirectives.sort((a, b) => (a.NAME < b.NAME) ? -1 : 1)[0];
-    const dirName  = dirClass.NAME;
-    const dirArg   = value[dirName];
-    const dirValue = { ...value };
+    const dirClass  = goodDirectives.sort((a, b) => (a.NAME < b.NAME) ? -1 : 1)[0];
+    const dirName   = dirClass.NAME;
+    const dirValue  = { ...value };
+    const mainArg   = value[dirName];
+    const namedArgs = dirClass.NAMED_ARGS;
+    let   dirArg;
+
+    // Set up `dirArg` and `dirValue`.
     delete dirValue[dirName];
+    if (namedArgs.length === 0) {
+      dirArg = mainArg;
+    } else {
+      dirArg = { $arg: mainArg };
+      for (const name of namedArgs) {
+        if (Object.hasOwn(dirValue, name)) {
+          dirArg[name] = dirValue[name];
+          delete dirValue[name];
+        }
+      }
+    }
+
     console.log('#### Directive %s: %o', dirName, path);
 
     const instance = new dirClass(this, path, dirArg, dirValue);

@@ -48,7 +48,7 @@ export class RefDirective extends JsonDirective {
   //
 
   /** @override */
-  static get ALLOW_OTHER_BINDINGS() {
+  static get ALLOW_EXTRA_BINDINGS() {
     return false;
   }
 
@@ -58,7 +58,12 @@ export class RefDirective extends JsonDirective {
   }
 
   /** @override */
+  static get NAMED_ARGS() {
+    return [];
+  }
+
+  /** @override */
   static get REQUIRES() {
-    return Object.freeze(['$defs']);
+    return ['$defs'];
   }
 }
