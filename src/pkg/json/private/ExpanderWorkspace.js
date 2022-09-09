@@ -6,6 +6,8 @@ import { JsonDirective } from '#x/JsonDirective';
 import { ManualPromise } from '@this/async';
 import { MustBe } from '@this/typey';
 
+import * as util from 'node:util';
+
 /**
  * Workspace for running an expansion set up by {@link JsonExpander}, including
  * code to do most of the work (other than what's defined by most directives).
@@ -282,59 +284,6 @@ export class ExpanderWorkspace {
   }
 
   /**
-   * Helper for {@link #processQueueItem}, which handles an array.
-   *
-   * @param {{pass, path, value: *[], complete}} item Item to process.
-   */
-  #processArray(item) {
-    const { pass, path, value, complete } = item;
-
-    if (value.length === 0) {
-      // Empty array! Resolve as a special case here, to avoid having to chain
-      // the `complete` function.
-      complete('resolve', item.value);
-      return;
-    }
-
-    const result = [];
-    const deletions = [];
-    let resultsRemaining = value.length;
-
-    const update = (idx, action, arg) => {
-      switch (action) {
-        case 'delete': {
-          deletions.push(idx);
-          break;
-        }
-        case 'resolve': {
-          result[idx] = arg;
-          break;
-        }
-        default: {
-          throw new Error(`Unrecognized completion action: ${action}`);
-        }
-      }
-
-      if (--resultsRemaining === 0) {
-        deletions.sort();
-        while (deletions.length !== 0) {
-          result.splice(deletions.pop(), 1);
-        }
-        complete('resolve', result);
-      }
-    };
-
-    for (let index = 0; index < value.length; index++) {
-      this.#addToWorkQueue({
-        pass,
-        path:     [...path, index],
-        value:    value[index],
-        complete: (...args) => update(index, ...args)
-      });
-    }
-  }
-
-  /**
    * Helper for {@link #processQueueItem}, which handles a directive instance.
    *
    * @param {{pass, path, value: JsonDirective, complete}} item Item to process.
@@ -399,61 +348,63 @@ export class ExpanderWorkspace {
   }
 
   /**
-   * Helper for {@link #processQueueItem}, which handles a plain object.
+   * Helper for {@link #processQueueItem}, which handles a non-empty array.
    *
-   * @param {{pass, path, value: object, complete}} item Item to process.
+   * @param {{pass, path, value: *[], complete}} item Item to process.
    */
-  #processObject(item) {
+  #processNonEmptyArray(item) {
     const { pass, path, value, complete } = item;
-    const keys = Object.keys(value).sort();
-
-    if (keys.length === 0) {
-      // Empty object! Resolve as a special case here, to avoid having to chain
-      // the `complete` function.
-      complete('resolve', item.value);
-      return;
-    }
-
-    // If there is a directive key, convert the element to a directive, and
-    // queue it up for the next pass. If any directives are found that don't
-    // accept additional bindings when this object _does_ have more bindings,
-    // note it for a possible error message at the end of this pass.
-    const unacceptableDirectives = [];
-    for (const k of keys) {
-      const directiveClass = this.#directives.get(k);
-      if (directiveClass) {
-        if ((keys.length !== 1) && !directiveClass.ALLOW_OTHER_BINDINGS) {
-          unacceptableDirectives.push(k);
-          continue;
-        }
-      } else {
-        continue;
-      }
-
-      const dirArg   = value[k];
-      const dirValue = { ...value };
-      delete dirValue[k];
-      console.log('#### Directive %s: %o', k, path);
-      const directive = new directiveClass(this, path, dirArg, dirValue);
-      this.#addToNextQueue({
-        pass: pass + 1,
-        path,
-        value: directive,
-        complete
-      });
-
-      return; // Don't _also_ queue up a regular object expansion.
-    }
-
-    if (unacceptableDirectives.length !== 0) {
-      const names = unacceptableDirectives.join(', ');
-      throw new Error(`Cannot take additional bindings: ${names}`);
-    }
-
-    // No directive; just queue up all bindings for regular conversion.
 
     const result = [];
-    let resultsRemaining = keys.length;
+    const deletions = [];
+    let resultsRemaining = value.length;
+
+    const update = (idx, action, arg) => {
+      switch (action) {
+        case 'delete': {
+          deletions.push(idx);
+          break;
+        }
+        case 'resolve': {
+          result[idx] = arg;
+          break;
+        }
+        default: {
+          throw new Error(`Unrecognized completion action: ${action}`);
+        }
+      }
+
+      if (--resultsRemaining === 0) {
+        deletions.sort();
+        while (deletions.length !== 0) {
+          result.splice(deletions.pop(), 1);
+        }
+        complete('resolve', result);
+      }
+    };
+
+    for (let index = 0; index < value.length; index++) {
+      this.#addToWorkQueue({
+        pass,
+        path:     [...path, index],
+        value:    value[index],
+        complete: (...args) => update(index, ...args)
+      });
+    }
+  }
+
+  /**
+   * Helper for {@link #processQueueItem}, which handles a non-empty plain
+   * object.
+   *
+   * @param {{pass, path, value: object, complete}} item Item to process.
+   * @param {*[][]} entries Result of `Object.entries(value)`.
+   */
+  #processNonEmptyObject(item, entries) {
+    const { pass, path, complete } = item;
+
+    const result = [];
+    let resultsRemaining = entries.length;
 
     const update = (key, action, arg) => {
       switch (action) {
@@ -477,14 +428,70 @@ export class ExpanderWorkspace {
       }
     };
 
-    for (const k of keys) {
+    for (const [key, value] of entries) {
       this.#addToWorkQueue({
         pass,
-        path:     [...path, k],
-        value:    value[k],
-        complete: (...args) => update(k, ...args)
+        path:     [...path, key],
+        value,
+        complete: (...args) => update(key, ...args)
       });
     }
+  }
+
+  /**
+   * Helper for {@link #processQueueItem}, which handles a non-empty plain
+   * object if it turns out to be in the form of a directive.
+   *
+   * @param {{pass, path, value: object, complete}} item Item to process.
+   * @param {*[][]} entries Result of `Object.entries(value)`.
+   * @returns {boolean} `true` if this method in fact handled the object, or
+   *   `false` if not.
+   * @throws {Error} Thrown if the object is a problematic directive form.
+   */
+  #processObjectAsDirectiveIfPossible(item, entries) {
+    const { pass, path, value, complete } = item;
+
+    const badDirectives  = [];
+    const goodDirectives = [];
+
+    for (const [key] of entries) {
+      const directiveClass = this.#directives.get(key);
+      if (directiveClass) {
+        if ((entries.length === 1) || directiveClass.ALLOW_OTHER_BINDINGS) {
+          goodDirectives.push(directiveClass);
+        } else {
+          badDirectives.push(key);
+        }
+      }
+    }
+
+    if (goodDirectives.length === 0) {
+      if (badDirectives.length !== 0) {
+        const names   = badDirectives.join(', ');
+        const pathStr = util.format('%O', path);
+        throw new Error(`Additional bindings not allowed for ${names} at: ${pathStr}`);
+      }
+      return false;
+    }
+
+    // For consistency in execution, if there are multiple good directives,
+    // pick the one which is alphabetically earliest.
+    const dirClass = goodDirectives.sort((a, b) => (a.NAME < b.NAME) ? -1 : 1)[0];
+    const dirName  = dirClass.NAME;
+    const dirArg   = value[dirName];
+    const dirValue = { ...value };
+    delete dirValue[dirName];
+    console.log('#### Directive %s: %o', dirName, path);
+
+    const instance = new dirClass(this, path, dirArg, dirValue);
+    this.#addToNextQueue({
+      pass: pass + 1,
+      path,
+      value: instance,
+      complete
+    });
+
+    return true;
   }
 
   /**
@@ -500,9 +507,23 @@ export class ExpanderWorkspace {
     } else if (value instanceof JsonDirective) {
       this.#processDirective(item);
     } else if (value instanceof Array) {
-      this.#processArray(item);
+      if (value.length === 0) {
+        // Empty array: Resolve as a special case here, to avoid a lot of
+        // unnecessary work and to avoid putting other special cases in the
+        // code in much trickier locations.
+        complete('resolve', []);
+      } else {
+        this.#processNonEmptyArray(item);
+      }
     } else {
-      this.#processObject(item);
+      const entries = Object.entries(item.value);
+      if (entries.length === 0) {
+        // Empty object: Resolve as a special case here; same rationale as for
+        // empty arrays above.
+        complete('resolve', {});
+      } else if (!this.#processObjectAsDirectiveIfPossible(item, entries)) {
+        this.#processNonEmptyObject(item, entries);
+      }
     }
   }
 }
