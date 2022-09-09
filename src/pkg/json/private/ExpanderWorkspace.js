@@ -399,11 +399,10 @@ export class ExpanderWorkspace {
    * @param {[string, *][]} entries Result of `Object.entries(value)`.
    */
   #processNonEmptyObject(item, entries) {
-    const { pass, path, value, complete } = item;
-    const keys = Object.keys(value).sort();
+    const { pass, path, complete } = item;
 
     const result = [];
-    let resultsRemaining = keys.length;
+    let resultsRemaining = entries.length;
 
     const update = (key, action, arg) => {
       switch (action) {
@@ -427,12 +426,12 @@ export class ExpanderWorkspace {
       }
     };
 
-    for (const k of keys) {
+    for (const [key, value] of entries) {
       this.#addToWorkQueue({
         pass,
-        path:     [...path, k],
-        value:    value[k],
-        complete: (...args) => update(k, ...args)
+        path:     [...path, key],
+        value,
+        complete: (...args) => update(key, ...args)
       });
     }
   }
