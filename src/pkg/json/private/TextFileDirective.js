@@ -10,6 +10,11 @@ import { MustBe } from '@this/typey';
 import * as fs from 'node:fs/promises';
 import * as Path from 'node:path';
 
+// File type constants.
+/** @type {string} */ const TYPE_JSON     = 'json';
+/** @type {string} */ const TYPE_RAW_JSON = 'rawJson';
+/** @type {string} */ const TYPE_TEXT     = 'text';
+
 /**
  * Directive `$textFile`. See the package README for more details.
  */
@@ -20,13 +25,22 @@ export class TextFileDirective extends JsonDirective {
   /** @type {string} The (possibly-relative) file path. */
   #filePath;
 
+  /** @type {string} The file type. */
+  #fileType;
+
   /** @override */
   constructor(workspace, path, dirArg, dirValue) {
-    MustBe.string(dirArg);
+    MustBe.string(dirArg.$arg);
     super(workspace, path, dirArg, dirValue);
 
+    const type = dirArg.type ?? 'text';
+    if (!TextFileDirective.#FILE_TYPES.has(type)) {
+      throw new Error(`Unrecognized file type: ${type}`);
+    }
+
     this.#workspace = workspace;
-    this.#filePath  = dirArg;
+    this.#filePath  = dirArg.$arg;
+    this.#fileType  = type;
   }
 
   /** @override */
@@ -44,15 +58,31 @@ export class TextFileDirective extends JsonDirective {
 
     return {
       action: 'resolve',
-      value:  fs.readFile(this.#filePath, 'utf-8'),
+      value:  this.#readAndProcess(),
       await:  true
     };
+  }
+
+  /**
+   * Main implementation of file reading and (sometimes) parsing.
+   */
+  async #readAndProcess() {
+    const text = fs.readFile(this.#filePath, 'utf-8');
+
+    if (this.#fileType === TYPE_TEXT) {
+      return text;
+    }
+
+    // TODO!
+    throw new Error(`Can't yet handle type ${this.#fileType}.`);
   }
 
 
   //
   // Static members
   //
+
+  static #FILE_TYPES = new Set([TYPE_JSON, TYPE_RAW_JSON, TYPE_TEXT]);
 
   /** @override */
   static get ALLOW_EXTRA_BINDINGS() {
@@ -66,7 +96,7 @@ export class TextFileDirective extends JsonDirective {
 
   /** @override */
   static get NAMED_ARGS() {
-    return [];
+    return ['type'];
   }
 
   /** @override */
