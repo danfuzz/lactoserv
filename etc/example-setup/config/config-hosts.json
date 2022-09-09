@@ -1,0 +1,7 @@
+[
+  {
+    "names": ["localhost", "*"],
+    "cert":  { "$readFile": "./localhost-cert.pem" },
+    "key":   { "$readFile": "./localhost-key.pem" }
+  }
+]

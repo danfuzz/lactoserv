@@ -64,6 +64,26 @@ export class ReadFileDirective extends JsonDirective {
   }
 
   /**
+   * Parses the given promised JSON, and wraps any parse errors.
+   *
+   * @param {Promise<string>} textPromise Promise for the text to parse.
+   * @returns {*} Parsed result.
+   * @throws {Error} Thrown if there is any reading or parsing problem.
+   */
+  async #parseJson(textPromise) {
+    const text = await textPromise;
+
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      throw new Error(
+        `Problem parsing JSON from file: ${this.#filePath}`,
+        { cause: e }
+      );
+    }
+  }
+
+  /**
    * Main implementation of file reading and (sometimes) parsing.
    */
   async #readAndProcess() {
@@ -71,12 +91,12 @@ export class ReadFileDirective extends JsonDirective {
 
     switch (this.#fileType) {
       case TYPE_JSON: {
-        const json     = JSON.parse(await textPromise);
+        const json     = await this.#parseJson(textPromise);
         const baseDir  = Path.resolve(this.#filePath, '..');
         return this.#workspace.subExpandAsync(json, baseDir);
       }
       case TYPE_RAW_JSON: {
-        return JSON.parse(await textPromise);
+        return this.#parseJson(textPromise);
       }
       case TYPE_TEXT: {
         return textPromise;

@@ -79,6 +79,14 @@ See `$ref` for details about how this directive gets used.
 }
 ```
 
+### `{ $filePath: "<path>" }`
+
+This resolves a filesystem path to an absolute path. If `<path>` is relative, it
+is resolved against the base directory specified by a top-level `$baseDir`
+directive (which must in fact be included in the original value to be expanded).
+If `<path>` is absolute, then it is just resolved to a form without `.` or `..`
+components.
+
 ### `{ $quote: <value> }`
 
 This quotes a value literally, preventing any expansion to be done in the value.

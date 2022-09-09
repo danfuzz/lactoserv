@@ -38,8 +38,8 @@ import { ApplicationManager } from '#p/ApplicationManager';
  */
 export class ServerManager {
   /**
-   * @type {Map<string, ServerController>} Map from each hostname / wildcard to
-   * the {@link ServerController} object that should be used for it.
+   * @type {Map<string, ServerController>} Map from each server name to the
+   * {@link ServerController} object with that name.
    */
   #controllers = new Map();
 
@@ -75,6 +75,15 @@ export class ServerManager {
     }
 
     return controller;
+  }
+
+  /**
+   * Gets a list of all controllers managed by this instance.
+   *
+   * @returns {ServerController[]} All the controllers.
+   */
+  getAll() {
+    return [...this.#controllers.values()];
   }
 
   /**

@@ -238,11 +238,21 @@ lib make-localhost-cert \
 # Copy over the script binaries.
 progress-msg 'Copying script binaries...'
 (
+    rm -rf "${outDir}/bin"
     mkdir -p "${outDir}/bin"
     cd "${etcDir}/bin-src"
-    find . -type f \
+    find . -type f '!' -name '*.md' \
         -exec cp '{}' "${outDir}/bin/{}" ';' \
         -exec chmod 755 "${outDir}/bin/{}" ';'
+) \
+|| exit "$?"
+
+# Copy over the example setup.
+progress-msg 'Copying example setup...'
+(
+    rm -rf "${outDir}/etc/example-setup"
+    mkdir -p "${outDir}/etc"
+    cp -r "${etcDir}/example-setup" "${outDir}/etc"
 ) \
 || exit "$?"
 
