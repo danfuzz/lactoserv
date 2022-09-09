@@ -228,7 +228,6 @@ export class ExpanderWorkspace {
     if (item.pass > 10) {
       throw new Error('Expander deadlock.');
     }
-    //console.log('#### Queued next item: %o', item);
     this.#nextQueue.push(item);
   }
 
@@ -238,7 +237,6 @@ export class ExpanderWorkspace {
    * @param {{pass, path, value, complete}} item Item to add.
    */
   #addToWorkQueue(item) {
-    //console.log('#### Queued work item: %o', item);
     this.#workQueue.push(item);
   }
 
@@ -255,7 +253,6 @@ export class ExpanderWorkspace {
 
       this.#nextQueue.shift();
 
-      console.log('#### Waiting on: %o', item.path);
       const result = await item.value;
       item.complete('resolve', result);
     }
@@ -310,7 +307,6 @@ export class ExpanderWorkspace {
    * @param {{pass, path, value: JsonDirective, complete}} item Item to process.
    */
   #processDirective(item) {
-    //console.log('#### processing directive: %o', item);
     const { pass, path, value, complete } = item;
 
     const { action, await: isAwait, enqueue, value: result } = value.process();
@@ -350,7 +346,6 @@ export class ExpanderWorkspace {
       }
       case 'resolve': {
         if (isAwait) {
-          console.log('##### QUEUED AWAIT %o :: %o', path, result);
           this.#addToNextQueue({
             ...item,
             pass:  pass + 1,
