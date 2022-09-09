@@ -402,44 +402,6 @@ export class ExpanderWorkspace {
     const { pass, path, value, complete } = item;
     const keys = Object.keys(value).sort();
 
-    // If there is a directive key, convert the element to a directive, and
-    // queue it up for the next pass. If any directives are found that don't
-    // accept additional bindings when this object _does_ have more bindings,
-    // note it for a possible error message at the end of this pass.
-    const unacceptableDirectives = [];
-    for (const k of keys) {
-      const directiveClass = this.#directives.get(k);
-      if (directiveClass) {
-        if ((keys.length !== 1) && !directiveClass.ALLOW_OTHER_BINDINGS) {
-          unacceptableDirectives.push(k);
-          continue;
-        }
-      } else {
-        continue;
-      }
-
-      const dirArg   = value[k];
-      const dirValue = { ...value };
-      delete dirValue[k];
-      console.log('#### Directive %s: %o', k, path);
-      const directive = new directiveClass(this, path, dirArg, dirValue);
-      this.#addToNextQueue({
-        pass: pass + 1,
-        path,
-        value: directive,
-        complete
-      });
-
-      return; // Don't _also_ queue up a regular object expansion.
-    }
-
-    if (unacceptableDirectives.length !== 0) {
-      const names = unacceptableDirectives.join(', ');
-      throw new Error(`Cannot take additional bindings: ${names}`);
-    }
-
-    // No directive; just queue up all bindings for regular conversion.
-
     const result = [];
     let resultsRemaining = keys.length;
 
@@ -476,6 +438,59 @@ export class ExpanderWorkspace {
   }
 
   /**
+   * Helper for {@link #processQueueItem}, which handles a non-empty plain
+   * object if it turns out to be in the form of a directive.
+   *
+   * @param {{pass, path, value: object, complete}} item Item to process.
+   * @param {[string, *][]} entries Result of `Object.entries(value)`.
+   * @returns {boolean} `true` if this method in fact handled the object, or
+   *   `false` if not.
+   * @throws {Error} Thrown if the object is a problematic directive form.
+   */
+  #processObjectAsDirectiveIfPossible(item, entries) {
+    const { pass, path, value, complete } = item;
+    const keys = Object.keys(value).sort();
+
+    // If there is a directive key, convert the element to a directive, and
+    // queue it up for the next pass. If any directives are found that don't
+    // accept additional bindings when this object _does_ have more bindings,
+    // note it for a possible error message at the end of this pass.
+    const unacceptableDirectives = [];
+    for (const k of keys) {
+      const directiveClass = this.#directives.get(k);
+      if (directiveClass) {
+        if ((keys.length !== 1) && !directiveClass.ALLOW_OTHER_BINDINGS) {
+          unacceptableDirectives.push(k);
+          continue;
+        }
+      } else {
+        continue;
+      }
+
+      const dirArg   = value[k];
+      const dirValue = { ...value };
+      delete dirValue[k];
+      console.log('#### Directive %s: %o', k, path);
+      const directive = new directiveClass(this, path, dirArg, dirValue);
+      this.#addToNextQueue({
+        pass: pass + 1,
+        path,
+        value: directive,
+        complete
+      });
+
+      return true;
+    }
+
+    if (unacceptableDirectives.length !== 0) {
+      const names = unacceptableDirectives.join(', ');
+      throw new Error(`Cannot take additional bindings: ${names}`);
+    }
+
+    return false;
+  }
+
+  /**
    * Processes an item which had been placed on {@link #workQueue}.
    *
    * @param {{pass, path, value: *, complete}} item Item to process.
@@ -502,7 +517,7 @@ export class ExpanderWorkspace {
         // Empty object: Resolve as a special case here; same rationale as for
         // empty arrays above.
         complete('resolve', {});
-      } else {
+      } else if (!this.#processObjectAsDirectiveIfPossible(item, entries)) {
         this.#processNonEmptyObject(item, entries);
       }
     }
