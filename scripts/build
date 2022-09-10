@@ -266,8 +266,9 @@ progress-msg 'Copying top-level code...'
 (
     mkdir -p "${outCodeDir}"
     cd "${srcDir}"
-    find . -name pkg -prune -o -type f -name '*.js' -exec \
-        cp '{}' "${outCodeDir}/{}" ';'
+    find . -name pkg -prune -o -type f \
+        '(' -name '*.js' -o -name '*.mjs' ')' \
+        -exec cp '{}' "${outCodeDir}/{}" ';'
 ) \
 || exit "$?"
 
