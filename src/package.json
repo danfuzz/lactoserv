@@ -9,5 +9,9 @@
   },
 
   "type": "module",
-  "main": "index.js"
+  "main": "index.js",
+
+  "devDependencies": {
+    "jest": "^29.0.2"
+  }
 }
