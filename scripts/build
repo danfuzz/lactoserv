@@ -325,8 +325,8 @@ suspectFiles="$(
             -name '*.js' -o -name '*.json' -o -name '*.html' -o -name '*.md' \
         ')' \
         -exec file '{}' ';' \
-    | grep -Ev 'ASCII|JSON|UTF-8|empty' \
-    | awk '{ sub(/^\.\//, "  "); sub(/: .*$/, ""); print; }'
+    | grep -Ev 'ASCII|JSON|PNG|UTF-8|empty|short file' \
+    | awk '{ sub(/^\.\//, "  "); sub(/:[ \t].*$/, ""); print; }'
 )"
 if [[ ${suspectFiles} != '' ]]; then
     error-msg 'Files possibly containing platform-specific binaries:'
