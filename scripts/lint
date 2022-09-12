@@ -39,8 +39,8 @@ opt-action --call='{ usage }' help/h
 # Built output directory.
 opt-value --var=outDir out
 
-# Arbitrary linter args.
-rest-arg --var=lintArgs lint-args
+# Arbitrary args to pass to the tool.
+rest-arg --var=args args
 
 process-args "$@" || usage "$?"
 
@@ -98,9 +98,9 @@ if (( ${#configFile[@]} != 1 )); then
     exit 1
 fi
 
-if (( ${#lintArgs[@]} == 0 )); then
+if (( ${#args[@]} == 0 )); then
     # Run over all of source by default.
-    lintArgs=("${srcDir}")
+    args=("${srcDir}")
 fi
 
 "${toolBinary}" \
@@ -108,7 +108,7 @@ fi
     --resolve-plugins-relative-to "${toolDir}" \
     --cache --cache-location "${toolDir}/cache" \
     --max-warnings 0 \
-    -- "${lintArgs[@]}"
+    -- "${args[@]}"
 status="$?"
 
 info-msg
