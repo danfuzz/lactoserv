@@ -5,8 +5,10 @@
 
 . "$(dirname "$(readlink -f "$0")")/lib/init.sh" || exit "$?"
 
-ESLINT_VERSION='8.22.0'
-JSDOC_VERSION='39.3.6'
+TOOL_DEPENDENCIES='{
+    "eslint": "^8.22.0",
+    "eslint-plugin-jsdoc": "^39.3.6"
+}'
 
 
 #
@@ -47,21 +49,15 @@ process-args "$@" || usage "$?"
 # Helper functions
 #
 
-# Builds the linter.
-function build-lint {
+# Builds the tool.
+function build-tool {
     local name="$1"
 
     rm -rf node_modules "${name}" *.json
 
     jval >package.json \
-        eslintVersion="${ESLINT_VERSION}" \
-        jsdocVersion="${JSDOC_VERSION}" \
-        '{
-            dependencies: {
-                "eslint": ("^" + $eslintVersion),
-                "eslint-plugin-jsdoc": ("^" + $jsdocVersion)
-            }
-        }'
+        dependencies:json="${TOOL_DEPENDENCIES}" \
+        '{ dependencies: $dependencies }'
 
     npm install \
     || return "$?"
@@ -86,7 +82,7 @@ lintBinary="${lintDir}/${lintBinName}"
 if [[ ! -x ${lintBinary} ]]; then
     mkdir -p "${lintDir}"
     cd "${lintDir}"
-    build-lint "${lintBinName}" \
+    build-tool "${lintBinName}" \
     || exit "$?"
 fi
 
