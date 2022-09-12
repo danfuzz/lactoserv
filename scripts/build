@@ -18,8 +18,6 @@ function usage {
 
     --clean
       Do a clean build.
-    --dev
-      Do a dev build (suitable for running tests).
     --out=<dir>
       Directory where built output goes. Defaults to `out` directly under the
       main product directory.
@@ -36,9 +34,6 @@ opt-action --call='{ usage }' help/h
 
 # Clean build?
 opt-toggle --var=doClean clean
-
-# Dev (testing) build?
-opt-toggle --var=doDev dev
 
 # Built output directory.
 opt-value --var=outDir out
@@ -308,12 +303,8 @@ jget >"${outCodeDir}/package.json" \
 
 progress-msg 'Fetching and installing dependencies...'
 
-npmOpts=(--no-fund)
-if (( !doDev )); then
-    npmOpts+=(--omit=dev)
-fi
-
 cd "${outCodeDir}"
+npmOpts=(--no-fund --omit=dev)
 npm install "${npmOpts[@]}" \
 || exit "$?"
 
