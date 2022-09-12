@@ -98,10 +98,7 @@ mkdir -p "${testsDir}"
 cd "${testsDir}"
 rm -rf node_modules
 ln -s ../code/node_modules .
-cat >package.json <<<'
-{
-    "type": "module"
-}'
+cat >package.json <<< '{ "type": "module" }'
 dirsWithTests=($(cd "${srcDir}"; find . -type d -name tests))
 for fromDir in "${dirsWithTests[@]}"; do
     toDir="$(sed <<<"${fromDir}" -e 's#^[.]/##' -e 's#/tests$##' -e 's#/#-#g')"
