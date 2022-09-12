@@ -131,6 +131,7 @@ const jsdocRules = {
 };
 
 module.exports = {
+  root: true,
   plugins,
   extends: extendsList,
   env,
