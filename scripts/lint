@@ -8,6 +8,7 @@
 ESLINT_VERSION='8.22.0'
 JSDOC_VERSION='39.3.6'
 
+
 #
 # Argument parsing
 #
@@ -82,6 +83,13 @@ lintDir="${outDir}/linter"
 lintBinName='lint'
 lintBinary="${lintDir}/${lintBinName}"
 
+if [[ ! -x ${lintBinary} ]]; then
+    mkdir -p "${lintDir}"
+    cd "${lintDir}"
+    build-lint "${lintBinName}" \
+    || exit "$?"
+fi
+
 configFile=($(
     find "${baseDir}" -mindepth 1 -maxdepth 1 -name '.eslintrc*'
 ))
@@ -92,13 +100,6 @@ if (( ${#configFile[@]} != 1 )); then
         error-msg 'No unique ESLint config file!'
     fi
     exit 1
-fi
-
-if [[ ! -x ${lintBinary} ]]; then
-    mkdir -p "${lintDir}"
-    cd "${lintDir}"
-    build-lint "${lintBinName}" \
-    || exit "$?"
 fi
 
 if (( ${#lintArgs[@]} == 0 )); then
