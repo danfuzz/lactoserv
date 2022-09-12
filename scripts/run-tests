@@ -1,0 +1,120 @@
+#!/bin/bash
+#
+# Copyright 2022 Dan Bornstein. All rights reserved.
+# All code and assets are considered proprietary and unlicensed.
+
+. "$(dirname "$(readlink -f "$0")")/lib/init.sh" || exit "$?"
+
+TOOL_DEPENDENCIES='{
+    "jest": "^29.0.3",
+    "jest-light-runner": "^0.4.0"
+}'
+
+
+#
+# Argument parsing
+#
+
+function usage {
+    print-usage $'
+    Usage:
+
+    ${name} [<opt> ...] <test-arg> ...
+      Runs the unit test system.
+
+    --out=<dir>
+      Directory where built output goes. Defaults to `out` directly under the
+      main product directory.
+
+    ${name} [--help | -h]
+      Displays this message.
+    '
+
+    exit "$@"
+}
+
+# Want help?
+opt-action --call='{ usage }' help/h
+
+# Built output directory.
+opt-value --var=outDir out
+
+# Arbitrary args to pass to the tool.
+rest-arg --var=args args
+
+process-args "$@" || usage "$?"
+
+
+#
+# Helper functions
+#
+
+# Builds the tool.
+function build-tool {
+    local name="$1"
+
+    rm -rf node_modules "${name}" *.json
+
+    jval >package.json \
+        dependencies:json="${TOOL_DEPENDENCIES}" \
+        '{ dependencies: $dependencies }'
+
+    npm install \
+    || return "$?"
+
+    {
+        echo '#!/bin/bash'
+        echo 'CMD_DIR="$(dirname "$(readlink -f "$0")")"'
+        echo 'NODE_PATH="${CMD_DIR}/../code/node_modules" \'
+        echo 'node --frozen-intrinsics "${CMD_DIR}/node_modules/.bin/jest" "$@"'
+    } \
+    >"${name}"
+    chmod 755 "${name}"
+}
+
+
+#
+# Main script
+#
+
+baseDir="$(dirname "$(this-cmd-dir)")"
+srcDir="${baseDir}/src"
+outDir="$(lib out-dir --out="${outDir}")" \
+|| exit "$?"
+
+toolDir="${outDir}/tester"
+toolBinName='jest'
+toolBinary="${toolDir}/${toolBinName}"
+
+if [[ ! -x ${toolBinary} ]]; then
+    rm -rf "${toolDir}"
+    mkdir -p "${toolDir}"
+    cd "${toolDir}"
+    build-tool "${toolBinName}" \
+    || exit "$?"
+fi
+
+configFile=($(
+    find "${srcDir}" -mindepth 1 -maxdepth 1 -name 'jest.config.*'
+))
+if (( ${#configFile[@]} != 1 )); then
+    if (( ${#configFile[@]} == 0 )); then
+        error-msg 'No Jest config file!'
+    else
+        error-msg 'No unique Jest config file!'
+    fi
+    exit 1
+fi
+
+
+"${toolBinary}" --config="${configFile}" "${args[@]}"
+status="$?"
+
+info-msg
+
+if (( ${status} == 0 )); then
+    info-msg 'No errors! Yay!'
+else
+    error-msg --no-name 'Errors. Alas.'
+    exit "${status}"
+fi
