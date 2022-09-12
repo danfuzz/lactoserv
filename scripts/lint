@@ -75,14 +75,14 @@ srcDir="${baseDir}/src"
 outDir="$(lib out-dir --out="${outDir}")" \
 || exit "$?"
 
-lintDir="${outDir}/linter"
-lintBinName='lint'
-lintBinary="${lintDir}/${lintBinName}"
+toolDir="${outDir}/linter"
+toolBinName='lint'
+toolBinary="${toolDir}/${toolBinName}"
 
-if [[ ! -x ${lintBinary} ]]; then
-    mkdir -p "${lintDir}"
-    cd "${lintDir}"
-    build-tool "${lintBinName}" \
+if [[ ! -x ${toolBinary} ]]; then
+    mkdir -p "${toolDir}"
+    cd "${toolDir}"
+    build-tool "${toolBinName}" \
     || exit "$?"
 fi
 
@@ -103,10 +103,10 @@ if (( ${#lintArgs[@]} == 0 )); then
     lintArgs=("${srcDir}")
 fi
 
-"${lintBinary}" \
+"${toolBinary}" \
     --config "${configFile}" \
-    --resolve-plugins-relative-to "${lintDir}" \
-    --cache --cache-location "${lintDir}/cache" \
+    --resolve-plugins-relative-to "${toolDir}" \
+    --cache --cache-location "${toolDir}/cache" \
     --max-warnings 0 \
     -- "${lintArgs[@]}"
 status="$?"
