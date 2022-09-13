@@ -8,14 +8,23 @@ describe.each([
   ['expand', false],
   ['expandAsync', true]
 ])('.%s()', (methodName, doAwait) => {
+  const doExpand = async (value) => {
+    const jx     = new JsonExpander();
+    const result = jx[methodName](value);
+
+    if (doAwait) {
+      expect(result).toEqual(expect.any(Promise));
+    } else {
+      expect(result).not.toEqual(expect.any(Promise));
+    }
+
+    return result;
+  };
+
   test('trivial test', async () => {
     // This just checks that the method runs without throwing, in a super simple
     // case.
-    const jx     = new JsonExpander();
-    const result = jx[methodName]('hello');
-    if (doAwait) {
-      await result;
-    }
+    await doExpand('hello');
   });
 
   // These are cases where the result should be `===` to the original.
@@ -30,9 +39,7 @@ describe.each([
     ['florp']
   ])('for %o', (value) => {
     test('result === argument', async () => {
-      const jx        = new JsonExpander();
-      const preResult = jx[methodName](value);
-      const result    = doAwait ? await preResult : preResult;
+      const result = await doExpand(value);
       expect(result).toBe(value);
     });
   });
@@ -44,19 +51,15 @@ describe.each([
     [{}],
     [[1, 2, 3]],
     [{ a: 10, b: 20 }]
-  ])('returns equal but not `===` argument for %o', (value) => {
+  ])('for %o', (value) => {
     test('result !== argument', async () => {
-      const jx        = new JsonExpander();
-      const preResult = jx[methodName](value);
-      const result    = doAwait ? await preResult : preResult;
+      const result = await doExpand(value);
       expect(result).not.toBe(value);
     });
 
     test('result equals argument', async () => {
-      const jx        = new JsonExpander();
-      const preResult = jx[methodName](value);
-      const result    = doAwait ? await preResult : preResult;
-      expect(result).toEqual(value);
+      const result = await doExpand(value);
+      expect(result).toStrictEqual(value);
     });
   });
 });
