@@ -37,20 +37,6 @@ export class Main {
 
     /*
     console.log('\n#####################\n');
-    const testJson3 = {
-      a: [1, 2, 3, { $ref: '#/$defs/boop' }],
-      b: {
-        x: 'xx', y: 'yy', z: ['z', 'zz', 'zzz', { $ref: '#/$defs/boop' }],
-        q: null, tf: [true, false]
-      },
-      c: { $ref: '#/$defs/boop' },
-      d: { $ref: '#/$defs/beep' },
-      e: [[], {}, null, false, ''],
-      $defs: {
-        boop: 'BOOP!',
-        beep: ['beep', 'beep']
-      },
-    };
     const testJson4 = {
       wow1: { $readFile: './florp.txt', type: 'text' },
       wow2: { $readFile: './florp.json', type: 'rawJson' },

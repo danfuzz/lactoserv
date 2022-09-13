@@ -6,67 +6,42 @@ const doExpand = (value) => {
 }
 
 describe.each([
-  ['/'],
-  ['/x'],
-  ['/x/y'],
-  ['/like/florp/timeline/sideways']
+  [{}],
+  [{ zorp: 'aaa' }],
+  [{ like: ['now', 'florp'] }]
 ])('for %o', (value) => {
   test('succeeds at root (no other bindings)', () => {
-    const orig   = { $baseDir: value };
+    const orig   = { $defs: value };
     const result = doExpand(orig);
     expect(result).toStrictEqual({});
   });
 
   test('succeeds at root (with one other binding)', () => {
     const expected = { a: 'yes' };
-    const orig     = { $baseDir: value, ...expected };
+    const orig     = { $defs: value, ...expected };
     const result   = doExpand(orig);
     expect(result).toStrictEqual(expected);
   });
 
   test('succeeds at root (with a bunch of other bindings)', () => {
     const expected = { a: 'yes', b: [1, 2, 3], c: { t: true, f: false } };
-    const orig     = { $baseDir: value, ...expected };
+    const orig     = { $defs: value, ...expected };
     const result   = doExpand(orig);
     expect(result).toStrictEqual(expected);
   });
 
   test('succeeds at root (with another directive binding)', () => {
-    const orig   = { $baseDir: value, $quote: 'yes' };
+    const orig   = { $defs: value, $baseDir: '/yes' };
     const result = doExpand(orig);
-    expect(result).toBe('yes');
+    expect(result).toEqual({});
   });
 });
 
 describe('throws at non-root', () => {
   test.each([
-    [[{ $baseDir: '/x/y/z' }]],
-    [{ x: { $baseDir: '/x/y/z' } }]
+    [[{ $defs: {} }]],
+    [{ x: { $defs: { yes: 'no' } } }]
   ])('for %o', (value) => {
     expect(() => doExpand(value)).toThrow();
-  });
-});
-
-describe('invalid paths', () => {
-  test.each([
-    [null],
-    [123],
-    [[1, 2, 3]],
-    [''],
-    ['.'],
-    ['..'],
-    ['./x'],
-    ['../x'],
-    ['x/.'],
-    ['x/..'],
-    ['x/./y'],
-    ['x/../y'],
-    ['x/./y/'],
-    ['x/../y/'],
-    ['/x/./y'],
-    ['/x/../y'],
-  ])('for %o', (value) => {
-    const orig = { $baseDir: value };
-    expect(() => doExpand(orig)).toThrow();
   });
 });
