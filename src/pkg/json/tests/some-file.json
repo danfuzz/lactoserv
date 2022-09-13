@@ -1,0 +1,7 @@
+{
+  "selfExpectation": { "yes": "florp" },
+  "yes": { "$ref": "#/$defs/like" },
+  "$defs": {
+    "like": "florp"
+  }
+}

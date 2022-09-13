@@ -32,27 +32,5 @@ export class Main {
     console.log('\n### Stopping all servers...\n');
     await warehouse.stopAllServers();
     console.log('\n### Stopped all servers.\n');
-
-    return 0;
-
-    /*
-    console.log('\n#####################\n');
-    const testJson4 = {
-      wow1: { $readFile: './florp.txt', type: 'text' },
-      wow2: { $readFile: './florp.json', type: 'rawJson' },
-      wow3: { $readFile: './florp.json', type: 'json' },
-      zomg: [1, 2, 3, { $readFile: './florp.txt' }, { $ref: '#/$defs/yay' }],
-      $defs: {
-        yay: 'YAY!!'
-      }
-    };
-    const testJx = new JsonExpander('.');
-    //const testResult = testJx.expand(testJson4);
-    const testResult = await testJx.expandAsync(testJson4);
-    console.log('\n##################### FINAL RESULT: \n');
-    console.log('%o', testResult);
-    console.log('\n#####################\n');
-    process.exit(1);
-    */
   }
 }
