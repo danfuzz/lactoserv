@@ -1,20 +1,20 @@
 const plugins = [
-  "jsdoc"
+  'jsdoc'
 ];
 
 const extendsList = [
-  "eslint:recommended",
-  "plugin:jsdoc/recommended"
+  'eslint:recommended',
+  'plugin:jsdoc/recommended'
 ];
 
 const env = {
-  "es2020": true,
-  "node": true
+  es2020: true,
+  node: true
 };
 
 const parserOptions = {
-  "sourceType": "module",
-  "ecmaVersion": "2022"
+  sourceType: 'module',
+  ecmaVersion: '2022'
 };
 
 const mainRules = {
@@ -99,6 +99,15 @@ const mainRules = {
   "symbol-description": "error"
 };
 
+// Overrides for testing files.
+const testOverrides = {
+  files: ['**/tests/*.test.js'],
+  plugins: ['jest'],
+  env: {
+    'jest/globals': true
+  }
+};
+
 // Handy links:
 //
 // * JSDoc plugin for ESLint: <https://github.com/gajus/eslint-plugin-jsdoc>
@@ -136,5 +145,6 @@ module.exports = {
   extends: extendsList,
   env,
   parserOptions,
-  rules: {...mainRules, ...jsdocRules}
+  rules: {...mainRules, ...jsdocRules},
+  overrides: [testOverrides]
 };
