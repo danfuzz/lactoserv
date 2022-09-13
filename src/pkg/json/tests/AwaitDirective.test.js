@@ -22,7 +22,8 @@ describe.each([
   [1.234],
   ['florp'],
   [[1, 2, 3]],
-  [{ a: 10, b: 20 }]
+  [{ a: 10, b: 20 }],
+  [{ $await: 'not really a directive' }]
 ])('for %o', (value) => {
   test('result === function-wrapped argument', async () => {
     const orig = { $await: () => value };

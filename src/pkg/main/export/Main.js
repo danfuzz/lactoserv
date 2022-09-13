@@ -37,23 +37,6 @@ export class Main {
 
     /*
     console.log('\n#####################\n');
-    const testJson1 = {
-      a: { $await: () => 'hello' },
-      b: [1, 2, 3, { $await: () => [1, 2, 3] }],
-      c: {
-        x: 10,
-        y: { $await: () => 20 },
-        z: 30
-      }
-    };
-    const testJson2 = {
-      a: [1, 2, 3],
-      b: {
-        x: 'xx', y: 'yy', z: ['z', 'zz', 'zzz'], q: null, tf: [true, false]
-      },
-      c: true,
-      d: null
-    };
     const testJson3 = {
       a: [1, 2, 3, { $ref: '#/$defs/boop' }],
       b: {
@@ -63,7 +46,6 @@ export class Main {
       c: { $ref: '#/$defs/boop' },
       d: { $ref: '#/$defs/beep' },
       e: [[], {}, null, false, ''],
-      yes: { $quote: { $ref: 'not-a-ref' } },
       $defs: {
         boop: 'BOOP!',
         beep: ['beep', 'beep']
