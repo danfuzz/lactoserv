@@ -62,12 +62,6 @@ export class Main {
         yay: 'YAY!!'
       }
     };
-    const testJson5 = {
-      $defs: {
-        hi: 'HI'
-      },
-      $value: [1, 2, 3, { $ref: '#/$defs/hi' }]
-    };
     const testJx = new JsonExpander('.');
     //const testResult = testJx.expand(testJson4);
     const testResult = await testJx.expandAsync(testJson4);
