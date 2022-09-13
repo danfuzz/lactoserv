@@ -105,7 +105,7 @@ if (( ${#args[@]} == 0 )); then
 fi
 
 "${toolBinary}" \
-    --config "${configFile}" \
+    --no-eslintrc --config "${configFile}" \
     --resolve-plugins-relative-to "${toolDir}" \
     --cache --cache-location "${toolDir}/cache" \
     --max-warnings 0 \
