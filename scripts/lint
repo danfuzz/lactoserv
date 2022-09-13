@@ -88,7 +88,7 @@ if [[ ! -x ${toolBinary} ]]; then
 fi
 
 configFile=($(
-    find "${srcDir}" -mindepth 1 -maxdepth 1 -name '*eslintrc*'
+    find "${srcDir}" -mindepth 1 -maxdepth 1 -name '.eslintrc*'
 ))
 if (( ${#configFile[@]} != 1 )); then
     if (( ${#configFile[@]} == 0 )); then
