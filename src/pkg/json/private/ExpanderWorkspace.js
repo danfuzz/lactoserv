@@ -274,13 +274,11 @@ export class ExpanderWorkspace {
     for (;;) {
       while (this.#workQueue.length !== 0) {
         const item = this.#workQueue.shift();
-        console.log('#### Working on: %o', item.path);
         this.#processQueueItem(item);
       }
 
       while (this.#nextQueue.length !== 0) {
         const item = this.#nextQueue.shift();
-        console.log('#### Next item: %o', item.path);
         if (item.await) {
           awaitItems.push(item);
         } else {
@@ -525,8 +523,6 @@ export class ExpanderWorkspace {
         }
       }
     }
-
-    console.log('#### Directive %s: %o', dirName, path);
 
     const instance = new dirClass(this, path, dirArg, dirValue);
     this.#addToNextQueue({
