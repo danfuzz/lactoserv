@@ -3,7 +3,7 @@ import { JsonExpander } from '@this/json';
 const doExpand = (value) => {
   const jx = new JsonExpander();
   return jx.expand(value);
-}
+};
 
 // `$quote` is supposed to provide a final value, not one that undergoes further
 // expansion, which is why its expanded results are checked for `===`ness.

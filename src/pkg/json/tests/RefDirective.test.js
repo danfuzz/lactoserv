@@ -3,11 +3,11 @@ import { JsonExpander } from '@this/json';
 const doExpand = (value) => {
   const jx = new JsonExpander();
   return jx.expand(value);
-}
+};
 
 describe.each([
   ['florp'],
-  [{ florp: 'yes '}],
+  [{ florp: 'yes' }],
   [[1, 2, 3, 'florp']]
 ])('for %o', (value) => {
   test('succeeds at root', () => {

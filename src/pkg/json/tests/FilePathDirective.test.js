@@ -3,7 +3,7 @@ import { JsonExpander } from '@this/json';
 const doExpand = (value) => {
   const jx = new JsonExpander();
   return jx.expand(value);
-}
+};
 
 describe.each([
   ['/',         '/'],

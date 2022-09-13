@@ -5,7 +5,7 @@ import * as fs from 'node:fs/promises';
 const doExpand = async (value) => {
   const jx = new JsonExpander();
   return jx.expandAsync(value);
-}
+};
 
 const thisDir = new URL('.', import.meta.url).pathname;
 const fileName = 'some-file.json';

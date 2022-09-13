@@ -3,7 +3,7 @@ import { JsonExpander } from '@this/json';
 const doExpand = async (value) => {
   const jx = new JsonExpander();
   return jx.expandAsync(value);
-}
+};
 
 test('throws when used synchronously', () => {
   const orig   = { $await: () => 123 };
