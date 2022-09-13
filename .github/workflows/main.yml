@@ -34,6 +34,9 @@ jobs:
       - name: Run the linter.
         run: ./scripts/lint
 
+      - name: Actually build.
+        run: ./scripts/build
+
       - name: Run the unit tests.
         run: ./scripts/run-tests
 
