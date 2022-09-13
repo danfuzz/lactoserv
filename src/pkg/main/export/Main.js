@@ -1,6 +1,8 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { TopErrorHandler } from '#p/TopErrorHandler';
+
 import { Warehouse } from '@this/app-servers';
 import { JsonExpander } from '@this/json';
 import { Dirs } from '@this/util-host';
@@ -18,6 +20,8 @@ export class Main {
    * @returns {number} Process exit code.
    */
   static async run(args_unused) {
+    TopErrorHandler.init();
+
     const setupDir  = Dirs.basePath('etc/example-setup');
     const jx        = new JsonExpander(setupDir);
     const config    = await jx.expandFileAsync('config/config.json');
