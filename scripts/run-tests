@@ -94,6 +94,7 @@ if [[ ! -x ${toolBinary} ]]; then
 fi
 
 testsDir="${outDir}/tests"
+rm -rf "${testsDir}"
 mkdir -p "${testsDir}"
 cd "${testsDir}"
 rm -rf node_modules
