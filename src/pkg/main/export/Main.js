@@ -50,10 +50,8 @@ export class Main {
         boop: 'BOOP!',
         beep: ['beep', 'beep']
       },
-      $baseDir: '/home/danfuzz/florp'
     };
     const testJson4 = {
-      yo: { $await: () => 'hello' },
       wow1: { $readFile: './florp.txt', type: 'text' },
       wow2: { $readFile: './florp.json', type: 'rawJson' },
       wow3: { $readFile: './florp.json', type: 'json' },
