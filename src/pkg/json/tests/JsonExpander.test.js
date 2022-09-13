@@ -1,6 +1,6 @@
 import { JsonExpander } from '@this/json';
 
-test('constructor succeeds', () => {
+test('constructor() succeeds', () => {
   new JsonExpander();
 });
 
