@@ -261,8 +261,8 @@ progress-msg 'Copying top-level code...'
 (
     mkdir -p "${outCodeDir}"
     cd "${srcDir}"
-    find . -name pkg -prune -o -type f -name '*.js' -exec \
-        cp '{}' "${outCodeDir}/{}" ';'
+    find . -name pkg -prune -o -type f -name '*.js' \
+        -exec cp '{}' "${outCodeDir}/{}" ';'
 ) \
 || exit "$?"
 
@@ -299,9 +299,12 @@ jget >"${outCodeDir}/package.json" \
     '.dependencies += $deps'
 
 # Let `npm` do its thing.
+
 progress-msg 'Fetching and installing dependencies...'
+
 cd "${outCodeDir}"
-npm install --omit=dev \
+npmOpts=(--no-fund --omit=dev)
+npm install "${npmOpts[@]}" \
 || exit "$?"
 
 # Check for files installed by `npm` that seem "suspect" for a cross-platform
@@ -313,8 +316,8 @@ suspectFiles="$(
             -name '*.js' -o -name '*.json' -o -name '*.html' -o -name '*.md' \
         ')' \
         -exec file '{}' ';' \
-    | grep -Ev 'ASCII|JSON|UTF-8|empty' \
-    | awk '{ sub(/^\.\//, "  "); sub(/: .*$/, ""); print; }'
+    | grep -Ev 'ASCII|JSON|PNG|UTF-8|empty|short file' \
+    | awk '{ sub(/^\.\//, "  "); sub(/:[ \t].*$/, ""); print; }'
 )"
 if [[ ${suspectFiles} != '' ]]; then
     error-msg 'Files possibly containing platform-specific binaries:'

@@ -6,9 +6,8 @@
 . "$(dirname "$(readlink -f "$0")")/lib/init.sh" || exit "$?"
 
 TOOL_DEPENDENCIES='{
-    "eslint": "^8.22.0",
-    "eslint-plugin-jsdoc": "^39.3.6",
-    "eslint-plugin-jest": "^27.0.4"
+    "jest": "^29.0.3",
+    "jest-light-runner": "^0.4.0"
 }'
 
 
@@ -20,8 +19,8 @@ function usage {
     print-usage $'
     Usage:
 
-    ${name} [<opt> ...] <lint-arg> ...
-      Runs the linter.
+    ${name} [<opt> ...] <test-arg> ...
+      Runs the unit test system.
 
     --out=<dir>
       Directory where built output goes. Defaults to `out` directly under the
@@ -63,7 +62,13 @@ function build-tool {
     npm install \
     || return "$?"
 
-    ln -s node_modules/.bin/eslint "${name}"
+    {
+        echo '#!/bin/bash'
+        echo 'CMD_DIR="$(dirname "$(readlink -f "$0")")"'
+        echo 'node --frozen-intrinsics "${CMD_DIR}/node_modules/.bin/jest" "$@"'
+    } \
+    >"${name}"
+    chmod 755 "${name}"
 }
 
 
@@ -76,47 +81,52 @@ srcDir="${baseDir}/src"
 outDir="$(lib out-dir --out="${outDir}")" \
 || exit "$?"
 
-toolDir="${outDir}/linter"
-toolBinName='lint'
+toolDir="${outDir}/tester"
+toolBinName='jest'
 toolBinary="${toolDir}/${toolBinName}"
 
 if [[ ! -x ${toolBinary} ]]; then
+    rm -rf "${toolDir}"
     mkdir -p "${toolDir}"
     cd "${toolDir}"
     build-tool "${toolBinName}" \
     || exit "$?"
 fi
 
+testsDir="${outDir}/tests"
+mkdir -p "${testsDir}"
+cd "${testsDir}"
+rm -rf node_modules
+ln -s ../code/node_modules .
+cat >package.json <<< '{ "type": "module" }'
+dirsWithTests=($(cd "${srcDir}"; find . -type d -name tests))
+for fromDir in "${dirsWithTests[@]}"; do
+    toDir="$(sed <<<"${fromDir}" -e 's#^[.]/##' -e 's#/tests$##' -e 's#/#-#g')"
+    cp -r "${srcDir}/${fromDir}" "${toDir}"
+done
+
 configFile=($(
-    find "${baseDir}" -mindepth 1 -maxdepth 1 -name '.eslintrc*'
+    find "${srcDir}" -mindepth 1 -maxdepth 1 -name 'jest.config.*'
 ))
 if (( ${#configFile[@]} != 1 )); then
     if (( ${#configFile[@]} == 0 )); then
-        error-msg 'No ESLint config file!'
+        error-msg 'No Jest config file!'
     else
-        error-msg 'No unique ESLint config file!'
+        error-msg 'No unique Jest config file!'
     fi
     exit 1
 fi
+cp "${configFile}" "${testsDir}"
+configFile="${testsDir}/$(basename "${configFile}")"
 
-if (( ${#args[@]} == 0 )); then
-    # Run over all of source by default.
-    args=("${srcDir}")
-fi
-
-"${toolBinary}" \
-    --config "${configFile}" \
-    --resolve-plugins-relative-to "${toolDir}" \
-    --cache --cache-location "${toolDir}/cache" \
-    --max-warnings 0 \
-    -- "${args[@]}"
+"${toolBinary}" --config="${configFile}" "${args[@]}"
 status="$?"
 
 info-msg
 
 if (( ${status} == 0 )); then
-    info-msg 'No linter errors! Yay!'
+    info-msg 'No errors! Yay!'
 else
-    error-msg --no-name 'Linter errors. Alas.'
+    error-msg --no-name 'Errors. Alas.'
     exit "${status}"
 fi
