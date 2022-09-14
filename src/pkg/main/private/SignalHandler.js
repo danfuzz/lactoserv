@@ -88,48 +88,7 @@ export class SignalHandler {
     console.log();
     console.log(`Received signal \`${signalName}\`. Shutting down now...`);
 
-    const callProm = Promise.allSettled(
-      this.#shutdownCallbacks.map(async cb => cb()));
-    const abortCtrl = new AbortController();
-
-    (async () => {
-      const timeout = timers.setTimeout(
-        MAX_SHUTDOWN_MSEC, null, { signal: abortCtrl.signal });
-      try {
-        await timeout;
-      } catch (e) {
-        // If the timeout was aborted, just swallow it, and let the system exit
-        // exit in peace. But for anything else, rethrow, which should (soon)
-        // cause the system to exit due to the error.
-        if (e?.code === 'ABORT_ERR') {
-          return;
-        } else {
-          throw e;
-        }
-      }
-
-      // Similar to above, throw an error to indicate timeout. The error should
-      // (soon) cause the system to exit.
-      throw new Error('Timed out while shutting down!');
-    })();
-
-    const callResults = await callProm;
-    abortCtrl.abort();
-
-    let rejectedCount = 0;
-    for (const result of await callResults) {
-      if (result.rejected) {
-        rejectedCount++;
-        console.log('Shutdown rejection:\n%s', result.reason);
-      }
-    }
-
-    if (rejectedCount !== 0) {
-      // Similar to above, throw an error to indicate a problem with the
-      // callbacks. The error should (soon) cause the system to exit.
-      const noun = `callback${(rejectedCount === 1) ? '' : 's'}`;
-      throw new Error(`Error in ${rejectedCount} shutdown ${noun}.`);
-    }
+    await this.#runCallbacks('reload', this.#shutdownCallbacks, MAX_SHUTDOWN_MSEC);
 
     console.log('Clean shutdown. Yay!');
 
@@ -159,13 +118,35 @@ export class SignalHandler {
 
     this.#reloading = true;
 
-    const callProm = Promise.allSettled(
-      this.#reloadCallbacks.map(async cb => cb()));
+    await this.#runCallbacks('reload', this.#reloadCallbacks, MAX_RELOAD_MSEC);
+
+    console.log('Done reloading. Yay!');
+    this.#reloading = false;
+  }
+
+  /**
+   * Handles a signal while in the middle of shutting down.
+   */
+  static #handleSignalWhileShuttingDown(signalName) {
+    console.log();
+    console.log(`Received signal \`${signalName}\`. Already shutting down!`);
+  }
+
+  /**
+   * Helper for the handlers: Runs a list of callbacks with a parallel timeout.
+   *
+   * @param {string} name Name of what's being handled (for logging and error
+   *   messages).
+   * @param {(function())[]} callbacks Callbacks to run.
+   * @param {number} timeoutMsec How long to allow before timing out.
+   */
+  static async #runCallbacks(name, callbacks, timeoutMsec) {
+    const callProm = Promise.allSettled(callbacks.map(async cb => cb()));
     const abortCtrl = new AbortController();
 
     (async () => {
       const timeout = timers.setTimeout(
-        MAX_RELOAD_MSEC, null, { signal: abortCtrl.signal });
+        timeoutMsec, null, { signal: abortCtrl.signal });
       try {
         await timeout;
       } catch (e) {
@@ -181,7 +162,7 @@ export class SignalHandler {
 
       // Similar to above, throw an error to indicate timeout. The error should
       // (soon) cause the system to exit.
-      throw new Error('Timed out while reloading!');
+      throw new Error(`Timed out during ${name} signal handler!`);
     })();
 
     const callResults = await callProm;
@@ -191,26 +172,16 @@ export class SignalHandler {
     for (const result of await callResults) {
       if (result.rejected) {
         rejectedCount++;
-        console.log('Reload rejection:\n%s', result.reason);
+        console.log('Callback error in %s signal handler:\n%s',
+          name, result.reason);
       }
     }
 
     if (rejectedCount !== 0) {
       // Similar to above, throw an error to indicate a problem with the
       // callbacks. The error should (soon) cause the system to exit.
-      const noun = `callback${(rejectedCount === 1) ? '' : 's'}`;
-      throw new Error(`Error in ${rejectedCount} reload ${noun}.`);
+      const plural = (rejectedCount === 1) ? '' : 's';
+      throw new Error(`Problem with ${rejectedCount} ${noun} callback${plural}.`);
     }
-
-    console.log('Done reloading. Yay!');
-    this.#reloading = false;
-  }
-
-  /**
-   * Handles a signal while in the middle of shutting down.
-   */
-  static #handleSignalWhileShuttingDown(signalName) {
-    console.log();
-    console.log(`Received signal \`${signalName}\`. Already about to shut down!`);
   }
 }
