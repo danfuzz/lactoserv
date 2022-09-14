@@ -90,8 +90,8 @@ export class UsualSystem {
    * Constructs (and possibly replaces) {@link #warehouse}.
    */
   async #makeWarehouse() {
-    const jx        = new JsonExpander(this.#setupDir);
-    const config    = await jx.expandFileAsync('config/config.json');
+    const jx     = new JsonExpander(this.#setupDir);
+    const config = await jx.expandFileAsync('config/config.json');
 
     this.#warehouse = new Warehouse(config);
   }
