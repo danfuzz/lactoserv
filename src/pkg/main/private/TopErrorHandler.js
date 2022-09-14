@@ -6,6 +6,12 @@ import * as timers from 'node:timers/promises';
 import * as util from 'node:util';
 
 /**
+ * @type {number} How long to wait before considering a promise rejection
+ * _actually_ rejected.
+ */
+const PROMISE_REJECTION_GRACE_PERIOD_MSEC = 1000;
+
+/**
  * Top-level error handling. This is what handles errors (thrown exceptions and
  * rejected promises) that percolate to the main event loop without having been
  * handled.
@@ -13,6 +19,9 @@ import * as util from 'node:util';
 export class TopErrorHandler {
   /** @type {boolean} Initialized? */
   static #initDone = false;
+
+  /** @type {Map<Promise, *>} Map of unhandled rejections. */
+  static #unhandledRejections = new Map();
 
   /**
    * Initializes the handlers.
@@ -22,6 +31,8 @@ export class TopErrorHandler {
       return;
     }
 
+    process.on('rejectionHandled',
+      (...args) => this.#rejectionHandled(...args));
     process.on('unhandledRejection',
       (...args) => this.#unhandledRejection(...args));
     process.on('uncaughtException',
@@ -56,6 +67,15 @@ export class TopErrorHandler {
   }
 
   /**
+   * Deals with an initially-rejected promise that was later handled.
+   *
+   * @param {Promise} promise The promise in question.
+   */
+  static #rejectionHandled(promise) {
+    this.#unhandledRejections.delete(promise);
+  }
+
+  /**
    * Deals with a thrown exception.
    *
    * @param {*} error Whatever happened to be thrown. Typically, but not
@@ -70,11 +90,14 @@ export class TopErrorHandler {
    *
    * @param {*} reason The "reason" for rejection. Typically, but not
    *   necessarily, an `Error`.
-   * @param {Promise} promise_unused The promise that was rejected.
+   * @param {Promise} promise The promise that was rejected.
    */
-  static #unhandledRejection(reason, promise_unused) {
-    // TODO: Queue up rejections for a brief amount of time (250msec?), while
-    // checking to see if a related `rejectionHandled` gets emitted.
-    this.#handleProblem('unhandledRejection', 'Unhandled promise rejection', reason);
+  static async #unhandledRejection(reason, promise) {
+    this.#unhandledRejections.set(promise, reason);
+
+    await timers.setTimeout(PROMISE_REJECTION_GRACE_PERIOD_MSEC);
+    if (this.#unhandledRejections.has(promise)) {
+      this.#handleProblem('unhandledRejection', 'Unhandled promise rejection', reason);
+    }
   }
 }
