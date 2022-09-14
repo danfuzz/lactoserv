@@ -3,7 +3,6 @@
 
 import { Condition } from '@this/async';
 
-import process from 'node:process'; // Need to import as such, for `.on*()`.
 import * as timers from 'node:timers/promises';
 
 /**
