@@ -8,8 +8,6 @@ import { Warehouse } from '@this/app-servers';
 import { JsonExpander } from '@this/json';
 import { Dirs } from '@this/util-host';
 
-import * as timers from 'node:timers/promises';
-
 /**
  * A usual system, like, the normal setup for running this product in a
  * production-like way.
@@ -54,7 +52,7 @@ export class UsualSystem {
    */
   async stop() {
     console.log('\n### Stopping all servers...\n');
-    await warehouse.stopAllServers();
+    await this.#warehouse.stopAllServers();
     console.log('\n### Stopped all servers.\n');
   }
 

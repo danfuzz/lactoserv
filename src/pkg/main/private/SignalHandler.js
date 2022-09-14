@@ -126,6 +126,8 @@ export class SignalHandler {
 
   /**
    * Handles a signal while in the middle of shutting down.
+   *
+   * @param {string} signalName Name of the signal.
    */
   static #handleSignalWhileShuttingDown(signalName) {
     console.log();
@@ -181,7 +183,7 @@ export class SignalHandler {
       // Similar to above, throw an error to indicate a problem with the
       // callbacks. The error should (soon) cause the system to exit.
       const plural = (rejectedCount === 1) ? '' : 's';
-      throw new Error(`Problem with ${rejectedCount} ${noun} callback${plural}.`);
+      throw new Error(`Problem with ${rejectedCount} ${name} callback${plural}.`);
     }
   }
 }
