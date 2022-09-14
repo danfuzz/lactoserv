@@ -1,6 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { SignalHandler } from '#p/SignalHandler';
 import { TopErrorHandler } from '#p/TopErrorHandler';
 
 import { Warehouse } from '@this/app-servers';
@@ -20,6 +21,7 @@ export class Main {
    * @returns {number} Process exit code.
    */
   static async run(args_unused) {
+    SignalHandler.init();
     TopErrorHandler.init();
 
     const setupDir  = Dirs.basePath('etc/example-setup');
@@ -36,5 +38,7 @@ export class Main {
     console.log('\n### Stopping all servers...\n');
     await warehouse.stopAllServers();
     console.log('\n### Stopped all servers.\n');
+
+    return 0;
   }
 }
