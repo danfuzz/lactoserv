@@ -1,6 +1,8 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { CallbackList } from '#p/CallbackList';
+
 import process from 'node:process'; // Need to import as such, for `.on*()`.
 import * as timers from 'node:timers/promises';
 
@@ -23,14 +25,11 @@ export class SignalHandler {
   /** @type {boolean} Initialized? */
   static #initDone = false;
 
-  /** @type {(function())[]} Callbacks to invoke when asked to "reload." */
-  static #reloadCallbacks = [];
+  /** @type {CallbackList} Callbacks to invoke when asked to "reload." */
+  static #reloadCallbacks = new CallbackList('reload', MAX_RELOAD_MSEC);
 
   /** @type {(function())[]} Callbacks to invoke before shutting down. */
   static #shutdownCallbacks = [];
-
-  /** @type {boolean} Is the system currently reloading? */
-  static #reloading = false;
 
   /** @type {boolean} Is the system shutting down? */
   static #shuttingDown = false;
@@ -59,11 +58,9 @@ export class SignalHandler {
    * @param {function()} callback Shutdown-time callback.
    */
   static registerReloadCallback(callback) {
-    if (this.#shuttingDown) {
-      console.log('Ignoring `registerReloadCallback()` during shutdown.');
-    }
+    this.init();
 
-    this.#reloadCallbacks.push(callback);
+    this.#reloadCallbacks.register(callback);
   }
 
   /**
@@ -74,6 +71,8 @@ export class SignalHandler {
    * @param {function()} callback Shutdown-time callback.
    */
   static registerShutdownCallback(callback) {
+    this.init();
+
     if (this.#shuttingDown) {
       console.log('Ignoring `registerShutdownCallback()` during shutdown.');
     }
@@ -116,21 +115,11 @@ export class SignalHandler {
     if (this.#shuttingDown) {
       this.#handleSignalWhileShuttingDown(signalName);
       return;
-    } else if (this.#reloading) {
-      console.log();
-      console.log(`Received signal \`${signalName}\`. Already reloading!`);
-      return;
     }
 
-    console.log();
-    console.log(`Received signal \`${signalName}\`. Reloading now...`);
-
-    this.#reloading = true;
-
-    await this.#runCallbacks('reload', this.#reloadCallbacks, MAX_RELOAD_MSEC);
-
-    console.log('Done reloading. Yay!');
-    this.#reloading = false;
+    // If this throws, it ends up becoming an unhandled promise rejection,
+    // which will presumably cause the system to shut down.
+    this.#reloadCallbacks.run();
   }
 
   /**
