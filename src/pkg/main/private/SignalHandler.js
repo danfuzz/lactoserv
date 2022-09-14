@@ -97,7 +97,7 @@ export class SignalHandler {
     console.log();
     console.log(`Received signal \`${signalName}\`. Shutting down now...`);
 
-    await this.#runCallbacks('reload', this.#shutdownCallbacks, MAX_SHUTDOWN_MSEC);
+    await this.#runCallbacks('shutdown', this.#shutdownCallbacks, MAX_SHUTDOWN_MSEC);
 
     console.log('Clean shutdown. Yay!');
 
@@ -181,7 +181,7 @@ export class SignalHandler {
 
     let rejectedCount = 0;
     for (const result of await callResults) {
-      if (result.rejected) {
+      if (result.status === 'rejected') {
         rejectedCount++;
         console.log('Callback error in %s signal handler:\n%s',
           name, result.reason);
