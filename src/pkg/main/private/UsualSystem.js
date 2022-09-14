@@ -33,11 +33,16 @@ export class UsualSystem {
   }
 
   /**
-   * Starts the system.
+   * Starts or restarts the system.
    */
   async start() {
     if (!this.#initDone) {
       this.#init();
+      this.#initDone = true;
+    }
+
+    if (this.#warehouse !== null) {
+      await this.stop();
     }
 
     await this.#makeWarehouse();
@@ -52,7 +57,10 @@ export class UsualSystem {
    */
   async stop() {
     console.log('\n### Stopping all servers...\n');
+
     await this.#warehouse.stopAllServers();
+    this.#warehouse = null;
+
     console.log('\n### Stopped all servers.\n');
   }
 
