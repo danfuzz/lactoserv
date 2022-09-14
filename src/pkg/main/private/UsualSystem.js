@@ -39,10 +39,7 @@ export class UsualSystem {
     // TODO: Need to serialize actions, so that e.g. a start and stop aren't
     // running in parallel, nor two starts, etc. etc.
 
-    if (!this.#initDone) {
-      this.#init();
-      this.#initDone = true;
-    }
+    this.#init();
 
     if (this.#warehouse !== null) {
       await this.stop();
@@ -74,10 +71,16 @@ export class UsualSystem {
    * Performs boot-time initialization.
    */
   #init() {
+    if (this.#initDone) {
+      return;
+    }
+
     SignalHandler.init();
     TopErrorHandler.init();
 
     SignalHandler.registerReloadCallback(() => this.start());
+
+    this.#initDone = true;
   }
 
   /**

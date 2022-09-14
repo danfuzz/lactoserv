@@ -20,6 +20,9 @@ const MAX_SHUTDOWN_MSEC = 10 * 1000;
  * POSIX signal handling.
  */
 export class SignalHandler {
+  /** @type {boolean} Initialized? */
+  static #initDone = false;
+
   /** @type {(function())[]} Callbacks to invoke when asked to "reload." */
   static #reloadCallbacks = [];
 
@@ -36,11 +39,17 @@ export class SignalHandler {
    * Initializes the signal handlers.
    */
   static init() {
+    if (this.#initDone) {
+      return;
+    }
+
     const exitFunc   = (...args) => this.#handleExitSignal(...args);
     const reloadFunc = (...args) => this.#handleReloadSignal(...args);
     process.on('SIGHUP',  reloadFunc);
     process.on('SIGINT',  exitFunc);
     process.on('SIGTERM', exitFunc);
+
+    this.#initDone = true;
   }
 
   /**

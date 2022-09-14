@@ -11,14 +11,23 @@ import * as util from 'node:util';
  * handled.
  */
 export class TopErrorHandler {
+  /** @type {boolean} Initialized? */
+  static #initDone = false;
+
   /**
    * Initializes the handlers.
    */
   static init() {
+    if (this.#initDone) {
+      return;
+    }
+
     process.on('unhandledRejection',
       (...args) => this.#unhandledRejection(...args));
     process.on('uncaughtException',
       (...args) => this.#uncaughtException(...args));
+
+    this.#initDone = true;
   }
 
   /**
