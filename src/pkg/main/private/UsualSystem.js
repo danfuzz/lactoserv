@@ -1,6 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { ShutdownHandler } from '#p/ShutdownHandler';
 import { SignalHandler } from '#p/SignalHandler';
 import { TopErrorHandler } from '#p/TopErrorHandler';
 
@@ -79,7 +80,7 @@ export class UsualSystem {
     TopErrorHandler.init();
 
     SignalHandler.registerReloadCallback(() => this.start());
-    SignalHandler.registerShutdownCallback(() => this.stop());
+    ShutdownHandler.registerCallback(() => this.stop());
 
     this.#initDone = true;
   }
