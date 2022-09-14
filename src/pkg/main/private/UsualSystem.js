@@ -79,6 +79,7 @@ export class UsualSystem {
     TopErrorHandler.init();
 
     SignalHandler.registerReloadCallback(() => this.start());
+    SignalHandler.registerShutdownCallback(() => this.stop());
 
     this.#initDone = true;
   }
