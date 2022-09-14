@@ -16,7 +16,7 @@ export class TopErrorHandler {
    */
   static init() {
     process.on('unhandledRejection',
-      (...args) => this.#uncaughtRejection(...args));
+      (...args) => this.#unhandledRejection(...args));
     process.on('uncaughtException',
       (...args) => this.#uncaughtException(...args));
   }
@@ -65,7 +65,9 @@ export class TopErrorHandler {
    *   necessarily, an `Error`.
    * @param {Promise} promise_unused The promise that was rejected.
    */
-  static #uncaughtRejection(reason, promise_unused) {
-    this.#handleProblem('uncaughtRejection', 'Uncaught promise rejection', reason);
+  static #unhandledRejection(reason, promise_unused) {
+    // TODO: Queue up rejections for a brief amount of time (250msec?), while
+    // checking to see if a related `rejectionHandled` gets emitted.
+    this.#handleProblem('unhandledRejection', 'Unhandled promise rejection', reason);
   }
 }
