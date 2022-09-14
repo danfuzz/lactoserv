@@ -83,6 +83,9 @@ export class CallbackList {
         if (result.status === 'rejected') {
           rejectedCount++;
           console.log('Error in %s callback:\n%s', this.#name, result.reason);
+          if (result.reason.stack) {
+            console.log('%o', result.reason.stack);
+          }
         }
       }
 

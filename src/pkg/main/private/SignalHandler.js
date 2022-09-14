@@ -28,8 +28,8 @@ export class SignalHandler {
   /** @type {CallbackList} Callbacks to invoke when asked to "reload." */
   static #reloadCallbacks = new CallbackList('reload', MAX_RELOAD_MSEC);
 
-  /** @type {(function())[]} Callbacks to invoke before shutting down. */
-  static #shutdownCallbacks = [];
+  /** @type {CallbackList} Callbacks to invoke before shutting down. */
+  static #shutdownCallbacks = new CallbackList('shutdown', MAX_SHUTDOWN_MSEC);
 
   /** @type {boolean} Is the system shutting down? */
   static #shuttingDown = false;
@@ -59,7 +59,6 @@ export class SignalHandler {
    */
   static registerReloadCallback(callback) {
     this.init();
-
     this.#reloadCallbacks.register(callback);
   }
 
@@ -72,12 +71,7 @@ export class SignalHandler {
    */
   static registerShutdownCallback(callback) {
     this.init();
-
-    if (this.#shuttingDown) {
-      console.log('Ignoring `registerShutdownCallback()` during shutdown.');
-    }
-
-    this.#shutdownCallbacks.push(callback);
+    this.#shutdownCallbacks.register(callback);
   }
 
   /**
@@ -86,6 +80,9 @@ export class SignalHandler {
    * @param {string} signalName Name of the signal.
    */
   static async #handleExitSignal(signalName) {
+    console.log();
+    console.log(`Received signal: ${signalName}`);
+
     if (this.#shuttingDown) {
       this.#handleSignalWhileShuttingDown(signalName);
       return;
@@ -93,17 +90,20 @@ export class SignalHandler {
 
     this.#shuttingDown = true;
 
-    console.log();
-    console.log(`Received signal \`${signalName}\`. Shutting down now...`);
+    let exitCode = 0;
 
-    await this.#runCallbacks('shutdown', this.#shutdownCallbacks, MAX_SHUTDOWN_MSEC);
-
-    console.log('Clean shutdown. Yay!');
+    try {
+      await this.#shutdownCallbacks.run();
+      console.log('Clean shutdown. Yay!');
+    } catch (e) {
+      console.log('Error during shutdown:\n%o', e.stack);
+      exitCode = 1;
+    }
 
     // Give the system a moment, so it has a chance to actually flush the log,
     // and then exit.
     await timers.setTimeout(250); // 0.25 second.
-    process.exit(0);
+    process.exit(exitCode);
   }
 
   /**
@@ -112,6 +112,9 @@ export class SignalHandler {
    * @param {string} signalName Name of the signal.
    */
   static async #handleReloadSignal(signalName) {
+    console.log();
+    console.log(`Received signal: ${signalName}`);
+
     if (this.#shuttingDown) {
       this.#handleSignalWhileShuttingDown(signalName);
       return;
@@ -128,60 +131,7 @@ export class SignalHandler {
    * @param {string} signalName Name of the signal.
    */
   static #handleSignalWhileShuttingDown(signalName) {
-    console.log();
-    console.log(`Received signal \`${signalName}\`. Already shutting down!`);
-  }
-
-  /**
-   * Helper for the handlers: Runs a list of callbacks with a parallel timeout.
-   *
-   * @param {string} name Name of what's being handled (for logging and error
-   *   messages).
-   * @param {(function())[]} callbacks Callbacks to run.
-   * @param {number} timeoutMsec How long to allow before timing out.
-   */
-  static async #runCallbacks(name, callbacks, timeoutMsec) {
-    const callProm = Promise.allSettled(callbacks.map(async cb => cb()));
-    const abortCtrl = new AbortController();
-
-    (async () => {
-      const timeout = timers.setTimeout(
-        timeoutMsec, null, { signal: abortCtrl.signal });
-      try {
-        await timeout;
-      } catch (e) {
-        // If the timeout was aborted, just swallow it, and let the system
-        // continue to run in peace. But for anything else, rethrow, which
-        // should (soon) cause the system to exit due to the error.
-        if (e?.code === 'ABORT_ERR') {
-          return;
-        } else {
-          throw e;
-        }
-      }
-
-      // Similar to above, throw an error to indicate timeout. The error should
-      // (soon) cause the system to exit.
-      throw new Error(`Timed out during ${name} signal handler!`);
-    })();
-
-    const callResults = await callProm;
-    abortCtrl.abort();
-
-    let rejectedCount = 0;
-    for (const result of await callResults) {
-      if (result.status === 'rejected') {
-        rejectedCount++;
-        console.log('Callback error in %s signal handler:\n%s',
-          name, result.reason);
-      }
-    }
-
-    if (rejectedCount !== 0) {
-      // Similar to above, throw an error to indicate a problem with the
-      // callbacks. The error should (soon) cause the system to exit.
-      const plural = (rejectedCount === 1) ? '' : 's';
-      throw new Error(`Problem with ${rejectedCount} ${name} callback${plural}.`);
-    }
+    console.log(`Ignoring signal: ${signalName}`);
+    console.log(`Already shutting down!`);
   }
 }
