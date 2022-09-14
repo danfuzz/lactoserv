@@ -39,7 +39,7 @@ export class TopErrorHandler {
    * @param {*} problem The "problem" (uncaught exception or rejection reason).
    *   Typically, but not necessarily, an `Error`.
    */
-  static #handleProblem(eventName_unused, label, problem) {
+  static async #handleProblem(eventName_unused, label, problem) {
     const problemString = (problem instanceof Error)
       ? problem.stack
       : util.inspect(problem);
@@ -51,10 +51,8 @@ export class TopErrorHandler {
 
     // Give the system a moment, so it has a chance to actually flush the log,
     // and then exit.
-    (async () => {
-      await timers.setTimeout(250); // 0.25 second.
-      process.exit(1);
-    })();
+    await timers.setTimeout(250); // 0.25 second.
+    process.exit(1);
   }
 
   /**
