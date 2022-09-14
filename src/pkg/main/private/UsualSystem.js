@@ -70,6 +70,8 @@ export class UsualSystem {
   #init() {
     SignalHandler.init();
     TopErrorHandler.init();
+
+    SignalHandler.registerReloadCallback(() => this.start());
   }
 
   /**
