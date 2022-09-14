@@ -36,6 +36,9 @@ export class UsualSystem {
    * Starts or restarts the system.
    */
   async start() {
+    // TODO: Need to serialize actions, so that e.g. a start and stop aren't
+    // running in parallel, nor two starts, etc. etc.
+
     if (!this.#initDone) {
       this.#init();
       this.#initDone = true;
@@ -56,6 +59,9 @@ export class UsualSystem {
    * Stops the system.
    */
   async stop() {
+    // TODO: Need to serialize actions, so that e.g. a start and stop aren't
+    // running in parallel, nor two starts, etc. etc.
+
     console.log('\n### Stopping all servers...\n');
 
     await this.#warehouse.stopAllServers();
