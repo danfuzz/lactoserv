@@ -7,7 +7,7 @@ test('constructor() succeeds', () => {
 describe.each([
   ['expand', false],
   ['expandAsync', true]
-])('.%s()', (methodName, doAwait) => {
+])('%s()', (methodName, doAwait) => {
   const doExpand = async (value) => {
     const jx     = new JsonExpander();
     const result = jx[methodName](value);
