@@ -42,12 +42,10 @@ export class SignalHandler {
 
   /**
    * Registers a callback to be invoked when the system is asked to "reload."
-   * Reloading is not considered complete until the callback async-returns.
    *
-   * @param {function()} callback Shutdown-time callback.
+   * @param {function()} callback Reload-time callback.
    */
   static registerReloadCallback(callback) {
-    this.init();
     this.#reloadCallbacks.register(callback);
   }
 

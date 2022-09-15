@@ -1,5 +1,5 @@
 {
-  "name": "@this/util-host",
+  "name": "@this/host",
   "version": "0.0.1",
   "type": "module",
 
@@ -7,5 +7,9 @@
   "imports": {
     "#x/*": "./export/*.js",
     "#p/*": "./private/*.js"
+  },
+
+  "dependencies": {
+    "@this/async": "*"
   }
 }
