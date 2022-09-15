@@ -3,7 +3,6 @@
 
 import { ShutdownHandler } from '#p/ShutdownHandler';
 import { SignalHandler } from '#p/SignalHandler';
-import { TopErrorHandler } from '#p/TopErrorHandler';
 
 import { Warehouse } from '@this/app-servers';
 import { JsonExpander } from '@this/json';
@@ -76,9 +75,6 @@ export class UsualSystem {
     if (this.#initDone) {
       return;
     }
-
-    SignalHandler.init();
-    TopErrorHandler.init();
 
     SignalHandler.registerReloadCallback(() => this.start());
     ShutdownHandler.registerCallback(() => this.stop());
