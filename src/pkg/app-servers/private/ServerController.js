@@ -104,7 +104,7 @@ export class ServerController {
       throw new Error('Server stopping or already stopped.');
     } else if (this.#started.value) {
       // Ignore attempts to start while already started.
-      console.log(`Ignoring re-\`start()\` on server ${name}.`);
+      console.log(`Ignoring re-\`start()\` on server ${this.#name}.`);
       return;
     }
 
