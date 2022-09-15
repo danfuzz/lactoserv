@@ -3,7 +3,7 @@
 
 import { UsualSystem } from '#p/UsualSystem';
 
-import { Host } from '@this/util-host';
+import { Host } from '@this/host';
 
 import * as timers from 'node:timers/promises';
 
