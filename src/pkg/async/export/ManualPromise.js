@@ -15,6 +15,9 @@ export class ManualPromise {
   /** @type {function(*)} The `reject()` function. */
   #reject;
 
+  /** @type {boolean} Has a rejection been handled? */
+  #rejectionHandled = false;
+
   /**
    * @type {?({ fulfilled: true, value: * }|{ rejected: true, reason: * })} The
    * resolution, if the underlying promise has settled.
@@ -49,11 +52,25 @@ export class ManualPromise {
   }
 
   /**
+   * In addition to getting the reason, this accessor also makes sure the system
+   * considers the promise rejection "handled."
+   *
    * @returns {*} The rejection reason, if the promise is settled as rejected.
    * @throws {Error} Thrown if the promise is either unsettled or fulfilled.
    */
   get rejectedReason() {
     if (this.isRejected()) {
+      if (!this.#rejectionHandled) {
+        this.#rejectionHandled = true;
+        (async () => {
+          try {
+            await this.#promise;
+          } catch {
+            // Just swallow the exception, to convince Node not to complain
+            // about this promise.
+          }
+        })();
+      )
       return this.#resolution.reason;
     } else {
       throw new Error('Promise is not rejected.');

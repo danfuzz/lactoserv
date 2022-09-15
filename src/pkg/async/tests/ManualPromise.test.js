@@ -128,6 +128,7 @@ describe('reject()', () => {
     test('reject -> reject', () => {
       const mp = new ManualPromise();
       expect(() => mp.reject(new Error('1'))).not.toThrow();
+      mp.rejectedReason; // "We handled the rejection!"
       expect(() => mp.reject(new Error('2'))).toThrow();
     });
 
