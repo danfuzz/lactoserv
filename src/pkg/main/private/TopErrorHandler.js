@@ -117,13 +117,10 @@ export class TopErrorHandler {
     let trimmedStack = null;
     if (stack) {
       const lines = [];
-      for (const line of stack.split('\n')) {
-        const result = /^( *at [^\n]+)\n?$/.exec(line);
-        if (result) {
-          lines.push(result[1]);
-          if (lines.length === 2) {
-            break;
-          }
+      for (const match of stack.matchAll(/^ *at .+$/mg)) {
+        lines.push(match[0]);
+        if (lines.length === 2) {
+          break;
         }
       }
       if (lines.length !== 0) {
