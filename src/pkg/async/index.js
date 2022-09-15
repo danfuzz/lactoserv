@@ -3,3 +3,4 @@
 
 export * from '#x/Condition';
 export * from '#x/ManualPromise';
+export * from '#x/Mutex';
