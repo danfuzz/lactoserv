@@ -184,6 +184,7 @@ describe('resolve()', () => {
     test('reject -> resolve', () => {
       const mp = new ManualPromise();
       expect(() => mp.reject(new Error('1'))).not.toThrow();
+      mp.rejectedReason; // "We handled the rejection!"
       expect(() => mp.resolve('2')).toThrow();
     });
   });
