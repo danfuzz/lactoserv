@@ -328,8 +328,7 @@ export class ServerController {
     console.log('%s', msg);
     console.log(`  name:      ${info.name}`);
     console.log(`  protocol:  ${info.protocol}`);
-    console.log(`  interface: ${info.interface}`);
-    console.log(`  port:      ${info.port}`);
+    console.log(`  interface: ${info.interface}:${info.port}`);
 
     if (info.listening) {
       console.log(`  listening: ${info.listening}`);
