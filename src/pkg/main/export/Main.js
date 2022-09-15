@@ -1,8 +1,9 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { GlobalInit } from '#p/GlobalInit';
 import { UsualSystem } from '#p/UsualSystem';
+
+import { Host } from '@this/util-host';
 
 import * as timers from 'node:timers/promises';
 
@@ -17,7 +18,7 @@ export class Main {
    * @returns {number} Process exit code.
    */
   static async run(args) {
-    GlobalInit.init();
+    Host.init();
 
     const system = new UsualSystem(args);
 

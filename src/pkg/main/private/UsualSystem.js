@@ -1,13 +1,10 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { ShutdownHandler } from '#p/ShutdownHandler';
-import { SignalHandler } from '#p/SignalHandler';
-
 import { Warehouse } from '@this/app-servers';
 import { Mutex } from '@this/async';
 import { JsonExpander } from '@this/json';
-import { Dirs } from '@this/util-host';
+import { Dirs, Host } from '@this/util-host';
 
 
 /**
@@ -74,8 +71,8 @@ export class UsualSystem {
       return;
     }
 
-    SignalHandler.registerReloadCallback(() => this.start());
-    ShutdownHandler.registerCallback(() => this.stop());
+    Host.registerReloadCallback(() => this.start());
+    Host.registerShutdownCallback(() => this.stop());
 
     this.#initDone = true;
   }
