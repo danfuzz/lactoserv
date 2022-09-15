@@ -18,9 +18,6 @@ const MAX_SHUTDOWN_MSEC = 10 * 1000;
  * shutdown of the system.
  */
 export class ShutdownHandler {
-  /** @type {boolean} Initialized? */
-  static #initDone = false;
-
   /** @type {CallbackList} Callbacks to invoke before shutting down. */
   static #callbacks = new CallbackList('shutdown', MAX_SHUTDOWN_MSEC);
 
