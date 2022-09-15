@@ -1,6 +1,8 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { ManualPromise } from '#x/ManualPromise';
+
 import { MustBe } from '@this/typey';
 
 /**
@@ -52,14 +54,11 @@ export class Mutex {
     const key = Symbol('mutex_key'); // Uninterned symbol and so unique.
 
     if (this.#lockedBy !== null) {
-      // There's contention, so we have to queue up. The `release` function
-      // queued up here gets called inside the returned unlock function below.
-      const released = new Promise((resolve) => {
-        const release = () => { resolve(true); };
-        this.#waiters.push(release);
-      });
-
-      await released;
+      // There's contention, so we have to queue up. The function queued up on
+      // `waiters` gets called inside the returned unlock function below.
+      const prom = new ManualPromise();
+      this.#waiters.push(() => prom.resolve(true));
+      await prom.promise;
     }
 
     this.#lockedBy = key;
