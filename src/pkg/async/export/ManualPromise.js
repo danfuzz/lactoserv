@@ -70,7 +70,7 @@ export class ManualPromise {
             // about this promise.
           }
         })();
-      )
+      }
       return this.#resolution.reason;
     } else {
       throw new Error('Promise is not rejected.');
