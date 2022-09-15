@@ -55,6 +55,9 @@ export class ServerController {
    */
   #serverApp;
 
+  /** @type {Condition} Is the server starting or started? */
+  #started = new Condition();
+
   /** @type {Condition} Is the server stopped or trying to stop? */
   #stopping = new Condition();
 
@@ -99,7 +102,13 @@ export class ServerController {
   async start() {
     if (this.#stopping.value) {
       throw new Error('Server stopping or already stopped.');
+    } else if (this.#started.value) {
+      // Ignore attempts to start while already started.
+      console.log(`Ignoring re-\`start()\` on server ${name}.`);
+      return;
     }
+
+    this.#started.value = true;
 
     const server = this.#server;
     await this.#wrangler.protocolStart(server);
