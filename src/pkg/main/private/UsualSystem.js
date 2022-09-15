@@ -5,6 +5,7 @@ import { ShutdownHandler } from '#p/ShutdownHandler';
 import { SignalHandler } from '#p/SignalHandler';
 
 import { Warehouse } from '@this/app-servers';
+import { Mutex } from '@this/async';
 import { JsonExpander } from '@this/json';
 import { Dirs } from '@this/util-host';
 
@@ -14,14 +15,17 @@ import { Dirs } from '@this/util-host';
  * production-like way.
  */
 export class UsualSystem {
-  /** @type {boolean} Initialized? */
-  #initDone = false;
-
   /** @type {string} Directory where the setup / configuration lives. */
   #setupDir;
 
+  /** @type {boolean} Initialized? */
+  #initDone = false;
+
   /** @type {Warehouse} Warehouse of parts. */
   #warehouse = null;
+
+  /** @type {Mutex} Serializer for startup and shutdown actions. */
+  #serializer = new Mutex();
 
   /**
    * Constructs an instance.
@@ -29,43 +33,37 @@ export class UsualSystem {
    * @param {string[]} args_unused Command-line arguments to parse and act upon.
    */
   constructor(args_unused) {
-    this.#setupDir  = Dirs.basePath('etc/example-setup');
-    this.#warehouse = null;
+    this.#setupDir = Dirs.basePath('etc/example-setup');
   }
 
   /**
    * Starts or restarts the system.
    */
   async start() {
-    // TODO: Need to serialize actions, so that e.g. a start and stop aren't
-    // running in parallel, nor two starts, etc. etc.
+    await this.#serializer.serialize(async () => {
+      this.#init();
 
-    this.#init();
+      const isRestart = (this.#warehouse !== null);
+      const verb      = isRestart ? 'Restart' : 'Start';
 
-    if (this.#warehouse !== null) {
-      await this.stop();
-    }
+      console.log(`\n### ${verb}ing all servers...\n`);
 
-    await this.#makeWarehouse();
+      if (isRestart) {
+        await this.#stop0();
+      }
 
-    console.log('\n### Starting all servers...\n');
-    await this.#warehouse.startAllServers();
-    console.log('\n### Started all servers.\n');
+      await this.#makeWarehouse();
+      await this.#warehouse.startAllServers();
+
+      console.log(`\n### ${verb}ed all servers.\n`);
+    });
   }
 
   /**
    * Stops the system.
    */
   async stop() {
-    // TODO: Need to serialize actions, so that e.g. a start and stop aren't
-    // running in parallel, nor two starts, etc. etc.
-
-    console.log('\n### Stopping all servers...\n');
-
-    await this.#warehouse.stopAllServers();
-    this.#warehouse = null;
-
-    console.log('\n### Stopped all servers.\n');
+    await this.#serializer.serialize(() => this.#stop0());
   }
 
   /**
@@ -90,5 +88,20 @@ export class UsualSystem {
     const config = await jx.expandFileAsync('config/config.json');
 
     this.#warehouse = new Warehouse(config);
+  }
+
+  /**
+   * Helper for {@link #start} and {@link #stop}, which performs the main action
+   * of stopping.
+   */
+  async #stop0() {
+    if (this.#warehouse === null) {
+      console.log('\n### Servers already stopped.\n');
+    } else {
+      console.log('\n### Stopping all servers...\n');
+      await this.#warehouse.stopAllServers();
+      this.#warehouse = null;
+      console.log('\n### Stopped all servers.\n');
+    }
   }
 }
