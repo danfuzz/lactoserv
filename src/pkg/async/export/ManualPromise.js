@@ -3,7 +3,7 @@
 
 /**
  * "Manually operated" promise, with client-accessible `resolve()` and
- * `reject()` methods.
+ * `reject()` methods, and synchronous accessors of state.
  */
 export class ManualPromise {
   /** @type {Promise} The underlying promise. */
@@ -15,8 +15,11 @@ export class ManualPromise {
   /** @type {function(*)} The `reject()` function. */
   #reject;
 
-  /** @type {boolean} Has `#promise` settled? */
-  #isSettled = false;
+  /**
+   * @type {?({ fulfilled: true, value: * }|{ rejected: true, reason: * })} The
+   * resolution, if the underlying promise has settled.
+   */
+  #resolution = null;
 
   /**
    * Constructs an instance.
@@ -28,39 +31,93 @@ export class ManualPromise {
     });
   }
 
+  /**
+   * @returns {*} The fulfilled value, if the promise is settled as fulfilled.
+   * @throws {Error} Thrown if the promise is either unsettled or rejected.
+   */
+  get fulfilledValue() {
+    if (this.isFulfilled()) {
+      return this.#resolution.value;
+    } else {
+      throw new Error('Promise is not fulfilled.');
+    }
+  }
+
   /** @returns {Promise} The underlying promise. */
   get promise() {
     return this.#promise;
   }
 
   /**
+   * @returns {*} The rejection reason, if the promise is settled as rejected.
+   * @throws {Error} Thrown if the promise is either unsettled or fulfilled.
+   */
+  get rejectedReason() {
+    if (this.isRejected()) {
+      return this.#resolution.reason;
+    } else {
+      throw new Error('Promise is not rejected.');
+    }
+  }
+
+  /**
    * Gets an indicator of whether or not the underlying promise has been
-   * settled (either as resolved or rejected).
+   * settled as fulfilled.
+   *
+   * @returns {boolean} Whenter (`true`) or not (`false`) the underlying
+   *   promise is settled as fulfilled.
+   */
+  isFulfilled() {
+    return this.#resolution?.fulfilled ?? false;
+  }
+
+  /**
+   * Gets an indicator of whether or not the underlying promise has been
+   * settled as rejected.
+   *
+   * @returns {boolean} Whenter (`true`) or not (`false`) the underlying
+   *   promise is settled as rejected.
+   */
+  isRejected() {
+    return this.#resolution?.rejected ?? false;
+  }
+
+  /**
+   * Gets an indicator of whether or not the underlying promise has been
+   * settled (either as fulfilled or rejected).
    *
    * @returns {boolean} Whenter (`true`) or not (`false`) the underlying
    *   promise is settled.
    */
   isSettled() {
-    return this.#isSettled;
+    return this.#resolution !== null;
   }
 
   /**
-   * Rejects the underlying promise, with the given rejection cause.
+   * Rejects the underlying promise, with the given rejection reason.
    *
-   * @param {*} cause The rejection cause.
+   * @param {*} reason The rejection reason.
    */
-  reject(cause) {
-    this.#isSettled = true;
-    this.#reject(cause);
+  reject(reason) {
+    if (this.#resolution) {
+      throw new Error('Cannot re-settled promise.');
+    }
+
+    this.#resolution = { rejected: true, reason };
+    this.#reject(reason);
   }
 
   /**
    * Resolves the underlying promise, with the given result value.
    *
-   * @param {*} result The result value.
+   * @param {*} value The resolved value.
    */
-  resolve(result) {
-    this.#isSettled = true;
-    this.#resolve(result);
+  resolve(value) {
+    if (this.#resolution) {
+      throw new Error('Cannot re-settled promise.');
+    }
+
+    this.#resolution = { fulfilled: true, value };
+    this.#resolve(value);
   }
 }
