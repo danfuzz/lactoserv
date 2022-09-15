@@ -14,7 +14,8 @@ const PROMISE_REJECTION_GRACE_PERIOD_MSEC = 1000;
 /**
  * Top-level error handling. This is what handles errors (thrown exceptions and
  * rejected promises) that percolate to the main event loop without having been
- * handled.
+ * handled. It also handles warnings (which always just get emitted directly,
+ * no percolation required).
  */
 export class TopErrorHandler {
   /** @type {boolean} Initialized? */
@@ -37,6 +38,8 @@ export class TopErrorHandler {
       (...args) => this.#unhandledRejection(...args));
     process.on('uncaughtException',
       (...args) => this.#uncaughtException(...args));
+    process.on('warning',
+      (...args) => this.#warning(...args));
 
     this.#initDone = true;
   }
@@ -98,6 +101,40 @@ export class TopErrorHandler {
     await timers.setTimeout(PROMISE_REJECTION_GRACE_PERIOD_MSEC);
     if (this.#unhandledRejections.has(promise)) {
       this.#handleProblem('unhandledRejection', 'Unhandled promise rejection', reason);
+    }
+  }
+
+  /**
+   * Deals with a warning.
+   *
+   * @param {Error} warning The warning.
+   */
+  static async #warning(warning) {
+    const { code, message, name, stack } = warning;
+    const summary = `${code ? `[${code}] ` : ''}${name}: ${message}`;
+
+    // Trim stack down to at most just two `at` lines.
+    let trimmedStack = null;
+    if (stack) {
+      const lines = [];
+      for (const line of stack.split('\n')) {
+        const result = /^( *at [^\n]+)\n?$/.exec(line);
+        if (result) {
+          lines.push(result[1]);
+          if (lines.length === 2) {
+            break;
+          }
+        }
+      }
+      if (lines.length !== 0) {
+        trimmedStack = lines.join('\n');
+      }
+    }
+
+    // TODO: Log this with a real logger.
+    console.log('Warning: %s', summary);
+    if (trimmedStack) {
+      console.log('%s', trimmedStack);
     }
   }
 }
