@@ -136,7 +136,7 @@ describe('reject()', () => {
       expect(() => mp.resolve('1')).not.toThrow();
       expect(() => mp.reject(new Error('2'))).toThrow();
     });
-  })
+  });
 });
 
 describe('resolve()', () => {
@@ -185,5 +185,5 @@ describe('resolve()', () => {
       expect(() => mp.reject(new Error('1'))).not.toThrow();
       expect(() => mp.resolve('2')).toThrow();
     });
-  })
+  });
 });
