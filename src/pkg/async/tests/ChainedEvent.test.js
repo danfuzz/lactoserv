@@ -47,10 +47,10 @@ describe('constructor(payload, next: <invalid>)', () => {
     [['a']],
     [{}],
     [{ a: 10 }],
-    [new Map()]])('fails for %p', value => {
-      expect(() => new ChainedEvent(payload1, value)).toThrow();
-    });
+    [new Map()]])('fails for %p', (value) => {
+    expect(() => new ChainedEvent(payload1, value)).toThrow();
   });
+});
 
 describe('constructor(payload, next: ChainedEvent)', () => {
   test('constructs an instance', async () => {
