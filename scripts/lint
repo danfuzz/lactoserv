@@ -104,6 +104,26 @@ if (( ${#args[@]} == 0 )); then
     args=("${srcDir}")
 fi
 
+# TEMPORARY FOR TESTING
+echo '########################'
+echo '########################'
+echo '########################'
+echo ''
+find "${srcDir}" -mindepth 1 -maxdepth 1 -name '.eslintrc*'
+echo ''
+echo "${toolBinary}" \
+    --config "${configFile}" \
+    --resolve-plugins-relative-to "${toolDir}" \
+    --cache --cache-location "${toolDir}/cache" \
+    --max-warnings 0 \
+    -- "${args[@]}"
+echo ''
+echo '########################'
+echo '########################'
+echo '########################'
+# END TEMPORARY FOR TESTING
+
+
 "${toolBinary}" \
     --config "${configFile}" \
     --resolve-plugins-relative-to "${toolDir}" \
