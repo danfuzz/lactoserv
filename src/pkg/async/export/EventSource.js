@@ -12,7 +12,8 @@ import { ChainedEvent } from '#x/ChainedEvent';
  *
  * This class emits direct instances of {@link ChainedEvent} by default, but it
  * can be made to use a subclass by passing a "kickoff" event to the
- * constructor. The kickoff event becomes the base of the "emission chain."
+ * constructor. The kickoff event becomes the base of the "emission chain." As
+ * such, it needs to have its `.emitter` available (never previously accessed).
  *
  * **Note:** This class does _not_ remember any events ever emitted by itself
  * other than the most recent, because doing otherwise would cause a garbage
