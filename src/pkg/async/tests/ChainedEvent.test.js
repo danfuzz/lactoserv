@@ -10,9 +10,30 @@ const payload1 = { type: 'wacky' };
 const payload2 = { type: 'zany' };
 const payload3 = { type: 'questionable' };
 
-describe('constructor()', () => {
+describe.each`
+  label              | args
+  ${'payload'}       | ${[payload1]}
+  ${'payload, null'} | ${[payload1, null]}
+`('constructor($label)', ({ args }) => {
   test('constructs an instance', async () => {
-    expect(() => new ChainedEvent(payload1)).not.toThrow();
+    expect(() => new ChainedEvent(...args)).not.toThrow();
+  });
+
+  test('does not have a `nextNow`', () => {
+    const event = new ChainedEvent(...args);
+    expect(event.nextNow).toBeNull();
+  });
+
+  test('has an unresolved `next`', async () => {
+    const event = new ChainedEvent(...args);
+
+    const race = await Promise.race([event.next, timers.setImmediate(123)]);
+    expect(race).toBe(123);
+  });
+
+  test('has an available `emitter`', () => {
+    const event = new ChainedEvent(...args);
+    expect(() => event.emitter).not.toThrow();
   });
 });
 
