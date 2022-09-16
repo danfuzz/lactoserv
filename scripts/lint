@@ -121,6 +121,17 @@ echo ''
 echo '########################'
 echo '########################'
 echo '########################'
+echo ''
+"${toolBinary}" \
+    --config "${configFile}" \
+    --resolve-plugins-relative-to "${toolDir}" \
+    --cache --cache-location "${toolDir}/cache" \
+    --max-warnings 0 \
+    -- src/pkg/metaclass/tests/BaseProxyHandler.test.js
+echo ''
+echo '########################'
+echo '########################'
+echo '########################'
 # END TEMPORARY FOR TESTING
 
 
