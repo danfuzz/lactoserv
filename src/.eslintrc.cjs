@@ -108,7 +108,6 @@ const testOverrides = {
   },
   rules: {
     'jsdoc/require-jsdoc': ['off']
-    ksdlfj sldkjf sldkfjsdlkfj sdlkj fsdlk FOR TESTING
   }
 };
 
