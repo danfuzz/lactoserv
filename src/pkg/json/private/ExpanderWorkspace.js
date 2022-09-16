@@ -315,7 +315,7 @@ export class ExpanderWorkspace {
         if (enqueue) {
           for (const e of enqueue) {
             MustBe.arrayOfIndex(e.path);
-            MustBe.function(e.complete);
+            MustBe.callableFunction(e.complete);
             this.#addToNextQueue({
               pass:     pass + 1,
               path:     [...path, ...e.path],
