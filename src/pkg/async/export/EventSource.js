@@ -10,6 +10,10 @@ import { ChainedEvent } from '#x/ChainedEvent';
  * particular chain (as opposed to it being functionality exposed on
  * `ChainedEvent` itself).
  *
+ * This class emits direct instances of {@link ChainedEvent} by default, but it
+ * can be made to use a subclass by passing a "kickoff" event to the
+ * constructor. The kickoff event becomes the base of the "emission chain."
+ *
  * **Note:** This class does _not_ remember any events ever emitted by itself
  * other than the most recent, because doing otherwise would cause a garbage
  * accumulation issue. (Imagine a single instance of this class being actively
@@ -25,15 +29,24 @@ export class EventSource {
    * which is suitable for `await`ing in {@link #currentEvent}. (This
    * arrangement makes the logic in {@link #emit} particularly simple.)
    */
-  #currentEvent = new ChainedEvent('chain-head');
+  #currentEvent;
 
   /**
    * @type {function(*)} Function to call in order to emit the next event on the
    * chain.
    */
-  #emitNext = this.#currentEvent.emitter;
+  #emitNext;
 
-  // Note: The default constructor is sufficient here.
+  /**
+   * Constructs an instance.
+   *
+   * @param {?ChainedEvent} [kickoffEvent = null] "Kickoff" event, or `null`
+   *   to default to using a direct instance of {@link ChainedEvent}.
+   */
+  constructor(kickoffEvent = null) {
+    this.#currentEvent = kickoffEvent ?? new ChainedEvent('chain-head');
+    this.#emitNext = this.#currentEvent.emitter;
+  }
 
   /**
    * @returns {Promise<ChainedEvent>} Promise for the current (latest / most
