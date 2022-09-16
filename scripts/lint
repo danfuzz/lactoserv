@@ -122,6 +122,9 @@ echo '########################'
 echo '########################'
 echo '########################'
 echo ''
+pwd
+ls
+echo ''
 "${toolBinary}" --debug \
     --config "${configFile}" \
     --resolve-plugins-relative-to "${toolDir}" \
