@@ -391,7 +391,7 @@ describe('subclass behavior', () => {
 
   test('constructs instances of the subclass when emitting', () => {
     const event1 = new FlorpEvent(payload1);
-    const result = event1.emitter(payload2);
+    event1.emitter(payload2);
 
     expect(event1.nextNow).toBeInstanceOf(FlorpEvent);
   });
