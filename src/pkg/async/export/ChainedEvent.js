@@ -138,7 +138,7 @@ export class ChainedEvent {
    *   whose `next` and `nextNow` behave the same as this instance's properties
    *   of the same names.
    */
-  withNewPayload(payload) {
+  withPayload(payload) {
     return new this.constructor(payload, this.#nextNow ?? this.next);
   }
 

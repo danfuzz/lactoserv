@@ -111,17 +111,17 @@ describe('.payload', () => {
   });
 });
 
-describe('withNewPayload()', () => {
+describe('withPayload()', () => {
   test('produces an instance with the indicated payload', () => {
     const event  = new ChainedEvent(payload1);
-    const result = event.withNewPayload(payload2);
+    const result = event.withPayload(payload2);
 
     expect(result.payload).toBe(payload2);
   });
 
   test('produces an instance whose `nextNow` tracks the original', async () => {
     const event  = new ChainedEvent(payload1);
-    const result = event.withNewPayload(payload2);
+    const result = event.withPayload(payload2);
 
     expect(result.nextNow).toBeNull();
 
@@ -144,14 +144,14 @@ describe('withNewPayload()', () => {
 
     event.emitter(payload3);
 
-    const result = event.withNewPayload(payload2);
+    const result = event.withPayload(payload2);
     expect(result.nextNow).not.toBeNull();
     expect(result.nextNow?.payload).toBe(payload3);
   });
 
   test('produces an instance whose `next` tracks the original', async () => {
     const event  = new ChainedEvent(payload1);
-    const result = event.withNewPayload(payload2);
+    const result = event.withPayload(payload2);
 
     const race = await Promise.race([event.next, timers.setImmediate(123)]);
     expect(race).toBe(123);
@@ -168,13 +168,13 @@ describe('withNewPayload()', () => {
     const event  = new ChainedEvent(payload1);
 
     // Before `event` has a next.
-    const result1 = event.withNewPayload(payload2);
+    const result1 = event.withPayload(payload2);
     expect(() => result1.emitter).toThrow();
 
     event.emitter(payload3);
 
     // After `event` has a next.
-    const result2 = event.withNewPayload(payload2);
+    const result2 = event.withPayload(payload2);
     expect(() => result2.emitter).toThrow();
   });
 });
