@@ -103,6 +103,14 @@ describe('.nextNow', () => {
   });
 });
 
+describe('.payload', () => {
+  test('is the payload from construction', async () => {
+    const event = new ChainedEvent(payload1);
+
+    expect(event.payload).toBe(payload1);
+  });
+});
+
 describe('withNewPayload()', () => {
   test('produces an instance with the indicated payload', () => {
     const event  = new ChainedEvent(payload1);
@@ -154,6 +162,20 @@ describe('withNewPayload()', () => {
     const resultNext = await result.next;
     expect(eventNext.payload).toBe(payload3);
     expect(resultNext.payload).toBe(payload3);
+  });
+
+  test('produces an instance whose `.emitter` is unavailable', () => {
+    const event  = new ChainedEvent(payload1);
+
+    // Before `event` has a next.
+    const result1 = event.withNewPayload(payload2);
+    expect(() => result1.emitter).toThrow();
+
+    event.emitter(payload3);
+
+    // After `event` has a next.
+    const result2 = event.withNewPayload(payload2);
+    expect(() => result2.emitter).toThrow();
   });
 });
 
