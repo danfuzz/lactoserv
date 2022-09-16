@@ -113,8 +113,8 @@ export class ChainedEvent {
   }
 
   /**
-   * @type {Promise<ChainedEvent>} Promise for the next event in the chain after
-   * this instance, which becomes resolved once it is available.
+   * @returns {Promise<ChainedEvent>} Promise for the next event in the chain
+   * after this instance, which becomes resolved once it is available.
    */
   get next() {
     if (this.#nextPromise) {
@@ -136,14 +136,14 @@ export class ChainedEvent {
   }
 
   /**
-   * @type {?ChainedEvent} The next event in the chain after this instance if it
-   * is immediately available, or `null` if there is not yet a next event.
+   * @returns {?ChainedEvent} The next event in the chain after this instance if
+   * it is immediately available, or `null` if there is not yet a next event.
    */
   get nextNow() {
     return this.#nextNow;
   }
 
-  /** @type {*} The event payload. */
+  /** @returns {*} The event payload. */
   get payload() {
     return this.#payload;
   }
