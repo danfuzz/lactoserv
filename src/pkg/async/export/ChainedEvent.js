@@ -3,6 +3,16 @@
 
 import { ManualPromise } from '#x/ManualPromise';
 
+
+// TODO:
+// * earliestOf
+// * earliestOfNow
+// * latestOf
+// * latestOfNow
+// * nextOf
+// * nextOfNow
+// * withPushedHead
+
 /**
  * Promise-chained event.
  */
@@ -17,10 +27,17 @@ export class ChainedEvent {
   #nextNow = null;
 
   /**
-   * @type {?ManualPromise<ChainedEvent>} Promise representing the next event in
-   * the chain, or `null` if there are no pending requests for same.
+   * @type {?Promise<ChainedEvent>} Promise representing the next event in the
+   * chain, or `null` if there are no pending requests for same.
    */
-  #nextProm = null;
+  #nextPromise = null;
+
+  /**
+   * @type {?function(*)} Function which can be called to resolve the value of
+   * {@link #nextPromise}. `null` if {@link #nextPromise} is itself `null` _or_
+   * if the resolver got used.
+   */
+  #nextResolver = null;
 
   /** @type {boolean} Is the emitter available for hand-off? */
   #emitterAvailable = true;
@@ -29,9 +46,43 @@ export class ChainedEvent {
    * Constructs an instance.
    *
    * @param {*} payload The event payload.
+   * @param {?ChainedEvent|Promise<ChainedEvent>} [next = null] The next event
+   *   in the chain or promise for same, if already known. If passed as
+   *   non-`null`:
+   *   * The value (or eventually-resolved value) is type-checked to be an
+   *     instance of this class.
+   *   * If it is a promise, and it becomes rejected, `next` on this instance
+   *     will get rejected with the same reason.
+   *   * {@link #emitter} is considered "already used."
    */
-  constructor(payload) {
+  constructor(payload, next = null) {
     this.#payload = payload;
+
+    if (next !== null) {
+      this.#emitterAvailable = false;
+      if (next instanceof Promise) {
+        // Arrange for `nextNow` to get set and `next` to resolve, when the
+        // incoming when `next` ultimately resolves, but only if it's valid!
+        const mp = new ManualPromise();
+        this.#nextPromise = mp.promise;
+        (async () => {
+          try {
+            const nextNow = await next;
+            if (!(nextNow instanceof this.constructor)) {
+              throw new Error('Wrong instance type for resolved `next`.');
+            }
+            this.#nextNow = nextNow;
+            mp.resolve(nextNow);
+          } catch (e) {
+            mp.reject(e);
+          }
+        })();
+      } else if (next instanceof this.constructor) {
+        this.#nextNow = next;
+      } else {
+        throw new Error('Wrong instance type for pre-resolved `next`.');
+      }
+    }
   }
 
   /**
@@ -66,19 +117,22 @@ export class ChainedEvent {
    * this instance, which becomes resolved once it is available.
    */
   get next() {
-    if (this.#nextNow) {
-      return Promise.resolve(this.#nextNow);
+    if (this.#nextPromise) {
+      return this.#nextPromise;
+    } else if (this.#nextNow) {
+      this.#nextPromise = Promise.resolve(this.#nextNow);
+      return this.#nextPromise;
     }
 
-    // This event is currently at the tail of the chain, so the result will be
-    // an unresolved promise.
+    // This is the first time `next` has been called, and the next event isn't
+    // yet known. So, we set things up for eventual resolution, returning a
+    // definitely-unsettled promise.
 
-    if (this.#nextProm === null) {
-      // This is the first time `next` has been called, so set up the promise.
-      this.#nextProm = new ManualPromise();
-    }
+    const mp = new ManualPromise();
+    this.#nextPromise = mp.promise;
+    this.#nextResolver = (value => mp.resolve(value));
 
-    return this.#nextProm.promise;
+    return this.#nextPromise;
   }
 
   /**
@@ -94,15 +148,6 @@ export class ChainedEvent {
     return this.#payload;
   }
 
-  // TODO:
-  // * earliestOf
-  // * earliestOfNow
-  // * latestOf
-  // * latestOfNow
-  // * nextOf
-  // * nextOfNow
-  // * withPushedHead
-
   /**
    * Constructs a new instance which is set up to be at the head of an event
    * chain which continues with _this_ instance's next event, but with a
@@ -114,27 +159,22 @@ export class ChainedEvent {
    *   whose `next` and `nextNow` behave the same as this instance's properties
    *   of the same names.
    */
-  withNewPayload(payload) {
-    const result = new this.constructor(payload);
+  withPayload(payload) {
+    return new this.constructor(payload, this.#nextNow ?? this.next);
+  }
 
-    // The result's emitter isn't available, because the chain of custody has
-    // already been taken (or will be taken, or at least _should_ have been
-    // taken) by whatever emitted _this_ instance.
-    result.#emitterAvailable = false;
-
-    if (this.#nextNow) {
-      // This instance already knows its next event, so set up the result with
-      // the same one.
-      result.#nextNow = this.#nextNow;
-    } else {
-      // This instance is currently at the tail of the event chain. Wait for its
-      // `next`, and propagate that to the result.
-      (async () => {
-        result.#emit(await this.next);
-      })();
-    }
-
-    return result;
+  /**
+   * Constructs a new event which -- from its perspective -- has been "pushed"
+   * onto the head of the event chain that continues with this instance. That
+   * is, the constructed event's `next` and `nextNow` immediately point at this
+   * instance.
+   *
+   * @param {*} payload Event payload.
+   * @returns {ChainedEvent} New event instance with the given `payload`, and
+   *   whose `next` and `nextNow` refer to this instance.
+   */
+  withPushedHead(payload) {
+    return new this.constructor(payload, this);
   }
 
   /**
@@ -150,13 +190,14 @@ export class ChainedEvent {
 
     this.#nextNow = event;
 
-    if (this.#nextProm) {
+    if (this.#nextPromise) {
       // There have already been one or more calls to `.next`, so we need to
       // resolve the promise that those calls returned. After that, there is no
-      // longer a need to keep the promise (and accoutrements) around, so we
-      // `null` it out.
-      this.#nextProm.resolve(this.#nextNow);
-      this.#nextProm = null;
+      // longer a need to keep the resolver around, so we `null` it out to avoid
+      // a bit of garbage accumulation. (We keep the promise around, though,
+      // because it's reasonably expectable for `.next` to be called again.)
+      this.#nextResolver(this.#nextNow);
+      this.#nextResolver = null;
     }
   }
 
