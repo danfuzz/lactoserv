@@ -143,6 +143,20 @@ export class ChainedEvent {
   }
 
   /**
+   * Constructs a new event which -- from its perspective -- has been "pushed"
+   * onto the head of the event chain that continues with this instance. That
+   * is, the constructed event's `next` and `nextNow` immediately point at this
+   * instance.
+   *
+   * @param {*} payload Event payload.
+   * @returns {ChainedEvent} New event instance with the given `payload`, and
+   *   whose `next` and `nextNow` refer to this instance.
+   */
+  withPushedHead(payload) {
+    return new this.constructor(payload, this);
+  }
+
+  /**
    * Emits the next event, that is, appends it to the chain and resolves the
    * `next` promise, if needed.
    *

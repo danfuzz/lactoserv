@@ -261,59 +261,50 @@ describe('withPayload()', () => {
   });
 
   test('produces an instance whose `.emitter` is unavailable', () => {
-    const event  = new ChainedEvent(payload1);
+    const event = new ChainedEvent(payload1);
 
     // Before `event` has a next.
     const result1 = event.withPayload(payload2);
     expect(() => result1.emitter).toThrow();
 
-    event.emitter(payload3);
-
     // After `event` has a next.
+    event.emitter(payload3);
     const result2 = event.withPayload(payload2);
     expect(() => result2.emitter).toThrow();
   });
 });
 
-/*
 describe('withPushedHead()', () => {
-  test('produces an instance with the default payload', () => {
-    const source = new EventSource();
-    const event  = source.emit.blort(1, 2, 3);
-    const result = event.withPushedHead();
-
-    assert.strictEqual(result.payload.name, 'none');
-    assert.strictEqual(result.payload.args.length, 0);
-  });
-});
-
-describe('withPushedHead(payload)', () => {
   test('produces an instance with the indicated payload', () => {
-    const source = new EventSource();
-    const event  = source.emit.blort(1, 2, 3);
-    const expect = new Functor('florp', 'x');
-    const result = event.withPushedHead(expect);
+    const event  = new ChainedEvent(payload1);
+    const result = event.withPushedHead(payload2);
 
-    assert.strictEqual(result.payload, expect);
+    expect(result.payload).toBe(payload2);
   });
 
-  test('produces an instance with `next` bound a promise to the original event',
-      async () => {
-    const source = new EventSource();
-    const event  = source.emit.blort(1, 2, 3);
-    const result = event.withPushedHead(new Functor('florp'));
+  test('produces an instance whose `nextNow` is the original instance', () => {
+    const event  = new ChainedEvent(payload1);
+    const result = event.withPushedHead(payload2);
 
-    const next = await result.next;
-    assert.strictEqual(next, event);
+    expect(result.nextNow).toBe(event);
   });
 
-  test('produces an instance with `nextNow` bound to the original event',
-      () => {
-    const source = new EventSource();
-    const event  = source.emit.blort(1, 2, 3);
-    const result = event.withPushedHead(new Functor('florp'));
+  test('produces an instance whose `next` is the original instance', async () => {
+    const event  = new ChainedEvent(payload1);
+    const result = event.withPushedHead(payload2);
 
-    assert.strictEqual(result.nextNow, event);
+    expect(await result.next).toBe(event);
+  });
+
+  test('produces an instance whose `.emitter` is unavailable', () => {
+    // When the original event doesn't yet have a `next`.
+    const event1  = new ChainedEvent(payload1);
+    const result1 = event1.withPushedHead(payload2);
+    expect(() => result1.emitter).toThrow();
+
+    // When the original event already has a `next`.
+    const event2  = new ChainedEvent(payload1, new ChainedEvent(payload3));
+    const result2 = event2.withPushedHead(payload2);
+    expect(() => result2.emitter).toThrow();
   });
 });
-*/
