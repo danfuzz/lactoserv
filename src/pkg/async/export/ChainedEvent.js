@@ -57,7 +57,7 @@ export class ChainedEvent {
   constructor(payload, next = null) {
     this.#payload = payload;
 
-    if (next) {
+    if (next !== null) {
       this.#emitterAvailable = false;
       if (next instanceof Promise) {
         // Arrange for `nextNow` to get set and `next` to resolve, when the

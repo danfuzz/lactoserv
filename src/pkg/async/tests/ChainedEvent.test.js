@@ -11,9 +11,10 @@ const payload2 = { type: 'zany' };
 const payload3 = { type: 'questionable' };
 
 describe.each`
-  label              | args
-  ${'payload'}       | ${[payload1]}
-  ${'payload, null'} | ${[payload1, null]}
+  label                   | args
+  ${'payload'}            | ${[payload1]}
+  ${'payload, null'}      | ${[payload1, null]}
+  ${'payload, undefined'} | ${[payload1, undefined]}
 `('constructor($label)', ({ args }) => {
   test('constructs an instance', async () => {
     expect(() => new ChainedEvent(...args)).not.toThrow();
@@ -36,6 +37,20 @@ describe.each`
     expect(() => event.emitter).not.toThrow();
   });
 });
+
+describe('constructor(payload, next: <invalid>)', () => {
+  test.each([
+    [false],
+    [[]],
+    [''],
+    ['nopers'],
+    [['a']],
+    [{}],
+    [{ a: 10 }],
+    [new Map()]])('fails for %p', value => {
+      expect(() => new ChainedEvent(payload1, value)).toThrow();
+    });
+  });
 
 describe('constructor(payload, next: ChainedEvent)', () => {
   test('constructs an instance', async () => {
@@ -109,6 +124,65 @@ describe('constructor(payload, next: Promise)', () => {
     await event.next;
 
     expect(event.nextNow).toBe(next);
+  });
+});
+
+describe('constructor(payload, next: Promise) -- invalid resolution', () => {
+  describe('when `next` resolves to an invalid instance', () => {
+    test('`nextNow === null`', async () => {
+      const mp    = new ManualPromise();
+      const event = new ChainedEvent(payload1, mp.promise);
+
+      mp.resolve(new Set('not an instance of the right class'));
+
+      // We have to let `event.next` become resolved before we can tell that
+      // `event.nextNow` is correctly not-set.
+      try {
+        await event.next;
+      } catch {
+        // Just swallow the error for the purposes of this test.
+      }
+
+      expect(event.nextNow).toBeNull();
+    });
+
+    test('has `next` that becomes rejected', async () => {
+      const mp    = new ManualPromise();
+      const event = new ChainedEvent(payload1, mp.promise);
+
+      mp.resolve('not an instance at all');
+
+      await expect(event.next).rejects.toThrow();
+    });
+  });
+
+  describe('when `next` becomes rejected', () => {
+    test('`nextNow === null`', async () => {
+      const mp    = new ManualPromise();
+      const event = new ChainedEvent(payload1, mp.promise);
+
+      mp.reject(new Error('oof!'));
+
+      // We have to let `event.next` become rejected before we can tell that
+      // `event.nextNow` is correctly not-set.
+      try {
+        await event.next;
+      } catch {
+        // Just swallow the error for the purposes of this test.
+      }
+
+      expect(event.nextNow).toBeNull();
+    });
+
+    test('has `next` that becomes rejected for the same reason', async () => {
+      const mp     = new ManualPromise();
+      const event  = new ChainedEvent(payload1, mp.promise);
+      const reason = new Error('forsooth');
+
+      mp.reject(reason);
+
+      await expect(event.next).rejects.toBe(reason);
+    });
   });
 });
 
