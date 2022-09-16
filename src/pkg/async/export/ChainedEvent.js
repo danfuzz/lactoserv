@@ -3,6 +3,16 @@
 
 import { ManualPromise } from '#x/ManualPromise';
 
+
+// TODO:
+// * earliestOf
+// * earliestOfNow
+// * latestOf
+// * latestOfNow
+// * nextOf
+// * nextOfNow
+// * withPushedHead
+
 /**
  * Promise-chained event.
  */
@@ -117,15 +127,6 @@ export class ChainedEvent {
   get payload() {
     return this.#payload;
   }
-
-  // TODO:
-  // * earliestOf
-  // * earliestOfNow
-  // * latestOf
-  // * latestOfNow
-  // * nextOf
-  // * nextOfNow
-  // * withPushedHead
 
   /**
    * Constructs a new instance which is set up to be at the head of an event
