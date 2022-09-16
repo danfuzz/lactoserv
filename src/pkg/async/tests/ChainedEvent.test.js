@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { ChainedEvent } from '@this/async';
+import { ChainedEvent, ManualPromise } from '@this/async';
 
 import * as timers from 'node:timers/promises';
 
@@ -24,7 +24,7 @@ describe.each`
     expect(event.nextNow).toBeNull();
   });
 
-  test('has an unresolved `next`', async () => {
+  test('has an unsettled `next`', async () => {
     const event = new ChainedEvent(...args);
 
     const race = await Promise.race([event.next, timers.setImmediate(123)]);
@@ -34,6 +34,81 @@ describe.each`
   test('has an available `emitter`', () => {
     const event = new ChainedEvent(...args);
     expect(() => event.emitter).not.toThrow();
+  });
+});
+
+describe('constructor(payload, next: ChainedEvent)', () => {
+  test('constructs an instance', async () => {
+    const next = new ChainedEvent(payload1);
+    expect(() => new ChainedEvent(payload2, next)).not.toThrow();
+  });
+
+  test('has the expected `nextNow`', () => {
+    const next  = new ChainedEvent(payload1);
+    const event = new ChainedEvent(payload2, next);
+    expect(event.nextNow).toBe(next);
+  });
+
+  test('has `next` that resolves promptly as expected', async () => {
+    const next  = new ChainedEvent(payload1);
+    const event = new ChainedEvent(payload2, next);
+    expect(await event.next).toBe(next);
+  });
+
+  test('does not have an available `emitter`', () => {
+    const next  = new ChainedEvent(payload1);
+    const event = new ChainedEvent(payload2, next);
+    expect(() => event.emitter).toThrow();
+  });
+});
+
+describe('constructor(payload, next: Promise)', () => {
+  test('constructs an instance', async () => {
+    const mp = new ManualPromise();
+    expect(() => new ChainedEvent(payload1, mp.promise)).not.toThrow();
+  });
+
+  test('`nextNow === null`', () => {
+    const mp    = new ManualPromise();
+    const event = new ChainedEvent(payload1, mp.promise);
+    expect(event.nextNow).toBeNull();
+  });
+
+  test('has unsettled `next`', async () => {
+    const mp    = new ManualPromise();
+    const event = new ChainedEvent(payload1, mp.promise);
+    const race  = await Promise.race([event.next, timers.setImmediate(123)]);
+    expect(race).toBe(123);
+  });
+
+  test('does not have an available `emitter`', () => {
+    const mp    = new ManualPromise();
+    const event = new ChainedEvent(payload1, mp.promise);
+    expect(() => event.emitter).toThrow();
+  });
+
+  test('has a `next` that tracks incoming `next`', async () => {
+    const mp    = new ManualPromise();
+    const event = new ChainedEvent(payload1, mp.promise);
+    const next  = new ChainedEvent(payload2);
+
+    mp.resolve(next);
+
+    expect(await event.next).toBe(next);
+  });
+
+  test('has a `nextNow` that tracks incoming `next`', async () => {
+    const mp    = new ManualPromise();
+    const event = new ChainedEvent(payload1, mp.promise);
+    const next  = new ChainedEvent(payload2);
+
+    mp.resolve(next);
+
+    // We have to wait for `event.next` to resolve before we can expect
+    // `nextNow` to be set.
+    await event.next;
+
+    expect(event.nextNow).toBe(next);
   });
 });
 
@@ -78,7 +153,7 @@ describe('.emitter', () => {
 });
 
 describe('.next', () => {
-  test('is an unresolved promise if there is no next event', async () => {
+  test('is an unsettled promise if there is no next event', async () => {
     const event = new ChainedEvent(payload1);
 
     const race = await Promise.race([event.next, timers.setImmediate(123)]);
