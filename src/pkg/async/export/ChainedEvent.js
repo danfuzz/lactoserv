@@ -35,9 +35,24 @@ export class ChainedEvent {
    * Constructs an instance.
    *
    * @param {*} payload The event payload.
+   * @param {?ChainedEvent|Promise<ChainedEvent>} [next = null] The next event
+   *   in the chain or promise for same, if known. If passed as non-`null`,
+   *   {@link #emitter} is considered "already used."
    */
-  constructor(payload) {
+  constructor(payload, next = null) {
     this.#payload = payload;
+
+    if (next) {
+      this.#emitterAvailable = false;
+      if (next instanceof Promise) {
+        this.#nextPromise = next;
+        // Arrange for `.nextNow` on this instance to get set when `next`
+        // ultimately resolves.
+        (async () => { this.#nextNow = await this.next; })();
+      } else {
+        this.#nextNow = next;
+      }
+    }
   }
 
   /**
@@ -124,26 +139,7 @@ export class ChainedEvent {
    *   of the same names.
    */
   withNewPayload(payload) {
-    const result = new this.constructor(payload);
-
-    // The result's emitter isn't available, because the chain of custody has
-    // already been taken (or will be taken, or at least _should_ have been
-    // taken) by whatever emitted _this_ instance.
-    result.#emitterAvailable = false;
-
-    if (this.#nextNow) {
-      // This instance already knows its next event, so set up the result with
-      // the same one.
-      result.#nextNow = this.#nextNow;
-    } else {
-      // This instance is currently at the tail of the event chain. Wait for its
-      // `next`, and propagate that to the result.
-      (async () => {
-        result.#emit(await this.next);
-      })();
-    }
-
-    return result;
+    return new this.constructor(payload, this.#nextNow ?? this.next);
   }
 
   /**
