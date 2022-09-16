@@ -139,7 +139,8 @@ describe('withPushedHead(payload)', () => {
     assert.strictEqual(result.payload, expect);
   });
 
-  test('produces an instance with `next` bound a promise to the original event', async () => {
+  test('produces an instance with `next` bound a promise to the original event',
+      async () => {
     const source = new EventSource();
     const event  = source.emit.blort(1, 2, 3);
     const result = event.withPushedHead(new Functor('florp'));
@@ -148,7 +149,8 @@ describe('withPushedHead(payload)', () => {
     assert.strictEqual(next, event);
   });
 
-  test('produces an instance with `nextNow` bound to the original event', () => {
+  test('produces an instance with `nextNow` bound to the original event',
+      () => {
     const source = new EventSource();
     const event  = source.emit.blort(1, 2, 3);
     const result = event.withPushedHead(new Functor('florp'));
