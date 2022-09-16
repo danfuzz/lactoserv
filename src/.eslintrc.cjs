@@ -105,6 +105,9 @@ const testOverrides = {
   plugins: ['jest'],
   env: {
     'jest/globals': true
+  },
+  rules: {
+    'jsdoc/require-jsdoc': 'off'
   }
 };
 
