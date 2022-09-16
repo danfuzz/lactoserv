@@ -3,5 +3,6 @@
 
 export * from '#x/ChainedEvent';
 export * from '#x/Condition';
+export * from '#x/EventSource';
 export * from '#x/ManualPromise';
 export * from '#x/Mutex';
