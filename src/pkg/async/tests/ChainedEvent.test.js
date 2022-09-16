@@ -383,3 +383,27 @@ describe('withPushedHead()', () => {
     expect(() => result2.emitter).toThrow();
   });
 });
+
+describe('subclass behavior', () => {
+  class FlorpEvent extends ChainedEvent {
+    // This space intentionally left blank.
+  }
+
+  test('constructs instances of the subclass when emitting', () => {
+    const event1 = new FlorpEvent(payload1);
+    const result = event1.emitter(payload2);
+
+    expect(event1.nextNow).toBeInstanceOf(FlorpEvent);
+  });
+
+  test('rejects a promised `next` that is not of the subclass', async () => {
+    const mp     = new ManualPromise();
+    const event  = new FlorpEvent(payload1, mp.promise);
+    const baddie = new ChainedEvent(payload2);
+
+    mp.resolve(baddie);
+
+    await expect(event.next).rejects.toThrow();
+    expect(event.nextNow).toBeNull();
+  });
+});

@@ -14,7 +14,16 @@ import { ManualPromise } from '#x/ManualPromise';
 // * withPushedHead
 
 /**
- * Promise-chained event.
+ * Promise-chained event. Each instance becomes chained to the next event which
+ * gets emitted by the same source. The chain is available both synchronously
+ * and asynchronously. In the synchronous case, it is possible to run into the
+ * end of the chain, represented by `null`. In the asynchronous case, the
+ * properties and accessors return promises that only become resolved once an
+ * appropriate event has been emitted by the source.
+ *
+ * It is possible -- and appropriate -- to subclass this class. If subclassed,
+ * this (base) class will only construct instances of the actual subclass when
+ * appending (chaining) emitted events.
  */
 export class ChainedEvent {
   /** @type {*} The event payload. */
