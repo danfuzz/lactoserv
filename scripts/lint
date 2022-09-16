@@ -82,8 +82,10 @@ toolBinary="${toolDir}/${toolBinName}"
 
 if [[ ! -x ${toolBinary} ]]; then
     mkdir -p "${toolDir}"
-    cd "${toolDir}"
-    build-tool "${toolBinName}" \
+    (
+        cd "${toolDir}"
+        build-tool "${toolBinName}"
+    ) \
     || exit "$?"
 fi
 
