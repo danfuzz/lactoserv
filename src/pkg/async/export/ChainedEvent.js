@@ -34,7 +34,8 @@ export class ChainedEvent {
 
   /**
    * @type {?function(*)} Function which can be called to resolve the value of
-   * {@link #nextPromise}, or `null` if {@link #nextPromise} is itself `null`.
+   * {@link #nextPromise}. `null` if {@link #nextPromise} is itself `null` _or_
+   * if the resolver got used.
    */
   #nextResolver = null;
 
