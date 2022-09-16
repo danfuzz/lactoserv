@@ -17,10 +17,16 @@ export class ChainedEvent {
   #nextNow = null;
 
   /**
-   * @type {?ManualPromise<ChainedEvent>} Promise representing the next event in
-   * the chain, or `null` if there are no pending requests for same.
+   * @type {?Promise<ChainedEvent>} Promise representing the next event in the
+   * chain, or `null` if there are no pending requests for same.
    */
-  #nextProm = null;
+  #nextPromise = null;
+
+  /**
+   * @type {?function(*)} Function which can be called to resolve the value of
+   * {@link #nextPromise}, or `null` if {@link #nextPromise} is itself `null`.
+   */
+  #nextResolver = null;
 
   /** @type {boolean} Is the emitter available for hand-off? */
   #emitterAvailable = true;
@@ -66,19 +72,22 @@ export class ChainedEvent {
    * this instance, which becomes resolved once it is available.
    */
   get next() {
-    if (this.#nextNow) {
-      return Promise.resolve(this.#nextNow);
+    if (this.#nextPromise) {
+      return this.#nextPromise;
+    } else if (this.#nextNow) {
+      this.#nextPromise = Promise.resolve(this.#nextNow);
+      return this.#nextPromise;
     }
 
-    // This event is currently at the tail of the chain, so the result will be
-    // an unresolved promise.
+    // This is the first time `next` has been called, and the next event isn't
+    // yet known. So, we set things up for eventual resolution, returning a
+    // definitely-unsettled promise.
 
-    if (this.#nextProm === null) {
-      // This is the first time `next` has been called, so set up the promise.
-      this.#nextProm = new ManualPromise();
-    }
+    const mp = new ManualPromise();
+    this.#nextPromise = mp.promise;
+    this.#nextResolver = (value => mp.resolve(value));
 
-    return this.#nextProm.promise;
+    return this.#nextPromise;
   }
 
   /**
@@ -150,13 +159,14 @@ export class ChainedEvent {
 
     this.#nextNow = event;
 
-    if (this.#nextProm) {
+    if (this.#nextPromise) {
       // There have already been one or more calls to `.next`, so we need to
       // resolve the promise that those calls returned. After that, there is no
-      // longer a need to keep the promise (and accoutrements) around, so we
-      // `null` it out.
-      this.#nextProm.resolve(this.#nextNow);
-      this.#nextProm = null;
+      // longer a need to keep the resolver around, so we `null` it out to avoid
+      // a bit of garbage accumulation. (We keep the promise around, though,
+      // because it's reasonably expectable for `.next` to be called again.)
+      this.#nextResolver(this.#nextNow);
+      this.#nextResolver = null;
     }
   }
 
