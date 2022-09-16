@@ -46,8 +46,13 @@ export class ChainedEvent {
    *
    * @param {*} payload The event payload.
    * @param {?ChainedEvent|Promise<ChainedEvent>} [next = null] The next event
-   *   in the chain or promise for same, if known. If passed as non-`null`,
-   *   {@link #emitter} is considered "already used."
+   *   in the chain or promise for same, if already known. If passed as
+   *   non-`null`:
+   *   * The value (or eventually-resolved value) is type-checked to be an
+   *     instance of this class.
+   *   * If it is a promise, and it becomes rejected, `next` on this instance
+   *     will get rejected with the same reason.
+   *   * {@link #emitter} is considered "already used."
    */
   constructor(payload, next = null) {
     this.#payload = payload;
@@ -55,12 +60,26 @@ export class ChainedEvent {
     if (next) {
       this.#emitterAvailable = false;
       if (next instanceof Promise) {
-        this.#nextPromise = next;
-        // Arrange for `.nextNow` on this instance to get set when `next`
-        // ultimately resolves.
-        (async () => { this.#nextNow = await this.next; })();
-      } else {
+        // Arrange for `nextNow` to get set and `next` to resolve, when the
+        // incoming when `next` ultimately resolves, but only if it's valid!
+        const mp = new ManualPromise();
+        this.#nextPromise = mp.promise;
+        (async () => {
+          try {
+            const nextNow = await next;
+            if (!(nextNow instanceof this.constructor)) {
+              throw new Error('Wrong instance type for resolved `next`.');
+            }
+            this.#nextNow = nextNow;
+            mp.resolve(nextNow);
+          } catch (e) {
+            mp.reject(e);
+          }
+        })();
+      } else if (next instanceof this.constructor) {
         this.#nextNow = next;
+      } else {
+        throw new Error('Wrong instance type for pre-resolved `next`.');
       }
     }
   }
