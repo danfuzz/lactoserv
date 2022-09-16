@@ -22,7 +22,7 @@ export class LogTag {
    *
    * @param {string} main Main tag. Must be a label-like string of no more than
    *   20 characters.
-   * @param {string[]} context Context strings. Each must have no more than 30
+   * @param {...string} context Context strings. Each must have no more than 30
    *   characters.
    */
   constructor(main, ...context) {
