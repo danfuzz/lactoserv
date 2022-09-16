@@ -16,6 +16,46 @@ describe('constructor()', () => {
   });
 });
 
+describe('.emitter', () => {
+  test('returns something the first time it is called', () => {
+    const event = new ChainedEvent(payload1);
+
+    expect(() => event.emitter).not.toThrow();
+  });
+
+  test('throws on the second (or later) use', () => {
+    const event = new ChainedEvent(payload1);
+
+    event.emitter;
+    expect(() => event.emitter).toThrow();
+    expect(() => event.emitter).toThrow();
+    expect(() => event.emitter).toThrow();
+    expect(() => event.emitter).toThrow();
+    expect(() => event.emitter).toThrow();
+  });
+
+  test('returns a function which causes the next event to be chained', () => {
+    const event = new ChainedEvent(payload1);
+
+    expect(() => event.emitter(payload2)).not.toThrow();
+    expect(event.nextNow).not.toBeNull();
+    expect(event.nextNow?.payload).toBe(payload2);
+  });
+
+  test('returns a function which only works once', () => {
+    const event = new ChainedEvent(payload1);
+    const emitter = event.emitter;
+
+    expect(() => emitter(payload2)).not.toThrow();
+
+    expect(() => emitter(payload2)).toThrow();
+    expect(() => emitter(payload2)).toThrow();
+    expect(() => emitter(payload2)).toThrow();
+    expect(() => emitter(payload2)).toThrow();
+    expect(() => emitter(payload2)).toThrow();
+  });
+});
+
 describe('.next', () => {
   test('is an unresolved promise if there is no next event', async () => {
     const event = new ChainedEvent(payload1);

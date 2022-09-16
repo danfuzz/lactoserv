@@ -65,7 +65,7 @@ const stateChecks = (maker, { isFulfilled, isRejected, value, reason }) => {
   }
 };
 
-describe('constructor', () => {
+describe('constructor()', () => {
   test('does not throw', () => {
     expect(() => new ManualPromise()).not.toThrow();
   });
