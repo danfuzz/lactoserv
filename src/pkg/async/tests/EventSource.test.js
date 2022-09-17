@@ -42,7 +42,7 @@ describe.each`
     const source = new EventSource(...argFn());
     const event  = source.emit(payload1);
     expect(event).toBeInstanceOf(cls);
-  })
+  });
 });
 
 describe('.currentEvent', () => {
