@@ -118,8 +118,9 @@ export class EventTracker {
    *   at the moment this method returns.
    */
   async #handleSkips(firstPromise) {
-    // Note: Because of interleaved calls to `advance()`, it's possible for
-    // `#skipCount` to increase during the course of this loop.
+    // Note: Because of interleaved calls to `advance()` at the point of the
+    // `await` below, it's possible for `#skipCount` to increase during the
+    // course of this loop.
 
     while (this.#skipCount >= 0) {
       if (this.#firstNow || !this.#firstPromise) {
