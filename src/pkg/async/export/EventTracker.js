@@ -52,6 +52,7 @@ export class EventTracker {
     }
   }
 
+  // TODO: Rename `first` -> `peek` etc.
   /**
    * @returns {Promise<ChainedEvent>} Promise for the first (earliest-known)
    * event tracked by this instance. This is an immediately-resolved promise in
@@ -127,7 +128,9 @@ export class EventTracker {
         // Shouldn't happen because we aren't supposed to be in this method if
         // `#firstNow` is a known value, and also `#firstPromise` had better be
         // a promise if `#firstNow === null`.
-        throw new Error('Shouldn\'t happen.');
+        const msg1 = this.#firstNow ? ' (firstNow !== null)' : '';
+        const msg2 = this.#firstPromise ? '' : ' (firstPromise === null)';
+        throw new Error(`Shouldn't happen.${msg1}${msg2}`);
       }
 
       let firstNow = await firstPromise;
@@ -141,9 +144,9 @@ export class EventTracker {
       }
 
       if ((this.#skipCount === 0) && firstNow.nextNow) {
-        // We skipped enough! We'll exit the loop next go 'round.
-        this.#firstNow     = firstNow.nextNow;
-        this.#firstPromise = null;
+        // We found our event!
+        this.#firstNow = firstNow.nextNow;
+        break;
       } else {
         firstPromise = firstNow.next;
       }
@@ -151,6 +154,8 @@ export class EventTracker {
       this.#skipCount--;
     }
 
+    this.#firstPromise = null;
+    this.#skipCount = -1;
     return this.#firstNow;
   }
 }
