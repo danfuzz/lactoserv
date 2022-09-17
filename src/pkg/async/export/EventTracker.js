@@ -131,6 +131,9 @@ export class EventTracker {
       }
 
       let firstNow = await firstPromise;
+      if (!(firstNow instanceof ChainedEvent)) {
+        throw new Error('Invalid resolved value for event.');
+      }
 
       while (firstNow.nextNow && (this.#skipCount > 0)) {
         firstNow = firstNow.nextNow;
