@@ -14,6 +14,8 @@ describe('constructor(ChainedEvent)', () => {
   test('trivially succeeds', () => {
     expect(() => new EventTracker(new ChainedEvent('woop'))).not.toThrow();
   });
+
+  // TODO: something about .first and .firstNow.
 });
 
 describe('constructor(Promise)', () => {
@@ -21,6 +23,8 @@ describe('constructor(Promise)', () => {
     const mp = new ManualPromise();
     expect(() => new EventTracker(mp.promise)).not.toThrow();
   });
+
+  // TODO: something about .first and .firstNow.
 
   test('succeeds given a promise that resolves to a valid value', async () => {
     const mp      = new ManualPromise();
