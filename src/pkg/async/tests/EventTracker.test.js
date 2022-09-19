@@ -39,7 +39,7 @@ describe('constructor(Promise)', () => {
     const tracker = new EventTracker(mp.promise);
 
     mp.resolve('nopers');
-    expect(tracker.first).rejects.toThrow();
+    await expect(tracker.first).rejects.toThrow();
   });
 
   test('propagates rejection into `first` given a promise that rejects', async () => {
@@ -48,7 +48,7 @@ describe('constructor(Promise)', () => {
     const reason  = new Error('oy!');
 
     mp.reject(reason);
-    expect(tracker.first).rejects.toBe(reason);
+    await expect(tracker.first).rejects.toThrow(reason);
   });
 });
 
