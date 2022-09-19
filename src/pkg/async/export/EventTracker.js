@@ -411,7 +411,7 @@ class AdvanceRecord {
       if (error) {
         resolver.reject(error);
       } else {
-        resolver.resolve(this.#headPromise);
+        resolver.resolve(this.#headNow ?? this.#headPromise);
       }
     }
 
