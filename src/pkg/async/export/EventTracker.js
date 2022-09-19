@@ -59,8 +59,17 @@ export class EventTracker {
     if (firstEvent instanceof Promise) {
       this.#headPromise = firstEvent;
       // This causes `firstEvent` to get `await`ed, so `#headNow` will actually
-      // get set when `firstEvent` resolves.
-      this.advance(0);
+      // get set when `firstEvent` resolves. We do it in a "async-aside" so that
+      // a thrown error can get captured instead of becoming an unhandled
+      // promise rejection; in such cases the call to `advance()` ensures that
+      // the instance itself will become appropriately broken.
+      (async () => {
+        try {
+          await this.advance(0);
+        } catch {
+          // Ignore it; see above.
+        }
+      })();
     } else if (firstEvent instanceof ChainedEvent) {
       this.#headNow = firstEvent;
     } else {
