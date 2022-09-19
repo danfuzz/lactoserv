@@ -15,7 +15,7 @@ describe('constructor(ChainedEvent)', () => {
     expect(() => new EventTracker(new ChainedEvent('woop'))).not.toThrow();
   });
 
-  // TODO: something about .first and .firstNow.
+  // TODO: something about .headPromise and .headNow.
 });
 
 describe('constructor(Promise)', () => {
@@ -24,31 +24,31 @@ describe('constructor(Promise)', () => {
     expect(() => new EventTracker(mp.promise)).not.toThrow();
   });
 
-  // TODO: something about .first and .firstNow.
+  // TODO: something about .headPromise and .headNow.
 
   test('succeeds given a promise that resolves to a valid value', async () => {
     const mp      = new ManualPromise();
     const tracker = new EventTracker(mp.promise);
 
     mp.resolve(new ChainedEvent(payload1));
-    await tracker.first;
+    await tracker.headPromise;
   });
 
-  test('causes rejection of `first` given a promise that resolves to something invalid', async () => {
+  test('causes rejection of `headPromise` given a promise that resolves to something invalid', async () => {
     const mp      = new ManualPromise();
     const tracker = new EventTracker(mp.promise);
 
     mp.resolve('nopers');
-    await expect(tracker.first).rejects.toThrow();
+    await expect(tracker.headPromise).rejects.toThrow();
   });
 
-  test('propagates rejection into `first` given a promise that rejects', async () => {
+  test('propagates rejection into `headPromise` given a promise that rejects', async () => {
     const mp      = new ManualPromise();
     const tracker = new EventTracker(mp.promise);
     const reason  = new Error('oy!');
 
     mp.reject(reason);
-    await expect(tracker.first).rejects.toThrow(reason);
+    await expect(tracker.headPromise).rejects.toThrow(reason);
   });
 });
 
@@ -67,11 +67,11 @@ describe('constructor(<invalid>)', () => {
   });
 });
 
-describe('.first', () => {
+describe('.headPromise', () => {
   // TODO
 });
 
-describe('.firstNow', () => {
+describe('.headNow', () => {
   // TODO
 });
 
