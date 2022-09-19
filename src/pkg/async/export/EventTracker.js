@@ -34,8 +34,8 @@ export class EventTracker {
    */
   #firstPromise = null;
 
-  /** @type {?ChainedEvent} First event on the chain, if known. */
-  #firstNow = null;
+  /** @type {?ChainedEvent} Head of (first event on) the chain, if known. */
+  #headNow = null;
 
   /** @type {?Error} Error which "broke" this instance, if any. */
   #brokenReason = null;
@@ -60,11 +60,11 @@ export class EventTracker {
   constructor(firstEvent) {
     if (firstEvent instanceof Promise) {
       this.#firstPromise = firstEvent;
-      // This causes `firstEvent` to get `await`ed, so `#firstNow` will actually
+      // This causes `firstEvent` to get `await`ed, so `#headNow` will actually
       // get set when `firstEvent` resolves.
       this.advance(0);
     } else if (firstEvent instanceof ChainedEvent) {
-      this.#firstNow = firstEvent;
+      this.#headNow = firstEvent;
     } else {
       throw new Error('Invalid value for `firstEvent`.');
     }
@@ -84,58 +84,60 @@ export class EventTracker {
     }
 
     if (this.#firstPromise === null) {
-      // When `#firstPromise` is `null`, `#firstNow` is always supposed to be
-      // a valid event.
-      this.#firstPromise = Promise.resolve(this.#firstNow);
+      // When `#firstPromise` is `null`, `#headNow` is always supposed to be a
+      // valid event.
+      this.#firstPromise = Promise.resolve(this.#headNow);
     }
 
     return this.#firstPromise;
   }
 
   /**
-   * @returns {?ChainedEvent} First (earliest-known) event tracked by this
-   * instance, if known. This is non-`null` in all cases _except_ when either
-   * (a) this instance has yet to observe an event, or (b) it is
-   * {@link #advance}d past the end of the chain.
+   * @returns {?ChainedEvent} Head event of this instance (first event which is
+   * not yet consumed from this instance's event source), if known. This is
+   * non-`null` in all cases _except_ when either (a) this instance has yet to
+   * observe an event, or (b) it is {@link #advance}d past the end of the chain.
    * @throws {Error} Thrown if this instance somehow became broken.
    */
-  get firstNow() {
+  get headNow() {
     if (this.#brokenReason) {
       throw this.#brokenReason;
     }
 
-    return this.#firstNow;
+    return this.#headNow;
   }
 
   /**
    * Advances this instance -- possibly zero times -- to a point where {@link
-   * #firstNow} is (or will necessarily become) satisfied by the given
-   * predicate. Predicate options:
+   * #headNow} is (or will necessarily become) satisfied by the given predicate.
+   * Predicate options:
    *
    * * `null` -- Advances past exactly one event. This the default (and is the
    *   same as specifying `1`.)
    * * `count: number` -- Advances past `count` events. Allowed to be `0`.
-   * * `type: string` -- Advances until `firstNow.type` is the given `type`.
+   * * `type: string` -- Advances until `headNow.type` is the given `type`.
    *   (This assumes `type` is bound by all events on the chain.)
    * * `predicate: function(ChainedEvent): boolean` -- General predicate-per-se,
    *   which should return `true` for a matching event.
    *
    * It is possible to use this method to advance the instance past the end of
-   * the "settled" chain, in which case the tracked source will need to emit one
-   * or more events before {@link #firstNow} becomes non-`null` again.
+   * the "settled" chain, in which case {@link #headNow} will become `null`, and
+   * the tracked source will need to emit one or more events before
+   * {@link #headNow} becomes non-`null` again.
    *
    * Though this method is `async`, if the request can be satisfied
    * synchronously, it will. In such cases, the return value will still be a
    * promise (as it must be given this method is declared `async`), but
-   * `#firstNow` will synchronously reflect the updated state of affairs.
+   * `#headNow` will synchronously reflect the updated state of affairs.
    *
    * **Note:** If the predicate throws an error -- even synchronously -- the
-   * error becomes manifest by the state of the instance and not by throwing
-   * from this method.
+   * error becomes manifest by the state of the instance becoming broken.
    *
    * @param {null|number|string|function(*)} predicate Predicate to satisfy.
-   * @returns {ChainedEvent} What {@link #firstNow} is (or would have been) at
+   * @returns {ChainedEvent} What {@link #headNow} is (or would have been) at
    *   the moment the advancing is complete.
+   * @throws {Error} Thrown if there was any trouble. If so, the instance will
+   *   also be permanently broken, with most methods also throwing.
    */
   async advance(predicate = null) {
     let adv;
@@ -145,20 +147,20 @@ export class EventTracker {
       adv = new AdvanceRecord(null, this.#advanceHead.resultHeadPromise, predicate);
     } else {
       // There is no advance-queue (yet).
-      adv = new AdvanceRecord(this.#firstNow, this.#firstPromise, predicate);
-      if (this.#firstNow) {
-        // The first event is synchronously known.
+      adv = new AdvanceRecord(this.#headNow, this.#firstPromise, predicate);
+      if (this.#headNow) {
+        // The head event is synchronously known.
         try {
           if (adv.handleSync()) {
             // We found the event we were looking for. Because everything before
             // this point is run _synchronously_ with respect to the caller (see
             // note at the top of the file), when the method synchronously returns
-            // here, `#firstNow` will actually be the non-`null` result of the
+            // here, `#headNow` will actually be the non-`null` result of the
             // action, even though (being `async`) the return value will still be
             // a promise.
-            this.firstNow     = adv.headNow;
+            this.headNow      = adv.headNow;
             this.firstPromise = adv.headPromise;
-            return this.#firstNow;
+            return this.#headNow;
           }
         } catch (e) {
           throw this.#becomeBroken(e);
@@ -169,7 +171,7 @@ export class EventTracker {
     // Note: `adv` already links to the old `#advanceHead` if it was set,
     // because of the top of the `if` above.
     this.#advanceHead  = adv;
-    this.#firstNow     = null;
+    this.#headNow      = null;
     this.#firstPromise = adv.resultHeadPromise;
 
     // This is the first `await` in the method. Everything in this method up to
@@ -183,12 +185,12 @@ export class EventTracker {
     if (this.#advanceHead === adv) {
       // This call is the last pending advance (at the moment, at least), so we
       // get to settle things back down.
-      this.#firstNow     = adv.headNow;
+      this.#headNow      = adv.headNow;
       this.#firstPromise = adv.headPromise;
       this.#advanceHead  = null;
     }
 
-    // Note: *Not* this instance's `#firstNow` here, because that might still be
+    // Note: *Not* this instance's `#headNow` here, because that might still be
     // `null` due to pending `advance()`s.
     return adv.headNow;
   }
@@ -202,7 +204,7 @@ export class EventTracker {
     }
 
     this.#brokenReason  = reason;
-    this.#firstNow      = null;
+    this.#headNow       = null;
     this.#firstPromise  = null;
     this.#advancerCount = 0;
 
