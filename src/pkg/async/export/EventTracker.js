@@ -403,6 +403,22 @@ class AdvanceRecord {
   }
 
   /**
+   * Advances to the next event in the chain, maintaining parallel-correct
+   * values for both {@link #headNow} and {@link #headPromise}.
+   */
+  #advanceToNext() {
+    const nextNow = this.#headNow.nextNow;
+
+    if (nextNow) {
+      this.#headNow     = nextNow;
+      this.#headPromise = null;
+    } else {
+      this.#headNow     = null;
+      this.#headPromise = this.#headNow.next;
+    }
+  }
+
+  /**
    * Marks the operation as done, possibly due to a problem. If there is a
    * {@link #resultHeadResolver}, it is informed of the result or the problem.
    *
@@ -435,11 +451,7 @@ class AdvanceRecord {
    */
   #handleCount() {
     while ((this.#count > 0) && this.#headNow) {
-      const nextNow = this.#headNow.nextNow;
-      if (!nextNow) {
-        this.#headPromise = this.#headNow.next;
-      }
-      this.#headNow = nextNow;
+      this.#advanceToNext();
       this.#count--;
     }
 
@@ -458,11 +470,7 @@ class AdvanceRecord {
         return true;
       }
 
-      const nextNow = this.#headNow.nextNow;
-      if (!nextNow) {
-        this.#headPromise = this.#headNow.next;
-      }
-      this.#headNow = nextNow;
+      this.#advanceToNext();
     }
 
     return false;
