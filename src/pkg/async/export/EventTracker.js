@@ -340,8 +340,8 @@ class AdvanceRecord {
         break;
       }
       case 'string': {
-        const name = predicate;
-        this.#predicate = (event => event.name === name);
+        const type = predicate;
+        this.#predicate = (event => event.type === type);
         break;
       }
       case 'function': {
