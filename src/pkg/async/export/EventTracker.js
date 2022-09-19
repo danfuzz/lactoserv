@@ -415,16 +415,6 @@ class AdvanceRecord {
         await this.#resolveHeadNow();
       }
     }
-
-    if (!this.#headNow) {
-      // Somewhat special case: We've found ourselves definitely-done, but
-      // without a settled `headNow`. (This can happen when an instance of
-      // `EventTracker` was constructed with a promise for its first event, and
-      // also when `EventTracker.advance()` is used to skip over events that
-      // have yet to be emitted.) We `await` to get it settle, so our caller can
-      // in turn have a value to plumb through as appropriate.
-      await this.#resolveHeadNow();
-    }
   }
 
   /**
