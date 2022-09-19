@@ -194,6 +194,14 @@ export class EventTracker {
     return adv.headNow;
   }
 
+  /**
+   * Makes this instance become "broken" with the indicated reason. After
+   * calling this method, the instance will respond to most method calls by
+   * throwing the reason. And once broken, and instance won't ever become
+   * un-broken.
+   *
+   * @param {Error} reason The cause of the breakage.
+   */
   #becomeBroken(reason) {
     if (this.#brokenReason) {
       if (reason !== this.#brokenReason) {
@@ -211,14 +219,58 @@ export class EventTracker {
   }
 }
 
+/**
+ * Helper for {@link #EventTracker.advance}, which implements the guts of the
+ * method.
+ *
+ * **Note:** Exactly one of {@link #count} or {@link #predicate} will be
+ * non-`null` in any given instance. (This avoids a trivial-ish subclassing
+ * situation.)
+ */
 class AdvanceRecord {
-  #headNow;
-  #headPromise;
-  #done         = false;
-  #count        = null;
-  #predicate    = null;
+  /**
+   * @type {?number} Remaining count of events to skip, if in fact this instance
+   * is skipping events.
+   */
+  #count = null;
+
+  /**
+   * @type {?function(*): boolean} Predicate which an event needs to satisfy for
+   * the operation to be considered complete, if in fact this instance is
+   * predicate-based.
+   */
+  #predicate = null;
+
+  /** {boolean} Has the operation completed? */
+  #done = false;
+
+  /**
+   * {?ManualPromise} Resolver which is to be sent the ultimate result of this
+   * operation, if needed.
+   */
   #resultHeadResolver = null;
 
+  /**
+   * @type {?ChainedEvent} Event chain head from the perspective of the
+   * in-progress operation.
+   */
+  #headNow;
+
+  /**
+   * @type {?Promise<ChainedEvent>} Promise for {@link #headNow}, when that
+   * property isn't synchronously known.
+   */
+  #headPromise;
+
+  /**
+   * Constructs an instance.
+   *
+   * @param {?ChainedEvent} headNow Event chain head at which to start.
+   * @param {?Promise<ChainedEvent>} headPromise Promise for the event chain
+   *   head.
+   * @param {*} predicate Predicate. See {@link #EventTracker.advance} for
+   *   details.
+   */
   constructor(headNow, headPromise, predicate) {
     this.#headNow     = headNow;
     this.#headPromise = headPromise;
