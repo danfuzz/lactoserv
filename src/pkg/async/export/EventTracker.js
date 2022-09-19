@@ -284,9 +284,10 @@ class AdvanceRecord {
    */
   #predicate = null;
 
-  /** {boolean} Has the operation completed? */
-  #done = false;
-
+  /**
+   * {?ChainedEvent|Promise<ChainedEvent>} Ultimate result of this operation, if
+   * indeed it has completed.
+   */
   #result = null;
 
   /**
@@ -383,7 +384,7 @@ class AdvanceRecord {
    *   retrieved.
    */
   handleSync() {
-    if (this.#done) {
+    if (this.#result) {
       this.#becomeDone();
     } else if (this.#headNow) {
       try {
@@ -398,7 +399,7 @@ class AdvanceRecord {
       }
     }
 
-    return this.#done;
+    return this.#result !== null;
   }
 
   /**
@@ -409,12 +410,10 @@ class AdvanceRecord {
    *   retrieved.
    */
   async handleAsync() {
-    while (!this.#done) {
+    while (!this.handleSync()) {
       if (!this.#headNow) {
         await this.#resolveHeadNow();
       }
-
-      this.handleSync();
     }
 
     if (!this.#headNow) {
@@ -452,7 +451,6 @@ class AdvanceRecord {
    *   throw the same error in addition to propagating it to the result promise.
    */
   #becomeDone(error = null) {
-    this.#done   = true;
     this.#result = this.#headNow ?? this.#headPromise;
 
     const resolver = this.#resultHeadResolver;
