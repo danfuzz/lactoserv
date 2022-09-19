@@ -6,9 +6,9 @@ import { ChainedEvent, EventTracker, ManualPromise } from '@this/async';
 import * as timers from 'node:timers/promises';
 
 
-const payload1 = { type: 'wacky' };
-const payload2 = { type: 'zany' };
-const payload3 = { type: 'questionable' };
+const payload1 = { type: '1:wacky:1' };
+const payload2 = { type: '2:zany:2' };
+const payload3 = { type: '3:questionable:3' };
 
 describe('constructor(ChainedEvent)', () => {
   test('trivially succeeds', () => {
@@ -78,7 +78,7 @@ describe('constructor(<invalid>)', () => {
     [false],
     [[]],
     [''],
-    ['nopers'],
+    ['bogus'],
     [['a']],
     [{}],
     [{ a: 10 }],
@@ -89,11 +89,33 @@ describe('constructor(<invalid>)', () => {
 });
 
 describe('.headPromise', () => {
-  // TODO
+  test('follows along an already-resolved chain as it is `advance()`d.', async () => {
+    const event3  = new ChainedEvent(payload3);
+    const event2  = new ChainedEvent(payload2, event3);
+    const event1  = new ChainedEvent(payload1, event2);
+    const tracker = new EventTracker(event1);
+
+    expect(await tracker.headPromise).toBe(event1);
+    tracker.advance();
+    expect(await tracker.headPromise).toBe(event2);
+    tracker.advance();
+    expect(await tracker.headPromise).toBe(event3);
+  });
+
+  test('remains unresolved after `advance()`ing past the end of the chain.', async () => {
+    const event   = new ChainedEvent(payload1);
+    const tracker = new EventTracker(event);
+
+    expect(await tracker.headPromise).toBe(event);
+    tracker.advance();
+
+    const race = await Promise.race([tracker.headPromise, timers.setTimeout(10, 123)]);
+    expect(race).toBe(123);
+  });
 });
 
 describe('.headNow', () => {
-  test('becomes non-`null` promptly after `headPromise` resolves', async () => {
+  test('becomes non-`null` promptly after `headPromise` resolves (just after construction)', async () => {
     const mp      = new ManualPromise();
     const tracker = new EventTracker(mp.promise);
     const event   = new ChainedEvent(payload1);
@@ -103,6 +125,21 @@ describe('.headNow', () => {
 
     const race = await Promise.race([tracker.headPromise, timers.setTimeout(100)]);
     expect(race).toBe(event);
+  });
+
+  test('becomes non-`null` promptly after `headPromise` resolves (after `advance()`ing)', async () => {
+    const event2  = new ChainedEvent(payload2);
+    const event1  = new ChainedEvent(payload1);
+    const tracker = new EventTracker(event1);
+
+    expect(tracker.headNow).toBe(event1);
+    tracker.advance();
+    expect(tracker.headNow).toBeNull();
+
+    event1.emitter(event2);
+    const race = await Promise.race([tracker.headPromise, timers.setTimeout(100)]);
+    expect(race).toBe(event2);
+    expect(tracker.headNow).toBe(event2);
   });
 
   test('synchronously follows along an already-resolved chain as it is `advance()`d.', () => {
@@ -125,7 +162,7 @@ describe('.headNow', () => {
     expect(tracker.headNow).toBe(event);
     tracker.advance();
     expect(tracker.headNow).toBeNull();
-  })
+  });
 });
 
 describe('advance()', () => {
