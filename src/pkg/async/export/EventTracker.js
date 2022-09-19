@@ -56,25 +56,7 @@ export class EventTracker {
    *   tracked chain, or promise to same.
    */
   constructor(firstEvent) {
-    if (firstEvent instanceof Promise) {
-      this.#headPromise = firstEvent;
-      // This causes `firstEvent` to get `await`ed, so `#headNow` will actually
-      // get set when `firstEvent` resolves. We do it in a "async-aside" so that
-      // a thrown error can get captured instead of becoming an unhandled
-      // promise rejection; in such cases the call to `advance()` ensures that
-      // the instance itself will become appropriately broken.
-      (async () => {
-        try {
-          await this.advance(0);
-        } catch {
-          // Ignore it; see above.
-        }
-      })();
-    } else if (firstEvent instanceof ChainedEvent) {
-      this.#headNow = firstEvent;
-    } else {
-      throw new Error('Invalid value for `firstEvent`.');
-    }
+    this.#setHead(firstEvent);
   }
 
   /**
@@ -161,12 +143,11 @@ export class EventTracker {
             // We found the event we were looking for. Because everything before
             // this point is run _synchronously_ with respect to the caller (see
             // note at the top of the file), when the method synchronously
-            // returns here, `#headNow` will actually be the non-`null` result
-            // of the action, even though (being `async`) the return value will
-            // still be a promise.
-            this.#headNow     = adv.headNow;
-            this.#headPromise = adv.headPromise;
-            return this.#headNow;
+            // returns here, `#headNow` and `#headPromise` will actually be
+            // the result of the completed action, even though (being `async`)
+            // the return value from this method will still be a promise.
+            this.#setHead(adv.result);
+            return adv.result;
           }
         } catch (e) {
           throw this.#becomeBroken(e);
@@ -191,8 +172,7 @@ export class EventTracker {
     if (this.#advanceHead === adv) {
       // This call is the last pending advance (at the moment, at least), so we
       // get to settle things back down.
-      this.#headNow     = adv.headNow;
-      this.#headPromise = adv.headPromise;
+      this.#setHead(adv.result);
       this.#advanceHead = null;
     }
 
@@ -227,6 +207,59 @@ export class EventTracker {
 
     return reason;
   }
+
+  /**
+   * Sets {@link #headNow} and {@link #headPromise}, arranging for `headNow` to
+   * get resolved if given a promise, and also arranging for the instance to
+   * break if given a promise that becomes rejected.
+   *
+   * This method is intended never to `throw` in response to a resolution
+   * problem, instead just to cause the instance to become broken. This is
+   * because the method is called in contexts where throwing would inevitably
+   * result in an unhandled promise rejection.
+   *
+   * @param {ChainedEvent|Promise<ChainedEvent>} event New head of the chain.
+   * @throws {Error} Thrown if `event` is not a valid value.
+   */
+  #setHead(event) {
+    if (this.#brokenReason) {
+      // Nothing to do; already broken.
+      return;
+    }
+
+    if (event instanceof ChainedEvent) {
+      this.#headNow     = event;
+      this.#headPromise = null;
+    } else if (event instanceof Promise) {
+      // We resolve the promise in an "async-aside" to achieve the specified
+      // no-throw behavior. And we only store back if the instance hasn't yet
+      // advanced onward or become broken in the mean time. Also note that we
+      // can't store `event` directly into `#headPromise`, because it might not
+      // resolve to a valid value, and we maintain a guarantee about the
+      // validity of what that resolves to.
+      const mp = new ManualPromise();
+      this.#headNow     = null;
+      this.#headPromise = mp.promise;
+      (async () => {
+        try {
+          const headNow = await event;
+          if ((this.#headPromise === mp.promise) && !this.#brokenReason) {
+            if (headNow instanceof ChainedEvent) {
+              this.#headNow = headNow;
+              mp.resolve(headNow);
+            } else {
+              throw new Error('Invalid event value.');
+            }
+          }
+        } catch (e) {
+          this.#becomeBroken(e);
+          mp.reject(e);
+        }
+      })();
+    } else {
+      throw new Error('Invalid event value.');
+    }
+  }
 }
 
 /**
@@ -253,6 +286,8 @@ class AdvanceRecord {
 
   /** {boolean} Has the operation completed? */
   #done = false;
+
+  #result = null;
 
   /**
    * {?ManualPromise} Resolver which is to be sent the ultimate result of this
@@ -334,6 +369,14 @@ class AdvanceRecord {
   /** @returns {boolean} Is the operation done? */
   get done() {
     return this.#done;
+  }
+
+  /**
+   * @returns {?ChainedEvent|Promise<ChainedEvent>} Ultimate result of this
+   * operation, if available.
+   */
+  get result() {
+    return this.#result;
   }
 
   /**
@@ -426,7 +469,8 @@ class AdvanceRecord {
    *   throw the same error in addition to propagating it to the result promise.
    */
   #becomeDone(error = null) {
-    this.#done = true;
+    this.#done   = true;
+    this.#result = this.#headNow ?? this.#headPromise;
 
     const resolver = this.#resultHeadResolver;
 
@@ -434,7 +478,7 @@ class AdvanceRecord {
       if (error) {
         resolver.reject(error);
       } else {
-        resolver.resolve(this.#headNow ?? this.#headPromise);
+        resolver.resolve(this.#result);
       }
     }
 

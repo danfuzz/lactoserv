@@ -146,20 +146,21 @@ describe('.headNow', () => {
     expect(await race).toBe(event);
   });
 
-  test('becomes non-`null` promptly after `headPromise` resolves (after `advance()`ing)', async () => {
+  test('becomes non-`null` promptly after `advance()` async-returns (when no other `advance()` is pending)', async () => {
     const event1  = new ChainedEvent(payload1);
     const tracker = new EventTracker(event1);
 
     expect(tracker.headNow).toBe(event1);
-    tracker.advance();
+    const advancePromise = tracker.advance();
     expect(tracker.headNow).toBeNull();
 
     event1.emitter(payload2);
     const event2 = event1.nextNow;
-    const race = Promise.race([tracker.headPromise, timers.setTimeout(100)]);
 
-    expect(await race).toBe(event2);
-    //await timers.setTimeout(200);
+    await advancePromise;
+
+    //expect(await advancePromise).toBe(event2);
+
     expect(tracker.headNow).toBe(event2);
   });
 
