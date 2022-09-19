@@ -158,9 +158,6 @@ describe('.headNow', () => {
     const event2 = event1.nextNow;
 
     await advancePromise;
-
-    //expect(await advancePromise).toBe(event2);
-
     expect(tracker.headNow).toBe(event2);
   });
 
@@ -187,6 +184,49 @@ describe('.headNow', () => {
   });
 });
 
-describe('advance()', () => {
+describe.each`
+  args      | label
+  ${[null]} | ${'null'}
+  ${[]}     | ${'<no-args>'}
+`('advance($label)', ({ args }) => {
+  test('behaves like `advance(1)`', () => {
+    const event3  = new ChainedEvent(payload3);
+    const event2  = new ChainedEvent(payload2, event3);
+    const event1  = new ChainedEvent(payload1, event2);
+    const tracker = new EventTracker(event1);
+
+    expect(tracker.headNow).toBe(event1);
+    tracker.advance(...args);
+    expect(tracker.headNow).toBe(event2);
+    tracker.advance(...args);
+    expect(tracker.headNow).toBe(event3);
+    tracker.advance(...args);
+    expect(tracker.headNow).toBeNull();
+  });
+});
+
+describe('advance(type)', () => {
+  test('finds a matching `headNow`', async () => {
+    const type    = 'florp';
+    const event   = new ChainedEvent({ type });
+    const tracker = new EventTracker(event);
+
+    const result = tracker.advance(type);
+
+    // Synchronous result state.
+    expect(tracker.headNow).toBe(event);
+
+    // Asynchronous call result.
+    expect(await result).toBe(event);
+  });
+
+  // TODO
+});
+
+describe('advance(count)', () => {
+  // TODO
+});
+
+describe('advance(function)', () => {
   // TODO
 });
