@@ -28,17 +28,17 @@ import { MustBe } from '@this/typey';
  */
 export class EventTracker {
   /**
+   * @type {?ChainedEvent} Head of (first event on) the chain, if known. If this
+   * is `null`, then {@link #headPromise} will be non-`null`.
+   */
+  #headNow = null;
+
+  /**
    * @type {?Promise<ChainedEvent>} Promise for the head of (first event on) the
    * chain, if there is indeed such a promise around. If this is `null`, then
    * {@link #headNow} will be non-`null`.
    */
   #headPromise = null;
-
-  /**
-   * @type {?ChainedEvent} Head of (first event on) the chain, if known. If this
-   * is `null`, then {@link #headPromise} will be non-`null`.
-   */
-  #headNow = null;
 
   /** @type {?Error} Error which "broke" this instance, if any. */
   #brokenReason = null;
@@ -69,6 +69,21 @@ export class EventTracker {
   }
 
   /**
+   * @returns {?ChainedEvent} Head event of this instance (first event which is
+   * not yet consumed from this instance's event source), if known. This is
+   * non-`null` in all cases _except_ when either (a) this instance has yet to
+   * observe an event, or (b) it is {@link #advance}d past the end of the chain.
+   * @throws {Error} Thrown if this instance somehow became broken.
+   */
+  get headNow() {
+    if (this.#brokenReason) {
+      throw this.#brokenReason;
+    }
+
+    return this.#headNow;
+  }
+
+  /**
    * @returns {Promise<ChainedEvent>} Promise for the -- often not-yet-known --
    * value of {@link #headNow}. This is an immediately-resolved promise in all
    * cases _except_ when either (a) this instance has yet to observe an event,
@@ -87,21 +102,6 @@ export class EventTracker {
     }
 
     return this.#headPromise;
-  }
-
-  /**
-   * @returns {?ChainedEvent} Head event of this instance (first event which is
-   * not yet consumed from this instance's event source), if known. This is
-   * non-`null` in all cases _except_ when either (a) this instance has yet to
-   * observe an event, or (b) it is {@link #advance}d past the end of the chain.
-   * @throws {Error} Thrown if this instance somehow became broken.
-   */
-  get headNow() {
-    if (this.#brokenReason) {
-      throw this.#brokenReason;
-    }
-
-    return this.#headNow;
   }
 
   /**
