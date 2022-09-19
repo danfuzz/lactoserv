@@ -115,10 +115,18 @@ export class ChainedEvent {
   }
 
   /**
+   * @returns {?ChainedEvent} The next event in the chain after this instance if
+   * it is immediately available, or `null` if there is not yet a next event.
+   */
+  get nextNow() {
+    return this.#nextNow;
+  }
+
+  /**
    * @returns {Promise<ChainedEvent>} Promise for the next event in the chain
    * after this instance, which becomes resolved once it is available.
    */
-  get next() {
+  get nextPromise() {
     if (this.#nextPromise) {
       return this.#nextPromise;
     } else if (this.#nextNow) {
@@ -135,14 +143,6 @@ export class ChainedEvent {
     this.#nextResolver = (value => mp.resolve(value));
 
     return this.#nextPromise;
-  }
-
-  /**
-   * @returns {?ChainedEvent} The next event in the chain after this instance if
-   * it is immediately available, or `null` if there is not yet a next event.
-   */
-  get nextNow() {
-    return this.#nextNow;
   }
 
   /** @returns {*} The event payload. */
@@ -171,7 +171,7 @@ export class ChainedEvent {
    *   of the same names.
    */
   withPayload(payload) {
-    return new this.constructor(payload, this.#nextNow ?? this.next);
+    return new this.constructor(payload, this.#nextNow ?? this.nextPromise);
   }
 
   /**
@@ -202,11 +202,12 @@ export class ChainedEvent {
     this.#nextNow = event;
 
     if (this.#nextPromise) {
-      // There have already been one or more calls to `.next`, so we need to
-      // resolve the promise that those calls returned. After that, there is no
-      // longer a need to keep the resolver around, so we `null` it out to avoid
-      // a bit of garbage accumulation. (We keep the promise around, though,
-      // because it's reasonably expectable for `.next` to be called again.)
+      // There have already been one or more calls to `.nextPromise`, so we need
+      // to resolve the promise that those calls returned. After that, there is
+      // no longer a need to keep the resolver around, so we `null` it out to
+      // avoid a bit of garbage accumulation. (We keep the promise around,
+      // though, because it's reasonably expectable for `.nextPromise` to be
+      // called again.)
       this.#nextResolver(this.#nextNow);
       this.#nextResolver = null;
     }

@@ -65,9 +65,9 @@ export class EventSource {
       return this.#currentEvent;
     } else {
       // `#currentEvent` is just the initial stub that was made during
-      // construction of this instance. _Its_ chained `next` event will be the
+      // construction of this instance. _Its_ chained `nextPromise` will be the
       // first actual event coming from this instance.
-      return this.#currentEvent.next;
+      return this.#currentEvent.nextPromise;
     }
   }
 

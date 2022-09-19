@@ -28,7 +28,7 @@ describe.each`
   test('has an unsettled `next`', async () => {
     const event = new ChainedEvent(...args);
 
-    const race = await Promise.race([event.next, timers.setImmediate(123)]);
+    const race = await Promise.race([event.nextPromise, timers.setImmediate(123)]);
     expect(race).toBe(123);
   });
 
@@ -68,7 +68,7 @@ describe('constructor(payload, next: ChainedEvent)', () => {
   test('has `next` that resolves promptly as expected', async () => {
     const next  = new ChainedEvent(payload1);
     const event = new ChainedEvent(payload2, next);
-    expect(await event.next).toBe(next);
+    expect(await event.nextPromise).toBe(next);
   });
 
   test('does not have an available `emitter`', () => {
@@ -93,7 +93,7 @@ describe('constructor(payload, next: Promise)', () => {
   test('has unsettled `next`', async () => {
     const mp    = new ManualPromise();
     const event = new ChainedEvent(payload1, mp.promise);
-    const race  = await Promise.race([event.next, timers.setImmediate(123)]);
+    const race  = await Promise.race([event.nextPromise, timers.setImmediate(123)]);
     expect(race).toBe(123);
   });
 
@@ -110,7 +110,7 @@ describe('constructor(payload, next: Promise)', () => {
 
     mp.resolve(next);
 
-    expect(await event.next).toBe(next);
+    expect(await event.nextPromise).toBe(next);
   });
 
   test('has a `nextNow` that tracks incoming `next`', async () => {
@@ -120,9 +120,9 @@ describe('constructor(payload, next: Promise)', () => {
 
     mp.resolve(next);
 
-    // We have to wait for `event.next` to resolve before we can expect
+    // We have to wait for `event.nextPromise` to resolve before we can expect
     // `nextNow` to be set.
-    await event.next;
+    await event.nextPromise;
 
     expect(event.nextNow).toBe(next);
   });
@@ -136,10 +136,10 @@ describe('constructor(payload, next: Promise) -- invalid resolution', () => {
 
       mp.resolve(new Set('not an instance of the right class'));
 
-      // We have to let `event.next` become resolved before we can tell that
-      // `event.nextNow` is correctly not-set.
+      // We have to let `event.nextPromise` become resolved before we can tell
+      // that `event.nextNow` is correctly not-set.
       try {
-        await event.next;
+        await event.nextPromise;
       } catch {
         // Just swallow the error for the purposes of this test.
       }
@@ -153,7 +153,7 @@ describe('constructor(payload, next: Promise) -- invalid resolution', () => {
 
       mp.resolve('not an instance at all');
 
-      await expect(event.next).rejects.toThrow();
+      await expect(event.nextPromise).rejects.toThrow();
     });
   });
 
@@ -164,10 +164,10 @@ describe('constructor(payload, next: Promise) -- invalid resolution', () => {
 
       mp.reject(new Error('oof!'));
 
-      // We have to let `event.next` become rejected before we can tell that
-      // `event.nextNow` is correctly not-set.
+      // We have to let `event.nextPromise` become rejected before we can tell
+      // that `event.nextNow` is correctly not-set.
       try {
-        await event.next;
+        await event.nextPromise;
       } catch {
         // Just swallow the error for the purposes of this test.
       }
@@ -182,7 +182,7 @@ describe('constructor(payload, next: Promise) -- invalid resolution', () => {
 
       mp.reject(reason);
 
-      await expect(event.next).rejects.toBe(reason);
+      await expect(event.nextPromise).rejects.toBe(reason);
     });
   });
 });
@@ -227,27 +227,6 @@ describe('.emitter', () => {
   });
 });
 
-describe('.next', () => {
-  test('is an unsettled promise if there is no next event', async () => {
-    const event = new ChainedEvent(payload1);
-
-    const race = await Promise.race([event.next, timers.setImmediate(123)]);
-    expect(race).toBe(123);
-  });
-
-  test('eventually resolves to the chained event', async () => {
-    const event = new ChainedEvent(payload1);
-
-    (async () => {
-      await timers.setTimeout(10);
-      event.emitter(payload2);
-    })();
-
-    const got = await event.next;
-    expect(got.payload).toBe(payload2);
-  });
-});
-
 describe('.nextNow', () => {
   test('is `null` if there is no next event', () => {
     const event = new ChainedEvent(payload1);
@@ -270,6 +249,27 @@ describe('.nextNow', () => {
     event.emitter(payload2)(payload1);
 
     const got = event.nextNow;
+    expect(got.payload).toBe(payload2);
+  });
+});
+
+describe('.nextPromise', () => {
+  test('is an unsettled promise if there is no next event', async () => {
+    const event = new ChainedEvent(payload1);
+
+    const race = await Promise.race([event.nextPromise, timers.setImmediate(123)]);
+    expect(race).toBe(123);
+  });
+
+  test('eventually resolves to the chained event', async () => {
+    const event = new ChainedEvent(payload1);
+
+    (async () => {
+      await timers.setTimeout(10);
+      event.emitter(payload2);
+    })();
+
+    const got = await event.nextPromise;
     expect(got.payload).toBe(payload2);
   });
 });
@@ -313,7 +313,7 @@ describe('withPayload()', () => {
     // can't expect its `nextNow` to be non-`null` until after its own `next`
     // resolves.
 
-    await result.next;
+    await result.nextPromise;
     expect(result.nextNow).not.toBeNull();
     expect(result.nextNow?.payload).toBe(payload3);
   });
@@ -333,13 +333,13 @@ describe('withPayload()', () => {
     const event  = new ChainedEvent(payload1);
     const result = event.withPayload(payload2);
 
-    const race = await Promise.race([event.next, timers.setImmediate(123)]);
+    const race = await Promise.race([event.nextPromise, timers.setImmediate(123)]);
     expect(race).toBe(123);
 
     event.emitter(payload3);
 
-    const eventNext  = await event.next;
-    const resultNext = await result.next;
+    const eventNext  = await event.nextPromise;
+    const resultNext = await result.nextPromise;
     expect(eventNext.payload).toBe(payload3);
     expect(resultNext.payload).toBe(payload3);
   });
@@ -377,7 +377,7 @@ describe('withPushedHead()', () => {
     const event  = new ChainedEvent(payload1);
     const result = event.withPushedHead(payload2);
 
-    expect(await result.next).toBe(event);
+    expect(await result.nextPromise).toBe(event);
   });
 
   test('produces an instance whose `.emitter` is unavailable', () => {
@@ -412,7 +412,7 @@ describe('subclass behavior', () => {
 
     mp.resolve(baddie);
 
-    await expect(event.next).rejects.toThrow();
+    await expect(event.nextPromise).rejects.toThrow();
     expect(event.nextNow).toBeNull();
   });
 });
