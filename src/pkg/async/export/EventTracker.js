@@ -44,16 +44,11 @@ export class EventTracker {
   /** @type {?Error} Error which "broke" this instance, if any. */
   #brokenReason = null;
 
-  #advanceMutex = new Mutex();
-
-  #advanceHead = null;
-  #advancerCount = 0;
-
   /**
-   * @type {?AdvanceRecord[]} Queue of advances to perform, or `null` if
+   * @type {?AdvanceRecord} The latest advance to perform, if any. When `null`,
    * advancing is not currently (asynchronously) in progress.
    */
-  #advances = null;
+  #advanceHead = null;
 
   /**
    * Constructs an instance.
@@ -210,7 +205,7 @@ export class EventTracker {
     this.#brokenReason = reason;
     this.#headNow      = null;
     this.#headPromise  = null;
-    this.#advancerCount = 0;
+    this.#advanceHead  = null;
 
     return reason;
   }
