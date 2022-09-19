@@ -29,7 +29,7 @@ describe.each`
   test('produces an instance whose `currentEvent` is unsettled', async () => {
     const source = new EventSource(...argFn());
 
-    const race = await Promise.race([source.currentEvent, timers.setImmediate(123)]);
+    const race = await Promise.race([source.currentEvent, timers.setTimeout(10, 123)]);
     expect(race).toBe(123);
   });
 
