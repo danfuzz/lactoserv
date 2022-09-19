@@ -205,6 +205,9 @@ export class EventTracker {
   #becomeBroken(reason) {
     if (this.#brokenReason) {
       if (reason !== this.#brokenReason) {
+        // It's expected that the same breakage reason will come in via multiple
+        // channels, so only make noise if there's a different reason than the
+        // one we've already seen.
         console.log('Ignoring `becomeBroken()`, because already broken!');
       }
       return this.#brokenReason;
@@ -309,18 +312,27 @@ class AdvanceRecord {
     }
   }
 
+  /** @returns {?ChainedEvent} In-progress event chain head. */
   get headNow() {
     return this.#headNow;
   }
 
+  /**
+   * @returns {?Promise<ChainedEvent>} In-progress promise for {@link #headNow}.
+   */
   get headPromise() {
     return this.#headPromise;
   }
 
+  /** @returns {boolean} Is the operation done? */
   get done() {
     return this.#done;
   }
 
+  /**
+   * @returns {Promise<ChainedEvent>} Promise for the ultimate result of this
+   * operation.
+   */
   get resultHeadPromise() {
     if (!this.#resultHeadResolver) {
       this.#resultHeadResolver = new ManualPromise();
@@ -329,6 +341,14 @@ class AdvanceRecord {
     return this.#resultHeadResolver.promise;
   }
 
+  /**
+   * Does as much of this operation as possible synchronously.
+   *
+   * @returns {boolean} `true` iff the operation has been completed.
+   * @throws {Error} Thrown if there was any trouble at all. And if thrown, the
+   *   same error is propagated to {@link #resultHeadPromise} if it was ever
+   *   retrieved.
+   */
   handleSync() {
     if (this.#done) {
       this.#becomeDone();
@@ -348,6 +368,13 @@ class AdvanceRecord {
     return this.#done;
   }
 
+  /**
+   * Completes this operation -- or dies trying -- asynchronously.
+   *
+   * @throws {Error} Thrown if there was any trouble at all. And if thrown, the
+   *   same error is propagated to {@link #resultHeadPromise} if it was ever
+   *   retrieved.
+   */
   async handleAsync() {
     while (!this.#done) {
       if (!this.#headNow) {
@@ -368,6 +395,12 @@ class AdvanceRecord {
     }
   }
 
+  /**
+   * Helper for {@link #handleAsync}, which resolves {@link #headPromise},
+   * setting {@link #headNow} or throwing whatever problem was thereby revealed.
+   *
+   * @throws {Error} Thrown if there was any trouble at all.
+   */
   async #resolveHeadNow() {
     try {
       const headNow = await this.#headPromise;
