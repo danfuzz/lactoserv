@@ -395,6 +395,13 @@ class AdvanceRecord {
     }
   }
 
+  /**
+   * Marks the operation as done, possibly due to a problem. If there is a
+   * {@link #resultHeadResolver}, it is informed of the result or the problem.
+   *
+   * @param {?Error} error The problem, if any. If non-`null`, this method will
+   *   throw the same error in addition to propagating it to the result promise.
+   */
   #becomeDone(error = null) {
     this.#done = true;
 
@@ -413,6 +420,12 @@ class AdvanceRecord {
     }
   }
 
+  /**
+   * Does the core work of walking the event chain, when {@link #count} is
+   * being used.
+   *
+   * @returns {boolean} `true` iff the operation was completed.
+   */
   #handleCount() {
     while ((this.#count > 0) && this.#headNow) {
       const nextNow = this.#headNow.nextNow;
@@ -426,6 +439,12 @@ class AdvanceRecord {
     return (this.#count === 0);
   }
 
+  /**
+   * Does the core work of walking the event chain, when {@link #predicate} is
+   * being used.
+   *
+   * @returns {boolean} `true` iff the operation was completed.
+   */
   #handlePredicate() {
     while (this.#headNow) {
       if (this.#predicate(this.#headNow)) {
