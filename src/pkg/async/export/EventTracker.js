@@ -29,12 +29,16 @@ import { MustBe } from '@this/typey';
  */
 export class EventTracker {
   /**
-   * @type {?Promise<ChainedEvent>} Promise for the first event on the chain,
-   * when appropriate.
+   * @type {?Promise<ChainedEvent>} Promise for the head of (first event on) the
+   * chain, if there is indeed such a promise around. If this is `null`, then
+   * {@link #headNow} will be non-`null`.
    */
-  #firstPromise = null;
+  #headPromise = null;
 
-  /** @type {?ChainedEvent} Head of (first event on) the chain, if known. */
+  /**
+   * @type {?ChainedEvent} Head of (first event on) the chain, if known. If this
+   * is `null`, then {@link #headPromise} will be non-`null`.
+   */
   #headNow = null;
 
   /** @type {?Error} Error which "broke" this instance, if any. */
@@ -59,7 +63,7 @@ export class EventTracker {
    */
   constructor(firstEvent) {
     if (firstEvent instanceof Promise) {
-      this.#firstPromise = firstEvent;
+      this.#headPromise = firstEvent;
       // This causes `firstEvent` to get `await`ed, so `#headNow` will actually
       // get set when `firstEvent` resolves.
       this.advance(0);
@@ -83,13 +87,13 @@ export class EventTracker {
       throw this.#brokenReason;
     }
 
-    if (this.#firstPromise === null) {
-      // When `#firstPromise` is `null`, `#headNow` is always supposed to be a
+    if (this.#headPromise === null) {
+      // When `#headPromise` is `null`, `#headNow` is always supposed to be a
       // valid event.
-      this.#firstPromise = Promise.resolve(this.#headNow);
+      this.#headPromise = Promise.resolve(this.#headNow);
     }
 
-    return this.#firstPromise;
+    return this.#headPromise;
   }
 
   /**
@@ -147,19 +151,19 @@ export class EventTracker {
       adv = new AdvanceRecord(null, this.#advanceHead.resultHeadPromise, predicate);
     } else {
       // There is no advance-queue (yet).
-      adv = new AdvanceRecord(this.#headNow, this.#firstPromise, predicate);
+      adv = new AdvanceRecord(this.#headNow, this.#headPromise, predicate);
       if (this.#headNow) {
         // The head event is synchronously known.
         try {
           if (adv.handleSync()) {
             // We found the event we were looking for. Because everything before
             // this point is run _synchronously_ with respect to the caller (see
-            // note at the top of the file), when the method synchronously returns
-            // here, `#headNow` will actually be the non-`null` result of the
-            // action, even though (being `async`) the return value will still be
-            // a promise.
-            this.headNow      = adv.headNow;
-            this.firstPromise = adv.headPromise;
+            // note at the top of the file), when the method synchronously
+            // returns here, `#headNow` will actually be the non-`null` result
+            // of the action, even though (being `async`) the return value will
+            // still be a promise.
+            this.headNow     = adv.headNow;
+            this.headPromise = adv.headPromise;
             return this.#headNow;
           }
         } catch (e) {
@@ -170,9 +174,9 @@ export class EventTracker {
 
     // Note: `adv` already links to the old `#advanceHead` if it was set,
     // because of the top of the `if` above.
-    this.#advanceHead  = adv;
-    this.#headNow      = null;
-    this.#firstPromise = adv.resultHeadPromise;
+    this.#advanceHead = adv;
+    this.#headNow     = null;
+    this.#headPromise = adv.resultHeadPromise;
 
     // This is the first `await` in the method. Everything in this method up to
     // this point ran synchronously with respect to our caller.
@@ -185,9 +189,9 @@ export class EventTracker {
     if (this.#advanceHead === adv) {
       // This call is the last pending advance (at the moment, at least), so we
       // get to settle things back down.
-      this.#headNow      = adv.headNow;
-      this.#firstPromise = adv.headPromise;
-      this.#advanceHead  = null;
+      this.#headNow     = adv.headNow;
+      this.#headPromise = adv.headPromise;
+      this.#advanceHead = null;
     }
 
     // Note: *Not* this instance's `#headNow` here, because that might still be
@@ -203,9 +207,9 @@ export class EventTracker {
       return this.#brokenReason;
     }
 
-    this.#brokenReason  = reason;
-    this.#headNow       = null;
-    this.#firstPromise  = null;
+    this.#brokenReason = reason;
+    this.#headNow      = null;
+    this.#headPromise  = null;
     this.#advancerCount = 0;
 
     return reason;
