@@ -7,6 +7,15 @@ import { ManualPromise } from '#x/ManualPromise';
 import { MustBe } from '@this/typey';
 
 
+// TODO:
+// * earliestOf
+// * earliestOfNow
+// * latestOf
+// * latestOfNow
+// * nextOf
+// * nextOfNow
+// * withPushedHead
+
 // Implementation note:
 //
 // Arguably surprisingly, JavaScript runs `async` functions synchronously up to

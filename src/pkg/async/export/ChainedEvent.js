@@ -5,14 +5,6 @@ import { ManualPromise } from '#x/ManualPromise';
 
 import { MustBe } from '@this/typey';
 
-// TODO:
-// * earliestOf
-// * earliestOfNow
-// * latestOf
-// * latestOfNow
-// * nextOf
-// * nextOfNow
-// * withPushedHead
 
 /**
  * Promise-chained event. Each instance becomes chained to the next event which
