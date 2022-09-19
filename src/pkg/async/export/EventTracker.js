@@ -68,15 +68,14 @@ export class EventTracker {
     }
   }
 
-  // TODO: Rename `first` -> `peek` etc.
   /**
-   * @returns {Promise<ChainedEvent>} Promise for the first (earliest-known)
-   * event tracked by this instance. This is an immediately-resolved promise in
-   * all cases _except_ when either (a) this instance has yet to observe an
-   * event, or (b) it is {@link #advance}d past the end of the chain.
+   * @returns {Promise<ChainedEvent>} Promise for the -- often not-yet-known --
+   * value of {@link #headNow}. This is an immediately-resolved promise in all
+   * cases _except_ when either (a) this instance has yet to observe an event,
+   * or (b) it is {@link #advance}d past the end of the chain.
    * @throws {Error} Thrown if this instance somehow became broken.
    */
-  get first() {
+  get headPromise() {
     if (this.#brokenReason) {
       throw this.#brokenReason;
     }
