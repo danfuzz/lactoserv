@@ -252,13 +252,13 @@ export class EventTracker {
       (async () => {
         try {
           const headNow = await event;
+          if (headNow instanceof ChainedEvent) {
+            mp.resolve(headNow);
+          } else {
+            throw new Error('Invalid event value.');
+          }
           if ((this.#headPromise === mp.promise) && !this.#brokenReason) {
-            if (headNow instanceof ChainedEvent) {
-              this.#headNow = headNow;
-              mp.resolve(headNow);
-            } else {
-              throw new Error('Invalid event value.');
-            }
+            this.#headNow = headNow;
           }
         } catch (e) {
           this.#becomeBroken(e);
