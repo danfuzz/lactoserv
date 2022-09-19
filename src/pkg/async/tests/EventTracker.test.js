@@ -111,11 +111,14 @@ describe('.headPromise', () => {
 
     expect(tracker.headNow).toBeNull();
 
+    const race1 = Promise.race([tracker.headPromise, timers.setTimeout(10, 123)]);
+    expect(await race1).toBe(123);
+
     event1.emitter(payload2);
     const event2 = event1.nextNow;
-    const race = Promise.race([tracker.headPromise, timers.setTimeout(10)]);
+    const race2 = Promise.race([tracker.headPromise, timers.setTimeout(10, 456)]);
 
-    expect(await race).toBe(event2);
+    expect(await race2).toBe(event2);
   });
 
   test('remains unresolved after `advance()`ing past the end of the chain.', async () => {
