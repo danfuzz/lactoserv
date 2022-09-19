@@ -284,6 +284,56 @@ describe('advance(type)', () => {
 });
 
 describe('advance(count)', () => {
+  describe('advance(0)', () => {
+    test('finds a matching `headNow`', async () => {
+      const event   = new ChainedEvent(payload1);
+      const tracker = new EventTracker(event);
+
+      const result = tracker.advance(0);
+
+      // Synchronous result state.
+      expect(tracker.headNow).toBe(event);
+
+      // Asynchronous call result.
+      expect(await result).toBe(event);
+    });
+
+    test('finds a matching already-resolved `headPromise`', async () => {
+      const event   = new ChainedEvent(payload1);
+      const tracker = new EventTracker(Promise.resolve(event));
+
+      const result = tracker.advance(0);
+
+      // Synchronous result state.
+      expect(tracker.headNow).toBeNull();
+
+      // Asynchronous call result.
+      expect(await result).toBe(event);
+
+      // Synchronous post-result-resolution state.
+      expect(tracker.headNow).toBe(event);
+    });
+
+    test('finds a matching initially-unresolved `headPromise`', async () => {
+      const event   = new ChainedEvent(payload1);
+      const mp      = new ManualPromise();
+      const tracker = new EventTracker(mp.promise);
+
+      const result = tracker.advance(0);
+
+      // Synchronous result state.
+      expect(tracker.headNow).toBeNull();
+
+      mp.resolve(event);
+
+      // Asynchronous call result.
+      expect(await result).toBe(event);
+
+      // Synchronous post-result-resolution state.
+      expect(tracker.headNow).toBe(event);
+    });
+  });
+
   // TODO
 });
 
