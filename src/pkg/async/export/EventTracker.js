@@ -178,7 +178,7 @@ export class EventTracker {
 
     // Note: *Not* this instance's `#headNow` here, because that might still be
     // `null` due to pending `advance()`s.
-    return adv.headNow;
+    return adv.result;
   }
 
   /**
