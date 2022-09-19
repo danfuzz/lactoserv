@@ -102,6 +102,22 @@ describe('.headPromise', () => {
     expect(await tracker.headPromise).toBe(event3);
   });
 
+  test('resolves promptly after the `advance()`d result\'s `next` resolves', async () => {
+    const event1  = new ChainedEvent(payload1);
+    const tracker = new EventTracker(event1);
+
+    expect(await tracker.headPromise).toBe(event1);
+    tracker.advance();
+
+    expect(tracker.headNow).toBeNull();
+
+    event1.emitter(payload2);
+    const event2 = event1.nextNow;
+    const race = Promise.race([tracker.headPromise, timers.setTimeout(10)]);
+
+    expect(await race).toBe(event2);
+  });
+
   test('remains unresolved after `advance()`ing past the end of the chain.', async () => {
     const event   = new ChainedEvent(payload1);
     const tracker = new EventTracker(event);
@@ -109,8 +125,8 @@ describe('.headPromise', () => {
     expect(await tracker.headPromise).toBe(event);
     tracker.advance();
 
-    const race = await Promise.race([tracker.headPromise, timers.setTimeout(10, 123)]);
-    expect(race).toBe(123);
+    const race = Promise.race([tracker.headPromise, timers.setTimeout(10, 123)]);
+    expect(await race).toBe(123);
   });
 });
 
@@ -123,12 +139,11 @@ describe('.headNow', () => {
     expect(tracker.headNow).toBeNull();
     mp.resolve(event);
 
-    const race = await Promise.race([tracker.headPromise, timers.setTimeout(100)]);
-    expect(race).toBe(event);
+    const race = Promise.race([tracker.headPromise, timers.setTimeout(100)]);
+    expect(await race).toBe(event);
   });
 
   test('becomes non-`null` promptly after `headPromise` resolves (after `advance()`ing)', async () => {
-    const event2  = new ChainedEvent(payload2);
     const event1  = new ChainedEvent(payload1);
     const tracker = new EventTracker(event1);
 
@@ -136,9 +151,12 @@ describe('.headNow', () => {
     tracker.advance();
     expect(tracker.headNow).toBeNull();
 
-    event1.emitter(event2);
-    const race = await Promise.race([tracker.headPromise, timers.setTimeout(100)]);
-    expect(race).toBe(event2);
+    event1.emitter(payload2);
+    const event2 = event1.nextNow;
+    const race = Promise.race([tracker.headPromise, timers.setTimeout(100)]);
+
+    expect(await race).toBe(event2);
+    //await timers.setTimeout(200);
     expect(tracker.headNow).toBe(event2);
   });
 
