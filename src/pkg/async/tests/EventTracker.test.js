@@ -220,7 +220,67 @@ describe('advance(type)', () => {
     expect(await result).toBe(event);
   });
 
-  // TODO
+  test('finds a matching synchronous non-head', async () => {
+    const type    = 'florp-like';
+    const event3  = new ChainedEvent({ type });
+    const event2  = new ChainedEvent(payload2, event3);
+    const event1  = new ChainedEvent(payload1, event2);
+    const tracker = new EventTracker(event1);
+
+    const result = tracker.advance(type);
+
+    // Synchronous result state.
+    expect(tracker.headNow).toBe(event3);
+
+    // Asynchronous call result.
+    expect(await result).toBe(event3);
+  });
+
+  test('finds a matching `headPromise`', async () => {
+    const type    = 'floop';
+    const event   = new ChainedEvent({ type });
+    const tracker = new EventTracker(Promise.resolve(event));
+
+    const result = tracker.advance(type);
+
+    // Synchronous result state.
+    expect(tracker.headNow).toBeNull();
+
+    // Asynchronous call result.
+    expect(await result).toBe(event);
+
+    // Synchronous post-result-resolution state.
+    expect(tracker.headNow).toBe(event);
+  });
+
+  test('finds a matching asynchronous non-head', async () => {
+    const type    = 'floop-like';
+    const mp      = new ManualPromise();
+    const tracker = new EventTracker(mp.promise);
+
+    const result = tracker.advance(type);
+    expect(tracker.headNow).toBeNull();
+
+    const event1 = new ChainedEvent(payload1);
+    mp.resolve(event1);
+    const race1 = Promise.race([result, timers.setTimeout(10, 101)]);
+    expect(await race1).toBe(101);
+
+    const emitter2 = event1.emitter(payload2);
+    const event2 = event1.nextNow;
+    expect(tracker.headNow).toBeNull();
+    const race2 = Promise.race([result, timers.setTimeout(10, 102)]);
+    expect(await race2).toBe(102);
+
+    emitter2({ type });
+    const event3 = event2.nextNow;
+    expect(tracker.headNow).toBeNull();
+    const race3 = Promise.race([result, timers.setTimeout(10, 103)]);
+    expect(await race3).toBe(event3);
+
+    // Synchronous post-result-resolution state.
+    expect(tracker.headNow).toBe(event3);
+  });
 });
 
 describe('advance(count)', () => {
