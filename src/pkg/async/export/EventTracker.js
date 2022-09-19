@@ -395,24 +395,6 @@ class AdvanceRecord {
     }
   }
 
-  /**
-   * Helper for {@link #handleAsync}, which resolves {@link #headPromise},
-   * setting {@link #headNow} or throwing whatever problem was thereby revealed.
-   *
-   * @throws {Error} Thrown if there was any trouble at all.
-   */
-  async #resolveHeadNow() {
-    try {
-      const headNow = await this.#headPromise;
-      if (!(headNow instanceof ChainedEvent)) {
-        throw new Error('Invalid event value.');
-      }
-      this.#headNow = headNow;
-    } catch (e) {
-      this.#becomeDone(e);
-    }
-  }
-
   #becomeDone(error = null) {
     this.#done = true;
 
@@ -458,5 +440,23 @@ class AdvanceRecord {
     }
 
     return false;
+  }
+
+  /**
+   * Helper for {@link #handleAsync}, which resolves {@link #headPromise},
+   * setting {@link #headNow} or throwing whatever problem was thereby revealed.
+   *
+   * @throws {Error} Thrown if there was any trouble at all.
+   */
+  async #resolveHeadNow() {
+    try {
+      const headNow = await this.#headPromise;
+      if (!(headNow instanceof ChainedEvent)) {
+        throw new Error('Invalid event value.');
+      }
+      this.#headNow = headNow;
+    } catch (e) {
+      this.#becomeDone(e);
+    }
   }
 }
