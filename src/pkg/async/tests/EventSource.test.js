@@ -46,6 +46,14 @@ describe.each`
 });
 
 describe('.currentEvent', () => {
+  test('is a promise', async () => {
+    const source = new EventSource();
+
+    expect(source.currentEvent).toBeInstanceOf(Promise);
+    source.emit(payload1);
+    expect(source.currentEvent).toBeInstanceOf(Promise);
+  });
+
   test('tracks the events that have been emitted', async () => {
     const source = new EventSource();
 

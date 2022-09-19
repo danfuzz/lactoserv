@@ -62,7 +62,7 @@ export class EventSource {
   get currentEvent() {
     if (this.#everEmitted) {
       // `#currentEvent` is in fact a truly emitted event.
-      return this.#currentEvent;
+      return Promise.resolve(this.#currentEvent);
     } else {
       // `#currentEvent` is just the initial stub that was made during
       // construction of this instance. _Its_ chained `nextPromise` will be the
