@@ -354,23 +354,6 @@ class AdvanceRecord {
     }
   }
 
-  /** @returns {?ChainedEvent} In-progress event chain head. */
-  get headNow() {
-    return this.#headNow;
-  }
-
-  /**
-   * @returns {?Promise<ChainedEvent>} In-progress promise for {@link #headNow}.
-   */
-  get headPromise() {
-    return this.#headPromise;
-  }
-
-  /** @returns {boolean} Is the operation done? */
-  get done() {
-    return this.#done;
-  }
-
   /**
    * @returns {?ChainedEvent|Promise<ChainedEvent>} Ultimate result of this
    * operation, if available.
