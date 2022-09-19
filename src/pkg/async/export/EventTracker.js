@@ -155,8 +155,8 @@ export class EventTracker {
             // returns here, `#headNow` will actually be the non-`null` result
             // of the action, even though (being `async`) the return value will
             // still be a promise.
-            this.headNow     = adv.headNow;
-            this.headPromise = adv.headPromise;
+            this.#headNow     = adv.headNow;
+            this.#headPromise = adv.headPromise;
             return this.#headNow;
           }
         } catch (e) {
