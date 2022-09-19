@@ -3,7 +3,6 @@
 
 import { ChainedEvent } from '#x/ChainedEvent';
 import { ManualPromise } from '#x/ManualPromise';
-import { Mutex } from '#x/Mutex';
 
 import { MustBe } from '@this/typey';
 
@@ -201,6 +200,7 @@ export class EventTracker {
    * un-broken.
    *
    * @param {Error} reason The cause of the breakage.
+   * @returns {Error} The same `reason` as given.
    */
   #becomeBroken(reason) {
     if (this.#brokenReason) {
@@ -210,13 +210,12 @@ export class EventTracker {
         // one we've already seen.
         console.log('Ignoring `becomeBroken()`, because already broken!');
       }
-      return this.#brokenReason;
+    } else {
+      this.#brokenReason = reason;
+      this.#headNow      = null;
+      this.#headPromise  = null;
+      this.#advanceHead  = null;
     }
-
-    this.#brokenReason = reason;
-    this.#headNow      = null;
-    this.#headPromise  = null;
-    this.#advanceHead  = null;
 
     return reason;
   }
