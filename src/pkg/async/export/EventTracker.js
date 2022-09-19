@@ -413,8 +413,8 @@ class AdvanceRecord {
       this.#headNow     = nextNow;
       this.#headPromise = null;
     } else {
-      this.#headNow     = null;
       this.#headPromise = this.#headNow.next;
+      this.#headNow     = null;
     }
   }
 
