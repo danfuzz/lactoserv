@@ -3,6 +3,7 @@
 
 import { ManualPromise } from '#x/ManualPromise';
 
+import { MustBe } from '@this/typey';
 
 // TODO:
 // * earliestOf
@@ -155,6 +156,15 @@ export class ChainedEvent {
   /** @returns {*} The event payload. */
   get payload() {
     return this.#payload;
+  }
+
+  /**
+   * @returns {string} The event's type, as defined by the {@link #payload}.
+   * This just passes through to `.type` on the payload, and guarantees the
+   * return type.
+   */
+  get type() {
+    return MustBe.string(this.#payload.type);
   }
 
   /**

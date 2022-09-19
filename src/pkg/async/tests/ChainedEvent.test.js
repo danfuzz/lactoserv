@@ -282,6 +282,15 @@ describe('.payload', () => {
   });
 });
 
+describe('.type', () => {
+  test('is the `type` of the payload from construction', async () => {
+    const type  = 'bleep';
+    const event = new ChainedEvent({ x: 'florp', type });
+
+    expect(event.type).toBe(type);
+  });
+});
+
 describe('withPayload()', () => {
   test('produces an instance with the indicated payload', () => {
     const event  = new ChainedEvent(payload1);
