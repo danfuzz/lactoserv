@@ -23,6 +23,10 @@ function usage {
     ${name} [<opt> ...] <test-arg> ...
       Runs the unit test system.
 
+    --do=<action>
+      `build` -- Always build, even if there is something already built.
+      `clean` -- Always do a clean build.
+      `run` -- Build only if there is nothing yet built. This is the default.
     --out=<dir>
       Directory where built output goes. Defaults to `out` directly under the
       main product directory.
@@ -36,6 +40,9 @@ function usage {
 
 # Want help?
 opt-action --call='{ usage }' help/h
+
+# What to do?
+opt-value --var=action --init=run --enum='build clean run' do
 
 # Built output directory.
 opt-value --var=outDir out
@@ -82,6 +89,36 @@ srcDir="${baseDir}/src"
 outDir="$(lib out-dir --out="${outDir}")" \
 || exit "$?"
 
+# Build the system if necessary.
+
+buildCmd=(lib build --out="${outDir}")
+doBuild=0
+
+case "${action}" in
+    build)
+        doBuild=1
+        ;;
+    clean)
+        buildCmd+=(--clean)
+        doBuild=1
+        ;;
+    run)
+        if [[ ! -x "${outDir}/code/node_modules" ]]; then
+            doBuild=1
+        fi
+        ;;
+esac
+
+if (( doBuild )); then
+    progress-msg 'Building...'
+    "${buildCmd[@]}" || exit "$?"
+    progress-msg
+    progress-msg 'Running...'
+    progress-msg
+fi
+
+# Build the tool if necessary.
+
 toolDir="${outDir}/tester"
 toolBinName='jest'
 toolBinary="${toolDir}/${toolBinName}"
@@ -95,6 +132,8 @@ if [[ ! -x ${toolBinary} ]]; then
     ) \
     || exit "$?"
 fi
+
+# Find the tests, and generally set up the testing directory.
 
 testsDir="${outDir}/tests"
 rm -rf "${testsDir}"
@@ -122,6 +161,8 @@ if (( ${#configFile[@]} != 1 )); then
 fi
 cp "${configFile}" "${testsDir}"
 configFile="${testsDir}/$(basename "${configFile}")"
+
+# Run the tool!
 
 "${toolBinary}" --config="${configFile}" "${args[@]}"
 status="$?"
