@@ -142,8 +142,9 @@ describe('.headNow', () => {
     expect(tracker.headNow).toBeNull();
     mp.resolve(event);
 
-    const race = Promise.race([tracker.headPromise, timers.setTimeout(100)]);
-    expect(await race).toBe(event);
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(tracker.headPromise)).toBeTrue();
+    expect(await tracker.headPromise).toBe(event);
   });
 
   test('becomes non-`null` promptly after `advance()` async-returns (when no other `advance()` is pending)', async () => {
@@ -263,20 +264,21 @@ describe('advance(type)', () => {
 
     const event1 = new ChainedEvent(payload1);
     mp.resolve(event1);
-    const race1 = Promise.race([result, timers.setTimeout(10, 101)]);
-    expect(await race1).toBe(101);
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(result)).toBeFalse();
 
     const emitter2 = event1.emitter(payload2);
     const event2 = event1.nextNow;
     expect(tracker.headNow).toBeNull();
-    const race2 = Promise.race([result, timers.setTimeout(10, 102)]);
-    expect(await race2).toBe(102);
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(result)).toBeFalse();
 
     emitter2({ type });
     const event3 = event2.nextNow;
     expect(tracker.headNow).toBeNull();
-    const race3 = Promise.race([result, timers.setTimeout(10, 103)]);
-    expect(await race3).toBe(event3);
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(result)).toBeTrue();
+    expect(await result).toBe(event3);
 
     // Synchronous post-result-resolution state.
     expect(tracker.headNow).toBe(event3);
