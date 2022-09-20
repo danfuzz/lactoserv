@@ -60,17 +60,7 @@ export class ManualPromise {
    */
   get rejectedReason() {
     if (this.isRejected()) {
-      if (!this.#rejectionHandled) {
-        this.#rejectionHandled = true;
-        (async () => {
-          try {
-            await this.#promise;
-          } catch {
-            // Just swallow the exception, to convince Node not to complain
-            // about this promise.
-          }
-        })();
-      }
+      this.#handleRejection();
       return this.#resolution.reason;
     } else {
       throw new Error('Promise is not rejected.');
@@ -134,14 +124,7 @@ export class ManualPromise {
    */
   rejectAndHandle(reason) {
     this.reject(reason);
-
-    (async () => {
-      try {
-        await this.#promise;
-      } catch {
-        // Ignore it.
-      }
-    })();
+    this.#handleRejection();
   }
 
   /**
@@ -156,5 +139,29 @@ export class ManualPromise {
 
     this.#resolution = { fulfilled: true, value };
     this.#resolve(value);
+  }
+
+  /**
+   * Causes this instance to treat the promise rejection as "handled" as far as
+   * Node is concerned. See {@link #rejectAndHandle} for a little more context.
+   */
+  #handleRejection() {
+    if (this.#rejectionHandled) {
+      return;
+    }
+
+    if (!this.isRejected()) {
+      throw new Error('Shouldn\'t happen: Promise is not rejected.');
+    }
+
+    this.#rejectionHandled = true;
+
+    (async () => {
+      try {
+        await this.#promise;
+      } catch {
+        // Ignore it.
+      }
+    })();
   }
 }
