@@ -520,23 +520,24 @@ describe('advance(function)', () => {
     const result = tracker.advance(e => e.payload === payload3);
 
     expect(tracker.headNow).toBeNull();
-    const race1 = Promise.race([result, timers.setTimeout(10, 101)]);
-    expect(await race1).toBe(101);
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(result)).toBeFalse();
     mp1.resolve(event1);
 
     expect(tracker.headNow).toBeNull();
-    const race2 = Promise.race([result, timers.setTimeout(10, 102)]);
-    expect(await race2).toBe(102);
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(result)).toBeFalse();
     mp2.resolve(event2);
 
     expect(tracker.headNow).toBeNull();
-    const race3 = Promise.race([result, timers.setTimeout(10, 103)]);
-    expect(await race3).toBe(103);
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(result)).toBeFalse();
     mp3.resolve(event3);
 
     expect(tracker.headNow).toBeNull();
-    const race4 = Promise.race([result, timers.setTimeout(10, 104)]);
-    expect(await race4).toBe(event3);
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(result)).toBeTrue();
+    expect(await result).toBe(event3);
 
     // Synchronous post-result-resolution state.
     expect(tracker.headNow).toBe(event3);
