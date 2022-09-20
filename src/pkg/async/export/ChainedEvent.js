@@ -76,7 +76,7 @@ export class ChainedEvent {
             this.#nextNow = nextNow;
             mp.resolve(nextNow);
           } catch (e) {
-            mp.reject(e);
+            mp.rejectAndHandle(e);
           }
         })();
       } else if (next instanceof this.constructor) {
