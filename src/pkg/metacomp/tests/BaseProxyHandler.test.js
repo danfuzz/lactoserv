@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { BaseProxyHandler } from '@this/metaclass';
+import { BaseProxyHandler } from '@this/metacomp';
 
 describe('makeFunctionProxy()', () => {
   test('constructs a function-like proxy around an instance of the called-upon subclass', () => {

@@ -2,7 +2,7 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { ChainedEvent, EventSource } from '@this/async';
-import { PromiseState } from '@this/metaclass';
+import { PromiseState } from '@this/metacomp';
 
 import * as timers from 'node:timers/promises';
 
