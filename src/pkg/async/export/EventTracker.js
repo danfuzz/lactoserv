@@ -8,13 +8,18 @@ import { MustBe } from '@this/typey';
 
 
 // TODO:
-// * earliestOf
-// * earliestOfNow
-// * latestOf
-// * latestOfNow
-// * nextOf
-// * nextOfNow
-// * withPushedHead
+// * next()
+// * nextSync()
+// * peek()
+// * peekSync()
+//
+// Maybe:
+// * earliest()
+// * earliestSync()
+// * latest()
+// * latestSync()
+// * withPushedHead()
+// * withReplacedHead() (uses `event.withPayload()``)
 
 // Implementation note:
 //
