@@ -441,7 +441,24 @@ describe('advance(function)', () => {
 });
 
 describe('advance(<invalid>)', () => {
-  // TODO
+  test.each([
+    [false],
+    [[]],
+    [['a']],
+    [{}],
+    [{ a: 10 }],
+    [class Floop {}], // This is a function, but not a _callable_ function.
+    [new Map()]
+  ])('fails for %p but does not break instance', async (value) => {
+    const event   = new ChainedEvent(payload1);
+    const tracker = new EventTracker(event);
+
+    expect(tracker.headNow).toBe(event);
+    const result = tracker.advance(value);
+    expect(tracker.headNow).toBe(event);
+    await expect(result).rejects.toThrow();
+    expect(() => tracker.headNow).not.toThrow();
+  });
 });
 
 describe('advance() on a broken instance', () => {
@@ -453,7 +470,22 @@ describe('advanceSync()', () => {
 });
 
 describe('advanceSync(<invalid>)', () => {
-  // TODO
+  test.each([
+    [false],
+    [[]],
+    [['a']],
+    [{}],
+    [{ a: 10 }],
+    [class Floop {}], // This is a function, but not a _callable_ function.
+    [new Map()]
+  ])('fails for %p but does not break instance', async (value) => {
+    const event   = new ChainedEvent(payload1);
+    const tracker = new EventTracker(event);
+
+    expect(tracker.headNow).toBe(event);
+    expect(() => tracker.advanceSync(value)).toThrow();
+    expect(() => tracker.headNow).not.toThrow();
+  });
 });
 
 describe('advanceSync() on a broken instance', () => {
