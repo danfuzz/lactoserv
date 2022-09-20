@@ -133,10 +133,13 @@ export class EventTracker {
    * @param {null|number|string|function(*)} predicate Predicate to satisfy.
    * @returns {ChainedEvent} What {@link #headNow} is (or would have been) at
    *   the moment the advancing is complete.
-   * @throws {Error} Thrown if there was any trouble. If so, the instance will
-   *   also be permanently broken, with most methods also throwing.
+   * @throws {Error} Thrown if there was any trouble. If so, and the trouble was
+   *   anything other than an invalid `predicate`, the instance will also become
+   *   permanently broken, with most methods also throwing.
    */
   async advance(predicate = null) {
+    predicate = EventTracker.#validateAndTransformPredicate(predicate);
+
     let adv;
 
     if (this.#advanceHead) {
@@ -269,6 +272,46 @@ export class EventTracker {
       throw new Error('Invalid event value.');
     }
   }
+
+
+  //
+  // Static members
+  //
+
+  /**
+   * Validates and appropriately-transforms a predicate as defined by {@link
+   * #advance} and {@link #advanceSync}
+   *
+   * @param {null|number|string|function(*)} predicate Predicate to satisfy.
+   * @returns {number|function(*): boolean} The validated / transformed result.
+   * @throws {Error} Thrown if `predicate` is not one of the allowed forms.
+   */
+  static #validateAndTransformPredicate(predicate) {
+    switch (typeof predicate) {
+      case 'object': {
+        if (predicate === null) {
+          return 1;
+        }
+        break;
+      }
+      case 'number': {
+        const count = predicate;
+        if ((count >= 0) && (count === Math.trunc(count))) {
+          return count;
+        }
+        break;
+      }
+      case 'string': {
+        const type = predicate;
+        return (event => event.type === type);
+      }
+      case 'function': {
+        return MustBe.callableFunction(predicate);
+      }
+    }
+
+    throw new Error('Invalid value for `predicate`.');
+  }
 }
 
 /**
@@ -323,44 +366,17 @@ class AdvanceRecord {
    * @param {?ChainedEvent} headNow Event chain head at which to start.
    * @param {?Promise<ChainedEvent>} headPromise Promise for the event chain
    *   head.
-   * @param {*} predicate Predicate. See {@link #EventTracker.advance} for
-   *   details.
+   * @param {number|function(*): boolean} predicate Predicate. See {@link
+   *   #EventTracker.advance} for details.
    */
   constructor(headNow, headPromise, predicate) {
     this.#headNow     = headNow;
     this.#headPromise = headPromise;
 
-    let error = 0;
-
-    switch (typeof predicate) {
-      case 'object': {
-        if (predicate !== null) {
-          error = 1;
-        }
-        this.#count = 1;
-        break;
-      }
-      case 'number': {
-        const count = predicate;
-        if ((count < 0) || (count !== Math.trunc(count))) {
-          error = 1;
-        }
-        this.#count = count;
-        break;
-      }
-      case 'string': {
-        const type = predicate;
-        this.#predicate = (event => event.type === type);
-        break;
-      }
-      case 'function': {
-        this.#predicate = MustBe.callableFunction(predicate);
-        break;
-      }
-    }
-
-    if (error) {
-      throw new Error('Invalid value for `predicate`.');
+    if (typeof predicate === 'number') {
+      this.#count = predicate;
+    } else {
+      this.#predicate = predicate;
     }
   }
 
