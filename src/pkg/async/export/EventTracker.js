@@ -255,12 +255,14 @@ export class EventTracker {
           if (headNow instanceof ChainedEvent) {
             mp.resolve(headNow);
           } else {
+            console.log('#########\n%o\n############', headNow);
             throw new Error('Invalid event value.');
           }
           if ((this.#headPromise === mp.promise) && !this.#brokenReason) {
             this.#headNow = headNow;
           }
         } catch (e) {
+          console.log('######### AT\n%o\n############', e);
           this.#becomeBroken(e);
           mp.reject(e);
         }

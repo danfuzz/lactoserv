@@ -425,10 +425,9 @@ describe('advance(count)', () => {
         const tracker = new EventTracker(Promise.resolve(events[0]));
         const result  = tracker.advance(advanceCount);
 
-        expect(tracker.headNow).toBeNull();
-
         let emitter = events[startCount - 1].emitter;
         for (let i = startCount; i <= advanceCount; i++) {
+          expect(tracker.headNow).toBeNull();
           const race = Promise.race([result, timers.setTimeout(10, 1000 + i)]);
           expect(await race).toBe(1000 + i);
           emitter = emitter({ at: i });
