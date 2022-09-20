@@ -542,6 +542,38 @@ describe('advance(function)', () => {
     // Synchronous post-result-resolution state.
     expect(tracker.headNow).toBe(event3);
   });
+
+  test('only calls predicate once per event checked', async () => {
+    const event3  = new ChainedEvent(payload3);
+    const mp3     = new ManualPromise();
+    const event2  = new ChainedEvent(payload2, mp3.promise);
+    const mp2     = new ManualPromise();
+    const event1  = new ChainedEvent(payload1, mp2.promise);
+    const mp1     = new ManualPromise();
+    const tracker = new EventTracker(mp1.promise);
+
+    let callCount = 0;
+    const result = tracker.advance((e) => {
+      callCount++;
+      return e.payload === payload3;
+    });
+
+    await timers.setImmediate();
+    expect(callCount).toBe(0);
+    mp1.resolve(event1);
+
+    await timers.setImmediate();
+    expect(callCount).toBe(1);
+    mp2.resolve(event2);
+
+    await timers.setImmediate();
+    expect(callCount).toBe(2);
+    mp3.resolve(event3);
+
+    await timers.setImmediate();
+    expect(callCount).toBe(3);
+    expect(await result).toBe(event3);
+  });
 });
 
 describe('advance(<invalid>)', () => {
