@@ -3,18 +3,20 @@
 
 import { ManualPromise } from '#x/ManualPromise';
 
+import { MustBe } from '@this/typey';
 
-// TODO:
-// * earliestOf
-// * earliestOfNow
-// * latestOf
-// * latestOfNow
-// * nextOf
-// * nextOfNow
-// * withPushedHead
 
 /**
- * Promise-chained event.
+ * Promise-chained event. Each instance becomes chained to the next event which
+ * gets emitted by the same source. The chain is available both synchronously
+ * and asynchronously. In the synchronous case, it is possible to run into the
+ * end of the chain, represented by `null`. In the asynchronous case, the
+ * properties and accessors return promises that only become resolved once an
+ * appropriate event has been emitted by the source.
+ *
+ * It is possible -- and appropriate -- to subclass this class. If subclassed,
+ * this (base) class will only construct instances of the actual subclass when
+ * appending (chaining) emitted events.
  */
 export class ChainedEvent {
   /** @type {*} The event payload. */
@@ -74,7 +76,7 @@ export class ChainedEvent {
             this.#nextNow = nextNow;
             mp.resolve(nextNow);
           } catch (e) {
-            mp.reject(e);
+            mp.rejectAndHandle(e);
           }
         })();
       } else if (next instanceof this.constructor) {
@@ -113,10 +115,18 @@ export class ChainedEvent {
   }
 
   /**
-   * @type {Promise<ChainedEvent>} Promise for the next event in the chain after
-   * this instance, which becomes resolved once it is available.
+   * @returns {?ChainedEvent} The next event in the chain after this instance if
+   * it is immediately available, or `null` if there is not yet a next event.
    */
-  get next() {
+  get nextNow() {
+    return this.#nextNow;
+  }
+
+  /**
+   * @returns {Promise<ChainedEvent>} Promise for the next event in the chain
+   * after this instance, which becomes resolved once it is available.
+   */
+  get nextPromise() {
     if (this.#nextPromise) {
       return this.#nextPromise;
     } else if (this.#nextNow) {
@@ -135,17 +145,18 @@ export class ChainedEvent {
     return this.#nextPromise;
   }
 
-  /**
-   * @type {?ChainedEvent} The next event in the chain after this instance if it
-   * is immediately available, or `null` if there is not yet a next event.
-   */
-  get nextNow() {
-    return this.#nextNow;
-  }
-
-  /** @type {*} The event payload. */
+  /** @returns {*} The event payload. */
   get payload() {
     return this.#payload;
+  }
+
+  /**
+   * @returns {string} The event's type, as defined by the {@link #payload}.
+   * This just passes through to `.type` on the payload, and guarantees the
+   * return type.
+   */
+  get type() {
+    return MustBe.string(this.#payload.type);
   }
 
   /**
@@ -160,7 +171,7 @@ export class ChainedEvent {
    *   of the same names.
    */
   withPayload(payload) {
-    return new this.constructor(payload, this.#nextNow ?? this.next);
+    return new this.constructor(payload, this.#nextNow ?? this.nextPromise);
   }
 
   /**
@@ -191,11 +202,12 @@ export class ChainedEvent {
     this.#nextNow = event;
 
     if (this.#nextPromise) {
-      // There have already been one or more calls to `.next`, so we need to
-      // resolve the promise that those calls returned. After that, there is no
-      // longer a need to keep the resolver around, so we `null` it out to avoid
-      // a bit of garbage accumulation. (We keep the promise around, though,
-      // because it's reasonably expectable for `.next` to be called again.)
+      // There have already been one or more calls to `.nextPromise`, so we need
+      // to resolve the promise that those calls returned. After that, there is
+      // no longer a need to keep the resolver around, so we `null` it out to
+      // avoid a bit of garbage accumulation. (We keep the promise around,
+      // though, because it's reasonably expectable for `.nextPromise` to be
+      // called again.)
       this.#nextResolver(this.#nextNow);
       this.#nextResolver = null;
     }

@@ -3,3 +3,4 @@
 
 export * from '#x/BaseProxyHandler';
 export * from '#x/MethodCacheProxyHandler';
+export * from '#x/PromiseState';

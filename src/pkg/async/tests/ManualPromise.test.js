@@ -140,6 +140,16 @@ describe('reject()', () => {
   });
 });
 
+describe('rejectAndHandle()', () => {
+  test('does not cause an unhandled rejection', async () => {
+    const mp = new ManualPromise();
+    mp.rejectAndHandle(new Error('THIS SHOULD NOT SHOW UP AS AN UNHANDLED REJECTION!'));
+  });
+
+  // Note: Beyond the above, we assume `rejectAndHandle()` is identical to
+  // plain `reject()`.
+});
+
 describe('resolve()', () => {
   test.each([
     [undefined],
