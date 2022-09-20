@@ -585,7 +585,29 @@ describe('advance() breakage scenarios', () => {
     });
   });
 
-  test('causes breakage when it is what walks the event chain into a problem', async () => {
+  test('causes breakage when it advances to a synchronously-known non-event', async () => {
+    const event2  = new ChainedEvent(payload2);
+    const event1  = new ChainedEvent(payload1, event2);
+    const tracker = new EventTracker(event1);
+
+    // We have to mess with `event1`, as it shouldn't be possible to get this
+    // kind of bad behavior any other way.
+    Object.defineProperty(event1, 'nextNow', {
+      value:    'not-an-event',
+      writable: false
+    });
+
+    // Baseline expectations.
+    expect(await tracker.advance(0)).toBe(event1);
+    expect(tracker.headNow).toBe(event1);
+
+    // The actual test.
+    const result = tracker.advance(1);
+    await expect(result).rejects.toThrow();
+    expect(() => tracker.headNow).toThrow();
+  });
+
+  test('causes breakage when it advances to a rejected promise', async () => {
     const mp      = new ManualPromise();
     const event1  = new ChainedEvent(payload1, mp.promise);
     const tracker = new EventTracker(event1);
@@ -597,7 +619,22 @@ describe('advance() breakage scenarios', () => {
     // The actual test.
     const result = tracker.advance(2);
     mp.reject(new Error('Oh noes! Golly gee!'));
-    //mp.resolve('not-an-event-whoopsie!');
+    await expect(result).rejects.toThrow();
+    expect(() => tracker.headNow).toThrow();
+  });
+
+  test('causes breakage when it advances to a promise that resolves to a non-event', async () => {
+    const mp      = new ManualPromise();
+    const event1  = new ChainedEvent(payload1, mp.promise);
+    const tracker = new EventTracker(event1);
+
+    // Baseline expectations.
+    expect(await tracker.advance(0)).toBe(event1);
+    expect(tracker.headNow).toBe(event1);
+
+    // The actual test.
+    const result = tracker.advance(2);
+    mp.resolve('not-an-event-whoopsie!');
     await expect(result).rejects.toThrow();
     expect(() => tracker.headNow).toThrow();
   });
