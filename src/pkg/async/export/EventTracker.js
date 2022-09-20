@@ -323,7 +323,7 @@ export class EventTracker {
           }
         } catch (e) {
           this.#becomeBroken(e);
-          mp.reject(e);
+          mp.rejectAndHandle(e);
         }
       })();
     } else {
