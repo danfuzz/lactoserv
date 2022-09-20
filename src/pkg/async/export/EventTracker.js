@@ -8,16 +8,13 @@ import { MustBe } from '@this/typey';
 
 
 // TODO:
-// * next()
+// * next() -- it's `advance(x)` immediately followed by `advance(1)` to consume
+//   the found item.
 // * nextSync()
-// * peek()
+// * peek() -- it's `advance(x)` to find an event but without consuming it.
 // * peekSync()
 //
 // Maybe:
-// * earliest()
-// * earliestSync()
-// * latest()
-// * latestSync()
 // * withPushedHead()
 // * withReplacedHead() (uses `event.withPayload()``)
 
