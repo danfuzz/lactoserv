@@ -566,11 +566,22 @@ describe('advance(<invalid>)', () => {
 });
 
 describe('advance() on a broken instance', () => {
-  // TODO
-});
+  test('throws', async () => {
+    const tracker = new EventTracker(Promise.resolve('not-an-event-1'));
 
-describe('advance() on a broken instance', () => {
-  // TODO
+    expect(tracker.headNow).toBeNull(); // Not yet broken!
+    await timers.setImmediate();
+    await expect(() => tracker.advance()).rejects.toThrow();
+  });
+
+  test('remains broken', async () => {
+    const tracker = new EventTracker(Promise.resolve('not-an-event-2'));
+
+    await timers.setImmediate();
+    await expect(() => tracker.advance()).rejects.toThrow();
+    await expect(() => tracker.advance(1)).rejects.toThrow();
+    await expect(() => tracker.advance('eep')).rejects.toThrow();
+  });
 });
 
 describe('advanceSync()', () => {
