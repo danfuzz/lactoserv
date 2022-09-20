@@ -585,7 +585,69 @@ describe('advance() on a broken instance', () => {
 });
 
 describe('advanceSync()', () => {
-  // TODO
+  test('finds a synchronously-found event at `headNow`.', () => {
+    const event = new ChainedEvent(payload1);
+    const tracker = new EventTracker(event);
+
+    expect(tracker.advanceSync(0)).toBe(event);
+    expect(tracker.headNow).toBe(event);
+  });
+
+  test('finds a synchronously-found event in the chain.', () => {
+    const event3  = new ChainedEvent(payload3);
+    const event2  = new ChainedEvent(payload2, event3);
+    const event1  = new ChainedEvent(payload1, event2);
+    const tracker = new EventTracker(event1);
+
+    expect(tracker.advanceSync(2)).toBe(event3);
+    expect(tracker.headNow).toBe(event3);
+  });
+
+  test('returns `null` when `headNow === null` (synchronously at end of chain).', () => {
+    const mp      = new ManualPromise();
+    const tracker = new EventTracker(mp.promise);
+
+    expect(tracker.headNow).toBeNull();
+    expect(tracker.advanceSync(0)).toBeNull();
+    expect(tracker.headNow).toBeNull();
+  });
+
+  test('returns `null` when `headNow === null` (queued `advance()`).', () => {
+    const mp      = new ManualPromise();
+    const event1  = new ChainedEvent(payload1, mp.promise);
+    const tracker = new EventTracker(event1);
+
+    tracker.advance(1);
+
+    expect(tracker.headNow).toBeNull();
+    expect(tracker.advanceSync(1)).toBeNull();
+    expect(tracker.headNow).toBeNull();
+  });
+
+  test('causes asynchronous action even when not synchronously successful', async () => {
+    const event3  = new ChainedEvent(payload3);
+    const event2  = new ChainedEvent(payload2, event3);
+    const event1  = new ChainedEvent(payload1, event2);
+    const tracker = new EventTracker(Promise.resolve(event1));
+
+    expect(tracker.advanceSync(2)).toBeNull();
+    expect(tracker.headNow).toBeNull();
+    await timers.setImmediate();
+    expect(tracker.headNow).toBe(event3);
+  });
+
+  test('causes asynchronous action when "behind" another `advance()`', async () => {
+    const event3  = new ChainedEvent(payload3);
+    const event2  = new ChainedEvent(payload2, event3);
+    const event1  = new ChainedEvent(payload1, event2);
+    const tracker = new EventTracker(Promise.resolve(event1));
+
+    const result1 = tracker.advance(1);
+    expect(tracker.advanceSync(1)).toBeNull();
+    await timers.setImmediate();
+    expect(tracker.headNow).toBe(event3);
+    expect(await result1).toBe(event2);
+  });
 });
 
 describe('advanceSync(<invalid>)', () => {
