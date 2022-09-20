@@ -2,9 +2,9 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { ChainedEvent, EventTracker, ManualPromise } from '@this/async';
+import { PromiseState } from '@this/metaclass';
 
 import * as timers from 'node:timers/promises';
-
 
 const payload1 = { type: '1:wacky:1' };
 const payload2 = { type: '2:zany:2' };
@@ -110,15 +110,15 @@ describe('.headPromise', () => {
     tracker.advance();
 
     expect(tracker.headNow).toBeNull();
-
-    const race1 = Promise.race([tracker.headPromise, timers.setTimeout(10, 123)]);
-    expect(await race1).toBe(123);
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(tracker.headPromise)).toBeFalse();
 
     event1.emitter(payload2);
     const event2 = event1.nextNow;
-    const race2 = Promise.race([tracker.headPromise, timers.setTimeout(10, 456)]);
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(tracker.headPromise)).toBeTrue();
 
-    expect(await race2).toBe(event2);
+    expect(await tracker.headPromise).toBe(event2);
   });
 
   test('remains unresolved after `advance()`ing past the end of the chain.', async () => {
@@ -128,8 +128,8 @@ describe('.headPromise', () => {
     expect(await tracker.headPromise).toBe(event);
     tracker.advance();
 
-    const race = Promise.race([tracker.headPromise, timers.setTimeout(10, 123)]);
-    expect(await race).toBe(123);
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(tracker.headPromise)).toBeFalse();
   });
 });
 
