@@ -373,8 +373,8 @@ describe('advance(count)', () => {
         expect(await result).toBe(events[advanceCount]);
       } else {
         expect(tracker.headNow).toBeNull();
-        const race = Promise.race([result, timers.setTimeout(10, 123)]);
-        expect(await race).toBe(123);
+        await timers.setImmediate();
+        expect(PromiseState.isSettled(result)).toBeFalse();
       }
     });
 
@@ -391,11 +391,12 @@ describe('advance(count)', () => {
       expect(tracker.headNow).toBeNull();
 
       if (advanceCount < startCount) {
-        const race = Promise.race([result, timers.setTimeout(10, 101)]);
-        expect(await race).toBe(events[advanceCount]);
+        await timers.setImmediate();
+        expect(PromiseState.isSettled(result)).toBeTrue();
+        expect(await result).toBe(events[advanceCount]);
       } else {
-        const race1 = Promise.race([result, timers.setTimeout(10, 202)]);
-        expect(await race1).toBe(202);
+        await timers.setImmediate();
+        expect(PromiseState.isSettled(result)).toBeFalse();
 
         let emitter = events[startCount - 1].emitter;
         for (let i = startCount; i <= advanceCount; i++) {
@@ -403,8 +404,9 @@ describe('advance(count)', () => {
           events.push(events[i - 1].nextNow);
         }
 
-        const race2 = Promise.race([result, timers.setTimeout(10, 303)]);
-        expect(await race2).toBe(events[advanceCount]);
+        await timers.setImmediate();
+        expect(PromiseState.isSettled(result)).toBeTrue();
+        expect(await result).toBe(events[advanceCount]);
       }
 
       expect(tracker.headNow).toBe(events[advanceCount]);
@@ -424,15 +426,16 @@ describe('advance(count)', () => {
         let emitter = events[startCount - 1].emitter;
         for (let i = startCount; i <= advanceCount; i++) {
           expect(tracker.headNow).toBeNull();
-          const race = Promise.race([result, timers.setTimeout(10, 1000 + i)]);
-          expect(await race).toBe(1000 + i);
+          await timers.setImmediate();
+          expect(PromiseState.isSettled(result)).toBeFalse();
           emitter = emitter({ at: i });
           events.push(events[i - 1].nextNow);
         }
 
-        const race = Promise.race([result, timers.setTimeout(10, 234)]);
-        expect(await race).toBe(events[advanceCount]);
+        await timers.setImmediate();
+        expect(PromiseState.isSettled(result)).toBeTrue();
         expect(tracker.headNow).toBe(events[advanceCount]);
+        expect(await result).toBe(events[advanceCount]);
       });
     }
   });
