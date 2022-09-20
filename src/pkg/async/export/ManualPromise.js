@@ -19,8 +19,9 @@ export class ManualPromise {
   #rejectionHandled = false;
 
   /**
-   * @type {?({ fulfilled: true, value: * }|{ rejected: true, reason: * })} The
-   * resolution, if the underlying promise has settled.
+   * @type {?({ fulfilled: true, value: * }|{ rejected: true, reason: * }|
+   * { linked: true, target: Promise })} The resolution, if the underlying
+   * promise has settled.
    */
   #resolution = null;
 
@@ -60,6 +61,7 @@ export class ManualPromise {
    */
   get rejectedReason() {
     if (this.isRejected()) {
+      console.log('######## GOT REASON');
       this.#handleRejection();
       return this.#resolution.reason;
     } else {
@@ -97,7 +99,8 @@ export class ManualPromise {
    *   promise is settled.
    */
   isSettled() {
-    return this.#resolution !== null;
+    return (this.#resolution !== null)
+      && (!this.#resolution?.linked);
   }
 
   /**
@@ -128,7 +131,9 @@ export class ManualPromise {
   }
 
   /**
-   * Resolves the underlying promise, with the given result value.
+   * Resolves the underlying promise, with the given result value _or_ promise.
+   * If given a promise, that promise's resolution gets "forwarded" here, and it
+   * could turn out to be a rejection.
    *
    * @param {*} value The resolved value.
    */
@@ -137,8 +142,12 @@ export class ManualPromise {
       throw new Error('Cannot re-settled promise.');
     }
 
-    this.#resolution = { fulfilled: true, value };
-    this.#resolve(value);
+    if (value instanceof Promise) {
+      this.#linkPromise(value);
+    } else {
+      this.#resolution = { fulfilled: true, value };
+      this.#resolve(value);
+    }
   }
 
   /**
@@ -161,6 +170,27 @@ export class ManualPromise {
         await this.#promise;
       } catch {
         // Ignore it.
+      }
+    })();
+  }
+
+  /**
+   * Resolves this instance to be the resolution of another promise.
+   *
+   * @param {Promise} promise The instance to link to.
+   */
+  #linkPromise(promise) {
+    this.#resolution = { linked: true, target: promise };
+    this.#resolve(promise);
+
+    // Make the synchronously-known settled state get updated once `promise`
+    // actually resolves concretely.
+    (async () => {
+      try {
+        const value = await promise;
+        this.#resolution = { fulfilled: true, value };
+      } catch (reason) {
+        this.#resolution = { rejected: true, reason };
       }
     })();
   }

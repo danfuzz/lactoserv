@@ -3,6 +3,9 @@
 
 import { ManualPromise } from '@this/async';
 
+import * as timers from 'node:timers/promises';
+
+
 const stateChecks = (maker, { isFulfilled, isRejected, value, reason }) => {
   if (isFulfilled || isRejected) {
     test('is settled', () => {
@@ -197,5 +200,82 @@ describe('resolve()', () => {
       mp.rejectedReason; // "We handled the rejection!"
       expect(() => mp.resolve('2')).toThrow();
     });
+  });
+});
+
+describe('resolve(Promise)', () => {
+  test('links the resolution of a fulfilled promise', async () => {
+    const mp     = new ManualPromise();
+    const target = new ManualPromise();
+
+    mp.resolve(target.promise);
+
+    // Not fulfilled or rejected yet, because `target` isn't.
+    expect(mp.isFulfilled()).toBeFalse();
+    expect(mp.isRejected()).toBeFalse();
+    expect(mp.isSettled()).toBeFalse();
+
+    target.resolve('yeppers');
+
+    // Not fulfilled or rejected yet, because `mp` needs a turn to run its
+    // asynchronous resolver code.
+    expect(mp.isFulfilled()).toBeFalse();
+    expect(mp.isRejected()).toBeFalse();
+    expect(mp.isSettled()).toBeFalse();
+
+    await timers.setImmediate();
+
+    // Now fulfilled!
+    expect(mp.isFulfilled()).toBeTrue();
+    expect(mp.isRejected()).toBeFalse();
+    expect(mp.isSettled()).toBeTrue();
+    expect(mp.fulfilledValue).toBe('yeppers');
+  });
+
+  test('links the resolution of a rejected promise', async () => {
+    const reason = new Error('Woe!');
+    const mp     = new ManualPromise();
+    const target = new ManualPromise();
+
+    mp.resolve(target.promise);
+
+    // Not fulfilled or rejected yet, because `target` isn't.
+    expect(mp.isFulfilled()).toBeFalse();
+    expect(mp.isRejected()).toBeFalse();
+    expect(mp.isSettled()).toBeFalse();
+
+    target.reject(reason);
+
+    // Make sure Node doesn't complain about an unhandled rejection.
+    (async () => {
+      try {
+        await mp.promise;
+      } catch {
+        // Ignore it.
+      }
+    })();
+
+    // Not fulfilled or rejected yet, because `mp` needs a turn to run its
+    // asynchronous resolver code.
+    expect(mp.isFulfilled()).toBeFalse();
+    expect(mp.isRejected()).toBeFalse();
+    expect(mp.isSettled()).toBeFalse();
+
+    await timers.setImmediate();
+
+    // Now rejected!
+    expect(mp.isFulfilled()).toBeFalse();
+    expect(mp.isRejected()).toBeTrue();
+    expect(mp.isSettled()).toBeTrue();
+    expect(mp.rejectedReason).toBe(reason);
+  });
+
+  test('prevents double-settling', () => {
+    const mp = new ManualPromise();
+    mp.resolve(new ManualPromise().promise);
+
+    expect(() => mp.resolve(1)).toThrow();
+    expect(() => mp.reject(new Error('2!'))).toThrow();
+    expect(() => mp.resolve(Promise.resolve(3))).toThrow();
   });
 });
