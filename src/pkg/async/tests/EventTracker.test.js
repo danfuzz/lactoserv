@@ -336,6 +336,10 @@ describe('advance(count)', () => {
 
   describe.each`
     startCount | advanceCount
+    ${0}       | ${0}
+    ${0}       | ${1}
+    ${0}       | ${2}
+    ${0}       | ${4}
     ${1}       | ${0}
     ${1}       | ${1}
     ${1}       | ${2}
@@ -349,32 +353,34 @@ describe('advance(count)', () => {
     ${10}      | ${9}
     ${10}      | ${10}
     ${10}      | ${20}
-  `('advance($advanceCount) with $startCount event(s) initially available', ({ startCount, advanceCount }) =>{
-    test('fully synchonous case', async () => {
-      const events = [];
-      let emitter  = null;
-      for (let i = 0; i < startCount; i++) {
-        if (emitter) {
-          emitter = emitter({ at: i });
-          events.push(events[events.length - 1].nextNow);
-        } else {
-          events[0] = new ChainedEvent({ at: i });
-          emitter = events[0].emitter;
+  `('advance($advanceCount) with $startCount event(s) initially available', ({ startCount, advanceCount }) => {
+    if (startCount > 0) {
+      test('fully synchonous case', async () => {
+        const events = [];
+        let emitter  = null;
+        for (let i = 0; i < startCount; i++) {
+          if (emitter) {
+            emitter = emitter({ at: i });
+            events.push(events[events.length - 1].nextNow);
+          } else {
+            events[0] = new ChainedEvent({ at: i });
+            emitter = events[0].emitter;
+          }
         }
-      }
 
-      const tracker = new EventTracker(events[0]);
-      const result  = tracker.advance(advanceCount);
+        const tracker = new EventTracker(events[0]);
+        const result  = tracker.advance(advanceCount);
 
-      if (advanceCount < startCount) {
-        expect(tracker.headNow).toBe(events[advanceCount]);
-        expect(await result).toBe(events[advanceCount]);
-      } else {
-        expect(tracker.headNow).toBeNull();
-        const race = Promise.race([result, timers.setTimeout(10, 123)]);
-        expect(await race).toBe(123);
-      }
-    });
+        if (advanceCount < startCount) {
+          expect(tracker.headNow).toBe(events[advanceCount]);
+          expect(await result).toBe(events[advanceCount]);
+        } else {
+          expect(tracker.headNow).toBeNull();
+          const race = Promise.race([result, timers.setTimeout(10, 123)]);
+          expect(await race).toBe(123);
+        }
+      });
+    }
 
     test('asynchronous pre-resolved / partially pre-resolved case', async () => {
       const events = [];
@@ -434,8 +440,6 @@ describe('advance(count)', () => {
         expect(tracker.headNow).toBe(events[advanceCount]);
       });
     }
-
-    // TODO: asynch case, mixed asynch case w/half resolved before call.
   });
 
   // TODO
