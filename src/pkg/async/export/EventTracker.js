@@ -530,7 +530,7 @@ class AdvanceRecord {
 
     if (resolver && !resolver.isSettled()) {
       if (error) {
-        resolver.reject(error);
+        resolver.rejectAndHandle(error);
       } else {
         resolver.resolve(this.#result);
       }
