@@ -59,14 +59,14 @@ describe('constructor(Promise)', () => {
     const mp      = new ManualPromise();
     const tracker = new EventTracker(mp.promise);
 
-    mp.resolve('nopers');
+    mp.resolve('nopey-nope');
     await expect(tracker.headPromise).rejects.toThrow();
   });
 
   test('propagates rejection into `headPromise` given a promise that rejects', async () => {
     const mp      = new ManualPromise();
     const tracker = new EventTracker(mp.promise);
-    const reason  = new Error('oy!');
+    const reason  = new Error('oy oy oy!');
 
     mp.reject(reason);
     await expect(tracker.headPromise).rejects.toThrow(reason);
@@ -336,10 +336,6 @@ describe('advance(count)', () => {
 
   describe.each`
     startCount | advanceCount
-    ${0}       | ${0}
-    ${0}       | ${1}
-    ${0}       | ${2}
-    ${0}       | ${4}
     ${1}       | ${0}
     ${1}       | ${1}
     ${1}       | ${2}
@@ -354,68 +350,66 @@ describe('advance(count)', () => {
     ${10}      | ${10}
     ${10}      | ${20}
   `('advance($advanceCount) with $startCount event(s) initially available', ({ startCount, advanceCount }) => {
-    if (startCount > 0) {
-      test('fully synchronous case', async () => {
-        const events = [];
-        let emitter  = null;
-        for (let i = 0; i < startCount; i++) {
-          if (emitter) {
-            emitter = emitter({ at: i });
-            events.push(events[events.length - 1].nextNow);
-          } else {
-            events[0] = new ChainedEvent({ at: i });
-            emitter = events[0].emitter;
-          }
-        }
-
-        const tracker = new EventTracker(events[0]);
-        const result  = tracker.advance(advanceCount);
-
-        if (advanceCount < startCount) {
-          expect(tracker.headNow).toBe(events[advanceCount]);
-          expect(await result).toBe(events[advanceCount]);
+    test('fully synchronous case', async () => {
+      const events = [];
+      let emitter  = null;
+      for (let i = 0; i < startCount; i++) {
+        if (emitter) {
+          emitter = emitter({ at: i });
+          events.push(events[events.length - 1].nextNow);
         } else {
-          expect(tracker.headNow).toBeNull();
-          const race = Promise.race([result, timers.setTimeout(10, 123)]);
-          expect(await race).toBe(123);
+          events[0] = new ChainedEvent({ at: i });
+          emitter = events[0].emitter;
         }
-      });
+      }
 
-      test('asynchronous pre-resolved / partially pre-resolved case', async () => {
-        const events = [];
-        for (let i = startCount - 1; i >= 0; i--) {
-          const next = events[0] ? Promise.resolve(events[0]) : null;
-          events.unshift(new ChainedEvent({ at: i }, next));
-        }
+      const tracker = new EventTracker(events[0]);
+      const result  = tracker.advance(advanceCount);
 
-        const tracker = new EventTracker(Promise.resolve(events[0]));
-        const result  = tracker.advance(advanceCount);
-
-        expect(tracker.headNow).toBeNull();
-
-        if (advanceCount < startCount) {
-          const race = Promise.race([result, timers.setTimeout(10, 101)]);
-          expect(await race).toBe(events[advanceCount]);
-        } else {
-          const race1 = Promise.race([result, timers.setTimeout(10, 202)]);
-          expect(await race1).toBe(202);
-
-          let emitter = events[startCount - 1].emitter;
-          for (let i = startCount; i <= advanceCount; i++) {
-            emitter = emitter({ at: i });
-            events.push(events[i - 1].nextNow);
-          }
-
-          const race2 = Promise.race([result, timers.setTimeout(10, 303)]);
-          expect(await race2).toBe(events[advanceCount]);
-        }
-
+      if (advanceCount < startCount) {
         expect(tracker.headNow).toBe(events[advanceCount]);
-      });
-    }
+        expect(await result).toBe(events[advanceCount]);
+      } else {
+        expect(tracker.headNow).toBeNull();
+        const race = Promise.race([result, timers.setTimeout(10, 123)]);
+        expect(await race).toBe(123);
+      }
+    });
+
+    test('asynchronous pre-resolved / partially pre-resolved case', async () => {
+      const events = [];
+      for (let i = startCount - 1; i >= 0; i--) {
+        const next = events[0] ? Promise.resolve(events[0]) : null;
+        events.unshift(new ChainedEvent({ at: i }, next));
+      }
+
+      const tracker = new EventTracker(Promise.resolve(events[0]));
+      const result  = tracker.advance(advanceCount);
+
+      expect(tracker.headNow).toBeNull();
+
+      if (advanceCount < startCount) {
+        const race = Promise.race([result, timers.setTimeout(10, 101)]);
+        expect(await race).toBe(events[advanceCount]);
+      } else {
+        const race1 = Promise.race([result, timers.setTimeout(10, 202)]);
+        expect(await race1).toBe(202);
+
+        let emitter = events[startCount - 1].emitter;
+        for (let i = startCount; i <= advanceCount; i++) {
+          emitter = emitter({ at: i });
+          events.push(events[i - 1].nextNow);
+        }
+
+        const race2 = Promise.race([result, timers.setTimeout(10, 303)]);
+        expect(await race2).toBe(events[advanceCount]);
+      }
+
+      expect(tracker.headNow).toBe(events[advanceCount]);
+    });
 
     if (advanceCount > startCount) {
-      test.skip('asynchronous incremental resolution case', async () => {
+      test.only('asynchronous incremental resolution case', async () => {
         const events = [];
         for (let i = startCount - 1; i >= 0; i--) {
           const next = events[0] ? Promise.resolve(events[0]) : null;
@@ -440,8 +434,6 @@ describe('advance(count)', () => {
       });
     }
   });
-
-  // TODO
 });
 
 describe('advance(function)', () => {
