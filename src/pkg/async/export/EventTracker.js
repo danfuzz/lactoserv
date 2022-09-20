@@ -227,7 +227,7 @@ export class EventTracker {
     if (this.#brokenReason) {
       // Throwing the reason would be against the contract of this method. The
       // caller can determine brokenness via other means.
-      return;
+      return null;
     }
 
     const result = this.advance(predicate);
