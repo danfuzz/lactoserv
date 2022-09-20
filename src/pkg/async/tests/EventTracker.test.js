@@ -585,7 +585,7 @@ describe('advance() breakage scenarios', () => {
     });
   });
 
-  test.skip('causes breakage when it is what walks the event chain into a problem', async () => {
+  test('causes breakage when it is what walks the event chain into a problem', async () => {
     const mp      = new ManualPromise();
     const event1  = new ChainedEvent(payload1, mp.promise);
     const tracker = new EventTracker(event1);
@@ -598,11 +598,8 @@ describe('advance() breakage scenarios', () => {
     const result = tracker.advance(2);
     mp.reject(new Error('Oh noes! Golly gee!'));
     //mp.resolve('not-an-event-whoopsie!');
-    console.log('########### 1');
     await expect(result).rejects.toThrow();
-    console.log('########### 2');
     expect(() => tracker.headNow).toThrow();
-    console.log('########### 3');
   });
 });
 
