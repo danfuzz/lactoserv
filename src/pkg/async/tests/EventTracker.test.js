@@ -334,6 +334,50 @@ describe('advance(count)', () => {
     });
   });
 
+  describe.each`
+    startCount | advanceCount
+    ${1}       | ${0}
+    ${1}       | ${1}
+    ${1}       | ${2}
+    ${2}       | ${1}
+    ${2}       | ${2}
+    ${2}       | ${3}
+    ${2}       | ${4}
+    ${2}       | ${10}
+    ${10}      | ${5}
+    ${10}      | ${9}
+    ${10}      | ${10}
+    ${10}      | ${20}
+  `('advance($advanceCount) with $startCount event(s) initially available', ({ startCount, advanceCount }) =>{
+    test('synchonous case', async () => {
+      const events = [];
+      let emitter = null;
+      for (let i = 0; i < startCount; i++) {
+        if (emitter) {
+          emitter = emitter({ at: i });
+          events.push(events[events.length - 1].nextNow);
+        } else {
+          events[0] = new ChainedEvent({ at: i });
+          emitter = events[0].emitter;
+        }
+      }
+
+      const tracker = new EventTracker(events[0]);
+      const result  = tracker.advance(advanceCount);
+
+      if (advanceCount < startCount) {
+        expect(tracker.headNow).toBe(events[advanceCount]);
+        expect(await result).toBe(events[advanceCount]);
+      } else {
+        expect(tracker.headNow).toBeNull();
+        const race = Promise.race([result, timers.setTimeout(10, 123)]);
+        expect(await race).toBe(123);
+      }
+    });
+
+    // TODO
+  });
+
   // TODO
 });
 
