@@ -375,7 +375,7 @@ describe('advance(count)', () => {
       }
     });
 
-    // TODO
+    // TODO: asynch case, mixed asynch case w/half resolved before call.
   });
 
   // TODO
