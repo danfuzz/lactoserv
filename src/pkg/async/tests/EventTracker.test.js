@@ -409,7 +409,7 @@ describe('advance(count)', () => {
     });
 
     if (advanceCount > startCount) {
-      test.only('asynchronous incremental resolution case', async () => {
+      test('asynchronous incremental resolution case', async () => {
         const events = [];
         for (let i = startCount - 1; i >= 0; i--) {
           const next = events[0] ? Promise.resolve(events[0]) : null;
