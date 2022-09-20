@@ -61,7 +61,6 @@ export class ManualPromise {
    */
   get rejectedReason() {
     if (this.isRejected()) {
-      console.log('######## GOT REASON');
       this.#handleRejection();
       return this.#resolution.reason;
     } else {
