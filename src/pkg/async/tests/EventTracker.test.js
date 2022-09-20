@@ -543,7 +543,7 @@ describe('advance(function)', () => {
     expect(tracker.headNow).toBe(event3);
   });
 
-  test('only calls predicate once per event checked', async () => {
+  test('only calls the predicate once per event checked', async () => {
     const event3  = new ChainedEvent(payload3);
     const mp3     = new ManualPromise();
     const event2  = new ChainedEvent(payload2, mp3.promise);
