@@ -125,6 +125,26 @@ export class ManualPromise {
   }
 
   /**
+   * Rejects the underlying promise, but in such a way that it won't be
+   * considered an unhandled rejection. This is useful in cases where one needs
+   * to reject a promise which might _legitimately_ never have been observed by
+   * other code.
+   *
+   * @param {*} reason The rejection reason.
+   */
+  rejectAndHandle(reason) {
+    this.reject(reason);
+
+    (async () => {
+      try {
+        await this.#promise;
+      } catch {
+        // Ignore it.
+      }
+    })();
+  }
+
+  /**
    * Resolves the underlying promise, with the given result value.
    *
    * @param {*} value The resolved value.
