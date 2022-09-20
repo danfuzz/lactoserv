@@ -2,6 +2,7 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { ChainedEvent, EventSource } from '@this/async';
+import { PromiseState } from '@this/metaclass';
 
 import * as timers from 'node:timers/promises';
 
@@ -29,8 +30,8 @@ describe.each`
   test('produces an instance whose `currentEvent` is unsettled', async () => {
     const source = new EventSource(...argFn());
 
-    const race = await Promise.race([source.currentEvent, timers.setTimeout(10, 123)]);
-    expect(race).toBe(123);
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(source.currentEvent)).toBeFalse();
   });
 
   test('produces an instance whose `currentEventNow` is `null`', async () => {

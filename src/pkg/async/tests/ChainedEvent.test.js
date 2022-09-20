@@ -2,6 +2,7 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { ChainedEvent, ManualPromise } from '@this/async';
+import { PromiseState } from '@this/metaclass';
 
 import * as timers from 'node:timers/promises';
 
@@ -25,11 +26,11 @@ describe.each`
     expect(event.nextNow).toBeNull();
   });
 
-  test('has an unsettled `next`', async () => {
+  test('has an unsettled `nextPromise`', async () => {
     const event = new ChainedEvent(...args);
 
-    const race = await Promise.race([event.nextPromise, timers.setImmediate(123)]);
-    expect(race).toBe(123);
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(event.nextPromise)).toBeFalse();
   });
 
   test('has an available `emitter`', () => {
@@ -90,11 +91,12 @@ describe('constructor(payload, next: Promise)', () => {
     expect(event.nextNow).toBeNull();
   });
 
-  test('has unsettled `next`', async () => {
+  test('has unsettled `nextPromise`', async () => {
     const mp    = new ManualPromise();
     const event = new ChainedEvent(payload1, mp.promise);
-    const race  = await Promise.race([event.nextPromise, timers.setImmediate(123)]);
-    expect(race).toBe(123);
+
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(event.nextPromise)).toBeFalse();
   });
 
   test('does not have an available `emitter`', () => {
@@ -103,7 +105,7 @@ describe('constructor(payload, next: Promise)', () => {
     expect(() => event.emitter).toThrow();
   });
 
-  test('has a `next` that tracks incoming `next`', async () => {
+  test('has a `nextPromise` that tracks incoming `next`', async () => {
     const mp    = new ManualPromise();
     const event = new ChainedEvent(payload1, mp.promise);
     const next  = new ChainedEvent(payload2);
@@ -257,8 +259,8 @@ describe('.nextPromise', () => {
   test('is an unsettled promise if there is no next event', async () => {
     const event = new ChainedEvent(payload1);
 
-    const race = await Promise.race([event.nextPromise, timers.setImmediate(123)]);
-    expect(race).toBe(123);
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(event.nextPromise)).toBeFalse();
   });
 
   test('eventually resolves to the chained event', async () => {
@@ -309,9 +311,9 @@ describe('withPayload()', () => {
     expect(event.nextNow).not.toBeNull();
     expect(event.nextNow?.payload).toBe(payload3);
 
-    // The result is expected to be `await`ing the original's `next`, so we
-    // can't expect its `nextNow` to be non-`null` until after its own `next`
-    // resolves.
+    // The result is expected to be `await`ing the original's `nextPromise`, so
+    // we can't expect its `nextNow` to be non-`null` until after its own
+    // `nextPromise` resolves.
 
     await result.nextPromise;
     expect(result.nextNow).not.toBeNull();
@@ -329,12 +331,12 @@ describe('withPayload()', () => {
     expect(result.nextNow?.payload).toBe(payload3);
   });
 
-  test('produces an instance whose `next` tracks the original', async () => {
+  test('produces an instance whose `nextPromise` tracks the original', async () => {
     const event  = new ChainedEvent(payload1);
     const result = event.withPayload(payload2);
 
-    const race = await Promise.race([event.nextPromise, timers.setImmediate(123)]);
-    expect(race).toBe(123);
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(event.nextPromise)).toBeFalse();
 
     event.emitter(payload3);
 
@@ -373,7 +375,7 @@ describe('withPushedHead()', () => {
     expect(result.nextNow).toBe(event);
   });
 
-  test('produces an instance whose `next` is the original instance', async () => {
+  test('produces an instance whose `nextPromise` is the original instance', async () => {
     const event  = new ChainedEvent(payload1);
     const result = event.withPushedHead(payload2);
 
