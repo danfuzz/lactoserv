@@ -670,5 +670,23 @@ describe('advanceSync(<invalid>)', () => {
 });
 
 describe('advanceSync() on a broken instance', () => {
-  // TODO
+  test('returns `null`', async () => {
+    const tracker = new EventTracker(Promise.resolve('not-an-event-3'));
+
+    expect(tracker.headNow).toBeNull(); // Not yet broken!
+    await timers.setImmediate();
+    expect(() => tracker.headNow).toThrow(); // Now broken!
+    expect(tracker.advanceSync()).toBeNull();
+  });
+
+  test('keeps returning `null`', async () => {
+    const tracker = new EventTracker(Promise.resolve('not-an-event-4'));
+
+    expect(tracker.headNow).toBeNull(); // Not yet broken!
+    await timers.setImmediate();
+    expect(() => tracker.headNow).toThrow(); // Now broken!
+    expect(tracker.advanceSync()).toBeNull();
+    expect(tracker.advanceSync(1)).toBeNull();
+    expect(tracker.advanceSync('eep')).toBeNull();
+  });
 });
