@@ -439,3 +439,23 @@ describe('advance(count)', () => {
 describe('advance(function)', () => {
   // TODO
 });
+
+describe('advance(<invalid>)', () => {
+  // TODO
+});
+
+describe('advance() on a broken instance', () => {
+  // TODO
+});
+
+describe('advanceSync()', () => {
+  // TODO
+});
+
+describe('advanceSync(<invalid>)', () => {
+  // TODO
+});
+
+describe('advanceSync() on a broken instance', () => {
+  // TODO
+});
