@@ -565,22 +565,44 @@ describe('advance(<invalid>)', () => {
   });
 });
 
-describe('advance() on a broken instance', () => {
-  test('throws', async () => {
-    const tracker = new EventTracker(Promise.resolve('not-an-event-1'));
+describe('advance() breakage scenarios', () => {
+  describe('on a broken instance', () => {
+    test('throws', async () => {
+      const tracker = new EventTracker(Promise.resolve('not-an-event-1'));
 
-    expect(tracker.headNow).toBeNull(); // Not yet broken!
-    await timers.setImmediate();
-    await expect(() => tracker.advance()).rejects.toThrow();
+      expect(tracker.headNow).toBeNull(); // Not yet broken!
+      await timers.setImmediate();
+      await expect(() => tracker.advance()).rejects.toThrow();
+    });
+
+    test('remains broken', async () => {
+      const tracker = new EventTracker(Promise.resolve('not-an-event-2'));
+
+      await timers.setImmediate();
+      await expect(() => tracker.advance()).rejects.toThrow();
+      await expect(() => tracker.advance(1)).rejects.toThrow();
+      await expect(() => tracker.advance('eep')).rejects.toThrow();
+    });
   });
 
-  test('remains broken', async () => {
-    const tracker = new EventTracker(Promise.resolve('not-an-event-2'));
+  test.skip('causes breakage when it is what walks the event chain into a problem', async () => {
+    const mp      = new ManualPromise();
+    const event1  = new ChainedEvent(payload1, mp.promise);
+    const tracker = new EventTracker(event1);
 
-    await timers.setImmediate();
-    await expect(() => tracker.advance()).rejects.toThrow();
-    await expect(() => tracker.advance(1)).rejects.toThrow();
-    await expect(() => tracker.advance('eep')).rejects.toThrow();
+    // Baseline expectations.
+    expect(await tracker.advance(0)).toBe(event1);
+    expect(tracker.headNow).toBe(event1);
+
+    // The actual test.
+    const result = tracker.advance(2);
+    mp.reject(new Error('Oh noes! Golly gee!'));
+    //mp.resolve('not-an-event-whoopsie!');
+    console.log('########### 1');
+    await expect(result).rejects.toThrow();
+    console.log('########### 2');
+    expect(() => tracker.headNow).toThrow();
+    console.log('########### 3');
   });
 });
 
@@ -647,6 +669,23 @@ describe('advanceSync()', () => {
     await timers.setImmediate();
     expect(tracker.headNow).toBe(event3);
     expect(await result1).toBe(event2);
+  });
+
+  test('causes breakage when it is what walks the event chain into a problem', async () => {
+    const mp      = new ManualPromise();
+    const event1  = new ChainedEvent(payload1, mp.promise);
+    const tracker = new EventTracker(event1);
+
+    // Baseline expectations.
+    expect(tracker.advanceSync(0)).toBe(event1);
+    expect(tracker.headNow).toBe(event1);
+
+    // The actual test.
+    expect(tracker.advanceSync(1)).toBe(null);
+    expect(tracker.headNow).toBe(null);
+    mp.reject(new Error('Oh noes!'));
+    await timers.setImmediate();
+    expect(() => tracker.headNow).toThrow();
   });
 });
 
