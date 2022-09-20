@@ -437,7 +437,105 @@ describe('advance(count)', () => {
 });
 
 describe('advance(function)', () => {
-  // TODO
+  test('finds a matching `headNow`', async () => {
+    const event   = new ChainedEvent(payload1);
+    const tracker = new EventTracker(event);
+
+    const result = tracker.advance(e => e.payload === payload1);
+
+    // Synchronous result state.
+    expect(tracker.headNow).toBe(event);
+
+    // Asynchronous call result.
+    expect(await result).toBe(event);
+  });
+
+  test('finds a matching already-resolved `headPromise`', async () => {
+    const event   = new ChainedEvent(payload1);
+    const tracker = new EventTracker(Promise.resolve(event));
+
+    const result = tracker.advance(e => e.payload === payload1);
+
+    // Synchronous result state.
+    expect(tracker.headNow).toBeNull();
+
+    // Asynchronous call result.
+    expect(await result).toBe(event);
+
+    // Synchronous post-result-resolution state.
+    expect(tracker.headNow).toBe(event);
+  });
+
+  test('finds a matching initially-unresolved `headPromise`', async () => {
+    const event   = new ChainedEvent(payload1);
+    const mp      = new ManualPromise();
+    const tracker = new EventTracker(mp.promise);
+
+    const result = tracker.advance(e => e.payload === payload1);
+
+    // Synchronous result state.
+    expect(tracker.headNow).toBeNull();
+
+    mp.resolve(event);
+
+    // Asynchronous call result.
+    expect(await result).toBe(event);
+
+    // Synchronous post-result-resolution state.
+    expect(tracker.headNow).toBe(event);
+  });
+
+  test('finds a matching event at the end of an already-resolved chain', async () => {
+    const event3  = new ChainedEvent(payload3);
+    const event2  = new ChainedEvent(payload2, event3);
+    const event1  = new ChainedEvent(payload1, event2);
+    const tracker = new EventTracker(event1);
+
+    const result = tracker.advance(e => e.payload === payload3);
+
+    // Synchronous result state.
+    expect(tracker.headNow).toBe(event3);
+
+    // Asynchronous call result.
+    expect(await result).toBe(event3);
+
+    // Synchronous post-result-resolution state.
+    expect(tracker.headNow).toBe(event3);
+  });
+
+  test('finds a matching event at the end of an eventually-resolved chain', async () => {
+    const event3  = new ChainedEvent(payload3);
+    const mp3     = new ManualPromise();
+    const event2  = new ChainedEvent(payload2, mp3.promise);
+    const mp2     = new ManualPromise();
+    const event1  = new ChainedEvent(payload1, mp2.promise);
+    const mp1     = new ManualPromise();
+    const tracker = new EventTracker(mp1.promise);
+
+    const result = tracker.advance(e => e.payload === payload3);
+
+    expect(tracker.headNow).toBeNull();
+    const race1 = Promise.race([result, timers.setTimeout(10, 101)]);
+    expect(await race1).toBe(101);
+    mp1.resolve(event1);
+
+    expect(tracker.headNow).toBeNull();
+    const race2 = Promise.race([result, timers.setTimeout(10, 102)]);
+    expect(await race2).toBe(102);
+    mp2.resolve(event2);
+
+    expect(tracker.headNow).toBeNull();
+    const race3 = Promise.race([result, timers.setTimeout(10, 103)]);
+    expect(await race3).toBe(103);
+    mp3.resolve(event3);
+
+    expect(tracker.headNow).toBeNull();
+    const race4 = Promise.race([result, timers.setTimeout(10, 104)]);
+    expect(await race4).toBe(event3);
+
+    // Synchronous post-result-resolution state.
+    expect(tracker.headNow).toBe(event3);
+  });
 });
 
 describe('advance(<invalid>)', () => {
@@ -459,6 +557,10 @@ describe('advance(<invalid>)', () => {
     await expect(result).rejects.toThrow();
     expect(() => tracker.headNow).not.toThrow();
   });
+});
+
+describe('advance() on a broken instance', () => {
+  // TODO
 });
 
 describe('advance() on a broken instance', () => {
