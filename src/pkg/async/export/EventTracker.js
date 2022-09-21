@@ -246,10 +246,10 @@ export class EventTracker {
    * @param {EventPredicate} [predicate = null] Predicate to satisfy.
    * @returns {ChainedEvent} The event just _behind_ {@link #headNow} at the
    *   the moment the operation is complete.
-   * @throws {Error} Thrown if there was any trouble _before_ the last step of
-   *   the method (see note above). If so, and the trouble was anything other
-   *   than an invalid `predicate`, the instance will also become permanently
-   *   broken, with most methods also throwing.
+   * @throws {Error} Thrown if there was any trouble _before_ attempting to
+   *   advance over the found event (see note above). If so, and the trouble was
+   *   anything other than an invalid `predicate`, the instance will also become
+   *   permanently broken, with most methods also throwing.
    */
   async next(predicate = null) {
     // Even though `advance()` does this itself, if we don't do this here and
