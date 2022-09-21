@@ -353,15 +353,18 @@ export class EventTracker {
   static #validateAndTransformPredicate(predicate) {
     switch (typeof predicate) {
       case 'object': {
-        if (predicate === null) {
-          return 1;
+        if (predicate !== null) {
+          break;
         }
-        break;
+        predicate = 1;
+        // and fall through...
       }
       case 'number': {
-        const count = predicate;
-        if ((count >= 0) && (count === Math.trunc(count))) {
-          return count;
+        let count = predicate;
+        if (count === 0) {
+          return (() => true);
+        } else if ((count > 0) && (count === Math.trunc(count))) {
+          return (() => (count-- === 0));
         }
         break;
       }
