@@ -234,10 +234,10 @@ export class EventTracker {
   /**
    * Advances the head of this instance with the same semantics as {@link
    * #advance}, returning the same event that {@link #advance} would have, but
-   * then _also_ advancing past the returned event (possibly past the end of the
-   * settled event chain). In the common case of calling this with a default
-   * predicate, this behaves like an iterator's `next()` method, "consuming"
-   * exactly one item.
+   * _then_ -- after this method async-returns -- advancing past the returned
+   * event (possibly past the end of the settled event chain). In the common
+   * case of calling this with a default predicate, this behaves like an
+   * iterator's `next()` method, "consuming" exactly one item.
    *
    * **Note:** This method async-returns after the initial advancing is done; it
    * does not wait for the final advancing over the result (because that would
@@ -265,7 +265,12 @@ export class EventTracker {
     const result = this.advance(predicate);
 
     // It is important for this to be `advanceSync()` and not `advance()`, for
-    // the reason noted in the doc comment above.
+    // the reason noted in the doc comment above. Most saliently, if the
+    // `advance()` call above throws, then this call will too, and that means
+    // that this call will be responsible for an unhandled promise rejection.
+    // (And, we can't make this an async `advance()` and `await` it, because
+    // that would violate the guarantee that this method promptly return a
+    // matching event which happens to be the last settled one on the chain.)
     this.advanceSync(1);
 
     return result;
