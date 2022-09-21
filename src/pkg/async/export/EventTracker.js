@@ -197,9 +197,9 @@ export class EventTracker {
       throw this.#becomeBroken(e);
     }
 
-    if (this.#actionHead === action) {
-      // This call is the last pending advance (at the moment, at least), so we
-      // get to settle things back down.
+    if (this.#headPromise === action.resultHeadPromise) {
+      // This call is responsible for the last pending action (at the moment, at
+      // least), so we get to settle the instance state back down.
       this.#setHead(action.result);
       this.#actionHead = null;
     }
