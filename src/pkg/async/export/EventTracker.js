@@ -464,8 +464,13 @@ class AdvanceAction {
       this.#becomeDone();
     } else if (this.#headNow) {
       try {
-        if (this.#handlePredicate()) {
-          this.#becomeDone();
+        while (this.#headNow) {
+          if (this.#predicate(this.#headNow)) {
+            this.#becomeDone();
+            break;
+          }
+
+          this.#advanceToNext();
         }
       } catch (e) {
         this.#becomeDone(e);
@@ -529,24 +534,6 @@ class AdvanceAction {
     if (error) {
       throw error;
     }
-  }
-
-  /**
-   * Does the core work of walking the event chain, when {@link #predicate} is
-   * being used.
-   *
-   * @returns {boolean} `true` iff the operation was completed.
-   */
-  #handlePredicate() {
-    while (this.#headNow) {
-      if (this.#predicate(this.#headNow)) {
-        return true;
-      }
-
-      this.#advanceToNext();
-    }
-
-    return false;
   }
 
   /**
