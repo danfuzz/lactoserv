@@ -134,9 +134,9 @@ export class EventTracker {
    * #headNow} is (or will necessarily become) satisfied by the given predicate.
    *
    * It is possible to use this method to advance the instance past the end of
-   * the "settled" chain, in which case {@link #headNow} will become `null`, and
-   * the tracked source will need to emit one or more events before
-   * {@link #headNow} becomes non-`null` again.
+   * the synchronously "settled" chain, in which case {@link #headNow} will
+   * _synchronously_ become `null`, and the tracked source will need to emit one
+   * or more events before {@link #headNow} becomes non-`null` again.
    *
    * Though this method is `async`, if the request can be satisfied
    * synchronously, it will. In such cases, the return value will still be a
@@ -148,7 +148,7 @@ export class EventTracker {
    *
    * @param {EventPredicate} [predicate = null] Predicate to satisfy.
    * @returns {ChainedEvent} What {@link #headNow} is (or would have been) at
-   *   the moment the advancing is complete.
+   *   the moment the operation is complete.
    * @throws {Error} Thrown if there was any trouble. If so, and the trouble was
    *   anything other than an invalid `predicate`, the instance will also become
    *   permanently broken, with most methods also throwing.
@@ -214,11 +214,11 @@ export class EventTracker {
   }
 
   /**
-   * Advances the head of this instance -- or at least initiates it -- with the
-   * exact same semantics as {@link #advance}, but (a) synchronously returns the
-   * result of a synchronously-successful operation, and (b) ensures that no
-   * exception is thrown asynchronously direcly from this method even if the
-   * operation ultimately fails.
+   * Advances this instance -- or at least initiates it -- with the exact same
+   * semantics as {@link #advance}, but (a) synchronously returns the result of
+   * a synchronously-successful operation, and (b) ensures that no exception is
+   * thrown asynchronously direcly from this method even if the operation
+   * ultimately fails.
    *
    * Context: Even though {@link #advance} can succeed synchronously, it _might_
    * throw, and if it _does_ throw, it will be asynchronously. In such cases, a
@@ -263,6 +263,44 @@ export class EventTracker {
     })();
 
     return null;
+  }
+
+  /**
+   * Advances the head of this instance with the same semantics as {@link
+   * #advance}, returning the same event that {@link #advance} would have, but
+   * then _also_ advancing past the returned event (possibly past the end of the
+   * settled event chain). In the common case of calling this with a default
+   * predicate, this behaves like an iterator's `next()` method, "consuming"
+   * exactly one item.
+   *
+   * **Note:** This method async-returns after the initial advancing is done; it
+   * does not wait for the final advancing over the result (because that would
+   * mean this method would only return after at least one more event is
+   * available). As such, if that final operation causes the instance to become
+   * broken, that won't be reported until some other operation on this instance
+   * is attempted.
+   *
+   * @param {EventPredicate} [predicate = null] Predicate to satisfy.
+   * @returns {ChainedEvent} The event just _behind_ {@link #headNow} at the
+   *   the moment the operation is complete.
+   * @throws {Error} Thrown if there was any trouble _before_ the last step of
+   *   the method (see note above). If so, and the trouble was anything other
+   *   than an invalid `predicate`, the instance will also become permanently
+   *   broken, with most methods also throwing.
+   */
+  async next(predicate = null) {
+    predicate = EventTracker.#validateAndTransformPredicate(predicate);
+
+    // Note: It's important _not_ to `await` the first `advance()` call, because
+    // we need to guarantee that no actions get queued up between the two calls
+    // here.
+    const result = this.advance(predicate);
+
+    // It is important for this to be `advanceSync()` and not `advance()`, for
+    // the reason noted in the doc comment above.
+    this.advanceSync(1);
+
+    return result;
   }
 
   /**

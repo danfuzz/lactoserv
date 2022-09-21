@@ -6,9 +6,11 @@ import { PromiseState } from '@this/metacomp';
 
 import * as timers from 'node:timers/promises';
 
+
 const payload1 = { type: '1:wacky:1' };
 const payload2 = { type: '2:zany:2' };
-const payload3 = { type: '3:questionable:3' };
+const payload3 = { type: '3:fantastic:3' };
+const payload4 = { type: '4:stupendous:4' };
 
 describe('constructor(ChainedEvent)', () => {
   test('trivially succeeds', () => {
@@ -791,5 +793,95 @@ describe('advanceSync() on a broken instance', () => {
     expect(tracker.advanceSync()).toBeNull();
     expect(tracker.advanceSync(1)).toBeNull();
     expect(tracker.advanceSync('eep')).toBeNull();
+  });
+});
+
+
+//
+// The core implementation of the class is covered by the above tests. The rest
+// are intended to provide reasonable coverage assuming the above is sufficient
+// for the core.
+//
+
+describe.each`
+  args      | label
+  ${[0]}    | ${'0'}
+  ${[null]} | ${'null'}
+  ${[]}     | ${'<no-args>'}
+`('next($label)', ({ args }) => {
+  test('walks the chain one event at a time', async () => {
+    const event3  = new ChainedEvent(payload3);
+    const event2  = new ChainedEvent(payload2, event3);
+    const event1  = new ChainedEvent(payload1, event2);
+    const tracker = new EventTracker(event1);
+
+    expect(tracker.headNow).toBe(event1);
+    const result1 = tracker.next(...args);
+    expect(tracker.headNow).toBe(event2);
+    const result2 = tracker.next(...args);
+    expect(tracker.headNow).toBe(event3);
+    const result3 = tracker.next(...args);
+    expect(tracker.headNow).toBeNull();
+    const result4 = tracker.next(...args);
+
+    expect(await result1).toBe(event1);
+    expect(await result2).toBe(event2);
+
+    // If this expectation fails, it's because the implementation of `next()` is
+    // waiting for the event after this one to get settled (which is 100% for
+    // sure incorrect behavior).
+    expect(PromiseState.isSettled(result3)).toBeTrue();
+
+    expect(await result3).toBe(event3);
+
+    expect(PromiseState.isSettled(result4)).toBeFalse();
+
+    event3.emitter(payload4);
+    const event4 = event3.nextNow;
+
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(result4)).toBeTrue();
+
+    expect(await result4).toBe(event4);
+  });
+});
+
+describe('next(predicate)', () => {
+  test('finds and advances just past a matching event', async () => {
+    const toFind  = { findMe: 'yes!' };
+    const event3  = new ChainedEvent(payload3);
+    const event2  = new ChainedEvent(toFind, event3);
+    const event1  = new ChainedEvent(payload1, event2);
+    const tracker = new EventTracker(event1);
+
+    expect(tracker.headNow).toBe(event1);
+    const result1 = tracker.next((e) => e.payload === toFind);
+    expect(tracker.headNow).toBe(event3);
+    const result2 = tracker.next((e) => e.payload === toFind);
+    expect(tracker.headNow).toBeNull();
+    const result3 = tracker.next();
+
+    expect(await result1).toBe(event2);
+    expect(PromiseState.isSettled(result2)).toBeFalse();
+
+    const emitter5 = event3.emitter(toFind);
+    const event4   = event3.nextNow;
+
+    await timers.setImmediate();
+
+    // If this expectation fails, it's because the implementation of `next()` is
+    // waiting for the event after this one to get settled (which is 100% for
+    // sure incorrect behavior).
+    expect(PromiseState.isSettled(result2)).toBeTrue();
+    expect(PromiseState.isSettled(result3)).toBeFalse();
+    expect(await result2).toBe(event4);
+    expect(PromiseState.isSettled(result3)).toBeFalse();
+
+    emitter5(payload2);
+    const event5 = event4.nextNow;
+
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(result3)).toBeTrue();
+    expect(await result3).toBe(event5);
   });
 });
