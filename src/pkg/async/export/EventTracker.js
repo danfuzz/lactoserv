@@ -462,19 +462,19 @@ class AdvanceAction {
   handleSync() {
     if (this.#result) {
       this.#becomeDone();
-    } else if (this.#headNow) {
-      try {
-        while (this.#headNow) {
-          if (this.#predicate(this.#headNow)) {
-            this.#becomeDone();
-            break;
-          }
+      return true;
+    }
 
-          this.#advanceToNext();
+    try {
+      while (this.#headNow) {
+        if (this.#predicate(this.#headNow)) {
+          this.#becomeDone();
+          break;
         }
-      } catch (e) {
-        this.#becomeDone(e);
+        this.#advanceToNext();
       }
+    } catch (e) {
+      this.#becomeDone(e);
     }
 
     return this.#result !== null;
