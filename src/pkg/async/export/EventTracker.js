@@ -104,12 +104,8 @@ export class EventTracker {
   get headPromise() {
     if (this.#headPromise === null) {
       // When `#headPromise` is `null`, `#headNow` is always supposed to be a
-      // valid event, _or_ the instance is supposed to be broken.
-      if (this.#brokenReason) {
-        this.#headPromise = Promise.reject(this.#brokenReason);
-      } else {
-        this.#headPromise = Promise.resolve(this.#headNow);
-      }
+      // valid event.
+      this.#headPromise = Promise.resolve(this.#headNow);
     }
 
     return this.#headPromise;
@@ -320,7 +316,17 @@ export class EventTracker {
     } else {
       this.#brokenReason = reason;
       this.#headNow      = null;
-      this.#headPromise  = null;
+      this.#headPromise  = Promise.reject(reason);
+
+      // Make sure that the above rejection isn't considered "unhandled," at
+      // least not due to this method.
+      (async () => {
+        try {
+          await this.#headPromise;
+        } catch {
+          // Ignore it.
+        }
+      })();
     }
 
     return reason;
@@ -364,7 +370,7 @@ export class EventTracker {
           if (headNow instanceof ChainedEvent) {
             mp.resolve(headNow);
           } else {
-            throw new Error('Invalid event value.');
+            throw new Error('Invalid event value (promise resolution).');
           }
           if ((this.#headPromise === mp.promise) && !this.#brokenReason) {
             this.#headNow = headNow;
@@ -375,7 +381,7 @@ export class EventTracker {
         }
       })();
     } else {
-      throw new Error('Invalid event value.');
+      throw new Error('Invalid event value (synchronously known).');
     }
   }
 
