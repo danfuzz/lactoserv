@@ -76,14 +76,6 @@ export class EventTracker {
   #brokenReason = null;
 
   /**
-   * @type {?AdvanceAction} The latest action to perform, if any. When `null`,
-   * no action is currently (asynchronously) in progress. (Other actions that
-   * are taking place / to take place before this one are linked via the
-   * action's `headPromise`.)
-   */
-  #actionHead = null;
-
-  /**
    * Constructs an instance.
    *
    * @param {ChainedEvent|Promise<ChainedEvent>} firstEvent First event on the
@@ -183,9 +175,6 @@ export class EventTracker {
       }
     }
 
-    // Note: `action` already links to the old `#actionHead` if it was set,
-    // because of the top of the `if` above.
-    this.#actionHead  = action;
     this.#headNow     = null;
     this.#headPromise = action.resultHeadPromise;
 
@@ -201,7 +190,6 @@ export class EventTracker {
       // This call is responsible for the last pending action (at the moment, at
       // least), so we get to settle the instance state back down.
       this.#setHead(action.result);
-      this.#actionHead = null;
     }
 
     // Note: *Not* this instance's `#headNow` here, because that might still be
@@ -320,7 +308,6 @@ export class EventTracker {
       this.#brokenReason = reason;
       this.#headNow      = null;
       this.#headPromise  = null;
-      this.#actionHead   = null;
     }
 
     return reason;
