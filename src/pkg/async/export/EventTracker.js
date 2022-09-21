@@ -8,12 +8,7 @@ import { MustBe } from '@this/typey';
 
 
 // TODO:
-// * next() -- it's `advance(x)` immediately followed by `advance(1)` to consume
-//   the found item.
 // * nextSync()
-// * peek() -- it's `advance(x)` to find an event but without consuming it.
-//   Performed with respect to any `advance()`s that have already been queued
-//   up.
 // * peekSync() -- Only possible to work when `headNow` is known.
 //
 // Maybe:
@@ -282,6 +277,31 @@ export class EventTracker {
   }
 
   /**
+   * Finds an event on the tracked chain, with the same semantics as {@link
+   * #advance} except -- unlike that method -- _without_ actually advancing the
+   * instance to the found event. For example, `peek()` and `peek(0)` are
+   * equivalent to just accessing {@link #headPromise}.
+   *
+   * @param {EventPredicate} [predicate = null] Predicate to satisfy.
+   * @returns {ChainedEvent} The earliest event on the tracked chain that
+   *   matches `predicate`.
+   * @throws {Error} Thrown if there was any trouble. Unlike {@link #advance},
+   *   {@link #next}, etc., because this method does not affect the state of the
+   *   instance, a thrown error here doesn't indicate that the instance is
+   *   broken... yet.
+   */
+  async peek(predicate = null) {
+    predicate = EventTracker.#validateAndTransformPredicate(predicate);
+
+    if (this.#brokenReason) {
+      throw this.#brokenReason;
+    }
+
+    const action = new AdvanceAction(this.#headNow, this.#headPromise, predicate);
+    return action.handleAsync();
+  }
+
+  /**
    * Makes this instance become "broken" with the indicated reason. After
    * calling this method, the instance will respond to most method calls by
    * throwing the reason. And once broken, and instance won't ever become
@@ -405,8 +425,9 @@ export class EventTracker {
 }
 
 /**
- * Helper for {@link #EventTracker.advance}, which implements the guts of the
- * method.
+ * Helper for {@link #EventTracker.advance} and similar methods, which
+ * implements the guts of an "advance-like" operation, without directly
+ * affecting the "client" instance's state.
  */
 class AdvanceAction {
   /**

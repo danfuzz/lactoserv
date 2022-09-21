@@ -935,3 +935,71 @@ describe('next() breakage scenarios', () => {
     expect(() => tracker.headNow).toThrow();
   });
 });
+
+describe('peek()', () => {
+  test.each`
+    args      | label
+    ${[0]}    | ${'0'}
+    ${[null]} | ${'null'}
+    ${[]}     | ${'<no-args>'}
+  `('peek($label) is equivalent to `.headPromise`', async ({ args }) => {
+    const event   = new ChainedEvent(payload1);
+    const tracker = new EventTracker(event);
+
+    expect(await tracker.peek(...args)).toBe(event);
+
+    // Confirm that the head hasn't been advanced.
+    expect(tracker.headNow).toBe(event);
+  });
+
+  test('finds a matching event without advancing to or past it', async () => {
+    const toFind  = { findMe: 'yes!' };
+    const event3  = new ChainedEvent(toFind);
+    const event2  = new ChainedEvent(toFind, event3);
+    const event1  = new ChainedEvent(payload1, event2);
+    const tracker = new EventTracker(event1);
+
+    expect(tracker.headNow).toBe(event1);
+    const result1 = tracker.peek(e => e.payload === toFind);
+    expect(tracker.headNow).toBe(event1);
+    const result2 = tracker.peek(e => e.payload === toFind);
+    expect(tracker.headNow).toBe(event1);
+
+    expect(await result1).toBe(event2);
+    expect(await result2).toBe(event2);
+  });
+
+  test('throws but does not break instance when encountering a problematic event', async () => {
+    const event1  = new ChainedEvent(payload1, Promise.reject(new Error('eek!')));
+    const tracker = new EventTracker(event1);
+
+    expect(tracker.headNow).toBe(event1);
+    const result = tracker.peek(5);
+    expect(tracker.headNow).toBe(event1);
+
+    await expect(result).rejects.toThrow();
+    expect(tracker.headNow).toBe(event1);
+  });
+
+  test('throws but does not break instance when given an invalid predicate', async () => {
+    const event1  = new ChainedEvent(payload1);
+    const tracker = new EventTracker(event1);
+
+    expect(tracker.headNow).toBe(event1);
+    const result = tracker.peek(['nope-not-a-predicate']);
+    expect(tracker.headNow).toBe(event1);
+
+    await expect(result).rejects.toThrow();
+    expect(tracker.headNow).toBe(event1);
+  });
+
+  test('throws when called on an already-broken instance', async () => {
+    const tracker = new EventTracker(Promise.resolve('oops-not-an-event'));
+
+    // Cause instance to break.
+    await expect(tracker.advance()).rejects.toThrow();
+
+    // Actual test.
+    await expect(tracker.peek()).rejects.toThrow();
+  });
+});
