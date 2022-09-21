@@ -671,11 +671,21 @@ describe('advance() breakage scenarios', () => {
     await expect(result).rejects.toThrow();
     expect(() => tracker.headNow).toThrow();
   });
+
+  test('causes breakage when its predicate throws', async () => {
+    const event   = new ChainedEvent(payload1);
+    const tracker = new EventTracker(event);
+    const error   = new Error('Ouch!');
+    const ouch    = () => { throw error; };
+
+    await expect(tracker.advance(ouch)).rejects.toThrow(error);
+    expect(() => tracker.headNow).toThrow(error);
+  });
 });
 
 describe('advanceSync()', () => {
   test('finds a synchronously-found event at `headNow`.', () => {
-    const event = new ChainedEvent(payload1);
+    const event   = new ChainedEvent(payload1);
     const tracker = new EventTracker(event);
 
     expect(tracker.advanceSync(0)).toBe(event);
@@ -991,6 +1001,16 @@ describe('peek()', () => {
 
     await expect(result).rejects.toThrow();
     expect(tracker.headNow).toBe(event1);
+  });
+
+  test('throws but does not break instance when its predicate throws', async () => {
+    const event   = new ChainedEvent(payload1);
+    const tracker = new EventTracker(event);
+    const error   = new Error('Ouch!');
+    const ouch    = () => { throw error; };
+
+    await expect(tracker.peek(ouch)).rejects.toThrow(error);
+    expect(tracker.headNow).toBe(event);
   });
 
   test('throws when called on an already-broken instance', async () => {
