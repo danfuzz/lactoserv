@@ -6,9 +6,11 @@ import { PromiseState } from '@this/metacomp';
 
 import * as timers from 'node:timers/promises';
 
+
 const payload1 = { type: '1:wacky:1' };
 const payload2 = { type: '2:zany:2' };
-const payload3 = { type: '3:questionable:3' };
+const payload3 = { type: '3:fantastic:3' };
+const payload4 = { type: '4:stupendous:4' };
 
 describe('constructor(ChainedEvent)', () => {
   test('trivially succeeds', () => {
@@ -96,9 +98,9 @@ describe('.headPromise', () => {
     const tracker = new EventTracker(event1);
 
     expect(await tracker.headPromise).toBe(event1);
-    tracker.advance();
+    tracker.advance(1);
     expect(await tracker.headPromise).toBe(event2);
-    tracker.advance();
+    tracker.advance(1);
     expect(await tracker.headPromise).toBe(event3);
   });
 
@@ -107,7 +109,7 @@ describe('.headPromise', () => {
     const tracker = new EventTracker(event1);
 
     expect(await tracker.headPromise).toBe(event1);
-    tracker.advance();
+    tracker.advance(1);
 
     expect(tracker.headNow).toBeNull();
     await timers.setImmediate();
@@ -126,7 +128,7 @@ describe('.headPromise', () => {
     const tracker = new EventTracker(event);
 
     expect(await tracker.headPromise).toBe(event);
-    tracker.advance();
+    tracker.advance(1);
 
     await timers.setImmediate();
     expect(PromiseState.isSettled(tracker.headPromise)).toBeFalse();
@@ -152,7 +154,7 @@ describe('.headNow', () => {
     const tracker = new EventTracker(event1);
 
     expect(tracker.headNow).toBe(event1);
-    const advancePromise = tracker.advance();
+    const advancePromise = tracker.advance(1);
     expect(tracker.headNow).toBeNull();
 
     event1.emitter(payload2);
@@ -169,9 +171,9 @@ describe('.headNow', () => {
     const tracker = new EventTracker(event1);
 
     expect(tracker.headNow).toBe(event1);
-    tracker.advance();
+    tracker.advance(1);
     expect(tracker.headNow).toBe(event2);
-    tracker.advance();
+    tracker.advance(1);
     expect(tracker.headNow).toBe(event3);
   });
 
@@ -180,7 +182,7 @@ describe('.headNow', () => {
     const tracker = new EventTracker(event);
 
     expect(tracker.headNow).toBe(event);
-    tracker.advance();
+    tracker.advance(1);
     expect(tracker.headNow).toBeNull();
   });
 });
@@ -190,19 +192,17 @@ describe.each`
   ${[null]} | ${'null'}
   ${[]}     | ${'<no-args>'}
 `('advance($label)', ({ args }) => {
-  test('behaves like `advance(1)`', () => {
-    const event3  = new ChainedEvent(payload3);
-    const event2  = new ChainedEvent(payload2, event3);
-    const event1  = new ChainedEvent(payload1, event2);
+  test('behaves like `advance(0)`', () => {
+    const event1  = new ChainedEvent(payload1);
     const tracker = new EventTracker(event1);
 
     expect(tracker.headNow).toBe(event1);
     tracker.advance(...args);
-    expect(tracker.headNow).toBe(event2);
+    expect(tracker.headNow).toBe(event1);
     tracker.advance(...args);
-    expect(tracker.headNow).toBe(event3);
+    expect(tracker.headNow).toBe(event1);
     tracker.advance(...args);
-    expect(tracker.headNow).toBeNull();
+    expect(tracker.headNow).toBe(event1);
   });
 });
 
@@ -594,6 +594,7 @@ describe('advance(<invalid>)', () => {
     expect(tracker.headNow).toBe(event);
     await expect(result).rejects.toThrow();
     expect(() => tracker.headNow).not.toThrow();
+    expect(tracker.headNow).toBe(event);
   });
 });
 
@@ -604,7 +605,7 @@ describe('advance() breakage scenarios', () => {
 
       expect(tracker.headNow).toBeNull(); // Not yet broken!
       await timers.setImmediate();
-      await expect(() => tracker.advance()).rejects.toThrow();
+      await expect(() => tracker.advance(1)).rejects.toThrow();
     });
 
     test('remains broken', async () => {
@@ -630,7 +631,7 @@ describe('advance() breakage scenarios', () => {
     });
 
     // Baseline expectations.
-    expect(await tracker.advance(0)).toBe(event1);
+    expect(await tracker.advance()).toBe(event1);
     expect(tracker.headNow).toBe(event1);
 
     // The actual test.
@@ -645,7 +646,7 @@ describe('advance() breakage scenarios', () => {
     const tracker = new EventTracker(event1);
 
     // Baseline expectations.
-    expect(await tracker.advance(0)).toBe(event1);
+    expect(await tracker.advance()).toBe(event1);
     expect(tracker.headNow).toBe(event1);
 
     // The actual test.
@@ -661,7 +662,7 @@ describe('advance() breakage scenarios', () => {
     const tracker = new EventTracker(event1);
 
     // Baseline expectations.
-    expect(await tracker.advance(0)).toBe(event1);
+    expect(await tracker.advance()).toBe(event1);
     expect(tracker.headNow).toBe(event1);
 
     // The actual test.
@@ -670,11 +671,21 @@ describe('advance() breakage scenarios', () => {
     await expect(result).rejects.toThrow();
     expect(() => tracker.headNow).toThrow();
   });
+
+  test('causes breakage when its predicate throws', async () => {
+    const event   = new ChainedEvent(payload1);
+    const tracker = new EventTracker(event);
+    const error   = new Error('Ouch!');
+    const ouch    = () => { throw error; };
+
+    await expect(tracker.advance(ouch)).rejects.toThrow(error);
+    expect(() => tracker.headNow).toThrow(error);
+  });
 });
 
 describe('advanceSync()', () => {
   test('finds a synchronously-found event at `headNow`.', () => {
-    const event = new ChainedEvent(payload1);
+    const event   = new ChainedEvent(payload1);
     const tracker = new EventTracker(event);
 
     expect(tracker.advanceSync(0)).toBe(event);
@@ -793,5 +804,222 @@ describe('advanceSync() on a broken instance', () => {
     expect(tracker.advanceSync()).toBeNull();
     expect(tracker.advanceSync(1)).toBeNull();
     expect(tracker.advanceSync('eep')).toBeNull();
+  });
+});
+
+
+//
+// The core implementation of the class is covered by the above tests. The rest
+// are intended to provide reasonable coverage assuming the above is sufficient
+// for the core.
+//
+
+describe.each`
+  args      | label
+  ${[0]}    | ${'0'}
+  ${[null]} | ${'null'}
+  ${[]}     | ${'<no-args>'}
+`('next($label)', ({ args }) => {
+  test('walks the chain one event at a time', async () => {
+    const event3  = new ChainedEvent(payload3);
+    const event2  = new ChainedEvent(payload2, event3);
+    const event1  = new ChainedEvent(payload1, event2);
+    const tracker = new EventTracker(event1);
+
+    expect(tracker.headNow).toBe(event1);
+    const result1 = tracker.next(...args);
+    expect(tracker.headNow).toBe(event2);
+    const result2 = tracker.next(...args);
+    expect(tracker.headNow).toBe(event3);
+    const result3 = tracker.next(...args);
+    expect(tracker.headNow).toBeNull();
+    const result4 = tracker.next(...args);
+
+    expect(await result1).toBe(event1);
+    expect(await result2).toBe(event2);
+
+    // If this expectation fails, it's because the implementation of `next()` is
+    // waiting for the event after this one to get settled (which is 100% for
+    // sure incorrect behavior).
+    expect(PromiseState.isSettled(result3)).toBeTrue();
+
+    expect(await result3).toBe(event3);
+
+    expect(PromiseState.isSettled(result4)).toBeFalse();
+
+    event3.emitter(payload4);
+    const event4 = event3.nextNow;
+
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(result4)).toBeTrue();
+
+    expect(await result4).toBe(event4);
+  });
+});
+
+describe('next(predicate)', () => {
+  test('finds and advances just past a matching event', async () => {
+    const toFind  = { findMe: 'yes!' };
+    const event3  = new ChainedEvent(payload3);
+    const event2  = new ChainedEvent(toFind, event3);
+    const event1  = new ChainedEvent(payload1, event2);
+    const tracker = new EventTracker(event1);
+
+    expect(tracker.headNow).toBe(event1);
+    const result1 = tracker.next(e => e.payload === toFind);
+    expect(tracker.headNow).toBe(event3);
+    const result2 = tracker.next(e => e.payload === toFind);
+    expect(tracker.headNow).toBeNull();
+    const result3 = tracker.next();
+
+    expect(await result1).toBe(event2);
+    expect(PromiseState.isSettled(result2)).toBeFalse();
+
+    const emitter5 = event3.emitter(toFind);
+    const event4   = event3.nextNow;
+
+    await timers.setImmediate();
+
+    // If this expectation fails, it's because the implementation of `next()` is
+    // waiting for the event after this one to get settled (which is 100% for
+    // sure incorrect behavior).
+    expect(PromiseState.isSettled(result2)).toBeTrue();
+    expect(PromiseState.isSettled(result3)).toBeFalse();
+    expect(await result2).toBe(event4);
+    expect(PromiseState.isSettled(result3)).toBeFalse();
+
+    emitter5(payload2);
+    const event5 = event4.nextNow;
+
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(result3)).toBeTrue();
+    expect(await result3).toBe(event5);
+  });
+
+  test('does not find an event which was to be skipped over', async () => {
+    const toFind  = { yes: 'really!' };
+    const event2  = new ChainedEvent(toFind);
+    const event1  = new ChainedEvent(toFind, event2);
+    const tracker = new EventTracker(Promise.resolve(event1));
+
+    const result1 = tracker.next();
+    const result2 = tracker.next(e => e.payload === toFind);
+
+    expect(await result1).toBe(event1);
+
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(result2)).toBeTrue();
+    expect(await result2).toBe(event2);
+  });
+});
+
+describe('next(<invalid>)', () => {
+  test('throws but does not break instance or advance the head', async () => {
+    const event   = new ChainedEvent(payload1);
+    const tracker = new EventTracker(event);
+
+    await expect(tracker.next(['not-a-predicate'])).rejects.toThrow();
+    expect(tracker.headNow).toBe(event);
+  });
+});
+
+describe('next() breakage scenarios', () => {
+  test('throws when the instance was broken before the call', async () => {
+    const tracker = new EventTracker(Promise.resolve('oops-not-an-event'));
+
+    // Cause instance to break.
+    await expect(tracker.advance()).rejects.toThrow();
+
+    // Actual test.
+    await expect(tracker.next()).rejects.toThrow();
+  });
+
+  test('throws when the instance becomes broken during the event search', async () => {
+    const event2  = Promise.resolve('oops-not-an-event');
+    const event1  = new ChainedEvent(payload1, event2);
+    const tracker = new EventTracker(event1);
+
+    await expect(tracker.next(1)).rejects.toThrow();
+
+    // Confirm breakage (and not just that the method threw).
+    expect(() => tracker.headNow).toThrow();
+  });
+});
+
+describe('peek()', () => {
+  test.each`
+    args      | label
+    ${[0]}    | ${'0'}
+    ${[null]} | ${'null'}
+    ${[]}     | ${'<no-args>'}
+  `('peek($label) is equivalent to `.headPromise`', async ({ args }) => {
+    const event   = new ChainedEvent(payload1);
+    const tracker = new EventTracker(event);
+
+    expect(await tracker.peek(...args)).toBe(event);
+
+    // Confirm that the head hasn't been advanced.
+    expect(tracker.headNow).toBe(event);
+  });
+
+  test('finds a matching event without advancing to or past it', async () => {
+    const toFind  = { findMe: 'yes!' };
+    const event3  = new ChainedEvent(toFind);
+    const event2  = new ChainedEvent(toFind, event3);
+    const event1  = new ChainedEvent(payload1, event2);
+    const tracker = new EventTracker(event1);
+
+    expect(tracker.headNow).toBe(event1);
+    const result1 = tracker.peek(e => e.payload === toFind);
+    expect(tracker.headNow).toBe(event1);
+    const result2 = tracker.peek(e => e.payload === toFind);
+    expect(tracker.headNow).toBe(event1);
+
+    expect(await result1).toBe(event2);
+    expect(await result2).toBe(event2);
+  });
+
+  test('throws but does not break instance when encountering a problematic event', async () => {
+    const event1  = new ChainedEvent(payload1, Promise.reject(new Error('eek!')));
+    const tracker = new EventTracker(event1);
+
+    expect(tracker.headNow).toBe(event1);
+    const result = tracker.peek(5);
+    expect(tracker.headNow).toBe(event1);
+
+    await expect(result).rejects.toThrow();
+    expect(tracker.headNow).toBe(event1);
+  });
+
+  test('throws but does not break instance when given an invalid predicate', async () => {
+    const event1  = new ChainedEvent(payload1);
+    const tracker = new EventTracker(event1);
+
+    expect(tracker.headNow).toBe(event1);
+    const result = tracker.peek(['nope-not-a-predicate']);
+    expect(tracker.headNow).toBe(event1);
+
+    await expect(result).rejects.toThrow();
+    expect(tracker.headNow).toBe(event1);
+  });
+
+  test('throws but does not break instance when its predicate throws', async () => {
+    const event   = new ChainedEvent(payload1);
+    const tracker = new EventTracker(event);
+    const error   = new Error('Ouch!');
+    const ouch    = () => { throw error; };
+
+    await expect(tracker.peek(ouch)).rejects.toThrow(error);
+    expect(tracker.headNow).toBe(event);
+  });
+
+  test('throws when called on an already-broken instance', async () => {
+    const tracker = new EventTracker(Promise.resolve('oops-not-an-event'));
+
+    // Cause instance to break.
+    await expect(tracker.advance()).rejects.toThrow();
+
+    // Actual test.
+    await expect(tracker.peek()).rejects.toThrow();
   });
 });

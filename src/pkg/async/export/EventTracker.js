@@ -8,12 +8,7 @@ import { MustBe } from '@this/typey';
 
 
 // TODO:
-// * next() -- it's `advance(x)` immediately followed by `advance(1)` to consume
-//   the found item.
 // * nextSync()
-// * peek() -- it's `advance(x)` to find an event but without consuming it.
-//   Performed with respect to any `advance()`s that have already been queued
-//   up.
 // * peekSync() -- Only possible to work when `headNow` is known.
 //
 // Maybe:
@@ -27,17 +22,36 @@ import { MustBe } from '@this/typey';
 // update instance state synchronously. The implementation here takes advantage
 // of that fact (as noted in the code).
 
+/** typedef {null|number|string|function(ChainedEvent): boolean} */
+let EventPredicate;
+
 /**
  * Event tracker, which makes it convenient to walk down a chain of {@link
  * ChainedEvent} instances. This class strictly _consumes_ events; it does not
  * produce them. This class functions approximately as an iterator over an event
  * chain, but implements much more than the basic iterator functionality.
  *
- * **Note:** Instances of this class can be responsible for garbage accumulation
- * of event instances in the case where (a) an instance of this class is not
- * itself garbage, (b) nothing is "servicing" it, so it never advances through
- * the chain, and (c) there is a source which continues emitting events on the
- * chain.
+ * Several methods on this class accept a "predicate" to determine if an event
+ * matches a particular criterion. These are allowed to take several forms:
+ *
+ * * `null` -- Matches the first event it is queried about. This is the same as
+ *   specifying `0`, which is to say, it is a request for the first event on the
+ *   chain that has not yet been advanced past. In the context of {@link #next},
+ *   it will return this first event and then advance past it. This is the
+ *   default predicate for predicate-taking methods.
+ * * `count: number` -- Matches the event `count` items past the head of the
+ *   event chain. Allowed to be `0`.
+ * * `type: string` -- Matches an event for which `event.type === type`.
+ *   **Note:** Events do not necessarily have a meaningful `type`, so this form
+ *   is only useful when one knows that the events in question _do_ use `type`.
+ * * `predicate: function(ChainedEvent): boolean` -- General predicate-per-se,
+ *   which should return `true` for a matching event.
+ *
+ * **Note:** Instances of this class will be responsible for garbage
+ * accumulation of event instances in the case where (a) an instance of this
+ * class is not itself garbage, (b) nothing is "servicing" it, so it never
+ * advances through the chain, and (c) there is a source which continues
+ * emitting events on the chain.
  */
 export class EventTracker {
   /**
@@ -55,12 +69,6 @@ export class EventTracker {
 
   /** @type {?Error} Error which "broke" this instance, if any. */
   #brokenReason = null;
-
-  /**
-   * @type {?AdvanceRecord} The latest advance to perform, if any. When `null`,
-   * advancing is not currently (asynchronously) in progress.
-   */
-  #advanceHead = null;
 
   /**
    * Constructs an instance.
@@ -111,20 +119,11 @@ export class EventTracker {
   /**
    * Advances this instance -- possibly zero times -- to a point where {@link
    * #headNow} is (or will necessarily become) satisfied by the given predicate.
-   * Predicate options:
-   *
-   * * `null` -- Advances past exactly one event. This the default (and is the
-   *   same as specifying `1`.)
-   * * `count: number` -- Advances past `count` events. Allowed to be `0`.
-   * * `type: string` -- Advances until `headNow.type` is the given `type`.
-   *   (This assumes `type` is bound by all events on the chain.)
-   * * `predicate: function(ChainedEvent): boolean` -- General predicate-per-se,
-   *   which should return `true` for a matching event.
    *
    * It is possible to use this method to advance the instance past the end of
-   * the "settled" chain, in which case {@link #headNow} will become `null`, and
-   * the tracked source will need to emit one or more events before
-   * {@link #headNow} becomes non-`null` again.
+   * the synchronously "settled" chain, in which case {@link #headNow} will
+   * _synchronously_ become `null`, and the tracked source will need to emit one
+   * or more events before {@link #headNow} becomes non-`null` again.
    *
    * Though this method is `async`, if the request can be satisfied
    * synchronously, it will. In such cases, the return value will still be a
@@ -134,10 +133,9 @@ export class EventTracker {
    * **Note:** If the predicate throws an error -- even synchronously -- the
    * error becomes manifest by the state of the instance becoming broken.
    *
-   * @param {null|number|string|function(*)} [predicate = null] Predicate to
-   *   satisfy.
+   * @param {EventPredicate} [predicate = null] Predicate to satisfy.
    * @returns {ChainedEvent} What {@link #headNow} is (or would have been) at
-   *   the moment the advancing is complete.
+   *   the moment the operation is complete.
    * @throws {Error} Thrown if there was any trouble. If so, and the trouble was
    *   anything other than an invalid `predicate`, the instance will also become
    *   permanently broken, with most methods also throwing.
@@ -149,65 +147,39 @@ export class EventTracker {
       throw this.#brokenReason;
     }
 
-    let adv;
+    const action = new AdvanceAction(this.#headNow, this.#headPromise, predicate);
 
-    if (this.#advanceHead) {
-      // There is already an advance-queue to chain off of.
-      adv = new AdvanceRecord(null, this.#advanceHead.resultHeadPromise, predicate);
-    } else {
-      // There is no advance-queue (yet).
-      adv = new AdvanceRecord(this.#headNow, this.#headPromise, predicate);
-      if (this.#headNow) {
-        // The head event is synchronously known.
-        try {
-          if (adv.handleSync()) {
-            // We found the event we were looking for. Because everything before
-            // this point is run _synchronously_ with respect to the caller (see
-            // note at the top of the file), when the method synchronously
-            // returns here, `#headNow` and `#headPromise` will actually be
-            // the result of the completed action, even though (being `async`)
-            // the return value from this method will still be a promise.
-            this.#setHead(adv.result);
-            return adv.result;
-          }
-        } catch (e) {
-          throw this.#becomeBroken(e);
+    if (this.#headNow) {
+      // The head event is synchronously known, which _always_ means that there
+      // are no other pending actions right now (because if there were, the
+      // setup immediately below would have run, causing `#headNow` to be `null`
+      // and `#headPromise` to be the result of the latest-pending action item.)
+      try {
+        if (action.handleSync()) {
+          // We found the event we were looking for. Because everything before
+          // this point is run _synchronously_ with respect to the caller (see
+          // note at the top of the file), when the method synchronously returns
+          // here, `#headNow` and `#headPromise` will actually be the result of
+          // the completed action, even though (being `async`) the return value
+          // from this method will still be a promise.
+          this.#setHead(action.result);
+          return action.result;
         }
+      } catch (e) {
+        throw this.#becomeBroken(e);
       }
     }
 
-    // Note: `adv` already links to the old `#advanceHead` if it was set,
-    // because of the top of the `if` above.
-    this.#advanceHead = adv;
-    this.#headNow     = null;
-    this.#headPromise = adv.resultHeadPromise;
-
-    // This is the first `await` in the method. Everything in this method up to
-    // this point ran synchronously with respect to our caller.
-    try {
-      await adv.handleAsync();
-    } catch (e) {
-      throw this.#becomeBroken(e);
-    }
-
-    if (this.#advanceHead === adv) {
-      // This call is the last pending advance (at the moment, at least), so we
-      // get to settle things back down.
-      this.#setHead(adv.result);
-      this.#advanceHead = null;
-    }
-
-    // Note: *Not* this instance's `#headNow` here, because that might still be
-    // `null` due to pending `advance()`s.
-    return adv.result;
+    this.#setHead(action.resultPromise);
+    return action.handleAsync();
   }
 
   /**
-   * Advances the head of this instance -- or at least initiates it -- with the
-   * exact same semantics as {@link #advance}, but (a) synchronously returns the
-   * result of a synchronously-successful operation, and (b) ensures that no
-   * exception is thrown asynchronously direcly from this method even if the
-   * operation ultimately fails.
+   * Advances this instance -- or at least initiates it -- with the exact same
+   * semantics as {@link #advance}, but (a) synchronously returns the result of
+   * a synchronously-successful operation, and (b) ensures that no exception is
+   * thrown asynchronously direcly from this method even if the operation
+   * ultimately fails.
    *
    * Context: Even though {@link #advance} can succeed synchronously, it _might_
    * throw, and if it _does_ throw, it will be asynchronously. In such cases, a
@@ -217,8 +189,7 @@ export class EventTracker {
    * still ultimately become broken, though, which is (presumably) a desirable
    * outcome.
    *
-   * @param {null|number|string|function(*)} [predicate = null] Predicate to
-   *   satisfy.
+   * @param {EventPredicate} [predicate = null] Predicate to satisfy.
    * @returns {?ChainedEvent} The synchronously-known {@link #headNow} from the
    *   successful result of the operation if it was indeed synchronously
    *   successful, or `null` if either it needs to perform asynchronous
@@ -256,6 +227,81 @@ export class EventTracker {
   }
 
   /**
+   * Advances the head of this instance with the same semantics as {@link
+   * #advance}, returning the same event that {@link #advance} would have, but
+   * _then_ -- after this method async-returns -- advancing past the returned
+   * event (possibly past the end of the settled event chain). In the common
+   * case of calling this with a default predicate, this behaves like an
+   * iterator's `next()` method, "consuming" exactly one item.
+   *
+   * **Note:** This method async-returns after the initial advancing is done; it
+   * does not wait for the final advancing over the result (because that would
+   * mean this method would only return after at least one more event is
+   * available). As such, if that final operation causes the instance to become
+   * broken, that won't be reported until some other operation on this instance
+   * is attempted. That said, there is very little that could possibly happen to
+   * cause this breakage scenario. (With high confidence, it would be indicative
+   * of a bug in this class.)
+   *
+   * @param {EventPredicate} [predicate = null] Predicate to satisfy.
+   * @returns {ChainedEvent} The event just _behind_ {@link #headNow} at the
+   *   the moment the operation is complete.
+   * @throws {Error} Thrown if there was any trouble _before_ attempting to
+   *   advance over the found event (see note above). If so, and the trouble was
+   *   anything other than an invalid `predicate`, the instance will also become
+   *   permanently broken, with most methods also throwing.
+   */
+  async next(predicate = null) {
+    // Even though `advance()` does this itself, if we don't do this here and
+    // the predicate is invalid, we'd end up incorrectly making the call to
+    // `advanceSync()`.
+    predicate = EventTracker.#validateAndTransformPredicate(predicate);
+
+    // It is important _not_ to `await` this `advance()` call, because we need
+    // to guarantee that no actions get queued up between this and the next
+    // call. With an `await`, an "interstitial" action would incorrectly see the
+    // result of this call (and not the next event after it) as its starting
+    // point.
+    const result = this.advance(predicate);
+
+    // It is important for this to be `advanceSync()` and not `advance()`, for
+    // the reason noted in the doc comment above. Most saliently, if the
+    // `advance()` call above throws, then this call will too, and that means
+    // that this call will be responsible for an unhandled promise rejection.
+    // (And, we can't make this an async `advance()` and `await` it, because
+    // that would violate the guarantee that this method promptly return a
+    // matching event which happens to be the last settled one on the chain.)
+    this.advanceSync(1);
+
+    return result;
+  }
+
+  /**
+   * Finds an event on the tracked chain, with the same semantics as {@link
+   * #advance} except -- unlike that method -- _without_ actually advancing the
+   * instance to the found event. For example, `peek()` and `peek(0)` are
+   * equivalent to just accessing {@link #headPromise}.
+   *
+   * @param {EventPredicate} [predicate = null] Predicate to satisfy.
+   * @returns {ChainedEvent} The earliest event on the tracked chain that
+   *   matches `predicate`.
+   * @throws {Error} Thrown if there was any trouble. Unlike {@link #advance},
+   *   {@link #next}, etc., because this method does not affect the state of the
+   *   instance, a thrown error here doesn't indicate that the instance is
+   *   broken... yet.
+   */
+  async peek(predicate = null) {
+    predicate = EventTracker.#validateAndTransformPredicate(predicate);
+
+    if (this.#brokenReason) {
+      throw this.#brokenReason;
+    }
+
+    const action = new AdvanceAction(this.#headNow, this.#headPromise, predicate);
+    return action.handleAsync();
+  }
+
+  /**
    * Makes this instance become "broken" with the indicated reason. After
    * calling this method, the instance will respond to most method calls by
    * throwing the reason. And once broken, and instance won't ever become
@@ -276,7 +322,6 @@ export class EventTracker {
       this.#brokenReason = reason;
       this.#headNow      = null;
       this.#headPromise  = null;
-      this.#advanceHead  = null;
     }
 
     return reason;
@@ -344,22 +389,25 @@ export class EventTracker {
    * Validates and appropriately-transforms a predicate as defined by {@link
    * #advance} and {@link #advanceSync}
    *
-   * @param {null|number|string|function(*)} predicate Predicate to satisfy.
-   * @returns {number|function(*): boolean} The validated / transformed result.
+   * @param {EventPredicate} predicate Predicate to satisfy.
+   * @returns {function(ChainedEvent): boolean} The validated / transformed
+   *   result.
    * @throws {Error} Thrown if `predicate` is not one of the allowed forms.
    */
   static #validateAndTransformPredicate(predicate) {
     switch (typeof predicate) {
       case 'object': {
         if (predicate === null) {
-          return 1;
+          return (() => true);
         }
         break;
       }
       case 'number': {
-        const count = predicate;
-        if ((count >= 0) && (count === Math.trunc(count))) {
-          return count;
+        let count = predicate;
+        if (count === 0) {
+          return (() => true);
+        } else if ((count > 0) && (count === Math.trunc(count))) {
+          return (() => (count-- === 0));
         }
         break;
       }
@@ -377,24 +425,14 @@ export class EventTracker {
 }
 
 /**
- * Helper for {@link #EventTracker.advance}, which implements the guts of the
- * method.
- *
- * **Note:** Exactly one of {@link #count} or {@link #predicate} will be
- * non-`null` in any given instance. (This avoids a trivial-ish subclassing
- * situation.)
+ * Helper for {@link #EventTracker.advance} and related methods, which
+ * implements the guts of an "advance-like" operation, without directly
+ * affecting the "client" instance's state.
  */
-class AdvanceRecord {
+class AdvanceAction {
   /**
-   * @type {?number} Remaining count of events to skip, if in fact this instance
-   * is skipping events.
-   */
-  #count = null;
-
-  /**
-   * @type {?function(*): boolean} Predicate which an event needs to satisfy for
-   * the operation to be considered complete, if in fact this instance is
-   * predicate-based.
+   * @type {function(ChainedEvent): boolean} Predicate which an event needs to
+   * satisfy, for the operation to be considered complete.
    */
   #predicate = null;
 
@@ -405,10 +443,11 @@ class AdvanceRecord {
   #result = null;
 
   /**
-   * {?ManualPromise} Resolver which is to be sent the ultimate result of this
-   * operation, if needed.
+   * {?ManualPromise} Promise which is to be sent the ultimate result of this
+   * operation, if needed. This becomes non-`null` during the first access of
+   * {@link #resultPromise}.
    */
-  #resultHeadResolver = null;
+  #resultMp = null;
 
   /**
    * @type {?ChainedEvent} Event chain head from the perspective of the
@@ -428,23 +467,18 @@ class AdvanceRecord {
    * @param {?ChainedEvent} headNow Event chain head at which to start.
    * @param {?Promise<ChainedEvent>} headPromise Promise for the event chain
    *   head.
-   * @param {number|function(*): boolean} predicate Predicate. See {@link
-   *   #EventTracker.advance} for details.
+   * @param {function(ChainedEvent): boolean} predicate Predicate to satisfy.
    */
   constructor(headNow, headPromise, predicate) {
     this.#headNow     = headNow;
     this.#headPromise = headPromise;
-
-    if (typeof predicate === 'number') {
-      this.#count = predicate;
-    } else {
-      this.#predicate = predicate;
-    }
+    this.#predicate   = predicate;
   }
 
   /**
-   * @returns {?ChainedEvent|Promise<ChainedEvent>} Ultimate result of this
-   * operation, if available.
+   * @returns {?ChainedEvent|Promise<ChainedEvent>} Ultimate successful result
+   * of this operation, if known (that is, if the operation has in fact
+   * completed without error).
    */
   get result() {
     return this.#result;
@@ -454,12 +488,43 @@ class AdvanceRecord {
    * @returns {Promise<ChainedEvent>} Promise for the ultimate result of this
    * operation.
    */
-  get resultHeadPromise() {
-    if (!this.#resultHeadResolver) {
-      this.#resultHeadResolver = new ManualPromise();
+  get resultPromise() {
+    if (!this.#resultMp) {
+      this.#resultMp = new ManualPromise();
     }
 
-    return this.#resultHeadResolver.promise;
+    return this.#resultMp.promise;
+  }
+
+  /**
+   * Completes this operation -- or dies trying -- asynchronously.
+   *
+   * @returns {ChainedEvent} The result of the action, that is, the event that
+   *   was found.
+   * @throws {Error} Thrown if there was any trouble at all. And if thrown, the
+   *   same error is propagated to {@link #resultPromise} if it was ever
+   *   retrieved.
+   */
+  async handleAsync() {
+    while (!this.handleSync()) {
+      if (this.#headNow || !this.#headPromise) {
+        // `handleSync()` should either consume the synchronous portion of the
+        // event chain or throw an error.
+        throw new Error('Shouldn\'t happen.');
+      }
+
+      try {
+        const headNow = await this.#headPromise;
+        if (!(headNow instanceof ChainedEvent)) {
+          throw new Error('Invalid event value.');
+        }
+        this.#headNow = headNow;
+      } catch (e) {
+        this.#becomeDone(e);
+      }
+    }
+
+    return this.#result;
   }
 
   /**
@@ -467,62 +532,37 @@ class AdvanceRecord {
    *
    * @returns {boolean} `true` iff the operation has been completed.
    * @throws {Error} Thrown if there was any trouble at all. And if thrown, the
-   *   same error is propagated to {@link #resultHeadPromise} if it was ever
+   *   same error is propagated to {@link #resultPromise} if it was ever
    *   retrieved.
    */
   handleSync() {
     if (this.#result) {
-      this.#becomeDone();
-    } else if (this.#headNow) {
-      try {
-        const done = (this.#count !== null)
-          ? this.#handleCount()
-          : this.#handlePredicate();
-        if (done) {
+      return true;
+    }
+
+    try {
+      while (this.#headNow) {
+        const headNow = this.#headNow;
+        const nextNow = headNow.nextNow;
+
+        if (this.#predicate(headNow)) {
           this.#becomeDone();
+          break;
         }
-      } catch (e) {
-        this.#becomeDone(e);
+
+        this.#headNow     = nextNow ?? null;
+        this.#headPromise = nextNow ? null : headNow.nextPromise;
       }
+    } catch (e) {
+      this.#becomeDone(e);
     }
 
     return this.#result !== null;
   }
 
   /**
-   * Completes this operation -- or dies trying -- asynchronously.
-   *
-   * @throws {Error} Thrown if there was any trouble at all. And if thrown, the
-   *   same error is propagated to {@link #resultHeadPromise} if it was ever
-   *   retrieved.
-   */
-  async handleAsync() {
-    while (!this.handleSync()) {
-      if (!this.#headNow) {
-        await this.#resolveHeadNow();
-      }
-    }
-  }
-
-  /**
-   * Advances to the next event in the chain, maintaining parallel-correct
-   * values for both {@link #headNow} and {@link #headPromise}.
-   */
-  #advanceToNext() {
-    const nextNow = this.#headNow.nextNow;
-
-    if (nextNow) {
-      this.#headNow     = nextNow;
-      this.#headPromise = null;
-    } else {
-      this.#headPromise = this.#headNow.nextPromise;
-      this.#headNow     = null;
-    }
-  }
-
-  /**
    * Marks the operation as done, possibly due to a problem. If there is a
-   * {@link #resultHeadResolver}, it is informed of the result or the problem.
+   * {@link #resultMp}, it is informed of the result or the problem.
    *
    * @param {?Error} error The problem, if any. If non-`null`, this method will
    *   throw the same error in addition to propagating it to the result promise.
@@ -530,7 +570,7 @@ class AdvanceRecord {
   #becomeDone(error = null) {
     this.#result = this.#headNow ?? this.#headPromise;
 
-    const resolver = this.#resultHeadResolver;
+    const resolver = this.#resultMp;
 
     if (resolver && !resolver.isSettled()) {
       if (error) {
@@ -542,57 +582,6 @@ class AdvanceRecord {
 
     if (error) {
       throw error;
-    }
-  }
-
-  /**
-   * Does the core work of walking the event chain, when {@link #count} is
-   * being used.
-   *
-   * @returns {boolean} `true` iff the operation was completed.
-   */
-  #handleCount() {
-    while ((this.#count > 0) && this.#headNow) {
-      this.#advanceToNext();
-      this.#count--;
-    }
-
-    return (this.#count === 0);
-  }
-
-  /**
-   * Does the core work of walking the event chain, when {@link #predicate} is
-   * being used.
-   *
-   * @returns {boolean} `true` iff the operation was completed.
-   */
-  #handlePredicate() {
-    while (this.#headNow) {
-      if (this.#predicate(this.#headNow)) {
-        return true;
-      }
-
-      this.#advanceToNext();
-    }
-
-    return false;
-  }
-
-  /**
-   * Helper for {@link #handleAsync}, which resolves {@link #headPromise},
-   * setting {@link #headNow} or throwing whatever problem was thereby revealed.
-   *
-   * @throws {Error} Thrown if there was any trouble at all.
-   */
-  async #resolveHeadNow() {
-    try {
-      const headNow = await this.#headPromise;
-      if (!(headNow instanceof ChainedEvent)) {
-        throw new Error('Invalid event value.');
-      }
-      this.#headNow = headNow;
-    } catch (e) {
-      this.#becomeDone(e);
     }
   }
 }

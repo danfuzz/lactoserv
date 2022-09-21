@@ -51,7 +51,7 @@ const mainRules = {
   'no-empty-function': 'error',
   'no-eval': 'error',
   'no-extend-native': 'error',
-  'no-fallthrough': ['error', { 'commentPattern': 'fallthrough' }],
+  'no-fallthrough': ['error', { 'commentPattern': 'fall ?through' }],
   'no-floating-decimal': 'error',
   'no-implied-eval': 'error',
   'no-nested-ternary': 'error',
