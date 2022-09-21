@@ -903,6 +903,16 @@ describe('next(predicate)', () => {
   });
 });
 
+describe('next(<invalid>)', () => {
+  test('throws but does not break instance or advance the head', async () => {
+    const event   = new ChainedEvent(payload1);
+    const tracker = new EventTracker(event);
+
+    await expect(tracker.next(['not-a-predicate'])).rejects.toThrow();
+    expect(tracker.headNow).toBe(event);
+  });
+});
+
 describe('next() breakage scenarios', () => {
   test('throws when the instance was broken before the call', async () => {
     const tracker = new EventTracker(Promise.resolve('oops-not-an-event'));
