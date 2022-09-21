@@ -160,30 +160,26 @@ export class EventTracker {
       throw this.#brokenReason;
     }
 
-    let action;
+    const action = new AdvanceAction(this.#headNow, this.#headPromise, predicate);
 
-    if (this.#actionHead) {
-      // There is already an action queue to chain off of.
-      action = new AdvanceAction(null, this.#actionHead.resultHeadPromise, predicate);
-    } else {
-      // There is no advance-queue (yet).
-      action = new AdvanceAction(this.#headNow, this.#headPromise, predicate);
-      if (this.#headNow) {
-        // The head event is synchronously known.
-        try {
-          if (action.handleSync()) {
-            // We found the event we were looking for. Because everything before
-            // this point is run _synchronously_ with respect to the caller (see
-            // note at the top of the file), when the method synchronously
-            // returns here, `#headNow` and `#headPromise` will actually be
-            // the result of the completed action, even though (being `async`)
-            // the return value from this method will still be a promise.
-            this.#setHead(action.result);
-            return action.result;
-          }
-        } catch (e) {
-          throw this.#becomeBroken(e);
+    if (this.#headNow) {
+      // The head event is synchronously known, which _always_ means that there
+      // are no other pending actions right now (because if there were, the
+      // setup immediately below would have run, causing `#headNow` to be `null`
+      // and `#headPromise` to be the result of the latest-pending action item.)
+      try {
+        if (action.handleSync()) {
+          // We found the event we were looking for. Because everything before
+          // this point is run _synchronously_ with respect to the caller (see
+          // note at the top of the file), when the method synchronously returns
+          // here, `#headNow` and `#headPromise` will actually be the result of
+          // the completed action, even though (being `async`) the return value
+          // from this method will still be a promise.
+          this.#setHead(action.result);
+          return action.result;
         }
+      } catch (e) {
+        throw this.#becomeBroken(e);
       }
     }
 
