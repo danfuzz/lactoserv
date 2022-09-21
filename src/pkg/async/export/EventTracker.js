@@ -175,26 +175,8 @@ export class EventTracker {
       }
     }
 
-    this.#headNow     = null;
-    this.#headPromise = action.resultHeadPromise;
-
-    // This is the first `await` in the method. Everything in this method up to
-    // this point ran synchronously with respect to our caller.
-    try {
-      await action.handleAsync();
-    } catch (e) {
-      throw this.#becomeBroken(e);
-    }
-
-    if (this.#headPromise === action.resultHeadPromise) {
-      // This call is responsible for the last pending action (at the moment, at
-      // least), so we get to settle the instance state back down.
-      this.#setHead(action.result);
-    }
-
-    // Note: *Not* this instance's `#headNow` here, because that might still be
-    // `null` due to pending `advance()`s.
-    return action.result;
+    this.#setHead(action.resultHeadPromise);
+    return action.handleAsync();
   }
 
   /**
@@ -512,6 +494,8 @@ class AdvanceAction {
   /**
    * Completes this operation -- or dies trying -- asynchronously.
    *
+   * @returns {ChainedEvent} The result of the action, that is, the event that
+   *   was found.
    * @throws {Error} Thrown if there was any trouble at all. And if thrown, the
    *   same error is propagated to {@link #resultHeadPromise} if it was ever
    *   retrieved.
@@ -522,6 +506,8 @@ class AdvanceAction {
         await this.#resolveHeadNow();
       }
     }
+
+    return this.#result;
   }
 
   /**
