@@ -57,8 +57,10 @@ export class EventTracker {
   #brokenReason = null;
 
   /**
-   * @type {?AdvanceRecord} The latest advance to perform, if any. When `null`,
-   * advancing is not currently (asynchronously) in progress.
+   * @type {?AdvanceAction} The latest action to perform, if any. When `null`,
+   * no action is currently (asynchronously) in progress. (Other actions that
+   * are taking place / to take place before this one are linked via the
+   * action's `headPromise`.)
    */
   #advanceHead = null;
 
@@ -149,26 +151,26 @@ export class EventTracker {
       throw this.#brokenReason;
     }
 
-    let adv;
+    let action;
 
     if (this.#advanceHead) {
       // There is already an advance-queue to chain off of.
-      adv = new AdvanceRecord(null, this.#advanceHead.resultHeadPromise, predicate);
+      action = new AdvanceAction(null, this.#advanceHead.resultHeadPromise, predicate);
     } else {
       // There is no advance-queue (yet).
-      adv = new AdvanceRecord(this.#headNow, this.#headPromise, predicate);
+      action = new AdvanceAction(this.#headNow, this.#headPromise, predicate);
       if (this.#headNow) {
         // The head event is synchronously known.
         try {
-          if (adv.handleSync()) {
+          if (action.handleSync()) {
             // We found the event we were looking for. Because everything before
             // this point is run _synchronously_ with respect to the caller (see
             // note at the top of the file), when the method synchronously
             // returns here, `#headNow` and `#headPromise` will actually be
             // the result of the completed action, even though (being `async`)
             // the return value from this method will still be a promise.
-            this.#setHead(adv.result);
-            return adv.result;
+            this.#setHead(action.result);
+            return action.result;
           }
         } catch (e) {
           throw this.#becomeBroken(e);
@@ -176,30 +178,30 @@ export class EventTracker {
       }
     }
 
-    // Note: `adv` already links to the old `#advanceHead` if it was set,
+    // Note: `action` already links to the old `#advanceHead` if it was set,
     // because of the top of the `if` above.
-    this.#advanceHead = adv;
+    this.#advanceHead = action;
     this.#headNow     = null;
-    this.#headPromise = adv.resultHeadPromise;
+    this.#headPromise = action.resultHeadPromise;
 
     // This is the first `await` in the method. Everything in this method up to
     // this point ran synchronously with respect to our caller.
     try {
-      await adv.handleAsync();
+      await action.handleAsync();
     } catch (e) {
       throw this.#becomeBroken(e);
     }
 
-    if (this.#advanceHead === adv) {
+    if (this.#advanceHead === action) {
       // This call is the last pending advance (at the moment, at least), so we
       // get to settle things back down.
-      this.#setHead(adv.result);
+      this.#setHead(action.result);
       this.#advanceHead = null;
     }
 
     // Note: *Not* this instance's `#headNow` here, because that might still be
     // `null` due to pending `advance()`s.
-    return adv.result;
+    return action.result;
   }
 
   /**
@@ -384,7 +386,7 @@ export class EventTracker {
  * non-`null` in any given instance. (This avoids a trivial-ish subclassing
  * situation.)
  */
-class AdvanceRecord {
+class AdvanceAction {
   /**
    * @type {?number} Remaining count of events to skip, if in fact this instance
    * is skipping events.
