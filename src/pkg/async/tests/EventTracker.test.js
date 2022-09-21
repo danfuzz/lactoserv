@@ -142,11 +142,11 @@ describe('.headPromise', () => {
     await expect(tracker.headPromise).rejects.toThrow(error);
   });
 
-  test.skip('is a rejected promise after the instance is broken (event promise resolves to non-event)', async () => {
+  test('is a rejected promise after the instance is broken (event promise resolves to non-event)', async () => {
     const tracker = new EventTracker(Promise.resolve('oops! not an event!'));
 
-    await expect(tracker.advance(0)).rejects.toThrow(error);
-    await expect(tracker.headPromise).rejects.toThrow(error);
+    await expect(tracker.advance(0)).rejects.toThrow();
+    await expect(tracker.headPromise).rejects.toThrow();
   });
 });
 
