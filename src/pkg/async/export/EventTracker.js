@@ -27,6 +27,9 @@ import { MustBe } from '@this/typey';
 // update instance state synchronously. The implementation here takes advantage
 // of that fact (as noted in the code).
 
+/** typedef {null|number|string|function(ChainedEvent): boolean} */
+let EventPredicate;
+
 /**
  * Event tracker, which makes it convenient to walk down a chain of {@link
  * ChainedEvent} instances. This class strictly _consumes_ events; it does not
@@ -143,8 +146,7 @@ export class EventTracker {
    * **Note:** If the predicate throws an error -- even synchronously -- the
    * error becomes manifest by the state of the instance becoming broken.
    *
-   * @param {null|number|string|function(*)} [predicate = null] Predicate to
-   *   satisfy.
+   * @param {EventPredicate} [predicate = null] Predicate to satisfy.
    * @returns {ChainedEvent} What {@link #headNow} is (or would have been) at
    *   the moment the advancing is complete.
    * @throws {Error} Thrown if there was any trouble. If so, and the trouble was
@@ -226,8 +228,7 @@ export class EventTracker {
    * still ultimately become broken, though, which is (presumably) a desirable
    * outcome.
    *
-   * @param {null|number|string|function(*)} [predicate = null] Predicate to
-   *   satisfy.
+   * @param {EventPredicate} [predicate = null] Predicate to satisfy.
    * @returns {?ChainedEvent} The synchronously-known {@link #headNow} from the
    *   successful result of the operation if it was indeed synchronously
    *   successful, or `null` if either it needs to perform asynchronous
@@ -353,8 +354,9 @@ export class EventTracker {
    * Validates and appropriately-transforms a predicate as defined by {@link
    * #advance} and {@link #advanceSync}
    *
-   * @param {null|number|string|function(*)} predicate Predicate to satisfy.
-   * @returns {function(*): boolean} The validated / transformed result.
+   * @param {EventPredicate} predicate Predicate to satisfy.
+   * @returns {function(ChainedEvent): boolean} The validated / transformed
+   *   result.
    * @throws {Error} Thrown if `predicate` is not one of the allowed forms.
    */
   static #validateAndTransformPredicate(predicate) {
@@ -393,8 +395,8 @@ export class EventTracker {
  */
 class AdvanceAction {
   /**
-   * @type {function(*): boolean} Predicate which an event needs to satisfy, for
-   * the operation to be considered complete.
+   * @type {function(ChainedEvent): boolean} Predicate which an event needs to
+   * satisfy, for the operation to be considered complete.
    */
   #predicate = null;
 
@@ -428,8 +430,7 @@ class AdvanceAction {
    * @param {?ChainedEvent} headNow Event chain head at which to start.
    * @param {?Promise<ChainedEvent>} headPromise Promise for the event chain
    *   head.
-   * @param {function(*): boolean} predicate Predicate. See {@link
-   *   #EventTracker.advance} for details.
+   * @param {function(ChainedEvent): boolean} predicate Predicate to satisfy.
    */
   constructor(headNow, headPromise, predicate) {
     this.#headNow     = headNow;
