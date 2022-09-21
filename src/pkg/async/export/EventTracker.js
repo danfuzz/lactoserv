@@ -258,8 +258,8 @@ export class EventTracker {
     predicate = EventTracker.#validateAndTransformPredicate(predicate);
 
     // It is important _not_ to `await` this `advance()` call, because we need
-    // to guarantee that no actions get queued up between the two calls here.
-    // With an `await`, an "interstitial" action would incorrectly see the
+    // to guarantee that no actions get queued up between this and the next
+    // call. With an `await`, an "interstitial" action would incorrectly see the
     // result of this call (and not the next event after it) as its starting
     // point.
     const result = this.advance(predicate);
