@@ -443,10 +443,11 @@ class AdvanceAction {
   #result = null;
 
   /**
-   * {?ManualPromise} Resolver which is to be sent the ultimate result of this
-   * operation, if needed.
+   * {?ManualPromise} Promise which is to be sent the ultimate result of this
+   * operation, if needed. This becomes non-`null` during the first access of
+   * {@link #resultHeadPromise}.
    */
-  #resultHeadResolver = null;
+  #resultMp = null;
 
   /**
    * @type {?ChainedEvent} Event chain head from the perspective of the
@@ -487,11 +488,11 @@ class AdvanceAction {
    * operation.
    */
   get resultHeadPromise() {
-    if (!this.#resultHeadResolver) {
-      this.#resultHeadResolver = new ManualPromise();
+    if (!this.#resultMp) {
+      this.#resultMp = new ManualPromise();
     }
 
-    return this.#resultHeadResolver.promise;
+    return this.#resultMp.promise;
   }
 
   /**
@@ -560,7 +561,7 @@ class AdvanceAction {
 
   /**
    * Marks the operation as done, possibly due to a problem. If there is a
-   * {@link #resultHeadResolver}, it is informed of the result or the problem.
+   * {@link #resultMp}, it is informed of the result or the problem.
    *
    * @param {?Error} error The problem, if any. If non-`null`, this method will
    *   throw the same error in addition to propagating it to the result promise.
@@ -568,7 +569,7 @@ class AdvanceAction {
   #becomeDone(error = null) {
     this.#result = this.#headNow ?? this.#headPromise;
 
-    const resolver = this.#resultHeadResolver;
+    const resolver = this.#resultMp;
 
     if (resolver && !resolver.isSettled()) {
       if (error) {
