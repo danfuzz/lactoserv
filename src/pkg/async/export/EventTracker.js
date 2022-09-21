@@ -12,7 +12,9 @@ import { MustBe } from '@this/typey';
 //   the found item.
 // * nextSync()
 // * peek() -- it's `advance(x)` to find an event but without consuming it.
-// * peekSync()
+//   Performed with respect to any `advance()`s that have already been queued
+//   up.
+// * peekSync() -- Only possible to work when `headNow` is known.
 //
 // Maybe:
 // * withPushedHead()
