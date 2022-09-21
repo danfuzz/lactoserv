@@ -884,4 +884,20 @@ describe('next(predicate)', () => {
     expect(PromiseState.isSettled(result3)).toBeTrue();
     expect(await result3).toBe(event5);
   });
+
+  test('does not find an event which was to be skipped over', async () => {
+    const toFind  = { yes: 'really!' };
+    const event2  = new ChainedEvent(toFind);
+    const event1  = new ChainedEvent(toFind, event2);
+    const tracker = new EventTracker(Promise.resolve(event1));
+
+    const result1 = tracker.next();
+    const result2 = tracker.next((e) => e.payload === toFind);
+
+    expect(await result1).toBe(event1);
+
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(result2)).toBeTrue();
+    expect(await result2).toBe(event2);
+  });
 });
