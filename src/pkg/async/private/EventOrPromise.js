@@ -56,7 +56,7 @@ export class EventOrPromise {
           if (eventNow instanceof ChainedEvent) {
             mp.resolve(eventNow);
           } else {
-            throw new Error('Invalid event value.');
+            throw new Error('Invalid event value (promise resolution).');
           }
           this.#eventNow = eventNow;
         } catch (reason) {
@@ -65,7 +65,7 @@ export class EventOrPromise {
         }
       })();
     } else {
-      throw new Error('Invalid event value.');
+      throw new Error('Invalid event value (synchronously known).');
     }
   }
 
