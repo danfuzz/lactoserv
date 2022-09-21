@@ -62,7 +62,7 @@ export class EventTracker {
    * are taking place / to take place before this one are linked via the
    * action's `headPromise`.)
    */
-  #advanceHead = null;
+  #actionHead = null;
 
   /**
    * Constructs an instance.
@@ -153,9 +153,9 @@ export class EventTracker {
 
     let action;
 
-    if (this.#advanceHead) {
-      // There is already an advance-queue to chain off of.
-      action = new AdvanceAction(null, this.#advanceHead.resultHeadPromise, predicate);
+    if (this.#actionHead) {
+      // There is already an action queue to chain off of.
+      action = new AdvanceAction(null, this.#actionHead.resultHeadPromise, predicate);
     } else {
       // There is no advance-queue (yet).
       action = new AdvanceAction(this.#headNow, this.#headPromise, predicate);
@@ -178,9 +178,9 @@ export class EventTracker {
       }
     }
 
-    // Note: `action` already links to the old `#advanceHead` if it was set,
+    // Note: `action` already links to the old `#actionHead` if it was set,
     // because of the top of the `if` above.
-    this.#advanceHead = action;
+    this.#actionHead  = action;
     this.#headNow     = null;
     this.#headPromise = action.resultHeadPromise;
 
@@ -192,11 +192,11 @@ export class EventTracker {
       throw this.#becomeBroken(e);
     }
 
-    if (this.#advanceHead === action) {
+    if (this.#actionHead === action) {
       // This call is the last pending advance (at the moment, at least), so we
       // get to settle things back down.
       this.#setHead(action.result);
-      this.#advanceHead = null;
+      this.#actionHead = null;
     }
 
     // Note: *Not* this instance's `#headNow` here, because that might still be
@@ -278,7 +278,7 @@ export class EventTracker {
       this.#brokenReason = reason;
       this.#headNow      = null;
       this.#headPromise  = null;
-      this.#advanceHead  = null;
+      this.#actionHead   = null;
     }
 
     return reason;
