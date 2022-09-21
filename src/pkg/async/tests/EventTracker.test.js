@@ -594,6 +594,7 @@ describe('advance(<invalid>)', () => {
     expect(tracker.headNow).toBe(event);
     await expect(result).rejects.toThrow();
     expect(() => tracker.headNow).not.toThrow();
+    expect(tracker.headNow).toBe(event);
   });
 });
 
@@ -899,5 +900,28 @@ describe('next(predicate)', () => {
     await timers.setImmediate();
     expect(PromiseState.isSettled(result2)).toBeTrue();
     expect(await result2).toBe(event2);
+  });
+});
+
+describe('next() breakage scenarios', () => {
+  test('throws when the instance was broken before the call', async () => {
+    const tracker = new EventTracker(Promise.resolve('oops-not-an-event'));
+
+    // Cause instance to break.
+    await expect(tracker.advance()).rejects.toThrow();
+
+    // Actual test.
+    await expect(tracker.next()).rejects.toThrow();
+  });
+
+  test('throws when the instance becomes broken during the event search', async () => {
+    const event2  = Promise.resolve('oops-not-an-event');
+    const event1  = new ChainedEvent(payload1, event2);
+    const tracker = new EventTracker(event1);
+
+    await expect(tracker.next(1)).rejects.toThrow();
+
+    // Confirm breakage (and not just that the method threw).
+    expect(() => tracker.headNow).toThrow();
   });
 });

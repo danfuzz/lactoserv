@@ -262,7 +262,9 @@ export class EventTracker {
    * mean this method would only return after at least one more event is
    * available). As such, if that final operation causes the instance to become
    * broken, that won't be reported until some other operation on this instance
-   * is attempted.
+   * is attempted. That said, there is very little that could possibly happen to
+   * cause breakage in this scenario. (With high confidence, it would be
+   * indicative of a bug in this class.)
    *
    * @param {EventPredicate} [predicate = null] Predicate to satisfy.
    * @returns {ChainedEvent} The event just _behind_ {@link #headNow} at the
