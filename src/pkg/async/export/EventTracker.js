@@ -115,8 +115,8 @@ export class EventTracker {
    * #headNow} is (or will necessarily become) satisfied by the given predicate.
    * Predicate options:
    *
-   * * `null` -- Advances past exactly one event. This the default (and is the
-   *   same as specifying `1`.)
+   * * `null` -- Advances past no events. This the default (and is the same as
+   *   specifying `0`.)
    * * `count: number` -- Advances past `count` events. Allowed to be `0`.
    * * `type: string` -- Advances until `headNow.type` is the given `type`.
    *   (This assumes `type` is bound by all events on the chain.)
@@ -353,11 +353,10 @@ export class EventTracker {
   static #validateAndTransformPredicate(predicate) {
     switch (typeof predicate) {
       case 'object': {
-        if (predicate !== null) {
-          break;
+        if (predicate === null) {
+          return (() => true);
         }
-        predicate = 1;
-        // and fall through...
+        break;
       }
       case 'number': {
         let count = predicate;

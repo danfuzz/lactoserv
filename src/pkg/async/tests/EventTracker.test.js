@@ -96,9 +96,9 @@ describe('.headPromise', () => {
     const tracker = new EventTracker(event1);
 
     expect(await tracker.headPromise).toBe(event1);
-    tracker.advance();
+    tracker.advance(1);
     expect(await tracker.headPromise).toBe(event2);
-    tracker.advance();
+    tracker.advance(1);
     expect(await tracker.headPromise).toBe(event3);
   });
 
@@ -107,7 +107,7 @@ describe('.headPromise', () => {
     const tracker = new EventTracker(event1);
 
     expect(await tracker.headPromise).toBe(event1);
-    tracker.advance();
+    tracker.advance(1);
 
     expect(tracker.headNow).toBeNull();
     await timers.setImmediate();
@@ -126,7 +126,7 @@ describe('.headPromise', () => {
     const tracker = new EventTracker(event);
 
     expect(await tracker.headPromise).toBe(event);
-    tracker.advance();
+    tracker.advance(1);
 
     await timers.setImmediate();
     expect(PromiseState.isSettled(tracker.headPromise)).toBeFalse();
@@ -152,7 +152,7 @@ describe('.headNow', () => {
     const tracker = new EventTracker(event1);
 
     expect(tracker.headNow).toBe(event1);
-    const advancePromise = tracker.advance();
+    const advancePromise = tracker.advance(1);
     expect(tracker.headNow).toBeNull();
 
     event1.emitter(payload2);
@@ -169,9 +169,9 @@ describe('.headNow', () => {
     const tracker = new EventTracker(event1);
 
     expect(tracker.headNow).toBe(event1);
-    tracker.advance();
+    tracker.advance(1);
     expect(tracker.headNow).toBe(event2);
-    tracker.advance();
+    tracker.advance(1);
     expect(tracker.headNow).toBe(event3);
   });
 
@@ -180,7 +180,7 @@ describe('.headNow', () => {
     const tracker = new EventTracker(event);
 
     expect(tracker.headNow).toBe(event);
-    tracker.advance();
+    tracker.advance(1);
     expect(tracker.headNow).toBeNull();
   });
 });
@@ -190,19 +190,17 @@ describe.each`
   ${[null]} | ${'null'}
   ${[]}     | ${'<no-args>'}
 `('advance($label)', ({ args }) => {
-  test('behaves like `advance(1)`', () => {
-    const event3  = new ChainedEvent(payload3);
-    const event2  = new ChainedEvent(payload2, event3);
-    const event1  = new ChainedEvent(payload1, event2);
+  test('behaves like `advance(0)`', () => {
+    const event1  = new ChainedEvent(payload1);
     const tracker = new EventTracker(event1);
 
     expect(tracker.headNow).toBe(event1);
     tracker.advance(...args);
-    expect(tracker.headNow).toBe(event2);
+    expect(tracker.headNow).toBe(event1);
     tracker.advance(...args);
-    expect(tracker.headNow).toBe(event3);
+    expect(tracker.headNow).toBe(event1);
     tracker.advance(...args);
-    expect(tracker.headNow).toBeNull();
+    expect(tracker.headNow).toBe(event1);
   });
 });
 
@@ -604,7 +602,7 @@ describe('advance() breakage scenarios', () => {
 
       expect(tracker.headNow).toBeNull(); // Not yet broken!
       await timers.setImmediate();
-      await expect(() => tracker.advance()).rejects.toThrow();
+      await expect(() => tracker.advance(1)).rejects.toThrow();
     });
 
     test('remains broken', async () => {
@@ -630,7 +628,7 @@ describe('advance() breakage scenarios', () => {
     });
 
     // Baseline expectations.
-    expect(await tracker.advance(0)).toBe(event1);
+    expect(await tracker.advance()).toBe(event1);
     expect(tracker.headNow).toBe(event1);
 
     // The actual test.
@@ -645,7 +643,7 @@ describe('advance() breakage scenarios', () => {
     const tracker = new EventTracker(event1);
 
     // Baseline expectations.
-    expect(await tracker.advance(0)).toBe(event1);
+    expect(await tracker.advance()).toBe(event1);
     expect(tracker.headNow).toBe(event1);
 
     // The actual test.
@@ -661,7 +659,7 @@ describe('advance() breakage scenarios', () => {
     const tracker = new EventTracker(event1);
 
     // Baseline expectations.
-    expect(await tracker.advance(0)).toBe(event1);
+    expect(await tracker.advance()).toBe(event1);
     expect(tracker.headNow).toBe(event1);
 
     // The actual test.
