@@ -495,6 +495,25 @@ class AdvanceAction {
   }
 
   /**
+   * Completes this operation -- or dies trying -- asynchronously.
+   *
+   * @returns {ChainedEvent} The result of the action, that is, the event that
+   *   was found.
+   * @throws {Error} Thrown if there was any trouble at all. And if thrown, the
+   *   same error is propagated to {@link #resultHeadPromise} if it was ever
+   *   retrieved.
+   */
+  async handleAsync() {
+    while (!this.handleSync()) {
+      if (!this.#headNow) {
+        await this.#resolveHeadNow();
+      }
+    }
+
+    return this.#result;
+  }
+
+  /**
    * Does as much of this operation as possible synchronously.
    *
    * @returns {boolean} `true` iff the operation has been completed.
@@ -525,25 +544,6 @@ class AdvanceAction {
     }
 
     return this.#result !== null;
-  }
-
-  /**
-   * Completes this operation -- or dies trying -- asynchronously.
-   *
-   * @returns {ChainedEvent} The result of the action, that is, the event that
-   *   was found.
-   * @throws {Error} Thrown if there was any trouble at all. And if thrown, the
-   *   same error is propagated to {@link #resultHeadPromise} if it was ever
-   *   retrieved.
-   */
-  async handleAsync() {
-    while (!this.handleSync()) {
-      if (!this.#headNow) {
-        await this.#resolveHeadNow();
-      }
-    }
-
-    return this.#result;
   }
 
   /**
