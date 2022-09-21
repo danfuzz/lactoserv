@@ -856,9 +856,9 @@ describe('next(predicate)', () => {
     const tracker = new EventTracker(event1);
 
     expect(tracker.headNow).toBe(event1);
-    const result1 = tracker.next((e) => e.payload === toFind);
+    const result1 = tracker.next(e => e.payload === toFind);
     expect(tracker.headNow).toBe(event3);
-    const result2 = tracker.next((e) => e.payload === toFind);
+    const result2 = tracker.next(e => e.payload === toFind);
     expect(tracker.headNow).toBeNull();
     const result3 = tracker.next();
 
@@ -893,7 +893,7 @@ describe('next(predicate)', () => {
     const tracker = new EventTracker(Promise.resolve(event1));
 
     const result1 = tracker.next();
-    const result2 = tracker.next((e) => e.payload === toFind);
+    const result2 = tracker.next(e => e.payload === toFind);
 
     expect(await result1).toBe(event1);
 
