@@ -33,11 +33,27 @@ import { MustBe } from '@this/typey';
  * produce them. This class functions approximately as an iterator over an event
  * chain, but implements much more than the basic iterator functionality.
  *
- * **Note:** Instances of this class can be responsible for garbage accumulation
- * of event instances in the case where (a) an instance of this class is not
- * itself garbage, (b) nothing is "servicing" it, so it never advances through
- * the chain, and (c) there is a source which continues emitting events on the
- * chain.
+ * Several methods on this class accept a "predicate" to determine if an event
+ * matches a particular criterion. These are allowed to take several forms:
+ *
+ * * `null` -- Matches the first event it is queried about. This is the same as
+ *   specifying `0`, which is to say, it is a request for the first event on the
+ *   chain that has not yet been advanced past. In the context of {@link #next},
+ *   it will return this first event and then advance past it. This is the
+ *   default predicate for predicate-taking methods.
+ * * `count: number` -- Matches the event `count` items past the head of the
+ *   event chain. Allowed to be `0`.
+ * * `type: string` -- Matches an event for which `event.type === type`.
+ *   **Note:** Events do not necessarily have a meaningful `type`, so this form
+ *   is only useful when one knows that the events in question _do_ use `type`.
+ * * `predicate: function(ChainedEvent): boolean` -- General predicate-per-se,
+ *   which should return `true` for a matching event.
+ *
+ * **Note:** Instances of this class will be responsible for garbage
+ * accumulation of event instances in the case where (a) an instance of this
+ * class is not itself garbage, (b) nothing is "servicing" it, so it never
+ * advances through the chain, and (c) there is a source which continues
+ * emitting events on the chain.
  */
 export class EventTracker {
   /**
@@ -113,15 +129,6 @@ export class EventTracker {
   /**
    * Advances this instance -- possibly zero times -- to a point where {@link
    * #headNow} is (or will necessarily become) satisfied by the given predicate.
-   * Predicate options:
-   *
-   * * `null` -- Advances past no events. This the default (and is the same as
-   *   specifying `0`.)
-   * * `count: number` -- Advances past `count` events. Allowed to be `0`.
-   * * `type: string` -- Advances until `headNow.type` is the given `type`.
-   *   (This assumes `type` is bound by all events on the chain.)
-   * * `predicate: function(ChainedEvent): boolean` -- General predicate-per-se,
-   *   which should return `true` for a matching event.
    *
    * It is possible to use this method to advance the instance past the end of
    * the "settled" chain, in which case {@link #headNow} will become `null`, and
