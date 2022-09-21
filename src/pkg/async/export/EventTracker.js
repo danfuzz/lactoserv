@@ -461,7 +461,6 @@ class AdvanceAction {
    */
   handleSync() {
     if (this.#result) {
-      this.#becomeDone();
       return true;
     }
 
