@@ -347,7 +347,7 @@ export class EventTracker {
    * #advance} and {@link #advanceSync}
    *
    * @param {null|number|string|function(*)} predicate Predicate to satisfy.
-   * @returns {number|function(*): boolean} The validated / transformed result.
+   * @returns {function(*): boolean} The validated / transformed result.
    * @throws {Error} Thrown if `predicate` is not one of the allowed forms.
    */
   static #validateAndTransformPredicate(predicate) {
@@ -384,22 +384,11 @@ export class EventTracker {
 /**
  * Helper for {@link #EventTracker.advance}, which implements the guts of the
  * method.
- *
- * **Note:** Exactly one of {@link #count} or {@link #predicate} will be
- * non-`null` in any given instance. (This avoids a trivial-ish subclassing
- * situation.)
  */
 class AdvanceAction {
   /**
-   * @type {?number} Remaining count of events to skip, if in fact this instance
-   * is skipping events.
-   */
-  #count = null;
-
-  /**
-   * @type {?function(*): boolean} Predicate which an event needs to satisfy for
-   * the operation to be considered complete, if in fact this instance is
-   * predicate-based.
+   * @type {function(*): boolean} Predicate which an event needs to satisfy, for
+   * the operation to be considered complete.
    */
   #predicate = null;
 
@@ -433,18 +422,13 @@ class AdvanceAction {
    * @param {?ChainedEvent} headNow Event chain head at which to start.
    * @param {?Promise<ChainedEvent>} headPromise Promise for the event chain
    *   head.
-   * @param {number|function(*): boolean} predicate Predicate. See {@link
+   * @param {function(*): boolean} predicate Predicate. See {@link
    *   #EventTracker.advance} for details.
    */
   constructor(headNow, headPromise, predicate) {
     this.#headNow     = headNow;
     this.#headPromise = headPromise;
-
-    if (typeof predicate === 'number') {
-      this.#count = predicate;
-    } else {
-      this.#predicate = predicate;
-    }
+    this.#predicate   = predicate;
   }
 
   /**
@@ -480,10 +464,7 @@ class AdvanceAction {
       this.#becomeDone();
     } else if (this.#headNow) {
       try {
-        const done = (this.#count !== null)
-          ? this.#handleCount()
-          : this.#handlePredicate();
-        if (done) {
+        if (this.#handlePredicate()) {
           this.#becomeDone();
         }
       } catch (e) {
@@ -548,21 +529,6 @@ class AdvanceAction {
     if (error) {
       throw error;
     }
-  }
-
-  /**
-   * Does the core work of walking the event chain, when {@link #count} is
-   * being used.
-   *
-   * @returns {boolean} `true` iff the operation was completed.
-   */
-  #handleCount() {
-    while ((this.#count > 0) && this.#headNow) {
-      this.#advanceToNext();
-      this.#count--;
-    }
-
-    return (this.#count === 0);
   }
 
   /**
