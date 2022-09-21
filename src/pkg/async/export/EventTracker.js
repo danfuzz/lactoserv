@@ -257,6 +257,9 @@ export class EventTracker {
    *   broken, with most methods also throwing.
    */
   async next(predicate = null) {
+    // Even though `advance()` does this itself, if we don't do this here and
+    // the predicate is invalid, we'd end up incorrectly making the call to
+    // `advanceSync()`.
     predicate = EventTracker.#validateAndTransformPredicate(predicate);
 
     // It is important _not_ to `await` this `advance()` call, because we need
