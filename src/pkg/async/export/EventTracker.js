@@ -505,8 +505,20 @@ class AdvanceAction {
    */
   async handleAsync() {
     while (!this.handleSync()) {
-      if (!this.#headNow) {
-        await this.#resolveHeadNow();
+      if (this.#headNow || !this.#headPromise) {
+        // `handleSync()` should either consume the synchronous portion of the
+        // event chain or throw an error.
+        throw new Error('Shouldn\'t happen.');
+      }
+
+      try {
+        const headNow = await this.#headPromise;
+        if (!(headNow instanceof ChainedEvent)) {
+          throw new Error('Invalid event value.');
+        }
+        this.#headNow = headNow;
+      } catch (e) {
+        this.#becomeDone(e);
       }
     }
 
@@ -568,24 +580,6 @@ class AdvanceAction {
 
     if (error) {
       throw error;
-    }
-  }
-
-  /**
-   * Helper for {@link #handleAsync}, which resolves {@link #headPromise},
-   * setting {@link #headNow} or throwing whatever problem was thereby revealed.
-   *
-   * @throws {Error} Thrown if there was any trouble at all.
-   */
-  async #resolveHeadNow() {
-    try {
-      const headNow = await this.#headPromise;
-      if (!(headNow instanceof ChainedEvent)) {
-        throw new Error('Invalid event value.');
-      }
-      this.#headNow = headNow;
-    } catch (e) {
-      this.#becomeDone(e);
     }
   }
 }
