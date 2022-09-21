@@ -425,7 +425,7 @@ export class EventTracker {
 }
 
 /**
- * Helper for {@link #EventTracker.advance} and similar methods, which
+ * Helper for {@link #EventTracker.advance} and related methods, which
  * implements the guts of an "advance-like" operation, without directly
  * affecting the "client" instance's state.
  */
