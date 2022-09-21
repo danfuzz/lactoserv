@@ -259,8 +259,8 @@ export class EventTracker {
   async next(predicate = null) {
     predicate = EventTracker.#validateAndTransformPredicate(predicate);
 
-    // Note: It's important _not_ to `await` the first `advance()` call, because
-    // we need to guarantee that no actions get queued up between the two calls
+    // Note: It's important _not_ to `await` this `advance()` call, because we
+    // need to guarantee that no actions get queued up between the two calls
     // here.
     const result = this.advance(predicate);
 
