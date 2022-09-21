@@ -100,17 +100,16 @@ export class EventTracker {
    * value of {@link #headNow}. This is an immediately-resolved promise in all
    * cases _except_ when either (a) this instance has yet to observe an event,
    * or (b) it is {@link #advance}d past the end of the chain.
-   * @throws {Error} Thrown if this instance somehow became broken.
    */
   get headPromise() {
-    if (this.#brokenReason) {
-      throw this.#brokenReason;
-    }
-
     if (this.#headPromise === null) {
       // When `#headPromise` is `null`, `#headNow` is always supposed to be a
-      // valid event.
-      this.#headPromise = Promise.resolve(this.#headNow);
+      // valid event, _or_ the instance is supposed to be broken.
+      if (this.#brokenReason) {
+        this.#headPromise = Promise.reject(this.#brokenReason);
+      } else {
+        this.#headPromise = Promise.resolve(this.#headNow);
+      }
     }
 
     return this.#headPromise;
