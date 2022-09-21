@@ -170,7 +170,7 @@ export class EventTracker {
       }
     }
 
-    this.#setHead(action.resultHeadPromise);
+    this.#setHead(action.resultPromise);
     return action.handleAsync();
   }
 
@@ -445,7 +445,7 @@ class AdvanceAction {
   /**
    * {?ManualPromise} Promise which is to be sent the ultimate result of this
    * operation, if needed. This becomes non-`null` during the first access of
-   * {@link #resultHeadPromise}.
+   * {@link #resultPromise}.
    */
   #resultMp = null;
 
@@ -476,8 +476,9 @@ class AdvanceAction {
   }
 
   /**
-   * @returns {?ChainedEvent|Promise<ChainedEvent>} Ultimate result of this
-   * operation, if available.
+   * @returns {?ChainedEvent|Promise<ChainedEvent>} Ultimate successful result
+   * of this operation, if known (that is, if the operation has in fact
+   * completed without error).
    */
   get result() {
     return this.#result;
@@ -487,7 +488,7 @@ class AdvanceAction {
    * @returns {Promise<ChainedEvent>} Promise for the ultimate result of this
    * operation.
    */
-  get resultHeadPromise() {
+  get resultPromise() {
     if (!this.#resultMp) {
       this.#resultMp = new ManualPromise();
     }
@@ -501,7 +502,7 @@ class AdvanceAction {
    * @returns {ChainedEvent} The result of the action, that is, the event that
    *   was found.
    * @throws {Error} Thrown if there was any trouble at all. And if thrown, the
-   *   same error is propagated to {@link #resultHeadPromise} if it was ever
+   *   same error is propagated to {@link #resultPromise} if it was ever
    *   retrieved.
    */
   async handleAsync() {
@@ -531,7 +532,7 @@ class AdvanceAction {
    *
    * @returns {boolean} `true` iff the operation has been completed.
    * @throws {Error} Thrown if there was any trouble at all. And if thrown, the
-   *   same error is propagated to {@link #resultHeadPromise} if it was ever
+   *   same error is propagated to {@link #resultPromise} if it was ever
    *   retrieved.
    */
   handleSync() {
