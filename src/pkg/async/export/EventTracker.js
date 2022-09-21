@@ -478,11 +478,16 @@ class AdvanceAction {
 
     try {
       while (this.#headNow) {
-        if (this.#predicate(this.#headNow)) {
+        const headNow = this.#headNow;
+        const nextNow = headNow.nextNow;
+
+        if (this.#predicate(headNow)) {
           this.#becomeDone();
           break;
         }
-        this.#advanceToNext();
+
+        this.#headNow     = nextNow ?? null;
+        this.#headPromise = nextNow ? null : headNow.nextPromise;
       }
     } catch (e) {
       this.#becomeDone(e);
@@ -508,22 +513,6 @@ class AdvanceAction {
     }
 
     return this.#result;
-  }
-
-  /**
-   * Advances to the next event in the chain, maintaining parallel-correct
-   * values for both {@link #headNow} and {@link #headPromise}.
-   */
-  #advanceToNext() {
-    const nextNow = this.#headNow.nextNow;
-
-    if (nextNow) {
-      this.#headNow     = nextNow;
-      this.#headPromise = null;
-    } else {
-      this.#headPromise = this.#headNow.nextPromise;
-      this.#headNow     = null;
-    }
   }
 
   /**
