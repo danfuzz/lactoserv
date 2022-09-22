@@ -279,8 +279,8 @@ export class EventTracker {
     }
 
     const action = new AdvanceAction(this.#head, predicate);
-    await action.handleAsync();
-    return action.resultHead.eventNow;
+    const result = await action.handleAsync();
+    return result.eventNow;
   }
 
   /**
@@ -463,6 +463,10 @@ class AdvanceAction {
    * has completed, whether or not successfully. And after it _does_
    * async-return, {@link #resultHead} can be used to find out what the result
    * actually was.
+   *
+   * @returns {EventOrPromise} The result of the operation, whether or not
+   *   successful. This is be the same value as {@link #resultHead} will
+   *   subsequently return.
    */
   async handleAsync() {
     while (!this.handleSync()) {
@@ -481,6 +485,8 @@ class AdvanceAction {
         this.#becomeDone();
      }
     }
+
+    return this.#resultHead;
   }
 
   /**
