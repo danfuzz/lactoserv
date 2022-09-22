@@ -308,15 +308,9 @@ export class EventTracker {
       return;
     }
 
-    if (event instanceof EventOrPromise) {
-      if (event.isRejected()) {
-        this.#becomeBroken(event.rejectedReason);
-      } else {
-        this.#head = event;
-      }
-    } else {
-      this.#head = new EventOrPromise(event);
-    }
+    this.#head = (event instanceof EventOrPromise)
+      ? event
+      : new EventOrPromise(event);
   }
 
 
