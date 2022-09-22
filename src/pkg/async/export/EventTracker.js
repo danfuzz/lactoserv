@@ -390,8 +390,8 @@ class AdvanceAction {
    * actually was.
    *
    * @returns {EventOrPromise} The result of the operation, whether or not
-   *   successful. This is be the same value as {@link #result} will
-   *   subsequently return.
+   *   successful. This is the same value as {@link #result} will subsequently
+   *   return.
    */
   async handleAsync() {
     while (!this.handleSync()) {
