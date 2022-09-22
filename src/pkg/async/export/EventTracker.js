@@ -271,25 +271,6 @@ export class EventTracker {
   }
 
   /**
-   * Makes this instance become "broken" with the indicated reason. After
-   * calling this method, the instance will respond to most method calls by
-   * throwing the reason. And once broken, and instance won't ever become
-   * un-broken.
-   *
-   * @param {Error} reason The cause of the breakage.
-   */
-  #becomeBroken(reason) {
-    if (this.#head?.isRejected() && (this.#head.rejectedReason !== reason)) {
-      // It's expected that the same breakage reason will come in via multiple
-      // channels, so only make noise if there's a different reason than the one
-      // we've already seen.
-      console.log('Ignoring `becomeBroken()`, because already broken!');
-    } else {
-      this.#head = EventOrPromise.reject(reason);
-    }
-  }
-
-  /**
    * Sets {@link #head}, based on a few different possible inputs, and hooking
    * up promise resolution as appropriate.
    *
