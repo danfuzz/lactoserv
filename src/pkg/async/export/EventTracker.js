@@ -284,14 +284,12 @@ export class EventTracker {
    * @throws {Error} Thrown if `event` is not a valid value.
    */
   #setHead(event) {
-    if (this.#head?.isRejected()) {
-      // Nothing to do; the instance is broken.
-      return;
+    // Only do anything if the instance isn't broken.
+    if (!this.#head?.isRejected()) {
+      this.#head = (event instanceof EventOrPromise)
+        ? event
+        : new EventOrPromise(event);
     }
-
-    this.#head = (event instanceof EventOrPromise)
-      ? event
-      : new EventOrPromise(event);
   }
 
 
