@@ -2,7 +2,9 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { ChainedEvent } from '#x/ChainedEvent';
+import { EventOrPromise } from '#p/EventOrPromise';
 import { ManualPromise } from '#x/ManualPromise';
+import { PromiseUtil } from '#x/PromiseUtil';
 
 import { MustBe } from '@this/typey';
 
@@ -455,16 +457,10 @@ class AdvanceAction {
   #resultMp = null;
 
   /**
-   * @type {?ChainedEvent} Event chain head from the perspective of the
+   * @type {EventOrPromise} Event chain head from the perspective of the
    * in-progress operation.
    */
-  #headNow;
-
-  /**
-   * @type {?Promise<ChainedEvent>} Promise for {@link #headNow}, when that
-   * property isn't synchronously known.
-   */
-  #headPromise;
+  #head;
 
   /**
    * Constructs an instance.
@@ -475,9 +471,8 @@ class AdvanceAction {
    * @param {function(ChainedEvent): boolean} predicate Predicate to satisfy.
    */
   constructor(headNow, headPromise, predicate) {
-    this.#headNow     = headNow;
-    this.#headPromise = headPromise;
-    this.#predicate   = predicate;
+    this.#head      = new EventOrPromise(headNow ?? headPromise);
+    this.#predicate = predicate;
   }
 
   /**
@@ -512,21 +507,20 @@ class AdvanceAction {
    */
   async handleAsync() {
     while (!this.handleSync()) {
-      if (this.#headNow || !this.#headPromise) {
+      if (this.#head.eventNow) {
         // `handleSync()` should either consume the synchronous portion of the
         // event chain or throw an error.
         throw new Error('Shouldn\'t happen.');
       }
 
       try {
-        const headNow = await this.#headPromise;
-        if (!(headNow instanceof ChainedEvent)) {
-          throw new Error('Invalid event value.');
-        }
-        this.#headNow = headNow;
+        await this.#head.eventPromise;
       } catch (e) {
-        this.#becomeDone(e);
-      }
+        // There is no need -- and it's counterproductive -- to pass an error to
+        // `becomeDone()` here: It will find `#head.rejectedReason` and not have
+        // to whip up a new rejected promise.
+        this.#becomeDone();
+     }
     }
 
     return this.#result;
@@ -546,17 +540,13 @@ class AdvanceAction {
     }
 
     try {
-      while (this.#headNow) {
-        const headNow = this.#headNow;
-        const nextNow = headNow.nextNow;
-
-        if (this.#predicate(headNow)) {
+      while (this.#head.eventNow) {
+        if (this.#predicate(this.#head.eventNow)) {
           this.#becomeDone();
           break;
         }
 
-        this.#headNow     = nextNow ?? null;
-        this.#headPromise = nextNow ? null : headNow.nextPromise;
+        this.#head = this.#head.next;
       }
     } catch (e) {
       this.#becomeDone(e);
@@ -573,15 +563,28 @@ class AdvanceAction {
    *   throw the same error in addition to propagating it to the result promise.
    */
   #becomeDone(error = null) {
-    this.#result = this.#headNow ?? this.#headPromise;
+    if (this.#result) {
+      // This method is only ever supposed to be called once per instance.
+      throw new Error('Shouldn\'t happen.');
+    }
 
-    const resolver = this.#resultMp;
+    if (error) {
+      this.#result = PromiseUtil.rejectAndHandle(error);
+    } else if (this.#head.rejectedReason) {
+      // When `rejectedReason !== null`, then the promise is rejected with the
+      // same reason.
+      error = this.#head.rejectedReason;
+      this.#result = this.#head.eventPromise;
+    } else {
+      this.#result = this.#head.eventNow ?? this.#head.eventPromise;
+    }
 
-    if (resolver && !resolver.isSettled()) {
+    const resultMp = this.#resultMp;
+    if (resultMp && !resultMp.isSettled()) {
       if (error) {
-        resolver.rejectAndHandle(error);
+        resultMp.rejectAndHandle(error);
       } else {
-        resolver.resolve(this.#result);
+        resultMp.resolve(this.#result);
       }
     }
 
