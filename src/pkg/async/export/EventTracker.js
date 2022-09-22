@@ -149,13 +149,19 @@ export class EventTracker {
       this.#setHead(action.resultHead);
     } else {
       // Note that, even though they will resolve to the same value in the end,
-      // `#head.eventPromise` is not the same promise as `action.resultPromise`,
-      // and for good reason: `#setHead()` guarantees that `#headNow` is valid
-      // once the action completes, but that means that there is a moment in time
-      // when `action.resultPromise` is resolved but `#head.eventPromise` isn't
-      // _necessarily_ resolved.
-      this.#setHead(action.resultPromise);
-      action.handleAsync();
+      // `#head.eventPromise` will not be the same promise as the one returned
+      // from `handleAsync()`, and for good reason: `#setHead()` guarantees that
+      // `#headNow` is valid (either an actual event or `null`) once the action
+      // completes. (a) There is a moment in time after the `handleAsync()` call
+      // has returned and _before_ `#headNow` has been set. (b) The call might
+      // have directly returned a promise, and that promise could turn out to
+      // resolve to something invalid.
+
+      // As with the "then" clause above, this line is always reached
+      // synchronously with respect to the caller, which is how we maintain the
+      // guarantee that `#headNow` and `#headPromise` are correctly set with
+      // respect to the ultimate return value of this method.
+      this.#setHead(action.handleAsync());
     }
 
     return this.#head.eventPromise;
@@ -279,8 +285,7 @@ export class EventTracker {
     }
 
     const action = new AdvanceAction(this.#head, predicate);
-    const result = await action.handleAsync();
-    return result.eventNow;
+    return action.handleAsync();
   }
 
   /**
@@ -486,7 +491,7 @@ class AdvanceAction {
      }
     }
 
-    return this.#resultHead;
+    return this.#resultHead.eventNow;
   }
 
   /**
@@ -531,7 +536,7 @@ class AdvanceAction {
     }
 
     if (error) {
-      this.#resultHead = new EventOrPromise(PromiseUtil.rejectAndHandle(error));
+      this.#resultHead = EventOrPromise.reject(error);
     } else if (this.#head.rejectedReason) {
       // When `rejectedReason !== null`, then the promise is rejected with the
       // same reason.
