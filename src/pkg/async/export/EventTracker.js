@@ -491,10 +491,8 @@ class AdvanceAction {
       throw new Error('Shouldn\'t happen.');
     }
 
-    if (error) {
-      this.#result = EventOrPromise.reject(error);
-    } else {
-      this.#result = this.#head;
-    }
+    this.#result = error
+      ? EventOrPromise.reject(error)
+      : this.#head;
   }
 }
