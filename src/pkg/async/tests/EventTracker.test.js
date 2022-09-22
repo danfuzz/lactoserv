@@ -655,7 +655,25 @@ describe('advance() breakage scenarios', () => {
     expect(() => tracker.headNow).toThrow();
   });
 
-  test('causes breakage when it advances to a rejected promise', async () => {
+  test('causes breakage when it advances to (lands at) a rejected promise', async () => {
+    const mp      = new ManualPromise();
+    const event1  = new ChainedEvent(payload1, mp.promise);
+    const tracker = new EventTracker(event1);
+
+    // Baseline expectations.
+    expect(await tracker.advance()).toBe(event1);
+    expect(tracker.headNow).toBe(event1);
+
+    // The actual test.
+    const result = tracker.advance(1);
+    const error  = new Error('Oh noes! Golly gee!');
+    mp.reject(error);
+    await expect(result).rejects.toThrow(error);
+
+    expect(() => tracker.headNow).toThrow();
+  });
+
+  test('causes breakage when it advances past a rejected promise', async () => {
     const mp      = new ManualPromise();
     const event1  = new ChainedEvent(payload1, mp.promise);
     const tracker = new EventTracker(event1);
@@ -666,8 +684,10 @@ describe('advance() breakage scenarios', () => {
 
     // The actual test.
     const result = tracker.advance(2);
-    mp.reject(new Error('Oh noes! Golly gee!'));
-    await expect(result).rejects.toThrow();
+    const error  = new Error('Oh noes! Muffins on a stick!');
+    mp.reject(error);
+    await expect(result).rejects.toThrow(error);
+
     expect(() => tracker.headNow).toThrow();
   });
 
