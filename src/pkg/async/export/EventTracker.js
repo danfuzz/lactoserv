@@ -355,7 +355,7 @@ class AdvanceAction {
   #predicate;
 
   /**
-   * {?EventOrPromise} Ultimate result of this operation, if indeed it has
+   * @type {?EventOrPromise} Ultimate result of this operation, if indeed it has
    * completed.
    */
   #result = null;
