@@ -130,15 +130,15 @@ export class EventTracker {
 
     if (action.handleSync()) {
       // We synchronously found the event we were looking for, or a promise
-      // for it, or we got an error. In any case, `action.resultHead` contains
-      // the result, but it might be a promise. We get our `#head` to be all
-      // set up to be the return value, and return the promise. Because
-      // everything before this point is run _synchronously_ with respect to
-      // the caller (see note at the top of the file), when the method
-      // synchronously returns here, `#head` will actually be the result of the
-      // completed action, even though (being `async`) the return value from
-      // this method will still be a promise.
-      this.#setHead(action.resultHead);
+      // for it, or we got an error. In any case, `action.result` contains the
+      // result, but it might be a promise. We get our `#head` to be all set up
+      // to be the return value, and return the promise. Because everything
+      // before this point is run _synchronously_ with respect to the caller
+      // (see note at the top of the file), when the method synchronously
+      // returns here, `#head` will actually be the result of the completed
+      // action, even though (being `async`) the return value from this method
+      // will still be a promise.
+      this.#setHead(action.result);
     } else {
       // Note that, even though they will resolve to the same value in the end,
       // `#head.eventPromise` will not be the same promise as the one returned
@@ -414,7 +414,7 @@ class AdvanceAction {
    * @returns {?EventOrPromise} Ultimate result of this operation, if indeed it
    * has completed.
    */
-  get resultHead() {
+  get result() {
     return this.#result;
   }
 
