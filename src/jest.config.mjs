@@ -137,7 +137,12 @@ export default {
 
   // The paths to modules that run some code to configure or set up the testing environment before each test
   setupFiles: [
-    "../tester/node_modules/trace-unhandled/register"
+    // Uncomment this only temporarily, when debugging issues with unhandled
+    // promise rejections. Reason: When this is used, there are enough oddball
+    // changes to / hooks into the underlying system that it can't truly be
+    // trusted to be an accurate representation of what's going on when _not_
+    // doing testing.
+    //"../tester/node_modules/trace-unhandled/register"
   ],
 
   // A list of paths to modules that run some code to configure or set up the testing framework before each test
