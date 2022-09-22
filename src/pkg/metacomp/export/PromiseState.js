@@ -18,7 +18,16 @@ export class PromiseState {
    * @throws {Error} Thrown if `promise` is not in fact a promise.
    */
   static of(promise) {
-    if (!(promise instanceof Promise)) {
+    const name = promise.constructor.name;
+
+    // When using testing tools that instrument promises, the global `Promise`
+    // might have been replaced with a subclass of the original `Promise`, and
+    // `promise` here might be an original. On the other hand, we might actually
+    // have a `promise` that's not "really" a `Promise` but which -- for the
+    // purposes of testing -- is "close enough." So, we generously accept either
+    // a straightforward `instanceof` _or_ something with a plausible-seeming
+    // class name.
+    if (!((promise instanceof Promise) || name.match(/Promise/))) {
       throw new Error('Not a promise.');
     }
 
@@ -36,7 +45,7 @@ export class PromiseState {
     // happen, for example, when using testing tools that instrument promises.
     // Note: The use of `|()` guarantees that `str.match()` won't ever get an
     // error (it'll just successfully match nothing).
-    const regex = (promise.constructor.name === 'Promise')
+    const regex = (name === 'Promise')
       ? /^Promise \{ <(pending|rejected)>|()/
       : /^[^{]+[{][^<]+<(pending|rejected)>|()/;
 
