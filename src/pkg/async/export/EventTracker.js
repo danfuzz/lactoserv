@@ -295,7 +295,6 @@ export class EventTracker {
    * un-broken.
    *
    * @param {Error} reason The cause of the breakage.
-   * @returns {Error} The same `reason` as given.
    */
   #becomeBroken(reason) {
     if (this.#brokenReason) {
@@ -307,10 +306,8 @@ export class EventTracker {
       }
     } else {
       this.#brokenReason = reason;
-      this.#head         = new EventOrPromise(PromiseUtil.rejectAndHandle(reason));
+      this.#head         = EventOrPromise.reject(reason);
     }
-
-    return reason;
   }
 
   /**
