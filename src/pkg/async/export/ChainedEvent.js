@@ -134,9 +134,9 @@ export class ChainedEvent {
       return this.#nextPromise;
     }
 
-    // This is the first time `next` has been called, and the next event isn't
-    // yet known. So, we set things up for eventual resolution, returning a
-    // definitely-unsettled promise.
+    // This is the first time this getter has been called, and the next event
+    // isn't yet known. So, we set things up for eventual resolution, returning
+    // a definitely-unsettled promise.
 
     const mp = new ManualPromise();
     this.#nextPromise = mp.promise;
