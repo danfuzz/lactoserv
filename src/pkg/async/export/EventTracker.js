@@ -131,36 +131,33 @@ export class EventTracker {
     // Note: If there are any pending actions right now, they're already "baked
     // into" `#head` in that `#head.eventNow === null` and `#head.eventPromise`
     // is a promise for the result of the last (most recently) queued up action.
+    // As a (desired) consequence, the call to `handleSync()` below can only
+    // possibly do anything (and possibly return `true`) is when there are no
+    // pending actions.
     const action = new AdvanceAction(this.#head, predicate);
 
-    if (this.#head.eventNow) {
-      // The head event is synchronously known, which _always_ means that there
-      // are no other pending actions right now (because if there were, the
-      // setup immediately below would have run, causing `#head.eventNow` to be
-      // `null`.)
-      if (action.handleSync()) {
-        // We synchronously found the event we were looking for, or a promise
-        // for it, or we got an error. In any case, `action.resultHead` contains
-        // the result, but it might be a promise. We get our `#head` to be all
-        // set up to be the return value, and return the promise. Because
-        // everything before this point is run _synchronously_ with respect to
-        // the caller (see note at the top of the file), when the method
-        // synchronously returns here, `#head` will actually be the result of
-        // the completed action, even though (being `async`) the return value
-        // from this method will still be a promise.
-        this.#setHead(action.resultHead);
-        return this.#head.eventPromise;
-      }
+    if (action.handleSync()) {
+      // We synchronously found the event we were looking for, or a promise
+      // for it, or we got an error. In any case, `action.resultHead` contains
+      // the result, but it might be a promise. We get our `#head` to be all
+      // set up to be the return value, and return the promise. Because
+      // everything before this point is run _synchronously_ with respect to
+      // the caller (see note at the top of the file), when the method
+      // synchronously returns here, `#head` will actually be the result of
+      // the completed action, even though (being `async`) the return value
+      // from this method will still be a promise.
+      this.#setHead(action.resultHead);
+    } else {
+      // Note that, even though they will resolve to the same value in the end,
+      // `#head.eventPromise` is not the same promise as `action.resultPromise`,
+      // and for good reason: `#setHead()` guarantees that `#headNow` is valid
+      // once the action completes, but that means that there is a moment in time
+      // when `action.resultPromise` is resolved but `#head.eventPromise` isn't
+      // _necessarily_ resolved.
+      this.#setHead(action.resultPromise);
+      action.handleAsync();
     }
 
-    // Note that, even though they will resolve to the same value in the end,
-    // `#head.eventPromise` is not the same promise as `action.resultPromise`,
-    // and for good reason: `#setHead()` guarantees that `#headNow` is valid
-    // once the action completes, but that means that there is a moment in time
-    // when `action.resultPromise` is resolved but `#head.eventPromise` isn't
-    // _necessarily_ resolved.
-    this.#setHead(action.resultPromise);
-    action.handleAsync();
     return this.#head.eventPromise;
   }
 
