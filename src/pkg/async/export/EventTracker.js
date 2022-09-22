@@ -3,7 +3,6 @@
 
 import { ChainedEvent } from '#x/ChainedEvent';
 import { EventOrPromise } from '#p/EventOrPromise';
-import { ManualPromise } from '#x/ManualPromise';
 import { PromiseUtil } from '#x/PromiseUtil';
 
 import { MustBe } from '@this/typey';
@@ -441,12 +440,12 @@ class AdvanceAction {
 
       try {
         await this.#head.eventPromise;
-      } catch (e) {
+      } catch {
         // There is no need -- and it's counterproductive -- to pass an error to
         // `becomeDone()` here: It will find `#head.rejectedReason` and not have
         // to whip up a new rejected promise.
         this.#becomeDone();
-     }
+      }
     }
 
     return this.#resultHead.eventNow;
