@@ -418,13 +418,6 @@ class AdvanceAction {
   #resultHead = null;
 
   /**
-   * {?ManualPromise} Promise which is to be sent the ultimate result of this
-   * operation, if needed. This becomes non-`null` during the first access of
-   * {@link #resultPromise}.
-   */
-  #resultMp = null;
-
-  /**
    * @type {EventOrPromise} Event chain head from the perspective of the
    * in-progress operation.
    */
@@ -447,18 +440,6 @@ class AdvanceAction {
    */
   get resultHead() {
     return this.#resultHead;
-  }
-
-  /**
-   * @returns {Promise<ChainedEvent>} Promise for the ultimate result of this
-   * operation.
-   */
-  get resultPromise() {
-    if (!this.#resultMp) {
-      this.#resultMp = new ManualPromise();
-    }
-
-    return this.#resultMp.promise;
   }
 
   /**
@@ -524,8 +505,7 @@ class AdvanceAction {
   }
 
   /**
-   * Marks the operation as done, possibly due to a problem. If there is a
-   * {@link #resultMp}, it is informed of the result or the problem.
+   * Marks the operation as done, possibly due to a problem.
    *
    * @param {?Error} error The problem, if any.
    */
@@ -537,22 +517,8 @@ class AdvanceAction {
 
     if (error) {
       this.#resultHead = EventOrPromise.reject(error);
-    } else if (this.#head.rejectedReason) {
-      // When `rejectedReason !== null`, then the promise is rejected with the
-      // same reason.
-      error = this.#head.rejectedReason;
-      this.#resultHead = this.#head;
     } else {
       this.#resultHead = this.#head;
-    }
-
-    const resultMp = this.#resultMp;
-    if (resultMp && !resultMp.isSettled()) {
-      if (error) {
-        resultMp.rejectAndHandle(error);
-      } else {
-        resultMp.resolve(this.#resultHead.eventPromise);
-      }
     }
   }
 }
