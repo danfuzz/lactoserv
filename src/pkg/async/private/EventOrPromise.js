@@ -89,7 +89,9 @@ export class EventOrPromise {
    * @returns {Promise<ChainedEvent>} Promise for the -- often not-yet-known --
    * value of {@link #eventNow}. This is an immediately-settled promise in all
    * cases _except_ when this instance was constructed with a promise and that
-   * promise has yet to settle.
+   * promise has yet to settle. This class guarantees that, if this promise is
+   * fulfilled (not rejected), then it will indeed be an instance of {@link
+   * ChainedEvent}.
    */
   get eventPromise() {
     if (this.#eventPromise === null) {
@@ -99,5 +101,28 @@ export class EventOrPromise {
     }
 
     return this.#eventPromise;
+  }
+
+  /**
+   * @returns {EventOrPromise} Instance of this class representing the next
+   * event on the chain after the one wrapped by this instance.
+   */
+  get next() {
+    const eventNow = this.#eventNow;
+
+    if (eventNow) {
+      return new EventOrPromise(eventNow.nextNow ?? eventNow.nextPromise);
+    } else {
+      return new EventOrPromise(this.#nextFromPromise());
+    }
+  }
+
+  /**
+   * @returns {ChainedEvent|Promise<ChainedEvent>} Promise for a "next" event,
+   * either a settled one or a promise.
+   */
+  async #nextFromPromise() {
+    const eventNow = await this.#eventPromise;
+    return eventNow.nextNow ?? eventNow.nextPromise;
   }
 }
