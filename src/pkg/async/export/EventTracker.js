@@ -128,31 +128,40 @@ export class EventTracker {
       throw this.#brokenReason;
     }
 
+    // Note: If there are any pending actions right now, they're already "baked
+    // into" `#head` in that `#head.eventNow === null` and `#head.eventPromise`
+    // is a promise for the result of the last (most recently) queued up action.
     const action = new AdvanceAction(this.#head, predicate);
 
     if (this.#head.eventNow) {
       // The head event is synchronously known, which _always_ means that there
       // are no other pending actions right now (because if there were, the
-      // setup immediately below would have run, causing `#headNow` to be `null`
-      // and `#headPromise` to be the result of the latest-pending action item.)
-      try {
-        if (action.handleSync()) {
-          // We found the event we were looking for. Because everything before
-          // this point is run _synchronously_ with respect to the caller (see
-          // note at the top of the file), when the method synchronously returns
-          // here, `#headNow` and `#headPromise` will actually be the result of
-          // the completed action, even though (being `async`) the return value
-          // from this method will still be a promise.
-          this.#setHead(action.result);
-          return action.result;
-        }
-      } catch (e) {
-        throw this.#becomeBroken(e);
+      // setup immediately below would have run, causing `#head.eventNow` to be
+      // `null`.)
+      if (action.handleSync()) {
+        // We synchronously found the event we were looking for, or a promise
+        // for it, or we got an error. In any case, `action.resultHead` contains
+        // the result, but it might be a promise. We get our `#head` to be all
+        // set up to be the return value, and return the promise. Because
+        // everything before this point is run _synchronously_ with respect to
+        // the caller (see note at the top of the file), when the method
+        // synchronously returns here, `#head` will actually be the result of
+        // the completed action, even though (being `async`) the return value
+        // from this method will still be a promise.
+        this.#setHead(action.resultHead);
+        return this.#head.eventPromise;
       }
     }
 
+    // Note that, even though they will resolve to the same value in the end,
+    // `#head.eventPromise` is not the same promise as `action.resultPromise`,
+    // and for good reason: `#setHead()` guarantees that `#headNow` is valid
+    // once the action completes, but that means that there is a moment in time
+    // when `action.resultPromise` is resolved but `#head.eventPromise` isn't
+    // _necessarily_ resolved.
     this.#setHead(action.resultPromise);
-    return action.handleAsync();
+    action.handleAsync();
+    return this.#head.eventPromise;
   }
 
   /**
@@ -273,7 +282,8 @@ export class EventTracker {
     }
 
     const action = new AdvanceAction(this.#head, predicate);
-    return action.handleAsync();
+    await action.handleAsync();
+    return action.resultHead.eventNow;
   }
 
   /**
@@ -302,16 +312,16 @@ export class EventTracker {
   }
 
   /**
-   * Sets {@link #headNow} and {@link #headPromise}, arranging for `headNow` to
-   * get resolved if given a promise, and also arranging for the instance to
-   * break if given a promise that becomes rejected.
+   * Sets {@link #head}, based on a few different possible inputs, and hooking
+   * up promise resolution as appropriate.
    *
    * This method is intended never to `throw` in response to a resolution
    * problem, instead just to cause the instance to become broken. This is
    * because the method is called in contexts where throwing would inevitably
    * result in an unhandled promise rejection.
    *
-   * @param {EventOrPromise|ChainedEvent|Promise<ChainedEvent>} event New head of the chain.
+   * @param {EventOrPromise|ChainedEvent|Promise<ChainedEvent>} event New head
+   *   of the chain.
    * @throws {Error} Thrown if `event` is not a valid value.
    */
   #setHead(event) {
@@ -321,7 +331,11 @@ export class EventTracker {
     }
 
     if (event instanceof EventOrPromise) {
-      this.#head = event;
+      if (event.rejectedReason) {
+        this.#becomeBroken(event.rejectedReason);
+      } else {
+        this.#head = event;
+      }
     } else {
       this.#head = new EventOrPromise(event);
     }
@@ -396,10 +410,10 @@ class AdvanceAction {
   #predicate = null;
 
   /**
-   * {?ChainedEvent|Promise<ChainedEvent>} Ultimate result of this operation, if
-   * indeed it has completed.
+   * {?EventOrPromise} Ultimate result of this operation, if indeed it has
+   * completed.
    */
-  #result = null;
+  #resultHead = null;
 
   /**
    * {?ManualPromise} Promise which is to be sent the ultimate result of this
@@ -426,12 +440,11 @@ class AdvanceAction {
   }
 
   /**
-   * @returns {?ChainedEvent|Promise<ChainedEvent>} Ultimate successful result
-   * of this operation, if known (that is, if the operation has in fact
-   * completed without error).
+   * @returns {?EventOrPromise} Ultimate result of this operation, if indeed it
+   * has completed.
    */
-  get result() {
-    return this.#result;
+  get resultHead() {
+    return this.#resultHead;
   }
 
   /**
@@ -447,13 +460,12 @@ class AdvanceAction {
   }
 
   /**
-   * Completes this operation -- or dies trying -- asynchronously.
-   *
-   * @returns {ChainedEvent} The result of the action, that is, the event that
-   *   was found.
-   * @throws {Error} Thrown if there was any trouble at all. And if thrown, the
-   *   same error is propagated to {@link #resultPromise} if it was ever
-   *   retrieved.
+   * Completes this operation -- or dies trying -- asynchronously. As with
+   * {@link #handleSync}, this method does not return a value or throw an
+   * error. That said, it only async-returns (with no value) after the operation
+   * has completed, whether or not successfully. And after it _does_
+   * async-return, {@link #resultHead} can be used to find out what the result
+   * actually was.
    */
   async handleAsync() {
     while (!this.handleSync()) {
@@ -472,8 +484,6 @@ class AdvanceAction {
         this.#becomeDone();
      }
     }
-
-    return this.#result;
   }
 
   /**
@@ -485,7 +495,7 @@ class AdvanceAction {
    *   retrieved.
    */
   handleSync() {
-    if (this.#result) {
+    if (this.#resultHead) {
       return true;
     }
 
@@ -502,31 +512,30 @@ class AdvanceAction {
       this.#becomeDone(e);
     }
 
-    return this.#result !== null;
+    return this.#resultHead !== null;
   }
 
   /**
    * Marks the operation as done, possibly due to a problem. If there is a
    * {@link #resultMp}, it is informed of the result or the problem.
    *
-   * @param {?Error} error The problem, if any. If non-`null`, this method will
-   *   throw the same error in addition to propagating it to the result promise.
+   * @param {?Error} error The problem, if any.
    */
   #becomeDone(error = null) {
-    if (this.#result) {
+    if (this.#resultHead) {
       // This method is only ever supposed to be called once per instance.
       throw new Error('Shouldn\'t happen.');
     }
 
     if (error) {
-      this.#result = PromiseUtil.rejectAndHandle(error);
+      this.#resultHead = new EventOrPromise(PromiseUtil.rejectAndHandle(error));
     } else if (this.#head.rejectedReason) {
       // When `rejectedReason !== null`, then the promise is rejected with the
       // same reason.
       error = this.#head.rejectedReason;
-      this.#result = this.#head.eventPromise;
+      this.#resultHead = this.#head;
     } else {
-      this.#result = this.#head.eventNow ?? this.#head.eventPromise;
+      this.#resultHead = this.#head;
     }
 
     const resultMp = this.#resultMp;
@@ -534,12 +543,8 @@ class AdvanceAction {
       if (error) {
         resultMp.rejectAndHandle(error);
       } else {
-        resultMp.resolve(this.#result);
+        resultMp.resolve(this.#resultHead.eventPromise);
       }
-    }
-
-    if (error) {
-      throw error;
     }
   }
 }
