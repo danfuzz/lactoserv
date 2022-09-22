@@ -56,18 +56,8 @@ let EventPredicate;
  * emitting events on the chain.
  */
 export class EventTracker {
-  /**
-   * @type {?ChainedEvent} Head of (first event on) the chain, if known. If this
-   * is `null`, then {@link #headPromise} will be non-`null`.
-   */
-  #headNow = null;
-
-  /**
-   * @type {?Promise<ChainedEvent>} Promise for the head of (first event on) the
-   * chain, if there is indeed such a promise around. If this is `null`, then
-   * {@link #headNow} will be non-`null`.
-   */
-  #headPromise = null;
+  /** @type {EventOrPromise} Head of (first event on) the chain. */
+  #head = null;
 
   /** @type {?Error} Error which "broke" this instance, if any. */
   #brokenReason = null;
@@ -94,7 +84,7 @@ export class EventTracker {
       throw this.#brokenReason;
     }
 
-    return this.#headNow;
+    return this.#head.eventNow;
   }
 
   /**
@@ -104,13 +94,7 @@ export class EventTracker {
    * or (b) it is {@link #advance}d past the end of the chain.
    */
   get headPromise() {
-    if (this.#headPromise === null) {
-      // When `#headPromise` is `null`, `#headNow` is always supposed to be a
-      // valid event.
-      this.#headPromise = Promise.resolve(this.#headNow);
-    }
-
-    return this.#headPromise;
+    return this.#head.eventPromise;
   }
 
   /**
@@ -144,9 +128,9 @@ export class EventTracker {
       throw this.#brokenReason;
     }
 
-    const action = new AdvanceAction(this.#headNow, this.#headPromise, predicate);
+    const action = new AdvanceAction(this.#head, predicate);
 
-    if (this.#headNow) {
+    if (this.#head.eventNow) {
       // The head event is synchronously known, which _always_ means that there
       // are no other pending actions right now (because if there were, the
       // setup immediately below would have run, causing `#headNow` to be `null`
@@ -204,9 +188,9 @@ export class EventTracker {
 
     const result = this.advance(predicate);
 
-    if (this.#headNow) {
+    if (this.#head.eventNow) {
       // The `advance()` call succeeded synchronously.
-      return this.#headNow;
+      return this.#head.eventNow;
     }
 
     // The `advance()` call either failed synchronously or needs to do
@@ -288,7 +272,7 @@ export class EventTracker {
       throw this.#brokenReason;
     }
 
-    const action = new AdvanceAction(this.#headNow, this.#headPromise, predicate);
+    const action = new AdvanceAction(this.#head, predicate);
     return action.handleAsync();
   }
 
@@ -311,8 +295,7 @@ export class EventTracker {
       }
     } else {
       this.#brokenReason = reason;
-      this.#headNow      = null;
-      this.#headPromise  = PromiseUtil.rejectAndHandle(reason);
+      this.#head         = new EventOrPromise(PromiseUtil.rejectAndHandle(reason));
     }
 
     return reason;
@@ -328,7 +311,7 @@ export class EventTracker {
    * because the method is called in contexts where throwing would inevitably
    * result in an unhandled promise rejection.
    *
-   * @param {ChainedEvent|Promise<ChainedEvent>} event New head of the chain.
+   * @param {EventOrPromise|ChainedEvent|Promise<ChainedEvent>} event New head of the chain.
    * @throws {Error} Thrown if `event` is not a valid value.
    */
   #setHead(event) {
@@ -337,37 +320,22 @@ export class EventTracker {
       return;
     }
 
-    if (event instanceof ChainedEvent) {
-      this.#headNow     = event;
-      this.#headPromise = null;
-    } else if (event instanceof Promise) {
-      // We resolve the promise in an "async-aside" to achieve the specified
-      // no-throw behavior. And we only store back if the instance hasn't yet
-      // advanced onward or become broken in the mean time. Also note that we
-      // can't store `event` directly into `#headPromise`, because it might not
-      // resolve to a valid value, and we maintain a guarantee about the
-      // validity of what that resolves to.
-      const mp = new ManualPromise();
-      this.#headNow     = null;
-      this.#headPromise = mp.promise;
+    if (event instanceof EventOrPromise) {
+      this.#head = event;
+    } else {
+      this.#head = new EventOrPromise(event);
+    }
+
+    if (!this.#head.eventNow) {
+      // Arrange for this instance to become broken if/when `event` resolves as
+      // broken.
       (async () => {
         try {
-          const headNow = await event;
-          if (headNow instanceof ChainedEvent) {
-            mp.resolve(headNow);
-          } else {
-            throw new Error('Invalid event value (promise resolution).');
-          }
-          if ((this.#headPromise === mp.promise) && !this.#brokenReason) {
-            this.#headNow = headNow;
-          }
-        } catch (e) {
-          this.#becomeBroken(e);
-          mp.rejectAndHandle(e);
+          await this.#head.eventPromise;
+        } catch (reason) {
+          this.#becomeBroken(reason);
         }
       })();
-    } else {
-      throw new Error('Invalid event value (synchronously known).');
     }
   }
 
@@ -449,13 +417,11 @@ class AdvanceAction {
   /**
    * Constructs an instance.
    *
-   * @param {?ChainedEvent} headNow Event chain head at which to start.
-   * @param {?Promise<ChainedEvent>} headPromise Promise for the event chain
-   *   head.
+   * @param {EventOrPromise} head Event chain head at which to start.
    * @param {function(ChainedEvent): boolean} predicate Predicate to satisfy.
    */
-  constructor(headNow, headPromise, predicate) {
-    this.#head      = new EventOrPromise(headNow ?? headPromise);
+  constructor(head, predicate) {
+    this.#head      = head;
     this.#predicate = predicate;
   }
 
