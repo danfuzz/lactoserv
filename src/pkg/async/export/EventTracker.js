@@ -135,9 +135,9 @@ export class EventTracker {
       // set up to be the return value, and return the promise. Because
       // everything before this point is run _synchronously_ with respect to
       // the caller (see note at the top of the file), when the method
-      // synchronously returns here, `#head` will actually be the result of
-      // the completed action, even though (being `async`) the return value
-      // from this method will still be a promise.
+      // synchronously returns here, `#head` will actually be the result of the
+      // completed action, even though (being `async`) the return value from
+      // this method will still be a promise.
       this.#setHead(action.resultHead);
     } else {
       // Note that, even though they will resolve to the same value in the end,
