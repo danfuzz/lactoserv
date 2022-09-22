@@ -397,7 +397,7 @@ class AdvanceAction {
    * {?EventOrPromise} Ultimate result of this operation, if indeed it has
    * completed.
    */
-  #resultHead = null;
+  #result = null;
 
   /**
    * Constructs an instance.
@@ -415,7 +415,7 @@ class AdvanceAction {
    * has completed.
    */
   get resultHead() {
-    return this.#resultHead;
+    return this.#result;
   }
 
   /**
@@ -423,11 +423,11 @@ class AdvanceAction {
    * {@link #handleSync}, this method does not return a value or throw an
    * error. That said, it only async-returns (with no value) after the operation
    * has completed, whether or not successfully. And after it _does_
-   * async-return, {@link #resultHead} can be used to find out what the result
+   * async-return, {@link #result} can be used to find out what the result
    * actually was.
    *
    * @returns {EventOrPromise} The result of the operation, whether or not
-   *   successful. This is be the same value as {@link #resultHead} will
+   *   successful. This is be the same value as {@link #result} will
    *   subsequently return.
    */
   async handleAsync() {
@@ -448,7 +448,7 @@ class AdvanceAction {
       }
     }
 
-    return this.#resultHead.eventNow;
+    return this.#result.eventNow;
   }
 
   /**
@@ -460,7 +460,7 @@ class AdvanceAction {
    *   retrieved.
    */
   handleSync() {
-    if (this.#resultHead) {
+    if (this.#result) {
       return true;
     }
 
@@ -477,7 +477,7 @@ class AdvanceAction {
       this.#becomeDone(e);
     }
 
-    return this.#resultHead !== null;
+    return this.#result !== null;
   }
 
   /**
@@ -486,15 +486,15 @@ class AdvanceAction {
    * @param {?Error} error The problem, if any.
    */
   #becomeDone(error = null) {
-    if (this.#resultHead) {
+    if (this.#result) {
       // This method is only ever supposed to be called once per instance.
       throw new Error('Shouldn\'t happen.');
     }
 
     if (error) {
-      this.#resultHead = EventOrPromise.reject(error);
+      this.#result = EventOrPromise.reject(error);
     } else {
-      this.#resultHead = this.#head;
+      this.#result = this.#head;
     }
   }
 }
