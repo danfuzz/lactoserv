@@ -1,6 +1,9 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { PromiseUtil } from '#x/PromiseUtil';
+
+
 /**
  * "Manually operated" promise, with client-accessible `resolve()` and
  * `reject()` methods, and synchronous accessors of state.
@@ -162,15 +165,8 @@ export class ManualPromise {
       throw new Error('Shouldn\'t happen: Promise is not rejected.');
     }
 
+    PromiseUtil.handleRejection(this.#promise);
     this.#rejectionHandled = true;
-
-    (async () => {
-      try {
-        await this.#promise;
-      } catch {
-        // Ignore it.
-      }
-    })();
   }
 
   /**
