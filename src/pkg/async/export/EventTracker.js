@@ -212,13 +212,7 @@ export class EventTracker {
     // The `advance()` call either failed synchronously or needs to do
     // asynchronous work. In either case, we now need to swallow its result, so
     // as to squelch a promise rejection, should it happen.
-    (async () => {
-      try {
-        await result;
-      } catch {
-        // Ignore it. (See above.)
-      }
-    })();
+    PromiseUtil.handleRejection(result);
 
     return null;
   }
@@ -318,17 +312,7 @@ export class EventTracker {
     } else {
       this.#brokenReason = reason;
       this.#headNow      = null;
-      this.#headPromise  = Promise.reject(reason);
-
-      // Make sure that the above rejection isn't considered "unhandled," at
-      // least not due to this method.
-      (async () => {
-        try {
-          await this.#headPromise;
-        } catch {
-          // Ignore it.
-        }
-      })();
+      this.#headPromise  = PromiseUtil.rejectAndHandle(reason);
     }
 
     return reason;

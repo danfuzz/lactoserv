@@ -9,9 +9,11 @@ import { MustBe } from '@this/typey';
  */
 export class PromiseUtil {
   /**
-   * Causes a rejected promise to be considered "handled."
+   * Causes a rejected promise to be considered "handled." Can be passed
+   * anything; this does nothing (other than waste a little time) when given a
+   * non-promise or a fulfilled promise.
    *
-   * @param {Promise} promise The promise in question.
+   * @param {*} maybePromise The promise in question.
    */
   static handleRejection(promise) {
     (async () => {
