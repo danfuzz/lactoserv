@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { PromiseState } from '@this/metacomp';
+import { PromiseState } from '@this/async';
 
 const promPending   = new Promise(() => { /*empty*/ });
 const promFulfilled = Promise.resolve(123);

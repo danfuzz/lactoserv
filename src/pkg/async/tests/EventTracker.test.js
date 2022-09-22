@@ -1,8 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { ChainedEvent, EventTracker, ManualPromise } from '@this/async';
-import { PromiseState } from '@this/metacomp';
+import { ChainedEvent, EventTracker, ManualPromise, PromiseState } from '@this/async';
 
 import * as timers from 'node:timers/promises';
 

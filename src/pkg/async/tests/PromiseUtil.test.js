@@ -1,8 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { PromiseUtil } from '@this/async';
-import { PromiseState } from '@this/metacomp';
+import { PromiseState, PromiseUtil } from '@this/async';
 
 import process from 'node:process';
 import * as timers from 'node:timers/promises';

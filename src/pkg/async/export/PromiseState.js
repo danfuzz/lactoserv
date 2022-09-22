@@ -6,7 +6,8 @@ import * as util from 'node:util';
 
 /**
  * Utility class to synchronously inspect promise state. This is primarily
- * intended for use in unit and integration tests.
+ * intended for use in unit and integration tests. (Really, it's almost
+ * certainly a bad idea to use this in any other context.)
  */
 export class PromiseState {
   /**
