@@ -7,3 +7,4 @@ export * from '#x/EventSource';
 export * from '#x/EventTracker';
 export * from '#x/ManualPromise';
 export * from '#x/Mutex';
+export * from '#x/PromiseUtil';
