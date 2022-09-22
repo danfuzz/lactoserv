@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { ManualPromise } from '@this/async';
+import { ManualPromise, PromiseUtil } from '@this/async';
 
 import * as timers from 'node:timers/promises';
 
@@ -111,15 +111,9 @@ describe('reject()', () => {
       const mp = new ManualPromise();
       mp.reject(reason);
 
-      // We have to promptly await the rejection, since otherwise Node will
-      // complain that we have an unhandled rejection!
-      (async () => {
-        try {
-          await mp.promise;
-        } catch (e) {
-          // Ignore it.
-        }
-      })();
+      // We have to promptly handle the rejection, since otherwise Node will
+      // complain.
+      PromiseUtil.handleRejection(mp.promise);
 
       return mp;
     };
@@ -247,13 +241,7 @@ describe('resolve(Promise)', () => {
     target.reject(reason);
 
     // Make sure Node doesn't complain about an unhandled rejection.
-    (async () => {
-      try {
-        await mp.promise;
-      } catch {
-        // Ignore it.
-      }
-    })();
+    PromiseUtil.handleRejection(mp.promise);
 
     // Not fulfilled or rejected yet, because `mp` needs a turn to run its
     // asynchronous resolver code.

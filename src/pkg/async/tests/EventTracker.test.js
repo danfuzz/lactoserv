@@ -1,8 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { ChainedEvent, EventTracker, ManualPromise } from '@this/async';
-import { PromiseState } from '@this/metacomp';
+import { ChainedEvent, EventTracker, ManualPromise, PromiseState } from '@this/async';
 
 import * as timers from 'node:timers/promises';
 
@@ -91,7 +90,7 @@ describe('constructor(<invalid>)', () => {
 });
 
 describe('.headPromise', () => {
-  test('follows along an already-resolved chain as it is `advance()`d.', async () => {
+  test('follows along an already-resolved chain as it is `advance()`d', async () => {
     const event3  = new ChainedEvent(payload3);
     const event2  = new ChainedEvent(payload2, event3);
     const event1  = new ChainedEvent(payload1, event2);
@@ -123,7 +122,7 @@ describe('.headPromise', () => {
     expect(await tracker.headPromise).toBe(event2);
   });
 
-  test('remains unresolved after `advance()`ing past the end of the chain.', async () => {
+  test('remains unresolved after `advance()`ing past the end of the chain', async () => {
     const event   = new ChainedEvent(payload1);
     const tracker = new EventTracker(event);
 
@@ -132,6 +131,21 @@ describe('.headPromise', () => {
 
     await timers.setImmediate();
     expect(PromiseState.isSettled(tracker.headPromise)).toBeFalse();
+  });
+
+  test('is a rejected promise after the instance is broken (rejected event promise)', async () => {
+    const error   = new Error('Oh the humanity!');
+    const tracker = new EventTracker(Promise.reject(error));
+
+    await expect(tracker.advance(0)).rejects.toThrow(error);
+    await expect(tracker.headPromise).rejects.toThrow(error);
+  });
+
+  test('is a rejected promise after the instance is broken (event promise resolves to non-event)', async () => {
+    const tracker = new EventTracker(Promise.resolve('oops! not an event!'));
+
+    await expect(tracker.advance(0)).rejects.toThrow();
+    await expect(tracker.headPromise).rejects.toThrow();
   });
 });
 
@@ -164,7 +178,7 @@ describe('.headNow', () => {
     expect(tracker.headNow).toBe(event2);
   });
 
-  test('synchronously follows along an already-resolved chain as it is `advance()`d.', () => {
+  test('synchronously follows along an already-resolved chain as it is `advance()`d', () => {
     const event3  = new ChainedEvent(payload3);
     const event2  = new ChainedEvent(payload2, event3);
     const event1  = new ChainedEvent(payload1, event2);
@@ -177,7 +191,7 @@ describe('.headNow', () => {
     expect(tracker.headNow).toBe(event3);
   });
 
-  test('becomes `null` after `advance()`ing past the end of the chain.', () => {
+  test('becomes `null` after `advance()`ing past the end of the chain', () => {
     const event   = new ChainedEvent(payload1);
     const tracker = new EventTracker(event);
 
@@ -640,7 +654,25 @@ describe('advance() breakage scenarios', () => {
     expect(() => tracker.headNow).toThrow();
   });
 
-  test('causes breakage when it advances to a rejected promise', async () => {
+  test('causes breakage when it advances to (lands at) a rejected promise', async () => {
+    const mp      = new ManualPromise();
+    const event1  = new ChainedEvent(payload1, mp.promise);
+    const tracker = new EventTracker(event1);
+
+    // Baseline expectations.
+    expect(await tracker.advance()).toBe(event1);
+    expect(tracker.headNow).toBe(event1);
+
+    // The actual test.
+    const result = tracker.advance(1);
+    const error  = new Error('Oh noes! Golly gee!');
+    mp.reject(error);
+    await expect(result).rejects.toThrow(error);
+
+    expect(() => tracker.headNow).toThrow();
+  });
+
+  test('causes breakage when it advances past a rejected promise', async () => {
     const mp      = new ManualPromise();
     const event1  = new ChainedEvent(payload1, mp.promise);
     const tracker = new EventTracker(event1);
@@ -651,12 +683,30 @@ describe('advance() breakage scenarios', () => {
 
     // The actual test.
     const result = tracker.advance(2);
-    mp.reject(new Error('Oh noes! Golly gee!'));
+    const error  = new Error('Oh noes! Muffins on a stick!');
+    mp.reject(error);
+    await expect(result).rejects.toThrow(error);
+
+    expect(() => tracker.headNow).toThrow();
+  });
+
+  test('causes breakage when it advances to (lands on) a promise that resolves to a non-event', async () => {
+    const mp      = new ManualPromise();
+    const event1  = new ChainedEvent(payload1, mp.promise);
+    const tracker = new EventTracker(event1);
+
+    // Baseline expectations.
+    expect(await tracker.advance()).toBe(event1);
+    expect(tracker.headNow).toBe(event1);
+
+    // The actual test.
+    const result = tracker.advance(1);
+    mp.resolve('not-an-event-whoopsie!');
     await expect(result).rejects.toThrow();
     expect(() => tracker.headNow).toThrow();
   });
 
-  test('causes breakage when it advances to a promise that resolves to a non-event', async () => {
+  test('causes breakage when it advances past a promise that resolves to a non-event', async () => {
     const mp      = new ManualPromise();
     const event1  = new ChainedEvent(payload1, mp.promise);
     const tracker = new EventTracker(event1);
@@ -684,7 +734,7 @@ describe('advance() breakage scenarios', () => {
 });
 
 describe('advanceSync()', () => {
-  test('finds a synchronously-found event at `headNow`.', () => {
+  test('finds a synchronously-found event at `headNow`', () => {
     const event   = new ChainedEvent(payload1);
     const tracker = new EventTracker(event);
 
@@ -692,7 +742,7 @@ describe('advanceSync()', () => {
     expect(tracker.headNow).toBe(event);
   });
 
-  test('finds a synchronously-found event in the chain.', () => {
+  test('finds a synchronously-found event in the chain', () => {
     const event3  = new ChainedEvent(payload3);
     const event2  = new ChainedEvent(payload2, event3);
     const event1  = new ChainedEvent(payload1, event2);
@@ -702,7 +752,7 @@ describe('advanceSync()', () => {
     expect(tracker.headNow).toBe(event3);
   });
 
-  test('returns `null` when `headNow === null` (synchronously at end of chain).', () => {
+  test('returns `null` when `headNow === null` (synchronously at end of chain)', () => {
     const mp      = new ManualPromise();
     const tracker = new EventTracker(mp.promise);
 
@@ -711,7 +761,7 @@ describe('advanceSync()', () => {
     expect(tracker.headNow).toBeNull();
   });
 
-  test('returns `null` when `headNow === null` (queued `advance()`).', () => {
+  test('returns `null` when `headNow === null` (queued `advance()`)', () => {
     const mp      = new ManualPromise();
     const event1  = new ChainedEvent(payload1, mp.promise);
     const tracker = new EventTracker(event1);
