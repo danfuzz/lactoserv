@@ -9,6 +9,21 @@ import { MustBe } from '@this/typey';
  */
 export class PromiseUtil {
   /**
+   * Causes a rejected promise to be considered "handled."
+   *
+   * @param {Promise} promise The promise in question.
+   */
+  static handleRejection(promise) {
+    (async () => {
+      try {
+        await promise;
+      } catch {
+        // Ignore it.
+      }
+    })();
+  }
+
+  /**
    * Constructs a promise which is rejected but which is considered "already
    * handled."
    *
@@ -18,15 +33,7 @@ export class PromiseUtil {
     MustBe.object(reason, Error);
 
     const result = Promise.reject(reason);
-
-    (async () => {
-      try {
-        await result;
-      } catch {
-        // Ignore it.
-      }
-    })();
-
+    this.handleRejection(result);
     return result;
   }
 }
