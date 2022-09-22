@@ -352,7 +352,7 @@ class AdvanceAction {
    * @type {function(ChainedEvent): boolean} Predicate which an event needs to
    * satisfy, for the operation to be considered complete.
    */
-  #predicate = null;
+  #predicate;
 
   /**
    * {?EventOrPromise} Ultimate result of this operation, if indeed it has
