@@ -3,6 +3,8 @@
 
 import { ChainedEvent } from '#x/ChainedEvent';
 import { ManualPromise } from '#x/ManualPromise';
+import { PromiseUtil } from '#x/PromiseUtil';
+
 
 /**
  * As it says on the tin, a holder for a {@link ChainedEvent} or a promise for
@@ -143,5 +145,28 @@ export class EventOrPromise {
   async #nextFromPromise() {
     const eventNow = await this.#eventPromise;
     return eventNow.nextNow ?? eventNow.nextPromise;
+  }
+
+
+  //
+  // Static members
+  //
+
+  /**
+   * Constructs an instance that comes into the world in a synchronously-known
+   * rejected-and-handled state. This is different than passing a rejected
+   * promise in the main constructor, because in that form this class can't
+   * actually tell that it's broken (without breaking the JavaScript object
+   * model).
+   *
+   * @param {Error} reason The reason for rejection.
+   * @returns {EventOrPromise} An appropriately-constructed instance.
+   */
+  static reject(reason) {
+    const promise = PromiseUtil.rejectAndHandle(reason);
+    const result  = new this(promise);
+
+    result.#rejectedReason = reason;
+    return result;
   }
 }
