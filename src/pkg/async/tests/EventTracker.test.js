@@ -691,7 +691,23 @@ describe('advance() breakage scenarios', () => {
     expect(() => tracker.headNow).toThrow();
   });
 
-  test('causes breakage when it advances to a promise that resolves to a non-event', async () => {
+  test('causes breakage when it advances to (lands on) a promise that resolves to a non-event', async () => {
+    const mp      = new ManualPromise();
+    const event1  = new ChainedEvent(payload1, mp.promise);
+    const tracker = new EventTracker(event1);
+
+    // Baseline expectations.
+    expect(await tracker.advance()).toBe(event1);
+    expect(tracker.headNow).toBe(event1);
+
+    // The actual test.
+    const result = tracker.advance(1);
+    mp.resolve('not-an-event-whoopsie!');
+    await expect(result).rejects.toThrow();
+    expect(() => tracker.headNow).toThrow();
+  });
+
+  test('causes breakage when it advances past a promise that resolves to a non-event', async () => {
     const mp      = new ManualPromise();
     const event1  = new ChainedEvent(payload1, mp.promise);
     const tracker = new EventTracker(event1);
