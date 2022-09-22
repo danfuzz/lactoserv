@@ -91,7 +91,8 @@ export class EventOrPromise {
    * cases _except_ when this instance was constructed with a promise and that
    * promise has yet to settle. This class guarantees that, if this promise is
    * fulfilled (not rejected), then it will indeed be an instance of {@link
-   * ChainedEvent}.
+   * ChainedEvent}. This class also guarantees that, if this promise is
+   * rejected, then {@link #rejectedReason} is non-`null`.
    */
   get eventPromise() {
     if (this.#eventPromise === null) {
@@ -115,6 +116,24 @@ export class EventOrPromise {
     } else {
       return new EventOrPromise(this.#nextFromPromise());
     }
+  }
+
+  /**
+   * @type {?Error} The synchronously-known reason why {@link #eventPromise} was
+   * rejected, if it was indeed rejected and observed by this instance as such.
+   */
+  get rejectedReason() {
+    return this.#rejectedReason;
+  }
+
+  /**
+   * Indicates whether this instance is synchronously known to have a rejected
+   * {@link #eventPromise}.
+   *
+   * @returns {boolean} `true` iff {@link #eventPromise} is rejected.
+   */
+  isRejected() {
+    return this.#rejectedReason !== null;
   }
 
   /**
