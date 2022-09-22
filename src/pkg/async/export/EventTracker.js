@@ -59,7 +59,10 @@ export class EventTracker {
   /** @type {EventOrPromise} Head of (first event on) the chain. */
   #head = null;
 
-  /** @type {?Error} Error which "broke" this instance, if any. */
+  /**
+   * @type {?Error} Error which "broke" this instance, if any. This is _mostly_
+   * duplicative of `#head.rejectedReason`. TODO: Eliminate this.
+   */
   #brokenReason = null;
 
   /**
@@ -80,10 +83,6 @@ export class EventTracker {
    * @throws {Error} Thrown if this instance somehow became broken.
    */
   get headNow() {
-    if (this.#brokenReason) {
-      throw this.#brokenReason;
-    }
-
     return this.#head.eventNow;
   }
 
@@ -123,10 +122,6 @@ export class EventTracker {
    */
   async advance(predicate = null) {
     predicate = EventTracker.#validateAndTransformPredicate(predicate);
-
-    if (this.#brokenReason) {
-      throw this.#brokenReason;
-    }
 
     // Note: If there are any pending actions right now, they're already "baked
     // into" `#head` in that `#head.eventNow === null` and `#head.eventPromise`
@@ -192,15 +187,9 @@ export class EventTracker {
   advanceSync(predicate = null) {
     predicate = EventTracker.#validateAndTransformPredicate(predicate);
 
-    if (this.#brokenReason) {
-      // Throwing the reason would be against the contract of this method. The
-      // caller can determine brokenness via other means.
-      return null;
-    }
-
     const result = this.advance(predicate);
 
-    if (this.#head.eventNow) {
+    if (!this.#head.isRejected() && this.#head.eventNow) {
       // The `advance()` call succeeded synchronously.
       return this.#head.eventNow;
     }
@@ -280,10 +269,6 @@ export class EventTracker {
   async peek(predicate = null) {
     predicate = EventTracker.#validateAndTransformPredicate(predicate);
 
-    if (this.#brokenReason) {
-      throw this.#brokenReason;
-    }
-
     const action = new AdvanceAction(this.#head, predicate);
     return action.handleAsync();
   }
@@ -325,12 +310,12 @@ export class EventTracker {
    */
   #setHead(event) {
     if (this.#brokenReason) {
-      // Nothing to do; already broken.
+      // Nothing to do; the instance is broken.
       return;
     }
 
     if (event instanceof EventOrPromise) {
-      if (event.rejectedReason) {
+      if (event.isRejected()) {
         this.#becomeBroken(event.rejectedReason);
       } else {
         this.#head = event;
