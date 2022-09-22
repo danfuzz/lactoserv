@@ -56,14 +56,12 @@ let EventPredicate;
  * emitting events on the chain.
  */
 export class EventTracker {
-  /** @type {EventOrPromise} Head of (first event on) the chain. */
-  #head = null;
-
   /**
-   * @type {?Error} Error which "broke" this instance, if any. This is _mostly_
-   * duplicative of `#head.rejectedReason`. TODO: Eliminate this.
+   * @type {EventOrPromise} Head of (the first event on) the chain. This also
+   * represents an instance of this class being broken by itself being in a
+   * "rejected" state.
    */
-  #brokenReason = null;
+  #head = null;
 
   /**
    * Constructs an instance.
@@ -282,16 +280,13 @@ export class EventTracker {
    * @param {Error} reason The cause of the breakage.
    */
   #becomeBroken(reason) {
-    if (this.#brokenReason) {
-      if (reason !== this.#brokenReason) {
-        // It's expected that the same breakage reason will come in via multiple
-        // channels, so only make noise if there's a different reason than the
-        // one we've already seen.
-        console.log('Ignoring `becomeBroken()`, because already broken!');
-      }
+    if (this.#head?.isRejected() && (this.#head.rejectedReason !== reason)) {
+      // It's expected that the same breakage reason will come in via multiple
+      // channels, so only make noise if there's a different reason than the one
+      // we've already seen.
+      console.log('Ignoring `becomeBroken()`, because already broken!');
     } else {
-      this.#brokenReason = reason;
-      this.#head         = EventOrPromise.reject(reason);
+      this.#head = EventOrPromise.reject(reason);
     }
   }
 
@@ -309,7 +304,7 @@ export class EventTracker {
    * @throws {Error} Thrown if `event` is not a valid value.
    */
   #setHead(event) {
-    if (this.#brokenReason) {
+    if (this.#head?.isRejected()) {
       // Nothing to do; the instance is broken.
       return;
     }
