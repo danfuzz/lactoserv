@@ -15,10 +15,10 @@ export class PromiseUtil {
    *
    * @param {*} maybePromise The promise in question.
    */
-  static handleRejection(promise) {
+  static handleRejection(maybePromise) {
     (async () => {
       try {
-        await promise;
+        await maybePromise;
       } catch {
         // Ignore it.
       }
@@ -30,6 +30,7 @@ export class PromiseUtil {
    * handled."
    *
    * @param {Error} reason The rejection reason.
+   * @returns {Promise} The appropriately-constructed pre-handled promise.
    */
   static rejectAndHandle(reason) {
     MustBe.object(reason, Error);

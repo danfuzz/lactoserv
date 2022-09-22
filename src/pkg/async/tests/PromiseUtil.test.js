@@ -18,7 +18,7 @@ const wasHandled = async (promise) => {
     if (p === promise) {
       gotCalled = true;
     }
-  }
+  };
 
   process.on('unhandledRejection', listener);
   await timers.setImmediate();
