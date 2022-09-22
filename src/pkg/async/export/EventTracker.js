@@ -383,11 +383,10 @@ class AdvanceAction {
 
   /**
    * Completes this operation -- or dies trying -- asynchronously. As with
-   * {@link #handleSync}, this method does not return a value or throw an
-   * error. That said, it only async-returns (with no value) after the operation
-   * has completed, whether or not successfully. And after it _does_
-   * async-return, {@link #result} can be used to find out what the result
-   * actually was.
+   * {@link #handleSync}, this method does not return a value or throw an error.
+   * That said, it only async-returns (with no value) after the operation has
+   * completed, whether or not successfully. And after it _does_ async-return,
+   * {@link #result} can be used to find out what the result actually was.
    *
    * @returns {EventOrPromise} The result of the operation, whether or not
    *   successful. This is the same value as {@link #result} will subsequently
