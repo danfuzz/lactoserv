@@ -31,8 +31,16 @@ export class PromiseState {
       showProxy:       false
     });
 
-    // Note: `|()` guarantees that the match will succeed.
-    return str.match(/^Promise \{ <(pending|rejected)>|()/)[1] ?? 'fulfilled';
+    // Use a tightly-matching regex when given a regular promise, and a more
+    // loosey-goosey one when given a subclass. The latter can (and does)
+    // happen, for example, when using testing tools that instrument promises.
+    // Note: The use of `|()` guarantees that `str.match()` won't ever get an
+    // error (it'll just successfully match nothing).
+    const regex = (promise.constructor.name === 'Promise')
+      ? /^Promise \{ <(pending|rejected)>|()/
+      : /^[^{]+[{][^<]+<(pending|rejected)>|()/;
+
+    return str.match(regex)[1] ?? 'fulfilled';
   }
 
   /**
