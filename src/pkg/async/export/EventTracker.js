@@ -406,6 +406,12 @@ export class EventTracker {
  */
 class AdvanceAction {
   /**
+   * @type {EventOrPromise} Event chain head from the perspective of the
+   * in-progress operation.
+   */
+  #head;
+
+  /**
    * @type {function(ChainedEvent): boolean} Predicate which an event needs to
    * satisfy, for the operation to be considered complete.
    */
@@ -416,12 +422,6 @@ class AdvanceAction {
    * completed.
    */
   #resultHead = null;
-
-  /**
-   * @type {EventOrPromise} Event chain head from the perspective of the
-   * in-progress operation.
-   */
-  #head;
 
   /**
    * Constructs an instance.
