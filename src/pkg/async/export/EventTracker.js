@@ -442,8 +442,9 @@ class AdvanceAction {
         await this.#head.eventPromise;
       } catch {
         // There is no need -- and it's counterproductive -- to pass an error to
-        // `becomeDone()` here: It will find `#head.rejectedReason` and not have
-        // to whip up a new rejected promise.
+        // `becomeDone()` here: `#head.rejectedReason` already has the reason,
+        // and it just gets implicitly incorporated into the result, so there's
+        // no need to whip up a new rejected promise.
         this.#becomeDone();
       }
     }
