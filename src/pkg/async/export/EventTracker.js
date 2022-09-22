@@ -317,18 +317,6 @@ export class EventTracker {
     } else {
       this.#head = new EventOrPromise(event);
     }
-
-    if (!this.#head.eventNow) {
-      // Arrange for this instance to become broken if/when `event` resolves as
-      // broken.
-      (async () => {
-        try {
-          await this.#head.eventPromise;
-        } catch (reason) {
-          this.#becomeBroken(reason);
-        }
-      })();
-    }
   }
 
 
