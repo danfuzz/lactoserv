@@ -30,7 +30,7 @@ export class ChainedEvent {
   #next;
 
   /** @type {boolean} Is the emitter available for hand-off? */
-  #emitterAvailable;
+  #hasEmitter;
 
   /**
    * @type {?function(*)} Function which can be called to resolve the (promise
@@ -58,11 +58,11 @@ export class ChainedEvent {
     this.#payload = payload;
 
     if (next === null) {
-      this.#emitterAvailable = true;
-      this.#next = null;
+      this.#hasEmitter = true;
+      this.#next       = null;
     } else {
-      this.#emitterAvailable = false;
-      this.#next = (next instanceof EventOrPromise)
+      this.#hasEmitter = false;
+      this.#next       = (next instanceof EventOrPromise)
         ? next
         : new EventOrPromise(next, this.constructor);
     }
@@ -94,8 +94,8 @@ export class ChainedEvent {
    *   instance.
    */
   get emitter() {
-    if (this.#emitterAvailable) {
-      this.#emitterAvailable = false;
+    if (this.#hasEmitter) {
+      this.#hasEmitter = false;
       return (payload) => {
         const event = this.#emit(payload);
         return event.emitter;
