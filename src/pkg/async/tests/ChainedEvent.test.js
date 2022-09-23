@@ -131,7 +131,7 @@ describe('constructor(payload, next: Promise)', () => {
 
 describe('constructor(payload, next: Promise) -- invalid resolution', () => {
   describe('when `next` resolves to an invalid instance', () => {
-    test('`nextNow === null`', async () => {
+    test('`nextNow` throws', async () => {
       const mp    = new ManualPromise();
       const event = new ChainedEvent(payload1, mp.promise);
 
@@ -145,10 +145,10 @@ describe('constructor(payload, next: Promise) -- invalid resolution', () => {
         // Just swallow the error for the purposes of this test.
       }
 
-      expect(event.nextNow).toBeNull();
+      expect(() => event.nextNow).toThrow();
     });
 
-    test('has `next` that becomes rejected', async () => {
+    test('has `nextPromise` that becomes rejected', async () => {
       const mp    = new ManualPromise();
       const event = new ChainedEvent(payload1, mp.promise);
 
@@ -158,12 +158,13 @@ describe('constructor(payload, next: Promise) -- invalid resolution', () => {
     });
   });
 
-  describe('when `next` becomes rejected', () => {
-    test('`nextNow === null`', async () => {
-      const mp    = new ManualPromise();
-      const event = new ChainedEvent(payload1, mp.promise);
+  describe('when `nextPromise` becomes rejected', () => {
+    test('`nextNow` throws for the same reason', async () => {
+      const mp     = new ManualPromise();
+      const event  = new ChainedEvent(payload1, mp.promise);
+      const reason = new Error('Oh biscuits.');
 
-      mp.reject(new Error('oof!'));
+      mp.reject(reason);
 
       // We have to let `event.nextPromise` become rejected before we can tell
       // that `event.nextNow` is correctly not-set.
@@ -173,10 +174,10 @@ describe('constructor(payload, next: Promise) -- invalid resolution', () => {
         // Just swallow the error for the purposes of this test.
       }
 
-      expect(event.nextNow).toBeNull();
+      expect(() => event.nextNow).toThrow(reason);
     });
 
-    test('has `next` that becomes rejected for the same reason', async () => {
+    test('has `nextPromise` that becomes rejected for the same reason', async () => {
       const mp     = new ManualPromise();
       const event  = new ChainedEvent(payload1, mp.promise);
       const reason = new Error('forsooth');
@@ -414,6 +415,6 @@ describe('subclass behavior', () => {
     mp.resolve(baddie);
 
     await expect(event.nextPromise).rejects.toThrow();
-    expect(event.nextNow).toBeNull();
+    expect(() => event.nextNow).toThrow();
   });
 });
