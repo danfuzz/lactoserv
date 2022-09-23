@@ -44,16 +44,9 @@ export class EventOrPromise {
    *   `null` not to require a specific subclass.
    */
   constructor(event, subclass = null) {
-    if (event instanceof ChainedEvent) {
-      if (EventOrPromise.#eventIsInstanceOf(event, subclass)) {
-        this.#eventNow     = event;
-        this.#eventPromise = null;
-      } else {
-        throw new Error('Invalid event value (incorrect class, synchronously known).');
-      }
-    } else if (event instanceof Promise) {
+    if (event instanceof Promise) {
       // We resolve the promise in an "async-aside" to achieve the specified
-      // no-throw behavior. Also note that we can't store `event` directly into
+      // no-throw behavior. Also note that we can't store `event`-the-promise directly into
       // `#eventPromise`, because it might not resolve to a valid value, and we
       // maintain a guarantee about the validity of what that resolves to.
       const mp = new ManualPromise();
@@ -62,15 +55,8 @@ export class EventOrPromise {
       (async () => {
         try {
           const eventNow = await event;
-          if (eventNow instanceof ChainedEvent) {
-            if (EventOrPromise.#eventIsInstanceOf(eventNow, subclass)) {
-              mp.resolve(eventNow);
-            } else {
-              throw new Error('Invalid event value (incorrect class, promise resolution).');
-            }
-          } else {
-            throw new Error('Invalid event value (non-event, promise resolution).');
-          }
+          EventOrPromise.#validateEvent(eventNow, subclass, 'resolved promise');
+          mp.resolve(eventNow);
           this.#eventNow = eventNow;
         } catch (reason) {
           this.#rejectedReason = reason;
@@ -78,7 +64,9 @@ export class EventOrPromise {
         }
       })();
     } else {
-      throw new Error('Invalid event value (non-event, synchronously known).');
+      EventOrPromise.#validateEvent(event, subclass, 'synchronous');
+      this.#eventNow     = event;
+      this.#eventPromise = null;
     }
   }
 
@@ -193,5 +181,15 @@ export class EventOrPromise {
    */
   static #eventIsInstanceOf(event, cls) {
     return (cls === null) || (event instanceof cls);
+  }
+
+  static #validateEvent(event, cls, context) {
+    if (event instanceof ChainedEvent) {
+      if (!EventOrPromise.#eventIsInstanceOf(event, cls)) {
+        throw new Error(`Invalid event value (incorrect class, ${context}).`);
+      }
+    } else {
+      throw new Error(`Invalid event value (non-event, ${context}).`);
+    }
   }
 }
