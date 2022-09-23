@@ -33,17 +33,24 @@ export class EventOrPromise {
    * so that {@link #headNow} becomes set reasonably promptly.
    *
    * **Note:** If given a promise which resolves to an invalid value (including
-   * becoming rejected), both {@link #eventNow} and will respond by throwing an
-   * error. That said, in the case of a promise rejection, the direct rejection
-   * is "handled" by this instance, so that no unhandled promise rejections will
+   * becoming rejected), {@link #eventNow} will respond by throwing an error.
+   * That said, in the case of a promise rejection, the direct rejection is
+   * "handled" by this instance, so that no unhandled promise rejections will
    * result just from constructing an instance.
    *
    * @param {ChainedEvent|Promise<ChainedEvent>} event Event or promise to wrap.
+   * @param {?function(new:ChainedEvent))} [subclass = null] Subclass which
+   *   `event` (or the resolved promise for it) must be an instance of, or
+   *   `null` not to require a specific subclass.
    */
-  constructor(event) {
+  constructor(event, subclass = null) {
     if (event instanceof ChainedEvent) {
-      this.#eventNow     = event;
-      this.#eventPromise = null;
+      if (EventOrPromise.#eventIsInstanceOf(event, subclass)) {
+        this.#eventNow     = event;
+        this.#eventPromise = null;
+      } else {
+        throw new Error('Invalid event value (incorrect class, synchronously known).');
+      }
     } else if (event instanceof Promise) {
       // We resolve the promise in an "async-aside" to achieve the specified
       // no-throw behavior. Also note that we can't store `event` directly into
@@ -56,9 +63,13 @@ export class EventOrPromise {
         try {
           const eventNow = await event;
           if (eventNow instanceof ChainedEvent) {
-            mp.resolve(eventNow);
+            if (EventOrPromise.#eventIsInstanceOf(eventNow, subclass)) {
+              mp.resolve(eventNow);
+            } else {
+              throw new Error('Invalid event value (incorrect class, promise resolution).');
+            }
           } else {
-            throw new Error('Invalid event value (promise resolution).');
+            throw new Error('Invalid event value (non-event, promise resolution).');
           }
           this.#eventNow = eventNow;
         } catch (reason) {
@@ -67,7 +78,7 @@ export class EventOrPromise {
         }
       })();
     } else {
-      throw new Error('Invalid event value (synchronously known).');
+      throw new Error('Invalid event value (non-event, synchronously known).');
     }
   }
 
@@ -168,5 +179,18 @@ export class EventOrPromise {
 
     result.#rejectedReason = reason;
     return result;
+  }
+
+  /**
+   * Checks a concrete event instance to see if it is an instance of the
+   * indicated class.
+   *
+   * @param {ChainedEvent} event The event in question.
+   * @param {?function(new:ChainedEvent))} cls Class to check for, or `null` to
+   *   consider all instances to pass.
+   * @returns {boolean} `true` iff `event instanceof cls` or `cls === null`.
+   */
+  static #eventIsInstanceOf(event, cls) {
+    return (cls === null) || (event instanceof cls);
   }
 }
