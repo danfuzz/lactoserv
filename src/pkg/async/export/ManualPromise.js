@@ -23,8 +23,8 @@ export class ManualPromise {
 
   /**
    * @type {?({ fulfilled: true, value: * }|{ rejected: true, reason: * }|
-   * { linked: true, target: Promise })} The resolution, if the underlying
-   * promise has settled.
+   * { forwarded: true, from: Promise })} The resolution, if the underlying
+   * promise has settled or become a forwarding target.
    */
   #resolution = null;
 
@@ -102,7 +102,7 @@ export class ManualPromise {
    */
   isSettled() {
     return (this.#resolution !== null)
-      && (!this.#resolution?.linked);
+      && (!this.#resolution?.forwarded);
   }
 
   /**
@@ -173,7 +173,7 @@ export class ManualPromise {
    * @param {Promise} promise The instance to link to.
    */
   #linkPromise(promise) {
-    this.#resolution = { linked: true, target: promise };
+    this.#resolution = { forwarded: true, from: promise };
     this.#resolve(promise);
 
     // Make the synchronously-known settled state get updated once `promise`
