@@ -380,15 +380,12 @@ class AdvanceAction {
   }
 
   /**
-   * Completes this operation -- or dies trying -- asynchronously. As with
-   * {@link #handleSync}, this method does not return a value or throw an error.
-   * That said, it only async-returns (with no value) after the operation has
-   * completed, whether or not successfully. And after it _does_ async-return,
-   * {@link #result} can be used to find out what the result actually was.
+   * Completes this operation -- or dies trying -- asynchronously.
    *
-   * @returns {EventOrPromise} The result of the operation, whether or not
-   *   successful. This is the same value as {@link #result} will subsequently
-   *   return.
+   * @returns {ChainedEvent} The result of the operation -- that is, the event
+   *   that was found -- if successful. This is the same value as {@link
+   *   #result.eventNow} will subsequently return.
+   * @throws {Error} Thrown if there was any problem.
    */
   async handleAsync() {
     while (!this.handleSync()) {
