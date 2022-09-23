@@ -84,11 +84,12 @@ export class EventOrPromise {
 
   /**
    * @returns {?ChainedEvent} Synchronously-known event of this instance, if
-   * known. This is non-`null` when the constructor was called with an event
-   * (not a promise) or when the constructor was called with a promise which
-   * became resolved to a valid value.
+   * in fact known. This is non-`null` when the constructor was called with an
+   * event (not a promise) or when the constructor was called with a promise
+   * which became resolved to a valid value.
    * @throws {Error} Thrown if the promise passed in the constructor became
-   * rejected or resolved to an invalid value.
+   * rejected or resolved to an invalid value, or if this instance was
+   * constructed via {@link #reject}.
    */
   get eventNow() {
     if (this.#rejectedReason) {
