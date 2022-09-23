@@ -37,7 +37,7 @@ export class ChainedEvent {
    * inside the) value of {@link #next}. `null` if {@link #next} is itself
    * `null` _or_ if the resolver got used.
    */
-  #nextResolver = null;
+  #resolveNext = null;
 
   /**
    * Constructs an instance.
@@ -126,8 +126,8 @@ export class ChainedEvent {
       // wasn't already known (pre-resolved). So, we set things up for eventual
       // resolution, returning a definitely-unsettled promise.
       const mp = new ManualPromise();
-      this.#next         = new EventOrPromise(mp.promise, this.constructor);
-      this.#nextResolver = (value => mp.resolve(value));
+      this.#next        = new EventOrPromise(mp.promise, this.constructor);
+      this.#resolveNext = (value => mp.resolve(value));
     }
 
     return this.#next.eventPromise;
@@ -205,8 +205,8 @@ export class ChainedEvent {
       // to resolve the promise that those calls returned. After that, there is
       // no longer a need to keep the resolver around, so we `null` it out to
       // avoid a bit of garbage accumulation.
-      this.#nextResolver(event);
-      this.#nextResolver = null;
+      this.#resolveNext(event);
+      this.#resolveNext = null;
     }
 
     this.#next = next;
