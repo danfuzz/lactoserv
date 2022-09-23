@@ -39,7 +39,7 @@ export class EventOrPromise {
    * result just from constructing an instance.
    *
    * @param {ChainedEvent|Promise<ChainedEvent>} event Event or promise to wrap.
-   * @param {?function(new:ChainedEvent))} [subclass = null] Subclass which
+   * @param {?function(new:ChainedEvent)} [subclass = null] Subclass which
    *   `event` (or the resolved promise for it) must be an instance of, or
    *   `null` not to require a specific subclass.
    */
@@ -186,7 +186,7 @@ export class EventOrPromise {
    * indicated class.
    *
    * @param {ChainedEvent} event The event in question.
-   * @param {?function(new:ChainedEvent))} cls Class to check for, or `null` to
+   * @param {?function(new:ChainedEvent)} cls Class to check for, or `null` to
    *   consider all instances to pass.
    * @returns {boolean} `true` iff `event instanceof cls` or `cls === null`.
    */
