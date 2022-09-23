@@ -171,21 +171,19 @@ export class EventOrPromise {
   }
 
   /**
-   * Checks a concrete event instance to see if it is an instance of the
-   * indicated class.
+   * Checks an alleged event instance to see if it is (a) actually an instance
+   * of `ChainedEvent` and optionally an instance of a specific subclass
+   * thereof.
    *
    * @param {ChainedEvent} event The event in question.
-   * @param {?function(new:ChainedEvent)} cls Class to check for, or `null` to
-   *   consider all instances to pass.
-   * @returns {boolean} `true` iff `event instanceof cls` or `cls === null`.
+   * @param {?function(new:ChainedEvent)} subclass Class to check for, or `null`
+   *   to consider all `ChainedEvent` instances okay.
+   * @param {string} context Context to include in error messages.
+   * @throws {Error} Thrown if `event` is problematic.
    */
-  static #eventIsInstanceOf(event, cls) {
-    return (cls === null) || (event instanceof cls);
-  }
-
-  static #validateEvent(event, cls, context) {
+  static #validateEvent(event, subclass, context) {
     if (event instanceof ChainedEvent) {
-      if (!EventOrPromise.#eventIsInstanceOf(event, cls)) {
+      if ((subclass !== null) && !(event instanceof subclass)) {
         throw new Error(`Invalid event value (incorrect class, ${context}).`);
       }
     } else {
