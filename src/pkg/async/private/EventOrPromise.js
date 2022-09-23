@@ -15,7 +15,7 @@ export class EventOrPromise {
   #eventNow;
 
   /**
-   * @type {?Promise<ChainedEvent>} Promise for {@link #headNow}, when that
+   * @type {?Promise<ChainedEvent>} Promise for {@link #eventNow}, when that
    * property isn't synchronously known _or_ when it's known but something has
    * asked for the promise anyway.
    */
@@ -29,7 +29,7 @@ export class EventOrPromise {
 
   /**
    * Constructs an instance. If given a promise, it is pro-actively `await`ed,
-   * so that {@link #headNow} becomes set reasonably promptly.
+   * so that {@link #eventNow} becomes set reasonably promptly.
    *
    * **Note:** If given a promise which resolves to an invalid value (including
    * becoming rejected), {@link #eventNow} will respond by throwing an error.
