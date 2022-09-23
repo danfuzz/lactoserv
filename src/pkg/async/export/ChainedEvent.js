@@ -74,6 +74,13 @@ export class ChainedEvent {
    * #nextNow} to become known and thus appends a new event to the chain -- and
    * then returns the emitter function for the next-next event.
    *
+   * The returned function takes one argument, the payload to emit. When called,
+   * it may throw for these reasons:
+   * * It was already called successfully, which means there is already a next
+   *   event on the chain. (That is, this method can't be used to replace an
+   *   already-known next event with another.)
+   * * The given payload is considered invalid by the event constructor.
+   *
    * It is only valid to ever use this getter once per instance, so that the
    * "chain of custody" of the event chain can be maintained. That is, just
    * because something has a reference to this instance doesn't mean that it can
@@ -90,7 +97,10 @@ export class ChainedEvent {
   get emitter() {
     if (this.#emitterAvailable) {
       this.#emitterAvailable = false;
-      return (payload => this.#emitter0(payload));
+      return (payload) => {
+        const event = this.#emit(payload);
+        return event.emitter;
+      };
     } else {
       throw new Error('Emitter already handed off.');
     }
@@ -178,12 +188,17 @@ export class ChainedEvent {
    * Emits the next event, that is, appends it to the chain and resolves the
    * `next` promise, if needed.
    *
-   * @param {ChainedEvent} event The event.
+   * @param {*} payload The event payload.
+   * @returns {ChainedEvent} The event which was emitted on the chain.
+   * @throws {Error} Thrown for any of the reasons described by {@link
+   *   #emitter}.
    */
-  #emit(event) {
+  #emit(payload) {
     if (this.#next && ((this.#next.isRejected() || this.#next.eventNow))) {
       throw new Error('Can only call next-event emitter once per instance.');
     }
+
+    const event = new this.constructor(payload);
 
     // We always make a new `#next` with a resolved value, so that `.nextNow`
     // maintains its guarantee of being synchronously correct immediately
@@ -203,20 +218,7 @@ export class ChainedEvent {
     }
 
     this.#next = next;
-  }
 
-  /**
-   * Constructs an event from the given payload and emits it as the next event
-   * on the chain, returning the next-next emitter. The return value from
-   * {@link #emitter} is a wrapped call to this method.
-   *
-   * @param {*} payload The event payload.
-   * @returns {function(*): function(*)} The next-next-event emitter function.
-   */
-  #emitter0(payload) {
-    const event = new this.constructor(payload);
-
-    this.#emit(event);
-    return event.emitter;
+    return event;
   }
 }
