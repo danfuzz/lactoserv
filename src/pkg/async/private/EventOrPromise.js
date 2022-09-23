@@ -2,7 +2,6 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { ChainedEvent } from '#x/ChainedEvent';
-import { ManualPromise } from '#x/ManualPromise';
 import { PromiseUtil } from '#x/PromiseUtil';
 
 
@@ -123,40 +122,39 @@ export class EventOrPromise {
   }
 
   /**
-   * Helper for the constructor, with makes a promise wrapped around the
-   * originally-supplied event promise, suitable for storing into {@link
-   * #eventPromise}. In particular, this method ensures that the returned
-   * promise only ever resolves to a valid event instance, and that this
-   * instance's synchronous state is properly updated before the promise becomes
-   * resolved.
+   * Helper for the constructor, which resolves and validates the
+   * originally-supplied `event` promise, which the constructor is expected to
+   * (must!) store into {@link #eventPromise}. In particular, this method
+   * ensures that the synchronously-returned promise (from this `async` method)
+   * only ever resolves to a valid event instance, and that this instance's
+   * synchronous state is properly updated before the promise becomes resolved.
    *
    * @param {Promise<ChainedEvent>} eventPromise `event` from the constructor
    *   call.
    * @param {?function(new:ChainedEvent)} subclass `subclass` from the
    *   constructor call.
-   * @returns {Promise<ChainedEvent>} Promise that appropriately wraps
-   *   `eventPromise`.
+   * @returns {ChainedEvent} The valid fulfilled value of `eventPromise` if it
+   *   was indeed fulfilled as a valid event instance.
+   * @throws {Error} Thrown if there was any trouble with resolution.
    */
-  #makePromise(eventPromise, subclass) {
-    const mp = new ManualPromise();
+  async #makePromise(eventPromise, subclass) {
+    try {
+      const eventNow = await eventPromise;
 
-    // We resolve the promise in an "async-aside" to achieve the specified
-    // no-throw behavior. Also note that we can't store `eventPromise` directly
-    // into `#eventPromise`, because it might not resolve to a valid value, and
-    // we maintain a guarantee about the validity of what that resolves to.
-    (async () => {
-      try {
-        const eventNow = await eventPromise;
-        EventOrPromise.#validateEvent(eventNow, subclass, 'resolved promise');
-        mp.resolve(eventNow);
-        this.#eventNow = eventNow;
-      } catch (reason) {
-        this.#rejectedReason = reason;
-        mp.rejectAndHandle(reason);
-      }
-    })();
+      EventOrPromise.#validateEvent(eventNow, subclass, 'resolved promise');
+      this.#eventNow = eventNow;
+      return eventNow;
+    } catch (reason) {
+      this.#rejectedReason = reason;
 
-    return mp.promise;
+      // What's going on here: The `throw` below is going to cause the existing
+      // `#eventPromise` to be rejected -- because the promise returned from
+      // this method has already been stored there -- but this class guarantees
+      // that this situation won't cause an "unhandled promise rejection." So,
+      // we proactively get it handled.
+      PromiseUtil.handleRejection(this.#eventPromise);
+      throw reason;
+    }
   }
 
   /**
