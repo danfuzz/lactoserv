@@ -33,9 +33,9 @@ export class ChainedEvent {
   #emitterAvailable;
 
   /**
-   * @type {?function(*)} Function which can be called to resolve the value of
-   * {@link #next}. `null` if {@link #nextPromise} is itself `null` _or_ if the
-   * resolver got used.
+   * @type {?function(*)} Function which can be called to resolve the (promise
+   * inside the) value of {@link #next}. `null` if {@link #next} is itself
+   * `null` _or_ if the resolver got used.
    */
   #nextResolver = null;
 
