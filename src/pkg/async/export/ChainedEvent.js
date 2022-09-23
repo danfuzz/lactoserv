@@ -1,6 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { EventOrPromise } from '#p/EventOrPromise';
 import { ManualPromise } from '#x/ManualPromise';
 
 import { MustBe } from '@this/typey';
@@ -23,67 +24,47 @@ export class ChainedEvent {
   #payload;
 
   /**
-   * @type {?ChainedEvent} Next event in the chain, if there is in fact a next
-   * event in the chain.
+   * @type {?EventOrPromise} Next event in the chain, if there is in fact either
+   * a concrete next event or promise for same.
    */
-  #nextNow = null;
-
-  /**
-   * @type {?Promise<ChainedEvent>} Promise representing the next event in the
-   * chain, or `null` if there are no pending requests for same.
-   */
-  #nextPromise = null;
-
-  /**
-   * @type {?function(*)} Function which can be called to resolve the value of
-   * {@link #nextPromise}. `null` if {@link #nextPromise} is itself `null` _or_
-   * if the resolver got used.
-   */
-  #nextResolver = null;
+  #next;
 
   /** @type {boolean} Is the emitter available for hand-off? */
-  #emitterAvailable = true;
+  #emitterAvailable;
+
+  /**
+   * @type {?function(*)} Function which can be called to resolve the (promise
+   * inside the) value of {@link #next}. `null` if {@link #next} is itself
+   * `null` _or_ if the resolver got used.
+   */
+  #nextResolver = null;
 
   /**
    * Constructs an instance.
    *
    * @param {*} payload The event payload.
-   * @param {?ChainedEvent|Promise<ChainedEvent>} [next = null] The next event
-   *   in the chain or promise for same, if already known. If passed as
-   *   non-`null`:
+   * @param {?ChainedEvent|Promise<ChainedEvent>|EventOrPromise} [next = null]
+   *   The next event in the chain or promise for same, if already known. If
+   *   passed as non-`null`:
    *   * The value (or eventually-resolved value) is type-checked to be an
    *     instance of this class.
-   *   * If it is a promise, and it becomes rejected, `next` on this instance
-   *     will get rejected with the same reason.
    *   * {@link #emitter} is considered "already used."
+   *   * If it is a promise, and it becomes rejected, `nextPromise` on this
+   *     instance will get rejected with the same reason.
+   *   **Note:** The last type option, `EventOrPromise`, is an internal class
+   *   which is used in some of the underlying functionality of this class.
    */
   constructor(payload, next = null) {
     this.#payload = payload;
 
-    if (next !== null) {
+    if (next === null) {
+      this.#emitterAvailable = true;
+      this.#next = null;
+    } else {
       this.#emitterAvailable = false;
-      if (next instanceof Promise) {
-        // Arrange for `nextNow` to get set and `next` to resolve, when the
-        // incoming when `next` ultimately resolves, but only if it's valid!
-        const mp = new ManualPromise();
-        this.#nextPromise = mp.promise;
-        (async () => {
-          try {
-            const nextNow = await next;
-            if (!(nextNow instanceof this.constructor)) {
-              throw new Error('Wrong instance type for resolved `next`.');
-            }
-            this.#nextNow = nextNow;
-            mp.resolve(nextNow);
-          } catch (e) {
-            mp.rejectAndHandle(e);
-          }
-        })();
-      } else if (next instanceof this.constructor) {
-        this.#nextNow = next;
-      } else {
-        throw new Error('Wrong instance type for pre-resolved `next`.');
-      }
+      this.#next = (next instanceof EventOrPromise)
+        ? next
+        : new EventOrPromise(next, this.constructor);
     }
   }
 
@@ -91,6 +72,13 @@ export class ChainedEvent {
    * Gets a function which emits the next event -- that is, which causes {@link
    * #nextNow} to become known and thus appends a new event to the chain -- and
    * then returns the emitter function for the next-next event.
+   *
+   * The returned function takes one argument, the payload to emit. When called,
+   * it may throw for these reasons:
+   * * It was already called successfully, which means there is already a next
+   *   event on the chain. (That is, this method can't be used to replace an
+   *   already-known next event with another.)
+   * * The given payload is considered invalid by the event constructor.
    *
    * It is only valid to ever use this getter once per instance, so that the
    * "chain of custody" of the event chain can be maintained. That is, just
@@ -108,7 +96,10 @@ export class ChainedEvent {
   get emitter() {
     if (this.#emitterAvailable) {
       this.#emitterAvailable = false;
-      return (payload => this.#emitter0(payload));
+      return (payload) => {
+        const event = this.#emit(payload);
+        return event.emitter;
+      };
     } else {
       throw new Error('Emitter already handed off.');
     }
@@ -116,10 +107,17 @@ export class ChainedEvent {
 
   /**
    * @returns {?ChainedEvent} The next event in the chain after this instance if
-   * it is immediately available, or `null` if there is not yet a next event.
+   * it is immediately available, or `null` if there is not yet a
+   * synchronously-known next event.
+   * @throws {Error} Thrown if the promise passed in the constructor became
+   * rejected or resolved to an invalid value.
    */
   get nextNow() {
-    return this.#nextNow;
+    if (!this.#next) {
+      return null;
+    }
+
+    return this.#next.eventNow;
   }
 
   /**
@@ -127,22 +125,16 @@ export class ChainedEvent {
    * after this instance, which becomes resolved once it is available.
    */
   get nextPromise() {
-    if (this.#nextPromise) {
-      return this.#nextPromise;
-    } else if (this.#nextNow) {
-      this.#nextPromise = Promise.resolve(this.#nextNow);
-      return this.#nextPromise;
+    if (!this.#next) {
+      // This is the first time this getter has been called, and the next event
+      // wasn't already known (pre-resolved). So, we set things up for eventual
+      // resolution, returning a definitely-unsettled promise.
+      const mp = new ManualPromise();
+      this.#next         = new EventOrPromise(mp.promise, this.constructor);
+      this.#nextResolver = (value => mp.resolve(value));
     }
 
-    // This is the first time this getter has been called, and the next event
-    // isn't yet known. So, we set things up for eventual resolution, returning
-    // a definitely-unsettled promise.
-
-    const mp = new ManualPromise();
-    this.#nextPromise = mp.promise;
-    this.#nextResolver = (value => mp.resolve(value));
-
-    return this.#nextPromise;
+    return this.#next.eventPromise;
   }
 
   /** @returns {*} The event payload. */
@@ -171,60 +163,58 @@ export class ChainedEvent {
    *   of the same names.
    */
   withPayload(payload) {
-    return new this.constructor(payload, this.#nextNow ?? this.nextPromise);
+    return new this.constructor(payload, this.#next ?? this.nextPromise);
   }
 
   /**
    * Constructs a new event which -- from its perspective -- has been "pushed"
    * onto the head of the event chain that continues with this instance. That
-   * is, the constructed event's `next` and `nextNow` immediately point at this
-   * instance.
+   * is, the constructed event's `nextPromise` and `nextNow` immediately point
+   * at this instance.
    *
    * @param {*} payload Event payload.
    * @returns {ChainedEvent} New event instance with the given `payload`, and
-   *   whose `next` and `nextNow` refer to this instance.
+   *   whose `nextPromise` and `nextNow` refer to this instance.
    */
   withPushedHead(payload) {
     return new this.constructor(payload, this);
   }
 
   /**
-   * Emits the next event, that is, appends it to the chain and resolves the
-   * `next` promise, if needed.
+   * Emits the next event, that is, appends it to the chain and resolves
+   * `#next.eventPromise`, if needed.
    *
-   * @param {ChainedEvent} event The event.
+   * @param {*} payload The event payload.
+   * @returns {ChainedEvent} The event which was emitted on the chain.
+   * @throws {Error} Thrown for any of the reasons described by {@link
+   *   #emitter}.
    */
-  #emit(event) {
-    if (this.#nextNow) {
+  #emit(payload) {
+    if (this.#next && ((this.#next.isRejected() || this.#next.eventNow))) {
       throw new Error('Can only call next-event emitter once per instance.');
     }
 
-    this.#nextNow = event;
+    const event = new this.constructor(payload);
 
-    if (this.#nextPromise) {
+    // We always make a new `#next` with a resolved value, so that `.nextNow`
+    // maintains its guarantee of being synchronously correct immediately
+    // post-emit. E.g., if the original `#next` were promise-bearing, and we
+    // just resolved it, then there would be a moment in time after this
+    // method completed and before `#next.eventNow` was set in which this
+    // instance's state would be inconsistent.
+    const next = new EventOrPromise(event, this.constructor);
+
+    if (this.#next) {
       // There have already been one or more calls to `.nextPromise`, so we need
       // to resolve the promise that those calls returned. After that, there is
       // no longer a need to keep the resolver around, so we `null` it out to
-      // avoid a bit of garbage accumulation. (We keep the promise around,
-      // though, because it's reasonably expectable for `.nextPromise` to be
-      // called again.)
-      this.#nextResolver(this.#nextNow);
+      // avoid a bit of garbage accumulation.
+      this.#nextResolver(event);
       this.#nextResolver = null;
     }
-  }
 
-  /**
-   * Constructs an event from the given payload and emits it as the next event
-   * on the chain, returning the next-next emitter. The return value from
-   * {@link #emitter} is a wrapped call to this method.
-   *
-   * @param {*} payload The event payload.
-   * @returns {function(*): function(*)} The next-next-event emitter function.
-   */
-  #emitter0(payload) {
-    const event = new this.constructor(payload);
+    this.#next = next;
 
-    this.#emit(event);
-    return event.emitter;
+    return event;
   }
 }

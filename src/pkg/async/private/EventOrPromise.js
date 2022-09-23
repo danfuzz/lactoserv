@@ -2,7 +2,6 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { ChainedEvent } from '#x/ChainedEvent';
-import { ManualPromise } from '#x/ManualPromise';
 import { PromiseUtil } from '#x/PromiseUtil';
 
 
@@ -16,7 +15,7 @@ export class EventOrPromise {
   #eventNow;
 
   /**
-   * @type {?Promise<ChainedEvent>} Promise for {@link #headNow}, when that
+   * @type {?Promise<ChainedEvent>} Promise for {@link #eventNow}, when that
    * property isn't synchronously known _or_ when it's known but something has
    * asked for the promise anyway.
    */
@@ -30,54 +29,38 @@ export class EventOrPromise {
 
   /**
    * Constructs an instance. If given a promise, it is pro-actively `await`ed,
-   * so that {@link #headNow} becomes set reasonably promptly.
+   * so that {@link #eventNow} becomes set reasonably promptly.
    *
    * **Note:** If given a promise which resolves to an invalid value (including
-   * becoming rejected), both {@link #eventNow} and will respond by throwing an
-   * error. That said, in the case of a promise rejection, the direct rejection
-   * is "handled" by this instance, so that no unhandled promise rejections will
+   * becoming rejected), {@link #eventNow} will respond by throwing an error.
+   * That said, in the case of a promise rejection, the direct rejection is
+   * "handled" by this instance, so that no unhandled promise rejections will
    * result just from constructing an instance.
    *
    * @param {ChainedEvent|Promise<ChainedEvent>} event Event or promise to wrap.
+   * @param {?function(new:ChainedEvent)} [subclass = null] Subclass which
+   *   `event` (or the resolved promise for it) must be an instance of, or
+   *   `null` not to require a specific subclass.
    */
-  constructor(event) {
-    if (event instanceof ChainedEvent) {
+  constructor(event, subclass = null) {
+    if (event instanceof Promise) {
+      this.#eventNow     = null;
+      this.#eventPromise = this.#makePromise(event, subclass);
+    } else {
+      EventOrPromise.#validateEvent(event, subclass, 'synchronous');
       this.#eventNow     = event;
       this.#eventPromise = null;
-    } else if (event instanceof Promise) {
-      // We resolve the promise in an "async-aside" to achieve the specified
-      // no-throw behavior. Also note that we can't store `event` directly into
-      // `#eventPromise`, because it might not resolve to a valid value, and we
-      // maintain a guarantee about the validity of what that resolves to.
-      const mp = new ManualPromise();
-      this.#eventNow     = null;
-      this.#eventPromise = mp.promise;
-      (async () => {
-        try {
-          const eventNow = await event;
-          if (eventNow instanceof ChainedEvent) {
-            mp.resolve(eventNow);
-          } else {
-            throw new Error('Invalid event value (promise resolution).');
-          }
-          this.#eventNow = eventNow;
-        } catch (reason) {
-          this.#rejectedReason = reason;
-          mp.rejectAndHandle(reason);
-        }
-      })();
-    } else {
-      throw new Error('Invalid event value (synchronously known).');
     }
   }
 
   /**
    * @returns {?ChainedEvent} Synchronously-known event of this instance, if
-   * known. This is non-`null` when the constructor was called with an event
-   * (not a promise) or when the constructor was called with a promise which
-   * became resolved to a valid value.
+   * in fact known. This is non-`null` when the constructor was called with an
+   * event (not a promise) or when the constructor was called with a promise
+   * which became resolved to a valid value.
    * @throws {Error} Thrown if the promise passed in the constructor became
-   * rejected or resolved to an invalid value.
+   * rejected or resolved to an invalid value, or if this instance was
+   * constructed via {@link #reject}.
    */
   get eventNow() {
     if (this.#rejectedReason) {
@@ -139,6 +122,42 @@ export class EventOrPromise {
   }
 
   /**
+   * Helper for the constructor, which resolves and validates the
+   * originally-supplied `event` promise, which the constructor is expected to
+   * (must!) store into {@link #eventPromise}. In particular, this method
+   * ensures that the synchronously-returned promise (from this `async` method)
+   * only ever resolves to a valid event instance, and that this instance's
+   * synchronous state is properly updated before the promise becomes resolved.
+   *
+   * @param {Promise<ChainedEvent>} eventPromise `event` from the constructor
+   *   call.
+   * @param {?function(new:ChainedEvent)} subclass `subclass` from the
+   *   constructor call.
+   * @returns {ChainedEvent} The valid fulfilled value of `eventPromise` if it
+   *   was indeed fulfilled as a valid event instance.
+   * @throws {Error} Thrown if there was any trouble with resolution.
+   */
+  async #makePromise(eventPromise, subclass) {
+    try {
+      const eventNow = await eventPromise;
+
+      EventOrPromise.#validateEvent(eventNow, subclass, 'resolved promise');
+      this.#eventNow = eventNow;
+      return eventNow;
+    } catch (reason) {
+      this.#rejectedReason = reason;
+
+      // What's going on here: The `throw` below is going to cause the existing
+      // `#eventPromise` to be rejected -- because the promise returned from
+      // this method has already been stored there -- but this class guarantees
+      // that this situation won't cause an "unhandled promise rejection." So,
+      // we proactively get it handled.
+      PromiseUtil.handleRejection(this.#eventPromise);
+      throw reason;
+    }
+  }
+
+  /**
    * @returns {ChainedEvent|Promise<ChainedEvent>} Promise for a "next" event,
    * either a settled one or a promise.
    */
@@ -168,5 +187,26 @@ export class EventOrPromise {
 
     result.#rejectedReason = reason;
     return result;
+  }
+
+  /**
+   * Checks an alleged event instance to see if it is (a) actually an instance
+   * of `ChainedEvent` and optionally an instance of a specific subclass
+   * thereof.
+   *
+   * @param {ChainedEvent} event The event in question.
+   * @param {?function(new:ChainedEvent)} subclass Class to check for, or `null`
+   *   to consider all `ChainedEvent` instances okay.
+   * @param {string} context Context to include in error messages.
+   * @throws {Error} Thrown if `event` is problematic.
+   */
+  static #validateEvent(event, subclass, context) {
+    if (event instanceof ChainedEvent) {
+      if ((subclass !== null) && !(event instanceof subclass)) {
+        throw new Error(`Invalid event value (incorrect class, ${context}).`);
+      }
+    } else {
+      throw new Error(`Invalid event value (non-event, ${context}).`);
+    }
   }
 }
