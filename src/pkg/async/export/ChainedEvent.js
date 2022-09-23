@@ -109,15 +109,11 @@ export class ChainedEvent {
    * @returns {?ChainedEvent} The next event in the chain after this instance if
    * it is immediately available, or `null` if there is not yet a
    * synchronously-known next event.
-   * @throws {Error} Thrown if the promise passed in the constructor became
+   * @throws {Error} Thrown if the promise passed into the constructor became
    * rejected or resolved to an invalid value.
    */
   get nextNow() {
-    if (!this.#next) {
-      return null;
-    }
-
-    return this.#next.eventNow;
+    return this.#next?.eventNow ?? null;
   }
 
   /**
