@@ -59,13 +59,12 @@ export class ChainedEvent {
 
     if (next === null) {
       this.#emitterAvailable = true;
-      this.#next             = null;
-    } else if (next instanceof EventOrPromise) {
-      this.#emitterAvailable = false;
-      this.#next             = next;
+      this.#next = null;
     } else {
       this.#emitterAvailable = false;
-      this.#next             = new EventOrPromise(next, this.constructor);
+      this.#next = (next instanceof EventOrPromise)
+        ? next
+        : new EventOrPromise(next, this.constructor);
     }
   }
 
