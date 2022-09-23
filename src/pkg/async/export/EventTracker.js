@@ -167,12 +167,12 @@ export class EventTracker {
    * ultimately fails.
    *
    * Context: Even though {@link #advance} can succeed synchronously, it _might_
-   * throw, and if it _does_ throw, it will be asynchronously. In such cases, a
-   * _synchronous_ call to it that doesn't attempt to deal with the return value
-   * will ultimately cause an unhandled promise rejection to show up at the top
-   * level. Using this method ensures that that won't happen. The instance will
-   * still ultimately become broken, though, which is (presumably) a desirable
-   * outcome.
+   * throw, and if it _does_ throw, it will do so asynchronously. In such cases,
+   * a _synchronous_ call to it that doesn't attempt to deal with the return
+   * value will ultimately cause an unhandled promise rejection to show up at
+   * the top level. Using this method ensures that that won't happen. The
+   * instance will still ultimately become broken, though, which is (presumably)
+   * a desirable outcome.
    *
    * @param {EventPredicate} [predicate = null] Predicate to satisfy.
    * @returns {?ChainedEvent} The synchronously-known {@link #headNow} from the
