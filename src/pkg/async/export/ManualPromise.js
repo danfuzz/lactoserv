@@ -153,21 +153,6 @@ export class ManualPromise {
   }
 
   /**
-   * Causes this instance to treat the promise rejection as "handled" as far as
-   * Node is concerned. See {@link #rejectAndHandle} for a little more context.
-   */
-  #handleRejection() {
-    if (!this.isRejected()) {
-      throw new Error('Shouldn\'t happen: Promise is not rejected.');
-    }
-
-    if (!this.#rejectionHandled) {
-      PromiseUtil.handleRejection(this.#promise);
-      this.#rejectionHandled = true;
-    }
-  }
-
-  /**
    * Resolves this instance to be the resolution of another promise, that is,
    * forwards the given promise to this one.
    *
@@ -187,5 +172,20 @@ export class ManualPromise {
         this.#resolution = { rejected: true, reason };
       }
     })();
+  }
+
+  /**
+   * Causes this instance to treat the promise rejection as "handled" as far as
+   * Node is concerned. See {@link #rejectAndHandle} for a little more context.
+   */
+  #handleRejection() {
+    if (!this.isRejected()) {
+      throw new Error('Shouldn\'t happen: Promise is not rejected.');
+    }
+
+    if (!this.#rejectionHandled) {
+      PromiseUtil.handleRejection(this.#promise);
+      this.#rejectionHandled = true;
+    }
   }
 }
