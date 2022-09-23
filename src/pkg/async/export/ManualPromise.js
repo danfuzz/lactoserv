@@ -157,16 +157,14 @@ export class ManualPromise {
    * Node is concerned. See {@link #rejectAndHandle} for a little more context.
    */
   #handleRejection() {
-    if (this.#rejectionHandled) {
-      return;
-    }
-
     if (!this.isRejected()) {
       throw new Error('Shouldn\'t happen: Promise is not rejected.');
     }
 
-    PromiseUtil.handleRejection(this.#promise);
-    this.#rejectionHandled = true;
+    if (!this.#rejectionHandled) {
+      PromiseUtil.handleRejection(this.#promise);
+      this.#rejectionHandled = true;
+    }
   }
 
   /**
