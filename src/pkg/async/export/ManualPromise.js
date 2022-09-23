@@ -145,7 +145,7 @@ export class ManualPromise {
     }
 
     if (value instanceof Promise) {
-      this.#linkPromise(value);
+      this.#becomeForwardedFrom(value);
     } else {
       this.#resolution = { fulfilled: true, value };
       this.#resolve(value);
@@ -168,11 +168,12 @@ export class ManualPromise {
   }
 
   /**
-   * Resolves this instance to be the resolution of another promise.
+   * Resolves this instance to be the resolution of another promise, that is,
+   * forwards the given promise to this one.
    *
-   * @param {Promise} promise The instance to link to.
+   * @param {Promise} promise The promise to forward to this instance.
    */
-  #linkPromise(promise) {
+  #becomeForwardedFrom(promise) {
     this.#resolution = { forwarded: true, from: promise };
     this.#resolve(promise);
 
