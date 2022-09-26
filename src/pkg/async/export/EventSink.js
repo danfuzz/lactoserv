@@ -82,10 +82,9 @@ export class EventSink {
    * or we're requested to stop.
    */
   async #run() {
-    // `#runCondition` is necessarily true at this moment (see the call site of
-    // this method). This `await` guarantees that no event processing happens
-    // synchronously with respect to the client (which called `run()`).
-    await this.#runCondition.whenTrue();
+    // This `await` guarantees that no event processing happens synchronously
+    // with respect to the client (which called `run()`).
+    await null;
 
     try {
       for (;;) {
