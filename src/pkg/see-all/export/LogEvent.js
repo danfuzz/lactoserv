@@ -80,10 +80,85 @@ export class LogEvent {
     return this.#args;
   }
 
+  /**
+   * Gets a string representation of this instance intended for maximally-easy
+   * human consumption.
+   *
+   * @returns {string} The "human form" string.
+   */
+  toHuman() {
+    const parts = [
+      ...this.#toHumanTime(),
+      ' ',
+      this.#tag.toHuman(),
+      ' ',
+      ...this.#toHumanPayload()
+    ];
+
+    return parts.join('');
+  }
+
+  /**
+   * Gets the human form of {@link #payload}, as an array of parts to join.
+   *
+   * @returns {string[]} The "human form" string parts.
+   */
+  #toHumanPayload() {
+    const parts = [
+      this.#type,
+      '('
+    ];
+
+    let first = true;
+    for (const a of this.#args) {
+      if (first) {
+        first = false;
+      } else {
+        parts.push(', ');
+      }
+
+      // TODO: Evaluate whether `util.inspect()` is sufficient.
+      parts.push(util.inspect(a, LogEvent.HUMAN_INSPECT_OPTIONS));
+    }
+
+    parts.push(')');
+
+    return parts;
+  }
+
+  /**
+   * Gets the "human form" of the time string, as an array of parts to join.
+   *
+   * @returns {string[]} The "human form" string parts.
+   */
+  #toHumanTime() {
+    const frac = this.#timeSec - (this.#timeSec % 1);
+    const d    = new Date(this.#timeSec);
+
+    return [
+      d.getUTCYear().toString(),
+      (d.getUTCMonth() + 1).toString().padStart(2, '0'),
+      d.getUTCDate().toString().padStart(2, '0'),
+      '-',
+      d.getUTCHours().toString().padStart(2, '0'),
+      d.getUTCMinutes().toString().padStart(2, '0'),
+      d.getUTCSeconds().toString().padStart(2, '0'),
+      '.',
+      frac.toFixed(6).slice(2)
+    ];
+  }
 
   //
   // Static members
   //
+
+  /** @type {object} Inspection options for {@link #toHumanPayload}. */
+  static #HUMAN_INSPECT_OPTIONS = Object.freeze({
+    depth:       10,
+    breakLength: Number.POSITIVE_INFINITY,
+    compact:     8,
+    getters:     true
+  });
 
   /** @type {string} Default type to use for "kickoff" instances. */
   static #KICKOFF_TYPE = 'kickoff';
