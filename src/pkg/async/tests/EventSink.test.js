@@ -145,6 +145,66 @@ describe('run()', () => {
     sink.stop();
     await expect(runResult).rejects.toBe(reason);
   });
+
+  test('processes 10 synchronously-known events', async () => {
+    const events = [];
+
+    let emitter = null;
+    for (let i = 0; i < 10; i++) {
+      if (!emitter) {
+        events[0] = new ChainedEvent({ num: i });
+      } else {
+        emitter = emitter({ num: i});
+        events.push(events[i - 1].nextNow);
+      }
+    }
+
+    let callCount = 0;
+    const processor = (event) => {
+      if (event !== events[callCount]) {
+        throw new Error(`Wrong event #${callCount}`);
+      }
+      callCount++;
+    };
+
+    const sink  = new EventSink(processor, events[0]);
+
+    const runResult = sink.run();
+    await timers.setImmediate();
+    expect(callCount).toBe(events.length);
+
+    sink.stop();
+    expect(await runResult).toBeNull();
+  });
+
+  test('processes 10 asynchronously-known events', async () => {
+    let callCount = 0;
+    const processor = (event) => {
+      if (event.payload.num !== callCount) {
+        throw new Error(`Wrong event #${callCount}`);
+      }
+      callCount++;
+    };
+
+    let event   = new ChainedEvent({ num: 0 });
+    let emitter = event.emitter;
+    const sink  = new EventSink(processor, Promise.resolve(event));
+
+    const runResult = sink.run();
+
+    for (let i = 1; i < 10; i++) {
+      expect(callCount).toBe(i - 1);
+      await timers.setImmediate();
+      expect(callCount).toBe(i);
+      emitter = emitter({ num: i });
+    }
+
+    await timers.setImmediate();
+    expect(callCount).toBe(10);
+
+    sink.stop();
+    expect(await runResult).toBeNull();
+  });
 });
 
 describe('stop()', () => {
