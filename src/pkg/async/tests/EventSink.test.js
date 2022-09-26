@@ -146,3 +146,34 @@ describe('run()', () => {
     await expect(runResult).rejects.toBe(reason);
   });
 });
+
+describe('stop()', () => {
+  test('trivially succeeds on a stopped instance', async () => {
+    let callCount   = 0;
+    const processor = (event_unused) => {
+      callCount++;
+    };
+
+    const sink = new EventSink(processor, new ChainedEvent(payload1));
+
+    sink.stop();
+    await timers.setImmediate();
+    expect(callCount).toBe(0);
+  });
+
+  test('prevents any events from being processed if called synchronously after `run()`', async () => {
+    let callCount   = 0;
+    const processor = (event_unused) => {
+      callCount++;
+    };
+
+    const sink = new EventSink(processor, new ChainedEvent(payload1));
+
+    const runResult = sink.run();
+    sink.stop();
+    await timers.setImmediate();
+    expect(callCount).toBe(0);
+
+    expect (await runResult).toBeNull();
+  });
+});
