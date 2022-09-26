@@ -6,7 +6,7 @@ import { LogEvent } from '#x/LogEvent';
 import { EventSink } from '@this/async';
 import { MustBe } from '@this/typey';
 
-import * as fs from 'node:fs/prmomises';
+import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
 
