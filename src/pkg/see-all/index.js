@@ -7,3 +7,4 @@ export * from '#x/LogStackTrace';
 export * from '#x/LogTag';
 export * from '#x/Logger';
 export * from '#x/StdLoggingEnvironment';
+export * from '#x/TextFileSink';
