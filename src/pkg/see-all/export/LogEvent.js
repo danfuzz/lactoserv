@@ -8,7 +8,7 @@ import { LogTag } from '#x/LogTag';
  * The thing which is logged; it is the payload class for events used by this
  * module.
  */
-export class LogRecord {
+export class LogEvent {
   /** @type {?LogStackTrace} Stack trace, if available. */
   #stack;
 
@@ -69,5 +69,26 @@ export class LogRecord {
   /** @type {*[]} Payload arguments. */
   get args() {
     return this.#args;
+  }
+
+
+  //
+  // Static members
+  //
+
+  /** @type {string} Type to use for "kickoff" instances. */
+  static #KICKOFF_TYPE = 'kickoff';
+
+  /** @type {LogTag} Tag to use for "kickoff" instances. */
+  static #KICKOFF_TAG = new LogTag('kickoff');
+
+  /**
+   * Constructs a minimal instance of this class, suitable for use as a
+   * "kickoff" event passed to an {@link EventSource}.
+   *
+   * @returns {LogEvent} A minimal instance for "kickoff."
+   */
+  static makeKickoffInstance() {
+    return new LogEvent(null, 0, this.KICKOFF_TAG, this.KICKOFF_TYPE, Object.freeze([]));
   }
 }
