@@ -150,7 +150,7 @@ describe('run()', () => {
       if (!emitter) {
         events[0] = new ChainedEvent({ num: i });
       } else {
-        emitter = emitter({ num: i});
+        emitter = emitter({ num: i });
         events.push(events[i - 1].nextNow);
       }
     }
