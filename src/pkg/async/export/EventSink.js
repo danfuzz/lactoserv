@@ -52,6 +52,8 @@ export class EventSink {
   /**
    * Starts this instance running, if it isn't already. The return value or
    * exception thrown from this method indicates "why" the instance stopped.
+   * All event processing happens asynchronously with respect to the caller of
+   * this method.
    *
    * @returns {null} Indicates that the instance stopped because it was asked
    *   to.
@@ -80,6 +82,11 @@ export class EventSink {
    * or we're requested to stop.
    */
   async #run() {
+    // `#runCondition` is necessarily true at this moment (see the call site of
+    // this method). This `await` guarantees that no event processing happens
+    // synchronously with respect to the client (which called `run()`).
+    await this.#runCondition.whenTrue();
+
     try {
       for (;;) {
         const event = await this.#headEvent();
