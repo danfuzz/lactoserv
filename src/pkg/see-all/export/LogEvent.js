@@ -76,19 +76,25 @@ export class LogEvent {
   // Static members
   //
 
-  /** @type {string} Type to use for "kickoff" instances. */
+  /** @type {string} Default type to use for "kickoff" instances. */
   static #KICKOFF_TYPE = 'kickoff';
 
-  /** @type {LogTag} Tag to use for "kickoff" instances. */
+  /** @type {LogTag} Default tag to use for "kickoff" instances. */
   static #KICKOFF_TAG = new LogTag('kickoff');
 
   /**
    * Constructs a minimal instance of this class, suitable for use as a
    * "kickoff" event passed to an {@link EventSource}.
    *
+   * @param {?LogTag} [tag = null] Tag to use for the instance, or `null` to use
+   *   a default.
+   * @param {?string} [type = null] Type to use for the instance, or `null` to
+   *   use a default.
    * @returns {LogEvent} A minimal instance for "kickoff."
    */
-  static makeKickoffInstance() {
-    return new LogEvent(null, 0, this.KICKOFF_TAG, this.KICKOFF_TYPE, Object.freeze([]));
+  static makeKickoffInstance(tag = null, type = null) {
+    tag  ??= this.KICKOFF_TAG;
+    type ??= this.KICKOFF_TYPE;
+    return new LogEvent(null, 0, tag, type, Object.freeze([]));
   }
 }
