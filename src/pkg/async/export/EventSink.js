@@ -82,20 +82,9 @@ export class EventSink {
   async #run() {
     try {
       for (;;) {
-        if (this.#shouldStop()) {
-          break;
-        }
-
-        let event = this.#head.eventNow;
+        const event = await this.#headEvent();
         if (!event) {
-          event = await Promise.race([
-            this.#head.eventPromise,
-            this.#runCondition.whenTrue()
-          ]);
-
-          if (this.#shouldStop()) {
-            break;
-          }
+          break;
         }
 
         try {
@@ -109,6 +98,36 @@ export class EventSink {
     }
 
     return null;
+  }
+
+  /**
+   * Gets the current head event -- possibly waiting for it -- or returns `null`
+   * if the instance has been asked to stop.
+   *
+   * @returns {?ChainedEvent} The current head event.
+   * @throws {Error} Thrown if there is any trouble getting the event.
+   */
+  async #headEvent() {
+    if (this.#shouldStop()) {
+      return null;
+    }
+
+    const eventNow = this.#head.eventNow;
+
+    if (eventNow) {
+      return eventNow;
+    }
+
+    const result = await Promise.race([
+      this.#head.eventPromise,
+      this.#runCondition.whenFalse()
+    ]);
+
+    if (this.#shouldStop()) {
+      return null;
+    }
+
+    return result;
   }
 
   /**
