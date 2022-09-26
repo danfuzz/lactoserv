@@ -4,6 +4,9 @@
 import { LogStackTrace } from '#x/LogStackTrace';
 import { LogTag } from '#x/LogTag';
 
+import * as util from 'node:util';
+
+
 /**
  * The thing which is logged; it is the payload class for events used by this
  * module.
