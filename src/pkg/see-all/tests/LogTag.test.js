@@ -116,3 +116,20 @@ describe('withAddedContext()', () => {
     expect(result.context).toStrictEqual(['foo', 'bar', 'zorch', 'florp']);
   });
 });
+
+describe('toHuman()', () => {
+  test('works with just a main tag (no context strings)', () => {
+    const tag = new LogTag('just-main');
+    expect(tag.toHuman()).toBe('[just-main]');
+  });
+
+  test('works with a single context string', () => {
+    const tag = new LogTag('just-main', 'one');
+    expect(tag.toHuman()).toBe('[just-main one]');
+  });
+
+  test('works with 10 context strings', () => {
+    const tag = new LogTag('just-main', '1', '2', '3', '4', '5', '6', 'seven', '8', '9', 'ten');
+    expect(tag.toHuman()).toBe('[just-main 1 2 3 4 5 6 seven 8 9 ten]');
+  });
+});

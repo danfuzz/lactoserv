@@ -17,6 +17,9 @@ export class LogTag {
   /** @type {string[]} Context strings */
   #context;
 
+  /** @type {?string} Precomputed "human form" string, if available. */
+  #humanString = null;
+
   /**
    * Constructs an instance.
    *
@@ -43,6 +46,28 @@ export class LogTag {
   /** @type {string} Main tag. */
   get main() {
     return this.#main;
+  }
+
+  /**
+   * Gets a string representation of this instance intended for maximally-easy
+   * human consumption.
+   *
+   * @returns {string} The "human form" string.
+   */
+  toHuman() {
+    if (!this.#humanString) {
+      const parts = [
+        '[',
+        this.#main
+      ];
+      for (const c of this.#context) {
+        parts.push(' ', c);
+      }
+      parts.push(']');
+      this.#humanString = parts.join('');
+    }
+
+    return this.#humanString;
   }
 
   /**
