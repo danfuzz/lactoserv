@@ -12,8 +12,11 @@ export class LogEvent {
   /** @type {?LogStackTrace} Stack trace, if available. */
   #stack;
 
-  /** @type {number} Moment in time. */
-  #timeMsec;
+  /**
+   * @type {number} Moment in time, as Unix Epoch seconds, with precision
+   * expected to be microseconds or better.
+   */
+  #timeSec;
 
   /** @type {LogTag} Tag. */
   #tag;
@@ -29,7 +32,9 @@ export class LogEvent {
    *
    * @param {?LogStackTrace} stack Stack trace associated with this instance, if
    *   available.
-   * @param {number} timeMsec Moment in time that this instance represents.
+   * @param {number} timeSec Moment in time that this instance represents, as
+   *   seconds since the start of the Unix Epoch, with precision expected to be
+   *   microseconds or better.
    * @param {LogTag} tag Tag for the instance, that is, component name and
    *   optional context.
    * @param {string} type "Type" of the instance, e.g. think of this as
@@ -38,12 +43,12 @@ export class LogEvent {
    * @param {*[]} args Arbitrary arguments of the instance, whose meaning
    *   depends on the type.
    */
-  constructor(stack, timeMsec, tag, type, args) {
-    this.#stack    = stack;
-    this.#timeMsec = timeMsec;
-    this.#tag      = tag;
-    this.#type     = type;
-    this.#args     = args;
+  constructor(stack, timeSec, tag, type, args) {
+    this.#stack   = stack;
+    this.#timeSec = timeSec;
+    this.#tag     = tag;
+    this.#type    = type;
+    this.#args    = args;
   }
 
   /** @type {?LogStackTrace} Stack trace, if available. */
@@ -51,9 +56,13 @@ export class LogEvent {
     return this.#stack;
   }
 
-  /** @type {number} Moment in time. */
-  get timeMsec() {
-    return this.#timeMsec;
+  /**
+   * @type {number} Moment in time that this instance represents, as seconds
+   * since the start of the Unix Epoch, with precision expected to be
+   * microseconds or better.
+   */
+  get timeSec() {
+    return this.#timeSec;
   }
 
   /** @type {LogTag} Tag. */
