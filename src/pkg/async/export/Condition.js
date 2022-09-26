@@ -114,7 +114,7 @@ export class Condition {
    * @returns {Promise<boolean>} Promise that resolves to `true` on an
    *   appropriate value change.
    */
-  async #whenX(value) {
+  #whenX(value) {
     if (this.#value === value) {
       // Value is already as desired.
       return true;
