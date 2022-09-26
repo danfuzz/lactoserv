@@ -1,15 +1,11 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { ChainedEvent, EventSink, PromiseState, PromiseUtil } from '@this/async';
+import { ChainedEvent, EventSink, PromiseUtil } from '@this/async';
 
 import * as timers from 'node:timers/promises';
-import { writeFileSync } from 'node:fs';
-const stderr = s => writeFileSync('/dev/stderr', `${s}\r\n`);
 
 const payload1 = { type: 'wacky' };
-const payload2 = { type: 'zany' };
-const payload3 = { type: 'questionable' };
 
 describe('constructor(<invalid>, event)', () => {
   test.each([
@@ -186,9 +182,9 @@ describe('run()', () => {
       callCount++;
     };
 
-    let event   = new ChainedEvent({ num: 0 });
-    let emitter = event.emitter;
-    const sink  = new EventSink(processor, Promise.resolve(event));
+    const event0 = new ChainedEvent({ num: 0 });
+    let emitter  = event0.emitter;
+    const sink   = new EventSink(processor, Promise.resolve(event0));
 
     const runResult = sink.run();
 
