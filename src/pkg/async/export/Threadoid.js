@@ -91,8 +91,8 @@ export class Threadoid {
 
   /**
    * Gets a promise that becomes fulfilled when this instance has been asked to
-   * stop. This method is primarily intended for use by the thread function, so
-   * it can behave cooperatively.
+   * stop (or when it is already stopped). This method is primarily intended for
+   * use by the thread function, so it can behave cooperatively.
    *
    * @returns {Promise} A promise as described.
    */
