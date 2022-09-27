@@ -40,8 +40,8 @@ export class BaseLoggingEnvironment {
       }
       this._impl_emit(recordOrTag);
     } else if (recordOrTag instanceof LogTag) {
-      const event = new (
-        this.stackTrace(1), this.nowSec(), eventOrTag, type, args);
+      const event = new LogRecord(
+        this.stackTrace(1), this.nowSec(), recordOrTag, type, args);
       this._impl_emit(event);
     } else {
       throw new Error('Invalid value for `recordOrTag`.');
@@ -104,8 +104,8 @@ export class BaseLoggingEnvironment {
    * @abstract
    * @param {LogRecord} record The record to log.
    */
-  _impl_emit(event) {
-    Methods.abstract(event);
+  _impl_emit(record) {
+    Methods.abstract(record);
   }
 
   /**
