@@ -32,7 +32,7 @@ export class JsonSchemaError {
    *   behave like `console.log()`, in terms of `%`-formatting and
    *   `\n`-appending.
    */
-  log(logger) {
+  logTo(logger) {
     if (((typeof logger) === 'object') && logger.log) {
       const origLogger = logger;
       logger = (...args) => origLogger.log(...args);

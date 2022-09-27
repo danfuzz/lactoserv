@@ -175,7 +175,7 @@ export class ApplicationManager {
     const error = validator.validate(config);
 
     if (error) {
-      error.log(console);
+      error.logTo(console);
       error.throwError();
     }
   }
