@@ -4,6 +4,7 @@
 import { ChainedEvent } from '#x/ChainedEvent';
 import { Condition } from '#x/Condition';
 import { EventOrPromise } from '#p/EventOrPromise';
+import { Threadoid } from '#x/Threadoid';
 
 import { MustBe } from '@this/typey';
 
@@ -23,17 +24,8 @@ export class EventSink {
    */
   #head;
 
-  /**
-   * @type {Condition} Intended current state of whether or not this instance is
-   * running
-   */
-  #runCondition = new Condition();
-
-  /**
-   * @type {?Promise<null>} Result of the currently-executing {@link #run}, if
-   * currently running.
-   */
-  #runResult = null;
+  /** @type {Threadoid} Thread that runs the processor function. */
+  #thread;
 
 
   /**
@@ -47,6 +39,7 @@ export class EventSink {
   constructor(processor, firstEvent) {
     this.#processor = MustBe.callableFunction(processor);
     this.#head      = new EventOrPromise(firstEvent);
+    this.#thread    = new Threadoid(() => this.#run());
   }
 
   /**
@@ -61,12 +54,7 @@ export class EventSink {
    *   likely an error thrown by the client-supplied processor function.
    */
   async run() {
-    if (!this.#runResult) {
-      this.#runCondition.value = true;
-      this.#runResult = this.#run();
-    }
-
-    return this.#runResult;
+    return this.#thread.run();
   }
 
   /**
@@ -74,7 +62,7 @@ export class EventSink {
    * event it is in the middle of handling.
    */
   stop() {
-    this.#runCondition.value = false;
+    this.#thread.stop();
   }
 
   /**
@@ -82,25 +70,17 @@ export class EventSink {
    * or we're requested to stop.
    */
   async #run() {
-    // This `await` guarantees that no event processing happens synchronously
-    // with respect to the client (which called `run()`).
-    await null;
-
-    try {
-      for (;;) {
-        const event = await this.#headEvent();
-        if (!event) {
-          break;
-        }
-
-        try {
-          await this.#processor(event);
-        } finally {
-          this.#head = this.#head.next;
-        }
+    for (;;) {
+      const event = await this.#headEvent();
+      if (!event) {
+        break;
       }
-    } finally {
-      this.#runResult = null;
+
+      try {
+        await this.#processor(event);
+      } finally {
+        this.#head = this.#head.next;
+      }
     }
 
     return null;
@@ -114,7 +94,7 @@ export class EventSink {
    * @throws {Error} Thrown if there is any trouble getting the event.
    */
   async #headEvent() {
-    if (this.#shouldStop()) {
+    if (this.#thread.shouldStop()) {
       return null;
     }
 
@@ -126,22 +106,13 @@ export class EventSink {
 
     const result = await Promise.race([
       this.#head.eventPromise,
-      this.#runCondition.whenFalse()
+      this.#thread.whenStopRequested()
     ]);
 
-    if (this.#shouldStop()) {
+    if (this.#thread.shouldStop()) {
       return null;
     }
 
     return result;
-  }
-
-  /**
-   * Should the current run stop?
-   *
-   * @returns {boolean} The answer.
-   */
-  #shouldStop() {
-    return this.#runCondition.value === false;
   }
 }

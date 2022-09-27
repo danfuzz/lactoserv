@@ -10,3 +10,4 @@ export * from '#x/ManualPromise';
 export * from '#x/Mutex';
 export * from '#x/PromiseState';
 export * from '#x/PromiseUtil';
+export * from '#x/Threadoid';
