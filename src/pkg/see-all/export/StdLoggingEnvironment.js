@@ -4,6 +4,8 @@
 import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
 import { LogSource } from '#x/LogSource';
 
+import { MustBe } from '@this/typey';
+
 import * as process from 'node:process';
 
 
@@ -12,9 +14,18 @@ import * as process from 'node:process';
  */
 export class StdLoggingEnvironment extends BaseLoggingEnvironment {
   /** @type {LogSource} Log source attached to {@link #emit}. */
-  #source = new LogSource();
+  #source;
 
-  // Note: The default constructor is fine here.
+  /**
+   * Constructs an instance.
+   *
+   * @param {LogSource} source Source to emit events from.
+   */
+  constructor(source) {
+    super();
+
+    this.#source = MustBe.object(source, LogSource);
+  }
 
   /** @override */
   _impl_emit(record) {

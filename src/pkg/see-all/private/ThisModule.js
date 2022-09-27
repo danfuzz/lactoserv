@@ -21,7 +21,8 @@ export class ThisModule {
   static #DEFAULT_LOG_SOURCE = new LogSource(this.#COUNT_WHEN_KICKOFF_DROPPED);
 
   /** @type {StdLoggingEnvironment} Global default logging environment. */
-  static #DEFAULT_ENVIRONMENT = new StdLoggingEnvironment();
+  static #DEFAULT_ENVIRONMENT =
+    new StdLoggingEnvironment(this.#DEFAULT_LOG_SOURCE);
 
   /** @returns {StdLoggingEnvironment} The default logging environment. */
   static get DEFAULT_ENVIRONMENT() {
