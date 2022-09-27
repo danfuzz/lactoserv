@@ -2,6 +2,7 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
+import { LogSource } from '#x/LogSource';
 
 import * as process from 'node:process';
 
@@ -10,7 +11,15 @@ import * as process from 'node:process';
  * Standard logging environment, which is hooked up to the "real world."
  */
 export class StdLoggingEnvironment extends BaseLoggingEnvironment {
+  /** @type {LogSource} Log source attached to {@link #emit}. */
+  #source = new LogSource();
+
   // Note: The default constructor is fine here.
+
+  /** @override */
+  _impl_emit(event) {
+    this.#source.emit(event);
+  }
 
   /** @override */
   _impl_nowSec() {

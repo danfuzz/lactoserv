@@ -1,17 +1,53 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { LogEvent } from '#x/LogEvent';
+import { LogTag } from '#x/LogTag';
+
 import { Methods, MustBe } from '@this/typey';
 
 
 /**
  * Abstract class representing a provider of a "logging environment." This class
  * exists so that the rest of the logging system doesn't have to _directly_
- * depend on system-specific services for getting the time and generating stack
- * traces.
+ * depend on system-specific services, nor tacitly refer to effectively-global
+ * variables (which are awkward to stub/mock out for testing).
+ *
+ * Subclasses are expected to override the `_impl_*` methods, while leaving the
+ * other (unmarked) methods alone. The latter provide type safety and other
+ * sanity checks in both directions.
  */
 export class BaseLoggingEnvironment {
   // Note: The default constructor is fine here.
+
+  /**
+   * Emits an event from whatever event source this instance is connected to.
+   * This method accepts _either_ an instance of {@link LogEvent} (which must
+   * not already have a "next" event), _or_ the arguments to construct an
+   * instance (except for the stack and time, which are filled in by this
+   * method).
+   *
+   * @param {LogEvent|LogTag} eventOrTag The complete event or the event tag.
+   * @param {?string} type Event type, if given a tag for `eventOrTag`; must be
+   *   `null` when given a full {@link LogEvent}.
+   * @param {...*} args Event arguments, if given a tag for `eventOrTag`; must
+   *   be empty when given a full {@link LogEvent}.
+   */
+  emit(eventOrTag, type, ...args) {
+    if (eventOrTag instanceof LogEvent) {
+      MustBe.null(type);
+      if (args.length !== 0) {
+        throw new Error('Cannot pass extra `args` with event instance.');
+      }
+      this._impl_emit(eventOrTag);
+    } else if (eventOrTag instanceof LogTag) {
+      const event = new LogEvent(
+        this.stackTrace(1), this.nowSec(), eventOrTag, type, args);
+      this._impl_emit(event);
+    } else {
+      throw new Error('Invalid value for `eventOrTag`.');
+    }
+  }
 
   /**
    * Gets a timestamp representing "now," represented as seconds since the
@@ -60,6 +96,16 @@ export class BaseLoggingEnvironment {
     }
 
     return result;
+  }
+
+  /**
+   * Emits an event from whatever event source this instance is connected to.
+   *
+   * @abstract
+   * @param {LogEvent} event The event to log.
+   */
+  _impl_emit(event) {
+    Methods.abstract(event);
   }
 
   /**
