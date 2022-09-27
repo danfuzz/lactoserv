@@ -5,6 +5,7 @@ import { Warehouse } from '@this/app-servers';
 import { Mutex } from '@this/async';
 import { JsonExpander } from '@this/json';
 import { Dirs, Host } from '@this/host';
+import { Logger } from '@this/see-all';
 
 
 /**
@@ -24,6 +25,9 @@ export class UsualSystem {
   /** @type {Mutex} Serializer for startup and shutdown actions. */
   #serializer = new Mutex();
 
+  /** @type {Logger} Logger for this instance. */
+  #logger = new Logger('main');
+
   /**
    * Constructs an instance.
    *
@@ -41,9 +45,9 @@ export class UsualSystem {
       this.#init();
 
       const isRestart = (this.#warehouse !== null);
-      const verb      = isRestart ? 'Restart' : 'Start';
+      const verb      = isRestart ? 'restart' : 'start';
 
-      console.log(`\n### ${verb}ing all servers...\n`);
+      this.#logger.log('allServers', `${verb}ing`);
 
       if (isRestart) {
         await this.#stop0();
@@ -52,7 +56,7 @@ export class UsualSystem {
       await this.#makeWarehouse();
       await this.#warehouse.startAllServers();
 
-      console.log(`\n### ${verb}ed all servers.\n`);
+      this.#logger.log('allServers', `${verb}ed`);
     });
   }
 
@@ -93,12 +97,12 @@ export class UsualSystem {
    */
   async #stop0() {
     if (this.#warehouse === null) {
-      console.log('\n### Servers already stopped.\n');
+      this.#logger.log('allServers', 'alreadyStopped');
     } else {
-      console.log('\n### Stopping all servers...\n');
+      this.#logger.log('allServers', 'stopping');
       await this.#warehouse.stopAllServers();
       this.#warehouse = null;
-      console.log('\n### Stopped all servers.\n');
+      this.#logger.log('allServers', 'stopped');
     }
   }
 }
