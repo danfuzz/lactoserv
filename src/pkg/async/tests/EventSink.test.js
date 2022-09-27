@@ -6,6 +6,7 @@ import { ChainedEvent, EventSink, PromiseUtil } from '@this/async';
 import * as timers from 'node:timers/promises';
 
 const payload1 = { type: 'wacky' };
+const payload2 = { type: 'zany' };
 
 describe('constructor(<invalid>, event)', () => {
   test.each([
@@ -200,6 +201,38 @@ describe('run()', () => {
 
     sink.stop();
     expect(await runResult).toBeNull();
+  });
+
+  test('can be `stop()`ed and then re-`run()`', async () => {
+    let callCount   = 0;
+    let callGot     = null;
+    const processor = (event) => {
+      callGot = event;
+      callCount++;
+    };
+
+    const event1 = new ChainedEvent(payload1);
+    const sink   = new EventSink(processor, event1);
+
+    // Baseline expectations.
+    const runResult1 = sink.run();
+    await timers.setImmediate();
+    expect(callCount).toBe(1);
+    expect(callGot).toBe(event1);
+    sink.stop();
+    expect(await runResult1).toBeNull();
+
+    // The actual test.
+
+    event1.emitter(payload2);
+    const event2 = event1.nextNow;
+
+    const runResult2 = sink.run();
+    await timers.setImmediate();
+    expect(callCount).toBe(2);
+    expect(callGot).toBe(event2);
+    sink.stop();
+    expect(await runResult2).toBeNull();
   });
 });
 
