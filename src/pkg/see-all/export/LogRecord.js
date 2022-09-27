@@ -11,7 +11,7 @@ import * as util from 'node:util';
  * The thing which is logged; it is the payload class for events used by this
  * module.
  */
-export class LogEvent {
+export class LogRecord {
   /** @type {?LogStackTrace} Stack trace, if available. */
   #stack;
 
@@ -121,7 +121,7 @@ export class LogEvent {
       }
 
       // TODO: Evaluate whether `util.inspect()` is sufficient.
-      parts.push(util.inspect(a, LogEvent.HUMAN_INSPECT_OPTIONS));
+      parts.push(util.inspect(a, LogRecord.HUMAN_INSPECT_OPTIONS));
     }
 
     parts.push(')');
@@ -171,17 +171,17 @@ export class LogEvent {
 
   /**
    * Constructs a minimal instance of this class, suitable for use as a
-   * "kickoff" event passed to an {@link EventSource}.
+   * "kickoff" event payload passed to an {@link EventSource}.
    *
    * @param {?LogTag} [tag = null] Tag to use for the instance, or `null` to use
    *   a default.
    * @param {?string} [type = null] Type to use for the instance, or `null` to
    *   use a default.
-   * @returns {LogEvent} A minimal instance for "kickoff."
+   * @returns {LogRecord} A minimal instance for "kickoff."
    */
   static makeKickoffInstance(tag = null, type = null) {
     tag  ??= this.KICKOFF_TAG;
     type ??= this.KICKOFF_TYPE;
-    return new LogEvent(null, 0, tag, type, Object.freeze([]));
+    return new LogRecord(null, 0, tag, type, Object.freeze([]));
   }
 }
