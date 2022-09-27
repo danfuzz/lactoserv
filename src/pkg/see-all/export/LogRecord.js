@@ -97,7 +97,8 @@ export class LogRecord {
       ' ',
       this.#tag.toHuman(),
       ' ',
-      ...this.#toHumanPayload()
+      ...this.#toHumanPayload(),
+      '\n'
     ];
 
     return parts.join('');
