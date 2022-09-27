@@ -182,8 +182,8 @@ export class LogRecord {
    * @returns {LogRecord} A minimal instance for "kickoff."
    */
   static makeKickoffInstance(tag = null, type = null) {
-    tag  ??= this.KICKOFF_TAG;
-    type ??= this.KICKOFF_TYPE;
+    tag  ??= this.#KICKOFF_TAG;
+    type ??= this.#KICKOFF_TYPE;
     return new LogRecord(null, 0, tag, type, Object.freeze([]));
   }
 }
