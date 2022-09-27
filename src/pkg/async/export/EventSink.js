@@ -2,7 +2,6 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { ChainedEvent } from '#x/ChainedEvent';
-import { Condition } from '#x/Condition';
 import { EventOrPromise } from '#p/EventOrPromise';
 import { Threadoid } from '#x/Threadoid';
 
