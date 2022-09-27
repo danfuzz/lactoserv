@@ -41,7 +41,7 @@ export class Threadoid {
    *   the instance of this class it was called from.
    */
   constructor(threadFunction) {
-    this.#threadFunction = MustBe.callableFunction(threadFunction);
+    this.#threadFunction = MustBe.callableFunction(threadFunction).bind(null);
   }
 
   /**
