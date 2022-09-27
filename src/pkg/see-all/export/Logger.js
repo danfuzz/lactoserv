@@ -3,7 +3,7 @@
 
 import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
 import { LogTag } from '#x/LogTag';
-import { StdLoggingEnvironment } from '#x/StdLoggingEnvironment';
+import { ThisModule } from '#p/ThisModule';
 
 import { MustBe } from '@this/typey';
 
@@ -31,7 +31,7 @@ export class Logger {
     this.#tag          = MustBe.object(tag, LogTag);
     this.#environment  = environment
       ? MustBe.object(environment, BaseLoggingEnvironment)
-      : Logger.DEFAULT_ENVIRONMENT;
+      : ThisModule.DEFAULT_ENVIRONMENT;
   }
 
   /**
@@ -44,12 +44,4 @@ export class Logger {
   log(type, ...args) {
     this.#environment.emit(this.#tag, type, ...args);
   }
-
-
-  //
-  // Static members
-  //
-
-  /** @type {StdLoggingEnvironment} The default logging environment. */
-  static #DEFAULT_ENVIRONMENT = new StdLoggingEnvironment();
 }
