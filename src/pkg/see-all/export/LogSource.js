@@ -40,7 +40,9 @@ export class LogSource extends EventSource {
    * the configured number of events have been emitted.
    */
   get earliestEvent() {
-    return this.#kickoffEvent ?? this.currentEvent;
+    return this.#kickoffEvent
+      ? this.#kickoffEvent.nextPromise
+      : this.currentEvent;
   }
 
   /**

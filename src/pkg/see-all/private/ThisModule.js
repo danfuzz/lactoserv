@@ -8,7 +8,7 @@ import { ChainedEvent } from '@this/async';
 
 
 /**
- * Un-exported control of this module.
+ * Intramodule communication (un-exported).
  */
 export class ThisModule {
   /**

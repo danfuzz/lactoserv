@@ -22,14 +22,18 @@ export class Logger {
   /**
    * Constructs an instance.
    *
-   * @param {LogTag} tag Tag to use on all logged events.
+   * @param {LogTag|string|string[]} tag Tag to use on all logged events, or
+   *   constructor arguments for same.
    * @param {BaseLoggingEnvironment} [environment = null] Logging environment to
    *   use (it's the source for timestamps and stack traces), or `null` to use
    *   the default one which is hooked up to the "real world."
    */
   constructor(tag, environment = null) {
-    this.#tag          = MustBe.object(tag, LogTag);
-    this.#environment  = environment
+    this.#tag = (tag instanceof LogTag)
+      ? tag
+      : new LogTag(...(typeof tag === 'string') ? [tag] : tag);
+
+    this.#environment = environment
       ? MustBe.object(environment, BaseLoggingEnvironment)
       : ThisModule.DEFAULT_ENVIRONMENT;
   }
