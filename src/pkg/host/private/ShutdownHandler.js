@@ -37,6 +37,7 @@ export class ShutdownHandler {
     }
 
     ThisModule.log('shutdown', 'running');
+    this.#shuttingDown = true;
 
     try {
       await this.#callbacks.run();
