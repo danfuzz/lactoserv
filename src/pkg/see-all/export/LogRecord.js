@@ -4,6 +4,8 @@
 import { LogStackTrace } from '#x/LogStackTrace';
 import { LogTag } from '#x/LogTag';
 
+import { MustBe } from '@this/typey';
+
 import * as util from 'node:util';
 
 
@@ -48,10 +50,10 @@ export class LogRecord {
    */
   constructor(stack, timeSec, tag, type, args) {
     this.#stack   = stack;
-    this.#timeSec = timeSec;
-    this.#tag     = tag;
-    this.#type    = type;
-    this.#args    = args;
+    this.#timeSec = MustBe.number(timeSec);
+    this.#tag     = MustBe.object(tag, LogTag);
+    this.#type    = MustBe.string(type);
+    this.#args    = MustBe.array(args);
   }
 
   /** @type {?LogStackTrace} Stack trace, if available. */
@@ -95,7 +97,8 @@ export class LogRecord {
       ' ',
       this.#tag.toHuman(),
       ' ',
-      ...this.#toHumanPayload()
+      ...this.#toHumanPayload(),
+      '\n'
     ];
 
     return parts.join('');
@@ -135,11 +138,12 @@ export class LogRecord {
    * @returns {string[]} The "human form" string parts.
    */
   #toHumanTime() {
-    const frac = this.#timeSec - (this.#timeSec % 1);
-    const d    = new Date(this.#timeSec);
+    const secs = Math.trunc(this.#timeSec);
+    const frac = this.#timeSec - secs;
+    const d    = new Date(secs);
 
     return [
-      d.getUTCYear().toString(),
+      d.getUTCFullYear().toString(),
       (d.getUTCMonth() + 1).toString().padStart(2, '0'),
       d.getUTCDate().toString().padStart(2, '0'),
       '-',
@@ -180,8 +184,8 @@ export class LogRecord {
    * @returns {LogRecord} A minimal instance for "kickoff."
    */
   static makeKickoffInstance(tag = null, type = null) {
-    tag  ??= this.KICKOFF_TAG;
-    type ??= this.KICKOFF_TYPE;
+    tag  ??= this.#KICKOFF_TAG;
+    type ??= this.#KICKOFF_TYPE;
     return new LogRecord(null, 0, tag, type, Object.freeze([]));
   }
 }

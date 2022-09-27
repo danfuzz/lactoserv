@@ -11,32 +11,38 @@ import { MustBe } from '@this/typey';
  */
 export class LogSource extends EventSource {
   /** @type {?ChainedEvent} The "kickoff" event, if still available. */
-  #kickoffEvent = new ChainedEvent(LogRecord.makeKickoffInstance());
+  #kickoffEvent;
 
-  /** @type {number} Number of events logged by this instance. */
-  #count = 0;
+  /**
+   * @type {number} Number of events logged by this instance, after which
+   * {@link #kickoffEvent} is to be dropped.
+   */
+  #countRemaining;
 
   /**
    * Constructs an instance.
+   *
+   * @param {number} [initialCount = 1] Number of events logged by this
+   *   instance, after which {@link #earliestEvent} is no longer the actual
+   *   earliest event.
    */
-  constructor() {
+  constructor(initialCount = 1) {
     const kickoffEvent = new ChainedEvent(LogRecord.makeKickoffInstance());
     super(kickoffEvent);
 
-    this.#kickoffEvent = kickoffEvent;
+    this.#kickoffEvent   = kickoffEvent;
+    this.#countRemaining = MustBe.number(initialCount);
   }
 
   /**
-   * @returns {ChainedEvent} The earliest available event from this instance.
-   * When an instance is first constructed, this is its "kickoff" event; but
-   * after the 100th event is logged, this starts tracking the latest logged
-   * event. The idea here is that it should take no longer than the time to log
-   * that many events for something to get itself hooked up to this instance to
-   * start processing events, and we don't want to miss out on flushing out the
-   * initial events.
+   * @returns {ChainedEvent|Promise<ChainedEvent>} The earliest available event
+   * from this instance, or promise for same. This is the "kickoff" event until
+   * the configured number of events have been emitted.
    */
   get earliestEvent() {
-    return this.#kickoffEvent ?? this.currentEvent;
+    return this.#kickoffEvent
+      ? this.#kickoffEvent.nextPromise
+      : this.currentEvent;
   }
 
   /**
@@ -49,20 +55,11 @@ export class LogSource extends EventSource {
 
     super.emit(record);
 
-    this.#count++;
-    if (this.#count >= LogSource.COUNT_WHEN_KICKOFF_DROPPED) {
-      this.#kickoffEvent = null;
+    if (this.#kickoffEvent) {
+      this.#countRemaining--;
+      if (this.#countRemaining <= 0) {
+        this.#kickoffEvent = null;
+      }
     }
   }
-
-
-  //
-  // Static members
-  //
-
-  /**
-   * @type {number} Number of events after which {@link #kickoffEvent} is no
-   * longer available.
-   */
-  static #COUNT_WHEN_KICKOFF_DROPPED = 100;
 }

@@ -143,6 +143,21 @@ export class MustBe {
   }
 
   /**
+   * Checks for type `number`.
+   *
+   * @param {*} value Arbitrary value.
+   * @returns {number} `value` if it is of type `number`.
+   * @throws {Error} Thrown if `value` is of any other type.
+   */
+  static number(value) {
+    if (typeof value === 'number') {
+      return value;
+    }
+
+    throw new Error('Must be of type `number`.');
+  }
+
+  /**
    * Checks for type `object`, and optionally being an instance of a particular
    * class.
    *

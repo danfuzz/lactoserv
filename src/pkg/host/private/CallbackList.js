@@ -1,6 +1,8 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { ThisModule } from '#p/ThisModule';
+
 import { Condition } from '@this/async';
 
 import * as timers from 'node:timers/promises';
@@ -50,18 +52,18 @@ export class CallbackList {
   async run() {
     if (this.#inProgress.value) {
       // Already running. Ignore the request.
-      console.log(`Ignoring concurrent \`run()\` of ${this.#name} callbacks.`);
+      ThisModule.log('callback', this.#name, 'ignoring');
       return;
     }
 
     this.#inProgress.value = true;
 
-    console.log(`Running ${this.#name} callbacks...`);
+    ThisModule.log('callback', this.#name, 'running');
 
     try {
       await this.#run0();
     } finally {
-      console.log(`Done running ${this.#name} callbacks. Yay!`);
+      ThisModule.log('callback', this.#name, 'done');
       this.#inProgress.value = false;
     }
   }
@@ -82,10 +84,7 @@ export class CallbackList {
       for (const result of results) {
         if (result.status === 'rejected') {
           rejectedCount++;
-          console.log('Error in %s callback:\n%s', this.#name, result.reason);
-          if (result.reason.stack) {
-            console.log('%o', result.reason.stack);
-          }
+          ThisModule.log('callback', this.#name, 'error', result.reason);
         }
       }
 

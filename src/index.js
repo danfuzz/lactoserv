@@ -23,4 +23,4 @@ if (exitCode === 0) {
   console.log('Top-level application exiting with error code: %d', exitCode);
 }
 
-process.exit(exitCode);
+await Main.exit(exitCode);
