@@ -78,7 +78,7 @@ describe('run()', () => {
     expect(await runResult).toBeNull();
   });
 
-  test('processes the first event when it is promise that resolves to an event', async () => {
+  test('processes the first event when it is a promise that resolves to an event', async () => {
     let callCount   = 0;
     let callGot     = null;
     const processor = (event) => {
@@ -99,7 +99,7 @@ describe('run()', () => {
     expect(await runResult).toBeNull();
   });
 
-  test('processes the first "event" when it is promise that is rejected', async () => {
+  test('processes the first "event" when it is a promise that is rejected', async () => {
     let callCount   = 0;
     const processor = (event_unused) => {
       callCount++;
@@ -231,5 +231,61 @@ describe('stop()', () => {
     expect(callCount).toBe(0);
 
     expect (await runResult).toBeNull();
+  });
+});
+
+describe('processor function calling', () => {
+  test('called with a single event argument (synchronously known)', async () => {
+    let callGot     = null;
+    const processor = (...args) => {
+      callGot = args;
+    };
+
+    const event = new ChainedEvent(payload1);
+    const sink  = new EventSink(processor, event);
+
+    const runResult = sink.run();
+
+    await timers.setImmediate();
+    expect(callGot).toStrictEqual([event]);
+
+    sink.stop();
+    expect(await runResult).toBeNull();
+  });
+
+  test('called with a single event argument (resolved promise)', async () => {
+    let callGot     = null;
+    const processor = (...args) => {
+      callGot = args;
+    };
+
+    const event = new ChainedEvent(payload1);
+    const sink  = new EventSink(processor, Promise.resolve(event));
+
+    const runResult = sink.run();
+
+    await timers.setImmediate();
+    expect(callGot).toStrictEqual([event]);
+
+    sink.stop();
+    expect(await runResult).toBeNull();
+  });
+
+  test('is called with `this` unbound', async () => {
+    let callGotThis = null;
+    function processor() {
+      callGotThis = this;
+    }
+
+    const event = new ChainedEvent(payload1);
+    const sink  = new EventSink(processor, event);
+
+    const runResult = sink.run();
+
+    await timers.setImmediate();
+    expect(callGotThis).toBeNull();
+
+    sink.stop();
+    expect(await runResult).toBeNull();
   });
 });

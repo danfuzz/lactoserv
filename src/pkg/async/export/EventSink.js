@@ -37,7 +37,7 @@ export class EventSink {
    *   processed by the instance, or promise for same.
    */
   constructor(processor, firstEvent) {
-    this.#processor = MustBe.callableFunction(processor);
+    this.#processor = MustBe.callableFunction(processor).bind(null);
     this.#head      = new EventOrPromise(firstEvent);
     this.#thread    = new Threadoid(() => this.#run());
   }
