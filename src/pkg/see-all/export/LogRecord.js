@@ -4,6 +4,8 @@
 import { LogStackTrace } from '#x/LogStackTrace';
 import { LogTag } from '#x/LogTag';
 
+import { MustBe } from '@this/typey';
+
 import * as util from 'node:util';
 
 
@@ -48,10 +50,10 @@ export class LogRecord {
    */
   constructor(stack, timeSec, tag, type, args) {
     this.#stack   = stack;
-    this.#timeSec = timeSec;
-    this.#tag     = tag;
-    this.#type    = type;
-    this.#args    = args;
+    this.#timeSec = MustBe.number(timeSec);
+    this.#tag     = MustBe.object(tag, LogTag);
+    this.#type    = MustBe.string(type);
+    this.#args    = MustBe.array(args);
   }
 
   /** @type {?LogStackTrace} Stack trace, if available. */
@@ -139,7 +141,7 @@ export class LogRecord {
     const d    = new Date(this.#timeSec);
 
     return [
-      d.getUTCYear().toString(),
+      d.getUTCFullYear().toString(),
       (d.getUTCMonth() + 1).toString().padStart(2, '0'),
       d.getUTCDate().toString().padStart(2, '0'),
       '-',
