@@ -28,4 +28,15 @@ export class Main {
 
     return 0;
   }
+
+  /**
+   * Exits the system as cleanly as possible. The right way to use this is to
+   * call this and `await` the return value... which will never actually get
+   * resolved.
+   *
+   * @param {number} [exitCode = 0] Exit code.
+   */
+  static async exit(exitCode = 0) {
+    return Host.exit(exitCode);
+  }
 }
