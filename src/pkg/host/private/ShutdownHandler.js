@@ -2,6 +2,7 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { CallbackList } from '#p/CallbackList';
+import { ThisModule } from '#p/ThisModule';
 
 import process from 'node:process'; // Need to import as such, for `.on*()`.
 import * as timers from 'node:timers/promises';
@@ -31,17 +32,17 @@ export class ShutdownHandler {
    */
   static async exit(exitCode) {
     if (this.#shuttingDown) {
-      console.log('Ignoring redundant shutdown request.');
+      ThisModule.log('shutdown', 'ignoring');
       return;
     }
 
-    console.log('Shutting down...');
+    ThisModule.log('shutdown', 'running');
 
     try {
       await this.#callbacks.run();
-      console.log('Clean shutdown. Yay!');
+      ThisModule.log('shutdown', 'done');
     } catch (e) {
-      console.log('Error during shutdown:\n%o', e.stack);
+      ThisModule.log('shutdown', 'error', e);
       if (exitCode === 0) {
         exitCode = 1;
       }

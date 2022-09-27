@@ -23,7 +23,7 @@ export class Host {
    */
   static async exit(exitCode = 0) {
     this.init();
-    ShutdownHandler.exit(exitCode);
+    await ShutdownHandler.exit(exitCode);
   }
 
   /**
