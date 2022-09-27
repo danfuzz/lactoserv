@@ -1,8 +1,10 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { LoggingManager } from '#p/LoggingManager';
 import { ShutdownHandler } from '#p/ShutdownHandler';
 import { SignalHandler } from '#p/SignalHandler';
+import { ThisModule } from '#p/ThisModule';
 import { TopErrorHandler } from '#p/TopErrorHandler';
 
 /**
@@ -34,9 +36,11 @@ export class Host {
       return;
     }
 
+    LoggingManager.init();
     SignalHandler.init();
     TopErrorHandler.init();
-    console.log('Global init complete.');
+
+    ThisModule.log('initialized');
 
     this.#initDone = true;
   }
