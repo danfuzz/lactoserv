@@ -24,10 +24,10 @@ export class LogEvent {
   /** @type {LogTag} Tag. */
   #tag;
 
-  /** @type {string} Payload "type." */
+  /** @type {string} Event "type." */
   #type;
 
-  /** @type {*[]} Payload arguments. */
+  /** @type {*[]} Event arguments. */
   #args;
 
   /**
@@ -73,12 +73,12 @@ export class LogEvent {
     return this.#tag;
   }
 
-  /** @type {string} Payload "type." */
+  /** @type {string} Event "type." */
   get type() {
     return this.#type;
   }
 
-  /** @type {*[]} Payload arguments. */
+  /** @type {*[]} Event arguments, whose meaning depends on {@link #type}. */
   get args() {
     return this.#args;
   }
