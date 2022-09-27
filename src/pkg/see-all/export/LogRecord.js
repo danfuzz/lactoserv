@@ -138,8 +138,9 @@ export class LogRecord {
    * @returns {string[]} The "human form" string parts.
    */
   #toHumanTime() {
-    const frac = this.#timeSec - (this.#timeSec % 1);
-    const d    = new Date(this.#timeSec);
+    const secs = Math.trunc(this.#timeSec);
+    const frac = this.#timeSec - secs;
+    const d    = new Date(secs);
 
     return [
       d.getUTCFullYear().toString(),
