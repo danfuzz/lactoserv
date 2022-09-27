@@ -1,17 +1,52 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { LogRecord } from '#x/LogRecord';
+import { LogTag } from '#x/LogTag';
+
 import { Methods, MustBe } from '@this/typey';
 
 
 /**
  * Abstract class representing a provider of a "logging environment." This class
  * exists so that the rest of the logging system doesn't have to _directly_
- * depend on system-specific services for getting the time and generating stack
- * traces.
+ * depend on system-specific services, nor tacitly refer to effectively-global
+ * variables (which are awkward to stub/mock out for testing).
+ *
+ * Subclasses are expected to override the `_impl_*` methods, while leaving the
+ * other (unmarked) methods alone. The latter provide type safety and other
+ * sanity checks in both directions.
  */
 export class BaseLoggingEnvironment {
   // Note: The default constructor is fine here.
+
+  /**
+   * Emits an event from whatever event source this instance is connected to.
+   * This method accepts _either_ an instance of {@link LogRecord} _or_ the
+   * arguments to construct an instance (except for the stack and time, which
+   * are filled in by this method).
+   *
+   * @param {LogRecord|LogTag} recordOrTag The complete log record or the tag.
+   * @param {?string} type Event type, if given a tag for `recordOrTag`; must be
+   *   `null` when given a full {@link LogRecord}.
+   * @param {...*} args Event arguments, if given a tag for `recordOrTag`; must
+   *   be empty when given a full {@link LogRecord}.
+   */
+  emit(recordOrTag, type, ...args) {
+    if (recordOrTag instanceof LogRecord) {
+      MustBe.null(type);
+      if (args.length !== 0) {
+        throw new Error('Cannot pass extra `args` with record instance.');
+      }
+      this._impl_emit(recordOrTag);
+    } else if (recordOrTag instanceof LogTag) {
+      const event = new LogRecord(
+        this.stackTrace(1), this.nowSec(), recordOrTag, type, args);
+      this._impl_emit(event);
+    } else {
+      throw new Error('Invalid value for `recordOrTag`.');
+    }
+  }
 
   /**
    * Gets a timestamp representing "now," represented as seconds since the
@@ -60,6 +95,17 @@ export class BaseLoggingEnvironment {
     }
 
     return result;
+  }
+
+  /**
+   * Emits an event with the given payload from whatever event source this
+   * instance is connected to.
+   *
+   * @abstract
+   * @param {LogRecord} record The record to log.
+   */
+  _impl_emit(record) {
+    Methods.abstract(record);
   }
 
   /**

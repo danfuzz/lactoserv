@@ -128,6 +128,21 @@ export class MustBe {
   }
 
   /**
+   * Checks for the value `null`.
+   *
+   * @param {*} value Arbitrary value.
+   * @returns {null} `null` if `value === null`.
+   * @throws {Error} Thrown if `value` is anything else.
+   */
+  static null(value) {
+    if (value === null) {
+      return null;
+    }
+
+    throw new Error('Must be of type `function`.');
+  }
+
+  /**
    * Checks for type `object`, and optionally being an instance of a particular
    * class.
    *

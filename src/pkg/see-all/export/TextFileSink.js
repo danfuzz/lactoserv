@@ -1,9 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { LogEvent } from '#x/LogEvent';
-
-import { EventSink } from '@this/async';
+import { ChainedEvent, EventSink } from '@this/async';
 import { MustBe } from '@this/typey';
 
 import * as fs from 'node:fs/promises';
@@ -23,8 +21,8 @@ export class TextFileSink extends EventSink {
    *
    * @param {string} filePath File to write to. It is immediately resolved to an
    *   absolute path.
-   * @param {LogEvent|Promise<LogEvent>} firstEvent First event to be processed
-   *   by the instance, or promise for same.
+   * @param {ChainedEvent|Promise<ChainedEvent>} firstEvent First event to be
+   *   processed by the instance, or promise for same.
    */
   constructor(filePath, firstEvent) {
     MustBe.string(filePath);
@@ -36,10 +34,10 @@ export class TextFileSink extends EventSink {
   /**
    * Processes an event, by writing it to this instance's designated file.
    *
-   * @param {LogEvent} event Event to log.
+   * @param {ChainedEvent} event Event to log.
    */
   async #process(event) {
-    const text = event.toHuman();
+    const text = event.payload.toHuman();
     await fs.appendFile(this.#filePath, text);
   }
 }
