@@ -117,7 +117,7 @@ export class Condition {
   #whenX(value) {
     if (this.#value === value) {
       // Value is already as desired.
-      return true;
+      return Promise.resolve(true);
     }
 
     const idx = value ? 1 : 0;

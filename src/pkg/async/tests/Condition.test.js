@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { Condition } from '@this/async';
+import { Condition, PromiseState } from '@this/async';
 
 describe('constructor()', () => {
   test('takes on the default value', () => {
@@ -129,6 +129,13 @@ describe('whenFalse()', () => {
     await waitDone;
     expect(triggered).toBeTrue();
   });
+
+  test('is a fulfilled promise if the value is already `false`', () => {
+    const cond   = new Condition(false);
+    const result = cond.whenFalse();
+
+    expect(PromiseState.isFulfilled(result)).toBeTrue();
+  });
 });
 
 describe('whenTrue()', () => {
@@ -143,5 +150,12 @@ describe('whenTrue()', () => {
 
     await waitDone;
     expect(triggered).toBeTrue();
+  });
+
+  test('is a fulfilled promise if the value is already `true`', () => {
+    const cond   = new Condition(true);
+    const result = cond.whenTrue();
+
+    expect(PromiseState.isFulfilled(result)).toBeTrue();
   });
 });
