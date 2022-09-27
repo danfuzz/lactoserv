@@ -55,7 +55,7 @@ export class JsonSchemaError {
       }
 
       const got = JsonSchemaError.#errorStringFor(e.data, 9);
-      console.log('  %s:\n    %s\n    got: %s', path.join(''), e.message, got);
+      logger('  %s:\n    %s\n    got: %s', path.join(''), e.message, got);
     }
 
     logger();
