@@ -3,6 +3,7 @@
 
 import { CallbackList } from '#p/CallbackList';
 import { ShutdownHandler } from '#p/ShutdownHandler';
+import { ThisModule } from '#p/ThisModule';
 
 import process from 'node:process'; // Need to import as such, for `.on*()`.
 
@@ -55,8 +56,7 @@ export class SignalHandler {
    * @param {string} signalName Name of the signal.
    */
   static async #handleExitSignal(signalName) {
-    console.log();
-    console.log(`Received signal: ${signalName}`);
+    ThisModule.log('signal', 'exit', signalName);
 
     ShutdownHandler.exit();
   }
@@ -67,14 +67,12 @@ export class SignalHandler {
    * @param {string} signalName Name of the signal.
    */
   static async #handleReloadSignal(signalName) {
-    console.log();
-    console.log(`Received signal: ${signalName}`);
-
     if (ShutdownHandler.isShuttingDown()) {
-      console.log(`Ignoring signal: ${signalName}`);
-      console.log(`Currently shutting down!`);
+      ThisModule.log('signal', 'ignoring', signalName);
       return;
     }
+
+    ThisModule.log('signal', 'reload', signalName);
 
     // If this throws, it ends up becoming an unhandled promise rejection,
     // which will presumably cause the system to shut down.

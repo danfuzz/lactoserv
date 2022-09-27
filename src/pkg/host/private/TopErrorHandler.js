@@ -1,6 +1,8 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { ThisModule } from '#p/ThisModule';
+
 import process from 'node:process'; // Need to import as such, for `.on*()`.
 import * as timers from 'node:timers/promises';
 import * as util from 'node:util';
@@ -48,21 +50,19 @@ export class TopErrorHandler {
   /**
    * Handle either top-level problem, as indicated.
    *
-   * @param {string} eventName_unused Event name to use for logging the problem.
+   * @param {string} eventType Event type to use for logging the problem.
    * @param {string} label How to label the problem in a human-oriented `error`
    *   log.
    * @param {*} problem The "problem" (uncaught exception or rejection reason).
    *   Typically, but not necessarily, an `Error`.
    */
-  static async #handleProblem(eventName_unused, label, problem) {
-    const problemString = (problem instanceof Error)
-      ? problem.stack
-      : util.inspect(problem);
+  static async #handleProblem(eventType, label, problem) {
+    const problemString = util.inspect(problem);
 
     // Write to `stderr` directly first, because logging might be broken.
-    process.stderr.write(`${label}:\n${problemString}\n`);
+    process.stderr.write(`\n\n${label}:\n${problemString}\n\n`);
 
-    // TODO: Write to a real logger of some sort.
+    ThisModule.log(eventType, problem);
 
     // Give the system a moment, so it has a chance to actually flush the log,
     // and then exit.
@@ -111,28 +111,6 @@ export class TopErrorHandler {
    * @param {Error} warning The warning.
    */
   static async #warning(warning) {
-    const { code, message, name, stack } = warning;
-    const summary = `${code ? `[${code}] ` : ''}${name}: ${message}`;
-
-    // Trim stack down to at most just two `at` lines.
-    let trimmedStack = null;
-    if (stack) {
-      const lines = [];
-      for (const match of stack.matchAll(/^ *at .+$/mg)) {
-        lines.push(match[0]);
-        if (lines.length === 2) {
-          break;
-        }
-      }
-      if (lines.length !== 0) {
-        trimmedStack = lines.join('\n');
-      }
-    }
-
-    // TODO: Log this with a real logger.
-    console.log('Warning: %s', summary);
-    if (trimmedStack) {
-      console.log('%s', trimmedStack);
-    }
+    ThisModule.log('warning', warning);
   }
 }
