@@ -17,8 +17,8 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
   // Note: The default constructor is fine here.
 
   /** @override */
-  _impl_emit(event) {
-    this.#source.emit(event);
+  _impl_emit(record) {
+    this.#source.emit(record);
   }
 
   /** @override */

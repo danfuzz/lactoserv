@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { LogEvent } from '#x/LogEvent';
+import { LogRecord } from '#x/LogRecord';
 import { LogTag } from '#x/LogTag';
 
 import { Methods, MustBe } from '@this/typey';
@@ -22,30 +22,29 @@ export class BaseLoggingEnvironment {
 
   /**
    * Emits an event from whatever event source this instance is connected to.
-   * This method accepts _either_ an instance of {@link LogEvent} (which must
-   * not already have a "next" event), _or_ the arguments to construct an
-   * instance (except for the stack and time, which are filled in by this
-   * method).
+   * This method accepts _either_ an instance of {@link LogRecord} _or_ the
+   * arguments to construct an instance (except for the stack and time, which
+   * are filled in by this method).
    *
-   * @param {LogEvent|LogTag} eventOrTag The complete event or the event tag.
-   * @param {?string} type Event type, if given a tag for `eventOrTag`; must be
-   *   `null` when given a full {@link LogEvent}.
-   * @param {...*} args Event arguments, if given a tag for `eventOrTag`; must
-   *   be empty when given a full {@link LogEvent}.
+   * @param {LogRecord|LogTag} recordOrTag The complete log record or the tag.
+   * @param {?string} type Event type, if given a tag for `recordOrTag`; must be
+   *   `null` when given a full {@link LogRecord}.
+   * @param {...*} args Event arguments, if given a tag for `recordOrTag`; must
+   *   be empty when given a full {@link LogRecord}.
    */
-  emit(eventOrTag, type, ...args) {
-    if (eventOrTag instanceof LogEvent) {
+  emit(recordOrTag, type, ...args) {
+    if (recordOrTag instanceof LogRecord) {
       MustBe.null(type);
       if (args.length !== 0) {
-        throw new Error('Cannot pass extra `args` with event instance.');
+        throw new Error('Cannot pass extra `args` with record instance.');
       }
-      this._impl_emit(eventOrTag);
-    } else if (eventOrTag instanceof LogTag) {
-      const event = new LogEvent(
+      this._impl_emit(recordOrTag);
+    } else if (recordOrTag instanceof LogTag) {
+      const event = new (
         this.stackTrace(1), this.nowSec(), eventOrTag, type, args);
       this._impl_emit(event);
     } else {
-      throw new Error('Invalid value for `eventOrTag`.');
+      throw new Error('Invalid value for `recordOrTag`.');
     }
   }
 
@@ -99,10 +98,11 @@ export class BaseLoggingEnvironment {
   }
 
   /**
-   * Emits an event from whatever event source this instance is connected to.
+   * Emits an event with the given payload from whatever event source this
+   * instance is connected to.
    *
    * @abstract
-   * @param {LogEvent} event The event to log.
+   * @param {LogRecord} record The record to log.
    */
   _impl_emit(event) {
     Methods.abstract(event);
