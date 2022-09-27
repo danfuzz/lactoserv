@@ -38,7 +38,7 @@ export class Threadoid {
    *
    * @param {function(Threadoid): *} threadFunction Function to call once
    *   running. The function is always called asynchronously, and it is passed
-   *   the instance of this class it was called from.
+   *   the instance of this class which it was called from.
    */
   constructor(threadFunction) {
     this.#threadFunction = MustBe.callableFunction(threadFunction).bind(null);
