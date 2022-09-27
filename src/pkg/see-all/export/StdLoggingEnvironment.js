@@ -16,6 +16,12 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
   /** @type {LogSource} Log source attached to {@link #emit}. */
   #source;
 
+  /** @type {bigint} Last result from `hrtime.bigint()`. */
+  #lastHrtimeNsec = -1n;
+
+  /** @type {bigint} Last result from {@link #_impl_nowSec}, as a `bigint`. */
+  #lastNowNsec = -1;
+
   /**
    * Constructs an instance.
    *
@@ -34,9 +40,38 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
 
   /** @override */
   _impl_nowSec() {
-    const [secs, nanos] = process.hrtime();
+    // What's going on here: We attempt to use `hrtime()` -- which has nsec
+    // precision but has an arbitrary zero-time -- to improve on the precision
+    // of `Date.now()` -- which has msec precision and a well-established base.
 
-    return secs + (nanos * StdLoggingEnvironment.#SECS_PER_NANOSECOND);
+    const hrtimeNsec  = process.hrtime.bigint();
+    const dateNowNsec = BigInt(Date.now()) * StdLoggingEnvironment.#NSEC_PER_MSEC;
+    let nowNsec;
+
+    if (this.#lastNowNsec < 0) {
+      nowNsec = dateNowNsec;
+    } else {
+      const hrDiffNsec    = hrtimeNsec - this.#lastHrtimeNsec;
+      const hrTrackedNsec = this.#lastNowNsec + hrDiffNsec;
+      if (   (hrTrackedNsec >= (dateNowNsec - StdLoggingEnvironment.#NSEC_PER_MSEC))
+          && (hrTrackedNsec <= (dateNowNsec + StdLoggingEnvironment.#NSEC_PER_MSEC))) {
+        nowNsec = hrTrackedNsec;
+      } else {
+        // The wall time reconstructed from the difference between `hrtime()`
+        // readings is too far off from what `Date.now()` reports. That is, it's
+        // not useful, so we just use a straight `Date.now()` result.
+        nowNsec = dateNowNsec;
+      }
+    }
+
+    if (nowNsec < this.#lastNowNsec) {
+      nowNsec = this.#lastNowNsec + StdLoggingEnvironment.#NSEC_PER_MSEC;
+    }
+
+    this.#lastHrtimeNsec  = hrtimeNsec;
+    this.#lastNowNsec     = nowNsec;
+
+    return Number(nowNsec) * StdLoggingEnvironment.#SECS_PER_NSEC;
   }
 
   /** @override */
@@ -50,5 +85,8 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
   //
 
   /** {number} The number of seconds in a nanosecond. */
-  static #SECS_PER_NANOSECOND = 1 / 1_000_000_000;
+  static #SECS_PER_NSEC = 1 / 1_000_000_000;
+
+  /** {bigint} The number of nanoseconds in a millisecond. */
+  static #NSEC_PER_MSEC = 1_000_000n;
 }
