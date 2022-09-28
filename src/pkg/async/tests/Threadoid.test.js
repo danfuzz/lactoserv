@@ -41,7 +41,7 @@ describe('constructor(<invalid>)', () => {
     [new Map()],
     [class NotACallableFunction {}]
   ])('fails for %p', (value) => {
-    expect(() => new EventTracker(value)).toThrow();
+    expect(() => new Threadoid(value)).toThrow();
   });
 });
 
