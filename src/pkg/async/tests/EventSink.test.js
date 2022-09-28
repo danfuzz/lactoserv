@@ -304,7 +304,7 @@ describe('processor function calling', () => {
     expect(await runResult).toBeNull();
   });
 
-  test('is called with `this` unbound', async () => {
+  test('called with `this` unbound', async () => {
     let callGotThis = null;
     function processor() {
       callGotThis = this;
