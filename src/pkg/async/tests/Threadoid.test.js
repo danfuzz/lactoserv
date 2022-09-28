@@ -31,7 +31,7 @@ describe('constructor(function)', () => {
 
   test('produces an instance which does not immediately call its function', async () => {
     let called = false;
-    const thread = new Threadoid(() => {
+    new Threadoid(() => {
       called = true;
     });
 
