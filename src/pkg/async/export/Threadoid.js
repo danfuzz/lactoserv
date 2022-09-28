@@ -60,6 +60,11 @@ export class Threadoid {
    * the thread happens asynchronously with respect to the caller of this
    * method.
    *
+   * **Note:** To be clear, if the instance was already running when this method
+   * was called, the return value from this method will be the same value as
+   * returned (or the same exception thrown) from the call which actually
+   * started the instance running.
+   *
    * @returns {*} Whatever is returned by the `threadFunction`.
    * @throws {Error} Whatever was thrown by the `threadFunction`.
    */
