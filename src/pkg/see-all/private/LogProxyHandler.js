@@ -36,6 +36,12 @@ export class LogProxyHandler extends MethodCacheProxyHandler {
   #environment;
 
   /**
+   * @type {?LogTag} The tag to use for instances directly "under" this one, if
+   * already computed.
+   */
+  #cachedSubTag = null;
+
+  /**
    * Constructs an instance.
    *
    * **Note:** This constructor is only intended for internal use. Client code
@@ -51,6 +57,31 @@ export class LogProxyHandler extends MethodCacheProxyHandler {
     this.#tag           = tag;
     this.#typeOrNextTag = typeOrNextTag;
     this.#environment   = environment;
+  }
+
+  /**
+   * @returns {LogTag} The tag to use for instances directly "under" this one.
+   */
+  get #subTag() {
+    if (!this.#cachedSubTag) {
+      if (this.#typeOrNextTag) {
+        if (   (this.#tag.main === LogProxyHandler.#TOP_TAG_NAME)
+            && (this.#tag.context.length === 0)) {
+          // There's no "real" tag to append to; use the next-tag as the main
+          // (first) piece of context.
+          this.#cachedSubTag = new LogTag(this.#typeOrNextTag);
+        } else {
+          // Unspecial case where we just add to the existing non-top context.
+          this.#cachedSubTag = this.#tag.withAddedContext(this.#typeOrNextTag);
+        }
+      } else {
+        // No "next" in this instance (we're at the root); just keep the existing
+        // tag (which might be the artificial "top" one).
+        this.#cachedSubTag = this.#tag;
+      }
+    }
+
+    return this.#cachedSubTag;
   }
 
   /** @override */
@@ -85,26 +116,10 @@ export class LogProxyHandler extends MethodCacheProxyHandler {
       throw new Error('Invalid name for logging method (symbols not allowed).');
     }
 
-    let subTag;
-
-    if (this.#typeOrNextTag) {
-      if (   (this.#tag.main === LogProxyHandler.#TOP_TAG_NAME)
-          && (this.#tag.context.length === 0)) {
-        // There's no "real" tag to append to; use the next-tag as the main
-        // (first) context.
-        subTag = new LogTag(this.#typeOrNextTag);
-      } else {
-        // Unspecial case where we just add to the existing non-top context.
-        subTag = this.#tag.withAddedContext(this.#typeOrNextTag);
-      }
-    } else {
-      // No "next" yet (we're at the root); just keep the existing tag (which
-      // might be the artificial "top" one).
-      subTag = this.#tag;
-    }
-
-    return LogProxyHandler.makeFunctionProxy(subTag, name, this.#environment);
+    return LogProxyHandler.makeFunctionProxy(this.#subTag, name, this.#environment);
   }
+
+
 
 
   //
@@ -112,7 +127,7 @@ export class LogProxyHandler extends MethodCacheProxyHandler {
   //
 
   /** {string} Main tag name to use for the top level. */
-  static #TOP_TAG_NAME = '<top>';
+  static #TOP_TAG_NAME = '(top)';
 
   /**
    * Constructs a usable logger instance -- that is, an instance of this class
