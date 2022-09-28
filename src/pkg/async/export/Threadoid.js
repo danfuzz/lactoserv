@@ -45,6 +45,15 @@ export class Threadoid {
   }
 
   /**
+   * Is this instance currently running?
+   *
+   * @returns {boolean} The answer.
+   */
+  isRunning() {
+    return this.#runResult !== null;
+  }
+
+  /**
    * Starts this instance running, if it isn't already. The return value or
    * exception thrown from this instance's `threadFunction` (constructor
    * argument) is in turn async-returned from this instance. All processing in
@@ -61,15 +70,6 @@ export class Threadoid {
     }
 
     return this.#runResult;
-  }
-
-  /**
-   * Is this instance currently running?
-   *
-   * @returns {boolean} The answer.
-   */
-  isRunning() {
-    return this.#runResult !== null;
   }
 
   /**
