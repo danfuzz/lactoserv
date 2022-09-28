@@ -11,8 +11,7 @@ export class ThisModule {
   /** @type {function(...*)} Logger for this module. */
   static #logger = SeeAll.loggerFor('host');
 
-  /**
-   * @returns {function(...*)} Logger for this module. */
+  /** @returns {function(...*)} Logger for this module. */
   static get logger() {
     return this.#logger;
   }
