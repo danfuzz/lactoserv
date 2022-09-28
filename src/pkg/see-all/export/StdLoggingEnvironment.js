@@ -45,7 +45,7 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
     // of `Date.now()` -- which has msec precision and a well-established base.
 
     const hrtimeNsec  = process.hrtime.bigint();
-    const dateNowNsec = BigInt(Date.now()) * StdLoggingEnvironment.#NSEC_PER_MSEC;
+    const dateNowNsec = BigInt(Date.now()) * StdLoggingEnvironment.#MSEC_PER_NSEC;
     let nowNsec;
 
     if (this.#lastNowNsec < 0) {
@@ -53,8 +53,8 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
     } else {
       const hrDiffNsec    = hrtimeNsec - this.#lastHrtimeNsec;
       const hrTrackedNsec = this.#lastNowNsec + hrDiffNsec;
-      if (   (hrTrackedNsec >= (dateNowNsec - StdLoggingEnvironment.#NSEC_PER_MSEC))
-          && (hrTrackedNsec <= (dateNowNsec + StdLoggingEnvironment.#NSEC_PER_MSEC))) {
+      if (   (hrTrackedNsec >= (dateNowNsec - StdLoggingEnvironment.#MSEC_PER_NSEC))
+          && (hrTrackedNsec <= (dateNowNsec + StdLoggingEnvironment.#MSEC_PER_NSEC))) {
         nowNsec = hrTrackedNsec;
       } else {
         // The wall time reconstructed from the difference between `hrtime()`
@@ -65,7 +65,7 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
     }
 
     if (nowNsec < this.#lastNowNsec) {
-      nowNsec = this.#lastNowNsec + StdLoggingEnvironment.#NSEC_PER_MSEC;
+      nowNsec = this.#lastNowNsec + StdLoggingEnvironment.#MSEC_PER_NSEC;
     }
 
     this.#lastHrtimeNsec  = hrtimeNsec;
@@ -87,6 +87,6 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
   /** {number} The number of seconds in a nanosecond. */
   static #SECS_PER_NSEC = 1 / 1_000_000_000;
 
-  /** {bigint} The number of nanoseconds in a millisecond. */
-  static #NSEC_PER_MSEC = 1_000_000n;
+  /** {bigint} The number of milliseconds in a nanosecond. */
+  static #MSEC_PER_NSEC = 1_000_000n;
 }
