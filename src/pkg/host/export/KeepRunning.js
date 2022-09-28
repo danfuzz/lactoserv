@@ -74,7 +74,6 @@ export class KeepRunning {
         timers.setTimeout(KeepRunning.#MSEC_PER_DAY),
         this.#thread.whenStopRequested()
       ]);
-      ThisModule.log('boop!', result);
     }
 
     const days = (Date.now() - startedAt) / KeepRunning.#MSEC_PER_DAY;
