@@ -45,4 +45,22 @@ describe('constructor(<invalid>)', () => {
   });
 });
 
-// TODO: Add more tests!
+describe('isRunning()', () => {
+  // TODO
+});
+
+describe('run()', () => {
+  // TODO
+});
+
+describe('shouldStop()', () => {
+  // TODO
+});
+
+describe('stop()', () => {
+  // TODO
+});
+
+describe('whenStopRequested()', () => {
+  // TODO
+});
