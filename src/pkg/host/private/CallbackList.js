@@ -8,12 +8,15 @@ import { Condition } from '@this/async';
 import * as timers from 'node:timers/promises';
 
 
+/** @type {function(...*)} Logger for this class. */
+const logger = ThisModule.logger.callback;
+
 /**
  * List of callbacks to be managed and (perhaps) actually run.
  */
 export class CallbackList {
-  /** @type {string} Name of the instance, for logging purposes. */
-  #name;
+  /** @type {function(...*)} Instance-specific logger. */
+  #logger;
 
   /** @type {number} Maximum time for running all callbacks, in msec. */
   #maxRunMsec;
@@ -31,7 +34,7 @@ export class CallbackList {
    * @param {number} maxRunMsec Maximum time for running all callbacks, in msec.
    */
   constructor(name, maxRunMsec) {
-    this.#name       = name;
+    this.#logger     = logger[name];
     this.#maxRunMsec = maxRunMsec;
   }
 
@@ -52,18 +55,21 @@ export class CallbackList {
   async run() {
     if (this.#inProgress.value) {
       // Already running. Ignore the request.
-      ThisModule.log('callback', this.#name, 'ignoring');
+      this.#logger.ignoring();
       return;
     }
 
     this.#inProgress.value = true;
 
-    ThisModule.log('callback', this.#name, 'running');
+    this.#logger.running();
 
     try {
       await this.#run0();
+    } catch (e) {
+      this.#logger.error(e);
+      throw e;
     } finally {
-      ThisModule.log('callback', this.#name, 'done');
+      this.#logger.done();
       this.#inProgress.value = false;
     }
   }
@@ -84,14 +90,13 @@ export class CallbackList {
       for (const result of results) {
         if (result.status === 'rejected') {
           rejectedCount++;
-          ThisModule.log('callback', this.#name, 'error', result.reason);
+          this.#logger.error(result.reason);
         }
       }
 
       if (rejectedCount !== 0) {
         const plural = (rejectedCount === 1) ? '' : 's';
-        const name   = `${this.#name} callback${plural}`;
-        throw new Error(`Error${plural} from ${rejectedCount} ${name}.`);
+        throw new Error(`Error${plural} from ${rejectedCount} callback${plural}.`);
       }
     })();
 
@@ -112,7 +117,8 @@ export class CallbackList {
       }
 
       // Similar to above, throw an error to indicate timeout.
-      throw new Error(`Timed out during ${this.#name} callback handler!`);
+      this.#logger.timedOut();
+      throw new Error(`Timed out during callback handler!`);
     })();
 
     // This waits for both blocks above to complete without error, or for one to

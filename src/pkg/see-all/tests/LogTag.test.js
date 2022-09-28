@@ -117,19 +117,27 @@ describe('withAddedContext()', () => {
   });
 });
 
-describe('toHuman()', () => {
+describe.each`
+  label        | args       | endingMain | endingOther
+  ${'<empty>'} | ${[]}      | ${''}      | ${''}
+  ${'false'}   | ${[false]} | ${''}      | ${''}
+  ${'true'}    | ${[true]}  | ${' '}     | ${'.'}
+`('toHuman($label)', ({ args, endingMain, endingOther }) => {
   test('works with just a main tag (no context strings)', () => {
-    const tag = new LogTag('just-main');
-    expect(tag.toHuman()).toBe('[just-main]');
+    const tag      = new LogTag('just-main');
+    const expected = `<just-main>${endingMain}`;
+    expect(tag.toHuman(...args)).toBe(expected);
   });
 
   test('works with a single context string', () => {
-    const tag = new LogTag('just-main', 'one');
-    expect(tag.toHuman()).toBe('[just-main one]');
+    const tag = new LogTag('main-and', 'one');
+    const expected = `<main-and> one${endingOther}`;
+    expect(tag.toHuman(...args)).toBe(expected);
   });
 
   test('works with 10 context strings', () => {
-    const tag = new LogTag('just-main', '1', '2', '3', '4', '5', '6', 'seven', '8', '9', 'ten');
-    expect(tag.toHuman()).toBe('[just-main 1 2 3 4 5 6 seven 8 9 ten]');
+    const tag = new LogTag('whee', '1', '2', '3', '4', '5', '6', 'seven', '8', '9', 'ten');
+    const expected = `<whee> 1.2.3.4.5.6.seven.8.9.ten${endingOther}`;
+    expect(tag.toHuman(...args)).toBe(expected);
   });
 });

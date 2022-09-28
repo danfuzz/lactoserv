@@ -1,15 +1,20 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { Logger } from '@this/see-all';
+import { SeeAll } from '@this/see-all';
 
 
 /**
  * Intramodule communication (un-exported).
  */
 export class ThisModule {
-  /** @type {Logger} Logger for this module. */
-  static #logger = new Logger('host');
+  /** @type {function(...*)} Logger for this module. */
+  static #logger = SeeAll.loggerFor('host');
+
+  /** @returns {function(...*)} Logger for this module. */
+  static get logger() {
+    return this.#logger;
+  }
 
   /**
    * Logs an event with this module as the context.
@@ -18,6 +23,6 @@ export class ThisModule {
    * @param {...*} args Event arguments.
    */
   static log(type, ...args) {
-    this.#logger.log(type, ...args);
+    this.#logger(type, ...args);
   }
 }

@@ -52,18 +52,29 @@ export class LogTag {
    * Gets a string representation of this instance intended for maximally-easy
    * human consumption.
    *
+   * @param {boolean} [addSeparator = false] Should a separator character be
+   *   appended at the end? If so, it is ` ` (space) for a top-level tag (no
+   * context) or `.` for a tag with context.
    * @returns {string} The "human form" string.
    */
-  toHuman() {
+  toHuman(addSeparator = false) {
     if (!this.#humanString) {
       const parts = [
-        '[',
-        this.#main
+        '<',
+        this.#main,
+        '>'
       ];
+
+      let firstContext = true;
       for (const c of this.#context) {
-        parts.push(' ', c);
+        parts.push(firstContext ? ' ' : '.', c);
+        firstContext = false;
       }
-      parts.push(']');
+
+      if (addSeparator) {
+        parts.push(this.#context.length === 0 ? ' ' : '.');
+      }
+
       this.#humanString = parts.join('');
     }
 

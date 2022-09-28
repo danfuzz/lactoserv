@@ -40,7 +40,7 @@ export class Host {
     SignalHandler.init();
     TopErrorHandler.init();
 
-    ThisModule.log('initialized');
+    ThisModule.logger.initialized();
 
     this.#initDone = true;
   }
