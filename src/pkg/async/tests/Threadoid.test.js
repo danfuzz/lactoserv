@@ -369,5 +369,51 @@ describe('stop()', () => {
 });
 
 describe('whenStopRequested()', () => {
-  // TODO
+  test('is a pre-resolved promise when not running', () => {
+    const thread = new Threadoid(() => null);
+    const result = thread.whenStopRequested();
+
+    expect(PromiseState.isFulfilled(result)).toBeTrue();
+  });
+
+  test('is a pending promise when running, before being asked to stop', async () => {
+    let shouldRun = true;
+    const thread = new Threadoid(async () => {
+      while (shouldRun) {
+        await timers.setImmediate();
+      }
+    });
+
+    const runResult = thread.run();
+    const result    = thread.whenStopRequested();
+
+    expect(PromiseState.isPending(result)).toBeTrue();
+    await timers.setImmediate();
+    expect(PromiseState.isPending(result)).toBeTrue();
+
+    shouldRun = false;
+    await expect(runResult).toResolve();
+  });
+
+  test('is promise which resolves, after being asked to stop', async () => {
+    let shouldRun = true;
+    const thread = new Threadoid(async () => {
+      while (shouldRun) {
+        await timers.setImmediate();
+      }
+    });
+
+    const runResult = thread.run();
+    const result    = thread.whenStopRequested();
+
+    expect(PromiseState.isPending(result)).toBeTrue(); // Baseline expectation.
+
+    // The actual test.
+    thread.stop();
+    await timers.setImmediate();
+    expect(PromiseState.isFulfilled(result)).toBeTrue();
+
+    shouldRun = false;
+    await expect(runResult).toResolve();
+  });
 });
