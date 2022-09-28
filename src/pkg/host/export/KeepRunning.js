@@ -70,7 +70,7 @@ export class KeepRunning {
         ThisModule.log('keepRunning', 'running', 'forDays', days);
       }
 
-      const result = await Promise.race([
+      await Promise.race([
         timers.setTimeout(KeepRunning.#MSEC_PER_DAY),
         this.#thread.whenStopRequested()
       ]);
