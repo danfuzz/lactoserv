@@ -44,3 +44,5 @@ describe('constructor(<invalid>)', () => {
     expect(() => new EventTracker(value)).toThrow();
   });
 });
+
+// TODO: Add more tests!
