@@ -28,9 +28,9 @@ export class ShutdownHandler {
   /**
    * Attempts to shut down the system as cleanly as possible.
    *
-   * @param {number} exitCode Exit code to pass to `process.exit()`.
+   * @param {number} [exitCode = 0] Exit code to pass to `process.exit()`.
    */
-  static async exit(exitCode) {
+  static async exit(exitCode = 0) {
     if (this.#shuttingDown) {
       ThisModule.log('shutdown', 'ignoring', exitCode);
       return;
