@@ -65,6 +65,9 @@ export class CallbackList {
 
     try {
       await this.#run0();
+    } catch (e) {
+      this.#logger.error(e);
+      throw e;
     } finally {
       this.#logger.done();
       this.#inProgress.value = false;

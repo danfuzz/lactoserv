@@ -8,6 +8,9 @@ import process from 'node:process'; // Need to import as such, for `.on*()`.
 import * as timers from 'node:timers/promises';
 
 
+/** @type {function(...*)} Logger for this class. */
+const logger = ThisModule.logger.shutdown;
+
 /**
  * @type {number} Maximum amount of time to wait for callbacks to complete,
  * while shutting down.
@@ -32,25 +35,22 @@ export class ShutdownHandler {
    */
   static async exit(exitCode = 0) {
     if (this.#shuttingDown) {
-      ThisModule.log('shutdown', 'ignoring', exitCode);
+      logger.ignoring(exitCode);
       return;
     }
 
-    ThisModule.log('shutdown', 'exitCode', exitCode);
+    logger.exiting(exitCode);
     this.#shuttingDown = true;
 
     try {
-      ThisModule.log('shutdown', 'running');
       await this.#callbacks.run();
-      ThisModule.log('shutdown', 'done');
     } catch (e) {
-      ThisModule.log('shutdown', 'error', e);
       if (exitCode === 0) {
         exitCode = 1;
       }
     }
 
-    ThisModule.log('shutdown', 'exiting', exitCode);
+    logger.bye(exitCode);
 
     // Give the system a moment, so it has a chance to flush the log.
     await timers.setTimeout(250); // 0.25 second.
