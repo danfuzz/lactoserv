@@ -322,7 +322,50 @@ describe('stop()', () => {
     await expect(runResult).toResolve();
   });
 
-  // TODO
+  test('causes already-pending `whenStopRequested()` to become fulfilled', async () => {
+    const thread = new Threadoid(async () => {
+      await thread.whenStopRequested();
+    });
+
+    const runResult     = thread.run();
+    const resultPromise = thread.whenStopRequested();
+    await timers.setImmediate();
+
+    // Baseline expectation.
+    expect(PromiseState.isSettled(resultPromise)).toBeFalse();
+
+    // The actual test.
+
+    thread.stop();
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(resultPromise)).toBeTrue();
+
+    await expect(runResult).toResolve();
+  });
+
+  test('does not cause `isRunning()` to become `false`, per se', async () => {
+    let shouldRun = true;
+    const thread = new Threadoid(async () => {
+      while (shouldRun) {
+        await timers.setImmediate();
+      }
+    });
+
+    const runResult = thread.run();
+    await timers.setImmediate();
+    expect(thread.isRunning()).toBeTrue(); // Baseline expectation.
+
+    // The actual test.
+
+    thread.stop();
+    for (let i = 0; i < 10; i++) {
+      expect(thread.isRunning()).toBeTrue();
+      await timers.setImmediate();
+    }
+
+    shouldRun = false;
+    await expect(runResult).toResolve();
+  });
 });
 
 describe('whenStopRequested()', () => {
