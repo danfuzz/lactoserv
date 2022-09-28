@@ -8,6 +8,9 @@ import * as timers from 'node:timers/promises';
 import * as util from 'node:util';
 
 
+/** @type {function(...*)} Logger for this class. */
+const logger = ThisModule.logger.topError;
+
 /**
  * @type {number} How long to wait before considering a promise rejection
  * _actually_ rejected.
@@ -62,7 +65,7 @@ export class TopErrorHandler {
     // Write to `stderr` directly first, because logging might be broken.
     process.stderr.write(`\n\n${label}:\n${problemString}\n\n`);
 
-    ThisModule.log(eventType, problem);
+    logger[eventType](problem);
 
     // Give the system a moment, so it has a chance to actually flush the log,
     // and then exit.
@@ -111,6 +114,6 @@ export class TopErrorHandler {
    * @param {Error} warning The warning.
    */
   static async #warning(warning) {
-    ThisModule.log('warning', warning);
+    logger.warning(warning);
   }
 }
