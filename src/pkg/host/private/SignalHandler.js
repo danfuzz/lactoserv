@@ -8,6 +8,9 @@ import { ThisModule } from '#p/ThisModule';
 import process from 'node:process'; // Need to import as such, for `.on*()`.
 
 
+/** @type {function(...*)} Logger for this class. */
+const logger = ThisModule.logger.signal;
+
 /**
  * @type {number} Maximum amount of time to wait for callbacks to complete,
  * while reloading the system.
@@ -56,7 +59,7 @@ export class SignalHandler {
    * @param {string} signalName Name of the signal.
    */
   static async #handleExitSignal(signalName) {
-    ThisModule.log('signal', 'exit', signalName);
+    logger[signalName].exiting();
 
     ShutdownHandler.exit();
   }
@@ -68,11 +71,11 @@ export class SignalHandler {
    */
   static async #handleReloadSignal(signalName) {
     if (ShutdownHandler.isShuttingDown()) {
-      ThisModule.log('signal', 'ignoring', signalName);
+      logger[signalName].ignoring();
       return;
     }
 
-    ThisModule.log('signal', 'reload', signalName);
+    logger[signalName].reloading();
 
     // If this throws, it ends up becoming an unhandled promise rejection,
     // which will presumably cause the system to shut down.
