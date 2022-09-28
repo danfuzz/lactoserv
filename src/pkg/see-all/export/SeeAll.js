@@ -1,6 +1,9 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
+import { LogProxyHandler } from '#p/LogProxyHandler';
+import { LogTag } from '#x/LogTag';
 import { ThisModule } from '#p/ThisModule';
 
 import { ChainedEvent } from '@this/async';
@@ -22,5 +25,33 @@ export class SeeAll {
    */
   static get earliestEvent() {
     return ThisModule.earliestEvent;
+  }
+
+  /**
+   * Constructs a logger instance. The returned instance can be used as follows:
+   *
+   * * `logger(type, ...args)` -- Called directly as a function, to log an event
+   *   with the indicated type and arguments. The event uses the tag (context)
+   *   passed into _this_ method.
+   * * `logger.type(...args)` -- Used as an object to get a particular property
+   *   which is then called, to log an event with the indicated type and
+   *   arguments. The event uses the tag (context) passed into _this_ method.
+   * * `logger.tag.type(...args)` -- Used as an object-of-objects to get a
+   *   particular property which is then called, to log an event with the
+   *   indicated type and arguments, and with an additional piece of context
+   *   appended to the original tag.
+   *
+   * @param {?LogTag|string|string[]} tag Tag to use on all logged events, or
+   *   constructor arguments for same. If `null`, the instance will have no
+   *   context tag.
+   * @param {BaseLoggingEnvironment} [environment = null] Logging environment to
+   *   use (it's the source for timestamps and stack traces, and what initially
+   *   receives all logged events), or `null` to use the default one which is
+   *   hooked up to the "real world."
+   * @returns {function(...*)} A logger, as described.
+   */
+  static loggerFor(tag, environment = null) {
+    environment ??= ThisModule.DEFAULT_ENVIRONMENT;
+    return LogProxyHandler.makeInstance(tag, environment);
   }
 }
