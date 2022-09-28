@@ -20,7 +20,7 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
   #lastHrtimeNsec = -1n;
 
   /** @type {bigint} Last result from {@link #_impl_nowSec}, as a `bigint`. */
-  #lastNowNsec = -1;
+  #lastNowNsec = -1n;
 
   /**
    * Constructs an instance.
