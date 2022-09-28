@@ -32,14 +32,15 @@ export class ShutdownHandler {
    */
   static async exit(exitCode) {
     if (this.#shuttingDown) {
-      ThisModule.log('shutdown', 'ignoring');
+      ThisModule.log('shutdown', 'ignoring', exitCode);
       return;
     }
 
-    ThisModule.log('shutdown', 'running');
+    ThisModule.log('shutdown', 'exitCode', exitCode);
     this.#shuttingDown = true;
 
     try {
+      ThisModule.log('shutdown', 'running');
       await this.#callbacks.run();
       ThisModule.log('shutdown', 'done');
     } catch (e) {
@@ -48,6 +49,8 @@ export class ShutdownHandler {
         exitCode = 1;
       }
     }
+
+    ThisModule.log('shutdown', 'exiting', exitCode);
 
     // Give the system a moment, so it has a chance to flush the log.
     await timers.setTimeout(250); // 0.25 second.

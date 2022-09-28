@@ -12,10 +12,7 @@ const exitCode = await Main.run(process.argv);
 
 keepRunning.stop();
 
-if (exitCode === 0) {
-  console.log('Top-level application exiting without error.');
-} else {
-  console.log('Top-level application exiting with error code: %d', exitCode);
-}
-
 await Main.exit(exitCode);
+
+// The `await` above is expected never to return.
+throw new Error('Shouldn\'t happen.');
