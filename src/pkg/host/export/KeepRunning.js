@@ -7,6 +7,10 @@ import { Threadoid } from '@this/async';
 
 import * as timers from 'node:timers/promises';
 
+
+/** @type {function(...*)} Logger for this class. */
+const logger = ThisModule.logger.keepRunning;
+
 /**
  * Utility to guarantee that this process doesn't stop running. By default,
  * Node proactively exits when the event loop quiesces and there do not seem
@@ -29,11 +33,11 @@ export class KeepRunning {
    */
   run() {
     if (this.#thread.isRunning()) {
-      KeepRunning.#logger.run('ignored');
+      logger.run('ignored');
       return;
     }
 
-    KeepRunning.#logger.run();
+    logger.run();
     this.#thread.run();
   }
 
@@ -42,11 +46,11 @@ export class KeepRunning {
    */
   stop() {
     if (!this.#thread.isRunning()) {
-      KeepRunning.#logger.stop('ignored');
+      logger.stop('ignored');
       return;
     }
 
-    KeepRunning.#logger.stop();
+    logger.stop();
     this.#thread.stop();
   }
 
@@ -57,7 +61,7 @@ export class KeepRunning {
   async #keepRunning() {
     const startedAt = Date.now();
 
-    KeepRunning.#logger.running();
+    logger.running();
 
     // This is a standard-ish trick to keep a Node process alive: Repeatedly set
     // a timeout (or, alternatively, set a recurring timeout), and cancel it
@@ -67,18 +71,17 @@ export class KeepRunning {
       if (days > 0.000001) {
         // `if` above to (somewhat cheekily) squelch the log on the first
         // iteration.
-        KeepRunning.#logger.runningForDays(days);
+        logger.runningForDays(days);
       }
 
       await Promise.race([
-        timers.setTimeout(1000), /// ijklsdfhksodufh diosufy isdu fdisu
         timers.setTimeout(KeepRunning.#MSEC_PER_DAY),
         this.#thread.whenStopRequested()
       ]);
     }
 
     const days = (Date.now() - startedAt) / KeepRunning.#MSEC_PER_DAY;
-    KeepRunning.#logger.ranForDays(days);
+    logger.ranForDays(days);
   }
 
 
@@ -88,7 +91,4 @@ export class KeepRunning {
 
   /** @type {number} The number of milliseconds in a day. */
   static #MSEC_PER_DAY = 1000 * 60 * 60 * 24;
-
-  /** @type {function(...*)} Logger for this class. */
-  static #logger = ThisModule.logger.keepRunning;
 }
