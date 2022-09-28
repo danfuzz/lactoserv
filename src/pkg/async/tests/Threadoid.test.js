@@ -28,6 +28,17 @@ describe('constructor(function)', () => {
     const result = thread.whenStopRequested();
     expect(PromiseState.isFulfilled(result)).toBeTrue();
   });
+
+  test('produces an instance which does not immediately call its function', async () => {
+    let called = false;
+    const thread = new Threadoid(() => {
+      called = true;
+    });
+
+    expect(called).toBeFalse();
+    await timers.setImmediate();
+    expect(called).toBeFalse();
+  });
 });
 
 describe('constructor(<invalid>)', () => {
@@ -133,6 +144,32 @@ describe('run()', () => {
     expect(called).toBeFalse();
     await timers.setImmediate();
     expect(called).toBeTrue();
+
+    await expect(runResult).toResolve();
+  });
+
+  test('causes the thread function to be called, with the thread as its argument', async () => {
+    let gotArgs = null;
+    const thread = new Threadoid((...args) => {
+      gotArgs = args;
+    });
+
+    const runResult = thread.run();
+    await timers.setImmediate();
+    expect(gotArgs).toStrictEqual([thread]);
+
+    await expect(runResult).toResolve();
+  });
+
+  test('causes the thread function to be called, with `this` unbound', async () => {
+    let gotThis = null;
+    const thread = new Threadoid(function () {
+      gotThis = this;
+    });
+
+    const runResult = thread.run();
+    await timers.setImmediate();
+    expect(gotThis).toBeNull();
 
     await expect(runResult).toResolve();
   });
@@ -256,6 +293,35 @@ describe('shouldStop()', () => {
 });
 
 describe('stop()', () => {
+  test('trivially succeeds when called on a non-running instance', () => {
+    const thread = new Threadoid(() => null);
+    expect(() => thread.stop()).not.toThrow();
+  });
+
+  test('causes `shouldStop()` to start returning `true`', async () => {
+    let stopped = false;
+    const thread = new Threadoid(async () => {
+      while (!thread.shouldStop()) {
+        await timers.setImmediate();
+      }
+      stopped = true;
+    });
+
+    const runResult = thread.run();
+    await timers.setImmediate();
+    expect(thread.shouldStop()).toBeFalse(); // Baseline expectation.
+
+    // The actual test.
+
+    thread.stop();
+    expect(thread.shouldStop()).toBeTrue();
+    await timers.setImmediate();
+    expect(thread.shouldStop()).toBeTrue();
+    expect(stopped).toBeTrue();
+
+    await expect(runResult).toResolve();
+  });
+
   // TODO
 });
 
