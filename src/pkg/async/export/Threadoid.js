@@ -121,6 +121,7 @@ export class Threadoid {
       // as of the end of this method (which will be happening synchronously),
       // running will have stopped.
       this.#runResult = null;
+      this.#runCondition.value = false;
     }
   }
 }

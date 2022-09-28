@@ -227,7 +227,7 @@ describe('shouldStop()', () => {
     await expect(runResult).toResolve();
   });
 
-  test.skip('returns `true` after the thread function runs to completion', async () => {
+  test('returns `true` after the thread function runs to completion', async () => {
     let shouldRun = true;
     let stopped   = false;
     const thread = new Threadoid(async () => {
