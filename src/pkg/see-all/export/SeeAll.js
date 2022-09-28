@@ -41,6 +41,12 @@ export class SeeAll {
    *   indicated type and arguments, and with an additional piece of context
    *   appended to the original tag.
    *
+   * **Note:** The logger function determines its behavior in part by noticing
+   * whether it is being called as a function or as a method. For example,
+   * `logger.florp('x', 123)` will log `florp('x', 123)` with the logger's
+   * default tag; but `(logger.florp || null)('x', 123)` will log `x(123)` with
+   * a tag that includes the additional context `florp`.
+   *
    * @param {?LogTag|string|string[]} tag Tag to use on all logged events, or
    *   constructor arguments for same. If `null`, the instance will have no
    *   context tag.

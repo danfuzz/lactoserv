@@ -54,11 +54,23 @@ export class LogProxyHandler extends MethodCacheProxyHandler {
   }
 
   /** @override */
-  apply(target_unused, thisArg_unused, args) {
-    if (this.#typeOrNextTag) {
-      this.#environment.emit(this.#tag, this.#typeOrNextTag, ...args);
+  apply(target_unused, thisArg, args) {
+    if (thisArg) {
+      // We are being called as a method.
+      if (this.#typeOrNextTag) {
+        this.#environment.emit(this.#tag, this.#typeOrNextTag, ...args);
+      } else {
+        this.#environment.emit(this.#tag, ...args);
+      }
     } else {
-      this.#environment.emit(this.#tag, ...args);
+      // We are being called as a regular function, not a method, so the first
+      // argument is going to be the type.
+      if (this.#typeOrNextTag) {
+        const tag = this.#tag.withAddedContext(this.#typeOrNextTag);
+        this.#environment.emit(tag, ...args);
+      } else {
+        this.#environment.emit(this.#tag, ...args);
+      }
     }
   }
 
