@@ -29,11 +29,11 @@ export class KeepRunning {
    */
   run() {
     if (this.#thread.isRunning()) {
-      ThisModule.log('keepRunning', 'run', 'ignored');
+      KeepRunning.#logger.run('ignored');
       return;
     }
 
-    ThisModule.log('keepRunning', 'run');
+    KeepRunning.#logger.run();
     this.#thread.run();
   }
 
@@ -42,11 +42,11 @@ export class KeepRunning {
    */
   stop() {
     if (!this.#thread.isRunning()) {
-      ThisModule.log('keepRunning', 'stop', 'ignored');
+      KeepRunning.#logger.stop('ignored');
       return;
     }
 
-    ThisModule.log('keepRunning', 'stop');
+    KeepRunning.#logger.stop();
     this.#thread.stop();
   }
 
@@ -57,7 +57,7 @@ export class KeepRunning {
   async #keepRunning() {
     const startedAt = Date.now();
 
-    ThisModule.log('keepRunning', 'running');
+    KeepRunning.#logger.running();
 
     // This is a standard-ish trick to keep a Node process alive: Repeatedly set
     // a timeout (or, alternatively, set a recurring timeout), and cancel it
@@ -67,17 +67,18 @@ export class KeepRunning {
       if (days > 0.000001) {
         // `if` above to (somewhat cheekily) squelch the log on the first
         // iteration.
-        ThisModule.log('keepRunning', 'running', 'forDays', days);
+        KeepRunning.#logger.runningForDays(days);
       }
 
       await Promise.race([
+        timers.setTimeout(1000), /// ijklsdfhksodufh diosufy isdu fdisu
         timers.setTimeout(KeepRunning.#MSEC_PER_DAY),
         this.#thread.whenStopRequested()
       ]);
     }
 
     const days = (Date.now() - startedAt) / KeepRunning.#MSEC_PER_DAY;
-    ThisModule.log('keepRunning', 'ran', 'forDays', days);
+    KeepRunning.#logger.ranForDays(days);
   }
 
 
@@ -87,4 +88,7 @@ export class KeepRunning {
 
   /** @type {number} The number of milliseconds in a day. */
   static #MSEC_PER_DAY = 1000 * 60 * 60 * 24;
+
+  /** @type {function(...*)} Logger for this class. */
+  static #logger = ThisModule.logger.keepRunning;
 }
