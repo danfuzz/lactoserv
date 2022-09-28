@@ -140,7 +140,7 @@ export class LogRecord {
   #toHumanTime() {
     const secs = Math.trunc(this.#timeSec);
     const frac = this.#timeSec - secs;
-    const d    = new Date(secs);
+    const d    = new Date(secs * LogRecord.#SECS_PER_MSEC);
 
     return [
       d.getUTCFullYear().toString(),
@@ -158,6 +158,9 @@ export class LogRecord {
   //
   // Static members
   //
+
+  /** @type {number} Number of seconds in a millisecond. */
+  static #SECS_PER_MSEC = 1 / 1000;
 
   /** @type {object} Inspection options for {@link #toHumanPayload}. */
   static #HUMAN_INSPECT_OPTIONS = Object.freeze({
