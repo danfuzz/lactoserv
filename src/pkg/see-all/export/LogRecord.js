@@ -95,8 +95,7 @@ export class LogRecord {
     const parts = [
       ...this.#toHumanTime(),
       ' ',
-      this.#tag.toHuman(),
-      ' ',
+      this.#tag.toHuman(true),
       ...this.#toHumanPayload(),
       '\n'
     ];
