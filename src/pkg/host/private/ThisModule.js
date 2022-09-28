@@ -15,14 +15,4 @@ export class ThisModule {
   static get logger() {
     return this.#logger;
   }
-
-  /**
-   * Logs an event with this module as the context.
-   *
-   * @param {string} type Event type.
-   * @param {...*} args Event arguments.
-   */
-  static log(type, ...args) {
-    this.#logger(type, ...args);
-  }
 }
