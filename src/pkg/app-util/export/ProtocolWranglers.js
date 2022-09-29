@@ -10,7 +10,7 @@ import { HttpsWrangler } from '#p/HttpsWrangler';
 /**
  * Utility class which constructs concrete {@link BaseWrangler} instances.
  */
-export class WranglerFactory {
+export class ProtocolWranglers {
   /**
    * @type {Map<string, function(new:*, ...*)>} Map from each protocol name to
    * the wrangler subclass that handles it.

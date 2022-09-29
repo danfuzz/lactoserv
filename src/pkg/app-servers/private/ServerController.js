@@ -6,7 +6,7 @@ import { ConnectionHandler } from '#p/ConnectionHandler';
 import { RequestLogger } from '#p/RequestLogger';
 import { ThisModule } from '#p/ThisModule';
 
-import { BaseWrangler, IdGenerator, WranglerFactory } from '@this/app-util';
+import { BaseWrangler, IdGenerator, ProtocolWranglers } from '@this/app-util';
 import { Condition } from '@this/async';
 import { TreePathKey, TreePathMap } from '@this/collections';
 import { HostManager } from '@this/app-hosts';
@@ -93,7 +93,7 @@ export class ServerController {
     this.#port        = serverConfig.port;
     this.#protocol    = serverConfig.protocol;
     this.#logger      = logger[this.#name];
-    this.#wrangler    = WranglerFactory.forProtocol(this.#protocol);
+    this.#wrangler    = ProtocolWranglers.forProtocol(this.#protocol);
 
     const certOpts = this.#wrangler.usesCertificates()
       ? [this.#hostManager.secureServerOptions]

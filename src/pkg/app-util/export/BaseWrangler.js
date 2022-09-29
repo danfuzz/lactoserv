@@ -7,10 +7,8 @@ import * as net from 'node:net';
 
 
 /**
- * Common interface for "wrangling" each of the different server protocols.
- * Concrete instances of this class remain "hidden" behind a public-facing
- * server instance, so as to prevent clients of this package from reaching in
- * and messing with internals.
+ * Common interface for "wrangling" each of the server protocols that this
+ * system understands.
  */
 export class BaseWrangler {
   // Note: Default constructor is fine here.
@@ -20,9 +18,10 @@ export class BaseWrangler {
    * `express:Express` or thing that is (approximately) compatible with same.
    *
    * @abstract
+   * @returns {object} `express:Express`-like thing.
    */
   createApplication() {
-    Methods.abstract();
+    return Methods.abstract();
   }
 
   /**
@@ -32,9 +31,10 @@ export class BaseWrangler {
    * @abstract
    * @param {?object} certOptions Certificate options, or `null` if this
    *   instance returned `false` from {@link #usesCertificates}.
+   * @returns {object} `node:HttpServer`-like thing.
    */
   createServer(certOptions) {
-    Methods.abstract(certOptions);
+    return Methods.abstract(certOptions);
   }
 
   /**

@@ -3,5 +3,5 @@
 
 export * from '#x/BaseWrangler';
 export * from '#x/IdGenerator';
+export * from '#x/ProtocolWranglers';
 export * from '#x/WriteSpy';
-export * from '#x/WranglerFactory';
