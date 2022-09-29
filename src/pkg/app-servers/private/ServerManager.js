@@ -3,11 +3,11 @@
 
 import { ApplicationController } from '#p/ApplicationController';
 import { ApplicationManager } from '#p/ApplicationManager';
-import { IdGenerator } from '#p/IdGenerator';
 import { ServerController } from '#p/ServerController';
 import { ThisModule } from '#p/ThisModule';
 
 import { HostController, HostManager } from '@this/app-hosts';
+import { IdGenerator } from '@this/app-util';
 import { JsonSchema, JsonSchemaUtil } from '@this/json';
 
 /** @type {function(...*)} Logger for this class. */

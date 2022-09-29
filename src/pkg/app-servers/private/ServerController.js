@@ -4,11 +4,11 @@
 import { ApplicationController } from '#p/ApplicationController';
 import { BaseWrangler } from '#p/BaseWrangler';
 import { ConnectionHandler } from '#p/ConnectionHandler';
-import { IdGenerator } from '#p/IdGenerator';
 import { RequestLogger } from '#p/RequestLogger';
 import { ThisModule } from '#p/ThisModule';
 import { WranglerFactory } from '#p/WranglerFactory';
 
+import { IdGenerator } from '@this/app-util';
 import { Condition } from '@this/async';
 import { TreePathKey, TreePathMap } from '@this/collections';
 import { HostManager } from '@this/app-hosts';
