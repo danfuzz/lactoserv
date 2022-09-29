@@ -318,7 +318,7 @@ export class ServerController {
    *   middleware to run.
    */
   #handleRequest(req, res, next) {
-    const logger = this.#requestLogger.logRequest(req, res);
+    const reqLogger = this.#requestLogger.logRequest(req, res);
 
     const { path, subdomains } = req;
 
@@ -330,7 +330,7 @@ export class ServerController {
     const hostMap = this.#mountMap.find(hostKey)?.value;
     if (!hostMap) {
       // No matching host.
-      logger.hostNotFound();
+      reqLogger.hostNotFound();
       next();
       return;
     }
@@ -338,13 +338,13 @@ export class ServerController {
     const controller = hostMap.find(pathKey)?.value;
     if (!controller) {
       // No matching path.
-      logger.pathNotFound();
+      reqLogger.pathNotFound();
       next();
       return;
     }
 
     // Call the app!
-    logger.usingApp(controller.name);
+    reqLogger.usingApp(controller.name);
     controller.app.handleRequest(req, res, next);
   }
 

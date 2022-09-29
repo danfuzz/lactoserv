@@ -84,7 +84,7 @@ export class RequestLogger {
   static #sanitizeRequestHeaders(headers) {
     const result = { ...headers };
 
-    delete result[http2.sensitiveHeaders]
+    delete result[http2.sensitiveHeaders];
     delete result[':authority'];
     delete result[':method'];
     delete result[':path'];
