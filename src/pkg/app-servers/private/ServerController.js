@@ -3,7 +3,10 @@
 
 import { ApplicationController } from '#p/ApplicationController';
 import { BaseWrangler } from '#p/BaseWrangler';
+import { ConnectionHandler } from '#p/ConnectionHandler';
 import { HostManager } from '#p/HostManager';
+import { IdGenerator } from '#p/IdGenerator';
+import { RequestLogger } from '#p/RequestLogger';
 import { ThisModule } from '#p/ThisModule';
 import { WranglerFactory } from '#p/WranglerFactory';
 
@@ -68,6 +71,13 @@ export class ServerController {
   /** @type {Condition} Is the server stopped or trying to stop? */
   #stopping = new Condition();
 
+  /** @type {RequestLogger} HTTP(ish) request logger. */
+  #requestLogger;
+
+  /** @type {ConnectionHandler} Socket connection handler. */
+  #connectionHandler;
+
+
   /**
    * Constructs an insance.
    *
@@ -75,18 +85,22 @@ export class ServerController {
    *   as what's in the exposed config object, except with `app` / `apps`
    *   replaced by `appMounts`, and with `host` / `hosts` replaced by
    *  `hostManager`.
+   * @param {IdGenerator} idGenerator ID generator to use.
    */
-  constructor(serverConfig) {
-    this.#name        = serverConfig.name;
-    this.#hostManager = serverConfig.hostManager;
-    this.#mountMap    = ServerController.#makeMountMap(serverConfig.appMounts);
-    this.#interface   = serverConfig.interface;
-    this.#port        = serverConfig.port;
-    this.#protocol    = serverConfig.protocol;
-    this.#logger      = logger[this.#name];
-    this.#wrangler    = WranglerFactory.forProtocol(this.#protocol);
-    this.#server      = this.#wrangler.createServer(this.#hostManager);
-    this.#serverApp   = this.#wrangler.createApplication();
+  constructor(serverConfig, idGenerator) {
+    this.#name          = serverConfig.name;
+    this.#hostManager   = serverConfig.hostManager;
+    this.#mountMap      = ServerController.#makeMountMap(serverConfig.appMounts);
+    this.#interface     = serverConfig.interface;
+    this.#port          = serverConfig.port;
+    this.#protocol      = serverConfig.protocol;
+    this.#logger        = logger[this.#name];
+    this.#wrangler      = WranglerFactory.forProtocol(this.#protocol);
+    this.#server        = this.#wrangler.createServer(this.#hostManager);
+    this.#serverApp     = this.#wrangler.createApplication();
+
+    this.#requestLogger     = new RequestLogger(this.#logger.req, idGenerator);
+    this.#connectionHandler = new ConnectionHandler(this.#logger.conn, idGenerator);
 
     this.#configureServerApp();
   }
@@ -94,14 +108,6 @@ export class ServerController {
   /** @returns {string} Server name. */
   get name() {
     return this.#name;
-  }
-
-  /**
-   * @returns {express.Application} Application instance which exclusively
-   * handles the underlying server of this instance.
-   */
-  get serverApp() {
-    return this.#serverApp;
   }
 
   /**
@@ -146,6 +152,7 @@ export class ServerController {
         done(err);
       }
 
+      server.on('connection', socket => this.#handleConnection(socket));
       server.on('listening', handleListening);
       server.on('error',     handleError);
       server.on('request',   this.#serverApp);
@@ -222,6 +229,16 @@ export class ServerController {
   }
 
   /**
+   * Hands off an incoming connection for handling to {@link
+   * #connectionHandler}.
+   *
+   * @param {object} socket The socket that just got connected.
+   */
+  #handleConnection(socket) {
+    this.#connectionHandler.handleConnection(socket);
+  }
+
+  /**
    * @returns {{host: string, port: number}} Options for doing a `listen()` on a
    * server socket. `host` in the return value corresponds to the network
    * interface.
@@ -293,20 +310,19 @@ export class ServerController {
    *   middleware to run.
    */
   #handleRequest(req, res, next) {
+    const reqLogger = this.#requestLogger.logRequest(req, res);
+
     const { path, subdomains } = req;
 
     // Freezing `subdomains` lets `new TreePathKey()` avoid making a copy.
     const hostKey = new TreePathKey(Object.freeze(subdomains), false);
     const pathKey = ApplicationController.parsePath(path);
 
-    // TODO: Temporary logging to see what's going on.
-    console.log('##### request: %s :: %s', hostKey, pathKey);
-
     // Find the mount map for the most-specific matching host.
     const hostMap = this.#mountMap.find(hostKey)?.value;
     if (!hostMap) {
       // No matching host.
-      console.log('##### No host match for: %s', hostKey);
+      reqLogger.hostNotFound();
       next();
       return;
     }
@@ -314,13 +330,13 @@ export class ServerController {
     const controller = hostMap.find(pathKey)?.value;
     if (!controller) {
       // No matching path.
-      console.log('##### No path match for: %s :: %s', hostKey, pathKey);
+      reqLogger.pathNotFound();
       next();
       return;
     }
 
     // Call the app!
-    console.log('##### FOUND APP!');
+    reqLogger.usingApp(controller.name);
     controller.app.handleRequest(req, res, next);
   }
 
