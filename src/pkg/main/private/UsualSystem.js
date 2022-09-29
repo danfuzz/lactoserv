@@ -26,7 +26,7 @@ export class UsualSystem {
   #serializer = new Mutex();
 
   /** @type {function(...*)} Logger for this instance. */
-  #logger = SeeAll.loggerFor('main');
+  #logger = SeeAll.loggerFor('main').allServers;
 
   /**
    * Constructs an instance.
@@ -47,7 +47,7 @@ export class UsualSystem {
       const isRestart = (this.#warehouse !== null);
       const verb      = isRestart ? 'restart' : 'start';
 
-      this.#logger.allServers(`${verb}ing`);
+      this.#logger[`${verb}ing`]();
 
       if (isRestart) {
         await this.#stop0();
@@ -56,7 +56,7 @@ export class UsualSystem {
       await this.#makeWarehouse();
       await this.#warehouse.startAllServers();
 
-      this.#logger.allServers(`${verb}ed`);
+      this.#logger[`${verb}ed`]();
     });
   }
 
@@ -97,12 +97,13 @@ export class UsualSystem {
    */
   async #stop0() {
     if (this.#warehouse === null) {
-      this.#logger.allServers('already stopped');
+      this.#logger.stop('ignoring');
     } else {
+      this.#logger.stopping();
       this.#logger.allServers('stopping');
       await this.#warehouse.stopAllServers();
       this.#warehouse = null;
-      this.#logger.allServers('stopped');
+      this.#logger.stopped();
     }
   }
 }
