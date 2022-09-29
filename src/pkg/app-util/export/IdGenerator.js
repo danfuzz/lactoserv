@@ -17,10 +17,10 @@
  *   in which case it expands.
  */
 export class IdGenerator {
-  /** @type {number} Minute number. */
+  /** @type {number} Current minute number. */
   #minuteNumber = -1;
 
-  /** @type {number} Sequence number. */
+  /** @type {number} Next sequence number to use. */
   #sequenceNumber = 0;
 
   /** @type {number} Last-used prefix number. */
