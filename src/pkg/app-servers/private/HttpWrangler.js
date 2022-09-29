@@ -19,7 +19,7 @@ export class HttpWrangler extends BaseWrangler {
   }
 
   /** @override */
-  createServer(hostManager_unused) {
+  createServer(certOptions_unused) {
     return http.createServer();
   }
 

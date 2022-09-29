@@ -97,8 +97,10 @@ export class ServerController {
     this.#logger      = logger[this.#name];
     this.#wrangler    = WranglerFactory.forProtocol(this.#protocol);
 
-    const certInfo  = this.#wrangler.usesCertificates() ? [this.#hostManager] : [];
-    this.#server    = this.#wrangler.createServer(...certInfo);
+    const certOpts = this.#wrangler.usesCertificates()
+      ? [this.#hostManager.secureServerOptions]
+      : [];
+    this.#server    = this.#wrangler.createServer(...certOpts);
     this.#serverApp = this.#wrangler.createApplication();
 
     this.#requestLogger     = new RequestLogger(this.#logger.req, idGenerator);

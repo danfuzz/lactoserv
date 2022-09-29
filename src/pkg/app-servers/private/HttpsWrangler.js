@@ -19,10 +19,8 @@ export class HttpsWrangler extends BaseWrangler {
   }
 
   /** @override */
-  createServer(hostManager) {
-    const options = hostManager.secureServerOptions;
-
-    return https.createServer(options);
+  createServer(certOptions) {
+    return https.createServer(certOptions);
   }
 
   /** @override */

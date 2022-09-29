@@ -36,9 +36,9 @@ export class Http2Wrangler extends BaseWrangler {
   }
 
   /** @override */
-  createServer(hostManager) {
+  createServer(certOptions) {
     const options = {
-      ...hostManager.secureServerOptions,
+      ...certOptions,
       allowHTTP1: true
     };
 

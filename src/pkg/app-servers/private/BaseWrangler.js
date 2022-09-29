@@ -1,7 +1,6 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { HostManager } from '@this/app-hosts';
 import { Methods } from '@this/typey';
 
 import * as net from 'node:net';
@@ -31,11 +30,11 @@ export class BaseWrangler {
    * or thing that is (approximately) compatible with same.
    *
    * @abstract
-   * @param {?HostManager} hostManager Host manager to use, or `null` if not
-   *   configured.
+   * @param {?object} certOptions Certificate options, or `null` if this
+   *   instance returned `false` from {@link #usesCertificates}.
    */
-  createServer(hostManager) {
-    Methods.abstract(hostManager);
+  createServer(certOptions) {
+    Methods.abstract(certOptions);
   }
 
   /**
@@ -67,11 +66,11 @@ export class BaseWrangler {
   }
 
   /**
-   * Indicates whether or not this instance requires certificate information
+   * Indicates whether or not this instance requires certificate options
    * when creating a server.
    *
    * @abstract
-   * @returns {boolean} `true` iff certificate information needs to be passed to
+   * @returns {boolean} `true` iff certificate options need to be passed to
    *   {@link #createServer}.
    */
   usesCertificates() {
