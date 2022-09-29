@@ -12,7 +12,7 @@
   "dependencies": {
     "@this/collections": "*",
     "@this/json": "*",
-    "@this/see-all": "*",
+    "@this/loggy": "*",
     "@this/typey": "*"
   }
 }

@@ -13,6 +13,6 @@
     "@this/app-servers": "*",
     "@this/async": "*",
     "@this/host": "*",
-    "@this/see-all": "*"
+    "@this/loggy": "*"
   }
 }

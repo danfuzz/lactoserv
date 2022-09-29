@@ -5,13 +5,13 @@ import { HostController } from '#x/HostController';
 
 import { TreePathMap } from '@this/collections';
 import { JsonSchema, JsonSchemaUtil } from '@this/json';
-import { SeeAll } from '@this/see-all';
+import { Loggy } from '@this/loggy';
 
 import { SecureContext } from 'node:tls';
 
 
 /** @type {function(...*)} Logger for this class. */
-const logger = SeeAll.loggerFor('app-hosts');
+const logger = Loggy.loggerFor('app-hosts');
 
 /**
  * Manager for dealing with all the certificate/key pairs associated with a

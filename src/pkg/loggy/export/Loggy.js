@@ -12,7 +12,7 @@ import { ChainedEvent } from '@this/async';
 /**
  * Global control of this module.
  */
-export class SeeAll {
+export class Loggy {
   /**
    * @returns {ChainedEvent|Promise<ChainedEvent>} The earliest available event
    * from the logging system, or promise for same. When the system first starts

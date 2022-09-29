@@ -12,7 +12,7 @@ import { MethodCacheProxyHandler } from '@this/metacomp';
  * Proxy handler which provides the illusion of an object with infinitely many
  * properties, each of which is callable as a function or a method, _or_ which
  * can be treated as an object with subproperties to add layers of tag context.
- * See {@link SeeAll.loggerFor} for details (and the public interface to this
+ * See {@link Loggy.loggerFor} for details (and the public interface to this
  * class).
  */
 export class LogProxyHandler extends MethodCacheProxyHandler {

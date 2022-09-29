@@ -11,6 +11,6 @@
 
   "dependencies": {
     "@this/async": "*",
-    "@this/see-all": "*"
+    "@this/loggy": "*"
   }
 }
