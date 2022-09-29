@@ -2,16 +2,20 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { ApplicationController } from '#p/ApplicationController';
+import { BaseWrangler } from '#p/BaseWrangler';
+import { HostManager } from '#p/HostManager';
+import { ThisModule } from '#p/ThisModule';
 import { WranglerFactory } from '#p/WranglerFactory';
 
 import { Condition } from '@this/async';
 import { TreePathKey, TreePathMap } from '@this/collections';
 
-// Types referenced only in doc comments.
-import { BaseWrangler } from '#p/BaseWrangler';
-import { HostManager } from '#p/HostManager';
 import * as express from 'express';
 import * as net from 'node:net';
+
+
+/** @type {function(...*)} Logger for this class. */
+const logger = ThisModule.logger.server;
 
 /**
  * "Controller" for a single server. This wraps both a (concrete subclass of a)
@@ -42,6 +46,9 @@ export class ServerController {
 
   /** @type {string} Protocol. */
   #protocol;
+
+  /** @type {function(...*)} Instance-specific logger. */
+  #logger;
 
   /** @type {BaseWrangler} Protocol-specific "wrangler." */
   #wrangler;
@@ -76,6 +83,7 @@ export class ServerController {
     this.#interface   = serverConfig.interface;
     this.#port        = serverConfig.port;
     this.#protocol    = serverConfig.protocol;
+    this.#logger      = logger[this.#name];
     this.#wrangler    = WranglerFactory.forProtocol(this.#protocol);
     this.#server      = this.#wrangler.createServer(this.#hostManager);
     this.#serverApp   = this.#wrangler.createApplication();
@@ -104,10 +112,11 @@ export class ServerController {
       throw new Error('Server stopping or already stopped.');
     } else if (this.#started.value) {
       // Ignore attempts to start while already started.
-      console.log(`Ignoring re-\`start()\` on server ${this.#name}.`);
+      this.#logger.start('ignoring');
       return;
     }
 
+    this.#logger.starting();
     this.#started.value = true;
 
     const server = this.#server;
@@ -144,7 +153,7 @@ export class ServerController {
       server.listen(this.#listenOptions);
     });
 
-    this.#log(`Started server: ${this.name}`);
+    this.#logger.started(this.#loggableInfo);
   }
 
   /**
@@ -158,7 +167,7 @@ export class ServerController {
       return;
     }
 
-    this.#log(`Stopping server: ${this.name}`);
+    this.#logger.stopping();
 
     await this.#wrangler.protocolStop();
 
@@ -169,7 +178,7 @@ export class ServerController {
 
     await this.whenStopped();
 
-    this.#log(`Server stopped: ${this.name}`);
+    this.#logger.stopped();
   }
 
   /**
@@ -231,7 +240,6 @@ export class ServerController {
   get #loggableInfo() {
     const address = this.#server.address();
     const info = {
-      name:      this.#name,
       interface: (this.#interface === '*') ? '<any>' : this.#interface,
       port:      this.#port,
       protocol:  this.#protocol
@@ -314,25 +322,6 @@ export class ServerController {
     // Call the app!
     console.log('##### FOUND APP!');
     controller.app.handleRequest(req, res, next);
-  }
-
-  /**
-   * Logs a message about the instance, including the protocol, interface, and
-   * port.
-   *
-   * @param {string} msg The topline of the message.
-   */
-  #log(msg) {
-    const info = this.#loggableInfo;
-
-    console.log('%s', msg);
-    console.log(`  name:      ${info.name}`);
-    console.log(`  protocol:  ${info.protocol}`);
-    console.log(`  interface: ${info.interface}:${info.port}`);
-
-    if (info.listening) {
-      console.log(`  listening: ${info.listening}`);
-    }
   }
 
 
