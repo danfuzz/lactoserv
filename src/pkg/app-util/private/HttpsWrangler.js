@@ -1,16 +1,16 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { BaseWrangler } from '#p/BaseWrangler';
+import { BaseWrangler } from '#x/BaseWrangler';
 
 import express from 'express';
 
-import * as http from 'node:http';
+import * as https from 'node:https';
 
 /**
- * Wrangler for `HttpServer`.
+ * Wrangler for `HttpsServer`.
  */
-export class HttpWrangler extends BaseWrangler {
+export class HttpsWrangler extends BaseWrangler {
   // Note: Default constructor is fine here.
 
   /** @override */
@@ -19,8 +19,8 @@ export class HttpWrangler extends BaseWrangler {
   }
 
   /** @override */
-  createServer(certOptions_unused) {
-    return http.createServer();
+  createServer(certOptions) {
+    return https.createServer(certOptions);
   }
 
   /** @override */
@@ -40,6 +40,6 @@ export class HttpWrangler extends BaseWrangler {
 
   /** @override */
   usesCertificates() {
-    return false;
+    return true;
   }
 }
