@@ -12,6 +12,7 @@
   "dependencies": {
     "@this/app-servers": "*",
     "@this/async": "*",
-    "@this/host": "*"
+    "@this/host": "*",
+    "@this/see-all": "*"
   }
 }
