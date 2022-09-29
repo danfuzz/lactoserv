@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { BaseWrangler } from '#x/BaseWrangler';
+import { ProtocolWrangler } from '#x/ProtocolWrangler';
 
 import { Condition } from '@this/async';
 
@@ -14,7 +14,7 @@ import * as net from 'node:net';
 /**
  * Wrangler for `Http2SecureServer`.
  */
-export class Http2Wrangler extends BaseWrangler {
+export class Http2Wrangler extends ProtocolWrangler {
   /** @type {?net.Server} Server being wrangled, once known. */
   #server = null;
 

@@ -6,7 +6,7 @@ import { ConnectionHandler } from '#p/ConnectionHandler';
 import { RequestLogger } from '#p/RequestLogger';
 import { ThisModule } from '#p/ThisModule';
 
-import { BaseWrangler, IdGenerator, ProtocolWranglers } from '@this/app-util';
+import { IdGenerator, ProtocolWrangler, ProtocolWranglers } from '@this/app-util';
 import { Condition } from '@this/async';
 import { TreePathKey, TreePathMap } from '@this/collections';
 import { HostManager } from '@this/app-hosts';
@@ -51,7 +51,7 @@ export class ServerController {
   /** @type {function(...*)} Instance-specific logger. */
   #logger;
 
-  /** @type {BaseWrangler} Protocol-specific "wrangler." */
+  /** @type {ProtocolWrangler} Protocol-specific "wrangler." */
   #wrangler;
 
   /** @type {net.Server} Server instance (the direct networking thingy). */

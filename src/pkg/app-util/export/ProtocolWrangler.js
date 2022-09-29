@@ -10,7 +10,7 @@ import * as net from 'node:net';
  * Common interface for "wrangling" each of the server protocols that this
  * system understands.
  */
-export class BaseWrangler {
+export class ProtocolWrangler {
   // Note: Default constructor is fine here.
 
   /**
