@@ -6,10 +6,10 @@ import { ConnectionHandler } from '#p/ConnectionHandler';
 import { RequestLogger } from '#p/RequestLogger';
 import { ThisModule } from '#p/ThisModule';
 
+import { HostManager } from '@this/app-hosts';
 import { IdGenerator, ProtocolWrangler, ProtocolWranglers } from '@this/app-util';
 import { Condition } from '@this/async';
 import { TreePathKey, TreePathMap } from '@this/collections';
-import { HostManager } from '@this/app-hosts';
 
 import * as express from 'express';
 import * as net from 'node:net';
