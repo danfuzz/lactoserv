@@ -5,16 +5,15 @@
  * Generator of unique-enough IDs to track connections, requests, etc., in the
  * logs.
  *
- * The format of the IDs is `XX-MMMMM-NNNN`, where all parts are lowercase
- * hexadecimal.
+ * The format of the IDs is `XX-MMMMM-NNNN`:
  *
- * * `XX` is an arbitrary (though not truly random) number to make IDs easier
- *   for a human to visually distinguish.
- * * `MMMMM` is a representation of the "current minute" which wraps around
- *   every couple years or so.
- * * `NNNN` is a sequence number within the current minute. It is four digits,
- *   unless by some miracle there are more logged items than that in a minute
- *   in which case it expands.
+ * * `XX` is an arbitrary (though not truly random) two-character string of
+ *   lowercase letters, to make IDs easier for a human to visually distinguish.
+ * * `MMMMM` is a lowecase hexadecimal representation of the "current minute,"
+ *   which rolls over every couple years or so.
+ * * `NNNN` is a lowercase hexadecimal sequence number within the current
+ *   minute. It is four digits, unless by some miracle there are more logged
+ *   items in a minute than will fit in that, in which case it expands.
  */
 export class IdGenerator {
   /** @type {number} Current minute number. */
@@ -22,9 +21,6 @@ export class IdGenerator {
 
   /** @type {number} Next sequence number to use. */
   #sequenceNumber = 0;
-
-  /** @type {number} Last-used prefix number. */
-  #lastPrefix = -1;
 
   // The default constructor is fine here.
 
@@ -35,13 +31,7 @@ export class IdGenerator {
    */
   makeRequestId() {
     const now          = Date.now();
-    const msecNumber   = now & 0xff;
     const minuteNumber = Math.trunc(now * IdGenerator.#MINS_PER_MSEC) & 0xfffff;
-
-    const prefix = (msecNumber === this.#lastPrefix)
-      ? (msecNumber + 47) & 0xff
-      : msecNumber;
-    this.#lastPrefix = prefix;
 
     if (minuteNumber !== this.#minuteNumber) {
       this.#minuteNumber   = minuteNumber;
@@ -51,7 +41,7 @@ export class IdGenerator {
     const sequenceNumber = this.#sequenceNumber;
     this.#sequenceNumber++;
 
-    const preStr = prefix.toString(16).padStart(2, '0');
+    const preStr = IdGenerator.#makePrefix(now);
     const minStr = minuteNumber.toString(16).padStart(5, '0');
     const seqStr = (sequenceNumber < 0x10000)
       ? sequenceNumber.toString(16).padStart(4, '0')
@@ -64,6 +54,24 @@ export class IdGenerator {
   //
   // Static members
   //
+
+  /**
+   * Makes a prefix string based on a time value.
+   *
+   * @param {number} now Recent return value from `Date.now()`.
+   * @returns {string} A prefix string.
+   */
+  static #makePrefix(now) {
+    const digit1 = now % 26;
+    const digit2 = Math.trunc(now / 26) % 26;
+    const char1  = String.fromCharCode(digit1 + this.#LOWERCASE_A);
+    const char2  = String.fromCharCode(digit2 + this.#LOWERCASE_A);
+
+    return `${char1}${char2}`;
+  }
+
+  /** @type {number} The Unicode codepoint for lowercase `a`. */
+  static #LOWERCASE_A = 'a'.charCodeAt(0);
 
   /** @type {number} The number of minutes in a millisecond. */
   static #MINS_PER_MSEC = 1 / (1000 * 60);
