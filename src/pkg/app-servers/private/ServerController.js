@@ -3,6 +3,7 @@
 
 import { ApplicationController } from '#p/ApplicationController';
 import { BaseWrangler } from '#p/BaseWrangler';
+import { ConnectionHandler } from '#p/ConnectionHandler';
 import { HostManager } from '#p/HostManager';
 import { RequestLogger } from '#p/RequestLogger';
 import { ThisModule } from '#p/ThisModule';
@@ -51,9 +52,6 @@ export class ServerController {
   /** @type {function(...*)} Instance-specific logger. */
   #logger;
 
-  /** @type {RequestLogger} HTTP(ish) request logger. */
-  #requestLogger;
-
   /** @type {BaseWrangler} Protocol-specific "wrangler." */
   #wrangler;
 
@@ -72,6 +70,13 @@ export class ServerController {
   /** @type {Condition} Is the server stopped or trying to stop? */
   #stopping = new Condition();
 
+  /** @type {RequestLogger} HTTP(ish) request logger. */
+  #requestLogger;
+
+  /** @type {ConnectionHandler} Socket connection handler. */
+  #connectionHandler;
+
+
   /**
    * Constructs an insance.
    *
@@ -89,10 +94,12 @@ export class ServerController {
     this.#port          = serverConfig.port;
     this.#protocol      = serverConfig.protocol;
     this.#logger        = logger[this.#name];
-    this.#requestLogger = new RequestLogger(this.#logger, idGenerator);
     this.#wrangler      = WranglerFactory.forProtocol(this.#protocol);
     this.#server        = this.#wrangler.createServer(this.#hostManager);
     this.#serverApp     = this.#wrangler.createApplication();
+
+    this.#requestLogger     = new RequestLogger(this.#logger.req, idGenerator);
+    this.#connectionHandler = new ConnectionHandler(this.#logger.conn, idGenerator);
 
     this.#configureServerApp();
   }
@@ -152,6 +159,7 @@ export class ServerController {
         done(err);
       }
 
+      server.on('connection', socket => this.#handleConnection(socket));
       server.on('listening', handleListening);
       server.on('error',     handleError);
       server.on('request',   this.#serverApp);
@@ -225,6 +233,16 @@ export class ServerController {
         server.on('error', handleError);
       });
     }
+  }
+
+  /**
+   * Hands off an incoming connection for handling to {@link
+   * #connectionHandler}.
+   *
+   * @param {object} socket The socket that just got connected.
+   */
+  #handleConnection(socket) {
+    this.#connectionHandler.handleConnection(socket);
   }
 
   /**
