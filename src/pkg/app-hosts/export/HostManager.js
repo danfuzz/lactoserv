@@ -1,17 +1,17 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { HostController } from '#p/HostController';
-import { ThisModule } from '#p/ThisModule';
+import { HostController } from '#x/HostController';
 
 import { TreePathMap } from '@this/collections';
 import { JsonSchema, JsonSchemaUtil } from '@this/json';
+import { SeeAll } from '@this/see-all';
 
 import { SecureContext } from 'node:tls';
 
 
 /** @type {function(...*)} Logger for this class. */
-const logger = ThisModule.logger.host;
+const logger = SeeAll.loggerFor('app-hosts');
 
 /**
  * Manager for dealing with all the certificate/key pairs associated with a

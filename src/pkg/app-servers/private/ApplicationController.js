@@ -3,9 +3,9 @@
 
 import { ApplicationFactory } from '#p/ApplicationFactory';
 import { BaseApplication } from '#p/BaseApplication';
-import { HostController } from '#p/HostController';
 
 import { TreePathKey } from '@this/collections';
+import { HostController } from '@this/app-hosts';
 import { JsonSchemaUtil } from '@this/json';
 import { MustBe } from '@this/typey';
 

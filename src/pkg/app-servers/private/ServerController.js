@@ -4,7 +4,6 @@
 import { ApplicationController } from '#p/ApplicationController';
 import { BaseWrangler } from '#p/BaseWrangler';
 import { ConnectionHandler } from '#p/ConnectionHandler';
-import { HostManager } from '#p/HostManager';
 import { IdGenerator } from '#p/IdGenerator';
 import { RequestLogger } from '#p/RequestLogger';
 import { ThisModule } from '#p/ThisModule';
@@ -12,6 +11,7 @@ import { WranglerFactory } from '#p/WranglerFactory';
 
 import { Condition } from '@this/async';
 import { TreePathKey, TreePathMap } from '@this/collections';
+import { HostManager } from '@this/app-hosts';
 
 import * as express from 'express';
 import * as net from 'node:net';

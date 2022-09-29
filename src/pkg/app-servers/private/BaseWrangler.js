@@ -1,8 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { HostManager } from '#p/HostManager';
-
+import { HostManager } from '@this/app-hosts';
 import { Methods } from '@this/typey';
 
 import * as net from 'node:net';
