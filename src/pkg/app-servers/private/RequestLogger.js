@@ -1,6 +1,8 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { RequestIdGenerator } from '#p/RequestIdGenerator';
+
 import * as express from 'express';
 
 import * as http2 from 'node:http2';
@@ -14,11 +16,8 @@ export class RequestLogger {
   /** @type {function(...*)} Underlying logger instance to use. */
   #logger;
 
-  /** @type {number} "Minute number," for making request IDs. */
-  #minuteNumber = -1;
-
-  /** @type {number} Sequence number, for making request IDs. */
-  #sequenceNumber = 0;
+  /** @type {RequestIdGenerator} ID generator to use. */
+  #idGenerator;
 
   /**
    * Constructs an instance.
@@ -26,7 +25,8 @@ export class RequestLogger {
    * @param {function(...*)} logger Underlying logger instance to use.
    */
   constructor(logger) {
-    this.#logger = logger;
+    this.#logger      = logger;
+    this.#idGenerator = new RequestIdGenerator();
   }
 
   /**
@@ -40,7 +40,7 @@ export class RequestLogger {
    */
   logRequest(req, res) {
     const timeStart  = process.hrtime.bigint();
-    const logger     = this.#logger[this.#makeRequestId()];
+    const logger     = this.#logger[this.#idGenerator.makeRequestId()];
     const reqHeaders = req.headers;
 
     logger.started(req.method, req.protocol, req.hostname, req.originalUrl);
@@ -66,44 +66,10 @@ export class RequestLogger {
     return logger;
   }
 
-  /**
-   * Makes a new unique (at least unique _enough_) request ID, for use with a
-   * single request.
-   *
-   * The format of the ID is `MMMMM-NNNN`, where both halves are lowercase
-   * hexadecimal, with `MMMMM` being a representation of the "current minute"
-   * (wraps around every couple years or so) and `NNNN` being the request number
-   * within that minute (four digits by default but will expand if necessary).
-   *
-   * @returns {string} An appropriately-constructed request ID.
-   */
-  #makeRequestId() {
-    const minuteNumber =
-      Math.trunc(Date.now() * RequestLogger.#MINS_PER_MSEC) & 0xfffff;
-
-    if (minuteNumber !== this.#minuteNumber) {
-      this.#minuteNumber   = minuteNumber;
-      this.#sequenceNumber = 0;
-    }
-
-    const sequenceNumber = this.#sequenceNumber;
-    this.#sequenceNumber++;
-
-    const minStr = minuteNumber.toString(16).padStart(5, '0');
-    const seqStr = (sequenceNumber < 0x10000)
-      ? sequenceNumber.toString(16).padStart(4, '0')
-      : sequenceNumber.toString(16).padStart(8, '0');
-
-    return `${minStr}-${seqStr}`;
-  }
-
 
   //
   // Static members
   //
-
-  /** @type {number} The number of minutes in a millisecond. */
-  static #MINS_PER_MSEC = 1 / (1000 * 60);
 
   /** @type {number} The number of nanoseconds in a millisecond. */
   static #NSEC_PER_MSEC = 1 / 1_000_000;
