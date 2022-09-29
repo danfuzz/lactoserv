@@ -5,7 +5,7 @@ import { HostController } from '#x/HostController';
 
 import { TreePathMap } from '@this/collections';
 import { JsonSchema, JsonSchemaUtil } from '@this/json';
-import { SeeAll } from '@this/see-all';
+import { SeeAll } from '@this/loggy';
 
 import { SecureContext } from 'node:tls';
 

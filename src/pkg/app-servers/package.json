@@ -15,7 +15,7 @@
     "@this/async": "*",
     "@this/collections": "*",
     "@this/json": "*",
-    "@this/see-all": "*",
+    "@this/loggy": "*",
     "@this/typey": "*",
     "express": "^4.18.1"
   }
