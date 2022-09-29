@@ -110,4 +110,9 @@ export class Http2Wrangler extends BaseWrangler {
     session.on('frameError', removeSession);
     session.on('goaway',     removeSession);
   }
+
+  /** @override */
+  usesCertificates() {
+    return true;
+  }
 }

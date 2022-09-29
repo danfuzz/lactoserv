@@ -65,4 +65,16 @@ export class BaseWrangler {
   protocolWhenStopped() {
     Methods.abstract();
   }
+
+  /**
+   * Indicates whether or not this instance requires certificate information
+   * when creating a server.
+   *
+   * @abstract
+   * @returns {boolean} `true` iff certificate information needs to be passed to
+   *   {@link #createServer}.
+   */
+  usesCertificates() {
+    return Methods.abstract();
+  }
 }

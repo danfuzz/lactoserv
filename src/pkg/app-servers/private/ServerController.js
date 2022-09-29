@@ -88,16 +88,18 @@ export class ServerController {
    * @param {IdGenerator} idGenerator ID generator to use.
    */
   constructor(serverConfig, idGenerator) {
-    this.#name          = serverConfig.name;
-    this.#hostManager   = serverConfig.hostManager;
-    this.#mountMap      = ServerController.#makeMountMap(serverConfig.appMounts);
-    this.#interface     = serverConfig.interface;
-    this.#port          = serverConfig.port;
-    this.#protocol      = serverConfig.protocol;
-    this.#logger        = logger[this.#name];
-    this.#wrangler      = WranglerFactory.forProtocol(this.#protocol);
-    this.#server        = this.#wrangler.createServer(this.#hostManager);
-    this.#serverApp     = this.#wrangler.createApplication();
+    this.#name        = serverConfig.name;
+    this.#hostManager = serverConfig.hostManager;
+    this.#mountMap    = ServerController.#makeMountMap(serverConfig.appMounts);
+    this.#interface   = serverConfig.interface;
+    this.#port        = serverConfig.port;
+    this.#protocol    = serverConfig.protocol;
+    this.#logger      = logger[this.#name];
+    this.#wrangler    = WranglerFactory.forProtocol(this.#protocol);
+
+    const certInfo  = this.#wrangler.usesCertificates() ? [this.#hostManager] : [];
+    this.#server    = this.#wrangler.createServer(...certInfo);
+    this.#serverApp = this.#wrangler.createApplication();
 
     this.#requestLogger     = new RequestLogger(this.#logger.req, idGenerator);
     this.#connectionHandler = new ConnectionHandler(this.#logger.conn, idGenerator);

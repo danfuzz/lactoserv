@@ -48,4 +48,9 @@ export class HttpsWrangler extends BaseWrangler {
   async protocolWhenStopped() {
     // Nothing to do in this case.
   }
+
+  /** @override */
+  usesCertificates() {
+    return true;
+  }
 }
