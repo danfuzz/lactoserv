@@ -5,6 +5,7 @@ import { ApplicationController } from '#p/ApplicationController';
 import { ApplicationManager } from '#p/ApplicationManager';
 import { HostController } from '#p/HostController';
 import { HostManager } from '#p/HostManager';
+import { RequestIdGenerator } from '#p/RequestIdGenerator';
 import { ServerController } from '#p/ServerController';
 import { ThisModule } from '#p/ThisModule';
 
@@ -44,6 +45,9 @@ export class ServerManager {
    * {@link ServerController} object with that name.
    */
   #controllers = new Map();
+
+  /** @type {RequestIdGenerator} ID generator for all controllers. */
+  #idGenerator = new RequestIdGenerator();
 
   /**
    * Constructs an instance.
@@ -113,7 +117,7 @@ export class ServerManager {
     delete config.host;
     delete config.hosts;
 
-    const controller = new ServerController(config);
+    const controller = new ServerController(config, this.#idGenerator);
     const name = controller.name;
 
     logger.binding(name);

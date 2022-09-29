@@ -79,8 +79,9 @@ export class ServerController {
    *   as what's in the exposed config object, except with `app` / `apps`
    *   replaced by `appMounts`, and with `host` / `hosts` replaced by
    *  `hostManager`.
+   * @param {RequestIdGenerator} idGenerator Request ID generator to use.
    */
-  constructor(serverConfig) {
+  constructor(serverConfig, idGenerator) {
     this.#name          = serverConfig.name;
     this.#hostManager   = serverConfig.hostManager;
     this.#mountMap      = ServerController.#makeMountMap(serverConfig.appMounts);
@@ -88,7 +89,7 @@ export class ServerController {
     this.#port          = serverConfig.port;
     this.#protocol      = serverConfig.protocol;
     this.#logger        = logger[this.#name];
-    this.#requestLogger = new RequestLogger(this.#logger);
+    this.#requestLogger = new RequestLogger(this.#logger, idGenerator);
     this.#wrangler      = WranglerFactory.forProtocol(this.#protocol);
     this.#server        = this.#wrangler.createServer(this.#hostManager);
     this.#serverApp     = this.#wrangler.createApplication();

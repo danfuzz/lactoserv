@@ -23,10 +23,11 @@ export class RequestLogger {
    * Constructs an instance.
    *
    * @param {function(...*)} logger Underlying logger instance to use.
+   * @param {RequestIdGenerator} idGenerator Request ID generator to use.
    */
-  constructor(logger) {
+  constructor(logger, idGenerator) {
     this.#logger      = logger;
-    this.#idGenerator = new RequestIdGenerator();
+    this.#idGenerator = idGenerator;
   }
 
   /**
