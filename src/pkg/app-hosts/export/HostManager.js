@@ -58,6 +58,22 @@ export class HostManager {
   }
 
   /**
+   * @returns {object} Options suitable for use with
+   * `http2.createSecureServer()` and the like, such that this instance will be
+   * used to find certificates and keys.
+   */
+  get secureServerOptions() {
+    // The `key` and `cert` bound in the result of this getter are for cases
+    // when the (network) client doesn't invoke the server-name extension.
+    // Hence, it's the wildcard... if available.
+    const wildcard = this.findConfig('*') ?? {};
+
+    const sniCallback = (serverName, cb) => this.sniCallback(serverName, cb);
+
+    return { ...wildcard, SNICallback: sniCallback };
+  }
+
+  /**
    * Finds the configuration info (cert/key pair) associated with the given
    * hostname.
    *
