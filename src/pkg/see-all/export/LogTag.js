@@ -116,6 +116,6 @@ export class LogTag {
    * @throws {Error} Thrown if `value` is invalid.
    */
   static #checkMainString(value) {
-    return MustBe.string(value, /^(?![-.])[-._a-zA-Z0-9]{1,20}(?<![-.])$/);
+    return MustBe.string(value, /^(?![-.])(?:[-._a-zA-Z0-9]{1,20}|\(top\))(?<![-.])$/);
   }
 }
