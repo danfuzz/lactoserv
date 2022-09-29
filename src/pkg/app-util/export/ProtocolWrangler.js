@@ -1,20 +1,16 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { HostManager } from '#p/HostManager';
-
 import { Methods } from '@this/typey';
 
 import * as net from 'node:net';
 
 
 /**
- * Common interface for "wrangling" each of the different server protocols.
- * Concrete instances of this class remain "hidden" behind a public-facing
- * server instance, so as to prevent clients of this package from reaching in
- * and messing with internals.
+ * Common interface for "wrangling" each of the server protocols that this
+ * system understands.
  */
-export class BaseWrangler {
+export class ProtocolWrangler {
   // Note: Default constructor is fine here.
 
   /**
@@ -22,9 +18,10 @@ export class BaseWrangler {
    * `express:Express` or thing that is (approximately) compatible with same.
    *
    * @abstract
+   * @returns {object} `express:Express`-like thing.
    */
   createApplication() {
-    Methods.abstract();
+    return Methods.abstract();
   }
 
   /**
@@ -32,11 +29,12 @@ export class BaseWrangler {
    * or thing that is (approximately) compatible with same.
    *
    * @abstract
-   * @param {?HostManager} hostManager Host manager to use, or `null` if not
-   *   configured.
+   * @param {?object} certOptions Certificate options, or `null` if this
+   *   instance returned `false` from {@link #usesCertificates}.
+   * @returns {object} `node:HttpServer`-like thing.
    */
-  createServer(hostManager) {
-    Methods.abstract(hostManager);
+  createServer(certOptions) {
+    return Methods.abstract(certOptions);
   }
 
   /**
@@ -65,5 +63,17 @@ export class BaseWrangler {
    */
   protocolWhenStopped() {
     Methods.abstract();
+  }
+
+  /**
+   * Indicates whether or not this instance requires certificate options
+   * when creating a server.
+   *
+   * @abstract
+   * @returns {boolean} `true` iff certificate options need to be passed to
+   *   {@link #createServer}.
+   */
+  usesCertificates() {
+    return Methods.abstract();
   }
 }

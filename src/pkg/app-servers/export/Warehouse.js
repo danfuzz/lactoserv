@@ -2,9 +2,9 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { ApplicationManager } from '#p/ApplicationManager';
-import { HostManager } from '#p/HostManager';
 import { ServerManager } from '#p/ServerManager';
 
+import { HostManager } from '@this/app-hosts';
 import { JsonSchema } from '@this/json';
 
 /**

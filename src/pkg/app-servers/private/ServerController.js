@@ -2,14 +2,12 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { ApplicationController } from '#p/ApplicationController';
-import { BaseWrangler } from '#p/BaseWrangler';
 import { ConnectionHandler } from '#p/ConnectionHandler';
-import { HostManager } from '#p/HostManager';
-import { IdGenerator } from '#p/IdGenerator';
 import { RequestLogger } from '#p/RequestLogger';
 import { ThisModule } from '#p/ThisModule';
-import { WranglerFactory } from '#p/WranglerFactory';
 
+import { HostManager } from '@this/app-hosts';
+import { IdGenerator, ProtocolWrangler, ProtocolWranglers } from '@this/app-util';
 import { Condition } from '@this/async';
 import { TreePathKey, TreePathMap } from '@this/collections';
 
@@ -53,7 +51,7 @@ export class ServerController {
   /** @type {function(...*)} Instance-specific logger. */
   #logger;
 
-  /** @type {BaseWrangler} Protocol-specific "wrangler." */
+  /** @type {ProtocolWrangler} Protocol-specific "wrangler." */
   #wrangler;
 
   /** @type {net.Server} Server instance (the direct networking thingy). */
@@ -88,16 +86,20 @@ export class ServerController {
    * @param {IdGenerator} idGenerator ID generator to use.
    */
   constructor(serverConfig, idGenerator) {
-    this.#name          = serverConfig.name;
-    this.#hostManager   = serverConfig.hostManager;
-    this.#mountMap      = ServerController.#makeMountMap(serverConfig.appMounts);
-    this.#interface     = serverConfig.interface;
-    this.#port          = serverConfig.port;
-    this.#protocol      = serverConfig.protocol;
-    this.#logger        = logger[this.#name];
-    this.#wrangler      = WranglerFactory.forProtocol(this.#protocol);
-    this.#server        = this.#wrangler.createServer(this.#hostManager);
-    this.#serverApp     = this.#wrangler.createApplication();
+    this.#name        = serverConfig.name;
+    this.#hostManager = serverConfig.hostManager;
+    this.#mountMap    = ServerController.#makeMountMap(serverConfig.appMounts);
+    this.#interface   = serverConfig.interface;
+    this.#port        = serverConfig.port;
+    this.#protocol    = serverConfig.protocol;
+    this.#logger      = logger[this.#name];
+    this.#wrangler    = ProtocolWranglers.forProtocol(this.#protocol);
+
+    const certOpts = this.#wrangler.usesCertificates()
+      ? [this.#hostManager.secureServerOptions]
+      : [];
+    this.#server    = this.#wrangler.createServer(...certOpts);
+    this.#serverApp = this.#wrangler.createApplication();
 
     this.#requestLogger     = new RequestLogger(this.#logger.req, idGenerator);
     this.#connectionHandler = new ConnectionHandler(this.#logger.conn, idGenerator);

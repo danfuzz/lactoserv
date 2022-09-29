@@ -1,17 +1,17 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { HostController } from '#p/HostController';
-import { ThisModule } from '#p/ThisModule';
+import { HostController } from '#x/HostController';
 
 import { TreePathMap } from '@this/collections';
 import { JsonSchema, JsonSchemaUtil } from '@this/json';
+import { SeeAll } from '@this/see-all';
 
 import { SecureContext } from 'node:tls';
 
 
 /** @type {function(...*)} Logger for this class. */
-const logger = ThisModule.logger.host;
+const logger = SeeAll.loggerFor('app-hosts');
 
 /**
  * Manager for dealing with all the certificate/key pairs associated with a
@@ -55,6 +55,22 @@ export class HostManager {
         this.#addControllerFor(host);
       }
     }
+  }
+
+  /**
+   * @returns {object} Options suitable for use with
+   * `http2.createSecureServer()` and the like, such that this instance will be
+   * used to find certificates and keys.
+   */
+  get secureServerOptions() {
+    // The `key` and `cert` bound in the result of this getter are for cases
+    // when the (network) client doesn't invoke the server-name extension.
+    // Hence, it's the wildcard... if available.
+    const wildcard = this.findConfig('*') ?? {};
+
+    const sniCallback = (serverName, cb) => this.sniCallback(serverName, cb);
+
+    return { ...wildcard, SNICallback: sniCallback };
   }
 
   /**

@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { BaseWrangler } from '#p/BaseWrangler';
+import { ProtocolWrangler } from '#x/ProtocolWrangler';
 
 import { Condition } from '@this/async';
 
@@ -14,7 +14,7 @@ import * as net from 'node:net';
 /**
  * Wrangler for `Http2SecureServer`.
  */
-export class Http2Wrangler extends BaseWrangler {
+export class Http2Wrangler extends ProtocolWrangler {
   /** @type {?net.Server} Server being wrangled, once known. */
   #server = null;
 
@@ -36,20 +36,13 @@ export class Http2Wrangler extends BaseWrangler {
   }
 
   /** @override */
-  createServer(hostManager) {
-    // The `key` and `cert` bound here are for cases where the client doesn't
-    // invoke the server-name extension. Hence, it's the wildcard.
-    const wildcard = hostManager.findConfig('*');
-    const sniCallback =
-      (serverName, cb) => hostManager.sniCallback(serverName, cb);
-    const serverOptions = {
-      SNICallback: sniCallback,
-      cert:        wildcard.cert,
-      key:         wildcard.key,
-      allowHTTP1:  true
+  createServer(certOptions) {
+    const options = {
+      ...certOptions,
+      allowHTTP1: true
     };
 
-    return http2.createSecureServer(serverOptions);
+    return http2.createSecureServer(options);
   }
 
   /** @override */
@@ -109,5 +102,10 @@ export class Http2Wrangler extends BaseWrangler {
     session.on('error',      removeSession);
     session.on('frameError', removeSession);
     session.on('goaway',     removeSession);
+  }
+
+  /** @override */
+  usesCertificates() {
+    return true;
   }
 }
