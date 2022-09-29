@@ -1,12 +1,11 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { BaseWrangler } from '#p/BaseWrangler';
 import { HttpWrangler } from '#p/HttpWrangler';
 import { Http2Wrangler } from '#p/Http2Wrangler';
 import { HttpsWrangler } from '#p/HttpsWrangler';
 
-// Types referenced only in doc comments.
-import { BaseWrangler } from '#p/BaseWrangler';
 
 /**
  * Utility class which constructs concrete {@link BaseWrangler} instances.

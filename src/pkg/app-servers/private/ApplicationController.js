@@ -2,14 +2,13 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { ApplicationFactory } from '#p/ApplicationFactory';
+import { BaseApplication } from '#p/BaseApplication';
 import { HostController } from '#p/HostController';
 
 import { TreePathKey } from '@this/collections';
 import { JsonSchemaUtil } from '@this/json';
 import { MustBe } from '@this/typey';
 
-// Types referenced only in doc comments.
-import { BaseApplication } from '#p/BaseApplication';
 
 /**
  * "Controller" for a single application.

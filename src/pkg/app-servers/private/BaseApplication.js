@@ -3,8 +3,8 @@
 
 import { Methods } from '@this/typey';
 
-// Types referenced only in doc comments.
 import * as express from 'express';
+
 
 /**
  * Base class for the exported (public) application classes.

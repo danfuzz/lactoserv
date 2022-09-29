@@ -1,11 +1,12 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { HostManager } from '#p/HostManager';
+
 import { Methods } from '@this/typey';
 
-// Types referenced only in doc comments.
-import { HostManager } from '#p/HostManager';
 import * as net from 'node:net';
+
 
 /**
  * Common interface for "wrangling" each of the different server protocols.
