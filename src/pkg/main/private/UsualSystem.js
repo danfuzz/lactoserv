@@ -5,7 +5,7 @@ import { Warehouse } from '@this/app-servers';
 import { Mutex } from '@this/async';
 import { JsonExpander } from '@this/json';
 import { Dirs, Host } from '@this/host';
-import { SeeAll } from '@this/loggy';
+import { Loggy } from '@this/loggy';
 
 
 /**
@@ -26,7 +26,7 @@ export class UsualSystem {
   #serializer = new Mutex();
 
   /** @type {function(...*)} Logger for this instance. */
-  #logger = SeeAll.loggerFor('main').allServers;
+  #logger = Loggy.loggerFor('main').allServers;
 
   /**
    * Constructs an instance.
