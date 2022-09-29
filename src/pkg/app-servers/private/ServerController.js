@@ -4,6 +4,7 @@
 import { ApplicationController } from '#p/ApplicationController';
 import { BaseWrangler } from '#p/BaseWrangler';
 import { HostManager } from '#p/HostManager';
+import { RequestLogger } from '#p/RequestLogger';
 import { ThisModule } from '#p/ThisModule';
 import { WranglerFactory } from '#p/WranglerFactory';
 
@@ -50,6 +51,9 @@ export class ServerController {
   /** @type {function(...*)} Instance-specific logger. */
   #logger;
 
+  /** @type {RequestLogger} HTTP(ish) request logger. */
+  #requestLogger;
+
   /** @type {BaseWrangler} Protocol-specific "wrangler." */
   #wrangler;
 
@@ -77,16 +81,17 @@ export class ServerController {
    *  `hostManager`.
    */
   constructor(serverConfig) {
-    this.#name        = serverConfig.name;
-    this.#hostManager = serverConfig.hostManager;
-    this.#mountMap    = ServerController.#makeMountMap(serverConfig.appMounts);
-    this.#interface   = serverConfig.interface;
-    this.#port        = serverConfig.port;
-    this.#protocol    = serverConfig.protocol;
-    this.#logger      = logger[this.#name];
-    this.#wrangler    = WranglerFactory.forProtocol(this.#protocol);
-    this.#server      = this.#wrangler.createServer(this.#hostManager);
-    this.#serverApp   = this.#wrangler.createApplication();
+    this.#name          = serverConfig.name;
+    this.#hostManager   = serverConfig.hostManager;
+    this.#mountMap      = ServerController.#makeMountMap(serverConfig.appMounts);
+    this.#interface     = serverConfig.interface;
+    this.#port          = serverConfig.port;
+    this.#protocol      = serverConfig.protocol;
+    this.#logger        = logger[this.#name];
+    this.#requestLogger = new RequestLogger(this.#logger);
+    this.#wrangler      = WranglerFactory.forProtocol(this.#protocol);
+    this.#server        = this.#wrangler.createServer(this.#hostManager);
+    this.#serverApp     = this.#wrangler.createApplication();
 
     this.#configureServerApp();
   }
@@ -293,20 +298,19 @@ export class ServerController {
    *   middleware to run.
    */
   #handleRequest(req, res, next) {
+    const logger = this.#requestLogger.logRequest(req, res);
+
     const { path, subdomains } = req;
 
     // Freezing `subdomains` lets `new TreePathKey()` avoid making a copy.
     const hostKey = new TreePathKey(Object.freeze(subdomains), false);
     const pathKey = ApplicationController.parsePath(path);
 
-    // TODO: Temporary logging to see what's going on.
-    console.log('##### request: %s :: %s', hostKey, pathKey);
-
     // Find the mount map for the most-specific matching host.
     const hostMap = this.#mountMap.find(hostKey)?.value;
     if (!hostMap) {
       // No matching host.
-      console.log('##### No host match for: %s', hostKey);
+      logger.hostNotFound();
       next();
       return;
     }
@@ -314,13 +318,13 @@ export class ServerController {
     const controller = hostMap.find(pathKey)?.value;
     if (!controller) {
       // No matching path.
-      console.log('##### No path match for: %s :: %s', hostKey, pathKey);
+      logger.pathNotFound();
       next();
       return;
     }
 
     // Call the app!
-    console.log('##### FOUND APP!');
+    logger.usingApp(controller.name);
     controller.app.handleRequest(req, res, next);
   }
 
