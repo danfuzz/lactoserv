@@ -39,7 +39,8 @@ export class SeeAll {
    * * `logger.tag.type(...args)` -- Used as an object-of-objects to get a
    *   particular property which is then called, to log an event with the
    *   indicated type and arguments, and with an additional piece of context
-   *   appended to the original tag.
+   *   appended to the original tag. This form may be used recursively, e.g.
+   *   `logger.outer.middle.deep.type('yay!')`, etc.
    *
    * **Note:** The logger function determines its behavior in part by noticing
    * whether it is being called as a function or as a method. For example,

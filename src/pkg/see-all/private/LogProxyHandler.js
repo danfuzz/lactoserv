@@ -10,17 +10,10 @@ import { MethodCacheProxyHandler } from '@this/metacomp';
 
 /**
  * Proxy handler which provides the illusion of an object with infinitely many
- * properties, each of which is callable as a method that can be used to emit a
- * structured-event log with the same name as the property, _or_ which can be
- * treated as an object with subproperties to add layers of tag context.
- *
- * For example:
- *
- * * `proxy.florp(1, 2, 3)` will cause an event of type `florp` to be logged
- *   with arguments `[1, 2, 3]`.
- * * `proxy.super.special.florp('yes')` will cause an event of type `florp` to
- *   be logged with arguments `['yes']` and with additional tag context
- *   `['super', 'special']`.
+ * properties, each of which is callable as a function or a method, _or_ which
+ * can be treated as an object with subproperties to add layers of tag context.
+ * See {@link SeeAll.loggerFor} for details (and the public interface to this
+ * class).
  */
 export class LogProxyHandler extends MethodCacheProxyHandler {
   /** @type {LogTag} Tag to use on all logged events. */
