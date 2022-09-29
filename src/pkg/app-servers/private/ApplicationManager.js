@@ -2,11 +2,14 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { ApplicationController } from '#p/ApplicationController';
+import { ThisModule } from '#p/ThisModule';
 
+import { TreePathKey } from '@this/collections';
 import { JsonSchema, JsonSchemaUtil } from '@this/json';
 
-// Types referenced only in doc comments.
-import { TreePathKey } from '@this/collections';
+
+/** @type {function(...*)} Logger for this class. */
+const logger = ThisModule.logger.app;
 
 /**
  * Manager for dealing with all the high-level applications that are running or
@@ -94,7 +97,7 @@ export class ApplicationManager {
     const controller = new ApplicationController(appItem);
     const name = controller.name;
 
-    console.log(`Binding application ${name}.`);
+    logger.binding(name);
 
     if (this.#controllers.has(name)) {
       throw new Error(`Duplicate application: ${name}`);

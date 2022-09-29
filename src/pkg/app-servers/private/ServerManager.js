@@ -2,14 +2,16 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { ApplicationController } from '#p/ApplicationController';
+import { ApplicationManager } from '#p/ApplicationManager';
 import { HostController } from '#p/HostController';
 import { HostManager } from '#p/HostManager';
 import { ServerController } from '#p/ServerController';
+import { ThisModule } from '#p/ThisModule';
 
 import { JsonSchema, JsonSchemaUtil } from '@this/json';
 
-// Types referenced only in doc comments.
-import { ApplicationManager } from '#p/ApplicationManager';
+/** @type {function(...*)} Logger for this class. */
+const logger = ThisModule.logger.server;
 
 /**
  * Manager for dealing with all the network-bound server endpoints of a system.
@@ -114,7 +116,7 @@ export class ServerManager {
     const controller = new ServerController(config);
     const name = controller.name;
 
-    console.log(`Binding server ${name}.`);
+    logger.binding(name);
 
     if (this.#controllers.has(name)) {
       throw new Error(`Duplicate server name: ${name}`);

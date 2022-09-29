@@ -2,12 +2,16 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { HostController } from '#p/HostController';
+import { ThisModule } from '#p/ThisModule';
 
 import { TreePathMap } from '@this/collections';
 import { JsonSchema, JsonSchemaUtil } from '@this/json';
 
-// Types referenced only in doc comments.
 import { SecureContext } from 'node:tls';
+
+
+/** @type {function(...*)} Logger for this class. */
+const logger = ThisModule.logger.host;
 
 /**
  * Manager for dealing with all the certificate/key pairs associated with a
@@ -145,7 +149,7 @@ export class HostManager {
 
     for (const name of controller.names) {
       const key = HostController.parseName(name, true);
-      console.log(`Binding hostname ${name}.`);
+      logger.binding(name);
       this.#controllers.add(key, controller);
     }
   }
