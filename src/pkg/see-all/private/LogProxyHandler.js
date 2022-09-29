@@ -75,8 +75,8 @@ export class LogProxyHandler extends MethodCacheProxyHandler {
           this.#cachedSubTag = this.#tag.withAddedContext(this.#typeOrNextTag);
         }
       } else {
-        // No "next" in this instance (we're at the root); just keep the existing
-        // tag (which might be the artificial "top" one).
+        // No "next" in this instance (we're at the root); just keep the
+        // existing tag (which might be the artificial "top" one).
         this.#cachedSubTag = this.#tag;
       }
     }
