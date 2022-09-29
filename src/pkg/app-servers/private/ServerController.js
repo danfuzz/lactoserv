@@ -111,14 +111,6 @@ export class ServerController {
   }
 
   /**
-   * @returns {express.Application} Application instance which exclusively
-   * handles the underlying server of this instance.
-   */
-  get serverApp() {
-    return this.#serverApp;
-  }
-
-  /**
    * Starts the server.
    */
   async start() {
