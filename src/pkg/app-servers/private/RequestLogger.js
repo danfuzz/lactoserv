@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { RequestIdGenerator } from '#p/RequestIdGenerator';
+import { IdGenerator } from '#p/IdGenerator';
 
 import * as express from 'express';
 
@@ -16,14 +16,14 @@ export class RequestLogger {
   /** @type {function(...*)} Underlying logger instance to use. */
   #logger;
 
-  /** @type {RequestIdGenerator} ID generator to use. */
+  /** @type {IdGenerator} ID generator to use. */
   #idGenerator;
 
   /**
    * Constructs an instance.
    *
    * @param {function(...*)} logger Underlying logger instance to use.
-   * @param {RequestIdGenerator} idGenerator Request ID generator to use.
+   * @param {IdGenerator} idGenerator ID generator to use for request IDs.
    */
   constructor(logger, idGenerator) {
     this.#logger      = logger;

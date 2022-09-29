@@ -5,6 +5,7 @@ import { ApplicationController } from '#p/ApplicationController';
 import { BaseWrangler } from '#p/BaseWrangler';
 import { ConnectionHandler } from '#p/ConnectionHandler';
 import { HostManager } from '#p/HostManager';
+import { IdGenerator } from '#p/IdGenerator';
 import { RequestLogger } from '#p/RequestLogger';
 import { ThisModule } from '#p/ThisModule';
 import { WranglerFactory } from '#p/WranglerFactory';
@@ -84,7 +85,7 @@ export class ServerController {
    *   as what's in the exposed config object, except with `app` / `apps`
    *   replaced by `appMounts`, and with `host` / `hosts` replaced by
    *  `hostManager`.
-   * @param {RequestIdGenerator} idGenerator Request ID generator to use.
+   * @param {IdGenerator} idGenerator ID generator to use.
    */
   constructor(serverConfig, idGenerator) {
     this.#name          = serverConfig.name;

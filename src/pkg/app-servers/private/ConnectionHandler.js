@@ -1,6 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { IdGenerator } from '#p/IdGenerator';
 import { WriteSpy } from '#p/WriteSpy';
 
 /**
@@ -10,7 +11,7 @@ export class ConnectionHandler {
   /** @type {function(...*)} Underlying logger instance to use. */
   #logger;
 
-  /** @type {RequestIdGenerator} ID generator for connections. */
+  /** @type {IdGenerator} ID generator for connections. */
   #idGenerator;
 
   /** @type {Map<socket,object>} Map from each socket to its salient info. */
@@ -21,7 +22,7 @@ export class ConnectionHandler {
    * Constructs an instance.
    *
    * @param {function(...*)} logger Underlying logger instance to use.
-   * @param {RequestIdGenerator} idGenerator ID generator for connections.
+   * @param {IdGenerator} idGenerator ID generator for connections.
    */
   constructor(logger, idGenerator) {
     this.#logger      = logger;

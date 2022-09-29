@@ -9,7 +9,7 @@
  * (wraps around every couple years or so) and `NNNN` being the request number
  * within that minute (four digits by default but will expand if necessary).
  */
-export class RequestIdGenerator {
+export class IdGenerator {
   /** @type {number} Minute number. */
   #minuteNumber = -1;
 
@@ -25,7 +25,7 @@ export class RequestIdGenerator {
    */
   makeRequestId() {
     const minuteNumber =
-      Math.trunc(Date.now() * RequestIdGenerator.#MINS_PER_MSEC) & 0xfffff;
+      Math.trunc(Date.now() * IdGenerator.#MINS_PER_MSEC) & 0xfffff;
 
     if (minuteNumber !== this.#minuteNumber) {
       this.#minuteNumber   = minuteNumber;

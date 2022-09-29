@@ -5,7 +5,7 @@ import { ApplicationController } from '#p/ApplicationController';
 import { ApplicationManager } from '#p/ApplicationManager';
 import { HostController } from '#p/HostController';
 import { HostManager } from '#p/HostManager';
-import { RequestIdGenerator } from '#p/RequestIdGenerator';
+import { IdGenerator } from '#p/IdGenerator';
 import { ServerController } from '#p/ServerController';
 import { ThisModule } from '#p/ThisModule';
 
@@ -46,8 +46,8 @@ export class ServerManager {
    */
   #controllers = new Map();
 
-  /** @type {RequestIdGenerator} ID generator for all controllers. */
-  #idGenerator = new RequestIdGenerator();
+  /** @type {IdGenerator} ID generator for all controllers. */
+  #idGenerator = new IdGenerator();
 
   /**
    * Constructs an instance.
