@@ -44,7 +44,7 @@ export class ConnectionHandler {
     socket.on('close', () => this.#handleClose(socket));
     socket.on('error', error => this.#handleClose(socket, error));
 
-    logger.connectedFrom(socket.address);
+    logger.connectedFrom(socket.address());
   }
 
   /**
