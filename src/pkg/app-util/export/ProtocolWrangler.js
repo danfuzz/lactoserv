@@ -19,8 +19,11 @@ export class ProtocolWrangler {
    * Makes the underlying application instance, i.e. an instance of
    * `express:Express` or thing that is (approximately) compatible with same.
    *
+   * **Implementation note:** Subclasses are responsible for remembering the
+   * value they return here, if needed.
+   *
    * @abstract
-   * @returns {object} `express:Express`-like thing.
+   * @returns {object} `express.Express`-like thing.
    */
   createApplication() {
     return Methods.abstract();
@@ -36,7 +39,7 @@ export class ProtocolWrangler {
    * @abstract
    * @param {?object} certOptions Certificate options, or `null` if this
    *   instance returned `false` from {@link #usesCertificates}.
-   * @returns {object} `node:HttpServer`-like thing.
+   * @returns {object} `http.HttpServer`-like thing.
    */
   createServer(certOptions) {
     return Methods.abstract(certOptions);
