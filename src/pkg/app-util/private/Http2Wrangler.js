@@ -47,6 +47,12 @@ export class Http2Wrangler extends ProtocolWrangler {
   }
 
   /** @override */
+  createSocket(listenOptions) {
+    // TODO!
+    throw new Error('TODO');
+  }
+
+  /** @override */
   async protocolStart() {
     const handleSession = session => this.#addSession(session);
 

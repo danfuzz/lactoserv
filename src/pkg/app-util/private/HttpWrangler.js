@@ -24,6 +24,12 @@ export class HttpWrangler extends ProtocolWrangler {
   }
 
   /** @override */
+  createSocket(listenOptions) {
+    // TODO!
+    throw new Error('TODO');
+  }
+
+  /** @override */
   async protocolStart() {
     // Nothing to do in this case.
   }

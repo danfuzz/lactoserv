@@ -46,6 +46,21 @@ export class ProtocolWrangler {
   }
 
   /**
+   * Makes the server socket (or equivalent), and listens on it.
+   *
+   * **Implementation note:** Subclasses are responsible for remembering the
+   * value they return here, if needed.
+   *
+   * @param {object} options Options for a call to (something like) {@link
+   *   net.Server.listen}
+   * @returns {object} Server socket, either a {@link net.Server} per se, or
+   *   a workalike of some sort.
+   */
+  createSocket(listenOptions) {
+    return Methods.abstract(listenOptions);
+  }
+
+  /**
    * Performs protocol-specific actions to make a server is ready to start
    * taking requests.
    *
