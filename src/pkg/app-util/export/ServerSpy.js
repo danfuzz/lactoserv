@@ -121,7 +121,7 @@ export class ServerSpy extends events.EventEmitter {
 
     this.#target.listen(...args);
     if (callback) {
-      this.on('listening', callback);
+      this.once('listening', callback);
     }
 
     return this;
@@ -164,12 +164,13 @@ export class ServerSpy extends events.EventEmitter {
    * @param {...*} args Type-specific event arguments.
    */
   #handleConnection(...args) {
-
-    const socket = args[0];
-    try {
-      this.#logger.connectedFrom(socket.address());
-    } catch (e) {
-      this.#logger.weirdConnectionEvent(...args);
+    if (this.#logger) {
+      const socket = args[0];
+      try {
+        this.#logger.connectedFrom(socket.address());
+      } catch (e) {
+        this.#logger.weirdConnectionEvent(...args);
+      }
     }
 
     // TODO: Wrap the socket!
