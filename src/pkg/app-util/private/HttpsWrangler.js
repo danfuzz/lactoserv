@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { ProtocolWrangler } from '#x/ProtocolWrangler';
+import { TcpWrangler } from '#p/TcpWrangler';
 
 import express from 'express';
 
@@ -10,36 +10,26 @@ import * as https from 'node:https';
 /**
  * Wrangler for `HttpsServer`.
  */
-export class HttpsWrangler extends ProtocolWrangler {
+export class HttpsWrangler extends TcpWrangler {
   // Note: Default constructor is fine here.
 
   /** @override */
-  createApplication() {
+  _impl_createApplication() {
     return express();
   }
 
   /** @override */
-  createServer(certOptions) {
-    return https.createServer(certOptions);
+  _impl_createServer(hostOptions) {
+    return https.createServer(hostOptions);
   }
 
   /** @override */
-  async protocolStart(server_unused) {
+  async _impl_protocolStart() {
     // Nothing to do in this case.
   }
 
   /** @override */
-  async protocolStop() {
+  async _impl_protocolStop() {
     // Nothing to do in this case.
-  }
-
-  /** @override */
-  async protocolWhenStopped() {
-    // Nothing to do in this case.
-  }
-
-  /** @override */
-  usesCertificates() {
-    return true;
   }
 }

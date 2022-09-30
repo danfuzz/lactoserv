@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { ProtocolWrangler } from '#x/ProtocolWrangler';
+import { TcpWrangler } from '#p/TcpWrangler';
 
 import { Condition } from '@this/async';
 
@@ -9,15 +9,12 @@ import express from 'express';
 import http2ExpressBridge from 'http2-express-bridge';
 
 import * as http2 from 'node:http2';
-import * as net from 'node:net';
+
 
 /**
  * Wrangler for `Http2SecureServer`.
  */
-export class Http2Wrangler extends ProtocolWrangler {
-  /** @type {?net.Server} Server being wrangled, once known. */
-  #server = null;
-
+export class Http2Wrangler extends TcpWrangler {
   /** @type {boolean} Is this instance stopped or trying to stop? */
   #stopping = false;
 
@@ -30,15 +27,15 @@ export class Http2Wrangler extends ProtocolWrangler {
   // Note: Default constructor suffices.
 
   /** @override */
-  createApplication() {
+  _impl_createApplication() {
     // Express needs to be wrapped in order to use HTTP2.
     return http2ExpressBridge(express);
   }
 
   /** @override */
-  createServer(certOptions) {
+  _impl_createServer(hostOptions) {
     const options = {
-      ...certOptions,
+      ...hostOptions,
       allowHTTP1: true
     };
 
@@ -46,18 +43,18 @@ export class Http2Wrangler extends ProtocolWrangler {
   }
 
   /** @override */
-  async protocolStart(server) {
-    this.#server = server;
+  async _impl_protocolStart() {
     const handleSession = session => this.#addSession(session);
 
-    server.on('session', handleSession);
+    this.protocolServer.on('session', handleSession);
 
     // Try to tidy up in case of error.
-    server.on('error', () => server.removeListener('session', handleSession));
+    this.protocolServer.on('error', () =>
+      this.protocolServer.removeListener('session', handleSession));
   }
 
   /** @override */
-  async protocolStop() {
+  async _impl_protocolStop() {
     this.#stopping = true;
 
     // Node docs indicate one has to explicitly close all HTTP2 sessions.
@@ -66,10 +63,7 @@ export class Http2Wrangler extends ProtocolWrangler {
         s.close();
       }
     }
-  }
 
-  /** @override */
-  async protocolWhenStopped() {
     if (this.#sessions.size !== 0) {
       await this.#fullyStopped.whenTrue();
     }
@@ -102,10 +96,5 @@ export class Http2Wrangler extends ProtocolWrangler {
     session.on('error',      removeSession);
     session.on('frameError', removeSession);
     session.on('goaway',     removeSession);
-  }
-
-  /** @override */
-  usesCertificates() {
-    return true;
   }
 }

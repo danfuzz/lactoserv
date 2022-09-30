@@ -48,7 +48,7 @@ export class Warehouse {
 
   /**
    * @returns {?HostManager} Host manager secure contexts, if needed. Can be
-   * `null` * if all servers are insecure.
+   * `null` if all servers are insecure.
    */
   get hostManager() {
     return this.#hostManager;
@@ -79,16 +79,6 @@ export class Warehouse {
   async stopAllServers() {
     const servers = this.#serverManager.getAll();
     const results = servers.map(s => s.stop());
-
-    return Promise.all(results);
-  }
-
-  /**
-   * Returns a promise that becomes fulfilled when all servers are stopped.
-   */
-  async whenAllServersStopped() {
-    const servers = this.#serverManager.getAll();
-    const results = servers.map(s => s.whenStopped());
 
     return Promise.all(results);
   }

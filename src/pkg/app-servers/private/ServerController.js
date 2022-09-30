@@ -12,7 +12,6 @@ import { Condition } from '@this/async';
 import { TreePathKey, TreePathMap } from '@this/collections';
 
 import * as express from 'express';
-import * as net from 'node:net';
 
 
 /** @type {function(...*)} Logger for this class. */
@@ -45,23 +44,11 @@ export class ServerController {
   /** @type {number} Port number. */
   #port;
 
-  /** @type {string} Protocol. */
-  #protocol;
-
   /** @type {function(...*)} Instance-specific logger. */
   #logger;
 
   /** @type {ProtocolWrangler} Protocol-specific "wrangler." */
   #wrangler;
-
-  /** @type {net.Server} Server instance (the direct networking thingy). */
-  #server;
-
-  /**
-   * @type {express.Application} Application instance which exclusively handles
-   * the underlying server of this instance.
-   */
-  #serverApp;
 
   /** @type {Condition} Is the server starting or started? */
   #started = new Condition();
@@ -91,15 +78,22 @@ export class ServerController {
     this.#mountMap    = ServerController.#makeMountMap(serverConfig.appMounts);
     this.#interface   = serverConfig.interface;
     this.#port        = serverConfig.port;
-    this.#protocol    = serverConfig.protocol;
     this.#logger      = logger[this.#name];
-    this.#wrangler    = ProtocolWranglers.forProtocol(this.#protocol);
 
-    const certOpts = this.#wrangler.usesCertificates()
-      ? [this.#hostManager.secureServerOptions]
-      : [];
-    this.#server    = this.#wrangler.createServer(...certOpts);
-    this.#serverApp = this.#wrangler.createApplication();
+    const wranglerOptions = {
+      idGenerator,
+      logger:   this.#logger,
+      protocol: serverConfig.protocol,
+      socket: {
+        host: serverConfig.interface,
+        port: serverConfig.port
+      },
+      ...(
+        this.#hostManager
+          ? { hosts: this.#hostManager.secureServerOptions }
+          : {})
+    };
+    this.#wrangler = ProtocolWranglers.make(wranglerOptions);
 
     this.#requestLogger     = new RequestLogger(this.#logger.req, idGenerator);
     this.#connectionHandler = new ConnectionHandler(this.#logger.conn, idGenerator);
@@ -127,42 +121,8 @@ export class ServerController {
     this.#logger.starting();
     this.#started.value = true;
 
-    const server = this.#server;
-    await this.#wrangler.protocolStart(server);
-
-    // This `await new Promise` arrangement is done to get the `listen` call to
-    // be a good async citizen. Notably, the callback passed to
-    // `Server.listen()` cannot (historically) be counted on to get used as an
-    // error callback. TODO: Maybe there is a better way to do this these days?
-    await new Promise((resolve, reject) => {
-      function done(err) {
-        server.removeListener('listening', handleListening);
-        server.removeListener('error',     handleError);
-
-        if (err !== null) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      }
-
-      function handleListening() {
-        done(null);
-      }
-
-      function handleError(err) {
-        done(err);
-      }
-
-      server.on('connection', socket => this.#handleConnection(socket));
-      server.on('listening', handleListening);
-      server.on('error',     handleError);
-      server.on('request',   this.#serverApp);
-
-      server.listen(this.#listenOptions);
-    });
-
-    this.#logger.started(this.#loggableInfo);
+    await this.#wrangler.start();
+    this.#logger.started(this.#wrangler.loggableInfo);
   }
 
   /**
@@ -177,57 +137,11 @@ export class ServerController {
     }
 
     this.#logger.stopping();
-
-    await this.#wrangler.protocolStop();
-
-    this.#server.removeListener('request', this.#serverApp);
-    this.#server.close();
-
     this.#stopping.value = true;
 
-    await this.whenStopped();
+    await this.#wrangler.stop();
 
     this.#logger.stopped();
-  }
-
-  /**
-   * Returns when the server becomes stopped (stops listening / closes its
-   * server socket). In the case of closing due to an error, this throws the
-   * error.
-   */
-  async whenStopped() {
-    await this.#stopping.whenTrue();
-    await this.#wrangler.protocolWhenStopped();
-
-    const server = this.#server;
-
-    // If the server is still listening for connections, wait for it to claim
-    // to have stopped.
-    while (server.listening) {
-      await new Promise((resolve, reject) => {
-        function done(err) {
-          server.removeListener('close', handleClose);
-          server.removeListener('error', handleError);
-
-          if (err !== null) {
-            reject(err);
-          } else {
-            resolve();
-          }
-        }
-
-        function handleClose() {
-          done(null);
-        }
-
-        function handleError(err) {
-          done(err);
-        }
-
-        server.on('close', handleClose);
-        server.on('error', handleError);
-      });
-    }
   }
 
   /**
@@ -241,44 +155,10 @@ export class ServerController {
   }
 
   /**
-   * @returns {{host: string, port: number}} Options for doing a `listen()` on a
-   * server socket. `host` in the return value corresponds to the network
-   * interface.
-   */
-  get #listenOptions() {
-    return {
-      host: (this.#interface === '*') ? '::' : this.#interface,
-      port: this.#port
-    };
-  }
-
-  /**
-   * @returns {{name: string, interface: string, port: number, protocol:
-   * string}} Object with bindings for reasonably-useful logging.
-   */
-  get #loggableInfo() {
-    const address = this.#server.address();
-    const info = {
-      interface: (this.#interface === '*') ? '<any>' : this.#interface,
-      port:      this.#port,
-      protocol:  this.#protocol
-    };
-
-    if (address) {
-      const ip = /:/.test(address.address)
-        ? `[${address.address}]` // More pleasant presentation for IPv6.
-        : address.address;
-      info.listening = `${ip}:${address.port}`;
-    }
-
-    return info;
-  }
-
-  /**
-   * Configures {@link #serverApp}.
+   * Configures `#wrangler.application`.
    */
   #configureServerApp() {
-    const app = this.#serverApp;
+    const app = this.#wrangler.application;
 
     // Means paths `/foo` and `/Foo` are different.
     app.set('case sensitive routing', true);
