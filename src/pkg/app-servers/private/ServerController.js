@@ -83,6 +83,10 @@ export class ServerController {
 
     const wranglerOptions = {
       protocol: serverConfig.protocol,
+      socket: {
+        host: serverConfig.interface,
+        port: serverConfig.port
+      },
       ...(
         this.#hostManager
           ? { hosts: this.#hostManager.secureServerOptions }
@@ -116,8 +120,15 @@ export class ServerController {
     this.#logger.starting();
     this.#started.value = true;
 
-    const server = this.#wrangler.protocolServer;
+    const server       = this.#wrangler.protocolServer;
+    const serverSocket = this.#wrangler.serverSocket;
     await this.#wrangler.protocolStart();
+
+    server.on('connection', socket => this.#handleConnection(socket));
+    server.on('request',   this.#wrangler.application);
+    serverSocket.on('connection', (socket) => {
+      server.emit('connection', socket);
+    });
 
     // This `await new Promise` arrangement is done to get the `listen` call to
     // be a good async citizen. Notably, the callback passed to
@@ -125,8 +136,8 @@ export class ServerController {
     // success and never anything in case of an error.
     await new Promise((resolve, reject) => {
       function done(err) {
-        server.removeListener('listening', handleListening);
-        server.removeListener('error',     handleError);
+        serverSocket.removeListener('listening', handleListening);
+        serverSocket.removeListener('error',     handleError);
 
         if (err !== null) {
           reject(err);
@@ -143,15 +154,13 @@ export class ServerController {
         done(err);
       }
 
-      server.on('connection', socket => this.#handleConnection(socket));
-      server.on('listening', handleListening);
-      server.on('error',     handleError);
-      server.on('request',   this.#wrangler.application);
+      serverSocket.on('listening', handleListening);
+      serverSocket.on('error',     handleError);
 
-      server.listen(this.#listenOptions);
+      this.#wrangler.listen();
     });
 
-    this.#logger.started(this.#loggableInfo);
+    this.#logger.started(this.#wrangler.loggableInfo);
   }
 
   /**
@@ -228,40 +237,6 @@ export class ServerController {
    */
   #handleConnection(socket) {
     this.#connectionHandler.handleConnection(socket);
-  }
-
-  /**
-   * @returns {{host: string, port: number}} Options for doing a `listen()` on a
-   * server socket. `host` in the return value corresponds to the network
-   * interface.
-   */
-  get #listenOptions() {
-    return {
-      host: (this.#interface === '*') ? '::' : this.#interface,
-      port: this.#port
-    };
-  }
-
-  /**
-   * @returns {{name: string, interface: string, port: number, protocol:
-   * string}} Object with bindings for reasonably-useful logging.
-   */
-  get #loggableInfo() {
-    const address = this.#wrangler.protocolServer.address();
-    const info = {
-      interface: (this.#interface === '*') ? '<any>' : this.#interface,
-      port:      this.#port,
-      protocol:  this.#wrangler.protocolName
-    };
-
-    if (address) {
-      const ip = /:/.test(address.address)
-        ? `[${address.address}]` // More pleasant presentation for IPv6.
-        : address.address;
-      info.listening = `${ip}:${address.port}`;
-    }
-
-    return info;
   }
 
   /**

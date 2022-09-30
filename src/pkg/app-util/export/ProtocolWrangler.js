@@ -14,11 +14,17 @@ export class ProtocolWrangler {
   /** @type {string} Protocol name. */
   #protocolName;
 
-  /** @type {object} High-level application instance. */
+  /** @type {object} Socket contruction / listenting options. */
+  #socketOptions;
+
+  /** @type {object} High-level application (Express-like thing). */
   #application;
 
-  /** @type {object} High-level protocol server instance. */
+  /** @type {object} High-level protocol server (`HttpServer`-like thing). */
   #protocolServer;
+
+  /** @type {object} Low-level server socket (`net.Server`-like thing). */
+  #serverSocket;
 
   /**
    * Constructs an instance. Accepted options:
@@ -27,13 +33,26 @@ export class ProtocolWrangler {
    *   HostManager.secureServerOptions}, if this instance is (possibly) expected
    *   to need to use certificates (etc.). Ignored for instances which don't do
    *   that sort of thing.
+   * * `socket: object` -- Options to use for creation of and/or listening on
+   *   the low-level server socket. See docs for `net.createServer()` and
+   *   `net.Server.listen()` for more details. Exception: `*` is treated as the
+   *   wildcard name for the `host` interface.
    *
    * @param {object} options Construction options, per the description above.
    */
   constructor(options) {
+    const hostOptions = options.hosts
+      ? Object.freeze({ ...options.hosts })
+      : null;
+    const socketOptions = options.socket
+      ? Object.freeze({ ...options.socket })
+      : null;
+
+    this.#socketOptions  = socketOptions;
     this.#protocolName   = options.protocol;
     this.#application    = this._impl_createApplication();
-    this.#protocolServer = this._impl_createServer(options.hosts ?? null);
+    this.#protocolServer = this._impl_createServer(hostOptions);
+    this.#serverSocket   = this._impl_createServerSocket(socketOptions);
   }
 
   /**
@@ -44,9 +63,33 @@ export class ProtocolWrangler {
     return this.#application;
   }
 
+  /**
+   * @returns {object} Object with bindings for reasonably-useful for logging
+   * about this instance, particularly the low-level socket state.
+   */
+  get loggableInfo() {
+    return this._impl_loggableInfo();
+  }
+
   /** @returns {string} The protocol name. */
   get protocolName() {
     return this.#protocolName;
+  }
+
+  /**
+   * @returns {object} The low-level server socket. This is a _direct_ instance
+   * of `net.Server` or similar.
+   */
+  get serverSocket() {
+    return this.#serverSocket;
+  }
+
+  /**
+   * Issues a `listen()` call to this instance's server socket, or does the
+   * equivalent, to commence servicing connections.
+   */
+  listen() {
+    this._impl_listen(this.#serverSocket, this.#socketOptions);
   }
 
   /**
@@ -56,24 +99,6 @@ export class ProtocolWrangler {
    */
   get protocolServer() {
     return this.#protocolServer;
-  }
-
-  /**
-   * Makes the server socket (or equivalent), and listens on it. This is
-   * expected to be a _low-level_ server socket, not one that inherently speaks
-   * any higher-level protocol, such as TLS, HTTP, etc.
-   *
-   * **Implementation note:** Subclasses are responsible for remembering the
-   * value they return here, if needed.
-   *
-   * @abstract
-   * @param {object} options Options for a call to (something like) {@link
-   *   net.Server.listen}
-   * @returns {object} Server socket, either a {@link net.Server} per se, or
-   *   a workalike of some sort.
-   */
-  createSocket(options) {
-    return this._impl_createSocket(options);
   }
 
   /**
@@ -128,14 +153,41 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Subclass-specific implementation of {@link #createSocket}.
+   * Creates the server socket (or equivalent). This is expected to be a
+   * _low-level_ server socket, which is to say _not_ one that inherently speaks
+   * any higher-level protocol such as TLS, HTTP, etc.
    *
    * @abstract
-   * @param {object} options Listen options.
-   * @returns {object} Server socket.
+   * @param {?object} options Socket-related options, passed through from the
+   *   constructor.
+   * @returns {object} Server socket, _direct_ instance of `net.Server` or
+   *   similar.
    */
-  _impl_createSocket(options) {
+  _impl_createServerSocket(options) {
     return Methods.abstract(options);
+  }
+
+  /**
+   * Subclass-specific implementation of {@link #listen}.
+   *
+   * @param {object} serverSocket Server socket, as previously returned from a
+   *   call to {@link #_impl_createServerSocket}.
+   * @param {?object} options Socket-related options, as were passed to the
+   *   constructor.
+   * @abstract
+   */
+  _impl_listen(serverSocket, options) {
+    Methods.abstract(serverSocket, options);
+  }
+
+  /**
+   * Subclass-specific implementation of {@link #loggableInfo}.
+   *
+   * @abstract
+   * @returns {object} Object with interesting stuff about the server socket.
+   */
+  _impl_loggableInfo() {
+    Methods.abstract();
   }
 
   /**
