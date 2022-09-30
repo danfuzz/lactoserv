@@ -24,7 +24,7 @@ export class HttpWrangler extends ProtocolWrangler {
   }
 
   /** @override */
-  async protocolStart(server_unused) {
+  async protocolStart() {
     // Nothing to do in this case.
   }
 

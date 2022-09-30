@@ -47,11 +47,9 @@ export class ProtocolWrangler {
    * taking requests.
    *
    * @abstract
-   * @param {net.Server} server Server instance to be wrangled, presumed to be
-   *   an `http.HttpServer` or similar.
    */
-  async protocolStart(server) {
-    Methods.abstract(server);
+  async protocolStart() {
+    Methods.abstract();
   }
 
   /**

@@ -42,18 +42,18 @@ export class Http2Wrangler extends ProtocolWrangler {
       allowHTTP1: true
     };
 
-    return http2.createSecureServer(options);
+    this.#server = http2.createSecureServer(options);
+    return this.#server;
   }
 
   /** @override */
-  async protocolStart(server) {
-    this.#server = server;
+  async protocolStart() {
     const handleSession = session => this.#addSession(session);
 
-    server.on('session', handleSession);
+    this.#server.on('session', handleSession);
 
     // Try to tidy up in case of error.
-    server.on('error', () => server.removeListener('session', handleSession));
+    this.#server.on('error', () => server.removeListener('session', handleSession));
   }
 
   /** @override */
