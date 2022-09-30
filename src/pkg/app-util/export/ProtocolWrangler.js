@@ -26,7 +26,7 @@ export class ProtocolWrangler {
 
   /**
    * Makes the underlying high-level server instance, i.e. an instance of
-   * `node:HttpServer` or thing that is (approximately) compatible with same.
+   * `http.HttpServer` or thing that is (approximately) compatible with same.
    *
    * @abstract
    * @param {?object} certOptions Certificate options, or `null` if this
@@ -38,30 +38,33 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Performs protocol-specific actions for {@link #start}.
+   * Performs protocol-specific actions to make a server is ready to start
+   * taking requests. 
    *
    * @abstract
-   * @param {net.Server} server Server instance to be wrangled.
+   * @param {net.Server} server Server instance to be wrangled, presumed to be
+   *   an `http.HttpServer` or similar.
    */
-  protocolStart(server) {
+  async protocolStart(server) {
     Methods.abstract(server);
   }
 
   /**
-   * Performs protocol-specific actions for {@link #stop}.
+   * Performs protocol-specific actions when this instance's high-level server
+   * (e.g., the thing that understands HTTP2) is asked to stop taking requests.
    *
    * @abstract
    */
-  protocolStop() {
+  async protocolStop() {
     Methods.abstract();
   }
 
   /**
-   * Performs protocol-specific actions for {@link #whenStopped}.
+   * Performs protocol-specific actions to wait until a server has stopped.
    *
    * @abstract
    */
-  protocolWhenStopped() {
+  async protocolWhenStopped() {
     Methods.abstract();
   }
 
