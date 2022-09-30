@@ -54,16 +54,6 @@ export class TcpWrangler extends ProtocolWrangler {
     });
   }
 
-  /**
-   * @returns {object} The low-level server socket. This is a _direct_ instance
-   * of `net.Server` or similar.
-   *
-   * TODO: This shouldn't have to be exposed.
-   */
-  get serverSocket() {
-    return this.#serverSocket;
-  }
-
   /** @override */
   async _impl_serverSocketStart() {
     const serverSocket = this.#serverSocket;
@@ -134,13 +124,8 @@ export class TcpWrangler extends ProtocolWrangler {
   }
 
   /** @override */
-  _impl_listen() {
-    this.serverSocket.listen(this.#listenOptions);
-  }
-
-  /** @override */
   _impl_loggableInfo() {
-    const address = this.serverSocket?.address();
+    const address = this.#serverSocket.address();
     const info    = { ...this.#loggableInfo };
 
     if (address) {

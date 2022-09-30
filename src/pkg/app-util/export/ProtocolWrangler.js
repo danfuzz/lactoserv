@@ -85,18 +85,6 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Issues a `listen()` call to this instance's server socket, or does the
-   * equivalent, to commence servicing connections.
-   */
-  listen() {
-    this._impl_listen();
-
-    if (this.#logger) {
-      this.#logger.listening(this.loggableInfo);
-    }
-  }
-
-  /**
    * @returns {object} The high-level protocol server instance. This is an
    * instance of `http.HttpServer` or thing that is (approximately) compatible
    * with same.
@@ -163,15 +151,6 @@ export class ProtocolWrangler {
    */
   _impl_createServer(hostOptions) {
     return Methods.abstract(hostOptions);
-  }
-
-  /**
-   * Subclass-specific implementation of {@link #listen}.
-   *
-   * @abstract
-   */
-  _impl_listen() {
-    Methods.abstract();
   }
 
   /**
