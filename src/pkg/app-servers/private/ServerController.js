@@ -45,9 +45,6 @@ export class ServerController {
   /** @type {number} Port number. */
   #port;
 
-  /** @type {string} Protocol. */
-  #protocol;
-
   /** @type {function(...*)} Instance-specific logger. */
   #logger;
 
@@ -82,7 +79,6 @@ export class ServerController {
     this.#mountMap    = ServerController.#makeMountMap(serverConfig.appMounts);
     this.#interface   = serverConfig.interface;
     this.#port        = serverConfig.port;
-    this.#protocol    = serverConfig.protocol;
     this.#logger      = logger[this.#name];
 
     const wranglerOptions = {
@@ -255,7 +251,7 @@ export class ServerController {
     const info = {
       interface: (this.#interface === '*') ? '<any>' : this.#interface,
       port:      this.#port,
-      protocol:  this.#protocol
+      protocol:  this.#wrangler.protocolName
     };
 
     if (address) {
