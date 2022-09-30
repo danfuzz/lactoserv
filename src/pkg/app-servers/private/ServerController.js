@@ -12,7 +12,6 @@ import { Condition } from '@this/async';
 import { TreePathKey, TreePathMap } from '@this/collections';
 
 import * as express from 'express';
-import * as net from 'node:net';
 
 
 /** @type {function(...*)} Logger for this class. */
