@@ -11,6 +11,9 @@ import { Methods } from '@this/typey';
  * use a separate instance of this class.
  */
 export class ProtocolWrangler {
+  /** @type {string} Protocol name. */
+  #protocolName;
+
   /** @type {object} High-level application instance. */
   #application;
 
@@ -28,6 +31,7 @@ export class ProtocolWrangler {
    * @param {object} options Construction options, per the description above.
    */
   constructor(options) {
+    this.#protocolName   = options.protocolName;
     this.#application    = this._impl_createApplication();
     this.#protocolServer = this._impl_createServer(options.hosts ?? null);
   }
@@ -38,6 +42,11 @@ export class ProtocolWrangler {
    */
   get application() {
     return this.#application;
+  }
+
+  /** @returns {string} The protocol name. */
+  get protocolName() {
+    return this.#protocolName;
   }
 
   /**
