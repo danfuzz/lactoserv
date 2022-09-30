@@ -21,9 +21,6 @@ export class ProtocolWrangler {
   /** @type {IdGenerator} ID generator to use, if logging is to be done. */
   #idGenerator;
 
-  /** @type {object} Socket contruction / listenting options. */
-  #socketOptions;
-
   /** @type {object} High-level application (Express-like thing). */
   #application;
 
@@ -100,7 +97,7 @@ export class ProtocolWrangler {
    * equivalent, to commence servicing connections.
    */
   listen() {
-    this._impl_listen(this.#serverSocket, this.#socketOptions);
+    this._impl_listen();
 
     if (this.#logger) {
       this.#logger.listening(this.loggableInfo);
@@ -202,26 +199,20 @@ export class ProtocolWrangler {
    * any higher-level protocol such as TLS, HTTP, etc.
    *
    * @abstract
-   * @param {?object} options Socket-related options, passed through from the
-   *   constructor.
    * @returns {object} Server socket, _direct_ instance of `net.Server` or
    *   similar.
    */
-  _impl_createServerSocket(options) {
-    return Methods.abstract(options);
+  _impl_createServerSocket() {
+    return Methods.abstract();
   }
 
   /**
    * Subclass-specific implementation of {@link #listen}.
    *
-   * @param {object} serverSocket Server socket, as previously returned from a
-   *   call to {@link #_impl_createServerSocket}.
-   * @param {?object} options Socket-related options, as were passed to the
-   *   constructor.
    * @abstract
    */
-  _impl_listen(serverSocket, options) {
-    Methods.abstract(serverSocket, options);
+  _impl_listen() {
+    Methods.abstract();
   }
 
   /**

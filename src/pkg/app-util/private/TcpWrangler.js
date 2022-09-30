@@ -50,8 +50,8 @@ export class TcpWrangler extends ProtocolWrangler {
   }
 
   /** @override */
-  _impl_listen(serverSocket) {
-    serverSocket.listen(this.#listenOptions);
+  _impl_listen() {
+    this.serverSocket.listen(this.#listenOptions);
   }
 
   /** @override */
