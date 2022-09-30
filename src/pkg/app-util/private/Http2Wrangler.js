@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { ProtocolWrangler } from '#x/ProtocolWrangler';
+import { TcpWrangler } from '#p/TcpWrangler';
 
 import { Condition } from '@this/async';
 
@@ -14,7 +14,7 @@ import * as net from 'node:net';
 /**
  * Wrangler for `Http2SecureServer`.
  */
-export class Http2Wrangler extends ProtocolWrangler {
+export class Http2Wrangler extends TcpWrangler {
   /** @type {?net.Server} Server being wrangled, once known. */
   #server = null;
 
@@ -44,12 +44,6 @@ export class Http2Wrangler extends ProtocolWrangler {
 
     this.#server = http2.createSecureServer(options);
     return this.#server;
-  }
-
-  /** @override */
-  createSocket(listenOptions) {
-    // TODO!
-    throw new Error('TODO');
   }
 
   /** @override */

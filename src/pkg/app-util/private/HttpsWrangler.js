@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { ProtocolWrangler } from '#x/ProtocolWrangler';
+import { TcpWrangler } from '#p/TcpWrangler';
 
 import express from 'express';
 
@@ -10,7 +10,7 @@ import * as https from 'node:https';
 /**
  * Wrangler for `HttpsServer`.
  */
-export class HttpsWrangler extends ProtocolWrangler {
+export class HttpsWrangler extends TcpWrangler {
   // Note: Default constructor is fine here.
 
   /** @override */
@@ -21,12 +21,6 @@ export class HttpsWrangler extends ProtocolWrangler {
   /** @override */
   createServer(certOptions) {
     return https.createServer(certOptions);
-  }
-
-  /** @override */
-  createSocket(listenOptions) {
-    // TODO!
-    throw new Error('TODO');
   }
 
   /** @override */

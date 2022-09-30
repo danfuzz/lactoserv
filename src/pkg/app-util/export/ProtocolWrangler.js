@@ -3,8 +3,6 @@
 
 import { Methods } from '@this/typey';
 
-import * as net from 'node:net';
-
 
 /**
  * Common interface for "wrangling" each of the server protocols that this
@@ -46,7 +44,9 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Makes the server socket (or equivalent), and listens on it.
+   * Makes the server socket (or equivalent), and listens on it. This is
+   * expected to be a _low-level_ server socket, not one that inherently speaks
+   * any higher-level protocol, such as TLS, HTTP, etc.
    *
    * **Implementation note:** Subclasses are responsible for remembering the
    * value they return here, if needed.
@@ -56,8 +56,8 @@ export class ProtocolWrangler {
    * @returns {object} Server socket, either a {@link net.Server} per se, or
    *   a workalike of some sort.
    */
-  createSocket(listenOptions) {
-    return Methods.abstract(listenOptions);
+  createSocket(options) {
+    return Methods.abstract(options);
   }
 
   /**
