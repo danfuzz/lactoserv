@@ -12,7 +12,7 @@ import * as net from 'node:net';
  */
 export class TcpWrangler extends ProtocolWrangler {
   /** @override */
-  createSocket(options) {
+  _impl_createSocket(options) {
     // TODO!
     throw new Error('TODO');
   }

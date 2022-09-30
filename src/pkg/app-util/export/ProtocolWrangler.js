@@ -5,10 +5,10 @@ import { Methods } from '@this/typey';
 
 
 /**
- * Common interface for "wrangling" each of the server protocols that this
- * system understands. Instances of this class get instantiated once per
- * server; multiple servers which happen to use the same protocol will each use
- * a separate instance of this class.
+ * Base class for things that "wrangle" each of the server protocols that this
+ * system understands. Concrete instances of this class get instantiated once
+ * per server; multiple servers which happen to use the same protocol will each
+ * use a separate instance of this class.
  */
 export class ProtocolWrangler {
   // Note: Default constructor is fine here.
@@ -24,7 +24,7 @@ export class ProtocolWrangler {
    * @returns {object} `express.Express`-like thing.
    */
   createApplication() {
-    return Methods.abstract();
+    return this._impl_createApplication();
   }
 
   /**
@@ -41,7 +41,7 @@ export class ProtocolWrangler {
    * @returns {object} `http.HttpServer`-like thing.
    */
   createServer(certOptions) {
-    return Methods.abstract(certOptions);
+    return this._impl_createServer(certOptions);
   }
 
   /**
@@ -52,13 +52,14 @@ export class ProtocolWrangler {
    * **Implementation note:** Subclasses are responsible for remembering the
    * value they return here, if needed.
    *
+   * @abstract
    * @param {object} options Options for a call to (something like) {@link
    *   net.Server.listen}
    * @returns {object} Server socket, either a {@link net.Server} per se, or
    *   a workalike of some sort.
    */
   createSocket(options) {
-    return Methods.abstract(options);
+    return this._impl_createSocket(options);
   }
 
   /**
@@ -68,7 +69,7 @@ export class ProtocolWrangler {
    * @abstract
    */
   async protocolStart() {
-    Methods.abstract();
+    return this._impl_protocolStart();
   }
 
   /**
@@ -78,7 +79,7 @@ export class ProtocolWrangler {
    * @abstract
    */
   async protocolStop() {
-    Methods.abstract();
+    return this._impl_protocolStop();
   }
 
   /**
@@ -87,7 +88,7 @@ export class ProtocolWrangler {
    * @abstract
    */
   async protocolWhenStopped() {
-    Methods.abstract();
+    return this._impl_protocolWhenStopped();
   }
 
   /**
@@ -99,6 +100,75 @@ export class ProtocolWrangler {
    *   {@link #createServer}.
    */
   usesCertificates() {
+    return this._impl_usesCertificates();
+  }
+
+  /**
+   * Subclass-specific implementation of {@link #createApplication}.
+   *
+   * @abstract
+   * @returns {object} `express.Express`-like thing.
+   */
+  _impl_createApplication() {
+    return Methods.abstract();
+  }
+
+  /**
+   * Subclass-specific implementation of {@link #createServer}.
+   *
+   * @abstract
+   * @param {?object} certOptions Certificate options, if needed.
+   * @returns {object} `http.HttpServer`-like thing.
+   */
+  _impl_createServer(certOptions) {
+    return Methods.abstract(certOptions);
+  }
+
+  /**
+   * Subclass-specific implementation of {@link #createSocket}.
+   *
+   * @abstract
+   * @param {object} options Listen options.
+   * @returns {object} Server socket.
+   */
+  _impl_createSocket(options) {
+    return Methods.abstract(options);
+  }
+
+  /**
+   * Subclass-specific implementation of {@link #protocolStart}.
+   *
+   * @abstract
+   */
+  async _impl_protocolStart() {
+    Methods.abstract();
+  }
+
+  /**
+   * Subclass-specific implementation of {@link #protocolStop}.
+   *
+   * @abstract
+   */
+  async _impl_protocolStop() {
+    Methods.abstract();
+  }
+
+  /**
+   * Subclass-specific implementation of {@link #protocolWhenStopped}.
+   *
+   * @abstract
+   */
+  async _impl_protocolWhenStopped() {
+    Methods.abstract();
+  }
+
+  /**
+   * Subclass-specific implementation of {@link #usesCertificates}.
+   *
+   * @abstract
+   * @returns {boolean} Answer to the question.
+   */
+  _impl_usesCertificates() {
     return Methods.abstract();
   }
 }

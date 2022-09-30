@@ -30,13 +30,13 @@ export class Http2Wrangler extends TcpWrangler {
   // Note: Default constructor suffices.
 
   /** @override */
-  createApplication() {
+  _impl_createApplication() {
     // Express needs to be wrapped in order to use HTTP2.
     return http2ExpressBridge(express);
   }
 
   /** @override */
-  createServer(certOptions) {
+  _impl_createServer(certOptions) {
     const options = {
       ...certOptions,
       allowHTTP1: true
@@ -47,7 +47,7 @@ export class Http2Wrangler extends TcpWrangler {
   }
 
   /** @override */
-  async protocolStart() {
+  async _impl_protocolStart() {
     const handleSession = session => this.#addSession(session);
 
     this.#server.on('session', handleSession);
@@ -58,7 +58,7 @@ export class Http2Wrangler extends TcpWrangler {
   }
 
   /** @override */
-  async protocolStop() {
+  async _impl_protocolStop() {
     this.#stopping = true;
 
     // Node docs indicate one has to explicitly close all HTTP2 sessions.
@@ -70,10 +70,15 @@ export class Http2Wrangler extends TcpWrangler {
   }
 
   /** @override */
-  async protocolWhenStopped() {
+  async _impl_protocolWhenStopped() {
     if (this.#sessions.size !== 0) {
       await this.#fullyStopped.whenTrue();
     }
+  }
+  
+  /** @override */
+  _impl_usesCertificates() {
+    return true;
   }
 
   /**
@@ -103,10 +108,5 @@ export class Http2Wrangler extends TcpWrangler {
     session.on('error',      removeSession);
     session.on('frameError', removeSession);
     session.on('goaway',     removeSession);
-  }
-
-  /** @override */
-  usesCertificates() {
-    return true;
   }
 }

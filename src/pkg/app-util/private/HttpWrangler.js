@@ -14,32 +14,32 @@ export class HttpWrangler extends TcpWrangler {
   // Note: Default constructor is fine here.
 
   /** @override */
-  createApplication() {
+  _impl_createApplication() {
     return express();
   }
 
   /** @override */
-  createServer(certOptions_unused) {
+  _impl_createServer(certOptions_unused) {
     return http.createServer();
   }
 
   /** @override */
-  async protocolStart() {
+  async _impl_protocolStart() {
     // Nothing to do in this case.
   }
 
   /** @override */
-  async protocolStop() {
+  async _impl_protocolStop() {
     // Nothing to do in this case.
   }
 
   /** @override */
-  async protocolWhenStopped() {
+  async _impl_protocolWhenStopped() {
     // Nothing to do in this case.
   }
 
   /** @override */
-  usesCertificates() {
+  _impl_usesCertificates() {
     return false;
   }
 }
