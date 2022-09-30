@@ -8,7 +8,9 @@ import * as net from 'node:net';
 
 /**
  * Common interface for "wrangling" each of the server protocols that this
- * system understands.
+ * system understands. Instances of this class get instantiated once per
+ * server; multiple servers which happen to use the same protocol will each use
+ * a separate instance of this class.
  */
 export class ProtocolWrangler {
   // Note: Default constructor is fine here.
@@ -28,6 +30,9 @@ export class ProtocolWrangler {
    * Makes the underlying high-level server instance, i.e. an instance of
    * `http.HttpServer` or thing that is (approximately) compatible with same.
    *
+   * **Implementation note:** Subclasses are responsible for remembering the
+   * value they return here, if needed.
+   *
    * @abstract
    * @param {?object} certOptions Certificate options, or `null` if this
    *   instance returned `false` from {@link #usesCertificates}.
@@ -39,7 +44,7 @@ export class ProtocolWrangler {
 
   /**
    * Performs protocol-specific actions to make a server is ready to start
-   * taking requests. 
+   * taking requests.
    *
    * @abstract
    * @param {net.Server} server Server instance to be wrangled, presumed to be
