@@ -121,7 +121,7 @@ export class ServerController {
     this.#logger.starting();
     this.#started.value = true;
 
-    await this.#wrangler.protocolStart();
+    await this.#wrangler.start();
     this.#logger.started(this.#wrangler.loggableInfo);
   }
 
@@ -139,7 +139,7 @@ export class ServerController {
     this.#logger.stopping();
     this.#stopping.value = true;
 
-    await this.#wrangler.protocolStop();
+    await this.#wrangler.stop();
 
     this.#logger.stopped();
   }

@@ -98,7 +98,7 @@ export class ProtocolWrangler {
    * the high-level application. This method async-returns once the instance has
    * actually gotten started.
    */
-  async protocolStart() {
+  async start() {
     if (this.#logger) {
       this.#logger.wranglerStarting(this.loggableInfo);
     }
@@ -115,7 +115,7 @@ export class ProtocolWrangler {
    * Stops this instance from listening for any more connections. This method
    * async-returns once the instance has actually stopped.
    */
-  async protocolStop() {
+  async stop() {
     if (this.#logger) {
       this.#logger.wranglerStopping(this.loggableInfo);
     }
@@ -161,7 +161,9 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Subclass-specific implementation of {@link #protocolStart}.
+   * Performs starting actions specifically in service of the high-level
+   * protocol (e.g. HTTP2), in advance of it being handed connections. This
+   * should only async-return once the protocol really is ready.
    *
    * @abstract
    */
@@ -170,7 +172,9 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Subclass-specific implementation of {@link #protocolStop}.
+   * Performs stop/shutdown actions specifically in service of the high-level
+   * protocol (e.g. HTTP2), after it is no longer being handed connections. This
+   * should only async-return once the protocol really is stopped.
    *
    * @abstract
    */
