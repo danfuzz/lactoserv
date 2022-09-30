@@ -82,6 +82,7 @@ export class TcpWrangler extends ProtocolWrangler {
    * Trims down `options` using the given prototype.
    *
    * @param {object} options Original options.
+   * @param {object} proto The "prototype" for what bindings to keep.
    * @returns {object} Pared down version.
    */
   static #trimOptions(options, proto) {
