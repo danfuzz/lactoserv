@@ -57,12 +57,6 @@ export class ServerController {
   /** @type {net.Server} Server instance (the direct networking thingy). */
   #server;
 
-  /**
-   * @type {express.Application} Application instance which exclusively handles
-   * the underlying server of this instance.
-   */
-  #serverApp;
-
   /** @type {Condition} Is the server starting or started? */
   #started = new Condition();
 
@@ -99,7 +93,6 @@ export class ServerController {
       ? [this.#hostManager.secureServerOptions]
       : [];
     this.#server    = this.#wrangler.createServer(...certOpts);
-    this.#serverApp = this.#wrangler.createApplication();
 
     this.#requestLogger     = new RequestLogger(this.#logger.req, idGenerator);
     this.#connectionHandler = new ConnectionHandler(this.#logger.conn, idGenerator);
@@ -157,7 +150,7 @@ export class ServerController {
       server.on('connection', socket => this.#handleConnection(socket));
       server.on('listening', handleListening);
       server.on('error',     handleError);
-      server.on('request',   this.#serverApp);
+      server.on('request',   this.#wrangler.application);
 
       server.listen(this.#listenOptions);
     });
@@ -180,7 +173,7 @@ export class ServerController {
 
     await this.#wrangler.protocolStop();
 
-    this.#server.removeListener('request', this.#serverApp);
+    this.#server.removeListener('request', this.#wrangler.application);
     this.#server.close();
 
     this.#stopping.value = true;
@@ -275,10 +268,10 @@ export class ServerController {
   }
 
   /**
-   * Configures {@link #serverApp}.
+   * Configures `#wrangler.application`.
    */
   #configureServerApp() {
-    const app = this.#serverApp;
+    const app = this.#wrangler.application;
 
     // Means paths `/foo` and `/Foo` are different.
     app.set('case sensitive routing', true);

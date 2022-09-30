@@ -11,20 +11,22 @@ import { Methods } from '@this/typey';
  * use a separate instance of this class.
  */
 export class ProtocolWrangler {
-  // Note: Default constructor is fine here.
+  /** @type {object} High-level application instance. */
+  #application;
 
   /**
-   * Makes the underlying application instance, i.e. an instance of
-   * `express:Express` or thing that is (approximately) compatible with same.
-   *
-   * **Implementation note:** Subclasses are responsible for remembering the
-   * value they return here, if needed.
-   *
-   * @abstract
-   * @returns {object} `express.Express`-like thing.
+   * Constructs an instance.
    */
-  createApplication() {
-    return this._impl_createApplication();
+  constructor() {
+    this.#application = this._impl_createApplication();
+  }
+
+  /**
+   * @returns {object} The high-level application instance. This is an instance
+   * of `express:Express` or thing that is (approximately) compatible with same.
+   */
+  get application() {
+    return this.#application;
   }
 
   /**
@@ -104,7 +106,7 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Subclass-specific implementation of {@link #createApplication}.
+   * Creates the application instance to be returned by {@link #application}.
    *
    * @abstract
    * @returns {object} `express.Express`-like thing.
