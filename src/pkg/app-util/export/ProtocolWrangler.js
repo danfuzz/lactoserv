@@ -31,7 +31,7 @@ export class ProtocolWrangler {
    * @param {object} options Construction options, per the description above.
    */
   constructor(options) {
-    this.#protocolName   = options.protocolName;
+    this.#protocolName   = options.protocol;
     this.#application    = this._impl_createApplication();
     this.#protocolServer = this._impl_createServer(options.hosts ?? null);
   }
