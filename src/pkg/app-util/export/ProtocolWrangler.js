@@ -1,6 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { IdGenerator } from '#x/IdGenerator';
 import { Methods } from '@this/typey';
 
 
@@ -16,6 +17,9 @@ export class ProtocolWrangler {
 
   /** @type {?function(...*)} Logger, if logging is to be done. */
   #logger;
+
+  /** @type {IdGenerator} ID generator to use, if logging is to be done. */
+  #idGenerator;
 
   /** @type {object} Socket contruction / listenting options. */
   #socketOptions;
@@ -36,6 +40,7 @@ export class ProtocolWrangler {
    *   HostManager.secureServerOptions}, if this instance is (possibly) expected
    *   to need to use certificates (etc.). Ignored for instances which don't do
    *   that sort of thing.
+   * * `idGenerator: IdGenerator` -- ID generator to use, when doing logging.
    * * `logger: function(...*)` -- Logger to use to emit events about what the
    *   instance is doing. (If not specified, the instance won't do logging.)
    * * `socket: object` -- Options to use for creation of and/or listening on
@@ -55,6 +60,7 @@ export class ProtocolWrangler {
 
     this.#socketOptions  = socketOptions;
     this.#logger         = options.logger ?? null;
+    this.#idGenerator    = options.idGenerator ?? null;
     this.#protocolName   = options.protocol;
     this.#application    = this._impl_createApplication();
     this.#protocolServer = this._impl_createServer(hostOptions);
@@ -70,6 +76,10 @@ export class ProtocolWrangler {
 
     // Likewise, hook the protocol server to the (Express-like) application.
     this.#protocolServer.on('request', this.#application);
+
+    if (this.#logger) {
+      this.#logger.createdWrangler();
+    }
   }
 
   /**
@@ -107,6 +117,10 @@ export class ProtocolWrangler {
    */
   listen() {
     this._impl_listen(this.#serverSocket, this.#socketOptions);
+
+    if (this.#logger) {
+      this.#logger.listening(this.loggableInfo);
+    }
   }
 
   /**
@@ -125,7 +139,15 @@ export class ProtocolWrangler {
    * @abstract
    */
   async protocolStart() {
-    return this._impl_protocolStart();
+    if (this.#logger) {
+      this.#logger.wranglerStarting(this.loggableInfo);
+    }
+
+    await this._impl_protocolStart();
+
+    if (this.#logger) {
+      this.#logger.wranglerStarted(this.loggableInfo);
+    }
   }
 
   /**
@@ -135,7 +157,15 @@ export class ProtocolWrangler {
    * @abstract
    */
   async protocolStop() {
-    return this._impl_protocolStop();
+    if (this.#logger) {
+      this.#logger.wranglerStopping(this.loggableInfo);
+    }
+
+    await this._impl_protocolStop();
+
+    if (this.#logger) {
+      this.#logger.wranglerStopped(this.loggableInfo);
+    }
   }
 
   /**

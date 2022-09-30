@@ -81,6 +81,8 @@ export class ServerController {
     this.#logger      = logger[this.#name];
 
     const wranglerOptions = {
+      idGenerator,
+      logger:   this.#logger,
       protocol: serverConfig.protocol,
       socket: {
         host: serverConfig.interface,
