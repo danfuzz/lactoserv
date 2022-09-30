@@ -48,7 +48,7 @@ export class Warehouse {
 
   /**
    * @returns {?HostManager} Host manager secure contexts, if needed. Can be
-   * `null` * if all servers are insecure.
+   * `null` if all servers are insecure.
    */
   get hostManager() {
     return this.#hostManager;
