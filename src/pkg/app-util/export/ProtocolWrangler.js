@@ -25,8 +25,8 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Makes the underlying server instance, i.e. an instance of `node:HttpServer`
-   * or thing that is (approximately) compatible with same.
+   * Makes the underlying high-level server instance, i.e. an instance of
+   * `node:HttpServer` or thing that is (approximately) compatible with same.
    *
    * @abstract
    * @param {?object} certOptions Certificate options, or `null` if this
