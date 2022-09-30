@@ -132,8 +132,8 @@ export class ServerController {
 
     // This `await new Promise` arrangement is done to get the `listen` call to
     // be a good async citizen. Notably, the callback passed to
-    // `Server.listen()` cannot (historically) be counted on to get used as an
-    // error callback. TODO: Maybe there is a better way to do this these days?
+    // `Server.listen()` is only ever sent a single `listening` event upon
+    // success and never anything in case of an error.
     await new Promise((resolve, reject) => {
       function done(err) {
         server.removeListener('listening', handleListening);
