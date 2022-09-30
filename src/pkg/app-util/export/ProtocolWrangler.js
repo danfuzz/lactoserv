@@ -173,19 +173,6 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Creates the server socket (or equivalent). This is expected to be a
-   * _low-level_ server socket, which is to say _not_ one that inherently speaks
-   * any higher-level protocol such as TLS, HTTP, etc.
-   *
-   * @abstract
-   * @returns {object} Server socket, _direct_ instance of `net.Server` or
-   *   similar.
-   */
-  _impl_createServerSocket() {
-    return Methods.abstract();
-  }
-
-  /**
    * Subclass-specific implementation of {@link #listen}.
    *
    * @abstract
