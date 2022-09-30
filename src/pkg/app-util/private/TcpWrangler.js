@@ -11,8 +11,8 @@ import * as net from 'node:net';
  * them... but HTTP3 will be here before we know it!).
  */
 export class TcpWrangler extends ProtocolWrangler {
-  /** @type {object} Server socket creation options. */
-  #createOptions;
+  /** @type {net.Server} Server socket, per se. */
+  #serverSocket;
 
   /** @type {object} Server socket `listen()` options. */
   #listenOptions;
@@ -28,8 +28,6 @@ export class TcpWrangler extends ProtocolWrangler {
   constructor(options) {
     super(options);
 
-    this.#createOptions =
-      TcpWrangler.#trimOptions(options.socket, TcpWrangler.#CREATE_PROTO);
     this.#listenOptions =
       TcpWrangler.#trimOptions(options.socket, TcpWrangler.#LISTEN_PROTO);
     this.#loggableInfo = {
@@ -42,11 +40,28 @@ export class TcpWrangler extends ProtocolWrangler {
       this.#listenOptions.host = '::';
       this.#loggableInfo.interface = '<any>';
     }
+
+    this.#serverSocket = net.createServer(
+      TcpWrangler.#trimOptions(options.socket, TcpWrangler.#CREATE_PROTO));
+
+    // Hook the server socket to the protocol server. If we had created the
+    // protocol server "naively," it would have had a "built-in" server socket,
+    // and this (here) is the small price we pay for having directly
+    // instantiated the server socket. TODO: This is where we might interpose a
+    // `WriteSpy.`
+    this.#serverSocket.on('connection', (socket) => {
+      this.protocolServer.emit('connection', socket);
+    });
   }
 
-  /** @override */
-  _impl_createServerSocket() {
-    return net.createServer(this.#createOptions);
+  /**
+   * @returns {object} The low-level server socket. This is a _direct_ instance
+   * of `net.Server` or similar.
+   *
+   * TODO: This shouldn't have to be exposed.
+   */
+  get serverSocket() {
+    return this.#serverSocket;
   }
 
   /** @override */
