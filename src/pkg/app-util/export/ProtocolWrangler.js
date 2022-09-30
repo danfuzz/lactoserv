@@ -94,8 +94,9 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Performs protocol-specific actions to make a server be ready to start
-   * taking requests.
+   * Starts this instance listening for connections and dispatching them to
+   * the high-level application. This method async-returns once the instance has
+   * actually gotten started.
    */
   async protocolStart() {
     if (this.#logger) {
@@ -111,8 +112,8 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Performs protocol-specific actions when this instance's high-level server
-   * (e.g., the thing that understands HTTP2) is asked to stop taking requests.
+   * Stops this instance from listening for any more connections. This method
+   * async-returns once the instance has actually stopped.
    */
   async protocolStop() {
     if (this.#logger) {
