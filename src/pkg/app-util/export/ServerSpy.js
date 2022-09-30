@@ -18,31 +18,40 @@ export class ServerSpy extends events.EventEmitter {
   /** @type {net.Server} Server being spied upon. */
   #target;
 
-  /** @type {function(...*)} Logger to use. */
+  /** @type {?function(...*)} Logger to use. */
   #logger;
 
   /**
-   * Constructs an instance.
+   * Constructs an instance. The given `options` are the same as defined by
+   * {@link net.createServer}, with the following additions:
    *
-   * @param {net.Server|object} targetOrOptions Server to spy upon, or options
-   *   for creation of a `net.Server`.
-   * @param {function(...*)} logger Logger to use.
+   * * `logger: function(...*)` -- Logger to use to emit events about what the
+   *   instance is doing. (If not specified, the instance won't do logging.)
+   * * `target: net.Server` -- Server instance to wrap, instead of creating a
+   *   new one in this constructor. If specified, then all of the usual
+   *   constructor options are ignored.
+   *
+   * @param {object} [options = {}] Configuration options, as described above.
    */
-  constructor(targetOrOptions, logger) {
+  constructor(options = {}) {
     super();
 
-    const target = (targetOrOptions instanceof net.Server)
-      ? targetOrOptions
-      : net.createServer(targetOrOptions);
+    if (options.target) {
+      this.#target = options.target;
+    } else {
+      const serverOptions = { ...options };
+      delete serverOptions.logger;
+      this.#target = net.createServer(serverOptions);
+    }
 
-    this.#target = target;
-    this.#logger = logger;
+    this.#logger = options.logger ?? null;
 
-    target.on('close',      (...args) => this.#handleClose(...args));
-    target.on('connection', (...args) => this.#handleConnection(...args));
-    target.on('error',      (...args) => this.#handleError(...args));
-    target.on('listening',  (...args) => this.#handleListening(...args));
-    target.on('drop',       (...args) => this.#handleDrop(...args));
+    this.#target
+      .on('close',      (...args) => this.#handleClose(...args))
+      .on('connection', (...args) => this.#handleConnection(...args))
+      .on('error',      (...args) => this.#handleError(...args))
+      .on('listening',  (...args) => this.#handleListening(...args))
+      .on('drop',       (...args) => this.#handleDrop(...args));
   }
 
   /** @returns {boolean} Standard {@link net.Server} getter. */
