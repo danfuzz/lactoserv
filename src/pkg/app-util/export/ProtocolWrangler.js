@@ -28,8 +28,9 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Makes the underlying high-level server instance, i.e. an instance of
-   * `http.HttpServer` or thing that is (approximately) compatible with same.
+   * Makes the underlying high-level-protocol-speaking server instance, i.e. an
+   * instance of `http.HttpServer` or thing that is (approximately) compatible
+   * with same.
    *
    * **Implementation note:** Subclasses are responsible for remembering the
    * value they return here, if needed.
@@ -61,7 +62,7 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Performs protocol-specific actions to make a server is ready to start
+   * Performs protocol-specific actions to make a server be ready to start
    * taking requests.
    *
    * @abstract
