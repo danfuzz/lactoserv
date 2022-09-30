@@ -9,15 +9,12 @@ import express from 'express';
 import http2ExpressBridge from 'http2-express-bridge';
 
 import * as http2 from 'node:http2';
-import * as net from 'node:net';
+
 
 /**
  * Wrangler for `Http2SecureServer`.
  */
 export class Http2Wrangler extends TcpWrangler {
-  /** @type {?net.Server} Server being wrangled, once known. */
-  #server = null;
-
   /** @type {boolean} Is this instance stopped or trying to stop? */
   #stopping = false;
 
@@ -36,25 +33,24 @@ export class Http2Wrangler extends TcpWrangler {
   }
 
   /** @override */
-  _impl_createServer(certOptions) {
+  _impl_createServer(hostOptions) {
     const options = {
-      ...certOptions,
+      ...hostOptions,
       allowHTTP1: true
     };
 
-    this.#server = http2.createSecureServer(options);
-    return this.#server;
+    return http2.createSecureServer(options);
   }
 
   /** @override */
   async _impl_protocolStart() {
     const handleSession = session => this.#addSession(session);
 
-    this.#server.on('session', handleSession);
+    this.protocolServer.on('session', handleSession);
 
     // Try to tidy up in case of error.
-    this.#server.on('error', () =>
-      this.#server.removeListener('session', handleSession));
+    this.protocolServer.on('error', () =>
+      this.protocolServer.removeListener('session', handleSession));
   }
 
   /** @override */
@@ -74,11 +70,6 @@ export class Http2Wrangler extends TcpWrangler {
     if (this.#sessions.size !== 0) {
       await this.#fullyStopped.whenTrue();
     }
-  }
-  
-  /** @override */
-  _impl_usesCertificates() {
-    return true;
   }
 
   /**

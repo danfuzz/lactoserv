@@ -54,9 +54,6 @@ export class ServerController {
   /** @type {ProtocolWrangler} Protocol-specific "wrangler." */
   #wrangler;
 
-  /** @type {net.Server} Server instance (the direct networking thingy). */
-  #server;
-
   /** @type {Condition} Is the server starting or started? */
   #started = new Condition();
 
@@ -87,12 +84,15 @@ export class ServerController {
     this.#port        = serverConfig.port;
     this.#protocol    = serverConfig.protocol;
     this.#logger      = logger[this.#name];
-    this.#wrangler    = ProtocolWranglers.forProtocol(this.#protocol);
 
-    const certOpts = this.#wrangler.usesCertificates()
-      ? [this.#hostManager.secureServerOptions]
-      : [];
-    this.#server    = this.#wrangler.createServer(...certOpts);
+    const wranglerOptions = {
+      protocol: serverConfig.protocol,
+      ...(
+        this.#hostManager
+          ? { hosts: this.#hostManager.secureServerOptions }
+          : {})
+    };
+    this.#wrangler = ProtocolWranglers.make(wranglerOptions);
 
     this.#requestLogger     = new RequestLogger(this.#logger.req, idGenerator);
     this.#connectionHandler = new ConnectionHandler(this.#logger.conn, idGenerator);
@@ -120,7 +120,7 @@ export class ServerController {
     this.#logger.starting();
     this.#started.value = true;
 
-    const server = this.#server;
+    const server = this.#wrangler.protocolServer;
     await this.#wrangler.protocolStart();
 
     // This `await new Promise` arrangement is done to get the `listen` call to
@@ -173,8 +173,9 @@ export class ServerController {
 
     await this.#wrangler.protocolStop();
 
-    this.#server.removeListener('request', this.#wrangler.application);
-    this.#server.close();
+    const server = this.#wrangler.protocolServer;
+    server.removeListener('request', this.#wrangler.application);
+    server.close();
 
     this.#stopping.value = true;
 
@@ -192,7 +193,7 @@ export class ServerController {
     await this.#stopping.whenTrue();
     await this.#wrangler.protocolWhenStopped();
 
-    const server = this.#server;
+    const server = this.#wrangler.protocolServer;
 
     // If the server is still listening for connections, wait for it to claim
     // to have stopped.
@@ -250,7 +251,7 @@ export class ServerController {
    * string}} Object with bindings for reasonably-useful logging.
    */
   get #loggableInfo() {
-    const address = this.#server.address();
+    const address = this.#wrangler.protocolServer.address();
     const info = {
       interface: (this.#interface === '*') ? '<any>' : this.#interface,
       port:      this.#port,

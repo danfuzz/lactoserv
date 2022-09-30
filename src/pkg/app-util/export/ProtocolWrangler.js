@@ -14,11 +14,22 @@ export class ProtocolWrangler {
   /** @type {object} High-level application instance. */
   #application;
 
+  /** @type {object} High-level protocol server instance. */
+  #protocolServer;
+
   /**
-   * Constructs an instance.
+   * Constructs an instance. Accepted options:
+   *
+   * * `hosts: object` -- Value returned from {@link
+   *   HostManager.secureServerOptions}, if this instance is (possibly) expected
+   *   to need to use certificates (etc.). Ignored for instances which don't do
+   *   that sort of thing.
+   *
+   * @param {object} options Construction options, per the description above.
    */
-  constructor() {
-    this.#application = this._impl_createApplication();
+  constructor(options) {
+    this.#application    = this._impl_createApplication();
+    this.#protocolServer = this._impl_createServer(options.hosts ?? null);
   }
 
   /**
@@ -30,20 +41,12 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Makes the underlying high-level-protocol-speaking server instance, i.e. an
+   * @returns {object} The high-level protocol server instance. This is an
    * instance of `http.HttpServer` or thing that is (approximately) compatible
    * with same.
-   *
-   * **Implementation note:** Subclasses are responsible for remembering the
-   * value they return here, if needed.
-   *
-   * @abstract
-   * @param {?object} certOptions Certificate options, or `null` if this
-   *   instance returned `false` from {@link #usesCertificates}.
-   * @returns {object} `http.HttpServer`-like thing.
    */
-  createServer(certOptions) {
-    return this._impl_createServer(certOptions);
+  get protocolServer() {
+    return this.#protocolServer;
   }
 
   /**
@@ -94,18 +97,6 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Indicates whether or not this instance requires certificate options
-   * when creating a server.
-   *
-   * @abstract
-   * @returns {boolean} `true` iff certificate options need to be passed to
-   *   {@link #createServer}.
-   */
-  usesCertificates() {
-    return this._impl_usesCertificates();
-  }
-
-  /**
    * Creates the application instance to be returned by {@link #application}.
    *
    * @abstract
@@ -116,14 +107,15 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Subclass-specific implementation of {@link #createServer}.
+   * Creates the protocol server instance to be returned by {@link
+   * #protocolServer}.
    *
    * @abstract
-   * @param {?object} certOptions Certificate options, if needed.
+   * @param {?object} hostOptions Host / certificate options, if needed.
    * @returns {object} `http.HttpServer`-like thing.
    */
-  _impl_createServer(certOptions) {
-    return Methods.abstract(certOptions);
+  _impl_createServer(hostOptions) {
+    return Methods.abstract(hostOptions);
   }
 
   /**
@@ -162,15 +154,5 @@ export class ProtocolWrangler {
    */
   async _impl_protocolWhenStopped() {
     Methods.abstract();
-  }
-
-  /**
-   * Subclass-specific implementation of {@link #usesCertificates}.
-   *
-   * @abstract
-   * @returns {boolean} Answer to the question.
-   */
-  _impl_usesCertificates() {
-    return Methods.abstract();
   }
 }

@@ -19,7 +19,7 @@ export class HttpWrangler extends TcpWrangler {
   }
 
   /** @override */
-  _impl_createServer(certOptions_unused) {
+  _impl_createServer(hostOptions_unused) {
     return http.createServer();
   }
 
@@ -36,10 +36,5 @@ export class HttpWrangler extends TcpWrangler {
   /** @override */
   async _impl_protocolWhenStopped() {
     // Nothing to do in this case.
-  }
-
-  /** @override */
-  _impl_usesCertificates() {
-    return false;
   }
 }
