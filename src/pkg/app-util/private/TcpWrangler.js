@@ -65,6 +65,75 @@ export class TcpWrangler extends ProtocolWrangler {
   }
 
   /** @override */
+  async _impl_serverSocketStart() {
+    const serverSocket = this.#serverSocket;
+
+    // This `await new Promise` arrangement is done to get the `listen` call to
+    // be a good async citizen. Notably, the optional callback passed to
+    // `Server.listen()` is only ever sent a single `listening` event upon
+    // success and never anything in case of an error.
+    await new Promise((resolve, reject) => {
+      function done(err) {
+        serverSocket.removeListener('listening', handleListening);
+        serverSocket.removeListener('error',     handleError);
+
+        if (err !== null) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      }
+
+      function handleListening() {
+        done(null);
+      }
+
+      function handleError(err) {
+        done(err);
+      }
+
+      serverSocket.on('listening', handleListening);
+      serverSocket.on('error',     handleError);
+
+      serverSocket.listen(this.#listenOptions);
+    });
+  }
+
+  /** @override */
+  async _impl_serverSocketStop() {
+    const serverSocket = this.#serverSocket;
+    serverSocket.close();
+
+    // If the server is still listening for connections, wait for it to claim
+    // to have stopped.
+    while (serverSocket.listening) {
+      await new Promise((resolve, reject) => {
+        function done(err) {
+          serverSocket.removeListener('close', handleClose);
+          serverSocket.removeListener('error', handleError);
+
+          if (err !== null) {
+            reject(err);
+          } else {
+            resolve();
+          }
+        }
+
+        function handleClose() {
+          done(null);
+        }
+
+        function handleError(err) {
+          done(err);
+        }
+
+        serverSocket.on('close', handleClose);
+        serverSocket.on('error', handleError);
+      });
+    }
+  }
+
+  /** @override */
   _impl_listen() {
     this.serverSocket.listen(this.#listenOptions);
   }

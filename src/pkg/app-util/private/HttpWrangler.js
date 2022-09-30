@@ -32,9 +32,4 @@ export class HttpWrangler extends TcpWrangler {
   async _impl_protocolStop() {
     // Nothing to do in this case.
   }
-
-  /** @override */
-  async _impl_protocolWhenStopped() {
-    // Nothing to do in this case.
-  }
 }

@@ -83,16 +83,6 @@ export class Warehouse {
     return Promise.all(results);
   }
 
-  /**
-   * Returns a promise that becomes fulfilled when all servers are stopped.
-   */
-  async whenAllServersStopped() {
-    const servers = this.#serverManager.getAll();
-    const results = servers.map(s => s.whenStopped());
-
-    return Promise.all(results);
-  }
-
 
   //
   // Static members

@@ -117,6 +117,7 @@ export class ProtocolWrangler {
     }
 
     await this._impl_protocolStart();
+    await this._impl_serverSocketStart();
 
     if (this.#logger) {
       this.#logger.wranglerStarted(this.loggableInfo);
@@ -134,20 +135,12 @@ export class ProtocolWrangler {
       this.#logger.wranglerStopping(this.loggableInfo);
     }
 
+    await this._impl_serverSocketStop();
     await this._impl_protocolStop();
 
     if (this.#logger) {
       this.#logger.wranglerStopped(this.loggableInfo);
     }
-  }
-
-  /**
-   * Performs protocol-specific actions to wait until a server has stopped.
-   *
-   * @abstract
-   */
-  async protocolWhenStopped() {
-    return this._impl_protocolWhenStopped();
   }
 
   /**
@@ -210,11 +203,22 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Subclass-specific implementation of {@link #protocolWhenStopped}.
+   * Starts the server socket, that is, gets it listening for connections. This
+   * should only async-return once the socket is really listening.
    *
    * @abstract
    */
-  async _impl_protocolWhenStopped() {
+  async _impl_serverSocketStart() {
+    Methods.abstract();
+  }
+
+  /**
+   * Stops the server socket, that is, closes it and makes it stop listening.
+   * This should only async-return once the socket is truly stopped / closed.
+   *
+   * @abstract
+   */
+  async _impl_serverSocketStop() {
     Methods.abstract();
   }
 }

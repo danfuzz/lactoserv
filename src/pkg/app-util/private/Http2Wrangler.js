@@ -63,10 +63,7 @@ export class Http2Wrangler extends TcpWrangler {
         s.close();
       }
     }
-  }
 
-  /** @override */
-  async _impl_protocolWhenStopped() {
     if (this.#sessions.size !== 0) {
       await this.#fullyStopped.whenTrue();
     }

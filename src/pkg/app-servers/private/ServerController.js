@@ -122,38 +122,6 @@ export class ServerController {
     this.#started.value = true;
 
     await this.#wrangler.protocolStart();
-    const serverSocket = this.#wrangler.serverSocket;
-
-    // This `await new Promise` arrangement is done to get the `listen` call to
-    // be a good async citizen. Notably, the callback passed to
-    // `Server.listen()` is only ever sent a single `listening` event upon
-    // success and never anything in case of an error.
-    await new Promise((resolve, reject) => {
-      function done(err) {
-        serverSocket.removeListener('listening', handleListening);
-        serverSocket.removeListener('error',     handleError);
-
-        if (err !== null) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      }
-
-      function handleListening() {
-        done(null);
-      }
-
-      function handleError(err) {
-        done(err);
-      }
-
-      serverSocket.on('listening', handleListening);
-      serverSocket.on('error',     handleError);
-
-      this.#wrangler.listen();
-    });
-
     this.#logger.started(this.#wrangler.loggableInfo);
   }
 
@@ -169,57 +137,11 @@ export class ServerController {
     }
 
     this.#logger.stopping();
+    this.#stopping.value = true;
 
     await this.#wrangler.protocolStop();
 
-    const server = this.#wrangler.protocolServer;
-    server.close();
-
-    this.#stopping.value = true;
-
-    await this.whenStopped();
-
     this.#logger.stopped();
-  }
-
-  /**
-   * Returns when the server becomes stopped (stops listening / closes its
-   * server socket). In the case of closing due to an error, this throws the
-   * error.
-   */
-  async whenStopped() {
-    await this.#stopping.whenTrue();
-    await this.#wrangler.protocolWhenStopped();
-
-    const server = this.#wrangler.protocolServer;
-
-    // If the server is still listening for connections, wait for it to claim
-    // to have stopped.
-    while (server.listening) {
-      await new Promise((resolve, reject) => {
-        function done(err) {
-          server.removeListener('close', handleClose);
-          server.removeListener('error', handleError);
-
-          if (err !== null) {
-            reject(err);
-          } else {
-            resolve();
-          }
-        }
-
-        function handleClose() {
-          done(null);
-        }
-
-        function handleError(err) {
-          done(err);
-        }
-
-        server.on('close', handleClose);
-        server.on('error', handleError);
-      });
-    }
   }
 
   /**
