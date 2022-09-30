@@ -125,10 +125,7 @@ export class ServerController {
     await this.#wrangler.protocolStart();
 
     server.on('connection', socket => this.#handleConnection(socket));
-    server.on('request',   this.#wrangler.application);
-    serverSocket.on('connection', (socket) => {
-      server.emit('connection', socket);
-    });
+    server.on('request',    this.#wrangler.application);
 
     // This `await new Promise` arrangement is done to get the `listen` call to
     // be a good async citizen. Notably, the callback passed to

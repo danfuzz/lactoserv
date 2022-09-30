@@ -53,6 +53,14 @@ export class ProtocolWrangler {
     this.#application    = this._impl_createApplication();
     this.#protocolServer = this._impl_createServer(hostOptions);
     this.#serverSocket   = this._impl_createServerSocket(socketOptions);
+
+    // Hook the server socket to the protocol server. If we had created the
+    // protocol server "naively," it would have had a "built-in" server socket,
+    // and this (here) is the small price we pay for directly instantiating the
+    // server socket. TODO: This is where we might interpose a `WriteSpy.`
+    this.#serverSocket.on('connection', (socket) => {
+      this.#protocolServer.emit('connection', socket);
+    });
   }
 
   /**

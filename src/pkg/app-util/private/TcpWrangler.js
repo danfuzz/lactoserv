@@ -19,7 +19,6 @@ export class TcpWrangler extends ProtocolWrangler {
     const createOptions =
       TcpWrangler.#trimOptions(options, TcpWrangler.#CREATE_PROTO);
 
-    // TODO: Here's where we'd use `new ServerSpy()`.
     return net.createServer(createOptions);
   }
 
