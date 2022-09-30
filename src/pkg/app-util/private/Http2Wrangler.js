@@ -53,7 +53,8 @@ export class Http2Wrangler extends TcpWrangler {
     this.#server.on('session', handleSession);
 
     // Try to tidy up in case of error.
-    this.#server.on('error', () => server.removeListener('session', handleSession));
+    this.#server.on('error', () =>
+      this.#server.removeListener('session', handleSession));
   }
 
   /** @override */
