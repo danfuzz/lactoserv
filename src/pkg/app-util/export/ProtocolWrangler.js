@@ -96,8 +96,6 @@ export class ProtocolWrangler {
   /**
    * Performs protocol-specific actions to make a server be ready to start
    * taking requests.
-   *
-   * @abstract
    */
   async protocolStart() {
     if (this.#logger) {
@@ -115,8 +113,6 @@ export class ProtocolWrangler {
   /**
    * Performs protocol-specific actions when this instance's high-level server
    * (e.g., the thing that understands HTTP2) is asked to stop taking requests.
-   *
-   * @abstract
    */
   async protocolStop() {
     if (this.#logger) {
