@@ -120,12 +120,8 @@ export class ServerController {
     this.#logger.starting();
     this.#started.value = true;
 
-    const server       = this.#wrangler.protocolServer;
     const serverSocket = this.#wrangler.serverSocket;
     await this.#wrangler.protocolStart();
-
-    server.on('connection', socket => this.#handleConnection(socket));
-    server.on('request',    this.#wrangler.application);
 
     // This `await new Promise` arrangement is done to get the `listen` call to
     // be a good async citizen. Notably, the callback passed to
@@ -176,7 +172,6 @@ export class ServerController {
     await this.#wrangler.protocolStop();
 
     const server = this.#wrangler.protocolServer;
-    server.removeListener('request', this.#wrangler.application);
     server.close();
 
     this.#stopping.value = true;

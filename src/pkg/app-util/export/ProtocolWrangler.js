@@ -14,6 +14,9 @@ export class ProtocolWrangler {
   /** @type {string} Protocol name. */
   #protocolName;
 
+  /** @type {?function(...*)} Logger, if logging is to be done. */
+  #logger;
+
   /** @type {object} Socket contruction / listenting options. */
   #socketOptions;
 
@@ -33,6 +36,8 @@ export class ProtocolWrangler {
    *   HostManager.secureServerOptions}, if this instance is (possibly) expected
    *   to need to use certificates (etc.). Ignored for instances which don't do
    *   that sort of thing.
+   * * `logger: function(...*)` -- Logger to use to emit events about what the
+   *   instance is doing. (If not specified, the instance won't do logging.)
    * * `socket: object` -- Options to use for creation of and/or listening on
    *   the low-level server socket. See docs for `net.createServer()` and
    *   `net.Server.listen()` for more details. Exception: `*` is treated as the
@@ -49,6 +54,7 @@ export class ProtocolWrangler {
       : null;
 
     this.#socketOptions  = socketOptions;
+    this.#logger         = options.logger ?? null;
     this.#protocolName   = options.protocol;
     this.#application    = this._impl_createApplication();
     this.#protocolServer = this._impl_createServer(hostOptions);
@@ -61,6 +67,9 @@ export class ProtocolWrangler {
     this.#serverSocket.on('connection', (socket) => {
       this.#protocolServer.emit('connection', socket);
     });
+
+    // Likewise, hook the protocol server to the (Express-like) application.
+    this.#protocolServer.on('request', this.#application);
   }
 
   /**
