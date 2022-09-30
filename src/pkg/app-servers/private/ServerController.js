@@ -121,8 +121,8 @@ export class ServerController {
     this.#logger.starting();
     this.#started.value = true;
 
-    const serverSocket = this.#wrangler.serverSocket;
     await this.#wrangler.protocolStart();
+    const serverSocket = this.#wrangler.serverSocket;
 
     // This `await new Promise` arrangement is done to get the `listen` call to
     // be a good async citizen. Notably, the callback passed to

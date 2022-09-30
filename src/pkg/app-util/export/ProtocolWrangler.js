@@ -30,8 +30,8 @@ export class ProtocolWrangler {
   /** @type {object} High-level protocol server (`HttpServer`-like thing). */
   #protocolServer;
 
-  /** @type {object} Low-level server socket (`net.Server`-like thing). */
-  #serverSocket;
+  /** @type {?object} Low-level server socket (`net.Server`-like thing). */
+  #serverSocket = null;
 
   /**
    * Constructs an instance. Accepted options:
@@ -54,28 +54,12 @@ export class ProtocolWrangler {
     const hostOptions = options.hosts
       ? Object.freeze({ ...options.hosts })
       : null;
-    const socketOptions = options.socket
-      ? Object.freeze({ ...options.socket })
-      : null;
 
-    this.#socketOptions  = socketOptions;
     this.#logger         = options.logger ?? null;
     this.#idGenerator    = options.idGenerator ?? null;
     this.#protocolName   = options.protocol;
     this.#application    = this._impl_createApplication();
     this.#protocolServer = this._impl_createServer(hostOptions);
-    this.#serverSocket   = this._impl_createServerSocket(socketOptions);
-
-    // Hook the server socket to the protocol server. If we had created the
-    // protocol server "naively," it would have had a "built-in" server socket,
-    // and this (here) is the small price we pay for directly instantiating the
-    // server socket. TODO: This is where we might interpose a `WriteSpy.`
-    this.#serverSocket.on('connection', (socket) => {
-      this.#protocolServer.emit('connection', socket);
-    });
-
-    // Likewise, hook the protocol server to the (Express-like) application.
-    this.#protocolServer.on('request', this.#application);
 
     if (this.#logger) {
       this.#logger.createdWrangler();
@@ -142,6 +126,19 @@ export class ProtocolWrangler {
     if (this.#logger) {
       this.#logger.wranglerStarting(this.loggableInfo);
     }
+
+    this.#serverSocket = this._impl_createServerSocket();
+
+    // Hook the server socket to the protocol server. If we had created the
+    // protocol server "naively," it would have had a "built-in" server socket,
+    // and this (here) is the small price we pay for directly instantiating the
+    // server socket. TODO: This is where we might interpose a `WriteSpy.`
+    this.#serverSocket.on('connection', (socket) => {
+      this.#protocolServer.emit('connection', socket);
+    });
+
+    // Likewise, hook the protocol server to the (Express-like) application.
+    this.#protocolServer.on('request', this.#application);
 
     await this._impl_protocolStart();
 

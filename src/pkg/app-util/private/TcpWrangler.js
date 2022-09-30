@@ -11,40 +11,53 @@ import * as net from 'node:net';
  * them... but HTTP3 will be here before we know it!).
  */
 export class TcpWrangler extends ProtocolWrangler {
-  /** @type {object} Loggable info basics, if known. */
+  /** @type {object} Server socket creation options. */
+  #createOptions;
+
+  /** @type {object} Server socket `listen()` options. */
+  #listenOptions;
+
+  /** @type {object} Loggable info, minus any "active listening" info. */
   #loggableInfo = {};
 
-  /** @override */
-  _impl_createServerSocket(options) {
-    const createOptions =
-      TcpWrangler.#trimOptions(options, TcpWrangler.#CREATE_PROTO);
+  /**
+   * Constructs an instance.
+   *
+   * @param {object} options Standard construction options.
+   */
+  constructor(options) {
+    super(options);
 
-    return net.createServer(createOptions);
-  }
-
-  /** @override */
-  _impl_listen(serverSocket, options) {
-    const listenOptions =
-      TcpWrangler.#trimOptions(options, TcpWrangler.#LISTEN_PROTO);
-
+    this.#createOptions =
+      TcpWrangler.#trimOptions(options.socket, TcpWrangler.#CREATE_PROTO);
+    this.#listenOptions =
+      TcpWrangler.#trimOptions(options.socket, TcpWrangler.#LISTEN_PROTO);
     this.#loggableInfo = {
-      interface: listenOptions.host,
-      port:      listenOptions.port,
+      interface: this.#listenOptions.host,
+      port:      this.#listenOptions.port,
       protocol:  this.protocolName
     };
 
-    if (listenOptions.host === '*') {
-      listenOptions.host = '::';
+    if (this.#listenOptions.host === '*') {
+      this.#listenOptions.host = '::';
       this.#loggableInfo.interface = '<any>';
     }
+  }
 
-    serverSocket.listen(listenOptions);
+  /** @override */
+  _impl_createServerSocket() {
+    return net.createServer(this.#createOptions);
+  }
+
+  /** @override */
+  _impl_listen(serverSocket) {
+    serverSocket.listen(this.#listenOptions);
   }
 
   /** @override */
   _impl_loggableInfo() {
-    const address = this.serverSocket.address();
-    const info = { ...this.#loggableInfo };
+    const address = this.serverSocket?.address();
+    const info    = { ...this.#loggableInfo };
 
     if (address) {
       const ip = /:/.test(address.address)
