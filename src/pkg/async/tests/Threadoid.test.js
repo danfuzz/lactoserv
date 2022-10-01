@@ -16,6 +16,12 @@ describe('constructor(function)', () => {
     expect(thread.isRunning()).toBeFalse();
   });
 
+  test('produces an instance for which `isStarted() === false`', () => {
+    const thread = new Threadoid(() => null);
+
+    expect(thread.isStarted()).toBeFalse();
+  });
+
   test('produces an instance for which `shouldStop() === true`', () => {
     const thread = new Threadoid(() => null);
 
@@ -114,6 +120,85 @@ describe('isRunning()', () => {
     }
 
     expect(thread.isRunning()).toBeFalse();
+    expect(stopped).toBeTrue();
+
+    await expect(runResult).toResolve();
+  });
+});
+
+describe('isStarted()', () => {
+  test('returns `false` before being started', async () => {
+    const thread = new Threadoid(() => null);
+    expect(thread.isStarted()).toBeFalse();
+  });
+
+  test('returns `false` immediately after being started (before any async action can happen)', async () => {
+    const thread = new Threadoid(() => null);
+
+    const runResult = thread.run();
+    expect(thread.isStarted()).toBeFalse();
+    thread.stop();
+
+    await expect(runResult).toResolve();
+  });
+
+  test('returns `true` immediately when starting to run asynchronously', async () => {
+    let shouldRun = true;
+    const thread = new Threadoid(async () => {
+      while (shouldRun) {
+        await timers.setImmediate();
+      }
+    });
+
+    const runResult = thread.run();
+    await timers.setImmediate();
+    expect(thread.isStarted()).toBeTrue();
+    shouldRun = false;
+    thread.stop();
+
+    await expect(runResult).toResolve();
+  });
+
+  test('returns `true` while running', async () => {
+    let shouldRun = true;
+    const thread = new Threadoid(async () => {
+      while (shouldRun) {
+        await timers.setImmediate();
+      }
+    });
+
+    const runResult = thread.run();
+    for (let i = 0; i < 10; i++) {
+      await timers.setImmediate();
+      expect(thread.isStarted()).toBeTrue();
+    }
+
+    shouldRun = false;
+    await expect(runResult).toResolve();
+  });
+
+  test('returns `false` after the thread function runs to completion', async () => {
+    let shouldRun = true;
+    let stopped   = false;
+    const thread = new Threadoid(async () => {
+      while (shouldRun) {
+        await timers.setImmediate();
+      }
+      stopped = true;
+    });
+
+    const runResult = thread.run();
+    await timers.setImmediate();
+    expect(thread.isStarted()).toBeTrue(); // Baseline expectation.
+
+    // The actual test.
+
+    shouldRun = false;
+    for (let i = 0; (i < 10) && !stopped; i++) {
+      await timers.setImmediate();
+    }
+
+    expect(thread.isStarted()).toBeFalse();
     expect(stopped).toBeTrue();
 
     await expect(runResult).toResolve();
