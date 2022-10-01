@@ -15,9 +15,7 @@ import { MustBe } from '@this/typey';
  * instance of this class that it is called with.
  */
 export class Threadoid {
-  /**
-   * @type {function(Promise): *} Function which is to be called asynchronously.
-   */
+  /** @type {function(Threadoid): *} Function to call asynchronously. */
   #threadFunction;
 
   /**
