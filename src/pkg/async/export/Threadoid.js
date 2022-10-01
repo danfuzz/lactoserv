@@ -41,11 +41,12 @@ export class Threadoid {
    * Constructs an instance. It is initally _not_ running.
    *
    * The constructor accepts either one or two thread functions to run. If
-   * passed just one, the thread is considered "started" the moment the function
-   * is called. If passed two functions, the thread is considered started only
-   * after the first function returns. The two-function form is meant to support
-   * the common pattern of wanting to do some set of startup actions before a
-   * thread is considered running in (some sort of) steady state.
+   * passed just one, the thread is considered "started" the moment just before
+   * the function is called. If passed two functions, the thread is considered
+   * started only after the first function returns. The two-function form is
+   * meant to support the common pattern of wanting to do some set of startup
+   * actions before a thread is considered running in (some sort of) steady
+   * state.
    *
    * The thread functions are always called fully asynchronously (that is, never
    * synchronously during instance construction). And, when called, the
@@ -80,19 +81,23 @@ export class Threadoid {
   }
 
   /**
-   * Starts this instance running, if it isn't already. The return value or
-   * exception thrown from this instance's `threadFunction` (constructor
-   * argument) is in turn async-returned from this instance. All processing in
-   * the thread happens asynchronously with respect to the caller of this
-   * method.
+   * Starts this instance running, if it isn't already.  All processing in the
+   * thread happens asynchronously with respect to the caller of this method.
+   * The async-return value or exception thrown from this method is (in order):
+   *
+   * * The exception thrown by the start function, if this instance has a start
+   *   function which threw.
+   * * The exception thrown by the main function, if it threw.
+   * * The return value from the main function.
    *
    * **Note:** To be clear, if the instance was already running when this method
    * was called, the return value from this method will be the same value as
    * returned (or the same exception thrown) from the call which actually
    * started the instance running.
    *
-   * @returns {*} Whatever is returned by the `threadFunction`.
-   * @throws {Error} Whatever was thrown by the `threadFunction`.
+   * @returns {*} Whatever is returned by the main function.
+   * @throws {Error} Whatever was thrown by either the start function or the
+   *   main function.
    */
   async run() {
     if (!this.#runResult) {
