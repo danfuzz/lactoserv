@@ -30,6 +30,12 @@ export class Threadoid {
    */
   #runResult = null;
 
+  /**
+   * {boolean} Has the instance started? This is `true` when running as long as
+   * the start function -- if specified -- has returned from being called.
+   */
+  #started = false;
+
 
   /**
    * Constructs an instance. It is initally _not_ running.
@@ -60,6 +66,17 @@ export class Threadoid {
    */
   isRunning() {
     return this.#runResult !== null;
+  }
+
+  /**
+   * Has this instance successfully started? This is `true` when the instance
+   * has started doing asynchronous running _and_ either it has no start
+   * function _or_ the start function has returned.
+   *
+   * @returns {boolean} The answer.
+   */
+  isStarted() {
+    return this.#started;
   }
 
   /**
@@ -122,6 +139,9 @@ export class Threadoid {
     // with respect to the client (which called `run()`).
     await null;
 
+    // TODO: Call the start function here, if necessary.
+    this.#started = true;
+
     try {
       return await this.#threadFunction(this);
     } finally {
@@ -129,7 +149,8 @@ export class Threadoid {
       // from this very method, but it's correct to `null` it out now, because
       // as of the end of this method (which will be happening synchronously),
       // running will have stopped.
-      this.#runResult = null;
+      this.#runResult          = null;
+      this.#started            = false;
       this.#runCondition.value = false;
     }
   }
