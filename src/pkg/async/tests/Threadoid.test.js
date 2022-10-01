@@ -98,6 +98,28 @@ describe('isRunning()', () => {
     await expect(runResult).toResolve();
   });
 
+  test('returns `true` while running, even if `stop()` was called', async () => {
+    let shouldRun = true;
+    const thread = new Threadoid(async () => {
+      while (shouldRun) {
+        await timers.setImmediate();
+      }
+    });
+
+    const runResult = thread.run();
+    await timers.setImmediate();
+    expect(thread.isRunning()).toBeTrue(); // Baseline expectation.
+
+    // The actual test.
+    thread.stop();
+    expect(thread.isRunning()).toBeTrue();
+    await timers.setImmediate();
+    expect(thread.isRunning()).toBeTrue();
+
+    shouldRun = false;
+    await expect(runResult).toResolve();
+  });
+
   test('returns `false` after the thread function runs to completion', async () => {
     let shouldRun = true;
     let stopped   = false;
@@ -172,6 +194,28 @@ describe('isStarted()', () => {
       await timers.setImmediate();
       expect(thread.isStarted()).toBeTrue();
     }
+
+    shouldRun = false;
+    await expect(runResult).toResolve();
+  });
+
+  test('returns `true` while running, even if `stop()` was called', async () => {
+    let shouldRun = true;
+    const thread = new Threadoid(async () => {
+      while (shouldRun) {
+        await timers.setImmediate();
+      }
+    });
+
+    const runResult = thread.run();
+    await timers.setImmediate();
+    expect(thread.isStarted()).toBeTrue(); // Baseline expectation.
+
+    // The actual test.
+    thread.stop();
+    expect(thread.isStarted()).toBeTrue();
+    await timers.setImmediate();
+    expect(thread.isStarted()).toBeTrue();
 
     shouldRun = false;
     await expect(runResult).toResolve();
