@@ -145,16 +145,6 @@ export class ServerController {
   }
 
   /**
-   * Hands off an incoming connection for handling to {@link
-   * #connectionHandler}.
-   *
-   * @param {object} socket The socket that just got connected.
-   */
-  #handleConnection(socket) {
-    this.#connectionHandler.handleConnection(socket);
-  }
-
-  /**
    * Configures `#wrangler.application`.
    */
   #configureServerApp() {
