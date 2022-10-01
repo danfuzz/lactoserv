@@ -43,9 +43,13 @@ export class Threadoid {
    * the common pattern of wanting to do some set of startup actions before a
    * thread is considered running in (some sort of) steady state.
    *
+   * The thread functions are always called fully asynchronously (that is, never
+   * synchronously during instance construction). And, when called, the
+   * functions are passed as an argument the instance of this class that is
+   * calling them.
+   *
    * @param {function(Threadoid): *} threadFunction Function to call once
-   *   running. The function is always called asynchronously, and it is passed
-   *   the instance of this class which it was called from.
+   *   running.
    */
   constructor(threadFunction) {
     this.#threadFunction = MustBe.callableFunction(threadFunction).bind(null);
