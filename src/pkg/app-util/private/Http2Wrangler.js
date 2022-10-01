@@ -33,7 +33,7 @@ export class Http2Wrangler extends TcpWrangler {
   }
 
   /** @override */
-  _impl_createServer(hostOptions) {
+  _impl_createProtocolServer(hostOptions) {
     const options = {
       ...hostOptions,
       allowHTTP1: true

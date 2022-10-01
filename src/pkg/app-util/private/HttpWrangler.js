@@ -19,7 +19,7 @@ export class HttpWrangler extends TcpWrangler {
   }
 
   /** @override */
-  _impl_createServer(hostOptions_unused) {
+  _impl_createProtocolServer(hostOptions_unused) {
     return http.createServer();
   }
 

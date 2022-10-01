@@ -53,7 +53,7 @@ export class ProtocolWrangler {
     this.#idGenerator    = options.idGenerator ?? null;
     this.#protocolName   = options.protocol;
     this.#application    = this._impl_createApplication();
-    this.#protocolServer = this._impl_createServer(hostOptions);
+    this.#protocolServer = this._impl_createProtocolServer(hostOptions);
 
     // Hook the protocol server to the (Express-like) application.
     this.#protocolServer.on('request', this.#application);
@@ -146,7 +146,7 @@ export class ProtocolWrangler {
    * @param {?object} hostOptions Host / certificate options, if needed.
    * @returns {object} `http.HttpServer`-like thing.
    */
-  _impl_createServer(hostOptions) {
+  _impl_createProtocolServer(hostOptions) {
     return Methods.abstract(hostOptions);
   }
 
