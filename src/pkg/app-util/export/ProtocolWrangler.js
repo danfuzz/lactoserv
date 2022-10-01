@@ -10,6 +10,12 @@ import { Methods } from '@this/typey';
  * system understands. Concrete instances of this class get instantiated once
  * per server; multiple servers which happen to use the same protocol will each
  * use a separate instance of this class.
+ *
+ * Each instance manages a low-level server socket, whose connections ultimately
+ * get plumbed to an (Express-like) application instance. This class is
+ * responsible for constructing the application instance and getting it hooked
+ * up to the rest of this class, but it does not do any configuration internally
+ * to the application (which is up to the clients of this class).
  */
 export class ProtocolWrangler {
   /** @type {string} Protocol name. */
