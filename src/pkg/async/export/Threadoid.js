@@ -16,7 +16,7 @@ import { MustBe } from '@this/typey';
  */
 export class Threadoid {
   /** @type {function(Threadoid): *} Function to call asynchronously. */
-  #threadFunction;
+  #mainFunction;
 
   /**
    * @type {Condition} Intended current state of whether or not this instance is
@@ -54,11 +54,11 @@ export class Threadoid {
    * functions are passed as an argument the instance of this class that is
    * calling them.
    *
-   * @param {function(Threadoid): *} threadFunction Function to call once
+   * @param {function(Threadoid): *} mainFunction Function to call once
    *   running.
    */
-  constructor(threadFunction) {
-    this.#threadFunction = MustBe.callableFunction(threadFunction).bind(null);
+  constructor(mainFunction) {
+    this.#mainFunction = MustBe.callableFunction(mainFunction).bind(null);
   }
 
   /**
@@ -159,7 +159,7 @@ export class Threadoid {
     this.#startedCondition.value = true;
 
     try {
-      return await this.#threadFunction(this);
+      return await this.#mainFunction(this);
     } finally {
       // Slightly tricky: At this moment, `#runResult` is the return promise
       // from this very method, but it's correct to `null` it out now, because
