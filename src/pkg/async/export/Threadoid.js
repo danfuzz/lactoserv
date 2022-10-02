@@ -31,10 +31,11 @@ export class Threadoid {
   #runResult = null;
 
   /**
-   * {boolean} Has the instance started? This is `true` when running as long as
-   * the start function -- if specified -- has returned from being called.
+   * @type {Condition} Has the instance started? This becomes `true` when the
+   * instance is running and after the start function has returned from being
+   * called.
    */
-  #started = false;
+  #startedCondition = new Condition();
 
 
   /**
@@ -72,12 +73,12 @@ export class Threadoid {
   /**
    * Has this instance successfully started? This is `true` when the instance
    * has started doing asynchronous running _and_ either it has no start
-   * function _or_ the start function has returned.
+   * function _or_ the start function has returned without throwing.
    *
    * @returns {boolean} The answer.
    */
   isStarted() {
-    return this.#started;
+    return this.#startedCondition.value === true;
   }
 
   /**
@@ -126,6 +127,16 @@ export class Threadoid {
   }
 
   /**
+   * Gets a promise that becomes fulfilled when this instance is running and
+   * after its start function has completed.
+   *
+   * @returns {Promise} A promise as described.
+   */
+  whenStarted() {
+    return this.#startedCondition.whenTrue();
+  }
+
+  /**
    * Gets a promise that becomes fulfilled when this instance has been asked to
    * stop (or when it is already stopped). This method is primarily intended for
    * use by the thread function, so it can behave cooperatively.
@@ -145,7 +156,7 @@ export class Threadoid {
     await null;
 
     // TODO: Call the start function here, if necessary.
-    this.#started = true;
+    this.#startedCondition.value = true;
 
     try {
       return await this.#threadFunction(this);
@@ -154,9 +165,9 @@ export class Threadoid {
       // from this very method, but it's correct to `null` it out now, because
       // as of the end of this method (which will be happening synchronously),
       // running will have stopped.
-      this.#runResult          = null;
-      this.#started            = false;
-      this.#runCondition.value = false;
+      this.#runResult              = null;
+      this.#startedCondition.value = false;
+      this.#runCondition.value     = false;
     }
   }
 }
