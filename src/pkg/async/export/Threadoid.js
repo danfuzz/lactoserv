@@ -41,13 +41,13 @@ export class Threadoid {
   /**
    * Constructs an instance. It is initally _not_ running.
    *
-   * The constructor accepts either one or two thread functions to run. If
-   * passed just one, the thread is considered "started" the moment just before
-   * the function is called. If passed two functions, the thread is considered
-   * started only after the first function returns. The two-function form is
-   * meant to support the common pattern of wanting to do some set of startup
-   * actions before a thread is considered running in (some sort of) steady
-   * state.
+   * The constructor accepts either one or two thread functions to run, more
+   * specifically either just a "main function" or a "start function" followed
+   * by a "main function." The thread is considered "started" once it is doing
+   * any asynchronous work and after the start function (if specified) has
+   * returned. The two-function form is meant to support the common pattern of
+   * wanting to do some set of startup actions before a thread is considered
+   * running in (some sort of) steady state.
    *
    * The thread functions are always called fully asynchronously (that is, never
    * synchronously during instance construction). And, when called, the
