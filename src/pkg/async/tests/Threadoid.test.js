@@ -249,6 +249,121 @@ describe('isStarted()', () => {
   });
 });
 
+describe('isStarted()', () => {
+  describe.each`
+    useStartFunc | label
+    ${false}     | ${'without a start function'}
+    ${true}      | ${'with a start function'}
+  `('$label', ({ useStartFunc }) => {
+    const startArg = useStartFunc
+      ? [() => null]
+      : []
+
+    test('returns `false` before being started', async () => {
+      const thread = new Threadoid(...startArg, () => null);
+      expect(thread.isStarted()).toBeFalse();
+    });
+
+    test('returns `false` immediately after being started (before any async action can happen)', async () => {
+      const thread = new Threadoid(...startArg, () => null);
+
+      const runResult = thread.run();
+      expect(thread.isStarted()).toBeFalse();
+      thread.stop();
+
+      await expect(runResult).toResolve();
+    });
+
+    test('returns `true` while running', async () => {
+      let shouldRun = true;
+      const thread = new Threadoid(...startArg, async () => {
+        while (shouldRun) {
+          await timers.setImmediate();
+        }
+      });
+
+      const runResult = thread.run();
+      for (let i = 0; i < 10; i++) {
+        await timers.setImmediate();
+        expect(thread.isStarted()).toBeTrue();
+      }
+
+      shouldRun = false;
+      await expect(runResult).toResolve();
+    });
+
+    test('returns `true` while running, even if `stop()` was called', async () => {
+      let shouldRun = true;
+      const thread = new Threadoid(...startArg, async () => {
+        while (shouldRun) {
+          await timers.setImmediate();
+        }
+      });
+
+      const runResult = thread.run();
+      await timers.setImmediate();
+      expect(thread.isStarted()).toBeTrue(); // Baseline expectation.
+
+      // The actual test.
+      thread.stop();
+      expect(thread.isStarted()).toBeTrue();
+      await timers.setImmediate();
+      expect(thread.isStarted()).toBeTrue();
+
+      shouldRun = false;
+      await expect(runResult).toResolve();
+    });
+
+    test('returns `false` after the thread function runs to completion', async () => {
+      let shouldRun = true;
+      let stopped   = false;
+      const thread = new Threadoid(...startArg, async () => {
+        while (shouldRun) {
+          await timers.setImmediate();
+        }
+        stopped = true;
+      });
+
+      const runResult = thread.run();
+      await timers.setImmediate();
+      expect(thread.isStarted()).toBeTrue(); // Baseline expectation.
+
+      // The actual test.
+
+      shouldRun = false;
+      for (let i = 0; (i < 10) && !stopped; i++) {
+        await timers.setImmediate();
+      }
+
+      expect(thread.isStarted()).toBeFalse();
+      expect(stopped).toBeTrue();
+
+      await expect(runResult).toResolve();
+    });
+
+    if (useStartFunc) {
+      // TODO: Test needed here.
+    } else {
+      test('returns `true` immediately when starting to run asynchronously', async () => {
+        let shouldRun = true;
+        const thread = new Threadoid(async () => {
+          while (shouldRun) {
+            await timers.setImmediate();
+          }
+        });
+
+        const runResult = thread.run();
+        await timers.setImmediate();
+        expect(thread.isStarted()).toBeTrue();
+        shouldRun = false;
+        thread.stop();
+
+        await expect(runResult).toResolve();
+      });
+    }
+  });
+});
+
 describe('run()', () => {
   test('causes the thread function to be called', async () => {
     let called = false;
