@@ -15,7 +15,10 @@ import { MustBe } from '@this/typey';
  * instance of this class that it is called with.
  */
 export class Threadoid {
-  /** @type {function(Threadoid): *} Function to call asynchronously. */
+  /** @type {?function(Threadoid): *} Start function to run, if any */
+  #startFunction;
+
+  /** @type {function(Threadoid): *} Main function to run. */
   #mainFunction;
 
   /**
@@ -58,7 +61,8 @@ export class Threadoid {
    *   running.
    */
   constructor(mainFunction) {
-    this.#mainFunction = MustBe.callableFunction(mainFunction).bind(null);
+    this.#startFunction = null;
+    this.#mainFunction  = MustBe.callableFunction(mainFunction).bind(null);
   }
 
   /**
@@ -155,10 +159,13 @@ export class Threadoid {
     // with respect to the client (which called `run()`).
     await null;
 
-    // TODO: Call the start function here, if necessary.
-    this.#startedCondition.value = true;
-
     try {
+      if (this.#startFunction) {
+        await this.#startFunction();
+      }
+
+      this.#startedCondition.value = true;
+
       return await this.#mainFunction(this);
     } finally {
       // Slightly tricky: At this moment, `#runResult` is the return promise
