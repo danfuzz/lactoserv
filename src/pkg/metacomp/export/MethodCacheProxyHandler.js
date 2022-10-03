@@ -82,21 +82,57 @@ export class MethodCacheProxyHandler extends BaseProxyHandler {
     } else {
       // The property is allowed to be proxied. Set up and cache a handler for
       // it.
-      const result = MustBe.callableFunction(this._impl_methodFor(property));
-      this.#methods.set(property, result);
-      return result;
+      const result = this._impl_methodFor(property);
+      if (result instanceof MethodCacheProxyHandler.NoCache) {
+        return MustBe.callableFunction(result.handler);
+      } else {
+        MustBe.callableFunction(result);
+        this.#methods.set(property, result);
+        return result;
+      }
     }
   }
 
   /**
    * Makes a method handler for the given method name. The handler will
    * ultimately get called by client code as a method on a proxy instance.
+   * If this method returns an instance of {@link #NoCache} instead of a
+   * function per se, the result is _not_ cached for future returns.
    *
    * @abstract
    * @param {string|symbol} name The method name.
-   * @returns {function(*)} An appropriately-constructed handler.
+   * @returns {function(*)|{ uncached: function(*)}} The method handler for the
+   *   method `name()`.
    */
   _impl_methodFor(name) {
     return Methods.abstract(name);
   }
+
+
+  //
+  // Static members
+  //
+
+  /**
+   * Class which can be used to wrap results from {@link #_impl_methodFor}, to
+   * indicate that they shouldn't be cached.
+   */
+  static NoCache = class NoCache {
+    /** @type {function(*)} The method handler to not-cache. */
+    #handler;
+
+    /**
+     * Constructs an instance.
+     *
+     * @param {function(*)} handler The method handler to not-cache.
+     */
+    constructor(handler) {
+      this.#handler = handler;
+    }
+
+    /** @returns {function(*)} The method handler to not-cache. */
+    get handler() {
+      return this.#handler;
+    }
+  };
 }
