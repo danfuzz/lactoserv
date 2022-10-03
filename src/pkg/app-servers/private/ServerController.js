@@ -6,8 +6,9 @@ import { RequestLogger } from '#p/RequestLogger';
 import { ThisModule } from '#p/ThisModule';
 
 import { HostManager } from '@this/app-hosts';
-import { IdGenerator, ProtocolWrangler, ProtocolWranglers } from '@this/app-util';
+import { ProtocolWrangler, ProtocolWranglers } from '@this/app-util';
 import { TreePathKey, TreePathMap } from '@this/collections';
+import { IdGenerator } from '@this/loggy';
 
 import * as express from 'express';
 

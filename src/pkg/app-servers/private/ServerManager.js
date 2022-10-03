@@ -7,8 +7,8 @@ import { ServerController } from '#p/ServerController';
 import { ThisModule } from '#p/ThisModule';
 
 import { HostController, HostManager } from '@this/app-hosts';
-import { IdGenerator } from '@this/app-util';
 import { JsonSchema, JsonSchemaUtil } from '@this/json';
+import { IdGenerator } from '@this/loggy';
 
 /** @type {function(...*)} Logger for this class. */
 const logger = ThisModule.logger.server;
