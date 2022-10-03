@@ -57,12 +57,24 @@ export class Threadoid {
    * functions are passed as an argument the instance of this class that is
    * calling them.
    *
-   * @param {function(Threadoid): *} mainFunction Function to call once
-   *   running.
+   * @param {function(Threadoid): *} function1 First function to call (start
+   *   function or main function).
+   * @param {?function(Threadoid): *} [mainFunction = null] Main function, or
+   *   `null` if `function1` is actually the main function (and there is no
+   *   start function).
    */
-  constructor(mainFunction) {
-    this.#startFunction = null;
-    this.#mainFunction  = MustBe.callableFunction(mainFunction).bind(null);
+  constructor(function1, mainFunction = null) {
+    MustBe.callableFunction(function1);
+    function1 = function1.bind(null);
+
+    if (mainFunction) {
+      MustBe.callableFunction(mainFunction);
+      this.#startFunction = function1;
+      this.#mainFunction  = mainFunction.bind(null);
+    } else {
+      this.#startFunction = null;
+      this.#mainFunction  = function1;
+    }
   }
 
   /**
@@ -155,13 +167,13 @@ export class Threadoid {
    * Runs the thread function.
    */
   async #run() {
-    // This `await` guarantees that no event processing happens synchronously
+    // This `await` guarantees that no thread processing happens synchronously
     // with respect to the client (which called `run()`).
     await null;
 
     try {
       if (this.#startFunction) {
-        await this.#startFunction();
+        await this.#startFunction(this);
       }
 
       this.#startedCondition.value = true;
