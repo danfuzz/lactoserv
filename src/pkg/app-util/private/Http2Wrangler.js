@@ -15,6 +15,12 @@ import * as http2 from 'node:http2';
  * Wrangler for `Http2SecureServer`.
  */
 export class Http2Wrangler extends TcpWrangler {
+  /** @type {express} Express-like application. */
+  #application;
+
+  /** @type {?http2.Http2Server} High-level protocol server. */
+  #protocolServer;
+
   /** @type {boolean} Is this instance stopped or trying to stop? */
   #stopping = false;
 
@@ -24,33 +30,31 @@ export class Http2Wrangler extends TcpWrangler {
   /** @type {Set} Set of all currently-known sessions. */
   #sessions = new Set();
 
-  // Note: Default constructor suffices.
+  constructor(options) {
+    super(options);
 
-  /** @override */
-  _impl_createApplication() {
-    // Express needs to be wrapped in order to use HTTP2.
-    return http2ExpressBridge(express);
+    // Express needs to be wrapped in order for it to use HTTP2.
+    this.#application    = http2ExpressBridge(express);
+    this.#protocolServer = http2.createSecureServer(options.hosts);
+
+    this.#protocolServer
+      .on('request', this.#application)
+      .on('session', session => this.#addSession(session));
   }
 
   /** @override */
-  _impl_createProtocolServer(hostOptions) {
-    const options = {
-      ...hostOptions,
-      allowHTTP1: true
-    };
+  _impl_application() {
+    return this.#application;
+  }
 
-    return http2.createSecureServer(options);
+  /** @override */
+  _impl_newConnection(socket) {
+    this.#protocolServer.emit('connection', socket);
   }
 
   /** @override */
   async _impl_protocolStart() {
-    const handleSession = session => this.#addSession(session);
-
-    this.protocolServer.on('session', handleSession);
-
-    // Try to tidy up in case of error.
-    this.protocolServer.on('error', () =>
-      this.protocolServer.removeListener('session', handleSession));
+    // Nothing left!
   }
 
   /** @override */

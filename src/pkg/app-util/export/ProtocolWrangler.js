@@ -32,9 +32,6 @@ export class ProtocolWrangler {
   /** @type {object} High-level application (Express-like thing). */
   #application;
 
-  /** @type {object} High-level protocol server (`HttpServer`-like thing). */
-  #protocolServer;
-
   /** @type {Threadoid} Threadoid which runs the "network stack." */
   #runner = new Threadoid(() => this.#startNetwork(), () => this.#runNetwork());
 
@@ -60,14 +57,9 @@ export class ProtocolWrangler {
       ? Object.freeze({ ...options.hosts })
       : null;
 
-    this.#logger         = options.logger ?? null;
-    this.#idGenerator    = options.idGenerator ?? null;
-    this.#protocolName   = options.protocol;
-    this.#application    = this._impl_createApplication();
-    this.#protocolServer = this._impl_createProtocolServer(hostOptions);
-
-    // Hook the protocol server to the (Express-like) application.
-    this.#protocolServer.on('request', this.#application);
+    this.#logger       = options.logger ?? null;
+    this.#idGenerator  = options.idGenerator ?? null;
+    this.#protocolName = options.protocol;
   }
 
   /**
@@ -75,21 +67,12 @@ export class ProtocolWrangler {
    * of `express:Express` or thing that is (approximately) compatible with same.
    */
   get application() {
-    return this.#application;
+    return this._impl_application();
   }
 
   /** @returns {string} The protocol name. */
   get protocolName() {
     return this.#protocolName;
-  }
-
-  /**
-   * @returns {object} The high-level protocol server instance. This is an
-   * instance of `http.HttpServer` or thing that is (approximately) compatible
-   * with same.
-   */
-  get protocolServer() {
-    return this.#protocolServer;
   }
 
   /**
@@ -121,7 +104,7 @@ export class ProtocolWrangler {
    */
   async stop() {
     if (!this.#runner.isRunning()) {
-      return;
+      return null;
     }
 
     // "Re-run" to get hold of the final result of running.
@@ -132,25 +115,13 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Creates the application instance to be returned by {@link #application}.
+   * Gets the (Express-like) application instance.
    *
    * @abstract
-   * @returns {object} `express.Express`-like thing.
+   * @returns {object} The (Express-like) application instance.
    */
-  _impl_createApplication() {
-    return Methods.abstract();
-  }
-
-  /**
-   * Creates the protocol server instance to be returned by {@link
-   * #protocolServer}.
-   *
-   * @abstract
-   * @param {?object} hostOptions Host / certificate options, if needed.
-   * @returns {object} `http.HttpServer`-like thing.
-   */
-  _impl_createProtocolServer(hostOptions) {
-    return Methods.abstract(hostOptions);
+  _impl_application() {
+    Methods.abstract();
   }
 
   /**
@@ -162,6 +133,17 @@ export class ProtocolWrangler {
    */
   _impl_loggableInfo() {
     Methods.abstract();
+  }
+
+  /**
+   * Informs the higher-level stack of a connection received by the lower-level
+   * stack.
+   *
+   * @abstract
+   * @param {net.Socket} socket Socket representing the newly-made connection.
+   */
+  _impl_newConnection(socket) {
+    Methods.abstract(socket);
   }
 
   /**

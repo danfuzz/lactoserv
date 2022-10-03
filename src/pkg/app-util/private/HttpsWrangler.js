@@ -11,16 +11,29 @@ import * as https from 'node:https';
  * Wrangler for `HttpsServer`.
  */
 export class HttpsWrangler extends TcpWrangler {
-  // Note: Default constructor is fine here.
+  /** @type {express} Express-like application. */
+  #application;
 
-  /** @override */
-  _impl_createApplication() {
-    return express();
+  /** @type {?https.Server} High-level protocol server. */
+  #protocolServer;
+
+  constructor(options) {
+    super(options);
+
+    this.#application    = express();
+    this.#protocolServer = https.createServer(options.hosts);
+
+    this.#protocolServer.on('request', this.#application);
   }
 
   /** @override */
-  _impl_createProtocolServer(hostOptions) {
-    return https.createServer(hostOptions);
+  _impl_application() {
+    return this.#application;
+  }
+
+  /** @override */
+  _impl_newConnection(socket) {
+    this.#protocolServer.emit('connection', socket);
   }
 
   /** @override */

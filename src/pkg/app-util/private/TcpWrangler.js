@@ -50,7 +50,7 @@ export class TcpWrangler extends ProtocolWrangler {
     // instantiated the server socket. TODO: This is where we might interpose a
     // `WriteSpy.`
     this.#serverSocket.on('connection', (socket) => {
-      this.protocolServer.emit('connection', socket);
+      this._impl_newConnection(socket);
     });
   }
 

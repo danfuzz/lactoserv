@@ -11,16 +11,29 @@ import * as http from 'node:http';
  * Wrangler for `HttpServer`.
  */
 export class HttpWrangler extends TcpWrangler {
-  // Note: Default constructor is fine here.
+  /** @type {express} Express-like application. */
+  #application;
 
-  /** @override */
-  _impl_createApplication() {
-    return express();
+  /** @type {http.Server} High-level protocol server. */
+  #protocolServer;
+
+  constructor(options) {
+    super(options);
+
+    this.#application    = express();
+    this.#protocolServer = http.createServer();
+
+    this.#protocolServer.on('request', this.#application);
   }
 
   /** @override */
-  _impl_createProtocolServer(hostOptions_unused) {
-    return http.createServer();
+  _impl_application() {
+    return this.#application;
+  }
+
+  /** @override */
+  _impl_newConnection(socket) {
+    this.#protocolServer.emit('connection', socket);
   }
 
   /** @override */
