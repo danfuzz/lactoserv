@@ -3,8 +3,6 @@
 
 import { WriteSpy } from '@this/app-util';
 
-import { IdGenerator } from '@this/loggy';
-
 
 /**
  * Per-server handler of socket connections. Mostly used for logging.

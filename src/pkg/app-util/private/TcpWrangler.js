@@ -3,8 +3,6 @@
 
 import { ProtocolWrangler } from '#x/ProtocolWrangler';
 
-import { IdGenerator } from '@this/loggy';
-
 import * as net from 'node:net';
 
 
