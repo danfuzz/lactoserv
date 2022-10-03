@@ -16,9 +16,6 @@ export class TcpWrangler extends ProtocolWrangler {
   /** @type {?function(...*)} Logger, if logging is to be done. */
   #logger;
 
-  /** @type {IdGenerator} ID generator to use, if logging is to be done. */
-  #idGenerator;
-
   /** @type {net.Server} Server socket, per se. */
   #serverSocket;
 
@@ -37,7 +34,6 @@ export class TcpWrangler extends ProtocolWrangler {
     super(options);
 
     this.#logger        = options.logger ?? null;
-    this.#idGenerator   = options.idGenerator ?? null;
     this.#listenOptions =
       TcpWrangler.#trimOptions(options.socket, TcpWrangler.#LISTEN_PROTO);
     this.#loggableInfo  = {

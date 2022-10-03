@@ -35,7 +35,6 @@ export class ProtocolWrangler {
    *   HostManager.secureServerOptions}, if this instance is (possibly) expected
    *   to need to use certificates (etc.). Ignored for instances which don't do
    *   that sort of thing.
-   * * `idGenerator: IdGenerator` -- ID generator to use, when doing logging.
    * * `logger: function(...*)` -- Logger to use to emit events about what the
    *   instance is doing. (If not specified, the instance won't do logging.)
    * * `protocol: string` -- The name of this protocol.
