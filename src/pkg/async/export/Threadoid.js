@@ -9,10 +9,10 @@ import { MustBe } from '@this/typey';
  * Thread-like thing. This class implements the useful pattern of having an
  * externally-controllable asynchronously-run function.
  *
- * Because of the cooperative-multitasking nature of the system, the function is
- * responsible for proactively figuring out when to stop. It can do this by
- * using the methods {@link #shouldStop} and {@link #whenStopRequested} on the
- * instance of this class that it is called with.
+ * Because of the cooperative-multitasking nature of Node / JavaScript, the
+ * function is responsible for proactively figuring out when to stop. It can do
+ * this by using the methods {@link #shouldStop} and {@link #whenStopRequested}
+ * on the instance of this class that it is called with.
  */
 export class Threadoid {
   /** @type {?function(Threadoid): *} Start function to run, if any */
