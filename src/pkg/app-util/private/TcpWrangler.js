@@ -165,6 +165,9 @@ export class TcpWrangler extends ProtocolWrangler {
       }
 
       socket.on('close', (hadError) => {
+        // TODO: It looks like we don't necessarily get this event when the
+        // server is getting shut down. Probably need to track connections,
+        // similar to how HTTP2 tracks sessions.
         connLogger.totalBytesWritten(socket.bytesWritten);
         if (hadError) {
           connLogger.hadError();
