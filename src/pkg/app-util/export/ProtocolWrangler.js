@@ -1,8 +1,6 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { IdGenerator } from '#x/IdGenerator';
-
 import { Threadoid } from '@this/async';
 import { Methods } from '@this/typey';
 
