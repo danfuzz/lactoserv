@@ -3,7 +3,7 @@
 
 import { TcpWrangler } from '#p/TcpWrangler';
 
-import { Condition } from '@this/async';
+import { Condition, Threadoid } from '@this/async';
 
 import express from 'express';
 import http2ExpressBridge from 'http2-express-bridge';
@@ -21,14 +21,14 @@ export class Http2Wrangler extends TcpWrangler {
   /** @type {?http2.Http2Server} High-level protocol server. */
   #protocolServer;
 
-  /** @type {boolean} Is this instance stopped or trying to stop? */
-  #stopping = false;
-
-  /** @type {Condition} Has this instance fully stopped? */
-  #fullyStopped = new Condition();
+  /** @type {Condition} Are there currently any sessions? */
+  #anySessions = new Condition();
 
   /** @type {Set} Set of all currently-known sessions. */
   #sessions = new Set();
+
+  /** @type {Threadoid} Thread which runs the high-level stack. */
+  #runner = new Threadoid(() => this.#run());
 
   /**
    * Constructs an instance.
@@ -54,23 +54,16 @@ export class Http2Wrangler extends TcpWrangler {
 
   /** @override */
   async _impl_applicationStart() {
-    // Nothing left!
+    this.#runner.run();
   }
 
   /** @override */
   async _impl_applicationStop() {
-    this.#stopping = true;
+    // "Re-run" to get hold of the final result of running.
+    const result = this.#runner.run();
 
-    // Node docs indicate one has to explicitly close all HTTP2 sessions.
-    for (const s of this.#sessions) {
-      if (!s.closed) {
-        s.close();
-      }
-    }
-
-    if (this.#sessions.size !== 0) {
-      await this.#fullyStopped.whenTrue();
-    }
+    this.#runner.stop();
+    return result;
   }
 
   /** @override */
@@ -84,7 +77,7 @@ export class Http2Wrangler extends TcpWrangler {
    * @param {http2.ServerHttp2Session} session The new session.
    */
   #addSession(session) {
-    if (this.#stopping) {
+    if (this.#runner.shouldStop()) {
       // Immediately close a session that managed to slip in while we're trying
       // to stop.
       session.close();
@@ -92,12 +85,13 @@ export class Http2Wrangler extends TcpWrangler {
     }
 
     this.#sessions.add(session);
+    this.#anySessions.value = true;
 
     const removeSession = () => {
       const sessions = this.#sessions;
       sessions.delete(session);
-      if (this.#stopping && (sessions.size === 0)) {
-        this.#fullyStopped.value = true;
+      if (sessions.size === 0) {
+        this.#anySessions.value = false;
       }
     };
 
@@ -105,5 +99,23 @@ export class Http2Wrangler extends TcpWrangler {
     session.on('error',      removeSession);
     session.on('frameError', removeSession);
     session.on('goaway',     removeSession);
+  }
+
+  /**
+   * Runs the high-level stack.
+   */
+  async #run() {
+    // As things stand, there isn't actually anything to do other than wait for
+    // the stop request and then shut things down.
+    await this.#runner.whenStopRequested();
+
+    // Node docs indicate one has to explicitly close all HTTP2 sessions.
+    for (const s of this.#sessions) {
+      if (!s.closed) {
+        s.close();
+      }
+    }
+
+    await this.#anySessions.whenFalse();
   }
 }
