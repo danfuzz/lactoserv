@@ -126,7 +126,7 @@ export class Threadoid {
 
   /**
    * Should the current run stop? This method is primarily intended for use by
-   * the thread function, so it can behave cooperatively.
+   * the main function, so it can behave cooperatively.
    *
    * @returns {boolean} `true` iff this instance has been asked to stop.
    */
@@ -154,7 +154,7 @@ export class Threadoid {
   /**
    * Gets a promise that becomes fulfilled when this instance has been asked to
    * stop (or when it is already stopped). This method is primarily intended for
-   * use by the thread function, so it can behave cooperatively.
+   * use by the main function, so it can behave cooperatively.
    *
    * @returns {Promise} A promise as described.
    */
