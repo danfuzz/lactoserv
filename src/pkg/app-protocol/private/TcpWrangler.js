@@ -3,7 +3,7 @@
 
 import { ProtocolWrangler } from '#x/ProtocolWrangler';
 
-import { Threadoid } from '@this/async';
+import { Condition, Threadoid } from '@this/async';
 
 import * as net from 'node:net';
 
@@ -24,6 +24,12 @@ export class TcpWrangler extends ProtocolWrangler {
 
   /** @type {object} Loggable info, minus any "active listening" info. */
   #loggableInfo = {};
+
+  /** @type {Condition} Are there currently any open sockets? */
+  #anySockets = new Condition();
+
+  /** @type {Set} Set of all currently-known sockets. */
+  #sockets = new Set();
 
   /** @type {Threadoid} Thread which runs the low-level of the stack. */
   #runner = new Threadoid(() => this.#start(), () => this.#run());
@@ -103,29 +109,45 @@ export class TcpWrangler extends ProtocolWrangler {
    *   `connection` event.
    */
   #handleConnection(socket, ...rest) {
-    if (this.#logger) {
-      const connLogger = this.#logger.$newId;
+    if (this.#runner.shouldStop()) {
+      // Immediately close a socket that managed to slip in while we're trying
+      // to stop.
+      socket.close();
+      return;
+    }
 
+    const connLogger = this.#logger
+      ? this.#logger.$newId
+      : null;
+
+    if (connLogger) {
       try {
         const { address, port } = socket.address(); // No need for the others.
         connLogger.connectedFrom({ address, port });
       } catch (e) {
         connLogger.weirdConnectionEvent(socket, ...rest);
       }
+    }
 
-      socket.on('close', (hadError) => {
-        // TODO: It looks like we don't necessarily get this event when the
-        // server is getting shut down. Probably need to track connections,
-        // similar to how HTTP2 tracks sessions.
+    // TODO: This is where we might interpose a `WriteSpy`.
+
+    this.#sockets.add(socket);
+    this.#anySockets.value = true;
+
+    socket.on('close', (hadError) => {
+      this.#sockets.delete(socket);
+      if (this.#sockets.size === 0) {
+        this.#anySockets.value = false;
+      }
+
+      if (connLogger) {
         connLogger.totalBytesWritten(socket.bytesWritten);
         if (hadError) {
           connLogger.hadError();
         }
         connLogger.closed();
-      });
-    }
-
-    // TODO: This is where we might interpose a `WriteSpy`.
+      }
+    });
 
     this._impl_newConnection(socket);
   }
@@ -169,6 +191,8 @@ export class TcpWrangler extends ProtocolWrangler {
         serverSocket.on('error', handleError);
       });
     }
+
+    await this.#anySockets.whenFalse();
   }
 
   /**
