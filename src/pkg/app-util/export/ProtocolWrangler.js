@@ -125,6 +125,30 @@ export class ProtocolWrangler {
   }
 
   /**
+   * Performs starting actions specifically in service of the high-level
+   * protocol (e.g. HTTP2) and (Express-like) application that layers on top of
+   * it, in advance of it being handed connections. This should only
+   * async-return once the stack really is ready.
+   *
+   * @abstract
+   */
+  async _impl_applicationStart() {
+    Methods.abstract();
+  }
+
+  /**
+   * Performs stop/shutdown actions specifically in service of the high-level
+   * protocol (e.g. HTTP2) and (Express-like) application that layers on top of
+   * it, after it is no longer being handed connections. This should only
+   * async-return once the stack really is stopped.
+   *
+   * @abstract
+   */
+  async _impl_applicationStop() {
+    Methods.abstract();
+  }
+
+  /**
    * Gets an object with bindings for reasonably-useful for logging about this
    * instance, particularly the low-level socket state.
    *
@@ -144,28 +168,6 @@ export class ProtocolWrangler {
    */
   _impl_newConnection(socket) {
     Methods.abstract(socket);
-  }
-
-  /**
-   * Performs starting actions specifically in service of the high-level
-   * protocol (e.g. HTTP2), in advance of it being handed connections. This
-   * should only async-return once the protocol really is ready.
-   *
-   * @abstract
-   */
-  async _impl_protocolStart() {
-    Methods.abstract();
-  }
-
-  /**
-   * Performs stop/shutdown actions specifically in service of the high-level
-   * protocol (e.g. HTTP2), after it is no longer being handed connections. This
-   * should only async-return once the protocol really is stopped.
-   *
-   * @abstract
-   */
-  async _impl_protocolStop() {
-    Methods.abstract();
   }
 
   /**
@@ -197,7 +199,7 @@ export class ProtocolWrangler {
       this.#logger.starting(this._impl_loggableInfo());
     }
 
-    await this._impl_protocolStart();
+    await this._impl_applicationStart();
     await this._impl_serverSocketStart();
 
     if (this.#logger) {
@@ -222,7 +224,7 @@ export class ProtocolWrangler {
     }
 
     await this._impl_serverSocketStop();
-    await this._impl_protocolStop();
+    await this._impl_applicationStart();
 
     if (this.#logger) {
       this.#logger.stopped(this._impl_loggableInfo());

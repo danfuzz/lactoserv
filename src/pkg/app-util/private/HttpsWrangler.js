@@ -32,17 +32,17 @@ export class HttpsWrangler extends TcpWrangler {
   }
 
   /** @override */
+  async _impl_applicationStart() {
+    // Nothing to do in this case.
+  }
+
+  /** @override */
+  async _impl_applicationStop() {
+    // Nothing to do in this case.
+  }
+
+  /** @override */
   _impl_newConnection(socket) {
     this.#protocolServer.emit('connection', socket);
-  }
-
-  /** @override */
-  async _impl_protocolStart() {
-    // Nothing to do in this case.
-  }
-
-  /** @override */
-  async _impl_protocolStop() {
-    // Nothing to do in this case.
   }
 }

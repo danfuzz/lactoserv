@@ -48,17 +48,12 @@ export class Http2Wrangler extends TcpWrangler {
   }
 
   /** @override */
-  _impl_newConnection(socket) {
-    this.#protocolServer.emit('connection', socket);
-  }
-
-  /** @override */
-  async _impl_protocolStart() {
+  async _impl_applicationStart() {
     // Nothing left!
   }
 
   /** @override */
-  async _impl_protocolStop() {
+  async _impl_applicationStop() {
     this.#stopping = true;
 
     // Node docs indicate one has to explicitly close all HTTP2 sessions.
@@ -71,6 +66,11 @@ export class Http2Wrangler extends TcpWrangler {
     if (this.#sessions.size !== 0) {
       await this.#fullyStopped.whenTrue();
     }
+  }
+
+  /** @override */
+  _impl_newConnection(socket) {
+    this.#protocolServer.emit('connection', socket);
   }
 
   /**
