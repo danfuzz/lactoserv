@@ -144,10 +144,11 @@ export class TcpWrangler extends ProtocolWrangler {
    * Handles a new incoming connection. This is called in response to the
    * receipt of a `connection` event from the server socket.
    *
-   * **Note:** A "naively" created protocol server (e.g. `http.Server`) builds
-   * in its own socket, but we're a bit fancier so we have to do this hookup
-   * more manually. This is a relatively small price to pay for getting to be
-   * able to have visibility on the actual network traffic.
+   * **Note:** A "naively" opened protocol server (e.g. calling
+   * `httpServer.listen(...)`) ends up with its own built-in and self-managed
+   * server socket, but we're a bit fancier so we have to do this hookup more
+   * manually. This is a relatively small price to pay for getting to be able to
+   * have visibility on the actual network traffic.
    *
    * @param {net.Socket} socket Socket for the newly-opened connection.
    * @param {...*} rest Any other arguments that happened to be be part of the
