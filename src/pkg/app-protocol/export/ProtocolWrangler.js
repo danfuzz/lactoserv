@@ -197,8 +197,12 @@ export class ProtocolWrangler {
       this.#logger.stopping(this._impl_loggableInfo());
     }
 
-    await this._impl_serverSocketStop();
-    await this._impl_applicationStart();
+    // We do these in parallel, because there can be mutual dependencies, e.g.
+    // the application might need to see the server stopping _and_ vice versa.
+    await Promise.all([
+      this._impl_serverSocketStop(),
+      this._impl_applicationStop()
+    ]);
 
     if (this.#logger) {
       this.#logger.stopped(this._impl_loggableInfo());
