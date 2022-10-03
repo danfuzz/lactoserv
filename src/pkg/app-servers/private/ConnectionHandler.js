@@ -13,9 +13,6 @@ export class ConnectionHandler {
   /** @type {function(...*)} Underlying logger instance to use. */
   #logger;
 
-  /** @type {IdGenerator} ID generator for connections. */
-  #idGenerator;
-
   /** @type {Map<socket,object>} Map from each socket to its salient info. */
   #sockets = new Map();
 
@@ -24,11 +21,9 @@ export class ConnectionHandler {
    * Constructs an instance.
    *
    * @param {function(...*)} logger Underlying logger instance to use.
-   * @param {IdGenerator} idGenerator ID generator for connections.
    */
-  constructor(logger, idGenerator) {
-    this.#logger      = logger;
-    this.#idGenerator = idGenerator;
+  constructor(logger) {
+    this.#logger = logger;
   }
 
   /**
