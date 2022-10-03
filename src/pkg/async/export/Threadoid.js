@@ -65,15 +65,14 @@ export class Threadoid {
    */
   constructor(function1, mainFunction = null) {
     MustBe.callableFunction(function1);
-    function1 = function1.bind(null);
 
     if (mainFunction) {
       MustBe.callableFunction(mainFunction);
-      this.#startFunction = function1;
-      this.#mainFunction  = mainFunction.bind(null);
+      this.#startFunction = this.#wrapFunction(function1);
+      this.#mainFunction  = this.#wrapFunction(mainFunction);
     } else {
       this.#startFunction = null;
-      this.#mainFunction  = function1;
+      this.#mainFunction  = this.#wrapFunction(function1);
     }
   }
 
@@ -164,7 +163,18 @@ export class Threadoid {
   }
 
   /**
-   * Runs the thread function.
+   * Properly wraps a function so it can be called with no arguments in
+   * {@link #run}.
+   *
+   * @param {function(*)} func Function to wrap.
+   * @returns {function(*)} Wrapped version.
+   */
+  #wrapFunction(func) {
+    return () => func(this);
+  }
+
+  /**
+   * Runs the thread.
    */
   async #run() {
     // This `await` guarantees that no thread processing happens synchronously
@@ -173,12 +183,12 @@ export class Threadoid {
 
     try {
       if (this.#startFunction) {
-        await this.#startFunction(this);
+        await this.#startFunction();
       }
 
       this.#startedCondition.value = true;
 
-      return await this.#mainFunction(this);
+      return await this.#mainFunction();
     } finally {
       // Slightly tricky: At this moment, `#runResult` is the return promise
       // from this very method, but it's correct to `null` it out now, because

@@ -413,7 +413,7 @@ describe('run()', () => {
 
     const runResult = thread.run();
     await timers.setImmediate();
-    expect(gotThis).toBeNull();
+    expect(gotThis).toBeUndefined();
 
     await expect(runResult).toResolve();
   });
