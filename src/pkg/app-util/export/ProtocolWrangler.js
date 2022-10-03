@@ -24,9 +24,6 @@ export class ProtocolWrangler {
   /** @type {?function(...*)} Logger, if logging is to be done. */
   #logger;
 
-  /** @type {IdGenerator} ID generator to use, if logging is to be done. */
-  #idGenerator;
-
   /** @type {object} High-level application (Express-like thing). */
   #application;
 
@@ -52,8 +49,7 @@ export class ProtocolWrangler {
    * @param {object} options Construction options, per the description above.
    */
   constructor(options) {
-    this.#logger       = options.logger ?? null;
-    this.#idGenerator  = options.idGenerator ?? null;
+    this.#logger = options.logger ?? null;
   }
 
   /**
