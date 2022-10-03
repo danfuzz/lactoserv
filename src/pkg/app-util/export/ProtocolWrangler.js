@@ -21,9 +21,6 @@ import * as net from 'node:net';
  * to the application (which is up to the clients of this class).
  */
 export class ProtocolWrangler {
-  /** @type {string} Protocol name. */
-  #protocolName;
-
   /** @type {?function(...*)} Logger, if logging is to be done. */
   #logger;
 
@@ -46,6 +43,7 @@ export class ProtocolWrangler {
    * * `idGenerator: IdGenerator` -- ID generator to use, when doing logging.
    * * `logger: function(...*)` -- Logger to use to emit events about what the
    *   instance is doing. (If not specified, the instance won't do logging.)
+   * * `protocol: string` -- The name of this protocol.
    * * `socket: object` -- Options to use for creation of and/or listening on
    *   the low-level server socket. See docs for `net.createServer()` and
    *   `net.Server.listen()` for more details. Exception: `*` is treated as the
@@ -56,7 +54,6 @@ export class ProtocolWrangler {
   constructor(options) {
     this.#logger       = options.logger ?? null;
     this.#idGenerator  = options.idGenerator ?? null;
-    this.#protocolName = options.protocol;
   }
 
   /**
@@ -65,11 +62,6 @@ export class ProtocolWrangler {
    */
   get application() {
     return this._impl_application();
-  }
-
-  /** @returns {string} The protocol name. */
-  get protocolName() {
-    return this.#protocolName;
   }
 
   /**

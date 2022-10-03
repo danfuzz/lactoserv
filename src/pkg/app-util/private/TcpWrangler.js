@@ -33,7 +33,7 @@ export class TcpWrangler extends ProtocolWrangler {
     this.#loggableInfo = {
       interface: this.#listenOptions.host,
       port:      this.#listenOptions.port,
-      protocol:  this.protocolName
+      protocol:  options.protocol
     };
 
     if (this.#listenOptions.host === '*') {
