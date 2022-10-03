@@ -78,14 +78,6 @@ export class ProtocolWrangler {
     return this.#application;
   }
 
-  /**
-   * @returns {object} Object with bindings for reasonably-useful for logging
-   * about this instance, particularly the low-level socket state.
-   */
-  get loggableInfo() {
-    return this._impl_loggableInfo();
-  }
-
   /** @returns {string} The protocol name. */
   get protocolName() {
     return this.#protocolName;
@@ -162,7 +154,8 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Subclass-specific implementation of {@link #loggableInfo}.
+   * Gets an object with bindings for reasonably-useful for logging about this
+   * instance, particularly the low-level socket state.
    *
    * @abstract
    * @returns {object} Object with interesting stuff about the server socket.
@@ -219,14 +212,14 @@ export class ProtocolWrangler {
    */
   async #startNetwork() {
     if (this.#logger) {
-      this.#logger.starting(this.loggableInfo);
+      this.#logger.starting(this._impl_loggableInfo());
     }
 
     await this._impl_protocolStart();
     await this._impl_serverSocketStart();
 
     if (this.#logger) {
-      this.#logger.started(this.loggableInfo);
+      this.#logger.started(this._impl_loggableInfo());
     }
   }
 
@@ -243,14 +236,14 @@ export class ProtocolWrangler {
     await this.#runner.whenStopRequested();
 
     if (this.#logger) {
-      this.#logger.stopping(this.loggableInfo);
+      this.#logger.stopping(this._impl_loggableInfo());
     }
 
     await this._impl_serverSocketStop();
     await this._impl_protocolStop();
 
     if (this.#logger) {
-      this.#logger.stopped(this.loggableInfo);
+      this.#logger.stopped(this._impl_loggableInfo());
     }
   }
 }
