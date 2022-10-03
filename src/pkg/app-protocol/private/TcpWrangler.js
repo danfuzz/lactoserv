@@ -3,6 +3,8 @@
 
 import { ProtocolWrangler } from '#x/ProtocolWrangler';
 
+import { Threadoid } from '@this/async';
+
 import * as net from 'node:net';
 
 
@@ -22,6 +24,9 @@ export class TcpWrangler extends ProtocolWrangler {
 
   /** @type {object} Loggable info, minus any "active listening" info. */
   #loggableInfo = {};
+
+  /** @type {Threadoid} Thread which runs the low-level of the stack. */
+  #runner = new Threadoid(() => this.#start(), () => this.#run());
 
   /**
    * Constructs an instance.
@@ -53,71 +58,19 @@ export class TcpWrangler extends ProtocolWrangler {
 
   /** @override */
   async _impl_serverSocketStart() {
-    const serverSocket = this.#serverSocket;
+    const runResult = this.#runner.run();
 
-    // This `await new Promise` arrangement is done to get the `listen` call to
-    // be a good async citizen. Notably, the optional callback passed to
-    // `Server.listen()` is only ever sent a single `listening` event upon
-    // success and never anything in case of an error.
-    await new Promise((resolve, reject) => {
-      function done(err) {
-        serverSocket.removeListener('listening', handleListening);
-        serverSocket.removeListener('error',     handleError);
-
-        if (err !== null) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      }
-
-      function handleListening() {
-        done(null);
-      }
-
-      function handleError(err) {
-        done(err);
-      }
-
-      serverSocket.on('listening', handleListening);
-      serverSocket.on('error',     handleError);
-
-      serverSocket.listen(this.#listenOptions);
-    });
+    // If `whenStarted()` loses, that means there was trouble starting, in which
+    // case we return the known-rejected result of the run.
+    return Promise.race([
+      this.#runner.whenStarted(),
+      runResult
+    ]);
   }
 
   /** @override */
   async _impl_serverSocketStop() {
-    const serverSocket = this.#serverSocket;
-    serverSocket.close();
-
-    // If the server is still listening for connections, wait for it to claim
-    // to have stopped.
-    while (serverSocket.listening) {
-      await new Promise((resolve, reject) => {
-        function done(err) {
-          serverSocket.removeListener('close', handleClose);
-          serverSocket.removeListener('error', handleError);
-
-          if (err !== null) {
-            reject(err);
-          } else {
-            resolve();
-          }
-        }
-
-        function handleClose() {
-          done(null);
-        }
-
-        function handleError(err) {
-          done(err);
-        }
-
-        serverSocket.on('close', handleClose);
-        serverSocket.on('error', handleError);
-      });
-    }
+    return this.#runner.stop();
   }
 
   /** @override */
@@ -175,6 +128,85 @@ export class TcpWrangler extends ProtocolWrangler {
     // TODO: This is where we might interpose a `WriteSpy`.
 
     this._impl_newConnection(socket);
+  }
+
+  /**
+   * Runs the low-level stack. This is called as the main function of the
+   * {@link #runner}.
+   */
+  async #run() {
+    // As things stand, there isn't actually anything to do other than wait for
+    // the stop request and then shut things down.
+    await this.#runner.whenStopRequested();
+
+    const serverSocket = this.#serverSocket;
+    serverSocket.close();
+
+    // If the server is still listening for connections, wait for it to claim
+    // to have stopped.
+    while (serverSocket.listening) {
+      await new Promise((resolve, reject) => {
+        function done(err) {
+          serverSocket.removeListener('close', handleClose);
+          serverSocket.removeListener('error', handleError);
+
+          if (err !== null) {
+            reject(err);
+          } else {
+            resolve();
+          }
+        }
+
+        function handleClose() {
+          done(null);
+        }
+
+        function handleError(err) {
+          done(err);
+        }
+
+        serverSocket.on('close', handleClose);
+        serverSocket.on('error', handleError);
+      });
+    }
+  }
+
+  /**
+   * Starts the low-level stack. This is called as the start function of the
+   * {@link #runner}.
+   */
+  async #start() {
+    const serverSocket = this.#serverSocket;
+
+    // This `await new Promise` arrangement is done to get the `listen` call to
+    // be a good async citizen. Notably, the optional callback passed to
+    // `Server.listen()` is only ever sent a single `listening` event upon
+    // success and never anything in case of an error.
+    await new Promise((resolve, reject) => {
+      function done(err) {
+        serverSocket.removeListener('listening', handleListening);
+        serverSocket.removeListener('error',     handleError);
+
+        if (err !== null) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      }
+
+      function handleListening() {
+        done(null);
+      }
+
+      function handleError(err) {
+        done(err);
+      }
+
+      serverSocket.on('listening', handleListening);
+      serverSocket.on('error',     handleError);
+
+      serverSocket.listen(this.#listenOptions);
+    });
   }
 
 
