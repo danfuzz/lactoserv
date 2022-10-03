@@ -50,12 +50,6 @@ export class ServerController {
   /** @type {ProtocolWrangler} Protocol-specific "wrangler." */
   #wrangler;
 
-  /** @type {Condition} Is the server starting or started? */
-  #started = new Condition();
-
-  /** @type {Condition} Is the server stopped or trying to stop? */
-  #stopping = new Condition();
-
   /** @type {RequestLogger} HTTP(ish) request logger. */
   #requestLogger;
 
@@ -110,19 +104,7 @@ export class ServerController {
    * Starts the server.
    */
   async start() {
-    if (this.#stopping.value) {
-      throw new Error('Server stopping or already stopped.');
-    } else if (this.#started.value) {
-      // Ignore attempts to start while already started.
-      this.#logger.start('ignoring');
-      return;
-    }
-
-    this.#logger.starting();
-    this.#started.value = true;
-
-    await this.#wrangler.start();
-    this.#logger.started(this.#wrangler.loggableInfo);
+    return this.#wrangler.start();
   }
 
   /**
@@ -130,18 +112,7 @@ export class ServerController {
    * is closed).
    */
   async stop() {
-    if (this.#stopping.value) {
-      // Already stopping, just wait for the existing procedure to complete.
-      await this.whenStopped();
-      return;
-    }
-
-    this.#logger.stopping();
-    this.#stopping.value = true;
-
-    await this.#wrangler.stop();
-
-    this.#logger.stopped();
+    return this.#wrangler.stop();
   }
 
   /**
