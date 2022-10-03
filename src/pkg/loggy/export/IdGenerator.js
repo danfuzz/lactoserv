@@ -29,7 +29,7 @@ export class IdGenerator {
    *
    * @returns {string} An appropriately-constructed request ID.
    */
-  makeRequestId() {
+  makeId() {
     const now          = Date.now();
     const minuteNumber = Math.trunc(now * IdGenerator.#MINS_PER_MSEC) & 0xfffff;
 

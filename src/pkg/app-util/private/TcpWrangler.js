@@ -157,7 +157,7 @@ export class TcpWrangler extends ProtocolWrangler {
    */
   #handleConnection(socket, ...rest) {
     if (this.#logger) {
-      const connLogger = this.#logger[this.#idGenerator.makeRequestId()];
+      const connLogger = this.#logger[this.#idGenerator.makeId()];
 
       try {
         const { address, port } = socket.address(); // No need for the others.

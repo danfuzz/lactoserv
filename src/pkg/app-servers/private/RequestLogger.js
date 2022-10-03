@@ -41,7 +41,7 @@ export class RequestLogger {
    */
   logRequest(req, res) {
     const timeStart  = process.hrtime.bigint();
-    const logger     = this.#logger[this.#idGenerator.makeRequestId()];
+    const logger     = this.#logger[this.#idGenerator.makeId()];
     const reqHeaders = req.headers;
 
     logger.started(req.method, req.protocol, req.hostname, req.originalUrl);

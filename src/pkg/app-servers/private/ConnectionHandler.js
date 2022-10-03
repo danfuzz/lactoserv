@@ -37,7 +37,7 @@ export class ConnectionHandler {
    * @param {object} socket Socket which just got connected.
    */
   handleConnection(socket) {
-    const id     = this.#idGenerator.makeRequestId();
+    const id     = this.#idGenerator.makeId();
     const logger = this.#logger[id];
     const spy    = new WriteSpy(socket, logger);
 
