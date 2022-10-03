@@ -2,6 +2,8 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { IdGenerator } from '#x/IdGenerator';
+
+import { Threadoid } from '@this/async';
 import { Methods } from '@this/typey';
 
 
@@ -32,6 +34,9 @@ export class ProtocolWrangler {
 
   /** @type {object} High-level protocol server (`HttpServer`-like thing). */
   #protocolServer;
+
+  /** @type {Threadoid} Threadoid which runs the "network stack." */
+  #runner = new Threadoid(() => this.#startNetwork(), () => this.#runNetwork());
 
   /**
    * Constructs an instance. Accepted options:
@@ -103,35 +108,39 @@ export class ProtocolWrangler {
    * Starts this instance listening for connections and dispatching them to
    * the high-level application. This method async-returns once the instance has
    * actually gotten started.
+   *
+   * @throws {Error} Thrown if there was any trouble starting up.
    */
   async start() {
-    if (this.#logger) {
-      this.#logger.wranglerStarting(this.loggableInfo);
-    }
+    const runResult = this.#runner.run();
 
-    await this._impl_protocolStart();
-    await this._impl_serverSocketStart();
-
-    if (this.#logger) {
-      this.#logger.wranglerStarted(this.loggableInfo);
-    }
+    // If `whenStarted()` loses, that means there was trouble starting, in which
+    // case we return the known-rejected result of the run.
+    return Promise.race([
+      this.#runner.whenStarted(),
+      runResult
+    ]);
   }
 
   /**
    * Stops this instance from listening for any more connections. This method
-   * async-returns once the instance has actually stopped.
+   * async-returns once the instance has actually stopped. If there was an
+   * error thrown while running, that error in turn gets thrown by this method.
+   * If this instance wasn't running in the first place, this method does
+   * nothing.
+   *
+   * @throws {Error} Whatever problem occurred during running.
    */
   async stop() {
-    if (this.#logger) {
-      this.#logger.wranglerStopping(this.loggableInfo);
+    if (!this.#runner.isRunning()) {
+      return;
     }
 
-    await this._impl_serverSocketStop();
-    await this._impl_protocolStop();
+    // "Re-run" to get hold of the final result of running.
+    const result = this.#runner.run();
 
-    if (this.#logger) {
-      this.#logger.wranglerStopped(this.loggableInfo);
-    }
+    this.#runner.stop();
+    return result;
   }
 
   /**
@@ -206,5 +215,46 @@ export class ProtocolWrangler {
    */
   async _impl_serverSocketStop() {
     Methods.abstract();
+  }
+
+  /**
+   * Starts the "network stack." This is called as the start function of the
+   * {@link #runner}.
+   */
+  async #startNetwork() {
+    if (this.#logger) {
+      this.#logger.wranglerStarting(this.loggableInfo);
+    }
+
+    await this._impl_protocolStart();
+    await this._impl_serverSocketStart();
+
+    if (this.#logger) {
+      this.#logger.wranglerStarted(this.loggableInfo);
+    }
+  }
+
+  /**
+   * Runs the "network stack." This is called as the main function of the
+   * {@link #runner}.
+   */
+  async #runNetwork() {
+    // As things stand, there isn't actually anything to do other than wait for
+    // the stop request and then shut things down. (This would change in the
+    // future if we switched to using async-events instead of Node callbacks at
+    // this layer.)
+
+    await this.#runner.whenStopRequested();
+
+    if (this.#logger) {
+      this.#logger.wranglerStopping(this.loggableInfo);
+    }
+
+    await this._impl_serverSocketStop();
+    await this._impl_protocolStop();
+
+    if (this.#logger) {
+      this.#logger.wranglerStopped(this.loggableInfo);
+    }
   }
 }
