@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { PromiseState, Threadoid } from '@this/async';
+import { PromiseState, PromiseUtil, Threadoid } from '@this/async';
 
 import * as timers from 'node:timers/promises';
 
@@ -712,7 +712,13 @@ describe('stop()', () => {
     expect(() => thread.stop()).not.toThrow();
   });
 
-  test('causes `shouldStop()` to start returning `true`', async () => {
+  test('returns `null` when called on a non-running instance', async () => {
+    const thread = new Threadoid(() => null);
+    const result = thread.stop();
+    expect(await result).toBeNull();
+  });
+
+  test('synchronously causes `shouldStop()` to start returning `true`', async () => {
     let stopped = false;
     const thread = new Threadoid(async () => {
       while (!thread.shouldStop()) {
@@ -779,6 +785,33 @@ describe('stop()', () => {
 
     shouldRun = false;
     await expect(runResult).toResolve();
+  });
+
+  test('returns the result of the corresponding `run()`', async () => {
+    const value = 'Gee howdy!';
+    const thread = new Threadoid(() => value);
+
+    const runResult = thread.run();
+    const result    = thread.stop();
+
+    await timers.setImmediate();
+    await expect(runResult).toResolve();
+    expect(await result).toBe(value);
+  });
+
+  test('throws the error of the corresponding `run()`', async () => {
+    const error = new Error('Aw shucks...');
+    const thread = new Threadoid(() => { throw error; });
+
+    const runResult = thread.run();
+    const result    = thread.stop();
+
+    PromiseUtil.handleRejection(runResult);
+    PromiseUtil.handleRejection(result);
+
+    await timers.setImmediate();
+    await expect(runResult).toReject();
+    await expect(result).rejects.toThrow(error);
   });
 });
 

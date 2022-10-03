@@ -1,6 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { IdGenerator } from '#x/IdGenerator';
 import { ProtocolWrangler } from '#x/ProtocolWrangler';
 
 import * as net from 'node:net';
@@ -11,6 +12,12 @@ import * as net from 'node:net';
  * them... but HTTP3 will be here before we know it!).
  */
 export class TcpWrangler extends ProtocolWrangler {
+  /** @type {?function(...*)} Logger, if logging is to be done. */
+  #logger;
+
+  /** @type {IdGenerator} ID generator to use, if logging is to be done. */
+  #idGenerator;
+
   /** @type {net.Server} Server socket, per se. */
   #serverSocket;
 
@@ -28,12 +35,14 @@ export class TcpWrangler extends ProtocolWrangler {
   constructor(options) {
     super(options);
 
+    this.#logger        = options.logger ?? null;
+    this.#idGenerator   = options.idGenerator ?? null;
     this.#listenOptions =
       TcpWrangler.#trimOptions(options.socket, TcpWrangler.#LISTEN_PROTO);
-    this.#loggableInfo = {
+    this.#loggableInfo  = {
       interface: this.#listenOptions.host,
       port:      this.#listenOptions.port,
-      protocol:  this.protocolName
+      protocol:  options.protocol
     };
 
     if (this.#listenOptions.host === '*') {
@@ -44,14 +53,7 @@ export class TcpWrangler extends ProtocolWrangler {
     this.#serverSocket = net.createServer(
       TcpWrangler.#trimOptions(options.socket, TcpWrangler.#CREATE_PROTO));
 
-    // Hook the server socket to the protocol server. If we had created the
-    // protocol server "naively," it would have had a "built-in" server socket,
-    // and this (here) is the small price we pay for having directly
-    // instantiated the server socket. TODO: This is where we might interpose a
-    // `WriteSpy.`
-    this.#serverSocket.on('connection', (socket) => {
-      this.protocolServer.emit('connection', socket);
-    });
+    this.#serverSocket.on('connection', (...args) => this.#handleConnection(...args));
   }
 
   /** @override */
@@ -136,6 +138,47 @@ export class TcpWrangler extends ProtocolWrangler {
     }
 
     return info;
+  }
+
+  /**
+   * Handles a new incoming connection. This is called in response to the
+   * receipt of a `connection` event from the server socket.
+   *
+   * **Note:** A "naively" created protocol server (e.g. `http.Server`) builds
+   * in its own socket, but we're a bit fancier so we have to do this hookup
+   * more manually. This is a relatively small price to pay for getting to be
+   * able to have visibility on the actual network traffic.
+   *
+   * @param {net.Socket} socket Socket for the newly-opened connection.
+   * @param {...*} rest Any other arguments that happened to be be part of the
+   *   `connection` event.
+   */
+  #handleConnection(socket, ...rest) {
+    if (this.#logger) {
+      const connLogger = this.#logger[this.#idGenerator.makeRequestId()];
+
+      try {
+        const { address, port } = socket.address(); // No need for the others.
+        connLogger.connectedFrom({ address, port });
+      } catch (e) {
+        connLogger.weirdConnectionEvent(socket, ...rest);
+      }
+
+      socket.on('close', (hadError) => {
+        // TODO: It looks like we don't necessarily get this event when the
+        // server is getting shut down. Probably need to track connections,
+        // similar to how HTTP2 tracks sessions.
+        connLogger.totalBytesWritten(socket.bytesWritten);
+        if (hadError) {
+          connLogger.hadError();
+        }
+        connLogger.closed();
+      });
+    }
+
+    // TODO: This is where we might interpose a `WriteSpy`.
+
+    this._impl_newConnection(socket);
   }
 
 

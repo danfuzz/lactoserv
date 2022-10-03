@@ -2,13 +2,11 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { ApplicationController } from '#p/ApplicationController';
-import { ConnectionHandler } from '#p/ConnectionHandler';
 import { RequestLogger } from '#p/RequestLogger';
 import { ThisModule } from '#p/ThisModule';
 
 import { HostManager } from '@this/app-hosts';
 import { IdGenerator, ProtocolWrangler, ProtocolWranglers } from '@this/app-util';
-import { Condition } from '@this/async';
 import { TreePathKey, TreePathMap } from '@this/collections';
 
 import * as express from 'express';
@@ -38,29 +36,14 @@ export class ServerController {
    */
   #mountMap;
 
-  /** @type {string} Interface address. */
-  #interface;
-
-  /** @type {number} Port number. */
-  #port;
-
   /** @type {function(...*)} Instance-specific logger. */
   #logger;
 
   /** @type {ProtocolWrangler} Protocol-specific "wrangler." */
   #wrangler;
 
-  /** @type {Condition} Is the server starting or started? */
-  #started = new Condition();
-
-  /** @type {Condition} Is the server stopped or trying to stop? */
-  #stopping = new Condition();
-
   /** @type {RequestLogger} HTTP(ish) request logger. */
   #requestLogger;
-
-  /** @type {ConnectionHandler} Socket connection handler. */
-  #connectionHandler;
 
 
   /**
@@ -73,12 +56,11 @@ export class ServerController {
    * @param {IdGenerator} idGenerator ID generator to use.
    */
   constructor(serverConfig, idGenerator) {
-    this.#name        = serverConfig.name;
-    this.#hostManager = serverConfig.hostManager;
-    this.#mountMap    = ServerController.#makeMountMap(serverConfig.appMounts);
-    this.#interface   = serverConfig.interface;
-    this.#port        = serverConfig.port;
-    this.#logger      = logger[this.#name];
+    this.#name          = serverConfig.name;
+    this.#hostManager   = serverConfig.hostManager;
+    this.#mountMap      = ServerController.#makeMountMap(serverConfig.appMounts);
+    this.#logger        = logger[this.#name];
+    this.#requestLogger = new RequestLogger(this.#logger.req, idGenerator);
 
     const wranglerOptions = {
       idGenerator,
@@ -95,9 +77,6 @@ export class ServerController {
     };
     this.#wrangler = ProtocolWranglers.make(wranglerOptions);
 
-    this.#requestLogger     = new RequestLogger(this.#logger.req, idGenerator);
-    this.#connectionHandler = new ConnectionHandler(this.#logger.conn, idGenerator);
-
     this.#configureServerApp();
   }
 
@@ -110,19 +89,7 @@ export class ServerController {
    * Starts the server.
    */
   async start() {
-    if (this.#stopping.value) {
-      throw new Error('Server stopping or already stopped.');
-    } else if (this.#started.value) {
-      // Ignore attempts to start while already started.
-      this.#logger.start('ignoring');
-      return;
-    }
-
-    this.#logger.starting();
-    this.#started.value = true;
-
-    await this.#wrangler.start();
-    this.#logger.started(this.#wrangler.loggableInfo);
+    return this.#wrangler.start();
   }
 
   /**
@@ -130,18 +97,7 @@ export class ServerController {
    * is closed).
    */
   async stop() {
-    if (this.#stopping.value) {
-      // Already stopping, just wait for the existing procedure to complete.
-      await this.whenStopped();
-      return;
-    }
-
-    this.#logger.stopping();
-    this.#stopping.value = true;
-
-    await this.#wrangler.stop();
-
-    this.#logger.stopped();
+    return this.#wrangler.stop();
   }
 
   /**
