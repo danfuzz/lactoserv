@@ -448,7 +448,7 @@ describe('run()', () => {
       expect(count).toBe(1);
     });
 
-    test('returns the same value from all calls', async () => {
+    test('returns the same value from all calls during the same run', async () => {
       let shouldRun = true;
       let count     = 0;
       const thread = new Threadoid(async () => {
@@ -470,6 +470,37 @@ describe('run()', () => {
       expect(await runResult1).toBe('count-was-1');
       expect(await runResult2).toBe('count-was-1');
       expect(await runResult3).toBe('count-was-1');
+    });
+
+    test('causes a second run after a first run completes', async () => {
+      let shouldRun = true;
+      let count     = 0;
+      const thread = new Threadoid(async () => {
+        count++;
+        const result = `count-was-${count}`;
+        while (shouldRun) {
+          await timers.setImmediate();
+        }
+
+        return result;
+      });
+
+      const runResult1 = thread.run();
+      await timers.setImmediate();
+      shouldRun = false;
+      await timers.setImmediate();
+      expect(thread.isRunning()).toBeFalse(); // Baseline expectation.
+
+      shouldRun = true;
+      const runResult2 = thread.run();
+      await timers.setImmediate();
+      expect(thread.isRunning()).toBeTrue();
+      shouldRun = false;
+      await timers.setImmediate();
+      expect(thread.isRunning()).toBeFalse();
+
+      expect(await runResult1).toBe('count-was-1');
+      expect(await runResult2).toBe('count-was-2');
     });
   });
 });
