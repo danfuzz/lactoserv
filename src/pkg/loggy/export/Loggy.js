@@ -41,6 +41,10 @@ export class Loggy {
    *   indicated type and arguments, and with an additional piece of context
    *   appended to the original tag. This form may be used recursively, e.g.
    *   `logger.outer.middle.deep.type('yay!')`, etc.
+   * * `logger.$newId` -- Special literal form, which produces a new logger with
+   *   a newly-generated ID as additional context. Note that this produces a
+   *   result for which function application works like `logger(type)` and not
+   *   `logger.type(...args)`.
    *
    * **Note:** The logger function determines its behavior in part by noticing
    * whether it is being called as a function or as a method. For example,

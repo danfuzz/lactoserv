@@ -104,15 +104,21 @@ export class LogProxyHandler extends MethodCacheProxyHandler {
       throw new Error('Invalid name for logging method (symbols not allowed).');
     }
 
-    return LogProxyHandler.makeFunctionProxy(this.#subTag, name, this.#environment);
+    if (name === LogProxyHandler.NEW_ID_METHOD_NAME) {
+      const idTag = this.#subTag.withAddedContext(this.#environment.makeId());
+      return LogProxyHandler.makeFunctionProxy(idTag, null, this.#environment);
+    } else {
+      return LogProxyHandler.makeFunctionProxy(this.#subTag, name, this.#environment);
+    }
   }
-
-
 
 
   //
   // Static members
   //
+
+  /** {string} Method name to indicate dynamic ID construction. */
+  static #NEW_ID_METHOD_NAME = '$newId';
 
   /** {string} Main tag name to use for the top level. */
   static #TOP_TAG_NAME = '(top)';
