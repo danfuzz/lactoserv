@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { WriteSpy } from '@this/app-util';
+import { WriteSpy } from '@this/app-protocol';
 
 
 /**

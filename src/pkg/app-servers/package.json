@@ -11,7 +11,7 @@
 
   "dependencies": {
     "@this/app-hosts": "*",
-    "@this/app-util": "*",
+    "@this/app-protocol": "*",
     "@this/async": "*",
     "@this/collections": "*",
     "@this/json": "*",
