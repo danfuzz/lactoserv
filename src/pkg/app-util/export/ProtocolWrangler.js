@@ -6,6 +6,7 @@ import { IdGenerator } from '#x/IdGenerator';
 import { Threadoid } from '@this/async';
 import { Methods } from '@this/typey';
 
+import * as net from 'node:net';
 
 /**
  * Base class for things that "wrangle" each of the server protocols that this
