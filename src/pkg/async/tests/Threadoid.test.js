@@ -712,6 +712,12 @@ describe('stop()', () => {
     expect(() => thread.stop()).not.toThrow();
   });
 
+  test('returns `null` when called on a non-running instance', async () => {
+    const thread = new Threadoid(() => null);
+    const result = thread.stop();
+    expect(await result).toBeNull();
+  });
+
   test('synchronously causes `shouldStop()` to start returning `true`', async () => {
     let stopped = false;
     const thread = new Threadoid(async () => {
