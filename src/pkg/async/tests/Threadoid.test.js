@@ -454,6 +454,24 @@ describe('run()', () => {
       await expect(runResult).toResolve();
     });
 
+    test('returns the value returned by the main function', async () => {
+      const value = 'OH YEAH';
+      const thread = new Threadoid(...startArg, () => value);
+
+      const runResult = thread.run();
+      expect(await runResult).toBe(value);
+    });
+
+    test('throws the value thrown by the main function', async () => {
+      const error = new Error('OH NOES!!!');
+      const thread = new Threadoid(...startArg, () => {
+        throw (error);
+      });
+
+      const runResult = thread.run();
+      expect(runResult).rejects.toThrow(error);
+    });
+
     describe('when called while already running', () => {
       test('does not call the main function more than once', async () => {
         let shouldRun = true;
