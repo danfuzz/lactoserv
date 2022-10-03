@@ -45,9 +45,6 @@ export class ServerManager {
    */
   #controllers = new Map();
 
-  /** @type {IdGenerator} ID generator for all controllers. */
-  #idGenerator = new IdGenerator();
-
   /**
    * Constructs an instance.
    *
@@ -116,7 +113,7 @@ export class ServerManager {
     delete config.host;
     delete config.hosts;
 
-    const controller = new ServerController(config, this.#idGenerator);
+    const controller = new ServerController(config, logger);
     const name = controller.name;
 
     logger.binding(name);

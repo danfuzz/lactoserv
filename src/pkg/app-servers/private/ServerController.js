@@ -13,9 +13,6 @@ import { IdGenerator } from '@this/loggy';
 import * as express from 'express';
 
 
-/** @type {function(...*)} Logger for this class. */
-const logger = ThisModule.logger.server;
-
 /**
  * "Controller" for a single server. This wraps both a (concrete subclass of a)
  * {@link net.Server} object _and_ an {@link express.Application} which
@@ -54,9 +51,9 @@ export class ServerController {
    *   as what's in the exposed config object, except with `app` / `apps`
    *   replaced by `appMounts`, and with `host` / `hosts` replaced by
    *  `hostManager`.
-   * @param {IdGenerator} idGenerator ID generator to use.
+   * @param {function(...*)} logger Logger to use.
    */
-  constructor(serverConfig, idGenerator) {
+  constructor(serverConfig, logger) {
     this.#name          = serverConfig.name;
     this.#hostManager   = serverConfig.hostManager;
     this.#mountMap      = ServerController.#makeMountMap(serverConfig.appMounts);
