@@ -17,6 +17,11 @@ export class HttpsWrangler extends TcpWrangler {
   /** @type {?https.Server} High-level protocol server. */
   #protocolServer;
 
+  /**
+   * Constructs an instance.
+   *
+   * @param {object} options Construction options, per the base class spec.
+   */
   constructor(options) {
     super(options);
 

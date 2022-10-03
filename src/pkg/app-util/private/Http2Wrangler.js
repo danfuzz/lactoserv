@@ -30,6 +30,11 @@ export class Http2Wrangler extends TcpWrangler {
   /** @type {Set} Set of all currently-known sessions. */
   #sessions = new Set();
 
+  /**
+   * Constructs an instance.
+   *
+   * @param {object} options Construction options, per the base class spec.
+   */
   constructor(options) {
     super(options);
 
