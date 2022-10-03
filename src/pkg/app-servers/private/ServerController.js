@@ -2,7 +2,6 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { ApplicationController } from '#p/ApplicationController';
-import { ConnectionHandler } from '#p/ConnectionHandler';
 import { RequestLogger } from '#p/RequestLogger';
 import { ThisModule } from '#p/ThisModule';
 
@@ -47,9 +46,6 @@ export class ServerController {
   /** @type {RequestLogger} HTTP(ish) request logger. */
   #requestLogger;
 
-  /** @type {ConnectionHandler} Socket connection handler. */
-  #connectionHandler;
-
 
   /**
    * Constructs an insance.
@@ -61,10 +57,11 @@ export class ServerController {
    * @param {IdGenerator} idGenerator ID generator to use.
    */
   constructor(serverConfig, idGenerator) {
-    this.#name        = serverConfig.name;
-    this.#hostManager = serverConfig.hostManager;
-    this.#mountMap    = ServerController.#makeMountMap(serverConfig.appMounts);
-    this.#logger      = logger[this.#name];
+    this.#name          = serverConfig.name;
+    this.#hostManager   = serverConfig.hostManager;
+    this.#mountMap      = ServerController.#makeMountMap(serverConfig.appMounts);
+    this.#logger        = logger[this.#name];
+    this.#requestLogger = new RequestLogger(this.#logger.req, idGenerator);
 
     const wranglerOptions = {
       idGenerator,
@@ -80,9 +77,6 @@ export class ServerController {
           : {})
     };
     this.#wrangler = ProtocolWranglers.make(wranglerOptions);
-
-    this.#requestLogger     = new RequestLogger(this.#logger.req, idGenerator);
-    this.#connectionHandler = new ConnectionHandler(this.#logger.conn, idGenerator);
 
     this.#configureServerApp();
   }
