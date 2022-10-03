@@ -126,6 +126,8 @@ export class Http2Wrangler extends TcpWrangler {
     // the stop request and then shut things down.
     await this.#runner.whenStopRequested();
 
+    this.#protocolServer.close();
+
     // Node docs indicate one has to explicitly close all HTTP2 sessions.
     for (const s of this.#sessions) {
       if (!s.closed) {
