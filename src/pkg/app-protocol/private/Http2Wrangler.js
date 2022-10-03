@@ -9,6 +9,7 @@ import express from 'express';
 import http2ExpressBridge from 'http2-express-bridge';
 
 import * as http2 from 'node:http2';
+import * as timers from 'node:timers/promises';
 
 
 /**
@@ -128,13 +129,39 @@ export class Http2Wrangler extends TcpWrangler {
 
     this.#protocolServer.close();
 
-    // Node docs indicate one has to explicitly close all HTTP2 sessions.
-    for (const s of this.#sessions) {
-      if (!s.closed) {
-        s.close();
+    // Node docs indicate one has to explicitly close all HTTP2 sessions. What
+    // we do here is _first_ try to nicely close (let the other side know what's
+    // happening), and then if actual closing doesn't happen quickly go ahead
+    // and thwack things totally closed.
+    for (const op of ['close', 'destroy']) {
+      for (const s of this.#sessions) {
+        if (!s.closed) {
+          s[op]();
+        }
       }
+
+      if (this.#sessions.size === 0) {
+        return;
+      }
+
+      await Promise.race([
+        this.#anySessions.whenFalse(),
+        timers.setTimeout(Http2Wrangler.#STOP_GRACE_PERIOD_MSEC)
+      ]);
     }
 
-    await this.#anySessions.whenFalse();
+    if (this.#sessions.size !== 0) {
+      throw new Error('Could not manage to shut down all sessions.');
+    }
   }
+
+  //
+  // Static members
+  //
+
+  /**
+   * {number} How long in msec to wait when stopping, after telling sessions to
+   * close before closing with more extreme prejudice.
+   */
+  static #STOP_GRACE_PERIOD_MSEC = 250;
 }
