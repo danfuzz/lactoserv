@@ -120,7 +120,7 @@ describe('isRunning()', () => {
     await expect(runResult).toResolve();
   });
 
-  test('returns `false` after the thread function runs to completion', async () => {
+  test('returns `false` after the main function runs to completion', async () => {
     let shouldRun = true;
     let stopped   = false;
     const thread = new Threadoid(async () => {
@@ -221,7 +221,7 @@ describe('isStarted()', () => {
     await expect(runResult).toResolve();
   });
 
-  test('returns `false` after the thread function runs to completion', async () => {
+  test('returns `false` after the main function runs to completion', async () => {
     let shouldRun = true;
     let stopped   = false;
     const thread = new Threadoid(async () => {
@@ -314,7 +314,7 @@ describe('isStarted()', () => {
       await expect(runResult).toResolve();
     });
 
-    test('returns `false` after the thread function runs to completion', async () => {
+    test('returns `false` after the main function runs to completion', async () => {
       let shouldRun = true;
       let stopped   = false;
       const thread = new Threadoid(...startArg, async () => {
@@ -392,7 +392,7 @@ describe('isStarted()', () => {
 });
 
 describe('run()', () => {
-  test('causes the thread function to be called', async () => {
+  test('causes the main function to be called', async () => {
     let called = false;
     const thread = new Threadoid(() => {
       called = true;
@@ -405,7 +405,7 @@ describe('run()', () => {
     await expect(runResult).toResolve();
   });
 
-  test('causes the thread function to be called, fully asynchronously', async () => {
+  test('causes the main function to be called, fully asynchronously', async () => {
     let called = false;
     const thread = new Threadoid(() => {
       called = true;
@@ -419,7 +419,7 @@ describe('run()', () => {
     await expect(runResult).toResolve();
   });
 
-  test('causes the thread function to be called, with the thread as its argument', async () => {
+  test('causes the main function to be called, with the thread as its argument', async () => {
     let gotArgs = null;
     const thread = new Threadoid((...args) => {
       gotArgs = args;
@@ -432,7 +432,7 @@ describe('run()', () => {
     await expect(runResult).toResolve();
   });
 
-  test('causes the thread function to be called, with `this` unbound', async () => {
+  test('causes the main function to be called, with `this` unbound', async () => {
     let gotThis = null;
     const thread = new Threadoid(function () {
       gotThis = this;
@@ -446,7 +446,7 @@ describe('run()', () => {
   });
 
   describe('when called while already running', () => {
-    test('does not call the thread function more than once', async () => {
+    test('does not call the main function more than once', async () => {
       let shouldRun = true;
       let count     = 0;
       const thread = new Threadoid(async () => {
@@ -566,7 +566,7 @@ describe('shouldStop()', () => {
     await expect(runResult).toResolve();
   });
 
-  test('returns `true` after the thread function runs to completion', async () => {
+  test('returns `true` after the main function runs to completion', async () => {
     let shouldRun = true;
     let stopped   = false;
     const thread = new Threadoid(async () => {
