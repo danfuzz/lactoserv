@@ -61,7 +61,7 @@ export class ServerController {
     this.#hostManager   = serverConfig.hostManager;
     this.#mountMap      = ServerController.#makeMountMap(serverConfig.appMounts);
     this.#logger        = logger[this.#name];
-    this.#requestLogger = new RequestLogger(this.#logger.req, idGenerator);
+    this.#requestLogger = new RequestLogger(this.#logger.req);
 
     const wranglerOptions = {
       idGenerator,

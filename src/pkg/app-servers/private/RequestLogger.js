@@ -16,18 +16,13 @@ export class RequestLogger {
   /** @type {function(...*)} Underlying logger instance to use. */
   #logger;
 
-  /** @type {IdGenerator} ID generator to use. */
-  #idGenerator;
-
   /**
    * Constructs an instance.
    *
    * @param {function(...*)} logger Underlying logger instance to use.
-   * @param {IdGenerator} idGenerator ID generator to use for request IDs.
    */
-  constructor(logger, idGenerator) {
-    this.#logger      = logger;
-    this.#idGenerator = idGenerator;
+  constructor(logger) {
+    this.#logger = logger;
   }
 
   /**
