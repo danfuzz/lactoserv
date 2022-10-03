@@ -43,7 +43,7 @@ export class Http2Wrangler extends TcpWrangler {
     this.#protocolServer = http2.createSecureServer(options.hosts);
 
     this.#protocolServer
-      .on('request', this.#application)
+      .on('request', (req, res) => this.#handleRequest(req, res))
       .on('session', session => this.#addSession(session));
   }
 
@@ -95,6 +95,27 @@ export class Http2Wrangler extends TcpWrangler {
     session.on('error',      removeSession);
     session.on('frameError', removeSession);
     session.on('goaway',     removeSession);
+  }
+
+  /**
+   * Handles an incoming HTTP(ish) request.
+   *
+   * @param {http2.Http2ServerRequest} req The incoming request.
+   * @param {http2.Http2ServerResponse} res Object to call on to create the
+   *   response.
+   */
+  #handleRequest(req, res) {
+    // Express likes to set status messages, but HTTP2 doesn't actually have
+    // those. Node helpfully warns about that, but in practice this is just an
+    // artifact of Express wanting to not-rely on Node to get default status
+    // messages right. So, it's reasonable to squelch the problem with this
+    // somewhat grotty patch to the response object.
+    Object.defineProperty(res, 'statusMessage', {
+      get: () => '',
+      set: () => { /* Ignore it. */ }
+    });
+
+    this.#application(req, res);
   }
 
   /**
