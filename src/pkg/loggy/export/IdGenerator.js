@@ -25,11 +25,11 @@ export class IdGenerator {
   // The default constructor is fine here.
 
   /**
-   * Makes a new request ID, for use with a single request.
+   * Makes a new ID.
    *
-   * @returns {string} An appropriately-constructed request ID.
+   * @returns {string} An appropriately-constructed ID.
    */
-  makeRequestId() {
+  makeId() {
     const now          = Date.now();
     const minuteNumber = Math.trunc(now * IdGenerator.#MINS_PER_MSEC) & 0xfffff;
 

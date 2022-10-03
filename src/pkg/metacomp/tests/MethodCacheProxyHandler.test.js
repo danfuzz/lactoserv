@@ -91,7 +91,7 @@ describe('get()', () => {
     expect(result.blorp).toBe('blorp-zorp');
   });
 
-  test('returns the same function upon a second-or-more call with the same name', () => {
+  test('returns the same function upon a second-or-more call with the same name, when not asked to not-cache', () => {
     const handler = new MethodCacheProxyHandler();
     const proxy   = new Proxy({}, handler);
 
@@ -110,6 +110,30 @@ describe('get()', () => {
     expect(result2a.blorp).toBe('blorp-zot');
     expect(result1a).toBe(result1b);
     expect(result2a).toBe(result2b);
+  });
+
+  test('returns a different function upon a second-or-more call with the same name, when asked to not-cache', () => {
+    const handler = new MethodCacheProxyHandler();
+    const proxy   = new Proxy({}, handler);
+
+    let count = 0;
+    handler._impl_methodFor = (name) => {
+      count++;
+
+      const result = () => { return; };
+      result.blorp = `blorp-${name}-${count}`;
+      return new MethodCacheProxyHandler.NoCache(result);
+    };
+
+    const result1a = handler.get({}, 'zip', proxy);
+    const result2a = handler.get({}, 'zot', proxy);
+    const result1b = handler.get({}, 'zip', proxy);
+    const result2b = handler.get({}, 'zot', proxy);
+
+    expect(result1a.blorp).toBe('blorp-zip-1');
+    expect(result2a.blorp).toBe('blorp-zot-2');
+    expect(result1b.blorp).toBe('blorp-zip-3');
+    expect(result2b.blorp).toBe('blorp-zot-4');
   });
 });
 

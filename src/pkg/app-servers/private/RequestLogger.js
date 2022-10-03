@@ -1,8 +1,6 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { IdGenerator } from '@this/app-util';
-
 import * as express from 'express';
 
 import * as http2 from 'node:http2';
@@ -16,18 +14,13 @@ export class RequestLogger {
   /** @type {function(...*)} Underlying logger instance to use. */
   #logger;
 
-  /** @type {IdGenerator} ID generator to use. */
-  #idGenerator;
-
   /**
    * Constructs an instance.
    *
    * @param {function(...*)} logger Underlying logger instance to use.
-   * @param {IdGenerator} idGenerator ID generator to use for request IDs.
    */
-  constructor(logger, idGenerator) {
-    this.#logger      = logger;
-    this.#idGenerator = idGenerator;
+  constructor(logger) {
+    this.#logger = logger;
   }
 
   /**
@@ -41,7 +34,7 @@ export class RequestLogger {
    */
   logRequest(req, res) {
     const timeStart  = process.hrtime.bigint();
-    const logger     = this.#logger[this.#idGenerator.makeRequestId()];
+    const logger     = this.#logger.$newId;
     const reqHeaders = req.headers;
 
     logger.started(req.method, req.protocol, req.hostname, req.originalUrl);

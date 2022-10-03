@@ -3,17 +3,13 @@
 
 import { ApplicationController } from '#p/ApplicationController';
 import { RequestLogger } from '#p/RequestLogger';
-import { ThisModule } from '#p/ThisModule';
 
 import { HostManager } from '@this/app-hosts';
-import { IdGenerator, ProtocolWrangler, ProtocolWranglers } from '@this/app-util';
+import { ProtocolWrangler, ProtocolWranglers } from '@this/app-util';
 import { TreePathKey, TreePathMap } from '@this/collections';
 
 import * as express from 'express';
 
-
-/** @type {function(...*)} Logger for this class. */
-const logger = ThisModule.logger.server;
 
 /**
  * "Controller" for a single server. This wraps both a (concrete subclass of a)
@@ -53,17 +49,16 @@ export class ServerController {
    *   as what's in the exposed config object, except with `app` / `apps`
    *   replaced by `appMounts`, and with `host` / `hosts` replaced by
    *  `hostManager`.
-   * @param {IdGenerator} idGenerator ID generator to use.
+   * @param {function(...*)} logger Logger to use.
    */
-  constructor(serverConfig, idGenerator) {
+  constructor(serverConfig, logger) {
     this.#name          = serverConfig.name;
     this.#hostManager   = serverConfig.hostManager;
     this.#mountMap      = ServerController.#makeMountMap(serverConfig.appMounts);
     this.#logger        = logger[this.#name];
-    this.#requestLogger = new RequestLogger(this.#logger.req, idGenerator);
+    this.#requestLogger = new RequestLogger(this.#logger.req);
 
     const wranglerOptions = {
-      idGenerator,
       logger:   this.#logger,
       protocol: serverConfig.protocol,
       socket: {

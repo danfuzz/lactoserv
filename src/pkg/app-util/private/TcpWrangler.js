@@ -1,7 +1,6 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { IdGenerator } from '#x/IdGenerator';
 import { ProtocolWrangler } from '#x/ProtocolWrangler';
 
 import * as net from 'node:net';
@@ -14,9 +13,6 @@ import * as net from 'node:net';
 export class TcpWrangler extends ProtocolWrangler {
   /** @type {?function(...*)} Logger, if logging is to be done. */
   #logger;
-
-  /** @type {IdGenerator} ID generator to use, if logging is to be done. */
-  #idGenerator;
 
   /** @type {net.Server} Server socket, per se. */
   #serverSocket;
@@ -36,7 +32,6 @@ export class TcpWrangler extends ProtocolWrangler {
     super(options);
 
     this.#logger        = options.logger ?? null;
-    this.#idGenerator   = options.idGenerator ?? null;
     this.#listenOptions =
       TcpWrangler.#trimOptions(options.socket, TcpWrangler.#LISTEN_PROTO);
     this.#loggableInfo  = {
@@ -156,7 +151,7 @@ export class TcpWrangler extends ProtocolWrangler {
    */
   #handleConnection(socket, ...rest) {
     if (this.#logger) {
-      const connLogger = this.#logger[this.#idGenerator.makeRequestId()];
+      const connLogger = this.#logger.$newId;
 
       try {
         const { address, port } = socket.address(); // No need for the others.
