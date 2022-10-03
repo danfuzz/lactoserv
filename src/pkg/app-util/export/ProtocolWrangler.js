@@ -100,15 +100,7 @@ export class ProtocolWrangler {
    * @throws {Error} Whatever problem occurred during running.
    */
   async stop() {
-    if (!this.#runner.isRunning()) {
-      return null;
-    }
-
-    // "Re-run" to get hold of the final result of running.
-    const result = this.#runner.run();
-
-    this.#runner.stop();
-    return result;
+    return this.#runner.stop();
   }
 
   /**

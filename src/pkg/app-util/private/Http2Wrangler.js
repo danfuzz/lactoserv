@@ -59,11 +59,7 @@ export class Http2Wrangler extends TcpWrangler {
 
   /** @override */
   async _impl_applicationStop() {
-    // "Re-run" to get hold of the final result of running.
-    const result = this.#runner.run();
-
-    this.#runner.stop();
-    return result;
+    return this.#runner.stop();
   }
 
   /** @override */
