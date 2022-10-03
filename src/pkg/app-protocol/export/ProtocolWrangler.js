@@ -165,23 +165,6 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Starts the "network stack." This is called as the start function of the
-   * {@link #runner}.
-   */
-  async #startNetwork() {
-    if (this.#logger) {
-      this.#logger.starting(this._impl_loggableInfo());
-    }
-
-    await this._impl_applicationStart();
-    await this._impl_serverSocketStart();
-
-    if (this.#logger) {
-      this.#logger.started(this._impl_loggableInfo());
-    }
-  }
-
-  /**
    * Runs the "network stack." This is called as the main function of the
    * {@link #runner}.
    */
@@ -206,6 +189,23 @@ export class ProtocolWrangler {
 
     if (this.#logger) {
       this.#logger.stopped(this._impl_loggableInfo());
+    }
+  }
+
+  /**
+   * Starts the "network stack." This is called as the start function of the
+   * {@link #runner}.
+   */
+  async #startNetwork() {
+    if (this.#logger) {
+      this.#logger.starting(this._impl_loggableInfo());
+    }
+
+    await this._impl_applicationStart();
+    await this._impl_serverSocketStart();
+
+    if (this.#logger) {
+      this.#logger.started(this._impl_loggableInfo());
     }
   }
 }
