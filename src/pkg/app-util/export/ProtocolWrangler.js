@@ -54,10 +54,6 @@ export class ProtocolWrangler {
    * @param {object} options Construction options, per the description above.
    */
   constructor(options) {
-    const hostOptions = options.hosts
-      ? Object.freeze({ ...options.hosts })
-      : null;
-
     this.#logger       = options.logger ?? null;
     this.#idGenerator  = options.idGenerator ?? null;
     this.#protocolName = options.protocol;
