@@ -1,0 +1,72 @@
+#!/bin/bash
+#
+# Copyright 2022 Dan Bornstein. All rights reserved.
+# All code and assets are considered proprietary and unlicensed.
+
+. "$(dirname "$(readlink -f "$0")")/lib/init.sh" || exit "$?"
+
+
+#
+# Argument parsing
+#
+
+function usage {
+    print-usage $'
+    Usage:
+
+    ${name} [<opt> ...]
+      Sorts imports in `.js` files according to this project\'s preferred
+      ordering.
+
+    ${name} [--help | -h]
+      Displays this message.
+    '
+
+    exit "$@"
+}
+
+# Want help?
+opt-action --call='{ usage }' help/h
+
+process-args "$@" || usage "$?"
+
+
+#
+# Helper functions
+#
+
+# The actual import-sorting AWK script. TODO: Fill this in!
+SORTER_AWK='
+{ print }
+'
+
+# Runs the fixer on the given file.
+function do-sort {
+    local inFile="$1"
+    local tmpFile="$1.new"
+
+    awk <"${inFile}" >"${tmpFile}" "${SORTER_AWK}" \
+    || return "$?"
+
+    mv "${tmpFile}" "${inFile}"
+}
+
+
+#
+# Main script
+#
+
+baseDir="$(dirname "$(this-cmd-dir)")"
+srcDir="${baseDir}/src"
+
+cd "${srcDir}"
+
+sources=($(find . -name '*.js'))
+
+for file in "${sources[@]}"; do
+    info-msg "Processing ${file}..."
+    do-sort "${file}" || exit "$?"
+done
+
+info-msg ''
+info-msg 'Done!'
