@@ -154,6 +154,7 @@ export class Http2Wrangler extends TcpWrangler {
       throw new Error('Could not manage to shut down all sessions.');
     }
   }
+  
 
   //
   // Static members
