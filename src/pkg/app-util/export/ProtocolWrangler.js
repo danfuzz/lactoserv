@@ -68,10 +68,6 @@ export class ProtocolWrangler {
 
     // Hook the protocol server to the (Express-like) application.
     this.#protocolServer.on('request', this.#application);
-
-    if (this.#logger) {
-      this.#logger.createdWrangler();
-    }
   }
 
   /**
@@ -223,14 +219,14 @@ export class ProtocolWrangler {
    */
   async #startNetwork() {
     if (this.#logger) {
-      this.#logger.wranglerStarting(this.loggableInfo);
+      this.#logger.starting(this.loggableInfo);
     }
 
     await this._impl_protocolStart();
     await this._impl_serverSocketStart();
 
     if (this.#logger) {
-      this.#logger.wranglerStarted(this.loggableInfo);
+      this.#logger.started(this.loggableInfo);
     }
   }
 
@@ -247,14 +243,14 @@ export class ProtocolWrangler {
     await this.#runner.whenStopRequested();
 
     if (this.#logger) {
-      this.#logger.wranglerStopping(this.loggableInfo);
+      this.#logger.stopping(this.loggableInfo);
     }
 
     await this._impl_serverSocketStop();
     await this._impl_protocolStop();
 
     if (this.#logger) {
-      this.#logger.wranglerStopped(this.loggableInfo);
+      this.#logger.stopped(this.loggableInfo);
     }
   }
 }
