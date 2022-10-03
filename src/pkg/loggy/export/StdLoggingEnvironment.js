@@ -2,6 +2,7 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
+import { IdGenerator } from '#x/IdGenerator';
 import { LogSource } from '#x/LogSource';
 
 import { MustBe } from '@this/typey';
@@ -15,6 +16,9 @@ import * as process from 'node:process';
 export class StdLoggingEnvironment extends BaseLoggingEnvironment {
   /** @type {LogSource} Log source attached to {@link #emit}. */
   #source;
+
+  /** @type {IdGenerator} ID generator to use. */
+  #idGenerator = new IdGenerator();
 
   /** @type {bigint} Last result from `hrtime.bigint()`. */
   #lastHrtimeNsec = -1n;
@@ -36,6 +40,11 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
   /** @override */
   _impl_emit(record) {
     this.#source.emit(record);
+  }
+
+  /** @override */
+  _impl_makeId() {
+    this.#idGenerator.makeRequestId();
   }
 
   /** @override */

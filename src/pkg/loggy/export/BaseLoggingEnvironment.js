@@ -49,6 +49,18 @@ export class BaseLoggingEnvironment {
   }
 
   /**
+   * Makes an ID string suitable for use as a log tag or other context-ish
+   * thing. ID strings are meant to be non-empty, relatively short (20
+   * chararacters or less) and, while not absolutely unique, unique _enough_ to
+   * disambiguate what's happening in the logs given other context.
+   *
+   * @returns {string} A short-ish unique-ish ID string.
+   */
+  makeId() {
+    return MustBe.string(this._impl_makeId(), /^.{1,20}$/);
+  }
+
+  /**
    * Gets a timestamp representing "now," represented as seconds since the
    * Unix Epoch, with microsecond-or-better precision.
    *
@@ -106,6 +118,16 @@ export class BaseLoggingEnvironment {
    */
   _impl_emit(record) {
     Methods.abstract(record);
+  }
+
+  /**
+   * Makes a new ID, suitable for returning through {@link #makeId}.
+   *
+   * @abstract
+   * @returns {string} The new ID.
+   */
+  _impl_makeId() {
+    Methods.abstract();
   }
 
   /**
