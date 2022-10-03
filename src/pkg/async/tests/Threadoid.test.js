@@ -342,7 +342,34 @@ describe('isStarted()', () => {
     });
 
     if (useStartFunc) {
-      // TODO: Test needed here.
+      test('returns `false` before the start function has completed and `true after`', async () => {
+        let shouldRunStart = true;
+        const startFn = async () => {
+          while (shouldRunStart) {
+            await timers.setImmediate();
+          }
+        };
+        let shouldRunMain = true;
+        const mainFn = async () => {
+          while (shouldRunMain) {
+            await timers.setImmediate();
+          }
+        };
+        const thread = new Threadoid(startFn, mainFn);
+
+        const runResult = thread.run();
+        await timers.setImmediate();
+        expect(thread.isRunning()).toBeTrue(); // Baseline expectation.
+
+        // Actual test.
+        expect(thread.isStarted()).toBeFalse();
+        shouldRunStart = false;
+        await timers.setImmediate();
+        expect(thread.isStarted()).toBeTrue();
+
+        shouldRunMain = false;
+        await expect(runResult).toResolve();
+      });
     } else {
       test('returns `true` immediately when starting to run asynchronously', async () => {
         let shouldRun = true;
