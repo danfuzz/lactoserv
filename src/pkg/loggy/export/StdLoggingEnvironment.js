@@ -44,7 +44,7 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
 
   /** @override */
   _impl_makeId() {
-    this.#idGenerator.makeId();
+    return this.#idGenerator.makeId();
   }
 
   /** @override */
