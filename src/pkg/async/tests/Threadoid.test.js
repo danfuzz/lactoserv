@@ -598,6 +598,18 @@ describe('run()', () => {
       await expect(runResult).toResolve();
     });
 
+    test('throws the value thrown by the start function', async () => {
+      const error = new Error('OH NOES!!!');
+      const wrongError = new Error('wrong-error');
+      const thread = new Threadoid(
+        () => { throw (error); },
+        () => { throw (wrongError); }
+      );
+
+      const runResult = thread.run();
+      expect(runResult).rejects.toThrow(error);
+    });
+
     describe('when called while already running', () => {
       test('does not call the start function more than once', async () => {
         let shouldRun = true;
