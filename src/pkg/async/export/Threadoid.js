@@ -135,10 +135,22 @@ export class Threadoid {
   }
 
   /**
-   * Requests that this instance stop running as soon as possible.
+   * Requests that this instance stop running as soon as possible. This method
+   * async-returns the same return value as the call to {@link #run} which
+   * started instance. If the instance isn't running when this method is called,
+   * it promptly returns `null` (and _not_, e.g., the result of an earlier run).
+   *
+   * @returns {*} Whatever is returned by the main function.
+   * @throws {Error} Whatever was thrown by either the start function or the
+   *   main function.
    */
-  stop() {
+  async stop() {
+    if (!this.#runResult) {
+      return null;
+    }
+
     this.#runCondition.value = false;
+    return this.#runResult;
   }
 
   /**
