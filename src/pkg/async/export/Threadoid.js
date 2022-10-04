@@ -226,6 +226,6 @@ export class Threadoid {
    *   indeed threw an error.
    */
   async #start() {
-    // TODO!
+    return this.#startFunction(this);
   }
 }
