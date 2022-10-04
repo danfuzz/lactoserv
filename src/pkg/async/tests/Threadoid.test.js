@@ -17,16 +17,17 @@ describe('constructor(function)', () => {
     expect(thread.isRunning()).toBeFalse();
   });
 
-  test('produces an instance for which `isStarted() === false`', () => {
-    const thread = new Threadoid(() => null);
-
-    expect(thread.isStarted()).toBeFalse();
-  });
-
   test('produces an instance for which `shouldStop() === true`', () => {
     const thread = new Threadoid(() => null);
 
     expect(thread.shouldStop()).toBeTrue();
+  });
+
+  test('produces an instance for which `whenStarted()` is synchronously fulfilled', async () => {
+    const thread = new Threadoid(() => null);
+    const result = thread.whenStarted();
+
+    expect(PromiseState.isFulfilled(result)).toBeTrue();
   });
 
   test('produces an instance for which `whenStopRequested()` is pre-fulfilled', async () => {
@@ -146,249 +147,6 @@ describe('isRunning()', () => {
     expect(stopped).toBeTrue();
 
     await expect(runResult).toResolve();
-  });
-});
-
-describe('isStarted()', () => {
-  test('returns `false` before being started', async () => {
-    const thread = new Threadoid(() => null);
-    expect(thread.isStarted()).toBeFalse();
-  });
-
-  test('returns `false` immediately after being started (before any async action can happen)', async () => {
-    const thread = new Threadoid(() => null);
-
-    const runResult = thread.run();
-    expect(thread.isStarted()).toBeFalse();
-    thread.stop();
-
-    await expect(runResult).toResolve();
-  });
-
-  test('returns `true` immediately when starting to run asynchronously', async () => {
-    let shouldRun = true;
-    const thread = new Threadoid(async () => {
-      while (shouldRun) {
-        await timers.setImmediate();
-      }
-    });
-
-    const runResult = thread.run();
-    await timers.setImmediate();
-    expect(thread.isStarted()).toBeTrue();
-    shouldRun = false;
-    thread.stop();
-
-    await expect(runResult).toResolve();
-  });
-
-  test('returns `true` while running', async () => {
-    let shouldRun = true;
-    const thread = new Threadoid(async () => {
-      while (shouldRun) {
-        await timers.setImmediate();
-      }
-    });
-
-    const runResult = thread.run();
-    for (let i = 0; i < 10; i++) {
-      await timers.setImmediate();
-      expect(thread.isStarted()).toBeTrue();
-    }
-
-    shouldRun = false;
-    await expect(runResult).toResolve();
-  });
-
-  test('returns `true` while running, even if `stop()` was called', async () => {
-    let shouldRun = true;
-    const thread = new Threadoid(async () => {
-      while (shouldRun) {
-        await timers.setImmediate();
-      }
-    });
-
-    const runResult = thread.run();
-    await timers.setImmediate();
-    expect(thread.isStarted()).toBeTrue(); // Baseline expectation.
-
-    // The actual test.
-    thread.stop();
-    expect(thread.isStarted()).toBeTrue();
-    await timers.setImmediate();
-    expect(thread.isStarted()).toBeTrue();
-
-    shouldRun = false;
-    await expect(runResult).toResolve();
-  });
-
-  test('returns `false` after the main function runs to completion', async () => {
-    let shouldRun = true;
-    let stopped   = false;
-    const thread = new Threadoid(async () => {
-      while (shouldRun) {
-        await timers.setImmediate();
-      }
-      stopped = true;
-    });
-
-    const runResult = thread.run();
-    await timers.setImmediate();
-    expect(thread.isStarted()).toBeTrue(); // Baseline expectation.
-
-    // The actual test.
-
-    shouldRun = false;
-    for (let i = 0; (i < 10) && !stopped; i++) {
-      await timers.setImmediate();
-    }
-
-    expect(thread.isStarted()).toBeFalse();
-    expect(stopped).toBeTrue();
-
-    await expect(runResult).toResolve();
-  });
-});
-
-describe('isStarted()', () => {
-  describe.each`
-    useStartFunc | label
-    ${false}     | ${'without a start function'}
-    ${true}      | ${'with a start function'}
-  `('$label', ({ useStartFunc }) => {
-    const startArg = useStartFunc
-      ? [() => null]
-      : [];
-
-    test('returns `false` before being started', async () => {
-      const thread = new Threadoid(...startArg, () => null);
-      expect(thread.isStarted()).toBeFalse();
-    });
-
-    test('returns `false` immediately after being started (before any async action can happen)', async () => {
-      const thread = new Threadoid(...startArg, () => null);
-
-      const runResult = thread.run();
-      expect(thread.isStarted()).toBeFalse();
-      thread.stop();
-
-      await expect(runResult).toResolve();
-    });
-
-    test('returns `true` while running', async () => {
-      let shouldRun = true;
-      const thread = new Threadoid(...startArg, async () => {
-        while (shouldRun) {
-          await timers.setImmediate();
-        }
-      });
-
-      const runResult = thread.run();
-      for (let i = 0; i < 10; i++) {
-        await timers.setImmediate();
-        expect(thread.isStarted()).toBeTrue();
-      }
-
-      shouldRun = false;
-      await expect(runResult).toResolve();
-    });
-
-    test('returns `true` while running, even if `stop()` was called', async () => {
-      let shouldRun = true;
-      const thread = new Threadoid(...startArg, async () => {
-        while (shouldRun) {
-          await timers.setImmediate();
-        }
-      });
-
-      const runResult = thread.run();
-      await timers.setImmediate();
-      expect(thread.isStarted()).toBeTrue(); // Baseline expectation.
-
-      // The actual test.
-      thread.stop();
-      expect(thread.isStarted()).toBeTrue();
-      await timers.setImmediate();
-      expect(thread.isStarted()).toBeTrue();
-
-      shouldRun = false;
-      await expect(runResult).toResolve();
-    });
-
-    test('returns `false` after the main function runs to completion', async () => {
-      let shouldRun = true;
-      let stopped   = false;
-      const thread = new Threadoid(...startArg, async () => {
-        while (shouldRun) {
-          await timers.setImmediate();
-        }
-        stopped = true;
-      });
-
-      const runResult = thread.run();
-      await timers.setImmediate();
-      expect(thread.isStarted()).toBeTrue(); // Baseline expectation.
-
-      // The actual test.
-
-      shouldRun = false;
-      for (let i = 0; (i < 10) && !stopped; i++) {
-        await timers.setImmediate();
-      }
-
-      expect(thread.isStarted()).toBeFalse();
-      expect(stopped).toBeTrue();
-
-      await expect(runResult).toResolve();
-    });
-
-    if (useStartFunc) {
-      test('returns `false` before the start function has completed and `true` after', async () => {
-        let shouldRunStart = true;
-        const startFn = async () => {
-          while (shouldRunStart) {
-            await timers.setImmediate();
-          }
-        };
-        let shouldRunMain = true;
-        const mainFn = async () => {
-          while (shouldRunMain) {
-            await timers.setImmediate();
-          }
-        };
-        const thread = new Threadoid(startFn, mainFn);
-
-        const runResult = thread.run();
-        await timers.setImmediate();
-        expect(thread.isRunning()).toBeTrue(); // Baseline expectation.
-
-        // Actual test.
-        expect(thread.isStarted()).toBeFalse();
-        shouldRunStart = false;
-        await timers.setImmediate();
-        expect(thread.isStarted()).toBeTrue();
-
-        shouldRunMain = false;
-        await expect(runResult).toResolve();
-      });
-    } else {
-      test('returns `true` immediately when starting to run asynchronously', async () => {
-        let shouldRun = true;
-        const thread = new Threadoid(async () => {
-          while (shouldRun) {
-            await timers.setImmediate();
-          }
-        });
-
-        const runResult = thread.run();
-        await timers.setImmediate();
-        expect(thread.isStarted()).toBeTrue();
-        shouldRun = false;
-        thread.stop();
-
-        await expect(runResult).toResolve();
-      });
-    }
   });
 });
 
@@ -826,10 +584,11 @@ describe('whenStarted()', () => {
       ? [() => null]
       : [];
 
-    test('is not settled before being started', async () => {
+    test('is synchronously fulfilled as `null` before being started', async () => {
       const thread = new Threadoid(...startArg, () => null);
       const result = thread.whenStarted();
-      expect(PromiseState.isSettled(result)).toBeFalse();
+      expect(PromiseState.isFulfilled(result)).toBeTrue();
+      expect(await result).toBeNull();
     });
 
     test('is not settled immediately after being started (before any async action can happen)', async () => {
@@ -888,7 +647,7 @@ describe('whenStarted()', () => {
 
     });
 
-    test('stops resolving after the main function runs to completion', async () => {
+    test('becomes synchronously fulfilled as `null` after the main function runs to completion', async () => {
       let shouldRun = true;
       let stopped   = false;
       const thread = new Threadoid(...startArg, async () => {
@@ -910,8 +669,9 @@ describe('whenStarted()', () => {
       }
 
       const result = thread.whenStarted();
-      expect(PromiseState.isSettled(result)).toBeFalse();
+      expect(PromiseState.isFulfilled(result)).toBeTrue();
       expect(stopped).toBeTrue();
+      expect(await result).toBeNull();
 
       await expect(runResult).toResolve();
     });
@@ -947,6 +707,36 @@ describe('whenStarted()', () => {
         shouldRunMain = false;
         await expect(runResult).toResolve();
       });
+
+      test('becomes resolved to whatever the start function returns', async () => {
+        const thread = new Threadoid(() => 123, () => null);
+
+        const runResult = thread.run();
+        const result    = thread.whenStarted();
+
+        await timers.setImmediate();
+        expect(PromiseState.isSettled(result)).toBeTrue();
+        expect(await result).toBe(123);
+
+        await expect(runResult).toResolve();
+      });
+
+      test('throws whatever the start function throws', async () => {
+        const error  = new Error('alas');
+        const thread = new Threadoid(() => { throw error; }, () => null);
+
+        const runResult = thread.run();
+        const result    = thread.whenStarted();
+
+        PromiseUtil.handleRejection(result);
+        PromiseUtil.handleRejection(runResult);
+
+        await timers.setImmediate();
+        expect(PromiseState.isSettled(result)).toBeTrue();
+        await expect(result).rejects.toThrow(error);
+
+        await expect(runResult).rejects.toThrow();
+      });
     } else {
       test('resolves immediately when starting to run asynchronously', async () => {
         let shouldRun = true;
@@ -966,6 +756,19 @@ describe('whenStarted()', () => {
         expect(PromiseState.isFulfilled(result)).toBeTrue();
         shouldRun = false;
         thread.stop();
+
+        await expect(runResult).toResolve();
+      });
+
+      test('becomes resolved to `null` once the thread is running', async () => {
+        const thread = new Threadoid(async () => 123);
+
+        const runResult = thread.run();
+        const result    = thread.whenStarted();
+
+        await timers.setImmediate();
+        expect(PromiseState.isSettled(result)).toBeTrue();
+        expect(await result).toBeNull();
 
         await expect(runResult).toResolve();
       });

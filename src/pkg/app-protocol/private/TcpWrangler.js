@@ -64,14 +64,8 @@ export class TcpWrangler extends ProtocolWrangler {
 
   /** @override */
   async _impl_serverSocketStart() {
-    const runResult = this.#runner.run();
-
-    // If `whenStarted()` loses, that means there was trouble starting, in which
-    // case we return the known-rejected result of the run.
-    return Promise.race([
-      this.#runner.whenStarted(),
-      runResult
-    ]);
+    this.#runner.run();
+    return this.#runner.whenStarted();
   }
 
   /** @override */

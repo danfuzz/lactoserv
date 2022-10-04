@@ -29,17 +29,17 @@ export class Threadoid {
   #runCondition = new Condition();
 
   /**
-   * @type {?Promise<null>} Result of the currently-executing {@link #run}, if
-   * currently running.
+   * @type {?Promise} Promised result of the currently-executing {@link #run},
+   * if the instance is currently running.
    */
   #runResult = null;
 
   /**
-   * @type {Condition} Has the instance started? This becomes `true` when the
-   * instance is running and after the start function has returned from being
-   * called.
+   * @type {?Promise} Promised result of calling {@link #start}, if the instance
+   * is currently running (at all, not just in the start function). `null` if
+   * not running or if the instance doesn't have a start function.
    */
-  #startedCondition = new Condition();
+  #startResult = null;
 
 
   /**
@@ -84,17 +84,6 @@ export class Threadoid {
    */
   isRunning() {
     return this.#runResult !== null;
-  }
-
-  /**
-   * Has this instance successfully started? This is `true` when the instance
-   * has started doing asynchronous running _and_ either it has no start
-   * function _or_ the start function has returned without throwing.
-   *
-   * @returns {boolean} The answer.
-   */
-  isStarted() {
-    return this.#startedCondition.value === true;
   }
 
   /**
@@ -155,13 +144,26 @@ export class Threadoid {
   }
 
   /**
-   * Gets a promise that becomes fulfilled when this instance is running and
-   * after its start function has completed.
+   * Gets a promise that becomes settled when this instance is running and
+   * after its start function has completed. It becomes _fulfilled_ with the
+   * result of calling the start function, if the start function returned
+   * without error. It becomes _rejected_ with the same reason as whatever the
+   * start function threw, if the start function indeed threw an error. If
+   * `isRunning() === false` when this method is called, it async-returns
+   * `null` promptly.
    *
-   * @returns {Promise} A promise as described.
+   * @returns {*} Whatever was returned by the start function, with exceptions
+   *   as noted above.
+   * @throws {Error} The same errror as thrown by the start function, if it
+   *   threw an error.
    */
-  whenStarted() {
-    return this.#startedCondition.whenTrue();
+  async whenStarted() {
+    if (!this.#runResult) {
+      // Not currently running.
+      return null;
+    }
+
+    return this.#startResult;
   }
 
   /**
@@ -188,28 +190,55 @@ export class Threadoid {
 
   /**
    * Runs the thread.
+   *
+   * @returns {*} Whatever the main function returned.
+   * @throws {Error} The same error as was thrown by either the start function
+   *   or main function, if indeed one of those threw an error.
    */
   async #run() {
-    // This `await` guarantees that no thread processing happens synchronously
-    // with respect to the client (which called `run()`).
-    await null;
+    // We call `start()` here, before the `await` below, so that `startResult`
+    // becomes non-null synchronously with respect to the client call to
+    // (public) `run()`. Note that we do this even if there is no start
+    // function, so that `whenStarted()` can honor its contract.
+    this.#startResult = this.#start();
 
     try {
-      if (this.#startFunction) {
-        await this.#startFunction();
-      }
-
-      this.#startedCondition.value = true;
+      // This `await` guarantees (a) that no thread processing happens
+      // synchronously with respect to the client, and (b) that the start
+      // function will have finished before we call the main function.
+      await this.#startResult;
 
       return await this.#mainFunction();
     } finally {
       // Slightly tricky: At this moment, `#runResult` is the return promise
       // from this very method, but it's correct to `null` it out now, because
       // as of the end of this method (which will be happening synchronously),
-      // running will have stopped.
-      this.#runResult              = null;
-      this.#startedCondition.value = false;
-      this.#runCondition.value     = false;
+      // running will have stopped. Similar logic applies to the other
+      // properties.
+      this.#startResult        = null;
+      this.#runResult          = null;
+      this.#runCondition.value = false;
+    }
+  }
+
+  /**
+   * Runs the start function.
+   *
+   * @returns {*} Whatever the start function returned, or `null` if there is no
+   *   start function.
+   * @throws {Error} The same error as was thrown by the start function, if it
+   *   indeed threw an error.
+   */
+  async #start() {
+    if (this.#startFunction) {
+      // This `await` guarantees that the start function isn't called
+      // synchronously with respect to the client (which called `run()`). (This
+      // guarantee is specified by this class.)
+      await null;
+
+      return this.#startFunction(this);
+    } else {
+      return null;
     }
   }
 }
