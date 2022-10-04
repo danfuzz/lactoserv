@@ -304,8 +304,9 @@ function do-js-build-old {
 
 # New version of the JS build. TODO: Clean this and the old stuff up.
 function do-js-build-new {
-    local mainModule="$1"
-    local destDir="${outDir}/$2"
+    local projectName="$1"
+    local mainModule="$2"
+    local destDir="${outDir}/${projectName}"
 
     progress-msg 'Doing new-style JS build...'
 
@@ -320,9 +321,11 @@ function do-js-build-new {
     # Construct a top-level package.json.
     jget >"${destDir}/package.json" \
         --file="${srcDir}/pkg/${mainModule}/package.json" \
-        deps:json="${deps}" '
+        deps:json="${deps}" \
+        projectName="${projectName}" '
     . | del(.imports) +
     {
+        name:         ("top-of-" + $projectName),
         dependencies: $deps.extDeps,
         exports:      "./index.js"
     }'
@@ -372,7 +375,7 @@ progress-msg 'Copying example setup...'
 || exit "$?"
 
 if (( doNew )); then
-    do-js-build-new main lactoserv \
+    do-js-build-new lactoserv main \
     || exit "$?"
 else
     do-js-build-old \
