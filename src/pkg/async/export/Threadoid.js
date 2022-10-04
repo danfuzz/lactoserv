@@ -87,17 +87,6 @@ export class Threadoid {
   }
 
   /**
-   * Has this instance successfully started? This is `true` when the instance
-   * has started doing asynchronous running _and_ either it has no start
-   * function _or_ the start function has returned without throwing.
-   *
-   * @returns {boolean} The answer.
-   */
-  isStarted() {
-    return this.#startedCondition.value === true;
-  }
-
-  /**
    * Starts this instance running, if it isn't already.  All processing in the
    * thread happens asynchronously with respect to the caller of this method.
    * The async-return value or exception thrown from this method is (in order):
