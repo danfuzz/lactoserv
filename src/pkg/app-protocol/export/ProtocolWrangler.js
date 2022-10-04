@@ -66,7 +66,7 @@ export class ProtocolWrangler {
    * @throws {Error} Thrown if there was any trouble starting up.
    */
   async start() {
-    const runResult = this.#runner.run();
+    this.#runner.run();
     return this.#runner.whenStarted();
   }
 

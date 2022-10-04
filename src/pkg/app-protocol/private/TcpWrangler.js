@@ -64,7 +64,7 @@ export class TcpWrangler extends ProtocolWrangler {
 
   /** @override */
   async _impl_serverSocketStart() {
-    const runResult = this.#runner.run();
+    this.#runner.run();
     return this.#runner.whenStarted();
   }
 
