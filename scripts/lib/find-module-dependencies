@@ -123,6 +123,7 @@ fi
 # Form the final result.
 jget "${state}" '{
     main,
-    localDeps: (.localDeps - [.main]),
-    extDeps:   (.extDeps | map(split("@") | { key: .[0], value: .[1] }) | from_entries)
+    localDeps,
+    extDeps:
+        (.extDeps | map(split("@") | { key: .[0], value: .[1] }) | from_entries)
 }'
