@@ -36,8 +36,56 @@ process-args "$@" || usage "$?"
 #
 
 # The actual import-sorting AWK script. TODO: Fill this in!
-SORTER_AWK='
-{ print }
+SORTER_AWK=$'
+BEGIN {
+    collecting = 0;
+    count      = 0;
+}
+
+!importsDone && /^import/ {
+    collecting = 1;
+}
+
+collecting && /^import .* from / {
+    from = $0;
+    sub(/^.* from [\'"]/, "", from);
+    sub(/[\'"];$/, "", from);
+    if (match(from, /^#/) != 0) {
+        from = "[D " from;
+    } else if (match(from, /^@this/) != 0) {
+        from = "[C " from;
+    } else if (match(from, /^node:/) != 0) {
+        from = "[A " from;
+    } else {
+        from = "[B " from;
+    }
+    imports[count++] = from "]" $0;
+    next;
+}
+
+collecting && /^ *$/ {
+    next;
+}
+
+collecting {
+    collecting = 0;
+    importsDone = 1;
+
+    # TODO: Sort.
+
+    for (i = 0; i < count; i++) {
+        print imports[i];
+    }
+
+    print "";
+    print "";
+
+    # Fall through and print the `class` line.
+}
+
+!collecting {
+    print;
+}
 '
 
 # Runs the fixer on the given file.
@@ -66,6 +114,7 @@ sources=($(find . -name '*.js'))
 for file in "${sources[@]}"; do
     info-msg "Processing ${file}..."
     do-sort "${file}" || exit "$?"
+    exit 1 # TEMP!
 done
 
 info-msg ''
