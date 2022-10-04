@@ -51,6 +51,7 @@ collecting && /^import .* from / {
     sub(/^.* from [\'"]/, "", from);
     sub(/[\'"];$/, "", from);
     if (match(from, /^#/) != 0) {
+        sub(/^[^\\/]*/, "", from);
         from = "D :: " from;
     } else if (match(from, /^@this/) != 0) {
         from = "C :: " from;
