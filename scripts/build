@@ -18,6 +18,8 @@ function usage {
 
     --clean
       Do a clean build.
+    --new
+      Use the new JS build code. TODO: Get rid of the old way!
     --out=<dir>
       Directory where built output goes. Defaults to `out` directly under the
       main product directory.
@@ -34,6 +36,9 @@ opt-action --call='{ usage }' help/h
 
 # Clean build?
 opt-toggle --var=doClean clean
+
+# New-style build?
+opt-toggle --var=doNew new
 
 # Built output directory.
 opt-value --var=outDir out
@@ -299,7 +304,23 @@ function do-js-build-old {
 
 # New version of the JS build. TODO: Clean this and the old stuff up.
 function do-js-build-new {
-    : # TODO!
+    local mainModule="$1"
+    local destDir="${outDir}/$2"
+
+    progress-msg 'Doing new-style JS build...'
+
+    mkdir -p "${destDir}" \
+    || return "$?"
+
+    local deps
+    deps="$(lib find-module-dependencies "${mainModule}")" \
+    || return "$?"
+
+    # TODO: Make a top-level package.json.
+
+    # TODO: Copy all the local modules.
+
+    # TODO: Write a top-level `index.js`.
 }
 
 
@@ -340,8 +361,13 @@ progress-msg 'Copying example setup...'
 ) \
 || exit "$?"
 
-do-js-build-old \
-|| exit "$?"
+if (( doNew )); then
+    do-js-build-new main \
+    || exit "$?"
+else
+    do-js-build-old \
+    || exit "$?"
+fi
 
 progress-msg
 progress-msg 'Build complete!'
