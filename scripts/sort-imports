@@ -51,15 +51,15 @@ collecting && /^import .* from / {
     sub(/^.* from [\'"]/, "", from);
     sub(/[\'"];$/, "", from);
     if (match(from, /^#/) != 0) {
-        from = "[D " from;
+        from = "D :: " from;
     } else if (match(from, /^@this/) != 0) {
-        from = "[C " from;
+        from = "C :: " from;
     } else if (match(from, /^node:/) != 0) {
-        from = "[A " from;
+        from = "A :: " from;
     } else {
-        from = "[B " from;
+        from = "B :: " from;
     }
-    imports[count++] = from "]" $0;
+    imports[count++] = from " :: " $0;
     next;
 }
 
@@ -82,8 +82,18 @@ collecting {
         }
     }
 
+    lastTag = "";
     for (i = 0; i < count; i++) {
-        print imports[i];
+        split(imports[i], parts, / :: /);
+        tag = parts[1];
+        line = parts[3];
+        if (tag != lastTag) {
+            if (lastTag != "") {
+                print "";
+            }
+            lastTag = tag;
+        }
+        print line;
     }
 
     print "";
