@@ -3,6 +3,7 @@
 
 import { MustBe } from '@this/typey';
 
+
 /**
  * Stack trace for use within the logging system.
  */

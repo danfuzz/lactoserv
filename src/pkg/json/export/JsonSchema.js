@@ -1,10 +1,11 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { JsonSchemaError } from '#x/JsonSchemaError';
-
 import Ajv from 'ajv';
 import ajvFormats from 'ajv-formats';
+
+import { JsonSchemaError } from '#x/JsonSchemaError';
+
 
 /**
  * Simple interface for JSON Schema validation.

@@ -1,10 +1,10 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { ChainedEvent } from '@this/async';
+
 import { LogSource } from '#x/LogSource';
 import { StdLoggingEnvironment } from '#x/StdLoggingEnvironment';
-
-import { ChainedEvent } from '@this/async';
 
 
 /**

@@ -3,6 +3,7 @@
 
 import { PromiseState } from '@this/async';
 
+
 const promPending   = new Promise(() => { /*empty*/ });
 const promFulfilled = Promise.resolve(123);
 const promRejected  = Promise.reject(new Error('Eeeek!'));

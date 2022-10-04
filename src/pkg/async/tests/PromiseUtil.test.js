@@ -1,10 +1,11 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { PromiseState, PromiseUtil } from '@this/async';
-
 import process from 'node:process';
 import * as timers from 'node:timers/promises';
+
+import { PromiseState, PromiseUtil } from '@this/async';
+
 
 const wasHandled = async (promise) => {
   // Unclear that there's a way to test this such that a failure will be 100%

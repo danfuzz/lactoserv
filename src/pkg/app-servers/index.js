@@ -9,5 +9,7 @@ export * from '#x/Warehouse';
 import { ApplicationFactory } from '#p/ApplicationFactory';
 import { RedirectApplication } from '#x/RedirectApplication';
 import { StaticApplication } from '#x/StaticApplication';
+
+
 ApplicationFactory.register(StaticApplication);
 ApplicationFactory.register(RedirectApplication);

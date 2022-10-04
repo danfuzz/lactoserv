@@ -1,11 +1,12 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { HostManager } from '@this/app-hosts';
+import { JsonSchema } from '@this/json';
+
 import { ApplicationManager } from '#p/ApplicationManager';
 import { ServerManager } from '#p/ServerManager';
 
-import { HostManager } from '@this/app-hosts';
-import { JsonSchema } from '@this/json';
 
 /**
  * "Warehouse" of bits and pieces created from a top-level configuration.

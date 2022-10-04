@@ -1,14 +1,15 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import * as fs from 'node:fs/promises';
+import * as Path from 'node:path';
+
+import { MustBe } from '@this/typey';
+
 import { BaseDirDirective } from '#p/BaseDirDirective';
 import { ExpanderWorkspace } from '#p/ExpanderWorkspace';
 import { JsonDirective } from '#x/JsonDirective';
 
-import { MustBe } from '@this/typey';
-
-import * as fs from 'node:fs/promises';
-import * as Path from 'node:path';
 
 // File type constants.
 /** @type {string} */ const TYPE_JSON     = 'json';

@@ -1,9 +1,10 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import * as util from 'node:util';
+
 import { MustBe } from '@this/typey';
 
-import * as util from 'node:util';
 
 /**
  * Key for use with {@link TreePathMap}. Instances are immutable, and contents

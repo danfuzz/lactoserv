@@ -1,9 +1,10 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import * as util from 'node:util';
+
 import { JsonDirective } from '#x/JsonDirective';
 
-import * as util from 'node:util';
 
 /**
  * Directive `$baseDir`. See the package README for more details.

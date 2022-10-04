@@ -1,11 +1,11 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { ProtocolWrangler } from '#x/ProtocolWrangler';
+import * as net from 'node:net';
 
 import { Condition, Threadoid } from '@this/async';
 
-import * as net from 'node:net';
+import { ProtocolWrangler } from '#x/ProtocolWrangler';
 
 
 /**

@@ -2,10 +2,10 @@
 // Licensed AS IS and WITHOUT WARRANTY under the Apache License,
 // Version 2.0. Details: <http://www.apache.org/licenses/LICENSE-2.0>
 
+import { MethodCacheProxyHandler } from '@this/metacomp';
+
 import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
 import { LogTag } from '#x/LogTag';
-
-import { MethodCacheProxyHandler } from '@this/metacomp';
 
 
 /**

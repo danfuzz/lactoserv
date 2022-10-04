@@ -1,11 +1,12 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import * as tls from 'node:tls';
+
 import { TreePathKey } from '@this/collections';
 import { JsonSchemaUtil } from '@this/json';
 import { MustBe } from '@this/typey';
 
-import * as tls from 'node:tls';
 
 /**
  * "Controller" for a single host entry, which can notably offer services for

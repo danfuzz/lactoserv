@@ -3,6 +3,7 @@
 
 import { MustBe } from '@this/typey';
 
+
 /**
  * Structured "tag" information for log records. Each instance consists of a
  * main tag and zero or more additional "context" strings. The main tag is

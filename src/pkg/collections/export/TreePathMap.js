@@ -1,9 +1,10 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { MustBe } from '@this/typey';
+
 import { TreePathKey } from '#x/TreePathKey';
 
-import { MustBe } from '@this/typey';
 
 /**
  * Map from paths or partial paths to arbitrary bindings. A "path" in this case

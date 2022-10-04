@@ -1,6 +1,7 @@
+import * as fs from 'node:fs/promises';
+
 import { JsonExpander } from '@this/json';
 
-import * as fs from 'node:fs/promises';
 
 const doExpand = async (value) => {
   const jx = new JsonExpander();

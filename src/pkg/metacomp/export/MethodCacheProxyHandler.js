@@ -1,11 +1,11 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { BaseProxyHandler } from '#x/BaseProxyHandler';
+import * as util from 'node:util';
 
 import { Methods, MustBe } from '@this/typey';
 
-import * as util from 'node:util';
+import { BaseProxyHandler } from '#x/BaseProxyHandler';
 
 
 /** {Set<string>} Set of methods which never get proxied. */

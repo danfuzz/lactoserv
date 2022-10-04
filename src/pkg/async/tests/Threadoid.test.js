@@ -1,9 +1,10 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import * as timers from 'node:timers/promises';
+
 import { PromiseState, PromiseUtil, Threadoid } from '@this/async';
 
-import * as timers from 'node:timers/promises';
 
 describe('constructor(function)', () => {
   test('trivially succeeds', () => {

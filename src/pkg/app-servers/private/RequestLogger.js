@@ -1,10 +1,10 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import * as express from 'express';
-
 import * as http2 from 'node:http2';
 import * as process from 'node:process';
+
+import * as express from 'express';
 
 
 /**

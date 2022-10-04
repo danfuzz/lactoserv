@@ -1,11 +1,11 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { ThisModule } from '#p/ThisModule';
+import * as timers from 'node:timers/promises';
 
 import { Condition } from '@this/async';
 
-import * as timers from 'node:timers/promises';
+import { ThisModule } from '#p/ThisModule';
 
 
 /** @type {function(...*)} Logger for this class. */

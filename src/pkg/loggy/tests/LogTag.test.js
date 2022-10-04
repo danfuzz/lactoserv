@@ -3,6 +3,7 @@
 
 import { LogTag } from '@this/loggy';
 
+
 describe('constructor()', () => {
   describe('valid main tags', () => {
     test.each([

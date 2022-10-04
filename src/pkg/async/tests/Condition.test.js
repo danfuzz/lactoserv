@@ -3,6 +3,7 @@
 
 import { Condition, PromiseState } from '@this/async';
 
+
 describe('constructor()', () => {
   test('takes on the default value', () => {
     const cond = new Condition();

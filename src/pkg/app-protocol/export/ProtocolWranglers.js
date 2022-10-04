@@ -1,8 +1,8 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { HttpWrangler } from '#p/HttpWrangler';
 import { Http2Wrangler } from '#p/Http2Wrangler';
+import { HttpWrangler } from '#p/HttpWrangler';
 import { HttpsWrangler } from '#p/HttpsWrangler';
 import { ProtocolWrangler } from '#x/ProtocolWrangler';
 

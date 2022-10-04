@@ -1,9 +1,10 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { Methods, MustBe } from '@this/typey';
+
 import { ExpanderWorkspace } from '#p/ExpanderWorkspace';
 
-import { Methods, MustBe } from '@this/typey';
 
 /**
  * Base class for directives used by {@link JsonExpander}.

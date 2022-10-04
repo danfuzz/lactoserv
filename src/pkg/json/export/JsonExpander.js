@@ -1,13 +1,14 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import * as Path from 'node:path';
+
+import { MustBe } from '@this/typey';
+
 import { BuiltInDirectives } from '#p/BuiltInDirectives';
 import { ExpanderWorkspace } from '#p/ExpanderWorkspace';
 import { JsonDirective } from '#x/JsonDirective';
 
-import { MustBe } from '@this/typey';
-
-import * as Path from 'node:path';
 
 /**
  * Processor for JSON objects, which knows how to expand it by following
