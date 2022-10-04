@@ -312,15 +312,25 @@ function do-js-build-new {
     mkdir -p "${destDir}" \
     || return "$?"
 
+    # Figure out local vs. external dependencies.
     local deps
     deps="$(lib find-module-dependencies "${mainModule}")" \
     || return "$?"
 
-    # TODO: Make a top-level package.json.
+    # Construct a top-level package.json.
+    jget >"${destDir}/package.json" \
+        --file="${srcDir}/pkg/${mainModule}/package.json" \
+        deps:json="${deps}" '
+    . | del(.imports) +
+    {
+        dependencies: $deps.extDeps,
+        exports:      "./index.js"
+    }'
 
     # TODO: Copy all the local modules.
-
     # TODO: Write a top-level `index.js`.
+    # TODO: Run `npm install`.
+    # TODO: Run the "suspicious files" checker.
 }
 
 
@@ -362,7 +372,7 @@ progress-msg 'Copying example setup...'
 || exit "$?"
 
 if (( doNew )); then
-    do-js-build-new main \
+    do-js-build-new main lactoserv \
     || exit "$?"
 else
     do-js-build-old \
