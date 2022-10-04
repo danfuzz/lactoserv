@@ -71,7 +71,16 @@ collecting {
     collecting = 0;
     importsDone = 1;
 
-    # TODO: Sort.
+    # Good ole selection sort.
+    for (i = 0; i < count - 1; i++) {
+        for (j = i + 1; j < count; j++) {
+            if (imports[i] > imports[j]) {
+                tmp = imports[i];
+                imports[i] = imports[j];
+                imports[j] = tmp;
+            }
+        }
+    }
 
     for (i = 0; i < count; i++) {
         print imports[i];
