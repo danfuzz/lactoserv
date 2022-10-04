@@ -219,6 +219,90 @@ function tidy-up {
     fi
 }
 
+# Old version of the JS build. TODO: Retire this!
+function do-js-build-old {
+    # Copy the top-level code.
+    progress-msg 'Copying top-level code...'
+    (
+        mkdir -p "${outCodeDir}"
+        cd "${srcDir}"
+        find . -name pkg -prune -o -type f -name '*.js' \
+            -exec cp '{}' "${outCodeDir}/{}" ';'
+    ) \
+    || exit "$?"
+
+    # Create package tarballs of each local package, and also gather up all the
+    # info for putting in the top-level `dependencies`.
+
+    localPackageSet="$(local-packages)" \
+    || exit "$?"
+
+    pack-local-packages "${localPackageSet}" \
+    || exit "$?"
+
+    localPackageSet="$(local-packages-fill-in-hashes "${localPackageSet}")" \
+    || exit "$?"
+
+    rename-local-packages "${localPackageSet}" \
+    || exit "$?"
+
+    # Save the local package info for ease of human reference.
+    cat <<<"${localPackageSet}" >"${outCodeDir}/local-pkg.json"
+
+    # Prep for and then run `npm install`.
+
+    # Derive the `dependencies` to use in the top-level `package.json` to
+    # represent the local packages.
+    localDepsObj="$(jget "${localPackageSet}" \
+        'with_entries(.key = .value.scopedName | .value = .value.destPkgUri)'
+    )"
+
+    # Copy over main `package.json`, adding the local package dependencies.
+    jget >"${outCodeDir}/package.json" \
+        --file="${srcDir}/package.json" \
+        deps:json="${localDepsObj}" \
+        '.dependencies += $deps'
+
+    # Let `npm` do its thing.
+
+    progress-msg 'Fetching and installing dependencies...'
+
+    cd "${outCodeDir}"
+    npmOpts=(--no-fund --omit=dev)
+    npm install "${npmOpts[@]}" \
+    || exit "$?"
+
+    # Check for files installed by `npm` that seem "suspect" for a
+    # cross-platform build.
+    cd "${outCodeDir}/node_modules"
+    suspectFiles="$(
+        find . -type f \
+            '!' '(' \
+                -name '*.js' -o -name '*.json' -o -name '*.html' -o -name '*.md' \
+            ')' \
+            -exec file '{}' ';' \
+        | grep -Ev 'ASCII|JSON|PNG|UTF-8|empty|short file' \
+        | awk '{ sub(/^\.\//, "  "); sub(/:[ \t].*$/, ""); print; }'
+    )"
+    if [[ ${suspectFiles} != '' ]]; then
+        error-msg 'Files possibly containing platform-specific binaries:'
+        error-msg -- "${suspectFiles}"
+        exit 1
+    fi
+
+    # Denoument.
+
+    # Clean things up a bit.
+    tidy-up "${localPackageSet}" \
+    || exit "$?"
+}
+
+# New version of the JS build. TODO: Clean this and the old stuff up.
+function do-js-build-new {
+    : # TODO!
+}
+
+
 #
 # Main script
 #
@@ -256,79 +340,7 @@ progress-msg 'Copying example setup...'
 ) \
 || exit "$?"
 
-# Copy the top-level code.
-progress-msg 'Copying top-level code...'
-(
-    mkdir -p "${outCodeDir}"
-    cd "${srcDir}"
-    find . -name pkg -prune -o -type f -name '*.js' \
-        -exec cp '{}' "${outCodeDir}/{}" ';'
-) \
-|| exit "$?"
-
-# Create package tarballs of each local package, and also gather up all the info
-# for putting in the top-level `dependencies`.
-
-localPackageSet="$(local-packages)" \
-|| exit "$?"
-
-pack-local-packages "${localPackageSet}" \
-|| exit "$?"
-
-localPackageSet="$(local-packages-fill-in-hashes "${localPackageSet}")" \
-|| exit "$?"
-
-rename-local-packages "${localPackageSet}" \
-|| exit "$?"
-
-# Save the local package info for ease of human reference.
-cat <<<"${localPackageSet}" >"${outCodeDir}/local-pkg.json"
-
-# Prep for and then run `npm install`.
-
-# Derive the `dependencies` to use in the top-level `package.json` to represent
-# the local packages.
-localDepsObj="$(jget "${localPackageSet}" \
-    'with_entries(.key = .value.scopedName | .value = .value.destPkgUri)'
-)"
-
-# Copy over main `package.json`, adding the local package dependencies.
-jget >"${outCodeDir}/package.json" \
-    --file="${srcDir}/package.json" \
-    deps:json="${localDepsObj}" \
-    '.dependencies += $deps'
-
-# Let `npm` do its thing.
-
-progress-msg 'Fetching and installing dependencies...'
-
-cd "${outCodeDir}"
-npmOpts=(--no-fund --omit=dev)
-npm install "${npmOpts[@]}" \
-|| exit "$?"
-
-# Check for files installed by `npm` that seem "suspect" for a cross-platform
-# build.
-cd "${outCodeDir}/node_modules"
-suspectFiles="$(
-    find . -type f \
-        '!' '(' \
-            -name '*.js' -o -name '*.json' -o -name '*.html' -o -name '*.md' \
-        ')' \
-        -exec file '{}' ';' \
-    | grep -Ev 'ASCII|JSON|PNG|UTF-8|empty|short file' \
-    | awk '{ sub(/^\.\//, "  "); sub(/:[ \t].*$/, ""); print; }'
-)"
-if [[ ${suspectFiles} != '' ]]; then
-    error-msg 'Files possibly containing platform-specific binaries:'
-    error-msg -- "${suspectFiles}"
-    exit 1
-fi
-
-# Denoument.
-
-# Clean things up a bit.
-tidy-up "${localPackageSet}" \
+do-js-build-old \
 || exit "$?"
 
 progress-msg
