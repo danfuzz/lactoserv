@@ -196,22 +196,17 @@ export class Threadoid {
    *   or main function, if indeed one of those threw an error.
    */
   async #run() {
-    // If there's a start function, we call `start()` here, before the `await`
-    // below, so that `startResult` becomes non-null synchronously with respect
-    // to the client call to (public) `run()`.
-
-    if (this.#startFunction) {
-      this.#startResult = this.#start();
-    }
-
-    // This `await` guarantees that no thread processing happens synchronously
-    // with respect to the client.
-    await null;
+    // We call `start()` here, before the `await` below, so that `startResult`
+    // becomes non-null synchronously with respect to the client call to
+    // (public) `run()`. Note that we do this even if there is no start
+    // function, so that `whenStarted()` can honor its contract.
+    this.#startResult = this.#start();
 
     try {
-      if (this.#startResult) {
-        await this.#startResult;
-      }
+      // This `await` guarantees (a) that no thread processing happens
+      // synchronously with respect to the client, and (b) that the start function
+      // will have finished before we call the main function.
+      await this.#startResult;
 
       return await this.#mainFunction();
     } finally {
@@ -229,15 +224,21 @@ export class Threadoid {
   /**
    * Runs the start function.
    *
-   * @returns {*} Whatever the start function returned.
+   * @returns {*} Whatever the start function returned, or `null` if there is no
+   *   start function.
    * @throws {Error} The same error as was thrown by the start function, if it
    *   indeed threw an error.
    */
   async #start() {
-    // This `await` guarantees that no thread processing happens synchronously
-    // with respect to the client (which called `run()`).
-    await null;
+    if (this.#startFunction) {
+      // This `await` guarantees that the start function isn't called
+      // synchronously with respect to the client (which called `run()`). (This
+      // guarantee is specified by this class.)
+      await null;
 
-    return this.#startFunction(this);
+      return this.#startFunction(this);
+    } else {
+      return null;
+    }
   }
 }
