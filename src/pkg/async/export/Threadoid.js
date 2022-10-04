@@ -155,10 +155,16 @@ export class Threadoid {
   }
 
   /**
-   * Gets a promise that becomes fulfilled when this instance is running and
-   * after its start function has completed.
+   * Gets a promise that becomes settled when this instance is running and
+   * after its start function has completed. It becomes _fulfilled_ if the start
+   * function returns without error. It becomes _rejected_ with the same reason
+   * as whatever the start function threw, if the start function indeed threw an
+   * error. If `isRunning() === false` when this method is called, it
+   * async-returns promptly and without error.
    *
    * @returns {Promise} A promise as described.
+   * @throws {Error} The same errror as thrown by the start function, if it
+   *   threw an error.
    */
   whenStarted() {
     return this.#startedCondition.whenTrue();
