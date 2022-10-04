@@ -67,13 +67,7 @@ export class ProtocolWrangler {
    */
   async start() {
     const runResult = this.#runner.run();
-
-    // If `whenStarted()` loses, that means there was trouble starting, in which
-    // case we return the known-rejected result of the run.
-    return Promise.race([
-      this.#runner.whenStarted(),
-      runResult
-    ]);
+    return this.#runner.whenStarted();
   }
 
   /**
