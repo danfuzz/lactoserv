@@ -204,8 +204,8 @@ export class Threadoid {
 
     try {
       // This `await` guarantees (a) that no thread processing happens
-      // synchronously with respect to the client, and (b) that the start function
-      // will have finished before we call the main function.
+      // synchronously with respect to the client, and (b) that the start
+      // function will have finished before we call the main function.
       await this.#startResult;
 
       return await this.#mainFunction();
