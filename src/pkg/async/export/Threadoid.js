@@ -29,7 +29,7 @@ export class Threadoid {
   #runCondition = new Condition();
 
   /**
-   * @type {?Promise<null>} Result of the currently-executing {@link #run}, if
+   * @type {?Promise} Result of the currently-executing {@link #run}, if
    * currently running.
    */
   #runResult = null;
