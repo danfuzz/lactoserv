@@ -12,8 +12,9 @@ fi
 #
 
 # The symlink-resolved path of the command that is running (that is, the
-# top-level script).
+# top-level script), and its directory.
 _init_cmdPath="$(readlink -f "$0")" || return "$?"
+_init_cmdDir="${_init_cmdPath%/*}"
 
 # Figure out the symlink-resolved directory of this script.
 _init_libDir="$(readlink -f "${BASH_SOURCE[0]}")" || return "$?"
@@ -55,10 +56,21 @@ fi
 # More library functions
 #
 
+# Gets the base directory of the project, which is presumed to be one layer up
+# from the main scripts directory.
+function base-dir {
+    echo "${_init_mainDir%/*}"
+}
+
+# Gets the main "scripts" directory.
+function main-scripts-dir {
+    echo "${_init_mainDir}"
+}
+
 # Gets the directory of this command, "this command" being the main script that
 # is running.
 function this-cmd-dir {
-    echo "${_init_cmdPath%/*}"
+    echo "${_init_cmdDir}"
 }
 
 # Gets the name of this command, that is, "this command" being the main script
