@@ -1,11 +1,12 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { UsualSystem } from '#p/UsualSystem';
+import * as timers from 'node:timers/promises';
 
 import { Host } from '@this/host';
 
-import * as timers from 'node:timers/promises';
+import { UsualSystem } from '#p/UsualSystem';
+
 
 /**
  * Top-level logic for starting a server.

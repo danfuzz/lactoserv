@@ -1,15 +1,15 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { TcpWrangler } from '#p/TcpWrangler';
-
-import { Condition, Threadoid } from '@this/async';
+import * as http2 from 'node:http2';
+import * as timers from 'node:timers/promises';
 
 import express from 'express';
 import http2ExpressBridge from 'http2-express-bridge';
 
-import * as http2 from 'node:http2';
-import * as timers from 'node:timers/promises';
+import { Condition, Threadoid } from '@this/async';
+
+import { TcpWrangler } from '#p/TcpWrangler';
 
 
 /**
@@ -154,7 +154,7 @@ export class Http2Wrangler extends TcpWrangler {
       throw new Error('Could not manage to shut down all sessions.');
     }
   }
-  
+
 
   //
   // Static members

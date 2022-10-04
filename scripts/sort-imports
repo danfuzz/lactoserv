@@ -1,0 +1,140 @@
+#!/bin/bash
+#
+# Copyright 2022 Dan Bornstein. All rights reserved.
+# All code and assets are considered proprietary and unlicensed.
+
+. "$(dirname "$(readlink -f "$0")")/lib/init.sh" || exit "$?"
+
+
+#
+# Argument parsing
+#
+
+function usage {
+    print-usage $'
+    Usage:
+
+    ${name} [<opt> ...]
+      Sorts imports in `.js` files according to this project\'s preferred
+      ordering.
+
+    ${name} [--help | -h]
+      Displays this message.
+    '
+
+    exit "$@"
+}
+
+# Want help?
+opt-action --call='{ usage }' help/h
+
+process-args "$@" || usage "$?"
+
+
+#
+# Helper functions
+#
+
+# The actual import-sorting AWK script. TODO: Fill this in!
+SORTER_AWK=$'
+BEGIN {
+    collecting = 0;
+    count      = 0;
+}
+
+!importsDone && /^import/ {
+    collecting = 1;
+}
+
+collecting && /^import .* from / {
+    from = $0;
+    sub(/^.* from [\'"]/, "", from);
+    sub(/[\'"];$/, "", from);
+    if (match(from, /^#/) != 0) {
+        sub(/^[^\\/]*/, "", from);
+        from = "D :: " from;
+    } else if (match(from, /^@this/) != 0) {
+        from = "C :: " from;
+    } else if (match(from, /^node:/) != 0) {
+        from = "A :: " from;
+    } else {
+        from = "B :: " from;
+    }
+    imports[count++] = from " :: " $0;
+    next;
+}
+
+collecting && /^ *$/ {
+    next;
+}
+
+collecting {
+    collecting = 0;
+    importsDone = 1;
+
+    # Good ole selection sort.
+    for (i = 0; i < count - 1; i++) {
+        for (j = i + 1; j < count; j++) {
+            if (imports[i] > imports[j]) {
+                tmp = imports[i];
+                imports[i] = imports[j];
+                imports[j] = tmp;
+            }
+        }
+    }
+
+    lastTag = "";
+    for (i = 0; i < count; i++) {
+        split(imports[i], parts, / :: /);
+        tag = parts[1];
+        line = parts[3];
+        if (tag != lastTag) {
+            if (lastTag != "") {
+                print "";
+            }
+            lastTag = tag;
+        }
+        print line;
+    }
+
+    print "";
+    print "";
+
+    # Fall through and print the `class` line.
+}
+
+!collecting {
+    print;
+}
+'
+
+# Runs the fixer on the given file.
+function do-sort {
+    local inFile="$1"
+    local tmpFile="$1.new"
+
+    awk <"${inFile}" >"${tmpFile}" "${SORTER_AWK}" \
+    || return "$?"
+
+    mv "${tmpFile}" "${inFile}"
+}
+
+
+#
+# Main script
+#
+
+baseDir="$(dirname "$(this-cmd-dir)")"
+srcDir="${baseDir}/src"
+
+cd "${srcDir}"
+
+sources=($(find . -name '*.js'))
+
+for file in "${sources[@]}"; do
+    info-msg "Processing ${file}..."
+    do-sort "${file}" || exit "$?"
+done
+
+info-msg ''
+info-msg 'Done!'

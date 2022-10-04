@@ -14,17 +14,18 @@ This is a web server which knows how to serve a couple different types of
 ### Canonical order of items in a class declaration
 
 ```javascript
-import { SomeClass } from '#p/this-package';
+import * as builtIn from 'node:built-in-module';
+...
+
+import * as something from 'npm-sourced-module';
 ...
 
 import { SomeOtherClass } from '@this/this-codebase';
 ...
 
-import * as something from 'npm-sourced-package';
+import { SomeClassInThisModule } from '#p/SomeClassInThisModule';
 ...
 
-import * as builtIn from 'node:built-in-package';
-...
 
 class Florp {
     #privateField;
@@ -65,3 +66,8 @@ class Florp {
     ...
 }
 ```
+
+Notes:
+
+* Import order is "outer to inner" (or "ubiquitous to module-specific") with an
+  extra newline between sections.

@@ -1,9 +1,10 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { MustBe } from '@this/typey';
+
 import { Condition } from '#x/Condition';
 
-import { MustBe } from '@this/typey';
 
 /**
  * Thread-like thing. This class implements the useful pattern of having an

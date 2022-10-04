@@ -1,13 +1,13 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
-import { IdGenerator } from '#x/IdGenerator';
-import { LogSource } from '#x/LogSource';
+import * as process from 'node:process';
 
 import { MustBe } from '@this/typey';
 
-import * as process from 'node:process';
+import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
+import { IdGenerator } from '#x/IdGenerator';
+import { LogSource } from '#x/LogSource';
 
 
 /**

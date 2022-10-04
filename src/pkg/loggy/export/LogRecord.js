@@ -1,12 +1,12 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { LogStackTrace } from '#x/LogStackTrace';
-import { LogTag } from '#x/LogTag';
+import * as util from 'node:util';
 
 import { MustBe } from '@this/typey';
 
-import * as util from 'node:util';
+import { LogStackTrace } from '#x/LogStackTrace';
+import { LogTag } from '#x/LogTag';
 
 
 /**

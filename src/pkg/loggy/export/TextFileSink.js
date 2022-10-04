@@ -1,11 +1,11 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { ChainedEvent, EventSink } from '@this/async';
-import { MustBe } from '@this/typey';
-
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
+
+import { ChainedEvent, EventSink } from '@this/async';
+import { MustBe } from '@this/typey';
 
 
 /**

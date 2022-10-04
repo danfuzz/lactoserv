@@ -1,11 +1,12 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { MustBe } from '@this/typey';
+
 import { ChainedEvent } from '#x/ChainedEvent';
 import { EventOrPromise } from '#p/EventOrPromise';
 import { Threadoid } from '#x/Threadoid';
 
-import { MustBe } from '@this/typey';
 
 /**
  * Event sink for {@link ChainedEvent}. Instances of this class "consume"

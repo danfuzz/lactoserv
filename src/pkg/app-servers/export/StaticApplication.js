@@ -1,11 +1,12 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { BaseApplication } from '#p/BaseApplication';
+import express from 'express';
 
 import { JsonSchema } from '@this/json';
 
-import express from 'express';
+import { BaseApplication } from '#p/BaseApplication';
+
 
 /**
  * Static content server. Configuration object details:

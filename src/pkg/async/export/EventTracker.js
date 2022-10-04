@@ -1,11 +1,11 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { MustBe } from '@this/typey';
+
 import { ChainedEvent } from '#x/ChainedEvent';
 import { EventOrPromise } from '#p/EventOrPromise';
 import { PromiseUtil } from '#x/PromiseUtil';
-
-import { MustBe } from '@this/typey';
 
 
 // TODO:

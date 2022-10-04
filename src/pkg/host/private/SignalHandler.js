@@ -1,11 +1,11 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import process from 'node:process'; // Need to import as such, for `.on*()`.
+
 import { CallbackList } from '#p/CallbackList';
 import { ShutdownHandler } from '#p/ShutdownHandler';
 import { ThisModule } from '#p/ThisModule';
-
-import process from 'node:process'; // Need to import as such, for `.on*()`.
 
 
 /** @type {function(...*)} Logger for this class. */

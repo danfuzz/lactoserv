@@ -1,12 +1,12 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { ChainedEvent } from '@this/async';
+
 import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
 import { LogProxyHandler } from '#p/LogProxyHandler';
 import { LogTag } from '#x/LogTag';
 import { ThisModule } from '#p/ThisModule';
-
-import { ChainedEvent } from '@this/async';
 
 
 /**

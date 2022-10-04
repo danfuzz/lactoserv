@@ -1,13 +1,14 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { BaseApplication } from '#p/BaseApplication';
-
-import { JsonSchema } from '@this/json';
+import { URL } from 'node:url';
 
 import express from 'express';
 
-import { URL } from 'node:url';
+import { JsonSchema } from '@this/json';
+
+import { BaseApplication } from '#p/BaseApplication';
+
 
 /**
  * Server that redirects requests to different servers, protocols, paths, etc.

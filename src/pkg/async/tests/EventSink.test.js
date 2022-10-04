@@ -1,9 +1,10 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import * as timers from 'node:timers/promises';
+
 import { ChainedEvent, EventSink, PromiseUtil } from '@this/async';
 
-import * as timers from 'node:timers/promises';
 
 const payload1 = { type: 'wacky' };
 const payload2 = { type: 'zany' };

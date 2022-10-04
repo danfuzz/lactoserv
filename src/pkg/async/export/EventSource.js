@@ -3,6 +3,7 @@
 
 import { ChainedEvent } from '#x/ChainedEvent';
 
+
 /**
  * Event source for a chain of {@link ChainedEvent} instances. It is instances
  * of this class which are generally set up to manage and add new events to a

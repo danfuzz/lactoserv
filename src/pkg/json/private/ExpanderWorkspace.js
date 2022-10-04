@@ -1,12 +1,13 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { JsonDirective } from '#x/JsonDirective';
+import * as util from 'node:util';
 
 import { ManualPromise } from '@this/async';
 import { MustBe } from '@this/typey';
 
-import * as util from 'node:util';
+import { JsonDirective } from '#x/JsonDirective';
+
 
 /**
  * Workspace for running an expansion set up by {@link JsonExpander}, including

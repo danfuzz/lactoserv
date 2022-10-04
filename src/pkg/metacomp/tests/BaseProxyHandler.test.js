@@ -3,6 +3,7 @@
 
 import { BaseProxyHandler } from '@this/metacomp';
 
+
 describe('makeFunctionProxy()', () => {
   test('constructs a function-like proxy around an instance of the called-upon subclass', () => {
     let gotArgs     = null;

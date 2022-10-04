@@ -3,6 +3,7 @@
 
 import { MustBe } from '@this/typey';
 
+
 /**
  * Boolean condition with promise-attached level triggers.
  */

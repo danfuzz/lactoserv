@@ -1,11 +1,12 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { TcpWrangler } from '#p/TcpWrangler';
+import * as http from 'node:http';
 
 import express from 'express';
 
-import * as http from 'node:http';
+import { TcpWrangler } from '#p/TcpWrangler';
+
 
 /**
  * Wrangler for `HttpServer`.

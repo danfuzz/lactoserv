@@ -3,6 +3,7 @@
 
 import * as util from 'node:util';
 
+
 /**
  * Error result from use of {@link JsonSchema}.
  */

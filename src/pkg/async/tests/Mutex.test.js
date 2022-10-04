@@ -3,6 +3,7 @@
 
 import { Mutex } from '@this/async';
 
+
 describe('lock()', () => {
   test('works when there is blatantly no contention', async () => {
     const mutex = new Mutex();

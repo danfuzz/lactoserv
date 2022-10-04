@@ -1,9 +1,10 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { MustBe } from '@this/typey';
+
 import { ManualPromise } from '#x/ManualPromise';
 
-import { MustBe } from '@this/typey';
 
 /**
  * Promise-based mutex implementation. This provides _non-reentrant_ mutual
