@@ -133,7 +133,6 @@ sources=($(find . -name '*.js'))
 for file in "${sources[@]}"; do
     info-msg "Processing ${file}..."
     do-sort "${file}" || exit "$?"
-    exit 1 # TEMP!
 done
 
 info-msg ''
