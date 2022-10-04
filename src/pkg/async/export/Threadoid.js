@@ -195,13 +195,21 @@ export class Threadoid {
    *   or main function, if indeed one of those threw an error.
    */
   async #run() {
+    // If there's a start function, we call `start()` here, before the `await`
+    // below, so that `startResult` becomes non-null synchronously with respect
+    // to the client call to (public) `run()`.
+
+    if (this.#startFunction) {
+      this.#startResult = this.#start();
+    }
+
     // This `await` guarantees that no thread processing happens synchronously
-    // with respect to the client (which called `run()`).
+    // with respect to the client.
     await null;
 
     try {
-      if (this.#startFunction) {
-        await this.#startFunction();
+      if (this.#startResult) {
+        await this.#startResult;
       }
 
       this.#startedCondition.value = true;
@@ -211,10 +219,12 @@ export class Threadoid {
       // Slightly tricky: At this moment, `#runResult` is the return promise
       // from this very method, but it's correct to `null` it out now, because
       // as of the end of this method (which will be happening synchronously),
-      // running will have stopped.
+      // running will have stopped. Similar logic applies to the other
+      // properties.
       this.#runResult              = null;
       this.#startedCondition.value = false;
       this.#runCondition.value     = false;
+      this.#startResult            = null;
     }
   }
 
@@ -226,6 +236,10 @@ export class Threadoid {
    *   indeed threw an error.
    */
   async #start() {
+    // This `await` guarantees that no thread processing happens synchronously
+    // with respect to the client (which called `run()`).
+    await null;
+
     return this.#startFunction(this);
   }
 }
