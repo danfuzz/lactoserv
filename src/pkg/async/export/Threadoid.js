@@ -29,10 +29,16 @@ export class Threadoid {
   #runCondition = new Condition();
 
   /**
-   * @type {?Promise} Result of the currently-executing {@link #run}, if
-   * currently running.
+   * @type {?Promise} Promised result of the currently-executing {@link #run},
+   * if the instance is currently running.
    */
   #runResult = null;
+
+  /**
+   * @type {?Promise} Promised result of calling {@link #start}, if the instance
+   * is currently running (at all, not just in the start function).
+   */
+  #startResult = null;
 
   /**
    * @type {Condition} Has the instance started? This becomes `true` when the
@@ -183,6 +189,10 @@ export class Threadoid {
 
   /**
    * Runs the thread.
+   *
+   * @returns {*} Whatever the main function returned.
+   * @throws {Error} The same error as was thrown by either the start function
+   *   or main function, if indeed one of those threw an error.
    */
   async #run() {
     // This `await` guarantees that no thread processing happens synchronously
@@ -206,5 +216,16 @@ export class Threadoid {
       this.#startedCondition.value = false;
       this.#runCondition.value     = false;
     }
+  }
+
+  /**
+   * Runs the start function.
+   *
+   * @returns {*} Whatever the start function returned.
+   * @throws {Error} The same error as was thrown by the start function, if it
+   *   indeed threw an error.
+   */
+  async #start() {
+    // TODO!
   }
 }
