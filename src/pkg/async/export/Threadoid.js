@@ -36,16 +36,10 @@ export class Threadoid {
 
   /**
    * @type {?Promise} Promised result of calling {@link #start}, if the instance
-   * is currently running (at all, not just in the start function).
+   * is currently running (at all, not just in the start function). `null` if
+   * not running or if the instance doesn't have a start function.
    */
   #startResult = null;
-
-  /**
-   * @type {Condition} Has the instance started? This becomes `true` when the
-   * instance is running and after the start function has returned from being
-   * called.
-   */
-  #startedCondition = new Condition();
 
 
   /**
@@ -151,18 +145,25 @@ export class Threadoid {
 
   /**
    * Gets a promise that becomes settled when this instance is running and
-   * after its start function has completed. It becomes _fulfilled_ if the start
-   * function returns without error. It becomes _rejected_ with the same reason
-   * as whatever the start function threw, if the start function indeed threw an
-   * error. If `isRunning() === false` when this method is called, it
-   * async-returns promptly and without error.
+   * after its start function has completed. It becomes _fulfilled_ with the
+   * result of calling the start function, if the start function returned
+   * without error. It becomes _rejected_ with the same reason as whatever the
+   * start function threw, if the start function indeed threw an error. If
+   * `isRunning() === false` when this method is called, it async-returns
+   * `null` promptly.
    *
-   * @returns {Promise} A promise as described.
+   * @returns {*} Whatever was returned by the start function, with exceptions
+   *   as noted above.
    * @throws {Error} The same errror as thrown by the start function, if it
    *   threw an error.
    */
-  whenStarted() {
-    return this.#startedCondition.whenTrue();
+  async whenStarted() {
+    if (!this.#runResult) {
+      // Not currently running.
+      return null;
+    }
+
+    return this.#startResult;
   }
 
   /**
@@ -212,8 +213,6 @@ export class Threadoid {
         await this.#startResult;
       }
 
-      this.#startedCondition.value = true;
-
       return await this.#mainFunction();
     } finally {
       // Slightly tricky: At this moment, `#runResult` is the return promise
@@ -221,10 +220,9 @@ export class Threadoid {
       // as of the end of this method (which will be happening synchronously),
       // running will have stopped. Similar logic applies to the other
       // properties.
-      this.#runResult              = null;
-      this.#startedCondition.value = false;
-      this.#runCondition.value     = false;
-      this.#startResult            = null;
+      this.#startResult        = null;
+      this.#runResult          = null;
+      this.#runCondition.value = false;
     }
   }
 

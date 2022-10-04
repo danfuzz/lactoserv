@@ -584,10 +584,11 @@ describe('whenStarted()', () => {
       ? [() => null]
       : [];
 
-    test('is not settled before being started', async () => {
+    test('is synchronously fulfilled as `null` before being started', async () => {
       const thread = new Threadoid(...startArg, () => null);
       const result = thread.whenStarted();
-      expect(PromiseState.isSettled(result)).toBeFalse();
+      expect(PromiseState.isFulfilled(result)).toBeTrue();
+      expect(await result).toBeNull();
     });
 
     test('is not settled immediately after being started (before any async action can happen)', async () => {
@@ -646,7 +647,7 @@ describe('whenStarted()', () => {
 
     });
 
-    test('stops resolving after the main function runs to completion', async () => {
+    test('becomes synchronously fulfilled as `null` after the main function runs to completion', async () => {
       let shouldRun = true;
       let stopped   = false;
       const thread = new Threadoid(...startArg, async () => {
@@ -668,8 +669,9 @@ describe('whenStarted()', () => {
       }
 
       const result = thread.whenStarted();
-      expect(PromiseState.isSettled(result)).toBeFalse();
+      expect(PromiseState.isFulfilled(result)).toBeTrue();
       expect(stopped).toBeTrue();
+      expect(await result).toBeNull();
 
       await expect(runResult).toResolve();
     });
