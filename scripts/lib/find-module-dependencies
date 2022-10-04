@@ -21,8 +21,9 @@ function usage {
       with bindings as follows:
 
       * `main: string` -- The originally requested module.
-      * `localDeps: [string, ...]` -- Local module dependencies.
-      * `extDeps: [string, ...]` -- External (e.g. npm) module dependencies.
+      * `localDeps: [name, ...]` -- Local module dependencies.
+      * `extDeps: { name: version, ... }` -- External (e.g. npm) module
+        dependencies.
 
     ${name} [--help | -h]
       Displays this message.
@@ -123,5 +124,5 @@ fi
 jget "${state}" '{
     main,
     localDeps: (.localDeps - [.main]),
-    extDeps
+    extDeps:   (.extDeps | map(split("@") | { key: .[0], value: .[1] }) | from_entries)
 }'
