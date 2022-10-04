@@ -707,6 +707,36 @@ describe('whenStarted()', () => {
         shouldRunMain = false;
         await expect(runResult).toResolve();
       });
+
+      test('becomes resolved to whatever the start function returns', async () => {
+        const thread = new Threadoid(() => 123, () => null);
+
+        const runResult = thread.run();
+        const result    = thread.whenStarted();
+
+        await timers.setImmediate();
+        expect(PromiseState.isSettled(result)).toBeTrue();
+        expect(await result).toBe(123);
+
+        await expect(runResult).toResolve();
+      });
+
+      test('throws whatever the start function throws', async () => {
+        const error  = new Error('alas');
+        const thread = new Threadoid(() => { throw error; }, () => null);
+
+        const runResult = thread.run();
+        const result    = thread.whenStarted();
+
+        PromiseUtil.handleRejection(result);
+        PromiseUtil.handleRejection(runResult);
+
+        await timers.setImmediate();
+        expect(PromiseState.isSettled(result)).toBeTrue();
+        await expect(result).rejects.toThrow(error);
+
+        await expect(runResult).rejects.toThrow();
+      });
     } else {
       test('resolves immediately when starting to run asynchronously', async () => {
         let shouldRun = true;
@@ -726,6 +756,19 @@ describe('whenStarted()', () => {
         expect(PromiseState.isFulfilled(result)).toBeTrue();
         shouldRun = false;
         thread.stop();
+
+        await expect(runResult).toResolve();
+      });
+
+      test('becomes resolved to `null` once the thread is running', async () => {
+        const thread = new Threadoid(async () => 123);
+
+        const runResult = thread.run();
+        const result    = thread.whenStarted();
+
+        await timers.setImmediate();
+        expect(PromiseState.isSettled(result)).toBeTrue();
+        expect(await result).toBeNull();
 
         await expect(runResult).toResolve();
       });
