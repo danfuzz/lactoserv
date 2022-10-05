@@ -196,6 +196,22 @@ function build-js-project {
     suspect-file-check "${destDir}/node_modules"
 }
 
+# Copies all the top-level `bin` scripts into the out directory.
+function build-top-bin {
+    progress-msg 'Building top-level `bin` directory...'
+
+    rm -rf "${outDir}/bin" || return "$?"
+    mkdir -p "${outDir}/bin" || return "$?"
+
+    (
+        cd "${etcDir}/bin-src"
+        find . -type f '!' -name '*.md' \
+            -exec cp '{}' "${outDir}/bin/{}" ';' \
+            -exec chmod 755 "${outDir}/bin/{}" ';'
+    ) \
+    || return "$?"
+}
+
 # Like `find`, but with an extra "primary" `-printjson` which is like `-print`
 # except that it outputs JSON strings. This notably makes it safe for use with
 # file names that have spaces in them.
@@ -297,16 +313,7 @@ outCodeDir="${outDir}/code"
 lib make-localhost-cert \
 || exit "$?"
 
-# Copy over the script binaries.
-progress-msg 'Copying script binaries...'
-(
-    rm -rf "${outDir}/bin"
-    mkdir -p "${outDir}/bin"
-    cd "${etcDir}/bin-src"
-    find . -type f '!' -name '*.md' \
-        -exec cp '{}' "${outDir}/bin/{}" ';' \
-        -exec chmod 755 "${outDir}/bin/{}" ';'
-) \
+build-top-bin \
 || exit "$?"
 
 # Copy over the example setup.
