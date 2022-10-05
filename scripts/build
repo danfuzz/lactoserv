@@ -335,7 +335,8 @@ function do-js-build-new {
         name:         ("top-of-" + $projectName),
         dependencies: $deps.extDeps,
         exports:      "./main/index.js"
-    }'
+    }' \
+    || return "$?"
 
     # Write a top-level `index.js`.
 
@@ -382,11 +383,55 @@ function do-js-build-new {
             "&& " + . + " \\"
         )
         |
-        "true \\\n" + join("\n")
+        ["true \\"] + . + ["&& true"]
+        |
+        join("\n")
         '
-    )"
+    )" \
+    || return "$?"
 
     eval "${copyCmd}"
+
+    # Remove local module directories that are no longer part of the build.
+
+    local deadModules
+    deadModules="$(
+        cd "${destDir}/main/node_modules"
+        json-find . -mindepth 2 -maxdepth 2 -type d -printjson \
+        | jval --input=slurp \
+            deps:json="${deps}" \
+            'map(ltrimstr("./")) - $deps.localDeps'
+    )" \
+    || return "$?"
+
+    if [[ ${deadModules} != '[]' ]]; then
+        # As with the module copying above, this works by generating a script to
+        # perform the removals.
+        local removalCmd
+        removalCmd="$(
+            jval \
+                --output=raw \
+                destDir="${destDir}/main/node_modules" \
+                deadModules:json="${deadModules}" '
+            $deadModules
+            |
+            map(
+                "progress-msg " + ("  " + . | @sh),
+                "rm -rf " + ($destDir + "/" + . | @sh)
+                |
+                "&& " + . + " \\"
+            )
+            |
+            ["true \\"] + . + ["&& true"]
+            |
+            join("\n")
+        ')"
+
+        progress-msg 'Removing defunct local modules:'
+        eval "${removalCmd}"
+        progress-msg
+    fi
+    exit 1
 
     # Run `npm install`.
 
@@ -404,9 +449,6 @@ function do-js-build-new {
 
     progress-msg 'Checking for platform agnosticity...'
     suspect-file-check "${destDir}/node_modules"
-
-    # TODO: Remove local module directories that are no longer part of the
-    # build.
 }
 
 # Like `find`, but with an extra "primary" `-printjson` which is like `-print`
