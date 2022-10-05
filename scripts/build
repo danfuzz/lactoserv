@@ -431,7 +431,6 @@ function do-js-build-new {
         eval "${removalCmd}"
         progress-msg
     fi
-    exit 1
 
     # Run `npm install`.
 
