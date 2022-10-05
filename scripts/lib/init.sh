@@ -85,11 +85,18 @@ function this-cmd-path {
     echo "${_init_cmdPath}"
 }
 
-# Calls through to an arbitrary library script.
+# Calls through to an arbitrary library script. With option `--path`, instead
+# prints the path of the script.
 function lib {
+    local wantPath=0
+    local path
+
     if (( $# == 0 )); then
         error-msg 'Missing library script name.'
         return 1
+    elif [[ $1 == '--path' ]]; then
+        wantPath=1
+        shift
     fi
 
     local name="$1"
@@ -100,12 +107,18 @@ function lib {
         return 1
     elif [[ -x "${_init_libDir}/${name}" ]]; then
         # It's in the internal helper library.
-        "${_init_libDir}/${name}" "$@"
+        path="${_init_libDir}/${name}"
     elif [[ -x "${_init_mainDir}/${name}" ]]; then
         # It's an exposed script.
-        "${_init_mainDir}/${name}" "$@"
+        path="${_init_mainDir}/${name}"
     else
         error-msg 'No such library script:' "${name}"
         return 1
+    fi
+
+    if (( wantPath )); then
+        echo "${path}"
+    else
+        "${path}" "$@"
     fi
 }
