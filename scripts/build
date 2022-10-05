@@ -308,14 +308,15 @@ function do-js-build-new {
     local mainModule="$2"
     local destDir="${outDir}/${projectName}"
 
-    progress-msg 'Doing new-style JS build...'
+    progress-msg "Building JS project ${projectName}..."
+    progress-msg "Main module: ${mainModule}"
 
     mkdir -p "${destDir}/main" \
     || return "$?"
 
     # Figure out local vs. external dependencies.
 
-    progress-msg 'Finding local and external dependencies...'
+    progress-msg 'Determining local and external dependencies...'
 
     local deps
     deps="$(lib find-module-dependencies "${mainModule}")" \
