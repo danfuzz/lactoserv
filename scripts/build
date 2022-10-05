@@ -409,6 +409,25 @@ function do-js-build-new {
     # build.
 }
 
+# Like `find`, but with an extra "primary" `-printjson` which is like `-print`
+# except that it outputs JSON strings. This notably makes it safe for use with
+# file names that have spaces in them.
+function json-find {
+    local jsonArray="$(lib --path json-array)"
+    local args=()
+    local arg
+
+    for arg in "$@"; do
+        if [[ ${arg} == '-printjson' ]]; then
+            args+=(-exec "${jsonArray}" --input=strings '{}' '+')
+        else
+            args+=("${arg}")
+        fi
+    done
+
+    find "${args[@]}" | jval --input=read '.[]'
+}
+
 # Calls `rsync` so as to do an all-local (not actually remote) "archive" copy
 # (preserving permissions, modtimes, etc.).
 #
