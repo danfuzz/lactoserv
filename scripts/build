@@ -56,7 +56,7 @@ function set-up-out-dir {
 }
 
 # Build a JS project from a particular "main" local module.
-function do-js-build-new {
+function build-js-project {
     local projectName="$1"
     local mainModule="$2"
     local destDir="${outDir}/${projectName}"
@@ -318,7 +318,7 @@ progress-msg 'Copying example setup...'
 ) \
 || exit "$?"
 
-do-js-build-new lactoserv main \
+build-js-project lactoserv main \
 || exit "$?"
 
 progress-msg
