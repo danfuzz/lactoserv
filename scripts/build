@@ -18,8 +18,6 @@ function usage {
 
     --clean
       Do a clean build.
-    --old
-      Use the old JS build code. TODO: Get rid of the old way!
     --out=<dir>
       Directory where built output goes. Defaults to `out` directly under the
       main product directory.
@@ -37,9 +35,6 @@ opt-action --call='{ usage }' help/h
 # Clean build?
 opt-toggle --var=doClean clean
 
-# New-style build?
-opt-toggle --var=doOld old
-
 # Built output directory.
 opt-value --var=outDir out
 
@@ -49,131 +44,6 @@ process-args "$@" || usage "$?"
 #
 # Helper functions
 #
-
-# Fills in the `<hash>`es of the given local package set, based on the contents
-# of the package JSON files.
-function local-packages-fill-in-hashes {
-    local localPackageSet="$1"
-
-    local jsonFiles=($(jget --output=raw "${localPackageSet}" '.[] | .destJsonFile'))
-    local f
-    for f in "${jsonFiles[@]}"; do
-        jget --file="${f}" \
-            '{
-                name: (.name | sub("^@[^/]+/(?<name>.*)$"; .name)),
-                hash: .shasum[0:20]
-            }'
-    done \
-    | jval --input=slurp result:json="${localPackageSet}" \
-        'reduce .[] as $item ($result;
-            .[$item.name].destPkgFile =
-                (.[$item.name].destPkgFile | sub("<hash>"; $item.hash))
-            |
-            .[$item.name].destPkgUri =
-                (.[$item.name].destPkgUri | sub("<hash>"; $item.hash))
-        )'
-}
-
-# Gets the set of local packages, as a JSON object mapped from name to info
-# objects. The result leaves the destination package file with a `<hash>` hole
-# to be filled in.
-function local-packages {
-    local pkgDirName='local-pkg'
-    local pkgSrcDir="${srcDir}/pkg"
-    local srcPaths
-
-    srcPaths=($(
-        find "${pkgSrcDir}" -mindepth 2 -maxdepth 2 -name package.json \
-            -exec dirname '{}' ';' \
-            | sort
-        ))
-
-    (
-        local p
-        for p in "${srcPaths[@]}"; do
-            jval \
-                outCodeDir="${outCodeDir}" \
-                pkgDirName="${pkgDirName}" \
-                name="$(basename "${p}")" \
-                srcPath="${p}" \
-                '
-                ($pkgDirName + "/" + $name) as $nameBase
-                |
-                ($nameBase + "-<hash>.tgz") as $pkgFile
-                |
-                {
-                    ($name): {
-                        name:         $name,
-                        scopedName:   ("@this/" + $name),
-                        srcPath:      $srcPath,
-                        destDir:      ($outCodeDir + "/" + $pkgDirName),
-                        destJsonFile: ($outCodeDir + "/" + $nameBase + ".json"),
-                        destPkgFile:  ($outCodeDir + "/" + $pkgFile),
-                        destPkgUri:   ("file:" + $pkgFile)
-                    }
-                }'
-        done
-    ) | jval --input=slurp 'reduce .[] as $item ({}; . + $item)'
-}
-
-# Packs all the local packages.
-function pack-local-packages {
-    local localPackageSet="$1"
-
-    progress-msg "Packing local packages:"
-
-    local allNames=($(jget --output=raw "${localPackageSet}" 'keys | .[]'))
-    local n
-    for n in "${allNames[@]}"; do
-        progress-msg "  ${n}"
-
-        local paths="$(jget "${localPackageSet}" name="${n}" '.[$name]')"
-        local destDir="$(jget --output=raw "${paths}" '.destDir')"
-
-        mkdir -p "${destDir}" || return "$?"
-
-        cd "$(jget --output=raw "${paths}" '.srcPath')"
-
-        local packageInfo
-        packageInfo="$(npm pack --json --pack-destination="${destDir}")" \
-        || exit "$?"
-
-        # The JSON output from `npm pack` is wrapped in a top-level array
-        # (because some invocations can emit multiple packages), but it's
-        # superfluous here, so we unwrap with `.[0]`.
-        packageInfo="$(jget "${packageInfo}" '.[0]')"
-
-        cat <<<"${packageInfo}" >"$(jget --output=raw "${paths}" '.destJsonFile')"
-    done
-}
-
-# Renames the local packages to their designated hash-based name.
-function rename-local-packages {
-    local localPackageSet="$1"
-
-    progress-msg "Moving local packages:"
-
-    local allNames=($(jget --output=raw "${localPackageSet}" 'keys | .[]'))
-    local n
-    for n in "${allNames[@]}"; do
-        progress-msg "  ${n}"
-
-        local paths="$(jget "${localPackageSet}" name="${n}" '.[$name]')"
-        local pkgFrom="$(jget --output=raw "${paths}" '.destDir')/"
-
-        pkgFrom+="$(jget --output=raw \
-            --file="$(jget --output=raw "${paths}" '.destJsonFile')" \
-            '
-            .filename
-            |
-            sub("^@(?<scope>[^/]+)/(?<name>.*)$"; .scope + "-" + .name)
-            '
-        )"
-
-        mv "${pkgFrom}" "$(jget --output=raw "${paths}" '.destPkgFile')" \
-        || return "$?"
-    done
-}
 
 # Sets up the output directory.
 function set-up-out-dir {
@@ -185,124 +55,7 @@ function set-up-out-dir {
     lib out-dir --out="${outDir}" --create --print "${extraOpts[@]}"
 }
 
-# Tidies things up after a successful build. Specifically, removes local
-# packages and package info files that aren't used (anymore) by the build.
-function tidy-up {
-    local localPackageSet="$1"
-
-    # Cheesy tactic used here: We combine the lists of "things that are used"
-    # and "all the things" into a single sorted/counted list. If an item shows
-    # up twice (it's in both lists), then it's used. If it only shows up once,
-    # it's defunct and should be removed.
-
-    local usedFiles=($(
-        jget --output=raw "${localPackageSet}" \
-            'to_entries[] | .value.destJsonFile, .value.destPkgFile'
-    ))
-
-    local dirs=($(
-        for d in "${usedFiles[@]}"; do
-            dirname "${d}"
-        done \
-        | sort | uniq
-    ))
-
-    local defunct=($(
-        (
-            printf '%s\n' "${usedFiles[@]}"
-            find "${dirs[@]}" -type f
-        ) \
-        | sort | uniq -c | awk '$1 != 2 { print $2 }'
-    ))
-
-    if (( ${#defunct[@]} != 0 )); then
-        progress-msg 'Removing defunct local package files:'
-        for d in "${defunct[@]}"; do
-            progress-msg "  $(basename "${d}")"
-            rm -f "${d}"
-        done
-    fi
-}
-
-# Old version of the JS build. TODO: Retire this!
-function do-js-build-old {
-    # Copy the top-level code.
-    progress-msg 'Copying top-level code...'
-    (
-        mkdir -p "${outCodeDir}"
-        cd "${srcDir}"
-        find . -name pkg -prune -o -type f -name '*.js' \
-            -exec cp '{}' "${outCodeDir}/{}" ';'
-    ) \
-    || exit "$?"
-
-    # Create package tarballs of each local package, and also gather up all the
-    # info for putting in the top-level `dependencies`.
-
-    localPackageSet="$(local-packages)" \
-    || exit "$?"
-
-    pack-local-packages "${localPackageSet}" \
-    || exit "$?"
-
-    localPackageSet="$(local-packages-fill-in-hashes "${localPackageSet}")" \
-    || exit "$?"
-
-    rename-local-packages "${localPackageSet}" \
-    || exit "$?"
-
-    # Save the local package info for ease of human reference.
-    cat <<<"${localPackageSet}" >"${outCodeDir}/local-pkg.json"
-
-    # Prep for and then run `npm install`.
-
-    # Derive the `dependencies` to use in the top-level `package.json` to
-    # represent the local packages.
-    localDepsObj="$(jget "${localPackageSet}" \
-        'with_entries(.key = .value.scopedName | .value = .value.destPkgUri)'
-    )"
-
-    # Copy over main `package.json`, adding the local package dependencies.
-    jget >"${outCodeDir}/package.json" \
-        --file="${srcDir}/package.json" \
-        deps:json="${localDepsObj}" \
-        '.dependencies += $deps'
-
-    # Let `npm` do its thing.
-
-    progress-msg 'Fetching and installing dependencies...'
-
-    cd "${outCodeDir}"
-    npmOpts=(--no-fund --omit=dev)
-    npm install "${npmOpts[@]}" \
-    || exit "$?"
-
-    # Check for files installed by `npm` that seem "suspect" for a
-    # cross-platform build.
-    cd "${outCodeDir}/node_modules"
-    suspectFiles="$(
-        find . -type f \
-            '!' '(' \
-                -name '*.js' -o -name '*.json' -o -name '*.html' -o -name '*.md' \
-            ')' \
-            -exec file '{}' ';' \
-        | grep -Ev 'ASCII|JSON|PNG|UTF-8|empty|short file' \
-        | awk '{ sub(/^\.\//, "  "); sub(/:[ \t].*$/, ""); print; }'
-    )"
-    if [[ ${suspectFiles} != '' ]]; then
-        error-msg 'Files possibly containing platform-specific binaries:'
-        error-msg -- "${suspectFiles}"
-        exit 1
-    fi
-
-    # Denoument.
-
-    # Clean things up a bit.
-    tidy-up "${localPackageSet}" \
-    || exit "$?"
-}
-
-# New version of the JS build. TODO: Clean this and the old stuff up.
+# Build a JS project from a particular "main" local module.
 function do-js-build-new {
     local projectName="$1"
     local mainModule="$2"
@@ -565,13 +318,8 @@ progress-msg 'Copying example setup...'
 ) \
 || exit "$?"
 
-if (( !doOld )); then
-    do-js-build-new lactoserv main \
-    || exit "$?"
-else
-    do-js-build-old \
-    || exit "$?"
-fi
+do-js-build-new lactoserv main \
+|| exit "$?"
 
 progress-msg
 progress-msg 'Build complete!'
