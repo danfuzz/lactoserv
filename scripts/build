@@ -307,11 +307,14 @@ function do-js-build-new {
     local projectName="$1"
     local mainModule="$2"
     local destDir="${outDir}/${projectName}"
+    local localCodeDirName='code'
+    local destLocalCode="${destDir}/${localCodeDirName}"
+    local destLocalModules="${destLocalCode}/node_modules"
 
     progress-msg "Building JS project ${projectName}..."
     progress-msg "Main module: ${mainModule}"
 
-    mkdir -p "${destDir}/main" \
+    mkdir -p "${destLocalModules}" \
     || return "$?"
 
     # Figure out local vs. external dependencies.
@@ -328,13 +331,14 @@ function do-js-build-new {
 
     jget >"${destDir}/package.json" \
         --file="${srcDir}/pkg/${mainModule}/package.json" \
+        localCodeDirName="${localCodeDirName}" \
         deps:json="${deps}" \
         projectName="${projectName}" '
     . | del(.imports) +
     {
         name:         ("top-of-" + $projectName),
         dependencies: $deps.extDeps,
-        exports:      "./main/index.js"
+        exports:      ("./" + $localCodeDirName + "/index.js")
     }' \
     || return "$?"
 
@@ -353,7 +357,7 @@ function do-js-build-new {
         echo ''
         echo '// `main()` is not expected to ever return.'
         echo $'throw new Error(\'Shouldn\\\'t happen.\');'
-    ) > "${destDir}/main/index.js"
+    ) > "${destLocalCode}/index.js"
 
     # Copy all the local modules.
     #
@@ -363,13 +367,12 @@ function do-js-build-new {
     progress-msg 'Copying local modules...'
 
     local moduleFromDir="${srcDir}/pkg"
-    local moduleToDir="${destDir}/main/node_modules"
     local copyCmd
     copyCmd="$(
         jget --output=raw "${deps}" \
             cmd='rsync-archive' \
             fromDir="${moduleFromDir}" \
-            toDir="${moduleToDir}" '
+            toDir="${destLocalModules}" '
         .localDeps
         |
         map({
@@ -396,7 +399,7 @@ function do-js-build-new {
 
     local deadModules
     deadModules="$(
-        cd "${destDir}/main/node_modules"
+        cd "${destLocalModules}"
         json-find . -mindepth 2 -maxdepth 2 -type d -printjson \
         | jval --input=slurp \
             deps:json="${deps}" \
@@ -411,7 +414,7 @@ function do-js-build-new {
         removalCmd="$(
             jval \
                 --output=raw \
-                destDir="${destDir}/main/node_modules" \
+                destDir="${destLocalModules}" \
                 deadModules:json="${deadModules}" '
             $deadModules
             |
