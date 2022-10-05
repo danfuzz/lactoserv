@@ -392,6 +392,8 @@ function do-js-build-new {
     progress-msg 'Fetching and installing external dependencies...'
 
     (
+        # TODO: Figure out how to run safely. (E.g. fetch first and then run the
+        # actual install in an environment with no networking.)
         cd "${destDir}"
         npm install --no-fund --omit=dev
     ) \
