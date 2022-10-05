@@ -45,16 +45,6 @@ process-args "$@" || usage "$?"
 # Helper functions
 #
 
-# Sets up the output directory.
-function set-up-out-dir {
-    local extraOpts=()
-    if (( doClean )); then
-        extraOpts=(--remove)
-    fi
-
-    lib out-dir --out="${outDir}" --create --print "${extraOpts[@]}"
-}
-
 # Build a JS project from a particular "main" local module.
 function build-js-project {
     local projectName="$1"
@@ -255,6 +245,16 @@ function rsync-archive {
     # so only the file sizes come into play, and it's very easy to have a file
     # size coincidence.)
     rsync --archive --delete --ignore-times -- "${args[@]}"
+}
+
+# Sets up the output directory.
+function set-up-out-dir {
+    local extraOpts=()
+    if (( doClean )); then
+        extraOpts=(--remove)
+    fi
+
+    lib out-dir --out="${outDir}" --create --print "${extraOpts[@]}"
 }
 
 # Checks a `node_modules` directory (or similar) for "suspect" files, given a
