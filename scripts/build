@@ -344,6 +344,33 @@ function do-js-build-new {
         echo $'throw new Error(\'Shouldn\\\'t happen.\');'
     ) > "${destDir}/main/index.js"
 
+    # Copy all the local modules.
+    #
+    # Note: The `jget` command outputs an `eval`able script to perform the
+    # copies.
+    local moduleFromDir="${srcDir}/pkg"
+    local moduleToDir="${destDir}/main/node_modules"
+    local copyPairs
+    jget --output=raw "${deps}" \
+        cmd='rsync-archive' \
+        fromDir="${moduleFromDir}" \
+        toDir="${moduleToDir}" '
+    .localDeps
+    |
+    map({
+            fromPath: ($fromDir + "/" + (. | sub("^[^/]*/"; "")) | @sh),
+            toPath:   ($toDir + "/" + . | @sh)
+        }
+        |
+        "mkdir -p " + .toPath,
+        $cmd + " " + .fromPath + " " + .toPath
+        |
+        "&& " + . + " \\"
+    )
+    |
+    "true \\\n" + join("\n")
+    '
+
     # TODO: Copy all the local modules.
     # TODO: Run `npm install`.
     # TODO: Run the "suspicious files" checker.
@@ -352,12 +379,12 @@ function do-js-build-new {
 # Calls `rsync` so as to do an all-local (not actually remote) "archive" copy
 # (preserving permissions, modtimes, etc.).
 #
-# **Note:** We use `rsync` and not `cp` (even though this is a totally local
+# Note: We use `rsync` and not `cp` (even though this is a totally local
 # operation) because it has well-defined behavior when copying a tree on top of
 # another tree and also knows how to create directories as needed.
 #
-# **Note:** Trailing slashes on source directory names are significant to
-# `rsync`. This may be salient at some of the use sites.
+# Note: Trailing slashes on source directory names are significant to `rsync`.
+# This may be salient at some of the use sites.
 function rsync-archive {
     # Prepend `./` to any argument that could be mistaken for a remote path
     # (i.e., when there's a `:` before the first `/`).
