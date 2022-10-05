@@ -34,7 +34,7 @@ export class UsualSystem {
    * @param {string[]} args_unused Command-line arguments to parse and act upon.
    */
   constructor(args_unused) {
-    this.#setupDir = Dirs.basePath('etc/example-setup');
+    this.#setupDir = Dirs.basePath('../etc/example-setup');
   }
 
   /**

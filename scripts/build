@@ -18,8 +18,8 @@ function usage {
 
     --clean
       Do a clean build.
-    --new
-      Use the new JS build code. TODO: Get rid of the old way!
+    --old
+      Use the old JS build code. TODO: Get rid of the old way!
     --out=<dir>
       Directory where built output goes. Defaults to `out` directly under the
       main product directory.
@@ -38,7 +38,7 @@ opt-action --call='{ usage }' help/h
 opt-toggle --var=doClean clean
 
 # New-style build?
-opt-toggle --var=doNew new
+opt-toggle --var=doOld old
 
 # Built output directory.
 opt-value --var=outDir out
@@ -565,7 +565,7 @@ progress-msg 'Copying example setup...'
 ) \
 || exit "$?"
 
-if (( doNew )); then
+if (( !doOld )); then
     do-js-build-new lactoserv main \
     || exit "$?"
 else

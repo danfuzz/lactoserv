@@ -10,4 +10,4 @@ baseDir="${cmdDir%/*}"
 
 # Note: `--no-warnings` suppresses Node's built-in warning printer, which we do
 # because this program includes its own warning handler.
-node --no-warnings "${baseDir}/code/index.js"
+node --no-warnings "${baseDir}/lactoserv/code/index.js"
