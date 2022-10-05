@@ -196,20 +196,33 @@ function build-js-project {
     suspect-file-check "${destDir}/node_modules"
 }
 
+# Copies the example setup into the out directory.
+function build-example-setup {
+    progress-msg 'Copying example setup...'
+
+    local destDir="${outDir}/etc/example-setup"
+
+    rm -rf "${destDir}" || return "$?"
+    mkdir -p "${destDir}" || return "$?"
+
+    rsync-archive "${etcDir}/example-setup/" "${destDir}"
+}
+
 # Copies all the top-level `bin` scripts into the out directory.
 function build-top-bin {
     progress-msg 'Building top-level `bin` directory...'
 
-    rm -rf "${outDir}/bin" || return "$?"
-    mkdir -p "${outDir}/bin" || return "$?"
+    local destDir="${outDir}/bin"
+
+    rm -rf "${destDir}" || return "$?"
+    mkdir -p "${destDir}" || return "$?"
 
     (
         cd "${etcDir}/bin-src"
         find . -type f '!' -name '*.md' \
-            -exec cp '{}' "${outDir}/bin/{}" ';' \
-            -exec chmod 755 "${outDir}/bin/{}" ';'
-    ) \
-    || return "$?"
+            -exec cp '{}' "${destDir}/{}" ';' \
+            -exec chmod 755 "${destDir}/{}" ';'
+    )
 }
 
 # Like `find`, but with an extra "primary" `-printjson` which is like `-print`
@@ -228,6 +241,9 @@ function json-find {
         fi
     done
 
+    # The latter half of the pipe both splits the arrays emitted by `json-array`
+    # and (in effect) combines all the results in case `json-array` was called
+    # more than once.
     find "${args[@]}" | jval --input=read '.[]'
 }
 
@@ -316,13 +332,7 @@ lib make-localhost-cert \
 build-top-bin \
 || exit "$?"
 
-# Copy over the example setup.
-progress-msg 'Copying example setup...'
-(
-    rm -rf "${outDir}/etc/example-setup"
-    mkdir -p "${outDir}/etc"
-    cp -r "${etcDir}/example-setup" "${outDir}/etc"
-) \
+build-example-setup \
 || exit "$?"
 
 build-js-project lactoserv main \
