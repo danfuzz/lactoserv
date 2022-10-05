@@ -315,7 +315,7 @@ function do-js-build-new {
 
     # Figure out local vs. external dependencies.
 
-    progress-msg 'Finding dependencies...'
+    progress-msg 'Finding local and external dependencies...'
 
     local deps
     deps="$(lib find-module-dependencies "${mainModule}")" \
@@ -387,7 +387,16 @@ function do-js-build-new {
 
     eval "${copyCmd}"
 
-    # TODO: Run `npm install`.
+    # Run `npm install`.
+
+    progress-msg 'Fetching and installing external dependencies...'
+
+    (
+        cd "${destDir}"
+        npm install --no-fund --omit=dev
+    ) \
+    || return "$?"
+
     # TODO: Run the "suspicious files" checker.
 }
 
