@@ -399,7 +399,13 @@ function do-js-build-new {
     ) \
     || return "$?"
 
-    # TODO: Run the "suspicious files" checker.
+    # Run the "suspect files" checker.
+
+    progress-msg 'Checking for platform agnosticity...'
+    suspect-file-check "${destDir}/node_modules"
+
+    # TODO: Remove local module directories that are no longer part of the
+    # build.
 }
 
 # Calls `rsync` so as to do an all-local (not actually remote) "archive" copy
@@ -432,6 +438,29 @@ function rsync-archive {
     # so only the file sizes come into play, and it's very easy to have a file
     # size coincidence.)
     rsync --archive --delete --ignore-times -- "${args[@]}"
+}
+
+# Checks a `node_modules` directory (or similar) for "suspect" files, given a
+# desire to have a platform-agnostic build.
+function suspect-file-check {
+    local dir="$1"
+
+    suspectFiles="$(
+        cd "${dir}"
+        find . -type f \
+            '!' '(' \
+                -name '*.js' -o -name '*.json' -o -name '*.html' -o -name '*.md' \
+            ')' \
+            -exec file '{}' ';' \
+        | grep -Ev 'ASCII|JSON|PNG|UTF-8|empty|short file' \
+        | awk '{ sub(/^\.\//, "  "); sub(/:[ \t].*$/, ""); print; }'
+    )"
+
+    if [[ ${suspectFiles} != '' ]]; then
+        error-msg 'Files possibly containing platform-specific binaries:'
+        error-msg -- "${suspectFiles}"
+        return 1
+    fi
 }
 
 
