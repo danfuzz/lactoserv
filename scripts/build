@@ -420,7 +420,7 @@ function rsync-archive {
     # freshly checked-out source tree, many many files have the same timestamps,
     # so only the file sizes come into play, and it's very easy to have a file
     # size coincidence.)
-    rsync --archive --delete --ignore-times "${args[@]}"
+    rsync --archive --delete --ignore-times -- "${args[@]}"
 }
 
 
