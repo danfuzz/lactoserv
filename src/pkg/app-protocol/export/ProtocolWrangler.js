@@ -3,7 +3,7 @@
 
 import * as net from 'node:net';
 
-import { Threadoid } from '@this/async';
+import { Threadlet } from '@this/async';
 import { Methods } from '@this/typey';
 
 
@@ -26,8 +26,8 @@ export class ProtocolWrangler {
   /** @type {object} High-level application (Express-like thing). */
   #application;
 
-  /** @type {Threadoid} Threadoid which runs the "network stack." */
-  #runner = new Threadoid(() => this.#startNetwork(), () => this.#runNetwork());
+  /** @type {Threadlet} Threadlet which runs the "network stack." */
+  #runner = new Threadlet(() => this.#startNetwork(), () => this.#runNetwork());
 
   /**
    * Constructs an instance. Accepted options:

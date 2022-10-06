@@ -3,7 +3,7 @@
 
 import * as timers from 'node:timers/promises';
 
-import { Threadoid } from '@this/async';
+import { Threadlet } from '@this/async';
 
 import { ThisModule } from '#p/ThisModule';
 
@@ -18,14 +18,14 @@ const logger = ThisModule.logger.keepRunning;
  * keep the process up, for whatever reason.
  */
 export class KeepRunning {
-  /** @type {Threadoid} Thread that runs {@link #keepRunning}. */
+  /** @type {Threadlet} Thread that runs {@link #keepRunning}. */
   #thread;
 
   /**
    * Constructs an instance.
    */
   constructor() {
-    this.#thread = new Threadoid(() => this.#keepRunning());
+    this.#thread = new Threadlet(() => this.#keepRunning());
   }
 
   /**

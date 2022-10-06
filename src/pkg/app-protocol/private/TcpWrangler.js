@@ -3,7 +3,7 @@
 
 import * as net from 'node:net';
 
-import { Condition, Threadoid } from '@this/async';
+import { Condition, Threadlet } from '@this/async';
 
 import { ProtocolWrangler } from '#x/ProtocolWrangler';
 
@@ -31,8 +31,8 @@ export class TcpWrangler extends ProtocolWrangler {
   /** @type {Set} Set of all currently-known sockets. */
   #sockets = new Set();
 
-  /** @type {Threadoid} Thread which runs the low-level of the stack. */
-  #runner = new Threadoid(() => this.#start(), () => this.#run());
+  /** @type {Threadlet} Thread which runs the low-level of the stack. */
+  #runner = new Threadlet(() => this.#start(), () => this.#run());
 
   /**
    * Constructs an instance.

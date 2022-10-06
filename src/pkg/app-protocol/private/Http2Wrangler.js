@@ -7,7 +7,7 @@ import * as timers from 'node:timers/promises';
 import express from 'express';
 import http2ExpressBridge from 'http2-express-bridge';
 
-import { Condition, Threadoid } from '@this/async';
+import { Condition, Threadlet } from '@this/async';
 
 import { TcpWrangler } from '#p/TcpWrangler';
 
@@ -28,8 +28,8 @@ export class Http2Wrangler extends TcpWrangler {
   /** @type {Set} Set of all currently-known sessions. */
   #sessions = new Set();
 
-  /** @type {Threadoid} Thread which runs the high-level stack. */
-  #runner = new Threadoid(() => this.#run());
+  /** @type {Threadlet} Thread which runs the high-level stack. */
+  #runner = new Threadlet(() => this.#run());
 
   /**
    * Constructs an instance.

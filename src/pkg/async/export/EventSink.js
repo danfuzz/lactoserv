@@ -5,7 +5,7 @@ import { MustBe } from '@this/typey';
 
 import { ChainedEvent } from '#x/ChainedEvent';
 import { EventOrPromise } from '#p/EventOrPromise';
-import { Threadoid } from '#x/Threadoid';
+import { Threadlet } from '#x/Threadlet';
 
 
 /**
@@ -24,7 +24,7 @@ export class EventSink {
    */
   #head;
 
-  /** @type {Threadoid} Thread that runs the processor function. */
+  /** @type {Threadlet} Thread that runs the processor function. */
   #thread;
 
 
@@ -39,7 +39,7 @@ export class EventSink {
   constructor(processor, firstEvent) {
     this.#processor = MustBe.callableFunction(processor).bind(null);
     this.#head      = new EventOrPromise(firstEvent);
-    this.#thread    = new Threadoid(() => this.#run());
+    this.#thread    = new Threadlet(() => this.#run());
   }
 
   /**

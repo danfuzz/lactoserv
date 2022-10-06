@@ -15,11 +15,11 @@ import { Condition } from '#x/Condition';
  * this by using the methods {@link #shouldStop} and {@link #whenStopRequested}
  * on the instance of this class that it is called with.
  */
-export class Threadoid {
-  /** @type {?function(Threadoid): *} Start function to run, if any */
+export class Threadlet {
+  /** @type {?function(Threadlet): *} Start function to run, if any */
   #startFunction;
 
-  /** @type {function(Threadoid): *} Main function to run. */
+  /** @type {function(Threadlet): *} Main function to run. */
   #mainFunction;
 
   /**
@@ -58,9 +58,9 @@ export class Threadoid {
    * to a call to {@link #run}). When called, the functions are passed as an
    * argument the instance of this class that is calling them.
    *
-   * @param {function(Threadoid): *} function1 First function to call (start
+   * @param {function(Threadlet): *} function1 First function to call (start
    *   function or main function).
-   * @param {?function(Threadoid): *} [mainFunction = null] Main function, or
+   * @param {?function(Threadlet): *} [mainFunction = null] Main function, or
    *   `null` if `function1` is actually the main function (and there is no
    *   start function).
    */

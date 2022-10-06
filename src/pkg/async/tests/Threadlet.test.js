@@ -3,35 +3,35 @@
 
 import * as timers from 'node:timers/promises';
 
-import { PromiseState, PromiseUtil, Threadoid } from '@this/async';
+import { PromiseState, PromiseUtil, Threadlet } from '@this/async';
 
 
 describe('constructor(function)', () => {
   test('trivially succeeds', () => {
-    expect(() => new Threadoid(() => null)).not.toThrow();
+    expect(() => new Threadlet(() => null)).not.toThrow();
   });
 
   test('produces an instance for which `isRunning() === false`', () => {
-    const thread = new Threadoid(() => null);
+    const thread = new Threadlet(() => null);
 
     expect(thread.isRunning()).toBeFalse();
   });
 
   test('produces an instance for which `shouldStop() === true`', () => {
-    const thread = new Threadoid(() => null);
+    const thread = new Threadlet(() => null);
 
     expect(thread.shouldStop()).toBeTrue();
   });
 
   test('produces an instance for which `whenStarted()` is synchronously fulfilled', async () => {
-    const thread = new Threadoid(() => null);
+    const thread = new Threadlet(() => null);
     const result = thread.whenStarted();
 
     expect(PromiseState.isFulfilled(result)).toBeTrue();
   });
 
   test('produces an instance for which `whenStopRequested()` is pre-fulfilled', async () => {
-    const thread = new Threadoid(() => null);
+    const thread = new Threadlet(() => null);
 
     const result = thread.whenStopRequested();
     expect(PromiseState.isFulfilled(result)).toBeTrue();
@@ -39,7 +39,7 @@ describe('constructor(function)', () => {
 
   test('produces an instance which does not immediately call its function', async () => {
     let called = false;
-    new Threadoid(() => {
+    new Threadlet(() => {
       called = true;
     });
 
@@ -62,18 +62,18 @@ describe('constructor(<invalid>)', () => {
     [new Map()],
     [class NotACallableFunction {}]
   ])('fails for %p', (value) => {
-    expect(() => new Threadoid(value)).toThrow();
+    expect(() => new Threadlet(value)).toThrow();
   });
 });
 
 describe('isRunning()', () => {
   test('returns `false` before being started', async () => {
-    const thread = new Threadoid(() => null);
+    const thread = new Threadlet(() => null);
     expect(thread.isRunning()).toBeFalse();
   });
 
   test('returns `true` immediately after being started', async () => {
-    const thread = new Threadoid(() => null);
+    const thread = new Threadlet(() => null);
 
     const runResult = thread.run();
     expect(thread.isRunning()).toBeTrue();
@@ -84,7 +84,7 @@ describe('isRunning()', () => {
 
   test('returns `true` while running', async () => {
     let shouldRun = true;
-    const thread = new Threadoid(async () => {
+    const thread = new Threadlet(async () => {
       while (shouldRun) {
         await timers.setImmediate();
       }
@@ -102,7 +102,7 @@ describe('isRunning()', () => {
 
   test('returns `true` while running, even if `stop()` was called', async () => {
     let shouldRun = true;
-    const thread = new Threadoid(async () => {
+    const thread = new Threadlet(async () => {
       while (shouldRun) {
         await timers.setImmediate();
       }
@@ -125,7 +125,7 @@ describe('isRunning()', () => {
   test('returns `false` after the main function runs to completion', async () => {
     let shouldRun = true;
     let stopped   = false;
-    const thread = new Threadoid(async () => {
+    const thread = new Threadlet(async () => {
       while (shouldRun) {
         await timers.setImmediate();
       }
@@ -162,7 +162,7 @@ describe('run()', () => {
 
     test('causes the main function to be called', async () => {
       let called = false;
-      const thread = new Threadoid(...startArg, () => {
+      const thread = new Threadlet(...startArg, () => {
         called = true;
       });
 
@@ -175,7 +175,7 @@ describe('run()', () => {
 
     test('causes the main function to be called, fully asynchronously', async () => {
       let called = false;
-      const thread = new Threadoid(...startArg, () => {
+      const thread = new Threadlet(...startArg, () => {
         called = true;
       });
 
@@ -189,7 +189,7 @@ describe('run()', () => {
 
     test('causes the main function to be called, with the thread as its argument', async () => {
       let gotArgs = null;
-      const thread = new Threadoid(...startArg, (...args) => {
+      const thread = new Threadlet(...startArg, (...args) => {
         gotArgs = args;
       });
 
@@ -202,7 +202,7 @@ describe('run()', () => {
 
     test('causes the main function to be called, with `this` unbound', async () => {
       let gotThis = null;
-      const thread = new Threadoid(...startArg, function () {
+      const thread = new Threadlet(...startArg, function () {
         gotThis = this;
       });
 
@@ -215,7 +215,7 @@ describe('run()', () => {
 
     test('returns the value returned by the main function', async () => {
       const value = 'OH YEAH';
-      const thread = new Threadoid(...startArg, () => value);
+      const thread = new Threadlet(...startArg, () => value);
 
       const runResult = thread.run();
       expect(await runResult).toBe(value);
@@ -223,7 +223,7 @@ describe('run()', () => {
 
     test('throws the value thrown by the main function', async () => {
       const error = new Error('OH NOES!!!');
-      const thread = new Threadoid(...startArg, () => {
+      const thread = new Threadlet(...startArg, () => {
         throw (error);
       });
 
@@ -235,7 +235,7 @@ describe('run()', () => {
       test('does not call the main function more than once', async () => {
         let shouldRun = true;
         let count     = 0;
-        const thread = new Threadoid(...startArg, async () => {
+        const thread = new Threadlet(...startArg, async () => {
           count++;
           while (shouldRun) {
             await timers.setImmediate();
@@ -264,7 +264,7 @@ describe('run()', () => {
       test('returns the same value from all calls during the same run', async () => {
         let shouldRun = true;
         let count     = 0;
-        const thread = new Threadoid(...startArg, async () => {
+        const thread = new Threadlet(...startArg, async () => {
           count++;
           const result = `count-was-${count}`;
           while (shouldRun) {
@@ -288,7 +288,7 @@ describe('run()', () => {
       test('causes a second run after a first run completes', async () => {
         let shouldRun = true;
         let count     = 0;
-        const thread = new Threadoid(...startArg, async () => {
+        const thread = new Threadlet(...startArg, async () => {
           count++;
           const result = `count-was-${count}`;
           while (shouldRun) {
@@ -325,7 +325,7 @@ describe('run()', () => {
   describe('with a start function', () => {
     test('causes the start function to be called, fully asynchronously', async () => {
       let called = false;
-      const thread = new Threadoid(() => { called = true; }, () => null);
+      const thread = new Threadlet(() => { called = true; }, () => null);
 
       const runResult = thread.run();
       expect(called).toBeFalse();
@@ -337,7 +337,7 @@ describe('run()', () => {
 
     test('causes the start function to be called, with the thread as its argument', async () => {
       let gotArgs = null;
-      const thread = new Threadoid((...args) => { gotArgs = args; }, () => null);
+      const thread = new Threadlet((...args) => { gotArgs = args; }, () => null);
 
       const runResult = thread.run();
       await timers.setImmediate();
@@ -348,7 +348,7 @@ describe('run()', () => {
 
     test('causes the start function to be called, with `this` unbound', async () => {
       let gotThis = null;
-      const thread = new Threadoid(function () { gotThis = this; }, () => null);
+      const thread = new Threadlet(function () { gotThis = this; }, () => null);
 
       const runResult = thread.run();
       await timers.setImmediate();
@@ -360,7 +360,7 @@ describe('run()', () => {
     test('throws the value thrown by the start function', async () => {
       const error = new Error('OH NOES!!!');
       const wrongError = new Error('wrong-error');
-      const thread = new Threadoid(
+      const thread = new Threadlet(
         () => { throw (error); },
         () => { throw (wrongError); }
       );
@@ -379,7 +379,7 @@ describe('run()', () => {
             await timers.setImmediate();
           }
         };
-        const thread = new Threadoid(startFn, () => null);
+        const thread = new Threadlet(startFn, () => null);
 
         const runResult1 = thread.run();
         await timers.setImmediate();
@@ -405,12 +405,12 @@ describe('run()', () => {
 
 describe('shouldStop()', () => {
   test('returns `true` before being started', async () => {
-    const thread = new Threadoid(() => null);
+    const thread = new Threadlet(() => null);
     expect(thread.shouldStop()).toBeTrue();
   });
 
   test('returns `false` immediately after being started', async () => {
-    const thread = new Threadoid(() => null);
+    const thread = new Threadlet(() => null);
 
     const runResult = thread.run();
     expect(thread.shouldStop()).toBeFalse();
@@ -421,7 +421,7 @@ describe('shouldStop()', () => {
 
   test('returns `false` while running and not asked to stop', async () => {
     let shouldRun = true;
-    const thread = new Threadoid(async () => {
+    const thread = new Threadlet(async () => {
       while (shouldRun) {
         await timers.setImmediate();
       }
@@ -440,7 +440,7 @@ describe('shouldStop()', () => {
   test('returns `true` after the main function runs to completion', async () => {
     let shouldRun = true;
     let stopped   = false;
-    const thread = new Threadoid(async () => {
+    const thread = new Threadlet(async () => {
       while (shouldRun) {
         await timers.setImmediate();
       }
@@ -467,19 +467,19 @@ describe('shouldStop()', () => {
 
 describe('stop()', () => {
   test('trivially succeeds when called on a non-running instance', () => {
-    const thread = new Threadoid(() => null);
+    const thread = new Threadlet(() => null);
     expect(() => thread.stop()).not.toThrow();
   });
 
   test('returns `null` when called on a non-running instance', async () => {
-    const thread = new Threadoid(() => null);
+    const thread = new Threadlet(() => null);
     const result = thread.stop();
     expect(await result).toBeNull();
   });
 
   test('synchronously causes `shouldStop()` to start returning `true`', async () => {
     let stopped = false;
-    const thread = new Threadoid(async () => {
+    const thread = new Threadlet(async () => {
       while (!thread.shouldStop()) {
         await timers.setImmediate();
       }
@@ -502,7 +502,7 @@ describe('stop()', () => {
   });
 
   test('causes already-pending `whenStopRequested()` to become fulfilled', async () => {
-    const thread = new Threadoid(async () => {
+    const thread = new Threadlet(async () => {
       await thread.whenStopRequested();
     });
 
@@ -524,7 +524,7 @@ describe('stop()', () => {
 
   test('does not cause `isRunning()` to become `false`, per se', async () => {
     let shouldRun = true;
-    const thread = new Threadoid(async () => {
+    const thread = new Threadlet(async () => {
       while (shouldRun) {
         await timers.setImmediate();
       }
@@ -548,7 +548,7 @@ describe('stop()', () => {
 
   test('returns the result of the corresponding `run()`', async () => {
     const value = 'Gee howdy!';
-    const thread = new Threadoid(() => value);
+    const thread = new Threadlet(() => value);
 
     const runResult = thread.run();
     const result    = thread.stop();
@@ -560,7 +560,7 @@ describe('stop()', () => {
 
   test('throws the error of the corresponding `run()`', async () => {
     const error = new Error('Aw shucks...');
-    const thread = new Threadoid(() => { throw error; });
+    const thread = new Threadlet(() => { throw error; });
 
     const runResult = thread.run();
     const result    = thread.stop();
@@ -585,14 +585,14 @@ describe('whenStarted()', () => {
       : [];
 
     test('is synchronously fulfilled as `null` before being started', async () => {
-      const thread = new Threadoid(...startArg, () => null);
+      const thread = new Threadlet(...startArg, () => null);
       const result = thread.whenStarted();
       expect(PromiseState.isFulfilled(result)).toBeTrue();
       expect(await result).toBeNull();
     });
 
     test('is not settled immediately after being started (before any async action can happen)', async () => {
-      const thread = new Threadoid(...startArg, () => null);
+      const thread = new Threadlet(...startArg, () => null);
 
       const runResult = thread.run();
       const result = thread.whenStarted();
@@ -604,7 +604,7 @@ describe('whenStarted()', () => {
 
     test('becomes resolved while running', async () => {
       let shouldRun = true;
-      const thread = new Threadoid(...startArg, async () => {
+      const thread = new Threadlet(...startArg, async () => {
         while (shouldRun) {
           await timers.setImmediate();
         }
@@ -623,7 +623,7 @@ describe('whenStarted()', () => {
 
     test('becomes resolved while running, even if `stop()` was called', async () => {
       let shouldRun = true;
-      const thread = new Threadoid(...startArg, async () => {
+      const thread = new Threadlet(...startArg, async () => {
         while (shouldRun) {
           await timers.setImmediate();
         }
@@ -650,7 +650,7 @@ describe('whenStarted()', () => {
     test('becomes synchronously fulfilled as `null` after the main function runs to completion', async () => {
       let shouldRun = true;
       let stopped   = false;
-      const thread = new Threadoid(...startArg, async () => {
+      const thread = new Threadlet(...startArg, async () => {
         while (shouldRun) {
           await timers.setImmediate();
         }
@@ -690,7 +690,7 @@ describe('whenStarted()', () => {
             await timers.setImmediate();
           }
         };
-        const thread = new Threadoid(startFn, mainFn);
+        const thread = new Threadlet(startFn, mainFn);
 
         const runResult = thread.run();
         await timers.setImmediate();
@@ -709,7 +709,7 @@ describe('whenStarted()', () => {
       });
 
       test('becomes resolved to whatever the start function returns', async () => {
-        const thread = new Threadoid(() => 123, () => null);
+        const thread = new Threadlet(() => 123, () => null);
 
         const runResult = thread.run();
         const result    = thread.whenStarted();
@@ -723,7 +723,7 @@ describe('whenStarted()', () => {
 
       test('throws whatever the start function throws', async () => {
         const error  = new Error('alas');
-        const thread = new Threadoid(() => { throw error; }, () => null);
+        const thread = new Threadlet(() => { throw error; }, () => null);
 
         const runResult = thread.run();
         const result    = thread.whenStarted();
@@ -741,7 +741,7 @@ describe('whenStarted()', () => {
       test('resolves immediately when starting to run asynchronously', async () => {
         let shouldRun = true;
         let isRunning = false;
-        const thread = new Threadoid(async () => {
+        const thread = new Threadlet(async () => {
           isRunning = true;
           while (shouldRun) {
             await timers.setImmediate();
@@ -761,7 +761,7 @@ describe('whenStarted()', () => {
       });
 
       test('becomes resolved to `null` once the thread is running', async () => {
-        const thread = new Threadoid(async () => 123);
+        const thread = new Threadlet(async () => 123);
 
         const runResult = thread.run();
         const result    = thread.whenStarted();
@@ -778,7 +778,7 @@ describe('whenStarted()', () => {
 
 describe('whenStopRequested()', () => {
   test('is a pre-resolved promise when not running', () => {
-    const thread = new Threadoid(() => null);
+    const thread = new Threadlet(() => null);
     const result = thread.whenStopRequested();
 
     expect(PromiseState.isFulfilled(result)).toBeTrue();
@@ -786,7 +786,7 @@ describe('whenStopRequested()', () => {
 
   test('is a pending promise when running, before being asked to stop', async () => {
     let shouldRun = true;
-    const thread = new Threadoid(async () => {
+    const thread = new Threadlet(async () => {
       while (shouldRun) {
         await timers.setImmediate();
       }
@@ -805,7 +805,7 @@ describe('whenStopRequested()', () => {
 
   test('is promise which resolves, after being asked to stop', async () => {
     let shouldRun = true;
-    const thread = new Threadoid(async () => {
+    const thread = new Threadlet(async () => {
       while (shouldRun) {
         await timers.setImmediate();
       }
