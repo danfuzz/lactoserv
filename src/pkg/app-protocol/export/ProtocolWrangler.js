@@ -30,9 +30,6 @@ export class ProtocolWrangler {
    */
   #requestLogger = null;
 
-  /** @type {object} High-level application (Express-like thing). */
-  #application;
-
   /** @type {Threadlet} Threadlet which runs the "network stack." */
   #runner = new Threadlet(() => this.#startNetwork(), () => this.#runNetwork());
 
