@@ -38,8 +38,9 @@ export class RequestLogger {
     const timeStart  = process.hrtime.bigint();
     const logger     = this.#logger.$newId;
     const reqHeaders = req.headers;
-    const origin     = `${req.socket.remoteAddress}:${req.socket.remotePort}`;
     const urlish     = `${req.protocol}://${req.hostname}${req.originalUrl}`;
+    const origin     =
+      RequestLogger.#addressPortString(req.socket.remoteAddress, req.socket.remotePort);
 
     logger.started(origin, req.method, urlish);
     logger.headers(RequestLogger.#sanitizeRequestHeaders(reqHeaders));
@@ -80,6 +81,23 @@ export class RequestLogger {
 
   /** @type {number} The number of nanoseconds in a millisecond. */
   static #NSEC_PER_MSEC = 1 / 1_000_000;
+
+  /**
+   * Makes a human-friendly network address/port string.
+   *
+   * @param {string} address The address.
+   * @param {number} port The port.
+   * @returns {string} The friendly form.
+   */
+  static #addressPortString(address, port) {
+    if (/:/.test(address)) {
+      // IPv6 form.
+      return `[${address}]:${port}`;
+    } else {
+      // IPv4 form.
+      return `${address}:${port}`;
+    }
+  }
 
   /**
    * Makes a human-friendly content length string.
