@@ -3,6 +3,8 @@
 
 import * as net from 'node:net';
 
+import express from 'express';
+
 import { Threadlet } from '@this/async';
 import { Methods } from '@this/typey';
 
