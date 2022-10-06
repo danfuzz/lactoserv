@@ -6,6 +6,8 @@ import * as net from 'node:net';
 import { Threadlet } from '@this/async';
 import { Methods } from '@this/typey';
 
+import { RequestLogger } from '#x/RequestLogger';
+
 
 /**
  * Base class for things that "wrangle" each of the server protocols that this
@@ -21,7 +23,12 @@ import { Methods } from '@this/typey';
  */
 export class ProtocolWrangler {
   /** @type {?function(...*)} Logger, if logging is to be done. */
-  #logger;
+  #logger = null;
+
+  /**
+   * @type {?RequestLogger} HTTP(ish) request logger, if logging is to be done.
+   */
+  #requestLogger = null;
 
   /** @type {object} High-level application (Express-like thing). */
   #application;
@@ -47,7 +54,12 @@ export class ProtocolWrangler {
    * @param {object} options Construction options, per the description above.
    */
   constructor(options) {
-    this.#logger = options.logger ?? null;
+    const logger = options.logger;
+
+    if (logger) {
+      this.#logger        = logger;
+      this.#requestLogger = new RequestLogger(logger.req);
+    }
   }
 
   /**
