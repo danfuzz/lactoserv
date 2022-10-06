@@ -200,6 +200,7 @@ export class ProtocolWrangler {
      if (this.#requestLogger) {
        const reqLogger = this.#requestLogger.logRequest(req, res);
        ProtocolWrangler.#bindLogger(req, reqLogger);
+       ProtocolWrangler.#bindLogger(res, reqLogger);
      }
 
      next();

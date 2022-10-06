@@ -47,10 +47,9 @@ export class RequestLogger {
     }
 
     res.on('finish', () => {
-      const resLogger  = logger.res;
       const resHeaders = res.getHeaders();
-      resLogger.code(res.statusCode);
-      resLogger.headers(RequestLogger.#sanitizeResponseHeaders(resHeaders));
+      logger.response(res.statusCode,
+        RequestLogger.#sanitizeResponseHeaders(resHeaders));
 
       const timeEnd = process.hrtime.bigint();
       const elapsedMsec = Number(timeEnd - timeStart) * RequestLogger.#NSEC_PER_MSEC;
