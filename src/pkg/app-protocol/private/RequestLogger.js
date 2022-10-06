@@ -6,6 +6,8 @@ import * as process from 'node:process';
 
 import * as express from 'express';
 
+import { LogRecord } from '@this/loggy';
+
 
 /**
  * Logger for HTTP(ish) requests.
@@ -58,7 +60,7 @@ export class RequestLogger {
       logger.done({ contentLength, elapsedMsec });
 
       const accessLogLine = [
-        '<time>',
+        LogRecord.dateTimeString(Date.now() / 1000),
         origin,
         req.method,
         JSON.stringify(urlish),
