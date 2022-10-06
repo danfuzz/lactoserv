@@ -198,15 +198,15 @@ export class ProtocolWrangler {
    * @param {function(?*)} next Function which causes the next-bound middleware
    *   to run.
    */
-   #handleRequest(req, res, next) {
-     if (this.#requestLogger) {
-       const reqLogger = this.#requestLogger.logRequest(req, res);
-       ProtocolWrangler.#bindLogger(req, reqLogger);
-       ProtocolWrangler.#bindLogger(res, reqLogger);
-     }
+  #handleRequest(req, res, next) {
+    if (this.#requestLogger) {
+      const reqLogger = this.#requestLogger.logRequest(req, res);
+      ProtocolWrangler.#bindLogger(req, reqLogger);
+      ProtocolWrangler.#bindLogger(res, reqLogger);
+    }
 
-     next();
-   }
+    next();
+  }
 
   /**
    * Runs the "network stack." This is called as the main function of the
