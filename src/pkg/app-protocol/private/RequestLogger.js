@@ -22,7 +22,7 @@ export class RequestLogger {
    * @param {function(...*)} logger Underlying logger instance to use.
    */
   constructor(logger) {
-    this.#logger = logger;
+    this.#logger = logger.req;
   }
 
   /**

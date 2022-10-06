@@ -63,7 +63,7 @@ export class ProtocolWrangler {
 
     if (logger) {
       this.#logger        = logger;
-      this.#requestLogger = new RequestLogger(logger.req);
+      this.#requestLogger = new RequestLogger(logger);
     }
   }
 
