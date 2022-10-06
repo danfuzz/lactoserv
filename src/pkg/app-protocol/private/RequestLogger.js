@@ -40,7 +40,7 @@ export class RequestLogger {
     const reqHeaders = req.headers;
     const urlish     = `${req.protocol}://${req.hostname}${req.originalUrl}`;
     const origin     =
-      RequestLogger.#addressPortString(req.socket.remoteAddress, req.socket.remotePort);
+      RequestLogger.addressPortString(req.socket.remoteAddress, req.socket.remotePort);
 
     logger.started(origin, req.method, urlish);
     logger.headers(RequestLogger.#sanitizeRequestHeaders(reqHeaders));
@@ -89,7 +89,7 @@ export class RequestLogger {
    * @param {number} port The port.
    * @returns {string} The friendly form.
    */
-  static #addressPortString(address, port) {
+  static addressPortString(address, port) {
     if (/:/.test(address)) {
       // IPv6 form.
       return `[${address}]:${port}`;

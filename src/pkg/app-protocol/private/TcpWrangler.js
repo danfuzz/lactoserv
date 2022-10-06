@@ -6,6 +6,7 @@ import * as net from 'node:net';
 import { Condition, Threadlet } from '@this/async';
 
 import { ProtocolWrangler } from '#x/ProtocolWrangler';
+import { RequestLogger } from '#p/RequestLogger';
 
 
 /**
@@ -79,10 +80,7 @@ export class TcpWrangler extends ProtocolWrangler {
     const info    = { ...this.#loggableInfo };
 
     if (address) {
-      const ip = /:/.test(address.address)
-        ? `[${address.address}]` // More pleasant presentation for IPv6.
-        : address.address;
-      info.listening = `${ip}:${address.port}`;
+      info.listening = RequestLogger.addressPortString(address.address, address.port);
     }
 
     return info;
@@ -116,14 +114,10 @@ export class TcpWrangler extends ProtocolWrangler {
 
     if (connLogger) {
       try {
-        connLogger.connectedFrom({
-          address: socket.remoteAddress,
-          port:    socket.remotePort
-        });
-        connLogger.connectedTo({
-          address: socket.localAddress,
-          port:    socket.localPort
-        });
+        connLogger.connectedFrom(RequestLogger.addressPortString(
+          socket.remoteAddress, socket.remotePort));
+        connLogger.connectedTo(RequestLogger.addressPortString(
+          socket.localAddress, socket.localPort));
       } catch (e) {
         connLogger.weirdConnectionEvent(socket, ...rest);
         connLogger.error(e);
