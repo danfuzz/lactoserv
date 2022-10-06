@@ -128,11 +128,11 @@ export class ServerController {
    *
    * @param {express.Request} req Request object.
    * @param {express.Response} res Response object.
-   * @param {function(?object=)} next Function which causes the next-bound
-   *   middleware to run.
+   * @param {function(?*)} next Function which causes the next-bound middleware
+   *   to run.
    */
   #handleRequest(req, res, next) {
-    const reqLogger = this.#requestLogger.logRequest(req, res);
+    const reqLogger = ProtocolWrangler.getLogger(req);
 
     const { path, subdomains } = req;
 

@@ -30,6 +30,12 @@ export class ProtocolWrangler {
    */
   #requestLogger = null;
 
+  /**
+   * @type {boolean} Has the high-level application been initialized by this
+   * (base) class?
+   */
+  #applicationInitialized = false;
+
   /** @type {Threadlet} Threadlet which runs the "network stack." */
   #runner = new Threadlet(() => this.#startNetwork(), () => this.#runNetwork());
 
@@ -64,7 +70,20 @@ export class ProtocolWrangler {
    * of `express:Express` or thing that is (approximately) compatible with same.
    */
   get application() {
-    return this._impl_application();
+    const app = this._impl_application();
+
+    if (!this.#applicationInitialized) {
+      // First time getting the application; set it up. Note: We can't do this
+      // in this (base) class's constructor, because the subclass instance isn't
+      // yet constructed at that point. We could alternatively make the subclass
+      // call a (nominally) protected method to do the setup, but that's a lot
+      // of mess to deal with. Doing it here keeps things pretty tidy, even if
+      // it's just a little surprising.
+      app.use('/', (req, res, next) => { this.#handleRequest(req, res, next); });
+      this.#applicationInitialized = true;
+    }
+
+    return app;
   }
 
   /**
@@ -169,6 +188,24 @@ export class ProtocolWrangler {
   }
 
   /**
+   * "First licks" request handler. This gets added as the first middlware
+   * handler to the high-level application.
+   *
+   * @param {express.Request} req Request object.
+   * @param {express.Response} res Response object.
+   * @param {function(?*)} next Function which causes the next-bound middleware
+   *   to run.
+   */
+   #handleRequest(req, res, next) {
+     if (this.#requestLogger) {
+       const reqLogger = this.#requestLogger.logRequest(req, res);
+       ProtocolWrangler.#bindLogger(req, reqLogger);
+     }
+
+     next();
+   }
+
+  /**
    * Runs the "network stack." This is called as the main function of the
    * {@link #runner}.
    */
@@ -211,5 +248,37 @@ export class ProtocolWrangler {
     if (this.#logger) {
       this.#logger.started(this._impl_loggableInfo());
     }
+  }
+
+
+  //
+  // Static members
+  //
+
+  /**
+   * @type {symbol} Symbol used when binding a logger to a request or response
+   * object.
+   */
+  static #LOGGER_SYMBOL = Symbol('loggerFor' + this.name);
+
+  /**
+   * Gets the logger which was bound to the given (presumed) request or response
+   * object.
+   *
+   * @param {object} reqOrRes The request or response object.
+   * @returns {?function(...*)} logger The logger boun to it, if any.
+   */
+  static getLogger(reqOrRes) {
+    return reqOrRes[this.#LOGGER_SYMBOL] ?? null;
+  }
+
+  /**
+   * Binds a logger to the given (presumed) request or response object.
+   *
+   * @param {object} reqOrRes The request or response object.
+   * @param {function(...*)} logger The logger to bind to it.
+   */
+  static #bindLogger(reqOrRes, logger) {
+    reqOrRes[this.#LOGGER_SYMBOL] = logger;
   }
 }
