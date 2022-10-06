@@ -2,3 +2,4 @@
 // All code and assets are considered proprietary and unlicensed.
 
 export * from '#x/Main';
+export { default } from '#x/default';
