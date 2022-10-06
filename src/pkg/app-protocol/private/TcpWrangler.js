@@ -5,8 +5,8 @@ import * as net from 'node:net';
 
 import { Condition, Threadlet } from '@this/async';
 
+import { LogUtils } from '#p/LogUtils';
 import { ProtocolWrangler } from '#x/ProtocolWrangler';
-import { RequestLogger } from '#p/RequestLogger';
 
 
 /**
@@ -80,7 +80,7 @@ export class TcpWrangler extends ProtocolWrangler {
     const info    = { ...this.#loggableInfo };
 
     if (address) {
-      info.listening = RequestLogger.addressPortString(address.address, address.port);
+      info.listening = LogUtils.addressPortString(address.address, address.port);
     }
 
     return info;
@@ -114,9 +114,9 @@ export class TcpWrangler extends ProtocolWrangler {
 
     if (connLogger) {
       try {
-        connLogger.connectedFrom(RequestLogger.addressPortString(
+        connLogger.connectedFrom(LogUtils.addressPortString(
           socket.remoteAddress, socket.remotePort));
-        connLogger.connectedTo(RequestLogger.addressPortString(
+        connLogger.connectedTo(LogUtils.addressPortString(
           socket.localAddress, socket.localPort));
       } catch (e) {
         connLogger.weirdConnectionEvent(socket, ...rest);

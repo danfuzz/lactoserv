@@ -6,6 +6,8 @@ import * as process from 'node:process';
 
 import * as express from 'express';
 
+import { LogUtils } from '#p/LogUtils';
+
 import { LogRecord } from '@this/loggy';
 
 
@@ -40,7 +42,7 @@ export class RequestLogger {
     const reqHeaders = req.headers;
     const urlish     = `${req.protocol}://${req.hostname}${req.originalUrl}`;
     const origin     =
-      RequestLogger.addressPortString(req.socket.remoteAddress, req.socket.remotePort);
+      LogUtils.addressPortString(req.socket.remoteAddress, req.socket.remotePort);
 
     logger.started(origin, req.method, urlish);
     logger.headers(RequestLogger.#sanitizeRequestHeaders(reqHeaders));
@@ -65,8 +67,8 @@ export class RequestLogger {
         origin,
         req.method,
         JSON.stringify(urlish),
-        RequestLogger.#contentLengthString(contentLength),
-        RequestLogger.#elapsedTimeString(elapsedMsec),
+        LogUtils.contentLengthString(contentLength),
+        LogUtils.elapsedTimeString(elapsedMsec),
       ].join(' ');
       logger.accessLog(accessLogLine);
     });
@@ -81,62 +83,6 @@ export class RequestLogger {
 
   /** @type {number} The number of nanoseconds in a millisecond. */
   static #NSEC_PER_MSEC = 1 / 1_000_000;
-
-  /**
-   * Makes a human-friendly network address/port string.
-   *
-   * @param {string} address The address.
-   * @param {number} port The port.
-   * @returns {string} The friendly form.
-   */
-  static addressPortString(address, port) {
-    if (/:/.test(address)) {
-      // IPv6 form.
-      return `[${address}]:${port}`;
-    } else {
-      // IPv4 form.
-      return `${address}:${port}`;
-    }
-  }
-
-  /**
-   * Makes a human-friendly content length string.
-   *
-   * @param {?number} contentLength The content length.
-   * @returns {string} The friendly form.
-   */
-  static #contentLengthString(contentLength) {
-    if (contentLength === null) {
-      return '<unknown-length>';
-    } else if (contentLength < 1024) {
-      return `${contentLength}B`;
-    } else if (contentLength < (1024 * 1024)) {
-      const kilobytes = (contentLength / 1024).toFixed(2);
-      return `${kilobytes}kB`;
-    } else {
-      const megabytes = (contentLength / 1024 / 1024).toFixed(2);
-      return `${megabytes}MB`;
-    }
-  }
-
-  /**
-   * Makes a human-friendly elapsed time string.
-   *
-   * @param {number} elapsedMsec The elapsed time in msec.
-   * @returns {string} The friendly form.
-   */
-  static #elapsedTimeString(elapsedMsec) {
-    if (elapsedMsec < 10) {
-      const msec = elapsedMsec.toFixed(2);
-      return `${msec}msec`;
-    } else if (elapsedMsec < 1000) {
-      const msec = elapsedMsec.toFixed(0);
-      return `${msec}msec`;
-    } else {
-      const sec = (elapsedMsec / 1000).toFixed(1);
-      return `${sec}sec`;
-    }
-  }
 
   /**
    * Cleans up request headers for logging.
