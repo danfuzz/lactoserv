@@ -6,7 +6,7 @@ import * as net from 'node:net';
 import { Threadlet } from '@this/async';
 import { Methods } from '@this/typey';
 
-import { RequestLogger } from '#x/RequestLogger';
+import { RequestLogger } from '#p/RequestLogger';
 
 
 /**
