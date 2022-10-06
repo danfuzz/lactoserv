@@ -48,10 +48,10 @@ export class ServerController {
    * @param {function(...*)} logger Logger to use.
    */
   constructor(serverConfig, logger) {
-    this.#name          = serverConfig.name;
-    this.#hostManager   = serverConfig.hostManager;
-    this.#mountMap      = ServerController.#makeMountMap(serverConfig.appMounts);
-    this.#logger        = logger[this.#name];
+    this.#name        = serverConfig.name;
+    this.#hostManager = serverConfig.hostManager;
+    this.#mountMap    = ServerController.#makeMountMap(serverConfig.appMounts);
+    this.#logger      = logger[this.#name];
 
     const wranglerOptions = {
       logger:   this.#logger,
