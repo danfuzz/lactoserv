@@ -8,7 +8,6 @@ import { ProtocolWrangler, ProtocolWranglers } from '@this/app-protocol';
 import { TreePathKey, TreePathMap } from '@this/collections';
 
 import { ApplicationController } from '#p/ApplicationController';
-import { RequestLogger } from '#p/RequestLogger';
 
 
 /**
@@ -38,9 +37,6 @@ export class ServerController {
   /** @type {ProtocolWrangler} Protocol-specific "wrangler." */
   #wrangler;
 
-  /** @type {RequestLogger} HTTP(ish) request logger. */
-  #requestLogger;
-
 
   /**
    * Constructs an insance.
@@ -52,11 +48,10 @@ export class ServerController {
    * @param {function(...*)} logger Logger to use.
    */
   constructor(serverConfig, logger) {
-    this.#name          = serverConfig.name;
-    this.#hostManager   = serverConfig.hostManager;
-    this.#mountMap      = ServerController.#makeMountMap(serverConfig.appMounts);
-    this.#logger        = logger[this.#name];
-    this.#requestLogger = new RequestLogger(this.#logger.req);
+    this.#name        = serverConfig.name;
+    this.#hostManager = serverConfig.hostManager;
+    this.#mountMap    = ServerController.#makeMountMap(serverConfig.appMounts);
+    this.#logger      = logger[this.#name];
 
     const wranglerOptions = {
       logger:   this.#logger,
@@ -129,11 +124,11 @@ export class ServerController {
    *
    * @param {express.Request} req Request object.
    * @param {express.Response} res Response object.
-   * @param {function(?object=)} next Function which causes the next-bound
-   *   middleware to run.
+   * @param {function(?*)} next Function which causes the next-bound middleware
+   *   to run.
    */
   #handleRequest(req, res, next) {
-    const reqLogger = this.#requestLogger.logRequest(req, res);
+    const reqLogger = ProtocolWrangler.getLogger(req);
 
     const { path, subdomains } = req;
 

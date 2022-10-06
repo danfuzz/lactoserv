@@ -93,7 +93,7 @@ export class LogRecord {
    */
   toHuman() {
     const parts = [
-      ...this.#toHumanTime(),
+      LogRecord.dateTimeString(this.#timeSec, true),
       ' ',
       this.#tag.toHuman(true),
       ...this.#toHumanPayload(),
@@ -131,28 +131,6 @@ export class LogRecord {
     return parts;
   }
 
-  /**
-   * Gets the "human form" of the time string, as an array of parts to join.
-   *
-   * @returns {string[]} The "human form" string parts.
-   */
-  #toHumanTime() {
-    const secs = Math.trunc(this.#timeSec);
-    const frac = this.#timeSec - secs;
-    const d    = new Date(secs * LogRecord.#MSEC_PER_SEC);
-
-    return [
-      d.getUTCFullYear().toString(),
-      (d.getUTCMonth() + 1).toString().padStart(2, '0'),
-      d.getUTCDate().toString().padStart(2, '0'),
-      '-',
-      d.getUTCHours().toString().padStart(2, '0'),
-      d.getUTCMinutes().toString().padStart(2, '0'),
-      d.getUTCSeconds().toString().padStart(2, '0'),
-      '.',
-      frac.toFixed(6).slice(2)
-    ];
-  }
 
   //
   // Static members
@@ -189,5 +167,35 @@ export class LogRecord {
     tag  ??= this.#KICKOFF_TAG;
     type ??= this.#KICKOFF_TYPE;
     return new LogRecord(null, 0, tag, type, Object.freeze([]));
+  }
+
+  /**
+   * Makes a date/time string in a reasonably pithy and understandable form.
+   *
+   * @param {number} dateTimeSecs Unix-style time, in _seconds_ (not msec).
+   * @param {boolean} [wantFrac = false] Should the result include fractional
+   *   seconds?
+   * @returns {string} The friendly time string.
+   */
+  static dateTimeString(dateTimeSecs, wantFrac = false) {
+    const secs = Math.trunc(dateTimeSecs);
+    const frac = dateTimeSecs - secs;
+    const d    = new Date(secs * this.#MSEC_PER_SEC);
+
+    const parts = [
+      d.getUTCFullYear().toString(),
+      (d.getUTCMonth() + 1).toString().padStart(2, '0'),
+      d.getUTCDate().toString().padStart(2, '0'),
+      '-',
+      d.getUTCHours().toString().padStart(2, '0'),
+      d.getUTCMinutes().toString().padStart(2, '0'),
+      d.getUTCSeconds().toString().padStart(2, '0')
+    ];
+
+    if (wantFrac) {
+      parts.push(frac.toFixed(4).slice(1));
+    }
+
+    return parts.join('');
   }
 }
