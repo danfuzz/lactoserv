@@ -108,9 +108,7 @@ export class TcpWrangler extends ProtocolWrangler {
       return;
     }
 
-    const connLogger = this.#logger
-      ? this.#logger.$newId
-      : null;
+    const connLogger = this.#logger?.$newId ?? null;
 
     if (connLogger) {
       try {
