@@ -42,7 +42,7 @@ export class TcpWrangler extends ProtocolWrangler {
   constructor(options) {
     super(options);
 
-    this.#logger        = options.logger ?? null;
+    this.#logger        = options.logger?.conn ?? null;
     this.#listenOptions =
       TcpWrangler.#trimOptions(options.socket, TcpWrangler.#LISTEN_PROTO);
     this.#loggableInfo  = {
