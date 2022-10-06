@@ -36,9 +36,10 @@ export class RequestLogger {
     const timeStart  = process.hrtime.bigint();
     const logger     = this.#logger.$newId;
     const reqHeaders = req.headers;
+    const origin     = `${req.socket.remoteAddress}:${req.socket.remotePort}`;
+    const urlish     = `${req.protocol}://${req.hostname}${req.originalUrl}`;
 
-    logger.started(req.method, req.protocol, req.hostname, req.originalUrl);
-    logger.origin(req.socket.remoteAddress);
+    logger.started(origin, req.method, urlish);
     logger.headers(RequestLogger.#sanitizeRequestHeaders(reqHeaders));
 
     const cookies = req.cookies;
@@ -48,14 +49,23 @@ export class RequestLogger {
 
     res.on('finish', () => {
       const resHeaders    = res.getHeaders();
-      const contentLength = resHeaders['content-length'] ?? '<unknown>';
+      const contentLength = resHeaders['content-length'] ?? null;
       logger.response(res.statusCode,
         RequestLogger.#sanitizeResponseHeaders(resHeaders));
 
       const timeEnd = process.hrtime.bigint();
-      const elapsedMsec = Math.trunc(
-        Number(timeEnd - timeStart) * RequestLogger.#NSEC_PER_MSEC);
+      const elapsedMsec = Number(timeEnd - timeStart) * RequestLogger.#NSEC_PER_MSEC;
       logger.done({ contentLength, elapsedMsec });
+
+      const accessLogLine = [
+        '<time>',
+        origin,
+        req.method,
+        JSON.stringify(urlish),
+        RequestLogger.#contentLengthString(contentLength),
+        RequestLogger.#elapsedTimeString(elapsedMsec),
+      ].join(' ');
+      logger.accessLog(accessLogLine);
     });
 
     return logger;
@@ -68,6 +78,45 @@ export class RequestLogger {
 
   /** @type {number} The number of nanoseconds in a millisecond. */
   static #NSEC_PER_MSEC = 1 / 1_000_000;
+
+  /**
+   * Makes a human-friendly content length string.
+   *
+   * @param {?number} contentLength The content length.
+   * @returns {string} The friendly form.
+   */
+  static #contentLengthString(contentLength) {
+    if (contentLength === null) {
+      return '<unknown-length>';
+    } else if (contentLength < 1024) {
+      return `${contentLength}B`;
+    } else if (contentLength < (1024 * 1024)) {
+      const kilobytes = (contentLength / 1024).toFixed(2);
+      return `${kilobytes}kB`;
+    } else {
+      const megabytes = (contentLength / 1024 / 1024).toFixed(2);
+      return `${megabytes}MB`;
+    }
+  }
+
+  /**
+   * Makes a human-friendly elapsed time string.
+   *
+   * @param {number} elapsedMsec The elapsed time in msec.
+   * @returns {string} The friendly form.
+   */
+  static #elapsedTimeString(elapsedMsec) {
+    if (elapsedMsec < 10) {
+      const msec = elapsedMsec.toFixed(2);
+      return `${msec}msec`;
+    } else if (elapsedMsec < 1000) {
+      const msec = elapsedMsec.toFixed(0);
+      return `${elapsedMsec}msec`;
+    } else {
+      const sec = (elapsedMsec / 1000).toFixed(1);
+      return `${sec}sec`;
+    }
+  }
 
   /**
    * Cleans up request headers for logging.
