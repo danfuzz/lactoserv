@@ -47,13 +47,15 @@ export class RequestLogger {
     }
 
     res.on('finish', () => {
-      const resHeaders = res.getHeaders();
+      const resHeaders    = res.getHeaders();
+      const contentLength = resHeaders['content-length'] ?? '<unknown>';
       logger.response(res.statusCode,
         RequestLogger.#sanitizeResponseHeaders(resHeaders));
 
       const timeEnd = process.hrtime.bigint();
-      const elapsedMsec = Number(timeEnd - timeStart) * RequestLogger.#NSEC_PER_MSEC;
-      logger.done(Math.trunc(elapsedMsec), 'msec');
+      const elapsedMsec = Math.trunc(
+        Number(timeEnd - timeStart) * RequestLogger.#NSEC_PER_MSEC);
+      logger.done({ contentLength, elapsedMsec });
     });
 
     return logger;
