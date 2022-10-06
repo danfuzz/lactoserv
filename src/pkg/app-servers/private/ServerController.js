@@ -4,7 +4,7 @@
 import * as express from 'express';
 
 import { HostManager } from '@this/app-hosts';
-import { ProtocolWrangler, ProtocolWranglers, RequestLogger } from '@this/app-protocol';
+import { ProtocolWrangler, ProtocolWranglers } from '@this/app-protocol';
 import { TreePathKey, TreePathMap } from '@this/collections';
 
 import { ApplicationController } from '#p/ApplicationController';
@@ -37,9 +37,6 @@ export class ServerController {
   /** @type {ProtocolWrangler} Protocol-specific "wrangler." */
   #wrangler;
 
-  /** @type {RequestLogger} HTTP(ish) request logger. */
-  #requestLogger;
-
 
   /**
    * Constructs an insance.
@@ -55,7 +52,6 @@ export class ServerController {
     this.#hostManager   = serverConfig.hostManager;
     this.#mountMap      = ServerController.#makeMountMap(serverConfig.appMounts);
     this.#logger        = logger[this.#name];
-    this.#requestLogger = new RequestLogger(this.#logger.req);
 
     const wranglerOptions = {
       logger:   this.#logger,
