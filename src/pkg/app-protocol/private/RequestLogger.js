@@ -131,7 +131,7 @@ export class RequestLogger {
       return `${msec}msec`;
     } else if (elapsedMsec < 1000) {
       const msec = elapsedMsec.toFixed(0);
-      return `${elapsedMsec}msec`;
+      return `${msec}msec`;
     } else {
       const sec = (elapsedMsec / 1000).toFixed(1);
       return `${sec}sec`;
