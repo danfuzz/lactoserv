@@ -116,10 +116,17 @@ export class TcpWrangler extends ProtocolWrangler {
 
     if (connLogger) {
       try {
-        const { address, port } = socket.address(); // No need for the others.
-        connLogger.connectedFrom({ address, port });
+        connLogger.connectedFrom({
+          address: socket.remoteAddress,
+          port:    socket.remotePort
+        });
+        connLogger.connectedTo({
+          address: socket.localAddress,
+          port:    socket.localPort
+        });
       } catch (e) {
         connLogger.weirdConnectionEvent(socket, ...rest);
+        connLogger.error(e);
       }
     }
 
