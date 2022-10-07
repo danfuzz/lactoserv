@@ -1,8 +1,11 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import * as Path from 'node:path';
+
 import { BaseService } from '@this/app-services';
 import { JsonSchema } from '@this/json';
+import { Loggy, TextFileSink } from '@this/loggy';
 
 
 /**
@@ -13,6 +16,12 @@ import { JsonSchema } from '@this/json';
  * * `{string} baseName` -- Base file name for the log files.
  */
 export class MainLogService extends BaseService {
+  /** @type {string} Full path to the log file. */
+  #logFilePath;
+
+  /** @type {TextFileSink} Event sink which does the actual writing. */
+  #sink;
+
   /**
    * Constructs an instance.
    *
@@ -22,10 +31,19 @@ export class MainLogService extends BaseService {
     super();
 
     MainLogService.#validateConfig(config);
-    // TODO: Implement this.
+    this.#logFilePath = Path.resolve(config.directory, `${config.baseName}.txt`);
+    this.#sink        = new TextFileSink(this.#logFilePath, Loggy.earliestEvent);
   }
 
-  // TODO: Implement this.
+  /** @override */
+  async start() {
+    await this.#sink.start();
+  }
+
+  /** @override */
+  async stop() {
+    await this.#sink.stop();
+  }
 
   //
   // Static members
