@@ -45,6 +45,7 @@ export class MainLogService extends BaseService {
     await this.#sink.stop();
   }
 
+
   //
   // Static members
   //
