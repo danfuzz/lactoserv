@@ -68,7 +68,7 @@ export class ServiceManager {
    * object.
    */
   #addControllerFor(serviceItem) {
-    const controller = new ServiceController(serviceItem);
+    const controller = new ServiceController(serviceItem, logger);
     const name       = controller.name;
 
     logger.binding(name);

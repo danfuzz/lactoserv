@@ -15,12 +15,16 @@ export class ServiceController {
   /** @type {BaseService} Actual service instance. */
   #service;
 
+  /** @type {function(...*)} Instance-specific logger. */
+  #logger;
+
   /**
    * Constructs an insance.
    *
    * @param {object} serviceConfig Service information configuration item.
+   * @param {function(...*)} logger Logger to use.
    */
-  constructor(serviceConfig) {
+  constructor(serviceConfig, logger) {
     this.#name = serviceConfig.name;
 
     const extraConfig = { ...serviceConfig };
@@ -28,6 +32,7 @@ export class ServiceController {
     delete extraConfig.type;
 
     this.#service = ServiceFactory.forType(serviceConfig.type, extraConfig);
+    this.#logger  = logger[this.#name];
   }
 
   /** @returns {string} Service name. */
@@ -46,7 +51,9 @@ export class ServiceController {
    * @throws {Error} Thrown if there was trouble starting the service.
    */
   async start() {
-    return this.#service.start();
+    this.#logger.starting();
+    await this.#service.start();
+    this.#logger.started();
   }
 
   /**
@@ -56,7 +63,9 @@ export class ServiceController {
    *   service.
    */
   async stop() {
-    return this.#service.stop();
+    this.#logger.stopping();
+    await this.#service.stop();
+    this.#logger.stopped();
   }
 
 
