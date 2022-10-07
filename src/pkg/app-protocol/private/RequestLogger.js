@@ -6,9 +6,7 @@ import * as process from 'node:process';
 
 import * as express from 'express';
 
-import { LogUtils } from '#p/LogUtils';
-
-import { LogRecord } from '@this/loggy';
+import { FormatUtils } from '@this/loggy';
 
 
 /**
@@ -42,7 +40,7 @@ export class RequestLogger {
     const reqHeaders = req.headers;
     const urlish     = `${req.protocol}://${req.hostname}${req.originalUrl}`;
     const origin     =
-      LogUtils.addressPortString(req.socket.remoteAddress, req.socket.remotePort);
+      FormatUtils.addressPortString(req.socket.remoteAddress, req.socket.remotePort);
 
     logger.started(origin, req.method, urlish);
     logger.headers(RequestLogger.#sanitizeRequestHeaders(reqHeaders));
@@ -63,12 +61,12 @@ export class RequestLogger {
       logger.done({ contentLength, elapsedMsec });
 
       const accessLogLine = [
-        LogRecord.dateTimeString(Date.now() / 1000),
+        FormatUtils.dateTimeStringFromMsec(Date.now()),
         origin,
         req.method,
         JSON.stringify(urlish),
-        LogUtils.contentLengthString(contentLength),
-        LogUtils.elapsedTimeString(elapsedMsec),
+        FormatUtils.contentLengthString(contentLength),
+        FormatUtils.elapsedTimeString(elapsedMsec),
       ].join(' ');
       logger.accessLog(accessLogLine);
     });

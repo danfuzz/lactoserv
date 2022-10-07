@@ -5,7 +5,10 @@
 /**
  * Utilities for logging.
  */
-export class LogUtils {
+export class FormatUtils {
+  /** @type {number} Number of milliseconds in a second. */
+  static #MSEC_PER_SEC = 1000;
+
   /**
    * Makes a human-friendly network address/port string.
    *
@@ -41,6 +44,50 @@ export class LogUtils {
       const megabytes = (contentLength / 1024 / 1024).toFixed(2);
       return `${megabytes}MB`;
     }
+  }
+
+  /**
+   * Makes a date/time string in a reasonably pithy and understandable form,
+   * from a msec-time (e.g. the result from a call to `Date.now()`).
+   *
+   * @param {number} dateTimeMsec Unix-style time, in msec.
+   * @param {boolean} [wantFrac = false] Should the result include fractional
+   *   seconds?
+   * @returns {string} The friendly time string.
+   */
+  static dateTimeStringFromMsec(dateTimeMsec, wantFrac = false) {
+    return this.dateTimeStringFromSecs(dateTimeMsec / 1000, wantFrac);
+  }
+
+  /**
+   * Makes a date/time string in a reasonably pithy and understandable form,
+   * from a standard Unix time in _seconds_ (not msec).
+   *
+   * @param {number} dateTimeSecs Unix-style time, in _seconds_ (not msec).
+   * @param {boolean} [wantFrac = false] Should the result include fractional
+   *   seconds?
+   * @returns {string} The friendly time string.
+   */
+  static dateTimeStringFromSecs(dateTimeSecs, wantFrac = false) {
+    const secs = Math.trunc(dateTimeSecs);
+    const frac = dateTimeSecs - secs;
+    const d    = new Date(secs * this.#MSEC_PER_SEC);
+
+    const parts = [
+      d.getUTCFullYear().toString(),
+      (d.getUTCMonth() + 1).toString().padStart(2, '0'),
+      d.getUTCDate().toString().padStart(2, '0'),
+      '-',
+      d.getUTCHours().toString().padStart(2, '0'),
+      d.getUTCMinutes().toString().padStart(2, '0'),
+      d.getUTCSeconds().toString().padStart(2, '0')
+    ];
+
+    if (wantFrac) {
+      parts.push(frac.toFixed(4).slice(1));
+    }
+
+    return parts.join('');
   }
 
   /**
