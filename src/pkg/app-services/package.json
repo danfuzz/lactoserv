@@ -10,5 +10,7 @@
   },
 
   "dependencies": {
+    "@this/json": "*",
+    "@this/typey": "*"
   }
 }

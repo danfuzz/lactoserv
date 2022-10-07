@@ -1,13 +1,13 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { BaseApplication } from '#p/BaseApplication';
+import { BaseService } from '#x/BaseService';
 
 
 /**
- * Utility class which constructs of concrete {@link BaseApplication} instances.
+ * Utility class which constructs of concrete {@link BaseService} instances.
  */
-export class ApplicationFactory {
+export class ServiceFactory {
   /**
    * @type {Map<string, function(new:BaseService, ...*)>} Map from each service
    * type to the service subclass that implements it.
