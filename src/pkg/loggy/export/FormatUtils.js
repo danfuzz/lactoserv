@@ -5,7 +5,7 @@
 /**
  * Utilities for logging.
  */
-export class LogUtils {
+export class FormatUtils {
   /**
    * Makes a human-friendly network address/port string.
    *
