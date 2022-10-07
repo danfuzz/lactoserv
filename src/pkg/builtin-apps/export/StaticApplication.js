@@ -3,9 +3,8 @@
 
 import express from 'express';
 
+import { BaseApplication } from '@this/app-servers';
 import { JsonSchema } from '@this/json';
-
-import { BaseApplication } from '#p/BaseApplication';
 
 
 /**
