@@ -11,10 +11,11 @@ import { Threadlet } from '#x/Threadlet';
 /**
  * Event sink for {@link ChainedEvent}. Instances of this class "consume"
  * events, calling on a specified processing function for each. Instances can be
- * started and stopped, and while running are always either processing existing
- * events or waiting for new events to be emitted on the chain they track.
+ * started and stopped (this class is a sublcass of {@link Threadlet}), and
+ * while running they are always either processing existing events or waiting
+ * for new events to be emitted on the chain they track.
  */
-export class EventSink {
+export class EventSink extends Threadlet {
   /** @type {function(ChainedEvent)} Function to call, to process each event. */
   #processor;
 
@@ -23,10 +24,6 @@ export class EventSink {
    * event which has not yet been processed.
    */
   #head;
-
-  /** @type {Threadlet} Thread that runs the processor function. */
-  #thread;
-
 
   /**
    * Constructs an instance. It is initally _not_ running.
@@ -37,32 +34,10 @@ export class EventSink {
    *   processed by the instance, or promise for same.
    */
   constructor(processor, firstEvent) {
+    super(() => this.#run());
+
     this.#processor = MustBe.callableFunction(processor).bind(null);
     this.#head      = new EventOrPromise(firstEvent);
-    this.#thread    = new Threadlet(() => this.#run());
-  }
-
-  /**
-   * Starts this instance running, if it isn't already. The return value or
-   * exception thrown from this method indicates "why" the instance stopped.
-   * All event processing happens asynchronously with respect to the caller of
-   * this method.
-   *
-   * @returns {null} Indicates that the instance stopped because it was asked
-   *   to.
-   * @throws {Error} Thrown to indicate a problem while running. This is most
-   *   likely an error thrown by the client-supplied processor function.
-   */
-  async run() {
-    return this.#thread.run();
-  }
-
-  /**
-   * Requests that this instance stop running after finishing processing any
-   * event it is in the middle of handling.
-   */
-  stop() {
-    this.#thread.stop();
   }
 
   /**
@@ -94,7 +69,7 @@ export class EventSink {
    * @throws {Error} Thrown if there is any trouble getting the event.
    */
   async #headEvent() {
-    if (this.#thread.shouldStop()) {
+    if (this.shouldStop()) {
       return null;
     }
 
@@ -106,10 +81,10 @@ export class EventSink {
 
     const result = await Promise.race([
       this.#head.eventPromise,
-      this.#thread.whenStopRequested()
+      this.whenStopRequested()
     ]);
 
-    if (this.#thread.shouldStop()) {
+    if (this.shouldStop()) {
       return null;
     }
 
