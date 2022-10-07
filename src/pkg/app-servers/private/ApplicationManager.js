@@ -27,9 +27,9 @@ const logger = ThisModule.logger.app;
  *   `//<hostname>/<base-path>/`, where `hostname` is the name of a configured
  *   host, and `base-path` is the absolute path which the application should
  *   respond to on that host.
- * * `{string} type` -- The type (class) of server. Several built-in types are
- *   available, and it is possible for clients of this system to define new
- *   types.
+ * * `{string} type` -- The type (class) of the application. Several built-in
+ *   types are available, and it is possible for clients of this system to
+ *   define new types.
  * * In addition, each application type defines additional configuration to be
  *   included here.
  *
