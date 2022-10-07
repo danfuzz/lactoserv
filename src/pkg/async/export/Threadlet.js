@@ -4,6 +4,7 @@
 import { MustBe } from '@this/typey';
 
 import { Condition } from '#x/Condition';
+import { PromiseUtil } from '#x/PromiseUtil';
 
 
 /**
@@ -132,7 +133,10 @@ export class Threadlet {
    * @throws {Error} Error thrown by {@link #whenStarted} (see which).
    */
   async start() {
-    this.run();
+    // Squelch any error from `run()`, because otherwise it will turn into an
+    // impossible-to-actually-handle promise rejection. It's up to clients to
+    // use some other method to detect an exception, e.g. by calling `stop()`.
+    PromiseUtil.handleRejection(this.run());
     return this.whenStarted();
   }
 
