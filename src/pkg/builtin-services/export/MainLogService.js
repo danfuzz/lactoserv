@@ -1,6 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import * as fs from 'node:fs/promises';
 import * as Path from 'node:path';
 
 import { BaseService } from '@this/app-services';
@@ -37,6 +38,19 @@ export class MainLogService extends BaseService {
 
   /** @override */
   async start() {
+    const dirPath = Path.resolve(this.#logFilePath, '..');
+
+    // Create the log directory if it doesn't already exist.
+    try {
+      await fs.stat(dirPath);
+    } catch (e) {
+      if (e.code === 'ENOENT') {
+        await fs.mkdir(dirPath, { recursive: true });
+      } else {
+        throw e;
+      }
+    }
+
     await this.#sink.start();
   }
 
