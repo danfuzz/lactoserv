@@ -3,6 +3,8 @@
 
 import { ServiceFactory } from '@this/app-services';
 
+import { AccessLogService } from '#x/AccessLogService';
+import { MainLogService } from '#x/MainLogService';
 
 /**
  * Global control of this module.
@@ -12,6 +14,7 @@ export class BuiltinServices {
    * Registers all the apps defined by this module.
    */
   static register() {
-    // TODO: Add some services!
+    ServiceFactory.register(AccessLogService);
+    ServiceFactory.register(MainLogService);
   }
 }
