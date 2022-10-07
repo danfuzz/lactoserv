@@ -1,23 +1,18 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import express from 'express';
-
+import { BaseService } from '@this/app-services';
 import { JsonSchema } from '@this/json';
-
-import { BaseApplication } from '#p/BaseApplication';
 
 
 /**
- * Static content server. Configuration object details:
+ * Service which writes the access log to the filesystem. Configuration object
+ * details:
  *
- * * `{string} assetsPath` -- Absolute path to the base directory for the
- *   static assets.
+ * * `{string} directory` -- Absolute path to the directory to write to.
+ * * `{string} baseName` -- Base file name for the log files.
  */
-export class StaticApplication extends BaseApplication {
-  /* @type {function} "Middleware" handler function for this instance. */
-  #handleRequest;
-
+export class AccessLogService extends BaseService {
   /**
    * Constructs an instance.
    *
@@ -26,34 +21,19 @@ export class StaticApplication extends BaseApplication {
   constructor(config) {
     super();
 
-    StaticApplication.#validateConfig(config);
-    this.#handleRequest = StaticApplication.#makeHandler(config);
+    AccessLogService.#validateConfig(config);
+    // TODO: Implement this.
   }
 
-  /** @override */
-  handleRequest(req, res, next) {
-    this.#handleRequest(req, res, next);
-  }
-
+  // TODO: Implement this.
 
   //
   // Static members
   //
 
-  /** @returns {string} Application type as used in configuration objects. */
+  /** @returns {string} Service type as used in configuration objects. */
   static get TYPE() {
-    return 'static-server';
-  }
-
-  /**
-   * Makes a request handler function for an instance of this class.
-   *
-   * @param {object} config Configuration object.
-   * @returns {function(...*)} The middleware function.
-   */
-  static #makeHandler(config) {
-    const assetsPath = config.assetsPath;
-    return express.static(assetsPath);
+    return 'access-log';
   }
 
   /**
@@ -62,8 +42,9 @@ export class StaticApplication extends BaseApplication {
    * @param {object} config Configuration object.
    */
   static #validateConfig(config) {
-    const validator = new JsonSchema('Static Server Configuration');
+    const validator = new JsonSchema('Access Log Configuration');
 
+    const namePattern = '^[^/]+$';
     const pathPattern =
       '^' +
       '(?!.*/[.]{1,2}/)' + // No dot or double-dot internal component.
@@ -73,11 +54,15 @@ export class StaticApplication extends BaseApplication {
       '/[^/]';             // Starts with a slash. Has at least one component.
 
     validator.addMainSchema({
-      $id: '/StaticApplication',
+      $id: '/AccessLogService',
       type: 'object',
-      required: ['assetsPath'],
+      required: ['baseName', 'directory'],
       properties: {
-        assetsPath: {
+        baseName: {
+          type: 'string',
+          pattern: namePattern
+        },
+        directory: {
           type: 'string',
           pattern: pathPattern
         }

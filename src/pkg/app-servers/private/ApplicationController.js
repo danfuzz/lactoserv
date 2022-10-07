@@ -6,8 +6,8 @@ import { TreePathKey } from '@this/collections';
 import { JsonSchemaUtil } from '@this/json';
 import { MustBe } from '@this/typey';
 
-import { ApplicationFactory } from '#p/ApplicationFactory';
-import { BaseApplication } from '#p/BaseApplication';
+import { ApplicationFactory } from '#x/ApplicationFactory';
+import { BaseApplication } from '#x/BaseApplication';
 
 
 /**
@@ -26,7 +26,7 @@ export class ApplicationController {
   /**
    * Constructs an insance.
    *
-   * @param {object} appConfig Server information configuration item.
+   * @param {object} appConfig Application information configuration item.
    */
   constructor(appConfig) {
     this.#name = appConfig.name;

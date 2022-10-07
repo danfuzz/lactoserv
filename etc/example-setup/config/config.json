@@ -12,5 +12,10 @@
   "apps": {
     "$readFile": "./config-apps.json",
     "type":      "json"
+  },
+
+  "services": {
+    "$readFile": "./config-services.json",
+    "type":      "json"
   }
 }

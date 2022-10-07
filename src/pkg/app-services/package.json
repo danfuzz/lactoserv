@@ -1,5 +1,5 @@
 {
-  "name": "@this/main",
+  "name": "@this/app-services",
   "version": "0.0.1",
   "type": "module",
 
@@ -10,11 +10,7 @@
   },
 
   "dependencies": {
-    "@this/app-servers": "*",
-    "@this/async": "*",
-    "@this/builtin-apps": "*",
-    "@this/builtin-services": "*",
-    "@this/host": "*",
+    "@this/json": "*",
     "@this/loggy": "*"
   }
 }
