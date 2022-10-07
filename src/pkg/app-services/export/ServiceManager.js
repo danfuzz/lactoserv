@@ -2,13 +2,13 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { JsonSchema, JsonSchemaUtil } from '@this/json';
+import { Loggy } from '@this/loggy';
 
-import { ApplicationController } from '#p/ApplicationController';
-import { ThisModule } from '#p/ThisModule';
+import { ServiceController } from '#x/ServiceController';
 
 
 /** @type {function(...*)} Logger for this class. */
-const logger = ThisModule.logger.service;
+const logger = Loggy.loggerFor('service');
 
 /**
  * Manager for dealing with all the high-level system services that are running

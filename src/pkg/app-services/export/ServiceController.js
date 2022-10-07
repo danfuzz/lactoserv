@@ -4,8 +4,8 @@
 import { JsonSchemaUtil } from '@this/json';
 import { MustBe } from '@this/typey';
 
-import { ServiceFactory } from '#p/ServiceFactory';
 import { BaseService } from '#x/BaseService';
+import { ServiceFactory } from '#x/ServiceFactory';
 
 
 /**
