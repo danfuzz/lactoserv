@@ -5,6 +5,7 @@ import * as util from 'node:util';
 
 import { MustBe } from '@this/typey';
 
+import { FormatUtils } from '#x/FormatUtils';
 import { LogStackTrace } from '#x/LogStackTrace';
 import { LogTag } from '#x/LogTag';
 
@@ -93,7 +94,7 @@ export class LogRecord {
    */
   toHuman() {
     const parts = [
-      LogRecord.dateTimeString(this.#timeSec, true),
+      FormatUtils.dateTimeString(this.#timeSec, true),
       ' ',
       this.#tag.toHuman(true),
       ...this.#toHumanPayload(),
@@ -136,9 +137,6 @@ export class LogRecord {
   // Static members
   //
 
-  /** @type {number} Number of milliseconds in a second. */
-  static #MSEC_PER_SEC = 1000;
-
   /** @type {object} Inspection options for {@link #toHumanPayload}. */
   static #HUMAN_INSPECT_OPTIONS = Object.freeze({
     depth:       10,
@@ -167,35 +165,5 @@ export class LogRecord {
     tag  ??= this.#KICKOFF_TAG;
     type ??= this.#KICKOFF_TYPE;
     return new LogRecord(null, 0, tag, type, Object.freeze([]));
-  }
-
-  /**
-   * Makes a date/time string in a reasonably pithy and understandable form.
-   *
-   * @param {number} dateTimeSecs Unix-style time, in _seconds_ (not msec).
-   * @param {boolean} [wantFrac = false] Should the result include fractional
-   *   seconds?
-   * @returns {string} The friendly time string.
-   */
-  static dateTimeString(dateTimeSecs, wantFrac = false) {
-    const secs = Math.trunc(dateTimeSecs);
-    const frac = dateTimeSecs - secs;
-    const d    = new Date(secs * this.#MSEC_PER_SEC);
-
-    const parts = [
-      d.getUTCFullYear().toString(),
-      (d.getUTCMonth() + 1).toString().padStart(2, '0'),
-      d.getUTCDate().toString().padStart(2, '0'),
-      '-',
-      d.getUTCHours().toString().padStart(2, '0'),
-      d.getUTCMinutes().toString().padStart(2, '0'),
-      d.getUTCSeconds().toString().padStart(2, '0')
-    ];
-
-    if (wantFrac) {
-      parts.push(frac.toFixed(4).slice(1));
-    }
-
-    return parts.join('');
   }
 }
