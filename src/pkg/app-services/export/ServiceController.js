@@ -40,6 +40,25 @@ export class ServiceController {
     return this.#service;
   }
 
+  /**
+   * Starts the service.
+   *
+   * @throws {Error} Thrown if there was trouble starting the service.
+   */
+  async start() {
+    return this.#service.start();
+  }
+
+  /**
+   * Stops the service. This returns when the service is actually stopped.
+   *
+   * @throws {Error} Thrown if there was trouble running or stopping the
+   *   service.
+   */
+  async stop() {
+    return this.#service.stop();
+  }
+
 
   //
   // Static members
