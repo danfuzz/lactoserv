@@ -94,7 +94,7 @@ export class LogRecord {
    */
   toHuman() {
     const parts = [
-      FormatUtils.dateTimeString(this.#timeSec, true),
+      FormatUtils.dateTimeStringFromSecs(this.#timeSec, true),
       ' ',
       this.#tag.toHuman(true),
       ...this.#toHumanPayload(),

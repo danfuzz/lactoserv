@@ -6,7 +6,9 @@ import * as process from 'node:process';
 
 import * as express from 'express';
 
-import { FormatUtils } from '@this/loggy';
+import { FormatUtils
+
+ } from '@this/loggy';
 
 
 /**
@@ -61,7 +63,7 @@ export class RequestLogger {
       logger.done({ contentLength, elapsedMsec });
 
       const accessLogLine = [
-        FormatUtils.dateTimeString(Date.now() / 1000),
+        FormatUtils.dateTimeStringFromMsec(Date.now()),
         origin,
         req.method,
         JSON.stringify(urlish),
