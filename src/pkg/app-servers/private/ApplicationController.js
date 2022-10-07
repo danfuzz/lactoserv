@@ -26,7 +26,7 @@ export class ApplicationController {
   /**
    * Constructs an insance.
    *
-   * @param {object} appConfig Server information configuration item.
+   * @param {object} appConfig Application information configuration item.
    */
   constructor(appConfig) {
     this.#name = appConfig.name;
