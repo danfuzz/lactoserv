@@ -56,6 +56,7 @@ export class UsualSystem {
       }
 
       await this.#makeWarehouse();
+      await this.#warehouse.startAllServices();
       await this.#warehouse.startAllServers();
 
       this.#logger[`${verb}ed`]();
@@ -104,8 +105,8 @@ export class UsualSystem {
       this.#logger.stop('ignoring');
     } else {
       this.#logger.stopping();
-      this.#logger.allServers('stopping');
       await this.#warehouse.stopAllServers();
+      await this.#warehouse.stopAllServices();
       this.#warehouse = null;
       this.#logger.stopped();
     }
