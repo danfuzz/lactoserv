@@ -95,7 +95,7 @@ export class ApplicationManager {
    */
   #addControllerFor(appItem) {
     const controller = new ApplicationController(appItem);
-    const name = controller.name;
+    const name       = controller.name;
 
     logger.binding(name);
 
@@ -107,11 +107,11 @@ export class ApplicationManager {
   }
 
   /**
-   * Finds the {@link ApplicationController} for a given application name.
+   * Finds the {@link ApplicationController} with the given name.
    *
    * @param {string} name Application name to look for.
-   * @returns {?ApplicationController} The associated information, or `null`
-   *   if nothing suitable is found.
+   * @returns {?ApplicationController} The associated controller, or `null` if
+   *   there is no such application.
    */
   #findController(name) {
     const controller = this.#controllers.get(name);
