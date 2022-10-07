@@ -44,7 +44,11 @@ export class HttpsWrangler extends TcpWrangler {
 
   /** @override */
   async _impl_applicationStop() {
-    // Nothing to do in this case.
+    this.#protocolServer.close();
+    this.#protocolServer.closeIdleConnections();
+
+    // TODO: Consider tracking connections and forcing things closed after a
+    // timeout, similar to what's done with HTTP2.
   }
 
   /** @override */
