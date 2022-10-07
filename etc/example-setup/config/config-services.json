@@ -2,13 +2,13 @@
   {
     "name":      "main-log",
     "type":      "main-log",
-    "directory": { "$filePath": "../../log" },
+    "directory": { "$filePath": "../../../log" },
     "baseName":  "app-log"
   },
   {
     "name":      "access-log",
     "type":      "access-log",
-    "directory": { "$filePath": "../../log" },
+    "directory": { "$filePath": "../../../log" },
     "baseName":  "access"
   }
 ]
