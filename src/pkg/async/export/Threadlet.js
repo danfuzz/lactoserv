@@ -125,6 +125,18 @@ export class Threadlet {
   }
 
   /**
+   * Starts this instance running as with {@link #run}, except that it
+   * async-returns once the instance is _started_ as with {@link #whenStarted}.
+   *
+   * @returns {*} Return value from {@link #whenStarted} (see which).
+   * @throws {Error} Error thrown by {@link #whenStarted} (see which).
+   */
+  async start() {
+    this.run();
+    return this.whenStarted();
+  }
+
+  /**
    * Requests that this instance stop running as soon as possible. This method
    * async-returns the same return value as the call to {@link #run} which
    * started instance. If the instance isn't running when this method is called,
@@ -154,7 +166,7 @@ export class Threadlet {
    *
    * @returns {*} Whatever was returned by the start function, with exceptions
    *   as noted above.
-   * @throws {Error} The same errror as thrown by the start function, if it
+   * @throws {Error} The same error as thrown by the start function, if it
    *   threw an error.
    */
   async whenStarted() {
