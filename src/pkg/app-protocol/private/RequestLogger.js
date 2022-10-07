@@ -6,9 +6,7 @@ import * as process from 'node:process';
 
 import * as express from 'express';
 
-import { FormatUtils
-
- } from '@this/loggy';
+import { FormatUtils } from '@this/loggy';
 
 
 /**
