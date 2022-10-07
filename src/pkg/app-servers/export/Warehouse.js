@@ -2,6 +2,7 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { HostManager } from '@this/app-hosts';
+import { ServiceManager } from '@this/app-services';
 import { JsonSchema } from '@this/json';
 
 import { ApplicationManager } from '#p/ApplicationManager';
@@ -16,6 +17,8 @@ import { ServerManager } from '#p/ServerManager';
  * * `{object} host` or `{object[]} hosts` -- Host / certificate configuration.
  *   Required if a server is configured to listen for secure connections.
  * * `{object} server` or `{object[]} servers` -- Server configuration.
+ * * `{object} service` or `{object[]} services` -- System service
+ *   configuration.
  * * `{object} app` or `{object[]} apps` -- Application configuration.
  */
 export class Warehouse {
@@ -28,6 +31,9 @@ export class Warehouse {
   /** @type {ServerManager} Server manager, for all server bindings. */
   #serverManager;
 
+  /** @type {ServiceManager} Service manager. */
+  #serviceManager;
+
   /**
    * Constructs an instance.
    *
@@ -37,6 +43,7 @@ export class Warehouse {
     Warehouse.#validateConfig(config);
 
     this.#hostManager = HostManager.fromConfig(config);
+    this.#serviceManager = new ServiceManager(config);
     this.#applicationManager = new ApplicationManager(config);
     this.#serverManager =
       new ServerManager(config, this.#hostManager, this.#applicationManager);
