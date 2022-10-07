@@ -13,6 +13,7 @@
     "@this/app-servers": "*",
     "@this/async": "*",
     "@this/builtin-apps": "*",
+    "@this/builtin-services": "*",
     "@this/host": "*",
     "@this/loggy": "*"
   }
