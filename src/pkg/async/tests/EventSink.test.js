@@ -97,7 +97,7 @@ describe('drainAndStop()', () => {
     expect(await runResult).toBeNull();
   });
 
-  test('does not regular `stop()` to drain, after being restarted', async () => {
+  test('does not cause regular `stop()` to drain, after being restarted', async () => {
     const event3  = new ChainedEvent(payload3);
     const event2  = new ChainedEvent(payload2, event3);
     const event1  = new ChainedEvent(payload1, event2);
