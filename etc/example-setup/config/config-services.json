@@ -1,7 +1,7 @@
 [
   {
-    "name":      "main-log",
-    "type":      "main-log",
+    "name":      "system-log",
+    "type":      "system-log",
     "directory": { "$filePath": "../../../log" },
     "baseName":  "app-log"
   },
