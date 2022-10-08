@@ -43,7 +43,7 @@ export class EventSource {
 
   /**
    * @type {ChainedEvent} Earliest (furthest in the past) event emitted by this
-   * instance which is being intentionally kept by this instance. If this
+   * instance which is intentionally being kept by this instance. If this
    * instance has never emitted, then -- as with {@link #currentEvent} -- this
    * is the kickoff event. If this instance isn't keeping any history, then this
    * is always going to be the same as {@link #currentEvent}.
