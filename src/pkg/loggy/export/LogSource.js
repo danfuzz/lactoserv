@@ -37,8 +37,9 @@ export class LogSource extends EventSource {
 
   /**
    * @returns {ChainedEvent|Promise<ChainedEvent>} The earliest available event
-   * from this instance, or promise for same. This is the "kickoff" event until
-   * the configured number of events have been emitted.
+   * from this instance, or promise for same. This is a promise for the
+   * "kickoff" event's `.next` until the configured number of events have been
+   * emitted.
    */
   get earliestEvent() {
     return this.#kickoffEvent
