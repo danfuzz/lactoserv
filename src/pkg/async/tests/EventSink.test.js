@@ -66,13 +66,13 @@ describe('drainAndStop()', () => {
     const event1  = new ChainedEvent(payload1, event2);
     let callCount = 0;
     let runProcessor = false;
-    const processor = async (event) => {
+    const processor = async () => {
       while (!runProcessor) {
         await timers.setImmediate();
       }
       callCount++;
       runProcessor = false;
-    }
+    };
 
     const mp   = new ManualPromise();
     const sink = new EventSink(processor, mp.promise);
@@ -103,13 +103,13 @@ describe('drainAndStop()', () => {
     const event1  = new ChainedEvent(payload1, event2);
     let callCount = 0;
     let runProcessor = false;
-    const processor = async (event) => {
+    const processor = async () => {
       while (!runProcessor) {
         await timers.setImmediate();
       }
       callCount++;
       runProcessor = false;
-    }
+    };
 
     const mp   = new ManualPromise();
     const sink = new EventSink(processor, mp.promise);
