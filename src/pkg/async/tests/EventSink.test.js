@@ -3,11 +3,12 @@
 
 import * as timers from 'node:timers/promises';
 
-import { ChainedEvent, EventSink, PromiseUtil } from '@this/async';
+import { ChainedEvent, EventSink, ManualPromise, PromiseState, PromiseUtil } from '@this/async';
 
 
 const payload1 = { type: 'wacky' };
 const payload2 = { type: 'zany' };
+const payload3 = { type: 'fantastic' };
 
 describe('constructor(<invalid>, event)', () => {
   test.each([
@@ -60,11 +61,85 @@ describe('constructor(function, promise)', () => {
 
 describe('drainAndStop()', () => {
   test('processes all synchronously known events before stopping', async () => {
-    // TODO!
+    const event3  = new ChainedEvent(payload3);
+    const event2  = new ChainedEvent(payload2, event3);
+    const event1  = new ChainedEvent(payload1, event2);
+    let callCount = 0;
+    let runProcessor = false;
+    const processor = async (event) => {
+      while (!runProcessor) {
+        await timers.setImmediate();
+      }
+      callCount++;
+      runProcessor = false;
+    }
+
+    const mp   = new ManualPromise();
+    const sink = new EventSink(processor, mp.promise);
+
+    const runResult = sink.run();
+    await timers.setImmediate();
+    mp.resolve(event1);
+    runProcessor = true;
+    while (callCount === 0) {
+      await timers.setImmediate();
+    }
+    expect(callCount).toBe(1); // Baseline expectation.
+
+    // The actual test.
+    const result = sink.drainAndStop();
+    while (callCount < 3) {
+      runProcessor = true;
+      await timers.setImmediate();
+    }
+    expect(PromiseState.isFulfilled(result)).toBeTrue();
+
+    expect(await runResult).toBeNull();
   });
 
-  test('does not cause eager draining after being restarted', async () => {
-    // TODO!
+  test('does not regular `stop()` to drain, after being restarted', async () => {
+    const event3  = new ChainedEvent(payload3);
+    const event2  = new ChainedEvent(payload2, event3);
+    const event1  = new ChainedEvent(payload1, event2);
+    let callCount = 0;
+    let runProcessor = false;
+    const processor = async (event) => {
+      while (!runProcessor) {
+        await timers.setImmediate();
+      }
+      callCount++;
+      runProcessor = false;
+    }
+
+    const mp   = new ManualPromise();
+    const sink = new EventSink(processor, mp.promise);
+
+    // The setup: Do a first run that ends with a call to drain.
+    const runResult1 = sink.run();
+    await timers.setImmediate();
+    await expect(sink.drainAndStop()).toResolve();
+    await expect(runResult1).toResolve();
+
+    // The actual test.
+    const runResult2 = sink.run();
+    await timers.setImmediate();
+    mp.resolve(event1);
+    runProcessor = true;
+    while (callCount === 0) {
+      await timers.setImmediate();
+    }
+    expect(callCount).toBe(1); // Baseline expectation.
+
+    // The actual test.
+    const result = sink.stop();
+    while (PromiseState.isPending(result)) {
+      runProcessor = true;
+      await timers.setImmediate();
+    }
+    expect(PromiseState.isFulfilled(result)).toBeTrue();
+    expect(callCount).toBe(2); // The crux of the test: _not_ 3!
+
+    expect(await runResult2).toBeNull();
   });
 });
 
