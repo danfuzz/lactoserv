@@ -31,8 +31,15 @@ import { ChainedEvent } from '#x/ChainedEvent';
  * actively used in a process which runs for, say, several months.)
  */
 export class EventSource {
-  /** @type {boolean} Has this instance ever emitted an event? */
-  #everEmitted = false;
+  /** @type {number} How many events has this instance ever emitted. */
+  #emittedCount = 0;
+
+  /**
+   * @type {number} The number of already-emitted events to keep track of,
+   * including the one referenced by {@link #currentEvent}. If infinite, then
+   * this instance keeps the entire event chain.
+   */
+  #keptEventCount = 1;
 
   /**
    * @type {ChainedEvent} Earliest (furthest in the past) event emitted by this
@@ -64,8 +71,9 @@ export class EventSource {
    *   to default to using a direct instance of {@link ChainedEvent}.
    */
   constructor(kickoffEvent = null) {
-    this.#currentEvent = kickoffEvent ?? new ChainedEvent('chain-head');
-    this.#emitNext = this.#currentEvent.emitter;
+    this.#earliestEvent = kickoffEvent ?? new ChainedEvent('chain-head');
+    this.#currentEvent  = this.#earliestEvent;
+    this.#emitNext      = this.#currentEvent.emitter;
   }
 
   /**
@@ -79,7 +87,7 @@ export class EventSource {
    * access to all subsequent events emitted by this source.
    */
   get currentEvent() {
-    if (this.#everEmitted) {
+    if (this.#emittedCount > 0) {
       // `#currentEvent` is in fact a truly emitted event.
       return Promise.resolve(this.#currentEvent);
     } else {
@@ -99,7 +107,7 @@ export class EventSource {
    * source.
    */
   get currentEventNow() {
-    return this.#everEmitted ? this.#currentEvent : null;
+    return (this.#emittedCount > 0) ? this.#currentEvent : null;
   }
 
   /**
@@ -111,7 +119,16 @@ export class EventSource {
   emit(payload) {
     this.#emitNext     = this.#emitNext(payload);
     this.#currentEvent = this.#currentEvent.nextNow;
-    this.#everEmitted  = true;
+    this.#emittedCount++;
+
+    if (this.#emittedCount > this.#keptEventCount) {
+      // Steady state: As each new event gets emitted over the `keptEventCount`
+      // threshold, we walk `#earliestEvent` one more event down the chain.
+      this.#earliestEvent = this.#earliestEvent.nextNow;
+    } else if (this.#emittedCount === 1) {
+      // After the very first event, we need to skip over the kickoff event.
+      this.#earliestEvent = this.#currentEvent;
+    }
 
     return this.#currentEvent;
   }
