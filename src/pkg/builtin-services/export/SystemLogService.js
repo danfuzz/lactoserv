@@ -66,7 +66,7 @@ export class SystemLogService extends BaseService {
 
   /** @returns {string} Service type as used in configuration objects. */
   static get TYPE() {
-    return 'main-log';
+    return 'system-log';
   }
 
   /**
