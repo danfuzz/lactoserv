@@ -16,7 +16,7 @@ import { Loggy, TextFileSink } from '@this/loggy';
  * * `{string} directory` -- Absolute path to the directory to write to.
  * * `{string} baseName` -- Base file name for the log files.
  */
-export class MainLogService extends BaseService {
+export class SystemLogService extends BaseService {
   /** @type {string} Full path to the log file. */
   #logFilePath;
 
@@ -31,7 +31,7 @@ export class MainLogService extends BaseService {
   constructor(config) {
     super();
 
-    MainLogService.#validateConfig(config);
+    SystemLogService.#validateConfig(config);
     this.#logFilePath = Path.resolve(config.directory, `${config.baseName}.txt`);
     this.#sink        = new TextFileSink(this.#logFilePath, Loggy.earliestEvent);
   }
@@ -75,7 +75,7 @@ export class MainLogService extends BaseService {
    * @param {object} config Configuration object.
    */
   static #validateConfig(config) {
-    const validator = new JsonSchema('Main Log Configuration');
+    const validator = new JsonSchema('System Log Configuration');
 
     const namePattern = '^[^/]+$';
     const pathPattern =
@@ -87,7 +87,7 @@ export class MainLogService extends BaseService {
       '/[^/]';             // Starts with a slash. Has at least one component.
 
     validator.addMainSchema({
-      $id: '/MainLogService',
+      $id: '/SystemLogService',
       type: 'object',
       required: ['baseName', 'directory'],
       properties: {

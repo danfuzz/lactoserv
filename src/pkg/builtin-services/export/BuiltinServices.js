@@ -4,7 +4,7 @@
 import { ServiceFactory } from '@this/app-services';
 
 import { AccessLogService } from '#x/AccessLogService';
-import { MainLogService } from '#x/MainLogService';
+import { SystemLogService } from '#x/SystemLogService';
 
 /**
  * Global control of this module.
@@ -15,6 +15,6 @@ export class BuiltinServices {
    */
   static register() {
     ServiceFactory.register(AccessLogService);
-    ServiceFactory.register(MainLogService);
+    ServiceFactory.register(SystemLogService);
   }
 }
