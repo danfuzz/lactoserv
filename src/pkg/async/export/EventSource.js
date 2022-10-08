@@ -16,10 +16,19 @@ import { ChainedEvent } from '#x/ChainedEvent';
  * constructor. The kickoff event becomes the base of the "emission chain." As
  * such, it needs to have its `.emitter` available (never previously accessed).
  *
- * **Note:** This class does _not_ remember any events ever emitted by itself
- * other than the most recent, because doing otherwise would cause a garbage
- * accumulation issue. (Imagine a single instance of this class being actively
- * used in a process which runs for, say, a month.)
+ * An instance of this class always knows its "current" (latest emitted) event,
+ * and a client fetching this and then (asynchronously and iteratively) waiting
+ * for its {@link ChainedEvent.nextPromise} is the equivalent of adding a
+ * listener in the `EventEmitter` model.
+ *
+ * Instances do not by default keep track of any events emitted other than the
+ * most recent, but this is configurable. It is sometimes beneficial for an
+ * instance to remember the last N events emitted (for a small fixed-size N),
+ * and in _some_ circumstances it may be desirable for an instance to remember
+ * _every_ event ever emitted. However, note that in this last case there is a
+ * danger of a garbage-accumulation issue, especially for instances which are
+ * expected to last indefinitely. (Imagine an instance of this class being
+ * actively used in a process which runs for, say, several months.)
  */
 export class EventSource {
   /** @type {boolean} Has this instance ever emitted an event? */
