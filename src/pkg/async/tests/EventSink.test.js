@@ -58,6 +58,10 @@ describe('constructor(function, promise)', () => {
   });
 });
 
+describe('drainAndStop()', () => {
+  // TODO!
+});
+
 describe('run()', () => {
   test('processes the first event when it is synchronously known', async () => {
     let callCount   = 0;
