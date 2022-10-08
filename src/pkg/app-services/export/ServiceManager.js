@@ -52,6 +52,15 @@ export class ServiceManager {
   }
 
   /**
+   * Gets a list of all controllers managed by this instance.
+   *
+   * @returns {ServiceController[]} All the controllers.
+   */
+  getAll() {
+    return [...this.#controllers.values()];
+  }
+
+  /**
    * Constructs a {@link ServiceController} based on the given information,
    * and adds a mapping to {@link #controllers} so it can be found.
    *
@@ -59,7 +68,7 @@ export class ServiceManager {
    * object.
    */
   #addControllerFor(serviceItem) {
-    const controller = new ServiceController(serviceItem);
+    const controller = new ServiceController(serviceItem, logger);
     const name       = controller.name;
 
     logger.binding(name);

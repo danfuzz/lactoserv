@@ -91,6 +91,30 @@ export class Warehouse {
     return Promise.all(results);
   }
 
+  /**
+   * Starts all services. This async-returns once all services are started.
+   *
+   * @throws {Error} Thrown if any service had trouble starting.
+   */
+  async startAllServices() {
+    const services = this.#serviceManager.getAll();
+    const results  = services.map(s => s.start());
+
+    return Promise.all(results);
+  }
+
+  /**
+   * Stops all services. This async-returns once all services are stopped.
+   *
+   * @throws {Error} Thrown if any server had trouble stopping.
+   */
+  async stopAllServices() {
+    const services = this.#serviceManager.getAll();
+    const results  = services.map(s => s.stop());
+
+    return Promise.all(results);
+  }
+
 
   //
   // Static members

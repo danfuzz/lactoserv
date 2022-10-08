@@ -465,6 +465,68 @@ describe('shouldStop()', () => {
   });
 });
 
+describe('start()', () => {
+  describe.each`
+    useStartFunc | label
+    ${false}     | ${'without a start function'}
+    ${true}      | ${'with a start function'}
+  `('$label', ({ useStartFunc }) => {
+    const startArg = useStartFunc
+      ? [() => null]
+      : [];
+
+    test('causes the main function to be called', async () => {
+      let called = false;
+      const thread = new Threadlet(...startArg, () => {
+        called = true;
+      });
+
+      const result = thread.start();
+      await timers.setImmediate();
+      expect(called).toBeTrue();
+
+      await expect(result).toResolve();
+    });
+
+    test('returns once the main function is running', async () => {
+      let shouldRun = true;
+      const thread = new Threadlet(...startArg, async () => {
+        while (shouldRun) {
+          await timers.setImmediate();
+        }
+      });
+
+      const result = thread.start();
+      await timers.setImmediate();
+      expect(PromiseState.isFulfilled(result)).toBeTrue();
+
+      shouldRun = false;
+      await expect(thread.stop()).toResolve();
+    });
+  });
+});
+
+// These are extra tests for `start()` with a start function. The `describe()`s
+// here are set up so the tests get reported sensibly with the ones above.
+describe('start()', () => {
+  describe('with a start function', () => {
+    test('returns the return value from the start function', async () => {
+      const thread = new Threadlet(() => 123, () => null);
+
+      const result = thread.start();
+      await expect(result).resolves.toBe(123);
+    });
+
+    test('throws the error thrown from the start function', async () => {
+      const error  = new Error('oh tragedy');
+      const thread = new Threadlet(() => { throw error; }, () => null);
+
+      const result = thread.start();
+      await expect(result).rejects.toThrow(error);
+    });
+  });
+});
+
 describe('stop()', () => {
   test('trivially succeeds when called on a non-running instance', () => {
     const thread = new Threadlet(() => null);
