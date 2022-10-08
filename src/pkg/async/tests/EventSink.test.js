@@ -59,7 +59,13 @@ describe('constructor(function, promise)', () => {
 });
 
 describe('drainAndStop()', () => {
-  // TODO!
+  test('processes all synchronously known events before stopping', async () => {
+    // TODO!
+  });
+
+  test('does not cause eager draining after being restarted', async () => {
+    // TODO!
+  });
 });
 
 describe('run()', () => {
