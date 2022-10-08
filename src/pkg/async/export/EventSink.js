@@ -25,6 +25,8 @@ export class EventSink extends Threadlet {
    */
   #head;
 
+  #draining = false;
+
   /**
    * Constructs an instance. It is initally _not_ running.
    *
@@ -41,10 +43,23 @@ export class EventSink extends Threadlet {
   }
 
   /**
+   * "Drain" the event chain by processing all synchronously-known events, and
+   * then stop processing.
+   *
+   * @throws {Error} Thrown if there was any trouble processing or stopping.
+   */
+  async drainAndStop() {
+    this.#draining = true;
+    return this.stop();
+  }
+
+  /**
    * Processes events as they become available, until a problem is encountered
    * or we're requested to stop.
    */
   async #run() {
+    this.#draining = false;
+
     for (;;) {
       const event = await this.#headEvent();
       if (!event) {
@@ -69,7 +84,7 @@ export class EventSink extends Threadlet {
    * @throws {Error} Thrown if there is any trouble getting the event.
    */
   async #headEvent() {
-    if (this.shouldStop()) {
+    if (!this.#draining && this.shouldStop()) {
       return null;
     }
 

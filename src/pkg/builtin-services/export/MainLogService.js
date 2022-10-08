@@ -56,7 +56,7 @@ export class MainLogService extends BaseService {
 
   /** @override */
   async stop() {
-    await this.#sink.stop();
+    await this.#sink.drainAndStop();
   }
 
 
