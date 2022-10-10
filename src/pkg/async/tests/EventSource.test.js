@@ -16,13 +16,13 @@ const payload2 = { type: 'zany' };
 const payload3 = { type: 'questionable' };
 
 describe.each`
-  label                             | argFn                                           | cls
-  ${''}                             | ${() => []}                                     | ${ChainedEvent}
-  ${'null'}                         | ${() => [null]}                                 | ${ChainedEvent}
-  ${'undefined'}                    | ${() => [undefined]}                            | ${ChainedEvent}
-  ${'{ kickoffEvent: null }'}       | ${() => [{ kickoffEvent: null }]}               | ${ChainedEvent}
-  ${'{ kickoffEvent: <subclass> }'} | ${() => [{ kickoffEvent: new ZanyEvent('x') }]} | ${ZanyEvent}
-`('constructor($label)', ({ argFn, cls }) => {
+  label                             | argFn                                           | cls             | keepCount
+  ${''}                             | ${() => []}                                     | ${ChainedEvent} | ${0}
+  ${'null'}                         | ${() => [null]}                                 | ${ChainedEvent} | ${0}
+  ${'undefined'}                    | ${() => [undefined]}                            | ${ChainedEvent} | ${0}
+  ${'{ kickoffEvent: null }'}       | ${() => [{ kickoffEvent: null }]}               | ${ChainedEvent} | ${0}
+  ${'{ kickoffEvent: <subclass> }'} | ${() => [{ kickoffEvent: new ZanyEvent('x') }]} | ${ZanyEvent}    | ${0}
+`('constructor($label)', ({ argFn, cls, keepCount }) => {
   test('trivially succeeds', () => {
     expect(() => new EventSource(...argFn())).not.toThrow();
   });
@@ -37,6 +37,23 @@ describe.each`
   test('produces an instance whose `currentEventNow` is `null`', async () => {
     const source = new EventSource(...argFn());
     expect(source.currentEventNow).toBeNull();
+  });
+
+  test('produces an instance whose `earliestEvent` is unsettled', async () => {
+    const source = new EventSource(...argFn());
+
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(source.earliestEvent)).toBeFalse();
+  });
+
+  test('produces an instance whose `earliestEventNow` is `null`', async () => {
+    const source = new EventSource(...argFn());
+    expect(source.earliestEventNow).toBeNull();
+  });
+
+  test('produces an instance whose `keepCount` is as expected', async () => {
+    const source = new EventSource(...argFn());
+    expect(source.keepCount).toBe(keepCount);
   });
 
   test('produces an instance which emits instances of the appropriate class', () => {
