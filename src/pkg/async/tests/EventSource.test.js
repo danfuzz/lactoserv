@@ -16,12 +16,17 @@ const payload2 = { type: 'zany' };
 const payload3 = { type: 'questionable' };
 
 describe.each`
-  label           | argFn                         | cls
-  ${''}           | ${() => []}                   | ${ChainedEvent}
-  ${'null'}       | ${() => [null]}               | ${ChainedEvent}
-  ${'undefined'}  | ${() => [undefined]}          | ${ChainedEvent}
-  ${'<subclass>'} | ${() => [new ZanyEvent('x')]} | ${ZanyEvent}
-`('constructor($label)', ({ argFn, cls }) => {
+  label                             | argFn                                           | cls             | keepCount
+  ${''}                             | ${() => []}                                     | ${ChainedEvent} | ${0}
+  ${'null'}                         | ${() => [null]}                                 | ${ChainedEvent} | ${0}
+  ${'undefined'}                    | ${() => [undefined]}                            | ${ChainedEvent} | ${0}
+  ${'{ keepCount: 0 }'}             | ${() => [{ keepCount: 0 }]}                     | ${ChainedEvent} | ${0}
+  ${'{ keepCount: 1 }'}             | ${() => [{ keepCount: 1 }]}                     | ${ChainedEvent} | ${1}
+  ${'{ keepCount: 10 }'}            | ${() => [{ keepCount: 10 }]}                    | ${ChainedEvent} | ${10}
+  ${'{ keepCount: +inf }'}          | ${() => [{ keepCount: Infinity }]}              | ${ChainedEvent} | ${Infinity}
+  ${'{ kickoffEvent: null }'}       | ${() => [{ kickoffEvent: null }]}               | ${ChainedEvent} | ${0}
+  ${'{ kickoffEvent: <subclass> }'} | ${() => [{ kickoffEvent: new ZanyEvent('x') }]} | ${ZanyEvent}    | ${0}
+`('constructor($label)', ({ argFn, cls, keepCount }) => {
   test('trivially succeeds', () => {
     expect(() => new EventSource(...argFn())).not.toThrow();
   });
@@ -36,6 +41,23 @@ describe.each`
   test('produces an instance whose `currentEventNow` is `null`', async () => {
     const source = new EventSource(...argFn());
     expect(source.currentEventNow).toBeNull();
+  });
+
+  test('produces an instance whose `earliestEvent` is unsettled', async () => {
+    const source = new EventSource(...argFn());
+
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(source.earliestEvent)).toBeFalse();
+  });
+
+  test('produces an instance whose `earliestEventNow` is `null`', async () => {
+    const source = new EventSource(...argFn());
+    expect(source.earliestEventNow).toBeNull();
+  });
+
+  test('produces an instance whose `keepCount` is as expected', async () => {
+    const source = new EventSource(...argFn());
+    expect(source.keepCount).toBe(keepCount);
   });
 
   test('produces an instance which emits instances of the appropriate class', () => {
@@ -76,6 +98,85 @@ describe('.currentEventNow', () => {
     expect(source.currentEventNow.payload).toBe(payload2);
     source.emit(payload3);
     expect(source.currentEventNow.payload).toBe(payload3);
+  });
+});
+
+describe.each`
+  prop                  | isAsync
+  ${'earliestEvent'}    | ${true}
+  ${'earliestEventNow'} | ${false}
+`('.$prop', ({ prop, isAsync }) => {
+  test.each`
+    keepCount | testCounts
+    ${0}         | ${[0, 1, 5]}
+    ${1}         | ${[0, 1, 2, 5]}
+    ${2}         | ${[1, 2, 3, 12]}
+    ${10}        | ${[9, 10, 11]}
+    ${100}       | ${[90, 99, 100, 101, 200]}
+    ${+Infinity} | ${[0, 10, 100, 200, 500]}
+  `('`keepCount === $keepCount`; test counts: $testCounts', async ({ keepCount, testCounts }) => {
+    const source    = new EventSource({ keepCount });
+    const events    = [];
+    const lastCount = testCounts[testCounts.length - 1];
+
+    let lastCheck = -1;
+    const checkCount = async (emittedCount, got) => {
+      if (lastCheck === emittedCount) {
+        // Don't bother re-checking something we just checked.
+        return;
+      }
+      lastCheck = emittedCount;
+
+      if (emittedCount === 0) {
+        // Special cases for the first event.
+        if (isAsync) {
+          expect(PromiseState.isPending(got)).toBeTrue();
+        } else {
+          expect(got).toBeNull();
+        }
+        return;
+      }
+
+      if (isAsync) {
+        expect(PromiseState.isFulfilled(got)).toBeTrue();
+      } else {
+        expect(got).not.toBeNull();
+      }
+
+      // Which event (by index into `events`) should be the `earliest`.
+      const expectIndex = Math.max(0, emittedCount - keepCount - 1);
+      got = isAsync ? (await got) : got;
+      expect(got.payload).toBe(events[expectIndex].payload);
+      expect(got).toBe(events[expectIndex]);
+
+      // How long to expect the chain to be between `earliest` and `current`.
+      const expectedKeptCount = Math.min(keepCount, emittedCount - 1);
+      let count = 0;
+      for (let at = got; at !== source.currentEventNow; at = at.nextNow) {
+        count++;
+      }
+      expect(count).toBe(expectedKeptCount);
+    };
+
+    for (let i = 0; i <= lastCount; i++) {
+      const doTest = (i === testCounts[0]);
+      if (doTest) {
+        testCounts.shift();
+        await checkCount(i, source[prop]);
+      }
+      events.push(source.emit({ count: i }));
+      if (doTest) {
+        await checkCount(i + 1, source[prop]);
+      }
+    }
+  });
+});
+
+describe('.keepCount', () => {
+  // This is actually pretty well covered in the constructor tests.
+  test('is the value passed in the constructor', () => {
+    const source = new EventSource({ keepCount: 123 });
+    expect(source.keepCount).toBe(123);
   });
 });
 

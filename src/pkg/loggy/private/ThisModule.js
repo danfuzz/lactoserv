@@ -12,13 +12,12 @@ import { StdLoggingEnvironment } from '#x/StdLoggingEnvironment';
  */
 export class ThisModule {
   /**
-   * @type {number} Number of events after which {@link #DEFAULT_LOG_SOURCE}
-   * drops its kickoff event.
+   * @type {number} Number of old events that {@link #DEFAULT_LOG_SOURCE} keeps.
    */
-  static #COUNT_WHEN_KICKOFF_DROPPED = 100;
+  static #DEFAULT_KEEP_COUNT = 100;
 
   /** @type {LogSource} Global default log source. */
-  static #DEFAULT_LOG_SOURCE = new LogSource(this.#COUNT_WHEN_KICKOFF_DROPPED);
+  static #DEFAULT_LOG_SOURCE = new LogSource(this.#DEFAULT_KEEP_COUNT);
 
   /** @type {StdLoggingEnvironment} Global default logging environment. */
   static #DEFAULT_ENVIRONMENT =
@@ -39,6 +38,8 @@ export class ThisModule {
    * from the logging system, or promise for same.
    */
   static get earliestEvent() {
-    return this.#DEFAULT_LOG_SOURCE.earliestEvent;
+    const source = this.#DEFAULT_LOG_SOURCE;
+
+    return source.earliestEventNow ?? source.earliestEvent;
   }
 }

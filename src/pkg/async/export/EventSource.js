@@ -16,19 +16,44 @@ import { ChainedEvent } from '#x/ChainedEvent';
  * constructor. The kickoff event becomes the base of the "emission chain." As
  * such, it needs to have its `.emitter` available (never previously accessed).
  *
- * **Note:** This class does _not_ remember any events ever emitted by itself
- * other than the most recent, because doing otherwise would cause a garbage
- * accumulation issue. (Imagine a single instance of this class being actively
- * used in a process which runs for, say, a month.)
+ * An instance of this class always knows its "current" (latest emitted) event,
+ * and a client fetching this and then (asynchronously and iteratively) waiting
+ * for its {@link ChainedEvent.nextPromise} is the equivalent of adding a
+ * listener in the `EventEmitter` model.
+ *
+ * Instances do not by default keep track of any events emitted other than the
+ * most recent, but this is configurable. It is sometimes beneficial for an
+ * instance to remember the last N events emitted (for a small fixed-size N),
+ * and in _some_ circumstances it may be desirable for an instance to remember
+ * _every_ event ever emitted. However, note that in this last case there is a
+ * danger of a garbage-accumulation issue, especially for instances which are
+ * expected to last indefinitely. (Imagine an instance of this class being
+ * actively used in a process which runs for, say, several months.)
  */
 export class EventSource {
-  /** @type {boolean} Has this instance ever emitted an event? */
-  #everEmitted = false;
+  /**
+   * @type {number} The number of already-emitted events to keep track of,
+   * not including the one referenced by {@link #currentEvent}. If infinite,
+   * then this instance keeps the entire event chain.
+   */
+  #keepCount = 0;
+
+  /** @type {number} How many events has this instance ever emitted. */
+  #emittedCount = 0;
+
+  /**
+   * @type {ChainedEvent} Earliest (furthest in the past) event emitted by this
+   * instance which is intentionally being kept by this instance. If this
+   * instance has never emitted, then -- as with {@link #currentEvent} -- this
+   * is the kickoff event. If this instance isn't keeping any history, then this
+   * is always going to be the same as {@link #currentEvent}.
+   */
+  #earliestEvent;
 
   /**
    * @type {ChainedEvent} Current (Latest / most recent) event emitted by this
-   * instance. If this instance has never emitted, this is an initial "stub"
-   * which is suitable for `await`ing in {@link #currentEvent}. (This
+   * instance. If this instance has never emitted, this is an initial "kickoff
+   * event" which is suitable for `await`ing in {@link #currentEvent}. (This
    * arrangement makes the logic in {@link #emit} particularly simple.)
    */
   #currentEvent;
@@ -40,14 +65,30 @@ export class EventSource {
   #emitNext;
 
   /**
-   * Constructs an instance.
+   * Constructs an instance. Recognized options:
    *
-   * @param {?ChainedEvent} [kickoffEvent = null] "Kickoff" event, or `null`
-   *   to default to using a direct instance of {@link ChainedEvent}.
+   * * `{number} [keepCount = 0]` -- Number of past events to keep (remember),
+   *   not including the current (most-recently emitted) event. Must be a whole
+   *   number or positive infinity.
+   * * `{?ChainedEvent} [kickoffEvent = null]` -- "Kickoff" event, or `null` to
+   *   use the default of a direct instance of {@link ChainedEvent}.
+   *
+   * @param {?object} [options = null] Construction options, per the above
+   *   description.
    */
-  constructor(kickoffEvent = null) {
-    this.#currentEvent = kickoffEvent ?? new ChainedEvent('chain-head');
-    this.#emitNext = this.#currentEvent.emitter;
+  constructor(options) {
+    const kickoffEvent = options?.kickoffEvent ?? null;
+    const keepCount    = options?.keepCount ?? 0;
+
+    if (!(   (Number.isSafeInteger(keepCount) && (keepCount >= 0))
+          || (keepCount === Number.POSITIVE_INFINITY))) {
+      throw new Error('Invalid value for `keepCount`.');
+    }
+
+    this.#keepCount     = keepCount;
+    this.#earliestEvent = kickoffEvent ?? new ChainedEvent('chain-head');
+    this.#currentEvent  = this.#earliestEvent;
+    this.#emitNext      = this.#currentEvent.emitter;
   }
 
   /**
@@ -61,7 +102,7 @@ export class EventSource {
    * access to all subsequent events emitted by this source.
    */
   get currentEvent() {
-    if (this.#everEmitted) {
+    if (this.#emittedCount > 0) {
       // `#currentEvent` is in fact a truly emitted event.
       return Promise.resolve(this.#currentEvent);
     } else {
@@ -81,7 +122,37 @@ export class EventSource {
    * source.
    */
   get currentEventNow() {
-    return this.#everEmitted ? this.#currentEvent : null;
+    return (this.#emittedCount > 0) ? this.#currentEvent : null;
+  }
+
+  /**
+   * @returns {Promise<ChainedEvent>} Promise for the earliest event kept by
+   * this instance. This is an immediately-resolved promise in all cases
+   * _except_ when this instance has never emitted an event.
+   */
+  get earliestEvent() {
+    // Same logic as for `currentEvent()`, see which.
+    return (this.#emittedCount > 0)
+      ? Promise.resolve(this.#earliestEvent)
+      : this.#earliestEvent.nextPromise;
+  }
+
+  /**
+   * @returns {?ChainedEvent} The earliest event kept by this instance, or
+   * `null` if this instance has never emitted an event.
+   */
+  get earliestEventNow() {
+    return (this.#emittedCount > 0) ? this.#earliestEvent : null;
+  }
+
+  /**
+   * @returns {number} The number of already-emitted events that this instance
+   * keeps track of, not including the current (most-recently emitted) event.
+   * Might be infinite. The earliest such event is available as {@link
+   * #earliestEvent} and {@link #earliestEventNow}.
+   */
+  get keepCount() {
+    return this.#keepCount;
   }
 
   /**
@@ -93,7 +164,18 @@ export class EventSource {
   emit(payload) {
     this.#emitNext     = this.#emitNext(payload);
     this.#currentEvent = this.#currentEvent.nextNow;
-    this.#everEmitted  = true;
+
+    if (this.#emittedCount > this.#keepCount) {
+      // Steady state (which also applies if `keepCount === 0`): As each new
+      // event gets emitted over the `keepCount` threshold, we walk
+      // `#earliestEvent` one more event down the chain.
+      this.#earliestEvent = this.#earliestEvent.nextNow;
+    } else if (this.#emittedCount === 0) {
+      // After the very first event, we need to skip over the kickoff event.
+      this.#earliestEvent = this.#currentEvent;
+    }
+
+    this.#emittedCount++;
 
     return this.#currentEvent;
   }
