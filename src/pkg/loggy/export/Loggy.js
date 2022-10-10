@@ -15,13 +15,13 @@ import { ThisModule } from '#p/ThisModule';
 export class Loggy {
   /**
    * @returns {ChainedEvent|Promise<ChainedEvent>} The earliest available event
-   * from the logging system, or promise for same. When the system first starts
-   * up, this is the promise for the first actual log event. However, after the
-   * 100th event is logged, this instead starts tracking the latest logged
-   * event. The idea here is that it should take no longer than the time to log
-   * that many events for something to get itself hooked up to the logging
-   * system and start processing events, and we don't want to miss out on
-   * early evetns that would otherwise have already become unavailable.
+   * from the logging system, or promise for same. This is ultimately
+   * implemented by {@link EventSource} (`earliestEvent` and `earliestEventNow`,
+   * see which), with a `keepCount` of `100`. The idea here is that it should
+   * take no longer than the time to log that many events for something to get
+   * itself hooked up to the logging system and start processing events, and we
+   * don't want to miss out on early evetns that would otherwise have already
+   * become unavailable.
    */
   static get earliestEvent() {
     return ThisModule.earliestEvent;
