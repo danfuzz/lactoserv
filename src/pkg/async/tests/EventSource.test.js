@@ -156,7 +156,7 @@ describe.each`
         count++;
       }
       expect(count).toBe(expectedKeptCount);
-    }
+    };
 
     for (let i = 0; i <= lastCount; i++) {
       const doTest = (i === testCounts[0]);
