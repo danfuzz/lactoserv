@@ -36,10 +36,10 @@ export class EventSource {
 
   /**
    * @type {number} The number of already-emitted events to keep track of,
-   * including the one referenced by {@link #currentEvent}. If infinite, then
-   * this instance keeps the entire event chain.
+   * not including the one referenced by {@link #currentEvent}. If infinite,
+   * then this instance keeps the entire event chain.
    */
-  #keptEventCount = 1;
+  #keptEventCount = 0;
 
   /**
    * @type {ChainedEvent} Earliest (furthest in the past) event emitted by this
@@ -127,8 +127,9 @@ export class EventSource {
     this.#emittedCount++;
 
     if (this.#emittedCount > this.#keptEventCount) {
-      // Steady state: As each new event gets emitted over the `keptEventCount`
-      // threshold, we walk `#earliestEvent` one more event down the chain.
+      // Steady state (which also applies if `keptEventCount === 0`): As each
+      // new event gets emitted over the `keptEventCount` threshold, we walk
+      // `#earliestEvent` one more event down the chain.
       this.#earliestEvent = this.#earliestEvent.nextNow;
     } else if (this.#emittedCount === 1) {
       // After the very first event, we need to skip over the kickoff event.
