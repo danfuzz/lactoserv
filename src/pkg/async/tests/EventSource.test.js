@@ -110,12 +110,35 @@ describe.each`
     keepCount | testCounts
     ${0}         | ${[0, 1, 5]}
     ${1}         | ${[0, 1, 2, 5]}
-    ${2}         | ${[1, 2, 3]}
+    ${2}         | ${[1, 2, 3, 12]}
     ${10}        | ${[9, 10, 11]}
     ${100}       | ${[90, 99, 100, 101, 200]}
     ${+Infinity} | ${[0, 10, 100, 200, 500]}
-  `('`keepCount === $keepCount`; test counts: $testCounts', () => {
-    // TODO;
+  `('`keepCount === $keepCount`; test counts: $testCounts', async ({ keepCount, testCounts }) => {
+    const source    = new EventSource({ keepCount });
+    const events    = [];
+    const lastCount = testCounts[testCounts.length - 1];
+    for (let i = 0; i <= lastCount; i++) {
+      const doTest = (i === testCounts[0]);
+      if (doTest) {
+        testCounts.shift();
+        const got = source[prop];
+        if (i === 0) {
+          // Special cases for the first event.
+          if (isAsync) {
+            expect(PromiseState.isPending(got)).toBeTrue();
+          } else {
+            expect(got).toBeNull();
+          }
+        } else {
+          // TODO
+        }
+      }
+      events.push(source.emit({ count: i }));
+      if (doTest) {
+        // TODO
+      }
+    }
   });
 });
 
