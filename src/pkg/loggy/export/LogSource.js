@@ -29,7 +29,7 @@ export class LogSource extends EventSource {
    */
   constructor(initialCount = 1) {
     const kickoffEvent = new ChainedEvent(LogRecord.makeKickoffInstance());
-    super(kickoffEvent);
+    super({ kickoffEvent });
 
     this.#kickoffEvent   = kickoffEvent;
     this.#countRemaining = MustBe.number(initialCount);

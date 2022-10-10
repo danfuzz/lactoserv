@@ -16,11 +16,12 @@ const payload2 = { type: 'zany' };
 const payload3 = { type: 'questionable' };
 
 describe.each`
-  label           | argFn                         | cls
-  ${''}           | ${() => []}                   | ${ChainedEvent}
-  ${'null'}       | ${() => [null]}               | ${ChainedEvent}
-  ${'undefined'}  | ${() => [undefined]}          | ${ChainedEvent}
-  ${'<subclass>'} | ${() => [new ZanyEvent('x')]} | ${ZanyEvent}
+  label                             | argFn                                           | cls
+  ${''}                             | ${() => []}                                     | ${ChainedEvent}
+  ${'null'}                         | ${() => [null]}                                 | ${ChainedEvent}
+  ${'undefined'}                    | ${() => [undefined]}                            | ${ChainedEvent}
+  ${'{ kickoffEvent: null }'}       | ${() => [{ kickoffEvent: null }]}               | ${ChainedEvent}
+  ${'{ kickoffEvent: <subclass> }'} | ${() => [{ kickoffEvent: new ZanyEvent('x') }]} | ${ZanyEvent}
 `('constructor($label)', ({ argFn, cls }) => {
   test('trivially succeeds', () => {
     expect(() => new EventSource(...argFn())).not.toThrow();

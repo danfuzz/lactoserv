@@ -65,12 +65,17 @@ export class EventSource {
   #emitNext;
 
   /**
-   * Constructs an instance.
+   * Constructs an instance. Recognized options:
    *
-   * @param {?ChainedEvent} [kickoffEvent = null] "Kickoff" event, or `null`
-   *   to default to using a direct instance of {@link ChainedEvent}.
+   * * `{?ChainedEvent} [kickoffEvent = null]` -- "Kickoff" event, or `null` to
+   *   use the default of a direct instance of {@link ChainedEvent}.
+   *
+   * @param {?object} [options = null] Construction options, per the above
+   *   description.
    */
-  constructor(kickoffEvent = null) {
+  constructor(options) {
+    const kickoffEvent = options?.kickoffEvent ?? null;
+
     this.#earliestEvent = kickoffEvent ?? new ChainedEvent('chain-head');
     this.#currentEvent  = this.#earliestEvent;
     this.#emitNext      = this.#currentEvent.emitter;
