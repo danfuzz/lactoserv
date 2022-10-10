@@ -101,12 +101,22 @@ describe('.currentEventNow', () => {
   });
 });
 
-describe('.earliestEvent', () => {
-  // TODO
-});
-
-describe('.earliestEventNow', () => {
-  // TODO
+describe.each`
+  prop                  | isAsync
+  ${'earliestEvent'}    | ${true}
+  ${'earliestEventNow'} | ${false}
+`('.$prop', ({ prop, isAsync }) => {
+  test.each`
+    keepCount | testCounts
+    ${0}         | ${[0, 1, 5]}
+    ${1}         | ${[0, 1, 2, 5]}
+    ${2}         | ${[1, 2, 3]}
+    ${10}        | ${[9, 10, 11]}
+    ${100}       | ${[90, 99, 100, 101, 200]}
+    ${+Infinity} | ${[0, 10, 100, 200, 500]}
+  `('`keepCount === $keepCount`; test counts: $testCounts', () => {
+    // TODO;
+  });
 });
 
 describe('.keepCount', () => {
