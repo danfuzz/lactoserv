@@ -110,7 +110,11 @@ describe('.earliestEventNow', () => {
 });
 
 describe('.keepCount', () => {
-  // TODO
+  // This is actually pretty well covered in the constructor tests.
+  test('is the value passed in the constructor', () => {
+    const source = new EventSource({ keepCount: 123 });
+    expect(source.keepCount).toBe(123);
+  });
 });
 
 describe('emit()', () => {
