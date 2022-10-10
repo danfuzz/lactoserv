@@ -38,6 +38,8 @@ export class ThisModule {
    * from the logging system, or promise for same.
    */
   static get earliestEvent() {
-    return this.#DEFAULT_LOG_SOURCE.earliestEvent;
+    const source = this.#DEFAULT_LOG_SOURCE;
+
+    return source.earliestEventNow ?? source.earliestEvent;
   }
 }
