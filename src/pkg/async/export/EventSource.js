@@ -126,6 +126,36 @@ export class EventSource {
   }
 
   /**
+   * @returns {Promise<ChainedEvent>} Promise for the earliest event kept by
+   * this instance. This is an immediately-resolved promise in all cases
+   * _except_ when this instance has never emitted an event.
+   */
+  get earliestEvent() {
+    // Same logic as for `currentEvent()`, see which.
+    return (this.#emittedCount > 0)
+      ? Promise.resolve(this.#earliestEvent)
+      : this.#earliestEvent.nextPromise;
+  }
+
+  /**
+   * @returns {?ChainedEvent} The earliest event kept by this instance, or
+   * `null` if this instance has never emitted an event.
+   */
+   get earliestEventNow() {
+     return (this.#emittedCount > 0) ? this.#earliestEvent : null;
+   }
+
+  /**
+   * @returns {number} The number of already-emitted events that this instance
+   * keeps track of, not including the current (most-recently emitted) event.
+   * Might be infinite. The earliest such event is available as {@link
+   * #earliestEvent} and {@link #earliestEventNow}.
+   */
+  get keepCount() {
+    return this.#keepCount;
+  }
+
+  /**
    * Emits (appends to the end of the chain) an event with the given payload.
    *
    * @param {*} payload The event payload.
