@@ -3,7 +3,7 @@
 
 import { MustBe } from '@this/typey';
 
-import { ChainedEvent } from '#x/ChainedEvent';
+import { LinkedEvent } from '#x/LinkedEvent';
 import { EventOrPromise } from '#p/EventOrPromise';
 import { PromiseUtil } from '#x/PromiseUtil';
 
@@ -23,12 +23,12 @@ import { PromiseUtil } from '#x/PromiseUtil';
 // update instance state synchronously. The implementation here takes advantage
 // of that fact (as noted in the code).
 
-/** typedef {null|number|string|function(ChainedEvent): boolean} */
+/** typedef {null|number|string|function(LinkedEvent): boolean} */
 let EventPredicate;
 
 /**
  * Event tracker, which makes it convenient to walk down a chain of {@link
- * ChainedEvent} instances. This class strictly _consumes_ events; it does not
+ * LinkedEvent} instances. This class strictly _consumes_ events; it does not
  * produce them. This class functions approximately as an iterator over an event
  * chain, but implements much more than the basic iterator functionality.
  *
@@ -45,7 +45,7 @@ let EventPredicate;
  * * `type: string` -- Matches an event for which `event.type === type`.
  *   **Note:** Events do not necessarily have a meaningful `type`, so this form
  *   is only useful when one knows that the events in question _do_ use `type`.
- * * `predicate: function(ChainedEvent): boolean` -- General predicate-per-se,
+ * * `predicate: function(LinkedEvent): boolean` -- General predicate-per-se,
  *   which should return `true` for a matching event.
  *
  * **Note:** Instances of this class will be responsible for garbage
@@ -65,7 +65,7 @@ export class EventTracker {
   /**
    * Constructs an instance.
    *
-   * @param {ChainedEvent|Promise<ChainedEvent>} firstEvent First event on the
+   * @param {LinkedEvent|Promise<LinkedEvent>} firstEvent First event on the
    *   tracked chain, or promise to same.
    */
   constructor(firstEvent) {
@@ -73,7 +73,7 @@ export class EventTracker {
   }
 
   /**
-   * @returns {?ChainedEvent} Head event of this instance (first event which is
+   * @returns {?LinkedEvent} Head event of this instance (first event which is
    * not yet consumed from this instance's event source), if known. This is
    * non-`null` in all cases _except_ when either (a) this instance has yet to
    * observe an event, or (b) it is {@link #advance}d past the end of the chain.
@@ -84,7 +84,7 @@ export class EventTracker {
   }
 
   /**
-   * @returns {Promise<ChainedEvent>} Promise for the -- often not-yet-known --
+   * @returns {Promise<LinkedEvent>} Promise for the -- often not-yet-known --
    * value of {@link #headNow}. This is an immediately-resolved promise in all
    * cases _except_ when either (a) this instance has yet to observe an event,
    * or (b) it is {@link #advance}d past the end of the chain.
@@ -111,7 +111,7 @@ export class EventTracker {
    * error becomes manifest by the state of the instance becoming broken.
    *
    * @param {EventPredicate} [predicate = null] Predicate to satisfy.
-   * @returns {ChainedEvent} What {@link #headNow} is (or would have been) at
+   * @returns {LinkedEvent} What {@link #headNow} is (or would have been) at
    *   the moment the operation is complete.
    * @throws {Error} Thrown if there was any trouble. If so, and the trouble was
    *   anything other than an invalid `predicate`, the instance will also become
@@ -175,7 +175,7 @@ export class EventTracker {
    * a desirable outcome.
    *
    * @param {EventPredicate} [predicate = null] Predicate to satisfy.
-   * @returns {?ChainedEvent} The synchronously-known {@link #headNow} from the
+   * @returns {?LinkedEvent} The synchronously-known {@link #headNow} from the
    *   successful result of the operation if it was indeed synchronously
    *   successful, or `null` if either it needs to perform asynchronous
    *   operations or if it failed synchronously.
@@ -217,7 +217,7 @@ export class EventTracker {
    * of a bug in this class.)
    *
    * @param {EventPredicate} [predicate = null] Predicate to satisfy.
-   * @returns {ChainedEvent} The event just _behind_ {@link #headNow} at the
+   * @returns {LinkedEvent} The event just _behind_ {@link #headNow} at the
    *   the moment the operation is complete.
    * @throws {Error} Thrown if there was any trouble _before_ attempting to
    *   advance over the found event (see note above). If so, and the trouble was
@@ -256,7 +256,7 @@ export class EventTracker {
    * equivalent to just accessing {@link #headPromise}.
    *
    * @param {EventPredicate} [predicate = null] Predicate to satisfy.
-   * @returns {ChainedEvent} The earliest event on the tracked chain that
+   * @returns {LinkedEvent} The earliest event on the tracked chain that
    *   matches `predicate`.
    * @throws {Error} Thrown if there was any trouble. Unlike {@link #advance},
    *   {@link #next}, etc., because this method does not affect the state of the
@@ -279,7 +279,7 @@ export class EventTracker {
    * because the method is called in contexts where throwing would inevitably
    * result in an unhandled promise rejection.
    *
-   * @param {EventOrPromise|ChainedEvent|Promise<ChainedEvent>} event New head
+   * @param {EventOrPromise|LinkedEvent|Promise<LinkedEvent>} event New head
    *   of the chain.
    * @throws {Error} Thrown if `event` is not a valid value.
    */
@@ -302,7 +302,7 @@ export class EventTracker {
    * #advance} and {@link #advanceSync}
    *
    * @param {EventPredicate} predicate Predicate to satisfy.
-   * @returns {function(ChainedEvent): boolean} The validated / transformed
+   * @returns {function(LinkedEvent): boolean} The validated / transformed
    *   result.
    * @throws {Error} Thrown if `predicate` is not one of the allowed forms.
    */
@@ -349,7 +349,7 @@ class AdvanceAction {
   #head;
 
   /**
-   * @type {function(ChainedEvent): boolean} Predicate which an event needs to
+   * @type {function(LinkedEvent): boolean} Predicate which an event needs to
    * satisfy, for the operation to be considered complete.
    */
   #predicate;
@@ -364,7 +364,7 @@ class AdvanceAction {
    * Constructs an instance.
    *
    * @param {EventOrPromise} head Event chain head at which to start.
-   * @param {function(ChainedEvent): boolean} predicate Predicate to satisfy.
+   * @param {function(LinkedEvent): boolean} predicate Predicate to satisfy.
    */
   constructor(head, predicate) {
     this.#head      = head;
@@ -382,7 +382,7 @@ class AdvanceAction {
   /**
    * Completes this operation -- or dies trying -- asynchronously.
    *
-   * @returns {ChainedEvent} The result of the operation -- that is, the event
+   * @returns {LinkedEvent} The result of the operation -- that is, the event
    *   that was found -- if successful. This is the same value as {@link
    *   #result.eventNow} will subsequently return.
    * @throws {Error} Thrown if there was any problem.

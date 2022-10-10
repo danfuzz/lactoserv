@@ -19,7 +19,7 @@ import { ManualPromise } from '#x/ManualPromise';
  * this (base) class will only construct instances of the actual subclass when
  * appending (chaining) emitted events.
  */
-export class ChainedEvent {
+export class LinkedEvent {
   /** @type {*} The event payload. */
   #payload;
 
@@ -43,7 +43,7 @@ export class ChainedEvent {
    * Constructs an instance.
    *
    * @param {*} payload The event payload.
-   * @param {?ChainedEvent|Promise<ChainedEvent>|EventOrPromise} [next = null]
+   * @param {?LinkedEvent|Promise<LinkedEvent>|EventOrPromise} [next = null]
    *   The next event in the chain or promise for same, if already known. If
    *   passed as non-`null`:
    *   * The value (or eventually-resolved value) is type-checked to be an
@@ -106,7 +106,7 @@ export class ChainedEvent {
   }
 
   /**
-   * @returns {?ChainedEvent} The next event in the chain after this instance if
+   * @returns {?LinkedEvent} The next event in the chain after this instance if
    * it is immediately available, or `null` if there is not yet a
    * synchronously-known next event.
    * @throws {Error} Thrown if the promise passed into the constructor became
@@ -117,7 +117,7 @@ export class ChainedEvent {
   }
 
   /**
-   * @returns {Promise<ChainedEvent>} Promise for the next event in the chain
+   * @returns {Promise<LinkedEvent>} Promise for the next event in the chain
    * after this instance, which becomes resolved once it is available.
    */
   get nextPromise() {
@@ -154,7 +154,7 @@ export class ChainedEvent {
    * event for this instance, with the same chaining.
    *
    * @param {*} payload Event payload.
-   * @returns {ChainedEvent} New event instance with the given `payload`, and
+   * @returns {LinkedEvent} New event instance with the given `payload`, and
    *   whose `next` and `nextNow` behave the same as this instance's properties
    *   of the same names.
    */
@@ -169,7 +169,7 @@ export class ChainedEvent {
    * at this instance.
    *
    * @param {*} payload Event payload.
-   * @returns {ChainedEvent} New event instance with the given `payload`, and
+   * @returns {LinkedEvent} New event instance with the given `payload`, and
    *   whose `nextPromise` and `nextNow` refer to this instance.
    */
   withPushedHead(payload) {
@@ -181,7 +181,7 @@ export class ChainedEvent {
    * `#next.eventPromise`, if needed.
    *
    * @param {*} payload The event payload.
-   * @returns {ChainedEvent} The event which was emitted on the chain.
+   * @returns {LinkedEvent} The event which was emitted on the chain.
    * @throws {Error} Thrown for any of the reasons described by {@link
    *   #emitter}.
    */

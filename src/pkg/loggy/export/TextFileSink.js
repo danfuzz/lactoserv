@@ -4,7 +4,7 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
-import { ChainedEvent, EventSink } from '@this/async';
+import { LinkedEvent, EventSink } from '@this/async';
 import { MustBe } from '@this/typey';
 
 
@@ -21,7 +21,7 @@ export class TextFileSink extends EventSink {
    *
    * @param {string} filePath File to write to. It is immediately resolved to an
    *   absolute path.
-   * @param {ChainedEvent|Promise<ChainedEvent>} firstEvent First event to be
+   * @param {LinkedEvent|Promise<LinkedEvent>} firstEvent First event to be
    *   processed by the instance, or promise for same.
    */
   constructor(filePath, firstEvent) {
@@ -34,7 +34,7 @@ export class TextFileSink extends EventSink {
   /**
    * Processes an event, by writing it to this instance's designated file.
    *
-   * @param {ChainedEvent} event Event to log.
+   * @param {LinkedEvent} event Event to log.
    */
   async #process(event) {
     const text = event.payload.toHuman();

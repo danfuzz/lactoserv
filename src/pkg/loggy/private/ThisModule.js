@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { ChainedEvent } from '@this/async';
+import { LinkedEvent } from '@this/async';
 
 import { LogSource } from '#x/LogSource';
 import { StdLoggingEnvironment } from '#x/StdLoggingEnvironment';
@@ -34,7 +34,7 @@ export class ThisModule {
   }
 
   /**
-   * @returns {ChainedEvent|Promise<ChainedEvent>} The earliest available event
+   * @returns {LinkedEvent|Promise<LinkedEvent>} The earliest available event
    * from the logging system, or promise for same.
    */
   static get earliestEvent() {

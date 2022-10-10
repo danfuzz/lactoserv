@@ -1,21 +1,21 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { ChainedEvent } from '#x/ChainedEvent';
+import { LinkedEvent } from '#x/LinkedEvent';
 import { PromiseUtil } from '#x/PromiseUtil';
 
 
 /**
- * As it says on the tin, a holder for a {@link ChainedEvent} or a promise for
+ * As it says on the tin, a holder for a {@link LinkedEvent} or a promise for
  * same. This combo is used in a few places in the event-handling code in this
  * package.
  */
 export class EventOrPromise {
-  /** @type {?ChainedEvent} The actual event, if synchronously known. */
+  /** @type {?LinkedEvent} The actual event, if synchronously known. */
   #eventNow;
 
   /**
-   * @type {?Promise<ChainedEvent>} Promise for {@link #eventNow}, when that
+   * @type {?Promise<LinkedEvent>} Promise for {@link #eventNow}, when that
    * property isn't synchronously known _or_ when it's known but something has
    * asked for the promise anyway.
    */
@@ -37,8 +37,8 @@ export class EventOrPromise {
    * "handled" by this instance, so that no unhandled promise rejections will
    * result just from constructing an instance.
    *
-   * @param {ChainedEvent|Promise<ChainedEvent>} event Event or promise to wrap.
-   * @param {?function(new:ChainedEvent)} [subclass = null] Subclass which
+   * @param {LinkedEvent|Promise<LinkedEvent>} event Event or promise to wrap.
+   * @param {?function(new:LinkedEvent)} [subclass = null] Subclass which
    *   `event` (or the resolved promise for it) must be an instance of, or
    *   `null` not to require a specific subclass.
    */
@@ -54,7 +54,7 @@ export class EventOrPromise {
   }
 
   /**
-   * @returns {?ChainedEvent} Synchronously-known event of this instance, if
+   * @returns {?LinkedEvent} Synchronously-known event of this instance, if
    * in fact known. This is non-`null` when the constructor was called with an
    * event (not a promise) or when the constructor was called with a promise
    * which became resolved to a valid value.
@@ -71,12 +71,12 @@ export class EventOrPromise {
   }
 
   /**
-   * @returns {Promise<ChainedEvent>} Promise for the -- often not-yet-known --
+   * @returns {Promise<LinkedEvent>} Promise for the -- often not-yet-known --
    * value of {@link #eventNow}. This is an immediately-settled promise in all
    * cases _except_ when this instance was constructed with a promise and that
    * promise has yet to settle. This class guarantees that, if this promise is
    * fulfilled (not rejected), then it will indeed be an instance of {@link
-   * ChainedEvent}. This class also guarantees that, if this promise is
+   * LinkedEvent}. This class also guarantees that, if this promise is
    * rejected, then {@link #rejectedReason} is non-`null`.
    */
   get eventPromise() {
@@ -129,11 +129,11 @@ export class EventOrPromise {
    * only ever resolves to a valid event instance, and that this instance's
    * synchronous state is properly updated before the promise becomes resolved.
    *
-   * @param {Promise<ChainedEvent>} eventPromise `event` from the constructor
+   * @param {Promise<LinkedEvent>} eventPromise `event` from the constructor
    *   call.
-   * @param {?function(new:ChainedEvent)} subclass `subclass` from the
+   * @param {?function(new:LinkedEvent)} subclass `subclass` from the
    *   constructor call.
-   * @returns {ChainedEvent} The valid fulfilled value of `eventPromise` if it
+   * @returns {LinkedEvent} The valid fulfilled value of `eventPromise` if it
    *   was indeed fulfilled as a valid event instance.
    * @throws {Error} Thrown if there was any trouble with resolution.
    */
@@ -158,7 +158,7 @@ export class EventOrPromise {
   }
 
   /**
-   * @returns {ChainedEvent|Promise<ChainedEvent>} Promise for a "next" event,
+   * @returns {LinkedEvent|Promise<LinkedEvent>} Promise for a "next" event,
    * either a settled one or a promise.
    */
   async #nextFromPromise() {
@@ -191,17 +191,17 @@ export class EventOrPromise {
 
   /**
    * Checks an alleged event instance to see if it is (a) actually an instance
-   * of `ChainedEvent` and optionally an instance of a specific subclass
+   * of `LinkedEvent` and optionally an instance of a specific subclass
    * thereof.
    *
-   * @param {ChainedEvent} event The event in question.
-   * @param {?function(new:ChainedEvent)} subclass Class to check for, or `null`
-   *   to consider all `ChainedEvent` instances okay.
+   * @param {LinkedEvent} event The event in question.
+   * @param {?function(new:LinkedEvent)} subclass Class to check for, or `null`
+   *   to consider all `LinkedEvent` instances okay.
    * @param {string} context Context to include in error messages.
    * @throws {Error} Thrown if `event` is problematic.
    */
   static #validateEvent(event, subclass, context) {
-    if (event instanceof ChainedEvent) {
+    if (event instanceof LinkedEvent) {
       if ((subclass !== null) && !(event instanceof subclass)) {
         throw new Error(`Invalid event value (incorrect class, ${context}).`);
       }
