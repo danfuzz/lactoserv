@@ -101,6 +101,18 @@ describe('.currentEventNow', () => {
   });
 });
 
+describe('.earliestEvent', () => {
+  // TODO
+});
+
+describe('.earliestEventNow', () => {
+  // TODO
+});
+
+describe('.keepCount', () => {
+  // TODO
+});
+
 describe('emit()', () => {
   test('appends an event with the expected payload', () => {
     const source = new EventSource();
