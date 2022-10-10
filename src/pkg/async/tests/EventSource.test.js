@@ -118,6 +118,18 @@ describe.each`
     const source    = new EventSource({ keepCount });
     const events    = [];
     const lastCount = testCounts[testCounts.length - 1];
+
+    let lastCheck = -1;
+    const checkCount = (i) => {
+      if (lastCheck === i) {
+        // Don't bother re-checking something we just checked.
+        return;
+      }
+      lastCheck = i;
+
+      // TODO
+    }
+
     for (let i = 0; i <= lastCount; i++) {
       const doTest = (i === testCounts[0]);
       if (doTest) {
@@ -131,12 +143,12 @@ describe.each`
             expect(got).toBeNull();
           }
         } else {
-          // TODO
+          checkCount(i);
         }
       }
       events.push(source.emit({ count: i }));
       if (doTest) {
-        // TODO
+        checkCount(i + 1);
       }
     }
   });
