@@ -120,14 +120,14 @@ describe.each`
     const lastCount = testCounts[testCounts.length - 1];
 
     let lastCheck = -1;
-    const checkCount = async (i, got) => {
-      if (lastCheck === i) {
+    const checkCount = async (emittedCount, got) => {
+      if (lastCheck === emittedCount) {
         // Don't bother re-checking something we just checked.
         return;
       }
-      lastCheck = i;
+      lastCheck = emittedCount;
 
-      if (i === 0) {
+      if (emittedCount === 0) {
         // Special cases for the first event.
         if (isAsync) {
           expect(PromiseState.isPending(got)).toBeTrue();
@@ -137,7 +137,25 @@ describe.each`
         return;
       }
 
-      // TODO
+      if (isAsync) {
+        expect(PromiseState.isFulfilled(got)).toBeTrue();
+      } else {
+        expect(got).not.toBeNull();
+      }
+
+      // Which event (by index into `events`) should be the `earliest`.
+      const expectIndex = Math.max(0, emittedCount - keepCount - 1);
+      got = isAsync ? (await got) : got;
+      expect(got.payload).toBe(events[expectIndex].payload);
+      expect(got).toBe(events[expectIndex]);
+
+      // How long to expect the chain to be between `earliest` and `current`.
+      const expectedKeptCount = Math.min(keepCount, emittedCount - 1);
+      let count = 0;
+      for (let at = got; at !== source.currentEventNow; at = at.nextNow) {
+        count++;
+      }
+      expect(count).toBe(expectedKeptCount);
     }
 
     for (let i = 0; i <= lastCount; i++) {
