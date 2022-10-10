@@ -141,9 +141,9 @@ export class EventSource {
    * @returns {?ChainedEvent} The earliest event kept by this instance, or
    * `null` if this instance has never emitted an event.
    */
-   get earliestEventNow() {
-     return (this.#emittedCount > 0) ? this.#earliestEvent : null;
-   }
+  get earliestEventNow() {
+    return (this.#emittedCount > 0) ? this.#earliestEvent : null;
+  }
 
   /**
    * @returns {number} The number of already-emitted events that this instance
