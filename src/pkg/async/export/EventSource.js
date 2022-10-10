@@ -164,17 +164,18 @@ export class EventSource {
   emit(payload) {
     this.#emitNext     = this.#emitNext(payload);
     this.#currentEvent = this.#currentEvent.nextNow;
-    this.#emittedCount++;
 
     if (this.#emittedCount > this.#keepCount) {
       // Steady state (which also applies if `keepCount === 0`): As each new
       // event gets emitted over the `keepCount` threshold, we walk
       // `#earliestEvent` one more event down the chain.
       this.#earliestEvent = this.#earliestEvent.nextNow;
-    } else if (this.#emittedCount === 1) {
+    } else if (this.#emittedCount === 0) {
       // After the very first event, we need to skip over the kickoff event.
       this.#earliestEvent = this.#currentEvent;
     }
+
+    this.#emittedCount++;
 
     return this.#currentEvent;
   }
