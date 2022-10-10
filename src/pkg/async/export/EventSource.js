@@ -31,15 +31,15 @@ import { ChainedEvent } from '#x/ChainedEvent';
  * actively used in a process which runs for, say, several months.)
  */
 export class EventSource {
-  /** @type {number} How many events has this instance ever emitted. */
-  #emittedCount = 0;
-
   /**
    * @type {number} The number of already-emitted events to keep track of,
    * not including the one referenced by {@link #currentEvent}. If infinite,
    * then this instance keeps the entire event chain.
    */
-  #keptEventCount = 0;
+  #keepCount = 0;
+
+  /** @type {number} How many events has this instance ever emitted. */
+  #emittedCount = 0;
 
   /**
    * @type {ChainedEvent} Earliest (furthest in the past) event emitted by this
@@ -67,6 +67,9 @@ export class EventSource {
   /**
    * Constructs an instance. Recognized options:
    *
+   * * `{number} [keepCount = 0]` -- Number of past events to keep (remember),
+   *   not including the current (most-recently emitted) event. Must be a whole
+   *   number or positive infinity.
    * * `{?ChainedEvent} [kickoffEvent = null]` -- "Kickoff" event, or `null` to
    *   use the default of a direct instance of {@link ChainedEvent}.
    *
@@ -75,7 +78,14 @@ export class EventSource {
    */
   constructor(options) {
     const kickoffEvent = options?.kickoffEvent ?? null;
+    const keepCount    = options?.keepCount ?? 0;
 
+    if (!(   (Number.isSafeInteger(keepCount) && (keepCount >= 0))
+          || (keepCount === Number.POSITIVE_INFINITY))) {
+      throw new Error('Invalid value for `keepCount`.');
+    }
+
+    this.#keepCount     = keepCount;
     this.#earliestEvent = kickoffEvent ?? new ChainedEvent('chain-head');
     this.#currentEvent  = this.#earliestEvent;
     this.#emitNext      = this.#currentEvent.emitter;
@@ -126,9 +136,9 @@ export class EventSource {
     this.#currentEvent = this.#currentEvent.nextNow;
     this.#emittedCount++;
 
-    if (this.#emittedCount > this.#keptEventCount) {
-      // Steady state (which also applies if `keptEventCount === 0`): As each
-      // new event gets emitted over the `keptEventCount` threshold, we walk
+    if (this.#emittedCount > this.#keepCount) {
+      // Steady state (which also applies if `keepCount === 0`): As each new
+      // event gets emitted over the `keepCount` threshold, we walk
       // `#earliestEvent` one more event down the chain.
       this.#earliestEvent = this.#earliestEvent.nextNow;
     } else if (this.#emittedCount === 1) {
