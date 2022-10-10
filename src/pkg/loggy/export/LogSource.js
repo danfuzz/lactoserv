@@ -11,40 +11,16 @@ import { LogRecord } from '#x/LogRecord';
  * Event source for use when logging.
  */
 export class LogSource extends EventSource {
-  /** @type {?ChainedEvent} The "kickoff" event, if still available. */
-  #kickoffEvent;
-
-  /**
-   * @type {number} Number of events logged by this instance, after which
-   * {@link #kickoffEvent} is to be dropped.
-   */
-  #countRemaining;
-
   /**
    * Constructs an instance.
    *
-   * @param {number} [initialCount = 1] Number of events logged by this
-   *   instance, after which {@link #earliestEvent} is no longer the actual
-   *   earliest event.
+   * @param {number} [keepCount = 0] Number of older events to keep available
+   *   via {@link EventSource.earliestEvent} and {@link
+   *   EventSource.earliestEventNow}.
    */
-  constructor(initialCount = 1) {
+  constructor(keepCount = 0) {
     const kickoffEvent = new ChainedEvent(LogRecord.makeKickoffInstance());
-    super({ kickoffEvent });
-
-    this.#kickoffEvent   = kickoffEvent;
-    this.#countRemaining = MustBe.number(initialCount);
-  }
-
-  /**
-   * @returns {ChainedEvent|Promise<ChainedEvent>} The earliest available event
-   * from this instance, or promise for same. This is a promise for the
-   * "kickoff" event's `.next` until the configured number of events have been
-   * emitted.
-   */
-  get earliestEvent() {
-    return this.#kickoffEvent
-      ? this.#kickoffEvent.nextPromise
-      : this.currentEvent;
+    super({ keepCount, kickoffEvent });
   }
 
   /**
@@ -54,14 +30,6 @@ export class LogSource extends EventSource {
    */
   emit(record) {
     MustBe.object(record, LogRecord);
-
     super.emit(record);
-
-    if (this.#kickoffEvent) {
-      this.#countRemaining--;
-      if (this.#countRemaining <= 0) {
-        this.#kickoffEvent = null;
-      }
-    }
   }
 }
