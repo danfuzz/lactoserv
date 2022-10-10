@@ -120,12 +120,22 @@ describe.each`
     const lastCount = testCounts[testCounts.length - 1];
 
     let lastCheck = -1;
-    const checkCount = (i) => {
+    const checkCount = async (i, got) => {
       if (lastCheck === i) {
         // Don't bother re-checking something we just checked.
         return;
       }
       lastCheck = i;
+
+      if (i === 0) {
+        // Special cases for the first event.
+        if (isAsync) {
+          expect(PromiseState.isPending(got)).toBeTrue();
+        } else {
+          expect(got).toBeNull();
+        }
+        return;
+      }
 
       // TODO
     }
@@ -134,21 +144,11 @@ describe.each`
       const doTest = (i === testCounts[0]);
       if (doTest) {
         testCounts.shift();
-        const got = source[prop];
-        if (i === 0) {
-          // Special cases for the first event.
-          if (isAsync) {
-            expect(PromiseState.isPending(got)).toBeTrue();
-          } else {
-            expect(got).toBeNull();
-          }
-        } else {
-          checkCount(i);
-        }
+        await checkCount(i, source[prop]);
       }
       events.push(source.emit({ count: i }));
       if (doTest) {
-        checkCount(i + 1);
+        await checkCount(i + 1, source[prop]);
       }
     }
   });
