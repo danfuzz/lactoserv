@@ -66,7 +66,7 @@ collecting && /^import .* from / {
     }
     suffix = $0;
     sub(/[^;]*/, "", suffix);
-    imports[++count] = key " :: " from " :: " items " :: " suffix;
+    imports[++count] = key " :: " items " :: " from " :: " suffix;
     next;
 }
 
@@ -84,8 +84,8 @@ collecting {
     for (i = 1; i <= count; i++) {
         split(imports[i], parts, / :: /);
         tag    = substr(parts[1], 1, 1);
-        from   = parts[2];
-        items  = parts[3];
+        items  = parts[2];
+        from   = parts[3];
         suffix = parts[4];
         if (tag != lastTag) {
             if (lastTag != "") {
