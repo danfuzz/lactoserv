@@ -16,10 +16,11 @@ export class AccessLogService extends BaseService {
   /**
    * Constructs an instance.
    *
+   * @param {ServiceController} controller The controller for this instance.
    * @param {object} config Application-specific configuration object.
    */
-  constructor(config) {
-    super();
+  constructor(controller, config) {
+    super(controller);
 
     AccessLogService.#validateConfig(config);
     // TODO: Implement this.

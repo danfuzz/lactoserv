@@ -31,7 +31,7 @@ export class ServiceController {
     delete extraConfig.name;
     delete extraConfig.type;
 
-    this.#service = ServiceFactory.forType(serviceConfig.type, extraConfig);
+    this.#service = ServiceFactory.forType(serviceConfig.type, this, extraConfig);
     this.#logger  = logger[this.#name];
   }
 

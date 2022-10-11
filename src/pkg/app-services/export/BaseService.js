@@ -8,6 +8,23 @@ import { Methods } from '@this/typey';
  * Base class for system services.
  */
 export class BaseService {
+  /** @type {ServiceController} The controller for this instance. */
+  #controller;
+
+  /**
+   * Constructs an instance.
+   *
+   * @param {ServiceController} controller The controller for this instance.
+   */
+  constructor(controller) {
+    this.#controller = controller;
+  }
+
+  /** @returns {ServiceController} The controller for this instance. */
+  get controller() {
+    return this.#controller;
+  }
+
   /**
    * Starts the service. This async-returns once the service is actually
    * running.
