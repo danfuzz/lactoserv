@@ -44,8 +44,8 @@ export class ServerController {
    *
    * * with `app` / `apps` replaced by `appMounts`.
    * * with `host` / `hosts` replaced by `hostManager`.
-   * * with `accessLog` replaced by the service instance (instead of just being
-   *   a name).
+   * * with `requestLogger` replaced by the service instance (instead of just
+   *   being a name).
    *
    * @param {object} serverConfig Server information configuration item, per the
    *   description above.
@@ -58,7 +58,7 @@ export class ServerController {
     this.#logger      = logger[this.#name];
 
     const wranglerOptions = {
-      requestLogger: serverConfig.accessLog,
+      requestLogger: serverConfig.requestLogger,
       logger:        this.#logger,
       protocol:      serverConfig.protocol,
       socket: {

@@ -6,9 +6,9 @@
     "baseName":  "system-log"
   },
   {
-    "name":      "access-log",
+    "name":      "request-log",
     "type":      "access-log",
     "directory": { "$filePath": "../../../log" },
-    "baseName":  "access"
+    "baseName":  "requests"
   }
 ]
