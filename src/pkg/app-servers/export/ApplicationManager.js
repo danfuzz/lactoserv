@@ -106,18 +106,6 @@ export class ApplicationManager {
     this.#controllers.set(name, controller);
   }
 
-  /**
-   * Finds the {@link ApplicationController} with the given name.
-   *
-   * @param {string} name Application name to look for.
-   * @returns {?ApplicationController} The associated controller, or `null` if
-   *   there is no such application.
-   */
-  #findController(name) {
-    const controller = this.#controllers.get(name);
-    return controller ?? null;
-  }
-
 
   //
   // Static members
