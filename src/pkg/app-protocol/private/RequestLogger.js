@@ -6,6 +6,7 @@ import * as process from 'node:process';
 
 import * as express from 'express';
 
+import { BaseService } from '@this/app-services';
 import { FormatUtils } from '@this/loggy';
 
 
@@ -48,31 +49,25 @@ export class RequestLogger {
     const origin     =
       FormatUtils.addressPortString(req.socket.remoteAddress, req.socket.remotePort);
 
-    if (logger) {
-      logger.started(origin, req.method, urlish);
-      logger.headers(RequestLogger.#sanitizeRequestHeaders(reqHeaders));
-    }
+    logger?.started(origin, req.method, urlish);
+    logger?.headers(RequestLogger.#sanitizeRequestHeaders(reqHeaders));
 
     const cookies = req.cookies;
-    if (cookies && logger) {
-      logger.cookies(cookies);
+    if (cookies) {
+      logger?.cookies(cookies);
     }
 
     res.on('finish', () => {
       const resHeaders    = res.getHeaders();
       const contentLength = resHeaders['content-length'] ?? null;
 
-      if (logger) {
-        logger.response(res.statusCode,
-          RequestLogger.#sanitizeResponseHeaders(resHeaders));
-      }
+      logger?.response(res.statusCode,
+        RequestLogger.#sanitizeResponseHeaders(resHeaders));
 
       const timeEnd = process.hrtime.bigint();
       const elapsedMsec = Number(timeEnd - timeStart) * RequestLogger.#NSEC_PER_MSEC;
 
-      if (logger) {
-        logger.done({ contentLength, elapsedMsec });
-      }
+      logger?.done({ contentLength, elapsedMsec });
 
       const requestLogLine = [
         FormatUtils.dateTimeStringFromMsec(Date.now()),
@@ -83,9 +78,8 @@ export class RequestLogger {
         FormatUtils.elapsedTimeString(elapsedMsec),
       ].join(' ');
 
-      if (logger) {
-        logger.requestLog(requestLogLine);
-      }
+      logger?.requestLog(requestLogLine);
+      this.#requestLogger?.logCompletedRequest(requestLogLine);
     });
 
     return logger;
