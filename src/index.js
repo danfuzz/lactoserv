@@ -3,6 +3,7 @@
 
 import { default as main } from '@this/main';
 
+
 await main();
 
 // The `await` above is expected never to return.
