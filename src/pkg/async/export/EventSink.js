@@ -47,6 +47,14 @@ export class EventSink extends Threadlet {
   }
 
   /**
+   * @returns {Promise<LinkedEvent>} Promise for the first event which has not
+   * yet been processed by this instance.
+   */
+  get currentEvent() {
+    return this.#head.eventPromise;
+  }
+
+  /**
    * "Drain" the event chain by processing all synchronously-known events, and
    * then stop processing.
    *
