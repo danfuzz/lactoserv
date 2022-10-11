@@ -114,7 +114,7 @@ export class ServerManager {
     const appMounts = applicationManager.makeMountList(
       JsonSchemaUtil.singularPluralCombo(app, apps));
     const requestLogger = rlName
-      ? serviceManager.findController(rlName)
+      ? serviceManager.findController(rlName).service
       : null;
 
     const config = {
