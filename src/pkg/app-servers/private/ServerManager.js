@@ -9,6 +9,7 @@ import { ApplicationController } from '#x/ApplicationController';
 import { ApplicationManager } from '#x/ApplicationManager';
 import { ServerController } from '#p/ServerController';
 import { ThisModule } from '#p/ThisModule';
+import { Warehouse } from '#x/Warehouse';
 
 
 /** @type {function(...*)} Logger for this class. */
@@ -42,6 +43,9 @@ const logger = ThisModule.logger.server;
  * level.
  */
 export class ServerManager {
+  /** @type {Warehouse} The warehouse this instance is in. */
+  #warehouse;
+
   /**
    * @type {Map<string, ServerController>} Map from each server name to the
    * {@link ServerController} object with that name.
@@ -52,16 +56,18 @@ export class ServerManager {
    * Constructs an instance.
    *
    * @param {object} config Configuration object.
+   * @param {Warehouse} warehouse The warehouse this instance is in.
    * @param {HostManager} hostManager Host / certificate manager.
    * @param {ApplicationManager} applicationManager Application manager.
    */
-  constructor(config, hostManager, applicationManager) {
+  constructor(config, warehouse) {
     ServerManager.#validateConfig(config);
+    this.#warehouse = warehouse;
 
     const servers =
       JsonSchemaUtil.singularPluralCombo(config.server, config.servers);
     for (const server of servers) {
-      this.#addControllerFor(server, hostManager, applicationManager);
+      this.#addControllerFor(server);
     }
   }
 
@@ -96,20 +102,21 @@ export class ServerManager {
    * adds a mapping to {@link #controllers} so it can be found.
    *
    * @param {object} serverItem Single server item from a configuration object.
-   * @param {HostManager} hostManager Host / certificate manager.
-   * @param {ApplicationManager} applicationManager Application manager.
    */
-  #addControllerFor(serverItem, hostManager, applicationManager) {
+  #addControllerFor(serverItem) {
     const { app, apps, host, hosts } = serverItem;
-    const hmSubset = hostManager.makeSubset(
-      JsonSchemaUtil.singularPluralCombo(host, hosts));
+    const { applicationManager, hostManager, serviceManager } = this.#warehouse;
+
+    const hmSubset = hostManager
+      ? hostManager.makeSubset(JsonSchemaUtil.singularPluralCombo(host, hosts))
+      : null;
     const appMounts = applicationManager.makeMountList(
       JsonSchemaUtil.singularPluralCombo(app, apps));
 
     const config = {
       ...serverItem,
-      appMounts,
-      hostManager: hmSubset
+      ...(hmSubset ? { hostManager: hmSubset } : null),
+      appMounts
     };
     delete config.app;
     delete config.apps;
