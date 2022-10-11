@@ -54,7 +54,13 @@ export class LogRecord {
     this.#timeSec = MustBe.number(timeSec);
     this.#tag     = MustBe.object(tag, LogTag);
     this.#type    = MustBe.string(type);
-    this.#args    = MustBe.array(args);
+
+    MustBe.array(args);
+    if (!Object.isFrozen(args)) {
+      args = Object.freeze([...args]);
+    }
+    this.#args = args;
+
   }
 
   /** @type {?LogStackTrace} Stack trace, if available. */
@@ -152,8 +158,9 @@ export class LogRecord {
   static #KICKOFF_TAG = new LogTag('kickoff');
 
   /**
-   * Constructs a minimal instance of this class, suitable for use as a
-   * "kickoff" event payload passed to an {@link EventSource}.
+   * Constructs a minimal instance of this class, suitable for use as the
+   * payload for a "kickoff" event passed to the {@link EventSource}
+   * constructor.
    *
    * @param {?LogTag} [tag = null] Tag to use for the instance, or `null` to use
    *   a default.
