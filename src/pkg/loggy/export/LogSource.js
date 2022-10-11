@@ -1,14 +1,14 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { EventSource, LinkedEvent } from '@this/async';
-import { MustBe } from '@this/typey';
+import { EventSource } from '@this/async';
 
+import { LogEvent } from '#x/LogEvent';
 import { LogRecord } from '#x/LogRecord';
 
 
 /**
- * Event source for use when logging.
+ * Event source subclass for use when logging.
  */
 export class LogSource extends EventSource {
   /**
@@ -19,7 +19,7 @@ export class LogSource extends EventSource {
    *   EventSource.earliestEventNow}.
    */
   constructor(keepCount = 0) {
-    const kickoffEvent = new LinkedEvent(LogRecord.makeKickoffInstance());
+    const kickoffEvent = LogEvent.makeKickoffInstance();
     super({ keepCount, kickoffEvent });
   }
 
@@ -29,7 +29,6 @@ export class LogSource extends EventSource {
    * @param {LogRecord} record The payload of the event to emit.
    */
   emit(record) {
-    MustBe.object(record, LogRecord);
     super.emit(record);
   }
 }

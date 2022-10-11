@@ -5,11 +5,15 @@ import * as express from 'express';
 
 import { Methods } from '@this/typey';
 
+import { ApplicationController } from '#x/ApplicationController';
 
 /**
  * Base class for the exported (public) application classes.
  */
 export class BaseApplication {
+  /** @type {ApplicationController} The controller for this instance. */
+  #controller;
+
   /**
    * @type {function(...*)} Middleware function which activates this instance.
    */
@@ -17,10 +21,18 @@ export class BaseApplication {
 
   /**
    * Constructs an instance.
+   *
+   * @param {ApplicationController} controller Controller for this instance.
    */
-  constructor() {
+  constructor(controller) {
+    this.#controller = controller;
     this.#middleware =
       (req, res, next) => this.handleRequest(req, res, next);
+  }
+
+  /** @returns {ApplicationController} The controller for this instance. */
+  get controller() {
+    return this.#controller;
   }
 
   /**

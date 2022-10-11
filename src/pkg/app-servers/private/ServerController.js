@@ -7,7 +7,7 @@ import { HostManager } from '@this/app-hosts';
 import { ProtocolWrangler, ProtocolWranglers } from '@this/app-protocol';
 import { TreePathKey, TreePathMap } from '@this/collections';
 
-import { ApplicationController } from '#p/ApplicationController';
+import { ApplicationController } from '#x/ApplicationController';
 
 
 /**

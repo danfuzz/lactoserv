@@ -25,6 +25,10 @@ export class EventSink extends Threadlet {
    */
   #head;
 
+  /**
+   * @type {boolean} Is this instance eagerly "draining" all synchronously-known
+   * events?
+   */
   #draining = false;
 
   /**
@@ -40,6 +44,14 @@ export class EventSink extends Threadlet {
 
     this.#processor = MustBe.callableFunction(processor).bind(null);
     this.#head      = new EventOrPromise(firstEvent);
+  }
+
+  /**
+   * @returns {Promise<LinkedEvent>} Promise for the first event which has not
+   * yet been processed by this instance.
+   */
+  get currentEvent() {
+    return this.#head.eventPromise;
   }
 
   /**

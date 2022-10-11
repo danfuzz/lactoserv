@@ -16,6 +16,9 @@ export class TextFileSink extends EventSink {
   /** {string} Absolute path to the file to write to. */
   #filePath;
 
+  /** {boolean} Has this instance ever written to the file? */
+  #everWritten = false;
+
   /**
    * Constructs an instance.
    *
@@ -37,6 +40,14 @@ export class TextFileSink extends EventSink {
    * @param {LinkedEvent} event Event to log.
    */
   async #process(event) {
+    if (!this.#everWritten) {
+      this.#everWritten = true;
+      if (!/^[/]dev[/]std(err|out)$/.test(this.#filePath)) {
+        await fs.appendFile(this.#filePath, `\n\n${'- '.repeat(38)}-\n\n\n`);
+
+      }
+    }
+
     const text = event.payload.toHuman();
     await fs.appendFile(this.#filePath, text);
   }

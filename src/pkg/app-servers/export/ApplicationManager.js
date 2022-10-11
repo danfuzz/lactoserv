@@ -4,7 +4,7 @@
 import { TreePathKey } from '@this/collections';
 import { JsonSchema, JsonSchemaUtil } from '@this/json';
 
-import { ApplicationController } from '#p/ApplicationController';
+import { ApplicationController } from '#x/ApplicationController';
 import { ThisModule } from '#p/ThisModule';
 
 

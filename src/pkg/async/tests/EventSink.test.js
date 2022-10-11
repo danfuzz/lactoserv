@@ -59,6 +59,34 @@ describe('constructor(function, promise)', () => {
   });
 });
 
+describe('.currentEvent', () => {
+  test('returns the initially-given event before the instance is started', async () => {
+    const event = new LinkedEvent(payload1);
+    const sink  = new EventSink(() => true, event);
+
+    expect(await sink.currentEvent).toBe(event);
+  });
+
+  test('returns a promise for the first unresolved event, after being drained and stopped', async () => {
+    const event = new LinkedEvent(payload1);
+    const sink  = new EventSink(() => true, event);
+
+    const runResult = sink.run();
+    await timers.setImmediate();
+    const stopResult = sink.drainAndStop();
+    await expect(runResult).toResolve();
+    await expect(stopResult).toResolve();
+
+    const got = sink.currentEvent;
+    expect(PromiseState.isPending(got)).toBeTrue();
+    event.emitter(payload2);
+    const event2 = event.nextNow;
+    await timers.setImmediate();
+    expect(PromiseState.isFulfilled(got)).toBeTrue();
+    expect((await got).payload).toBe(event2.payload);
+  });
+});
+
 describe('drainAndStop()', () => {
   test('processes all synchronously known events before stopping', async () => {
     const event3  = new LinkedEvent(payload3);

@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { BaseService } from '@this/app-services';
+import { BaseService, ServiceController } from '@this/app-services';
 import { JsonSchema } from '@this/json';
 
 
@@ -16,11 +16,12 @@ export class AccessLogService extends BaseService {
   /**
    * Constructs an instance.
    *
-   * @param {object} config Application-specific configuration object.
+   * @param {ServiceController} controller The controller for this instance.
    */
-  constructor(config) {
-    super();
+  constructor(controller) {
+    super(controller);
 
+    const config = controller.config;
     AccessLogService.#validateConfig(config);
     // TODO: Implement this.
   }

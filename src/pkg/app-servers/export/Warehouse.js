@@ -5,7 +5,7 @@ import { HostManager } from '@this/app-hosts';
 import { ServiceManager } from '@this/app-services';
 import { JsonSchema } from '@this/json';
 
-import { ApplicationManager } from '#p/ApplicationManager';
+import { ApplicationManager } from '#x/ApplicationManager';
 import { ServerManager } from '#p/ServerManager';
 
 
@@ -62,9 +62,14 @@ export class Warehouse {
     return this.#hostManager;
   }
 
-  /** @returns {ServerManager} Server manager, for all server bindings. */
+  /** @returns {ServerManager} Server manager. */
   get serverManager() {
     return this.#serverManager;
+  }
+
+  /** @returns {ServiceManager} Service manager. */
+  get serviceManager() {
+    return this.#serviceManager;
   }
 
   /**
