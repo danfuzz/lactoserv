@@ -65,8 +65,8 @@ $ ./scripts/run
 ...
 ```
 
-The `run` script takes other options; `run-tests --help` for details.
-TLDR: `run --do=build` to do a build first, for convenience.
+The `run` script takes other options; `run --help` for details. TLDR: `run
+--do=build` to do a build first, for convenience.
 
 #### Install and run in production
 
