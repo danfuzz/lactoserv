@@ -2,6 +2,7 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { HostController, HostManager } from '@this/app-hosts';
+import { ServiceController } from '@this/app-services';
 import { JsonSchema, JsonSchemaUtil } from '@this/json';
 
 import { ApplicationController } from '#x/ApplicationController';
@@ -34,6 +35,8 @@ const logger = ThisModule.logger.server;
  * * `{int} port` -- Port number that the server is to listen on.
  * * `{string} protocol` -- Protocol that the server is to speak. Must be one of
  *   `http`, `http2`, or `https`.
+ * * `{string} accessLog` -- Optional name of the access log service to inform
+ *   of activity. If not specified, this server will not produce access logs.
  *
  * **Note:** Exactly one of `server` or `servers` must be present at the top
  * level.
@@ -165,6 +168,10 @@ export class ServerManager {
                 protocol: {
                   type: 'string',
                   enum: ['http', 'http2', 'https']
+                },
+                accessLog: {
+                  type: 'string',
+                  pattern: ServiceController.NAME_PATTERN
                 }
               }
             },

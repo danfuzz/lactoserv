@@ -5,7 +5,8 @@
     "host":       "*",
     "interface":  "*",
     "port":       8080,
-    "protocol":   "http"
+    "protocol":   "http",
+    "accessLog":  "access-log"
   },
   {
     "name":       "secure",
@@ -13,7 +14,8 @@
     "host":       "*",
     "interface":  "*",
     "port":       8443,
-    "protocol":   "http2"
+    "protocol":   "http2",
+    "accessLog":  "access-log"
   },
   {
     "name":       "also-secure",
@@ -21,6 +23,7 @@
     "hosts":      ["*"],
     "interface":  "*",
     "port":       8444,
-    "protocol":   "https"
+    "protocol":   "https",
+    "accessLog":  "access-log"
   }
 ]
