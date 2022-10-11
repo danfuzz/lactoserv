@@ -5,6 +5,7 @@ import * as express from 'express';
 
 import { Methods } from '@this/typey';
 
+import { ApplicationController } from '#x/ApplicationController';
 
 /**
  * Base class for the exported (public) application classes.

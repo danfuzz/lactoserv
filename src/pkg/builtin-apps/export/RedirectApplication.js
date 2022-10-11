@@ -5,7 +5,7 @@ import { URL } from 'node:url';
 
 import express from 'express';
 
-import { BaseApplication } from '@this/app-servers';
+import { ApplicationController, BaseApplication } from '@this/app-servers';
 import { JsonSchema } from '@this/json';
 
 

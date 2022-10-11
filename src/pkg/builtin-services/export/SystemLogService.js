@@ -5,10 +5,10 @@ import * as fs from 'node:fs/promises';
 import * as Path from 'node:path';
 import * as timers from 'node:timers/promises';
 
-import { BaseService } from '@this/app-services';
+import { BaseService, ServiceController } from '@this/app-services';
 import { EventTracker } from '@this/async';
 import { JsonSchema } from '@this/json';
-import { Loggy, TextFileSink } from '@this/loggy';
+import { LogEvent, Loggy, TextFileSink } from '@this/loggy';
 
 
 /**

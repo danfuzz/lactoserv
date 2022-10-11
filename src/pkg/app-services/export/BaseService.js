@@ -3,6 +3,8 @@
 
 import { Methods } from '@this/typey';
 
+import { ServiceController } from '#x/ServiceController';
+
 
 /**
  * Base class for system services.

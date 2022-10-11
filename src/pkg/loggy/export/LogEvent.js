@@ -1,12 +1,12 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import * as util from 'node:util';
-
 import { LinkedEvent } from '@this/async';
 import { MustBe } from '@this/typey';
 
 import { LogRecord } from '#x/LogRecord';
+import { LogStackTrace } from '#x/LogStackTrace';
+import { LogTag } from '#x/LogTag';
 
 
 /**

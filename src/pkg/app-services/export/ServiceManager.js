@@ -4,7 +4,9 @@
 import { JsonSchema, JsonSchemaUtil } from '@this/json';
 import { Loggy } from '@this/loggy';
 
+import { BaseService } from '#x/BaseService';
 import { ServiceController } from '#x/ServiceController';
+import { ServiceFactory } from '#x/ServiceFactory';
 
 
 /** @type {function(...*)} Logger for this class. */
