@@ -99,7 +99,7 @@ collecting {
     print "";
     print "";
 
-    # Fall through and print the `class` line.
+    # Fall through and print the first non-`import` line.
 }
 
 !collecting {
