@@ -39,12 +39,14 @@ export class ServerController {
 
 
   /**
-   * Constructs an insance.
+   * Constructs an insance. The `config` parameter is the same as the exposed
+   * configuration object, except:
    *
-   * @param {object} serverConfig Server information configuration item. Same
-   *   as what's in the exposed config object, except with `app` / `apps`
-   *   replaced by `appMounts`, and with `host` / `hosts` replaced by
-   *  `hostManager`.
+   * * with `app` / `apps` replaced by `appMounts`.
+   * * with `host` / `hosts` replaced by `hostManager`.
+   *
+   * @param {object} serverConfig Server information configuration item, per the
+   *   description above.
    * @param {function(...*)} logger Logger to use.
    */
   constructor(serverConfig, logger) {
