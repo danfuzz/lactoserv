@@ -113,14 +113,14 @@ export class SystemLogService extends BaseService {
   //
 
   /** @type {string} Main log tag for this class. */
-  static #LOG_TAG = 'system-log';
+  static #LOG_TAG = 'syslog';
 
   /** @type {function(*)} Logger for this class. */
   static #classLogger = Loggy.loggerFor([this.#LOG_TAG]);
 
   /** @returns {string} Service type as used in configuration objects. */
   static get TYPE() {
-    return 'system-log';
+    return 'system-logger';
   }
 
   /**

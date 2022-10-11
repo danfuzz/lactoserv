@@ -1,7 +1,7 @@
 [
   {
     "name":      "syslog",
-    "type":      "system-log",
+    "type":      "system-logger",
     "directory": { "$filePath": "../../../log" },
     "baseName":  "system"
   },
