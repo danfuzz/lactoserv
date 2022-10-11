@@ -161,13 +161,9 @@ cd "${srcDir}"
 
 sources=($(find . -name '*.js'))
 
-zzz_count=0
 for file in "${sources[@]}"; do
     info-msg "Processing ${file}..."
     do-sort "${file}" || exit "$?"
-    if (( zzz_count++ == 5 )); then
-        exit
-    fi
 done
 
 info-msg ''
