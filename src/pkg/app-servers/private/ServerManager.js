@@ -4,7 +4,7 @@
 import { HostController, HostManager } from '@this/app-hosts';
 import { JsonSchema, JsonSchemaUtil } from '@this/json';
 
-import { ApplicationController } from '#p/ApplicationController';
+import { ApplicationController } from '#x/ApplicationController';
 import { ApplicationManager } from '#p/ApplicationManager';
 import { ServerController } from '#p/ServerController';
 import { ThisModule } from '#p/ThisModule';
