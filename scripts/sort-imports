@@ -35,7 +35,7 @@ process-args "$@" || usage "$?"
 # Helper functions
 #
 
-# The actual import-sorting AWK script. TODO: Fill this in!
+# The actual import-sorting AWK script.
 SORTER_AWK=$'
 BEGIN {
     collecting = 0;
