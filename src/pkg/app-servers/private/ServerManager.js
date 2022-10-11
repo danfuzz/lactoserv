@@ -124,7 +124,7 @@ export class ServerManager {
     delete config.hosts;
 
     const controller = new ServerController(config, logger);
-    const name = controller.name;
+    const name       = controller.name;
 
     logger.binding(name);
 
