@@ -57,8 +57,3 @@ export class Florp {
     ...
 }
 ```
-
-Notes:
-
-* Import order is "outer to inner" (or "ubiquitous to module-specific") with an
-  extra newline between sections.
