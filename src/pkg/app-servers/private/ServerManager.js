@@ -1,13 +1,14 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { HostController, HostManager } from '@this/app-hosts';
+import { HostController } from '@this/app-hosts';
+import { ServiceController } from '@this/app-services';
 import { JsonSchema, JsonSchemaUtil } from '@this/json';
 
 import { ApplicationController } from '#x/ApplicationController';
-import { ApplicationManager } from '#x/ApplicationManager';
 import { ServerController } from '#p/ServerController';
 import { ThisModule } from '#p/ThisModule';
+import { Warehouse } from '#x/Warehouse';
 
 
 /** @type {function(...*)} Logger for this class. */
@@ -34,11 +35,17 @@ const logger = ThisModule.logger.server;
  * * `{int} port` -- Port number that the server is to listen on.
  * * `{string} protocol` -- Protocol that the server is to speak. Must be one of
  *   `http`, `http2`, or `https`.
+ * * `{string} requestLogger` -- Optional name of the request loging service to
+ *   inform of activity. If not specified, this server will not produce request
+ *   logs.
  *
  * **Note:** Exactly one of `server` or `servers` must be present at the top
  * level.
  */
 export class ServerManager {
+  /** @type {Warehouse} The warehouse this instance is in. */
+  #warehouse;
+
   /**
    * @type {Map<string, ServerController>} Map from each server name to the
    * {@link ServerController} object with that name.
@@ -49,16 +56,16 @@ export class ServerManager {
    * Constructs an instance.
    *
    * @param {object} config Configuration object.
-   * @param {HostManager} hostManager Host / certificate manager.
-   * @param {ApplicationManager} applicationManager Application manager.
+   * @param {Warehouse} warehouse The warehouse this instance is in.
    */
-  constructor(config, hostManager, applicationManager) {
+  constructor(config, warehouse) {
     ServerManager.#validateConfig(config);
+    this.#warehouse = warehouse;
 
     const servers =
       JsonSchemaUtil.singularPluralCombo(config.server, config.servers);
     for (const server of servers) {
-      this.#addControllerFor(server, hostManager, applicationManager);
+      this.#addControllerFor(server);
     }
   }
 
@@ -93,20 +100,25 @@ export class ServerManager {
    * adds a mapping to {@link #controllers} so it can be found.
    *
    * @param {object} serverItem Single server item from a configuration object.
-   * @param {HostManager} hostManager Host / certificate manager.
-   * @param {ApplicationManager} applicationManager Application manager.
    */
-  #addControllerFor(serverItem, hostManager, applicationManager) {
-    const { app, apps, host, hosts } = serverItem;
-    const hmSubset = hostManager.makeSubset(
-      JsonSchemaUtil.singularPluralCombo(host, hosts));
+  #addControllerFor(serverItem) {
+    const { requestLogger: rlName, app, apps, host, hosts } = serverItem;
+    const { applicationManager, hostManager, serviceManager } = this.#warehouse;
+
+    const hmSubset = hostManager
+      ? hostManager.makeSubset(JsonSchemaUtil.singularPluralCombo(host, hosts))
+      : null;
     const appMounts = applicationManager.makeMountList(
       JsonSchemaUtil.singularPluralCombo(app, apps));
+    const requestLogger = rlName
+      ? serviceManager.findController(rlName).service
+      : null;
 
     const config = {
       ...serverItem,
-      appMounts,
-      hostManager: hmSubset
+      ...(hmSubset ? { hostManager: hmSubset } : null),
+      ...(requestLogger ? { requestLogger } : null),
+      appMounts
     };
     delete config.app;
     delete config.apps;
@@ -114,7 +126,7 @@ export class ServerManager {
     delete config.hosts;
 
     const controller = new ServerController(config, logger);
-    const name = controller.name;
+    const name       = controller.name;
 
     logger.binding(name);
 
@@ -165,6 +177,10 @@ export class ServerManager {
                 protocol: {
                   type: 'string',
                   enum: ['http', 'http2', 'https']
+                },
+                requestLogger: {
+                  type: 'string',
+                  pattern: ServiceController.NAME_PATTERN
                 }
               }
             },

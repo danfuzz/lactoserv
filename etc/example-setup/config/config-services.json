@@ -1,14 +1,14 @@
 [
   {
-    "name":      "system-log",
-    "type":      "system-log",
+    "name":      "syslog",
+    "type":      "system-logger",
     "directory": { "$filePath": "../../../log" },
-    "baseName":  "system-log"
+    "baseName":  "system"
   },
   {
-    "name":      "access-log",
-    "type":      "access-log",
+    "name":      "requests",
+    "type":      "request-logger",
     "directory": { "$filePath": "../../../log" },
-    "baseName":  "access"
+    "baseName":  "requests"
   }
 ]

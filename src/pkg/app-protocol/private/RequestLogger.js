@@ -6,6 +6,7 @@ import * as process from 'node:process';
 
 import * as express from 'express';
 
+import { BaseService } from '@this/app-services';
 import { FormatUtils } from '@this/loggy';
 
 
@@ -13,16 +14,22 @@ import { FormatUtils } from '@this/loggy';
  * Logger for HTTP(ish) requests.
  */
 export class RequestLogger {
+  /** @type {BaseService} Request logger service to use. */
+  #requestLogger;
+
   /** @type {function(...*)} Underlying logger instance to use. */
   #logger;
 
   /**
    * Constructs an instance.
    *
-   * @param {function(...*)} logger Underlying logger instance to use.
+   * @param {BaseService} requestLogger Request logger service to use.
+   * @param {?function(...*)} logger Underlying system event logger instance to
+   *   use, if any.
    */
-  constructor(logger) {
-    this.#logger = logger.req;
+  constructor(requestLogger, logger) {
+    this.#requestLogger = requestLogger;
+    this.#logger        = logger ? logger.req : null;
   }
 
   /**
@@ -36,31 +43,33 @@ export class RequestLogger {
    */
   logRequest(req, res) {
     const timeStart  = process.hrtime.bigint();
-    const logger     = this.#logger.$newId;
+    const logger     = this.#logger?.$newId ?? null;
     const reqHeaders = req.headers;
     const urlish     = `${req.protocol}://${req.hostname}${req.originalUrl}`;
     const origin     =
       FormatUtils.addressPortString(req.socket.remoteAddress, req.socket.remotePort);
 
-    logger.started(origin, req.method, urlish);
-    logger.headers(RequestLogger.#sanitizeRequestHeaders(reqHeaders));
+    logger?.started(origin, req.method, urlish);
+    logger?.headers(RequestLogger.#sanitizeRequestHeaders(reqHeaders));
 
     const cookies = req.cookies;
     if (cookies) {
-      logger.cookies(cookies);
+      logger?.cookies(cookies);
     }
 
     res.on('finish', () => {
       const resHeaders    = res.getHeaders();
       const contentLength = resHeaders['content-length'] ?? null;
-      logger.response(res.statusCode,
+
+      logger?.response(res.statusCode,
         RequestLogger.#sanitizeResponseHeaders(resHeaders));
 
       const timeEnd = process.hrtime.bigint();
       const elapsedMsec = Number(timeEnd - timeStart) * RequestLogger.#NSEC_PER_MSEC;
-      logger.done({ contentLength, elapsedMsec });
 
-      const accessLogLine = [
+      logger?.done({ contentLength, elapsedMsec });
+
+      const requestLogLine = [
         FormatUtils.dateTimeStringFromMsec(Date.now()),
         origin,
         req.method,
@@ -68,7 +77,9 @@ export class RequestLogger {
         FormatUtils.contentLengthString(contentLength),
         FormatUtils.elapsedTimeString(elapsedMsec),
       ].join(' ');
-      logger.accessLog(accessLogLine);
+
+      logger?.requestLog(requestLogLine);
+      this.#requestLogger?.logCompletedRequest(requestLogLine);
     });
 
     return logger;

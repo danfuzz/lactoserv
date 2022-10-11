@@ -54,6 +54,29 @@ export class ServiceManager {
   }
 
   /**
+   * Finds the {@link ServiceController} for a given service name.
+   *
+   * @param {string} name Service name to look for.
+   * @param {?string|function(new:BaseService)} [type = null] Required type
+   *   (class or string name) of the service.
+   * @returns {ServiceController} The associated controller.
+   * @throws {Error} Thrown if there is no controller with the given name, or
+   *   it does not match the given `type`.
+   */
+  findController(name, type = null) {
+    const controller = this.#controllers.get(name);
+    const cls        = ServiceManager.#classFromType(type);
+
+    if (!controller) {
+      throw new Error(`No such service: ${name}`);
+    } else if (cls && !(controller instanceof cls)) {
+      throw new Error(`Wrong type for service: ${name}`);
+    }
+
+    return controller;
+  }
+
+  /**
    * Gets a list of all controllers managed by this instance, optionally
    * filtered to only be those of a particular class or (string) type.
    *
@@ -62,9 +85,7 @@ export class ServiceManager {
    * @returns {ServiceController[]} All the matching controllers.
    */
   getAll(type = null) {
-    const cls = (typeof type === 'string')
-      ? ServiceFactory.classFromType(type)
-      : type;
+    const cls = ServiceManager.#classFromType(type);
 
     const result = [];
     for (const controller of this.#controllers.values()) {
@@ -94,18 +115,6 @@ export class ServiceManager {
     }
 
     this.#controllers.set(name, controller);
-  }
-
-  /**
-   * Finds the {@link ServiceController} with the given name.
-   *
-   * @param {string} name Service name to look for.
-   * @returns {?ServiceController} The associated controller, or `null` if there
-   *   is no such service.
-   */
-  #findController(name) {
-    const controller = this.#controllers.get(name);
-    return controller ?? null;
   }
 
 
@@ -147,6 +156,28 @@ export class ServiceManager {
       validator.addMainSchema(schema);
     } else {
       validator.addSchema(schema);
+    }
+  }
+
+  /**
+   * Gets a class (or null) from a "type spec" for a service.
+   *
+   * @param {?string|function(new:BaseService)} type Class or (string) type
+   *   name, or `null` to not have any type restriction.
+   * @returns {?function(new:BaseService)} The corresponding class, or `null` if
+   *   given `null`.
+   */
+  static #classFromType(type) {
+    if (type === null) {
+      return null;
+    } else if (typeof type === 'string') {
+      return ServiceFactory.classFromType(type);
+    } else {
+      // This asks the question, "Is `type` a subclass of `BaseService`?"
+      if (!(type instanceof BaseService.constructor)) {
+        throw new Error(`Not a service class: ${type}`);
+      }
+      return type;
     }
   }
 

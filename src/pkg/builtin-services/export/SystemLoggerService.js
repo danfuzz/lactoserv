@@ -18,7 +18,7 @@ import { LogEvent, Loggy, TextFileSink } from '@this/loggy';
  * * `{string} directory` -- Absolute path to the directory to write to.
  * * `{string} baseName` -- Base file name for the log files.
  */
-export class SystemLogService extends BaseService {
+export class SystemLoggerService extends BaseService {
   /** @type {string} Full path to the log file. */
   #logFilePath;
 
@@ -37,13 +37,13 @@ export class SystemLogService extends BaseService {
     super(controller);
 
     const config = controller.config;
-    SystemLogService.#validateConfig(config);
+    SystemLoggerService.#validateConfig(config);
 
     const earliestEvent = this.#findEarliestEventToLog(controller.name);
 
     this.#logFilePath = Path.resolve(config.directory, `${config.baseName}.txt`);
     this.#sink        = new TextFileSink(this.#logFilePath, earliestEvent);
-    this.#logger      = SystemLogService.#classLogger[controller.name];
+    this.#logger      = SystemLoggerService.#classLogger[controller.name];
   }
 
   /** @override */
@@ -98,7 +98,7 @@ export class SystemLogService extends BaseService {
 
     const found = tracker.advanceSync((event) => {
       const tag = event.tag;
-      return (tag.main === SystemLogService.#LOG_TAG)
+      return (tag.main === SystemLoggerService.#LOG_TAG)
         && (tag.context.length === 1)
         && (tag.context[0] === name)
         && (event.type === 'stopped');
@@ -113,14 +113,14 @@ export class SystemLogService extends BaseService {
   //
 
   /** @type {string} Main log tag for this class. */
-  static #LOG_TAG = 'system-log';
+  static #LOG_TAG = 'syslog';
 
   /** @type {function(*)} Logger for this class. */
   static #classLogger = Loggy.loggerFor([this.#LOG_TAG]);
 
   /** @returns {string} Service type as used in configuration objects. */
   static get TYPE() {
-    return 'system-log';
+    return 'system-logger';
   }
 
   /**
@@ -129,7 +129,7 @@ export class SystemLogService extends BaseService {
    * @param {object} config Configuration object.
    */
   static #validateConfig(config) {
-    const validator = new JsonSchema('System Log Configuration');
+    const validator = new JsonSchema('System Logger Configuration');
 
     const namePattern = '^[^/]+$';
     const pathPattern =
@@ -141,7 +141,7 @@ export class SystemLogService extends BaseService {
       '/[^/]';             // Starts with a slash. Has at least one component.
 
     validator.addMainSchema({
-      $id: '/SystemLogService',
+      $id: '/SystemLoggerService',
       type: 'object',
       required: ['baseName', 'directory'],
       properties: {

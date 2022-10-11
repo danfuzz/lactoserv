@@ -34,11 +34,17 @@ export class ServiceFactory {
    * Finds the class corresponding to the given service type.
    *
    * @param {string} type Type name of the service.
-   * @returns {?function(new:BaseService)} Corresponding class, or `null` if
-   *   there is none.
+   * @returns {function(new:BaseService)} Corresponding class.
+   * @throws {Error} Thrown if there is no such service.
    */
   static classFromType(type) {
-    return this.#SERVICE_CLASSES.get(type) ?? null;
+    const result = this.#SERVICE_CLASSES.get(type);
+
+    if (!result) {
+      throw new Error(`Unknown service type: ${type}`);
+    }
+
+    return result;
   }
 
   /**
@@ -50,10 +56,6 @@ export class ServiceFactory {
    */
   static forType(type, ...rest) {
     const cls = this.classFromType(type);
-    if (!cls) {
-      throw new Error(`Unknown service type: ${type}`);
-    }
-
     return new cls(...rest);
   }
 }

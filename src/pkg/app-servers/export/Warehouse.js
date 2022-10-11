@@ -42,11 +42,10 @@ export class Warehouse {
   constructor(config) {
     Warehouse.#validateConfig(config);
 
-    this.#hostManager = HostManager.fromConfig(config);
-    this.#serviceManager = new ServiceManager(config);
+    this.#hostManager        = HostManager.fromConfig(config);
+    this.#serviceManager     = new ServiceManager(config);
     this.#applicationManager = new ApplicationManager(config);
-    this.#serverManager =
-      new ServerManager(config, this.#hostManager, this.#applicationManager);
+    this.#serverManager      = new ServerManager(config, this);
   }
 
   /** @returns {ApplicationManager} Application manager. */

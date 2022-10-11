@@ -1,26 +1,29 @@
 [
   {
-    "name":       "insecure",
-    "app":        "my-wacky-redirector",
-    "host":       "*",
-    "interface":  "*",
-    "port":       8080,
-    "protocol":   "http"
+    "name":          "insecure",
+    "app":           "my-wacky-redirector",
+    "host":          "*",
+    "interface":     "*",
+    "port":          8080,
+    "protocol":      "http",
+    "requestLogger": "requests"
   },
   {
-    "name":       "secure",
-    "apps":       ["my-static-fun"],
-    "host":       "*",
-    "interface":  "*",
-    "port":       8443,
-    "protocol":   "http2"
+    "name":          "secure",
+    "apps":          ["my-static-fun"],
+    "host":          "*",
+    "interface":     "*",
+    "port":          8443,
+    "protocol":      "http2",
+    "requestLogger": "requests"
   },
   {
-    "name":       "also-secure",
-    "app":        "my-static-fun",
-    "hosts":      ["*"],
-    "interface":  "*",
-    "port":       8444,
-    "protocol":   "https"
+    "name":          "also-secure",
+    "app":           "my-static-fun",
+    "hosts":         ["*"],
+    "interface":     "*",
+    "port":          8444,
+    "protocol":      "https",
+    "requestLogger": "requests"
   }
 ]

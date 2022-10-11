@@ -1,6 +1,9 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import * as fs from 'node:fs/promises';
+import * as Path from 'node:path';
+
 import { BaseService, ServiceController } from '@this/app-services';
 import { JsonSchema } from '@this/json';
 
@@ -12,7 +15,10 @@ import { JsonSchema } from '@this/json';
  * * `{string} directory` -- Absolute path to the directory to write to.
  * * `{string} baseName` -- Base file name for the log files.
  */
-export class AccessLogService extends BaseService {
+export class RequestLoggerService extends BaseService {
+  /** @type {string} Full path to the log file. */
+  #logFilePath;
+
   /**
    * Constructs an instance.
    *
@@ -22,18 +28,39 @@ export class AccessLogService extends BaseService {
     super(controller);
 
     const config = controller.config;
-    AccessLogService.#validateConfig(config);
-    // TODO: Implement this.
+    RequestLoggerService.#validateConfig(config);
+
+    this.#logFilePath = Path.resolve(config.directory, `${config.baseName}.txt`);
+  }
+
+  /**
+   * Logs a completed request.
+   *
+   * @param {string} line Line representing the completed request.
+   */
+  async logCompletedRequest(line) {
+    await fs.appendFile(this.#logFilePath, `${line}\n`);
   }
 
   /** @override */
   async start() {
-    // TODO
+    const dirPath = Path.resolve(this.#logFilePath, '..');
+
+    // Create the log directory if it doesn't already exist.
+    try {
+      await fs.stat(dirPath);
+    } catch (e) {
+      if (e.code === 'ENOENT') {
+        await fs.mkdir(dirPath, { recursive: true });
+      } else {
+        throw e;
+      }
+    }
   }
 
   /** @override */
   async stop() {
-    // TODO
+    // Nothing to do here.
   }
 
 
@@ -43,7 +70,7 @@ export class AccessLogService extends BaseService {
 
   /** @returns {string} Service type as used in configuration objects. */
   static get TYPE() {
-    return 'access-log';
+    return 'request-logger';
   }
 
   /**
@@ -52,7 +79,7 @@ export class AccessLogService extends BaseService {
    * @param {object} config Configuration object.
    */
   static #validateConfig(config) {
-    const validator = new JsonSchema('Access Log Configuration');
+    const validator = new JsonSchema('Request Logger Configuration');
 
     const namePattern = '^[^/]+$';
     const pathPattern =
@@ -64,7 +91,7 @@ export class AccessLogService extends BaseService {
       '/[^/]';             // Starts with a slash. Has at least one component.
 
     validator.addMainSchema({
-      $id: '/AccessLogService',
+      $id: '/RequestLoggerService',
       type: 'object',
       required: ['baseName', 'directory'],
       properties: {
