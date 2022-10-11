@@ -20,7 +20,7 @@ export class LogSource extends EventSource {
    *   EventSource.earliestEventNow}.
    */
   constructor(keepCount = 0) {
-    const kickoffEvent = new LinkedEvent(LogEvent.makeKickoffInstance());
+    const kickoffEvent = LogEvent.makeKickoffInstance();
     super({ keepCount, kickoffEvent });
   }
 
