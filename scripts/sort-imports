@@ -51,16 +51,20 @@ collecting && /^import .* from / {
     sub(/^.* from [\'"]/, "", from);
     sub(/[\'"];$/, "", from);
     if (match(from, /^#/) != 0) {
-        sub(/^[^\\/]*/, "", from);
-        from = "D :: " from;
+        key = from;
+        sub(/^[^\\/]*/, "", key);
+        key = "D/" key;
     } else if (match(from, /^@this/) != 0) {
-        from = "C :: " from;
+        key = "C/" from;
     } else if (match(from, /^node:/) != 0) {
-        from = "A :: " from;
+        key = "A/" from;
     } else {
-        from = "B :: " from;
+        key = "B/" from;
     }
-    imports[count++] = from " :: " $0;
+    items = $0;
+    sub(/^import /, "", items);
+    sub(/ from .*$/, "", items);
+    imports[count++] = key " :: " from " :: " items;
     next;
 }
 
@@ -77,15 +81,16 @@ collecting {
     lastTag = "";
     for (i = 0; i < count; i++) {
         split(imports[i], parts, / :: /);
-        tag = parts[1];
-        line = parts[3];
+        tag   = substr(parts[1], 1, 1);
+        from  = parts[2];
+        items = parts[3];
         if (tag != lastTag) {
             if (lastTag != "") {
                 print "";
             }
             lastTag = tag;
         }
-        print line;
+        printf("import %s from \'%s\';\\n", items, from);
     }
 
     print "";
