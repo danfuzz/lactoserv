@@ -31,6 +31,17 @@ export class ServiceFactory {
   }
 
   /**
+   * Finds the class corresponding to the given service type.
+   *
+   * @param {string} type Type name of the service.
+   * @returns {?function(new:BaseService)} Corresponding class, or `null` if
+   *   there is none.
+   */
+  static classFromType(type) {
+    return this.#SERVICE_CLASSES.get(type) ?? null;
+  }
+
+  /**
    * Constructs an instance of the given service type.
    *
    * @param {string} type Type name of the service.
@@ -38,7 +49,7 @@ export class ServiceFactory {
    * @returns {BaseService} Constructed service instance.
    */
   static forType(type, ...rest) {
-    const cls = this.#SERVICE_CLASSES.get(type);
+    const cls = this.classFromType(type);
     if (!cls) {
       throw new Error(`Unknown service type: ${type}`);
     }

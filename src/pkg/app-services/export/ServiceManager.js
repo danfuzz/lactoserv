@@ -52,12 +52,26 @@ export class ServiceManager {
   }
 
   /**
-   * Gets a list of all controllers managed by this instance.
+   * Gets a list of all controllers managed by this instance, optionally
+   * filtered to only be those of a particular class or (string) type.
    *
-   * @returns {ServiceController[]} All the controllers.
+   * @param {?string|function(new:BaseService)} [type = null] Class or (string)
+   *   type to restrict results to, or `null` just to get everything.
+   * @returns {ServiceController[]} All the matching controllers.
    */
-  getAll() {
-    return [...this.#controllers.values()];
+  getAll(type = null) {
+    const cls = (typeof type === 'string')
+      ? ServiceFactory.classFromType(type)
+      : type;
+
+    const result = [];
+    for (const controller of this.#controllers.values()) {
+      if ((cls === null) || (controller instanceof cls)) {
+        result.push(controller);
+      }
+    }
+
+    return result;
   }
 
   /**
