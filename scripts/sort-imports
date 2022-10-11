@@ -72,16 +72,7 @@ collecting {
     collecting = 0;
     importsDone = 1;
 
-    # Good ole selection sort.
-    for (i = 0; i < count - 1; i++) {
-        for (j = i + 1; j < count; j++) {
-            if (imports[i] > imports[j]) {
-                tmp = imports[i];
-                imports[i] = imports[j];
-                imports[j] = tmp;
-            }
-        }
-    }
+    sort(imports);
 
     lastTag = "";
     for (i = 0; i < count; i++) {
@@ -105,6 +96,20 @@ collecting {
 
 !collecting {
     print;
+}
+
+# Good ole selection sort.
+function sort(array, withLocals, i, j, size, tmp) {
+    size = length(array);
+    for (i = 0; i < size - 1; i++) {
+        for (j = i + 1; j < size; j++) {
+            if (array[i] > array[j]) {
+                tmp = array[i];
+                array[i] = array[j];
+                array[j] = tmp;
+            }
+        }
+    }
 }
 '
 
