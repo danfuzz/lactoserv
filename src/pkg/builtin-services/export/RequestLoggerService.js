@@ -1,6 +1,9 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import * as fs from 'node:fs/promises';
+import * as Path from 'node:path';
+
 import { BaseService, ServiceController } from '@this/app-services';
 import { JsonSchema } from '@this/json';
 
@@ -13,6 +16,9 @@ import { JsonSchema } from '@this/json';
  * * `{string} baseName` -- Base file name for the log files.
  */
 export class RequestLoggerService extends BaseService {
+  /** @type {string} Full path to the log file. */
+  #logFilePath;
+
   /**
    * Constructs an instance.
    *
@@ -23,17 +29,29 @@ export class RequestLoggerService extends BaseService {
 
     const config = controller.config;
     RequestLoggerService.#validateConfig(config);
-    // TODO: Implement this.
+
+    this.#logFilePath = Path.resolve(config.directory, `${config.baseName}.txt`);
   }
 
   /** @override */
   async start() {
-    // TODO
+    const dirPath = Path.resolve(this.#logFilePath, '..');
+
+    // Create the log directory if it doesn't already exist.
+    try {
+      await fs.stat(dirPath);
+    } catch (e) {
+      if (e.code === 'ENOENT') {
+        await fs.mkdir(dirPath, { recursive: true });
+      } else {
+        throw e;
+      }
+    }
   }
 
   /** @override */
   async stop() {
-    // TODO
+    // Nothing to do here.
   }
 
 
