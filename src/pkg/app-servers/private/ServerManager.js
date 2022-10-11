@@ -1,12 +1,11 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { HostController, HostManager } from '@this/app-hosts';
+import { HostController } from '@this/app-hosts';
 import { ServiceController } from '@this/app-services';
 import { JsonSchema, JsonSchemaUtil } from '@this/json';
 
 import { ApplicationController } from '#x/ApplicationController';
-import { ApplicationManager } from '#x/ApplicationManager';
 import { ServerController } from '#p/ServerController';
 import { ThisModule } from '#p/ThisModule';
 import { Warehouse } from '#x/Warehouse';
@@ -58,8 +57,6 @@ export class ServerManager {
    *
    * @param {object} config Configuration object.
    * @param {Warehouse} warehouse The warehouse this instance is in.
-   * @param {HostManager} hostManager Host / certificate manager.
-   * @param {ApplicationManager} applicationManager Application manager.
    */
   constructor(config, warehouse) {
     ServerManager.#validateConfig(config);
