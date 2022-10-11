@@ -25,6 +25,10 @@ export class EventSink extends Threadlet {
    */
   #head;
 
+  /**
+   * @type {boolean} Is this instance eagerly "draining" all synchronously-known
+   * events?
+   */
   #draining = false;
 
   /**
