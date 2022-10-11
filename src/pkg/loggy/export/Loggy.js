@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { ChainedEvent } from '@this/async';
+import { LinkedEvent } from '@this/async';
 
 import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
 import { LogProxyHandler } from '#p/LogProxyHandler';
@@ -14,7 +14,7 @@ import { ThisModule } from '#p/ThisModule';
  */
 export class Loggy {
   /**
-   * @returns {ChainedEvent|Promise<ChainedEvent>} The earliest available event
+   * @returns {LinkedEvent|Promise<LinkedEvent>} The earliest available event
    * from the logging system, or promise for same. This is ultimately
    * implemented by {@link EventSource} (`earliestEvent` and `earliestEventNow`,
    * see which), with a `keepCount` of `100`. The idea here is that it should

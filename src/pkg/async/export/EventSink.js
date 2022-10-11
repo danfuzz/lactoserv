@@ -3,20 +3,20 @@
 
 import { MustBe } from '@this/typey';
 
-import { ChainedEvent } from '#x/ChainedEvent';
 import { EventOrPromise } from '#p/EventOrPromise';
+import { LinkedEvent } from '#x/LinkedEvent';
 import { Threadlet } from '#x/Threadlet';
 
 
 /**
- * Event sink for {@link ChainedEvent}. Instances of this class "consume"
+ * Event sink for {@link LinkedEvent}. Instances of this class "consume"
  * events, calling on a specified processing function for each. Instances can be
  * started and stopped (this class is a sublcass of {@link Threadlet}), and
  * while running they are always either processing existing events or waiting
  * for new events to be emitted on the chain they track.
  */
 export class EventSink extends Threadlet {
-  /** @type {function(ChainedEvent)} Function to call, to process each event. */
+  /** @type {function(LinkedEvent)} Function to call, to process each event. */
   #processor;
 
   /**
@@ -30,9 +30,9 @@ export class EventSink extends Threadlet {
   /**
    * Constructs an instance. It is initally _not_ running.
    *
-   * @param {function(ChainedEvent)} processor Function to call, to process
+   * @param {function(LinkedEvent)} processor Function to call, to process
    *   each event. This function is always called asynchronously.
-   * @param {ChainedEvent|Promise<ChainedEvent>} firstEvent First event to be
+   * @param {LinkedEvent|Promise<LinkedEvent>} firstEvent First event to be
    *   processed by the instance, or promise for same.
    */
   constructor(processor, firstEvent) {
@@ -80,7 +80,7 @@ export class EventSink extends Threadlet {
    * Gets the current head event -- possibly waiting for it -- or returns `null`
    * if the instance has been asked to stop.
    *
-   * @returns {?ChainedEvent} The current head event.
+   * @returns {?LinkedEvent} The current head event.
    * @throws {Error} Thrown if there is any trouble getting the event.
    */
   async #headEvent() {

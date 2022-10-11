@@ -1,24 +1,24 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { ChainedEvent } from '#x/ChainedEvent';
+import { LinkedEvent } from '#x/LinkedEvent';
 
 
 /**
- * Event source for a chain of {@link ChainedEvent} instances. It is instances
+ * Event source for a chain of {@link LinkedEvent} instances. It is instances
  * of this class which are generally set up to manage and add new events to a
  * chain, that is, this class represents the authority to emit events on a
  * particular chain (as opposed to it being functionality exposed on
- * `ChainedEvent` itself).
+ * `LinkedEvent` itself).
  *
- * This class emits direct instances of {@link ChainedEvent} by default, but it
+ * This class emits direct instances of {@link LinkedEvent} by default, but it
  * can be made to use a subclass by passing a "kickoff" event to the
  * constructor. The kickoff event becomes the base of the "emission chain." As
  * such, it needs to have its `.emitter` available (never previously accessed).
  *
  * An instance of this class always knows its "current" (latest emitted) event,
  * and a client fetching this and then (asynchronously and iteratively) waiting
- * for its {@link ChainedEvent.nextPromise} is the equivalent of adding a
+ * for its {@link LinkedEvent.nextPromise} is the equivalent of adding a
  * listener in the `EventEmitter` model.
  *
  * Instances do not by default keep track of any events emitted other than the
@@ -42,7 +42,7 @@ export class EventSource {
   #emittedCount = 0;
 
   /**
-   * @type {ChainedEvent} Earliest (furthest in the past) event emitted by this
+   * @type {LinkedEvent} Earliest (furthest in the past) event emitted by this
    * instance which is intentionally being kept by this instance. If this
    * instance has never emitted, then -- as with {@link #currentEvent} -- this
    * is the kickoff event. If this instance isn't keeping any history, then this
@@ -51,7 +51,7 @@ export class EventSource {
   #earliestEvent;
 
   /**
-   * @type {ChainedEvent} Current (Latest / most recent) event emitted by this
+   * @type {LinkedEvent} Current (Latest / most recent) event emitted by this
    * instance. If this instance has never emitted, this is an initial "kickoff
    * event" which is suitable for `await`ing in {@link #currentEvent}. (This
    * arrangement makes the logic in {@link #emit} particularly simple.)
@@ -70,8 +70,8 @@ export class EventSource {
    * * `{number} [keepCount = 0]` -- Number of past events to keep (remember),
    *   not including the current (most-recently emitted) event. Must be a whole
    *   number or positive infinity.
-   * * `{?ChainedEvent} [kickoffEvent = null]` -- "Kickoff" event, or `null` to
-   *   use the default of a direct instance of {@link ChainedEvent}.
+   * * `{?LinkedEvent} [kickoffEvent = null]` -- "Kickoff" event, or `null` to
+   *   use the default of a direct instance of {@link LinkedEvent}.
    *
    * @param {?object} [options = null] Construction options, per the above
    *   description.
@@ -86,13 +86,13 @@ export class EventSource {
     }
 
     this.#keepCount     = keepCount;
-    this.#earliestEvent = kickoffEvent ?? new ChainedEvent('chain-head');
+    this.#earliestEvent = kickoffEvent ?? new LinkedEvent('chain-head');
     this.#currentEvent  = this.#earliestEvent;
     this.#emitNext      = this.#currentEvent.emitter;
   }
 
   /**
-   * @returns {Promise<ChainedEvent>} Promise for the current (latest / most
+   * @returns {Promise<LinkedEvent>} Promise for the current (latest / most
    * recent) event emitted by this instance. This is an immediately-resolved
    * promise in all cases _except_ when this instance has never emitted an
    * event. In the latter case, it becomes resolved as soon as the first event
@@ -114,7 +114,7 @@ export class EventSource {
   }
 
   /**
-   * @returns {?ChainedEvent} Current (Latest / most recent) event emitted by
+   * @returns {?LinkedEvent} Current (Latest / most recent) event emitted by
    * this instance, or `null` if this instance has never emitted an event.
    *
    * **Note:** Because of the chained nature of events, this property (when
@@ -126,7 +126,7 @@ export class EventSource {
   }
 
   /**
-   * @returns {Promise<ChainedEvent>} Promise for the earliest event kept by
+   * @returns {Promise<LinkedEvent>} Promise for the earliest event kept by
    * this instance. This is an immediately-resolved promise in all cases
    * _except_ when this instance has never emitted an event.
    */
@@ -138,7 +138,7 @@ export class EventSource {
   }
 
   /**
-   * @returns {?ChainedEvent} The earliest event kept by this instance, or
+   * @returns {?LinkedEvent} The earliest event kept by this instance, or
    * `null` if this instance has never emitted an event.
    */
   get earliestEventNow() {
@@ -159,7 +159,7 @@ export class EventSource {
    * Emits (appends to the end of the chain) an event with the given payload.
    *
    * @param {*} payload The event payload.
-   * @returns {ChainedEvent} The event that was emitted.
+   * @returns {LinkedEvent} The event that was emitted.
    */
   emit(payload) {
     this.#emitNext     = this.#emitNext(payload);

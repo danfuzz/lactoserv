@@ -35,7 +35,7 @@ process-args "$@" || usage "$?"
 # Helper functions
 #
 
-# The actual import-sorting AWK script. TODO: Fill this in!
+# The actual import-sorting AWK script.
 SORTER_AWK=$'
 BEGIN {
     collecting = 0;
@@ -47,20 +47,26 @@ BEGIN {
 }
 
 collecting && /^import .* from / {
+    items = $0;
+    sub(/^import /, "", items);
+    sub(/ from .*$/, "", items);
     from = $0;
     sub(/^.* from [\'"]/, "", from);
-    sub(/[\'"];$/, "", from);
+    sub(/[\'"].*/, "", from);
     if (match(from, /^#/) != 0) {
-        sub(/^[^\\/]*/, "", from);
-        from = "D :: " from;
+        key = from;
+        sub(/^[^\\/]*/, "", key);
+        key = "D/" key;
     } else if (match(from, /^@this/) != 0) {
-        from = "C :: " from;
+        key = "C/" from;
     } else if (match(from, /^node:/) != 0) {
-        from = "A :: " from;
+        key = "A/" from;
     } else {
-        from = "B :: " from;
+        key = "B/" from;
     }
-    imports[count++] = from " :: " $0;
+    suffix = $0;
+    sub(/[^;]*/, "", suffix);
+    imports[++count] = key " :: " items " :: " from " :: " suffix;
     next;
 }
 
@@ -72,39 +78,66 @@ collecting {
     collecting = 0;
     importsDone = 1;
 
-    # Good ole selection sort.
-    for (i = 0; i < count - 1; i++) {
-        for (j = i + 1; j < count; j++) {
-            if (imports[i] > imports[j]) {
-                tmp = imports[i];
-                imports[i] = imports[j];
-                imports[j] = tmp;
-            }
-        }
-    }
+    sort(imports);
 
     lastTag = "";
-    for (i = 0; i < count; i++) {
+    for (i = 1; i <= count; i++) {
         split(imports[i], parts, / :: /);
-        tag = parts[1];
-        line = parts[3];
+        tag    = substr(parts[1], 1, 1);
+        items  = parts[2];
+        from   = parts[3];
+        suffix = parts[4];
         if (tag != lastTag) {
             if (lastTag != "") {
                 print "";
             }
             lastTag = tag;
         }
-        print line;
+        printf("import %s from \'%s\'%s\\n", fixItems(items), from, suffix);
     }
 
     print "";
     print "";
 
-    # Fall through and print the `class` line.
+    # Fall through and print the first non-`import` line.
 }
 
 !collecting {
     print;
+}
+
+# Good ole selection sort.
+function sort(array, withLocals, i, j, size, tmp) {
+    size = length(array);
+    for (i = 1; i < size; i++) {
+        for (j = i + 1; j <= size; j++) {
+            if (array[i] > array[j]) {
+                tmp = array[i];
+                array[i] = array[j];
+                array[j] = tmp;
+            }
+        }
+    }
+}
+
+# Fix up the import items within a line.
+function fixItems(items, withLocals, array, i) {
+    if (match(items, /^[{].*[}]$/) == 0) {
+        # Not sortable.
+        return items;
+    }
+
+    sub(/^[{] */, "", items);
+    sub(/ *[}]$/, "", items);
+    split(items, array, /, */);
+    sort(array);
+    items = "{ ";
+    for (i = 1; i <= length(array); i++) {
+        if (i != 1) items = items ", ";
+        items = items array[i]
+    }
+    items = items " }";
+    return items;
 }
 '
 

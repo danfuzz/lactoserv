@@ -8,18 +8,18 @@ import { ManualPromise } from '#x/ManualPromise';
 
 
 /**
- * Promise-chained event. Each instance becomes chained to the next event which
- * gets emitted by the same source. The chain is available both synchronously
- * and asynchronously. In the synchronous case, it is possible to run into the
- * end of the chain, represented by `null`. In the asynchronous case, the
- * properties and accessors return promises that only become resolved once an
- * appropriate event has been emitted by the source.
+ * Promise-chained event. Each instance becomes chained (linked, as in a linked
+ * list) to the next event which gets emitted by the same source. The chain is
+ * available both synchronously and asynchronously. In the synchronous case, it
+ * is possible to run into the end of the chain, represented by `null`. In the
+ * asynchronous case, the properties and accessors return promises that only
+ * become resolved once an event has been emitted by the source.
  *
  * It is possible -- and appropriate -- to subclass this class. If subclassed,
  * this (base) class will only construct instances of the actual subclass when
- * appending (chaining) emitted events.
+ * appending (linking / chaining) emitted events.
  */
-export class ChainedEvent {
+export class LinkedEvent {
   /** @type {*} The event payload. */
   #payload;
 
@@ -43,7 +43,7 @@ export class ChainedEvent {
    * Constructs an instance.
    *
    * @param {*} payload The event payload.
-   * @param {?ChainedEvent|Promise<ChainedEvent>|EventOrPromise} [next = null]
+   * @param {?LinkedEvent|Promise<LinkedEvent>|EventOrPromise} [next = null]
    *   The next event in the chain or promise for same, if already known. If
    *   passed as non-`null`:
    *   * The value (or eventually-resolved value) is type-checked to be an
@@ -106,7 +106,7 @@ export class ChainedEvent {
   }
 
   /**
-   * @returns {?ChainedEvent} The next event in the chain after this instance if
+   * @returns {?LinkedEvent} The next event in the chain after this instance if
    * it is immediately available, or `null` if there is not yet a
    * synchronously-known next event.
    * @throws {Error} Thrown if the promise passed into the constructor became
@@ -117,7 +117,7 @@ export class ChainedEvent {
   }
 
   /**
-   * @returns {Promise<ChainedEvent>} Promise for the next event in the chain
+   * @returns {Promise<LinkedEvent>} Promise for the next event in the chain
    * after this instance, which becomes resolved once it is available.
    */
   get nextPromise() {
@@ -154,7 +154,7 @@ export class ChainedEvent {
    * event for this instance, with the same chaining.
    *
    * @param {*} payload Event payload.
-   * @returns {ChainedEvent} New event instance with the given `payload`, and
+   * @returns {LinkedEvent} New event instance with the given `payload`, and
    *   whose `next` and `nextNow` behave the same as this instance's properties
    *   of the same names.
    */
@@ -169,7 +169,7 @@ export class ChainedEvent {
    * at this instance.
    *
    * @param {*} payload Event payload.
-   * @returns {ChainedEvent} New event instance with the given `payload`, and
+   * @returns {LinkedEvent} New event instance with the given `payload`, and
    *   whose `nextPromise` and `nextNow` refer to this instance.
    */
   withPushedHead(payload) {
@@ -181,7 +181,7 @@ export class ChainedEvent {
    * `#next.eventPromise`, if needed.
    *
    * @param {*} payload The event payload.
-   * @returns {ChainedEvent} The event which was emitted on the chain.
+   * @returns {LinkedEvent} The event which was emitted on the chain.
    * @throws {Error} Thrown for any of the reasons described by {@link
    *   #emitter}.
    */

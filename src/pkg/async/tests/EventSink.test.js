@@ -3,7 +3,7 @@
 
 import * as timers from 'node:timers/promises';
 
-import { ChainedEvent, EventSink, ManualPromise, PromiseState, PromiseUtil } from '@this/async';
+import { EventSink, LinkedEvent, ManualPromise, PromiseState, PromiseUtil } from '@this/async';
 
 
 const payload1 = { type: 'wacky' };
@@ -18,7 +18,7 @@ describe('constructor(<invalid>, event)', () => {
     ['not-a-function'],
     [['also', 'not', 'a', 'function']]
   ])('%p fails', (value) => {
-    const event = new ChainedEvent(payload1);
+    const event = new LinkedEvent(payload1);
     expect(() => new EventSink(value, event)).toThrow();
   });
 });
@@ -37,14 +37,14 @@ describe('constructor(function, <invalid>)', () => {
 
 describe('constructor(function, event)', () => {
   test('trivially succeeds', () => {
-    const event = new ChainedEvent(payload1);
+    const event = new LinkedEvent(payload1);
     expect(() => new EventSink(() => true, event)).not.toThrow();
   });
 });
 
 describe('constructor(function, promise)', () => {
   test('trivially succeeds, given a promise that resolves to an event', () => {
-    const promise = Promise.resolve(new ChainedEvent(payload1));
+    const promise = Promise.resolve(new LinkedEvent(payload1));
     expect(() => new EventSink(() => true, promise)).not.toThrow();
   });
 
@@ -61,9 +61,9 @@ describe('constructor(function, promise)', () => {
 
 describe('drainAndStop()', () => {
   test('processes all synchronously known events before stopping', async () => {
-    const event3  = new ChainedEvent(payload3);
-    const event2  = new ChainedEvent(payload2, event3);
-    const event1  = new ChainedEvent(payload1, event2);
+    const event3  = new LinkedEvent(payload3);
+    const event2  = new LinkedEvent(payload2, event3);
+    const event1  = new LinkedEvent(payload1, event2);
     let callCount = 0;
     let runProcessor = false;
     const processor = async () => {
@@ -98,9 +98,9 @@ describe('drainAndStop()', () => {
   });
 
   test('does not cause regular `stop()` to drain, after being restarted', async () => {
-    const event3  = new ChainedEvent(payload3);
-    const event2  = new ChainedEvent(payload2, event3);
-    const event1  = new ChainedEvent(payload1, event2);
+    const event3  = new LinkedEvent(payload3);
+    const event2  = new LinkedEvent(payload2, event3);
+    const event1  = new LinkedEvent(payload1, event2);
     let callCount = 0;
     let runProcessor = false;
     const processor = async () => {
@@ -152,7 +152,7 @@ describe('run()', () => {
       callCount++;
     };
 
-    const event = new ChainedEvent(payload1);
+    const event = new LinkedEvent(payload1);
     const sink  = new EventSink(processor, event);
 
     const runResult = sink.run();
@@ -173,7 +173,7 @@ describe('run()', () => {
       callCount++;
     };
 
-    const event = new ChainedEvent(payload1);
+    const event = new LinkedEvent(payload1);
     const sink = new EventSink(processor, Promise.resolve(event));
 
     const runResult = sink.run();
@@ -215,7 +215,7 @@ describe('run()', () => {
       throw reason;
     };
 
-    const event = new ChainedEvent(payload1);
+    const event = new LinkedEvent(payload1);
     const sink  = new EventSink(processor, event);
 
     const runResult = sink.run();
@@ -235,7 +235,7 @@ describe('run()', () => {
     let emitter = null;
     for (let i = 0; i < 10; i++) {
       if (!emitter) {
-        events[0] = new ChainedEvent({ num: i });
+        events[0] = new LinkedEvent({ num: i });
       } else {
         emitter = emitter({ num: i });
         events.push(events[i - 1].nextNow);
@@ -269,7 +269,7 @@ describe('run()', () => {
       callCount++;
     };
 
-    const event0 = new ChainedEvent({ num: 0 });
+    const event0 = new LinkedEvent({ num: 0 });
     let emitter  = event0.emitter;
     const sink   = new EventSink(processor, Promise.resolve(event0));
 
@@ -297,7 +297,7 @@ describe('run()', () => {
       callCount++;
     };
 
-    const event1 = new ChainedEvent(payload1);
+    const event1 = new LinkedEvent(payload1);
     const sink   = new EventSink(processor, event1);
 
     // Baseline expectations.
@@ -329,7 +329,7 @@ describe('stop()', () => {
       callCount++;
     };
 
-    const sink = new EventSink(processor, new ChainedEvent(payload1));
+    const sink = new EventSink(processor, new LinkedEvent(payload1));
 
     sink.stop();
     await timers.setImmediate();
@@ -342,7 +342,7 @@ describe('stop()', () => {
       callCount++;
     };
 
-    const sink = new EventSink(processor, new ChainedEvent(payload1));
+    const sink = new EventSink(processor, new LinkedEvent(payload1));
 
     const runResult = sink.run();
     sink.stop();
@@ -360,7 +360,7 @@ describe('processor function calling', () => {
       callGot = args;
     };
 
-    const event = new ChainedEvent(payload1);
+    const event = new LinkedEvent(payload1);
     const sink  = new EventSink(processor, event);
 
     const runResult = sink.run();
@@ -378,7 +378,7 @@ describe('processor function calling', () => {
       callGot = args;
     };
 
-    const event = new ChainedEvent(payload1);
+    const event = new LinkedEvent(payload1);
     const sink  = new EventSink(processor, Promise.resolve(event));
 
     const runResult = sink.run();
@@ -396,7 +396,7 @@ describe('processor function calling', () => {
       callGotThis = this;
     }
 
-    const event = new ChainedEvent(payload1);
+    const event = new LinkedEvent(payload1);
     const sink  = new EventSink(processor, event);
 
     const runResult = sink.run();

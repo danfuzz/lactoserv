@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { ChainedEvent, EventSource } from '@this/async';
+import { EventSource, LinkedEvent } from '@this/async';
 import { MustBe } from '@this/typey';
 
 import { LogRecord } from '#x/LogRecord';
@@ -19,7 +19,7 @@ export class LogSource extends EventSource {
    *   EventSource.earliestEventNow}.
    */
   constructor(keepCount = 0) {
-    const kickoffEvent = new ChainedEvent(LogRecord.makeKickoffInstance());
+    const kickoffEvent = new LinkedEvent(LogRecord.makeKickoffInstance());
     super({ keepCount, kickoffEvent });
   }
 

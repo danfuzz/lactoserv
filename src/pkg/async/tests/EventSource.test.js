@@ -3,11 +3,11 @@
 
 import * as timers from 'node:timers/promises';
 
-import { ChainedEvent, EventSource, PromiseState } from '@this/async';
+import { EventSource, LinkedEvent, PromiseState } from '@this/async';
 
 
 // For testing subclass scenarios.
-class ZanyEvent extends ChainedEvent {
+class ZanyEvent extends LinkedEvent {
   // This space intentionally left blank.
 }
 
@@ -17,14 +17,14 @@ const payload3 = { type: 'questionable' };
 
 describe.each`
   label                             | argFn                                           | cls             | keepCount
-  ${''}                             | ${() => []}                                     | ${ChainedEvent} | ${0}
-  ${'null'}                         | ${() => [null]}                                 | ${ChainedEvent} | ${0}
-  ${'undefined'}                    | ${() => [undefined]}                            | ${ChainedEvent} | ${0}
-  ${'{ keepCount: 0 }'}             | ${() => [{ keepCount: 0 }]}                     | ${ChainedEvent} | ${0}
-  ${'{ keepCount: 1 }'}             | ${() => [{ keepCount: 1 }]}                     | ${ChainedEvent} | ${1}
-  ${'{ keepCount: 10 }'}            | ${() => [{ keepCount: 10 }]}                    | ${ChainedEvent} | ${10}
-  ${'{ keepCount: +inf }'}          | ${() => [{ keepCount: Infinity }]}              | ${ChainedEvent} | ${Infinity}
-  ${'{ kickoffEvent: null }'}       | ${() => [{ kickoffEvent: null }]}               | ${ChainedEvent} | ${0}
+  ${''}                             | ${() => []}                                     | ${LinkedEvent} | ${0}
+  ${'null'}                         | ${() => [null]}                                 | ${LinkedEvent} | ${0}
+  ${'undefined'}                    | ${() => [undefined]}                            | ${LinkedEvent} | ${0}
+  ${'{ keepCount: 0 }'}             | ${() => [{ keepCount: 0 }]}                     | ${LinkedEvent} | ${0}
+  ${'{ keepCount: 1 }'}             | ${() => [{ keepCount: 1 }]}                     | ${LinkedEvent} | ${1}
+  ${'{ keepCount: 10 }'}            | ${() => [{ keepCount: 10 }]}                    | ${LinkedEvent} | ${10}
+  ${'{ keepCount: +inf }'}          | ${() => [{ keepCount: Infinity }]}              | ${LinkedEvent} | ${Infinity}
+  ${'{ kickoffEvent: null }'}       | ${() => [{ kickoffEvent: null }]}               | ${LinkedEvent} | ${0}
   ${'{ kickoffEvent: <subclass> }'} | ${() => [{ kickoffEvent: new ZanyEvent('x') }]} | ${ZanyEvent}    | ${0}
 `('constructor($label)', ({ argFn, cls, keepCount }) => {
   test('trivially succeeds', () => {

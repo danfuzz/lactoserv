@@ -3,7 +3,7 @@
 
 import * as timers from 'node:timers/promises';
 
-import { ChainedEvent, EventTracker, ManualPromise, PromiseState } from '@this/async';
+import { EventTracker, LinkedEvent, ManualPromise, PromiseState } from '@this/async';
 
 
 const payload1 = { type: '1:wacky:1' };
@@ -11,19 +11,19 @@ const payload2 = { type: '2:zany:2' };
 const payload3 = { type: '3:fantastic:3' };
 const payload4 = { type: '4:stupendous:4' };
 
-describe('constructor(ChainedEvent)', () => {
+describe('constructor(LinkedEvent)', () => {
   test('trivially succeeds', () => {
-    expect(() => new EventTracker(new ChainedEvent('woop'))).not.toThrow();
+    expect(() => new EventTracker(new LinkedEvent('woop'))).not.toThrow();
   });
 
   test('makes an instance with the given first event as the `headNow`', () => {
-    const event   = new ChainedEvent('boop');
+    const event   = new LinkedEvent('boop');
     const tracker = new EventTracker(event);
     expect(tracker.headNow).toBe(event);
   });
 
   test('makes an instance with a `headPromise` that promptly resolves to the given first event', async () => {
-    const event   = new ChainedEvent('boop');
+    const event   = new LinkedEvent('boop');
     const tracker = new EventTracker(event);
 
     await expect(tracker.headPromise).resolves.toBe(event);
@@ -37,13 +37,13 @@ describe('constructor(Promise)', () => {
   });
 
   test('makes an instance with `headNow === null` (at first)', () => {
-    const eventProm = Promise.resolve(new ChainedEvent('boop'));
+    const eventProm = Promise.resolve(new LinkedEvent('boop'));
     const tracker   = new EventTracker(eventProm);
     expect(tracker.headNow).toBeNull();
   });
 
   test('makes an instance with a non-null `headPromise`', () => {
-    const eventProm = Promise.resolve(new ChainedEvent('boop'));
+    const eventProm = Promise.resolve(new LinkedEvent('boop'));
     const tracker   = new EventTracker(eventProm);
     expect(tracker.headPromise).not.toBeNull();
   });
@@ -52,7 +52,7 @@ describe('constructor(Promise)', () => {
     const mp      = new ManualPromise();
     const tracker = new EventTracker(mp.promise);
 
-    mp.resolve(new ChainedEvent(payload1));
+    mp.resolve(new LinkedEvent(payload1));
     await tracker.headPromise;
   });
 
@@ -91,9 +91,9 @@ describe('constructor(<invalid>)', () => {
 
 describe('.headPromise', () => {
   test('follows along an already-resolved chain as it is `advance()`d', async () => {
-    const event3  = new ChainedEvent(payload3);
-    const event2  = new ChainedEvent(payload2, event3);
-    const event1  = new ChainedEvent(payload1, event2);
+    const event3  = new LinkedEvent(payload3);
+    const event2  = new LinkedEvent(payload2, event3);
+    const event1  = new LinkedEvent(payload1, event2);
     const tracker = new EventTracker(event1);
 
     expect(await tracker.headPromise).toBe(event1);
@@ -104,7 +104,7 @@ describe('.headPromise', () => {
   });
 
   test('resolves promptly after the `advance()`d result\'s `next` resolves', async () => {
-    const event1  = new ChainedEvent(payload1);
+    const event1  = new LinkedEvent(payload1);
     const tracker = new EventTracker(event1);
 
     expect(await tracker.headPromise).toBe(event1);
@@ -123,7 +123,7 @@ describe('.headPromise', () => {
   });
 
   test('remains unresolved after `advance()`ing past the end of the chain', async () => {
-    const event   = new ChainedEvent(payload1);
+    const event   = new LinkedEvent(payload1);
     const tracker = new EventTracker(event);
 
     expect(await tracker.headPromise).toBe(event);
@@ -153,7 +153,7 @@ describe('.headNow', () => {
   test('becomes non-`null` promptly after `headPromise` resolves (just after construction)', async () => {
     const mp      = new ManualPromise();
     const tracker = new EventTracker(mp.promise);
-    const event   = new ChainedEvent(payload1);
+    const event   = new LinkedEvent(payload1);
 
     expect(tracker.headNow).toBeNull();
     mp.resolve(event);
@@ -164,7 +164,7 @@ describe('.headNow', () => {
   });
 
   test('becomes non-`null` promptly after `advance()` async-returns (when no other `advance()` is pending)', async () => {
-    const event1  = new ChainedEvent(payload1);
+    const event1  = new LinkedEvent(payload1);
     const tracker = new EventTracker(event1);
 
     expect(tracker.headNow).toBe(event1);
@@ -179,9 +179,9 @@ describe('.headNow', () => {
   });
 
   test('synchronously follows along an already-resolved chain as it is `advance()`d', () => {
-    const event3  = new ChainedEvent(payload3);
-    const event2  = new ChainedEvent(payload2, event3);
-    const event1  = new ChainedEvent(payload1, event2);
+    const event3  = new LinkedEvent(payload3);
+    const event2  = new LinkedEvent(payload2, event3);
+    const event1  = new LinkedEvent(payload1, event2);
     const tracker = new EventTracker(event1);
 
     expect(tracker.headNow).toBe(event1);
@@ -192,7 +192,7 @@ describe('.headNow', () => {
   });
 
   test('becomes `null` after `advance()`ing past the end of the chain', () => {
-    const event   = new ChainedEvent(payload1);
+    const event   = new LinkedEvent(payload1);
     const tracker = new EventTracker(event);
 
     expect(tracker.headNow).toBe(event);
@@ -207,7 +207,7 @@ describe.each`
   ${[]}     | ${'<no-args>'}
 `('advance($label)', ({ args }) => {
   test('behaves like `advance(0)`', () => {
-    const event1  = new ChainedEvent(payload1);
+    const event1  = new LinkedEvent(payload1);
     const tracker = new EventTracker(event1);
 
     expect(tracker.headNow).toBe(event1);
@@ -223,7 +223,7 @@ describe.each`
 describe('advance(type)', () => {
   test('finds a matching `headNow`', async () => {
     const type    = 'florp';
-    const event   = new ChainedEvent({ type });
+    const event   = new LinkedEvent({ type });
     const tracker = new EventTracker(event);
 
     const result = tracker.advance(type);
@@ -237,9 +237,9 @@ describe('advance(type)', () => {
 
   test('finds a matching synchronous non-head', async () => {
     const type    = 'florp-like';
-    const event3  = new ChainedEvent({ type });
-    const event2  = new ChainedEvent(payload2, event3);
-    const event1  = new ChainedEvent(payload1, event2);
+    const event3  = new LinkedEvent({ type });
+    const event2  = new LinkedEvent(payload2, event3);
+    const event1  = new LinkedEvent(payload1, event2);
     const tracker = new EventTracker(event1);
 
     const result = tracker.advance(type);
@@ -253,7 +253,7 @@ describe('advance(type)', () => {
 
   test('finds a matching `headPromise`', async () => {
     const type    = 'floop';
-    const event   = new ChainedEvent({ type });
+    const event   = new LinkedEvent({ type });
     const tracker = new EventTracker(Promise.resolve(event));
 
     const result = tracker.advance(type);
@@ -276,7 +276,7 @@ describe('advance(type)', () => {
     const result = tracker.advance(type);
     expect(tracker.headNow).toBeNull();
 
-    const event1 = new ChainedEvent(payload1);
+    const event1 = new LinkedEvent(payload1);
     mp.resolve(event1);
     await timers.setImmediate();
     expect(PromiseState.isSettled(result)).toBeFalse();
@@ -302,7 +302,7 @@ describe('advance(type)', () => {
 describe('advance(count)', () => {
   describe('advance(0)', () => {
     test('finds a matching `headNow`', async () => {
-      const event   = new ChainedEvent(payload1);
+      const event   = new LinkedEvent(payload1);
       const tracker = new EventTracker(event);
 
       const result = tracker.advance(0);
@@ -315,7 +315,7 @@ describe('advance(count)', () => {
     });
 
     test('finds a matching already-resolved `headPromise`', async () => {
-      const event   = new ChainedEvent(payload1);
+      const event   = new LinkedEvent(payload1);
       const tracker = new EventTracker(Promise.resolve(event));
 
       const result = tracker.advance(0);
@@ -331,7 +331,7 @@ describe('advance(count)', () => {
     });
 
     test('finds a matching initially-unresolved `headPromise`', async () => {
-      const event   = new ChainedEvent(payload1);
+      const event   = new LinkedEvent(payload1);
       const mp      = new ManualPromise();
       const tracker = new EventTracker(mp.promise);
 
@@ -374,7 +374,7 @@ describe('advance(count)', () => {
           emitter = emitter({ at: i });
           events.push(events[events.length - 1].nextNow);
         } else {
-          events[0] = new ChainedEvent({ at: i });
+          events[0] = new LinkedEvent({ at: i });
           emitter = events[0].emitter;
         }
       }
@@ -396,7 +396,7 @@ describe('advance(count)', () => {
       const events = [];
       for (let i = startCount - 1; i >= 0; i--) {
         const next = events[0] ? Promise.resolve(events[0]) : null;
-        events.unshift(new ChainedEvent({ at: i }, next));
+        events.unshift(new LinkedEvent({ at: i }, next));
       }
 
       const tracker = new EventTracker(Promise.resolve(events[0]));
@@ -431,7 +431,7 @@ describe('advance(count)', () => {
         const events = [];
         for (let i = startCount - 1; i >= 0; i--) {
           const next = events[0] ? Promise.resolve(events[0]) : null;
-          events.unshift(new ChainedEvent({ at: i }, next));
+          events.unshift(new LinkedEvent({ at: i }, next));
         }
 
         const tracker = new EventTracker(Promise.resolve(events[0]));
@@ -457,7 +457,7 @@ describe('advance(count)', () => {
 
 describe('advance(function)', () => {
   test('finds a matching `headNow`', async () => {
-    const event   = new ChainedEvent(payload1);
+    const event   = new LinkedEvent(payload1);
     const tracker = new EventTracker(event);
 
     const result = tracker.advance(e => e.payload === payload1);
@@ -470,7 +470,7 @@ describe('advance(function)', () => {
   });
 
   test('finds a matching already-resolved `headPromise`', async () => {
-    const event   = new ChainedEvent(payload1);
+    const event   = new LinkedEvent(payload1);
     const tracker = new EventTracker(Promise.resolve(event));
 
     const result = tracker.advance(e => e.payload === payload1);
@@ -486,7 +486,7 @@ describe('advance(function)', () => {
   });
 
   test('finds a matching initially-unresolved `headPromise`', async () => {
-    const event   = new ChainedEvent(payload1);
+    const event   = new LinkedEvent(payload1);
     const mp      = new ManualPromise();
     const tracker = new EventTracker(mp.promise);
 
@@ -505,9 +505,9 @@ describe('advance(function)', () => {
   });
 
   test('finds a matching event at the end of an already-resolved chain', async () => {
-    const event3  = new ChainedEvent(payload3);
-    const event2  = new ChainedEvent(payload2, event3);
-    const event1  = new ChainedEvent(payload1, event2);
+    const event3  = new LinkedEvent(payload3);
+    const event2  = new LinkedEvent(payload2, event3);
+    const event1  = new LinkedEvent(payload1, event2);
     const tracker = new EventTracker(event1);
 
     const result = tracker.advance(e => e.payload === payload3);
@@ -523,11 +523,11 @@ describe('advance(function)', () => {
   });
 
   test('finds a matching event at the end of an eventually-resolved chain', async () => {
-    const event3  = new ChainedEvent(payload3);
+    const event3  = new LinkedEvent(payload3);
     const mp3     = new ManualPromise();
-    const event2  = new ChainedEvent(payload2, mp3.promise);
+    const event2  = new LinkedEvent(payload2, mp3.promise);
     const mp2     = new ManualPromise();
-    const event1  = new ChainedEvent(payload1, mp2.promise);
+    const event1  = new LinkedEvent(payload1, mp2.promise);
     const mp1     = new ManualPromise();
     const tracker = new EventTracker(mp1.promise);
 
@@ -558,11 +558,11 @@ describe('advance(function)', () => {
   });
 
   test('only calls the predicate once per event checked', async () => {
-    const event3  = new ChainedEvent(payload3);
+    const event3  = new LinkedEvent(payload3);
     const mp3     = new ManualPromise();
-    const event2  = new ChainedEvent(payload2, mp3.promise);
+    const event2  = new LinkedEvent(payload2, mp3.promise);
     const mp2     = new ManualPromise();
-    const event1  = new ChainedEvent(payload1, mp2.promise);
+    const event1  = new LinkedEvent(payload1, mp2.promise);
     const mp1     = new ManualPromise();
     const tracker = new EventTracker(mp1.promise);
 
@@ -600,7 +600,7 @@ describe('advance(<invalid>)', () => {
     [class Floop {}], // This is a function, but not a _callable_ function.
     [new Map()]
   ])('fails for %p but does not break instance', async (value) => {
-    const event   = new ChainedEvent(payload1);
+    const event   = new LinkedEvent(payload1);
     const tracker = new EventTracker(event);
 
     expect(tracker.headNow).toBe(event);
@@ -633,8 +633,8 @@ describe('advance() breakage scenarios', () => {
   });
 
   test('causes breakage when it advances to a synchronously-known non-event', async () => {
-    const event2  = new ChainedEvent(payload2);
-    const event1  = new ChainedEvent(payload1, event2);
+    const event2  = new LinkedEvent(payload2);
+    const event1  = new LinkedEvent(payload1, event2);
     const tracker = new EventTracker(event1);
 
     // We have to mess with `event1`, as it shouldn't be possible to get this
@@ -656,7 +656,7 @@ describe('advance() breakage scenarios', () => {
 
   test('causes breakage when it advances to (lands at) a rejected promise', async () => {
     const mp      = new ManualPromise();
-    const event1  = new ChainedEvent(payload1, mp.promise);
+    const event1  = new LinkedEvent(payload1, mp.promise);
     const tracker = new EventTracker(event1);
 
     // Baseline expectations.
@@ -674,7 +674,7 @@ describe('advance() breakage scenarios', () => {
 
   test('causes breakage when it advances past a rejected promise', async () => {
     const mp      = new ManualPromise();
-    const event1  = new ChainedEvent(payload1, mp.promise);
+    const event1  = new LinkedEvent(payload1, mp.promise);
     const tracker = new EventTracker(event1);
 
     // Baseline expectations.
@@ -692,7 +692,7 @@ describe('advance() breakage scenarios', () => {
 
   test('causes breakage when it advances to (lands on) a promise that resolves to a non-event', async () => {
     const mp      = new ManualPromise();
-    const event1  = new ChainedEvent(payload1, mp.promise);
+    const event1  = new LinkedEvent(payload1, mp.promise);
     const tracker = new EventTracker(event1);
 
     // Baseline expectations.
@@ -708,7 +708,7 @@ describe('advance() breakage scenarios', () => {
 
   test('causes breakage when it advances past a promise that resolves to a non-event', async () => {
     const mp      = new ManualPromise();
-    const event1  = new ChainedEvent(payload1, mp.promise);
+    const event1  = new LinkedEvent(payload1, mp.promise);
     const tracker = new EventTracker(event1);
 
     // Baseline expectations.
@@ -723,7 +723,7 @@ describe('advance() breakage scenarios', () => {
   });
 
   test('causes breakage when its predicate throws', async () => {
-    const event   = new ChainedEvent(payload1);
+    const event   = new LinkedEvent(payload1);
     const tracker = new EventTracker(event);
     const error   = new Error('Ouch!');
     const ouch    = () => { throw error; };
@@ -735,7 +735,7 @@ describe('advance() breakage scenarios', () => {
 
 describe('advanceSync()', () => {
   test('finds a synchronously-found event at `headNow`', () => {
-    const event   = new ChainedEvent(payload1);
+    const event   = new LinkedEvent(payload1);
     const tracker = new EventTracker(event);
 
     expect(tracker.advanceSync(0)).toBe(event);
@@ -743,9 +743,9 @@ describe('advanceSync()', () => {
   });
 
   test('finds a synchronously-found event in the chain', () => {
-    const event3  = new ChainedEvent(payload3);
-    const event2  = new ChainedEvent(payload2, event3);
-    const event1  = new ChainedEvent(payload1, event2);
+    const event3  = new LinkedEvent(payload3);
+    const event2  = new LinkedEvent(payload2, event3);
+    const event1  = new LinkedEvent(payload1, event2);
     const tracker = new EventTracker(event1);
 
     expect(tracker.advanceSync(2)).toBe(event3);
@@ -763,7 +763,7 @@ describe('advanceSync()', () => {
 
   test('returns `null` when `headNow === null` (queued `advance()`)', () => {
     const mp      = new ManualPromise();
-    const event1  = new ChainedEvent(payload1, mp.promise);
+    const event1  = new LinkedEvent(payload1, mp.promise);
     const tracker = new EventTracker(event1);
 
     tracker.advance(1);
@@ -774,9 +774,9 @@ describe('advanceSync()', () => {
   });
 
   test('causes asynchronous action even when not synchronously successful', async () => {
-    const event3  = new ChainedEvent(payload3);
-    const event2  = new ChainedEvent(payload2, event3);
-    const event1  = new ChainedEvent(payload1, event2);
+    const event3  = new LinkedEvent(payload3);
+    const event2  = new LinkedEvent(payload2, event3);
+    const event1  = new LinkedEvent(payload1, event2);
     const tracker = new EventTracker(Promise.resolve(event1));
 
     expect(tracker.advanceSync(2)).toBeNull();
@@ -786,9 +786,9 @@ describe('advanceSync()', () => {
   });
 
   test('causes asynchronous action when "behind" another `advance()`', async () => {
-    const event3  = new ChainedEvent(payload3);
-    const event2  = new ChainedEvent(payload2, event3);
-    const event1  = new ChainedEvent(payload1, event2);
+    const event3  = new LinkedEvent(payload3);
+    const event2  = new LinkedEvent(payload2, event3);
+    const event1  = new LinkedEvent(payload1, event2);
     const tracker = new EventTracker(Promise.resolve(event1));
 
     const result1 = tracker.advance(1);
@@ -800,7 +800,7 @@ describe('advanceSync()', () => {
 
   test('causes breakage when it is what walks the event chain into a problem', async () => {
     const mp      = new ManualPromise();
-    const event1  = new ChainedEvent(payload1, mp.promise);
+    const event1  = new LinkedEvent(payload1, mp.promise);
     const tracker = new EventTracker(event1);
 
     // Baseline expectations.
@@ -826,7 +826,7 @@ describe('advanceSync(<invalid>)', () => {
     [class Floop {}], // This is a function, but not a _callable_ function.
     [new Map()]
   ])('fails for %p but does not break instance', async (value) => {
-    const event   = new ChainedEvent(payload1);
+    const event   = new LinkedEvent(payload1);
     const tracker = new EventTracker(event);
 
     expect(tracker.headNow).toBe(event);
@@ -871,9 +871,9 @@ describe.each`
   ${[]}     | ${'<no-args>'}
 `('next($label)', ({ args }) => {
   test('walks the chain one event at a time', async () => {
-    const event3  = new ChainedEvent(payload3);
-    const event2  = new ChainedEvent(payload2, event3);
-    const event1  = new ChainedEvent(payload1, event2);
+    const event3  = new LinkedEvent(payload3);
+    const event2  = new LinkedEvent(payload2, event3);
+    const event1  = new LinkedEvent(payload1, event2);
     const tracker = new EventTracker(event1);
 
     expect(tracker.headNow).toBe(event1);
@@ -910,9 +910,9 @@ describe.each`
 describe('next(predicate)', () => {
   test('finds and advances just past a matching event', async () => {
     const toFind  = { findMe: 'yes!' };
-    const event3  = new ChainedEvent(payload3);
-    const event2  = new ChainedEvent(toFind, event3);
-    const event1  = new ChainedEvent(payload1, event2);
+    const event3  = new LinkedEvent(payload3);
+    const event2  = new LinkedEvent(toFind, event3);
+    const event1  = new LinkedEvent(payload1, event2);
     const tracker = new EventTracker(event1);
 
     expect(tracker.headNow).toBe(event1);
@@ -948,8 +948,8 @@ describe('next(predicate)', () => {
 
   test('does not find an event which was to be skipped over', async () => {
     const toFind  = { yes: 'really!' };
-    const event2  = new ChainedEvent(toFind);
-    const event1  = new ChainedEvent(toFind, event2);
+    const event2  = new LinkedEvent(toFind);
+    const event1  = new LinkedEvent(toFind, event2);
     const tracker = new EventTracker(Promise.resolve(event1));
 
     const result1 = tracker.next();
@@ -965,7 +965,7 @@ describe('next(predicate)', () => {
 
 describe('next(<invalid>)', () => {
   test('throws but does not break instance or advance the head', async () => {
-    const event   = new ChainedEvent(payload1);
+    const event   = new LinkedEvent(payload1);
     const tracker = new EventTracker(event);
 
     await expect(tracker.next(['not-a-predicate'])).rejects.toThrow();
@@ -986,7 +986,7 @@ describe('next() breakage scenarios', () => {
 
   test('throws when the instance becomes broken during the event search', async () => {
     const event2  = Promise.resolve('oops-not-an-event');
-    const event1  = new ChainedEvent(payload1, event2);
+    const event1  = new LinkedEvent(payload1, event2);
     const tracker = new EventTracker(event1);
 
     await expect(tracker.next(1)).rejects.toThrow();
@@ -1003,7 +1003,7 @@ describe('peek()', () => {
     ${[null]} | ${'null'}
     ${[]}     | ${'<no-args>'}
   `('peek($label) is equivalent to `.headPromise`', async ({ args }) => {
-    const event   = new ChainedEvent(payload1);
+    const event   = new LinkedEvent(payload1);
     const tracker = new EventTracker(event);
 
     expect(await tracker.peek(...args)).toBe(event);
@@ -1014,9 +1014,9 @@ describe('peek()', () => {
 
   test('finds a matching event without advancing to or past it', async () => {
     const toFind  = { findMe: 'yes!' };
-    const event3  = new ChainedEvent(toFind);
-    const event2  = new ChainedEvent(toFind, event3);
-    const event1  = new ChainedEvent(payload1, event2);
+    const event3  = new LinkedEvent(toFind);
+    const event2  = new LinkedEvent(toFind, event3);
+    const event1  = new LinkedEvent(payload1, event2);
     const tracker = new EventTracker(event1);
 
     expect(tracker.headNow).toBe(event1);
@@ -1030,7 +1030,7 @@ describe('peek()', () => {
   });
 
   test('throws but does not break instance when encountering a problematic event', async () => {
-    const event1  = new ChainedEvent(payload1, Promise.reject(new Error('eek!')));
+    const event1  = new LinkedEvent(payload1, Promise.reject(new Error('eek!')));
     const tracker = new EventTracker(event1);
 
     expect(tracker.headNow).toBe(event1);
@@ -1042,7 +1042,7 @@ describe('peek()', () => {
   });
 
   test('throws but does not break instance when given an invalid predicate', async () => {
-    const event1  = new ChainedEvent(payload1);
+    const event1  = new LinkedEvent(payload1);
     const tracker = new EventTracker(event1);
 
     expect(tracker.headNow).toBe(event1);
@@ -1054,7 +1054,7 @@ describe('peek()', () => {
   });
 
   test('throws but does not break instance when its predicate throws', async () => {
-    const event   = new ChainedEvent(payload1);
+    const event   = new LinkedEvent(payload1);
     const tracker = new EventTracker(event);
     const error   = new Error('Ouch!');
     const ouch    = () => { throw error; };
