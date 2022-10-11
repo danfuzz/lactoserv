@@ -4,6 +4,7 @@
 export * from '#x/BaseLoggingEnvironment';
 export * from '#x/FormatUtils';
 export * from '#x/IdGenerator';
+export * from '#x/LogEvent';
 export * from '#x/LogRecord';
 export * from '#x/LogSource';
 export * from '#x/LogStackTrace';
