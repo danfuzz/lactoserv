@@ -17,6 +17,9 @@ export class ApplicationController {
   /** @type {string} Application name. */
   #name;
 
+  /** @type {object} Configuration for the underlying application. */
+  #config;
+
   /** @type {{hostname: TreePathKey, path: TreePathKey}[]} Mount points. */
   #mounts;
 
@@ -29,23 +32,31 @@ export class ApplicationController {
    * @param {object} appConfig Application information configuration item.
    */
   constructor(appConfig) {
-    this.#name = appConfig.name;
+    const { name, type } = appConfig;
 
+    const config = { ...appConfig };
+    delete config.name;
+    delete config.type;
+    delete config.mount;
+    delete config.mounts;
+    Object.freeze(config);
+
+    this.#name   = name;
+    this.#config = config;
     this.#mounts =
       Object.freeze(JsonSchemaUtil.singularPluralCombo(appConfig.mount, appConfig.mounts))
         .map(mount => ApplicationController.#parseMount(mount));
-
-    const extraConfig = { ...appConfig };
-    delete extraConfig.name;
-    delete extraConfig.type;
-    delete extraConfig.mount;
-    delete extraConfig.mounts;
-    this.#app = ApplicationFactory.forType(appConfig.type, extraConfig);
+    this.#app    = ApplicationFactory.forType(type, this);
   }
 
   /** @returns {BaseApplication} The controlled application instance. */
   get app() {
     return this.#app;
+  }
+
+  /** @returns {object} Configuration for the underlying application. */
+  get config() {
+    return this.#config;
   }
 
   /** @returns {string} Application name. */

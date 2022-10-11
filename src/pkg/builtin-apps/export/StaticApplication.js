@@ -20,11 +20,12 @@ export class StaticApplication extends BaseApplication {
   /**
    * Constructs an instance.
    *
-   * @param {object} config Application-specific configuration object.
+   * @param {ApplicationController} controller Controller for this instance.
    */
-  constructor(config) {
-    super();
+  constructor(controller) {
+    super(controller);
 
+    const config = controller.config;
     StaticApplication.#validateConfig(config);
     this.#handleRequest = StaticApplication.#makeHandler(config);
   }
