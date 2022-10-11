@@ -3,6 +3,7 @@
 
 import * as fs from 'node:fs/promises';
 import * as Path from 'node:path';
+import * as timers from 'node:timers/promises';
 
 import { BaseService } from '@this/app-services';
 import { EventTracker } from '@this/async';
@@ -70,9 +71,13 @@ export class SystemLogService extends BaseService {
     // form being logged here, and will start just past it if found. This is to
     // reasonably-gracefully handle the case of a successor instance to this one
     // during a same-process system restart (e.g. in response to a restart
-    // signal). In particular, this is an attempt to avoid double-logging
+    // signal). In particular, this is an attempt to minimize double-logging
     // events.
     this.#logger.stopped();
+
+    // Wait briefly, so that there's a decent chance that this instance catches
+    // most or all of the other stop-time messages.
+    await timers.setTimeout(100); // 100msec
 
     await this.#sink.drainAndStop();
   }
