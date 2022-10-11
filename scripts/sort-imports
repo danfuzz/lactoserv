@@ -64,7 +64,7 @@ collecting && /^import .* from / {
     items = $0;
     sub(/^import /, "", items);
     sub(/ from .*$/, "", items);
-    imports[count++] = key " :: " from " :: " items;
+    imports[++count] = key " :: " from " :: " items;
     next;
 }
 
@@ -79,7 +79,7 @@ collecting {
     sort(imports);
 
     lastTag = "";
-    for (i = 0; i < count; i++) {
+    for (i = 1; i <= count; i++) {
         split(imports[i], parts, / :: /);
         tag   = substr(parts[1], 1, 1);
         from  = parts[2];
@@ -106,8 +106,8 @@ collecting {
 # Good ole selection sort.
 function sort(array, withLocals, i, j, size, tmp) {
     size = length(array);
-    for (i = 0; i < size - 1; i++) {
-        for (j = i + 1; j < size; j++) {
+    for (i = 1; i < size; i++) {
+        for (j = i + 1; j <= size; j++) {
             if (array[i] > array[j]) {
                 tmp = array[i];
                 array[i] = array[j];
@@ -126,7 +126,7 @@ function fixItems(items, withLocals, array, i) {
 
     sub(/^[{] */, "", items);
     sub(/ *[}]$/, "", items);
-    split(items, array, /, */); array[0] = "";
+    split(items, array, /, */);
     sort(array);
     items = "{ ";
     for (i = 1; i < length(array); i++) {
