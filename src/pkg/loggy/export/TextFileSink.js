@@ -4,7 +4,7 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
-import { LinkedEvent, EventSink } from '@this/async';
+import { EventSink, LinkedEvent } from '@this/async';
 import { MustBe } from '@this/typey';
 
 

@@ -3,8 +3,8 @@
 
 import { MustBe } from '@this/typey';
 
-import { LinkedEvent } from '#x/LinkedEvent';
 import { EventOrPromise } from '#p/EventOrPromise';
+import { LinkedEvent } from '#x/LinkedEvent';
 import { PromiseUtil } from '#x/PromiseUtil';
 
 

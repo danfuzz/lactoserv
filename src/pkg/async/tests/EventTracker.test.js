@@ -3,7 +3,7 @@
 
 import * as timers from 'node:timers/promises';
 
-import { LinkedEvent, EventTracker, ManualPromise, PromiseState } from '@this/async';
+import { EventTracker, LinkedEvent, ManualPromise, PromiseState } from '@this/async';
 
 
 const payload1 = { type: '1:wacky:1' };

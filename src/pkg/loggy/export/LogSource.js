@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { LinkedEvent, EventSource } from '@this/async';
+import { EventSource, LinkedEvent } from '@this/async';
 import { MustBe } from '@this/typey';
 
 import { LogRecord } from '#x/LogRecord';

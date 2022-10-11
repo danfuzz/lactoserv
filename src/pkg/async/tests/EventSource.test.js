@@ -3,7 +3,7 @@
 
 import * as timers from 'node:timers/promises';
 
-import { LinkedEvent, EventSource, PromiseState } from '@this/async';
+import { EventSource, LinkedEvent, PromiseState } from '@this/async';
 
 
 // For testing subclass scenarios.
