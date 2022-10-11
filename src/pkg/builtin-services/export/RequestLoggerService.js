@@ -33,6 +33,15 @@ export class RequestLoggerService extends BaseService {
     this.#logFilePath = Path.resolve(config.directory, `${config.baseName}.txt`);
   }
 
+  /**
+   * Logs a completed request.
+   *
+   * @param {string} line Line representing the completed request.
+   */
+  async logCompletedRequest(line) {
+    await fs.appendFile(this.#logFilePath, `${line}\n`);
+  }
+
   /** @override */
   async start() {
     const dirPath = Path.resolve(this.#logFilePath, '..');
