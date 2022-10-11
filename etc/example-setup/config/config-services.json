@@ -3,7 +3,7 @@
     "name":      "system-log",
     "type":      "system-log",
     "directory": { "$filePath": "../../../log" },
-    "baseName":  "app-log"
+    "baseName":  "system-log"
   },
   {
     "name":      "access-log",
