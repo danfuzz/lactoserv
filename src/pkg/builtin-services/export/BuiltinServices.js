@@ -3,7 +3,7 @@
 
 import { ServiceFactory } from '@this/app-services';
 
-import { AccessLogService } from '#x/AccessLogService';
+import { RequestLoggerService } from '#x/RequestLoggerService';
 import { SystemLogService } from '#x/SystemLogService';
 
 
@@ -15,7 +15,7 @@ export class BuiltinServices {
    * Registers all the apps defined by this module.
    */
   static register() {
-    ServiceFactory.register(AccessLogService);
+    ServiceFactory.register(RequestLoggerService);
     ServiceFactory.register(SystemLogService);
   }
 }

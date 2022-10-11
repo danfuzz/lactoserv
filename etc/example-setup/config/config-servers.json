@@ -6,7 +6,7 @@
     "interface":     "*",
     "port":          8080,
     "protocol":      "http",
-    "requestLogger": "request-log"
+    "requestLogger": "requests"
   },
   {
     "name":          "secure",
@@ -15,7 +15,7 @@
     "interface":     "*",
     "port":          8443,
     "protocol":      "http2",
-    "requestLogger": "request-log"
+    "requestLogger": "requests"
   },
   {
     "name":          "also-secure",
@@ -24,6 +24,6 @@
     "interface":     "*",
     "port":          8444,
     "protocol":      "https",
-    "requestLogger": "request-log"
+    "requestLogger": "requests"
   }
 ]

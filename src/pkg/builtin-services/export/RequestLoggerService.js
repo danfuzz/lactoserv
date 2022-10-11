@@ -12,7 +12,7 @@ import { JsonSchema } from '@this/json';
  * * `{string} directory` -- Absolute path to the directory to write to.
  * * `{string} baseName` -- Base file name for the log files.
  */
-export class AccessLogService extends BaseService {
+export class RequestLoggerService extends BaseService {
   /**
    * Constructs an instance.
    *
@@ -22,7 +22,7 @@ export class AccessLogService extends BaseService {
     super(controller);
 
     const config = controller.config;
-    AccessLogService.#validateConfig(config);
+    RequestLoggerService.#validateConfig(config);
     // TODO: Implement this.
   }
 
@@ -43,7 +43,7 @@ export class AccessLogService extends BaseService {
 
   /** @returns {string} Service type as used in configuration objects. */
   static get TYPE() {
-    return 'access-log';
+    return 'request-logger';
   }
 
   /**
@@ -52,7 +52,7 @@ export class AccessLogService extends BaseService {
    * @param {object} config Configuration object.
    */
   static #validateConfig(config) {
-    const validator = new JsonSchema('Access Log Configuration');
+    const validator = new JsonSchema('Request Logger Configuration');
 
     const namePattern = '^[^/]+$';
     const pathPattern =
@@ -64,7 +64,7 @@ export class AccessLogService extends BaseService {
       '/[^/]';             // Starts with a slash. Has at least one component.
 
     validator.addMainSchema({
-      $id: '/AccessLogService',
+      $id: '/RequestLoggerService',
       type: 'object',
       required: ['baseName', 'directory'],
       properties: {
