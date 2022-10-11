@@ -3,4 +3,4 @@
 
 export * from '#x/BuiltinServices';
 export * from '#x/RequestLoggerService';
-export * from '#x/SystemLogService';
+export * from '#x/SystemLoggerService';

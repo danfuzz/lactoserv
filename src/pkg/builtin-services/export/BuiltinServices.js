@@ -4,7 +4,7 @@
 import { ServiceFactory } from '@this/app-services';
 
 import { RequestLoggerService } from '#x/RequestLoggerService';
-import { SystemLogService } from '#x/SystemLogService';
+import { SystemLoggerService } from '#x/SystemLoggerService';
 
 
 /**
@@ -16,6 +16,6 @@ export class BuiltinServices {
    */
   static register() {
     ServiceFactory.register(RequestLoggerService);
-    ServiceFactory.register(SystemLogService);
+    ServiceFactory.register(SystemLoggerService);
   }
 }
