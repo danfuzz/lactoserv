@@ -36,8 +36,9 @@ const logger = ThisModule.logger.server;
  * * `{int} port` -- Port number that the server is to listen on.
  * * `{string} protocol` -- Protocol that the server is to speak. Must be one of
  *   `http`, `http2`, or `https`.
- * * `{string} accessLog` -- Optional name of the access log service to inform
- *   of activity. If not specified, this server will not produce access logs.
+ * * `{string} accessLog` -- Optional name of the request loging service to
+ *   inform of activity. If not specified, this server will not produce request
+ *   logs.
  *
  * **Note:** Exactly one of `server` or `servers` must be present at the top
  * level.
@@ -104,7 +105,7 @@ export class ServerManager {
    * @param {object} serverItem Single server item from a configuration object.
    */
   #addControllerFor(serverItem) {
-    const { app, apps, host, hosts } = serverItem;
+    const { accessLog: rlName, app, apps, host, hosts } = serverItem;
     const { applicationManager, hostManager, serviceManager } = this.#warehouse;
 
     const hmSubset = hostManager
@@ -112,10 +113,14 @@ export class ServerManager {
       : null;
     const appMounts = applicationManager.makeMountList(
       JsonSchemaUtil.singularPluralCombo(app, apps));
+    const requestLogger = rlName
+      ? serviceManager.findController(rlName)
+      : null;
 
     const config = {
       ...serverItem,
       ...(hmSubset ? { hostManager: hmSubset } : null),
+      ...(requestLogger ? { requestLogger } : null),
       appMounts
     };
     delete config.app;
