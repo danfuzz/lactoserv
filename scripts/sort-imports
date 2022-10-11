@@ -90,7 +90,7 @@ collecting {
             }
             lastTag = tag;
         }
-        printf("import %s from \'%s\';\\n", items, from);
+        printf("import %s from \'%s\';\\n", fixItems(items), from);
     }
 
     print "";
@@ -115,6 +115,26 @@ function sort(array, withLocals, i, j, size, tmp) {
             }
         }
     }
+}
+
+# Fix up the import items within a line.
+function fixItems(items, withLocals, array, i) {
+    if (match(items, /^[{].*[}]$/) == 0) {
+        # Not sortable.
+        return items;
+    }
+
+    sub(/^[{] */, "", items);
+    sub(/ *[}]$/, "", items);
+    split(items, array, /, */); array[0] = "";
+    sort(array);
+    items = "{ ";
+    for (i = 1; i < length(array); i++) {
+        if (i != 1) items = items ", ";
+        items = items array[i]
+    }
+    items = items " }";
+    return items;
 }
 '
 
