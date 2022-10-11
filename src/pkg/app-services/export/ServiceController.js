@@ -12,6 +12,9 @@ export class ServiceController {
   /** @type {string} Service name. */
   #name;
 
+  /** @type {object} Configuration for the underlying service. */
+  #config;
+
   /** @type {BaseService} Actual service instance. */
   #service;
 
@@ -25,14 +28,22 @@ export class ServiceController {
    * @param {function(...*)} logger Logger to use.
    */
   constructor(serviceConfig, logger) {
-    this.#name = serviceConfig.name;
+    const { name, type } = serviceConfig;
 
-    const extraConfig = { ...serviceConfig };
-    delete extraConfig.name;
-    delete extraConfig.type;
+    const config = { ...serviceConfig };
+    delete config.name;
+    delete config.type;
+    Object.freeze(config);
 
-    this.#service = ServiceFactory.forType(serviceConfig.type, this, extraConfig);
+    this.#name    = name;
+    this.#config  = config;
+    this.#service = ServiceFactory.forType(type, this);
     this.#logger  = logger[this.#name];
+  }
+
+  /** @returns {object} Configuration for the underlying service. */
+  get config() {
+    return this.#config;
   }
 
   /** @returns {string} Service name. */

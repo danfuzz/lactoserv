@@ -32,11 +32,11 @@ export class SystemLogService extends BaseService {
    * Constructs an instance.
    *
    * @param {ServiceController} controller The controller for this instance.
-   * @param {object} config Application-specific configuration object.
    */
-  constructor(controller, config) {
+  constructor(controller) {
     super(controller);
 
+    const config = controller.config;
     SystemLogService.#validateConfig(config);
 
     const earliestEvent = this.#findEarliestEventToLog(controller.name);
