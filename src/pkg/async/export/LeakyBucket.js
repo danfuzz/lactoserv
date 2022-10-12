@@ -24,6 +24,9 @@ export class LeakyBucket {
    */
   #flowRate;
 
+  /** @type {boolean} Provide fractional AVU? */
+  #fractionalVolume;
+
   /** @type {LeakyBucket.BaseTimeSource} Time measurement implementation. */
   #timeSource;
 
@@ -31,10 +34,9 @@ export class LeakyBucket {
   #lastNow;
 
   /**
-   * @type {number} The fullness of the bucket as a fraction in the range
-   * `0..1` at time {@link #lastNow}.
+   * @type {number} The volume in the bucket at time {@link #lastNow), in AVU.
    */
-  #lastFullness;
+  #lastVolume;
 
   /**
    * Constructs an instance. Configuration options:
@@ -45,9 +47,13 @@ export class LeakyBucket {
    * * `{number} flowRate` -- Bucket flow rate, that is, how quickly the bucket
    *   leaks its volume out, in arbitrary volume units per arbitrary time unit
    *   (AVU / ATU). This is a required "option."
-   * * `{number} initialFullness` -- How full the bucket is at the moment of
-   *   construction, expressed as a fraction in the range `0..1`. Defaults to
-   *   `0` (that is, empty and able to be maximally "bursted").
+   * * `{boolean} fractionalVolume` -- If `true`, allows the instance to provide
+   *   fractional AVU (e.g. give a client `0.25` AVU). If `false`, all volume
+   *   handoffs are quantized (by rounding up, i.e. `Math.ceil()`) to integer
+   *   values. Defaults to `false`.
+   * * `{number} initialVolume` -- The volume (amount) in the bucket at the
+   *   moment of construction, in AVU. Defaults to `0` (that is, empty and able
+   *   to be maximally "bursted").
    * * `{LeakyBucket.BaseTimeSource} timeSource` -- What to use to determine the
    *   passage of time. If not specified, the instance will use a standard
    *   implementation which measures time in seconds (_not_ msec) and bottoms
@@ -60,15 +66,17 @@ export class LeakyBucket {
     const {
       capacity,
       flowRate,
-      initialFullness = 0,
-      timeSource      = LeakyBucket.#DEFAULT_TIME_SOURCE
+      fractionalVolume = false,
+      initialVolume    = 0,
+      timeSource       = LeakyBucket.#DEFAULT_TIME_SOURCE
     } = options;
 
-    this.#capacity     = MustBe.number(capacity, { finite: true, minExclusive: 0 });
-    this.#flowRate     = MustBe.number(flowRate, { finite: true, minExclusive: 0 });
-    this.#timeSource   = MustBe.object(timeSource, LeakyBucket.TimeSource);
-    this.#lastFullness = MustBe.number(initialFullness, { minInclusive: 0, maxInclusive: 1 });
-    this.#lastNow      = this.#timeSource.now();
+    this.#capacity         = MustBe.number(capacity, { finite: true, minExclusive: 0 });
+    this.#flowRate         = MustBe.number(flowRate, { finite: true, minExclusive: 0 });
+    this.#fractionalVolume = MustBe.boolean(fractionalVolume);
+    this.#timeSource       = MustBe.object(timeSource, LeakyBucket.TimeSource);
+    this.#lastVolume       = MustBe.number(initialVolume, { minInclusive: 0, maxInclusive: capacity });
+    this.#lastNow          = this.#timeSource.now();
   }
 
   // TODO
