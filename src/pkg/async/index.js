@@ -5,6 +5,7 @@ export * from '#x/Condition';
 export * from '#x/EventSink';
 export * from '#x/EventSource';
 export * from '#x/EventTracker';
+export * from '#x/LeakyBucket';
 export * from '#x/LinkedEvent';
 export * from '#x/ManualPromise';
 export * from '#x/Mutex';
