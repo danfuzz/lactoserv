@@ -56,7 +56,7 @@ export class TokenBucket {
    *   partial tokens (e.g. give a client `1.25` tokens). If `false`, all token
    *   handoffs from the instance are quantized to integer values. Defaults to
    *   `false`.
-   * * `{LeakyBucket.BaseTimeSource} timeSource` -- What to use to determine the
+   * * `{TokenBucket.BaseTimeSource} timeSource` -- What to use to determine the
    *   passage of time. If not specified, the instance will use a standard
    *   implementation which measures time in seconds (_not_ msec) and bottoms
    *   out at the usual JavaScript / Node wall time interface (e.g.
