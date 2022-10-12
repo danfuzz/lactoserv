@@ -82,29 +82,29 @@ export class TokenBucket {
   }
 
   /**
-   * Instantaneously takes up to the indicated number of tokens. This is a
-   * convenient shorthand for `takeAtLeastNow(0, maxInclusive)`. See {@link
-   * #takeNow} for details.
-   *
-   * @param {number} maxInclusive The maximum (inclusive) quantity of tokens to
-   *   be granted.
-   * @returns {object} Result object as described by {@link #takeAtLeastNow}.
-   */
-  takeUpToNow(maxInclusive) {
-    return this.takeNow(0, maxInclusive);
-  }
-
-  /**
    * Instantaneously takes as many tokens as allowed, within the specified
-   * range. This returns an object with bindings as follows:
+   * range. This method accepts either an exact number of tokens to request or
+   * an object as follows:
+   *
+   * * `{number} minInclusive` -- Minimum quantity of tokens to be granted. If
+   *   the minimum can't be met, then the call will grant no (`0`) tokens.
+   *   Defaults to `0`. Invalid if negative or larger than this instance's
+   *   bucket capacity. If this instance was constructed with `partialTokens ===
+   *   false`, then it is rounded up (`Math.ceil()`) when not a whole number.
+   * * `{number} maxInclusive` -- Maximum quantity of tokens to be granted.
+   *   Defaults to `0`. Invalid if negative, and clamped at `minInclusive`. If
+   *   If this instance was constructed with `partialTokens === false`, then it
+   *   is rounded down (`Math.floor()`) when not a whole number.
+   *
+   * This method returns an object with bindings as follows:
    *
    * * `{number} grant` -- The quantity of tokens granted to the caller. This is
    *   `0` if the minimum required grant cannot be made.
    * * `{number} waitTime` -- The amount of time needed to wait (in ATU) in
-   *   order to possibly be granted the maximum requested tokens. This is the
-   *   wait time in the absence of contention for the tokens from other clients.
-   *   If there are other active clients, the actual required wait time will
-   *   turn out to be more.
+   *   order to possibly be granted the maximum requested quantity of tokens.
+   *   This is a wait time in the absence of contention for the tokens from
+   *   other clients; if there are other active clients, the actual required
+   *   wait time will turn out to be more.
    *
    * Note: This method _first_ tops up the token bucket based on the amount of
    * time elapsed since the previous top-up, and _then_ removes tokens. This
@@ -112,20 +112,14 @@ export class TokenBucket {
    * bucket capacity, and (b) it is possible to totally empty the bucket with a
    * call to this method.
    *
-   * @param {number} minInclusive The minimum quantity of tokens to be granted
-   *   (if any are to be granted at all). If this instance was constructed with
-   *   `partialTokens === false`, then this number is rounded up (`Math.ceil()`)
-   *   when not a whole number.
-   * @param {number} [maxInclusive = minInclusive] The maximum (inclusive)
-   *   quantity of tokens to be granted. If this instance was constructed with
-   *   `partialTokens === false`, then this number is rounded up (`Math.ceil()`)
-   *   when not a whole number.
+   * @param {number|object} quantity Requested quantity of tokens, as described
+   *   above.
    * @returns {object} Result object as described above.
-   * @throws {Error} Thrown if the request is impossible to ever satisfy
-   *   (because `minInclusive` is more than the bucket capacity).
+   * @throws {Error} Thrown if the request is invalid (inverted range,
+   *   `minInclusive` is more than the bucket capacity, etc.).
    */
-  takeAtLeastNow(minInclusive, maxInclusive = minInclusive) {
-    ({ minInclusive, maxInclusive } = this.#fixMinMax(minInclusive, maxInclusive));
+  takeNow(quantity) {
+    const { minInclusive, maxInclusive } = this.#parseQuantity(quantity);
 
     this.#topUpBucket();
 
@@ -142,49 +136,61 @@ export class TokenBucket {
   }
 
   /**
-   * Helper for `take*()` methods, which calculates an actual grant amount.
+   * Helper for `take*()` methods, which calculates an actual grant quantity.
    *
-   * @param {number} minInclusive The minimum quantity of tokens to grant.
+   * @param {number} minInclusive The minimum quantity of tokens to be granted.
    * @param {number} maxInclusive The maximum (inclusive) quantity of tokens to
-   *   grant.
+   *   be granted.
    * @returns {number} The actual grant amount.
-   * @throws {Error} Thrown if the request is impossible to ever satisfy.
    */
   #calculateGrant(minInclusive, maxInclusive) {
-    const lastVolume = this.#partialTokens
+    const availableVolume = this.#partialTokens
       ? this.#lastVolume
       : Math.floor(this.#lastVolume);
 
-    if (lastVolume < minInclusive) {
+    if (availableVolume < minInclusive) {
       return 0;
-    } else if (lastVolume < maxInclusive) {
-      return lastVolume;
+    } else if (availableVolume < maxInclusive) {
+      return availableVolume;
     } else {
       return maxInclusive;
     }
   }
 
   /**
-   * Helper for `take*()` methods, which fixes up and does validity checking on
-   * `minInclusive` and `maxExclusive` arguments.
+   * Helper for `take*()` methods, which parses, adjusts, and and does validity
+   * checking on a `quantity` argument.
    *
-   * @param {number} minInclusive The minimum quantity of tokens to grant.
-   * @param {number} maxInclusive The maximum (inclusive) quantity of tokens to
-   *   grant.
-   * @returns {{minInclusive, maxInclusive}} Replacement arguments.
+   * @param {object|number} quantity The requested quantity, as described by
+   *   `take*()`.
+   * @returns {function(number): number} Replacement arguments.
    * @throws {Error} Thrown if there is trouble with the arguments.
    */
-  #fixMinMax(minInclusive, maxInclusive) {
-    if (!this.#partialTokens) {
-      minInclusive = Math.ceil(minInclusive);
-      maxInclusive = Math.ceil(maxInclusive);
+  #parseQuantity(quantity) {
+    let minInclusive;
+    let maxInclusive;
+
+    if (typeof quantity === 'number') {
+      minInclusive = quantity;
+      maxInclusive = quantity;
+    } else {
+      ({ maxInclusive = 0, minInclusive = 0 } = quantity);
     }
 
-    MustBe.number(minInclusive, { finite: true, minInclusive: 0 });
-    MustBe.number(maxInclusive, { finite: true, maxInclusive: minInclusive });
+    if (!this.#partialTokens) {
+      maxInclusive = Math.floor(maxInclusive);
+      minInclusive = Math.ceil(minInclusive);
+    }
 
-    if (minInclusive > this.#capacity) {
-      throw new Error(`Impossible token request: ${minInclusive} > ${this.#capacity}`);
+    try {
+      MustBe.number(minInclusive, { minInclusive: 0, maxInclusive: this.#capacity });
+      MustBe.number(maxInclusive, { minInclusive: 0 });
+    } catch (e) {
+      throw new Error(`Impossible take request: ${minInclusive}..${maxInclusive}, capacity ${this.#capacity}`);
+    }
+
+    if (maxInclusive < minInclusive) {
+      maxInclusive = minInclusive;
     }
 
     return { minInclusive, maxInclusive };
