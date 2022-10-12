@@ -125,6 +125,8 @@ export class TokenBucket {
    *   (because `minInclusive` is more than the bucket capacity).
    */
   takeAtLeastNow(minInclusive, maxInclusive = minInclusive) {
+    ({ minInclusive, maxInclusive } = this.#fixMinMax(minInclusive, maxInclusive));
+
     this.#topUpBucket();
 
     const grant     = this.#calculateGrant(minInclusive, maxInclusive);
@@ -149,15 +151,6 @@ export class TokenBucket {
    * @throws {Error} Thrown if the request is impossible to ever satisfy.
    */
   #calculateGrant(minInclusive, maxInclusive) {
-    if (!this.#partialTokens) {
-      minInclusive = Math.ceil(minInclusive);
-      maxInclusive = Math.ceil(maxInclusive);
-    }
-
-    if (minInclusive > this.#capacity) {
-      throw new Error(`Impossible token request: ${minInclusive} > ${this.#capacity}`);
-    }
-
     const lastVolume = this.#partialTokens
       ? this.#lastVolume
       : Math.floor(this.#lastVolume);
@@ -169,6 +162,32 @@ export class TokenBucket {
     } else {
       return maxInclusive;
     }
+  }
+
+  /**
+   * Helper for `take*()` methods, which fixes up and does validity checking on
+   * `minInclusive` and `maxExclusive` arguments.
+   *
+   * @param {number} minInclusive The minimum quantity of tokens to grant.
+   * @param {number} maxInclusive The maximum (inclusive) quantity of tokens to
+   *   grant.
+   * @returns {{minInclusive, maxInclusive}} Replacement arguments.
+   * @throws {Error} Thrown if there is trouble with the arguments.
+   */
+  #fixMinMax(minInclusive, maxInclusive) {
+    if (!this.#partialTokens) {
+      minInclusive = Math.ceil(minInclusive);
+      maxInclusive = Math.ceil(maxInclusive);
+    }
+
+    MustBe.number(minInclusive, { finite: true, minInclusive: 0 });
+    MustBe.number(maxInclusive, { finite: true, maxInclusive: minInclusive });
+
+    if (minInclusive > this.#capacity) {
+      throw new Error(`Impossible token request: ${minInclusive} > ${this.#capacity}`);
+    }
+
+    return { minInclusive, maxInclusive };
   }
 
   /**
