@@ -54,8 +54,8 @@ export class TokenBucket {
    *   to be maximally "bursted").
    * * `{boolean} partialTokens` -- If `true`, allows the instance to provide
    *   partial tokens (e.g. give a client `1.25` tokens). If `false`, all token
-   *   handoffs from the instance are quantized (by rounding up, i.e.
-   *   `Math.ceil()`) to integer values. Defaults to `false`.
+   *   handoffs from the instance are quantized to integer values. Defaults to
+   *   `false`.
    * * `{LeakyBucket.BaseTimeSource} timeSource` -- What to use to determine the
    *   passage of time. If not specified, the instance will use a standard
    *   implementation which measures time in seconds (_not_ msec) and bottoms
@@ -81,7 +81,100 @@ export class TokenBucket {
     this.#lastNow       = this.#timeSource.now();
   }
 
-  // TODO
+  /**
+   * Instantaneously takes as many tokens as allowed, within the specified
+   * range. This returns an object with bindings as follows:
+   *
+   * * `{number} grant` -- The quantity of tokens granted to the caller. This is
+   *   `0` if the minimum required grant cannot be made.
+   * * `{number} waitTime` -- The amount of time needed to wait (in ATU) in
+   *   order to possibly be granted the maximum requested tokens. This is the
+   *   wait time in the absence of contention for the tokens from other clients.
+   *   If there are other active clients, the actual required wait time will
+   *   turn out to be more.
+   *
+   * Note: This method _first_ tops up the token bucket based on the amount of
+   * time elapsed since the previous top-up, and _then_ removes tokens. This
+   * means (a) that it's never possible to take more tokens than the total
+   * bucket capacity, and (b) it is possible to totally empty the bucket with a
+   * call to this method.
+   *
+   * @param {number} minInclusive The minimum quantity of tokens to grant (if
+   *   any are to be granted at all). If this instance was constructed with
+   *   `partialTokens === false`, then this number is rounded up (`Math.ceil()`)
+   *   when not a whole number.
+   * @param {number} [maxInclusive = minInclusive] The maximum (inclusive)
+   *   quantity of tokens to grant. If this instance was constructed with
+   *   `partialTokens === false`, then this number is rounded up (`Math.ceil()`)
+   *   when not a whole number.
+   * @returns {object} Result object as described above.
+   * @throws {Error} Thrown if the request is impossible to ever satisfy
+   *   (because `minInclusive` is more than the bucket capacity).
+   */
+  takeNow(minInclusive, maxInclusive = minInclusive) {
+    this.#topUpBucket();
+
+    const grant     = this.#calculateGrant(minInclusive, maxInclusive);
+    const newVolume = this.#lastVolume - grant;
+
+    // The wait time takes into account any tokens which remain in the bucket
+    // after a partial grant.
+    const neededTokens = Math.max(0, (maxInclusive - grant) - newVolume);
+    const waitTime     = neededTokens / this.#fillRate;
+
+    this.#lastVolume = newVolume;
+    return { grant, waitTime };
+  }
+
+  /**
+   * Helper for {@link #takeNow}, which calculates an actual grant amount.
+   *
+   * @param {number} minInclusive The minimum quantity of tokens to grant.
+   * @param {number} maxInclusive The maximum (inclusive) quantity of tokens to
+   *   grant.
+   * @returns {number} The actual grant amount.
+   * @throws {Error} Thrown if the request is impossible to ever satisfy.
+   */
+  #calculateGrant(minInclusive, maxInclusive) {
+    if (!this.#partialTokens) {
+      minInclusive = Math.ceil(minInclusive);
+      maxInclusive = Math.ceil(maxInclusive);
+    }
+
+    if (minInclusive > this.#capacity) {
+      throw new Error(`Impossible token request: ${minInclusive} > ${this.#capacity}`);
+    }
+
+    const lastVolume = this.#partialTokens
+      ? this.#lastVolume
+      : Math.floor(this.#lastVolume);
+
+    if (lastVolume < minInclusive) {
+      return 0;
+    } else if (lastVolume < maxInclusive) {
+      return lastVolume;
+    } else {
+      return maxInclusive;
+    }
+  }
+
+  /**
+   * Tops up the bucket, based on how much time has elapsed since the last
+   * topping-up.
+   */
+  #topUpBucket() {
+    const now        = this.#timeSource.now();
+    const lastVolume = this.#lastVolume;
+
+    if (lastVolume < this.#capacity) {
+      const elapsedTime = now - this.#lastNow;
+      const grant       = elapsedTime * this.#fillRate;
+      this.#lastVolume  = Math.min(lastVolume + grant, this.#capacity);
+    }
+
+    this.#lastNow = now;
+  }
+
 
   //
   // Static members
