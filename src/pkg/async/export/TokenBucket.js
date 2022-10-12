@@ -82,6 +82,19 @@ export class TokenBucket {
   }
 
   /**
+   * Instantaneously takes up to the indicated number of tokens. This is a
+   * convenient shorthand for `takeAtLeastNow(0, maxInclusive)`. See {@link
+   * #takeNow} for details.
+   *
+   * @param {number} maxInclusive The maximum (inclusive) quantity of tokens to
+   *   be granted.
+   * @returns {object} Result object as described by {@link #takeAtLeastNow}.
+   */
+  takeUpToNow(maxInclusive) {
+    return this.takeNow(0, maxInclusive);
+  }
+
+  /**
    * Instantaneously takes as many tokens as allowed, within the specified
    * range. This returns an object with bindings as follows:
    *
@@ -99,19 +112,19 @@ export class TokenBucket {
    * bucket capacity, and (b) it is possible to totally empty the bucket with a
    * call to this method.
    *
-   * @param {number} minInclusive The minimum quantity of tokens to grant (if
-   *   any are to be granted at all). If this instance was constructed with
+   * @param {number} minInclusive The minimum quantity of tokens to be granted
+   *   (if any are to be granted at all). If this instance was constructed with
    *   `partialTokens === false`, then this number is rounded up (`Math.ceil()`)
    *   when not a whole number.
    * @param {number} [maxInclusive = minInclusive] The maximum (inclusive)
-   *   quantity of tokens to grant. If this instance was constructed with
+   *   quantity of tokens to be granted. If this instance was constructed with
    *   `partialTokens === false`, then this number is rounded up (`Math.ceil()`)
    *   when not a whole number.
    * @returns {object} Result object as described above.
    * @throws {Error} Thrown if the request is impossible to ever satisfy
    *   (because `minInclusive` is more than the bucket capacity).
    */
-  takeNow(minInclusive, maxInclusive = minInclusive) {
+  takeAtLeastNow(minInclusive, maxInclusive = minInclusive) {
     this.#topUpBucket();
 
     const grant     = this.#calculateGrant(minInclusive, maxInclusive);
@@ -127,7 +140,7 @@ export class TokenBucket {
   }
 
   /**
-   * Helper for {@link #takeNow}, which calculates an actual grant amount.
+   * Helper for `take*()` methods, which calculates an actual grant amount.
    *
    * @param {number} minInclusive The minimum quantity of tokens to grant.
    * @param {number} maxInclusive The maximum (inclusive) quantity of tokens to
