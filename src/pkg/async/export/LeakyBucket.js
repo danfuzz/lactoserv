@@ -7,53 +7,55 @@ import { Methods, MustBe } from '@this/typey';
 
 
 /**
- * Implementation of the "leaky bucket as meter" algorithm, which is more or
- * less equivalent to the "token bucket" algorithm (though with a different
- * metaphor). That is, this class provides a rate-limit-with-burstiness service.
+ * Implementation of the "token bucket" algorithm, which is more or less
+ * equivalent to the "leaky bucket as meter" algorithm (though with a different
+ * metaphor). That is, this class provides a rate-limiter-with-burstiness
+ * service.
  *
  * This class defines neither the volume (capacity) units nor the time units. It
  * is up to clients to use whatever makes sense in their context.
  */
-export class LeakyBucket {
-  /** @type {number} Bucket capacity, in arbitrary volume units (AVU). */
+export class TokenBucket {
+  /** @type {number} Bucket capacity, in tokens (arbitrary volume units). */
   #capacity;
 
   /**
-   * @type {number} Bucket flow rate, in arbitrary volume units per arbitrary
-   * time unit (AVU / ATU).
+   * @type {number} Bucket fill rate, in tokens per arbitrary time unit (tokens
+   * / ATU).
    */
-  #flowRate;
+  #fillRate;
 
-  /** @type {boolean} Provide fractional AVU? */
-  #fractionalVolume;
+  /** @type {boolean} Provide partial (non-integral / fractional) tokens? */
+  #partialTokens;
 
-  /** @type {LeakyBucket.BaseTimeSource} Time measurement implementation. */
+  /** @type {TokenBucket.BaseTimeSource} Time measurement implementation. */
   #timeSource;
 
   /** @type {number} Most recently measured time. */
   #lastNow;
 
   /**
-   * @type {number} The volume in the bucket at time {@link #lastNow), in AVU.
+   * @type {number} The volume in the bucket at time {@link #lastNow), in
+   * tokens.
    */
   #lastVolume;
 
   /**
    * Constructs an instance. Configuration options:
    *
-   * * `{number} capacity` -- Bucket capacity, in arbitrary volume units
-   *   (AVU). This defines the "burstiness" allowed by the instance. This is a
+   * * `{number} capacity` -- Bucket capacity, in tokens (arbitrary volume
+   *   units). This defines the "burstiness" allowed by the instance. This is a
    *   required "option."
-   * * `{number} flowRate` -- Bucket flow rate, that is, how quickly the bucket
-   *   leaks its volume out, in arbitrary volume units per arbitrary time unit
-   *   (AVU / ATU). This is a required "option."
-   * * `{boolean} fractionalVolume` -- If `true`, allows the instance to provide
-   *   fractional AVU (e.g. give a client `0.25` AVU). If `false`, all volume
-   *   handoffs are quantized (by rounding up, i.e. `Math.ceil()`) to integer
-   *   values. Defaults to `false`.
-   * * `{number} initialVolume` -- The volume (amount) in the bucket at the
-   *   moment of construction, in AVU. Defaults to `0` (that is, empty and able
+   * * `{number} fillRate` -- Bucket fill rate, that is, how quickly the bucket
+   *   gets filled, in tokens per arbitrary time unit (tokens / ATU). This is a
+   *   required "option."
+   * * `{number} initialVolume` -- The volume in the bucket at the moment of
+   *   construction, in tokens. Defaults to `capacity` (that is, full and able
    *   to be maximally "bursted").
+   * * `{boolean} partialTokens` -- If `true`, allows the instance to provide
+   *   partial tokens (e.g. give a client `1.25` tokens). If `false`, all token
+   *   handoffs from the instance are quantized (by rounding up, i.e.
+   *   `Math.ceil()`) to integer values. Defaults to `false`.
    * * `{LeakyBucket.BaseTimeSource} timeSource` -- What to use to determine the
    *   passage of time. If not specified, the instance will use a standard
    *   implementation which measures time in seconds (_not_ msec) and bottoms
@@ -65,18 +67,18 @@ export class LeakyBucket {
   constructor(options) {
     const {
       capacity,
-      flowRate,
-      fractionalVolume = false,
-      initialVolume    = 0,
-      timeSource       = LeakyBucket.#DEFAULT_TIME_SOURCE
+      fillRate,
+      initialVolume = options.capacity,
+      partialTokens = false,
+      timeSource    = TokenBucket.#DEFAULT_TIME_SOURCE
     } = options;
 
-    this.#capacity         = MustBe.number(capacity, { finite: true, minExclusive: 0 });
-    this.#flowRate         = MustBe.number(flowRate, { finite: true, minExclusive: 0 });
-    this.#fractionalVolume = MustBe.boolean(fractionalVolume);
-    this.#timeSource       = MustBe.object(timeSource, LeakyBucket.TimeSource);
-    this.#lastVolume       = MustBe.number(initialVolume, { minInclusive: 0, maxInclusive: capacity });
-    this.#lastNow          = this.#timeSource.now();
+    this.#capacity      = MustBe.number(capacity, { finite: true, minExclusive: 0 });
+    this.#fillRate      = MustBe.number(fillRate, { finite: true, minExclusive: 0 });
+    this.#partialTokens = MustBe.boolean(partialTokens);
+    this.#timeSource    = MustBe.object(timeSource, TokenBucket.TimeSource);
+    this.#lastVolume    = MustBe.number(initialVolume, { minInclusive: 0, maxInclusive: capacity });
+    this.#lastNow       = this.#timeSource.now();
   }
 
   // TODO
@@ -91,7 +93,7 @@ export class LeakyBucket {
   /** {number} The number of seconds in a millisecond. */
   static #SECS_PER_MSEC = 1 / 1000;
 
-  /** @type {LeakyBucket.StdTimeSource} Default time source. */
+  /** @type {TokenBucket.StdTimeSource} Default time source. */
   static #DEFAULT_TIME_SOURCE;
 
   /**
@@ -146,7 +148,7 @@ export class LeakyBucket {
   };
 
   static {
-    this.#DEFAULT_TIME_SOURCE = new LeakyBucket.StdTimeSource();
+    this.#DEFAULT_TIME_SOURCE = new TokenBucket.StdTimeSource();
     Object.freeze(this);
   }
 }
