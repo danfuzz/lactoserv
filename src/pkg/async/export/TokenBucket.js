@@ -69,7 +69,7 @@ export class TokenBucket {
   #waiters = [];
 
   /** @type {Threadlet} Servicer thread for the {@link #waiters}. */
-  #waiterThread = new Threadlet(() => this.#serviceWaiters);
+  #waiterThread = new Threadlet(() => this.#serviceWaiters());
 
   /**
    * Constructs an instance. Configuration options:
@@ -201,12 +201,12 @@ export class TokenBucket {
       }
     } else if (this.#waiters.length >= this.#maxWaiters) {
       // Too many waiters, per configuration.
-      return false;
+      return 0;
     }
 
     const mp = new ManualPromise();
 
-    this.#waiters.push({ quantity, doGrant: mp.resolve });
+    this.#waiters.push({ quantity, doGrant: v => mp.resolve(v) });
     this.#waiterThread.start(); // Note: Does nothing if it's already running.
 
     return mp.promise;
@@ -436,7 +436,8 @@ export class TokenBucket {
 
     /** @override */
     async setTimeout(delay, value = null) {
-      return timers.setTimeout(delay * StdTimeSource.#MSEC_PER_SEC, value);
+      const delayMsec = delay * StdTimeSource.#MSEC_PER_SEC;
+      return timers.setTimeout(delayMsec, value);
     }
 
     /** {number} The number of milliseconds in a second. */
