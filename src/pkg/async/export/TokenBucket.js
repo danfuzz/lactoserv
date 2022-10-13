@@ -261,6 +261,8 @@ export class TokenBucket {
    * * `{number} minWaitTime` -- The amount of time needed to wait (in ATU) in
    *   order to possibly be granted the minimum requested quantity of tokens.
    *   This is only non-zero if `done === false`.
+   * * `{number} waitTimeUnit` -- The unit name for the units reported in
+   *   `*WaitTime`.
    *
    * Note: `maxWaitTime` and `minWaitTime` in the return value are times that do
    * not take into account contention for tokens from other clients. If there
@@ -296,7 +298,13 @@ export class TokenBucket {
     const minWaitTime  = neededMin / this.#flowRate;
 
     this.#lastVolume = newVolume;
-    return { done, grant, maxWaitTime, minWaitTime };
+    return {
+      done,
+      grant,
+      maxWaitTime,
+      minWaitTime,
+      waitTimeUnit: this.#timeSource.unitName
+    };
   }
 
   /**
