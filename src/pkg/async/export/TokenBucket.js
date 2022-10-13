@@ -125,30 +125,6 @@ export class TokenBucket {
   }
 
   /**
-   * @returns {number} The maximum possible instantaneous burst size, in tokens.
-   * This is the same as the "bucket capacity" in the token bucket metaphor.
-   */
-  get burstSize() {
-    // See note above on property `#capacity`.
-    return this.#capacity;
-  }
-
-  /** @returns {number} The token flow rate, in tokens per ATU. */
-  get flowRate() {
-    return this.#flowRate;
-  }
-
-  /** @returns {number} The maximum number of grant waiters allowed. */
-  get maxWaiters() {
-    return this.#maxWaiters;
-  }
-
-  /** @returns {boolean} Does this instance grant partial tokens? */
-  get partialTokens() {
-    return this.#partialTokens;
-  }
-
-  /**
    * Denies grant requests for all current waiters, clearing the waiters queue.
    * This is useful when trying to cleanly shut down the service which this
    * instance is associated with. This method async-returns once all denials
