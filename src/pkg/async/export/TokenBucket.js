@@ -20,10 +20,10 @@ export class TokenBucket {
   #capacity;
 
   /**
-   * @type {number} Bucket fill rate, in tokens per arbitrary time unit (tokens
-   * / ATU).
+   * @type {number} Token flow rate (a/k/a bucket fill rate), in tokens per
+   * arbitrary time unit (tokens / ATU).
    */
-  #fillRate;
+  #flowRate;
 
   /** @type {boolean} Provide partial (non-integral / fractional) tokens? */
   #partialTokens;
@@ -46,10 +46,10 @@ export class TokenBucket {
    * * `{number} capacity` -- Bucket capacity, in tokens (arbitrary volume
    *   units). This defines the "burstiness" allowed by the instance. Must be a
    *   finite positive number. This is a required "option."
-   * * `{number} fillRate` -- Bucket fill rate, that is, how quickly the bucket
-   *   gets filled, in tokens per arbitrary time unit (tokens / ATU). This
-   *   defines the steady state "flow rate" allowed by the instance. Must be a
-   *   finite positive number. This is a required "option."
+   * * `{number} flowRate` -- Token flow rate (a/k/a bucket fill rate), that is,
+   *   how quickly the bucket gets filled, in tokens per arbitrary time unit
+   *   (tokens / ATU). This defines the steady state "flow rate" allowed by the
+   *   instance. Must be a finite positive number. This is a required "option."
    * * `{number} initialVolume` -- The volume in the bucket at the moment of
    *   construction, in tokens. Defaults to `capacity` (that is, full and able
    *   to be maximally "bursted").
@@ -68,14 +68,14 @@ export class TokenBucket {
   constructor(options) {
     const {
       capacity,
-      fillRate,
+      flowRate,
       initialVolume = options.capacity,
       partialTokens = false,
       timeSource    = TokenBucket.#DEFAULT_TIME_SOURCE
     } = options;
 
     this.#capacity      = MustBe.number(capacity, { finite: true, minExclusive: 0 });
-    this.#fillRate      = MustBe.number(fillRate, { finite: true, minExclusive: 0 });
+    this.#flowRate      = MustBe.number(flowRate, { finite: true, minExclusive: 0 });
     this.#partialTokens = MustBe.boolean(partialTokens);
     this.#timeSource    = MustBe.object(timeSource, TokenBucket.TimeSource);
     this.#lastVolume    = MustBe.number(initialVolume, { minInclusive: 0, maxInclusive: capacity });
@@ -88,8 +88,8 @@ export class TokenBucket {
   }
 
   /** @returns {number} The fill rate, in tokens per ATU. */
-  get fillRate() {
-    return this.#fillRate;
+  get flowRate() {
+    return this.#flowRate;
   }
 
   /** @returns {boolean} Does this instance grant partial tokens? */
@@ -161,7 +161,7 @@ export class TokenBucket {
     // The wait time takes into account any tokens which remain in the bucket
     // after a partial grant.
     const neededTokens = Math.max(0, (maxInclusive - grant) - newVolume);
-    const waitTime     = neededTokens / this.#fillRate;
+    const waitTime     = neededTokens / this.#flowRate;
 
     this.#lastVolume = newVolume;
     return { grant, waitTime };
@@ -250,7 +250,7 @@ export class TokenBucket {
 
     if (lastVolume < this.#capacity) {
       const elapsedTime = now - this.#lastNow;
-      const grant       = elapsedTime * this.#fillRate;
+      const grant       = elapsedTime * this.#flowRate;
       this.#lastVolume  = Math.min(lastVolume + grant, this.#capacity);
     }
 

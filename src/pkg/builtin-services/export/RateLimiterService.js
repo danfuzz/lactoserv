@@ -117,10 +117,10 @@ export class RateLimiterService extends BaseService {
    * Converts a specified-unit flow rate to one that is per-second.
    *
    * @param {number} flowRate The flow rate.
-   * @param {string} timeUnit The time unit for the given `fillRate`.
+   * @param {string} timeUnit The time unit for the given `flowRate`.
    * @return {number} `flowRate` converted to tokens per second.
    */
-  static #fillRatePerSecFrom(flowRate, timeUnit) {
+  static #flowRatePerSecFrom(flowRate, timeUnit) {
     switch (timeUnit) {
       case 'day':    return flowRate * (1 / (60 * 60 * 24));
       case 'hour':   return flowRate * (1 / (60 * 60));
@@ -148,9 +148,9 @@ export class RateLimiterService extends BaseService {
 
     const { burstSize, flowRate: origFlowRate, timeUnit } = config;
     const capacity = burstSize;
-    const fillRate = this.#fillRatePerSecFrom(origFlowRate, timeUnit);
+    const flowRate = this.#flowRatePerSecFrom(origFlowRate, timeUnit);
 
-    return new TokenBucket({ capacity, fillRate });
+    return new TokenBucket({ capacity, flowRate });
   }
 
   /**
