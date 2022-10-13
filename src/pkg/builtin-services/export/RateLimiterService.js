@@ -68,29 +68,9 @@ export class RateLimiterService extends BaseService {
       return true;
     }
 
-    // TODO: Move the wait/retry logic into `TokenBucket` itself, and make it
-    // less clunky.
-    let totalWaitTime = 0;
-    let waitTime      = 0;
-    for (let i = 0; i < 10; i++) {
-      if (waitTime) {
-        logger?.rateLimited({ attempt: i + 1, waitTime });
-        await this.#connections.wait(waitTime);
-        totalWaitTime += waitTime;
-      }
-
-      const got = this.#connections.takeNow(1);
-      if (got.grant === 1) {
-        if (i !== 0) {
-          logger?.rateLimited({ totalAttempts: i + 1, totalWaitTime });
-        }
-        return true;
-      }
-
-      waitTime = got.waitTime;
-    }
-
-    return false;
+    logger.rateSnapshot(this.#connections.snapshotNow());
+    const got = await this.#connections.requestGrant(1);
+    return (got === 1);
   }
 
   // TODO: More!
