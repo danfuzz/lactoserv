@@ -80,7 +80,7 @@ export class RateLimiterService extends BaseService {
       const got = this.#connections.takeNow(1);
       if (got.grant === 1) {
         if (i !== 0) {
-          logger?.rateLimited({ totalAttempts: i + 1, totalWaitTime })
+          logger?.rateLimited({ totalAttempts: i + 1, totalWaitTime });
         }
         return true;
       }
@@ -118,7 +118,7 @@ export class RateLimiterService extends BaseService {
    *
    * @param {number} flowRate The flow rate.
    * @param {string} timeUnit The time unit for the given `flowRate`.
-   * @return {number} `flowRate` converted to tokens per second.
+   * @returns {number} `flowRate` converted to tokens per second.
    */
   static #flowRatePerSecFrom(flowRate, timeUnit) {
     switch (timeUnit) {
