@@ -6,6 +6,7 @@
     "interface":     "*",
     "port":          8080,
     "protocol":      "http",
+    "rateLimiter":   "limiter",
     "requestLogger": "requests"
   },
   {

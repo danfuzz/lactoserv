@@ -35,6 +35,8 @@ const logger = ThisModule.logger.server;
  * * `{int} port` -- Port number that the server is to listen on.
  * * `{string} protocol` -- Protocol that the server is to speak. Must be one of
  *   `http`, `http2`, or `https`.
+ * * `{string} rateLimiter` -- Optional name of the rate limiter service to use.
+ *   If not specified, this server will not attempt to do any rate limiting.
  * * `{string} requestLogger` -- Optional name of the request loging service to
  *   inform of activity. If not specified, this server will not produce request
  *   logs.
@@ -102,7 +104,14 @@ export class ServerManager {
    * @param {object} serverItem Single server item from a configuration object.
    */
   #addControllerFor(serverItem) {
-    const { requestLogger: rlName, app, apps, host, hosts } = serverItem;
+    const {
+      app,
+      apps,
+      host,
+      hosts,
+      rateLimiter:   limName,
+      requestLogger: logName,
+    } = serverItem;
     const { applicationManager, hostManager, serviceManager } = this.#warehouse;
 
     const hmSubset = hostManager
@@ -110,13 +119,17 @@ export class ServerManager {
       : null;
     const appMounts = applicationManager.makeMountList(
       JsonSchemaUtil.singularPluralCombo(app, apps));
-    const requestLogger = rlName
-      ? serviceManager.findController(rlName).service
+    const rateLimiter = limName
+      ? serviceManager.findController(limName).service
+      : null;
+    const requestLogger = logName
+      ? serviceManager.findController(logName).service
       : null;
 
     const config = {
       ...serverItem,
       ...(hmSubset ? { hostManager: hmSubset } : null),
+      ...(rateLimiter ? { rateLimiter } : null),
       ...(requestLogger ? { requestLogger } : null),
       appMounts
     };
@@ -177,6 +190,10 @@ export class ServerManager {
                 protocol: {
                   type: 'string',
                   enum: ['http', 'http2', 'https']
+                },
+                rateLimiter: {
+                  type: 'string',
+                  pattern: ServiceController.NAME_PATTERN
                 },
                 requestLogger: {
                   type: 'string',

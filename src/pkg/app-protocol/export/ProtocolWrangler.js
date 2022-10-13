@@ -5,6 +5,7 @@ import * as net from 'node:net';
 
 import express from 'express';
 
+import { BaseService } from '@this/app-services';
 import { Threadlet } from '@this/async';
 import { Methods } from '@this/typey';
 
@@ -22,10 +23,15 @@ import { RequestLogger } from '#p/RequestLogger';
  * responsible for constructing the application instance and getting it hooked
  * up to the rest of this class, but it does not do any configuration internally
  * to the application (which is up to the clients of this class).
+ *
+ * TODO: Use the rate limiter!
  */
 export class ProtocolWrangler {
   /** @type {?function(...*)} Logger, if logging is to be done. */
   #logger = null;
+
+  /** @type {?BaseService} Rate limiter service to use, if any. */
+  #rateLimiter = null;
 
   /**
    * @type {?RequestLogger} HTTP(ish) request logger, if logging is to be done.
@@ -48,8 +54,10 @@ export class ProtocolWrangler {
    *   HostManager.secureServerOptions}, if this instance is (possibly) expected
    *   to need to use certificates (etc.). Ignored for instances which don't do
    *   that sort of thing.
-   * * `requestLog: BaseService` -- Request log to send to. (If not specified,
-   *   the instance won't do request logging.)
+   * * `rateLimiter: BaseService` -- Rate limiter to use. (If not specified, the
+   *   instance won't do rate limiting.)
+   * * `requestLogger: BaseService` -- Request logger to send to. (If not
+   *   specified, the instance won't do request logging.)
    * * `logger: function(...*)` -- Logger to use to emit events about what the
    *   instance is doing. (If not specified, the instance won't do logging.)
    * * `protocol: string` -- The name of this protocol.
@@ -61,15 +69,13 @@ export class ProtocolWrangler {
    * @param {object} options Construction options, per the description above.
    */
   constructor(options) {
-    const { logger, requestLogger } = options;
+    const { logger, rateLimiter, requestLogger } = options;
 
-    if (logger) {
-      this.#logger = logger;
-    }
-
-    if (requestLogger) {
-      this.#requestLogger = new RequestLogger(requestLogger, logger);
-    }
+    this.#logger        = logger ?? null;
+    this.#rateLimiter   = rateLimiter ?? null;
+    this.#requestLogger = requestLogger
+      ? new RequestLogger(requestLogger, logger)
+      : null;
   }
 
   /**
