@@ -11,10 +11,10 @@ import { JsonSchema } from '@this/json';
  *
  * * `{object} connections` -- Optional connection rate limiter. The "token" for
  *   this is a single connection.
- * * `{object} requests` -- Optional request rate limiter. The "token" for this
- *   is a single request.
  * * `{object} data` -- Optional outgoing data rate limiter. The "token" for
  *   this is one byte.
+ * * `{object} requests` -- Optional request rate limiter. The "token" for this
+ *   is a single request.
  *
  * Each of the above, if specified, must be an object with these properties:
  *
@@ -91,7 +91,7 @@ export class RateLimiterService extends BaseService {
       $defs: {
         limitItem: {
           type: 'object',
-          required: ['burstSize', 'flowRate', 'timeUnits'],
+          required: ['burstSize', 'flowRate', 'timeUnit'],
           properties: {
             burstSize: {
               type:             'number',
@@ -103,7 +103,7 @@ export class RateLimiterService extends BaseService {
               exclusiveMinimum: 0,
               maximum:          1e300
             },
-            timeUnits: {
+            timeUnit: {
               type: 'string',
               enum: ['day', 'hour', 'minute', 'second', 'msec']
             }
