@@ -3,6 +3,7 @@
 
 import * as net from 'node:net';
 
+import { BaseService } from '@this/app-services';
 import { Condition, Threadlet } from '@this/async';
 import { FormatUtils } from '@this/loggy';
 
@@ -12,10 +13,15 @@ import { ProtocolWrangler } from '#x/ProtocolWrangler';
 /**
  * Wrangler for all TCP-based protocols (which is, as of this writing, all of
  * them... but HTTP3 will be here before we know it!).
+ *
+ * TODO: Use the rate limiter!
  */
 export class TcpWrangler extends ProtocolWrangler {
   /** @type {?function(...*)} Logger, if logging is to be done. */
   #logger;
+
+  /** @type {?BaseService} Rate limiter service to use, if any. */
+  #rateLimiter;
 
   /** @type {net.Server} Server socket, per se. */
   #serverSocket;
@@ -44,6 +50,7 @@ export class TcpWrangler extends ProtocolWrangler {
     super(options);
 
     this.#logger        = options.logger?.conn ?? null;
+    this.#rateLimiter   = options.rateLimiter ?? null;
     this.#listenOptions =
       TcpWrangler.#trimOptions(options.socket, TcpWrangler.#LISTEN_PROTO);
     this.#loggableInfo  = {

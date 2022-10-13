@@ -5,7 +5,6 @@ import * as net from 'node:net';
 
 import express from 'express';
 
-import { BaseService } from '@this/app-services';
 import { Threadlet } from '@this/async';
 import { Methods } from '@this/typey';
 
@@ -23,15 +22,10 @@ import { RequestLogger } from '#p/RequestLogger';
  * responsible for constructing the application instance and getting it hooked
  * up to the rest of this class, but it does not do any configuration internally
  * to the application (which is up to the clients of this class).
- *
- * TODO: Use the rate limiter!
  */
 export class ProtocolWrangler {
   /** @type {?function(...*)} Logger, if logging is to be done. */
   #logger = null;
-
-  /** @type {?BaseService} Rate limiter service to use, if any. */
-  #rateLimiter = null;
 
   /**
    * @type {?RequestLogger} HTTP(ish) request logger, if logging is to be done.
@@ -69,10 +63,9 @@ export class ProtocolWrangler {
    * @param {object} options Construction options, per the description above.
    */
   constructor(options) {
-    const { logger, rateLimiter, requestLogger } = options;
+    const { logger, requestLogger } = options;
 
     this.#logger        = logger ?? null;
-    this.#rateLimiter   = rateLimiter ?? null;
     this.#requestLogger = requestLogger
       ? new RequestLogger(requestLogger, logger)
       : null;
