@@ -210,6 +210,11 @@ export class TokenBucket {
    */
   snapshotNow() {
     this.#topUpBucket();
+
+    const maxWaiters = (this.#maxWaiters === Number.POSITIVE_INFINITY)
+      ? null
+      : this.#maxWaiters;
+
     return {
       // Timely info.
       availableBurst: this.#lastVolume,
@@ -218,7 +223,7 @@ export class TokenBucket {
       // Configuration info.
       burstSize:      this.#capacity,
       flowRate:       this.#flowRate,
-      maxWaiters:     this.#maxWaiters,
+      maxWaiters,
       partialTokens:  this.#partialTokens
     };
   }

@@ -57,6 +57,21 @@ describe('constructor()', () => {
   });
 
   test.each`
+    maxWaiters
+    ${null}
+    ${0}
+    ${10}
+  `('produces an instance with the `maxWaiters` that was passed: $maxWaiters', ({ maxWaiters }) => {
+    const bucket1 = new TokenBucket({ flowRate: 1, burstSize: 1, maxWaiters });
+    expect(bucket1.snapshotNow().maxWaiters).toBe(maxWaiters);
+  });
+
+  test('has `maxWaiters === null` if not passed', () => {
+    const bucket1 = new TokenBucket({ flowRate: 1, burstSize: 1 });
+    expect(bucket1.snapshotNow().maxWaiters).toBeNull();
+  });
+
+  test.each`
     partialTokens
     ${false}
     ${true}
