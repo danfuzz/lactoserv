@@ -67,7 +67,17 @@ export class RateLimiterService extends BaseService {
     return RateLimiterService.#requestOneToken(this.#connections, logger);
   }
 
-  // TODO: newRequest()
+  /**
+   * Waits if necessary, and async-returns when either the caller has been
+   * granted a new request or there is too much load to grant a request.
+   *
+   * @param {?function(*)} logger Logger to use for this action.
+   * @returns {boolean} Was a request actually granted?
+   */
+  async newRequest(logger) {
+    return RateLimiterService.#requestOneToken(this.#requests, logger);
+  }
+
   // TODO: sendData()
 
   /** @override */
