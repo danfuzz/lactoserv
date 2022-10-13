@@ -151,6 +151,8 @@ export class TokenBucket {
    *   `0` if the minimum required grant cannot be made.
    * * `{number} waitTime` -- The amount of time (in ATU) that was spent waiting
    *   for the grant.
+   * * `{number} waitTimeUnit` -- The unit name for the units reported in
+   *   `waitTime`.
    *
    * **Note:** It is invalid to use this method to request a grant larger than
    * the instance's configured `burstSize`.
@@ -170,11 +172,11 @@ export class TokenBucket {
       // No waiters right now, so try to get the grant synchronously.
       const got = this.takeNow(quantity);
       if (got.done) {
-        return { ...got, waitTime: 0 };
+        return this.#requestGrantResult(true, got.grant, 0);
       }
     } else if (this.#waiters.length >= this.#maxWaiters) {
       // Too many waiters, per configuration.
-      return { done: false, grant: 0, waitTime: 0 };
+      return this.#requestGrantResult(false, 0, 0);
     }
 
     const mp = new ManualPromise();
@@ -371,6 +373,23 @@ export class TokenBucket {
   }
 
   /**
+   * Produces a result for a call to {@link #requestGrant}.
+   *
+   * @param {boolean} done Done?
+   * @param {number} grant Grant amount.
+   * @param {number} waitTime Amount of time spent waiting.
+   * @returns {object} An appropriately-constructed result.
+   */
+  #requestGrantResult(done, grant, waitTime) {
+    return {
+      done,
+      grant,
+      waitTime,
+      waitTimeUnit: this.#timeSource.unitName
+    };
+  }
+
+  /**
    * Services {@link #waiters}. This gets run in {@link #waiterThread} whenever
    * {@link #waiters} is non-empty, and stops once it becomes empty.
    */
@@ -385,7 +404,7 @@ export class TokenBucket {
       if (got.done) {
         this.#waiters.shift();
         const waitTime = this.#lastNow - info.startTime;
-        info.doGrant({ ...got, waitTime });
+        info.doGrant(this.#requestGrantResult(true, got.grant, waitTime));
       } else {
         await Promise.race([
           this.wait(got.minWaitTime),
