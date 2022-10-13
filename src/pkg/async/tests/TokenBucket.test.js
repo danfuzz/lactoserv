@@ -23,10 +23,29 @@ class MockTimeSource extends TokenBucket.BaseTimeSource {
 }
 
 describe('constructor()', () => {
+  test.each`
+    opts
+    ${{ capacity: 1, fillRate: 1 }}
+    TODO: more
+  `('trivially accepts valid options: $opts', ({ opts }) => {
+    expect(() => new TokenBucket(opts)).not.toThrow();
+  });
+
   // TODO
 });
 
 describe('constructor(<invalid>)', () => {
+  test.each`
+    arg
+    ${undefined}
+    ${null}
+    ${123}
+    ${'hello'}
+    ${new Map()}
+  `('rejects non-object argument: $arg', () => {
+    expect(() => new TokenBucket(arg)).toThrow();
+  });
+
   test('rejects missing `capacity`', () => {
     expect(() => new TokenBucket({ fillRate: 1 })).toThrow();
   });
