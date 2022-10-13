@@ -28,8 +28,9 @@ const mainRules = {
     2,
     {
       'FunctionDeclaration': { 'parameters': 2 },
-      'FunctionExpression': { 'parameters': 2 },
-      'SwitchCase': 1
+      'FunctionExpression':  { 'parameters': 2 },
+      'SwitchCase':          1,
+      'ignoredNodes':        ['TemplateLiteral *']
     }
   ],
   'keyword-spacing': 'error',
@@ -82,7 +83,7 @@ const mainRules = {
     'error',
     'single',
     {
-      'avoidEscape': true,
+      'avoidEscape':           true,
       'allowTemplateLiterals': true
     }
   ],
@@ -91,8 +92,8 @@ const mainRules = {
   'space-before-function-paren': [
     'error',
     {
-      'anonymous': 'always',
-      'named': 'never',
+      'anonymous':  'always',
+      'named':      'never',
       'asyncArrow': 'always'
     }
   ],
