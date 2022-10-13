@@ -107,7 +107,7 @@ export class TcpWrangler extends ProtocolWrangler {
    * @param {...*} rest Any other arguments that happened to be be part of the
    *   `connection` event.
    */
-  #handleConnection(socket, ...rest) {
+  async #handleConnection(socket, ...rest) {
     if (this.#runner.shouldStop()) {
       // Immediately close a socket that managed to slip in while we're trying
       // to stop.
@@ -148,6 +148,14 @@ export class TcpWrangler extends ProtocolWrangler {
         connLogger.closed();
       }
     });
+
+    if (this.#rateLimiter) {
+      const granted = await this.#rateLimiter.newConnection(connLogger);
+      if (!granted) {
+        connLogger?.closingBecauseRateLimited();
+        socket.destroy();
+      }
+    }
 
     this._impl_newConnection(socket);
   }
