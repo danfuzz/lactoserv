@@ -62,13 +62,13 @@ describe('constructor()', () => {
     ${0}
     ${10}
   `('produces an instance with the `maxWaiters` that was passed: $maxWaiters', ({ maxWaiters }) => {
-    const bucket1 = new TokenBucket({ flowRate: 1, burstSize: 1, maxWaiters });
-    expect(bucket1.snapshotNow().maxWaiters).toBe(maxWaiters);
+    const bucket = new TokenBucket({ flowRate: 1, burstSize: 1, maxWaiters });
+    expect(bucket.snapshotNow().maxWaiters).toBe(maxWaiters);
   });
 
   test('has `maxWaiters === null` if not passed', () => {
-    const bucket1 = new TokenBucket({ flowRate: 1, burstSize: 1 });
-    expect(bucket1.snapshotNow().maxWaiters).toBeNull();
+    const bucket = new TokenBucket({ flowRate: 1, burstSize: 1 });
+    expect(bucket.snapshotNow().maxWaiters).toBeNull();
   });
 
   test.each`
@@ -76,13 +76,23 @@ describe('constructor()', () => {
     ${false}
     ${true}
   `('produces an instance with the `partialTokens` that was passed: $partialTokens', ({ partialTokens }) => {
-    const bucket1 = new TokenBucket({ flowRate: 1, burstSize: 1, partialTokens });
-    expect(bucket1.snapshotNow().partialTokens).toBe(partialTokens);
+    const bucket = new TokenBucket({ flowRate: 1, burstSize: 1, partialTokens });
+    expect(bucket.snapshotNow().partialTokens).toBe(partialTokens);
   });
 
   test('has `partialTokens === false` if not passed', () => {
-    const bucket1 = new TokenBucket({ flowRate: 1, burstSize: 1 });
-    expect(bucket1.snapshotNow().partialTokens).toBeFalse();
+    const bucket = new TokenBucket({ flowRate: 1, burstSize: 1 });
+    expect(bucket.snapshotNow().partialTokens).toBeFalse();
+  });
+
+  test('produces an instance with `availableBurst` equal to the passed `initialVolume`', () => {
+    const bucket = new TokenBucket({ flowRate: 1, burstSize: 100, initialVolume: 23 });
+    expect(bucket.snapshotNow().availableBurst).toBe(23);
+  });
+
+  test('has `availableBurst === burstSize` if not passed `initialVolume`', () => {
+    const bucket = new TokenBucket({ flowRate: 1, burstSize: 123 });
+    expect(bucket.snapshotNow().availableBurst).toBe(123);
   });
 
   // TODO
