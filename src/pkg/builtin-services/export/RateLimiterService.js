@@ -70,7 +70,7 @@ export class RateLimiterService extends BaseService {
 
     const got = await this.#connections.requestGrant(1);
     if (got.waitTime > 0) {
-      logger?.rateLimiterWaited({ msec: got.waitTime * 1000 });
+      logger?.rateLimiterWaited(got.waitTime, got.waitTimeUnit);
     }
 
     if (!got.done) {
