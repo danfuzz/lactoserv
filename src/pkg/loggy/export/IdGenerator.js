@@ -41,7 +41,7 @@ export class IdGenerator {
     const sequenceNumber = this.#sequenceNumber;
     this.#sequenceNumber++;
 
-    const preStr = IdGenerator.#makePrefix(now);
+    const preStr = IdGenerator.#makePrefix(now, sequenceNumber);
     const minStr = minuteNumber.toString(16).padStart(5, '0');
     const seqStr = (sequenceNumber < 0x10000)
       ? sequenceNumber.toString(16).padStart(4, '0')
@@ -56,12 +56,14 @@ export class IdGenerator {
   //
 
   /**
-   * Makes a prefix string based on a time value.
+   * Makes a prefix string based on a time value and sequence number.
    *
    * @param {number} now Recent return value from `Date.now()`.
+   * @param {number} sequenceNumber Recent / current sequence number.
    * @returns {string} A prefix string.
    */
-  static #makePrefix(now) {
+  static #makePrefix(now, sequenceNumber) {
+    const base   = now + (sequenceNumber * ((26 * 3) + 1));
     const digit1 = now % 26;
     const digit2 = Math.trunc(now / 26) % 26;
     const char1  = String.fromCharCode(digit1 + this.#LOWERCASE_A);
