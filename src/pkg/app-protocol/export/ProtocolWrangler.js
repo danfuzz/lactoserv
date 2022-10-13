@@ -5,6 +5,7 @@ import * as net from 'node:net';
 
 import express from 'express';
 
+import { BaseService } from '@this/app-services';
 import { Threadlet } from '@this/async';
 import { Methods } from '@this/typey';
 
@@ -26,6 +27,9 @@ import { RequestLogger } from '#p/RequestLogger';
 export class ProtocolWrangler {
   /** @type {?function(...*)} Logger, if logging is to be done. */
   #logger;
+
+  /** @type {?BaseService} Rate limiter service to use, if any. */
+  #rateLimiter;
 
   /**
    * @type {?RequestLogger} HTTP(ish) request logger, if logging is to be done.
@@ -63,9 +67,10 @@ export class ProtocolWrangler {
    * @param {object} options Construction options, per the description above.
    */
   constructor(options) {
-    const { logger, requestLogger } = options;
+    const { logger, rateLimiter, requestLogger } = options;
 
     this.#logger        = logger ?? null;
+    this.#rateLimiter   = rateLimiter ?? null;
     this.#requestLogger = requestLogger
       ? new RequestLogger(requestLogger, logger)
       : null;
@@ -201,11 +206,21 @@ export class ProtocolWrangler {
    * @param {function(?*)} next Function which causes the next-bound middleware
    *   to run.
    */
-  #handleRequest(req, res, next) {
+  async #handleRequest(req, res, next) {
+    let reqLogger = null;
+
     if (this.#requestLogger) {
-      const reqLogger = this.#requestLogger.logRequest(req, res);
+      reqLogger = this.#requestLogger.logRequest(req, res);
       ProtocolWrangler.#bindLogger(req, reqLogger);
       ProtocolWrangler.#bindLogger(res, reqLogger);
+    }
+
+    if (this.#rateLimiter) {
+      const granted = await this.#rateLimiter.newRequest(reqLogger);
+      if (!granted) {
+        res.status(503).end();
+        return;
+      }
     }
 
     next();
