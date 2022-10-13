@@ -46,6 +46,30 @@ describe('constructor()', () => {
     expect(() => new TokenBucket(opts)).not.toThrow();
   });
 
+  test('produces an instance with the `burstSize` that was passed', () => {
+    const bucket = new TokenBucket({ flowRate: 1, burstSize: 123 });
+    expect(bucket.snapshotNow().burstSize).toBe(123);
+  });
+
+  test('produces an instance with the `flowRate` that was passed', () => {
+    const bucket = new TokenBucket({ flowRate: 1234, burstSize: 100000 });
+    expect(bucket.snapshotNow().flowRate).toBe(1234);
+  });
+
+  test.each`
+    partialTokens
+    ${false}
+    ${true}
+  `('produces an instance with the `partialTokens` that was passed: $partialTokens', ({ partialTokens }) => {
+    const bucket1 = new TokenBucket({ flowRate: 1, burstSize: 1, partialTokens });
+    expect(bucket1.snapshotNow().partialTokens).toBe(partialTokens);
+  });
+
+  test('has `partialTokens === false` if not passed', () => {
+    const bucket1 = new TokenBucket({ flowRate: 1, burstSize: 1 });
+    expect(bucket1.snapshotNow().partialTokens).toBeFalse();
+  });
+
   // TODO
 });
 
@@ -152,35 +176,6 @@ describe('constructor(<invalid>)', () => {
   });
 });
 
-describe('.burstSize', () => {
-  test('is the value passed in on construction', () => {
-    const bucket = new TokenBucket({ flowRate: 1, burstSize: 123 });
-    expect(bucket.burstSize).toBe(123);
-  });
-});
-
-describe('.flowRate', () => {
-  test('is the value passed in on construction', () => {
-    const bucket = new TokenBucket({ flowRate: 123, burstSize: 100000 });
-    expect(bucket.flowRate).toBe(123);
-  });
-});
-
-describe('.partialTokens', () => {
-  test('defaults to `false`', () => {
-    const bucket1 = new TokenBucket({ flowRate: 1, burstSize: 1 });
-    expect(bucket1.partialTokens).toBeFalse();
-  });
-
-  test('is the value passed in on construction', () => {
-    const bucket1 = new TokenBucket({ flowRate: 1, burstSize: 1, partialTokens: false });
-    expect(bucket1.partialTokens).toBeFalse();
-
-    const bucket2 = new TokenBucket({ flowRate: 1, burstSize: 1, partialTokens: true });
-    expect(bucket2.partialTokens).toBeTrue();
-  });
-});
-
 describe('denyAllRequests()', () => {
   // TODO
 });
@@ -197,8 +192,6 @@ describe('snapshotNow()', () => {
       'burstSize', 'flowRate', 'maxWaiters', 'partialTokens'
     ]);
   });
-
-  // TODO
 });
 
 describe('takeNow()', () => {
