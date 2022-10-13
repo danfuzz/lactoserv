@@ -105,7 +105,7 @@ export class TokenBucket {
    * * `{number} volume` -- The volume, that is, the quantity of tokens, in the
    *   bucket.
    *
-   * @return {object} Snapshot, as described above.
+   * @returns {object} Snapshot, as described above.
    */
   snapshotNow() {
     this.#topUpBucket();
