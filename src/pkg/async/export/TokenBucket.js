@@ -85,10 +85,10 @@ export class TokenBucket {
    * * `{number} initialVolume` -- The volume in the bucket at the moment of
    *   construction, in tokens. Defaults to `burstSize` (that is, full and able
    *   to be maximally "bursted").
-   * * `{number} maxWaiters` -- The maximum number of waiters that are allowed
+   * * `{?number} maxWaiters` -- The maximum number of waiters that are allowed
    *   to be waiting for a token grant (see {@link #requestGrant}). Must be a
-   *   finite whole number if present. If not present, then there is no limit
-   *   on waiters.
+   *   finite whole number or `null`. If not present or `null`, then there is no
+   *   limit on waiters.
    * * `{boolean} partialTokens` -- If `true`, allows the instance to provide
    *   partial tokens (e.g. give a client `1.25` tokens). If `false`, all token
    *   handoffs from the instance are quantized to integer values. Defaults to
@@ -224,9 +224,11 @@ export class TokenBucket {
    *   * `{number} now` -- The time as of the snapshot, according to this
    *     instance's time source.
    *   * `{number} waiters` -- The number of clients awaiting a token grant.
-   * * Configuration info:
-   *   * `{number} burstSize` -- The configured `burstSize`.
-   *   * `{number} maxWaiters` -- The configured `maxWaiters`.
+   * * Configuration info (same names as passed in the constructor):
+   *   * `{number} burstSize`
+   *   * `{number} flowRate`
+   *   * `{number} maxWaiters`
+   *   * `{boolean} partialTokens`
    *
    * @returns {object} Snapshot, as described above.
    */
@@ -239,7 +241,9 @@ export class TokenBucket {
       waiters:        this.#waiters.length,
       // Configuration info.
       burstSize:      this.#capacity,
-      maxWaiters:     this.#maxWaiters
+      flowRate:       this.#flowRate,
+      maxWaiters:     this.#maxWaiters,
+      partialTokens:  this.#partialTokens
     };
   }
 
