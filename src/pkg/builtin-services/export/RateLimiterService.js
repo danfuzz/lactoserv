@@ -64,20 +64,7 @@ export class RateLimiterService extends BaseService {
    * @returns {boolean} Was a connection actually granted?
    */
   async newConnection(logger) {
-    if (!this.#connections) {
-      return true;
-    }
-
-    const got = await this.#connections.requestGrant(1);
-    if (got.waitTime > 0) {
-      logger?.rateLimiterWaited(got.waitTime, got.waitTimeUnit);
-    }
-
-    if (!got.done) {
-      logger?.rateLimiterDenied();
-    }
-
-    return got.done;
+    return RateLimiterService.#requestOneToken(this.#connections, logger);
   }
 
   // TODO: newRequest()
@@ -144,6 +131,30 @@ export class RateLimiterService extends BaseService {
     const flowRate = this.#flowRatePerSecFrom(origFlowRate, timeUnit);
 
     return new TokenBucket({ burstSize, flowRate, maxWaiters });
+  }
+
+  /**
+   * Common implementation for the single-token-type rate limiters.
+   *
+   * @param {TokenBucket} bucket Which bucket to use.
+   * @param {?function(*)} logger Logger to use for this action.
+   * @returns {boolean} Was a token actually granted?
+   */
+  static async #requestOneToken(bucket, logger) {
+    if (!bucket) {
+      return true;
+    }
+
+    const got = await bucket.requestGrant(1);
+    if (got.waitTime > 0) {
+      logger?.rateLimiterWaited(got.waitTime, got.waitTimeUnit);
+    }
+
+    if (!got.done) {
+      logger?.rateLimiterDenied();
+    }
+
+    return got.done;
   }
 
   /**
