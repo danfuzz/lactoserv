@@ -5,12 +5,20 @@ import * as timers from 'node:timers/promises';
 
 import { Methods, MustBe } from '@this/typey';
 
+import { ManualPromise } from '#x/ManualPromise';
+import { Threadlet } from '#x/Threadlet';
+
 
 /**
  * Implementation of the "token bucket" algorithm, which is more or less
  * equivalent to the "leaky bucket as meter" algorithm (though with a different
  * metaphor). That is, this class provides a rate-limiter-with-burstiness
  * service.
+ *
+ * Unlike the "pure" token bucket as described in the literature, this
+ * implementation provides a contention-handling mechanism on top of the basic
+ * bucket service. In particular, it implements a configurable-size service
+ * queue for clients waiting for tokens.
  *
  * This class defines neither the token (bucket volume) units nor the time
  * units. It is up to clients to use whatever makes sense in their context.
@@ -32,6 +40,12 @@ export class TokenBucket {
    */
   #flowRate;
 
+  /**
+   * @type {number} The maximum number of waiters that are allowed to be
+   * waiting for a token grant.
+   */
+  #maxWaiters;
+
   /** @type {boolean} Provide partial (non-integral / fractional) tokens? */
   #partialTokens;
 
@@ -48,6 +62,15 @@ export class TokenBucket {
   #lastVolume;
 
   /**
+   * @type {{ quantity: number, doGrant: function(number) }[]} Array of grant
+   * waiters.
+   */
+  #waiters = [];
+
+  /** @type {Threadlet} Servicer thread for the {@link #waiters}. */
+  #waiterThread = new Threadlet(() => this.#serviceWaiters);
+
+  /**
    * Constructs an instance. Configuration options:
    *
    * * `{number} burstSize` -- Maximum possible instantaneous burst size (that
@@ -61,6 +84,9 @@ export class TokenBucket {
    * * `{number} initialVolume` -- The volume in the bucket at the moment of
    *   construction, in tokens. Defaults to `burstSize` (that is, full and able
    *   to be maximally "bursted").
+   * * `{number} maxWaiters` -- The maximum number of waiters that are allowed
+   *   to be waiting for a token grant (see {@link #requestGrant}). Must be a
+   *   finite whole number.Defaults to `0`.
    * * `{boolean} partialTokens` -- If `true`, allows the instance to provide
    *   partial tokens (e.g. give a client `1.25` tokens). If `false`, all token
    *   handoffs from the instance are quantized to integer values. Defaults to
@@ -78,12 +104,14 @@ export class TokenBucket {
       burstSize, // See note above on property `#capacity`.
       flowRate,
       initialVolume = options.burstSize,
+      maxWaiters    = 0,
       partialTokens = false,
       timeSource    = TokenBucket.#DEFAULT_TIME_SOURCE
     } = options;
 
     this.#capacity      = MustBe.number(burstSize, { finite: true, minExclusive: 0 });
     this.#flowRate      = MustBe.number(flowRate, { finite: true, minExclusive: 0 });
+    this.#maxWaiters    = MustBe.number(maxWaiters, { finite: true, minInclusive: 0 });
     this.#partialTokens = MustBe.boolean(partialTokens);
     this.#timeSource    = MustBe.object(timeSource, TokenBucket.TimeSource);
     this.#lastVolume    = MustBe.number(initialVolume, { minInclusive: 0, maxInclusive: burstSize });
@@ -104,6 +132,11 @@ export class TokenBucket {
     return this.#flowRate;
   }
 
+  /** @returns {number} The maximum number of grant waiters allowed. */
+  get maxWaiters() {
+    return this.#maxWaiters;
+  }
+
   /** @returns {boolean} Does this instance grant partial tokens? */
   get partialTokens() {
     return this.#partialTokens;
@@ -113,16 +146,64 @@ export class TokenBucket {
    * Gets an instantaneously-current snapshot of this instance. The return
    * value is an object with the following bindings:
    *
+   * * `{number} availableBurst` -- The currently-available burst size, that is,
+   *   the quantity of tokens currently in the bucket.
+   * * `{number} burstSize` -- The configured `burstSize`.
+   * * `{number} maxWaiters` -- The configured `maxWaiters`.
    * * `{number} now` -- The time as of the snapshot, according to this
    *   instance's time source.
-   * * `{number} volume` -- The volume, that is, the quantity of tokens, in the
-   *   bucket.
+   * * `{number} waiters` -- The number of clients awaiting a token grant.
    *
    * @returns {object} Snapshot, as described above.
    */
   snapshotNow() {
     this.#topUpBucket();
-    return { now: this.#lastNow, volume: this.#lastVolume };
+    return {
+      availableBurst: this.#lastVolume,
+      burstSize:      this.#capacity,
+      maxWaiters:     this.#maxWaiters,
+      now:            this.#lastNow,
+      waiters:        this.#waiters.length
+    };
+  }
+
+  /**
+   * Requests a grant of a particular quantity of tokens, to be granted all at
+   * once. This method async-returns either when the grant has been made _or_
+   * when the instance determines that it cannot perform the grant due to its
+   * configured limits.
+   *
+   * **Note:** It is invalid to use this method to request a grant larger than
+   * the instance's configured `burstSize`.
+   *
+   * @param {number|object} quantity Requested quantity of tokens, as described
+   *   in {@link #takeNow}.
+   * @returns {number} Number of tokens actually granted (might be `0`).
+   */
+  async requestGrant(quantity) {
+    // This both sanity-checks the arguments before doing any real work _and_
+    // ensures that if we store `quantity` in a waiter entry it's not the same
+    // object as was passed in (thereby preventing the client from -- perhaps
+    // inadvertently -- messing with this instance).
+    quantity = this.#parseQuantity(quantity);
+
+    if (this.#waiters.length === 0) {
+      // No waiters right now, so try to get the grant synchronously.
+      const got = this.takeNow(quantity);
+      if (got.done) {
+        return got.grant;
+      }
+    } else if (this.#waiters.length >= this.#maxWaiters) {
+      // Too many waiters, per configuration.
+      return false;
+    }
+
+    const mp = new ManualPromise();
+
+    this.#waiters.push({ quantity, doGrant: mp.resolve });
+    this.#waiterThread.start(); // Note: Does nothing if it's already running.
+
+    return mp.promise;
   }
 
   /**
@@ -142,6 +223,9 @@ export class TokenBucket {
    *
    * This method returns an object with bindings as follows:
    *
+   * * `{boolean} done` -- `true` if the grant is considered complete. This can
+   *   be `true` even if `grant === 0`, in the case where the minimum requested
+   *   grant is in fact `0`.
    * * `{number} grant` -- The quantity of tokens granted to the caller. This is
    *   `0` if the minimum required grant cannot be made.
    * * `{number} waitTime` -- The amount of time needed to wait (in ATU) in
@@ -169,6 +253,7 @@ export class TokenBucket {
 
     const grant     = this.#calculateGrant(minInclusive, maxInclusive);
     const newVolume = this.#lastVolume - grant;
+    const done      = (grant !== 0) || (minInclusive === 0);
 
     // The wait time takes into account any tokens which remain in the bucket
     // after a partial grant.
@@ -176,7 +261,7 @@ export class TokenBucket {
     const waitTime     = neededTokens / this.#flowRate;
 
     this.#lastVolume = newVolume;
-    return { grant, waitTime };
+    return { done, grant, waitTime };
   }
 
   /**
@@ -250,6 +335,27 @@ export class TokenBucket {
     }
 
     return { minInclusive, maxInclusive };
+  }
+
+  /**
+   * Services {@link #waiters}. This gets run in {@link #waiterThread} whenever
+   * {@link #waiters} is non-empty, and stops once it becomes empty.
+   */
+  async #serviceWaiters() {
+    for (;;) {
+      const info = this.#waiters[0];
+      if (!info) {
+        break;
+      }
+
+      const got = this.takeNow(info.quantity);
+      if (got.done) {
+        this.#waiters.shift();
+        info.doGrant(got.grant);
+      } else {
+        await this.wait(got.waitTime);
+      }
+    }
   }
 
   /**
