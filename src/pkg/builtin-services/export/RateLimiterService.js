@@ -89,7 +89,11 @@ export class RateLimiterService extends BaseService {
 
   /** @override */
   async stop() {
-    // TODO: Stop the token bucket.
+    await Promise.all([
+      this.#connections?.denyAllRequests(),
+      this.#data?.denyAllRequests(),
+      this.#requests?.denyAllRequests()
+    ]);
   }
 
 
