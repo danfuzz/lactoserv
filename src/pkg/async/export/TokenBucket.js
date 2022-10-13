@@ -12,8 +12,8 @@ import { Methods, MustBe } from '@this/typey';
  * metaphor). That is, this class provides a rate-limiter-with-burstiness
  * service.
  *
- * This class defines neither the volume (capacity) units nor the time units. It
- * is up to clients to use whatever makes sense in their context.
+ * This class defines neither the token (bucket volume) units nor the time
+ * units. It is up to clients to use whatever makes sense in their context.
  */
 export class TokenBucket {
   /**
@@ -133,7 +133,7 @@ export class TokenBucket {
    * * `{number} minInclusive` -- Minimum quantity of tokens to be granted. If
    *   the minimum can't be met, then the call will grant no (`0`) tokens.
    *   Defaults to `0`. Invalid if negative or larger than this instance's
-   *   bucket capacity. If this instance was constructed with `partialTokens ===
+   *   `burstSize`. If this instance was constructed with `partialTokens ===
    *   false`, then it is rounded up (`Math.ceil()`) when not a whole number.
    * * `{number} maxInclusive` -- Maximum quantity of tokens to be granted.
    *   Defaults to `0`. Invalid if negative, and clamped at `minInclusive`. If
@@ -153,14 +153,14 @@ export class TokenBucket {
    * Note: This method _first_ tops up the token bucket based on the amount of
    * time elapsed since the previous top-up, and _then_ removes tokens. This
    * means (a) that it's never possible to take more tokens than the total
-   * bucket capacity, and (b) it is possible to totally empty the bucket with a
-   * call to this method.
+   * `burstSize`, and (b) it is possible to totally empty the bucket with a call
+   * to this method.
    *
    * @param {number|object} quantity Requested quantity of tokens, as described
    *   above.
    * @returns {object} Result object as described above.
    * @throws {Error} Thrown if the request is invalid (inverted range,
-   *   `minInclusive` is more than the bucket capacity, etc.).
+   *   `minInclusive` is more than the `burstSize`, etc.).
    */
   takeNow(quantity) {
     const { minInclusive, maxInclusive } = this.#parseQuantity(quantity);
@@ -242,7 +242,7 @@ export class TokenBucket {
       MustBe.number(minInclusive, { minInclusive: 0, maxInclusive: this.#capacity });
       MustBe.number(maxInclusive, { minInclusive: 0 });
     } catch (e) {
-      throw new Error(`Impossible take request: ${minInclusive}..${maxInclusive}, capacity ${this.#capacity}`);
+      throw new Error(`Impossible take request: ${minInclusive}..${maxInclusive}, burst size ${this.#capacity}`);
     }
 
     if (maxInclusive < minInclusive) {
