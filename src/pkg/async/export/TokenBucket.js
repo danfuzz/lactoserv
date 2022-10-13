@@ -200,11 +200,14 @@ export class TokenBucket {
    *   * `{number} now` -- The time as of the snapshot, according to this
    *     instance's time source.
    *   * `{number} waiters` -- The number of clients awaiting a token grant.
-   * * Configuration info (same names as passed in the constructor):
+   * * Configuration info (same names as passed in the constructor, except as
+   *   noted):
    *   * `{number} burstSize`
    *   * `{number} flowRate`
    *   * `{number} maxWaiters`
    *   * `{boolean} partialTokens`
+   *   * `{string} timeUnit` -- Name of the unit which this instance's time
+   *     source uses.
    *
    * @returns {object} Snapshot, as described above.
    */
@@ -224,7 +227,8 @@ export class TokenBucket {
       burstSize:      this.#capacity,
       flowRate:       this.#flowRate,
       maxWaiters,
-      partialTokens:  this.#partialTokens
+      partialTokens:  this.#partialTokens,
+      timeUnit:       this.#timeSource.unitName
     };
   }
 

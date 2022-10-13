@@ -99,7 +99,15 @@ describe('constructor()', () => {
     expect(bucket.snapshotNow().availableBurst).toBe(123);
   });
 
-  // TODO: Time source.
+  test('produces an instance which uses the `timeSource` that was passed', () => {
+    const bucket = new TokenBucket({ flowRate: 1, burstSize: 1, timeSource: new MockTimeSource() });
+    expect(bucket.snapshotNow().timeUnit).toBe('some-unit');
+  });
+
+  test('produces an instance which uses a seconds-based time source if not passed `timeSource`', () => {
+    const bucket = new TokenBucket({ flowRate: 1, burstSize: 1 });
+    expect(bucket.snapshotNow().timeUnit).toBe('seconds');
+  });
 });
 
 describe('constructor(<invalid>)', () => {
@@ -218,7 +226,7 @@ describe('snapshotNow()', () => {
     const bucket = new TokenBucket({ flowRate: 123, burstSize: 100000 });
     expect(bucket.snapshotNow()).toContainAllKeys([
       'availableBurst', 'now', 'waiters',
-      'burstSize', 'flowRate', 'maxWaiters', 'partialTokens'
+      'burstSize', 'flowRate', 'maxWaiters', 'partialTokens', 'timeUnit'
     ]);
   });
 });
