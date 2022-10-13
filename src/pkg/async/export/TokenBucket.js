@@ -81,6 +81,21 @@ export class TokenBucket {
     this.#lastNow       = this.#timeSource.now();
   }
 
+  /** @returns {number} The bucket capacity, in tokens. */
+  get capacity() {
+    return this.#capacity;
+  }
+
+  /** @returns {number} The fill rate, in tokens per ATU. */
+  get fillRate() {
+    return this.#fillRate;
+  }
+
+  /** @returns {boolean} Does this instance grant partial tokens? */
+  get partialTokens() {
+    return this.#partialTokens;
+  }
+
   /**
    * Instantaneously takes as many tokens as allowed, within the specified
    * range. This method accepts either an exact number of tokens to request or

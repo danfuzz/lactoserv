@@ -39,7 +39,6 @@ describe('constructor()', () => {
     ${{ capacity: 1, fillRate: 1, timeSource: new MockTimeSource() }}
     ${{ capacity: 1, fillRate: 1, initialVolume: 0.5, partialTokens: true,
         timeSource: new MockTimeSource() }}
-    TODO: more
   `('trivially accepts valid options: $opts', ({ opts }) => {
     expect(() => new TokenBucket(opts)).not.toThrow();
   });
@@ -135,6 +134,35 @@ describe('constructor(<invalid>)', () => {
     ${MockTimeSource /* ditto */}
   `('rejects invalid `timeSource`: $timeSource', (timeSource) => {
     expect(() => new TokenBucket({ fillRate: 1, capacity: 1, timeSource })).toThrow();
+  });
+});
+
+describe('.capacity', () => {
+  test('is the value passed in on construction', () => {
+    const bucket = new TokenBucket({ fillRate: 1, capacity: 123 });
+    expect(bucket.capacity).toBe(123);
+  })
+});
+
+describe('.fillRate', () => {
+  test('is the value passed in on construction', () => {
+    const bucket = new TokenBucket({ fillRate: 123, capacity: 100000 });
+    expect(bucket.fillRate).toBe(123);
+  })
+});
+
+describe('.partialTokens', () => {
+  test('defaults to `false`', () => {
+    const bucket1 = new TokenBucket({ fillRate: 1, capacity: 1 });
+    expect(bucket1.partialTokens).toBeFalse();
+  });
+
+  test('is the value passed in on construction', () => {
+    const bucket1 = new TokenBucket({ fillRate: 1, capacity: 1, partialTokens: false });
+    expect(bucket1.partialTokens).toBeFalse();
+
+    const bucket2 = new TokenBucket({ fillRate: 1, capacity: 1, partialTokens: true });
+    expect(bucket2.partialTokens).toBeTrue();
   });
 });
 
