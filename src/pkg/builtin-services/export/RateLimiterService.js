@@ -89,7 +89,7 @@ export class RateLimiterService extends BaseService {
 
   /** @override */
   async stop() {
-    // Nothing to do here.
+    // TODO: Stop the token bucket.
   }
 
 
