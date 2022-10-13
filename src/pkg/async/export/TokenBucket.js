@@ -97,6 +97,22 @@ export class TokenBucket {
   }
 
   /**
+   * Gets an instantaneously-current snapshot of this instance. The return
+   * value is an object with the following bindings:
+   *
+   * * `{number} now` -- The time as of the snapshot, according to this
+   *   instance's time source.
+   * * `{number} volume` -- The volume, that is, the quantity of tokens, in the
+   *   bucket.
+   *
+   * @return {object} Snapshot, as described above.
+   */
+  snapshotNow() {
+    this.#topUpBucket();
+    return { now: this.#lastNow, volume: this.#lastVolume };
+  }
+
+  /**
    * Instantaneously takes as many tokens as allowed, within the specified
    * range. This method accepts either an exact number of tokens to request or
    * an object as follows:

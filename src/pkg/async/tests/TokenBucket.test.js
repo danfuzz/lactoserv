@@ -166,6 +166,10 @@ describe('.partialTokens', () => {
   });
 });
 
+describe('snapshotNow()', () => {
+  // TODO
+});
+
 describe('takeNow()', () => {
   // TODO
 });
