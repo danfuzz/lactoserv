@@ -3,6 +3,7 @@
 
 import { ServiceFactory } from '@this/app-services';
 
+import { RateLimiterService } from '#x/RateLimiterService';
 import { RequestLoggerService } from '#x/RequestLoggerService';
 import { SystemLoggerService } from '#x/SystemLoggerService';
 
@@ -15,6 +16,7 @@ export class BuiltinServices {
    * Registers all the apps defined by this module.
    */
   static register() {
+    ServiceFactory.register(RateLimiterService);
     ServiceFactory.register(RequestLoggerService);
     ServiceFactory.register(SystemLoggerService);
   }
