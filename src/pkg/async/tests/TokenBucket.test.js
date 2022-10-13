@@ -26,11 +26,14 @@ describe('constructor()', () => {
   test.each`
     opts
     ${{ capacity: 1, fillRate: 1 }}
+    ${{ capacity: 0.01, fillRate: 0.0001 }}
+    ${{ capacity: 200000, fillRate: 109 }}
     ${{ capacity: 1, fillRate: 1, initialVolume: 0 }}
     ${{ capacity: 1, fillRate: 1, initialVolume: 1 }}
     ${{ capacity: 10, fillRate: 1, initialVolume: 10 }}
     ${{ capacity: 10, fillRate: 1, initialVolume: 9 }}
     ${{ capacity: 1, fillRate: 1, partialTokens: false }}
+    ${{ capacity: 123.456, fillRate: 12.3, partialTokens: false }}
     ${{ capacity: 1, fillRate: 1, partialTokens: true }}
     ${{ capacity: 1, fillRate: 1, timeSource: new TokenBucket.StdTimeSource() }}
     ${{ capacity: 1, fillRate: 1, timeSource: new MockTimeSource() }}
