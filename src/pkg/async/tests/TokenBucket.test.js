@@ -115,8 +115,7 @@ describe('constructor(<invalid>)', () => {
 
   test.each`
     maxWaiters
-    ${null}
-    ${true}
+    ${false}
     ${'123'}
     ${[123]}
     ${-1}
@@ -191,6 +190,14 @@ describe('requestGrant()', () => {
 });
 
 describe('snapshotNow()', () => {
+  test('has exactly the expected properties', () => {
+    const bucket = new TokenBucket({ flowRate: 123, burstSize: 100000 });
+    expect(bucket.snapshotNow()).toContainAllKeys([
+      'availableBurst', 'now', 'waiters',
+      'burstSize', 'flowRate', 'maxWaiters', 'partialTokens'
+    ]);
+  });
+
   // TODO
 });
 
