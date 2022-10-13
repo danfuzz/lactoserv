@@ -63,8 +63,8 @@ export class TokenBucket {
   #lastVolume;
 
   /**
-   * @type {{ quantity: number, doGrant: function(number) }[]} Array of grant
-   * waiters.
+   * @type {{ quantity: number, startTime: number, doGrant:
+   * function(number) }[]} Array of grant waiters.
    */
   #waiters = [];
 
@@ -154,6 +154,16 @@ export class TokenBucket {
    * when the instance determines that it cannot perform the grant due to its
    * configured limits.
    *
+   * This method returns an object with bindings as follows:
+   *
+   * * `{boolean} done` -- `true` if the grant was actually made. This can be
+   *   be `true` even if `grant === 0`, in the case where the minimum requested
+   *   grant is in fact `0`.
+   * * `{number} grant` -- The quantity of tokens granted to the caller. This is
+   *   `0` if the minimum required grant cannot be made.
+   * * `{number} waitTime` -- The amount of time (in ATU) that was spent waiting
+   *   for the grant.
+   *
    * **Note:** It is invalid to use this method to request a grant larger than
    * the instance's configured `burstSize`.
    *
@@ -172,16 +182,20 @@ export class TokenBucket {
       // No waiters right now, so try to get the grant synchronously.
       const got = this.takeNow(quantity);
       if (got.done) {
-        return got.grant;
+        return { ...got, waitTime: 0 };
       }
     } else if (this.#waiters.length >= this.#maxWaiters) {
       // Too many waiters, per configuration.
-      return 0;
+      return { done: false, grant: 0, waitTime: 0 };
     }
 
     const mp = new ManualPromise();
 
-    this.#waiters.push({ quantity, doGrant: v => mp.resolve(v) });
+    this.#waiters.push({
+      quantity,
+      startTime: this.#lastNow,
+      doGrant:   v => mp.resolve(v)
+    });
     this.#waiterThread.start(); // Note: Does nothing if it's already running.
 
     return mp.promise;
@@ -357,7 +371,8 @@ export class TokenBucket {
       const got = this.takeNow(info.quantity);
       if (got.done) {
         this.#waiters.shift();
-        info.doGrant(got.grant);
+        const waitTime = this.#lastNow - info.startTime;
+        info.doGrant({ ...got, waitTime });
       } else {
         await this.wait(got.waitTime);
       }

@@ -68,9 +68,16 @@ export class RateLimiterService extends BaseService {
       return true;
     }
 
-    logger.rateSnapshot(this.#connections.snapshotNow());
     const got = await this.#connections.requestGrant(1);
-    return (got === 1);
+    if (got.waitTime > 0) {
+      logger?.rateLimiterWaited(got.waitTime);
+    }
+
+    if (!got.done) {
+      logger?.rateLimiterDenied();
+    }
+
+    return got.done;
   }
 
   // TODO: More!

@@ -152,7 +152,6 @@ export class TcpWrangler extends ProtocolWrangler {
     if (this.#rateLimiter) {
       const granted = await this.#rateLimiter.newConnection(connLogger);
       if (!granted) {
-        connLogger?.closingBecauseRateLimited();
         socket.destroy();
       }
     }
