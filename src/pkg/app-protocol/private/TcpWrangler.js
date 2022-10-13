@@ -61,6 +61,7 @@ export class TcpWrangler extends ProtocolWrangler {
       TcpWrangler.#trimOptions(options.socket, TcpWrangler.#CREATE_PROTO));
 
     this.#serverSocket.on('connection', (...args) => this.#handleConnection(...args));
+    this.#serverSocket.on('drop', (...args) => this.#handleDrop(...args));
   }
 
   /** @override */
@@ -142,6 +143,17 @@ export class TcpWrangler extends ProtocolWrangler {
     });
 
     this._impl_newConnection(socket);
+  }
+
+  /**
+   * Handles a dropped connection (that is, a connection automatically dropped
+   * by the underlying `Server` instance, based on its configured
+   * `maxConnections`).
+   *
+   * @param {object} data Information about the dropped connection.
+   */
+  #handleDrop(data) {
+    this.#logger?.droppedConnection(data);
   }
 
   /**
