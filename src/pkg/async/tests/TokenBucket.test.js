@@ -9,6 +9,10 @@ import { TokenBucket } from '@this/async';
 class MockTimeSource extends TokenBucket.BaseTimeSource {
   #now = 0;
 
+  get unitName() {
+    return 'some-unit';
+  }
+
   now() {
     return this.#now;
   }

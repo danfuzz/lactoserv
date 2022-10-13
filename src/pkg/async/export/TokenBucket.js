@@ -433,6 +433,11 @@ export class TokenBucket {
   static BaseTimeSource = class BaseTimeSource {
     // Note: The default constructor is fine.
 
+    /** @returns {string} The name of the unit which this instance uses. */
+    get unitName() {
+      return Methods.abstract();
+    }
+
     /**
      * Gets the current time, in arbitrary time units (ATU) which have elapsed
      * since an arbitrary base time.
@@ -466,6 +471,11 @@ export class TokenBucket {
    */
   static StdTimeSource = class StdTimeSource extends this.BaseTimeSource {
     // Note: The default constructor is fine.
+
+    /** @override */
+    get unitName() {
+      return 'seconds';
+    }
 
     /** @override */
     now() {
