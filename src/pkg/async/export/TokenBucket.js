@@ -218,12 +218,6 @@ export class TokenBucket {
   // Static members
   //
 
-  /** {number} The number of milliseconds in a second. */
-  static #MSEC_PER_SEC = 1000;
-
-  /** {number} The number of seconds in a millisecond. */
-  static #SECS_PER_MSEC = 1 / 1000;
-
   /** @type {TokenBucket.StdTimeSource} Default time source. */
   static #DEFAULT_TIME_SOURCE;
 
@@ -269,13 +263,19 @@ export class TokenBucket {
 
     /** @override */
     now() {
-      return Date.now() * this.#SECS_PER_MSEC;
+      return Date.now() * StdTimeSource.#SECS_PER_MSEC;
     }
 
     /** @override */
     async setTimeout(delay, value = null) {
-      return timers.setTimeout(delay * this.#MSEC_PER_SEC, value);
+      return timers.setTimeout(delay * StdTimeSource.#MSEC_PER_SEC, value);
     }
+
+    /** {number} The number of milliseconds in a second. */
+    static #MSEC_PER_SEC = 1000;
+
+    /** {number} The number of seconds in a millisecond. */
+    static #SECS_PER_MSEC = 1 / 1000;
   };
 
   static {
