@@ -44,10 +44,11 @@ export class TokenBucket {
    * Constructs an instance. Configuration options:
    *
    * * `{number} capacity` -- Bucket capacity, in tokens (arbitrary volume
-   *   units). This defines the "burstiness" allowed by the instance. Must be
-   *   a finite positive number. This is a required "option."
+   *   units). This defines the "burstiness" allowed by the instance. Must be a
+   *   finite positive number. This is a required "option."
    * * `{number} fillRate` -- Bucket fill rate, that is, how quickly the bucket
-   *   gets filled, in tokens per arbitrary time unit (tokens / ATU). Must be a
+   *   gets filled, in tokens per arbitrary time unit (tokens / ATU). This
+   *   defines the steady state "flow rate" allowed by the instance. Must be a
    *   finite positive number. This is a required "option."
    * * `{number} initialVolume` -- The volume in the bucket at the moment of
    *   construction, in tokens. Defaults to `capacity` (that is, full and able
@@ -164,6 +165,18 @@ export class TokenBucket {
 
     this.#lastVolume = newVolume;
     return { grant, waitTime };
+  }
+
+  /**
+   * Async-returns after a specified amount of time has passed, using the
+   * units defined by this instance's time source.
+   *
+   * @param {number} waitTime The amount of time to wait, in ATU.
+   */
+  async wait(waitTime) {
+    if (waitTime > 0) {
+      await this.#timeSource.setTimeout(waitTime);
+    }
   }
 
   /**

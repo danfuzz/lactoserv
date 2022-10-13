@@ -173,3 +173,7 @@ describe('snapshotNow()', () => {
 describe('takeNow()', () => {
   // TODO
 });
+
+describe('wait()', () => {
+  // TODO
+});
