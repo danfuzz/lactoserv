@@ -64,8 +64,8 @@ export class IdGenerator {
    */
   static #makePrefix(now, sequenceNumber) {
     const base   = now + (sequenceNumber * ((26 * 3) + 1));
-    const digit1 = now % 26;
-    const digit2 = Math.trunc(now / 26) % 26;
+    const digit1 = base % 26;
+    const digit2 = Math.trunc(base / 26) % 26;
     const char1  = String.fromCharCode(digit1 + this.#LOWERCASE_A);
     const char2  = String.fromCharCode(digit2 + this.#LOWERCASE_A);
 
