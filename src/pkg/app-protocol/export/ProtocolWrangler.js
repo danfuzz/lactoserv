@@ -25,12 +25,12 @@ import { RequestLogger } from '#p/RequestLogger';
  */
 export class ProtocolWrangler {
   /** @type {?function(...*)} Logger, if logging is to be done. */
-  #logger = null;
+  #logger;
 
   /**
    * @type {?RequestLogger} HTTP(ish) request logger, if logging is to be done.
    */
-  #requestLogger = null;
+  #requestLogger;
 
   /**
    * @type {boolean} Has the high-level application been initialized by this
