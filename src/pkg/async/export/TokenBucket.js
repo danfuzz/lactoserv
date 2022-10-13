@@ -214,27 +214,32 @@ export class TokenBucket {
   }
 
   /**
-   * Gets an instantaneously-current snapshot of this instance. The return
-   * value is an object with the following bindings:
+   * Gets an instantaneously-current snapshot of this instance, including
+   * configuration info. The return value is an object with the following
+   * bindings:
    *
-   * * `{number} availableBurst` -- The currently-available burst size, that is,
-   *   the quantity of tokens currently in the bucket.
-   * * `{number} burstSize` -- The configured `burstSize`.
-   * * `{number} maxWaiters` -- The configured `maxWaiters`.
-   * * `{number} now` -- The time as of the snapshot, according to this
-   *   instance's time source.
-   * * `{number} waiters` -- The number of clients awaiting a token grant.
+   * * Timely info:
+   *   * `{number} availableBurst` -- The currently-available burst size, that
+   *     is, the quantity of tokens currently in the bucket.
+   *   * `{number} now` -- The time as of the snapshot, according to this
+   *     instance's time source.
+   *   * `{number} waiters` -- The number of clients awaiting a token grant.
+   * * Configuration info:
+   *   * `{number} burstSize` -- The configured `burstSize`.
+   *   * `{number} maxWaiters` -- The configured `maxWaiters`.
    *
    * @returns {object} Snapshot, as described above.
    */
   snapshotNow() {
     this.#topUpBucket();
     return {
+      // Timely info.
       availableBurst: this.#lastVolume,
-      burstSize:      this.#capacity,
-      maxWaiters:     this.#maxWaiters,
       now:            this.#lastNow,
-      waiters:        this.#waiters.length
+      waiters:        this.#waiters.length,
+      // Configuration info.
+      burstSize:      this.#capacity,
+      maxWaiters:     this.#maxWaiters
     };
   }
 
