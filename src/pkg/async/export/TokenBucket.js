@@ -149,6 +149,18 @@ export class TokenBucket {
   }
 
   /**
+   * Denies grant requests for all current waiters, clearing the waiters queue.
+   * This is useful when trying to cleanly shut down the service which this
+   * instance is associated with. This method async-returns once all denials
+   * have been processed.
+   */
+  async denyAllRequests() {
+    if (this.#waiters.length !== 0) {
+      await this.#waiterThread.stop();
+    }
+  }
+
+  /**
    * Requests a grant of a particular quantity of tokens, to be granted all at
    * once. This method async-returns either when the grant has been made _or_
    * when the instance determines that it cannot perform the grant due to its
@@ -362,7 +374,7 @@ export class TokenBucket {
    * {@link #waiters} is non-empty, and stops once it becomes empty.
    */
   async #serviceWaiters() {
-    for (;;) {
+    while (!this.#waiterThread.shouldStop()) {
       const info = this.#waiters[0];
       if (!info) {
         break;
@@ -374,8 +386,22 @@ export class TokenBucket {
         const waitTime = this.#lastNow - info.startTime;
         info.doGrant({ ...got, waitTime });
       } else {
-        await this.wait(got.waitTime);
+        await Promise.race([
+          this.wait(got.waitTime),
+          this.#waiterThread.whenStopRequested()
+        ]);
       }
+    }
+
+    if (this.#waiterThread.shouldStop()) {
+      // The thread was asked to stop, which only happens in this class when
+      // `denyAllRequests()` was called. So, deny all requests.
+      for (const info of this.#waiters) {
+        const waitTime = this.#lastNow - info.startTime;
+        info.doGrant({ done: false, grant: 0, waitTime });
+      }
+
+      this.#waiters = [];
     }
   }
 

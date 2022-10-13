@@ -182,6 +182,10 @@ describe('.partialTokens', () => {
   });
 });
 
+describe('denyAllRequests()', () => {
+  // TODO
+});
+
 describe('requestGrant()', () => {
   // TODO
 });
