@@ -32,6 +32,9 @@ describe('constructor()', () => {
     ${{ burstSize: 1, flowRate: 1, initialVolume: 1 }}
     ${{ burstSize: 10, flowRate: 1, initialVolume: 10 }}
     ${{ burstSize: 10, flowRate: 1, initialVolume: 9 }}
+    ${{ burstSize: 1, flowRate: 1, maxWaiters: 0 }}
+    ${{ burstSize: 1, flowRate: 1, maxWaiters: 1 }}
+    ${{ burstSize: 1, flowRate: 1, maxWaiters: 1000 }}
     ${{ burstSize: 1, flowRate: 1, partialTokens: false }}
     ${{ burstSize: 123.456, flowRate: 12.3, partialTokens: false }}
     ${{ burstSize: 1, flowRate: 1, partialTokens: true }}
@@ -54,7 +57,7 @@ describe('constructor(<invalid>)', () => {
     ${123}
     ${'hello'}
     ${new Map()}
-  `('rejects non-object argument: $arg', (arg) => {
+  `('rejects non-object argument: $arg', ({ arg }) => {
     expect(() => new TokenBucket(arg)).toThrow();
   });
 
@@ -78,7 +81,7 @@ describe('constructor(<invalid>)', () => {
     ${0}
     ${NaN}
     ${Number.POSITIVE_INFINITY}
-  `('rejects invalid `burstSize`: $burstSize', (burstSize) => {
+  `('rejects invalid `burstSize`: $burstSize', ({ burstSize }) => {
     expect(() => new TokenBucket({ burstSize, flowRate: 1 })).toThrow();
   });
 
@@ -94,7 +97,7 @@ describe('constructor(<invalid>)', () => {
     ${0}
     ${NaN}
     ${Number.POSITIVE_INFINITY}
-  `('rejects invalid `flowRate`: $flowRate', (flowRate) => {
+  `('rejects invalid `flowRate`: $flowRate', ({ flowRate }) => {
     expect(() => new TokenBucket({ flowRate, burstSize: 1 })).toThrow();
   });
 
@@ -106,8 +109,21 @@ describe('constructor(<invalid>)', () => {
     ${[123]}
     ${-1}
     ${-0.1}
-  `('rejects invalid `initialVolume`: $initialVolume', (initialVolume) => {
+  `('rejects invalid `initialVolume`: $initialVolume', ({ initialVolume }) => {
     expect(() => new TokenBucket({ flowRate: 1, burstSize: 1, initialVolume })).toThrow();
+  });
+
+  test.each`
+    maxWaiters
+    ${null}
+    ${true}
+    ${'123'}
+    ${[123]}
+    ${-1}
+    ${0.1}
+    ${Number.POSITIVE_INFINITY}
+  `('rejects invalid `maxWaiters`: $maxWaiters', ({ maxWaiters }) => {
+    expect(() => new TokenBucket({ flowRate: 1, burstSize: 1, maxWaiters })).toThrow();
   });
 
   test('rejects invalid `initialVolume` (`> burstSize`)', () => {
@@ -121,7 +137,7 @@ describe('constructor(<invalid>)', () => {
     ${'true'}
     ${[false]}
     ${0}
-  `('rejects invalid `partialTokens`: $partialTokens', (partialTokens) => {
+  `('rejects invalid `partialTokens`: $partialTokens', ({ partialTokens }) => {
     expect(() => new TokenBucket({ flowRate: 1, burstSize: 1, partialTokens })).toThrow();
   });
 
@@ -132,7 +148,7 @@ describe('constructor(<invalid>)', () => {
     ${new Map()}
     ${TokenBucket.BaseTimeSource /* supposed to be an instance, not a class */}
     ${MockTimeSource /* ditto */}
-  `('rejects invalid `timeSource`: $timeSource', (timeSource) => {
+  `('rejects invalid `timeSource`: $timeSource', ({ timeSource }) => {
     expect(() => new TokenBucket({ flowRate: 1, burstSize: 1, timeSource })).toThrow();
   });
 });
@@ -164,6 +180,10 @@ describe('.partialTokens', () => {
     const bucket2 = new TokenBucket({ flowRate: 1, burstSize: 1, partialTokens: true });
     expect(bucket2.partialTokens).toBeTrue();
   });
+});
+
+describe('requestGrant()', () => {
+  // TODO
 });
 
 describe('snapshotNow()', () => {

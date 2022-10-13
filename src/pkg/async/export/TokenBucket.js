@@ -111,7 +111,7 @@ export class TokenBucket {
 
     this.#capacity      = MustBe.number(burstSize, { finite: true, minExclusive: 0 });
     this.#flowRate      = MustBe.number(flowRate, { finite: true, minExclusive: 0 });
-    this.#maxWaiters    = MustBe.number(maxWaiters, { finite: true, minInclusive: 0 });
+    this.#maxWaiters    = MustBe.number(maxWaiters, { safeInteger: true, minInclusive: 0 });
     this.#partialTokens = MustBe.boolean(partialTokens);
     this.#timeSource    = MustBe.object(timeSource, TokenBucket.TimeSource);
     this.#lastVolume    = MustBe.number(initialVolume, { minInclusive: 0, maxInclusive: burstSize });
