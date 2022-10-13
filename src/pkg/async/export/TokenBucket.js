@@ -149,31 +149,6 @@ export class TokenBucket {
   }
 
   /**
-   * Gets an instantaneously-current snapshot of this instance. The return
-   * value is an object with the following bindings:
-   *
-   * * `{number} availableBurst` -- The currently-available burst size, that is,
-   *   the quantity of tokens currently in the bucket.
-   * * `{number} burstSize` -- The configured `burstSize`.
-   * * `{number} maxWaiters` -- The configured `maxWaiters`.
-   * * `{number} now` -- The time as of the snapshot, according to this
-   *   instance's time source.
-   * * `{number} waiters` -- The number of clients awaiting a token grant.
-   *
-   * @returns {object} Snapshot, as described above.
-   */
-  snapshotNow() {
-    this.#topUpBucket();
-    return {
-      availableBurst: this.#lastVolume,
-      burstSize:      this.#capacity,
-      maxWaiters:     this.#maxWaiters,
-      now:            this.#lastNow,
-      waiters:        this.#waiters.length
-    };
-  }
-
-  /**
    * Requests a grant of a particular quantity of tokens, to be granted all at
    * once. This method async-returns either when the grant has been made _or_
    * when the instance determines that it cannot perform the grant due to its
@@ -210,6 +185,31 @@ export class TokenBucket {
     this.#waiterThread.start(); // Note: Does nothing if it's already running.
 
     return mp.promise;
+  }
+
+  /**
+   * Gets an instantaneously-current snapshot of this instance. The return
+   * value is an object with the following bindings:
+   *
+   * * `{number} availableBurst` -- The currently-available burst size, that is,
+   *   the quantity of tokens currently in the bucket.
+   * * `{number} burstSize` -- The configured `burstSize`.
+   * * `{number} maxWaiters` -- The configured `maxWaiters`.
+   * * `{number} now` -- The time as of the snapshot, according to this
+   *   instance's time source.
+   * * `{number} waiters` -- The number of clients awaiting a token grant.
+   *
+   * @returns {object} Snapshot, as described above.
+   */
+  snapshotNow() {
+    this.#topUpBucket();
+    return {
+      availableBurst: this.#lastVolume,
+      burstSize:      this.#capacity,
+      maxWaiters:     this.#maxWaiters,
+      now:            this.#lastNow,
+      waiters:        this.#waiters.length
+    };
   }
 
   /**
