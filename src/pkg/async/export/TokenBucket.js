@@ -260,11 +260,16 @@ export class TokenBucket {
    *   grant is in fact `0`.
    * * `{number} grant` -- The quantity of tokens granted to the caller. This is
    *   `0` if the minimum required grant cannot be made.
-   * * `{number} waitTime` -- The amount of time needed to wait (in ATU) in
+   * * `{number} maxWaitTime` -- The amount of time needed to wait (in ATU) in
    *   order to possibly be granted the maximum requested quantity of tokens.
-   *   This is a wait time in the absence of contention for the tokens from
-   *   other clients; if there are other active clients, the actual required
-   *   wait time will turn out to be more.
+   * * `{number} minWaitTime` -- The amount of time needed to wait (in ATU) in
+   *   order to possibly be granted the minimum requested quantity of tokens.
+   *   This is only non-zero if `done === false`.
+   *
+   * Note: `maxWaitTime` and `minWaitTime` in the return value are times that do
+   * not take into account contention for tokens from other clients. If there
+   * are other active clients, the actual required wait times will turn out to
+   * be larger than what was returned.
    *
    * Note: This method _first_ tops up the token bucket based on the amount of
    * time elapsed since the previous top-up, and _then_ removes tokens. This
@@ -287,13 +292,15 @@ export class TokenBucket {
     const newVolume = this.#lastVolume - grant;
     const done      = (grant !== 0) || (minInclusive === 0);
 
-    // The wait time takes into account any tokens which remain in the bucket
+    // The wait times take into account any tokens which remain in the bucket
     // after a partial grant.
-    const neededTokens = Math.max(0, (maxInclusive - grant) - newVolume);
-    const waitTime     = neededTokens / this.#flowRate;
+    const neededMax = Math.max(0, (maxInclusive - grant) - newVolume);
+    const neededMin = Math.max(0, (minInclusive - grant) - newVolume);
+    const maxWaitTime  = neededMax / this.#flowRate;
+    const minWaitTime  = neededMin / this.#flowRate;
 
     this.#lastVolume = newVolume;
-    return { done, grant, waitTime };
+    return { done, grant, maxWaitTime, minWaitTime };
   }
 
   /**
@@ -387,7 +394,7 @@ export class TokenBucket {
         info.doGrant({ ...got, waitTime });
       } else {
         await Promise.race([
-          this.wait(got.waitTime),
+          this.wait(got.minWaitTime),
           this.#waiterThread.whenStopRequested()
         ]);
       }
