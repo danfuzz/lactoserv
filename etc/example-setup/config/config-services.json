@@ -18,7 +18,7 @@
       "burstSize":  10,
       "flowRate":   1,
       "timeUnit":   "second",
-      "maxWaiters": 2
+      "maxWaiters": 10
     },
     "requests": {
       "burstSize": 100,
