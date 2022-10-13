@@ -147,10 +147,9 @@ export class RateLimiterService extends BaseService {
     }
 
     const { burstSize, flowRate: origFlowRate, timeUnit } = config;
-    const capacity = burstSize;
     const flowRate = this.#flowRatePerSecFrom(origFlowRate, timeUnit);
 
-    return new TokenBucket({ capacity, flowRate });
+    return new TokenBucket({ burstSize, flowRate });
   }
 
   /**

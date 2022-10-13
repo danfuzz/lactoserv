@@ -16,7 +16,14 @@ import { Methods, MustBe } from '@this/typey';
  * is up to clients to use whatever makes sense in their context.
  */
 export class TokenBucket {
-  /** @type {number} Bucket capacity, in tokens (arbitrary volume units). */
+  /**
+   * Note: Though the constructor option is called `burstSize`, in the guts of
+   * the implementation, it makes more sense to think of it as the bucket
+   * capacity, which is why the internal property name is `capacity`.
+   *
+   * @type {number} Bucket capacity (that is, maximum possible instantaneous
+   * burst size), in tokens (arbitrary volume units).
+   */
   #capacity;
 
   /**
@@ -43,15 +50,16 @@ export class TokenBucket {
   /**
    * Constructs an instance. Configuration options:
    *
-   * * `{number} capacity` -- Bucket capacity, in tokens (arbitrary volume
-   *   units). This defines the "burstiness" allowed by the instance. Must be a
-   *   finite positive number. This is a required "option."
+   * * `{number} burstSize` -- Maximum possible instantaneous burst size (that
+   *   is, the total bucket capacity), in tokens (arbitrary volume units). This
+   *   defines the "burstiness" allowed by the instance. Must be a finite
+   *   positive number. This is a required "option."
    * * `{number} flowRate` -- Token flow rate (a/k/a bucket fill rate), that is,
    *   how quickly the bucket gets filled, in tokens per arbitrary time unit
    *   (tokens / ATU). This defines the steady state "flow rate" allowed by the
    *   instance. Must be a finite positive number. This is a required "option."
    * * `{number} initialVolume` -- The volume in the bucket at the moment of
-   *   construction, in tokens. Defaults to `capacity` (that is, full and able
+   *   construction, in tokens. Defaults to `burstSize` (that is, full and able
    *   to be maximally "bursted").
    * * `{boolean} partialTokens` -- If `true`, allows the instance to provide
    *   partial tokens (e.g. give a client `1.25` tokens). If `false`, all token
@@ -67,27 +75,31 @@ export class TokenBucket {
    */
   constructor(options) {
     const {
-      capacity,
+      burstSize, // See note above on property `#capacity`.
       flowRate,
-      initialVolume = options.capacity,
+      initialVolume = options.burstSize,
       partialTokens = false,
       timeSource    = TokenBucket.#DEFAULT_TIME_SOURCE
     } = options;
 
-    this.#capacity      = MustBe.number(capacity, { finite: true, minExclusive: 0 });
+    this.#capacity      = MustBe.number(burstSize, { finite: true, minExclusive: 0 });
     this.#flowRate      = MustBe.number(flowRate, { finite: true, minExclusive: 0 });
     this.#partialTokens = MustBe.boolean(partialTokens);
     this.#timeSource    = MustBe.object(timeSource, TokenBucket.TimeSource);
-    this.#lastVolume    = MustBe.number(initialVolume, { minInclusive: 0, maxInclusive: capacity });
+    this.#lastVolume    = MustBe.number(initialVolume, { minInclusive: 0, maxInclusive: burstSize });
     this.#lastNow       = this.#timeSource.now();
   }
 
-  /** @returns {number} The bucket capacity, in tokens. */
-  get capacity() {
+  /**
+   * @returns {number} The maximum possible instantaneous burst size, in tokens.
+   * This is the same as the "bucket capacity" in the token bucket metaphor.
+   */
+  get burstSize() {
+    // See note above on property `#capacity`.
     return this.#capacity;
   }
 
-  /** @returns {number} The fill rate, in tokens per ATU. */
+  /** @returns {number} The token flow rate, in tokens per ATU. */
   get flowRate() {
     return this.#flowRate;
   }

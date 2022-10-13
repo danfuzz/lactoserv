@@ -25,19 +25,19 @@ class MockTimeSource extends TokenBucket.BaseTimeSource {
 describe('constructor()', () => {
   test.each`
     opts
-    ${{ capacity: 1, flowRate: 1 }}
-    ${{ capacity: 0.01, flowRate: 0.0001 }}
-    ${{ capacity: 200000, flowRate: 109 }}
-    ${{ capacity: 1, flowRate: 1, initialVolume: 0 }}
-    ${{ capacity: 1, flowRate: 1, initialVolume: 1 }}
-    ${{ capacity: 10, flowRate: 1, initialVolume: 10 }}
-    ${{ capacity: 10, flowRate: 1, initialVolume: 9 }}
-    ${{ capacity: 1, flowRate: 1, partialTokens: false }}
-    ${{ capacity: 123.456, flowRate: 12.3, partialTokens: false }}
-    ${{ capacity: 1, flowRate: 1, partialTokens: true }}
-    ${{ capacity: 1, flowRate: 1, timeSource: new TokenBucket.StdTimeSource() }}
-    ${{ capacity: 1, flowRate: 1, timeSource: new MockTimeSource() }}
-    ${{ capacity: 1, flowRate: 1, initialVolume: 0.5, partialTokens: true,
+    ${{ burstSize: 1, flowRate: 1 }}
+    ${{ burstSize: 0.01, flowRate: 0.0001 }}
+    ${{ burstSize: 200000, flowRate: 109 }}
+    ${{ burstSize: 1, flowRate: 1, initialVolume: 0 }}
+    ${{ burstSize: 1, flowRate: 1, initialVolume: 1 }}
+    ${{ burstSize: 10, flowRate: 1, initialVolume: 10 }}
+    ${{ burstSize: 10, flowRate: 1, initialVolume: 9 }}
+    ${{ burstSize: 1, flowRate: 1, partialTokens: false }}
+    ${{ burstSize: 123.456, flowRate: 12.3, partialTokens: false }}
+    ${{ burstSize: 1, flowRate: 1, partialTokens: true }}
+    ${{ burstSize: 1, flowRate: 1, timeSource: new TokenBucket.StdTimeSource() }}
+    ${{ burstSize: 1, flowRate: 1, timeSource: new MockTimeSource() }}
+    ${{ burstSize: 1, flowRate: 1, initialVolume: 0.5, partialTokens: true,
         timeSource: new MockTimeSource() }}
   `('trivially accepts valid options: $opts', ({ opts }) => {
     expect(() => new TokenBucket(opts)).not.toThrow();
@@ -58,16 +58,16 @@ describe('constructor(<invalid>)', () => {
     expect(() => new TokenBucket(arg)).toThrow();
   });
 
-  test('rejects missing `capacity`', () => {
+  test('rejects missing `burstSize`', () => {
     expect(() => new TokenBucket({ flowRate: 1 })).toThrow();
   });
 
   test('rejects missing `flowRate`', () => {
-    expect(() => new TokenBucket({ capacity: 1 })).toThrow();
+    expect(() => new TokenBucket({ burstSize: 1 })).toThrow();
   });
 
   test.each`
-    capacity
+    burstSize
     ${undefined}
     ${null}
     ${true}
@@ -78,8 +78,8 @@ describe('constructor(<invalid>)', () => {
     ${0}
     ${NaN}
     ${Number.POSITIVE_INFINITY}
-  `('rejects invalid `capacity`: $capacity', (capacity) => {
-    expect(() => new TokenBucket({ capacity, flowRate: 1 })).toThrow();
+  `('rejects invalid `burstSize`: $burstSize', (burstSize) => {
+    expect(() => new TokenBucket({ burstSize, flowRate: 1 })).toThrow();
   });
 
   test.each`
@@ -95,7 +95,7 @@ describe('constructor(<invalid>)', () => {
     ${NaN}
     ${Number.POSITIVE_INFINITY}
   `('rejects invalid `flowRate`: $flowRate', (flowRate) => {
-    expect(() => new TokenBucket({ flowRate, capacity: 1 })).toThrow();
+    expect(() => new TokenBucket({ flowRate, burstSize: 1 })).toThrow();
   });
 
   test.each`
@@ -107,12 +107,12 @@ describe('constructor(<invalid>)', () => {
     ${-1}
     ${-0.1}
   `('rejects invalid `initialVolume`: $initialVolume', (initialVolume) => {
-    expect(() => new TokenBucket({ flowRate: 1, capacity: 1, initialVolume })).toThrow();
+    expect(() => new TokenBucket({ flowRate: 1, burstSize: 1, initialVolume })).toThrow();
   });
 
-  test('rejects invalid `initialVolume` (`> capacity`)', () => {
-    expect(() => new TokenBucket({ flowRate: 1, capacity: 1, initialVolume: 1.01 })).toThrow();
-    expect(() => new TokenBucket({ flowRate: 1, capacity: 1, initialVolume: 2 })).toThrow();
+  test('rejects invalid `initialVolume` (`> burstSize`)', () => {
+    expect(() => new TokenBucket({ flowRate: 1, burstSize: 1, initialVolume: 1.01 })).toThrow();
+    expect(() => new TokenBucket({ flowRate: 1, burstSize: 1, initialVolume: 2 })).toThrow();
   });
 
   test.each`
@@ -122,7 +122,7 @@ describe('constructor(<invalid>)', () => {
     ${[false]}
     ${0}
   `('rejects invalid `partialTokens`: $partialTokens', (partialTokens) => {
-    expect(() => new TokenBucket({ flowRate: 1, capacity: 1, partialTokens })).toThrow();
+    expect(() => new TokenBucket({ flowRate: 1, burstSize: 1, partialTokens })).toThrow();
   });
 
   test.each`
@@ -133,35 +133,35 @@ describe('constructor(<invalid>)', () => {
     ${TokenBucket.BaseTimeSource /* supposed to be an instance, not a class */}
     ${MockTimeSource /* ditto */}
   `('rejects invalid `timeSource`: $timeSource', (timeSource) => {
-    expect(() => new TokenBucket({ flowRate: 1, capacity: 1, timeSource })).toThrow();
+    expect(() => new TokenBucket({ flowRate: 1, burstSize: 1, timeSource })).toThrow();
   });
 });
 
-describe('.capacity', () => {
+describe('.burstSize', () => {
   test('is the value passed in on construction', () => {
-    const bucket = new TokenBucket({ flowRate: 1, capacity: 123 });
-    expect(bucket.capacity).toBe(123);
+    const bucket = new TokenBucket({ flowRate: 1, burstSize: 123 });
+    expect(bucket.burstSize).toBe(123);
   });
 });
 
 describe('.flowRate', () => {
   test('is the value passed in on construction', () => {
-    const bucket = new TokenBucket({ flowRate: 123, capacity: 100000 });
+    const bucket = new TokenBucket({ flowRate: 123, burstSize: 100000 });
     expect(bucket.flowRate).toBe(123);
   });
 });
 
 describe('.partialTokens', () => {
   test('defaults to `false`', () => {
-    const bucket1 = new TokenBucket({ flowRate: 1, capacity: 1 });
+    const bucket1 = new TokenBucket({ flowRate: 1, burstSize: 1 });
     expect(bucket1.partialTokens).toBeFalse();
   });
 
   test('is the value passed in on construction', () => {
-    const bucket1 = new TokenBucket({ flowRate: 1, capacity: 1, partialTokens: false });
+    const bucket1 = new TokenBucket({ flowRate: 1, burstSize: 1, partialTokens: false });
     expect(bucket1.partialTokens).toBeFalse();
 
-    const bucket2 = new TokenBucket({ flowRate: 1, capacity: 1, partialTokens: true });
+    const bucket2 = new TokenBucket({ flowRate: 1, burstSize: 1, partialTokens: true });
     expect(bucket2.partialTokens).toBeTrue();
   });
 });
