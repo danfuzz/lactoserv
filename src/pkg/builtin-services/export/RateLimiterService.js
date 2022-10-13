@@ -80,7 +80,8 @@ export class RateLimiterService extends BaseService {
     return got.done;
   }
 
-  // TODO: More!
+  // TODO: newRequest()
+  // TODO: sendData()
 
   /** @override */
   async start() {
