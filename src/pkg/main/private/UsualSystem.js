@@ -105,8 +105,10 @@ export class UsualSystem {
       this.#logger.stop('ignoring');
     } else {
       this.#logger.stopping();
-      await this.#warehouse.stopAllServers();
-      await this.#warehouse.stopAllServices();
+      await Promise.all([
+        this.#warehouse.stopAllServers(),
+        this.#warehouse.stopAllServices()
+      ]);
       this.#warehouse = null;
       this.#logger.stopped();
     }
