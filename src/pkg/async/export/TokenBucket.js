@@ -42,7 +42,8 @@ export class TokenBucket {
 
   /**
    * @type {number} The maximum number of waiters that are allowed to be
-   * waiting for a token grant.
+   * waiting for a token grant. `Number.POSITIVE_INFINITY` is used represent "no
+   * limit."
    */
   #maxWaiters;
 
@@ -86,7 +87,8 @@ export class TokenBucket {
    *   to be maximally "bursted").
    * * `{number} maxWaiters` -- The maximum number of waiters that are allowed
    *   to be waiting for a token grant (see {@link #requestGrant}). Must be a
-   *   finite whole number.Defaults to `0`.
+   *   finite whole number if present. If not present, then there is no limit
+   *   on waiters.
    * * `{boolean} partialTokens` -- If `true`, allows the instance to provide
    *   partial tokens (e.g. give a client `1.25` tokens). If `false`, all token
    *   handoffs from the instance are quantized to integer values. Defaults to
@@ -104,16 +106,20 @@ export class TokenBucket {
       burstSize, // See note above on property `#capacity`.
       flowRate,
       initialVolume = options.burstSize,
-      maxWaiters    = 0,
+      maxWaiters    = null,
       partialTokens = false,
       timeSource    = TokenBucket.#DEFAULT_TIME_SOURCE
     } = options;
 
     this.#capacity      = MustBe.number(burstSize, { finite: true, minExclusive: 0 });
     this.#flowRate      = MustBe.number(flowRate, { finite: true, minExclusive: 0 });
-    this.#maxWaiters    = MustBe.number(maxWaiters, { safeInteger: true, minInclusive: 0 });
     this.#partialTokens = MustBe.boolean(partialTokens);
     this.#timeSource    = MustBe.object(timeSource, TokenBucket.TimeSource);
+
+    this.#maxWaiters = (maxWaiters === null)
+      ? Number.POSITIVE_INFINITY
+      : MustBe.number(maxWaiters, { safeInteger: true, minInclusive: 0 });
+
     this.#lastVolume    = MustBe.number(initialVolume, { minInclusive: 0, maxInclusive: burstSize });
     this.#lastNow       = this.#timeSource.now();
   }

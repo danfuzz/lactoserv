@@ -15,9 +15,10 @@
     "name":        "limiter",
     "type":        "rate-limiter",
     "connections": {
-      "burstSize": 10,
-      "flowRate":  1,
-      "timeUnit":  "second"
+      "burstSize":  10,
+      "flowRate":   1,
+      "timeUnit":   "second",
+      "maxWaiters": 2
     },
     "requests": {
       "burstSize": 100,

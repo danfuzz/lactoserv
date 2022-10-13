@@ -24,7 +24,9 @@ import { JsonSchema } from '@this/json';
  *   time.
  * * `{string} timeUnit` -- The unit of time by which `flowRate` is defined.
  *   Must be one of: `day` (defined here as 24 hours), `hour`, `minute`,
- *  `second`, or `msec` (millisecond).
+ *   `second`, or `msec` (millisecond).
+ * * `{number} maxWaiters` -- Optional maximum number of waiting clients allowed
+ *   when there is insufficient burst capacity to satisfy all clients.
  */
 export class RateLimiterService extends BaseService {
   /** @type {?TokenBucket} Connection rate limiter, if any. */
@@ -146,10 +148,10 @@ export class RateLimiterService extends BaseService {
       return null;
     }
 
-    const { burstSize, flowRate: origFlowRate, timeUnit } = config;
+    const { burstSize, flowRate: origFlowRate, timeUnit, maxWaiters } = config;
     const flowRate = this.#flowRatePerSecFrom(origFlowRate, timeUnit);
 
-    return new TokenBucket({ burstSize, flowRate });
+    return new TokenBucket({ burstSize, flowRate, maxWaiters });
   }
 
   /**
@@ -187,6 +189,11 @@ export class RateLimiterService extends BaseService {
             timeUnit: {
               type: 'string',
               enum: ['day', 'hour', 'minute', 'second', 'msec']
+            },
+            maxWaiters: {
+              type:    'integer',
+              minimum: 0,
+              maximum: 1e10
             }
           }
         }
