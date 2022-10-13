@@ -13,7 +13,7 @@ export class Methods {
    *
    * @param {...*} rest_unused Anything that one wants to be "used."
    */
-  abstract(...rest_unused) {
+  static abstract(...rest_unused) {
     throw new Error('Abstract method.');
   }
 }
