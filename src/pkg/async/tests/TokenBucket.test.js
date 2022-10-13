@@ -54,7 +54,7 @@ describe('constructor(<invalid>)', () => {
     ${123}
     ${'hello'}
     ${new Map()}
-  `('rejects non-object argument: $arg', () => {
+  `('rejects non-object argument: $arg', (arg) => {
     expect(() => new TokenBucket(arg)).toThrow();
   });
 
@@ -141,14 +141,14 @@ describe('.capacity', () => {
   test('is the value passed in on construction', () => {
     const bucket = new TokenBucket({ fillRate: 1, capacity: 123 });
     expect(bucket.capacity).toBe(123);
-  })
+  });
 });
 
 describe('.fillRate', () => {
   test('is the value passed in on construction', () => {
     const bucket = new TokenBucket({ fillRate: 123, capacity: 100000 });
     expect(bucket.fillRate).toBe(123);
-  })
+  });
 });
 
 describe('.partialTokens', () => {
