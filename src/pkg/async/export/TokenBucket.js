@@ -82,9 +82,9 @@ export class TokenBucket {
    *   how quickly the bucket gets filled, in tokens per arbitrary time unit
    *   (tokens / ATU). This defines the steady state "flow rate" allowed by the
    *   instance. Must be a finite positive number. This is a required "option."
-   * * `{number} initialVolume` -- The volume in the bucket at the moment of
-   *   construction, in tokens. Defaults to `burstSize` (that is, full and able
-   *   to be maximally "bursted").
+   * * `{number} initialBurst` -- The instantaneously available burst size, in
+   *   tokens, at the moment of construction. Defaults to `burstSize` (that is,
+   *   able to be maximally "bursted" from the get-go).
    * * `{?number} maxWaiters` -- The maximum number of waiters that are allowed
    *   to be waiting for a token grant (see {@link #requestGrant}). Must be a
    *   finite whole number or `null`. If not present or `null`, then there is no
@@ -105,7 +105,7 @@ export class TokenBucket {
     const {
       burstSize, // See note above on property `#capacity`.
       flowRate,
-      initialVolume = options.burstSize,
+      initialBurst = options.burstSize,
       maxWaiters    = null,
       partialTokens = false,
       timeSource    = TokenBucket.#DEFAULT_TIME_SOURCE
@@ -120,7 +120,7 @@ export class TokenBucket {
       ? Number.POSITIVE_INFINITY
       : MustBe.number(maxWaiters, { safeInteger: true, minInclusive: 0 });
 
-    this.#lastVolume    = MustBe.number(initialVolume, { minInclusive: 0, maxInclusive: burstSize });
+    this.#lastVolume    = MustBe.number(initialBurst, { minInclusive: 0, maxInclusive: burstSize });
     this.#lastNow       = this.#timeSource.now();
   }
 

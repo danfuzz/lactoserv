@@ -28,10 +28,10 @@ describe('constructor()', () => {
     ${{ burstSize: 1, flowRate: 1 }}
     ${{ burstSize: 0.01, flowRate: 0.0001 }}
     ${{ burstSize: 200000, flowRate: 109 }}
-    ${{ burstSize: 1, flowRate: 1, initialVolume: 0 }}
-    ${{ burstSize: 1, flowRate: 1, initialVolume: 1 }}
-    ${{ burstSize: 10, flowRate: 1, initialVolume: 10 }}
-    ${{ burstSize: 10, flowRate: 1, initialVolume: 9 }}
+    ${{ burstSize: 1, flowRate: 1, initialBurst: 0 }}
+    ${{ burstSize: 1, flowRate: 1, initialBurst: 1 }}
+    ${{ burstSize: 10, flowRate: 1, initialBurst: 10 }}
+    ${{ burstSize: 10, flowRate: 1, initialBurst: 9 }}
     ${{ burstSize: 1, flowRate: 1, maxWaiters: 0 }}
     ${{ burstSize: 1, flowRate: 1, maxWaiters: 1 }}
     ${{ burstSize: 1, flowRate: 1, maxWaiters: 1000 }}
@@ -40,7 +40,7 @@ describe('constructor()', () => {
     ${{ burstSize: 1, flowRate: 1, partialTokens: true }}
     ${{ burstSize: 1, flowRate: 1, timeSource: new TokenBucket.StdTimeSource() }}
     ${{ burstSize: 1, flowRate: 1, timeSource: new MockTimeSource() }}
-    ${{ burstSize: 1, flowRate: 1, initialVolume: 0.5, partialTokens: true,
+    ${{ burstSize: 1, flowRate: 1, initialBurst: 0.5, partialTokens: true,
         timeSource: new MockTimeSource() }}
   `('trivially accepts valid options: $opts', ({ opts }) => {
     expect(() => new TokenBucket(opts)).not.toThrow();
@@ -85,12 +85,12 @@ describe('constructor()', () => {
     expect(bucket.snapshotNow().partialTokens).toBeFalse();
   });
 
-  test('produces an instance with `availableBurst` equal to the passed `initialVolume`', () => {
-    const bucket = new TokenBucket({ flowRate: 1, burstSize: 100, initialVolume: 23 });
+  test('produces an instance with `availableBurst` equal to the passed `initialBurst`', () => {
+    const bucket = new TokenBucket({ flowRate: 1, burstSize: 100, initialBurst: 23 });
     expect(bucket.snapshotNow().availableBurst).toBe(23);
   });
 
-  test('has `availableBurst === burstSize` if not passed `initialVolume`', () => {
+  test('has `availableBurst === burstSize` if not passed `initialBurst`', () => {
     const bucket = new TokenBucket({ flowRate: 1, burstSize: 123 });
     expect(bucket.snapshotNow().availableBurst).toBe(123);
   });
@@ -151,15 +151,15 @@ describe('constructor(<invalid>)', () => {
   });
 
   test.each`
-    initialVolume
+    initialBurst
     ${null}
     ${true}
     ${'123'}
     ${[123]}
     ${-1}
     ${-0.1}
-  `('rejects invalid `initialVolume`: $initialVolume', ({ initialVolume }) => {
-    expect(() => new TokenBucket({ flowRate: 1, burstSize: 1, initialVolume })).toThrow();
+  `('rejects invalid `initialBurst`: $initialBurst', ({ initialBurst }) => {
+    expect(() => new TokenBucket({ flowRate: 1, burstSize: 1, initialBurst })).toThrow();
   });
 
   test.each`
@@ -174,9 +174,9 @@ describe('constructor(<invalid>)', () => {
     expect(() => new TokenBucket({ flowRate: 1, burstSize: 1, maxWaiters })).toThrow();
   });
 
-  test('rejects invalid `initialVolume` (`> burstSize`)', () => {
-    expect(() => new TokenBucket({ flowRate: 1, burstSize: 1, initialVolume: 1.01 })).toThrow();
-    expect(() => new TokenBucket({ flowRate: 1, burstSize: 1, initialVolume: 2 })).toThrow();
+  test('rejects invalid `initialBurst` (`> burstSize`)', () => {
+    expect(() => new TokenBucket({ flowRate: 1, burstSize: 1, initialBurst: 1.01 })).toThrow();
+    expect(() => new TokenBucket({ flowRate: 1, burstSize: 1, initialBurst: 2 })).toThrow();
   });
 
   test.each`
