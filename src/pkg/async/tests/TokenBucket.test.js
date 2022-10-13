@@ -95,7 +95,7 @@ describe('constructor()', () => {
     expect(bucket.snapshotNow().availableBurst).toBe(123);
   });
 
-  // TODO
+  // TODO: Time source.
 });
 
 describe('constructor(<invalid>)', () => {
