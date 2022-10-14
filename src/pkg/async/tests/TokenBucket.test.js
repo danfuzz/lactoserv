@@ -9,6 +9,11 @@ import { TokenBucket } from '@this/async';
 class MockTimeSource extends TokenBucket.BaseTimeSource {
   #now = 0;
 
+  constructor(firstNow = 0) {
+    super();
+    this.#now = firstNow;
+  }
+
   get unitName() {
     return 'some-unit';
   }
@@ -111,9 +116,10 @@ describe('constructor()', () => {
   });
 
   test('produces an instance which uses the `timeSource` that was passed', () => {
-    const ts = new MockTimeSource();
+    const ts = new MockTimeSource(321);
     const bucket = new TokenBucket({ flowRate: 1, burstSize: 1, timeSource: ts });
     expect(bucket.config.timeSource).toBe(ts);
+    expect(bucket.latestState().now).toBe(321);
   });
 
   test('produces an instance which (apparently) uses the default time source if not passed `timeSource`', () => {
