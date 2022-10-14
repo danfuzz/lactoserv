@@ -372,6 +372,23 @@ describe('takeNow()', () => {
 
       expect(bucket.latestState().availableBurst).toBe(25);
     });
+
+    test('uses the time source', () => {
+      const time   = new MockTimeSource(1000);
+      const bucket = new TokenBucket({
+        flowRate: 5, burstSize: 100, initialBurst: 0, timeSource: time });
+
+      time._setTime(1001); // Enough for 5 tokens to become available.
+      const result = bucket.takeNow({ minInclusive: 0, maxInclusive: 10 });
+      expect(result.done).toBeTrue();
+      expect(result.grant).toBe(5);
+      expect(result.minWaitTime).toBe(0);
+      expect(result.maxWaitTime).toBe((10 - 5) / 5);
+
+      const latest = bucket.latestState();
+      expect(latest.availableBurst).toBe(0);
+      expect(latest.now).toBe(1001);
+    });
   });
 
   describe('when there is at least one waiter', () => {
