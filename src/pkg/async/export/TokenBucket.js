@@ -156,11 +156,11 @@ export class TokenBucket {
       ? null : this.#timeSource;
 
     return {
-      burstSize:      this.#capacity,
-      flowRate:       this.#flowRate,
-      maxGrantSize:   this.#maxGrantSize,
+      burstSize:     this.#capacity,
+      flowRate:      this.#flowRate,
+      maxGrantSize:  this.#maxGrantSize,
       maxWaiters,
-      partialTokens:  this.#partialTokens,
+      partialTokens: this.#partialTokens,
       timeSource
     };
   }
@@ -232,9 +232,8 @@ export class TokenBucket {
   }
 
   /**
-   * Gets an instantaneously-current snapshot of this instance, including
-   * configuration info. The return value is an object with the following
-   * bindings:
+   * Gets an instantaneously-current snapshot of this instance's state The
+   * return value is an object with the following bindings:
    *
    * * Timely info:
    *   * `{number} availableBurst` -- The currently-available burst size, that
@@ -242,37 +241,16 @@ export class TokenBucket {
    *   * `{number} now` -- The time as of the snapshot, according to this
    *     instance's time source.
    *   * `{number} waiters` -- The number of clients awaiting a token grant.
-   * * Configuration info (same names as passed in the constructor, except as
-   *   noted):
-   *   * `{number} burstSize`
-   *   * `{number} flowRate`
-   *   * `{number} maxGrantSize`
-   *   * `{number} maxWaiters`
-   *   * `{boolean} partialTokens`
-   *   * `{string} timeUnit` -- Name of the unit which this instance's time
-   *     source uses.
    *
    * @returns {object} Snapshot, as described above.
    */
   snapshotNow() {
     this.#topUpBucket();
 
-    const maxWaiters = (this.#maxWaiters === Number.POSITIVE_INFINITY)
-      ? null
-      : this.#maxWaiters;
-
     return {
-      // Timely info.
       availableBurst: this.#lastVolume,
       now:            this.#lastNow,
       waiters:        this.#waiters.length,
-      // Configuration info.
-      burstSize:      this.#capacity,
-      flowRate:       this.#flowRate,
-      maxGrantSize:   this.#maxGrantSize,
-      maxWaiters,
-      partialTokens:  this.#partialTokens,
-      timeUnit:       this.#timeSource.unitName
     };
   }
 
