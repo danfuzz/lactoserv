@@ -178,6 +178,28 @@ export class TokenBucket {
   }
 
   /**
+   * Gets a snapshot of this instance's state, as of its most recent update
+   * (which corresponds to the last time any token grant requests were
+   * processed). The return value is an object with the following bindings:
+   *
+   * * Timely info:
+   *   * `{number} availableBurst` -- The currently-available burst size, that
+   *     is, the quantity of tokens currently in the bucket.
+   *   * `{number} now` -- The time as of the snapshot, according to this
+   *     instance's time source.
+   *   * `{number} waiters` -- The number of clients awaiting a token grant.
+   *
+   * @returns {object} Snapshot, as described above.
+   */
+  latestState() {
+    return {
+      availableBurst: this.#lastVolume,
+      now:            this.#lastNow,
+      waiters:        this.#waiters.length,
+    };
+  }
+
+  /**
    * Requests a grant of a particular quantity (or quantity range) of tokens, to
    * be granted all at once. This method async-returns either when the grant has
    * been made _or_ when the instance determines that it cannot perform the
@@ -229,28 +251,6 @@ export class TokenBucket {
     this.#waiterThread.start(); // Note: Does nothing if it's already running.
 
     return mp.promise;
-  }
-
-  /**
-   * Gets a snapshot of this instance's state, as of its most recent update
-   * (which corresponds to the last time any tokens were granted). The
-   * return value is an object with the following bindings:
-   *
-   * * Timely info:
-   *   * `{number} availableBurst` -- The currently-available burst size, that
-   *     is, the quantity of tokens currently in the bucket.
-   *   * `{number} now` -- The time as of the snapshot, according to this
-   *     instance's time source.
-   *   * `{number} waiters` -- The number of clients awaiting a token grant.
-   *
-   * @returns {object} Snapshot, as described above.
-   */
-  latestState() {
-    return {
-      availableBurst: this.#lastVolume,
-      now:            this.#lastNow,
-      waiters:        this.#waiters.length,
-    };
   }
 
   /**
