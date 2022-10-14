@@ -227,8 +227,8 @@ export class ProtocolWrangler {
         // `ServerResponse` object nulls out the socket after `end()` completes,
         // which is why we grab it outside the `finish` callback.
         const resSocket = res.socket;
-        res.once('finish', () => { resSocket.end(); });
-        res.once('end',    () => { resSocket.destroy() });
+        res.once('finish', () => { resSocket.end();     });
+        res.once('end',    () => { resSocket.destroy(); });
 
         return;
       }
