@@ -331,6 +331,22 @@ describe('latestState()', () => {
       'availableBurst', 'now', 'waiters'
     ]);
   });
+
+  test('does not synchronously use the time source', () => {
+    const time   = new MockTimeSource(900);
+    const bucket = new TokenBucket({
+      flowRate: 1, burstSize: 10000, initialBurst: 100, timeSource: time });
+
+    const baseResult = bucket.latestState();
+    expect(baseResult.now).toBe(900);
+    expect(baseResult.availableBurst).toBe(100);
+
+    time._setTime(901);
+    expect(bucket.latestState()).toStrictEqual(baseResult);
+
+    time.now = () => { throw new Error('oy!'); }
+    expect(() => bucket.latestState()).not.toThrow();
+  });
 });
 
 describe('takeNow()', () => {
