@@ -168,10 +168,6 @@ export class TokenBucket {
    * @returns {number} Number of tokens actually granted (might be `0`).
    */
   async requestGrant(quantity) {
-    // This both sanity-checks the arguments before doing any real work _and_
-    // ensures that if we store `quantity` in a waiter entry it's not the same
-    // object as was passed in (thereby preventing the client from -- perhaps
-    // inadvertently -- messing with this instance).
     const { minInclusive, maxInclusive } = this.#parseQuantity(quantity);
 
     if (this.#waiters.length === 0) {
