@@ -322,18 +322,6 @@ export class TokenBucket {
   }
 
   /**
-   * Async-returns after a specified amount of time has passed, using the
-   * units defined by this instance's time source.
-   *
-   * @param {number} waitTime The amount of time to wait, in ATU.
-   */
-  async wait(waitTime) {
-    if (waitTime > 0) {
-      await this.#timeSource.setTimeout(waitTime);
-    }
-  }
-
-  /**
    * Helper for token-grant methods, which calculates an actual grant quantity.
    *
    * @param {number} minInclusive The minimum quantity of tokens to be granted.
@@ -467,7 +455,7 @@ export class TokenBucket {
         info.doGrant(this.#requestGrantResult(true, got.grant, waitTime));
       } else {
         await Promise.race([
-          this.wait(got.minWaitTime),
+          this.#wait(got.minWaitTime),
           this.#waiterThread.whenStopRequested()
         ]);
       }
@@ -500,6 +488,18 @@ export class TokenBucket {
     }
 
     this.#lastNow = now;
+  }
+
+  /**
+   * Async-returns after a specified amount of time has passed, using the
+   * units defined by this instance's time source.
+   *
+   * @param {number} waitTime The amount of time to wait, in ATU.
+   */
+  async #wait(waitTime) {
+    if (waitTime > 0) {
+      return this.#timeSource.setTimeout(waitTime);
+    }
   }
 
 

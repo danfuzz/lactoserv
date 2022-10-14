@@ -294,7 +294,3 @@ describe('latestState()', () => {
 describe('takeNow()', () => {
   // TODO
 });
-
-describe('wait()', () => {
-  // TODO
-});
