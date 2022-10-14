@@ -36,6 +36,12 @@ describe('constructor()', () => {
     ${{ burstSize: 1, flowRate: 1, initialBurst: 1 }}
     ${{ burstSize: 10, flowRate: 1, initialBurst: 10 }}
     ${{ burstSize: 10, flowRate: 1, initialBurst: 9 }}
+    ${{ burstSize: 1, flowRate: 1, maxGrantSize: 0.1 }}
+    ${{ burstSize: 1, flowRate: 1, maxGrantSize: 1 }}
+    ${{ burstSize: 100, flowRate: 1, maxGrantSize: 1 }}
+    ${{ burstSize: 100, flowRate: 1, maxGrantSize: 50 }}
+    ${{ burstSize: 100, flowRate: 1, maxGrantSize: 99 }}
+    ${{ burstSize: 1, flowRate: 1, maxWaiters: 1000 }}
     ${{ burstSize: 1, flowRate: 1, maxWaiters: 0 }}
     ${{ burstSize: 1, flowRate: 1, maxWaiters: 1 }}
     ${{ burstSize: 1, flowRate: 1, maxWaiters: 1000 }}
@@ -44,8 +50,8 @@ describe('constructor()', () => {
     ${{ burstSize: 1, flowRate: 1, partialTokens: true }}
     ${{ burstSize: 1, flowRate: 1, timeSource: new TokenBucket.StdTimeSource() }}
     ${{ burstSize: 1, flowRate: 1, timeSource: new MockTimeSource() }}
-    ${{ burstSize: 1, flowRate: 1, initialBurst: 0.5, partialTokens: true,
-        timeSource: new MockTimeSource() }}
+    ${{ burstSize: 1, flowRate: 1, initialBurst: 0.5, maxGrantSize: 0.5,
+        maxWaiters: 10, partialTokens: true, timeSource: new MockTimeSource() }}
   `('trivially accepts valid options: $opts', ({ opts }) => {
     expect(() => new TokenBucket(opts)).not.toThrow();
   });
@@ -58,6 +64,21 @@ describe('constructor()', () => {
   test('produces an instance with the `flowRate` that was passed', () => {
     const bucket = new TokenBucket({ flowRate: 1234, burstSize: 100000 });
     expect(bucket.snapshotNow().flowRate).toBe(1234);
+  });
+
+  test.each`
+    maxGrantSize
+    ${0.1}
+    ${1}
+    ${200}
+  `('produces an instance with the `maxGrantSize` that was passed: $maxGrantSize', ({ maxGrantSize }) => {
+    const bucket = new TokenBucket({ flowRate: 1, burstSize: 1000, maxGrantSize });
+    expect(bucket.snapshotNow().maxGrantSize).toBe(maxGrantSize);
+  });
+
+  test('has `maxGrantSize === burstSize` if not passed', () => {
+    const bucket = new TokenBucket({ flowRate: 1, burstSize: 10203 });
+    expect(bucket.snapshotNow().maxGrantSize).toBe(10203);
   });
 
   test.each`
@@ -174,6 +195,29 @@ describe('constructor(<invalid>)', () => {
     expect(() => new TokenBucket({ flowRate: 1, burstSize: 1, initialBurst })).toThrow();
   });
 
+  test('rejects invalid `initialBurst` (`> burstSize`)', () => {
+    expect(() => new TokenBucket({ flowRate: 1, burstSize: 1, initialBurst: 1.01 })).toThrow();
+    expect(() => new TokenBucket({ flowRate: 1, burstSize: 1, initialBurst: 2 })).toThrow();
+  });
+
+  test.each`
+    maxGrantSize
+    ${null}
+    ${true}
+    ${'123'}
+    ${[123]}
+    ${0}
+    ${-1}
+    ${-0.1}
+  `('rejects invalid `maxGrantSize`: $maxGrantSize', ({ maxGrantSize }) => {
+    expect(() => new TokenBucket({ flowRate: 1, burstSize: 1000, maxGrantSize })).toThrow();
+  });
+
+  test('rejects invalid `maxGrantSize` (`> burstSize`)', () => {
+    expect(() => new TokenBucket({ flowRate: 1, burstSize: 1, maxGrantSize: 1.01 })).toThrow();
+    expect(() => new TokenBucket({ flowRate: 1, burstSize: 1, maxGrantSize: 2 })).toThrow();
+  });
+
   test.each`
     maxWaiters
     ${false}
@@ -184,11 +228,6 @@ describe('constructor(<invalid>)', () => {
     ${Number.POSITIVE_INFINITY}
   `('rejects invalid `maxWaiters`: $maxWaiters', ({ maxWaiters }) => {
     expect(() => new TokenBucket({ flowRate: 1, burstSize: 1, maxWaiters })).toThrow();
-  });
-
-  test('rejects invalid `initialBurst` (`> burstSize`)', () => {
-    expect(() => new TokenBucket({ flowRate: 1, burstSize: 1, initialBurst: 1.01 })).toThrow();
-    expect(() => new TokenBucket({ flowRate: 1, burstSize: 1, initialBurst: 2 })).toThrow();
   });
 
   test.each`
@@ -226,7 +265,7 @@ describe('snapshotNow()', () => {
     const bucket = new TokenBucket({ flowRate: 123, burstSize: 100000 });
     expect(bucket.snapshotNow()).toContainAllKeys([
       'availableBurst', 'now', 'waiters',
-      'burstSize', 'flowRate', 'maxWaiters', 'partialTokens', 'timeUnit'
+      'burstSize', 'flowRate', 'maxGrantSize', 'maxWaiters', 'partialTokens', 'timeUnit'
     ]);
   });
 });

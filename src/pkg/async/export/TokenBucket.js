@@ -29,8 +29,8 @@ export class TokenBucket {
    * the implementation, it makes more sense to think of it as the bucket
    * capacity, which is why the internal property name is `capacity`.
    *
-   * @type {number} Bucket capacity (that is, maximum possible instantaneous
-   * burst size), in tokens (arbitrary volume units).
+   * @type {number} Bucket capacity -- that is, maximum possible instantaneous
+   * burst size -- in tokens.
    */
   #capacity;
 
@@ -39,6 +39,9 @@ export class TokenBucket {
    * arbitrary time unit (tokens / ATU).
    */
   #flowRate;
+
+  /** @type {number} Maximum grant size, in tokens. */
+  #maxGrantSize;
 
   /**
    * @type {number} The maximum number of waiters that are allowed to be
@@ -91,6 +94,10 @@ export class TokenBucket {
    * * `{number} initialBurst` -- The instantaneously available burst size, in
    *   tokens, at the moment of construction. Defaults to `burstSize` (that is,
    *   able to be maximally "bursted" from the get-go).
+   * * `{number} maxGrantSize` -- Maximum (atomic) grant size, in tokens. No
+   *   grant requests will ever return a larger grant, even if there is
+   *   available "burst volume" to accommodate it. Must be a finite positive
+   *   number less than or equal to `burstSize`. Defaults to `burstSize`.
    * * `{?number} maxWaiters` -- The maximum number of waiters that are allowed
    *   to be waiting for a token grant (see {@link #requestGrant}). Must be a
    *   finite whole number or `null`. If not present or `null`, then there is no
@@ -111,7 +118,8 @@ export class TokenBucket {
     const {
       burstSize, // See note above on property `#capacity`.
       flowRate,
-      initialBurst = options.burstSize,
+      initialBurst  = options.burstSize,
+      maxGrantSize  = options.burstSize,
       maxWaiters    = null,
       partialTokens = false,
       timeSource    = TokenBucket.#DEFAULT_TIME_SOURCE
@@ -119,6 +127,7 @@ export class TokenBucket {
 
     this.#capacity      = MustBe.number(burstSize, { finite: true, minExclusive: 0 });
     this.#flowRate      = MustBe.number(flowRate, { finite: true, minExclusive: 0 });
+    this.#maxGrantSize  = MustBe.number(maxGrantSize, { minExclusive: 0, maxInclusive: burstSize });
     this.#partialTokens = MustBe.boolean(partialTokens);
     this.#timeSource    = MustBe.object(timeSource, TokenBucket.TimeSource);
 
@@ -126,8 +135,8 @@ export class TokenBucket {
       ? Number.POSITIVE_INFINITY
       : MustBe.number(maxWaiters, { safeInteger: true, minInclusive: 0 });
 
-    this.#lastVolume    = MustBe.number(initialBurst, { minInclusive: 0, maxInclusive: burstSize });
-    this.#lastNow       = this.#timeSource.now();
+    this.#lastVolume = MustBe.number(initialBurst, { minInclusive: 0, maxInclusive: burstSize });
+    this.#lastNow    = this.#timeSource.now();
   }
 
   /**
@@ -211,6 +220,7 @@ export class TokenBucket {
    *   noted):
    *   * `{number} burstSize`
    *   * `{number} flowRate`
+   *   * `{number} maxGrantSize`
    *   * `{number} maxWaiters`
    *   * `{boolean} partialTokens`
    *   * `{string} timeUnit` -- Name of the unit which this instance's time
@@ -233,6 +243,7 @@ export class TokenBucket {
       // Configuration info.
       burstSize:      this.#capacity,
       flowRate:       this.#flowRate,
+      maxGrantSize:   this.#maxGrantSize,
       maxWaiters,
       partialTokens:  this.#partialTokens,
       timeUnit:       this.#timeSource.unitName
