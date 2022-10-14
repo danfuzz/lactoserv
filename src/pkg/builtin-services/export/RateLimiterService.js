@@ -90,7 +90,7 @@ export class RateLimiterService extends BaseService {
    * @returns {object} An appropriately-wrapped instance, or the original
    *   `stream` if this instance has no data rate limiter.
    */
-  async wrapWriter(stream, logger_unused) {
+  wrapWriter(stream, logger_unused) {
     if (this.#data === null) {
       return stream;
     }
