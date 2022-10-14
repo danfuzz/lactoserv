@@ -218,7 +218,18 @@ export class ProtocolWrangler {
     if (this.#rateLimiter) {
       const granted = await this.#rateLimiter.newRequest(reqLogger);
       if (!granted) {
-        res.status(503).end();
+        res.sendStatus(503);
+        res.end();
+
+        // Wait for the response to have been at least nominally sent before
+        // closing the socket, in the hope that there is a good chance that it
+        // will allow for the far side to see the 503 response. Note: The
+        // `ServerResponse` object nulls out the socket after `end()` completes,
+        // which is why we grab it outside the `finish` callback.
+        const resSocket = res.socket;
+        res.once('finish', () => { resSocket.end(); });
+        res.once('end',    () => { resSocket.destroy() });
+
         return;
       }
     }

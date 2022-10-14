@@ -21,9 +21,10 @@
       "maxWaiters": 50
     },
     "requests": {
-      "burstSize": 3,
-      "flowRate":  0.5,
-      "timeUnit":  "second"
+      "burstSize": 2,
+      "flowRate":  1.25,
+      "timeUnit":  "second",
+      "maxWaiters": 5
     }
   }
 ]
