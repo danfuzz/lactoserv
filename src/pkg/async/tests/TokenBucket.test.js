@@ -1,13 +1,16 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { TokenBucket } from '@this/async';
+import * as timers from 'node:timers/promises';
+
+import { ManualPromise, PromiseState, TokenBucket } from '@this/async';
 
 /**
  * Mock implementation of `BaseTimeSource`.
  */
 class MockTimeSource extends TokenBucket.BaseTimeSource {
-  #now = 0;
+  #now      = 0;
+  #timeouts = [];
 
   constructor(firstNow = 0) {
     super();
@@ -23,10 +26,19 @@ class MockTimeSource extends TokenBucket.BaseTimeSource {
   }
 
   async setTimeout(delay_unused) {
-    throw new Error('TODO');
+    // TODO: Respect the `delay`.
+    const mp = new ManualPromise();
+    this.#timeouts.push(() => mp.resolve());
+    return mp.promise;
   }
 
-  _setNow(now) {
+  _close() {
+    for (const t of this.#timeouts) {
+      t();
+    }
+  }
+
+  _setTime(now) {
     this.#now = now;
   }
 }
@@ -275,7 +287,35 @@ describe('.config', () => {
 });
 
 describe('denyAllRequests()', () => {
-  // TODO
+  test('causes pending grant requests to in fact be denied', async () => {
+    const time   = new MockTimeSource(10000);
+    const bucket = new TokenBucket({
+      flowRate: 1, burstSize: 1000, initialBurst: 0, timeSource: time });
+
+    // Setup / baseline assumptions.
+    const result1 = bucket.requestGrant(1);
+    const result2 = bucket.requestGrant(2);
+    const result3 = bucket.requestGrant(3);
+    await timers.setImmediate();
+    expect(PromiseState.isPending(result1)).toBeTrue();
+    expect(PromiseState.isPending(result2)).toBeTrue();
+    expect(PromiseState.isPending(result3)).toBeTrue();
+
+    // The actual test.
+
+    const result = bucket.denyAllRequests();
+    time._setTime(10987);
+    expect(PromiseState.isPending(result)).toBeTrue();
+    await timers.setImmediate();
+    expect(PromiseState.isFulfilled(result)).toBeTrue();
+
+    expect(PromiseState.isFulfilled(result1)).toBeTrue();
+    expect(PromiseState.isFulfilled(result2)).toBeTrue();
+    expect(PromiseState.isFulfilled(result3)).toBeTrue();
+    expect(await result1).toStrictEqual({ done: false, grant: 0, waitTime: 987 });
+    expect(await result2).toStrictEqual({ done: false, grant: 0, waitTime: 987 });
+    expect(await result3).toStrictEqual({ done: false, grant: 0, waitTime: 987 });
+  });
 });
 
 describe('requestGrant()', () => {

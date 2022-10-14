@@ -510,6 +510,7 @@ export class TokenBucket {
     if (this.#waiterThread.shouldStop()) {
       // The thread was asked to stop, which only happens in this class when
       // `denyAllRequests()` was called. So, deny all requests.
+      this.#topUpBucket(); // Makes `#lastTime` be current.
       for (const info of this.#waiters) {
         const waitTime = this.#lastNow - info.startTime;
         info.doGrant(this.#requestGrantResult(false, 0, waitTime));
