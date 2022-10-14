@@ -380,7 +380,7 @@ describe('takeNow()', () => {
       const bucket = new TokenBucket({
         flowRate: 13, burstSize: 10000, initialBurst: 0, timeSource: time });
 
-      // Setup / baseline assumptions
+      // Setup / baseline assumptions.
       const requestResult = bucket.requestGrant(1300);
       await timers.setImmediate();
       expect(PromiseState.isPending(requestResult)).toBeTrue();
@@ -400,7 +400,7 @@ describe('takeNow()', () => {
       const bucket = new TokenBucket({
         flowRate: 7, burstSize: 10000, initialBurst: 0, timeSource: time });
 
-      // Setup / baseline assumptions
+      // Setup / baseline assumptions.
       const requestResult = bucket.requestGrant(70);
       await timers.setImmediate();
       expect(PromiseState.isPending(requestResult)).toBeTrue();
