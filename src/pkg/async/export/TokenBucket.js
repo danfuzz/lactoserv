@@ -170,7 +170,7 @@ export class TokenBucket {
    *   `waitTime`.
    *
    * **Note:** It is invalid to use this method to request a grant with a
-   * minimum size larger than the instance's configured `burstSize`.
+   * minimum size larger than the instance's configured `maxGrantSize`.
    *
    * @param {number|object} quantity Requested quantity of tokens, as described
    *   in {@link #takeNow}.
@@ -258,12 +258,13 @@ export class TokenBucket {
    * * `{number} minInclusive` -- Minimum quantity of tokens to be granted. If
    *   the minimum can't be met, then the call will grant no (`0`) tokens.
    *   Defaults to `0`. Invalid if negative or larger than this instance's
-   *   `burstSize`. If this instance was constructed with `partialTokens ===
+   *   `maxGrantSize`. If this instance was constructed with `partialTokens ===
    *   false`, then it is rounded up (`Math.ceil()`) when not a whole number.
    * * `{number} maxInclusive` -- Maximum quantity of tokens to be granted.
-   *   Defaults to `0`. Invalid if negative, and clamped at `minInclusive`. If
-   *   If this instance was constructed with `partialTokens === false`, then it
-   *   is rounded down (`Math.floor()`) when not a whole number.
+   *   Defaults to `0`. Invalid if negative, and clamped to the range
+   *   `minInclusive..maxBurstSize`. If this instance was constructed with
+   *   `partialTokens === false`, then it is rounded down (`Math.floor()`) when
+   *   not a whole number.
    *
    * This method returns an object with bindings as follows:
    *
@@ -297,7 +298,7 @@ export class TokenBucket {
    *   above.
    * @returns {object} Result object as described above.
    * @throws {Error} Thrown if the request is invalid (inverted range,
-   *   `minInclusive` is more than the `burstSize`, etc.).
+   *   `minInclusive` is more than the `maxGrantSize`, etc.).
    */
   takeNow(quantity) {
     const { minInclusive, maxInclusive } = this.#parseQuantity(quantity);
@@ -410,16 +411,17 @@ export class TokenBucket {
       minInclusive = Math.ceil(minInclusive);
     }
 
+    const maxGrantSize = this.#maxGrantSize;
+
     try {
-      MustBe.number(minInclusive, { minInclusive: 0, maxInclusive: this.#capacity });
+      MustBe.number(minInclusive, { minInclusive: 0, maxInclusive: maxGrantSize });
       MustBe.number(maxInclusive, { minInclusive: 0 });
     } catch (e) {
-      throw new Error(`Impossible take request: ${minInclusive}..${maxInclusive}, burst size ${this.#capacity}`);
+      throw new Error(`Impossible take request: ${minInclusive}..${maxInclusive}, max ${maxGrantSize}`);
     }
 
-    if (maxInclusive < minInclusive) {
-      maxInclusive = minInclusive;
-    }
+    maxInclusive = Math.max(maxInclusive, minInclusive);
+    maxInclusive = Math.min(maxInclusive, maxGrantSize);
 
     return { minInclusive, maxInclusive };
   }
