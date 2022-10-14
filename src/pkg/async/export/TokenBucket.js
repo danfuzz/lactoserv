@@ -160,8 +160,8 @@ export class TokenBucket {
    * * `{number} waitTimeUnit` -- The unit name for the units reported in
    *   `waitTime`.
    *
-   * **Note:** It is invalid to use this method to request a grant larger than
-   * the instance's configured `burstSize`.
+   * **Note:** It is invalid to use this method to request a grant with a
+   * minimum size larger than the instance's configured `burstSize`.
    *
    * @param {number|object} quantity Requested quantity of tokens, as described
    *   in {@link #takeNow}.
