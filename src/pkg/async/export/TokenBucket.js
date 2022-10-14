@@ -137,10 +137,10 @@ export class TokenBucket {
   }
 
   /**
-   * Requests a grant of a particular quantity of tokens, to be granted all at
-   * once. This method async-returns either when the grant has been made _or_
-   * when the instance determines that it cannot perform the grant due to its
-   * configured limits.
+   * Requests a grant of a particular quantity (or quantity range) of tokens, to
+   * be granted all at once. This method async-returns either when the grant has
+   * been made _or_ when the instance determines that it cannot perform the
+   * grant due to its configured limits.
    *
    * This method returns an object with bindings as follows:
    *
