@@ -81,6 +81,11 @@ export class TokenBucket {
   #waiterThread = new Threadlet(() => this.#serviceWaiters());
 
   /**
+   * @type {Error} Cause for breakage (error thrown by {@link #waiterThread}).
+   */
+  #brokenReason = null;
+
+  /**
    * Constructs an instance. Configuration options:
    *
    * * `{number} burstSize` -- Maximum possible instantaneous burst size (that
@@ -170,8 +175,12 @@ export class TokenBucket {
    * This is useful when trying to cleanly shut down the service which this
    * instance is associated with. This method async-returns once all denials
    * have been processed.
+   *
+   * @throws {Error} Thrown if the instance became broken for some reason.
    */
   async denyAllRequests() {
+    this.#throwIfBroken();
+
     if (this.#waiters.length !== 0) {
       await this.#waiterThread.stop();
     }
@@ -187,15 +196,28 @@ export class TokenBucket {
    * * `{number} now` -- The time as of the snapshot, according to this
    *   instance's time source.
    * * `{number} waiters` -- The number of clients awaiting a token grant.
+   * * `{Error} brokenReason` -- Unrecoverable error which caused this instance
+   *   to break. This property is only present if in fact the instance became
+   *   broken. Other than a bug in this class, the most likely source of errors
+   *   is a client-supplied `TimeSource` implementation.
    *
    * @returns {object} Snapshot, as described above.
    */
   latestState() {
-    return {
+    const result = {
       availableBurst: this.#lastVolume,
       now:            this.#lastNow,
       waiters:        this.#waiters.length,
     };
+
+    if (this.#brokenReason) {
+      return {
+        ...result,
+        brokenReason: this.#brokenReason
+      };
+    } else {
+      return result;
+    }
   }
 
   /**
@@ -220,8 +242,12 @@ export class TokenBucket {
    * @param {number|object} quantity Requested quantity of tokens, as described
    *   in {@link #takeNow}.
    * @returns {number} Number of tokens actually granted (might be `0`).
+   * @throws {Error} Thrown if `quanity` is invalid, or if the instance became
+   *   broken for some reason.
    */
   async requestGrant(quantity) {
+    this.#throwIfBroken();
+
     const { minInclusive, maxInclusive } = this.#parseQuantity(quantity);
 
     if (this.#waiters.length === 0) {
@@ -245,9 +271,13 @@ export class TokenBucket {
       startTime:    this.#lastNow,
       doGrant:      v => mp.resolve(v)
     });
-    this.#waiterThread.start(); // Note: Does nothing if it's already running.
 
-    return mp.promise;
+    // Note: This does nothing if the thread is already running.
+    this.#waiterThread.start();
+
+    const result = await mp.promise;
+    this.#throwIfBroken();
+    return result;
   }
 
   /**
@@ -296,9 +326,12 @@ export class TokenBucket {
    *   above.
    * @returns {object} Result object as described above.
    * @throws {Error} Thrown if the request is invalid (inverted range,
-   *   `minInclusive` is more than the `maxGrantSize`, etc.).
+   *   `minInclusive` is more than the `maxGrantSize`, etc.). Also thrown if the
+   *   instance became broken for some reason.
    */
   takeNow(quantity) {
+    this.#throwIfBroken();
+
     const { minInclusive, maxInclusive } = this.#parseQuantity(quantity);
 
     this.#topUpBucket();
@@ -333,6 +366,17 @@ export class TokenBucket {
       return availableVolume;
     } else {
       return maxInclusive;
+    }
+  }
+
+  /**
+   * Throws the {@link #brokenReason} if the instance is broken.
+   *
+   * @throws {Error} Thrown as described.
+   */
+  #throwIfBroken() {
+    if (this.#brokenReason) {
+      throw this.#brokenReason;
     }
   }
 
@@ -428,6 +472,19 @@ export class TokenBucket {
    * {@link #waiters} is non-empty, and stops once it becomes empty.
    */
   async #serviceWaiters() {
+    try {
+      await this.#serviceWaiters0();
+    } catch (e) {
+      this.#brokenReason = e;
+      this.#waiters = [];
+    }
+  }
+
+  /**
+   * Main guts of {@link #serviceWaiters}, just split out to avoid obfuscatory
+   * nesting / indentation.
+   */
+  async #serviceWaiters0() {
     while (!this.#waiterThread.shouldStop()) {
       const info = this.#waiters[0];
       if (!info) {
