@@ -200,9 +200,9 @@ export class TokenBucket {
 
   /**
    * Requests a grant of a particular quantity (or quantity range) of tokens, to
-   * be granted all at once. This method async-returns either when the grant has
-   * been made _or_ when the instance determines that it cannot perform the
-   * grant due to its configured limits.
+   * be granted atomically (all at once). This method async-returns either when
+   * the grant has been made _or_ when the instance determines that it cannot
+   * perform the grant due to its configured limits.
    *
    * This method returns an object with bindings as follows:
    *
@@ -301,10 +301,18 @@ export class TokenBucket {
    */
   takeNow(quantity) {
     const { minInclusive, maxInclusive } = this.#parseQuantity(quantity);
+    let result;
 
-    this.#topUpBucket();
+    if (this.#waiters.length === 0) {
+      // There are no waiters, so we can try to satisfy the request.
+      this.#topUpBucket();
+      result = this.#grantNow(minInclusive, maxInclusive);
+    } else {
+      // There are waiters, so force either failure or success, with a grant of
+      // `0` in either case.
+      result = this.#grantNow(minInclusive, maxInclusive, true);
+    }
 
-    const result     = this.#grantNow(minInclusive, maxInclusive);
     const waiterTime = this.#minTokensAwaited / this.#flowRate;
 
     result.maxWaitTime += waiterTime;
@@ -321,9 +329,14 @@ export class TokenBucket {
    *
    * @param {number} minInclusive The minimum quantity of tokens to be granted.
    * @param {number} maxInclusive The maximum quantity of tokens to be granted.
+   * @param {boolean} forceZero Force a `0` grant?
    * @returns {number} The actual grant amount.
    */
-  #calculateGrant(minInclusive, maxInclusive) {
+  #calculateGrant(minInclusive, maxInclusive, forceZero) {
+    if (forceZero) {
+      return 0;
+    }
+
     const availableVolume = this.#partialTokens
       ? this.#lastVolume
       : Math.floor(this.#lastVolume);
@@ -354,10 +367,11 @@ export class TokenBucket {
    *
    * @param {number} minInclusive Minimum requested quantity of tokens.
    * @param {number} maxInclusive Maximum requested quantity of tokens.
+   * @param {boolean} [forceZero = false] Force a `0` grant?
    * @returns {object} Grant result, as described above.
    */
-  #grantNow(minInclusive, maxInclusive) {
-    const grant     = this.#calculateGrant(minInclusive, maxInclusive);
+  #grantNow(minInclusive, maxInclusive, forceZero = false) {
+    const grant     = this.#calculateGrant(minInclusive, maxInclusive, forceZero);
     const newVolume = this.#lastVolume - grant;
     const done      = (grant !== 0) || (minInclusive === 0);
 
