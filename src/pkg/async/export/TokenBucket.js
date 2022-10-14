@@ -426,7 +426,7 @@ export class TokenBucket {
       // `denyAllRequests()` was called. So, deny all requests.
       for (const info of this.#waiters) {
         const waitTime = this.#lastNow - info.startTime;
-        info.doGrant({ done: false, grant: 0, waitTime });
+        info.doGrant(this.#requestGrantResult(false, 0, waitTime));
       }
 
       this.#waiters = [];
