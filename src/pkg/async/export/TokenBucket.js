@@ -348,7 +348,7 @@ export class TokenBucket {
    * #takeNow} and is used by other token-granting methods. Notably:
    *
    * * It assumes its arguments are valid, including (effectively) being
-   *   processed by {@link #parseGrant}.
+   *   processed by {@link #parseQuantity}.
    * * It does _not_ top up the bucket before taking action.
    * * It does not take into account any waiters, including the calculation of
    *   the returned wait times. (This is the method used to actually grant
