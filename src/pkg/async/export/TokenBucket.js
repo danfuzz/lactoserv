@@ -533,17 +533,16 @@ export class TokenBucket {
     }
 
     /**
-     * Async-returns the given value after the given number of arbitrary time
-     * units (ATU) have elapsed.
+     * Async-returns `null` after the given number of arbitrary time units (ATU)
+     * have elapsed.
      *
      * @abstract
      * @param {number} delay The number of ATU that must elapse before
      *   async-returning.
-     * @param {*} [value = null] Value to return.
-     * @returns {*} `value`, after `delay` ATU have elapsed.
+     * @returns {null} `null`, always.
      */
-    async setTimeout(delay, value = null) {
-      return Methods.abstract(delay, value);
+    async setTimeout(delay) {
+      return Methods.abstract(delay);
     }
   };
 
@@ -566,9 +565,9 @@ export class TokenBucket {
     }
 
     /** @override */
-    async setTimeout(delay, value = null) {
+    async setTimeout(delay) {
       const delayMsec = delay * StdTimeSource.#MSEC_PER_SEC;
-      return timers.setTimeout(delayMsec, value);
+      return timers.setTimeout(delayMsec, null);
     }
 
     /** {number} The number of milliseconds in a second. */

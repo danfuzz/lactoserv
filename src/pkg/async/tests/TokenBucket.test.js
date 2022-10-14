@@ -22,7 +22,7 @@ class MockTimeSource extends TokenBucket.BaseTimeSource {
     return this.#now;
   }
 
-  async setTimeout() {
+  async setTimeout(delay_unused) {
     throw new Error('TODO');
   }
 
