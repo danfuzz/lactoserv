@@ -182,12 +182,11 @@ export class TokenBucket {
    * (which corresponds to the last time any token grant requests were
    * processed). The return value is an object with the following bindings:
    *
-   * * Timely info:
-   *   * `{number} availableBurst` -- The currently-available burst size, that
-   *     is, the quantity of tokens currently in the bucket.
-   *   * `{number} now` -- The time as of the snapshot, according to this
-   *     instance's time source.
-   *   * `{number} waiters` -- The number of clients awaiting a token grant.
+   * * `{number} availableBurst` -- The currently-available burst size, that
+   *   is, the quantity of tokens currently in the bucket.
+   * * `{number} now` -- The time as of the snapshot, according to this
+   *   instance's time source.
+   * * `{number} waiters` -- The number of clients awaiting a token grant.
    *
    * @returns {object} Snapshot, as described above.
    */
