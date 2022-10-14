@@ -232,7 +232,8 @@ export class TokenBucket {
   }
 
   /**
-   * Gets an instantaneously-current snapshot of this instance's state The
+   * Gets a snapshot of this instance's state, as of its most recent update
+   * (which corresponds to the last time any tokens were granted). The
    * return value is an object with the following bindings:
    *
    * * Timely info:
@@ -244,9 +245,7 @@ export class TokenBucket {
    *
    * @returns {object} Snapshot, as described above.
    */
-  snapshotNow() {
-    this.#topUpBucket();
-
+  latestState() {
     return {
       availableBurst: this.#lastVolume,
       now:            this.#lastNow,

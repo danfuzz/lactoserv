@@ -123,12 +123,17 @@ describe('constructor()', () => {
 
   test('produces an instance with `availableBurst` equal to the passed `initialBurst`', () => {
     const bucket = new TokenBucket({ flowRate: 1, burstSize: 100, initialBurst: 23 });
-    expect(bucket.snapshotNow().availableBurst).toBe(23);
+    expect(bucket.latestState().availableBurst).toBe(23);
   });
 
   test('has `availableBurst === burstSize` if not passed `initialBurst`', () => {
     const bucket = new TokenBucket({ flowRate: 1, burstSize: 123 });
-    expect(bucket.snapshotNow().availableBurst).toBe(123);
+    expect(bucket.latestState().availableBurst).toBe(123);
+  });
+
+  test('produces an instance with no waiters', () => {
+    const bucket = new TokenBucket({ flowRate: 1, burstSize: 100 });
+    expect(bucket.latestState().waiters).toBe(0);
   });
 });
 
@@ -271,10 +276,10 @@ describe('requestGrant()', () => {
   // TODO
 });
 
-describe('snapshotNow()', () => {
+describe('latestState()', () => {
   test('has exactly the expected properties', () => {
     const bucket = new TokenBucket({ flowRate: 123, burstSize: 100000 });
-    expect(bucket.snapshotNow()).toContainAllKeys([
+    expect(bucket.latestState()).toContainAllKeys([
       'availableBurst', 'now', 'waiters'
     ]);
   });
