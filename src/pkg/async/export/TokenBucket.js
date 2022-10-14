@@ -179,8 +179,8 @@ export class TokenBucket {
 
   /**
    * Gets a snapshot of this instance's state, as of its most recent update
-   * (which corresponds to the last time any token grant requests were
-   * processed). The return value is an object with the following bindings:
+   * (which corresponds to the last time any nontrivial token grant requests
+   * were processed). The return value is an object with the following bindings:
    *
    * * `{number} availableBurst` -- The currently-available burst size, that
    *   is, the quantity of tokens currently in the bucket.
@@ -210,9 +210,13 @@ export class TokenBucket {
    *   be `true` even if `grant === 0`, in the case where the minimum requested
    *   grant is in fact `0`.
    * * `{number} grant` -- The quantity of tokens granted to the caller. This is
-   *   `0` if the minimum required grant cannot be made.
+   *   `0` if `done === false`, and can also be a successful grant of `0`, if
+   *   the minimum request was `0`.
    * * `{number} waitTime` -- The amount of time (in ATU) that was spent waiting
    *   for the grant.
+   *
+   * **Note:** If the minimum requested grant is `0`, this method always
+   * succeeds and grants `0` tokens.
    *
    * **Note:** It is invalid to use this method to request a grant with a
    * minimum size larger than the instance's configured `maxGrantSize`.
@@ -225,7 +229,12 @@ export class TokenBucket {
   async requestGrant(quantity) {
     const { minInclusive, maxInclusive } = this.#parseQuantity(quantity);
 
-    if (this.#waiters.length === 0) {
+    if (minInclusive === 0) {
+      // Arguably not that useful, but we oblige with immediate satisfaction.
+      // (It's reasonable for this to be a valid request, but we don't want to
+      // make it gum up the rest of the works.)
+      return this.#requestGrantResult(true, 0, 0);
+    } else if (this.#waiters.length === 0) {
       // No waiters right now, so try to get the grant synchronously.
       this.#topUpBucket();
       const got = this.#grantNow(minInclusive, maxInclusive);
@@ -233,7 +242,8 @@ export class TokenBucket {
         return this.#requestGrantResult(true, got.grant, 0);
       }
     } else if (this.#waiters.length >= this.#maxWaiters) {
-      // Too many waiters, per configuration.
+      // There are too many waiters to add another, per configuration. So,
+      // immediately fail.
       return this.#requestGrantResult(false, 0, 0);
     }
 
