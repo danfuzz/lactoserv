@@ -68,6 +68,12 @@ export class TokenBucket {
    */
   #waiters = [];
 
+  /**
+   * @type {number} The sum of `.#waiters[*].minInclusive`, that is, how many
+   * tokens must be granted to clear out the waiters.
+   */
+  #minTokensAwaited = 0;
+
   /** @type {Threadlet} Servicer thread for the {@link #waiters}. */
   #waiterThread = new Threadlet(() => this.#serviceWaiters());
 
@@ -182,6 +188,7 @@ export class TokenBucket {
 
     const mp = new ManualPromise();
 
+    this.#minTokensAwaited += minInclusive;
     this.#waiters.push({
       minInclusive,
       maxInclusive,
@@ -258,18 +265,20 @@ export class TokenBucket {
    *   grant is in fact `0`.
    * * `{number} grant` -- The quantity of tokens granted to the caller. This is
    *   `0` if the minimum required grant cannot be made.
-   * * `{number} maxWaitTime` -- The amount of time needed to wait (in ATU) in
-   *   order to possibly be granted the maximum requested quantity of tokens.
    * * `{number} minWaitTime` -- The amount of time needed to wait (in ATU) in
    *   order to possibly be granted the minimum requested quantity of tokens.
    *   This is only non-zero if `done === false`.
+   * * `{number} maxWaitTime` -- The amount of time needed to wait (in ATU) in
+   *   order to possibly be granted the maximum requested quantity of tokens.
    * * `{number} waitTimeUnit` -- The unit name for the units reported in
    *   `*WaitTime`.
    *
-   * Note: `maxWaitTime` and `minWaitTime` in the return value are times that do
-   * not take into account contention for tokens from other clients. If there
-   * are other active clients, the actual required wait times will turn out to
-   * be larger than what was returned.
+   * If the `minInclusive` request is non-zero, then this method will only ever
+   * return `done === true` if there is no immediate contention for tokens
+   * (e.g., due to async-active calls to {@link #requestGrant}). The resulting
+   * `minWaitTime` and `maxWaitTime` do take active contention into account,
+   * though the actual required wait times can turn out to be larger than what
+   * was returned.
    *
    * Note: This method _first_ tops up the token bucket based on the amount of
    * time elapsed since the previous top-up, and _then_ removes tokens. This
@@ -288,10 +297,17 @@ export class TokenBucket {
 
     this.#topUpBucket();
 
-    return {
-      ...this.#grantNow(minInclusive, maxInclusive),
-      waitTimeUnit: this.#timeSource.unitName
-    };
+    const result     = this.#grantNow(minInclusive, maxInclusive);
+    const waiterTime = this.#minTokensAwaited / this.#flowRate;
+
+    result.waitTimeUnit = this.#timeSource.unitName;
+    result.maxWaitTime += waiterTime;
+
+    if (!result.done) {
+      result.minWaitTime += waiterTime;
+    }
+
+    return result;
   }
 
   /**
@@ -399,6 +415,7 @@ export class TokenBucket {
 
       if (got.done) {
         this.#waiters.shift();
+        this.#minTokensAwaited -= info.minInclusive;
         const waitTime = this.#lastNow - info.startTime;
         info.doGrant(this.#requestGrantResult(true, got.grant, waitTime));
       } else {
@@ -428,8 +445,9 @@ export class TokenBucket {
    * * It assumes its arguments are valid, including (effectively) being
    *   processed by {@link #calculateGrant}.
    * * It does _not_ top up the bucket before taking action.
-   * * It does not take into account any waiters. (This is the method used to
-   *   actually grant tokens on behalf of waiters!)
+   * * It does not take into account any waiters, including the calculation of
+   *   the returned wait times. (This is the method used to actually grant
+   *   tokens on behalf of waiters!)
    *
    * This method returns an object with the following binding, which all have
    * the same meaning as with {@link #takeNow}: `done`, `grant`, `maxWaitTime`,

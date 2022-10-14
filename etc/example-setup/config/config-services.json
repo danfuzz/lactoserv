@@ -16,15 +16,15 @@
     "type":        "rate-limiter",
     "connections": {
       "burstSize":  10,
-      "flowRate":   10,
+      "flowRate":   1,
       "timeUnit":   "second",
-      "maxWaiters": 50
+      "maxWaiters": 2
     },
     "requests": {
-      "burstSize": 2,
-      "flowRate":  1.25,
-      "timeUnit":  "second",
-      "maxWaiters": 5
+      "burstSize":  20,
+      "flowRate":   5,
+      "timeUnit":   "second",
+      "maxWaiters": 100
     }
   }
 ]
