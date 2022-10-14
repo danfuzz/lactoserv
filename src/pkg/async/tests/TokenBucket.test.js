@@ -332,7 +332,7 @@ describe('latestState()', () => {
     ]);
   });
 
-  test('does not synchronously use the time source', () => {
+  test('does not use the time source', () => {
     const time   = new MockTimeSource(900);
     const bucket = new TokenBucket({
       flowRate: 1, burstSize: 10000, initialBurst: 100, timeSource: time });
