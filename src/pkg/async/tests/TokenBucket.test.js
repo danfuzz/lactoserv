@@ -342,6 +342,7 @@ describe('takeNow()', () => {
 
       const result = bucket.takeNow(123);
       expect(result).toStrictEqual({ done: true, grant: 123, minWaitTime: 0, maxWaitTime: 0 });
+      expect(bucket.latestState().availableBurst).toBe(0);
     });
 
     test('succeeds with as much as is available', () => {
@@ -354,6 +355,8 @@ describe('takeNow()', () => {
       expect(result.grant).toBe(100);
       expect(result.minWaitTime).toBe(0);
       expect(result.maxWaitTime).toBe((110 - 100) / 5);
+
+      expect(bucket.latestState().availableBurst).toBe(0);
     });
 
     test('succeeds with as much as is available, clamped at `maxGrantSize`', () => {
@@ -366,6 +369,8 @@ describe('takeNow()', () => {
       expect(result1.grant).toBe(50);
       expect(result1.minWaitTime).toBe(0);
       expect(result1.maxWaitTime).toBe((200 - 75) / 5);
+
+      expect(bucket.latestState().availableBurst).toBe(25);
     });
   });
 
