@@ -63,8 +63,8 @@ export class TokenBucket {
   #lastVolume;
 
   /**
-   * @type {{ quantity: number, startTime: number, doGrant:
-   * function(number) }[]} Array of grant waiters.
+   * @type {{ minInclusive: number, maxInclusive: number, startTime: number,
+   * doGrant: function(number) }[]} Array of grant waiters.
    */
   #waiters = [];
 
@@ -166,11 +166,12 @@ export class TokenBucket {
     // ensures that if we store `quantity` in a waiter entry it's not the same
     // object as was passed in (thereby preventing the client from -- perhaps
     // inadvertently -- messing with this instance).
-    quantity = this.#parseQuantity(quantity);
+    const { minInclusive, maxInclusive } = this.#parseQuantity(quantity);
 
     if (this.#waiters.length === 0) {
       // No waiters right now, so try to get the grant synchronously.
-      const got = this.takeNow(quantity);
+      this.#topUpBucket();
+      const got = this.#grantNow(minInclusive, maxInclusive);
       if (got.done) {
         return this.#requestGrantResult(true, got.grant, 0);
       }
@@ -182,9 +183,10 @@ export class TokenBucket {
     const mp = new ManualPromise();
 
     this.#waiters.push({
-      quantity,
-      startTime: this.#lastNow,
-      doGrant:   v => mp.resolve(v)
+      minInclusive,
+      maxInclusive,
+      startTime:    this.#lastNow,
+      doGrant:      v => mp.resolve(v)
     });
     this.#waiterThread.start(); // Note: Does nothing if it's already running.
 
@@ -392,7 +394,9 @@ export class TokenBucket {
         break;
       }
 
-      const got = this.takeNow(info.quantity);
+      this.#topUpBucket();
+      const got = this.#grantNow(info.minInclusive, info.maxInclusive);
+
       if (got.done) {
         this.#waiters.shift();
         const waitTime = this.#lastNow - info.startTime;
