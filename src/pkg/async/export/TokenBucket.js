@@ -344,6 +344,41 @@ export class TokenBucket {
   }
 
   /**
+   * Token grant helper, which implements the core functionality of {@link
+   * #takeNow} and is used by other token-granting methods. Notably:
+   *
+   * * It assumes its arguments are valid, including (effectively) being
+   *   processed by {@link #parseGrant}.
+   * * It does _not_ top up the bucket before taking action.
+   * * It does not take into account any waiters, including the calculation of
+   *   the returned wait times. (This is the method used to actually grant
+   *   tokens on behalf of waiters!)
+   *
+   * This method returns an object with the following binding, which all have
+   * the same meaning as with {@link #takeNow}: `done`, `grant`, `maxWaitTime`,
+   * and `minWaitTime`.
+   *
+   * @param {number} minInclusive Minimum requested quantity of tokens.
+   * @param {number} maxInclusive Maximum requested quantity of tokens.
+   * @returns {object} Grant result, as described above.
+   */
+  #grantNow(minInclusive, maxInclusive) {
+    const grant     = this.#calculateGrant(minInclusive, maxInclusive);
+    const newVolume = this.#lastVolume - grant;
+    const done      = (grant !== 0) || (minInclusive === 0);
+
+    // The wait times take into account any tokens which remain in the bucket
+    // after a partial grant.
+    const neededMax   = Math.max(0, (maxInclusive - grant) - newVolume);
+    const neededMin   = Math.max(0, (minInclusive - grant) - newVolume);
+    const maxWaitTime = neededMax / this.#flowRate;
+    const minWaitTime = neededMin / this.#flowRate;
+
+    this.#lastVolume = newVolume;
+    return { done, grant, maxWaitTime, minWaitTime };
+  }
+
+  /**
    * Helper for `take*()` methods, which parses, adjusts, and and does validity
    * checking on a `quantity` argument.
    *
@@ -436,41 +471,6 @@ export class TokenBucket {
 
       this.#waiters = [];
     }
-  }
-
-  /**
-   * Token grant helper, which implements the core functionality of {@link
-   * #takeNow} and is used by other token-granting methods. Notably:
-   *
-   * * It assumes its arguments are valid, including (effectively) being
-   *   processed by {@link #calculateGrant}.
-   * * It does _not_ top up the bucket before taking action.
-   * * It does not take into account any waiters, including the calculation of
-   *   the returned wait times. (This is the method used to actually grant
-   *   tokens on behalf of waiters!)
-   *
-   * This method returns an object with the following binding, which all have
-   * the same meaning as with {@link #takeNow}: `done`, `grant`, `maxWaitTime`,
-   * and `minWaitTime`.
-   *
-   * @param {number} minInclusive Minimum requested quantity of tokens.
-   * @param {number} maxInclusive Maximum requested quantity of tokens.
-   * @returns {object} Grant result, as described above.
-   */
-  #grantNow(minInclusive, maxInclusive) {
-    const grant     = this.#calculateGrant(minInclusive, maxInclusive);
-    const newVolume = this.#lastVolume - grant;
-    const done      = (grant !== 0) || (minInclusive === 0);
-
-    // The wait times take into account any tokens which remain in the bucket
-    // after a partial grant.
-    const neededMax   = Math.max(0, (maxInclusive - grant) - newVolume);
-    const neededMin   = Math.max(0, (minInclusive - grant) - newVolume);
-    const maxWaitTime = neededMax / this.#flowRate;
-    const minWaitTime = neededMin / this.#flowRate;
-
-    this.#lastVolume = newVolume;
-    return { done, grant, maxWaitTime, minWaitTime };
   }
 
   /**
