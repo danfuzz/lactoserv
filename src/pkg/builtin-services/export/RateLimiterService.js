@@ -80,7 +80,9 @@ export class RateLimiterService extends BaseService {
 
   /**
    * Wraps a writable stream in a new writable stream, the latter which abides
-   * by this instance's data rate limiter.
+   * by this instance's data rate limiter. If the given stream is actually
+   * duplex, then this method returns a duplex stream but with the read side
+   * being fully pass-through.
    *
    * @param {object} stream The writable stream to wrap.
    * @param {?function(*)} logger_unused Logger to use for reporting about the
