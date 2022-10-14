@@ -214,8 +214,6 @@ export class TokenBucket {
    *   `0` if the minimum required grant cannot be made.
    * * `{number} waitTime` -- The amount of time (in ATU) that was spent waiting
    *   for the grant.
-   * * `{number} waitTimeUnit` -- The unit name for the units reported in
-   *   `waitTime`.
    *
    * **Note:** It is invalid to use this method to request a grant with a
    * minimum size larger than the instance's configured `maxGrantSize`.
@@ -281,8 +279,6 @@ export class TokenBucket {
    *   This is only non-zero if `done === false`.
    * * `{number} maxWaitTime` -- The amount of time needed to wait (in ATU) in
    *   order to possibly be granted the maximum requested quantity of tokens.
-   * * `{number} waitTimeUnit` -- The unit name for the units reported in
-   *   `*WaitTime`.
    *
    * If the `minInclusive` request is non-zero, then this method will only ever
    * return `done === true` if there is no immediate contention for tokens
@@ -311,7 +307,6 @@ export class TokenBucket {
     const result     = this.#grantNow(minInclusive, maxInclusive);
     const waiterTime = this.#minTokensAwaited / this.#flowRate;
 
-    result.waitTimeUnit = this.#timeSource.unitName;
     result.maxWaitTime += waiterTime;
 
     if (!result.done) {
@@ -426,12 +421,7 @@ export class TokenBucket {
    * @returns {object} An appropriately-constructed result.
    */
   #requestGrantResult(done, grant, waitTime) {
-    return {
-      done,
-      grant,
-      waitTime,
-      waitTimeUnit: this.#timeSource.unitName
-    };
+    return { done, grant, waitTime };
   }
 
   /**
