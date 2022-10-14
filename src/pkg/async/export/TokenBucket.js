@@ -272,10 +272,11 @@ export class TokenBucket {
    *   `maxGrantSize`. If this instance was constructed with `partialTokens ===
    *   false`, then it is rounded up (`Math.ceil()`) when not a whole number.
    * * `{number} maxInclusive` -- Maximum quantity of tokens to be granted.
-   *   Defaults to `0`. Invalid if negative, and clamped to the range
-   *   `minInclusive..maxBurstSize`. If this instance was constructed with
-   *   `partialTokens === false`, then it is rounded down (`Math.floor()`) when
-   *   not a whole number.
+   *   Defaults to `0`. Invalid if negative, and clamped to `minInclusive` as a
+   *   minimum. If this instance was constructed with `partialTokens === false`,
+   *   then it is rounded down (`Math.floor()`) when not a whole number. This
+   *   is allowed to be larger than `maxGrantSize`, but this method will never
+   *   actually grant more than that.
    *
    * This method returns an object with bindings as follows:
    *
@@ -325,7 +326,9 @@ export class TokenBucket {
 
     const waiterTime = this.#minTokensAwaited / this.#flowRate;
 
-    result.maxWaitTime += waiterTime;
+    if (result.grant < maxInclusive) {
+      result.maxWaitTime += waiterTime;
+    }
 
     if (!result.done) {
       result.minWaitTime += waiterTime;
@@ -350,6 +353,8 @@ export class TokenBucket {
     const availableVolume = this.#partialTokens
       ? this.#lastVolume
       : Math.floor(this.#lastVolume);
+
+    maxInclusive = Math.min(maxInclusive, this.#maxGrantSize);
 
     if (availableVolume < minInclusive) {
       return 0;
@@ -431,7 +436,6 @@ export class TokenBucket {
     }
 
     maxInclusive = Math.max(maxInclusive, minInclusive);
-    maxInclusive = Math.min(maxInclusive, maxGrantSize);
 
     return { minInclusive, maxInclusive };
   }
