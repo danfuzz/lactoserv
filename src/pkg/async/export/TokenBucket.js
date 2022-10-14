@@ -81,11 +81,6 @@ export class TokenBucket {
   #waiterThread = new Threadlet(() => this.#serviceWaiters());
 
   /**
-   * @type {Error} Cause for breakage (error thrown by {@link #waiterThread}).
-   */
-  #brokenReason = null;
-
-  /**
    * Constructs an instance. Configuration options:
    *
    * * `{number} burstSize` -- Maximum possible instantaneous burst size (that
@@ -175,12 +170,8 @@ export class TokenBucket {
    * This is useful when trying to cleanly shut down the service which this
    * instance is associated with. This method async-returns once all denials
    * have been processed.
-   *
-   * @throws {Error} Thrown if the instance became broken for some reason.
    */
   async denyAllRequests() {
-    this.#throwIfBroken();
-
     if (this.#waiters.length !== 0) {
       await this.#waiterThread.stop();
     }
@@ -196,28 +187,15 @@ export class TokenBucket {
    * * `{number} now` -- The time as of the snapshot, according to this
    *   instance's time source.
    * * `{number} waiters` -- The number of clients awaiting a token grant.
-   * * `{Error} brokenReason` -- Unrecoverable error which caused this instance
-   *   to break. This property is only present if in fact the instance became
-   *   broken. Other than a bug in this class, the most likely source of errors
-   *   is a client-supplied `TimeSource` implementation.
    *
    * @returns {object} Snapshot, as described above.
    */
   latestState() {
-    const result = {
+    return {
       availableBurst: this.#lastVolume,
       now:            this.#lastNow,
       waiters:        this.#waiters.length,
     };
-
-    if (this.#brokenReason) {
-      return {
-        ...result,
-        brokenReason: this.#brokenReason
-      };
-    } else {
-      return result;
-    }
   }
 
   /**
@@ -242,12 +220,9 @@ export class TokenBucket {
    * @param {number|object} quantity Requested quantity of tokens, as described
    *   in {@link #takeNow}.
    * @returns {number} Number of tokens actually granted (might be `0`).
-   * @throws {Error} Thrown if `quanity` is invalid, or if the instance became
-   *   broken for some reason.
+   * @throws {Error} Thrown if `quanity` is invalid.
    */
   async requestGrant(quantity) {
-    this.#throwIfBroken();
-
     const { minInclusive, maxInclusive } = this.#parseQuantity(quantity);
 
     if (this.#waiters.length === 0) {
@@ -272,12 +247,8 @@ export class TokenBucket {
       doGrant:      v => mp.resolve(v)
     });
 
-    // Note: This does nothing if the thread is already running.
-    this.#waiterThread.start();
-
-    const result = await mp.promise;
-    this.#throwIfBroken();
-    return result;
+    this.#startWaiterThread();
+    return await mp.promise;
   }
 
   /**
@@ -326,12 +297,9 @@ export class TokenBucket {
    *   above.
    * @returns {object} Result object as described above.
    * @throws {Error} Thrown if the request is invalid (inverted range,
-   *   `minInclusive` is more than the `maxGrantSize`, etc.). Also thrown if the
-   *   instance became broken for some reason.
+   *   `minInclusive` is more than the `maxGrantSize`, etc.).
    */
   takeNow(quantity) {
-    this.#throwIfBroken();
-
     const { minInclusive, maxInclusive } = this.#parseQuantity(quantity);
 
     this.#topUpBucket();
@@ -366,17 +334,6 @@ export class TokenBucket {
       return availableVolume;
     } else {
       return maxInclusive;
-    }
-  }
-
-  /**
-   * Throws the {@link #brokenReason} if the instance is broken.
-   *
-   * @throws {Error} Thrown as described.
-   */
-  #throwIfBroken() {
-    if (this.#brokenReason) {
-      throw this.#brokenReason;
     }
   }
 
@@ -468,23 +425,22 @@ export class TokenBucket {
   }
 
   /**
+   * Starts the {@link #waiterThread} if it's not already running.
+   */
+  #startWaiterThread() {
+    // This is a _little_ non-obvious: The following call returns a promise, and
+    // we intentionally don't try to handle any rejection from it, exactly so
+    // that problems show up as top-level unhandled promise rejections. Such
+    // rejections are indicators of bugs, and so not something we would want
+    // client code to be "naturally" exposed to.
+    this.#waiterThread.run();
+  }
+
+  /**
    * Services {@link #waiters}. This gets run in {@link #waiterThread} whenever
    * {@link #waiters} is non-empty, and stops once it becomes empty.
    */
   async #serviceWaiters() {
-    try {
-      await this.#serviceWaiters0();
-    } catch (e) {
-      this.#brokenReason = e;
-      this.#waiters = [];
-    }
-  }
-
-  /**
-   * Main guts of {@link #serviceWaiters}, just split out to avoid obfuscatory
-   * nesting / indentation.
-   */
-  async #serviceWaiters0() {
     while (!this.#waiterThread.shouldStop()) {
       const info = this.#waiters[0];
       if (!info) {
