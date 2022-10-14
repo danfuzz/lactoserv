@@ -129,8 +129,6 @@ export class TcpWrangler extends ProtocolWrangler {
       }
     }
 
-    // TODO: This is where we might interpose a `WriteSpy`.
-
     this.#sockets.add(socket);
     this.#anySockets.value = true;
 
@@ -154,6 +152,8 @@ export class TcpWrangler extends ProtocolWrangler {
       if (!granted) {
         socket.destroy();
       }
+
+      socket = this.#rateLimiter.wrapWriter(socket, connLogger);
     }
 
     this._impl_newConnection(socket);
