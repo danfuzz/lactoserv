@@ -32,7 +32,7 @@ class MockTimeSource extends TokenBucket.BaseTimeSource {
     return mp.promise;
   }
 
-  _close() {
+  _end() {
     for (const t of this.#timeouts) {
       t();
     }
@@ -315,6 +315,8 @@ describe('denyAllRequests()', () => {
     expect(await result1).toStrictEqual({ done: false, grant: 0, waitTime: 987 });
     expect(await result2).toStrictEqual({ done: false, grant: 0, waitTime: 987 });
     expect(await result3).toStrictEqual({ done: false, grant: 0, waitTime: 987 });
+
+    time._end();
   });
 });
 
@@ -332,5 +334,80 @@ describe('latestState()', () => {
 });
 
 describe('takeNow()', () => {
-  // TODO
+  describe('when there are no waiters', () => {
+    test('succeeds given an exact token quantity and sufficient available burst', () => {
+      const time   = new MockTimeSource();
+      const bucket = new TokenBucket({
+        flowRate: 1, burstSize: 10000, initialBurst: 123, timeSource: time });
+
+      const result = bucket.takeNow(123);
+      expect(result).toStrictEqual({ done: true, grant: 123, minWaitTime: 0, maxWaitTime: 0 });
+    });
+
+    test('succeeds with as much as is available', () => {
+      const time   = new MockTimeSource();
+      const bucket = new TokenBucket({
+        flowRate: 5, burstSize: 10000, initialBurst: 100, timeSource: time });
+
+      const result = bucket.takeNow({ minInclusive: 10, maxInclusive: 110 });
+      expect(result.done).toBeTrue();
+      expect(result.grant).toBe(100);
+      expect(result.minWaitTime).toBe(0);
+      expect(result.maxWaitTime).toBe((110 - 100) / 5);
+    });
+
+    test('succeeds with as much as is available, clamped at `maxGrantSize`', () => {
+      const time   = new MockTimeSource();
+      const bucket = new TokenBucket({
+        flowRate: 5, burstSize: 10000, initialBurst: 75, maxGrantSize: 50, timeSource: time });
+
+      const result1 = bucket.takeNow({ minInclusive: 10, maxInclusive: 200 });
+      expect(result1.done).toBeTrue();
+      expect(result1.grant).toBe(50);
+      expect(result1.minWaitTime).toBe(0);
+      expect(result1.maxWaitTime).toBe((200 - 75) / 5);
+    });
+  });
+
+  describe('when there is at least one waiter', () => {
+    test('succeeds with `0` on a zero-minimum request', async () => {
+      const time   = new MockTimeSource();
+      const bucket = new TokenBucket({
+        flowRate: 13, burstSize: 10000, initialBurst: 0, timeSource: time });
+
+      // Setup / baseline assumptions
+      const requestResult = bucket.requestGrant(1300);
+      await timers.setImmediate();
+      expect(PromiseState.isPending(requestResult)).toBeTrue();
+
+      // The actual test.
+      const result = bucket.takeNow({ minInclusive: 0, maxInclusive: 26 });
+      expect(result.done).toBeTrue();
+      expect(result.grant).toBe(0);
+      expect(result.minWaitTime).toBe(0);
+      expect(result.maxWaitTime).toBe((1300 + 26) / 13);
+
+      time._end();
+    });
+
+    test('fails on a nonzero-minimum request', async () => {
+      const time   = new MockTimeSource();
+      const bucket = new TokenBucket({
+        flowRate: 7, burstSize: 10000, initialBurst: 0, timeSource: time });
+
+      // Setup / baseline assumptions
+      const requestResult = bucket.requestGrant(70);
+      await timers.setImmediate();
+      expect(PromiseState.isPending(requestResult)).toBeTrue();
+
+      // The actual test.
+      const result = bucket.takeNow({ minInclusive: 700, maxInclusive: 1400 });
+      expect(result.done).toBeFalse();
+      expect(result.grant).toBe(0);
+      expect(result.minWaitTime).toBe((70 + 700) / 7);
+      expect(result.maxWaitTime).toBe((70 + 1400) / 7);
+
+      time._end();
+    });
+  });
 });
