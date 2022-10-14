@@ -58,12 +58,12 @@ describe('constructor()', () => {
 
   test('produces an instance with the `burstSize` that was passed', () => {
     const bucket = new TokenBucket({ flowRate: 1, burstSize: 123 });
-    expect(bucket.snapshotNow().burstSize).toBe(123);
+    expect(bucket.config.burstSize).toBe(123);
   });
 
   test('produces an instance with the `flowRate` that was passed', () => {
     const bucket = new TokenBucket({ flowRate: 1234, burstSize: 100000 });
-    expect(bucket.snapshotNow().flowRate).toBe(1234);
+    expect(bucket.config.flowRate).toBe(1234);
   });
 
   test.each`
@@ -73,12 +73,12 @@ describe('constructor()', () => {
     ${200}
   `('produces an instance with the `maxGrantSize` that was passed: $maxGrantSize', ({ maxGrantSize }) => {
     const bucket = new TokenBucket({ flowRate: 1, burstSize: 1000, maxGrantSize });
-    expect(bucket.snapshotNow().maxGrantSize).toBe(maxGrantSize);
+    expect(bucket.config.maxGrantSize).toBe(maxGrantSize);
   });
 
   test('has `maxGrantSize === burstSize` if not passed', () => {
     const bucket = new TokenBucket({ flowRate: 1, burstSize: 10203 });
-    expect(bucket.snapshotNow().maxGrantSize).toBe(10203);
+    expect(bucket.config.maxGrantSize).toBe(10203);
   });
 
   test.each`
@@ -88,12 +88,12 @@ describe('constructor()', () => {
     ${10}
   `('produces an instance with the `maxWaiters` that was passed: $maxWaiters', ({ maxWaiters }) => {
     const bucket = new TokenBucket({ flowRate: 1, burstSize: 1, maxWaiters });
-    expect(bucket.snapshotNow().maxWaiters).toBe(maxWaiters);
+    expect(bucket.config.maxWaiters).toBe(maxWaiters);
   });
 
   test('has `maxWaiters === null` if not passed', () => {
     const bucket = new TokenBucket({ flowRate: 1, burstSize: 1 });
-    expect(bucket.snapshotNow().maxWaiters).toBeNull();
+    expect(bucket.config.maxWaiters).toBeNull();
   });
 
   test.each`
@@ -102,12 +102,23 @@ describe('constructor()', () => {
     ${true}
   `('produces an instance with the `partialTokens` that was passed: $partialTokens', ({ partialTokens }) => {
     const bucket = new TokenBucket({ flowRate: 1, burstSize: 1, partialTokens });
-    expect(bucket.snapshotNow().partialTokens).toBe(partialTokens);
+    expect(bucket.config.partialTokens).toBe(partialTokens);
   });
 
   test('has `partialTokens === false` if not passed', () => {
     const bucket = new TokenBucket({ flowRate: 1, burstSize: 1 });
-    expect(bucket.snapshotNow().partialTokens).toBeFalse();
+    expect(bucket.config.partialTokens).toBeFalse();
+  });
+
+  test('produces an instance which uses the `timeSource` that was passed', () => {
+    const ts = new MockTimeSource();
+    const bucket = new TokenBucket({ flowRate: 1, burstSize: 1, timeSource: ts });
+    expect(bucket.config.timeSource).toBe(ts);
+  });
+
+  test('produces an instance which (apparently) uses the default time source if not passed `timeSource`', () => {
+    const bucket = new TokenBucket({ flowRate: 1, burstSize: 1 });
+    expect(bucket.config.timeSource).toBeNull();
   });
 
   test('produces an instance with `availableBurst` equal to the passed `initialBurst`', () => {
@@ -118,16 +129,6 @@ describe('constructor()', () => {
   test('has `availableBurst === burstSize` if not passed `initialBurst`', () => {
     const bucket = new TokenBucket({ flowRate: 1, burstSize: 123 });
     expect(bucket.snapshotNow().availableBurst).toBe(123);
-  });
-
-  test('produces an instance which uses the `timeSource` that was passed', () => {
-    const bucket = new TokenBucket({ flowRate: 1, burstSize: 1, timeSource: new MockTimeSource() });
-    expect(bucket.snapshotNow().timeUnit).toBe('some-unit');
-  });
-
-  test('produces an instance which uses a seconds-based time source if not passed `timeSource`', () => {
-    const bucket = new TokenBucket({ flowRate: 1, burstSize: 1 });
-    expect(bucket.snapshotNow().timeUnit).toBe('seconds');
   });
 });
 
@@ -249,6 +250,16 @@ describe('constructor(<invalid>)', () => {
     ${MockTimeSource /* ditto */}
   `('rejects invalid `timeSource`: $timeSource', ({ timeSource }) => {
     expect(() => new TokenBucket({ flowRate: 1, burstSize: 1, timeSource })).toThrow();
+  });
+});
+
+describe('.config', () => {
+  test('has exactly the expected properties', () => {
+    const bucket = new TokenBucket({ flowRate: 123, burstSize: 100000 });
+    expect(bucket.config).toContainAllKeys([
+      'burstSize', 'flowRate', 'maxGrantSize', 'maxWaiters', 'partialTokens',
+      'timeSource'
+    ]);
   });
 });
 

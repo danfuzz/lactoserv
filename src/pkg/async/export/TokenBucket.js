@@ -140,6 +140,32 @@ export class TokenBucket {
   }
 
   /**
+   * @returns {object} The configuration of this instance, in the form of an
+   * object with properties, each of which corresponds to the corresponding
+   * constructor option. This is mostly useful for testing and debugging.
+   *
+   * **Note:** If the default time source is used, then `timeSource` will be
+   * `null` in the result.
+   */
+  get config() {
+    const maxWaiters = (this.#maxWaiters === Number.POSITIVE_INFINITY)
+      ? null
+      : this.#maxWaiters;
+
+    const timeSource = (this.#timeSource === TokenBucket.#DEFAULT_TIME_SOURCE)
+      ? null : this.#timeSource;
+
+    return {
+      burstSize:      this.#capacity,
+      flowRate:       this.#flowRate,
+      maxGrantSize:   this.#maxGrantSize,
+      maxWaiters,
+      partialTokens:  this.#partialTokens,
+      timeSource
+    };
+  }
+
+  /**
    * Denies grant requests for all current waiters, clearing the waiters queue.
    * This is useful when trying to cleanly shut down the service which this
    * instance is associated with. This method async-returns once all denials
