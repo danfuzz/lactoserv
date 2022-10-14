@@ -78,7 +78,24 @@ export class RateLimiterService extends BaseService {
     return RateLimiterService.#requestOneToken(this.#requests, logger);
   }
 
-  // TODO: sendData()
+  /**
+   * Wraps a writable stream in a new writable stream, the latter which abides
+   * by this instance's data rate limiter.
+   *
+   * @param {object} stream The writable stream to wrap.
+   * @param {?function(*)} logger_unused Logger to use for reporting about the
+   *   result.
+   * @returns {object} An appropriately-wrapped instance, or the original
+   *   `stream` if this instance has no data rate limiter.
+   */
+  async wrapWriter(stream, logger_unused) {
+    if (this.#data === null) {
+      return stream;
+    }
+
+    // TODO
+    throw new Error('TODO');
+  }
 
   /** @override */
   async start() {
