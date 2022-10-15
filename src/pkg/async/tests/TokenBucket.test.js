@@ -530,3 +530,7 @@ describe('takeNow()', () => {
     });
   });
 });
+
+describe('when `partialTokens === true`', () => {
+  // TODO
+});
