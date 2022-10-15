@@ -25,21 +25,33 @@ class MockTimeSource extends TokenBucket.BaseTimeSource {
     return this.#now;
   }
 
-  async setTimeout(delay_unused) {
-    // TODO: Respect the `delay`.
+  async setTimeout(delay) {
     const mp = new ManualPromise();
-    this.#timeouts.push(() => mp.resolve());
+    this.#timeouts.push({
+      at: this.#now + delay,
+      resolve: () => mp.resolve()
+    });
+
     return mp.promise;
   }
 
   _end() {
     for (const t of this.#timeouts) {
-      t();
+      t.resolve();
     }
   }
 
   _setTime(now) {
     this.#now = now;
+    this.#timeouts.sort((a, b) => {
+      if (a.at < b.at) return -1;
+      if (a.at > b.at) return 1;
+      return 0;
+    });
+    while (this.#timeouts[0]?.at <= now) {
+      this.#timeouts[0].resolve();
+      this.#timeouts.shift();
+    }
   }
 }
 
@@ -350,16 +362,44 @@ describe('latestState()', () => {
     time._setTime(901);
     expect(bucket.latestState()).toStrictEqual(baseResult);
 
-    time.now = () => { throw new Error('oy!'); }
+    time.now = () => { throw new Error('oy!'); };
     expect(() => bucket.latestState()).not.toThrow();
   });
 
   test('indicates a lack of waiters, before any waiting has ever happened', () => {
-    // TODO
+    const bucket = new TokenBucket({ flowRate: 123, burstSize: 100000 });
+    expect(bucket.latestState().waiters).toBe(0);
   });
 
-  test('indicates a lack of waiters, after all wait actions have completed', () => {
-    // TODO
+  test('indicates the number of waiters as the number waxes and wanes', async () => {
+    const time   = new MockTimeSource(1000);
+    const bucket = new TokenBucket({
+      flowRate: 1, burstSize: 10000, initialBurst: 0, timeSource: time });
+
+    const result1 = bucket.requestGrant(1);
+    expect(PromiseState.isPending(result1)).toBeTrue();
+    expect(bucket.latestState().waiters).toBe(1);
+
+    const result2 = bucket.requestGrant(1);
+    expect(PromiseState.isPending(result2)).toBeTrue();
+    expect(bucket.latestState().waiters).toBe(2);
+
+    const result3 = bucket.requestGrant(1);
+    expect(PromiseState.isPending(result3)).toBeTrue();
+    expect(bucket.latestState().waiters).toBe(3);
+
+    time._setTime(1002); // Enough for the first two requests to get granted.
+    await timers.setImmediate();
+    expect(PromiseState.isFulfilled(result1)).toBeTrue();
+    expect(PromiseState.isFulfilled(result2)).toBeTrue();
+    expect(bucket.latestState().waiters).toBe(1);
+
+    time._setTime(1003); // Enough for the last request to get granted.
+    await timers.setImmediate();
+    expect(PromiseState.isFulfilled(result3)).toBeTrue();
+    expect(bucket.latestState().waiters).toBe(0);
+
+    time._end();
   });
 });
 
@@ -461,5 +501,9 @@ describe('takeNow()', () => {
 
       time._end();
     });
+  });
+
+  describe('when there _was_ at least one waiter, but now there are none', () => {
+    // TODO
   });
 });
