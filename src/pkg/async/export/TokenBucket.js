@@ -529,7 +529,7 @@ export class TokenBucket {
    */
   async #wait(waitTime) {
     if (waitTime > 0) {
-      return this.#timeSource.setTimeout(waitTime);
+      await this.#timeSource.setTimeout(waitTime);
     }
   }
 
