@@ -340,6 +340,18 @@ describe('requestGrant()', () => {
   describe('when there are waiters', () => {
     // TODO
   });
+
+  describe('when `partialTokens === false`', () => {
+    test('will not grant a partial token even if otherwise available', () => {
+      // TODO
+    });
+  });
+
+  describe('when `partialTokens === true`', () => {
+    test('can actually grant a partial token', () => {
+      // TODO
+    });
+  });
 });
 
 describe('latestState()', () => {
@@ -501,6 +513,18 @@ describe('takeNow()', () => {
 
       time._end();
     });
+
+    describe('when `partialTokens === false`', () => {
+      test('will not grant a partial token even if otherwise available', () => {
+        // TODO
+      });
+    });
+
+    describe('when `partialTokens === true`', () => {
+      test('can actually grant a partial token', () => {
+        // TODO
+      });
+    });
   });
 
   describe('when there _was_ at least one waiter, but now there are none', () => {
@@ -529,8 +553,4 @@ describe('takeNow()', () => {
       time._end();
     });
   });
-});
-
-describe('when `partialTokens === true`', () => {
-  // TODO
 });
