@@ -564,6 +564,22 @@ export class TokenBucket {
     }
 
     /**
+     * Async-returns `null` when {@link #now} would return a value at or beyond
+     * the given time, with the hope that the actual time will be reasonably
+     * close.
+     *
+     * **Note:** Unlike `setTimeout()`, this method indicates the actual time
+     * value, not a duration.
+     *
+     * @abstract
+     * @param {number} time The time after which this method is to async-return.
+     * @returns {null} `null`, always.
+     */
+    async waitUntil(time) {
+      return Methods.abstract(time);
+    }
+
+    /**
      * Async-returns `null` after the given number of arbitrary time units (ATU)
      * have elapsed.
      *
@@ -593,6 +609,19 @@ export class TokenBucket {
     /** @override */
     now() {
       return Date.now() * StdTimeSource.#SECS_PER_MSEC;
+    }
+
+    /** @override */
+    async waitUntil(time) {
+      for (;;) {
+        const delay = this.now() - time;
+        if ((delay <= 0) || !Number.isFinite(delay)) {
+          break;
+        }
+
+        const delayMsec = delay * StdTimeSource.#MSEC_PER_SEC;
+        await timers.setTimeout(delayMsec);
+      }
     }
 
     /** @override */
