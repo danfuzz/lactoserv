@@ -321,7 +321,13 @@ describe('denyAllRequests()', () => {
 });
 
 describe('requestGrant()', () => {
-  // TODO
+  describe('when there are no waiters', () => {
+    // TODO
+  });
+
+  describe('when there are waiters', () => {
+    // TODO
+  });
 });
 
 describe('latestState()', () => {
