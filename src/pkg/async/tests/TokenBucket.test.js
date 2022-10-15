@@ -504,6 +504,29 @@ describe('takeNow()', () => {
   });
 
   describe('when there _was_ at least one waiter, but now there are none', () => {
-    // TODO
+    test('succeeds when there is sufficient available burst', async () => {
+      const time   = new MockTimeSource(1000);
+      const bucket = new TokenBucket({
+        flowRate: 1, burstSize: 10000, initialBurst: 0, timeSource: time });
+
+      // Setup / baseline expectations.
+      const requestResult = bucket.requestGrant(1);
+      expect(PromiseState.isPending(requestResult)).toBeTrue();
+      expect(bucket.latestState().waiters).toBe(1);
+      time._setTime(1003);
+      await timers.setImmediate();
+      expect(PromiseState.isFulfilled(requestResult)).toBeTrue();
+      expect(bucket.latestState().waiters).toBe(0);
+      expect(bucket.latestState().availableBurst).toBe(2);
+
+      // The actual test.
+      const result = bucket.takeNow({ minInclusive: 0, maxInclusive: 5 });
+      expect(result.done).toBeTrue();
+      expect(result.grant).toBe(2);
+      expect(result.minWaitTime).toBe(0);
+      expect(result.maxWaitTime).toBe(3);
+
+      time._end();
+    });
   });
 });
