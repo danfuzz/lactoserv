@@ -354,11 +354,11 @@ describe('latestState()', () => {
     expect(() => bucket.latestState()).not.toThrow();
   });
 
-  test('properly indicates a lack of waiters, before any waiting has ever happened', () => {
+  test('indicates a lack of waiters, before any waiting has ever happened', () => {
     // TODO
   });
 
-  test('properly indicates a lack of waiters, after all wait actions have completed', () => {
+  test('indicates a lack of waiters, after all wait actions have completed', () => {
     // TODO
   });
 });
