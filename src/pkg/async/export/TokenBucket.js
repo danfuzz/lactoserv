@@ -614,7 +614,7 @@ export class TokenBucket {
     /** @override */
     async waitUntil(time) {
       for (;;) {
-        const delay = this.now() - time;
+        const delay = time - this.now();
         if ((delay <= 0) || !Number.isFinite(delay)) {
           break;
         }
