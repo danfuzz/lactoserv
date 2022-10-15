@@ -336,11 +336,13 @@ export class TokenBucket {
     const waiterTime = this.#minTokensAwaited / this.#flowRate;
 
     if (result.grant < maxInclusive) {
-      result.maxWaitTime += waiterTime;
+      result.maxWaitTime  += waiterTime;
+      result.maxWaitUntil += waiterTime;
     }
 
     if (!result.done) {
-      result.minWaitTime += waiterTime;
+      result.minWaitUntil += waiterTime;
+      result.minWaitTime  += waiterTime;
     }
 
     return result;
@@ -401,13 +403,15 @@ export class TokenBucket {
 
     // The wait times take into account any tokens which remain in the bucket
     // after a partial grant.
-    const neededMax   = Math.max(0, (maxInclusive - grant) - newVolume);
-    const neededMin   = Math.max(0, (minInclusive - grant) - newVolume);
-    const maxWaitTime = neededMax / this.#flowRate;
-    const minWaitTime = neededMin / this.#flowRate;
+    const neededMax    = Math.max(0, (maxInclusive - grant) - newVolume);
+    const neededMin    = Math.max(0, (minInclusive - grant) - newVolume);
+    const maxWaitTime  = neededMax / this.#flowRate;
+    const minWaitTime  = neededMin / this.#flowRate;
+    const maxWaitUntil = this.#lastNow + maxWaitTime;
+    const minWaitUntil = this.#lastNow + minWaitTime;
 
     this.#lastVolume = newVolume;
-    return { done, grant, maxWaitTime, minWaitTime };
+    return { done, grant, maxWaitUntil, minWaitUntil, maxWaitTime, minWaitTime };
   }
 
   /**

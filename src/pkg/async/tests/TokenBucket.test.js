@@ -422,12 +422,14 @@ describe('latestState()', () => {
 describe('takeNow()', () => {
   describe('when there are no waiters', () => {
     test('succeeds given an exact token quantity and sufficient available burst', () => {
-      const time   = new MockTimeSource();
+      const now    = 98000
+      const time   = new MockTimeSource(now);
       const bucket = new TokenBucket({
         flowRate: 1, burstSize: 10000, initialBurst: 123, timeSource: time });
 
       const result = bucket.takeNow(123);
-      expect(result).toStrictEqual({ done: true, grant: 123, minWaitTime: 0, maxWaitTime: 0 });
+      expect(result).toStrictEqual({ done: true, grant: 123,
+        minWaitUntil: now, maxWaitUntil: now, minWaitTime: 0, maxWaitTime: 0 });
       expect(bucket.latestState().availableBurst).toBe(0);
     });
 
