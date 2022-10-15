@@ -285,6 +285,15 @@ export class TokenBucket {
    *   grant is in fact `0`.
    * * `{number} grant` -- The quantity of tokens granted to the caller. This is
    *   `0` if the minimum required grant cannot be made.
+   * * `{number} minWaitUntil` -- The time to `waitUntil()` on this instance's
+   *   time source until the minimum requested quantity of tokens can be
+   *   expected to be available. This is a time at or before the time source's
+   *   `now()` if `done === true`.
+   * * `{number} maxWaitUntil` -- The time to `waitUntil()` on this instance's
+   *   time source until the maximum possible grant can be expected to be
+   *   available. Note that the maximum possible grant is limited by the
+   *   configured `maxGrantSize`, so if `maxInclusive` is more than that, then
+   *   this return value reflects the former and not the latter.
    * * `{number} minWaitTime` -- The amount of time needed to wait (in ATU) in
    *   order to possibly be granted the minimum requested quantity of tokens.
    *   This is only non-zero if `done === false`.
@@ -294,9 +303,9 @@ export class TokenBucket {
    * If the `minInclusive` request is non-zero, then this method will only ever
    * return `done === true` if there is no immediate contention for tokens
    * (e.g., due to async-active calls to {@link #requestGrant}). The resulting
-   * `minWaitTime` and `maxWaitTime` do take active contention into account,
+   * `minWaitUntil` and `maxWaitUntil` do take active contention into account,
    * though the actual required wait times can turn out to be larger than what
-   * was returned.
+   * was returned due to _new_ contention.
    *
    * Note: This method _first_ tops up the token bucket based on the amount of
    * time elapsed since the previous top-up, and _then_ removes tokens. This
@@ -377,8 +386,8 @@ export class TokenBucket {
    *   tokens on behalf of waiters!)
    *
    * This method returns an object with the following binding, which all have
-   * the same meaning as with {@link #takeNow}: `done`, `grant`, `maxWaitTime`,
-   * and `minWaitTime`.
+   * the same meaning as with {@link #takeNow}: `done`, `grant`, `maxWaitUntil`,
+   * `minWaitUntil`, `maxWaitTime`, and `minWaitTime`.
    *
    * @param {number} minInclusive Minimum requested quantity of tokens.
    * @param {number} maxInclusive Maximum requested quantity of tokens.
