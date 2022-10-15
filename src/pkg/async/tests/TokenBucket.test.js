@@ -35,6 +35,20 @@ class MockTimeSource extends TokenBucket.BaseTimeSource {
     return mp.promise;
   }
 
+  async waitUntil(time) {
+    if (time <= this.#now) {
+      return;
+    }
+
+    const mp = new ManualPromise();
+    this.#timeouts.push({
+      at:      time,
+      resolve: () => mp.resolve()
+    });
+
+    await mp.promise;
+  }
+
   _end() {
     for (const t of this.#timeouts) {
       t.resolve();
