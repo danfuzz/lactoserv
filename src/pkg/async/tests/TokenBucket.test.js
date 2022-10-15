@@ -422,7 +422,7 @@ describe('latestState()', () => {
 describe('takeNow()', () => {
   describe('when there are no waiters', () => {
     test('succeeds given an exact token quantity and sufficient available burst', () => {
-      const now    = 98000
+      const now    = 98000;
       const time   = new MockTimeSource(now);
       const bucket = new TokenBucket({
         flowRate: 1, burstSize: 10000, initialBurst: 123, timeSource: time });
