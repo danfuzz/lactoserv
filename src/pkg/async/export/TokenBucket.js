@@ -407,8 +407,8 @@ export class TokenBucket {
     const neededMin    = Math.max(0, (minInclusive - grant) - newVolume);
     const maxWaitTime  = neededMax / this.#flowRate;
     const minWaitTime  = neededMin / this.#flowRate;
-    const maxWaitUntil = this.#lastNow + maxWaitTime;
-    const minWaitUntil = this.#lastNow + minWaitTime;
+    const maxWaitUntil = this.#lastNow + (neededMax / this.#flowRate);
+    const minWaitUntil = this.#lastNow + (neededMin / this.#flowRate);
 
     this.#lastVolume = newVolume;
     return { done, grant, maxWaitUntil, minWaitUntil, maxWaitTime, minWaitTime };
