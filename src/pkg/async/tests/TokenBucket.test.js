@@ -353,6 +353,14 @@ describe('latestState()', () => {
     time.now = () => { throw new Error('oy!'); }
     expect(() => bucket.latestState()).not.toThrow();
   });
+
+  test('properly indicates a lack of waiters, before any waiting has ever happened', () => {
+    // TODO
+  });
+
+  test('properly indicates a lack of waiters, after all wait actions have completed', () => {
+    // TODO
+  });
 });
 
 describe('takeNow()', () => {
