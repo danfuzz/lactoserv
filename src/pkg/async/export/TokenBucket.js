@@ -484,8 +484,9 @@ export class TokenBucket {
         const waitTime = this.#lastNow - info.startTime;
         info.doGrant(this.#requestGrantResult(true, got.grant, waitTime));
       } else {
+        const targetTime = this.#lastNow + got.minWaitTime;
         await Promise.race([
-          this.#wait(got.minWaitTime),
+          this.#waitUntil(targetTime),
           this.#waiterThread.whenStopRequested()
         ]);
       }
@@ -522,14 +523,14 @@ export class TokenBucket {
   }
 
   /**
-   * Async-returns after a specified amount of time has passed, using the
-   * units defined by this instance's time source.
+   * Async-returns (hopefully very soon) after the time becomes the given value,
+   * using the time units and base defined by this instance's time source.
    *
-   * @param {number} waitTime The amount of time to wait, in ATU.
+   * @param {number} time The time to wait until.
    */
-  async #wait(waitTime) {
-    if (waitTime > 0) {
-      await this.#timeSource.setTimeout(waitTime);
+  async #waitUntil(time) {
+    if (time >= this.#lastNow) {
+      await this.#timeSource.waitUntil(time);
     }
   }
 
