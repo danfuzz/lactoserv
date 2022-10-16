@@ -91,7 +91,7 @@ export class TokenBucket {
    *   how quickly the bucket gets filled, in tokens per arbitrary time unit
    *   (tokens / ATU). This defines the steady state "flow rate" allowed by the
    *   instance. Must be a finite positive number. This is a required "option."
-   * * `{number} initialBurst` -- The instantaneously available burst size, in
+   * * `{number} initialBurstSize` -- The instantaneously available burst size, in
    *   tokens, at the moment of construction. Defaults to `maxBurstSize` (that
    *   is, able to be maximally "bursted" from the get-go).
    * * `{number} maxQueueGrantSize` -- Maximum grant size when granting requests
@@ -119,7 +119,7 @@ export class TokenBucket {
     const {
       maxBurstSize,
       flowRate,
-      initialBurst      = options.maxBurstSize,
+      initialBurstSize      = options.maxBurstSize,
       maxQueueGrantSize = options.maxBurstSize,
       maxWaiters        = null,
       partialTokens     = false,
@@ -136,7 +136,7 @@ export class TokenBucket {
       ? Number.POSITIVE_INFINITY
       : MustBe.number(maxWaiters, { safeInteger: true, minInclusive: 0 });
 
-    this.#lastBurstSize = MustBe.number(initialBurst, { minInclusive: 0, maxInclusive: maxBurstSize });
+    this.#lastBurstSize = MustBe.number(initialBurstSize, { minInclusive: 0, maxInclusive: maxBurstSize });
     this.#lastNow       = this.#timeSource.now();
   }
 

@@ -65,10 +65,10 @@ describe('constructor()', () => {
     ${{ maxBurstSize: 1, flowRate: 1 }}
     ${{ maxBurstSize: 0.01, flowRate: 0.0001 }}
     ${{ maxBurstSize: 200000, flowRate: 109 }}
-    ${{ maxBurstSize: 1, flowRate: 1, initialBurst: 0 }}
-    ${{ maxBurstSize: 1, flowRate: 1, initialBurst: 1 }}
-    ${{ maxBurstSize: 10, flowRate: 1, initialBurst: 10 }}
-    ${{ maxBurstSize: 10, flowRate: 1, initialBurst: 9 }}
+    ${{ maxBurstSize: 1, flowRate: 1, initialBurstSize: 0 }}
+    ${{ maxBurstSize: 1, flowRate: 1, initialBurstSize: 1 }}
+    ${{ maxBurstSize: 10, flowRate: 1, initialBurstSize: 10 }}
+    ${{ maxBurstSize: 10, flowRate: 1, initialBurstSize: 9 }}
     ${{ maxBurstSize: 1, flowRate: 1, maxQueueGrantSize: 0.1 }}
     ${{ maxBurstSize: 1, flowRate: 1, maxQueueGrantSize: 1 }}
     ${{ maxBurstSize: 100, flowRate: 1, maxQueueGrantSize: 1 }}
@@ -83,7 +83,7 @@ describe('constructor()', () => {
     ${{ maxBurstSize: 1, flowRate: 1, partialTokens: true }}
     ${{ maxBurstSize: 1, flowRate: 1, timeSource: new TokenBucket.StdTimeSource() }}
     ${{ maxBurstSize: 1, flowRate: 1, timeSource: new MockTimeSource() }}
-    ${{ maxBurstSize: 1, flowRate: 1, initialBurst: 0.5, maxQueueGrantSize: 0.5,
+    ${{ maxBurstSize: 1, flowRate: 1, initialBurstSize: 0.5, maxQueueGrantSize: 0.5,
         maxWaiters: 10, partialTokens: true, timeSource: new MockTimeSource() }}
   `('trivially accepts valid options: $opts', ({ opts }) => {
     expect(() => new TokenBucket(opts)).not.toThrow();
@@ -155,12 +155,12 @@ describe('constructor()', () => {
     expect(bucket.config.timeSource).toBeNull();
   });
 
-  test('produces an instance with `availableBurst` equal to the passed `initialBurst`', () => {
-    const bucket = new TokenBucket({ flowRate: 1, maxBurstSize: 100, initialBurst: 23 });
+  test('produces an instance with `availableBurst` equal to the passed `initialBurstSize`', () => {
+    const bucket = new TokenBucket({ flowRate: 1, maxBurstSize: 100, initialBurstSize: 23 });
     expect(bucket.latestState().availableBurst).toBe(23);
   });
 
-  test('has `availableBurst === maxBurstSize` if not passed `initialBurst`', () => {
+  test('has `availableBurst === maxBurstSize` if not passed `initialBurstSize`', () => {
     const bucket = new TokenBucket({ flowRate: 1, maxBurstSize: 123 });
     expect(bucket.latestState().availableBurst).toBe(123);
   });
@@ -224,20 +224,20 @@ describe('constructor(<invalid>)', () => {
   });
 
   test.each`
-    initialBurst
+    initialBurstSize
     ${null}
     ${true}
     ${'123'}
     ${[123]}
     ${-1}
     ${-0.1}
-  `('rejects invalid `initialBurst`: $initialBurst', ({ initialBurst }) => {
-    expect(() => new TokenBucket({ flowRate: 1, maxBurstSize: 1, initialBurst })).toThrow();
+  `('rejects invalid `initialBurstSize`: $initialBurstSize', ({ initialBurstSize }) => {
+    expect(() => new TokenBucket({ flowRate: 1, maxBurstSize: 1, initialBurstSize })).toThrow();
   });
 
-  test('rejects invalid `initialBurst` (`> maxBurstSize`)', () => {
-    expect(() => new TokenBucket({ flowRate: 1, maxBurstSize: 1, initialBurst: 1.01 })).toThrow();
-    expect(() => new TokenBucket({ flowRate: 1, maxBurstSize: 1, initialBurst: 2 })).toThrow();
+  test('rejects invalid `initialBurstSize` (`> maxBurstSize`)', () => {
+    expect(() => new TokenBucket({ flowRate: 1, maxBurstSize: 1, initialBurstSize: 1.01 })).toThrow();
+    expect(() => new TokenBucket({ flowRate: 1, maxBurstSize: 1, initialBurstSize: 2 })).toThrow();
   });
 
   test.each`
@@ -306,7 +306,7 @@ describe('denyAllRequests()', () => {
   test('causes pending grant requests to in fact be denied', async () => {
     const time   = new MockTimeSource(10000);
     const bucket = new TokenBucket({
-      flowRate: 1, maxBurstSize: 1000, initialBurst: 0, timeSource: time });
+      flowRate: 1, maxBurstSize: 1000, initialBurstSize: 0, timeSource: time });
 
     // Setup / baseline assumptions.
     const result1 = bucket.requestGrant(1);
@@ -369,7 +369,7 @@ describe('latestState()', () => {
   test('does not use the time source', () => {
     const time   = new MockTimeSource(900);
     const bucket = new TokenBucket({
-      flowRate: 1, maxBurstSize: 10000, initialBurst: 100, timeSource: time });
+      flowRate: 1, maxBurstSize: 10000, initialBurstSize: 100, timeSource: time });
 
     const baseResult = bucket.latestState();
     expect(baseResult.now).toBe(900);
@@ -390,7 +390,7 @@ describe('latestState()', () => {
   test('indicates the number of waiters as the number waxes and wanes', async () => {
     const time   = new MockTimeSource(1000);
     const bucket = new TokenBucket({
-      flowRate: 1, maxBurstSize: 10000, initialBurst: 0, timeSource: time });
+      flowRate: 1, maxBurstSize: 10000, initialBurstSize: 0, timeSource: time });
 
     const result1 = bucket.requestGrant(1);
     expect(PromiseState.isPending(result1)).toBeTrue();
@@ -425,7 +425,7 @@ describe('takeNow()', () => {
       const now    = 98000;
       const time   = new MockTimeSource(now);
       const bucket = new TokenBucket({
-        flowRate: 1, maxBurstSize: 10000, initialBurst: 123, timeSource: time });
+        flowRate: 1, maxBurstSize: 10000, initialBurstSize: 123, timeSource: time });
 
       const result = bucket.takeNow(123);
       expect(result).toStrictEqual({ done: true, grant: 123, minWaitUntil: now, maxWaitUntil: now });
@@ -436,7 +436,7 @@ describe('takeNow()', () => {
       const now    = 43210;
       const time   = new MockTimeSource(now);
       const bucket = new TokenBucket({
-        flowRate: 5, maxBurstSize: 10000, initialBurst: 100, timeSource: time });
+        flowRate: 5, maxBurstSize: 10000, initialBurstSize: 100, timeSource: time });
 
       const result = bucket.takeNow({ minInclusive: 10, maxInclusive: 110 });
       expect(result.done).toBeTrue();
@@ -451,7 +451,7 @@ describe('takeNow()', () => {
       const now    = 91400
       const time   = new MockTimeSource(now);
       const bucket = new TokenBucket({
-        flowRate: 5, maxBurstSize: 10000, initialBurst: 75, maxQueueGrantSize: 50, timeSource: time });
+        flowRate: 5, maxBurstSize: 10000, initialBurstSize: 75, maxQueueGrantSize: 50, timeSource: time });
 
       const result1 = bucket.takeNow({ minInclusive: 10, maxInclusive: 200 });
       expect(result1.done).toBeTrue();
@@ -466,7 +466,7 @@ describe('takeNow()', () => {
       const now    = 1000;
       const time   = new MockTimeSource(now);
       const bucket = new TokenBucket({
-        flowRate: 5, maxBurstSize: 100, initialBurst: 0, timeSource: time });
+        flowRate: 5, maxBurstSize: 100, initialBurstSize: 0, timeSource: time });
 
       const now1 = now + 1; // Enough for 5 tokens to become available.
       time._setTime(now1);
@@ -487,7 +487,7 @@ describe('takeNow()', () => {
       const now    = 226000
       const time   = new MockTimeSource(now);
       const bucket = new TokenBucket({
-        flowRate: 13, maxBurstSize: 10000, initialBurst: 0, timeSource: time });
+        flowRate: 13, maxBurstSize: 10000, initialBurstSize: 0, timeSource: time });
 
       // Setup / baseline assumptions.
       const requestResult = bucket.requestGrant(1300);
@@ -508,7 +508,7 @@ describe('takeNow()', () => {
       const now    = 51515;
       const time   = new MockTimeSource(now);
       const bucket = new TokenBucket({
-        flowRate: 7, maxBurstSize: 10000, initialBurst: 0, timeSource: time });
+        flowRate: 7, maxBurstSize: 10000, initialBurstSize: 0, timeSource: time });
 
       // Setup / baseline assumptions.
       const requestResult = bucket.requestGrant(70);
@@ -543,7 +543,7 @@ describe('takeNow()', () => {
       const now    = 1000;
       const time   = new MockTimeSource(now);
       const bucket = new TokenBucket({
-        flowRate: 1, maxBurstSize: 10000, initialBurst: 0, timeSource: time });
+        flowRate: 1, maxBurstSize: 10000, initialBurstSize: 0, timeSource: time });
 
       // Setup / baseline expectations.
       const requestResult = bucket.requestGrant(1);
