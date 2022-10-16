@@ -19,7 +19,7 @@ import { JsonSchema } from '@this/json';
  *
  * Each of the above, if specified, must be an object with these properties:
  *
- * * `{number} burstSize` -- The maximum possible size of a burst, in tokens.
+ * * `{number} maxBurstSize` -- The maximum possible size of a burst, in tokens.
  * * `{number} flowRate` -- The steady-state flow rate, in tokens per unit of
  *   time.
  * * `{string} timeUnit` -- The unit of time by which `flowRate` is defined.
@@ -156,10 +156,10 @@ export class RateLimiterService extends BaseService {
       return null;
     }
 
-    const { burstSize, flowRate: origFlowRate, timeUnit, maxWaiters } = config;
+    const { maxBurstSize, flowRate: origFlowRate, timeUnit, maxWaiters } = config;
     const flowRate = this.#flowRatePerSecFrom(origFlowRate, timeUnit);
 
-    return new TokenBucket({ burstSize, flowRate, maxWaiters });
+    return new TokenBucket({ maxBurstSize, flowRate, maxWaiters });
   }
 
   /**
@@ -206,9 +206,9 @@ export class RateLimiterService extends BaseService {
       $defs: {
         limitItem: {
           type: 'object',
-          required: ['burstSize', 'flowRate', 'timeUnit'],
+          required: ['maxBurstSize', 'flowRate', 'timeUnit'],
           properties: {
-            burstSize: {
+            maxBurstSize: {
               type:             'number',
               exclusiveMinimum: 0,
               maximum:          1e300

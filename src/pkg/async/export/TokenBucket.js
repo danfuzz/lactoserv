@@ -25,7 +25,7 @@ import { Threadlet } from '#x/Threadlet';
  */
 export class TokenBucket {
   /**
-   * Note: Though the constructor option is called `burstSize`, in the guts of
+   * Note: Though the constructor option is called `maxBurstSize`, in the guts of
    * the implementation, it makes more sense to think of it as the bucket
    * capacity, which is why the internal property name is `capacity`.
    *
@@ -83,21 +83,21 @@ export class TokenBucket {
   /**
    * Constructs an instance. Configuration options:
    *
-   * * `{number} burstSize` -- Maximum possible instantaneous burst size (that
-   *   is, the total bucket capacity), in tokens (arbitrary volume units). This
-   *   defines the "burstiness" allowed by the instance. Must be a finite
+   * * `{number} maxBurstSize` -- Maximum possible instantaneous burst size
+   *   (that is, the total bucket capacity), in tokens (arbitrary volume units).
+   *   Thios defines the "burstiness" allowed by the instance. Must be a finite
    *   positive number. This is a required "option."
    * * `{number} flowRate` -- Token flow rate (a/k/a bucket fill rate), that is,
    *   how quickly the bucket gets filled, in tokens per arbitrary time unit
    *   (tokens / ATU). This defines the steady state "flow rate" allowed by the
    *   instance. Must be a finite positive number. This is a required "option."
    * * `{number} initialBurst` -- The instantaneously available burst size, in
-   *   tokens, at the moment of construction. Defaults to `burstSize` (that is,
-   *   able to be maximally "bursted" from the get-go).
+   *   tokens, at the moment of construction. Defaults to `maxBurstSize` (that
+   *   is, able to be maximally "bursted" from the get-go).
    * * `{number} maxGrantSize` -- Maximum (atomic) grant size, in tokens. No
    *   grant requests will ever return a larger grant, even if there is
    *   available "burst volume" to accommodate it. Must be a finite positive
-   *   number less than or equal to `burstSize`. Defaults to `burstSize`.
+   *   number less than or equal to `maxBurstSize`. Defaults to `maxBurstSize`.
    * * `{?number} maxWaiters` -- The maximum number of waiters that are allowed
    *   to be waiting for a token grant (see {@link #requestGrant}). Must be a
    *   finite whole number or `null`. If not present or `null`, then there is no
@@ -116,18 +116,18 @@ export class TokenBucket {
    */
   constructor(options) {
     const {
-      burstSize, // See note above on property `#capacity`.
+      maxBurstSize, // See note above on property `#capacity`.
       flowRate,
-      initialBurst  = options.burstSize,
-      maxGrantSize  = options.burstSize,
+      initialBurst  = options.maxBurstSize,
+      maxGrantSize  = options.maxBurstSize,
       maxWaiters    = null,
       partialTokens = false,
       timeSource    = TokenBucket.#DEFAULT_TIME_SOURCE
     } = options;
 
-    this.#capacity      = MustBe.number(burstSize, { finite: true, minExclusive: 0 });
+    this.#capacity      = MustBe.number(maxBurstSize, { finite: true, minExclusive: 0 });
     this.#flowRate      = MustBe.number(flowRate, { finite: true, minExclusive: 0 });
-    this.#maxGrantSize  = MustBe.number(maxGrantSize, { minExclusive: 0, maxInclusive: burstSize });
+    this.#maxGrantSize  = MustBe.number(maxGrantSize, { minExclusive: 0, maxInclusive: maxBurstSize });
     this.#partialTokens = MustBe.boolean(partialTokens);
     this.#timeSource    = MustBe.object(timeSource, TokenBucket.TimeSource);
 
@@ -135,7 +135,7 @@ export class TokenBucket {
       ? Number.POSITIVE_INFINITY
       : MustBe.number(maxWaiters, { safeInteger: true, minInclusive: 0 });
 
-    this.#lastVolume = MustBe.number(initialBurst, { minInclusive: 0, maxInclusive: burstSize });
+    this.#lastVolume = MustBe.number(initialBurst, { minInclusive: 0, maxInclusive: maxBurstSize });
     this.#lastNow    = this.#timeSource.now();
   }
 
@@ -156,7 +156,7 @@ export class TokenBucket {
       ? null : this.#timeSource;
 
     return {
-      burstSize:     this.#capacity,
+      maxBurstSize:  this.#capacity,
       flowRate:      this.#flowRate,
       maxGrantSize:  this.#maxGrantSize,
       maxWaiters,
@@ -305,8 +305,8 @@ export class TokenBucket {
    * Note: This method _first_ tops up the token bucket based on the amount of
    * time elapsed since the previous top-up, and _then_ removes tokens. This
    * means (a) that it's never possible to take more tokens than the total
-   * `burstSize`, and (b) it is possible to totally empty the bucket with a call
-   * to this method.
+   * `maxBurstSize`, and (b) it is possible to totally empty the bucket with a
+   * call to this method.
    *
    * @param {number|object} quantity Requested quantity of tokens, as described
    *   above.
