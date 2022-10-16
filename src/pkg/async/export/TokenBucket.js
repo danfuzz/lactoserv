@@ -10,15 +10,18 @@ import { Threadlet } from '#x/Threadlet';
 
 
 /**
- * Implementation of the "token bucket" algorithm, which is more or less
- * equivalent to the "leaky bucket as meter" algorithm (though with a different
- * metaphor). That is, this class provides a rate-limiter-with-burstiness
- * service.
+ * Implementation of a "rate limiter with burstiness service", which is based on
+ * the "token bucket" / "leaky bucket" algorithms. This actually implements
+ * _both_ the "leaky bucket as meter" and "leaky bucket as queue" mechanisms as
+ * described by Wikipedia, thusly:
  *
- * Unlike the "pure" token bucket as described in the literature, this
- * implementation provides a contention-handling mechanism on top of the basic
- * bucket service. In particular, it implements a configurable-size service
- * queue for clients waiting for tokens.
+ * When not experiencing contention, an instance acts as a "leaky bucket as
+ * meter," granting as many tokens as are requested up to whatever burst
+ * capacity is available, up to a maximum burst size (the "bucket size" in the
+ * metaphor). And when there _is_ contention -- that is, when there is no
+ * burst capacity at all, an instance acts as a "leaky bucket as queue," where
+ * grant requests are queued up and processed to produce a steady token flow
+ * rate.
  *
  * This class defines neither the token (bucket volume) units nor the time
  * units. It is up to clients to use whatever makes sense in their context.
