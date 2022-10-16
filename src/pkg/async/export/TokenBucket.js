@@ -59,10 +59,10 @@ export class TokenBucket {
   #lastNow;
 
   /**
-   * @type {number} The volume in the bucket at time {@link #lastNow), in
-   * tokens.
+   * @type {number} The number of tokens available for a burst, at time {@link
+   * #lastNow).
    */
-  #lastVolume;
+  #lastBurstSize;
 
   /**
    * @type {{ minInclusive: number, maxInclusive: number, startTime: number,
@@ -135,8 +135,8 @@ export class TokenBucket {
       ? Number.POSITIVE_INFINITY
       : MustBe.number(maxWaiters, { safeInteger: true, minInclusive: 0 });
 
-    this.#lastVolume = MustBe.number(initialBurst, { minInclusive: 0, maxInclusive: maxBurstSize });
-    this.#lastNow    = this.#timeSource.now();
+    this.#lastBurstSize = MustBe.number(initialBurst, { minInclusive: 0, maxInclusive: maxBurstSize });
+    this.#lastNow       = this.#timeSource.now();
   }
 
   /**
@@ -192,7 +192,7 @@ export class TokenBucket {
    */
   latestState() {
     return {
-      availableBurst: this.#lastVolume,
+      availableBurst: this.#lastBurstSize,
       now:            this.#lastNow,
       waiters:        this.#waiters.length,
     };
@@ -357,8 +357,8 @@ export class TokenBucket {
     }
 
     const availableVolume = this.#partialTokens
-      ? this.#lastVolume
-      : Math.floor(this.#lastVolume);
+      ? this.#lastBurstSize
+      : Math.floor(this.#lastBurstSize);
 
     maxInclusive = Math.min(maxInclusive,
       fromQueue ? this.#maxQueueGrantSize : this.#maxBurstSize);
@@ -395,7 +395,7 @@ export class TokenBucket {
    */
   #grantNow(minInclusive, maxInclusive, fromQueue, forceZero = false) {
     const grant     = this.#calculateGrant(minInclusive, maxInclusive, fromQueue, forceZero);
-    const newVolume = this.#lastVolume - grant;
+    const newVolume = this.#lastBurstSize - grant;
     const done      = (grant !== 0) || (minInclusive === 0);
 
     // The wait times take into account any tokens which remain in the bucket
@@ -405,7 +405,7 @@ export class TokenBucket {
     const maxWaitUntil = this.#lastNow + (neededMax / this.#flowRate);
     const minWaitUntil = this.#lastNow + (neededMin / this.#flowRate);
 
-    this.#lastVolume = newVolume;
+    this.#lastBurstSize = newVolume;
     return { done, grant, maxWaitUntil, minWaitUntil };
   }
 
@@ -517,13 +517,13 @@ export class TokenBucket {
    * topping-up.
    */
   #topUpBucket() {
-    const now        = this.#timeSource.now();
-    const lastVolume = this.#lastVolume;
+    const now           = this.#timeSource.now();
+    const lastBurstSize = this.#lastBurstSize;
 
-    if (lastVolume < this.#maxBurstSize) {
-      const elapsedTime = now - this.#lastNow;
-      const grant       = elapsedTime * this.#flowRate;
-      this.#lastVolume  = Math.min(lastVolume + grant, this.#maxBurstSize);
+    if (lastBurstSize < this.#maxBurstSize) {
+      const elapsedTime   = now - this.#lastNow;
+      const grant         = elapsedTime * this.#flowRate;
+      this.#lastBurstSize = Math.min(lastBurstSize + grant, this.#maxBurstSize);
     }
 
     this.#lastNow = now;
