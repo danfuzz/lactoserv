@@ -155,14 +155,14 @@ describe('constructor()', () => {
     expect(bucket.config.timeSource).toBeNull();
   });
 
-  test('produces an instance with `availableBurst` equal to the passed `initialBurstSize`', () => {
+  test('produces an instance with `availableBurstSize` equal to the passed `initialBurstSize`', () => {
     const bucket = new TokenBucket({ flowRate: 1, maxBurstSize: 100, initialBurstSize: 23 });
-    expect(bucket.latestState().availableBurst).toBe(23);
+    expect(bucket.latestState().availableBurstSize).toBe(23);
   });
 
-  test('has `availableBurst === maxBurstSize` if not passed `initialBurstSize`', () => {
+  test('has `availableBurstSize === maxBurstSize` if not passed `initialBurstSize`', () => {
     const bucket = new TokenBucket({ flowRate: 1, maxBurstSize: 123 });
-    expect(bucket.latestState().availableBurst).toBe(123);
+    expect(bucket.latestState().availableBurstSize).toBe(123);
   });
 
   test('produces an instance with no waiters', () => {
@@ -362,7 +362,7 @@ describe('latestState()', () => {
   test('has exactly the expected properties', () => {
     const bucket = new TokenBucket({ flowRate: 123, maxBurstSize: 100000 });
     expect(bucket.latestState()).toContainAllKeys([
-      'availableBurst', 'now', 'waiters'
+      'availableBurstSize', 'now', 'waiters'
     ]);
   });
 
@@ -373,7 +373,7 @@ describe('latestState()', () => {
 
     const baseResult = bucket.latestState();
     expect(baseResult.now).toBe(900);
-    expect(baseResult.availableBurst).toBe(100);
+    expect(baseResult.availableBurstSize).toBe(100);
 
     time._setTime(901);
     expect(bucket.latestState()).toStrictEqual(baseResult);
@@ -429,7 +429,7 @@ describe('takeNow()', () => {
 
       const result = bucket.takeNow(123);
       expect(result).toStrictEqual({ done: true, grant: 123, minWaitUntil: now, maxWaitUntil: now });
-      expect(bucket.latestState().availableBurst).toBe(0);
+      expect(bucket.latestState().availableBurstSize).toBe(0);
     });
 
     test('succeeds with as much as is available', () => {
@@ -444,7 +444,7 @@ describe('takeNow()', () => {
       expect(result.minWaitUntil).toBe(now + 0);
       expect(result.maxWaitUntil).toBe(now + ((110 - 100) / 5));
 
-      expect(bucket.latestState().availableBurst).toBe(0);
+      expect(bucket.latestState().availableBurstSize).toBe(0);
     });
 
     test('succeeds with as much burst capacity as is available', () => {
@@ -462,7 +462,7 @@ describe('takeNow()', () => {
       expect(result1.minWaitUntil).toBe(now + 0);
       expect(result1.maxWaitUntil).toBe(now + ((200 - 75) / 5));
 
-      expect(bucket.latestState().availableBurst).toBe(0);
+      expect(bucket.latestState().availableBurstSize).toBe(0);
     });
 
     test('uses the time source', () => {
@@ -480,7 +480,7 @@ describe('takeNow()', () => {
       expect(result.maxWaitUntil).toBe(now1 + ((10 - 5) / 5));
 
       const latest = bucket.latestState();
-      expect(latest.availableBurst).toBe(0);
+      expect(latest.availableBurstSize).toBe(0);
       expect(latest.now).toBe(1001);
     });
   });
@@ -557,7 +557,7 @@ describe('takeNow()', () => {
       await timers.setImmediate();
       expect(PromiseState.isFulfilled(requestResult)).toBeTrue();
       expect(bucket.latestState().waiters).toBe(0);
-      expect(bucket.latestState().availableBurst).toBe(2);
+      expect(bucket.latestState().availableBurstSize).toBe(2);
 
       // The actual test.
       const result = bucket.takeNow({ minInclusive: 0, maxInclusive: 5 });

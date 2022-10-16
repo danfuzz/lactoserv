@@ -183,7 +183,7 @@ export class TokenBucket {
    * (which corresponds to the last time any nontrivial token grant requests
    * were processed). The return value is an object with the following bindings:
    *
-   * * `{number} availableBurst` -- The currently-available burst size, that
+   * * `{number} availableBurstSize` -- The currently-available burst size, that
    *   is, the quantity of tokens currently in the bucket.
    * * `{number} now` -- The time as of the snapshot, according to this
    *   instance's time source.
@@ -193,9 +193,9 @@ export class TokenBucket {
    */
   latestState() {
     return {
-      availableBurst: this.#lastBurstSize,
-      now:            this.#lastNow,
-      waiters:        this.#waiters.length,
+      availableBurstSize: this.#lastBurstSize,
+      now:                this.#lastNow,
+      waiters:            this.#waiters.length,
     };
   }
 
