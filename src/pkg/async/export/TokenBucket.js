@@ -28,14 +28,10 @@ import { Threadlet } from '#x/Threadlet';
  */
 export class TokenBucket {
   /**
-   * Note: Though the constructor option is called `maxBurstSize`, in the guts of
-   * the implementation, it makes more sense to think of it as the bucket
-   * capacity, which is why the internal property name is `capacity`.
-   *
-   * @type {number} Bucket capacity -- that is, maximum possible instantaneous
-   * burst size -- in tokens.
+   * @type {number} Maximum allowed instantaneous burst, in tokens. This is the
+   * "bucket capacity" in the "leaky bucket as meter" metaphor.
    */
-  #capacity;
+  #maxBurstSize;
 
   /**
    * @type {number} Token flow rate (a/k/a bucket fill rate), in tokens per
@@ -88,7 +84,7 @@ export class TokenBucket {
    *
    * * `{number} maxBurstSize` -- Maximum possible instantaneous burst size
    *   (that is, the total bucket capacity), in tokens (arbitrary volume units).
-   *   Thios defines the "burstiness" allowed by the instance. Must be a finite
+   *   This defines the "burstiness" allowed by the instance. Must be a finite
    *   positive number. This is a required "option."
    * * `{number} flowRate` -- Token flow rate (a/k/a bucket fill rate), that is,
    *   how quickly the bucket gets filled, in tokens per arbitrary time unit
@@ -120,7 +116,7 @@ export class TokenBucket {
    */
   constructor(options) {
     const {
-      maxBurstSize, // See note above on property `#capacity`.
+      maxBurstSize,
       flowRate,
       initialBurst      = options.maxBurstSize,
       maxQueueGrantSize = options.maxBurstSize,
@@ -129,7 +125,7 @@ export class TokenBucket {
       timeSource        = TokenBucket.#DEFAULT_TIME_SOURCE
     } = options;
 
-    this.#capacity          = MustBe.number(maxBurstSize, { finite: true, minExclusive: 0 });
+    this.#maxBurstSize      = MustBe.number(maxBurstSize, { finite: true, minExclusive: 0 });
     this.#flowRate          = MustBe.number(flowRate, { finite: true, minExclusive: 0 });
     this.#maxQueueGrantSize = MustBe.number(maxQueueGrantSize, { minExclusive: 0, maxInclusive: maxBurstSize });
     this.#partialTokens     = MustBe.boolean(partialTokens);
@@ -160,7 +156,7 @@ export class TokenBucket {
       ? null : this.#timeSource;
 
     return {
-      maxBurstSize:      this.#capacity,
+      maxBurstSize:      this.#maxBurstSize,
       flowRate:          this.#flowRate,
       maxQueueGrantSize: this.#maxQueueGrantSize,
       maxWaiters,
@@ -365,7 +361,7 @@ export class TokenBucket {
       : Math.floor(this.#lastVolume);
 
     maxInclusive = Math.min(maxInclusive,
-      fromQueue ? this.#maxQueueGrantSize : this.#capacity);
+      fromQueue ? this.#maxQueueGrantSize : this.#maxBurstSize);
 
     if (availableVolume < minInclusive) {
       return 0;
@@ -524,10 +520,10 @@ export class TokenBucket {
     const now        = this.#timeSource.now();
     const lastVolume = this.#lastVolume;
 
-    if (lastVolume < this.#capacity) {
+    if (lastVolume < this.#maxBurstSize) {
       const elapsedTime = now - this.#lastNow;
       const grant       = elapsedTime * this.#flowRate;
-      this.#lastVolume  = Math.min(lastVolume + grant, this.#capacity);
+      this.#lastVolume  = Math.min(lastVolume + grant, this.#maxBurstSize);
     }
 
     this.#lastNow = now;
