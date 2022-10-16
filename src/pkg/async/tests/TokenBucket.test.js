@@ -448,7 +448,7 @@ describe('takeNow()', () => {
     });
 
     test('succeeds with as much as is available, clamped at `maxQueueGrantSize`', () => {
-      const now    = 91400
+      const now    = 91400;
       const time   = new MockTimeSource(now);
       const bucket = new TokenBucket({
         flowRate: 5, maxBurstSize: 10000, initialBurstSize: 75, maxQueueGrantSize: 50, timeSource: time });
@@ -484,7 +484,7 @@ describe('takeNow()', () => {
 
   describe('when there is at least one waiter', () => {
     test('succeeds with `0` on a zero-minimum request', async () => {
-      const now    = 226000
+      const now    = 226000;
       const time   = new MockTimeSource(now);
       const bucket = new TokenBucket({
         flowRate: 13, maxBurstSize: 10000, initialBurstSize: 0, timeSource: time });
