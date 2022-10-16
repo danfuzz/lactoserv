@@ -83,9 +83,10 @@ export class TokenBucket {
    * Constructs an instance. Configuration options:
    *
    * * `{number} maxBurstSize` -- Maximum possible instantaneous burst size
-   *   (that is, the total bucket capacity), in tokens (arbitrary volume units).
-   *   This defines the "burstiness" allowed by the instance. Must be a finite
-   *   positive number. This is a required "option."
+   *   (that is, the total bucket capacity in the "leaky bucket as meter"
+   *   metaphor), in tokens (arbitrary volume units). This defines the
+   *   "burstiness" allowed by the instance. Must be a finite positive number.
+   *   This is a required "option."
    * * `{number} flowRate` -- Token flow rate (a/k/a bucket fill rate), that is,
    *   how quickly the bucket gets filled, in tokens per arbitrary time unit
    *   (tokens / ATU). This defines the steady state "flow rate" allowed by the
