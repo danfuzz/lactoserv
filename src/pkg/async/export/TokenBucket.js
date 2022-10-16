@@ -17,11 +17,11 @@ import { Threadlet } from '#x/Threadlet';
  *
  * When not experiencing contention, an instance acts as a "leaky bucket as
  * meter," granting as many tokens as are requested up to whatever burst
- * capacity is available, up to a maximum burst size (the "bucket size" in the
- * metaphor). And when there _is_ contention -- that is, when there is no
- * burst capacity at all, an instance acts as a "leaky bucket as queue," where
- * grant requests are queued up and processed to produce a steady token flow
- * rate.
+ * capacity is available, which itself ranges up to a configured maximum burst
+ * size (the "bucket size" in the metaphor). And when there _is_ contention --
+ * that is, when there is no burst capacity at all -- an instance acts as a
+ * "leaky bucket as queue," where grant requests are queued up and processed at
+ * a steady token flow rate.
  *
  * This class defines neither the token (bucket volume) units nor the time
  * units. It is up to clients to use whatever makes sense in their context.
