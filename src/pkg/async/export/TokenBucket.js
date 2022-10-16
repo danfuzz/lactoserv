@@ -238,7 +238,7 @@ export class TokenBucket {
     } else if (this.#waiters.length === 0) {
       // No waiters right now, so try to get the grant synchronously.
       this.#topUpBucket();
-      const got = this.#grantNow(minInclusive, maxInclusive);
+      const got = this.#grantNow(minInclusive, maxInclusive, false);
       if (got.done) {
         return this.#requestGrantResult(true, got.grant, 0);
       }
@@ -323,11 +323,11 @@ export class TokenBucket {
     if (this.#waiters.length === 0) {
       // There are no waiters, so we can try to satisfy the request.
       this.#topUpBucket();
-      result = this.#grantNow(minInclusive, maxInclusive);
+      result = this.#grantNow(minInclusive, maxInclusive, false);
     } else {
       // There are waiters, so force either failure or success, with a grant of
       // `0` in either case.
-      result = this.#grantNow(minInclusive, maxInclusive, true);
+      result = this.#grantNow(minInclusive, maxInclusive, false, true);
     }
 
     const waiterTime = this.#minTokensAwaited / this.#flowRate;
@@ -348,10 +348,11 @@ export class TokenBucket {
    *
    * @param {number} minInclusive The minimum quantity of tokens to be granted.
    * @param {number} maxInclusive The maximum quantity of tokens to be granted.
+   * @param {boolean} fromQueue Is this a grant from a queued request?
    * @param {boolean} forceZero Force a `0` grant?
    * @returns {number} The actual grant amount.
    */
-  #calculateGrant(minInclusive, maxInclusive, forceZero) {
+  #calculateGrant(minInclusive, maxInclusive, fromQueue, forceZero) {
     if (forceZero) {
       return 0;
     }
@@ -360,8 +361,8 @@ export class TokenBucket {
       ? this.#lastVolume
       : Math.floor(this.#lastVolume);
 
-    // TODO: Fix this by adding `fromQueue` argument.
-    maxInclusive = Math.min(maxInclusive, this.#maxQueueGrantSize);
+    maxInclusive = Math.min(maxInclusive,
+      fromQueue ? this.#maxQueueGrantSize : this.#capacity);
 
     if (availableVolume < minInclusive) {
       return 0;
@@ -389,11 +390,12 @@ export class TokenBucket {
    *
    * @param {number} minInclusive Minimum requested quantity of tokens.
    * @param {number} maxInclusive Maximum requested quantity of tokens.
+   * @param {boolean} fromQueue Is this a grant from a queued request?
    * @param {boolean} [forceZero = false] Force a `0` grant?
    * @returns {object} Grant result, as described above.
    */
-  #grantNow(minInclusive, maxInclusive, forceZero = false) {
-    const grant     = this.#calculateGrant(minInclusive, maxInclusive, forceZero);
+  #grantNow(minInclusive, maxInclusive, fromQueue, forceZero = false) {
+    const grant     = this.#calculateGrant(minInclusive, maxInclusive, fromQueue, forceZero);
     const newVolume = this.#lastVolume - grant;
     const done      = (grant !== 0) || (minInclusive === 0);
 
@@ -483,7 +485,7 @@ export class TokenBucket {
       }
 
       this.#topUpBucket();
-      const got = this.#grantNow(info.minInclusive, info.maxInclusive);
+      const got = this.#grantNow(info.minInclusive, info.maxInclusive, true);
 
       if (got.done) {
         this.#waiters.shift();
