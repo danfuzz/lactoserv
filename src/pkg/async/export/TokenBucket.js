@@ -41,7 +41,7 @@ export class TokenBucket {
   #flowRate;
 
   /** @type {number} Maximum grant size, in tokens. */
-  #maxGrantSize;
+  #maxQueueGrantSize;
 
   /**
    * @type {number} The maximum number of waiters that are allowed to be
@@ -94,10 +94,11 @@ export class TokenBucket {
    * * `{number} initialBurst` -- The instantaneously available burst size, in
    *   tokens, at the moment of construction. Defaults to `maxBurstSize` (that
    *   is, able to be maximally "bursted" from the get-go).
-   * * `{number} maxGrantSize` -- Maximum (atomic) grant size, in tokens. No
-   *   grant requests will ever return a larger grant, even if there is
-   *   available "burst volume" to accommodate it. Must be a finite positive
-   *   number less than or equal to `maxBurstSize`. Defaults to `maxBurstSize`.
+   * * `{number} maxQueueGrantSize` -- Maximum grant size when granting requests
+   *   from the waiter queue, in tokens, for. No queued grant requests will ever
+   *   return a larger grant, even if there is available "burst volume" to
+   *   accommodate it. Must be a finite positive number less than or equal to
+   *   `maxBurstSize`. Defaults to `maxBurstSize`.
    * * `{?number} maxWaiters` -- The maximum number of waiters that are allowed
    *   to be waiting for a token grant (see {@link #requestGrant}). Must be a
    *   finite whole number or `null`. If not present or `null`, then there is no
@@ -118,18 +119,18 @@ export class TokenBucket {
     const {
       maxBurstSize, // See note above on property `#capacity`.
       flowRate,
-      initialBurst  = options.maxBurstSize,
-      maxGrantSize  = options.maxBurstSize,
-      maxWaiters    = null,
-      partialTokens = false,
-      timeSource    = TokenBucket.#DEFAULT_TIME_SOURCE
+      initialBurst      = options.maxBurstSize,
+      maxQueueGrantSize = options.maxBurstSize,
+      maxWaiters        = null,
+      partialTokens     = false,
+      timeSource        = TokenBucket.#DEFAULT_TIME_SOURCE
     } = options;
 
-    this.#capacity      = MustBe.number(maxBurstSize, { finite: true, minExclusive: 0 });
-    this.#flowRate      = MustBe.number(flowRate, { finite: true, minExclusive: 0 });
-    this.#maxGrantSize  = MustBe.number(maxGrantSize, { minExclusive: 0, maxInclusive: maxBurstSize });
-    this.#partialTokens = MustBe.boolean(partialTokens);
-    this.#timeSource    = MustBe.object(timeSource, TokenBucket.TimeSource);
+    this.#capacity          = MustBe.number(maxBurstSize, { finite: true, minExclusive: 0 });
+    this.#flowRate          = MustBe.number(flowRate, { finite: true, minExclusive: 0 });
+    this.#maxQueueGrantSize = MustBe.number(maxQueueGrantSize, { minExclusive: 0, maxInclusive: maxBurstSize });
+    this.#partialTokens     = MustBe.boolean(partialTokens);
+    this.#timeSource        = MustBe.object(timeSource, TokenBucket.TimeSource);
 
     this.#maxWaiters = (maxWaiters === null)
       ? Number.POSITIVE_INFINITY
@@ -156,11 +157,11 @@ export class TokenBucket {
       ? null : this.#timeSource;
 
     return {
-      maxBurstSize:  this.#capacity,
-      flowRate:      this.#flowRate,
-      maxGrantSize:  this.#maxGrantSize,
+      maxBurstSize:      this.#capacity,
+      flowRate:          this.#flowRate,
+      maxQueueGrantSize: this.#maxQueueGrantSize,
       maxWaiters,
-      partialTokens: this.#partialTokens,
+      partialTokens:     this.#partialTokens,
       timeSource
     };
   }
@@ -219,7 +220,7 @@ export class TokenBucket {
    * succeeds and grants `0` tokens.
    *
    * **Note:** It is invalid to use this method to request a grant with a
-   * minimum size larger than the instance's configured `maxGrantSize`.
+   * minimum size larger than the instance's configured `maxQueueGrantSize`.
    *
    * @param {number|object} quantity Requested quantity of tokens, as described
    *   in {@link #takeNow}.
@@ -269,13 +270,14 @@ export class TokenBucket {
    * * `{number} minInclusive` -- Minimum quantity of tokens to be granted. If
    *   the minimum can't be met, then the call will grant no (`0`) tokens.
    *   Defaults to `0`. Invalid if negative or larger than this instance's
-   *   `maxGrantSize`. If this instance was constructed with `partialTokens ===
-   *   false`, then it is rounded up (`Math.ceil()`) when not a whole number.
+   *   `maxQueueGrantSize`. If this instance was constructed with `partialTokens
+   *   === false`, then it is rounded up (`Math.ceil()`) when not a whole
+   *   number.
    * * `{number} maxInclusive` -- Maximum quantity of tokens to be granted.
    *   Defaults to `0`. Invalid if negative, and clamped to `minInclusive` as a
    *   minimum. If this instance was constructed with `partialTokens === false`,
    *   then it is rounded down (`Math.floor()`) when not a whole number. This
-   *   is allowed to be larger than `maxGrantSize`, but this method will never
+   *   is allowed to be larger than `maxBurstSize`, but this method will never
    *   actually grant more than that.
    *
    * This method returns an object with bindings as follows:
@@ -292,7 +294,7 @@ export class TokenBucket {
    * * `{number} maxWaitUntil` -- The time to `waitUntil()` on this instance's
    *   time source until the maximum possible grant can be expected to be
    *   available. Note that the maximum possible grant is limited by the
-   *   configured `maxGrantSize`, so if `maxInclusive` is more than that, then
+   *   configured `maxBurstSize`, so if `maxInclusive` is more than that, then
    *   this return value reflects the former and not the latter.
    *
    * If the `minInclusive` request is non-zero, then this method will only ever
@@ -312,7 +314,7 @@ export class TokenBucket {
    *   above.
    * @returns {object} Result object as described above.
    * @throws {Error} Thrown if the request is invalid (inverted range,
-   *   `minInclusive` is more than the `maxGrantSize`, etc.).
+   *   `minInclusive` is more than the `maxQueueGrantSize`, etc.).
    */
   takeNow(quantity) {
     const { minInclusive, maxInclusive } = this.#parseQuantity(quantity);
@@ -358,7 +360,8 @@ export class TokenBucket {
       ? this.#lastVolume
       : Math.floor(this.#lastVolume);
 
-    maxInclusive = Math.min(maxInclusive, this.#maxGrantSize);
+    // TODO: Fix this by adding `fromQueue` argument.
+    maxInclusive = Math.min(maxInclusive, this.#maxQueueGrantSize);
 
     if (availableVolume < minInclusive) {
       return 0;
@@ -430,13 +433,13 @@ export class TokenBucket {
       minInclusive = Math.ceil(minInclusive);
     }
 
-    const maxGrantSize = this.#maxGrantSize;
+    const maxQueueGrantSize = this.#maxQueueGrantSize;
 
     try {
-      MustBe.number(minInclusive, { minInclusive: 0, maxInclusive: maxGrantSize });
+      MustBe.number(minInclusive, { minInclusive: 0, maxInclusive: maxQueueGrantSize });
       MustBe.number(maxInclusive, { minInclusive: 0 });
     } catch (e) {
-      throw new Error(`Impossible take request: ${minInclusive}..${maxInclusive}, max ${maxGrantSize}`);
+      throw new Error(`Impossible take request: ${minInclusive}..${maxInclusive}, max ${maxQueueGrantSize}`);
     }
 
     maxInclusive = Math.max(maxInclusive, minInclusive);
