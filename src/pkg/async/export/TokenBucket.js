@@ -356,17 +356,17 @@ export class TokenBucket {
       return 0;
     }
 
-    const availableVolume = this.#partialTokens
+    const availableGrantSize = this.#partialTokens
       ? this.#lastBurstSize
       : Math.floor(this.#lastBurstSize);
 
     maxInclusive = Math.min(maxInclusive,
       fromQueue ? this.#maxQueueGrantSize : this.#maxBurstSize);
 
-    if (availableVolume < minInclusive) {
+    if (availableGrantSize < minInclusive) {
       return 0;
-    } else if (availableVolume < maxInclusive) {
-      return availableVolume;
+    } else if (availableGrantSize < maxInclusive) {
+      return availableGrantSize;
     } else {
       return maxInclusive;
     }
@@ -394,18 +394,18 @@ export class TokenBucket {
    * @returns {object} Grant result, as described above.
    */
   #grantNow(minInclusive, maxInclusive, fromQueue, forceZero = false) {
-    const grant     = this.#calculateGrant(minInclusive, maxInclusive, fromQueue, forceZero);
-    const newVolume = this.#lastBurstSize - grant;
-    const done      = (grant !== 0) || (minInclusive === 0);
+    const grant   = this.#calculateGrant(minInclusive, maxInclusive, fromQueue, forceZero);
+    const newSize = this.#lastBurstSize - grant;
+    const done    = (grant !== 0) || (minInclusive === 0);
 
     // The wait times take into account any tokens which remain in the bucket
     // after a partial grant.
-    const neededMax    = Math.max(0, (maxInclusive - grant) - newVolume);
-    const neededMin    = Math.max(0, (minInclusive - grant) - newVolume);
+    const neededMax    = Math.max(0, (maxInclusive - grant) - newSize);
+    const neededMin    = Math.max(0, (minInclusive - grant) - newSize);
     const maxWaitUntil = this.#lastNow + (neededMax / this.#flowRate);
     const minWaitUntil = this.#lastNow + (neededMin / this.#flowRate);
 
-    this.#lastBurstSize = newVolume;
+    this.#lastBurstSize = newSize;
     return { done, grant, maxWaitUntil, minWaitUntil };
   }
 
