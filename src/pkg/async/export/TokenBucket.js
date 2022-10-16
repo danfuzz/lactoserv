@@ -297,8 +297,6 @@ export class TokenBucket {
    * * `{number} minWaitTime` -- The amount of time needed to wait (in ATU) in
    *   order to possibly be granted the minimum requested quantity of tokens.
    *   This is only non-zero if `done === false`.
-   * * `{number} maxWaitTime` -- The amount of time needed to wait (in ATU) in
-   *   order to possibly be granted the maximum requested quantity of tokens.
    *
    * If the `minInclusive` request is non-zero, then this method will only ever
    * return `done === true` if there is no immediate contention for tokens
@@ -336,7 +334,6 @@ export class TokenBucket {
     const waiterTime = this.#minTokensAwaited / this.#flowRate;
 
     if (result.grant < maxInclusive) {
-      result.maxWaitTime  += waiterTime;
       result.maxWaitUntil += waiterTime;
     }
 
@@ -389,7 +386,7 @@ export class TokenBucket {
    *
    * This method returns an object with the following binding, which all have
    * the same meaning as with {@link #takeNow}: `done`, `grant`, `maxWaitUntil`,
-   * `minWaitUntil`, `maxWaitTime`, and `minWaitTime`.
+   * `minWaitUntil`, and `minWaitTime`.
    *
    * @param {number} minInclusive Minimum requested quantity of tokens.
    * @param {number} maxInclusive Maximum requested quantity of tokens.
@@ -405,13 +402,12 @@ export class TokenBucket {
     // after a partial grant.
     const neededMax    = Math.max(0, (maxInclusive - grant) - newVolume);
     const neededMin    = Math.max(0, (minInclusive - grant) - newVolume);
-    const maxWaitTime  = neededMax / this.#flowRate;
     const minWaitTime  = neededMin / this.#flowRate;
     const maxWaitUntil = this.#lastNow + (neededMax / this.#flowRate);
     const minWaitUntil = this.#lastNow + (neededMin / this.#flowRate);
 
     this.#lastVolume = newVolume;
-    return { done, grant, maxWaitUntil, minWaitUntil, maxWaitTime, minWaitTime };
+    return { done, grant, maxWaitUntil, minWaitUntil, minWaitTime };
   }
 
   /**
