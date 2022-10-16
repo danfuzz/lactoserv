@@ -220,7 +220,7 @@ export class TokenBucket {
    * succeeds and grants `0` tokens.
    *
    * **Note:** It is invalid to use this method to request a grant with a
-   * minimum size larger than the instance's configured `maxQueueGrantSize`.
+   * _minimum_ size larger than the instance's configured `maxQueueGrantSize`.
    *
    * @param {number|object} quantity Requested quantity of tokens, as described
    *   in {@link #takeNow}.
@@ -286,7 +286,7 @@ export class TokenBucket {
    *   be `true` even if `grant === 0`, in the case where the minimum requested
    *   grant is in fact `0`.
    * * `{number} grant` -- The quantity of tokens granted to the caller. This is
-   *   `0` if the minimum required grant cannot be made.
+   *   `0` if the minimum requested grant cannot be made.
    * * `{number} minWaitUntil` -- The time to `waitUntil()` on this instance's
    *   time source until the minimum requested quantity of tokens can be
    *   expected to be available. This is a time at or before the time source's
