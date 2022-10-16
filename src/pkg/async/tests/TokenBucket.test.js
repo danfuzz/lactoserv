@@ -447,19 +447,22 @@ describe('takeNow()', () => {
       expect(bucket.latestState().availableBurst).toBe(0);
     });
 
-    test('succeeds with as much as is available, clamped at `maxQueueGrantSize`', () => {
+    test('succeeds with as much burst capacity as is available', () => {
       const now    = 91400;
       const time   = new MockTimeSource(now);
       const bucket = new TokenBucket({
         flowRate: 5, maxBurstSize: 10000, initialBurstSize: 75, maxQueueGrantSize: 50, timeSource: time });
 
+      // Notably, this is not supposed to be clamped to `maxQueueGrantSize`,
+      // because this request isn't being queued (that is, there's no
+      // contention.)
       const result1 = bucket.takeNow({ minInclusive: 10, maxInclusive: 200 });
       expect(result1.done).toBeTrue();
-      expect(result1.grant).toBe(50);
+      expect(result1.grant).toBe(75);
       expect(result1.minWaitUntil).toBe(now + 0);
       expect(result1.maxWaitUntil).toBe(now + ((200 - 75) / 5));
 
-      expect(bucket.latestState().availableBurst).toBe(25);
+      expect(bucket.latestState().availableBurst).toBe(0);
     });
 
     test('uses the time source', () => {
