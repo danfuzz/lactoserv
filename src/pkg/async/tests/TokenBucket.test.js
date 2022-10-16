@@ -428,8 +428,7 @@ describe('takeNow()', () => {
         flowRate: 1, burstSize: 10000, initialBurst: 123, timeSource: time });
 
       const result = bucket.takeNow(123);
-      expect(result).toStrictEqual({ done: true, grant: 123,
-        minWaitUntil: now, maxWaitUntil: now, minWaitTime: 0 });
+      expect(result).toStrictEqual({ done: true, grant: 123, minWaitUntil: now, maxWaitUntil: now });
       expect(bucket.latestState().availableBurst).toBe(0);
     });
 
@@ -444,7 +443,6 @@ describe('takeNow()', () => {
       expect(result.grant).toBe(100);
       expect(result.minWaitUntil).toBe(now + 0);
       expect(result.maxWaitUntil).toBe(now + ((110 - 100) / 5));
-      expect(result.minWaitTime).toBe(0);
 
       expect(bucket.latestState().availableBurst).toBe(0);
     });
@@ -460,7 +458,6 @@ describe('takeNow()', () => {
       expect(result1.grant).toBe(50);
       expect(result1.minWaitUntil).toBe(now + 0);
       expect(result1.maxWaitUntil).toBe(now + ((200 - 75) / 5));
-      expect(result1.minWaitTime).toBe(0);
 
       expect(bucket.latestState().availableBurst).toBe(25);
     });
@@ -478,7 +475,6 @@ describe('takeNow()', () => {
       expect(result.grant).toBe(5);
       expect(result.minWaitUntil).toBe(now1 + 0);
       expect(result.maxWaitUntil).toBe(now1 + ((10 - 5) / 5));
-      expect(result.minWaitTime).toBe(0);
 
       const latest = bucket.latestState();
       expect(latest.availableBurst).toBe(0);
@@ -504,7 +500,6 @@ describe('takeNow()', () => {
       expect(result.grant).toBe(0);
       expect(result.minWaitUntil).toBe(now + 0);
       expect(result.maxWaitUntil).toBe(now + ((1300 + 26) / 13));
-      expect(result.minWaitTime).toBe(0);
 
       time._end();
     });
@@ -526,7 +521,6 @@ describe('takeNow()', () => {
       expect(result.grant).toBe(0);
       expect(result.minWaitUntil).toBe(now + ((70 + 700) / 7));
       expect(result.maxWaitUntil).toBe(now + ((70 + 1400) / 7));
-      expect(result.minWaitTime).toBe((70 + 700) / 7);
 
       time._end();
     });
@@ -568,7 +562,6 @@ describe('takeNow()', () => {
       expect(result.grant).toBe(2);
       expect(result.minWaitUntil).toBe(now1 + 0);
       expect(result.maxWaitUntil).toBe(now1 + 3);
-      expect(result.minWaitTime).toBe(0);
 
       time._end();
     });

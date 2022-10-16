@@ -294,9 +294,6 @@ export class TokenBucket {
    *   available. Note that the maximum possible grant is limited by the
    *   configured `maxGrantSize`, so if `maxInclusive` is more than that, then
    *   this return value reflects the former and not the latter.
-   * * `{number} minWaitTime` -- The amount of time needed to wait (in ATU) in
-   *   order to possibly be granted the minimum requested quantity of tokens.
-   *   This is only non-zero if `done === false`.
    *
    * If the `minInclusive` request is non-zero, then this method will only ever
    * return `done === true` if there is no immediate contention for tokens
@@ -339,7 +336,6 @@ export class TokenBucket {
 
     if (!result.done) {
       result.minWaitUntil += waiterTime;
-      result.minWaitTime  += waiterTime;
     }
 
     return result;
@@ -386,7 +382,7 @@ export class TokenBucket {
    *
    * This method returns an object with the following binding, which all have
    * the same meaning as with {@link #takeNow}: `done`, `grant`, `maxWaitUntil`,
-   * `minWaitUntil`, and `minWaitTime`.
+   * and `minWaitUntil`.
    *
    * @param {number} minInclusive Minimum requested quantity of tokens.
    * @param {number} maxInclusive Maximum requested quantity of tokens.
@@ -402,12 +398,11 @@ export class TokenBucket {
     // after a partial grant.
     const neededMax    = Math.max(0, (maxInclusive - grant) - newVolume);
     const neededMin    = Math.max(0, (minInclusive - grant) - newVolume);
-    const minWaitTime  = neededMin / this.#flowRate;
     const maxWaitUntil = this.#lastNow + (neededMax / this.#flowRate);
     const minWaitUntil = this.#lastNow + (neededMin / this.#flowRate);
 
     this.#lastVolume = newVolume;
-    return { done, grant, maxWaitUntil, minWaitUntil, minWaitTime };
+    return { done, grant, maxWaitUntil, minWaitUntil };
   }
 
   /**
@@ -493,9 +488,8 @@ export class TokenBucket {
         const waitTime = this.#lastNow - info.startTime;
         info.doGrant(this.#requestGrantResult(true, got.grant, waitTime));
       } else {
-        const targetTime = this.#lastNow + got.minWaitTime;
         await Promise.race([
-          this.#waitUntil(targetTime),
+          this.#waitUntil(got.minWaitUntil),
           this.#waiterThread.whenStopRequested()
         ]);
       }
