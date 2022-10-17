@@ -103,7 +103,9 @@ export class TokenBucket {
    * * `{?number} maxQueueSize` -- The maximum allowed waiter queue size, in
    *   tokens. Must be a finite whole number or `null`. If `null`, then there is
    *   no limit on the queue size. If `0`, then this instance will only ever
-   *   synchronously grant tokens. Defaults to `null`.
+   *   synchronously grant tokens. Defaults to `null`. **Note:** The actual
+   *   queue size _can_ transiently end up larger than this by up to
+   *   `maxQueueGrantSize`.
    * * `{boolean} partialTokens` -- If `true`, allows the instance to provide
    *   partial tokens (e.g. give a client `1.25` tokens). If `false`, all token
    *   handoffs from the instance are quantized to integer values. Defaults to
@@ -199,7 +201,7 @@ export class TokenBucket {
   latestState() {
     return {
       availableBurstSize: this.#lastBurstSize,
-      availableQueueSize: this.#maxQueueSize - this.#queueSize,
+      availableQueueSize: Math.max(0, this.#maxQueueSize - this.#queueSize),
       now:                this.#lastNow,
       waiterCount:        this.#waiters.length,
     };
