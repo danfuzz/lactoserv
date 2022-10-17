@@ -401,7 +401,25 @@ describe('requestGrant()', () => {
 
   describe('when there are waiters', () => {
     test('synchronously grants a request with `minInclusive === 0`', async () => {
-      // TODO
+      const now    = 12300;
+      const time   = new MockTimeSource(now);
+      const bucket = new TokenBucket({
+        flowRate: 1, maxBurstSize: 10000, initialBurstSize: 0, timeSource: time });
+
+      // Setup / basic assumptions.
+      const request1 = bucket.requestGrant(10);
+      expect(bucket.latestState().waiterCount).toBe(1);
+
+      // The actual test.
+      const request2 = bucket.requestGrant({ minInclusive: 0, maxInclusive: 123 });
+      expect(bucket.latestState().waiterCount).toBe(1);
+      await timers.setImmediate();
+      expect(PromiseState.isPending(request1)).toBeTrue();
+      expect(PromiseState.isFulfilled(request2)).toBeTrue();
+
+      expect(await request2).toStrictEqual({ done: true, grant: 0, waitTime: 0 });
+
+      time._end();
     });
 
     test('synchronously fails when `availableQueueSize === 0`', async () => {
@@ -413,11 +431,6 @@ describe('requestGrant()', () => {
     });
 
     test('queues up a request with `0 < minInclusive < maxQueueGrantSize`, and ultimately grants `minInclusive`', async () => {
-      const now    = 12300;
-      const time   = new MockTimeSource(now);
-      const bucket = new TokenBucket({
-        flowRate: 1, maxBurstSize: 10000, initialBurstSize: 123, timeSource: time });
-
       // TODO
     });
 
