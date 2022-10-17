@@ -361,14 +361,42 @@ describe('requestGrant()', () => {
   });
 
   describe('when `partialTokens === false`', () => {
-    test('will not grant a partial token even if otherwise available', () => {
+    test('will not grant a partial token even if otherwise available (synchronously)', () => {
+      // TODO
+    });
+
+    test('will not grant a partial token even if otherwise available (asynchronously)', () => {
       // TODO
     });
   });
 
   describe('when `partialTokens === true`', () => {
-    test('can actually grant a partial token', () => {
-      // TODO
+    test('can actually grant a partial token synchronously', async () => {
+      const available = 12.34;
+      const bucket = new TokenBucket({
+        partialTokens: true, flowRate: 1, maxBurstSize: 100, initialBurstSize: available });
+
+      const resultPromise = bucket.requestGrant({ minInclusive: 10, maxInclusive: 20 });
+      expect(bucket.latestState().availableBurstSize).toBe(0);
+      const result = await resultPromise;
+      expect(result.done).toBeTrue();
+      expect(result.grant).toBe(available);
+    });
+
+    test('can actually grant a partial token asynchronously', async () => {
+      const grant  = 3.21;
+      const now    = 900;
+      const time   = new MockTimeSource(now);
+      const bucket = new TokenBucket({
+        partialTokens: true, flowRate: 1, maxBurstSize: 100, maxQueueGrantSize: grant, initialBurstSize: 0, timeSource: time });
+
+      const resultPromise = bucket.requestGrant({ minInclusive: 1, maxInclusive: 10 });
+      await timers.setImmediate();
+      expect(PromiseState.isPending(resultPromise)).toBeTrue();
+      time._setTime(now + 10);
+      const result = await resultPromise;
+      expect(result.done).toBeTrue();
+      expect(result.grant).toBe(grant);
     });
   });
 });
