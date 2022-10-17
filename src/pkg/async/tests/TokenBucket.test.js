@@ -522,7 +522,43 @@ describe('requestGrant()', () => {
     });
 
     test('grants requests in the order they were received', async () => {
-      // TODO
+      const now    = 182100;
+      const time   = new MockTimeSource(now);
+      const bucket = new TokenBucket({
+        flowRate: 1, maxBurstSize: 10000, maxQueueGrantSize: 100,
+        initialBurstSize: 0, timeSource: time });
+
+      const request1 = bucket.requestGrant(10);
+      const request2 = bucket.requestGrant(20);
+      const request3 = bucket.requestGrant(30);
+      expect(bucket.latestState().waiterCount).toBe(3);
+      expect(PromiseState.isPending(request1)).toBeTrue();
+      expect(PromiseState.isPending(request2)).toBeTrue();
+      expect(PromiseState.isPending(request3)).toBeTrue();
+
+      time._setTime(now + 10);
+      await timers.setImmediate();
+      expect(PromiseState.isFulfilled(request1)).toBeTrue();
+      expect(PromiseState.isPending(request2)).toBeTrue();
+      expect(PromiseState.isPending(request3)).toBeTrue();
+
+      time._setTime(now + 10 + 20);
+      await timers.setImmediate();
+      expect(PromiseState.isFulfilled(request1)).toBeTrue();
+      expect(PromiseState.isFulfilled(request2)).toBeTrue();
+      expect(PromiseState.isPending(request3)).toBeTrue();
+
+      time._setTime(now + 10 + 20 + 30);
+      await timers.setImmediate();
+      expect(PromiseState.isFulfilled(request1)).toBeTrue();
+      expect(PromiseState.isFulfilled(request2)).toBeTrue();
+      expect(PromiseState.isFulfilled(request3)).toBeTrue();
+
+      expect(await request1).toStrictEqual({ done: true, grant: 10, waitTime: 10 });
+      expect(await request2).toStrictEqual({ done: true, grant: 20, waitTime: 10 + 20 });
+      expect(await request3).toStrictEqual({ done: true, grant: 30, waitTime: 10 + 20 + 30 });
+
+      time._end();
     });
   });
 
