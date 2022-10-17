@@ -39,15 +39,15 @@ export class TokenBucket {
    */
   #flowRate;
 
-  /** @type {number} Maximum grant size, in tokens. */
+  /** @type {number} Maximum grant size for a waiter in the queue, in tokens. */
   #maxQueueGrantSize;
 
   /**
-   * @type {number} The maximum number of waiters that are allowed to be
-   * waiting for a token grant. `Number.POSITIVE_INFINITY` is used represent "no
-   * limit."
+   * @type {number} The maximum allowed wait queue size, in tokens. That is,
+   * this is the sum of all grants to be made from waiters in the queue.
+   * `Number.POSITIVE_INFINITY` is used represent "no limit."
    */
-  #maxWaiters;
+  #maxQueueSize;
 
   /** @type {boolean} Provide partial (non-integral / fractional) tokens? */
   #partialTokens;
@@ -95,14 +95,14 @@ export class TokenBucket {
    *   in tokens, at the moment of construction. Defaults to `maxBurstSize`
    *   (that is, able to be maximally "bursted" from the get-go).
    * * `{number} maxQueueGrantSize` -- Maximum grant size when granting requests
-   *   from the waiter queue, in tokens, for. No queued grant requests will ever
+   *   from the waiter queue, in tokens. No queued grant requests will ever
    *   return a larger grant, even if there is available "burst volume" to
    *   accommodate it. Must be a finite positive number less than or equal to
    *   `maxBurstSize`. Defaults to `maxBurstSize`.
-   * * `{?number} maxWaiters` -- The maximum number of waiters that are allowed
-   *   to be waiting for a token grant (see {@link #requestGrant}). Must be a
-   *   finite whole number or `null`. If not present or `null`, then there is no
-   *   limit on waiters.
+   * * `{?number} maxQueueSize` -- The maximum allowed waiter queue size, in
+   *   tokens. Must be a finite whole number or `null`. If `null`, then there is
+   *   no limit on the queue size. If `0`, then this instance will only ever
+   *   synchronously grant tokens. Defaults to `null`.
    * * `{boolean} partialTokens` -- If `true`, allows the instance to provide
    *   partial tokens (e.g. give a client `1.25` tokens). If `false`, all token
    *   handoffs from the instance are quantized to integer values. Defaults to
@@ -121,7 +121,7 @@ export class TokenBucket {
       flowRate,
       initialBurstSize  = options.maxBurstSize,
       maxQueueGrantSize = options.maxBurstSize,
-      maxWaiters        = null,
+      maxQueueSize      = null,
       partialTokens     = false,
       timeSource        = TokenBucket.#DEFAULT_TIME_SOURCE
     } = options;
@@ -132,9 +132,9 @@ export class TokenBucket {
     this.#partialTokens     = MustBe.boolean(partialTokens);
     this.#timeSource        = MustBe.object(timeSource, TokenBucket.TimeSource);
 
-    this.#maxWaiters = (maxWaiters === null)
+    this.#maxQueueSize = (maxQueueSize === null)
       ? Number.POSITIVE_INFINITY
-      : MustBe.number(maxWaiters, { safeInteger: true, minInclusive: 0 });
+      : MustBe.number(maxQueueSize, { safeInteger: true, minInclusive: 0 });
 
     this.#lastBurstSize = MustBe.number(initialBurstSize, { minInclusive: 0, maxInclusive: maxBurstSize });
     this.#lastNow       = this.#timeSource.now();
@@ -149,18 +149,18 @@ export class TokenBucket {
    * `null` in the result.
    */
   get config() {
-    const maxWaiters = (this.#maxWaiters === Number.POSITIVE_INFINITY)
+    const maxQueueSize = (this.#maxQueueSize === Number.POSITIVE_INFINITY)
       ? null
-      : this.#maxWaiters;
+      : this.#maxQueueSize;
 
     const timeSource = (this.#timeSource === TokenBucket.#DEFAULT_TIME_SOURCE)
       ? null : this.#timeSource;
 
     return {
-      maxBurstSize:      this.#maxBurstSize,
       flowRate:          this.#flowRate,
+      maxBurstSize:      this.#maxBurstSize,
       maxQueueGrantSize: this.#maxQueueGrantSize,
-      maxWaiters,
+      maxQueueSize,
       partialTokens:     this.#partialTokens,
       timeSource
     };
@@ -246,9 +246,8 @@ export class TokenBucket {
 
     if (minInclusive === 0) {
       return this.#requestGrantResult(true, 0, 0);
-    } else if (this.#waiters.length >= this.#maxWaiters) {
-      // There are too many waiters to add another, per configuration. So,
-      // immediately fail.
+    } else if (this.#minTokensAwaited >= this.#maxQueueSize) {
+      // The wait queue is full. So immediately fail.
       return this.#requestGrantResult(false, 0, 0);
     }
 
