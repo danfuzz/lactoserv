@@ -101,9 +101,9 @@ export class TokenBucket {
    *   accommodate it. Must be a finite positive number less than or equal to
    *   `maxBurstSize`. Defaults to `maxBurstSize`.
    * * `{?number} maxQueueSize` -- The maximum allowed waiter queue size, in
-   *   tokens. Must be a finite whole number or `null`. If `null`, then there is
-   *   no limit on the queue size. If `0`, then this instance will only ever
-   *   synchronously grant tokens. Defaults to `null`.
+   *   tokens. Must be a finite non-negative number or `null`. If `null`, then
+   *   there is no limit on the queue size. If `0`, then this instance will only
+   *   ever synchronously grant tokens. Defaults to `null`.
    * * `{boolean} partialTokens` -- If `true`, allows the instance to provide
    *   partial tokens (e.g. give a client `1.25` tokens). If `false`, all token
    *   handoffs from the instance are quantized to integer values. Defaults to
@@ -135,7 +135,7 @@ export class TokenBucket {
 
     this.#maxQueueSize = (maxQueueSize === null)
       ? Number.POSITIVE_INFINITY
-      : MustBe.number(maxQueueSize, { safeInteger: true, minInclusive: 0 });
+      : MustBe.number(maxQueueSize, { finite: true, minInclusive: 0 });
 
     this.#lastBurstSize = MustBe.number(initialBurstSize, { minInclusive: 0, maxInclusive: maxBurstSize });
     this.#lastNow       = this.#timeSource.now();

@@ -77,7 +77,7 @@ describe('constructor()', () => {
     ${{ maxBurstSize: 1, flowRate: 1, maxQueueSize: 1000 }}
     ${{ maxBurstSize: 1, flowRate: 1, maxQueueSize: 0 }}
     ${{ maxBurstSize: 1, flowRate: 1, maxQueueSize: 1 }}
-    ${{ maxBurstSize: 1, flowRate: 1, maxQueueSize: 1000 }}
+    ${{ maxBurstSize: 1, flowRate: 1, maxQueueSize: 12.34 }}
     ${{ maxBurstSize: 1, flowRate: 1, partialTokens: false }}
     ${{ maxBurstSize: 123.456, flowRate: 12.3, partialTokens: false }}
     ${{ maxBurstSize: 1, flowRate: 1, partialTokens: true }}
@@ -118,6 +118,7 @@ describe('constructor()', () => {
     maxQueueSize
     ${null}
     ${0}
+    ${1.5}
     ${10}
   `('produces an instance with the `maxQueueSize` that was passed: $maxQueueSize', ({ maxQueueSize }) => {
     const bucket = new TokenBucket({ flowRate: 1, maxBurstSize: 1, maxQueueSize });
@@ -279,7 +280,6 @@ describe('constructor(<invalid>)', () => {
     ${'123'}
     ${[123]}
     ${-1}
-    ${0.1}
     ${Number.POSITIVE_INFINITY}
   `('rejects invalid `maxQueueSize`: $maxQueueSize', ({ maxQueueSize }) => {
     expect(() => new TokenBucket({ flowRate: 1, maxBurstSize: 1, maxQueueSize })).toThrow();
