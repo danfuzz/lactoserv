@@ -353,10 +353,28 @@ describe('denyAllRequests()', () => {
 
 describe('requestGrant()', () => {
   describe('when there are no waiters', () => {
-    // TODO
+    test('synchronously grants a request that can be satisfied', () => {
+      // TODO
+    });
+
+    test('synchronously grants a request that can be satisfied, with `grant > maxQueueGrantSize`', () => {
+      // TODO
+    });
+
+    test('synchronously grants a request with `minInclusive === 0`', () => {
+      // TODO
+    });
   });
 
   describe('when there are waiters', () => {
+    test('synchronously grants a request with `minInclusive === 0`', () => {
+      // TODO
+    });
+
+    test('synchronously fails when `availableQueueSize === 0`', () => {
+      // TODO
+    });
+
     // TODO
   });
 
