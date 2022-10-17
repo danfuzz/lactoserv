@@ -121,9 +121,9 @@ export class TokenBucket {
    */
   constructor(options) {
     const {
-      maxBurstSize,
       flowRate,
       initialBurstSize  = options.maxBurstSize,
+      maxBurstSize,
       maxQueueGrantSize = options.maxBurstSize,
       maxQueueSize      = null,
       partialTokens     = false,
