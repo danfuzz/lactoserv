@@ -181,8 +181,37 @@ export class TokenBucket {
   /**
    * Requests a grant of a particular quantity (or quantity range) of tokens, to
    * be granted atomically (all at once). This method async-returns either when
-   * the grant has been made _or_ when the instance determines that it cannot
-   * perform the grant due to its configured limits.
+   * the grant has been made _or_ promptly if the instance determines that it
+   * cannot perform the grant due to its configured limits.
+   *
+   * The method accepts the quantity of tokens being requested, either as a
+   * simple number or as an object with bindings to indicate a range:
+   *
+   * * `{number} minInclusive` -- Minimum quantity of tokens to be granted.
+   *   Defaults to `0`. Invalid if negative or larger than this instance's
+   *   `maxQueueGrantSize`. If this instance was constructed with `partialTokens
+   *   === false`, then it is rounded up (`Math.ceil()`) when not a whole
+   *   number.
+   * * `{number} maxInclusive` -- Maximum quantity of tokens to be granted.
+   *   Defaults to `0`. Invalid if negative, and clamped to `minInclusive` as a
+   *   minimum. If this instance was constructed with `partialTokens === false`,
+   *   then it is rounded down (`Math.floor()`) when not a whole number. This
+   *   is allowed to be larger than `maxBurstSize`, but this method will never
+   *   actually grant more than that.
+   *
+   * The actual granting of tokens proceeds as follows (in order):
+   *
+   * * If `minInclusive` is `0`, then this method promptly succeeds with a
+   *   grant of `0` tokens.
+   * * If there is no contention (no queued waiters) and the available burst
+   *   size can accommodate a grant of at least `minInclusive` tokens, then this
+   *   method promptly succeeds with the maximum-possible requested grant.
+   * * If there is insufficient available waiter queue size to accommodate a
+   *   grant of at least `minInclusive`, then this method promptly fails, with
+   *   `done === false` and a grant of `0` tokens.
+   * * The request is queued up as an awaited grant. When the request is
+   *   finally dequeued, the grant will be for the smaller of `maxInclusive` or
+   *   `maxQueueGrantSize` tokens.
    *
    * This method returns an object with bindings as follows:
    *
