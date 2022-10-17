@@ -427,7 +427,7 @@ export class TokenBucket {
     // Per contract, we figure out a wait time as if the grant is from the
     // queue. So we duplicate `requestGrant()`'s calculation for what the grant
     // would be.
-    const waitedGrantSize = Math.min(minInclusive, this.#maxQueueGrantSize);
+    const waitedGrantSize = Math.min(maxInclusive, this.#maxQueueGrantSize);
     const waitedSize      = waitedGrantSize - this.#lastBurstSize;
     const waitTime        = waitedSize / this.#flowRate;
     const waitUntil       = this.#lastNow + waitTime;
