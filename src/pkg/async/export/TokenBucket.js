@@ -321,22 +321,18 @@ export class TokenBucket {
    *   grant is in fact `0`.
    * * `{number} grant` -- The quantity of tokens granted to the caller. This is
    *   `0` if the minimum requested grant cannot be made.
-   * * `{number} minWaitUntil` -- The time to `waitUntil()` on this instance's
-   *   time source until the minimum requested quantity of tokens can be
-   *   expected to be available. This is a time at or before the time source's
-   *   `now()` if `done === true`.
-   * * `{number} maxWaitUntil` -- The time to `waitUntil()` on this instance's
-   *   time source until the maximum possible grant can be expected to be
-   *   available. Note that the maximum possible grant is limited by the
-   *   configured `maxBurstSize`, so if `maxInclusive` is more than that, then
-   *   this return value reflects the former and not the latter.
+   * * `{number} waitUntil` -- The time to `waitUntil()` on this instance's
+   *   time source until the request would be expected to be granted, if this
+   *   were an asynchronously-requested grant, as if by {@link #requestGrant}
+   *   (see which). If `done === true`, then this will be a time at or before
+   *   the time source's `now()`.
    *
    * If the `minInclusive` request is non-zero, then this method will only ever
    * return `done === true` if there is no immediate contention for tokens
    * (e.g., due to async-active calls to {@link #requestGrant}). The resulting
-   * `minWaitUntil` and `maxWaitUntil` do take active contention into account,
-   * though the actual required wait times can turn out to be larger than what
-   * was returned due to _new_ contention.
+   * `waitUntil` takes the wait queue -- that is, active contention -- into
+   * account, though the actual required wait times can turn out to be larger
+   * than what was returned due to _new_ contention.
    *
    * Note: This method _first_ tops up the token bucket based on the amount of
    * time elapsed since the previous top-up, and _then_ removes tokens. This
@@ -364,14 +360,8 @@ export class TokenBucket {
       result = this.#grantNow(minInclusive, maxInclusive, true);
     }
 
-    const waiterTime = this.#queueSize / this.#flowRate;
-
-    if (result.grant < maxInclusive) {
-      result.maxWaitUntil += waiterTime;
-    }
-
     if (!result.done) {
-      result.minWaitUntil += waiterTime;
+      result.waitUntil += this.#queueSize / this.#flowRate;
     }
 
     return result;
@@ -413,12 +403,12 @@ export class TokenBucket {
    *   processed by {@link #parseQuantity}.
    * * It does _not_ top up the bucket before taking action.
    * * It does not take into account any waiters, including the calculation of
-   *   the returned wait times. (This is the method used to actually grant
-   *   tokens on behalf of waiters!)
+   *   the returned wait time. (This is the method used to actually grant tokens
+   *   on behalf of waiters!)
    *
    * This method returns an object with the following binding, which all have
-   * the same meaning as with {@link #takeNow}: `done`, `grant`, `maxWaitUntil`,
-   * and `minWaitUntil`.
+   * the same meaning as with {@link #takeNow}: `done`, `grant`, and
+   * `waitUntil`.
    *
    * @param {number} minInclusive Minimum requested quantity of tokens.
    * @param {number} maxInclusive Maximum requested quantity of tokens.
@@ -426,19 +416,23 @@ export class TokenBucket {
    * @returns {object} Grant result, as described above.
    */
   #grantNow(minInclusive, maxInclusive, forceZero = false) {
-    const grant   = this.#calculateGrant(minInclusive, maxInclusive, forceZero);
-    const newSize = this.#lastBurstSize - grant;
-    const done    = (grant !== 0) || (minInclusive === 0);
+    const grant = this.#calculateGrant(minInclusive, maxInclusive, forceZero);
+    const done  = (grant !== 0) || (minInclusive === 0);
 
-    // The wait times take into account any tokens which remain in the bucket
-    // after a partial grant.
-    const neededMax    = Math.max(0, (maxInclusive - grant) - newSize);
-    const neededMin    = Math.max(0, (minInclusive - grant) - newSize);
-    const maxWaitUntil = this.#lastNow + (neededMax / this.#flowRate);
-    const minWaitUntil = this.#lastNow + (neededMin / this.#flowRate);
+    if (done) {
+      this.#lastBurstSize -= grant;
+      return { done: true, grant, waitUntil: this.#lastNow };
+    }
 
-    this.#lastBurstSize = newSize;
-    return { done, grant, maxWaitUntil, minWaitUntil };
+    // Per contract, we figure out a wait time as if the grant is from the
+    // queue. So we duplicate `requestGrant()`'s calculation for what the grant
+    // would be.
+    const waitedGrantSize = Math.min(minInclusive, this.#maxQueueGrantSize);
+    const waitedSize      = waitedGrantSize - this.#lastBurstSize;
+    const waitTime        = waitedSize / this.#flowRate;
+    const waitUntil       = this.#lastNow + waitTime;
+
+    return { done: false, grant: 0, waitUntil };
   }
 
   /**
@@ -525,7 +519,7 @@ export class TokenBucket {
         info.doGrant(this.#requestGrantResult(true, got.grant, waitTime));
       } else {
         await Promise.race([
-          this.#waitUntil(got.minWaitUntil),
+          this.#waitUntil(got.waitUntil),
           this.#waiterThread.whenStopRequested()
         ]);
       }

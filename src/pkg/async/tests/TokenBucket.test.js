@@ -450,7 +450,7 @@ describe('takeNow()', () => {
         flowRate: 1, maxBurstSize: 10000, initialBurstSize: 123, timeSource: time });
 
       const result = bucket.takeNow(123);
-      expect(result).toStrictEqual({ done: true, grant: 123, minWaitUntil: now, maxWaitUntil: now });
+      expect(result).toStrictEqual({ done: true, grant: 123, waitUntil: now });
       expect(bucket.latestState().availableBurstSize).toBe(0);
     });
 
@@ -463,8 +463,7 @@ describe('takeNow()', () => {
       const result = bucket.takeNow({ minInclusive: 10, maxInclusive: 110 });
       expect(result.done).toBeTrue();
       expect(result.grant).toBe(100);
-      expect(result.minWaitUntil).toBe(now + 0);
-      expect(result.maxWaitUntil).toBe(now + ((110 - 100) / 5));
+      expect(result.waitUntil).toBe(now + 0);
 
       expect(bucket.latestState().availableBurstSize).toBe(0);
     });
@@ -481,8 +480,7 @@ describe('takeNow()', () => {
       const result1 = bucket.takeNow({ minInclusive: 10, maxInclusive: 200 });
       expect(result1.done).toBeTrue();
       expect(result1.grant).toBe(75);
-      expect(result1.minWaitUntil).toBe(now + 0);
-      expect(result1.maxWaitUntil).toBe(now + ((200 - 75) / 5));
+      expect(result1.waitUntil).toBe(now + 0);
 
       expect(bucket.latestState().availableBurstSize).toBe(0);
     });
@@ -498,8 +496,7 @@ describe('takeNow()', () => {
       const result = bucket.takeNow({ minInclusive: 0, maxInclusive: 10 });
       expect(result.done).toBeTrue();
       expect(result.grant).toBe(5);
-      expect(result.minWaitUntil).toBe(now1 + 0);
-      expect(result.maxWaitUntil).toBe(now1 + ((10 - 5) / 5));
+      expect(result.waitUntil).toBe(now1 + 0);
 
       const latest = bucket.latestState();
       expect(latest.availableBurstSize).toBe(0);
@@ -523,8 +520,7 @@ describe('takeNow()', () => {
       const result = bucket.takeNow({ minInclusive: 0, maxInclusive: 26 });
       expect(result.done).toBeTrue();
       expect(result.grant).toBe(0);
-      expect(result.minWaitUntil).toBe(now + 0);
-      expect(result.maxWaitUntil).toBe(now + ((1300 + 26) / 13));
+      expect(result.waitUntil).toBe(now + 0);
 
       time._end();
     });
@@ -544,8 +540,7 @@ describe('takeNow()', () => {
       const result = bucket.takeNow({ minInclusive: 700, maxInclusive: 1400 });
       expect(result.done).toBeFalse();
       expect(result.grant).toBe(0);
-      expect(result.minWaitUntil).toBe(now + ((70 + 700) / 7));
-      expect(result.maxWaitUntil).toBe(now + ((70 + 1400) / 7));
+      expect(result.waitUntil).toBe(now + ((70 + 700) / 7));
 
       time._end();
     });
@@ -585,8 +580,7 @@ describe('takeNow()', () => {
       const result = bucket.takeNow({ minInclusive: 0, maxInclusive: 5 });
       expect(result.done).toBeTrue();
       expect(result.grant).toBe(2);
-      expect(result.minWaitUntil).toBe(now1 + 0);
-      expect(result.maxWaitUntil).toBe(now1 + 3);
+      expect(result.waitUntil).toBe(now1 + 0);
 
       time._end();
     });
