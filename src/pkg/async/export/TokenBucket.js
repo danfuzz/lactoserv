@@ -276,6 +276,10 @@ export class TokenBucket {
    *
    * * `{number} availableBurstSize` -- The currently-available burst size, that
    *   is, the quantity of tokens currently in the bucket.
+   * * `{number} availableQueueSize` -- The currently-available queue size, that
+   *   is, the quantity of tokens that could potentially be reserved for new
+   *   grant waiters. If this instance has no limit on the queue size, then
+   *   this is `Number.POSITIVE_INFINITY`.
    * * `{number} now` -- The time as of the snapshot, according to this
    *   instance's time source.
    * * `{number} waiters` -- The number of clients awaiting a token grant.
@@ -285,6 +289,7 @@ export class TokenBucket {
   latestState() {
     return {
       availableBurstSize: this.#lastBurstSize,
+      availableQueueSize: this.#maxQueueSize - this.#minTokensAwaited,
       now:                this.#lastNow,
       waiters:            this.#waiters.length,
     };

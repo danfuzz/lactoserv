@@ -165,6 +165,21 @@ describe('constructor()', () => {
     expect(bucket.latestState().availableBurstSize).toBe(123);
   });
 
+  test('produces an instance with `availableQueueSize === infinity` if passed `maxQueueSize === null`', () => {
+    const bucket = new TokenBucket({ flowRate: 1, maxBurstSize: 100, maxQueueSize: null });
+    expect(bucket.latestState().availableQueueSize).toBe(Number.POSITIVE_INFINITY);
+  });
+
+  test('produces an instance with `availableQueueSize === infinity` if not passed `maxQueueSize`', () => {
+    const bucket = new TokenBucket({ flowRate: 1, maxBurstSize: 100 });
+    expect(bucket.latestState().availableQueueSize).toBe(Number.POSITIVE_INFINITY);
+  });
+
+  test('produces an instance with `availableQueueSize === maxQueueSize` for finite `maxQueueSize`', () => {
+    const bucket = new TokenBucket({ flowRate: 1, maxBurstSize: 100, maxQueueSize: 9876 });
+    expect(bucket.latestState().availableQueueSize).toBe(9876);
+  });
+
   test('produces an instance with no waiters', () => {
     const bucket = new TokenBucket({ flowRate: 1, maxBurstSize: 100 });
     expect(bucket.latestState().waiters).toBe(0);
@@ -362,7 +377,7 @@ describe('latestState()', () => {
   test('has exactly the expected properties', () => {
     const bucket = new TokenBucket({ flowRate: 123, maxBurstSize: 100000 });
     expect(bucket.latestState()).toContainAllKeys([
-      'availableBurstSize', 'now', 'waiters'
+      'availableBurstSize', 'availableQueueSize', 'now', 'waiters'
     ]);
   });
 
@@ -387,33 +402,40 @@ describe('latestState()', () => {
     expect(bucket.latestState().waiters).toBe(0);
   });
 
-  test('indicates the number of waiters as the number waxes and wanes', async () => {
+  test('indicates the number of waiters and available queue size as the waiters wax and wane', async () => {
     const time   = new MockTimeSource(1000);
     const bucket = new TokenBucket({
-      flowRate: 1, maxBurstSize: 10000, initialBurstSize: 0, timeSource: time });
+      flowRate: 1, maxBurstSize: 10000, initialBurstSize: 0, maxQueueSize: 1000,
+      timeSource: time
+    });
 
-    const result1 = bucket.requestGrant(1);
+    const result1 = bucket.requestGrant(10);
     expect(PromiseState.isPending(result1)).toBeTrue();
     expect(bucket.latestState().waiters).toBe(1);
+    expect(bucket.latestState().availableQueueSize).toBe(1000 - 10);
 
-    const result2 = bucket.requestGrant(1);
+    const result2 = bucket.requestGrant(15);
     expect(PromiseState.isPending(result2)).toBeTrue();
     expect(bucket.latestState().waiters).toBe(2);
+    expect(bucket.latestState().availableQueueSize).toBe(1000 - 10 - 15);
 
-    const result3 = bucket.requestGrant(1);
+    const result3 = bucket.requestGrant(100);
     expect(PromiseState.isPending(result3)).toBeTrue();
     expect(bucket.latestState().waiters).toBe(3);
+    expect(bucket.latestState().availableQueueSize).toBe(1000 - 10 - 15 - 100);
 
-    time._setTime(1002); // Enough for the first two requests to get granted.
+    time._setTime(1025); // Enough for the first two requests to get granted.
     await timers.setImmediate();
     expect(PromiseState.isFulfilled(result1)).toBeTrue();
     expect(PromiseState.isFulfilled(result2)).toBeTrue();
     expect(bucket.latestState().waiters).toBe(1);
+    expect(bucket.latestState().availableQueueSize).toBe(1000 - 100);
 
-    time._setTime(1003); // Enough for the last request to get granted.
+    time._setTime(1125); // Enough for the last request to get granted.
     await timers.setImmediate();
     expect(PromiseState.isFulfilled(result3)).toBeTrue();
     expect(bucket.latestState().waiters).toBe(0);
+    expect(bucket.latestState().availableQueueSize).toBe(1000);
 
     time._end();
   });
