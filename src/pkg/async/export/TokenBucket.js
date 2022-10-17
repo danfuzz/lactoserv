@@ -379,14 +379,9 @@ export class TokenBucket {
    *
    * @param {number} minInclusive The minimum quantity of tokens to be granted.
    * @param {number} maxInclusive The maximum quantity of tokens to be granted.
-   * @param {boolean} forceZero Force a `0` grant?
    * @returns {number} The actual grant amount.
    */
-  #calculateGrant(minInclusive, maxInclusive, forceZero) {
-    if (forceZero) {
-      return 0;
-    }
-
+  #calculateGrant(minInclusive, maxInclusive) {
     const availableGrantSize = this.#partialTokens
       ? this.#lastBurstSize
       : Math.floor(this.#lastBurstSize);
@@ -423,8 +418,10 @@ export class TokenBucket {
    * @returns {object} Grant result, as described above.
    */
   #grantNow(minInclusive, maxInclusive, forceZero = false) {
-    const grant = this.#calculateGrant(minInclusive, maxInclusive, forceZero);
-    const done  = (grant !== 0) || (minInclusive === 0);
+    const grant = forceZero
+      ? 0
+      : this.#calculateGrant(minInclusive, maxInclusive);
+    const done = (grant !== 0) || (minInclusive === 0);
 
     if (done) {
       this.#lastBurstSize -= grant;
