@@ -470,6 +470,8 @@ describe('requestGrant()', () => {
       const result = await resultPromise;
       expect(result.done).toBeTrue();
       expect(result.grant).toBe(2);
+
+      time._end();
     });
   });
 
@@ -501,6 +503,8 @@ describe('requestGrant()', () => {
       const result = await resultPromise;
       expect(result.done).toBeTrue();
       expect(result.grant).toBe(grant);
+
+      time._end();
     });
   });
 });
@@ -527,6 +531,8 @@ describe('latestState()', () => {
 
     time.now = () => { throw new Error('oy!'); };
     expect(() => bucket.latestState()).not.toThrow();
+
+    time._end();
   });
 
   test('indicates a lack of waiters, before any waiting has ever happened', () => {
@@ -584,6 +590,8 @@ describe('takeNow()', () => {
       const result = bucket.takeNow(123);
       expect(result).toStrictEqual({ done: true, grant: 123, waitUntil: now });
       expect(bucket.latestState().availableBurstSize).toBe(0);
+
+      time._end();
     });
 
     test('succeeds with as much as is available', () => {
@@ -598,6 +606,8 @@ describe('takeNow()', () => {
       expect(result.waitUntil).toBe(now + 0);
 
       expect(bucket.latestState().availableBurstSize).toBe(0);
+
+      time._end();
     });
 
     test('succeeds with as much burst capacity as is available', () => {
@@ -615,6 +625,8 @@ describe('takeNow()', () => {
       expect(result1.waitUntil).toBe(now + 0);
 
       expect(bucket.latestState().availableBurstSize).toBe(0);
+
+      time._end();
     });
 
     test('uses the time source', () => {
@@ -633,6 +645,8 @@ describe('takeNow()', () => {
       const latest = bucket.latestState();
       expect(latest.availableBurstSize).toBe(0);
       expect(latest.now).toBe(1001);
+
+      time._end();
     });
 
     test('fails and reports an as-if-queued `waitUntil` when there is insufficient burst capacity', () => {
@@ -645,6 +659,8 @@ describe('takeNow()', () => {
       expect(result.done).toBeFalse();
       expect(result.grant).toBe(0);
       expect(result.waitUntil).toBe(now + (10 / 5));
+
+      time._end();
     });
 
     test('takes `availableBurstSize` into account in failures', () => {
@@ -657,6 +673,8 @@ describe('takeNow()', () => {
       expect(result.done).toBeFalse();
       expect(result.grant).toBe(0);
       expect(result.waitUntil).toBe(now + (20 - 5) / 10);
+
+      time._end();
     });
 
     describe('when `partialTokens === false`', () => {
