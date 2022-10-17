@@ -65,8 +65,8 @@ export class TokenBucket {
   #lastBurstSize;
 
   /**
-   * @type {{ minInclusive: number, maxInclusive: number, startTime: number,
-   * doGrant: function(number) }[]} Array of grant waiters.
+   * @type {{ grant: number, startTime: number, doGrant: function(number) }[]}
+   * Array of grant waiters.
    */
   #waiters = [];
 
@@ -233,30 +233,35 @@ export class TokenBucket {
   async requestGrant(quantity) {
     const { minInclusive, maxInclusive } = this.#parseQuantity(quantity);
 
-    if (minInclusive === 0) {
-      // Arguably not that useful, but we oblige with immediate satisfaction.
-      // (It's reasonable for this to be a valid request, but we don't want to
-      // make it gum up the rest of the works.)
-      return this.#requestGrantResult(true, 0, 0);
-    } else if (this.#waiters.length === 0) {
+    // Handle all the synchronous-result possibilities.
+
+    if (this.#waiters.length === 0) {
       // No waiters right now, so try to get the grant synchronously.
       this.#topUpBucket();
       const got = this.#grantNow(minInclusive, maxInclusive, false);
       if (got.done) {
         return this.#requestGrantResult(true, got.grant, 0);
       }
+    }
+
+    if (minInclusive === 0) {
+      return this.#requestGrantResult(true, 0, 0);
     } else if (this.#waiters.length >= this.#maxWaiters) {
       // There are too many waiters to add another, per configuration. So,
       // immediately fail.
       return this.#requestGrantResult(false, 0, 0);
     }
 
-    const mp = new ManualPromise();
+    // The request could not be completed synchronously (including failing due
+    // to a full waiter queue). So queue up a new request, and make sure the
+    // waiter queue servicer thread is running.
+
+    const mp    = new ManualPromise();
+    const grant = Math.min(maxInclusive, this.#maxQueueGrantSize);
 
     this.#minTokensAwaited += minInclusive;
     this.#waiters.push({
-      minInclusive,
-      maxInclusive,
+      grant,
       startTime:    this.#lastNow,
       doGrant:      v => mp.resolve(v)
     });
@@ -509,11 +514,11 @@ export class TokenBucket {
       }
 
       this.#topUpBucket();
-      const got = this.#grantNow(info.minInclusive, info.maxInclusive, true);
+      const got = this.#grantNow(info.grant, info.grant, true);
 
       if (got.done) {
         this.#waiters.shift();
-        this.#minTokensAwaited -= info.minInclusive;
+        this.#minTokensAwaited -= info.grant;
         const waitTime = this.#lastNow - info.startTime;
         info.doGrant(this.#requestGrantResult(true, got.grant, waitTime));
       } else {
