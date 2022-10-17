@@ -388,7 +388,8 @@ describe('requestGrant()', () => {
       const now    = 900;
       const time   = new MockTimeSource(now);
       const bucket = new TokenBucket({
-        partialTokens: true, flowRate: 1, maxBurstSize: 100, maxQueueGrantSize: grant, initialBurstSize: 0, timeSource: time });
+        partialTokens: true, flowRate: 1, maxBurstSize: 100,
+        maxQueueGrantSize: grant, initialBurstSize: 0, timeSource: time });
 
       const resultPromise = bucket.requestGrant({ minInclusive: 1, maxInclusive: 10 });
       await timers.setImmediate();
@@ -564,14 +565,14 @@ describe('takeNow()', () => {
         ${3.1}    | ${3.1}       | ${10}        | ${{ done: false, grant: 0 }}
         ${6.1}    | ${3}         | ${5.2}       | ${{ done: true,  grant: 5 }}
       `('will not grant a partial token even if requested and "available": $minInclusive .. $maxInclusive with $available available',
-          ({ available, minInclusive, maxInclusive, expected }) => {
-        const bucket = new TokenBucket({
-          partialTokens: false, flowRate: 1, maxBurstSize: 100, initialBurstSize: available });
+        ({ available, minInclusive, maxInclusive, expected }) => {
+          const bucket = new TokenBucket({
+            partialTokens: false, flowRate: 1, maxBurstSize: 100, initialBurstSize: available });
 
-        const result = bucket.takeNow({ minInclusive, maxInclusive });
-        expect(result.done).toBe(expected.done);
-        expect(result.grant).toBe(expected.grant);
-      });
+          const result = bucket.takeNow({ minInclusive, maxInclusive });
+          expect(result.done).toBe(expected.done);
+          expect(result.grant).toBe(expected.grant);
+        });
     });
 
     describe('when `partialTokens === true`', () => {
@@ -582,14 +583,14 @@ describe('takeNow()', () => {
         ${10.1}   | ${1}         | ${11}        | ${10.1}
         ${9.25}   | ${9.25}      | ${90}        | ${9.25}
       `('will actually grant a partial token: $minInclusive .. $maxInclusive with $available available',
-          ({ available, minInclusive, maxInclusive, expected }) => {
-        const bucket = new TokenBucket({
-          partialTokens: true, flowRate: 1, maxBurstSize: 100, initialBurstSize: available });
+        ({ available, minInclusive, maxInclusive, expected }) => {
+          const bucket = new TokenBucket({
+            partialTokens: true, flowRate: 1, maxBurstSize: 100, initialBurstSize: available });
 
-        const result = bucket.takeNow({ minInclusive, maxInclusive });
-        expect(result.done).toBe(true);
-        expect(result.grant).toBe(expected);
-      });
+          const result = bucket.takeNow({ minInclusive, maxInclusive });
+          expect(result.done).toBe(true);
+          expect(result.grant).toBe(expected);
+        });
     });
   });
 
