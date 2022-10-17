@@ -353,29 +353,43 @@ describe('denyAllRequests()', () => {
 
 describe('requestGrant()', () => {
   describe('when there are no waiters', () => {
-    test('synchronously grants a request that can be satisfied', () => {
+    test('synchronously grants a request that can be satisfied', async () => {
       // TODO
     });
 
-    test('synchronously grants a request that can be satisfied, with `grant > maxQueueGrantSize`', () => {
+    test('synchronously grants a request that can be satisfied, with `grant > maxQueueGrantSize`', async () => {
       // TODO
     });
 
-    test('synchronously grants a request with `minInclusive === 0`', () => {
+    test('synchronously grants a request with `minInclusive === 0`', async () => {
       // TODO
     });
   });
 
   describe('when there are waiters', () => {
-    test('synchronously grants a request with `minInclusive === 0`', () => {
+    test('synchronously grants a request with `minInclusive === 0`', async () => {
       // TODO
     });
 
-    test('synchronously fails when `availableQueueSize === 0`', () => {
+    test('synchronously fails when `availableQueueSize === 0`', async () => {
       // TODO
     });
 
-    // TODO
+    test('synchronously fails if `availableQueueSize` would drop below `0`', async () => {
+      // TODO
+    });
+
+    test('queues up a request with `0 < minInclusive < maxQueueGrantSize`, and ultimately grants `minInclusive`', async () => {
+      // TODO
+    });
+
+    test('queues up a request with `minInclusive > maxQueueGrantSize`, and ultimately grants `maxQueueGrantSize`', async () => {
+      // TODO
+    });
+
+    test('grants requests in the order they were received', async () => {
+      // TODO
+    });
   });
 
   describe('when `partialTokens === false`', () => {
