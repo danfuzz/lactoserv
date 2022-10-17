@@ -361,15 +361,41 @@ describe('denyAllRequests()', () => {
 describe('requestGrant()', () => {
   describe('when there are no waiters', () => {
     test('synchronously grants a request that can be satisfied', async () => {
-      // TODO
+      const bucket = new TokenBucket({
+        flowRate: 1, maxBurstSize: 10000, initialBurstSize: 123 });
+
+      const result = bucket.requestGrant(123);
+      expect(bucket.latestState().availableBurstSize).toBe(0);
+      expect(bucket.latestState().waiterCount).toBe(0);
+      expect(await result).toStrictEqual({ done: true, grant: 123, waitTime: 0 });
     });
 
     test('synchronously grants a request that can be satisfied, with `grant > maxQueueGrantSize`', async () => {
-      // TODO
+      const bucket = new TokenBucket({
+        flowRate: 1, maxBurstSize: 10000, maxGrantQueueSize: 10, initialBurstSize: 321 });
+
+      const result = bucket.requestGrant(300);
+      expect(bucket.latestState().availableBurstSize).toBe(21);
+      expect(bucket.latestState().waiterCount).toBe(0);
+      expect(await result).toStrictEqual({ done: true, grant: 300, waitTime: 0 });
     });
 
-    test('synchronously grants a request with `minInclusive === 0`', async () => {
-      // TODO
+    test('synchronously grants `0` tokens with `minInclusive === 0` and no available burst', async () => {
+      const bucket = new TokenBucket({ flowRate: 1, maxBurstSize: 10000, initialBurstSize: 0 });
+
+      const result = bucket.requestGrant({ minInclusive: 0, maxInclusive: 25 });
+      expect(bucket.latestState().availableBurstSize).toBe(0);
+      expect(bucket.latestState().waiterCount).toBe(0);
+      expect(await result).toStrictEqual({ done: true, grant: 0, waitTime: 0 });
+    });
+
+    test('synchronously grants non-zero tokens with `minInclusive === 0` and non-zero `maxInclusive`', async () => {
+      const bucket = new TokenBucket({ flowRate: 1, maxBurstSize: 10000, initialBurstSize: 96 });
+
+      const result = bucket.requestGrant({ minInclusive: 0, maxInclusive: 100 });
+      expect(bucket.latestState().availableBurstSize).toBe(0);
+      expect(bucket.latestState().waiterCount).toBe(0);
+      expect(await result).toStrictEqual({ done: true, grant: 96, waitTime: 0 });
     });
   });
 
@@ -387,6 +413,11 @@ describe('requestGrant()', () => {
     });
 
     test('queues up a request with `0 < minInclusive < maxQueueGrantSize`, and ultimately grants `minInclusive`', async () => {
+      const now    = 12300;
+      const time   = new MockTimeSource(now);
+      const bucket = new TokenBucket({
+        flowRate: 1, maxBurstSize: 10000, initialBurstSize: 123, timeSource: time });
+
       // TODO
     });
 
