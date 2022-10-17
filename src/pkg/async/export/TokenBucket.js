@@ -139,7 +139,11 @@ export class TokenBucket {
       ? Number.POSITIVE_INFINITY
       : MustBe.number(maxQueueSize, { finite: true, minInclusive: 0 });
 
-    if (!partialTokens) {
+    if ((this.#maxQueueSize === 0) || (this.#maxQueueGrantSize === 0)) {
+      // Force both to be `0` if either is `0`.
+      this.#maxQueueSize      = 0;
+      this.#maxQueueGrantSize = 0;
+    } else if (!partialTokens) {
       this.#maxQueueGrantSize = Math.floor(this.#maxQueueGrantSize);
     }
 
@@ -287,9 +291,10 @@ export class TokenBucket {
     // The actual would-be asynchronous grant, per method contract.
     const grant = Math.min(maxInclusive, this.#maxQueueGrantSize);
 
-    if ((grant + this.#queueSize) > this.#maxQueueSize) {
-      // The wait queue would overflow if this grant were queued up. So
-      // immediately fail.
+    if ((grant === 0) || (grant + this.#queueSize) > this.#maxQueueSize) {
+      // Either the instance doesn't do queueing at all (`grant === 0`) or the
+      // wait queue would overflow if this grant were queued up. So immediately
+      // fail.
       return this.#requestGrantResult(false, 0, 0);
     }
 
