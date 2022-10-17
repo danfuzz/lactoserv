@@ -201,17 +201,18 @@ export class TokenBucket {
    *
    * The actual granting of tokens proceeds as follows (in order):
    *
-   * * If `minInclusive` is `0`, then this method promptly succeeds with a
-   *   grant of `0` tokens.
    * * If there is no contention (no queued waiters) and the available burst
    *   size can accommodate a grant of at least `minInclusive` tokens, then this
    *   method promptly succeeds with the maximum-possible requested grant.
+   * * If `minInclusive` is `0`, then this method promptly succeeds with a
+   *   grant of `0` tokens.
    * * If there is insufficient available waiter queue size to accommodate a
    *   grant of at least `minInclusive`, then this method promptly fails, with
    *   `done === false` and a grant of `0` tokens.
    * * The request is queued up as an awaited grant. When the request is
    *   finally dequeued, the grant will be for the smaller of `maxInclusive` or
-   *   `maxQueueGrantSize` tokens.
+   *   `maxQueueGrantSize` tokens (even if the available burst size happens to
+   *   be larger at the moment of granting).
    *
    * This method returns an object with bindings as follows:
    *
