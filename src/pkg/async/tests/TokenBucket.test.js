@@ -438,11 +438,53 @@ describe('requestGrant()', () => {
     });
 
     test('synchronously fails when `availableQueueSize === 0`', async () => {
-      // TODO
+      const now    = 99000;
+      const time   = new MockTimeSource(now);
+      const bucket = new TokenBucket({
+        flowRate: 1, maxBurstSize: 10000, maxQueueSize: 100,
+        initialBurstSize: 0, timeSource: time });
+
+      // Setup / basic assumptions.
+      const request1 = bucket.requestGrant(100);
+      expect(bucket.latestState().waiterCount).toBe(1);
+
+      // The actual test.
+      const request2 = bucket.requestGrant(1);
+      expect(bucket.latestState().waiterCount).toBe(1);
+      await timers.setImmediate();
+      expect(PromiseState.isFulfilled(request2)).toBeTrue();
+      expect(await request2).toStrictEqual({ done: false, grant: 0, waitTime: 0 });
+
+      // Get the bucket to quiesce.
+      time._setTime(now + 1000);
+      await expect(request1).toResolve();
+
+      time._end();
     });
 
     test('synchronously fails if `availableQueueSize` would drop below `0`', async () => {
-      // TODO
+      const now    = 89100;
+      const time   = new MockTimeSource(now);
+      const bucket = new TokenBucket({
+        flowRate: 1, maxBurstSize: 10000, maxQueueSize: 100,
+        initialBurstSize: 0, timeSource: time });
+
+      // Setup / basic assumptions.
+      const request1 = bucket.requestGrant(99);
+      expect(bucket.latestState().waiterCount).toBe(1);
+
+      // The actual test.
+      const request2 = bucket.requestGrant(2);
+      expect(bucket.latestState().waiterCount).toBe(1);
+      await timers.setImmediate();
+      expect(PromiseState.isFulfilled(request2)).toBeTrue();
+      expect(await request2).toStrictEqual({ done: false, grant: 0, waitTime: 0 });
+
+      // Get the bucket to quiesce.
+      time._setTime(now + 1000);
+      await expect(request1).toResolve();
+
+      time._end();
     });
 
     test('queues up a request with `0 < minInclusive < maxQueueGrantSize`, and ultimately grants `minInclusive`', async () => {
