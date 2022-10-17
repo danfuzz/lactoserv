@@ -71,10 +71,11 @@ export class TokenBucket {
   #waiters = [];
 
   /**
-   * @type {number} The sum of `.#waiters[*].minInclusive`, that is, how many
-   * tokens must be granted to clear out the waiters.
+   * @type {number} The current waiter queue size, in tokens. This is the sum of
+   * `.#waiters[*].grant` and represents how many tokens must be granted in
+   * order to to clear out the waiters.
    */
-  #minTokensAwaited = 0;
+  #queueSize = 0;
 
   /** @type {Threadlet} Servicer thread for the {@link #waiters}. */
   #waiterThread = new Threadlet(() => this.#serviceWaiters());
@@ -246,7 +247,7 @@ export class TokenBucket {
 
     if (minInclusive === 0) {
       return this.#requestGrantResult(true, 0, 0);
-    } else if (this.#minTokensAwaited >= this.#maxQueueSize) {
+    } else if (this.#queueSize >= this.#maxQueueSize) {
       // The wait queue is full. So immediately fail.
       return this.#requestGrantResult(false, 0, 0);
     }
@@ -258,7 +259,7 @@ export class TokenBucket {
     const mp    = new ManualPromise();
     const grant = Math.min(maxInclusive, this.#maxQueueGrantSize);
 
-    this.#minTokensAwaited += minInclusive;
+    this.#queueSize += grant;
     this.#waiters.push({
       grant,
       startTime:    this.#lastNow,
@@ -289,7 +290,7 @@ export class TokenBucket {
   latestState() {
     return {
       availableBurstSize: this.#lastBurstSize,
-      availableQueueSize: this.#maxQueueSize - this.#minTokensAwaited,
+      availableQueueSize: this.#maxQueueSize - this.#queueSize,
       now:                this.#lastNow,
       waiters:            this.#waiters.length,
     };
@@ -363,7 +364,7 @@ export class TokenBucket {
       result = this.#grantNow(minInclusive, maxInclusive, true);
     }
 
-    const waiterTime = this.#minTokensAwaited / this.#flowRate;
+    const waiterTime = this.#queueSize / this.#flowRate;
 
     if (result.grant < maxInclusive) {
       result.maxWaitUntil += waiterTime;
@@ -519,7 +520,7 @@ export class TokenBucket {
 
       if (got.done) {
         this.#waiters.shift();
-        this.#minTokensAwaited -= info.grant;
+        this.#queueSize -= info.grant;
         const waitTime = this.#lastNow - info.startTime;
         info.doGrant(this.#requestGrantResult(true, got.grant, waitTime));
       } else {
