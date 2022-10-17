@@ -24,7 +24,8 @@ import { Threadlet } from '#x/Threadlet';
  * processed at a steady token flow rate.
  *
  * This class defines neither the token (bucket volume) units nor the time
- * units. It is up to clients to use whatever makes sense in their context.
+ * units (though there is a sensible default for the latter). It is up to
+ * clients to use whatever makes sense in their context.
  */
 export class TokenBucket {
   /**
