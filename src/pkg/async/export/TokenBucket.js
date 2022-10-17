@@ -225,12 +225,6 @@ export class TokenBucket {
    * * `{number} waitTime` -- The amount of time (in ATU) that was spent waiting
    *   for the grant.
    *
-   * **Note:** If the minimum requested grant is `0`, this method always
-   * succeeds and grants `0` tokens.
-   *
-   * **Note:** It is invalid to use this method to request a grant with a
-   * _minimum_ size larger than the instance's configured `maxQueueGrantSize`.
-   *
    * @param {number|object} quantity Requested quantity of tokens, as described
    *   in {@link #takeNow}.
    * @returns {number} Number of tokens actually granted (might be `0`).
