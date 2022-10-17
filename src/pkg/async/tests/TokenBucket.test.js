@@ -526,6 +526,43 @@ describe('takeNow()', () => {
       expect(result.grant).toBe(0);
       expect(result.waitUntil).toBe(now + (20 - 5) / 10);
     });
+
+    describe('when `partialTokens === false`', () => {
+      test.each`
+        available | minInclusive | maxInclusive | expected
+        ${0.2}    | ${0}         | ${10}        | ${{ done: true,  grant: 0 }}
+        ${1.9}    | ${2}         | ${3}         | ${{ done: false, grant: 0 }}
+        ${2.5}    | ${2}         | ${4}         | ${{ done: true,  grant: 2 }}
+        ${3.1}    | ${3.1}       | ${10}        | ${{ done: false, grant: 0 }}
+        ${6.1}    | ${3}         | ${5.2}       | ${{ done: true,  grant: 5 }}
+      `('will not grant a partial token even if requested and "available": $minInclusive .. $maxInclusive with $available available',
+          ({ available, minInclusive, maxInclusive, expected }) => {
+        const bucket = new TokenBucket({
+          partialTokens: false, flowRate: 1, maxBurstSize: 100, initialBurstSize: available });
+
+        const result = bucket.takeNow({ minInclusive, maxInclusive });
+        expect(result.done).toBe(expected.done);
+        expect(result.grant).toBe(expected.grant);
+      });
+    });
+
+    describe('when `partialTokens === true`', () => {
+      test.each`
+        available | minInclusive | maxInclusive | expected
+        ${0.2}    | ${0}         | ${10}        | ${0.2}
+        ${10}     | ${5}         | ${7.5}       | ${7.5}
+        ${10.1}   | ${1}         | ${11}        | ${10.1}
+        ${9.25}   | ${9.25}      | ${90}        | ${9.25}
+      `('will actually grant a partial token: $minInclusive .. $maxInclusive with $available available',
+          ({ available, minInclusive, maxInclusive, expected }) => {
+        const bucket = new TokenBucket({
+          partialTokens: true, flowRate: 1, maxBurstSize: 100, initialBurstSize: available });
+
+        const result = bucket.takeNow({ minInclusive, maxInclusive });
+        expect(result.done).toBe(true);
+        expect(result.grant).toBe(expected);
+      });
+    });
   });
 
   describe('when there is at least one waiter', () => {
@@ -587,18 +624,6 @@ describe('takeNow()', () => {
       expect(result.waitUntil).toBe(now + ((300 + 1000 - 200) / 10));
 
       time._end();
-    });
-
-    describe('when `partialTokens === false`', () => {
-      test('will not grant a partial token even if otherwise available', () => {
-        // TODO
-      });
-    });
-
-    describe('when `partialTokens === true`', () => {
-      test('can actually grant a partial token', () => {
-        // TODO
-      });
     });
   });
 
