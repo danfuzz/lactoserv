@@ -226,8 +226,8 @@ export class TokenBucket {
    *   for the grant.
    *
    * @param {number|object} quantity Requested quantity of tokens, as described
-   *   in {@link #takeNow}.
-   * @returns {number} Number of tokens actually granted (might be `0`).
+   *   above.
+   * @returns {object} Result of grant request, as described above.
    * @throws {Error} Thrown if `quanity` is invalid.
    */
   async requestGrant(quantity) {
