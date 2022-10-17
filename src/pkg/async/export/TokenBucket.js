@@ -103,9 +103,7 @@ export class TokenBucket {
    * * `{?number} maxQueueSize` -- The maximum allowed waiter queue size, in
    *   tokens. Must be a finite whole number or `null`. If `null`, then there is
    *   no limit on the queue size. If `0`, then this instance will only ever
-   *   synchronously grant tokens. Defaults to `null`. **Note:** The actual
-   *   queue size _can_ transiently end up larger than this by up to
-   *   `maxQueueGrantSize`.
+   *   synchronously grant tokens. Defaults to `null`.
    * * `{boolean} partialTokens` -- If `true`, allows the instance to provide
    *   partial tokens (e.g. give a client `1.25` tokens). If `false`, all token
    *   handoffs from the instance are quantized to integer values. Defaults to
@@ -201,7 +199,7 @@ export class TokenBucket {
   latestState() {
     return {
       availableBurstSize: this.#lastBurstSize,
-      availableQueueSize: Math.max(0, this.#maxQueueSize - this.#queueSize),
+      availableQueueSize: this.#maxQueueSize - this.#queueSize,
       now:                this.#lastNow,
       waiterCount:        this.#waiters.length,
     };
@@ -275,17 +273,24 @@ export class TokenBucket {
 
     if (minInclusive === 0) {
       return this.#requestGrantResult(true, 0, 0);
-    } else if (this.#queueSize >= this.#maxQueueSize) {
-      // The wait queue is full. So immediately fail.
+    }
+
+    // The request could not be completed synchronously. Figure out if it should
+    // be queued or should completely fail.
+
+    // The actual would-be asynchronous grant, per method contract.
+    const grant = Math.min(maxInclusive, this.#maxQueueGrantSize);
+
+    if ((grant + this.#queueSize) > this.#maxQueueSize) {
+      // The wait queue would overflow if this grant were queued up. So
+      // immediately fail.
       return this.#requestGrantResult(false, 0, 0);
     }
 
-    // The request could not be completed synchronously (including failing due
-    // to a full waiter queue). So queue up a new request, and make sure the
-    // waiter queue servicer thread is running.
+    // Queue up a new request, and make sure the waiter queue servicer thread is
+    // running.
 
-    const mp    = new ManualPromise();
-    const grant = Math.min(maxInclusive, this.#maxQueueGrantSize);
+    const mp = new ManualPromise();
 
     this.#queueSize += grant;
     this.#waiters.push({
