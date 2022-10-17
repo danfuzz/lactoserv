@@ -569,6 +569,26 @@ describe('takeNow()', () => {
       time._end();
     });
 
+    test('fails on a nonzero-minimum request, taking `availableBurstSize` into account', async () => {
+      const now    = 50015;
+      const time   = new MockTimeSource(now);
+      const bucket = new TokenBucket({
+        flowRate: 10, maxBurstSize: 10000, initialBurstSize: 200, maxQueueGrantSize: 1000, timeSource: time });
+
+      // Setup / baseline assumptions.
+      const requestResult = bucket.requestGrant(300);
+      await timers.setImmediate();
+      expect(PromiseState.isPending(requestResult)).toBeTrue();
+
+      // The actual test.
+      const result = bucket.takeNow({ minInclusive: 700, maxInclusive: 1400 });
+      expect(result.done).toBeFalse();
+      expect(result.grant).toBe(0);
+      expect(result.waitUntil).toBe(now + ((300 + 1000 - 200) / 10));
+
+      time._end();
+    });
+
     describe('when `partialTokens === false`', () => {
       test('will not grant a partial token even if otherwise available', () => {
         // TODO
