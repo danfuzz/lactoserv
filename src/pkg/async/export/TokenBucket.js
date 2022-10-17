@@ -192,7 +192,7 @@ export class TokenBucket {
    *   this is `Number.POSITIVE_INFINITY`.
    * * `{number} now` -- The time as of the snapshot, according to this
    *   instance's time source.
-   * * `{number} waiters` -- The number of clients awaiting a token grant.
+   * * `{number} waiterCount` -- The number of queued (awaited) grant requests.
    *
    * @returns {object} Snapshot, as described above.
    */
@@ -201,7 +201,7 @@ export class TokenBucket {
       availableBurstSize: this.#lastBurstSize,
       availableQueueSize: this.#maxQueueSize - this.#queueSize,
       now:                this.#lastNow,
-      waiters:            this.#waiters.length,
+      waiterCount:        this.#waiters.length,
     };
   }
 
