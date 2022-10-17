@@ -73,29 +73,29 @@ class MockTimeSource extends TokenBucket.BaseTimeSource {
 describe('constructor()', () => {
   test.each`
     opts
-    ${{ maxBurstSize: 1, flowRate: 1 }}
-    ${{ maxBurstSize: 0.01, flowRate: 0.0001 }}
-    ${{ maxBurstSize: 200000, flowRate: 109 }}
-    ${{ maxBurstSize: 1, flowRate: 1, initialBurstSize: 0 }}
-    ${{ maxBurstSize: 1, flowRate: 1, initialBurstSize: 1 }}
-    ${{ maxBurstSize: 10, flowRate: 1, initialBurstSize: 10 }}
-    ${{ maxBurstSize: 10, flowRate: 1, initialBurstSize: 9 }}
-    ${{ maxBurstSize: 1, flowRate: 1, maxQueueGrantSize: 0 }}
-    ${{ maxBurstSize: 1, flowRate: 1, maxQueueGrantSize: 0.1 }}
-    ${{ maxBurstSize: 1, flowRate: 1, maxQueueGrantSize: 1 }}
-    ${{ maxBurstSize: 100, flowRate: 1, maxQueueGrantSize: 1 }}
-    ${{ maxBurstSize: 100, flowRate: 1, maxQueueGrantSize: 50 }}
-    ${{ maxBurstSize: 100, flowRate: 1, maxQueueGrantSize: 99 }}
-    ${{ maxBurstSize: 1, flowRate: 1, maxQueueSize: 1000 }}
-    ${{ maxBurstSize: 1, flowRate: 1, maxQueueSize: 0 }}
-    ${{ maxBurstSize: 1, flowRate: 1, maxQueueSize: 1 }}
-    ${{ maxBurstSize: 1, flowRate: 1, maxQueueSize: 12.34 }}
-    ${{ maxBurstSize: 1, flowRate: 1, partialTokens: false }}
-    ${{ maxBurstSize: 123.456, flowRate: 12.3, partialTokens: false }}
-    ${{ maxBurstSize: 1, flowRate: 1, partialTokens: true }}
-    ${{ maxBurstSize: 1, flowRate: 1, timeSource: new TokenBucket.StdTimeSource() }}
-    ${{ maxBurstSize: 1, flowRate: 1, timeSource: new MockTimeSource() }}
-    ${{ maxBurstSize: 1, flowRate: 1, initialBurstSize: 0.5, maxQueueGrantSize: 0.5,
+    ${{ flowRate: 1,      maxBurstSize: 1 }}
+    ${{ flowRate: 0.0001, maxBurstSize: 0.01 }}
+    ${{ flowRate: 109,    maxBurstSize: 200000 }}
+    ${{ flowRate: 1,      maxBurstSize: 1,     initialBurstSize: 0 }}
+    ${{ flowRate: 1,      maxBurstSize: 1,     initialBurstSize: 1 }}
+    ${{ flowRate: 1,      maxBurstSize: 10,    initialBurstSize: 10 }}
+    ${{ flowRate: 1,      maxBurstSize: 10,    initialBurstSize: 9 }}
+    ${{ flowRate: 1,      maxBurstSize: 1,     maxQueueGrantSize: 0 }}
+    ${{ flowRate: 1,      maxBurstSize: 1,     maxQueueGrantSize: 0.1 }}
+    ${{ flowRate: 1,      maxBurstSize: 1,     maxQueueGrantSize: 1 }}
+    ${{ flowRate: 1,      maxBurstSize: 100,   maxQueueGrantSize: 1 }}
+    ${{ flowRate: 1,      maxBurstSize: 100,   maxQueueGrantSize: 50 }}
+    ${{ flowRate: 1,      maxBurstSize: 100,   maxQueueGrantSize: 99 }}
+    ${{ flowRate: 1,      maxBurstSize: 1,     maxQueueSize: 1000 }}
+    ${{ flowRate: 1,      maxBurstSize: 1,     maxQueueSize: 0 }}
+    ${{ flowRate: 1,      maxBurstSize: 1,     maxQueueSize: 1 }}
+    ${{ flowRate: 1,      maxBurstSize: 1,     maxQueueSize: 12.34 }}
+    ${{ flowRate: 1,      maxBurstSize: 1,     partialTokens: false }}
+    ${{ flowRate: 12.3,   maxBurstSize: 123.4, partialTokens: false }}
+    ${{ flowRate: 1,      maxBurstSize: 1,     partialTokens: true }}
+    ${{ flowRate: 1,      maxBurstSize: 1,     timeSource: new TokenBucket.StdTimeSource() }}
+    ${{ flowRate: 1,      maxBurstSize: 1,     timeSource: new MockTimeSource() }}
+    ${{ flowRate: 1, maxBurstSize: 1, initialBurstSize: 0.5, maxQueueGrantSize: 0.5,
         maxQueueSize: 10, partialTokens: true, timeSource: new MockTimeSource() }}
   `('trivially accepts valid options: $opts', ({ opts }) => {
     expect(() => new TokenBucket(opts)).not.toThrow();
