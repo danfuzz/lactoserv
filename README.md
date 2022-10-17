@@ -7,6 +7,31 @@
 This is a web server which knows how to serve a couple different types of
 (more or less) static site.
 
+### Features
+
+* Can run multiple network endpoints, each (potentially) serving a different set
+  of high-level applications.
+* Several built-in applications:
+  * Static asset server.
+  * Redirect server.
+  * More to come! TODO!
+* Path-hierarchy specificity-based endpoint configuration, for endpoints that
+  serve multiple applications. (This is as opposed to, notably, Express.)
+* Can serve all of HTTP, HTTPS, and HTTP2. (HTTP2 will automatically downgrade
+  to HTTPS for clients that can't do HTTP2.)
+* Implements (optional) straightforward "token bucket" / "leaky bucket" rate
+  limiting for connections, requests, and/or sent data (bytes / bandwidth).
+* Produces standard-ish form request logs.
+* Produces detailed activity logs.
+* Inscrutable configuration file format.
+  (To be fixed soon! TODO!)
+
+### Implementation features
+
+* Written in pure JavaScript, running on Node. (The only platform native code
+  is from Node, not from this codebase nor from any imported modules.)
+* Built to be installed as a normal POSIX-ish service. (TODO.)
+
 - - - - - - - - - -
 
 ### Requirements
