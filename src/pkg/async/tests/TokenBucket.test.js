@@ -11,6 +11,7 @@ import { ManualPromise, PromiseState, TokenBucket } from '@this/async';
 class MockTimeSource extends TokenBucket.BaseTimeSource {
   #now      = 0;
   #timeouts = [];
+  #ended    = false;
 
   constructor(firstNow = 0) {
     super();
@@ -22,10 +23,18 @@ class MockTimeSource extends TokenBucket.BaseTimeSource {
   }
 
   now() {
+    if (this.#ended) {
+      throw new Error(`MockTimeSource ended! (Time was ${this.#now}.)`);
+    }
+
     return this.#now;
   }
 
   async waitUntil(time) {
+    if (this.#ended) {
+      throw new Error(`MockTimeSource ended! (Time was ${this.#now}.)`);
+    }
+
     if (time <= this.#now) {
       return;
     }
@@ -43,6 +52,8 @@ class MockTimeSource extends TokenBucket.BaseTimeSource {
     for (const t of this.#timeouts) {
       t.resolve();
     }
+
+    this.#ended = true;
   }
 
   _setTime(now) {
@@ -419,6 +430,10 @@ describe('requestGrant()', () => {
 
       expect(await request2).toStrictEqual({ done: true, grant: 0, waitTime: 0 });
 
+      // Get the bucket to quiesce.
+      time._setTime(now + 1000);
+      await expect(request1).toResolve();
+
       time._end();
     });
 
@@ -733,6 +748,10 @@ describe('takeNow()', () => {
       expect(result.grant).toBe(0);
       expect(result.waitUntil).toBe(now + 0);
 
+      // Get the bucket to quiesce.
+      time._setTime(now + 1000);
+      await expect(requestResult).toResolve();
+
       time._end();
     });
 
@@ -753,11 +772,15 @@ describe('takeNow()', () => {
       expect(result.grant).toBe(0);
       expect(result.waitUntil).toBe(now + ((300 + 1000) / 10));
 
+      // Get the bucket to quiesce.
+      time._setTime(now + 1000);
+      await expect(requestResult).toResolve();
+
       time._end();
     });
 
     test('fails on a nonzero-minimum request, taking `availableBurstSize` into account', async () => {
-      const now    = 50015;
+      const now    = 60015;
       const time   = new MockTimeSource(now);
       const bucket = new TokenBucket({
         flowRate: 10, maxBurstSize: 10000, initialBurstSize: 200, maxQueueGrantSize: 1000, timeSource: time });
@@ -772,6 +795,10 @@ describe('takeNow()', () => {
       expect(result.done).toBeFalse();
       expect(result.grant).toBe(0);
       expect(result.waitUntil).toBe(now + ((300 + 1000 - 200) / 10));
+
+      // Get the bucket to quiesce.
+      time._setTime(now + 1000);
+      await expect(requestResult).toResolve();
 
       time._end();
     });
