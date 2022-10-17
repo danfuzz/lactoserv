@@ -28,6 +28,13 @@ export class SignalHandler {
   static #reloadCallbacks = new CallbackList('reload', MAX_RELOAD_MSEC);
 
   /**
+   * @type {number} Number of times the exit signal has been received. Used to
+   * force a non-clean exit when the (human) user seems to be adamant about
+   * shutting things down.
+   */
+  static #exitSignalCount = 0;
+
+  /**
    * Initializes the signal handlers.
    */
   static init() {
@@ -59,9 +66,16 @@ export class SignalHandler {
    * @param {string} signalName Name of the signal.
    */
   static async #handleExitSignal(signalName) {
-    logger[signalName].exiting();
+    const count = ++this.#exitSignalCount;
 
-    ShutdownHandler.exit();
+    logger[signalName].exiting(count);
+
+    if (count === 1) {
+      ShutdownHandler.exit();
+    } else if (count > 3) {
+      process.stderr.write('\n\nNot waiting for clean shutdown. Bye!\n');
+      process.exit(1);
+    }
   }
 
   /**

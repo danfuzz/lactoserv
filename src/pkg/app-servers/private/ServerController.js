@@ -44,8 +44,8 @@ export class ServerController {
    *
    * * with `app` / `apps` replaced by `appMounts`.
    * * with `host` / `hosts` replaced by `hostManager`.
-   * * with `requestLogger` replaced by the service instance (instead of just
-   *   being a name).
+   * * with `rateLimiter` and `requestLogger` replaced by the corresponding
+   *   service instances (instead of just being names).
    *
    * @param {object} serverConfig Server information configuration item, per the
    *   description above.
@@ -58,6 +58,7 @@ export class ServerController {
     this.#logger      = logger[this.#name];
 
     const wranglerOptions = {
+      rateLimiter:   serverConfig.rateLimiter,
       requestLogger: serverConfig.requestLogger,
       logger:        this.#logger,
       protocol:      serverConfig.protocol,

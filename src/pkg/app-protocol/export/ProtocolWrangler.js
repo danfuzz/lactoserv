@@ -5,6 +5,7 @@ import * as net from 'node:net';
 
 import express from 'express';
 
+import { BaseService } from '@this/app-services';
 import { Threadlet } from '@this/async';
 import { Methods } from '@this/typey';
 
@@ -25,12 +26,15 @@ import { RequestLogger } from '#p/RequestLogger';
  */
 export class ProtocolWrangler {
   /** @type {?function(...*)} Logger, if logging is to be done. */
-  #logger = null;
+  #logger;
+
+  /** @type {?BaseService} Rate limiter service to use, if any. */
+  #rateLimiter;
 
   /**
    * @type {?RequestLogger} HTTP(ish) request logger, if logging is to be done.
    */
-  #requestLogger = null;
+  #requestLogger;
 
   /**
    * @type {boolean} Has the high-level application been initialized by this
@@ -48,8 +52,10 @@ export class ProtocolWrangler {
    *   HostManager.secureServerOptions}, if this instance is (possibly) expected
    *   to need to use certificates (etc.). Ignored for instances which don't do
    *   that sort of thing.
-   * * `requestLog: BaseService` -- Request log to send to. (If not specified,
-   *   the instance won't do request logging.)
+   * * `rateLimiter: BaseService` -- Rate limiter to use. (If not specified, the
+   *   instance won't do rate limiting.)
+   * * `requestLogger: BaseService` -- Request logger to send to. (If not
+   *   specified, the instance won't do request logging.)
    * * `logger: function(...*)` -- Logger to use to emit events about what the
    *   instance is doing. (If not specified, the instance won't do logging.)
    * * `protocol: string` -- The name of this protocol.
@@ -61,15 +67,13 @@ export class ProtocolWrangler {
    * @param {object} options Construction options, per the description above.
    */
   constructor(options) {
-    const { logger, requestLogger } = options;
+    const { logger, rateLimiter, requestLogger } = options;
 
-    if (logger) {
-      this.#logger = logger;
-    }
-
-    if (requestLogger) {
-      this.#requestLogger = new RequestLogger(requestLogger, logger);
-    }
+    this.#logger        = logger ?? null;
+    this.#rateLimiter   = rateLimiter ?? null;
+    this.#requestLogger = requestLogger
+      ? new RequestLogger(requestLogger, logger)
+      : null;
   }
 
   /**
@@ -202,11 +206,32 @@ export class ProtocolWrangler {
    * @param {function(?*)} next Function which causes the next-bound middleware
    *   to run.
    */
-  #handleRequest(req, res, next) {
+  async #handleRequest(req, res, next) {
+    let reqLogger = null;
+
     if (this.#requestLogger) {
-      const reqLogger = this.#requestLogger.logRequest(req, res);
+      reqLogger = this.#requestLogger.logRequest(req, res);
       ProtocolWrangler.#bindLogger(req, reqLogger);
       ProtocolWrangler.#bindLogger(res, reqLogger);
+    }
+
+    if (this.#rateLimiter) {
+      const granted = await this.#rateLimiter.newRequest(reqLogger);
+      if (!granted) {
+        res.sendStatus(503);
+        res.end();
+
+        // Wait for the response to have been at least nominally sent before
+        // closing the socket, in the hope that there is a good chance that it
+        // will allow for the far side to see the 503 response. Note: The
+        // `ServerResponse` object nulls out the socket after `end()` completes,
+        // which is why we grab it outside the `finish` callback.
+        const resSocket = res.socket;
+        res.once('finish', () => { resSocket.end();     });
+        res.once('end',    () => { resSocket.destroy(); });
+
+        return;
+      }
     }
 
     next();

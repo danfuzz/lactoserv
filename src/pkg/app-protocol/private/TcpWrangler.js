@@ -3,6 +3,7 @@
 
 import * as net from 'node:net';
 
+import { BaseService } from '@this/app-services';
 import { Condition, Threadlet } from '@this/async';
 import { FormatUtils } from '@this/loggy';
 
@@ -12,10 +13,15 @@ import { ProtocolWrangler } from '#x/ProtocolWrangler';
 /**
  * Wrangler for all TCP-based protocols (which is, as of this writing, all of
  * them... but HTTP3 will be here before we know it!).
+ *
+ * TODO: Use the rate limiter!
  */
 export class TcpWrangler extends ProtocolWrangler {
   /** @type {?function(...*)} Logger, if logging is to be done. */
   #logger;
+
+  /** @type {?BaseService} Rate limiter service to use, if any. */
+  #rateLimiter;
 
   /** @type {net.Server} Server socket, per se. */
   #serverSocket;
@@ -44,6 +50,7 @@ export class TcpWrangler extends ProtocolWrangler {
     super(options);
 
     this.#logger        = options.logger?.conn ?? null;
+    this.#rateLimiter   = options.rateLimiter ?? null;
     this.#listenOptions =
       TcpWrangler.#trimOptions(options.socket, TcpWrangler.#LISTEN_PROTO);
     this.#loggableInfo  = {
@@ -61,6 +68,7 @@ export class TcpWrangler extends ProtocolWrangler {
       TcpWrangler.#trimOptions(options.socket, TcpWrangler.#CREATE_PROTO));
 
     this.#serverSocket.on('connection', (...args) => this.#handleConnection(...args));
+    this.#serverSocket.on('drop', (...args) => this.#handleDrop(...args));
   }
 
   /** @override */
@@ -99,7 +107,7 @@ export class TcpWrangler extends ProtocolWrangler {
    * @param {...*} rest Any other arguments that happened to be be part of the
    *   `connection` event.
    */
-  #handleConnection(socket, ...rest) {
+  async #handleConnection(socket, ...rest) {
     if (this.#runner.shouldStop()) {
       // Immediately close a socket that managed to slip in while we're trying
       // to stop.
@@ -121,8 +129,6 @@ export class TcpWrangler extends ProtocolWrangler {
       }
     }
 
-    // TODO: This is where we might interpose a `WriteSpy`.
-
     this.#sockets.add(socket);
     this.#anySockets.value = true;
 
@@ -141,7 +147,27 @@ export class TcpWrangler extends ProtocolWrangler {
       }
     });
 
+    if (this.#rateLimiter) {
+      const granted = await this.#rateLimiter.newConnection(connLogger);
+      if (!granted) {
+        socket.destroy();
+      }
+
+      socket = this.#rateLimiter.wrapWriter(socket, connLogger);
+    }
+
     this._impl_newConnection(socket);
+  }
+
+  /**
+   * Handles a dropped connection (that is, a connection automatically dropped
+   * by the underlying `Server` instance, based on its configured
+   * `maxConnections`).
+   *
+   * @param {object} data Information about the dropped connection.
+   */
+  #handleDrop(data) {
+    this.#logger?.droppedConnection(data);
   }
 
   /**

@@ -10,5 +10,21 @@
     "type":      "request-logger",
     "directory": { "$filePath": "../../../log" },
     "baseName":  "requests"
+  },
+  {
+    "name":        "limiter",
+    "type":        "rate-limiter",
+    "connections": {
+      "maxBurstSize": 5,
+      "flowRate":     1,
+      "timeUnit":     "second",
+      "maxWaiters":   15
+    },
+    "requests": {
+      "maxBurstSize": 20,
+      "flowRate":     5,
+      "timeUnit":     "second",
+      "maxWaiters":   100
+    }
   }
 ]

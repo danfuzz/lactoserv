@@ -143,18 +143,61 @@ export class MustBe {
   }
 
   /**
-   * Checks for type `number`.
+   * Checks for type `number`, which may optionally be restricted further.
+   * Options:
+   *
+   * * `{boolean} finite` -- If `true`, requires `value` to be finite.
+   * * `{number} maxExclusive` -- Exclusive maximum value. That is,
+   *   `value < maxExclusive` is required.
+   * * `{number} maxInclusive` -- Inclusive maximum value. That is,
+   *   `value <= maxInclusive` is required.
+   * * `{number} minExclusive` -- Exclusive minimum value. That is,
+   *   `value > minExclusive` is required.
+   * * `{number} minInclusive` -- Inclusive minimum value. That is,
+   *   `value > minInclusive` is required.
+   * * `{boolean} safeInteger` -- If `true`, requires `value` to be a safe
+   *   integer (exactly representable integer as a regular JavaScript number).
+   *   Implies `finite`.
    *
    * @param {*} value Arbitrary value.
-   * @returns {number} `value` if it is of type `number`.
-   * @throws {Error} Thrown if `value` is of any other type.
+   * @param {?object} [options = null] Options, per the above description.
+   * @returns {number} `value` if it is a number which meets all the given
+   *   optional restrictions.
+   * @throws {Error} Thrown if `value` is of any other type or does not meet the
+   *   optional restrictions.
    */
-  static number(value) {
-    if (typeof value === 'number') {
-      return value;
+  static number(value, options = null) {
+    if (typeof value !== 'number') {
+      throw new Error('Must be of type `number`.');
     }
 
-    throw new Error('Must be of type `number`.');
+    const {
+      finite = false,
+      maxExclusive = null,
+      maxInclusive = null,
+      minExclusive = null,
+      minInclusive = null,
+      safeInteger = false
+    } = options ?? {};
+
+    if (safeInteger) {
+      if (!Number.isSafeInteger(value)) {
+        throw new Error('Must be of type `number` and a safe integer.');
+      }
+    } else if (finite) {
+      if (!Number.isFinite(value)) {
+        throw new Error('Must be of type `number` and finite.');
+      }
+    }
+
+    if (!(   ((minExclusive === null) || (value > minExclusive))
+          && ((minInclusive === null) || (value >= minInclusive))
+          && ((maxExclusive === null) || (value < maxExclusive))
+          && ((maxInclusive === null) || (value <= maxInclusive)))) {
+      throw new Error('Must be of type `number` in specified range.');
+    }
+
+    return value;
   }
 
   /**
