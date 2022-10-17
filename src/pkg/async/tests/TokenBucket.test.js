@@ -69,6 +69,7 @@ describe('constructor()', () => {
     ${{ maxBurstSize: 1, flowRate: 1, initialBurstSize: 1 }}
     ${{ maxBurstSize: 10, flowRate: 1, initialBurstSize: 10 }}
     ${{ maxBurstSize: 10, flowRate: 1, initialBurstSize: 9 }}
+    ${{ maxBurstSize: 1, flowRate: 1, maxQueueGrantSize: 0 }}
     ${{ maxBurstSize: 1, flowRate: 1, maxQueueGrantSize: 0.1 }}
     ${{ maxBurstSize: 1, flowRate: 1, maxQueueGrantSize: 1 }}
     ${{ maxBurstSize: 100, flowRate: 1, maxQueueGrantSize: 1 }}
@@ -100,13 +101,20 @@ describe('constructor()', () => {
   });
 
   test.each`
-    maxQueueGrantSize
-    ${0.1}
-    ${1}
-    ${200}
-  `('produces an instance with the `maxQueueGrantSize` that was passed: $maxQueueGrantSize', ({ maxQueueGrantSize }) => {
-    const bucket = new TokenBucket({ flowRate: 1, maxBurstSize: 1000, maxQueueGrantSize });
+    maxQueueGrantSize | partialTokens
+    ${0}              | ${true}
+    ${0.1}            | ${true}
+    ${1}              | ${false}
+    ${200}            | ${false}
+  `('produces an instance with the `maxQueueGrantSize` that was passed: $maxQueueGrantSize', ({ maxQueueGrantSize, partialTokens }) => {
+    const bucket = new TokenBucket({ flowRate: 1, maxBurstSize: 1000, maxQueueGrantSize, partialTokens });
     expect(bucket.config.maxQueueGrantSize).toBe(maxQueueGrantSize);
+  });
+
+  test('rounds down a fractional `maxQueueGrantSize` if `partialTokens === false`', () => {
+    const bucket = new TokenBucket({ flowRate: 1, maxBurstSize: 1000,
+      maxQueueGrantSize: 12.9, partialTokens: false });
+    expect(bucket.config.maxQueueGrantSize).toBe(12);
   });
 
   test('has `maxQueueGrantSize === maxBurstSize` if not passed `maxQueueGrantSize`', () => {
@@ -262,7 +270,6 @@ describe('constructor(<invalid>)', () => {
     ${true}
     ${'123'}
     ${[123]}
-    ${0}
     ${-1}
     ${-0.1}
   `('rejects invalid `maxQueueGrantSize`: $maxQueueGrantSize', ({ maxQueueGrantSize }) => {
