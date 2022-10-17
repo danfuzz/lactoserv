@@ -361,12 +361,32 @@ describe('requestGrant()', () => {
   });
 
   describe('when `partialTokens === false`', () => {
-    test('will not grant a partial token even if otherwise available (synchronously)', () => {
-      // TODO
+    test('will not grant a partial token even if otherwise available (synchronously)', async () => {
+      const available = 12.34;
+      const bucket = new TokenBucket({
+        partialTokens: false, flowRate: 1, maxBurstSize: 100, initialBurstSize: available });
+
+      const resultPromise = bucket.requestGrant({ minInclusive: 10, maxInclusive: 20 });
+      expect(bucket.latestState().availableBurstSize).toBe(available % 1);
+      const result = await resultPromise;
+      expect(result.done).toBeTrue();
+      expect(result.grant).toBe(Math.trunc(available));
     });
 
-    test('will not grant a partial token even if otherwise available (asynchronously)', () => {
-      // TODO
+    test('will not grant a partial token even if otherwise available (asynchronously)', async () => {
+      const now    = 900;
+      const time   = new MockTimeSource(now);
+      const bucket = new TokenBucket({
+        partialTokens: false, flowRate: 1, maxBurstSize: 100,
+        maxQueueGrantSize: 10, initialBurstSize: 0, timeSource: time });
+
+      const resultPromise = bucket.requestGrant({ minInclusive: 1.5, maxInclusive: 2.5 });
+      await timers.setImmediate();
+      expect(PromiseState.isPending(resultPromise)).toBeTrue();
+      time._setTime(now + 10);
+      const result = await resultPromise;
+      expect(result.done).toBeTrue();
+      expect(result.grant).toBe(2);
     });
   });
 
