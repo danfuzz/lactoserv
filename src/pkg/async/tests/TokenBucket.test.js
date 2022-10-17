@@ -5,6 +5,7 @@ import * as timers from 'node:timers/promises';
 
 import { ManualPromise, PromiseState, TokenBucket } from '@this/async';
 
+
 /**
  * Mock implementation of `BaseTimeSource`.
  */
