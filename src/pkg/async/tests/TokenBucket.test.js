@@ -487,12 +487,38 @@ describe('requestGrant()', () => {
       time._end();
     });
 
-    test('queues up a request with `0 < minInclusive < maxQueueGrantSize`, and ultimately grants `minInclusive`', async () => {
-      // TODO
+    test('queues up a request with `0 < maxInclusive < maxQueueGrantSize`, and ultimately grants `maxInclusive`', async () => {
+      const now    = 777000;
+      const time   = new MockTimeSource(now);
+      const bucket = new TokenBucket({
+        flowRate: 1, maxBurstSize: 10000, maxQueueGrantSize: 100,
+        initialBurstSize: 0, timeSource: time });
+
+      const request = bucket.requestGrant({ minInclusive: 25, maxInclusive: 50 });
+      expect(bucket.latestState().waiterCount).toBe(1);
+      time._setTime(now + 321);
+      await timers.setImmediate();
+      expect(PromiseState.isFulfilled(request)).toBeTrue();
+      expect(await request).toStrictEqual({ done: true, grant: 50, waitTime: 321 });
+
+      time._end();
     });
 
-    test('queues up a request with `minInclusive > maxQueueGrantSize`, and ultimately grants `maxQueueGrantSize`', async () => {
-      // TODO
+    test('queues up a request with `maxInclusive > maxQueueGrantSize`, and ultimately grants `maxQueueGrantSize`', async () => {
+      const now    = 888000;
+      const time   = new MockTimeSource(now);
+      const bucket = new TokenBucket({
+        flowRate: 1, maxBurstSize: 10000, maxQueueGrantSize: 100,
+        initialBurstSize: 0, timeSource: time });
+
+      const request = bucket.requestGrant({ minInclusive: 50, maxInclusive: 150 });
+      expect(bucket.latestState().waiterCount).toBe(1);
+      time._setTime(now + 90909);
+      await timers.setImmediate();
+      expect(PromiseState.isFulfilled(request)).toBeTrue();
+      expect(await request).toStrictEqual({ done: true, grant: 100, waitTime: 90909 });
+
+      time._end();
     });
 
     test('grants requests in the order they were received', async () => {
