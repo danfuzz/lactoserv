@@ -18,13 +18,13 @@
       "maxBurstSize": 5,
       "flowRate":     1,
       "timeUnit":     "second",
-      "maxWaiters":   15
+      "maxQueueSize": 15
     },
     "requests": {
       "maxBurstSize": 20,
       "flowRate":     5,
       "timeUnit":     "second",
-      "maxWaiters":   100
+      "maxQueueSize": 100
     }
   }
 ]

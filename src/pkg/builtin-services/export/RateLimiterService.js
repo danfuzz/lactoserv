@@ -19,14 +19,16 @@ import { JsonSchema } from '@this/json';
  *
  * Each of the above, if specified, must be an object with these properties:
  *
- * * `{number} maxBurstSize` -- The maximum possible size of a burst, in tokens.
  * * `{number} flowRate` -- The steady-state flow rate, in tokens per unit of
  *   time.
+ * * `{number} maxBurstSize` -- The maximum possible size of a burst, in tokens.
+ * * `{number} maxQueueSize` -- Optional maximum possible size of the wait
+ *   queue, in tokens. This is the number of tokens that are allowed to be
+ *   queued up for a grant, when there is insufficient burst capacity to satisfy
+ *   all active clients.
  * * `{string} timeUnit` -- The unit of time by which `flowRate` is defined.
  *   Must be one of: `day` (defined here as 24 hours), `hour`, `minute`,
  *   `second`, or `msec` (millisecond).
- * * `{number} maxWaiters` -- Optional maximum number of waiting clients allowed
- *   when there is insufficient burst capacity to satisfy all clients.
  */
 export class RateLimiterService extends BaseService {
   /** @type {?TokenBucket} Connection rate limiter, if any. */
@@ -156,10 +158,16 @@ export class RateLimiterService extends BaseService {
       return null;
     }
 
-    const { maxBurstSize, flowRate: origFlowRate, timeUnit, maxWaiters } = config;
+    const {
+      maxBurstSize,
+      maxQueueSize,
+      flowRate: origFlowRate,
+      timeUnit
+    } = config;
+
     const flowRate = this.#flowRatePerSecFrom(origFlowRate, timeUnit);
 
-    return new TokenBucket({ maxBurstSize, flowRate, maxWaiters });
+    return new TokenBucket({ flowRate, maxBurstSize, maxQueueSize });
   }
 
   /**
@@ -222,8 +230,8 @@ export class RateLimiterService extends BaseService {
               type: 'string',
               enum: ['day', 'hour', 'minute', 'second', 'msec']
             },
-            maxWaiters: {
-              type:    'integer',
+            maxQueueSize: {
+              type:    'number',
               minimum: 0,
               maximum: 1e10
             }
