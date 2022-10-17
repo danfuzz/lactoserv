@@ -84,11 +84,6 @@ export class TokenBucket {
   /**
    * Constructs an instance. Configuration options:
    *
-   * * `{number} maxBurstSize` -- Maximum possible instantaneous burst size
-   *   (that is, the total bucket capacity in the "leaky bucket as meter"
-   *   metaphor), in tokens (arbitrary volume units). This defines the
-   *   "burstiness" allowed by the instance. Must be a finite positive number.
-   *   This is a required "option."
    * * `{number} flowRate` -- Token flow rate (a/k/a bucket fill rate), that is,
    *   how quickly the bucket gets filled, in tokens per arbitrary time unit
    *   (tokens / ATU). This defines the steady state "flow rate" allowed by the
@@ -96,6 +91,11 @@ export class TokenBucket {
    * * `{number} initialBurstSize` -- The instantaneously available burst size,
    *   in tokens, at the moment of construction. Defaults to `maxBurstSize`
    *   (that is, able to be maximally "bursted" from the get-go).
+   * * `{number} maxBurstSize` -- Maximum possible instantaneous burst size
+   *   (that is, the total bucket capacity in the "leaky bucket as meter"
+   *   metaphor), in tokens (arbitrary volume units). This defines the
+   *   "burstiness" allowed by the instance. Must be a finite positive number.
+   *   This is a required "option."
    * * `{number} maxQueueGrantSize` -- Maximum grant size when granting requests
    *   from the waiter queue, in tokens. No queued grant requests will ever
    *   return a larger grant, even if there is available "burst volume" to
