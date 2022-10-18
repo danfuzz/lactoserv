@@ -219,9 +219,19 @@ export class RateLimitedStream {
   //
   // Static members
   //
+
+  /**
+   * Wrapper for {@link Duplex} instances.
+   */
   static #DuplexWrapper = class DuplexWrapper extends Duplex {
+    /** @type {RateLimitedStream} Outer instance. */
     #outerThis;
 
+    /**
+     * Constructs an instance.
+     *
+     * @param {RateLimitedStream} Outer instance.
+     */
     constructor(outerThis) {
       super();
       this.#outerThis = outerThis;
@@ -243,9 +253,18 @@ export class RateLimitedStream {
     }
   };
 
+  /**
+   * Wrapper for (non-{@link Duplex}) {@link Wriatable} instances.
+   */
   static #WritableWrapper = class WritableWrapper extends Writable {
+    /** @type {RateLimitedStream} Outer instance. */
     #outerThis;
 
+    /**
+     * Constructs an instance.
+     *
+     * @param {RateLimitedStream} Outer instance.
+     */
     constructor(outerThis) {
       super();
       this.#outerThis = outerThis;
