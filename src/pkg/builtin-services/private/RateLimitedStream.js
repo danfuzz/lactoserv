@@ -1,6 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { Socket } from 'node:net';
 import { Readable, Writable, Duplex } from 'node:stream';
 import { setImmediate } from 'node:timers';
 
@@ -10,7 +11,9 @@ import { MustBe } from '@this/typey';
 
 /**
  * Wrapper for a writable or duplex stream which rate-limits writes. This class
- * only works with streams in data mode (not object mode).
+ * only works with streams in data mode (not object mode). It also explicitly
+ * handles {@link Socket} instances, providing a few extra properties that it
+ * has (compared to a generic {@link Duplex} stream).
  */
 export class RateLimitedStream {
   /** @type {TokenBucket} Underlying rate limiting provider. */
@@ -106,9 +109,13 @@ export class RateLimitedStream {
       inner.on('readable', () => this.#readableOnReadable());
     }
 
-    return (inner instanceof Readable)
-      ? new RateLimitedStream.#DuplexWrapper(this)
-      : new RateLimitedStream.#WritableWrapper(this);
+    if (inner instanceof Socket) {
+      return new RateLimitedStream.#SocketWrapper(this);
+    } else if (inner instanceof Readable) {
+      return new RateLimitedStream.#DuplexWrapper(this);
+    } else {
+      return new RateLimitedStream.#WritableWrapper(this);
+    }
   }
 
   /**
@@ -257,11 +264,6 @@ export class RateLimitedStream {
       this.#outerThis = outerThis;
     }
 
-    /** @returns {number} Number of bytes written (just like `Socket`). */
-    get bytesWritten() {
-      return this.#outerThis.bytesWritten;
-    }
-
     /** @override */
     _read(...args) {
       this.#outerThis.#read(...args);
@@ -270,6 +272,39 @@ export class RateLimitedStream {
     /** @override */
     _write(...args) {
       this.#outerThis.#write(...args);
+    }
+  };
+
+  /**
+   * Wrapper for {@link Socket} instances.
+   */
+  static #SocketWrapper = class SocketWrapper extends this.#DuplexWrapper {
+    /** @type {RateLimitedStream} Outer instance. */
+    #outerThis;
+
+    /**
+     * Constructs an instance.
+     *
+     * @param {RateLimitedStream} outerThis Outer instance.
+     */
+    constructor(outerThis) {
+      super(outerThis);
+      this.#outerThis = outerThis;
+    }
+
+    /** @returns {number} Number of bytes written (`Socket` interface). */
+    get bytesWritten() {
+      return this.#outerThis.#innerStream.bytesWritten;
+    }
+
+    /** @returns {?string} Remote address (`Socket` interface). */
+    get remoteAddress() {
+      return this.#outerThis.#innerStream.remoteAddress;
+    }
+
+    /** @returns {?number} Remote port (`Socket` interface). */
+    get remotePort() {
+      return this.#outerThis.#innerStream.remotePort;
     }
   };
 
@@ -288,11 +323,6 @@ export class RateLimitedStream {
     constructor(outerThis) {
       super();
       this.#outerThis = outerThis;
-    }
-
-    /** @returns {number} Number of bytes written (just like `Socket`). */
-    get bytesWritten() {
-      return this.#outerThis.bytesWritten;
     }
 
     /** @override */
