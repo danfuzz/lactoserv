@@ -186,7 +186,7 @@ export class RateLimitedStream {
 
       const subChunk = (length === grantResult.grant)
         ? chunk
-        : chunk.subarray(at, grantResult.grant)
+        : chunk.subarray(at, at + grantResult.grant);
 
       const keepGoing = this.#innerStream.write(subChunk);
 
