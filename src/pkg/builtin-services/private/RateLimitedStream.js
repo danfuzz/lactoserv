@@ -99,6 +99,11 @@ export class RateLimitedStream {
       : new RateLimitedStream.#WritableWrapper(this);
   }
 
+  /**
+   * Handles an `error` event from the inner stream.
+   *
+   * @param {Error} error The error.
+   */
   #onError(error) {
     this.#logger?.errorFromInnerStream(error);
 
@@ -136,10 +141,18 @@ export class RateLimitedStream {
     this.#outerStream.push(null);
   }
 
+  /**
+   * Handles the `readable` event from the inner stream, which indicates that
+   * there is data which can be read and then pushed to the outer stream.
+   */
   #readableOnReadable() {
     this.#read();
   }
 
+  /**
+   * Handles the `close` event from the inner stream, which indicates that
+   * (for any number of reasons) the writing side of the stream has closed.
+   */
   #writableOnClose() {
     this.#logger?.closeFromInnerStream();
     this.#outerStream.end();
