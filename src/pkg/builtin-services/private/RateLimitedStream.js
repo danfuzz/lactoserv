@@ -4,7 +4,7 @@
 import { Readable, Writable, Duplex } from 'node:stream';
 import { setImmediate } from 'node:timers';
 
-import { TokenBucket } from '@this/async';
+import { ManualPromise, TokenBucket } from '@this/async';
 import { MustBe } from '@this/typey';
 
 
@@ -143,6 +143,11 @@ export class RateLimitedStream {
   #writableOnClose() {
     this.#logger?.closeFromInnerStream();
     this.#outerStream.end();
+
+    // This unsticks any callers that happened to be stuck waiting for `drain`
+    // inside `#write()`. It's a little bit ooky, but it's arguably cleaner than
+    // adding extra stuff in `#write()` to deal with this very edgy egde case.
+    this.#innerStream.emit('drain');
   }
 
   /**
@@ -177,6 +182,7 @@ export class RateLimitedStream {
         // This can happen when a stream is getting proactively closed (e.g.,
         // when the system is shutting down) or when there is too much
         // contention. TODO: Offer a better error depending on circumstances.
+        this.#logger?.rateLimiterDenied();
         this.#becomeBroken(new Error('Shutting down.'));
         return;
       }

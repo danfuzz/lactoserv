@@ -27,8 +27,8 @@
       "maxQueueSize": 100
     },
     "data": {
-      "maxBurstSize": 1000000,
-      "flowRate":     40000,
+      "maxBurstSize": 1000,
+      "flowRate":     1000,
       "timeUnit":     "second",
       "maxQueueSize": 800000
     }
