@@ -60,11 +60,6 @@ export class RateLimitedStream {
     this.#logger?.started();
   }
 
-  /** @returns {number} Total number of bytes written. */
-  get bytesWritten() {
-    return this.#bytesWritten;
-  }
-
   /** @returns {Duplex|Writable} The wrapper stream. */
   get stream() {
     return this.#outerStream;
