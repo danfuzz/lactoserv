@@ -50,14 +50,14 @@ export class RateLimitedStream {
   constructor(bucket, stream, logger) {
     this.#bucket      = MustBe.object(bucket, TokenBucket);
     this.#innerStream = MustBe.object(stream, Writable);
-    this.#logger      = logger;
+    this.#logger      = logger.dataRateLimiter;
 
     if (stream.readableObjectMode || stream.writableObjectMode) {
       throw new Error('Object mode not supported.');
     }
 
     this.#outerStream = this.#createWrapper();
-    this.#logger?.rateLimitingStream();
+    this.#logger?.started();
   }
 
   /** @returns {number} Total number of bytes written. */
@@ -79,14 +79,23 @@ export class RateLimitedStream {
    */
   #becomeBroken(error, fromEvent = false) {
     if (fromEvent) {
-      this.#logger?.errorFromInnerStream(error);
+      this.#logger?.errorFromInner(error);
     } else {
       this.#logger?.error(error);
     }
 
     if (!this.#error) {
       this.#error = error;
+    }
+
+    if (!this.outerStream.destroyed) {
+      this.#logger?.destroyingOuter();
       this.#outerStream.destroy(error);
+    }
+
+    if (!this.#innerStream.destroyed) {
+      this.#logger?.destroyingInner();
+      this.#innerStream.destroy(error);
     }
   }
 
@@ -168,7 +177,7 @@ export class RateLimitedStream {
    * (for any number of reasons) the writing side of the stream has closed.
    */
   #writableOnClose() {
-    this.#logger?.closeFromInnerStream();
+    this.#logger?.closeFromInner();
     this.#outerStream.end();
 
     // This unsticks any callers that happened to be stuck waiting for `drain`
@@ -187,15 +196,14 @@ export class RateLimitedStream {
    *   complete.
    */
   async #write(chunk, encoding, callback) {
-    if (!(chunk instanceof Buffer)) {
+    if (chunk instanceof Buffer) {
+      this.#logger?.writeFromOuter(chunk.length);
+    } else {
       this.#becomeBroken(Error(`Unexpected non-buffer chunk with encoding ${encoding}.`));
       chunk = ''; // Ensure we'll fall through to the error case at the bottom.
     }
 
     const length = chunk.length;
-
-    this.#logger?.writeFromOuter(length);
-
     for (let at = 0; (at < length) && !this.#error; /*at*/) {
       const remaining   = length - at;
       const grantResult = await this.#bucket.requestGrant(
@@ -209,7 +217,7 @@ export class RateLimitedStream {
         // This can happen when a stream is getting proactively closed (e.g.,
         // when the system is shutting down) or when there is too much
         // contention. TODO: Offer a better error depending on circumstances.
-        this.#logger?.rateLimiterDenied();
+        this.#logger?.denied();
         this.#becomeBroken(new Error('Shutting down.'));
         break;
       }
