@@ -12,11 +12,14 @@ import { MustBe } from '@this/typey';
  * only works with streams in data mode (not object mode).
  */
 export class RateLimitedStream {
+  /** @type {TokenBucket} Underlying rate limiting provider. */
+  #bucket;
+
   /** @type {Duplex|Writable} The inner (wrapped) stream. */
   #innerStream;
 
-  /** @type {TokenBucket} Underlying rate limiting provider. */
-  #bucket;
+  /** @type {?function(*)} Logger to use. */
+  #logger;
 
   /**
    * @type {Duplex|Writable} The outer (exposed wrapper) stream.
@@ -35,19 +38,22 @@ export class RateLimitedStream {
   /**
    * Constructs an instance.
    *
-   * @param {Duplex|Writable} stream The stream to wrap.
    * @param {TokenBucket} bucket Provider of the underlying rate limiting
    *   service.
+   * @param {Duplex|Writable} stream The stream to wrap.
+   * @param {?function(*)} logger Logger to use.
    */
-  constructor(stream, bucket) {
-    this.#innerStream = MustBe.object(stream, Writable);
+  constructor(bucket, stream, logger) {
     this.#bucket      = MustBe.object(bucket, TokenBucket);
+    this.#innerStream = MustBe.object(stream, Writable);
+    this.#logger      = logger;
 
     if (stream.readableObjectMode || stream.writableObjectMode) {
       throw new Error('Object mode not supported.');
     }
 
     this.#outerStream = this.#createWrapper();
+    this.#logger?.rateLimitingStream();
   }
 
   /** @returns {number} Total number of bytes written. */
@@ -85,7 +91,8 @@ export class RateLimitedStream {
   }
 
   #onError(error) {
-    console.log('############# ERROR %o', error);
+    this.#logger?.errorFromInnerStream(error);
+
     if (!this.#error) {
       this.#innerStream.destroy(error);
       this.#error = error;
@@ -110,6 +117,7 @@ export class RateLimitedStream {
         break;
       }
     }
+  }
 
   /**
    * Handles the `end` event from the inner stream, which is an indication
@@ -124,8 +132,8 @@ export class RateLimitedStream {
   }
 
   #writableOnClose() {
-    console.log('############# CLOSE');
-    this.#innerStream.end();
+    this.#logger?.closeFromInnerStream();
+    this.#outerStream.end();
   }
 
   /**
@@ -138,8 +146,6 @@ export class RateLimitedStream {
    *   complete.
    */
   #write(chunk, encoding, callback) {
-    console.log('############# WRITE %o', chunk.length);
-
     if (!(chunk instanceof Buffer) && !this.#error) {
       this.#error = new Error(`Unexpected non-buffer chunk with encoding ${encoding}.`);
       this.#outerStream.destroy(this.#error);
@@ -148,6 +154,8 @@ export class RateLimitedStream {
     if (this.#error) {
       callback(this.#error);
     }
+
+    this.#logger?.writeFromOuter(chunk.length);
 
     // TODO: Rate limiting goes here!
 
@@ -202,12 +210,13 @@ export class RateLimitedStream {
    * (per se) or a `stream.Duplex` and in turn returns a new instance that
    * implements the same stream type.
    *
-   * @param {Duplex|Writable} stream The stream to wrap.
    * @param {TokenBucket} bucket Provider of the underlying rate limiting
    *   service.
+   * @param {Duplex|Writable} stream The stream to wrap.
+   * @param {?function(*)} logger Logger to use.
    * @returns {Duplex|Writable} A rate-limited wrapper stream.
    */
-  static wrapWriter(stream, bucket) {
-    return new this(stream, bucket).stream;
+  static wrapWriter(bucket, stream, logger) {
+    return new this(bucket, stream, logger).stream;
   }
 }

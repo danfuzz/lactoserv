@@ -89,17 +89,16 @@ export class RateLimiterService extends BaseService {
    * being fully pass-through.
    *
    * @param {object} stream The writable stream to wrap.
-   * @param {?function(*)} logger_unused Logger to use for reporting about the
-   *   result.
+   * @param {?function(*)} logger Logger to use for this action.
    * @returns {object} An appropriately-wrapped instance, or the original
    *   `stream` if this instance has no data rate limiter.
    */
-  wrapWriter(stream, logger_unused) {
+  wrapWriter(stream, logger) {
     if (this.#data === null) {
       return stream;
     }
 
-    return RateLimitedStream.wrapWriter(stream, this.#data);
+    return RateLimitedStream.wrapWriter(this.#data, stream, logger);
   }
 
   /** @override */
