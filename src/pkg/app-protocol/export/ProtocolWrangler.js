@@ -90,7 +90,8 @@ export class ProtocolWrangler {
       // call a (nominally) protected method to do the setup, but that's a lot
       // of mess to deal with. Doing it here keeps things pretty tidy, even if
       // it's just a little surprising.
-      app.use('/', (req, res, next) => { this.#handleRequest(req, res, next); });
+      app.use('/', (req, res, next)      => { this.#handleRequest(req, res, next);    });
+      app.use('/', (err, req, res, next) => { this.#handleError(err, req, res, next); });
       this.#applicationInitialized = true;
     }
 
@@ -198,8 +199,28 @@ export class ProtocolWrangler {
   }
 
   /**
+   * Handles an error encountered during Express dispatch. Parameters are as
+   * defined by the Express middleware spec.
+   *
+   * @param {Error} err The error.
+   * @param {express.Request} req Request object.
+   * @param {express.Response} res Response object.
+   * @param {function(?*)} next_unused Next-middleware function. Unused, but
+   *   required to be declared so that Express knows that this is an
+   *   error-handling function.
+   */
+  #handleError(err, req, res, next_unused) {
+    const reqLogger = ProtocolWrangler.getLogger(req);
+
+    reqLogger?.topLevelError(err);
+    res.sendStatus(500);
+    res.end();
+  }
+
+  /**
    * "First licks" request handler. This gets added as the first middlware
-   * handler to the high-level application.
+   * handler to the high-level application. Parameters are as defined by the
+   * Express middleware spec.
    *
    * @param {express.Request} req Request object.
    * @param {express.Response} res Response object.

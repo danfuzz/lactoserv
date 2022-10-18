@@ -126,7 +126,8 @@ export class ServerController {
   }
 
   /**
-   * Handles a request, as defined by the Express middleware spec.
+   * Handles a request dispatched from Express. Parameters are as defined by the
+   * Express middleware spec.
    *
    * @param {express.Request} req Request object.
    * @param {express.Response} res Response object.
