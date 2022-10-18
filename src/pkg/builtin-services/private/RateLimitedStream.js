@@ -2,6 +2,7 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { Readable, Writable, Duplex } from 'node:stream';
+import { setImmediate } from 'node:timers';
 
 import { TokenBucket } from '@this/async';
 import { MustBe } from '@this/typey';
@@ -64,6 +65,14 @@ export class RateLimitedStream {
   /** @returns {Duplex|Writable} The wrapper stream. */
   get stream() {
     return this.#outerStream;
+  }
+
+  #becomeBroken(error) {
+    this.#logger?.error(error);
+    if (!this.#error) {
+      this.#error = error;
+      this.#outerStream.destroy(error);
+    }
   }
 
   /**
@@ -145,22 +154,59 @@ export class RateLimitedStream {
    * @param {function(?Error)} callback Callback to call when writing is
    *   complete.
    */
-  #write(chunk, encoding, callback) {
-    if (!(chunk instanceof Buffer) && !this.#error) {
-      this.#error = new Error(`Unexpected non-buffer chunk with encoding ${encoding}.`);
-      this.#outerStream.destroy(this.#error);
+  async #write(chunk, encoding, callback) {
+    if (!(chunk instanceof Buffer)) {
+      this.#becomeBroken(Error(`Unexpected non-buffer chunk with encoding ${encoding}.`));
+      chunk = ''; // Ensure we'll fall through to the error case at the bottom.
+    }
+
+    const length = chunk.length;
+
+    this.#logger?.writeFromOuter(length);
+
+    for (let at = 0; (at < length) && !this.#error; /*at*/) {
+      const remaining   = length - at;
+      const grantResult = await this.#bucket.requestGrant(
+        { minInclusive: 1, maxInclusive: remaining });
+
+      if (grantResult.waitTime !== 0) {
+        this.#logger?.waited(grantResult.waitTime);
+      }
+
+      if (!grantResult.done) {
+        // This can happen when a stream is getting proactively closed (e.g.,
+        // when the system is shutting down) or when there is too much
+        // contention. TODO: Offer a better error depending on circumstances.
+        this.#becomeBroken(new Error('Shutting down.'));
+        return;
+      }
+
+      this.#logger?.writingBytes(grantResult.grant);
+      this.#bytesWritten += grantResult.grant;
+
+      const subChunk = (length === grantResult.grant)
+        ? chunk
+        : chunk.subarray(at, grantResult.grant)
+
+      const keepGoing = this.#innerStream.write(subChunk);
+
+      if (!keepGoing) {
+        // The inner stream wants us to wait for a `drain` event. Oblige!
+        this.#logger?.waitingForDrain();
+        const mp = new ManualPromise();
+        this.#innerStream.once('drain', () => { mp.resolve(); });
+        await mp.promise;
+        this.#logger?.drained();
+      }
+
+      at += grantResult.grant;
     }
 
     if (this.#error) {
-      callback(this.#error);
+      setImmediate(callback, this.#error);
+    } else {
+      setImmediate(callback);
     }
-
-    this.#logger?.writeFromOuter(chunk.length);
-
-    // TODO: Rate limiting goes here!
-
-    this.#bytesWritten += chunk.length;
-    this.#innerStream.write(chunk, callback);
   }
 
 
