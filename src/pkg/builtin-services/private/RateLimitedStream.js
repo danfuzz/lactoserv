@@ -221,7 +221,8 @@ export class RateLimitedStream {
         ? chunk
         : chunk.subarray(at, at + grantResult.grant);
 
-      const keepGoing = this.#innerStream.write(subChunk);
+      const keepGoing = this.#innerStream.write(subChunk)
+        || this.#innerStream.closed;
 
       if (!keepGoing) {
         // The inner stream wants us to wait for a `drain` event. Oblige!
