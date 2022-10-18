@@ -64,7 +64,7 @@ export class RequestLogger {
       logger?.response(res.statusCode,
         RequestLogger.#sanitizeResponseHeaders(resHeaders));
 
-      const timeEnd = process.hrtime.bigint();
+      const timeEnd     = process.hrtime.bigint();
       const elapsedMsec = Number(timeEnd - timeStart) * RequestLogger.#NSEC_PER_MSEC;
 
       logger?.done({ contentLength, elapsedMsec });
@@ -74,6 +74,7 @@ export class RequestLogger {
         origin,
         req.method,
         JSON.stringify(urlish),
+        res.statusCode,
         FormatUtils.contentLengthString(contentLength),
         FormatUtils.elapsedTimeString(elapsedMsec),
       ].join(' ');
