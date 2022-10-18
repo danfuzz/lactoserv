@@ -227,6 +227,7 @@ export class RateLimitedStream {
       this.#outerThis = outerThis;
     }
 
+    /** @returns {number} Number of bytes written (just like `Socket`). */
     get bytesWritten() {
       return this.#outerThis.bytesWritten;
     }
@@ -248,6 +249,11 @@ export class RateLimitedStream {
     constructor(outerThis) {
       super();
       this.#outerThis = outerThis;
+    }
+
+    /** @returns {number} Number of bytes written (just like `Socket`). */
+    get bytesWritten() {
+      return this.#outerThis.bytesWritten;
     }
 
     /** @override */
