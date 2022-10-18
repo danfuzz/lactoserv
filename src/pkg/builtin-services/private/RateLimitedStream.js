@@ -230,7 +230,7 @@ export class RateLimitedStream {
     /**
      * Constructs an instance.
      *
-     * @param {RateLimitedStream} Outer instance.
+     * @param {RateLimitedStream} outerThis Outer instance.
      */
     constructor(outerThis) {
       super();
@@ -263,7 +263,7 @@ export class RateLimitedStream {
     /**
      * Constructs an instance.
      *
-     * @param {RateLimitedStream} Outer instance.
+     * @param {RateLimitedStream} outerThis Outer instance.
      */
     constructor(outerThis) {
       super();
