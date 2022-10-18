@@ -129,6 +129,15 @@ export class TcpWrangler extends ProtocolWrangler {
       }
     }
 
+    if (this.#rateLimiter) {
+      const granted = await this.#rateLimiter.newConnection(connLogger);
+      if (!granted) {
+        socket.destroy();
+      }
+
+      socket = this.#rateLimiter.wrapWriter(socket, connLogger);
+    }
+
     this.#sockets.add(socket);
     this.#anySockets.value = true;
 
@@ -146,15 +155,6 @@ export class TcpWrangler extends ProtocolWrangler {
         connLogger.closed();
       }
     });
-
-    if (this.#rateLimiter) {
-      const granted = await this.#rateLimiter.newConnection(connLogger);
-      if (!granted) {
-        socket.destroy();
-      }
-
-      socket = this.#rateLimiter.wrapWriter(socket, connLogger);
-    }
 
     this._impl_newConnection(socket);
   }
