@@ -5,6 +5,8 @@ import { BaseService, ServiceController } from '@this/app-services';
 import { TokenBucket } from '@this/async';
 import { JsonSchema } from '@this/json';
 
+import { RateLimitedStream } from '#p/RateLimitedStream';
+
 
 /**
  * Service which can apply various rate limits to network traffic. Configuration
@@ -97,8 +99,7 @@ export class RateLimiterService extends BaseService {
       return stream;
     }
 
-    // TODO
-    throw new Error('TODO');
+    return RateLimitedStream.wrapWriter(stream, this.#data);
   }
 
   /** @override */
