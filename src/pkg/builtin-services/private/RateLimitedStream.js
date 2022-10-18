@@ -67,8 +67,20 @@ export class RateLimitedStream {
     return this.#outerStream;
   }
 
-  #becomeBroken(error) {
-    this.#logger?.error(error);
+  /**
+   * Reacts to an error that was received as an event or determined directly
+   * within this class.
+   *
+   * @param {Error} error The error.
+   * @param {boolean} [fromEvent = false] Was it from an `error` event?
+   */
+  #becomeBroken(error, fromEvent = false) {
+    if (fromEvent) {
+      this.#logger?.errorFromInnerStream(error);
+    } else {
+      this.#logger?.error(error);
+    }
+
     if (!this.#error) {
       this.#error = error;
       this.#outerStream.destroy(error);
@@ -105,12 +117,7 @@ export class RateLimitedStream {
    * @param {Error} error The error.
    */
   #onError(error) {
-    this.#logger?.errorFromInnerStream(error);
-
-    if (!this.#error) {
-      this.#innerStream.destroy(error);
-      this.#error = error;
-    }
+    this.#becomeBroken(error, true);
   }
 
   /**
