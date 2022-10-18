@@ -211,7 +211,7 @@ export class RateLimitedStream {
         // contention. TODO: Offer a better error depending on circumstances.
         this.#logger?.rateLimiterDenied();
         this.#becomeBroken(new Error('Shutting down.'));
-        return;
+        break;
       }
 
       this.#logger?.writingBytes(grantResult.grant);
