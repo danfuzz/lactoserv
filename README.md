@@ -16,12 +16,13 @@ This is a web server which knows how to serve a couple different types of
   * Redirect server.
   * More to come! TODO!
 * Path-hierarchy specificity-based endpoint configuration, for endpoints that
-  serve multiple applications. (This is as opposed to, notably, Express.)
+  serve multiple applications. (This is as opposed to, notably, Express's
+  built-in routing.)
 * Can serve all of HTTP, HTTPS, and HTTP2. (HTTP2 will automatically downgrade
   to HTTPS for clients that can't do HTTP2.)
 * Implements (optional) straightforward "token bucket" / "leaky bucket" rate
   limiting for connections, requests, and/or sent data (bytes / bandwidth).
-* Produces standard-ish form request logs.
+* Produces request logs in a standard-ish form.
 * Produces detailed activity logs.
 * Inscrutable configuration file format.
   (To be fixed soon! TODO!)
@@ -30,6 +31,8 @@ This is a web server which knows how to serve a couple different types of
 
 * Written in pure JavaScript, running on Node. (The only platform native code
   is from Node, not from this codebase nor from any imported modules.)
+  * Uses Express for basic protocol handling (but with a custom router, see
+    above).
 * Built to be installed as a normal POSIX-ish service. (TODO.)
 
 - - - - - - - - - -
