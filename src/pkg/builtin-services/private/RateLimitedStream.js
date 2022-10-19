@@ -83,7 +83,7 @@ export class RateLimitedStream {
       this.#error = error;
     }
 
-    if (!this.outerStream.destroyed) {
+    if (!this.#outerStream.destroyed) {
       this.#logger?.destroyingOuter();
       this.#outerStream.destroy(error);
     }
