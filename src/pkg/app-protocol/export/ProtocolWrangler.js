@@ -243,7 +243,10 @@ export class ProtocolWrangler {
     let reqLogger = null;
 
     if (this.#requestLogger) {
-      reqLogger = this.#requestLogger.logRequest(req, res);
+      const connLogger   = ProtocolWrangler.getLogger(req.socket);
+      const connectionId = connLogger?.$meta.lastContext ?? null;
+
+      reqLogger = this.#requestLogger.logRequest(req, res, connectionId);
       ProtocolWrangler.#bindLogger(req, reqLogger);
       ProtocolWrangler.#bindLogger(res, reqLogger);
     }
