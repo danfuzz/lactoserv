@@ -155,7 +155,7 @@ export class TcpWrangler extends ProtocolWrangler {
       }
     });
 
-    this._impl_newConnection(socket);
+    this._prot_newConnection(socket, connLogger);
   }
 
   /**

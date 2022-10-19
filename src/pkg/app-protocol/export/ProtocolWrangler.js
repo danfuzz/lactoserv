@@ -168,17 +168,6 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Informs the higher-level stack of a connection received by the lower-level
-   * stack.
-   *
-   * @abstract
-   * @param {net.Socket} socket Socket representing the newly-made connection.
-   */
-  _impl_newConnection(socket) {
-    Methods.abstract(socket);
-  }
-
-  /**
    * Gets the (`HttpServer`-like) protocol server instance.
    *
    * @abstract
@@ -206,6 +195,19 @@ export class ProtocolWrangler {
    */
   async _impl_serverSocketStop() {
     Methods.abstract();
+  }
+
+  /**
+   * Informs the higher-level stack of a connection received by the lower-level
+   * stack. This "protected" method is expected to be called by subclass code.
+   *
+   * @abstract
+   * @param {net.Socket} socket Socket representing the newly-made connection.
+   * @param {?function(...*)} logger Logger to use for the connection, if any.
+   */
+  _prot_newConnection(socket, logger) {
+    ProtocolWrangler.#bindLogger(socket, logger);
+    this._impl_server().emit('connection', socket);
   }
 
   /**
@@ -325,23 +327,27 @@ export class ProtocolWrangler {
   static #LOGGER_SYMBOL = Symbol('loggerFor' + this.name);
 
   /**
-   * Gets the logger which was bound to the given (presumed) request or response
-   * object.
+   * Gets the logger which was bound to the given object related to this class's
+   * operation, if any. This includes (`HttpServer`-like) request and response
+   * objects, and network socket objects representing connections.
    *
-   * @param {object} reqOrRes The request or response object.
-   * @returns {?function(...*)} logger The logger boun to it, if any.
+   * @param {object} obj The object which might have a bound logger.
+   * @returns {?function(...*)} logger The logger bound to it, if any.
    */
-  static getLogger(reqOrRes) {
-    return reqOrRes[this.#LOGGER_SYMBOL] ?? null;
+  static getLogger(obj) {
+    return obj[this.#LOGGER_SYMBOL] ?? null;
   }
 
   /**
-   * Binds a logger to the given (presumed) request or response object.
+   * Binds a logger to the given this-class-related object.
    *
-   * @param {object} reqOrRes The request or response object.
-   * @param {function(...*)} logger The logger to bind to it.
+   * @param {object} obj The object to bind to.
+   * @param {?function(...*)} logger The logger to bind to it, or `null` for
+   *   this to be a no-op.
    */
-  static #bindLogger(reqOrRes, logger) {
-    reqOrRes[this.#LOGGER_SYMBOL] = logger;
+  static #bindLogger(obj, logger) {
+    if (obj) {
+      obj[this.#LOGGER_SYMBOL] = logger;
+    }
   }
 }
