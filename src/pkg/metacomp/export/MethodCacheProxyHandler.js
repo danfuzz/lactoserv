@@ -35,7 +35,7 @@ const VERBOTEN_METHODS = new Set([
  *   thinking that what's being proxied is a promise. (Duck typing FTL!) Though
  *   in the larger sense it is okay to proxy these things, the usual case -- and
  *   the one supported by this class -- is that what's proxied is just a
- *   plain-old-instance filled with normal methods.
+ *   plain-old-instance filled with normal properties and methods.
  *
  * * This class returns a simple but useful (and non-confusing) implementation
  *   when asked for the standard "custom inspection" function
