@@ -39,24 +39,24 @@ const VERBOTEN_METHODS = new Set([
  *
  * * This class returns a simple but useful (and non-confusing) implementation
  *   when asked for the standard "custom inspection" function
- *   `util.inspect.custom`. This is done instead of letting the subclass make
- *   what would no doubt turn out to be a confusing handler function.
+ *   `util.inspect.custom`. This is done instead of letting the subclass return
+ *   what would no doubt turn out to be a confusing implementation.
  *
  * Use this class by making a subclass, filling in the `_impl`, and constructing
  * a `Proxy` via the static method {@link #makeProxy}.
  */
 export class MethodCacheProxyHandler extends BaseProxyHandler {
   /**
-   * @type {Map<string, function(*)>} Cached method call handlers, as a map from
-   * name to handler.
+   * @type {Map<string, *>} Cached property values, as a map from name to
+   * handler.
    */
-  #methods = new Map();
+  #properties = new Map();
 
   // Note: The default constructor suffices here.
 
   /**
    * Standard `Proxy` handler method. This defers to {@link #_impl_methodFor}
-   * to generate method handlers that aren't yet cached.
+   * to generate property values that aren't yet cached.
    *
    * @param {object} target_unused The proxy target.
    * @param {string|symbol} property The property name.
@@ -65,7 +65,7 @@ export class MethodCacheProxyHandler extends BaseProxyHandler {
    *   defined.
    */
   get(target_unused, property, receiver_unused) {
-    const method = this.#methods.get(property);
+    const method = this.#properties.get(property);
 
     if (method) {
       return method;
@@ -73,9 +73,9 @@ export class MethodCacheProxyHandler extends BaseProxyHandler {
       // This property is on the blacklist of ones to never proxy.
       return undefined;
     } else if (property === util.inspect.custom) {
-      // Very special case: We're being asked for the method for the standard
-      // "custom inspector" function. Return a straightforward implementation.
-      // This makes it possible to call `util.inspect` on a proxy made from an
+      // Very special case: We're being asked for the standard "custom
+      // inspector" method name. Return a straightforward implementation. This
+      // makes it possible to call `util.inspect` on a proxy made from an
       // instance of this class and get a reasonably useful result (instead of
       // calling through to the `_impl` and doing something totally
       // inscrutable), which is a case that _has_ arisen in practice (while
@@ -86,26 +86,24 @@ export class MethodCacheProxyHandler extends BaseProxyHandler {
       // it.
       const result = this._impl_methodFor(property);
       if (result instanceof MethodCacheProxyHandler.NoCache) {
-        return MustBe.callableFunction(result.value);
+        return result.value;
       } else {
-        MustBe.callableFunction(result);
-        this.#methods.set(property, result);
+        this.#properties.set(property, result);
         return result;
       }
     }
   }
 
   /**
-   * Returns the method implementation function for the given method name. The
-   * function will ultimately get accessed by client code as a property,
-   * including (typically) being called as a method on a proxy instance. If this
-   * method returns an instance of {@link #NoCache} instead of a function per
-   * se, the result is _not_ cached for future returns.
+   * Returns the property value for the given name. The property value will
+   * ultimately get accessed by client code as a property on a proxy instance,
+   * including (typically) being called as a method on that proxy. If this
+   * method returns an instance of {@link #NoCache} instead of some other value,
+   * the result is _not_ cached for future returns.
    *
    * @abstract
    * @param {string|symbol} name The method name.
-   * @returns {function(*)|{ uncached: function(*)}} The method implementation
-   *   for the method `name()`.
+   * @returns {*|NoCache} The property value for `name`.
    */
   _impl_methodFor(name) {
     return Methods.abstract(name);
