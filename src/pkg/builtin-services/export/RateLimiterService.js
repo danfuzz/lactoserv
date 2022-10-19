@@ -26,7 +26,8 @@ import { RateLimitedStream } from '#p/RateLimitedStream';
  * * `{number} maxBurstSize` -- The maximum possible size of a burst, in tokens.
  * * `{number} maxQueueGrantSize` -- Optional maximum possible size of a grant
  *   given to a requester in the wait queue, in tokens. If not specified, it is
- *   the same as the `maxBurstSize`.
+ *   the same as the `maxBurstSize`. (It is really only meaningful for `data`
+ *   limiting.)
  * * `{number} maxQueueSize` -- Optional maximum possible size of the wait
  *   queue, in tokens. This is the number of tokens that are allowed to be
  *   queued up for a grant, when there is insufficient burst capacity to satisfy
