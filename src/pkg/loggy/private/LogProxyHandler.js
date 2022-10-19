@@ -106,6 +106,9 @@ export class LogProxyHandler extends PropertyCacheProxyHandler {
     }
 
     switch (name) {
+      case LogProxyHandler.#METHOD_NAME_META: {
+        return new LogProxyHandler.Meta(this);
+      }
       case LogProxyHandler.#METHOD_NAME_NEW_ID: {
         const idTag = this.#subTag.withAddedContext(this.#environment.makeId());
         const proxy = LogProxyHandler.makeFunctionProxy(idTag, null, this.#environment);
@@ -130,6 +133,34 @@ export class LogProxyHandler extends PropertyCacheProxyHandler {
 
   /** {string} Main tag name to use for the top level. */
   static #TOP_TAG_NAME = '(top)';
+
+  /**
+   * Metainformation about a logger. Instances of this class are returned when
+   * accessing the property `$meta` on logger instances.
+   */
+  static Meta = class Meta {
+    /** @type {LogProxyHandler} The subject handler instance. */
+    #handler;
+
+    /**
+     * Constructs an instance.
+     *
+     * @param {LogProxyHandler} handler The subject handler instance.
+     */
+    constructor(handler) {
+      this.#handler = handler;
+    }
+
+    /** @returns {string} Convenient accessor for `this.tag().lastContext`. */
+    get lastContext() {
+      return this.tag.lastContext;
+    }
+
+    /** @returns {LogTag} The tag used by the logger. */
+    get tag() {
+      return this.#handler.#tag;
+    }
+  };
 
   /**
    * Constructs a usable logger instance -- that is, an instance of this class
