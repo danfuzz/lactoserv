@@ -78,6 +78,61 @@ describe('get()', () => {
     });
   }
 
+  test('is happy to return non-function values (i.e. non-methods)', () => {
+    const handler = new MethodCacheProxyHandler();
+    const proxy   = new Proxy({}, handler);
+    const value   = { x: 'here is a value' };
+
+    handler._impl_valueFor = (name) => {
+      value.name = name;
+      return value;
+    };
+
+    const result = handler.get({}, 'zorch', proxy);
+    expect(result).toBe(value);
+    expect(result.name).toBe('zorch');
+  });
+
+  test('caches non-function values (i.e. non-methods), when not asked to not-cache', () => {
+    const handler = new MethodCacheProxyHandler();
+    const proxy   = new Proxy({}, handler);
+    let   count   = 0;
+
+    handler._impl_valueFor = (name) => {
+      count++;
+      return { name, count };
+    };
+
+    const result1 = handler.get({}, 'zorch', proxy);
+    expect(result1).toStrictEqual({ name: 'zorch', count: 1 });
+
+    const result2 = handler.get({}, 'florp', proxy);
+    expect(result2).toStrictEqual({ name: 'florp', count: 2 });
+
+    const result3 = handler.get({}, 'zorch', proxy);
+    expect(result3).toBe(result1);
+  });
+
+  test('does not cache non-function values (i.e. non-methods), when asked to not-cache', () => {
+    const handler = new MethodCacheProxyHandler();
+    const proxy   = new Proxy({}, handler);
+    let   count   = 0;
+
+    handler._impl_valueFor = (name) => {
+      count++;
+      return new MethodCacheProxyHandler.NoCache({ name, count });
+    };
+
+    const result1 = handler.get({}, 'zorch', proxy);
+    expect(result1).toStrictEqual({ name: 'zorch', count: 1 });
+
+    const result2 = handler.get({}, 'florp', proxy);
+    expect(result2).toStrictEqual({ name: 'florp', count: 2 });
+
+    const result3 = handler.get({}, 'zorch', proxy);
+    expect(result3).toStrictEqual({ name: 'zorch', count: 3 });
+  });
+
   test('returns a function gotten from a call to the `_impl`', () => {
     const handler = new MethodCacheProxyHandler();
     const proxy   = new Proxy({}, handler);
