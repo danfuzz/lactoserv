@@ -84,7 +84,7 @@ export class MethodCacheProxyHandler extends BaseProxyHandler {
       // it.
       const result = this._impl_methodFor(property);
       if (result instanceof MethodCacheProxyHandler.NoCache) {
-        return MustBe.callableFunction(result.handler);
+        return MustBe.callableFunction(result.value);
       } else {
         MustBe.callableFunction(result);
         this.#methods.set(property, result);
@@ -119,21 +119,21 @@ export class MethodCacheProxyHandler extends BaseProxyHandler {
    * indicate that they shouldn't be cached.
    */
   static NoCache = class NoCache {
-    /** @type {function(*)} The method handler to not-cache. */
-    #handler;
+    /** @type {function(*)} The property value to not-cache. */
+    #value;
 
     /**
      * Constructs an instance.
      *
-     * @param {function(*)} handler The method handler to not-cache.
+     * @param {function(*)} value The property value to not-cache.
      */
-    constructor(handler) {
-      this.#handler = handler;
+    constructor(value) {
+      this.#value = value;
     }
 
-    /** @returns {function(*)} The method handler to not-cache. */
-    get handler() {
-      return this.#handler;
+    /** @returns {function(*)} The property value to not-cache. */
+    get value() {
+      return this.#value;
     }
   };
 }
