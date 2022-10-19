@@ -13,8 +13,6 @@ import { ProtocolWrangler } from '#x/ProtocolWrangler';
 /**
  * Wrangler for all TCP-based protocols (which is, as of this writing, all of
  * them... but HTTP3 will be here before we know it!).
- *
- * TODO: Use the rate limiter!
  */
 export class TcpWrangler extends ProtocolWrangler {
   /** @type {?function(...*)} Logger, if logging is to be done. */
