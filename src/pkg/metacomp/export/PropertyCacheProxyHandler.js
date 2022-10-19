@@ -45,7 +45,7 @@ const VERBOTEN_METHODS = new Set([
  * Use this class by making a subclass, filling in the `_impl`, and constructing
  * a `Proxy` via the static method {@link #makeProxy}.
  */
-export class MethodCacheProxyHandler extends BaseProxyHandler {
+export class PropertyCacheProxyHandler extends BaseProxyHandler {
   /**
    * @type {Map<string, *>} Cached property values, as a map from name to
    * handler.
@@ -85,7 +85,7 @@ export class MethodCacheProxyHandler extends BaseProxyHandler {
       // The property is allowed to be proxied. Figure out the value, and cache
       // it (unless asked not to).
       const result = this._impl_valueFor(property);
-      if (result instanceof MethodCacheProxyHandler.NoCache) {
+      if (result instanceof PropertyCacheProxyHandler.NoCache) {
         return result.value;
       } else {
         this.#properties.set(property, result);

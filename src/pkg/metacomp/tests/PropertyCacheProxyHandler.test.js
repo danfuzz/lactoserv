@@ -3,14 +3,14 @@
 
 import * as util from 'node:util';
 
-import { MethodCacheProxyHandler } from '@this/metacomp';
+import { PropertyCacheProxyHandler } from '@this/metacomp';
 
 
 /**
  * Subclass of the class to test which always throws when asked to create a
  * method handler.
  */
-class ThrowingHandler extends MethodCacheProxyHandler {
+class ThrowingHandler extends PropertyCacheProxyHandler {
   _impl_forMethod(name_unused) {
     throw new Error('XYZ should not have been called.');
   }
@@ -18,7 +18,7 @@ class ThrowingHandler extends MethodCacheProxyHandler {
 
 describe('constructor', () => {
   test('constructs an instance', () => {
-    expect(() => new MethodCacheProxyHandler()).not.toThrow();
+    expect(() => new PropertyCacheProxyHandler()).not.toThrow();
   });
 });
 
@@ -70,7 +70,7 @@ describe('get()', () => {
   // `custom`.
   if (typeof util.inspect.custom === 'symbol') {
     test('returns the expected special-case `inspect.custom` implementation', () => {
-      const handler    = new MethodCacheProxyHandler();
+      const handler    = new PropertyCacheProxyHandler();
       const proxy      = new Proxy({}, handler);
       const customFunc = proxy[util.inspect.custom];
 
@@ -79,7 +79,7 @@ describe('get()', () => {
   }
 
   test('is happy to return non-function values (i.e. non-methods)', () => {
-    const handler = new MethodCacheProxyHandler();
+    const handler = new PropertyCacheProxyHandler();
     const proxy   = new Proxy({}, handler);
     const value   = { x: 'here is a value' };
 
@@ -94,7 +94,7 @@ describe('get()', () => {
   });
 
   test('caches non-function values (i.e. non-methods), when not asked to not-cache', () => {
-    const handler = new MethodCacheProxyHandler();
+    const handler = new PropertyCacheProxyHandler();
     const proxy   = new Proxy({}, handler);
     let   count   = 0;
 
@@ -114,13 +114,13 @@ describe('get()', () => {
   });
 
   test('does not cache non-function values (i.e. non-methods), when asked to not-cache', () => {
-    const handler = new MethodCacheProxyHandler();
+    const handler = new PropertyCacheProxyHandler();
     const proxy   = new Proxy({}, handler);
     let   count   = 0;
 
     handler._impl_valueFor = (name) => {
       count++;
-      return new MethodCacheProxyHandler.NoCache({ name, count });
+      return new PropertyCacheProxyHandler.NoCache({ name, count });
     };
 
     const result1 = handler.get({}, 'zorch', proxy);
@@ -134,7 +134,7 @@ describe('get()', () => {
   });
 
   test('returns a function gotten from a call to the `_impl`', () => {
-    const handler = new MethodCacheProxyHandler();
+    const handler = new PropertyCacheProxyHandler();
     const proxy   = new Proxy({}, handler);
 
     handler._impl_valueFor = (name) => {
@@ -148,7 +148,7 @@ describe('get()', () => {
   });
 
   test('returns the same function upon a second-or-more call with the same name, when not asked to not-cache', () => {
-    const handler = new MethodCacheProxyHandler();
+    const handler = new PropertyCacheProxyHandler();
     const proxy   = new Proxy({}, handler);
 
     handler._impl_valueFor = (name) => {
@@ -169,7 +169,7 @@ describe('get()', () => {
   });
 
   test('returns a different function upon a second-or-more call with the same name, when asked to not-cache', () => {
-    const handler = new MethodCacheProxyHandler();
+    const handler = new PropertyCacheProxyHandler();
     const proxy   = new Proxy({}, handler);
 
     let count = 0;
@@ -178,7 +178,7 @@ describe('get()', () => {
 
       const result = () => { return; };
       result.blorp = `blorp-${name}-${count}`;
-      return new MethodCacheProxyHandler.NoCache(result);
+      return new PropertyCacheProxyHandler.NoCache(result);
     };
 
     const result1a = handler.get({}, 'zip', proxy);
@@ -256,8 +256,8 @@ describe('setPrototypeOf()', () => {
 
 describe('noCache', () => {
   test('creates an instance of `NoCache` with the given value', () => {
-    const result = MethodCacheProxyHandler.noCache('florp');
-    expect(result).toBeInstanceOf(MethodCacheProxyHandler.NoCache);
+    const result = PropertyCacheProxyHandler.noCache('florp');
+    expect(result).toBeInstanceOf(PropertyCacheProxyHandler.NoCache);
     expect(result.value).toBe('florp');
   });
 });

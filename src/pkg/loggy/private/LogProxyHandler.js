@@ -2,7 +2,7 @@
 // Licensed AS IS and WITHOUT WARRANTY under the Apache License,
 // Version 2.0. Details: <http://www.apache.org/licenses/LICENSE-2.0>
 
-import { MethodCacheProxyHandler } from '@this/metacomp';
+import { PropertyCacheProxyHandler } from '@this/metacomp';
 
 import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
 import { LogTag } from '#x/LogTag';
@@ -15,7 +15,7 @@ import { LogTag } from '#x/LogTag';
  * See {@link Loggy.loggerFor} for details (and the public interface to this
  * class).
  */
-export class LogProxyHandler extends MethodCacheProxyHandler {
+export class LogProxyHandler extends PropertyCacheProxyHandler {
   /** @type {LogTag} Tag to use on all logged events. */
   #tag;
 
@@ -109,7 +109,7 @@ export class LogProxyHandler extends MethodCacheProxyHandler {
       case LogProxyHandler.#METHOD_NAME_NEW_ID: {
         const idTag = this.#subTag.withAddedContext(this.#environment.makeId());
         const proxy = LogProxyHandler.makeFunctionProxy(idTag, null, this.#environment);
-        return MethodCacheProxyHandler.noCache(proxy);
+        return PropertyCacheProxyHandler.noCache(proxy);
       }
       default: {
         return LogProxyHandler.makeFunctionProxy(this.#subTag, name, this.#environment);
