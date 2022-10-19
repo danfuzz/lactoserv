@@ -98,7 +98,7 @@ export class LogProxyHandler extends MethodCacheProxyHandler {
    * given property name.
    *
    * @param {string|symbol} name The property name.
-   * @returns {function(...*)} An appropriately-constructed property value.
+   * @returns {*} An appropriately-constructed property value.
    */
   _impl_valueFor(name) {
     if (typeof name === 'symbol') {
@@ -109,7 +109,7 @@ export class LogProxyHandler extends MethodCacheProxyHandler {
       case LogProxyHandler.#METHOD_NAME_NEW_ID: {
         const idTag = this.#subTag.withAddedContext(this.#environment.makeId());
         const proxy = LogProxyHandler.makeFunctionProxy(idTag, null, this.#environment);
-        return new MethodCacheProxyHandler.NoCache(proxy);
+        return MethodCacheProxyHandler.noCache(proxy);
       }
       default: {
         return LogProxyHandler.makeFunctionProxy(this.#subTag, name, this.#environment);

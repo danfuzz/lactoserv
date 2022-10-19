@@ -119,21 +119,32 @@ export class MethodCacheProxyHandler extends BaseProxyHandler {
    * indicate that they shouldn't be cached.
    */
   static NoCache = class NoCache {
-    /** @type {function(*)} The property value to not-cache. */
+    /** @type {*} The property value to not-cache. */
     #value;
 
     /**
      * Constructs an instance.
      *
-     * @param {function(*)} value The property value to not-cache.
+     * @param {*} value The property value to not-cache.
      */
     constructor(value) {
       this.#value = value;
     }
 
-    /** @returns {function(*)} The property value to not-cache. */
+    /** @returns {*} The property value to not-cache. */
     get value() {
       return this.#value;
     }
   };
+
+  /**
+   * Recommended -- and convenient -- way to construct an instance of {@link
+   * #NoCache}.
+   *
+   * @param {*} value The property value to not-cache.
+   * @returns {NoCache} Cache-preventing instance.
+   */
+  static noCache(value) {
+    return new this.NoCache(value);
+  }
 }

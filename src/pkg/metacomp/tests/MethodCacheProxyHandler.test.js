@@ -253,3 +253,11 @@ describe('setPrototypeOf()', () => {
     expect(handler.setPrototypeOf({}, {})).toBeFalse();
   });
 });
+
+describe('noCache', () => {
+  test('creates an instance of `NoCache` with the given value', () => {
+    const result = MethodCacheProxyHandler.noCache('florp');
+    expect(result).toBeInstanceOf(MethodCacheProxyHandler.NoCache);
+    expect(result.value).toBe('florp');
+  });
+});
