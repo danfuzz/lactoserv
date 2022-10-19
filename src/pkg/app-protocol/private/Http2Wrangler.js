@@ -68,6 +68,11 @@ export class Http2Wrangler extends TcpWrangler {
     this.#protocolServer.emit('connection', socket);
   }
 
+  /** @override */
+  _impl_server() {
+    return this.#protocolServer;
+  }
+
   /**
    * Called whenever a new HTTP2 session gets initiated.
    *

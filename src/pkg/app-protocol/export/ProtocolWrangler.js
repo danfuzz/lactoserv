@@ -179,6 +179,16 @@ export class ProtocolWrangler {
   }
 
   /**
+   * Gets the (`HttpServer`-like) protocol server instance.
+   *
+   * @abstract
+   * @returns {object} The (`HttpServer`-like) protocol server instance.
+   */
+  _impl_server() {
+    Methods.abstract();
+  }
+
+  /**
    * Starts the server socket, that is, gets it listening for connections. This
    * should only async-return once the socket is really listening.
    *
