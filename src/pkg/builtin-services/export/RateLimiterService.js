@@ -24,6 +24,9 @@ import { RateLimitedStream } from '#p/RateLimitedStream';
  * * `{number} flowRate` -- The steady-state flow rate, in tokens per unit of
  *   time.
  * * `{number} maxBurstSize` -- The maximum possible size of a burst, in tokens.
+ * * `{number} maxQueueGrantSize` -- Optional maximum possible size of a grant
+ *   given to a requester in the wait queue, in tokens. If not specified, it is
+ *   the same as the `maxBurstSize`.
  * * `{number} maxQueueSize` -- Optional maximum possible size of the wait
  *   queue, in tokens. This is the number of tokens that are allowed to be
  *   queued up for a grant, when there is insufficient burst capacity to satisfy
@@ -160,6 +163,7 @@ export class RateLimiterService extends BaseService {
 
     const {
       maxBurstSize,
+      maxQueueGrantSize,
       maxQueueSize,
       flowRate: origFlowRate,
       timeUnit
@@ -167,7 +171,8 @@ export class RateLimiterService extends BaseService {
 
     const flowRate = this.#flowRatePerSecFrom(origFlowRate, timeUnit);
 
-    return new TokenBucket({ flowRate, maxBurstSize, maxQueueSize });
+    return new TokenBucket(
+      { flowRate, maxBurstSize, maxQueueGrantSize, maxQueueSize });
   }
 
   /**
@@ -229,6 +234,11 @@ export class RateLimiterService extends BaseService {
             timeUnit: {
               type: 'string',
               enum: ['day', 'hour', 'minute', 'second', 'msec']
+            },
+            maxQueueGrantSize: {
+              type:             'number',
+              exclusiveMinimum: 0,
+              maximum:          1e300
             },
             maxQueueSize: {
               type:    'number',
