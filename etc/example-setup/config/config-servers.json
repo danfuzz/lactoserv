@@ -16,6 +16,7 @@
     "interface":     "*",
     "port":          8443,
     "protocol":      "http2",
+    "rateLimiter":   "limiter",
     "requestLogger": "requests"
   },
   {

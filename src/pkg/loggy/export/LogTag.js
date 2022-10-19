@@ -15,7 +15,7 @@ export class LogTag {
   /** @type {string} Main tag. */
   #main;
 
-  /** @type {string[]} Context strings */
+  /** @type {string[]} Context strings. */
   #context;
 
   /** @type {?string} Precomputed "human form" string, if available. */
@@ -42,6 +42,17 @@ export class LogTag {
   /** @type {string[]} Context strings. Always a frozen array. */
   get context() {
     return this.#context;
+  }
+
+  /**
+   * @type {?string} Last context string, or `null` if this instance has no
+   * context. In the (common) case where this tag is attached to a logger which
+   * was produced by accessing `$newId` on another logger, this is the ID that
+   * was appended to the original logger's context.
+   */
+  get lastContext() {
+    const length = this.#context.length;
+    return (length === 0) ? null : this.#context[length - 1];
   }
 
   /** @type {string} Main tag. */

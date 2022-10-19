@@ -90,7 +90,8 @@ export class ProtocolWrangler {
       // call a (nominally) protected method to do the setup, but that's a lot
       // of mess to deal with. Doing it here keeps things pretty tidy, even if
       // it's just a little surprising.
-      app.use('/', (req, res, next) => { this.#handleRequest(req, res, next); });
+      app.use('/', (req, res, next)      => { this.#handleRequest(req, res, next);    });
+      app.use('/', (err, req, res, next) => { this.#handleError(err, req, res, next); });
       this.#applicationInitialized = true;
     }
 
@@ -167,14 +168,13 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Informs the higher-level stack of a connection received by the lower-level
-   * stack.
+   * Gets the (`HttpServer`-like) protocol server instance.
    *
    * @abstract
-   * @param {net.Socket} socket Socket representing the newly-made connection.
+   * @returns {object} The (`HttpServer`-like) protocol server instance.
    */
-  _impl_newConnection(socket) {
-    Methods.abstract(socket);
+  _impl_server() {
+    Methods.abstract();
   }
 
   /**
@@ -198,8 +198,41 @@ export class ProtocolWrangler {
   }
 
   /**
+   * Informs the higher-level stack of a connection received by the lower-level
+   * stack. This "protected" method is expected to be called by subclass code.
+   *
+   * @abstract
+   * @param {net.Socket} socket Socket representing the newly-made connection.
+   * @param {?function(...*)} logger Logger to use for the connection, if any.
+   */
+  _prot_newConnection(socket, logger) {
+    ProtocolWrangler.#bindLogger(socket, logger);
+    this._impl_server().emit('connection', socket);
+  }
+
+  /**
+   * Handles an error encountered during Express dispatch. Parameters are as
+   * defined by the Express middleware spec.
+   *
+   * @param {Error} err The error.
+   * @param {express.Request} req Request object.
+   * @param {express.Response} res Response object.
+   * @param {function(?*)} next_unused Next-middleware function. Unused, but
+   *   required to be declared so that Express knows that this is an
+   *   error-handling function.
+   */
+  #handleError(err, req, res, next_unused) {
+    const reqLogger = ProtocolWrangler.getLogger(req);
+
+    reqLogger?.topLevelError(err);
+    res.sendStatus(500);
+    res.end();
+  }
+
+  /**
    * "First licks" request handler. This gets added as the first middlware
-   * handler to the high-level application.
+   * handler to the high-level application. Parameters are as defined by the
+   * Express middleware spec.
    *
    * @param {express.Request} req Request object.
    * @param {express.Response} res Response object.
@@ -210,7 +243,10 @@ export class ProtocolWrangler {
     let reqLogger = null;
 
     if (this.#requestLogger) {
-      reqLogger = this.#requestLogger.logRequest(req, res);
+      const connLogger   = ProtocolWrangler.getLogger(req.socket);
+      const connectionId = connLogger?.$meta.lastContext ?? null;
+
+      reqLogger = this.#requestLogger.logRequest(req, res, connectionId);
       ProtocolWrangler.#bindLogger(req, reqLogger);
       ProtocolWrangler.#bindLogger(res, reqLogger);
     }
@@ -294,23 +330,27 @@ export class ProtocolWrangler {
   static #LOGGER_SYMBOL = Symbol('loggerFor' + this.name);
 
   /**
-   * Gets the logger which was bound to the given (presumed) request or response
-   * object.
+   * Gets the logger which was bound to the given object related to this class's
+   * operation, if any. This includes (`HttpServer`-like) request and response
+   * objects, and network socket objects representing connections.
    *
-   * @param {object} reqOrRes The request or response object.
-   * @returns {?function(...*)} logger The logger boun to it, if any.
+   * @param {object} obj The object which might have a bound logger.
+   * @returns {?function(...*)} logger The logger bound to it, if any.
    */
-  static getLogger(reqOrRes) {
-    return reqOrRes[this.#LOGGER_SYMBOL] ?? null;
+  static getLogger(obj) {
+    return obj[this.#LOGGER_SYMBOL] ?? null;
   }
 
   /**
-   * Binds a logger to the given (presumed) request or response object.
+   * Binds a logger to the given this-class-related object.
    *
-   * @param {object} reqOrRes The request or response object.
-   * @param {function(...*)} logger The logger to bind to it.
+   * @param {object} obj The object to bind to.
+   * @param {?function(...*)} logger The logger to bind to it, or `null` for
+   *   this to be a no-op.
    */
-  static #bindLogger(reqOrRes, logger) {
-    reqOrRes[this.#LOGGER_SYMBOL] = logger;
+  static #bindLogger(obj, logger) {
+    if (obj) {
+      obj[this.#LOGGER_SYMBOL] = logger;
+    }
   }
 }

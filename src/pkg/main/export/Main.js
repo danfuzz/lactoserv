@@ -24,7 +24,7 @@ export class Main {
     const system = new UsualSystem(args);
 
     await system.start();
-    await timers.setTimeout(15 * 1000);
+    await timers.setTimeout(5 * 60 * 1000);
     await system.stop();
 
     return 0;

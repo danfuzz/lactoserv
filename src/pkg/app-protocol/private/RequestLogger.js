@@ -39,9 +39,10 @@ export class RequestLogger {
    *
    * @param {express.Request} req Request object.
    * @param {express.Response} res Response object.
+   * @param {?string} connectionId Connection ID, if known.
    * @returns {function(*...)} The request-specific logger.
    */
-  logRequest(req, res) {
+  logRequest(req, res, connectionId) {
     const timeStart  = process.hrtime.bigint();
     const logger     = this.#logger?.$newId ?? null;
     const reqHeaders = req.headers;
@@ -49,7 +50,8 @@ export class RequestLogger {
     const origin     =
       FormatUtils.addressPortString(req.socket.remoteAddress, req.socket.remotePort);
 
-    logger?.started(origin, req.method, urlish);
+    logger?.connection(connectionId ?? '<unknown-connection-id>');
+    logger?.request(origin, req.method, urlish);
     logger?.headers(RequestLogger.#sanitizeRequestHeaders(reqHeaders));
 
     const cookies = req.cookies;
@@ -64,7 +66,7 @@ export class RequestLogger {
       logger?.response(res.statusCode,
         RequestLogger.#sanitizeResponseHeaders(resHeaders));
 
-      const timeEnd = process.hrtime.bigint();
+      const timeEnd     = process.hrtime.bigint();
       const elapsedMsec = Number(timeEnd - timeStart) * RequestLogger.#NSEC_PER_MSEC;
 
       logger?.done({ contentLength, elapsedMsec });
@@ -74,6 +76,7 @@ export class RequestLogger {
         origin,
         req.method,
         JSON.stringify(urlish),
+        res.statusCode,
         FormatUtils.contentLengthString(contentLength),
         FormatUtils.elapsedTimeString(elapsedMsec),
       ].join(' ');

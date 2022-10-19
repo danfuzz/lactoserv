@@ -52,7 +52,7 @@ export class HttpsWrangler extends TcpWrangler {
   }
 
   /** @override */
-  _impl_newConnection(socket) {
-    this.#protocolServer.emit('connection', socket);
+  _impl_server() {
+    return this.#protocolServer;
   }
 }

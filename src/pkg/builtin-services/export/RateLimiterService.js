@@ -5,6 +5,8 @@ import { BaseService, ServiceController } from '@this/app-services';
 import { TokenBucket } from '@this/async';
 import { JsonSchema } from '@this/json';
 
+import { RateLimitedStream } from '#p/RateLimitedStream';
+
 
 /**
  * Service which can apply various rate limits to network traffic. Configuration
@@ -22,6 +24,9 @@ import { JsonSchema } from '@this/json';
  * * `{number} flowRate` -- The steady-state flow rate, in tokens per unit of
  *   time.
  * * `{number} maxBurstSize` -- The maximum possible size of a burst, in tokens.
+ * * `{number} maxQueueGrantSize` -- Optional maximum possible size of a grant
+ *   given to a requester in the wait queue, in tokens. If not specified, it is
+ *   the same as the `maxBurstSize`.
  * * `{number} maxQueueSize` -- Optional maximum possible size of the wait
  *   queue, in tokens. This is the number of tokens that are allowed to be
  *   queued up for a grant, when there is insufficient burst capacity to satisfy
@@ -87,18 +92,16 @@ export class RateLimiterService extends BaseService {
    * being fully pass-through.
    *
    * @param {object} stream The writable stream to wrap.
-   * @param {?function(*)} logger_unused Logger to use for reporting about the
-   *   result.
+   * @param {?function(*)} logger Logger to use for this action.
    * @returns {object} An appropriately-wrapped instance, or the original
    *   `stream` if this instance has no data rate limiter.
    */
-  wrapWriter(stream, logger_unused) {
+  wrapWriter(stream, logger) {
     if (this.#data === null) {
       return stream;
     }
 
-    // TODO
-    throw new Error('TODO');
+    return RateLimitedStream.wrapWriter(this.#data, stream, logger);
   }
 
   /** @override */
@@ -160,6 +163,7 @@ export class RateLimiterService extends BaseService {
 
     const {
       maxBurstSize,
+      maxQueueGrantSize,
       maxQueueSize,
       flowRate: origFlowRate,
       timeUnit
@@ -167,7 +171,8 @@ export class RateLimiterService extends BaseService {
 
     const flowRate = this.#flowRatePerSecFrom(origFlowRate, timeUnit);
 
-    return new TokenBucket({ flowRate, maxBurstSize, maxQueueSize });
+    return new TokenBucket(
+      { flowRate, maxBurstSize, maxQueueGrantSize, maxQueueSize });
   }
 
   /**
@@ -229,6 +234,11 @@ export class RateLimiterService extends BaseService {
             timeUnit: {
               type: 'string',
               enum: ['day', 'hour', 'minute', 'second', 'msec']
+            },
+            maxQueueGrantSize: {
+              type:             'number',
+              exclusiveMinimum: 0,
+              maximum:          1e300
             },
             maxQueueSize: {
               type:    'number',

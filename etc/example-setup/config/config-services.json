@@ -25,6 +25,12 @@
       "flowRate":     5,
       "timeUnit":     "second",
       "maxQueueSize": 100
+    },
+    "data": {
+      "maxBurstSize": 500,
+      "flowRate":     10,
+      "timeUnit":     "second",
+      "maxQueueSize": 250
     }
   }
 ]

@@ -2,7 +2,7 @@
 // Licensed AS IS and WITHOUT WARRANTY under the Apache License,
 // Version 2.0. Details: <http://www.apache.org/licenses/LICENSE-2.0>
 
-import { MethodCacheProxyHandler } from '@this/metacomp';
+import { PropertyCacheProxyHandler } from '@this/metacomp';
 
 import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
 import { LogTag } from '#x/LogTag';
@@ -15,7 +15,7 @@ import { LogTag } from '#x/LogTag';
  * See {@link Loggy.loggerFor} for details (and the public interface to this
  * class).
  */
-export class LogProxyHandler extends MethodCacheProxyHandler {
+export class LogProxyHandler extends PropertyCacheProxyHandler {
   /** @type {LogTag} Tag to use on all logged events. */
   #tag;
 
@@ -94,22 +94,29 @@ export class LogProxyHandler extends MethodCacheProxyHandler {
   }
 
   /**
-   * Makes a method handler for the given method name.
+   * Produces the property value -- typically a method implementation -- for the
+   * given property name.
    *
-   * @param {string|symbol} name The method name.
-   * @returns {function(...*)} An appropriately-constructed handler.
+   * @param {string|symbol} name The property name.
+   * @returns {*} An appropriately-constructed property value.
    */
-  _impl_methodFor(name) {
+  _impl_valueFor(name) {
     if (typeof name === 'symbol') {
       throw new Error('Invalid name for logging method (symbols not allowed).');
     }
 
-    if (name === LogProxyHandler.#NEW_ID_METHOD_NAME) {
-      const idTag = this.#subTag.withAddedContext(this.#environment.makeId());
-      const proxy = LogProxyHandler.makeFunctionProxy(idTag, null, this.#environment);
-      return new MethodCacheProxyHandler.NoCache(proxy);
-    } else {
-      return LogProxyHandler.makeFunctionProxy(this.#subTag, name, this.#environment);
+    switch (name) {
+      case LogProxyHandler.#METHOD_NAME_META: {
+        return new LogProxyHandler.Meta(this);
+      }
+      case LogProxyHandler.#METHOD_NAME_NEW_ID: {
+        const idTag = this.#subTag.withAddedContext(this.#environment.makeId());
+        const proxy = LogProxyHandler.makeFunctionProxy(idTag, null, this.#environment);
+        return PropertyCacheProxyHandler.noCache(proxy);
+      }
+      default: {
+        return LogProxyHandler.makeFunctionProxy(this.#subTag, name, this.#environment);
+      }
     }
   }
 
@@ -118,11 +125,42 @@ export class LogProxyHandler extends MethodCacheProxyHandler {
   // Static members
   //
 
+  /** {string} Method name for requesting metainformation. */
+  static #METHOD_NAME_META = '$meta';
+
   /** {string} Method name to indicate dynamic ID construction. */
-  static #NEW_ID_METHOD_NAME = '$newId';
+  static #METHOD_NAME_NEW_ID = '$newId';
 
   /** {string} Main tag name to use for the top level. */
   static #TOP_TAG_NAME = '(top)';
+
+  /**
+   * Metainformation about a logger. Instances of this class are returned when
+   * accessing the property `$meta` on logger instances.
+   */
+  static Meta = class Meta {
+    /** @type {LogProxyHandler} The subject handler instance. */
+    #handler;
+
+    /**
+     * Constructs an instance.
+     *
+     * @param {LogProxyHandler} handler The subject handler instance.
+     */
+    constructor(handler) {
+      this.#handler = handler;
+    }
+
+    /** @returns {string} Convenient accessor for `this.tag().lastContext`. */
+    get lastContext() {
+      return this.tag.lastContext;
+    }
+
+    /** @returns {LogTag} The tag used by the logger. */
+    get tag() {
+      return this.#handler.#tag;
+    }
+  };
 
   /**
    * Constructs a usable logger instance -- that is, an instance of this class
