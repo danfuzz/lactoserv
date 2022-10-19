@@ -100,9 +100,10 @@ export class TokenBucket {
    *   from the waiter queue, in tokens. No queued grant requests will ever
    *   return a larger grant, even if there is available "burst volume" to
    *   accommodate it. Must be a finite non-negative number less than or equal
-   *   to `maxBurstSize`. If `partialTokens === false`, then this is rounded
-   *   down to an integer by `Math.floor()`. If `0`, then this instance will
-   *   only ever synchronously grant tokens. Defaults to `maxBurstSize`.
+   *   to both `maxBurstSize` and `maxQueueSize`. If `partialTokens === false`,
+   *   then this is rounded down to an integer by `Math.floor()`. If `0`, then
+   *   this instance will only ever synchronously grant tokens. Defaults to the
+   *   smaller of `maxBurstSize` or `maxQueueSize`.
    * * `{?number} maxQueueSize` -- The maximum allowed waiter queue size, in
    *   tokens. Must be a finite non-negative number or `null`. If `null`, then
    *   there is no limit on the queue size. If `0`, then this instance will only
@@ -124,27 +125,30 @@ export class TokenBucket {
       flowRate,
       initialBurstSize  = options.maxBurstSize,
       maxBurstSize,
-      maxQueueGrantSize = options.maxBurstSize,
+      maxQueueGrantSize,
       maxQueueSize      = null,
       partialTokens     = false,
       timeSource        = TokenBucket.#DEFAULT_TIME_SOURCE
     } = options;
 
-    this.#maxBurstSize      = MustBe.number(maxBurstSize, { finite: true, minExclusive: 0 });
-    this.#flowRate          = MustBe.number(flowRate, { finite: true, minExclusive: 0 });
-    this.#maxQueueGrantSize = MustBe.number(maxQueueGrantSize, { minInclusive: 0, maxInclusive: maxBurstSize });
-    this.#partialTokens     = MustBe.boolean(partialTokens);
-    this.#timeSource        = MustBe.object(timeSource, TokenBucket.TimeSource);
+    this.#maxBurstSize  = MustBe.number(maxBurstSize, { finite: true, minExclusive: 0 });
+    this.#flowRate      = MustBe.number(flowRate, { finite: true, minExclusive: 0 });
+    this.#partialTokens = MustBe.boolean(partialTokens);
+    this.#timeSource    = MustBe.object(timeSource, TokenBucket.TimeSource);
 
     this.#maxQueueSize = (maxQueueSize === null)
       ? Number.POSITIVE_INFINITY
       : MustBe.number(maxQueueSize, { finite: true, minInclusive: 0 });
 
-    if ((this.#maxQueueSize === 0) || (this.#maxQueueGrantSize === 0)) {
-      // Force both to be `0` if either is `0`.
-      this.#maxQueueSize      = 0;
-      this.#maxQueueGrantSize = 0;
-    } else if (!partialTokens) {
+    const queueGrantLimit = Math.min(this.#maxBurstSize, this.#maxQueueSize);
+    if (maxQueueGrantSize === undefined) {
+      this.#maxQueueGrantSize = queueGrantLimit;
+    } else {
+      this.#maxQueueGrantSize = MustBe.number(maxQueueGrantSize,
+        { minInclusive: 0, maxInclusive: queueGrantLimit });
+    }
+
+    if (!partialTokens) {
       this.#maxQueueGrantSize = Math.floor(this.#maxQueueGrantSize);
     }
 

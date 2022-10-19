@@ -288,6 +288,10 @@ describe('constructor(<invalid>)', () => {
     expect(() => new TokenBucket({ flowRate: 1, maxBurstSize: 1000, maxQueueGrantSize })).toThrow();
   });
 
+  test('rejects invalid `maxQueueGrantSize` (`> maxQueueSize`)', () => {
+    expect(() => new TokenBucket({ flowRate: 1, maxBurstSize: 10, maxQueueSize: 5, maxQueueGrantSize: 6 })).toThrow();
+  });
+
   test('rejects invalid `maxQueueGrantSize` (`> maxBurstSize`)', () => {
     expect(() => new TokenBucket({ flowRate: 1, maxBurstSize: 1, maxQueueGrantSize: 1.01 })).toThrow();
     expect(() => new TokenBucket({ flowRate: 1, maxBurstSize: 1, maxQueueGrantSize: 2 })).toThrow();
