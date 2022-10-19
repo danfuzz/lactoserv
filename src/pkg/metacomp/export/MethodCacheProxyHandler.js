@@ -22,8 +22,10 @@ const VERBOTEN_METHODS = new Set([
 
 /**
  * Base class for a proxy handler for the common pattern of keeping a cache of
- * computed methods, along with a subclass hole to be filled in for how to
- * compute those methods in the first place.
+ * computed property values, along with a subclass hole to be filled in for how
+ * to compute those values in the first place. A typical use of this is to
+ * provide a proxy which appears as an instance with infinitely many methods,
+ * though there are many other uses as well.
  *
  * As special cases:
  *
