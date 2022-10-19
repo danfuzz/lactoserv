@@ -3,5 +3,3 @@
 
 export * from '#x/ProtocolWrangler';
 export * from '#x/ProtocolWranglers';
-export * from '#x/ServerSpy';
-export * from '#x/WriteSpy';
