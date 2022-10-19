@@ -94,22 +94,25 @@ export class LogProxyHandler extends MethodCacheProxyHandler {
   }
 
   /**
-   * Makes a method handler for the given method name.
+   * Makes a method/property implementation for the given property name.
    *
    * @param {string|symbol} name The method name.
-   * @returns {function(...*)} An appropriately-constructed handler.
+   * @returns {function(...*)} An appropriately-constructed property value.
    */
   _impl_methodFor(name) {
     if (typeof name === 'symbol') {
       throw new Error('Invalid name for logging method (symbols not allowed).');
     }
 
-    if (name === LogProxyHandler.#NEW_ID_METHOD_NAME) {
-      const idTag = this.#subTag.withAddedContext(this.#environment.makeId());
-      const proxy = LogProxyHandler.makeFunctionProxy(idTag, null, this.#environment);
-      return new MethodCacheProxyHandler.NoCache(proxy);
-    } else {
-      return LogProxyHandler.makeFunctionProxy(this.#subTag, name, this.#environment);
+    switch (name) {
+      case LogProxyHandler.#METHOD_NAME_NEW_ID: {
+        const idTag = this.#subTag.withAddedContext(this.#environment.makeId());
+        const proxy = LogProxyHandler.makeFunctionProxy(idTag, null, this.#environment);
+        return new MethodCacheProxyHandler.NoCache(proxy);
+      }
+      default: {
+        return LogProxyHandler.makeFunctionProxy(this.#subTag, name, this.#environment);
+      }
     }
   }
 
@@ -118,8 +121,11 @@ export class LogProxyHandler extends MethodCacheProxyHandler {
   // Static members
   //
 
+  /** {string} Method name for requesting metainformation. */
+  static #METHOD_NAME_META = '$meta';
+
   /** {string} Method name to indicate dynamic ID construction. */
-  static #NEW_ID_METHOD_NAME = '$newId';
+  static #METHOD_NAME_NEW_ID = '$newId';
 
   /** {string} Main tag name to use for the top level. */
   static #TOP_TAG_NAME = '(top)';
