@@ -55,8 +55,8 @@ export class MethodCacheProxyHandler extends BaseProxyHandler {
   // Note: The default constructor suffices here.
 
   /**
-   * Standard `Proxy` handler method. This defers to {@link #_impl_methodFor}
-   * to generate property values that aren't yet cached.
+   * Standard `Proxy` handler method. This defers to {@link #_impl_valueFor} to
+   * generate property values that aren't yet cached.
    *
    * @param {object} target_unused The proxy target.
    * @param {string|symbol} property The property name.
@@ -82,9 +82,9 @@ export class MethodCacheProxyHandler extends BaseProxyHandler {
       // debugging).
       return () => '[object Proxy]';
     } else {
-      // The property is allowed to be proxied. Set up and cache a handler for
-      // it.
-      const result = this._impl_methodFor(property);
+      // The property is allowed to be proxied. Figure out the value, and cache
+      // it (unless asked not to).
+      const result = this._impl_valueFor(property);
       if (result instanceof MethodCacheProxyHandler.NoCache) {
         return result.value;
       } else {
@@ -102,10 +102,10 @@ export class MethodCacheProxyHandler extends BaseProxyHandler {
    * the result is _not_ cached for future returns.
    *
    * @abstract
-   * @param {string|symbol} name The method name.
+   * @param {string|symbol} name The property name.
    * @returns {*|NoCache} The property value for `name`.
    */
-  _impl_methodFor(name) {
+  _impl_valueFor(name) {
     return Methods.abstract(name);
   }
 
@@ -115,7 +115,7 @@ export class MethodCacheProxyHandler extends BaseProxyHandler {
   //
 
   /**
-   * Class which can be used to wrap results from {@link #_impl_methodFor}, to
+   * Class which can be used to wrap results from {@link #_impl_valueFor}, to
    * indicate that they shouldn't be cached.
    */
   static NoCache = class NoCache {

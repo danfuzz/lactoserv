@@ -94,12 +94,13 @@ export class LogProxyHandler extends MethodCacheProxyHandler {
   }
 
   /**
-   * Makes a method/property implementation for the given property name.
+   * Produces the property value -- typically a method implementation -- for the
+   * given property name.
    *
-   * @param {string|symbol} name The method name.
+   * @param {string|symbol} name The property name.
    * @returns {function(...*)} An appropriately-constructed property value.
    */
-  _impl_methodFor(name) {
+  _impl_valueFor(name) {
     if (typeof name === 'symbol') {
       throw new Error('Invalid name for logging method (symbols not allowed).');
     }

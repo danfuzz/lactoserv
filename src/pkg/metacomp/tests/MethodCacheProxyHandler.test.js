@@ -82,7 +82,7 @@ describe('get()', () => {
     const handler = new MethodCacheProxyHandler();
     const proxy   = new Proxy({}, handler);
 
-    handler._impl_methodFor = (name) => {
+    handler._impl_valueFor = (name) => {
       const result = () => { return; };
       result.blorp = `blorp-${name}`;
       return result;
@@ -96,7 +96,7 @@ describe('get()', () => {
     const handler = new MethodCacheProxyHandler();
     const proxy   = new Proxy({}, handler);
 
-    handler._impl_methodFor = (name) => {
+    handler._impl_valueFor = (name) => {
       const result = () => { return; };
       result.blorp = `blorp-${name}`;
       return result;
@@ -118,7 +118,7 @@ describe('get()', () => {
     const proxy   = new Proxy({}, handler);
 
     let count = 0;
-    handler._impl_methodFor = (name) => {
+    handler._impl_valueFor = (name) => {
       count++;
 
       const result = () => { return; };
