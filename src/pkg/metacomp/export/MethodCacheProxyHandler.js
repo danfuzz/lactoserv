@@ -94,15 +94,16 @@ export class MethodCacheProxyHandler extends BaseProxyHandler {
   }
 
   /**
-   * Makes a method handler for the given method name. The handler will
-   * ultimately get called by client code as a method on a proxy instance.
-   * If this method returns an instance of {@link #NoCache} instead of a
-   * function per se, the result is _not_ cached for future returns.
+   * Returns the method implementation function for the given method name. The
+   * function will ultimately get accessed by client code as a property,
+   * including (typically) being called as a method on a proxy instance. If this
+   * method returns an instance of {@link #NoCache} instead of a function per
+   * se, the result is _not_ cached for future returns.
    *
    * @abstract
    * @param {string|symbol} name The method name.
-   * @returns {function(*)|{ uncached: function(*)}} The method handler for the
-   *   method `name()`.
+   * @returns {function(*)|{ uncached: function(*)}} The method implementation
+   *   for the method `name()`.
    */
   _impl_methodFor(name) {
     return Methods.abstract(name);
