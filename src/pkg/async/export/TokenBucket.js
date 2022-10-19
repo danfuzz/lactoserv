@@ -260,6 +260,13 @@ export class TokenBucket {
    * * `{number} grant` -- The quantity of tokens granted to the caller. This is
    *   `0` if `done === false`, and can also be a successful grant of `0`, if
    *   the minimum request was `0`.
+   * * `{string} reason` -- The reason for the grant or lack thereof. This is
+   *   one of:
+   *   * `grant` -- Successful grant, including an in-range `grant === 0`.
+   *   * `stopping` -- All grant requests are currently being denied, due to a
+   *     call to {@link #denyAllRequests} which is currently in progress.
+   *   * `full` -- This request would cause the waiter queue to be too large
+   *     (including the case where `maxQueueSize === 0`).
    * * `{number} waitTime` -- The amount of time (in ATU) that was spent waiting
    *   for the grant.
    *
@@ -278,12 +285,12 @@ export class TokenBucket {
       this.#topUpBucket();
       const got = this.#grantNow(minInclusive, maxInclusive);
       if (got.done) {
-        return this.#requestGrantResult(true, got.grant, 0);
+        return this.#requestGrantResult(true, got.grant, 'grant', 0);
       }
     }
 
     if (minInclusive === 0) {
-      return this.#requestGrantResult(true, 0, 0);
+      return this.#requestGrantResult(true, 0, 'grant', 0);
     }
 
     // The request could not be completed synchronously. Figure out if it should
@@ -296,7 +303,7 @@ export class TokenBucket {
       // Either the instance doesn't do queueing at all (`grant === 0`) or the
       // wait queue would overflow if this grant were queued up. So immediately
       // fail.
-      return this.#requestGrantResult(false, 0, 0);
+      return this.#requestGrantResult(false, 0, 'full', 0);
     }
 
     // Queue up a new request, and make sure the waiter queue servicer thread is
@@ -495,11 +502,12 @@ export class TokenBucket {
    *
    * @param {boolean} done Done?
    * @param {number} grant Grant amount.
+   * @param {string} reason Grant (or lack thereof) reason.
    * @param {number} waitTime Amount of time spent waiting.
    * @returns {object} An appropriately-constructed result.
    */
-  #requestGrantResult(done, grant, waitTime) {
-    return { done, grant, waitTime };
+  #requestGrantResult(done, grant, reason, waitTime) {
+    return { done, grant, reason, waitTime };
   }
 
   /**
@@ -532,7 +540,7 @@ export class TokenBucket {
         this.#waiters.shift();
         this.#queueSize -= info.grant;
         const waitTime = this.#lastNow - info.startTime;
-        info.doGrant(this.#requestGrantResult(true, got.grant, waitTime));
+        info.doGrant(this.#requestGrantResult(true, got.grant, 'grant', waitTime));
       } else {
         await Promise.race([
           this.#waitUntil(got.waitUntil),
@@ -547,7 +555,7 @@ export class TokenBucket {
       this.#topUpBucket(); // Makes `#lastTime` be current.
       for (const info of this.#waiters) {
         const waitTime = this.#lastNow - info.startTime;
-        info.doGrant(this.#requestGrantResult(false, 0, waitTime));
+        info.doGrant(this.#requestGrantResult(false, 0, 'stopping', waitTime));
       }
 
       this.#waiters = [];
