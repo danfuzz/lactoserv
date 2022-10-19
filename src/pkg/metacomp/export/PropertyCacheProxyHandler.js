@@ -3,7 +3,7 @@
 
 import * as util from 'node:util';
 
-import { Methods, MustBe } from '@this/typey';
+import { Methods } from '@this/typey';
 
 import { BaseProxyHandler } from '#x/BaseProxyHandler';
 
@@ -103,7 +103,8 @@ export class PropertyCacheProxyHandler extends BaseProxyHandler {
    *
    * @abstract
    * @param {string|symbol} name The property name.
-   * @returns {*|NoCache} The property value for `name`.
+   * @returns {*|PropertyCacheProxyHandler.NoCache} The property value for
+   *   `name`.
    */
   _impl_valueFor(name) {
     return Methods.abstract(name);
@@ -142,7 +143,7 @@ export class PropertyCacheProxyHandler extends BaseProxyHandler {
    * #NoCache}.
    *
    * @param {*} value The property value to not-cache.
-   * @returns {NoCache} Cache-preventing instance.
+   * @returns {this.NoCache} Cache-preventing instance.
    */
   static noCache(value) {
     return new this.NoCache(value);
