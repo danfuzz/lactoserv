@@ -285,12 +285,12 @@ export class TokenBucket {
       this.#topUpBucket();
       const got = this.#grantNow(minInclusive, maxInclusive);
       if (got.done) {
-        return this.#requestGrantResult(true, got.grant, 'grant', 0);
+        return this.#requestGrantResult(got.grant, 'grant', 0);
       }
     }
 
     if (minInclusive === 0) {
-      return this.#requestGrantResult(true, 0, 'grant', 0);
+      return this.#requestGrantResult(0, 'grant', 0);
     }
 
     // The request could not be completed synchronously. Figure out if it should
@@ -303,7 +303,7 @@ export class TokenBucket {
       // Either the instance doesn't do queueing at all (`grant === 0`) or the
       // wait queue would overflow if this grant were queued up. So immediately
       // fail.
-      return this.#requestGrantResult(false, 0, 'full', 0);
+      return this.#requestGrantResult(0, 'full', 0);
     }
 
     // Queue up a new request, and make sure the waiter queue servicer thread is
@@ -500,13 +500,13 @@ export class TokenBucket {
   /**
    * Produces a result for a call to {@link #requestGrant}.
    *
-   * @param {boolean} done Done?
    * @param {number} grant Grant amount.
    * @param {string} reason Grant (or lack thereof) reason.
    * @param {number} waitTime Amount of time spent waiting.
    * @returns {object} An appropriately-constructed result.
    */
-  #requestGrantResult(done, grant, reason, waitTime) {
+  #requestGrantResult(grant, reason, waitTime) {
+    const done = (reason === 'grant');
     return { done, grant, reason, waitTime };
   }
 
@@ -540,7 +540,7 @@ export class TokenBucket {
         this.#waiters.shift();
         this.#queueSize -= info.grant;
         const waitTime = this.#lastNow - info.startTime;
-        info.doGrant(this.#requestGrantResult(true, got.grant, 'grant', waitTime));
+        info.doGrant(this.#requestGrantResult(got.grant, 'grant', waitTime));
       } else {
         await Promise.race([
           this.#waitUntil(got.waitUntil),
@@ -555,7 +555,7 @@ export class TokenBucket {
       this.#topUpBucket(); // Makes `#lastTime` be current.
       for (const info of this.#waiters) {
         const waitTime = this.#lastNow - info.startTime;
-        info.doGrant(this.#requestGrantResult(false, 0, 'stopping', waitTime));
+        info.doGrant(this.#requestGrantResult(0, 'stopping', waitTime));
       }
 
       this.#waiters = [];
