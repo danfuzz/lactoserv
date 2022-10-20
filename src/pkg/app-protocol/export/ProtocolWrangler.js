@@ -1,6 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import * as domain from 'node:domain';
 import * as net from 'node:net';
 
 import express from 'express';
@@ -10,6 +11,7 @@ import { Threadlet } from '@this/async';
 import { Methods } from '@this/typey';
 
 import { RequestLogger } from '#p/RequestLogger';
+import { WranglerContext } from '#p/WranglerContext';
 
 
 /**
@@ -192,7 +194,45 @@ export class ProtocolWrangler {
    */
   _prot_newConnection(socket, logger) {
     ProtocolWrangler.#bindLogger(socket, logger);
-    this._impl_server().emit('connection', socket);
+
+    // What's going on here:
+    //
+    // The layers of protocol implementation inside Node "conspire" to hide the
+    // original socket of the `connection` event from the request and response
+    // objects that ultimately get emitted as part of a `request` event, but we
+    // want to actually be able to track a request back to the connection. This
+    // is used for logging in two ways: (a) to map a request ID to a connection
+    // ID, and (b) to get the remote address of a connection. On that last part,
+    // Node makes some effort to expose "safe" socket operations through all the
+    // wrapped layers, but at least in our use case (maybe because we ourselves
+    // wrap the raw socket, and that messes with an `instanceof` check in the
+    // guts of Node's networking code) the punch-through doesn't actually work.
+    //
+    // Node has a "domain" mechanism which seems to be geared mostly towards
+    // error handling of what would otherwise be unhandled callback errors
+    // (notably, those arising from network code). One can emit an event "in" a
+    // domain, and that domain propagates to other events that the in-domain
+    // event in turn spawns. We don't care about the error-handling aspect of
+    // this, but we _do_ care that we can figure out in what domain a particular
+    // event callback was emitted. We attach socket / connection context to a
+    // domain (via a `WeakMap`), and then pull it back out when we find
+    // ourselves receiving events that are known to be related to a connection.
+    // We then attach the same context to the salient objects at the next layer
+    // down, etc. All the domain stuff happens _just_ in this class, to avoid
+    // leaking this implementatin detail (and minimize the disruption when
+    // domains -- which are already "pre-deprecated" -- ultimitely get
+    // replaced). Everything else can just use `WranglerContext` to get the
+    // context objects when needed.
+
+    const connectionCtx = WranglerContext.forConnection(socket, logger);
+    const dom           = domain.create();
+
+    WranglerContext.bind(socket, connectionCtx);
+    WranglerContext.bind(dom,    connectionCtx);
+
+    dom.run(() => {
+      this._impl_server().emit('connection', socket);
+    });
   }
 
   /**
@@ -225,16 +265,19 @@ export class ProtocolWrangler {
    *   to run.
    */
   async #handleRequest(req, res, next) {
-    let reqLogger = null;
+    const connectionCtx = WranglerContext.get(req.socket, req.stream?.session);
+    let   reqLogger     = null;
 
     if (this.#requestLogger) {
-      const connLogger   = ProtocolWrangler.getLogger(req.socket);
-      const connectionId = connLogger?.$meta.lastContext ?? null;
-
+      const connectionId  = connectionCtx?.connectionId ?? null;
       reqLogger = this.#requestLogger.logRequest(req, res, connectionId);
       ProtocolWrangler.#bindLogger(req, reqLogger);
       ProtocolWrangler.#bindLogger(res, reqLogger);
     }
+
+    const reqCtx = WranglerContext.forRequest(connectionCtx, reqLogger);
+    WranglerContext.bind(req, reqCtx);
+    WranglerContext.bind(req, reqCtx);
 
     if (this.#rateLimiter) {
       const granted = await this.#rateLimiter.newRequest(reqLogger);
@@ -271,10 +314,36 @@ export class ProtocolWrangler {
       return;
     }
 
+    // Set up high-level application routing.
+
     const app = this._impl_application();
 
     app.use('/', (req, res, next)      => { this.#handleRequest(req, res, next);    });
     app.use('/', (err, req, res, next) => { this.#handleError(err, req, res, next); });
+
+    // Set up event handlers to propagate the connection context. See
+    // `_prot_newConnection()` for a treatise about what this is all about.
+
+    const server = this._impl_server();
+
+    server.on('secureConnection', (socket) => {
+      const ctx = WranglerContext.get(process.domain);
+      if (ctx) {
+        WranglerContext.bind(socket, ctx);
+      } else {
+        this.#logger?.missingContext('secureConnection');
+      }
+    });
+
+    server.on('session', (session) => {
+      const ctx = WranglerContext.get(process.domain);
+      if (ctx) {
+        WranglerContext.bind(session, ctx);
+        WranglerContext.bind(session.socket, ctx);
+      } else {
+        this.#logger?.missingContext('session');
+      }
+    });
 
     this.#initialized = true;
   }
