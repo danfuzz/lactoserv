@@ -39,18 +39,17 @@ export class RequestLogger {
    *
    * @param {express.Request} req Request object.
    * @param {express.Response} res Response object.
-   * @param {?string} connectionId Connection ID, if known.
+   * @param {?WranglerContext} connectionCtx Connection context, if known.
    * @returns {function(*...)} The request-specific logger.
    */
-  logRequest(req, res, connectionId) {
+  logRequest(req, res, connectionCtx) {
     const timeStart  = process.hrtime.bigint();
     const logger     = this.#logger?.$newId ?? null;
     const reqHeaders = req.headers;
     const urlish     = `${req.protocol}://${req.hostname}${req.originalUrl}`;
-    const origin     =
-      FormatUtils.addressPortString(req.socket.remoteAddress, req.socket.remotePort);
+    const origin     = connectionCtx?.socketAddressPort ?? '<unknown-origin>';
 
-    logger?.connection(connectionId ?? '<unknown-connection-id>');
+    logger?.connection(connectionCtx?.connectionId ?? '<unknown-connection-id>');
     logger?.request(origin, req.method, urlish);
     logger?.headers(RequestLogger.#sanitizeRequestHeaders(reqHeaders));
 

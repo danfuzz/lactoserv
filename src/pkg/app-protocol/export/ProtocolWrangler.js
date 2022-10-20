@@ -270,7 +270,7 @@ export class ProtocolWrangler {
 
     if (this.#requestLogger) {
       const connectionId  = connectionCtx?.connectionId ?? null;
-      reqLogger = this.#requestLogger.logRequest(req, res, connectionId);
+      reqLogger = this.#requestLogger.logRequest(req, res, connectionCtx);
       ProtocolWrangler.#bindLogger(req, reqLogger);
       ProtocolWrangler.#bindLogger(res, reqLogger);
     }
