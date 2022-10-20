@@ -200,8 +200,6 @@ export class ProtocolWrangler {
    * @param {?function(...*)} logger Logger to use for the connection, if any.
    */
   _prot_newConnection(socket, logger) {
-    ProtocolWrangler.#bindLogger(socket, logger);
-
     // What's going on here:
     //
     // The layers of protocol implementation inside Node "conspire" to hide the
@@ -246,9 +244,9 @@ export class ProtocolWrangler {
    *   error-handling function.
    */
   #handleError(err, req, res, next_unused) {
-    const reqLogger = ProtocolWrangler.getLogger(req);
+    const logger = WranglerContext.get(req)?.logger;
 
-    reqLogger?.topLevelError(err);
+    logger?.topLevelError(err);
     res.sendStatus(500);
     res.end();
   }
@@ -270,8 +268,6 @@ export class ProtocolWrangler {
     if (this.#requestLogger) {
       const connectionId  = connectionCtx?.connectionId ?? null;
       reqLogger = this.#requestLogger.logRequest(req, res, connectionCtx);
-      ProtocolWrangler.#bindLogger(req, reqLogger);
-      ProtocolWrangler.#bindLogger(res, reqLogger);
     }
 
     const reqCtx = WranglerContext.forRequest(connectionCtx, reqLogger);
@@ -391,46 +387,6 @@ export class ProtocolWrangler {
 
     if (this.#logger) {
       this.#logger.started(this._impl_loggableInfo());
-    }
-  }
-
-
-  //
-  // Static members
-  //
-
-  /**
-   * @type {symbol} Symbol used when binding a logger to a request or response
-   * object.
-   */
-  static #LOGGER_SYMBOL = Symbol('loggerFor' + this.name);
-
-  /**
-   * Gets the logger which was bound to the given object related to this class's
-   * operation, if any. This includes:
-   *
-   * * `HttpServer`-like request and response objects, which get bound to a
-   *   request logger that this method can return.
-   * * `net.Socket`-like and `Http2Session`-like objects, which get bound to a
-   *   connection logger that this method can return.
-   *
-   * @param {object} obj The object which might have a bound logger.
-   * @returns {?function(...*)} logger The logger bound to it, if any.
-   */
-  static getLogger(obj) {
-    return obj[this.#LOGGER_SYMBOL] ?? null;
-  }
-
-  /**
-   * Binds a logger to the given this-class-related object.
-   *
-   * @param {object} obj The object to bind to.
-   * @param {?function(...*)} logger The logger to bind to it, or `null` for
-   *   this to be a no-op.
-   */
-  static #bindLogger(obj, logger) {
-    if (obj) {
-      obj[this.#LOGGER_SYMBOL] = logger;
     }
   }
 }
