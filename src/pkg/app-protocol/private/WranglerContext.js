@@ -38,6 +38,11 @@ export class WranglerContext {
     return this.#connectionLogger;
   }
 
+  /** @returns {?function(...*)} Most-specific available logger, if any. */
+  get logger() {
+    return this.#requestLogger ?? this.#connectionLogger;
+  }
+
   /** @returns {?string} ID of a request. */
   get requestId() {
     return this.#requestId;
