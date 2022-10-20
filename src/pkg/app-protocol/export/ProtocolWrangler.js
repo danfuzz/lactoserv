@@ -11,7 +11,7 @@ import { Threadlet } from '@this/async';
 import { Methods } from '@this/typey';
 
 import { RequestLogger } from '#p/RequestLogger';
-import { WranglerContext } from '#p/WranglerContext';
+import { WranglerContext } from '#x/WranglerContext';
 
 
 /**
