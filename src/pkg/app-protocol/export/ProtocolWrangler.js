@@ -220,7 +220,7 @@ export class ProtocolWrangler {
     // this async storage stuff more widely, we use it _just_ in this class to
     // attach the connection info (via a `WeakMap`) to all the downstream
     // objects that our event handlers might eventually find themselves with.
-    // The API for this (to the rest of the module) is the class
+    // The API for this (to the rest of the system) is the class
     // `WranglerContext`.
 
     const connectionCtx = WranglerContext.forConnection(socket, logger);
