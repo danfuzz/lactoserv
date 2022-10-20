@@ -43,9 +43,8 @@ export class Http2Wrangler extends TcpWrangler {
     this.#application    = http2ExpressBridge(express);
     this.#protocolServer = http2.createSecureServer(options.hosts);
 
-    this.#protocolServer
-      .on('request', (req, res) => this.#handleRequest(req, res))
-      .on('session', session => this.#addSession(session));
+    this.#application.use('/', (req, res, next) => this.#tweakResponse(req, res, next));
+    this.#protocolServer.on('session', session => this.#addSession(session));
   }
 
   /** @override */
@@ -99,13 +98,14 @@ export class Http2Wrangler extends TcpWrangler {
   }
 
   /**
-   * Handles an incoming HTTP(ish) request.
+   * Tweaks the response object of an incoming request. (Note: Actual app
+   * dispatch happens in the base class.)
    *
-   * @param {http2.Http2ServerRequest} req The incoming request.
-   * @param {http2.Http2ServerResponse} res Object to call on to create the
-   *   response.
+   * @param {http2.Http2ServerRequest} req_unused The incoming request.
+   * @param {http2.Http2ServerResponse} res Response creator.
+   * @param {function(?*)} next Next-middleware function.
    */
-  #handleRequest(req, res) {
+  #tweakResponse(req, res, next) {
     // Express likes to set status messages, but HTTP2 doesn't actually have
     // those. Node helpfully warns about that, but in practice this is just an
     // artifact of Express wanting to not-rely on Node to get default status
@@ -116,7 +116,7 @@ export class Http2Wrangler extends TcpWrangler {
       set: () => { /* Ignore it. */ }
     });
 
-    this.#application(req, res);
+    next();
   }
 
   /**

@@ -313,17 +313,19 @@ export class ProtocolWrangler {
       return;
     }
 
-    // Set up high-level application routing.
+    const app    = this._impl_application();
+    const server = this._impl_server();
 
-    const app = this._impl_application();
+    // Set up high-level application routing, including getting the protocol
+    // server to hand requests off to the app.
 
     app.use('/', (req, res, next)      => { this.#handleRequest(req, res, next);    });
     app.use('/', (err, req, res, next) => { this.#handleError(err, req, res, next); });
 
+    server.on('request', app);
+
     // Set up event handlers to propagate the connection context. See
     // `_prot_newConnection()` for a treatise about what's going on.
-
-    const server = this._impl_server();
 
     server.on('secureConnection', (socket) => {
       const ctx = this.#perConnectionStorage.getStore();

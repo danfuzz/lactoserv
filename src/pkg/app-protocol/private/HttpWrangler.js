@@ -28,8 +28,6 @@ export class HttpWrangler extends TcpWrangler {
 
     this.#application    = express();
     this.#protocolServer = http.createServer();
-
-    this.#protocolServer.on('request', this.#application);
   }
 
   /** @override */
