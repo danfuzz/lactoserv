@@ -337,8 +337,12 @@ export class ProtocolWrangler {
 
   /**
    * Gets the logger which was bound to the given object related to this class's
-   * operation, if any. This includes (`HttpServer`-like) request and response
-   * objects, and network socket objects representing connections.
+   * operation, if any. This includes:
+   *
+   * * `HttpServer`-like request and response objects, which get bound to a
+   *   request logger that this method can return.
+   * * `net.Socket`-like and `Http2Session`-like objects, which get bound to a
+   *   connection logger that this method can return.
    *
    * @param {object} obj The object which might have a bound logger.
    * @returns {?function(...*)} logger The logger bound to it, if any.
