@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import * as domain from 'node:domain';
+import { AsyncLocalStorage } from 'node:async_hooks';
 import * as net from 'node:net';
 
 import express from 'express';
@@ -38,11 +38,18 @@ export class ProtocolWrangler {
    */
   #requestLogger;
 
-  /** @type {boolean} Has initialization been finished? */
-  #initialized = false;
+  /**
+   * @type {AsyncLocalStorage} Per-connection storage, used to plumb connection
+   * context through to the various objects that use the connection.
+   */
+  #perConnectionStorage = new AsyncLocalStorage();
 
   /** @type {Threadlet} Threadlet which runs the "network stack." */
   #runner = new Threadlet(() => this.#startNetwork(), () => this.#runNetwork());
+
+  /** @type {boolean} Has initialization been finished? */
+  #initialized = false;
+
 
   /**
    * Constructs an instance. Accepted options:
@@ -208,29 +215,21 @@ export class ProtocolWrangler {
     // wrap the raw socket, and that messes with an `instanceof` check in the
     // guts of Node's networking code) the punch-through doesn't actually work.
     //
-    // Node has a "domain" mechanism which seems to be geared mostly towards
-    // error handling of what would otherwise be unhandled callback errors
-    // (notably, those arising from network code). One can emit an event "in" a
-    // domain, and that domain propagates to other events that the in-domain
-    // event in turn spawns. We don't care about the error-handling aspect of
-    // this, but we _do_ care that we can figure out in what domain a particular
-    // event callback was emitted. We attach socket / connection context to a
-    // domain (via a `WeakMap`), and then pull it back out when we find
-    // ourselves receiving events that are known to be related to a connection.
-    // We then attach the same context to the salient objects at the next layer
-    // down, etc. All the domain stuff happens _just_ in this class, to avoid
-    // leaking this implementatin detail (and minimize the disruption when
-    // domains -- which are already "pre-deprecated" -- ultimitely get
-    // replaced). Everything else can just use `WranglerContext` to get the
-    // context objects when needed.
+    // Thankfully, Node has an "async local storage" mechanism which is geared
+    // towards exactly this sort of use case. By emitting the `connection` event
+    // with our connection context as the designated "async storage," handlers
+    // for downstream events can retrieve that same context. Instead of exposing
+    // this async storage stuff more widely, we use it _just_ in this class to
+    // attach the connection info (via a `WeakMap`) to all the downstream
+    // objects that our event handlers might eventually find themselves with.
+    // The API for this (to the rest of the module) is the class
+    // `WranglerContext`.
 
     const connectionCtx = WranglerContext.forConnection(socket, logger);
-    const dom           = domain.create();
 
     WranglerContext.bind(socket, connectionCtx);
-    WranglerContext.bind(dom,    connectionCtx);
 
-    dom.run(() => {
+    this.#perConnectionStorage.run(connectionCtx, () => {
       this._impl_server().emit('connection', socket);
     });
   }
@@ -322,12 +321,12 @@ export class ProtocolWrangler {
     app.use('/', (err, req, res, next) => { this.#handleError(err, req, res, next); });
 
     // Set up event handlers to propagate the connection context. See
-    // `_prot_newConnection()` for a treatise about what this is all about.
+    // `_prot_newConnection()` for a treatise about what's going on.
 
     const server = this._impl_server();
 
     server.on('secureConnection', (socket) => {
-      const ctx = WranglerContext.get(process.domain);
+      const ctx = this.#perConnectionStorage.getStore();
       if (ctx) {
         WranglerContext.bind(socket, ctx);
       } else {
@@ -336,7 +335,7 @@ export class ProtocolWrangler {
     });
 
     server.on('session', (session) => {
-      const ctx = WranglerContext.get(process.domain);
+      const ctx = this.#perConnectionStorage.getStore();
       if (ctx) {
         WranglerContext.bind(session, ctx);
         WranglerContext.bind(session.socket, ctx);
