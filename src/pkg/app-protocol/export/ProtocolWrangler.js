@@ -36,11 +36,8 @@ export class ProtocolWrangler {
    */
   #requestLogger;
 
-  /**
-   * @type {boolean} Has the high-level application been initialized by this
-   * (base) class?
-   */
-  #applicationInitialized = false;
+  /** @type {boolean} Has initialization been finished? */
+  #initialized = false;
 
   /** @type {Threadlet} Threadlet which runs the "network stack." */
   #runner = new Threadlet(() => this.#startNetwork(), () => this.#runNetwork());
@@ -81,21 +78,8 @@ export class ProtocolWrangler {
    * of `express:Express` or thing that is (approximately) compatible with same.
    */
   get application() {
-    const app = this._impl_application();
-
-    if (!this.#applicationInitialized) {
-      // First time getting the application; set it up. Note: We can't do this
-      // in this (base) class's constructor, because the subclass instance isn't
-      // yet constructed at that point. We could alternatively make the subclass
-      // call a (nominally) protected method to do the setup, but that's a lot
-      // of mess to deal with. Doing it here keeps things pretty tidy, even if
-      // it's just a little surprising.
-      app.use('/', (req, res, next)      => { this.#handleRequest(req, res, next);    });
-      app.use('/', (err, req, res, next) => { this.#handleError(err, req, res, next); });
-      this.#applicationInitialized = true;
-    }
-
-    return app;
+    this.#initialize();
+    return this._impl_application();
   }
 
   /**
@@ -106,6 +90,7 @@ export class ProtocolWrangler {
    * @throws {Error} Thrown if there was any trouble starting up.
    */
   async start() {
+    this.#initialize();
     return this.#runner.start();
   }
 
@@ -271,6 +256,27 @@ export class ProtocolWrangler {
     }
 
     next();
+  }
+
+  /**
+   * Finish initialization of the instance, by setting up all the event and
+   * route handlers on the protocol server and high-level application instance.
+   * We can't do this in the constructor, because at the time this (base class)
+   * constructor runs, the concrete class constructor hasn't finished, and it's
+   * only after it's finished that we can grab the objects that it's responsible
+   * for creating.
+   */
+  #initialize() {
+    if (this.#initialized) {
+      return;
+    }
+
+    const app = this._impl_application();
+
+    app.use('/', (req, res, next)      => { this.#handleRequest(req, res, next);    });
+    app.use('/', (err, req, res, next) => { this.#handleError(err, req, res, next); });
+
+    this.#initialized = true;
   }
 
   /**
