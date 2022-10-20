@@ -12,11 +12,24 @@ export class FormatUtils {
   /**
    * Makes a human-friendly network address/port string.
    *
-   * @param {string} address The address.
-   * @param {number} port The port.
+   * @param {?string} [address = null] The address, or `null` if not known.
+   * @param {?number} [port = null] The port, or `null` if unknown or
+   *   irrelevant.
    * @returns {string} The friendly form.
    */
-  static addressPortString(address, port) {
+  static addressPortString(address = null, port = null) {
+    if (address === null) {
+      if (port === null) {
+        return '<unknown-address>';
+      } else {
+        return `<unknown-address>:${port}`;
+      }
+    }
+
+    if (port === null) {
+      return address;
+    }
+
     if (/:/.test(address)) {
       // IPv6 form.
       return `[${address}]:${port}`;
