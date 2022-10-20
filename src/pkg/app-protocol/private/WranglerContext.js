@@ -3,6 +3,8 @@
 
 import * as net from 'node:net';
 
+import { FormatUtils } from '@this/loggy';
+
 
 /**
  * Context that can be attached to the various objects that emerge from this
@@ -26,11 +28,6 @@ export class WranglerContext {
 
   // Note: The default constructor is fine here.
 
-  /** @returns {?net.Socket} Raw socket associated with a connection. */
-  get socket() {
-    return this.#socket;
-  }
-
   /** @returns {?string} ID of a connection. */
   get connectionId() {
     return this.#connectionId;
@@ -49,6 +46,20 @@ export class WranglerContext {
   /** @returns {?function(...*)} Logger for a request. */
   get requestLogger() {
     return this.#requestLogger;
+  }
+
+  /** @returns {?net.Socket} Raw socket associated with a connection. */
+  get socket() {
+    return this.#socket;
+  }
+
+  /**
+   * @returns {string} Loggable form of the remote address and port from the
+   * {@link #socket}, if and as available.
+   */
+  get socketAddressPort() {
+    const { remoteAddress, remotePort } = this.#socket ?? {};
+    return FormatUtils.addressPortString(remoteAddress, remotePort);
   }
 
 
