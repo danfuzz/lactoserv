@@ -1,6 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { AsyncLocalStorage } from 'node:async_hooks';
 import * as net from 'node:net';
 
 import express from 'express';
@@ -10,6 +11,7 @@ import { Threadlet } from '@this/async';
 import { Methods } from '@this/typey';
 
 import { RequestLogger } from '#p/RequestLogger';
+import { WranglerContext } from '#x/WranglerContext';
 
 
 /**
@@ -37,13 +39,17 @@ export class ProtocolWrangler {
   #requestLogger;
 
   /**
-   * @type {boolean} Has the high-level application been initialized by this
-   * (base) class?
+   * @type {AsyncLocalStorage} Per-connection storage, used to plumb connection
+   * context through to the various objects that use the connection.
    */
-  #applicationInitialized = false;
+  #perConnectionStorage = new AsyncLocalStorage();
 
   /** @type {Threadlet} Threadlet which runs the "network stack." */
   #runner = new Threadlet(() => this.#startNetwork(), () => this.#runNetwork());
+
+  /** @type {boolean} Has initialization been finished? */
+  #initialized = false;
+
 
   /**
    * Constructs an instance. Accepted options:
@@ -81,21 +87,8 @@ export class ProtocolWrangler {
    * of `express:Express` or thing that is (approximately) compatible with same.
    */
   get application() {
-    const app = this._impl_application();
-
-    if (!this.#applicationInitialized) {
-      // First time getting the application; set it up. Note: We can't do this
-      // in this (base) class's constructor, because the subclass instance isn't
-      // yet constructed at that point. We could alternatively make the subclass
-      // call a (nominally) protected method to do the setup, but that's a lot
-      // of mess to deal with. Doing it here keeps things pretty tidy, even if
-      // it's just a little surprising.
-      app.use('/', (req, res, next)      => { this.#handleRequest(req, res, next);    });
-      app.use('/', (err, req, res, next) => { this.#handleError(err, req, res, next); });
-      this.#applicationInitialized = true;
-    }
-
-    return app;
+    this.#initialize();
+    return this._impl_application();
   }
 
   /**
@@ -106,6 +99,7 @@ export class ProtocolWrangler {
    * @throws {Error} Thrown if there was any trouble starting up.
    */
   async start() {
+    this.#initialize();
     return this.#runner.start();
   }
 
@@ -206,8 +200,36 @@ export class ProtocolWrangler {
    * @param {?function(...*)} logger Logger to use for the connection, if any.
    */
   _prot_newConnection(socket, logger) {
-    ProtocolWrangler.#bindLogger(socket, logger);
-    this._impl_server().emit('connection', socket);
+    // What's going on here:
+    //
+    // The layers of protocol implementation inside Node "conspire" to hide the
+    // original socket of the `connection` event from the request and response
+    // objects that ultimately get emitted as part of a `request` event, but we
+    // want to actually be able to track a request back to the connection. This
+    // is used for logging in two ways: (a) to map a request ID to a connection
+    // ID, and (b) to get the remote address of a connection. On that last part,
+    // Node makes some effort to expose "safe" socket operations through all the
+    // wrapped layers, but at least in our use case (maybe because we ourselves
+    // wrap the raw socket, and that messes with an `instanceof` check in the
+    // guts of Node's networking code) the punch-through doesn't actually work.
+    //
+    // Thankfully, Node has an "async local storage" mechanism which is geared
+    // towards exactly this sort of use case. By emitting the `connection` event
+    // with our connection context as the designated "async storage," handlers
+    // for downstream events can retrieve that same context. Instead of exposing
+    // this async storage stuff more widely, we use it _just_ in this class to
+    // attach the connection info (via a `WeakMap`) to all the downstream
+    // objects that our event handlers might eventually find themselves with.
+    // The API for this (to the rest of the module) is the class
+    // `WranglerContext`.
+
+    const connectionCtx = WranglerContext.forConnection(socket, logger);
+
+    WranglerContext.bind(socket, connectionCtx);
+
+    this.#perConnectionStorage.run(connectionCtx, () => {
+      this._impl_server().emit('connection', socket);
+    });
   }
 
   /**
@@ -222,9 +244,9 @@ export class ProtocolWrangler {
    *   error-handling function.
    */
   #handleError(err, req, res, next_unused) {
-    const reqLogger = ProtocolWrangler.getLogger(req);
+    const logger = WranglerContext.get(req)?.logger;
 
-    reqLogger?.topLevelError(err);
+    logger?.topLevelError(err);
     res.sendStatus(500);
     res.end();
   }
@@ -240,16 +262,14 @@ export class ProtocolWrangler {
    *   to run.
    */
   async #handleRequest(req, res, next) {
-    let reqLogger = null;
+    const connectionCtx = WranglerContext.get(req.socket, req.stream?.session);
+    const reqLogger =
+      this.#requestLogger.logRequest(req, res, connectionCtx)
+      ?? null;
 
-    if (this.#requestLogger) {
-      const connLogger   = ProtocolWrangler.getLogger(req.socket);
-      const connectionId = connLogger?.$meta.lastContext ?? null;
-
-      reqLogger = this.#requestLogger.logRequest(req, res, connectionId);
-      ProtocolWrangler.#bindLogger(req, reqLogger);
-      ProtocolWrangler.#bindLogger(res, reqLogger);
-    }
+    const reqCtx = WranglerContext.forRequest(connectionCtx, reqLogger);
+    WranglerContext.bind(req, reqCtx);
+    WranglerContext.bind(req, reqCtx);
 
     if (this.#rateLimiter) {
       const granted = await this.#rateLimiter.newRequest(reqLogger);
@@ -271,6 +291,55 @@ export class ProtocolWrangler {
     }
 
     next();
+  }
+
+  /**
+   * Finish initialization of the instance, by setting up all the event and
+   * route handlers on the protocol server and high-level application instance.
+   * We can't do this in the constructor, because at the time this (base class)
+   * constructor runs, the concrete class constructor hasn't finished, and it's
+   * only after it's finished that we can grab the objects that it's responsible
+   * for creating.
+   */
+  #initialize() {
+    if (this.#initialized) {
+      return;
+    }
+
+    const app    = this._impl_application();
+    const server = this._impl_server();
+
+    // Set up high-level application routing, including getting the protocol
+    // server to hand requests off to the app.
+
+    app.use('/', (req, res, next)      => { this.#handleRequest(req, res, next);    });
+    app.use('/', (err, req, res, next) => { this.#handleError(err, req, res, next); });
+
+    server.on('request', app);
+
+    // Set up event handlers to propagate the connection context. See
+    // `_prot_newConnection()` for a treatise about what's going on.
+
+    server.on('secureConnection', (socket) => {
+      const ctx = this.#perConnectionStorage.getStore();
+      if (ctx) {
+        WranglerContext.bind(socket, ctx);
+      } else {
+        this.#logger?.missingContext('secureConnection');
+      }
+    });
+
+    server.on('session', (session) => {
+      const ctx = this.#perConnectionStorage.getStore();
+      if (ctx) {
+        WranglerContext.bind(session, ctx);
+        WranglerContext.bind(session.socket, ctx);
+      } else {
+        this.#logger?.missingContext('session');
+      }
+    });
+
+    this.#initialized = true;
   }
 
   /**
@@ -315,42 +384,6 @@ export class ProtocolWrangler {
 
     if (this.#logger) {
       this.#logger.started(this._impl_loggableInfo());
-    }
-  }
-
-
-  //
-  // Static members
-  //
-
-  /**
-   * @type {symbol} Symbol used when binding a logger to a request or response
-   * object.
-   */
-  static #LOGGER_SYMBOL = Symbol('loggerFor' + this.name);
-
-  /**
-   * Gets the logger which was bound to the given object related to this class's
-   * operation, if any. This includes (`HttpServer`-like) request and response
-   * objects, and network socket objects representing connections.
-   *
-   * @param {object} obj The object which might have a bound logger.
-   * @returns {?function(...*)} logger The logger bound to it, if any.
-   */
-  static getLogger(obj) {
-    return obj[this.#LOGGER_SYMBOL] ?? null;
-  }
-
-  /**
-   * Binds a logger to the given this-class-related object.
-   *
-   * @param {object} obj The object to bind to.
-   * @param {?function(...*)} logger The logger to bind to it, or `null` for
-   *   this to be a no-op.
-   */
-  static #bindLogger(obj, logger) {
-    if (obj) {
-      obj[this.#LOGGER_SYMBOL] = logger;
     }
   }
 }

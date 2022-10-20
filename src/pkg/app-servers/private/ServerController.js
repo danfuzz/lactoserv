@@ -4,7 +4,7 @@
 import * as express from 'express';
 
 import { HostManager } from '@this/app-hosts';
-import { ProtocolWrangler, ProtocolWranglers } from '@this/app-protocol';
+import { ProtocolWrangler, ProtocolWranglers, WranglerContext } from '@this/app-protocol';
 import { TreePathKey, TreePathMap } from '@this/collections';
 
 import { ApplicationController } from '#x/ApplicationController';
@@ -135,7 +135,7 @@ export class ServerController {
    *   to run.
    */
   #handleRequest(req, res, next) {
-    const reqLogger = ProtocolWrangler.getLogger(req);
+    const reqLogger = WranglerContext.get(req)?.logger;
 
     const { path, subdomains } = req;
 
@@ -147,7 +147,7 @@ export class ServerController {
     const hostMap = this.#mountMap.find(hostKey)?.value;
     if (!hostMap) {
       // No matching host.
-      reqLogger.hostNotFound();
+      reqLogger?.hostNotFound();
       next();
       return;
     }
@@ -155,13 +155,13 @@ export class ServerController {
     const controller = hostMap.find(pathKey)?.value;
     if (!controller) {
       // No matching path.
-      reqLogger.pathNotFound();
+      reqLogger?.pathNotFound();
       next();
       return;
     }
 
     // Call the app!
-    reqLogger.usingApp(controller.name);
+    reqLogger?.usingApp(controller.name);
     controller.app.handleRequest(req, res, next);
   }
 
