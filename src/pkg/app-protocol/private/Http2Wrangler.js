@@ -105,7 +105,7 @@ export class Http2Wrangler extends TcpWrangler {
    * @param {http2.Http2ServerResponse} res Response creator.
    * @param {function(?*)} next Next-middleware function.
    */
-  #tweakResponse(req, res, next) {
+  #tweakResponse(req_unused, res, next) {
     // Express likes to set status messages, but HTTP2 doesn't actually have
     // those. Node helpfully warns about that, but in practice this is just an
     // artifact of Express wanting to not-rely on Node to get default status
