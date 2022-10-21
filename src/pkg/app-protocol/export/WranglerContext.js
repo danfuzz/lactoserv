@@ -2,6 +2,7 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import * as net from 'node:net';
+import * as stream from 'node:stream';
 
 import { FormatUtils } from '@this/loggy';
 
