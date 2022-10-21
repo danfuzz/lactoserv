@@ -11,7 +11,7 @@ import { FormatUtils } from '@this/loggy';
  * module, along with accessors to get at that context.
  */
 export class WranglerContext {
-  /** @type {?net.Socket} Raw socket associated with a connection. */
+  /** @type {?net.Socket} Unencrypted socket associated with a connection. */
   #socket = null;
 
   /** @type {?string} ID of a connection. */
@@ -53,7 +53,11 @@ export class WranglerContext {
     return this.#requestLogger;
   }
 
-  /** @returns {?net.Socket} Raw socket associated with a connection. */
+  /**
+   * @returns {?net.Socket|stream.Duplex} Unencrypted socket or socket-like
+   * thing associated with a connection. If the connection has a data rate
+   * limiter, this is the stream wrapper object which implements rate limiting.
+   */
   get socket() {
     return this.#socket;
   }
