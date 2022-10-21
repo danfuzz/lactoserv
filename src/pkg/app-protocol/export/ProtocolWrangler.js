@@ -204,7 +204,6 @@ export class ProtocolWrangler {
    * Informs the higher-level stack of a connection received by the lower-level
    * stack. This "protected" method is expected to be called by subclass code.
    *
-   * @abstract
    * @param {net.Socket} socket Socket representing the newly-made connection.
    * @param {?function(...*)} logger Logger to use for the connection, if any.
    */
@@ -239,6 +238,44 @@ export class ProtocolWrangler {
     this.#perConnectionStorage.run(connectionCtx, () => {
       this._impl_server().emit('connection', socket);
     });
+  }
+
+  /**
+   * Informs the higher-level stack of session creation from the lower-level
+   * stack. This "protected" method is expected to be called by subclass code.
+   * (Note: As of this writing, this is only useful to be called from HTTP2
+   * wrangling code.)
+   *
+   * @param {object} session The (`http2.Http2Session`-like) instance.
+   * @returns {?function(...*)} Logging function to use for the session, if
+   *   logging is in fact to be done.
+   */
+  _prot_newSession(session) {
+    // Propagate the connection context. See `_prot_newConnection()` for a
+    // treatise about what's going on.
+
+    const ctx = this.#perConnectionStorage.getStore();
+    if (ctx) {
+      WranglerContext.bind(session, ctx);
+      WranglerContext.bind(session.socket, ctx);
+    } else {
+      this.#logger?.missingContext('session');
+    }
+
+    const sessionLogger = this.#logger?.sess.$newId;
+
+    if (sessionLogger) {
+      const connectionId  = ctx?.connectionId ?? '<unknown-id>';
+      sessionLogger.opened();
+      sessionLogger.connection(connectionId);
+
+      session.on('close',      () => sessionLogger.closed('close'));
+      session.on('error',      () => sessionLogger.closed('error'));
+      session.on('frameError', () => sessionLogger.closed('frame-error'));
+      session.on('goaway',     () => sessionLogger.closed('go-away'));
+    }
+
+    return sessionLogger;
   }
 
   /**
@@ -299,7 +336,7 @@ export class ProtocolWrangler {
       }
     }
 
-    // Weird form to force it to be a function call and not a method call.
+    // `?? null` to force it to be a function call and not a method call.
     return (this.#requestHandler ?? null)(req, res, next);
   }
 
@@ -321,31 +358,18 @@ export class ProtocolWrangler {
 
     // Set up high-level application routing, including getting the protocol
     // server to hand requests off to the app.
-
     app.use('/', (req, res, next) => this.#handleRequest(req, res, next));
     app.use('/', (err, req, res, next) => this.#handleError(err, req, res, next));
-
     server.on('request', app);
 
-    // Set up event handlers to propagate the connection context. See
+    // Set up an event handler to propagate the connection context. See
     // `_prot_newConnection()` for a treatise about what's going on.
-
     server.on('secureConnection', (socket) => {
       const ctx = this.#perConnectionStorage.getStore();
       if (ctx) {
         WranglerContext.bind(socket, ctx);
       } else {
         this.#logger?.missingContext('secureConnection');
-      }
-    });
-
-    server.on('session', (session) => {
-      const ctx = this.#perConnectionStorage.getStore();
-      if (ctx) {
-        WranglerContext.bind(session, ctx);
-        WranglerContext.bind(session.socket, ctx);
-      } else {
-        this.#logger?.missingContext('session');
       }
     });
 
