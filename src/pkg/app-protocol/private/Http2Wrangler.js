@@ -91,6 +91,8 @@ export class Http2Wrangler extends TcpWrangler {
     sessions.add(session);
     this.#anySessions.value = true;
 
+    // TODO: The ID is consistently "unknown" because the wrangler context
+    // gets added in an event handler that runs after this method is called.
     const id = WranglerContext.get(session)?.connectionId ?? '<unknown-id>';
     this.#logger?.addedSession({ id, totalSessions: sessions.size });
 
@@ -99,8 +101,8 @@ export class Http2Wrangler extends TcpWrangler {
         if (sessions.size === 0) {
           this.#anySessions.value = false;
         }
-        const id = WranglerContext.get(session)?.connectionId ?? '<unknown-id>';
-        this.#logger?.removedSession({ id, reason, totalSessions: sessions.size });
+        const id2 = WranglerContext.get(session)?.connectionId ?? '<unknown-id>';
+        this.#logger?.removedSession({ id: id2, reason, totalSessions: sessions.size });
       }
     };
 
