@@ -41,7 +41,7 @@ export class RequestLogger {
    *
    * @param {express.Request} req Request object.
    * @param {express.Response} res Response object.
-   * @param {?WranglerContext} connectionCtx Connection context, if known.
+   * @param {WranglerContext} connectionCtx Connection context.
    * @returns {function(*...)} The request-specific logger.
    */
   logRequest(req, res, connectionCtx) {
@@ -49,9 +49,9 @@ export class RequestLogger {
     const logger     = this.#logger?.$newId ?? null;
     const reqHeaders = req.headers;
     const urlish     = `${req.protocol}://${req.hostname}${req.originalUrl}`;
-    const origin     = connectionCtx?.socketAddressPort ?? '<unknown-origin>';
+    const origin     = connectionCtx.socketAddressPort ?? '<unknown-origin>';
 
-    logger?.connection(connectionCtx?.connectionId ?? '<unknown-connection-id>');
+    logger?.connection(connectionCtx.connectionId ?? '<unknown-connection-id>');
     logger?.request(origin, req.method, urlish);
     logger?.headers(RequestLogger.#sanitizeRequestHeaders(reqHeaders));
 
@@ -63,6 +63,23 @@ export class RequestLogger {
     res.on('finish', () => {
       const resHeaders    = res.getHeaders();
       const contentLength = resHeaders['content-length'] ?? null;
+
+      // Check to see if the connection socket has errored out. If so, indicate
+      // as much.
+      const connError = connectionCtx.socket.errored;
+      let   errorMsg  = 'ok';
+      if (connError) {
+        if (connError.code) {
+          errorMsg = connError.code.toLowerCase().replaceAll(/_/g, '-');
+        } else if (connError.message) {
+          errorMsg = connError.message.slice(0, 32).toLowerCase()
+            .replaceAll(/[_ ]/g, '-')
+            .replaceAll(/[^-a-z0-9]/g, '');
+        } else {
+          errorMsg = 'err-unknown';
+        }
+        logger?.connectionError(errorMsg);
+      }
 
       logger?.response(res.statusCode,
         RequestLogger.#sanitizeResponseHeaders(resHeaders));
@@ -80,6 +97,7 @@ export class RequestLogger {
         res.statusCode,
         FormatUtils.contentLengthString(contentLength),
         FormatUtils.elapsedTimeString(elapsedMsec),
+        errorMsg
       ].join(' ');
 
       logger?.requestLog(requestLogLine);
