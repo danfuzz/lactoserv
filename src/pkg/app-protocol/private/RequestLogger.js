@@ -51,6 +51,7 @@ export class RequestLogger {
     const urlish     = `${req.protocol}://${req.hostname}${req.originalUrl}`;
     const origin     = connectionCtx.socketAddressPort ?? '<unknown-origin>';
 
+    logger?.opened();
     logger?.connection(connectionCtx.connectionId ?? '<unknown-connection-id>');
     logger?.request(origin, req.method, urlish);
     logger?.headers(RequestLogger.#sanitizeRequestHeaders(reqHeaders));
@@ -87,7 +88,7 @@ export class RequestLogger {
       const timeEnd     = process.hrtime.bigint();
       const elapsedMsec = Number(timeEnd - timeStart) * RequestLogger.#NSEC_PER_MSEC;
 
-      logger?.done({ contentLength, elapsedMsec });
+      logger?.closed({ contentLength, elapsedMsec });
 
       const requestLogLine = [
         FormatUtils.dateTimeStringFromMsec(Date.now()),
