@@ -6,7 +6,62 @@ cmdDir="${cmdName%/*}"
 cmdName="${cmdName##*/}"
 baseDir="${cmdDir%/*}"
 
-# TODO: Check for version of Node.
+
+#
+# Helper functions
+#
+
+# Prints an error message to `stderr`.
+function error-msg {
+    echo 1>&2 "$@"
+}
+
+# Checks one dependency.
+function check-dependency {
+    local name="$1"
+    local versionCmd="$2"
+    local match="$3"
+
+    # Extract just the binary (executable / command / tool) name.
+    local cmdName=''
+    if [[ ${versionCmd} =~ ^([^ ]+) ]]; then
+        cmdName="${BASH_REMATCH[1]}"
+    else
+        # Note: This indicates a bug in this script, not a problem with the
+        # environment.
+        error-msg "Could not determine binary name for ${name}."
+        exit 1
+    fi
+
+    # Verify that the command
+    if ! which "${cmdName}" >/dev/null 2>&1; then
+        error-msg "Missing required binary for ${name}: ${cmdName}"
+        exit 1
+    fi
+
+    local version
+    version=$(eval "${versionCmd}") \
+    || {
+        # Note: This indicates a bug in this script, not a problem with the
+        # environment.
+        error-msg "Trouble running version command for ${name}."
+        exit 1
+    }
+
+    if [[ !(${version} =~ ${match}) ]]; then
+        error-msg "Unsupported version of ${name}: ${version}"
+        exit 1
+    fi
+}
+
+#
+# Main script
+#
+
+check-dependency \
+    'Node' \
+    'node --version | sed -e "s/^v//g"' \
+    '^(18|19)\.'
 
 # Note: `--no-warnings` suppresses Node's built-in warning printer, which we do
 # because this program includes its own warning handler.
