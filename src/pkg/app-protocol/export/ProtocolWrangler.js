@@ -307,6 +307,7 @@ export class ProtocolWrangler {
    * @param {express.Response} res Response object.
    * @param {function(?*)} next Function which causes the next-bound middleware
    *   to run.
+   * @returns {*} Result of application handler call, or `null` if not called.
    */
   async #handleRequest(req, res, next) {
     const connectionCtx = WranglerContext.getNonNull(req.socket, req.stream?.session);
@@ -332,7 +333,7 @@ export class ProtocolWrangler {
         res.once('finish', () => { resSocket.end();     });
         res.once('end',    () => { resSocket.destroy(); });
 
-        return;
+        return null;
       }
     }
 
