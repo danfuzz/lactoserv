@@ -58,10 +58,11 @@ export class ServerController {
     this.#logger      = logger[this.#name];
 
     const wranglerOptions = {
-      rateLimiter:   serverConfig.rateLimiter,
-      requestLogger: serverConfig.requestLogger,
-      logger:        this.#logger,
-      protocol:      serverConfig.protocol,
+      rateLimiter:    serverConfig.rateLimiter,
+      requestHandler: (req, res, next) => this.#handleRequest(req, res, next),
+      requestLogger:  serverConfig.requestLogger,
+      logger:         this.#logger,
+      protocol:       serverConfig.protocol,
       socket: {
         host: serverConfig.interface,
         port: serverConfig.port
@@ -120,9 +121,6 @@ export class ServerController {
 
     // Squelches the response header advertisement for Express.
     app.set('x-powered-by', false);
-
-    // Hook up our handler.
-    app.use('/', (req, res, next) => { this.#handleRequest(req, res, next); });
   }
 
   /**

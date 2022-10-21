@@ -8,7 +8,7 @@ import express from 'express';
 
 import { BaseService } from '@this/app-services';
 import { Threadlet } from '@this/async';
-import { Methods } from '@this/typey';
+import { Methods, MustBe } from '@this/typey';
 
 import { RequestLogger } from '#p/RequestLogger';
 import { WranglerContext } from '#x/WranglerContext';
@@ -32,6 +32,12 @@ export class ProtocolWrangler {
 
   /** @type {?BaseService} Rate limiter service to use, if any. */
   #rateLimiter;
+
+  /**
+   * @type {function(object, object, function(?*))} Request handler function, in
+   * the style of Express middleware.
+   */
+  #requestHandler;
 
   /**
    * @type {?RequestLogger} HTTP(ish) request logger, if logging is to be done.
@@ -60,6 +66,8 @@ export class ProtocolWrangler {
    *   that sort of thing.
    * * `rateLimiter: BaseService` -- Rate limiter to use. (If not specified, the
    *   instance won't do rate limiting.)
+   * * `requestHandler: function(req, res, next)` -- Request handler, in the
+   *   form of a standard Express middleware function. This is required.
    * * `requestLogger: BaseService` -- Request logger to send to. (If not
    *   specified, the instance won't do request logging.)
    * * `logger: function(...*)` -- Logger to use to emit events about what the
@@ -73,11 +81,12 @@ export class ProtocolWrangler {
    * @param {object} options Construction options, per the description above.
    */
   constructor(options) {
-    const { logger, rateLimiter, requestLogger } = options;
+    const { logger, rateLimiter, requestHandler, requestLogger } = options;
 
-    this.#logger        = logger ?? null;
-    this.#rateLimiter   = rateLimiter ?? null;
-    this.#requestLogger = requestLogger
+    this.#logger         = logger ?? null;
+    this.#rateLimiter    = rateLimiter ?? null;
+    this.#requestHandler = MustBe.callableFunction(requestHandler);
+    this.#requestLogger  = requestLogger
       ? new RequestLogger(requestLogger, logger)
       : null;
   }
@@ -254,7 +263,8 @@ export class ProtocolWrangler {
   /**
    * "First licks" request handler. This gets added as the first middlware
    * handler to the high-level application. Parameters are as defined by the
-   * Express middleware spec.
+   * Express middleware spec. This method will call out to the configured
+   * `requestHandler` when appropriate (e.g. not rate-limited, etc.).
    *
    * @param {express.Request} req Request object.
    * @param {express.Response} res Response object.
@@ -289,7 +299,8 @@ export class ProtocolWrangler {
       }
     }
 
-    next();
+    // Weird form to force it to be a function call and not a method call.
+    return (this.#requestHandler ?? null)(req, res, next);
   }
 
   /**
@@ -312,10 +323,6 @@ export class ProtocolWrangler {
     // server to hand requests off to the app.
 
     app.use('/', (req, res, next) => this.#handleRequest(req, res, next));
-
-    // TODO: Our client's handler should end up here (or get called from
-    // `#handleRequest`), that is, before the error-handling middleware.
-
     app.use('/', (err, req, res, next) => this.#handleError(err, req, res, next));
 
     server.on('request', app);
