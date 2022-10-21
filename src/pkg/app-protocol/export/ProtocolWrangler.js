@@ -269,7 +269,6 @@ export class ProtocolWrangler {
 
     const reqCtx = WranglerContext.forRequest(connectionCtx, reqLogger);
     WranglerContext.bind(req, reqCtx);
-    WranglerContext.bind(req, reqCtx);
 
     if (this.#rateLimiter) {
       const granted = await this.#rateLimiter.newRequest(reqLogger);
