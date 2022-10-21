@@ -10,7 +10,6 @@ import http2ExpressBridge from 'http2-express-bridge';
 import { Condition, Threadlet } from '@this/async';
 
 import { TcpWrangler } from '#p/TcpWrangler';
-import { WranglerContext } from '#x/WranglerContext';
 
 
 /**
