@@ -8,7 +8,7 @@ import express from 'express';
 
 import { BaseService } from '@this/app-services';
 import { Threadlet } from '@this/async';
-import { Methods } from '@this/typey';
+import { Methods, MustBe } from '@this/typey';
 
 import { RequestLogger } from '#p/RequestLogger';
 import { WranglerContext } from '#x/WranglerContext';
@@ -32,6 +32,12 @@ export class ProtocolWrangler {
 
   /** @type {?BaseService} Rate limiter service to use, if any. */
   #rateLimiter;
+
+  /**
+   * @type {function(object, object, function(?*))} Request handler function, in
+   * the style of Express middleware.
+   */
+  #requestHandler;
 
   /**
    * @type {?RequestLogger} HTTP(ish) request logger, if logging is to be done.
@@ -60,6 +66,8 @@ export class ProtocolWrangler {
    *   that sort of thing.
    * * `rateLimiter: BaseService` -- Rate limiter to use. (If not specified, the
    *   instance won't do rate limiting.)
+   * * `requestHandler: function(req, res, next)` -- Request handler, in the
+   *   form of a standard Express middleware function. This is required.
    * * `requestLogger: BaseService` -- Request logger to send to. (If not
    *   specified, the instance won't do request logging.)
    * * `logger: function(...*)` -- Logger to use to emit events about what the
@@ -73,11 +81,12 @@ export class ProtocolWrangler {
    * @param {object} options Construction options, per the description above.
    */
   constructor(options) {
-    const { logger, rateLimiter, requestLogger } = options;
+    const { logger, rateLimiter, requestHandler, requestLogger } = options;
 
-    this.#logger        = logger ?? null;
-    this.#rateLimiter   = rateLimiter ?? null;
-    this.#requestLogger = requestLogger
+    this.#logger         = logger ?? null;
+    this.#rateLimiter    = rateLimiter ?? null;
+    this.#requestHandler = MustBe.callableFunction(requestHandler);
+    this.#requestLogger  = requestLogger
       ? new RequestLogger(requestLogger, logger)
       : null;
   }
@@ -195,7 +204,6 @@ export class ProtocolWrangler {
    * Informs the higher-level stack of a connection received by the lower-level
    * stack. This "protected" method is expected to be called by subclass code.
    *
-   * @abstract
    * @param {net.Socket} socket Socket representing the newly-made connection.
    * @param {?function(...*)} logger Logger to use for the connection, if any.
    */
@@ -233,6 +241,44 @@ export class ProtocolWrangler {
   }
 
   /**
+   * Informs the higher-level stack of session creation from the lower-level
+   * stack. This "protected" method is expected to be called by subclass code.
+   * (Note: As of this writing, this is only useful to be called from HTTP2
+   * wrangling code.)
+   *
+   * @param {object} session The (`http2.Http2Session`-like) instance.
+   * @returns {?function(...*)} Logging function to use for the session, if
+   *   logging is in fact to be done.
+   */
+  _prot_newSession(session) {
+    // Propagate the connection context. See `_prot_newConnection()` for a
+    // treatise about what's going on.
+
+    const ctx = this.#perConnectionStorage.getStore();
+    if (ctx) {
+      WranglerContext.bind(session, ctx);
+      WranglerContext.bind(session.socket, ctx);
+    } else {
+      this.#logger?.missingContext('session');
+    }
+
+    const sessionLogger = this.#logger?.sess.$newId;
+
+    if (sessionLogger) {
+      const connectionId  = ctx?.connectionId ?? '<unknown-id>';
+      sessionLogger.opened();
+      sessionLogger.connection(connectionId);
+
+      session.on('close',      () => sessionLogger.closed('close'));
+      session.on('error',      () => sessionLogger.closed('error'));
+      session.on('frameError', (type, code, id) => sessionLogger.frameError(type, code, id));
+      session.on('goaway',     code => sessionLogger.closed('go-away', code));
+    }
+
+    return sessionLogger;
+  }
+
+  /**
    * Handles an error encountered during Express dispatch. Parameters are as
    * defined by the Express middleware spec.
    *
@@ -254,12 +300,14 @@ export class ProtocolWrangler {
   /**
    * "First licks" request handler. This gets added as the first middlware
    * handler to the high-level application. Parameters are as defined by the
-   * Express middleware spec.
+   * Express middleware spec. This method will call out to the configured
+   * `requestHandler` when appropriate (e.g. not rate-limited, etc.).
    *
    * @param {express.Request} req Request object.
    * @param {express.Response} res Response object.
    * @param {function(?*)} next Function which causes the next-bound middleware
    *   to run.
+   * @returns {*} Result of application handler call, or `null` if not called.
    */
   async #handleRequest(req, res, next) {
     const connectionCtx = WranglerContext.getNonNull(req.socket, req.stream?.session);
@@ -285,11 +333,12 @@ export class ProtocolWrangler {
         res.once('finish', () => { resSocket.end();     });
         res.once('end',    () => { resSocket.destroy(); });
 
-        return;
+        return null;
       }
     }
 
-    next();
+    // `?? null` to force it to be a function call and not a method call.
+    return (this.#requestHandler ?? null)(req, res, next);
   }
 
   /**
@@ -310,35 +359,18 @@ export class ProtocolWrangler {
 
     // Set up high-level application routing, including getting the protocol
     // server to hand requests off to the app.
-
     app.use('/', (req, res, next) => this.#handleRequest(req, res, next));
-
-    // TODO: Our client's handler should end up here (or get called from
-    // `#handleRequest`), that is, before the error-handling middleware.
-
     app.use('/', (err, req, res, next) => this.#handleError(err, req, res, next));
-
     server.on('request', app);
 
-    // Set up event handlers to propagate the connection context. See
+    // Set up an event handler to propagate the connection context. See
     // `_prot_newConnection()` for a treatise about what's going on.
-
     server.on('secureConnection', (socket) => {
       const ctx = this.#perConnectionStorage.getStore();
       if (ctx) {
         WranglerContext.bind(socket, ctx);
       } else {
         this.#logger?.missingContext('secureConnection');
-      }
-    });
-
-    server.on('session', (session) => {
-      const ctx = this.#perConnectionStorage.getStore();
-      if (ctx) {
-        WranglerContext.bind(session, ctx);
-        WranglerContext.bind(session.socket, ctx);
-      } else {
-        this.#logger?.missingContext('session');
       }
     });
 

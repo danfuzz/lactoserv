@@ -160,6 +160,15 @@ export class LogProxyHandler extends PropertyCacheProxyHandler {
     get tag() {
       return this.#handler.#tag;
     }
+
+    /**
+     * Gets newly-generated ID from this instance's logging environment.
+     *
+     * @returns {string} The new ID.
+     */
+    makeId() {
+      return this.#handler.#environment.makeId();
+    }
   };
 
   /**

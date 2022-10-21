@@ -10,7 +10,6 @@ import http2ExpressBridge from 'http2-express-bridge';
 import { Condition, Threadlet } from '@this/async';
 
 import { TcpWrangler } from '#p/TcpWrangler';
-import { WranglerContext } from '#x/WranglerContext';
 
 
 /**
@@ -86,32 +85,28 @@ export class Http2Wrangler extends TcpWrangler {
       return;
     }
 
+    const logger   = this._prot_newSession(session);
     const sessions = this.#sessions;
 
     sessions.add(session);
     this.#anySessions.value = true;
 
-    // TODO: The ID is consistently "unknown" because the wrangler context
-    // gets added in an event handler that runs after this method is called.
-    const id = WranglerContext.get(session)?.connectionId ?? '<unknown-id>';
-    this.#logger?.addedSession({ id, totalSessions: sessions.size });
+    logger?.totalSessions(sessions.size);
 
-    const removeSession = (reason) => {
+    const removeSession = () => {
       if (sessions.delete(session)) {
         if (sessions.size === 0) {
           this.#anySessions.value = false;
         }
-        const id2 = WranglerContext.get(session)?.connectionId ?? '<unknown-id>';
-        this.#logger?.removedSession({ id: id2, reason, totalSessions: sessions.size });
+        logger?.totalSessions(sessions.size);
       }
     };
 
-    session.on('close',      () => removeSession('close'));
-    session.on('error',      () => removeSession('error'));
-    session.on('frameError', () => removeSession('frame-error'));
-    session.on('goaway',     () => removeSession('go-away'));
+    session.on('close', removeSession);
+    session.on('error', removeSession);
 
     session.setTimeout(Http2Wrangler.#SESSION_TIMEOUT_MSEC, () => {
+      logger?.idleTimeout();
       session.close();
     });
   }
