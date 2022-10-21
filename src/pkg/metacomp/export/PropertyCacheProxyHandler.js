@@ -8,7 +8,7 @@ import { Methods } from '@this/typey';
 import { BaseProxyHandler } from '#x/BaseProxyHandler';
 
 
-/** {Set<string>} Set of methods which never get proxied. */
+/** @type {Set<string>} Set of methods which never get proxied. */
 const VERBOTEN_METHODS = new Set([
   // Standard constructor method name.
   'constructor',

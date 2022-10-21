@@ -159,9 +159,9 @@ export class BaseLoggingEnvironment {
   // Static members
   //
 
-  /** {number} Lower bound for "reasonable" timestamps. */
+  /** @type {number} Lower bound for "reasonable" timestamps. */
   static #MIN_REASONABLE_NOW_SEC = 900_000_000; // The late 1990s.
 
-  /** {number} Upper bound for "reasonable" timestamps. */
+  /** @type {number} Upper bound for "reasonable" timestamps. */
   static #MAX_REASONABLE_NOW_SEC = 4_200_000_000; // The early 22nd century.
 }

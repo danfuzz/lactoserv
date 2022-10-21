@@ -125,13 +125,13 @@ export class LogProxyHandler extends PropertyCacheProxyHandler {
   // Static members
   //
 
-  /** {string} Method name for requesting metainformation. */
+  /** @type {string} Method name for requesting metainformation. */
   static #METHOD_NAME_META = '$meta';
 
-  /** {string} Method name to indicate dynamic ID construction. */
+  /** @type {string} Method name to indicate dynamic ID construction. */
   static #METHOD_NAME_NEW_ID = '$newId';
 
-  /** {string} Main tag name to use for the top level. */
+  /** @type {string} Main tag name to use for the top level. */
   static #TOP_TAG_NAME = '(top)';
 
   /**

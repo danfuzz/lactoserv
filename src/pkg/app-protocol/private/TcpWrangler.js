@@ -256,7 +256,7 @@ export class TcpWrangler extends ProtocolWrangler {
   // Static members
   //
 
-  /** {object} "Prototype" of server socket creation options. */
+  /** @type {object} "Prototype" of server socket creation options. */
   static #CREATE_PROTO = Object.freeze({
     allowHalfOpen:         null,
     keepAlive:             null,
@@ -265,7 +265,7 @@ export class TcpWrangler extends ProtocolWrangler {
     pauseOnConnect:        null
   });
 
-  /** {object} "Prototype" of server listen options. */
+  /** @type {object} "Prototype" of server listen options. */
   static #LISTEN_PROTO = Object.freeze({
     port:      null,
     host:      null,
