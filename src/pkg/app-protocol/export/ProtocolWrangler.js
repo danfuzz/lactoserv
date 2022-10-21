@@ -312,8 +312,12 @@ export class ProtocolWrangler {
     // Set up high-level application routing, including getting the protocol
     // server to hand requests off to the app.
 
-    app.use('/', (req, res, next)      => { this.#handleRequest(req, res, next);    });
-    app.use('/', (err, req, res, next) => { this.#handleError(err, req, res, next); });
+    app.use('/', (req, res, next) => this.#handleRequest(req, res, next));
+
+    // TODO: Our client's handler should end up here (or get called from
+    // `#handleRequest`), that is, before the error-handling middleware.
+
+    app.use('/', (err, req, res, next) => this.#handleError(err, req, res, next));
 
     server.on('request', app);
 
