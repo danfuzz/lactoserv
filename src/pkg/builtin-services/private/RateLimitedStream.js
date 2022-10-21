@@ -2,7 +2,7 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { Socket } from 'node:net';
-import { Readable, Writable, Duplex } from 'node:stream';
+import { Duplex, Readable, Writable } from 'node:stream';
 import { setImmediate } from 'node:timers';
 
 import { ManualPromise, TokenBucket } from '@this/async';
