@@ -153,4 +153,21 @@ export class WranglerContext {
 
     return null;
   }
+
+  /**
+   * Like {@link #get}, but throws if an instance can't be found.
+   *
+   * @param {...object} objs The object(s) to look up.
+   * @returns {WranglerContext} Instance of this class with salient context.
+   * @throws {Error} Thrown if there is no such instance.
+   */
+  static getNonNull(...objs) {
+    const found = this.get(...objs);
+
+    if (!found) {
+      throw new Error('Missing context.');
+    }
+
+    return found;
+  }
 }

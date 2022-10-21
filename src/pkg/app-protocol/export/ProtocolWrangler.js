@@ -262,9 +262,9 @@ export class ProtocolWrangler {
    *   to run.
    */
   async #handleRequest(req, res, next) {
-    const connectionCtx = WranglerContext.get(req.socket, req.stream?.session);
+    const connectionCtx = WranglerContext.getNonNull(req.socket, req.stream?.session);
     const reqLogger =
-      this.#requestLogger.logRequest(req, res, connectionCtx)
+      this.#requestLogger?.logRequest(req, res, connectionCtx)
       ?? null;
 
     const reqCtx = WranglerContext.forRequest(connectionCtx, reqLogger);
