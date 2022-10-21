@@ -673,10 +673,10 @@ export class TokenBucket {
       }
     }
 
-    /** {number} The number of milliseconds in a second. */
+    /** @type {number} The number of milliseconds in a second. */
     static #MSEC_PER_SEC = 1000;
 
-    /** {number} The number of seconds in a millisecond. */
+    /** @type {number} The number of seconds in a millisecond. */
     static #SECS_PER_MSEC = 1 / 1000;
   };
 

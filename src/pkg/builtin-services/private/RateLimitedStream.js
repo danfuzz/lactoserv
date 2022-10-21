@@ -212,8 +212,11 @@ export class RateLimitedStream {
         // This can happen when a stream is getting proactively closed (e.g.,
         // when the system is shutting down) or when there is too much
         // contention.
-        this.#logger?.denied(grantResult.reason);
-        this.#becomeBroken(new Error(`Rate limited: ${grantResult.reason}`));
+        const error = new Error(`Rate limited: ${grantResult.reason}`);
+        error.code = `rate-limit-${grantResult.reason}`;
+
+        this.#becomeBroken(error);
+        this.#logger?.denied({ length, remaining, reason: grantResult.reason });
         break;
       }
 

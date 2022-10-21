@@ -10,12 +10,16 @@ import http2ExpressBridge from 'http2-express-bridge';
 import { Condition, Threadlet } from '@this/async';
 
 import { TcpWrangler } from '#p/TcpWrangler';
+import { WranglerContext } from '#x/WranglerContext';
 
 
 /**
  * Wrangler for `Http2SecureServer`.
  */
 export class Http2Wrangler extends TcpWrangler {
+  /** @type {?function(...*)} Logger, if logging is to be done. */
+  #logger;
+
   /** @type {express} Express-like application. */
   #application;
 
@@ -38,6 +42,8 @@ export class Http2Wrangler extends TcpWrangler {
    */
   constructor(options) {
     super(options);
+
+    this.#logger = options.logger?.http2 ?? null;
 
     // Express needs to be wrapped in order for it to use HTTP2.
     this.#application    = http2ExpressBridge(express);
@@ -80,21 +86,34 @@ export class Http2Wrangler extends TcpWrangler {
       return;
     }
 
-    this.#sessions.add(session);
+    const sessions = this.#sessions;
+
+    sessions.add(session);
     this.#anySessions.value = true;
 
-    const removeSession = () => {
-      const sessions = this.#sessions;
-      sessions.delete(session);
-      if (sessions.size === 0) {
-        this.#anySessions.value = false;
+    // TODO: The ID is consistently "unknown" because the wrangler context
+    // gets added in an event handler that runs after this method is called.
+    const id = WranglerContext.get(session)?.connectionId ?? '<unknown-id>';
+    this.#logger?.addedSession({ id, totalSessions: sessions.size });
+
+    const removeSession = (reason) => {
+      if (sessions.delete(session)) {
+        if (sessions.size === 0) {
+          this.#anySessions.value = false;
+        }
+        const id2 = WranglerContext.get(session)?.connectionId ?? '<unknown-id>';
+        this.#logger?.removedSession({ id: id2, reason, totalSessions: sessions.size });
       }
     };
 
-    session.on('close',      removeSession);
-    session.on('error',      removeSession);
-    session.on('frameError', removeSession);
-    session.on('goaway',     removeSession);
+    session.on('close',      () => removeSession('close'));
+    session.on('error',      () => removeSession('error'));
+    session.on('frameError', () => removeSession('frame-error'));
+    session.on('goaway',     () => removeSession('go-away'));
+
+    session.setTimeout(Http2Wrangler.#SESSION_TIMEOUT_MSEC, () => {
+      session.close();
+    });
   }
 
   /**
@@ -161,8 +180,14 @@ export class Http2Wrangler extends TcpWrangler {
   //
 
   /**
-   * {number} How long in msec to wait when stopping, after telling sessions to
-   * close before closing with more extreme prejudice.
+   * @type {number} How long in msec to wait when stopping, after telling
+   * sessions to close before closing with more extreme prejudice.
    */
   static #STOP_GRACE_PERIOD_MSEC = 250;
+
+  /**
+   * @type {number} How long in msec to wait for a session to have activity
+   * before telling it to close.
+   */
+  static #SESSION_TIMEOUT_MSEC = 5 * 60 * 1000; // Five minutes.
 }

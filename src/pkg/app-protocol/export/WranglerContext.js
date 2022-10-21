@@ -2,6 +2,7 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import * as net from 'node:net';
+import * as stream from 'node:stream';
 
 import { FormatUtils } from '@this/loggy';
 
@@ -11,7 +12,7 @@ import { FormatUtils } from '@this/loggy';
  * module, along with accessors to get at that context.
  */
 export class WranglerContext {
-  /** @type {?net.Socket} Raw socket associated with a connection. */
+  /** @type {?net.Socket} Unencrypted socket associated with a connection. */
   #socket = null;
 
   /** @type {?string} ID of a connection. */
@@ -53,7 +54,11 @@ export class WranglerContext {
     return this.#requestLogger;
   }
 
-  /** @returns {?net.Socket} Raw socket associated with a connection. */
+  /**
+   * @returns {?net.Socket|stream.Duplex} Unencrypted socket or socket-like
+   * thing associated with a connection. If the connection has a data rate
+   * limiter, this is the stream wrapper object which implements rate limiting.
+   */
   get socket() {
     return this.#socket;
   }
@@ -152,5 +157,22 @@ export class WranglerContext {
     }
 
     return null;
+  }
+
+  /**
+   * Like {@link #get}, but throws if an instance can't be found.
+   *
+   * @param {...object} objs The object(s) to look up.
+   * @returns {WranglerContext} Instance of this class with salient context.
+   * @throws {Error} Thrown if there is no such instance.
+   */
+  static getNonNull(...objs) {
+    const found = this.get(...objs);
+
+    if (!found) {
+      throw new Error('Missing context.');
+    }
+
+    return found;
   }
 }

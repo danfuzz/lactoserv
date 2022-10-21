@@ -93,9 +93,9 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
   // Static members
   //
 
-  /** {number} The number of seconds in a nanosecond. */
+  /** @type {number} The number of seconds in a nanosecond. */
   static #SECS_PER_NSEC = 1 / 1_000_000_000;
 
-  /** {bigint} The number of milliseconds in a nanosecond. */
+  /** @type {bigint} The number of milliseconds in a nanosecond. */
   static #MSEC_PER_NSEC = 1_000_000n;
 }

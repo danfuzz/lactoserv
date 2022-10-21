@@ -140,7 +140,11 @@ export class TcpWrangler extends ProtocolWrangler {
     this.#sockets.add(socket);
     this.#anySockets.value = true;
 
-    socket.on('close', (hadError) => {
+    socket.on('error', (error) => {
+      connLogger.connectionError(error);
+    });
+
+    socket.on('close', () => {
       this.#sockets.delete(socket);
       if (this.#sockets.size === 0) {
         this.#anySockets.value = false;
@@ -148,9 +152,6 @@ export class TcpWrangler extends ProtocolWrangler {
 
       if (connLogger) {
         connLogger.totalBytesWritten(socket.bytesWritten);
-        if (hadError) {
-          connLogger.hadError();
-        }
         connLogger.closed();
       }
     });
@@ -255,7 +256,7 @@ export class TcpWrangler extends ProtocolWrangler {
   // Static members
   //
 
-  /** {object} "Prototype" of server socket creation options. */
+  /** @type {object} "Prototype" of server socket creation options. */
   static #CREATE_PROTO = Object.freeze({
     allowHalfOpen:         null,
     keepAlive:             null,
@@ -264,7 +265,7 @@ export class TcpWrangler extends ProtocolWrangler {
     pauseOnConnect:        null
   });
 
-  /** {object} "Prototype" of server listen options. */
+  /** @type {object} "Prototype" of server listen options. */
   static #LISTEN_PROTO = Object.freeze({
     port:      null,
     host:      null,
