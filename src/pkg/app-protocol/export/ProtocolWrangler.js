@@ -271,8 +271,8 @@ export class ProtocolWrangler {
 
       session.on('close',      () => sessionLogger.closed('close'));
       session.on('error',      () => sessionLogger.closed('error'));
-      session.on('frameError', () => sessionLogger.closed('frame-error'));
-      session.on('goaway',     () => sessionLogger.closed('go-away'));
+      session.on('frameError', (type, code, id) => sessionLogger.frameError(type, code, id));
+      session.on('goaway',     (code) => sessionLogger.closed('go-away', code));
     }
 
     return sessionLogger;

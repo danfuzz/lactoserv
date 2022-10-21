@@ -94,7 +94,7 @@ export class Http2Wrangler extends TcpWrangler {
 
     logger?.totalSessions(sessions.size);
 
-    const removeSession = (reason) => {
+    const removeSession = () => {
       if (sessions.delete(session)) {
         if (sessions.size === 0) {
           this.#anySessions.value = false;
@@ -103,10 +103,8 @@ export class Http2Wrangler extends TcpWrangler {
       }
     };
 
-    session.on('close',      () => removeSession('close'));
-    session.on('error',      () => removeSession('error'));
-    session.on('frameError', () => removeSession('frame-error'));
-    session.on('goaway',     () => removeSession('go-away'));
+    session.on('close', removeSession);
+    session.on('error', removeSession);
 
     session.setTimeout(Http2Wrangler.#SESSION_TIMEOUT_MSEC, () => {
       logger?.idleTimeout();
