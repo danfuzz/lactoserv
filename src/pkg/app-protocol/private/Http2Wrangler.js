@@ -108,6 +108,10 @@ export class Http2Wrangler extends TcpWrangler {
     session.on('error',      () => removeSession('error'));
     session.on('frameError', () => removeSession('frame-error'));
     session.on('goaway',     () => removeSession('go-away'));
+
+    session.setTimeout(Http2Wrangler.#SESSION_TIMEOUT_MSEC, () => {
+      session.close();
+    });
   }
 
   /**
@@ -174,8 +178,14 @@ export class Http2Wrangler extends TcpWrangler {
   //
 
   /**
-   * {number} How long in msec to wait when stopping, after telling sessions to
-   * close before closing with more extreme prejudice.
+   * @type {number} How long in msec to wait when stopping, after telling
+   * sessions to close before closing with more extreme prejudice.
    */
   static #STOP_GRACE_PERIOD_MSEC = 250;
+
+  /**
+   * @type {number} How long in msec to wait for a session to have activity
+   * before telling it to close.
+   */
+  static #SESSION_TIMEOUT_MSEC = 5 * 60 * 1000; // Five minutes.
 }
