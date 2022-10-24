@@ -124,13 +124,7 @@ export class ApplicationManager {
               type: 'string',
               pattern: Names.TYPE_PATTERN
             }
-          },
-          ... JsonSchemaUtil
-            .singularOrPlural('mount', 'mounts', { $ref: '#/$defs/mountItem' }),
-        },
-        mountItem: {
-          type: 'string',
-          pattern: Uris.MOUNT_PATTERN
+          }
         }
       }
     };

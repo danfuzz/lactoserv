@@ -21,9 +21,6 @@ export class ApplicationController {
   /** @type {object} Configuration for the underlying application. */
   #config;
 
-  /** @type {{hostname: TreePathKey, path: TreePathKey}[]} Mount points. */
-  #mounts;
-
   /** @type {BaseApplication} Actual application instance. */
   #app;
 
@@ -38,15 +35,10 @@ export class ApplicationController {
     const config = { ...appConfig };
     delete config.name;
     delete config.type;
-    delete config.mount;
-    delete config.mounts;
     Object.freeze(config);
 
     this.#name   = name;
     this.#config = config;
-    this.#mounts =
-      Object.freeze(JsonSchemaUtil.singularPluralCombo(appConfig.mount, appConfig.mounts))
-        .map(mount => Uris.parseMount(mount));
     this.#app    = ApplicationFactory.forType(type, this);
   }
 
@@ -63,11 +55,6 @@ export class ApplicationController {
   /** @returns {string} Application name. */
   get name() {
     return this.#name;
-  }
-
-  /** @returns {{hostname: TreePathKey, path: TreePathKey}[]} Mount points. */
-  get mounts() {
-    return this.#mounts;
   }
 
 
