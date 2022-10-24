@@ -17,10 +17,9 @@ const logger = Loggy.loggerFor('app-hosts');
  * Manager for dealing with all the certificate/key pairs associated with a
  * named host. Configuration object details:
  *
- * * `{object} host` or `{object[]} hosts` -- Objects representing certificate
- *   information associated with one or more (possibly wildcarded) hostnames.
- *   Each item must be a value suitable for passing to the {@link HostItem}
- *   constructor.
+ * * `{object|object[]} hosts` -- Objects representing certificate information
+ *   associated with one or more (possibly wildcarded) hostnames. Each item must
+ *   be a value suitable for passing to the {@link HostItem} constructor.
  *
  * **Note:** Exactly one of `host` or `hosts` must be present at the top level.
  */
@@ -34,8 +33,8 @@ export class HostManager {
   /**
    * Constructs an instance.
    *
-   * @param {?object} [config = null] Configuration object. If `null`, this
-   *   constructs an empty instance.
+   * @param {?object|object[]} [config = null] Configuration object. If `null`,
+   *   this constructs an empty instance.
    */
   constructor(config = null) {
     if (config !== null) {
