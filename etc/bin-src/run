@@ -30,13 +30,13 @@ function check-dependency {
         # Note: This indicates a bug in this script, not a problem with the
         # environment.
         error-msg "Could not determine binary name for ${name}."
-        exit 1
+        return 1
     fi
 
-    # Verify that the command
+    # Verify that the command exists at all.
     if ! which "${cmdName}" >/dev/null 2>&1; then
         error-msg "Missing required binary for ${name}: ${cmdName}"
-        exit 1
+        return 1
     fi
 
     local version
@@ -45,12 +45,12 @@ function check-dependency {
         # Note: This indicates a bug in this script, not a problem with the
         # environment.
         error-msg "Trouble running version command for ${name}."
-        exit 1
+        return 1
     }
 
     if [[ !(${version} =~ ${match}) ]]; then
         error-msg "Unsupported version of ${name}: ${version}"
-        exit 1
+        return 1
     fi
 }
 
@@ -62,7 +62,8 @@ function check-dependency {
 check-dependency \
     'Node' \
     'node --version | sed -e "s/^v//g"' \
-    '^(18|19)\.'
+    '^(18|19)\.' \
+|| exit "$?"
 
 # Note: `--no-warnings` suppresses Node's built-in warning printer, which we do
 # because this program includes its own warning handler.
