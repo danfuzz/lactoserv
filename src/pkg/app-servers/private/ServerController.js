@@ -144,25 +144,48 @@ export class ServerController {
     const pathKey = ApplicationController.parsePath(path);
 
     // Find the mount map for the most-specific matching host.
-    const hostMap = this.#mountMap.find(hostKey)?.value;
-    if (!hostMap) {
+    const hostMatch = this.#mountMap.find(hostKey);
+    if (!hostMatch) {
       // No matching host.
       reqLogger?.hostNotFound();
       next();
       return;
     }
 
-    const controller = hostMap.find(pathKey)?.value;
-    if (!controller) {
-      // No matching path.
-      reqLogger?.pathNotFound();
+    const pathMatch = hostMatch.value.find(pathKey);
+    if (!pathMatch) {
+      // No matching path for host.
+      reqLogger?.pathNotFound(hostMatch.value);
       next();
       return;
     }
 
-    // Call the app!
-    reqLogger?.usingApp(controller.name);
-    controller.app.handleRequest(req, res, next);
+    const controller = pathMatch.value;
+
+    // Thwack the salient context into `req`, set up a `next` to restore the
+    // thwackage, and call through to the app. This setup is similar to what
+    // Express does when routing, but we have to do it ourselves here because
+    // we aren't using Express routing to find our apps.
+
+    const { baseUrl: origBaseUrl, url: origUrl } = req;
+
+    req.baseUrl = origBaseUrl + '/' + pathMatch.path.join('/');
+    req.url = '/' + pathMatch.pathRemainder.join('/');
+
+    reqLogger?.dispatching({
+      app:  controller.name,
+      host: ServerController.#hostMatchString(hostMatch),
+      path: ServerController.#pathMatchString(pathMatch),
+      url:  req.url
+    });
+
+    const innerNext = (...args) => {
+      req.baseUrl = origBaseUrl;
+      req.url     = origUrl;
+      next(...args);
+    };
+
+    controller.app.handleRequest(req, res, innerNext);
   }
 
 
@@ -196,5 +219,40 @@ export class ServerController {
     }
 
     return result;
+  }
+
+  /**
+   * Gets a loggable "host match" from a {@link TreePathMap} lookup response.
+   *
+   * @param {object} match The lookup response.
+   * @returns {string} A loggable string.
+   */
+  static #hostMatchString(match) {
+    const { path, wildcard } = match;
+
+    if (wildcard && path.length === 0) {
+      return '*';
+    }
+
+    const parts = [...path, ...(wildcard ? ['*'] : [])].reverse();
+    return parts.join('.');
+  }
+
+  /**
+   * Gets a loggable "path match" from a {@link TreePathMap} lookup response.
+   *
+   * @param {object} match The lookup response.
+   * @returns {string} A loggable string.
+   */
+  static #pathMatchString(match) {
+    const { path, wildcard } = match;
+
+    if (wildcard) {
+      return (path.length === 0)
+        ? '/*'
+        : `/${path.join('/')}/*`;
+    } else {
+      return `/${path.join('/')}`;
+    }
   }
 }
