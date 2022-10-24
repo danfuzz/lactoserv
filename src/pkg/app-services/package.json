@@ -10,6 +10,7 @@
   },
 
   "dependencies": {
+    "@this/app-config": "*",
     "@this/json": "*",
     "@this/loggy": "*",
     "@this/typey": "*"
