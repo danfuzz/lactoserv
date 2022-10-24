@@ -107,4 +107,32 @@ export class Uris {
 
     return new TreePathKey(path, wildcard);
   }
+
+  /**
+   * Parses a mount point into its two components.
+   *
+   * @param {string} mount Mount point.
+   * @returns {{hostname: TreePathKey, path: TreePathKey}} Components thereof.
+   */
+  static parseMount(mount) {
+    MustBe.string(mount, this.MOUNT_REGEXP);
+
+    // Somewhat simplified regexp, because we already know that `mount` is
+    // syntactically correct, per `MustBe...` above.
+    const topParse = /^[/][/](?<hostname>[^/]+)[/](?:(?<path>.*)[/])?$/
+      .exec(mount);
+
+    if (!topParse) {
+      throw new Error(`Strange mount point: ${mount}`);
+    }
+
+    const { hostname, path } = topParse.groups;
+    const pathParts = path ? path.split('/') : [];
+
+    // `TreePathKey...true` below because all mounts are effectively wildcards.
+    return Object.freeze({
+      hostname: Uris.parseHostname(hostname, true),
+      path:     new TreePathKey(pathParts, true)
+    });
+  }
 }

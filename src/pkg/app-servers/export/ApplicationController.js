@@ -46,7 +46,7 @@ export class ApplicationController {
     this.#config = config;
     this.#mounts =
       Object.freeze(JsonSchemaUtil.singularPluralCombo(appConfig.mount, appConfig.mounts))
-        .map(mount => ApplicationController.#parseMount(mount));
+        .map(mount => Uris.parseMount(mount));
     this.#app    = ApplicationFactory.forType(type, this);
   }
 
@@ -117,33 +117,5 @@ export class ApplicationController {
 
     // Freezing `parts` lets `new TreePathKey()` avoid making a copy.
     return new TreePathKey(Object.freeze(parts), false);
-  }
-
-  /**
-   * Parses a mount point into its two components.
-   *
-   * @param {string} mount Mount point.
-   * @returns {{hostname: TreePathKey, path: TreePathKey}} Components thereof.
-   */
-  static #parseMount(mount) {
-    MustBe.string(mount, this.MOUNT_REGEXP);
-
-    // Somewhat simplified regexp, because we already know that `mount` is
-    // syntactically correct, per `MustBe...` above.
-    const topParse = /^[/][/](?<hostname>[^/]+)[/](?:(?<path>.*)[/])?$/
-      .exec(mount);
-
-    if (!topParse) {
-      throw new Error(`Strange mount point: ${mount}`);
-    }
-
-    const { hostname, path } = topParse.groups;
-    const pathParts = path ? path.split('/') : [];
-
-    // `TreePathKey...true` below because all mounts are effectively wildcards.
-    return Object.freeze({
-      hostname: Uris.parseHostname(hostname, true),
-      path:     new TreePathKey(pathParts, true)
-    });
   }
 }
