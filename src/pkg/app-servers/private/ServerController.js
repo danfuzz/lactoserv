@@ -4,7 +4,7 @@
 import * as express from 'express';
 
 import { Uris } from '@this/app-config';
-import { HostController, HostManager } from '@this/app-hosts';
+import { HostManager } from '@this/app-hosts';
 import { ProtocolWrangler, ProtocolWranglers, WranglerContext } from '@this/app-protocol';
 import { TreePathKey, TreePathMap } from '@this/collections';
 
@@ -56,7 +56,7 @@ export class ServerController {
   constructor(serverConfig, logger) {
     this.#name        = serverConfig.name;
     this.#hostManager = serverConfig.hostManager;
-    this.#mountMap    = ServerController.#makeMountMap(serverConfig.mounts)
+    this.#mountMap    = ServerController.#makeMountMap(serverConfig.mounts);
     this.#logger      = logger[this.#name];
 
     const wranglerOptions = {

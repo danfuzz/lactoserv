@@ -1,8 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { Names, Uris } from '@this/app-config';
-import { TreePathKey } from '@this/collections';
+import { Names } from '@this/app-config';
 import { JsonSchema, JsonSchemaUtil } from '@this/json';
 
 import { ApplicationController } from '#x/ApplicationController';
