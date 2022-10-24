@@ -12,9 +12,9 @@ import { ApplicationController } from '#x/ApplicationController';
 
 
 /**
- * "Controller" for a single server. This wraps both a (concrete subclass of a)
- * {@link net.Server} object _and_ an {@link express.Application} which
- * _exclusively_ handles that server.
+ * "Controller" for a single server. Instances of this class wrap both a
+ * (concrete subclass of a) {@link net.Server} object _and_ an {@link
+ * express.Application} (or equivalent) which _exclusively_ handles that server.
  */
 export class ServerController {
   /** @type {string} Server name. */
