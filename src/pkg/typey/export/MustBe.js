@@ -13,7 +13,7 @@ export class MustBe {
    * @throws {Error} Thrown if `value` is of any other type.
    */
   static array(value) {
-    if ((typeof value === 'object') && (value.constructor === Array)) {
+    if (Array.isArray(value)) {
       return value;
     }
 
@@ -30,7 +30,7 @@ export class MustBe {
    */
   static arrayOfIndex(value) {
     check:
-    if ((typeof value === 'object') && (value.constructor === Array)) {
+    if (Array.isArray(value)) {
       for (const v of value) {
         const t = typeof v;
         if ((t !== 'string') && (t !== 'number')) {
@@ -52,7 +52,7 @@ export class MustBe {
    */
   static arrayOfString(value) {
     check:
-    if ((typeof value === 'object') && (value.constructor === Array)) {
+    if (Array.isArray(value)) {
       for (const v of value) {
         if (typeof v !== 'string') {
           break check;
@@ -62,6 +62,29 @@ export class MustBe {
     }
 
     throw new Error('Must be of type `string[]`.');
+  }
+
+  /**
+   * Checks for type `object[]`, where each item must furthermore be a _plain_
+   * object (i.e. not an instance of anything other than `Object` itself.)
+   *
+   * @param {*} value Arbitrary value.
+   * @returns {object[]} `value` if it is of type `object[]`, with all plain
+   *   objects.
+   * @throws {Error} Thrown if `value` is of any other type.
+   */
+  static arrayOfPlainObject(value) {
+    check:
+    if (Array.isArray(value)) {
+      for (const v of value) {
+        if ((v === null) || Object.getPrototypeOf(v) !== Object.prototype) {
+          break check;
+        }
+      }
+      return value;
+    }
+
+    throw new Error('Must be of type `object[]`, with all plain objects.');
   }
 
   /**
@@ -228,8 +251,8 @@ export class MustBe {
    * expression.
    *
    * @param {*} value Arbitrary value.
-   * @param {?RegExp} [match = null] Optional regular expression that `value`
-   *   must match.
+   * @param {?RegExp|string} [match = null] Optional regular expression that
+   *  `value` must match.
    * @returns {string} `value` if it is of type `string`, and if specified which
    *   matches `match`.
    * @throws {Error} Thrown if `value` is of any other type or doesn't match.
@@ -239,8 +262,13 @@ export class MustBe {
       throw new Error('Must be of type `string`.');
     }
 
-    if (match && !match.test(value)) {
-      throw new Error(`Must match pattern: ${match}`);
+    if (match) {
+      if (typeof match === 'string') {
+        match = new RegExp(match);
+      }
+      if (!match.test(value)) {
+        throw new Error(`Must match pattern: ${match}`);
+      }
     }
 
     return value;
