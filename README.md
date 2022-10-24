@@ -31,9 +31,13 @@ This is a web server which knows how to serve a couple different types of
 
 * Written in pure JavaScript, running on Node. (The only platform native code
   is from Node, not from this codebase nor from any imported modules.)
-  * Uses Express for basic protocol handling (but with a custom router, see
-    above).
-* Built to be installed as a normal POSIX-ish service. (TODO.)
+  * Uses Node's standard library for low-level networking and protocol
+    implementation (TCP, TLS, HTTP*).
+  * Uses Express for protocol handling on top of what Node provides (but with a
+    bit of custom routing, see above).
+  * Only modest use of external module dependencies.
+* Built to be installed as a normal POSIX-ish service (though _without_ Node
+  bundled into the installation). (TODO.)
 
 - - - - - - - - - -
 
