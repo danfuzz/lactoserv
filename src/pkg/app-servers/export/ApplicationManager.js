@@ -1,6 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { Uris } from '@this/app-config';
 import { TreePathKey } from '@this/collections';
 import { JsonSchema, JsonSchemaUtil } from '@this/json';
 
@@ -159,7 +160,7 @@ export class ApplicationManager {
         },
         mountItem: {
           type: 'string',
-          pattern: ApplicationController.MOUNT_PATTERN
+          pattern: Uris.MOUNT_PATTERN
         }
       }
     };

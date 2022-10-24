@@ -234,7 +234,7 @@ export class ServerManager {
             },
             at: {
               type: 'string',
-              pattern: ServerController.MOUNT_PATTERN
+              pattern: Uris.MOUNT_PATTERN
             }
           }
         }
