@@ -56,9 +56,7 @@ export class ServerController {
   constructor(serverConfig, logger) {
     this.#name        = serverConfig.name;
     this.#hostManager = serverConfig.hostManager;
-    this.#mountMap    = serverConfig.appMounts
-      ? ServerController.#makeMountMap(serverConfig.appMounts)
-      : ServerController.#makeMountMap(serverConfig.mounts)
+    this.#mountMap    = ServerController.#makeMountMap(serverConfig.mounts)
     this.#logger      = logger[this.#name];
 
     const wranglerOptions = {
@@ -185,10 +183,8 @@ export class ServerController {
     const result = new TreePathMap();
 
     for (const mount of mounts) {
-      const { hostname, path, app, at } = mount;
-      if (at) {
-        throw new Error('TODO');
-      }
+      const { app, at } = mount;
+      const { hostname, path } = Uris.parseMount(at);
 
       let hostMounts = result.findExact(hostname);
       if (!hostMounts) {

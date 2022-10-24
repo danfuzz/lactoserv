@@ -115,6 +115,7 @@ export class ServerManager {
       apps,
       host,
       hosts,
+      mounts:        origMounts,
       rateLimiter:   limName,
       requestLogger: logName,
     } = serverItem;
@@ -123,8 +124,7 @@ export class ServerManager {
     const hmSubset = hostManager
       ? hostManager.makeSubset(JsonSchemaUtil.singularPluralCombo(host, hosts))
       : null;
-    const appMounts_old = applicationManager.makeMountList_old(
-      JsonSchemaUtil.singularPluralCombo(app, apps));
+    const mounts = this.#makeMounts(origMounts);
     const rateLimiter = limName
       ? serviceManager.findController(limName).service
       : null;
@@ -137,7 +137,7 @@ export class ServerManager {
       ...(hmSubset ? { hostManager: hmSubset } : null),
       ...(rateLimiter ? { rateLimiter } : null),
       ...(requestLogger ? { requestLogger } : null),
-      appMounts: appMounts_old
+      mounts
     };
     delete config.app;
     delete config.apps;
@@ -154,6 +154,22 @@ export class ServerManager {
     }
 
     this.#controllers.set(name, controller);
+  }
+
+  /**
+   * Makes a `mounts` array suitable for use in constructing a {@link
+   * ServerController}.
+   *
+   * @param {object[]} mounts Original `mounts` configuration item.
+   * @returns {object[]} Converted array.
+   */
+  #makeMounts(mounts) {
+    const applicationManager = this.#warehouse.applicationManager;
+
+    return mounts.map(({ app, at }) => {
+      app = applicationManager.findController(app);
+      return { app, at };
+    });
   }
 
 

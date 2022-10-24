@@ -75,36 +75,6 @@ export class ApplicationManager {
   }
 
   /**
-   * Makes a deep-frozen "mount list" which lists bindings of mount points to
-   * corresponding {@link ApplicationController} instances, for all the given
-   * named applications.
-   *
-   * @param {string[]} names Names of all the applications to represent in the
-   *   result.
-   * @returns {{hostname: TreePathKey, path: TreePathKey,
-   *   app: ApplicationController}[]} Array of mount points with corresponding
-   *   application controllers, deep-frozen.
-   * @throws {Error} Thrown if any element of `names` does not correspond to
-   *   a defined application.
-   */
-  makeMountList_old(names) {
-    const result = [];
-
-    for (const name of names) {
-      const controller = this.#controllers.get(name);
-      if (!controller) {
-        throw new Error(`No such app: ${name}`);
-      }
-
-      for (const mount of controller.mounts) {
-        result.push(Object.freeze({ ...mount, app: controller }));
-      }
-    }
-
-    return Object.freeze(result);
-  }
-
-  /**
    * Constructs a {@link ApplicationController} based on the given information,
    * and adds a mapping to {@link #controllers} so it can be found.
    *
