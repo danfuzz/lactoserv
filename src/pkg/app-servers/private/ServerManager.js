@@ -111,8 +111,6 @@ export class ServerManager {
    */
   #addControllerFor(serverItem) {
     const {
-      app,
-      apps,
       host,
       hosts,
       mounts:        origMounts,
@@ -139,8 +137,6 @@ export class ServerManager {
       ...(requestLogger ? { requestLogger } : null),
       mounts
     };
-    delete config.app;
-    delete config.apps;
     delete config.host;
     delete config.hosts;
 
@@ -231,10 +227,6 @@ export class ServerManager {
             JsonSchemaUtil
               .singularOrPlural('host', 'hosts', { $ref: '#/$defs/hostname' }),
           ]
-        },
-        appName: {
-          type: 'string',
-          pattern: Names.NAME_PATTERN
         },
         hostname: {
           type: 'string',

@@ -1,7 +1,6 @@
 [
   {
     "name":          "insecure",
-    "app":           "my-wacky-redirector",
     "host":          "*",
     "interface":     "*",
     "port":          8080,
@@ -17,7 +16,6 @@
   },
   {
     "name":          "secure",
-    "apps":          ["my-static-fun"],
     "host":          "*",
     "interface":     "*",
     "port":          8443,
@@ -37,7 +35,6 @@
   },
   {
     "name":          "also-secure",
-    "app":           "my-static-fun",
     "hosts":         ["*"],
     "interface":     "*",
     "port":          8444,
