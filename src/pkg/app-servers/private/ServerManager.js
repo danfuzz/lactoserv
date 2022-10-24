@@ -2,11 +2,8 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { Names, Uris } from '@this/app-config';
-import { HostController } from '@this/app-hosts';
-import { ServiceController } from '@this/app-services';
 import { JsonSchema, JsonSchemaUtil } from '@this/json';
 
-import { ApplicationController } from '#x/ApplicationController';
 import { ServerController } from '#p/ServerController';
 import { ThisModule } from '#p/ThisModule';
 import { Warehouse } from '#x/Warehouse';
@@ -117,7 +114,7 @@ export class ServerManager {
       rateLimiter:   limName,
       requestLogger: logName,
     } = serverItem;
-    const { applicationManager, hostManager, serviceManager } = this.#warehouse;
+    const { hostManager, serviceManager } = this.#warehouse;
 
     const hmSubset = hostManager
       ? hostManager.makeSubset(JsonSchemaUtil.singularPluralCombo(host, hosts))
@@ -199,7 +196,7 @@ export class ServerManager {
                 mounts: {
                   type: 'array',
                   uniqueItems: true,
-                  items: { $ref: "#/$defs/mountItem" }
+                  items: { $ref: '#/$defs/mountItem' }
                 },
                 name: {
                   type: 'string',
