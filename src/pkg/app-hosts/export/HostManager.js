@@ -168,7 +168,7 @@ export class HostManager {
    *   suitable is found.
    */
   #findController(name) {
-    const key = Uris.parseHostname(name, true);
+    const key   = Uris.parseHostname(name, true);
     const found = this.#controllers.find(key);
 
     return found ? found.value : null;
