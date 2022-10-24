@@ -1,6 +1,8 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { MustBe } from '@this/typey';
+
 
 /**
  * Utilities for parsing various sorts of certificatey stuff.
@@ -20,6 +22,28 @@ export class Certificates {
    */
   static get PRIVATE_KEY_PATTERN() {
     return this.#makePemPattern('PRIVATE KEY');
+  }
+
+  /**
+   * Checks that a given value is a string matching {@link CERTIFICATE_PATTERN}.
+   *
+   * @param {*} value Value in question.
+   * @returns {string} `value` if it is a string which matches the pattern.
+   * @throws {Error} Thrown if `value` does not match.
+   */
+  static checkCertificate(value) {
+    return MustBe.string(value, this.CERTIFICATE_PATTERN);
+  }
+
+  /**
+   * Checks that a given value is a string matching {@link PRIVATE_KEY_PATTERN}.
+   *
+   * @param {*} value Value in question.
+   * @returns {string} `value` if it is a string which matches the pattern.
+   * @throws {Error} Thrown if `value` does not match.
+   */
+  static checkPrivateKey(value) {
+    return MustBe.string(value, this.PRIVATE_KEY_PATTERN);
   }
 
   /**
