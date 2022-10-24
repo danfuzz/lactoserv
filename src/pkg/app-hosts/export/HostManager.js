@@ -3,9 +3,8 @@
 
 import { SecureContext } from 'node:tls';
 
-import { Uris } from '@this/app-config';
+import { HostItem, Uris } from '@this/app-config';
 import { TreePathMap } from '@this/collections';
-import { JsonSchema, JsonSchemaUtil } from '@this/json';
 import { Loggy } from '@this/loggy';
 
 import { HostController } from '#x/HostController';
@@ -18,20 +17,11 @@ const logger = Loggy.loggerFor('app-hosts');
  * Manager for dealing with all the certificate/key pairs associated with a
  * named host. Configuration object details:
  *
- * * `{object} host` or `{object[]} hosts` -- Objects representing certificate
- *   information associated with one or more (possibly wildcarded) hostnames.
- *
- * Host info details:
- *
- * * `{string} name` or `{string[]} names` -- Names of the hosts associated with
- *   this entry. Names can in the form `*.<name>` to match any subdomain of
- *   `<name>`, or `*` to be a complete wildcard (that is, matches any name not
- *   otherwise mentioned).
- * * `{string} cert` -- Certificate to present, in PEM form.
- * * `{string} key` -- Private key associated with `cert`, in PEM form.
+ * * `{object|object[]} hosts` -- Objects representing certificate information
+ *   associated with one or more (possibly wildcarded) hostnames. Each item must
+ *   be a value suitable for passing to the {@link HostItem} constructor.
  *
  * **Note:** Exactly one of `host` or `hosts` must be present at the top level.
- * Exactly one of `name` or `names` must be present, per host info element.
  */
 export class HostManager {
   /**
@@ -43,15 +33,12 @@ export class HostManager {
   /**
    * Constructs an instance.
    *
-   * @param {?object} [config = null] Configuration object. If `null`, this
-   *   constructs an empty instance.
+   * @param {?object|object[]} [config = null] Configuration object. If `null`,
+   *   this constructs an empty instance.
    */
   constructor(config = null) {
     if (config !== null) {
-      HostManager.#validateConfig(config);
-
-      const hosts =
-        JsonSchemaUtil.singularPluralCombo(config.host, config.hosts);
+      const hosts = HostItem.parseArray(config.hosts);
       for (const host of hosts) {
         this.#addControllerFor(host);
       }
@@ -91,8 +78,8 @@ export class HostManager {
     }
 
     return {
-      cert: controller.cert,
-      key:  controller.key
+      cert: controller.config.certificate,
+      key:  controller.config.privateKey
     };
   }
 
@@ -159,12 +146,12 @@ export class HostManager {
    * Constructs a {@link HostController} based on the given information, and
    * adds mappings to {@link #controllers} so it can be found.
    *
-   * @param {object} hostItem Single host item from a configuration object.
+   * @param {HostItem} hostItem Parsed configuration item.
    */
   #addControllerFor(hostItem) {
     const controller = new HostController(hostItem);
 
-    for (const name of controller.names) {
+    for (const name of controller.config.hostnames) {
       const key = Uris.parseHostname(name, true);
       logger.binding(name);
       this.#controllers.add(key, controller);
@@ -192,84 +179,6 @@ export class HostManager {
   //
 
   /**
-   * Adds the config schema for this class to the given validator.
-   *
-   * @param {JsonSchema} validator The validator to add to.
-   * @param {boolean} [main = false] Is this the main schema?
-   */
-  static addConfigSchemaTo(validator, main = false) {
-    const base64Line = '[/+a-zA-Z0-9]{0,80}';
-    const pemLines = `(${base64Line}\n){1,500}${base64Line}={0,2}\n`;
-
-    const certPattern =
-      '^\n*' +
-      '-----BEGIN CERTIFICATE-----\n' +
-      pemLines +
-      '-----END CERTIFICATE-----' +
-      '\n*$';
-
-    const keyPattern =
-      '^\n*' +
-      '-----BEGIN PRIVATE KEY-----\n' +
-      pemLines +
-      '-----END PRIVATE KEY-----' +
-      '\n*$';
-
-    const schema = {
-      $id: '/HostManager',
-      ... JsonSchemaUtil
-        .singularOrPlural('host', 'hosts', { $ref: '#/$defs/hostItem' }),
-
-      $defs: {
-        hostItem: {
-          type: 'object',
-          required: ['cert', 'key'],
-          properties: {
-            cert: {
-              type: 'string',
-              pattern: certPattern
-            },
-            key: {
-              type: 'string',
-              pattern: keyPattern
-            }
-          },
-          ... JsonSchemaUtil
-            .singularOrPlural('name', 'names', { $ref: '#/$defs/hostname' })
-        },
-        hostname: {
-          type: 'string',
-          pattern: Uris.HOSTNAME_PATTERN
-        }
-      }
-    };
-
-    const optionalSchema = {
-      $id: '/OptionalHostManager',
-      if: {
-        anyOf: [
-          {
-            type: 'object',
-            required: ['host']
-          },
-          {
-            type: 'object',
-            required: ['hosts']
-          }
-        ]
-      },
-      then: { $ref: '/HostManager' }
-    };
-
-    if (main) {
-      validator.addMainSchema(schema);
-    } else {
-      validator.addSchema(schema);
-      validator.addSchema(optionalSchema);
-    }
-  }
-
-  /**
    * Constructs and returns an instance from the given configuration, or returns
    * `null` if the configuration doesn't need any secure contexts.
    *
@@ -278,27 +187,8 @@ export class HostManager {
    *   none is configured.
    */
   static fromConfig(config) {
-    if (!(config.hosts || config.host)) {
-      return null;
-    }
-
-    return new HostManager(config);
-  }
-
-  /**
-   * Validates the given configuration object.
-   *
-   * @param {object} config Configuration object.
-   */
-  static #validateConfig(config) {
-    const validator = new JsonSchema();
-    this.addConfigSchemaTo(validator, true);
-
-    const error = validator.validate(config);
-
-    if (error) {
-      error.logTo(console);
-      error.throwError();
-    }
+    return config.hosts
+      ? new this(config)
+      : null;
   }
 }
