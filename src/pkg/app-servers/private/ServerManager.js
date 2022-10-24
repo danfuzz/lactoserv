@@ -1,11 +1,9 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { HostController } from '@this/app-hosts';
-import { ServiceController } from '@this/app-services';
+import { Names, Uris } from '@this/app-config';
 import { JsonSchema, JsonSchemaUtil } from '@this/json';
 
-import { ApplicationController } from '#x/ApplicationController';
 import { ServerController } from '#p/ServerController';
 import { ThisModule } from '#p/ThisModule';
 import { Warehouse } from '#x/Warehouse';
@@ -27,8 +25,6 @@ const logger = ThisModule.logger.server;
  *   bindings to indicate which server(s) an application is served from.
  * * `{string} host` or `{string[]} hosts` -- Names of hosts which this server
  *   should accept as valid. Can include partial or complete wildcards.
- * * `{string} app` or `{string[]} apps` -- Names of apps which this server
- *   should provide access to.
  * * `{string} interface` -- Address of the physical interface that the server
  *   is to listen on. `*` indicates that all interfaces should be listened on.
  *   Note: `::` and `0.0.0.0` are not allowed; use `*` instead.
@@ -40,6 +36,13 @@ const logger = ThisModule.logger.server;
  * * `{string} requestLogger` -- Optional name of the request loging service to
  *   inform of activity. If not specified, this server will not produce request
  *   logs.
+ * * `{object[]} mounts` -- Array of application mounts, each of the form:
+ *   * `{string} app` -- Name of the application being mounted.
+ *   * `{string} at` -- Mount point for the application, in the form
+ *     `//<hostname>/` or `//<hostname>/<base-path>/`, where `hostname` is the
+ *     name of a configured host, and `base-path` is the absolute path which the
+ *     application should respond to on that host. `*` is allowed for `hostname`
+ *     to indicate a wildcard.
  *
  * **Note:** Exactly one of `server` or `servers` must be present at the top
  * level.
@@ -105,20 +108,18 @@ export class ServerManager {
    */
   #addControllerFor(serverItem) {
     const {
-      app,
-      apps,
       host,
       hosts,
+      mounts:        origMounts,
       rateLimiter:   limName,
       requestLogger: logName,
     } = serverItem;
-    const { applicationManager, hostManager, serviceManager } = this.#warehouse;
+    const { hostManager, serviceManager } = this.#warehouse;
 
     const hmSubset = hostManager
       ? hostManager.makeSubset(JsonSchemaUtil.singularPluralCombo(host, hosts))
       : null;
-    const appMounts = applicationManager.makeMountList(
-      JsonSchemaUtil.singularPluralCombo(app, apps));
+    const mounts = this.#makeMounts(origMounts);
     const rateLimiter = limName
       ? serviceManager.findController(limName).service
       : null;
@@ -131,10 +132,8 @@ export class ServerManager {
       ...(hmSubset ? { hostManager: hmSubset } : null),
       ...(rateLimiter ? { rateLimiter } : null),
       ...(requestLogger ? { requestLogger } : null),
-      appMounts
+      mounts
     };
-    delete config.app;
-    delete config.apps;
     delete config.host;
     delete config.hosts;
 
@@ -148,6 +147,22 @@ export class ServerManager {
     }
 
     this.#controllers.set(name, controller);
+  }
+
+  /**
+   * Makes a `mounts` array suitable for use in constructing a {@link
+   * ServerController}.
+   *
+   * @param {object[]} mounts Original `mounts` configuration item.
+   * @returns {object[]} Converted array.
+   */
+  #makeMounts(mounts) {
+    const applicationManager = this.#warehouse.applicationManager;
+
+    return mounts.map(({ app, at }) => {
+      app = applicationManager.findController(app);
+      return { app, at };
+    });
   }
 
 
@@ -172,15 +187,20 @@ export class ServerManager {
           allOf: [
             {
               type: 'object',
-              required: ['interface', 'name', 'port', 'protocol'],
+              required: ['interface', 'mounts', 'name', 'port', 'protocol'],
               properties: {
                 interface: {
                   type: 'string',
-                  pattern: ServerController.INTERFACE_PATTERN
+                  pattern: Uris.INTERFACE_PATTERN
+                },
+                mounts: {
+                  type: 'array',
+                  uniqueItems: true,
+                  items: { $ref: '#/$defs/mountItem' }
                 },
                 name: {
                   type: 'string',
-                  pattern: ServerController.NAME_PATTERN
+                  pattern: Names.NAME_PATTERN
                 },
                 port: {
                   type: 'integer',
@@ -193,27 +213,35 @@ export class ServerManager {
                 },
                 rateLimiter: {
                   type: 'string',
-                  pattern: ServiceController.NAME_PATTERN
+                  pattern: Names.NAME_PATTERN
                 },
                 requestLogger: {
                   type: 'string',
-                  pattern: ServiceController.NAME_PATTERN
+                  pattern: Names.NAME_PATTERN
                 }
               }
             },
             JsonSchemaUtil
               .singularOrPlural('host', 'hosts', { $ref: '#/$defs/hostname' }),
-            JsonSchemaUtil
-              .singularOrPlural('app', 'apps', { $ref: '#/$defs/appName' })
           ]
-        },
-        appName: {
-          type: 'string',
-          pattern: ApplicationController.NAME_PATTERN
         },
         hostname: {
           type: 'string',
-          pattern: HostController.HOSTNAME_PATTERN
+          pattern: Uris.HOSTNAME_PATTERN
+        },
+        mountItem: {
+          type: 'object',
+          required: ['app', 'at'],
+          properties: {
+            app: {
+              type: 'string',
+              pattern: Names.NAME_PATTERN
+            },
+            at: {
+              type: 'string',
+              pattern: Uris.MOUNT_PATTERN
+            }
+          }
         }
       }
     };

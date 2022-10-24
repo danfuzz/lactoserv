@@ -16,32 +16,17 @@ export class BaseApplication {
   #controller;
 
   /**
-   * @type {function(...*)} Middleware function which activates this instance.
-   */
-  #middleware;
-
-  /**
    * Constructs an instance.
    *
    * @param {ApplicationController} controller Controller for this instance.
    */
   constructor(controller) {
     this.#controller = controller;
-    this.#middleware =
-      (req, res, next) => this.handleRequest(req, res, next);
   }
 
   /** @returns {ApplicationController} The controller for this instance. */
   get controller() {
     return this.#controller;
-  }
-
-  /**
-   * @returns {function(...*)} "Middleware" handler function which activates
-   * this instance by calling through to {@link #handleRequest}.
-   */
-  get middleware() {
-    return this.#middleware;
   }
 
   /**

@@ -1,5 +1,5 @@
 {
-  "name": "@this/app-hosts",
+  "name": "@this/app-config",
   "version": "0.0.1",
   "type": "module",
 
@@ -10,10 +10,7 @@
   },
 
   "dependencies": {
-    "@this/app-config": "*",
     "@this/collections": "*",
-    "@this/json": "*",
-    "@this/loggy": "*",
     "@this/typey": "*"
   }
 }

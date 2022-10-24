@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { TreePathKey } from '@this/collections';
+import { Names } from '@this/app-config';
 import { JsonSchema, JsonSchemaUtil } from '@this/json';
 
 import { ApplicationController } from '#x/ApplicationController';
@@ -57,33 +57,20 @@ export class ApplicationManager {
   }
 
   /**
-   * Makes a deep-frozen "mount list" which lists bindings of mount points to
-   * corresponding {@link ApplicationController} instances, for all the given
-   * named applications.
+   * Finds the {@link ApplicationController} for a given application name.
    *
-   * @param {string[]} names Names of all the applications to represent in the
-   *   result.
-   * @returns {{hostname: TreePathKey, path: TreePathKey,
-   *   app: ApplicationController}[]} Array of mount points with corresponding
-   *   application controllers, deep-frozen.
-   * @throws {Error} Thrown if any element of `names` does not correspond to
-   *   a defined application.
+   * @param {string} name Application name to look for.
+   * @returns {ApplicationController} The associated controller.
+   * @throws {Error} Thrown if there is no controller with the given name.
    */
-  makeMountList(names) {
-    const result = [];
+  findController(name) {
+    const controller = this.#controllers.get(name);
 
-    for (const name of names) {
-      const controller = this.#controllers.get(name);
-      if (!controller) {
-        throw new Error(`No such app: ${name}`);
-      }
-
-      for (const mount of controller.mounts) {
-        result.push(Object.freeze({ ...mount, app: controller }));
-      }
+    if (!controller) {
+      throw new Error(`No such application: ${name}`);
     }
 
-    return Object.freeze(result);
+    return controller;
   }
 
   /**
@@ -130,19 +117,13 @@ export class ApplicationManager {
           properties: {
             name: {
               type: 'string',
-              pattern: ApplicationController.NAME_PATTERN
+              pattern: Names.NAME_PATTERN
             },
             type: {
               type: 'string',
-              pattern: ApplicationController.TYPE_PATTERN
+              pattern: Names.TYPE_PATTERN
             }
-          },
-          ... JsonSchemaUtil
-            .singularOrPlural('mount', 'mounts', { $ref: '#/$defs/mountItem' }),
-        },
-        mountItem: {
-          type: 'string',
-          pattern: ApplicationController.MOUNT_PATTERN
+          }
         }
       }
     };

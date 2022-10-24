@@ -3,6 +3,7 @@
 
 import * as express from 'express';
 
+import { Uris } from '@this/app-config';
 import { HostManager } from '@this/app-hosts';
 import { ProtocolWrangler, ProtocolWranglers, WranglerContext } from '@this/app-protocol';
 import { TreePathKey, TreePathMap } from '@this/collections';
@@ -42,8 +43,9 @@ export class ServerController {
    * Constructs an insance. The `config` parameter is the same as the exposed
    * configuration object, except:
    *
-   * * with `app` / `apps` replaced by `appMounts`.
    * * with `host` / `hosts` replaced by `hostManager`.
+   * * with the `app` binding inside of `mounts` replaced by {@link
+   *   ApplicationController} instances.
    * * with `rateLimiter` and `requestLogger` replaced by the corresponding
    *   service instances (instead of just being names).
    *
@@ -54,7 +56,7 @@ export class ServerController {
   constructor(serverConfig, logger) {
     this.#name        = serverConfig.name;
     this.#hostManager = serverConfig.hostManager;
-    this.#mountMap    = ServerController.#makeMountMap(serverConfig.appMounts);
+    this.#mountMap    = ServerController.#makeMountMap(serverConfig.mounts);
     this.#logger      = logger[this.#name];
 
     const wranglerOptions = {
@@ -142,25 +144,48 @@ export class ServerController {
     const pathKey = ApplicationController.parsePath(path);
 
     // Find the mount map for the most-specific matching host.
-    const hostMap = this.#mountMap.find(hostKey)?.value;
-    if (!hostMap) {
+    const hostMatch = this.#mountMap.find(hostKey);
+    if (!hostMatch) {
       // No matching host.
       reqLogger?.hostNotFound();
       next();
       return;
     }
 
-    const controller = hostMap.find(pathKey)?.value;
-    if (!controller) {
-      // No matching path.
-      reqLogger?.pathNotFound();
+    const pathMatch = hostMatch.value.find(pathKey);
+    if (!pathMatch) {
+      // No matching path for host.
+      reqLogger?.pathNotFound(hostMatch.value);
       next();
       return;
     }
 
-    // Call the app!
-    reqLogger?.usingApp(controller.name);
-    controller.app.handleRequest(req, res, next);
+    const controller = pathMatch.value;
+
+    // Thwack the salient context into `req`, set up a `next` to restore the
+    // thwackage, and call through to the app. This setup is similar to what
+    // Express does when routing, but we have to do it ourselves here because
+    // we aren't using Express routing to find our apps.
+
+    const { baseUrl: origBaseUrl, url: origUrl } = req;
+
+    req.baseUrl = origBaseUrl + '/' + pathMatch.path.join('/');
+    req.url = '/' + pathMatch.pathRemainder.join('/');
+
+    reqLogger?.dispatching({
+      app:  controller.name,
+      host: ServerController.#hostMatchString(hostMatch),
+      path: ServerController.#pathMatchString(pathMatch),
+      url:  req.url
+    });
+
+    const innerNext = (...args) => {
+      req.baseUrl = origBaseUrl;
+      req.url     = origUrl;
+      next(...args);
+    };
+
+    controller.app.handleRequest(req, res, innerNext);
   }
 
 
@@ -169,76 +194,11 @@ export class ServerController {
   //
 
   /**
-   * @returns {string} Regex pattern which matches an interface name or
-   * address, anchored so that it matches a complete string.
-   *
-   * This pattern allows normal dotted DNS names, numeric IPv4 and IPv6 names
-   * _except_ not "any" addresses, or the special "name" `*` to represent the
-   * "any" address.
-   */
-  static get INTERFACE_PATTERN() {
-    // The one allowed "any" address.
-    const anyAddress = '[*]';
-
-    // Normal DNS names. See RFC1035 for details. Notes:
-    // * The maximum allowed length for a "label" (name component) is 63.
-    // * The maximum allowed total length is 255.
-    // * The spec seems to require each label to start with a letter, but in
-    //   practice that's commonly violated, e.g. there are many `<digits>.com`
-    //   registrations, and `<digits>.<digits>...in-addr.arpa` is commonly used.
-    //   So, we instead require labels not start with a dash and that there is
-    //   at least one non-digit somewhere in the entire name. This is enough to
-    //   disambiguate between a DNS name and an IPv4 address, and to cover
-    //   existing uses.
-    const dnsLabel = '(?!-)[-a-zA-Z0-9]{1,63}(?<!-)';
-    const dnsName  =
-      '(?!.{256})' +                    // No more than 255 characters total.
-      '(?=.*[a-zA-Z])' +                // At least one letter _somewhere_.
-      `${dnsLabel}(?:[.]${dnsLabel})*`; // `.`-delimited sequence of labels.
-
-    // IPv4 address.
-    const ipv4Address =
-      '(?!0+[.]0+[.]0+[.]0+)' + // No IPv4 "any" addresses.
-      '(?!.*[^.]{4})' +         // No more than three digits in a row.
-      '(?!.*[3-9][^.]{2})' +    // No 3-digit number over `299`.
-      '(?!.*2[6-9][^.])' +      // No `2xx` number over `259`.
-      '(?!.*25[6-9])' +         // No `25x` number over `255`.
-      '[0-9]{1,3}(?:[.][0-9]{1,3}){3}';
-
-    // IPv6 address.
-    const ipv6Address =
-      '(?=.*:)' +              // AFAWC, IPv6 requires a colon _somewhere_.
-      '(?![:0]+)' +            // No IPv6 "any" addresses.
-      '(?!.*[^:]{5})' +        // No more than four digits in a row.
-      '(?!(.*::){2})' +        // No more than one `::`.
-      '(?!.*:::)' +            // No triple-colons (or quad-, etc.).
-      '(?!([^:]*:){8})' +      // No more than seven colons total.
-      '(?=.*::|([^:]*:){7}[^:]*$)' + // Contains `::` or exactly seven colons.
-      '(?=(::|[^:]))' +        // Must start with `::` or digit.
-      '[:0-9A-Fa-f]{2,39}' +   // (Bunch of valid characters.)
-      '(?<=(::|[^:]))';        // Must end with `::` or digit.
-
-    return `^(${anyAddress}|${dnsName}|${ipv4Address}|${ipv6Address})$`;
-  }
-
-  /**
-   * @returns {string} Regex pattern which matches a server name, anchored so
-   * that it matches a complete string.
-   *
-   * This pattern allows non-empty alphanumeric strings that contain dashes, but
-   * don't start or end with a dash.
-   */
-  static get NAME_PATTERN() {
-    return '^(?!-)[-a-zA-Z0-9]+(?<!-)$';
-  }
-
-  /**
    * Makes the map from each (possibly wildcarded) hostname that this server
    * handles to the map from each (typically wildcarded) path (that is, a path
    * _prefix_ when wildcarded) to the application which handles it.
    *
-   * @param {object[]} mounts Mounts, in the form returned from {@link
-   *   ApplicationController.makeMountList}
+   * @param {object[]} mounts Mounts, as objects that bind `{app, at}`.
    * @returns {TreePathMap<TreePathMap<ApplicationController>>} The constructed
    *   mount map.
    */
@@ -246,7 +206,8 @@ export class ServerController {
     const result = new TreePathMap();
 
     for (const mount of mounts) {
-      const { hostname, path, app } = mount;
+      const { app, at } = mount;
+      const { hostname, path } = Uris.parseMount(at);
 
       let hostMounts = result.findExact(hostname);
       if (!hostMounts) {
@@ -258,5 +219,40 @@ export class ServerController {
     }
 
     return result;
+  }
+
+  /**
+   * Gets a loggable "host match" from a {@link TreePathMap} lookup response.
+   *
+   * @param {object} match The lookup response.
+   * @returns {string} A loggable string.
+   */
+  static #hostMatchString(match) {
+    const { path, wildcard } = match;
+
+    if (wildcard && path.length === 0) {
+      return '*';
+    }
+
+    const parts = [...path, ...(wildcard ? ['*'] : [])].reverse();
+    return parts.join('.');
+  }
+
+  /**
+   * Gets a loggable "path match" from a {@link TreePathMap} lookup response.
+   *
+   * @param {object} match The lookup response.
+   * @returns {string} A loggable string.
+   */
+  static #pathMatchString(match) {
+    const { path, wildcard } = match;
+
+    if (wildcard) {
+      return (path.length === 0)
+        ? '/*'
+        : `/${path.join('/')}/*`;
+    } else {
+      return `/${path.join('/')}`;
+    }
   }
 }

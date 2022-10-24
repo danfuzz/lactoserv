@@ -78,32 +78,4 @@ export class ServiceController {
     await this.#service.stop();
     this.#logger.stopped();
   }
-
-
-  //
-  // Static members
-  //
-
-  /**
-   * @returns {string} Regex pattern which matches an application name, anchored
-   * so that it matches a complete string.
-   *
-   * This pattern allows non-empty strings consisting of alphanumerics plus `-`,
-   * which furthermore must start and end with an alphanumeric character.
-   */
-  static get NAME_PATTERN() {
-    const alnum = 'a-zA-Z0-9';
-
-    return `^(?=[${alnum}])[-${alnum}]*[${alnum}]$`;
-  }
-
-  /**
-   * @returns {string} Regex pattern which matches an application type, anchored
-   * so that it matches a complete string. This is the same as
-   * {@link #NAME_PATTERN}, the field name just being to help signal intent at
-   * the use site.
-   */
-  static get TYPE_PATTERN() {
-    return this.NAME_PATTERN;
-  }
 }

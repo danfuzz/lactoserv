@@ -67,10 +67,11 @@ export class TreePathMap {
    * @returns {?{key: TreePathKey, pathRemainder: string[], value: *}}
    *   Information about the found result, or `null` if there was no match at
    *   all.
-   *   * `key` -- The key that was matched.
-   *   * `pathSuffix` -- The portion of `path` that was matched by a wildcard,
-   *     if this was in fact a wildcard match.
-   *   * `value` -- The bound value that was found.
+   *   * `{string[]} path` -- The path that was matched.
+   *   * `{string[]} pathRemainder` -- The portion of `path` that was matched by
+   *     a wildcard, if this was in fact a wildcard match.
+   *   * `{*} value` -- The bound value that was found.
+   *   * `{boolean} wildcard` -- Was this a wildcard match?
    */
   find(key) {
     const { path, wildcard } = key;
