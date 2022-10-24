@@ -3,6 +3,7 @@
 
 import * as tls from 'node:tls';
 
+import { HostItem } from '@this/app-config';
 import { JsonSchemaUtil } from '@this/json';
 
 
@@ -30,15 +31,15 @@ export class HostController {
   /**
    * Constructs an insance.
    *
-   * @param {object} hostConfig Host configuration item.
+   * @param {HostItem} hostItem Parsed configuration item.
    */
-  constructor(hostConfig) {
-    const { cert, key, name, names } = hostConfig;
+  constructor(hostItem) {
+    const { hostnames, certificate, privateKey } = hostItem;
 
-    this.#names         = JsonSchemaUtil.singularPluralCombo(name, names);
-    this.#cert          = cert;
-    this.#key           = key;
-    this.#secureContext = tls.createSecureContext({ cert, key });
+    this.#names         = hostnames;
+    this.#cert          = certificate;
+    this.#key           = privateKey;
+    this.#secureContext = tls.createSecureContext({ certificate, privateKey });
   }
 
   /**

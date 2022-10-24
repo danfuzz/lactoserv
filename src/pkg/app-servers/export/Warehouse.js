@@ -132,14 +132,12 @@ export class Warehouse {
   static #validateConfig(config) {
     const validator = new JsonSchema('LactoServ Configuration');
     ApplicationManager.addConfigSchemaTo(validator);
-    HostManager.addConfigSchemaTo(validator);
     ServerManager.addConfigSchemaTo(validator);
 
     validator.addMainSchema({
       $id: '/Warehouse',
       allOf: [
         { $ref: '/ApplicationManager' },
-        { $ref: '/OptionalHostManager' },
         { $ref: '/ServerManager' }
       ]
     });
