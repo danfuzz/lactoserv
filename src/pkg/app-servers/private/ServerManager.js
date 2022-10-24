@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { Uris } from '@this/app-config';
+import { Names, Uris } from '@this/app-config';
 import { HostController } from '@this/app-hosts';
 import { ServiceController } from '@this/app-services';
 import { JsonSchema, JsonSchemaUtil } from '@this/json';
@@ -191,7 +191,7 @@ export class ServerManager {
                 },
                 name: {
                   type: 'string',
-                  pattern: ServerController.NAME_PATTERN
+                  pattern: Names.NAME_PATTERN
                 },
                 port: {
                   type: 'integer',
@@ -204,11 +204,11 @@ export class ServerManager {
                 },
                 rateLimiter: {
                   type: 'string',
-                  pattern: ServiceController.NAME_PATTERN
+                  pattern: Names.NAME_PATTERN
                 },
                 requestLogger: {
                   type: 'string',
-                  pattern: ServiceController.NAME_PATTERN
+                  pattern: Names.NAME_PATTERN
                 }
               }
             },
@@ -218,7 +218,7 @@ export class ServerManager {
         },
         appName: {
           type: 'string',
-          pattern: ApplicationController.NAME_PATTERN
+          pattern: Names.NAME_PATTERN
         },
         hostname: {
           type: 'string',
@@ -230,7 +230,7 @@ export class ServerManager {
           properties: {
             app: {
               type: 'string',
-              pattern: ApplicationController.NAME_PATTERN
+              pattern: Names.NAME_PATTERN
             },
             at: {
               type: 'string',

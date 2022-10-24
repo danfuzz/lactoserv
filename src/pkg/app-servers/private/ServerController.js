@@ -226,17 +226,6 @@ export class ServerController {
   }
 
   /**
-   * @returns {string} Regex pattern which matches a server name, anchored so
-   * that it matches a complete string.
-   *
-   * This pattern allows non-empty alphanumeric strings that contain dashes, but
-   * don't start or end with a dash.
-   */
-  static get NAME_PATTERN() {
-    return '^(?!-)[-a-zA-Z0-9]+(?<!-)$';
-  }
-
-  /**
    * Makes the map from each (possibly wildcarded) hostname that this server
    * handles to the map from each (typically wildcarded) path (that is, a path
    * _prefix_ when wildcarded) to the application which handles it.

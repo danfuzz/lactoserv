@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { Uris } from '@this/app-config';
+import { Names, Uris } from '@this/app-config';
 import { TreePathKey } from '@this/collections';
 import { JsonSchema, JsonSchemaUtil } from '@this/json';
 
@@ -148,11 +148,11 @@ export class ApplicationManager {
           properties: {
             name: {
               type: 'string',
-              pattern: ApplicationController.NAME_PATTERN
+              pattern: Names.NAME_PATTERN
             },
             type: {
               type: 'string',
-              pattern: ApplicationController.TYPE_PATTERN
+              pattern: Names.TYPE_PATTERN
             }
           },
           ... JsonSchemaUtil

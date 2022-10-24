@@ -1,6 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { Names } from '@this/app-config';
 import { JsonSchema, JsonSchemaUtil } from '@this/json';
 import { Loggy } from '@this/loggy';
 
@@ -141,11 +142,11 @@ export class ServiceManager {
           properties: {
             name: {
               type: 'string',
-              pattern: ServiceController.NAME_PATTERN
+              pattern: Names.NAME_PATTERN
             },
             type: {
               type: 'string',
-              pattern: ServiceController.TYPE_PATTERN
+              pattern: Names.TYPE_PATTERN
             }
           }
         }
