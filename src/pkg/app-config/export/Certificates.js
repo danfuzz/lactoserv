@@ -54,7 +54,7 @@ export class Certificates {
    */
   static #makePemPattern(label) {
     const base64Line = '[/+a-zA-Z0-9]{1,80}';
-    const body       = `(${base64Line}\n+){0,500}${base64Line}={0,2}\n+`
+    const body       = `(${base64Line}\n+){0,500}${base64Line}={0,2}\n+`;
 
     return '^\n*'
       + `-----BEGIN ${label}-----\n+`

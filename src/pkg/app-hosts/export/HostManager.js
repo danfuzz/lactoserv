@@ -3,9 +3,8 @@
 
 import { SecureContext } from 'node:tls';
 
-import { Certificates, HostItem, Uris } from '@this/app-config';
+import { HostItem, Uris } from '@this/app-config';
 import { TreePathMap } from '@this/collections';
-import { JsonSchema, JsonSchemaUtil } from '@this/json';
 import { Loggy } from '@this/loggy';
 
 import { HostController } from '#x/HostController';
