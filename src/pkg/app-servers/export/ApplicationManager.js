@@ -57,6 +57,23 @@ export class ApplicationManager {
   }
 
   /**
+   * Finds the {@link ApplicationController} for a given application name.
+   *
+   * @param {string} name Application name to look for.
+   * @returns {ApplicationController} The associated controller.
+   * @throws {Error} Thrown if there is no controller with the given name.
+   */
+  findController(name) {
+    const controller = this.#controllers.get(name);
+
+    if (!controller) {
+      throw new Error(`No such application: ${name}`);
+    }
+
+    return controller;
+  }
+
+  /**
    * Makes a deep-frozen "mount list" which lists bindings of mount points to
    * corresponding {@link ApplicationController} instances, for all the given
    * named applications.
