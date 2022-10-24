@@ -173,59 +173,6 @@ export class ServerController {
   //
 
   /**
-   * @returns {string} Regex pattern which matches an interface name or
-   * address, anchored so that it matches a complete string.
-   *
-   * This pattern allows normal dotted DNS names, numeric IPv4 and IPv6 names
-   * _except_ not "any" addresses, or the special "name" `*` to represent the
-   * "any" address.
-   */
-  static get INTERFACE_PATTERN() {
-    // The one allowed "any" address.
-    const anyAddress = '[*]';
-
-    // Normal DNS names. See RFC1035 for details. Notes:
-    // * The maximum allowed length for a "label" (name component) is 63.
-    // * The maximum allowed total length is 255.
-    // * The spec seems to require each label to start with a letter, but in
-    //   practice that's commonly violated, e.g. there are many `<digits>.com`
-    //   registrations, and `<digits>.<digits>...in-addr.arpa` is commonly used.
-    //   So, we instead require labels not start with a dash and that there is
-    //   at least one non-digit somewhere in the entire name. This is enough to
-    //   disambiguate between a DNS name and an IPv4 address, and to cover
-    //   existing uses.
-    const dnsLabel = '(?!-)[-a-zA-Z0-9]{1,63}(?<!-)';
-    const dnsName  =
-      '(?!.{256})' +                    // No more than 255 characters total.
-      '(?=.*[a-zA-Z])' +                // At least one letter _somewhere_.
-      `${dnsLabel}(?:[.]${dnsLabel})*`; // `.`-delimited sequence of labels.
-
-    // IPv4 address.
-    const ipv4Address =
-      '(?!0+[.]0+[.]0+[.]0+)' + // No IPv4 "any" addresses.
-      '(?!.*[^.]{4})' +         // No more than three digits in a row.
-      '(?!.*[3-9][^.]{2})' +    // No 3-digit number over `299`.
-      '(?!.*2[6-9][^.])' +      // No `2xx` number over `259`.
-      '(?!.*25[6-9])' +         // No `25x` number over `255`.
-      '[0-9]{1,3}(?:[.][0-9]{1,3}){3}';
-
-    // IPv6 address.
-    const ipv6Address =
-      '(?=.*:)' +              // AFAWC, IPv6 requires a colon _somewhere_.
-      '(?![:0]+)' +            // No IPv6 "any" addresses.
-      '(?!.*[^:]{5})' +        // No more than four digits in a row.
-      '(?!(.*::){2})' +        // No more than one `::`.
-      '(?!.*:::)' +            // No triple-colons (or quad-, etc.).
-      '(?!([^:]*:){8})' +      // No more than seven colons total.
-      '(?=.*::|([^:]*:){7}[^:]*$)' + // Contains `::` or exactly seven colons.
-      '(?=(::|[^:]))' +        // Must start with `::` or digit.
-      '[:0-9A-Fa-f]{2,39}' +   // (Bunch of valid characters.)
-      '(?<=(::|[^:]))';        // Must end with `::` or digit.
-
-    return `^(${anyAddress}|${dnsName}|${ipv4Address}|${ipv6Address})$`;
-  }
-
-  /**
    * Makes the map from each (possibly wildcarded) hostname that this server
    * handles to the map from each (typically wildcarded) path (that is, a path
    * _prefix_ when wildcarded) to the application which handles it.

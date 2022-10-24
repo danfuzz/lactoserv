@@ -182,7 +182,7 @@ export class ServerManager {
               properties: {
                 interface: {
                   type: 'string',
-                  pattern: ServerController.INTERFACE_PATTERN
+                  pattern: Uris.INTERFACE_PATTERN
                 },
                 mounts: {
                   type: 'array',
