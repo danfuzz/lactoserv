@@ -122,7 +122,7 @@ export class ServerManager {
     const hmSubset = hostManager
       ? hostManager.makeSubset(JsonSchemaUtil.singularPluralCombo(host, hosts))
       : null;
-    const appMounts = applicationManager.makeMountList_old(
+    const appMounts_old = applicationManager.makeMountList_old(
       JsonSchemaUtil.singularPluralCombo(app, apps));
     const rateLimiter = limName
       ? serviceManager.findController(limName).service
@@ -136,7 +136,7 @@ export class ServerManager {
       ...(hmSubset ? { hostManager: hmSubset } : null),
       ...(rateLimiter ? { rateLimiter } : null),
       ...(requestLogger ? { requestLogger } : null),
-      appMounts
+      appMounts: appMounts_old
     };
     delete config.app;
     delete config.apps;
