@@ -42,8 +42,9 @@ export class ServerController {
    * Constructs an insance. The `config` parameter is the same as the exposed
    * configuration object, except:
    *
-   * * with `app` / `apps` replaced by `appMounts`.
    * * with `host` / `hosts` replaced by `hostManager`.
+   * * with the `app` binding inside of `mounts` replaced by {@link
+   *   ApplicationController} instances.
    * * with `rateLimiter` and `requestLogger` replaced by the corresponding
    *   service instances (instead of just being names).
    *
@@ -54,7 +55,9 @@ export class ServerController {
   constructor(serverConfig, logger) {
     this.#name        = serverConfig.name;
     this.#hostManager = serverConfig.hostManager;
-    this.#mountMap    = ServerController.#makeMountMap(serverConfig.appMounts);
+    this.#mountMap    = serverConfig.appMounts
+      ? ServerController.#makeMountMap(serverConfig.appMounts)
+      : ServerController.#makeMountMap(serverConfig.mounts)
     this.#logger      = logger[this.#name];
 
     const wranglerOptions = {
@@ -272,8 +275,7 @@ export class ServerController {
    * handles to the map from each (typically wildcarded) path (that is, a path
    * _prefix_ when wildcarded) to the application which handles it.
    *
-   * @param {object[]} mounts Mounts, in the form returned from {@link
-   *   ApplicationController.makeMountList}
+   * @param {object[]} mounts Mounts, as objects that bind `{app, at}`.
    * @returns {TreePathMap<TreePathMap<ApplicationController>>} The constructed
    *   mount map.
    */
@@ -281,7 +283,10 @@ export class ServerController {
     const result = new TreePathMap();
 
     for (const mount of mounts) {
-      const { hostname, path, app } = mount;
+      const { hostname, path, app, at } = mount;
+      if (at) {
+        throw new Error('TODO');
+      }
 
       let hostMounts = result.findExact(hostname);
       if (!hostMounts) {
