@@ -122,7 +122,7 @@ export class ServerManager {
     const hmSubset = hostManager
       ? hostManager.makeSubset(JsonSchemaUtil.singularPluralCombo(host, hosts))
       : null;
-    const appMounts = applicationManager.makeMountList(
+    const appMounts = applicationManager.makeMountList_old(
       JsonSchemaUtil.singularPluralCombo(app, apps));
     const rateLimiter = limName
       ? serviceManager.findController(limName).service
@@ -177,11 +177,16 @@ export class ServerManager {
           allOf: [
             {
               type: 'object',
-              required: ['interface', 'name', 'port', 'protocol'],
+              required: ['interface', 'mounts', 'name', 'port', 'protocol'],
               properties: {
                 interface: {
                   type: 'string',
                   pattern: ServerController.INTERFACE_PATTERN
+                },
+                mounts: {
+                  type: 'array',
+                  uniqueItems: true,
+                  items: { $ref: "#/$defs/mountItem" }
                 },
                 name: {
                   type: 'string',
@@ -208,8 +213,6 @@ export class ServerManager {
             },
             JsonSchemaUtil
               .singularOrPlural('host', 'hosts', { $ref: '#/$defs/hostname' }),
-            JsonSchemaUtil
-              .singularOrPlural('app', 'apps', { $ref: '#/$defs/appName' })
           ]
         },
         appName: {
@@ -219,6 +222,20 @@ export class ServerManager {
         hostname: {
           type: 'string',
           pattern: HostController.HOSTNAME_PATTERN
+        },
+        mountItem: {
+          type: 'object',
+          required: ['app', 'at'],
+          properties: {
+            app: {
+              type: 'string',
+              pattern: ApplicationController.NAME_PATTERN
+            },
+            at: {
+              type: 'string',
+              pattern: ServerController.MOUNT_PATTERN
+            }
+          }
         }
       }
     };

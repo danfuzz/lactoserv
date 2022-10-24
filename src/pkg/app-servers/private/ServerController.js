@@ -3,7 +3,7 @@
 
 import * as express from 'express';
 
-import { HostManager } from '@this/app-hosts';
+import { HostController, HostManager } from '@this/app-hosts';
 import { ProtocolWrangler, ProtocolWranglers, WranglerContext } from '@this/app-protocol';
 import { TreePathKey, TreePathMap } from '@this/collections';
 
@@ -219,6 +219,41 @@ export class ServerController {
       '(?<=(::|[^:]))';        // Must end with `::` or digit.
 
     return `^(${anyAddress}|${dnsName}|${ipv4Address}|${ipv6Address})$`;
+  }
+
+  /**
+   * @returns {string} Regex pattern which matches a mount point, anchored so
+   * that it matches a complete string.
+   *
+   * This pattern allows regular strings of the form `//<hostname>/<path>/...`,
+   * where:
+   *
+   * * `hostname` is {@link HostController.HOSTNAME_PATTERN_FRAGMENT}.
+   * * Each `path` is a non-empty string consisting of alphanumerics plus `-`,
+   *   `_`, or `.`; which must furthermore start and end with an alphanumeric
+   *   character.
+   * * It must start with `//` and end with `/`.
+   *
+   * **Note:** Mount paths are more restrictive than what is acceptable in
+   * general for paths, e.g. a path passed in from a network request can
+   * legitimately _not_ match a mount path while still being syntactically
+   * correct.
+   */
+  static get MOUNT_PATTERN() {
+    const alnum = 'a-zA-Z0-9';
+    const nameComponent = `(?=[${alnum}])[-_.${alnum}]*[${alnum}]`;
+    const pattern =
+      `^//${HostController.HOSTNAME_PATTERN_FRAGMENT}(/${nameComponent})*/$`;
+
+    return pattern;
+  }
+
+  /**
+   * @returns {RegExp} Regular expression that matches {@link
+   * #MOUNT_PATTERN}.
+   */
+  static get MOUNT_REGEXP() {
+    return new RegExp(this.MOUNT_PATTERN);
   }
 
   /**

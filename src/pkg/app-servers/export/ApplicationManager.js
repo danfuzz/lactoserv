@@ -69,7 +69,7 @@ export class ApplicationManager {
    * @throws {Error} Thrown if any element of `names` does not correspond to
    *   a defined application.
    */
-  makeMountList(names) {
+  makeMountList_old(names) {
     const result = [];
 
     for (const name of names) {
