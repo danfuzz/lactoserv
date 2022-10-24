@@ -1,6 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { Uris } from '@this/app-config';
 import { HostController } from '@this/app-hosts';
 import { TreePathKey } from '@this/collections';
 import { JsonSchemaUtil } from '@this/json';
@@ -94,7 +95,7 @@ export class ApplicationController {
    * This pattern allows regular strings of the form `//<hostname>/<path>/...`,
    * where:
    *
-   * * `hostname` is {@link HostController.HOSTNAME_PATTERN_FRAGMENT}.
+   * * `hostname` is {@link Uris.HOSTNAME_PATTERN_FRAGMENT}.
    * * Each `path` is a non-empty string consisting of alphanumerics plus `-`,
    *   `_`, or `.`; which must furthermore start and end with an alphanumeric
    *   character.
@@ -109,7 +110,7 @@ export class ApplicationController {
     const alnum = 'a-zA-Z0-9';
     const nameComponent = `(?=[${alnum}])[-_.${alnum}]*[${alnum}]`;
     const pattern =
-      `^//${HostController.HOSTNAME_PATTERN_FRAGMENT}(/${nameComponent})*/$`;
+      `^//${Uris.HOSTNAME_PATTERN_FRAGMENT}(/${nameComponent})*/$`;
 
     return pattern;
   }
@@ -176,7 +177,7 @@ export class ApplicationController {
 
     // `TreePathKey...true` below because all mounts are effectively wildcards.
     return Object.freeze({
-      hostname: HostController.parseName(hostname, true),
+      hostname: Uris.parseHostname(hostname, true),
       path:     new TreePathKey(pathParts, true)
     });
   }

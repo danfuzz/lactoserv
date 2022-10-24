@@ -3,6 +3,7 @@
 
 import * as express from 'express';
 
+import { Uris } from '@this/app-config';
 import { HostController, HostManager } from '@this/app-hosts';
 import { ProtocolWrangler, ProtocolWranglers, WranglerContext } from '@this/app-protocol';
 import { TreePathKey, TreePathMap } from '@this/collections';
@@ -231,7 +232,7 @@ export class ServerController {
    * This pattern allows regular strings of the form `//<hostname>/<path>/...`,
    * where:
    *
-   * * `hostname` is {@link HostController.HOSTNAME_PATTERN_FRAGMENT}.
+   * * `hostname` is {@link Uris.HOSTNAME_PATTERN_FRAGMENT}.
    * * Each `path` is a non-empty string consisting of alphanumerics plus `-`,
    *   `_`, or `.`; which must furthermore start and end with an alphanumeric
    *   character.
@@ -246,7 +247,7 @@ export class ServerController {
     const alnum = 'a-zA-Z0-9';
     const nameComponent = `(?=[${alnum}])[-_.${alnum}]*[${alnum}]`;
     const pattern =
-      `^//${HostController.HOSTNAME_PATTERN_FRAGMENT}(/${nameComponent})*/$`;
+      `^//${Uris.HOSTNAME_PATTERN_FRAGMENT}(/${nameComponent})*/$`;
 
     return pattern;
   }

@@ -1,6 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { Uris } from '@this/app-config';
 import { HostController } from '@this/app-hosts';
 import { ServiceController } from '@this/app-services';
 import { JsonSchema, JsonSchemaUtil } from '@this/json';
@@ -221,7 +222,7 @@ export class ServerManager {
         },
         hostname: {
           type: 'string',
-          pattern: HostController.HOSTNAME_PATTERN
+          pattern: Uris.HOSTNAME_PATTERN
         },
         mountItem: {
           type: 'object',

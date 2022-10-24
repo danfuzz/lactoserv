@@ -3,6 +3,7 @@
 
 import { SecureContext } from 'node:tls';
 
+import { Uris } from '@this/app-config';
 import { TreePathMap } from '@this/collections';
 import { JsonSchema, JsonSchemaUtil } from '@this/json';
 import { Loggy } from '@this/loggy';
@@ -120,7 +121,7 @@ export class HostManager {
     const result = new HostManager();
 
     for (const name of names) {
-      const key = HostController.parseName(name, true);
+      const key = Uris.parseHostname(name, true);
       const found = this.#controllers.find(key);
 
       if (!found) {
@@ -164,7 +165,7 @@ export class HostManager {
     const controller = new HostController(hostItem);
 
     for (const name of controller.names) {
-      const key = HostController.parseName(name, true);
+      const key = Uris.parseHostname(name, true);
       logger.binding(name);
       this.#controllers.add(key, controller);
     }
@@ -179,7 +180,7 @@ export class HostManager {
    *   suitable is found.
    */
   #findController(name) {
-    const key = HostController.parseName(name, true);
+    const key = Uris.parseHostname(name, true);
     const found = this.#controllers.find(key);
 
     return found ? found.value : null;
@@ -238,7 +239,7 @@ export class HostManager {
         },
         hostname: {
           type: 'string',
-          pattern: HostController.HOSTNAME_PATTERN
+          pattern: Uris.HOSTNAME_PATTERN
         }
       }
     };
