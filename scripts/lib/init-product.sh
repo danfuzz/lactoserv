@@ -16,6 +16,49 @@
 
 
 #
+# Helper functions
+#
+
+# Checks one dependency.
+function check-dependency {
+    local name="$1"
+    local versionCmd="$2"
+    local match="$3"
+
+    # Extract just the binary (executable / command / tool) name.
+    local cmdName=''
+    if [[ ${versionCmd} =~ ^([^ ]+) ]]; then
+        cmdName="${BASH_REMATCH[1]}"
+    else
+        # Note: This indicates a bug in this script, not a problem with the
+        # environment.
+        error-msg "Could not determine binary name for ${name}."
+        return 1
+    fi
+
+    # Verify that the command exists at all.
+    if ! which "${cmdName}" >/dev/null 2>&1; then
+        error-msg "Missing required binary for ${name}: ${cmdName}"
+        return 1
+    fi
+
+    local version
+    version=$(eval "${versionCmd}") \
+    || {
+        # Note: This indicates a bug in this script, not a problem with the
+        # environment.
+        error-msg "Trouble running version command for ${name}."
+        return 1
+    }
+
+    if [[ !(${version} =~ ${match}) ]]; then
+        error-msg "Unsupported version of ${name}: ${version}"
+        return 1
+    fi
+}
+
+
+#
 # Library functions
 #
 
@@ -28,17 +71,17 @@ function _init_product-name {
 function _init_check-prerequisites {
     local error=0
 
-    if ! which jq >/dev/null 2>&1; then
-        error-msg 'Missing `jq` binary.'
-        error=1
-    fi
+    check-dependency \
+        'Node' \
+        'node --version | sed -e "s/^v//"' \
+        '^(18|19)\.' \
+    || error=1
 
-    if ! which node >/dev/null 2>&1; then
-        error-msg 'Missing `node` binary.'
-        error=1
-    fi
-
-    # TODO: Should probably do more stuff!
+    check-dependency \
+        'jq' \
+        'jq --version | sed -e "s/^jq-//"' \
+        '^1.6$' \
+    || error=1
 
     return "${error}"
 }
