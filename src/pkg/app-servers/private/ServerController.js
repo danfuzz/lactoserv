@@ -75,8 +75,6 @@ export class ServerController {
           : {})
     };
     this.#wrangler = ProtocolWranglers.make(wranglerOptions);
-
-    this.#configureServerApp();
   }
 
   /** @returns {string} Server name. */
@@ -97,32 +95,6 @@ export class ServerController {
    */
   async stop() {
     return this.#wrangler.stop();
-  }
-
-  /**
-   * Configures `#wrangler.application`.
-   */
-  #configureServerApp() {
-    const app = this.#wrangler.application;
-
-    // Means paths `/foo` and `/Foo` are different.
-    app.set('case sensitive routing', true);
-
-    // A/O/T `development`. Note: Per Express docs, this makes error messages be
-    // "less verbose," so it may be reasonable to turn it off when debugging
-    // things like Express routing weirdness etc. Or, maybe this project's needs
-    // are so modest that it's better to just leave it in `development` mode
-    // permanently.
-    app.set('env', 'production');
-
-    // Means paths `/foo` and `/foo/` are different.
-    app.set('strict routing', true);
-
-    // Do not strip off any parts from the parsed hostname.
-    app.set('subdomain offset', 0);
-
-    // Squelches the response header advertisement for Express.
-    app.set('x-powered-by', false);
   }
 
   /**

@@ -357,14 +357,37 @@ export class ProtocolWrangler {
     const app    = this._impl_application();
     const server = this._impl_server();
 
+    // Configure the top-level application properties.
+
+    // This means paths `/foo` and `/Foo` are different.
+    app.set('case sensitive routing', true);
+
+    // A/O/T `development`. Note: Per Express docs, this makes error messages be
+    // "less verbose," so it may be reasonable to turn it off when debugging
+    // things like Express routing weirdness etc. Or, maybe this project's needs
+    // are so modest that it's better to just leave it in `development` mode
+    // permanently.
+    app.set('env', 'production');
+
+    // This means paths `/foo` and `/foo/` are different.
+    app.set('strict routing', true);
+
+    // Do not strip off any parts from the parsed hostname.
+    app.set('subdomain offset', 0);
+
+    // This squelches the response header advertisement for Express.
+    app.set('x-powered-by', false);
+
     // Set up high-level application routing, including getting the protocol
     // server to hand requests off to the app.
+
     app.use('/', (req, res, next) => this.#handleRequest(req, res, next));
     app.use('/', (err, req, res, next) => this.#handleError(err, req, res, next));
     server.on('request', app);
 
     // Set up an event handler to propagate the connection context. See
     // `_prot_newConnection()` for a treatise about what's going on.
+
     server.on('secureConnection', (socket) => {
       const ctx = this.#perConnectionStorage.getStore();
       if (ctx) {
@@ -373,6 +396,8 @@ export class ProtocolWrangler {
         this.#logger?.missingContext('secureConnection');
       }
     });
+
+    // Done!
 
     this.#initialized = true;
   }
