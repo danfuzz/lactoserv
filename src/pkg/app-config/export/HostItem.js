@@ -46,7 +46,10 @@ export class HostItem {
     this.#privateKey  = Certificates.checkPrivateKey(privateKey);
   }
 
-  /** @returns {string[]} The hostnames in question. */
+  /**
+   * @returns {string[]} List of hostnames, including possibly subdomain and/or
+   * full wildcards.
+   */
   get hostnames() {
     return this.#hostnames;
   }

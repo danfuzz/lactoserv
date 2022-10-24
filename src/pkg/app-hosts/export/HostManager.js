@@ -80,8 +80,8 @@ export class HostManager {
     }
 
     return {
-      cert: controller.cert,
-      key:  controller.key
+      cert: controller.config.certificate,
+      key:  controller.config.privateKey
     };
   }
 
@@ -153,7 +153,7 @@ export class HostManager {
   #addControllerFor(hostItem) {
     const controller = new HostController(hostItem);
 
-    for (const name of controller.names) {
+    for (const name of controller.config.hostnames) {
       const key = Uris.parseHostname(name, true);
       logger.binding(name);
       this.#controllers.add(key, controller);

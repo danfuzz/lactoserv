@@ -12,16 +12,8 @@ import { JsonSchemaUtil } from '@this/json';
  * multiple different hosts.
  */
 export class HostController {
-  /**
-   * @type {string[]} List of hostnames, including partial or full wildcards.
-   */
-  #names;
-
-  /** @type {string} Certificate, in PEM form. */
-  #cert;
-
-  /** @type {string} Key, in PEM form. */
-  #key;
+  /** @type {HostItem} Configuration which defined this instance. */
+  #config;
 
   /**
    * @type {tls.SecureContext} TLS context representing this instance's info.
@@ -31,32 +23,18 @@ export class HostController {
   /**
    * Constructs an insance.
    *
-   * @param {HostItem} hostItem Parsed configuration item.
+   * @param {HostItem} config Parsed configuration item.
    */
-  constructor(hostItem) {
-    const { hostnames, certificate, privateKey } = hostItem;
+  constructor(config) {
+    const { certificate, privateKey } = config;
 
-    this.#names         = hostnames;
-    this.#cert          = certificate;
-    this.#key           = privateKey;
+    this.#config        = config;
     this.#secureContext = tls.createSecureContext({ certificate, privateKey });
   }
 
-  /**
-   * @returns {string[]} List of hostnames, including partial or full wildcards.
-   */
-  get names() {
-    return this.#names;
-  }
-
-  /** @returns {string} Certificate, in PEM form. */
-  get cert() {
-    return this.#cert;
-  }
-
-  /** @returns {string} Key, in PEM form. */
-  get key() {
-    return this.#key;
+  /** @returns {HostItem} Configuration which defined this instance. */
+  get config() {
+    return this.#config;
   }
 
   /**
