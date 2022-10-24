@@ -27,8 +27,6 @@ const logger = ThisModule.logger.server;
  *   bindings to indicate which server(s) an application is served from.
  * * `{string} host` or `{string[]} hosts` -- Names of hosts which this server
  *   should accept as valid. Can include partial or complete wildcards.
- * * `{string} app` or `{string[]} apps` -- Names of apps which this server
- *   should provide access to.
  * * `{string} interface` -- Address of the physical interface that the server
  *   is to listen on. `*` indicates that all interfaces should be listened on.
  *   Note: `::` and `0.0.0.0` are not allowed; use `*` instead.
@@ -40,6 +38,13 @@ const logger = ThisModule.logger.server;
  * * `{string} requestLogger` -- Optional name of the request loging service to
  *   inform of activity. If not specified, this server will not produce request
  *   logs.
+ * * `{object[]} mounts` -- Array of application mounts, each of the form:
+ *   * `{string} app` -- Name of the application being mounted.
+ *   * `{string} at` -- Mount point for the application, in the form
+ *     `//<hostname>/` or `//<hostname>/<base-path>/`, where `hostname` is the
+ *     name of a configured host, and `base-path` is the absolute path which the
+ *     application should respond to on that host. `*` is allowed for `hostname`
+ *     to indicate a wildcard.
  *
  * **Note:** Exactly one of `server` or `servers` must be present at the top
  * level.
