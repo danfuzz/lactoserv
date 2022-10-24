@@ -1,8 +1,6 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { MustBe } from '@this/typey';
-
 
 /**
  * Utilities for parsing various sorts of names, including type names.
@@ -17,7 +15,7 @@ export class Names {
    * which furthermore must start and end with an alphanumeric character.
    */
   static get NAME_PATTERN() {
-    return '^(?!-)[-a-zA-Z0-9]+(?<!-)$'
+    return '^(?!-)[-a-zA-Z0-9]+(?<!-)$';
   }
 
   /**
