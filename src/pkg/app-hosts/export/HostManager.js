@@ -63,7 +63,8 @@ export class HostManager {
 
   /**
    * Finds the configuration info (cert/key pair) associated with the given
-   * hostname.
+   * hostname. The return value is suitable for use in options passed to Node
+   * `TLS` functions / methods.
    *
    * @param {string} name Hostname to look for, which may be a partial or full
    *   wildcard.
@@ -77,10 +78,10 @@ export class HostManager {
       return null;
     }
 
-    return {
+    return Object.freeze({
       cert: controller.config.certificate,
       key:  controller.config.privateKey
-    };
+    });
   }
 
   /**
