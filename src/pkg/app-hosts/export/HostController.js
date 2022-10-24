@@ -28,7 +28,10 @@ export class HostController {
     const { certificate, privateKey } = config;
 
     this.#config        = config;
-    this.#secureContext = tls.createSecureContext({ certificate, privateKey });
+    this.#secureContext = tls.createSecureContext({
+      cert: certificate,
+      key:  privateKey
+    });
   }
 
   /** @returns {HostItem} Configuration which defined this instance. */
