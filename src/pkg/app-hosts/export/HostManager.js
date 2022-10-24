@@ -3,7 +3,7 @@
 
 import { SecureContext } from 'node:tls';
 
-import { Uris } from '@this/app-config';
+import { Certificates, Uris } from '@this/app-config';
 import { TreePathMap } from '@this/collections';
 import { JsonSchema, JsonSchemaUtil } from '@this/json';
 import { Loggy } from '@this/loggy';
@@ -198,23 +198,6 @@ export class HostManager {
    * @param {boolean} [main = false] Is this the main schema?
    */
   static addConfigSchemaTo(validator, main = false) {
-    const base64Line = '[/+a-zA-Z0-9]{0,80}';
-    const pemLines = `(${base64Line}\n){1,500}${base64Line}={0,2}\n`;
-
-    const certPattern =
-      '^\n*' +
-      '-----BEGIN CERTIFICATE-----\n' +
-      pemLines +
-      '-----END CERTIFICATE-----' +
-      '\n*$';
-
-    const keyPattern =
-      '^\n*' +
-      '-----BEGIN PRIVATE KEY-----\n' +
-      pemLines +
-      '-----END PRIVATE KEY-----' +
-      '\n*$';
-
     const schema = {
       $id: '/HostManager',
       ... JsonSchemaUtil
@@ -227,11 +210,11 @@ export class HostManager {
           properties: {
             cert: {
               type: 'string',
-              pattern: certPattern
+              pattern: Certificates.CERTIFICATE_PATTERN
             },
             key: {
               type: 'string',
-              pattern: keyPattern
+              pattern: Certificates.PRIVATE_KEY_PATTERN
             }
           },
           ... JsonSchemaUtil
