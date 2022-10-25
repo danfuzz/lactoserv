@@ -43,7 +43,7 @@ export class ServerController {
    * Constructs an insance. The `config` parameter is the same as the exposed
    * configuration object, except:
    *
-   * * with `host` / `hosts` replaced by `hostManager`.
+   * * with `hostname` / `hostnames` replaced by `hostManager`.
    * * with the `app` binding inside of `mounts` replaced by {@link
    *   ApplicationController} instances.
    * * with `rateLimiter` and `requestLogger` replaced by the corresponding

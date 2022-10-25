@@ -1,7 +1,7 @@
 [
   {
     "name":          "insecure",
-    "host":          "*",
+    "hostnames":     ["*"],
     "interface":     "*",
     "port":          8080,
     "protocol":      "http",
@@ -16,7 +16,7 @@
   },
   {
     "name":          "secure",
-    "host":          "*",
+    "hostnames":     ["*"],
     "interface":     "*",
     "port":          8443,
     "protocol":      "http2",
@@ -35,7 +35,7 @@
   },
   {
     "name":          "also-secure",
-    "hosts":         ["*"],
+    "hostnames":     ["*"],
     "interface":     "*",
     "port":          8444,
     "protocol":      "https",

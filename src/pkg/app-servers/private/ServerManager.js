@@ -23,7 +23,7 @@ const logger = ThisModule.logger.server;
  *
  * * `{string} name` -- Symbolic name of the server. This is used in application
  *   bindings to indicate which server(s) an application is served from.
- * * `{string} host` or `{string[]} hosts` -- Names of hosts which this server
+ * * `{string|string[]} hostnames` -- Names of hosts which this server
  *   should accept as valid. Can include partial or complete wildcards.
  * * `{string} interface` -- Address of the physical interface that the server
  *   is to listen on. `*` indicates that all interfaces should be listened on.
@@ -108,8 +108,8 @@ export class ServerManager {
    */
   #addControllerFor(serverItem) {
     const {
-      host,
-      hosts,
+      hostname,
+      hostnames,
       mounts:        origMounts,
       rateLimiter:   limName,
       requestLogger: logName,
@@ -117,7 +117,7 @@ export class ServerManager {
     const { hostManager, serviceManager } = this.#warehouse;
 
     const hmSubset = hostManager
-      ? hostManager.makeSubset(JsonSchemaUtil.singularPluralCombo(host, hosts))
+      ? hostManager.makeSubset(JsonSchemaUtil.singularPluralCombo(hostname, hostnames))
       : null;
     const mounts = this.#makeMounts(origMounts);
     const rateLimiter = limName
@@ -222,7 +222,7 @@ export class ServerManager {
               }
             },
             JsonSchemaUtil
-              .singularOrPlural('host', 'hosts', { $ref: '#/$defs/hostname' }),
+              .singularOrPlural('hostname', 'hostnames', { $ref: '#/$defs/hostname' }),
           ]
         },
         hostname: {
