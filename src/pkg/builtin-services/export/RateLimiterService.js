@@ -1,6 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { IntfRateLimiter } from '@this/app-protocol';
 import { BaseService, ServiceController } from '@this/app-services';
 import { TokenBucket } from '@this/async';
 import { JsonSchema } from '@this/json';
@@ -35,6 +36,8 @@ import { RateLimitedStream } from '#p/RateLimitedStream';
  * * `{string} timeUnit` -- The unit of time by which `flowRate` is defined.
  *   Must be one of: `day` (defined here as 24 hours), `hour`, `minute`,
  *   `second`, or `msec` (millisecond).
+ *
+ * @implements {IntfRateLimiter}
  */
 export class RateLimiterService extends BaseService {
   /** @type {?TokenBucket} Connection rate limiter, if any. */

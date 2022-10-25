@@ -6,12 +6,10 @@ import * as net from 'node:net';
 
 import express from 'express';
 
-// TODO: Remove `app-services` dependency: `RateLimiter` should be an interface
-// exported by this class.
-import { BaseService } from '@this/app-services';
 import { Threadlet } from '@this/async';
 import { Methods, MustBe } from '@this/typey';
 
+import { IntfRateLimiter } from '#x/IntfRateLimiter';
 import { RequestLogger } from '#p/RequestLogger';
 import { WranglerContext } from '#x/WranglerContext';
 
@@ -32,7 +30,7 @@ export class ProtocolWrangler {
   /** @type {?function(...*)} Logger, if logging is to be done. */
   #logger;
 
-  /** @type {?BaseService} Rate limiter service to use, if any. */
+  /** @type {?IntfRateLimiter} Rate limiter service to use, if any. */
   #rateLimiter;
 
   /**
