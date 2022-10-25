@@ -54,7 +54,11 @@ export class RedirectApplication extends BaseApplication {
   // Static members
   //
 
-  /** @returns {string} Application type as used in configuration objects. */
+  static get CONFIG_CLASS() {
+    return ApplicationItem;
+  }
+
+  /** @override */
   static get TYPE() {
     return 'redirect-server';
   }
