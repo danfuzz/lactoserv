@@ -1,8 +1,9 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { BaseApplication, MountItem, ServerItem } from '@this/app-config';
+import { MountItem, ServerItem } from '@this/app-config';
 
+import { BaseApplication } from '#x/BaseApplication';
 import { ServerController } from '#p/ServerController';
 import { ThisModule } from '#p/ThisModule';
 import { Warehouse } from '#x/Warehouse';

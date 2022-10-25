@@ -3,11 +3,12 @@
 
 import * as express from 'express';
 
-import { BaseApplication, MountItem, ServerItem } from '@this/app-config';
+import { MountItem, ServerItem } from '@this/app-config';
 import { HostManager } from '@this/app-hosts';
 import { ProtocolWrangler, ProtocolWranglers, WranglerContext } from '@this/app-protocol';
 import { TreePathKey, TreePathMap } from '@this/collections';
 
+import { BaseApplication } from '#x/BaseApplication';
 import { ApplicationController } from '#x/ApplicationController';
 
 
