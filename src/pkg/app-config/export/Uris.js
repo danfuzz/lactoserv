@@ -14,9 +14,10 @@ export class Uris {
    * it matches a complete string.
    *
    * This pattern allows regular dotted names (`foo.example.com`), regular names
-   * prefixed with a wildcard (`*.example.com`), and complete wildcards (`*`).
-   * Name components must be non-empty strings of alphanumerics plus `-`, which
-   * furthermore must not start or end with a dash.
+   * prefixed with a wildcard (`*.example.com`) to represent subdomain
+   * wildcards, and complete wildcards (`*`). Name components must be non-empty
+   * strings of alphanumerics plus `-`, which furthermore must neither start nor
+   * end with a dash.
    */
   static get HOSTNAME_PATTERN() {
     return `^${this.HOSTNAME_PATTERN_FRAGMENT}$`;

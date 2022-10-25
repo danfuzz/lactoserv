@@ -10,7 +10,8 @@ import { MustBe } from '@this/typey';
 export class Certificates {
   /**
    * @returns {string} Regex pattern for a standard-form PEM certificate file.
-   * It is surrounded by `^...$` so as to only match complete strings.
+   * It is anchored at both ends by `^...$` so as to only match complete
+   * strings.
    */
   static get CERTIFICATE_PATTERN() {
     return this.#makePemPattern('CERTIFICATE');
@@ -18,14 +19,16 @@ export class Certificates {
 
   /**
    * @returns {string} Regex pattern for a standard-form PEM private key file.
-   * It is surrounded by `^...$` so as to only match complete strings.
+   * It is anchored at both ends by `^...$` so as to only match complete
+   * strings.
    */
   static get PRIVATE_KEY_PATTERN() {
     return this.#makePemPattern('PRIVATE KEY');
   }
 
   /**
-   * Checks that a given value is a string matching {@link CERTIFICATE_PATTERN}.
+   * Checks that a given value is a string matching {@link
+   * #CERTIFICATE_PATTERN}.
    *
    * @param {*} value Value in question.
    * @returns {string} `value` if it is a string which matches the pattern.
@@ -36,7 +39,8 @@ export class Certificates {
   }
 
   /**
-   * Checks that a given value is a string matching {@link PRIVATE_KEY_PATTERN}.
+   * Checks that a given value is a string matching {@link
+   * #PRIVATE_KEY_PATTERN}.
    *
    * @param {*} value Value in question.
    * @returns {string} `value` if it is a string which matches the pattern.
