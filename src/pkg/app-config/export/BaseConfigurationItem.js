@@ -26,8 +26,11 @@ export class BaseConfigurationItem {
 
   /**
    * Parses a single configuration object or array of them into an array of
-   * instances of the concrete class that this method was called on. (This
-   * method is defined on the base class and acts on behalf of all its
+   * instances of the concrete class that this method was called on. Each array
+   * element must either be an instance of the called class or plain object
+   * suitable for passing to the constructor of the called class.
+   *
+   * (This method is defined on the base class and acts on behalf of all its
    * subclasses.)
    *
    * @param {*} items Array of configuration objects, as described by the
@@ -41,9 +44,12 @@ export class BaseConfigurationItem {
       items = [items];
     }
 
-    MustBe.arrayOfPlainObject(items);
+    const result = items.map((item) => {
+      return (item instanceof this)
+        ? item
+        : new this(item);
+    });
 
-    const result = items.map(item => new this(item));
     return Object.freeze(result);
   }
 }
