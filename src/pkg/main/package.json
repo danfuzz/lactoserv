@@ -12,7 +12,7 @@
   "dependencies": {
     "@this/app-servers": "*",
     "@this/async": "*",
-    "@this/builtin-apps": "*",
+    "@this/builtin-applications": "*",
     "@this/builtin-services": "*",
     "@this/host": "*",
     "@this/loggy": "*"
