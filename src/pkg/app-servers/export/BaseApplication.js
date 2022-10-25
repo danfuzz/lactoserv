@@ -47,4 +47,22 @@ export class BaseApplication {
   handleRequest(req, res, next) {
     Methods.abstract(req, res, next);
   }
+
+
+  //
+  // Static members
+  //
+
+  /**
+   * @returns {function(new:ApplicationItem)} The configuration class for this
+   * application.
+   */
+  static get CONFIG_CLASS() {
+    return Methods.abstract();
+  }
+
+  /** @returns {string} The type name for this application. */
+  static get TYPE() {
+    return Methods.abstract();
+  }
 }
