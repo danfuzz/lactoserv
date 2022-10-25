@@ -194,8 +194,7 @@ export class ServerController {
     const result = new TreePathMap();
 
     for (const mount of mounts) {
-      const { application, at } = mount;
-      const { hostname, path } = Uris.parseMount(at);
+      const { application, hostname, path } = mount;
 
       let hostMounts = result.findExact(hostname);
       if (!hostMounts) {
