@@ -77,7 +77,7 @@ export class MustBe {
     check:
     if (Array.isArray(value)) {
       for (const v of value) {
-        if ((v === null) || Object.getPrototypeOf(v) !== Object.prototype) {
+        if (!MustBe.plainObject(v)) {
           break check;
         }
       }
@@ -218,6 +218,25 @@ export class MustBe {
           && ((maxExclusive === null) || (value < maxExclusive))
           && ((maxInclusive === null) || (value <= maxInclusive)))) {
       throw new Error('Must be of type `number` in specified range.');
+    }
+
+    return value;
+  }
+
+  /**
+   * Checks for type `object`, which must furthermore be a _plain_ object
+   * (direct instance of `Object` per se).
+   *
+   * @param {*} value Arbitrary value.
+   * @returns {object} `value` if it is of type `object` and is furthermore a
+   *   plain object.
+   * @throws {Error} Thrown if `value` is of any other type.
+   */
+  static plainObject(value) {
+    if (   (value === null)
+        || (typeof value !== 'object')
+        || Object.getPrototypeOf(value) !== Object.prototype) {
+      throw new Error('Must be of type plain `object`.');
     }
 
     return value;
