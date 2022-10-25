@@ -34,7 +34,7 @@ export class ProtocolWranglers {
     const protocol = options.protocol;
 
     const cls = this.#WRANGLER_CLASSES.get(protocol);
-    if (cls === null) {
+    if (!cls) {
       throw new Error(`Unknown protocol: ${protocol}`);
     }
 
