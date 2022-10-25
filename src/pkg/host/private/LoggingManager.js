@@ -22,7 +22,7 @@ export class LoggingManager {
       return;
     }
 
-    // Start logging to `stderr`. TODO: Will need to let the main app direct
+    // Start logging to `stderr`. TODO: Will need to let the main system direct
     // this elsewhere before we start to spew stuff out.
     const event = Loggy.earliestEvent;
     this.#stderrSink = new TextFileSink('/dev/stderr', event);

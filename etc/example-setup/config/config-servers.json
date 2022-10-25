@@ -1,7 +1,7 @@
 [
   {
     "name":          "insecure",
-    "host":          "*",
+    "hostnames":     ["*"],
     "interface":     "*",
     "port":          8080,
     "protocol":      "http",
@@ -9,14 +9,14 @@
     "requestLogger": "requests",
     "mounts": [
       {
-        "app": "my-wacky-redirector",
-        "at":  "//*/"
+        "application": "my-wacky-redirector",
+        "at":          "//*/"
       }
     ]
   },
   {
     "name":          "secure",
-    "host":          "*",
+    "hostnames":     ["*"],
     "interface":     "*",
     "port":          8443,
     "protocol":      "http2",
@@ -24,26 +24,26 @@
     "requestLogger": "requests",
     "mounts": [
       {
-        "app": "my-static-fun",
-        "at":  "//*/"
+        "application": "my-static-fun",
+        "at":          "//*/"
       },
       {
-        "app": "my-static-fun",
-        "at":  "//*/florp/"
+        "application": "my-static-fun",
+        "at":          "//*/florp/"
       }
     ]
   },
   {
     "name":          "also-secure",
-    "hosts":         ["*"],
+    "hostnames":     ["*"],
     "interface":     "*",
     "port":          8444,
     "protocol":      "https",
     "requestLogger": "requests",
     "mounts": [
       {
-        "app": "my-static-fun",
-        "at":  "//*/"
+        "application": "my-static-fun",
+        "at":          "//*/"
       }
     ]
   }

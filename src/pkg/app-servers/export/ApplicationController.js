@@ -19,7 +19,7 @@ export class ApplicationController {
   #config;
 
   /** @type {BaseApplication} Actual application instance. */
-  #app;
+  #application;
 
   /**
    * Constructs an insance.
@@ -34,14 +34,14 @@ export class ApplicationController {
     delete config.type;
     Object.freeze(config);
 
-    this.#name   = name;
-    this.#config = config;
-    this.#app    = ApplicationFactory.forType(type, this);
+    this.#name        = name;
+    this.#config      = config;
+    this.#application = ApplicationFactory.forType(type, this);
   }
 
   /** @returns {BaseApplication} The controlled application instance. */
-  get app() {
-    return this.#app;
+  get application() {
+    return this.#application;
   }
 
   /** @returns {object} Configuration for the underlying application. */

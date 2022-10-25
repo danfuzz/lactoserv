@@ -3,11 +3,12 @@
 
 import * as express from 'express';
 
-import { Uris } from '@this/app-config';
+import { MountItem, ServerItem } from '@this/app-config';
 import { HostManager } from '@this/app-hosts';
 import { ProtocolWrangler, ProtocolWranglers, WranglerContext } from '@this/app-protocol';
 import { TreePathKey, TreePathMap } from '@this/collections';
 
+import { BaseApplication } from '#x/BaseApplication';
 import { ApplicationController } from '#x/ApplicationController';
 
 
@@ -17,8 +18,8 @@ import { ApplicationController } from '#x/ApplicationController';
  * express.Application} (or equivalent) which _exclusively_ handles that server.
  */
 export class ServerController {
-  /** @type {string} Server name. */
-  #name;
+  /** @type {ServerItem} Configuration which defined this instance. */
+  #config;
 
   /**
    * @type {HostManager} Host manager with bindings for all valid hostnames for
@@ -40,46 +41,59 @@ export class ServerController {
 
 
   /**
-   * Constructs an insance. The `config` parameter is the same as the exposed
-   * configuration object, except:
+   * Constructs an insance. The `extraConfig` argument contains additional
+   * bindings, to serve as "environment-bound" values that serve as replacements
+   * for what was passed in the original (but unbound) `config` (along with
+   * other bits):
    *
-   * * with `host` / `hosts` replaced by `hostManager`.
-   * * with the `app` binding inside of `mounts` replaced by {@link
-   *   ApplicationController} instances.
-   * * with `rateLimiter` and `requestLogger` replaced by the corresponding
-   *   service instances (instead of just being names).
+   * * `{Map<string,BaseApplication>} appMap` -- Map of names to applications,
+   *   for use in building the active mount map.
+   * * `{?HostManager} hostManager` -- Replacement for `hostnames`.
+   * * `{function(...*)} logger` -- Logger to use.
+   * * `{?RateLimiterService} rateLimiter` -- Replacemant for `rateLimiter`
+   *   (service instance, not just a name).
+   * * `{?RequestLoggerService} requestLogger` -- Replacemant for `rateLimiter`
+   *   (service instance, not just a name).
    *
-   * @param {object} serverConfig Server information configuration item, per the
-   *   description above.
-   * @param {function(...*)} logger Logger to use.
+   * @param {ServerItem} config Parsed configuration item.
+   * @param {object} extraConfig Additional configuration, per the above
+   *   description.
    */
-  constructor(serverConfig, logger) {
-    this.#name        = serverConfig.name;
-    this.#hostManager = serverConfig.hostManager;
-    this.#mountMap    = ServerController.#makeMountMap(serverConfig.mounts);
-    this.#logger      = logger[this.#name];
+  constructor(config, extraConfig) {
+    const { interface: iface, mounts, name, port, protocol } = config;
+
+    this.#config = config;
+
+    const { applicationMap, hostManager, logger, rateLimiter, requestLogger } = extraConfig;
+
+    this.#hostManager = hostManager;
+    this.#logger      = logger[name];
+    this.#mountMap    = ServerController.#makeMountMap(mounts, applicationMap);
 
     const wranglerOptions = {
-      rateLimiter:    serverConfig.rateLimiter,
+      rateLimiter,
       requestHandler: (req, res, next) => this.#handleRequest(req, res, next),
-      requestLogger:  serverConfig.requestLogger,
-      logger:         this.#logger,
-      protocol:       serverConfig.protocol,
-      socket: {
-        host: serverConfig.interface,
-        port: serverConfig.port
-      },
+      requestLogger,
+      logger: this.#logger,
+      protocol,
+      socket: { host: iface, port },
       ...(
         this.#hostManager
           ? { hosts: this.#hostManager.secureServerOptions }
           : {})
     };
+
     this.#wrangler = ProtocolWranglers.make(wranglerOptions);
+  }
+
+  /** @returns {ServerItem} Configuration which defined this instance. */
+  get config() {
+    return this.#config;
   }
 
   /** @returns {string} Server name. */
   get name() {
-    return this.#name;
+    return this.#config.name;
   }
 
   /**
@@ -135,9 +149,9 @@ export class ServerController {
     const controller = pathMatch.value;
 
     // Thwack the salient context into `req`, set up a `next` to restore the
-    // thwackage, and call through to the app. This setup is similar to what
-    // Express does when routing, but we have to do it ourselves here because
-    // we aren't using Express routing to find our apps.
+    // thwackage, and call through to the application. This setup is similar to
+    // what Express does when routing, but we have to do it ourselves here
+    // because we aren't using Express routing to find our applications.
 
     const { baseUrl: origBaseUrl, url: origUrl } = req;
 
@@ -145,10 +159,10 @@ export class ServerController {
     req.url = '/' + pathMatch.pathRemainder.join('/');
 
     reqLogger?.dispatching({
-      app:  controller.name,
-      host: ServerController.#hostMatchString(hostMatch),
-      path: ServerController.#pathMatchString(pathMatch),
-      url:  req.url
+      application: controller.name,
+      host:        ServerController.#hostMatchString(hostMatch),
+      path:        ServerController.#pathMatchString(pathMatch),
+      url:         req.url
     });
 
     const innerNext = (...args) => {
@@ -157,7 +171,7 @@ export class ServerController {
       next(...args);
     };
 
-    controller.app.handleRequest(req, res, innerNext);
+    controller.application.handleRequest(req, res, innerNext);
   }
 
 
@@ -170,16 +184,17 @@ export class ServerController {
    * handles to the map from each (typically wildcarded) path (that is, a path
    * _prefix_ when wildcarded) to the application which handles it.
    *
-   * @param {object[]} mounts Mounts, as objects that bind `{app, at}`.
+   * @param {MountItem[]} mounts Configured application mounts.
+   * @param {Map<string, BaseApplication>} applicationMap Map from application
+   *   names to corresponding instances.
    * @returns {TreePathMap<TreePathMap<ApplicationController>>} The constructed
    *   mount map.
    */
-  static #makeMountMap(mounts) {
+  static #makeMountMap(mounts, applicationMap) {
     const result = new TreePathMap();
 
     for (const mount of mounts) {
-      const { app, at } = mount;
-      const { hostname, path } = Uris.parseMount(at);
+      const { application, hostname, path } = mount;
 
       let hostMounts = result.findExact(hostname);
       if (!hostMounts) {
@@ -187,7 +202,7 @@ export class ServerController {
         result.add(hostname, hostMounts);
       }
 
-      hostMounts.add(path, app);
+      hostMounts.add(path, applicationMap.get(application));
     }
 
     return result;

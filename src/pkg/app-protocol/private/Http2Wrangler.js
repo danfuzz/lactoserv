@@ -112,8 +112,8 @@ export class Http2Wrangler extends TcpWrangler {
   }
 
   /**
-   * Tweaks the response object of an incoming request. (Note: Actual app
-   * dispatch happens in the base class.)
+   * Tweaks the response object of an incoming request. (Note: Actual high-level
+   * application dispatch happens in the base class.)
    *
    * @param {http2.Http2ServerRequest} req_unused The incoming request.
    * @param {http2.Http2ServerResponse} res Response creator.

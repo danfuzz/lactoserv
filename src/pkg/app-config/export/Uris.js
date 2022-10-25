@@ -14,9 +14,10 @@ export class Uris {
    * it matches a complete string.
    *
    * This pattern allows regular dotted names (`foo.example.com`), regular names
-   * prefixed with a wildcard (`*.example.com`), and complete wildcards (`*`).
-   * Name components must be non-empty strings of alphanumerics plus `-`, which
-   * furthermore must not start or end with a dash.
+   * prefixed with a wildcard (`*.example.com`) to represent subdomain
+   * wildcards, and complete wildcards (`*`). Name components must be non-empty
+   * strings of alphanumerics plus `-`, which furthermore must neither start nor
+   * end with a dash.
    */
   static get HOSTNAME_PATTERN() {
     return `^${this.HOSTNAME_PATTERN_FRAGMENT}$`;
@@ -129,6 +130,58 @@ export class Uris {
    */
   static get MOUNT_REGEXP() {
     return new RegExp(this.MOUNT_PATTERN);
+  }
+
+  /**
+   * @returns {string} Regex pattern which matches a protocol name (as allowed
+   * by this system),anchored so that it matches a complete string.
+   */
+  static get PROTOCOL_PATTERN() {
+    return '^(http|https|http2)$';
+  }
+
+  /**
+   * Checks that a given value is a string matching {@link #INTERFACE_PATTERN}.
+   *
+   * @param {*} value Value in question.
+   * @returns {string} `value` if it is a string which matches the pattern.
+   * @throws {Error} Thrown if `value` does not match.
+   */
+  static checkInterface(value) {
+    return MustBe.string(value, this.INTERFACE_PATTERN);
+  }
+
+  /**
+   * Checks that a given value is a valid port number, optionally also allowing
+   * `*` to specify the wildcard port.
+   *
+   * @param {*} value Value in question.
+   * @param {boolean} allowWildcard Is `*` allowed?
+   * @returns {number} `value` if it is a valid port number. If `allowWildcard
+   *   === true` and `value === '*'`, then the result is `0`.
+   * @throws {Error} Thrown if `value` does not match.
+   */
+  static checkPort(value, allowWildcard) {
+    if (typeof value === 'string') {
+      if (allowWildcard && (value === '*')) {
+        return 0;
+      }
+      throw new Error('Must be a port number.');
+    }
+
+    return MustBe.number(value,
+      { safeInteger: true,  minInclusive: 1, maxInclusive: 65535 });
+  }
+
+  /**
+   * Checks that a given value is a string matching {@link #PROTOCOL_PATTERN}.
+   *
+   * @param {*} value Value in question.
+   * @returns {string} `value` if it is a string which matches the pattern.
+   * @throws {Error} Thrown if `value` does not match.
+   */
+  static checkProtocol(value) {
+    return MustBe.string(value, this.PROTOCOL_PATTERN);
   }
 
   /**
