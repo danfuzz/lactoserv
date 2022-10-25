@@ -37,6 +37,10 @@ export class StaticApplication extends BaseApplication {
     this.#handleRequest(req, res, next);
   }
 
+  /** @override */
+  static get CONFIG_CLASS() {
+    return ApplicationItem;
+  }
 
   //
   // Static members
