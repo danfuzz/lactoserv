@@ -17,7 +17,7 @@ import { WranglerContext } from '#x/WranglerContext';
 /**
  * Logger for HTTP(ish) requests.
  */
-export class RequestLogger {
+export class RequestLogHelper {
   /** @type {BaseService} Request logger service to use. */
   #requestLogger;
 
@@ -56,7 +56,7 @@ export class RequestLogger {
     logger?.opened();
     logger?.connection(connectionCtx.connectionId ?? '<unknown-connection-id>');
     logger?.request(origin, req.method, urlish);
-    logger?.headers(RequestLogger.#sanitizeRequestHeaders(reqHeaders));
+    logger?.headers(RequestLogHelper.#sanitizeRequestHeaders(reqHeaders));
 
     const cookies = req.cookies;
     if (cookies) {
@@ -85,10 +85,10 @@ export class RequestLogger {
       }
 
       logger?.response(res.statusCode,
-        RequestLogger.#sanitizeResponseHeaders(resHeaders));
+        RequestLogHelper.#sanitizeResponseHeaders(resHeaders));
 
       const timeEnd     = process.hrtime.bigint();
-      const elapsedMsec = Number(timeEnd - timeStart) * RequestLogger.#NSEC_PER_MSEC;
+      const elapsedMsec = Number(timeEnd - timeStart) * RequestLogHelper.#NSEC_PER_MSEC;
 
       logger?.closed({ contentLength, elapsedMsec });
 
