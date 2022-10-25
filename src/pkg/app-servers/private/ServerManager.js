@@ -97,8 +97,8 @@ export class ServerManager {
       : null;
 
     const extraConfig = {
-      appMap:      this.#makeAppMap(mounts),
-      hostManager: hmSubset,
+      applicationMap: this.#makeApplicationMap(mounts),
+      hostManager:    hmSubset,
       logger,
       rateLimiter,
       requestLogger
@@ -124,14 +124,14 @@ export class ServerManager {
    * @param {MountItem[]} mounts Original `mounts` configuration item.
    * @returns {Map<string,BaseApplication>} Corresponding map.
    */
-  #makeAppMap(mounts) {
+  #makeApplicationMap(mounts) {
     const applicationManager = this.#warehouse.applicationManager;
     const result             = new Map();
 
-    for (const { app } of mounts) {
-      if (!result.has(app)) {
-        const controller = applicationManager.findController(app);
-        result.set(app, controller);
+    for (const { application } of mounts) {
+      if (!result.has(application)) {
+        const controller = applicationManager.findController(application);
+        result.set(application, controller);
       }
     }
 

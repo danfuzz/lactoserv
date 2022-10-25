@@ -11,7 +11,7 @@ import { Uris } from '#x/Uris';
  *
  * Accepted configuration bindings (in the constructor). All are required:
  *
- * * `{string} app` -- Name of the application being mounted.
+ * * `{string} application` -- Name of the application being mounted.
  * * `{string} at` -- Mount point for the application, in the form
  *   `//<hostname>/` or `//<hostname>/<base-path>/`, where `hostname` is the
  *   name of a configured host, and `base-path` is the absolute path which the
@@ -20,7 +20,7 @@ import { Uris } from '#x/Uris';
  */
 export class MountItem extends BaseConfigurationItem {
   /** @type {string} The name of the application being mounted. */
-  #app;
+  #application;
 
   /** @type {string} The mount point (original form). */
   #at;
@@ -39,10 +39,10 @@ export class MountItem extends BaseConfigurationItem {
   constructor(config) {
     super(config);
 
-    const { app, at } = config;
+    const { application, at } = config;
 
-    this.#app = Names.checkName(app);
-    this.#at  = at;
+    this.#application = Names.checkName(application);
+    this.#at          = at;
 
     const { hostname, path } = Uris.parseMount(at);
     this.#hostname = hostname;
@@ -50,8 +50,8 @@ export class MountItem extends BaseConfigurationItem {
   }
 
   /** @returns {string} The name of the application being mounted. */
-  get app() {
-    return this.#app;
+  get application() {
+    return this.#application;
   }
 
   /** @returns {string} The mount point. */

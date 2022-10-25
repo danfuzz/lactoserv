@@ -33,13 +33,8 @@ import { Util } from '#x/Util';
  * * `{string} requestLogger` -- Optional name of the request loging service to
  *   inform of activity. If not specified, this server will not produce request
  *   logs.
- * * `{object[]} mounts` -- Array of application mounts, each of the form:
- *   * `{string} app` -- Name of the application being mounted.
- *   * `{string} at` -- Mount point for the application, in the form
- *     `//<hostname>/` or `//<hostname>/<base-path>/`, where `hostname` is the
- *     name of a configured host, and `base-path` is the absolute path which the
- *     application should respond to on that host. As with `hostnames` (above),
- *     subdomain and complete wildcards are allowed.
+ * * `{object[]} mounts` -- Array of application mounts, each of a form suitable
+ *   for passing to the {@link MountItem} constructor.
  */
 export class ServerItem extends NamedItem {
   /** @type {string[]} The hostnames in question. */

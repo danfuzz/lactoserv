@@ -64,11 +64,11 @@ export class ServerController {
 
     this.#config = config;
 
-    const { appMap, hostManager, logger, rateLimiter, requestLogger } = extraConfig;
+    const { applicationMap, hostManager, logger, rateLimiter, requestLogger } = extraConfig;
 
     this.#hostManager = hostManager;
     this.#logger      = logger[name];
-    this.#mountMap    = ServerController.#makeMountMap(mounts, appMap);
+    this.#mountMap    = ServerController.#makeMountMap(mounts, applicationMap);
 
     const wranglerOptions = {
       rateLimiter,
@@ -149,9 +149,9 @@ export class ServerController {
     const controller = pathMatch.value;
 
     // Thwack the salient context into `req`, set up a `next` to restore the
-    // thwackage, and call through to the app. This setup is similar to what
-    // Express does when routing, but we have to do it ourselves here because
-    // we aren't using Express routing to find our apps.
+    // thwackage, and call through to the application. This setup is similar to
+    // what Express does when routing, but we have to do it ourselves here
+    // because we aren't using Express routing to find our applications.
 
     const { baseUrl: origBaseUrl, url: origUrl } = req;
 
@@ -159,10 +159,10 @@ export class ServerController {
     req.url = '/' + pathMatch.pathRemainder.join('/');
 
     reqLogger?.dispatching({
-      app:  controller.name,
-      host: ServerController.#hostMatchString(hostMatch),
-      path: ServerController.#pathMatchString(pathMatch),
-      url:  req.url
+      application: controller.name,
+      host:        ServerController.#hostMatchString(hostMatch),
+      path:        ServerController.#pathMatchString(pathMatch),
+      url:         req.url
     });
 
     const innerNext = (...args) => {
@@ -185,16 +185,16 @@ export class ServerController {
    * _prefix_ when wildcarded) to the application which handles it.
    *
    * @param {MountItem[]} mounts Configured application mounts.
-   * @param {Map<string, BaseApplication>} appMap Map from application names to
-   *   corresponding instances.
+   * @param {Map<string, BaseApplication>} applicationMap Map from application
+   *   names to corresponding instances.
    * @returns {TreePathMap<TreePathMap<ApplicationController>>} The constructed
    *   mount map.
    */
-  static #makeMountMap(mounts, appMap) {
+  static #makeMountMap(mounts, applicationMap) {
     const result = new TreePathMap();
 
     for (const mount of mounts) {
-      const { app, at } = mount;
+      const { application, at } = mount;
       const { hostname, path } = Uris.parseMount(at);
 
       let hostMounts = result.findExact(hostname);
@@ -203,7 +203,7 @@ export class ServerController {
         result.add(hostname, hostMounts);
       }
 
-      hostMounts.add(path, appMap.get(app));
+      hostMounts.add(path, applicationMap.get(application));
     }
 
     return result;

@@ -9,8 +9,8 @@
     "requestLogger": "requests",
     "mounts": [
       {
-        "app": "my-wacky-redirector",
-        "at":  "//*/"
+        "application": "my-wacky-redirector",
+        "at":          "//*/"
       }
     ]
   },
@@ -24,12 +24,12 @@
     "requestLogger": "requests",
     "mounts": [
       {
-        "app": "my-static-fun",
-        "at":  "//*/"
+        "application": "my-static-fun",
+        "at":          "//*/"
       },
       {
-        "app": "my-static-fun",
-        "at":  "//*/florp/"
+        "application": "my-static-fun",
+        "at":          "//*/florp/"
       }
     ]
   },
@@ -42,8 +42,8 @@
     "requestLogger": "requests",
     "mounts": [
       {
-        "app": "my-static-fun",
-        "at":  "//*/"
+        "application": "my-static-fun",
+        "at":          "//*/"
       }
     ]
   }
