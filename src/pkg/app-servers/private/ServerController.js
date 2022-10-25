@@ -46,8 +46,8 @@ export class ServerController {
    * for what was passed in the original (but unbound) `config` (along with
    * other bits):
    *
-   * * `{Map<string,BaseApplication>} appMap` -- Map of names to applications,
-   *   for use in building the active mount map.
+   * * `{Map<string,BaseApplication>} applicationMap` -- Map of names to
+   *   applications, for use in building the active mount map.
    * * `{?HostManager} hostManager` -- Replacement for `hostnames`.
    * * `{function(...*)} logger` -- Logger to use.
    * * `{?RateLimiterService} rateLimiter` -- Replacemant for `rateLimiter`

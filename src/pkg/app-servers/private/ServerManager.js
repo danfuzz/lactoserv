@@ -117,7 +117,7 @@ export class ServerManager {
   }
 
   /**
-   * Makes an `appMap` map suitable for use in constructing a {@link
+   * Makes an `applicationMap` map suitable for use in constructing a {@link
    * ServerController}, by also using the {@link #warehouse} to look up
    * application name bindings.
    *
