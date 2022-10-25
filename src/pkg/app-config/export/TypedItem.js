@@ -13,10 +13,20 @@ import { Names } from '#x/Names';
  *
  * * Bindings as defined by the superclass, {@link NamedItem}.
  * * `{string} type` -- The (name of the) type of the item.
+ *
+ * This class supports use as a concrete class, even for (nominally)
+ * subclass-like use cases which require extra configuration, specifically by
+ * providing a catch-all {@link #extraConfig} property.
  */
 export class TypedItem extends NamedItem {
   /** @type {string} The (name of the) type of the item. */
   #type;
+
+  /**
+   * @type {object} Configuration bindings not parsed by this class (or its
+   * superclass).
+   */
+  #extraConfig;
 
   /**
    * Constructs an instance.
@@ -28,7 +38,20 @@ export class TypedItem extends NamedItem {
 
     const { type } = config;
 
-    this.#type = Names.checkType(type);
+    const extraConfig = { ...config };
+    delete extraConfig.name;
+    delete extraConfig.type;
+
+    this.#type =        Names.checkType(type);
+    this.#extraConfig = Object.freeze(extraConfig);
+  }
+
+  /**
+   * @returns {object} Configuration bindings not parsed by this class (or its
+   * superclass).
+   */
+  get extraConfig() {
+    return this.#extraConfig;
   }
 
   /** @returns {string} The (name of the) type of the item. */
