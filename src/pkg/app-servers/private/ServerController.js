@@ -171,7 +171,7 @@ export class ServerController {
       next(...args);
     };
 
-    controller.app.handleRequest(req, res, innerNext);
+    controller.application.handleRequest(req, res, innerNext);
   }
 
 
