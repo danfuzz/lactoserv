@@ -3,6 +3,7 @@
 
 import express from 'express';
 
+import { ApplicationItem, Files } from '@this/app-config';
 import { ApplicationController, BaseApplication } from '@this/app-servers';
 import { JsonSchema } from '@this/json';
 
@@ -14,16 +15,17 @@ import { JsonSchema } from '@this/json';
  *   static assets.
  */
 export class StaticApplication extends BaseApplication {
-  /* @type {function} "Middleware" handler function for this instance. */
+  /* @type {function(...*)} "Middleware" handler function for this instance. */
   #handleRequest;
 
   /**
    * Constructs an instance.
    *
+   * @param {ApplicationItem} config Configuration for this application.
    * @param {ApplicationController} controller Controller for this instance.
    */
-  constructor(controller) {
-    super(controller);
+  constructor(config, controller) {
+    super(config, controller);
 
     const extraConfig = controller.config.extraConfig;
     StaticApplication.#validateConfig(extraConfig);

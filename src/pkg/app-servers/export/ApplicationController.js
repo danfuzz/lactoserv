@@ -26,7 +26,7 @@ export class ApplicationController {
    */
   constructor(config) {
     this.#config      = config;
-    this.#application = ApplicationFactory.forType(config.type, this);
+    this.#application = ApplicationFactory.forType(config.type, config, this);
   }
 
   /** @returns {BaseApplication} The controlled application instance. */

@@ -5,6 +5,7 @@ import { URL } from 'node:url';
 
 import express from 'express';
 
+import { ApplicationItem } from '@this/app-config';
 import { ApplicationController, BaseApplication } from '@this/app-servers';
 import { JsonSchema } from '@this/json';
 
@@ -32,10 +33,11 @@ export class RedirectApplication extends BaseApplication {
   /**
    * Constructs an instance.
    *
+   * @param {ApplicationItem} config Configuration for this application.
    * @param {ApplicationController} controller Controller for this instance.
    */
-  constructor(controller) {
-    super(controller);
+  constructor(config, controller) {
+    super(config, controller);
 
     const extraConfig = controller.config.extraConfig;
     RedirectApplication.#validateConfig(extraConfig);
