@@ -16,7 +16,8 @@ import { Names } from '#x/Names';
  *
  * This class supports use as a concrete class, even for (nominally)
  * subclass-like use cases which require extra configuration, specifically by
- * providing a catch-all {@link #extraConfig} property.
+ * providing a catch-all {@link #extraConfig} property. TODO: Remove this, once
+ * all services have their own config classes.
  */
 export class TypedItem extends NamedItem {
   /** @type {string} The (name of the) type of the item. */
