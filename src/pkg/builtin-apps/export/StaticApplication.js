@@ -5,7 +5,6 @@ import express from 'express';
 
 import { ApplicationItem, Files } from '@this/app-config';
 import { ApplicationController, BaseApplication } from '@this/app-servers';
-import { JsonSchema } from '@this/json';
 
 
 /**
@@ -27,9 +26,7 @@ export class StaticApplication extends BaseApplication {
   constructor(config, controller) {
     super(config, controller);
 
-    const extraConfig = controller.config.extraConfig;
-    StaticApplication.#validateConfig(extraConfig);
-    this.#handleRequest = StaticApplication.#makeHandler(extraConfig);
+    this.#handleRequest = express.static(config.assetsPath);
   }
 
   /** @override */
@@ -37,64 +34,42 @@ export class StaticApplication extends BaseApplication {
     this.#handleRequest(req, res, next);
   }
 
-  /** @override */
-  static get CONFIG_CLASS() {
-    return ApplicationItem;
-  }
 
   //
   // Static members
   //
 
-  /** @returns {string} Application type as used in configuration objects. */
+  /** @override */
+  static get CONFIG_CLASS() {
+    return this.#Config;
+  }
+
+  /** @override */
   static get TYPE() {
     return 'static-server';
   }
 
   /**
-   * Makes a request handler function for an instance of this class.
-   *
-   * @param {object} config Configuration object.
-   * @returns {function(...*)} The middleware function.
+   * Configuration item subclass for this (outer) class.
    */
-  static #makeHandler(config) {
-    const assetsPath = config.assetsPath;
-    return express.static(assetsPath);
-  }
+  static #Config = class Config extends ApplicationItem {
+    /** @type {string} The assets path. */
+    #assetsPath;
 
-  /**
-   * Validates the given configuration object.
-   *
-   * @param {object} config Configuration object.
-   */
-  static #validateConfig(config) {
-    const validator = new JsonSchema('Static Server Configuration');
+    /**
+     * Constructs an instance.
+     *
+     * @param {object} config Configuration object.
+     */
+    constructor(config) {
+      super(config);
 
-    const pathPattern =
-      '^' +
-      '(?!.*/[.]{1,2}/)' + // No dot or double-dot internal component.
-      '(?!.*/[.]{1,2}$)' + // No dot or double-dot final component.
-      '(?!.*//)' +         // No empty components.
-      '(?!.*/$)' +         // No slash at the end.
-      '/[^/]';             // Starts with a slash. Has at least one component.
+      this.#assetsPath = Files.checkAbsolutePath(config.assetsPath);
+    }
 
-    validator.addMainSchema({
-      $id: '/StaticApplication',
-      type: 'object',
-      required: ['assetsPath'],
-      properties: {
-        assetsPath: {
-          type: 'string',
-          pattern: pathPattern
-        }
-      }
-    });
-
-    const error = validator.validate(config);
-
-    if (error) {
-      error.logTo(console);
-      error.throwError();
+    /** @returns {string} The assets path. */
+    get assetsPath() {
+      return this.#assetsPath;
     }
   }
 }
