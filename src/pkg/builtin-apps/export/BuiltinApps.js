@@ -12,7 +12,7 @@ import { StaticApplication } from '#x/StaticApplication';
  */
 export class BuiltinApps {
   /**
-   * Registers all the apps defined by this module.
+   * Registers all the applications defined by this module.
    */
   static register() {
     ApplicationFactory.register(StaticApplication);

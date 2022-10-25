@@ -13,7 +13,7 @@ import { SystemLoggerService } from '#x/SystemLoggerService';
  */
 export class BuiltinServices {
   /**
-   * Registers all the apps defined by this module.
+   * Registers all the services defined by this module.
    */
   static register() {
     ServiceFactory.register(RateLimiterService);
