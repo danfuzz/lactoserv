@@ -5,6 +5,7 @@ import { ApplicationItem, Names } from '@this/app-config';
 import { JsonSchema, JsonSchemaUtil } from '@this/json';
 
 import { ApplicationController } from '#x/ApplicationController';
+import { ApplicationFactory } from '#x/ApplicationFactory';
 import { ThisModule } from '#p/ThisModule';
 
 
@@ -32,7 +33,10 @@ export class ApplicationManager {
    * @param {object} config Configuration object.
    */
   constructor(config) {
-    const applications = ApplicationItem.parseArray(config.applications);
+    const applications = ApplicationItem.parseArray(
+      config.applications,
+      item => ApplicationFactory.configClassFromType(item.type));
+
     for (const application of applications) {
       this.#addControllerFor(application);
     }
