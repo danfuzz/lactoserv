@@ -11,6 +11,17 @@ import { Util } from '#x/Util';
 /**
  * Configuration representation for a "host" item, that is, a thing that
  * defines the mapping from one or more names to a certificate / key pair.
+ *
+ * * `{string|string[]} hostnames` -- Names of the hosts associated with this
+ *   entry. Names can in the form `*.<name>` to match any subdomain of `<name>`,
+ *   or `*` to be a complete wildcard (that is, matches any name not otherwise
+ *   mentioned).
+ * * `{string} certificate` -- The certificate for `hostnames`, as PEM-encoded
+ *   data.
+ * * `{string} privateKey` -- The private key associated with `certificate`, as
+ *   PEM-encoded data.
+ *
+ * Accepted configuration bindings (in the constructor). All are required:
  */
 export class HostItem {
   /** @type {string[]} The hostnames in question. */
@@ -23,20 +34,9 @@ export class HostItem {
   #privateKey;
 
   /**
-   * Constructs an instance. Accepted configuration bindings:
+   * Constructs an instance.
    *
-   * * `{string|string[]} hostnames` -- Names of the hosts associated with this
-   *   entry. Names can in the form `*.<name>` to match any subdomain of
-   *   `<name>`, or `*` to be a complete wildcard (that is, matches any name not
-   *   otherwise mentioned).
-   * * `{string} certificate` -- The certificate for `hostnames`, as PEM-encoded
-   *   data.
-   * * `{string} privateKey` -- The private key associated with `certificate`,
-   *   as PEM-encoded data.
-   *
-   * All of these are required.
-   *
-   * @param {object} config Configuration, per the above description.
+   * @param {object} config Configuration, per the class description.
    */
   constructor(config) {
     const { hostnames, certificate, privateKey } = config;
