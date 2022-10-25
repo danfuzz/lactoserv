@@ -133,6 +133,58 @@ export class Uris {
   }
 
   /**
+   * @returns {string} Regex pattern which matches a protocol name (as allowed
+   * by this system),anchored so that it matches a complete string.
+   */
+  static get PROTOCOL_PATTERN() {
+    return '^(http|https|http2)$';
+  }
+
+  /**
+   * Checks that a given value is a string matching {@link #INTERFACE_PATTERN}.
+   *
+   * @param {*} value Value in question.
+   * @returns {string} `value` if it is a string which matches the pattern.
+   * @throws {Error} Thrown if `value` does not match.
+   */
+  static checkInterface(value) {
+    return MustBe.string(value, this.INTERFACE_PATTERN);
+  }
+
+  /**
+   * Checks that a given value is a valid port number, optionally also allowing
+   * `*` to specify the wildcard port.
+   *
+   * @param {*} value Value in question.
+   * @param {boolean} allowWildcard Is `*` allowed?
+   * @returns {number} `value` if it is a valid port number. If `allowWildcard
+   *   === true` and `value === '*'`, then the result is `0`.
+   * @throws {Error} Thrown if `value` does not match.
+   */
+  static checkPort(value, allowWildcard) {
+    if (typeof value === 'string') {
+      if (allowWildcard && (value === '*')) {
+        return 0;
+      }
+      throw new Error('Must be a port number.');
+    }
+
+    return MustBe.number(value,
+      { safeInteger: true,  minInclusive: 1, maxInclusive: 65535 });
+  }
+
+  /**
+   * Checks that a given value is a string matching {@link #PROTOCOL_PATTERN}.
+   *
+   * @param {*} value Value in question.
+   * @returns {string} `value` if it is a string which matches the pattern.
+   * @throws {Error} Thrown if `value` does not match.
+   */
+  static checkProtocol(value) {
+    return MustBe.string(value, this.PROTOCOL_PATTERN);
+  }
+
+  /**
    * Parses a possibly-wildcarded hostname into a {@link TreePathKey}.
    *
    * **Note:** Because hostname hierarchy is from right-to-left (e.g., wildcards
