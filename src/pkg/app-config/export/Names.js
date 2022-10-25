@@ -1,6 +1,8 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { MustBe } from '@this/typey';
+
 
 /**
  * Utilities for parsing various sorts of names, including type names.
@@ -28,5 +30,41 @@ export class Names {
    */
   static get TYPE_PATTERN() {
     return this.NAME_PATTERN;
+  }
+
+  /**
+   * Checks that a given value is a string matching {@link #NAME_PATTERN}.
+   *
+   * @param {*} value Value in question.
+   * @returns {string} `value` if it is a string which matches the pattern.
+   * @throws {Error} Thrown if `value` does not match.
+   */
+  static checkName(value) {
+    return MustBe.string(value, this.NAME_PATTERN);
+  }
+
+  /**
+   * Checks that a given value is a string matching {@link #NAME_PATTERN} or is
+   * `null`.
+   *
+   * @param {*} value Value in question.
+   * @returns {string|null} `value` if it is a matching string or `null`.
+   * @throws {Error} Thrown if `value` does not match.
+   */
+  static checkNameOrNull(value) {
+    return (value === null)
+      ? null
+      : MustBe.string(value, this.NAME_PATTERN);
+  }
+
+  /**
+   * Checks that a given value is a string matching {@link #TYPE_PATTERN}.
+   *
+   * @param {*} value Value in question.
+   * @returns {string} `value` if it is a string which matches the pattern.
+   * @throws {Error} Thrown if `value` does not match.
+   */
+  static checkType(value) {
+    return MustBe.string(value, this.TYPE_PATTERN);
   }
 }
