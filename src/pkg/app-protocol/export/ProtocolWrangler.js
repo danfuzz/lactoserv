@@ -6,6 +6,8 @@ import * as net from 'node:net';
 
 import express from 'express';
 
+// TODO: Remove `app-services` dependency: `RateLimiter` should be an interface
+// exported by this class.
 import { BaseService } from '@this/app-services';
 import { Threadlet } from '@this/async';
 import { Methods, MustBe } from '@this/typey';

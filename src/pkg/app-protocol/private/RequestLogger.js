@@ -6,6 +6,8 @@ import * as process from 'node:process';
 
 import * as express from 'express';
 
+// TODO: Remove `app-services` dependency: `RequestLogger` should be an
+// interface exported by this class.
 import { BaseService } from '@this/app-services';
 import { FormatUtils } from '@this/loggy';
 
