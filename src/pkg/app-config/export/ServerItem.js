@@ -18,7 +18,8 @@ import { Uris } from '#x/Uris';
  *
  * * Bindings as defined by the superclass, {@link NamedItem}.
  * * `{string|string[]} hostnames` -- Hostnames which this server should accept
- *   as valid. Can include subdomain or complete wildcards.
+ *   as valid. Can include subdomain or complete wildcards. Defaults to `*`
+ *   (that is, responds to all hostnames).
  * * `{string} interface` -- Address of the physical interface that the server
  *   is to listen on. `*` indicates that all interfaces should be listened on.
  *   Note: `::` and `0.0.0.0` are not allowed; use `*` instead.
@@ -69,7 +70,7 @@ export class ServerItem extends NamedItem {
     super(config);
 
     const {
-      hostnames,
+      hostnames = '*',
       interface: iface, // `interface` is a reserved word.
       mounts,
       port,
