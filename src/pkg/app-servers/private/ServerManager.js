@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { Names, Uris } from '@this/app-config';
+import { Names, ServerItem, Uris } from '@this/app-config';
 import { JsonSchema, JsonSchemaUtil } from '@this/json';
 
 import { ServerController } from '#p/ServerController';
@@ -16,36 +16,9 @@ const logger = ThisModule.logger.server;
  * Manager for dealing with all the network-bound server endpoints of a system.
  * Configuration object details:
  *
- * * `{object} server` or `{object[]} servers`-- Objects, each of which
- *   represents endpoint information for a single server.
- *
- * Server info details:
- *
- * * `{string} name` -- Symbolic name of the server. This is used in application
- *   bindings to indicate which server(s) an application is served from.
- * * `{string|string[]} hostnames` -- Names of hosts which this server
- *   should accept as valid. Can include partial or complete wildcards.
- * * `{string} interface` -- Address of the physical interface that the server
- *   is to listen on. `*` indicates that all interfaces should be listened on.
- *   Note: `::` and `0.0.0.0` are not allowed; use `*` instead.
- * * `{int} port` -- Port number that the server is to listen on.
- * * `{string} protocol` -- Protocol that the server is to speak. Must be one of
- *   `http`, `http2`, or `https`.
- * * `{string} rateLimiter` -- Optional name of the rate limiter service to use.
- *   If not specified, this server will not attempt to do any rate limiting.
- * * `{string} requestLogger` -- Optional name of the request loging service to
- *   inform of activity. If not specified, this server will not produce request
- *   logs.
- * * `{object[]} mounts` -- Array of application mounts, each of the form:
- *   * `{string} app` -- Name of the application being mounted.
- *   * `{string} at` -- Mount point for the application, in the form
- *     `//<hostname>/` or `//<hostname>/<base-path>/`, where `hostname` is the
- *     name of a configured host, and `base-path` is the absolute path which the
- *     application should respond to on that host. `*` is allowed for `hostname`
- *     to indicate a wildcard.
- *
- * **Note:** Exactly one of `server` or `servers` must be present at the top
- * level.
+ * * `{object|object[]} servers` -- Objects, each of which represents
+ *   configuration information for a single server. Each item must be a value
+ *   suitable for passing to the {@link ServerItem} constructor.
  */
 export class ServerManager {
   /** @type {Warehouse} The warehouse this instance is in. */
@@ -64,11 +37,9 @@ export class ServerManager {
    * @param {Warehouse} warehouse The warehouse this instance is in.
    */
   constructor(config, warehouse) {
-    ServerManager.#validateConfig(config);
     this.#warehouse = warehouse;
 
-    const servers =
-      JsonSchemaUtil.singularPluralCombo(config.server, config.servers);
+    const servers = ServerItem.parseArray(config.servers);
     for (const server of servers) {
       this.#addControllerFor(server);
     }
@@ -104,22 +75,20 @@ export class ServerManager {
    * Constructs a {@link ServerController} based on the given information, and
    * adds a mapping to {@link #controllers} so it can be found.
    *
-   * @param {object} serverItem Single server item from a configuration object.
+   * @param {ServerItem} serverItem Configuration for a single server.
    */
   #addControllerFor(serverItem) {
     const {
-      hostname,
       hostnames,
-      mounts:        origMounts,
+      mounts,
       rateLimiter:   limName,
       requestLogger: logName,
     } = serverItem;
     const { hostManager, serviceManager } = this.#warehouse;
 
     const hmSubset = hostManager
-      ? hostManager.makeSubset(JsonSchemaUtil.singularPluralCombo(hostname, hostnames))
+      ? hostManager.makeSubset(hostnames)
       : null;
-    const mounts = this.#makeMounts(origMounts);
     const rateLimiter = limName
       ? serviceManager.findController(limName).service
       : null;
@@ -127,17 +96,15 @@ export class ServerManager {
       ? serviceManager.findController(logName).service
       : null;
 
-    const config = {
-      ...serverItem,
-      ...(hmSubset ? { hostManager: hmSubset } : null),
-      ...(rateLimiter ? { rateLimiter } : null),
-      ...(requestLogger ? { requestLogger } : null),
-      mounts
+    const extraConfig = {
+      appMap:      this.#makeAppMap(mounts),
+      hostManager: hmSubset,
+      logger,
+      rateLimiter,
+      requestLogger
     };
-    delete config.host;
-    delete config.hosts;
 
-    const controller = new ServerController(config, logger);
+    const controller = new ServerController(serverItem, extraConfig);
     const name       = controller.name;
 
     logger.binding(name);
@@ -150,123 +117,24 @@ export class ServerManager {
   }
 
   /**
-   * Makes a `mounts` array suitable for use in constructing a {@link
-   * ServerController}.
+   * Makes an `appMap` map suitable for use in constructing a {@link
+   * ServerController}, by also using the {@link #warehouse} to look up
+   * application name bindings.
    *
-   * @param {object[]} mounts Original `mounts` configuration item.
-   * @returns {object[]} Converted array.
+   * @param {MountItem[]} mounts Original `mounts` configuration item.
+   * @returns {Map<string,BaseApplication>} Corresponding map.
    */
-  #makeMounts(mounts) {
+  #makeAppMap(mounts) {
     const applicationManager = this.#warehouse.applicationManager;
+    const result             = new Map();
 
-    return mounts.map(({ app, at }) => {
-      app = applicationManager.findController(app);
-      return { app, at };
-    });
-  }
-
-
-  //
-  // Static members
-  //
-
-  /**
-   * Adds the config schema for this class to the given validator.
-   *
-   * @param {JsonSchema} validator The validator to add to.
-   * @param {boolean} [main = false] Is this the main schema?
-   */
-  static addConfigSchemaTo(validator, main) {
-    const schema = {
-      $id: '/ServerManager',
-      ... JsonSchemaUtil
-        .singularOrPlural('server', 'servers', { $ref: '#/$defs/serverItem' }),
-
-      $defs: {
-        serverItem: {
-          allOf: [
-            {
-              type: 'object',
-              required: ['interface', 'mounts', 'name', 'port', 'protocol'],
-              properties: {
-                interface: {
-                  type: 'string',
-                  pattern: Uris.INTERFACE_PATTERN
-                },
-                mounts: {
-                  type: 'array',
-                  uniqueItems: true,
-                  items: { $ref: '#/$defs/mountItem' }
-                },
-                name: {
-                  type: 'string',
-                  pattern: Names.NAME_PATTERN
-                },
-                port: {
-                  type: 'integer',
-                  minimum: 1,
-                  maximum: 65535
-                },
-                protocol: {
-                  type: 'string',
-                  enum: ['http', 'http2', 'https']
-                },
-                rateLimiter: {
-                  type: 'string',
-                  pattern: Names.NAME_PATTERN
-                },
-                requestLogger: {
-                  type: 'string',
-                  pattern: Names.NAME_PATTERN
-                }
-              }
-            },
-            JsonSchemaUtil
-              .singularOrPlural('hostname', 'hostnames', { $ref: '#/$defs/hostname' }),
-          ]
-        },
-        hostname: {
-          type: 'string',
-          pattern: Uris.HOSTNAME_PATTERN
-        },
-        mountItem: {
-          type: 'object',
-          required: ['app', 'at'],
-          properties: {
-            app: {
-              type: 'string',
-              pattern: Names.NAME_PATTERN
-            },
-            at: {
-              type: 'string',
-              pattern: Uris.MOUNT_PATTERN
-            }
-          }
-        }
+    for (const { app } of mounts) {
+      if (!result.has(app)) {
+        const controller = applicationManager.findController(app);
+        result.set(app, controller);
       }
-    };
-
-    if (main) {
-      validator.addMainSchema(schema);
-    } else {
-      validator.addSchema(schema);
     }
-  }
 
-  /**
-   * Validates the given configuration object.
-   *
-   * @param {object} config Configuration object.
-   */
-  static #validateConfig(config) {
-    const validator = new JsonSchema();
-    this.addConfigSchemaTo(validator, true);
-
-    const error = validator.validate(config);
-
-    if (error) {
-      error.logTo(console);
-      error.throwError();
-    }
+    return result;
   }
 }
