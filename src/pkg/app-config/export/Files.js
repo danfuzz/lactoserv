@@ -13,8 +13,7 @@ export class Files {
    * anchored at both ends so as to only match complete strings.
    */
   static get ABSOLUTE_PATH_PATTERN() {
-    return
-      '^' +
+    return '^' +
       '(?!.*/[.]{1,2}/)' + // No dot or double-dot internal component.
       '(?!.*/[.]{1,2}$)' + // No dot or double-dot final component.
       '(?!.*//)' +         // No empty components.
