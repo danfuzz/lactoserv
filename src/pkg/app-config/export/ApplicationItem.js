@@ -2,7 +2,6 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { TypedItem } from '#x/TypedItem';
-import { Names } from '#x/Names';
 
 /**
  * Class for configuration of applications. Accepted configuration bindings (in

@@ -41,8 +41,8 @@ export class BaseConfigurationItem {
    *
    * @param {*} items Array of configuration objects, as described by the
    *   called class's (or subclasses') constructor(s).
-   * @param {?function(string): function(new:BaseConfigurationItem)}
-   *   [configClassMapper = null] Optional mapper which takes a configuration
+   * @param {?function(string): function(new:BaseConfigurationItem)} [configClassMapper = null]
+   *   Optional mapper which takes a configuration
    *   object and returns the class that should be constructed from it.
    * @returns {BaseConfigurationItem[]} Frozen array of instances of the
    *   called class, if successfully parsed.

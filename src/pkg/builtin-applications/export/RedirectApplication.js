@@ -3,7 +3,6 @@
 
 import { ApplicationItem, Uris } from '@this/app-config';
 import { ApplicationController, BaseApplication } from '@this/app-servers';
-import { JsonSchema } from '@this/json';
 
 
 /**
@@ -75,5 +74,5 @@ export class RedirectApplication extends BaseApplication {
     get target() {
       return this.#target;
     }
-  }
+  };
 }

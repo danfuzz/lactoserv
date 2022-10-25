@@ -3,7 +3,6 @@
 
 import { HostManager } from '@this/app-hosts';
 import { ServiceManager } from '@this/app-services';
-import { JsonSchema } from '@this/json';
 
 import { ApplicationManager } from '#x/ApplicationManager';
 import { ServerManager } from '#p/ServerManager';

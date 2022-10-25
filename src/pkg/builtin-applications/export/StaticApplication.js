@@ -71,5 +71,5 @@ export class StaticApplication extends BaseApplication {
     get assetsPath() {
       return this.#assetsPath;
     }
-  }
+  };
 }

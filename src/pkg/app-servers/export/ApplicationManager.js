@@ -1,8 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { ApplicationItem, Names } from '@this/app-config';
-import { JsonSchema, JsonSchemaUtil } from '@this/json';
+import { ApplicationItem } from '@this/app-config';
 
 import { ApplicationController } from '#x/ApplicationController';
 import { ApplicationFactory } from '#x/ApplicationFactory';
