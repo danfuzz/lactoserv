@@ -3,7 +3,7 @@
 
 import * as express from 'express';
 
-import { ServerItem, Uris } from '@this/app-config';
+import { BaseApplication, MountItem, ServerItem } from '@this/app-config';
 import { HostManager } from '@this/app-hosts';
 import { ProtocolWrangler, ProtocolWranglers, WranglerContext } from '@this/app-protocol';
 import { TreePathKey, TreePathMap } from '@this/collections';
@@ -57,7 +57,6 @@ export class ServerController {
    * @param {ServerItem} config Parsed configuration item.
    * @param {object} extraConfig Additional configuration, per the above
    *   description.
-   * @param {function(...*)} logger Logger to use.
    */
   constructor(config, extraConfig) {
     const { interface: iface, mounts, name, port, protocol } = config;

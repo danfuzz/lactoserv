@@ -1,8 +1,6 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { MustBe } from '@this/typey';
-
 import { MountItem } from '#x/MountItem';
 import { NamedItem } from '#x/NamedItem';
 import { Names } from '#x/Names';
