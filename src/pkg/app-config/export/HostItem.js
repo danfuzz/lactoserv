@@ -24,7 +24,6 @@ export class HostItem {
   /**
    * Constructs an instance. Accepted configuration bindings:
    *
-   *
    * * `{string|string[]} hostnames` -- Names of the hosts associated with this
    *   entry. Names can in the form `*.<name>` to match any subdomain of
    *   `<name>`, or `*` to be a complete wildcard (that is, matches any name not
