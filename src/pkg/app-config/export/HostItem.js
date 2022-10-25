@@ -3,6 +3,7 @@
 
 import { MustBe } from '@this/typey';
 
+import { BaseConfigurationItem } from '#x/BaseConfigurationItem';
 import { Certificates } from '#x/Certificates';
 import { Uris } from '#x/Uris';
 import { Util } from '#x/Util';
@@ -23,7 +24,7 @@ import { Util } from '#x/Util';
  *
  * Accepted configuration bindings (in the constructor). All are required:
  */
-export class HostItem {
+export class HostItem extends BaseConfigurationItem {
   /** @type {string[]} The hostnames in question. */
   #hostnames;
 
@@ -39,6 +40,8 @@ export class HostItem {
    * @param {object} config Configuration, per the class description.
    */
   constructor(config) {
+    super(config);
+
     const { hostnames, certificate, privateKey } = config;
 
     this.#hostnames   = Util.checkAndFreezeStrings(hostnames, Uris.HOSTNAME_PATTERN);
@@ -62,31 +65,5 @@ export class HostItem {
   /** @returns {string} The private key, as PEM-encoded data. */
   get privateKey() {
     return this.#privateKey;
-  }
-
-
-  //
-  // Static members
-  //
-
-  /**
-   * Parses a single configuration object or array of them into an array of
-   * instances of this class.
-   *
-   * @param {*} items Array of configuration objects, as described by this
-   *   class's constructor
-   * @returns {HostItem[]} Frozen array of instances of this class, if
-   *   successfully parsed.
-   * @throws {Error} Thrown if there was any trouble.
-   */
-  static parseArray(items) {
-    if (!Array.isArray(items)) {
-      items = [items];
-    }
-
-    MustBe.arrayOfPlainObject(items);
-
-    const result = items.map(item => new this(item));
-    return Object.freeze(result);
   }
 }
