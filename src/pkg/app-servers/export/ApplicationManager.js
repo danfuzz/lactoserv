@@ -22,11 +22,6 @@ const logger = ThisModule.logger.app;
  *
  * * `{string} name` -- Symbolic name of the application. This is used in
  *   logging and messaging.
- * * `{string} mount` or `{string[]} mounts` -- Mount points for the
- *   application. Each mount point is of the form `//<hostname>/` or
- *   `//<hostname>/<base-path>/`, where `hostname` is the name of a configured
- *   host, and `base-path` is the absolute path which the application should
- *   respond to on that host.
  * * `{string} type` -- The type (class) of the application. Several built-in
  *   types are available, and it is possible for clients of this system to
  *   define new types.
