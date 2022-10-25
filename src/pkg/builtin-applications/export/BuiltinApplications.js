@@ -10,7 +10,7 @@ import { StaticApplication } from '#x/StaticApplication';
 /**
  * Global control of this module.
  */
-export class BuiltinApps {
+export class BuiltinApplications {
   /**
    * Registers all the applications defined by this module.
    */
