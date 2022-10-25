@@ -1,6 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { ApplicationItem } from '@this/app-config';
 import { TreePathKey } from '@this/collections';
 import { MustBe } from '@this/typey';
 
@@ -12,9 +13,6 @@ import { BaseApplication } from '#x/BaseApplication';
  * "Controller" for a single application.
  */
 export class ApplicationController {
-  /** @type {string} Application name. */
-  #name;
-
   /** @type {object} Configuration for the underlying application. */
   #config;
 
@@ -24,19 +22,11 @@ export class ApplicationController {
   /**
    * Constructs an insance.
    *
-   * @param {object} appConfig Application information configuration item.
+   * @param {ApplicationItem} config Parsed configuration item.
    */
-  constructor(appConfig) {
-    const { name, type } = appConfig;
-
-    const config = { ...appConfig };
-    delete config.name;
-    delete config.type;
-    Object.freeze(config);
-
-    this.#name        = name;
+  constructor(config) {
     this.#config      = config;
-    this.#application = ApplicationFactory.forType(type, this);
+    this.#application = ApplicationFactory.forType(config.type, this);
   }
 
   /** @returns {BaseApplication} The controlled application instance. */
@@ -44,14 +34,14 @@ export class ApplicationController {
     return this.#application;
   }
 
-  /** @returns {object} Configuration for the underlying application. */
+  /** @returns {ApplicationItem} Configuration which defined this instance. */
   get config() {
     return this.#config;
   }
 
   /** @returns {string} Application name. */
   get name() {
-    return this.#name;
+    return this.#config.name;
   }
 
 

@@ -37,9 +37,9 @@ export class RedirectApplication extends BaseApplication {
   constructor(controller) {
     super(controller);
 
-    const config = controller.config;
-    RedirectApplication.#validateConfig(config);
-    this.#router = RedirectApplication.#makeRouter(config);
+    const extraConfig = controller.config.extraConfig;
+    RedirectApplication.#validateConfig(extraConfig);
+    this.#router = RedirectApplication.#makeRouter(extraConfig);
   }
 
   /** @override */

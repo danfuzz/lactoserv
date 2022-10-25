@@ -14,12 +14,11 @@ import { ServerManager } from '#p/ServerManager';
  *
  * Configuration object details:
  *
- * * `{object} host` or `{object[]} hosts` -- Host / certificate configuration.
+ * * `{object|object[]} hostnames` -- Host / certificate configuration.
  *   Required if a server is configured to listen for secure connections.
- * * `{object} server` or `{object[]} servers` -- Server configuration.
- * * `{object} service` or `{object[]} services` -- System service
- *   configuration.
- * * `{object} app` or `{object[]} apps` -- Application configuration.
+ * * `{object|object[]} servers` -- Server configuration.
+ * * `{object|object[]} services` -- System service configuration.
+ * * `{object|object[]} applications` -- Application configuration.
  */
 export class Warehouse {
   /** @type {ApplicationManager} Application manager. */
@@ -40,8 +39,6 @@ export class Warehouse {
    * @param {object} config Configuration object.
    */
   constructor(config) {
-    Warehouse.#validateConfig(config);
-
     this.#hostManager        = HostManager.fromConfig(config);
     this.#serviceManager     = new ServiceManager(config);
     this.#applicationManager = new ApplicationManager(config);
@@ -117,34 +114,5 @@ export class Warehouse {
     const results  = services.map(s => s.stop());
 
     return Promise.all(results);
-  }
-
-
-  //
-  // Static members
-  //
-
-  /**
-   * Validates the given configuration object.
-   *
-   * @param {object} config Configuration object.
-   */
-  static #validateConfig(config) {
-    const validator = new JsonSchema('LactoServ Configuration');
-    ApplicationManager.addConfigSchemaTo(validator);
-
-    validator.addMainSchema({
-      $id: '/Warehouse',
-      allOf: [
-        { $ref: '/ApplicationManager' }
-      ]
-    });
-
-    const error = validator.validate(config);
-
-    if (error) {
-      error.logTo(console);
-      error.throwError();
-    }
   }
 }

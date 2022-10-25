@@ -9,7 +9,7 @@
     "type":      "json"
   },
 
-  "apps": {
+  "applications": {
     "$readFile": "./config-apps.json",
     "type":      "json"
   },

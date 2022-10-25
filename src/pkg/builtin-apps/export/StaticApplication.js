@@ -25,9 +25,9 @@ export class StaticApplication extends BaseApplication {
   constructor(controller) {
     super(controller);
 
-    const config = controller.config;
-    StaticApplication.#validateConfig(config);
-    this.#handleRequest = StaticApplication.#makeHandler(config);
+    const extraConfig = controller.config.extraConfig;
+    StaticApplication.#validateConfig(extraConfig);
+    this.#handleRequest = StaticApplication.#makeHandler(extraConfig);
   }
 
   /** @override */
