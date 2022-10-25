@@ -10,7 +10,7 @@
   },
 
   "applications": {
-    "$readFile": "./config-apps.json",
+    "$readFile": "./config-applications.json",
     "type":      "json"
   },
 
