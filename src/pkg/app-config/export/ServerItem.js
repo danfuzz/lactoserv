@@ -5,7 +5,9 @@ import { MustBe } from '@this/typey';
 
 import { MountItem } from '#x/MountItem';
 import { NamedItem } from '#x/NamedItem';
+import { Names } from '#x/Names';
 import { Uris } from '#x/Uris';
+import { Util } from '#x/Util';
 
 
 /**
@@ -75,8 +77,8 @@ export class ServerItem extends NamedItem {
       mounts,
       port,
       protocol,
-      rateLimiter,
-      requestLogger
+      rateLimiter = null,
+      requestLogger = null,
     } = config;
 
     this.#hostnames     = Util.checkAndFreezeStrings(hostnames, Uris.HOSTNAME_PATTERN);
