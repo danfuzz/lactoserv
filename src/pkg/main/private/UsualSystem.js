@@ -3,7 +3,7 @@
 
 import { Warehouse } from '@this/app-servers';
 import { Mutex } from '@this/async';
-import { BuiltinApps } from '@this/builtin-apps';
+import { BuiltinApplications } from '@this/builtin-applications';
 import { BuiltinServices } from '@this/builtin-services';
 import { Dirs, Host } from '@this/host';
 import { JsonExpander } from '@this/json';
@@ -78,7 +78,7 @@ export class UsualSystem {
       return;
     }
 
-    BuiltinApps.register();
+    BuiltinApplications.register();
     BuiltinServices.register();
     Host.registerReloadCallback(() => this.start());
     Host.registerShutdownCallback(() => this.stop());

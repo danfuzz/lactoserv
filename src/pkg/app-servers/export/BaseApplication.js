@@ -3,6 +3,7 @@
 
 import * as express from 'express';
 
+import { ApplicationItem } from '@this/app-config';
 import { Methods } from '@this/typey';
 
 import { ApplicationController } from '#x/ApplicationController';
@@ -12,15 +13,20 @@ import { ApplicationController } from '#x/ApplicationController';
  * Base class for the exported (public) application classes.
  */
 export class BaseApplication {
+  /** @type {ApplicationItem} Configuration for this application. */
+  #config;
+
   /** @type {ApplicationController} The controller for this instance. */
   #controller;
 
   /**
    * Constructs an instance.
    *
+   * @param {ApplicationItem} config Configuration for this application.
    * @param {ApplicationController} controller Controller for this instance.
    */
-  constructor(controller) {
+  constructor(config, controller) {
+    this.#config     = config;
     this.#controller = controller;
   }
 
@@ -40,5 +46,23 @@ export class BaseApplication {
    */
   handleRequest(req, res, next) {
     Methods.abstract(req, res, next);
+  }
+
+
+  //
+  // Static members
+  //
+
+  /**
+   * @returns {function(new:ApplicationItem)} The configuration class for this
+   * application.
+   */
+  static get CONFIG_CLASS() {
+    return Methods.abstract();
+  }
+
+  /** @returns {string} The type name for this application. */
+  static get TYPE() {
+    return Methods.abstract();
   }
 }

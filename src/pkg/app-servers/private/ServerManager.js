@@ -75,15 +75,15 @@ export class ServerManager {
    * Constructs a {@link ServerController} based on the given information, and
    * adds a mapping to {@link #controllers} so it can be found.
    *
-   * @param {ServerItem} serverItem Configuration for a single server.
+   * @param {ServerItem} config Parsed configuration item.
    */
-  #addControllerFor(serverItem) {
+  #addControllerFor(config) {
     const {
       hostnames,
       mounts,
       rateLimiter:   limName,
       requestLogger: logName,
-    } = serverItem;
+    } = config;
     const { hostManager, serviceManager } = this.#warehouse;
 
     const hmSubset = hostManager
@@ -104,7 +104,7 @@ export class ServerManager {
       requestLogger
     };
 
-    const controller = new ServerController(serverItem, extraConfig);
+    const controller = new ServerController(config, extraConfig);
     const name       = controller.name;
 
     logger.binding(name);
@@ -117,7 +117,7 @@ export class ServerManager {
   }
 
   /**
-   * Makes an `appMap` map suitable for use in constructing a {@link
+   * Makes an `applicationMap` map suitable for use in constructing a {@link
    * ServerController}, by also using the {@link #warehouse} to look up
    * application name bindings.
    *

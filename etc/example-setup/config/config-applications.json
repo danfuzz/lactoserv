@@ -1,0 +1,12 @@
+[
+  {
+    "name":   "my-wacky-redirector",
+    "type":   "redirect-server",
+    "target": "https://milk.com/boop/"
+  },
+  {
+    "name":       "my-static-fun",
+    "type":       "static-server",
+    "assetsPath": { "$filePath": "../assets" }
+  }
+]

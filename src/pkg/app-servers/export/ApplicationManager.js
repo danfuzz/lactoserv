@@ -1,10 +1,10 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { Names } from '@this/app-config';
-import { JsonSchema, JsonSchemaUtil } from '@this/json';
+import { ApplicationItem } from '@this/app-config';
 
 import { ApplicationController } from '#x/ApplicationController';
+import { ApplicationFactory } from '#x/ApplicationFactory';
 import { ThisModule } from '#p/ThisModule';
 
 
@@ -15,25 +15,9 @@ const logger = ThisModule.logger.app;
  * Manager for dealing with all the high-level applications that are running or
  * to be run in the system. Configuration object details:
  *
- * * `{object} app` or `{object[]} apps` -- Objects which each represents
- *   information for a single application.
- *
- * Application info details:
- *
- * * `{string} name` -- Symbolic name of the application. This is used in
- *   logging and messaging.
- * * `{string} mount` or `{string[]} mounts` -- Mount points for the
- *   application. Each mount point is of the form `//<hostname>/` or
- *   `//<hostname>/<base-path>/`, where `hostname` is the name of a configured
- *   host, and `base-path` is the absolute path which the application should
- *   respond to on that host.
- * * `{string} type` -- The type (class) of the application. Several built-in
- *   types are available, and it is possible for clients of this system to
- *   define new types.
- * * In addition, each application type defines additional configuration to be
- *   included here.
- *
- * **Note:** Exactly one of `app` or `apps` must be present at the top level.
+ * * `{object|object[]} applications` -- Objects, each of which represents
+ *   configuration information for a single application. Each item must be a
+ *   value suitable for passing to the {@link ApplicationItem} constructor.
  */
 export class ApplicationManager {
   /**
@@ -48,11 +32,12 @@ export class ApplicationManager {
    * @param {object} config Configuration object.
    */
   constructor(config) {
-    ApplicationManager.#validateConfig(config);
+    const applications = ApplicationItem.parseArray(
+      config.applications,
+      item => ApplicationFactory.configClassFromType(item.type));
 
-    const apps = JsonSchemaUtil.singularPluralCombo(config.app, config.apps);
-    for (const app of apps) {
-      this.#addControllerFor(app);
+    for (const application of applications) {
+      this.#addControllerFor(application);
     }
   }
 
@@ -77,11 +62,10 @@ export class ApplicationManager {
    * Constructs a {@link ApplicationController} based on the given information,
    * and adds a mapping to {@link #controllers} so it can be found.
    *
-   * @param {object} appItem Single application item from a configuration
-   * object.
+   * @param {ApplicationItem} config Parsed configuration item.
    */
-  #addControllerFor(appItem) {
-    const controller = new ApplicationController(appItem);
+  #addControllerFor(config) {
+    const controller = new ApplicationController(config);
     const name       = controller.name;
 
     logger.binding(name);
@@ -91,64 +75,5 @@ export class ApplicationManager {
     }
 
     this.#controllers.set(name, controller);
-  }
-
-
-  //
-  // Static members
-  //
-
-  /**
-   * Adds the config schema for this class to the given validator.
-   *
-   * @param {JsonSchema} validator The validator to add to.
-   * @param {boolean} [main = false] Is this the main schema?
-   */
-  static addConfigSchemaTo(validator, main = false) {
-    const schema = {
-      $id: '/ApplicationManager',
-      ... JsonSchemaUtil
-        .singularOrPlural('app', 'apps', { $ref: '#/$defs/appItem' }),
-
-      $defs: {
-        appItem: {
-          type: 'object',
-          required: ['name', 'type'],
-          properties: {
-            name: {
-              type: 'string',
-              pattern: Names.NAME_PATTERN
-            },
-            type: {
-              type: 'string',
-              pattern: Names.TYPE_PATTERN
-            }
-          }
-        }
-      }
-    };
-
-    if (main) {
-      validator.addMainSchema(schema);
-    } else {
-      validator.addSchema(schema);
-    }
-  }
-
-  /**
-   * Validates the given configuration object.
-   *
-   * @param {object} config Configuration object.
-   */
-  static #validateConfig(config) {
-    const validator = new JsonSchema('Application Manager Configuration');
-    this.addConfigSchemaTo(validator, true);
-
-    const error = validator.validate(config);
-
-    if (error) {
-      error.logTo(console);
-      error.throwError();
-    }
   }
 }

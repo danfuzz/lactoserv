@@ -27,27 +27,42 @@ export class BaseConfigurationItem {
   /**
    * Parses a single configuration object or array of them into an array of
    * instances of the concrete class that this method was called on. Each array
-   * element must either be an instance of the called class or plain object
-   * suitable for passing to the constructor of the called class.
+   * element must either be an instance of the called class (or a subclass) or
+   * plain object suitable for passing to a constructor which produces an
+   * instance of the called class (or a subclass).
+   *
+   * If the optional second argument is _not_ passed, then all constructor calls
+   * are made on the called class. With the second argument `classMapper`, each
+   * non-instance item is passed to that function, which is expected to return
+   * the class which should be constructed from the item.
    *
    * (This method is defined on the base class and acts on behalf of all its
    * subclasses.)
    *
    * @param {*} items Array of configuration objects, as described by the
-   *   called class's constructor.
+   *   called class's (or subclasses') constructor(s).
+   * @param {?function(string):
+   *   function(new:BaseConfigurationItem)} [configClassMapper = null] Optional
+   *   mapper which takes a configuration object and returns the class that
+   *   should be constructed from it.
    * @returns {BaseConfigurationItem[]} Frozen array of instances of the
    *   called class, if successfully parsed.
    * @throws {Error} Thrown if there was any trouble.
    */
-  static parseArray(items) {
+  static parseArray(items, configClassMapper = null) {
     if (!Array.isArray(items)) {
       items = [items];
     }
 
     const result = items.map((item) => {
-      return (item instanceof this)
-        ? item
-        : new this(item);
+      if (item instanceof this) {
+        return item;
+      } else if (!configClassMapper) {
+        return new this(item);
+      } else {
+        const cls = configClassMapper(item);
+        return new cls(item);
+      }
     });
 
     return Object.freeze(result);
