@@ -14,7 +14,10 @@ export class ServiceController {
   /** @type {ServiceItem} Configuration which defined this instance. */
   #config;
 
-  /** @type {function(...*)} Instance-specific logger. */
+  /**
+   * @type {?function(...*)} Instance-specific logger, or `null` if no logging
+   * is to be done.
+   */
   #logger;
 
   /** @type {BaseService} Actual service instance. */
@@ -24,14 +27,14 @@ export class ServiceController {
    * Constructs an insance.
    *
    * @param {ServiceItem} config Parsed configuration item.
-   * @param {function(...*)} logger Logger to use.
+   * @param {?function(...*)} logger Logger to use, if any.
    */
   constructor(config, logger) {
     this.#config  = config;
-    this.#logger  = logger[config.name];
-    this.#service = ServiceFactory.makeInstance(config, this);
+    this.#logger  = logger ? logger[config.name] : null;
+    this.#service = ServiceFactory.makeInstance(config, logger);
 
-    this.#logger.constructed();
+    this.#logger?.constructed();
   }
 
   /** @returns {ServiceItem} Configuration which defined this instance. */

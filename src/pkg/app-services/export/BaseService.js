@@ -14,23 +14,30 @@ export class BaseService {
   /** @type {ServiceItem} Configuration for this service. */
   #config;
 
-  /** @type {ServiceController} The controller for this instance. */
-  #controller;
+  /**
+   * @type {?function(...*)} Instance-specific logger, or `null` if no logging
+   * is to be done.
+   */
+  #logger;
 
   /**
    * Constructs an instance.
    *
    * @param {ServiceItem} config Configuration for this service.
-   * @param {ServiceController} controller The controller for this instance.
+   * @param {?function(...*)} logger Instance-specific logger, or `null` if
+   *   no logging is to be done.
    */
-  constructor(config, controller) {
-    this.#config     = config;
-    this.#controller = controller;
+  constructor(config, logger) {
+    this.#config = config;
+    this.#logger = logger;
   }
 
-  /** @returns {ServiceController} The controller for this instance. */
-  get controller() {
-    return this.#controller;
+  /**
+   * @type {?function(...*)} Instance-specific logger, or `null` if no logging
+   * is to be done.
+   */
+  get logger() {
+    return this.#logger;
   }
 
   /**
