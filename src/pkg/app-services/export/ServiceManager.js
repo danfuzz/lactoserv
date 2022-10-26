@@ -14,12 +14,7 @@ const logger = Loggy.loggerFor('service');
 
 /**
  * Manager for dealing with all the high-level system services that are running
- * or could be run in the system. Configuration object details:
- *
- * * `{object|object[]} services` -- Objects, each of which represents
- *   configuration information for a single service. Each item must be a
- *   value suitable for passing to the {@link ServiceItem} (or subclass)
- *   constructor.
+ * or could be run in the system.
  */
 export class ServiceManager {
   /**
@@ -31,15 +26,11 @@ export class ServiceManager {
   /**
    * Constructs an instance.
    *
-   * @param {object} config Configuration object.
+   * @param {ServiceItem[]} configs Configuration objects.
    */
-  constructor(config) {
-    const services = ServiceItem.parseArray(
-      config.services,
-      item => ServiceFactory.configClassFromType(item.type));
-
-    for (const service of services) {
-      this.#addControllerFor(service);
+  constructor(configs) {
+    for (const config of configs) {
+      this.#addControllerFor(config);
     }
   }
 

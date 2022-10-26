@@ -51,7 +51,7 @@ export class Warehouse {
     const parsed = new WarehouseItem(config, mapper);
 
     this.#hostManager        = HostManager.fromConfig(config);
-    this.#serviceManager     = new ServiceManager(config);
+    this.#serviceManager     = new ServiceManager(parsed.services);
     this.#applicationManager = new ApplicationManager(parsed.applications);
     this.#serverManager      = new ServerManager(parsed.servers, this);
   }
