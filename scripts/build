@@ -45,10 +45,10 @@ process-args "$@" || usage "$?"
 # Helper functions
 #
 
-# Build a JS project from a particular "main" local module.
+# Build a named JS project. The "main module" is taken to be `main-<name>`.
 function build-js-project {
     local projectName="$1"
-    local mainModule="$2"
+    local mainModule="main-${projectName}"
     local destDir="${outDir}/${projectName}"
     local localCodeDirName='code'
     local destLocalCode="${destDir}/${localCodeDirName}"
@@ -335,7 +335,7 @@ build-top-bin \
 build-example-setup \
 || exit "$?"
 
-build-js-project lactoserv main \
+build-js-project lactoserv \
 || exit "$?"
 
 progress-msg
