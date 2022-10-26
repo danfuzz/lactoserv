@@ -143,7 +143,7 @@ function build-js-project {
     local deadModules
     deadModules="$(
         cd "${destLocalModules}"
-        json-find . -mindepth 2 -maxdepth 2 -type d -printjson \
+        lib json-find . -mindepth 2 -maxdepth 2 -type d -printjson \
         | jval --input=slurp \
             deps:json="${deps}" \
             'map(ltrimstr("./")) - $deps.localDeps'
@@ -223,28 +223,6 @@ function build-top-bin {
             -exec cp '{}' "${destDir}/{}" ';' \
             -exec chmod 755 "${destDir}/{}" ';'
     )
-}
-
-# Like `find`, but with an extra "primary" `-printjson` which is like `-print`
-# except that it outputs JSON strings. This notably makes it safe for use with
-# file names that have spaces in them.
-function json-find {
-    local jsonArray="$(lib --path json-array)"
-    local args=()
-    local arg
-
-    for arg in "$@"; do
-        if [[ ${arg} == '-printjson' ]]; then
-            args+=(-exec "${jsonArray}" --input=strings '{}' '+')
-        else
-            args+=("${arg}")
-        fi
-    done
-
-    # The latter half of the pipe both splits the arrays emitted by `json-array`
-    # and (in effect) combines all the results in case `json-array` was called
-    # more than once.
-    find "${args[@]}" | jval --input=read '.[]'
 }
 
 # Calls `rsync` so as to do an all-local (not actually remote) "archive" copy
