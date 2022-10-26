@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { MountItem } from '#x/MountItem';
+import { MountConfig } from '#x/MountConfig';
 import { NamedItem } from '#x/NamedItem';
 import { Names } from '#x/Names';
 import { Uris } from '#x/Uris';
@@ -32,7 +32,7 @@ import { Util } from '#x/Util';
  *   inform of activity. If not specified, this server will not produce request
  *   logs.
  * * `{object[]} mounts` -- Array of application mounts, each of a form suitable
- *   for passing to the {@link MountItem} constructor.
+ *   for passing to the {@link MountConfig} constructor.
  */
 export class ServerItem extends NamedItem {
   /** @type {string[]} The hostnames in question. */
@@ -53,7 +53,7 @@ export class ServerItem extends NamedItem {
   /** @type {?string} Name of the request logger service to use. */
   #requestLogger;
 
-  /** @type {MountItem[]} Array of application mounts. */
+  /** @type {MountConfig[]} Array of application mounts. */
   #mounts;
 
   /**
@@ -80,7 +80,7 @@ export class ServerItem extends NamedItem {
     this.#protocol      = Uris.checkProtocol(protocol);
     this.#rateLimiter   = Names.checkNameOrNull(rateLimiter);
     this.#requestLogger = Names.checkNameOrNull(requestLogger);
-    this.#mounts        = MountItem.parseArray(mounts);
+    this.#mounts        = MountConfig.parseArray(mounts);
   }
 
   /**
@@ -96,7 +96,7 @@ export class ServerItem extends NamedItem {
     return this.#interface;
   }
 
-  /** @returns {MountItem[]} Array of application mounts. */
+  /** @returns {MountConfig[]} Array of application mounts. */
   get mounts() {
     return this.#mounts;
   }

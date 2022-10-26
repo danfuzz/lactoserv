@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { MountItem, ServerItem } from '@this/app-config';
+import { MountConfig, ServerItem } from '@this/app-config';
 
 import { BaseApplication } from '#x/BaseApplication';
 import { ServerController } from '#p/ServerController';
@@ -114,7 +114,7 @@ export class ServerManager {
    * ServerController}, by also using the {@link #warehouse} to look up
    * application name bindings.
    *
-   * @param {MountItem[]} mounts Original `mounts` configuration item.
+   * @param {MountConfig[]} mounts Original `mounts` configuration item.
    * @returns {Map<string,BaseApplication>} Corresponding map.
    */
   #makeApplicationMap(mounts) {

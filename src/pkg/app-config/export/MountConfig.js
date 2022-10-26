@@ -21,7 +21,7 @@ import { Uris } from '#x/Uris';
  *   application should respond to on that host. Subdomain and complete
  *   wildcards are allowed for `hostname`.
  */
-export class MountItem extends BaseConfig {
+export class MountConfig extends BaseConfig {
   /** @type {string} The name of the application being mounted. */
   #application;
 

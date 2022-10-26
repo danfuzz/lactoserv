@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { ApplicationItem } from '@this/app-config';
+import { ApplicationConfig } from '@this/app-config';
 
 import { BaseApplication } from '#x/BaseApplication';
 
@@ -27,7 +27,7 @@ export class ApplicationController {
     return this.#application;
   }
 
-  /** @returns {ApplicationItem} Configuration which defined this instance. */
+  /** @returns {ApplicationConfig} Configuration which defined this instance. */
   get config() {
     return this.#application.config;
   }

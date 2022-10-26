@@ -22,7 +22,7 @@ import { Util } from '#x/Util';
  *
  * Accepted configuration bindings (in the constructor). All are required:
  */
-export class HostItem extends BaseConfig {
+export class HostConfig extends BaseConfig {
   /** @type {string[]} The hostnames in question. */
   #hostnames;
 

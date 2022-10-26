@@ -3,7 +3,7 @@
 
 import * as express from 'express';
 
-import { ApplicationItem } from '@this/app-config';
+import { ApplicationConfig } from '@this/app-config';
 import { Methods } from '@this/typey';
 
 
@@ -11,7 +11,7 @@ import { Methods } from '@this/typey';
  * Base class for the exported (public) application classes.
  */
 export class BaseApplication {
-  /** @type {ApplicationItem} Configuration for this application. */
+  /** @type {ApplicationConfig} Configuration for this application. */
   #config;
 
   /**
@@ -23,7 +23,7 @@ export class BaseApplication {
   /**
    * Constructs an instance.
    *
-   * @param {ApplicationItem} config Configuration for this application.
+   * @param {ApplicationConfig} config Configuration for this application.
    * @param {?function(...*)} logger Instance-specific logger, or `null` if
    *   no logging is to be done.
    */
@@ -32,7 +32,7 @@ export class BaseApplication {
     this.#logger = logger;
   }
 
-  /** @returns {ApplicationItem} Configuration for this application. */
+  /** @returns {ApplicationConfig} Configuration for this application. */
   get config() {
     return this.#config;
   }
@@ -69,7 +69,7 @@ export class BaseApplication {
   //
 
   /**
-   * @returns {function(new:ApplicationItem)} The configuration class for this
+   * @returns {function(new:ApplicationConfig)} The configuration class for this
    * application.
    */
   static get CONFIG_CLASS() {

@@ -3,7 +3,7 @@
 
 import express from 'express';
 
-import { ApplicationItem, Files } from '@this/app-config';
+import { ApplicationConfig, Files } from '@this/app-config';
 import { ApplicationController, BaseApplication } from '@this/app-servers';
 
 
@@ -20,7 +20,7 @@ export class StaticApplication extends BaseApplication {
   /**
    * Constructs an instance.
    *
-   * @param {ApplicationItem} config Configuration for this application.
+   * @param {ApplicationConfig} config Configuration for this application.
    * @param {ApplicationController} controller Controller for this instance.
    */
   constructor(config, controller) {
@@ -52,7 +52,7 @@ export class StaticApplication extends BaseApplication {
   /**
    * Configuration item subclass for this (outer) class.
    */
-  static #Config = class Config extends ApplicationItem {
+  static #Config = class Config extends ApplicationConfig {
     /** @type {string} The assets path. */
     #assetsPath;
 

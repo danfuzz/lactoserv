@@ -9,10 +9,10 @@ import { TypedItem } from '#x/TypedItem';
  * the constructor) are entirely as defined by the superclass, {@link
  * TypedItem}.
  */
-export class ApplicationItem extends TypedItem {
+export class ApplicationConfig extends TypedItem {
   // This class only exists so as to make things clearer at the use sites,
   // specifically to maintain the "base class name" correspondence between
   // classes in this module and classes in the rest of the system. (E.g.,
-  // `ApplicationController` is clearly related to `ApplicationItem`. The
+  // `ApplicationController` is clearly related to `ApplicationConfig`. The
   // relationship with `TypedItem` isn't so obvious.)
 }

@@ -3,7 +3,7 @@
 
 import * as express from 'express';
 
-import { MountItem, ServerItem } from '@this/app-config';
+import { MountConfig, ServerItem } from '@this/app-config';
 import { HostManager } from '@this/app-hosts';
 import { TreePathKey, TreePathMap } from '@this/collections';
 import { ProtocolWrangler, ProtocolWranglers, WranglerContext } from '@this/network-protocol';
@@ -202,7 +202,7 @@ export class ServerController {
    * handles to the map from each (typically wildcarded) path (that is, a path
    * _prefix_ when wildcarded) to the application which handles it.
    *
-   * @param {MountItem[]} mounts Configured application mounts.
+   * @param {MountConfig[]} mounts Configured application mounts.
    * @param {Map<string, BaseApplication>} applicationMap Map from application
    *   names to corresponding instances.
    * @returns {TreePathMap<TreePathMap<ApplicationController>>} The constructed

@@ -13,6 +13,6 @@ export class ServiceItem extends TypedItem {
   // This class only exists so as to make things clearer at the use sites,
   // specifically to maintain the "base class name" correspondence between
   // classes in this module and classes in the rest of the system. (E.g.,
-  // `ServiceController` is clearly related to `ApplicationItem`. The
+  // `ServiceController` is clearly related to `ApplicationConfig`. The
   // relationship with `TypedItem` isn't so obvious.)
 }
