@@ -55,4 +55,22 @@ export class BaseService {
   async stop() {
     Methods.abstract();
   }
+
+
+  //
+  // Static members
+  //
+
+  /**
+   * @returns {function(new:ServiceItem)} The configuration class for this
+   * service.
+   */
+  static get CONFIG_CLASS() {
+    return Methods.abstract();
+  }
+
+  /** @returns {string} The type name for this service. */
+  static get TYPE() {
+    return Methods.abstract();
+  }
 }

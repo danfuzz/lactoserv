@@ -69,7 +69,12 @@ export class RequestLoggerService extends BaseService {
   // Static members
   //
 
-  /** @returns {string} Service type as used in configuration objects. */
+  /** @override */
+  static get CONFIG_CLASS() {
+    return ServiceItem;
+  }
+
+  /** @override */
   static get TYPE() {
     return 'request-logger';
   }

@@ -120,7 +120,12 @@ export class SystemLoggerService extends BaseService {
   /** @type {function(*)} Logger for this class. */
   static #classLogger = Loggy.loggerFor([this.#LOG_TAG]);
 
-  /** @returns {string} Service type as used in configuration objects. */
+  /** @override */
+  static get CONFIG_CLASS() {
+    return ServiceItem;
+  }
+
+  /** @override */
   static get TYPE() {
     return 'system-logger';
   }
