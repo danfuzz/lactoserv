@@ -181,6 +181,23 @@ export class ServerController {
   //
 
   /**
+   * Gets a loggable "host match" from a {@link TreePathMap} lookup response.
+   *
+   * @param {object} match The lookup response.
+   * @returns {string} A loggable string.
+   */
+  static #hostMatchString(match) {
+    const { path, wildcard } = match;
+
+    if (wildcard && path.length === 0) {
+      return '*';
+    }
+
+    const parts = [...path, ...(wildcard ? ['*'] : [])].reverse();
+    return parts.join('.');
+  }
+
+  /**
    * Makes the map from each (possibly wildcarded) hostname that this server
    * handles to the map from each (typically wildcarded) path (that is, a path
    * _prefix_ when wildcarded) to the application which handles it.
@@ -207,23 +224,6 @@ export class ServerController {
     }
 
     return result;
-  }
-
-  /**
-   * Gets a loggable "host match" from a {@link TreePathMap} lookup response.
-   *
-   * @param {object} match The lookup response.
-   * @returns {string} A loggable string.
-   */
-  static #hostMatchString(match) {
-    const { path, wildcard } = match;
-
-    if (wildcard && path.length === 0) {
-      return '*';
-    }
-
-    const parts = [...path, ...(wildcard ? ['*'] : [])].reverse();
-    return parts.join('.');
   }
 
   /**
