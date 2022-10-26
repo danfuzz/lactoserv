@@ -1,8 +1,6 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import * as express from 'express';
-
 import { ApplicationConfig } from '@this/app-config';
 import { Methods } from '@this/typey';
 
@@ -54,8 +52,8 @@ export class BaseApplication {
    * Handles a request, as defined by the Express middleware spec.
    *
    * @abstract
-   * @param {express.Request} req Request object.
-   * @param {express.Response} res Response object.
+   * @param {object} req Request object.
+   * @param {object} res Response object.
    * @param {function(?object=)} next Function which causes the next-bound
    *   middleware to run.
    */

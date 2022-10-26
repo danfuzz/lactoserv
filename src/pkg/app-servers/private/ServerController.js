@@ -1,8 +1,6 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import * as express from 'express';
-
 import { MountConfig, ServerConfig } from '@this/app-config';
 import { HostManager } from '@this/app-hosts';
 import { TreePathKey, TreePathMap } from '@this/collections';
@@ -15,8 +13,9 @@ import { BaseApplication } from '#x/BaseApplication';
 
 /**
  * "Controller" for a single server. Instances of this class wrap both a
- * (concrete subclass of a) {@link net.Server} object _and_ an {@link
- * express.Application} (or equivalent) which _exclusively_ handles that server.
+ * (concrete subclass of a) {@link net.Server} object _and_ an
+ * `express.Application` (or equivalent) which _exclusively_ handles that
+ * server.
  */
 export class ServerController {
   /** @type {ServerConfig} Configuration which defined this instance. */
@@ -113,11 +112,11 @@ export class ServerController {
   }
 
   /**
-   * Handles a request dispatched from Express. Parameters are as defined by the
-   * Express middleware spec.
+   * Handles a request dispatched from Express (or similar). Parameters are as
+   * defined by the Express middleware spec.
    *
-   * @param {express.Request} req Request object.
-   * @param {express.Response} res Response object.
+   * @param {object} req Request object.
+   * @param {object} res Response object.
    * @param {function(?*)} next Function which causes the next-bound middleware
    *   to run.
    */
