@@ -32,6 +32,11 @@ export class BaseService {
     this.#logger = logger;
   }
 
+  /** @returns {ServiceItem} Configuration for this service. */
+  get config() {
+    return this.#config;
+  }
+
   /**
    * @type {?function(...*)} Instance-specific logger, or `null` if no logging
    * is to be done.

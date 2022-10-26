@@ -34,6 +34,11 @@ export class BaseApplication {
     this.#logger = logger;
   }
 
+  /** @returns {ApplicationItem} Configuration for this application. */
+  get config() {
+    return this.#config;
+  }
+
   /**
    * @type {?function(...*)} Instance-specific logger, or `null` if no logging
    * is to be done.
