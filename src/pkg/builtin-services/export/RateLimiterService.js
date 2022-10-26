@@ -5,7 +5,7 @@ import { ServiceItem } from '@this/app-config';
 import { IntfRateLimiter } from '@this/app-protocol';
 import { BaseService, ServiceController } from '@this/app-services';
 import { TokenBucket } from '@this/async';
-import { JsonSchema } from '@this/json';
+import { MustBe } from '@this/typey';
 
 import { RateLimitedStream } from '#p/RateLimitedStream';
 
@@ -59,10 +59,7 @@ export class RateLimiterService extends BaseService {
   constructor(config, controller) {
     super(config, controller);
 
-    //const config = controller.config;
-    RateLimiterService.#validateConfig(config.extraConfig);
-
-    const { connections, data, requests } = config.extraConfig;
+    const { connections, data, requests } = config;
 
     this.#connections = RateLimiterService.#makeBucket(connections);
     this.#data        = RateLimiterService.#makeBucket(data);
@@ -109,7 +106,7 @@ export class RateLimiterService extends BaseService {
 
   /** @override */
   static get CONFIG_CLASS() {
-    return ServiceItem;
+    return this.#Config;
   }
 
   /** @override */
@@ -146,22 +143,9 @@ export class RateLimiterService extends BaseService {
    *   `config === null`.
    */
   static #makeBucket(config) {
-    if (!config) {
-      return null;
-    }
-
-    const {
-      maxBurstSize,
-      maxQueueGrantSize,
-      maxQueueSize,
-      flowRate: origFlowRate,
-      timeUnit
-    } = config;
-
-    const flowRate = this.#flowRatePerSecFrom(origFlowRate, timeUnit);
-
-    return new TokenBucket(
-      { flowRate, maxBurstSize, maxQueueGrantSize, maxQueueSize });
+    return config
+      ? new TokenBucket(config)
+      : null;
   }
 
   /**
@@ -189,61 +173,88 @@ export class RateLimiterService extends BaseService {
   }
 
   /**
-   * Validates the given configuration object.
-   *
-   * @param {object} config Configuration object.
+   * Configuration item subclass for this (outer) class.
    */
-  static #validateConfig(config) {
-    const validator = new JsonSchema('Rate Limiter Configuration');
+  static #Config = class Config extends ServiceItem {
+    /** @type {?object} Configuration for connection rate limiting. */
+    #connections;
 
-    validator.addMainSchema({
-      $id: '/RateLimiterService',
-      type: 'object',
-      properties: {
-        connections: { $ref: '#/$defs/limitItem' },
-        requests:    { $ref: '#/$defs/limitItem' },
-        data:        { $ref: '#/$defs/limitItem' }
-      },
+    /** @type {?object} Configuration for data rate limiting. */
+    #data;
 
-      $defs: {
-        limitItem: {
-          type: 'object',
-          required: ['maxBurstSize', 'flowRate', 'timeUnit'],
-          properties: {
-            maxBurstSize: {
-              type:             'number',
-              exclusiveMinimum: 0,
-              maximum:          1e300
-            },
-            flowRate: {
-              type:             'number',
-              exclusiveMinimum: 0,
-              maximum:          1e300
-            },
-            timeUnit: {
-              type: 'string',
-              enum: ['day', 'hour', 'minute', 'second', 'msec']
-            },
-            maxQueueGrantSize: {
-              type:             'number',
-              exclusiveMinimum: 0,
-              maximum:          1e300
-            },
-            maxQueueSize: {
-              type:    'number',
-              minimum: 0,
-              maximum: 1e10
-            }
-          }
-        }
-      }
-    });
+    /** @type {?object} Configuration for request rate limiting. */
+    #requests;
 
-    const error = validator.validate(config);
+    /**
+     * Constructs an instance.
+     *
+     * @param {object} config Configuration object.
+     */
+    constructor(config) {
+      super(config);
 
-    if (error) {
-      error.logTo(console);
-      error.throwError();
+      const { connections, data, requests } = config;
+
+      this.#connections = Config.#parseOneBucket(connections);
+      this.#data        = Config.#parseOneBucket(data);
+      this.#requests    = Config.#parseOneBucket(requests);
     }
-  }
+
+    /** @returns {?object} Configuration for connection rate limiting. */
+    get connections() {
+      return this.#connections;
+    }
+
+    /** @returns {?object} Configuration for data rate limiting. */
+    get data() {
+      return this.#data;
+    }
+
+    /** @returns {?object} Configuration for request rate limiting. */
+    get requests() {
+      return this.#requests;
+    }
+
+    /**
+     * Parses the bucket configuration for a specific rate-limited entity.
+     * Returns `null` if passed `null`.
+     *
+     * @param {?object} config Optional configuration object.
+     * @returns {?object} Parsed configuration or `null`.
+     */
+    static #parseOneBucket(config) {
+      if (!config) {
+        return null;
+      }
+
+      const {
+        flowRate: origFlowRate,
+        maxBurstSize,
+        maxQueueGrantSize = null,
+        maxQueueSize      = null,
+        timeUnit
+      } = config;
+
+      MustBe.number(origFlowRate, { minExclusive: 0, maxInclusive: 1e100 });
+      MustBe.number(maxBurstSize, { minExclusive: 0, maxInclusive: 1e100 });
+      MustBe.string(timeUnit,     /^(day|hour|minute|second|msec)$/);
+
+      if (maxQueueGrantSize !== null) {
+        MustBe.number(maxQueueGrantSize, { minInclusive: 0, maxInclusive: 1e100 });
+      }
+
+      if (maxQueueSize !== null) {
+        MustBe.number(maxQueueSize, { minInclusive: 0, maxInclusive: 1e100 });
+      }
+
+      const flowRate = RateLimiterService.#flowRatePerSecFrom(origFlowRate, timeUnit);
+      const result   = { flowRate, maxBurstSize, maxQueueSize };
+
+      if (maxQueueGrantSize !== null) {
+        result.maxQueueGrantSize = maxQueueGrantSize;
+      }
+
+      return Object.freeze(result);
+    }
+  };
 }
