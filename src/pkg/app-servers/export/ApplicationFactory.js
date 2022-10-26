@@ -24,7 +24,7 @@ export class ApplicationFactory {
    * @param {boolean} [nullIfNotFound = false] Throw an error if not found?
    * @returns {?function(new:BaseApplication)} Corresponding application class,
    *   or `null` if not found and `nullIfNotFound === true`.
-   * @throws {Error} Thrown if there is no such service.
+   * @throws {Error} Thrown if there is no such application.
    */
   static classFromType(type, nullIfNotFound = false) {
     const cls = this.#APPLICATION_CLASSES.get(type);
@@ -52,6 +52,18 @@ export class ApplicationFactory {
   }
 
   /**
+   * Constructs an instance of the given application type.
+   *
+   * @param {string} type Type name of the application.
+   * @param {...*} rest Construction arguments.
+   * @returns {BaseApplication} Constructed application instance.
+   */
+  static forType(type, ...rest) {
+    const cls = this.classFromType(type);
+    return new cls(...rest);
+  }
+
+  /**
    * Registers a type/application binding.
    *
    * @param {function(new:BaseApplication, ...*)} applicationClass Application
@@ -65,17 +77,5 @@ export class ApplicationFactory {
     }
 
     this.#APPLICATION_CLASSES.set(type, applicationClass);
-  }
-
-  /**
-   * Constructs an instance of the given application type.
-   *
-   * @param {string} type Type name of the application.
-   * @param {...*} rest Construction arguments.
-   * @returns {BaseApplication} Constructed application instance.
-   */
-  static forType(type, ...rest) {
-    const cls = this.classFromType(type);
-    return new cls(...rest);
   }
 }
