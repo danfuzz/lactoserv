@@ -2,7 +2,7 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { MountConfig } from '#x/MountConfig';
-import { NamedItem } from '#x/NamedItem';
+import { NamedConfig } from '#x/NamedConfig';
 import { Names } from '#x/Names';
 import { Uris } from '#x/Uris';
 import { Util } from '#x/Util';
@@ -16,7 +16,7 @@ import { Util } from '#x/Util';
  * Accepted configuration bindings (in the constructor). All are required,
  * except as noted:
  *
- * * Bindings as defined by the superclass, {@link NamedItem}.
+ * * Bindings as defined by the superclass, {@link NamedConfig}.
  * * `{string|string[]} hostnames` -- Hostnames which this server should accept
  *   as valid. Can include subdomain or complete wildcards. Defaults to `*`
  *   (that is, responds to all hostnames).
@@ -34,7 +34,7 @@ import { Util } from '#x/Util';
  * * `{object[]} mounts` -- Array of application mounts, each of a form suitable
  *   for passing to the {@link MountConfig} constructor.
  */
-export class ServerItem extends NamedItem {
+export class ServerConfig extends NamedConfig {
   /** @type {string[]} The hostnames in question. */
   #hostnames;
 

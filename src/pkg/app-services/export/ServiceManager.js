@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { ServiceItem } from '@this/app-config';
+import { ServiceConfig } from '@this/app-config';
 import { Loggy } from '@this/loggy';
 
 import { BaseService } from '#x/BaseService';
@@ -26,7 +26,7 @@ export class ServiceManager {
   /**
    * Constructs an instance.
    *
-   * @param {ServiceItem[]} configs Configuration objects.
+   * @param {ServiceConfig[]} configs Configuration objects.
    */
   constructor(configs) {
     for (const config of configs) {
@@ -82,7 +82,7 @@ export class ServiceManager {
    * Constructs a {@link ServiceController} based on the given information,
    * and adds a mapping to {@link #controllers} so it can be found.
    *
-   * @param {ServiceItem} config Parsed configuration item.
+   * @param {ServiceConfig} config Parsed configuration item.
    */
   #addControllerFor(config) {
     const name = config.name;

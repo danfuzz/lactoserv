@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { ApplicationConfig, ServiceItem, WarehouseItem } from '@this/app-config';
+import { ApplicationConfig, ServiceConfig, WarehouseItem } from '@this/app-config';
 import { HostManager } from '@this/app-hosts';
 import { ServiceFactory, ServiceManager } from '@this/app-services';
 
@@ -43,7 +43,7 @@ export class Warehouse {
     const mapper = (conf, baseClass) => {
       switch (baseClass) {
         case ApplicationConfig: return ApplicationFactory.configClassFromType(conf.type);
-        case ServiceItem:     return ServiceFactory.configClassFromType(conf.type);
+        case ServiceConfig:     return ServiceFactory.configClassFromType(conf.type);
       }
       return baseClass;
     };

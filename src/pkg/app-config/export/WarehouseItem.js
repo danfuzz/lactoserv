@@ -5,8 +5,8 @@ import { BaseConfig } from '#x/BaseConfig';
 import { ConfigClassMapper } from '#x/ConfigClassMapper';
 import { ApplicationConfig } from '#x/ApplicationConfig';
 import { HostConfig } from '#x/HostConfig';
-import { ServerItem } from '#x/ServerItem';
-import { ServiceItem } from '#x/ServiceItem';
+import { ServerConfig } from '#x/ServerConfig';
+import { ServiceConfig } from '#x/ServiceConfig';
 
 
 /**
@@ -28,10 +28,10 @@ export class WarehouseItem extends BaseConfig {
   /** @type {HostConfig[]} Host configuration objects. */
   #hosts;
 
-  /** @type {ServerItem[]} Server configuration objects. */
+  /** @type {ServerConfig[]} Server configuration objects. */
   #servers;
 
-  /** @type {ServiceItem[]} Service configuration objects. */
+  /** @type {ServiceConfig[]} Service configuration objects. */
   #services;
 
   /**
@@ -53,8 +53,8 @@ export class WarehouseItem extends BaseConfig {
 
     this.#applications = ApplicationConfig.parseArray(applications, configClassMapper);
     this.#hosts        = HostConfig.parseArray(hosts, configClassMapper);
-    this.#servers      = ServerItem.parseArray(servers, configClassMapper);
-    this.#services     = ServiceItem.parseArray(services, configClassMapper);
+    this.#servers      = ServerConfig.parseArray(servers, configClassMapper);
+    this.#services     = ServiceConfig.parseArray(services, configClassMapper);
   }
 
   /** @returns {ApplicationConfig[]} Application configuration objects. */
@@ -67,12 +67,12 @@ export class WarehouseItem extends BaseConfig {
     return this.#hosts;
   }
 
-  /** @returns {ServerItem[]} Server configuration objects. */
+  /** @returns {ServerConfig[]} Server configuration objects. */
   get servers() {
     return this.#servers;
   }
 
-  /** @returns {ServiceItem[]} Service configuration objects. */
+  /** @returns {ServiceConfig[]} Service configuration objects. */
   get services() {
     return this.#services;
   }

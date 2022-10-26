@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { ServiceItem } from '@this/app-config';
+import { ServiceConfig } from '@this/app-config';
 
 import { BaseService } from '#x/BaseService';
 
@@ -43,7 +43,7 @@ export class ServiceFactory {
    * BaseConfig#parseArray}.
    *
    * @param {string} type Service type name.
-   * @returns {function(new:ServiceItem)} Corresponding configuration class.
+   * @returns {function(new:ServiceConfig)} Corresponding configuration class.
    */
   static configClassFromType(type) {
     const cls = this.classFromType(type);
@@ -53,7 +53,7 @@ export class ServiceFactory {
   /**
    * Constructs a service instance based on the given configuration.
    *
-   * @param {ServiceItem} config Configuration object.
+   * @param {ServiceConfig} config Configuration object.
    * @param {...*} rest Other construction arguments.
    * @returns {BaseService} Constructed service instance.
    */

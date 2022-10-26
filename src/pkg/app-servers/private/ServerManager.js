@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { MountConfig, ServerItem } from '@this/app-config';
+import { MountConfig, ServerConfig } from '@this/app-config';
 
 import { BaseApplication } from '#x/BaseApplication';
 import { ServerController } from '#p/ServerController';
@@ -28,7 +28,7 @@ export class ServerManager {
   /**
    * Constructs an instance.
    *
-   * @param {ServerItem[]} configs Configuration objects.
+   * @param {ServerConfig[]} configs Configuration objects.
    * @param {Warehouse} warehouse The warehouse this instance is in.
    */
   constructor(configs, warehouse) {
@@ -69,7 +69,7 @@ export class ServerManager {
    * Constructs a {@link ServerController} based on the given information, and
    * adds a mapping to {@link #controllers} so it can be found.
    *
-   * @param {ServerItem} config Parsed configuration item.
+   * @param {ServerConfig} config Parsed configuration item.
    */
   #addControllerFor(config) {
     const {

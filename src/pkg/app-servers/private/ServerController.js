@@ -3,7 +3,7 @@
 
 import * as express from 'express';
 
-import { MountConfig, ServerItem } from '@this/app-config';
+import { MountConfig, ServerConfig } from '@this/app-config';
 import { HostManager } from '@this/app-hosts';
 import { TreePathKey, TreePathMap } from '@this/collections';
 import { ProtocolWrangler, ProtocolWranglers, WranglerContext } from '@this/network-protocol';
@@ -19,7 +19,7 @@ import { BaseApplication } from '#x/BaseApplication';
  * express.Application} (or equivalent) which _exclusively_ handles that server.
  */
 export class ServerController {
-  /** @type {ServerItem} Configuration which defined this instance. */
+  /** @type {ServerConfig} Configuration which defined this instance. */
   #config;
 
   /**
@@ -56,7 +56,7 @@ export class ServerController {
    * * `{?RequestLoggerService} requestLogger` -- Replacemant for `rateLimiter`
    *   (service instance, not just a name).
    *
-   * @param {ServerItem} config Parsed configuration item.
+   * @param {ServerConfig} config Parsed configuration item.
    * @param {object} extraConfig Additional configuration, per the above
    *   description.
    */
@@ -87,7 +87,7 @@ export class ServerController {
     this.#wrangler = ProtocolWranglers.make(wranglerOptions);
   }
 
-  /** @returns {ServerItem} Configuration which defined this instance. */
+  /** @returns {ServerConfig} Configuration which defined this instance. */
   get config() {
     return this.#config;
   }
