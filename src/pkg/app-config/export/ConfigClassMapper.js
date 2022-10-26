@@ -3,6 +3,7 @@
 
 import { BaseConfig } from '#x/BaseConfig';
 
+
 /**
  * Mapper from configuration objects, and an optional desired base class result,
  * to the concrete configuration class (subclass of `baseClass` if specified)

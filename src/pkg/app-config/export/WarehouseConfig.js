@@ -1,9 +1,9 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { ApplicationConfig } from '#x/ApplicationConfig';
 import { BaseConfig } from '#x/BaseConfig';
 import { ConfigClassMapper } from '#x/ConfigClassMapper';
-import { ApplicationConfig } from '#x/ApplicationConfig';
 import { HostConfig } from '#x/HostConfig';
 import { ServerConfig } from '#x/ServerConfig';
 import { ServiceConfig } from '#x/ServiceConfig';

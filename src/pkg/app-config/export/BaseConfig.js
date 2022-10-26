@@ -5,6 +5,7 @@ import { MustBe } from '@this/typey';
 
 import { ConfigClassMapper } from '#x/ConfigClassMapper';
 
+
 /**
  * Base class for all configuration representation classes. Each subclass
  * defines specific configuration bindings which are to be passed to the
