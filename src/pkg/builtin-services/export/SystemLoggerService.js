@@ -93,14 +93,13 @@ export class SystemLoggerService extends BaseService {
    */
   #findEarliestEventToLog() {
     const earliestEvent = Loggy.earliestEvent;
-    const name          = this.name;
     const tracker       = new EventTracker(earliestEvent);
 
     const found = tracker.advanceSync((event) => {
       const tag = event.tag;
       return (tag.main === SystemLoggerService.#LOG_TAG)
         && (tag.context.length === 1)
-        && (tag.context[0] === name)
+        && (tag.context[0] === this.name)
         && (event.type === 'stopped');
     });
 
