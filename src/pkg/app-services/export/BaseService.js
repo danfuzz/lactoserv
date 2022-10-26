@@ -4,8 +4,6 @@
 import { ServiceItem } from '@this/app-config';
 import { Methods } from '@this/typey';
 
-import { ServiceController } from '#x/ServiceController';
-
 
 /**
  * Base class for system services.

@@ -4,7 +4,6 @@
 import { ServiceItem } from '@this/app-config';
 
 import { BaseService } from '#x/BaseService';
-import { ServiceFactory } from '#x/ServiceFactory';
 
 
 /**

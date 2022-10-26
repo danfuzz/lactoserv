@@ -3,7 +3,6 @@
 
 import { ApplicationItem } from '@this/app-config';
 
-import { ApplicationFactory } from '#x/ApplicationFactory';
 import { BaseApplication } from '#x/BaseApplication';
 
 
