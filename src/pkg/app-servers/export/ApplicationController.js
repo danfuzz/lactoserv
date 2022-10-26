@@ -29,7 +29,7 @@ export class ApplicationController {
   constructor(config, logger) {
     this.#config      = config;
     this.#logger      = logger[config.name];
-    this.#application = ApplicationFactory.forType(config.type, config, this);
+    this.#application = ApplicationFactory.makeInstance(config, this);
 
     this.#logger.constructed();
   }

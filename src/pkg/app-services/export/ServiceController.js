@@ -29,7 +29,7 @@ export class ServiceController {
   constructor(config, logger) {
     this.#config  = config;
     this.#logger  = logger[config.name];
-    this.#service = ServiceFactory.forType(config.type, config, this);
+    this.#service = ServiceFactory.makeInstance(config, this);
 
     this.#logger.constructed();
   }

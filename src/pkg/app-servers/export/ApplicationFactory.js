@@ -52,15 +52,15 @@ export class ApplicationFactory {
   }
 
   /**
-   * Constructs an instance of the given application type.
+   * Constructs an application instance based on the given configuration.
    *
-   * @param {string} type Type name of the application.
-   * @param {...*} rest Construction arguments.
+   * @param {ApplicationItem} config Configuration object.
+   * @param {...*} rest Other construction arguments.
    * @returns {BaseApplication} Constructed application instance.
    */
-  static forType(type, ...rest) {
-    const cls = this.classFromType(type);
-    return new cls(...rest);
+  static makeInstance(config, ...rest) {
+    const cls = this.classFromType(config.type);
+    return new cls(config, ...rest);
   }
 
   /**

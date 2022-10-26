@@ -51,15 +51,15 @@ export class ServiceFactory {
   }
 
   /**
-   * Constructs an instance of the given service type.
+   * Constructs a service instance based on the given configuration.
    *
-   * @param {string} type Type name of the service.
-   * @param {...*} rest Construction arguments.
+   * @param {ServiceItem} config Configuration object.
+   * @param {...*} rest Other construction arguments.
    * @returns {BaseService} Constructed service instance.
    */
-  static forType(type, ...rest) {
-    const cls = this.classFromType(type);
-    return new cls(...rest);
+  static makeInstance(config, ...rest) {
+    const cls = this.classFromType(config.type);
+    return new cls(config, ...rest);
   }
 
   /**
