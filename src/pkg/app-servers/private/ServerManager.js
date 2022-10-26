@@ -14,11 +14,6 @@ const logger = ThisModule.logger.server;
 
 /**
  * Manager for dealing with all the network-bound server endpoints of a system.
- * Configuration object details:
- *
- * * `{object|object[]} servers` -- Objects, each of which represents
- *   configuration information for a single server. Each item must be a value
- *   suitable for passing to the {@link ServerItem} constructor.
  */
 export class ServerManager {
   /** @type {Warehouse} The warehouse this instance is in. */
@@ -33,15 +28,14 @@ export class ServerManager {
   /**
    * Constructs an instance.
    *
-   * @param {object} config Configuration object.
+   * @param {ServerItem[]} configs Configuration objects.
    * @param {Warehouse} warehouse The warehouse this instance is in.
    */
-  constructor(config, warehouse) {
+  constructor(configs, warehouse) {
     this.#warehouse = warehouse;
 
-    const servers = ServerItem.parseArray(config.servers);
-    for (const server of servers) {
-      this.#addControllerFor(server);
+    for (const config of configs) {
+      this.#addControllerFor(config);
     }
   }
 

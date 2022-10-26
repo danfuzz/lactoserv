@@ -1,9 +1,11 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { ApplicationItem, ServiceItem, WarehouseItem } from '@this/app-config';
 import { HostManager } from '@this/app-hosts';
-import { ServiceManager } from '@this/app-services';
+import { ServiceFactory, ServiceManager } from '@this/app-services';
 
+import { ApplicationFactory } from '#x/ApplicationFactory';
 import { ApplicationManager } from '#x/ApplicationManager';
 import { ServerManager } from '#p/ServerManager';
 
@@ -38,10 +40,20 @@ export class Warehouse {
    * @param {object} config Configuration object.
    */
   constructor(config) {
+    const mapper = (conf, baseClass) => {
+      switch (baseClass) {
+        case ApplicationItem: return ApplicationFactory.configClassFromType(conf.type);
+        case ServiceItem:     return ServiceFactory.configClassFromType(conf.type);
+      }
+      return baseClass;
+    };
+
+    const parsed = new WarehouseItem(config, mapper);
+
     this.#hostManager        = HostManager.fromConfig(config);
     this.#serviceManager     = new ServiceManager(config);
-    this.#applicationManager = new ApplicationManager(config);
-    this.#serverManager      = new ServerManager(config, this);
+    this.#applicationManager = new ApplicationManager(parsed.applications);
+    this.#serverManager      = new ServerManager(parsed.servers, this);
   }
 
   /** @returns {ApplicationManager} Application manager. */
