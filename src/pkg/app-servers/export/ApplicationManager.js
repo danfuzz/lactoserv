@@ -17,7 +17,8 @@ const logger = ThisModule.logger.app;
  *
  * * `{object|object[]} applications` -- Objects, each of which represents
  *   configuration information for a single application. Each item must be a
- *   value suitable for passing to the {@link ApplicationItem} constructor.
+ *   value suitable for passing to the {@link ApplicationItem} (or subclass)
+ *   constructor.
  */
 export class ApplicationManager {
   /**
@@ -65,15 +66,17 @@ export class ApplicationManager {
    * @param {ApplicationItem} config Parsed configuration item.
    */
   #addControllerFor(config) {
-    const controller = new ApplicationController(config);
-    const name       = controller.name;
-
-    logger.binding(name);
+    const name = config.name;
 
     if (this.#controllers.has(name)) {
       throw new Error(`Duplicate application: ${name}`);
     }
 
+    const subLogger  = logger[name];
+    const instance   = ApplicationFactory.makeInstance(config, subLogger);
+    const controller = new ApplicationController(instance);
+
     this.#controllers.set(name, controller);
+    subLogger.bound();
   }
 }

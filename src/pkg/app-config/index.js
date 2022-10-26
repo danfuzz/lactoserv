@@ -10,6 +10,7 @@ export * from '#x/MountItem';
 export * from '#x/NamedItem';
 export * from '#x/Names';
 export * from '#x/ServerItem';
+export * from '#x/ServiceItem';
 export * from '#x/TypedItem';
 export * from '#x/Uris';
 export * from '#x/Util';

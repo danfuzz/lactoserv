@@ -5,9 +5,9 @@ import * as fs from 'node:fs/promises';
 import * as Path from 'node:path';
 import * as timers from 'node:timers/promises';
 
+import { Files, ServiceItem } from '@this/app-config';
 import { BaseService, ServiceController } from '@this/app-services';
 import { EventTracker } from '@this/async';
-import { JsonSchema } from '@this/json';
 import { LogEvent, Loggy, TextFileSink } from '@this/loggy';
 
 
@@ -31,19 +31,18 @@ export class SystemLoggerService extends BaseService {
   /**
    * Constructs an instance.
    *
+   * @param {ServiceItem} config Configuration for this service.
    * @param {ServiceController} controller The controller for this instance.
    */
-  constructor(controller) {
-    super(controller);
+  constructor(config, controller) {
+    super(config, controller);
 
-    const config = controller.config;
-    SystemLoggerService.#validateConfig(config);
+    const { baseName, directory, name } = config;
+    const earliestEvent = this.#findEarliestEventToLog(name);
 
-    const earliestEvent = this.#findEarliestEventToLog(controller.name);
-
-    this.#logFilePath = Path.resolve(config.directory, `${config.baseName}.txt`);
+    this.#logFilePath = Path.resolve(directory, `${baseName}.txt`);
     this.#sink        = new TextFileSink(this.#logFilePath, earliestEvent);
-    this.#logger      = SystemLoggerService.#classLogger[controller.name];
+    this.#logger      = SystemLoggerService.#classLogger[name];
   }
 
   /** @override */
@@ -93,14 +92,13 @@ export class SystemLoggerService extends BaseService {
    */
   #findEarliestEventToLog() {
     const earliestEvent = Loggy.earliestEvent;
-    const name          = this.controller.name;
     const tracker       = new EventTracker(earliestEvent);
 
     const found = tracker.advanceSync((event) => {
       const tag = event.tag;
       return (tag.main === SystemLoggerService.#LOG_TAG)
         && (tag.context.length === 1)
-        && (tag.context[0] === name)
+        && (tag.context[0] === this.name)
         && (event.type === 'stopped');
     });
 
@@ -118,49 +116,46 @@ export class SystemLoggerService extends BaseService {
   /** @type {function(*)} Logger for this class. */
   static #classLogger = Loggy.loggerFor([this.#LOG_TAG]);
 
-  /** @returns {string} Service type as used in configuration objects. */
+  /** @override */
+  static get CONFIG_CLASS() {
+    return this.#Config;
+  }
+
+  /** @override */
   static get TYPE() {
     return 'system-logger';
   }
 
   /**
-   * Validates the given configuration object.
-   *
-   * @param {object} config Configuration object.
+   * Configuration item subclass for this (outer) class.
    */
-  static #validateConfig(config) {
-    const validator = new JsonSchema('System Logger Configuration');
+  static #Config = class Config extends ServiceItem {
+    /** @type {string} The base file name to use. */
+    #baseName;
 
-    const namePattern = '^[^/]+$';
-    const pathPattern =
-      '^' +
-      '(?!.*/[.]{1,2}/)' + // No dot or double-dot internal component.
-      '(?!.*/[.]{1,2}$)' + // No dot or double-dot final component.
-      '(?!.*//)' +         // No empty components.
-      '(?!.*/$)' +         // No slash at the end.
-      '/[^/]';             // Starts with a slash. Has at least one component.
+    /** @type {string} The directory to write to. */
+    #directory;
 
-    validator.addMainSchema({
-      $id: '/SystemLoggerService',
-      type: 'object',
-      required: ['baseName', 'directory'],
-      properties: {
-        baseName: {
-          type: 'string',
-          pattern: namePattern
-        },
-        directory: {
-          type: 'string',
-          pattern: pathPattern
-        }
-      }
-    });
+    /**
+     * Constructs an instance.
+     *
+     * @param {object} config Configuration object.
+     */
+    constructor(config) {
+      super(config);
 
-    const error = validator.validate(config);
-
-    if (error) {
-      error.logTo(console);
-      error.throwError();
+      this.#baseName = Files.checkFileName(config.baseName);
+      this.#directory = Files.checkAbsolutePath(config.directory);
     }
-  }
+
+    /** @returns {string} The base file name to use. */
+    get baseName() {
+      return this.#baseName;
+    }
+
+    /** @returns {string} The directory to write to. */
+    get directory() {
+      return this.#directory;
+    }
+  };
 }

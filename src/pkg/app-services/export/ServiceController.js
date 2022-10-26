@@ -1,54 +1,42 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { ServiceItem } from '@this/app-config';
+
 import { BaseService } from '#x/BaseService';
-import { ServiceFactory } from '#x/ServiceFactory';
 
 
 /**
  * "Controller" for a single service.
  */
 export class ServiceController {
-  /** @type {string} Service name. */
-  #name;
-
-  /** @type {object} Configuration for the underlying service. */
-  #config;
-
   /** @type {BaseService} Actual service instance. */
   #service;
 
-  /** @type {function(...*)} Instance-specific logger. */
+  /**
+   * @type {?function(...*)} Instance-specific logger, or `null` if no logging
+   * is to be done.
+   */
   #logger;
 
   /**
    * Constructs an insance.
    *
-   * @param {object} serviceConfig Service information configuration item.
-   * @param {function(...*)} logger Logger to use.
+   * @param {BaseService} service Instance to control.
    */
-  constructor(serviceConfig, logger) {
-    const { name, type } = serviceConfig;
-
-    const config = { ...serviceConfig };
-    delete config.name;
-    delete config.type;
-    Object.freeze(config);
-
-    this.#name    = name;
-    this.#config  = config;
-    this.#service = ServiceFactory.forType(type, this);
-    this.#logger  = logger[this.#name];
+  constructor(service) {
+    this.#service = service;
+    this.#logger  = service.logger;
   }
 
-  /** @returns {object} Configuration for the underlying service. */
+  /** @returns {ServiceItem} Configuration which defined this instance. */
   get config() {
-    return this.#config;
+    return this.#service.config;
   }
 
   /** @returns {string} Service name. */
   get name() {
-    return this.#name;
+    return this.#service.name;
   }
 
   /** @returns {BaseService} The controlled service instance. */

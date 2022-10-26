@@ -7,6 +7,7 @@ import { MountItem, ServerItem } from '@this/app-config';
 import { HostManager } from '@this/app-hosts';
 import { ProtocolWrangler, ProtocolWranglers, WranglerContext } from '@this/app-protocol';
 import { TreePathKey, TreePathMap } from '@this/collections';
+import { MustBe } from '@this/typey';
 
 import { BaseApplication } from '#x/BaseApplication';
 import { ApplicationController } from '#x/ApplicationController';
@@ -41,7 +42,7 @@ export class ServerController {
 
 
   /**
-   * Constructs an insance. The `extraConfig` argument contains additional
+   * Constructs an instance. The `extraConfig` argument contains additional
    * bindings, to serve as "environment-bound" values that serve as replacements
    * for what was passed in the original (but unbound) `config` (along with
    * other bits):
@@ -127,7 +128,7 @@ export class ServerController {
 
     // Freezing `subdomains` lets `new TreePathKey()` avoid making a copy.
     const hostKey = new TreePathKey(Object.freeze(subdomains), false);
-    const pathKey = ApplicationController.parsePath(path);
+    const pathKey = ServerController.#parsePath(path);
 
     // Find the mount map for the most-specific matching host.
     const hostMatch = this.#mountMap.find(hostKey);
@@ -180,6 +181,23 @@ export class ServerController {
   //
 
   /**
+   * Gets a loggable "host match" from a {@link TreePathMap} lookup response.
+   *
+   * @param {object} match The lookup response.
+   * @returns {string} A loggable string.
+   */
+  static #hostMatchString(match) {
+    const { path, wildcard } = match;
+
+    if (wildcard && path.length === 0) {
+      return '*';
+    }
+
+    const parts = [...path, ...(wildcard ? ['*'] : [])].reverse();
+    return parts.join('.');
+  }
+
+  /**
    * Makes the map from each (possibly wildcarded) hostname that this server
    * handles to the map from each (typically wildcarded) path (that is, a path
    * _prefix_ when wildcarded) to the application which handles it.
@@ -209,20 +227,24 @@ export class ServerController {
   }
 
   /**
-   * Gets a loggable "host match" from a {@link TreePathMap} lookup response.
+   * Parses a path into a non-wildcard key. The only syntactic check performed
+   * by this method is to ensure that `path` begins with a slash (`/`).
    *
-   * @param {object} match The lookup response.
-   * @returns {string} A loggable string.
+   * **Note:** The result will have an empty-string path component at the
+   * end if the given `path` ends with a slash.
+   *
+   * @param {string} path Path to parse.
+   * @returns {TreePathKey} Parsed form.
+   * @throws {Error} Thrown if `path` is not valid.
    */
-  static #hostMatchString(match) {
-    const { path, wildcard } = match;
+  static #parsePath(path) {
+    MustBe.string(path, /^[/]/);
 
-    if (wildcard && path.length === 0) {
-      return '*';
-    }
+    const parts = path.split('/');
+    parts.shift(); // Shift off the empty component from the initial slash.
 
-    const parts = [...path, ...(wildcard ? ['*'] : [])].reverse();
-    return parts.join('.');
+    // Freezing `parts` lets `new TreePathKey()` avoid making a copy.
+    return new TreePathKey(Object.freeze(parts), false);
   }
 
   /**
