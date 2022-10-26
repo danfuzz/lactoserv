@@ -50,7 +50,9 @@ export class BaseConfigurationItem {
    * @throws {Error} Thrown if there was any trouble.
    */
   static parseArray(items, configClassMapper = null) {
-    if (!Array.isArray(items)) {
+    if (items === null) {
+      throw new Error('`items` must be non-null.');
+    } else if (!Array.isArray(items)) {
       items = [items];
     }
 
@@ -70,5 +72,23 @@ export class BaseConfigurationItem {
     });
 
     return Object.freeze(result);
+  }
+
+  /**
+   * Exactly like {@link #parseArray}, except will return `null` if passed
+   * `items === null`.
+   *
+   * @param {*} items Array of configuration objects, or `null`.
+   * @param {?ConfigClassMapper} [configClassMapper = null] Optional mapper.
+   * @returns {?BaseConfigurationItem[]} Frozen array of instances, or `null` if
+   *   `items === null`.
+   * @throws {Error} Thrown if there was any trouble.
+   */
+  static parseArrayOrNull(items, configClassMapper = null) {
+    if (items === null) {
+      return null;
+    }
+
+    return this.parseArray(items, configClassMapper);
   }
 }
