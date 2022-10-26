@@ -1,6 +1,8 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { ServiceItem } from '@this/app-config';
+
 import { BaseService } from '#x/BaseService';
 import { ServiceFactory } from '#x/ServiceFactory';
 
@@ -12,7 +14,7 @@ export class ServiceController {
   /** @type {string} Service name. */
   #name;
 
-  /** @type {object} Configuration for the underlying service. */
+  /** @type {ServiceItem} Configuration which defined this instance. */
   #config;
 
   /** @type {BaseService} Actual service instance. */
@@ -37,11 +39,11 @@ export class ServiceController {
 
     this.#name    = name;
     this.#config  = config;
-    this.#service = ServiceFactory.forType(type, this);
+    this.#service = ServiceFactory.forType(type, config, this);
     this.#logger  = logger[this.#name];
   }
 
-  /** @returns {object} Configuration for the underlying service. */
+  /** @returns {ServiceItem} Configuration which defined this instance. */
   get config() {
     return this.#config;
   }

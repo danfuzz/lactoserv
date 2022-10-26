@@ -1,6 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { ServiceItem } from '@this/app-config';
 import { Methods } from '@this/typey';
 
 import { ServiceController } from '#x/ServiceController';
@@ -10,15 +11,20 @@ import { ServiceController } from '#x/ServiceController';
  * Base class for system services.
  */
 export class BaseService {
+  /** @type {ServiceItem} Configuration for this service. */
+  #config;
+
   /** @type {ServiceController} The controller for this instance. */
   #controller;
 
   /**
    * Constructs an instance.
    *
+   * @param {ServiceItem} config Configuration for this service.
    * @param {ServiceController} controller The controller for this instance.
    */
-  constructor(controller) {
+  constructor(config, controller) {
+    this.#config     = config;
     this.#controller = controller;
   }
 

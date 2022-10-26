@@ -5,6 +5,7 @@ import * as fs from 'node:fs/promises';
 import * as Path from 'node:path';
 import * as timers from 'node:timers/promises';
 
+import { ServiceItem } from '@this/app-config';
 import { BaseService, ServiceController } from '@this/app-services';
 import { EventTracker } from '@this/async';
 import { JsonSchema } from '@this/json';
@@ -31,12 +32,13 @@ export class SystemLoggerService extends BaseService {
   /**
    * Constructs an instance.
    *
+   * @param {ServiceItem} config Configuration for this service.
    * @param {ServiceController} controller The controller for this instance.
    */
-  constructor(controller) {
-    super(controller);
+  constructor(config, controller) {
+    super(config, controller);
 
-    const config = controller.config;
+    //const config = controller.config;
     SystemLoggerService.#validateConfig(config);
 
     const earliestEvent = this.#findEarliestEventToLog(controller.name);

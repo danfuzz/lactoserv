@@ -4,6 +4,7 @@
 import * as fs from 'node:fs/promises';
 import * as Path from 'node:path';
 
+import { ServiceItem } from '@this/app-config';
 import { IntfRequestLogger } from '@this/app-protocol';
 import { BaseService, ServiceController } from '@this/app-services';
 import { JsonSchema } from '@this/json';
@@ -25,12 +26,13 @@ export class RequestLoggerService extends BaseService {
   /**
    * Constructs an instance.
    *
+   * @param {ServiceItem} config Configuration for this service.
    * @param {ServiceController} controller The controller for this instance.
    */
-  constructor(controller) {
-    super(controller);
+  constructor(config, controller) {
+    super(config, controller);
 
-    const config = controller.config;
+    //const config = controller.config;
     RequestLoggerService.#validateConfig(config);
 
     this.#logFilePath = Path.resolve(config.directory, `${config.baseName}.txt`);
