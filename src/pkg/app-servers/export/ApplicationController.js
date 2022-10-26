@@ -14,7 +14,10 @@ export class ApplicationController {
   /** @type {object} Configuration for the underlying application. */
   #config;
 
-  /** @type {function(...*)} Instance-specific logger. */
+  /**
+   * @type {?function(...*)} Instance-specific logger, or `null` if no logging
+   * is to be done.
+   */
   #logger;
 
   /** @type {BaseApplication} Actual application instance. */
@@ -24,12 +27,12 @@ export class ApplicationController {
    * Constructs an insance.
    *
    * @param {ApplicationItem} config Parsed configuration item.
-   * @param {function(...*)} logger Logger to use.
+   * @param {?function(...*)} logger Logger to use, if any.
    */
   constructor(config, logger) {
     this.#config      = config;
-    this.#logger      = logger[config.name];
-    this.#application = ApplicationFactory.makeInstance(config, this);
+    this.#logger      = logger ? logger[config.name] : null;
+    this.#application = ApplicationFactory.makeInstance(config, logger);
 
     this.#logger.constructed();
   }

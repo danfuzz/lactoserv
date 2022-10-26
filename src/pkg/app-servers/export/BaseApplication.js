@@ -16,23 +16,30 @@ export class BaseApplication {
   /** @type {ApplicationItem} Configuration for this application. */
   #config;
 
-  /** @type {ApplicationController} The controller for this instance. */
-  #controller;
+  /**
+   * @type {?function(...*)} Instance-specific logger, or `null` if no logging
+   * is to be done.
+   */
+  #logger;
 
   /**
    * Constructs an instance.
    *
    * @param {ApplicationItem} config Configuration for this application.
-   * @param {ApplicationController} controller Controller for this instance.
+   * @param {?function(...*)} logger Instance-specific logger, or `null` if
+   *   no logging is to be done.
    */
-  constructor(config, controller) {
-    this.#config     = config;
-    this.#controller = controller;
+  constructor(config, logger) {
+    this.#config = config;
+    this.#logger = logger;
   }
 
-  /** @returns {ApplicationController} The controller for this instance. */
-  get controller() {
-    return this.#controller;
+  /**
+   * @type {?function(...*)} Instance-specific logger, or `null` if no logging
+   * is to be done.
+   */
+  get logger() {
+    return this.#logger;
   }
 
   /**
