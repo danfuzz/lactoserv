@@ -7,6 +7,7 @@ import { MountItem, ServerItem } from '@this/app-config';
 import { HostManager } from '@this/app-hosts';
 import { ProtocolWrangler, ProtocolWranglers, WranglerContext } from '@this/app-protocol';
 import { TreePathKey, TreePathMap } from '@this/collections';
+import { MustBe } from '@this/typey';
 
 import { BaseApplication } from '#x/BaseApplication';
 import { ApplicationController } from '#x/ApplicationController';
@@ -127,7 +128,7 @@ export class ServerController {
 
     // Freezing `subdomains` lets `new TreePathKey()` avoid making a copy.
     const hostKey = new TreePathKey(Object.freeze(subdomains), false);
-    const pathKey = ApplicationController.parsePath(path);
+    const pathKey = ServerController.#parsePath(path);
 
     // Find the mount map for the most-specific matching host.
     const hostMatch = this.#mountMap.find(hostKey);
@@ -223,6 +224,27 @@ export class ServerController {
 
     const parts = [...path, ...(wildcard ? ['*'] : [])].reverse();
     return parts.join('.');
+  }
+
+  /**
+   * Parses a path into a non-wildcard key. The only syntactic check performed
+   * by this method is to ensure that `path` begins with a slash (`/`).
+   *
+   * **Note:** The result will have an empty-string path component at the
+   * end if the given `path` ends with a slash.
+   *
+   * @param {string} path Path to parse.
+   * @returns {TreePathKey} Parsed form.
+   * @throws {Error} Thrown if `path` is not valid.
+   */
+  static #parsePath(path) {
+    MustBe.string(path, /^[/]/);
+
+    const parts = path.split('/');
+    parts.shift(); // Shift off the empty component from the initial slash.
+
+    // Freezing `parts` lets `new TreePathKey()` avoid making a copy.
+    return new TreePathKey(Object.freeze(parts), false);
   }
 
   /**
