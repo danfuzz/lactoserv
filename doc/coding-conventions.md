@@ -57,3 +57,24 @@ export class Florp {
     ...
 }
 ```
+
+### Class naming (and details)
+
+* `Base<Name>` -- An abstract base class. Method bodies should use
+  `Methods.abstract(...)` to avoid accidental direct instantiation.
+
+* `Intf<Name>` -- An interface, just to be used with `@interface` and
+  `@implements` annotations, and declared as the types of variables and
+  properties. As with base classes, use `Methods.abstract(...)` to prevent
+  accidental usage.
+
+### Method naming (and details)
+
+* `_impl_<name>` -- Declared in base classes as abstract, and left for
+  subclasses to fill in (as specified by the base class). _Not_ supposed to be
+  called except by the defining base class (not even subclasses). These are more
+  or less `protected abstract` methods declared by a base class.
+
+* `_prot_<name>` -- Defined in base classes and _not_ to be overridden. To be
+  called by subclasses; _not_ supposed to be used outside of the class. These
+  are more or less `protected final` methods defined by a base class.
