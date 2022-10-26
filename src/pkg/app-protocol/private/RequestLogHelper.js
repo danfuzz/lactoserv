@@ -6,17 +6,17 @@ import * as process from 'node:process';
 
 import * as express from 'express';
 
-import { BaseService } from '@this/app-services';
 import { FormatUtils } from '@this/loggy';
 
+import { IntfRequestLogger } from '#x/IntfRequestLogger';
 import { WranglerContext } from '#x/WranglerContext';
 
 
 /**
  * Logger for HTTP(ish) requests.
  */
-export class RequestLogger {
-  /** @type {BaseService} Request logger service to use. */
+export class RequestLogHelper {
+  /** @type {IntfRequestLogger} Request logger service to use. */
   #requestLogger;
 
   /** @type {function(...*)} Underlying logger instance to use. */
@@ -25,7 +25,7 @@ export class RequestLogger {
   /**
    * Constructs an instance.
    *
-   * @param {BaseService} requestLogger Request logger service to use.
+   * @param {IntfRequestLogger} requestLogger Request logger service to use.
    * @param {?function(...*)} logger Underlying system event logger instance to
    *   use, if any.
    */
@@ -54,7 +54,7 @@ export class RequestLogger {
     logger?.opened();
     logger?.connection(connectionCtx.connectionId ?? '<unknown-connection-id>');
     logger?.request(origin, req.method, urlish);
-    logger?.headers(RequestLogger.#sanitizeRequestHeaders(reqHeaders));
+    logger?.headers(RequestLogHelper.#sanitizeRequestHeaders(reqHeaders));
 
     const cookies = req.cookies;
     if (cookies) {
@@ -83,10 +83,10 @@ export class RequestLogger {
       }
 
       logger?.response(res.statusCode,
-        RequestLogger.#sanitizeResponseHeaders(resHeaders));
+        RequestLogHelper.#sanitizeResponseHeaders(resHeaders));
 
       const timeEnd     = process.hrtime.bigint();
-      const elapsedMsec = Number(timeEnd - timeStart) * RequestLogger.#NSEC_PER_MSEC;
+      const elapsedMsec = Number(timeEnd - timeStart) * RequestLogHelper.#NSEC_PER_MSEC;
 
       logger?.closed({ contentLength, elapsedMsec });
 

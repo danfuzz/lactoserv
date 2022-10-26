@@ -6,11 +6,11 @@ import * as net from 'node:net';
 
 import express from 'express';
 
-import { BaseService } from '@this/app-services';
 import { Threadlet } from '@this/async';
 import { Methods, MustBe } from '@this/typey';
 
-import { RequestLogger } from '#p/RequestLogger';
+import { IntfRateLimiter } from '#x/IntfRateLimiter';
+import { RequestLogHelper } from '#p/RequestLogHelper';
 import { WranglerContext } from '#x/WranglerContext';
 
 
@@ -30,7 +30,7 @@ export class ProtocolWrangler {
   /** @type {?function(...*)} Logger, if logging is to be done. */
   #logger;
 
-  /** @type {?BaseService} Rate limiter service to use, if any. */
+  /** @type {?IntfRateLimiter} Rate limiter service to use, if any. */
   #rateLimiter;
 
   /**
@@ -40,9 +40,10 @@ export class ProtocolWrangler {
   #requestHandler;
 
   /**
-   * @type {?RequestLogger} HTTP(ish) request logger, if logging is to be done.
+   * @type {?RequestLogHelper} Helper for HTTP(ish) request logging, if request
+   * logging is to be done.
    */
-  #requestLogger;
+  #logHelper;
 
   /**
    * @type {AsyncLocalStorage} Per-connection storage, used to plumb connection
@@ -86,8 +87,8 @@ export class ProtocolWrangler {
     this.#logger         = logger ?? null;
     this.#rateLimiter    = rateLimiter ?? null;
     this.#requestHandler = MustBe.callableFunction(requestHandler);
-    this.#requestLogger  = requestLogger
-      ? new RequestLogger(requestLogger, logger)
+    this.#logHelper      = requestLogger
+      ? new RequestLogHelper(requestLogger, logger)
       : null;
   }
 
@@ -311,9 +312,7 @@ export class ProtocolWrangler {
    */
   async #handleRequest(req, res, next) {
     const connectionCtx = WranglerContext.getNonNull(req.socket, req.stream?.session);
-    const reqLogger =
-      this.#requestLogger?.logRequest(req, res, connectionCtx)
-      ?? null;
+    const reqLogger = this.#logHelper?.logRequest(req, res, connectionCtx) ?? null;
 
     const reqCtx = WranglerContext.forRequest(connectionCtx, reqLogger);
     WranglerContext.bind(req, reqCtx);

@@ -1,6 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { IntfRateLimiter } from '@this/app-protocol';
 import { BaseService, ServiceController } from '@this/app-services';
 import { TokenBucket } from '@this/async';
 import { JsonSchema } from '@this/json';
@@ -35,6 +36,8 @@ import { RateLimitedStream } from '#p/RateLimitedStream';
  * * `{string} timeUnit` -- The unit of time by which `flowRate` is defined.
  *   Must be one of: `day` (defined here as 24 hours), `hour`, `minute`,
  *   `second`, or `msec` (millisecond).
+ *
+ * @implements {IntfRateLimiter}
  */
 export class RateLimiterService extends BaseService {
   /** @type {?TokenBucket} Connection rate limiter, if any. */
@@ -64,39 +67,17 @@ export class RateLimiterService extends BaseService {
     this.#requests    = RateLimiterService.#makeBucket(requests);
   }
 
-  /**
-   * Waits if necessary, and async-returns when either the caller has been
-   * granted a new connection or there is too much load to grant a connection.
-   *
-   * @param {?function(*)} logger Logger to use for this action.
-   * @returns {boolean} Was a connection actually granted?
-   */
+  /** @override */
   async newConnection(logger) {
     return RateLimiterService.#requestOneToken(this.#connections, logger);
   }
 
-  /**
-   * Waits if necessary, and async-returns when either the caller has been
-   * granted a new request or there is too much load to grant a request.
-   *
-   * @param {?function(*)} logger Logger to use for this action.
-   * @returns {boolean} Was a request actually granted?
-   */
+  /** @override */
   async newRequest(logger) {
     return RateLimiterService.#requestOneToken(this.#requests, logger);
   }
 
-  /**
-   * Wraps a writable stream in a new writable stream, the latter which abides
-   * by this instance's data rate limiter. If the given stream is actually
-   * duplex, then this method returns a duplex stream but with the read side
-   * being fully pass-through.
-   *
-   * @param {object} stream The writable stream to wrap.
-   * @param {?function(*)} logger Logger to use for this action.
-   * @returns {object} An appropriately-wrapped instance, or the original
-   *   `stream` if this instance has no data rate limiter.
-   */
+  /** @override */
   wrapWriter(stream, logger) {
     if (this.#data === null) {
       return stream;
