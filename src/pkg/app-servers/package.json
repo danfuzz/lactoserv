@@ -12,11 +12,11 @@
   "dependencies": {
     "@this/app-config": "*",
     "@this/app-hosts": "*",
-    "@this/app-protocol": "*",
     "@this/app-services": "*",
     "@this/async": "*",
     "@this/collections": "*",
     "@this/loggy": "*",
+    "@this/network-protocol": "*",
     "@this/typey": "*",
     "express": "^4.18.1"
   }

@@ -1,5 +1,5 @@
-@this/app-protocol
-==================
+@this/network-protocol
+======================
 
 This module handles the "protocol level" of the system. In this case, this means
 handling connections accepted from server sockets, passing through high-level

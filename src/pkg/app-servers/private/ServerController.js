@@ -5,7 +5,7 @@ import * as express from 'express';
 
 import { MountItem, ServerItem } from '@this/app-config';
 import { HostManager } from '@this/app-hosts';
-import { ProtocolWrangler, ProtocolWranglers, WranglerContext } from '@this/app-protocol';
+import { ProtocolWrangler, ProtocolWranglers, WranglerContext } from '@this/network-protocol';
 import { TreePathKey, TreePathMap } from '@this/collections';
 import { MustBe } from '@this/typey';
 
