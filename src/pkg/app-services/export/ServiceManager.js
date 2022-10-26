@@ -1,8 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { Names, ServiceItem } from '@this/app-config';
-import { JsonSchema, JsonSchemaUtil } from '@this/json';
+import { ServiceItem } from '@this/app-config';
 import { Loggy } from '@this/loggy';
 
 import { BaseService } from '#x/BaseService';

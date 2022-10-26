@@ -2,7 +2,6 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { ApplicationItem } from '@this/app-config';
-import { TreePathKey } from '@this/collections';
 
 import { ApplicationFactory } from '#x/ApplicationFactory';
 import { BaseApplication } from '#x/BaseApplication';

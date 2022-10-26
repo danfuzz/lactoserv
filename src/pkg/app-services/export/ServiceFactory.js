@@ -1,6 +1,8 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { ServiceItem } from '@this/app-config';
+
 import { BaseService } from '#x/BaseService';
 
 
@@ -19,8 +21,8 @@ export class ServiceFactory {
    *
    * @param {string} type Type name of the service.
    * @param {boolean} [nullIfNotFound = false] Throw an error if not found?
-   * @returns {?function(new:BaseApplication)} Corresponding service class, or
-   *   `null` if not found and `nullIfNotFound === true`.
+   * @returns {?function(new:BaseService)} Corresponding service class, or`null`
+   *   if not found and `nullIfNotFound === true`.
    * @throws {Error} Thrown if there is no such service.
    */
   static classFromType(type, nullIfNotFound = false) {
