@@ -8,7 +8,6 @@ import * as timers from 'node:timers/promises';
 import { Files, ServiceItem } from '@this/app-config';
 import { BaseService, ServiceController } from '@this/app-services';
 import { EventTracker } from '@this/async';
-import { JsonSchema } from '@this/json';
 import { LogEvent, Loggy, TextFileSink } from '@this/loggy';
 
 
