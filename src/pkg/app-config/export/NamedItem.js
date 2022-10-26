@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { BaseConfigurationItem } from '#x/BaseConfigurationItem';
+import { BaseConfig } from '#x/BaseConfig';
 import { Names } from '#x/Names';
 
 
@@ -15,7 +15,7 @@ import { Names } from '#x/Names';
  *
  * Subclasses define additional configuration bindings.
  */
-export class NamedItem extends BaseConfigurationItem {
+export class NamedItem extends BaseConfig {
   /** @type {string} The item's name. */
   #name;
 

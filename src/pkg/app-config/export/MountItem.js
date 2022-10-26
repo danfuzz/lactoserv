@@ -3,7 +3,7 @@
 
 import { TreePathKey } from '@this/collections';
 
-import { BaseConfigurationItem } from '#x/BaseConfigurationItem';
+import { BaseConfig } from '#x/BaseConfig';
 import { Names } from '#x/Names';
 import { Uris } from '#x/Uris';
 
@@ -21,7 +21,7 @@ import { Uris } from '#x/Uris';
  *   application should respond to on that host. Subdomain and complete
  *   wildcards are allowed for `hostname`.
  */
-export class MountItem extends BaseConfigurationItem {
+export class MountItem extends BaseConfig {
   /** @type {string} The name of the application being mounted. */
   #application;
 

@@ -2,7 +2,7 @@
 // All code and assets are considered proprietary and unlicensed.
 
 export * from '#x/ApplicationItem';
-export * from '#x/BaseConfigurationItem';
+export * from '#x/BaseConfig';
 export * from '#x/Certificates';
 export * from '#x/ConfigClassMapper';
 export * from '#x/Files';

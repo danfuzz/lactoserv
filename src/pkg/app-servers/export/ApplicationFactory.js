@@ -41,7 +41,7 @@ export class ApplicationFactory {
   /**
    * Finds the configuration class associated with the given type name. This
    * method is suitable for calling within a mapper argument to {@link
-   * BaseConfigurationItem#parseArray}.
+   * BaseConfig#parseArray}.
    *
    * @param {string} type Application type name.
    * @returns {function(new:ApplicationItem)} Corresponding configuration class.

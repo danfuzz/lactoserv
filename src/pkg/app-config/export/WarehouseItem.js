@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { BaseConfigurationItem } from '#x/BaseConfigurationItem';
+import { BaseConfig } from '#x/BaseConfig';
 import { ConfigClassMapper } from '#x/ConfigClassMapper';
 import { ApplicationItem } from '#x/ApplicationItem';
 import { HostItem } from '#x/HostItem';
@@ -21,7 +21,7 @@ import { ServiceItem } from '#x/ServiceItem';
  * * `{object|object[]} servers` -- Server configuration.
  * * `{object|object[]} services` -- System service configuration.
  */
-export class WarehouseItem extends BaseConfigurationItem {
+export class WarehouseItem extends BaseConfig {
   /** @type {ApplicationItem[]} Application configuration objects. */
   #applications;
 

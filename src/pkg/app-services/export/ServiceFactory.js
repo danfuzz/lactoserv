@@ -40,7 +40,7 @@ export class ServiceFactory {
   /**
    * Finds the configuration class associated with the given type name. This
    * method is suitable for calling within a mapper argument to {@link
-   * BaseConfigurationItem#parseArray}.
+   * BaseConfig#parseArray}.
    *
    * @param {string} type Service type name.
    * @returns {function(new:ServiceItem)} Corresponding configuration class.
