@@ -1,6 +1,11 @@
 References
 ==========
 
+Closure compiler (type annotations):
+* https://github.com/google/closure-compiler/wiki
+* Type syntax (particularly useful):
+  * https://github.com/google/closure-compiler/wiki/Types-in-the-Closure-Type-System
+
 ESLint (linter):
 * https://eslint.org/docs/latest/
 
