@@ -3,6 +3,7 @@
 
 import { MustBe } from '@this/typey';
 
+import { ConfigClassMapper } from '#x/ConfigClassMapper';
 
 /**
  * Base class for all configuration representation classes. Each subclass
@@ -42,16 +43,16 @@ export class BaseConfigurationItem {
    *
    * @param {*} items Array of configuration objects, as described by the
    *   called class's (or subclasses') constructor(s).
-   * @param {?function(string):
-   *   function(new:BaseConfigurationItem)} [configClassMapper = null] Optional
-   *   mapper which takes a configuration object and returns the class that
-   *   should be constructed from it.
+   * @param {?ConfigClassMapper} [configClassMapper = null] Optional mapper from
+   *   configuration objects to corresponding configuration classes.
    * @returns {BaseConfigurationItem[]} Frozen array of instances of the
    *   called class, if successfully parsed.
    * @throws {Error} Thrown if there was any trouble.
    */
   static parseArray(items, configClassMapper = null) {
-    if (!Array.isArray(items)) {
+    if (items === null) {
+      throw new Error('`items` must be non-null.');
+    } else if (!Array.isArray(items)) {
       items = [items];
     }
 
@@ -61,11 +62,33 @@ export class BaseConfigurationItem {
       } else if (!configClassMapper) {
         return new this(item);
       } else {
-        const cls = configClassMapper(item);
-        return new cls(item);
+        const cls = configClassMapper(item, this);
+        if (cls instanceof this.constructor) {
+          return new cls(item);
+        } else {
+          throw new Error('Configuration mapped to non-subclass.');
+        }
       }
     });
 
     return Object.freeze(result);
+  }
+
+  /**
+   * Exactly like {@link #parseArray}, except will return `null` if passed
+   * `items === null`.
+   *
+   * @param {*} items Array of configuration objects, or `null`.
+   * @param {?ConfigClassMapper} [configClassMapper = null] Optional mapper.
+   * @returns {?BaseConfigurationItem[]} Frozen array of instances, or `null` if
+   *   `items === null`.
+   * @throws {Error} Thrown if there was any trouble.
+   */
+  static parseArrayOrNull(items, configClassMapper = null) {
+    if (items === null) {
+      return null;
+    }
+
+    return this.parseArray(items, configClassMapper);
   }
 }

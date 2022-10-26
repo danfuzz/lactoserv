@@ -23,8 +23,10 @@ import { PromiseUtil } from '#x/PromiseUtil';
 // update instance state synchronously. The implementation here takes advantage
 // of that fact (as noted in the code).
 
-/** typedef {null|number|string|function(LinkedEvent): boolean} */
-let EventPredicate;
+/**
+ * @typedef {null|number|string|function(LinkedEvent): boolean} EventPredicate
+ */
+const EventPredicate = Symbol('EventPredicate');
 
 /**
  * Event tracker, which makes it convenient to walk down a chain of {@link

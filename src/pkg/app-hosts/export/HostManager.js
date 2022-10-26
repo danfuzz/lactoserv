@@ -15,13 +15,7 @@ const logger = Loggy.loggerFor('app-hosts');
 
 /**
  * Manager for dealing with all the certificate/key pairs associated with a
- * named host. Configuration object details:
- *
- * * `{object|object[]} hosts` -- Objects representing certificate information
- *   associated with one or more (possibly wildcarded) hostnames. Each item must
- *   be a value suitable for passing to the {@link HostItem} constructor.
- *
- * **Note:** Exactly one of `host` or `hosts` must be present at the top level.
+ * set of named hosts.
  */
 export class HostManager {
   /**
@@ -33,15 +27,11 @@ export class HostManager {
   /**
    * Constructs an instance.
    *
-   * @param {?object|object[]} [config = null] Configuration object. If `null`,
-   *   this constructs an empty instance.
+   * @param {HostItem[]} [configs = []] Configuration objects.
    */
-  constructor(config = null) {
-    if (config !== null) {
-      const hosts = HostItem.parseArray(config.hosts);
-      for (const host of hosts) {
-        this.#addControllerFor(host);
-      }
+  constructor(configs = []) {
+    for (const config of configs) {
+      this.#addControllerFor(config);
     }
   }
 
@@ -172,24 +162,5 @@ export class HostManager {
     const found = this.#controllers.find(key);
 
     return found ? found.value : null;
-  }
-
-
-  //
-  // Static members
-  //
-
-  /**
-   * Constructs and returns an instance from the given configuration, or returns
-   * `null` if the configuration doesn't need any secure contexts.
-   *
-   * @param {object} config Configuration object.
-   * @returns {?HostManager} An appropriately-constructed instance, or `null` if
-   *   none is configured.
-   */
-  static fromConfig(config) {
-    return config.hosts
-      ? new this(config)
-      : null;
   }
 }

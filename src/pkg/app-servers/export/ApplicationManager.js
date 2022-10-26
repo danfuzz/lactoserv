@@ -13,12 +13,7 @@ const logger = ThisModule.logger.app;
 
 /**
  * Manager for dealing with all the high-level applications that are running or
- * to be run in the system. Configuration object details:
- *
- * * `{object|object[]} applications` -- Objects, each of which represents
- *   configuration information for a single application. Each item must be a
- *   value suitable for passing to the {@link ApplicationItem} (or subclass)
- *   constructor.
+ * to be run in the system.
  */
 export class ApplicationManager {
   /**
@@ -30,15 +25,11 @@ export class ApplicationManager {
   /**
    * Constructs an instance.
    *
-   * @param {object} config Configuration object.
+   * @param {ApplicationItem[]} configs Configuration objects.
    */
-  constructor(config) {
-    const applications = ApplicationItem.parseArray(
-      config.applications,
-      item => ApplicationFactory.configClassFromType(item.type));
-
-    for (const application of applications) {
-      this.#addControllerFor(application);
+  constructor(configs) {
+    for (const config of configs) {
+      this.#addControllerFor(config);
     }
   }
 
