@@ -9,6 +9,9 @@ Closure compiler (type annotations):
 ESLint (linter):
 * https://eslint.org/docs/latest/
 
+Express (HTTP-ish application framework):
+* https://expressjs.com/en/4x/api.html
+
 Jest (unit testing):
 * https://jestjs.io/docs/api
 * https://jest-extended.jestcommunity.dev/docs
