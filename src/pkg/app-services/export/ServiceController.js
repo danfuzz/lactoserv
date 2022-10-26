@@ -30,6 +30,8 @@ export class ServiceController {
     this.#config  = config;
     this.#logger  = logger[config.name];
     this.#service = ServiceFactory.forType(config.type, config, this);
+
+    this.#logger.constructed();
   }
 
   /** @returns {ServiceItem} Configuration which defined this instance. */

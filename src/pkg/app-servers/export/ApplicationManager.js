@@ -66,15 +66,14 @@ export class ApplicationManager {
    * @param {ApplicationItem} config Parsed configuration item.
    */
   #addControllerFor(config) {
-    const controller = new ApplicationController(config);
+    const controller = new ApplicationController(config, logger);
     const name       = controller.name;
-
-    logger.binding(name);
 
     if (this.#controllers.has(name)) {
       throw new Error(`Duplicate application: ${name}`);
     }
 
     this.#controllers.set(name, controller);
+    logger.bound(name);
   }
 }

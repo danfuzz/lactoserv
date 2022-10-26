@@ -14,6 +14,9 @@ export class ApplicationController {
   /** @type {object} Configuration for the underlying application. */
   #config;
 
+  /** @type {function(...*)} Instance-specific logger. */
+  #logger;
+
   /** @type {BaseApplication} Actual application instance. */
   #application;
 
@@ -21,10 +24,14 @@ export class ApplicationController {
    * Constructs an insance.
    *
    * @param {ApplicationItem} config Parsed configuration item.
+   * @param {function(...*)} logger Logger to use.
    */
-  constructor(config) {
+  constructor(config, logger) {
     this.#config      = config;
+    this.#logger      = logger[config.name];
     this.#application = ApplicationFactory.forType(config.type, config, this);
+
+    this.#logger.constructed();
   }
 
   /** @returns {BaseApplication} The controlled application instance. */

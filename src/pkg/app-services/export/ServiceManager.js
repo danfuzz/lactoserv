@@ -97,13 +97,12 @@ export class ServiceManager {
     const controller = new ServiceController(config, logger);
     const name       = controller.name;
 
-    logger.binding(name);
-
     if (this.#controllers.has(name)) {
       throw new Error(`Duplicate service: ${name}`);
     }
 
     this.#controllers.set(name, controller);
+    logger.bound(name);
   }
 
 
