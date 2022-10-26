@@ -4,6 +4,7 @@
 import * as fs from 'node:fs/promises';
 import * as Path from 'node:path';
 
+import { IntfRequestLogger } from '@this/app-protocol';
 import { BaseService, ServiceController } from '@this/app-services';
 import { JsonSchema } from '@this/json';
 
@@ -14,6 +15,8 @@ import { JsonSchema } from '@this/json';
  *
  * * `{string} directory` -- Absolute path to the directory to write to.
  * * `{string} baseName` -- Base file name for the log files.
+ *
+ * @implements {IntfRequestLogger}
  */
 export class RequestLoggerService extends BaseService {
   /** @type {string} Full path to the log file. */

@@ -6,11 +6,9 @@ import * as process from 'node:process';
 
 import * as express from 'express';
 
-// TODO: Remove `app-services` dependency: `RequestLogger` should be an
-// interface exported by this class.
-import { BaseService } from '@this/app-services';
 import { FormatUtils } from '@this/loggy';
 
+import { IntfRequestLogger } from '#x/IntfRequestLogger';
 import { WranglerContext } from '#x/WranglerContext';
 
 
@@ -18,7 +16,7 @@ import { WranglerContext } from '#x/WranglerContext';
  * Logger for HTTP(ish) requests.
  */
 export class RequestLogHelper {
-  /** @type {BaseService} Request logger service to use. */
+  /** @type {IntfRequestLogger} Request logger service to use. */
   #requestLogger;
 
   /** @type {function(...*)} Underlying logger instance to use. */
@@ -27,7 +25,7 @@ export class RequestLogHelper {
   /**
    * Constructs an instance.
    *
-   * @param {BaseService} requestLogger Request logger service to use.
+   * @param {IntfRequestLogger} requestLogger Request logger service to use.
    * @param {?function(...*)} logger Underlying system event logger instance to
    *   use, if any.
    */
