@@ -16,7 +16,7 @@ import { ServiceItem } from '#x/ServiceItem';
  * except as noted:
  *
  * * `{object|object[]} applications` -- Application configuration.
- * * `{object|object[]} hostnames` -- Optional host / certificate configuration.
+ * * `{object|object[]} hosts` -- Optional host / certificate configuration.
  *   Required only if a server is configured to listen for secure connections.
  * * `{object|object[]} servers` -- Server configuration.
  * * `{object|object[]} services` -- System service configuration.
@@ -25,8 +25,8 @@ export class WarehouseItem extends BaseConfigurationItem {
   /** @type {ApplicationItem[]} Application configuration objects. */
   #applications;
 
-  /** @type {?HostItem[]} Hostname configuration objects, if any. */
-  #hostnames;
+  /** @type {HostItem[]} Host configuration objects. */
+  #hosts;
 
   /** @type {ServerItem[]} Server configuration objects. */
   #servers;
@@ -46,13 +46,13 @@ export class WarehouseItem extends BaseConfigurationItem {
 
     const {
       applications,
-      hostnames = null,
+      hosts = [],
       servers,
       services
     } = config;
 
     this.#applications = ApplicationItem.parseArray(applications, configClassMapper);
-    this.#hostnames    = HostItem.parseArrayOrNull(hostnames, configClassMapper);
+    this.#hosts        = HostItem.parseArray(hosts, configClassMapper);
     this.#servers      = ServerItem.parseArray(servers, configClassMapper);
     this.#services     = ServiceItem.parseArray(services, configClassMapper);
   }
@@ -62,9 +62,9 @@ export class WarehouseItem extends BaseConfigurationItem {
     return this.#applications;
   }
 
-  /** @returns {?HostItem[]} Hostname configuration objects, if any. */
-  get hostnames() {
-    return this.#hostnames;
+  /** @returns {HostItem[]} Host configuration objects. */
+  get hosts() {
+    return this.#hosts;
   }
 
   /** @returns {ServerItem[]} Server configuration objects. */
