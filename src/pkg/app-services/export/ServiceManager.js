@@ -94,15 +94,18 @@ export class ServiceManager {
    * @param {ServiceItem} config Parsed configuration item.
    */
   #addControllerFor(config) {
-    const controller = new ServiceController(config, logger);
-    const name       = controller.name;
+    const name = config.name;
 
     if (this.#controllers.has(name)) {
       throw new Error(`Duplicate service: ${name}`);
     }
 
+    const subLogger  = logger[name];
+    const instance   = ServiceFactory.makeInstance(config, subLogger);
+    const controller = new ServiceController(instance);
+
     this.#controllers.set(name, controller);
-    logger.bound(name);
+    subLogger.bound();
   }
 
 
