@@ -12,7 +12,6 @@
   "dependencies": {
     "@this/app-config": "*",
     "@this/collections": "*",
-    "@this/json": "*",
     "@this/loggy": "*",
     "@this/typey": "*"
   }
