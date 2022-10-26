@@ -24,6 +24,17 @@ TODO for `arg-processor`:
 
 * Add tests!
 
+TODO for `json-*`:
+
+* Fix `json-get --file` to allow for no `<value>` positional argument. Will
+  probably mean adding smarts to `arg-processor` to be able to make `<value>`
+  only conditionally required.
+
+* Consider changing order of arguments in `json-get`, because it can be kinda
+  confusing.
+
+* Add tests!
+
 TODO for `stderr-messages`:
 
 * Add tests!
