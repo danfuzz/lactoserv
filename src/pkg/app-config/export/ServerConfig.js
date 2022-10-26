@@ -1,8 +1,8 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { MountItem } from '#x/MountItem';
-import { NamedItem } from '#x/NamedItem';
+import { MountConfig } from '#x/MountConfig';
+import { NamedConfig } from '#x/NamedConfig';
 import { Names } from '#x/Names';
 import { Uris } from '#x/Uris';
 import { Util } from '#x/Util';
@@ -16,7 +16,7 @@ import { Util } from '#x/Util';
  * Accepted configuration bindings (in the constructor). All are required,
  * except as noted:
  *
- * * Bindings as defined by the superclass, {@link NamedItem}.
+ * * Bindings as defined by the superclass, {@link NamedConfig}.
  * * `{string|string[]} hostnames` -- Hostnames which this server should accept
  *   as valid. Can include subdomain or complete wildcards. Defaults to `*`
  *   (that is, responds to all hostnames).
@@ -32,9 +32,9 @@ import { Util } from '#x/Util';
  *   inform of activity. If not specified, this server will not produce request
  *   logs.
  * * `{object[]} mounts` -- Array of application mounts, each of a form suitable
- *   for passing to the {@link MountItem} constructor.
+ *   for passing to the {@link MountConfig} constructor.
  */
-export class ServerItem extends NamedItem {
+export class ServerConfig extends NamedConfig {
   /** @type {string[]} The hostnames in question. */
   #hostnames;
 
@@ -53,7 +53,7 @@ export class ServerItem extends NamedItem {
   /** @type {?string} Name of the request logger service to use. */
   #requestLogger;
 
-  /** @type {MountItem[]} Array of application mounts. */
+  /** @type {MountConfig[]} Array of application mounts. */
   #mounts;
 
   /**
@@ -80,7 +80,7 @@ export class ServerItem extends NamedItem {
     this.#protocol      = Uris.checkProtocol(protocol);
     this.#rateLimiter   = Names.checkNameOrNull(rateLimiter);
     this.#requestLogger = Names.checkNameOrNull(requestLogger);
-    this.#mounts        = MountItem.parseArray(mounts);
+    this.#mounts        = MountConfig.parseArray(mounts);
   }
 
   /**
@@ -96,7 +96,7 @@ export class ServerItem extends NamedItem {
     return this.#interface;
   }
 
-  /** @returns {MountItem[]} Array of application mounts. */
+  /** @returns {MountConfig[]} Array of application mounts. */
   get mounts() {
     return this.#mounts;
   }

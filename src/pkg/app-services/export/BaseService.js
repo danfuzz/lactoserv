@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { ServiceItem } from '@this/app-config';
+import { ServiceConfig } from '@this/app-config';
 import { Methods } from '@this/typey';
 
 
@@ -9,7 +9,7 @@ import { Methods } from '@this/typey';
  * Base class for system services.
  */
 export class BaseService {
-  /** @type {ServiceItem} Configuration for this service. */
+  /** @type {ServiceConfig} Configuration for this service. */
   #config;
 
   /**
@@ -21,7 +21,7 @@ export class BaseService {
   /**
    * Constructs an instance.
    *
-   * @param {ServiceItem} config Configuration for this service.
+   * @param {ServiceConfig} config Configuration for this service.
    * @param {?function(...*)} logger Instance-specific logger, or `null` if
    *   no logging is to be done.
    */
@@ -30,7 +30,7 @@ export class BaseService {
     this.#logger = logger;
   }
 
-  /** @returns {ServiceItem} Configuration for this service. */
+  /** @returns {ServiceConfig} Configuration for this service. */
   get config() {
     return this.#config;
   }
@@ -77,7 +77,7 @@ export class BaseService {
   //
 
   /**
-   * @returns {function(new:ServiceItem)} The configuration class for this
+   * @returns {function(new:ServiceConfig)} The configuration class for this
    * service.
    */
   static get CONFIG_CLASS() {

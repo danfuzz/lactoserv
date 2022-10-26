@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { ServiceItem } from '@this/app-config';
+import { ServiceConfig } from '@this/app-config';
 
 import { BaseService } from '#x/BaseService';
 
@@ -29,7 +29,7 @@ export class ServiceController {
     this.#logger  = service.logger;
   }
 
-  /** @returns {ServiceItem} Configuration which defined this instance. */
+  /** @returns {ServiceConfig} Configuration which defined this instance. */
   get config() {
     return this.#service.config;
   }

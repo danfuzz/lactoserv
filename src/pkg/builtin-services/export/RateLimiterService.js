@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { ServiceItem } from '@this/app-config';
+import { ServiceConfig } from '@this/app-config';
 import { BaseService, ServiceController } from '@this/app-services';
 import { TokenBucket } from '@this/async';
 import { IntfRateLimiter } from '@this/network-protocol';
@@ -53,7 +53,7 @@ export class RateLimiterService extends BaseService {
   /**
    * Constructs an instance.
    *
-   * @param {ServiceItem} config Configuration for this service.
+   * @param {ServiceConfig} config Configuration for this service.
    * @param {ServiceController} controller The controller for this instance.
    */
   constructor(config, controller) {
@@ -155,7 +155,7 @@ export class RateLimiterService extends BaseService {
   /**
    * Configuration item subclass for this (outer) class.
    */
-  static #Config = class Config extends ServiceItem {
+  static #Config = class Config extends ServiceConfig {
     /** @type {?object} Configuration for connection rate limiting. */
     #connections;
 

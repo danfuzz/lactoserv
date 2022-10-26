@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { BaseConfigurationItem } from '#x/BaseConfigurationItem';
+import { BaseConfig } from '#x/BaseConfig';
 import { Certificates } from '#x/Certificates';
 import { Uris } from '#x/Uris';
 import { Util } from '#x/Util';
@@ -22,7 +22,7 @@ import { Util } from '#x/Util';
  *
  * Accepted configuration bindings (in the constructor). All are required:
  */
-export class HostItem extends BaseConfigurationItem {
+export class HostConfig extends BaseConfig {
   /** @type {string[]} The hostnames in question. */
   #hostnames;
 

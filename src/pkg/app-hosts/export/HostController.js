@@ -3,7 +3,7 @@
 
 import * as tls from 'node:tls';
 
-import { HostItem } from '@this/app-config';
+import { HostConfig } from '@this/app-config';
 
 
 /**
@@ -11,7 +11,7 @@ import { HostItem } from '@this/app-config';
  * multiple different hosts.
  */
 export class HostController {
-  /** @type {HostItem} Configuration which defined this instance. */
+  /** @type {HostConfig} Configuration which defined this instance. */
   #config;
 
   /**
@@ -22,7 +22,7 @@ export class HostController {
   /**
    * Constructs an insance.
    *
-   * @param {HostItem} config Parsed configuration item.
+   * @param {HostConfig} config Parsed configuration item.
    */
   constructor(config) {
     const { certificate, privateKey } = config;
@@ -34,7 +34,7 @@ export class HostController {
     });
   }
 
-  /** @returns {HostItem} Configuration which defined this instance. */
+  /** @returns {HostConfig} Configuration which defined this instance. */
   get config() {
     return this.#config;
   }

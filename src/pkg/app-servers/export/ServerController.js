@@ -1,9 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import * as express from 'express';
-
-import { MountItem, ServerItem } from '@this/app-config';
+import { MountConfig, ServerConfig } from '@this/app-config';
 import { HostManager } from '@this/app-hosts';
 import { TreePathKey, TreePathMap } from '@this/collections';
 import { ProtocolWrangler, ProtocolWranglers, WranglerContext } from '@this/network-protocol';
@@ -15,11 +13,12 @@ import { BaseApplication } from '#x/BaseApplication';
 
 /**
  * "Controller" for a single server. Instances of this class wrap both a
- * (concrete subclass of a) {@link net.Server} object _and_ an {@link
- * express.Application} (or equivalent) which _exclusively_ handles that server.
+ * (concrete subclass of a) {@link net.Server} object _and_ an
+ * `express.Application` (or equivalent) which _exclusively_ handles that
+ * server.
  */
 export class ServerController {
-  /** @type {ServerItem} Configuration which defined this instance. */
+  /** @type {ServerConfig} Configuration which defined this instance. */
   #config;
 
   /**
@@ -56,7 +55,7 @@ export class ServerController {
    * * `{?RequestLoggerService} requestLogger` -- Replacemant for `rateLimiter`
    *   (service instance, not just a name).
    *
-   * @param {ServerItem} config Parsed configuration item.
+   * @param {ServerConfig} config Parsed configuration item.
    * @param {object} extraConfig Additional configuration, per the above
    *   description.
    */
@@ -87,7 +86,7 @@ export class ServerController {
     this.#wrangler = ProtocolWranglers.make(wranglerOptions);
   }
 
-  /** @returns {ServerItem} Configuration which defined this instance. */
+  /** @returns {ServerConfig} Configuration which defined this instance. */
   get config() {
     return this.#config;
   }
@@ -113,11 +112,11 @@ export class ServerController {
   }
 
   /**
-   * Handles a request dispatched from Express. Parameters are as defined by the
-   * Express middleware spec.
+   * Handles a request dispatched from Express (or similar). Parameters are as
+   * defined by the Express middleware spec.
    *
-   * @param {express.Request} req Request object.
-   * @param {express.Response} res Response object.
+   * @param {object} req Request object.
+   * @param {object} res Response object.
    * @param {function(?*)} next Function which causes the next-bound middleware
    *   to run.
    */
@@ -202,7 +201,7 @@ export class ServerController {
    * handles to the map from each (typically wildcarded) path (that is, a path
    * _prefix_ when wildcarded) to the application which handles it.
    *
-   * @param {MountItem[]} mounts Configured application mounts.
+   * @param {MountConfig[]} mounts Configured application mounts.
    * @param {Map<string, BaseApplication>} applicationMap Map from application
    *   names to corresponding instances.
    * @returns {TreePathMap<TreePathMap<ApplicationController>>} The constructed

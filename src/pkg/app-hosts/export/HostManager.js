@@ -3,7 +3,7 @@
 
 import { SecureContext } from 'node:tls';
 
-import { HostItem, Uris } from '@this/app-config';
+import { HostConfig, Uris } from '@this/app-config';
 import { TreePathMap } from '@this/collections';
 import { Loggy } from '@this/loggy';
 
@@ -27,7 +27,7 @@ export class HostManager {
   /**
    * Constructs an instance.
    *
-   * @param {HostItem[]} [configs = []] Configuration objects.
+   * @param {HostConfig[]} [configs = []] Configuration objects.
    */
   constructor(configs = []) {
     for (const config of configs) {
@@ -137,7 +137,7 @@ export class HostManager {
    * Constructs a {@link HostController} based on the given information, and
    * adds mappings to {@link #controllers} so it can be found.
    *
-   * @param {HostItem} hostItem Parsed configuration item.
+   * @param {HostConfig} hostItem Parsed configuration item.
    */
   #addControllerFor(hostItem) {
     const controller = new HostController(hostItem);

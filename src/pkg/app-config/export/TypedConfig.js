@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { NamedItem } from '#x/NamedItem';
+import { NamedConfig } from '#x/NamedConfig';
 import { Names } from '#x/Names';
 
 
@@ -12,10 +12,10 @@ import { Names } from '#x/Names';
  *
  * Accepted configuration bindings (in the constructor). All are required:
  *
- * * Bindings as defined by the superclass, {@link NamedItem}.
+ * * Bindings as defined by the superclass, {@link NamedConfig}.
  * * `{string} type` -- The (name of the) type of the item.
  */
-export class TypedItem extends NamedItem {
+export class TypedConfig extends NamedConfig {
   /** @type {string} The (name of the) type of the item. */
   #type;
 

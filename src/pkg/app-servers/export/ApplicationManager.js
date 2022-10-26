@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { ApplicationItem } from '@this/app-config';
+import { ApplicationConfig } from '@this/app-config';
 
 import { ApplicationController } from '#x/ApplicationController';
 import { ApplicationFactory } from '#x/ApplicationFactory';
@@ -25,7 +25,7 @@ export class ApplicationManager {
   /**
    * Constructs an instance.
    *
-   * @param {ApplicationItem[]} configs Configuration objects.
+   * @param {ApplicationConfig[]} configs Configuration objects.
    */
   constructor(configs) {
     for (const config of configs) {
@@ -54,7 +54,7 @@ export class ApplicationManager {
    * Constructs a {@link ApplicationController} based on the given information,
    * and adds a mapping to {@link #controllers} so it can be found.
    *
-   * @param {ApplicationItem} config Parsed configuration item.
+   * @param {ApplicationConfig} config Parsed configuration item.
    */
   #addControllerFor(config) {
     const name = config.name;

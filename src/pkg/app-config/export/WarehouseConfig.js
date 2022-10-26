@@ -1,12 +1,12 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { BaseConfigurationItem } from '#x/BaseConfigurationItem';
+import { ApplicationConfig } from '#x/ApplicationConfig';
+import { BaseConfig } from '#x/BaseConfig';
 import { ConfigClassMapper } from '#x/ConfigClassMapper';
-import { ApplicationItem } from '#x/ApplicationItem';
-import { HostItem } from '#x/HostItem';
-import { ServerItem } from '#x/ServerItem';
-import { ServiceItem } from '#x/ServiceItem';
+import { HostConfig } from '#x/HostConfig';
+import { ServerConfig } from '#x/ServerConfig';
+import { ServiceConfig } from '#x/ServiceConfig';
 
 
 /**
@@ -21,17 +21,17 @@ import { ServiceItem } from '#x/ServiceItem';
  * * `{object|object[]} servers` -- Server configuration.
  * * `{object|object[]} services` -- System service configuration.
  */
-export class WarehouseItem extends BaseConfigurationItem {
-  /** @type {ApplicationItem[]} Application configuration objects. */
+export class WarehouseConfig extends BaseConfig {
+  /** @type {ApplicationConfig[]} Application configuration objects. */
   #applications;
 
-  /** @type {HostItem[]} Host configuration objects. */
+  /** @type {HostConfig[]} Host configuration objects. */
   #hosts;
 
-  /** @type {ServerItem[]} Server configuration objects. */
+  /** @type {ServerConfig[]} Server configuration objects. */
   #servers;
 
-  /** @type {ServiceItem[]} Service configuration objects. */
+  /** @type {ServiceConfig[]} Service configuration objects. */
   #services;
 
   /**
@@ -51,28 +51,28 @@ export class WarehouseItem extends BaseConfigurationItem {
       services
     } = config;
 
-    this.#applications = ApplicationItem.parseArray(applications, configClassMapper);
-    this.#hosts        = HostItem.parseArray(hosts, configClassMapper);
-    this.#servers      = ServerItem.parseArray(servers, configClassMapper);
-    this.#services     = ServiceItem.parseArray(services, configClassMapper);
+    this.#applications = ApplicationConfig.parseArray(applications, configClassMapper);
+    this.#hosts        = HostConfig.parseArray(hosts, configClassMapper);
+    this.#servers      = ServerConfig.parseArray(servers, configClassMapper);
+    this.#services     = ServiceConfig.parseArray(services, configClassMapper);
   }
 
-  /** @returns {ApplicationItem[]} Application configuration objects. */
+  /** @returns {ApplicationConfig[]} Application configuration objects. */
   get applications() {
     return this.#applications;
   }
 
-  /** @returns {HostItem[]} Host configuration objects. */
+  /** @returns {HostConfig[]} Host configuration objects. */
   get hosts() {
     return this.#hosts;
   }
 
-  /** @returns {ServerItem[]} Server configuration objects. */
+  /** @returns {ServerConfig[]} Server configuration objects. */
   get servers() {
     return this.#servers;
   }
 
-  /** @returns {ServiceItem[]} Service configuration objects. */
+  /** @returns {ServiceConfig[]} Service configuration objects. */
   get services() {
     return this.#services;
   }

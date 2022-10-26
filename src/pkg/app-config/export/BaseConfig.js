@@ -5,13 +5,14 @@ import { MustBe } from '@this/typey';
 
 import { ConfigClassMapper } from '#x/ConfigClassMapper';
 
+
 /**
  * Base class for all configuration representation classes. Each subclass
  * defines specific configuration bindings which are to be passed to the
  * constructor. This class makes no requirement other than that the passed
  * configuration be a plain object.
  */
-export class BaseConfigurationItem {
+export class BaseConfig {
   /**
    * Constructs an instance.
    *
@@ -45,8 +46,8 @@ export class BaseConfigurationItem {
    *   called class's (or subclasses') constructor(s).
    * @param {?ConfigClassMapper} [configClassMapper = null] Optional mapper from
    *   configuration objects to corresponding configuration classes.
-   * @returns {BaseConfigurationItem[]} Frozen array of instances of the
-   *   called class, if successfully parsed.
+   * @returns {BaseConfig[]} Frozen array of instances of the called class, if
+   *   successfully parsed.
    * @throws {Error} Thrown if there was any trouble.
    */
   static parseArray(items, configClassMapper = null) {
@@ -80,7 +81,7 @@ export class BaseConfigurationItem {
    *
    * @param {*} items Array of configuration objects, or `null`.
    * @param {?ConfigClassMapper} [configClassMapper = null] Optional mapper.
-   * @returns {?BaseConfigurationItem[]} Frozen array of instances, or `null` if
+   * @returns {?BaseConfig[]} Frozen array of instances, or `null` if
    *   `items === null`.
    * @throws {Error} Thrown if there was any trouble.
    */

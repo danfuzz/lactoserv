@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { ApplicationItem, Uris } from '@this/app-config';
+import { ApplicationConfig, Uris } from '@this/app-config';
 import { ApplicationController, BaseApplication } from '@this/app-servers';
 
 
@@ -21,7 +21,7 @@ export class RedirectApplication extends BaseApplication {
   /**
    * Constructs an instance.
    *
-   * @param {ApplicationItem} config Configuration for this application.
+   * @param {ApplicationConfig} config Configuration for this application.
    * @param {ApplicationController} controller Controller for this instance.
    */
   constructor(config, controller) {
@@ -55,7 +55,7 @@ export class RedirectApplication extends BaseApplication {
   /**
    * Configuration item subclass for this (outer) class.
    */
-  static #Config = class Config extends ApplicationItem {
+  static #Config = class Config extends ApplicationConfig {
     /** @type {string} The target base URI. */
     #target;
 

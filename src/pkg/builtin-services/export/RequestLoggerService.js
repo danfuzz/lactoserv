@@ -4,7 +4,7 @@
 import * as fs from 'node:fs/promises';
 import * as Path from 'node:path';
 
-import { Files, ServiceItem } from '@this/app-config';
+import { Files, ServiceConfig } from '@this/app-config';
 import { BaseService, ServiceController } from '@this/app-services';
 import { IntfRequestLogger } from '@this/network-protocol';
 
@@ -25,7 +25,7 @@ export class RequestLoggerService extends BaseService {
   /**
    * Constructs an instance.
    *
-   * @param {ServiceItem} config Configuration for this service.
+   * @param {ServiceConfig} config Configuration for this service.
    * @param {ServiceController} controller The controller for this instance.
    */
   constructor(config, controller) {
@@ -80,7 +80,7 @@ export class RequestLoggerService extends BaseService {
   /**
    * Configuration item subclass for this (outer) class.
    */
-  static #Config = class Config extends ServiceItem {
+  static #Config = class Config extends ServiceConfig {
     /** @type {string} The base file name to use. */
     #baseName;
 

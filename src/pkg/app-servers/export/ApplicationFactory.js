@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { ApplicationItem } from '@this/app-config';
+import { ApplicationConfig } from '@this/app-config';
 
 import { BaseApplication } from '#x/BaseApplication';
 
@@ -41,10 +41,11 @@ export class ApplicationFactory {
   /**
    * Finds the configuration class associated with the given type name. This
    * method is suitable for calling within a mapper argument to {@link
-   * BaseConfigurationItem#parseArray}.
+   * BaseConfig#parseArray}.
    *
    * @param {string} type Application type name.
-   * @returns {function(new:ApplicationItem)} Corresponding configuration class.
+   * @returns {function(new:ApplicationConfig)} Corresponding configuration
+   *   class.
    */
   static configClassFromType(type) {
     const cls = this.classFromType(type);
@@ -54,7 +55,7 @@ export class ApplicationFactory {
   /**
    * Constructs an application instance based on the given configuration.
    *
-   * @param {ApplicationItem} config Configuration object.
+   * @param {ApplicationConfig} config Configuration object.
    * @param {...*} rest Other construction arguments.
    * @returns {BaseApplication} Constructed application instance.
    */
