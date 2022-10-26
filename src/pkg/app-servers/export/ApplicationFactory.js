@@ -18,16 +18,36 @@ export class ApplicationFactory {
   static #APPLICATION_CLASSES = new Map();
 
   /**
+   * Gets the application class for the given type.
+   *
+   * @param {string} type Type name of the application.
+   * @param {boolean} [nullIfNotFound = false] Throw an error if not found?
+   * @returns {?function(new:BaseApplication)} Corresponding application class,
+   *   or `null` if not found and `nullIfNotFound === true`.
+   * @throws {Error} Thrown if there is no such service.
+   */
+  static classFromType(type, nullIfNotFound = false) {
+    const cls = this.#APPLICATION_CLASSES.get(type);
+
+    if (cls) {
+      return cls;
+    } else if (nullIfNotFound) {
+      return null;
+    } else {
+      throw new Error(`Unknown applicaton type: ${type}`);
+    }
+  }
+
+  /**
    * Finds the configuration class associated with the given type name. This
    * method is suitable for calling within a mapper argument to {@link
    * BaseConfigurationItem#parseArray}.
    *
    * @param {string} type Application type name.
-   * @returns {function(new:ApplicationItem)} Corresponding configuration item
-   *   parser.
+   * @returns {function(new:ApplicationItem)} Corresponding configuration class.
    */
   static configClassFromType(type) {
-    const cls = this.#find(type);
+    const cls = this.classFromType(type);
     return cls.CONFIG_CLASS;
   }
 
@@ -40,7 +60,7 @@ export class ApplicationFactory {
   static register(applicationClass) {
     const type = applicationClass.TYPE;
 
-    if (this.#APPLICATION_CLASSES.has(type)) {
+    if (this.classFromType(type, true)) {
       throw new Error(`Already registered: ${type}`);
     }
 
@@ -55,22 +75,7 @@ export class ApplicationFactory {
    * @returns {BaseApplication} Constructed application instance.
    */
   static forType(type, ...rest) {
-    const cls = this.#find(type);
+    const cls = this.classFromType(type);
     return new cls(...rest);
-  }
-
-  /**
-   * Gets the application class for the given type.
-   *
-   * @param {string} type Type name of the application.
-   * @returns {function(new:BaseApplication)} Corresponding application class.
-   */
-  static #find(type) {
-    const cls = this.#APPLICATION_CLASSES.get(type);
-    if (!cls) {
-      throw new Error(`Unknown applicaton type: ${type}`);
-    }
-
-    return cls;
   }
 }
