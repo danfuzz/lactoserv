@@ -45,6 +45,11 @@ export class BaseService {
     return this.#logger;
   }
 
+  /** @returns {string} Service name. */
+  get name() {
+    return this.#config.name;
+  }
+
   /**
    * Starts the service. This async-returns once the service is actually
    * running.

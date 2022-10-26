@@ -11,9 +11,6 @@ import { BaseApplication } from '#x/BaseApplication';
  * "Controller" for a single application.
  */
 export class ApplicationController {
-  /** @type {object} Configuration for the underlying application. */
-  #config;
-
   /**
    * @type {?function(...*)} Instance-specific logger, or `null` if no logging
    * is to be done.
@@ -30,7 +27,6 @@ export class ApplicationController {
    * @param {?function(...*)} logger Logger to use, if any.
    */
   constructor(config, logger) {
-    this.#config      = config;
     this.#logger      = logger ? logger[config.name] : null;
     this.#application = ApplicationFactory.makeInstance(config, logger);
 
@@ -44,11 +40,11 @@ export class ApplicationController {
 
   /** @returns {ApplicationItem} Configuration which defined this instance. */
   get config() {
-    return this.#config;
+    return this.#application.config;
   }
 
   /** @returns {string} Application name. */
   get name() {
-    return this.#config.name;
+    return this.#application.name;
   }
 }

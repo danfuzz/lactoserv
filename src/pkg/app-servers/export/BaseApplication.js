@@ -47,6 +47,11 @@ export class BaseApplication {
     return this.#logger;
   }
 
+  /** @returns {string} Application name. */
+  get name() {
+    return this.#config.name;
+  }
+
   /**
    * Handles a request, as defined by the Express middleware spec.
    *

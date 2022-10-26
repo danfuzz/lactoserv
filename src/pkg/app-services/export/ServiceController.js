@@ -11,9 +11,6 @@ import { ServiceFactory } from '#x/ServiceFactory';
  * "Controller" for a single service.
  */
 export class ServiceController {
-  /** @type {ServiceItem} Configuration which defined this instance. */
-  #config;
-
   /**
    * @type {?function(...*)} Instance-specific logger, or `null` if no logging
    * is to be done.
@@ -30,7 +27,6 @@ export class ServiceController {
    * @param {?function(...*)} logger Logger to use, if any.
    */
   constructor(config, logger) {
-    this.#config  = config;
     this.#logger  = logger ? logger[config.name] : null;
     this.#service = ServiceFactory.makeInstance(config, logger);
 
@@ -39,12 +35,12 @@ export class ServiceController {
 
   /** @returns {ServiceItem} Configuration which defined this instance. */
   get config() {
-    return this.#config;
+    return this.#service.config;
   }
 
   /** @returns {string} Service name. */
   get name() {
-    return this.#config.name;
+    return this.#service.name;
   }
 
   /** @returns {BaseService} The controlled service instance. */
