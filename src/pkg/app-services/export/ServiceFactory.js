@@ -15,36 +15,37 @@ export class ServiceFactory {
   static #SERVICE_CLASSES = new Map();
 
   /**
-   * Registers a type/application binding.
+   * Gets the service class for the given type.
    *
-   * @param {function(new:BaseService, ...*)} serviceClass Application
-   *   class.
+   * @param {string} type Type name of the service.
+   * @param {boolean} [nullIfNotFound = false] Throw an error if not found?
+   * @returns {?function(new:BaseApplication)} Corresponding service class, or
+   *   `null` if not found and `nullIfNotFound === true`.
+   * @throws {Error} Thrown if there is no such service.
    */
-  static register(serviceClass) {
-    const type = serviceClass.TYPE;
+  static classFromType(type, nullIfNotFound = false) {
+    const cls = this.#SERVICE_CLASSES.get(type);
 
-    if (this.#SERVICE_CLASSES.has(type)) {
-      throw new Error(`Already registered: ${type}`);
+    if (cls) {
+      return cls;
+    } else if (nullIfNotFound) {
+      return null;
+    } else {
+      throw new Error(`Unknown service type: ${type}`);
     }
-
-    this.#SERVICE_CLASSES.set(type, serviceClass);
   }
 
   /**
-   * Finds the class corresponding to the given service type.
+   * Finds the configuration class associated with the given type name. This
+   * method is suitable for calling within a mapper argument to {@link
+   * BaseConfigurationItem#parseArray}.
    *
-   * @param {string} type Type name of the service.
-   * @returns {function(new:BaseService)} Corresponding class.
-   * @throws {Error} Thrown if there is no such service.
+   * @param {string} type Service type name.
+   * @returns {function(new:ServiceItem)} Corresponding configuration class.
    */
-  static classFromType(type) {
-    const result = this.#SERVICE_CLASSES.get(type);
-
-    if (!result) {
-      throw new Error(`Unknown service type: ${type}`);
-    }
-
-    return result;
+  static configClassFromType(type) {
+    const cls = this.classFromType(type);
+    return cls.CONFIG_CLASS;
   }
 
   /**
@@ -57,5 +58,20 @@ export class ServiceFactory {
   static forType(type, ...rest) {
     const cls = this.classFromType(type);
     return new cls(...rest);
+  }
+
+  /**
+   * Registers a type/service binding.
+   *
+   * @param {function(new:BaseService, ...*)} serviceClass Service class.
+   */
+  static register(serviceClass) {
+    const type = serviceClass.TYPE;
+
+    if (this.classFromType(type, true)) {
+      throw new Error(`Already registered: ${type}`);
+    }
+
+    this.#SERVICE_CLASSES.set(type, serviceClass);
   }
 }
