@@ -39,11 +39,12 @@ export class SystemLoggerService extends BaseService {
     super(config, controller);
 
     //const config = controller.config;
-    SystemLoggerService.#validateConfig(config);
+    SystemLoggerService.#validateConfig(config.extraConfig);
 
-    const earliestEvent = this.#findEarliestEventToLog(controller.name);
+    const earliestEvent           = this.#findEarliestEventToLog(controller.name);
+    const { baseName, directory } = config.extraConfig;
 
-    this.#logFilePath = Path.resolve(config.directory, `${config.baseName}.txt`);
+    this.#logFilePath = Path.resolve(directory, `${baseName}.txt`);
     this.#sink        = new TextFileSink(this.#logFilePath, earliestEvent);
     this.#logger      = SystemLoggerService.#classLogger[controller.name];
   }

@@ -60,9 +60,9 @@ export class RateLimiterService extends BaseService {
     super(config, controller);
 
     //const config = controller.config;
-    RateLimiterService.#validateConfig(config);
+    RateLimiterService.#validateConfig(config.extraConfig);
 
-    const { connections, data, requests } = config;
+    const { connections, data, requests } = config.extraConfig;
 
     this.#connections = RateLimiterService.#makeBucket(connections);
     this.#data        = RateLimiterService.#makeBucket(data);

@@ -11,36 +11,25 @@ import { ServiceFactory } from '#x/ServiceFactory';
  * "Controller" for a single service.
  */
 export class ServiceController {
-  /** @type {string} Service name. */
-  #name;
-
   /** @type {ServiceItem} Configuration which defined this instance. */
   #config;
-
-  /** @type {BaseService} Actual service instance. */
-  #service;
 
   /** @type {function(...*)} Instance-specific logger. */
   #logger;
 
+  /** @type {BaseService} Actual service instance. */
+  #service;
+
   /**
    * Constructs an insance.
    *
-   * @param {object} serviceConfig Service information configuration item.
+   * @param {ServiceItem} config Parsed configuration item.
    * @param {function(...*)} logger Logger to use.
    */
-  constructor(serviceConfig, logger) {
-    const { name, type } = serviceConfig;
-
-    const config = { ...serviceConfig };
-    delete config.name;
-    delete config.type;
-    Object.freeze(config);
-
-    this.#name    = name;
+  constructor(config, logger) {
     this.#config  = config;
-    this.#service = ServiceFactory.forType(type, config, this);
-    this.#logger  = logger[this.#name];
+    this.#logger  = logger[config.name];
+    this.#service = ServiceFactory.forType(config.type, config, this);
   }
 
   /** @returns {ServiceItem} Configuration which defined this instance. */
@@ -50,7 +39,7 @@ export class ServiceController {
 
   /** @returns {string} Service name. */
   get name() {
-    return this.#name;
+    return this.#config.name;
   }
 
   /** @returns {BaseService} The controlled service instance. */

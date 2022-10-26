@@ -33,9 +33,11 @@ export class RequestLoggerService extends BaseService {
     super(config, controller);
 
     //const config = controller.config;
-    RequestLoggerService.#validateConfig(config);
+    RequestLoggerService.#validateConfig(config.extraConfig);
 
-    this.#logFilePath = Path.resolve(config.directory, `${config.baseName}.txt`);
+    const { baseName, directory } = config.extraConfig;
+
+    this.#logFilePath = Path.resolve(directory, `${baseName}.txt`);
   }
 
   /** @override */
