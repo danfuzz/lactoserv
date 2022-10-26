@@ -10,7 +10,7 @@ import { ServiceItem } from '#x/ServiceItem';
 
 
 /**
- * Configuration representation for the entire system.
+ * Configuration representation for the "warehouse" (the entire system).
  *
  * Accepted configuration bindings (in the constructor). All are required,
  * except as noted:
@@ -21,7 +21,7 @@ import { ServiceItem } from '#x/ServiceItem';
  * * `{object|object[]} servers` -- Server configuration.
  * * `{object|object[]} services` -- System service configuration.
  */
-export class SystemItem extends BaseConfigurationItem {
+export class WarehouseItem extends BaseConfigurationItem {
   /** @type {ApplicationItem[]} Application configuration objects. */
   #applications;
 
