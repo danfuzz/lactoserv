@@ -107,13 +107,12 @@ export class ServerManager {
     const controller = new ServerController(config, extraConfig);
     const name       = controller.name;
 
-    logger.binding(name);
-
     if (this.#controllers.has(name)) {
       throw new Error(`Duplicate server name: ${name}`);
     }
 
     this.#controllers.set(name, controller);
+    logger.bound(name);
   }
 
   /**

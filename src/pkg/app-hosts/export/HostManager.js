@@ -154,8 +154,8 @@ export class HostManager {
 
     for (const name of controller.config.hostnames) {
       const key = Uris.parseHostname(name, true);
-      logger.binding(name);
       this.#controllers.add(key, controller);
+      logger.bound(name);
     }
   }
 
