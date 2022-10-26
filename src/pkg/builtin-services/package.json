@@ -11,7 +11,7 @@
 
   "dependencies": {
     "@this/app-services": "*",
-    "@this/json": "*",
-    "@this/loggy": "*"
+    "@this/loggy": "*",
+    "@this/network-protocol": "*"
   }
 }

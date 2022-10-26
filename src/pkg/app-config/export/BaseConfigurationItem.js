@@ -3,6 +3,7 @@
 
 import { MustBe } from '@this/typey';
 
+
 /**
  * Base class for all configuration representation classes. Each subclass
  * defines specific configuration bindings which are to be passed to the
