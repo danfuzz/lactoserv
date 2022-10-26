@@ -44,7 +44,8 @@ export class ApplicationFactory {
    * BaseConfig#parseArray}.
    *
    * @param {string} type Application type name.
-   * @returns {function(new:ApplicationConfig)} Corresponding configuration class.
+   * @returns {function(new:ApplicationConfig)} Corresponding configuration
+   *   class.
    */
   static configClassFromType(type) {
     const cls = this.classFromType(type);
