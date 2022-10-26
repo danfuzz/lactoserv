@@ -1,7 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { ApplicationConfig, ServiceConfig, WarehouseItem } from '@this/app-config';
+import { ApplicationConfig, ServiceConfig, WarehouseConfig } from '@this/app-config';
 import { HostManager } from '@this/app-hosts';
 import { ServiceFactory, ServiceManager } from '@this/app-services';
 
@@ -48,7 +48,7 @@ export class Warehouse {
       return baseClass;
     };
 
-    const parsed = new WarehouseItem(config, mapper);
+    const parsed = new WarehouseConfig(config, mapper);
 
     this.#hostManager        = new HostManager(parsed.hosts);
     this.#serviceManager     = new ServiceManager(parsed.services);

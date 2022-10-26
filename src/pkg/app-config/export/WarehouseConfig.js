@@ -21,7 +21,7 @@ import { ServiceConfig } from '#x/ServiceConfig';
  * * `{object|object[]} servers` -- Server configuration.
  * * `{object|object[]} services` -- System service configuration.
  */
-export class WarehouseItem extends BaseConfig {
+export class WarehouseConfig extends BaseConfig {
   /** @type {ApplicationConfig[]} Application configuration objects. */
   #applications;
 
