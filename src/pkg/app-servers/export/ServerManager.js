@@ -4,7 +4,7 @@
 import { MountConfig, ServerConfig } from '@this/app-config';
 
 import { BaseApplication } from '#x/BaseApplication';
-import { ServerController } from '#p/ServerController';
+import { ServerController } from '#x/ServerController';
 import { ThisModule } from '#p/ThisModule';
 import { Warehouse } from '#x/Warehouse';
 

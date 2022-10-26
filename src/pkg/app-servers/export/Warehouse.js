@@ -7,7 +7,7 @@ import { ServiceFactory, ServiceManager } from '@this/app-services';
 
 import { ApplicationFactory } from '#x/ApplicationFactory';
 import { ApplicationManager } from '#x/ApplicationManager';
-import { ServerManager } from '#p/ServerManager';
+import { ServerManager } from '#x/ServerManager';
 
 
 /**
