@@ -26,9 +26,7 @@ export class NamedItem extends BaseConfigurationItem {
   constructor(config) {
     super(config);
 
-    const { name } = config;
-
-    this.#name = Names.checkName(name);
+    this.#name = Names.checkName(config.name);
   }
 
   /** @returns {string} The item's name. */

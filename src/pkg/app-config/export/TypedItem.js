@@ -26,8 +26,6 @@ export class TypedItem extends NamedItem {
   constructor(config) {
     super(config);
 
-    const { type } = config;
-
     this.#type = Names.checkType(config.type);
   }
 
