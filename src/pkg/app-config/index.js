@@ -4,6 +4,7 @@
 export * from '#x/ApplicationItem';
 export * from '#x/BaseConfigurationItem';
 export * from '#x/Certificates';
+export * from '#x/ConfigClassMapper';
 export * from '#x/Files';
 export * from '#x/HostItem';
 export * from '#x/MountItem';
