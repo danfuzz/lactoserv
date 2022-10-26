@@ -4,6 +4,7 @@
 import { NamedItem } from '#x/NamedItem';
 import { Names } from '#x/Names';
 
+
 /**
  * Class for configuration representations of things that each have a
  * unique-to-its-domain name and a not-necessarily-unique type (represented as a

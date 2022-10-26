@@ -2,9 +2,9 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { ServiceItem } from '@this/app-config';
-import { IntfRateLimiter } from '@this/network-protocol';
 import { BaseService, ServiceController } from '@this/app-services';
 import { TokenBucket } from '@this/async';
+import { IntfRateLimiter } from '@this/network-protocol';
 import { MustBe } from '@this/typey';
 
 import { RateLimitedStream } from '#p/RateLimitedStream';

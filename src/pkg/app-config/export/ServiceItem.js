@@ -3,6 +3,7 @@
 
 import { TypedItem } from '#x/TypedItem';
 
+
 /**
  * Class for configuration of services. Accepted configuration bindings (in
  * the constructor) are entirely as defined by the superclass, {@link

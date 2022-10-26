@@ -4,6 +4,7 @@
 import { BaseConfigurationItem } from '#x/BaseConfigurationItem';
 import { Names } from '#x/Names';
 
+
 /**
  * Base class for configuration representations of things that are each
  * identified by a unique-to-its-domain name.
