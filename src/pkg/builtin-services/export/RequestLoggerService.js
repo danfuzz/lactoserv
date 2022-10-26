@@ -4,7 +4,7 @@
 import * as fs from 'node:fs/promises';
 import * as Path from 'node:path';
 
-import { ServiceItem } from '@this/app-config';
+import { Files, ServiceItem } from '@this/app-config';
 import { IntfRequestLogger } from '@this/app-protocol';
 import { BaseService, ServiceController } from '@this/app-services';
 import { JsonSchema } from '@this/json';
@@ -32,10 +32,7 @@ export class RequestLoggerService extends BaseService {
   constructor(config, controller) {
     super(config, controller);
 
-    //const config = controller.config;
-    RequestLoggerService.#validateConfig(config.extraConfig);
-
-    const { baseName, directory } = config.extraConfig;
+    const { baseName, directory } = config;
 
     this.#logFilePath = Path.resolve(directory, `${baseName}.txt`);
   }
@@ -73,7 +70,7 @@ export class RequestLoggerService extends BaseService {
 
   /** @override */
   static get CONFIG_CLASS() {
-    return ServiceItem;
+    return this.#Config;
   }
 
   /** @override */
@@ -82,43 +79,35 @@ export class RequestLoggerService extends BaseService {
   }
 
   /**
-   * Validates the given configuration object.
-   *
-   * @param {object} config Configuration object.
+   * Configuration item subclass for this (outer) class.
    */
-  static #validateConfig(config) {
-    const validator = new JsonSchema('Request Logger Configuration');
+  static #Config = class Config extends ServiceItem {
+    /** @type {string} The base file name to use. */
+    #baseName;
 
-    const namePattern = '^[^/]+$';
-    const pathPattern =
-      '^' +
-      '(?!.*/[.]{1,2}/)' + // No dot or double-dot internal component.
-      '(?!.*/[.]{1,2}$)' + // No dot or double-dot final component.
-      '(?!.*//)' +         // No empty components.
-      '(?!.*/$)' +         // No slash at the end.
-      '/[^/]';             // Starts with a slash. Has at least one component.
+    /** @type {string} The directory to write to. */
+    #directory;
 
-    validator.addMainSchema({
-      $id: '/RequestLoggerService',
-      type: 'object',
-      required: ['baseName', 'directory'],
-      properties: {
-        baseName: {
-          type: 'string',
-          pattern: namePattern
-        },
-        directory: {
-          type: 'string',
-          pattern: pathPattern
-        }
-      }
-    });
+    /**
+     * Constructs an instance.
+     *
+     * @param {object} config Configuration object.
+     */
+    constructor(config) {
+      super(config);
 
-    const error = validator.validate(config);
-
-    if (error) {
-      error.logTo(console);
-      error.throwError();
+      this.#baseName = Files.checkFileName(config.baseName);
+      this.#directory = Files.checkAbsolutePath(config.directory);
     }
-  }
+
+    /** @returns {string} The base file name to use. */
+    get baseName() {
+      return this.#baseName;
+    }
+
+    /** @returns {string} The directory to write to. */
+    get directory() {
+      return this.#directory;
+    }
+  };
 }
