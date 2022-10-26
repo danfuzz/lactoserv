@@ -115,26 +115,6 @@ export class RateLimiterService extends BaseService {
   }
 
   /**
-   * Converts a specified-unit flow rate to one that is per-second.
-   *
-   * @param {number} flowRate The flow rate.
-   * @param {string} timeUnit The time unit for the given `flowRate`.
-   * @returns {number} `flowRate` converted to tokens per second.
-   */
-  static #flowRatePerSecFrom(flowRate, timeUnit) {
-    switch (timeUnit) {
-      case 'day':    return flowRate * (1 / (60 * 60 * 24));
-      case 'hour':   return flowRate * (1 / (60 * 60));
-      case 'minute': return flowRate * (1 / 60);
-      case 'second': return flowRate;               // No conversion needed.
-      case 'msec':   return flowRate * 1000;
-      default: {
-        throw new Error(`Unknown time unit: ${timeUnit}`);
-      }
-    }
-  }
-
-  /**
    * Makes a bucket instance based on the given configuration, or returns `null`
    * if given `null`.
    *
@@ -216,6 +196,26 @@ export class RateLimiterService extends BaseService {
     }
 
     /**
+     * Converts a specified-unit flow rate to one that is per-second.
+     *
+     * @param {number} flowRate The flow rate.
+     * @param {string} timeUnit The time unit for the given `flowRate`.
+     * @returns {number} `flowRate` converted to tokens per second.
+     */
+    static #flowRatePerSecFrom(flowRate, timeUnit) {
+      switch (timeUnit) {
+        case 'day':    return flowRate * (1 / (60 * 60 * 24));
+        case 'hour':   return flowRate * (1 / (60 * 60));
+        case 'minute': return flowRate * (1 / 60);
+        case 'second': return flowRate;               // No conversion needed.
+        case 'msec':   return flowRate * 1000;
+        default: {
+          throw new Error(`Unknown time unit: ${timeUnit}`);
+        }
+      }
+    }
+
+    /**
      * Parses the bucket configuration for a specific rate-limited entity.
      * Returns `null` if passed `null`.
      *
@@ -247,7 +247,7 @@ export class RateLimiterService extends BaseService {
         MustBe.number(maxQueueSize, { minInclusive: 0, maxInclusive: 1e100 });
       }
 
-      const flowRate = RateLimiterService.#flowRatePerSecFrom(origFlowRate, timeUnit);
+      const flowRate = Config.#flowRatePerSecFrom(origFlowRate, timeUnit);
       const result   = { flowRate, maxBurstSize, maxQueueSize };
 
       if (maxQueueGrantSize !== null) {
