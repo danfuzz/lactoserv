@@ -42,7 +42,7 @@ export class ServerController {
 
 
   /**
-   * Constructs an insance. The `extraConfig` argument contains additional
+   * Constructs an instance. The `extraConfig` argument contains additional
    * bindings, to serve as "environment-bound" values that serve as replacements
    * for what was passed in the original (but unbound) `config` (along with
    * other bits):
