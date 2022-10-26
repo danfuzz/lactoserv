@@ -10,9 +10,7 @@ import { TypedConfig } from '#x/TypedConfig';
  * TypedConfig}.
  */
 export class ApplicationConfig extends TypedConfig {
-  // This class only exists so as to make things clearer at the use sites,
-  // specifically to maintain the "base class name" correspondence between
-  // classes in this module and classes in the rest of the system. (E.g.,
-  // `ApplicationController` is clearly related to `ApplicationConfig`. The
-  // relationship with `TypedConfig` isn't so obvious.)
+  // This class exists so that the warehouse configuration parser can
+  // specifically ask for instances of this class (because there are different
+  // factory namespaces for applications vs. services).
 }
