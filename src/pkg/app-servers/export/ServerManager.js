@@ -73,7 +73,7 @@ export class ServerManager {
    */
   #addControllerFor(config) {
     const {
-      hostnames,
+      endpoint: { hostnames },
       mounts,
       rateLimiter:   limName,
       requestLogger: logName,

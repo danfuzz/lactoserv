@@ -70,10 +70,12 @@ const hosts = [
 const servers = [
   {
     name:          'insecure',
-    hostnames:     ['*'],
-    interface:     '*',
-    port:          8080,
-    protocol:      'http',
+    endpoint: {
+      hostnames:     ['*'],
+      interface:     '*',
+      port:          8080,
+      protocol:      'http'
+    },
     rateLimiter:   'limiter',
     requestLogger: 'requests',
     mounts: [
@@ -85,10 +87,12 @@ const servers = [
   },
   {
     name:          'secure',
-    hostnames:     ['*'],
-    interface:     '*',
-    port:          8443,
-    protocol:      'http2',
+    endpoint: {
+      hostnames:     ['*'],
+      interface:     '*',
+      port:          8443,
+      protocol:      'http2',
+    },
     rateLimiter:   'limiter',
     requestLogger: 'requests',
     mounts: [
@@ -104,10 +108,12 @@ const servers = [
   },
   {
     name:          'also-secure',
-    hostnames:     ['*'],
-    interface:     '*',
-    port:          8444,
-    protocol:      'https',
+    endpoint: {
+      hostnames:     ['*'],
+      interface:     '*',
+      port:          8444,
+      protocol:      'https'
+    },
     requestLogger: 'requests',
     mounts: [
       {
