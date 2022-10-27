@@ -15,7 +15,6 @@
     "@this/builtin-applications": "*",
     "@this/builtin-services": "*",
     "@this/host": "*",
-    "@this/json": "*",
     "@this/loggy": "*"
   }
 }
