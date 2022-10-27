@@ -9,7 +9,7 @@ import { Util } from '#x/Util';
 /**
  * Configuration representation for a network endpoint item, that is,
  * identifying information about a network interface, along with hostnames to
- * accept and what protocol to speak.
+ * accept and what protocol to speak. (See {@link ServerConfig}.)
  *
  * Accepted configuration bindings (in the constructor). All are required,
  * except as noted:
