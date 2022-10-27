@@ -76,14 +76,14 @@ const servers = [
       port:          8080,
       protocol:      'http'
     },
-    rateLimiter:   'limiter',
-    requestLogger: 'requests',
     mounts: [
       {
         application: 'my-wacky-redirector',
         at:          '//*/'
       }
-    ]
+    ],
+    rateLimiter:   'limiter',
+    requestLogger: 'requests'
   },
   {
     name:          'secure',
@@ -93,8 +93,6 @@ const servers = [
       port:          8443,
       protocol:      'http2',
     },
-    rateLimiter:   'limiter',
-    requestLogger: 'requests',
     mounts: [
       {
         application: 'my-static-fun',
@@ -104,7 +102,9 @@ const servers = [
         application: 'my-static-fun',
         at:          '//*/florp/'
       }
-    ]
+    ],
+    rateLimiter:   'limiter',
+    requestLogger: 'requests'
   },
   {
     name:          'also-secure',
@@ -114,13 +114,13 @@ const servers = [
       port:          8444,
       protocol:      'https'
     },
-    requestLogger: 'requests',
     mounts: [
       {
         application: 'my-static-fun',
         at:          '//*/'
       }
-    ]
+    ],
+    requestLogger: 'requests'
   }
 ];
 
