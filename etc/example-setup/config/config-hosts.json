@@ -1,7 +1,0 @@
-[
-  {
-    "hostnames":   ["localhost", "*"],
-    "certificate": { "$readFile": "./localhost-cert.pem" },
-    "privateKey":  { "$readFile": "./localhost-key.pem" }
-  }
-]

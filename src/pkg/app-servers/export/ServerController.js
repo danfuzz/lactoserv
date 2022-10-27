@@ -60,7 +60,8 @@ export class ServerController {
    *   description.
    */
   constructor(config, extraConfig) {
-    const { interface: iface, mounts, name, port, protocol } = config;
+    const { endpoint, mounts, name }           = config;
+    const { interface: iface, port, protocol } = endpoint;
 
     this.#config = config;
 
