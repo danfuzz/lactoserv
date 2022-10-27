@@ -8,7 +8,6 @@ import { Mutex } from '@this/async';
 import { BuiltinApplications } from '@this/builtin-applications';
 import { BuiltinServices } from '@this/builtin-services';
 import { Dirs, Host } from '@this/host';
-import { JsonExpander } from '@this/json';
 import { Loggy } from '@this/loggy';
 
 
