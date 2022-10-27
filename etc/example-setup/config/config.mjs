@@ -82,8 +82,10 @@ const servers = [
         at:          '//*/'
       }
     ],
-    rateLimiter:   'limiter',
-    requestLogger: 'requests'
+    services: {
+      rateLimiter:   'limiter',
+      requestLogger: 'requests'
+    }
   },
   {
     name:          'secure',
@@ -103,8 +105,10 @@ const servers = [
         at:          '//*/florp/'
       }
     ],
-    rateLimiter:   'limiter',
-    requestLogger: 'requests'
+    services: {
+      rateLimiter:   'limiter',
+      requestLogger: 'requests'
+    }
   },
   {
     name:          'also-secure',
@@ -120,7 +124,9 @@ const servers = [
         at:          '//*/'
       }
     ],
-    requestLogger: 'requests'
+    services: {
+      requestLogger: 'requests'
+    }
   }
 ];
 

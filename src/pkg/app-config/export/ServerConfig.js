@@ -4,7 +4,7 @@
 import { EndpointConfig } from '#x/EndpointConfig';
 import { MountConfig } from '#x/MountConfig';
 import { NamedConfig } from '#x/NamedConfig';
-import { Names } from '#x/Names';
+import { ServiceUseConfig } from '#x/ServiceUseConfig';
 
 
 /**
@@ -18,26 +18,21 @@ import { Names } from '#x/Names';
  * * Bindings as defined by the superclass, {@link NamedConfig}.
  * * `{object} endpoint` -- Endpoint configuration, suitable for passing to the
  *   {@link EndpointConfig} constructor.
- * * `{string} rateLimiter` -- Optional name of the rate limiter service to use.
- *   If not specified, this server will not attempt to do any rate limiting.
- * * `{string} requestLogger` -- Optional name of the request loging service to
- *   inform of activity. If not specified, this server will not produce request
- *   logs.
  * * `{object[]} mounts` -- Array of application mounts, each of a form suitable
  *   for passing to the {@link MountConfig} constructor.
+ * * `{object} services` -- Mapping of service roles to the names of services
+ *   which are to fill those roles, suitable for passing to the {@link
+ *   ServiceUseConfig} constructor.
  */
 export class ServerConfig extends NamedConfig {
   /** @type {EndpointConfig} Endpoint configuration. */
   #endpoint;
 
-  /** @type {?string} Name of the rate limiter service to use. */
-  #rateLimiter;
-
-  /** @type {?string} Name of the request logger service to use. */
-  #requestLogger;
-
   /** @type {MountConfig[]} Array of application mounts. */
   #mounts;
+
+  /** @type {ServiceUseConfig} Role-to-service mappings. */
+  #services;
 
   /**
    * Constructs an instance.
@@ -50,14 +45,12 @@ export class ServerConfig extends NamedConfig {
     const {
       endpoint,
       mounts,
-      rateLimiter = null,
-      requestLogger = null,
+      services = {}
     } = config;
 
     this.#endpoint      = new EndpointConfig(endpoint);
-    this.#rateLimiter   = Names.checkNameOrNull(rateLimiter);
-    this.#requestLogger = Names.checkNameOrNull(requestLogger);
     this.#mounts        = MountConfig.parseArray(mounts);
+    this.#services      = new ServiceUseConfig(services);
   }
 
   /** @returns {EndpointConfig} Endpoint configuration. */
@@ -70,13 +63,8 @@ export class ServerConfig extends NamedConfig {
     return this.#mounts;
   }
 
-  /** @returns {?string} Name of the rate limiter service to use. */
-  get rateLimiter() {
-    return this.#rateLimiter;
-  }
-
-  /** @returns {?string} Name of the request logger service to use. */
-  get requestLogger() {
-    return this.#requestLogger;
+  /** @returns {ServiceUseConfig} Role-to-service configuration. */
+  get services() {
+    return this.#services;
   }
 }

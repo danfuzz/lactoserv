@@ -75,8 +75,7 @@ export class ServerManager {
     const {
       endpoint: { hostnames },
       mounts,
-      rateLimiter:   limName,
-      requestLogger: logName,
+      services: { rateLimiter: limName, requestLogger: logName }
     } = config;
     const { hostManager, serviceManager } = this.#warehouse;
 
