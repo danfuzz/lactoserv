@@ -15,10 +15,10 @@ import { Util } from '#x/Util';
  *   entry. Names can in the form `*.<name>` to match any subdomain of `<name>`,
  *   or `*` to be a complete wildcard (that is, matches any name not otherwise
  *   mentioned).
- * * `{string} certificate` -- The certificate for `hostnames`, as PEM-encoded
- *   data.
- * * `{string} privateKey` -- The private key associated with `certificate`, as
+ * * `{string|Buffer} certificate` -- The certificate for `hostnames`, as
  *   PEM-encoded data.
+ * * `{string|Buffer} privateKey` -- The private key associated with
+ *   `certificate`, as PEM-encoded data.
  *
  * Accepted configuration bindings (in the constructor). All are required:
  */
@@ -43,8 +43,8 @@ export class HostConfig extends BaseConfig {
     const { hostnames, certificate, privateKey } = config;
 
     this.#hostnames   = Util.checkAndFreezeStrings(hostnames, Uris.HOSTNAME_PATTERN);
-    this.#certificate = Certificates.checkCertificate(certificate);
-    this.#privateKey  = Certificates.checkPrivateKey(privateKey);
+    this.#certificate = Certificates.checkCertificate(HostConfig.#bufferFilter(certificate));
+    this.#privateKey  = Certificates.checkPrivateKey(HostConfig.#bufferFilter(privateKey));
   }
 
   /**
@@ -63,5 +63,23 @@ export class HostConfig extends BaseConfig {
   /** @returns {string} The private key, as PEM-encoded data. */
   get privateKey() {
     return this.#privateKey;
+  }
+
+  //
+  // Static members
+  //
+
+  /**
+   * If given a `Buffer`, converts it to a string, interpreting bytes as UTF-8.
+   * Otherwise, just passes the value through as-is.
+   *
+   * @param {*} value Value in question.
+   * @returns {*} `value` converted to a string if it was a `Buffer`, otherwise
+   *   `value`.
+   */
+  static #bufferFilter(value) {
+    return (value instanceof Buffer)
+      ? value.toString('utf-8')
+      : value;
   }
 }
