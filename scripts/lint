@@ -23,6 +23,8 @@ function usage {
     ${name} [<opt> ...] <lint-arg> ...
       Runs the linter.
 
+    --fix
+      Fix whatever issues are fixable.
     --out=<dir>
       Directory where built output goes. Defaults to `out` directly under the
       main product directory.
@@ -36,6 +38,9 @@ function usage {
 
 # Want help?
 opt-action --call='{ usage }' help/h
+
+# Perform fixes?
+opt-toggle --var=doFix fix
 
 # Built output directory.
 opt-value --var=outDir out
@@ -101,17 +106,23 @@ if (( ${#configFile[@]} != 1 )); then
     exit 1
 fi
 
+opts=(
+    --config "${configFile}"
+    --resolve-plugins-relative-to "${toolDir}"
+    --cache --cache-location "${toolDir}/cache"
+    --max-warnings 0
+)
+
+if (( doFix )); then
+    opts+=(--fix)
+fi
+
 if (( ${#args[@]} == 0 )); then
     # Run over all of source by default.
     args=("${srcDir}")
 fi
 
-"${toolBinary}" \
-    --config "${configFile}" \
-    --resolve-plugins-relative-to "${toolDir}" \
-    --cache --cache-location "${toolDir}/cache" \
-    --max-warnings 0 \
-    -- "${args[@]}"
+"${toolBinary}" "${opts[@]}" -- "${args[@]}"
 status="$?"
 
 info-msg
