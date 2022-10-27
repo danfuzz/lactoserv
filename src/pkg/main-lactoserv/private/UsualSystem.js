@@ -1,6 +1,8 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
+import { pathToFileURL } from 'node:url';
+
 import { Warehouse } from '@this/app-servers';
 import { Mutex } from '@this/async';
 import { BuiltinApplications } from '@this/builtin-applications';
@@ -15,8 +17,8 @@ import { Loggy } from '@this/loggy';
  * production-like way.
  */
 export class UsualSystem {
-  /** @type {string} Directory where the setup / configuration lives. */
-  #setupDir;
+  /** @type {URL} URL to the configuration file. */
+  #configUrl;
 
   /** @type {boolean} Initialized? */
   #initDone = false;
@@ -36,7 +38,7 @@ export class UsualSystem {
    * @param {string[]} args_unused Command-line arguments to parse and act upon.
    */
   constructor(args_unused) {
-    this.#setupDir = Dirs.basePath('../etc/example-setup');
+    this.#configUrl = pathToFileURL(Dirs.basePath('../etc/example-setup/config/config.mjs'));
   }
 
   /**
@@ -90,8 +92,7 @@ export class UsualSystem {
    * Constructs (and possibly replaces) {@link #warehouse}.
    */
   async #makeWarehouse() {
-    const jx     = new JsonExpander(this.#setupDir);
-    const config = await jx.expandFileAsync('config/config.json');
+    const config = (await import(this.#configUrl)).default;
 
     this.#warehouse = new Warehouse(config);
   }
