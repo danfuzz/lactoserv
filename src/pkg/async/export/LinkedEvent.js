@@ -127,7 +127,7 @@ export class LinkedEvent {
       // resolution, returning a definitely-unsettled promise.
       const mp = new ManualPromise();
       this.#next        = new EventOrPromise(mp.promise, this.constructor);
-      this.#resolveNext = (value => mp.resolve(value));
+      this.#resolveNext = ((value) => mp.resolve(value));
     }
 
     return this.#next.eventPromise;

@@ -29,7 +29,7 @@ export class TextFileSink extends EventSink {
    */
   constructor(filePath, firstEvent) {
     MustBe.string(filePath);
-    super(event => this.#process(event), firstEvent);
+    super((event) => this.#process(event), firstEvent);
 
     this.#filePath = path.resolve(filePath);
   }

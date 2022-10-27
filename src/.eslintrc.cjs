@@ -19,7 +19,7 @@ const parserOptions = {
 
 const mainRules = {
   'array-bracket-spacing': 'error',
-  'arrow-parens': ['error', 'as-needed', { 'requireForBlockBody': true }],
+  'arrow-parens': 'error',
   'consistent-return': 'error',
   'eol-last': 'error',
   'eqeqeq': 'error',

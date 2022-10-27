@@ -49,7 +49,7 @@ export class Http2Wrangler extends TcpWrangler {
     this.#protocolServer = http2.createSecureServer(options.hosts);
 
     this.#application.use('/', (req, res, next) => this.#tweakResponse(req, res, next));
-    this.#protocolServer.on('session', session => this.#addSession(session));
+    this.#protocolServer.on('session', (session) => this.#addSession(session));
   }
 
   /** @override */

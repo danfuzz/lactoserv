@@ -72,7 +72,7 @@ export class TreePathKey {
     options = options ? { ...defaultOptions, ...options } : defaultOptions;
 
     const path = options.quote
-      ? this.#path.map(p => util.format('%o', p))
+      ? this.#path.map((p) => util.format('%o', p))
       : [...this.#path];
 
     if (this.#wildcard) {

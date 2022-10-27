@@ -86,7 +86,7 @@ export class Warehouse {
    */
   async startAllServers() {
     const servers = this.#serverManager.getAll();
-    const results = servers.map(s => s.start());
+    const results = servers.map((s) => s.start());
 
     return Promise.all(results);
   }
@@ -98,7 +98,7 @@ export class Warehouse {
    */
   async stopAllServers() {
     const servers = this.#serverManager.getAll();
-    const results = servers.map(s => s.stop());
+    const results = servers.map((s) => s.stop());
 
     return Promise.all(results);
   }
@@ -110,7 +110,7 @@ export class Warehouse {
    */
   async startAllServices() {
     const services = this.#serviceManager.getAll();
-    const results  = services.map(s => s.start());
+    const results  = services.map((s) => s.start());
 
     return Promise.all(results);
   }
@@ -122,7 +122,7 @@ export class Warehouse {
    */
   async stopAllServices() {
     const services = this.#serviceManager.getAll();
-    const results  = services.map(s => s.stop());
+    const results  = services.map((s) => s.stop());
 
     return Promise.all(results);
   }

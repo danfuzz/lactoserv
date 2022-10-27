@@ -319,7 +319,7 @@ export class TokenBucket {
     this.#waiters.push({
       grant,
       startTime:    this.#lastNow,
-      doGrant:      v => mp.resolve(v)
+      doGrant:      (v) => mp.resolve(v)
     });
 
     this.#startWaiterThread();

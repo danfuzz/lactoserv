@@ -327,7 +327,7 @@ export class EventTracker {
       }
       case 'string': {
         const type = predicate;
-        return (event => event.type === type);
+        return ((event) => event.type === type);
       }
       case 'function': {
         return MustBe.callableFunction(predicate);

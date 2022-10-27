@@ -23,7 +23,7 @@ export class Dirs {
       // base directory.
       const here = import.meta.url;
       const pathParts = new URL(here).pathname.split('/');
-      const codeAt = pathParts.findLastIndex(p => p === 'code');
+      const codeAt = pathParts.findLastIndex((p) => p === 'code');
 
       if (codeAt === -1) {
         throw new Error('Cannot find base directory from: ' + here);

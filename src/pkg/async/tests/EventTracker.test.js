@@ -460,7 +460,7 @@ describe('advance(function)', () => {
     const event   = new LinkedEvent(payload1);
     const tracker = new EventTracker(event);
 
-    const result = tracker.advance(e => e.payload === payload1);
+    const result = tracker.advance((e) => e.payload === payload1);
 
     // Synchronous result state.
     expect(tracker.headNow).toBe(event);
@@ -473,7 +473,7 @@ describe('advance(function)', () => {
     const event   = new LinkedEvent(payload1);
     const tracker = new EventTracker(Promise.resolve(event));
 
-    const result = tracker.advance(e => e.payload === payload1);
+    const result = tracker.advance((e) => e.payload === payload1);
 
     // Synchronous result state.
     expect(tracker.headNow).toBeNull();
@@ -490,7 +490,7 @@ describe('advance(function)', () => {
     const mp      = new ManualPromise();
     const tracker = new EventTracker(mp.promise);
 
-    const result = tracker.advance(e => e.payload === payload1);
+    const result = tracker.advance((e) => e.payload === payload1);
 
     // Synchronous result state.
     expect(tracker.headNow).toBeNull();
@@ -510,7 +510,7 @@ describe('advance(function)', () => {
     const event1  = new LinkedEvent(payload1, event2);
     const tracker = new EventTracker(event1);
 
-    const result = tracker.advance(e => e.payload === payload3);
+    const result = tracker.advance((e) => e.payload === payload3);
 
     // Synchronous result state.
     expect(tracker.headNow).toBe(event3);
@@ -531,7 +531,7 @@ describe('advance(function)', () => {
     const mp1     = new ManualPromise();
     const tracker = new EventTracker(mp1.promise);
 
-    const result = tracker.advance(e => e.payload === payload3);
+    const result = tracker.advance((e) => e.payload === payload3);
 
     expect(tracker.headNow).toBeNull();
     await timers.setImmediate();
@@ -916,9 +916,9 @@ describe('next(predicate)', () => {
     const tracker = new EventTracker(event1);
 
     expect(tracker.headNow).toBe(event1);
-    const result1 = tracker.next(e => e.payload === toFind);
+    const result1 = tracker.next((e) => e.payload === toFind);
     expect(tracker.headNow).toBe(event3);
-    const result2 = tracker.next(e => e.payload === toFind);
+    const result2 = tracker.next((e) => e.payload === toFind);
     expect(tracker.headNow).toBeNull();
     const result3 = tracker.next();
 
@@ -953,7 +953,7 @@ describe('next(predicate)', () => {
     const tracker = new EventTracker(Promise.resolve(event1));
 
     const result1 = tracker.next();
-    const result2 = tracker.next(e => e.payload === toFind);
+    const result2 = tracker.next((e) => e.payload === toFind);
 
     expect(await result1).toBe(event1);
 
@@ -1020,9 +1020,9 @@ describe('peek()', () => {
     const tracker = new EventTracker(event1);
 
     expect(tracker.headNow).toBe(event1);
-    const result1 = tracker.peek(e => e.payload === toFind);
+    const result1 = tracker.peek((e) => e.payload === toFind);
     expect(tracker.headNow).toBe(event1);
-    const result2 = tracker.peek(e => e.payload === toFind);
+    const result2 = tracker.peek((e) => e.payload === toFind);
     expect(tracker.headNow).toBe(event1);
 
     expect(await result1).toBe(event2);

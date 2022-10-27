@@ -81,7 +81,7 @@ export class CallbackList {
     const abortCtrl = new AbortController();
 
     const callProm = (async () => {
-      const settled = Promise.allSettled(this.#callbacks.map(async cb => cb()));
+      const settled = Promise.allSettled(this.#callbacks.map(async (cb) => cb()));
 
       const results = await settled; // Wait for the result to be ready.
       abortCtrl.abort();             // Immediately cancel the timeout.
