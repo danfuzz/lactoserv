@@ -33,7 +33,7 @@ export class ServiceUseConfig extends BaseConfig {
 
     this.#map = Object.freeze(new Map(Object.entries(config)));
 
-    for (const [ role, name ] of this.#map) {
+    for (const [role, name] of this.#map) {
       Names.checkName(role);
       Names.checkName(name);
       if (!ServiceUseConfig.#ROLES.has(role)) {
