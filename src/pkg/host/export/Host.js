@@ -2,6 +2,7 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { LoggingManager } from '#p/LoggingManager';
+import { ProductInfo } from '#x/ProductInfo';
 import { ShutdownHandler } from '#p/ShutdownHandler';
 import { SignalHandler } from '#p/SignalHandler';
 import { ThisModule } from '#p/ThisModule';
@@ -37,11 +38,12 @@ export class Host {
       return;
     }
 
+    ProductInfo.init();
     LoggingManager.init();
     SignalHandler.init();
     TopErrorHandler.init();
 
-    ThisModule.logger.initialized();
+    ThisModule.logger.initialized(ProductInfo.allInfo);
 
     this.#initDone = true;
   }
