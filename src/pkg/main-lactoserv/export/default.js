@@ -3,11 +3,15 @@
 
 import { Host, KeepRunning } from '@this/host';
 
-import { Main } from '#x/main';
+import { Main } from '#x/Main';
+import { MainArgs } from '#p/MainArgs';
 
 
 export default async function main() {
   Host.init();
+
+  const args = new MainArgs(process.argv);
+  args.parse();
 
   const keepRunning = new KeepRunning();
   keepRunning.run();
