@@ -1,8 +1,7 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import * as timers from 'node:timers/promises';
-
+import { Debugging } from '#p/Debugging';
 import { MainArgs } from '#p/MainArgs';
 import { UsualSystem } from '#p/UsualSystem';
 
@@ -19,10 +18,9 @@ export class Main {
    */
   static async run(args) {
     const system = new UsualSystem(args);
+    Debugging.handleDebugArgs(args, system);
 
-    await system.start();
-    await timers.setTimeout(5 * 60 * 1000);
-    await system.stop();
+    await system.run();
 
     return 0;
   }
