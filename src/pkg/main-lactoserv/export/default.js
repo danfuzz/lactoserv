@@ -20,8 +20,7 @@ export default async function main() {
 
   keepRunning.stop();
 
+  // This `await` is not ever supposed to return.
   await Host.exit(exitCode);
-
-  // The `await` immediately above is not supposed to return.
   throw new Error('Shouldn\'t happen.');
 }
