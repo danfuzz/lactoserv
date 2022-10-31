@@ -6,8 +6,7 @@ import { pathToFileURL } from 'node:url';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 
-import { Host, ProductInfo } from '@this/host';
-import { Loggy } from '@this/loggy';
+import { ProductInfo } from '@this/host';
 import { MustBe } from '@this/typey';
 
 

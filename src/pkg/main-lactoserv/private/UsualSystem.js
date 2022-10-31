@@ -1,13 +1,11 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { pathToFileURL } from 'node:url';
-
 import { Warehouse } from '@this/app-servers';
 import { Threadlet } from '@this/async';
 import { BuiltinApplications } from '@this/builtin-applications';
 import { BuiltinServices } from '@this/builtin-services';
-import { Dirs, Host } from '@this/host';
+import { Host } from '@this/host';
 import { Loggy } from '@this/loggy';
 
 import { MainArgs } from '#p/MainArgs';

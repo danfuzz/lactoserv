@@ -52,9 +52,9 @@ export class ShutdownHandler {
     if (exitCode !== 0) {
       if (this.#exitCode === 0) {
         this.#exitCode = exitCode;
-        logger.exiting(exitCode);
+        this.#logger.exiting(exitCode);
       } else if (this.#exitCode !== exitCode) {
-        logger.ignoringExitCode(exitCode);
+        this.#logger.ignoringExitCode(exitCode);
       }
     }
 
