@@ -66,29 +66,6 @@ export class EventSink extends Threadlet {
   }
 
   /**
-   * Processes events as they become available, until a problem is encountered
-   * or we're requested to stop.
-   */
-  async #run() {
-    this.#draining = false;
-
-    for (;;) {
-      const event = await this.#headEvent();
-      if (!event) {
-        break;
-      }
-
-      try {
-        await this.#processor(event);
-      } finally {
-        this.#head = this.#head.next;
-      }
-    }
-
-    return null;
-  }
-
-  /**
    * Gets the current head event -- possibly waiting for it -- or returns `null`
    * if the instance has been asked to stop.
    *
@@ -116,5 +93,28 @@ export class EventSink extends Threadlet {
     }
 
     return result;
+  }
+
+  /**
+   * Main thread body: Processes events as they become available, until a
+   * problem is encountered or we're requested to stop.
+   */
+  async #run() {
+    this.#draining = false;
+
+    for (;;) {
+      const event = await this.#headEvent();
+      if (!event) {
+        break;
+      }
+
+      try {
+        await this.#processor(event);
+      } finally {
+        this.#head = this.#head.next;
+      }
+    }
+
+    return null;
   }
 }

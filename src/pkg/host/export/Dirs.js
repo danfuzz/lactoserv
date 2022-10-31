@@ -43,10 +43,21 @@ export class Dirs {
    * @returns {string} The concatenated path.
    */
   static basePath(relativePath) {
+    return this.baseUrl(relativePath).pathname;
+  }
+
+  /**
+   * Concatenates the base directory with an indicated relative path, yielding
+   * an URL.
+   *
+   * @param {string} relativePath Relative path from the base directory.
+   * @returns {URL} URL for the concatenated path.
+   */
+  static baseUrl(relativePath) {
     if (relativePath.startsWith('/')) {
       throw new Error('`relativePath` must be relative.');
     }
 
-    return new URL(relativePath, Dirs.#BASE_DIR_URL).pathname;
+    return new URL(relativePath, Dirs.#BASE_DIR_URL);
   }
 }

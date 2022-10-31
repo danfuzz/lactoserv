@@ -1,23 +1,23 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import { pathToFileURL } from 'node:url';
-
 import { Warehouse } from '@this/app-servers';
-import { Mutex } from '@this/async';
+import { Threadlet } from '@this/async';
 import { BuiltinApplications } from '@this/builtin-applications';
 import { BuiltinServices } from '@this/builtin-services';
-import { Dirs, Host } from '@this/host';
+import { Host } from '@this/host';
 import { Loggy } from '@this/loggy';
+
+import { MainArgs } from '#p/MainArgs';
 
 
 /**
  * A usual system, like, the normal setup for running this product in a
  * production-like way.
  */
-export class UsualSystem {
-  /** @type {URL} URL to the configuration file. */
-  #configUrl;
+export class UsualSystem extends Threadlet {
+  /** @type {MainArgs} Command-line arguments. */
+  #args;
 
   /** @type {boolean} Initialized? */
   #initDone = false;
@@ -25,54 +25,24 @@ export class UsualSystem {
   /** @type {Warehouse} Warehouse of parts. */
   #warehouse = null;
 
-  /** @type {Mutex} Serializer for startup and shutdown actions. */
-  #serializer = new Mutex();
-
   /** @type {function(...*)} Logger for this instance. */
   #logger = Loggy.loggerFor('main').allServers;
 
   /**
    * Constructs an instance.
    *
-   * @param {string[]} args_unused Command-line arguments to parse and act upon.
+   * @param {MainArgs} args Command-line arguments.
    */
-  constructor(args_unused) {
-    this.#configUrl = pathToFileURL(Dirs.basePath('../etc/example-setup/config/config.mjs'));
+  constructor(args) {
+    super(
+      () => this.#start(),
+      () => this.#run());
+
+    this.#args = args;
   }
 
   /**
-   * Starts or restarts the system.
-   */
-  async start() {
-    await this.#serializer.serialize(async () => {
-      this.#init();
-
-      const isRestart = (this.#warehouse !== null);
-      const verb      = isRestart ? 'restart' : 'start';
-
-      this.#logger[`${verb}ing`]();
-
-      if (isRestart) {
-        await this.#stop0();
-      }
-
-      await this.#makeWarehouse();
-      await this.#warehouse.startAllServices();
-      await this.#warehouse.startAllServers();
-
-      this.#logger[`${verb}ed`]();
-    });
-  }
-
-  /**
-   * Stops the system.
-   */
-  async stop() {
-    await this.#serializer.serialize(() => this.#stop0());
-  }
-
-  /**
-   * Performs boot-time initialization.
+   * Performs pre-start initialization.
    */
   #init() {
     if (this.#initDone) {
@@ -81,7 +51,7 @@ export class UsualSystem {
 
     BuiltinApplications.register();
     BuiltinServices.register();
-    Host.registerReloadCallback(() => this.start());
+    Host.registerReloadCallback(() => this.#restart());
     Host.registerShutdownCallback(() => this.stop());
 
     this.#initDone = true;
@@ -91,26 +61,57 @@ export class UsualSystem {
    * Constructs (and possibly replaces) {@link #warehouse}.
    */
   async #makeWarehouse() {
-    const config = (await import(this.#configUrl)).default;
+    const configUrl = this.#args.configUrl;
+    const config    = (await import(configUrl)).default;
 
     this.#warehouse = new Warehouse(config);
   }
 
   /**
-   * Helper for {@link #start} and {@link #stop}, which performs the main action
-   * of stopping.
+   * Restarts the system.
    */
-  async #stop0() {
-    if (this.#warehouse === null) {
-      this.#logger.stop('ignoring');
+  async #restart() {
+    if (this.isRunning()) {
+      this.#logger.restarting();
+      await this.stop();
+      await this.start();
+      this.#logger.restarted();
     } else {
-      this.#logger.stopping();
-      await Promise.all([
-        this.#warehouse.stopAllServers(),
-        this.#warehouse.stopAllServices()
-      ]);
-      this.#warehouse = null;
-      this.#logger.stopped();
+      // Not actually running (probably in the middle of completely shutting
+      // down).
+      this.#logger.restart('ignoring');
     }
+  }
+
+  /**
+   * Main thread body: Runs the system.
+   */
+  async #run() {
+    await this.whenStopRequested();
+
+    this.#logger.stopping();
+
+    await Promise.all([
+      this.#warehouse.stopAllServers(),
+      this.#warehouse.stopAllServices()
+    ]);
+    this.#warehouse = null;
+
+    this.#logger.stopped();
+  }
+
+  /**
+   * Thread start function.
+   */
+  async #start() {
+    this.#init();
+
+    this.#logger.starting();
+
+    await this.#makeWarehouse();
+    await this.#warehouse.startAllServices();
+    await this.#warehouse.startAllServers();
+
+    this.#logger.started();
   }
 }
