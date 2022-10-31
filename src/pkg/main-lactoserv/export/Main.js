@@ -3,6 +3,7 @@
 
 import * as timers from 'node:timers/promises';
 
+import { MainArgs } from '#p/MainArgs';
 import { UsualSystem } from '#p/UsualSystem';
 
 
@@ -13,7 +14,7 @@ export class Main {
   /**
    * Runs the system, based on the given command-line arguments.
    *
-   * @param {string[]} args Command-line arguments to parse and act upon.
+   * @param {MainArgs} args Command-line arguments.
    * @returns {number} Process exit code.
    */
   static async run(args) {

@@ -10,14 +10,16 @@ import { BuiltinServices } from '@this/builtin-services';
 import { Dirs, Host } from '@this/host';
 import { Loggy } from '@this/loggy';
 
+import { MainArgs } from '#p/MainArgs';
+
 
 /**
  * A usual system, like, the normal setup for running this product in a
  * production-like way.
  */
 export class UsualSystem {
-  /** @type {URL} URL to the configuration file. */
-  #configUrl;
+  /** @type {MainArgs} Command-line arguments. */
+  #args;
 
   /** @type {boolean} Initialized? */
   #initDone = false;
@@ -34,10 +36,10 @@ export class UsualSystem {
   /**
    * Constructs an instance.
    *
-   * @param {string[]} args_unused Command-line arguments to parse and act upon.
+   * @param {MainArgs} args Command-line arguments.
    */
-  constructor(args_unused) {
-    this.#configUrl = pathToFileURL(Dirs.basePath('../etc/example-setup/config/config.mjs'));
+  constructor(args) {
+    this.#args = args;
   }
 
   /**
@@ -91,7 +93,8 @@ export class UsualSystem {
    * Constructs (and possibly replaces) {@link #warehouse}.
    */
   async #makeWarehouse() {
-    const config = (await import(this.#configUrl)).default;
+    const configUrl = this.#args.configUrl;
+    const config    = (await import(configUrl)).default;
 
     this.#warehouse = new Warehouse(config);
   }

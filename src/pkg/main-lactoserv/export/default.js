@@ -16,7 +16,7 @@ export default async function main() {
   const keepRunning = new KeepRunning();
   keepRunning.run();
 
-  const exitCode = await Main.run(process.argv);
+  const exitCode = await Main.run(args);
 
   keepRunning.stop();
 
