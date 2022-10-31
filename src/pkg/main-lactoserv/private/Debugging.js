@@ -37,11 +37,22 @@ export class Debugging {
         remainingSecs = 60;
       }
 
+      let warningFreqSecs = 10;
+      let extraSecs       = remainingSecs % warningFreqSecs;
+
       while (remainingSecs > 0) {
-        const WARNING_FREQ_SECS = 10;
         logger.timeRemaining({ seconds: remainingSecs });
-        await timers.setTimeout(WARNING_FREQ_SECS * 1000);
-        remainingSecs -= WARNING_FREQ_SECS;
+
+        const secs = extraSecs + warningFreqSecs;
+        await timers.setTimeout(secs * 1000);
+        remainingSecs -= secs;
+        extraSecs = 0;
+
+        if (remainingSecs <= 5) {
+          warningFreqSecs = 1;
+        } else if (remainingSecs <= 10) {
+          warningFreqSecs = 5;
+        }
       }
 
       logger.timerExpired({ seconds: maxRunTimeSecs });
