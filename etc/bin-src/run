@@ -21,6 +21,7 @@ function check-dependency {
     local name="$1"
     local versionCmd="$2"
     local match="$3"
+    local versionMsg="$4"
 
     # Extract just the binary (executable / command / tool) name.
     local cmdName=''
@@ -50,6 +51,7 @@ function check-dependency {
 
     if [[ !(${version} =~ ${match}) ]]; then
         error-msg "Unsupported version of ${name}: ${version}"
+        error-msg "  required: ${versionMsg}"
         return 1
     fi
 }
@@ -63,6 +65,7 @@ check-dependency \
     'Node' \
     'node --version | sed -e "s/^v//g"' \
     '^(18|19)\.' \
+    '18 or 19' \
 || exit "$?"
 
 # Note: `--no-warnings` suppresses Node's built-in warning printer, which we do

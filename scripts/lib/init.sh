@@ -44,6 +44,7 @@ _init_envVarName="$(_init_product-name | tr a-z- A-Z_)_PREREQUISITES_DONE"
 if [[ ${!_init_envVarName} != 1 ]]; then
     _init_check-prerequisites \
     || {
+        error-msg
         error-msg 'Failed one or more prerequisite checks!'
         return 1
     }

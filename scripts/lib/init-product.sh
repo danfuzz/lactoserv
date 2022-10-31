@@ -24,6 +24,7 @@ function check-dependency {
     local name="$1"
     local versionCmd="$2"
     local match="$3"
+    local versionMsg="$4"
 
     # Extract just the binary (executable / command / tool) name.
     local cmdName=''
@@ -53,6 +54,7 @@ function check-dependency {
 
     if [[ !(${version} =~ ${match}) ]]; then
         error-msg "Unsupported version of ${name}: ${version}"
+        error-msg "  required version: ${versionMsg}"
         return 1
     fi
 }
@@ -75,12 +77,14 @@ function _init_check-prerequisites {
         'Node' \
         'node --version | sed -e "s/^v//"' \
         '^(18|19)\.' \
+        '18 or 19' \
     || error=1
 
     check-dependency \
         'jq' \
         'jq --version | sed -e "s/^jq-//"' \
         '^1.6$' \
+        '1.6' \
     || error=1
 
     return "${error}"
