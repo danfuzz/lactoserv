@@ -6,7 +6,7 @@ import { pathToFileURL } from 'node:url';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 
-import { Dirs, Host } from '@this/host';
+import { Host, ProductInfo } from '@this/host';
 import { Loggy } from '@this/loggy';
 import { MustBe } from '@this/typey';
 
@@ -78,7 +78,7 @@ export class MainArgs {
       ?.outerCommandName ?? this.#argv[1];
 
     // TODO: Find this programatically.
-    const versionString = 'lactoserv v0.1.0';
+    const versionString = `${ProductInfo.name} v${ProductInfo.version}`;
 
     const parser = yargs()
       .strict()
