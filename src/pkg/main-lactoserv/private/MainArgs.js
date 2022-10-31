@@ -101,7 +101,7 @@ export class MainArgs {
           requiresArg: true,
           string:      true
         },
-        'max-run-time': {
+        'max-run-time-secs': {
           describe: 'Maximum run time in seconds (for debugging)',
           number:   true
         },
