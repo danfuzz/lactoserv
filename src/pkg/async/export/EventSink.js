@@ -96,8 +96,8 @@ export class EventSink extends Threadlet {
   }
 
   /**
-   * Processes events as they become available, until a problem is encountered
-   * or we're requested to stop.
+   * Main thread body: Processes events as they become available, until a
+   * problem is encountered or we're requested to stop.
    */
   async #run() {
     this.#draining = false;
