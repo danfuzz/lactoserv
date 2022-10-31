@@ -80,4 +80,6 @@ if (( doBuild )); then
     progress-msg
 fi
 
-exec "${outRun}"
+exec "${outRun}" \
+    --config="${outDir}/etc/example-setup/config/config.mjs" \
+    --max-run-time=300
