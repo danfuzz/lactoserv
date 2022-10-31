@@ -3,8 +3,9 @@
 
 import { Host, KeepRunning } from '@this/host';
 
-import { Main } from '#x/Main';
+import { Debugging } from '#p/Debugging';
 import { MainArgs } from '#p/MainArgs';
+import { UsualSystem } from '#p/UsualSystem';
 
 
 export default async function main() {
@@ -13,14 +14,16 @@ export default async function main() {
   const args = new MainArgs(process.argv);
   args.parse();
 
+  const system      = new UsualSystem(args);
   const keepRunning = new KeepRunning();
-  keepRunning.run();
 
-  const exitCode = await Main.run(args);
+  keepRunning.run();
+  Debugging.handleDebugArgs(args, system);
+  await system.run();
 
   keepRunning.stop();
 
   // This `await` is not ever supposed to return.
-  await Host.exit(exitCode);
+  await Host.exit();
   throw new Error('Shouldn\'t happen.');
 }
