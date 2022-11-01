@@ -57,23 +57,6 @@ function build-example-setup {
     lib rsync-local "${etcDir}/example-setup/" "${destDir}"
 }
 
-# Copies all the top-level `bin` scripts into the out directory.
-function build-top-bin {
-    progress-msg 'Building top-level `bin` directory...'
-
-    local destDir="${outDir}/bin"
-
-    rm -rf "${destDir}" || return "$?"
-    mkdir -p "${destDir}" || return "$?"
-
-    (
-        cd "${etcDir}/bin-src"
-        find . -type f '!' -name '*.md' \
-            -exec cp '{}' "${destDir}/{}" ';' \
-            -exec chmod 755 "${destDir}/{}" ';'
-    )
-}
-
 # Sets up the output directory.
 function set-up-out-dir {
     local extraOpts=()
@@ -97,9 +80,6 @@ outDir="$(set-up-out-dir)"
 
 # Make sure there's a cert to use.
 lib make-localhost-cert \
-|| exit "$?"
-
-build-top-bin \
 || exit "$?"
 
 build-example-setup \
