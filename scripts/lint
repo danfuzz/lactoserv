@@ -117,7 +117,7 @@ if (( doFix )); then
 fi
 
 if (( ${#args[@]} == 0 )); then
-    # Run over all of source by default.
+    # Run over all of the source by default.
     args=("${srcDir}")
 fi
 
