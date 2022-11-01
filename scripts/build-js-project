@@ -194,14 +194,21 @@ function build-js-project {
         progress-msg
     fi
 
-    # Run `npm install`.
+    npm-install "${destDir}"
+}
+
+# Does an `npm install` in the given directory.
+#
+# TODO: Figure out how to run safely. (E.g. fetch first and then run the actual
+# install in an environment with no networking.)
+function npm-install {
+    local dir="$1"
 
     progress-msg 'Fetching and installing external dependencies...'
+    progress-msg
 
     (
-        # TODO: Figure out how to run safely. (E.g. fetch first and then run the
-        # actual install in an environment with no networking.)
-        cd "${destDir}"
+        cd "${dir}"
         npm install --no-fund --omit=dev
     ) \
     || return "$?"
