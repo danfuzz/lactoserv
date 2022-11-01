@@ -283,8 +283,7 @@ function suspect-file-check {
 progress-msg --enable
 progress-msg "Building JS project ${projectName}..."
 
-baseDir="$(dirname "$(this-cmd-dir)")"
-srcDir="${baseDir}/src/pkg"
+srcDir="$(base-dir)/src/pkg"
 outDir="$(set-up-out-dir)"
 
 outProjectDir="${outDir}/${projectName}"
