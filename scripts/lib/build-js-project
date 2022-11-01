@@ -225,7 +225,7 @@ function make-distro {
 
     rm -rf "${tarballPath}" || exit "$?"
 
-    tar --create --file="${tarballPath}" --cd "${dir}" \
+    tar --create --file="${tarballPath}" --directory="${dir}" \
         --null --files-from=<(jval <<<"${fileList}" --input=read --output=raw0 .) \
     || exit "$?"
 }
