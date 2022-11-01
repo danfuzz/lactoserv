@@ -58,7 +58,7 @@ export class ProcessInfoFileService extends BaseService {
    * @param {object} [extraInfo = {}] Extra information to write.
    */
   async #writeFile(extraInfo = {}) {
-    const info = { ...Process.allInfo, ...extraInfo };
+    const info = { ...ProcessInfo.allInfo, ...extraInfo };
 
     // Create the directory if it doesn't already exist.
 
@@ -74,7 +74,7 @@ export class ProcessInfoFileService extends BaseService {
 
     // Write the file.
 
-    const text     = JSON.toString(info);
+    const text     = `${JSON.stringify(info, null, 2)}\n`;
     const fileName = `${this.#baseName}-${process.pid}.json`;
     const fullPath = Path.resolve(this.#directory, fileName);
 

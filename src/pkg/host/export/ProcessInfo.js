@@ -37,7 +37,7 @@ export class ProcessInfo {
       return;
     }
 
-    const startTimeMsec = Date.now() (process.uptime() * 1000);
+    const startTimeMsec = Date.now() - (process.uptime() * 1000);
     const startTimeSecs = startTimeMsec / 1000;
     const startTime     = FormatUtils.dateTimeStringFromSecs(startTimeSecs);
 
