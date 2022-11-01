@@ -161,7 +161,7 @@ function copy-local-modules {
 # Copies the main module's `run` script, if present.
 function copy-run-script {
     local srcDir="$1"
-    local destDir="$2"
+    local destDir="$2/bin"
 
     local scriptName='run'
     local srcScript="${srcDir}/${scriptName}"
@@ -182,9 +182,10 @@ function copy-run-script {
     fi
 
     progress-msg 'Copying run script...'
-    rm -rf "${destScript}" || return "$?"
+    rm -rf "${destScript}"            || return "$?"
+    mkdir -p "${destDir}"             || return "$?"
     cp "${srcScript}" "${destScript}" || return "$?"
-    chmod +x "${destScript}" || return "$?"
+    chmod +x "${destScript}"          || return "$?"
 }
 
 # Writes a top-level `index.js` for a project.
