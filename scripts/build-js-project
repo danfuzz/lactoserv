@@ -154,45 +154,8 @@ function build-js-project {
 
     eval "${copyCmd}"
 
-    # Remove local module directories that are no longer part of the build.
-
-    local deadModules
-    deadModules="$(
-        cd "${destLocalModules}"
-        lib json-find . -mindepth 2 -maxdepth 2 -type d -printjson \
-        | jval --input=slurp \
-            deps:json="${deps}" \
-            'map(ltrimstr("./")) - $deps.localDeps'
-    )" \
+    remove-dead-local-modules "${destLocalModules}" "${deps}" \
     || return "$?"
-
-    if [[ ${deadModules} != '[]' ]]; then
-        # As with the module copying above, this works by generating a script to
-        # perform the removals.
-        local removalCmd
-        removalCmd="$(
-            jval \
-                --output=raw \
-                destDir="${destLocalModules}" \
-                deadModules:json="${deadModules}" '
-            $deadModules
-            |
-            map(
-                "progress-msg " + ("  " + . | @sh),
-                "rm -rf " + ($destDir + "/" + . | @sh)
-                |
-                "&& " + . + " \\"
-            )
-            |
-            ["true \\"] + . + ["&& true"]
-            |
-            join("\n")
-        ')"
-
-        progress-msg 'Removing defunct local modules:'
-        eval "${removalCmd}"
-        progress-msg
-    fi
 
     npm-install "${destDir}"
 }
@@ -212,6 +175,53 @@ function npm-install {
         npm install --no-fund --omit=dev
     ) \
     || return "$?"
+}
+
+# Removes any local modules that are "dead" with respect to the current build.
+# These are modules that (presumably) used to be part of the build but got
+# dropped for whatever reason.
+function remove-dead-local-modules {
+    local dir="$1"
+    local deps="$2"
+
+    local deadModules
+    deadModules="$(
+        cd "${dir}"
+        lib json-find . -mindepth 2 -maxdepth 2 -type d -printjson \
+        | jval --input=slurp \
+            deps:json="${deps}" \
+            'map(ltrimstr("./")) - $deps.localDeps'
+    )" \
+    || return "$?"
+
+    if [[ ${deadModules} != '[]' ]]; then
+        # The following generates an `eval`able script to perform the removals.
+        local removalCmd
+        removalCmd="$(
+            jval \
+                --output=raw \
+                dir="${dir}" \
+                deadModules:json="${deadModules}" '
+            $deadModules
+            |
+            map(
+                "progress-msg " + ("  " + . | @sh),
+                "rm -rf " + ($dir + "/" + . | @sh)
+                |
+                "&& " + . + " \\"
+            )
+            |
+            ["true \\"] + . + ["&& true"]
+            |
+            join("\n")
+        ')"
+
+        progress-msg 'Removing defunct local modules:'
+
+        eval "${removalCmd}"
+
+        progress-msg
+    fi
 }
 
 # Sets up the output directory.
