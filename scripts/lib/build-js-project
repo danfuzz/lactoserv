@@ -25,6 +25,8 @@ function usage {
     --clean-all
       Do a completely clean build. This will erase the entire built-output
       directory.
+    --make-distro
+      Create a distribution tarball.
     --out=<dir>
       Directory where built output goes. Defaults to `out` directly under the
       main product directory.
@@ -47,6 +49,9 @@ opt-toggle --var=doCleanProject clean
 
 # Completely clean build?
 opt-toggle --var=doCleanAll clean-all
+
+# Make a distribution tarball?
+opt-toggle --var=doDistro make-distro
 
 # Built output directory.
 opt-value --var=outDir out
@@ -197,6 +202,32 @@ function copy-run-script {
     mkdir -p "${destDir}"             || return "$?"
     cp "${srcScript}" "${destScript}" || return "$?"
     chmod +x "${destScript}"          || return "$?"
+}
+
+# Makes a distribution tarball of the built result.
+function make-distro {
+    local dir="$1"
+    local destDir="$2"
+
+    local baseName
+    baseName="$(jget --output=raw --file="${dir}/product-info.json" '.name + "-" + .version')" \
+    || return "$?"
+
+    local tarballPath="${destDir}/${baseName}.tgz"
+
+    local fileList
+    fileList="$(
+        cd "${dir}"
+        find . -mindepth 1 -maxdepth 1 -print0 \
+        | jval --input=raw0 '.[2:]'
+    )" \
+    || return "$?"
+
+    rm -rf "${tarballPath}" || exit "$?"
+
+    tar --create --file="${tarballPath}" --cd "${dir}" \
+        --null --files-from=<(jval <<<"${fileList}" --input=read --output=raw0 .) \
+    || exit "$?"
 }
 
 # Writes a top-level `index.js` for a project.
@@ -361,6 +392,12 @@ build-js-project "${projectName}" "${srcDir}" "${outProjectDir}" \
 if (( !platformSpecific )); then
     progress-msg 'Checking for platform agnosticity...'
     suspect-file-check "${outProjectDir}/lib/node_modules" \
+    || exit "$?"
+fi
+
+if (( doDistro )); then
+    progress-msg 'Making distribution tarball...'
+    make-distro "${outProjectDir}" "${outDir}" \
     || exit "$?"
 fi
 
