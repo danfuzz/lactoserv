@@ -21,16 +21,22 @@ const applications = [
 // Service definitions.
 const services = [
   {
+    name:      'process',
+    type:      'process-info-file',
+    directory: filePath('../../../var'),
+    baseName:  'process'
+  },
+  {
     name:      'syslog',
     type:      'system-logger',
-    directory: filePath('../../../log'),
-    baseName:  'system'
+    directory: filePath('../../../var'),
+    baseName:  'system-log'
   },
   {
     name:      'requests',
     type:      'request-logger',
-    directory: filePath('../../../log'),
-    baseName:  'requests'
+    directory: filePath('../../../var'),
+    baseName:  'request-log'
   },
   {
     name:        'limiter',
