@@ -70,6 +70,7 @@ function build-js-project {
     local destLibDir="${destDir}/lib"
     local mainModule="main-${projectName}"
     local srcMainModule="${srcDir}/${mainModule}"
+    local srcPackageJson="${srcMainModule}/package.json"
     local localCodeDirName='code'
     local destLocalCode="${destLibDir}/${localCodeDirName}"
     local destLocalModules="${destLocalCode}/node_modules"
@@ -89,10 +90,10 @@ function build-js-project {
 
     # Construct a top-level package.json.
 
-    progress-msg 'Making `package.json`...'
+    progress-msg 'Making `package.json` and `product-info.json`...'
 
     jget >"${destLibDir}/package.json" \
-        --file="${srcMainModule}/package.json" \
+        --file="${srcPackageJson}" \
         localCodeDirName="${localCodeDirName}" \
         deps:json="${deps}" \
         projectName="${projectName}" '
@@ -101,6 +102,15 @@ function build-js-project {
         name:         ("top-of-" + $projectName),
         dependencies: $deps.extDeps,
         exports:      ("./" + $localCodeDirName + "/index.js")
+    }' \
+    || return "$?"
+
+    jval >"${destDir}/product-info.json" \
+        projectName="${projectName}" \
+        srcPackage:json="$(cat "${srcPackageJson}")" '
+    {
+        name: $projectName,
+        version: $srcPackage.version
     }' \
     || return "$?"
 
