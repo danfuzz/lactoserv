@@ -86,7 +86,7 @@ lib make-localhost-cert \
 build-example-setup \
 || exit "$?"
 
-lib build-js-project --out="${outDir}" lactoserv \
+lib build-js-project --out="${outDir}" --make-distro lactoserv \
 || exit "$?"
 
 progress-msg
