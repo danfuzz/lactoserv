@@ -344,11 +344,16 @@ outDir="$(set-up-out-dir)"
 outProjectDir="${outDir}/${projectName}"
 
 if (( doCleanProject )); then
+    progress-msg 'Removing project-specific output directory...'
     rm -rf "${outProjectDir}" \
     || exit "$?"
 fi
-mkdir -p "${outProjectDir}" \
-|| exit "$?"
+
+if [[ ! -d ${outProjectDir} ]]; then
+    progress-msg 'Creating project-specific output directory...'
+    mkdir -p "${outProjectDir}" \
+    || exit "$?"
+fi
 
 build-js-project "${projectName}" "${srcDir}" "${outProjectDir}" \
 || exit "$?"
