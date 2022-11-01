@@ -31,6 +31,9 @@ function usage {
 
       --input=<style>
         `none` -- Do not read from stdin. This is the default.
+        `raw` -- Read newline-terminated of text from stdin to form pipeline input.
+        `raw0` -- Read NUL-terminated (`\\0`) lines of text from stdin to form
+           pipeline input.
         `read` -- Read values from stdin individually to form pipeline input.
         `slurp` -- Read all values from stdin into a single array, producing a
           single-value pipeline input.
@@ -41,7 +44,10 @@ function usage {
           that strings with newlines or CRs in them get treated as non-raw so as
           to maintain the guarantee of item-per-line.
         `none` -- Suppress all non-error output.
-        `raw` -- Output strings as raw text (and other values as `compact`).
+        `raw` -- Output strings as newline-terminated raw text (and other values
+          as `compact`).
+        `raw0` -- Output strings as NUL-terminated (`\\0`) raw text (and other
+          values as `compact`).
         `words` -- Like `lines`, except that the guarantee is a word per line.
           As such, strings containing whitespace get treated as non-raw.
 
@@ -56,11 +62,11 @@ function usage {
 opt-action --call='{ usage }' help/h
 
 # Input style.
-opt-value --var=inputStyle --init=none --enum='none read slurp' input
+opt-value --var=inputStyle --init=none --enum='none raw raw0 read slurp' input
 
 # Output style.
 opt-value --var=outputStyle --init=json \
-    --enum='compact json lines none raw words' output
+    --enum='compact json lines none raw raw0 words' output
 
 # List of variable assignments, as parallel arrays of type, name, and value.
 varTypes=()
@@ -119,6 +125,14 @@ case "${inputStyle}" in
     none)
         jqArgs+=('--null-input')
         ;;
+    raw)
+        jqArgs+=('--raw-input')
+        ;;
+    raw0)
+        jqArgs+=('--raw-input' '--slurp')
+        raw0Helper='split("\u0000") | .[]'
+        valueExpression="${raw0Helper} | (${valueExpression})"
+        ;;
     read)
         : # No additional arguments needed.
         ;;
@@ -142,6 +156,11 @@ case "${outputStyle}" in
         ;;
     raw)
         jqArgs+=('--raw-output' '--compact-output')
+        ;;
+    raw0)
+        jqArgs+=('--join-output' '--compact-output')
+        raw0Helper='. + "\u0000"'
+        valueExpression="(${valueExpression}) | ${raw0Helper}"
         ;;
     words)
         jqArgs+=('--raw-output' '--compact-output')

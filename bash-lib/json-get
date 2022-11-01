@@ -33,7 +33,10 @@ function usage {
           that strings with newlines or CRs in them get treated as non-raw so as
           to maintain the guarantee of item-per-line.
         `none` -- Suppress all non-error output.
-        `raw` -- Output strings as raw text (and other values as `compact`).
+        `raw` -- Output strings as newline-terminated raw text (and other values
+          as `compact`).
+        `raw0` -- Output strings as NUL-terminated (`\\0`) raw text (and other
+          values as `compact`).
         `words` -- Like `lines`, except that the guarantee is a word per line.
           As such, strings containing whitespace get treated as non-raw.
 
@@ -52,7 +55,7 @@ opt-value --var=filePath file
 
 # Output style.
 opt-value --var=outputStyle --init=json \
-    --enum='compact json lines none raw words' output
+    --enum='compact json lines none raw raw0 words' output
 
 # Value to operate on. (Will actually be the first expression if `--file` is
 # used.)
