@@ -67,10 +67,11 @@ function build-js-project {
     local srcDir="$2"
     local destDir="$3"
 
+    local destLibDir="${destDir}/lib"
     local mainModule="main-${projectName}"
     local srcMainModule="${srcDir}/${mainModule}"
     local localCodeDirName='code'
-    local destLocalCode="${destDir}/${localCodeDirName}"
+    local destLocalCode="${destLibDir}/${localCodeDirName}"
     local destLocalModules="${destLocalCode}/node_modules"
 
     progress-msg "Main module: ${mainModule}"
@@ -90,7 +91,7 @@ function build-js-project {
 
     progress-msg 'Making `package.json`...'
 
-    jget >"${destDir}/package.json" \
+    jget >"${destLibDir}/package.json" \
         --file="${srcMainModule}/package.json" \
         localCodeDirName="${localCodeDirName}" \
         deps:json="${deps}" \
@@ -115,7 +116,7 @@ function build-js-project {
     remove-dead-local-modules "${destLocalModules}" "${deps}" \
     || return "$?"
 
-    npm-install "${destDir}"
+    npm-install "${destLibDir}"
 }
 
 # Copies all the local modules for a project.
@@ -291,6 +292,12 @@ function set-up-out-dir {
 function suspect-file-check {
     local dir="$1"
 
+    if [[ ! -d ${dir} ]]; then
+        error-msg 'Missing directory for suspect file check:'
+        error-msg "  ${dir}"
+        return 1
+    fi
+
     suspectFiles="$(
         cd "${dir}"
         find . -type f \
@@ -301,6 +308,10 @@ function suspect-file-check {
         | grep -Ev 'ASCII|JSON|PNG|UTF-8|empty|short file' \
         | awk '{ sub(/^\.\//, "  "); sub(/:[ \t].*$/, ""); print; }'
     )"
+
+    if (( $? != 0 )); then
+        return 1
+    fi
 
     if [[ ${suspectFiles} != '' ]]; then
         error-msg 'Files possibly containing platform-specific binaries:'
@@ -334,7 +345,7 @@ build-js-project "${projectName}" "${srcDir}" "${outProjectDir}" \
 
 if (( !platformSpecific )); then
     progress-msg 'Checking for platform agnosticity...'
-    suspect-file-check "${outProjectDir}/node_modules" \
+    suspect-file-check "${outProjectDir}/lib/node_modules" \
     || exit "$?"
 fi
 
