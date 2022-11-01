@@ -2,6 +2,7 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { LoggingManager } from '#p/LoggingManager';
+import { ProcessInfo } from '#x/ProcessInfo';
 import { ProductInfo } from '#x/ProductInfo';
 import { ShutdownHandler } from '#p/ShutdownHandler';
 import { SignalHandler } from '#p/SignalHandler';
@@ -38,6 +39,7 @@ export class Host {
       return;
     }
 
+    ProcessInfo.init();
     ProductInfo.init();
     LoggingManager.init();
     SignalHandler.init();

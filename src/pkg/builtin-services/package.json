@@ -10,7 +10,9 @@
   },
 
   "dependencies": {
+    "@this/app-config": "*",
     "@this/app-services": "*",
+    "@this/host": "*",
     "@this/loggy": "*",
     "@this/network-protocol": "*"
   }
