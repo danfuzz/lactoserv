@@ -91,9 +91,8 @@ function set-up-out-dir {
 
 progress-msg --enable
 
-baseDir="$(dirname "$(this-cmd-dir)")"
-srcDir="${baseDir}/src"
-etcDir="${baseDir}/etc"
+srcDir="$(base-dir)/src"
+etcDir="$(base-dir)/etc"
 outDir="$(set-up-out-dir)"
 
 # Make sure there's a cert to use.

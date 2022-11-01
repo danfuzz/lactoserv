@@ -157,8 +157,7 @@ function do-sort {
 # Main script
 #
 
-baseDir="$(dirname "$(this-cmd-dir)")"
-srcDir="${baseDir}/src"
+srcDir="$(base-dir)/src"
 
 cd "${srcDir}"
 
