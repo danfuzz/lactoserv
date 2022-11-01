@@ -68,6 +68,7 @@ function build-js-project {
     local destDir="$3"
 
     local mainModule="main-${projectName}"
+    local srcMainModule="${srcDir}/${mainModule}"
     local localCodeDirName='code'
     local destLocalCode="${destDir}/${localCodeDirName}"
     local destLocalModules="${destLocalCode}/node_modules"
@@ -90,7 +91,7 @@ function build-js-project {
     progress-msg 'Making `package.json`...'
 
     jget >"${destDir}/package.json" \
-        --file="${srcDir}/${mainModule}/package.json" \
+        --file="${srcMainModule}/package.json" \
         localCodeDirName="${localCodeDirName}" \
         deps:json="${deps}" \
         projectName="${projectName}" '
@@ -103,6 +104,9 @@ function build-js-project {
     || return "$?"
 
     make-index-js "${destLocalCode}" \
+    || return "$?"
+
+    copy-run-script "${srcMainModule}" "${destDir}" \
     || return "$?"
 
     copy-local-modules "${srcDir}" "${destLocalModules}" "${deps}" \
@@ -152,6 +156,35 @@ function copy-local-modules {
     || return "$?"
 
     eval "${copyCmd}"
+}
+
+# Copies the main module's `run` script, if present.
+function copy-run-script {
+    local srcDir="$1"
+    local destDir="$2"
+
+    local scriptName='run'
+    local srcScript="${srcDir}/${scriptName}"
+    local destScript="${destDir}/${scriptName}"
+
+    if [[ ! -r ${srcScript} ]]; then
+        return
+    fi
+
+    if [[ -x ${srcScript} ]]; then
+        error-msg 'Run script is marked executable in the source directory:'
+        error-msg "  ${srcScript}"
+        error-msg 'It cannot actually be run from there. Do this:'
+        error-msg
+        error-msg --exec printf '  chmod -x %q\n' "${srcScript}"
+        error-msg
+        return 1
+    fi
+
+    progress-msg 'Copying run script...'
+    rm -rf "${destScript}" || return "$?"
+    cp "${srcScript}" "${destScript}" || return "$?"
+    chmod +x "${destScript}" || return "$?"
 }
 
 # Writes a top-level `index.js` for a project.
