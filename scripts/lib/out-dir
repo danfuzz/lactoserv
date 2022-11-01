@@ -20,6 +20,8 @@ function usage {
     --out=<dir>
       Directory where build-output goes. Defaults to `out` directly under the
       main product directory.
+    --progress (--no-progress to disable)
+      Print progress messages to stderr.
 
     Actions:
 
@@ -50,14 +52,15 @@ opt-toggle --var=doCreate create
 opt-toggle --var=doPrint print
 opt-toggle --var=doRemove remove
 
+# Progress messages?
+opt-toggle --call='{ progress-msg --set="$1" }' progress
+
 process-args "$@" || usage "$?"
 
 
 #
 # Main script
 #
-
-progress-msg --enable
 
 if [[ ${outDir} == '' ]]; then
     outDir="$(base-dir)/out"
