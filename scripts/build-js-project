@@ -64,7 +64,8 @@ process-args "$@" || usage "$?"
 # The main actions of this script. The "main module" is taken to be `main-<name>`.
 function build-js-project {
     local projectName="$1"
-    local destDir="$2"
+    local srcDir="$2"
+    local destDir="$3"
 
     local mainModule="main-${projectName}"
     local localCodeDirName='code'
@@ -89,7 +90,7 @@ function build-js-project {
     progress-msg 'Making `package.json`...'
 
     jget >"${destDir}/package.json" \
-        --file="${srcDir}/pkg/${mainModule}/package.json" \
+        --file="${srcDir}/${mainModule}/package.json" \
         localCodeDirName="${localCodeDirName}" \
         deps:json="${deps}" \
         projectName="${projectName}" '
@@ -118,7 +119,7 @@ function build-js-project {
         echo $'throw new Error(\'Shouldn\\\'t happen.\');'
     ) > "${destLocalCode}/index.js"
 
-    copy-local-modules "${srcDir}/pkg" "${destLocalModules}" "${deps}" \
+    copy-local-modules "${srcDir}" "${destLocalModules}" "${deps}" \
     || return "$?"
 
     remove-dead-local-modules "${destLocalModules}" "${deps}" \
@@ -138,7 +139,6 @@ function copy-local-modules {
     # The `jget` command outputs an `eval`able script to perform the copies,
     # which is immediately `eval`ed.
 
-    local moduleFromDir="${srcDir}/pkg"
     local copyCmd
     copyCmd="$(
         jget --output=raw "${deps}" \
@@ -274,7 +274,7 @@ progress-msg --enable
 progress-msg "Building JS project ${projectName}..."
 
 baseDir="$(dirname "$(this-cmd-dir)")"
-srcDir="${baseDir}/src"
+srcDir="${baseDir}/src/pkg"
 outDir="$(set-up-out-dir)"
 
 outProjectDir="${outDir}/${projectName}"
@@ -286,7 +286,7 @@ fi
 mkdir -p "${outProjectDir}" \
 || exit "$?"
 
-build-js-project "${projectName}" "${outProjectDir}" \
+build-js-project "${projectName}" "${srcDir}" "${outProjectDir}" \
 || exit "$?"
 
 if (( !platformSpecific )); then
