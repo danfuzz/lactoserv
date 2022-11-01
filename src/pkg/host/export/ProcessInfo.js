@@ -37,8 +37,8 @@ export class ProcessInfo {
     const startTimeSecs = startTimeMsec / 1000;
     const startTime     = FormatUtils.dateTimeStringFromSecs(startTimeSecs);
 
-    const pid           = process.pid;
-    const ppid          = process.ppid;
+    const pid  = process.pid;
+    const ppid = process.ppid;
 
     this.#info = { pid, ppid, startTime, startTimeSecs };
   }
