@@ -31,6 +31,7 @@ function usage {
 
       --input=<style>
         `none` -- Do not read from stdin. This is the default.
+        `raw` -- Read lines of text from stdin to form pipeline input.
         `read` -- Read values from stdin individually to form pipeline input.
         `slurp` -- Read all values from stdin into a single array, producing a
           single-value pipeline input.
@@ -59,7 +60,7 @@ function usage {
 opt-action --call='{ usage }' help/h
 
 # Input style.
-opt-value --var=inputStyle --init=none --enum='none read slurp' input
+opt-value --var=inputStyle --init=none --enum='none raw read slurp' input
 
 # Output style.
 opt-value --var=outputStyle --init=json \
@@ -121,6 +122,9 @@ jqArgs=()
 case "${inputStyle}" in
     none)
         jqArgs+=('--null-input')
+        ;;
+    raw)
+        jqArgs+=('--raw-input')
         ;;
     read)
         : # No additional arguments needed.
