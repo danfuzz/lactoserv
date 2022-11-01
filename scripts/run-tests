@@ -85,8 +85,7 @@ function build-tool {
 # Main script
 #
 
-baseDir="$(dirname "$(this-cmd-dir)")"
-srcDir="${baseDir}/src"
+srcDir="$(base-dir)/src"
 outDir="$(lib out-dir --out="${outDir}")" \
 || exit "$?"
 
@@ -141,7 +140,7 @@ rm -rf "${testsDir}"
 mkdir -p "${testsDir}"
 cd "${testsDir}"
 rm -rf node_modules
-ln -s ../lactoserv/code/node_modules .
+ln -s ../lactoserv/lib/code/node_modules .
 cat >package.json <<< '{ "type": "module" }'
 dirsWithTests=($(cd "${srcDir}"; find . -type d -name tests))
 for fromDir in "${dirsWithTests[@]}"; do

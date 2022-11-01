@@ -3,7 +3,7 @@
 # Copyright 2022 Dan Bornstein. All rights reserved.
 # All code and assets are considered proprietary and unlicensed.
 
-. "$(dirname "$(readlink -f "$0")")/lib/init.sh" || exit "$?"
+. "$(dirname "$(readlink -f "$0")")/init.sh" || exit "$?"
 
 
 #
@@ -20,6 +20,8 @@ function usage {
     --out=<dir>
       Directory where build-output goes. Defaults to `out` directly under the
       main product directory.
+    --progress (--no-progress to disable)
+      Print progress messages to stderr.
 
     Actions:
 
@@ -50,6 +52,9 @@ opt-toggle --var=doCreate create
 opt-toggle --var=doPrint print
 opt-toggle --var=doRemove remove
 
+# Progress messages?
+opt-toggle --call='{ progress-msg --set="$1" }' progress
+
 process-args "$@" || usage "$?"
 
 
@@ -57,14 +62,11 @@ process-args "$@" || usage "$?"
 # Main script
 #
 
-progress-msg --enable
-
 if [[ ${outDir} == '' ]]; then
-    outDir="$(dirname "$(this-cmd-dir)")/out"
+    outDir="$(base-dir)/out"
 elif [[ ! (${outDir} =~ ^/) ]]; then
     # Make it an absolute path.
     outDir="$(/bin/pwd -P)/${outDir}"
-    #outDir="$(readlink -f "$(/bin/pwd -P)/${outDir}")"
 fi
 
 if [[ -d "${outDir}" ]]; then

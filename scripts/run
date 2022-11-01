@@ -53,7 +53,7 @@ progress-msg --enable
 outDir="$(lib out-dir --out="${outDir}")" \
 || exit "$?"
 
-outRun="${outDir}/bin/run"
+outRun="${outDir}/lactoserv/bin/run"
 buildCmd=(lib build --out="${outDir}")
 doBuild=0
 

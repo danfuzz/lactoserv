@@ -76,8 +76,7 @@ function build-tool {
 # Main script
 #
 
-baseDir="$(dirname "$(this-cmd-dir)")"
-srcDir="${baseDir}/src"
+srcDir="$(base-dir)/src"
 outDir="$(lib out-dir --out="${outDir}")" \
 || exit "$?"
 
@@ -118,7 +117,7 @@ if (( doFix )); then
 fi
 
 if (( ${#args[@]} == 0 )); then
-    # Run over all of source by default.
+    # Run over all of the source by default.
     args=("${srcDir}")
 fi
 
