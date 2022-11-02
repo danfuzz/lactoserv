@@ -37,12 +37,15 @@ function usage {
 
       --input=<style>
         `none` -- Do not read from stdin. This is the default.
-        `raw` -- Read newline-terminated of text from stdin to form pipeline input.
-        `raw0` -- Read NUL-terminated (`\\0`) lines of text from stdin to form
-           pipeline input.
-        `read` -- Read values from stdin individually to form pipeline input.
-        `slurp` -- Read all values from stdin into a single array, producing a
-          single-value pipeline input.
+        `raw[:slurp]` -- Read newline-terminated lines of text from stdin to form
+           pipeline input. With `:slurp`, produces an array of all lines as the
+           sole input.
+        `raw0[:slurp]` -- Read NUL-terminated (`\\0`) strings of text from stdin
+           to form pipeline input. With `:slurp`, produces an single array of all
+           strings as the sole input.
+        `read` -- Read JSON values from stdin individually to form pipeline input.
+        `slurp` -- Read a series of JSON values from stdin into a single array,
+          producing a single-value pipeline input.
       --output=<style>
         `compact` -- Output in compact (single line) JSON form.
         `json` -- Output in multiline JSON form. This is the default.
@@ -68,7 +71,7 @@ function usage {
 opt-action --call='{ usage }' help/h
 
 # Input style.
-opt-value --var=inputStyle --init=none --enum='none raw raw0 read slurp' input
+opt-value --var=inputStyle --init=none --enum='none raw raw:slurp raw0:slurp read slurp' input
 
 # Output style.
 opt-value --var=outputStyle --init=json \
@@ -145,10 +148,26 @@ case "${inputStyle}" in
     raw)
         jqArgs+=('--raw-input')
         ;;
+    raw:slurp)
+        jqArgs+=('--raw-input' '--slurp')
+        rawSlurpHelper='
+            split("\n")
+            |
+            if .[length - 1] == ""
+                then .[:length - 1]
+                else .
+            end'
+        valueExpression="${rawSlurpHelper} | (${valueExpression})"
+        ;;
     raw0)
         jqArgs+=('--raw-input' '--slurp')
         raw0Helper='split("\u0000") | .[]'
         valueExpression="${raw0Helper} | (${valueExpression})"
+        ;;
+    raw0:slurp)
+        jqArgs+=('--raw-input' '--slurp')
+        raw0SlurpHelper='split("\u0000")'
+        valueExpression="${raw0SlurpHelper} | (${valueExpression})"
         ;;
     read)
         : # No additional arguments needed.
@@ -166,8 +185,8 @@ case "${outputStyle}" in
         jqArgs+=('--raw-output' '--compact-output')
         lineHelper='
             if type == "string" and test("[\n\r]"; "m")
-            then (. | @json)
-            else .
+                then (. | @json)
+                else .
             end'
         valueExpression="(${valueExpression}) | ${lineHelper}"
         ;;
