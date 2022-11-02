@@ -104,7 +104,8 @@ Recognized signals:
 * `SIGHUP` -- Does an in-process system reload. (The system shuts down and then
   re-runs from near-scratch.)
 * `SIGUSR2` -- Produces a heap dump file. Look in the log for the file name.
-  (Writes to the current directory if it is writable.)
+  (Writes to the current directory if it is writable.) The file can be inspected
+  using the "Memory" panel available in the Chrome developer tools.
 * `SIGINT` and `SIGTERM` -- Shuts down as cleanly as possible. (Note: `SIGINT`
   is usually what gets sent when you type `ctrl-C` in a console.)
 
