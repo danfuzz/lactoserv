@@ -281,8 +281,8 @@ function remove-dead-local-modules {
     local deadModules
     deadModules="$(
         cd "${dir}"
-        lib json-find . -mindepth 2 -maxdepth 2 -type d -printjson \
-        | jval --input=slurp \
+        find . -mindepth 2 -maxdepth 2 -type d -print0 \
+        | jval --input=raw0:slurp \
             deps:json="${deps}" \
             'map(ltrimstr("./")) - $deps.localDeps'
     )" \
