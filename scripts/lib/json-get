@@ -27,18 +27,7 @@ function usage {
       --file=<path>
         Read from the file instead of taking a value as a positional argument.
       --output=<style>
-        `compact` -- Output in compact (single line) JSON form.
-        `json` -- Output in multiline JSON form. This is the default.
-        `lines` -- Output each item as a single line. Similar to `raw`, except
-          that strings with newlines or CRs in them get treated as non-raw so as
-          to maintain the guarantee of item-per-line.
-        `none` -- Suppress all non-error output.
-        `raw` -- Output strings as newline-terminated raw text (and other values
-          as `compact`).
-        `raw0` -- Output strings as NUL-terminated (`\\0`) raw text (and other
-          values as `compact`).
-        `words` -- Like `lines`, except that the guarantee is a word per line.
-          As such, strings containing whitespace get treated as non-raw.
+        Same options as with `json-val` (see which).
 
     ${name} [--help | -h]
       Displays this message.
@@ -55,7 +44,7 @@ opt-value --var=filePath file
 
 # Output style.
 opt-value --var=outputStyle --init=json \
-    --enum='compact json lines none raw raw0 words' output
+    --enum='compact json lines none raw raw:slurp raw0 raw0:slurp words' output
 
 # Value to operate on. (Will actually be the first expression if `--file` is
 # used.)
