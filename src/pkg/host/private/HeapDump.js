@@ -1,11 +1,12 @@
 // Copyright 2022 Dan Bornstein. All rights reserved.
 // All code and assets are considered proprietary and unlicensed.
 
-import fs from 'node:fs';
+import fs from 'node:fs/promises';
 import inspector from 'node:inspector';
 import path from 'node:path';
 import { promisify } from 'node:util';
 
+import { EventSource, EventSink } from '@this/async';
 import { FormatUtils } from '@this/loggy';
 
 import { ThisModule } from '#p/ThisModule';
@@ -31,20 +32,17 @@ export class HeapDump {
    *   timestamp.
    */
   static async dump(fileName) {
-    const { fd, filePath } = this.#openDumpFile(fileName);
+    const { filePath, handle } = await this.#openDumpFile(fileName);
 
     this.#logger.dumpingTo(filePath);
 
     let chunkCount = 0;
     let byteCount  = 0;
 
-    const sess = new inspector.Session();
-    sess.connect();
+    const writeChunk = async (event) => {
+      const chunk = event.payload;
 
-    sess.on('HeapProfiler.addHeapSnapshotChunk', (msg) => {
-      const { chunk } = msg.params;
-
-      fs.writeSync(fd, msg.params.chunk);
+      await handle.write(chunk);
 
       const thisByteCount = byteCount + chunk.length;
       const lastInterval  = Math.floor(byteCount     / this.#REPORT_INTERVAL_BYTES);
@@ -56,17 +54,29 @@ export class HeapDump {
       if (lastInterval !== thisInterval) {
         this.#logger.wrote({ bytes: byteCount, chunks: chunkCount });
       }
+    };
+
+    const source = new EventSource();
+    const sink   = new EventSink(writeChunk, source.currentEvent);
+    const sess   = new inspector.Session();
+
+    await sink.start();
+    sess.connect();
+
+    sess.on('HeapProfiler.addHeapSnapshotChunk', async (msg) => {
+      source.emit(msg.params.chunk);
     });
 
     // TODO: Use 'node:inspector/promises' once this project starts requiring
     // Node v19+.
     const post = promisify((...args) => sess.post(...args));
     await post('HeapProfiler.takeHeapSnapshot', null);
+    await sink.drainAndStop();
 
     this.#logger.wrote({ bytes: byteCount, chunks: chunkCount });
 
     sess.disconnect();
-    fs.closeSync(fd);
+    await handle.close();
 
     this.#logger.dumpedTo(filePath);
   }
@@ -75,9 +85,10 @@ export class HeapDump {
    * Opens a file for (presumed) dump writing.
    *
    * @param {string} fileName Original file name.
-   * @returns {{ fd, filePath }} Opened file handle and actual file path.
+   * @returns {{ filePath, handle }} Actual file path opened, and the open file
+   *   handle.
    */
-  static #openDumpFile(fileName) {
+  static async #openDumpFile(fileName) {
     if (!fileName.endsWith('.heapsnapshot')) {
       const nowStr = FormatUtils.dateTimeStringFromMsec(Date.now());
       fileName += `-${nowStr}.heapsnapshot`;
@@ -100,8 +111,8 @@ export class HeapDump {
     for (const dir of dirsToTry) {
       try {
         const filePath = path.resolve(dir, fileName);
-        const fd = fs.openSync(filePath, 'w');
-        return { fd, filePath };
+        const handle   = await fs.open(filePath, 'w');
+        return { filePath, handle };
       } catch {
         // Ignore, and try the next option.
       }
