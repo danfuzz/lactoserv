@@ -73,26 +73,29 @@ export class EventSink extends Threadlet {
    * @throws {Error} Thrown if there is any trouble getting the event.
    */
   async #headEvent() {
-    if (!this.#draining && this.shouldStop()) {
-      return null;
+    for (let pass = 1; pass <= 2; pass++) {
+      if (pass === 2) {
+        // On the second pass, wait for something salient to happen. (On the
+        // first pass, waiting would achieve nothing but inefficiency.)
+        await Promise.race([
+          this.#head.eventPromise,
+          this.whenStopRequested()
+        ]);
+      }
+
+      if (!this.#draining && this.shouldStop()) {
+        return null;
+      }
+
+      const eventNow = this.#head.eventNow;
+      if (eventNow) {
+        return eventNow;
+      }
     }
 
-    const eventNow = this.#head.eventNow;
-
-    if (eventNow) {
-      return eventNow;
-    }
-
-    const result = await Promise.race([
-      this.#head.eventPromise,
-      this.whenStopRequested()
-    ]);
-
-    if (this.shouldStop()) {
-      return null;
-    }
-
-    return result;
+    // We only end up here if we've been asked to stop, and _either_ we haven't
+    // been asked to drain _or_ the event chain is in fact fully drained.
+    return null;
   }
 
   /**
