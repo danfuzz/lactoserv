@@ -71,7 +71,9 @@ function usage {
 opt-action --call='{ usage }' help/h
 
 # Input style.
-opt-value --var=inputStyle --init=none --enum='none raw raw:slurp raw0:slurp read slurp' input
+opt-value --var=inputStyle --init=none \
+    --enum='none raw raw:slurp raw0 raw0:slurp read slurp' \
+    input
 
 # Output style.
 opt-value --var=outputStyle --init=json \
