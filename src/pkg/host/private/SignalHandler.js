@@ -4,6 +4,8 @@
 import process from 'node:process'; // Need to import as such, for `.on*()`.
 
 import { CallbackList } from '#p/CallbackList';
+import { HeapDump } from '#p/HeapDump';
+import { ProductInfo } from '#x/ProductInfo';
 import { ShutdownHandler } from '#p/ShutdownHandler';
 import { ThisModule } from '#p/ThisModule';
 
@@ -42,11 +44,13 @@ export class SignalHandler {
       return;
     }
 
+    const dumpFunc   = (...args) => this.#handleDumpSignal(...args);
     const exitFunc   = (...args) => this.#handleExitSignal(...args);
     const reloadFunc = (...args) => this.#handleReloadSignal(...args);
     process.on('SIGHUP',  reloadFunc);
     process.on('SIGINT',  exitFunc);
     process.on('SIGTERM', exitFunc);
+    process.on('SIGUSR2', dumpFunc);
 
     this.#initDone = true;
   }
@@ -61,7 +65,7 @@ export class SignalHandler {
   }
 
   /**
-   * Handle a signal that should cause the process to exit.
+   * Handles a signal that should cause the process to exit.
    *
    * @param {string} signalName Name of the signal.
    */
@@ -79,7 +83,7 @@ export class SignalHandler {
   }
 
   /**
-   * Handle a signal that should cause the process to "reload."
+   * Handles a signal that should cause the process to "reload."
    *
    * @param {string} signalName Name of the signal.
    */
@@ -94,5 +98,16 @@ export class SignalHandler {
     // If this throws, it ends up becoming an unhandled promise rejection,
     // which will presumably cause the system to shut down.
     this.#reloadCallbacks.run();
+  }
+
+  /**
+   * Handles a signal that should cause a heap dump to be produced.
+   *
+   * @param {string} signalName Name of the signal.
+   */
+  static async #handleDumpSignal(signalName) {
+    logger[signalName].dumping();
+    await HeapDump.dump(ProductInfo.name);
+    logger[signalName].dumped();
   }
 }

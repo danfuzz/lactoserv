@@ -92,6 +92,7 @@ describe('drainAndStop()', () => {
     const event3  = new LinkedEvent(payload3);
     const event2  = new LinkedEvent(payload2, event3);
     const event1  = new LinkedEvent(payload1, event2);
+
     let callCount = 0;
     let runProcessor = false;
     const processor = async () => {
@@ -123,6 +124,38 @@ describe('drainAndStop()', () => {
     expect(PromiseState.isFulfilled(result)).toBeTrue();
 
     expect(await runResult).toBeNull();
+  });
+
+  test('processes events that came in concurrently with a stop request', async () => {
+    const event2 = new LinkedEvent(payload2);
+    const event1 = new LinkedEvent(payload1, event2);
+
+    let callCount = 0;
+    const processor = async () => {
+      callCount++;
+    };
+
+    const mp   = new ManualPromise();
+    const sink = new EventSink(processor, mp.promise);
+
+    const runResult = sink.run();
+    await timers.setImmediate();
+
+    // At this point, the run loop should be stuck waiting for either an event
+    // or a stop request. The point of this test is to see that an available
+    // event _does_ get processed when in this state and asked to drain.
+
+    const result = sink.drainAndStop();
+    mp.resolve(event1);
+    expect(callCount).toBe(0);           // Baseline expectation.
+    expect(sink.isRunning()).toBeTrue(); // Likewise.
+
+    await timers.setImmediate();
+    expect(callCount).toBe(2);
+    expect(sink.isRunning()).toBeFalse();
+
+    expect(await runResult).toBeNull();
+    expect(await result).toBeNull();
   });
 
   test('does not cause regular `stop()` to drain, after being restarted', async () => {

@@ -103,7 +103,7 @@ case "${action}" in
         doBuild=1
         ;;
     run)
-        if [[ ! -x "${outDir}/lactoserv/code/node_modules" ]]; then
+        if [[ ! -x "${outDir}/lactoserv/lib/code/node_modules" ]]; then
             doBuild=1
         fi
         ;;

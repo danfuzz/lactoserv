@@ -100,6 +100,14 @@ $ ./scripts/run
 The `run` script takes other options; `run --help` for details. TLDR: `run
 --do=build` to do a build first, for convenience.
 
+Recognized signals:
+* `SIGHUP` -- Does an in-process system reload. (The system shuts down and then
+  re-runs from near-scratch.)
+* `SIGUSR2` -- Produces a heap dump file. Look in the log for the file name.
+  (Writes to the current directory if it is writable.)
+* `SIGINT` and `SIGTERM` -- Shuts down as cleanly as possible. (Note: `SIGINT`
+  is usually what gets sent when you type `ctrl-C` in a console.)
+
 #### Install and run in production
 
 TODO! Coming soon!
