@@ -26,8 +26,14 @@ function usage {
       spaces) to form the final expression to be evaluated.
 
       <assignment>
-        <name>=<value> Assign `$name` to be the indicated string value.
-        <name>:json=<value> Assign `$name` to be the indicated parsed JSON value.
+        <name>:<type>[:file]=<value> -- Assign `$name` to be the indicated value.
+          With optional `:file`, <value> is interpreted as a filesystem path, and
+          the so-named file is read; without it, <value> is just taken to be the
+          text to be interpreted and assigned. <type> determines the interpretation:
+
+          `json` -- Interpret <value> as JSON text.
+          `raw` -- Interpret <value> as a raw string. This is the default if
+            type is not specified.
 
       --input=<style>
         `none` -- Do not read from stdin. This is the default.
@@ -80,21 +86,23 @@ rest-arg --call=parse-rest jval-exprs
 function parse-rest {
     # Parse assignments.
     while (( $# > 0 )); do
-        arg="$1"
+        local arg="$1"
         if [[ ${arg} == '--' ]]; then
             shift
             break
         fi
 
-        [[ ${arg} =~ ^([_a-zA-Z0-9]+)(:[a-z]+)?=(.*)$ ]] \
+        [[ ${arg} =~ ^([_a-zA-Z0-9]+)(:[a-z]+(:[a-z]+)?)?=(.*)$ ]] \
         || break
 
         varNames+=("${BASH_REMATCH[1]}")
-        varValues+=("${BASH_REMATCH[3]}")
+        varValues+=("${BASH_REMATCH[4]}")
 
-        varType="${BASH_REMATCH[2]}"
+        local varType="${BASH_REMATCH[2]}"
         if [[ ${varType} == '' ]]; then
-            varType='string'
+            varType='raw'
+        elif [[ ${varType} == ':file' ]]; then
+            varType='raw:file'
         else
             varType="${varType:1}" # `:1` to drop the initial `:`.
         fi
@@ -103,6 +111,15 @@ function parse-rest {
 
         shift
     done
+
+    # Report an error if the next argument loosely looks like an assignment,
+    # because it is probably a bug in the caller.
+    if [[ $1 =~ ^[-_:a-zA-Z0-9]+= ]]; then
+        local problem="${BASH_REMATCH[0]}"
+        error-msg 'Invalid assignment left-hand side:'
+        error-msg "  ${problem}"
+        return 1
+    fi
 
     # Construct the value expression from the remaining arguments.
     if (( $# == 0 )); then
@@ -173,13 +190,25 @@ case "${outputStyle}" in
         ;;
 esac
 
-for (( i = 0; i < ${#varTypes[@]}; i++ )); do
+for (( i = 0; i < ${#varNames[@]}; i++ )); do
+    varName="${varNames[${i}]}"
     varType="${varTypes[${i}]}"
+    varValue="${varValues[${i}]}"
+
+    if [[ ${varType} =~ ^([^:]+):file$ ]]; then
+        varType="${BASH_REMATCH[1]}"
+        if [[ ! -r "${varValue}" ]]; then
+            error-msg "Not readable: ${varValue}"
+            exit 1
+        fi
+        varValue="$(cat "${varValue}")" || exit "$?"
+    fi
+
     case "${varType}" in
         json)
             jqArgs+=('--argjson')
             ;;
-        string)
+        raw)
             jqArgs+=('--arg')
             ;;
         *)
@@ -188,7 +217,7 @@ for (( i = 0; i < ${#varTypes[@]}; i++ )); do
             ;;
     esac
 
-    jqArgs+=("${varNames[${i}]}" "${varValues[${i}]}")
+    jqArgs+=("${varName}" "${varValue}")
 done
 
 # Note: `jq` doesn't recognize `--` as an end-of-options sign, but generally
