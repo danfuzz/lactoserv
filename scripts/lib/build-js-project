@@ -112,7 +112,7 @@ function build-js-project {
 
     jval >"${destDir}/product-info.json" \
         projectName="${projectName}" \
-        srcPackage:json="$(cat "${srcPackageJson}")" '
+        srcPackage:json:file="${srcPackageJson}" '
     {
         name: $projectName,
         version: $srcPackage.version
