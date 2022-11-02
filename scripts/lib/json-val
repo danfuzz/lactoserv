@@ -192,9 +192,9 @@ for (( i = 0; i < ${#varTypes[@]}; i++ )); do
 done
 
 # Note: `jq` doesn't recognize `--` as an end-of-options sign, but generally
-# speaking there's no ambiguity between a valid `jq` option and its program
-# text. Nonetheless, we prepend an extra space if the program begins with a
-# dash, just in case the user of this script passed in something wacky.
+# speaking there's no ambiguity between a valid `jq` option and actually useful
+# program text. Nonetheless, we prepend an extra space if the program begins
+# with a dash, just in case the user of this script passed in something wacky.
 if [[ ${valueExpression} =~ ^- ]]; then
     valueExpression=" ${valueExpression}"
 fi
