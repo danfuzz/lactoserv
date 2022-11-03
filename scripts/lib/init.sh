@@ -29,6 +29,10 @@ else
     _init_mainDir="${_init_cmdPath%/*}"
 fi
 
+# Load the "built-in" core libraries.
+. "${_init_libDir}/stderr-messages.sh" || return "$?"
+. "${_init_libDir}/arg-processor.sh" || return "$?"
+
 # Load product-specific initialization code (including loading other libraries).
 . "${_init_libDir}/init-product.sh" # Product-specific init code.
 

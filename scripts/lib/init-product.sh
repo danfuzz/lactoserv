@@ -10,8 +10,6 @@
 # Sibling libraries
 #
 
-. "${_init_libDir}/stderr-messages.sh" || return "$?"
-. "${_init_libDir}/arg-processor.sh" || return "$?"
 . "${_init_libDir}/init-wrappers.sh" || return "$?"
 
 
