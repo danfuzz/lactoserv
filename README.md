@@ -65,8 +65,9 @@ Build complete!
 $
 ```
 
-`build` deposits a build in the directory `out`, directly under the top-level
-source directory. The script takes other options; `build --help` for details.
+By default, `build` deposits both a runnable build and a distribution tarball in
+the directory `out` directly under the top-level source directory. The script
+takes other options; `build --help` for details.
 
 #### Lint
 
