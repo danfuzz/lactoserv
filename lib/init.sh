@@ -72,20 +72,20 @@ function main-scripts-dir {
     echo "${_init_mainDir}"
 }
 
-# Gets the directory of this command, "this command" being the main script that
-# is running.
+# Gets the directory of this command, "this command" being the (outer) script
+# that is running.
 function this-cmd-dir {
     echo "${_init_cmdDir}"
 }
 
-# Gets the name of this command, that is, "this command" being the main script
-# that is running.
+# Gets the name of this command, that is, "this command" being the (outer)
+# script that is running.
 function this-cmd-name {
     echo "${_init_cmdPath##*/}"
 }
 
-# Gets the full path of this command, "this command" being the main script that
-# is running.
+# Gets the full path of this command, "this command" being the (outer) script
+# that is running.
 function this-cmd-path {
     echo "${_init_cmdPath}"
 }
