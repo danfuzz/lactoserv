@@ -179,7 +179,7 @@ function opt-toggle {
 
     # Extra filter on the positive option, so it can take a value.
     _argproc_define-value-taking-arg --option "${specName}" \
-        '=1' $'/^[01]$/\n'"${optFilter}" "${optCall}" "${optVar}" \
+        '=1' $'/^[01]$/\n'"${optFilter}" "${optCall}" "${optVar}"
     _argproc_define-no-value-arg --option "no-${specName}" \
         '0' "${optFilter}" "${optCall}" "${optVar}" ''
 
