@@ -1,4 +1,4 @@
-bashy-lib
+Bashy-lib
 =========
 
 This is a "core library" of sorts for Bash, containing a bunch of stuff that
