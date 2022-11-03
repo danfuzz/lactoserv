@@ -11,7 +11,7 @@
 # Sibling libraries
 #
 
-### LOAD NEEDED LIBRARIES HERE! ###
+##### LOAD ANY NEEDED LIBRARIES HERE! #####
 # . "${_init_libDir}/some-lib.sh" || return "$?"
 
 
