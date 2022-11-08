@@ -67,10 +67,6 @@ srcDir="$(base-dir)/src"
 etcDir="$(base-dir)/etc"
 outDir="$(set-up-out-dir)"
 
-# Make sure there's a cert to use.
-lib make-localhost-cert \
-|| exit "$?"
-
 lib build-js-project --out="${outDir}" --make-distro lactoserv \
 || exit "$?"
 
