@@ -14,7 +14,7 @@ export class Certificates {
    * strings.
    */
   static get CERTIFICATE_PATTERN() {
-    return this.#makePemPattern('CERTIFICATE');
+    return this.#makePemPattern('CERTIFICATE', true);
   }
 
   /**
@@ -54,16 +54,20 @@ export class Certificates {
    * Makes a PEM-matching pattern.
    *
    * @param {string} label The label to match.
+   * @param {boolean} [multiple = false] Allow multiple PEM sections?
    * @returns {string} The constructed pattern.
    */
-  static #makePemPattern(label) {
+  static #makePemPattern(label, multiple = false) {
     const base64Line = '[/+a-zA-Z0-9]{1,80}';
     const body       = `(${base64Line}\n+){0,500}${base64Line}={0,2}\n+`;
-
-    return '^\n*'
+    const oneBlock   =
+        '\n*'
       + `-----BEGIN ${label}-----\n+`
       + body
-      + `-----END ${label}-----\n+`
-      + '$';
+      + `-----END ${label}-----\n+`;
+
+    return multiple
+      ? `^(${oneBlock})+$`
+      : `^${oneBlock}$`;
   }
 }
