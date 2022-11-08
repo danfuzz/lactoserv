@@ -9,8 +9,8 @@ import { MustBe } from '@this/typey';
  */
 export class Certificates {
   /**
-   * @returns {string} Regex pattern for a standard-form PEM certificate file.
-   * It is anchored at both ends by `^...$` so as to only match complete
+   * @returns {string} Regex pattern for a standard-form PEM certificate chain
+   * file. It is anchored at both ends by `^...$` so as to only match complete
    * strings.
    */
   static get CERTIFICATE_PATTERN() {
