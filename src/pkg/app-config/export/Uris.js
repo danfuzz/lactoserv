@@ -37,14 +37,6 @@ export class Uris {
   }
 
   /**
-   * @returns {RegExp} Regular expression that matches {@link
-   * #HOSTNAME_PATTERN}.
-   */
-  static get HOSTNAME_REGEXP() {
-    return new RegExp(this.HOSTNAME_PATTERN);
-  }
-
-  /**
    * @returns {string} Regex pattern which matches an interface name or
    * address, anchored so that it matches a complete string.
    *
@@ -122,14 +114,6 @@ export class Uris {
       `^//${this.HOSTNAME_PATTERN_FRAGMENT}(/${nameComponent})*/$`;
 
     return pattern;
-  }
-
-  /**
-   * @returns {RegExp} Regular expression that matches {@link
-   * #MOUNT_PATTERN}.
-   */
-  static get MOUNT_REGEXP() {
-    return new RegExp(this.MOUNT_PATTERN);
   }
 
   /**
@@ -276,7 +260,7 @@ export class Uris {
    * @throws {Error} Thrown if `name` is invalid.
    */
   static parseHostname(name, allowWildcards = false) {
-    MustBe.string(name, this.HOSTNAME_REGEXP);
+    MustBe.string(name, this.HOSTNAME_PATTERN);
     const path = name.split('.').reverse();
     let wildcard = false;
 
@@ -299,7 +283,7 @@ export class Uris {
    * @returns {{hostname: TreePathKey, path: TreePathKey}} Components thereof.
    */
   static parseMount(mount) {
-    MustBe.string(mount, this.MOUNT_REGEXP);
+    MustBe.string(mount, this.MOUNT_PATTERN);
 
     // Somewhat simplified regexp, because we already know that `mount` is
     // syntactically correct, per `MustBe...` above.
