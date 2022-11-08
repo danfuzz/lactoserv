@@ -18,6 +18,8 @@ function usage {
 
     --clean
       Do a clean build.
+    --make-distro
+      Create a distribution tarball.
     --out=<dir>
       Directory where built output goes. Defaults to `out` directly under the
       main product directory.
@@ -34,6 +36,9 @@ opt-action --call='{ usage }' help/h
 
 # Clean build?
 opt-toggle --var=doClean clean
+
+# Make a distribution tarball?
+opt-toggle --var=doDistro make-distro
 
 # Built output directory.
 opt-value --var=outDir out
@@ -67,7 +72,12 @@ srcDir="$(base-dir)/src"
 etcDir="$(base-dir)/etc"
 outDir="$(set-up-out-dir)"
 
-lib build-js-project --out="${outDir}" --make-distro lactoserv \
+extraOpts=()
+if (( doDistro )); then
+    extraOpts+=(--make-distro)
+fi
+
+lib build-js-project --out="${outDir}" "${extraOpts[@]}" lactoserv \
 || exit "$?"
 
 progress-msg

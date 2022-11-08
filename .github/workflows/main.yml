@@ -35,7 +35,7 @@ jobs:
         run: ./scripts/lint
 
       - name: Actually build.
-        run: ./scripts/build
+        run: ./scripts/build --make-distro
 
       - name: Run the unit tests.
         run: ./scripts/run-tests
