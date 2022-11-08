@@ -90,41 +90,6 @@ export class Uris {
   }
 
   /**
-   * @returns {string} Regex pattern which matches a (URI-ish) mount point,
-   * anchored so that it matches a complete string.
-   *
-   * This pattern allows regular strings of the form `//<hostname>/<path>/...`,
-   * where:
-   *
-   * * `hostname` is {@link Uris.HOSTNAME_PATTERN_FRAGMENT}.
-   * * Each `path` is a non-empty string consisting of alphanumerics plus `-`,
-   *   `_`, or `.`; which must furthermore start and end with an alphanumeric
-   *   character.
-   * * It must start with `//` and end with `/`.
-   *
-   * **Note:** Mount paths are more restrictive than what is acceptable in
-   * general for paths, e.g. a path passed in from a network request can
-   * legitimately _not_ match a mount path while still being syntactically
-   * correct.
-   */
-  static get MOUNT_PATTERN() {
-    const alnum = 'a-zA-Z0-9';
-    const nameComponent = `(?=[${alnum}])[-_.${alnum}]*[${alnum}]`;
-    const pattern =
-      `^//${this.HOSTNAME_PATTERN_FRAGMENT}(/${nameComponent})*/$`;
-
-    return pattern;
-  }
-
-  /**
-   * @returns {string} Regex pattern which matches a protocol name (as allowed
-   * by this system),anchored so that it matches a complete string.
-   */
-  static get PROTOCOL_PATTERN() {
-    return '^(http|https|http2)$';
-  }
-
-  /**
    * Checks that a given value is a string which can be interpreted as an
    * absolute URI path (no protocol, host, etc.). It must:
    *
@@ -214,6 +179,36 @@ export class Uris {
   }
 
   /**
+   * Checks that a given value is a string in the form of a network mount point
+   * (as used by this system). Mount points are URI-ish strings of the form
+   * `//<hostname>/<path>/...`, where:
+   *
+   * * `hostname` is {@link Uris.HOSTNAME_PATTERN_FRAGMENT}.
+   * * Each `path` is a non-empty string consisting of alphanumerics plus `-`,
+   *   `_`, or `.`; which must furthermore start and end with an alphanumeric
+   *   character.
+   * * It must start with `//` and end with `/`.
+   *
+   * **Note:** Mount paths are more restrictive than what is acceptable in
+   * general for paths as passed in via HTTP(ish) requests, i.e. an incoming
+   * path can legitimately _not_ match a mount path while still being
+   * syntactically correct.
+   *
+   * @param {*} value Value in question.
+   * @returns {string} `value` if it is a string which matches the stated
+   *   pattern.
+   * @throws {Error} Thrown if `value` does not match.
+   */
+  static checkMount(value) {
+    const alnum         = 'a-zA-Z0-9';
+    const nameComponent = `(?=[${alnum}])[-_.${alnum}]*[${alnum}]`;
+    const pattern       =
+      `^//${this.HOSTNAME_PATTERN_FRAGMENT}(/${nameComponent})*/$`;
+
+    return MustBe.string(value, pattern);
+  }
+
+  /**
    * Checks that a given value is a valid port number, optionally also allowing
    * `*` to specify the wildcard port.
    *
@@ -236,14 +231,17 @@ export class Uris {
   }
 
   /**
-   * Checks that a given value is a string matching {@link #PROTOCOL_PATTERN}.
+   * Checks that a given value is a string representing a protocol name (as
+   * allowed by this system).
    *
    * @param {*} value Value in question.
-   * @returns {string} `value` if it is a string which matches the pattern.
+   * @returns {string} `value` if it is a string which matches the stated
+   *   pattern.
    * @throws {Error} Thrown if `value` does not match.
    */
   static checkProtocol(value) {
-    return MustBe.string(value, this.PROTOCOL_PATTERN);
+    const pattern = /^(http|https|http2)$/;
+    return MustBe.string(value, pattern);
   }
 
   /**
@@ -283,10 +281,10 @@ export class Uris {
    * @returns {{hostname: TreePathKey, path: TreePathKey}} Components thereof.
    */
   static parseMount(mount) {
-    MustBe.string(mount, this.MOUNT_PATTERN);
+    this.checkMount(mount);
 
     // Somewhat simplified regexp, because we already know that `mount` is
-    // syntactically correct, per `MustBe...` above.
+    // syntactically correct, per `checkMount()` above.
     const topParse = /^[/][/](?<hostname>[^/]+)[/](?:(?<path>.*)[/])?$/
       .exec(mount);
 
