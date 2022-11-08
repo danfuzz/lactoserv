@@ -45,18 +45,6 @@ process-args "$@" || usage "$?"
 # Helper functions
 #
 
-# Copies the example setup into the out directory.
-function build-example-setup {
-    progress-msg 'Copying example setup...'
-
-    local destDir="${outDir}/etc/example-setup"
-
-    rm -rf "${destDir}" || return "$?"
-    mkdir -p "${destDir}" || return "$?"
-
-    lib rsync-local "${etcDir}/example-setup/" "${destDir}"
-}
-
 # Sets up the output directory.
 function set-up-out-dir {
     local extraOpts=()
@@ -81,9 +69,6 @@ outDir="$(set-up-out-dir)"
 
 # Make sure there's a cert to use.
 lib make-localhost-cert \
-|| exit "$?"
-
-build-example-setup \
 || exit "$?"
 
 lib build-js-project --out="${outDir}" --make-distro lactoserv \
