@@ -15,7 +15,7 @@ import { Util } from '#x/Util';
  *   entry. Names can in the form `*.<name>` to match any subdomain of `<name>`,
  *   or `*` to be a complete wildcard (that is, matches any name not otherwise
  *   mentioned).
- * * `{string|Buffer} certificate` -- The certificate for `hostnames`, as
+ * * `{string|Buffer} certificate` -- The certificate chain for `hostnames`, as
  *   PEM-encoded data.
  * * `{string|Buffer} privateKey` -- The private key associated with
  *   `certificate`, as PEM-encoded data.
@@ -43,7 +43,7 @@ export class HostConfig extends BaseConfig {
     const { hostnames, certificate, privateKey } = config;
 
     this.#hostnames   = Util.checkAndFreezeStrings(hostnames, Uris.HOSTNAME_PATTERN);
-    this.#certificate = Certificates.checkCertificate(HostConfig.#bufferFilter(certificate));
+    this.#certificate = Certificates.checkCertificateChain(HostConfig.#bufferFilter(certificate));
     this.#privateKey  = Certificates.checkPrivateKey(HostConfig.#bufferFilter(privateKey));
   }
 

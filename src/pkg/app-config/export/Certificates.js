@@ -13,7 +13,7 @@ export class Certificates {
    * file. It is anchored at both ends by `^...$` so as to only match complete
    * strings.
    */
-  static get CERTIFICATE_PATTERN() {
+  static get CERTIFICATE_CHAIN_PATTERN() {
     return this.#makePemPattern('CERTIFICATE', true);
   }
 
@@ -28,14 +28,14 @@ export class Certificates {
 
   /**
    * Checks that a given value is a string matching {@link
-   * #CERTIFICATE_PATTERN}.
+   * #CERTIFICATE_CHAIN_PATTERN}.
    *
    * @param {*} value Value in question.
    * @returns {string} `value` if it is a string which matches the pattern.
    * @throws {Error} Thrown if `value` does not match.
    */
-  static checkCertificate(value) {
-    return MustBe.string(value, this.CERTIFICATE_PATTERN);
+  static checkCertificateChain(value) {
+    return MustBe.string(value, this.CERTIFICATE_CHAIN_PATTERN);
   }
 
   /**
