@@ -81,5 +81,5 @@ if (( doBuild )); then
 fi
 
 exec "${outRun}" \
-    --config="${outDir}/etc/example-setup/config/config.mjs" \
+    --config="$(base-dir)/etc/example-setup/config/config.mjs" \
     --max-run-time-secs="$(( 5 * 60 ))"
