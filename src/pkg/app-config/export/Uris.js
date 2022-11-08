@@ -37,110 +37,6 @@ export class Uris {
   }
 
   /**
-   * @returns {RegExp} Regular expression that matches {@link
-   * #HOSTNAME_PATTERN}.
-   */
-  static get HOSTNAME_REGEXP() {
-    return new RegExp(this.HOSTNAME_PATTERN);
-  }
-
-  /**
-   * @returns {string} Regex pattern which matches an interface name or
-   * address, anchored so that it matches a complete string.
-   *
-   * This pattern allows normal dotted DNS names, numeric IPv4 and IPv6 names
-   * _except_ not "any" addresses, or the special "name" `*` to represent the
-   * "any" address.
-   */
-  static get INTERFACE_PATTERN() {
-    // The one allowed "any" address.
-    const anyAddress = '[*]';
-
-    // Normal DNS names. See RFC1035 for details. Notes:
-    // * The maximum allowed length for a "label" (name component) is 63.
-    // * The maximum allowed total length is 255.
-    // * The spec seems to require each label to start with a letter, but in
-    //   practice that's commonly violated, e.g. there are many `<digits>.com`
-    //   registrations, and `<digits>.<digits>...in-addr.arpa` is commonly used.
-    //   So, we instead require labels not start with a dash and that there is
-    //   at least one non-digit somewhere in the entire name. This is enough to
-    //   disambiguate between a DNS name and an IPv4 address, and to cover
-    //   existing uses.
-    const dnsLabel = '(?!-)[-a-zA-Z0-9]{1,63}(?<!-)';
-    const dnsName  =
-      '(?!.{256})' +                    // No more than 255 characters total.
-      '(?=.*[a-zA-Z])' +                // At least one letter _somewhere_.
-      `${dnsLabel}(?:[.]${dnsLabel})*`; // `.`-delimited sequence of labels.
-
-    // IPv4 address.
-    const ipv4Address =
-      '(?!0+[.]0+[.]0+[.]0+)' + // No IPv4 "any" addresses.
-      '(?!.*[^.]{4})' +         // No more than three digits in a row.
-      '(?!.*[3-9][^.]{2})' +    // No 3-digit number over `299`.
-      '(?!.*2[6-9][^.])' +      // No `2xx` number over `259`.
-      '(?!.*25[6-9])' +         // No `25x` number over `255`.
-      '[0-9]{1,3}(?:[.][0-9]{1,3}){3}';
-
-    // IPv6 address.
-    const ipv6Address =
-      '(?=.*:)' +              // AFAWC, IPv6 requires a colon _somewhere_.
-      '(?![:0]+)' +            // No IPv6 "any" addresses.
-      '(?!.*[^:]{5})' +        // No more than four digits in a row.
-      '(?!(.*::){2})' +        // No more than one `::`.
-      '(?!.*:::)' +            // No triple-colons (or quad-, etc.).
-      '(?!([^:]*:){8})' +      // No more than seven colons total.
-      '(?=.*::|([^:]*:){7}[^:]*$)' + // Contains `::` or exactly seven colons.
-      '(?=(::|[^:]))' +        // Must start with `::` or digit.
-      '[:0-9A-Fa-f]{2,39}' +   // (Bunch of valid characters.)
-      '(?<=(::|[^:]))';        // Must end with `::` or digit.
-
-    return `^(${anyAddress}|${dnsName}|${ipv4Address}|${ipv6Address})$`;
-  }
-
-  /**
-   * @returns {string} Regex pattern which matches a (URI-ish) mount point,
-   * anchored so that it matches a complete string.
-   *
-   * This pattern allows regular strings of the form `//<hostname>/<path>/...`,
-   * where:
-   *
-   * * `hostname` is {@link Uris.HOSTNAME_PATTERN_FRAGMENT}.
-   * * Each `path` is a non-empty string consisting of alphanumerics plus `-`,
-   *   `_`, or `.`; which must furthermore start and end with an alphanumeric
-   *   character.
-   * * It must start with `//` and end with `/`.
-   *
-   * **Note:** Mount paths are more restrictive than what is acceptable in
-   * general for paths, e.g. a path passed in from a network request can
-   * legitimately _not_ match a mount path while still being syntactically
-   * correct.
-   */
-  static get MOUNT_PATTERN() {
-    const alnum = 'a-zA-Z0-9';
-    const nameComponent = `(?=[${alnum}])[-_.${alnum}]*[${alnum}]`;
-    const pattern =
-      `^//${this.HOSTNAME_PATTERN_FRAGMENT}(/${nameComponent})*/$`;
-
-    return pattern;
-  }
-
-  /**
-   * @returns {RegExp} Regular expression that matches {@link
-   * #MOUNT_PATTERN}.
-   */
-  static get MOUNT_REGEXP() {
-    return new RegExp(this.MOUNT_PATTERN);
-  }
-
-  /**
-   * @returns {string} Regex pattern which matches a protocol name (as allowed
-   * by this system),anchored so that it matches a complete string.
-   */
-  static get PROTOCOL_PATTERN() {
-    return '^(http|https|http2)$';
-  }
-
-  /**
    * Checks that a given value is a string which can be interpreted as an
    * absolute URI path (no protocol, host, etc.). It must:
    *
@@ -219,14 +115,94 @@ export class Uris {
   }
 
   /**
-   * Checks that a given value is a string matching {@link #INTERFACE_PATTERN}.
+   * Checks that a given value is a string which can be used as a network
+   * interface name or address. This allows:
+   *
+   * * Normal dotted DNS names.
+   * * Numeric IPv4 and IPv6 addresses, except _not_ "any" addresses.
+   * * The special "name" `*` to represent the "any" address.
    *
    * @param {*} value Value in question.
-   * @returns {string} `value` if it is a string which matches the pattern.
+   * @returns {string} `value` if it is a string which matches the stated
+   *   pattern.
    * @throws {Error} Thrown if `value` does not match.
    */
   static checkInterface(value) {
-    return MustBe.string(value, this.INTERFACE_PATTERN);
+    // The one allowed "any" address.
+    const anyAddress = '[*]';
+
+    // Normal DNS names. See RFC1035 for details. Notes:
+    // * The maximum allowed length for a "label" (name component) is 63.
+    // * The maximum allowed total length is 255.
+    // * The spec seems to require each label to start with a letter, but in
+    //   practice that's commonly violated, e.g. there are many `<digits>.com`
+    //   registrations, and `<digits>.<digits>...in-addr.arpa` is commonly used.
+    //   So, we instead require labels not start with a dash and that there is
+    //   at least one non-digit somewhere in the entire name. This is enough to
+    //   disambiguate between a DNS name and an IPv4 address, and to cover
+    //   existing uses.
+    const dnsLabel = '(?!-)[-a-zA-Z0-9]{1,63}(?<!-)';
+    const dnsName  =
+      '(?!.{256})' +                    // No more than 255 characters total.
+      '(?=.*[a-zA-Z])' +                // At least one letter _somewhere_.
+      `${dnsLabel}(?:[.]${dnsLabel})*`; // `.`-delimited sequence of labels.
+
+    // IPv4 address.
+    const ipv4Address =
+      '(?!0+[.]0+[.]0+[.]0+)' + // No IPv4 "any" addresses.
+      '(?!.*[^.]{4})' +         // No more than three digits in a row.
+      '(?!.*[3-9][^.]{2})' +    // No 3-digit number over `299`.
+      '(?!.*2[6-9][^.])' +      // No `2xx` number over `259`.
+      '(?!.*25[6-9])' +         // No `25x` number over `255`.
+      '[0-9]{1,3}(?:[.][0-9]{1,3}){3}';
+
+    // IPv6 address.
+    const ipv6Address =
+      '(?=.*:)' +              // AFAWC, IPv6 requires a colon _somewhere_.
+      '(?![:0]+)' +            // No IPv6 "any" addresses.
+      '(?!.*[^:]{5})' +        // No more than four digits in a row.
+      '(?!(.*::){2})' +        // No more than one `::`.
+      '(?!.*:::)' +            // No triple-colons (or quad-, etc.).
+      '(?!([^:]*:){8})' +      // No more than seven colons total.
+      '(?=.*::|([^:]*:){7}[^:]*$)' + // Contains `::` or exactly seven colons.
+      '(?=(::|[^:]))' +        // Must start with `::` or digit.
+      '[:0-9A-Fa-f]{2,39}' +   // (Bunch of valid characters.)
+      '(?<=(::|[^:]))';        // Must end with `::` or digit.
+
+    const pattern =
+      `^(${anyAddress}|${dnsName}|${ipv4Address}|${ipv6Address})$`;
+
+    return MustBe.string(value, pattern);
+  }
+
+  /**
+   * Checks that a given value is a string in the form of a network mount point
+   * (as used by this system). Mount points are URI-ish strings of the form
+   * `//<hostname>/<path>/...`, where:
+   *
+   * * `hostname` is {@link Uris.HOSTNAME_PATTERN_FRAGMENT}.
+   * * Each `path` is a non-empty string consisting of alphanumerics plus `-`,
+   *   `_`, or `.`; which must furthermore start and end with an alphanumeric
+   *   character.
+   * * It must start with `//` and end with `/`.
+   *
+   * **Note:** Mount paths are more restrictive than what is acceptable in
+   * general for paths as passed in via HTTP(ish) requests, i.e. an incoming
+   * path can legitimately _not_ match a mount path while still being
+   * syntactically correct.
+   *
+   * @param {*} value Value in question.
+   * @returns {string} `value` if it is a string which matches the stated
+   *   pattern.
+   * @throws {Error} Thrown if `value` does not match.
+   */
+  static checkMount(value) {
+    const alnum         = 'a-zA-Z0-9';
+    const nameComponent = `(?=[${alnum}])[-_.${alnum}]*[${alnum}]`;
+    const pattern       =
+      `^//${this.HOSTNAME_PATTERN_FRAGMENT}(/${nameComponent})*/$`;
+
+    return MustBe.string(value, pattern);
   }
 
   /**
@@ -252,14 +228,17 @@ export class Uris {
   }
 
   /**
-   * Checks that a given value is a string matching {@link #PROTOCOL_PATTERN}.
+   * Checks that a given value is a string representing a protocol name (as
+   * allowed by this system).
    *
    * @param {*} value Value in question.
-   * @returns {string} `value` if it is a string which matches the pattern.
+   * @returns {string} `value` if it is a string which matches the stated
+   *   pattern.
    * @throws {Error} Thrown if `value` does not match.
    */
   static checkProtocol(value) {
-    return MustBe.string(value, this.PROTOCOL_PATTERN);
+    const pattern = /^(http|https|http2)$/;
+    return MustBe.string(value, pattern);
   }
 
   /**
@@ -276,7 +255,7 @@ export class Uris {
    * @throws {Error} Thrown if `name` is invalid.
    */
   static parseHostname(name, allowWildcards = false) {
-    MustBe.string(name, this.HOSTNAME_REGEXP);
+    MustBe.string(name, this.HOSTNAME_PATTERN);
     const path = name.split('.').reverse();
     let wildcard = false;
 
@@ -299,10 +278,10 @@ export class Uris {
    * @returns {{hostname: TreePathKey, path: TreePathKey}} Components thereof.
    */
   static parseMount(mount) {
-    MustBe.string(mount, this.MOUNT_REGEXP);
+    this.checkMount(mount);
 
     // Somewhat simplified regexp, because we already know that `mount` is
-    // syntactically correct, per `MustBe...` above.
+    // syntactically correct, per `checkMount()` above.
     const topParse = /^[/][/](?<hostname>[^/]+)[/](?:(?<path>.*)[/])?$/
       .exec(mount);
 

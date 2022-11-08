@@ -9,62 +9,33 @@ import { MustBe } from '@this/typey';
  */
 export class Names {
   /**
-   * @returns {string} Regex pattern which matches a general name-of-something
-   * in this system, anchored so that it matches a complete string. These are
-   * used to name application instances, server instances, etc.
-   *
-   * This pattern allows non-empty strings consisting of alphanumerics plus `-`,
-   * which furthermore must start and end with an alphanumeric character.
-   */
-  static get NAME_PATTERN() {
-    return '^(?!-)[-a-zA-Z0-9]+(?<!-)$';
-  }
-
-  /**
-   * @returns {string} Regex pattern which matches a general type-of-something
-   * in this system, anchored so that it matches a complete string. These are
-   * used to name application types, service types, etc.
-   *
-   * **Note:** This is the same as {@link #NAME_PATTERN}, the field name just
-   * being to help signal intent at the use site.
-   */
-  static get TYPE_PATTERN() {
-    return this.NAME_PATTERN;
-  }
-
-  /**
-   * Checks that a given value is a string matching {@link #NAME_PATTERN}.
+   * Checks that a given value is a string which can be used as a "name of
+   * something" in this system. Allowed strings must be non-empty and consist
+   * only of alphanumerics plus `-`, and furthermore must start and end with an
+   * alphanumeric character.
    *
    * @param {*} value Value in question.
-   * @returns {string} `value` if it is a string which matches the pattern.
+   * @returns {string} `value` if it is a string which matches the stated
+   *   pattern.
    * @throws {Error} Thrown if `value` does not match.
    */
   static checkName(value) {
-    return MustBe.string(value, this.NAME_PATTERN);
+    const pattern = /^(?!-)[-a-zA-Z0-9]+(?<!-)$/;
+    return MustBe.string(value, pattern);
   }
 
   /**
-   * Checks that a given value is a string matching {@link #NAME_PATTERN} or is
-   * `null`.
+   * Checks that a given value is a string which can be used as a "type of
+   * something" in this system. The allowed pattern is the same as {@link
+   * #checkName}; the difference in method name is meant to help signal intent
+   * at use sites.
    *
    * @param {*} value Value in question.
-   * @returns {string|null} `value` if it is a matching string or `null`.
-   * @throws {Error} Thrown if `value` does not match.
-   */
-  static checkNameOrNull(value) {
-    return (value === null)
-      ? null
-      : MustBe.string(value, this.NAME_PATTERN);
-  }
-
-  /**
-   * Checks that a given value is a string matching {@link #TYPE_PATTERN}.
-   *
-   * @param {*} value Value in question.
-   * @returns {string} `value` if it is a string which matches the pattern.
+   * @returns {string} `value` if it is a string which matches the stated
+   *   pattern.
    * @throws {Error} Thrown if `value` does not match.
    */
   static checkType(value) {
-    return MustBe.string(value, this.TYPE_PATTERN);
+    return this.checkName(value);
   }
 }
