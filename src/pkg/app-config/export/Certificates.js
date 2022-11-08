@@ -9,45 +9,31 @@ import { MustBe } from '@this/typey';
  */
 export class Certificates {
   /**
-   * @returns {string} Regex pattern for a standard-form PEM certificate chain
-   * file. It is anchored at both ends by `^...$` so as to only match complete
-   * strings.
-   */
-  static get CERTIFICATE_CHAIN_PATTERN() {
-    return this.#makePemPattern('CERTIFICATE', true);
-  }
-
-  /**
-   * @returns {string} Regex pattern for a standard-form PEM private key file.
-   * It is anchored at both ends by `^...$` so as to only match complete
-   * strings.
-   */
-  static get PRIVATE_KEY_PATTERN() {
-    return this.#makePemPattern('PRIVATE KEY');
-  }
-
-  /**
-   * Checks that a given value is a string matching {@link
-   * #CERTIFICATE_CHAIN_PATTERN}.
+   * Checks that a given value is a string containing a standard-form PEM
+   * certificate chain file.
    *
    * @param {*} value Value in question.
-   * @returns {string} `value` if it is a string which matches the pattern.
+   * @returns {string} `value` if it is a string which matches the stated
+   *   pattern.
    * @throws {Error} Thrown if `value` does not match.
    */
   static checkCertificateChain(value) {
-    return MustBe.string(value, this.CERTIFICATE_CHAIN_PATTERN);
+    const pattern = this.#makePemPattern('CERTIFICATE', true);
+    return MustBe.string(value, pattern);
   }
 
   /**
-   * Checks that a given value is a string matching {@link
-   * #PRIVATE_KEY_PATTERN}.
+   * Checks that a given value is a string containing a standard-form PEM key
+   * file.
    *
    * @param {*} value Value in question.
-   * @returns {string} `value` if it is a string which matches the pattern.
+   * @returns {string} `value` if it is a string which matches the stated
+   *   pattern.
    * @throws {Error} Thrown if `value` does not match.
    */
   static checkPrivateKey(value) {
-    return MustBe.string(value, this.PRIVATE_KEY_PATTERN);
+    const pattern = this.#makePemPattern('PRIVATE KEY');
+    return MustBe.string(value, pattern);
   }
 
   /**
