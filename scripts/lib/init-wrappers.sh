@@ -20,7 +20,7 @@ function jget {
 
 # Calls `lib json-length`.
 function jlength {
-    lib json-get "$@"
+    lib json-length "$@"
 }
 
 # Calls `lib json-val`.
