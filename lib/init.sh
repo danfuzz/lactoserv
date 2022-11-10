@@ -33,6 +33,13 @@ fi
 . "${_init_libDir}/stderr-messages.sh" || return "$?"
 . "${_init_libDir}/arg-processor.sh" || return "$?"
 
+# Set up the library search paths (for the `lib` command), and define the
+# lib-path-adder function, so that the product-specific init can use it.
+_init_libSearchPaths=("${_init_mainDir}" "${_init_libDir}")
+function add-lib {
+    _init_libSearchPaths+=("${_init_libDir}/$1")
+}
+
 # Load product-specific initialization code (including loading other libraries).
 . "${_init_libDir}/init-product.sh" # Product-specific init code.
 
@@ -96,7 +103,6 @@ function this-cmd-path {
 function lib {
     local wantPath=0
     local quiet=0
-    local path
 
     while true; do
         case "$1" in
@@ -117,20 +123,23 @@ function lib {
     if ! [[ ${name} =~ ^[-_a-z0-9]+$ ]]; then
         error-msg 'Weird script name:' "${name}"
         return 1
-    elif [[ -x "${_init_libDir}/${name}" ]]; then
-        # It's in the internal helper library.
-        path="${_init_libDir}/${name}"
-    elif [[ -x "${_init_mainDir}/${name}" ]]; then
-        # It's an exposed script.
-        path="${_init_mainDir}/${name}"
-    else
+    fi
+
+    local path
+    for path in "${_init_libSearchPaths[@]}"; do
+        path+="/${name}"
+        if [[ -x "${path}" ]]; then
+            break
+        fi
+        path=''
+    done
+
+    if [[ ${path} == '' ]]; then
         if (( !quiet )); then
             error-msg 'No such library script:' "${name}"
         fi
         return 1
-    fi
-
-    if (( wantPath )); then
+    elif (( wantPath )); then
         echo "${path}"
     else
         "${path}" "$@"
