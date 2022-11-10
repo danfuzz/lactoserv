@@ -91,23 +91,30 @@ function this-cmd-path {
 }
 
 # Calls through to an arbitrary library script. With option `--path`, instead
-# prints the path of the script.
+# prints the path of the script. With option `--quiet`, does not write an error
+# message if there is no such script.
 function lib {
     local wantPath=0
+    local quiet=0
     local path
+
+    while true; do
+        case "$1" in
+            --path)  wantPath=1; shift ;;
+            --quiet) quiet=1;    shift ;;
+            *)       break ;;
+        esac
+    done
 
     if (( $# == 0 )); then
         error-msg 'Missing library script name.'
         return 1
-    elif [[ $1 == '--path' ]]; then
-        wantPath=1
-        shift
     fi
 
     local name="$1"
     shift
 
-    if ! [[ ${name} =~ ^[-a-z]+$ ]]; then
+    if ! [[ ${name} =~ ^[-_a-z0-9]+$ ]]; then
         error-msg 'Weird script name:' "${name}"
         return 1
     elif [[ -x "${_init_libDir}/${name}" ]]; then
@@ -117,7 +124,9 @@ function lib {
         # It's an exposed script.
         path="${_init_mainDir}/${name}"
     else
-        error-msg 'No such library script:' "${name}"
+        if (( !quiet )); then
+            error-msg 'No such library script:' "${name}"
+        fi
         return 1
     fi
 
