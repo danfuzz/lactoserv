@@ -41,7 +41,7 @@ function add-lib {
 }
 
 # Load product-specific initialization code (including loading other libraries).
-. "${_init_libDir}/init-product.sh" # Product-specific init code.
+. "${_init_libDir}/init-product.sh"
 
 
 #
