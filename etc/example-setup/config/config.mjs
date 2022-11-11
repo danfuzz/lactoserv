@@ -4,17 +4,12 @@ const fileUrl  = (path) => new URL(path, import.meta.url);
 const filePath = (path) => fileUrl(path).pathname;
 const readFile = async (path) => fs.readFile(fileUrl(path));
 
-// Application definitions.
-const applications = [
+// Host / certificate bindings.
+const hosts = [
   {
-    name:   'my-wacky-redirector',
-    type:   'redirect-server',
-    target: 'https://milk.com/boop/'
-  },
-  {
-    name:       'my-static-fun',
-    type:       'static-server',
-    assetsPath: filePath('../assets')
+    hostnames:   ['localhost', '*'],
+    certificate: await readFile('localhost-cert.pem'),
+    privateKey:  await readFile('localhost-key.pem')
   }
 ];
 
@@ -63,12 +58,17 @@ const services = [
   }
 ];
 
-// Host / certificate bindings.
-const hosts = [
+// Application definitions.
+const applications = [
   {
-    hostnames:   ['localhost', '*'],
-    certificate: await readFile('localhost-cert.pem'),
-    privateKey:  await readFile('localhost-key.pem')
+    name:   'my-wacky-redirector',
+    type:   'redirect-server',
+    target: 'https://milk.com/boop/'
+  },
+  {
+    name:       'my-static-fun',
+    type:       'static-server',
+    assetsPath: filePath('../assets')
   }
 ];
 
