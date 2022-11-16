@@ -423,7 +423,9 @@ function _argproc_add-required-arg-postcheck {
         )")
 
         desc="$(_argproc_arg-description --short "${longName}")" || return 1
-        if ! [[ ${desc} =~ - ]]; then
+        if ! [[ ${desc} =~ ^- ]]; then
+            # The description doesn't start with a dash (`-`), so it's an
+            # argument, not an option.
             argNoun='argument'
         fi
 
