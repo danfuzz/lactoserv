@@ -18,19 +18,19 @@ const services = [
   {
     name:      'process',
     type:      'process-info-file',
-    directory: filePath('../../../var'),
+    directory: filePath('../../../out/var'),
     baseName:  'process'
   },
   {
     name:      'syslog',
     type:      'system-logger',
-    directory: filePath('../../../var'),
+    directory: filePath('../../../out/var'),
     baseName:  'system-log'
   },
   {
     name:      'requests',
     type:      'request-logger',
-    directory: filePath('../../../var'),
+    directory: filePath('../../../out/var'),
     baseName:  'request-log'
   },
   {
