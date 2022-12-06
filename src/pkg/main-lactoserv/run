@@ -68,8 +68,11 @@ check-dependency \
     '18 or 19' \
 || exit "$?"
 
-# Note: `--no-warnings` suppresses Node's built-in warning printer, which we do
-# because this program includes its own warning handler.
-node --no-warnings "${baseDir}/lib/code/index.js" \
+# Notes:
+# * `--no-warnings` suppresses Node's built-in warning printer, which we do
+#   because this program includes its own warning handler.
+# * `exec` minimizes the number of processes left lying around. That is, no
+#   need for this script to take up space once the system is running.
+exec node --no-warnings "${baseDir}/lib/code/index.js" \
     --outer-command-name="${cmdName}" \
     "$@"
