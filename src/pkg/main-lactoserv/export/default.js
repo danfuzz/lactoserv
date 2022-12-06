@@ -18,7 +18,7 @@ export default async function main() {
   const keepRunning = new KeepRunning();
 
   keepRunning.run();
-  Debugging.handleDebugArgs(args, system);
+  Debugging.handleDebugArgs(args.debugArgs, system);
   await system.run();
 
   keepRunning.stop();

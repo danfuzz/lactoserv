@@ -82,4 +82,5 @@ fi
 
 exec "${outRun}" \
     --config="$(base-dir)/etc/example-setup/config/config.mjs" \
-    --max-run-time-secs="$(( 5 * 60 ))"
+    --max-run-time-secs="$(( 5 * 60 ))" \
+    --log-to-stdout

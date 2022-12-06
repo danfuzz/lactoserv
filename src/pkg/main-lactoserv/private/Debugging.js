@@ -3,6 +3,7 @@
 
 import * as timers from 'node:timers/promises';
 
+import { Host } from '@this/host';
 import { Loggy } from '@this/loggy';
 
 import { MainArgs } from '#p/MainArgs';
@@ -16,16 +17,34 @@ export class Debugging {
   /**
    * Processes the debugging-related arguments / options, if any.
    *
-   * @param {MainArgs} args Command-line arguments.
+   * @param {object} args Parsed command-line debugging arguments.
    * @param {UsualSystem} system The system to be run.
    */
   static handleDebugArgs(args, system) {
-    const { maxRunTimeSecs } = args;
+    const { logToStdout, maxRunTimeSecs } = args;
 
-    if (!maxRunTimeSecs) {
-      return;
+    if (logToStdout) {
+      this.#logToStdout();
     }
 
+    if (maxRunTimeSecs) {
+      this.#setMaxRunTimeSecs(maxRunTimeSecs);
+    }
+  }
+
+  /**
+   * Sets up logging to `stdout`.
+   */
+  static #logToStdout() {
+    Host.logToStdout();
+  }
+
+  /**
+   * Sets the maximum run time.
+   *
+   * @param {number} maxRunTimeSecs The maximum run time.
+   */
+  static #setMaxRunTimeSecs(maxRunTimeSecs) {
     const logger = Loggy.loggerFor('main').debug;
 
     (async () => {

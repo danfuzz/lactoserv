@@ -20,8 +20,8 @@ export class MainArgs {
   /** @type {?URL} Configuration URL. */
   #configUrl = null;
 
-  /** @type {?number} Maximum run time, in seconds. */
-  #maxRunTimeSecs = null;
+  /** @type {?object} Parsed arguments. */
+  #parsedArgs = null;
 
   /**
    * Constructs an instance.
@@ -37,12 +37,14 @@ export class MainArgs {
     return this.#configUrl;
   }
 
-  /**
-   * @returns {?number} How long to run for before proactively exiting, in
-   * seconds. (This is intended for development / debugging.)
-   */
-  get maxRunTimeSecs() {
-    return this.#maxRunTimeSecs;
+  /** @returns {object} All of the debugging-related arguments. */
+  get debugArgs() {
+    const args = this.#parsedArgs;
+
+    return {
+      logToStdout:    args.logToStdout ?? false,
+      maxRunTimeSecs: args.maxRunTimeSecs ?? null
+    }
   }
 
   /**
@@ -50,12 +52,12 @@ export class MainArgs {
    * various properties of this instance are valid.
    */
   parse() {
-    const parsed = this.#parse0();
+    const args = this.#parse0();
 
-    this.#configUrl = parsed.configUrl
-      ?? pathToFileURL(parsed.config);
+    this.#configUrl = args.configUrl
+      ?? pathToFileURL(args.config);
 
-    this.#maxRunTimeSecs = parsed.maxRunTimeSecs ?? null;
+    this.#parsedArgs = args;
   }
 
   /**
@@ -99,8 +101,12 @@ export class MainArgs {
           requiresArg: true,
           string:      true
         },
+        'log-to-stdout': {
+          describe: 'Debugging: Should log messages be printed to stdout?',
+          boolean:   true
+        },
         'max-run-time-secs': {
-          describe: 'Maximum run time in seconds (for debugging)',
+          describe: 'Debugging: Maximum run time in seconds',
           number:   true
         },
         'outer-command-name': {

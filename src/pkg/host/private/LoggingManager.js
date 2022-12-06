@@ -22,12 +22,23 @@ export class LoggingManager {
       return;
     }
 
-    // Start logging to `stdout`. TODO: Will need to let the main system direct
-    // this elsewhere before we start to spew stuff out.
+    // TODO: Is there anything to do here? If not, get rid of this method
+    // entirely.
+
+    this.#initDone = true;
+  }
+
+  /**
+   * Starts logging to `stdout`.
+   */
+  static logToStdout() {
+    if (this.#stdoutSink !== null) {
+      // Already done!
+      return;
+    }
+
     const event = Loggy.earliestEvent;
     this.#stdoutSink = new TextFileSink('/dev/stdout', event);
     this.#stdoutSink.run();
-
-    this.#initDone = true;
   }
 }

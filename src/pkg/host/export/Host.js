@@ -51,6 +51,13 @@ export class Host {
   }
 
   /**
+   * Starts logging to `stdout`.
+   */
+  static logToStdout() {
+    LoggingManager.logToStdout();
+  }
+
+  /**
    * Registers a callback to be invoked when the system is asked to "reload."
    * Reloading is not considered complete until the callback async-returns,
    * along with all the other registered ones. **Note:** The callbacks are
