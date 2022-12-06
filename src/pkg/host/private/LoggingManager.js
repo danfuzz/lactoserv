@@ -11,8 +11,8 @@ export class LoggingManager {
   /** @type {boolean} Initialized? */
   static #initDone = false;
 
-  /** @type {?TextFileSink} The logging event sink which writes to `stderr`. */
-  static #stderrSink = null;
+  /** @type {?TextFileSink} The logging event sink which writes to `stdout`. */
+  static #stdoutSink = null;
 
   /**
    * Initializes the logging system.
@@ -22,11 +22,11 @@ export class LoggingManager {
       return;
     }
 
-    // Start logging to `stderr`. TODO: Will need to let the main system direct
+    // Start logging to `stdout`. TODO: Will need to let the main system direct
     // this elsewhere before we start to spew stuff out.
     const event = Loggy.earliestEvent;
-    this.#stderrSink = new TextFileSink('/dev/stderr', event);
-    this.#stderrSink.run();
+    this.#stdoutSink = new TextFileSink('/dev/stdout', event);
+    this.#stdoutSink.run();
 
     this.#initDone = true;
   }
