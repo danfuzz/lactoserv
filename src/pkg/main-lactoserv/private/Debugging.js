@@ -28,7 +28,7 @@ export class Debugging {
     }
 
     if (maxRunTimeSecs) {
-      this.#setMaxRunTimeSecs(maxRunTimeSecs);
+      this.#setMaxRunTimeSecs(maxRunTimeSecs, system);
     }
   }
 
@@ -43,8 +43,9 @@ export class Debugging {
    * Sets the maximum run time.
    *
    * @param {number} maxRunTimeSecs The maximum run time.
+   * @param {UsualSystem} system The system to be run.
    */
-  static #setMaxRunTimeSecs(maxRunTimeSecs) {
+  static #setMaxRunTimeSecs(maxRunTimeSecs, system) {
     const logger = Loggy.loggerFor('main').debug;
 
     (async () => {
