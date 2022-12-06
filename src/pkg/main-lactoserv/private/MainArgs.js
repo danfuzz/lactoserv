@@ -76,7 +76,6 @@ export class MainArgs {
       .parse(args)
       ?.outerCommandName ?? this.#argv[1];
 
-    // TODO: Find this programatically.
     const versionString = `${ProductInfo.name} v${ProductInfo.version}`;
 
     const parser = yargs()
