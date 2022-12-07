@@ -10,6 +10,29 @@ describe('constructor()', () => {
   });
 });
 
+describe('.size', () => {
+  const keys = [
+    new TreePathKey([], true),
+    new TreePathKey([], false),
+    new TreePathKey(['x'], false),
+    new TreePathKey(['x', 'y'], false),
+    new TreePathKey(['x', 'y'], true),
+    new TreePathKey(['a', 'b', 'c'], false),
+    new TreePathKey(['a', 'b', 'c', 'x'], true),
+    new TreePathKey(['a', 'b', 'c', 'x', 'y'], true)
+  ];
+
+  for (let i = 0; i < keys.length; i++) {
+    test(`correctly returns ${i}`, () => {
+      const map = new TreePathMap();
+      for (let j = 0; j < i; j++) {
+        map.add(keys[j], [`value-${j}`]);
+      }
+      expect(map.size).toBe(i);
+    });
+  }
+});
+
 describe('add()', () => {
   test('accepts a `TreePathKey`, which can then be found exactly', () => {
     const key1  = new TreePathKey(['a'], true);
