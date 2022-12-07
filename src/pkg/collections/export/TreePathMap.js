@@ -11,6 +11,9 @@ import { TreePathKey } from '#x/TreePathKey';
  * is a series of zero or more string components, possibly followed by a
  * "wildcard" indicator which is meant to match zero or more additional path
  * components.
+ *
+ * This class implements several of the usual collection / map methods, in an
+ * attempt to provide a useful and familiar interface.
  */
 export class TreePathMap {
   /**
@@ -73,6 +76,29 @@ export class TreePathMap {
   }
 
   /**
+   * Gets an iterator over the entries of this instance, analogously to the
+   * standard JavaScript `Map.entries()` method. The keys are all instances of
+   * {@link TreePathKey}. The result is both an iterator and an iterable (which,
+   * as with `Map.entries()`, returns itself). Unlike `Map`, this method does
+   * _not_ return an iterator which yields keys in insertion order.
+   *
+   * @returns {object} Iterator over the entries of this instance.
+   */
+  entries() {
+    return this.#iteratorAt([]);
+  }
+
+  /**
+   * Standard iteration protocol method. This is the same as calling {@link
+   * #entries}.
+   *
+   * @returns {object} Iterator over the entries of this instance.
+   */
+  [Symbol.iterator]() {
+    return this.#iteratorAt([]);
+  }
+
+  /**
    * Finds the most-specific binding for the given path.
    *
    * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to look
@@ -97,6 +123,64 @@ export class TreePathMap {
     }
 
     return this.#find0(path, wildcard);
+  }
+
+  /**
+   * Returns a new instance which is just like this one, except it will only
+   * find keys which themselves match a given key. In the common case of passing
+   * a wildcard key, this returns the subtree rooted at the given key, with the
+   * key's path maintained in the result. If passed a non-wildcard key, then
+   * this method returns the same value as {@link #find} would have, except in
+   * the form of a single-binding instance of this class.
+   *
+   * For example, if passed a top-level wildcard key (e.g., `/*` in
+   * filesystem-like syntax), then this method will effectively return a clone
+   * of this instance because all bindings of this instance could potentially be
+   * found by a key which matches the given key (which is to say, any key). If
+   * instead passed a wildcard key with a non-empty path, then this method will
+   * only return bindings with keys at or under that path.
+   *
+   * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to look
+   *   up.
+   * @returns {Map<TreePathKey, *>} Map of matched bindings.
+   */
+  findAllBindings(key) {
+    const { path, wildcard } = key;
+    const result             = new TreePathMap();
+
+    if (! (key instanceof TreePathKey)) {
+      MustBe.arrayOfString(path);
+      MustBe.boolean(wildcard);
+    }
+
+    if (!wildcard) {
+      // Non-wildcard is easy, because `find()` already does the right thing.
+      const found  = this.find(key);
+      if (found !== null) {
+        result.add(key, found.value);
+      }
+      return result;
+    }
+
+    // Wildcard case: Walk `subtrees` down to the one we want, and then -- if
+    // found -- iterate over it to build up the result.
+
+    let subtree = this;
+
+    for (const p of path) {
+      subtree = subtree.#subtrees.get(p);
+      if (!subtree) {
+        // No bindings match the given key. `result` is already empty; just
+        // return it.
+        return result;
+      }
+    }
+
+    for (const [key, value] of subtree.#iteratorAt(path)) {
+      result.add(key, value);
+    }
+
+    return result;
   }
 
   /**
@@ -158,13 +242,13 @@ export class TreePathMap {
         throw this.#errorMessage('Path already bound', key);
       }
       subtree.#wildcardValue = value;
-      subtree.#hasWildcard = true;
+      subtree.#hasWildcard   = true;
     } else {
       if (subtree.#hasEmpty) {
         throw this.#errorMessage('Path already bound', key);
       }
       subtree.#emptyValue = value;
-      subtree.#hasEmpty = true;
+      subtree.#hasEmpty   = true;
     }
   }
 
@@ -236,5 +320,28 @@ export class TreePathMap {
       quote:     true,
       separator: ', '
     });
+  }
+
+  /**
+   * Helper for the iteration methods: Returns a generator which iterates over
+   * all bindings of this instance, yielding entries where the `path` part of
+   * the key is prepended with the given `path` value.
+   *
+   * @param {string[]} pathPrefix Path to prepend to the `path` part of the key
+   *   in all yielded results.
+   * @returns {object} Iterator over the bindings of this instance.
+   */
+  *#iteratorAt(pathPrefix) {
+    if (this.#hasEmpty) {
+      yield ([new TreePathKey(pathPrefix, false), this.#emptyValue]);
+    }
+
+    if (this.#hasWildcard) {
+      yield ([new TreePathKey(pathPrefix, true), this.#wildcardValue]);
+    }
+
+    for (const [pathComponent, subtree] of this.#subtrees) {
+      yield* subtree.#iteratorAt([...pathPrefix, pathComponent]);
+    }
   }
 }

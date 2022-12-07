@@ -182,6 +182,158 @@ describe('find()', () => {
   });
 });
 
+describe('findAllBindings()', () => {
+  describe('given an empty-path wildcard key', () => {
+    const key = new TreePathKey([], true);
+
+    test('returns an empty (but different object) result if there are no bindings', () => {
+      const map    = new TreePathMap();
+      const result = map.findAllBindings(key);
+      expect(result.size).toBe(0);
+      expect(result).not.toBe(map);
+    });
+
+    test('returns a single top-level non-wildcard binding, if that is what is in the map', () => {
+      const key1   = new TreePathKey([], false);
+      const value1 = ['a value'];
+      const map    = new TreePathMap();
+
+      map.add(key1, value1);
+      const result = map.findAllBindings(key);
+      expect(result.size).toBe(1);
+      expect(result.findExact(key1)).toBe(value1);
+    });
+
+    test('returns a single top-level wildcard binding, if that is what is in the map', () => {
+      const value = ['still a value'];
+      const map   = new TreePathMap();
+
+      map.add(key, value);
+      const result = map.findAllBindings(key);
+      expect(result.size).toBe(1);
+      expect(result.findExact(key)).toBe(value);
+    });
+
+    test('returns both wildcard and non-wildcard top-level bindings, if that is what is in the map', () => {
+      const value1 = ['first value'];
+      const key2  = new TreePathKey([], false);
+      const value2 = ['second value'];
+      const map    = new TreePathMap();
+
+      map.add(key, value1);
+      map.add(key2, value2);
+      const result = map.findAllBindings(key);
+      expect(result.size).toBe(2);
+      expect(result.findExact(key)).toBe(value1);
+      expect(result.findExact(key2)).toBe(value2);
+    });
+
+    test('returns all bindings in the map (but in a different object), generally', () => {
+      // This is a "smokey" test.
+      const bindings = new Map([
+        [new TreePathKey([], false), 'one'],
+        [new TreePathKey(['x'], false), 'two'],
+        [new TreePathKey(['x'], true), 'three'],
+        [new TreePathKey(['x', 'y'], true), 'four'],
+        [new TreePathKey(['x', 'y', 'z'], false), 'five'],
+        [new TreePathKey(['a'], true), 'six'],
+        [new TreePathKey(['a', 'b'], true), 'seven'],
+        [new TreePathKey(['a', 'b', 'c'], false), 'eight'],
+        [new TreePathKey(['a', 'b', 'cc'], false), 'nine'],
+        [new TreePathKey(['a', 'b', 'cc', 'd'], true), 'ten']
+      ]);
+      const map = new TreePathMap();
+
+      for (const [k, v] of bindings) {
+        map.add(k, v);
+      }
+
+      const result = map.findAllBindings(key);
+      expect(result.size).toBe(bindings.size);
+      expect(result).not.toBe(map);
+
+      for (const [k, v] of bindings) {
+        expect(result.findExact(k)).toBe(v);
+      }
+    });
+  });
+
+  test('finds an exact non-wildcard match, given a non-wildcard key', () => {
+    const key   = new TreePathKey(['1', '2'], false);
+    const value = 'value';
+    const map   = new TreePathMap();
+
+    map.add(key, value);
+    const result = map.findAllBindings(key);
+    expect(result.size).toBe(1);
+    expect(result.findExact(key)).toBe(value);
+  });
+
+  test('finds an exact wildcard match, given a non-wildcard key', () => {
+    const key1  = new TreePathKey(['1', '2'], true);
+    const key2  = new TreePathKey(['1', '2'], false);
+    const value = 'some-value';
+    const map   = new TreePathMap();
+
+    map.add(key1, value);
+    const result = map.findAllBindings(key2);
+    expect(result.size).toBe(1);
+    expect(result.findExact(key2)).toBe(value);
+  });
+
+  test('finds a wildcard match, given a non-wildcard key', () => {
+    const key1  = new TreePathKey(['1', '2'], true);
+    const key2  = new TreePathKey(['1', '2', '3', '4'], false);
+    const value = 'some-other-value';
+    const map   = new TreePathMap();
+
+    map.add(key1, value);
+    const result = map.findAllBindings(key2);
+    expect(result.size).toBe(1);
+    expect(result.findExact(key2)).toBe(value);
+  });
+
+  test('extracts a subtree, given a wildcard key', () => {
+    // This is a "smokey" test.
+    const key      = new TreePathKey(['in', 'here'], true);
+    const bindings = new Map([
+      [new TreePathKey(['in', 'here'], false), 'one'],
+      [new TreePathKey(['in', 'here'], true), 'two'],
+      [new TreePathKey(['in', 'here', 'x'], true), 'three'],
+      [new TreePathKey(['in', 'here', 'x', 'y'], false), 'four'],
+      [new TreePathKey(['in', 'here', 'a', 'b', 'c'], false), 'five'],
+      [new TreePathKey(['in', 'here', 'a', 'b'], true), 'six'],
+      [new TreePathKey(['in', 'here', 'a', 'x', 'y'], false), 'seven'],
+      [new TreePathKey(['in', 'here', 'a', 'z'], true), 'eight'],
+    ]);
+    const extraBindings = new Map([
+      [new TreePathKey([], false), 'one'],
+      [new TreePathKey(['x'], false), 'two'],
+      [new TreePathKey(['x'], true), 'three'],
+      [new TreePathKey(['x', 'y'], true), 'four'],
+      [new TreePathKey(['x', 'y', 'z'], false), 'five'],
+      [new TreePathKey(['a'], true), 'six'],
+      [new TreePathKey(['a', 'b'], true), 'seven'],
+      [new TreePathKey(['a', 'b', 'c'], false), 'eight'],
+      [new TreePathKey(['a', 'b', 'cc'], false), 'nine'],
+      [new TreePathKey(['a', 'b', 'cc', 'd'], true), 'ten']
+    ]);
+    const map = new TreePathMap();
+
+    for (const [k, v] of [...bindings, ...extraBindings]) {
+      map.add(k, v);
+    }
+
+    const result = map.findAllBindings(key);
+    expect(result.size).toBe(bindings.size);
+
+    for (const [k, v] of bindings) {
+      expect(result.findExact(k)).toBe(v);
+    }
+
+  });
+});
+
 describe('findExact()', () => {
   test('returns `null` when a key is not found, if `ifNotFound` was not passed', () => {
     const map = new TreePathMap();
