@@ -187,6 +187,9 @@ export class TreePathMap {
   /**
    * Finds the exact given binding. This will only find bindings that were added
    * with the exact same pair of `path` and `wildcard` as are being looked up.
+   * This method might reasonably have been called `findExact`, but it is named
+   * as it is because its functionality is the same as with the standard
+   * JavaScript method on `Map` with the same name.
    *
    * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to look
    *   up.
@@ -194,7 +197,7 @@ export class TreePathMap {
    * @returns {*} The value bound for the given `key`, or `ifNotFound` if there
    *   is no such binding.
    */
-  findExact(key, ifNotFound = null) {
+  get(key, ifNotFound = null) {
     if (! (key instanceof TreePathKey)) {
       MustBe.arrayOfString(key.path);
       MustBe.boolean(key.wildcard);

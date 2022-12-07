@@ -87,8 +87,8 @@ describe('add()', () => {
     const value = ['some value'];
     const map   = new TreePathMap();
     expect(() => map.add(key1, value)).not.toThrow();
-    expect(map.findExact(key1)).toBe(value);
-    expect(map.findExact(key2)).toBe(value);
+    expect(map.get(key1)).toBe(value);
+    expect(map.get(key2)).toBe(value);
   });
 
   test('accepts a key-like plain object, which can then be found exactly', () => {
@@ -97,8 +97,8 @@ describe('add()', () => {
     const value = ['some kinda value'];
     const map   = new TreePathMap();
     expect(() => map.add(key2, value)).not.toThrow();
-    expect(map.findExact(key1)).toBe(value);
-    expect(map.findExact(key2)).toBe(value);
+    expect(map.get(key1)).toBe(value);
+    expect(map.get(key2)).toBe(value);
   });
 });
 
@@ -131,7 +131,7 @@ describe('entries()', () => {
     }
 
     for (const [k, v] of bindings) {
-      const found = resultMap.findExact(k);
+      const found = resultMap.get(k);
       expect(found).toBe(v);
     }
   });
@@ -283,7 +283,7 @@ describe('findAllBindings()', () => {
       map.add(key1, value1);
       const result = map.findAllBindings(key);
       expect(result.size).toBe(1);
-      expect(result.findExact(key1)).toBe(value1);
+      expect(result.get(key1)).toBe(value1);
     });
 
     test('returns a single top-level wildcard binding, if that is what is in the map', () => {
@@ -293,7 +293,7 @@ describe('findAllBindings()', () => {
       map.add(key, value);
       const result = map.findAllBindings(key);
       expect(result.size).toBe(1);
-      expect(result.findExact(key)).toBe(value);
+      expect(result.get(key)).toBe(value);
     });
 
     test('returns both wildcard and non-wildcard top-level bindings, if that is what is in the map', () => {
@@ -306,8 +306,8 @@ describe('findAllBindings()', () => {
       map.add(key2, value2);
       const result = map.findAllBindings(key);
       expect(result.size).toBe(2);
-      expect(result.findExact(key)).toBe(value1);
-      expect(result.findExact(key2)).toBe(value2);
+      expect(result.get(key)).toBe(value1);
+      expect(result.get(key2)).toBe(value2);
     });
 
     test('returns all bindings in the map (but in a different object), generally', () => {
@@ -335,7 +335,7 @@ describe('findAllBindings()', () => {
       expect(result).not.toBe(map);
 
       for (const [k, v] of bindings) {
-        expect(result.findExact(k)).toBe(v);
+        expect(result.get(k)).toBe(v);
       }
     });
   });
@@ -348,7 +348,7 @@ describe('findAllBindings()', () => {
     map.add(key, value);
     const result = map.findAllBindings(key);
     expect(result.size).toBe(1);
-    expect(result.findExact(key)).toBe(value);
+    expect(result.get(key)).toBe(value);
   });
 
   test('finds an exact wildcard match, given a non-wildcard key', () => {
@@ -360,7 +360,7 @@ describe('findAllBindings()', () => {
     map.add(key1, value);
     const result = map.findAllBindings(key2);
     expect(result.size).toBe(1);
-    expect(result.findExact(key2)).toBe(value);
+    expect(result.get(key2)).toBe(value);
   });
 
   test('finds a wildcard match, given a non-wildcard key', () => {
@@ -372,7 +372,7 @@ describe('findAllBindings()', () => {
     map.add(key1, value);
     const result = map.findAllBindings(key2);
     expect(result.size).toBe(1);
-    expect(result.findExact(key2)).toBe(value);
+    expect(result.get(key2)).toBe(value);
   });
 
   test('extracts a subtree, given a wildcard key', () => {
@@ -410,22 +410,22 @@ describe('findAllBindings()', () => {
     expect(result.size).toBe(bindings.size);
 
     for (const [k, v] of bindings) {
-      expect(result.findExact(k)).toBe(v);
+      expect(result.get(k)).toBe(v);
     }
 
   });
 });
 
-describe('findExact()', () => {
+describe('get()', () => {
   test('returns `null` when a key is not found, if `ifNotFound` was not passed', () => {
     const map = new TreePathMap();
-    expect(map.findExact({ path: ['x'], wildcard: false })).toBeNull();
+    expect(map.get({ path: ['x'], wildcard: false })).toBeNull();
   });
 
   test('returns the `ifNotFound` value when a key is not found', () => {
     const map   = new TreePathMap();
     const value = ['whatever'];
-    expect(map.findExact(new TreePathKey([], true), value)).toBe(value);
+    expect(map.get(new TreePathKey([], true), value)).toBe(value);
   });
 
   test('finds an already-added key, when passed as a `TreePathKey`', () => {
@@ -435,8 +435,8 @@ describe('findExact()', () => {
     const map   = new TreePathMap();
 
     map.add(key1, value);
-    expect(map.findExact(key1)).toBe(value);
-    expect(map.findExact(key2)).toBe(value);
+    expect(map.get(key1)).toBe(value);
+    expect(map.get(key2)).toBe(value);
   });
 
   test('finds an already-added key, when passed as a key-like plain object', () => {
@@ -446,8 +446,8 @@ describe('findExact()', () => {
     const map   = new TreePathMap();
 
     map.add(key1, value);
-    expect(map.findExact(key1)).toBe(value);
-    expect(map.findExact(key2)).toBe(value);
+    expect(map.get(key1)).toBe(value);
+    expect(map.get(key2)).toBe(value);
   });
 
   test('does not find an added wildcard key, when passed a non-wildcard', () => {
@@ -457,7 +457,7 @@ describe('findExact()', () => {
     const map   = new TreePathMap();
 
     map.add(key1, value);
-    expect(map.findExact(key2)).toBeNull();
+    expect(map.get(key2)).toBeNull();
   });
 
   test('does not find an added non-wildcard key, when passed a wildcard', () => {
@@ -467,7 +467,7 @@ describe('findExact()', () => {
     const map   = new TreePathMap();
 
     map.add(key2, value);
-    expect(map.findExact(key1)).toBeNull();
+    expect(map.get(key1)).toBeNull();
   });
 
   describe('nullish values', () => {
@@ -488,7 +488,7 @@ describe('findExact()', () => {
 
         map.add(key, value);
 
-        const result = map.findExact(key, notFound);
+        const result = map.get(key, notFound);
         expect(result).toBe(value);
       });
 
@@ -498,7 +498,7 @@ describe('findExact()', () => {
 
         map.add(key, value);
 
-        const result = map.findExact(key, notFound);
+        const result = map.get(key, notFound);
         expect(result).toBe(value);
       });
     });
