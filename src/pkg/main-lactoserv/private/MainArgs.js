@@ -44,7 +44,7 @@ export class MainArgs {
     return {
       logToStdout:    args.logToStdout ?? false,
       maxRunTimeSecs: args.maxRunTimeSecs ?? null
-    }
+    };
   }
 
   /**
