@@ -158,13 +158,13 @@ export class TreePathMap {
         throw this.#errorMessage('Path already bound', key);
       }
       subtree.#wildcardValue = value;
-      subtree.#hasWildcard = value;
+      subtree.#hasWildcard = true;
     } else {
       if (subtree.#hasEmpty) {
         throw this.#errorMessage('Path already bound', key);
       }
       subtree.#emptyValue = value;
-      subtree.#hasEmpty = value;
+      subtree.#hasEmpty = true;
     }
   }
 

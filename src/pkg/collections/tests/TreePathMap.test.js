@@ -141,6 +141,45 @@ describe('find()', () => {
     map.add(key1, value);
     expect(map.find(key2)).toBeNull();
   });
+
+  describe('nullish values', () => {
+    describe.each([
+      [undefined],
+      [null],
+      [false],
+      [0],
+      [''],
+      [[]],
+      [{}]
+    ])('for %p', (value) => {
+      const key1 = new TreePathKey(['a'], true);
+      const key2 = new TreePathKey(['a'], false);
+
+      test('finds it when bound to a wildcard', () => {
+        const map = new TreePathMap();
+
+        map.add(key1, value);
+
+        const result1 = map.find(key1);
+        expect(result1).not.toBeNull();
+        expect(result1.value).toBe(value);
+
+        const result2 = map.find(key2);
+        expect(result2).not.toBeNull();
+        expect(result2.value).toBe(value);
+      });
+
+      test('finds it when bound to a non-wildcard', () => {
+        const map = new TreePathMap();
+
+        map.add(key2, value);
+
+        const result2 = map.find(key2);
+        expect(result2).not.toBeNull();
+        expect(result2.value).toBe(value);
+      });
+    });
+  });
 });
 
 describe('findExact()', () => {
@@ -195,5 +234,39 @@ describe('findExact()', () => {
 
     map.add(key2, value);
     expect(map.findExact(key1)).toBeNull();
+  });
+
+  describe('nullish values', () => {
+    describe.each([
+      [undefined],
+      [null],
+      [false],
+      [0],
+      [''],
+      [[]],
+      [{}]
+    ])('for %p', (value) => {
+      const notFound = 'not-actually-there';
+
+      test('finds it when bound to a wildcard', () => {
+        const map = new TreePathMap();
+        const key = new TreePathKey(['abc'], true);
+
+        map.add(key, value);
+
+        const result = map.findExact(key, notFound);
+        expect(result).toBe(value);
+      });
+
+      test('finds it when bound to a non-wildcard', () => {
+        const map = new TreePathMap();
+        const key = new TreePathKey(['abc'], false);
+
+        map.add(key, value);
+
+        const result = map.findExact(key, notFound);
+        expect(result).toBe(value);
+      });
+    });
   });
 });
