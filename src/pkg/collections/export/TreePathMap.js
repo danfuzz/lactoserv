@@ -64,8 +64,9 @@ export class TreePathMap {
   }
 
   /**
-   * Adds a binding for the given path. Note that it is valid for there to be
-   * both wildcard and non-wildcard bindings simultaneously for any given path.
+   * Adds a binding for the given key, failing if there is already a such a
+   * binding. Note that it is valid for there to be both wildcard and
+   * non-wildcard bindings simultaneously for any given path.
    *
    * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to bind.
    *   If `.wildcard` is `false`, then this method only binds the `.path`. If
