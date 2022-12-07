@@ -9,7 +9,8 @@ import { TreePathKey } from '#x/TreePathKey';
 /**
  * Map from paths or partial paths to arbitrary bindings. A "path" in this case
  * is a series of zero or more string components, possibly followed by a
- * "wildcard" indicator.
+ * "wildcard" indicator which is meant to match zero or more additional path
+ * components.
  */
 export class TreePathMap {
   /**
@@ -18,6 +19,9 @@ export class TreePathMap {
    * component.
    */
   #subtrees = new Map();
+
+  /** @type {number} Total number of bindings. */
+  #size = 0;
 
   /** @type {*} Empty-path binding. */
   #emptyValue = null;
@@ -39,14 +43,24 @@ export class TreePathMap {
   }
 
   /**
-   * Adds a binding for the given path.
+   * @returns {number} The count of bindings which have been added to this
+   * instance.
+   */
+  get size() {
+    return this.#size;
+  }
+
+  /**
+   * Adds a binding for the given path. Note that it is valid for there to be
+   * both wildcard and non-wildcard bindings simultaneously for any given path.
    *
    * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to bind.
    *   If `.wildcard` is `false`, then this method only binds the `.path`. If
    *   `key.wildcard` is `true`, then this method binds all paths with `.path`
    *   as a prefix, including `.path` itself.
    * @param {*} value Value to bind at `key`.
-   * @throws {Error} Thrown if there is already a binding for the given `key`.
+   * @throws {Error} Thrown if there is already a binding for the given `key`
+   *   (taking into account both `path` _and_ `wildcard`).
    */
   add(key, value) {
     if (! (key instanceof TreePathKey)) {
@@ -55,6 +69,7 @@ export class TreePathMap {
     }
 
     this.#add0(key, value);
+    this.#size++;
   }
 
   /**
