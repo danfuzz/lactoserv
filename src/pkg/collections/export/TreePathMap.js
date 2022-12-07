@@ -253,6 +253,22 @@ export class TreePathMap {
   }
 
   /**
+   * Returns a composed error message, suitable for `throw`ing.
+   *
+   * @param {string} msg Basic message.
+   * @param {TreePathKey} key Key in question.
+   * @returns {string} The composed error message.
+   */
+  #errorMessage(msg, key) {
+    return key.toString({
+      prefix:    `${msg}: [`,
+      suffix:    ']',
+      quote:     true,
+      separator: ', '
+    });
+  }
+
+  /**
    * Helper for {@link #find}, which does most of the work.
    *
    * @param {string[]} path Path to look up.
@@ -304,22 +320,6 @@ export class TreePathMap {
     }
 
     return null;
-  }
-
-  /**
-   * Returns a composed error message, suitable for `throw`ing.
-   *
-   * @param {string} msg Basic message.
-   * @param {TreePathKey} key Key in question.
-   * @returns {string} The composed error message.
-   */
-  #errorMessage(msg, key) {
-    return key.toString({
-      prefix:    `${msg}: [`,
-      suffix:    ']',
-      quote:     true,
-      separator: ', '
-    });
   }
 
   /**
