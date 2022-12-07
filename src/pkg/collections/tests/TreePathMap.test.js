@@ -33,6 +33,53 @@ describe('.size', () => {
   }
 });
 
+// Tests for basic functionality, which should be the same for both of these.
+describe.each`
+label                  | method
+${'[Symbol.iterator]'} | ${Symbol.iterator}
+${'entries'}           | ${'entries'}
+`('$label()', ({ method }) => {
+  test('returns an object with the right methods', () => {
+    const map = new TreePathMap();
+
+    const result = map[method]();
+    expect(result.next).toBeFunction();
+    expect(result[Symbol.iterator]).toBeFunction();
+  });
+
+  test('returns an object which returns itself when asked to iterate', () => {
+    const map = new TreePathMap();
+
+    const result = map[method]();
+    expect(result[Symbol.iterator]()).toBe(result);
+  });
+
+  test('succeeds in running a no-entry iteration', () => {
+    const map = new TreePathMap();
+
+    const result = map[method]().next();
+    expect(result).toStrictEqual({ value: undefined, done: true });
+  });
+
+  test('succeeds in running a one-entry iteration', () => {
+    const key   = new TreePathKey(['foo', 'bar'], false);
+    const value = ['florp'];
+    const map   = new TreePathMap();
+
+    map.add(key, value);
+    const iter = map[method]();
+
+    const result1 = iter.next();
+    expect(result1.value).toStrictEqual([key, value]);
+    expect(result1.done).toBeBoolean();
+
+    if (!result1.done) {
+      const result2 = iter.next();
+      expect(result2).toStrictEqual({ value: undefined, done: true });
+    }
+  });
+})
+
 describe('add()', () => {
   test('accepts a `TreePathKey`, which can then be found exactly', () => {
     const key1  = new TreePathKey(['a'], true);
@@ -52,6 +99,41 @@ describe('add()', () => {
     expect(() => map.add(key2, value)).not.toThrow();
     expect(map.findExact(key1)).toBe(value);
     expect(map.findExact(key2)).toBe(value);
+  });
+});
+
+describe('entries()', () => {
+  test('handles a large-ish example', () => {
+    // This is a "smokey" test.
+    const bindings = new Map([
+      [new TreePathKey([], false), 'one'],
+      [new TreePathKey(['boop'], false), 'two'],
+      [new TreePathKey(['beep'], true), 'three'],
+      [new TreePathKey(['z', 'y'], true), 'four'],
+      [new TreePathKey(['z', 'y', 'z'], false), 'five'],
+      [new TreePathKey(['a'], true), 'six'],
+      [new TreePathKey(['a', 'b'], true), 'seven'],
+      [new TreePathKey(['c', 'd', 'c'], false), 'eight'],
+      [new TreePathKey(['c', 'd', 'cc'], false), 'nine'],
+      [new TreePathKey(['c', 'd', 'cc', 'd'], true), 'ten']
+    ]);
+    const map = new TreePathMap();
+
+    for (const [k, v] of bindings) {
+      map.add(k, v);
+    }
+
+    const resultMap = new TreePathMap();
+    for (const [k, v] of map.entries()) {
+      // Note that `add` doesn't allow duplicates, so this test will implicitly
+      // end up checking that each key appears only once.
+      resultMap.add(k, v);
+    }
+
+    for (const [k, v] of bindings) {
+      const found = resultMap.findExact(k);
+      expect(found).toBe(v);
+    }
   });
 });
 

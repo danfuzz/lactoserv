@@ -54,6 +54,16 @@ export class TreePathMap {
   }
 
   /**
+   * Standard iteration protocol method. This is the same as calling {@link
+   * #entries}.
+   *
+   * @returns {object} Iterator over the entries of this instance.
+   */
+  [Symbol.iterator]() {
+    return this.entries();
+  }
+
+  /**
    * Adds a binding for the given path. Note that it is valid for there to be
    * both wildcard and non-wildcard bindings simultaneously for any given path.
    *
@@ -85,16 +95,6 @@ export class TreePathMap {
    * @returns {object} Iterator over the entries of this instance.
    */
   entries() {
-    return this.#iteratorAt([]);
-  }
-
-  /**
-   * Standard iteration protocol method. This is the same as calling {@link
-   * #entries}.
-   *
-   * @returns {object} Iterator over the entries of this instance.
-   */
-  [Symbol.iterator]() {
     return this.#iteratorAt([]);
   }
 
