@@ -78,7 +78,7 @@ ${'entries'}           | ${'entries'}
       expect(result2).toStrictEqual({ value: undefined, done: true });
     }
   });
-})
+});
 
 describe('add()', () => {
   test('accepts a `TreePathKey`, which can then be found exactly', () => {
