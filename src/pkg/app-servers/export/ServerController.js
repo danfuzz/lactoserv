@@ -214,7 +214,7 @@ export class ServerController {
     for (const mount of mounts) {
       const { application, hostname, path } = mount;
 
-      let hostMounts = result.findExact(hostname);
+      let hostMounts = result.get(hostname);
       if (!hostMounts) {
         hostMounts = new TreePathMap();
         result.add(hostname, hostMounts);

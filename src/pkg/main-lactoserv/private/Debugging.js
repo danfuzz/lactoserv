@@ -6,7 +6,6 @@ import * as timers from 'node:timers/promises';
 import { Host } from '@this/host';
 import { Loggy } from '@this/loggy';
 
-import { MainArgs } from '#p/MainArgs';
 import { UsualSystem } from '#p/UsualSystem';
 
 
