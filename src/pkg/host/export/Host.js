@@ -26,6 +26,8 @@ export class Host {
    */
   static async exit(exitCode = 0) {
     this.init();
+
+    ThisModule.logger.exitCalled(exitCode);
     await ShutdownHandler.exit(exitCode);
   }
 
