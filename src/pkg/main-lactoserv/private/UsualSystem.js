@@ -2,7 +2,7 @@
 // All code and assets are considered proprietary and unlicensed.
 
 import { Warehouse } from '@this/app-servers';
-import { Threadlet } from '@this/async';
+import { Condition, Threadlet } from '@this/async';
 import { BuiltinApplications } from '@this/builtin-applications';
 import { BuiltinServices } from '@this/builtin-services';
 import { Host } from '@this/host';
@@ -21,6 +21,9 @@ export class UsualSystem extends Threadlet {
 
   /** @type {boolean} Initialized? */
   #initDone = false;
+
+  /** @type {Condition} Was a restart requested? */
+  #restartRequested = new Condition();
 
   /** @type {Warehouse} Warehouse of parts. */
   #warehouse = null;
@@ -72,10 +75,8 @@ export class UsualSystem extends Threadlet {
    */
   async #restart() {
     if (this.isRunning()) {
-      this.#logger.restarting();
-      await this.stop();
-      await this.start();
-      this.#logger.restarted();
+      this.#logger.restart('requested');
+      this.#restartRequested.value = true;
     } else {
       // Not actually running (probably in the middle of completely shutting
       // down).
@@ -87,9 +88,54 @@ export class UsualSystem extends Threadlet {
    * Main thread body: Runs the system.
    */
   async #run() {
-    await this.whenStopRequested();
+    while (!this.shouldStop()) {
+      if (this.#restartRequested.value === true) {
+        this.#logger.restarting();
+        await this.#stop(true);
+        await this.#start(true);
+        this.#logger.restarted();
+        this.#restartRequested.value = false;
+      }
 
-    this.#logger.stopping();
+      await Promise.race([
+        this.whenStopRequested(),
+        this.#restartRequested.whenTrue()
+      ]);
+    }
+
+    await this.#stop();
+  }
+
+  /**
+   * System start function. Used as the thread start function and also during
+   * requested restarts.
+   *
+   * @param {boolean} [forRestart = false] Is this for a restart?
+   */
+  async #start(forRestart = false) {
+    const logArg = forRestart ? 'restart' : 'init';
+
+    this.#init();
+
+    this.#logger.starting(logArg);
+
+    await this.#makeWarehouse();
+    await this.#warehouse.startAllServices();
+    await this.#warehouse.startAllServers();
+
+    this.#logger.started(logArg);
+  }
+
+  /**
+   * System stop function. Used when the system is shutting down on the way to
+   * exiting, and also used during requested restarts.
+   *
+   * @param {boolean} [forRestart = false] Is this for a restart?
+   */
+  async #stop(forRestart = false) {
+    const logArg = forRestart ? 'restart' : 'shutdown';
+
+    this.#logger.stopping(logArg);
 
     await Promise.all([
       this.#warehouse.stopAllServers(),
@@ -97,21 +143,6 @@ export class UsualSystem extends Threadlet {
     ]);
     this.#warehouse = null;
 
-    this.#logger.stopped();
-  }
-
-  /**
-   * Thread start function.
-   */
-  async #start() {
-    this.#init();
-
-    this.#logger.starting();
-
-    await this.#makeWarehouse();
-    await this.#warehouse.startAllServices();
-    await this.#warehouse.startAllServers();
-
-    this.#logger.started();
+    this.#logger.stopped(logArg);
   }
 }
