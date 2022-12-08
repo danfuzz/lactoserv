@@ -177,8 +177,8 @@ export class TreePathMap {
       }
     }
 
-    for (const [key, value] of subtree.#iteratorAt(path)) {
-      result.add(key, value);
+    for (const [k, v] of subtree.#iteratorAt(path)) {
+      result.add(k, v);
     }
 
     return result;
@@ -333,7 +333,8 @@ export class TreePathMap {
    *
    * @param {string[]} pathPrefix Path to prepend to the `path` part of the key
    *   in all yielded results.
-   * @returns {object} Iterator over the bindings of this instance.
+   * @yields {object} The next binding of this instance, with key modified as
+   *   described above.
    */
   *#iteratorAt(pathPrefix) {
     if (this.#hasEmpty) {
