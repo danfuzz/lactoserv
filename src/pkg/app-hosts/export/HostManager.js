@@ -88,25 +88,32 @@ export class HostManager {
   }
 
   /**
-   * Makes an instance with a subset of bindings.
+   * Makes an instance with the given subset of bindings. Wildcard hostnames
+   * in `names` are matched as wildcards with the existing bindings, so, for
+   * example, passing a complete wildcard hostname will produce a clone of this
+   * instance.
    *
    * @param {string[]} names Hostnames (including wildcards) which are to be
    *   included in the subset.
    * @returns {HostManager} Subsetted instance.
-   * @throws {Error} Thrown if any of the `names` isn't bound in this instance.
+   * @throws {Error} Thrown if any of the `names` is found not to match any
+   *   bindings in this instance.
    */
   makeSubset(names) {
     const result = new HostManager();
 
     for (const name of names) {
-      const key = Uris.parseHostname(name, true);
-      const found = this.#controllers.find(key);
-
-      if (!found) {
-        throw new Error(`No binding for hostname: ${name}`);
+      const key   = Uris.parseHostname(name, true);
+      const found = this.#controllers.findAllBindings(key);
+      if (found.size === 0) {
+        throw new Error(`No bindings found for hostname: ${name}`);
       }
-
-      result.#controllers.add(key, found.value);
+      for (const [k, v] of found) {
+        // Avoid trying to add duplicates (which would fail).
+        if (result.#controllers.get(k) === null) {
+          result.#controllers.add(k, v);
+        }
+      }
     }
 
     return result;
