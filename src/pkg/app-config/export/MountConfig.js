@@ -20,7 +20,10 @@ import { Uris } from '#x/Uris';
  *   `//<hostname>/` or `//<hostname>/<base-path>/`, where `hostname` is the
  *   name of a configured host, and `base-path` is the absolute path which the
  *   application should respond to on that host. Subdomain and complete
- *   wildcards are allowed for `hostname`.
+ *   wildcards are allowed for `hostname`. The path is more or less implied to
+ *   be a wildcard, in that everything at or under the mount point is to be
+ *   controlled by the indicated application unless some sub-tree under it has
+ *   some other application mounted.
  */
 export class MountConfig extends BaseConfig {
   /** @type {string} The name of the application being mounted. */
