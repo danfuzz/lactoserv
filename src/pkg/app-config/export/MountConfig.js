@@ -4,6 +4,7 @@
 import { TreePathKey } from '@this/collections';
 
 import { BaseConfig } from '#x/BaseConfig';
+import { ConfigClassMapper } from '#x/ConfigClassMapper';
 import { Names } from '#x/Names';
 import { Uris } from '#x/Uris';
 
