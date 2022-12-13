@@ -104,11 +104,7 @@ const servers = [
     mounts: [
       {
         application: 'my-static-fun',
-        at:          '//*/'
-      },
-      {
-        application: 'my-static-fun',
-        at:          '//*/florp/'
+        at:          ['//*/', '//*/florp/']
       }
     ],
     services: {
