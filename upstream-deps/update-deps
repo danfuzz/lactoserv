@@ -1,0 +1,66 @@
+#!/bin/bash
+#
+# Copyright 2022 the Milk-prod Authors (Dan Bornstein et alia).
+# This code is PROPRIETARY and UNLICENSED.
+
+# Note: To add a new upstream dependency:
+#     git subtree add --prefix=upstream-deps/<name> <repo-url> HEAD
+
+# Load the helper libraries.
+. "$(dirname "$(readlink -f "$0")")/../scripts/lib/init.sh" || exit "$?"
+
+#
+# Argument parsing
+#
+
+function usage {
+    print-usage $'
+    Usage:
+
+    ${name} [<opt> ...]
+      Manages / updates upstream dependencies.
+
+    --no-pull -- Don\'t do the `git pull` portion of the update.
+    --no-copy -- Don\'t do the "copy into place" portion of the update.
+
+    ${name} [--help | -h]
+      Displays this message.
+    '
+
+    exit "$@"
+}
+
+# Want help?
+opt-action --call='{ usage }' help/h
+
+# Copy files into place?
+opt-toggle --var=doCopy --init=1 copy
+
+# Pull from upstream?
+opt-toggle --var=doPull --init=1 pull
+
+process-args "$@" || usage "$?"
+
+
+#
+# Main script
+#
+
+upstreamDir="$(basename "$(this-cmd-dir)")"
+
+if (( doPull )); then
+    cd "$(base-dir)"
+
+    git subtree pull \
+        --prefix="${upstreamDir}/bashy-lib" \
+        git@github.com:danfuzz/bashy-lib HEAD \
+    || exit "$?"
+fi
+
+if (( doCopy )); then
+    # Copy upstream bashy-lib files into place.
+    destDir="$(base-dir)/scripts/lib"
+    cd "$(this-cmd-dir)/bashy-lib/lib"
+    find . -type f '!' -name 'init-product.sh' \
+        -exec cp '{}' "${destDir}" ';'
+fi
