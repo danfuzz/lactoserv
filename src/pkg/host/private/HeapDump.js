@@ -6,7 +6,7 @@ import inspector from 'node:inspector';
 import path from 'node:path';
 import { promisify } from 'node:util';
 
-import { EventSource, EventSink } from '@this/async';
+import { EventSink, EventSource } from '@this/async';
 import { FormatUtils } from '@this/loggy';
 
 import { ThisModule } from '#p/ThisModule';
