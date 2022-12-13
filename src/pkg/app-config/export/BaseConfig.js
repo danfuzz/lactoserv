@@ -42,8 +42,9 @@ export class BaseConfig {
    * (This method is defined on the base class and acts on behalf of all its
    * subclasses.)
    *
-   * @param {*} items Array of configuration objects, as described by the
-   *   called class's (or subclasses') constructor(s).
+   * @param {*} items Single configuration object or array of them.
+   *   Configuration objects are required to be as described by the called
+   *   class's (or subclasses') constructor(s).
    * @param {?ConfigClassMapper} [configClassMapper = null] Optional mapper from
    *   configuration objects to corresponding configuration classes.
    * @returns {BaseConfig[]} Frozen array of instances of the called class, if
