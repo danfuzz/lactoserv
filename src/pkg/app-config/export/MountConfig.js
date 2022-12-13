@@ -71,4 +71,70 @@ export class MountConfig extends BaseConfig {
   get path() {
     return this.#path;
   }
+
+
+  //
+  // Static members
+  //
+
+  /**
+   * Override of the default method in {@link BaseConfig}, to call through to
+   * {@link #parseSingleOrMultiple} instead of using the class constructor
+   * directly.
+   *
+   * @override
+   * @param {object|object[]} items Configuration object or array of same.
+   * @param {?ConfigClassMapper} [configClassMapper = null] Optional mapper from
+   *   configuration objects to corresponding configuration classes. In this
+   *   case it is required to be `null`.
+   * @returns {MountConfig[]} Frozen array of instances of the called class, if
+   *   successfully parsed.
+   * @throws {Error} Thrown if there was any trouble.
+   */
+  static parseArray(items, configClassMapper = null) {
+    if (items === null) {
+      throw new Error('`items` must be non-null.');
+    } else if (!Array.isArray(items)) {
+      items = [items];
+    }
+
+    if (configClassMapper !== null) {
+      throw new Error('Non-null `configClassMapper` not supported.');
+    }
+
+    const result = [];
+    for (const item of items) {
+      if (item instanceof this) {
+        result.push(item);
+      } else {
+        result.push(...this.parseSingleOrMultiple(item));
+      }
+    }
+
+    return Object.freeze(result);
+  }
+
+  /**
+   * Parses a configuration which is _either_ a single mount as parseable by
+   * this class's constructor, _or_ a multiple mount, where `at` is passed as an
+   * array instead of a single item.
+   *
+   * @param {object} config Configuration, per the above description.
+   * @returns {MountConfig[]} Array of parsed configurations.
+   */
+  static parseSingleOrMultiple(config) {
+    const { at } = config;
+
+    if (Array.isArray(at)) {
+      const oneConfig = { ...config };
+      const result = [];
+      for (const oneAt of at) {
+        oneConfig.at = oneAt;
+        result.push(new this(oneConfig));
+      }
+      return result;
+    } else {
+      return [new this(config)];
+    }
+  }
 }
