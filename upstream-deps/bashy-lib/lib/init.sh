@@ -1,0 +1,147 @@
+# Copyright 2022 the Bashy-lib Authors (Dan Bornstein et alia).
+# Licensed AS IS and WITHOUT WARRANTY under the Apache License, Version 2.0.
+# Details: <http://www.apache.org/licenses/LICENSE-2.0>
+
+if [[ ${_init_libDir} != '' ]]; then
+    error-msg 'Warning: Not reinitializing library!'
+    return 1
+fi
+
+#
+# Global setup
+#
+
+# The symlink-resolved path of the command that is running (that is, the
+# top-level script), and its directory.
+_init_cmdPath="$(readlink -f "$0")" || return "$?"
+_init_cmdDir="${_init_cmdPath%/*}"
+
+# Figure out the symlink-resolved directory of this script.
+_init_libDir="$(readlink -f "${BASH_SOURCE[0]}")" || return "$?"
+_init_libDir="${_init_libDir%/*}"
+
+# Figure out the "main" directory. If `cmdDir` is the same as `libDir`, then
+# we're running a library script, and the main directory is the parent of
+# `libDir`. Otherwise, the main directory is `cmdDir`.
+if [[ ${_init_cmdDir} == ${_init_libDir} ]]; then
+    _init_mainDir="$(cd "${_init_libDir}/.."; /bin/pwd)"
+else
+    _init_mainDir="${_init_cmdPath%/*}"
+fi
+
+# Load the "built-in" core libraries.
+. "${_init_libDir}/stderr-messages.sh" || return "$?"
+. "${_init_libDir}/arg-processor.sh" || return "$?"
+
+# Set up the library search paths (for the `lib` command), and define the
+# lib-path-adder function, so that the product-specific init can use it.
+_init_libSearchPaths=("${_init_mainDir}" "${_init_libDir}")
+function add-lib {
+    _init_libSearchPaths+=("${_init_libDir}/$1")
+}
+
+# Load product-specific initialization code (including loading other libraries).
+. "${_init_libDir}/init-product.sh"
+
+
+#
+# Prerequisites checker
+#
+# This is arranged to only do prerequisite checks once per high-level script
+# call, instead of re-re-...-doing it multiple times.
+#
+
+_init_envVarName="$(_init_product-name | tr a-z- A-Z_)_PREREQUISITES_DONE"
+if [[ ${!_init_envVarName} != 1 ]]; then
+    _init_check-prerequisites \
+    || {
+        error-msg
+        error-msg 'Failed one or more prerequisite checks!'
+        return 1
+    }
+
+    eval "export ${_init_envVarName}=1"
+fi
+
+
+#
+# More library functions
+#
+
+# Gets the base directory of the project, which is presumed to be one layer up
+# from the main scripts directory.
+function base-dir {
+    echo "${_init_mainDir%/*}"
+}
+
+# Gets the main "scripts" directory.
+function main-scripts-dir {
+    echo "${_init_mainDir}"
+}
+
+# Gets the directory of this command, "this command" being the (outer) script
+# that is running.
+function this-cmd-dir {
+    echo "${_init_cmdDir}"
+}
+
+# Gets the name of this command, that is, "this command" being the (outer)
+# script that is running.
+function this-cmd-name {
+    echo "${_init_cmdPath##*/}"
+}
+
+# Gets the full path of this command, "this command" being the (outer) script
+# that is running.
+function this-cmd-path {
+    echo "${_init_cmdPath}"
+}
+
+# Calls through to an arbitrary library script. With option `--path`, instead
+# prints the path of the script. With option `--quiet`, does not write an error
+# message if there is no such script.
+function lib {
+    local wantPath=0
+    local quiet=0
+
+    while true; do
+        case "$1" in
+            --path)  wantPath=1; shift ;;
+            --quiet) quiet=1;    shift ;;
+            *)       break ;;
+        esac
+    done
+
+    if (( $# == 0 )); then
+        error-msg 'Missing library script name.'
+        return 1
+    fi
+
+    local name="$1"
+    shift
+
+    if ! [[ ${name} =~ ^[-_a-z0-9]+$ ]]; then
+        error-msg 'Weird script name:' "${name}"
+        return 1
+    fi
+
+    local path
+    for path in "${_init_libSearchPaths[@]}"; do
+        path+="/${name}"
+        if [[ -x "${path}" ]]; then
+            break
+        fi
+        path=''
+    done
+
+    if [[ ${path} == '' ]]; then
+        if (( !quiet )); then
+            error-msg 'No such library script:' "${name}"
+        fi
+        return 1
+    elif (( wantPath )); then
+        echo "${path}"
+    else
+        "${path}" "$@"
+    fi
+}
