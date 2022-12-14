@@ -28,6 +28,9 @@ export class UsualSystem extends Threadlet {
   /** @type {Warehouse} Warehouse of parts. */
   #warehouse = null;
 
+  /** @type {Error} Error to throw instead of running. */
+  #error = null;
+
   /** @type {function(...*)} Logger for this instance. */
   #logger = Loggy.loggerFor('main').allServers;
 
@@ -62,12 +65,33 @@ export class UsualSystem extends Threadlet {
 
   /**
    * Constructs (and possibly replaces) {@link #warehouse}.
+   *
+   * @returns {boolean} `true` iff successful. `false` generally means there was
+   * a configuration issue.
    */
   async #makeWarehouse() {
     const configUrl = this.#args.configUrl;
-    const config    = (await import(configUrl)).default;
+    let config;
 
-    this.#warehouse = new Warehouse(config);
+    this.#warehouse = null;
+
+    try {
+      config = (await import(configUrl)).default;
+    } catch (e) {
+      this.#logger.configFileError(e);
+      this.#error = e;
+      return false;
+    }
+
+    try {
+      this.#warehouse = new Warehouse(config);
+    } catch (e) {
+      this.#logger.warehouseConstructionError(e);
+      this.#error = e;
+      return false;
+    }
+
+    return true;
   }
 
   /**
@@ -88,6 +112,18 @@ export class UsualSystem extends Threadlet {
    * Main thread body: Runs the system.
    */
   async #run() {
+    if ((this.#error !== null) || (this.#warehouse === null)) {
+      if (this.#warehouse === null) {
+        this.#logger.noWarehouse();
+      }
+
+      if (this.#error === null) {
+        this.#error = new Error('Configuration trouble.');
+      }
+
+      throw this.#error;
+    }
+
     while (!this.shouldStop()) {
       if (this.#restartRequested.value === true) {
         this.#logger.restarting();
@@ -119,7 +155,13 @@ export class UsualSystem extends Threadlet {
 
     this.#logger.starting(logArg);
 
-    await this.#makeWarehouse();
+    const warehouseIsGood = await this.#makeWarehouse();
+
+    if (!warehouseIsGood) {
+      this.#logger.startAborted();
+      return;
+    }
+
     await this.#warehouse.startAllServices();
     await this.#warehouse.startAllServers();
 
