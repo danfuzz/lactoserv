@@ -50,8 +50,10 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
   /** @override */
   _impl_nowSec() {
     // What's going on here: We attempt to use `hrtime()` -- which has nsec
-    // precision but an arbitrary zero-time -- to improve on the precision of
-    // `Date.now()` -- which has msec precision and a well-established base.
+    // precision but an arbitrary zero-time, and which we don't assume runs at
+    // exactly (effective) wall-clock rate -- to improve on the precision of
+    // `Date.now()` -- which has msec precision and a well-established base, and
+    // which we assume is as accurate as it is precise.
 
     const hrtimeNsec  = process.hrtime.bigint();
     const dateNowNsec = BigInt(Date.now()) * StdLoggingEnvironment.#MSEC_PER_NSEC;
