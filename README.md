@@ -24,8 +24,7 @@ This is a web server which knows how to serve a couple different types of
   limiting for connections, requests, and/or sent data (bytes / bandwidth).
 * Produces request logs in a standard-ish form.
 * Produces detailed activity logs.
-* Inscrutable configuration file format.
-  (To be fixed soon! TODO!)
+* JS-based configuration file format, which isn't actually that awful!
 
 ### Implementation features
 
@@ -44,12 +43,14 @@ This is a web server which knows how to serve a couple different types of
 ### Requirements
 
 To build:
-* Standard(ish) POSIX command-line environment.
-* Recent(ish) version of Bash (works with what macOS ships).
-* Recent version of Node.
-* Recent version of `jq`.
+* Standard(ish) POSIX command-line environment (works on macOS and probably
+  whatever flavor of Linux you happen to like).
+* Recent(ish) version of Bash (works with what macOS ships, which is about as
+  old a version as you'll find on any up-to-date OS).
+* Recent version of Node (tested regularly on v18 and v19).
+* Recent version of `jq` (v1.6).
 
-To run:
+To run (versions as above):
 * Standard(ish) POSIX operating environment.
 * Recent(ish) version of Bash.
 * Recent version of Node.
