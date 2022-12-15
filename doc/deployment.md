@@ -41,6 +41,7 @@ WantedBy=multi-user.target
 
 # Execution mechanics.
 Type=simple
+WorkingDirectory=~
 ExecSearchPath=/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/home/lactoserv-user/bin
 ExecStart=run-under-systemd --service-name='%N' start
 ExecReload=run-under-systemd --service-name='%N' reload
