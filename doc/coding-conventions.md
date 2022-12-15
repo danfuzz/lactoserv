@@ -2,7 +2,7 @@ Coding Conventions
 ==================
 
 Much of the basic coding conventions are enforced by the linter (e.g.
-indentation, string quotes, JSDoc annotation). See the ESLint config file for
+indentation, string quotes, JSDoc annotations). See the ESLint config file for
 details.
 
 Similarly, `import` ordering is maintained with `scripts/sort-imports`, which

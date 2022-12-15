@@ -19,9 +19,5 @@ Jest (unit testing):
 `jq` (JSON wrangler):
 * https://stedolan.github.io/jq/manual/v1.6/
 
-JSON Schema:
-* Spec: <https://json-schema.org/>
-* AJV implementation: <https://ajv.js.org/>
-
 Node:
 * https://nodejs.org/api/

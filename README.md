@@ -94,6 +94,10 @@ TLDR: `run-tests --do=build` to do a build first, for convenience.
 
 #### Run out of the built `out` directory
 
+This will run the server using the example configuration defined in
+`etc/config`, which includes a self-signed certificate for `localhost`, which
+_might_ satisfy your local web browser.
+
 ```sh
 $ ./scripts/run
 ...
