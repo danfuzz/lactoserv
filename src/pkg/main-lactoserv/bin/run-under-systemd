@@ -1,0 +1,153 @@
+#!/bin/bash
+#
+# Copyright 2022 Dan Bornstein. All rights reserved.
+# All code and assets are considered proprietary and unlicensed.
+
+#
+# Runs `lactoserv` with the configuration file at the given (or default) path.
+#
+
+# Figure out the symlink-resolved program name and directory.
+cmdName="$(readlink -f "$0")" || exit "$?"
+cmdDir="${cmdName%/*}"
+cmdName="${cmdName##*/}"
+baseDir="${cmdDir%/*}"
+
+
+#
+# Argument parsing.
+#
+
+# Error during argument processing?
+argError=0
+
+# Command.
+command='run-foreground'
+
+# Config file location.
+configFile='etc/lactoserv/config.mjs'
+
+# Service name.
+serviceName=''
+
+while true; do
+    case "$1" in
+        --service-name=*)
+            serviceName="${1#*=}"
+            ;;
+        --)
+            # Explicit end of options.
+            shift
+            break
+            ;;
+        -?*)
+            echo 1>&2 "Unknown option: $1"
+            argError=1
+            break
+            ;;
+        *)
+            # Non-option argument.
+            break
+    esac
+
+    shift
+done
+
+if (( $# > 0 )); then
+    command="$1"
+    shift
+fi
+
+if (( $# > 0 )); then
+    configFile="$1"
+    shift
+fi
+
+if (( $# > 0 )); then
+    echo 1>&2 'Too many arguments.'
+    argError=1
+fi
+
+if [[ (${command} != 'run-foreground') && (${serviceName} == '') ]]; then
+    echo 1>&2 "Option --service-name required for command: ${command}"
+    argError=1
+fi
+
+if (( argError )); then
+    exit 1
+fi
+
+
+#
+# Helper functions
+#
+
+# Runs the system in the foreground.
+function do-run-foreground {
+    exec "${runCmd}" \
+        --config="${configFile}" \
+        --log-to-stdout
+}
+
+# Starts the system, daemon-style.
+function do-start {
+    # Note: `exec` is required so that the process running this script
+    # ultimately becomes the process actually running the service. (If that
+    # turns out not to be the case, then the `systemd` configuration will need
+    # to be adjusted.)
+    exec "${runCmd}" \
+        --config="${configFile}"
+}
+
+# Tells a daemon that's running to reload.
+function do-reload {
+    local serviceName="$1"
+    local pid
+
+    pid="$(get-service-pid "${serviceName}")" \
+    || return "$?"
+
+    kill -HUP "${pid}"
+}
+
+# Stops a daemon that's running.
+function do-stop {
+    local serviceName="$1"
+    local pid
+
+    pid="$(get-service-pid "${serviceName}")" \
+    || return "$?"
+
+    kill "${pid}"
+}
+
+# Gets the main PID for the given service.
+function get-service-pid {
+    local serviceName="$1"
+    local result
+
+    result="$(systemctl show --property=MainPID "${serviceName}")" \
+    || return "$?"
+
+    if [[ ${result} =~ ^MainPID=(.*)$ ]]; then
+        echo "${BASH_REMATCH[1]}"
+    else
+        printf 1>&2 'Strange output: %q\n' "${result}"
+        return 1
+    fi
+}
+
+
+#
+# Main script
+#
+
+runCmd="${cmdDir}/run"
+commandFunc="do-${command}"
+
+if ! declare -F "${commandFunc}" >/dev/null; then
+    echo 1>&2 "Unknown command: ${command}"
+    exit 1
+fi
+
+"${commandFunc}" "${serviceName}" || exit "$?"
