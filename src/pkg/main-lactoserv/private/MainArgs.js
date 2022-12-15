@@ -89,7 +89,7 @@ export class MainArgs {
       .version(versionString)
       .options({
         'config': {
-          describe:     'Configuration file',
+          describe:     'Configuration file (filesystem path)',
           conflicts:    'config-url',
           normalize:    true,
           requriresArg: true,
