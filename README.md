@@ -3,6 +3,12 @@
 
 [![Require Lint](https://github.com/danfuzz/lactoserv/actions/workflows/main.yml/badge.svg)](https://github.com/danfuzz/lactoserv/actions/workflows/main.yml)
 
+Documentation:
+* [`doc` directory](./doc), notably:
+  * [Configuration Guide](./doc/configuration.md)
+  * [Deployment Guide](./doc/deployment.md)
+  * [Development Guide](./doc/development.md)
+
 - - - - - - - - - -
 This is a web server which knows how to serve a couple different types of
 (more or less) static site.
@@ -55,66 +61,9 @@ To run (versions as above):
 * Recent(ish) version of Bash.
 * Recent version of Node.
 
-### Building, Linting, Testing
+- - - - - - - - - -
+This project -- including all code, configuration, documentation, and other
+files -- was created by the Lactoserv Authors (Dan Bornstein et alia).
 
-#### Build
-
-```sh
-$ ./scripts/build
-...
-Build complete!
-$
-```
-
-By default, `build` deposits both a runnable build and a distribution tarball in
-the directory `out` directly under the top-level source directory. The script
-takes other options; `build --help` for details.
-
-#### Lint
-
-```sh
-$ ./scripts/lint
-
-No linter errors! Yay!
-$
-```
-
-#### Test
-
-```sh
-$ ./scripts/run-tests
-...
-No errors! Yay!
-```
-
-The `run-tests` script takes other options; `run-tests --help` for details.
-TLDR: `run-tests --do=build` to do a build first, for convenience.
-
-### Running
-
-#### Run out of the built `out` directory
-
-This will run the server using the example configuration defined in
-`etc/config`, which includes a self-signed certificate for `localhost`, which
-_might_ satisfy your local web browser.
-
-```sh
-$ ./scripts/run
-...
-```
-
-The `run` script takes other options; `run --help` for details. TLDR: `run
---do=build` to do a build first, for convenience.
-
-Recognized signals:
-* `SIGHUP` -- Does an in-process system reload. (The system shuts down and then
-  re-runs from near-scratch.)
-* `SIGUSR2` -- Produces a heap dump file. Look in the log for the file name.
-  (Writes to the current directory if it is writable.) The file can be inspected
-  using the "Memory" panel available in the Chrome developer tools.
-* `SIGINT` and `SIGTERM` -- Shuts down as cleanly as possible. (Note: `SIGINT`
-  is usually what gets sent when you type `ctrl-C` in a console.)
-
-#### Install and run in production
-
-TODO! Coming soon!
+Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
+All code and assets are considered proprietary and unlicensed.
