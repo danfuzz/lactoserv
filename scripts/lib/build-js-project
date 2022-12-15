@@ -122,7 +122,7 @@ function build-js-project {
     make-index-js "${destLocalCode}" \
     || return "$?"
 
-    copy-run-script "${srcMainModule}" "${destDir}" \
+    copy-scripts "${srcMainModule}" "${destDir}" \
     || return "$?"
 
     copy-local-modules "${srcDir}" "${destLocalModules}" "${deps}" \
@@ -174,34 +174,50 @@ function copy-local-modules {
     eval "${copyCmd}"
 }
 
-# Copies the main module's `run` script, if present.
-function copy-run-script {
-    local srcDir="$1"
+# Copies the main module's script(s), if any.
+function copy-scripts {
+    local srcDir="$1/bin"
     local destDir="$2/bin"
 
-    local scriptName='run'
-    local srcScript="${srcDir}/${scriptName}"
-    local destScript="${destDir}/${scriptName}"
+    # Get a JSON array of all the files. `.[2:]` strips off the leading `./`.
+    local fileList
+    fileList="$(
+        cd "${srcDir}"
+        find . -mindepth 1 -maxdepth 1 -print0 \
+        | jval --input=raw0:slurp 'map(.[2:])'
+    )" \
+    || return "$?"
 
-    if [[ ! -r ${srcScript} ]]; then
-        return
+    local flen="$(jget "${fileList}" 'length')"
+
+    if (( flen == 0 )); then
+        return;
     fi
 
-    if [[ -x ${srcScript} ]]; then
-        error-msg 'Run script is marked executable in the source directory:'
-        error-msg "  ${srcScript}"
-        error-msg 'It cannot actually be run from there. Do this:'
-        error-msg
-        error-msg --exec printf '  chmod -x %q\n' "${srcScript}"
-        error-msg
-        return 1
-    fi
+    progress-msg 'Copying scripts...'
 
-    progress-msg 'Copying run script...'
-    rm -rf "${destScript}"            || return "$?"
-    mkdir -p "${destDir}"             || return "$?"
-    cp "${srcScript}" "${destScript}" || return "$?"
-    chmod +x "${destScript}"          || return "$?"
+    mkdir -p "${destDir}" \
+    || return "$?"
+
+    local i f srcScript destScript
+    for (( i = 0; i < flen; i++ )); do
+        f="$(jget --output=raw "${fileList}" i:json="${i}" '.[$i]')"
+        srcScript="${srcDir}/${f}"
+        destScript="${destDir}/${f}"
+        if [[ -x "${srcScript}" ]]; then
+            error-msg 'Script is marked executable in the source directory:'
+            error-msg "  ${srcScript}"
+            error-msg 'It cannot actually be run from there. Do this:'
+            error-msg
+            error-msg --exec printf '  chmod -x %q\n' "${srcScript}"
+            error-msg
+            return 1
+        fi
+        progress-msg "  ${f}"
+        rm -rf "${destScript}"            || return "$?"
+        cp "${srcScript}" "${destScript}" || return "$?"
+        chmod +x "${destScript}"          || return "$?"
+    done
 }
 
 # Makes a distribution tarball of the built result.
