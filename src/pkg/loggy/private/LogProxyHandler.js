@@ -1,6 +1,5 @@
-// Copyright 2016-2019 the Bayou Authors (Dan Bornstein et alia).
-// Licensed AS IS and WITHOUT WARRANTY under the Apache License,
-// Version 2.0. Details: <http://www.apache.org/licenses/LICENSE-2.0>
+// Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
+// All code and assets are considered proprietary and unlicensed.
 
 import { PropertyCacheProxyHandler } from '@this/metacomp';
 
