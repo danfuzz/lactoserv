@@ -1,5 +1,5 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
-// All code and assets are considered proprietary and unlicensed.
+// This project is PROPRIETARY and UNLICENSED.
 
 import process from 'node:process';
 import * as timers from 'node:timers/promises';

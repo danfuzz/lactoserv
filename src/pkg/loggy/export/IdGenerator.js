@@ -1,5 +1,5 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
-// All code and assets are considered proprietary and unlicensed.
+// This project is PROPRIETARY and UNLICENSED.
 
 /**
  * Generator of unique-enough IDs to track connections, requests, etc., in the

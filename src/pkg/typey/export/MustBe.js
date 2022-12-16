@@ -1,5 +1,5 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
-// All code and assets are considered proprietary and unlicensed.
+// This project is PROPRIETARY and UNLICENSED.
 
 /**
  * Simple type assertions that can be placed at the starts of methods.

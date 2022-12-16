@@ -1,5 +1,5 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
-// All code and assets are considered proprietary and unlicensed.
+// This project is PROPRIETARY and UNLICENSED.
 
 import * as http2 from 'node:http2';
 import * as timers from 'node:timers/promises';
