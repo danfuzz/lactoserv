@@ -62,6 +62,7 @@ To run (versions as above):
 * Recent version of Node.
 
 - - - - - - - - - -
+
 This project -- including all code, configuration, documentation, and other
 files -- was created by the Lactoserv Authors (Dan Bornstein et alia).
 
