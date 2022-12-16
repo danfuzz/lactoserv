@@ -4,7 +4,8 @@
 # This project is PROPRIETARY and UNLICENSED.
 
 #
-# Runs `lactoserv` with the configuration file at the given (or default) path.
+# Helper for running under `systemd`: Manages a `lactoserv` process, or (for
+# development) runs it in the foreground.
 #
 
 # Figure out the symlink-resolved program name and directory.
@@ -25,13 +26,16 @@ argError=0
 command='run-foreground'
 
 # Config file location.
-configFile='etc/lactoserv/config.mjs'
+configFile='config.mjs'
 
 # Service name.
 serviceName=''
 
 while true; do
     case "$1" in
+        --config=*)
+            configFile="${1#*=}"
+            ;;
         --service-name=*)
             serviceName="${1#*=}"
             ;;
@@ -55,11 +59,6 @@ done
 
 if (( $# > 0 )); then
     command="$1"
-    shift
-fi
-
-if (( $# > 0 )); then
-    configFile="$1"
     shift
 fi
 
