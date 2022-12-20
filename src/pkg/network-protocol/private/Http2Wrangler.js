@@ -44,9 +44,14 @@ export class Http2Wrangler extends TcpWrangler {
 
     this.#logger = options.logger?.http2 ?? null;
 
+    const serverOptions = {
+      ...options.hosts,
+      allowHTTP1: true
+    };
+
     // Express needs to be wrapped in order for it to use HTTP2.
     this.#application    = http2ExpressBridge(express);
-    this.#protocolServer = http2.createSecureServer(options.hosts);
+    this.#protocolServer = http2.createSecureServer(serverOptions);
 
     this.#application.use('/', (req, res, next) => this.#tweakResponse(req, res, next));
     this.#protocolServer.on('session', (session) => this.#addSession(session));
