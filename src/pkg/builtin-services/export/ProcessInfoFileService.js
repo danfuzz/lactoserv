@@ -24,6 +24,9 @@ export class ProcessInfoFileService extends BaseService {
   /** @type {string} Directory for info files. */
   #directory;
 
+  /** @type {object} Last-written info file contents. */
+  #contents;
+
 
   /**
    * Constructs an instance.
@@ -37,10 +40,13 @@ export class ProcessInfoFileService extends BaseService {
     const { baseName, directory } = config;
     this.#baseName  = baseName;
     this.#directory = Path.resolve(directory);
+    this.#contents  = ProcessInfo.allInfo;
   }
 
   /** @override */
   async start() {
+    // TODO: Read already-existing file.
+
     await this.#writeFile();
   }
 
@@ -49,17 +55,19 @@ export class ProcessInfoFileService extends BaseService {
     const stopTimeSecs = Date.now() / 1000;
     const stopTime     = FormatUtils.dateTimeStringFromSecs(stopTimeSecs);
 
-    await this.#writeFile({ stopTime, stopTimeSecs });
+    this.#contents = {
+      ...this.#contents,
+      stopTime,
+      stopTimeSecs
+    };
+
+    await this.#writeFile();
   }
 
   /**
    * Writes the info file.
-   *
-   * @param {object} [extraInfo = {}] Extra information to write.
    */
-  async #writeFile(extraInfo = {}) {
-    const info = { ...ProcessInfo.allInfo, ...extraInfo };
-
+  async #writeFile() {
     // Create the directory if it doesn't already exist.
 
     try {
@@ -74,7 +82,7 @@ export class ProcessInfoFileService extends BaseService {
 
     // Write the file.
 
-    const text     = `${JSON.stringify(info, null, 2)}\n`;
+    const text     = `${JSON.stringify(this.#contents, null, 2)}\n`;
     const fileName = `${this.#baseName}-${process.pid}.json`;
     const fullPath = Path.resolve(this.#directory, fileName);
 
