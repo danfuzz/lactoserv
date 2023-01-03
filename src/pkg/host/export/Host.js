@@ -1,6 +1,8 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
 // This project is PROPRIETARY and UNLICENSED.
 
+import { FormatUtils } from '@this/loggy';
+
 import { LoggingManager } from '#p/LoggingManager';
 import { ProcessInfo } from '#x/ProcessInfo';
 import { ProductInfo } from '#x/ProductInfo';
@@ -118,18 +120,8 @@ export class Host {
     if (problems.length !== 0) {
       // Convert `Error` objects to a friendly JSON-encodable form.
       for (const p of problems) {
-        const prob = p.problem;
-        if (prob instanceof Error) {
-          p.errorClass = prob.constructor.name;
-          if (prob.message) {
-            p.message = prob.message;
-          }
-          if (prob.code) {
-            p.code = prob.code;
-          }
-          p.stack = prob.stack;
-          delete p.problem;
-        }
+        Object.assign(p, FormatUtils.errorObject(p.problem));
+        delete p.problem;
       }
 
       result.problems = problems;
