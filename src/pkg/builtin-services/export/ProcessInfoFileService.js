@@ -122,7 +122,7 @@ export class ProcessInfoFileService extends BaseService {
     constructor(config) {
       super(config);
 
-      this.#baseName = Files.checkFileName(config.baseName);
+      this.#baseName  = Files.checkFileName(config.baseName);
       this.#directory = Files.checkAbsolutePath(config.directory);
     }
 
