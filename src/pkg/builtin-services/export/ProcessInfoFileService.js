@@ -6,7 +6,7 @@ import * as Path from 'node:path';
 
 import { Files, ServiceConfig } from '@this/app-config';
 import { BaseService, ServiceController } from '@this/app-services';
-import { ProcessInfo } from '@this/host';
+import { Host, ProcessInfo } from '@this/host';
 import { FormatUtils } from '@this/loggy';
 
 
@@ -65,6 +65,12 @@ export class ProcessInfoFileService extends BaseService {
       if (runTimeHours > 24) {
         contents.runTimeDays = runTimeHours / 24;
       }
+    }
+
+    if (Host.isShuttingDown()) {
+      contents.disposition = 'shutting-down';
+    } else {
+      contents.disposition = 'restarting';
     }
 
     await this.#writeFile();
