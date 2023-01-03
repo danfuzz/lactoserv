@@ -121,4 +121,33 @@ export class FormatUtils {
       return `${sec}sec`;
     }
   }
+
+  /**
+   * Makes a JSON-encodable version of an `Error` as a plain object. Returns
+   * non-`Error`s as-is.
+   *
+   * @param {*} error Presumed `Error`.
+   * @returns {*} JSON-encodable version of `error` if it is indeed an `Error`,
+   *   or the original `error` value if not.
+   */
+  static errorObject(error) {
+    if (!(error instanceof Error)) {
+      return error;
+    }
+
+    const result = {
+      errorClass: error.constructor.name,
+      message:    error.message,
+    };
+
+    if (error.code) {
+      result.code = error.code;
+    }
+
+    // Not included in the initial `result` assignment above, so that it gets
+    // emitted last when JSON-encoded.
+    result.stack = error.stack;
+
+    return result;
+  }
 }
