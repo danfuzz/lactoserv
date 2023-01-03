@@ -53,7 +53,6 @@ export class ProcessInfoFileService extends BaseService {
     const contents     = this.#contents;
     const stopTimeSecs = Date.now() / 1000;
     const runTimeSecs  = stopTimeSecs - contents.startTimeSecs;
-    const stopTime     = FormatUtils.dateTimeStringFromSecs(stopTimeSecs);
 
     contents.stopTime     = FormatUtils.dateTimeStringFromSecs(stopTimeSecs);
     contents.stopTimeSecs = stopTimeSecs;
@@ -136,7 +135,7 @@ export class ProcessInfoFileService extends BaseService {
       if (e.code === 'ENOENT') {
         return null;
       } else {
-        return { error: problem.stack };
+        return { error: e.stack };
       }
     }
   }
