@@ -16,6 +16,8 @@ export class ProductInfo {
   /** @returns {object} All product info. */
   static get allInfo() {
     this.#extractInfo();
+
+    // `{ ... }` to clone the object, so that the caller can safely modify it.
     return { ...this.#info };
   }
 
