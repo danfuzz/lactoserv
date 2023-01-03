@@ -50,14 +50,22 @@ export class ProcessInfoFileService extends BaseService {
 
   /** @override */
   async stop() {
+    const contents     = this.#contents;
     const stopTimeSecs = Date.now() / 1000;
+    const runTimeSecs  = stopTimeSecs - contents.startTimeSecs;
     const stopTime     = FormatUtils.dateTimeStringFromSecs(stopTimeSecs);
 
-    this.#contents = {
-      ...this.#contents,
-      stopTime,
-      stopTimeSecs
-    };
+    contents.stopTime     = FormatUtils.dateTimeStringFromSecs(stopTimeSecs);
+    contents.stopTimeSecs = stopTimeSecs;
+    contents.runTimeSecs  = runTimeSecs;
+
+    if (runTimeSecs > (60 * 60)) {
+      const runTimeHours = runTimeSecs / (60 * 60);
+      contents.runTimeHours = runTimeHours;
+      if (runTimeHours > 24) {
+        contents.runTimeDays = runTimeHours / 24;
+      }
+    }
 
     await this.#writeFile();
   }
