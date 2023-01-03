@@ -109,10 +109,32 @@ export class Host {
       return null;
     }
 
-    // TODO: Fill this in.
-    return {
+    const result = {
       shuttingDown: true,
       exitCode:     ShutdownHandler.exitCode
     };
+
+    const problems = TopErrorHandler.problems;
+    if (problems.length != 0) {
+      // Convert `Error` objects to a friendly JSON-encodable form.
+      for (const p of problems) {
+        const prob = p.problem;
+        if (prob instanceof Error) {
+          p.errorClass = prob.constructor.name;
+          if (prob.message) {
+            p.message = prob.message;
+          }
+          if (prob.code) {
+            p.code = prob.code;
+          }
+          p.stack = prob.stack;
+          delete p.problem;
+        }
+      }
+
+      result.problems = problems;
+    }
+
+    return result;
   }
 }

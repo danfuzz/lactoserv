@@ -34,12 +34,24 @@ export class TopErrorHandler {
   /** @type {boolean} Currently trying to shut down? */
   static #shuttingDown = false;
 
+  /** @type {object[]} Actual object behind {@link #problems}. */
+  static #problems = [];
+
   /**
-   * @type {object[]} List of unhandled errors that precipitated shutdown.
-   * Typically no more than one element, but if an error happens during
-   * error-related shutdown then there can be more.
+   * @type {object[]} List of all unhandled problems that are precipitating
+   * shutdown. Typically no more than one element, but if an error happens
+   * during error-related shutdown then there can be more. Each element is an
+   * object which binds `type` and `problem`.
    */
-  static #errors = [];
+  static get problems() {
+    const problems = [];
+
+    for (const p of this.#problems) {
+      problems.push({ ...p });
+    }
+
+    return problems;
+  }
 
   /**
    * Initializes the handlers.
@@ -71,7 +83,7 @@ export class TopErrorHandler {
    *   Typically, but not necessarily, an `Error`.
    */
   static async #handleProblem(eventType, label, problem) {
-    this.#errors.push({ type: eventType, problem });
+    this.#problems.push({ type: eventType, problem });
 
     const problemString = util.inspect(problem);
 
