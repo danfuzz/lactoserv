@@ -5,6 +5,7 @@ import process from 'node:process'; // Need to import as such, for `.on*()`.
 import * as timers from 'node:timers/promises';
 import * as util from 'node:util';
 
+import { ShutdownHandler } from '#p/ShutdownHandler';
 import { ThisModule } from '#p/ThisModule';
 
 
@@ -29,6 +30,28 @@ export class TopErrorHandler {
 
   /** @type {Map<Promise, *>} Map of unhandled rejections. */
   static #unhandledRejections = new Map();
+
+  /** @type {boolean} Currently trying to shut down? */
+  static #shuttingDown = false;
+
+  /** @type {object[]} Actual object behind {@link #problems}. */
+  static #problems = [];
+
+  /**
+   * @type {object[]} List of all unhandled problems that are precipitating
+   * shutdown. Typically no more than one element, but if an error happens
+   * during error-related shutdown then there can be more. Each element is an
+   * object which binds `type` and `problem`.
+   */
+  static get problems() {
+    const problems = [];
+
+    for (const p of this.#problems) {
+      problems.push({ ...p });
+    }
+
+    return problems;
+  }
 
   /**
    * Initializes the handlers.
@@ -60,6 +83,8 @@ export class TopErrorHandler {
    *   Typically, but not necessarily, an `Error`.
    */
   static async #handleProblem(eventType, label, problem) {
+    this.#problems.push({ type: eventType, problem });
+
     const problemString = util.inspect(problem);
 
     // Write to `stderr` directly first, because logging might be broken.
@@ -67,10 +92,28 @@ export class TopErrorHandler {
 
     logger[eventType](problem);
 
+    if (this.#shuttingDown) {
+      // We're already in the middle of shutting down due to an error. Don't
+      // redo the rest of this method; just hope for the best.
+      return;
+    }
+
+    // First time making it to this point; indicate that yes really we are going
+    // to shut down.
+    this.#shuttingDown = true;
+
     // Give the system a moment, so it has a chance to actually flush the log,
-    // and then exit.
+    // then attempt first a clean then an abrupt exit.
+
     await timers.setTimeout(250); // 0.25 second.
-    process.exit(1);
+
+    try {
+      // This shouldn't return...
+      ShutdownHandler.exit(1);
+    } catch {
+      // ...but if it does, try harder to exit.
+      process.exit(1);
+    }
   }
 
   /**

@@ -1,6 +1,8 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
 // This project is PROPRIETARY and UNLICENSED.
 
+import { FormatUtils } from '@this/loggy';
+
 import { LoggingManager } from '#p/LoggingManager';
 import { ProcessInfo } from '#x/ProcessInfo';
 import { ProductInfo } from '#x/ProductInfo';
@@ -53,6 +55,15 @@ export class Host {
   }
 
   /**
+   * Is the system currently shutting down?
+   *
+   * @returns {boolean} The answer to the question.
+   */
+  static isShuttingDown() {
+    return ShutdownHandler.isShuttingDown();
+  }
+
+  /**
    * Starts logging to `stdout`.
    */
   static logToStdout() {
@@ -85,5 +96,37 @@ export class Host {
   static registerShutdownCallback(callback) {
     this.init();
     ShutdownHandler.registerCallback(callback);
+  }
+
+  /**
+   * Gets a report on "shutdown disposition." This is `null` unless shutdown is
+   * in progress, in which case it is an object which attempts to elucidate why
+   * the system is shutting down.
+   *
+   * @returns {?object} The shutdown disposition, or `null` if the system isn't
+   * actually shutting down.
+   */
+  static shutdownDisposition() {
+    if (!this.isShuttingDown()) {
+      return null;
+    }
+
+    const result = {
+      shuttingDown: true,
+      exitCode:     ShutdownHandler.exitCode
+    };
+
+    const problems = TopErrorHandler.problems;
+    if (problems.length !== 0) {
+      // Convert `Error` objects to a friendly JSON-encodable form.
+      for (const p of problems) {
+        Object.assign(p, FormatUtils.errorObject(p.problem));
+        delete p.problem;
+      }
+
+      result.problems = problems;
+    }
+
+    return result;
   }
 }

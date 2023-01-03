@@ -6,7 +6,7 @@ import * as Path from 'node:path';
 
 import { Files, ServiceConfig } from '@this/app-config';
 import { BaseService, ServiceController } from '@this/app-services';
-import { ProcessInfo } from '@this/host';
+import { Host, ProcessInfo } from '@this/host';
 import { FormatUtils } from '@this/loggy';
 
 
@@ -23,6 +23,9 @@ export class ProcessInfoFileService extends BaseService {
 
   /** @type {string} Directory for info files. */
   #directory;
+
+  /** @type {?object} Current info file contents, if known. */
+  #contents = null;
 
 
   /**
@@ -41,24 +44,107 @@ export class ProcessInfoFileService extends BaseService {
 
   /** @override */
   async start() {
+    this.#contents = await this.#makeContents();
     await this.#writeFile();
   }
 
   /** @override */
   async stop() {
+    const contents     = this.#contents;
     const stopTimeSecs = Date.now() / 1000;
-    const stopTime     = FormatUtils.dateTimeStringFromSecs(stopTimeSecs);
+    const runTimeSecs  = stopTimeSecs - contents.startTimeSecs;
 
-    await this.#writeFile({ stopTime, stopTimeSecs });
+    contents.stopTime     = FormatUtils.dateTimeStringFromSecs(stopTimeSecs);
+    contents.stopTimeSecs = stopTimeSecs;
+    contents.runTimeSecs  = runTimeSecs;
+
+    if (runTimeSecs > (60 * 60)) {
+      const runTimeHours = runTimeSecs / (60 * 60);
+      contents.runTimeHours = runTimeHours;
+      if (runTimeHours > 24) {
+        contents.runTimeDays = runTimeHours / 24;
+      }
+    }
+
+    if (Host.isShuttingDown()) {
+      contents.disposition = Host.shutdownDisposition();
+    } else {
+      contents.disposition = { restarting: true };
+    }
+
+    await this.#writeFile();
+  }
+
+  /** @returns {string} The path to the info file. */
+  get #filePath() {
+    const fileName = `${this.#baseName}-${process.pid}.json`;
+    const fullPath = Path.resolve(this.#directory, fileName);
+
+    return fullPath;
+  }
+
+  /**
+   * Makes the initial value for {@link #contents}.
+   *
+   * @returns {object} The contents.
+   */
+  async #makeContents() {
+    const contents     = ProcessInfo.allInfo;
+    const fileContents = await this.#readFile();
+
+    if (fileContents) {
+      if (fileContents.earlierRuns) {
+        const earlier = fileContents.earlierRuns;
+        delete fileContents.earlierRuns;
+        earlier.push(fileContents);
+        contents.earlierRuns = earlier;
+      } else {
+        contents.earlierRuns = [fileContents];
+      }
+
+      // Given that the file already exists, this is a restart, and so the
+      // `startTime` from `ProcessInfo` (which will appear in the earliest of
+      // the `earlierRuns`) is kinda moot. Instead, substitute the current time,
+      // that is, the _restart_ time.
+      const startTimeMsec = Date.now();
+      const startTimeSecs = startTimeMsec / 1000;
+      contents.startTime     = FormatUtils.dateTimeStringFromSecs(startTimeSecs);
+      contents.startTimeSecs = startTimeSecs;
+    }
+
+    return contents;
+  }
+
+  /**
+   * Reads the info file, if it exists. If it exists but can't be read and
+   * parsed, the problem is reported via the returned contents (stringified
+   * exception).
+   *
+   * @returns {?object} Parsed info file if it exists, or `null` if the file
+   *   does not exist.
+   */
+  async #readFile() {
+    const filePath = this.#filePath;
+
+    try {
+      await fs.stat(filePath);
+      const text = await fs.readFile(filePath);
+
+      return JSON.parse(text);
+    } catch (e) {
+      if (e.code === 'ENOENT') {
+        return null;
+      } else {
+        return { error: e.stack };
+      }
+    }
   }
 
   /**
    * Writes the info file.
-   *
-   * @param {object} [extraInfo = {}] Extra information to write.
    */
-  async #writeFile(extraInfo = {}) {
-    const info = { ...ProcessInfo.allInfo, ...extraInfo };
+  async #writeFile() {
+    const filePath = this.#filePath;
 
     // Create the directory if it doesn't already exist.
 
@@ -74,11 +160,8 @@ export class ProcessInfoFileService extends BaseService {
 
     // Write the file.
 
-    const text     = `${JSON.stringify(info, null, 2)}\n`;
-    const fileName = `${this.#baseName}-${process.pid}.json`;
-    const fullPath = Path.resolve(this.#directory, fileName);
-
-    await fs.writeFile(fullPath, text);
+    const text = `${JSON.stringify(this.#contents, null, 2)}\n`;
+    await fs.writeFile(filePath, text);
   }
 
 
@@ -114,7 +197,7 @@ export class ProcessInfoFileService extends BaseService {
     constructor(config) {
       super(config);
 
-      this.#baseName = Files.checkFileName(config.baseName);
+      this.#baseName  = Files.checkFileName(config.baseName);
       this.#directory = Files.checkAbsolutePath(config.directory);
     }
 

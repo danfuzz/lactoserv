@@ -3,6 +3,8 @@
 
 import { FormatUtils } from '@this/loggy';
 
+import { ThisModule } from '#p/ThisModule';
+
 
 /**
  * Utilities for getting at information about the process that is running this
@@ -41,5 +43,7 @@ export class ProcessInfo {
     const ppid = process.ppid;
 
     this.#info = { pid, ppid, startTime, startTimeSecs };
+
+    ThisModule.logger.processInfo(this.#info);
   }
 }
