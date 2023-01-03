@@ -95,4 +95,23 @@ export class Host {
     this.init();
     ShutdownHandler.registerCallback(callback);
   }
+
+  /**
+   * Gets a report on "shutdown disposition." This is `null` unless shutdown is
+   * in progress, in which case it is an object which attempts to elucidate why
+   * the system is shutting down.
+   *
+   * @returns {?object} The shutdown disposition, or `null` if the system isn't
+   * actually shutting down.
+   */
+  static shutdownDisposition() {
+    if (!this.isShuttingDown()) {
+      return null;
+    }
+
+    // TODO: Fill this in.
+    return {
+      shuttingDown: true
+    };
+  }
 }
