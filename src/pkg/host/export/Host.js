@@ -111,7 +111,8 @@ export class Host {
 
     // TODO: Fill this in.
     return {
-      shuttingDown: true
+      shuttingDown: true,
+      exitCode:     ShutdownHandler.exitCode
     };
   }
 }
