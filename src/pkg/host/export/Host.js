@@ -115,7 +115,7 @@ export class Host {
     };
 
     const problems = TopErrorHandler.problems;
-    if (problems.length != 0) {
+    if (problems.length !== 0) {
       // Convert `Error` objects to a friendly JSON-encodable form.
       for (const p of problems) {
         const prob = p.problem;
