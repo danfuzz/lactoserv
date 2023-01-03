@@ -5,6 +5,7 @@ import process from 'node:process'; // Need to import as such, for `.on*()`.
 import * as timers from 'node:timers/promises';
 import * as util from 'node:util';
 
+import { ShutdownHandler } from '#p/ShutdownHandler';
 import { ThisModule } from '#p/ThisModule';
 
 
@@ -68,9 +69,17 @@ export class TopErrorHandler {
     logger[eventType](problem);
 
     // Give the system a moment, so it has a chance to actually flush the log,
-    // and then exit.
+    // then attempt first a clean then an abrupt exit.
+
     await timers.setTimeout(250); // 0.25 second.
-    process.exit(1);
+
+    try {
+      // This shouldn't return...
+      ShutdownHandler.exit(1);
+    } catch {
+      // ...but if it does, try harder to exit.
+      process.exit(1);
+    }
   }
 
   /**
