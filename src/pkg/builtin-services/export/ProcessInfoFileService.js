@@ -68,9 +68,9 @@ export class ProcessInfoFileService extends BaseService {
     }
 
     if (Host.isShuttingDown()) {
-      contents.disposition = 'shuttingDown';
+      contents.disposition = Host.shutdownDisposition();
     } else {
-      contents.disposition = 'restarting';
+      contents.disposition = { restarting: true };
     }
 
     await this.#writeFile();
