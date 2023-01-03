@@ -88,6 +88,15 @@ export class ProcessInfoFileService extends BaseService {
       } else {
         contents.earlierRuns = [fileContents];
       }
+
+      // Given that the file already exists, this is a restart, and so the
+      // `startTime` from `ProcessInfo` (which will appear in the earliest of
+      // the `earlierRuns`) is kinda moot. Instead, substitute the current time,
+      // that is, the _restart_ time.
+      const startTimeMsec = Date.now();
+      const startTimeSecs = startTimeMsec / 1000;
+      contents.startTime     = FormatUtils.dateTimeStringFromSecs(startTimeSecs);
+      contents.startTimeSecs = startTimeSecs;
     }
 
     return contents;
