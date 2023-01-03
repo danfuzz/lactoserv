@@ -24,8 +24,8 @@ export class ProcessInfoFileService extends BaseService {
   /** @type {string} Directory for info files. */
   #directory;
 
-  /** @type {object} Last-written info file contents. */
-  #contents;
+  /** @type {?object} Current info file contents, if known. */
+  #contents = null;
 
 
   /**
@@ -40,13 +40,11 @@ export class ProcessInfoFileService extends BaseService {
     const { baseName, directory } = config;
     this.#baseName  = baseName;
     this.#directory = Path.resolve(directory);
-    this.#contents  = ProcessInfo.allInfo;
   }
 
   /** @override */
   async start() {
-    // TODO: Read already-existing file.
-
+    this.#contents = await this.#makeContents();
     await this.#writeFile();
   }
 
@@ -64,10 +62,68 @@ export class ProcessInfoFileService extends BaseService {
     await this.#writeFile();
   }
 
+  /** @returns {string} The path to the info file. */
+  get #filePath() {
+    const fileName = `${this.#baseName}-${process.pid}.json`;
+    const fullPath = Path.resolve(this.#directory, fileName);
+
+    return fullPath;
+  }
+
+  /**
+   * Makes the initial value for {@link #contents}.
+   *
+   * @returns {object} The contents.
+   */
+  async #makeContents() {
+    const contents     = ProcessInfo.allInfo;
+    const fileContents = await this.#readFile();
+
+    if (fileContents) {
+      if (fileContents.earlierRuns) {
+        const earlier = fileContents.earlierRuns;
+        delete fileContents.earlierRuns;
+        earlier.push(fileContents);
+        contents.earlierRuns = earlier;
+      } else {
+        contents.earlierRuns = [fileContents];
+      }
+    }
+
+    return contents;
+  }
+
+  /**
+   * Reads the info file, if it exists. If it exists but can't be read and
+   * parsed, the problem is reported via the returned contents (stringified
+   * exception).
+   *
+   * @returns {?object} Parsed info file if it exists, or `null` if the file
+   *   does not exist.
+   */
+  async #readFile() {
+    const filePath = this.#filePath;
+
+    try {
+      await fs.stat(filePath);
+      const text = await fs.readFile(filePath);
+
+      return JSON.parse(text);
+    } catch (e) {
+      if (e.code === 'ENOENT') {
+        return null;
+      } else {
+        return { error: problem.stack };
+      }
+    }
+  }
+
   /**
    * Writes the info file.
    */
   async #writeFile() {
+    const filePath = this.#filePath;
+
     // Create the directory if it doesn't already exist.
 
     try {
@@ -82,11 +138,8 @@ export class ProcessInfoFileService extends BaseService {
 
     // Write the file.
 
-    const text     = `${JSON.stringify(this.#contents, null, 2)}\n`;
-    const fileName = `${this.#baseName}-${process.pid}.json`;
-    const fullPath = Path.resolve(this.#directory, fileName);
-
-    await fs.writeFile(fullPath, text);
+    const text = `${JSON.stringify(this.#contents, null, 2)}\n`;
+    await fs.writeFile(filePath, text);
   }
 
 
