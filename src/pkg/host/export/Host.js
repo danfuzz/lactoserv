@@ -53,6 +53,15 @@ export class Host {
   }
 
   /**
+   * Is the system currently shutting down?
+   *
+   * @returns {boolean} The answer to the question.
+   */
+  static isShuttingDown() {
+    return ShutdownHandler.isShuttingDown();
+  }
+
+  /**
    * Starts logging to `stdout`.
    */
   static logToStdout() {
