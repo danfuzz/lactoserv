@@ -44,7 +44,6 @@ export class TextFileSink extends EventSink {
       this.#everWritten = true;
       if (!/^[/]dev[/]std(err|out)$/.test(this.#filePath)) {
         await fs.appendFile(this.#filePath, `\n\n${'- '.repeat(38)}-\n\n\n`);
-
       }
     }
 
