@@ -31,6 +31,16 @@ export class TopErrorHandler {
   /** @type {Map<Promise, *>} Map of unhandled rejections. */
   static #unhandledRejections = new Map();
 
+  /** @type {boolean} Currently trying to shut down? */
+  static #shuttingDown = false;
+
+  /**
+   * @type {object[]} List of unhandled errors that precipitated shutdown.
+   * Typically no more than one element, but if an error happens during
+   * error-related shutdown then there can be more.
+   */
+  static #errors = [];
+
   /**
    * Initializes the handlers.
    */
@@ -61,12 +71,24 @@ export class TopErrorHandler {
    *   Typically, but not necessarily, an `Error`.
    */
   static async #handleProblem(eventType, label, problem) {
+    this.#errors.push({ type: eventType, problem });
+
     const problemString = util.inspect(problem);
 
     // Write to `stderr` directly first, because logging might be broken.
     process.stderr.write(`\n\n${label}:\n${problemString}\n\n`);
 
     logger[eventType](problem);
+
+    if (this.#shuttingDown) {
+      // We're already in the middle of shutting down due to an error. Don't
+      // redo the rest of this method; just hope for the best.
+      return;
+    }
+
+    // First time making it to this point; indicate that yes really we are going
+    // to shut down.
+    this.#shuttingDown = true;
 
     // Give the system a moment, so it has a chance to actually flush the log,
     // then attempt first a clean then an abrupt exit.
