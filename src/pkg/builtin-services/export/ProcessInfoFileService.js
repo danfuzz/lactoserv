@@ -52,11 +52,13 @@ export class ProcessInfoFileService extends BaseService {
   async stop() {
     const contents     = this.#contents;
     const stopTimeSecs = Date.now() / 1000;
-    const runTimeSecs  = stopTimeSecs - contents.startTimeSecs;
+    const runTimeSecs  = stopTimeSecs - contents.startTime.secs;
 
-    contents.stopTime     = FormatUtils.dateTimeStringFromSecs(stopTimeSecs);
-    contents.stopTimeSecs = stopTimeSecs;
-    contents.runTimeSecs  = runTimeSecs;
+    contents.stopTime = {
+      str:  FormatUtils.dateTimeStringFromSecs(stopTimeSecs),
+      secs: stopTimeSecs
+    };
+    contents.runTimeSecs = runTimeSecs;
 
     if (runTimeSecs > (60 * 60)) {
       const runTimeHours = runTimeSecs / (60 * 60);
@@ -108,8 +110,10 @@ export class ProcessInfoFileService extends BaseService {
       // that is, the _restart_ time.
       const startTimeMsec = Date.now();
       const startTimeSecs = startTimeMsec / 1000;
-      contents.startTime     = FormatUtils.dateTimeStringFromSecs(startTimeSecs);
-      contents.startTimeSecs = startTimeSecs;
+      contents.startTime = {
+        str:  FormatUtils.dateTimeStringFromSecs(startTimeSecs),
+        secs: startTimeSecs
+      };
     }
 
     return contents;
