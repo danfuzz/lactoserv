@@ -248,19 +248,18 @@ export class ProtocolWrangler {
    * wrangling code.)
    *
    * @param {object} session The (`http2.Http2Session`-like) instance.
-   * @returns {?function(...*)} Logging function to use for the session, if
-   *   logging is in fact to be done.
+   * @returns {WranglerContext} Context associated with this session.
    */
   _prot_newSession(session) {
     // Propagate the connection context. See `_prot_newConnection()` for a
     // treatise about what's going on.
 
     const ctx = this.#perConnectionStorage.getStore();
-    if (ctx) {
-      WranglerContext.bind(session, ctx);
-      WranglerContext.bind(session.socket, ctx);
-    } else {
+
+    if (!ctx) {
+      // Shouldn't happen.
       this.#logger?.missingContext('session');
+      throw new Error('Shouldn\'t happen: Missing context during session setup.');
     }
 
     const sessionLogger = this.#logger?.sess.$newId;
@@ -276,7 +275,12 @@ export class ProtocolWrangler {
       session.on('goaway',     (code) => sessionLogger.closed('go-away', code));
     }
 
-    return sessionLogger;
+    const sessionCtx = WranglerContext.forSession(ctx, sessionLogger);
+
+    WranglerContext.bind(session, sessionCtx);
+    WranglerContext.bind(session.socket, sessionCtx);
+
+    return sessionCtx;
   }
 
   /**

@@ -90,7 +90,8 @@ export class Http2Wrangler extends TcpWrangler {
       return;
     }
 
-    const logger   = this._prot_newSession(session);
+    const ctx      = this._prot_newSession(session);
+    const logger   = ctx.logger;
     const sessions = this.#sessions;
 
     sessions.add(session);
