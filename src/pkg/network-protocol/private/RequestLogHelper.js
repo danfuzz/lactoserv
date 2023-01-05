@@ -52,7 +52,7 @@ export class RequestLogHelper {
     const method    = req.method;
 
     const info = {
-      connectionId: connectionCtx.connectionId ?? '<unknown-connection-id>'
+      connectionId: connectionCtx.connectionId ?? '<unknown-id>'
     };
     if (connectionCtx.sessionId) {
       info.sessionId = connectionCtx.sessionId;
