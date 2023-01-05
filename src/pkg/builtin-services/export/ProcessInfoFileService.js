@@ -74,6 +74,14 @@ export class ProcessInfoFileService extends BaseService {
       contents.disposition = { restarting: true };
     }
 
+    // Try to get `earlierRuns` to be a the end of the object when it gets
+    // encoded to JSON, for easier (human) reading.
+    if (contents.earlierRuns) {
+      const earlierRuns = contents.earlierRuns;
+      delete contents.earlierRuns;
+      contents.earlierRuns = earlierRuns;
+    }
+
     await this.#writeFile();
   }
 
