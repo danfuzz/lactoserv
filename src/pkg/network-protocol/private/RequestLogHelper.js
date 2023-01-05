@@ -45,16 +45,21 @@ export class RequestLogHelper {
    * @returns {function(*...)} The request-specific logger.
    */
   logRequest(req, res, connectionCtx) {
-    const timeStart  = process.hrtime.bigint();
-    const logger     = this.#logger?.$newId ?? null;
-    const reqHeaders = req.headers;
-    const urlish     = `${req.protocol}://${req.hostname}${req.originalUrl}`;
-    const origin     = connectionCtx.socketAddressPort ?? '<unknown-origin>';
+    const timeStart = process.hrtime.bigint();
+    const logger    = this.#logger?.$newId ?? null;
+    const urlish    = `${req.protocol}://${req.hostname}${req.originalUrl}`;
+    const origin    = connectionCtx.socketAddressPort ?? '<unknown-origin>';
+    const method    = req.method;
 
-    logger?.opened();
-    logger?.connection(connectionCtx.connectionId ?? '<unknown-connection-id>');
+    const info = {
+      connectionId: connectionCtx.connectionId ?? '<unknown-connection-id>'
+    };
+    if (connectionCtx.sessionId) {
+      info.sessionId = connectionCtx.sessionId;
+    }
+    logger?.opened(info);
     logger?.request(origin, req.method, urlish);
-    logger?.headers(RequestLogHelper.#sanitizeRequestHeaders(reqHeaders));
+    logger?.headers(RequestLogHelper.#sanitizeRequestHeaders(req.headers));
 
     const cookies = req.cookies;
     if (cookies) {
@@ -93,7 +98,7 @@ export class RequestLogHelper {
       const requestLogLine = [
         FormatUtils.dateTimeStringFromMsec(Date.now()),
         origin,
-        req.method,
+        method,
         JSON.stringify(urlish),
         res.statusCode,
         FormatUtils.contentLengthString(contentLength),
