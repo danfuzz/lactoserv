@@ -6,7 +6,7 @@ import * as Path from 'node:path';
 
 import { Files, ServiceConfig } from '@this/app-config';
 import { BaseService, ServiceController } from '@this/app-services';
-import { Host, ProcessInfo } from '@this/host';
+import { Host, ProcessInfo, ProductInfo } from '@this/host';
 import { FormatUtils } from '@this/loggy';
 
 
@@ -99,7 +99,11 @@ export class ProcessInfoFileService extends BaseService {
    * @returns {object} The contents.
    */
   async #makeContents() {
-    const contents     = ProcessInfo.allInfo;
+    const contents = {
+      product: ProductInfo.allInfo,
+      ...ProcessInfo.allInfo
+    };
+
     const fileContents = await this.#readFile();
 
     if (fileContents) {
