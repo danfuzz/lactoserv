@@ -91,25 +91,28 @@ export class Http2Wrangler extends TcpWrangler {
     }
 
     const ctx      = this._prot_newSession(session);
-    const logger   = ctx.logger;
     const sessions = this.#sessions;
 
     sessions.add(session);
     this.#anySessions.value = true;
 
-    logger?.totalSessions(sessions.size);
+    ctx.connectionLogger?.totalSessions(sessions.size);
 
     const removeSession = () => {
       if (sessions.delete(session)) {
         if (sessions.size === 0) {
           this.#anySessions.value = false;
         }
-        logger?.totalSessions(sessions.size);
+        ctx.connectionLogger?.totalSessions(sessions.size);
       }
     };
 
-    session.on('close', removeSession);
-    session.on('error', removeSession);
+    // Note: `ProtocolWrangler` logs each of these events, so no need to do that
+    // here.
+    session.on('close',      removeSession);
+    session.on('error',      removeSession);
+    session.on('frameError', removeSession);
+    session.on('goaway',     removeSession);
 
     session.setTimeout(Http2Wrangler.#SESSION_TIMEOUT_MSEC, () => {
       logger?.idleTimeout();
