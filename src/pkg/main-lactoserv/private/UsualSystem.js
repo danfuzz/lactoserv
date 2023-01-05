@@ -215,7 +215,7 @@ export class UsualSystem extends Threadlet {
   /**
    * @type {number} Grace period after asking to stop all servers before asking
    * services to shut down. (If the servers stop more promptly, then the system
-   * will promptly move on to service shutdown.)
+   * will immediately move on to service shutdown.)
    */
   static #SERVER_STOP_GRACE_PERIOD_MSEC = 250;
 }
