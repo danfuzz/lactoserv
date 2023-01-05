@@ -115,7 +115,7 @@ export class Http2Wrangler extends TcpWrangler {
     session.on('goaway',     removeSession);
 
     session.setTimeout(Http2Wrangler.#SESSION_TIMEOUT_MSEC, () => {
-      logger?.idleTimeout();
+      ctx.sessionLogger?.idleTimeout();
       session.close();
     });
   }
