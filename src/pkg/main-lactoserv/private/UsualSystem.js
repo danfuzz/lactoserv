@@ -1,6 +1,8 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
 // This project is PROPRIETARY and UNLICENSED.
 
+import * as timers from 'node:timers/promises';
+
 import { Warehouse } from '@this/app-servers';
 import { Condition, Threadlet } from '@this/async';
 import { BuiltinApplications } from '@this/builtin-applications';
@@ -179,12 +181,31 @@ export class UsualSystem extends Threadlet {
 
     this.#logger.stopping(logArg);
 
+    const serversStopped = this.#warehouse.stopAllServers();
+
+    await Promise.race([
+      serversStopped,
+      timers.setTimeout(UsualSystem.#SERVER_STOP_GRACE_PERIOD_MSEC)
+    ]);
+
     await Promise.all([
-      this.#warehouse.stopAllServers(),
+      serversStopped,
       this.#warehouse.stopAllServices()
     ]);
-    this.#warehouse = null;
 
+    this.#warehouse = null;
     this.#logger.stopped(logArg);
   }
+
+
+  //
+  // Static members
+  //
+
+  /**
+   * @type {number} Grace period after asking to stop all servers before asking
+   * services to shut down. (If the servers stop more promptly, then the system
+   * will promptly move on to service shutdown.)
+   */
+  static #SERVER_STOP_GRACE_PERIOD_MSEC = 250;
 }
