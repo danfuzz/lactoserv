@@ -21,6 +21,12 @@ export class WranglerContext {
   /** @type {?function(...*)} Logger for a connection. */
   #connectionLogger = null;
 
+  /** @type {?string} ID of a session. */
+  #sessionId = null;
+
+  /** @type {?function(...*)} Logger for a session. */
+  #sessionLogger = null;
+
   /** @type {?string} ID of a request. */
   #requestId = null;
 
@@ -41,7 +47,9 @@ export class WranglerContext {
 
   /** @returns {?function(...*)} Most-specific available logger, if any. */
   get logger() {
-    return this.#requestLogger ?? this.#connectionLogger;
+    return this.#requestLogger
+      ?? this.#sessionLogger
+      ?? this.#connectionLogger;
   }
 
   /** @returns {?string} ID of a request. */
@@ -52,6 +60,16 @@ export class WranglerContext {
   /** @returns {?function(...*)} Logger for a request. */
   get requestLogger() {
     return this.#requestLogger;
+  }
+
+  /** @returns {?string} ID of a session. */
+  get sessionId() {
+    return this.#sessionId;
+  }
+
+  /** @returns {?function(...*)} Logger for a session. */
+  get sessionLogger() {
+    return this.#sessionLogger;
   }
 
   /**
@@ -117,23 +135,50 @@ export class WranglerContext {
   /**
    * Makes a new instance of this class for a request.
    *
-   * @param {?WranglerContext} connectionContext Instance of this class which
-   *   has connection context, if any.
+   * @param {?WranglerContext} outerContext Instance of this class which has
+   *   outer context (for the connection and/or session), if any.
    * @param {?function(...*)} logger The request logger, if any.
    * @returns {WranglerContext} An appropriately-constructed instance.
    */
-  static forRequest(connectionContext, logger) {
+  static forRequest(outerContext, logger) {
     const ctx = new WranglerContext();
 
-    if (connectionContext) {
-      ctx.#socket           = connectionContext.#socket;
-      ctx.#connectionLogger = connectionContext.#connectionLogger;
-      ctx.#connectionId     = connectionContext.#connectionId;
+    if (outerContext) {
+      ctx.#socket           = outerContext.#socket;
+      ctx.#connectionLogger = outerContext.#connectionLogger;
+      ctx.#connectionId     = outerContext.#connectionId;
+      ctx.#sessionLogger    = outerContext.#sessionLogger;
+      ctx.#sessionId        = outerContext.#sessionId;
     }
 
     if (logger) {
       ctx.#requestLogger = logger;
       ctx.#requestId     = logger.$meta.lastContext;
+    }
+
+    return ctx;
+  }
+
+  /**
+   * Makes a new instance of this class for a session.
+   *
+   * @param {?WranglerContext} outerContext Instance of this class which has
+   *   outer context (for the connection), if any.
+   * @param {?function(...*)} logger The request logger, if any.
+   * @returns {WranglerContext} An appropriately-constructed instance.
+   */
+  static forSession(outerContext, logger) {
+    const ctx = new WranglerContext();
+
+    if (outerContext) {
+      ctx.#socket           = outerContext.#socket;
+      ctx.#connectionLogger = outerContext.#connectionLogger;
+      ctx.#connectionId     = outerContext.#connectionId;
+    }
+
+    if (logger) {
+      ctx.#sessionLogger = logger;
+      ctx.#sessionId     = logger.$meta.lastContext;
     }
 
     return ctx;
