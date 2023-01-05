@@ -263,22 +263,24 @@ export class ProtocolWrangler {
     }
 
     const sessionLogger = this.#logger?.sess.$newId;
+    const sessionCtx    = WranglerContext.forSession(ctx, sessionLogger);
+
+    WranglerContext.bind(session, sessionCtx);
+    WranglerContext.bind(session.socket, sessionCtx);
+
+    ctx.connectionLogger?.newSession(sessionCtx.sessionId);
 
     if (sessionLogger) {
-      const connectionId  = ctx?.connectionId ?? '<unknown-id>';
+      const connectionId = ctx?.connectionId ?? '<unknown-id>';
       sessionLogger.opened();
       sessionLogger.connection(connectionId);
 
       session.on('close',      () => sessionLogger.closed('close'));
       session.on('error',      () => sessionLogger.closed('error'));
-      session.on('frameError', (type, code, id) => sessionLogger.frameError(type, code, id));
-      session.on('goaway',     (code) => sessionLogger.closed('go-away', code));
+      session.on('goaway',     (code) => sessionLogger.closed('goaway', code));
+      session.on('frameError', (type, code, id) =>
+        sessionLogger.closed('frameError', type, code, id));
     }
-
-    const sessionCtx = WranglerContext.forSession(ctx, sessionLogger);
-
-    WranglerContext.bind(session, sessionCtx);
-    WranglerContext.bind(session.socket, sessionCtx);
 
     return sessionCtx;
   }
