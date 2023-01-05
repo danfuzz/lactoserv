@@ -141,6 +141,9 @@ export class TcpWrangler extends ProtocolWrangler {
     this.#anySockets.value = true;
 
     socket.on('error', (error) => {
+      // A `close` event gets emitted right after this event -- which performs
+      // connection cleanup -- so there's no need to do anything other than log
+      // the event in this handler.
       connLogger.connectionError(error);
     });
 
