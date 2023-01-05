@@ -49,7 +49,7 @@ export class Host {
     SignalHandler.init();
     TopErrorHandler.init();
 
-    ThisModule.logger.initialized(ProductInfo.allInfo);
+    ThisModule.logger.initialized();
 
     this.#initDone = true;
   }

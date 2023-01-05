@@ -4,6 +4,7 @@
 import * as fs from 'node:fs';
 
 import { Dirs } from '#x/Dirs';
+import { ThisModule } from '#p/ThisModule';
 
 
 /**
@@ -38,6 +39,7 @@ export class ProductInfo {
    */
   static init() {
     this.#extractInfo();
+    ThisModule.logger.productInfo(this.#info);
   }
 
   /**
