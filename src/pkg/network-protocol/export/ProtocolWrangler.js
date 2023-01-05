@@ -271,9 +271,9 @@ export class ProtocolWrangler {
     ctx.connectionLogger?.newSession(sessionCtx.sessionId);
 
     if (sessionLogger) {
-      const connectionId = ctx?.connectionId ?? '<unknown-id>';
-      sessionLogger.opened();
-      sessionLogger.connection(connectionId);
+      sessionLogger.opened({
+        connectionId: ctx.connectionId ?? '<unknown-id>'
+      });
 
       session.on('close',      () => sessionLogger.closed('close'));
       session.on('error',      () => sessionLogger.closed('error'));
