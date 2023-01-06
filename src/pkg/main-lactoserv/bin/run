@@ -75,7 +75,9 @@ check-dependency \
 # * `--no-warnings` suppresses Node's built-in warning printer, which we do
 #   because this program includes its own warning handler.
 # * `exec` minimizes the number of processes left lying around. That is, no
-#   need for this script to take up space once the system is running.
+#   need for this script to take up space once the system is running. In
+#   addition to just being tidy, it helps when this project is run via / within
+#   a service manager such as `systemd`.
 exec node --no-warnings "${baseDir}/lib/code/index.js" \
     --outer-command-name="${cmdName}" \
     "$@"
