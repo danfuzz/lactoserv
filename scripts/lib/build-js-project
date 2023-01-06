@@ -111,11 +111,13 @@ function build-js-project {
     || return "$?"
 
     jval >"${destDir}/product-info.json" \
+        commitInfo="$(commit-info)" \
         projectName="${projectName}" \
         srcPackage:json:file="${srcPackageJson}" '
     {
         name: $projectName,
-        version: $srcPackage.version
+        version: $srcPackage.version,
+        commit: $commitInfo
     }' \
     || return "$?"
 
@@ -132,6 +134,25 @@ function build-js-project {
     || return "$?"
 
     npm-install "${destLibDir}"
+}
+
+# Figures out the pithy commit info to associate with the build.
+function commit-info {
+    cd "$(base-dir)"
+
+    if [[ ! -d ".git" ]]; then
+        echo '<unavailable>'
+        return
+    fi
+
+    local infoWords
+    infoWords=("$(git rev-parse --short=8 HEAD)") \
+    || return "$?"
+
+    infoWords+=($(git tag --points-at HEAD)) \
+    || return "$?"
+
+    echo "${infoWords[*]}"
 }
 
 # Copies all the local modules for a project.
