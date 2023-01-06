@@ -43,7 +43,7 @@ WantedBy=multi-user.target
 Type=simple
 WorkingDirectory=~
 ExecSearchPath=/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/home/lactoserv-user/bin
-ExecStart=run-under-systemd --service-name='%N' --config=lactoserv/config.mjs start
+ExecStart=run-under-systemd --service-name='%N' start --config=lactoserv/config.mjs
 ExecReload=run-under-systemd --service-name='%N' reload
 ExecStop=run-under-systemd --service-name='%N' stop
 
