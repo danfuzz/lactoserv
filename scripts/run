@@ -21,6 +21,9 @@ function usage {
       `build` -- Always build, even if there is something to run.
       `clean` -- Always do a clean build.
       `run` -- Build only if there is nothing to run. This is the default.
+    --inspect[=...]
+      Passes this option to the `node` invocation, to enable interactive
+      debugging.
     --out=<dir>
       Directory where built output goes. Defaults to `out` directly under the
       main product directory.
@@ -37,6 +40,10 @@ opt-action --call='{ usage }' help/h
 
 # What to do?
 opt-value --var=action --init=run --enum='build clean run' do
+
+# Inspect?
+doInspect=0
+opt-value --var=inspect --call='{ doInspect=1 }' inspect=
 
 # Build-output directory.
 opt-value --var=outDir out
@@ -80,7 +87,16 @@ if (( doBuild )); then
     progress-msg
 fi
 
+extraOpts=()
+if (( doInspect )); then
+    if [[ ${inspect} != '' ]]; then
+        inspect="=${inspect}"
+    fi
+    extraOpts=(--node-opts --inspect"${inspect}" --)
+fi
+
 exec "${outRun}" \
+    "${extraOpts[@]}" \
     --config="$(base-dir)/etc/example-setup/config/config.mjs" \
     --max-run-time-secs="$(( 5 * 60 ))" \
     --log-to-stdout
