@@ -19,23 +19,26 @@ baseDir="${cmdDir%/*}"
 # Argument parsing.
 #
 
-# Error during argument processing?
-argError=0
+function usage {
+    echo 1>&2 'Usage:'
+    echo 1>&2 "  ${cmdName} run-foreground <server-arg> ..."
+    echo 1>&2 "  ${cmdName} --service-name=<name> start <server-arg> ..."
+    echo 1>&2 "  ${cmdName} --service-name=<name> reload"
+    echo 1>&2 "  ${cmdName} --service-name=<name> stop"
+    exit 1
+}
 
 # Command.
-command='run-foreground'
-
-# Config file location.
-configFile='config.mjs'
+command=''
 
 # Service name.
 serviceName=''
 
+# Arguments to pass through when starting the server.
+serverArgs=()
+
 while (( $# != 0 )); do
     case "$1" in
-        --config=*)
-            configFile="${1#*=}"
-            ;;
         --service-name=*)
             serviceName="${1#*=}"
             ;;
@@ -46,8 +49,7 @@ while (( $# != 0 )); do
             ;;
         -?*)
             echo 1>&2 "Unknown option: $1"
-            argError=1
-            break
+            usage
             ;;
         *)
             # Non-option argument.
@@ -58,23 +60,30 @@ while (( $# != 0 )); do
     shift
 done
 
-if (( $# > 0 )); then
-    command="$1"
-    shift
+if (( $# == 0 )); then
+    echo 1>&2 'Missing command.'
+    usage
 fi
 
-if (( $# > 0 )); then
-    echo 1>&2 'Too many arguments.'
-    argError=1
+command="$1"
+shift
+
+if [[ ${command} =~ ^(run-foreground|start)$ ]]; then
+    if (( $# == 0 )); then
+        echo 1>&2 'Server arguments required when starting service.'
+        usage
+    fi
+    serverArgs=("$@")
+else
+    if (( $# != 0 )); then
+        echo 1>&2 'Server arguments not allowed when manipulating a running service.'
+        usage
+    fi
 fi
 
 if [[ (${command} != 'run-foreground') && (${serviceName} == '') ]]; then
     echo 1>&2 "Option --service-name required for command: ${command}"
-    argError=1
-fi
-
-if (( argError )); then
-    exit 1
+    usage
 fi
 
 
@@ -84,9 +93,7 @@ fi
 
 # Runs the system in the foreground.
 function do-run-foreground {
-    exec "${runCmd}" \
-        --config="${configFile}" \
-        --log-to-stdout
+    exec "${runCmd}" --log-to-stdout "${serverArgs[@]}"
 }
 
 # Starts the system, daemon-style.
@@ -95,16 +102,14 @@ function do-start {
     # ultimately becomes the process actually running the service. (If that
     # turns out not to be the case, then the `systemd` configuration will need
     # to be adjusted.)
-    exec "${runCmd}" \
-        --config="${configFile}"
+    exec "${runCmd}" "${serverArgs[@]}"
 }
 
 # Tells a daemon that's running to reload.
 function do-reload {
-    local serviceName="$1"
     local pid
 
-    pid="$(get-service-pid "${serviceName}")" \
+    pid="$(get-service-pid)" \
     || return "$?"
 
     kill -HUP "${pid}"
@@ -112,10 +117,9 @@ function do-reload {
 
 # Stops a daemon that's running.
 function do-stop {
-    local serviceName="$1"
     local pid
 
-    pid="$(get-service-pid "${serviceName}")" \
+    pid="$(get-service-pid)" \
     || return "$?"
 
     kill "${pid}"
@@ -123,7 +127,6 @@ function do-stop {
 
 # Gets the main PID for the given service.
 function get-service-pid {
-    local serviceName="$1"
     local result
 
     result="$(systemctl show --property=MainPID "${serviceName}")" \
@@ -147,7 +150,7 @@ commandFunc="do-${command}"
 
 if ! declare -F "${commandFunc}" >/dev/null; then
     echo 1>&2 "Unknown command: ${command}"
-    exit 1
+    usage
 fi
 
-"${commandFunc}" "${serviceName}" || exit "$?"
+"${commandFunc}" || exit "$?"
