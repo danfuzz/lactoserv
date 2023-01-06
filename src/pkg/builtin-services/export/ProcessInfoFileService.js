@@ -6,7 +6,7 @@ import * as Path from 'node:path';
 
 import { Files, ServiceConfig } from '@this/app-config';
 import { BaseService, ServiceController } from '@this/app-services';
-import { Host, ProcessInfo } from '@this/host';
+import { Host, ProcessInfo, ProductInfo } from '@this/host';
 import { FormatUtils } from '@this/loggy';
 
 
@@ -52,11 +52,13 @@ export class ProcessInfoFileService extends BaseService {
   async stop() {
     const contents     = this.#contents;
     const stopTimeSecs = Date.now() / 1000;
-    const runTimeSecs  = stopTimeSecs - contents.startTimeSecs;
+    const runTimeSecs  = stopTimeSecs - contents.startTime.secs;
 
-    contents.stopTime     = FormatUtils.dateTimeStringFromSecs(stopTimeSecs);
-    contents.stopTimeSecs = stopTimeSecs;
-    contents.runTimeSecs  = runTimeSecs;
+    contents.stopTime = {
+      str:  FormatUtils.dateTimeStringFromSecs(stopTimeSecs),
+      secs: stopTimeSecs
+    };
+    contents.runTimeSecs = runTimeSecs;
 
     if (runTimeSecs > (60 * 60)) {
       const runTimeHours = runTimeSecs / (60 * 60);
@@ -70,6 +72,14 @@ export class ProcessInfoFileService extends BaseService {
       contents.disposition = Host.shutdownDisposition();
     } else {
       contents.disposition = { restarting: true };
+    }
+
+    // Try to get `earlierRuns` to be a the end of the object when it gets
+    // encoded to JSON, for easier (human) reading.
+    if (contents.earlierRuns) {
+      const earlierRuns = contents.earlierRuns;
+      delete contents.earlierRuns;
+      contents.earlierRuns = earlierRuns;
     }
 
     await this.#writeFile();
@@ -89,7 +99,11 @@ export class ProcessInfoFileService extends BaseService {
    * @returns {object} The contents.
    */
   async #makeContents() {
-    const contents     = ProcessInfo.allInfo;
+    const contents = {
+      product: ProductInfo.allInfo,
+      ...ProcessInfo.allInfo
+    };
+
     const fileContents = await this.#readFile();
 
     if (fileContents) {
@@ -108,8 +122,10 @@ export class ProcessInfoFileService extends BaseService {
       // that is, the _restart_ time.
       const startTimeMsec = Date.now();
       const startTimeSecs = startTimeMsec / 1000;
-      contents.startTime     = FormatUtils.dateTimeStringFromSecs(startTimeSecs);
-      contents.startTimeSecs = startTimeSecs;
+      contents.startTime = {
+        str:  FormatUtils.dateTimeStringFromSecs(startTimeSecs),
+        secs: startTimeSecs
+      };
     }
 
     return contents;

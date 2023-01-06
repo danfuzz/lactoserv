@@ -268,7 +268,29 @@ export class RateLimitedStream {
      */
     constructor(outerThis) {
       super();
+
       this.#outerThis = outerThis;
+      this.allowHalfOpen = outerThis.#innerStream.allowHalfOpen;
+    }
+
+    /** @override */
+    _construct(callback) {
+      // What's happening here is that we "link" the exposed `allowHalfOpen` to
+      // the inner stream. Unfortunately, we can't just define a getter and
+      // setter on the class directly, because the base `Duplex` constructor
+      // itself tries to set `allowHalfOpen`, and that would fail because at
+      // the moment it tries it the instance hasn't fully settled down as an
+      // instance of this class and so couldn't function. (This was determined
+      // empirically.)
+      Object.defineProperty(this, 'allowHalfOpen', {
+        configurable: false,
+        get: () => this.#outerThis.#innerStream.allowHalfOpen,
+        set: (v) => {
+          this.#outerThis.#innerStream.allowHalfOpen = v;
+        }
+      });
+
+      callback();
     }
 
     /** @override */

@@ -10,6 +10,7 @@ import http2ExpressBridge from 'http2-express-bridge';
 import { Condition, Threadlet } from '@this/async';
 
 import { TcpWrangler } from '#p/TcpWrangler';
+import { WranglerContext } from '#x/WranglerContext';
 
 
 /**
@@ -90,28 +91,32 @@ export class Http2Wrangler extends TcpWrangler {
       return;
     }
 
-    const logger   = this._prot_newSession(session);
+    const ctx      = this._prot_newSession(session);
     const sessions = this.#sessions;
 
     sessions.add(session);
     this.#anySessions.value = true;
 
-    logger?.totalSessions(sessions.size);
+    ctx.connectionLogger?.totalSessions(sessions.size);
 
     const removeSession = () => {
       if (sessions.delete(session)) {
         if (sessions.size === 0) {
           this.#anySessions.value = false;
         }
-        logger?.totalSessions(sessions.size);
+        ctx.connectionLogger?.totalSessions(sessions.size);
       }
     };
 
-    session.on('close', removeSession);
-    session.on('error', removeSession);
+    // Note: `ProtocolWrangler` logs each of these events, so no need to do that
+    // here.
+    session.on('close',      removeSession);
+    session.on('error',      removeSession);
+    session.on('frameError', removeSession);
+    session.on('goaway',     removeSession);
 
     session.setTimeout(Http2Wrangler.#SESSION_TIMEOUT_MSEC, () => {
-      logger?.idleTimeout();
+      ctx.sessionLogger?.idleTimeout();
       session.close();
     });
   }
@@ -152,15 +157,33 @@ export class Http2Wrangler extends TcpWrangler {
     // we do here is _first_ try to nicely close (let the other side know what's
     // happening), and then if actual closing doesn't happen quickly go ahead
     // and thwack things totally closed.
+
+    let allClosed = false;
+
     for (const op of ['close', 'destroy']) {
-      for (const s of this.#sessions) {
-        if (!s.closed) {
-          s[op]();
-        }
+      if (this.#sessions.size === 0) {
+        allClosed = true;
+        break;
       }
 
-      if (this.#sessions.size === 0) {
-        return;
+      this.#logger?.shuttingDown(op, this.#sessions.size);
+
+      allClosed = true;
+      for (const s of this.#sessions) {
+        const ctx = WranglerContext.get(s);
+
+        if (s.closed) {
+          ctx.logger?.alreadyClosed(op);
+          continue;
+        }
+
+        ctx.logger?.shuttingDown(op);
+        s[op]();
+        allClosed = false;
+      }
+
+      if (allClosed) {
+        break;
       }
 
       await Promise.race([
@@ -170,7 +193,30 @@ export class Http2Wrangler extends TcpWrangler {
     }
 
     if (this.#sessions.size !== 0) {
-      throw new Error('Could not manage to shut down all sessions.');
+      // There seems to be a bug in Node (probably
+      // <https://github.com/nodejs/node/issues/46094>) which prevents session
+      // close/shutdown from totally working. The upshot of this -- at least as
+      // is salient to the code here -- is that, though the session ends up
+      // claiming to be closed, the `close` event on it never gets fired, so
+      // `#sessions` never drops it. We check for that here, and if detected,
+      // log the fact and also prevent the `throw` below from firing.
+      let undeadCount = 0;
+      for (const s of this.#sessions) {
+        if (s.closed) {
+          undeadCount++;
+        }
+      }
+
+      if (undeadCount !== 0) {
+        this.#logger?.undeadSessions(undeadCount);
+        if (undeadCount === this.#sessions.size) {
+          allClosed = true;
+        }
+      }
+    }
+
+    if (!allClosed) {
+      throw new Error('Could not shut down all sessions.');
     }
   }
 

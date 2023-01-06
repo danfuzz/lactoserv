@@ -11,6 +11,54 @@ baseDir="${cmdDir%/*}"
 
 
 #
+# Argument processing
+#
+
+# This _just_ extracts `--node-opts ... --`, leaving everything else intact,
+# because the bulk of the options are processed by the main program.
+
+# Options to pass to `node`.
+nodeOpts=()
+
+# Arguments to pass to the main program.
+mainArgs=()
+
+# Collect node options?
+wantNodeOpts=0
+
+while (( $# != 0 )); do
+    if (( wantNodeOpts )); then
+        if [[ $1 == '--' ]]; then
+            wantNodeOpts=0
+        else
+            nodeOpts+=("$1")
+        fi
+        shift
+        continue
+    fi
+
+    case "$1" in
+        --node-opts)
+            wantNodeOpts=1
+            ;;
+        --*|-?*)
+            # Option to pass through.
+            mainArgs+=("$1")
+            ;;
+        *)
+            # Non-option argument (including `--` to explicitly end options).
+            break
+            ;;
+    esac
+
+    shift
+done
+
+# Append the rest of the arguments to `mainArgs`.
+mainArgs+=("$@")
+
+
+#
 # Helper functions
 #
 
@@ -75,7 +123,10 @@ check-dependency \
 # * `--no-warnings` suppresses Node's built-in warning printer, which we do
 #   because this program includes its own warning handler.
 # * `exec` minimizes the number of processes left lying around. That is, no
-#   need for this script to take up space once the system is running.
-exec node --no-warnings "${baseDir}/lib/code/index.js" \
+#   need for this script to take up space once the system is running. In
+#   addition to just being tidy, it helps when this project is run via / within
+#   a service manager such as `systemd`.
+exec node "${nodeOpts[@]}" --no-warnings \
+    "${baseDir}/lib/code/index.js" \
     --outer-command-name="${cmdName}" \
-    "$@"
+    "${mainArgs[@]}"

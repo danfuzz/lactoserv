@@ -4,13 +4,14 @@
 import * as fs from 'node:fs';
 
 import { Dirs } from '#x/Dirs';
+import { ThisModule } from '#p/ThisModule';
 
 
 /**
  * Utilities for getting at top-level product info.
  */
 export class ProductInfo {
-  /** @type {?object} Info extracted from `package.json`. */
+  /** @type {?object} Info extracted from `product-info.json`. */
   static #info = null;
 
   /** @returns {object} All product info. */
@@ -38,6 +39,7 @@ export class ProductInfo {
    */
   static init() {
     this.#extractInfo();
+    ThisModule.logger.productInfo(this.#info);
   }
 
   /**
@@ -49,20 +51,21 @@ export class ProductInfo {
       return;
     }
 
-    let parsed;
+    const info = {
+      name: '<unknown>',
+      version: '<unknown>',
+      commit: '<unknown>'
+    };
 
     try {
-      const packageUrl = Dirs.baseUrl('package.json');
-      const text       = fs.readFileSync(packageUrl);
-      parsed = JSON.parse(text);
-    } catch {
-      parsed = {};
+      const productUrl = Dirs.baseUrl('product-info.json');
+      const text       = fs.readFileSync(productUrl);
+      Object.assign(info, JSON.parse(text));
+    } catch (e) {
+      // Ignore it, other than logging.
+      ThisModule.logger.productInfoError(e);
     }
 
-    const rawName = parsed.name ?? '';
-    const version = parsed.version ?? '0.0.1';
-    const name    = rawName.match(/top-of-(?<name>[^/]+)/)?.groups.name ?? '<unknown>';
-
-    this.#info = { name, version };
+    this.#info = info;
   }
 }

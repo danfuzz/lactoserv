@@ -1,6 +1,8 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
 // This project is PROPRIETARY and UNLICENSED.
 
+import * as timers from 'node:timers/promises';
+
 import { Warehouse } from '@this/app-servers';
 import { Condition, Threadlet } from '@this/async';
 import { BuiltinApplications } from '@this/builtin-applications';
@@ -32,7 +34,7 @@ export class UsualSystem extends Threadlet {
   #error = null;
 
   /** @type {function(...*)} Logger for this instance. */
-  #logger = Loggy.loggerFor('main').allServers;
+  #logger = Loggy.loggerFor('main').main;
 
   /**
    * Constructs an instance.
@@ -177,14 +179,43 @@ export class UsualSystem extends Threadlet {
   async #stop(forRestart = false) {
     const logArg = forRestart ? 'restart' : 'shutdown';
 
-    this.#logger.stopping(logArg);
+    this.#logger.stoppingServers(logArg);
+
+    const serversStopped = this.#warehouse.stopAllServers();
+
+    // Easy way to log when the servers stopped, without more complicated logic.
+    (async () => {
+      await serversStopped;
+      this.#logger.serversStopped(logArg);
+    })();
+
+    await Promise.race([
+      serversStopped,
+      timers.setTimeout(UsualSystem.#SERVER_STOP_GRACE_PERIOD_MSEC)
+    ]);
+
+    this.#logger.stoppingServices(logArg);
 
     await Promise.all([
-      this.#warehouse.stopAllServers(),
+      serversStopped,
       this.#warehouse.stopAllServices()
     ]);
-    this.#warehouse = null;
 
-    this.#logger.stopped(logArg);
+    this.#logger.servicesStopped(logArg);
+
+    this.#warehouse = null;
+    this.#logger.fullyStopped(logArg);
   }
+
+
+  //
+  // Static members
+  //
+
+  /**
+   * @type {number} Grace period after asking to stop all servers before asking
+   * services to shut down. (If the servers stop more promptly, then the system
+   * will immediately move on to service shutdown.)
+   */
+  static #SERVER_STOP_GRACE_PERIOD_MSEC = 250;
 }

@@ -31,7 +31,7 @@ configFile='config.mjs'
 # Service name.
 serviceName=''
 
-while true; do
+while (( $# != 0 )); do
     case "$1" in
         --config=*)
             configFile="${1#*=}"
@@ -52,6 +52,7 @@ while true; do
         *)
             # Non-option argument.
             break
+            ;;
     esac
 
     shift

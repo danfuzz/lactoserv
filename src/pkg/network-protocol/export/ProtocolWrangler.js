@@ -77,7 +77,9 @@ export class ProtocolWrangler {
    * * `socket: object` -- Options to use for creation of and/or listening on
    *   the low-level server socket. See docs for `net.createServer()` and
    *   `net.Server.listen()` for more details. Exception: `*` is treated as the
-   *   wildcard name for the `host` interface.
+   *   wildcard name for the `host` interface. Also, the default here is for
+   *   `allowHalfOpen` to be `true`, which is required in practice for HTTP2
+   *   (and is at least _useful_ in other contexts).
    *
    * @param {object} options Construction options, per the description above.
    */
@@ -248,35 +250,41 @@ export class ProtocolWrangler {
    * wrangling code.)
    *
    * @param {object} session The (`http2.Http2Session`-like) instance.
-   * @returns {?function(...*)} Logging function to use for the session, if
-   *   logging is in fact to be done.
+   * @returns {WranglerContext} Context associated with this session.
    */
   _prot_newSession(session) {
     // Propagate the connection context. See `_prot_newConnection()` for a
     // treatise about what's going on.
 
     const ctx = this.#perConnectionStorage.getStore();
-    if (ctx) {
-      WranglerContext.bind(session, ctx);
-      WranglerContext.bind(session.socket, ctx);
-    } else {
+
+    if (!ctx) {
+      // Shouldn't happen.
       this.#logger?.missingContext('session');
+      throw new Error('Shouldn\'t happen: Missing context during session setup.');
     }
 
     const sessionLogger = this.#logger?.sess.$newId;
+    const sessionCtx    = WranglerContext.forSession(ctx, sessionLogger);
+
+    WranglerContext.bind(session, sessionCtx);
+    WranglerContext.bind(session.socket, sessionCtx);
+
+    ctx.connectionLogger?.newSession(sessionCtx.sessionId);
 
     if (sessionLogger) {
-      const connectionId  = ctx?.connectionId ?? '<unknown-id>';
-      sessionLogger.opened();
-      sessionLogger.connection(connectionId);
+      sessionLogger.opened({
+        connectionId: ctx.connectionId ?? '<unknown-id>'
+      });
 
       session.on('close',      () => sessionLogger.closed('close'));
       session.on('error',      () => sessionLogger.closed('error'));
-      session.on('frameError', (type, code, id) => sessionLogger.frameError(type, code, id));
-      session.on('goaway',     (code) => sessionLogger.closed('go-away', code));
+      session.on('goaway',     (code) => sessionLogger.closed('goaway', code));
+      session.on('frameError', (type, code, id) =>
+        sessionLogger.closed('frameError', type, code, id));
     }
 
-    return sessionLogger;
+    return sessionCtx;
   }
 
   /**
