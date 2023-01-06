@@ -19,11 +19,11 @@ export class Dirs {
    */
   static get #BASE_DIR_URL() {
     if (this.#baseDirUrl === null) {
-      // This assumes that the "closest" directory called `code` lives in the
+      // This assumes that the "closest" directory called `lib` lives in the
       // base directory.
       const here = import.meta.url;
       const pathParts = new URL(here).pathname.split('/');
-      const codeAt = pathParts.findLastIndex((p) => p === 'code');
+      const codeAt = pathParts.findLastIndex((p) => p === 'lib');
 
       if (codeAt === -1) {
         throw new Error('Cannot find base directory from: ' + here);
