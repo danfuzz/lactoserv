@@ -65,7 +65,7 @@ export class TcpWrangler extends ProtocolWrangler {
     const serverOptions = {
       allowHalfOpen: true, // See `ProtocolWrangler` class doc for details.
       ...TcpWrangler.#trimOptions(options.socket, TcpWrangler.#CREATE_PROTO)
-    }
+    };
     this.#serverSocket = net.createServer(serverOptions);
 
     this.#serverSocket.on('connection', (...args) => this.#handleConnection(...args));
