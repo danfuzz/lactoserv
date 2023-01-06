@@ -141,7 +141,7 @@ function commit-info {
     cd "$(base-dir)"
 
     if [[ ! -d ".git" ]]; then
-        echo '<unavailable>'
+        echo '<unknown>'
         return
     fi
 
