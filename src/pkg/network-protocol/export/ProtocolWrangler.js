@@ -77,7 +77,9 @@ export class ProtocolWrangler {
    * * `socket: object` -- Options to use for creation of and/or listening on
    *   the low-level server socket. See docs for `net.createServer()` and
    *   `net.Server.listen()` for more details. Exception: `*` is treated as the
-   *   wildcard name for the `host` interface.
+   *   wildcard name for the `host` interface. Also, the default here is for
+   *   `allowHalfOpen` to be `true`, which is required in practice for HTTP2
+   *   (and is at least _useful_ in other contexts).
    *
    * @param {object} options Construction options, per the description above.
    */
