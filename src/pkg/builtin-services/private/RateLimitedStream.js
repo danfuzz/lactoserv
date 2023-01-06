@@ -268,7 +268,9 @@ export class RateLimitedStream {
      */
     constructor(outerThis) {
       super();
+
       this.#outerThis = outerThis;
+      this.allowHalfOpen = outerThis.#innerStream.allowHalfOpen;
     }
 
     /** @override */
