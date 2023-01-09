@@ -22,6 +22,12 @@ export class ProductInfo {
     return { ...this.#info };
   }
 
+  /** @returns {string} Commit info. */
+  static get commit() {
+    this.#extractInfo();
+    return this.#info.commit;
+  }
+
   /** @returns {string} Main product name. */
   static get name() {
     this.#extractInfo();
@@ -52,9 +58,9 @@ export class ProductInfo {
     }
 
     const info = {
-      name: '<unknown>',
+      name:    '<unknown>',
       version: '<unknown>',
-      commit: '<unknown>'
+      commit:  '<unknown>'
     };
 
     try {
