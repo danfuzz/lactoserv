@@ -7,6 +7,7 @@ import * as net from 'node:net';
 import express from 'express';
 
 import { Threadlet } from '@this/async';
+import { ProductInfo } from '@this/host';
 import { Methods, MustBe } from '@this/typey';
 
 import { IntfRateLimiter } from '#x/IntfRateLimiter';
@@ -51,6 +52,9 @@ export class ProtocolWrangler {
    */
   #perConnectionStorage = new AsyncLocalStorage();
 
+  /** @type {string} Value to use for the `Server` HTTP(ish) response header. */
+  #serverHeader;
+
   /** @type {Threadlet} Threadlet which runs the "network stack." */
   #runner = new Threadlet(() => this.#startNetwork(), () => this.#runNetwork());
 
@@ -92,6 +96,7 @@ export class ProtocolWrangler {
     this.#logHelper      = requestLogger
       ? new RequestLogHelper(requestLogger, logger)
       : null;
+    this.#serverHeader   = ProtocolWrangler.#makeServerHeader();
   }
 
   /**
@@ -325,6 +330,8 @@ export class ProtocolWrangler {
     const reqCtx = WranglerContext.forRequest(connectionCtx, reqLogger);
     WranglerContext.bind(req, reqCtx);
 
+    res.set('Server', this.#serverHeader);
+
     if (this.#rateLimiter) {
       const granted = await this.#rateLimiter.newRequest(reqLogger);
       if (!granted) {
@@ -452,5 +459,21 @@ export class ProtocolWrangler {
     if (this.#logger) {
       this.#logger.started(this._impl_loggableInfo());
     }
+  }
+
+
+  //
+  // Static members
+  //
+
+  /**
+   * Makes the value to store in {@link #serverHeader}.
+   *
+   * @returns {string} The value in question.
+   */
+  static #makeServerHeader() {
+    const pi = ProductInfo;
+
+    return `${pi.name}-${pi.version} ${pi.commit}`;
   }
 }
