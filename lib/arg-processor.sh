@@ -705,8 +705,9 @@ function _argproc_janky-args {
                 enum)
                     if [[ ${value} =~ ^=(' '*([-_:.a-zA-Z0-9]+' '*)+)$ ]]; then
                         # Re-form as a filter expression.
+                        value="${BASH_REMATCH[1]}"
                         optFilter=''
-                        while [[ ${value} =~ ([^ ]+)' '*(.*)$ ]]; do
+                        while [[ ${value} =~ ^' '*([^ ]+)' '*(.*)$ ]]; do
                             optFilter+="|${BASH_REMATCH[1]}"
                             value="${BASH_REMATCH[2]}"
                         done
