@@ -703,15 +703,18 @@ function _argproc_janky-args {
                     || argError=1
                     ;;
                 enum)
-                    if [[ ${value} =~ ^=(' '*([-_:a-zA-Z0-9]+' '*)+)$ ]]; then
+                    if [[ ${value} =~ ^=(' '*([-_:.a-zA-Z0-9]+' '*)+)$ ]]; then
                         # Re-form as a filter expression.
+                        value="${BASH_REMATCH[1]}"
                         optFilter=''
-                        while [[ ${value} =~ ([-_:a-zA-Z0-9]+)' '*(.*)$ ]]; do
+                        while [[ ${value} =~ ^' '*([^ ]+)' '*(.*)$ ]]; do
                             optFilter+="|${BASH_REMATCH[1]}"
                             value="${BASH_REMATCH[2]}"
                         done
                         # `:1` to drop the initial `|`.
                         optFilter="/^(${optFilter:1})\$/"
+                        # "Escape" `.` so it's not treated as regex syntax.
+                        optFilter="$(sed <<<"${optFilter}" -e 's/[.]/[.]/g')"
                     else
                         argError=1
                     fi
