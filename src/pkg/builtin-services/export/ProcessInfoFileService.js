@@ -6,6 +6,7 @@ import * as Path from 'node:path';
 
 import { Files, ServiceConfig } from '@this/app-config';
 import { BaseService, ServiceController } from '@this/app-services';
+import { Threadlet } from '@this/async';
 import { Host, ProcessInfo, ProductInfo } from '@this/host';
 import { FormatUtils } from '@this/loggy';
 
@@ -27,6 +28,8 @@ export class ProcessInfoFileService extends BaseService {
   /** @type {?object} Current info file contents, if known. */
   #contents = null;
 
+  /** @type {Threadlet} Threadlet which runs this service. */
+  #runner = new Threadlet(() => this.#start(), () => this.#run());
 
   /**
    * Constructs an instance.
@@ -44,45 +47,12 @@ export class ProcessInfoFileService extends BaseService {
 
   /** @override */
   async start() {
-    this.#contents = await this.#makeContents();
-    await this.#writeFile();
+    await this.#runner.start();
   }
 
   /** @override */
   async stop() {
-    const contents     = this.#contents;
-    const stopTimeSecs = Date.now() / 1000;
-    const runTimeSecs  = stopTimeSecs - contents.startTime.secs;
-
-    contents.stopTime = {
-      str:  FormatUtils.dateTimeStringFromSecs(stopTimeSecs),
-      secs: stopTimeSecs
-    };
-    contents.runTimeSecs = runTimeSecs;
-
-    if (runTimeSecs > (60 * 60)) {
-      const runTimeHours = runTimeSecs / (60 * 60);
-      contents.runTimeHours = runTimeHours;
-      if (runTimeHours > 24) {
-        contents.runTimeDays = runTimeHours / 24;
-      }
-    }
-
-    if (Host.isShuttingDown()) {
-      contents.disposition = Host.shutdownDisposition();
-    } else {
-      contents.disposition = { restarting: true };
-    }
-
-    // Try to get `earlierRuns` to be a the end of the object when it gets
-    // encoded to JSON, for easier (human) reading.
-    if (contents.earlierRuns) {
-      const earlierRuns = contents.earlierRuns;
-      delete contents.earlierRuns;
-      contents.earlierRuns = earlierRuns;
-    }
-
-    await this.#writeFile();
+    await this.#runner.stop();
   }
 
   /** @returns {string} The path to the info file. */
@@ -154,6 +124,61 @@ export class ProcessInfoFileService extends BaseService {
         return { error: e.stack };
       }
     }
+  }
+
+  /**
+   * Runs the service thread.
+   */
+  async #run() {
+    await this.#runner.whenStopRequested();
+    await this.#stop();
+  }
+
+  /**
+   * Starts the service thread.
+   */
+  async #start() {
+    this.#contents = await this.#makeContents();
+    await this.#writeFile();
+  }
+
+  /**
+   * Stops the service thread.
+   */
+  async #stop() {
+    const contents     = this.#contents;
+    const stopTimeSecs = Date.now() / 1000;
+    const runTimeSecs  = stopTimeSecs - contents.startTime.secs;
+
+    contents.stopTime = {
+      str:  FormatUtils.dateTimeStringFromSecs(stopTimeSecs),
+      secs: stopTimeSecs
+    };
+    contents.runTimeSecs = runTimeSecs;
+
+    if (runTimeSecs > (60 * 60)) {
+      const runTimeHours = runTimeSecs / (60 * 60);
+      contents.runTimeHours = runTimeHours;
+      if (runTimeHours > 24) {
+        contents.runTimeDays = runTimeHours / 24;
+      }
+    }
+
+    if (Host.isShuttingDown()) {
+      contents.disposition = Host.shutdownDisposition();
+    } else {
+      contents.disposition = { restarting: true };
+    }
+
+    // Try to get `earlierRuns` to be a the end of the object when it gets
+    // encoded to JSON, for easier (human) reading.
+    if (contents.earlierRuns) {
+      const earlierRuns = contents.earlierRuns;
+      delete contents.earlierRuns;
+      contents.earlierRuns = earlierRuns;
+    }
+
+    await this.#writeFile();
   }
 
   /**
