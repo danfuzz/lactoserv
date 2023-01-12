@@ -96,10 +96,10 @@ export class ProcessInfoFileService extends BaseService {
       }
 
       // Given that the file already exists, this is a restart, and so the
-      // `startTime` from `ProcessInfo` (which will appear in the earliest of
+      // `startedAt` from `ProcessInfo` (which will appear in the earliest of
       // the `earlierRuns`) is kinda moot. Instead, substitute the current time,
       // that is, the _restart_ time.
-      contents.startTime =
+      contents.startedAt =
         FormatUtils.compoundDateTimeFromSecs(Date.now() / 1000);
     }
 
@@ -165,11 +165,11 @@ export class ProcessInfoFileService extends BaseService {
    * Stops the service thread.
    */
   async #stop() {
-    const contents     = this.#contents;
-    const stopTimeSecs = Date.now() / 1000;
-    const runTimeSecs  = stopTimeSecs - contents.startTime.secs;
+    const contents      = this.#contents;
+    const stoppedAtSecs = Date.now() / 1000;
+    const runTimeSecs   = stoppedAtSecs - contents.startedAt.secs;
 
-    contents.stopTime    = FormatUtils.compoundDateTimeFromSecs(stopTimeSecs);
+    contents.stoppedAt   = FormatUtils.compoundDateTimeFromSecs(stoppedAtSecs);
     contents.runTimeSecs = runTimeSecs;
 
     if (runTimeSecs > (60 * 60)) {

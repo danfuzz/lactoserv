@@ -42,7 +42,7 @@ export class ProcessInfo {
     this.#info = {
       pid,
       ppid,
-      startTime: FormatUtils.compoundDateTimeFromSecs(startSecs)
+      startedAt: FormatUtils.compoundDateTimeFromSecs(startSecs)
     };
 
     ThisModule.logger.processInfo(this.#info);
