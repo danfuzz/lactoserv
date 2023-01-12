@@ -45,12 +45,80 @@ export class FormatUtils {
    * Makes a very friendly compound date-time object, which represents both
    * seconds since the Unix Epoch as well as a string indicating the date-time
    * in UTC.
+   *
+   * @param {number} dateTimeSecs Time in the form of seconds since the Unix
+   *   Epoch.
+   * @returns {object} Friendly compound object.
    */
   static compoundDateTimeFromSecs(dateTimeSecs) {
     return {
       secs: dateTimeSecs,
       utc:  FormatUtils.dateTimeStringFromSecs(dateTimeSecs)
     };
+  }
+
+  /**
+   * Makes a very friendly compound object representing a time duration, with
+   * both a string and separated out numerical units as sensible.
+   *
+   * @param {number} secs Duration in seconds.
+   * @returns {object} Friendly compound object.
+   */
+  static compoundDurationFromSecs(secs) {
+    const result = { secs };
+
+    // These values are all "from zero" and not e.g. seconds of remainder after
+    // hours and days have been removed.
+    if (secs >= (60 * 60)) {
+      const hours = secs / (60 * 60);
+      result.hours = Math.round(hours * 10000) / 10000;
+      if (hours >= 24) {
+        result.days = Math.round(hours / 24 * 10000) / 10000;
+      }
+    }
+
+    // For the string, we want the usual remainders (as opposed to the above),
+    // which is why we don't just grab `result.secs` etc. We convert `secs` to
+    // `BigInt`, because that makes the calculations much more straightforward.
+    const secsFrac = secs % 1;
+    secs = BigInt(Math.floor(secs));
+
+    const mins  = (secs / 60n) % 60n;
+    const hours = (secs / (60n * 60n)) % 24n;
+    const days  = secs / (60n * 60n * 24n);
+    secs = secs % 60n;
+
+    const parts = [];
+
+    if (days > 0) {
+      parts.push(days, 'd ');
+    }
+
+    if ((hours > 0) || (days > 0)) {
+      if (hours < 10n) {
+        parts.push('0');
+      }
+      parts.push(hours, ':');
+    }
+
+    if (mins < 10) {
+      parts.push('0');
+    }
+    parts.push(mins, ':');
+
+    if (secs < 10) {
+      parts.push('0');
+    }
+    parts.push(secs);
+
+    if (secsFrac > 0) {
+      // `slice(1)` to drop the `0` prefix.
+      parts.push(secsFrac.toFixed(4).slice(1));
+    }
+
+    result.time = parts.join('');
+
+    return result;
   }
 
   /**
