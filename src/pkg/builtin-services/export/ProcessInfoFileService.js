@@ -206,7 +206,8 @@ export class ProcessInfoFileService extends BaseService {
 
     this.#contents.disposition = {
       running:   true,
-      updatedAt: FormatUtils.compoundDateTimeFromSecs(updatedAtSecs)
+      updatedAt: FormatUtils.compoundDateTimeFromSecs(updatedAtSecs),
+      uptime:    FormatUtils.compoundDurationFromSecs(updatedAtSecs - this.#contents.startedAt.secs)
     };
   }
 
