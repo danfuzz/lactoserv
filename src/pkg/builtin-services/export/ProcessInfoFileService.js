@@ -2,6 +2,7 @@
 // This project is PROPRIETARY and UNLICENSED.
 
 import * as fs from 'node:fs/promises';
+import * as timers from 'node:timers/promises';
 import * as Path from 'node:path';
 
 import { Files, ServiceConfig } from '@this/app-config';
@@ -25,6 +26,12 @@ export class ProcessInfoFileService extends BaseService {
   /** @type {string} Directory for info files. */
   #directory;
 
+  /**
+   * @type {?number} How often to update the info file, in seconds, or `null` to
+   * not perform updates.
+   */
+  #updateSecs;
+
   /** @type {?object} Current info file contents, if known. */
   #contents = null;
 
@@ -40,9 +47,10 @@ export class ProcessInfoFileService extends BaseService {
   constructor(config, controller) {
     super(config, controller);
 
-    const { baseName, directory } = config;
-    this.#baseName  = baseName;
-    this.#directory = Path.resolve(directory);
+    const { baseName, directory, updateSecs } = config;
+    this.#baseName   = baseName;
+    this.#directory  = Path.resolve(directory);
+    this.#updateSecs = updateSecs;
   }
 
   /** @override */
@@ -133,7 +141,19 @@ export class ProcessInfoFileService extends BaseService {
    * Runs the service thread.
    */
   async #run() {
-    await this.#runner.whenStopRequested();
+    while (!this.#runner.shouldStop()) {
+      await this.#writeFile();
+
+      const updateTimeout = this.#updateSecs
+        ? [timers.setTimeout(this.#updateSecs * 1000)]
+        : [];
+
+      await Promise.race([
+        ...updateTimeout,
+        this.#runner.whenStopRequested()
+      ]);
+    }
+
     await this.#stop();
   }
 
@@ -142,7 +162,6 @@ export class ProcessInfoFileService extends BaseService {
    */
   async #start() {
     this.#contents = await this.#makeContents();
-    await this.#writeFile();
   }
 
   /**
@@ -236,6 +255,12 @@ export class ProcessInfoFileService extends BaseService {
     #directory;
 
     /**
+     * @type {?number} How often to update the info file, in seconds, or `null`
+     * to not perform updates.
+     */
+    #updateSecs;
+
+    /**
      * Constructs an instance.
      *
      * @param {object} config Configuration object.
@@ -243,8 +268,11 @@ export class ProcessInfoFileService extends BaseService {
     constructor(config) {
       super(config);
 
-      this.#baseName  = Files.checkFileName(config.baseName);
-      this.#directory = Files.checkAbsolutePath(config.directory);
+      this.#baseName   = Files.checkFileName(config.baseName);
+      this.#directory  = Files.checkAbsolutePath(config.directory);
+      this.#updateSecs = config.updateSecs
+        ? MustBe.number(config.updateSecs, { finite: true, minInclusive: 1 })
+        : null;
     }
 
     /** @returns {string} The base file name to use. */
