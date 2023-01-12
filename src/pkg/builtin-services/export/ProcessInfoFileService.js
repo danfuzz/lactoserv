@@ -114,13 +114,16 @@ export class ProcessInfoFileService extends BaseService {
 
     try {
       await fs.stat(filePath);
-      const text = await fs.readFile(filePath);
+      const text   = await fs.readFile(filePath);
+      const parsed = JSON.parse(text);
 
-      return JSON.parse(text);
+      this.logger.readFile();
+      return parsed;
     } catch (e) {
       if (e.code === 'ENOENT') {
         return null;
       } else {
+        this.logger.errorReadingFile(e);
         return { error: e.stack };
       }
     }
@@ -203,6 +206,8 @@ export class ProcessInfoFileService extends BaseService {
 
     const text = `${JSON.stringify(this.#contents, null, 2)}\n`;
     await fs.writeFile(filePath, text);
+
+    this.logger.wroteFile();
   }
 
 
