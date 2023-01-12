@@ -168,18 +168,10 @@ export class ProcessInfoFileService extends BaseService {
   async #stop() {
     const contents      = this.#contents;
     const stoppedAtSecs = Date.now() / 1000;
-    const ranForSecs    = stoppedAtSecs - contents.startedAt.secs;
+    const uptimeSecs    = stoppedAtSecs - contents.startedAt.secs;
 
     contents.stoppedAt = FormatUtils.compoundDateTimeFromSecs(stoppedAtSecs);
-    contents.ranFor    = { secs: ranForSecs };
-
-    if (ranForSecs > (60 * 60)) {
-      const ranForHours = ranForSecs / (60 * 60);
-      contents.ranFor.hours = ranForHours;
-      if (ranForHours > 24) {
-        contents.ranFor.days = ranForHours / 24;
-      }
-    }
+    contents.uptime    = FormatUtils.compoundDurationFromSecs(uptimeSecs);
 
     if (Host.isShuttingDown()) {
       contents.disposition = Host.shutdownDisposition();
