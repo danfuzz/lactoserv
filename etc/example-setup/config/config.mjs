@@ -20,7 +20,7 @@ const services = [
     type:       'process-info-file',
     directory:  filePath('../../../out/var'),
     baseName:   'process',
-    updateSecs: 5 * 60,
+    updateSecs: 5 * 60
   },
   {
     name:      'syslog',
