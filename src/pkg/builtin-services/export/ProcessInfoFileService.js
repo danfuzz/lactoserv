@@ -3,11 +3,14 @@
 
 import * as fs from 'node:fs/promises';
 import * as Path from 'node:path';
+import * as timers from 'node:timers/promises';
 
 import { Files, ServiceConfig } from '@this/app-config';
 import { BaseService, ServiceController } from '@this/app-services';
+import { Threadlet } from '@this/async';
 import { Host, ProcessInfo, ProductInfo } from '@this/host';
 import { FormatUtils } from '@this/loggy';
+import { MustBe } from '@this/typey';
 
 
 /**
@@ -24,9 +27,17 @@ export class ProcessInfoFileService extends BaseService {
   /** @type {string} Directory for info files. */
   #directory;
 
+  /**
+   * @type {?number} How often to update the info file, in seconds, or `null` to
+   * not perform updates.
+   */
+  #updateSecs;
+
   /** @type {?object} Current info file contents, if known. */
   #contents = null;
 
+  /** @type {Threadlet} Threadlet which runs this service. */
+  #runner = new Threadlet(() => this.#start(), () => this.#run());
 
   /**
    * Constructs an instance.
@@ -37,52 +48,20 @@ export class ProcessInfoFileService extends BaseService {
   constructor(config, controller) {
     super(config, controller);
 
-    const { baseName, directory } = config;
-    this.#baseName  = baseName;
-    this.#directory = Path.resolve(directory);
+    const { baseName, directory, updateSecs } = config;
+    this.#baseName   = baseName;
+    this.#directory  = Path.resolve(directory);
+    this.#updateSecs = updateSecs;
   }
 
   /** @override */
   async start() {
-    this.#contents = await this.#makeContents();
-    await this.#writeFile();
+    await this.#runner.start();
   }
 
   /** @override */
   async stop() {
-    const contents     = this.#contents;
-    const stopTimeSecs = Date.now() / 1000;
-    const runTimeSecs  = stopTimeSecs - contents.startTime.secs;
-
-    contents.stopTime = {
-      str:  FormatUtils.dateTimeStringFromSecs(stopTimeSecs),
-      secs: stopTimeSecs
-    };
-    contents.runTimeSecs = runTimeSecs;
-
-    if (runTimeSecs > (60 * 60)) {
-      const runTimeHours = runTimeSecs / (60 * 60);
-      contents.runTimeHours = runTimeHours;
-      if (runTimeHours > 24) {
-        contents.runTimeDays = runTimeHours / 24;
-      }
-    }
-
-    if (Host.isShuttingDown()) {
-      contents.disposition = Host.shutdownDisposition();
-    } else {
-      contents.disposition = { restarting: true };
-    }
-
-    // Try to get `earlierRuns` to be a the end of the object when it gets
-    // encoded to JSON, for easier (human) reading.
-    if (contents.earlierRuns) {
-      const earlierRuns = contents.earlierRuns;
-      delete contents.earlierRuns;
-      contents.earlierRuns = earlierRuns;
-    }
-
-    await this.#writeFile();
+    await this.#runner.stop();
   }
 
   /** @returns {string} The path to the info file. */
@@ -117,15 +96,11 @@ export class ProcessInfoFileService extends BaseService {
       }
 
       // Given that the file already exists, this is a restart, and so the
-      // `startTime` from `ProcessInfo` (which will appear in the earliest of
+      // `startedAt` from `ProcessInfo` (which will appear in the earliest of
       // the `earlierRuns`) is kinda moot. Instead, substitute the current time,
       // that is, the _restart_ time.
-      const startTimeMsec = Date.now();
-      const startTimeSecs = startTimeMsec / 1000;
-      contents.startTime = {
-        str:  FormatUtils.dateTimeStringFromSecs(startTimeSecs),
-        secs: startTimeSecs
-      };
+      contents.startedAt =
+        FormatUtils.compoundDateTimeFromSecs(Date.now() / 1000);
     }
 
     return contents;
@@ -144,16 +119,88 @@ export class ProcessInfoFileService extends BaseService {
 
     try {
       await fs.stat(filePath);
-      const text = await fs.readFile(filePath);
+      const text   = await fs.readFile(filePath);
+      const parsed = JSON.parse(text);
 
-      return JSON.parse(text);
+      this.logger.readFile();
+      return parsed;
     } catch (e) {
       if (e.code === 'ENOENT') {
         return null;
       } else {
+        this.logger.errorReadingFile(e);
         return { error: e.stack };
       }
     }
+  }
+
+  /**
+   * Runs the service thread.
+   */
+  async #run() {
+    while (!this.#runner.shouldStop()) {
+      this.#updateDisposition();
+      await this.#writeFile();
+
+      const updateTimeout = this.#updateSecs
+        ? [timers.setTimeout(this.#updateSecs * 1000)]
+        : [];
+
+      await Promise.race([
+        ...updateTimeout,
+        this.#runner.whenStopRequested()
+      ]);
+    }
+
+    await this.#stop();
+  }
+
+  /**
+   * Starts the service thread.
+   */
+  async #start() {
+    this.#contents = await this.#makeContents();
+  }
+
+  /**
+   * Stops the service thread.
+   */
+  async #stop() {
+    const contents      = this.#contents;
+    const stoppedAtSecs = Date.now() / 1000;
+    const uptimeSecs    = stoppedAtSecs - contents.startedAt.secs;
+
+    contents.stoppedAt = FormatUtils.compoundDateTimeFromSecs(stoppedAtSecs);
+    contents.uptime    = FormatUtils.compoundDurationFromSecs(uptimeSecs);
+
+    if (Host.isShuttingDown()) {
+      contents.disposition = Host.shutdownDisposition();
+    } else {
+      contents.disposition = { restarting: true };
+    }
+
+    // Try to get `earlierRuns` to be a the end of the object when it gets
+    // encoded to JSON, for easier (human) reading.
+    if (contents.earlierRuns) {
+      const earlierRuns = contents.earlierRuns;
+      delete contents.earlierRuns;
+      contents.earlierRuns = earlierRuns;
+    }
+
+    await this.#writeFile();
+  }
+
+  /**
+   * Updates {@link #disposition} to reflect a run still in progress.
+   */
+  #updateDisposition() {
+    const updatedAtSecs = Date.now() / 1000;
+
+    this.#contents.disposition = {
+      running:   true,
+      updatedAt: FormatUtils.compoundDateTimeFromSecs(updatedAtSecs),
+      uptime:    FormatUtils.compoundDurationFromSecs(updatedAtSecs - this.#contents.startedAt.secs)
+    };
   }
 
   /**
@@ -178,6 +225,8 @@ export class ProcessInfoFileService extends BaseService {
 
     const text = `${JSON.stringify(this.#contents, null, 2)}\n`;
     await fs.writeFile(filePath, text);
+
+    this.logger.wroteFile();
   }
 
 
@@ -206,6 +255,12 @@ export class ProcessInfoFileService extends BaseService {
     #directory;
 
     /**
+     * @type {?number} How often to update the info file, in seconds, or `null`
+     * to not perform updates.
+     */
+    #updateSecs;
+
+    /**
      * Constructs an instance.
      *
      * @param {object} config Configuration object.
@@ -213,8 +268,11 @@ export class ProcessInfoFileService extends BaseService {
     constructor(config) {
       super(config);
 
-      this.#baseName  = Files.checkFileName(config.baseName);
-      this.#directory = Files.checkAbsolutePath(config.directory);
+      this.#baseName   = Files.checkFileName(config.baseName);
+      this.#directory  = Files.checkAbsolutePath(config.directory);
+      this.#updateSecs = config.updateSecs
+        ? MustBe.number(config.updateSecs, { finite: true, minInclusive: 1 })
+        : null;
     }
 
     /** @returns {string} The base file name to use. */
@@ -225,6 +283,14 @@ export class ProcessInfoFileService extends BaseService {
     /** @returns {string} The directory to write to. */
     get directory() {
       return this.#directory;
+    }
+
+    /**
+     * @returns {?number} How often to update the info file, in seconds, or
+     * `null` to not perform updates.
+     */
+    get updateSecs() {
+      return this.#updateSecs;
     }
   };
 }

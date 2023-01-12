@@ -4,7 +4,9 @@
 import * as timers from 'node:timers/promises';
 
 import { Threadlet } from '@this/async';
+import { FormatUtils } from '@this/loggy';
 
+import { ProcessInfo } from '#x/ProcessInfo';
 import { ThisModule } from '#p/ThisModule';
 
 
@@ -59,7 +61,7 @@ export class KeepRunning {
    * stop.
    */
   async #keepRunning() {
-    const startedAt = Date.now();
+    const startedAtSecs = ProcessInfo.allInfo.startedAt.secs;
 
     logger.running();
 
@@ -67,21 +69,16 @@ export class KeepRunning {
     // a timeout (or, alternatively, set a recurring timeout), and cancel it
     // (one way or another) when it's okay for the process to exit.
     while (!this.#thread.shouldStop()) {
-      const days = (Date.now() - startedAt) / KeepRunning.#MSEC_PER_DAY;
-      if (days > 0.000001) {
-        // `if` above to (somewhat cheekily) squelch the log on the first
-        // iteration.
-        logger.runningForDays(days);
-      }
-
       await Promise.race([
         timers.setTimeout(KeepRunning.#MSEC_PER_DAY),
         this.#thread.whenStopRequested()
       ]);
+
+      const uptimeSecs = (Date.now() / 1000) - startedAtSecs;
+      logger.uptime(FormatUtils.compoundDurationFromSecs(uptimeSecs));
     }
 
-    const days = (Date.now() - startedAt) / KeepRunning.#MSEC_PER_DAY;
-    logger.ranForDays(days);
+    logger.stopped();
   }
 
 

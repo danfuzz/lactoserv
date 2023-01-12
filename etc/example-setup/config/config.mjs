@@ -16,10 +16,11 @@ const hosts = [
 // Service definitions.
 const services = [
   {
-    name:      'process',
-    type:      'process-info-file',
-    directory: filePath('../../../out/var'),
-    baseName:  'process'
+    name:       'process',
+    type:       'process-info-file',
+    directory:  filePath('../../../out/var'),
+    baseName:   'process',
+    updateSecs: 5 * 60,
   },
   {
     name:      'syslog',

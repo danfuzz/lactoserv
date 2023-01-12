@@ -35,20 +35,14 @@ export class ProcessInfo {
       return;
     }
 
-    const startTimeMsec = Date.now() - (process.uptime() * 1000);
-    const startTimeSecs = startTimeMsec / 1000;
-    const startTimeStr  = FormatUtils.dateTimeStringFromSecs(startTimeSecs);
-
-    const pid  = process.pid;
-    const ppid = process.ppid;
+    const startSecs = (Date.now() - (process.uptime() * 1000)) / 1000;
+    const pid       = process.pid;
+    const ppid      = process.ppid;
 
     this.#info = {
       pid,
       ppid,
-      startTime: {
-        str:  startTimeStr,
-        secs: startTimeSecs
-      }
+      startedAt: FormatUtils.compoundDateTimeFromSecs(startSecs)
     };
 
     ThisModule.logger.processInfo(this.#info);
