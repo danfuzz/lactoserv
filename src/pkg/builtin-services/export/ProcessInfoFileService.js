@@ -2,8 +2,8 @@
 // This project is PROPRIETARY and UNLICENSED.
 
 import * as fs from 'node:fs/promises';
-import * as timers from 'node:timers/promises';
 import * as Path from 'node:path';
+import * as timers from 'node:timers/promises';
 
 import { Files, ServiceConfig } from '@this/app-config';
 import { BaseService, ServiceController } from '@this/app-services';
