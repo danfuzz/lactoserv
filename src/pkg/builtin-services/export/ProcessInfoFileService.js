@@ -286,8 +286,8 @@ export class ProcessInfoFileService extends BaseService {
     }
 
     /**
-     * @returns {?number} How often to update the info file, in seconds, or `null`
-     * to not perform updates.
+     * @returns {?number} How often to update the info file, in seconds, or
+     * `null` to not perform updates.
      */
     get updateSecs() {
       return this.#updateSecs;
