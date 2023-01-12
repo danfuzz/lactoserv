@@ -99,12 +99,8 @@ export class ProcessInfoFileService extends BaseService {
       // `startTime` from `ProcessInfo` (which will appear in the earliest of
       // the `earlierRuns`) is kinda moot. Instead, substitute the current time,
       // that is, the _restart_ time.
-      const startTimeMsec = Date.now();
-      const startTimeSecs = startTimeMsec / 1000;
-      contents.startTime = {
-        str:  FormatUtils.dateTimeStringFromSecs(startTimeSecs),
-        secs: startTimeSecs
-      };
+      contents.startTime =
+        FormatUtils.compoundDateTimeFromSecs(Date.now() / 1000);
     }
 
     return contents;
@@ -173,10 +169,7 @@ export class ProcessInfoFileService extends BaseService {
     const stopTimeSecs = Date.now() / 1000;
     const runTimeSecs  = stopTimeSecs - contents.startTime.secs;
 
-    contents.stopTime = {
-      str:  FormatUtils.dateTimeStringFromSecs(stopTimeSecs),
-      secs: stopTimeSecs
-    };
+    contents.stopTime    = FormatUtils.compoundDateTimeFromSecs(stopTimeSecs);
     contents.runTimeSecs = runTimeSecs;
 
     if (runTimeSecs > (60 * 60)) {

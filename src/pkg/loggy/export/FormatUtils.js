@@ -42,6 +42,18 @@ export class FormatUtils {
   }
 
   /**
+   * Makes a very friendly compound date-time object, which represents both
+   * seconds since the Unix Epoch as well as a string indicating the date-time
+   * in UTC.
+   */
+  static compoundDateTimeFromSecs(dateTimeSecs) {
+    return {
+      secs: dateTimeSecs,
+      utc:  FormatUtils.dateTimeStringFromSecs(dateTimeSecs)
+    };
+  }
+
+  /**
    * Makes a human-friendly content length string, representing the value with
    * one of the suffixes `B`, `kB`, or `MB`. In the latter two cases, the
    * return value uses two digits after a decimal point unless the value is an
