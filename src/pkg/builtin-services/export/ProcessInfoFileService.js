@@ -139,6 +139,7 @@ export class ProcessInfoFileService extends BaseService {
    */
   async #run() {
     while (!this.#runner.shouldStop()) {
+      this.#updateDisposition();
       await this.#writeFile();
 
       const updateTimeout = this.#updateSecs
@@ -195,6 +196,18 @@ export class ProcessInfoFileService extends BaseService {
     }
 
     await this.#writeFile();
+  }
+
+  /**
+   * Updates {@link #disposition} to reflect a run still in progress.
+   */
+  #updateDisposition() {
+    const updatedAtSecs = Date.now() / 1000;
+
+    this.#contents.disposition = {
+      running:   true,
+      updatedAt: FormatUtils.compoundDateTimeFromSecs(updatedAtSecs)
+    };
   }
 
   /**
