@@ -104,7 +104,7 @@ export class RateLimitedStream {
     const hasReader = inner instanceof Readable;
 
     inner.on('close', () => this.#writableOnClose());
-    inner.on('error', () => this.#onError());
+    inner.on('error', (error) => this.#onError(error));
 
     if (hasReader) {
       // Note: Adding the `readable` listener causes the stream to become
