@@ -158,6 +158,7 @@ export class RateLimitedStream {
   #readableOnEnd() {
     // `push(null)` is the spec-defined way to indicate to a `Readable` wrapper
     // that there is no more data to be read.
+    this.#logger?.readableEnd();
     this.#outerStream.push(null);
   }
 
@@ -174,7 +175,7 @@ export class RateLimitedStream {
    * (for any number of reasons) the writing side of the stream has closed.
    */
   #writableOnClose() {
-    this.#logger?.closeFromInner();
+    this.#logger?.writableClose();
     this.#outerStream.end();
 
     // This unsticks any callers that happened to be stuck waiting for `drain`
@@ -194,7 +195,7 @@ export class RateLimitedStream {
    */
   async #write(chunk, encoding, callback) {
     if (chunk instanceof Buffer) {
-      this.#logger?.writeFromOuter(chunk.length);
+      this.#logger?.writing(chunk.length);
     } else {
       this.#becomeBroken(Error(`Unexpected non-buffer chunk with encoding ${encoding}.`));
       chunk = ''; // Ensure we'll fall through to the error case at the bottom.
@@ -222,7 +223,6 @@ export class RateLimitedStream {
         break;
       }
 
-      //this.#logger?.writingBytes(grantResult.grant);
       this.#bytesWritten += grantResult.grant;
 
       const subChunk = (length === grantResult.grant)
