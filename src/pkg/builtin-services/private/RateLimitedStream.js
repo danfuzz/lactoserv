@@ -156,6 +156,8 @@ export class RateLimitedStream {
    * that the reading side has closed.
    */
   #readableOnEnd() {
+    // `push(null)` is the spec-defined way to indicate to a `Readable` wrapper
+    // that there is no more data to be read.
     this.#outerStream.push(null);
   }
 
@@ -220,7 +222,7 @@ export class RateLimitedStream {
         break;
       }
 
-      this.#logger?.writingBytes(grantResult.grant);
+      //this.#logger?.writingBytes(grantResult.grant);
       this.#bytesWritten += grantResult.grant;
 
       const subChunk = (length === grantResult.grant)
