@@ -185,7 +185,9 @@ export class FormatUtils {
       d.getUTCDate().toString().padStart(2, '0'),
       '-',
       d.getUTCHours().toString().padStart(2, '0'),
+      ':',
       d.getUTCMinutes().toString().padStart(2, '0'),
+      ':',
       d.getUTCSeconds().toString().padStart(2, '0')
     ];
 

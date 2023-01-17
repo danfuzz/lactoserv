@@ -82,6 +82,25 @@ describe('contentLengthString()', () => {
   });
 });
 
+describe('dateTimeStringFromSec()', () => {
+  // TODO: More cases.
+  describe.each`
+  sec                | expected               | expectedFrac
+  ${1673916141}      | ${'20230117-00:42:21'} | ${'0000'}
+  ${1673916141.1234} | ${'20230117-00:42:21'} | ${'1234'}
+  `('with $sec', ({ sec, expected, expectedFrac }) => {
+    test('with wantFrac === false', () => {
+      expect(FormatUtils.dateTimeStringFromSecs(sec, false)).toBe(expected);
+      expect(FormatUtils.dateTimeStringFromSecs(sec)).toBe(expected);
+    });
+
+    test('with wantFrac === true', () => {
+      const expectedFull = `${expected}.${expectedFrac}`;
+      expect(FormatUtils.dateTimeStringFromSecs(sec, true)).toBe(expectedFull);
+    });
+  });
+});
+
 describe('elapsedTimeString()', () => {
   test.each`
   msec      | expected
