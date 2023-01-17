@@ -101,7 +101,7 @@ describe('dateTimeStringFromSec()', () => {
   });
 });
 
-describe('elapsedTimeString()', () => {
+describe('durationString()', () => {
   test.each`
   msec      | expected
   ${0}      | ${'0msec'}
@@ -139,7 +139,7 @@ describe('elapsedTimeString()', () => {
   ${100100} | ${'100sec'}
   ${100900} | ${'101sec'}
   `('with ($msec)', ({ msec, expected }) => {
-    expect(FormatUtils.elapsedTimeString(msec)).toBe(expected);
+    expect(FormatUtils.durationString(msec)).toBe(expected);
   });
 });
 

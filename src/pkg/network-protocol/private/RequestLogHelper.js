@@ -102,7 +102,7 @@ export class RequestLogHelper {
         JSON.stringify(urlish),
         res.statusCode,
         FormatUtils.contentLengthString(contentLength),
-        FormatUtils.elapsedTimeString(elapsedMsec),
+        FormatUtils.durationString(elapsedMsec),
         errorMsg
       ].join(' ');
 

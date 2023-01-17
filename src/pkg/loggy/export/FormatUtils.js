@@ -206,7 +206,10 @@ export class FormatUtils {
    * @param {number} elapsedMsec The elapsed time in msec.
    * @returns {string} The friendly form.
    */
-  static elapsedTimeString(elapsedMsec) {
+  static durationString(elapsedMsec) {
+    // TODO: This method should be combined with the code that handles the
+    // `duration` result in {@link #compoundDurationFromSecs}.
+
     const [amount, label] = (elapsedMsec < 1000)
       ? [elapsedMsec,        'msec']
       : [elapsedMsec / 1000, 'sec'];
