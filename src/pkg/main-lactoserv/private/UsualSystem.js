@@ -3,7 +3,7 @@
 
 import * as timers from 'node:timers/promises';
 
-import { Warehouse } from '@this/app-servers';
+import { Warehouse } from '@this/app-framework';
 import { Condition, Threadlet } from '@this/async';
 import { BuiltinApplications } from '@this/builtin-applications';
 import { BuiltinServices } from '@this/builtin-services';

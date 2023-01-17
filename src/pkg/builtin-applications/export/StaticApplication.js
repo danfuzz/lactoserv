@@ -4,7 +4,7 @@
 import express from 'express';
 
 import { ApplicationConfig, Files } from '@this/app-config';
-import { ApplicationController, BaseApplication } from '@this/app-servers';
+import { ApplicationController, BaseApplication } from '@this/app-framework';
 
 
 /**

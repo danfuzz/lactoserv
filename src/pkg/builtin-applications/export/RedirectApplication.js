@@ -2,7 +2,7 @@
 // This project is PROPRIETARY and UNLICENSED.
 
 import { ApplicationConfig, Uris } from '@this/app-config';
-import { ApplicationController, BaseApplication } from '@this/app-servers';
+import { ApplicationController, BaseApplication } from '@this/app-framework';
 
 
 /**
