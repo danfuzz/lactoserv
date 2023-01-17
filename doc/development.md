@@ -57,6 +57,9 @@ The `run` script takes other options; `run --help` for details. TLDR: `run
 Recognized signals:
 * `SIGHUP` -- Does an in-process system reload. (The system shuts down and then
   re-runs from near-scratch.)
+* `SIGUSR1` -- Starts the Node inspector, listening on the usual port. (This
+  is a standard signal recognized by Node. Just noting it here as a reminder or
+  perhaps a TIL.)
 * `SIGUSR2` -- Produces a heap dump file. Look in the log for the file name.
   (Writes to the current directory if it is writable.) The file can be inspected
   using the "Memory" panel available in the Chrome developer tools.
