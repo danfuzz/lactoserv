@@ -59,23 +59,15 @@ export class FormatUtils {
 
   /**
    * Makes a very friendly compound object representing a temporal duration,
-   * with both a string and separated out numerical units as sensible.
+   * with both an exact number of seconds (the original value) and a string
+   * with a human-oriented representation that varies based on the magnitude of
+   * the duration.
    *
    * @param {number} secs Duration in seconds.
    * @returns {object} Friendly compound object.
    */
   static compoundDurationFromSecs(secs) {
     const result = { secs };
-
-    // These values are all "from zero" and not e.g. seconds of remainder after
-    // hours and days have been removed.
-    if (secs >= (60 * 60)) {
-      const hours = secs / (60 * 60);
-      result.hours = Math.round(hours * 10000) / 10000;
-      if (hours >= 24) {
-        result.days = Math.round(hours / 24 * 10000) / 10000;
-      }
-    }
 
     // For the string, we want the usual remainders (as opposed to the above),
     // which is why we don't just grab `result.secs` etc. We convert `secs` to
