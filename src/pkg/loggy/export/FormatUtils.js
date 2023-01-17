@@ -60,10 +60,10 @@ export class FormatUtils {
   }
 
   /**
-   * Makes a very friendly compound object representing a temporal duration,
-   * with both an exact number of seconds (the original value) and a string
-   * with a human-oriented representation that varies based on the magnitude of
-   * the duration.
+   * Makes a friendly compound object representing a temporal duration, with
+   * both an exact number of seconds (the original value) and a human-oriented
+   * string whose format varies based on the magnitude of the duration and which
+   * represents the rounded value.
    *
    * @param {number} secs Duration in seconds.
    * @returns {object} Friendly compound object.
@@ -71,11 +71,43 @@ export class FormatUtils {
   static compoundDurationFromSecs(secs) {
     const result = { secs };
 
-    // For the string, we want the usual remainders (as opposed to the above),
-    // which is why we don't just grab `result.secs` etc. We convert `secs` to
-    // `BigInt`, because that makes the calculations much more straightforward.
-    const secsFrac = secs % 1;
-    secs = BigInt(Math.floor(secs));
+    // For small numbers of seconds, just represent a single number and a
+    // reasonable unit name.
+    if (secs <= 99.9995) {
+      const makeResult = (power, units) => {
+        const value = secs * (10 ** power);
+        result.duration = `${value.toFixed(3)} ${units}`;
+        return result;
+      };
+
+      if (secs <= 0) {
+        // This isn't generally expected to ever be the case in normal
+        // operation, but produce something sensible just in case something goes
+        // wonky.
+        if (secs === 0) {
+          result.duration = '0 sec (instantaneous)';
+          return result;
+        } else {
+          return makeResult(0, 'sec');
+        }
+      }
+
+      let   range   = Math.floor(Math.floor(Math.log10(secs)) / 3) * 3;
+      const rounded = Math.round(secs * (10 ** (-range + 3))) / 1000;
+      if (rounded === 1000) {
+        range += 3;
+      }
+      switch (range) {
+        case 0:  return makeResult(0, 'sec');
+        case -3: return makeResult(3, 'msec');
+        case -6: return makeResult(6, 'usec');
+        default: return makeResult(9, 'nsec');
+      }
+    }
+
+    // Convert `secs` to `BigInt`, because that makes the calculations much more
+    // straightforward.
+    secs = BigInt(Math.round(secs));
 
     const mins  = (secs / 60n) % 60n;
     const hours = (secs / (60n * 60n)) % 24n;
@@ -104,11 +136,6 @@ export class FormatUtils {
       parts.push('0');
     }
     parts.push(secs);
-
-    if (secsFrac > 0) {
-      // `slice(1)` to drop the `0` prefix.
-      parts.push(secsFrac.toFixed(4).slice(1));
-    }
 
     result.duration = parts.join('');
 
