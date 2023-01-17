@@ -92,7 +92,11 @@ ${'compoundDateTimeFromSecs'}
   });
 });
 
-describe('compoundDurationFromSecs()', () => {
+describe.each`
+method
+${'durationStringFromSecs'}
+${'compoundDurationFromSecs'}
+`('$method()', ({ method }) => {
   test.each`
   secs               | duration
   ${-999.123}        | ${'-999.123 sec'}
@@ -137,9 +141,12 @@ describe('compoundDurationFromSecs()', () => {
   ${49021687.1}      | ${'567d 09:08:07'}
   ${49021687.9}      | ${'567d 09:08:08'}
   `('with ($secs)', ({ secs, duration }) => {
-    const expected = { secs, duration };
-
-    expect(FormatUtils.compoundDurationFromSecs(secs)).toEqual(expected);
+    const result = FormatUtils[method](secs);
+    if (method === 'durationStringFromSecs') {
+      expect(result).toBe(duration);
+    } else {
+      expect(result).toStrictEqual({ secs, duration });
+    }
   });
 });
 
