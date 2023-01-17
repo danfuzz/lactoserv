@@ -154,15 +154,22 @@ export class FormatUtils {
    * of the duration.
    *
    * @param {number} secs Duration in seconds.
+   * @param {object} [options = {}] Formatting options:
+   *   * `{boolean} spaces` -- Use spaces to separate the number from the units?
+   *     If `false` an underscore is used. Defaults to `true`.
    * @returns {string} The friendly form.
    */
-  static durationStringFromSecs(secs) {
+  static durationStringFromSecs(secs, options = {}) {
+    const { spaces = true } = options;
+
+    const spaceyChar = spaces ? ' ' : '_';
+
     // For small numbers of (including fractional) seconds, just represent a
     // single number and a reasonable unit name.
     if (secs <= 99.9995) {
       const makeResult = (power, units) => {
         const value = secs * (10 ** power);
-        return `${value.toFixed(3)} ${units}`;
+        return `${value.toFixed(3)}${spaceyChar}${units}`;
       };
 
       if (secs <= 0) {
@@ -170,7 +177,7 @@ export class FormatUtils {
         // operation, but produce something sensible just in case something goes
         // wonky.
         return (secs === 0)
-          ? '0 sec (instantaneous)'
+          ? `0${spaceyChar}sec${spaces ? ' (instantaneous)' : ''}`
           : makeResult(0, 'sec');
       }
 

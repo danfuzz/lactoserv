@@ -150,6 +150,35 @@ ${'compoundDurationFromSecs'}
   });
 });
 
+// A couple extra cases for this method (after the above), to check the
+// `options` behavior.
+describe('durationStringFromSecs()', () => {
+  test.each`
+  secs             | options              | duration
+  ${-1.23}         | ${undefined}         | ${'-1.230 sec'}
+  ${0}             | ${undefined}         | ${'0 sec (instantaneous)'}
+  ${9.876}         | ${undefined}         | ${'9.876 sec'}
+  ${0.09876}       | ${undefined}         | ${'98.760 msec'}
+  ${0.00009876}    | ${undefined}         | ${'98.760 usec'}
+  ${0.00000009876} | ${undefined}         | ${'98.760 nsec'}
+  ${-1.23}         | ${{ spaces: true }}  | ${'-1.230 sec'}
+  ${0}             | ${{ spaces: true }}  | ${'0 sec (instantaneous)'}
+  ${9.876}         | ${{ spaces: true }}  | ${'9.876 sec'}
+  ${0.09876}       | ${{ spaces: true }}  | ${'98.760 msec'}
+  ${0.00009876}    | ${{ spaces: true }}  | ${'98.760 usec'}
+  ${0.00000009876} | ${{ spaces: true }}  | ${'98.760 nsec'}
+  ${-1.23}         | ${{ spaces: false }} | ${'-1.230_sec'}
+  ${0}             | ${{ spaces: false }} | ${'0_sec'}
+  ${9.876}         | ${{ spaces: false }} | ${'9.876_sec'}
+  ${0.09876}       | ${{ spaces: false }} | ${'98.760_msec'}
+  ${0.00009876}    | ${{ spaces: false }} | ${'98.760_usec'}
+  ${0.00000009876} | ${{ spaces: false }} | ${'98.760_nsec'}
+  `('with ($secs, $options)', ({ secs, options, duration }) => {
+    const result = FormatUtils.durationStringFromSecs(secs, options);
+    expect(result).toBe(duration);
+  });
+})
+
 describe('errorObject()', () => {
   // TODO
 });
