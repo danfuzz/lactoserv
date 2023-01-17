@@ -48,12 +48,14 @@ export class FormatUtils {
    *
    * @param {number} dateTimeSecs Time in the form of seconds since the Unix
    *   Epoch.
+   * @param {object} [options = {}] Options, as with {@link
+   *   #dateTimeStringFromSecs}.
    * @returns {object} Friendly compound object.
    */
-  static compoundDateTimeFromSecs(dateTimeSecs) {
+  static compoundDateTimeFromSecs(dateTimeSecs, options = {}) {
     return {
       secs: dateTimeSecs,
-      utc:  FormatUtils.dateTimeStringFromSecs(dateTimeSecs)
+      utc:  FormatUtils.dateTimeStringFromSecs(dateTimeSecs, options)
     };
   }
 
@@ -148,15 +150,16 @@ export class FormatUtils {
    * represnting time in the UTC time zone.
    *
    * @param {number} dateTimeSecs Unix-style time, in _seconds_ (not msec).
-   * @param {boolean} [wantFrac = false] Should the result include fractional
-   *   seconds?
+   * @param {object} [options = {}] Formatting options:
+   *   * `{number} decimals` -- Number of fractional-second digits of precision.
+   *     Defaults to `0`. **Note:** Fractions of seconds are truncated, not
+   *     rounded.
    * @returns {string} The friendly time string.
    */
-  static dateTimeStringFromSecs(dateTimeSecs, wantFrac = false) {
-    const secs = Math.trunc(dateTimeSecs);
-    const frac = dateTimeSecs - secs;
-    const d    = new Date(secs * this.#MSEC_PER_SEC);
+  static dateTimeStringFromSecs(dateTimeSecs, options = {}) {
+    const { decimals = 0 } = options;
 
+    const d     = new Date(dateTimeSecs * this.#MSEC_PER_SEC);
     const parts = [
       d.getUTCFullYear().toString(),
       (d.getUTCMonth() + 1).toString().padStart(2, '0'),
@@ -169,8 +172,14 @@ export class FormatUtils {
       d.getUTCSeconds().toString().padStart(2, '0')
     ];
 
-    if (wantFrac) {
-      parts.push(frac.toFixed(4).slice(1));
+    if (decimals !== 0) {
+      // Non-obvious: If you take `secs % 1` and then operate on the remaining
+      // fraction, you can end up with a string representation that's off by 1,
+      // because of floating point (im)precision. That's why we _don't_ do that.
+      const tenPower = 10 ** decimals;
+      const frac     = Math.floor(dateTimeSecs * tenPower % tenPower);
+      const fracStr  = frac.toString().padStart(decimals, '0');
+      parts.push('.', fracStr);
     }
 
     return parts.join('');

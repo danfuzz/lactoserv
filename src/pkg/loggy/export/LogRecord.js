@@ -100,7 +100,7 @@ export class LogRecord {
    */
   toHuman() {
     const parts = [
-      FormatUtils.dateTimeStringFromSecs(this.#timeSec, true),
+      FormatUtils.dateTimeStringFromSecs(this.#timeSec, { decimals: 4 }),
       ' ',
       this.#tag.toHuman(true),
       ...this.#toHumanPayload(),

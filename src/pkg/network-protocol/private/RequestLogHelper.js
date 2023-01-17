@@ -96,7 +96,7 @@ export class RequestLogHelper {
       logger?.closed({ contentLength, elapsedMsec });
 
       const requestLogLine = [
-        FormatUtils.dateTimeStringFromSecs(Date.now() / 1000),
+        FormatUtils.dateTimeStringFromSecs(Date.now() / 1000, { decimals: 4 }),
         origin,
         method,
         JSON.stringify(urlish),

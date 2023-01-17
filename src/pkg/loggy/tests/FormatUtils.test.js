@@ -74,22 +74,25 @@ describe('contentLengthString()', () => {
   });
 });
 
-describe('dateTimeStringFromSec()', () => {
+describe('dateTimeStringFromSecs()', () => {
   // TODO: More cases.
-  describe.each`
-  sec                | expected               | expectedFrac
-  ${1673916141}      | ${'20230117-00:42:21'} | ${'0000'}
-  ${1673916141.1234} | ${'20230117-00:42:21'} | ${'1234'}
-  `('with $sec', ({ sec, expected, expectedFrac }) => {
-    test('with wantFrac === false', () => {
-      expect(FormatUtils.dateTimeStringFromSecs(sec, false)).toBe(expected);
-      expect(FormatUtils.dateTimeStringFromSecs(sec)).toBe(expected);
-    });
-
-    test('with wantFrac === true', () => {
-      const expectedFull = `${expected}.${expectedFrac}`;
-      expect(FormatUtils.dateTimeStringFromSecs(sec, true)).toBe(expectedFull);
-    });
+  test.each`
+  secs                | options            | expected
+  ${1673916141}       | ${undefined}       | ${'20230117-00:42:21'}
+  ${1673916141.1234}  | ${undefined}       | ${'20230117-00:42:21'}
+  ${1673916141.9}     | ${undefined}       | ${'20230117-00:42:21'}
+  ${1673916141}       | ${{ decimals: 1 }} | ${'20230117-00:42:21.0'}
+  ${1673916141.1234}  | ${{ decimals: 1 }} | ${'20230117-00:42:21.1'}
+  ${1673916141.16}    | ${{ decimals: 1 }} | ${'20230117-00:42:21.1'}
+  ${1673916141.97}    | ${{ decimals: 1 }} | ${'20230117-00:42:21.9'}
+  ${1673916141}       | ${{ decimals: 4 }} | ${'20230117-00:42:21.0000'}
+  ${1673916141.00008} | ${{ decimals: 4 }} | ${'20230117-00:42:21.0000'}
+  ${1673916141.1234}  | ${{ decimals: 4 }} | ${'20230117-00:42:21.1234'}
+  ${1673916141.12344} | ${{ decimals: 4 }} | ${'20230117-00:42:21.1234'}
+  ${1673916141.12345} | ${{ decimals: 4 }} | ${'20230117-00:42:21.1234'}
+  ${1673916141.12346} | ${{ decimals: 4 }} | ${'20230117-00:42:21.1234'}
+  `('with ($secs, $options)', ({ secs, options, expected }) => {
+    expect(FormatUtils.dateTimeStringFromSecs(secs, options)).toBe(expected);
   });
 });
 
