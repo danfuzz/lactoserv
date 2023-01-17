@@ -166,9 +166,8 @@ export class FormatUtils {
 
     // For small numbers of (including fractional) seconds, just represent a
     // single number and a reasonable unit name.
-    if (secs <= 99.9995) {
-      const makeResult = (power, units) => {
-        const value = secs * (10 ** power);
+    if (secs < 99.9995) {
+      const makeResult = (value, units) => {
         return `${value.toFixed(3)}${spaceyChar}${units}`;
       };
 
@@ -178,19 +177,24 @@ export class FormatUtils {
         // wonky.
         return (secs === 0)
           ? `0${spaceyChar}sec${spaces ? ' (instantaneous)' : ''}`
-          : makeResult(0, 'sec');
+          : makeResult(secs, 'sec');
       }
 
-      let   range   = Math.floor(Math.floor(Math.log10(secs)) / 3) * 3;
-      const rounded = Math.round(secs * (10 ** (-range + 3))) / 1000;
+      let   range = Math.floor(Math.floor(Math.log10(secs)) / 3) * 3;
+      let rounded = Math.round(secs * (10 ** (-range + 3))) / 1000;
       if (rounded === 1000) {
         range += 3;
+        rounded = 1;
       }
       switch (range) {
-        case 0:  return makeResult(0, 'sec');
-        case -3: return makeResult(3, 'msec');
-        case -6: return makeResult(6, 'usec');
-        default: return makeResult(9, 'nsec');
+        case 0:  return makeResult(rounded, 'sec');
+        case -3: return makeResult(rounded, 'msec');
+        case -6: return makeResult(rounded, 'usec');
+        case -9: return makeResult(rounded, 'nsec');
+        default: {
+          const roundedNsec = Math.round(secs * (10 ** (9 + 3))) / 1000;
+          return makeResult(roundedNsec, 'nsec');
+        }
       }
     }
 
