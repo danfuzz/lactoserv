@@ -177,7 +177,7 @@ describe('durationStringFromSecs()', () => {
     const result = FormatUtils.durationStringFromSecs(secs, options);
     expect(result).toBe(duration);
   });
-})
+});
 
 describe('errorObject()', () => {
   // TODO
