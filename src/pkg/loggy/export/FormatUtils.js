@@ -151,24 +151,27 @@ export class FormatUtils {
    *
    * @param {number} dateTimeSecs Unix-style time, in _seconds_ (not msec).
    * @param {object} [options = {}] Formatting options:
+   *   * `{boolean} colons` -- Use colons to separate the time-of-day
+   *     components? Defaults to `true`.
    *   * `{number} decimals` -- Number of fractional-second digits of precision.
    *     Defaults to `0`. **Note:** Fractions of seconds are truncated, not
    *     rounded.
    * @returns {string} The friendly time string.
    */
   static dateTimeStringFromSecs(dateTimeSecs, options = {}) {
-    const { decimals = 0 } = options;
+    const { colons = true, decimals = 0 } = options;
 
-    const d     = new Date(dateTimeSecs * this.#MSEC_PER_SEC);
-    const parts = [
+    const d       = new Date(dateTimeSecs * this.#MSEC_PER_SEC);
+    const timeSep = colons ? ':' : '';
+    const parts   = [
       d.getUTCFullYear().toString(),
       (d.getUTCMonth() + 1).toString().padStart(2, '0'),
       d.getUTCDate().toString().padStart(2, '0'),
       '-',
       d.getUTCHours().toString().padStart(2, '0'),
-      ':',
+      timeSep,
       d.getUTCMinutes().toString().padStart(2, '0'),
-      ':',
+      timeSep,
       d.getUTCSeconds().toString().padStart(2, '0')
     ];
 
