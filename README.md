@@ -42,7 +42,7 @@ This is a web server which knows how to serve a couple different types of
     bit of custom routing, see above).
   * Only modest use of external module dependencies.
 * Built to be installed as a normal POSIX-ish service (though _without_ Node
-  bundled into the installation). (TODO.)
+  bundled into the installation).
 
 - - - - - - - - - -
 
