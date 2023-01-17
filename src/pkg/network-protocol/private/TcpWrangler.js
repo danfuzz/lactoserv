@@ -3,11 +3,11 @@
 
 import * as net from 'node:net';
 
-import { BaseService } from '@this/app-framework';
 import { Condition, Threadlet } from '@this/async';
 import { FormatUtils } from '@this/loggy';
 
 import { ProtocolWrangler } from '#x/ProtocolWrangler';
+import { IntfRateLimiter } from '#x/IntfRateLimiter';
 
 
 /**
@@ -18,7 +18,7 @@ export class TcpWrangler extends ProtocolWrangler {
   /** @type {?function(...*)} Logger, if logging is to be done. */
   #logger;
 
-  /** @type {?BaseService} Rate limiter service to use, if any. */
+  /** @type {?IntfRateLimiter} Rate limiter service to use, if any. */
   #rateLimiter;
 
   /** @type {net.Server} Server socket, per se. */

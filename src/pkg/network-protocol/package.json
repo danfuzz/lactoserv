@@ -10,7 +10,6 @@
   },
 
   "dependencies": {
-    "@this/app-framework": "*",
     "@this/async": "*",
     "@this/loggy": "*",
     "@this/typey": "*",
