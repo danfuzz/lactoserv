@@ -40,7 +40,7 @@ This is a web server which knows how to serve a couple different types of
     implementation (TCP, TLS, HTTP*).
   * Uses Express for protocol handling on top of what Node provides (but with a
     bit of custom routing, see above).
-  * Only modest use of external module dependencies.
+  * Only modest use of external module dependencies (via `npm`).
 * Built to be installed as a normal POSIX-ish service (though _without_ Node
   bundled into the installation).
 
