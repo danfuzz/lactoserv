@@ -26,10 +26,10 @@ This is a web server which knows how to serve a couple different types of
   built-in routing.)
 * Can serve all of HTTP, HTTPS, and HTTP2. (HTTP2 will automatically downgrade
   to HTTPS for clients that can't do HTTP2.)
-* Implements (optional) straightforward "token bucket" / "leaky bucket" rate
-  limiting for connections, requests, and/or sent data (bytes / bandwidth).
-* Produces request logs in a standard-ish form.
-* Produces detailed activity logs.
+* Provides optional "token bucket" / "leaky bucket" rate limiting for
+  connections, requests, and/or sent data (bytes / bandwidth).
+* Optionally produces request logs, in a standard-ish form.
+* Optionally produces detailed activity logs.
 * JS-based configuration file format, which isn't actually that awful!
 
 ### Implementation features
