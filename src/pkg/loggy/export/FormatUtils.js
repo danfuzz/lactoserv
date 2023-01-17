@@ -198,14 +198,19 @@ export class FormatUtils {
       }
     }
 
+    const outputTenths = (secs < ((60 * 60) - 0.05));
+
     // Convert `secs` to `BigInt`, because that makes the calculations much more
     // straightforward.
-    secs = BigInt(Math.round(secs));
+    const totalTenths = outputTenths
+      ? BigInt(Math.round(secs * 10))
+      : BigInt(Math.round(secs) * 10);
 
-    const mins  = (secs / 60n) % 60n;
-    const hours = (secs / (60n * 60n)) % 24n;
-    const days  = secs / (60n * 60n * 24n);
-    secs = secs % 60n;
+    const tenths = totalTenths % 10n;
+    secs         = (totalTenths / 10n) % 60n;
+    const mins   = (totalTenths / (10n * 60n)) % 60n;
+    const hours  = (totalTenths / (10n * 60n * 60n)) % 24n;
+    const days   = totalTenths / (10n * 60n * 60n * 24n);
 
     const parts = [];
 
@@ -229,6 +234,10 @@ export class FormatUtils {
       parts.push('0');
     }
     parts.push(secs);
+
+    if (outputTenths) {
+      parts.push('.', tenths);
+    }
 
     return parts.join('');
   }
