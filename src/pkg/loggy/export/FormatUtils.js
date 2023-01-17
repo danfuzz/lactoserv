@@ -223,33 +223,6 @@ export class FormatUtils {
   }
 
   /**
-   * Makes a human-friendly elapsed time string. The result string indicates
-   * either `msec` or `sec`, and uses modest amounts of digits past the decimal
-   * place.
-   *
-   * @param {number} elapsedMsec The elapsed time in msec.
-   * @returns {string} The friendly form.
-   */
-  static durationString(elapsedMsec) {
-    // TODO: This method should be combined with the code that handles the
-    // `duration` result in {@link #compoundDurationFromSecs}.
-
-    const [amount, label] = (elapsedMsec < 1000)
-      ? [elapsedMsec,        'msec']
-      : [elapsedMsec / 1000, 'sec'];
-
-    if (Number.isInteger(amount)) {
-      return `${amount}${label}`;
-    } else if (amount < 9.995) {
-      return `${amount.toFixed(2)}${label}`;
-    } else if (amount < 99.95) {
-      return `${amount.toFixed(1)}${label}`;
-    } else {
-      return `${amount.toFixed(0)}${label}`;
-    }
-  }
-
-  /**
    * Makes a JSON-encodable version of an `Error` as a plain object. Returns
    * non-`Error`s as-is.
    *
