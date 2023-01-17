@@ -91,9 +91,9 @@ export class RequestLogHelper {
         RequestLogHelper.#sanitizeResponseHeaders(resHeaders));
 
       const timeEnd     = process.hrtime.bigint();
-      const elapsedMsec = Number(timeEnd - timeStart) * RequestLogHelper.#NSEC_PER_MSEC;
+      const elapsedSecs = Number(timeEnd - timeStart) * RequestLogHelper.#NSEC_PER_SEC;
 
-      logger?.closed({ contentLength, elapsedMsec });
+      logger?.closed({ contentLength, elapsedSecs });
 
       const requestLogLine = [
         FormatUtils.dateTimeStringFromSecs(Date.now() / 1000, { decimals: 4 }),
@@ -102,7 +102,7 @@ export class RequestLogHelper {
         JSON.stringify(urlish),
         res.statusCode,
         FormatUtils.contentLengthString(contentLength),
-        FormatUtils.durationString(elapsedMsec),
+        FormatUtils.durationStringFromSecs(elapsedSecs),
         errorMsg
       ].join(' ');
 
@@ -118,8 +118,8 @@ export class RequestLogHelper {
   // Static members
   //
 
-  /** @type {number} The number of nanoseconds in a millisecond. */
-  static #NSEC_PER_MSEC = 1 / 1_000_000;
+  /** @type {number} The number of nanoseconds in a second. */
+  static #NSEC_PER_SEC = 1 / 1_000_000_000;
 
   /**
    * Cleans up request headers for logging.
