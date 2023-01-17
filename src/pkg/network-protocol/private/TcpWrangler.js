@@ -3,7 +3,7 @@
 
 import * as net from 'node:net';
 
-import { BaseService } from '@this/app-services';
+import { BaseService } from '@this/app-framework';
 import { Condition, Threadlet } from '@this/async';
 import { FormatUtils } from '@this/loggy';
 

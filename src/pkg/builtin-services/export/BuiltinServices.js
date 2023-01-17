@@ -1,7 +1,7 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
 // This project is PROPRIETARY and UNLICENSED.
 
-import { ServiceFactory } from '@this/app-services';
+import { ServiceFactory } from '@this/app-framework';
 
 import { ProcessInfoFileService } from '#x/ProcessInfoFileService';
 import { RateLimiterService } from '#x/RateLimiterService';

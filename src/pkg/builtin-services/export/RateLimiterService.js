@@ -2,7 +2,7 @@
 // This project is PROPRIETARY and UNLICENSED.
 
 import { ServiceConfig } from '@this/app-config';
-import { BaseService, ServiceController } from '@this/app-services';
+import { BaseService, ServiceController } from '@this/app-framework';
 import { TokenBucket } from '@this/async';
 import { IntfRateLimiter } from '@this/network-protocol';
 import { MustBe } from '@this/typey';

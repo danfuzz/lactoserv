@@ -5,7 +5,7 @@ import * as fs from 'node:fs/promises';
 import * as Path from 'node:path';
 
 import { Files, ServiceConfig } from '@this/app-config';
-import { BaseService, ServiceController } from '@this/app-services';
+import { BaseService, ServiceController } from '@this/app-framework';
 import { IntfRequestLogger } from '@this/network-protocol';
 
 
