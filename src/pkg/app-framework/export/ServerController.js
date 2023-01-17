@@ -2,13 +2,13 @@
 // This project is PROPRIETARY and UNLICENSED.
 
 import { MountConfig, ServerConfig } from '@this/app-config';
-import { HostManager } from '@this/app-hosts';
 import { TreePathKey, TreePathMap } from '@this/collections';
 import { ProtocolWrangler, ProtocolWranglers, WranglerContext } from '@this/network-protocol';
 import { MustBe } from '@this/typey';
 
 import { ApplicationController } from '#x/ApplicationController';
 import { BaseApplication } from '#x/BaseApplication';
+import { HostManager } from '#x/HostManager';
 
 
 /**

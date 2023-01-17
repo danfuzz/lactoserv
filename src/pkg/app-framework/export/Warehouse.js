@@ -2,11 +2,11 @@
 // This project is PROPRIETARY and UNLICENSED.
 
 import { ApplicationConfig, ServiceConfig, WarehouseConfig } from '@this/app-config';
-import { HostManager } from '@this/app-hosts';
 import { ServiceFactory, ServiceManager } from '@this/app-services';
 
 import { ApplicationFactory } from '#x/ApplicationFactory';
 import { ApplicationManager } from '#x/ApplicationManager';
+import { HostManager } from '#x/HostManager';
 import { ServerManager } from '#x/ServerManager';
 
 
