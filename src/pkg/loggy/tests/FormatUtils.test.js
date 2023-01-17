@@ -75,9 +75,11 @@ describe('contentLengthString()', () => {
 });
 
 describe('dateTimeStringFromSecs()', () => {
-  // TODO: More cases.
   test.each`
   secs                | options                           | expected
+  ${0}                | ${undefined}                      | ${'19700101-00:00:00'}
+  ${-14195365}        | ${undefined}                      | ${'19690720-16:50:35'}
+  ${1666016999.99999} | ${undefined}                      | ${'20221017-14:29:59'}
   ${1673916141}       | ${undefined}                      | ${'20230117-00:42:21'}
   ${1673916141.1234}  | ${undefined}                      | ${'20230117-00:42:21'}
   ${1673916141.9}     | ${undefined}                      | ${'20230117-00:42:21'}
