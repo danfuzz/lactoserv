@@ -74,7 +74,11 @@ describe('contentLengthString()', () => {
   });
 });
 
-describe('dateTimeStringFromSecs()', () => {
+describe.each`
+method
+${'dateTimeStringFromSecs'}
+${'compoundDateTimeFromSecs'}
+`('$method()', ({ method }) => {
   test.each`
   secs                | options                           | expected
   ${0}                | ${undefined}                      | ${'19700101-00:00:00'}
@@ -105,7 +109,12 @@ describe('dateTimeStringFromSecs()', () => {
   ${1673916141.1234}  | ${{ colons: true, decimals: 1 }}  | ${'20230117-00:42:21.1'}
   ${1673916141.1234}  | ${{ colons: true, decimals: 2 }}  | ${'20230117-00:42:21.12'}
   `('with ($secs, $options)', ({ secs, options, expected }) => {
-    expect(FormatUtils.dateTimeStringFromSecs(secs, options)).toBe(expected);
+    const result = FormatUtils[method](secs, options);
+    if (method === 'dateTimeStringFromSecs') {
+      expect(result).toBe(expected);
+    } else {
+      expect(result).toStrictEqual({ secs, utc: expected });
+    }
   });
 });
 
