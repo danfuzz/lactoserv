@@ -192,4 +192,6 @@ describe('durationString()', () => {
   });
 });
 
-// TODO: Test the remaining methods.
+describe('errorObject()', () => {
+  // TODO
+});
