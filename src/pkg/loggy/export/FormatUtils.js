@@ -58,8 +58,8 @@ export class FormatUtils {
   }
 
   /**
-   * Makes a very friendly compound object representing a time duration, with
-   * both a string and separated out numerical units as sensible.
+   * Makes a very friendly compound object representing a temporal duration,
+   * with both a string and separated out numerical units as sensible.
    *
    * @param {number} secs Duration in seconds.
    * @returns {object} Friendly compound object.
@@ -116,7 +116,7 @@ export class FormatUtils {
       parts.push(secsFrac.toFixed(4).slice(1));
     }
 
-    result.time = parts.join('');
+    result.duration = parts.join('');
 
     return result;
   }

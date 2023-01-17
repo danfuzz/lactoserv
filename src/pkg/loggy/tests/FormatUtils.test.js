@@ -27,7 +27,7 @@ describe('addressPortString()', () => {
 
 describe('compoundDurationFromSecs()', () => {
   test.each`
-  secs          | hours         | days        | time
+  secs          | hours         | days        | duration
   ${0}          | ${null}       | ${null}     | ${'00:00'}
   ${0.1234}     | ${null}       | ${null}     | ${'00:00.1234'}
   ${0.00001}    | ${null}       | ${null}     | ${'00:00.0000'}
@@ -44,8 +44,8 @@ describe('compoundDurationFromSecs()', () => {
   ${86400.654}  | ${24.0002}    | ${1}        | ${'1d 00:00:00.6540'}
   ${127353}     | ${35.3758}    | ${1.474}    | ${'1d 11:22:33'}
   ${49021687}   | ${13617.1353} | ${567.3806} | ${'567d 09:08:07'}
-  `('with ($secs)', ({ secs, hours, days, time }) => {
-    const expected = { secs, hours, days, time };
+  `('with ($secs)', ({ secs, hours, days, duration }) => {
+    const expected = { secs, hours, days, duration };
 
     if (hours === null) {
       delete expected.hours;
