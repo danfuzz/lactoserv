@@ -144,20 +144,6 @@ export class FormatUtils {
 
   /**
    * Makes a date/time string in a reasonably pithy and understandable form,
-   * from a msec-time (e.g. the result from a call to `Date.now()`). The result
-   * is a string represnting time in the UTC time zone.
-   *
-   * @param {number} dateTimeMsec Unix-style time, in msec.
-   * @param {boolean} [wantFrac = false] Should the result include fractional
-   *   seconds?
-   * @returns {string} The friendly time string.
-   */
-  static dateTimeStringFromMsec(dateTimeMsec, wantFrac = false) {
-    return this.dateTimeStringFromSecs(dateTimeMsec / 1000, wantFrac);
-  }
-
-  /**
-   * Makes a date/time string in a reasonably pithy and understandable form,
    * from a standard Unix time in _seconds_ (not msec). The result is a string
    * represnting time in the UTC time zone.
    *
