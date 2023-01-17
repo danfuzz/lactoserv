@@ -51,15 +51,17 @@ $ ./scripts/run
 ...
 ```
 
-The `run` script takes other options; `run --help` for details. TLDR: `run
---do=build` to do a build first, for convenience.
+The `run` script takes other options; `run --help` for details. TLDR:
+* `run --do=build` to do a build first, for convenience.
+* `run --inspect` or `run --inspect=<arg>` to pass an `inspect` option to Node
+  (to start the inspector/debugger immediately).
 
 Recognized signals:
 * `SIGHUP` -- Does an in-process system reload. (The system shuts down and then
   re-runs from near-scratch.)
-* `SIGUSR1` -- Starts the Node inspector, listening on the usual port. (This
-  is a standard signal recognized by Node. Just noting it here as a reminder or
-  perhaps a TIL.)
+* `SIGUSR1` -- Starts the Node inspector/debugger, listening on the usual port.
+  (This is a standard signal recognized by Node. Just noting it here as a
+  reminder or perhaps a TIL.)
 * `SIGUSR2` -- Produces a heap dump file. Look in the log for the file name.
   (Writes to the current directory if it is writable.) The file can be inspected
   using the "Memory" panel available in the Chrome developer tools.
