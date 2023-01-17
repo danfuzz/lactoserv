@@ -46,9 +46,9 @@ export class LogTag {
 
   /**
    * @type {?string} Last context string, or `null` if this instance has no
-   * context. In the (common) case where this tag is attached to a logger which
-   * was produced by accessing `$newId` on another logger, this is the ID that
-   * was appended to the original logger's context.
+   *   context. In the (common) case where this tag is attached to a logger
+   *   which was produced by accessing `$newId` on another logger, this is the
+   *   ID that was appended to the original logger's context.
    */
   get lastContext() {
     const length = this.#context.length;
@@ -66,7 +66,7 @@ export class LogTag {
    *
    * @param {boolean} [addSeparator = false] Should a separator character be
    *   appended at the end? If so, it is ` ` (space) for a top-level tag (no
-   * context) or `.` for a tag with context.
+   *   context) or `.` for a tag with context.
    * @returns {string} The "human form" string.
    */
   toHuman(addSeparator = false) {
