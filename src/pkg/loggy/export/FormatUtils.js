@@ -65,13 +65,13 @@ export class FormatUtils {
    * string whose format varies based on the magnitude of the duration and which
    * represents the rounded value.
    *
-   * @param {number} secs Duration in seconds.
+   * @param {number} durationSecs Duration in seconds.
    * @returns {object} Friendly compound object.
    */
-  static compoundDurationFromSecs(secs) {
+  static compoundDurationFromSecs(durationSecs) {
     return {
-      secs,
-      duration: FormatUtils.durationStringFromSecs(secs)
+      secs:     durationSecs,
+      duration: FormatUtils.durationStringFromSecs(durationSecs)
     };
   }
 
@@ -153,35 +153,35 @@ export class FormatUtils {
    * represents a rounded value, in a format which varies based on the magnitude
    * of the duration.
    *
-   * @param {number} secs Duration in seconds.
+   * @param {number} durationSecs Duration in seconds.
    * @param {object} [options = {}] Formatting options:
    *   * `{boolean} spaces` -- Use spaces to separate the number from the units?
    *     If `false` an underscore is used. Defaults to `true`.
    * @returns {string} The friendly form.
    */
-  static durationStringFromSecs(secs, options = {}) {
+  static durationStringFromSecs(durationSecs, options = {}) {
     const { spaces = true } = options;
 
     const spaceyChar = spaces ? ' ' : '_';
 
     // For small numbers of (including fractional) seconds, just represent a
     // single number and a reasonable unit name.
-    if (secs < 99.9995) {
+    if (durationSecs < 99.9995) {
       const makeResult = (value, units) => {
         return `${value.toFixed(3)}${spaceyChar}${units}`;
       };
 
-      if (secs <= 0) {
+      if (durationSecs <= 0) {
         // This isn't generally expected to ever be the case in normal
         // operation, but produce something sensible just in case something goes
         // wonky.
-        return (secs === 0)
+        return (durationSecs === 0)
           ? `0${spaceyChar}sec${spaces ? ' (instantaneous)' : ''}`
-          : makeResult(secs, 'sec');
+          : makeResult(durationSecs, 'sec');
       }
 
-      let   range = Math.floor(Math.floor(Math.log10(secs)) / 3) * 3;
-      let rounded = Math.round(secs * (10 ** (-range + 3))) / 1000;
+      let   range = Math.floor(Math.floor(Math.log10(durationSecs)) / 3) * 3;
+      let rounded = Math.round(durationSecs * (10 ** (-range + 3))) / 1000;
       if (rounded === 1000) {
         range += 3;
         rounded = 1;
@@ -192,22 +192,21 @@ export class FormatUtils {
         case -6: return makeResult(rounded, 'usec');
         case -9: return makeResult(rounded, 'nsec');
         default: {
-          const roundedNsec = Math.round(secs * (10 ** (9 + 3))) / 1000;
+          const roundedNsec = Math.round(durationSecs * (10 ** (9 + 3))) / 1000;
           return makeResult(roundedNsec, 'nsec');
         }
       }
     }
 
-    const outputTenths = (secs < ((60 * 60) - 0.05));
-
     // Convert `secs` to `BigInt`, because that makes the calculations much more
     // straightforward.
-    const totalTenths = outputTenths
-      ? BigInt(Math.round(secs * 10))
-      : BigInt(Math.round(secs) * 10);
+    const outputTenths = (durationSecs < ((60 * 60) - 0.05));
+    const totalTenths  = outputTenths
+      ? BigInt(Math.round(durationSecs * 10))
+      : BigInt(Math.round(durationSecs) * 10);
 
     const tenths = totalTenths % 10n;
-    secs         = (totalTenths / 10n) % 60n;
+    const secs   = (totalTenths / 10n) % 60n;
     const mins   = (totalTenths / (10n * 60n)) % 60n;
     const hours  = (totalTenths / (10n * 60n * 60n)) % 24n;
     const days   = totalTenths / (10n * 60n * 60n * 24n);
