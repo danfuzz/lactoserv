@@ -69,77 +69,10 @@ export class FormatUtils {
    * @returns {object} Friendly compound object.
    */
   static compoundDurationFromSecs(secs) {
-    const result = { secs };
-
-    // For small numbers of seconds, just represent a single number and a
-    // reasonable unit name.
-    if (secs <= 99.9995) {
-      const makeResult = (power, units) => {
-        const value = secs * (10 ** power);
-        result.duration = `${value.toFixed(3)} ${units}`;
-        return result;
-      };
-
-      if (secs <= 0) {
-        // This isn't generally expected to ever be the case in normal
-        // operation, but produce something sensible just in case something goes
-        // wonky.
-        if (secs === 0) {
-          result.duration = '0 sec (instantaneous)';
-          return result;
-        } else {
-          return makeResult(0, 'sec');
-        }
-      }
-
-      let   range   = Math.floor(Math.floor(Math.log10(secs)) / 3) * 3;
-      const rounded = Math.round(secs * (10 ** (-range + 3))) / 1000;
-      if (rounded === 1000) {
-        range += 3;
-      }
-      switch (range) {
-        case 0:  return makeResult(0, 'sec');
-        case -3: return makeResult(3, 'msec');
-        case -6: return makeResult(6, 'usec');
-        default: return makeResult(9, 'nsec');
-      }
-    }
-
-    // Convert `secs` to `BigInt`, because that makes the calculations much more
-    // straightforward.
-    secs = BigInt(Math.round(secs));
-
-    const mins  = (secs / 60n) % 60n;
-    const hours = (secs / (60n * 60n)) % 24n;
-    const days  = secs / (60n * 60n * 24n);
-    secs = secs % 60n;
-
-    const parts = [];
-
-    if (days > 0) {
-      parts.push(days, 'd ');
-    }
-
-    if ((hours > 0) || (days > 0)) {
-      if (hours < 10n) {
-        parts.push('0');
-      }
-      parts.push(hours, ':');
-    }
-
-    if (mins < 10) {
-      parts.push('0');
-    }
-    parts.push(mins, ':');
-
-    if (secs < 10) {
-      parts.push('0');
-    }
-    parts.push(secs);
-
-    result.duration = parts.join('');
-
-    return result;
+    return {
+      secs,
+      duration: FormatUtils.durationStringFromSecs(secs)
+    };
   }
 
   /**
@@ -211,6 +144,80 @@ export class FormatUtils {
       const fracStr  = frac.toString().padStart(decimals, '0');
       parts.push('.', fracStr);
     }
+
+    return parts.join('');
+  }
+
+  /**
+   * Makes a human-friendly duration (elapsed time) string. The result string
+   * represents a rounded value, in a format which varies based on the magnitude
+   * of the duration.
+   *
+   * @param {number} secs Duration in seconds.
+   * @returns {string} The friendly form.
+   */
+  static durationStringFromSecs(secs) {
+    // For small numbers of (including fractional) seconds, just represent a
+    // single number and a reasonable unit name.
+    if (secs <= 99.9995) {
+      const makeResult = (power, units) => {
+        const value = secs * (10 ** power);
+        return `${value.toFixed(3)} ${units}`;
+      };
+
+      if (secs <= 0) {
+        // This isn't generally expected to ever be the case in normal
+        // operation, but produce something sensible just in case something goes
+        // wonky.
+        return (secs === 0)
+          ? '0 sec (instantaneous)'
+          : makeResult(0, 'sec');
+      }
+
+      let   range   = Math.floor(Math.floor(Math.log10(secs)) / 3) * 3;
+      const rounded = Math.round(secs * (10 ** (-range + 3))) / 1000;
+      if (rounded === 1000) {
+        range += 3;
+      }
+      switch (range) {
+        case 0:  return makeResult(0, 'sec');
+        case -3: return makeResult(3, 'msec');
+        case -6: return makeResult(6, 'usec');
+        default: return makeResult(9, 'nsec');
+      }
+    }
+
+    // Convert `secs` to `BigInt`, because that makes the calculations much more
+    // straightforward.
+    secs = BigInt(Math.round(secs));
+
+    const mins  = (secs / 60n) % 60n;
+    const hours = (secs / (60n * 60n)) % 24n;
+    const days  = secs / (60n * 60n * 24n);
+    secs = secs % 60n;
+
+    const parts = [];
+
+    if (days > 0) {
+      parts.push(days, 'd ');
+    }
+
+    if ((hours > 0) || (days > 0)) {
+      if (hours < 10n) {
+        parts.push('0');
+      }
+      parts.push(hours, ':');
+    }
+
+    if (mins < 10) {
+      parts.push('0');
+    }
+    parts.push(mins, ':');
+
+    if (secs < 10) {
+      parts.push('0');
+    }
+    parts.push(secs);
 
     return parts.join('');
   }
