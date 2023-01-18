@@ -122,7 +122,7 @@ export class TcpWrangler extends ProtocolWrangler {
 
     if (connLogger) {
       try {
-        connLogger.connected({
+        connLogger.opened({
           local:  FormatUtils.addressPortString(socket.localAddress, socket.localPort),
           remote: FormatUtils.addressPortString(socket.remoteAddress, socket.remotePort)
         });
