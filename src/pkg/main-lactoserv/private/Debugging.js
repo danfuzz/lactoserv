@@ -4,8 +4,8 @@
 import * as timers from 'node:timers/promises';
 
 import { Host } from '@this/host';
-import { Loggy } from '@this/loggy';
 
+import { ThisModule } from '#p/ThisModule';
 import { UsualSystem } from '#p/UsualSystem';
 
 
@@ -13,6 +13,9 @@ import { UsualSystem } from '#p/UsualSystem';
  * Utilities for debugging support.
  */
 export class Debugging {
+  /** @type {function(...*)} Logger for this class. */
+  static #logger = ThisModule.logger.debug;
+
   /**
    * Processes the debugging-related arguments / options, if any.
    *
@@ -45,7 +48,7 @@ export class Debugging {
    * @param {UsualSystem} system The system to be run.
    */
   static #setMaxRunTimeSecs(maxRunTimeSecs, system) {
-    const logger = Loggy.loggerFor('main').debug;
+    const logger = this.#logger;
 
     (async () => {
       logger.timerStarted({ seconds: maxRunTimeSecs });
