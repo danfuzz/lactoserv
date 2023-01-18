@@ -8,10 +8,26 @@ import { Loggy } from '@this/loggy';
  * Intramodule communication (un-exported).
  */
 export class ThisModule {
-  /** @type {function(...*)} Logger for this module. */
+  /** @type {function(...*)} General logger for this module. */
   static #logger = Loggy.loggerFor('fw');
 
-  /** @returns {function(...*)} Logger for this module. */
+  /** @type {function(...*)} Base logger for application instances. */
+  static #baseApplicationLogger = Loggy.loggerFor('app');
+
+  /** @type {function(...*)} Base logger for service instances. */
+  static #baseServiceLogger = Loggy.loggerFor('service');
+
+  /** @returns {function(...*)} Base logger for application instances. */
+  static get baseApplicationLogger() {
+    return this.#baseApplicationLogger;
+  }
+
+  /** @returns {function(...*)} Base logger for service instances. */
+  static get baseServiceLogger() {
+    return this.#baseServiceLogger;
+  }
+
+  /** @returns {function(...*)} General logger for this module. */
   static get logger() {
     return this.#logger;
   }

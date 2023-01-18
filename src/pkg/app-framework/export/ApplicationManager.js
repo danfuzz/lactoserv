@@ -8,9 +8,6 @@ import { ApplicationFactory } from '#x/ApplicationFactory';
 import { ThisModule } from '#p/ThisModule';
 
 
-/** @type {function(...*)} Logger for this class. */
-const logger = ThisModule.logger.app;
-
 /**
  * Manager for dealing with all the high-level applications that are running or
  * to be run in the system.
@@ -21,6 +18,9 @@ export class ApplicationManager {
    * to the controller that should be used for it.
    */
   #controllers = new Map();
+
+  /** @type {function(...*)} Logger for this instance (the manager). */
+  #logger = ThisModule.logger.applications;
 
   /**
    * Constructs an instance.
@@ -63,11 +63,11 @@ export class ApplicationManager {
       throw new Error(`Duplicate application: ${name}`);
     }
 
-    const subLogger  = logger[name];
-    const instance   = ApplicationFactory.makeInstance(config, subLogger);
+    const appLogger  = ThisModule.baseApplicationLogger[name];
+    const instance   = ApplicationFactory.makeInstance(config, appLogger);
     const controller = new ApplicationController(instance);
 
     this.#controllers.set(name, controller);
-    subLogger.bound();
+    this.#logger.bound(name);
   }
 }
