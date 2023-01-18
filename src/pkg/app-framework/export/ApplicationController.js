@@ -4,7 +4,7 @@
 import * as timers from 'node:timers';
 
 import { ApplicationConfig } from '@this/app-config';
-import { FormatUtils } from '@this/loggy';
+import { BaseLoggingEnvironment, FormatUtils } from '@this/loggy';
 import { WranglerContext } from '@this/network-protocol';
 
 import { BaseApplication } from '#x/BaseApplication';
@@ -83,7 +83,7 @@ export class ApplicationController {
       }
 
       res.end = origEnd;
-    }
+    };
 
     const innerNext = (...args) => {
       done();
@@ -97,7 +97,7 @@ export class ApplicationController {
       done();
       this.#logger.done(id);
       resEnded = true;
-    }
+    };
 
     this.#application.handleRequest(req, res, innerNext);
   }
