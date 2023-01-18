@@ -6,8 +6,8 @@ import * as net from 'node:net';
 import { Condition, Threadlet } from '@this/async';
 import { FormatUtils } from '@this/loggy';
 
-import { ProtocolWrangler } from '#x/ProtocolWrangler';
 import { IntfRateLimiter } from '#x/IntfRateLimiter';
+import { ProtocolWrangler } from '#x/ProtocolWrangler';
 
 
 /**
