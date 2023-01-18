@@ -18,8 +18,8 @@ export class LogTag {
   /** @type {string[]} Context strings. */
   #context;
 
-  /** @type {?string} Precomputed "human form" string, if available. */
-  #humanString = null;
+  /** @type {?string[]} Precomputed "human form" strings, if available. */
+  #humanStrings = null;
 
   /**
    * Constructs an instance.
@@ -70,7 +70,7 @@ export class LogTag {
    * @returns {string} The "human form" string.
    */
   toHuman(addSeparator = false) {
-    if (!this.#humanString) {
+    if (!this.#humanStrings) {
       const parts = [
         '<',
         this.#main,
@@ -83,14 +83,15 @@ export class LogTag {
         firstContext = false;
       }
 
-      if (addSeparator) {
-        parts.push(this.#context.length === 0 ? ' ' : '.');
-      }
+      const sansSep = parts.join('');
+      const avecSep = (this.#context.length === 0)
+        ? `${sansSep} `
+        : `${sansSep}.`;
 
-      this.#humanString = parts.join('');
+      this.#humanStrings = Object.freeze([sansSep, avecSep]);
     }
 
-    return this.#humanString;
+    return this.#humanStrings[addSeparator ? 1 : 0];
   }
 
   /**

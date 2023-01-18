@@ -136,9 +136,29 @@ describe.each`
     expect(tag.toHuman(...args)).toBe(expected);
   });
 
+  test('works with two context strings', () => {
+    const tag = new LogTag('oho', 'florp', 'zorp');
+    const expected = `<oho> florp.zorp${endingOther}`;
+    expect(tag.toHuman(...args)).toBe(expected);
+  });
+
   test('works with 10 context strings', () => {
     const tag = new LogTag('whee', '1', '2', '3', '4', '5', '6', 'seven', '8', '9', 'ten');
     const expected = `<whee> 1.2.3.4.5.6.seven.8.9.ten${endingOther}`;
     expect(tag.toHuman(...args)).toBe(expected);
+  });
+});
+
+describe('toHuman()', () => {
+  test('does not get stuck on ending-separator vs. not (that is, no overzealous caching)', () => {
+    const tag1    = new LogTag('oho', 'flop', 'zop');
+    const expect1 = '<oho> flop.zop';
+    expect(tag1.toHuman(false)).toBe(expect1);
+    expect(tag1.toHuman(true)).toBe(`${expect1}.`);
+
+    const tag2    = new LogTag('aha', 'bloop', 'zoop', 'moop');
+    const expect2 = '<aha> bloop.zoop.moop';
+    expect(tag2.toHuman(true)).toBe(`${expect2}.`);
+    expect(tag2.toHuman(false)).toBe(expect2);
   });
 });
