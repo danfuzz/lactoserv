@@ -41,22 +41,28 @@ export class RequestLogHelper {
    *
    * @param {express.Request} req Request object.
    * @param {express.Response} res Response object.
-   * @param {WranglerContext} connectionCtx Connection context.
+   * @param {WranglerContext} context Connection or session context.
    * @returns {function(*...)} The request-specific logger.
    */
-  logRequest(req, res, connectionCtx) {
+  logRequest(req, res, context) {
     const timeStart = process.hrtime.bigint();
     const logger    = this.#logger?.$newId ?? null;
+    const requestId = logger?.$meta.lastContext;
     const urlish    = `${req.protocol}://${req.hostname}${req.originalUrl}`;
-    const origin    = connectionCtx.socketAddressPort ?? '<unknown-origin>';
+    const origin    = context.socketAddressPort ?? '<unknown-origin>';
     const method    = req.method;
 
     const info = {
-      connectionId: connectionCtx.connectionId ?? '<unknown-id>'
+      connectionId: context.connectionId ?? '<unknown-id>'
     };
-    if (connectionCtx.sessionId) {
-      info.sessionId = connectionCtx.sessionId;
+
+    if (context.sessionId) {
+      info.sessionId = context.sessionId;
+      context.sessionLogger?.newRequest(requestId);
+    } else {
+      context.connectionLogger?.newRequest(requestId);
     }
+
     logger?.opened(info);
     logger?.request(origin, req.method, urlish);
     logger?.headers(RequestLogHelper.#sanitizeRequestHeaders(req.headers));
@@ -72,7 +78,7 @@ export class RequestLogHelper {
 
       // Check to see if the connection socket has errored out. If so, indicate
       // as much.
-      const connError = connectionCtx.socket.errored;
+      const connError = context.socket.errored;
       let   errorMsg  = 'ok';
       if (connError) {
         if (connError.code) {

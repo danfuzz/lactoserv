@@ -324,10 +324,10 @@ export class ProtocolWrangler {
    * @returns {*} Result of application handler call, or `null` if not called.
    */
   async #handleRequest(req, res, next) {
-    const connectionCtx = WranglerContext.getNonNull(req.socket, req.stream?.session);
-    const reqLogger = this.#logHelper?.logRequest(req, res, connectionCtx) ?? null;
+    const context   = WranglerContext.getNonNull(req.socket, req.stream?.session);
+    const reqLogger = this.#logHelper?.logRequest(req, res, context) ?? null;
 
-    const reqCtx = WranglerContext.forRequest(connectionCtx, reqLogger);
+    const reqCtx = WranglerContext.forRequest(context, reqLogger);
     WranglerContext.bind(req, reqCtx);
 
     res.set('Server', this.#serverHeader);
