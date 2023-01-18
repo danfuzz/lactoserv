@@ -6,7 +6,7 @@ import * as Path from 'node:path';
 import * as timers from 'node:timers/promises';
 
 import { Files, ServiceConfig } from '@this/app-config';
-import { BaseService, ServiceController } from '@this/app-services';
+import { BaseService, ServiceController } from '@this/app-framework';
 import { EventTracker } from '@this/async';
 import { LogEvent, Loggy, TextFileSink } from '@this/loggy';
 
@@ -25,9 +25,6 @@ export class SystemLoggerService extends BaseService {
   /** @type {TextFileSink} Event sink which does the actual writing. */
   #sink;
 
-  /** @type {function(*)} Logger for this instance. */
-  #logger;
-
   /**
    * Constructs an instance.
    *
@@ -42,7 +39,6 @@ export class SystemLoggerService extends BaseService {
 
     this.#logFilePath = Path.resolve(directory, `${baseName}.txt`);
     this.#sink        = new TextFileSink(this.#logFilePath, earliestEvent);
-    this.#logger      = SystemLoggerService.#classLogger[name];
   }
 
   /** @override */
@@ -61,22 +57,23 @@ export class SystemLoggerService extends BaseService {
     }
 
     await this.#sink.start();
-    this.#logger.started();
+    this.logger.running();
   }
 
   /** @override */
   async stop() {
+    // Wait briefly, so that there's a decent chance that this instance catches
+    // most or all of the other stop-time messages before doing its own final
+    // message.
+    await timers.setTimeout(100); // 100msec
+
     // Note: Upon construction, instances of this class look for an event of the
     // form being logged here, and will start just past it if found. This is to
     // reasonably-gracefully handle the case of a successor instance to this one
     // during a same-process system restart (e.g. in response to a restart
     // signal). In particular, this is an attempt to minimize double-logging
     // events.
-    this.#logger.stopped();
-
-    // Wait briefly, so that there's a decent chance that this instance catches
-    // most or all of the other stop-time messages.
-    await timers.setTimeout(100); // 100msec
+    this.logger[SystemLoggerService.#END_EVENT_TYPE]();
 
     await this.#sink.drainAndStop();
   }
@@ -93,13 +90,11 @@ export class SystemLoggerService extends BaseService {
   #findEarliestEventToLog() {
     const earliestEvent = Loggy.earliestEvent;
     const tracker       = new EventTracker(earliestEvent);
+    const tagToFind     = this.logger.$meta.tag;
 
     const found = tracker.advanceSync((event) => {
-      const tag = event.tag;
-      return (tag.main === SystemLoggerService.#LOG_TAG)
-        && (tag.context.length === 1)
-        && (tag.context[0] === this.name)
-        && (event.type === 'stopped');
+      return (event.type === SystemLoggerService.#END_EVENT_TYPE)
+        && (event.tag.equals(tagToFind));
     });
 
     return found ? found.nextPromise : earliestEvent;
@@ -110,11 +105,8 @@ export class SystemLoggerService extends BaseService {
   // Static members
   //
 
-  /** @type {string} Main log tag for this class. */
-  static #LOG_TAG = 'syslog';
-
-  /** @type {function(*)} Logger for this class. */
-  static #classLogger = Loggy.loggerFor([this.#LOG_TAG]);
+  /** @type {string} Event type that marks the end of logging. */
+  static #END_EVENT_TYPE = 'finalLoggedEvent';
 
   /** @override */
   static get CONFIG_CLASS() {

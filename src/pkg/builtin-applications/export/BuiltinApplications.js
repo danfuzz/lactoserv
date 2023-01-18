@@ -1,7 +1,7 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
 // This project is PROPRIETARY and UNLICENSED.
 
-import { ApplicationFactory } from '@this/app-servers';
+import { ApplicationFactory } from '@this/app-framework';
 
 import { RedirectApplication } from '#x/RedirectApplication';
 import { StaticApplication } from '#x/StaticApplication';

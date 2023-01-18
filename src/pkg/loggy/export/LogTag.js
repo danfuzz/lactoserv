@@ -18,8 +18,8 @@ export class LogTag {
   /** @type {string[]} Context strings. */
   #context;
 
-  /** @type {?string} Precomputed "human form" string, if available. */
-  #humanString = null;
+  /** @type {?string[]} Precomputed "human form" strings, if available. */
+  #humanStrings = null;
 
   /**
    * Constructs an instance.
@@ -46,9 +46,9 @@ export class LogTag {
 
   /**
    * @type {?string} Last context string, or `null` if this instance has no
-   * context. In the (common) case where this tag is attached to a logger which
-   * was produced by accessing `$newId` on another logger, this is the ID that
-   * was appended to the original logger's context.
+   *   context. In the (common) case where this tag is attached to a logger
+   *   which was produced by accessing `$newId` on another logger, this is the
+   *   ID that was appended to the original logger's context.
    */
   get lastContext() {
     const length = this.#context.length;
@@ -61,16 +61,50 @@ export class LogTag {
   }
 
   /**
+   * Compares this instance to another for equality, that is, whether the
+   * main tag and context are all the same.
+   *
+   * @param {*} other Instance to compare to.
+   * @returns {boolean} `true` iff `other` is an instance of this class with the
+   *   same main tag and context.
+   */
+  equals(other) {
+    if (this === other) {
+      return true;
+    }
+
+    if (!(other instanceof LogTag)) {
+      return false;
+    }
+
+    const thisCtx  = this.#context;
+    const otherCtx = other.#context;
+
+    if (!(   (this.#main === other.#main)
+          && (thisCtx.length === otherCtx.length))) {
+      return false;
+    }
+
+    for (let i = 0; i < thisCtx.length; i++) {
+      if (thisCtx[i] !== otherCtx[i]) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
    * Gets a string representation of this instance intended for maximally-easy
    * human consumption.
    *
    * @param {boolean} [addSeparator = false] Should a separator character be
    *   appended at the end? If so, it is ` ` (space) for a top-level tag (no
-   * context) or `.` for a tag with context.
+   *   context) or `.` for a tag with context.
    * @returns {string} The "human form" string.
    */
   toHuman(addSeparator = false) {
-    if (!this.#humanString) {
+    if (!this.#humanStrings) {
       const parts = [
         '<',
         this.#main,
@@ -83,14 +117,15 @@ export class LogTag {
         firstContext = false;
       }
 
-      if (addSeparator) {
-        parts.push(this.#context.length === 0 ? ' ' : '.');
-      }
+      const sansSep = parts.join('');
+      const avecSep = (this.#context.length === 0)
+        ? `${sansSep} `
+        : `${sansSep}.`;
 
-      this.#humanString = parts.join('');
+      this.#humanStrings = Object.freeze([sansSep, avecSep]);
     }
 
-    return this.#humanString;
+    return this.#humanStrings[addSeparator ? 1 : 0];
   }
 
   /**

@@ -1,5 +1,5 @@
 {
-  "name": "@this/app-hosts",
+  "name": "@this/app-framework",
   "version": "0.0.1",
   "type": "module",
 
@@ -11,8 +11,10 @@
 
   "dependencies": {
     "@this/app-config": "*",
+    "@this/async": "*",
     "@this/collections": "*",
     "@this/loggy": "*",
+    "@this/network-protocol": "*",
     "@this/typey": "*"
   }
 }

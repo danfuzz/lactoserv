@@ -8,7 +8,10 @@ import { HostConfig } from '@this/app-config';
 
 /**
  * "Controller" for a single host entry, which can notably offer services for
- * multiple different hosts.
+ * multiple different hosts. "Hosts" in this sense are network-available servers
+ * associated with particular names, certificates, and private keys. The main
+ * thing offered by this class is the association between a named host and a TLS
+ * context.
  */
 export class HostController {
   /** @type {HostConfig} Configuration which defined this instance. */

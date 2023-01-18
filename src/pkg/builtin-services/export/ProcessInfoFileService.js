@@ -6,7 +6,7 @@ import * as Path from 'node:path';
 import * as timers from 'node:timers/promises';
 
 import { Files, ServiceConfig } from '@this/app-config';
-import { BaseService, ServiceController } from '@this/app-services';
+import { BaseService, ServiceController } from '@this/app-framework';
 import { Threadlet } from '@this/async';
 import { Host, ProcessInfo, ProductInfo } from '@this/host';
 import { FormatUtils } from '@this/loggy';

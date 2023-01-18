@@ -10,7 +10,7 @@
   },
 
   "dependencies": {
-    "@this/app-servers": "*",
+    "@this/app-framework": "*",
     "@this/async": "*",
     "@this/builtin-applications": "*",
     "@this/builtin-services": "*",

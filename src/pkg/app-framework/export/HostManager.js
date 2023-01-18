@@ -5,17 +5,18 @@ import { SecureContext } from 'node:tls';
 
 import { HostConfig, Uris } from '@this/app-config';
 import { TreePathMap } from '@this/collections';
-import { Loggy } from '@this/loggy';
 
 import { HostController } from '#x/HostController';
+import { ThisModule } from '#p/ThisModule';
 
 
 /** @type {function(...*)} Logger for this class. */
-const logger = Loggy.loggerFor('app-hosts');
+const logger = ThisModule.logger.hosts;
 
 /**
- * Manager for dealing with all the certificate/key pairs associated with a
- * set of named hosts.
+ * Manager for dealing with all the host bindings. "Hosts" in this sense are
+ * network-available servers associated with particular names, certificates, and
+ * private keys.
  */
 export class HostManager {
   /**

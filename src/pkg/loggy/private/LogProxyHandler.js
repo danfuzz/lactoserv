@@ -155,9 +155,16 @@ export class LogProxyHandler extends PropertyCacheProxyHandler {
       return this.tag.lastContext;
     }
 
-    /** @returns {LogTag} The tag used by the logger. */
+    /**
+     * @returns {LogTag} The tag used by the logger, when it is invoked as an
+     * object (as opposed to called as a function, which is the less usual and
+     * generally unexpected case).
+     */
     get tag() {
-      return this.#handler.#tag;
+      // Note: This is the instance's (computed/cached) `subTag` and not its
+      // `tag`, because the latter doesn't include the full context when the
+      // instance is called as an object.
+      return this.#handler.#subTag;
     }
 
     /**

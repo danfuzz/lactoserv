@@ -2,15 +2,15 @@
 // This project is PROPRIETARY and UNLICENSED.
 
 import { ServiceConfig } from '@this/app-config';
-import { Loggy } from '@this/loggy';
 
 import { BaseService } from '#x/BaseService';
 import { ServiceController } from '#x/ServiceController';
 import { ServiceFactory } from '#x/ServiceFactory';
+import { ThisModule } from '#p/ThisModule';
 
 
 /** @type {function(...*)} Logger for this class. */
-const logger = Loggy.loggerFor('service');
+const logger = ThisModule.logger.service;
 
 /**
  * Manager for dealing with all the high-level system services that are running

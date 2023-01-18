@@ -10,7 +10,7 @@
   },
 
   "dependencies": {
-    "@this/app-servers": "*",
+    "@this/app-framework": "*",
     "express": "^4.18.1"
   }
 }
