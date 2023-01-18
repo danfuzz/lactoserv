@@ -2,7 +2,6 @@
 // This project is PROPRIETARY and UNLICENSED.
 
 import * as http2 from 'node:http2';
-import * as process from 'node:process';
 
 import * as express from 'express';
 
@@ -45,7 +44,7 @@ export class RequestLogHelper {
    * @returns {function(*...)} The request-specific logger.
    */
   logRequest(req, res, context) {
-    const timeStart = process.hrtime.bigint();
+    const startTime = this.#logger?.$env.nowSec();
     const logger    = this.#logger?.$newId ?? null;
     const requestId = logger?.$meta.lastContext;
     const urlish    = `${req.protocol}://${req.hostname}${req.originalUrl}`;
@@ -96,8 +95,8 @@ export class RequestLogHelper {
       logger?.response(res.statusCode,
         RequestLogHelper.#sanitizeResponseHeaders(resHeaders));
 
-      const timeEnd     = process.hrtime.bigint();
-      const elapsedSecs = Number(timeEnd - timeStart) * RequestLogHelper.#NSEC_PER_SEC;
+      const endTime     = this.#logger?.$env.nowSec();
+      const elapsedSecs = endTime - startTime;
 
       logger?.closed({ contentLength, elapsedSecs });
 
@@ -123,9 +122,6 @@ export class RequestLogHelper {
   //
   // Static members
   //
-
-  /** @type {number} The number of nanoseconds in a second. */
-  static #NSEC_PER_SEC = 1 / 1_000_000_000;
 
   /**
    * Cleans up request headers for logging.
