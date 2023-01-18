@@ -61,6 +61,40 @@ export class LogTag {
   }
 
   /**
+   * Compares this instance to another for equality, that is, whether the
+   * main tag and context are all the same.
+   *
+   * @param {*} other Instance to compare to.
+   * @returns {boolean} `true` iff `other` is an instance of this class with the
+   *   same main tag and context.
+   */
+  equals(other) {
+    if (this === other) {
+      return true;
+    }
+
+    if (!(other instanceof LogTag)) {
+      return false;
+    }
+
+    const thisCtx  = this.#context;
+    const otherCtx = other.#context;
+
+    if (!(   (this.#main === other.#main)
+          && (thisCtx.length === otherCtx.length))) {
+      return false;
+    }
+
+    for (let i = 0; i < thisCtx.length; i++) {
+      if (thisCtx[i] !== otherCtx[i]) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
    * Gets a string representation of this instance intended for maximally-easy
    * human consumption.
    *
