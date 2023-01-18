@@ -105,6 +105,9 @@ export class LogProxyHandler extends PropertyCacheProxyHandler {
     }
 
     switch (name) {
+      case LogProxyHandler.#METHOD_NAME_ENV: {
+        return this.#environment;
+      }
       case LogProxyHandler.#METHOD_NAME_META: {
         return new LogProxyHandler.Meta(this);
       }
@@ -123,6 +126,9 @@ export class LogProxyHandler extends PropertyCacheProxyHandler {
   //
   // Static members
   //
+
+  /** @type {string} Method name for requesting the logging environment. */
+  static #METHOD_NAME_ENV = '$env';
 
   /** @type {string} Method name for requesting metainformation. */
   static #METHOD_NAME_META = '$meta';
