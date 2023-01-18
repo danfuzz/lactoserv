@@ -60,7 +60,7 @@ export class ServerController {
    *   description.
    */
   constructor(config, extraConfig) {
-    const { endpoint, mounts, name }           = config;
+    const { endpoint, mounts }                 = config;
     const { interface: iface, port, protocol } = endpoint;
 
     this.#config = config;
@@ -68,14 +68,14 @@ export class ServerController {
     const { applicationMap, hostManager, logger, rateLimiter, requestLogger } = extraConfig;
 
     this.#hostManager = hostManager;
-    this.#logger      = logger[name];
+    this.#logger      = logger;
     this.#mountMap    = ServerController.#makeMountMap(mounts, applicationMap);
 
     const wranglerOptions = {
       rateLimiter,
       requestHandler: (req, res, next) => this.#handleRequest(req, res, next),
       requestLogger,
-      logger: this.#logger,
+      logger,
       protocol,
       socket: { host: iface, port },
       ...(
@@ -172,7 +172,7 @@ export class ServerController {
       next(...args);
     };
 
-    controller.application.handleRequest(req, res, innerNext);
+    controller.handleRequest(req, res, innerNext);
   }
 
 

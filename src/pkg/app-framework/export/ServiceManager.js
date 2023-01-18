@@ -9,9 +9,6 @@ import { ServiceFactory } from '#x/ServiceFactory';
 import { ThisModule } from '#p/ThisModule';
 
 
-/** @type {function(...*)} Logger for this class. */
-const logger = ThisModule.logger.service;
-
 /**
  * Manager for dealing with all the high-level system services that are running
  * or could be run in the system.
@@ -22,6 +19,9 @@ export class ServiceManager {
    * controller that should be used for it.
    */
   #controllers = new Map();
+
+  /** @type {function(...*)} Logger for this instance (the manager). */
+  #logger = ThisModule.logger.services;
 
   /**
    * Constructs an instance.
@@ -91,12 +91,12 @@ export class ServiceManager {
       throw new Error(`Duplicate service: ${name}`);
     }
 
-    const subLogger  = logger[name];
-    const instance   = ServiceFactory.makeInstance(config, subLogger);
-    const controller = new ServiceController(instance);
+    const serviceLogger = ThisModule.baseServiceLogger[name];
+    const instance      = ServiceFactory.makeInstance(config, serviceLogger);
+    const controller    = new ServiceController(instance);
 
     this.#controllers.set(name, controller);
-    subLogger.bound();
+    this.#logger.bound(name);
   }
 
 

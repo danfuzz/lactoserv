@@ -9,9 +9,6 @@ import { ThisModule } from '#p/ThisModule';
 import { Warehouse } from '#x/Warehouse';
 
 
-/** @type {function(...*)} Logger for this class. */
-const logger = ThisModule.logger.server;
-
 /**
  * Manager for dealing with all the network-bound server endpoints of a system.
  */
@@ -24,6 +21,9 @@ export class ServerManager {
    * {@link ServerController} object with that name.
    */
   #controllers = new Map();
+
+  /** @type {function(...*)} Logger for this instance (the manager). */
+  #logger = ThisModule.logger.servers;
 
   /**
    * Constructs an instance.
@@ -75,8 +75,14 @@ export class ServerManager {
     const {
       endpoint: { hostnames },
       mounts,
+      name,
       services: { rateLimiter: limName, requestLogger: logName }
     } = config;
+
+    if (this.#controllers.has(name)) {
+      throw new Error(`Duplicate server name: ${name}`);
+    }
+
     const { hostManager, serviceManager } = this.#warehouse;
 
     const hmSubset = hostManager
@@ -92,20 +98,15 @@ export class ServerManager {
     const extraConfig = {
       applicationMap: this.#makeApplicationMap(mounts),
       hostManager:    hmSubset,
-      logger,
+      logger:         ThisModule.baseServerLogger[name],
       rateLimiter,
       requestLogger
     };
 
     const controller = new ServerController(config, extraConfig);
-    const name       = controller.name;
-
-    if (this.#controllers.has(name)) {
-      throw new Error(`Duplicate server name: ${name}`);
-    }
 
     this.#controllers.set(name, controller);
-    logger.bound(name);
+    this.#logger.bound(name);
   }
 
   /**

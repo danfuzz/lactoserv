@@ -324,10 +324,10 @@ export class ProtocolWrangler {
    * @returns {*} Result of application handler call, or `null` if not called.
    */
   async #handleRequest(req, res, next) {
-    const connectionCtx = WranglerContext.getNonNull(req.socket, req.stream?.session);
-    const reqLogger = this.#logHelper?.logRequest(req, res, connectionCtx) ?? null;
+    const context   = WranglerContext.getNonNull(req.socket, req.stream?.session);
+    const reqLogger = this.#logHelper?.logRequest(req, res, context) ?? null;
 
-    const reqCtx = WranglerContext.forRequest(connectionCtx, reqLogger);
+    const reqCtx = WranglerContext.forRequest(context, reqLogger);
     WranglerContext.bind(req, reqCtx);
 
     res.set('Server', this.#serverHeader);
@@ -336,7 +336,6 @@ export class ProtocolWrangler {
       const granted = await this.#rateLimiter.newRequest(reqLogger);
       if (!granted) {
         res.sendStatus(503);
-        res.end();
 
         // Wait for the response to have been at least nominally sent before
         // closing the socket, in the hope that there is a good chance that it

@@ -47,7 +47,7 @@ export class TcpWrangler extends ProtocolWrangler {
   constructor(options) {
     super(options);
 
-    this.#logger        = options.logger?.conn ?? null;
+    this.#logger        = options.logger ?? null;
     this.#rateLimiter   = options.rateLimiter ?? null;
     this.#listenOptions =
       TcpWrangler.#trimOptions(options.socket, TcpWrangler.#LISTEN_PROTO);
@@ -116,14 +116,16 @@ export class TcpWrangler extends ProtocolWrangler {
       return;
     }
 
-    const connLogger = this.#logger?.$newId ?? null;
+    const connLogger = this.#logger?.conn.$newId ?? null;
+
+    this.#logger?.newConnection(connLogger.$meta.lastContext);
 
     if (connLogger) {
       try {
-        connLogger.connectedFrom(FormatUtils.addressPortString(
-          socket.remoteAddress, socket.remotePort));
-        connLogger.connectedTo(FormatUtils.addressPortString(
-          socket.localAddress, socket.localPort));
+        connLogger.opened({
+          local:  FormatUtils.addressPortString(socket.localAddress, socket.localPort),
+          remote: FormatUtils.addressPortString(socket.remoteAddress, socket.remotePort)
+        });
       } catch (e) {
         connLogger.weirdConnectionEvent(socket, ...rest);
         connLogger.error(e);
