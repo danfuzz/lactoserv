@@ -9,7 +9,7 @@ import { Loggy } from '@this/loggy';
  */
 export class ThisModule {
   /** @type {function(...*)} General logger for this module. */
-  static #logger = Loggy.loggerFor('fw');
+  static #logger = Loggy.loggerFor('framework');
 
   /** @type {function(...*)} Base logger for application instances. */
   static #baseApplicationLogger = Loggy.loggerFor('app');
