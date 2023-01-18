@@ -27,11 +27,11 @@ export class IdGenerator {
   /**
    * Makes a new ID.
    *
+   * @param {number} nowSecs The current time in _seconds_.
    * @returns {string} An appropriately-constructed ID.
    */
-  makeId() {
-    const now          = Date.now();
-    const minuteNumber = Math.trunc(now * IdGenerator.#MINS_PER_MSEC) & 0xfffff;
+  makeId(nowSecs) {
+    const minuteNumber = Math.trunc(nowSecs * IdGenerator.#MINS_PER_SEC) & 0xfffff;
 
     if (minuteNumber !== this.#minuteNumber) {
       this.#minuteNumber   = minuteNumber;
@@ -41,7 +41,7 @@ export class IdGenerator {
     const sequenceNumber = this.#sequenceNumber;
     this.#sequenceNumber++;
 
-    const preStr = IdGenerator.#makePrefix(now, sequenceNumber);
+    const preStr = IdGenerator.#makePrefix(nowSecs, sequenceNumber);
     const minStr = minuteNumber.toString(16).padStart(5, '0');
     const seqStr = (sequenceNumber < 0x10000)
       ? sequenceNumber.toString(16).padStart(4, '0')
@@ -58,12 +58,12 @@ export class IdGenerator {
   /**
    * Makes a prefix string based on a time value and sequence number.
    *
-   * @param {number} now Recent return value from `Date.now()`.
+   * @param {number} nowSecs Recent time value in seconds.
    * @param {number} sequenceNumber Recent / current sequence number.
    * @returns {string} A prefix string.
    */
-  static #makePrefix(now, sequenceNumber) {
-    const base   = now + (sequenceNumber * ((26 * 3) + 1));
+  static #makePrefix(nowSecs, sequenceNumber) {
+    const base   = (nowSecs * 1000) + (sequenceNumber * ((26 * 3) + 1));
     const digit1 = base % 26;
     const digit2 = Math.trunc(base / 26) % 26;
     const char1  = String.fromCharCode(digit1 + this.#LOWERCASE_A);
@@ -75,6 +75,6 @@ export class IdGenerator {
   /** @type {number} The Unicode codepoint for lowercase `a`. */
   static #LOWERCASE_A = 'a'.charCodeAt(0);
 
-  /** @type {number} The number of minutes in a millisecond. */
-  static #MINS_PER_MSEC = 1 / (1000 * 60);
+  /** @type {number} The number of minutes in a second. */
+  static #MINS_PER_SEC = 1 / 60;
 }
