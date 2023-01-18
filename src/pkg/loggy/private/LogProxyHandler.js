@@ -105,13 +105,13 @@ export class LogProxyHandler extends PropertyCacheProxyHandler {
     }
 
     switch (name) {
-      case LogProxyHandler.#METHOD_NAME_ENV: {
+      case LogProxyHandler.#PROP_ENV: {
         return this.#environment;
       }
-      case LogProxyHandler.#METHOD_NAME_META: {
+      case LogProxyHandler.#PROP_META: {
         return new LogProxyHandler.Meta(this);
       }
-      case LogProxyHandler.#METHOD_NAME_NEW_ID: {
+      case LogProxyHandler.#PROP_NEW_ID: {
         const idTag = this.#subTag.withAddedContext(this.#environment.makeId());
         const proxy = LogProxyHandler.makeFunctionProxy(idTag, null, this.#environment);
         return PropertyCacheProxyHandler.noCache(proxy);
@@ -127,14 +127,14 @@ export class LogProxyHandler extends PropertyCacheProxyHandler {
   // Static members
   //
 
-  /** @type {string} Method name for requesting the logging environment. */
-  static #METHOD_NAME_ENV = '$env';
+  /** @type {string} Property name for requesting the logging environment. */
+  static #PROP_ENV = '$env';
 
-  /** @type {string} Method name for requesting metainformation. */
-  static #METHOD_NAME_META = '$meta';
+  /** @type {string} Property name for requesting metainformation. */
+  static #PROP_META = '$meta';
 
-  /** @type {string} Method name to indicate dynamic ID construction. */
-  static #METHOD_NAME_NEW_ID = '$newId';
+  /** @type {string} Property name to indicate dynamic ID construction. */
+  static #PROP_NEW_ID = '$newId';
 
   /** @type {string} Main tag name to use for the top level. */
   static #TOP_TAG_NAME = '(top)';
