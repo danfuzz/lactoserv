@@ -38,7 +38,7 @@ export class SystemLoggerService extends BaseService {
     const { baseName, directory, format, name } = config;
     const earliestEvent = this.#findEarliestEventToLog(name);
 
-    this.#logFilePath = Path.resolve(directory, `${baseName}.txt`);
+    this.#logFilePath = Path.resolve(directory, baseName);
     this.#sink        = new TextFileSink(format, this.#logFilePath, earliestEvent);
   }
 

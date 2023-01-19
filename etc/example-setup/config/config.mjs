@@ -26,7 +26,7 @@ const services = [
     name:      'syslog',
     type:      'system-logger',
     directory: filePath('../../../out/var'),
-    baseName:  'system-log',
+    baseName:  'system-log.txt',
     format:    'human'
   },
   {
@@ -40,7 +40,7 @@ const services = [
     name:      'requests',
     type:      'request-logger',
     directory: filePath('../../../out/var'),
-    baseName:  'request-log'
+    baseName:  'request-log.txt'
   },
   {
     name:        'limiter',
