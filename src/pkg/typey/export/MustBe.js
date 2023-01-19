@@ -162,7 +162,7 @@ export class MustBe {
       return null;
     }
 
-    throw new Error('Must be of type `function`.');
+    throw new Error('Must be the value `null`.');
   }
 
   /**
