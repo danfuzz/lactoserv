@@ -99,7 +99,6 @@ export class AskIf {
     return (value !== null)
       && (typeof value === 'object')
       && Object.getPrototypeOf(value) === Object.prototype;
-      throw new Error('Must be of type plain `object`.');
   }
 
   // Note: No method `object()`, because of the standards `v instanceof Class`

@@ -127,7 +127,7 @@ export class MustBe {
    * Checks for type `function`.
    *
    * @param {*} value Arbitrary value.
-   * @returns {function} `value` if it is of the indicated type.
+   * @returns {Function} `value` if it is of the indicated type.
    * @throws {Error} Thrown if `value` is of any other type.
    */
   static function(value) {
