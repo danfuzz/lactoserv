@@ -111,6 +111,27 @@ export class LogRecord {
   }
 
   /**
+   * Gets a replacement value for this instance, which is suitable for JSON
+   * serialization.
+   *
+   * **Note:** This method is named as such (as opposed to the more
+   * standard-for-this-project `toJSON`), because the standard method
+   * `JSON.stringify()` looks for methods of this name to provide custom JSON
+   * serialization.
+   *
+   * @returns {object} The JSON-serializable form.
+   */
+  toJSON() {
+    return {
+      atSecs: this.#timeSec,
+      stack:  this.#stack,
+      tag:    this.#tag,
+      type:   this.#type,
+      args:   this.#args
+    };
+  }
+
+  /**
    * Gets the human form of {@link #payload}, as an array of parts to join.
    *
    * @returns {string[]} The "human form" string parts.
