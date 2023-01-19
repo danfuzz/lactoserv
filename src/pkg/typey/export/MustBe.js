@@ -25,7 +25,7 @@ export class MustBe {
    * to use as object or array indices.
    *
    * @param {*} value Arbitrary value.
-   * @returns {string[]} `value` if it is of type `(string|number)[]`.
+   * @returns {(string|number)[]} `value` if it is of type `(string|number)[]`.
    * @throws {Error} Thrown if `value` is of any other type.
    */
   static arrayOfIndex(value) {
