@@ -85,11 +85,6 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
     return Number(nowNsec) * StdLoggingEnvironment.#SECS_PER_NSEC;
   }
 
-  /** @override */
-  _impl_stackTrace() {
-    return new Error().stack.split('\n').slice(1);
-  }
-
 
   //
   // Static members
