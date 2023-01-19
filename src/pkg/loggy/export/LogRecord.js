@@ -22,7 +22,7 @@ export class LogRecord {
    * @type {number} Moment in time, as Unix Epoch seconds, with precision
    * expected to be microseconds or better.
    */
-  #timeSec;
+  #atSecs;
 
   /** @type {LogTag} Tag. */
   #tag;
@@ -38,7 +38,7 @@ export class LogRecord {
    *
    * @param {?StackTrace} stack Stack trace associated with this instance, if
    *   available.
-   * @param {number} timeSec Moment in time that this instance represents, as
+   * @param {number} atSecs Moment in time that this instance represents, as
    *   seconds since the start of the Unix Epoch, with precision expected to be
    *   microseconds or better.
    * @param {LogTag} tag Tag for the instance, that is, component name and
@@ -49,11 +49,11 @@ export class LogRecord {
    * @param {*[]} args Arbitrary arguments of the instance, whose meaning
    *   depends on the type.
    */
-  constructor(stack, timeSec, tag, type, args) {
-    this.#stack   = stack;
-    this.#timeSec = MustBe.number(timeSec);
-    this.#tag     = MustBe.instanceOf(tag, LogTag);
-    this.#type    = MustBe.string(type);
+  constructor(stack, atSecs, tag, type, args) {
+    this.#stack  = stack;
+    this.#atSecs = MustBe.number(atSecs);
+    this.#tag    = MustBe.instanceOf(tag, LogTag);
+    this.#type   = MustBe.string(type);
 
     MustBe.array(args);
     if (!Object.isFrozen(args)) {
@@ -63,18 +63,18 @@ export class LogRecord {
 
   }
 
-  /** @type {?StackTrace} Stack trace, if available. */
-  get stack() {
-    return this.#stack;
-  }
-
   /**
    * @type {number} Moment in time that this instance represents, as seconds
    * since the start of the Unix Epoch, with precision expected to be
    * microseconds or better.
    */
-  get timeSec() {
-    return this.#timeSec;
+  get atSecs() {
+    return this.#atSecs;
+  }
+
+  /** @type {?StackTrace} Stack trace, if available. */
+  get stack() {
+    return this.#stack;
   }
 
   /** @type {LogTag} Tag. */
@@ -100,7 +100,7 @@ export class LogRecord {
    */
   toHuman() {
     const parts = [
-      FormatUtils.dateTimeStringFromSecs(this.#timeSec, { decimals: 4 }),
+      FormatUtils.dateTimeStringFromSecs(this.#atSecs, { decimals: 4 }),
       ' ',
       this.#tag.toHuman(true),
       ...this.#toHumanPayload()
@@ -122,7 +122,7 @@ export class LogRecord {
    */
   toJSON() {
     return {
-      atSecs: this.#timeSec,
+      atSecs: this.#atSecs,
       tag:    this.#tag,
       type:   this.#type,
       args:   this.#args,
