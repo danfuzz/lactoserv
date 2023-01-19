@@ -51,24 +51,36 @@ export class TextFileSink extends EventSink {
   }
 
   /**
+   * Formats and writes the indicated record or "first write" marker.
+   *
+   * @param {?LogRecord} record Record to write, or `null` to write a "first
+   *   write" marker.
+   */
+  async #writeRecord(record) {
+    // `?? null` to force it to be a function call and not a method call on
+    // `this`.
+    const text = (this.#formatter ?? null)(record);
+
+    if (text !== null) {
+      const finalText = text.endsWith('\n') ? text : `${text}\n`;
+      await fs.appendFile(this.#filePath, finalText);
+    }
+  }
+
+  /**
    * Processes an event, by writing it to this instance's designated file.
    *
    * @param {LinkedEvent} event Event to log.
    */
   async #process(event) {
     if (!this.#everWritten) {
-      this.#everWritten = true;
       if (!/^[/]dev[/]std(err|out)$/.test(this.#filePath)) {
-        await fs.appendFile(this.#filePath, `\n\n${'- '.repeat(38)}-\n\n\n`);
+        await this.#writeRecord(null);
       }
+      this.#everWritten = true;
     }
 
-    // `?? null` to force it to be a function call and not a method call on
-    // `this`.
-    const text      = (this.#formatter ?? null)(event.payload);
-    const finalText = text.endsWith('\n') ? text : `${text}\n`;
-
-    await fs.appendFile(this.#filePath, finalText);
+    await this.#writeRecord(event.payload);
   }
 
 
@@ -98,20 +110,31 @@ export class TextFileSink extends EventSink {
   /**
    * Formatter `human`, which converts to human-oriented text.
    *
-   * @param {LogRecord} record Record to convert.
+   * @param {?LogRecord} record Record to convert, or `null` if this is to be
+   *   a "first write" marker.
    * @returns {string} Converted form.
    */
   static #formatHuman(record) {
+    if (record === null) {
+      // This is a "page break" written to non-console files.
+      return `\n\n${'- '.repeat(38)}-\n\n\n`;
+    }
+
     return record.toHuman();
   }
 
   /**
    * Formatter `json`, which converts to JSON text.
    *
-   * @param {LogRecord} record Record to convert.
-   * @returns {string} Converted form.
+   * @param {?LogRecord} record Record to convert, or `null` if this is to be
+   *   a "first write" marker.
+   * @returns {?string} Converted form, or `null` if nothing is to be written.
    */
   static #formatJson(record) {
+    if (record === null) {
+      return null;
+    }
+
     return JSON.stringify(record);
   }
 }
