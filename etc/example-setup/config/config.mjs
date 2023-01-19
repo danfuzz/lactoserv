@@ -19,7 +19,7 @@ const services = [
     name:       'process',
     type:       'process-info-file',
     directory:  filePath('../../../out/var'),
-    baseName:   'process',
+    baseName:   'process.json',
     updateSecs: 5 * 60
   },
   {

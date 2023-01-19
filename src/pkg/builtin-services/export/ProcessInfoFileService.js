@@ -12,6 +12,8 @@ import { Host, ProcessInfo, ProductInfo } from '@this/host';
 import { FormatUtils } from '@this/loggy';
 import { MustBe } from '@this/typey';
 
+import { FileNameHelper } from '#p/FileNameHelper';
+
 
 /**
  * Service which writes process info files to the filesystem. Configuration
@@ -66,7 +68,7 @@ export class ProcessInfoFileService extends BaseService {
 
   /** @returns {string} The path to the info file. */
   get #filePath() {
-    const fileName = `${this.#baseName}-${process.pid}.json`;
+    const fileName = FileNameHelper.insertEnding(this.#baseName, `-${process.pid}`);
     const fullPath = Path.resolve(this.#directory, fileName);
 
     return fullPath;
