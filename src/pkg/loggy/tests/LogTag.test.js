@@ -163,6 +163,31 @@ describe('toHuman()', () => {
   });
 });
 
+describe('toJSON()', () => {
+  const testOne = (...expected) => {
+    const tag    = new LogTag(...expected);
+    const result = tag.toJSON();
+    expect(result).toStrictEqual(expected);
+    expect(result).toBeFrozen();
+  };
+
+  test('works with just a main tag (no context strings)', () => {
+    testOne('simply-this');
+  });
+
+  test('works with a single context string', () => {
+    testOne('this', 'that');
+  });
+
+  test('works with two context strings', () => {
+    testOne('this', 'and', 'more');
+  });
+
+  test('works with 10 context strings', () => {
+    testOne('hey', 'one', 'two', '3', '4', '5', 'six', '7', '8', 'nine', '10');
+  });
+});
+
 describe('equals()', () => {
   test('equals itself', () => {
     const tag = new LogTag('woo', 'yah');

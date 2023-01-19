@@ -18,6 +18,11 @@ export class LogTag {
   /** @type {string[]} Context strings. */
   #context;
 
+  /**
+   * @type {?string[]} Combined main tag and context string array, if available.
+   */
+  #fullArray = null;
+
   /** @type {?string[]} Precomputed "human form" strings, if available. */
   #humanStrings = null;
 
@@ -126,6 +131,25 @@ export class LogTag {
     }
 
     return this.#humanStrings[addSeparator ? 1 : 0];
+  }
+
+  /**
+   * Gets a replacement value for this instance, which is suitable for JSON
+   * serialization.
+   *
+   * **Note:** This method is named as such (as opposed to the more
+   * standard-for-this-project `toJSON`), because the standard method
+   * `JSON.stringify()` looks for methods of this name to provide custom JSON
+   * serialization.
+   *
+   * @returns {object} The JSON-serializable form.
+   */
+  toJSON() {
+    if (!this.#fullArray) {
+      this.#fullArray = Object.freeze([this.#main, ...this.#context]);
+    }
+
+    return this.#fullArray;
   }
 
   /**
