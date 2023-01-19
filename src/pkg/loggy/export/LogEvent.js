@@ -5,8 +5,8 @@ import { LinkedEvent } from '@this/async';
 import { MustBe } from '@this/typey';
 
 import { LogRecord } from '#x/LogRecord';
-import { LogStackTrace } from '#x/LogStackTrace';
 import { LogTag } from '#x/LogTag';
+import { StackTrace } from '#x/StackTrace';
 
 
 /**
@@ -27,7 +27,7 @@ export class LogEvent extends LinkedEvent {
     super(payload, next);
   }
 
-  /** @type {?LogStackTrace} Convenient accessor for `payload.stack`. */
+  /** @type {?StackTrace} Convenient accessor for `payload.stack`. */
   get stack() {
     return this.payload.stack;
   }

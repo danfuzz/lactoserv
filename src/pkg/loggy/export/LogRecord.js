@@ -6,8 +6,8 @@ import * as util from 'node:util';
 import { MustBe } from '@this/typey';
 
 import { FormatUtils } from '#x/FormatUtils';
-import { LogStackTrace } from '#x/LogStackTrace';
 import { LogTag } from '#x/LogTag';
+import { StackTrace } from '#x/StackTrace';
 
 
 /**
@@ -15,7 +15,7 @@ import { LogTag } from '#x/LogTag';
  * module.
  */
 export class LogRecord {
-  /** @type {?LogStackTrace} Stack trace, if available. */
+  /** @type {?StackTrace} Stack trace, if available. */
   #stack;
 
   /**
@@ -36,7 +36,7 @@ export class LogRecord {
   /**
    * Constructs an instance.
    *
-   * @param {?LogStackTrace} stack Stack trace associated with this instance, if
+   * @param {?StackTrace} stack Stack trace associated with this instance, if
    *   available.
    * @param {number} timeSec Moment in time that this instance represents, as
    *   seconds since the start of the Unix Epoch, with precision expected to be
@@ -63,7 +63,7 @@ export class LogRecord {
 
   }
 
-  /** @type {?LogStackTrace} Stack trace, if available. */
+  /** @type {?StackTrace} Stack trace, if available. */
   get stack() {
     return this.#stack;
   }
@@ -124,10 +124,10 @@ export class LogRecord {
   toJSON() {
     return {
       atSecs: this.#timeSec,
-      stack:  this.#stack,
       tag:    this.#tag,
       type:   this.#type,
-      args:   this.#args
+      args:   this.#args,
+      stack:  this.#stack
     };
   }
 
