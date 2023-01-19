@@ -26,7 +26,15 @@ const services = [
     name:      'syslog',
     type:      'system-logger',
     directory: filePath('../../../out/var'),
-    baseName:  'system-log'
+    baseName:  'system-log',
+    format:    'human'
+  },
+  {
+    name:      'syslog-json',
+    type:      'system-logger',
+    directory: filePath('../../../out/var'),
+    baseName:  'system-log.json',
+    format:    'json'
   },
   {
     name:      'requests',

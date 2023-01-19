@@ -9,6 +9,7 @@ import { Files, ServiceConfig } from '@this/app-config';
 import { BaseService, ServiceController } from '@this/app-framework';
 import { EventTracker } from '@this/async';
 import { LogEvent, Loggy, TextFileSink } from '@this/loggy';
+import { MustBe } from '@this/typey';
 
 
 /**
@@ -34,11 +35,11 @@ export class SystemLoggerService extends BaseService {
   constructor(config, controller) {
     super(config, controller);
 
-    const { baseName, directory, name } = config;
+    const { baseName, directory, format, name } = config;
     const earliestEvent = this.#findEarliestEventToLog(name);
 
     this.#logFilePath = Path.resolve(directory, `${baseName}.txt`);
-    this.#sink        = new TextFileSink(this.#logFilePath, earliestEvent);
+    this.#sink        = new TextFileSink(format, this.#logFilePath, earliestEvent);
   }
 
   /** @override */
@@ -128,6 +129,9 @@ export class SystemLoggerService extends BaseService {
     /** @type {string} The directory to write to. */
     #directory;
 
+    /** @type {string} The output format name. */
+    #format;
+
     /**
      * Constructs an instance.
      *
@@ -136,8 +140,9 @@ export class SystemLoggerService extends BaseService {
     constructor(config) {
       super(config);
 
-      this.#baseName = Files.checkFileName(config.baseName);
+      this.#baseName  = Files.checkFileName(config.baseName);
       this.#directory = Files.checkAbsolutePath(config.directory);
+      this.#format    = MustBe.string(config.format);
     }
 
     /** @returns {string} The base file name to use. */
@@ -148,6 +153,11 @@ export class SystemLoggerService extends BaseService {
     /** @returns {string} The directory to write to. */
     get directory() {
       return this.#directory;
+    }
+
+    /** @returns {string} The output format name. */
+    get format() {
+      return this.#format;
     }
   };
 }

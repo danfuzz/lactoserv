@@ -103,8 +103,7 @@ export class LogRecord {
       FormatUtils.dateTimeStringFromSecs(this.#timeSec, { decimals: 4 }),
       ' ',
       this.#tag.toHuman(true),
-      ...this.#toHumanPayload(),
-      '\n'
+      ...this.#toHumanPayload()
     ];
 
     return parts.join('');
