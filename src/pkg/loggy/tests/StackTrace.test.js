@@ -1,8 +1,6 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
 // This project is PROPRIETARY and UNLICENSED.
 
-import * as timers from 'node:timers/promises';
-
 import { StackTrace } from '@this/loggy';
 
 /**
@@ -20,7 +18,7 @@ class MockStackTrace extends StackTrace {
     lines.splice(lines.findLastIndex((line) => /\bStackTrace\.js\b/.test(line)) + 1);
 
     for (let i = 1; i <= this.generateDepth; i++) {
-      lines.push(`    at depth${i} (some/file${i}:${i}00:${i})`)
+      lines.push(`    at depth${i} (some/file${i}:${i}00:${i})`);
     }
 
     result.stack = lines.join('\n');
