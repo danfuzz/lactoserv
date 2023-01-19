@@ -33,7 +33,7 @@ export class PromiseUtil {
    * @returns {Promise} The appropriately-constructed pre-handled promise.
    */
   static rejectAndHandle(reason) {
-    MustBe.object(reason, Error);
+    MustBe.instanceOf(reason, Error);
 
     const result = Promise.reject(reason);
     this.handleRejection(result);

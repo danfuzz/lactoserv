@@ -23,7 +23,7 @@ export class LogEvent extends LinkedEvent {
    *   chain or promise for same, if already known.
    */
   constructor(payload, next) {
-    MustBe.object(payload, LogRecord);
+    MustBe.instanceOf(payload, LogRecord);
     super(payload, next);
   }
 

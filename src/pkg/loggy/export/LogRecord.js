@@ -52,7 +52,7 @@ export class LogRecord {
   constructor(stack, timeSec, tag, type, args) {
     this.#stack   = stack;
     this.#timeSec = MustBe.number(timeSec);
-    this.#tag     = MustBe.object(tag, LogTag);
+    this.#tag     = MustBe.instanceOf(tag, LogTag);
     this.#type    = MustBe.string(type);
 
     MustBe.array(args);

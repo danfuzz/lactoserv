@@ -134,7 +134,7 @@ export class TokenBucket {
     this.#maxBurstSize  = MustBe.number(maxBurstSize, { finite: true, minExclusive: 0 });
     this.#flowRate      = MustBe.number(flowRate, { finite: true, minExclusive: 0 });
     this.#partialTokens = MustBe.boolean(partialTokens);
-    this.#timeSource    = MustBe.object(timeSource, TokenBucket.TimeSource);
+    this.#timeSource    = MustBe.instanceOf(timeSource, TokenBucket.BaseTimeSource);
 
     this.#maxQueueSize = (maxQueueSize === null)
       ? Number.POSITIVE_INFINITY

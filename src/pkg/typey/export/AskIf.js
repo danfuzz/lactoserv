@@ -101,8 +101,8 @@ export class AskIf {
       && Object.getPrototypeOf(value) === Object.prototype;
   }
 
-  // Note: No method `object()`, because of the standards `v instanceof Class`
-  // and `typeof v === 'object'`.
+  // Note: No method `instanceOf()`, because of the standard `v instanceof
+  // Class`.
 
   // TODO: string()
 }

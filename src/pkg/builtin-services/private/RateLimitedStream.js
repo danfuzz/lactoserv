@@ -48,8 +48,8 @@ export class RateLimitedStream {
    * @param {?function(*)} logger Logger to use.
    */
   constructor(bucket, stream, logger) {
-    this.#bucket      = MustBe.object(bucket, TokenBucket);
-    this.#innerStream = MustBe.object(stream, Writable);
+    this.#bucket      = MustBe.instanceOf(bucket, TokenBucket);
+    this.#innerStream = MustBe.instanceOf(stream, Writable);
     this.#logger      = logger.dataRateLimiter;
 
     if (stream.readableObjectMode || stream.writableObjectMode) {

@@ -34,7 +34,7 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
   constructor(source) {
     super();
 
-    this.#source = MustBe.object(source, LogSource);
+    this.#source = MustBe.instanceOf(source, LogSource);
   }
 
   /** @override */
