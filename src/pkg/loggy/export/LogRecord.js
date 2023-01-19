@@ -15,9 +15,6 @@ import { StackTrace } from '#x/StackTrace';
  * module.
  */
 export class LogRecord {
-  /** @type {?StackTrace} Stack trace, if available. */
-  #stack;
-
   /**
    * @type {number} Moment in time, as Unix Epoch seconds, with precision
    * expected to be microseconds or better.
@@ -33,11 +30,12 @@ export class LogRecord {
   /** @type {*[]} Event arguments. */
   #args;
 
+  /** @type {?StackTrace} Stack trace, if available. */
+  #stack;
+
   /**
    * Constructs an instance.
    *
-   * @param {?StackTrace} stack Stack trace associated with this instance, if
-   *   available.
    * @param {number} atSecs Moment in time that this instance represents, as
    *   seconds since the start of the Unix Epoch, with precision expected to be
    *   microseconds or better.
@@ -48,12 +46,14 @@ export class LogRecord {
    *   "invoked" (which... they kinda might be able to be at some point).
    * @param {*[]} args Arbitrary arguments of the instance, whose meaning
    *   depends on the type.
+   * @param {?StackTrace} [stack = null] Stack trace associated with this
+   *   instance, if available.
    */
-  constructor(stack, atSecs, tag, type, args) {
-    this.#stack  = stack;
+  constructor(atSecs, tag, type, args, stack = null) {
     this.#atSecs = MustBe.number(atSecs);
     this.#tag    = MustBe.instanceOf(tag, LogTag);
     this.#type   = MustBe.string(type);
+    this.#stack  = (stack === null) ? null : MustBe.instanceOf(stack, StackTrace);
 
     MustBe.array(args);
     if (!Object.isFrozen(args)) {
@@ -191,6 +191,6 @@ export class LogRecord {
   static makeKickoffInstance(tag = null, type = null) {
     tag  ??= this.#KICKOFF_TAG;
     type ??= this.#KICKOFF_TYPE;
-    return new LogRecord(null, 0, tag, type, Object.freeze([]));
+    return new LogRecord(0, tag, type, Object.freeze([]));
   }
 }
