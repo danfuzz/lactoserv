@@ -121,8 +121,15 @@ export class TopErrorHandler {
    *
    * @param {Promise} promise The promise in question.
    */
-  static #rejectionHandled(promise) {
+  static async #rejectionHandled(promise) {
     this.#unhandledRejections.delete(promise);
+
+    // Get the reason, and log it.
+    try {
+      await promise;
+    } catch (reason) {
+      logger.rejectionHandledSlowly(reason);
+    }
   }
 
   /**
