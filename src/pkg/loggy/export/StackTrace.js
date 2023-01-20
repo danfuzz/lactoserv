@@ -287,30 +287,6 @@ export class StackTrace {
   }
 
   /**
-   * Constructs a known-valid frames array from a possibly-valid one.
-   *
-   * @param {*[]} original Original value.
-   * @returns {object[]} Frame array, in the form expected by the rest of this
-   *   class.
-   */
-  static #framesFromArray(original) {
-    // Optimistic assumption to begin with, but might be revised!
-    let result = original;
-
-    for (let i = 0; i < result.length; i++) {
-      const frame = this.#frameFromObject(result[i]);
-      if (frame !== result[i]) {
-        if (Object.isFrozen(result)) {
-          result = [...result];
-        }
-        result[i] = Object.freeze(frame);
-      }
-    }
-
-    return result;
-  }
-
-  /**
    * Helper for {@link #framesFromArray}, which makes a frame from an arbitrary
    * object.
    *
@@ -342,5 +318,29 @@ export class StackTrace {
     }
 
     return Object.freeze(frame);
+  }
+
+  /**
+   * Constructs a known-valid frames array from a possibly-valid one.
+   *
+   * @param {*[]} original Original value.
+   * @returns {object[]} Frame array, in the form expected by the rest of this
+   *   class.
+   */
+  static #framesFromArray(original) {
+    // Optimistic assumption to begin with, but might be revised!
+    let result = original;
+
+    for (let i = 0; i < result.length; i++) {
+      const frame = this.#frameFromObject(result[i]);
+      if (frame !== result[i]) {
+        if (Object.isFrozen(result)) {
+          result = [...result];
+        }
+        result[i] = Object.freeze(frame);
+      }
+    }
+
+    return result;
   }
 }
