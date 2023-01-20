@@ -18,38 +18,41 @@ export class StackTrace {
 
   /**
    * Constructs an instance, either from the current call, or from another
-   * stack-trace-containing item (an instance of this class, or an array as if
-   * produced by {@link #framesNow}).
+   * stack-trace-containing item (an instance of this class, an instance of an
+   * `Error`-like object, or an array of objects as if produced by {@link
+   * #framesNow} or {@link #framesFrom}).
    *
-   * If producing a new trace, the two arguments are `omitCount` to indicate the
-   * number of innermost frames to omit (not including the call to the
-   * constructor, which is never included) and `maxCount` to indicate the
-   * maximum number of frames to include. Both arguments are optional.
+   * **Note:** This constructor's signature is effectively `([original],
+   * [omitCount, [maxCount]])`. That is, `original` does not have to be passed
+   * at all, even if passing the later arguments.
    *
-   * If basing this instance on another trace, the two arguments are `original`
-   * to indicate the original trace and `maxCount` to indicate the maximum
-   * number of frames to include. `maxCount` is optional.
-   *
-   * @param {number|StackTrace|{ name: ?string, file: string, line: ?number,
-   *   col: ?number }[]} [omitCountOrOriginal = 0] Either the number of frames
-   *   to omit, or the original trace to base this instance on.
+   * @param {string|StackTrace|{ message: string, stack: string }|{ name:
+   *   ?string, file: string, line: ?number, col: ?number }[]} [original = null]
+   *   Source for the stack frames. If passed as `null` or omitted, this
+   *   constructs an instance based on the current call (to this constructor),
+   *   with the actual call to this method omitted from the result.
+   * @param {number} [omitCount = 0] The number of innermost stack frames to
+   *   omit.
    * @param {?number} [maxCount = null] Maximum number of frames to include, or
    *   `null` to have no limit.
    */
-  constructor(omitCountOrOriginal = 0, maxCount = null) {
+  constructor(original = null, omitCount, maxCount) {
+    // Deal with the variadic nature of this method.
+    if ((typeof original !== 'object') && (typeof original !== 'string')) {
+      maxCount = omitCount;
+      omitCount = original;
+      original = null;
+    }
+
+    omitCount ??= 0;
     maxCount ??= Number.POSITIVE_INFINITY;
 
-    if (typeof omitCountOrOriginal === 'number') {
-      this.#frames = this.constructor.framesNow(omitCountOrOriginal + 1, maxCount);
-    } else if (omitCountOrOriginal instanceof StackTrace) {
-      const frames = omitCountOrOriginal.#frames;
-      this.#frames = (frames.length <= maxCount)
-        ? frames
-        : Object.freeze(frames.slice(0, maxCount));
-    } else if (Array.isArray(omitCountOrOriginal)) {
-      this.#frames = StackTrace.framesFromArray(omitCountOrOriginal, maxCount);
+    if (original === null) {
+      // `this.constructor` because of the call to `_impl_newError()` which can
+      // be overridden in a subclass.
+      this.#frames = this.constructor.framesNow(omitCount + 1, maxCount);
     } else {
-      throw new Error('Invalid original stack trace value.');
+      this.#frames = StackTrace.framesFrom(original, omitCount, maxCount);
     }
   }
 
@@ -82,19 +85,17 @@ export class StackTrace {
   //
 
   /**
-   * Gets a stack frame array based on an `Error`-like object or the `.stack`
-   * property from one (or a string in a compatible format), optionally minus a
-   * given number of innermost frames, and optionally of with specified maximum
-   * number of frames. Each element of the result represents a single stack
-   * frame. The result is a simple compound object, not an instance of this
-   * class. The result is always deeply frozen.
+   * Gets a stack frame array from a source of stack frames (the same options as
+   * are available in this class's constructor). Each element of the result
+   * represents a single stack frame. The result is a simple compound object,
+   * not an instance of this class. The result is always deeply frozen.
    *
    * **Note:** The result only represents the direct stack of the `Error`, not
    * any error(s) referenced via `.cause`.
    *
-   * @param {{ message: string, stack: string }|string} errorOrStack The
-   *   `Error`-like instance or stack string to extract a structured stack trace
-   *   from.
+   * @param {string|StackTrace|{ message: string, stack: string }|{ name:
+   *   ?string, file: string, line: ?number, col: ?number }[]} original Source
+   *   for the stack frames.
    * @param {number} [omitCount = 0] Number of innermost stack frames to omit
    *   (not including the one for this method call, which is _always_ omitted).
    * @param {?number} [maxCount = null] Maximum number of frames to include, or
@@ -102,15 +103,27 @@ export class StackTrace {
    * @returns {{ name: ?string, file: string, line: ?number, col: ?number }[]}
    *   The stack trace.
    */
-  static framesFromError(errorOrStack, omitCount = 0, maxCount = null) {
+  static framesFrom(original, omitCount = 0, maxCount = null) {
     maxCount ??= Number.POSITIVE_INFINITY;
 
-    const stack   = (typeof errorOrStack === 'string') ? errorOrStack : errorOrStack.stack;
+    if (original instanceof StackTrace) {
+      const frames = original.#frames;
+      return ((omitCount === 0) && (frames.length <= maxCount))
+        ? frames
+        : Object.freeze(frames.slice(omitCount, omitCount + maxCount));
+    } else if (Array.isArray(original)) {
+      const frames = ((omitCount === 0) && (original.length <= maxCount))
+        ? original
+        : Object.freeze(original.slice(omitCount, omitCount + maxCount));
+      return StackTrace.#framesFromArray(frames);
+    }
+
+    const stack   = (typeof original === 'string') ? original : original.stack;
     const result  = [];
 
     // This matches a single stack frame line, in Node / V8 format.
     const lineRx = /    at ([^()\n]+)(?: [(]([^()\n]*)[)])?(\n|$)/gy;
-    lineRx.lastIndex = StackTrace.#findFirstFrame(errorOrStack);
+    lineRx.lastIndex = StackTrace.#findFirstFrame(original);
 
     while (result.length < maxCount) {
       const foundLine = lineRx.exec(stack);
@@ -276,21 +289,19 @@ export class StackTrace {
   /**
    * Constructs a known-valid frames array from a possibly-valid one.
    *
-   * @param {*[]} orig Original value.
-   * @param {number} maxCount Maximum number of frames to include.
+   * @param {*[]} original Original value.
    * @returns {object[]} Frame array, in the form expected by the rest of this
    *   class.
    */
-  static #framesFromArray(orig, maxCount) {
-    let result = (Object.isFrozen(orig) && (orig.length <= maxCount))
-      ? orig // Optimistic assumption to begin with, but might be revised!
-      : orig.slice(0, maxCount);
+  static #framesFromArray(original) {
+    // Optimistic assumption to begin with, but might be revised!
+    let result = original;
 
     for (let i = 0; i < result.length; i++) {
       const frame = this.#frameFromObject(result[i]);
       if (frame !== result[i]) {
         if (Object.isFrozen(result)) {
-          result = [...orig];
+          result = [...result];
         }
         result[i] = Object.freeze(frame);
       }

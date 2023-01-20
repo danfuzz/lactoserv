@@ -11,6 +11,16 @@ import { StackTrace } from '@this/loggy';
 class MockStackTrace extends StackTrace {
   static generateDepth = 0;
 
+  static makeArray() {
+    const result = [];
+
+    for (let i = 1; i <= this.generateDepth; i++) {
+      result.push({ name: `depth${i}`, file: `some/file${i}`, line: i * 100, col: i });
+    }
+
+    return result;
+  }
+
   static makeError() {
     const result = new Error();
     const lines  = ['Error'];
@@ -72,14 +82,21 @@ describe('framesNow()', () => {
   });
 });
 
-// This section tests all of `framesNow()`, `framesFromError()`, and the
-// new-trace variant of the constructor.
+// This section tests all of `framesNow()`, `framesFrom()`, and the constructor,
+// with all the variant type options for `original`, and all the possible
+// combinations of extra arguments.
 describe.each`
-name                 | detail              | constructTrace
-${'constructor'}     | ${' for new trace'} | ${(...a) => new MockStackTrace(...a).frames}
-${'framesFromError'} | ${' given Error'}   | ${(...a) => MockStackTrace.framesFromError(MockStackTrace.makeError(), ...a)}
-${'framesFromError'} | ${' given string'}  | ${(...a) => MockStackTrace.framesFromError(MockStackTrace.makeError().stack, ...a)}
-${'framesNow'}       | ${''}               | ${(...a) => MockStackTrace.framesNow(...a)}
+name             | detail               | constructTrace
+${'constructor'} | ${' for new trace'}  | ${(...a) => new MockStackTrace(...a).frames}
+${'constructor'} | ${' given Error'}    | ${(...a) => new MockStackTrace(MockStackTrace.makeError(), ...a).frames}
+${'constructor'} | ${' given string'}   | ${(...a) => new MockStackTrace(MockStackTrace.makeError().stack, ...a).frames}
+${'constructor'} | ${' given array'}    | ${(...a) => new MockStackTrace(MockStackTrace.makeArray(), ...a).frames}
+${'constructor'} | ${' given instance'} | ${(...a) => new MockStackTrace(new MockStackTrace(), ...a).frames}
+${'framesFrom'}  | ${' given Error'}    | ${(...a) => MockStackTrace.framesFrom(MockStackTrace.makeError(), ...a)}
+${'framesFrom'}  | ${' given string'}   | ${(...a) => MockStackTrace.framesFrom(MockStackTrace.makeError().stack, ...a)}
+${'framesFrom'}  | ${' given array'}    | ${(...a) => MockStackTrace.framesFrom(MockStackTrace.makeArray(), ...a)}
+${'framesFrom'}  | ${' given instance'} | ${(...a) => MockStackTrace.framesFrom(new MockStackTrace(), ...a)}
+${'framesNow'}   | ${''}                | ${(...a) => MockStackTrace.framesNow(...a)}
 `('$name()$detail', ({ constructTrace }) => {
   describe('with no arguments', () => {
     test('produces a full-length stack trace', () => {
@@ -198,5 +215,3 @@ ${'framesNow'}       | ${''}               | ${(...a) => MockStackTrace.framesNo
 });
 
 // TODO: isValidFrame()
-// TODO: Constructor from existing instances
-// TODO: Constructor from frame arrays.
