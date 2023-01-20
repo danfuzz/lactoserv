@@ -10,6 +10,19 @@ import { StackTrace } from '@this/loggy';
  */
 class MockStackTrace extends StackTrace {
   static generateDepth = 0;
+
+  static makeError() {
+    const result = new Error();
+    const lines  = ['Error'];
+
+    for (let i = 1; i <= this.generateDepth; i++) {
+      lines.push(`    at depth${i} (some/file${i}:${i}00:${i})`);
+    }
+
+    result.stack = lines.join('\n');
+    return result;
+  }
+
   static _impl_newError() {
     const result = new Error();
     const lines  = result.stack.split('\n');
@@ -59,12 +72,14 @@ describe('framesNow()', () => {
   });
 });
 
-// This section tests both `framesNow()` and the new-trace variant of the
-// constructor.
+// This section tests all of `framesNow()`, `framesFromError()`, and the
+// new-trace variant of the constructor.
 describe.each`
-name             | detail              | constructTrace
-${'constructor'} | ${' for new trace'} | ${(...a) => new MockStackTrace(...a).frames}
-${'framesNow'}   | ${''}               | ${(...a) => MockStackTrace.framesNow(...a)}
+name                 | detail              | constructTrace
+${'constructor'}     | ${' for new trace'} | ${(...a) => new MockStackTrace(...a).frames}
+${'framesFromError'} | ${' given Error'}   | ${(...a) => MockStackTrace.framesFromError(MockStackTrace.makeError(), ...a)}
+${'framesFromError'} | ${' given string'}  | ${(...a) => MockStackTrace.framesFromError(MockStackTrace.makeError().stack, ...a)}
+${'framesNow'}       | ${''}               | ${(...a) => MockStackTrace.framesNow(...a)}
 `('$name()$detail', ({ constructTrace }) => {
   describe('with no arguments', () => {
     test('produces a full-length stack trace', () => {

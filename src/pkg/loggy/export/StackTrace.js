@@ -82,6 +82,58 @@ export class StackTrace {
   //
 
   /**
+   * Gets a stack frame array based on an `Error`-like object or the `.stack`
+   * property from one (or a string in a compatible format), optionally minus a
+   * given number of innermost frames, and optionally of with specified maximum
+   * number of frames. Each element of the result represents a single stack
+   * frame. The result is a simple compound object, not an instance of this
+   * class. The result is always deeply frozen.
+   *
+   * **Note:** The result only represents the direct stack of the `Error`, not
+   * any error(s) referenced via `.cause`.
+   *
+   * @param {{ message: string, stack: string }|string} errorOrStack The
+   *   `Error`-like instance or stack string to extract a structured stack trace
+   *   from.
+   * @param {number} [omitCount = 0] Number of innermost stack frames to omit
+   *   (not including the one for this method call, which is _always_ omitted).
+   * @param {?number} [maxCount = null] Maximum number of frames to include, or
+   *   `null` to have no limit.
+   * @returns {{ name: ?string, file: string, line: ?number, col: ?number }[]}
+   *   The stack trace.
+   */
+  static framesFromError(errorOrStack, omitCount = 0, maxCount = null) {
+    maxCount ??= Number.POSITIVE_INFINITY;
+
+    const stack   = (typeof errorOrStack === 'string') ? errorOrStack : errorOrStack.stack;
+    const result  = [];
+
+    // This matches a single stack frame line, in Node / V8 format.
+    const lineRx = /    at ([^()\n]+)(?: [(]([^()\n]*)[)])?(\n|$)/gy;
+    lineRx.lastIndex = StackTrace.#findFirstFrame(errorOrStack);
+
+    while (result.length < maxCount) {
+      const foundLine = lineRx.exec(stack);
+      if (foundLine === null) {
+        break;
+      } else if (omitCount-- > 0) {
+        continue;
+      }
+
+      const fileEtc  = foundLine[2] ?? foundLine[1];
+      const name     = (fileEtc === foundLine[1]) ? '<none>' : foundLine[1];
+      const foundPos = fileEtc.match(/^(.*?)(?::([0-9]+))(?::([0-9]+))?/);
+      const file     = foundPos ? foundPos[1] : fileEtc;
+      const line     = foundPos ? parseInt(foundPos[2]) : null;
+      const col      = foundPos ? parseInt(foundPos[3]) : null;
+
+      result.push(Object.freeze({ name, file, line, col }));
+    }
+
+    return Object.freeze(result);
+  }
+
+  /**
    * Gets a stack frame array for a trace representing the current call, minus
    * the given number of innermost frames (not including the call to this
    * method, which is always omitted), and optionally of with specified maximum
@@ -135,7 +187,8 @@ export class StackTrace {
    * useful for testing.
    *
    * @param {*} value Arbitrary value.
-   * @returns {boolean} `true` iff `value` is valid as-is as a stack frame.
+   * @returns {boolean} `true` iff `value` is valid as-is as a stack frame
+   *   object as used in this class.
    */
   static isValidFrame(value) {
     if (!(   AskIf.plainObject(value)
@@ -161,6 +214,63 @@ export class StackTrace {
    */
   static _impl_newError() {
     return new Error();
+  }
+
+  /**
+   * Finds the index into the stack string of the first stack frame line, given
+   * either a stack string per se or an `Error`-like object.
+   *
+   * @param {{ message: string, stack: string }|string} errorOrStack The
+   *   `Error`-like instance or stack string to extract a structured stack trace
+   *   from.
+   * @returns {number} Index for the first stack frame line.
+   */
+  static #findFirstFrame(errorOrStack) {
+    if (typeof errorOrStack === 'string') {
+      return StackTrace.#findFirstFrameFromStackString(errorOrStack);
+    }
+
+    const name = errorOrStack?.constructor?.name ?? null;
+    if (name === null) {
+      throw new Error('Not an Error-like object.');
+    }
+
+    const { message = null, stack = null } = errorOrStack;
+
+    if ((typeof message !== 'string') || (typeof stack !== 'string')) {
+      throw new Error('Not an Error-like object.');
+    }
+
+    // If `.stack` starts as would be expected, trust that the frames
+    // immediately follow. But if not, fall back on the string-only heuristics.
+    const expectStart = `${name}${message === '' ? '' : ': '}${message}\n`;
+    return stack.startsWith(expectStart)
+      ? expectStart.length
+      : StackTrace.#findFirstFrameFromStackString(stack);
+  }
+
+  /**
+   * Helper for {@link #findFirstFrame}, when we only have a string stack trace
+   * to base things on.
+   *
+   * Since we don't have a type and message to look for, the best we can do is
+   * find the first line that looks like a frame, after which there are no other
+   * lines that _don't_ look like frames. And "looks like a frame" is really a
+   * pretty basic test because there's a lot of leeway in terms of what actually
+   * ends up on a frame line.
+   *
+   * @param {string} stack The string stack trace form.
+   * @returns {number} Index for the first stack frame line.
+   */
+  static #findFirstFrameFromStackString(stack) {
+    const framesMatch = /(\n    at [^\n]+)+$/.exec(stack);
+
+    if (framesMatch === null) {
+      throw new Error('Not a stack trace string.');
+    }
+
+    // `+1` because the match starts at the newline before the first frame line.
+    return framesMatch.index + 1;
   }
 
   /**
