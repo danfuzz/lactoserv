@@ -30,7 +30,7 @@ export class Util {
     if (typeof pattern === 'string') {
       pattern = new RegExp(pattern);
     } else {
-      MustBe.object(pattern, RegExp);
+      MustBe.instanceOf(pattern, RegExp);
     }
 
     for (const item of items) {

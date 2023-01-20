@@ -5,8 +5,8 @@ import { LinkedEvent } from '@this/async';
 import { MustBe } from '@this/typey';
 
 import { LogRecord } from '#x/LogRecord';
-import { LogStackTrace } from '#x/LogStackTrace';
 import { LogTag } from '#x/LogTag';
+import { StackTrace } from '#x/StackTrace';
 
 
 /**
@@ -23,18 +23,18 @@ export class LogEvent extends LinkedEvent {
    *   chain or promise for same, if already known.
    */
   constructor(payload, next) {
-    MustBe.object(payload, LogRecord);
+    MustBe.instanceOf(payload, LogRecord);
     super(payload, next);
   }
 
-  /** @type {?LogStackTrace} Convenient accessor for `payload.stack`. */
+  /** @type {?StackTrace} Convenient accessor for `payload.stack`. */
   get stack() {
     return this.payload.stack;
   }
 
-  /** @type {number} Convenient accessor for `payload.timeSec`. */
-  get timeSec() {
-    return this.payload.timeSec;
+  /** @type {number} Convenient accessor for `payload.atSecs`. */
+  get atSecs() {
+    return this.payload.atSecs;
   }
 
   /** @type {LogTag} Convenient accessor for `payload.tag`. */

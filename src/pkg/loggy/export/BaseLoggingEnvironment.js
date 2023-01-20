@@ -5,6 +5,7 @@ import { Methods, MustBe } from '@this/typey';
 
 import { LogRecord } from '#x/LogRecord';
 import { LogTag } from '#x/LogTag';
+import { StackTrace } from '#x/StackTrace';
 
 
 /**
@@ -41,7 +42,9 @@ export class BaseLoggingEnvironment {
       this._impl_emit(recordOrTag);
     } else if (recordOrTag instanceof LogTag) {
       const event = new LogRecord(
-        this.stackTrace(1), this.nowSec(), recordOrTag, type, Object.freeze(args));
+        this.nowSec(), recordOrTag,
+        type, Object.freeze(args),
+        new StackTrace(2, 4));
       this._impl_emit(event);
     } else {
       throw new Error('Invalid value for `recordOrTag`.');
@@ -80,36 +83,6 @@ export class BaseLoggingEnvironment {
   }
 
   /**
-   * Gets a stack trace representing the current call, minus the given number
-   * of innermost stack frames. Each element of the result represents a single
-   * stack frame.
-   *
-   * @abstract
-   * @param {number} [omitCount = 0] Number of innermost stack frames to omit
-   *   (not including the one for this method call, which is _always_ omitted).
-   * @returns {string[]} The stack trace.
-   */
-  stackTrace(omitCount = 0) {
-    const raw = MustBe.arrayOfString(this._impl_stackTrace());
-    const result = [];
-
-    omitCount += 2;
-    for (const frame of raw) {
-      if (omitCount-- <= 0) {
-        continue;
-      }
-      const frameResult = /^ *(?:at )?(.*)$/.exec(frame);
-      if (frameResult) {
-        result.push(frameResult[1]);
-      } else {
-        result.push(`? ${frame}`); // Means we need better parsing of frames.
-      }
-    }
-
-    return result;
-  }
-
-  /**
    * Emits an event with the given payload from whatever event source this
    * instance is connected to.
    *
@@ -139,18 +112,6 @@ export class BaseLoggingEnvironment {
    * @returns {number} "Now" in seconds.
    */
   _impl_nowSec() {
-    Methods.abstract();
-  }
-
-  /**
-   * Gets a stack trace representing the current call, including the call to
-   * this method. This is called by {@link #stackTrack}, which edits the value
-   * (per its contract) before returning it.
-   *
-   * @abstract
-   * @returns {string[]} The stack trace.
-   */
-  _impl_stackTrace() {
     Methods.abstract();
   }
 

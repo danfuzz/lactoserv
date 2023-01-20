@@ -1,15 +1,25 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
 // This project is PROPRIETARY and UNLICENSED.
 
+import { AskIf } from '#x/AskIf';
+
+
 /**
- * Simple type assertions that can be placed at the starts of methods.
+ * Simple type assertions that can be placed at the starts of methods. Each
+ * method either returns the originally-passed value or throws an error
+ * indicating the type was not as expected. These are all similar to the
+ * name-named methods in {@link AskIf}, except the latter are predicates.
+ *
+ * **Note:** The intention is that this class and {@link AskIf} contain all the
+ * same methods, except where a method in the latter class would be redundant
+ * with a standard JavaScript predicate.
  */
 export class MustBe {
   /**
-   * Checks for type `*[]`.
+   * Checks for type `*[]` (array of anything).
    *
    * @param {*} value Arbitrary value.
-   * @returns {*[]} `value` if it is of type `*[]`.
+   * @returns {*[]} `value` if it is of the indicated type.
    * @throws {Error} Thrown if `value` is of any other type.
    */
   static array(value) {
@@ -21,22 +31,14 @@ export class MustBe {
   }
 
   /**
-   * Checks for type `(string|number)[]`, which is to say values that are valid
-   * to use as object or array indices.
+   * Assertion of {@link AskIf.arrayOfIndex}.
    *
    * @param {*} value Arbitrary value.
-   * @returns {string[]} `value` if it is of type `(string|number)[]`.
+   * @returns {(string|number)[]} `value` if it is of the indicated type.
    * @throws {Error} Thrown if `value` is of any other type.
    */
   static arrayOfIndex(value) {
-    check:
-    if (Array.isArray(value)) {
-      for (const v of value) {
-        const t = typeof v;
-        if ((t !== 'string') && (t !== 'number')) {
-          break check;
-        }
-      }
+    if (AskIf.arrayOfIndex(value)) {
       return value;
     }
 
@@ -47,17 +49,11 @@ export class MustBe {
    * Checks for type `string[]`.
    *
    * @param {*} value Arbitrary value.
-   * @returns {string[]} `value` if it is of type `string[]`.
+   * @returns {string[]} `value` if it is of the indicated type.
    * @throws {Error} Thrown if `value` is of any other type.
    */
   static arrayOfString(value) {
-    check:
-    if (Array.isArray(value)) {
-      for (const v of value) {
-        if (typeof v !== 'string') {
-          break check;
-        }
-      }
+    if (AskIf.arrayOfString(value)) {
       return value;
     }
 
@@ -69,18 +65,11 @@ export class MustBe {
    * object (i.e. not an instance of anything other than `Object` itself.)
    *
    * @param {*} value Arbitrary value.
-   * @returns {object[]} `value` if it is of type `object[]`, with all plain
-   *   objects.
+   * @returns {object[]} `value` if it is of the indicated type.
    * @throws {Error} Thrown if `value` is of any other type.
    */
   static arrayOfPlainObject(value) {
-    check:
-    if (Array.isArray(value)) {
-      for (const v of value) {
-        if (!MustBe.plainObject(v)) {
-          break check;
-        }
-      }
+    if (AskIf.arrayOfPlainObject(value)) {
       return value;
     }
 
@@ -91,7 +80,7 @@ export class MustBe {
    * Checks for type `boolean`.
    *
    * @param {*} value Arbitrary value.
-   * @returns {boolean} `value` if it is of type `boolean`.
+   * @returns {boolean} `value` if it is of the indicated type.
    * @throws {Error} Thrown if `value` is of any other type.
    */
   static boolean(value) {
@@ -114,7 +103,7 @@ export class MustBe {
    * of functions. This method errs on the side of over-acceptance.
    *
    * @param {*} value Value in question.
-   * @returns {function(*)} `value` if it is a callable function.
+   * @returns {function(*)} `value` if it is of the indicated type.
    * @throws {Error} Thrown if `value` is of any other type.
    */
   static callableFunction(value) {
@@ -139,7 +128,7 @@ export class MustBe {
    * Checks for type `function`.
    *
    * @param {*} value Arbitrary value.
-   * @returns {boolean} `value` if it is of type `function`.
+   * @returns {Function} `value` if it is of the indicated type.
    * @throws {Error} Thrown if `value` is of any other type.
    */
   static function(value) {
@@ -154,7 +143,7 @@ export class MustBe {
    * Checks for the value `null`.
    *
    * @param {*} value Arbitrary value.
-   * @returns {null} `null` if `value === null`.
+   * @returns {null} `value` if it is of the indicated type.
    * @throws {Error} Thrown if `value` is anything else.
    */
   static null(value) {
@@ -162,7 +151,7 @@ export class MustBe {
       return null;
     }
 
-    throw new Error('Must be of type `function`.');
+    throw new Error('Must be the value `null`.');
   }
 
   /**
@@ -184,8 +173,7 @@ export class MustBe {
    *
    * @param {*} value Arbitrary value.
    * @param {?object} [options = null] Options, per the above description.
-   * @returns {number} `value` if it is a number which meets all the given
-   *   optional restrictions.
+   * @returns {number} `value` if it is of the indicated type.
    * @throws {Error} Thrown if `value` is of any other type or does not meet the
    *   optional restrictions.
    */
@@ -228,41 +216,33 @@ export class MustBe {
    * (direct instance of `Object` per se).
    *
    * @param {*} value Arbitrary value.
-   * @returns {object} `value` if it is of type `object` and is furthermore a
-   *   plain object.
+   * @returns {object} `value` if it is of the indicated type.
    * @throws {Error} Thrown if `value` is of any other type.
    */
   static plainObject(value) {
-    if (   (value === null)
-        || (typeof value !== 'object')
-        || Object.getPrototypeOf(value) !== Object.prototype) {
-      throw new Error('Must be of type plain `object`.');
+    if (AskIf.plainObject(value)) {
+      return value;
     }
 
-    return value;
+    throw new Error('Must be of type plain `object`.');
   }
 
   /**
-   * Checks for type `object`, and optionally being an instance of a particular
+   * Checks for type `object` and specifically being an instance of a particular
    * class.
    *
    * @param {*} value Arbitrary value.
-   * @param {?function(new:*, ...*)} [cls = null] Optional class (constructor
-   *   function) that `value` must be an instance of.
-   * @returns {object} `value` if it is of type `object`, and if specified which
-   *   is an instance of `cls`.
+   * @param {function(new:*, ...*)} [cls = null] Class (constructor function)
+   *   `value` must be an instance of.
+   * @returns {object} `value` if it is of the indicated type.
    * @throws {Error} Thrown if `value` is of any other type.
    */
-  static object(value, cls = null) {
-    if (typeof value !== 'object') {
-      throw new Error('Must be of type `object`.');
+  static instanceOf(value, cls) {
+    if (value instanceof cls) {
+      return value;
     }
 
-    if (cls && !(value instanceof cls)) {
-      throw new Error(`Must be instance of class \`${cls.name}\`.`);
-    }
-
-    return value;
+    throw new Error(`Must be instance of class \`${cls.name}\`.`);
   }
 
   /**
@@ -272,8 +252,7 @@ export class MustBe {
    * @param {*} value Arbitrary value.
    * @param {?RegExp|string} [match = null] Optional regular expression that
    *  `value` must match.
-   * @returns {string} `value` if it is of type `string`, and if specified which
-   *   matches `match`.
+   * @returns {string} `value` if it is of the indicated type.
    * @throws {Error} Thrown if `value` is of any other type or doesn't match.
    */
   static string(value, match = null) {

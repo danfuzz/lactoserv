@@ -33,7 +33,7 @@ export class RequestLoggerService extends BaseService {
 
     const { baseName, directory } = config;
 
-    this.#logFilePath = Path.resolve(directory, `${baseName}.txt`);
+    this.#logFilePath = Path.resolve(directory, baseName);
   }
 
   /** @override */

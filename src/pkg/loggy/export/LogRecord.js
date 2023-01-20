@@ -6,8 +6,8 @@ import * as util from 'node:util';
 import { MustBe } from '@this/typey';
 
 import { FormatUtils } from '#x/FormatUtils';
-import { LogStackTrace } from '#x/LogStackTrace';
 import { LogTag } from '#x/LogTag';
+import { StackTrace } from '#x/StackTrace';
 
 
 /**
@@ -15,14 +15,11 @@ import { LogTag } from '#x/LogTag';
  * module.
  */
 export class LogRecord {
-  /** @type {?LogStackTrace} Stack trace, if available. */
-  #stack;
-
   /**
    * @type {number} Moment in time, as Unix Epoch seconds, with precision
    * expected to be microseconds or better.
    */
-  #timeSec;
+  #atSecs;
 
   /** @type {LogTag} Tag. */
   #tag;
@@ -33,12 +30,13 @@ export class LogRecord {
   /** @type {*[]} Event arguments. */
   #args;
 
+  /** @type {?StackTrace} Stack trace, if available. */
+  #stack;
+
   /**
    * Constructs an instance.
    *
-   * @param {?LogStackTrace} stack Stack trace associated with this instance, if
-   *   available.
-   * @param {number} timeSec Moment in time that this instance represents, as
+   * @param {number} atSecs Moment in time that this instance represents, as
    *   seconds since the start of the Unix Epoch, with precision expected to be
    *   microseconds or better.
    * @param {LogTag} tag Tag for the instance, that is, component name and
@@ -48,12 +46,14 @@ export class LogRecord {
    *   "invoked" (which... they kinda might be able to be at some point).
    * @param {*[]} args Arbitrary arguments of the instance, whose meaning
    *   depends on the type.
+   * @param {?StackTrace} [stack = null] Stack trace associated with this
+   *   instance, if available.
    */
-  constructor(stack, timeSec, tag, type, args) {
-    this.#stack   = stack;
-    this.#timeSec = MustBe.number(timeSec);
-    this.#tag     = MustBe.object(tag, LogTag);
-    this.#type    = MustBe.string(type);
+  constructor(atSecs, tag, type, args, stack = null) {
+    this.#atSecs = MustBe.number(atSecs);
+    this.#tag    = MustBe.instanceOf(tag, LogTag);
+    this.#type   = MustBe.string(type);
+    this.#stack  = (stack === null) ? null : MustBe.instanceOf(stack, StackTrace);
 
     MustBe.array(args);
     if (!Object.isFrozen(args)) {
@@ -63,18 +63,18 @@ export class LogRecord {
 
   }
 
-  /** @type {?LogStackTrace} Stack trace, if available. */
-  get stack() {
-    return this.#stack;
-  }
-
   /**
    * @type {number} Moment in time that this instance represents, as seconds
    * since the start of the Unix Epoch, with precision expected to be
    * microseconds or better.
    */
-  get timeSec() {
-    return this.#timeSec;
+  get atSecs() {
+    return this.#atSecs;
+  }
+
+  /** @type {?StackTrace} Stack trace, if available. */
+  get stack() {
+    return this.#stack;
   }
 
   /** @type {LogTag} Tag. */
@@ -100,14 +100,34 @@ export class LogRecord {
    */
   toHuman() {
     const parts = [
-      FormatUtils.dateTimeStringFromSecs(this.#timeSec, { decimals: 4 }),
+      FormatUtils.dateTimeStringFromSecs(this.#atSecs, { decimals: 4 }),
       ' ',
       this.#tag.toHuman(true),
-      ...this.#toHumanPayload(),
-      '\n'
+      ...this.#toHumanPayload()
     ];
 
     return parts.join('');
+  }
+
+  /**
+   * Gets a replacement value for this instance, which is suitable for JSON
+   * serialization.
+   *
+   * **Note:** This method is named as such (as opposed to the more
+   * standard-for-this-project `toJSON`), because the standard method
+   * `JSON.stringify()` looks for methods of this name to provide custom JSON
+   * serialization.
+   *
+   * @returns {object} The JSON-serializable form.
+   */
+  toJSON() {
+    return {
+      atSecs: this.#atSecs,
+      tag:    this.#tag,
+      type:   this.#type,
+      args:   this.#args,
+      stack:  this.#stack
+    };
   }
 
   /**
@@ -171,6 +191,6 @@ export class LogRecord {
   static makeKickoffInstance(tag = null, type = null) {
     tag  ??= this.#KICKOFF_TAG;
     type ??= this.#KICKOFF_TYPE;
-    return new LogRecord(null, 0, tag, type, Object.freeze([]));
+    return new LogRecord(0, tag, type, Object.freeze([]));
   }
 }

@@ -38,7 +38,7 @@ export class LoggingManager {
     }
 
     const event = Loggy.earliestEvent;
-    this.#stdoutSink = new TextFileSink('/dev/stdout', event);
+    this.#stdoutSink = new TextFileSink('human', '/dev/stdout', event);
     this.#stdoutSink.run();
   }
 }

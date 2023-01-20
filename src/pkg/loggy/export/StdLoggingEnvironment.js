@@ -34,7 +34,7 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
   constructor(source) {
     super();
 
-    this.#source = MustBe.object(source, LogSource);
+    this.#source = MustBe.instanceOf(source, LogSource);
   }
 
   /** @override */
@@ -83,11 +83,6 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
     this.#lastNowNsec     = nowNsec;
 
     return Number(nowNsec) * StdLoggingEnvironment.#SECS_PER_NSEC;
-  }
-
-  /** @override */
-  _impl_stackTrace() {
-    return new Error().stack.split('\n').slice(1);
   }
 
 

@@ -109,12 +109,37 @@ describe('.main', () => {
   });
 });
 
-describe('withAddedContext()', () => {
-  test('adds the indicated context', () => {
-    const tag    = new LogTag('x', 'foo', 'bar');
-    const result = tag.withAddedContext('zorch', 'florp');
+describe('equals()', () => {
+  test('equals itself', () => {
+    const tag = new LogTag('woo', 'yah');
+    expect(tag.equals(tag)).toBeTrue();
+  });
 
-    expect(result.context).toStrictEqual(['foo', 'bar', 'zorch', 'florp']);
+  test('equals an instance with `===` components', () => {
+    const tag1 = new LogTag('yeah', 'yup', 'yeppers');
+    const tag2 = new LogTag('yeah', 'yup', 'yeppers');
+    expect(tag1.equals(tag2)).toBeTrue();
+  });
+
+  test('does not equal an instance with different main tags', () => {
+    const tag1 = new LogTag('yeah', 'yup', 'yeppers');
+    const tag2 = new LogTag('nope', 'yup', 'yeppers');
+    expect(tag1.equals(tag2)).toBeFalse();
+  });
+
+  test('does not equal an instance with different context with same length', () => {
+    const tag1 = new LogTag('yeah', 'yup', 'yeppers');
+    const tag2 = new LogTag('yeah', 'yup', 'peppers');
+    const tag3 = new LogTag('yeah', 'zup', 'yeppers');
+    expect(tag1.equals(tag2)).toBeFalse();
+    expect(tag1.equals(tag3)).toBeFalse();
+  });
+
+  test('does not equal an instance with different context with different length', () => {
+    const tag1 = new LogTag('yeah', 'yup', 'yeppers', 'peppers');
+    const tag2 = new LogTag('yeah', 'yup', 'yeppers');
+    expect(tag1.equals(tag2)).toBeFalse();
+    expect(tag2.equals(tag1)).toBeFalse();
   });
 });
 
@@ -163,36 +188,36 @@ describe('toHuman()', () => {
   });
 });
 
-describe('equals()', () => {
-  test('equals itself', () => {
-    const tag = new LogTag('woo', 'yah');
-    expect(tag.equals(tag)).toBeTrue();
+describe('toJSON()', () => {
+  const testOne = (...expected) => {
+    const tag    = new LogTag(...expected);
+    const result = tag.toJSON();
+    expect(result).toStrictEqual(expected);
+    expect(result).toBeFrozen();
+  };
+
+  test('works with just a main tag (no context strings)', () => {
+    testOne('simply-this');
   });
 
-  test('equals an instance with `===` components', () => {
-    const tag1 = new LogTag('yeah', 'yup', 'yeppers');
-    const tag2 = new LogTag('yeah', 'yup', 'yeppers');
-    expect(tag1.equals(tag2)).toBeTrue();
+  test('works with a single context string', () => {
+    testOne('this', 'that');
   });
 
-  test('does not equal an instance with different main tags', () => {
-    const tag1 = new LogTag('yeah', 'yup', 'yeppers');
-    const tag2 = new LogTag('nope', 'yup', 'yeppers');
-    expect(tag1.equals(tag2)).toBeFalse();
+  test('works with two context strings', () => {
+    testOne('this', 'and', 'more');
   });
 
-  test('does not equal an instance with different context with same length', () => {
-    const tag1 = new LogTag('yeah', 'yup', 'yeppers');
-    const tag2 = new LogTag('yeah', 'yup', 'peppers');
-    const tag3 = new LogTag('yeah', 'zup', 'yeppers');
-    expect(tag1.equals(tag2)).toBeFalse();
-    expect(tag1.equals(tag3)).toBeFalse();
+  test('works with 10 context strings', () => {
+    testOne('hey', 'one', 'two', '3', '4', '5', 'six', '7', '8', 'nine', '10');
   });
+});
 
-  test('does not equal an instance with different context with different length', () => {
-    const tag1 = new LogTag('yeah', 'yup', 'yeppers', 'peppers');
-    const tag2 = new LogTag('yeah', 'yup', 'yeppers');
-    expect(tag1.equals(tag2)).toBeFalse();
-    expect(tag2.equals(tag1)).toBeFalse();
+describe('withAddedContext()', () => {
+  test('adds the indicated context', () => {
+    const tag    = new LogTag('x', 'foo', 'bar');
+    const result = tag.withAddedContext('zorch', 'florp');
+
+    expect(result.context).toStrictEqual(['foo', 'bar', 'zorch', 'florp']);
   });
 });

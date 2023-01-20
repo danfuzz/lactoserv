@@ -19,20 +19,28 @@ const services = [
     name:       'process',
     type:       'process-info-file',
     directory:  filePath('../../../out/var'),
-    baseName:   'process',
+    baseName:   'process.json',
     updateSecs: 5 * 60
   },
   {
     name:      'syslog',
     type:      'system-logger',
     directory: filePath('../../../out/var'),
-    baseName:  'system-log'
+    baseName:  'system-log.txt',
+    format:    'human'
+  },
+  {
+    name:      'syslog-json',
+    type:      'system-logger',
+    directory: filePath('../../../out/var'),
+    baseName:  'system-log.json',
+    format:    'json'
   },
   {
     name:      'requests',
     type:      'request-logger',
     directory: filePath('../../../out/var'),
-    baseName:  'request-log'
+    baseName:  'request-log.txt'
   },
   {
     name:        'limiter',
