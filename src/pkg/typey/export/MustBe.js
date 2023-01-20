@@ -3,6 +3,7 @@
 
 import { AskIf } from '#x/AskIf';
 
+
 /**
  * Simple type assertions that can be placed at the starts of methods. Each
  * method either returns the originally-passed value or throws an error

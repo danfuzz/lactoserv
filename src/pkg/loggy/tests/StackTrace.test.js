@@ -3,6 +3,7 @@
 
 import { StackTrace } from '@this/loggy';
 
+
 /**
  * Subclass of {@link #StackTrace}, so that we can control the generated raw
  * traces.
