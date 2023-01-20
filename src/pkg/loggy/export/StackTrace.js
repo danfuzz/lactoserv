@@ -80,11 +80,12 @@ export class StackTrace {
 
   /**
    * Gets a stack frame array for a trace representing the current call, minus
-   * the given number of innermost frames. Each element of the result represents
-   * a single stack frame. The result is a simple compound object, not an
-   * instance of this class. The result is always deeply frozen.
+   * the given number of innermost frames (not including the call to this
+   * method, which is always omitted), and optionally of with specified maximum
+   * number of frames. Each element of the result represents a single stack
+   * frame. The result is a simple compound object, not an instance of this
+   * class. The result is always deeply frozen.
    *
-   * @abstract
    * @param {number} [omitCount = 0] Number of innermost stack frames to omit
    *   (not including the one for this method call, which is _always_ omitted).
    * @param {?number} [maxCount = null] Maximum number of frames to include, or
