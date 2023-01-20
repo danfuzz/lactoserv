@@ -5,7 +5,9 @@ import { AskIf, MustBe } from '@this/typey';
 
 
 /**
- * Utility class for generating stack traces.
+ * Utility class for generating and manipulating stack traces.
+ *
+ * **Note:** This class is written to expect Node / V8 stack traces.
  */
 export class StackTrace {
   /**
@@ -15,8 +17,9 @@ export class StackTrace {
   #frames;
 
   /**
-   * Constructs an instance, either from the current call or another stack trace
-   * (an instance of this class or an array as if produced by {@link #make}).
+   * Constructs an instance, either from the current call, or from another
+   * stack-trace-containing item (an instance of this class, or an array as if
+   * produced by {@link #framesNow}).
    *
    * If producing a new trace, the two arguments are `omitCount` to indicate the
    * number of innermost frames to omit (not including the call to the
