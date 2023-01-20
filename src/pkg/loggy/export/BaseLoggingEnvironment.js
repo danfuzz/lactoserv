@@ -5,7 +5,6 @@ import { Methods, MustBe } from '@this/typey';
 
 import { LogRecord } from '#x/LogRecord';
 import { LogTag } from '#x/LogTag';
-import { StackTrace } from '#x/StackTrace';
 
 
 /**
@@ -28,12 +27,12 @@ export class BaseLoggingEnvironment {
    * are filled in by this method).
    *
    * @param {LogRecord|LogTag} recordOrTag The complete log record or the tag.
-   * @param {?string} type Event type, if given a tag for `recordOrTag`; must be
-   *   `null` when given a full {@link LogRecord}.
+   * @param {?string} [type = null] Event type, if given a tag for
+   *   `recordOrTag`; must be `null` when given a full {@link LogRecord}.
    * @param {...*} args Event arguments, if given a tag for `recordOrTag`; must
    *   be empty when given a full {@link LogRecord}.
    */
-  emit(recordOrTag, type, ...args) {
+  emit(recordOrTag, type = null, ...args) {
     if (recordOrTag instanceof LogRecord) {
       MustBe.null(type);
       if (args.length !== 0) {
@@ -41,11 +40,8 @@ export class BaseLoggingEnvironment {
       }
       this._impl_emit(recordOrTag);
     } else if (recordOrTag instanceof LogTag) {
-      const event = new LogRecord(
-        this.nowSec(), recordOrTag,
-        type, Object.freeze(args),
-        new StackTrace(2, 4));
-      this._impl_emit(event);
+      const record = this.makeRecord(recordOrTag, type, ...args);
+      this._impl_emit(record);
     } else {
       throw new Error('Invalid value for `recordOrTag`.');
     }
@@ -61,6 +57,28 @@ export class BaseLoggingEnvironment {
    */
   makeId() {
     return MustBe.string(this._impl_makeId(), /^.{1,20}$/);
+  }
+
+  /**
+   * Makes a `LogRecord` instance, processing arguments as needed for the
+   * ultimate destination.
+   *
+   * For example and in particular, non-JSON-encodable values may want to be
+   * tweaked. The standard concrete implementation of this method takes care of
+   * that, but there is more than one reasonable way to accomplish this. Hence
+   * this "hook."
+   *
+   * @param {LogTag} tag The record tag.
+   * @param {string} type Event type.
+   * @param {...*} args Event arguments.
+   * @returns {LogRecord} The constructed record.
+   */
+  makeRecord(tag, type, ...args) {
+    MustBe.instanceOf(tag, LogTag);
+    MustBe.string(type);
+
+    const result = this._impl_makeRecord(tag, type, ...args);
+    return MustBe.instanceOf(result, LogRecord);
   }
 
   /**
@@ -101,6 +119,29 @@ export class BaseLoggingEnvironment {
    */
   _impl_makeId() {
     Methods.abstract();
+  }
+
+  /**
+   * Makes a new {@link LogRecord}, suitable for returning through {@link
+   * #makeRecord}. The first two arguments are guaranteed to be valid, but the
+   * remaining arguments may need processing.
+   *
+   * For example and in particular on that last part, non-JSON-encodable values
+   * may want to be tweaked. The standard concrete implementation of this method
+   * takes care of that, but there is more than one reasonable way to accomplish
+   * this.
+   *
+   * As another example, systems may want to vary on how stack traces are
+   * generated (if generated at all).
+   *
+   * @abstract
+   * @param {LogTag} tag The record tag.
+   * @param {string} type Event type.
+   * @param {...*} args Event arguments.
+   * @returns {LogRecord} The constructed record.
+   */
+  _impl_makeRecord(tag, type, ...args) {
+    return Methods.abstract(tag, type, args);
   }
 
   /**

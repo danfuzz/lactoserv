@@ -7,7 +7,9 @@ import { MustBe } from '@this/typey';
 
 import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
 import { IdGenerator } from '#x/IdGenerator';
+import { LogRecord } from '#x/LogRecord';
 import { LogSource } from '#x/LogSource';
+import { StackTrace } from '#x/StackTrace';
 
 
 /**
@@ -45,6 +47,12 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
   /** @override */
   _impl_makeId() {
     return this.#idGenerator.makeId(this._impl_nowSec());
+  }
+
+  /** @override */
+  _impl_makeRecord(tag, type, ...args) {
+    return new LogRecord(this._impl_nowSec(), tag, type, Object.freeze(args),
+      new StackTrace(2, 4));
   }
 
   /** @override */
