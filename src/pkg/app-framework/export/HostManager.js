@@ -10,9 +10,6 @@ import { HostController } from '#x/HostController';
 import { ThisModule } from '#p/ThisModule';
 
 
-/** @type {function(...*)} Logger for this class. */
-const logger = ThisModule.logger.hosts;
-
 /**
  * Manager for dealing with all the host bindings. "Hosts" in this sense are
  * network-available servers associated with particular names, certificates, and
@@ -24,6 +21,9 @@ export class HostManager {
    * the {@link HostController} object that should be used for it.
    */
   #controllers = new TreePathMap();
+
+  /** @type {function(...*)} Logger for this class. */
+  #logger = ThisModule.logger.hosts;
 
   /**
    * Constructs an instance.
@@ -153,7 +153,7 @@ export class HostManager {
     for (const name of controller.config.hostnames) {
       const key = Uris.parseHostname(name, true);
       this.#controllers.add(key, controller);
-      logger.bound(name);
+      this.#logger.bound(name);
     }
   }
 

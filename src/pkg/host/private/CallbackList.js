@@ -8,9 +8,6 @@ import { Condition } from '@this/async';
 import { ThisModule } from '#p/ThisModule';
 
 
-/** @type {function(...*)} Logger for this class. */
-const logger = ThisModule.logger.callback;
-
 /**
  * List of callbacks to be managed and (perhaps) actually run.
  */
@@ -34,7 +31,7 @@ export class CallbackList {
    * @param {number} maxRunMsec Maximum time for running all callbacks, in msec.
    */
   constructor(name, maxRunMsec) {
-    this.#logger     = logger[name];
+    this.#logger     = ThisModule.logger.callback[name];
     this.#maxRunMsec = maxRunMsec;
   }
 

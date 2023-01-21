@@ -10,9 +10,6 @@ import { ProcessInfo } from '#x/ProcessInfo';
 import { ThisModule } from '#p/ThisModule';
 
 
-/** @type {function(...*)} Logger for this class. */
-const logger = ThisModule.logger.keepRunning;
-
 /**
  * Utility to guarantee that this process doesn't stop running. By default,
  * Node proactively exits when the event loop quiesces and there do not seem
@@ -22,6 +19,10 @@ const logger = ThisModule.logger.keepRunning;
 export class KeepRunning {
   /** @type {Threadlet} Thread that runs {@link #keepRunning}. */
   #thread;
+
+  /** @type {function(...*)} Logger for this class. */
+  #logger = ThisModule.logger.keepRunning;
+
 
   /**
    * Constructs an instance.
@@ -35,11 +36,11 @@ export class KeepRunning {
    */
   run() {
     if (this.#thread.isRunning()) {
-      logger.run('ignored');
+      this.#logger.run('ignored');
       return;
     }
 
-    logger.run();
+    this.#logger.run();
     this.#thread.run();
   }
 
@@ -48,11 +49,11 @@ export class KeepRunning {
    */
   stop() {
     if (!this.#thread.isRunning()) {
-      logger.stop('ignored');
+      this.#logger.stop('ignored');
       return;
     }
 
-    logger.stop();
+    this.#logger.stop();
     this.#thread.stop();
   }
 
@@ -63,7 +64,7 @@ export class KeepRunning {
   async #keepRunning() {
     const startedAtSecs = ProcessInfo.allInfo.startedAt.atSecs;
 
-    logger.running();
+    this.#logger.running();
 
     // This is a standard-ish trick to keep a Node process alive: Repeatedly set
     // a timeout (or, alternatively, set a recurring timeout), and cancel it
@@ -75,10 +76,10 @@ export class KeepRunning {
       ]);
 
       const uptimeSecs = (Date.now() / 1000) - startedAtSecs;
-      logger.uptime(FormatUtils.compoundDurationFromSecs(uptimeSecs));
+      this.#logger.uptime(FormatUtils.compoundDurationFromSecs(uptimeSecs));
     }
 
-    logger.stopped();
+    this.#logger.stopped();
   }
 
 
