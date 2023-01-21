@@ -11,15 +11,15 @@ import { ThisModule } from '#p/ThisModule';
 
 
 /**
- * @type {number} Maximum amount of time to wait for callbacks to complete,
- * while reloading the system.
- */
-const MAX_RELOAD_MSEC = 10 * 1000;
-
-/**
  * POSIX signal handling.
  */
 export class SignalHandler {
+  /**
+   * @type {number} Maximum amount of time to wait for callbacks to complete,
+   * while reloading the system.
+   */
+  static #MAX_RELOAD_MSEC = 10 * 1000;
+
   /** @type {function(...*)} Logger for this class. */
   static #logger = ThisModule.logger.signal;
 
@@ -27,7 +27,7 @@ export class SignalHandler {
   static #initDone = false;
 
   /** @type {CallbackList} Callbacks to invoke when asked to "reload." */
-  static #reloadCallbacks = new CallbackList('reload', MAX_RELOAD_MSEC);
+  static #reloadCallbacks = new CallbackList('reload', this.#MAX_RELOAD_MSEC);
 
   /**
    * @type {number} Number of times the exit signal has been received. Used to
