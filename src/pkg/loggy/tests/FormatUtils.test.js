@@ -54,7 +54,7 @@ ${'dateTimeStringFromSecs'}
 ${'compoundDateTimeFromSecs'}
 `('$method()', ({ method }) => {
   test.each`
-  secs                | options                           | expected
+  atSecs              | options                           | expected
   ${0}                | ${undefined}                      | ${'19700101-00:00:00'}
   ${-14195365}        | ${undefined}                      | ${'19690720-16:50:35'}
   ${1666016999.99999} | ${undefined}                      | ${'20221017-14:29:59'}
@@ -82,12 +82,12 @@ ${'compoundDateTimeFromSecs'}
   ${1673916141.1234}  | ${{ colons: true }}               | ${'20230117-00:42:21'}
   ${1673916141.1234}  | ${{ colons: true, decimals: 1 }}  | ${'20230117-00:42:21.1'}
   ${1673916141.1234}  | ${{ colons: true, decimals: 2 }}  | ${'20230117-00:42:21.12'}
-  `('with ($secs, $options)', ({ secs, options, expected }) => {
-    const result = FormatUtils[method](secs, options);
+  `('with ($atSecs, $options)', ({ atSecs, options, expected }) => {
+    const result = FormatUtils[method](atSecs, options);
     if (method === 'dateTimeStringFromSecs') {
       expect(result).toBe(expected);
     } else {
-      expect(result).toStrictEqual({ secs, utc: expected });
+      expect(result).toStrictEqual({ atSecs, utc: expected });
     }
   });
 });
