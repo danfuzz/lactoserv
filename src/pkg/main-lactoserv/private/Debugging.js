@@ -43,8 +43,14 @@ export class Debugging {
    */
   static #doEarlyErrors() {
     (async () => {
-      const problem = Promise.reject(new Error('I am a slow-but-caught promise rejection.'));
-      await timers.setTimeout(100);
+      const problem = Promise.reject(new Error('I am a slow-but-handled promise rejection.'));
+
+      // Wait enough ticks that Node's unhandled-rejection mechanism kicks in,
+      // but few enough that it's slow-but-handled as far as `TopErrorHandler`
+      // is concerned.
+      for (let i = 1; i <= 5; i++) {
+        await timers.setImmediate();
+      }
 
       try {
         await problem;
@@ -57,7 +63,7 @@ export class Debugging {
 
       // The timeout here is meant to jibe with `TopErrorHandler`'s grace period
       // given for unhandled promise rejections.
-      setTimeout(() => { throw new Error('I am an uncaught exception (from a callback).'); }, 800);
+      setTimeout(() => { throw new Error('I am an uncaught exception (from a callback).'); }, 50);
 
       throw new Error('I am an unhandled promise rejection.');
     })();

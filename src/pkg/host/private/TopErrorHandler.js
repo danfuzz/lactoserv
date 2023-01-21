@@ -13,18 +13,19 @@ import { ThisModule } from '#p/ThisModule';
 const logger = ThisModule.logger.topError;
 
 /**
- * @type {number} How long to wait before considering a promise rejection
- * _actually_ rejected.
- */
-const PROMISE_REJECTION_GRACE_PERIOD_MSEC = 1000;
-
-/**
  * Top-level error handling. This is what handles errors (thrown exceptions and
  * rejected promises) that percolate to the main event loop without having been
  * handled. It also handles warnings (which always just get emitted directly,
  * no percolation required).
  */
 export class TopErrorHandler {
+  /**
+   * @type {number} How many ticks to wait after receiving an
+   * `unhandledRejection` event before considering a promise rejection
+   * _actually_ unhandled.
+   */
+  static #PROMISE_REJECTION_GRACE_PERIOD_TICKS = 10;
+
   /** @type {boolean} Initialized? */
   static #initDone = false;
 
@@ -123,13 +124,6 @@ export class TopErrorHandler {
    */
   static async #rejectionHandled(promise) {
     this.#unhandledRejections.delete(promise);
-
-    // Get the reason, and log it.
-    try {
-      await promise;
-    } catch (reason) {
-      logger.rejectionHandledSlowly(reason);
-    }
   }
 
   /**
@@ -152,10 +146,15 @@ export class TopErrorHandler {
   static async #unhandledRejection(reason, promise) {
     this.#unhandledRejections.set(promise, reason);
 
-    await timers.setTimeout(PROMISE_REJECTION_GRACE_PERIOD_MSEC);
-    if (this.#unhandledRejections.has(promise)) {
-      this.#handleProblem('unhandledRejection', 'Unhandled promise rejection', reason);
+    for (let i = 1; i <= this.#PROMISE_REJECTION_GRACE_PERIOD_TICKS; i++) {
+      await timers.setImmediate();
+      if (!this.#unhandledRejections.has(promise)) {
+        logger.rejectionHandledSlowly(reason, { afterTicks: i });
+        return;
+      }
     }
+
+    this.#handleProblem('unhandledRejection', 'Unhandled promise rejection', reason);
   }
 
   /**
