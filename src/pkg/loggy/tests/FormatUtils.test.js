@@ -192,7 +192,3 @@ describe('durationStringFromSecs()', () => {
     expect(result).toBe(duration);
   });
 });
-
-describe('errorObject()', () => {
-  // TODO
-});
