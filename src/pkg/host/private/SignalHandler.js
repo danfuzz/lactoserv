@@ -10,9 +10,6 @@ import { ShutdownHandler } from '#p/ShutdownHandler';
 import { ThisModule } from '#p/ThisModule';
 
 
-/** @type {function(...*)} Logger for this class. */
-const logger = ThisModule.logger.signal;
-
 /**
  * @type {number} Maximum amount of time to wait for callbacks to complete,
  * while reloading the system.
@@ -23,6 +20,9 @@ const MAX_RELOAD_MSEC = 10 * 1000;
  * POSIX signal handling.
  */
 export class SignalHandler {
+  /** @type {function(...*)} Logger for this class. */
+  static #logger = ThisModule.logger.signal;
+
   /** @type {boolean} Initialized? */
   static #initDone = false;
 
@@ -72,7 +72,7 @@ export class SignalHandler {
   static async #handleExitSignal(signalName) {
     const count = ++this.#exitSignalCount;
 
-    logger[signalName].exiting(count);
+    this.#logger[signalName].exiting(count);
 
     if (count === 1) {
       ShutdownHandler.exit();
@@ -89,11 +89,11 @@ export class SignalHandler {
    */
   static async #handleReloadSignal(signalName) {
     if (ShutdownHandler.isShuttingDown()) {
-      logger[signalName].ignoring();
+      this.#logger[signalName].ignoring();
       return;
     }
 
-    logger[signalName].reloading();
+    this.#logger[signalName].reloading();
 
     // If this throws, it ends up becoming an unhandled promise rejection,
     // which will presumably cause the system to shut down.
@@ -106,8 +106,8 @@ export class SignalHandler {
    * @param {string} signalName Name of the signal.
    */
   static async #handleDumpSignal(signalName) {
-    logger[signalName].dumping();
+    this.#logger[signalName].dumping();
     await HeapDump.dump(ProductInfo.name);
-    logger[signalName].dumped();
+    this.#logger[signalName].dumped();
   }
 }

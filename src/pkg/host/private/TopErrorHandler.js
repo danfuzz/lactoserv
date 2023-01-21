@@ -9,9 +9,6 @@ import { ShutdownHandler } from '#p/ShutdownHandler';
 import { ThisModule } from '#p/ThisModule';
 
 
-/** @type {function(...*)} Logger for this class. */
-const logger = ThisModule.logger.topError;
-
 /**
  * Top-level error handling. This is what handles errors (thrown exceptions and
  * rejected promises) that percolate to the main event loop without having been
@@ -25,6 +22,9 @@ export class TopErrorHandler {
    * _actually_ unhandled.
    */
   static #PROMISE_REJECTION_GRACE_PERIOD_TICKS = 10;
+
+  /** @type {function(...*)} Logger for this class. */
+  static #logger = ThisModule.logger.topError;
 
   /** @type {boolean} Initialized? */
   static #initDone = false;
@@ -91,7 +91,7 @@ export class TopErrorHandler {
     // Write to `stderr` directly first, because logging might be broken.
     process.stderr.write(`\n\n${label}:\n${problemString}\n\n`);
 
-    logger[eventType](problem);
+    this.#logger[eventType](problem);
 
     if (this.#shuttingDown) {
       // We're already in the middle of shutting down due to an error. Don't
@@ -149,7 +149,7 @@ export class TopErrorHandler {
     for (let i = 1; i <= this.#PROMISE_REJECTION_GRACE_PERIOD_TICKS; i++) {
       await timers.setImmediate();
       if (!this.#unhandledRejections.has(promise)) {
-        logger.rejectionHandledSlowly(reason, { afterTicks: i });
+        this.#logger.rejectionHandledSlowly(reason, { afterTicks: i });
         return;
       }
     }
@@ -163,6 +163,6 @@ export class TopErrorHandler {
    * @param {Error} warning The warning.
    */
   static async #warning(warning) {
-    logger.warning(warning);
+    this.#logger.warning(warning);
   }
 }
