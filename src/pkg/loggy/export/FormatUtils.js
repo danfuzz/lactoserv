@@ -46,16 +46,15 @@ export class FormatUtils {
    * seconds since the Unix Epoch as well as a string indicating the date-time
    * in UTC.
    *
-   * @param {number} dateTimeSecs Time in the form of seconds since the Unix
-   *   Epoch.
+   * @param {number} atSecs Time in the form of seconds since the Unix Epoch.
    * @param {object} [options = {}] Options, as with {@link
    *   #dateTimeStringFromSecs}.
    * @returns {object} Friendly compound object.
    */
-  static compoundDateTimeFromSecs(dateTimeSecs, options = {}) {
+  static compoundDateTimeFromSecs(atSecs, options = {}) {
     return {
-      secs: dateTimeSecs,
-      utc:  FormatUtils.dateTimeStringFromSecs(dateTimeSecs, options)
+      secs: atSecs,
+      utc:  FormatUtils.dateTimeStringFromSecs(atSecs, options)
     };
   }
 
@@ -109,7 +108,7 @@ export class FormatUtils {
    * from a standard Unix time in _seconds_ (not msec). The result is a string
    * represnting time in the UTC time zone.
    *
-   * @param {number} dateTimeSecs Unix-style time, in _seconds_ (not msec).
+   * @param {number} atSecs Time in the form of seconds since the Unix Epoch.
    * @param {object} [options = {}] Formatting options:
    *   * `{boolean} colons` -- Use colons to separate the time-of-day
    *     components? Defaults to `true`.
@@ -118,10 +117,10 @@ export class FormatUtils {
    *     rounded.
    * @returns {string} The friendly time string.
    */
-  static dateTimeStringFromSecs(dateTimeSecs, options = {}) {
+  static dateTimeStringFromSecs(atSecs, options = {}) {
     const { colons = true, decimals = 0 } = options;
 
-    const d       = new Date(dateTimeSecs * this.#MSEC_PER_SEC);
+    const d       = new Date(atSecs * this.#MSEC_PER_SEC);
     const timeSep = colons ? ':' : '';
     const parts   = [
       d.getUTCFullYear().toString(),
@@ -136,11 +135,11 @@ export class FormatUtils {
     ];
 
     if (decimals !== 0) {
-      // Non-obvious: If you take `secs % 1` and then operate on the remaining
+      // Non-obvious: If you take `atSecs % 1` and then operate on the remaining
       // fraction, you can end up with a string representation that's off by 1,
       // because of floating point (im)precision. That's why we _don't_ do that.
       const tenPower = 10 ** decimals;
-      const frac     = Math.floor(dateTimeSecs * tenPower % tenPower);
+      const frac     = Math.floor(atSecs * tenPower % tenPower);
       const fracStr  = frac.toString().padStart(decimals, '0');
       parts.push('.', fracStr);
     }
