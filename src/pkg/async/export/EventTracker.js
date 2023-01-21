@@ -6,6 +6,7 @@ import { MustBe } from '@this/typey';
 import { EventOrPromise } from '#p/EventOrPromise';
 import { LinkedEvent } from '#x/LinkedEvent';
 import { PromiseUtil } from '#x/PromiseUtil';
+import { TypeEventPredicate } from '#x/TypeEventPredicate';
 
 
 // TODO:
@@ -22,11 +23,6 @@ import { PromiseUtil } from '#x/PromiseUtil';
 // the point of the first `await`. This notably means that an `async` method can
 // update instance state synchronously. The implementation here takes advantage
 // of that fact (as noted in the code).
-
-/**
- * @typedef {null|number|string|function(LinkedEvent): boolean} EventPredicate
- */
-const EventPredicate = Symbol('EventPredicate');
 
 /**
  * Event tracker, which makes it convenient to walk down a chain of {@link
@@ -112,7 +108,7 @@ export class EventTracker {
    * **Note:** If the predicate throws an error -- even synchronously -- the
    * error becomes manifest by the state of the instance becoming broken.
    *
-   * @param {EventPredicate} [predicate = null] Predicate to satisfy.
+   * @param {TypeEventPredicate} [predicate = null] Predicate to satisfy.
    * @returns {LinkedEvent} What {@link #headNow} is (or would have been) at
    *   the moment the operation is complete.
    * @throws {Error} Thrown if there was any trouble. If so, and the trouble was
@@ -176,7 +172,7 @@ export class EventTracker {
    * instance will still ultimately become broken, though, which is (presumably)
    * a desirable outcome.
    *
-   * @param {EventPredicate} [predicate = null] Predicate to satisfy.
+   * @param {TypeEventPredicate} [predicate = null] Predicate to satisfy.
    * @returns {?LinkedEvent} The synchronously-known {@link #headNow} from the
    *   successful result of the operation if it was indeed synchronously
    *   successful, or `null` if either it needs to perform asynchronous
@@ -218,7 +214,7 @@ export class EventTracker {
    * cause this breakage scenario. (With high confidence, it would be indicative
    * of a bug in this class.)
    *
-   * @param {EventPredicate} [predicate = null] Predicate to satisfy.
+   * @param {TypeEventPredicate} [predicate = null] Predicate to satisfy.
    * @returns {LinkedEvent} The event just _behind_ {@link #headNow} at the
    *   the moment the operation is complete.
    * @throws {Error} Thrown if there was any trouble _before_ attempting to
@@ -257,7 +253,7 @@ export class EventTracker {
    * instance to the found event. For example, `peek()` and `peek(0)` are
    * equivalent to just accessing {@link #headPromise}.
    *
-   * @param {EventPredicate} [predicate = null] Predicate to satisfy.
+   * @param {TypeEventPredicate} [predicate = null] Predicate to satisfy.
    * @returns {LinkedEvent} The earliest event on the tracked chain that
    *   matches `predicate`.
    * @throws {Error} Thrown if there was any trouble. Unlike {@link #advance},
@@ -303,7 +299,7 @@ export class EventTracker {
    * Validates and appropriately-transforms a predicate as defined by {@link
    * #advance} and {@link #advanceSync}
    *
-   * @param {EventPredicate} predicate Predicate to satisfy.
+   * @param {TypeEventPredicate} predicate Predicate to satisfy.
    * @returns {function(LinkedEvent): boolean} The validated / transformed
    *   result.
    * @throws {Error} Thrown if `predicate` is not one of the allowed forms.
