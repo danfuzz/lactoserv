@@ -68,6 +68,9 @@ export class Florp {
   properties. As with base classes, use `Methods.abstract(...)` to prevent
   accidental usage.
 
+* `Type<Name>` -- A `@typedef` declaration, just to be used to annotate method
+  arguments, class properties, etc.,
+
 ### Method naming (and details)
 
 * `_impl_<name>` -- Declared in base classes as abstract, and left for
