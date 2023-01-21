@@ -170,7 +170,7 @@ export class ProcessInfoFileService extends BaseService {
   async #stop() {
     const contents      = this.#contents;
     const stoppedAtSecs = Date.now() / 1000;
-    const uptimeSecs    = stoppedAtSecs - contents.startedAt.secs;
+    const uptimeSecs    = stoppedAtSecs - contents.startedAt.atSecs;
 
     contents.stoppedAt = FormatUtils.compoundDateTimeFromSecs(stoppedAtSecs);
     contents.uptime    = FormatUtils.compoundDurationFromSecs(uptimeSecs);
@@ -201,7 +201,7 @@ export class ProcessInfoFileService extends BaseService {
     this.#contents.disposition = {
       running:   true,
       updatedAt: FormatUtils.compoundDateTimeFromSecs(updatedAtSecs),
-      uptime:    FormatUtils.compoundDurationFromSecs(updatedAtSecs - this.#contents.startedAt.secs)
+      uptime:    FormatUtils.compoundDurationFromSecs(updatedAtSecs - this.#contents.startedAt.atSecs)
     };
   }
 

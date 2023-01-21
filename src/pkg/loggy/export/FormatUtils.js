@@ -53,7 +53,7 @@ export class FormatUtils {
    */
   static compoundDateTimeFromSecs(atSecs, options = {}) {
     return {
-      secs: atSecs,
+      atSecs,
       utc:  FormatUtils.dateTimeStringFromSecs(atSecs, options)
     };
   }
