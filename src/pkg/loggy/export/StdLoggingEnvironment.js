@@ -6,8 +6,11 @@ import * as process from 'node:process';
 import { MustBe } from '@this/typey';
 
 import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
+import { DataConverter } from '#x/DataConverter';
 import { IdGenerator } from '#x/IdGenerator';
+import { LogRecord } from '#x/LogRecord';
 import { LogSource } from '#x/LogSource';
+import { StackTrace } from '#x/StackTrace';
 
 
 /**
@@ -45,6 +48,14 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
   /** @override */
   _impl_makeId() {
     return this.#idGenerator.makeId(this._impl_nowSec());
+  }
+
+  /** @override */
+  _impl_makeRecord(tag, type, ...args) {
+    const fixedArgs = DataConverter.fix(args);
+
+    return new LogRecord(this._impl_nowSec(), tag, type, fixedArgs,
+      new StackTrace(2, 4));
   }
 
   /** @override */

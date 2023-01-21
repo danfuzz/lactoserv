@@ -2,6 +2,7 @@
 // This project is PROPRIETARY and UNLICENSED.
 
 export * from '#x/BaseLoggingEnvironment';
+export * from '#x/DataConverter';
 export * from '#x/FormatUtils';
 export * from '#x/IdGenerator';
 export * from '#x/LogEvent';
