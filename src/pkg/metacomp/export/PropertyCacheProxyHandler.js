@@ -8,18 +8,6 @@ import { Methods } from '@this/typey';
 import { BaseProxyHandler } from '#x/BaseProxyHandler';
 
 
-/** @type {Set<string>} Set of methods which never get proxied. */
-const VERBOTEN_METHODS = new Set([
-  // Standard constructor method name.
-  'constructor',
-
-  // Promise interface. If proxied, this confuses the promise system, as it
-  // just looks for these methods to figure out if it's working with a
-  // "promise."
-  'then',
-  'catch'
-]);
-
 /**
  * Base class for a proxy handler for the common pattern of keeping a cache of
  * computed property values, along with a subclass hole to be filled in for how
@@ -69,7 +57,7 @@ export class PropertyCacheProxyHandler extends BaseProxyHandler {
 
     if (method) {
       return method;
-    } else if (VERBOTEN_METHODS.has(property)) {
+    } else if (PropertyCacheProxyHandler.#VERBOTEN_METHODS.has(property)) {
       // This property is on the blacklist of ones to never proxy.
       return undefined;
     } else if (property === util.inspect.custom) {
@@ -114,6 +102,19 @@ export class PropertyCacheProxyHandler extends BaseProxyHandler {
   //
   // Static members
   //
+
+  /** @type {Set<string>} Set of methods which never get proxied. */
+  static #VERBOTEN_METHODS = new Set([
+    // Standard constructor method name.
+    'constructor',
+
+    // Promise interface. If proxied, this confuses the promise system, as it
+    // just looks for these methods to figure out if it's working with a
+    // "promise."
+    'then',
+    'catch'
+  ]);
+
 
   /**
    * Class which can be used to wrap results from {@link #_impl_valueFor}, to
