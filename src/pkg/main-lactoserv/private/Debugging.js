@@ -23,7 +23,7 @@ export class Debugging {
    * @param {UsualSystem} system The system to be run.
    */
   static handleDebugArgs(args, system) {
-    const { logToStdout, maxRunTimeSecs } = args;
+    const { earlyErrors, logToStdout, maxRunTimeSecs } = args;
 
     if (logToStdout) {
       this.#logToStdout();
@@ -32,6 +32,35 @@ export class Debugging {
     if (maxRunTimeSecs) {
       this.#setMaxRunTimeSecs(maxRunTimeSecs, system);
     }
+
+    if (earlyErrors) {
+      this.#doEarlyErrors();
+    }
+  }
+
+  /**
+   * Arrange for some early errors. (This is mostly to help test logging.)
+   */
+  static #doEarlyErrors() {
+    (async () => {
+      const problem = Promise.reject(new Error('I am a slow-but-caught promise rejection.'));
+      await timers.setTimeout(100);
+
+      try {
+        await problem;
+      } catch {
+        // Ignore.
+      }
+
+      // Wait a moment before continuing with the actually-uncaught examples.
+      await timers.setTimeout(1000);
+
+      // The timeout here is meant to jibe with `TopErrorHandler`'s grace period
+      // given for unhandled promise rejections.
+      setTimeout(() => { throw new Error('I am an uncaught exception (from a callback).'); }, 800);
+
+      throw new Error('I am an unhandled promise rejection.');
+    })();
   }
 
   /**

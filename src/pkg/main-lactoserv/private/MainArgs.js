@@ -42,6 +42,7 @@ export class MainArgs {
     const args = this.#parsedArgs;
 
     return {
+      earlyErrors:    args.earlyErrors ?? false,
       logToStdout:    args.logToStdout ?? false,
       maxRunTimeSecs: args.maxRunTimeSecs ?? null
     };
@@ -100,6 +101,10 @@ export class MainArgs {
           conflicts:   'config',
           requiresArg: true,
           string:      true
+        },
+        'early-errors': {
+          describe: 'Debugging: Should some uncaught(ish) errors be thrown soon after starting?',
+          boolean:   true
         },
         'log-to-stdout': {
           describe: 'Debugging: Should log messages be printed to stdout?',

@@ -21,6 +21,8 @@ function usage {
       `build` -- Always build, even if there is something to run.
       `clean` -- Always do a clean build.
       `run` -- Build only if there is nothing to run. This is the default.
+    --early-errors
+      Debugging option passed to the system.
     --inspect[=...]
       Passes this option to the `node` invocation, to enable interactive
       debugging.
@@ -40,6 +42,9 @@ opt-action --call='{ usage }' help/h
 
 # What to do?
 opt-value --var=action --init=run --enum='build clean run' do
+
+# Debugging options passed directly to the main `run` script.
+opt-toggle --var=earlyErrors early-errors
 
 # Inspect?
 doInspect=0
@@ -93,6 +98,9 @@ if (( doInspect )); then
         inspect="=${inspect}"
     fi
     extraOpts=(--node-opts --inspect"${inspect}" --)
+fi
+if (( earlyErrors )); then
+    extraOpts+=(--early-errors)
 fi
 
 exec "${outRun}" \
