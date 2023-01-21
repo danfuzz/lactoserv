@@ -150,7 +150,7 @@ export class LogRecord {
       }
 
       // TODO: Evaluate whether `util.inspect()` is sufficient.
-      parts.push(util.inspect(a, LogRecord.HUMAN_INSPECT_OPTIONS));
+      parts.push(util.inspect(a, LogRecord.#HUMAN_INSPECT_OPTIONS));
     }
 
     parts.push(')');
@@ -166,8 +166,8 @@ export class LogRecord {
   /** @type {object} Inspection options for {@link #toHumanPayload}. */
   static #HUMAN_INSPECT_OPTIONS = Object.freeze({
     depth:       10,
-    breakLength: Number.POSITIVE_INFINITY,
-    compact:     8,
+    breakLength: 120,
+    compact:     2,
     getters:     true
   });
 
