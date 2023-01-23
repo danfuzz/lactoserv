@@ -88,27 +88,11 @@ export class ProcessIdFileService extends BaseService {
 
     // The rest of this is for `multiprocess === true`.
 
-    let contents = '';
-    const result = [];
+    const contents = await this.#readFile();
+    const result   = [];
 
     if (running) {
       result.push(pid);
-    }
-
-    // Read the existing process file, if it indeed exists.
-
-    try {
-      const filePath = this.#filePath;
-      await fs.stat(filePath);
-      contents = await fs.readFile(filePath, { encoding: 'utf-8' });
-
-      this.logger.readFile();
-    } catch (e) {
-      if (e.code === 'ENOENT') {
-        // Ignore the error: It's okay if the file doesn't exist.
-      } else {
-        this.logger.errorReadingFile(e);
-      }
     }
 
     // The `split()` call finds all runs of digits in `contents`, and is very
@@ -134,6 +118,28 @@ export class ProcessIdFileService extends BaseService {
     result.sort((x, y) => (x - y));
 
     return result.join('\n') + '\n';
+  }
+
+  /**
+   * Reads the existing process file, if it indeed exists.
+   *
+   * @returns {string} The file contents, or `''` (empty string) if it did not
+   * exist or could not be read for some reason.
+   */
+  async #readFile() {
+    const filePath = this.#filePath;
+
+    try {
+      await fs.stat(filePath);
+      return await fs.readFile(filePath, { encoding: 'utf-8' });
+    } catch (e) {
+      if (e.code === 'ENOENT') {
+        // Ignore the error: It's okay if the file doesn't exist.
+      } else {
+        this.logger.errorReadingFile(e);
+      }
+      return '';
+    }
   }
 
   /**
@@ -164,34 +170,69 @@ export class ProcessIdFileService extends BaseService {
    * @param {boolean} running Is this process/system considered to be running?
    */
   async #updateFile(running) {
-    const filePath = this.#filePath;
-    const contents = await this.#makeContents(running);
+    const maxAttempts = ProcessIdFileService.#MAX_WRITE_ATTEMPTS;
 
-    if (contents === '') {
-      await fs.rm(filePath, { force: true });
-      this.logger.removedFile();
-    } else {
-      // Create the directory if it doesn't already exist.
-      const dirPath = Path.dirname(filePath);
-      try {
-        await fs.stat(dirPath);
-      } catch (e) {
-        if (e.code === 'ENOENT') {
-          await fs.mkdir(dirPath, { recursive: true });
-        } else {
-          throw e;
-        }
+    for (let i = 0; i < maxAttempts; i++) {
+      if (i !== 0) {
+        this.logger.writeContention({ attempt: i + 1 });
       }
 
-      await fs.writeFile(filePath, contents);
-      this.logger.wroteFile();
+      const filePath = this.#filePath;
+      const contents = await this.#makeContents(running);
+
+      if (contents === '') {
+        await fs.rm(filePath, { force: true });
+        this.logger.removedFile();
+      } else {
+        // Create the directory if it doesn't already exist.
+        const dirPath = Path.dirname(filePath);
+        try {
+          await fs.stat(dirPath);
+        } catch (e) {
+          if (e.code === 'ENOENT') {
+            await fs.mkdir(dirPath, { recursive: true });
+          } else {
+            throw e;
+          }
+        }
+
+        await fs.writeFile(filePath, contents);
+        this.logger.wroteFile();
+      }
+
+      if (!running) {
+        return;
+      }
+
+      // Wait a moment, and then check to see if the file is actually what
+      // we wrote (but only if `running === true`, because if we're about to
+      // shut down, we can rely on "partner" processes to ultimately do the
+      // right thing).
+      await timers.setTimeout(ProcessIdFileService.#PRE_CHECK_DELAY_MSEC);
+      const readBack = await this.#readFile();
+      if (readBack === contents) {
+        return;
+      }
+
+      await timers.setTimeout(ProcessIdFileService.#RETRY_DELAY_MSEC);
     }
+
+    this.logger.writeContention({ attempt: maxAttempts, gaveUp: true });
   }
 
 
   //
   // Static members
   //
+
+  /** @type {number} How many attempts should be made to write the file? */
+  static #MAX_WRITE_ATTEMPTS = 5;
+
+  /** @type {number} How long to wait after writing before checking, in msec. */
+  static #PRE_CHECK_DELAY_MSEC = 250;
+
+  /** @type {number} How long to wait before retrying a write, in msec. */
+  static #RETRY_DELAY_MSEC = 500;
 
   /** @override */
   static get CONFIG_CLASS() {
