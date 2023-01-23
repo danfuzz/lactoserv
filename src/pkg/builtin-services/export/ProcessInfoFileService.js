@@ -23,6 +23,9 @@ import { FileNameHelper } from '#p/FileNameHelper';
  * * `{string} baseName` -- Base file name for info files.
  * * `{?number} updateSecs` -- How often to update the file, in seconds, or
  *   `null` to not perform updates. Defaults to `null`.
+ *
+ * **Note:** See {@link #ProcessInfoFileService} for a service which writes more
+ * complete information about the system.
  */
 export class ProcessInfoFileService extends BaseService {
   /** @type {string} Base file name for info files. */
