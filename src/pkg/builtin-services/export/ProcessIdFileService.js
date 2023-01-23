@@ -30,11 +30,8 @@ import { MustBe } from '@this/typey';
  * complete information about the system.
  */
 export class ProcessIdFileService extends BaseService {
-  /** @type {string} Base file name for the file. */
-  #baseName;
-
-  /** @type {string} Directory for info files. */
-  #directory;
+  /** @type {string} Full path to the file. */
+  #filePath;
 
   /** @type {boolean} Allow multiple processes to be listed in the file? */
   #multiprocess;
@@ -58,8 +55,7 @@ export class ProcessIdFileService extends BaseService {
     super(config, controller);
 
     const { baseName, directory, multiprocess, updateSecs } = config;
-    this.#baseName     = baseName;
-    this.#directory    = Path.resolve(directory);
+    this.#filePath     = Path.resolve(directory, baseName);
     this.#multiprocess = multiprocess;
     this.#updateSecs   = updateSecs;
   }
@@ -72,11 +68,6 @@ export class ProcessIdFileService extends BaseService {
   /** @override */
   async stop() {
     await this.#runner.stop();
-  }
-
-  /** @returns {string} The path to the info file. */
-  get #filePath() {
-    return Path.resolve(this.#directory, this.#baseName);
   }
 
   /**
@@ -181,11 +172,12 @@ export class ProcessIdFileService extends BaseService {
       this.logger.removedFile();
     } else {
       // Create the directory if it doesn't already exist.
+      const dirPath = Path.dirname(filePath);
       try {
-        await fs.stat(this.#directory);
+        await fs.stat(dirPath);
       } catch (e) {
         if (e.code === 'ENOENT') {
-          await fs.mkdir(this.#directory, { recursive: true });
+          await fs.mkdir(dirPath, { recursive: true });
         } else {
           throw e;
         }
