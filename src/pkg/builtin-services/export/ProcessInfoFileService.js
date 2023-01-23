@@ -21,6 +21,11 @@ import { FileNameHelper } from '#p/FileNameHelper';
  *
  * * `{string} directory` -- Absolute path to the directory to write to.
  * * `{string} baseName` -- Base file name for info files.
+ * * `{?number} updateSecs` -- How often to update the file, in seconds, or
+ *   `null` to not perform updates. Defaults to `null`.
+ *
+ * **Note:** See {@link #ProcessInfoFileService} for a service which writes more
+ * complete information about the system.
  */
 export class ProcessInfoFileService extends BaseService {
   /** @type {string} Base file name for info files. */
@@ -274,7 +279,7 @@ export class ProcessInfoFileService extends BaseService {
       this.#directory  = Files.checkAbsolutePath(config.directory);
       this.#updateSecs = config.updateSecs
         ? MustBe.number(config.updateSecs, { finite: true, minInclusive: 1 })
-        : null;
+        : MustBe.null(config.updateSecs ?? null);
     }
 
     /** @returns {string} The base file name to use. */

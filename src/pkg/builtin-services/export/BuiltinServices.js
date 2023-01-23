@@ -3,6 +3,7 @@
 
 import { ServiceFactory } from '@this/app-framework';
 
+import { ProcessIdFileService } from '#x/ProcessIdFileService';
 import { ProcessInfoFileService } from '#x/ProcessInfoFileService';
 import { RateLimiterService } from '#x/RateLimiterService';
 import { RequestLoggerService } from '#x/RequestLoggerService';
@@ -17,6 +18,7 @@ export class BuiltinServices {
    * Registers all the services defined by this module.
    */
   static register() {
+    ServiceFactory.register(ProcessIdFileService);
     ServiceFactory.register(ProcessInfoFileService);
     ServiceFactory.register(RateLimiterService);
     ServiceFactory.register(RequestLoggerService);

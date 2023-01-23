@@ -23,6 +23,14 @@ const services = [
     updateSecs: 5 * 60
   },
   {
+    name:         'process-id',
+    type:         'process-id-file',
+    directory:    filePath('../../../out/var'),
+    baseName:     'process.txt',
+    multiprocess: true,
+    updateSecs:   5 * 60
+  },
+  {
     name:      'syslog',
     type:      'system-logger',
     directory: filePath('../../../out/var'),
