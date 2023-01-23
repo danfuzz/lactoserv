@@ -28,7 +28,7 @@ const services = [
     directory:    filePath('../../../out/var'),
     baseName:     'process.txt',
     multiprocess: true,
-    updateSecs:   5 // 5 * 60
+    updateSecs:   5 * 60
   },
   {
     name:      'syslog',
