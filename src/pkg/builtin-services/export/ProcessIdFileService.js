@@ -80,15 +80,14 @@ export class ProcessIdFileService extends BaseService {
   }
 
   /**
-   * Adjusts the given file contents, to properly represent (a) whether this
-   * process is running, and (b) whatever other processes are running (if this
-   * instance is configured to support multiple processes).
+   * Makes the contents string for the file, to properly represent (a) this
+   * process if it is to be considered running, and (b) whatever other processes
+   * are running (if this instance is configured to support multiple processes).
    *
-   * @param {string} contents The original contents.
    * @param {boolean} running Is this process/system considered to be running?
-   * @returns {string} The new contents.
+   * @returns {string} The file contents.
    */
-  #adjustContents(contents, running) {
+  async #makeContents(running) {
     const pid = process.pid;
 
     if (!this.#multiprocess) {
@@ -96,17 +95,35 @@ export class ProcessIdFileService extends BaseService {
       return running ? `${pid}\n` : '';
     }
 
-    // This finds all runs of digits in `contents`, and is very forgiving of
-    // any chaff that might be in the file. Note that it can produce an empty
-    // element at the start or the end of the result.
-    const original = contents.split(/[^0-9]+/);
-    const result   = [];
+    // The rest of this is for `multiprocess === true`.
+
+    let contents = '';
+    const result = [];
 
     if (running) {
       result.push(pid);
     }
 
-    for (const numStr of original) {
+    // Read the existing process file, if it indeed exists.
+
+    try {
+      const filePath = this.#filePath;
+      await fs.stat(filePath);
+      contents = await fs.readFile(filePath, { encoding: 'utf-8' });
+
+      this.logger.readFile();
+    } catch (e) {
+      if (e.code === 'ENOENT') {
+        // Ignore the error: It's okay if the file doesn't exist.
+      } else {
+        this.logger.errorReadingFile(e);
+      }
+    }
+
+    // The `split()` call finds all runs of digits in `contents`, and is very
+    // forgiving of any chaff that might be in the file. Note that it can
+    // produce an empty element at the start or the end of the result.
+    for (const numStr of contents.split(/[^0-9]+/)) {
       const num = Number.parseInt(numStr);
       // Note: In addition to preventing the current `pid` from being added,
       // this catches both overly long strings of digits and the empty string
@@ -157,46 +174,26 @@ export class ProcessIdFileService extends BaseService {
    */
   async #updateFile(running) {
     const filePath = this.#filePath;
-    let   contents = '';
-
-    // Create the directory if it doesn't already exist.
-
-    try {
-      await fs.stat(this.#directory);
-    } catch (e) {
-      if (e.code === 'ENOENT') {
-        await fs.mkdir(this.#directory, { recursive: true });
-      } else {
-        throw e;
-      }
-    }
-
-    // Read the file if it exists.
-
-    try {
-      await fs.stat(filePath);
-      contents = await fs.readFile(filePath, { encoding: 'utf-8' });
-
-      this.logger.readFile();
-    } catch (e) {
-      if (e.code === 'ENOENT') {
-        // Ignore the error: It's okay if the file doesn't exist.
-      } else {
-        this.logger.errorReadingFile(e);
-      }
-    }
-
-    // Construct/tweak the contents, and either write the file or delete it.
-
-    contents = this.#adjustContents(contents, running);
+    const contents = await this.#makeContents(running);
 
     if (contents === '') {
       await fs.rm(filePath, { force: true });
+      this.logger.removedFile();
     } else {
-      await fs.writeFile(filePath, contents);
-    }
+      // Create the directory if it doesn't already exist.
+      try {
+        await fs.stat(this.#directory);
+      } catch (e) {
+        if (e.code === 'ENOENT') {
+          await fs.mkdir(this.#directory, { recursive: true });
+        } else {
+          throw e;
+        }
+      }
 
-    this.logger.wroteFile();
+      await fs.writeFile(filePath, contents);
+      this.logger.wroteFile();
+    }
   }
 
 
