@@ -268,7 +268,6 @@ describe('find()', () => {
 
     test('finds an already-added wildcard, when a matching key is passed as a plain object', () => {
       const key1  = new TreePathKey(['a', 'b', 'c'], true);
-      const key2  = new TreePathKey(['one', 'two', 'three'], true);
       const value = ['boop'];
       const map   = new TreePathMap();
 
