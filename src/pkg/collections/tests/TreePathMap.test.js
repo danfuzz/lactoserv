@@ -196,11 +196,47 @@ describe('find()', () => {
       expect(result2.value).toBe(value);
     });
 
-    test('does not find a non-wildcard binding "below" the key being looked up', () => {
-      const key1  = new TreePathKey(['top'], false);
+    test('finds a wildcard binding "below" the key being looked up', () => {
+      const key1  = new TreePathKey(['top'], true);
       const key2  = new TreePathKey(['top', 'middle'], false);
       const key3  = new TreePathKey(['top', 'middle', 'bottom'], false);
+      const value = ['florp'];
       const map   = new TreePathMap();
+
+      map.add(key1, value);
+      map.add(key2, 'y');
+
+      const result = map.find(key3);
+      expect(result).not.toBeNull();
+      expect(result.path).toStrictEqual(key1.path);
+      expect(result.pathRemainder).toStrictEqual(['middle', 'bottom']);
+      expect(result.wildcard).toBeTrue();
+      expect(result.value).toBe(value);
+    });
+
+    test('finds the most specific wildcard binding "below" the key being looked up', () => {
+      const key1  = new TreePathKey(['top'], true);
+      const key2  = new TreePathKey(['top', 'middle'], true);
+      const key3  = new TreePathKey(['top', 'middle', 'bottom'], false);
+      const value = ['florp', 'like'];
+      const map   = new TreePathMap();
+
+      map.add(key1, 'x');
+      map.add(key2, value);
+
+      const result = map.find(key3);
+      expect(result).not.toBeNull();
+      expect(result.path).toStrictEqual(key2.path);
+      expect(result.pathRemainder).toStrictEqual(['bottom']);
+      expect(result.wildcard).toBeTrue();
+      expect(result.value).toBe(value);
+    });
+
+    test('does not find a non-wildcard binding "below" the key being looked up', () => {
+      const key1 = new TreePathKey(['top'], false);
+      const key2 = new TreePathKey(['top', 'middle'], false);
+      const key3 = new TreePathKey(['top', 'middle', 'bottom'], false);
+      const map  = new TreePathMap();
 
       map.add(key1, 'x');
       map.add(key2, 'y');
