@@ -115,8 +115,8 @@ export class TreePathMap {
    *   up. If `.wildcard` is `true`, then this method will only find bindings
    *   which are wildcards, though they might be more general than the `.path`
    *   being looked for.
-   * @returns {?{path: string[], pathRemainder: string[], value: *, wildcard:
-   *   boolean}} Information about the found result, or `null` if there was no
+   * @returns {?{key: TreePathKey, pathRemainder: string[],
+   *   value: *}} Information about the found result, or `null` if there was no
    *   match at all.
    *   * `{TreePathKey} key` -- The key that was matched; this is a wildcard key
    *     if the match was in fact a wildcard match, and likewise it is a
