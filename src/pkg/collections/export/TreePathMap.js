@@ -300,7 +300,7 @@ export class TreePathMap {
       if (subtree.#hasEmpty && !wildcard) {
         // There's an exact match for the path.
         return {
-          path:          [... path],
+          path:          [...path],
           pathRemainder: [],
           value:         subtree.#emptyValue,
           wildcard:      false
@@ -308,7 +308,7 @@ export class TreePathMap {
       } else if (subtree.#hasWildcard) {
         // There's a matching wildcard at the end of the path.
         return {
-          path:          [... path],
+          path:          [...path],
           pathRemainder: [],
           value:         subtree.#wildcardValue,
           wildcard:      true
