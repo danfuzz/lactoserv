@@ -195,10 +195,23 @@ describe('find()', () => {
       expect(result2.wildcard).toBeTrue();
       expect(result2.value).toBe(value);
     });
+
+    test('does not find a non-wildcard binding "below" the key being looked up', () => {
+      const key1  = new TreePathKey(['top'], false);
+      const key2  = new TreePathKey(['top', 'middle'], false);
+      const key3  = new TreePathKey(['top', 'middle', 'bottom'], false);
+      const map   = new TreePathMap();
+
+      map.add(key1, 'x');
+      map.add(key2, 'y');
+
+      const result = map.find(key3);
+      expect(result).toBeNull();
+    });
   });
 
   describe('given a wildcard key', () => {
-    test('finds an already-added wildcard, when a matching wildcard key is passed', () => {
+    test('finds an already-added wildcard, when a matching key is passed as a `TreePathKey`', () => {
       const key1  = new TreePathKey(['one', 'two'], true);
       const key2  = new TreePathKey(['one', 'two', 'three'], true);
       const value = ['boop'];
@@ -219,6 +232,35 @@ describe('find()', () => {
       expect(result2.pathRemainder).toStrictEqual(['three']);
       expect(result2.wildcard).toBeTrue();
       expect(result2.value).toBe(value);
+    });
+
+    test('finds an already-added wildcard, when a matching key is passed as a plain object', () => {
+      const key1  = new TreePathKey(['a', 'b', 'c'], true);
+      const key2  = new TreePathKey(['one', 'two', 'three'], true);
+      const value = ['boop'];
+      const map   = new TreePathMap();
+
+      map.add(key1, value);
+
+      const result = map.find({ path: ['a', 'b', 'c'], wildcard: true });
+      expect(result).not.toBeNull();
+      expect(result.path).toStrictEqual(key1.path);
+      expect(result.pathRemainder).toStrictEqual([]);
+      expect(result.wildcard).toBeTrue();
+      expect(result.value).toBe(value);
+    });
+
+    test('does not find a non-wildcard binding "below" the key being looked up', () => {
+      const key1  = new TreePathKey(['top'], false);
+      const key2  = new TreePathKey(['top', 'middle'], false);
+      const key3  = new TreePathKey(['top', 'middle', 'bottom'], true);
+      const map   = new TreePathMap();
+
+      map.add(key1, 'x');
+      map.add(key2, 'y');
+
+      const result = map.find(key3);
+      expect(result).toBeNull();
     });
 
     test('does not find an already-added non-wildcard, when a would-match wildcard key is passed', () => {
