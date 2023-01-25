@@ -26,11 +26,14 @@ export class TreePathMap {
   /** @type {number} Total number of bindings. */
   #size = 0;
 
+  /**
+   * @type {TreePathKey} Non-wildcard key (from the root), if there is an
+   * empty-path binding to this instance.
+   */
+  #emptyKey = null;
+
   /** @type {*} Empty-path binding. */
   #emptyValue = null;
-
-  /** @type {boolean} Is there an empty-path binding? */
-  #hasEmpty = false;
 
   /** @type {*} Wildcard binding. */
   #wildcardValue = null;
@@ -215,7 +218,7 @@ export class TreePathMap {
     if (key.wildcard) {
       return subtree.#hasWildcard ? subtree.#wildcardValue : ifNotFound;
     } else {
-      return subtree.#hasEmpty ? subtree.#emptyValue : ifNotFound;
+      return subtree.#emptyKey ? subtree.#emptyValue : ifNotFound;
     }
   }
 
@@ -248,11 +251,11 @@ export class TreePathMap {
       subtree.#wildcardValue = value;
       subtree.#hasWildcard   = true;
     } else {
-      if (subtree.#hasEmpty) {
+      if (subtree.#emptyKey) {
         throw this.#errorMessage('Path already bound', key);
       }
+      subtree.#emptyKey   = key;
       subtree.#emptyValue = value;
-      subtree.#hasEmpty   = true;
     }
   }
 
@@ -297,7 +300,7 @@ export class TreePathMap {
     }
 
     if (at === path.length) {
-      if (subtree.#hasEmpty && !wildcard) {
+      if (subtree.#emptyKey && !wildcard) {
         // There's an exact match for the path.
         return {
           path:          [...path],
@@ -337,8 +340,8 @@ export class TreePathMap {
    *   described above.
    */
   *#iteratorAt(pathPrefix) {
-    if (this.#hasEmpty) {
-      yield ([new TreePathKey(pathPrefix, false), this.#emptyValue]);
+    if (this.#emptyKey) {
+      yield ([this.#emptyKey, this.#emptyValue]);
     }
 
     if (this.#hasWildcard) {
