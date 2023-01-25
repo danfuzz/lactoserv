@@ -93,4 +93,17 @@ export class TreePathKey {
     result.push(options.suffix);
     return result.join('');
   }
+
+
+  //
+  // Static members
+  //
+
+  /** @type {TreePathKey} A non-wildcard empty-path instance. */
+  static #EMPTY = Object.freeze(new TreePathKey(Object.freeze([]), false));
+
+  /** @type {TreePathKey} A non-wildcard empty-path instance. */
+  static get EMPTY() {
+    return this.#EMPTY;
+  }
 }

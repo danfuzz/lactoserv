@@ -26,17 +26,23 @@ export class TreePathMap {
   /** @type {number} Total number of bindings. */
   #size = 0;
 
+  /**
+   * @type {TreePathKey} Non-wildcard key (from the root), if there is an
+   * empty-path binding to this instance.
+   */
+  #emptyKey = null;
+
   /** @type {*} Empty-path binding. */
   #emptyValue = null;
 
-  /** @type {boolean} Is there an empty-path binding? */
-  #hasEmpty = false;
+  /**
+   * @type {TreePathKey} Wildcard key (from the root), if there is a wildcard
+   * binding to this instance.
+   */
+  #wildcardKey = null;
 
   /** @type {*} Wildcard binding. */
   #wildcardValue = null;
-
-  /** @type {boolean} Is there a wildcard binding? */
-  #hasWildcard = false;
 
   /**
    * Constructs an empty instance.
@@ -89,9 +95,12 @@ export class TreePathMap {
   /**
    * Gets an iterator over the entries of this instance, analogously to the
    * standard JavaScript `Map.entries()` method. The keys are all instances of
-   * {@link TreePathKey}. The result is both an iterator and an iterable (which,
-   * as with `Map.entries()`, returns itself). Unlike `Map`, this method does
-   * _not_ return an iterator which yields keys in insertion order.
+   * {@link TreePathKey}, more specifically the same instances that were used to
+   * add mappings to this instance. The result is both an iterator and an
+   * iterable (which, as with `Map.entries()`, returns itself).
+   *
+   * Unlike `Map`, this method does _not_ return an iterator which yields keys
+   * in insertion order.
    *
    * @returns {object} Iterator over the entries of this instance.
    */
@@ -106,14 +115,18 @@ export class TreePathMap {
    *   up. If `.wildcard` is `true`, then this method will only find bindings
    *   which are wildcards, though they might be more general than the `.path`
    *   being looked for.
-   * @returns {?{path: string[], pathRemainder: string[], value: *, wildcard:
-   *   boolean}} Information about the found result, or `null` if there was no
-   *   match at all.
-   *   * `{string[]} path` -- The path that was matched.
-   *   * `{string[]} pathRemainder` -- The portion of `path` that was matched by
-   *     a wildcard, if this was in fact a wildcard match.
+   * @returns {?{key: TreePathKey, keyRemainder: TreePathKey, value: *}} Details
+   *   about the found result, or `null` if there was no match.
+   *   * `{TreePathKey} key` -- The key that was matched; this is a wildcard key
+   *     if the match was in fact a wildcard match, and likewise it is a
+   *     non-wildcard key for an exact match. Furthermore, this is an object
+   *     that was `add()`ed to this instance (and not, e.g., a "reconstructed"
+   *     key).
+   *   * `{TreePathKey} keyRemainder` -- The portion of the originally-given
+   *     `key.path` that was matched by a wildcard, if this was in fact a
+   *     wildcard match, in the form of a non-wildcard key. For non-wildcard
+   *     matches, this is always an empty-path key.
    *   * `{*} value` -- The bound value that was found.
-   *   * `{boolean} wildcard` -- Was this a wildcard match?
    */
   find(key) {
     const { path, wildcard } = key;
@@ -143,7 +156,7 @@ export class TreePathMap {
    *
    * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to look
    *   up.
-   * @returns {Map<TreePathKey, *>} Map of matched bindings.
+   * @returns {TreePathMap} Map of matched bindings.
    */
   findAllBindings(key) {
     const { path, wildcard } = key;
@@ -213,9 +226,9 @@ export class TreePathMap {
     }
 
     if (key.wildcard) {
-      return subtree.#hasWildcard ? subtree.#wildcardValue : ifNotFound;
+      return subtree.#wildcardKey ? subtree.#wildcardValue : ifNotFound;
     } else {
-      return subtree.#hasEmpty ? subtree.#emptyValue : ifNotFound;
+      return subtree.#emptyKey ? subtree.#emptyValue : ifNotFound;
     }
   }
 
@@ -242,17 +255,17 @@ export class TreePathMap {
 
     // Put a new binding directly into `subtree`, or report the salient problem.
     if (key.wildcard) {
-      if (subtree.#hasWildcard) {
+      if (subtree.#wildcardKey) {
         throw this.#errorMessage('Path already bound', key);
       }
+      subtree.#wildcardKey   = key;
       subtree.#wildcardValue = value;
-      subtree.#hasWildcard   = true;
     } else {
-      if (subtree.#hasEmpty) {
+      if (subtree.#emptyKey) {
         throw this.#errorMessage('Path already bound', key);
       }
+      subtree.#emptyKey   = key;
       subtree.#emptyValue = value;
-      subtree.#hasEmpty   = true;
     }
   }
 
@@ -280,15 +293,17 @@ export class TreePathMap {
    * @returns {?object} Result as described by {@link #find}.
    */
   #find0(path, wildcard) {
-    let subtree = this;
+    let subtree    = this;
     let foundIndex = -1;
+    let foundKey   = null;
     let foundValue = null;
 
     let at;
     for (at = 0; at < path.length; at++) {
-      if (subtree.#hasWildcard) {
-        foundValue = subtree.#wildcardValue;
+      if (subtree.#wildcardKey) {
         foundIndex = at;
+        foundKey   = subtree.#wildcardKey;
+        foundValue = subtree.#wildcardValue;
       }
       subtree = subtree.#subtrees.get(path[at]);
       if (!subtree) {
@@ -297,29 +312,26 @@ export class TreePathMap {
     }
 
     if (at === path.length) {
-      if (subtree.#hasEmpty && !wildcard) {
+      if (subtree.#emptyKey && !wildcard) {
         // There's an exact match for the path.
         return {
-          path:          [...path],
-          pathRemainder: [],
-          value:         subtree.#emptyValue,
-          wildcard:      false
+          key:          subtree.#emptyKey,
+          keyRemainder: TreePathKey.EMPTY,
+          value:        subtree.#emptyValue
         };
-      } else if (subtree.#hasWildcard) {
+      } else if (subtree.#wildcardKey) {
         // There's a matching wildcard at the end of the path.
         return {
-          path:          [...path],
-          pathRemainder: [],
-          value:         subtree.#wildcardValue,
-          wildcard:      true
+          key:          subtree.#wildcardKey,
+          keyRemainder: TreePathKey.EMPTY,
+          value:        subtree.#wildcardValue
         };
       }
     } else if (foundIndex >= 0) {
       return {
-        path:          path.slice(0, foundIndex),
-        pathRemainder: path.slice(foundIndex),
-        value:         foundValue,
-        wildcard:      true
+        key:          foundKey,
+        keyRemainder: new TreePathKey(Object.freeze(path.slice(foundIndex)), false),
+        value:        foundValue
       };
     }
 
@@ -337,12 +349,12 @@ export class TreePathMap {
    *   described above.
    */
   *#iteratorAt(pathPrefix) {
-    if (this.#hasEmpty) {
-      yield ([new TreePathKey(pathPrefix, false), this.#emptyValue]);
+    if (this.#emptyKey) {
+      yield ([this.#emptyKey, this.#emptyValue]);
     }
 
-    if (this.#hasWildcard) {
-      yield ([new TreePathKey(pathPrefix, true), this.#wildcardValue]);
+    if (this.#wildcardKey) {
+      yield ([this.#wildcardKey, this.#wildcardValue]);
     }
 
     for (const [pathComponent, subtree] of this.#subtrees) {

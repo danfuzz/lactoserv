@@ -70,7 +70,8 @@ ${'entries'}           | ${'entries'}
     const iter = map[method]();
 
     const result1 = iter.next();
-    expect(result1.value).toStrictEqual([key, value]);
+    expect(result1.value[0]).toBe(key);
+    expect(result1.value[1]).toBe(value);
     expect(result1.done).toBeBoolean();
 
     if (!result1.done) {
@@ -107,10 +108,10 @@ describe('entries()', () => {
     // This is a "smokey" test.
     const bindings = new Map([
       [new TreePathKey([], false), 'one'],
-      [new TreePathKey(['boop'], false), 'two'],
-      [new TreePathKey(['beep'], true), 'three'],
-      [new TreePathKey(['z', 'y'], true), 'four'],
-      [new TreePathKey(['z', 'y', 'z'], false), 'five'],
+      [new TreePathKey(['boop'], false), ['two']],
+      [new TreePathKey(['beep'], true), ['three', 3]],
+      [new TreePathKey(['z', 'y'], true), Symbol('four')],
+      [new TreePathKey(['z', 'y', 'z'], false), { five: 'five' }],
       [new TreePathKey(['a'], true), 'six'],
       [new TreePathKey(['a', 'b'], true), 'seven'],
       [new TreePathKey(['c', 'd', 'c'], false), 'eight'],
@@ -125,6 +126,9 @@ describe('entries()', () => {
 
     const resultMap = new TreePathMap();
     for (const [k, v] of map.entries()) {
+      expect(bindings.has(k)).toBeTrue();
+      expect(bindings.get(k)).toBe(v);
+
       // Note that `add` doesn't allow duplicates, so this test will implicitly
       // end up checking that each key appears only once.
       resultMap.add(k, v);
@@ -138,90 +142,202 @@ describe('entries()', () => {
 });
 
 describe('find()', () => {
-  test('finds an already-added key, when an exact match is passed as a `TreePathKey`', () => {
-    const key   = new TreePathKey(['1', '2', '3'], false);
-    const value = ['florp'];
-    const map   = new TreePathMap();
+  describe('given a non-wildcard key', () => {
+    test('finds an already-added key, when an exact match is passed as a `TreePathKey`', () => {
+      const key   = new TreePathKey(['1', '2', '3'], false);
+      const value = ['florp'];
+      const map   = new TreePathMap();
 
-    map.add(key, value);
-    const result = map.find(key);
-    expect(result).not.toBeNull();
-    expect(result.path).toStrictEqual(key.path);
-    expect(result.pathRemainder).toStrictEqual([]);
-    expect(result.wildcard).toBeFalse();
-    expect(result.value).toBe(value);
+      map.add(key, value);
+      const result = map.find(key);
+      expect(result).not.toBeNull();
+      expect(result.key).toBe(key);
+      expect(result.keyRemainder).toBe(TreePathKey.EMPTY);
+      expect(result.value).toBe(value);
+    });
+
+    test('finds an already-added key, when an exact match passed as a key-like plain object', () => {
+      const key1  = new TreePathKey(['1', '2', '3'], false);
+      const key2  = { path: ['1', '2', '3'], wildcard: false };
+      const value = ['florp'];
+      const map   = new TreePathMap();
+
+      map.add(key1, value);
+      const result = map.find(key2);
+      expect(result).not.toBeNull();
+      expect(result.key).toBe(key1);
+      expect(result.keyRemainder).toBe(TreePathKey.EMPTY);
+      expect(result.value).toBe(value);
+    });
+
+    test('finds an already-added wildcard, when a matching non-wildcard key is passed', () => {
+      const key1  = new TreePathKey(['one', 'two'], true);
+      const key2  = new TreePathKey(['one', 'two'], false);
+      const key3  = new TreePathKey(['one', 'two', 'three'], false);
+      const value = ['boop'];
+      const map   = new TreePathMap();
+
+      map.add(key1, value);
+
+      const result1 = map.find(key2);
+      expect(result1).not.toBeNull();
+      expect(result1.key).toBe(key1);
+      expect(result1.keyRemainder).toBe(TreePathKey.EMPTY);
+      expect(result1.value).toBe(value);
+
+      const result2 = map.find(key3);
+      expect(result2).not.toBeNull();
+      expect(result2.key).toBe(key1);
+      expect(result2.keyRemainder.path).toStrictEqual(['three']);
+      expect(result2.keyRemainder.wildcard).toBeFalse();
+      expect(result2.value).toBe(value);
+    });
+
+    test('finds a wildcard binding "below" the key being looked up', () => {
+      const key1  = new TreePathKey(['top'], true);
+      const key2  = new TreePathKey(['top', 'middle'], false);
+      const key3  = new TreePathKey(['top', 'middle', 'bottom'], false);
+      const value = ['florp'];
+      const map   = new TreePathMap();
+
+      map.add(key1, value);
+      map.add(key2, 'y');
+
+      const result = map.find(key3);
+      expect(result).not.toBeNull();
+      expect(result.key).toBe(key1);
+      expect(result.keyRemainder.path).toStrictEqual(['middle', 'bottom']);
+      expect(result.keyRemainder.wildcard).toBeFalse();
+      expect(result.value).toBe(value);
+    });
+
+    test('finds the most specific wildcard binding "below" the key being looked up', () => {
+      const key1  = new TreePathKey(['top'], true);
+      const key2  = new TreePathKey(['top', 'middle'], true);
+      const key3  = new TreePathKey(['top', 'middle', 'bottom'], false);
+      const value = ['florp', 'like'];
+      const map   = new TreePathMap();
+
+      map.add(key1, 'x');
+      map.add(key2, value);
+
+      const result = map.find(key3);
+      expect(result).not.toBeNull();
+      expect(result.key).toBe(key2);
+      expect(result.keyRemainder.path).toStrictEqual(['bottom']);
+      expect(result.keyRemainder.wildcard).toBeFalse();
+      expect(result.value).toBe(value);
+    });
+
+    test('does not find a non-wildcard binding "below" the key being looked up', () => {
+      const key1 = new TreePathKey(['top'], false);
+      const key2 = new TreePathKey(['top', 'middle'], false);
+      const key3 = new TreePathKey(['top', 'middle', 'bottom'], false);
+      const map  = new TreePathMap();
+
+      map.add(key1, 'x');
+      map.add(key2, 'y');
+
+      const result = map.find(key3);
+      expect(result).toBeNull();
+    });
   });
 
-  test('finds an already-added key, when an exact match passed as a key-like plain object', () => {
-    const key1  = new TreePathKey(['1', '2', '3'], false);
-    const key2  = { path: ['1', '2', '3'], wildcard: false };
-    const value = ['florp'];
-    const map   = new TreePathMap();
+  describe('given a wildcard key', () => {
+    test('finds an already-added wildcard, when a matching key is passed as a `TreePathKey`', () => {
+      const key1  = new TreePathKey(['one', 'two'], true);
+      const key2  = new TreePathKey(['one', 'two', 'three'], true);
+      const value = ['boop'];
+      const map   = new TreePathMap();
 
-    map.add(key1, value);
-    const result = map.find(key2);
-    expect(result).not.toBeNull();
-    expect(result.path).toStrictEqual(key1.path);
-    expect(result.pathRemainder).toStrictEqual([]);
-    expect(result.wildcard).toBeFalse();
-    expect(result.value).toBe(value);
-  });
+      map.add(key1, value);
 
-  test('finds an already-added wildcard, when a matching non-wildcard key is passed', () => {
-    const key1  = new TreePathKey(['one', 'two'], true);
-    const key2  = new TreePathKey(['one', 'two'], false);
-    const key3  = new TreePathKey(['one', 'two', 'three'], false);
-    const value = ['boop'];
-    const map   = new TreePathMap();
+      const result1 = map.find(key1);
+      expect(result1).not.toBeNull();
+      expect(result1.key).toBe(key1);
+      expect(result1.keyRemainder).toBe(TreePathKey.EMPTY);
+      expect(result1.value).toBe(value);
 
-    map.add(key1, value);
+      const result2 = map.find(key2);
+      expect(result2).not.toBeNull();
+      expect(result2.key).toBe(key1);
+      expect(result2.keyRemainder.path).toStrictEqual(['three']);
+      expect(result2.keyRemainder.wildcard).toBeFalse();
+      expect(result2.value).toBe(value);
+    });
 
-    const result1 = map.find(key2);
-    expect(result1).not.toBeNull();
-    expect(result1.path).toStrictEqual(key1.path);
-    expect(result1.pathRemainder).toStrictEqual([]);
-    expect(result1.wildcard).toBeTrue();
-    expect(result1.value).toBe(value);
+    test('finds an already-added wildcard, when a matching key is passed as a plain object', () => {
+      const key1  = new TreePathKey(['a', 'b', 'c'], true);
+      const value = ['boop'];
+      const map   = new TreePathMap();
 
-    const result2 = map.find(key3);
-    expect(result2).not.toBeNull();
-    expect(result2.path).toStrictEqual(key1.path);
-    expect(result2.pathRemainder).toStrictEqual(['three']);
-    expect(result2.wildcard).toBeTrue();
-    expect(result2.value).toBe(value);
-  });
+      map.add(key1, value);
 
-  test('finds an already-added wildcard, when a matching wildcard key is passed', () => {
-    const key1  = new TreePathKey(['one', 'two'], true);
-    const key2  = new TreePathKey(['one', 'two', 'three'], true);
-    const value = ['boop'];
-    const map   = new TreePathMap();
+      const result = map.find({ path: ['a', 'b', 'c'], wildcard: true });
+      expect(result).not.toBeNull();
+      expect(result.key).toBe(key1);
+      expect(result.keyRemainder).toBe(TreePathKey.EMPTY);
+      expect(result.value).toBe(value);
+    });
 
-    map.add(key1, value);
+    test('does not find a non-wildcard binding "below" the key being looked up', () => {
+      const key1 = new TreePathKey(['top'], false);
+      const key2 = new TreePathKey(['top', 'middle'], false);
+      const key3 = new TreePathKey(['top', 'middle', 'bottom'], true);
+      const map  = new TreePathMap();
 
-    const result1 = map.find(key1);
-    expect(result1).not.toBeNull();
-    expect(result1.path).toStrictEqual(key1.path);
-    expect(result1.pathRemainder).toStrictEqual([]);
-    expect(result1.wildcard).toBeTrue();
-    expect(result1.value).toBe(value);
+      map.add(key1, 'x');
+      map.add(key2, 'y');
 
-    const result2 = map.find(key2);
-    expect(result2).not.toBeNull();
-    expect(result2.path).toStrictEqual(key1.path);
-    expect(result2.pathRemainder).toStrictEqual(['three']);
-    expect(result2.wildcard).toBeTrue();
-    expect(result2.value).toBe(value);
-  });
+      const result = map.find(key3);
+      expect(result).toBeNull();
+    });
 
-  test('does not find an already-added non-wildcard, when a would-match wildcard key is passed', () => {
-    const key1  = new TreePathKey(['one', 'two'], false);
-    const key2  = new TreePathKey(['one', 'two'], true);
-    const value = ['beep'];
-    const map   = new TreePathMap();
+    test('finds a wildcard binding "below" the key being looked up', () => {
+      const key1  = new TreePathKey(['top'], true);
+      const key2  = new TreePathKey(['top', 'middle'], false);
+      const key3  = new TreePathKey(['top', 'middle', 'bottom'], true);
+      const value = { beep: 'boop' };
+      const map   = new TreePathMap();
 
-    map.add(key1, value);
-    expect(map.find(key2)).toBeNull();
+      map.add(key1, value);
+      map.add(key2, 'y');
+
+      const result = map.find(key3);
+      expect(result).not.toBeNull();
+      expect(result.key).toBe(key1);
+      expect(result.keyRemainder.path).toStrictEqual(['middle', 'bottom']);
+      expect(result.keyRemainder.wildcard).toBeFalse();
+      expect(result.value).toBe(value);
+    });
+
+    test('finds the most-specific wildcard binding "below" the key being looked up', () => {
+      const key1  = new TreePathKey(['top'], true);
+      const key2  = new TreePathKey(['top', 'middle'], true);
+      const key3  = new TreePathKey(['top', 'middle', 'bottom'], true);
+      const value = { zeep: 'zoop' };
+      const map   = new TreePathMap();
+
+      map.add(key1, 'x');
+      map.add(key2, value);
+
+      const result = map.find(key3);
+      expect(result).not.toBeNull();
+      expect(result.key).toBe(key2);
+      expect(result.keyRemainder.path).toStrictEqual(['bottom']);
+      expect(result.keyRemainder.wildcard).toBeFalse();
+      expect(result.value).toBe(value);
+    });
+
+    test('does not find a non-wildcard, when a would-match wildcard key is passed', () => {
+      const key1  = new TreePathKey(['one', 'two'], false);
+      const key2  = new TreePathKey(['one', 'two'], true);
+      const value = ['beep'];
+      const map   = new TreePathMap();
+
+      map.add(key1, value);
+      expect(map.find(key2)).toBeNull();
+    });
   });
 
   describe('nullish values', () => {
@@ -412,7 +528,6 @@ describe('findAllBindings()', () => {
     for (const [k, v] of bindings) {
       expect(result.get(k)).toBe(v);
     }
-
   });
 });
 

@@ -84,3 +84,21 @@ describe('.path', () => {
     expect(key.path).toBe(path);
   });
 });
+
+describe('.EMPTY', () => {
+  test('is an instance of the class', () => {
+    expect(TreePathKey.EMPTY).toBeInstanceOf(TreePathKey);
+  });
+
+  test('is frozen', () => {
+    expect(TreePathKey.EMPTY).toBeFrozen();
+  });
+
+  test('has an empty path', () => {
+    expect(TreePathKey.EMPTY.path).toStrictEqual([]);
+  });
+
+  test('is not a wildcard key', () => {
+    expect(TreePathKey.EMPTY.wildcard).toBeFalse();
+  });
+});
