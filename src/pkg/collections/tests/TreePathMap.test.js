@@ -151,7 +151,7 @@ describe('find()', () => {
       map.add(key, value);
       const result = map.find(key);
       expect(result).not.toBeNull();
-      expect(result.path).toStrictEqual(key.path);
+      expect(result.key).toBe(key);
       expect(result.pathRemainder).toStrictEqual([]);
       expect(result.wildcard).toBeFalse();
       expect(result.value).toBe(value);
@@ -166,7 +166,7 @@ describe('find()', () => {
       map.add(key1, value);
       const result = map.find(key2);
       expect(result).not.toBeNull();
-      expect(result.path).toStrictEqual(key1.path);
+      expect(result.key).toBe(key1);
       expect(result.pathRemainder).toStrictEqual([]);
       expect(result.wildcard).toBeFalse();
       expect(result.value).toBe(value);
@@ -183,14 +183,14 @@ describe('find()', () => {
 
       const result1 = map.find(key2);
       expect(result1).not.toBeNull();
-      expect(result1.path).toStrictEqual(key1.path);
+      expect(result1.key).toBe(key1);
       expect(result1.pathRemainder).toStrictEqual([]);
       expect(result1.wildcard).toBeTrue();
       expect(result1.value).toBe(value);
 
       const result2 = map.find(key3);
       expect(result2).not.toBeNull();
-      expect(result2.path).toStrictEqual(key1.path);
+      expect(result2.key).toBe(key1);
       expect(result2.pathRemainder).toStrictEqual(['three']);
       expect(result2.wildcard).toBeTrue();
       expect(result2.value).toBe(value);
@@ -208,7 +208,7 @@ describe('find()', () => {
 
       const result = map.find(key3);
       expect(result).not.toBeNull();
-      expect(result.path).toStrictEqual(key1.path);
+      expect(result.key).toBe(key1);
       expect(result.pathRemainder).toStrictEqual(['middle', 'bottom']);
       expect(result.wildcard).toBeTrue();
       expect(result.value).toBe(value);
@@ -226,7 +226,7 @@ describe('find()', () => {
 
       const result = map.find(key3);
       expect(result).not.toBeNull();
-      expect(result.path).toStrictEqual(key2.path);
+      expect(result.key).toBe(key2);
       expect(result.pathRemainder).toStrictEqual(['bottom']);
       expect(result.wildcard).toBeTrue();
       expect(result.value).toBe(value);
@@ -257,14 +257,14 @@ describe('find()', () => {
 
       const result1 = map.find(key1);
       expect(result1).not.toBeNull();
-      expect(result1.path).toStrictEqual(key1.path);
+      expect(result1.key).toBe(key1);
       expect(result1.pathRemainder).toStrictEqual([]);
       expect(result1.wildcard).toBeTrue();
       expect(result1.value).toBe(value);
 
       const result2 = map.find(key2);
       expect(result2).not.toBeNull();
-      expect(result2.path).toStrictEqual(key1.path);
+      expect(result2.key).toBe(key1);
       expect(result2.pathRemainder).toStrictEqual(['three']);
       expect(result2.wildcard).toBeTrue();
       expect(result2.value).toBe(value);
@@ -280,7 +280,7 @@ describe('find()', () => {
 
       const result = map.find({ path: ['a', 'b', 'c'], wildcard: true });
       expect(result).not.toBeNull();
-      expect(result.path).toStrictEqual(key1.path);
+      expect(result.key).toBe(key1);
       expect(result.pathRemainder).toStrictEqual([]);
       expect(result.wildcard).toBeTrue();
       expect(result.value).toBe(value);
@@ -311,7 +311,7 @@ describe('find()', () => {
 
       const result = map.find(key3);
       expect(result).not.toBeNull();
-      expect(result.path).toStrictEqual(key1.path);
+      expect(result.key).toBe(key1);
       expect(result.pathRemainder).toStrictEqual(['middle', 'bottom']);
       expect(result.wildcard).toBeTrue();
       expect(result.value).toBe(value);
@@ -329,7 +329,7 @@ describe('find()', () => {
 
       const result = map.find(key3);
       expect(result).not.toBeNull();
-      expect(result.path).toStrictEqual(key2.path);
+      expect(result.key).toBe(key2);
       expect(result.pathRemainder).toStrictEqual(['bottom']);
       expect(result.wildcard).toBeTrue();
       expect(result.value).toBe(value);

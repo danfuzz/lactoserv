@@ -156,7 +156,7 @@ export class ServerController {
 
     const { baseUrl: origBaseUrl, url: origUrl } = req;
 
-    req.baseUrl = origBaseUrl + '/' + pathMatch.path.join('/');
+    req.baseUrl = origBaseUrl + '/' + pathMatch.key.path.join('/');
     req.url = '/' + pathMatch.pathRemainder.join('/');
 
     reqLogger?.dispatching({
@@ -187,7 +187,7 @@ export class ServerController {
    * @returns {string} A loggable string.
    */
   static #hostMatchString(match) {
-    const { path, wildcard } = match;
+    const { path, wildcard } = match.key;
 
     if (wildcard && path.length === 0) {
       return '*';
@@ -254,7 +254,7 @@ export class ServerController {
    * @returns {string} A loggable string.
    */
   static #pathMatchString(match) {
-    const { path, wildcard } = match;
+    const { path, wildcard } = match.key;
 
     if (wildcard) {
       return (path.length === 0)

@@ -118,7 +118,8 @@ export class TreePathMap {
    * @returns {?{path: string[], pathRemainder: string[], value: *, wildcard:
    *   boolean}} Information about the found result, or `null` if there was no
    *   match at all.
-   *   * `{string[]} path` -- The path that was matched.
+   *   * `{TreePathKey} key` -- The key that was matched. This is an object that
+   *     was `add()`ed to this instance (and not, e.g., a "reconstructed" key).
    *   * `{string[]} pathRemainder` -- The portion of `path` that was matched by
    *     a wildcard, if this was in fact a wildcard match.
    *   * `{*} value` -- The bound value that was found.
@@ -289,15 +290,17 @@ export class TreePathMap {
    * @returns {?object} Result as described by {@link #find}.
    */
   #find0(path, wildcard) {
-    let subtree = this;
+    let subtree    = this;
     let foundIndex = -1;
+    let foundKey   = null;
     let foundValue = null;
 
     let at;
     for (at = 0; at < path.length; at++) {
       if (subtree.#wildcardKey) {
-        foundValue = subtree.#wildcardValue;
         foundIndex = at;
+        foundKey   = subtree.#wildcardKey;
+        foundValue = subtree.#wildcardValue;
       }
       subtree = subtree.#subtrees.get(path[at]);
       if (!subtree) {
@@ -309,7 +312,7 @@ export class TreePathMap {
       if (subtree.#emptyKey && !wildcard) {
         // There's an exact match for the path.
         return {
-          path:          [...path],
+          key:           subtree.#emptyKey,
           pathRemainder: [],
           value:         subtree.#emptyValue,
           wildcard:      false
@@ -317,7 +320,7 @@ export class TreePathMap {
       } else if (subtree.#wildcardKey) {
         // There's a matching wildcard at the end of the path.
         return {
-          path:          [...path],
+          key:           subtree.#wildcardKey,
           pathRemainder: [],
           value:         subtree.#wildcardValue,
           wildcard:      true
@@ -325,7 +328,7 @@ export class TreePathMap {
       }
     } else if (foundIndex >= 0) {
       return {
-        path:          path.slice(0, foundIndex),
+        key:           foundKey,
         pathRemainder: path.slice(foundIndex),
         value:         foundValue,
         wildcard:      true
