@@ -152,7 +152,7 @@ export class TreePathMap {
    *
    * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to look
    *   up.
-   * @returns {Map<TreePathKey, *>} Map of matched bindings.
+   * @returns {TreePathMap} Map of matched bindings.
    */
   findAllBindings(key) {
     const { path, wildcard } = key;
