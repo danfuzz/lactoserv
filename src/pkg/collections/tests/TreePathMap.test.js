@@ -70,7 +70,8 @@ ${'entries'}           | ${'entries'}
     const iter = map[method]();
 
     const result1 = iter.next();
-    expect(result1.value).toStrictEqual([key, value]);
+    expect(result1.value[0]).toBe(key);
+    expect(result1.value[1]).toBe(value);
     expect(result1.done).toBeBoolean();
 
     if (!result1.done) {
@@ -107,10 +108,10 @@ describe('entries()', () => {
     // This is a "smokey" test.
     const bindings = new Map([
       [new TreePathKey([], false), 'one'],
-      [new TreePathKey(['boop'], false), 'two'],
-      [new TreePathKey(['beep'], true), 'three'],
-      [new TreePathKey(['z', 'y'], true), 'four'],
-      [new TreePathKey(['z', 'y', 'z'], false), 'five'],
+      [new TreePathKey(['boop'], false), ['two']],
+      [new TreePathKey(['beep'], true), ['three', 3]],
+      [new TreePathKey(['z', 'y'], true), Symbol('four')],
+      [new TreePathKey(['z', 'y', 'z'], false), { five: 'five' }],
       [new TreePathKey(['a'], true), 'six'],
       [new TreePathKey(['a', 'b'], true), 'seven'],
       [new TreePathKey(['c', 'd', 'c'], false), 'eight'],
@@ -125,6 +126,9 @@ describe('entries()', () => {
 
     const resultMap = new TreePathMap();
     for (const [k, v] of map.entries()) {
+      expect(bindings.has(k)).toBeTrue();
+      expect(bindings.get(k)).toBe(v);
+
       // Note that `add` doesn't allow duplicates, so this test will implicitly
       // end up checking that each key appears only once.
       resultMap.add(k, v);
