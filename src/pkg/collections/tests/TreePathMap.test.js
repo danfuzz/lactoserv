@@ -153,7 +153,6 @@ describe('find()', () => {
       expect(result).not.toBeNull();
       expect(result.key).toBe(key);
       expect(result.pathRemainder).toStrictEqual([]);
-      expect(result.wildcard).toBeFalse();
       expect(result.value).toBe(value);
     });
 
@@ -168,7 +167,6 @@ describe('find()', () => {
       expect(result).not.toBeNull();
       expect(result.key).toBe(key1);
       expect(result.pathRemainder).toStrictEqual([]);
-      expect(result.wildcard).toBeFalse();
       expect(result.value).toBe(value);
     });
 
@@ -185,14 +183,12 @@ describe('find()', () => {
       expect(result1).not.toBeNull();
       expect(result1.key).toBe(key1);
       expect(result1.pathRemainder).toStrictEqual([]);
-      expect(result1.wildcard).toBeTrue();
       expect(result1.value).toBe(value);
 
       const result2 = map.find(key3);
       expect(result2).not.toBeNull();
       expect(result2.key).toBe(key1);
       expect(result2.pathRemainder).toStrictEqual(['three']);
-      expect(result2.wildcard).toBeTrue();
       expect(result2.value).toBe(value);
     });
 
@@ -210,7 +206,6 @@ describe('find()', () => {
       expect(result).not.toBeNull();
       expect(result.key).toBe(key1);
       expect(result.pathRemainder).toStrictEqual(['middle', 'bottom']);
-      expect(result.wildcard).toBeTrue();
       expect(result.value).toBe(value);
     });
 
@@ -228,7 +223,6 @@ describe('find()', () => {
       expect(result).not.toBeNull();
       expect(result.key).toBe(key2);
       expect(result.pathRemainder).toStrictEqual(['bottom']);
-      expect(result.wildcard).toBeTrue();
       expect(result.value).toBe(value);
     });
 
@@ -259,14 +253,12 @@ describe('find()', () => {
       expect(result1).not.toBeNull();
       expect(result1.key).toBe(key1);
       expect(result1.pathRemainder).toStrictEqual([]);
-      expect(result1.wildcard).toBeTrue();
       expect(result1.value).toBe(value);
 
       const result2 = map.find(key2);
       expect(result2).not.toBeNull();
       expect(result2.key).toBe(key1);
       expect(result2.pathRemainder).toStrictEqual(['three']);
-      expect(result2.wildcard).toBeTrue();
       expect(result2.value).toBe(value);
     });
 
@@ -282,7 +274,6 @@ describe('find()', () => {
       expect(result).not.toBeNull();
       expect(result.key).toBe(key1);
       expect(result.pathRemainder).toStrictEqual([]);
-      expect(result.wildcard).toBeTrue();
       expect(result.value).toBe(value);
     });
 
@@ -313,7 +304,6 @@ describe('find()', () => {
       expect(result).not.toBeNull();
       expect(result.key).toBe(key1);
       expect(result.pathRemainder).toStrictEqual(['middle', 'bottom']);
-      expect(result.wildcard).toBeTrue();
       expect(result.value).toBe(value);
     });
 
@@ -331,7 +321,6 @@ describe('find()', () => {
       expect(result).not.toBeNull();
       expect(result.key).toBe(key2);
       expect(result.pathRemainder).toStrictEqual(['bottom']);
-      expect(result.wildcard).toBeTrue();
       expect(result.value).toBe(value);
     });
 

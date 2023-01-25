@@ -118,12 +118,14 @@ export class TreePathMap {
    * @returns {?{path: string[], pathRemainder: string[], value: *, wildcard:
    *   boolean}} Information about the found result, or `null` if there was no
    *   match at all.
-   *   * `{TreePathKey} key` -- The key that was matched. This is an object that
-   *     was `add()`ed to this instance (and not, e.g., a "reconstructed" key).
+   *   * `{TreePathKey} key` -- The key that was matched; this is a wildcard key
+   *     if the match was in fact a wildcard match, and likewise it is a
+   *     non-wildcard key for an exact match. Furthermore, this is an object
+   *     that was `add()`ed to this instance (and not, e.g., a "reconstructed"
+   *     key).
    *   * `{string[]} pathRemainder` -- The portion of `path` that was matched by
    *     a wildcard, if this was in fact a wildcard match.
    *   * `{*} value` -- The bound value that was found.
-   *   * `{boolean} wildcard` -- Was this a wildcard match?
    */
   find(key) {
     const { path, wildcard } = key;
@@ -314,24 +316,21 @@ export class TreePathMap {
         return {
           key:           subtree.#emptyKey,
           pathRemainder: [],
-          value:         subtree.#emptyValue,
-          wildcard:      false
+          value:         subtree.#emptyValue
         };
       } else if (subtree.#wildcardKey) {
         // There's a matching wildcard at the end of the path.
         return {
           key:           subtree.#wildcardKey,
           pathRemainder: [],
-          value:         subtree.#wildcardValue,
-          wildcard:      true
+          value:         subtree.#wildcardValue
         };
       }
     } else if (foundIndex >= 0) {
       return {
         key:           foundKey,
         pathRemainder: path.slice(foundIndex),
-        value:         foundValue,
-        wildcard:      true
+        value:         foundValue
       };
     }
 
