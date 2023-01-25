@@ -35,11 +35,14 @@ export class TreePathMap {
   /** @type {*} Empty-path binding. */
   #emptyValue = null;
 
+  /**
+   * @type {TreePathKey} Wildcard key (from the root), if there is a wildcard
+   * binding to this instance.
+   */
+  #wildcardKey = null;
+
   /** @type {*} Wildcard binding. */
   #wildcardValue = null;
-
-  /** @type {boolean} Is there a wildcard binding? */
-  #hasWildcard = false;
 
   /**
    * Constructs an empty instance.
@@ -92,9 +95,12 @@ export class TreePathMap {
   /**
    * Gets an iterator over the entries of this instance, analogously to the
    * standard JavaScript `Map.entries()` method. The keys are all instances of
-   * {@link TreePathKey}. The result is both an iterator and an iterable (which,
-   * as with `Map.entries()`, returns itself). Unlike `Map`, this method does
-   * _not_ return an iterator which yields keys in insertion order.
+   * {@link TreePathKey}, more specifically the same instances that were used to
+   * add mappings to this instance. The result is both an iterator and an
+   * iterable (which, as with `Map.entries()`, returns itself).
+   *
+   * Unlike `Map`, this method does _not_ return an iterator which yields keys
+   * in insertion order.
    *
    * @returns {object} Iterator over the entries of this instance.
    */
@@ -216,7 +222,7 @@ export class TreePathMap {
     }
 
     if (key.wildcard) {
-      return subtree.#hasWildcard ? subtree.#wildcardValue : ifNotFound;
+      return subtree.#wildcardKey ? subtree.#wildcardValue : ifNotFound;
     } else {
       return subtree.#emptyKey ? subtree.#emptyValue : ifNotFound;
     }
@@ -245,11 +251,11 @@ export class TreePathMap {
 
     // Put a new binding directly into `subtree`, or report the salient problem.
     if (key.wildcard) {
-      if (subtree.#hasWildcard) {
+      if (subtree.#wildcardKey) {
         throw this.#errorMessage('Path already bound', key);
       }
+      subtree.#wildcardKey   = key;
       subtree.#wildcardValue = value;
-      subtree.#hasWildcard   = true;
     } else {
       if (subtree.#emptyKey) {
         throw this.#errorMessage('Path already bound', key);
@@ -289,7 +295,7 @@ export class TreePathMap {
 
     let at;
     for (at = 0; at < path.length; at++) {
-      if (subtree.#hasWildcard) {
+      if (subtree.#wildcardKey) {
         foundValue = subtree.#wildcardValue;
         foundIndex = at;
       }
@@ -308,7 +314,7 @@ export class TreePathMap {
           value:         subtree.#emptyValue,
           wildcard:      false
         };
-      } else if (subtree.#hasWildcard) {
+      } else if (subtree.#wildcardKey) {
         // There's a matching wildcard at the end of the path.
         return {
           path:          [...path],
@@ -344,8 +350,8 @@ export class TreePathMap {
       yield ([this.#emptyKey, this.#emptyValue]);
     }
 
-    if (this.#hasWildcard) {
-      yield ([new TreePathKey(pathPrefix, true), this.#wildcardValue]);
+    if (this.#wildcardKey) {
+      yield ([this.#wildcardKey, this.#wildcardValue]);
     }
 
     for (const [pathComponent, subtree] of this.#subtrees) {
