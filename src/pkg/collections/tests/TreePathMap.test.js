@@ -416,7 +416,6 @@ describe('findAllBindings()', () => {
     for (const [k, v] of bindings) {
       expect(result.get(k)).toBe(v);
     }
-
   });
 });
 
