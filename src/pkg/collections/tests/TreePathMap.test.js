@@ -152,7 +152,7 @@ describe('find()', () => {
       const result = map.find(key);
       expect(result).not.toBeNull();
       expect(result.key).toBe(key);
-      expect(result.pathRemainder).toStrictEqual([]);
+      expect(result.keyRemainder).toBe(TreePathKey.EMPTY);
       expect(result.value).toBe(value);
     });
 
@@ -166,7 +166,7 @@ describe('find()', () => {
       const result = map.find(key2);
       expect(result).not.toBeNull();
       expect(result.key).toBe(key1);
-      expect(result.pathRemainder).toStrictEqual([]);
+      expect(result.keyRemainder).toBe(TreePathKey.EMPTY);
       expect(result.value).toBe(value);
     });
 
@@ -182,13 +182,14 @@ describe('find()', () => {
       const result1 = map.find(key2);
       expect(result1).not.toBeNull();
       expect(result1.key).toBe(key1);
-      expect(result1.pathRemainder).toStrictEqual([]);
+      expect(result1.keyRemainder).toBe(TreePathKey.EMPTY);
       expect(result1.value).toBe(value);
 
       const result2 = map.find(key3);
       expect(result2).not.toBeNull();
       expect(result2.key).toBe(key1);
-      expect(result2.pathRemainder).toStrictEqual(['three']);
+      expect(result2.keyRemainder.path).toStrictEqual(['three']);
+      expect(result2.keyRemainder.wildcard).toBeFalse();
       expect(result2.value).toBe(value);
     });
 
@@ -205,7 +206,8 @@ describe('find()', () => {
       const result = map.find(key3);
       expect(result).not.toBeNull();
       expect(result.key).toBe(key1);
-      expect(result.pathRemainder).toStrictEqual(['middle', 'bottom']);
+      expect(result.keyRemainder.path).toStrictEqual(['middle', 'bottom']);
+      expect(result.keyRemainder.wildcard).toBeFalse();
       expect(result.value).toBe(value);
     });
 
@@ -222,7 +224,8 @@ describe('find()', () => {
       const result = map.find(key3);
       expect(result).not.toBeNull();
       expect(result.key).toBe(key2);
-      expect(result.pathRemainder).toStrictEqual(['bottom']);
+      expect(result.keyRemainder.path).toStrictEqual(['bottom']);
+      expect(result.keyRemainder.wildcard).toBeFalse();
       expect(result.value).toBe(value);
     });
 
@@ -252,13 +255,14 @@ describe('find()', () => {
       const result1 = map.find(key1);
       expect(result1).not.toBeNull();
       expect(result1.key).toBe(key1);
-      expect(result1.pathRemainder).toStrictEqual([]);
+      expect(result1.keyRemainder).toBe(TreePathKey.EMPTY);
       expect(result1.value).toBe(value);
 
       const result2 = map.find(key2);
       expect(result2).not.toBeNull();
       expect(result2.key).toBe(key1);
-      expect(result2.pathRemainder).toStrictEqual(['three']);
+      expect(result2.keyRemainder.path).toStrictEqual(['three']);
+      expect(result2.keyRemainder.wildcard).toBeFalse();
       expect(result2.value).toBe(value);
     });
 
@@ -273,7 +277,7 @@ describe('find()', () => {
       const result = map.find({ path: ['a', 'b', 'c'], wildcard: true });
       expect(result).not.toBeNull();
       expect(result.key).toBe(key1);
-      expect(result.pathRemainder).toStrictEqual([]);
+      expect(result.keyRemainder).toBe(TreePathKey.EMPTY);
       expect(result.value).toBe(value);
     });
 
@@ -303,7 +307,8 @@ describe('find()', () => {
       const result = map.find(key3);
       expect(result).not.toBeNull();
       expect(result.key).toBe(key1);
-      expect(result.pathRemainder).toStrictEqual(['middle', 'bottom']);
+      expect(result.keyRemainder.path).toStrictEqual(['middle', 'bottom']);
+      expect(result.keyRemainder.wildcard).toBeFalse();
       expect(result.value).toBe(value);
     });
 
@@ -320,7 +325,8 @@ describe('find()', () => {
       const result = map.find(key3);
       expect(result).not.toBeNull();
       expect(result.key).toBe(key2);
-      expect(result.pathRemainder).toStrictEqual(['bottom']);
+      expect(result.keyRemainder.path).toStrictEqual(['bottom']);
+      expect(result.keyRemainder.wildcard).toBeFalse();
       expect(result.value).toBe(value);
     });
 

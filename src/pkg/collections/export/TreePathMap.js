@@ -115,16 +115,17 @@ export class TreePathMap {
    *   up. If `.wildcard` is `true`, then this method will only find bindings
    *   which are wildcards, though they might be more general than the `.path`
    *   being looked for.
-   * @returns {?{key: TreePathKey, pathRemainder: string[],
-   *   value: *}} Information about the found result, or `null` if there was no
-   *   match at all.
+   * @returns {?{key: TreePathKey, keyRemainder: TreePathKey, value: *}} Details
+   *   about the found result, or `null` if there was no match.
    *   * `{TreePathKey} key` -- The key that was matched; this is a wildcard key
    *     if the match was in fact a wildcard match, and likewise it is a
    *     non-wildcard key for an exact match. Furthermore, this is an object
    *     that was `add()`ed to this instance (and not, e.g., a "reconstructed"
    *     key).
-   *   * `{string[]} pathRemainder` -- The portion of `path` that was matched by
-   *     a wildcard, if this was in fact a wildcard match.
+   *   * `{TreePathKey} keyRemainder` -- The portion of the originally-given
+   *     `key.path` that was matched by a wildcard, if this was in fact a
+   *     wildcard match, in the form of a non-wildcard key. For non-wildcard
+   *     matches, this is always an empty-path key.
    *   * `{*} value` -- The bound value that was found.
    */
   find(key) {
@@ -314,23 +315,23 @@ export class TreePathMap {
       if (subtree.#emptyKey && !wildcard) {
         // There's an exact match for the path.
         return {
-          key:           subtree.#emptyKey,
-          pathRemainder: [],
-          value:         subtree.#emptyValue
+          key:          subtree.#emptyKey,
+          keyRemainder: TreePathKey.EMPTY,
+          value:        subtree.#emptyValue
         };
       } else if (subtree.#wildcardKey) {
         // There's a matching wildcard at the end of the path.
         return {
-          key:           subtree.#wildcardKey,
-          pathRemainder: [],
-          value:         subtree.#wildcardValue
+          key:          subtree.#wildcardKey,
+          keyRemainder: TreePathKey.EMPTY,
+          value:        subtree.#wildcardValue
         };
       }
     } else if (foundIndex >= 0) {
       return {
-        key:           foundKey,
-        pathRemainder: path.slice(foundIndex),
-        value:         foundValue
+        key:          foundKey,
+        keyRemainder: new TreePathKey(Object.freeze(path.slice(foundIndex)), false),
+        value:        foundValue
       };
     }
 

@@ -157,7 +157,7 @@ export class ServerController {
     const { baseUrl: origBaseUrl, url: origUrl } = req;
 
     req.baseUrl = origBaseUrl + '/' + pathMatch.key.path.join('/');
-    req.url = '/' + pathMatch.pathRemainder.join('/');
+    req.url = '/' + pathMatch.keyRemainder.path.join('/');
 
     reqLogger?.dispatching({
       application: controller.name,
