@@ -23,7 +23,11 @@ export class TreePathMap {
    */
   #subtrees = new Map();
 
-  /** @type {number} Total number of bindings. */
+  /**
+   * @type {number} Total number of bindings. This is only maintained on a
+   * root (publicly exposed) instance of this class (not on the instances that
+   * are used internally in {@link #subtrees}).
+   */
   #size = 0;
 
   /**
