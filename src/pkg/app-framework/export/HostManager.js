@@ -105,7 +105,7 @@ export class HostManager {
 
     for (const name of names) {
       const key   = Uris.parseHostname(name, true);
-      const found = this.#controllers.findAllBindings(key);
+      const found = this.#controllers.findSubtree(key);
       if (found.size === 0) {
         throw new Error(`No bindings found for hostname: ${name}`);
       }
