@@ -118,6 +118,9 @@ export class TreePathMap {
    * Finds the most-specific binding for the given path. Optionally produces
    * a chain of `next` results for less-and-less-specific bindings.
    *
+   * Note that, given the same path, a non-wildcard binding is considered more
+   * specific than a wildcard binding.
+   *
    * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to look
    *   up. If `.wildcard` is `true`, then this method will only find bindings
    *   which are wildcards, though they might be more general than the `.path`
