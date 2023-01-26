@@ -315,7 +315,7 @@ export class TreePathMap {
       result = wantNextChain
         ? { key, keyRemainder, value, next: result }
         : { key, keyRemainder, value };
-    }
+    };
 
     let at;
     for (at = 0; at < path.length; at++) {
