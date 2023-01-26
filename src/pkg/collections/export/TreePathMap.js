@@ -104,9 +104,9 @@ export class TreePathMap {
    * iterable (which, as with `Map.entries()`, returns itself).
    *
    * Unlike `Map`, this method does _not_ return an iterator which yields keys
-   * in insertion order. Instead, iteration is always in preorder depth first
-   * order, with visited subtrees sorted by key, and with non-wildcard keys
-   * listed before wildcard keys within any given node.
+   * in insertion order. Instead, iteration order is always preorder
+   * depth-first, with visited subtrees sorted by key, and with non-wildcard
+   * keys listed before wildcard keys within any given node.
    *
    * @returns {object} Iterator over the entries of this instance.
    */

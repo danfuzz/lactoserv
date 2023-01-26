@@ -181,6 +181,24 @@ describe('entries()', () => {
     expect(entries[1][1]).toBe('two');
     expect(entries[2][1]).toBe('three');
   });
+
+  test('yields subtrees in their entirety without interjecting sibling entries', () => {
+    const map = new TreePathMap();
+    map.add(new TreePathKey(['b'], false), 'yes-1');
+    map.add(new TreePathKey(['c'], false), 'nope');
+    map.add(new TreePathKey(['b', '1'], false), 'yes-2');
+    map.add(new TreePathKey(['a'], false), 'nope');
+    map.add(new TreePathKey(['b', '2'], false), 'yes-4');
+    map.add(new TreePathKey(['b', '1', 'x'], false), 'yes-3');
+
+    const entries = [...map.entries()];
+    expect(entries.length).toBe(6);
+    expect(entries[0][1]).toBe('nope');
+    expect(entries[5][1]).toBe('nope');
+    for (let i = 1; i <= 4; i++) {
+      expect(entries[i][1]).toBe(`yes-${i}`);
+    }
+  });
 });
 
 describe('find()', () => {
