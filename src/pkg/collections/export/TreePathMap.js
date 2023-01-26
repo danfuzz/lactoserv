@@ -299,17 +299,18 @@ export class TreePathMap {
    * @returns {?object} Result as described by {@link #find}.
    */
   #find0(path, wildcard) {
-    let subtree    = this;
-    let foundAt    = -1;
-    let foundKey   = null;
-    let foundValue = null;
+    let subtree = this;
+    let result  = null;
+
+    const updateResult = (key, value, keyRemainder = null) => {
+      result = { key, keyRemainder, value };
+    }
 
     let at;
     for (at = 0; at < path.length; at++) {
       if (subtree.#wildcardKey) {
-        foundAt    = at;
-        foundKey   = subtree.#wildcardKey;
-        foundValue = subtree.#wildcardValue;
+        // Placeholder for `keyRemainder`, only calculated if needed.
+        updateResult(subtree.#wildcardKey, subtree.#wildcardValue);
       }
       subtree = subtree.#subtrees.get(path[at]);
       if (!subtree) {
@@ -318,30 +319,24 @@ export class TreePathMap {
     }
 
     if (at === path.length) {
-      if (subtree.#emptyKey && !wildcard) {
-        // There's an exact match for the path.
-        return {
-          key:          subtree.#emptyKey,
-          keyRemainder: TreePathKey.EMPTY,
-          value:        subtree.#emptyValue
-        };
-      } else if (subtree.#wildcardKey) {
+      if (subtree.#wildcardKey) {
         // There's a matching wildcard at the end of the path.
-        return {
-          key:          subtree.#wildcardKey,
-          keyRemainder: TreePathKey.EMPTY,
-          value:        subtree.#wildcardValue
-        };
+        updateResult(subtree.#wildcardKey, subtree.#wildcardValue, TreePathKey.EMPTY);
       }
-    } else if (foundAt >= 0) {
-      return {
-        key:          foundKey,
-        keyRemainder: new TreePathKey(Object.freeze(path.slice(foundAt)), false),
-        value:        foundValue
-      };
+
+      if (subtree.#emptyKey && !wildcard) {
+        // There's an exact non-wildcard match for the path.
+        updateResult(subtree.#emptyKey, subtree.#emptyValue, TreePathKey.EMPTY);
+      }
     }
 
-    return null;
+    if (result && !result.keyRemainder) {
+      const foundAt       = result.key.path.length;
+      const pathRemainder = Object.freeze(path.slice(foundAt));
+      result.keyRemainder = new TreePathKey(pathRemainder, false);
+    }
+
+    return result;
   }
 
   /**
