@@ -1,9 +1,8 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
 // This project is PROPRIETARY and UNLICENSED.
 
-import { MustBe } from '@this/typey';
-
 import { TreePathKey } from '#x/TreePathKey';
+import { TreePathNode } from '#p/TreePathNode';
 
 
 /**
@@ -16,12 +15,8 @@ import { TreePathKey } from '#x/TreePathKey';
  * attempt to provide a useful and familiar interface.
  */
 export class TreePathMap {
-  /**
-   * @type {Map<string, TreePathMap>} Bindings from each initial path component
-   * to a {@link TreePathMap} instance which contains mappings for that
-   * component.
-   */
-  #subtrees = new Map();
+  /** @type {TreePathNode} The actual tree structure. */
+  #rootNode = new TreePathNode();
 
   /**
    * @type {number} Total number of bindings. This is only maintained on a
@@ -30,30 +25,7 @@ export class TreePathMap {
    */
   #size = 0;
 
-  /**
-   * @type {TreePathKey} Non-wildcard key (from the root), if there is an
-   * empty-path binding to this instance.
-   */
-  #emptyKey = null;
-
-  /** @type {*} Empty-path binding. */
-  #emptyValue = null;
-
-  /**
-   * @type {TreePathKey} Wildcard key (from the root), if there is a wildcard
-   * binding to this instance.
-   */
-  #wildcardKey = null;
-
-  /** @type {*} Wildcard binding. */
-  #wildcardValue = null;
-
-  /**
-   * Constructs an empty instance.
-   */
-  constructor() {
-    // Nothing to do here.
-  }
+  // Note: The default constructor is fine here.
 
   /**
    * @returns {number} The count of bindings which have been added to this
@@ -70,7 +42,7 @@ export class TreePathMap {
    * @returns {object} Iterator over the entries of this instance.
    */
   [Symbol.iterator]() {
-    return this.entries();
+    return this.#rootNode.entries();
   }
 
   /**
@@ -83,16 +55,10 @@ export class TreePathMap {
    *   `key.wildcard` is `true`, then this method binds all paths with `.path`
    *   as a prefix, including `.path` itself.
    * @param {*} value Value to bind at `key`.
-   * @throws {Error} Thrown if there is already a binding for the given `key`
-   *   (taking into account both `path` _and_ `wildcard`).
+   * @throws {Error} Thrown if there is already a binding for the given `key`.
    */
   add(key, value) {
-    if (! (key instanceof TreePathKey)) {
-      MustBe.arrayOfString(key.path);
-      MustBe.boolean(key.wildcard);
-    }
-
-    this.#add0(key, value);
+    this.#rootNode.add(key, value);
     this.#size++;
   }
 
@@ -111,7 +77,7 @@ export class TreePathMap {
    * @returns {object} Iterator over the entries of this instance.
    */
   entries() {
-    return this.#iteratorAt([]);
+    return this.#rootNode.entries();
   }
 
   /**
@@ -129,8 +95,8 @@ export class TreePathMap {
    *   `next` binding indicating the next-most-specific binding? If so,
    *   `next.next` will be similarly bound, and so on. The final element of the
    *   chain will have no binding for `next` (not even `null`).
-   * @returns {?{key: TreePathKey, keyRemainder: TreePathKey, value: *}} Details
-   *   about the found result, or `null` if there was no match.
+   * @returns {?{key: TreePathKey, keyRemainder: TreePathKey, value: *}} The
+   *   found result, or `null` if there was no match.
    *   * `{TreePathKey} key` -- The key that was matched; this is a wildcard key
    *     if the match was in fact a wildcard match, and likewise it is a
    *     non-wildcard key for an exact match. Furthermore, this is an object
@@ -146,14 +112,7 @@ export class TreePathMap {
    *   * `{*} value` -- The bound value that was found.
    */
   find(key, wantNextChain = false) {
-    const { path, wildcard } = key;
-
-    if (! (key instanceof TreePathKey)) {
-      MustBe.arrayOfString(path);
-      MustBe.boolean(wildcard);
-    }
-
-    return this.#find0(path, wildcard, wantNextChain);
+    return this.#rootNode.find(key, wantNextChain);
   }
 
   /**
@@ -176,41 +135,12 @@ export class TreePathMap {
    * @returns {TreePathMap} Map of matched bindings.
    */
   findSubtree(key) {
-    const { path, wildcard } = key;
-    const result             = new TreePathMap();
+    // See the note in docs of `TreePathNode.findSubtree()` for an explanation
+    // about what's going on here.
 
-    if (! (key instanceof TreePathKey)) {
-      MustBe.arrayOfString(path);
-      MustBe.boolean(wildcard);
-    }
+    const result = new TreePathMap();
 
-    if (!wildcard) {
-      // Non-wildcard is easy, because `find()` already does the right thing.
-      const found  = this.find(key);
-      if (found !== null) {
-        result.add(key, found.value);
-      }
-      return result;
-    }
-
-    // Wildcard case: Walk `subtrees` down to the one we want, and then -- if
-    // found -- iterate over it to build up the result.
-
-    let subtree = this;
-
-    for (const p of path) {
-      subtree = subtree.#subtrees.get(p);
-      if (!subtree) {
-        // No bindings match the given key. `result` is already empty; just
-        // return it.
-        return result;
-      }
-    }
-
-    for (const [k, v] of subtree.#iteratorAt(path)) {
-      result.add(k, v);
-    }
-
+    this.#rootNode.findSubtree(key, (k, v) => result.add(k, v));
     return result;
   }
 
@@ -228,161 +158,6 @@ export class TreePathMap {
    *   is no such binding.
    */
   get(key, ifNotFound = null) {
-    if (! (key instanceof TreePathKey)) {
-      MustBe.arrayOfString(key.path);
-      MustBe.boolean(key.wildcard);
-    }
-
-    let subtree = this;
-
-    for (const p of key.path) {
-      subtree = subtree.#subtrees.get(p);
-      if (!subtree) {
-        return ifNotFound;
-      }
-    }
-
-    if (key.wildcard) {
-      return subtree.#wildcardKey ? subtree.#wildcardValue : ifNotFound;
-    } else {
-      return subtree.#emptyKey ? subtree.#emptyValue : ifNotFound;
-    }
-  }
-
-  /**
-   * Helper for {@link #add}, which does most of the work.
-   *
-   * @param {TreePathKey} key Key to bind.
-   * @param {*} value Value to bind.
-   * @throws {Error} Thrown if there is already a binding `key`.
-   */
-  #add0(key, value) {
-    let subtree = this;
-
-    // Add any required subtrees to represent `key.path`, leaving `subtree` as
-    // the instance to modify.
-    for (const p of key.path) {
-      let nextSubtree = subtree.#subtrees.get(p);
-      if (!nextSubtree) {
-        nextSubtree = new TreePathMap();
-        subtree.#subtrees.set(p, nextSubtree);
-      }
-      subtree = nextSubtree;
-    }
-
-    // Put a new binding directly into `subtree`, or report the salient problem.
-    if (key.wildcard) {
-      if (subtree.#wildcardKey) {
-        throw this.#errorMessage('Path already bound', key);
-      }
-      subtree.#wildcardKey   = key;
-      subtree.#wildcardValue = value;
-    } else {
-      if (subtree.#emptyKey) {
-        throw this.#errorMessage('Path already bound', key);
-      }
-      subtree.#emptyKey   = key;
-      subtree.#emptyValue = value;
-    }
-  }
-
-  /**
-   * Returns a composed error message, suitable for `throw`ing.
-   *
-   * @param {string} msg Basic message.
-   * @param {TreePathKey} key Key in question.
-   * @returns {string} The composed error message.
-   */
-  #errorMessage(msg, key) {
-    return key.toString({
-      prefix:    `${msg}: [`,
-      suffix:    ']',
-      quote:     true,
-      separator: ', '
-    });
-  }
-
-  /**
-   * Helper for {@link #find}, which does most of the work.
-   *
-   * @param {string[]} path Path to look up.
-   * @param {boolean} wildcard Must the result be a wildcard binding?
-   * @param {boolean} wantNextChain Should the result contain a `next` chain?
-   * @returns {?object} Result as described by {@link #find}.
-   */
-  #find0(path, wildcard, wantNextChain) {
-    let subtree = this;
-    let result  = null;
-
-    const updateResult = (key, value, keyRemainder = null) => {
-      result = (wantNextChain && result)
-        ? { key, keyRemainder, value, next: result }
-        : { key, keyRemainder, value };
-    };
-
-    let at;
-    for (at = 0; at < path.length; at++) {
-      if (subtree.#wildcardKey) {
-        // Placeholder for `keyRemainder`, only calculated if needed.
-        updateResult(subtree.#wildcardKey, subtree.#wildcardValue);
-      }
-      subtree = subtree.#subtrees.get(path[at]);
-      if (!subtree) {
-        break;
-      }
-    }
-
-    if (at === path.length) {
-      if (subtree.#wildcardKey) {
-        // There's a matching wildcard at the end of the path.
-        updateResult(subtree.#wildcardKey, subtree.#wildcardValue, TreePathKey.EMPTY);
-      }
-
-      if (subtree.#emptyKey && !wildcard) {
-        // There's an exact non-wildcard match for the path.
-        updateResult(subtree.#emptyKey, subtree.#emptyValue, TreePathKey.EMPTY);
-      }
-    }
-
-    if (result !== null) {
-      // Calculate `keyRemainder` for the result(s), if necessary.
-      for (let r = result; r; r = r.next) {
-        if (r.keyRemainder === null) {
-          const foundAt       = r.key.path.length;
-          const pathRemainder = Object.freeze(path.slice(foundAt));
-          r.keyRemainder = new TreePathKey(pathRemainder, false);
-        }
-      }
-    }
-
-    return result;
-  }
-
-  /**
-   * Helper for the iteration methods: Returns a generator which iterates over
-   * all bindings of this instance, yielding entries where the `path` part of
-   * the key is prepended with the given `path` value.
-   *
-   * @param {string[]} pathPrefix Path to prepend to the `path` part of the key
-   *   in all yielded results.
-   * @yields {object} The next binding of this instance, with key modified as
-   *   described above.
-   */
-  *#iteratorAt(pathPrefix) {
-    if (this.#emptyKey) {
-      yield ([this.#emptyKey, this.#emptyValue]);
-    }
-
-    if (this.#wildcardKey) {
-      yield ([this.#wildcardKey, this.#wildcardValue]);
-    }
-
-    // Sort the entries, to maintain the iteration order contract.
-    const entries = [...this.#subtrees];
-    entries.sort((x, y) => (x[0] < y[0]) ? -1 : 1);
-
-    for (const [pathComponent, subtree] of entries) {
-      yield* subtree.#iteratorAt([...pathPrefix, pathComponent]);
-    }
+    return this.#rootNode.get(key, ifNotFound);
   }
 }
