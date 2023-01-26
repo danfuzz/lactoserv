@@ -440,13 +440,13 @@ describe('find()', () => {
   });
 });
 
-describe('findAllBindings()', () => {
+describe('findSubtree()', () => {
   describe('given an empty-path wildcard key', () => {
     const key = new TreePathKey([], true);
 
     test('returns an empty (but different object) result if there are no bindings', () => {
       const map    = new TreePathMap();
-      const result = map.findAllBindings(key);
+      const result = map.findSubtree(key);
       expect(result.size).toBe(0);
       expect(result).not.toBe(map);
     });
@@ -457,7 +457,7 @@ describe('findAllBindings()', () => {
       const map    = new TreePathMap();
 
       map.add(key1, value1);
-      const result = map.findAllBindings(key);
+      const result = map.findSubtree(key);
       expect(result.size).toBe(1);
       expect(result.get(key1)).toBe(value1);
     });
@@ -467,7 +467,7 @@ describe('findAllBindings()', () => {
       const map   = new TreePathMap();
 
       map.add(key, value);
-      const result = map.findAllBindings(key);
+      const result = map.findSubtree(key);
       expect(result.size).toBe(1);
       expect(result.get(key)).toBe(value);
     });
@@ -480,7 +480,7 @@ describe('findAllBindings()', () => {
 
       map.add(key, value1);
       map.add(key2, value2);
-      const result = map.findAllBindings(key);
+      const result = map.findSubtree(key);
       expect(result.size).toBe(2);
       expect(result.get(key)).toBe(value1);
       expect(result.get(key2)).toBe(value2);
@@ -506,7 +506,7 @@ describe('findAllBindings()', () => {
         map.add(k, v);
       }
 
-      const result = map.findAllBindings(key);
+      const result = map.findSubtree(key);
       expect(result.size).toBe(bindings.size);
       expect(result).not.toBe(map);
 
@@ -522,7 +522,7 @@ describe('findAllBindings()', () => {
     const map   = new TreePathMap();
 
     map.add(key, value);
-    const result = map.findAllBindings(key);
+    const result = map.findSubtree(key);
     expect(result.size).toBe(1);
     expect(result.get(key)).toBe(value);
   });
@@ -534,7 +534,7 @@ describe('findAllBindings()', () => {
     const map   = new TreePathMap();
 
     map.add(key1, value);
-    const result = map.findAllBindings(key2);
+    const result = map.findSubtree(key2);
     expect(result.size).toBe(1);
     expect(result.get(key2)).toBe(value);
   });
@@ -546,7 +546,7 @@ describe('findAllBindings()', () => {
     const map   = new TreePathMap();
 
     map.add(key1, value);
-    const result = map.findAllBindings(key2);
+    const result = map.findSubtree(key2);
     expect(result.size).toBe(1);
     expect(result.get(key2)).toBe(value);
   });
@@ -582,7 +582,7 @@ describe('findAllBindings()', () => {
       map.add(k, v);
     }
 
-    const result = map.findAllBindings(key);
+    const result = map.findSubtree(key);
     expect(result.size).toBe(bindings.size);
 
     for (const [k, v] of bindings) {

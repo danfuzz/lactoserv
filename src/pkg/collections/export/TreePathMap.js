@@ -164,7 +164,7 @@ export class TreePathMap {
    *   up.
    * @returns {TreePathMap} Map of matched bindings.
    */
-  findAllBindings(key) {
+  findSubtree(key) {
     const { path, wildcard } = key;
     const result             = new TreePathMap();
 
