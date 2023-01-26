@@ -470,7 +470,7 @@ describe('find()', () => {
 
       const result = map.find(key4);
       expect(result).not.toBeNull();
-      expect(result.next).toBeUndefined();
+      expect(result).not.toContainKey('next');
       expect(result.key).toBe(key4);
       expect(result.value).toBe('d');
     });
@@ -491,7 +491,7 @@ describe('find()', () => {
 
       const result = map.find(key4, false);
       expect(result).not.toBeNull();
-      expect(result.next).toBeUndefined();
+      expect(result).not.toContainKey('next');
       expect(result.key).toBe(key4);
       expect(result.value).toBe('d');
     });
@@ -527,7 +527,7 @@ describe('find()', () => {
       expect(result.next.next.next.key).toBe(key1);
       expect(result.next.next.next.keyRemainder.path).toStrictEqual(['x', 'y']);
 
-      expect(result.next.next.next.next).toBeUndefined();
+      expect(result.next.next.next).not.toContainKey('next');
     });
 
     test('does not produce a `next` if there is only one match', () => {
@@ -546,7 +546,7 @@ describe('find()', () => {
       expect(result).not.toBeNull();
       expect(result.key).toBe(key3);
       expect(result.value).toBe('c');
-      expect(result.next).toBeUndefined();
+      expect(result).not.toContainKey('next');
     });
 
     test('returns `null` if there is no match', () => {

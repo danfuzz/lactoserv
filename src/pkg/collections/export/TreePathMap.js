@@ -309,10 +309,10 @@ export class TreePathMap {
    */
   #find0(path, wildcard, wantNextChain) {
     let subtree = this;
-    let result  = undefined;
+    let result  = null;
 
     const updateResult = (key, value, keyRemainder = null) => {
-      result = wantNextChain
+      result = (wantNextChain && result)
         ? { key, keyRemainder, value, next: result }
         : { key, keyRemainder, value };
     };
@@ -352,7 +352,7 @@ export class TreePathMap {
       }
     }
 
-    return result ?? null;
+    return result;
   }
 
   /**
