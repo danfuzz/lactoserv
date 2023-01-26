@@ -1,6 +1,8 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
 // This project is PROPRIETARY and UNLICENSED.
 
+import { MustBe } from '@this/typey';
+
 import { TreePathKey } from '#x/TreePathKey';
 import { TreePathNode } from '#p/TreePathNode';
 
@@ -25,7 +27,24 @@ export class TreePathMap {
    */
   #size = 0;
 
-  // Note: The default constructor is fine here.
+  /**
+   * @type {function(TreePathKey): string} Function to use to render keys into
+   * strings.
+   */
+  #keyStringFunc;
+
+  /**
+   * Constructs an empty instance.
+   *
+   * @param {?function(TreePathKey): string} [keyStringFunc = null] The function
+   *   to use to render keys into strings. If `null`, this uses {@link
+   *   TreePathKey#toString} with no arguments.
+   */
+  constructor(keyStringFunc = null) {
+    this.#keyStringFunc = keyStringFunc
+      ? MustBe.callableFunction(keyStringFunc)
+      : (k) => k.toString();
+  }
 
   /**
    * @returns {number} The count of bindings which have been added to this
@@ -159,5 +178,16 @@ export class TreePathMap {
    */
   get(key, ifNotFound = null) {
     return this.#rootNode.get(key, ifNotFound);
+  }
+
+  /**
+   * Gets the string form of a key, as defined by the `keyStringFunc` passed in
+   * (or implied by) the constructor call that created this instance.
+   *
+   * @param {TreePathKey} key The key.
+   * @returns {string} The string form.
+   */
+  stringFromKey(key) {
+    return this.#keyStringFunc(key);
   }
 }
