@@ -139,6 +139,48 @@ describe('entries()', () => {
       expect(found).toBe(v);
     }
   });
+
+  test('yields non-wildcard before wildcard keys at the same depth', () => {
+    const map1 = new TreePathMap();
+    map1.add(new TreePathKey([], true), 'wild');
+    map1.add(new TreePathKey([], false), 'regular');
+
+    const entries1 = [...map1.entries()];
+    expect(entries1[0][1]).toBe('regular');
+    expect(entries1[1][1]).toBe('wild');
+
+    const map2 = new TreePathMap();
+    map2.add(new TreePathKey(['x', 'y'], false), 'woo-regular');
+    map2.add(new TreePathKey(['x', 'y'], true), 'woo-wild');
+
+    const entries2 = [...map2.entries()];
+    expect(entries2[0][1]).toBe('woo-regular');
+    expect(entries2[1][1]).toBe('woo-wild');
+  });
+
+  test('yields less deep keys first', () => {
+    const map = new TreePathMap();
+    map.add(new TreePathKey([], false), 'one');
+    map.add(new TreePathKey(['a'], false), 'two');
+    map.add(new TreePathKey(['a', 'b'], false), 'three');
+
+    const entries = [...map.entries()];
+    expect(entries[0][1]).toBe('one');
+    expect(entries[1][1]).toBe('two');
+    expect(entries[2][1]).toBe('three');
+  });
+
+  test('yields siblings in sorted order', () => {
+    const map = new TreePathMap();
+    map.add(new TreePathKey(['c'], false), 'three');
+    map.add(new TreePathKey(['a'], false), 'one');
+    map.add(new TreePathKey(['b'], false), 'two');
+
+    const entries = [...map.entries()];
+    expect(entries[0][1]).toBe('one');
+    expect(entries[1][1]).toBe('two');
+    expect(entries[2][1]).toBe('three');
+  });
 });
 
 describe('find()', () => {

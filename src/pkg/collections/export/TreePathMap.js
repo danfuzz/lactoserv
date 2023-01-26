@@ -104,7 +104,9 @@ export class TreePathMap {
    * iterable (which, as with `Map.entries()`, returns itself).
    *
    * Unlike `Map`, this method does _not_ return an iterator which yields keys
-   * in insertion order.
+   * in insertion order. Instead, iteration is always in preorder depth first
+   * order, with visited subtrees sorted by key, and with non-wildcard keys
+   * listed before wildcard keys within any given node.
    *
    * @returns {object} Iterator over the entries of this instance.
    */
@@ -361,7 +363,11 @@ export class TreePathMap {
       yield ([this.#wildcardKey, this.#wildcardValue]);
     }
 
-    for (const [pathComponent, subtree] of this.#subtrees) {
+    // Sort the entries, to maintain the iteration order contract.
+    const entries = [...this.#subtrees];
+    entries.sort((x, y) => (x[0] < y[0]) ? -1 : 1);
+
+    for (const [pathComponent, subtree] of entries) {
       yield* subtree.#iteratorAt([...pathPrefix, pathComponent]);
     }
   }
