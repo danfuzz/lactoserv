@@ -253,6 +253,22 @@ describe('find()', () => {
       expect(result2.value).toBe(value);
     });
 
+    test('finds a wildcard binding at the exact key', () => {
+      const key1  = new TreePathKey(['i', 'love', 'muffins'], true);
+      const key2  = new TreePathKey(['i', 'love', 'muffins'], false);
+      const value = ['blueberry'];
+      const map   = new TreePathMap();
+
+      map.add(key1, value);
+
+      const result = map.find(key2);
+      expect(result).not.toBeNull();
+      expect(result.key).toBe(key1);
+      expect(result.keyRemainder.path).toStrictEqual([]);
+      expect(result.keyRemainder.wildcard).toBeFalse();
+      expect(result.value).toBe(value);
+    });
+
     test('finds a wildcard binding "below" the key being looked up', () => {
       const key1  = new TreePathKey(['top'], true);
       const key2  = new TreePathKey(['top', 'middle'], false);
