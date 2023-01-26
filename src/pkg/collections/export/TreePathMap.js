@@ -300,14 +300,14 @@ export class TreePathMap {
    */
   #find0(path, wildcard) {
     let subtree    = this;
-    let foundIndex = -1;
+    let foundAt    = -1;
     let foundKey   = null;
     let foundValue = null;
 
     let at;
     for (at = 0; at < path.length; at++) {
       if (subtree.#wildcardKey) {
-        foundIndex = at;
+        foundAt    = at;
         foundKey   = subtree.#wildcardKey;
         foundValue = subtree.#wildcardValue;
       }
@@ -333,10 +333,10 @@ export class TreePathMap {
           value:        subtree.#wildcardValue
         };
       }
-    } else if (foundIndex >= 0) {
+    } else if (foundAt >= 0) {
       return {
         key:          foundKey,
-        keyRemainder: new TreePathKey(Object.freeze(path.slice(foundIndex)), false),
+        keyRemainder: new TreePathKey(Object.freeze(path.slice(foundAt)), false),
         value:        foundValue
       };
     }
