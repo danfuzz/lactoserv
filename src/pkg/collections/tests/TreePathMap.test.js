@@ -101,6 +101,72 @@ describe('add()', () => {
     expect(map.get(key1)).toBe(value);
     expect(map.get(key2)).toBe(value);
   });
+
+  test('allows a wildcard key to be added even when a same-path non-wildcard is already in the map', () => {
+    const keyNorm = new TreePathKey(['yes', 'maybe'], false);
+    const keyWild = new TreePathKey(['yes', 'maybe'], true);
+    const map     = new TreePathMap();
+
+    map.add(keyNorm, 'x');
+    expect(() => map.add(keyWild, 'x')).not.toThrow();
+    expect(map.size).toBe(2);
+  });
+
+  test('allows a non-wildcard key to be added even when a same-path wildcard is already in the map', () => {
+    const keyNorm = new TreePathKey(['yes', 'maybe'], false);
+    const keyWild = new TreePathKey(['yes', 'maybe'], true);
+    const map     = new TreePathMap();
+
+    map.add(keyWild, 'x');
+    expect(() => map.add(keyNorm, 'x')).not.toThrow();
+    expect(map.size).toBe(2);
+  });
+
+  test('fails to add a non-wildcard key that has already been added', () => {
+    const key = new TreePathKey(['hey what?'], false);
+    const map = new TreePathMap();
+
+    map.add(key, 'x');
+    expect(() => map.add(key, 'x')).toThrow();
+    expect(map.size).toBe(1);
+  });
+
+  test('fails to add a wildcard key that has already been added', () => {
+    const key = new TreePathKey(['hey what?'], true);
+    const map = new TreePathMap();
+
+    map.add(key, 'x');
+    expect(() => map.add(key, 'x')).toThrow();
+    expect(map.size).toBe(1);
+  });
+
+  describe('error messages', () => {
+    test('have the expected initial text', () => {
+      const key = new TreePathKey(['beep', 'boop'], true);
+      const map = new TreePathMap();
+
+      map.add(key, 'x');
+      expect(() => map.add(key, 'x')).toThrow(/^Key already bound: /);
+    });
+
+    test('uses the default key renderer when none was specified upon construction', () => {
+      const key = new TreePathKey(['a', 'b'], false);
+      const map = new TreePathMap();
+
+      map.add(key, 'x');
+      expect(() => map.add(key, 'x')).toThrow(/^[^:]+: \['a', 'b'\]$/);
+    });
+
+    test('uses the default key renderer when `null` was specified upon construction', () => {
+      const key = new TreePathKey(['a', 'b'], true);
+      const map = new TreePathMap(null);
+
+      map.add(key, 'x');
+      expect(() => map.add(key, 'x')).toThrow(/^[^:]+: \['a', 'b', [*]\]$/);
+    });
+
+    // TODO: Other renderer specified.
+  });
 });
 
 describe('entries()', () => {
@@ -839,12 +905,24 @@ describe('stringFromKey()', () => {
     expect(s2).toBe('foo/bar');
   });
 
+  test('uses the default function when `null` was specified in the constructor', () => {
+    const map = new TreePathMap(null);
+
+    const key1 = new TreePathKey(['x'], true);
+    const s1   = map.stringFromKey(key1);
+    expect(s1).toBe('x/*');
+
+    const key2 = new TreePathKey([], false);
+    const s2   = map.stringFromKey(key2);
+    expect(s2).toBe('');
+  });
+
   test('uses the function specified in the constructor', () => {
     const gotArgs = [];
     const theFunc = (k) => {
       gotArgs.push(k);
       return `yes-${gotArgs.length}`;
-    }
+    };
 
     const key1 = new TreePathKey(['x'], true);
     const key2 = new TreePathKey(['y'], false);
