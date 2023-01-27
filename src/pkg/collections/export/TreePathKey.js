@@ -122,4 +122,20 @@ export class TreePathKey {
     MustBe.arrayOfString(path);
     MustBe.boolean(wildcard);
   }
+
+  /**
+   * Gets the string form of the given key, interpreted as a hostname, where the
+   * TLD is the initial path component. That is, the result renders the path in
+   * reverse.
+   *
+   * @param {TreePathKey} key The key to convert.
+   * @returns {string} The string form.
+   */
+  static hostnameStringFrom(key) {
+    return key.toString({
+      prefix: '',
+      separator: '.',
+      reverse: true
+    });
+  }
 }
