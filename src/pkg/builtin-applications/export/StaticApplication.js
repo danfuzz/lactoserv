@@ -14,8 +14,14 @@ import { ApplicationController, BaseApplication } from '@this/app-framework';
  *   site files.
  */
 export class StaticApplication extends BaseApplication {
-  /* @type {function(...*)} "Middleware" handler function for this instance. */
+  /** @type {function(...*)} "Middleware" handler function for this instance. */
   #handleRequest;
+
+  /**
+   * @type {?string} Path to the file to server for a not-found result, or
+   * `null` if not-found handling shouldn't be done.
+   */
+  #notFoundPath;
 
   /**
    * Constructs an instance.
@@ -26,12 +32,24 @@ export class StaticApplication extends BaseApplication {
   constructor(config, controller) {
     super(config, controller);
 
+    this.#notFoundPath  = config.notFoundPath;
     this.#handleRequest = express.static(config.siteDirectory);
   }
 
   /** @override */
   handleRequest(req, res, next) {
-    this.#handleRequest(req, res, next);
+    if (this.#notFoundPath) {
+      const innerNext = (error) => {
+        if (error) {
+          next(error);
+        } else {
+          res.status(404).sendFile(this.#notFoundPath);
+        }
+      };
+      this.#handleRequest(req, res, innerNext);
+    } else {
+      this.#handleRequest(req, res, next);
+    }
   }
 
 
@@ -53,6 +71,12 @@ export class StaticApplication extends BaseApplication {
    * Configuration item subclass for this (outer) class.
    */
   static #Config = class Config extends ApplicationConfig {
+    /**
+     * @type {?string} Path to the file to server for a not-found result, or
+     * `null` if not-found handling shouldn't be done.
+     */
+    #notFoundPath;
+
     /** @type {string} The base directory for the site files. */
     #siteDirectory;
 
@@ -64,6 +88,7 @@ export class StaticApplication extends BaseApplication {
     constructor(config) {
       super(config);
 
+      this.#notFoundPath  = Files.checkAbsolutePath(config.notFoundPath);
       this.#siteDirectory = Files.checkAbsolutePath(config.siteDirectory);
     }
 
@@ -71,5 +96,13 @@ export class StaticApplication extends BaseApplication {
     get siteDirectory() {
       return this.#siteDirectory;
     }
+
+    /**
+     * @returns {?string} Path to the file to server for a not-found result, or
+     * `null` if not-found handling shouldn't be done.
+     */
+    get notFoundPath() {
+      return this.#notFoundPath;
+    };
   };
 }
