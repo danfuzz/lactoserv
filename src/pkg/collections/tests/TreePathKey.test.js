@@ -106,3 +106,7 @@ describe('.EMPTY', () => {
 describe('toString()', () => {
   // TODO
 });
+
+describe('checkArguments()', () => {
+  // TODO
+});

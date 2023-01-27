@@ -107,4 +107,19 @@ export class TreePathKey {
   static get EMPTY() {
     return this.#EMPTY;
   }
+
+  /**
+   * Validates a "key-like" pair of `path` and `wildcard` arguments. This is
+   * meant to be called in cases where a method could accept either a proper
+   * instance of this class or a plain object that binds these as properties.
+   *
+   * @param {*} path The alleged key path.
+   * @param {*} wildcard The alleged wildcard flag.
+   * @throws {Error} Thrown iff the two arguments could not have been
+   *   successfully used to construct a {@link TreePathKey}.
+   */
+  static checkArguments(path, wildcard) {
+    MustBe.arrayOfString(path);
+    MustBe.boolean(wildcard);
+  }
 }

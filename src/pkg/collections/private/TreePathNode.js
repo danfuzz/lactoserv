@@ -111,8 +111,7 @@ export class TreePathNode {
     const { path, wildcard } = key;
 
     if (! (key instanceof TreePathKey)) {
-      MustBe.arrayOfString(path);
-      MustBe.boolean(wildcard);
+      TreePathKey.checkArguments(path, wildcard);
     }
 
     let subtree = this;
@@ -176,8 +175,7 @@ export class TreePathNode {
     const { path, wildcard } = key;
 
     if (! (key instanceof TreePathKey)) {
-      MustBe.arrayOfString(path);
-      MustBe.boolean(wildcard);
+      TreePathKey.checkArguments(path, wildcard);
     }
 
     if (!wildcard) {
@@ -219,21 +217,22 @@ export class TreePathNode {
    *   is no such binding.
    */
   get(key, ifNotFound) {
+    const { path, wildcard } = key;
+
     if (! (key instanceof TreePathKey)) {
-      MustBe.arrayOfString(key.path);
-      MustBe.boolean(key.wildcard);
+      TreePathKey.checkArguments(path, wildcard);
     }
 
     let subtree = this;
 
-    for (const p of key.path) {
+    for (const p of path) {
       subtree = subtree.#subtrees.get(p);
       if (!subtree) {
         return ifNotFound;
       }
     }
 
-    if (key.wildcard) {
+    if (wildcard) {
       return subtree.#wildcardKey ? subtree.#wildcardValue : ifNotFound;
     } else {
       return subtree.#emptyKey ? subtree.#emptyValue : ifNotFound;
