@@ -83,10 +83,10 @@ const applications = [
     target: 'https://milk.com/boop/'
   },
   {
-    name:       'my-static-fun',
-    type:       'static-server',
-    assetsPath: filePath('../site'),
-    notFound:   filePath('../assets/not-found.html')
+    name:          'my-static-fun',
+    type:          'static-server',
+    siteDirectory: filePath('../site'),
+    notFoundPath:  filePath('../assets/not-found.html')
   }
 ];
 

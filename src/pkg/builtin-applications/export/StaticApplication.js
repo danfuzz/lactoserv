@@ -10,8 +10,8 @@ import { ApplicationController, BaseApplication } from '@this/app-framework';
 /**
  * Static content server. Configuration object details:
  *
- * * `{string} assetsPath` -- Absolute path to the base directory for the
- *   static assets.
+ * * `{string} siteDirectory` -- Absolute path to the base directory for the
+ *   site files.
  */
 export class StaticApplication extends BaseApplication {
   /* @type {function(...*)} "Middleware" handler function for this instance. */
@@ -26,7 +26,7 @@ export class StaticApplication extends BaseApplication {
   constructor(config, controller) {
     super(config, controller);
 
-    this.#handleRequest = express.static(config.assetsPath);
+    this.#handleRequest = express.static(config.siteDirectory);
   }
 
   /** @override */
@@ -53,8 +53,8 @@ export class StaticApplication extends BaseApplication {
    * Configuration item subclass for this (outer) class.
    */
   static #Config = class Config extends ApplicationConfig {
-    /** @type {string} The assets path. */
-    #assetsPath;
+    /** @type {string} The base directory for the site files. */
+    #siteDirectory;
 
     /**
      * Constructs an instance.
@@ -64,12 +64,12 @@ export class StaticApplication extends BaseApplication {
     constructor(config) {
       super(config);
 
-      this.#assetsPath = Files.checkAbsolutePath(config.assetsPath);
+      this.#siteDirectory = Files.checkAbsolutePath(config.siteDirectory);
     }
 
-    /** @returns {string} The assets path. */
-    get assetsPath() {
-      return this.#assetsPath;
+    /** @returns {string} The base directory for the site files. */
+    get siteDirectory() {
+      return this.#siteDirectory;
     }
   };
 }
