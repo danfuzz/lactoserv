@@ -108,5 +108,28 @@ describe('toString()', () => {
 });
 
 describe('checkArguments()', () => {
-  // TODO
+  test('rejects `path` which is a non-array', () => {
+    expect(() => TreePathKey.checkArguments(null, false)).toThrow();
+    expect(() => TreePathKey.checkArguments({ a: 10 }, false)).toThrow();
+  });
+
+  test('rejects `path` which is an array of non-strings', () => {
+    expect(() => TreePathKey.checkArguments([1], false)).toThrow();
+    expect(() => TreePathKey.checkArguments(['a', 2, 'c'], false)).toThrow();
+  });
+
+  test('rejects `wildcard` which is non-boolean', () => {
+    expect(() => TreePathKey.checkArguments(['a'], null)).toThrow();
+    expect(() => TreePathKey.checkArguments(['a'], 'false')).toThrow();
+    expect(() => TreePathKey.checkArguments(['a'], Object(false))).toThrow();
+  });
+
+  test('accepts `path` which is an empty array', () => {
+    expect(() => TreePathKey.checkArguments([], false)).not.toThrow();
+  });
+
+  test('accepts `wildcard` which is either valid boolean', () => {
+    expect(() => TreePathKey.checkArguments(['x'], false)).not.toThrow();
+    expect(() => TreePathKey.checkArguments(['x'], true)).not.toThrow();
+  });
 });
