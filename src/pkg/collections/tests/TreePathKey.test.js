@@ -102,3 +102,7 @@ describe('.EMPTY', () => {
     expect(TreePathKey.EMPTY.wildcard).toBeFalse();
   });
 });
+
+describe('toString()', () => {
+  // TODO
+});
