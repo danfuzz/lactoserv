@@ -188,13 +188,13 @@ export class TreePathNode {
     // Put a new binding directly into `subtree`, or report the salient problem.
     if (key.wildcard) {
       if (subtree.#wildcardKey) {
-        throw this.#errorMessage('Path already bound', key);
+        throw this.#errorMessage('Key already bound', key);
       }
       subtree.#wildcardKey   = key;
       subtree.#wildcardValue = value;
     } else {
       if (subtree.#emptyKey) {
-        throw this.#errorMessage('Path already bound', key);
+        throw this.#errorMessage('Key already bound', key);
       }
       subtree.#emptyKey   = key;
       subtree.#emptyValue = value;
