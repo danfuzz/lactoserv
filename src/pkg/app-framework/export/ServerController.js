@@ -155,18 +155,12 @@ export class ServerController {
     // because we aren't using Express routing to find our applications.
 
     const { baseUrl: origBaseUrl, url: origUrl } = req;
-
     const baseUrlExtra = (pathMatch.key.length === 0)
       ? ''
       : TreePathKey.uriPathStringFrom(pathMatch.key, false);
-    if ((origBaseUrl !== '') || (baseUrlExtra !== '')) {
-      // Figure out the new `baseUrl` In the overwhelmingly common case where
-      // the match is for the whole pathspace at the root of the host, there's
-      // no need to do this (hence the `if` we are inside).
-      req.baseUrl = `${origBaseUrl}${baseUrlExtra}`;
-    }
 
-    req.url = TreePathKey.uriPathStringFrom(pathMatch.keyRemainder);
+    req.baseUrl = `${origBaseUrl}${baseUrlExtra}`;
+    req.url     = TreePathKey.uriPathStringFrom(pathMatch.keyRemainder);
 
     reqLogger?.dispatching({
       application: controller.name,
