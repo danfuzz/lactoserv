@@ -266,3 +266,18 @@ describe('hostnameStringFrom()', () => {
     expect(TreePathKey.hostnameStringFrom(key)).toBe(expected);
   });
 });
+
+describe('uriPathStringFrom()', () => {
+  test.each`
+  path                     | wildcard | expected
+  ${[]}                    | ${false} | ${'/'}
+  ${[]}                    | ${true}  | ${'/*'}
+  ${['a']}                 | ${false} | ${'/a'}
+  ${['a']}                 | ${true}  | ${'/a/*'}
+  ${['foo', 'bar', 'baz']} | ${false} | ${'/foo/bar/baz'}
+  ${['foo', 'bar', 'baz']} | ${true}  | ${'/foo/bar/baz/*'}
+  `('on { path: $path, wildcard: $wildcard }', ({ path, wildcard, expected }) => {
+    const key = new TreePathKey(path, wildcard);
+    expect(TreePathKey.uriPathStringFrom(key)).toBe(expected);
+  });
+});

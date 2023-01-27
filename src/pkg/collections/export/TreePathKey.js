@@ -133,9 +133,23 @@ export class TreePathKey {
    */
   static hostnameStringFrom(key) {
     return key.toString({
-      prefix: '',
+      prefix:    '',
       separator: '.',
-      reverse: true
+      reverse:   true
+    });
+  }
+
+  /**
+   * Gets the string form of the given key, interpreted as an absolute URI path,
+   * that is, the part of a URI after the hostname.
+   *
+   * @param {TreePathKey} key The key to convert.
+   * @returns {string} The string form.
+   */
+  static uriPathStringFrom(key) {
+    return key.toString({
+      prefix:    '/',
+      separator: '/'
     });
   }
 }
