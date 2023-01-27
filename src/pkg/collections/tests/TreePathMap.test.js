@@ -827,5 +827,35 @@ describe('get()', () => {
 });
 
 describe('stringFromKey()', () => {
-  // TODO!
+  test('uses the default function when not specified in the constructor', () => {
+    const map = new TreePathMap();
+
+    const key1 = new TreePathKey([], true);
+    const s1   = map.stringFromKey(key1);
+    expect(s1).toBe('*');
+
+    const key2 = new TreePathKey(['foo', 'bar'], false);
+    const s2   = map.stringFromKey(key2);
+    expect(s2).toBe('foo/bar');
+  });
+
+  test('uses the function specified in the constructor', () => {
+    const gotArgs = [];
+    const theFunc = (k) => {
+      gotArgs.push(k);
+      return `yes-${gotArgs.length}`;
+    }
+
+    const key1 = new TreePathKey(['x'], true);
+    const key2 = new TreePathKey(['y'], false);
+    const map = new TreePathMap(theFunc);
+
+    const s1 = map.stringFromKey(key1);
+    const s2 = map.stringFromKey(key2);
+    expect(s1).toBe('yes-1');
+    expect(s2).toBe('yes-2');
+    expect(gotArgs).toBeArrayOfSize(2);
+    expect(gotArgs[0]).toBe(key1);
+    expect(gotArgs[1]).toBe(key2);
+  });
 });
