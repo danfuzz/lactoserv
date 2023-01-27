@@ -170,7 +170,7 @@ describe('add()', () => {
       const theFunc = (k) => {
         gotKey = k;
         return 'zoinks';
-      }
+      };
 
       const key = new TreePathKey(['blorp'], false);
       const map = new TreePathMap(theFunc);

@@ -117,10 +117,10 @@ export class TreePathNode {
     let subtree = this;
     let result  = null;
 
-    const updateResult = (key, value, keyRemainder = null) => {
+    const updateResult = (k, value, keyRemainder = null) => {
       result = (wantNextChain && result)
-        ? { key, keyRemainder, value, next: result }
-        : { key, keyRemainder, value };
+        ? { key: k, keyRemainder, value, next: result }
+        : { key: k, keyRemainder, value };
     };
 
     let at;
