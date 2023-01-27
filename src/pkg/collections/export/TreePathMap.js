@@ -82,7 +82,7 @@ export class TreePathMap {
     if (okay) {
       this.#size++;
     } else {
-      throw this.#errorMessage('Key already bound', key);
+      throw this.#makeError('Key already bound', key);
     }
   }
 
@@ -197,18 +197,13 @@ export class TreePathMap {
   }
 
   /**
-   * Returns a composed error message, suitable for `throw`ing.
+   * Returns an `Error` with a composed message, suitable for `throw`ing.
    *
    * @param {string} msg Basic message.
    * @param {TreePathKey} key Key in question.
-   * @returns {string} The composed error message.
+   * @returns {Error} `Error` instance with composed.
    */
-  #errorMessage(msg, key) {
-    return key.toString({
-      prefix:    `${msg}: [`,
-      suffix:    ']',
-      quote:     true,
-      separator: ', '
-    });
+  #makeError(msg, key) {
+    return new Error(`${msg}: ${this.stringFromKey(key)}`);
   }
 }

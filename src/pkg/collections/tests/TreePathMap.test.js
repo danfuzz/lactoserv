@@ -149,25 +149,36 @@ describe('add()', () => {
       expect(() => map.add(key, 'x')).toThrow(/^Key already bound: /);
     });
 
-    // TODO: This isn't actually the default renderer... yet.
     test('uses the default key renderer when none was specified upon construction', () => {
       const key = new TreePathKey(['a', 'b'], false);
       const map = new TreePathMap();
 
       map.add(key, 'x');
-      expect(() => map.add(key, 'x')).toThrow(/^[^:]+: \['a', 'b'\]$/);
+      expect(() => map.add(key, 'x')).toThrow(/^[^:]+: [/]a[/]b$/);
     });
 
-    // TODO: This isn't actually the default renderer... yet.
     test('uses the default key renderer when `null` was specified upon construction', () => {
       const key = new TreePathKey(['a', 'b'], true);
       const map = new TreePathMap(null);
 
       map.add(key, 'x');
-      expect(() => map.add(key, 'x')).toThrow(/^[^:]+: \['a', 'b', [*]\]$/);
+      expect(() => map.add(key, 'x')).toThrow(/^[^:]+: [/]a[/]b[/][*]$/);
     });
 
-    // TODO: Other renderer specified.
+    test('uses the key renderer specified upon construction', () => {
+      let   gotKey  = null;
+      const theFunc = (k) => {
+        gotKey = k;
+        return 'zoinks';
+      }
+
+      const key = new TreePathKey(['blorp'], false);
+      const map = new TreePathMap(theFunc);
+
+      map.add(key, 'x');
+      expect(() => map.add(key, 'x')).toThrow(/^[^:]+: zoinks$/);
+      expect(gotKey).toBe(key);
+    });
   });
 });
 
