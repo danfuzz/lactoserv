@@ -149,6 +149,7 @@ describe('add()', () => {
       expect(() => map.add(key, 'x')).toThrow(/^Key already bound: /);
     });
 
+    // TODO: This isn't actually the default renderer... yet.
     test('uses the default key renderer when none was specified upon construction', () => {
       const key = new TreePathKey(['a', 'b'], false);
       const map = new TreePathMap();
@@ -157,6 +158,7 @@ describe('add()', () => {
       expect(() => map.add(key, 'x')).toThrow(/^[^:]+: \['a', 'b'\]$/);
     });
 
+    // TODO: This isn't actually the default renderer... yet.
     test('uses the default key renderer when `null` was specified upon construction', () => {
       const key = new TreePathKey(['a', 'b'], true);
       const map = new TreePathMap(null);
