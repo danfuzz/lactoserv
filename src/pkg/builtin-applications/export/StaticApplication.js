@@ -103,6 +103,6 @@ export class StaticApplication extends BaseApplication {
      */
     get notFoundPath() {
       return this.#notFoundPath;
-    };
+    }
   };
 }
