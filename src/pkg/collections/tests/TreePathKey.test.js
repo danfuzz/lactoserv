@@ -104,7 +104,22 @@ describe('.EMPTY', () => {
 });
 
 describe('toString()', () => {
-  // TODO
+  describe('with default options', () => {
+    test.each`
+    path               | wildcard | expected
+    ${[]}                    | ${false} | ${'/'}
+    ${[]}                    | ${true}  | ${'/*'}
+    ${['a']}                 | ${false} | ${'/a'}
+    ${['a']}                 | ${true}  | ${'/a/*'}
+    ${['foo', 'bar', 'baz']} | ${false} | ${'/foo/bar/baz'}
+    ${['blort', 'zorch']}    | ${true}  | ${'/blort/zorch/*'}
+    `('on { path: $path, wildcard: $wildcard }', ({ path, wildcard, expected }) => {
+      const key = new TreePathKey(path, wildcard);
+      expect(key.toString()).toBe(expected);
+    });
+  });
+
+  // TODO: Non-defaults.
 });
 
 describe('checkArguments()', () => {
