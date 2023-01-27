@@ -115,7 +115,51 @@ export class TreePathNode {
       MustBe.boolean(wildcard);
     }
 
-    return this.#find0(path, wildcard, wantNextChain);
+    let subtree = this;
+    let result  = null;
+
+    const updateResult = (key, value, keyRemainder = null) => {
+      result = (wantNextChain && result)
+        ? { key, keyRemainder, value, next: result }
+        : { key, keyRemainder, value };
+    };
+
+    let at;
+    for (at = 0; at < path.length; at++) {
+      if (subtree.#wildcardKey) {
+        // Placeholder for `keyRemainder`, only calculated if needed.
+        updateResult(subtree.#wildcardKey, subtree.#wildcardValue);
+      }
+      subtree = subtree.#subtrees.get(path[at]);
+      if (!subtree) {
+        break;
+      }
+    }
+
+    if (at === path.length) {
+      if (subtree.#wildcardKey) {
+        // There's a matching wildcard at the end of the path.
+        updateResult(subtree.#wildcardKey, subtree.#wildcardValue, TreePathKey.EMPTY);
+      }
+
+      if (subtree.#emptyKey && !wildcard) {
+        // There's an exact non-wildcard match for the path.
+        updateResult(subtree.#emptyKey, subtree.#emptyValue, TreePathKey.EMPTY);
+      }
+    }
+
+    if (result !== null) {
+      // Calculate `keyRemainder` for the result(s), if necessary.
+      for (let r = result; r; r = r.next) {
+        if (r.keyRemainder === null) {
+          const foundAt       = r.key.path.length;
+          const pathRemainder = Object.freeze(path.slice(foundAt));
+          r.keyRemainder = new TreePathKey(pathRemainder, false);
+        }
+      }
+    }
+
+    return result;
   }
 
   /**
@@ -194,62 +238,6 @@ export class TreePathNode {
     } else {
       return subtree.#emptyKey ? subtree.#emptyValue : ifNotFound;
     }
-  }
-
-  /**
-   * Helper for {@link #find}, which does most of the work.
-   *
-   * @param {string[]} path Path to look up.
-   * @param {boolean} wildcard Must the result be a wildcard binding?
-   * @param {boolean} wantNextChain Should the result contain a `next` chain?
-   * @returns {?object} Result as described by {@link #find}.
-   */
-  #find0(path, wildcard, wantNextChain) {
-    let subtree = this;
-    let result  = null;
-
-    const updateResult = (key, value, keyRemainder = null) => {
-      result = (wantNextChain && result)
-        ? { key, keyRemainder, value, next: result }
-        : { key, keyRemainder, value };
-    };
-
-    let at;
-    for (at = 0; at < path.length; at++) {
-      if (subtree.#wildcardKey) {
-        // Placeholder for `keyRemainder`, only calculated if needed.
-        updateResult(subtree.#wildcardKey, subtree.#wildcardValue);
-      }
-      subtree = subtree.#subtrees.get(path[at]);
-      if (!subtree) {
-        break;
-      }
-    }
-
-    if (at === path.length) {
-      if (subtree.#wildcardKey) {
-        // There's a matching wildcard at the end of the path.
-        updateResult(subtree.#wildcardKey, subtree.#wildcardValue, TreePathKey.EMPTY);
-      }
-
-      if (subtree.#emptyKey && !wildcard) {
-        // There's an exact non-wildcard match for the path.
-        updateResult(subtree.#emptyKey, subtree.#emptyValue, TreePathKey.EMPTY);
-      }
-    }
-
-    if (result !== null) {
-      // Calculate `keyRemainder` for the result(s), if necessary.
-      for (let r = result; r; r = r.next) {
-        if (r.keyRemainder === null) {
-          const foundAt       = r.key.path.length;
-          const pathRemainder = Object.freeze(path.slice(foundAt));
-          r.keyRemainder = new TreePathKey(pathRemainder, false);
-        }
-      }
-    }
-
-    return result;
   }
 
   /**
