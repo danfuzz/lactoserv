@@ -156,13 +156,22 @@ export class ServerController {
 
     const { baseUrl: origBaseUrl, url: origUrl } = req;
 
-    req.baseUrl = origBaseUrl + '/' + pathMatch.key.path.join('/');
-    req.url = '/' + pathMatch.keyRemainder.path.join('/');
+    const baseUrlExtra = (pathMatch.key.length === 0)
+      ? ''
+      : TreePathKey.uriPathStringFrom(pathMatch.key, false);
+    if ((origBaseUrl !== '') || (baseUrlExtra !== '')) {
+      // Figure out the new `baseUrl` In the overwhelmingly common case where
+      // the match is for the whole pathspace at the root of the host, there's
+      // no need to do this (hence the `if` we are inside).
+      req.baseUrl = `${origBaseUrl}${baseUrlExtra}`;
+    }
+
+    req.url = TreePathKey.uriPathStringFrom(pathMatch.keyRemainder);
 
     reqLogger?.dispatching({
       application: controller.name,
       host:        TreePathKey.hostnameStringFrom(hostMatch.key),
-      path:        ServerController.#pathMatchString(pathMatch),
+      path:        TreePathKey.uriPathStringFrom(pathMatch.key),
       url:         req.url
     });
 
@@ -199,7 +208,7 @@ export class ServerController {
 
       let hostMounts = result.get(hostname);
       if (!hostMounts) {
-        hostMounts = new TreePathMap();
+        hostMounts = new TreePathMap(TreePathKey.uriPathStringFrom);
         result.add(hostname, hostMounts);
       }
 
@@ -228,23 +237,5 @@ export class ServerController {
 
     // Freezing `parts` lets `new TreePathKey()` avoid making a copy.
     return new TreePathKey(Object.freeze(parts), false);
-  }
-
-  /**
-   * Gets a loggable "path match" from a {@link TreePathMap} lookup response.
-   *
-   * @param {object} match The lookup response.
-   * @returns {string} A loggable string.
-   */
-  static #pathMatchString(match) {
-    const { path, wildcard } = match.key;
-
-    if (wildcard) {
-      return (path.length === 0)
-        ? '/*'
-        : `/${path.join('/')}/*`;
-    } else {
-      return `/${path.join('/')}`;
-    }
   }
 }
