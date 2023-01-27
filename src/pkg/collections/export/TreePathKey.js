@@ -51,7 +51,7 @@ export class TreePathKey {
    * @param {?{prefix: string, reverse: boolean, separator: string, suffix:
    *   string, wildcard: string}} [options = null] Formatting options. Only
    *   non-defaults need to be specified:
-   *   * `prefix`, default `''` -- Prefix for the result.
+   *   * `prefix`, default `'/'` -- Prefix for the result.
    *   * `quote`, default `false` -- Quote components as strings?
    *   * `reverse`, default `false` -- Render in back-to-front order?
    *   * `separator`, default `'/'` -- Separator between path components.
@@ -61,7 +61,7 @@ export class TreePathKey {
    */
   toString(options = null) {
     const defaultOptions = {
-      prefix:    '',
+      prefix:    '/',
       quote:     false,
       reverse:   false,
       separator: '/',
@@ -83,11 +83,12 @@ export class TreePathKey {
       path.reverse();
     }
 
-    const result = [];
+    const result = [options.prefix];
     for (const p of path) {
-      result.push(
-        (result.length === 0) ? options.prefix : options.separator,
-        p);
+      if (result.length !== 1) {
+        result.push(options.separator);
+      }
+      result.push(p);
     }
 
     result.push(options.suffix);

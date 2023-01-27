@@ -898,11 +898,11 @@ describe('stringFromKey()', () => {
 
     const key1 = new TreePathKey([], true);
     const s1   = map.stringFromKey(key1);
-    expect(s1).toBe('*');
+    expect(s1).toBe('/*');
 
     const key2 = new TreePathKey(['foo', 'bar'], false);
     const s2   = map.stringFromKey(key2);
-    expect(s2).toBe('foo/bar');
+    expect(s2).toBe('/foo/bar');
   });
 
   test('uses the default function when `null` was specified in the constructor', () => {
@@ -910,11 +910,11 @@ describe('stringFromKey()', () => {
 
     const key1 = new TreePathKey(['x'], true);
     const s1   = map.stringFromKey(key1);
-    expect(s1).toBe('x/*');
+    expect(s1).toBe('/x/*');
 
     const key2 = new TreePathKey([], false);
     const s2   = map.stringFromKey(key2);
-    expect(s2).toBe('');
+    expect(s2).toBe('/');
   });
 
   test('uses the function specified in the constructor', () => {
