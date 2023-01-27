@@ -49,14 +49,16 @@ export class TreePathKey {
    * Gets a human-useful string form of this instance.
    *
    * @param {?{prefix: string, reverse: boolean, separator: string, suffix:
-   *   string, wildcard: string}} [options = null] Formatting options. Only
+   *   string, wildcard: ?string}} [options = null] Formatting options. Only
    *   non-defaults need to be specified:
    *   * `prefix`, default `'/'` -- Prefix for the result.
    *   * `quote`, default `false` -- Quote components as strings?
    *   * `reverse`, default `false` -- Render in back-to-front order?
    *   * `separator`, default `'/'` -- Separator between path components.
    *   * `suffix`, default `''` -- Suffix for the result.
-   *   * `wildcard`, default `'*'` -- Wildcard indicator.
+   *   * `wildcard`, default `'*'` -- Wildcard indicator. If `false`, then a
+   *     wildcard key is represented as if it were non-wildcard. (This is
+   *     different than if this is `''` (the empty string)).
    * @returns {string} String form of the instance.
    */
   toString(options = null) {
@@ -75,7 +77,7 @@ export class TreePathKey {
       ? this.#path.map((p) => util.format('%o', p))
       : [...this.#path];
 
-    if (this.#wildcard) {
+    if (this.#wildcard && (options.wildcard !== null)) {
       path.push(options.wildcard);
     }
 
@@ -144,12 +146,16 @@ export class TreePathKey {
    * that is, the part of a URI after the hostname.
    *
    * @param {TreePathKey} key The key to convert.
+   * @param {boolean} [showWildcard = true] Represent a wildcard key as such? If
+   *   `false`, then the result is as if `key` were created with `wildcard ===
+   *   false`.
    * @returns {string} The string form.
    */
-  static uriPathStringFrom(key) {
+  static uriPathStringFrom(key, showWildcard = true) {
     return key.toString({
       prefix:    '/',
-      separator: '/'
+      separator: '/',
+      wildcard:  showWildcard ? '*' : null
     });
   }
 }

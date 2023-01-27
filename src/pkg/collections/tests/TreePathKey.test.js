@@ -166,6 +166,10 @@ describe('toString()', () => {
     wildcard | path                  | keyWild  | expected
     ${''}    | ${[]}                 | ${false} | ${'/'}
     ${''}    | ${[]}                 | ${true}  | ${'/'}
+    ${''}    | ${['a']}              | ${false} | ${'/a'}
+    ${''}    | ${['a']}              | ${true}  | ${'/a/'}
+    ${null}  | ${['a']}              | ${false} | ${'/a'}
+    ${null}  | ${['a']}              | ${true}  | ${'/a'}
     ${'X'}   | ${['a']}              | ${false} | ${'/a'}
     ${'X'}   | ${['a']}              | ${true}  | ${'/a/X'}
     ${'!!'}  | ${['aa', 'bb', 'cc']} | ${true}  | ${'/aa/bb/cc/!!'}
@@ -268,16 +272,37 @@ describe('hostnameStringFrom()', () => {
 });
 
 describe('uriPathStringFrom()', () => {
-  test.each`
-  path                     | wildcard | expected
-  ${[]}                    | ${false} | ${'/'}
-  ${[]}                    | ${true}  | ${'/*'}
-  ${['a']}                 | ${false} | ${'/a'}
-  ${['a']}                 | ${true}  | ${'/a/*'}
-  ${['foo', 'bar', 'baz']} | ${false} | ${'/foo/bar/baz'}
-  ${['foo', 'bar', 'baz']} | ${true}  | ${'/foo/bar/baz/*'}
-  `('on { path: $path, wildcard: $wildcard }', ({ path, wildcard, expected }) => {
-    const key = new TreePathKey(path, wildcard);
-    expect(TreePathKey.uriPathStringFrom(key)).toBe(expected);
+  describe.each`
+  wildArg   | label
+  ${[]}     | ${'without `showWildcard` passed (defaults to `true`)'}
+  ${[true]} | ${'with `showWildcard` passed as `true`'}
+  `('$label', ({ wildArg }) => {
+    test.each`
+    path                     | wildcard | expected
+    ${[]}                    | ${false} | ${'/'}
+    ${[]}                    | ${true}  | ${'/*'}
+    ${['a']}                 | ${false} | ${'/a'}
+    ${['a']}                 | ${true}  | ${'/a/*'}
+    ${['foo', 'bar', 'baz']} | ${false} | ${'/foo/bar/baz'}
+    ${['foo', 'bar', 'baz']} | ${true}  | ${'/foo/bar/baz/*'}
+    `('on { path: $path, wildcard: $wildcard }', ({ path, wildcard, expected }) => {
+      const key = new TreePathKey(path, wildcard);
+      expect(TreePathKey.uriPathStringFrom(key, ...wildArg)).toBe(expected);
+    });
+  });
+
+  describe('with `showWildcard` passed as `false`', () => {
+    test.each`
+    path                     | wildcard | expected
+    ${[]}                    | ${false} | ${'/'}
+    ${[]}                    | ${true}  | ${'/'}
+    ${['a']}                 | ${false} | ${'/a'}
+    ${['a']}                 | ${true}  | ${'/a'}
+    ${['foo', 'bar', 'baz']} | ${false} | ${'/foo/bar/baz'}
+    ${['foo', 'bar', 'baz']} | ${true}  | ${'/foo/bar/baz'}
+    `('on { path: $path, wildcard: $wildcard }', ({ path, wildcard, expected }) => {
+      const key = new TreePathKey(path, wildcard);
+      expect(TreePathKey.uriPathStringFrom(key, false)).toBe(expected);
+    });
   });
 });
