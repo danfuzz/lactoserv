@@ -86,7 +86,7 @@ const applications = [
     name:          'my-static-fun',
     type:          'static-server',
     siteDirectory: filePath('../site'),
-    notFoundPath:  filePath('../assets/not-found.html')
+    notFoundPath:  filePath('../site-extra/not-found.html')
   }
 ];
 
