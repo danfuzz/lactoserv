@@ -43,17 +43,23 @@ export class TreePathNode {
    * method.
    *
    * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to bind.
-   *   Assumed to be valid (checked by the exposed method).
    * @param {*} value Value to bind at `key`.
    * @returns {boolean} `true` if the binding was added, or `false` if there was
    *   already a binding for `key`.
    */
   add(key, value) {
+    const { path, wildcard } = key;
+
+    if (! (key instanceof TreePathKey)) {
+      MustBe.arrayOfString(path);
+      MustBe.boolean(wildcard);
+    }
+
     let subtree = this;
 
-    // Add any required subtrees to represent `key.path`, leaving `subtree` as
-    // the instance to modify.
-    for (const p of key.path) {
+    // Add any required subtrees to represent `path`, leaving `subtree` as the
+    // instance to modify.
+    for (const p of path) {
       let nextSubtree = subtree.#subtrees.get(p);
       if (!nextSubtree) {
         nextSubtree = new TreePathNode();
@@ -63,7 +69,7 @@ export class TreePathNode {
     }
 
     // Put a new binding directly into `subtree`, or report the salient problem.
-    if (key.wildcard) {
+    if (wildcard) {
       if (subtree.#wildcardKey) {
         return false;
       }

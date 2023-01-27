@@ -77,11 +77,6 @@ export class TreePathMap {
    * @throws {Error} Thrown if there is already a binding for the given `key`.
    */
   add(key, value) {
-    if (! (key instanceof TreePathKey)) {
-      MustBe.arrayOfString(key.path);
-      MustBe.boolean(key.wildcard);
-    }
-
     const okay = this.#rootNode.add(key, value);
 
     if (okay) {
