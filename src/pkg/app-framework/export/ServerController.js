@@ -161,7 +161,7 @@ export class ServerController {
 
     reqLogger?.dispatching({
       application: controller.name,
-      host:        ServerController.#hostMatchString(hostMatch),
+      host:        TreePathKey.hostnameStringFrom(hostMatch.key),
       path:        ServerController.#pathMatchString(pathMatch),
       url:         req.url
     });
@@ -181,23 +181,6 @@ export class ServerController {
   //
 
   /**
-   * Gets a loggable "host match" from a {@link TreePathMap} lookup response.
-   *
-   * @param {object} match The lookup response.
-   * @returns {string} A loggable string.
-   */
-  static #hostMatchString(match) {
-    const { path, wildcard } = match.key;
-
-    if (wildcard && path.length === 0) {
-      return '*';
-    }
-
-    const parts = [...path, ...(wildcard ? ['*'] : [])].reverse();
-    return parts.join('.');
-  }
-
-  /**
    * Makes the map from each (possibly wildcarded) hostname that this server
    * handles to the map from each (typically wildcarded) path (that is, a path
    * _prefix_ when wildcarded) to the application which handles it.
@@ -209,7 +192,7 @@ export class ServerController {
    *   mount map.
    */
   static #makeMountMap(mounts, applicationMap) {
-    const result = new TreePathMap();
+    const result = new TreePathMap(TreePathKey.hostnameStringFrom);
 
     for (const mount of mounts) {
       const { application, hostname, path } = mount;

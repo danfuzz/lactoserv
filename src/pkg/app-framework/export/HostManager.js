@@ -4,7 +4,7 @@
 import { SecureContext } from 'node:tls';
 
 import { HostConfig, Uris } from '@this/app-config';
-import { TreePathMap } from '@this/collections';
+import { TreePathKey, TreePathMap } from '@this/collections';
 
 import { HostController } from '#x/HostController';
 import { ThisModule } from '#p/ThisModule';
@@ -20,7 +20,7 @@ export class HostManager {
    * @type {TreePathMap<HostController>} Map from each componentized hostname to
    * the {@link HostController} object that should be used for it.
    */
-  #controllers = new TreePathMap();
+  #controllers = new TreePathMap(TreePathKey.hostnameStringFrom);
 
   /** @type {function(...*)} Logger for this class. */
   #logger = ThisModule.logger.hosts;
