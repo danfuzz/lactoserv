@@ -51,7 +51,7 @@ export class TreePathKey {
    * @param {?{prefix: string, reverse: boolean, separator: string, suffix:
    *   string, wildcard: string}} [options = null] Formatting options. Only
    *   non-defaults need to be specified:
-   *   * `prefix`, default `''` -- Prefix for the result.
+   *   * `prefix`, default `'/'` -- Prefix for the result.
    *   * `quote`, default `false` -- Quote components as strings?
    *   * `reverse`, default `false` -- Render in back-to-front order?
    *   * `separator`, default `'/'` -- Separator between path components.
@@ -61,7 +61,7 @@ export class TreePathKey {
    */
   toString(options = null) {
     const defaultOptions = {
-      prefix:    '',
+      prefix:    '/',
       quote:     false,
       reverse:   false,
       separator: '/',
@@ -83,11 +83,12 @@ export class TreePathKey {
       path.reverse();
     }
 
-    const result = [];
+    const result = [options.prefix];
     for (const p of path) {
-      result.push(
-        (result.length === 0) ? options.prefix : options.separator,
-        p);
+      if (result.length !== 1) {
+        result.push(options.separator);
+      }
+      result.push(p);
     }
 
     result.push(options.suffix);
@@ -105,5 +106,20 @@ export class TreePathKey {
   /** @type {TreePathKey} A non-wildcard empty-path instance. */
   static get EMPTY() {
     return this.#EMPTY;
+  }
+
+  /**
+   * Validates a "key-like" pair of `path` and `wildcard` arguments. This is
+   * meant to be called in cases where a method could accept either a proper
+   * instance of this class or a plain object that binds these as properties.
+   *
+   * @param {*} path The alleged key path.
+   * @param {*} wildcard The alleged wildcard flag.
+   * @throws {Error} Thrown iff the two arguments could not have been
+   *   successfully used to construct a {@link TreePathKey}.
+   */
+  static checkArguments(path, wildcard) {
+    MustBe.arrayOfString(path);
+    MustBe.boolean(wildcard);
   }
 }
