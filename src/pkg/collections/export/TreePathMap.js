@@ -77,8 +77,18 @@ export class TreePathMap {
    * @throws {Error} Thrown if there is already a binding for the given `key`.
    */
   add(key, value) {
-    this.#rootNode.add(key, value);
-    this.#size++;
+    if (! (key instanceof TreePathKey)) {
+      MustBe.arrayOfString(key.path);
+      MustBe.boolean(key.wildcard);
+    }
+
+    const okay = this.#rootNode.add(key, value);
+
+    if (okay) {
+      this.#size++;
+    } else {
+      throw this.#errorMessage('Key already bound', key);
+    }
   }
 
   /**
@@ -189,5 +199,21 @@ export class TreePathMap {
    */
   stringFromKey(key) {
     return this.#keyStringFunc(key);
+  }
+
+  /**
+   * Returns a composed error message, suitable for `throw`ing.
+   *
+   * @param {string} msg Basic message.
+   * @param {TreePathKey} key Key in question.
+   * @returns {string} The composed error message.
+   */
+  #errorMessage(msg, key) {
+    return key.toString({
+      prefix:    `${msg}: [`,
+      suffix:    ']',
+      quote:     true,
+      separator: ', '
+    });
   }
 }

@@ -39,19 +39,45 @@ export class TreePathNode {
 
   /**
    * Underlying implementation of `TreePathMap.add()`, see which for detailed
-   * docs.
+   * docs. Note the different return-vs-throw behavior compared to the exposed
+   * method.
    *
    * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to bind.
+   *   Assumed to be valid (checked by the exposed method).
    * @param {*} value Value to bind at `key`.
-   * @throws {Error} Thrown if there is already a binding for the given `key`.
+   * @returns {boolean} `true` if the binding was added, or `false` if there was
+   *   already a binding for `key`.
    */
   add(key, value) {
-    if (! (key instanceof TreePathKey)) {
-      MustBe.arrayOfString(key.path);
-      MustBe.boolean(key.wildcard);
+    let subtree = this;
+
+    // Add any required subtrees to represent `key.path`, leaving `subtree` as
+    // the instance to modify.
+    for (const p of key.path) {
+      let nextSubtree = subtree.#subtrees.get(p);
+      if (!nextSubtree) {
+        nextSubtree = new TreePathNode();
+        subtree.#subtrees.set(p, nextSubtree);
+      }
+      subtree = nextSubtree;
     }
 
-    this.#add0(key, value);
+    // Put a new binding directly into `subtree`, or report the salient problem.
+    if (key.wildcard) {
+      if (subtree.#wildcardKey) {
+        return false;
+      }
+      subtree.#wildcardKey   = key;
+      subtree.#wildcardValue = value;
+    } else {
+      if (subtree.#emptyKey) {
+        return false;
+      }
+      subtree.#emptyKey   = key;
+      subtree.#emptyValue = value;
+    }
+
+    return true;
   }
 
   /**
@@ -162,59 +188,6 @@ export class TreePathNode {
     } else {
       return subtree.#emptyKey ? subtree.#emptyValue : ifNotFound;
     }
-  }
-
-  /**
-   * Helper for {@link #add}, which does most of the work.
-   *
-   * @param {TreePathKey} key Key to bind.
-   * @param {*} value Value to bind.
-   * @throws {Error} Thrown if there is already a binding `key`.
-   */
-  #add0(key, value) {
-    let subtree = this;
-
-    // Add any required subtrees to represent `key.path`, leaving `subtree` as
-    // the instance to modify.
-    for (const p of key.path) {
-      let nextSubtree = subtree.#subtrees.get(p);
-      if (!nextSubtree) {
-        nextSubtree = new TreePathNode();
-        subtree.#subtrees.set(p, nextSubtree);
-      }
-      subtree = nextSubtree;
-    }
-
-    // Put a new binding directly into `subtree`, or report the salient problem.
-    if (key.wildcard) {
-      if (subtree.#wildcardKey) {
-        throw this.#errorMessage('Key already bound', key);
-      }
-      subtree.#wildcardKey   = key;
-      subtree.#wildcardValue = value;
-    } else {
-      if (subtree.#emptyKey) {
-        throw this.#errorMessage('Key already bound', key);
-      }
-      subtree.#emptyKey   = key;
-      subtree.#emptyValue = value;
-    }
-  }
-
-  /**
-   * Returns a composed error message, suitable for `throw`ing.
-   *
-   * @param {string} msg Basic message.
-   * @param {TreePathKey} key Key in question.
-   * @returns {string} The composed error message.
-   */
-  #errorMessage(msg, key) {
-    return key.toString({
-      prefix:    `${msg}: [`,
-      suffix:    ']',
-      quote:     true,
-      separator: ', '
-    });
   }
 
   /**
