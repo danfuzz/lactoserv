@@ -73,7 +73,7 @@ export class RequestLogHelper {
 
     res.on('finish', () => {
       const resHeaders    = res.getHeaders();
-      const contentLength = resHeaders['content-length'] ?? null;
+      const contentLength = resHeaders['content-length'] ?? 0;
 
       // Check to see if the connection socket has errored out. If so, indicate
       // as much.
