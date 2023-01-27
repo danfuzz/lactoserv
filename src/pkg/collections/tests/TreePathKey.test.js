@@ -50,16 +50,17 @@ describe('constructor()', () => {
   });
 });
 
-describe('.wildcard', () => {
-  test('is `true` when constructed with `true`', () => {
-    const key = new TreePathKey([], true);
-    expect(key.wildcard).toBeTrue();
-  });
-
-  test('is `false` when constructed with `false`', () => {
-    const key = new TreePathKey([], false);
-    expect(key.wildcard).toBeFalse();
-  });
+describe('.length', () => {
+  for (let len = 0; len < 4; len++) {
+    for (let wild = 0; wild < 2; wild++) {
+      const wildcard = !!wild;
+      test(`works for length ${len}, wildcard ${wildcard}`, () => {
+        const path = Array(len).fill('x');
+        const key  = new TreePathKey(path, wildcard);
+        expect(key.length).toBe(len);
+      });
+    }
+  }
 });
 
 describe('.path', () => {
@@ -82,6 +83,18 @@ describe('.path', () => {
     expect(key.path).toBeFrozen();
     expect(key.path).toStrictEqual(path);
     expect(key.path).toBe(path);
+  });
+});
+
+describe('.wildcard', () => {
+  test('is `true` when constructed with `true`', () => {
+    const key = new TreePathKey([], true);
+    expect(key.wildcard).toBeTrue();
+  });
+
+  test('is `false` when constructed with `false`', () => {
+    const key = new TreePathKey([], false);
+    expect(key.wildcard).toBeFalse();
   });
 });
 

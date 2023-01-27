@@ -31,8 +31,16 @@ export class TreePathKey {
     MustBe.arrayOfString(path);
     MustBe.boolean(wildcard);
 
-    this.#path = Object.isFrozen(path) ? path : Object.freeze([...path]);
+    this.#path     = Object.isFrozen(path) ? path : Object.freeze([...path]);
     this.#wildcard = wildcard;
+  }
+
+  /**
+   * @returns {number} The length of the path, that is, a shorthand for
+   * `this.path.length`.
+   */
+  get length() {
+    return this.#path.length;
   }
 
   /** @returns {string[]} The path. */
