@@ -8,30 +8,42 @@ import { ThisModule } from '#p/ThisModule';
 
 /**
  * Utilities for getting at information about the process that is running this
- * system.
+ * system. This includes both fixed-at-startup-time info (such as the process
+ * ID) _and_ live-updated info (such as the current amount of memory used).
  */
 export class ProcessInfo {
-  /** @type {?object} All the info, if calculated. */
-  static #info = null;
+  /** @type {?object} All the fixed-at-startup info, if calculated. */
+  static #fixedInfo = null;
 
   /** @returns {object} All process info. */
   static get allInfo() {
-    this.#makeInfo();
-    return { ...this.#info };
+    this.#makeFixedInfo();
+
+    const memoryUsage = process.memoryUsage();
+    for (const [key, value] of Object.entries(memoryUsage)) {
+      memoryUsage[key] = FormatUtils.byteCountString(value);
+    }
+
+    const result = {
+      ...this.#fixedInfo,
+      memoryUsage
+    };
+
+    return result;
   }
 
   /**
    * Initializes this class.
    */
   static init() {
-    this.#makeInfo();
+    this.#makeFixedInfo();
   }
 
   /**
    * Makes {@link #info} if not yet done.
    */
-  static #makeInfo() {
-    if (this.#info) {
+  static #makeFixedInfo() {
+    if (this.#fixedInfo) {
       return;
     }
 
@@ -39,12 +51,12 @@ export class ProcessInfo {
     const pid       = process.pid;
     const ppid      = process.ppid;
 
-    this.#info = {
+    this.#fixedInfo = {
       pid,
       ppid,
       startedAt: FormatUtils.compoundDateTimeFromSecs(startSecs)
     };
 
-    ThisModule.logger.processInfo(this.#info);
+    ThisModule.logger.processInfo(this.#fixedInfo);
   }
 }
