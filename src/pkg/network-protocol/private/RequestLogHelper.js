@@ -106,7 +106,7 @@ export class RequestLogHelper {
         method,
         JSON.stringify(urlish),
         res.statusCode,
-        FormatUtils.contentLengthString(contentLength),
+        FormatUtils.byteCountString(contentLength),
         FormatUtils.durationStringFromSecs(elapsedSecs, { spaces: false }),
         errorMsg
       ].join(' ');

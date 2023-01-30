@@ -75,28 +75,28 @@ export class FormatUtils {
   }
 
   /**
-   * Makes a human-friendly content length string, representing the value with
-   * one of the suffixes `B`, `kB`, or `MB`. In the latter two cases, the
-   * return value uses two digits after a decimal point unless the value is an
-   * exact integer. The dividing line between `B` and `kB` is at 99999/100000
-   * bytes. The dividing line between `kB` and `MB` is at 9999/10000 kilobytes.
+   * Makes a human-friendly byte-count string, representing the value with one
+   * of the suffixes `B`, `kB`, or `MB`. In the latter two cases, the return
+   * value uses two digits after a decimal point unless the value is an exact
+   * integer. The dividing line between `B` and `kB` is at 99999/100000 bytes.
+   * The dividing line between `kB` and `MB` is at 9999/10000 kilobytes.
    *
-   * @param {?number} contentLength The content length. If passed as `null`,
-   *   this method returns `<unknown-length>`.
+   * @param {?number} byteCount The byte count length. If passed as `null`,
+   *   this method returns `<none>`.
    * @returns {string} The friendly form.
    */
-  static contentLengthString(contentLength) {
-    if (contentLength === null) {
-      return '<unknown-length>';
-    } else if (contentLength < 100000) {
-      return `${contentLength}B`;
-    } else if (contentLength < (10000 * 1024)) {
-      const kilobytes = contentLength / 1024;
+  static byteCountString(byteCount) {
+    if (byteCount === null) {
+      return '<none>';
+    } else if (byteCount < 100000) {
+      return `${byteCount}B`;
+    } else if (byteCount < (10000 * 1024)) {
+      const kilobytes = byteCount / 1024;
       return Number.isInteger(kilobytes)
         ? `${kilobytes}kB`
         : `${kilobytes.toFixed(2)}kB`;
     } else {
-      const megabytes = contentLength / (1024 * 1024);
+      const megabytes = byteCount / (1024 * 1024);
       return Number.isInteger(megabytes)
         ? `${megabytes}MB`
         : `${megabytes.toFixed(2)}MB`;

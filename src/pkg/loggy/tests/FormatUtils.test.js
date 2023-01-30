@@ -25,10 +25,10 @@ describe('addressPortString()', () => {
   });
 });
 
-describe('contentLengthString()', () => {
+describe('byteCountString()', () => {
   test.each`
-  length       | expected
-  ${null}      | ${'<unknown-length>'}
+  count        | expected
+  ${null}      | ${'<none>'}
   ${0}         | ${'0B'}
   ${1}         | ${'1B'}
   ${1023}      | ${'1023B'}
@@ -43,8 +43,8 @@ describe('contentLengthString()', () => {
   ${10240000}  | ${'9.77MB'}
   ${102400000} | ${'97.66MB'}
   ${104857600} | ${'100MB'}
-  `('with ($length)', ({ length, expected }) => {
-    expect(FormatUtils.contentLengthString(length)).toBe(expected);
+  `('with ($length)', ({ count, expected }) => {
+    expect(FormatUtils.byteCountString(count)).toBe(expected);
   });
 });
 
