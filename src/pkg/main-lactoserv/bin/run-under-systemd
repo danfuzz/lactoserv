@@ -106,7 +106,7 @@ function do-start {
     # service that runs this command, e.g. probably `lactoserv` or some variant
     # thereof.
     echo 1>&2 'Running server via command:'
-    printf 1>&2 '  %q' "${fullCommand[@]}"
+    printf 1>&2 '  %q\n' "${fullCommand[@]}"
 
     # Note: `exec` is required so that the process running this script
     # ultimately becomes the process actually running the service. (If that
