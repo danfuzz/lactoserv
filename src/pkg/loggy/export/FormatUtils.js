@@ -42,6 +42,35 @@ export class FormatUtils {
   }
 
   /**
+   * Makes a human-friendly byte-count string, representing the value with one
+   * of the suffixes `B`, `kB`, or `MB`. In the latter two cases, the return
+   * value uses two digits after a decimal point unless the value is an exact
+   * integer. The dividing line between `B` and `kB` is at 99999/100000 bytes.
+   * The dividing line between `kB` and `MB` is at 9999/10000 kilobytes.
+   *
+   * @param {?number} byteCount The byte count length. If passed as `null`,
+   *   this method returns `<none>`.
+   * @returns {string} The friendly form.
+   */
+  static byteCountString(byteCount) {
+    if (byteCount === null) {
+      return '<none>';
+    } else if (byteCount < 100000) {
+      return `${byteCount}B`;
+    } else if (byteCount < (10000 * 1024)) {
+      const kilobytes = byteCount / 1024;
+      return Number.isInteger(kilobytes)
+        ? `${kilobytes}kB`
+        : `${kilobytes.toFixed(2)}kB`;
+    } else {
+      const megabytes = byteCount / (1024 * 1024);
+      return Number.isInteger(megabytes)
+        ? `${megabytes}MB`
+        : `${megabytes.toFixed(2)}MB`;
+    }
+  }
+
+  /**
    * Makes a very friendly compound date-time object, which represents both
    * seconds since the Unix Epoch as well as a string indicating the date-time
    * in UTC.
@@ -72,35 +101,6 @@ export class FormatUtils {
       secs:     durationSecs,
       duration: FormatUtils.durationStringFromSecs(durationSecs)
     };
-  }
-
-  /**
-   * Makes a human-friendly byte-count string, representing the value with one
-   * of the suffixes `B`, `kB`, or `MB`. In the latter two cases, the return
-   * value uses two digits after a decimal point unless the value is an exact
-   * integer. The dividing line between `B` and `kB` is at 99999/100000 bytes.
-   * The dividing line between `kB` and `MB` is at 9999/10000 kilobytes.
-   *
-   * @param {?number} byteCount The byte count length. If passed as `null`,
-   *   this method returns `<none>`.
-   * @returns {string} The friendly form.
-   */
-  static byteCountString(byteCount) {
-    if (byteCount === null) {
-      return '<none>';
-    } else if (byteCount < 100000) {
-      return `${byteCount}B`;
-    } else if (byteCount < (10000 * 1024)) {
-      const kilobytes = byteCount / 1024;
-      return Number.isInteger(kilobytes)
-        ? `${kilobytes}kB`
-        : `${kilobytes.toFixed(2)}kB`;
-    } else {
-      const megabytes = byteCount / (1024 * 1024);
-      return Number.isInteger(megabytes)
-        ? `${megabytes}MB`
-        : `${megabytes.toFixed(2)}MB`;
-    }
   }
 
   /**
