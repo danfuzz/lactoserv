@@ -14,6 +14,25 @@ export class AskIf {
   // Note: No method `array()`, because of the standard `Array.isArray()`.
 
   /**
+   * Checks for type "string value which can be an array index." This accursed
+   * method is useful when doing introspection on arrays.
+   *
+   * @param {*} value Arbitrary value.
+   * @returns {boolean} `true` iff `value` is of the indicated type.
+   */
+  static arrayIndexString(value) {
+    if (typeof value !== 'string') {
+      return false;
+    }
+
+    const intValue = parseInt(value);
+
+    return (intValue.toString() === value)
+      && (intValue >= 0)
+      && (intValue < (2 ** 32));
+  }
+
+  /**
    * Checks for type `(string|number)[]`, which is to say an array of values
    * that are all valid to use as object or array indices.
    *
