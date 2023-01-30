@@ -14,14 +14,18 @@ baseDir="${cmdDir%/*}"
 # Argument processing
 #
 
-# This _just_ extracts `--node-opts ... --`, leaving everything else intact,
-# because the bulk of the options are processed by the main program.
+# This _just_ extracts `--print-node-command` and `--node-opts ... --`, leaving
+# everything else intact, because the bulk of the options are processed by the
+# main program.
 
 # Options to pass to `node`.
 nodeOpts=()
 
 # Arguments to pass to the main program.
 mainArgs=()
+
+# Print the `node ...` command to stderr before actually running it?
+printNodeCommand=0
 
 # Collect node options?
 wantNodeOpts=0
@@ -40,6 +44,9 @@ while (( $# != 0 )); do
     case "$1" in
         --node-opts)
             wantNodeOpts=1
+            ;;
+        --print-node-command)
+            printNodeCommand=1
             ;;
         --*|-?*)
             # Option to pass through.
@@ -126,7 +133,16 @@ check-dependency \
 #   need for this script to take up space once the system is running. In
 #   addition to just being tidy, it helps when this project is run via / within
 #   a service manager such as `systemd`.
-exec node "${nodeOpts[@]}" --no-warnings \
-    "${baseDir}/lib/code/index.js" \
-    --outer-command-name="${cmdName}" \
+fullCommand=(
+    node "${nodeOpts[@]}" --no-warnings
+    "${baseDir}/lib/code/index.js"
+    --outer-command-name="${cmdName}"
     "${mainArgs[@]}"
+)
+
+if (( printNodeCommand )); then
+    echo 1>&2 'Running server via command:'
+    printf 1>&2 '  %q\n' "${fullCommand[@]}"
+fi
+
+exec "${fullCommand[@]}"

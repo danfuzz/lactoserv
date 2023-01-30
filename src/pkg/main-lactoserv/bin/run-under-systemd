@@ -98,7 +98,7 @@ function do-run-foreground {
 
 # Starts the system, daemon-style.
 function do-start {
-    local fullCommand=("${runCmd}" "${serverArgs[@]}")
+    local fullCommand=("${runCmd}" --print-node-command "${serverArgs[@]}")
 
     # Write the command about to be executed to the log. Note: In a typical OS
     # configuration, the service-specific log can be seen with `journalctl
