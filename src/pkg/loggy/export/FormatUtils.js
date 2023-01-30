@@ -50,23 +50,29 @@ export class FormatUtils {
    *
    * @param {?number} byteCount The byte count length. If passed as `null`,
    *   this method returns `<none>`.
+   * @param {object} [options = {}] Formatting options:
+   *   * `{boolean} spaces` -- Use spaces to separate the number from the units?
+   *     If `false` an underscore is used. Defaults to `true`.
    * @returns {string} The friendly form.
    */
-  static byteCountString(byteCount) {
+  static byteCountString(byteCount, options = {}) {
+    const { spaces = true } = options;
+    const spaceyChar        = spaces ? ' ' : '_';
+
     if (byteCount === null) {
       return '<none>';
     } else if (byteCount < 100000) {
-      return `${byteCount}B`;
+      return `${byteCount}${spaceyChar}B`;
     } else if (byteCount < (10000 * 1024)) {
       const kilobytes = byteCount / 1024;
       return Number.isInteger(kilobytes)
-        ? `${kilobytes}kB`
-        : `${kilobytes.toFixed(2)}kB`;
+        ? `${kilobytes}${spaceyChar}kB`
+        : `${kilobytes.toFixed(2)}${spaceyChar}kB`;
     } else {
       const megabytes = byteCount / (1024 * 1024);
       return Number.isInteger(megabytes)
-        ? `${megabytes}MB`
-        : `${megabytes.toFixed(2)}MB`;
+        ? `${megabytes}${spaceyChar}MB`
+        : `${megabytes.toFixed(2)}${spaceyChar}MB`;
     }
   }
 

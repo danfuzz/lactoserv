@@ -26,25 +26,42 @@ describe('addressPortString()', () => {
 });
 
 describe('byteCountString()', () => {
-  test.each`
-  count        | expected
-  ${null}      | ${'<none>'}
-  ${0}         | ${'0B'}
-  ${1}         | ${'1B'}
-  ${1023}      | ${'1023B'}
-  ${1024}      | ${'1024B'}
-  ${99999}     | ${'99999B'}
-  ${100000}    | ${'97.66kB'}
-  ${100008}    | ${'97.66kB'}
-  ${100009}    | ${'97.67kB'}
-  ${102400}    | ${'100kB'}
-  ${102401}    | ${'100.00kB'}
-  ${10239999}  | ${'10000.00kB'}
-  ${10240000}  | ${'9.77MB'}
-  ${102400000} | ${'97.66MB'}
-  ${104857600} | ${'100MB'}
-  `('with ($length)', ({ count, expected }) => {
-    expect(FormatUtils.byteCountString(count)).toBe(expected);
+  describe.each`
+  spaces   | options
+  ${true}  | ${undefined}
+  ${true}  | ${{}}
+  ${true}  | ${{ spaces: true }}
+  ${false} | ${{ spaces: false }}
+  `('with options $options', ({ spaces, options }) => {
+    test.each`
+    count        | expected
+    ${null}      | ${'<none>'}
+    ${0}         | ${'0 B'}
+    ${1}         | ${'1 B'}
+    ${1023}      | ${'1023 B'}
+    ${1024}      | ${'1024 B'}
+    ${99999}     | ${'99999 B'}
+    ${100000}    | ${'97.66 kB'}
+    ${100008}    | ${'97.66 kB'}
+    ${100009}    | ${'97.67 kB'}
+    ${102400}    | ${'100 kB'}
+    ${102401}    | ${'100.00 kB'}
+    ${10239999}  | ${'10000.00 kB'}
+    ${10240000}  | ${'9.77 MB'}
+    ${102400000} | ${'97.66 MB'}
+    ${104857600} | ${'100 MB'}
+    `('with ($count)', ({ count, expected }) => {
+      const args = [count];
+      if (options !== undefined) {
+        args.push(options);
+      }
+
+      const finalExpected = spaces
+        ? expected
+        : expected.replace(/ /, '_');
+
+      expect(FormatUtils.byteCountString(...args)).toBe(finalExpected);
+    });
   });
 });
 
