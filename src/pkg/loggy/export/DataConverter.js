@@ -89,7 +89,7 @@ export class DataConverter {
       // Special case to make these nicer than would otherwise result.
       const result = { ...obj }; // Get all the non-special properties.
       result['@class'] = obj.constructor.name;
-      if (obj.name !== result['@class']) {
+      if ((obj.name !== result['@class']) && (obj.name !== 'Error')) {
         result['@name'] = obj.name;
         delete result.name;
       }
