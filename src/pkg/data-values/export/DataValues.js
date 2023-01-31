@@ -38,6 +38,9 @@ import { NonData } from '#x/NonData';
  * override of the default `toData()` behavior.
  */
 export class DataValues {
+  /**
+   * @type {symbol} Converted value which is returned to indicate "omit this."
+   */
   static #OMIT = Symbol('DataValues.OMIT');
 
   /** @type {symbol} Value for the exposed {@link #TO_DATA}. */
@@ -76,8 +79,8 @@ export class DataValues {
    *
    * @param {*} orig Value to convert.
    * @param {object} [options = {}] Options for conversion. These include:
-   *   `dataClasses: [...class]` -- Classes whose instances are to be allowed
-   *     as-is to be treated as "data" (and not converted in any way). Default:
+   *   `dataClasses: [...class]` -- Classes whose instances are to be allowed to
+   *     be treated as "data" as-is (and not converted in any way). Default:
    *     `[Construct, NonData]`.
    *   `freeze: boolean` -- Whether to guarantee a frozen result. Default
    *     `true`.
