@@ -38,20 +38,22 @@ describe('toData()', () => {
       });
     });
 
-    test('inspects functions', () => {
+    test('wraps functions', () => {
       const florp = () => 123;
       const data  = DataValues.toData(florp);
-      expect(data).toBe('[Function: florp]');
+      expect(data).toBeInstanceOf(NonData);
+      expect(data.value).toBe(florp);
     });
 
-    test('inspects unspecial instances', () => {
+    test('wraps unspecial instances', () => {
       class Florp {
         like = 123;
       }
 
       const florp = new Florp();
       const data  = DataValues.toData(florp);
-      expect(data).toBe('Florp { like: 123 }');
+      expect(data).toBeInstanceOf(NonData);
+      expect(data.value).toBe(florp);
     });
 
     describe('on instances that define a TO_DATA method', () => {

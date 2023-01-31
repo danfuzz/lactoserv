@@ -107,12 +107,12 @@ export class DataValues {
    *     `true`.
    *   `functionAction: string|function` -- What to do if a function reference
    *     is encountered. May be any of the treatment values described above.
-   *     Default `inspect`.
+   *     Default `wrap`.
    *   `honorToData: boolean` -- Whether or not to honor objects' defined
    *     `Symbol.TO_DATA` methods. Default `true`.
    *   `instanceAction: string|function` -- What to do if an instance (non-plain
    *     object) is encountered (that isn't covered by other options). May be
-   *     any of the treatment values described above. Default `inspect`.
+   *     any of the treatment values described above. Default `wrap`.
    *   `specialConverters: ?BaseConverter` -- Any special converters to use,
    *     to override class-defined data converters and/or provide such
    *     conversion for classes that don't have them (such as built-in
@@ -126,9 +126,9 @@ export class DataValues {
     options = {
       dataClasses:       [Construct, NonData],
       freeze:            true,
-      functionAction:    'inspect',
+      functionAction:    'wrap',
       honorToData:       true,
-      instanceAction:    'inspect',
+      instanceAction:    'wrap',
       specialConverters: SpecialConverters.STANDARD,
       symbolKeyAction:   'omit',
       ...options
@@ -187,7 +187,7 @@ export class DataValues {
         if (options.specialConverters) {
           const replacement = options.specialConverters.dataFromValue(orig);
           if (replacement !== BaseConverter.UNHANDLED) {
-            return replacement;
+            return this.#toData0(replacement, options);
           }
         }
 
