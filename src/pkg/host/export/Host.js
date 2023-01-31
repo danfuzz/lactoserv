@@ -126,9 +126,21 @@ export class Host {
           if (!p.problem.problem) {
             delete p.problem;
           }
-          p.errorClass = p['@name'];    delete p['@name'];
-          p.message    = p['@message']; delete p['@message'];
-          p.stack      = p['@stack'];   delete p['@stack'];
+          p.class   = p['@class'];   delete p['@class'];
+          p.name    = p['@name'];    delete p['@name'];
+          p.code    = p['@code'];    delete p['@code'];
+          p.message = p['@message']; delete p['@message'];
+          p.stack   = p['@stack'];   delete p['@stack'];
+          p.cause   = p['@cause'];   delete p['@cause'];
+          if (p.name === undefined) {
+            delete p.name;
+          }
+          if (p.code === undefined) {
+            delete p.code;
+          }
+          if (p.cause === undefined) {
+            delete p.cause;
+          }
         }
       }
 

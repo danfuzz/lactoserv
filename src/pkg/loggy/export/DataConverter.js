@@ -88,11 +88,20 @@ export class DataConverter {
     if (obj instanceof Error) {
       // Special case to make these nicer than would otherwise result.
       const result = { ...obj }; // Get all the non-special properties.
-      result['@name'] = obj.constructor.name;
+      result['@class'] = obj.constructor.name;
+      if (obj.name !== result['@class']) {
+        result['@name'] = obj.name;
+        delete result.name;
+      }
       result['@message'] = obj.message;
+      if (obj.code !== undefined) {
+        result['@code'] = obj.code;
+        delete result.code;
+      }
       result['@stack'] = StackTrace.framesFrom(obj);
       if (obj.cause) {
         result['@cause'] = obj.cause;
+        delete result.cause;
       }
       return this.fix({ '@error': result });
     } else {
