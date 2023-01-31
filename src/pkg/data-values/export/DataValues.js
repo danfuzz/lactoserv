@@ -5,8 +5,13 @@ import * as util from 'node:util';
 
 import { AskIf } from '@this/typey';
 
+import { BaseConverter } from '#x/BaseConverter';
 import { Construct } from '#x/Construct';
 import { NonData } from '#x/NonData';
+import { SpecialConverters } from '#x/SpecialConverters';
+
+// TODO: Rework this as an instantiable class, instead of passing config around
+// all over the place.
 
 // TODO: Handle self-referential structures.
 
@@ -16,8 +21,9 @@ import { NonData } from '#x/NonData';
 
 /**
  * Converter utilities for data values. For the purposes of this class, "data
- * values" are a superset of what can be represented in JSON. Here is a
- * run-down:
+ * values" are a superset of what can be represented in JSON and are intented to
+ * be (ultimately) a superset of what JavaScript defines as "serializable"
+ * values, though with a bit of a twist. Here is a run-down of what is covered:
  *
  * * `undefined`.
  * * `null`.
@@ -31,11 +37,26 @@ import { NonData } from '#x/NonData';
  * * plain objects, without symbol bindings.
  * * objects of class {@link Construct} (which is defined in this module).
  * * objects of class {@link NonData} (which is defined in this module). This is
- *   effectively an "escape hatch."
+ *   effectively an "escape hatch" to allow arbitrary objects to pass through a
+ *   data value conversion without being touched.
  *
- * Similar to how `JSON.stringify()` knows to look for a `.toJSON()` method,
- * this class understands the symbol-named method `DataValues.TO_DATA` to be an
- * override of the default `toData()` behavior.
+ * The `Construct` class is particularly of note. It is the key class used to
+ * enable general representation of instances as data. On the way into a data
+ * value form, a supported instance gets "deconstructed" into a `Construct`
+ * instance, after which it may be serialized as apporpriate for the context.
+ * Then later, a (presumably recently) unserialized data value can get processed
+ * in a context that understands some set of `Construct`-able types, and proceed
+ * to reconstitute new objects that are (sufficiently) equivalent to the
+ * originals. The "twist" mentioned above about serializable values is that,
+ * while the classes designated by JavaScript to be serializable mostly don't
+ * appear in the list of covered data values above, many (and ultimately, one
+ * hopes, all) are covered by special case conversion to `Construct` instances.
+ *
+ * Beyond the built-in special cases, and similar to how `JSON.stringify()`
+ * knows to look for a `.toJSON()` method, this class understands the
+ * symbol-named method `DataValues.TO_DATA` to be an override of the default
+ * `toData()` behavior. The expectation is that most such custom converters
+ * end up producing `Construct` instances (though that isn't strictly required).
  */
 export class DataValues {
   /**
@@ -92,6 +113,10 @@ export class DataValues {
    *   `instanceAction: string|function` -- What to do if an instance (non-plain
    *     object) is encountered (that isn't covered by other options). May be
    *     any of the treatment values described above. Default `inspect`.
+   *   `specialConverters: ?BaseConverter` -- Any special converters to use,
+   *     to override class-defined data converters and/or provide such
+   *     conversion for classes that don't have them (such as built-in
+   *     JavaScript classes). Default {@link SpecialConverters#STANDARD}.
    *   `symbolKeyAction: string` -- What to do if a symbol-keyed property is
    *     encountered in an otherwise plain object or array. Only valid to be
    *     `error` or `omit`. Default `omit`.
@@ -99,12 +124,13 @@ export class DataValues {
    */
   static toData(orig, options = {}) {
     options = {
-      dataClasses:     [Construct, NonData],
-      freeze:          true,
-      functionAction:  'inspect',
-      honorToData:     true,
-      instanceAction:  'inspect',
-      symbolKeyAction: 'omit',
+      dataClasses:       [Construct, NonData],
+      freeze:            true,
+      functionAction:    'inspect',
+      honorToData:       true,
+      instanceAction:    'inspect',
+      specialConverters: SpecialConverters.STANDARD,
+      symbolKeyAction:   'omit',
       ...options
     };
 
@@ -156,7 +182,16 @@ export class DataValues {
           return this.#objectOrArrayToData(orig, false, options);
         } else if (options.isDataInstance(orig)) {
           return orig;
-        } else if (options.honorToData && orig[this.#TO_DATA]) {
+        }
+
+        if (options.specialConverters) {
+          const replacement = options.specialConverters.dataFromValue(orig);
+          if (replacement !== BaseConverter.UNHANDLED) {
+            return replacement;
+          }
+        }
+
+        if (options.honorToData && orig[this.#TO_DATA]) {
           const replacement = orig[this.#TO_DATA]();
           return this.#toData0(replacement, options);
         } else {
