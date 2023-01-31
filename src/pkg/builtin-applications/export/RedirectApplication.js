@@ -3,6 +3,7 @@
 
 import { ApplicationConfig, Uris } from '@this/app-config';
 import { ApplicationController, BaseApplication } from '@this/app-framework';
+import { MustBe } from '@this/typey';
 
 
 /**
@@ -15,6 +16,9 @@ import { ApplicationController, BaseApplication } from '@this/app-framework';
  *   appended to this value to become the full redirected URI.
  */
 export class RedirectApplication extends BaseApplication {
+  /** @type {number} The redirect status code to use. */
+  #statusCode;
+
   /** @type {string} The target base URI. */
   #target;
 
@@ -27,6 +31,8 @@ export class RedirectApplication extends BaseApplication {
   constructor(config, controller) {
     super(config, controller);
 
+    this.#statusCode = config.statusCode;
+
     // Drop the final slash from `target`, because we'll always be appending a
     // path that _starts_ with a slash.
     this.#target = config.target.match(/^(?<target>.*)[/]$/).groups.target;
@@ -34,7 +40,7 @@ export class RedirectApplication extends BaseApplication {
 
   /** @override */
   handleRequest(req, res, next_unused) {
-    res.redirect(`${this.#target}${req.path}`);
+    res.redirect(this.#statusCode, `${this.#target}${req.path}`);
   }
 
 
@@ -56,6 +62,9 @@ export class RedirectApplication extends BaseApplication {
    * Configuration item subclass for this (outer) class.
    */
   static #Config = class Config extends ApplicationConfig {
+    /** @type {number} The redirect status code to use. */
+    #statusCode;
+
     /** @type {string} The target base URI. */
     #target;
 
@@ -67,7 +76,16 @@ export class RedirectApplication extends BaseApplication {
     constructor(config) {
       super(config);
 
+      this.#statusCode = config.statusCode
+        ? MustBe.number(config.statusCode, { minInclusive: 300, maxInclusive: 399 })
+        : 301;
+
       this.#target = Uris.checkBasicUri(config.target);
+    }
+
+    /** @returns {string} The target base URI. */
+    get statusCode() {
+      return this.#statusCode;
     }
 
     /** @returns {string} The target base URI. */

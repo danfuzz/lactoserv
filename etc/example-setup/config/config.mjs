@@ -78,9 +78,10 @@ const services = [
 // Application definitions.
 const applications = [
   {
-    name:   'my-wacky-redirector',
-    type:   'redirect-server',
-    target: 'https://milk.com/boop/'
+    name:       'my-wacky-redirector',
+    type:       'redirect-server',
+    statusCode: 308,
+    target:     'https://milk.com/boop/'
   },
   {
     name:          'my-static-fun',
