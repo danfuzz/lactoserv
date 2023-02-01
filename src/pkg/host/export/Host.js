@@ -142,7 +142,7 @@ export class Host {
     if (!(encoded instanceof Construct)) {
       // Something weird happened; just leave it, which will hopefully get at
       // least _some_ info out the door.
-      return error;
+      return encoded;
     }
 
     const fixed = {
