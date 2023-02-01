@@ -6,14 +6,14 @@ import { AskIf } from '@this/typey';
 import { Construct, Converter, NonData } from '@this/data-values';
 
 
-describe('.TO_DATA', () => {
+describe('.ENCODE', () => {
   test('is a symbol', () => {
-    expect(Converter.TO_DATA).toBeSymbol();
+    expect(Converter.ENCODE).toBeSymbol();
   });
 
   test('is uninterned', () => {
-    const interned = Symbol.for(Converter.TO_DATA.description);
-    expect(Converter.TO_DATA).not.toBe(interned);
+    const interned = Symbol.for(Converter.ENCODE.description);
+    expect(Converter.ENCODE).not.toBe(interned);
   });
 });
 
@@ -83,11 +83,11 @@ describe('encode()', () => {
       expect(data.value).toBe(florp);
     });
 
-    describe('on instances that define a TO_DATA method', () => {
-      test('calls the TO_DATA method exactly once', () => {
+    describe('on instances that define a ENCODE method', () => {
+      test('calls the ENCODE method exactly once', () => {
         let calledCount = 0;
         class Florp {
-          [Converter.TO_DATA]() {
+          [Converter.ENCODE]() {
             calledCount++;
             return 123;
           }
@@ -101,10 +101,10 @@ describe('encode()', () => {
         expect(data).toBe(123);
       });
 
-      test('converts the value returned from the TO_DATA call', () => {
+      test('converts the value returned from the ENCODE call', () => {
         const theData = [1, 2, 3];
         class Florp {
-          [Converter.TO_DATA]() { return theData; }
+          [Converter.ENCODE]() { return theData; }
         }
         const florp = new Florp();
 

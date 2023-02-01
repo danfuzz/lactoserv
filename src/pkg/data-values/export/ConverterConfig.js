@@ -45,7 +45,7 @@ export class ConverterConfig {
    */
   #functionAction;
 
-  /** @type {boolean} Should instance-defined `TO_DATA()` methods be honored? */
+  /** @type {boolean} Should instance-defined `ENCODE()` methods be honored? */
   #honorToData;
 
   /**
@@ -133,7 +133,7 @@ export class ConverterConfig {
   }
 
   /**
-   * @returns {boolean} Should instance-defined `TO_DATA()` methods be honored?
+   * @returns {boolean} Should instance-defined `ENCODE()` methods be honored?
    *
    * Default value if not passed during construction: `true`
    */

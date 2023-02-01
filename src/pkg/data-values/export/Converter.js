@@ -111,8 +111,8 @@ export class Converter {
           }
         }
 
-        if (config.honorToData && orig[Converter.#TO_DATA]) {
-          const replacement = orig[Converter.#TO_DATA]();
+        if (config.honorToData && orig[Converter.#ENCODE]) {
+          const replacement = orig[Converter.#ENCODE]();
           return this.#encode0(replacement);
         } else {
           return this.#performReplacement(orig, config.instanceAction);
@@ -195,23 +195,23 @@ export class Converter {
   // Static members.
   //
 
+  /** @type {symbol} Value for the exposed {@link #ENCODE}. */
+  static #ENCODE = Symbol('Converter.ENCODE');
+
   /**
    * @type {symbol} Converted value which is returned to indicate "omit this."
    */
   static #OMIT = Symbol('Converter.OMIT');
 
-  /** @type {symbol} Value for the exposed {@link #TO_DATA}. */
-  static #TO_DATA = Symbol('Converter.TO_DATA');
-
   /** @type {symbol} Special "unhandled" value. */
   static #UNHANDLED = Symbol('Converter.UNHANDLED');
 
   /**
-   * @type {symbol} Name of method to define, in order to specify custom to-data
-   * behavior on an instance.
+   * @type {symbol} Name of method to define, in order to specify custom value
+   * encoding behavior on an instance.
    */
-  static get TO_DATA() {
-    return this.#TO_DATA;
+  static get ENCODE() {
+    return this.#ENCODE;
   }
 
   /**
