@@ -106,7 +106,7 @@ export class Converter {
 
         if (config.specialCases) {
           const replacement = config.specialCases.encode(orig);
-          if (replacement !== BaseConverter.UNHANDLED) {
+          if (replacement !== Converter.UNHANDLED) {
             return this.#encode0(replacement);
           }
         }
@@ -203,11 +203,22 @@ export class Converter {
   /** @type {symbol} Value for the exposed {@link #TO_DATA}. */
   static #TO_DATA = Symbol('Converter.TO_DATA');
 
+  /** @type {symbol} Special "unhandled" value. */
+  static #UNHANDLED = Symbol('Converter.UNHANDLED');
+
   /**
    * @type {symbol} Name of method to define, in order to specify custom to-data
    * behavior on an instance.
    */
   static get TO_DATA() {
     return this.#TO_DATA;
+  }
+
+  /**
+   * @returns {symbol} Special return value from `encode()` and `decode()`
+   * methods.
+   */
+  static get UNHANDLED() {
+    return this.#UNHANDLED;
   }
 }

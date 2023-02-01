@@ -10,6 +10,22 @@ describe('.TO_DATA', () => {
   test('is a symbol', () => {
     expect(Converter.TO_DATA).toBeSymbol();
   });
+
+  test('is uninterned', () => {
+    const interned = Symbol.for(Converter.TO_DATA.description);
+    expect(Converter.TO_DATA).not.toBe(interned);
+  });
+});
+
+describe('.UNHANDLED', () => {
+  test('is a symbol', () => {
+    expect(Converter.UNHANDLED).toBeSymbol();
+  });
+
+  test('is uninterned', () => {
+    const interned = Symbol.for(Converter.UNHANDLED.description);
+    expect(Converter.UNHANDLED).not.toBe(interned);
+  });
 });
 
 describe('decode()', () => {

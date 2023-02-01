@@ -9,14 +9,3 @@ describe('constructor()', () => {
     expect(() => new BaseConverter()).not.toThrow();
   });
 });
-
-describe('.UNHANDLED', () => {
-  test('is a symbol', () => {
-    expect(BaseConverter.UNHANDLED).toBeSymbol();
-  });
-
-  test('is uninterned', () => {
-    const interned = Symbol.for(BaseConverter.UNHANDLED.description);
-    expect(BaseConverter.UNHANDLED).not.toBe(interned);
-  });
-});

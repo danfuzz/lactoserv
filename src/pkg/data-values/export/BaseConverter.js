@@ -18,8 +18,9 @@ export class BaseConverter {
    *
    * @abstract
    * @param {*} data The data value to convert.
-   * @returns {*} The converted form, or the special value {@link #UNHANDLED} if
-   *   `data` is not convertible by this instance.
+   * @returns {*} The converted form, or the special value
+   *   {@link Converter#UNHANDLED} if `data` is not convertible by this
+   *   instance.
    */
   decode(data) {
     throw Methods.abstract(data);
@@ -31,23 +32,11 @@ export class BaseConverter {
    *
    * @abstract
    * @param {*} value The value to convert.
-   * @returns {*} The converted form, or the special value {@link #UNHANDLED} if
-   *   `value` is not convertible by this instance.
+   * @returns {*} The converted form, or the special value
+   *   {@link Converter#UNHANDLED} if `value` is not convertible by this
+   *   instance.
    */
   encode(value) {
     throw Methods.abstract(value);
-  }
-
-
-  //
-  // Static members
-  //
-
-  /** @type {symbol} Special "unhandled" value. */
-  static #UNHANDLED = Symbol('BaseConverter.UNHANDLED');
-
-  /** @returns {symbol} Special return value from methods on this class. */
-  static get UNHANDLED() {
-    return this.#UNHANDLED;
   }
 }
