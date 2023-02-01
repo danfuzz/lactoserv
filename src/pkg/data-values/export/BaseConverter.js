@@ -50,6 +50,12 @@ export class BaseConverter {
   /** @type {symbol} Value for the exposed {@link #ENCODE}. */
   static #ENCODE = Symbol('BaseConverter.ENCODE');
 
+  /**
+   * @type {symbol} Return value from an `encode()` method to indicate "omit
+   * this."
+   */
+  static #OMIT = Symbol('BaseConverter.OMIT');
+
   /** @type {symbol} Special "unhandled" value. */
   static #UNHANDLED = Symbol('BaseConverter.UNHANDLED');
 
@@ -59,6 +65,14 @@ export class BaseConverter {
    */
   static get ENCODE() {
     return this.#ENCODE;
+  }
+
+  /**
+   * @type {symbol} Return value from an `encode()` method to indicate "omit
+   * this."
+   */
+  static get OMIT() {
+    return this.#OMIT;
   }
 
   /**

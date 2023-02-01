@@ -62,7 +62,7 @@ export class Converter extends BaseConverter {
   encode(value) {
     const result = this.#encode0(value);
 
-    return (result === Converter.#OMIT)
+    return (result === BaseConverter.OMIT)
       ? undefined
       : result;
   }
@@ -150,7 +150,7 @@ export class Converter extends BaseConverter {
     for (const [key, value] of Object.entries(orig)) {
       const newValue = this.#encode0(value);
       anyChange ||= (value !== newValue);
-      if (newValue !== Converter.#OMIT) {
+      if (newValue !== BaseConverter.OMIT) {
         result[key] = newValue;
       }
     }
@@ -181,7 +181,7 @@ export class Converter extends BaseConverter {
     switch (action) {
       case 'error':    throw new Error('Encountered non-data.');
       case 'inspect':  return util.inspect(orig);
-      case 'omit':     return Converter.#OMIT;
+      case 'omit':     return BaseConverter.OMIT;
       case 'asObject': return this.#objectOrArrayToData(orig, false);
       case 'wrap':     return new NonData(orig);
       default: {
@@ -191,15 +191,4 @@ export class Converter extends BaseConverter {
       }
     }
   }
-
-
-  //
-  // Static members.
-  //
-
-  /**
-   * @type {symbol} Return value from an `encode()` method to indicate "omit
-   * this."
-   */
-  static #OMIT = Symbol('Converter.OMIT');
 }

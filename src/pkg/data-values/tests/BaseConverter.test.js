@@ -15,6 +15,17 @@ describe('.ENCODE', () => {
   });
 });
 
+describe('.OMIT', () => {
+  test('is a symbol', () => {
+    expect(BaseConverter.OMIT).toBeSymbol();
+  });
+
+  test('is uninterned', () => {
+    const interned = Symbol.for(BaseConverter.OMIT.description);
+    expect(BaseConverter.OMIT).not.toBe(interned);
+  });
+});
+
 describe('.UNHANDLED', () => {
   test('is a symbol', () => {
     expect(BaseConverter.UNHANDLED).toBeSymbol();
