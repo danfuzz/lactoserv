@@ -47,12 +47,31 @@ export class SpecialConverters extends BaseConverter {
   }
 
   /**
+   * Adds all of the converters from another instance as defaults to this one,
+   * that is, it adds all the ones not already covered by a binding in this
+   * instance.
+   *
+   * @param {SpecialConverters} defaults The instance to use for defaults.
+   */
+  addDefaults(defaults) {
+    MustBe.instanceOf(defaults, SpecialConverters);
+
+    for (const [cls, converter] of defaults.#converters) {
+      if (!this.#converters.has(cls)) {
+        this.#converters.set(cls, converter);
+      }
+    }
+  }
+
+  /**
    * Adds a converter to associate with all the standard `Error` classes /
    * subclasses.
    *
    * @param {BaseConverter} converter Converter to use on instances of `cls`.
    */
   addForErrors(converter) {
+    MustBe.instanceOf(converter, BaseConverter);
+
     for (const e of [Error, EvalError, RangeError, ReferenceError, SyntaxError,
       TypeError, URIError]) {
       this.add(e, converter);
