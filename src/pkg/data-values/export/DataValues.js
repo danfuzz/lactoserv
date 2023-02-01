@@ -99,10 +99,10 @@ export class DataValues {
    * recursive re-entry point for the conversion procedure.
    *
    * @param {*} orig Value to convert.
-   * @param {object} options Options for conversion.
+   * @param {object} config Conversion configuration.
    * @returns {*} The converted version.
    */
-  static #toData0(orig, options) {
+  static #toData0(orig, config) {
     switch (typeof orig) {
       case 'bigint':
       case 'boolean':
@@ -114,36 +114,36 @@ export class DataValues {
       }
 
       case 'function': {
-        return this.#performReplacement(orig, options.functionAction, options);
+        return this.#performReplacement(orig, config.functionAction, config);
       }
 
       case 'object': {
         if (orig === null) {
           return null;
         } else if (Array.isArray(orig)) {
-          return this.#objectOrArrayToData(orig, true, options);
+          return this.#objectOrArrayToData(orig, true, config);
         } else if (AskIf.plainObject(orig)) {
-          return this.#objectOrArrayToData(orig, false, options);
-        } else if (options.isDataInstance(orig)) {
+          return this.#objectOrArrayToData(orig, false, config);
+        } else if (config.isDataInstance(orig)) {
           const toConvert   = Object.freeze(orig.toConvertibleValue());
-          const replacement = this.#toData0(toConvert, options);
+          const replacement = this.#toData0(toConvert, config);
           return (replacement === toConvert)
             ? orig
             : orig.withConvertedValue(replacement);
         }
 
-        if (options.specialCases) {
-          const replacement = options.specialCases.dataFromValue(orig);
+        if (config.specialCases) {
+          const replacement = config.specialCases.dataFromValue(orig);
           if (replacement !== BaseConverter.UNHANDLED) {
-            return this.#toData0(replacement, options);
+            return this.#toData0(replacement, config);
           }
         }
 
-        if (options.honorToData && orig[this.#TO_DATA]) {
+        if (config.honorToData && orig[this.#TO_DATA]) {
           const replacement = orig[this.#TO_DATA]();
-          return this.#toData0(replacement, options);
+          return this.#toData0(replacement, config);
         } else {
-          return this.#performReplacement(orig, options.instanceAction, options);
+          return this.#performReplacement(orig, config.instanceAction, config);
         }
       }
     }
@@ -158,11 +158,11 @@ export class DataValues {
    *
    * @param {*} orig Value to convert.
    * @param {boolean} isArray Is `orig` an array?
-   * @param {object} options Options for conversion.
+   * @param {object} config Conversion configuration.
    * @returns {*} The converted version.
    */
-  static #objectOrArrayToData(orig, isArray, options) {
-    if (   (options.symbolKeyAction === 'error')
+  static #objectOrArrayToData(orig, isArray, config) {
+    if (   (config.symbolKeyAction === 'error')
         && (Object.getOwnPropertySymbols(orig).length !== 0)) {
       throw new Error(`Encountered symbol key in ${isArray ? 'array' : 'object'}.`);
     }
@@ -173,14 +173,14 @@ export class DataValues {
     let anyChange = false;
 
     for (const [key, value] of Object.entries(orig)) {
-      const newValue = this.#toData0(value, options);
+      const newValue = this.#toData0(value, config);
       anyChange ||= (value !== newValue);
       if (newValue !== this.#OMIT) {
         result[key] = newValue;
       }
     }
 
-    if (options.freeze) {
+    if (config.freeze) {
       return (anyChange || !Object.isFrozen(orig))
         ? Object.freeze(result)
         : orig;
@@ -196,19 +196,19 @@ export class DataValues {
 
   /**
    * Helper for {@link #toData0}, which performs a replacement action as
-   * defined by one of the replacer options.
+   * defined by the replacer configuration.
    *
    * @param {*} orig Value to convert.
    * @param {string|function(*): *} replacer The replacer option value to use.
-   * @param {object} options Options for conversion.
+   * @param {object} config Conversion configuration.
    * @returns {*} The converted version.
    */
-  static #performReplacement(orig, replacer, options) {
+  static #performReplacement(orig, replacer, config) {
     switch (replacer) {
       case 'error':    throw new Error('Encountered non-data.');
       case 'inspect':  return util.inspect(orig);
       case 'omit':     return this.#OMIT;
-      case 'asObject': return this.#objectOrArrayToData(orig, false, options);
+      case 'asObject': return this.#objectOrArrayToData(orig, false, config);
       case 'wrap':     return new NonData(orig);
       default: {
         // `|| null` to make the call be a function (not method) call.
