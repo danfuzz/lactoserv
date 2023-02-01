@@ -26,4 +26,26 @@ export class NonData {
   get value() {
     return this.#value;
   }
+
+  /**
+   * Gets the "inner value" of this instance, which is suitable for conversion,
+   * to produce a converted instance of this class.
+   *
+   * @returns {*} Convertible inner value.
+   */
+  toConvertibleValue() {
+    return null;
+  }
+
+  /**
+   * Gets an instance just like this one, but with the given replacement
+   * inner value.
+   *
+   * @param {*} innerValue_unused The new inner value.
+   * @returns {*} A replacement instance for this one, representing its
+   *   conversion.
+   */
+  withConvertedValue(innerValue_unused) {
+    return this;
+  }
 }

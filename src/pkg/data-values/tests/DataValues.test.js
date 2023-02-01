@@ -38,20 +38,22 @@ describe('toData()', () => {
       });
     });
 
-    test('inspects functions', () => {
+    test('wraps functions', () => {
       const florp = () => 123;
       const data  = DataValues.toData(florp);
-      expect(data).toBe('[Function: florp]');
+      expect(data).toBeInstanceOf(NonData);
+      expect(data.value).toBe(florp);
     });
 
-    test('inspects unspecial instances', () => {
+    test('wraps unspecial instances', () => {
       class Florp {
         like = 123;
       }
 
       const florp = new Florp();
       const data  = DataValues.toData(florp);
-      expect(data).toBe('Florp { like: 123 }');
+      expect(data).toBeInstanceOf(NonData);
+      expect(data.value).toBe(florp);
     });
 
     describe('on instances that define a TO_DATA method', () => {
@@ -247,6 +249,57 @@ describe('toData()', () => {
         expect(got.both[0]).toBe(value1);
         expect(got.both[1]).toBe(value2);
       });
+    });
+
+    describe('on instances of specially-handled classes', () => {
+      test('handles class `Error` (simple case)', () => {
+        const err = new Error('Oy!');
+        const got = DataValues.toData(err);
+
+        expect(got).toBeInstanceOf(Construct);
+        expect(got.type).toBeInstanceOf(NonData);
+        expect(got.type.value).toBe(Error);
+        expect(got.args).toBeArrayOfSize(1);
+        expect(got.args[0]).toStrictEqual({
+          name:    'Error',
+          message: err.message,
+          stack:   err.stack
+        });
+      });
+
+      test('handles class `Error` (complicated case)', () => {
+        const cause = new TypeError('Oh biscuits!');
+        const err   = new Error('What the muffin?!', { cause });
+
+        err.code        = 'muffins';
+        err.name        = 'MuffinError';
+        err.blueberries = true;
+
+        const got   = DataValues.toData(err);
+        expect(got).toBeInstanceOf(Construct);
+        expect(got.type).toBeInstanceOf(NonData);
+        expect(got.type.value).toBe(Error);
+        expect(got.args).toBeArrayOfSize(2);
+        expect(got.args[0]).toContainAllKeys(['cause', 'code', 'message', 'name', 'stack']);
+        expect(got.args[1]).toStrictEqual({ blueberries: true });
+
+        const { cause: convCause, code, message, name, stack } = got.args[0];
+        expect(code).toBe(err.code);
+        expect(message).toBe(err.message);
+        expect(name).toBe(err.name);
+        expect(stack).toBe(err.stack);
+        expect(convCause).toBeInstanceOf(Construct);
+        expect(convCause.type).toBeInstanceOf(NonData);
+        expect(convCause.type.value).toBe(TypeError);
+        expect(convCause.args).toBeArrayOfSize(1);
+        expect(convCause.args[0]).toStrictEqual({
+          name:    cause.name,
+          message: cause.message,
+          stack:   cause.stack
+        });
+      });
+
+      // TODO: More!
     });
   });
 });
