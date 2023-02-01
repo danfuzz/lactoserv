@@ -1,7 +1,7 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
 // This project is PROPRIETARY and UNLICENSED.
 
-import { DataConverter } from '@this/loggy';
+import { Construct, Converter, ConverterConfig } from '@this/data-values';
 
 import { LoggingManager } from '#p/LoggingManager';
 import { ProcessInfo } from '#x/ProcessInfo';
@@ -119,34 +119,69 @@ export class Host {
     const problems = TopErrorHandler.problems;
     if (problems.length !== 0) {
       // Convert `Error` objects to a friendly JSON-encodable form.
+      const converter = new Converter(ConverterConfig.makeLoggingInstance());
+
       for (const p of problems) {
-        p.problem = DataConverter.fix(p.problem);
-        if (p.problem['@error']) {
-          Object.assign(p, p.problem['@error']);
-          if (!p.problem.problem) {
-            delete p.problem;
-          }
-          p.class   = p['@class'];   delete p['@class'];
-          p.name    = p['@name'];    delete p['@name'];
-          p.code    = p['@code'];    delete p['@code'];
-          p.message = p['@message']; delete p['@message'];
-          p.stack   = p['@stack'];   delete p['@stack'];
-          p.cause   = p['@cause'];   delete p['@cause'];
-          if (p.name === undefined) {
-            delete p.name;
-          }
-          if (p.code === undefined) {
-            delete p.code;
-          }
-          if (p.cause === undefined) {
-            delete p.cause;
-          }
-        }
+        p.problem = this.#fixProblem(p.problem, converter);
       }
 
       result.problems = problems;
     }
 
     return result;
+  }
+
+  /**
+   * Helper for {@link #fixProblem}, which simplifies the structure of a single
+   * encoded `Error` instance.
+   *
+   * @param {*} encoded The encoded error.
+   * @returns {*} The fixed (maximally human-friendly) form.
+   */
+  static #fixEncodedError(encoded) {
+    if (!(encoded instanceof Construct)) {
+      // Something weird happened; just leave it, which will hopefully get at
+      // least _some_ info out the door.
+      return encoded;
+    }
+
+    const fixed = {
+      type: encoded.type,
+      ...encoded.args[0],
+      ...(encoded.args[1] ?? {})
+    };
+
+    if (fixed.name === fixed.type) {
+      delete fixed.name;
+    }
+
+    if (   (fixed.stack instanceof Construct)
+        && (fixed.stack.type === 'StackTrace')) {
+      fixed.stack = fixed.stack.args[0];
+    }
+
+    if (fixed.cause) {
+      fixed.cause = this.#fixEncodedError(fixed.cause);
+    }
+
+    return fixed;
+  }
+
+  /**
+   * Helper for {@link #shutdownDisposition}, which converts a single `problem`
+   * binding. This relies on assumed details of how `Error` instances get
+   * encoded by the `data-values` module.
+   *
+   * @param {*} problem The problem, typically an `Error`.
+   * @param {Converter} converter Converter instance to use for encoding.
+   * @returns {*} The fixed (maximally human-friendly) form.
+   */
+  static #fixProblem(problem, converter) {
+    if (!(problem instanceof Error)) {
+      return problem;
+    }
+
+    const encoded = converter.encode(problem);
+    return this.#fixEncodedError(encoded);
   }
 }

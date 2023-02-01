@@ -7,3 +7,4 @@ export * from '#x/Converter';
 export * from '#x/ConverterConfig';
 export * from '#x/NonData';
 export * from '#x/SpecialConverters';
+export * from '#x/StackTrace';

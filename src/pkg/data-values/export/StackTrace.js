@@ -3,9 +3,13 @@
 
 import { AskIf, MustBe } from '@this/typey';
 
+import { BaseConverter } from '#x/BaseConverter';
+import { Construct } from '#x/Construct';
+
 
 /**
- * Utility class for generating and manipulating stack traces.
+ * Representation of stack traces, along with utility for generating them from
+ * various sources.
  *
  * **Note:** This class is written to expect Node / V8 stack traces.
  */
@@ -62,6 +66,15 @@ export class StackTrace {
    */
   get frames() {
     return this.#frames;
+  }
+
+  /**
+   * Implementation of `data-values` custom-encode protocol.
+   *
+   * @returns {Construct} Encoded form.
+   */
+  [BaseConverter.ENCODE]() {
+    return new Construct(StackTrace, this.#frames);
   }
 
   /**

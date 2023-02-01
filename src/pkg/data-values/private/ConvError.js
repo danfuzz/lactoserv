@@ -1,8 +1,11 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
 // This project is PROPRIETARY and UNLICENSED.
 
+import { MustBe } from '@this/typey';
+
 import { BaseConverter } from '#x/BaseConverter';
 import { Construct } from '#x/Construct';
+import { StackTrace } from '#x/StackTrace';
 
 /**
  * Special-case converter for instances of `Error` including subclasses.
@@ -11,7 +14,21 @@ import { Construct } from '#x/Construct';
  * order to be converted from instances to data.
  */
 export class ConvError extends BaseConverter {
-  // Note: The default constructor is fine here.
+  /** @type {boolean} Should stacks be parsed? */
+  #parseStacks;
+
+  /**
+   * Construct an instance.
+   *
+   * @param {boolean} [parseStacks = false] Should stacks be parsed? If so,
+   *   the `stack` property of encoded instances will, when possible, contain an
+   *   (encoded) instance of {@link StackTrace}.
+   */
+  constructor(parseStacks = false) {
+    super();
+
+    this.#parseStacks = MustBe.boolean(parseStacks);
+  }
 
   /** @override */
   decode(data_unused) {
@@ -20,10 +37,11 @@ export class ConvError extends BaseConverter {
 
   /** @override */
   encode(value) {
-    const type = value.constructor;
-    const { cause, code, message, name, stack } = value;
-    const rest = { ...value };
-    const main = {
+    const { cause, code, message, name } = value;
+    const type  = value.constructor;
+    const stack = this.#encodeStack(value);
+    const rest  = { ...value };
+    const main  = {
       name: name ?? type.name ?? 'Error',
       code,
       message: message ?? '',
@@ -44,5 +62,19 @@ export class ConvError extends BaseConverter {
     return (Object.entries(rest).length === 0)
       ? new Construct(type, main)
       : new Construct(type, main, rest);
+  }
+
+  /**
+   * Gets the appropriate value for an encoded `stack` property.
+   *
+   * @param {Error} error The original error.
+   * @returns {*} The value to use in the result for {@link #encode}.
+   */
+  #encodeStack(error) {
+    if (!(this.#parseStacks && (typeof error?.stack === 'string'))) {
+      return error.stack;
+    }
+
+    return new StackTrace(error);
   }
 }

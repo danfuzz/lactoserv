@@ -3,11 +3,11 @@
 
 import * as util from 'node:util';
 
+import { StackTrace } from '@this/data-values';
 import { MustBe } from '@this/typey';
 
 import { FormatUtils } from '#x/FormatUtils';
 import { LogTag } from '#x/LogTag';
-import { StackTrace } from '#x/StackTrace';
 
 
 /**
