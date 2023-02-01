@@ -111,7 +111,7 @@ export class Converter {
           }
         }
 
-        if (config.honorToData && orig[Converter.#ENCODE]) {
+        if (config.honorEncodeMethod && orig[Converter.#ENCODE]) {
           const replacement = orig[Converter.#ENCODE]();
           return this.#encode0(replacement);
         } else {

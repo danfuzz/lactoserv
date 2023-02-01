@@ -46,7 +46,7 @@ export class ConverterConfig {
   #functionAction;
 
   /** @type {boolean} Should instance-defined `ENCODE()` methods be honored? */
-  #honorToData;
+  #honorEncodeMethod;
 
   /**
    * @type {string|(function(*): *)} Action to take when asked to encode an
@@ -78,25 +78,25 @@ export class ConverterConfig {
     options = (options === null) ? {} : MustBe.plainObject(options);
 
     const {
-      dataClasses     = [Construct, NonData],
-      freeze          = true,
-      functionAction  = 'wrap',
-      honorToData     = true,
-      instanceAction  = 'wrap',
-      specialCases    = SpecialConverters.STANDARD,
-      symbolKeyAction = 'omit'
+      dataClasses       = [Construct, NonData],
+      freeze            = true,
+      functionAction    = 'wrap',
+      honorEncodeMethod = true,
+      instanceAction    = 'wrap',
+      specialCases      = SpecialConverters.STANDARD,
+      symbolKeyAction   = 'omit'
     } = options;
 
-    this.#dataClasses     = Object.freeze(
+    this.#dataClasses       = Object.freeze(
       MustBe.arrayOf(dataClasses, AskIf.constructorFunction));
-    this.#freeze          = MustBe.boolean(freeze);
-    this.#functionAction  = ConverterConfig.#checkAction(functionAction);
-    this.#honorToData     = MustBe.boolean(honorToData);
-    this.#instanceAction  = ConverterConfig.#checkAction(instanceAction);
-    this.#specialCases    = (specialCases === null)
+    this.#freeze            = MustBe.boolean(freeze);
+    this.#functionAction    = ConverterConfig.#checkAction(functionAction);
+    this.#honorEncodeMethod = MustBe.boolean(honorEncodeMethod);
+    this.#instanceAction    = ConverterConfig.#checkAction(instanceAction);
+    this.#specialCases      = (specialCases === null)
       ? null
       : MustBe.instanceOf(specialCases, BaseConverter);
-    this.#symbolKeyAction =
+    this.#symbolKeyAction   =
       ConverterConfig.#checkSymbolKeyAction(symbolKeyAction);
   }
 
@@ -137,8 +137,8 @@ export class ConverterConfig {
    *
    * Default value if not passed during construction: `true`
    */
-  get honorToData() {
-    return this.#honorToData;
+  get honorEncodeMethod() {
+    return this.#honorEncodeMethod;
   }
 
   /**
