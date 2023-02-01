@@ -149,8 +149,9 @@ export class AskIf {
    * a function which will allow calling when preceded by `new`. These are of
    * course also often just called "classes."
    *
-   * **Note:** This implementation is imperfect and inefficient. There is a TC39 proposal that would address this
-   * problem: <https://github.com/caitp/TC39-Proposals/blob/HEAD/tc39-reflect-isconstructor-iscallable.md>
+   * **Note:** This implementation is imperfect and inefficient. There is a TC39
+   * proposal that would address this problem:
+   * <https://github.com/caitp/TC39-Proposals/blob/HEAD/tc39-reflect-isconstructor-iscallable.md>
    * Unfortunately it is not (as of this writing) close to being accepted.
    *
    * @param {*} value Arbitrary value.
