@@ -100,8 +100,12 @@ export class DataValues {
    *
    * @param {*} orig Value to convert.
    * @param {object} [options = {}] Options for conversion. These include:
-   *   `dataClasses: [...class]` -- Classes whose instances are to be allowed to
-   *     be treated as "data" as-is (and not converted in any way). Default:
+   *   `dataClasses: ?[...class]` -- Classes whose instances are to be allowed
+   *     to be treated as "data," making them (effectively) peers with plain
+   *     objects and arrays. When such an instance is converted, it is asked for
+   *     its inner "convertible value," which is then converted and used to
+   *     produce a new instance (typically of the same class); or if all its
+   *     contents self-represent, the original value is used. Default:
    *     `[Construct, NonData]`.
    *   `freeze: boolean` -- Whether to guarantee a frozen result. Default
    *     `true`.
@@ -135,7 +139,7 @@ export class DataValues {
     };
 
     // Convert `dataClasses` to a predicate.
-    const dataClasses = [...options.dataClasses];
+    const dataClasses = options.dataClasses ? [...options.dataClasses] : [];
     options.isDataInstance = (obj) => {
       for (const dc of dataClasses) {
         if (obj instanceof dc) {
@@ -181,7 +185,11 @@ export class DataValues {
         } else if (AskIf.plainObject(orig)) {
           return this.#objectOrArrayToData(orig, false, options);
         } else if (options.isDataInstance(orig)) {
-          return orig;
+          const toConvert   = Object.freeze(orig.toConvertibleValue());
+          const replacement = this.#toData0(toConvert, options);
+          return (replacement === toConvert)
+            ? orig
+            : orig.withConvertedValue(replacement);
         }
 
         if (options.specialConverters) {
@@ -225,7 +233,7 @@ export class DataValues {
     let anyChange = false;
 
     for (const [key, value] of Object.entries(orig)) {
-      const newValue = this.toData(value, options);
+      const newValue = this.#toData0(value, options);
       anyChange ||= (value !== newValue);
       if (newValue !== this.#OMIT) {
         result[key] = newValue;
