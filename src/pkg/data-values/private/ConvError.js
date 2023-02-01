@@ -71,7 +71,7 @@ export class ConvError extends BaseConverter {
    * @returns {*} The value to use in the result for {@link #encode}.
    */
   #encodeStack(error) {
-    if (!(this.#parseStacks && (typeof origStack === 'string'))) {
+    if (!(this.#parseStacks && (typeof error?.stack === 'string'))) {
       return error.stack;
     }
 
