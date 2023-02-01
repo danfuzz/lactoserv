@@ -37,13 +37,7 @@ export class Converter extends BaseConverter {
       : MustBe.instanceOf(config, ConverterConfig);
   }
 
-  /**
-   * Decodes a data value to an arbitrary value.
-   *
-   * @param {*} data The data value to decode.
-   * @returns {*} The decoded form.
-   * @throws {Error} Thrown if there is trouble performing the conversion.
-   */
+  /** @override */
   decode(data) {
     // TODO
     if (data !== data) {
@@ -52,13 +46,7 @@ export class Converter extends BaseConverter {
     throw new Error('TODO');
   }
 
-  /**
-   * Encodes an arbitrary value to a data value.
-   *
-   * @param {*} value The value to encode.
-   * @returns {*} The encoded form.
-   * @throws {Error} Thrown if there is trouble performing the conversion.
-   */
+  /** @override */
   encode(value) {
     const result = this.#encode0(value);
 
