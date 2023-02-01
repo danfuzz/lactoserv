@@ -133,7 +133,15 @@ export class AskIf {
       return false;
     }
 
-    return true;
+    // Extra twist: If `value` is a revoked proxy, then we'll make it here, so
+    // we need to detect that. See longer comment about this in
+    // `constructorFunction()` for more details.
+    try {
+      Symbol() in value; // eslint-disable-line symbol-description
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   /**
@@ -165,7 +173,7 @@ export class AskIf {
       const p = new Proxy(value, {
         construct() { return p; }
       });
-      new p;
+      new p();
 
       // Extra twist: If `value` is a revoked proxy, then we'll make it here, so
       // we need to detect that, which we do by taking advantage of the facts
@@ -176,7 +184,7 @@ export class AskIf {
       // Note that the promising-looking suggestion at
       // <https://stackoverflow.com/questions/39335909> does not seem to work in
       // practice.
-      Symbol() in value;
+      Symbol() in value; // eslint-disable-line symbol-description
 
       return true;
     } catch {
