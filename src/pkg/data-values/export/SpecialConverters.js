@@ -46,6 +46,19 @@ export class SpecialConverters extends BaseConverter {
     this.#converters.set(cls, converter);
   }
 
+  /**
+   * Adds a converter to associate with all the standard `Error` classes /
+   * subclasses.
+   *
+   * @param {BaseConverter} converter Converter to use on instances of `cls`.
+   */
+  addForErrors(converter) {
+    for (const e of [Error, EvalError, RangeError, ReferenceError, SyntaxError,
+      TypeError, URIError]) {
+      this.add(e, converter);
+    }
+  }
+
   /** @override */
   decode(data_unused) {
     throw new Error('TODO');

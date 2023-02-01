@@ -28,14 +28,13 @@ export class StandardConverters {
   static #makeStandardInstance() {
     const std = new SpecialConverters();
 
-    const errorInstance = new ConvError();
-    for (const e of [Error, EvalError, RangeError, ReferenceError, SyntaxError,
-      TypeError, URIError]) {
-      std.add(e, errorInstance);
-    }
+    std.addForErrors(new ConvError());
 
     // TODO: More! Good reference:
     // <https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm>
+
+    // std.add(Class, new ConvClass());
+    // ...
 
     std.freeze();
 
