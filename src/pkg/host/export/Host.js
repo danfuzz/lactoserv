@@ -146,7 +146,7 @@ export class Host {
     }
 
     const fixed = {
-      type: encoded.type,
+      class: encoded.type,
       ...encoded.args[0],
       ...(encoded.args[1] ?? {})
     };
