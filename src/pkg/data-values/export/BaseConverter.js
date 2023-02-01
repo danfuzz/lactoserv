@@ -52,13 +52,10 @@ export class BaseConverter {
   /** @type {symbol} Value for the exposed {@link #ENCODE}. */
   static #ENCODE = Symbol('BaseConverter.ENCODE');
 
-  /**
-   * @type {symbol} Return value from an `encode()` method to indicate "omit
-   * this."
-   */
+  /** @type {symbol} Value for the exposed {@link #OMIT}. */
   static #OMIT = Symbol('BaseConverter.OMIT');
 
-  /** @type {symbol} Special "unhandled" value. */
+  /** @type {symbol} Value for the exposed {@link #UNHANDLED}. */
   static #UNHANDLED = Symbol('BaseConverter.UNHANDLED');
 
   /**
@@ -79,7 +76,7 @@ export class BaseConverter {
 
   /**
    * @returns {symbol} Special return value from `encode()` and `decode()`
-   * methods.
+   * methods to indicate "conversion not handled."
    */
   static get UNHANDLED() {
     return this.#UNHANDLED;
