@@ -4,6 +4,7 @@
 import { ConvError } from '#p/ConvError';
 import { SpecialConverters } from '#x/SpecialConverters';
 
+
 /**
  * Utility class that knows all the standard special-case converters.
  */
@@ -11,12 +12,18 @@ export class StandardConverters {
   /** @type {?SpecialConverters} Standard instance, if initialized. */
   static #STANDARD;
 
-  /**
-   * @returns {SpecialConverters} Standard instance which covers many built-in
-   * JavaScript classes.
-   */
+  /** @type {?SpecialConverters} Standard logging instance, if initialized. */
+  static #STANDARD_FOR_LOGGING;
+
+  /** @returns {SpecialConverters} Standard instance. */
   static get STANDARD() {
-    this.#STANDARD ??= this.#makeStandardInstance();
+    this.#STANDARD ??= this.#makeStandard();
+    return this.#STANDARD;
+  }
+
+  /** @returns {SpecialConverters} Standard logging instance. */
+  static get STANDARD_FOR_LOGGING() {
+    this.#STANDARD ??= this.#makeStandardForLogging();
     return this.#STANDARD;
   }
 
@@ -25,7 +32,7 @@ export class StandardConverters {
    *
    * @returns {SpecialConverters} The instance.
    */
-  static #makeStandardInstance() {
+  static #makeStandard() {
     const std = new SpecialConverters();
 
     std.addForErrors(new ConvError());
@@ -37,7 +44,21 @@ export class StandardConverters {
     // ...
 
     std.freeze();
+    return std;
+  }
 
+  /**
+   * Makes the value for {@link #STANDARD_FOR_LOGGING}.
+   *
+   * @returns {SpecialConverters} The instance.
+   */
+  static #makeStandardForLogging() {
+    const std = new SpecialConverters();
+
+    std.addForErrors(new ConvError(true));
+    std.addDefaults(this.STANDARD);
+
+    std.freeze();
     return std;
   }
 }

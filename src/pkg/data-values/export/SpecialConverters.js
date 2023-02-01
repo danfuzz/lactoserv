@@ -114,6 +114,9 @@ export class SpecialConverters extends BaseConverter {
   /** @type {?SpecialConverters} Standard instance, if known. */
   static #STANDARD = null;
 
+  /** @type {?SpecialConverters} Standard logging instance, if known. */
+  static #STANDARD_FOR_LOGGING = null;
+
   /**
    * @returns {SpecialConverters} Standard instance which covers many built-in
    * JavaScript classes.
@@ -121,5 +124,14 @@ export class SpecialConverters extends BaseConverter {
   static get STANDARD() {
     this.#STANDARD ??= StandardConverters.STANDARD;
     return this.#STANDARD;
+  }
+
+  /**
+   * @returns {SpecialConverters} Standard instance intended for use in logging,
+   * which covers many built-in JavaScript classes.
+   */
+  static get STANDARD_FOR_LOGGING() {
+    this.#STANDARD_FOR_LOGGING ??= StandardConverters.STANDARD_FOR_LOGGING;
+    return this.#STANDARD_FOR_LOGGING;
   }
 }
