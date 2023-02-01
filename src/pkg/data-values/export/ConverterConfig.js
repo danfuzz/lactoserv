@@ -235,8 +235,8 @@ export class ConverterConfig {
   static #checkSymbolKeyAction(value) {
     if (typeof value === 'string') {
       switch (value) {
-        case 'omit':
-        case 'wrap': {
+        case 'error':
+        case 'omit': {
           return value;
         }
       }
