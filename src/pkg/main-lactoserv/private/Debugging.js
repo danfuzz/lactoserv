@@ -65,7 +65,10 @@ export class Debugging {
       // given for unhandled promise rejections.
       setTimeout(() => { throw new Error('I am an uncaught exception (from a callback).'); }, 50);
 
-      throw new Error('I am an unhandled promise rejection.');
+      const cause = new TypeError('I am a cause.');
+      cause.name = 'Causeway';
+      cause.code = 'CAUSAL';
+      throw new Error('I am an unhandled promise rejection.', { cause });
     })();
   }
 
