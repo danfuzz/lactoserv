@@ -83,8 +83,8 @@ describe('encode()', () => {
       expect(data.value).toBe(florp);
     });
 
-    describe('on instances that define a ENCODE method', () => {
-      test('calls the ENCODE method exactly once', () => {
+    describe('on instances that define an `ENCODE()` method', () => {
+      test('calls `ENCODE()` exactly once', () => {
         let calledCount = 0;
         class Florp {
           [Converter.ENCODE]() {
@@ -101,7 +101,7 @@ describe('encode()', () => {
         expect(data).toBe(123);
       });
 
-      test('converts the value returned from the ENCODE call', () => {
+      test('converts the value returned from `ENCODE()`', () => {
         const theData = [1, 2, 3];
         class Florp {
           [Converter.ENCODE]() { return theData; }
