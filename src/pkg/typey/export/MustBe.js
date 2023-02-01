@@ -31,6 +31,23 @@ export class MustBe {
   }
 
   /**
+   * Checks for type `array`, where each element must be of a particular type,
+   * specified as a predicate.
+   *
+   * @param {*} value Arbitrary value.
+   * @param {function(*): boolean} predicate Predicate to match.
+   * @returns {*[]} `value` if it is of the indicated type.
+   * @throws {Error} Thrown if `value` is of any other type.
+   */
+  static arrayOf(value, predicate) {
+    if (AskIf.arrayOf(value, predicate)) {
+      return value;
+    }
+
+    throw new Error('Must be of type `array` of a particular type.');
+  }
+
+  /**
    * Assertion of {@link AskIf.arrayOfIndex}.
    *
    * @param {*} value Arbitrary value.

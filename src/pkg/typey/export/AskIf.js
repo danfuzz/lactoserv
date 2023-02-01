@@ -33,6 +33,28 @@ export class AskIf {
   }
 
   /**
+   * Checks for type `array`, where each element must be of a particular type,
+   * specified as a predicate.
+   *
+   * @param {*} value Arbitrary value.
+   * @param {function(*): boolean} predicate Predicate to match.
+   * @returns {boolean} `true` iff `value` is of the indicated type.
+   */
+  static arrayOf(value, predicate) {
+    if (!Array.isArray(value)) {
+      return false;
+    }
+
+    for (const v of value) {
+      if (!predicate(v)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
    * Checks for type `(string|number)[]`, which is to say an array of values
    * that are all valid to use as object or array indices.
    *
