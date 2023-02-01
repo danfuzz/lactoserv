@@ -16,10 +16,10 @@ import { NonData } from '#x/NonData';
 // arrays, as opposed to using `Object.entries()` and the like.
 
 /**
- * Converter to and from data values. See the module `README.md` for a bit more
- * detail.
+ * Primary concrete implementation of the {@link BaseConverter} protocol.
+ * See the module `README.md` for a bit more detail.
  */
-export class Converter {
+export class Converter extends BaseConverter {
   /** @type {ConverterConfig} Configuration to use. */
   #config;
 
@@ -30,6 +30,8 @@ export class Converter {
    *   default configuration.
    */
   constructor(config = null) {
+    super();
+
     this.#config = (config === null)
       ? new ConverterConfig()
       : MustBe.instanceOf(config, ConverterConfig);

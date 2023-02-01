@@ -5,30 +5,32 @@ import { Methods } from '@this/typey';
 
 
 /**
- * Base class for "special converters." These are objects which know how to
- * convert particular kinds of (other) objects or (generally) values to and from
- * data values.
+ * Base class for converters of all sorts (as defined by this module). These are
+ * objects which know how to encode (some set of) arbitrary values into data
+ * values, and vice versa. See the module `README.md` for a bit more detail.
+ *
+ * **Note:** Some converters are defined to throw errors when presented with
+ * values or data which they can't handle. Others are defined to return the
+ * special value {@link Converter#UNHANDLED}.
  */
 export class BaseConverter {
   // Note: The default constructor is fine here.
 
   /**
-   * Decodes a data value into an arbitrary value, as appropriate for this
-   * special converter instance.
+   * Decodes a data value into an arbitrary value.
    *
    * @abstract
    * @param {*} data The data value to convert.
    * @returns {*} The converted form, or the special value
    *   {@link Converter#UNHANDLED} if `data` is not convertible by this
-   *   instance.
+   *   instance
    */
   decode(data) {
     throw Methods.abstract(data);
   }
 
   /**
-   * Encodes an arbitrary value to a data value, as appropriate for this special
-   * converter instance.
+   * Encodes an arbitrary value into a data value.
    *
    * @abstract
    * @param {*} value The value to convert.
