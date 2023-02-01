@@ -185,6 +185,12 @@ export class Converter extends BaseConverter {
       case 'asObject':  return this.#objectOrArrayToData(orig, false);
       case 'unhandled': return BaseConverter.UNHANDLED;
       case 'wrap':      return new NonData(orig);
+      case 'name': {
+        const name = orig.name;
+        return ((typeof name === 'string') && name !== '')
+          ? name
+          : '<no-name>';
+      }
       default: {
         // `|| null` to make the call be a function (not method) call.
         const replacement = (action || null)(orig);
