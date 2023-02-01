@@ -204,8 +204,8 @@ export class ConverterConfig {
 
   /**
    * Gets the default / baseline configuration for use in a logging context.
-   * This configuration errs on the side of `inspect`ing things and also
-   * arranges for stack traces to be parsed.
+   * This configuration errs on the side of `inspect`ing and `name`ing things,
+   * and also arranges for stack traces to be parsed.
    *
    * The return value is always a fresh instance which is safe for the caller to
    * modify. (It does not alter future results from this method.)
@@ -214,7 +214,7 @@ export class ConverterConfig {
    */
   static makeLoggingInstance() {
     return new this({
-      functionAction: 'inspect',
+      functionAction: 'name',
       instanceAction: 'inspect',
       specialCases:   SpecialConverters.STANDARD_FOR_LOGGING
     });
