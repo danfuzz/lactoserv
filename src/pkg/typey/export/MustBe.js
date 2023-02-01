@@ -108,6 +108,22 @@ export class MustBe {
   }
 
   /**
+   * Checks for type "constructor function" (a/k/a "class"). See {@link
+   # AskIf#constructorFunction} for details.
+   *
+   * @param {*} value Arbitrary value.
+   * @returns {boolean} `value` if it is of the indicated type.
+   * @throws {Error} Thrown if `value` is of any other type.
+   */
+  static constructorFunction(value) {
+    if (AskIf.constructorFunction(value)) {
+      return value;
+    }
+
+    throw new Error('Must be of type "constructor function" (a/k/a "class").');
+  }
+
+  /**
    * Checks for type `function`.
    *
    * @param {*} value Arbitrary value.
