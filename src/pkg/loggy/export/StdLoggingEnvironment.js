@@ -3,6 +3,7 @@
 
 import * as process from 'node:process';
 
+import { StackTrace } from '@this/data-values';
 import { MustBe } from '@this/typey';
 
 import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
@@ -10,7 +11,6 @@ import { DataConverter } from '#x/DataConverter';
 import { IdGenerator } from '#x/IdGenerator';
 import { LogRecord } from '#x/LogRecord';
 import { LogSource } from '#x/LogSource';
-import { StackTrace } from '#x/StackTrace';
 
 
 /**

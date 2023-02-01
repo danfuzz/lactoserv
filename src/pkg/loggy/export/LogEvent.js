@@ -2,11 +2,11 @@
 // This project is PROPRIETARY and UNLICENSED.
 
 import { LinkedEvent } from '@this/async';
+import { StackTrace } from '@this/data-values';
 import { MustBe } from '@this/typey';
 
 import { LogRecord } from '#x/LogRecord';
 import { LogTag } from '#x/LogTag';
-import { StackTrace } from '#x/StackTrace';
 
 
 /**

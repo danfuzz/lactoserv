@@ -5,7 +5,7 @@ import { inspect } from 'node:util';
 
 import { AskIf } from '@this/typey';
 
-import { StackTrace } from '#x/StackTrace';
+import { StackTrace } from '@this/data-values';
 
 
 // TODO: This should handle circular data structures.

@@ -1,7 +1,7 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
 // This project is PROPRIETARY and UNLICENSED.
 
-import { StackTrace } from '@this/loggy';
+import { StackTrace } from '@this/data-values';
 
 
 /**
