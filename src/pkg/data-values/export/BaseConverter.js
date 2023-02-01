@@ -13,28 +13,29 @@ export class BaseConverter {
   // Note: The default constructor is fine here.
 
   /**
-   * Converts the given (arbitrary) object or value to a data value, in whatever
-   * way is appropriate.
-   *
-   * @abstract
-   * @param {*} value The value to convert.
-   * @returns {*} The converted form, or the special value {@link #UNHANDLED} if
-   *   `value` is not convertible by this instance.
-   */
-  dataFromValue(value) {
-    throw Methods.abstract(value);
-  }
-
-  /**
-   * Reverses the operation of {@link #dataFromValue}.
+   * Decodes a data value into an arbitrary value, as appropriate for this
+   * special converter instance.
    *
    * @abstract
    * @param {*} data The data value to convert.
    * @returns {*} The converted form, or the special value {@link #UNHANDLED} if
    *   `data` is not convertible by this instance.
    */
-  valueFromData(data) {
+  decode(data) {
     throw Methods.abstract(data);
+  }
+
+  /**
+   * Encodes an arbitrary value to a data value, as appropriate for this special
+   * converter instance.
+   *
+   * @abstract
+   * @param {*} value The value to convert.
+   * @returns {*} The converted form, or the special value {@link #UNHANDLED} if
+   *   `value` is not convertible by this instance.
+   */
+  encode(value) {
+    throw Methods.abstract(value);
   }
 
 

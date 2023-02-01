@@ -105,7 +105,7 @@ export class Converter {
         }
 
         if (config.specialCases) {
-          const replacement = config.specialCases.dataFromValue(orig);
+          const replacement = config.specialCases.encode(orig);
           if (replacement !== BaseConverter.UNHANDLED) {
             return this.#encode0(replacement);
           }

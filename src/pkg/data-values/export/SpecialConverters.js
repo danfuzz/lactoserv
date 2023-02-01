@@ -46,16 +46,13 @@ export class SpecialConverters extends BaseConverter {
     this.#converters.set(cls, converter);
   }
 
-  /**
-   * Freezes this instance.
-   */
-  freeze() {
-    Object.freeze(this.#converters);
-    Object.freeze(this);
+  /** @override */
+  decode(data_unused) {
+    throw new Error('TODO');
   }
 
   /** @override */
-  dataFromValue(value) {
+  encode(value) {
     const cls = value?.constructor;
     if (!cls) {
       return BaseConverter.UNHANDLED;
@@ -66,12 +63,15 @@ export class SpecialConverters extends BaseConverter {
       return BaseConverter.UNHANDLED;
     }
 
-    return converter.dataFromValue(value);
+    return converter.encode(value);
   }
 
-  /** @override */
-  valueFromData(data_unused) {
-    throw new Error('TODO');
+  /**
+   * Freezes this instance.
+   */
+  freeze() {
+    Object.freeze(this.#converters);
+    Object.freeze(this);
   }
 
 
