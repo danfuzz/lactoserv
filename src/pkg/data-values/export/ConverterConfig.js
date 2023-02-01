@@ -23,6 +23,8 @@ import { SpecialConverters } from '#x/SpecialConverters';
  *   directly, instead `undefined` is returned. If the value would be
  *   incluided in a plain object or array, the key it would be bound to is
  *   omitted (possibly causing an array to be sparse).
+ * * `unhandled` -- Treat the value conversion as "unhandled." The return value
+ *   from `encode()` will in fact be {@link BaseConverter#UNHANDLED}.
  * * `wrap` -- Wrap the value in question with an instance of {@link NonData},
  *   a class that is defined in this module.
  *
@@ -211,6 +213,7 @@ export class ConverterConfig {
         case 'error':
         case 'inspect':
         case 'omit':
+        case 'unhandled':
         case 'wrap': {
           return value;
         }

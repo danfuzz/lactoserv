@@ -150,8 +150,20 @@ export class Converter extends BaseConverter {
     for (const [key, value] of Object.entries(orig)) {
       const newValue = this.#encode0(value);
       anyChange ||= (value !== newValue);
-      if (newValue !== BaseConverter.OMIT) {
-        result[key] = newValue;
+      switch (newValue) {
+        case BaseConverter.OMIT: {
+          // Do nothing.
+          break;
+        }
+        case BaseConverter.UNHANDLED: {
+          // Induce "unhandled contagion:" The whole conversion is unhandled if
+          // any individual item is.
+          return BaseConverter.UNHANDLED;
+        }
+        default: {
+          result[key] = newValue;
+          break;
+        }
       }
     }
 
@@ -179,11 +191,12 @@ export class Converter extends BaseConverter {
    */
   #performReplacement(orig, action) {
     switch (action) {
-      case 'error':    throw new Error('Encountered non-data.');
-      case 'inspect':  return util.inspect(orig);
-      case 'omit':     return BaseConverter.OMIT;
-      case 'asObject': return this.#objectOrArrayToData(orig, false);
-      case 'wrap':     return new NonData(orig);
+      case 'error':     throw new Error('Encountered non-data.');
+      case 'inspect':   return util.inspect(orig);
+      case 'omit':      return BaseConverter.OMIT;
+      case 'asObject':  return this.#objectOrArrayToData(orig, false);
+      case 'unhandled': return BaseConverter.UNHANDLED;
+      case 'wrap':      return new NonData(orig);
       default: {
         // `|| null` to make the call be a function (not method) call.
         const replacement = (action || null)(orig);
