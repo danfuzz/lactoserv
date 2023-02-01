@@ -39,6 +39,6 @@ conversion to `Construct` instances.
 
 Beyond the built-in special cases, and similar to how `JSON.stringify()`
 knows to look for a `.toJSON()` method, this class understands the symbol-named
-method `Converter.ENCODE` to define an instance-specific value-encoding
+method `BaseConverter.ENCODE` to define an instance-specific value-encoding
 behavior. The expectation is that most such custom converters end up producing
 `Construct` instances (though that isn't strictly required).

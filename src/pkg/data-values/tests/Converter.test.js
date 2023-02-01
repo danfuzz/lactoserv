@@ -3,30 +3,8 @@
 
 import { AskIf } from '@this/typey';
 
-import { Construct, Converter, NonData } from '@this/data-values';
+import { BaseConverter, Construct, Converter, NonData } from '@this/data-values';
 
-
-describe('.ENCODE', () => {
-  test('is a symbol', () => {
-    expect(Converter.ENCODE).toBeSymbol();
-  });
-
-  test('is uninterned', () => {
-    const interned = Symbol.for(Converter.ENCODE.description);
-    expect(Converter.ENCODE).not.toBe(interned);
-  });
-});
-
-describe('.UNHANDLED', () => {
-  test('is a symbol', () => {
-    expect(Converter.UNHANDLED).toBeSymbol();
-  });
-
-  test('is uninterned', () => {
-    const interned = Symbol.for(Converter.UNHANDLED.description);
-    expect(Converter.UNHANDLED).not.toBe(interned);
-  });
-});
 
 describe('decode()', () => {
   // TODO
@@ -87,7 +65,7 @@ describe('encode()', () => {
       test('calls `ENCODE()` exactly once', () => {
         let calledCount = 0;
         class Florp {
-          [Converter.ENCODE]() {
+          [BaseConverter.ENCODE]() {
             calledCount++;
             return 123;
           }
@@ -104,7 +82,7 @@ describe('encode()', () => {
       test('converts the value returned from `ENCODE()`', () => {
         const theData = [1, 2, 3];
         class Florp {
-          [Converter.ENCODE]() { return theData; }
+          [BaseConverter.ENCODE]() { return theData; }
         }
         const florp = new Florp();
 

@@ -4,7 +4,6 @@
 import { MustBe } from '@this/typey';
 
 import { BaseConverter } from '#x/BaseConverter';
-import { Converter } from '#x/Converter';
 import { StandardConverters } from '#p/StandardConverters';
 
 
@@ -56,12 +55,12 @@ export class SpecialConverters extends BaseConverter {
   encode(value) {
     const cls = value?.constructor;
     if (!cls) {
-      return Converter.UNHANDLED;
+      return BaseConverter.UNHANDLED;
     }
 
     const converter = this.#converters.get(cls);
     if (!converter) {
-      return Converter.UNHANDLED;
+      return BaseConverter.UNHANDLED;
     }
 
     return converter.encode(value);

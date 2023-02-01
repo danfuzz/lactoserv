@@ -11,7 +11,7 @@ import { Methods } from '@this/typey';
  *
  * **Note:** Some converters are defined to throw errors when presented with
  * values or data which they can't handle. Others are defined to return the
- * special value {@link Converter#UNHANDLED}.
+ * special value {@link BaseConverter#UNHANDLED}.
  */
 export class BaseConverter {
   // Note: The default constructor is fine here.
@@ -22,7 +22,7 @@ export class BaseConverter {
    * @abstract
    * @param {*} data The data value to convert.
    * @returns {*} The converted form, or the special value
-   *   {@link Converter#UNHANDLED} if `data` is not convertible by this
+   *   {@link BaseConverter#UNHANDLED} if `data` is not convertible by this
    *   instance
    */
   decode(data) {
@@ -35,10 +35,37 @@ export class BaseConverter {
    * @abstract
    * @param {*} value The value to convert.
    * @returns {*} The converted form, or the special value
-   *   {@link Converter#UNHANDLED} if `value` is not convertible by this
+   *   {@link BaseConverter#UNHANDLED} if `value` is not convertible by this
    *   instance.
    */
   encode(value) {
     throw Methods.abstract(value);
+  }
+
+
+  //
+  // Static members
+  //
+
+  /** @type {symbol} Value for the exposed {@link #ENCODE}. */
+  static #ENCODE = Symbol('BaseConverter.ENCODE');
+
+  /** @type {symbol} Special "unhandled" value. */
+  static #UNHANDLED = Symbol('BaseConverter.UNHANDLED');
+
+  /**
+   * @type {symbol} Name of method to define, in order to specify custom value
+   * encoding behavior on an instance.
+   */
+  static get ENCODE() {
+    return this.#ENCODE;
+  }
+
+  /**
+   * @returns {symbol} Special return value from `encode()` and `decode()`
+   * methods.
+   */
+  static get UNHANDLED() {
+    return this.#UNHANDLED;
   }
 }

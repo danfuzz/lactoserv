@@ -108,13 +108,13 @@ export class Converter extends BaseConverter {
 
         if (config.specialCases) {
           const replacement = config.specialCases.encode(orig);
-          if (replacement !== Converter.UNHANDLED) {
+          if (replacement !== BaseConverter.UNHANDLED) {
             return this.#encode0(replacement);
           }
         }
 
-        if (config.honorEncodeMethod && orig[Converter.#ENCODE]) {
-          const replacement = orig[Converter.#ENCODE]();
+        if (config.honorEncodeMethod && orig[BaseConverter.ENCODE]) {
+          const replacement = orig[BaseConverter.ENCODE]();
           return this.#encode0(replacement);
         } else {
           return this.#performReplacement(orig, config.instanceAction);
@@ -197,30 +197,9 @@ export class Converter extends BaseConverter {
   // Static members.
   //
 
-  /** @type {symbol} Value for the exposed {@link #ENCODE}. */
-  static #ENCODE = Symbol('Converter.ENCODE');
-
   /**
-   * @type {symbol} Converted value which is returned to indicate "omit this."
+   * @type {symbol} Return value from an `encode()` method to indicate "omit
+   * this."
    */
   static #OMIT = Symbol('Converter.OMIT');
-
-  /** @type {symbol} Special "unhandled" value. */
-  static #UNHANDLED = Symbol('Converter.UNHANDLED');
-
-  /**
-   * @type {symbol} Name of method to define, in order to specify custom value
-   * encoding behavior on an instance.
-   */
-  static get ENCODE() {
-    return this.#ENCODE;
-  }
-
-  /**
-   * @returns {symbol} Special return value from `encode()` and `decode()`
-   * methods.
-   */
-  static get UNHANDLED() {
-    return this.#UNHANDLED;
-  }
 }
