@@ -3,6 +3,7 @@
 
 export * from '#x/BaseConverter';
 export * from '#x/Construct';
+export * from '#x/ConverterConfig';
 export * from '#x/DataValues';
 export * from '#x/NonData';
 export * from '#x/SpecialConverters';

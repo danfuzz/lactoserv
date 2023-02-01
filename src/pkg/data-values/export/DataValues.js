@@ -6,9 +6,8 @@ import * as util from 'node:util';
 import { AskIf } from '@this/typey';
 
 import { BaseConverter } from '#x/BaseConverter';
-import { Construct } from '#x/Construct';
+import { ConverterConfig } from '#x/ConverterConfig';
 import { NonData } from '#x/NonData';
-import { SpecialConverters } from '#x/SpecialConverters';
 
 // TODO: Rework this as an instantiable class, instead of passing config around
 // all over the place.
@@ -77,79 +76,20 @@ export class DataValues {
 
   /**
    * Produces a data-value representation of the given value or object,
-   * including recursive conversion of sub-objects. The options include a few
-   * common enum-like strings as possibilities for how to treat a non-data
-   * value:
-   *
-   * * `error` -- Treat the case as an error.
-   * * `asObject` -- Process the value as if it were a plain object.
-   * * `inspect` -- Replace the value with the results of a call to
-   *   `util.inspect()` on the value.
-   * * `omit` -- Omit the value in question. If the value would be returned
-   *   directly, instead `undefined` is returned. If the value would be
-   *   incluided in a plain object or array, the key it would be bound to is
-   *   omitted (possibly causing an array to be sparse).
-   * * `wrap` -- Wrap the value in question with an instance of {@link NonData},
-   *   a class that is defined in this module.
-   *
-   * In cases where these values are allowed, a function is also sometimes
-   * allowed, which can be called on to provide a replacement value.
+   * including recursive conversion of sub-objects.
    *
    * **Note:** This does not currently handle self-referential structures at
    * all.
    *
    * @param {*} orig Value to convert.
-   * @param {object} [options = {}] Options for conversion. These include:
-   *   `dataClasses: ?[...class]` -- Classes whose instances are to be allowed
-   *     to be treated as "data," making them (effectively) peers with plain
-   *     objects and arrays. When such an instance is converted, it is asked for
-   *     its inner "convertible value," which is then converted and used to
-   *     produce a new instance (typically of the same class); or if all its
-   *     contents self-represent, the original value is used. Default:
-   *     `[Construct, NonData]`.
-   *   `freeze: boolean` -- Whether to guarantee a frozen result. Default
-   *     `true`.
-   *   `functionAction: string|function` -- What to do if a function reference
-   *     is encountered. May be any of the treatment values described above.
-   *     Default `wrap`.
-   *   `honorToData: boolean` -- Whether or not to honor objects' defined
-   *     `Symbol.TO_DATA` methods. Default `true`.
-   *   `instanceAction: string|function` -- What to do if an instance (non-plain
-   *     object) is encountered (that isn't covered by other options). May be
-   *     any of the treatment values described above. Default `wrap`.
-   *   `specialConverters: ?BaseConverter` -- Any special converters to use,
-   *     to override class-defined data converters and/or provide such
-   *     conversion for classes that don't have them (such as built-in
-   *     JavaScript classes). Default {@link SpecialConverters#STANDARD}.
-   *   `symbolKeyAction: string` -- What to do if a symbol-keyed property is
-   *     encountered in an otherwise plain object or array. Only valid to be
-   *     `error` or `omit`. Default `omit`.
+   * @param {?ConverterConfig} config Configuration to use, or `null` to use the
+   *   default configuration.
    * @returns {*} The converted version.
    */
-  static toData(orig, options = {}) {
-    options = {
-      dataClasses:       [Construct, NonData],
-      freeze:            true,
-      functionAction:    'wrap',
-      honorToData:       true,
-      instanceAction:    'wrap',
-      specialConverters: SpecialConverters.STANDARD,
-      symbolKeyAction:   'omit',
-      ...options
-    };
+  static toData(orig, config = null) {
+    config ??= new ConverterConfig();
 
-    // Convert `dataClasses` to a predicate.
-    const dataClasses = options.dataClasses ? [...options.dataClasses] : [];
-    options.isDataInstance = (obj) => {
-      for (const dc of dataClasses) {
-        if (obj instanceof dc) {
-          return true;
-        }
-      }
-      return false;
-    };
-
-    const result = this.#toData0(orig, options);
+    const result = this.#toData0(orig, config);
 
     return (result === this.#OMIT) ? undefined : result;
   }
@@ -192,8 +132,8 @@ export class DataValues {
             : orig.withConvertedValue(replacement);
         }
 
-        if (options.specialConverters) {
-          const replacement = options.specialConverters.dataFromValue(orig);
+        if (options.specialCases) {
+          const replacement = options.specialCases.dataFromValue(orig);
           if (replacement !== BaseConverter.UNHANDLED) {
             return this.#toData0(replacement, options);
           }
