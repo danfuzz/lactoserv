@@ -47,15 +47,44 @@ export class SpecialConverters extends BaseConverter {
   }
 
   /**
-   * Freezes this instance.
+   * Adds all of the converters from another instance as defaults to this one,
+   * that is, it adds all the ones not already covered by a binding in this
+   * instance.
+   *
+   * @param {SpecialConverters} defaults The instance to use for defaults.
    */
-  freeze() {
-    Object.freeze(this.#converters);
-    Object.freeze(this);
+  addDefaults(defaults) {
+    MustBe.instanceOf(defaults, SpecialConverters);
+
+    for (const [cls, converter] of defaults.#converters) {
+      if (!this.#converters.has(cls)) {
+        this.#converters.set(cls, converter);
+      }
+    }
+  }
+
+  /**
+   * Adds a converter to associate with all the standard `Error` classes /
+   * subclasses.
+   *
+   * @param {BaseConverter} converter Converter to use on instances of `cls`.
+   */
+  addForErrors(converter) {
+    MustBe.instanceOf(converter, BaseConverter);
+
+    for (const e of [Error, EvalError, RangeError, ReferenceError, SyntaxError,
+      TypeError, URIError]) {
+      this.add(e, converter);
+    }
   }
 
   /** @override */
-  dataFromValue(value) {
+  decode(data_unused) {
+    throw new Error('TODO');
+  }
+
+  /** @override */
+  encode(value) {
     const cls = value?.constructor;
     if (!cls) {
       return BaseConverter.UNHANDLED;
@@ -66,12 +95,15 @@ export class SpecialConverters extends BaseConverter {
       return BaseConverter.UNHANDLED;
     }
 
-    return converter.dataFromValue(value);
+    return converter.encode(value);
   }
 
-  /** @override */
-  valueFromData(data_unused) {
-    throw new Error('TODO');
+  /**
+   * Freezes this instance.
+   */
+  freeze() {
+    Object.freeze(this.#converters);
+    Object.freeze(this);
   }
 
 

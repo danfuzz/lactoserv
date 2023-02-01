@@ -14,7 +14,12 @@ export class ConvError extends BaseConverter {
   // Note: The default constructor is fine here.
 
   /** @override */
-  dataFromValue(value) {
+  decode(data_unused) {
+    throw new Error('TODO');
+  }
+
+  /** @override */
+  encode(value) {
     const type = value.constructor;
     const { cause, code, message, name, stack } = value;
     const rest = { ...value };
@@ -39,10 +44,5 @@ export class ConvError extends BaseConverter {
     return (Object.entries(rest).length === 0)
       ? new Construct(type, main)
       : new Construct(type, main, rest);
-  }
-
-  /** @override */
-  valueFromData(data_unused) {
-    throw new Error('TODO');
   }
 }

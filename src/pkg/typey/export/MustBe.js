@@ -31,6 +31,23 @@ export class MustBe {
   }
 
   /**
+   * Checks for type `array`, where each element must be of a particular type,
+   * specified as a predicate.
+   *
+   * @param {*} value Arbitrary value.
+   * @param {function(*): boolean} predicate Predicate to match.
+   * @returns {*[]} `value` if it is of the indicated type.
+   * @throws {Error} Thrown if `value` is of any other type.
+   */
+  static arrayOf(value, predicate) {
+    if (AskIf.arrayOf(value, predicate)) {
+      return value;
+    }
+
+    throw new Error('Must be of type `array` of a particular type.');
+  }
+
+  /**
    * Assertion of {@link AskIf.arrayOfIndex}.
    *
    * @param {*} value Arbitrary value.
@@ -92,36 +109,35 @@ export class MustBe {
   }
 
   /**
-   * Indicates whether the given value is a function which is furthermore usable
-   * for direct function calls. The type name notwithstanding, in JavaScript
-   * some "functions" can't actually be called (they can only be used as
-   * constructors).
+   * Checks for type "callable function." See {@link AskIf#callableFunction} for
+   * details.
    *
-   * **Note:** Unfortunately, JavaScript (a) is loosey-goosey about what sorts
-   * of functions can be called, and (b) doesn't provide a way
-   * to distinguish the various cases _except_ to look at the string conversion
-   * of functions. This method errs on the side of over-acceptance.
-   *
-   * @param {*} value Value in question.
-   * @returns {function(*)} `value` if it is of the indicated type.
+   * @param {*} value Arbitrary value.
+   * @returns {boolean} `value` if it is of the indicated type.
    * @throws {Error} Thrown if `value` is of any other type.
    */
   static callableFunction(value) {
-    if ((typeof value) === 'function') {
-      // It's a function. Now we need to know if it's callable by looking at the
-      // string form. The only variant that is definitely _not_ callable is a
-      // modern class, which will have the prefix `class ` (with a space).
-      //
-      // **Note:** We call the `toString()` of the `Function` prototype, to
-      // avoid getting fooled by functions that override that method.
-
-      const s = Function.prototype.toString.call(value);
-      if (!(/^class /.test(s))) {
-        return value;
-      }
+    if (AskIf.callableFunction(value)) {
+      return value;
     }
 
-    throw new Error('Must be of type `callable-function`.');
+    throw new Error('Must be of type "callable function."');
+  }
+
+  /**
+   * Checks for type "constructor function" (a/k/a "class"). See {@link
+   # AskIf#constructorFunction} for details.
+   *
+   * @param {*} value Arbitrary value.
+   * @returns {boolean} `value` if it is of the indicated type.
+   * @throws {Error} Thrown if `value` is of any other type.
+   */
+  static constructorFunction(value) {
+    if (AskIf.constructorFunction(value)) {
+      return value;
+    }
+
+    throw new Error('Must be of type "constructor function" (a/k/a "class").');
   }
 
   /**
