@@ -39,7 +39,7 @@ export class FileServiceConfig extends ServiceConfig {
   /**
    * Constructs an instance.
    *
-   * @param {object} config Configuration object.
+   * @param {object} config Configuration object. See class header for details.
    */
   constructor(config) {
     super(config);

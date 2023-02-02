@@ -37,7 +37,7 @@ export class WarehouseConfig extends BaseConfig {
   /**
    * Constructs an instance.
    *
-   * @param {object} config Configuration, per the class description.
+   * @param {object} config Configuration object. See class header for details.
    * @param {ConfigClassMapper} configClassMapper Mapper from configuration
    *   objects to corresponding configuration classes.
    */
