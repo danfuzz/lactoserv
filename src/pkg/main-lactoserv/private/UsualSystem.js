@@ -86,8 +86,12 @@ export class UsualSystem extends Threadlet {
       return false;
     }
 
+    if (forReload) {
+      config.isReload = true;
+    }
+
     try {
-      this.#warehouse = new Warehouse(config, forReload);
+      this.#warehouse = new Warehouse(config);
     } catch (e) {
       this.#logger.warehouseConstructionError(e);
       this.#error = e;

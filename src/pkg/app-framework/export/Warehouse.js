@@ -21,6 +21,8 @@ import { ServiceManager } from '#x/ServiceManager';
  * * `{object|object[]} servers` -- Server configuration.
  * * `{object|object[]} services` -- System service configuration.
  * * `{object|object[]} applications` -- Application configuration.
+ * * `{boolean} isReload` -- Is the system being reloaded in-process? Default
+ *   `false`.
  */
 export class Warehouse {
   /** @type {ApplicationManager} Application manager. */
@@ -34,6 +36,9 @@ export class Warehouse {
 
   /** @type {ServiceManager} Service manager. */
   #serviceManager;
+
+  /** @type {boolean} Is the system being reloaded in-process? */
+  #isReload;
 
   /**
    * Constructs an instance.
@@ -55,6 +60,7 @@ export class Warehouse {
     this.#serviceManager     = new ServiceManager(parsed.services);
     this.#applicationManager = new ApplicationManager(parsed.applications);
     this.#serverManager      = new ServerManager(parsed.servers, this);
+    this.#isReload           = parsed.isReload;
   }
 
   /** @returns {ApplicationManager} Application manager. */
