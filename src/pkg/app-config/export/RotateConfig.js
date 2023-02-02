@@ -22,8 +22,8 @@ import { BaseConfig } from '#x/BaseConfig';
  *   in-process). Default `false`.
  * * `{?boolean} onStart` -- Rotate when the system is first started? Default
  *   `false`.
- * * `{?boolean} onStop` -- Rotate when the system is stopped (including just
- *   before a reload)? Default `false`.
+ * * `{?boolean} onStop` -- Rotate when the system is about to be stopped?
+ *   Default `false`.
  */
 export class RotateConfig extends BaseConfig {
   /** @type {?number} The file size at which to rotate, if ever. */
