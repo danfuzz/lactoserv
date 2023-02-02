@@ -35,7 +35,8 @@ const services = [
     type:      'system-logger',
     directory: filePath('../../../out/var'),
     baseName:  'system-log.txt',
-    format:    'human'
+    format:    'human',
+    rotate:    ['reload', 'start']
   },
   {
     name:      'syslog-json',

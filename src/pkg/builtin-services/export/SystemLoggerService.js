@@ -5,7 +5,7 @@ import * as fs from 'node:fs/promises';
 import * as Path from 'node:path';
 import * as timers from 'node:timers/promises';
 
-import { Files, ServiceConfig } from '@this/app-config';
+import { FileServiceConfig } from '@this/app-config';
 import { BaseService, ServiceController } from '@this/app-framework';
 import { EventTracker } from '@this/async';
 import { LogEvent, Loggy, TextFileSink } from '@this/loggy';
@@ -13,11 +13,15 @@ import { MustBe } from '@this/typey';
 
 
 /**
- * Service which writes the main log to the filesystem. Configuration object
- * details:
+ * Service which writes the main log to the filesystem.
  *
- * * `{string} directory` -- Absolute path to the directory to write to.
- * * `{string} baseName` -- Base file name for the log files.
+ * Configuration object details:
+ *
+ * * Bindings as defined by the superclass configuration, {@link
+ *   FileServiceConfig}.
+ * * `{string} format` -- The format to write. Must be one of the formats
+ *   defined by {@link TextFileSink} (`json` or `human` as of this writing, but
+ *   subject to change).
  */
 export class SystemLoggerService extends BaseService {
   /** @type {string} Full path to the log file. */
@@ -29,16 +33,16 @@ export class SystemLoggerService extends BaseService {
   /**
    * Constructs an instance.
    *
-   * @param {ServiceConfig} config Configuration for this service.
+   * @param {FileServiceConfig} config Configuration for this service.
    * @param {ServiceController} controller The controller for this instance.
    */
   constructor(config, controller) {
     super(config, controller);
 
-    const { baseName, directory, format, name } = config;
+    const { format, name } = config;
     const earliestEvent = this.#findEarliestEventToLog(name);
 
-    this.#logFilePath = Path.resolve(directory, baseName);
+    this.#logFilePath = config.resolvePath();
     this.#sink        = new TextFileSink(format, this.#logFilePath, earliestEvent);
   }
 
@@ -122,13 +126,7 @@ export class SystemLoggerService extends BaseService {
   /**
    * Configuration item subclass for this (outer) class.
    */
-  static #Config = class Config extends ServiceConfig {
-    /** @type {string} The base file name to use. */
-    #baseName;
-
-    /** @type {string} The directory to write to. */
-    #directory;
-
+  static #Config = class Config extends FileServiceConfig {
     /** @type {string} The output format name. */
     #format;
 
@@ -140,19 +138,11 @@ export class SystemLoggerService extends BaseService {
     constructor(config) {
       super(config);
 
-      this.#baseName  = Files.checkFileName(config.baseName);
-      this.#directory = Files.checkAbsolutePath(config.directory);
-      this.#format    = MustBe.string(config.format);
-    }
+      this.#format = MustBe.string(config.format);
 
-    /** @returns {string} The base file name to use. */
-    get baseName() {
-      return this.#baseName;
-    }
-
-    /** @returns {string} The directory to write to. */
-    get directory() {
-      return this.#directory;
+      if (!TextFileSink.isValidFormat(this.#format)) {
+        throw new Error(`Unknown log format: ${this.#format}`);
+      }
     }
 
     /** @returns {string} The output format name. */
