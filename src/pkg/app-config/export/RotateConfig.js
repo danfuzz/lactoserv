@@ -20,7 +20,10 @@ import { BaseConfig } from '#x/BaseConfig';
  *   also specified. Default `5 * 60`.
  * * `{?boolean} onReload` -- Rotate when the system is reloaded (restarted
  *   in-process). Default `false`.
- * * `{?boolean} onStart` -- Rotate when first started? Default `false`.
+ * * `{?boolean} onStart` -- Rotate when the system is first started? Default
+ *   `false`.
+ * * `{?boolean} onStop` -- Rotate when the system is stopped (including just
+ *   before a reload)? Default `false`.
  */
 export class RotateConfig extends BaseConfig {
   /** @type {?number} The file size at which to rotate, if ever. */
@@ -38,6 +41,9 @@ export class RotateConfig extends BaseConfig {
   /** @type {boolean} Rotate when starting the system? */
   #onStart;
 
+  /** @type {boolean} Rotate when stopping the system? */
+  #onStop;
+
   /**
    * Constructs an instance.
    *
@@ -47,10 +53,11 @@ export class RotateConfig extends BaseConfig {
     super(config);
 
     const {
-      atSize = null,
+      atSize    = null,
       checkSecs = 5 * 60,
-      onReload = false,
-      onStart = false
+      onReload  = false,
+      onStart   = false,
+      onStop    = false,
     } = config;
 
     this.#atSize = (atSize === null)
@@ -59,6 +66,7 @@ export class RotateConfig extends BaseConfig {
     this.#checkSecs = MustBe.number(checkSecs, { finite: true, minInclusive: 1 });
     this.#onReload  = MustBe.boolean(onReload);
     this.#onStart   = MustBe.boolean(onStart);
+    this.#onStop    = MustBe.boolean(onStop);
 
     if (this.#atSize === null) {
       // `checkSecs` is irrelevant in this case.
@@ -90,5 +98,10 @@ export class RotateConfig extends BaseConfig {
   /** @returns {boolean} Rotate when starting the system? */
   get onStart() {
     return this.#onStart;
+  }
+
+  /** @returns {boolean} Rotate when stopping the system? */
+  get onStop() {
+    return this.#onStop;
   }
 }
