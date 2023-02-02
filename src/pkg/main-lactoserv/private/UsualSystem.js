@@ -24,8 +24,8 @@ export class UsualSystem extends Threadlet {
   /** @type {boolean} Initialized? */
   #initDone = false;
 
-  /** @type {Condition} Was a restart requested? */
-  #restartRequested = new Condition();
+  /** @type {Condition} Was a reload requested? */
+  #reloadRequested = new Condition();
 
   /** @type {Warehouse} Warehouse of parts. */
   #warehouse = null;
@@ -59,7 +59,7 @@ export class UsualSystem extends Threadlet {
 
     BuiltinApplications.register();
     BuiltinServices.register();
-    Host.registerReloadCallback(() => this.#restart());
+    Host.registerReloadCallback(() => this.#reload());
     Host.registerShutdownCallback(() => this.stop());
 
     this.#initDone = true;
@@ -100,14 +100,14 @@ export class UsualSystem extends Threadlet {
   /**
    * Restarts the system.
    */
-  async #restart() {
+  async #reload() {
     if (this.isRunning()) {
-      this.#logger.restart('requested');
-      this.#restartRequested.value = true;
+      this.#logger.reload('requested');
+      this.#reloadRequested.value = true;
     } else {
       // Not actually running (probably in the middle of completely shutting
       // down).
-      this.#logger.restart('ignoring');
+      this.#logger.reload('ignoring');
     }
   }
 
@@ -128,17 +128,17 @@ export class UsualSystem extends Threadlet {
     }
 
     while (!this.shouldStop()) {
-      if (this.#restartRequested.value === true) {
-        this.#logger.restarting();
+      if (this.#reloadRequested.value === true) {
+        this.#logger.reloading();
         await this.#stop(true);
         await this.#start(true);
-        this.#logger.restarted();
-        this.#restartRequested.value = false;
+        this.#logger.reloaded();
+        this.#reloadRequested.value = false;
       }
 
       await Promise.race([
         this.whenStopRequested(),
-        this.#restartRequested.whenTrue()
+        this.#reloadRequested.whenTrue()
       ]);
     }
 
