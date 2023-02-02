@@ -4,7 +4,7 @@
 import * as fs from 'node:fs/promises';
 import * as Path from 'node:path';
 
-import { Files, ServiceConfig } from '@this/app-config';
+import { FileServiceConfig } from '@this/app-config';
 import { BaseService, ServiceController } from '@this/app-framework';
 import { IntfRequestLogger } from '@this/network-protocol';
 
@@ -13,8 +13,10 @@ import { IntfRequestLogger } from '@this/network-protocol';
  * Service which writes the access log to the filesystem. Configuration object
  * details:
  *
- * * `{string} directory` -- Absolute path to the directory to write to.
- * * `{string} baseName` -- Base file name for the log files.
+ * Configuration object details:
+ *
+ * * Bindings as defined by the superclass configuration, {@link
+ *   FileServiceConfig}.
  *
  * @implements {IntfRequestLogger}
  */
@@ -25,15 +27,13 @@ export class RequestLoggerService extends BaseService {
   /**
    * Constructs an instance.
    *
-   * @param {ServiceConfig} config Configuration for this service.
+   * @param {FileServiceConfig} config Configuration for this service.
    * @param {ServiceController} controller The controller for this instance.
    */
   constructor(config, controller) {
     super(config, controller);
 
-    const { baseName, directory } = config;
-
-    this.#logFilePath = Path.resolve(directory, baseName);
+    this.#logFilePath = config.resolvePath();
   }
 
   /** @override */
@@ -69,44 +69,11 @@ export class RequestLoggerService extends BaseService {
 
   /** @override */
   static get CONFIG_CLASS() {
-    return this.#Config;
+    return FileServiceConfig;
   }
 
   /** @override */
   static get TYPE() {
     return 'request-logger';
   }
-
-  /**
-   * Configuration item subclass for this (outer) class.
-   */
-  static #Config = class Config extends ServiceConfig {
-    /** @type {string} The base file name to use. */
-    #baseName;
-
-    /** @type {string} The directory to write to. */
-    #directory;
-
-    /**
-     * Constructs an instance.
-     *
-     * @param {object} config Configuration object.
-     */
-    constructor(config) {
-      super(config);
-
-      this.#baseName = Files.checkFileName(config.baseName);
-      this.#directory = Files.checkAbsolutePath(config.directory);
-    }
-
-    /** @returns {string} The base file name to use. */
-    get baseName() {
-      return this.#baseName;
-    }
-
-    /** @returns {string} The directory to write to. */
-    get directory() {
-      return this.#directory;
-    }
-  };
 }
