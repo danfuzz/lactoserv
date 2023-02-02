@@ -52,7 +52,9 @@ export class ProcessInfoFileService extends BaseService {
     super(config, controller);
 
     const { updateSecs } = config;
-    this.#updateSecs = updateSecs;
+    this.#updateSecs = (updateSecs === null)
+      ? null
+      : MustBe.number(updateSecs, { finite: true, minInclusive: 1 });
 
     this.#filePath   = config.resolvePath(`-${process.pid}`);
   }
