@@ -2,25 +2,24 @@
 // This project is PROPRIETARY and UNLICENSED.
 
 import * as fs from 'node:fs/promises';
-import * as Path from 'node:path';
 import * as timers from 'node:timers/promises';
 
-import { Files, ServiceConfig } from '@this/app-config';
+import { FileServiceConfig } from '@this/app-config';
 import { BaseService, ServiceController } from '@this/app-framework';
 import { Threadlet } from '@this/async';
 import { Host, ProcessInfo, ProductInfo } from '@this/host';
 import { FormatUtils } from '@this/loggy';
 import { MustBe } from '@this/typey';
 
-import { FileNameHelper } from '#p/FileNameHelper';
-
 
 /**
  * Service which writes process info files to the filesystem. Configuration
  * object details:
  *
- * * `{string} directory` -- Absolute path to the directory to write to.
- * * `{string} baseName` -- Base file name for info files.
+ * Configuration object details:
+ *
+ * * Bindings as defined by the superclass configuration, {@link
+ *   FileServiceConfig}.
  * * `{?number} updateSecs` -- How often to update the file, in seconds, or
  *   `null` to not perform updates. Defaults to `null`.
  *
@@ -28,17 +27,14 @@ import { FileNameHelper } from '#p/FileNameHelper';
  * complete information about the system.
  */
 export class ProcessInfoFileService extends BaseService {
-  /** @type {string} Base file name for info files. */
-  #baseName;
-
-  /** @type {string} Directory for info files. */
-  #directory;
-
   /**
    * @type {?number} How often to update the info file, in seconds, or `null` to
    * not perform updates.
    */
   #updateSecs;
+
+  /** @type {string} The path to the info file. */
+  #filePath;
 
   /** @type {?object} Current info file contents, if known. */
   #contents = null;
@@ -49,16 +45,16 @@ export class ProcessInfoFileService extends BaseService {
   /**
    * Constructs an instance.
    *
-   * @param {ServiceConfig} config Configuration for this service.
+   * @param {FileServiceConfig} config Configuration for this service.
    * @param {ServiceController} controller The controller for this instance.
    */
   constructor(config, controller) {
     super(config, controller);
 
-    const { baseName, directory, updateSecs } = config;
-    this.#baseName   = baseName;
-    this.#directory  = Path.resolve(directory);
+    const { updateSecs } = config;
     this.#updateSecs = updateSecs;
+
+    this.#filePath   = config.resolvePath(`-${process.pid}`);
   }
 
   /** @override */
@@ -69,14 +65,6 @@ export class ProcessInfoFileService extends BaseService {
   /** @override */
   async stop() {
     await this.#runner.stop();
-  }
-
-  /** @returns {string} The path to the info file. */
-  get #filePath() {
-    const fileName = FileNameHelper.insertEnding(this.#baseName, `-${process.pid}`);
-    const fullPath = Path.resolve(this.#directory, fileName);
-
-    return fullPath;
   }
 
   /**
@@ -219,10 +207,10 @@ export class ProcessInfoFileService extends BaseService {
     // Create the directory if it doesn't already exist.
 
     try {
-      await fs.stat(this.#directory);
+      await fs.stat(this.config.directory);
     } catch (e) {
       if (e.code === 'ENOENT') {
-        await fs.mkdir(this.#directory, { recursive: true });
+        await fs.mkdir(this.config.directory, { recursive: true });
       } else {
         throw e;
       }
@@ -254,13 +242,7 @@ export class ProcessInfoFileService extends BaseService {
   /**
    * Configuration item subclass for this (outer) class.
    */
-  static #Config = class Config extends ServiceConfig {
-    /** @type {string} The base file name to use. */
-    #baseName;
-
-    /** @type {string} The directory to write to. */
-    #directory;
-
+  static #Config = class Config extends FileServiceConfig {
     /**
      * @type {?number} How often to update the info file, in seconds, or `null`
      * to not perform updates.
@@ -275,21 +257,9 @@ export class ProcessInfoFileService extends BaseService {
     constructor(config) {
       super(config);
 
-      this.#baseName   = Files.checkFileName(config.baseName);
-      this.#directory  = Files.checkAbsolutePath(config.directory);
       this.#updateSecs = config.updateSecs
         ? MustBe.number(config.updateSecs, { finite: true, minInclusive: 1 })
         : MustBe.null(config.updateSecs ?? null);
-    }
-
-    /** @returns {string} The base file name to use. */
-    get baseName() {
-      return this.#baseName;
-    }
-
-    /** @returns {string} The directory to write to. */
-    get directory() {
-      return this.#directory;
     }
 
     /**
