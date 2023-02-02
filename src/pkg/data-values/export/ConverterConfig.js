@@ -8,6 +8,7 @@ import { Construct } from '#x/Construct';
 import { NonData } from '#x/NonData';
 import { SpecialConverters } from '#x/SpecialConverters';
 
+
 /**
  * Configuration for data value conversion. This class contains all configurable
  * parameters and methods to use them.

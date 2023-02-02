@@ -7,6 +7,7 @@ import { BaseConverter } from '#x/BaseConverter';
 import { Construct } from '#x/Construct';
 import { StackTrace } from '#x/StackTrace';
 
+
 /**
  * Special-case converter for instances of `Error` including subclasses.
  *

@@ -2,11 +2,10 @@
 // This project is PROPRIETARY and UNLICENSED.
 
 import * as fs from 'node:fs/promises';
-import * as Path from 'node:path';
 import * as process from 'node:process';
 import * as timers from 'node:timers/promises';
 
-import { Files, ServiceConfig } from '@this/app-config';
+import { FileServiceConfig } from '@this/app-config';
 import { BaseService, ServiceController } from '@this/app-framework';
 import { Threadlet } from '@this/async';
 import { MustBe } from '@this/typey';
@@ -17,8 +16,10 @@ import { MustBe } from '@this/typey';
  * just contain a simple process ID or list of same (in cases where multiple
  * server processes are writing to the same file).
  *
- * * `{string} directory` -- Absolute path to the directory to write to.
- * * `{string} baseName` -- Base file name for the file.
+ * Configuration object details:
+ *
+ * * Bindings as defined by the superclass configuration, {@link
+ *   FileServiceConfig}.
  * * `{boolean} multiprocess` -- Allow multiple processes to be registered in a
  *   single file. Defaults to `false`.
  * * `{?number} updateSecs` -- How often to update the file, in seconds, or
@@ -30,9 +31,6 @@ import { MustBe } from '@this/typey';
  * complete information about the system.
  */
 export class ProcessIdFileService extends BaseService {
-  /** @type {string} Full path to the file. */
-  #filePath;
-
   /** @type {boolean} Allow multiple processes to be listed in the file? */
   #multiprocess;
 
@@ -42,22 +40,26 @@ export class ProcessIdFileService extends BaseService {
    */
   #updateSecs;
 
+  /** @type {string} Full path to the file. */
+  #filePath;
+
   /** @type {Threadlet} Threadlet which runs this service. */
   #runner = new Threadlet(() => this.#run());
 
   /**
    * Constructs an instance.
    *
-   * @param {ServiceConfig} config Configuration for this service.
+   * @param {FileServiceConfig} config Configuration for this service.
    * @param {ServiceController} controller The controller for this instance.
    */
   constructor(config, controller) {
     super(config, controller);
 
-    const { baseName, directory, multiprocess, updateSecs } = config;
-    this.#filePath     = Path.resolve(directory, baseName);
+    const { multiprocess, updateSecs } = config;
     this.#multiprocess = multiprocess;
     this.#updateSecs   = updateSecs;
+
+    this.#filePath = config.resolvePath();
   }
 
   /** @override */
@@ -184,18 +186,7 @@ export class ProcessIdFileService extends BaseService {
         await fs.rm(filePath, { force: true });
         this.logger.removedFile();
       } else {
-        // Create the directory if it doesn't already exist.
-        const dirPath = Path.dirname(filePath);
-        try {
-          await fs.stat(dirPath);
-        } catch (e) {
-          if (e.code === 'ENOENT') {
-            await fs.mkdir(dirPath, { recursive: true });
-          } else {
-            throw e;
-          }
-        }
-
+        await this.config.createDirectoryIfNecessary();
         await fs.writeFile(filePath, contents);
         this.logger.wroteFile();
       }
@@ -269,13 +260,7 @@ export class ProcessIdFileService extends BaseService {
   /**
    * Configuration item subclass for this (outer) class.
    */
-  static #Config = class Config extends ServiceConfig {
-    /** @type {string} The base file name to use. */
-    #baseName;
-
-    /** @type {string} The directory to write to. */
-    #directory;
-
+  static #Config = class Config extends FileServiceConfig {
     /** @type {boolean} Allow multiple processes to be listed in the file? */
     #multiprocess;
 
@@ -293,24 +278,12 @@ export class ProcessIdFileService extends BaseService {
     constructor(config) {
       super(config);
 
-      this.#baseName   = Files.checkFileName(config.baseName);
-      this.#directory  = Files.checkAbsolutePath(config.directory);
       this.#multiprocess = (typeof config.multiprocess === 'boolean')
         ? config.multiprocess
         : MustBe.null(config.multiprocess ?? null);
       this.#updateSecs = config.updateSecs
         ? MustBe.number(config.updateSecs, { finite: true, minInclusive: 1 })
         : MustBe.null(config.updateSecs ?? null);
-    }
-
-    /** @returns {string} The base file name to use. */
-    get baseName() {
-      return this.#baseName;
-    }
-
-    /** @returns {string} The directory to write to. */
-    get directory() {
-      return this.#directory;
     }
 
     /** @returns {boolean} Allow multiple processes to be listed in the file? */

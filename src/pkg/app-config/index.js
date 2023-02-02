@@ -6,6 +6,7 @@ export * from '#x/BaseConfig';
 export * from '#x/Certificates';
 export * from '#x/ConfigClassMapper';
 export * from '#x/EndpointConfig';
+export * from '#x/FileServiceConfig';
 export * from '#x/Files';
 export * from '#x/HostConfig';
 export * from '#x/MountConfig';

@@ -3,6 +3,7 @@
 
 import { LinkedEvent } from '#x/LinkedEvent';
 
+
 /**
  * Event predicate, as used by this module. See the class documentation of
  * {@link EventTracker} for details.

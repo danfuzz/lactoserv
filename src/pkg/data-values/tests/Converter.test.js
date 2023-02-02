@@ -1,9 +1,8 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
 // This project is PROPRIETARY and UNLICENSED.
 
-import { AskIf } from '@this/typey';
-
 import { BaseConverter, Construct, Converter, NonData } from '@this/data-values';
+import { AskIf } from '@this/typey';
 
 
 describe('decode()', () => {
