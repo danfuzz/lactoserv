@@ -129,7 +129,7 @@ export class Rotator {
     }
 
     try {
-      const targetPath = this.#targetPath(stats);
+      const targetPath = await this.#targetPath(stats);
       await fs.rename(origPath, targetPath);
       this.#logger?.rotatedTo(targetPath);
     } catch (e) {
@@ -178,21 +178,72 @@ export class Rotator {
    * @param {fs.Stats} stats Result of `fs.stat()` on the original file path.
    * @returns {string} The post-rotation path.
    */
-  #targetPath(stats) {
+  async #targetPath(stats) {
     const at     = stats.birthtime;
     const year   = (at.getUTCFullYear()).toString();
     const month  = (at.getUTCMonth() + 1).toString().padStart(2, '0');
     const day    = (at.getUTCDate()).toString().padStart(2, '0');
     const suffix = `-${year}${month}${day}`;
 
+    let firstTry;
+
     if (suffix === this.#lastSuffix) {
       this.#lastSuffixCount++;
       const count = this.#lastSuffixCount;
-      return this.#config.resolvePath(`${suffix}-${count}`);
+      firstTry = this.#config.resolvePath(`${suffix}-${count}`);
     } else {
       this.#lastSuffix      = suffix;
       this.#lastSuffixCount = 0;
-      return this.#config.resolvePath(suffix);
+      firstTry = this.#config.resolvePath(suffix);
     }
+
+    // If `firstTry` doesn't exist, then we're done. Otherwise, we have to
+    // look through the directory to find an available name. (This can happen
+    // when the system reloads or restarts.)
+
+    try {
+      await fs.stat(firstTry);
+    } catch (e) {
+      if (e.code === 'ENOENT') {
+        // Not found, so it's good!
+        return firstTry;
+      }
+      throw e;
+    }
+
+    return this.#targetPathUsingDirectoryContents(suffix);
+  }
+
+  /**
+   * Helper for {@link #targetPath}, which does the hard work of looking through
+   * the directory to find the first available file.
+   *
+   * @param {string} suffix The prefix suffix (whee)
+   * @returns {string} The post-rotation path.
+   */
+  async #targetPathUsingDirectoryContents(suffix) {
+    const baseName   = this.#config.baseName;
+    const baseSuffix = this.#config.baseSuffix;
+    const fullPrefix = `${this.#config.basePrefix}${suffix}-`;
+    const contents   = await fs.readdir(this.#config.directory);
+    let foundCount   = -1;
+
+    for (const name of contents) {
+      if (name === baseName) {
+        if (foundCount < 0) {
+          foundCount = 0;
+        }
+      } else if (name.startsWith(fullPrefix) && name.endsWith(baseSuffix)) {
+        const countStr = name.slice(fullPrefix.length, name.length - baseSuffix.length);
+        const count    = Number(countStr);
+        if (count > foundCount) {
+          foundCount = count;
+        }
+      }
+    }
+
+    return (foundCount < 0)
+      ? this.#config.resolvePath(suffix)
+      : this.#config.resolvePath(`${suffix}-${foundCount + 1}`);
   }
 }
