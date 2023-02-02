@@ -9,6 +9,7 @@ import { BaseConverter } from '#x/BaseConverter';
 import { ConverterConfig } from '#x/ConverterConfig';
 import { NonData } from '#x/NonData';
 
+
 // TODO: Handle self-referential structures.
 
 // TODO: Is there a sane way to know if an array is non-sparse and has no extra
@@ -180,7 +181,7 @@ export class Converter extends BaseConverter {
   #performReplacement(orig, action) {
     switch (action) {
       case 'error':     throw new Error('Encountered non-data.');
-      case 'inspect':   return util.inspect(orig);
+      case 'inspect':   return util.inspect(orig, Converter.#INSPECT_OPTIONS);
       case 'omit':      return BaseConverter.OMIT;
       case 'asObject':  return this.#objectOrArrayToData(orig, false);
       case 'unhandled': return BaseConverter.UNHANDLED;
@@ -198,4 +199,17 @@ export class Converter extends BaseConverter {
       }
     }
   }
+
+
+  //
+  // Static members
+  //
+
+  /** @type {object} Inspection options for `inspect` actions. */
+  static #INSPECT_OPTIONS = Object.freeze({
+    depth:       10,
+    breakLength: 120,
+    compact:     2,
+    getters:     true
+  });
 }
