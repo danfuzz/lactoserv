@@ -60,12 +60,12 @@ export class ProcessInfoFileService extends BaseService {
   }
 
   /** @override */
-  async start() {
+  async start(isReload_unused) {
     await this.#runner.start();
   }
 
   /** @override */
-  async stop() {
+  async stop(willReload_unused) {
     await this.#runner.stop();
   }
 
