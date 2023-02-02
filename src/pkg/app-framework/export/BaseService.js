@@ -65,11 +65,12 @@ export class BaseService {
    * stopped.
    *
    * @abstract
-   * @param {boolean} isReload Is this action due to an in-process reload?
+   * @param {boolean} willReload Is this action due to an in-process reload
+   *   being requested?
    * @throws {Error} Thrown if there was trouble running or stopping the
    *   service.
    */
-  async stop(isReload) {
+  async stop(willReload) {
     Methods.abstract();
   }
 
