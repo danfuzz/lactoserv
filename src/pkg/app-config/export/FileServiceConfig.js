@@ -121,7 +121,7 @@ export class FileServiceConfig extends ServiceConfig {
    */
   static #parseBaseName(baseName) {
     const { prefix, suffix = '' } =
-      baseName.match(/^(?<base>.*?)(?<suffix>[.][^.]*)?$/).groups;
+      baseName.match(/^(?<prefix>.*?)(?<suffix>[.][^.]*)?$/).groups;
 
     return { prefix, suffix };
   }
