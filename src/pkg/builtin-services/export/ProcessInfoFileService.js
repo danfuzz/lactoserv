@@ -202,24 +202,10 @@ export class ProcessInfoFileService extends BaseService {
    * Writes the info file.
    */
   async #writeFile() {
-    const filePath = this.#filePath;
-
-    // Create the directory if it doesn't already exist.
-
-    try {
-      await fs.stat(this.config.directory);
-    } catch (e) {
-      if (e.code === 'ENOENT') {
-        await fs.mkdir(this.config.directory, { recursive: true });
-      } else {
-        throw e;
-      }
-    }
-
-    // Write the file.
-
     const text = `${JSON.stringify(this.#contents, null, 2)}\n`;
-    await fs.writeFile(filePath, text);
+
+    await this.config.createDirectoryIfNecessary();
+    await fs.writeFile(this.#filePath, text);
 
     this.logger.wroteFile();
   }

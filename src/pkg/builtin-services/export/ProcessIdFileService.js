@@ -187,18 +187,7 @@ export class ProcessIdFileService extends BaseService {
         await fs.rm(filePath, { force: true });
         this.logger.removedFile();
       } else {
-        // Create the directory if it doesn't already exist.
-        const dirPath = Path.dirname(filePath);
-        try {
-          await fs.stat(dirPath);
-        } catch (e) {
-          if (e.code === 'ENOENT') {
-            await fs.mkdir(dirPath, { recursive: true });
-          } else {
-            throw e;
-          }
-        }
-
+        await this.config.createDirectoryIfNecessary();
         await fs.writeFile(filePath, contents);
         this.logger.wroteFile();
       }

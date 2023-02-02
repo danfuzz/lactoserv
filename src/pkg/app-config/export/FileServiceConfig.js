@@ -1,6 +1,7 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
 // This project is PROPRIETARY and UNLICENSED.
 
+import * as fs from 'node:fs/promises';
 import * as Path from 'node:path';
 
 import { Files } from '#x/Files';
@@ -89,6 +90,21 @@ export class FileServiceConfig extends ServiceConfig {
    */
   baseNameWithExtraPrefix(extraPrefix) {
     return `${this.#basePrefix}${extraPrefix}${this.#baseSuffix}`;
+  }
+
+  /**
+   * Creates the {@link #directory}, if it doesn't already exist.
+   */
+  async createDirectoryIfNecessary() {
+    try {
+      await fs.stat(this.#directory);
+    } catch (e) {
+      if (e.code === 'ENOENT') {
+        await fs.mkdir(this.#directory, { recursive: true });
+      } else {
+        throw e;
+      }
+    }
   }
 
   /**

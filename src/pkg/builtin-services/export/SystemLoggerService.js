@@ -48,19 +48,7 @@ export class SystemLoggerService extends BaseService {
 
   /** @override */
   async start() {
-    const dirPath = Path.resolve(this.#logFilePath, '..');
-
-    // Create the log directory if it doesn't already exist.
-    try {
-      await fs.stat(dirPath);
-    } catch (e) {
-      if (e.code === 'ENOENT') {
-        await fs.mkdir(dirPath, { recursive: true });
-      } else {
-        throw e;
-      }
-    }
-
+    await this.config.createDirectoryIfNecessary();
     await this.#sink.start();
     this.logger.running();
   }
