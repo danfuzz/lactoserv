@@ -54,6 +54,7 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
 
   /** @override */
   _impl_makeRecord(tag, type, ...args) {
+    // TODO: Move the data conversion into the base class.
     const fixedArgs = this.#dataConverter.encode(args);
 
     return new LogRecord(this._impl_nowSec(), tag, type, fixedArgs,
