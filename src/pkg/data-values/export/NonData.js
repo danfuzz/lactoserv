@@ -1,6 +1,9 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
 // This project is PROPRIETARY and UNLICENSED.
 
+import * as util from 'node:util';
+
+
 /**
  * "Data" value that wraps (or "escapes") a non-data value, allowing it to live
  * undisturbed in a given data-value conversion context.
@@ -47,5 +50,25 @@ export class NonData {
    */
   withConvertedValue(innerValue_unused) {
     return this;
+  }
+
+  /**
+   * Custom inspector for instances of this class.
+   *
+   * @param {number} depth Maximum depth to inspect to.
+   * @param {object} options Inspection options.
+   * @param {Function} inspect Inspector function to use for sub-inspection.
+   * @returns {string} The inspected form.
+   */
+  [util.inspect.custom](depth, options, inspect) {
+    if (depth < 0) {
+      return '[NonData]';
+    }
+
+    const innerOptions = Object.assign({}, options, {
+      depth: (options.depth === null) ? null : options.depth - 1
+    });
+
+    return `NonData { ${inspect(this.#value, innerOptions)} }`;
   }
 }
