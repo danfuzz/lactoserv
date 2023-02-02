@@ -269,10 +269,17 @@ export class StackTrace {
 
     // If `.stack` starts as would be expected, trust that the frames
     // immediately follow. But if not, fall back on the string-only heuristics.
-    const expectStart = `${name}${message === '' ? '' : ': '}${message}\n`;
-    return stack.startsWith(expectStart)
-      ? expectStart.length
-      : StackTrace.#findFirstFrameFromStackString(stack);
+    const messageStr  = (message === '') ? '' : `: ${message}`;
+    const expectStart = `${name}${messageStr}`;
+    if (stack === expectStart) {
+      // The "stack" is just the message and without a newline. This can happen
+      // in practice with some Node internal methods.
+      return expectStart.length;
+    } else if (stack.startsWith(`${expectStart}\n`)) {
+      return expectStart.length + 1;
+    } else {
+      return StackTrace.#findFirstFrameFromStackString(stack);
+    }
   }
 
   /**
@@ -292,6 +299,8 @@ export class StackTrace {
     const framesMatch = /(\n    at [^\n]+)+$/.exec(stack);
 
     if (framesMatch === null) {
+      // Alas, nothing better to do. TODO: Consider something like wrapping
+      // the contents such that it's not lost, etc.
       throw new Error('Not a stack trace string.');
     }
 
