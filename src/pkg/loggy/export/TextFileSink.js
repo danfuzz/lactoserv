@@ -41,7 +41,7 @@ export class TextFileSink extends EventSink {
     MustBe.string(filePath);
 
     if (!TextFileSink.isValidFormat(format)) {
-      throw new Error(`Invalid log format: ${format}`);
+      throw new Error(`Unknown log format: ${format}`);
     }
 
     super((event) => this.#process(event), firstEvent);
