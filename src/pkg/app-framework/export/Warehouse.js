@@ -87,6 +87,13 @@ export class Warehouse {
   }
 
   /**
+   * Indicates that the system is going to be reloaded.
+   */
+  willReload() {
+    this.#isReload = true;
+  }
+
+  /**
    * Starts all servers. This async-returns once all servers are started.
    *
    * @throws {Error} Thrown if any server had trouble starting.
@@ -117,7 +124,7 @@ export class Warehouse {
    */
   async startAllServices() {
     const services = this.#serviceManager.getAll();
-    const results  = services.map((s) => s.start());
+    const results  = services.map((s) => s.start(this.#isReload));
 
     return Promise.all(results);
   }
@@ -129,7 +136,7 @@ export class Warehouse {
    */
   async stopAllServices() {
     const services = this.#serviceManager.getAll();
-    const results  = services.map((s) => s.stop());
+    const results  = services.map((s) => s.stop(this.#isReload));
 
     return Promise.all(results);
   }

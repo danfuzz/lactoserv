@@ -186,6 +186,10 @@ export class UsualSystem extends Threadlet {
 
     this.#logger.stoppingServers(logArg);
 
+    if (forReload) {
+      this.#warehouse.willReload();
+    }
+
     const serversStopped = this.#warehouse.stopAllServers();
 
     // Easy way to log when the servers stopped, without more complicated logic.
