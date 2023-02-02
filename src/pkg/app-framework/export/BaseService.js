@@ -71,7 +71,7 @@ export class BaseService {
    *   service.
    */
   async stop(willReload) {
-    Methods.abstract();
+    Methods.abstract(willReload);
   }
 
 
