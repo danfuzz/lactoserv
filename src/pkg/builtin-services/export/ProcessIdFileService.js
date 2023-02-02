@@ -2,7 +2,6 @@
 // This project is PROPRIETARY and UNLICENSED.
 
 import * as fs from 'node:fs/promises';
-import * as Path from 'node:path';
 import * as process from 'node:process';
 import * as timers from 'node:timers/promises';
 

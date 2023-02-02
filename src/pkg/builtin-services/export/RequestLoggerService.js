@@ -2,7 +2,6 @@
 // This project is PROPRIETARY and UNLICENSED.
 
 import * as fs from 'node:fs/promises';
-import * as Path from 'node:path';
 
 import { FileServiceConfig } from '@this/app-config';
 import { BaseService, ServiceController } from '@this/app-framework';
