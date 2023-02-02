@@ -68,10 +68,11 @@ export class UsualSystem extends Threadlet {
   /**
    * Constructs (and possibly replaces) {@link #warehouse}.
    *
+   * @param {boolean} forReload Is this for a reload?
    * @returns {boolean} `true` iff successful. `false` generally means there was
    * a configuration issue.
    */
-  async #makeWarehouse() {
+  async #makeWarehouse(forReload) {
     const configUrl = this.#args.configUrl;
     let config;
 
@@ -86,7 +87,7 @@ export class UsualSystem extends Threadlet {
     }
 
     try {
-      this.#warehouse = new Warehouse(config);
+      this.#warehouse = new Warehouse(config, forReload);
     } catch (e) {
       this.#logger.warehouseConstructionError(e);
       this.#error = e;
@@ -146,18 +147,18 @@ export class UsualSystem extends Threadlet {
 
   /**
    * System start function. Used as the thread start function and also during
-   * requested restarts.
+   * requested reloads.
    *
-   * @param {boolean} [forRestart = false] Is this for a restart?
+   * @param {boolean} [forReload = false] Is this for a reload?
    */
-  async #start(forRestart = false) {
-    const logArg = forRestart ? 'restart' : 'init';
+  async #start(forReload = false) {
+    const logArg = forReload ? 'reload' : 'init';
 
     this.#init();
 
     this.#logger.starting(logArg);
 
-    const warehouseIsGood = await this.#makeWarehouse();
+    const warehouseIsGood = await this.#makeWarehouse(forReload);
 
     if (!warehouseIsGood) {
       this.#logger.startAborted();
@@ -172,12 +173,12 @@ export class UsualSystem extends Threadlet {
 
   /**
    * System stop function. Used when the system is shutting down on the way to
-   * exiting, and also used during requested restarts.
+   * exiting, and also used during requested reloads.
    *
-   * @param {boolean} [forRestart = false] Is this for a restart?
+   * @param {boolean} [forReload = false] Is this for a reload?
    */
-  async #stop(forRestart = false) {
-    const logArg = forRestart ? 'restart' : 'shutdown';
+  async #stop(forReload = false) {
+    const logArg = forReload ? 'reload' : 'shutdown';
 
     this.#logger.stoppingServers(logArg);
 
