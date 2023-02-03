@@ -406,7 +406,7 @@ function suspect-file-check {
 progress-msg --enable
 progress-msg "Building JS project ${projectName}..."
 
-srcDir="$(base-dir)/src/pkg"
+srcDir="$(base-dir)/src"
 outDir="$(set-up-out-dir)"
 
 outProjectDir="${outDir}/${projectName}"
