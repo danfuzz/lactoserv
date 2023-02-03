@@ -8,7 +8,6 @@ export * from '#x/BaseApplication';
 export * from '#x/BaseComponent';
 export * from '#x/BaseController';
 export * from '#x/BaseService';
-export * from '#x/HostController';
 export * from '#x/HostManager';
 export * from '#x/ServerController';
 export * from '#x/ServerManager';

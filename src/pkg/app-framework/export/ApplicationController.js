@@ -3,7 +3,6 @@
 
 import * as timers from 'node:timers';
 
-import { ApplicationConfig } from '@this/app-config';
 import { BaseLoggingEnvironment, FormatUtils } from '@this/loggy';
 import { WranglerContext } from '@this/network-protocol';
 import { MustBe } from '@this/typey';

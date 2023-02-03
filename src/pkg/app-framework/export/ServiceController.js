@@ -1,7 +1,6 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
 // This project is PROPRIETARY and UNLICENSED.
 
-import { ServiceConfig } from '@this/app-config';
 import { MustBe } from '@this/typey';
 
 import { BaseController } from '#x/BaseController';

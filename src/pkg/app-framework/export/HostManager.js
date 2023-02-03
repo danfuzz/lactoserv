@@ -6,21 +6,22 @@ import { SecureContext } from 'node:tls';
 import { HostConfig, Uris } from '@this/app-config';
 import { TreePathKey, TreePathMap } from '@this/collections';
 
-import { HostController } from '#x/HostController';
+import { HostItem } from '#p/HostItem';
 import { ThisModule } from '#p/ThisModule';
 
 
 /**
- * Manager for dealing with all the host bindings. "Hosts" in this sense are
+ * Manager for dealing with all the hostname bindings. "Hosts" in this sense are
  * network-available servers associated with particular names, certificates, and
- * private keys.
+ * private keys. The main thing offered by this class is the association between
+ * hostnames and TLS contexts.
  */
 export class HostManager {
   /**
-   * @type {TreePathMap<HostController>} Map from each componentized hostname to
-   * the {@link HostController} object that should be used for it.
+   * @type {TreePathMap<HostItem>} Map from each componentized hostname to
+   * the {@link HostItem} that should be used for it.
    */
-  #controllers = new TreePathMap(TreePathKey.hostnameStringFrom);
+  #items = new TreePathMap(TreePathKey.hostnameStringFrom);
 
   /** @type {function(...*)} Logger for this class. */
   #logger = ThisModule.logger.hosts;
@@ -32,7 +33,7 @@ export class HostManager {
    */
   constructor(configs = []) {
     for (const config of configs) {
-      this.#addControllerFor(config);
+      this.#addItemFor(config);
     }
   }
 
@@ -63,15 +64,15 @@ export class HostManager {
    *  hostname match is found.
    */
   findConfig(name) {
-    const controller = this.#findController(name);
+    const item = this.#findItem(name);
 
-    if (!controller) {
+    if (!item) {
       return null;
     }
 
     return Object.freeze({
-      cert: controller.config.certificate,
-      key:  controller.config.privateKey
+      cert: item.config.certificate,
+      key:  item.config.privateKey
     });
   }
 
@@ -84,8 +85,8 @@ export class HostManager {
    *   if no hostname match is found.
    */
   findContext(name) {
-    const controller = this.#findController(name);
-    return controller ? controller.secureContext : null;
+    const item = this.#findItem(name);
+    return item ? item.secureContext : null;
   }
 
   /**
@@ -105,14 +106,14 @@ export class HostManager {
 
     for (const name of names) {
       const key   = Uris.parseHostname(name, true);
-      const found = this.#controllers.findSubtree(key);
+      const found = this.#items.findSubtree(key);
       if (found.size === 0) {
         throw new Error(`No bindings found for hostname: ${name}`);
       }
       for (const [k, v] of found) {
         // Avoid trying to add duplicates (which would fail).
-        if (result.#controllers.get(k) === null) {
-          result.#controllers.add(k, v);
+        if (result.#items.get(k) === null) {
+          result.#items.add(k, v);
         }
       }
     }
@@ -142,32 +143,32 @@ export class HostManager {
   }
 
   /**
-   * Constructs a {@link HostController} based on the given information, and
-   * adds mappings to {@link #controllers} so it can be found.
+   * Constructs a {@link HostItem} based on the given information, and adds
+   * mappings to {@link #items} so it can be found.
    *
    * @param {HostConfig} hostItem Parsed configuration item.
    */
-  #addControllerFor(hostItem) {
-    const controller = new HostController(hostItem);
+  #addItemFor(hostItem) {
+    const item = new HostItem(hostItem);
 
-    for (const name of controller.config.hostnames) {
+    for (const name of item.config.hostnames) {
       const key = Uris.parseHostname(name, true);
-      this.#controllers.add(key, controller);
+      this.#items.add(key, item);
       this.#logger.bound(name);
     }
   }
 
   /**
-   * Finds the most-specific {@link HostController} for a given hostname.
+   * Finds the most-specific {@link HostItem} for a given hostname.
    *
    * @param {string} name Hostname to look for, which may be a partial or full
    *   wildcard.
-   * @returns {?HostController} The associated controller, or `null` if nothing
-   *   suitable is found.
+   * @returns {?HostItem} The associated item, or `null` if nothing suitable is
+   *   found.
    */
-  #findController(name) {
+  #findItem(name) {
     const key   = Uris.parseHostname(name, true);
-    const found = this.#controllers.find(key);
+    const found = this.#items.find(key);
 
     return found ? found.value : null;
   }
