@@ -2,22 +2,15 @@
 // This project is PROPRIETARY and UNLICENSED.
 
 import { ApplicationConfig } from '@this/app-config';
-import { Methods } from '@this/typey';
+import { Methods, MustBe } from '@this/typey';
+
+import { BaseComponent } from '#x/BaseComponent';
 
 
 /**
  * Base class for the exported (public) application classes.
  */
-export class BaseApplication {
-  /** @type {ApplicationConfig} Configuration for this application. */
-  #config;
-
-  /**
-   * @type {?function(...*)} Instance-specific logger, or `null` if no logging
-   * is to be done.
-   */
-  #logger;
-
+export class BaseApplication extends BaseComponent {
   /**
    * Constructs an instance.
    *
@@ -26,26 +19,9 @@ export class BaseApplication {
    *   no logging is to be done.
    */
   constructor(config, logger) {
-    this.#config = config;
-    this.#logger = logger;
-  }
+    MustBe.instanceOf(config, ApplicationConfig);
 
-  /** @returns {ApplicationConfig} Configuration for this application. */
-  get config() {
-    return this.#config;
-  }
-
-  /**
-   * @type {?function(...*)} Instance-specific logger, or `null` if no logging
-   * is to be done.
-   */
-  get logger() {
-    return this.#logger;
-  }
-
-  /** @returns {string} Application name. */
-  get name() {
-    return this.#config.name;
+    super(config, logger);
   }
 
   /**
@@ -59,23 +35,5 @@ export class BaseApplication {
    */
   handleRequest(req, res, next) {
     Methods.abstract(req, res, next);
-  }
-
-
-  //
-  // Static members
-  //
-
-  /**
-   * @returns {function(new:ApplicationConfig)} The configuration class for this
-   * application.
-   */
-  static get CONFIG_CLASS() {
-    return Methods.abstract();
-  }
-
-  /** @returns {string} The type name for this application. */
-  static get TYPE() {
-    return Methods.abstract();
   }
 }
