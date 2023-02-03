@@ -43,6 +43,12 @@ export class Rotator {
   #rotateNow = new Condition();
 
   /**
+   * @type {Condition} Condition which becomes momentarily `true` at the end of
+   * each rotation action.
+   */
+  #rotatedCondition = new Condition();
+
+  /**
    * Constructs an instance.
    *
    * @param {FileServiceConfig} config Configuration to use.
@@ -100,6 +106,16 @@ export class Rotator {
   }
 
   /**
+   * Returns a promise which gets fulfilled to `true` the next time a rotation
+   * is performed.
+   *
+   * @returns {Promise} A promise as described.
+   */
+  whenRotated() {
+    return this.#rotatedCondition.whenTrue();
+  }
+
+  /**
    * Rotates the file.
    */
   async #rotate() {
@@ -124,6 +140,8 @@ export class Rotator {
         this.#logger?.errorWithRename(e);
       }
     }
+
+    this.#rotatedCondition.onOff();
   }
 
   /**
