@@ -37,7 +37,9 @@ const services = [
     baseName:  'system-log.txt',
     format:    'human',
     rotate: {
-      atSize: 100000
+      atSize:      1024 * 1024,
+      atStart:     true,
+      maxOldBytes: 10 * 1024 * 1024
     }
   },
   {
@@ -47,17 +49,22 @@ const services = [
     baseName:  'system-log.json',
     format:    'json',
     rotate: {
-      atSize:   100000,
-      atStart:  true,
-      atReload: true,
-      atStop:   true
+      atSize:      2 * 1024 * 1024,
+      atStart:     true,
+      atReload:    true,
+      atStop:      true,
+      maxOldCount: 10
     }
   },
   {
     name:      'requests',
     type:      'request-logger',
     directory: filePath('../../../out/var'),
-    baseName:  'request-log.txt'
+    baseName:  'request-log.txt',
+    rotate: {
+      atSize:      100000,
+      maxOldBytes: 1024 * 1024
+    }
   },
   {
     name:        'limiter',
