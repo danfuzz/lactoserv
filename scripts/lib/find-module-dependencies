@@ -44,7 +44,7 @@ process-args "$@" || usage "$?"
 # Main script
 #
 
-localModulesDir="$(base-dir)/src/pkg"
+localModulesDir="$(base-dir)/src"
 
 # Collect all of the modules referenced by this package, transitively including
 # all referenced local modules. The result is two lists, one of local modules
