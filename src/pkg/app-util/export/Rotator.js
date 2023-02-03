@@ -315,7 +315,7 @@ export class Rotator {
     // Find the highest existing count on existing files for the date in
     // question.
 
-    const files  = await this.#findFiles({ dateStr });
+    const files = await this.#findFiles({ dateStr });
     let count = -1;
     for (const f of files) {
       const oneCount = f.count ?? 0;
