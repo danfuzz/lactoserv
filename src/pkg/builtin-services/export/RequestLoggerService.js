@@ -50,16 +50,16 @@ export class RequestLoggerService extends BaseService {
   async start(isReload) {
     await this.config.createDirectoryIfNecessary();
     if (isReload) {
-      this.#rotator?.onReload();
+      await this.#rotator?.onReload();
     } else {
-      this.#rotator?.onStart();
+      await this.#rotator?.onStart();
     }
   }
 
   /** @override */
   async stop(willReload) {
     if (!willReload) {
-      this.#rotator?.onStop();
+      await this.#rotator?.onStop();
     }
   }
 
