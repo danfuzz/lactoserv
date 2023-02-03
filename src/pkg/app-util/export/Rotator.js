@@ -316,7 +316,7 @@ export class Rotator {
     // question.
 
     const files = await this.#findFiles({ dateStr });
-    let count = -1;
+    let   count = -1;
     for (const f of files) {
       const oneCount = f.count ?? 0;
       if (oneCount > count) {
