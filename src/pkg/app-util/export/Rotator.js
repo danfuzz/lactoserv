@@ -25,14 +25,14 @@ export class Rotator {
    */
   #checkMsec;
 
-  /** @type {?string} Suffix used the last time rotation was done. */
-  #lastSuffix = null;
+  /** @type {?string} Infix used the last time rotation was done. */
+  #lastInfix = null;
 
   /**
-   * @type {?string} Count after the suffix used the last time rotation was
+   * @type {?string} Count after the infix used the last time rotation was
    * done.
    */
-  #lastSuffixCount = 0;
+  #lastInfixCount = 0;
 
   /** @type {Threadlet} Thread which runs this instance. */
   #runner = new Threadlet(() => this.#run());
@@ -292,7 +292,7 @@ export class Rotator {
 
   /**
    * Figures out the target (post-rotation) file name/path. It is based on the
-   * creation date of the original, with a suffix appended in case of
+   * creation date of the original, with an infix included in case of
    * contention.
    *
    * @param {fs.Stats} stats Result of `fs.stat()` on the original file path.
@@ -305,14 +305,14 @@ export class Rotator {
       return this.#config.resolvePath(`-${infix}`);
     }
 
-    if (this.#lastSuffix === dateStr) {
+    if (this.#lastInfix === dateStr) {
       // Optimistically assume that if we've already picked a previous file name
       // with the given date that the next one in sequence will work. If that
       // turns out to be wrong, we'll fall back to the more involved code.
-      const count    = this.#lastSuffixCount + 1;
+      const count    = this.#lastInfixCount + 1;
       const firstTry = resolve(count);
       if (!await Rotator.#fileExists(firstTry)) {
-        this.#lastSuffixCount = count;
+        this.#lastInfixCount = count;
         return firstTry;
       }
     }
@@ -330,8 +330,8 @@ export class Rotator {
     }
     count++;
 
-    this.#lastSuffix      = dateStr;
-    this.#lastSuffixCount = count;
+    this.#lastInfix      = dateStr;
+    this.#lastInfixCount = count;
     return resolve(count);
   }
 
