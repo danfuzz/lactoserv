@@ -8,6 +8,7 @@ import { MustBe } from '@this/typey';
 
 import { ApplicationController } from '#x/ApplicationController';
 import { BaseApplication } from '#x/BaseApplication';
+import { BaseController } from '#x/BaseController';
 import { HostManager } from '#x/HostManager';
 
 
@@ -17,10 +18,7 @@ import { HostManager } from '#x/HostManager';
  * `express.Application` (or equivalent) which _exclusively_ handles that
  * server.
  */
-export class ServerController {
-  /** @type {ServerConfig} Configuration which defined this instance. */
-  #config;
-
+export class ServerController extends BaseController {
   /**
    * @type {HostManager} Host manager with bindings for all valid hostnames for
    * this instance.
@@ -32,9 +30,6 @@ export class ServerController {
    * to paths to application controllers. See {@link #makeMountMap} for details.
    */
   #mountMap;
-
-  /** @type {function(...*)} Instance-specific logger. */
-  #logger;
 
   /** @type {ProtocolWrangler} Protocol-specific "wrangler." */
   #wrangler;
@@ -60,15 +55,16 @@ export class ServerController {
    *   description.
    */
   constructor(config, extraConfig) {
+    MustBe.instanceOf(config, ServerConfig);
+
     const { endpoint, mounts }                 = config;
     const { interface: iface, port, protocol } = endpoint;
 
-    this.#config = config;
-
     const { applicationMap, hostManager, logger, rateLimiter, requestLogger } = extraConfig;
 
+    super(config, logger);
+
     this.#hostManager = hostManager;
-    this.#logger      = logger;
     this.#mountMap    = ServerController.#makeMountMap(mounts, applicationMap);
 
     const wranglerOptions = {
@@ -85,16 +81,6 @@ export class ServerController {
     };
 
     this.#wrangler = ProtocolWranglers.make(wranglerOptions);
-  }
-
-  /** @returns {ServerConfig} Configuration which defined this instance. */
-  get config() {
-    return this.#config;
-  }
-
-  /** @returns {string} Server name. */
-  get name() {
-    return this.#config.name;
   }
 
   /**

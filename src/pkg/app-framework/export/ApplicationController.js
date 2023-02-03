@@ -6,22 +6,18 @@ import * as timers from 'node:timers';
 import { ApplicationConfig } from '@this/app-config';
 import { BaseLoggingEnvironment, FormatUtils } from '@this/loggy';
 import { WranglerContext } from '@this/network-protocol';
+import { MustBe } from '@this/typey';
 
 import { BaseApplication } from '#x/BaseApplication';
+import { BaseController } from '#x/BaseController';
 
 
 /**
  * "Controller" for a single application.
  */
-export class ApplicationController {
+export class ApplicationController extends BaseController {
   /** @type {BaseApplication} Actual application instance. */
   #application;
-
-  /**
-   * @type {?function(...*)} Instance-specific logger, or `null` if no logging
-   * is to be done.
-   */
-  #logger;
 
   /**
    * @type {?BaseLoggingEnvironment} Logging environment, or `null` if no
@@ -35,9 +31,11 @@ export class ApplicationController {
    * @param {BaseApplication} application Instance to control.
    */
   constructor(application) {
+    MustBe.instanceOf(application, BaseApplication);
+    super(application.config, application.logger);
+
     this.#application = application;
-    this.#logger      = application.logger;
-    this.#loggingEnv  = this.#logger?.$env ?? null;
+    this.#loggingEnv  = application.logger?.$env ?? null;
   }
 
   /**
@@ -62,7 +60,7 @@ export class ApplicationController {
     const startTime = this.#loggingEnv?.nowSec();
     const id        = WranglerContext.get(req)?.id;
 
-    this.#logger?.handling(id, req.url);
+    this.logger?.handling(id, req.url);
 
     let resEnded   = false;
     let nextCalled = false;
@@ -72,14 +70,14 @@ export class ApplicationController {
       if (resEnded || nextCalled) {
         // This will probably end up as an uncaught exception, which is about as
         // reasonable as can be expected.
-        this.#logger?.doubleCompletion(id, { nextCalled, resEnded });
+        this.logger?.doubleCompletion(id, { nextCalled, resEnded });
         throw new Error('Double completion');
       }
 
-      if (this.#logger) {
+      if (this.logger) {
         const endTime  = this.#loggingEnv.nowSec();
         const duration = endTime - startTime;
-        this.#logger.handled(id, FormatUtils.durationStringFromSecs(duration));
+        this.logger.handled(id, FormatUtils.durationStringFromSecs(duration));
       }
 
       res.end = origEnd;
@@ -87,7 +85,7 @@ export class ApplicationController {
 
     const innerNext = (...args) => {
       done();
-      this.#logger.next(id, args);
+      this.logger.next(id, args);
       timers.setImmediate(next, ...args);
       nextCalled = true;
     };
@@ -95,7 +93,7 @@ export class ApplicationController {
     res.end = (...args) => {
       origEnd.call(res, ...args);
       done();
-      this.#logger.done(id);
+      this.logger.done(id);
       resEnded = true;
     };
 
@@ -105,15 +103,5 @@ export class ApplicationController {
   /** @returns {BaseApplication} The controlled application instance. */
   get application() {
     return this.#application;
-  }
-
-  /** @returns {ApplicationConfig} Configuration which defined this instance. */
-  get config() {
-    return this.#application.config;
-  }
-
-  /** @returns {string} Application name. */
-  get name() {
-    return this.#application.name;
   }
 }

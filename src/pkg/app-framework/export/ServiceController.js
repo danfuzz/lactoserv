@@ -2,22 +2,18 @@
 // This project is PROPRIETARY and UNLICENSED.
 
 import { ServiceConfig } from '@this/app-config';
+import { MustBe } from '@this/typey';
 
+import { BaseController } from '#x/BaseController';
 import { BaseService } from '#x/BaseService';
 
 
 /**
  * "Controller" for a single service.
  */
-export class ServiceController {
+export class ServiceController extends BaseController {
   /** @type {BaseService} Actual service instance. */
   #service;
-
-  /**
-   * @type {?function(...*)} Instance-specific logger, or `null` if no logging
-   * is to be done.
-   */
-  #logger;
 
   /**
    * Constructs an insance.
@@ -25,18 +21,10 @@ export class ServiceController {
    * @param {BaseService} service Instance to control.
    */
   constructor(service) {
+    MustBe.instanceOf(service, BaseService);
+    super(service.config, service.logger);
+
     this.#service = service;
-    this.#logger  = service.logger;
-  }
-
-  /** @returns {ServiceConfig} Configuration which defined this instance. */
-  get config() {
-    return this.#service.config;
-  }
-
-  /** @returns {string} Service name. */
-  get name() {
-    return this.#service.name;
   }
 
   /** @returns {BaseService} The controlled service instance. */
@@ -52,9 +40,9 @@ export class ServiceController {
    */
   async start(isReload) {
     const logArgs = isReload ? ['reload'] : [];
-    this.#logger.starting(...logArgs);
+    this.logger.starting(...logArgs);
     await this.#service.start(isReload);
-    this.#logger.started(...logArgs);
+    this.logger.started(...logArgs);
   }
 
   /**
@@ -67,8 +55,8 @@ export class ServiceController {
    */
   async stop(willReload) {
     const logArgs = willReload ? ['reload'] : [];
-    this.#logger.stopping(...logArgs);
+    this.logger.stopping(...logArgs);
     await this.#service.stop(willReload);
-    this.#logger.stopped(...logArgs);
+    this.logger.stopped(...logArgs);
   }
 }
