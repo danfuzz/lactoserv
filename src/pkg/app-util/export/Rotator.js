@@ -9,8 +9,6 @@ import { Condition, Threadlet } from '@this/async';
 import { MustBe } from '@this/typey';
 
 
-// TODO: This should probably use `Threadlet`.
-
 /**
  * Configurable file "rotator" for doing log rotation and the like.
  */
