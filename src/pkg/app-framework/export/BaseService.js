@@ -2,22 +2,15 @@
 // This project is PROPRIETARY and UNLICENSED.
 
 import { ServiceConfig } from '@this/app-config';
-import { Methods } from '@this/typey';
+import { Methods, MustBe } from '@this/typey';
+
+import { BaseComponent } from '#x/BaseComponent';
 
 
 /**
  * Base class for system services.
  */
-export class BaseService {
-  /** @type {ServiceConfig} Configuration for this service. */
-  #config;
-
-  /**
-   * @type {?function(...*)} Instance-specific logger, or `null` if no logging
-   * is to be done.
-   */
-  #logger;
-
+export class BaseService extends BaseComponent {
   /**
    * Constructs an instance.
    *
@@ -26,26 +19,9 @@ export class BaseService {
    *   no logging is to be done.
    */
   constructor(config, logger) {
-    this.#config = config;
-    this.#logger = logger;
-  }
+    MustBe.instanceOf(config, ServiceConfig);
 
-  /** @returns {ServiceConfig} Configuration for this service. */
-  get config() {
-    return this.#config;
-  }
-
-  /**
-   * @type {?function(...*)} Instance-specific logger, or `null` if no logging
-   * is to be done.
-   */
-  get logger() {
-    return this.#logger;
-  }
-
-  /** @returns {string} Service name. */
-  get name() {
-    return this.#config.name;
+    super(config, logger);
   }
 
   /**
@@ -72,23 +48,5 @@ export class BaseService {
    */
   async stop(willReload) {
     Methods.abstract(willReload);
-  }
-
-
-  //
-  // Static members
-  //
-
-  /**
-   * @returns {function(new:ServiceConfig)} The configuration class for this
-   * service.
-   */
-  static get CONFIG_CLASS() {
-    return Methods.abstract();
-  }
-
-  /** @returns {string} The type name for this service. */
-  static get TYPE() {
-    return Methods.abstract();
   }
 }

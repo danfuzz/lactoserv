@@ -7,13 +7,10 @@ import { HostConfig } from '@this/app-config';
 
 
 /**
- * "Controller" for a single host entry, which can notably offer services for
- * multiple different hosts. "Hosts" in this sense are network-available servers
- * associated with particular names, certificates, and private keys. The main
- * thing offered by this class is the association between a named host and a TLS
- * context.
+ * Representation of one configured "host" item, which can notably cover
+ * multiple different hostnames.
  */
-export class HostController {
+export class HostItem {
   /** @type {HostConfig} Configuration which defined this instance. */
   #config;
 

@@ -1,8 +1,6 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
 // This project is PROPRIETARY and UNLICENSED.
 
-import * as util from 'node:util';
-
 import { MustBe } from '@this/typey';
 
 import { Condition } from '#x/Condition';
