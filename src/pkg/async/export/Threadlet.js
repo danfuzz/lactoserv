@@ -1,6 +1,8 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
 // This project is PROPRIETARY and UNLICENSED.
 
+import * as util from 'node:util';
+
 import { MustBe } from '@this/typey';
 
 import { Condition } from '#x/Condition';
@@ -41,6 +43,13 @@ export class Threadlet {
    * not running or if the instance doesn't have a start function.
    */
   #startResult = null;
+
+  /**
+   * @type {boolean} Has the current {@link #runResult} been returned "publicly"
+   * from this instance? This is used to figure out whether to force a failed
+   * run to become an unhandled promise rejection.
+   */
+  #runResultExposed = false;
 
 
   /**
@@ -107,12 +116,7 @@ export class Threadlet {
    *   main function.
    */
   async run() {
-    if (!this.#runResult) {
-      this.#runCondition.value = true;
-      this.#runResult = this.#run();
-    }
-
-    return this.#runResult;
+    return this.#run(true);
   }
 
   /**
@@ -135,8 +139,9 @@ export class Threadlet {
   async start() {
     // Squelch any error from `run()`, because otherwise it will turn into an
     // impossible-to-actually-handle promise rejection. It's up to clients to
-    // use some other method to detect an exception, e.g. by calling `stop()`.
-    PromiseUtil.handleRejection(this.run());
+    // use some other method to detect an exception, e.g. by calling `stop()`
+    // and `await`ing the result.
+    PromiseUtil.handleRejection(this.#run());
     return this.whenStarted();
   }
 
@@ -151,12 +156,12 @@ export class Threadlet {
    *   main function.
    */
   async stop() {
-    if (!this.#runResult) {
+    if (!this.isRunning()) {
       return null;
     }
 
     this.#runCondition.value = false;
-    return this.#runResult;
+    return this.#run(true);
   }
 
   /**
@@ -174,8 +179,7 @@ export class Threadlet {
    *   threw an error.
    */
   async whenStarted() {
-    if (!this.#runResult) {
-      // Not currently running.
+    if (!this.isRunning()) {
       return null;
     }
 
@@ -205,26 +209,61 @@ export class Threadlet {
   }
 
   /**
-   * Runs the thread.
+   * Runs the thread if it's not already running, or just returns the promise
+   * for the current run-in-progress.
+   *
+   * @param {boolean} [exposed = false] Should the returned promise be
+   *   considered "exposed" to the client of this instance?
+   * @returns {Promise} The (eventual) result of the run.
+   */
+  #run(exposed = false) {
+    if (!this.isRunning()) {
+      this.#runCondition.value = true;
+      this.#runResult          = this.#run0();
+    }
+
+    this.#runResultExposed ||= exposed;
+    return this.#runResult;
+  }
+
+  /**
+   * Does the main work of running the thread. This is a separate method from
+   * {@link #run0} exactly so that we can capture the promise for the result of
+   * the run.
    *
    * @returns {*} Whatever the main function returned.
    * @throws {Error} The same error as was thrown by either the start function
    *   or main function, if indeed one of those threw an error.
    */
-  async #run() {
+  async #run0() {
     // We call `start()` here, before the `await` below, so that `startResult`
     // becomes non-null synchronously with respect to the client call to
     // (public) `run()`. Note that we do this even if there is no start
     // function, so that `whenStarted()` can honor its contract.
     this.#startResult = this.#start();
 
+    let started = false;
+
     try {
       // This `await` guarantees (a) that no thread processing happens
       // synchronously with respect to the client, and (b) that the start
       // function will have finished before we call the main function.
       await this.#startResult;
+      started = true;
 
       return await this.#mainFunction();
+    } catch (error) {
+      if (started && !this.#runResultExposed) {
+        // There was an exception while running, and `#runResult` was never
+        // exposed to a client of this instance, which means there is no way for
+        // it to have caught the error about to be thrown from this method. So,
+        // we now _force_ an unhandled promise rejection.
+        Promise.reject(
+          new Error(
+            'Threadlet threw exception with no possible handler',
+            { cause: error }));
+      }
+      throw error;
     } finally {
       // Slightly tricky: At this moment, `#runResult` is the return promise
       // from this very method, but it's correct to `null` it out now, because
@@ -232,6 +271,7 @@ export class Threadlet {
       // running will have stopped. Similar logic applies to the other
       // properties.
       this.#startResult        = null;
+      this.#runResultExposed   = false;
       this.#runResult          = null;
       this.#runCondition.value = false;
     }
