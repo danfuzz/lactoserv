@@ -125,7 +125,7 @@ export class Rotator {
     }
 
     // Find all the files, and sort from newest to oldest.
-    const files = await this.#findFiles({ current: false });
+    const files = await this.#findFiles({ today: true, pastDays: true });
     files.sort((x, y) => y.birthtime.valueOf() - x.birthtime.valueOf());
 
     let count = 0;
@@ -145,15 +145,23 @@ export class Rotator {
   /**
    * Finds all the files that match the configured file name pattern.
    *
-   * @param {object} [options = {}] Options for the search, all of which default
-   *   to `true`:
-   *   * `{boolean} current` -- Find the current (unmodified name) log file?
-   *   * `{boolean} today` -- Find files with today's date (UTC)?
-   *   * `{boolean} pastDays` -- Find files from previous days (UTC)?
+   * @param {object} [options = {}] Options for the search, which define a union
+   *   of items to find:
+   *   * `{boolean} current = false` -- Find the current (unmodified name) log
+   *        file?
+   *   * `{boolean} today = false` -- Find files with today's date (UTC)?
+   *   * `{boolean} pastDays = false` -- Find files from previous days (UTC)?
+   *   * `{?string} dateStr = null` -- Find files infixed with the given date
+   *       string?
    * @returns {object[]} Array of useful information about each matched file.
    */
   async #findFiles(options = {}) {
-    const { current = true, today = true, pastDays = true } = options;
+    const {
+      current  = false,
+      today    = false,
+      pastDays = false,
+      dateStr  = null
+    } = options;
 
     const todayStr   = Rotator.#makeInfix(new Date());
     const directory  = this.#config.directory;
@@ -168,14 +176,16 @@ export class Rotator {
         continue;
       }
 
-      const { dateStr, count } = parsed;
+      const { dateStr: gotDate, count } = parsed;
 
-      if (dateStr === null) {
+      if (gotDate === null) {
         if (!current) continue;
-      } else if (dateStr === todayStr) {
-        if (!today) continue;
-      } else if (!pastDays) {
-        continue;
+      } else if (gotDate !== dateStr) {
+        if (gotDate === todayStr) {
+          if (!today) continue;
+        } else if (!pastDays) {
+          continue;
+        }
       }
 
       const fullPath = `${directory}/${name}`;
@@ -289,72 +299,40 @@ export class Rotator {
    * @returns {string} The post-rotation path.
    */
   async #targetPath(stats) {
-    const at     = stats.birthtime;
-    const year   = (at.getUTCFullYear()).toString();
-    const month  = (at.getUTCMonth() + 1).toString().padStart(2, '0');
-    const day    = (at.getUTCDate()).toString().padStart(2, '0');
-    const suffix = `-${year}${month}${day}`;
-
-    let firstTry;
-
-    if (suffix === this.#lastSuffix) {
-      this.#lastSuffixCount++;
-      const count = this.#lastSuffixCount;
-      firstTry = this.#config.resolvePath(`${suffix}-${count}`);
-    } else {
-      this.#lastSuffix      = suffix;
-      this.#lastSuffixCount = 0;
-      firstTry = this.#config.resolvePath(suffix);
+    const dateStr = Rotator.#makeInfix(stats.birthtime);
+    const resolve = (count) => {
+      const infix = Rotator.#makeInfix(dateStr, (count > 0) ? count : null);
+      return this.#config.resolvePath(`-${infix}`);
     }
 
-    // If `firstTry` doesn't exist, then we're done. Otherwise, we have to
-    // look through the directory to find an available name. (This can happen
-    // when the system reloads or restarts.)
-
-    try {
-      await fs.stat(firstTry);
-    } catch (e) {
-      if (e.code === 'ENOENT') {
-        // Not found, so it's good!
+    if (this.#lastSuffix === dateStr) {
+      // Optimistically assume that if we've already picked a previous file name
+      // with the given date that the next one in sequence will work. If that
+      // turns out to be wrong, we'll fall back to the more involved code.
+      const count    = this.#lastSuffixCount + 1;
+      const firstTry = resolve(count);
+      if (!await Rotator.#fileExists(firstTry)) {
+        this.#lastSuffixCount = count;
         return firstTry;
       }
-      throw e;
     }
 
-    return this.#targetPathUsingDirectoryContents(suffix);
-  }
+    // Find the highest existing count on existing files for the date in
+    // question.
 
-  /**
-   * Helper for {@link #targetPath}, which does the hard work of looking through
-   * the directory to find the first available file.
-   *
-   * @param {string} suffix The prefix suffix (whee)
-   * @returns {string} The post-rotation path.
-   */
-  async #targetPathUsingDirectoryContents(suffix) {
-    const baseName   = this.#config.baseName;
-    const baseSuffix = this.#config.baseSuffix;
-    const fullPrefix = `${this.#config.basePrefix}${suffix}-`;
-    const contents   = await fs.readdir(this.#config.directory);
-    let foundCount   = -1;
-
-    for (const name of contents) {
-      if (name === baseName) {
-        if (foundCount < 0) {
-          foundCount = 0;
-        }
-      } else if (name.startsWith(fullPrefix) && name.endsWith(baseSuffix)) {
-        const countStr = name.slice(fullPrefix.length, name.length - baseSuffix.length);
-        const count    = Number(countStr);
-        if (count > foundCount) {
-          foundCount = count;
-        }
+    const files  = await this.#findFiles({ dateStr });
+    let count = -1;
+    for (const f of files) {
+      const oneCount = f.count ?? 0;
+      if (oneCount > count) {
+        count = oneCount;
       }
     }
+    count++;
 
-    return (foundCount < 0)
-      ? this.#config.resolvePath(suffix)
-      : this.#config.resolvePath(`${suffix}-${foundCount + 1}`);
+    this.#lastSuffix      = dateStr;
+    this.#lastSuffixCount = count;
+    return resolve(count);
   }
 
 
@@ -363,21 +341,46 @@ export class Rotator {
   //
 
   /**
+   * Checks to see if the given file exists.
+   *
+   * @param {string} filePath Path to the file.
+   * @returns {boolean} The answer.
+   */
+  static async #fileExists(filePath) {
+    try {
+      await fs.stat(filePath);
+      return true;
+    } catch (e) {
+      if (e.code === 'ENOENT') {
+        // Not found. Not a real error in this case.
+        return false;
+      }
+      throw e;
+    }
+  }
+
+  /**
    * Gets a date string with optional count to use as an "infix" for a rotated
    * file.
    *
-   * @param {Date} date Date to derive the (UTC) date label for the file.
+   * @param {Date|string} date Date to derive the (UTC) date label for the file,
+   *   or an already-derived date string.
    * @param {?count} [count = null] Count to include in the result, or `null` to
    *   not include a count.
    * @returns {string} The infix.
    */
   static #makeInfix(date, count = null) {
-    const year     = (date.getUTCFullYear()).toString();
-    const month    = (date.getUTCMonth() + 1).toString().padStart(2, '0');
-    const day      = (date.getUTCDate()).toString().padStart(2, '0');
+    const makeDateStr = () => {
+      const year  = (date.getUTCFullYear()).toString();
+      const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+      const day   = (date.getUTCDate()).toString().padStart(2, '0');
+      return `${year}${month}${day}`;
+    };
+
+    const dateStr  = (typeof date === 'string') ? date : makeDateStr();
     const countStr = (count === null) ? '' : `-${count}`;
 
-    return `${year}${month}${day}${countStr}`;
+    return `${dateStr}${countStr}`;
   }
 
   /**
