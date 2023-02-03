@@ -59,8 +59,6 @@ export class Rotator {
     this.#checkMsec = (config.rotate.checkSecs === null)
       ? null
       : config.rotate.checkSecs * 1000;
-
-    this.#logger?.constructed();
   }
 
   /**
@@ -69,9 +67,6 @@ export class Rotator {
    * @param {boolean} isReload Is this action due to an in-process reload?
    */
   async start(isReload) {
-    const logArgs = isReload ? ['reload'] : [];
-
-    this.#logger?.start(...logArgs);
     this.#runner.start();
 
     if (isReload) {
@@ -83,6 +78,9 @@ export class Rotator {
         this.#rotateNow.value = true;
       }
     }
+
+    const logArgs = isReload ? ['reload'] : [];
+    this.#logger?.started(...logArgs);
   }
 
   /**
@@ -92,15 +90,16 @@ export class Rotator {
    *   being requested?
    */
   async stop(willReload) {
-    const logArgs = willReload ? ['reload'] : [];
-    this.#logger?.stop(...logArgs);
 
     if (this.#config.rotate.onStop && !willReload) {
       this.#rotateNow.value = true;
       await this.#rotateNow.whenFalse();
     }
 
-    this.#runner.stop();
+    await this.#runner.stop();
+
+    const logArgs = willReload ? ['reload'] : [];
+    this.#logger?.stopped(...logArgs);
   }
 
   /**
@@ -239,7 +238,6 @@ export class Rotator {
    */
   async #run() {
     while (!this.#runner.shouldStop()) {
-      this.#logger?.running();
       if (   (this.#rotateNow.value === true)
           || await this.#shouldRotate()) {
         await this.#rotate();
@@ -250,15 +248,12 @@ export class Rotator {
         ? [timers.setTimeout(this.#checkMsec)]
         : [];
 
-      this.#logger?.waiting();
       await Promise.race([
         this.#rotateNow.whenTrue(),
         this.#runner.whenStopRequested(),
         ...checkTimeout
       ]);
     }
-
-    this.#logger?.done();
   }
 
   /**
