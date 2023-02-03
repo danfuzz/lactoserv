@@ -47,23 +47,28 @@ export class ServiceController {
   /**
    * Starts the service.
    *
+   * @param {boolean} isReload Is this action due to an in-process reload?
    * @throws {Error} Thrown if there was trouble starting the service.
    */
-  async start() {
-    this.#logger.starting();
-    await this.#service.start();
-    this.#logger.started();
+  async start(isReload) {
+    const logArgs = isReload ? ['reload'] : [];
+    this.#logger.starting(...logArgs);
+    await this.#service.start(isReload);
+    this.#logger.started(...logArgs);
   }
 
   /**
    * Stops the service. This returns when the service is actually stopped.
    *
+   * @param {boolean} willReload Is this action due to an in-process reload
+   *   being requested?
    * @throws {Error} Thrown if there was trouble running or stopping the
    *   service.
    */
-  async stop() {
-    this.#logger.stopping();
-    await this.#service.stop();
-    this.#logger.stopped();
+  async stop(willReload) {
+    const logArgs = willReload ? ['reload'] : [];
+    this.#logger.stopping(...logArgs);
+    await this.#service.stop(willReload);
+    this.#logger.stopped(...logArgs);
   }
 }

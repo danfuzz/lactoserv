@@ -5,6 +5,7 @@ import * as timers from 'node:timers/promises';
 
 import { FileServiceConfig } from '@this/app-config';
 import { BaseService, ServiceController } from '@this/app-framework';
+import { Rotator } from '@this/app-util';
 import { EventTracker } from '@this/async';
 import { LogEvent, Loggy, TextFileSink } from '@this/loggy';
 import { MustBe } from '@this/typey';
@@ -25,6 +26,9 @@ export class SystemLoggerService extends BaseService {
   /** @type {string} Full path to the log file. */
   #logFilePath;
 
+  /** @type {?Rotator} File rotator to use, if any. */
+  #rotator;
+
   /** @type {TextFileSink} Event sink which does the actual writing. */
   #sink;
 
@@ -41,18 +45,20 @@ export class SystemLoggerService extends BaseService {
     const earliestEvent = this.#findEarliestEventToLog(name);
 
     this.#logFilePath = config.resolvePath();
+    this.#rotator     = config.rotate ? new Rotator(config, this.logger) : null;
     this.#sink        = new TextFileSink(format, this.#logFilePath, earliestEvent);
   }
 
   /** @override */
-  async start() {
+  async start(isReload) {
     await this.config.createDirectoryIfNecessary();
+    await this.#rotator?.start(isReload);
     await this.#sink.start();
     this.logger.running();
   }
 
   /** @override */
-  async stop() {
+  async stop(willReload) {
     // Wait briefly, so that there's a decent chance that this instance catches
     // most or all of the other stop-time messages before doing its own final
     // message.
@@ -67,6 +73,7 @@ export class SystemLoggerService extends BaseService {
     this.logger[SystemLoggerService.#END_EVENT_TYPE]();
 
     await this.#sink.drainAndStop();
+    await this.#rotator?.stop(willReload);
   }
 
   /**

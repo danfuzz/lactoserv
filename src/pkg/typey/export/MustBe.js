@@ -48,21 +48,6 @@ export class MustBe {
   }
 
   /**
-   * Assertion of {@link AskIf.arrayOfIndex}.
-   *
-   * @param {*} value Arbitrary value.
-   * @returns {(string|number)[]} `value` if it is of the indicated type.
-   * @throws {Error} Thrown if `value` is of any other type.
-   */
-  static arrayOfIndex(value) {
-    if (AskIf.arrayOfIndex(value)) {
-      return value;
-    }
-
-    throw new Error('Must be of type `(string|number)[]`.');
-  }
-
-  /**
    * Checks for type `string[]`.
    *
    * @param {*} value Arbitrary value.

@@ -24,8 +24,8 @@ export class UsualSystem extends Threadlet {
   /** @type {boolean} Initialized? */
   #initDone = false;
 
-  /** @type {Condition} Was a restart requested? */
-  #restartRequested = new Condition();
+  /** @type {Condition} Was a reload requested? */
+  #reloadRequested = new Condition();
 
   /** @type {Warehouse} Warehouse of parts. */
   #warehouse = null;
@@ -59,7 +59,7 @@ export class UsualSystem extends Threadlet {
 
     BuiltinApplications.register();
     BuiltinServices.register();
-    Host.registerReloadCallback(() => this.#restart());
+    Host.registerReloadCallback(() => this.#reload());
     Host.registerShutdownCallback(() => this.stop());
 
     this.#initDone = true;
@@ -68,10 +68,11 @@ export class UsualSystem extends Threadlet {
   /**
    * Constructs (and possibly replaces) {@link #warehouse}.
    *
+   * @param {boolean} forReload Is this for a reload?
    * @returns {boolean} `true` iff successful. `false` generally means there was
    * a configuration issue.
    */
-  async #makeWarehouse() {
+  async #makeWarehouse(forReload) {
     const configUrl = this.#args.configUrl;
     let config;
 
@@ -83,6 +84,10 @@ export class UsualSystem extends Threadlet {
       this.#logger.configFileError(e);
       this.#error = e;
       return false;
+    }
+
+    if (forReload) {
+      config.isReload = true;
     }
 
     try {
@@ -99,14 +104,14 @@ export class UsualSystem extends Threadlet {
   /**
    * Restarts the system.
    */
-  async #restart() {
+  async #reload() {
     if (this.isRunning()) {
-      this.#logger.restart('requested');
-      this.#restartRequested.value = true;
+      this.#logger.reload('requested');
+      this.#reloadRequested.value = true;
     } else {
       // Not actually running (probably in the middle of completely shutting
       // down).
-      this.#logger.restart('ignoring');
+      this.#logger.reload('ignoring');
     }
   }
 
@@ -127,17 +132,17 @@ export class UsualSystem extends Threadlet {
     }
 
     while (!this.shouldStop()) {
-      if (this.#restartRequested.value === true) {
-        this.#logger.restarting();
+      if (this.#reloadRequested.value === true) {
+        this.#logger.reloading();
         await this.#stop(true);
         await this.#start(true);
-        this.#logger.restarted();
-        this.#restartRequested.value = false;
+        this.#logger.reloaded();
+        this.#reloadRequested.value = false;
       }
 
       await Promise.race([
         this.whenStopRequested(),
-        this.#restartRequested.whenTrue()
+        this.#reloadRequested.whenTrue()
       ]);
     }
 
@@ -146,18 +151,18 @@ export class UsualSystem extends Threadlet {
 
   /**
    * System start function. Used as the thread start function and also during
-   * requested restarts.
+   * requested reloads.
    *
-   * @param {boolean} [forRestart = false] Is this for a restart?
+   * @param {boolean} [forReload = false] Is this for a reload?
    */
-  async #start(forRestart = false) {
-    const logArg = forRestart ? 'restart' : 'init';
+  async #start(forReload = false) {
+    const logArg = forReload ? 'reload' : 'init';
 
     this.#init();
 
     this.#logger.starting(logArg);
 
-    const warehouseIsGood = await this.#makeWarehouse();
+    const warehouseIsGood = await this.#makeWarehouse(forReload);
 
     if (!warehouseIsGood) {
       this.#logger.startAborted();
@@ -172,14 +177,18 @@ export class UsualSystem extends Threadlet {
 
   /**
    * System stop function. Used when the system is shutting down on the way to
-   * exiting, and also used during requested restarts.
+   * exiting, and also used during requested reloads.
    *
-   * @param {boolean} [forRestart = false] Is this for a restart?
+   * @param {boolean} [forReload = false] Is this for a reload?
    */
-  async #stop(forRestart = false) {
-    const logArg = forRestart ? 'restart' : 'shutdown';
+  async #stop(forReload = false) {
+    const logArg = forReload ? 'reload' : 'shutdown';
 
     this.#logger.stoppingServers(logArg);
+
+    if (forReload) {
+      this.#warehouse.willReload();
+    }
 
     const serversStopped = this.#warehouse.stopAllServers();
 

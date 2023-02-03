@@ -52,18 +52,20 @@ export class ProcessInfoFileService extends BaseService {
     super(config, controller);
 
     const { updateSecs } = config;
-    this.#updateSecs = updateSecs;
+    this.#updateSecs = (updateSecs === null)
+      ? null
+      : MustBe.number(updateSecs, { finite: true, minInclusive: 1 });
 
     this.#filePath   = config.resolvePath(`-${process.pid}`);
   }
 
   /** @override */
-  async start() {
+  async start(isReload_unused) {
     await this.#runner.start();
   }
 
   /** @override */
-  async stop() {
+  async stop(willReload_unused) {
     await this.#runner.stop();
   }
 

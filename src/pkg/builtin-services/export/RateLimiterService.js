@@ -86,12 +86,12 @@ export class RateLimiterService extends BaseService {
   }
 
   /** @override */
-  async start() {
+  async start(isReload_unused) {
     // Nothing to do here.
   }
 
   /** @override */
-  async stop() {
+  async stop(willReload_unused) {
     await Promise.all([
       this.#connections?.denyAllRequests(),
       this.#data?.denyAllRequests(),

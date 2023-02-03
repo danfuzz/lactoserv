@@ -35,7 +35,7 @@ export class HostConfig extends BaseConfig {
   /**
    * Constructs an instance.
    *
-   * @param {object} config Configuration, per the class description.
+   * @param {object} config Configuration object. See class header for details.
    */
   constructor(config) {
     super(config);

@@ -55,28 +55,6 @@ export class AskIf {
   }
 
   /**
-   * Checks for type `(string|number)[]`, which is to say an array of values
-   * that are all valid to use as object or array indices.
-   *
-   * @param {*} value Arbitrary value.
-   * @returns {boolean} `true` iff `value` is of the indicated type.
-   */
-  static arrayOfIndex(value) {
-    if (!Array.isArray(value)) {
-      return false;
-    }
-
-    for (const v of value) {
-      const t = typeof v;
-      if ((t !== 'string') && (t !== 'number')) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  /**
    * Checks for type `string[]`.
    *
    * @param {*} value Arbitrary value.

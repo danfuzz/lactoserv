@@ -21,6 +21,8 @@ import { ServiceManager } from '#x/ServiceManager';
  * * `{object|object[]} servers` -- Server configuration.
  * * `{object|object[]} services` -- System service configuration.
  * * `{object|object[]} applications` -- Application configuration.
+ * * `{boolean} isReload` -- Is the system being reloaded in-process? Default
+ *   `false`.
  */
 export class Warehouse {
   /** @type {ApplicationManager} Application manager. */
@@ -34,6 +36,9 @@ export class Warehouse {
 
   /** @type {ServiceManager} Service manager. */
   #serviceManager;
+
+  /** @type {boolean} Is the system being reloaded in-process? */
+  #isReload;
 
   /**
    * Constructs an instance.
@@ -55,6 +60,7 @@ export class Warehouse {
     this.#serviceManager     = new ServiceManager(parsed.services);
     this.#applicationManager = new ApplicationManager(parsed.applications);
     this.#serverManager      = new ServerManager(parsed.servers, this);
+    this.#isReload           = parsed.isReload;
   }
 
   /** @returns {ApplicationManager} Application manager. */
@@ -78,6 +84,13 @@ export class Warehouse {
   /** @returns {ServiceManager} Service manager. */
   get serviceManager() {
     return this.#serviceManager;
+  }
+
+  /**
+   * Indicates that the system is going to be reloaded.
+   */
+  willReload() {
+    this.#isReload = true;
   }
 
   /**
@@ -111,7 +124,7 @@ export class Warehouse {
    */
   async startAllServices() {
     const services = this.#serviceManager.getAll();
-    const results  = services.map((s) => s.start());
+    const results  = services.map((s) => s.start(this.#isReload));
 
     return Promise.all(results);
   }
@@ -123,7 +136,7 @@ export class Warehouse {
    */
   async stopAllServices() {
     const services = this.#serviceManager.getAll();
-    const results  = services.map((s) => s.stop());
+    const results  = services.map((s) => s.stop(this.#isReload));
 
     return Promise.all(results);
   }

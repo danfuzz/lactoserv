@@ -15,7 +15,7 @@ import { LogRecord } from '#x/LogRecord';
  * to a text file of some sort.
  */
 export class TextFileSink extends EventSink {
-  /** @type {string} Absolute path to the file to write to. */
+  /** @type {string} Absolute path of the file to write to. */
   #filePath;
 
   /**

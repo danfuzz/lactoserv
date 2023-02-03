@@ -5,6 +5,7 @@ import * as fs from 'node:fs/promises';
 import * as Path from 'node:path';
 
 import { Files } from '#x/Files';
+import { RotateConfig } from '#x/RotateConfig';
 import { ServiceConfig } from '#x/ServiceConfig';
 
 
@@ -19,6 +20,9 @@ import { ServiceConfig } from '#x/ServiceConfig';
  *   directories).
  * * `{string} directory` -- The directory to write files to. Must be an
  *   absolute path (not relative).
+ * * `{?object} rotate` -- Plain object which can be parsed as a file-rotation
+ *   configuration spec, or `null` for no rotation configuration. See
+ *   {@link #RotateConfig} for details.
  *
  * This class includes some utility functionality beyond just accessing the
  * configured values.
@@ -30,6 +34,9 @@ export class FileServiceConfig extends ServiceConfig {
   /** @type {string} The directory to write to. */
   #directory;
 
+  /** @type {?RotateConfig} Rotation configuration, if any. */
+  #rotate;
+
   /** @type {string} The base file name's prefix. */
   #basePrefix;
 
@@ -39,13 +46,14 @@ export class FileServiceConfig extends ServiceConfig {
   /**
    * Constructs an instance.
    *
-   * @param {object} config Configuration object.
+   * @param {object} config Configuration object. See class header for details.
    */
   constructor(config) {
     super(config);
 
     this.#baseName  = Files.checkFileName(config.baseName);
     this.#directory = Files.checkAbsolutePath(config.directory);
+    this.#rotate    = config.rotate ? new RotateConfig(config.rotate) : null;
 
     const { prefix, suffix } = FileServiceConfig.#parseBaseName(this.#baseName);
     this.#basePrefix = prefix;
@@ -78,6 +86,11 @@ export class FileServiceConfig extends ServiceConfig {
   /** @returns {string} The directory to write to. */
   get directory() {
     return this.#directory;
+  }
+
+  /** @returns {?RotateConfig} Rotation configuration, if any. */
+  get rotate() {
+    return this.#rotate;
   }
 
   /**
