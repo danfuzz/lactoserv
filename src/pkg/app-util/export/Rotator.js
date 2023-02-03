@@ -298,7 +298,7 @@ export class Rotator {
     const resolve = (count) => {
       const infix = Rotator.#makeInfix(dateStr, (count > 0) ? count : null);
       return this.#config.resolvePath(`-${infix}`);
-    }
+    };
 
     if (this.#lastInfix === dateStr) {
       // Optimistically assume that if we've already picked a previous file name
