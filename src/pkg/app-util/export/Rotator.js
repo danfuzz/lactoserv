@@ -116,7 +116,87 @@ export class Rotator {
   }
 
   /**
-   * Rotates the file.
+   * Deletes old (post-rotation) files, as configured.
+   */
+  async #deleteOldFiles() {
+    const { maxOldCount = null, maxOldBytes = null } = this.#config.rotate;
+
+    if ((maxOldCount === null) && (maxOldBytes === null)) {
+      // Not configured to do a deletion pass.
+      return;
+    }
+
+    // Find all the files, and sort from newest to oldest.
+    const files = await this.#findFiles({ current: false });
+    files.sort((x, y) => y.birthtime.valueOf() - x.birthtime.valueOf());
+
+    let count = 0;
+    let bytes = 0;
+
+    for (const f of files) {
+      bytes += f.size;
+      count++;
+      if (   ((maxOldCount !== null) && (count > maxOldCount))
+          || ((maxOldBytes !== null) && (bytes > maxOldBytes))) {
+        await fs.unlink(f.fullPath);
+        this.#logger?.deleted(f.fullPath);
+      }
+    }
+  }
+
+  /**
+   * Finds all the files that match the configured file name pattern.
+   *
+   * @param {object} [options = {}] Options for the search, all of which default
+   *   to `true`:
+   *   * `{boolean} current` -- Find the current (unmodified name) log file?
+   *   * `{boolean} today` -- Find files with today's date (UTC)?
+   *   * `{boolean} pastDays` -- Find files from previous days (UTC)?
+   * @returns {object[]} Array of useful information about each matched file.
+   */
+  async #findFiles(options = {}) {
+    const { current = true, today = true, pastDays = true } = options;
+
+    const todayStr   = Rotator.#makeInfix(new Date());
+    const directory  = this.#config.directory;
+    const basePrefix = this.#config.basePrefix;
+    const baseSuffix = this.#config.baseSuffix;
+    const contents   = await fs.readdir(directory);
+    const result     = [];
+
+    for (const name of contents) {
+      const parsed = Rotator.#parseInfix(name, basePrefix, baseSuffix);
+      if (parsed === null) {
+        continue;
+      }
+
+      const { dateStr, count } = parsed;
+
+      if (dateStr === null) {
+        if (!current) continue;
+      } else if (dateStr === todayStr) {
+        if (!today) continue;
+      } else if (!pastDays) {
+        continue;
+      }
+
+      const fullPath = `${directory}/${name}`;
+      const stats = await fs.stat(fullPath);
+      result.push({
+        name,
+        fullPath,
+        dateStr,
+        count,
+        birthtime: stats.birthtime,
+        size:      stats.size
+      });
+    }
+
+    return result;
+  }
+
+  /**
+   * Rotates the file and does any other related actions, as configured.
    */
   async #rotate() {
     const origPath = this.#config.resolvePath();
@@ -140,6 +220,8 @@ export class Rotator {
         this.#logger?.errorWithRename(e);
       }
     }
+
+    await this.#deleteOldFiles();
 
     this.#rotatedCondition.onOff();
   }
@@ -275,5 +357,59 @@ export class Rotator {
     return (foundCount < 0)
       ? this.#config.resolvePath(suffix)
       : this.#config.resolvePath(`${suffix}-${foundCount + 1}`);
+  }
+
+
+  //
+  // Static members
+  //
+
+  /**
+   * Gets a date string with optional count to use as an "infix" for a rotated
+   * file.
+   *
+   * @param {Date} date Date to derive the (UTC) date label for the file.
+   * @param {?count} [count = null] Count to include in the result, or `null` to
+   *   not include a count.
+   * @returns {string} The infix.
+   */
+  static #makeInfix(date, count = null) {
+    const year     = (date.getUTCFullYear()).toString();
+    const month    = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+    const day      = (date.getUTCDate()).toString().padStart(2, '0');
+    const countStr = (count === null) ? '' : `-${count}`;
+
+    return `${year}${month}${day}${countStr}`;
+  }
+
+  /**
+   * Parses the date and count out of a file name if it has the indicated prefix
+   * and suffix. Returns `null` if the name doesn't match the pattern.
+   *
+   * @param {string} name The original name.
+   * @param {string} prefix The required prefix for matching.
+   * @param {string} suffix The required suffix for matching.
+   * @returns {?{date: ?string, count: ?number}} The parsed result, or `null` if
+   *   the name didn't match the pattern.
+   */
+  static #parseInfix(name, prefix, suffix) {
+    if (!(name.startsWith(prefix) && name.endsWith(suffix))) {
+      return null;
+    }
+
+    const infix = name.slice(prefix.length, name.length - suffix.length);
+
+    if (infix === '') {
+      return { dateStr: null, count: null };
+    }
+
+    const match = infix.match(/^-(?<dateStr>[0-9]{8})(?:-(?<countStr>[0-9]+))?$/);
+
+    if (match) {
+      const { dateStr, countStr } = match.groups;
+      return { dateStr, count: countStr ? Number(countStr) : null };
+    } else {
+      return null;
+    }
   }
 }
