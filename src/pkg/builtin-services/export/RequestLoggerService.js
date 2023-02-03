@@ -43,24 +43,17 @@ export class RequestLoggerService extends BaseService {
   /** @override */
   async logCompletedRequest(line) {
     await fs.appendFile(this.#logFilePath, `${line}\n`);
-    await this.#rotator?.onWrite();
   }
 
   /** @override */
   async start(isReload) {
     await this.config.createDirectoryIfNecessary();
-    if (isReload) {
-      await this.#rotator?.onReload();
-    } else {
-      await this.#rotator?.onStart();
-    }
+    await this.#rotator?.start(isReload);
   }
 
   /** @override */
   async stop(willReload) {
-    if (!willReload) {
-      await this.#rotator?.onStop();
-    }
+    await this.#rotator?.stop(willReload);
   }
 
 

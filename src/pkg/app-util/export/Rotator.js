@@ -5,6 +5,7 @@ import * as fs from 'node:fs/promises';
 import * as timers from 'node:timers/promises';
 
 import { FileServiceConfig } from '@this/app-config';
+import { Condition, Threadlet } from '@this/async';
 import { MustBe } from '@this/typey';
 
 
@@ -20,8 +21,11 @@ export class Rotator {
   /** @type {?function(*)} Logger to use, if any. */
   #logger;
 
-  /** @type {boolean} Is it time to do rotation checks? */
-  #checkNow = true;
+  /**
+   * @type {?number} How long to wait between checks, in msec, if timed checks
+   * are to be done; or `null` if no such checking should be done.
+   */
+  #checkMsec;
 
   /** @type {?string} Suffix used the last time rotation was done. */
   #lastSuffix = null;
@@ -31,6 +35,12 @@ export class Rotator {
    * done.
    */
   #lastSuffixCount = 0;
+
+  /** @type {Threadlet} Thread which runs this instance. */
+  #runner = new Threadlet(() => this.#run());
+
+  /** @type {Condition} Condition which indicates a need to rotate now. */
+  #rotateNow = new Condition();
 
   /**
    * Constructs an instance.
@@ -42,74 +52,51 @@ export class Rotator {
     this.#config = MustBe.instanceOf(config, FileServiceConfig);
     this.#logger = logger ? logger.rotator : null;
 
+    this.#checkMsec = (config.rotate.checkSecs === null)
+      ? null
+      : config.rotate.checkSecs * 1000;
+
     this.#logger?.constructed();
   }
 
   /**
-   * Informs this instance that the system has reloaded.
+   * Starts this instance.
+   *
+   * @param {boolean} isReload Is this action due to an in-process reload?
    */
-  async onReload() {
-    this.#logger?.onReload();
-    if (this.#config.rotate.onReload) {
-      await this.#rotate();
-    }
-  }
+  async start(isReload) {
+    const logArgs = isReload ? ['reload'] : [];
 
-  /**
-   * Informs this instance that the system has started.
-   */
-  async onStart() {
-    this.#logger?.onStart();
-    if (this.#config.rotate.onStart) {
-      await this.#rotate();
+    this.#logger?.start(...logArgs);
+    this.#runner.start();
+
+    if (isReload) {
+      if (this.#config.rotate.onReload) {
+        this.#rotateNow.value = true;
+      }
+    } else {
+      if (this.#config.rotate.onStart) {
+        this.#rotateNow.value = true;
+      }
     }
   }
 
   /**
    * Informs this instance that the system has stopped.
+   *
+   * @param {boolean} willReload Is this action due to an in-process reload
+   *   being requested?
    */
-  async onStop() {
-    this.#logger?.onStop();
-    if (this.#config.rotate.onStop) {
-      await this.#rotate();
-    }
-  }
+  async stop(willReload) {
+    const logArgs = willReload ? ['reload'] : [];
+    this.#logger?.stop(...logArgs);
 
-  /**
-   * Informs this instance that something has been written to the configured
-   * file.
-   */
-  async onWrite() {
-    this.#logger?.onWrite();
-    if (await this.#shouldRotate()) {
-      await this.#rotate();
-    }
-  }
-
-  /**
-   * Resets {@link #checkNow} to `false` and sets up a timer which flips it
-   * back to `true` when appropriate. To be clear, "when appropriate" is "never"
-   * if this instance isn't configured for timed checks.
-   */
-  #resetCheckNow() {
-    if (!this.#checkNow) {
-      return;
+    if (this.#config.rotate.onStop && !willReload) {
+      this.#rotateNow.value = true;
+      await this.#rotateNow.whenFalse();
     }
 
-    this.#checkNow = false;
-
-    const checkSecs = this.#config.rotate.checkSecs;
-
-    if (checkSecs === null) {
-      return;
-    }
-
-    (async () => {
-      this.#logger?.timerStarted();
-      await timers.setTimeout(checkSecs * 1000);
-      this.#logger?.timerExpired();
-      this.#checkNow = true;
-    })();
+    this.#runner.stop();
   }
 
   /**
@@ -140,18 +127,43 @@ export class Rotator {
   }
 
   /**
-   * Should the file be rotated? This is `false` until the check timer expires
-   * _and_ the checked conditions are met. This method also arranges for the
-   * reset of the check timer, as necessary.
+   * Main function of the threadlet for this instance.
+   */
+  async #run() {
+    while (!this.#runner.shouldStop()) {
+      this.#logger?.running();
+      if (   (this.#rotateNow.value === true)
+          || await this.#shouldRotate()) {
+        await this.#rotate();
+        this.#rotateNow.value = false;
+      }
+
+      const checkTimeout = this.#checkMsec
+        ? [timers.setTimeout(this.#checkMsec)]
+        : [];
+
+      this.#logger?.waiting();
+      await Promise.race([
+        this.#rotateNow.whenTrue(),
+        this.#runner.whenStopRequested(),
+        ...checkTimeout
+      ]);
+    }
+
+    this.#logger?.done();
+  }
+
+  /**
+   * Should the file be rotated? This is only `true` when configured for timed
+   * checks, and the checks indicate a rotation is necessary.
    *
    * @returns {boolean} `true` iff the file should be rotated.
    */
   async #shouldRotate() {
-    if (!this.#checkNow) {
+    if (!this.#checkMsec) {
+      // Not configured to do timed checks.
       return false;
     }
-
-    this.#resetCheckNow();
 
     try {
       const stats = await fs.stat(this.#config.resolvePath());
