@@ -25,7 +25,7 @@ export class ApplicationController extends BaseController {
   #loggingEnv;
 
   /**
-   * Constructs an insance.
+   * Constructs an instance.
    *
    * @param {BaseApplication} application Instance to control.
    */

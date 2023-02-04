@@ -15,7 +15,7 @@ export class ServiceController extends BaseController {
   #service;
 
   /**
-   * Constructs an insance.
+   * Constructs an instance.
    *
    * @param {BaseService} service Instance to control.
    */

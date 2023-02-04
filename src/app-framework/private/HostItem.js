@@ -20,7 +20,7 @@ export class HostItem {
   #secureContext;
 
   /**
-   * Constructs an insance.
+   * Constructs an instance.
    *
    * @param {HostConfig} config Parsed configuration item.
    */
