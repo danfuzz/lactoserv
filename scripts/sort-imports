@@ -74,8 +74,8 @@ import != "" {
     items  = import;
     import = "";
 
-    sub(/^import /, "", items);
-    sub(/ from .*$/, "", items);
+    sub(/^import[ \\n]+/, "", items);
+    sub(/[\\n ]+from .*$/, "", items);
     from = $0;
     sub(/^.* from [\'"]/, "", from);
     sub(/[\'"].*/, "", from);
@@ -153,9 +153,9 @@ function fixItems(items, withLocals, array, i) {
         return items;
     }
 
-    sub(/^[{] */, "", items);
-    sub(/ *[}]$/, "", items);
-    split(items, array, /, */);
+    sub(/^[{][ \\n]*/, "", items);
+    sub(/[ \\n]*[}]$/, "", items);
+    split(items, array, /,[ \\n]*/);
     sort(array);
     items = "{ ";
     for (i = 1; i <= length(array); i++) {
