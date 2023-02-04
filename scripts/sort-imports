@@ -147,7 +147,7 @@ function sort(array, withLocals, i, j, size, tmp) {
 }
 
 # Fix up the import items within a line.
-function fixItems(items, withLocals, array, i) {
+function fixItems(items, withLocals, array, i, len, multiline) {
     if (match(items, /^[{].*[}]$/) == 0) {
         # Not sortable.
         return items;
@@ -158,11 +158,25 @@ function fixItems(items, withLocals, array, i) {
     split(items, array, /,[ \\n]*/);
     sort(array);
     items = "{ ";
+
+    len = 0;
+    multiline = 0;
     for (i = 1; i <= length(array); i++) {
         if (i != 1) items = items ", ";
-        items = items array[i]
+        len += 2;
+        if ((len + length(array[i])) > 70) {
+            items = items "\\n  ";
+            len = 0;
+            multiline = 1;
+        }
+        items = items array[i];
+        len += length(array[i]);
     }
+
     items = items " }";
+    if (multiline) {
+        items = items "\\n ";
+    }
     return items;
 }
 '
