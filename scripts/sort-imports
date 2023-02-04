@@ -14,9 +14,10 @@ function usage {
     print-usage $'
     Usage:
 
-    ${name} [<opt> ...]
+    ${name} [<opt> ...] [<file> ...]
       Sorts imports in `.js` files according to this project\'s preferred
-      ordering.
+      ordering. With <file>s, processes only the indicated files; otherwise
+      processes the entire source tree.
 
     ${name} [--help | -h]
       Displays this message.
@@ -28,6 +29,9 @@ function usage {
 # Want help?
 opt-action --call='{ usage }' help/h
 
+# Specific paths to process
+rest-arg --var=files --filter=/./ file
+
 process-args "$@" || usage "$?"
 
 
@@ -38,16 +42,38 @@ process-args "$@" || usage "$?"
 # The actual import-sorting AWK script.
 SORTER_AWK=$'
 BEGIN {
-    collecting = 0;
-    count      = 0;
+    collecting  = 0;
+    count       = 0;
+    inImport    = 0;
+    import      = "";
 }
 
 !importsDone && /^import/ {
     collecting = 1;
 }
 
-collecting && /^import .* from / {
-    items = $0;
+# Collect and process a possibly-multi-line import.
+collecting && /^import / {
+    inImport  = 1;
+    import    = "";
+}
+inImport {
+    if (import == "") {
+        import = $0;
+    } else {
+        import = import "\\n" $0;
+    }
+}
+inImport && / from / {
+    inImport = 0;
+}
+inImport {
+    next;
+}
+import != "" {
+    items  = import;
+    import = "";
+
     sub(/^import /, "", items);
     sub(/ from .*$/, "", items);
     from = $0;
@@ -159,11 +185,12 @@ function do-sort {
 
 srcDir="$(base-dir)/src"
 
-cd "${srcDir}"
+if (( ${#files[@]} == 0 )); then
+    cd "${srcDir}"
+    files=($(find . -name '*.js'))
+fi
 
-sources=($(find . -name '*.js'))
-
-for file in "${sources[@]}"; do
+for file in "${files[@]}"; do
     info-msg "Processing ${file}..."
     do-sort "${file}" || exit "$?"
 done
