@@ -2,6 +2,8 @@
   "name": "@this/main-lactoserv",
   "version": "0.3.3",
   "type": "module",
+  "private": true,
+  "license": "UNLICENSED",
 
   "exports": "./index.js",
   "imports": {

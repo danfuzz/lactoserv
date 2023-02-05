@@ -2,6 +2,8 @@
   "name": "@this/data-values",
   "version": "0.0.1",
   "type": "module",
+  "private": true,
+  "license": "UNLICENSED",
 
   "exports": "./index.js",
   "imports": {

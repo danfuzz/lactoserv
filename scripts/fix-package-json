@@ -123,8 +123,8 @@ function do-fix {
         name: .name,
         version: .version,
         type: "module",
-        #private: true,
-        #license: "UNLICENSED",
+        private: true,
+        license: "UNLICENSED",
         BLANK_LINE_1: "",
         exports: "./index.js",
         imports: {
