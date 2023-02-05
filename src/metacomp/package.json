@@ -2,10 +2,16 @@
   "name": "@this/metacomp",
   "version": "0.0.1",
   "type": "module",
+  "private": true,
+  "license": "UNLICENSED",
 
   "exports": "./index.js",
   "imports": {
     "#x/*": "./export/*.js",
     "#p/*": "./private/*.js"
+  },
+
+  "dependencies": {
+    "@this/typey": "*"
   }
 }

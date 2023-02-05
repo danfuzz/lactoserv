@@ -2,6 +2,8 @@
   "name": "@this/network-protocol",
   "version": "0.0.1",
   "type": "module",
+  "private": true,
+  "license": "UNLICENSED",
 
   "exports": "./index.js",
   "imports": {
@@ -11,6 +13,7 @@
 
   "dependencies": {
     "@this/async": "*",
+    "@this/host": "*",
     "@this/loggy": "*",
     "@this/typey": "*",
     "express": "^4.18.1",

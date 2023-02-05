@@ -2,6 +2,8 @@
   "name": "@this/builtin-services",
   "version": "0.0.1",
   "type": "module",
+  "private": true,
+  "license": "UNLICENSED",
 
   "exports": "./index.js",
   "imports": {
@@ -13,8 +15,10 @@
     "@this/app-config": "*",
     "@this/app-framework": "*",
     "@this/app-util": "*",
+    "@this/async": "*",
     "@this/host": "*",
     "@this/loggy": "*",
-    "@this/network-protocol": "*"
+    "@this/network-protocol": "*",
+    "@this/typey": "*"
   }
 }

@@ -2,6 +2,8 @@
   "name": "@this/main-lactoserv",
   "version": "0.3.3",
   "type": "module",
+  "private": true,
+  "license": "UNLICENSED",
 
   "exports": "./index.js",
   "imports": {
@@ -16,6 +18,7 @@
     "@this/builtin-services": "*",
     "@this/host": "*",
     "@this/loggy": "*",
+    "@this/typey": "*",
     "yargs": "^17.6.0"
   }
 }

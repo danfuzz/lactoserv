@@ -2,6 +2,8 @@
   "name": "@this/app-framework",
   "version": "0.0.1",
   "type": "module",
+  "private": true,
+  "license": "UNLICENSED",
 
   "exports": "./index.js",
   "imports": {
@@ -11,7 +13,6 @@
 
   "dependencies": {
     "@this/app-config": "*",
-    "@this/async": "*",
     "@this/collections": "*",
     "@this/loggy": "*",
     "@this/network-protocol": "*",
