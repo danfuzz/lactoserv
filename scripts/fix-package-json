@@ -102,18 +102,19 @@ function do-fix {
     )" \
     || return "$?"
 
-    jval \
+    local finalDeps
+    finalDeps="$(jval \
         oldDeps:json="${oldDeps}" \
         foundDeps:json="${foundDeps}" '
     ($foundDeps | map({ key: ., value: "*" }) | from_entries)
     + ($oldDeps | with_entries(select(.key | startswith("@this") | not)))
     | to_entries | sort_by(.key) | from_entries
-    '
-    info-msg '###### OK?'
+    ')" \
+    || return "$?"
 
     local pkg
     pkg="$(jval <"${filePath}" --input=read \
-        dependencies:json="${oldDeps}" '
+        deps:json="${finalDeps}" '
     {
         name: .name,
         version: .version,
@@ -128,14 +129,15 @@ function do-fix {
         }
     }
     |
-    if $dependencies == {}
+    if $deps == {}
     then .
     else . + {
         BLANK_LINE_2: "",
-        dependencies: $dependencies
+        dependencies: $deps
     }
     end
-    ')"
+    ')" \
+    || return "$?"
 
     awk <<<"${pkg}" > "${filePath}" '
         /BLANK_LINE/ { print ""; next }
