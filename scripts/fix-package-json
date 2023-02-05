@@ -84,7 +84,11 @@ function get-deps {
     local srcDir="$1"
     local files
 
-    files=($(find "${srcDir}" -name '*.js'))
+    files=($(
+        find "${srcDir}" \
+            '(' -type d -name tests -prune ')' \
+            -o -name '*.js' -print
+    ))
     awk "${WRANGLER_AWK}" "${files[@]}"
 }
 
