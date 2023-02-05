@@ -60,9 +60,10 @@ $ ./scripts/run
 ...
 ```
 
-The `run` script takes other options; `run --help` for details. TLDR:
-* `run --do=build` to do a build first, for convenience.
-* `run --inspect` or `run --inspect=<arg>` to pass an `inspect` option to Node
+The `run` script takes other options; `run --help` for details. TLDR common
+options:
+* `run --do=build` -- Do a build first, for convenience.
+* `run --inspect` or `run --inspect=<arg>` -- Pass an `inspect` option to Node
   (to start the inspector/debugger immediately).
 
 Recognized signals:
