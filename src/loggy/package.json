@@ -10,6 +10,7 @@
   },
 
   "dependencies": {
+    "@this/async": "*",
     "@this/data-values": "*",
     "@this/metacomp": "*",
     "@this/typey": "*"

@@ -13,8 +13,10 @@
     "@this/app-config": "*",
     "@this/app-framework": "*",
     "@this/app-util": "*",
+    "@this/async": "*",
     "@this/host": "*",
     "@this/loggy": "*",
-    "@this/network-protocol": "*"
+    "@this/network-protocol": "*",
+    "@this/typey": "*"
   }
 }
