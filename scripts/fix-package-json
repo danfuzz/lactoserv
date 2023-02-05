@@ -84,10 +84,8 @@ function get-deps {
     local srcDir="$1"
     local files
 
-    info-msg '####### START DEPS' "${srcDir}"
     files=($(find "${srcDir}" -name '*.js'))
     awk "${WRANGLER_AWK}" "${files[@]}"
-    info-msg '####### END DEPS'
 }
 
 # Runs the fixer on the given file.
@@ -95,18 +93,21 @@ function do-fix {
     local filePath="$1"
 
     local oldDeps
-    oldDeps="$(jval <"${filePath}" --input=read '.dependencies // {}')"
-    info-msg '############ OLD' "${oldDeps}"
+    oldDeps="$(jval <"${filePath}" --input=read '.dependencies // {}')" \
+    || return "$?"
 
     local foundDeps
-    foundDeps="$(jarray --input=strings $(get-deps "$(dirname "${filePath}")"))"
-    info-msg '############ FOUND' "${foundDeps}"
+    foundDeps="$(
+        jarray --input=strings $(get-deps "$(dirname "${filePath}")")
+    )" \
+    || return "$?"
 
     jval \
         oldDeps:json="${oldDeps}" \
         foundDeps:json="${foundDeps}" '
-    ($foundDeps | map({ key: ., value: "*" }))
-    + ($oldDeps | with_entries(map(select(.key | startswith("@this") | not))))
+    ($foundDeps | map({ key: ., value: "*" }) | from_entries)
+    + ($oldDeps | with_entries(select(.key | startswith("@this") | not)))
+    | to_entries | sort_by(.key) | from_entries
     '
     info-msg '###### OK?'
 
