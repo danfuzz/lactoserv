@@ -14,7 +14,7 @@ By default, `build` deposits both a runnable build and a distribution tarball in
 the directory `out` directly under the top-level source directory. The script
 takes other options; `build --help` for details.
 
-### Linting
+### Linting Etc.
 
 ```sh
 $ ./scripts/lint
@@ -22,6 +22,15 @@ $ ./scripts/lint
 No linter errors! Yay!
 $
 ```
+
+There are also two tools which adjust source files to be in a standardized form:
+
+* `./scripts/fix-package-json` -- Derives intra-project dependencies from the
+  actual source files, and updates each module's `package.json` to match. It
+  actually entirely rewrites the file with project-standard boilerplate and
+  formatting.
+* `./scripts/sort-imports` -- Sorts and arranges `import` lines into a
+  project-standard form.
 
 ### Testing
 
