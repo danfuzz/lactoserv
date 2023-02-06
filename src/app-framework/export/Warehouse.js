@@ -94,6 +94,34 @@ export class Warehouse {
   }
 
   /**
+   * Starts all applications. This async-returns once all applications are
+   * started.
+   *
+   * @throws {Error} Thrown if any application had trouble starting.
+   */
+  async startAllApplications() {
+    const applications = this.#applicationManager.getAll();
+    //const results      = applications.map((s) => s.start());
+    const results = null; // TODO
+
+    return Promise.all(results);
+  }
+
+  /**
+   * Stops all applications. This async-returns once all applications are
+   * stopped.
+   *
+   * @throws {Error} Thrown if any application had trouble stopping.
+   */
+  async stopAllApplications() {
+    const applications = this.#applicationManager.getAll();
+    //const results      = applications.map((s) => s.stop());
+    const results = null; // TODO
+
+    return Promise.all(results);
+  }
+
+  /**
    * Starts all servers. This async-returns once all servers are started.
    *
    * @throws {Error} Thrown if any server had trouble starting.
