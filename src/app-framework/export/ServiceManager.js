@@ -13,16 +13,15 @@ import { ThisModule } from '#p/ThisModule';
 /**
  * Manager for dealing with all the high-level system services that are running
  * or could be run in the system.
+ *
+ * **Note:** `start()`ing and `stop()`ing acts on all the services.
  */
-export class ServiceManager {
+export class ServiceManager extends BaseControllable {
   /**
    * @type {Map<string, ServiceController>} Map from each service name to the
    * controller that should be used for it.
    */
   #controllers = new Map();
-
-  /** @type {function(...*)} Logger for this instance (the manager). */
-  #logger = ThisModule.logger.services;
 
   /**
    * Constructs an instance.
@@ -30,6 +29,8 @@ export class ServiceManager {
    * @param {ServiceConfig[]} configs Configuration objects.
    */
   constructor(configs) {
+    super(ThisModule.logger.services);
+
     for (const config of configs) {
       this.#addControllerFor(config);
     }
@@ -79,34 +80,20 @@ export class ServiceManager {
     return result;
   }
 
-  /**
-   * Starts all services. This async-returns once all services are started.
-   *
-   * @param {boolean} isReload Reload flag.
-   */
-  async start(isReload) {
-    BaseControllable.logStarting(this.#logger, isReload);
-
+  /** @override */
+  async _impl_start(isReload) {
     const services = this.getAll();
     const results  = services.map((s) => s.start(isReload));
 
     await Promise.all(results);
-    BaseControllable.logStarted(this.#logger, isReload);
   }
 
-  /**
-   * Stops all services. This async-returns once all services are stopped.
-   *
-   * @param {boolean} willReload Reload flag.
-   */
-  async stop(willReload) {
-    BaseControllable.logStopping(this.#logger, willReload);
-
+  /** @override */
+  async _impl_stop(willReload) {
     const services = this.getAll();
     const results  = services.map((s) => s.stop(willReload));
 
     await Promise.all(results);
-    BaseControllable.logStopped(this.#logger, willReload);
   }
 
   /**
@@ -127,7 +114,7 @@ export class ServiceManager {
     const controller    = new ServiceController(instance);
 
     this.#controllers.set(name, controller);
-    this.#logger.bound(name);
+    this.logger.bound(name);
   }
 
 

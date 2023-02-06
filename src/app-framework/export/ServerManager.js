@@ -12,8 +12,10 @@ import { Warehouse } from '#x/Warehouse';
 
 /**
  * Manager for dealing with all the network-bound server endpoints of a system.
+ *
+ * **Note:** `start()`ing and `stop()`ing acts on all the servers..
  */
-export class ServerManager {
+export class ServerManager extends BaseControllable {
   /** @type {Warehouse} The warehouse this instance is in. */
   #warehouse;
 
@@ -23,9 +25,6 @@ export class ServerManager {
    */
   #controllers = new Map();
 
-  /** @type {function(...*)} Logger for this instance (the manager). */
-  #logger = ThisModule.logger.servers;
-
   /**
    * Constructs an instance.
    *
@@ -33,6 +32,8 @@ export class ServerManager {
    * @param {Warehouse} warehouse The warehouse this instance is in.
    */
   constructor(configs, warehouse) {
+    super(ThisModule.logger.servers);
+
     this.#warehouse = warehouse;
 
     for (const config of configs) {
@@ -66,34 +67,20 @@ export class ServerManager {
     return [...this.#controllers.values()];
   }
 
-  /**
-   * Starts all servers. This async-returns once all servers are started.
-   *
-   * @param {boolean} isReload Reload flag.
-   */
-  async start(isReload) {
-    BaseControllable.logStarting(this.#logger, isReload);
-
+  /** @override */
+  async _impl_start(isReload) {
     const servers = this.getAll();
     const results = servers.map((s) => s.start(isReload));
 
     await Promise.all(results);
-    BaseControllable.logStarted(this.#logger, isReload);
   }
 
-  /**
-   * Stops all servers. This async-returns once all servers are stopped.
-   *
-   * @param {boolean} willReload Reload flag.
-   */
-  async stop(willReload) {
-    BaseControllable.logStopping(this.#logger, willReload);
-
+  /** @override */
+  async _impl_stop(willReload) {
     const servers = this.getAll();
     const results = servers.map((s) => s.stop(willReload));
 
     await Promise.all(results);
-    BaseControllable.logStopped(this.#logger, willReload);
   }
 
   /**
@@ -137,7 +124,7 @@ export class ServerManager {
     const controller = new ServerController(config, extraConfig);
 
     this.#controllers.set(name, controller);
-    this.#logger.bound(name);
+    this.logger.bound(name);
   }
 
   /**
