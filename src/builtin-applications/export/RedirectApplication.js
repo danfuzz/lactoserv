@@ -39,7 +39,7 @@ export class RedirectApplication extends BaseApplication {
   }
 
   /** @override */
-  handleRequest(req, res, next_unused) {
+  _impl_handleRequest(req, res, next_unused) {
     res.redirect(this.#statusCode, `${this.#target}${req.path}`);
   }
 

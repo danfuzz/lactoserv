@@ -37,7 +37,7 @@ export class StaticApplication extends BaseApplication {
   }
 
   /** @override */
-  handleRequest(req, res, next) {
+  _impl_handleRequest(req, res, next) {
     if (this.#notFoundPath) {
       const innerNext = (error) => {
         if (error) {

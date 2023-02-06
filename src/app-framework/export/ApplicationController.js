@@ -53,56 +53,7 @@ export class ApplicationController extends BaseController {
    *   to run.
    */
   handleRequest(req, res, next) {
-    // What's going on here: The most straightforward way -- maybe the only
-    // reasonable way -- to time the action of an Express-style handler is to
-    // notice calls to either the `next` function passed into it or to `end()`
-    // getting called on the response. Whichever happens first signals the end
-    // of the action. Note that a `prefinish` event is _supposed_ to get emitted
-    // when `res.end()` is called, but in practice that does not happen with
-    // HTTP2. So instead, we replace `res.end()` with an instrumented version
-    // that calls through to the original.
-
-    const startTime = this.#loggingEnv?.nowSec();
-    const id        = WranglerContext.get(req)?.id;
-
-    this.logger?.handling(id, req.url);
-
-    let resEnded   = false;
-    let nextCalled = false;
-    const origEnd  = res.end;
-
-    const done = () => {
-      if (resEnded || nextCalled) {
-        // This will probably end up as an uncaught exception, which is about as
-        // reasonable as can be expected.
-        this.logger?.doubleCompletion(id, { nextCalled, resEnded });
-        throw new Error('Double completion');
-      }
-
-      if (this.logger) {
-        const endTime  = this.#loggingEnv.nowSec();
-        const duration = endTime - startTime;
-        this.logger.handled(id, FormatUtils.durationStringFromSecs(duration));
-      }
-
-      res.end = origEnd;
-    };
-
-    const innerNext = (...args) => {
-      done();
-      this.logger.next(id, args);
-      timers.setImmediate(next, ...args);
-      nextCalled = true;
-    };
-
-    res.end = (...args) => {
-      origEnd.call(res, ...args);
-      done();
-      this.logger.done(id);
-      resEnded = true;
-    };
-
-    this.#application.handleRequest(req, res, innerNext);
+    this.#application.handleRequest(req, res, next);
   }
 
   /** @override */
