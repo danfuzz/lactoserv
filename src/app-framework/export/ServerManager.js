@@ -4,6 +4,7 @@
 import { MountConfig, ServerConfig } from '@this/app-config';
 
 import { BaseApplication } from '#x/BaseApplication';
+import { BaseControllable } from '#x/BaseControllable';
 import { ServerController } from '#x/ServerController';
 import { ThisModule } from '#p/ThisModule';
 import { Warehouse } from '#x/Warehouse';
@@ -11,8 +12,10 @@ import { Warehouse } from '#x/Warehouse';
 
 /**
  * Manager for dealing with all the network-bound server endpoints of a system.
+ *
+ * **Note:** `start()`ing and `stop()`ing acts on all the servers..
  */
-export class ServerManager {
+export class ServerManager extends BaseControllable {
   /** @type {Warehouse} The warehouse this instance is in. */
   #warehouse;
 
@@ -22,9 +25,6 @@ export class ServerManager {
    */
   #controllers = new Map();
 
-  /** @type {function(...*)} Logger for this instance (the manager). */
-  #logger = ThisModule.logger.servers;
-
   /**
    * Constructs an instance.
    *
@@ -32,6 +32,8 @@ export class ServerManager {
    * @param {Warehouse} warehouse The warehouse this instance is in.
    */
   constructor(configs, warehouse) {
+    super(ThisModule.logger.servers);
+
     this.#warehouse = warehouse;
 
     for (const config of configs) {
@@ -63,6 +65,22 @@ export class ServerManager {
    */
   getAll() {
     return [...this.#controllers.values()];
+  }
+
+  /** @override */
+  async _impl_start(isReload) {
+    const servers = this.getAll();
+    const results = servers.map((s) => s.start(isReload));
+
+    await Promise.all(results);
+  }
+
+  /** @override */
+  async _impl_stop(willReload) {
+    const servers = this.getAll();
+    const results = servers.map((s) => s.stop(willReload));
+
+    await Promise.all(results);
   }
 
   /**
@@ -106,7 +124,7 @@ export class ServerManager {
     const controller = new ServerController(config, extraConfig);
 
     this.#controllers.set(name, controller);
-    this.#logger.bound(name);
+    this.logger.bound(name);
   }
 
   /**

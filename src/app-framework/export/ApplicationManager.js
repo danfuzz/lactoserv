@@ -5,22 +5,22 @@ import { ApplicationConfig } from '@this/app-config';
 
 import { ApplicationController } from '#x/ApplicationController';
 import { ApplicationFactory } from '#x/ApplicationFactory';
+import { BaseControllable } from '#x/BaseControllable';
 import { ThisModule } from '#p/ThisModule';
 
 
 /**
  * Manager for dealing with all the high-level applications that are running or
  * to be run in the system.
+ *
+ * **Note:** `start()`ing and `stop()`ing acts on all the applications.
  */
-export class ApplicationManager {
+export class ApplicationManager extends BaseControllable {
   /**
    * @type {Map<string, ApplicationController>} Map from each application name
    * to the controller that should be used for it.
    */
   #controllers = new Map();
-
-  /** @type {function(...*)} Logger for this instance (the manager). */
-  #logger = ThisModule.logger.applications;
 
   /**
    * Constructs an instance.
@@ -28,6 +28,8 @@ export class ApplicationManager {
    * @param {ApplicationConfig[]} configs Configuration objects.
    */
   constructor(configs) {
+    super(ThisModule.logger.apps);
+
     for (const config of configs) {
       this.#addControllerFor(config);
     }
@@ -51,6 +53,31 @@ export class ApplicationManager {
   }
 
   /**
+   * Gets a list of all controllers managed by this instance.
+   *
+   * @returns {ApplicationController[]} All the controllers.
+   */
+  getAll() {
+    return [...this.#controllers.values()];
+  }
+
+  /** @override */
+  async _impl_start(isReload) {
+    const applications = this.getAll();
+    const results      = applications.map((s) => s.start(isReload));
+
+    await Promise.all(results);
+  }
+
+  /** @override */
+  async _impl_stop(willReload) {
+    const applications = this.getAll();
+    const results      = applications.map((s) => s.stop(willReload));
+
+    await Promise.all(results);
+  }
+
+  /**
    * Constructs a {@link ApplicationController} based on the given information,
    * and adds a mapping to {@link #controllers} so it can be found.
    *
@@ -68,6 +95,6 @@ export class ApplicationManager {
     const controller = new ApplicationController(instance);
 
     this.#controllers.set(name, controller);
-    this.#logger.bound(name);
+    this.logger.bound(name);
   }
 }

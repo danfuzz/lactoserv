@@ -10,6 +10,7 @@ import { ApplicationController } from '#x/ApplicationController';
 import { BaseApplication } from '#x/BaseApplication';
 import { BaseController } from '#x/BaseController';
 import { HostManager } from '#x/HostManager';
+import { ThisModule } from '#p/ThisModule';
 
 
 /**
@@ -57,12 +58,12 @@ export class ServerController extends BaseController {
   constructor(config, extraConfig) {
     MustBe.instanceOf(config, ServerConfig);
 
-    const { endpoint, mounts }                 = config;
+    const { endpoint, mounts, name }           = config;
     const { interface: iface, port, protocol } = endpoint;
 
     const { applicationMap, hostManager, logger, rateLimiter, requestLogger } = extraConfig;
 
-    super(config, logger);
+    super(config, ThisModule.logger.server[name]);
 
     this.#hostManager = hostManager;
     this.#mountMap    = ServerController.#makeMountMap(mounts, applicationMap);
@@ -83,19 +84,19 @@ export class ServerController extends BaseController {
     this.#wrangler = ProtocolWranglers.make(wranglerOptions);
   }
 
-  /**
-   * Starts the server.
-   */
-  async start() {
-    return this.#wrangler.start();
+  /** @override */
+  async _impl_start(isReload_unused) {
+    await this.#wrangler.start();
   }
 
   /**
-   * Stops the server. This returns when the server is actually stopped (socket
-   * is closed).
+   * **Note:** This returns when the server is actually stopped, with the server
+   * socket closed.
+   *
+   * @override
    */
-  async stop() {
-    return this.#wrangler.stop();
+  async _impl_stop(willReload_unused) {
+    await this.#wrangler.stop();
   }
 
   /**

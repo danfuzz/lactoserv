@@ -63,12 +63,12 @@ export class ProcessIdFileService extends BaseService {
   }
 
   /** @override */
-  async start(isReload_unused) {
+  async _impl_start(isReload_unused) {
     await this.#runner.start();
   }
 
   /** @override */
-  async stop(willReload_unused) {
+  async _impl_stop(willReload_unused) {
     await this.#runner.stop();
   }
 

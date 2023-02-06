@@ -1,14 +1,18 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
 // This project is PROPRIETARY and UNLICENSED.
 
+import * as timers from 'node:timers/promises';
+
 import { ApplicationConfig, ServiceConfig, WarehouseConfig } from '@this/app-config';
 
 import { ApplicationFactory } from '#x/ApplicationFactory';
 import { ApplicationManager } from '#x/ApplicationManager';
+import { BaseControllable } from '#x/BaseControllable';
 import { HostManager } from '#x/HostManager';
 import { ServerManager } from '#x/ServerManager';
 import { ServiceFactory } from '#x/ServiceFactory';
 import { ServiceManager } from '#x/ServiceManager';
+import { ThisModule } from '#p/ThisModule';
 
 
 /**
@@ -21,10 +25,13 @@ import { ServiceManager } from '#x/ServiceManager';
  * * `{object|object[]} servers` -- Server configuration.
  * * `{object|object[]} services` -- System service configuration.
  * * `{object|object[]} applications` -- Application configuration.
- * * `{boolean} isReload` -- Is the system being reloaded in-process? Default
- *   `false`.
+ *
+ * **Note:** When `start()`ing, this operates in the order services then
+ * applications then servers, so as to start dependencies before dependants.
+ * Similarly, when `stop()`ping, the order is reversed, though the system will
+ * press on with the `stop()` actions if an earlier layer is taking too long.
  */
-export class Warehouse {
+export class Warehouse extends BaseControllable {
   /** @type {ApplicationManager} Application manager. */
   #applicationManager;
 
@@ -37,15 +44,14 @@ export class Warehouse {
   /** @type {ServiceManager} Service manager. */
   #serviceManager;
 
-  /** @type {boolean} Is the system being reloaded in-process? */
-  #isReload;
-
   /**
    * Constructs an instance.
    *
    * @param {object} config Configuration object.
    */
   constructor(config) {
+    super(ThisModule.logger.warehouse);
+
     const mapper = (conf, baseClass) => {
       switch (baseClass) {
         case ApplicationConfig: return ApplicationFactory.configClassFromType(conf.type);
@@ -60,7 +66,6 @@ export class Warehouse {
     this.#serviceManager     = new ServiceManager(parsed.services);
     this.#applicationManager = new ApplicationManager(parsed.applications);
     this.#serverManager      = new ServerManager(parsed.servers, this);
-    this.#isReload           = parsed.isReload;
   }
 
   /** @returns {ApplicationManager} Application manager. */
@@ -86,58 +91,51 @@ export class Warehouse {
     return this.#serviceManager;
   }
 
-  /**
-   * Indicates that the system is going to be reloaded.
-   */
-  willReload() {
-    this.#isReload = true;
+  /** @override */
+  async _impl_start(isReload = false) {
+    await this.#serviceManager.start(isReload);
+    await this.#applicationManager.start(isReload);
+    await this.#serverManager.start(isReload);
   }
 
-  /**
-   * Starts all servers. This async-returns once all servers are started.
-   *
-   * @throws {Error} Thrown if any server had trouble starting.
-   */
-  async startAllServers() {
-    const servers = this.#serverManager.getAll();
-    const results = servers.map((s) => s.start());
+  /** @override */
+  async _impl_stop(willReload = false) {
+    const serversStopped = this.#serverManager.stop(willReload);
 
-    return Promise.all(results);
+    await Promise.race([
+      serversStopped,
+      timers.setTimeout(Warehouse.#SERVER_STOP_GRACE_PERIOD_MSEC)
+    ]);
+
+    const applicationsStopped = this.#applicationManager.stop(willReload);
+    await Promise.race([
+      applicationsStopped,
+      timers.setTimeout(Warehouse.#APPLICATION_STOP_GRACE_PERIOD_MSEC)
+    ]);
+
+    await Promise.all([
+      serversStopped,
+      applicationsStopped,
+      this.#serviceManager.stop(willReload)
+    ]);
   }
 
-  /**
-   * Stops all servers. This async-returns once all servers are stopped.
-   *
-   * @throws {Error} Thrown if any server had trouble stopping.
-   */
-  async stopAllServers() {
-    const servers = this.#serverManager.getAll();
-    const results = servers.map((s) => s.stop());
 
-    return Promise.all(results);
-  }
+  //
+  // Static members
+  //
 
   /**
-   * Starts all services. This async-returns once all services are started.
-   *
-   * @throws {Error} Thrown if any service had trouble starting.
+   * @type {number} Grace period after asking all applications to stop before
+   * asking services to shut down. (If the applications stop more promptly, then
+   * the system will immediately move on.)
    */
-  async startAllServices() {
-    const services = this.#serviceManager.getAll();
-    const results  = services.map((s) => s.start(this.#isReload));
-
-    return Promise.all(results);
-  }
+  static #APPLICATION_STOP_GRACE_PERIOD_MSEC = 250;
 
   /**
-   * Stops all services. This async-returns once all services are stopped.
-   *
-   * @throws {Error} Thrown if any server had trouble stopping.
+   * @type {number} Grace period after asking all servers to stop before asking
+   * applications and services to shut down. (If the servers stop more promptly,
+   * then the system will immediately move on.)
    */
-  async stopAllServices() {
-    const services = this.#serviceManager.getAll();
-    const results  = services.map((s) => s.stop(this.#isReload));
-
-    return Promise.all(results);
-  }
+  static #SERVER_STOP_GRACE_PERIOD_MSEC = 250;
 }

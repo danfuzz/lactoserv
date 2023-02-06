@@ -5,6 +5,7 @@ import { MustBe } from '@this/typey';
 
 import { BaseController } from '#x/BaseController';
 import { BaseService } from '#x/BaseService';
+import { ThisModule } from '#p/ThisModule';
 
 
 /**
@@ -21,7 +22,7 @@ export class ServiceController extends BaseController {
    */
   constructor(service) {
     MustBe.instanceOf(service, BaseService);
-    super(service.config, service.logger);
+    super(service.config, ThisModule.logger.service[service.name]);
 
     this.#service = service;
   }
@@ -31,31 +32,13 @@ export class ServiceController extends BaseController {
     return this.#service;
   }
 
-  /**
-   * Starts the service.
-   *
-   * @param {boolean} isReload Is this action due to an in-process reload?
-   * @throws {Error} Thrown if there was trouble starting the service.
-   */
-  async start(isReload) {
-    const logArgs = isReload ? ['reload'] : [];
-    this.logger.starting(...logArgs);
+  /** @override */
+  async _impl_start(isReload) {
     await this.#service.start(isReload);
-    this.logger.started(...logArgs);
   }
 
-  /**
-   * Stops the service. This returns when the service is actually stopped.
-   *
-   * @param {boolean} willReload Is this action due to an in-process reload
-   *   being requested?
-   * @throws {Error} Thrown if there was trouble running or stopping the
-   *   service.
-   */
-  async stop(willReload) {
-    const logArgs = willReload ? ['reload'] : [];
-    this.logger.stopping(...logArgs);
+  /** @override */
+  async _impl_stop(willReload) {
     await this.#service.stop(willReload);
-    this.logger.stopped(...logArgs);
   }
 }

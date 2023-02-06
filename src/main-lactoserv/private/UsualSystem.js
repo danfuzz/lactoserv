@@ -1,8 +1,6 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
 // This project is PROPRIETARY and UNLICENSED.
 
-import * as timers from 'node:timers/promises';
-
 import { Warehouse } from '@this/app-framework';
 import { Condition, Threadlet } from '@this/async';
 import { BuiltinApplications } from '@this/builtin-applications';
@@ -68,11 +66,10 @@ export class UsualSystem extends Threadlet {
   /**
    * Constructs (and possibly replaces) {@link #warehouse}.
    *
-   * @param {boolean} forReload Is this for a reload?
    * @returns {boolean} `true` iff successful. `false` generally means there was
    * a configuration issue.
    */
-  async #makeWarehouse(forReload) {
+  async #makeWarehouse() {
     const configUrl = this.#args.configUrl;
     let config;
 
@@ -84,10 +81,6 @@ export class UsualSystem extends Threadlet {
       this.#logger.configFileError(e);
       this.#error = e;
       return false;
-    }
-
-    if (forReload) {
-      config.isReload = true;
     }
 
     try {
@@ -162,15 +155,14 @@ export class UsualSystem extends Threadlet {
 
     this.#logger.starting(logArg);
 
-    const warehouseIsGood = await this.#makeWarehouse(forReload);
+    const warehouseIsGood = await this.#makeWarehouse();
 
     if (!warehouseIsGood) {
       this.#logger.startAborted();
       return;
     }
 
-    await this.#warehouse.startAllServices();
-    await this.#warehouse.startAllServers();
+    await this.#warehouse.start(forReload);
 
     this.#logger.started(logArg);
   }
@@ -182,49 +174,12 @@ export class UsualSystem extends Threadlet {
    * @param {boolean} [forReload = false] Is this for a reload?
    */
   async #stop(forReload = false) {
-    const logArg = forReload ? 'reload' : 'shutdown';
+    const logArg = forReload ? 'willReload' : 'shutdown';
 
-    this.#logger.stoppingServers(logArg);
-
-    if (forReload) {
-      this.#warehouse.willReload();
-    }
-
-    const serversStopped = this.#warehouse.stopAllServers();
-
-    // Easy way to log when the servers stopped, without more complicated logic.
-    (async () => {
-      await serversStopped;
-      this.#logger.serversStopped(logArg);
-    })();
-
-    await Promise.race([
-      serversStopped,
-      timers.setTimeout(UsualSystem.#SERVER_STOP_GRACE_PERIOD_MSEC)
-    ]);
-
-    this.#logger.stoppingServices(logArg);
-
-    await Promise.all([
-      serversStopped,
-      this.#warehouse.stopAllServices()
-    ]);
-
-    this.#logger.servicesStopped(logArg);
+    this.#logger.stopping(logArg);
+    await this.#warehouse.stop(forReload);
+    this.#logger.stopped(logArg);
 
     this.#warehouse = null;
-    this.#logger.fullyStopped(logArg);
   }
-
-
-  //
-  // Static members
-  //
-
-  /**
-   * @type {number} Grace period after asking to stop all servers before asking
-   * services to shut down. (If the servers stop more promptly, then the system
-   * will immediately move on to service shutdown.)
-   */
-  static #SERVER_STOP_GRACE_PERIOD_MSEC = 250;
 }

@@ -9,6 +9,7 @@ import { MustBe } from '@this/typey';
 
 import { BaseApplication } from '#x/BaseApplication';
 import { BaseController } from '#x/BaseController';
+import { ThisModule } from '#p/ThisModule';
 
 
 /**
@@ -31,10 +32,15 @@ export class ApplicationController extends BaseController {
    */
   constructor(application) {
     MustBe.instanceOf(application, BaseApplication);
-    super(application.config, application.logger);
+    super(application.config, ThisModule.logger.app[application.name]);
 
     this.#application = application;
     this.#loggingEnv  = application.logger?.$env ?? null;
+  }
+
+  /** @returns {BaseApplication} The controlled application instance. */
+  get application() {
+    return this.#application;
   }
 
   /**
@@ -99,8 +105,13 @@ export class ApplicationController extends BaseController {
     this.#application.handleRequest(req, res, innerNext);
   }
 
-  /** @returns {BaseApplication} The controlled application instance. */
-  get application() {
-    return this.#application;
+  /** @override */
+  async _impl_start(isReload) {
+    await this.#application.start(isReload);
+  }
+
+  /** @override */
+  async _impl_stop(willReload) {
+    await this.#application.stop(willReload);
   }
 }

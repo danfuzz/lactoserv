@@ -4,19 +4,15 @@
 import { BaseConfig } from '@this/app-config';
 import { Methods, MustBe } from '@this/typey';
 
+import { BaseControllable } from '#x/BaseControllable';
+
 
 /**
  * Base class for major "components" of the framework.
  */
-export class BaseComponent {
+export class BaseComponent extends BaseControllable {
   /** @type {BaseConfig} Configuration for this component. */
   #config;
-
-  /**
-   * @type {?function(...*)} Instance-specific logger, or `null` if no logging
-   * is to be done.
-   */
-  #logger;
 
   /**
    * Constructs an instance.
@@ -26,21 +22,13 @@ export class BaseComponent {
    *   no logging is to be done.
    */
   constructor(config, logger) {
+    super(logger);
     this.#config = MustBe.instanceOf(config, BaseConfig);
-    this.#logger = logger;
   }
 
   /** @returns {BaseConfig} Configuration for this instance. */
   get config() {
     return this.#config;
-  }
-
-  /**
-   * @type {?function(...*)} Instance-specific logger, or `null` if no logging
-   * is to be done.
-   */
-  get logger() {
-    return this.#logger;
   }
 
   /** @returns {string} Component name. */

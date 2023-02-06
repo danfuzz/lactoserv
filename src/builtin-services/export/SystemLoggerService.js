@@ -50,7 +50,7 @@ export class SystemLoggerService extends BaseService {
   }
 
   /** @override */
-  async start(isReload) {
+  async _impl_start(isReload) {
     await this.config.createDirectoryIfNecessary();
     await this.#rotator?.start(isReload);
     await this.#sink.start();
@@ -58,7 +58,7 @@ export class SystemLoggerService extends BaseService {
   }
 
   /** @override */
-  async stop(willReload) {
+  async _impl_stop(willReload) {
     // Wait briefly, so that there's a decent chance that this instance catches
     // most or all of the other stop-time messages before doing its own final
     // message.

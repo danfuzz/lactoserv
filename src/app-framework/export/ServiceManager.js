@@ -3,6 +3,7 @@
 
 import { ServiceConfig } from '@this/app-config';
 
+import { BaseControllable } from '#x/BaseControllable';
 import { BaseService } from '#x/BaseService';
 import { ServiceController } from '#x/ServiceController';
 import { ServiceFactory } from '#x/ServiceFactory';
@@ -12,16 +13,15 @@ import { ThisModule } from '#p/ThisModule';
 /**
  * Manager for dealing with all the high-level system services that are running
  * or could be run in the system.
+ *
+ * **Note:** `start()`ing and `stop()`ing acts on all the services.
  */
-export class ServiceManager {
+export class ServiceManager extends BaseControllable {
   /**
    * @type {Map<string, ServiceController>} Map from each service name to the
    * controller that should be used for it.
    */
   #controllers = new Map();
-
-  /** @type {function(...*)} Logger for this instance (the manager). */
-  #logger = ThisModule.logger.services;
 
   /**
    * Constructs an instance.
@@ -29,6 +29,8 @@ export class ServiceManager {
    * @param {ServiceConfig[]} configs Configuration objects.
    */
   constructor(configs) {
+    super(ThisModule.logger.services);
+
     for (const config of configs) {
       this.#addControllerFor(config);
     }
@@ -78,6 +80,22 @@ export class ServiceManager {
     return result;
   }
 
+  /** @override */
+  async _impl_start(isReload) {
+    const services = this.getAll();
+    const results  = services.map((s) => s.start(isReload));
+
+    await Promise.all(results);
+  }
+
+  /** @override */
+  async _impl_stop(willReload) {
+    const services = this.getAll();
+    const results  = services.map((s) => s.stop(willReload));
+
+    await Promise.all(results);
+  }
+
   /**
    * Constructs a {@link ServiceController} based on the given information,
    * and adds a mapping to {@link #controllers} so it can be found.
@@ -96,7 +114,7 @@ export class ServiceManager {
     const controller    = new ServiceController(instance);
 
     this.#controllers.set(name, controller);
-    this.#logger.bound(name);
+    this.logger.bound(name);
   }
 
 
