@@ -105,12 +105,12 @@ export class ApplicationController extends BaseController {
   }
 
   /** @override */
-  async _impl_start(isReload_unused) {
-    // TODO: Nothing to do here... yet!
+  async _impl_start(isReload) {
+    await this.#application.start(isReload);
   }
 
   /** @override */
-  async _impl_stop(willReload_unused) {
-    // TODO: Nothing to do here... yet!
+  async _impl_stop(willReload) {
+    await this.#application.stop(willReload);
   }
 }
