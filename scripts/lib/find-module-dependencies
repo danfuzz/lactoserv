@@ -55,6 +55,7 @@ localModulesDir="$(base-dir)/src"
 
 state="$(jval mainModule="@this/${moduleName}" '{
     unprocessed: [],
+    graph:       [],
     localDeps:   [],
     extDeps:     [],
     main:        $mainModule,
@@ -87,18 +88,14 @@ while true; do
         ($allDeps | map(select(.key | startswith("@this/") | not) | .key + "@" + .value)) as $extDeps
         |
         {
-            unprocessed: ($state.unprocessed + $localDeps),
-            localDeps:   ($state.localDeps + [$oneDep]),
-            extDeps:     ($state.extDeps + $extDeps)
+            graph:       ($state.graph + ($localDeps | map({ from: $oneDep, to: .}))),
+            unprocessed: (($state.unprocessed + $localDeps) | unique),
+            localDeps:   (($state.localDeps + [$oneDep]) | unique),
+            extDeps:     (($state.extDeps + $extDeps) | unique)
         }
-        |
-        {
-            unprocessed: (.unprocessed - .localDeps | unique),
-            localDeps:   (.localDeps | unique),
-            extDeps:     (.extDeps   | unique),
-        }
-        |
-        $state + . + { next: (.unprocessed[0] // "<done>") }
+        | . + { unprocessed: (.unprocessed - .localDeps) }
+        | . + { next: (.unprocessed[0] // "<done>") }
+        | $state + .
         '
     )"
 done
@@ -116,6 +113,47 @@ conflicts="$(jget "${state}" '
 if [[ ${conflicts} != '{}' ]]; then
     error-msg 'Conflicting external module versions:'
     error-msg --exec jget "${conflicts}"
+    exit 1
+fi
+
+# Verify that the local module dependency graph has no cycles. If there's at
+# least one cycle, list all the modules involved with cycles.
+#
+# What's going on: We start with the full directed graph, and iteratively remove
+# all edges for nodes that only appear on the `from` side (because de facto they
+# are not involved in a cycle). Once no more edges can be removed, any remaining
+# ones are involved in cycles.
+
+cycles="$(jval \
+    state:json="${state}" '
+    $state.graph as $edges
+    |
+    {
+        edges: $edges,
+        done:  false
+    }
+    |
+    until(.done;
+          (.edges | map(.from) | unique) as $froms
+        | (.edges | map(.to) | unique) as $tos
+        | ($froms | map(select(. as $from | $tos | bsearch($from) < 0)))
+            as $removables
+        | (.edges | map(select(.from as $from | $removables | bsearch($from) < 0)))
+            as $edges
+        |
+        {
+            edges: $edges,
+            done:  (.edges == $edges)
+        }
+    )
+    |
+    .edges | map(.from)
+')"
+
+if [[ ${cycles} != '[]' ]]; then
+    error-msg 'Local module dependency cycle(s) detected.'
+    error-msg 'Modules involved:'
+    error-msg --exec jget --output=raw "${cycles}" '.[] | "  " + .'
     exit 1
 fi
 
