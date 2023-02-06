@@ -5,7 +5,7 @@ import { ApplicationConfig } from '@this/app-config';
 
 import { ApplicationController } from '#x/ApplicationController';
 import { ApplicationFactory } from '#x/ApplicationFactory';
-import { BaseComponent } from '#x/BaseComponent';
+import { BaseControllable } from '#x/BaseControllable';
 import { ThisModule } from '#p/ThisModule';
 
 
@@ -67,13 +67,13 @@ export class ApplicationManager {
    * @param {boolean} isReload Reload flag.
    */
   async start(isReload) {
-    BaseComponent.logStarting(this.#logger, isReload);
+    BaseControllable.logStarting(this.#logger, isReload);
 
     const applications = this.getAll();
     const results      = applications.map((s) => s.start(isReload));
 
     await Promise.all(results);
-    BaseComponent.logStarted(this.#logger, isReload);
+    BaseControllable.logStarted(this.#logger, isReload);
   }
 
   /**
@@ -83,13 +83,13 @@ export class ApplicationManager {
    * @param {boolean} willReload Reload flag.
    */
   async stop(willReload) {
-    BaseComponent.logStopping(this.#logger, willReload);
+    BaseControllable.logStopping(this.#logger, willReload);
 
     const applications = this.getAll();
     const results      = applications.map((s) => s.stop(willReload));
 
     await Promise.all(results);
-    BaseComponent.logStopped(this.#logger, willReload);
+    BaseControllable.logStopped(this.#logger, willReload);
   }
 
   /**

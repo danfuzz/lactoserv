@@ -4,7 +4,7 @@
 import { MountConfig, ServerConfig } from '@this/app-config';
 
 import { BaseApplication } from '#x/BaseApplication';
-import { BaseComponent } from '#x/BaseComponent';
+import { BaseControllable } from '#x/BaseControllable';
 import { ServerController } from '#x/ServerController';
 import { ThisModule } from '#p/ThisModule';
 import { Warehouse } from '#x/Warehouse';
@@ -72,13 +72,13 @@ export class ServerManager {
    * @param {boolean} isReload Reload flag.
    */
   async start(isReload) {
-    BaseComponent.logStarting(this.#logger, isReload);
+    BaseControllable.logStarting(this.#logger, isReload);
 
     const servers = this.getAll();
     const results = servers.map((s) => s.start(isReload));
 
     await Promise.all(results);
-    BaseComponent.logStarted(this.#logger, isReload);
+    BaseControllable.logStarted(this.#logger, isReload);
   }
 
   /**
@@ -87,13 +87,13 @@ export class ServerManager {
    * @param {boolean} willReload Reload flag.
    */
   async stop(willReload) {
-    BaseComponent.logStopping(this.#logger, willReload);
+    BaseControllable.logStopping(this.#logger, willReload);
 
     const servers = this.getAll();
     const results = servers.map((s) => s.stop(willReload));
 
     await Promise.all(results);
-    BaseComponent.logStopped(this.#logger, willReload);
+    BaseControllable.logStopped(this.#logger, willReload);
   }
 
   /**

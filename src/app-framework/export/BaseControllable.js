@@ -45,9 +45,9 @@ export class BaseControllable {
   async start(isReload) {
     MustBe.boolean(isReload);
 
-    BaseComponent.logStarting(this.#logger, isReload);
+    BaseControllable.logStarting(this.#logger, isReload);
     await this._impl_start(isReload);
-    BaseComponent.logStarted(this.#logger, isReload);
+    BaseControllable.logStarted(this.#logger, isReload);
   }
 
   /**
@@ -60,9 +60,9 @@ export class BaseControllable {
   async stop(willReload) {
     MustBe.boolean(willReload);
 
-    BaseComponent.logStopping(this.#logger, willReload);
+    BaseControllable.logStopping(this.#logger, willReload);
     await this._impl_stop(willReload);
-    BaseComponent.logStopped(this.#logger, willReload);
+    BaseControllable.logStopped(this.#logger, willReload);
   }
 
   /**
@@ -84,5 +84,60 @@ export class BaseControllable {
    */
   async _impl_stop(willReload) {
     Methods.abstract(willReload);
+  }
+
+
+  //
+  // Static members
+  //
+
+  /**
+   * Logs a message about an item (component, controller, etc.) completing a
+   * `start()` action.
+   *
+   * @param {?function(...*)} logger Logger to use, or `null` to not actually do
+   *   any logging.
+   * @param {boolean} isReload Is this a system reload (vs. first-time init)?
+   */
+  static logStarted(logger, isReload) {
+    logger?.started(isReload ? 'reload' : 'init');
+  }
+
+  /**
+   * Logs a message about an item (component, controller, etc.) initiating a
+   * `start()` action.
+   *
+   * @param {?function(...*)} logger Logger to use, or `null` to not actually do
+   *   any logging.
+   * @param {boolean} isReload Is this a system reload (vs. first-time init)?
+   */
+  static logStarting(logger, isReload) {
+    logger?.starting(isReload ? 'reload' : 'init');
+  }
+
+  /**
+   * Logs a message about an item (component, controller, etc.) initiating a
+   * `stop()` action.
+   *
+   * @param {?function(...*)} logger Logger to use, or `null` to not actually do
+   *   any logging.
+   * @param {boolean} willReload Is this a pending system reload (vs. final
+   *   shutdown)?
+   */
+  static logStopping(logger, willReload) {
+    logger?.stopping(willReload ? 'willReload' : 'shutdown');
+  }
+
+  /**
+   * Logs a message about an item (component, controller, etc.) completing a
+   * `stop()` action.
+   *
+   * @param {?function(...*)} logger Logger to use, or `null` to not actually do
+   *   any logging.
+   * @param {boolean} willReload Is this a pending system reload (vs. final
+   *   shutdown)?
+   */
+  static logStopped(logger, willReload) {
+    logger?.stopped(willReload ? 'willReload' : 'shutdown');
   }
 }

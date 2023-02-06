@@ -7,7 +7,7 @@ import { ApplicationConfig, ServiceConfig, WarehouseConfig } from '@this/app-con
 
 import { ApplicationFactory } from '#x/ApplicationFactory';
 import { ApplicationManager } from '#x/ApplicationManager';
-import { BaseComponent } from '#x/BaseComponent';
+import { BaseControllable } from '#x/BaseControllable';
 import { HostManager } from '#x/HostManager';
 import { ServerManager } from '#x/ServerManager';
 import { ServiceFactory } from '#x/ServiceFactory';
@@ -97,11 +97,11 @@ export class Warehouse {
    *   reload?
    */
   async start(isReload = false) {
-    BaseComponent.logStarting(this.#logger, isReload);
+    BaseControllable.logStarting(this.#logger, isReload);
     await this.#serviceManager.start(isReload);
     await this.#applicationManager.start(isReload);
     await this.#serverManager.start(isReload);
-    BaseComponent.logStarted(this.#logger, isReload);
+    BaseControllable.logStarted(this.#logger, isReload);
   }
 
   /**
@@ -113,7 +113,7 @@ export class Warehouse {
    *   reload being requested?
    */
   async stop(willReload = false) {
-    BaseComponent.logStopping(this.#logger, willReload);
+    BaseControllable.logStopping(this.#logger, willReload);
 
     const serversStopped = this.#serverManager.stop(willReload);
 
@@ -134,7 +134,7 @@ export class Warehouse {
       this.#serviceManager.stop(willReload)
     ]);
 
-    BaseComponent.logStopped(this.#logger, willReload);
+    BaseControllable.logStopped(this.#logger, willReload);
   }
 
 
