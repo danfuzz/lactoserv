@@ -1,8 +1,6 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
 // This project is PROPRIETARY and UNLICENSED.
 
-import { MustBe } from '@this/typey';
-
 import { ApplicationConfig } from '#x/ApplicationConfig';
 import { BaseConfig } from '#x/BaseConfig';
 import { ConfigClassMapper } from '#x/ConfigClassMapper';
@@ -22,8 +20,6 @@ import { ServiceConfig } from '#x/ServiceConfig';
  *   Required only if a server is configured to listen for secure connections.
  * * `{object|object[]} servers` -- Server configuration.
  * * `{object|object[]} services` -- System service configuration.
- * * `{boolean} isReload` -- Is the system being reloaded in-process? Default
- *   `false`.
  */
 export class WarehouseConfig extends BaseConfig {
   /** @type {ApplicationConfig[]} Application configuration objects. */
@@ -31,9 +27,6 @@ export class WarehouseConfig extends BaseConfig {
 
   /** @type {HostConfig[]} Host configuration objects. */
   #hosts;
-
-  /** @type {boolean} Is the system being reloaded in-process? */
-  #isReload;
 
   /** @type {ServerConfig[]} Server configuration objects. */
   #servers;
@@ -56,14 +49,12 @@ export class WarehouseConfig extends BaseConfig {
       hosts = [],
       servers,
       services,
-      isReload = false
     } = config;
 
     this.#applications = ApplicationConfig.parseArray(applications, configClassMapper);
     this.#hosts        = HostConfig.parseArray(hosts, configClassMapper);
     this.#servers      = ServerConfig.parseArray(servers, configClassMapper);
     this.#services     = ServiceConfig.parseArray(services, configClassMapper);
-    this.#isReload     = MustBe.boolean(isReload);
   }
 
   /** @returns {ApplicationConfig[]} Application configuration objects. */
@@ -74,11 +65,6 @@ export class WarehouseConfig extends BaseConfig {
   /** @returns {HostConfig[]} Host configuration objects. */
   get hosts() {
     return this.#hosts;
-  }
-
-  /** @returns {boolean} Is the system being reloaded in-process? */
-  get isReload() {
-    return this.#isReload;
   }
 
   /** @returns {ServerConfig[]} Server configuration objects. */

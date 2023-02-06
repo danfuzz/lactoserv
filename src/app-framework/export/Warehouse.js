@@ -1,6 +1,8 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
 // This project is PROPRIETARY and UNLICENSED.
 
+import * as timers from 'node:timers/promises';
+
 import { ApplicationConfig, ServiceConfig, WarehouseConfig } from '@this/app-config';
 
 import { ApplicationFactory } from '#x/ApplicationFactory';
@@ -9,6 +11,7 @@ import { HostManager } from '#x/HostManager';
 import { ServerManager } from '#x/ServerManager';
 import { ServiceFactory } from '#x/ServiceFactory';
 import { ServiceManager } from '#x/ServiceManager';
+import { ThisModule } from '#p/ThisModule';
 
 
 /**
@@ -21,10 +24,14 @@ import { ServiceManager } from '#x/ServiceManager';
  * * `{object|object[]} servers` -- Server configuration.
  * * `{object|object[]} services` -- System service configuration.
  * * `{object|object[]} applications` -- Application configuration.
- * * `{boolean} isReload` -- Is the system being reloaded in-process? Default
- *   `false`.
  */
 export class Warehouse {
+  /**
+   * @type {?function(...*)} Instance-specific logger, or `null` if no logging
+   * is to be done.
+   */
+  #logger = ThisModule.logger.warehouse;
+
   /** @type {ApplicationManager} Application manager. */
   #applicationManager;
 
@@ -36,9 +43,6 @@ export class Warehouse {
 
   /** @type {ServiceManager} Service manager. */
   #serviceManager;
-
-  /** @type {boolean} Is the system being reloaded in-process? */
-  #isReload;
 
   /**
    * Constructs an instance.
@@ -60,7 +64,6 @@ export class Warehouse {
     this.#serviceManager     = new ServiceManager(parsed.services);
     this.#applicationManager = new ApplicationManager(parsed.applications);
     this.#serverManager      = new ServerManager(parsed.servers, this);
-    this.#isReload           = parsed.isReload;
   }
 
   /** @returns {ApplicationManager} Application manager. */
@@ -87,85 +90,172 @@ export class Warehouse {
   }
 
   /**
-   * Indicates that the system is going to be reloaded.
+   * Starts everything, in the order services then applications then servers.
+   *
+   * @param {boolean} [isReload = false] Is this action due to an in-process
+   *   reload?
    */
-  willReload() {
-    this.#isReload = true;
+  async start(isReload = false) {
+    const logArg = isReload ? 'reload' : 'init';
+
+    this.#logger.starting(logArg);
+    await this.#startAllServices(isReload, logArg);
+    await this.#startAllApplications(isReload, logArg);
+    await this.#startAllServers(isReload, logArg);
+    this.#logger.started(logArg);
+  }
+
+  /**
+   * Stops everything, in the order servers then applications then services.
+   * In case things don't stop promptly, this will keep moving on and then hope
+   * for a happy synch-up at the end.
+   *
+   * @param {boolean} [willReload = false] Is this action due to an in-process
+   *   reload being requested?
+   */
+  async stop(willReload = false) {
+    const logArg = willReload ? 'willReload' : 'shutdown';
+
+    this.#logger.stopping(logArg);
+
+    const serversStopped = this.#stopAllServers(willReload, logArg);
+
+    await Promise.race([
+      serversStopped,
+      timers.setTimeout(Warehouse.#SERVER_STOP_GRACE_PERIOD_MSEC)
+    ]);
+
+    const applicationsStopped = this.#stopAllApplications(willReload, logArg);
+    await Promise.race([
+      applicationsStopped,
+      timers.setTimeout(Warehouse.#APPLICATION_STOP_GRACE_PERIOD_MSEC)
+    ]);
+
+    await Promise.all([
+      serversStopped,
+      applicationsStopped,
+      this.#stopAllServices(willReload, logArg)
+    ]);
+
+    this.#logger.stopped(logArg);
   }
 
   /**
    * Starts all applications. This async-returns once all applications are
    * started.
    *
-   * @throws {Error} Thrown if any application had trouble starting.
+   * @param {boolean} isReload Reload flag.
+   * @param {string} logArg Reload-based log argument.
    */
-  async startAllApplications() {
+  async #startAllApplications(isReload, logArg) {
+    this.#logger.startingApplications(logArg);
+
     const applications = this.#applicationManager.getAll();
     //const results      = applications.map((s) => s.start());
-    const results = null; // TODO
+    const results = []; // TODO
 
-    return Promise.all(results);
+    await Promise.all(results);
+    this.#logger.startedApplications(logArg);
   }
 
   /**
    * Stops all applications. This async-returns once all applications are
    * stopped.
    *
-   * @throws {Error} Thrown if any application had trouble stopping.
+   * @param {boolean} willReload Reload flag.
+   * @param {string} logArg Reload-based log argument.
    */
-  async stopAllApplications() {
+  async #stopAllApplications(willReload, logArg) {
+    this.#logger.stoppingApplications(logArg);
+
     const applications = this.#applicationManager.getAll();
     //const results      = applications.map((s) => s.stop());
-    const results = null; // TODO
+    const results = []; // TODO
 
-    return Promise.all(results);
+    await Promise.all(results);
+    this.#logger.stoppedApplications(logArg);
   }
 
   /**
    * Starts all servers. This async-returns once all servers are started.
    *
-   * @throws {Error} Thrown if any server had trouble starting.
+   * @param {boolean} isReload Reload flag.
+   * @param {string} logArg Reload-based log argument.
    */
-  async startAllServers() {
-    const servers = this.#serverManager.getAll();
-    const results = servers.map((s) => s.start());
+  async #startAllServers(isReload, logArg) {
+    this.#logger.startingServers(logArg);
 
-    return Promise.all(results);
+    const servers = this.#serverManager.getAll();
+    const results = servers.map((s) => s.start(isReload));
+
+    await Promise.all(results);
+    this.#logger.startedServers(logArg);
   }
 
   /**
    * Stops all servers. This async-returns once all servers are stopped.
    *
-   * @throws {Error} Thrown if any server had trouble stopping.
+   * @param {boolean} willReload Reload flag.
+   * @param {string} logArg Reload-based log argument.
    */
-  async stopAllServers() {
-    const servers = this.#serverManager.getAll();
-    const results = servers.map((s) => s.stop());
+  async #stopAllServers(willReload, logArg) {
+    this.#logger.stoppingServers(logArg);
 
-    return Promise.all(results);
+    const servers = this.#serverManager.getAll();
+    const results = servers.map((s) => s.stop(willReload));
+
+    await Promise.all(results);
+    this.#logger.stoppedServers(logArg);
   }
 
   /**
    * Starts all services. This async-returns once all services are started.
    *
-   * @throws {Error} Thrown if any service had trouble starting.
+   * @param {boolean} isReload Reload flag.
+   * @param {string} logArg Reload-based log argument.
    */
-  async startAllServices() {
-    const services = this.#serviceManager.getAll();
-    const results  = services.map((s) => s.start(this.#isReload));
+  async #startAllServices(isReload, logArg) {
+    this.#logger.startingServices(logArg);
 
-    return Promise.all(results);
+    const services = this.#serviceManager.getAll();
+    const results  = services.map((s) => s.start(isReload));
+
+    await Promise.all(results);
+    this.#logger.startedServices(logArg);
   }
 
   /**
    * Stops all services. This async-returns once all services are stopped.
    *
-   * @throws {Error} Thrown if any server had trouble stopping.
+   * @param {boolean} willReload Reload flag.
+   * @param {string} logArg Reload-based log argument.
    */
-  async stopAllServices() {
-    const services = this.#serviceManager.getAll();
-    const results  = services.map((s) => s.stop(this.#isReload));
+  async #stopAllServices(willReload, logArg) {
+    this.#logger.stoppingServices(logArg);
 
-    return Promise.all(results);
+    const services = this.#serviceManager.getAll();
+    const results  = services.map((s) => s.stop(willReload));
+
+    await Promise.all(results);
+    this.#logger.stoppedServices(logArg);
   }
+
+
+  //
+  // Static members
+  //
+
+  /**
+   * @type {number} Grace period after asking all applications to stop before
+   * asking services to shut down. (If the applications stop more promptly, then
+   * the system will immediately move on.)
+   */
+  static #APPLICATION_STOP_GRACE_PERIOD_MSEC = 250;
+
+  /**
+   * @type {number} Grace period after asking all servers to stop before asking
+   * applications and services to shut down. (If the servers stop more promptly,
+   * then the system will immediately move on.)
+   */
+  static #SERVER_STOP_GRACE_PERIOD_MSEC = 250;
 }
