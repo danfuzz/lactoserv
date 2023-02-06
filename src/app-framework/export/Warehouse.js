@@ -25,14 +25,13 @@ import { ThisModule } from '#p/ThisModule';
  * * `{object|object[]} servers` -- Server configuration.
  * * `{object|object[]} services` -- System service configuration.
  * * `{object|object[]} applications` -- Application configuration.
+ *
+ * **Note:** When `start()`ing, this operates in the order services then
+ * applications then servers, so as to start dependencies before dependants.
+ * Similarly, when `stop()`ping, the order is reversed, though the system will
+ * press on with the `stop()` actions if an earlier layer is taking too long.
  */
-export class Warehouse {
-  /**
-   * @type {?function(...*)} Instance-specific logger, or `null` if no logging
-   * is to be done.
-   */
-  #logger = ThisModule.logger.warehouse;
-
+export class Warehouse extends BaseControllable {
   /** @type {ApplicationManager} Application manager. */
   #applicationManager;
 
@@ -51,6 +50,8 @@ export class Warehouse {
    * @param {object} config Configuration object.
    */
   constructor(config) {
+    super(ThisModule.logger.warehouse);
+
     const mapper = (conf, baseClass) => {
       switch (baseClass) {
         case ApplicationConfig: return ApplicationFactory.configClassFromType(conf.type);
@@ -90,31 +91,15 @@ export class Warehouse {
     return this.#serviceManager;
   }
 
-  /**
-   * Starts everything, in the order services then applications then servers.
-   *
-   * @param {boolean} [isReload = false] Is this action due to an in-process
-   *   reload?
-   */
-  async start(isReload = false) {
-    BaseControllable.logStarting(this.#logger, isReload);
+  /** @override */
+  async _impl_start(isReload = false) {
     await this.#serviceManager.start(isReload);
     await this.#applicationManager.start(isReload);
     await this.#serverManager.start(isReload);
-    BaseControllable.logStarted(this.#logger, isReload);
   }
 
-  /**
-   * Stops everything, in the order servers then applications then services.
-   * In case things don't stop promptly, this will keep moving on and then hope
-   * for a happy synch-up at the end.
-   *
-   * @param {boolean} [willReload = false] Is this action due to an in-process
-   *   reload being requested?
-   */
-  async stop(willReload = false) {
-    BaseControllable.logStopping(this.#logger, willReload);
-
+  /** @override */
+  async _impl_stop(willReload = false) {
     const serversStopped = this.#serverManager.stop(willReload);
 
     await Promise.race([
@@ -133,8 +118,6 @@ export class Warehouse {
       applicationsStopped,
       this.#serviceManager.stop(willReload)
     ]);
-
-    BaseControllable.logStopped(this.#logger, willReload);
   }
 
 
