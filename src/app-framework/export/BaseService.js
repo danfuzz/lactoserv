@@ -2,7 +2,7 @@
 // This project is PROPRIETARY and UNLICENSED.
 
 import { ServiceConfig } from '@this/app-config';
-import { Methods, MustBe } from '@this/typey';
+import { MustBe } from '@this/typey';
 
 import { BaseComponent } from '#x/BaseComponent';
 

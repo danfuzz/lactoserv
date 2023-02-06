@@ -3,8 +3,6 @@
 
 import { Methods, MustBe } from '@this/typey';
 
-import { BaseComponent } from '#x/BaseComponent';
-
 
 /**
  * Base class for "controllable" things in the framework.
