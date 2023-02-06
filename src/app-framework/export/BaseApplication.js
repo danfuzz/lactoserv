@@ -36,14 +36,4 @@ export class BaseApplication extends BaseComponent {
   handleRequest(req, res, next) {
     Methods.abstract(req, res, next);
   }
-
-  /** @override */
-  async _impl_start(isReload_unused) {
-    // TODO: Nothing to do here... yet!
-  }
-
-  /** @override */
-  async _impl_stop(willReload_unused) {
-    // TODO: Nothing to do here... yet!
-  }
 }

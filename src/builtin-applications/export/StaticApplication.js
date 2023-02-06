@@ -52,6 +52,16 @@ export class StaticApplication extends BaseApplication {
     }
   }
 
+  /** @override */
+  async _impl_start(isReload_unused) {
+    // Nothing to do here.
+  }
+
+  /** @override */
+  async _impl_stop(willReload_unused) {
+    // Nothing to do here.
+  }
+
 
   //
   // Static members

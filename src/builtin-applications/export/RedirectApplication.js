@@ -43,6 +43,16 @@ export class RedirectApplication extends BaseApplication {
     res.redirect(this.#statusCode, `${this.#target}${req.path}`);
   }
 
+  /** @override */
+  async _impl_start(isReload_unused) {
+    // Nothing to do here.
+  }
+
+  /** @override */
+  async _impl_stop(willReload_unused) {
+    // Nothing to do here.
+  }
+
 
   //
   // Static members
