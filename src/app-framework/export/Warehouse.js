@@ -151,8 +151,7 @@ export class Warehouse {
     this.#logger.startingApplications(logArg);
 
     const applications = this.#applicationManager.getAll();
-    //const results      = applications.map((s) => s.start());
-    const results = []; // TODO
+    const results      = applications.map((s) => s.start(isReload));
 
     await Promise.all(results);
     this.#logger.startedApplications(logArg);
@@ -169,8 +168,7 @@ export class Warehouse {
     this.#logger.stoppingApplications(logArg);
 
     const applications = this.#applicationManager.getAll();
-    //const results      = applications.map((s) => s.stop());
-    const results = []; // TODO
+    const results      = applications.map((s) => s.stop(willReload));
 
     await Promise.all(results);
     this.#logger.stoppedApplications(logArg);

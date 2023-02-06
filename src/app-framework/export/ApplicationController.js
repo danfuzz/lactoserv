@@ -103,4 +103,14 @@ export class ApplicationController extends BaseController {
 
     this.#application.handleRequest(req, res, innerNext);
   }
+
+  /** @override */
+  async _impl_start(isReload_unused) {
+    // TODO: Nothing to do here... yet!
+  }
+
+  /** @override */
+  async _impl_stop(willReload_unused) {
+    // TODO: Nothing to do here... yet!
+  }
 }
