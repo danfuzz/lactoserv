@@ -10,6 +10,7 @@ import { ApplicationController } from '#x/ApplicationController';
 import { BaseApplication } from '#x/BaseApplication';
 import { BaseController } from '#x/BaseController';
 import { HostManager } from '#x/HostManager';
+import { ThisModule } from '#p/ThisModule';
 
 
 /**
@@ -57,12 +58,12 @@ export class ServerController extends BaseController {
   constructor(config, extraConfig) {
     MustBe.instanceOf(config, ServerConfig);
 
-    const { endpoint, mounts }                 = config;
+    const { endpoint, mounts, name }           = config;
     const { interface: iface, port, protocol } = endpoint;
 
     const { applicationMap, hostManager, logger, rateLimiter, requestLogger } = extraConfig;
 
-    super(config, logger);
+    super(config, ThisModule.logger.server[name]);
 
     this.#hostManager = hostManager;
     this.#mountMap    = ServerController.#makeMountMap(mounts, applicationMap);

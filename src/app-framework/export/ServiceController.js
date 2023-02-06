@@ -5,6 +5,7 @@ import { MustBe } from '@this/typey';
 
 import { BaseController } from '#x/BaseController';
 import { BaseService } from '#x/BaseService';
+import { ThisModule } from '#p/ThisModule';
 
 
 /**
@@ -21,7 +22,7 @@ export class ServiceController extends BaseController {
    */
   constructor(service) {
     MustBe.instanceOf(service, BaseService);
-    super(service.config, service.logger);
+    super(service.config, ThisModule.logger.service[service.name]);
 
     this.#service = service;
   }

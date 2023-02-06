@@ -21,7 +21,7 @@ export class ApplicationManager {
   #controllers = new Map();
 
   /** @type {function(...*)} Logger for this instance (the manager). */
-  #logger = ThisModule.logger.applications;
+  #logger = ThisModule.logger.apps;
 
   /**
    * Constructs an instance.

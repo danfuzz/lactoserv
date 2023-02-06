@@ -9,6 +9,7 @@ import { MustBe } from '@this/typey';
 
 import { BaseApplication } from '#x/BaseApplication';
 import { BaseController } from '#x/BaseController';
+import { ThisModule } from '#p/ThisModule';
 
 
 /**
@@ -31,7 +32,7 @@ export class ApplicationController extends BaseController {
    */
   constructor(application) {
     MustBe.instanceOf(application, BaseApplication);
-    super(application.config, application.logger);
+    super(application.config, ThisModule.logger.app[application.name]);
 
     this.#application = application;
     this.#loggingEnv  = application.logger?.$env ?? null;
