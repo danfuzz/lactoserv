@@ -55,6 +55,7 @@ localModulesDir="$(base-dir)/src"
 
 state="$(jval mainModule="@this/${moduleName}" '{
     unprocessed: [],
+    processed:   [],
     localDeps:   [],
     extDeps:     [],
     main:        $mainModule,
@@ -87,20 +88,21 @@ while true; do
         ($allDeps | map(select(.key | startswith("@this/") | not) | .key + "@" + .value)) as $extDeps
         |
         {
-            unprocessed: ($state.unprocessed + $localDeps),
-            localDeps:   ($state.localDeps + [$oneDep]),
-            extDeps:     ($state.extDeps + $extDeps)
+            unprocessed: (($state.unprocessed + $localDeps) | unique),
+            processed:   ($state.processed + [$oneDep]),
+            localDeps:   (($state.localDeps + [$oneDep]) | unique),
+            extDeps:     (($state.extDeps + $extDeps) | unique)
         }
-        |
-        {
-            unprocessed: (.unprocessed - .localDeps | unique),
-            localDeps:   (.localDeps | unique),
-            extDeps:     (.extDeps   | unique),
-        }
-        |
-        $state + . + { next: (.unprocessed[0] // "<done>") }
+        | . + { unprocessed: (.unprocessed - .localDeps) }
+        | . + { next: (.unprocessed[0] // "<done>") }
+        | $state + .
         '
     )"
+
+    info-msg '########################'
+    info-msg "##### ONE DEP ${oneDep}"
+    info-msg "##### STATE $(jget "${state}")"
+    info-msg '########################'
 done
 
 # Verify that there aren't two (or more) different versions listed for any
