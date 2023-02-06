@@ -4,6 +4,8 @@
 import { BaseConfig } from '@this/app-config';
 import { Methods, MustBe } from '@this/typey';
 
+import { BaseComponent } from '#x/BaseComponent';
+
 
 /**
  * Base class for "controllable" things in the framework.
@@ -56,7 +58,10 @@ export class BaseController {
    */
   async start(isReload) {
     MustBe.boolean(isReload);
+
+    BaseComponent.logStarting(this.#logger, isReload);
     await this._impl_start(isReload);
+    BaseComponent.logStarted(this.#logger, isReload);
   }
 
   /**
@@ -69,7 +74,10 @@ export class BaseController {
    */
   async stop(willReload) {
     MustBe.boolean(willReload);
+
+    BaseComponent.logStopping(this.#logger, willReload);
     await this._impl_stop(willReload);
+    BaseComponent.logStopped(this.#logger, willReload);
   }
 
   /**
