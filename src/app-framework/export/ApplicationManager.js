@@ -5,6 +5,7 @@ import { ApplicationConfig } from '@this/app-config';
 
 import { ApplicationController } from '#x/ApplicationController';
 import { ApplicationFactory } from '#x/ApplicationFactory';
+import { BaseComponent } from '#x/BaseComponent';
 import { ThisModule } from '#p/ThisModule';
 
 
@@ -57,6 +58,38 @@ export class ApplicationManager {
    */
   getAll() {
     return [...this.#controllers.values()];
+  }
+
+  /**
+   * Starts all applications. This async-returns once all applications are
+   * started.
+   *
+   * @param {boolean} isReload Reload flag.
+   */
+  async start(isReload) {
+    BaseComponent.logStarting(this.#logger, isReload);
+
+    const applications = this.getAll();
+    const results      = applications.map((s) => s.start(isReload));
+
+    await Promise.all(results);
+    BaseComponent.logStarted(this.#logger, isReload);
+  }
+
+  /**
+   * Stops all applications. This async-returns once all applications are
+   * stopped.
+   *
+   * @param {boolean} willReload Reload flag.
+   */
+  async stop(willReload) {
+    BaseComponent.logStopping(this.#logger, willReload);
+
+    const applications = this.getAll();
+    const results      = applications.map((s) => s.stop(willReload));
+
+    await Promise.all(results);
+    BaseComponent.logStopped(this.#logger, willReload);
   }
 
   /**

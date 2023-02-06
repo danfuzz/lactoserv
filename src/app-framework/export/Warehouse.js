@@ -7,6 +7,7 @@ import { ApplicationConfig, ServiceConfig, WarehouseConfig } from '@this/app-con
 
 import { ApplicationFactory } from '#x/ApplicationFactory';
 import { ApplicationManager } from '#x/ApplicationManager';
+import { BaseComponent } from '#x/BaseComponent';
 import { HostManager } from '#x/HostManager';
 import { ServerManager } from '#x/ServerManager';
 import { ServiceFactory } from '#x/ServiceFactory';
@@ -96,13 +97,11 @@ export class Warehouse {
    *   reload?
    */
   async start(isReload = false) {
-    const logArg = isReload ? 'reload' : 'init';
-
-    this.#logger.starting(logArg);
-    await this.#startAllServices(isReload, logArg);
-    await this.#startAllApplications(isReload, logArg);
-    await this.#startAllServers(isReload, logArg);
-    this.#logger.started(logArg);
+    BaseComponent.logStarting(this.#logger, isReload);
+    await this.#serviceManager.start(isReload);
+    await this.#applicationManager.start(isReload);
+    await this.#serverManager.start(isReload);
+    BaseComponent.logStarted(this.#logger, isReload);
   }
 
   /**
@@ -114,18 +113,16 @@ export class Warehouse {
    *   reload being requested?
    */
   async stop(willReload = false) {
-    const logArg = willReload ? 'willReload' : 'shutdown';
+    BaseComponent.logStopping(this.#logger, willReload);
 
-    this.#logger.stopping(logArg);
-
-    const serversStopped = this.#stopAllServers(willReload, logArg);
+    const serversStopped = this.#serverManager.stop(willReload);
 
     await Promise.race([
       serversStopped,
       timers.setTimeout(Warehouse.#SERVER_STOP_GRACE_PERIOD_MSEC)
     ]);
 
-    const applicationsStopped = this.#stopAllApplications(willReload, logArg);
+    const applicationsStopped = this.#applicationManager.stop(willReload);
     await Promise.race([
       applicationsStopped,
       timers.setTimeout(Warehouse.#APPLICATION_STOP_GRACE_PERIOD_MSEC)
@@ -134,108 +131,10 @@ export class Warehouse {
     await Promise.all([
       serversStopped,
       applicationsStopped,
-      this.#stopAllServices(willReload, logArg)
+      this.#serviceManager.stop(willReload)
     ]);
 
-    this.#logger.stopped(logArg);
-  }
-
-  /**
-   * Starts all applications. This async-returns once all applications are
-   * started.
-   *
-   * @param {boolean} isReload Reload flag.
-   * @param {string} logArg Reload-based log argument.
-   */
-  async #startAllApplications(isReload, logArg) {
-    this.#logger.startingApplications(logArg);
-
-    const applications = this.#applicationManager.getAll();
-    const results      = applications.map((s) => s.start(isReload));
-
-    await Promise.all(results);
-    this.#logger.startedApplications(logArg);
-  }
-
-  /**
-   * Stops all applications. This async-returns once all applications are
-   * stopped.
-   *
-   * @param {boolean} willReload Reload flag.
-   * @param {string} logArg Reload-based log argument.
-   */
-  async #stopAllApplications(willReload, logArg) {
-    this.#logger.stoppingApplications(logArg);
-
-    const applications = this.#applicationManager.getAll();
-    const results      = applications.map((s) => s.stop(willReload));
-
-    await Promise.all(results);
-    this.#logger.stoppedApplications(logArg);
-  }
-
-  /**
-   * Starts all servers. This async-returns once all servers are started.
-   *
-   * @param {boolean} isReload Reload flag.
-   * @param {string} logArg Reload-based log argument.
-   */
-  async #startAllServers(isReload, logArg) {
-    this.#logger.startingServers(logArg);
-
-    const servers = this.#serverManager.getAll();
-    const results = servers.map((s) => s.start(isReload));
-
-    await Promise.all(results);
-    this.#logger.startedServers(logArg);
-  }
-
-  /**
-   * Stops all servers. This async-returns once all servers are stopped.
-   *
-   * @param {boolean} willReload Reload flag.
-   * @param {string} logArg Reload-based log argument.
-   */
-  async #stopAllServers(willReload, logArg) {
-    this.#logger.stoppingServers(logArg);
-
-    const servers = this.#serverManager.getAll();
-    const results = servers.map((s) => s.stop(willReload));
-
-    await Promise.all(results);
-    this.#logger.stoppedServers(logArg);
-  }
-
-  /**
-   * Starts all services. This async-returns once all services are started.
-   *
-   * @param {boolean} isReload Reload flag.
-   * @param {string} logArg Reload-based log argument.
-   */
-  async #startAllServices(isReload, logArg) {
-    this.#logger.startingServices(logArg);
-
-    const services = this.#serviceManager.getAll();
-    const results  = services.map((s) => s.start(isReload));
-
-    await Promise.all(results);
-    this.#logger.startedServices(logArg);
-  }
-
-  /**
-   * Stops all services. This async-returns once all services are stopped.
-   *
-   * @param {boolean} willReload Reload flag.
-   * @param {string} logArg Reload-based log argument.
-   */
-  async #stopAllServices(willReload, logArg) {
-    this.#logger.stoppingServices(logArg);
-
-    const services = this.#serviceManager.getAll();
-    const results  = services.map((s) => s.stop(willReload));
-
-    await Promise.all(results);
-    this.#logger.stoppedServices(logArg);
+    BaseComponent.logStopped(this.#logger, willReload);
   }
 
 

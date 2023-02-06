@@ -3,6 +3,7 @@
 
 import { ServiceConfig } from '@this/app-config';
 
+import { BaseComponent } from '#x/BaseComponent';
 import { BaseService } from '#x/BaseService';
 import { ServiceController } from '#x/ServiceController';
 import { ServiceFactory } from '#x/ServiceFactory';
@@ -76,6 +77,36 @@ export class ServiceManager {
     }
 
     return result;
+  }
+
+  /**
+   * Starts all services. This async-returns once all services are started.
+   *
+   * @param {boolean} isReload Reload flag.
+   */
+  async start(isReload) {
+    BaseComponent.logStarting(this.#logger, isReload);
+
+    const services = this.getAll();
+    const results  = services.map((s) => s.start(isReload));
+
+    await Promise.all(results);
+    BaseComponent.logStarted(this.#logger, isReload);
+  }
+
+  /**
+   * Stops all services. This async-returns once all services are stopped.
+   *
+   * @param {boolean} willReload Reload flag.
+   */
+  async stop(willReload) {
+    BaseComponent.logStopping(this.#logger, willReload);
+
+    const services = this.getAll();
+    const results  = services.map((s) => s.stop(willReload));
+
+    await Promise.all(results);
+    BaseComponent.logStopped(this.#logger, willReload);
   }
 
   /**
