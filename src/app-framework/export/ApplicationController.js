@@ -37,6 +37,11 @@ export class ApplicationController extends BaseController {
     this.#loggingEnv  = application.logger?.$env ?? null;
   }
 
+  /** @returns {BaseApplication} The controlled application instance. */
+  get application() {
+    return this.#application;
+  }
+
   /**
    * Asks this instance's underlying application to handle the given request.
    * Parameters are as defined by the Express middleware spec.
@@ -97,10 +102,5 @@ export class ApplicationController extends BaseController {
     };
 
     this.#application.handleRequest(req, res, innerNext);
-  }
-
-  /** @returns {BaseApplication} The controlled application instance. */
-  get application() {
-    return this.#application;
   }
 }
