@@ -83,19 +83,19 @@ export class ServerController extends BaseController {
     this.#wrangler = ProtocolWranglers.make(wranglerOptions);
   }
 
-  /**
-   * Starts the server.
-   */
-  async start() {
-    return this.#wrangler.start();
+  /** @override */
+  async _impl_start(isReload_unused) {
+    await this.#wrangler.start();
   }
 
   /**
-   * Stops the server. This returns when the server is actually stopped (socket
-   * is closed).
+   * **Note:** This returns when the server is actually stopped, with the server
+   * socket closed.
+   *
+   * @override
    */
-  async stop() {
-    return this.#wrangler.stop();
+  async _impl_stop(willReload_unused) {
+    await this.#wrangler.stop();
   }
 
   /**
