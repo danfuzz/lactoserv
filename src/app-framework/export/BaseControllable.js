@@ -40,9 +40,10 @@ export class BaseControllable {
   /**
    * Starts this instance.
    *
-   * @param {boolean} isReload Is this action due to an in-process reload?
+   * @param {boolean} [isReload = false] Is this action due to an in-process
+   *   reload?
    */
-  async start(isReload) {
+  async start(isReload = false) {
     MustBe.boolean(isReload);
 
     BaseControllable.logStarting(this.#logger, isReload);
@@ -54,10 +55,10 @@ export class BaseControllable {
    * Stops this this instance. This method returns when the instance is fully
    * stopped.
    *
-   * @param {boolean} willReload Is this action due to an in-process reload
-   *   being requested?
+   * @param {boolean} [willReload = false] Is this action due to an in-process
+   *   reload being requested?
    */
-  async stop(willReload) {
+  async stop(willReload = false) {
     MustBe.boolean(willReload);
 
     BaseControllable.logStopping(this.#logger, willReload);
