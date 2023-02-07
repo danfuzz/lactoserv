@@ -143,7 +143,7 @@ export class LogProxyHandler extends PropertyCacheProxyHandler {
    * Metainformation about a logger. Instances of this class are returned when
    * accessing the property `$meta` on logger instances.
    */
-  static Meta = class Meta {
+  static Meta = class Meta extends IntfLogger.Meta {
     /** @type {LogProxyHandler} The subject handler instance. */
     #handler;
 
@@ -153,19 +153,16 @@ export class LogProxyHandler extends PropertyCacheProxyHandler {
      * @param {LogProxyHandler} handler The subject handler instance.
      */
     constructor(handler) {
+      super();
       this.#handler = handler;
     }
 
-    /** @returns {string} Convenient accessor for `this.tag().lastContext`. */
+    /** @override */
     get lastContext() {
       return this.tag.lastContext;
     }
 
-    /**
-     * @returns {LogTag} The tag used by the logger, when it is invoked as an
-     * object (as opposed to called as a function, which is the less usual and
-     * generally unexpected case).
-     */
+    /** @override */
     get tag() {
       // Note: This is the instance's (computed/cached) `subTag` and not its
       // `tag`, because the latter doesn't include the full context when the
@@ -173,11 +170,7 @@ export class LogProxyHandler extends PropertyCacheProxyHandler {
       return this.#handler.#subTag;
     }
 
-    /**
-     * Gets newly-generated ID from this instance's logging environment.
-     *
-     * @returns {string} The new ID.
-     */
+    /** @override */
     makeId() {
       return this.#handler.#environment.makeId();
     }
