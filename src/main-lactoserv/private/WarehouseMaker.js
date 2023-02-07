@@ -43,13 +43,16 @@ export class WarehouseMaker {
     let config;
 
     try {
+      this.#logger.readingConfiguration();
       config = (await import(this.#configUrl)).default;
+      this.#logger.readConfiguration();
     } catch (e) {
       this.#logger.configFileError(e);
       throw e;
     }
 
     try {
+      this.#logger.constructingWarehouse();
       const result = new Warehouse(config);
       this.#logger.constructedWarehouse();
       return result;
