@@ -6,7 +6,6 @@ export * from '#x/ApplicationManager';
 export * from '#x/BaseApplication';
 export * from '#x/BaseComponent';
 export * from '#x/BaseControllable';
-export * from '#x/BaseController';
 export * from '#x/BaseService';
 export * from '#x/HostManager';
 export * from '#x/ServerController';

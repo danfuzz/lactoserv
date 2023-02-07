@@ -7,7 +7,7 @@ import { ProtocolWrangler, ProtocolWranglers, WranglerContext } from '@this/netw
 import { MustBe } from '@this/typey';
 
 import { BaseApplication } from '#x/BaseApplication';
-import { BaseController } from '#x/BaseController';
+import { BaseComponent } from '#x/BaseComponent';
 import { HostManager } from '#x/HostManager';
 import { ThisModule } from '#p/ThisModule';
 
@@ -18,7 +18,7 @@ import { ThisModule } from '#p/ThisModule';
  * `express.Application` (or equivalent) which _exclusively_ handles that
  * server.
  */
-export class ServerController extends BaseController {
+export class ServerController extends BaseComponent {
   /**
    * @type {HostManager} Host manager with bindings for all valid hostnames for
    * this instance.
