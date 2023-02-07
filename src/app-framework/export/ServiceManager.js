@@ -3,6 +3,7 @@
 
 import { ServiceConfig } from '@this/app-config';
 
+import { BaseApplication } from '#x/BaseApplication';
 import { BaseControllable } from '#x/BaseControllable';
 import { BaseService } from '#x/BaseService';
 import { ServiceFactory } from '#x/ServiceFactory';
