@@ -4,7 +4,7 @@
 import * as fs from 'node:fs/promises';
 
 import { FileServiceConfig } from '@this/app-config';
-import { BaseService, ServiceController } from '@this/app-framework';
+import { BaseService } from '@this/app-framework';
 import { Rotator } from '@this/app-util';
 import { IntfRequestLogger } from '@this/network-protocol';
 
