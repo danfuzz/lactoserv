@@ -198,6 +198,27 @@ export class BaseProxyHandler {
 
   /**
    * Constructs and returns a proxy which wraps an instance of this class,
+   * and with a frozen pseudo-instance of the given class as the target. The
+   * instance of this class is constructed with whatever arguments get passed to
+   * this method.
+   *
+   * @param {function(new:*)} targetCls Class to pseudo-instantiate as the
+   *   target.
+   * @param {...*} args Construction arguments to pass to this class's
+   *   constructor.
+   * @returns {Proxy} Proxy instance which uses an instance of this class as its
+   *   handler and which adopts a baseline identity as a function.
+   */
+  static makeInstanceProxy(targetCls, ...args) {
+    // **Note:** `this` in the context of a static method is the class.
+    const handler = new this(...args);
+
+    const notQuiteInstance = Object.freeze(Object.create(targetCls.prototype));
+    return new Proxy(notQuiteInstance, handler);
+  }
+
+  /**
+   * Constructs and returns a proxy which wraps an instance of this class,
    * and with a frozen empty object as the target. The instance of this class
    * is constructed with whatever arguments get passed to this method.
    *
