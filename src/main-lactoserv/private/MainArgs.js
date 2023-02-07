@@ -143,6 +143,8 @@ export class MainArgs {
     if (result.config) {
       result.configUrl = pathToFileURL(result.config);
       result.config    = undefined;
+    } else {
+      result.configUrl = new URL(result.configUrl);
     }
 
     return result;
