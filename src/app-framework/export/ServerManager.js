@@ -23,7 +23,7 @@ export class ServerManager extends BaseControllable {
    * @type {Map<string, NetworkServer>} Map from each server name to the
    * {@link NetworkServer} object with that name.
    */
-  #controllers = new Map();
+  #instances = new Map();
 
   /**
    * Constructs an instance.
@@ -37,25 +37,25 @@ export class ServerManager extends BaseControllable {
     this.#warehouse = warehouse;
 
     for (const config of configs) {
-      this.#addControllerFor(config);
+      this.#addInstanceFor(config);
     }
   }
 
   /**
-   * Finds the {@link NetworkServer} for a given server name.
+   * Finds the {@link NetworkServer} for a given name.
    *
    * @param {string} name Server name to look for.
-   * @returns {NetworkServer} The associated controller.
-   * @throws {Error} Thrown if there is no controller with the given name.
+   * @returns {NetworkServer} The associated server.
+   * @throws {Error} Thrown if there is no server with the given name.
    */
-  findController(name) {
-    const controller = this.#controllers.get(name);
+  findServer(name) {
+    const instance = this.#instances.get(name);
 
-    if (!controller) {
+    if (!instance) {
       throw new Error(`No such server: ${name}`);
     }
 
-    return controller;
+    return instance;
   }
 
   /**
@@ -64,7 +64,7 @@ export class ServerManager extends BaseControllable {
    * @returns {NetworkServer[]} All the servers.
    */
   getAll() {
-    return [...this.#controllers.values()];
+    return [...this.#instances.values()];
   }
 
   /** @override */
@@ -85,11 +85,11 @@ export class ServerManager extends BaseControllable {
 
   /**
    * Constructs a {@link NetworkServer} based on the given information, and
-   * adds a mapping to {@link #controllers} so it can be found.
+   * adds a mapping to {@link #instances} so it can be found.
    *
    * @param {ServerConfig} config Parsed configuration item.
    */
-  #addControllerFor(config) {
+  #addInstanceFor(config) {
     const {
       endpoint: { hostnames },
       mounts,
@@ -97,7 +97,7 @@ export class ServerManager extends BaseControllable {
       services: { rateLimiter: limName, requestLogger: logName }
     } = config;
 
-    if (this.#controllers.has(name)) {
+    if (this.#instances.has(name)) {
       throw new Error(`Duplicate server name: ${name}`);
     }
 
@@ -121,9 +121,9 @@ export class ServerManager extends BaseControllable {
       requestLogger
     };
 
-    const controller = new NetworkServer(config, extraConfig);
+    const instance = new NetworkServer(config, extraConfig);
 
-    this.#controllers.set(name, controller);
+    this.#instances.set(name, instance);
     this.logger.bound(name);
   }
 
@@ -141,8 +141,8 @@ export class ServerManager extends BaseControllable {
 
     for (const { application } of mounts) {
       if (!result.has(application)) {
-        const controller = applicationManager.findApplication(application);
-        result.set(application, controller);
+        const found = applicationManager.findApplication(application);
+        result.set(application, found);
       }
     }
 
