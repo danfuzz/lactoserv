@@ -32,8 +32,7 @@ export class RequestLoggerService extends BaseService {
    * Constructs an instance.
    *
    * @param {FileServiceConfig} config Configuration for this service.
-   * @param {?IntfLogger} logger Instance-specific logger, or `null` if no
-   *   logging is to be done.
+   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    */
   constructor(config, logger) {
     super(config, logger);

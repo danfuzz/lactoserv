@@ -22,7 +22,7 @@ export class Rotator {
 
   /**
    * @type {?number} How long to wait between checks, in msec, if timed checks
-   * are to be done; or `null` if no such checking should be done.
+   * are to be done; or `null` not to do such checks.
    */
   #checkMsec;
 
@@ -51,7 +51,7 @@ export class Rotator {
    * Constructs an instance.
    *
    * @param {FileServiceConfig} config Configuration to use.
-   * @param {?IntfLogger} logger Logger to use, if any.
+   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    */
   constructor(config, logger) {
     this.#config = MustBe.instanceOf(config, FileServiceConfig);

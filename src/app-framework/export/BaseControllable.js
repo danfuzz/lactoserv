@@ -18,8 +18,7 @@ export class BaseControllable {
   /**
    * Constructs an instance.
    *
-   * @param {?IntfLogger} logger Instance-specific logger, or `null` not to any
-   *   logging.
+   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    */
   constructor(logger) {
     this.#logger = logger;
@@ -89,8 +88,7 @@ export class BaseControllable {
    * Logs a message about an item (component, controller, etc.) completing a
    * `start()` action.
    *
-   * @param {?IntfLogger} logger Logger to use, or `null` if no logging is to be
-   *   done.
+   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    * @param {boolean} isReload Is this a system reload (vs. first-time init)?
    */
   static logStarted(logger, isReload) {
@@ -101,8 +99,7 @@ export class BaseControllable {
    * Logs a message about an item (component, controller, etc.) initiating a
    * `start()` action.
    *
-   * @param {?IntfLogger} logger Logger to use, or `null` if no logging is to be
-   *   done.
+   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    * @param {boolean} isReload Is this a system reload (vs. first-time init)?
    */
   static logStarting(logger, isReload) {
@@ -113,8 +110,7 @@ export class BaseControllable {
    * Logs a message about an item (component, controller, etc.) initiating a
    * `stop()` action.
    *
-   * @param {?IntfLogger} logger Logger to use, or `null` if no logging is to be
-   *   done.
+   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    * @param {boolean} willReload Is this a pending system reload (vs. final
    *   shutdown)?
    */
@@ -126,8 +122,7 @@ export class BaseControllable {
    * Logs a message about an item (component, controller, etc.) completing a
    * `stop()` action.
    *
-   * @param {?IntfLogger} logger Logger to use, or `null` if no logging is to be
-   *   done.
+   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    * @param {boolean} willReload Is this a pending system reload (vs. final
    *   shutdown)?
    */

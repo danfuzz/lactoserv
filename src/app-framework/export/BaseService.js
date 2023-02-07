@@ -16,8 +16,7 @@ export class BaseService extends BaseComponent {
    * Constructs an instance.
    *
    * @param {ServiceConfig} config Configuration for this service.
-   * @param {?IntfLogger} logger Instance-specific logger, or `null` if no
-   *   logging is to be done.
+   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    */
   constructor(config, logger) {
     MustBe.instanceOf(config, ServiceConfig);

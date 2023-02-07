@@ -19,8 +19,7 @@ export class BaseComponent extends BaseControllable {
    * Constructs an instance.
    *
    * @param {BaseConfig} config Configuration for this component.
-   * @param {?IntfLogger} logger Instance-specific logger, or `null` if no
-   *   logging is to be done.
+   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    */
   constructor(config, logger) {
     super(logger);

@@ -42,8 +42,8 @@ export class ProtocolWrangler {
   #requestHandler;
 
   /**
-   * @type {?RequestLogHelper} Helper for HTTP(ish) request logging, if request
-   * logging is to be done.
+   * @type {?RequestLogHelper} Helper for HTTP(ish) request logging, or `null`
+   * to not do any such logging.
    */
   #logHelper;
 
@@ -76,7 +76,7 @@ export class ProtocolWrangler {
    *   form of a standard Express middleware function. This is required.
    * * `requestLogger: BaseService` -- Request logger to send to. (If not
    *   specified, the instance won't do request logging.)
-   * * `logger: function(...*)` -- Logger to use to emit events about what the
+   * * `logger: ?IntfLogger` -- Logger to use to emit events about what the
    *   instance is doing. (If not specified, the instance won't do logging.)
    * * `protocol: string` -- The name of this protocol.
    * * `socket: object` -- Options to use for creation of and/or listening on
