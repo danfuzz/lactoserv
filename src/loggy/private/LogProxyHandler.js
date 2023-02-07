@@ -4,6 +4,7 @@
 import { PropertyCacheProxyHandler } from '@this/metacomp';
 
 import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
+import { IntfLogger } from '#x/IntfLogger';
 import { LogTag } from '#x/LogTag';
 
 
@@ -191,7 +192,7 @@ export class LogProxyHandler extends PropertyCacheProxyHandler {
    *   constructor arguments for same. If `null`, the instance will have no
    *   context tag.
    * @param {BaseLoggingEnvironment} environment Logging environment to use.
-   * @returns {function(...*)} A logger, as described.
+   * @returns {IntfLogger} A logger, as described.
    */
   static makeInstance(tag, environment) {
     if (tag === null) {

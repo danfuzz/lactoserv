@@ -45,7 +45,8 @@ export class NetworkServer extends BaseComponent {
    * * `{Map<string,BaseApplication>} applicationMap` -- Map of names to
    *   applications, for use in building the active mount map.
    * * `{?HostManager} hostManager` -- Replacement for `hostnames`.
-   * * `{function(...*)} logger` -- Logger to use.
+   * * `{?IntfLogger} logger` -- Logger to use for reporting network activity,
+   *   or `null not to do any logging.
    * * `{?RateLimiterService} rateLimiter` -- Replacemant for `rateLimiter`
    *   (service instance, not just a name).
    * * `{?RequestLoggerService} requestLogger` -- Replacemant for `rateLimiter`

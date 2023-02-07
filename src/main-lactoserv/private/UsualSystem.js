@@ -6,6 +6,7 @@ import { Condition, Threadlet } from '@this/async';
 import { BuiltinApplications } from '@this/builtin-applications';
 import { BuiltinServices } from '@this/builtin-services';
 import { Host } from '@this/host';
+import { IntfLogger } from '@this/loggy';
 
 import { MainArgs } from '#p/MainArgs';
 import { ThisModule } from '#p/ThisModule';
@@ -31,7 +32,10 @@ export class UsualSystem extends Threadlet {
   /** @type {Error} Error to throw instead of running. */
   #error = null;
 
-  /** @type {function(...*)} Logger for this instance. */
+  /**
+   * @type {?IntfLogger} Logger for this instance, or `null` not to do any
+   * logging.
+   */
   #logger = ThisModule.logger.system;
 
   /**

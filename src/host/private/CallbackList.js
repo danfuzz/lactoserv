@@ -4,6 +4,7 @@
 import * as timers from 'node:timers/promises';
 
 import { Condition } from '@this/async';
+import { IntfLogger } from '@this/loggy';
 
 import { ThisModule } from '#p/ThisModule';
 
@@ -12,7 +13,7 @@ import { ThisModule } from '#p/ThisModule';
  * List of callbacks to be managed and (perhaps) actually run.
  */
 export class CallbackList {
-  /** @type {function(...*)} Instance-specific logger. */
+  /** @type {?IntfLogger} Logger to use, or `null` not to do any logging. */
   #logger;
 
   /** @type {number} Maximum time for running all callbacks, in msec. */
