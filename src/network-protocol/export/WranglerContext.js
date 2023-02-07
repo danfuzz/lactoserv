@@ -45,7 +45,7 @@ export class WranglerContext {
     return this.#connectionLogger;
   }
 
-  /** @returns {?function(...*)} Most-specific available id, if any. */
+  /** @returns {?string} Most-specific available id, if any. */
   get id() {
     return this.#requestId
       ?? this.#sessionId
