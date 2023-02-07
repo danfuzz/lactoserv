@@ -52,7 +52,7 @@ import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
  *
  * @interface
  */
-export class IntfRequestLogger {
+export class IntfLogger {
   /**
    * @returns {BaseLoggingEnvironment} The logging environment used by this
    * instance.
