@@ -206,6 +206,6 @@ export class LogProxyHandler extends PropertyCacheProxyHandler {
       tag = new LogTag(...tag);
     }
 
-    return this.makeFunctionProxy(tag, null, environment);
+    return this.makeInstanceProxy(IntfLogger, tag, null, environment);
   }
 }
