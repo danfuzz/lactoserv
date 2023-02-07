@@ -1,6 +1,7 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
 // This project is PROPRIETARY and UNLICENSED.
 
+import { IntfLogger } from '@this/loggy';
 import { Methods } from '@this/typey';
 
 
@@ -15,7 +16,7 @@ export class IntfRateLimiter {
    * granted a new connection or there is too much load to grant a connection.
    *
    * @abstract
-   * @param {?function(*)} logger Logger to use for this action.
+   * @param {?IntfLogger} logger Logger to use for this action.
    * @returns {boolean} Was a connection actually granted?
    */
   async newConnection(logger) {
@@ -27,7 +28,7 @@ export class IntfRateLimiter {
    * granted a new request or there is too much load to grant a request.
    *
    * @abstract
-   * @param {?function(*)} logger Logger to use for this action.
+   * @param {?IntfLogger} logger Logger to use for this action.
    * @returns {boolean} Was a request actually granted?
    */
   async newRequest(logger) {
@@ -42,7 +43,7 @@ export class IntfRateLimiter {
    *
    * @abstract
    * @param {object} stream The writable stream to wrap.
-   * @param {?function(*)} logger Logger to use for this action.
+   * @param {?IntfLogger} logger Logger to use for this action.
    * @returns {object} An appropriately-wrapped instance, or the original
    *   `stream` if this instance has no data rate limiter.
    */

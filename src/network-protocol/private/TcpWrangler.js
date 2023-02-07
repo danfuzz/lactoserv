@@ -4,7 +4,7 @@
 import * as net from 'node:net';
 
 import { Condition, Threadlet } from '@this/async';
-import { FormatUtils } from '@this/loggy';
+import { FormatUtils, IntfLogger } from '@this/loggy';
 
 import { IntfRateLimiter } from '#x/IntfRateLimiter';
 import { ProtocolWrangler } from '#x/ProtocolWrangler';
@@ -15,7 +15,7 @@ import { ProtocolWrangler } from '#x/ProtocolWrangler';
  * them... but HTTP3 will be here before we know it!).
  */
 export class TcpWrangler extends ProtocolWrangler {
-  /** @type {?function(...*)} Logger, if logging is to be done. */
+  /** @type {?IntfLogger} Logger to use, or `null` to not do any logging. */
   #logger;
 
   /** @type {?IntfRateLimiter} Rate limiter service to use, if any. */

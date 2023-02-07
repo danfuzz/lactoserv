@@ -8,6 +8,7 @@ import express from 'express';
 import http2ExpressBridge from 'http2-express-bridge';
 
 import { Condition, Threadlet } from '@this/async';
+import { IntfLogger } from '@this/loggy';
 
 import { TcpWrangler } from '#p/TcpWrangler';
 import { WranglerContext } from '#x/WranglerContext';
@@ -17,7 +18,7 @@ import { WranglerContext } from '#x/WranglerContext';
  * Wrangler for `Http2SecureServer`.
  */
 export class Http2Wrangler extends TcpWrangler {
-  /** @type {?function(...*)} Logger, if logging is to be done. */
+  /** @type {?IntfLogger} Logger to use, or `null` to not do any logging. */
   #logger;
 
   /** @type {express} Express-like application. */

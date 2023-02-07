@@ -18,19 +18,19 @@ export class WranglerContext {
   /** @type {?string} ID of a connection. */
   #connectionId = null;
 
-  /** @type {?function(...*)} Logger for a connection. */
+  /** @type {?IntfLogger} Logger for a connection. */
   #connectionLogger = null;
 
   /** @type {?string} ID of a session. */
   #sessionId = null;
 
-  /** @type {?function(...*)} Logger for a session. */
+  /** @type {?IntfLogger} Logger for a session. */
   #sessionLogger = null;
 
   /** @type {?string} ID of a request. */
   #requestId = null;
 
-  /** @type {?function(...*)} Logger for a request. */
+  /** @type {?IntfLogger} Logger for a request. */
   #requestLogger = null;
 
   // Note: The default constructor is fine here.
@@ -40,7 +40,7 @@ export class WranglerContext {
     return this.#connectionId;
   }
 
-  /** @returns {?function(...*)} Logger for a connection. */
+  /** @returns {?IntfLogger} Logger for a connection. */
   get connectionLogger() {
     return this.#connectionLogger;
   }
@@ -52,7 +52,7 @@ export class WranglerContext {
       ?? this.#connectionId;
   }
 
-  /** @returns {?function(...*)} Most-specific available logger, if any. */
+  /** @returns {?IntfLogger} Most-specific available logger, if any. */
   get logger() {
     return this.#requestLogger
       ?? this.#sessionLogger
@@ -64,7 +64,7 @@ export class WranglerContext {
     return this.#requestId;
   }
 
-  /** @returns {?function(...*)} Logger for a request. */
+  /** @returns {?IntfLogger} Logger for a request. */
   get requestLogger() {
     return this.#requestLogger;
   }
@@ -74,7 +74,7 @@ export class WranglerContext {
     return this.#sessionId;
   }
 
-  /** @returns {?function(...*)} Logger for a session. */
+  /** @returns {?IntfLogger} Logger for a session. */
   get sessionLogger() {
     return this.#sessionLogger;
   }

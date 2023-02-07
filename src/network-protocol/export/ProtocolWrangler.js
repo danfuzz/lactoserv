@@ -29,7 +29,7 @@ import { WranglerContext } from '#x/WranglerContext';
  * to the application (which is up to the clients of this class).
  */
 export class ProtocolWrangler {
-  /** @type {?function(...*)} Logger, if logging is to be done. */
+  /** @type {?IntfLogger} Logger to use, or `null` to not do any logging. */
   #logger;
 
   /** @type {?IntfRateLimiter} Rate limiter service to use, if any. */

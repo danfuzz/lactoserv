@@ -134,7 +134,7 @@ export class RateLimiterService extends BaseService {
    * Common implementation for the single-token-type rate limiters.
    *
    * @param {TokenBucket} bucket Which bucket to use.
-   * @param {?function(*)} logger Logger to use for this action.
+   * @param {?IntfLogger} logger Logger to use for this action.
    * @returns {boolean} Was a token actually granted?
    */
   static async #requestOneToken(bucket, logger) {

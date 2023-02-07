@@ -12,10 +12,7 @@ import { Methods, MustBe } from '@this/typey';
  * know how to `start()` and `stop()` themselves.
  */
 export class BaseControllable {
-  /**
-   * @type {?function(...*)} Instance-specific logger, or `null` if no logging
-   * is to be done.
-   */
+  /** @type {?IntfLogger} Logger to use, or `null` to not do any logging. */
   #logger;
 
   /**
@@ -28,10 +25,7 @@ export class BaseControllable {
     this.#logger = logger;
   }
 
-  /**
-   * @type {?function(...*)} Instance-specific logger, or `null` if no logging
-   * is to be done.
-   */
+  /** @type {?IntfLogger} Logger to use, or `null` to not do any logging. */
   get logger() {
     return this.#logger;
   }
