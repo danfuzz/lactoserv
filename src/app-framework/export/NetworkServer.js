@@ -13,12 +13,13 @@ import { ThisModule } from '#p/ThisModule';
 
 
 /**
- * "Controller" for a single server. Instances of this class wrap both a
- * (concrete subclass of a) {@link net.Server} object _and_ an
- * `express.Application` (or equivalent) which _exclusively_ handles that
- * server.
+ * Component (in the sense of this module) which completely handles a single
+ * network endpoint. Instances of this class have a {@link ProtocolWrangler} to
+ * deal with the lower-level networking details and a map from mount points to
+ * {@link BaseApplication} instances. This class is the connection between these
+ * two things.
  */
-export class ServerController extends BaseComponent {
+export class NetworkServer extends BaseComponent {
   /**
    * @type {HostManager} Host manager with bindings for all valid hostnames for
    * this instance.
@@ -65,7 +66,7 @@ export class ServerController extends BaseComponent {
     super(config, ThisModule.logger.server[name]);
 
     this.#hostManager = hostManager;
-    this.#mountMap    = ServerController.#makeMountMap(mounts, applicationMap);
+    this.#mountMap    = NetworkServer.#makeMountMap(mounts, applicationMap);
 
     const wranglerOptions = {
       rateLimiter,
@@ -114,7 +115,7 @@ export class ServerController extends BaseComponent {
 
     // Freezing `subdomains` lets `new TreePathKey()` avoid making a copy.
     const hostKey = new TreePathKey(Object.freeze(subdomains), false);
-    const pathKey = ServerController.#parsePath(path);
+    const pathKey = NetworkServer.#parsePath(path);
 
     // Find the mount map for the most-specific matching host.
     const hostMatch = this.#mountMap.find(hostKey);

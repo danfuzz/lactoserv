@@ -8,7 +8,7 @@ export * from '#x/BaseComponent';
 export * from '#x/BaseControllable';
 export * from '#x/BaseService';
 export * from '#x/HostManager';
-export * from '#x/ServerController';
+export * from '#x/NetworkServer';
 export * from '#x/ServerManager';
 export * from '#x/ServiceFactory';
 export * from '#x/ServiceManager';

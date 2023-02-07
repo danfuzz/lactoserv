@@ -5,7 +5,7 @@ import { MountConfig, ServerConfig } from '@this/app-config';
 
 import { BaseApplication } from '#x/BaseApplication';
 import { BaseControllable } from '#x/BaseControllable';
-import { ServerController } from '#x/ServerController';
+import { NetworkServer } from '#x/NetworkServer';
 import { ThisModule } from '#p/ThisModule';
 import { Warehouse } from '#x/Warehouse';
 
@@ -20,8 +20,8 @@ export class ServerManager extends BaseControllable {
   #warehouse;
 
   /**
-   * @type {Map<string, ServerController>} Map from each server name to the
-   * {@link ServerController} object with that name.
+   * @type {Map<string, NetworkServer>} Map from each server name to the
+   * {@link NetworkServer} object with that name.
    */
   #controllers = new Map();
 
@@ -42,10 +42,10 @@ export class ServerManager extends BaseControllable {
   }
 
   /**
-   * Finds the {@link ServerController} for a given server name.
+   * Finds the {@link NetworkServer} for a given server name.
    *
    * @param {string} name Server name to look for.
-   * @returns {ServerController} The associated controller.
+   * @returns {NetworkServer} The associated controller.
    * @throws {Error} Thrown if there is no controller with the given name.
    */
   findController(name) {
@@ -59,9 +59,9 @@ export class ServerManager extends BaseControllable {
   }
 
   /**
-   * Gets a list of all controllers managed by this instance.
+   * Gets a list of all servers managed by this instance.
    *
-   * @returns {ServerController[]} All the controllers.
+   * @returns {NetworkServer[]} All the servers.
    */
   getAll() {
     return [...this.#controllers.values()];
@@ -84,7 +84,7 @@ export class ServerManager extends BaseControllable {
   }
 
   /**
-   * Constructs a {@link ServerController} based on the given information, and
+   * Constructs a {@link NetworkServer} based on the given information, and
    * adds a mapping to {@link #controllers} so it can be found.
    *
    * @param {ServerConfig} config Parsed configuration item.
@@ -121,7 +121,7 @@ export class ServerManager extends BaseControllable {
       requestLogger
     };
 
-    const controller = new ServerController(config, extraConfig);
+    const controller = new NetworkServer(config, extraConfig);
 
     this.#controllers.set(name, controller);
     this.logger.bound(name);
@@ -129,7 +129,7 @@ export class ServerManager extends BaseControllable {
 
   /**
    * Makes an `applicationMap` map suitable for use in constructing a {@link
-   * ServerController}, by also using the {@link #warehouse} to look up
+   * NetworkServer}, by also using the {@link #warehouse} to look up
    * application name bindings.
    *
    * @param {MountConfig[]} mounts Original `mounts` configuration item.
