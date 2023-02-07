@@ -59,15 +59,15 @@ export class BaseConverter {
   static #UNHANDLED = Symbol('BaseConverter.UNHANDLED');
 
   /**
-   * @type {symbol} Name of method to define, in order to specify custom value
-   * encoding behavior on an instance.
+   * @returns {symbol} Name of method to define, in order to specify custom
+   * value encoding behavior on an instance.
    */
   static get ENCODE() {
     return this.#ENCODE;
   }
 
   /**
-   * @type {symbol} Return value from an `encode()` method to indicate "omit
+   * @returns {symbol} Return value from an `encode()` method to indicate "omit
    * this."
    */
   static get OMIT() {

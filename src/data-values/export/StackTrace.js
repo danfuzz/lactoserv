@@ -61,7 +61,7 @@ export class StackTrace {
   }
 
   /**
-   * @type {{ name: ?string, file: string, line: ?number, col: ?number }[]}
+   * @returns {{ name: ?string, file: string, line: ?number, col: ?number }[]}
    * Array of stack frames.
    */
   get frames() {

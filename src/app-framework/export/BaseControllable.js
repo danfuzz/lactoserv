@@ -18,14 +18,14 @@ export class BaseControllable {
   /**
    * Constructs an instance.
    *
-   * @param {?IntfLogger} logger Instance-specific logger, or `null` if no
-   *   logging is to be done.
+   * @param {?IntfLogger} logger Instance-specific logger, or `null` not to any
+   *   logging.
    */
   constructor(logger) {
     this.#logger = logger;
   }
 
-  /** @type {?IntfLogger} Logger to use, or `null` to not do any logging. */
+  /** @returns {?IntfLogger} Logger to use, or `null` to not do any logging. */
   get logger() {
     return this.#logger;
   }
