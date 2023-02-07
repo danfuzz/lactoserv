@@ -2,6 +2,7 @@
 // This project is PROPRIETARY and UNLICENSED.
 
 import { BaseConfig } from '@this/app-config';
+import { IntfLogger } from '@this/loggy';
 import { Methods, MustBe } from '@this/typey';
 
 import { BaseControllable } from '#x/BaseControllable';
@@ -18,8 +19,7 @@ export class BaseComponent extends BaseControllable {
    * Constructs an instance.
    *
    * @param {BaseConfig} config Configuration for this component.
-   * @param {?function(...*)} logger Instance-specific logger, or `null` if
-   *   no logging is to be done.
+   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    */
   constructor(config, logger) {
     super(logger);

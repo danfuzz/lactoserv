@@ -1,6 +1,7 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
 // This project is PROPRIETARY and UNLICENSED.
 
+import { IntfLogger } from '@this/loggy';
 import { Methods, MustBe } from '@this/typey';
 
 
@@ -11,26 +12,19 @@ import { Methods, MustBe } from '@this/typey';
  * know how to `start()` and `stop()` themselves.
  */
 export class BaseControllable {
-  /**
-   * @type {?function(...*)} Instance-specific logger, or `null` if no logging
-   * is to be done.
-   */
+  /** @type {?IntfLogger} Logger to use, or `null` to not do any logging. */
   #logger;
 
   /**
    * Constructs an instance.
    *
-   * @param {?function(...*)} logger Instance-specific logger, or `null` if
-   *   no logging is to be done.
+   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    */
   constructor(logger) {
     this.#logger = logger;
   }
 
-  /**
-   * @type {?function(...*)} Instance-specific logger, or `null` if no logging
-   * is to be done.
-   */
+  /** @returns {?IntfLogger} Logger to use, or `null` to not do any logging. */
   get logger() {
     return this.#logger;
   }
@@ -94,8 +88,7 @@ export class BaseControllable {
    * Logs a message about an item (component, controller, etc.) completing a
    * `start()` action.
    *
-   * @param {?function(...*)} logger Logger to use, or `null` to not actually do
-   *   any logging.
+   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    * @param {boolean} isReload Is this a system reload (vs. first-time init)?
    */
   static logStarted(logger, isReload) {
@@ -106,8 +99,7 @@ export class BaseControllable {
    * Logs a message about an item (component, controller, etc.) initiating a
    * `start()` action.
    *
-   * @param {?function(...*)} logger Logger to use, or `null` to not actually do
-   *   any logging.
+   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    * @param {boolean} isReload Is this a system reload (vs. first-time init)?
    */
   static logStarting(logger, isReload) {
@@ -118,8 +110,7 @@ export class BaseControllable {
    * Logs a message about an item (component, controller, etc.) initiating a
    * `stop()` action.
    *
-   * @param {?function(...*)} logger Logger to use, or `null` to not actually do
-   *   any logging.
+   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    * @param {boolean} willReload Is this a pending system reload (vs. final
    *   shutdown)?
    */
@@ -131,8 +122,7 @@ export class BaseControllable {
    * Logs a message about an item (component, controller, etc.) completing a
    * `stop()` action.
    *
-   * @param {?function(...*)} logger Logger to use, or `null` to not actually do
-   *   any logging.
+   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    * @param {boolean} willReload Is this a pending system reload (vs. final
    *   shutdown)?
    */

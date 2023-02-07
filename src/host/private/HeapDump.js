@@ -7,7 +7,7 @@ import path from 'node:path';
 import { promisify } from 'node:util';
 
 import { EventSink, EventSource } from '@this/async';
-import { FormatUtils } from '@this/loggy';
+import { FormatUtils, IntfLogger } from '@this/loggy';
 
 import { ThisModule } from '#p/ThisModule';
 
@@ -19,7 +19,10 @@ export class HeapDump {
   /** @type {number} Minimum number of bytes between intra-dump reports. */
   static #REPORT_INTERVAL_BYTES = 4_000_000;
 
-  /** @type {function(...*)} Logger for this class. */
+  /**
+   * @type {?IntfLogger} Logger for this class, or `null` not to do any
+   * logging.
+   */
   static #logger = ThisModule.logger['heap-dump'];
 
   /**

@@ -5,6 +5,8 @@ import process from 'node:process'; // Need to import as such, for `.on*()`.
 import * as timers from 'node:timers/promises';
 import * as util from 'node:util';
 
+import { IntfLogger } from '@this/loggy';
+
 import { ShutdownHandler } from '#p/ShutdownHandler';
 import { ThisModule } from '#p/ThisModule';
 
@@ -23,7 +25,10 @@ export class TopErrorHandler {
    */
   static #PROMISE_REJECTION_GRACE_PERIOD_TICKS = 10;
 
-  /** @type {function(...*)} Logger for this class. */
+  /**
+   * @type {?IntfLogger} Logger for this class, or `null` not to do any
+   * logging.
+   */
   static #logger = ThisModule.logger.topError;
 
   /** @type {boolean} Initialized? */
@@ -39,7 +44,7 @@ export class TopErrorHandler {
   static #problems = [];
 
   /**
-   * @type {object[]} List of all unhandled problems that are precipitating
+   * @returns {object[]} List of all unhandled problems that are precipitating
    * shutdown. Typically no more than one element, but if an error happens
    * during error-related shutdown then there can be more. Each element is an
    * object which binds `type` and `problem`.

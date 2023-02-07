@@ -5,7 +5,7 @@ import * as http2 from 'node:http2';
 
 import * as express from 'express';
 
-import { FormatUtils } from '@this/loggy';
+import { FormatUtils, IntfLogger } from '@this/loggy';
 
 import { IntfRequestLogger } from '#x/IntfRequestLogger';
 import { WranglerContext } from '#x/WranglerContext';
@@ -18,14 +18,17 @@ export class RequestLogHelper {
   /** @type {IntfRequestLogger} Request logger service to use. */
   #requestLogger;
 
-  /** @type {function(...*)} Underlying logger instance to use. */
+  /**
+   * @type {?IntfLogger} _System_ logger to use, or `null` not to do any system
+   * logging.
+   */
   #logger;
 
   /**
    * Constructs an instance.
    *
    * @param {IntfRequestLogger} requestLogger Request logger service to use.
-   * @param {?function(...*)} logger Underlying system event logger instance to
+   * @param {?IntfLogger} logger Underlying system event logger instance to
    *   use, if any.
    */
   constructor(requestLogger, logger) {
@@ -36,12 +39,14 @@ export class RequestLogHelper {
   /**
    * Logs the indicated request / response pair. This returns the
    * request-specific logger so that it can be used by other parts of the system
-   * that are acting in service of the request.
+   * that are acting in service of the request (or `null` if the system is not
+   * doing logging for this request).
    *
    * @param {express.Request} req Request object.
    * @param {express.Response} res Response object.
    * @param {WranglerContext} context Connection or session context.
-   * @returns {function(*...)} The request-specific logger.
+   * @returns {?IntfLogger} The request-specific logger, or `null` not to log
+   *   this request.
    */
   logRequest(req, res, context) {
     const startTime = this.#logger?.$env.nowSec();

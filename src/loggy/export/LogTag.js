@@ -44,23 +44,23 @@ export class LogTag {
     this.#context = Object.freeze(context);
   }
 
-  /** @type {string[]} Context strings. Always a frozen array. */
+  /** @returns {string[]} Context strings. Always a frozen array. */
   get context() {
     return this.#context;
   }
 
   /**
-   * @type {?string} Last context string, or `null` if this instance has no
-   *   context. In the (common) case where this tag is attached to a logger
-   *   which was produced by accessing `$newId` on another logger, this is the
-   *   ID that was appended to the original logger's context.
+   * @returns {?string} Last context string, or `null` if this instance has no
+   * context. In the (common) case where this tag is attached to a logger which
+   * was produced by accessing `$newId` on another logger, this is the ID that
+   * was appended to the original logger's context.
    */
   get lastContext() {
     const length = this.#context.length;
     return (length === 0) ? null : this.#context[length - 1];
   }
 
-  /** @type {string} Main tag. */
+  /** @returns {string} Main tag. */
   get main() {
     return this.#main;
   }

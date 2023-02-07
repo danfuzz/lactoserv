@@ -4,6 +4,7 @@
 import { ServiceConfig } from '@this/app-config';
 import { BaseService } from '@this/app-framework';
 import { TokenBucket } from '@this/async';
+import { IntfLogger } from '@this/loggy';
 import { IntfRateLimiter } from '@this/network-protocol';
 import { MustBe } from '@this/typey';
 
@@ -54,8 +55,7 @@ export class RateLimiterService extends BaseService {
    * Constructs an instance.
    *
    * @param {ServiceConfig} config Configuration for this service.
-   * @param {?function(...*)} logger Instance-specific logger, or `null` if
-   *   no logging is to be done.
+   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    */
   constructor(config, logger) {
     super(config, logger);
@@ -133,7 +133,7 @@ export class RateLimiterService extends BaseService {
    * Common implementation for the single-token-type rate limiters.
    *
    * @param {TokenBucket} bucket Which bucket to use.
-   * @param {?function(*)} logger Logger to use for this action.
+   * @param {?IntfLogger} logger Logger to use for this action.
    * @returns {boolean} Was a token actually granted?
    */
   static async #requestOneToken(bucket, logger) {

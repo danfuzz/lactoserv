@@ -6,6 +6,7 @@ import { Duplex, Readable, Writable } from 'node:stream';
 import { setImmediate } from 'node:timers';
 
 import { ManualPromise, TokenBucket } from '@this/async';
+import { IntfLogger } from '@this/loggy';
 import { MustBe } from '@this/typey';
 
 
@@ -22,7 +23,7 @@ export class RateLimitedStream {
   /** @type {Duplex|Writable} The inner (wrapped) stream. */
   #innerStream;
 
-  /** @type {?function(*)} Logger to use. */
+  /** @type {?IntfLogger} Logger to use, or `null` to not do any logging. */
   #logger;
 
   /**
@@ -45,7 +46,7 @@ export class RateLimitedStream {
    * @param {TokenBucket} bucket Provider of the underlying rate limiting
    *   service.
    * @param {Duplex|Writable} stream The stream to wrap.
-   * @param {?function(*)} logger Logger to use.
+   * @param {?IntfLogger} logger Logger to use.
    */
   constructor(bucket, stream, logger) {
     this.#bucket      = MustBe.instanceOf(bucket, TokenBucket);
@@ -371,7 +372,7 @@ export class RateLimitedStream {
    * @param {TokenBucket} bucket Provider of the underlying rate limiting
    *   service.
    * @param {Duplex|Writable} stream The stream to wrap.
-   * @param {?function(*)} logger Logger to use.
+   * @param {?IntfLogger} logger Logger to use.
    * @returns {Duplex|Writable} A rate-limited wrapper stream.
    */
   static wrapWriter(bucket, stream, logger) {

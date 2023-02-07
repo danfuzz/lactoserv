@@ -4,7 +4,7 @@
 import * as timers from 'node:timers';
 
 import { ApplicationConfig } from '@this/app-config';
-import { BaseLoggingEnvironment, FormatUtils } from '@this/loggy';
+import { BaseLoggingEnvironment, FormatUtils, IntfLogger } from '@this/loggy';
 import { WranglerContext } from '@this/network-protocol';
 import { Methods, MustBe } from '@this/typey';
 
@@ -16,8 +16,8 @@ import { BaseComponent } from '#x/BaseComponent';
  */
 export class BaseApplication extends BaseComponent {
   /**
-   * @type {?BaseLoggingEnvironment} Logging environment, or `null` if no
-   * logging is to be done.
+   * @type {?BaseLoggingEnvironment} Logging environment, or `null` the instance
+   * is not doing logging.
    */
   #loggingEnv;
 
@@ -25,8 +25,7 @@ export class BaseApplication extends BaseComponent {
    * Constructs an instance.
    *
    * @param {ApplicationConfig} config Configuration for this application.
-   * @param {?function(...*)} logger Instance-specific logger, or `null` if
-   *   no logging is to be done.
+   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    */
   constructor(config, logger) {
     MustBe.instanceOf(config, ApplicationConfig);

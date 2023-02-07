@@ -6,6 +6,7 @@ import * as timers from 'node:timers/promises';
 
 import { FileServiceConfig } from '@this/app-config';
 import { Condition, Threadlet } from '@this/async';
+import { IntfLogger } from '@this/loggy';
 import { MustBe } from '@this/typey';
 
 
@@ -16,12 +17,12 @@ export class Rotator {
   /** @type {FileServiceConfig} Configuration to use. */
   #config;
 
-  /** @type {?function(*)} Logger to use, if any. */
+  /** @type {?IntfLogger} Logger to use, or `null` to not do any logging. */
   #logger;
 
   /**
    * @type {?number} How long to wait between checks, in msec, if timed checks
-   * are to be done; or `null` if no such checking should be done.
+   * are to be done; or `null` not to do such checks.
    */
   #checkMsec;
 
@@ -50,7 +51,7 @@ export class Rotator {
    * Constructs an instance.
    *
    * @param {FileServiceConfig} config Configuration to use.
-   * @param {?function(*)} logger Logger to use, if any.
+   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    */
   constructor(config, logger) {
     this.#config = MustBe.instanceOf(config, FileServiceConfig);

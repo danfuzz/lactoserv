@@ -64,7 +64,7 @@ export class LogRecord {
   }
 
   /**
-   * @type {number} Moment in time that this instance represents, as seconds
+   * @returns {number} Moment in time that this instance represents, as seconds
    * since the start of the Unix Epoch, with precision expected to be
    * microseconds or better.
    */
@@ -72,22 +72,22 @@ export class LogRecord {
     return this.#atSecs;
   }
 
-  /** @type {?StackTrace} Stack trace, if available. */
+  /** @returns {?StackTrace} Stack trace, if available. */
   get stack() {
     return this.#stack;
   }
 
-  /** @type {LogTag} Tag. */
+  /** @returns {LogTag} Tag. */
   get tag() {
     return this.#tag;
   }
 
-  /** @type {string} Event "type." */
+  /** @returns {string} Event "type." */
   get type() {
     return this.#type;
   }
 
-  /** @type {*[]} Event arguments, whose meaning depends on {@link #type}. */
+  /** @returns {*[]} Event arguments, whose meaning depends on {@link #type}. */
   get args() {
     return this.#args;
   }

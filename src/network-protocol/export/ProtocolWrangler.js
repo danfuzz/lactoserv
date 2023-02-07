@@ -8,6 +8,7 @@ import express from 'express';
 
 import { Threadlet } from '@this/async';
 import { ProductInfo } from '@this/host';
+import { IntfLogger } from '@this/loggy';
 import { Methods, MustBe } from '@this/typey';
 
 import { IntfRateLimiter } from '#x/IntfRateLimiter';
@@ -28,7 +29,7 @@ import { WranglerContext } from '#x/WranglerContext';
  * to the application (which is up to the clients of this class).
  */
 export class ProtocolWrangler {
-  /** @type {?function(...*)} Logger, if logging is to be done. */
+  /** @type {?IntfLogger} Logger to use, or `null` to not do any logging. */
   #logger;
 
   /** @type {?IntfRateLimiter} Rate limiter service to use, if any. */
@@ -41,8 +42,8 @@ export class ProtocolWrangler {
   #requestHandler;
 
   /**
-   * @type {?RequestLogHelper} Helper for HTTP(ish) request logging, if request
-   * logging is to be done.
+   * @type {?RequestLogHelper} Helper for HTTP(ish) request logging, or `null`
+   * to not do any such logging.
    */
   #logHelper;
 
@@ -75,7 +76,7 @@ export class ProtocolWrangler {
    *   form of a standard Express middleware function. This is required.
    * * `requestLogger: BaseService` -- Request logger to send to. (If not
    *   specified, the instance won't do request logging.)
-   * * `logger: function(...*)` -- Logger to use to emit events about what the
+   * * `logger: ?IntfLogger` -- Logger to use to emit events about what the
    *   instance is doing. (If not specified, the instance won't do logging.)
    * * `protocol: string` -- The name of this protocol.
    * * `socket: object` -- Options to use for creation of and/or listening on
@@ -213,7 +214,7 @@ export class ProtocolWrangler {
    * stack. This "protected" method is expected to be called by subclass code.
    *
    * @param {net.Socket} socket Socket representing the newly-made connection.
-   * @param {?function(...*)} logger Logger to use for the connection, if any.
+   * @param {?IntfLogger} logger Logger to use for the connection, if any.
    */
   _prot_newConnection(socket, logger) {
     // What's going on here:

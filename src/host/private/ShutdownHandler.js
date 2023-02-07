@@ -5,6 +5,7 @@ import process from 'node:process'; // Need to import as such, for `.on*()`.
 import * as timers from 'node:timers/promises';
 
 import { Threadlet } from '@this/async';
+import { IntfLogger } from '@this/loggy';
 
 import { CallbackList } from '#p/CallbackList';
 import { ThisModule } from '#p/ThisModule';
@@ -28,7 +29,10 @@ export class ShutdownHandler {
    */
   static #PRE_EXIT_DELAY_MSEC = 250;
 
-  /** @type {function(...*)} Logger for this class. */
+  /**
+   * @type {?IntfLogger} Logger for this class, or `null` not to do any
+   * logging.
+   */
   static #logger = ThisModule.logger.shutdown;
 
   /** @type {CallbackList} Callbacks to invoke before shutting down. */
@@ -43,7 +47,7 @@ export class ShutdownHandler {
   /** @type {Threadlet} Thread that handles shutdown sequencing. */
   static #thread = new Threadlet(() => this.#run());
 
-  /** @type {?number} Exit code, if in fact in the middle of exiting. */
+  /** @returns {?number} Exit code, if in fact in the middle of exiting. */
   static get exitCode() {
     return this.isShuttingDown() ? this.#exitCode : null;
   }

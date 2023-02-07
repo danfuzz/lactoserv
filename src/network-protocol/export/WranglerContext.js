@@ -4,7 +4,7 @@
 import * as net from 'node:net';
 import * as stream from 'node:stream';
 
-import { FormatUtils } from '@this/loggy';
+import { FormatUtils, IntfLogger } from '@this/loggy';
 
 
 /**
@@ -18,19 +18,19 @@ export class WranglerContext {
   /** @type {?string} ID of a connection. */
   #connectionId = null;
 
-  /** @type {?function(...*)} Logger for a connection. */
+  /** @type {?IntfLogger} Logger for a connection. */
   #connectionLogger = null;
 
   /** @type {?string} ID of a session. */
   #sessionId = null;
 
-  /** @type {?function(...*)} Logger for a session. */
+  /** @type {?IntfLogger} Logger for a session. */
   #sessionLogger = null;
 
   /** @type {?string} ID of a request. */
   #requestId = null;
 
-  /** @type {?function(...*)} Logger for a request. */
+  /** @type {?IntfLogger} Logger for a request. */
   #requestLogger = null;
 
   // Note: The default constructor is fine here.
@@ -40,19 +40,19 @@ export class WranglerContext {
     return this.#connectionId;
   }
 
-  /** @returns {?function(...*)} Logger for a connection. */
+  /** @returns {?IntfLogger} Logger for a connection, or `null` if none. */
   get connectionLogger() {
     return this.#connectionLogger;
   }
 
-  /** @returns {?function(...*)} Most-specific available id, if any. */
+  /** @returns {?string} Most-specific available id, if any. */
   get id() {
     return this.#requestId
       ?? this.#sessionId
       ?? this.#connectionId;
   }
 
-  /** @returns {?function(...*)} Most-specific available logger, if any. */
+  /** @returns {?IntfLogger} Most-specific available logger, if any. */
   get logger() {
     return this.#requestLogger
       ?? this.#sessionLogger
@@ -64,7 +64,7 @@ export class WranglerContext {
     return this.#requestId;
   }
 
-  /** @returns {?function(...*)} Logger for a request. */
+  /** @returns {?IntfLogger} Logger for a request, or `null` if none. */
   get requestLogger() {
     return this.#requestLogger;
   }
@@ -74,7 +74,7 @@ export class WranglerContext {
     return this.#sessionId;
   }
 
-  /** @returns {?function(...*)} Logger for a session. */
+  /** @returns {?IntfLogger} Logger for a session, or `null` if none. */
   get sessionLogger() {
     return this.#sessionLogger;
   }
@@ -123,7 +123,7 @@ export class WranglerContext {
    * Makes a new instance of this class for a connection.
    *
    * @param {net.Socket} socket The raw socket for the connection.
-   * @param {?function(...*)} logger The connection logger, if any.
+   * @param {?IntfLogger} logger The connection logger, if any.
    * @returns {WranglerContext} An appropriately-constructed instance.
    */
   static forConnection(socket, logger) {
@@ -144,7 +144,7 @@ export class WranglerContext {
    *
    * @param {?WranglerContext} outerContext Instance of this class which has
    *   outer context (for the connection and/or session), if any.
-   * @param {?function(...*)} logger The request logger, if any.
+   * @param {?IntfLogger} logger The request logger, if any.
    * @returns {WranglerContext} An appropriately-constructed instance.
    */
   static forRequest(outerContext, logger) {
@@ -171,7 +171,7 @@ export class WranglerContext {
    *
    * @param {?WranglerContext} outerContext Instance of this class which has
    *   outer context (for the connection), if any.
-   * @param {?function(...*)} logger The request logger, if any.
+   * @param {?IntfLogger} logger The request logger, if any.
    * @returns {WranglerContext} An appropriately-constructed instance.
    */
   static forSession(outerContext, logger) {

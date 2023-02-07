@@ -104,8 +104,9 @@ export class EventOrPromise {
   }
 
   /**
-   * @type {?Error} The synchronously-known reason why {@link #eventPromise} was
-   * rejected, if it was indeed rejected and observed by this instance as such.
+   * @returns {?Error} The synchronously-known reason why {@link #eventPromise}
+   * was rejected, if it was indeed rejected and observed by this instance as
+   * such.
    */
   get rejectedReason() {
     return this.#rejectedReason;

@@ -4,6 +4,7 @@
 import { PropertyCacheProxyHandler } from '@this/metacomp';
 
 import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
+import { IntfLogger } from '#x/IntfLogger';
 import { LogTag } from '#x/LogTag';
 
 
@@ -11,8 +12,7 @@ import { LogTag } from '#x/LogTag';
  * Proxy handler which provides the illusion of an object with infinitely many
  * properties, each of which is callable as a function or a method, _or_ which
  * can be treated as an object with subproperties to add layers of tag context.
- * See {@link Loggy.loggerFor} for details (and the public interface to this
- * class).
+ * See {@link IntfLogger} and {@link Loggy#loggerFor} for details.
  */
 export class LogProxyHandler extends PropertyCacheProxyHandler {
   /** @type {LogTag} Tag to use on all logged events. */
@@ -143,7 +143,7 @@ export class LogProxyHandler extends PropertyCacheProxyHandler {
    * Metainformation about a logger. Instances of this class are returned when
    * accessing the property `$meta` on logger instances.
    */
-  static Meta = class Meta {
+  static Meta = class Meta extends IntfLogger.Meta {
     /** @type {LogProxyHandler} The subject handler instance. */
     #handler;
 
@@ -153,19 +153,21 @@ export class LogProxyHandler extends PropertyCacheProxyHandler {
      * @param {LogProxyHandler} handler The subject handler instance.
      */
     constructor(handler) {
+      super();
       this.#handler = handler;
     }
 
-    /** @returns {string} Convenient accessor for `this.tag().lastContext`. */
+    /** @override */
+    get env() {
+      return this.#handler.#environment;
+    }
+
+    /** @override */
     get lastContext() {
       return this.tag.lastContext;
     }
 
-    /**
-     * @returns {LogTag} The tag used by the logger, when it is invoked as an
-     * object (as opposed to called as a function, which is the less usual and
-     * generally unexpected case).
-     */
+    /** @override */
     get tag() {
       // Note: This is the instance's (computed/cached) `subTag` and not its
       // `tag`, because the latter doesn't include the full context when the
@@ -173,13 +175,9 @@ export class LogProxyHandler extends PropertyCacheProxyHandler {
       return this.#handler.#subTag;
     }
 
-    /**
-     * Gets newly-generated ID from this instance's logging environment.
-     *
-     * @returns {string} The new ID.
-     */
+    /** @override */
     makeId() {
-      return this.#handler.#environment.makeId();
+      return this.env.makeId();
     }
   };
 
@@ -192,7 +190,7 @@ export class LogProxyHandler extends PropertyCacheProxyHandler {
    *   constructor arguments for same. If `null`, the instance will have no
    *   context tag.
    * @param {BaseLoggingEnvironment} environment Logging environment to use.
-   * @returns {function(...*)} A logger, as described.
+   * @returns {IntfLogger} A logger, as described.
    */
   static makeInstance(tag, environment) {
     if (tag === null) {
@@ -206,6 +204,6 @@ export class LogProxyHandler extends PropertyCacheProxyHandler {
       tag = new LogTag(...tag);
     }
 
-    return this.makeFunctionProxy(tag, null, environment);
+    return this.makeInstanceProxy(IntfLogger, tag, null, environment);
   }
 }

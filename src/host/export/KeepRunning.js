@@ -4,7 +4,7 @@
 import * as timers from 'node:timers/promises';
 
 import { Threadlet } from '@this/async';
-import { FormatUtils } from '@this/loggy';
+import { FormatUtils, IntfLogger } from '@this/loggy';
 
 import { ProcessInfo } from '#x/ProcessInfo';
 import { ThisModule } from '#p/ThisModule';
@@ -20,7 +20,10 @@ export class KeepRunning {
   /** @type {Threadlet} Thread that runs {@link #keepRunning}. */
   #thread;
 
-  /** @type {function(...*)} Logger for this class. */
+  /**
+   * @type {?IntfLogger} Logger for this class, or `null` not to do any
+   * logging.
+   */
   #logger = ThisModule.logger.keepRunning;
 
 

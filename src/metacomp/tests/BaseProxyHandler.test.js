@@ -53,6 +53,48 @@ describe('makeFunctionProxy()', () => {
   });
 });
 
+describe('makeInstanceProxy()', () => {
+  test('constructs an instance-like proxy around an instance of the called-upon subclass', () => {
+    let gotArgs     = null;
+    let gotTarget   = null;
+    let gotProperty = null;
+
+    class Subclass extends BaseProxyHandler {
+      constructor(...args) {
+        super();
+        gotArgs = args;
+      }
+
+      get(target, property, receiver_unused) {
+        gotTarget = target;
+        gotProperty = property;
+      }
+    }
+
+    let targetConstructorCalled = 0;
+    class SomeTarget {
+      constructor() {
+        targetConstructorCalled++;
+      }
+
+      get florp() {
+        throw new Error('Should not get accessed.');
+      }
+    }
+
+    const proxy = Subclass.makeInstanceProxy(SomeTarget, 'x', 'y', 'z');
+
+    expect(proxy).toBeInstanceOf(SomeTarget);
+    expect(targetConstructorCalled).toBe(0);
+    expect(gotArgs).toStrictEqual(['x', 'y', 'z']);
+
+    expect(proxy.florp).toBeUndefined();
+    expect(gotTarget).toBeInstanceOf(SomeTarget);
+    expect(gotTarget).toBeFrozen();
+    expect(gotProperty).toBe('florp');
+  });
+});
+
 describe('makeProxy()', () => {
   test('constructs an object-like proxy around an instance of the called-upon subclass', () => {
     let gotArgs     = null;

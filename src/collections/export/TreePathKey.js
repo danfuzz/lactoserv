@@ -113,7 +113,7 @@ export class TreePathKey {
   /** @type {TreePathKey} A non-wildcard empty-path instance. */
   static #EMPTY = Object.freeze(new TreePathKey(Object.freeze([]), false));
 
-  /** @type {TreePathKey} A non-wildcard empty-path instance. */
+  /** @returns {TreePathKey} A non-wildcard empty-path instance. */
   static get EMPTY() {
     return this.#EMPTY;
   }
