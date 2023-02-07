@@ -31,7 +31,7 @@ export class ApplicationManager extends BaseControllable {
     super(ThisModule.logger.apps);
 
     for (const config of configs) {
-      this.#addControllerFor(config);
+      this.#addInstanceFor(config);
     }
   }
 
@@ -39,8 +39,8 @@ export class ApplicationManager extends BaseControllable {
    * Finds the {@link BaseApplication} for a given application name.
    *
    * @param {string} name Application name to look for.
-   * @returns {BaseApplication} The associated controller.
-   * @throws {Error} Thrown if there is no controller with the given name.
+   * @returns {BaseApplication} The associated instance.
+   * @throws {Error} Thrown if there is no instance with the given name.
    */
   findApplication(name) {
     const instance = this.#instances.get(name);
@@ -79,11 +79,11 @@ export class ApplicationManager extends BaseControllable {
 
   /**
    * Constructs a {@link BaseApplication} based on the given information, and
-   * adds a mapping to {@link #controllers} so it can be found.
+   * adds a mapping to {@link #instances} so it can be found.
    *
    * @param {ApplicationConfig} config Parsed configuration item.
    */
-  #addControllerFor(config) {
+  #addInstanceFor(config) {
     const name = config.name;
 
     if (this.#instances.has(name)) {
