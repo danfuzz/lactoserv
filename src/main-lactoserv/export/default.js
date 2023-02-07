@@ -5,11 +5,12 @@ import { Host, KeepRunning } from '@this/host';
 
 import { Debugging } from '#p/Debugging';
 import { MainArgs } from '#p/MainArgs';
+import { SystemInit } from '#p/SystemInit';
 import { UsualSystem } from '#p/UsualSystem';
 
 
 export default async function main() {
-  Host.init();
+  SystemInit.init();
 
   const args = new MainArgs(process.argv);
   args.parse();

@@ -59,8 +59,6 @@ export class UsualSystem extends Threadlet {
       return;
     }
 
-    BuiltinApplications.register();
-    BuiltinServices.register();
     Host.registerReloadCallback(() => this.#reload());
     Host.registerShutdownCallback(() => this.stop());
 
