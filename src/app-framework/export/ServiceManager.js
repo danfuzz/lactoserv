@@ -5,7 +5,6 @@ import { ServiceConfig } from '@this/app-config';
 
 import { BaseControllable } from '#x/BaseControllable';
 import { BaseService } from '#x/BaseService';
-import { ServiceController } from '#x/ServiceController';
 import { ServiceFactory } from '#x/ServiceFactory';
 import { ThisModule } from '#p/ThisModule';
 
@@ -18,10 +17,10 @@ import { ThisModule } from '#p/ThisModule';
  */
 export class ServiceManager extends BaseControllable {
   /**
-   * @type {Map<string, ServiceController>} Map from each service name to the
-   * controller that should be used for it.
+   * @type {Map<string, BaseApplication>} Map from each bound service name to
+   * the corresponding instance.
    */
-  #controllers = new Map();
+  #instances = new Map();
 
   /**
    * Constructs an instance.
@@ -32,46 +31,46 @@ export class ServiceManager extends BaseControllable {
     super(ThisModule.logger.services);
 
     for (const config of configs) {
-      this.#addControllerFor(config);
+      this.#addInstanceFor(config);
     }
   }
 
   /**
-   * Finds the {@link ServiceController} for a given service name.
+   * Finds the {@link BaseService} for a given service name.
    *
    * @param {string} name Service name to look for.
    * @param {?string|function(new:BaseService)} [type = null] Required type
    *   (class or string name) of the service.
-   * @returns {ServiceController} The associated controller.
-   * @throws {Error} Thrown if there is no controller with the given name, or
-   *   it does not match the given `type`.
+   * @returns {BaseService} The associated instance.
+   * @throws {Error} Thrown if there is no instance with the given name, or it
+   *   does not match the given `type`.
    */
-  findController(name, type = null) {
-    const controller = this.#controllers.get(name);
-    const cls        = ServiceManager.#classFromType(type);
+  findService(name, type = null) {
+    const instance = this.#instances.get(name);
+    const cls      = ServiceManager.#classFromType(type);
 
-    if (!controller) {
+    if (!instance) {
       throw new Error(`No such service: ${name}`);
-    } else if (cls && !(controller instanceof cls)) {
+    } else if (cls && !(instance instanceof cls)) {
       throw new Error(`Wrong type for service: ${name}`);
     }
 
-    return controller;
+    return instance;
   }
 
   /**
-   * Gets a list of all controllers managed by this instance, optionally
-   * filtered to only be those of a particular class or (string) type.
+   * Gets a list of all instances managed by this instance, optionally filtered
+   * to only be those of a particular class or (string) type.
    *
    * @param {?string|function(new:BaseService)} [type = null] Class or (string)
    *   type to restrict results to, or `null` just to get everything.
-   * @returns {ServiceController[]} All the matching controllers.
+   * @returns {BaseService[]} All the matching instances.
    */
   getAll(type = null) {
     const cls = ServiceManager.#classFromType(type);
 
     const result = [];
-    for (const controller of this.#controllers.values()) {
+    for (const controller of this.#instances.values()) {
       if ((cls === null) || (controller instanceof cls)) {
         result.push(controller);
       }
@@ -97,23 +96,22 @@ export class ServiceManager extends BaseControllable {
   }
 
   /**
-   * Constructs a {@link ServiceController} based on the given information,
-   * and adds a mapping to {@link #controllers} so it can be found.
+   * Constructs a {@link BaseService} based on the given information, and adds a
+   * mapping to {@link #instances} so it can be found.
    *
    * @param {ServiceConfig} config Parsed configuration item.
    */
-  #addControllerFor(config) {
+  #addInstanceFor(config) {
     const name = config.name;
 
-    if (this.#controllers.has(name)) {
+    if (this.#instances.has(name)) {
       throw new Error(`Duplicate service: ${name}`);
     }
 
     const serviceLogger = ThisModule.baseServiceLogger[name];
     const instance      = ServiceFactory.makeInstance(config, serviceLogger);
-    const controller    = new ServiceController(instance);
 
-    this.#controllers.set(name, controller);
+    this.#instances.set(name, instance);
     this.logger.bound(name);
   }
 

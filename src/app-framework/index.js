@@ -11,7 +11,6 @@ export * from '#x/BaseService';
 export * from '#x/HostManager';
 export * from '#x/ServerController';
 export * from '#x/ServerManager';
-export * from '#x/ServiceController';
 export * from '#x/ServiceFactory';
 export * from '#x/ServiceManager';
 export * from '#x/Warehouse';

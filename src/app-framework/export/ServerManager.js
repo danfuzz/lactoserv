@@ -107,10 +107,10 @@ export class ServerManager extends BaseControllable {
       ? hostManager.makeSubset(hostnames)
       : null;
     const rateLimiter = limName
-      ? serviceManager.findController(limName).service
+      ? serviceManager.findService(limName)
       : null;
     const requestLogger = logName
-      ? serviceManager.findController(logName).service
+      ? serviceManager.findService(logName)
       : null;
 
     const extraConfig = {
