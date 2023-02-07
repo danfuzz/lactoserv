@@ -85,6 +85,14 @@ export class IntfLogger {
    * @interface
    */
   static Meta = class Meta {
+    /**
+     * @returns {BaseLoggingEnvironment} The logging environment used by the
+     * logger.
+     */
+    get $env() {
+      return Methods.abstract();
+    }
+
     /** @returns {string} Convenient shorthand for `this.tag.lastContext`. */
     get lastContext() {
       return Methods.abstract();
@@ -100,7 +108,8 @@ export class IntfLogger {
     }
 
     /**
-     * Gets a newly-generated ID from this instance's logging environment.
+     * Gets a newly-generated ID from this instance's logging environment. This
+     * is a convenient shorthand for `logger.$meta.$env.makeId()`.
      *
      * @returns {string} The new ID.
      */

@@ -158,6 +158,11 @@ export class LogProxyHandler extends PropertyCacheProxyHandler {
     }
 
     /** @override */
+    get env() {
+      return this.#handler.#environment;
+    }
+
+    /** @override */
     get lastContext() {
       return this.tag.lastContext;
     }
@@ -172,7 +177,7 @@ export class LogProxyHandler extends PropertyCacheProxyHandler {
 
     /** @override */
     makeId() {
-      return this.#handler.#environment.makeId();
+      return this.env.makeId();
     }
   };
 
