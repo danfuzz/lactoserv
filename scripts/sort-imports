@@ -189,7 +189,11 @@ function do-sort {
     awk <"${inFile}" >"${tmpFile}" "${SORTER_AWK}" \
     || return "$?"
 
-    mv "${tmpFile}" "${inFile}"
+    if cmp --quiet "${inFile}" "${tmpFile}"; then
+        rm "${tmpFile}"
+    else
+        mv "${tmpFile}" "${inFile}"
+    fi
 }
 
 
@@ -201,7 +205,7 @@ srcDir="$(base-dir)/src"
 
 if (( ${#files[@]} == 0 )); then
     cd "${srcDir}"
-    files=($(find . -name '*.js'))
+    files=($(find . -name '*.js' | sort))
 fi
 
 for file in "${files[@]}"; do
