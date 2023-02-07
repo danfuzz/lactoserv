@@ -141,7 +141,7 @@ export class ServerManager extends BaseControllable {
 
     for (const { application } of mounts) {
       if (!result.has(application)) {
-        const controller = applicationManager.findController(application);
+        const controller = applicationManager.findApplication(application);
         result.set(application, controller);
       }
     }

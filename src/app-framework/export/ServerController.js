@@ -6,7 +6,6 @@ import { TreePathKey, TreePathMap } from '@this/collections';
 import { ProtocolWrangler, ProtocolWranglers, WranglerContext } from '@this/network-protocol';
 import { MustBe } from '@this/typey';
 
-import { ApplicationController } from '#x/ApplicationController';
 import { BaseApplication } from '#x/BaseApplication';
 import { BaseController } from '#x/BaseController';
 import { HostManager } from '#x/HostManager';
@@ -27,8 +26,8 @@ export class ServerController extends BaseController {
   #hostManager;
 
   /**
-   * @type {TreePathMap<TreePathMap<ApplicationController>>} Map from hostnames
-   * to paths to application controllers. See {@link #makeMountMap} for details.
+   * @type {TreePathMap<TreePathMap<BaseApplication>>} Map from hostnames to
+   * map from paths to applications. See {@link #makeMountMap} for details.
    */
   #mountMap;
 
@@ -178,8 +177,8 @@ export class ServerController extends BaseController {
    * @param {MountConfig[]} mounts Configured application mounts.
    * @param {Map<string, BaseApplication>} applicationMap Map from application
    *   names to corresponding instances.
-   * @returns {TreePathMap<TreePathMap<ApplicationController>>} The constructed
-   *   mount map.
+   * @returns {TreePathMap<TreePathMap<BaseApplication>>} The constructed mount
+   *   map.
    */
   static #makeMountMap(mounts, applicationMap) {
     const result = new TreePathMap(TreePathKey.hostnameStringFrom);

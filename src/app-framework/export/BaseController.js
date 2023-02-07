@@ -7,6 +7,8 @@ import { MustBe } from '@this/typey';
 import { BaseControllable } from '#x/BaseControllable';
 
 
+// TODO: Remove this class! It's not adding value.
+
 /**
  * Base class for things that "control" other things in the framework.
  */

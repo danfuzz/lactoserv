@@ -3,8 +3,8 @@
 
 import { ApplicationConfig } from '@this/app-config';
 
-import { ApplicationController } from '#x/ApplicationController';
 import { ApplicationFactory } from '#x/ApplicationFactory';
+import { BaseApplication } from '#x/BaseApplication';
 import { BaseControllable } from '#x/BaseControllable';
 import { ThisModule } from '#p/ThisModule';
 
@@ -17,10 +17,10 @@ import { ThisModule } from '#p/ThisModule';
  */
 export class ApplicationManager extends BaseControllable {
   /**
-   * @type {Map<string, ApplicationController>} Map from each application name
-   * to the controller that should be used for it.
+   * @type {Map<string, BaseApplication>} Map from each bound application name
+   * to the corresponding instance.
    */
-  #controllers = new Map();
+  #instances = new Map();
 
   /**
    * Constructs an instance.
@@ -36,29 +36,29 @@ export class ApplicationManager extends BaseControllable {
   }
 
   /**
-   * Finds the {@link ApplicationController} for a given application name.
+   * Finds the {@link BaseApplication} for a given application name.
    *
    * @param {string} name Application name to look for.
-   * @returns {ApplicationController} The associated controller.
+   * @returns {BaseApplication} The associated controller.
    * @throws {Error} Thrown if there is no controller with the given name.
    */
-  findController(name) {
-    const controller = this.#controllers.get(name);
+  findApplication(name) {
+    const instance = this.#instances.get(name);
 
-    if (!controller) {
+    if (!instance) {
       throw new Error(`No such application: ${name}`);
     }
 
-    return controller;
+    return instance;
   }
 
   /**
-   * Gets a list of all controllers managed by this instance.
+   * Gets a list of all applications managed by this instance.
    *
-   * @returns {ApplicationController[]} All the controllers.
+   * @returns {BaseApplication[]} All the applications.
    */
   getAll() {
-    return [...this.#controllers.values()];
+    return [...this.#instances.values()];
   }
 
   /** @override */
@@ -78,23 +78,22 @@ export class ApplicationManager extends BaseControllable {
   }
 
   /**
-   * Constructs a {@link ApplicationController} based on the given information,
-   * and adds a mapping to {@link #controllers} so it can be found.
+   * Constructs a {@link BaseApplication} based on the given information, and
+   * adds a mapping to {@link #controllers} so it can be found.
    *
    * @param {ApplicationConfig} config Parsed configuration item.
    */
   #addControllerFor(config) {
     const name = config.name;
 
-    if (this.#controllers.has(name)) {
+    if (this.#instances.has(name)) {
       throw new Error(`Duplicate application: ${name}`);
     }
 
-    const appLogger  = ThisModule.baseApplicationLogger[name];
-    const instance   = ApplicationFactory.makeInstance(config, appLogger);
-    const controller = new ApplicationController(instance);
+    const appLogger = ThisModule.baseApplicationLogger[name];
+    const instance  = ApplicationFactory.makeInstance(config, appLogger);
 
-    this.#controllers.set(name, controller);
+    this.#instances.set(name, instance);
     this.logger.bound(name);
   }
 }
