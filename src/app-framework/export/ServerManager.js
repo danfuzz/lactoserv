@@ -13,7 +13,7 @@ import { Warehouse } from '#x/Warehouse';
 /**
  * Manager for dealing with all the network-bound server endpoints of a system.
  *
- * **Note:** `start()`ing and `stop()`ing acts on all the servers..
+ * **Note:** `start()`ing and `stop()`ing acts on all the servers.
  */
 export class ServerManager extends BaseControllable {
   /** @type {Warehouse} The warehouse this instance is in. */
