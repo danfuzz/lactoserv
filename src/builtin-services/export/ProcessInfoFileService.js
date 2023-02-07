@@ -5,7 +5,7 @@ import * as fs from 'node:fs/promises';
 import * as timers from 'node:timers/promises';
 
 import { FileServiceConfig } from '@this/app-config';
-import { BaseService, ServiceController } from '@this/app-framework';
+import { BaseService } from '@this/app-framework';
 import { Threadlet } from '@this/async';
 import { Host, ProcessInfo, ProductInfo } from '@this/host';
 import { FormatUtils } from '@this/loggy';
@@ -46,10 +46,11 @@ export class ProcessInfoFileService extends BaseService {
    * Constructs an instance.
    *
    * @param {FileServiceConfig} config Configuration for this service.
-   * @param {ServiceController} controller The controller for this instance.
+   * @param {?function(...*)} logger Instance-specific logger, or `null` if
+   *   no logging is to be done.
    */
-  constructor(config, controller) {
-    super(config, controller);
+  constructor(config, logger) {
+    super(config, logger);
 
     const { updateSecs } = config;
     this.#updateSecs = (updateSecs === null)
