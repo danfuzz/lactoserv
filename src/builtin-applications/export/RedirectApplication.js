@@ -2,7 +2,7 @@
 // This project is PROPRIETARY and UNLICENSED.
 
 import { ApplicationConfig, Uris } from '@this/app-config';
-import { ApplicationController, BaseApplication } from '@this/app-framework';
+import { BaseApplication } from '@this/app-framework';
 import { MustBe } from '@this/typey';
 
 
@@ -26,10 +26,11 @@ export class RedirectApplication extends BaseApplication {
    * Constructs an instance.
    *
    * @param {ApplicationConfig} config Configuration for this application.
-   * @param {ApplicationController} controller Controller for this instance.
+   * @param {?function(...*)} logger Instance-specific logger, or `null` if
+   *   no logging is to be done.
    */
-  constructor(config, controller) {
-    super(config, controller);
+  constructor(config, logger) {
+    super(config, logger);
 
     this.#statusCode = config.statusCode;
 
@@ -39,8 +40,18 @@ export class RedirectApplication extends BaseApplication {
   }
 
   /** @override */
-  handleRequest(req, res, next_unused) {
+  _impl_handleRequest(req, res, next_unused) {
     res.redirect(this.#statusCode, `${this.#target}${req.path}`);
+  }
+
+  /** @override */
+  async _impl_start(isReload_unused) {
+    // Nothing to do here.
+  }
+
+  /** @override */
+  async _impl_stop(willReload_unused) {
+    // Nothing to do here.
   }
 
 

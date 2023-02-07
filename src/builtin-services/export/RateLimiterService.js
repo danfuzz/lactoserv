@@ -2,7 +2,7 @@
 // This project is PROPRIETARY and UNLICENSED.
 
 import { ServiceConfig } from '@this/app-config';
-import { BaseService, ServiceController } from '@this/app-framework';
+import { BaseService } from '@this/app-framework';
 import { TokenBucket } from '@this/async';
 import { IntfRateLimiter } from '@this/network-protocol';
 import { MustBe } from '@this/typey';
@@ -54,10 +54,11 @@ export class RateLimiterService extends BaseService {
    * Constructs an instance.
    *
    * @param {ServiceConfig} config Configuration for this service.
-   * @param {ServiceController} controller The controller for this instance.
+   * @param {?function(...*)} logger Instance-specific logger, or `null` if
+   *   no logging is to be done.
    */
-  constructor(config, controller) {
-    super(config, controller);
+  constructor(config, logger) {
+    super(config, logger);
 
     const { connections, data, requests } = config;
 

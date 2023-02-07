@@ -6,20 +6,20 @@ import { TreePathKey, TreePathMap } from '@this/collections';
 import { ProtocolWrangler, ProtocolWranglers, WranglerContext } from '@this/network-protocol';
 import { MustBe } from '@this/typey';
 
-import { ApplicationController } from '#x/ApplicationController';
 import { BaseApplication } from '#x/BaseApplication';
-import { BaseController } from '#x/BaseController';
+import { BaseComponent } from '#x/BaseComponent';
 import { HostManager } from '#x/HostManager';
 import { ThisModule } from '#p/ThisModule';
 
 
 /**
- * "Controller" for a single server. Instances of this class wrap both a
- * (concrete subclass of a) {@link net.Server} object _and_ an
- * `express.Application` (or equivalent) which _exclusively_ handles that
- * server.
+ * Component (in the sense of this module) which completely handles a single
+ * network endpoint. Instances of this class have a {@link ProtocolWrangler} to
+ * deal with the lower-level networking details and a map from mount points to
+ * {@link BaseApplication} instances. This class is the connection between these
+ * two things.
  */
-export class ServerController extends BaseController {
+export class NetworkServer extends BaseComponent {
   /**
    * @type {HostManager} Host manager with bindings for all valid hostnames for
    * this instance.
@@ -27,8 +27,8 @@ export class ServerController extends BaseController {
   #hostManager;
 
   /**
-   * @type {TreePathMap<TreePathMap<ApplicationController>>} Map from hostnames
-   * to paths to application controllers. See {@link #makeMountMap} for details.
+   * @type {TreePathMap<TreePathMap<BaseApplication>>} Map from hostnames to
+   * map from paths to applications. See {@link #makeMountMap} for details.
    */
   #mountMap;
 
@@ -66,7 +66,7 @@ export class ServerController extends BaseController {
     super(config, ThisModule.logger.server[name]);
 
     this.#hostManager = hostManager;
-    this.#mountMap    = ServerController.#makeMountMap(mounts, applicationMap);
+    this.#mountMap    = NetworkServer.#makeMountMap(mounts, applicationMap);
 
     const wranglerOptions = {
       rateLimiter,
@@ -115,7 +115,7 @@ export class ServerController extends BaseController {
 
     // Freezing `subdomains` lets `new TreePathKey()` avoid making a copy.
     const hostKey = new TreePathKey(Object.freeze(subdomains), false);
-    const pathKey = ServerController.#parsePath(path);
+    const pathKey = NetworkServer.#parsePath(path);
 
     // Find the mount map for the most-specific matching host.
     const hostMatch = this.#mountMap.find(hostKey);
@@ -178,8 +178,8 @@ export class ServerController extends BaseController {
    * @param {MountConfig[]} mounts Configured application mounts.
    * @param {Map<string, BaseApplication>} applicationMap Map from application
    *   names to corresponding instances.
-   * @returns {TreePathMap<TreePathMap<ApplicationController>>} The constructed
-   *   mount map.
+   * @returns {TreePathMap<TreePathMap<BaseApplication>>} The constructed mount
+   *   map.
    */
   static #makeMountMap(mounts, applicationMap) {
     const result = new TreePathMap(TreePathKey.hostnameStringFrom);

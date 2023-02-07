@@ -5,7 +5,7 @@ import { MountConfig, ServerConfig } from '@this/app-config';
 
 import { BaseApplication } from '#x/BaseApplication';
 import { BaseControllable } from '#x/BaseControllable';
-import { ServerController } from '#x/ServerController';
+import { NetworkServer } from '#x/NetworkServer';
 import { ThisModule } from '#p/ThisModule';
 import { Warehouse } from '#x/Warehouse';
 
@@ -13,17 +13,17 @@ import { Warehouse } from '#x/Warehouse';
 /**
  * Manager for dealing with all the network-bound server endpoints of a system.
  *
- * **Note:** `start()`ing and `stop()`ing acts on all the servers..
+ * **Note:** `start()`ing and `stop()`ing acts on all the servers.
  */
 export class ServerManager extends BaseControllable {
   /** @type {Warehouse} The warehouse this instance is in. */
   #warehouse;
 
   /**
-   * @type {Map<string, ServerController>} Map from each server name to the
-   * {@link ServerController} object with that name.
+   * @type {Map<string, NetworkServer>} Map from each server name to the
+   * {@link NetworkServer} object with that name.
    */
-  #controllers = new Map();
+  #instances = new Map();
 
   /**
    * Constructs an instance.
@@ -37,34 +37,34 @@ export class ServerManager extends BaseControllable {
     this.#warehouse = warehouse;
 
     for (const config of configs) {
-      this.#addControllerFor(config);
+      this.#addInstanceFor(config);
     }
   }
 
   /**
-   * Finds the {@link ServerController} for a given server name.
+   * Finds the {@link NetworkServer} for a given name.
    *
    * @param {string} name Server name to look for.
-   * @returns {ServerController} The associated controller.
-   * @throws {Error} Thrown if there is no controller with the given name.
+   * @returns {NetworkServer} The associated server.
+   * @throws {Error} Thrown if there is no server with the given name.
    */
-  findController(name) {
-    const controller = this.#controllers.get(name);
+  findServer(name) {
+    const instance = this.#instances.get(name);
 
-    if (!controller) {
+    if (!instance) {
       throw new Error(`No such server: ${name}`);
     }
 
-    return controller;
+    return instance;
   }
 
   /**
-   * Gets a list of all controllers managed by this instance.
+   * Gets a list of all servers managed by this instance.
    *
-   * @returns {ServerController[]} All the controllers.
+   * @returns {NetworkServer[]} All the servers.
    */
   getAll() {
-    return [...this.#controllers.values()];
+    return [...this.#instances.values()];
   }
 
   /** @override */
@@ -84,12 +84,12 @@ export class ServerManager extends BaseControllable {
   }
 
   /**
-   * Constructs a {@link ServerController} based on the given information, and
-   * adds a mapping to {@link #controllers} so it can be found.
+   * Constructs a {@link NetworkServer} based on the given information, and
+   * adds a mapping to {@link #instances} so it can be found.
    *
    * @param {ServerConfig} config Parsed configuration item.
    */
-  #addControllerFor(config) {
+  #addInstanceFor(config) {
     const {
       endpoint: { hostnames },
       mounts,
@@ -97,7 +97,7 @@ export class ServerManager extends BaseControllable {
       services: { rateLimiter: limName, requestLogger: logName }
     } = config;
 
-    if (this.#controllers.has(name)) {
+    if (this.#instances.has(name)) {
       throw new Error(`Duplicate server name: ${name}`);
     }
 
@@ -107,10 +107,10 @@ export class ServerManager extends BaseControllable {
       ? hostManager.makeSubset(hostnames)
       : null;
     const rateLimiter = limName
-      ? serviceManager.findController(limName).service
+      ? serviceManager.findService(limName)
       : null;
     const requestLogger = logName
-      ? serviceManager.findController(logName).service
+      ? serviceManager.findService(logName)
       : null;
 
     const extraConfig = {
@@ -121,15 +121,15 @@ export class ServerManager extends BaseControllable {
       requestLogger
     };
 
-    const controller = new ServerController(config, extraConfig);
+    const instance = new NetworkServer(config, extraConfig);
 
-    this.#controllers.set(name, controller);
+    this.#instances.set(name, instance);
     this.logger.bound(name);
   }
 
   /**
    * Makes an `applicationMap` map suitable for use in constructing a {@link
-   * ServerController}, by also using the {@link #warehouse} to look up
+   * NetworkServer}, by also using the {@link #warehouse} to look up
    * application name bindings.
    *
    * @param {MountConfig[]} mounts Original `mounts` configuration item.
@@ -141,8 +141,8 @@ export class ServerManager extends BaseControllable {
 
     for (const { application } of mounts) {
       if (!result.has(application)) {
-        const controller = applicationManager.findController(application);
-        result.set(application, controller);
+        const found = applicationManager.findApplication(application);
+        result.set(application, found);
       }
     }
 

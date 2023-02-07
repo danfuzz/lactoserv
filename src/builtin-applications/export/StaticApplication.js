@@ -4,7 +4,7 @@
 import express from 'express';
 
 import { ApplicationConfig, Files } from '@this/app-config';
-import { ApplicationController, BaseApplication } from '@this/app-framework';
+import { BaseApplication } from '@this/app-framework';
 
 
 /**
@@ -27,17 +27,18 @@ export class StaticApplication extends BaseApplication {
    * Constructs an instance.
    *
    * @param {ApplicationConfig} config Configuration for this application.
-   * @param {ApplicationController} controller Controller for this instance.
+   * @param {?function(...*)} logger Instance-specific logger, or `null` if
+   *   no logging is to be done.
    */
-  constructor(config, controller) {
-    super(config, controller);
+  constructor(config, logger) {
+    super(config, logger);
 
     this.#notFoundPath  = config.notFoundPath;
     this.#handleRequest = express.static(config.siteDirectory);
   }
 
   /** @override */
-  handleRequest(req, res, next) {
+  _impl_handleRequest(req, res, next) {
     if (this.#notFoundPath) {
       const innerNext = (error) => {
         if (error) {
@@ -50,6 +51,16 @@ export class StaticApplication extends BaseApplication {
     } else {
       this.#handleRequest(req, res, next);
     }
+  }
+
+  /** @override */
+  async _impl_start(isReload_unused) {
+    // Nothing to do here.
+  }
+
+  /** @override */
+  async _impl_stop(willReload_unused) {
+    // Nothing to do here.
   }
 
 

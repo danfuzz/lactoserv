@@ -4,7 +4,7 @@
 import * as fs from 'node:fs/promises';
 
 import { FileServiceConfig } from '@this/app-config';
-import { BaseService, ServiceController } from '@this/app-framework';
+import { BaseService } from '@this/app-framework';
 import { Rotator } from '@this/app-util';
 import { IntfRequestLogger } from '@this/network-protocol';
 
@@ -31,10 +31,11 @@ export class RequestLoggerService extends BaseService {
    * Constructs an instance.
    *
    * @param {FileServiceConfig} config Configuration for this service.
-   * @param {ServiceController} controller The controller for this instance.
+   * @param {?function(...*)} logger Instance-specific logger, or `null` if
+   *   no logging is to be done.
    */
-  constructor(config, controller) {
-    super(config, controller);
+  constructor(config, logger) {
+    super(config, logger);
 
     this.#logFilePath = config.resolvePath();
     this.#rotator     = config.rotate ? new Rotator(config, this.logger) : null;
