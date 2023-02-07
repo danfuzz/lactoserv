@@ -9,6 +9,8 @@ import { hideBin } from 'yargs/helpers';
 import { ProductInfo } from '@this/host';
 import { MustBe } from '@this/typey';
 
+import { WarehouseMaker } from '#p/WarehouseMaker';
+
 
 /**
  * Parser and container for top-level arguments and options.
@@ -17,11 +19,14 @@ export class MainArgs {
   /** @type {string[]} Value of `process.argv` (or equivalent). */
   #argv;
 
-  /** @type {?URL} Configuration URL. */
-  #configUrl = null;
-
   /** @type {?object} Parsed arguments. */
   #parsedArgs = null;
+
+  /**
+   * @type {?WarehouseMaker} Warehouse maker, based on the passed configuration
+   * URL.
+   */
+  #warehouseMaker = null;
 
   /**
    * Constructs an instance.
@@ -30,11 +35,6 @@ export class MainArgs {
    */
   constructor(argv) {
     this.#argv = MustBe.arrayOfString(argv);
-  }
-
-  /** @returns {?URL} Configuration URL. */
-  get configUrl() {
-    return this.#configUrl;
   }
 
   /** @returns {object} All of the debugging-related arguments. */
@@ -55,10 +55,16 @@ export class MainArgs {
   parse() {
     const args = this.#parse0();
 
-    this.#configUrl = args.configUrl
-      ?? pathToFileURL(args.config);
+    this.#warehouseMaker = new WarehouseMaker(args.configUrl);
+    this.#parsedArgs     = args;
+  }
 
-    this.#parsedArgs = args;
+  /**
+   * @type {WarehouseMaker} Warehouse maker, based on the passed configuration
+   * location.
+   */
+  get warehouseMaker() {
+    return this.#warehouseMaker;
   }
 
   /**
@@ -132,6 +138,13 @@ export class MainArgs {
         return true;
       });
 
-    return parser.parseSync(args);
+    const result = parser.parseSync(args);
+
+    if (result.config) {
+      result.configUrl = pathToFileURL(result.config);
+      result.config    = undefined;
+    }
+
+    return result;
   }
 }
