@@ -3,6 +3,8 @@
 
 import process from 'node:process'; // Need to import as such, for `.on*()`.
 
+import { IntfLogger } from '@this/loggy';
+
 import { CallbackList } from '#p/CallbackList';
 import { HeapDump } from '#p/HeapDump';
 import { ProductInfo } from '#x/ProductInfo';
@@ -20,7 +22,10 @@ export class SignalHandler {
    */
   static #MAX_RELOAD_MSEC = 10 * 1000;
 
-  /** @type {function(...*)} Logger for this class. */
+  /**
+   * @type {?IntfLogger} Logger for this class, or `null` not to do any
+   * logging.
+   */
   static #logger = ThisModule.logger.signal;
 
   /** @type {boolean} Initialized? */

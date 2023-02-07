@@ -4,6 +4,7 @@
 import * as timers from 'node:timers/promises';
 
 import { Host } from '@this/host';
+import { IntfLogger } from '@this/loggy';
 
 import { ThisModule } from '#p/ThisModule';
 import { UsualSystem } from '#p/UsualSystem';
@@ -13,7 +14,10 @@ import { UsualSystem } from '#p/UsualSystem';
  * Utilities for debugging support.
  */
 export class Debugging {
-  /** @type {function(...*)} Logger for this class. */
+  /**
+   * @type {?IntfLogger} Logger for this class, or `null` not to do any
+   * logging.
+   */
   static #logger = ThisModule.logger.debug;
 
   /**

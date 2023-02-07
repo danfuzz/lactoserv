@@ -5,6 +5,7 @@ import { SecureContext } from 'node:tls';
 
 import { HostConfig, Uris } from '@this/app-config';
 import { TreePathKey, TreePathMap } from '@this/collections';
+import { IntfLogger } from '@this/loggy';
 
 import { HostItem } from '#p/HostItem';
 import { ThisModule } from '#p/ThisModule';
@@ -23,7 +24,10 @@ export class HostManager {
    */
   #items = new TreePathMap(TreePathKey.hostnameStringFrom);
 
-  /** @type {function(...*)} Logger for this class. */
+  /**
+   * @type {?IntfLogger} Logger for this class, or `null` not to do any
+   * logging.
+   */
   #logger = ThisModule.logger.hosts;
 
   /**

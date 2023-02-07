@@ -1,17 +1,23 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
 // This project is PROPRIETARY and UNLICENSED.
 
-import { Loggy } from '@this/loggy';
+import { IntfLogger, Loggy } from '@this/loggy';
 
 
 /**
  * Intramodule communication (un-exported).
  */
 export class ThisModule {
-  /** @type {function(...*)} Logger for this module. */
+  /**
+   * @type {?IntfLogger} Logger for this module, or `null` not to do any
+   * logging.
+   */
   static #logger = Loggy.loggerFor('main');
 
-  /** @returns {function(...*)} Logger for this module. */
+  /**
+   * @returns {?IntfLogger} Logger for this module, or `null` not to do any
+   * logging.
+   */
   static get logger() {
     return this.#logger;
   }
