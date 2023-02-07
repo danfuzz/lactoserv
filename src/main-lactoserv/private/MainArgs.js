@@ -48,6 +48,19 @@ export class MainArgs {
     };
   }
 
+  /** @returns {object} All of the parsed arguments. */
+  get parsedArgs() {
+    return this.#parsedArgs;
+  }
+
+  /**
+   * @type {WarehouseMaker} Warehouse maker, based on the passed configuration
+   * location.
+   */
+  get warehouseMaker() {
+    return this.#warehouseMaker;
+  }
+
   /**
    * Parses the arguments. After calling this (and no error is thrown), the
    * various properties of this instance are valid.
@@ -57,14 +70,6 @@ export class MainArgs {
 
     this.#warehouseMaker = new WarehouseMaker(args.configUrl);
     this.#parsedArgs     = args;
-  }
-
-  /**
-   * @type {WarehouseMaker} Warehouse maker, based on the passed configuration
-   * location.
-   */
-  get warehouseMaker() {
-    return this.#warehouseMaker;
   }
 
   /**
