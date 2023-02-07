@@ -3,8 +3,6 @@
 
 import { Warehouse } from '@this/app-framework';
 import { Condition, Threadlet } from '@this/async';
-import { BuiltinApplications } from '@this/builtin-applications';
-import { BuiltinServices } from '@this/builtin-services';
 import { Host } from '@this/host';
 import { IntfLogger } from '@this/loggy';
 

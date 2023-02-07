@@ -3,7 +3,7 @@
 
 import { BuiltinApplications } from '@this/builtin-applications';
 import { BuiltinServices } from '@this/builtin-services';
-import { Host, KeepRunning } from '@this/host';
+import { Host } from '@this/host';
 
 
 /**

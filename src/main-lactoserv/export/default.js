@@ -7,7 +7,6 @@ import { Debugging } from '#p/Debugging';
 import { MainArgs } from '#p/MainArgs';
 import { SystemInit } from '#p/SystemInit';
 import { UsualSystem } from '#p/UsualSystem';
-import { WarehouseMaker } from '#p/WarehouseMaker';
 
 
 export default async function main() {
