@@ -5,6 +5,7 @@ import express from 'express';
 
 import { ApplicationConfig, Files } from '@this/app-config';
 import { BaseApplication } from '@this/app-framework';
+import { IntfLogger } from '@this/loggy';
 
 
 /**
@@ -27,8 +28,8 @@ export class StaticApplication extends BaseApplication {
    * Constructs an instance.
    *
    * @param {ApplicationConfig} config Configuration for this application.
-   * @param {?function(...*)} logger Instance-specific logger, or `null` if
-   *   no logging is to be done.
+   * @param {?IntfLogger} logger Instance-specific logger, or `null` if no
+   *   logging is to be done.
    */
   constructor(config, logger) {
     super(config, logger);

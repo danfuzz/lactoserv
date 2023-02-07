@@ -3,6 +3,7 @@
 
 import { ApplicationConfig, Uris } from '@this/app-config';
 import { BaseApplication } from '@this/app-framework';
+import { IntfLogger } from '@this/loggy';
 import { MustBe } from '@this/typey';
 
 
@@ -26,8 +27,8 @@ export class RedirectApplication extends BaseApplication {
    * Constructs an instance.
    *
    * @param {ApplicationConfig} config Configuration for this application.
-   * @param {?function(...*)} logger Instance-specific logger, or `null` if
-   *   no logging is to be done.
+   * @param {?IntfLogger} logger Instance-specific logger, or `null` if no
+   *   logging is to be done.
    */
   constructor(config, logger) {
     super(config, logger);

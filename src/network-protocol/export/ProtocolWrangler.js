@@ -7,6 +7,7 @@ import * as net from 'node:net';
 import express from 'express';
 
 import { Threadlet } from '@this/async';
+import { IntfLogger } from '@this/loggy';
 import { ProductInfo } from '@this/host';
 import { Methods, MustBe } from '@this/typey';
 
@@ -213,7 +214,7 @@ export class ProtocolWrangler {
    * stack. This "protected" method is expected to be called by subclass code.
    *
    * @param {net.Socket} socket Socket representing the newly-made connection.
-   * @param {?function(...*)} logger Logger to use for the connection, if any.
+   * @param {?IntfLogger} logger Logger to use for the connection, if any.
    */
   _prot_newConnection(socket, logger) {
     // What's going on here:

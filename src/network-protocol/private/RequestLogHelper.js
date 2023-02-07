@@ -5,7 +5,7 @@ import * as http2 from 'node:http2';
 
 import * as express from 'express';
 
-import { FormatUtils } from '@this/loggy';
+import { FormatUtils, IntfLogger } from '@this/loggy';
 
 import { IntfRequestLogger } from '#x/IntfRequestLogger';
 import { WranglerContext } from '#x/WranglerContext';
@@ -25,7 +25,7 @@ export class RequestLogHelper {
    * Constructs an instance.
    *
    * @param {IntfRequestLogger} requestLogger Request logger service to use.
-   * @param {?function(...*)} logger Underlying system event logger instance to
+   * @param {?IntfLogger} logger Underlying system event logger instance to
    *   use, if any.
    */
   constructor(requestLogger, logger) {

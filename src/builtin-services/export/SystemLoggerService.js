@@ -7,7 +7,7 @@ import { FileServiceConfig } from '@this/app-config';
 import { BaseService } from '@this/app-framework';
 import { Rotator } from '@this/app-util';
 import { EventTracker } from '@this/async';
-import { LogEvent, Loggy, TextFileSink } from '@this/loggy';
+import { IntfLogger, LogEvent, Loggy, TextFileSink } from '@this/loggy';
 import { MustBe } from '@this/typey';
 
 
@@ -36,8 +36,8 @@ export class SystemLoggerService extends BaseService {
    * Constructs an instance.
    *
    * @param {FileServiceConfig} config Configuration for this service.
-   * @param {?function(...*)} logger Instance-specific logger, or `null` if
-   *   no logging is to be done.
+   * @param {?IntfLogger} logger Instance-specific logger, or `null` if no
+   *   logging is to be done.
    */
   constructor(config, logger) {
     super(config, logger);

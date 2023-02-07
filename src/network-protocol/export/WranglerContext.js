@@ -4,7 +4,7 @@
 import * as net from 'node:net';
 import * as stream from 'node:stream';
 
-import { FormatUtils } from '@this/loggy';
+import { FormatUtils, IntfLogger } from '@this/loggy';
 
 
 /**
@@ -123,7 +123,7 @@ export class WranglerContext {
    * Makes a new instance of this class for a connection.
    *
    * @param {net.Socket} socket The raw socket for the connection.
-   * @param {?function(...*)} logger The connection logger, if any.
+   * @param {?IntfLogger} logger The connection logger, if any.
    * @returns {WranglerContext} An appropriately-constructed instance.
    */
   static forConnection(socket, logger) {
@@ -144,7 +144,7 @@ export class WranglerContext {
    *
    * @param {?WranglerContext} outerContext Instance of this class which has
    *   outer context (for the connection and/or session), if any.
-   * @param {?function(...*)} logger The request logger, if any.
+   * @param {?IntfLogger} logger The request logger, if any.
    * @returns {WranglerContext} An appropriately-constructed instance.
    */
   static forRequest(outerContext, logger) {
@@ -171,7 +171,7 @@ export class WranglerContext {
    *
    * @param {?WranglerContext} outerContext Instance of this class which has
    *   outer context (for the connection), if any.
-   * @param {?function(...*)} logger The request logger, if any.
+   * @param {?IntfLogger} logger The request logger, if any.
    * @returns {WranglerContext} An appropriately-constructed instance.
    */
   static forSession(outerContext, logger) {

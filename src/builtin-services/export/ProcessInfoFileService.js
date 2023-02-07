@@ -8,7 +8,7 @@ import { FileServiceConfig } from '@this/app-config';
 import { BaseService } from '@this/app-framework';
 import { Threadlet } from '@this/async';
 import { Host, ProcessInfo, ProductInfo } from '@this/host';
-import { FormatUtils } from '@this/loggy';
+import { FormatUtils, IntfLogger } from '@this/loggy';
 import { MustBe } from '@this/typey';
 
 
@@ -46,8 +46,8 @@ export class ProcessInfoFileService extends BaseService {
    * Constructs an instance.
    *
    * @param {FileServiceConfig} config Configuration for this service.
-   * @param {?function(...*)} logger Instance-specific logger, or `null` if
-   *   no logging is to be done.
+   * @param {?IntfLogger} logger Instance-specific logger, or `null` if no
+   *   logging is to be done.
    */
   constructor(config, logger) {
     super(config, logger);

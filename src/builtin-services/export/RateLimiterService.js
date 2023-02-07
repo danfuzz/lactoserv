@@ -4,6 +4,7 @@
 import { ServiceConfig } from '@this/app-config';
 import { BaseService } from '@this/app-framework';
 import { TokenBucket } from '@this/async';
+import { IntfLogger } from '@this/loggy';
 import { IntfRateLimiter } from '@this/network-protocol';
 import { MustBe } from '@this/typey';
 
@@ -54,8 +55,8 @@ export class RateLimiterService extends BaseService {
    * Constructs an instance.
    *
    * @param {ServiceConfig} config Configuration for this service.
-   * @param {?function(...*)} logger Instance-specific logger, or `null` if
-   *   no logging is to be done.
+   * @param {?IntfLogger} logger Instance-specific logger, or `null` if no
+   *   logging is to be done.
    */
   constructor(config, logger) {
     super(config, logger);
