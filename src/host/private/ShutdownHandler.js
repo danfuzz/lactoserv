@@ -47,7 +47,7 @@ export class ShutdownHandler {
   /** @type {Threadlet} Thread that handles shutdown sequencing. */
   static #thread = new Threadlet(() => this.#run());
 
-  /** @type {?number} Exit code, if in fact in the middle of exiting. */
+  /** @returns {?number} Exit code, if in fact in the middle of exiting. */
   static get exitCode() {
     return this.isShuttingDown() ? this.#exitCode : null;
   }
