@@ -40,7 +40,7 @@ export class WranglerContext {
     return this.#connectionId;
   }
 
-  /** @returns {?IntfLogger} Logger for a connection. */
+  /** @returns {?IntfLogger} Logger for a connection, or `null` if none. */
   get connectionLogger() {
     return this.#connectionLogger;
   }
@@ -64,7 +64,7 @@ export class WranglerContext {
     return this.#requestId;
   }
 
-  /** @returns {?IntfLogger} Logger for a request. */
+  /** @returns {?IntfLogger} Logger for a request, or `null` if none. */
   get requestLogger() {
     return this.#requestLogger;
   }
@@ -74,7 +74,7 @@ export class WranglerContext {
     return this.#sessionId;
   }
 
-  /** @returns {?IntfLogger} Logger for a session. */
+  /** @returns {?IntfLogger} Logger for a session, or `null` if none. */
   get sessionLogger() {
     return this.#sessionLogger;
   }
