@@ -3,8 +3,6 @@
 
 import { Warehouse } from '@this/app-framework';
 import { Condition, Threadlet } from '@this/async';
-import { BuiltinApplications } from '@this/builtin-applications';
-import { BuiltinServices } from '@this/builtin-services';
 import { Host } from '@this/host';
 import { IntfLogger } from '@this/loggy';
 
@@ -26,10 +24,10 @@ export class UsualSystem extends Threadlet {
   /** @type {Condition} Was a reload requested? */
   #reloadRequested = new Condition();
 
-  /** @type {Warehouse} Warehouse of parts. */
+  /** @type {?Warehouse} Warehouse of parts. */
   #warehouse = null;
 
-  /** @type {Error} Error to throw instead of running. */
+  /** @type {?Error} Error to throw instead of running. */
   #error = null;
 
   /**
@@ -59,8 +57,6 @@ export class UsualSystem extends Threadlet {
       return;
     }
 
-    BuiltinApplications.register();
-    BuiltinServices.register();
     Host.registerReloadCallback(() => this.#reload());
     Host.registerShutdownCallback(() => this.stop());
 
@@ -74,23 +70,9 @@ export class UsualSystem extends Threadlet {
    * a configuration issue.
    */
   async #makeWarehouse() {
-    const configUrl = this.#args.configUrl;
-    let config;
-
-    this.#warehouse = null;
-
     try {
-      config = (await import(configUrl)).default;
+      this.#warehouse = await this.#args.warehouseMaker.make();
     } catch (e) {
-      this.#logger.configFileError(e);
-      this.#error = e;
-      return false;
-    }
-
-    try {
-      this.#warehouse = new Warehouse(config);
-    } catch (e) {
-      this.#logger.warehouseConstructionError(e);
       this.#error = e;
       return false;
     }

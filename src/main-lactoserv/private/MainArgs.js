@@ -9,6 +9,8 @@ import { hideBin } from 'yargs/helpers';
 import { ProductInfo } from '@this/host';
 import { MustBe } from '@this/typey';
 
+import { WarehouseMaker } from '#p/WarehouseMaker';
+
 
 /**
  * Parser and container for top-level arguments and options.
@@ -17,11 +19,14 @@ export class MainArgs {
   /** @type {string[]} Value of `process.argv` (or equivalent). */
   #argv;
 
-  /** @type {?URL} Configuration URL. */
-  #configUrl = null;
-
   /** @type {?object} Parsed arguments. */
   #parsedArgs = null;
+
+  /**
+   * @type {?WarehouseMaker} Warehouse maker, based on the passed configuration
+   * URL.
+   */
+  #warehouseMaker = null;
 
   /**
    * Constructs an instance.
@@ -30,11 +35,6 @@ export class MainArgs {
    */
   constructor(argv) {
     this.#argv = MustBe.arrayOfString(argv);
-  }
-
-  /** @returns {?URL} Configuration URL. */
-  get configUrl() {
-    return this.#configUrl;
   }
 
   /** @returns {object} All of the debugging-related arguments. */
@@ -48,6 +48,19 @@ export class MainArgs {
     };
   }
 
+  /** @returns {object} All of the parsed arguments. */
+  get parsedArgs() {
+    return this.#parsedArgs;
+  }
+
+  /**
+   * @type {WarehouseMaker} Warehouse maker, based on the passed configuration
+   * location.
+   */
+  get warehouseMaker() {
+    return this.#warehouseMaker;
+  }
+
   /**
    * Parses the arguments. After calling this (and no error is thrown), the
    * various properties of this instance are valid.
@@ -55,10 +68,8 @@ export class MainArgs {
   parse() {
     const args = this.#parse0();
 
-    this.#configUrl = args.configUrl
-      ?? pathToFileURL(args.config);
-
-    this.#parsedArgs = args;
+    this.#warehouseMaker = new WarehouseMaker(args.configUrl);
+    this.#parsedArgs     = args;
   }
 
   /**
@@ -106,6 +117,10 @@ export class MainArgs {
           describe: 'Debugging: Should some uncaught(ish) errors be thrown soon after starting?',
           boolean:   true
         },
+        'dry-run': {
+          describe: '"Dry run." Just check the config file for correctness.',
+          boolean:  true
+        },
         'log-to-stdout': {
           describe: 'Debugging: Should log messages be printed to stdout?',
           boolean:   true
@@ -128,6 +143,15 @@ export class MainArgs {
         return true;
       });
 
-    return parser.parseSync(args);
+    const result = parser.parseSync(args);
+
+    if (result.config) {
+      result.configUrl = pathToFileURL(result.config);
+      result.config    = undefined;
+    } else {
+      result.configUrl = new URL(result.configUrl);
+    }
+
+    return result;
   }
 }
