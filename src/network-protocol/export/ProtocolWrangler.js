@@ -7,8 +7,8 @@ import * as net from 'node:net';
 import express from 'express';
 
 import { Threadlet } from '@this/async';
-import { IntfLogger } from '@this/loggy';
 import { ProductInfo } from '@this/host';
+import { IntfLogger } from '@this/loggy';
 import { Methods, MustBe } from '@this/typey';
 
 import { IntfRateLimiter } from '#x/IntfRateLimiter';
