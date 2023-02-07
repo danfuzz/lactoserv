@@ -106,6 +106,10 @@ export class MainArgs {
           describe: 'Debugging: Should some uncaught(ish) errors be thrown soon after starting?',
           boolean:   true
         },
+        'dry-run': {
+          describe: '"Dry run." Just check the config file for correctness.',
+          boolean:  true
+        },
         'log-to-stdout': {
           describe: 'Debugging: Should log messages be printed to stdout?',
           boolean:   true
