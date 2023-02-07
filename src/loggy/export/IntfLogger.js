@@ -30,11 +30,18 @@ import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
  * `logger.subComponent` is a logger which has `"subComponent"` appended to its
  * tag, and likewise `logger.subComponent.someName("stuff")` will log the event
  * `someName("stuff")` with a tag that includes the logger's original context
- * plus `"subComponent"`.
+ * plus `"subComponent"`. This can be arbitrarily chained, e.g.
+ * `logger.yes.you.can.keep.going("yay!")`.
  *
  * Beyond the arbitrary names used to queue up events and create subloggers,
  * there are a few special names that can be used to access metainformation
  * about a logger. These are all documented as properties on this class.
+ *
+ * As an uncommonly-used sorta-special case (which really falls out from the
+ * rest of the structure of the system), a logger can be called directly as a
+ * function, in which case the first argument is the event type and the _rest_
+ * of the arguments are the event arguments. That is, `logger("someName", 123)`
+ * is equivalent to `logger.someName(123)`.
  *
  * **Note:** Under the covers (unsurprisingly) every logger instance is in fact
  * a proxy.
