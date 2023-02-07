@@ -11,8 +11,7 @@ import { LogTag } from '#x/LogTag';
  * Proxy handler which provides the illusion of an object with infinitely many
  * properties, each of which is callable as a function or a method, _or_ which
  * can be treated as an object with subproperties to add layers of tag context.
- * See {@link Loggy.loggerFor} for details (and the public interface to this
- * class).
+ * See {@link IntfLogger} and {@link Loggy#loggerFor} for details.
  */
 export class LogProxyHandler extends PropertyCacheProxyHandler {
   /** @type {LogTag} Tag to use on all logged events. */
