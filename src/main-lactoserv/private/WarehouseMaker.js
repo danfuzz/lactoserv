@@ -76,10 +76,12 @@ export class WarehouseMaker {
     try {
       await loader.load(configUrl);
     } catch (e) {
-      // There was an error. If it was a _syntax_ error, then calling out to
-      // Node to try it as a top-level script might actually elucidate the
-      // problem. TODO! For now, just throw.
-      this.#logger.possibleConfigurationSyntaxError(e);
+      if (e.name === 'SyntaxError') {
+        // There was a syntax error somewhere in the config. TODO: If we ask
+        // Node to load it as a top-level script, it might actually elucidate
+        // the problem. For now, just note it and throw.
+        this.#logger.configFileSyntaxError(e);
+      }
       throw e;
     }
 
