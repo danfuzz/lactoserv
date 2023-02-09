@@ -168,6 +168,12 @@ export class TopErrorHandler {
    * @param {Error} warning The warning.
    */
   static async #warning(warning) {
+    if (warning.name === 'ExperimentalWarning') {
+      if (/VM Modules/.test(warning.message)) {
+        return;
+      }
+    }
+
     this.#logger.warning(warning);
   }
 }

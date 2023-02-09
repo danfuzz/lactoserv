@@ -2,7 +2,9 @@ import * as fs from 'node:fs/promises';
 
 const fileUrl  = (path) => new URL(path, import.meta.url);
 const filePath = (path) => fileUrl(path).pathname;
-const readFile = async (path) => fs.readFile(fileUrl(path));
+const readFile = async (path) => {
+  return fs.readFile(fileUrl(path));
+}
 
 // Host / certificate bindings.
 const hosts = [
