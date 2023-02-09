@@ -59,6 +59,8 @@ export class LimitedLoader {
    * @param {?object} [context = null] Context to use. This is the object which
    *   becomes the `global` of any loaded code. If `null`, this uses the same
    *   context that this class is run in.
+   * @param {?IntfLogger} [logger = null] Logger to use, or `null` not to do any
+   *   logging.
    */
   constructor(context = null, logger = null) {
     this.#context = context;
