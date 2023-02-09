@@ -46,6 +46,14 @@ export class LimitedLoader {
   #cache = new Map();
 
   /**
+   * @type {function(string, Module, object)} Linker function, passed to
+   * `module.link()`.
+   */
+  #linker = (specifier, refModule_unused, extra) => {
+    return this.#importModule(specifier, extra);
+  };
+
+  /**
    * Constructs an instance.
    *
    * @param {?object} [context = null] Context to use. This is the object which
@@ -115,7 +123,7 @@ export class LimitedLoader {
       switch (module.status) {
         case 'unlinked': {
           this.#logger?.linking(module.identifier);
-          await module.link((...args) => this.#linker(...args));
+          await module.link(this.#linker);
           this.#logger?.linked(module.identifier);
           break;
         }
@@ -150,7 +158,23 @@ export class LimitedLoader {
     }
   }
 
-  async #importModule(specifier) {
+  /**
+   * Constructs and returns a module whose contents should be loaded from the
+   * given specifier. If the specifier has already been constructed, this
+   * returns the previously-constructed instance.
+   *
+   * @param {string} specifier The module specifier.
+   * @param {object} [extra = null] Extra options that came with the import
+   *   request, or `null` if there were none.
+   * @returns {Module} The (nascently) imported module
+   */
+  async #importModule(specifier, extra = null) {
+    const { assert } = extra ?? {};
+    if (assert && Object.getOwnPropertyNames(assert).length !== 0) {
+      // TODO: Perhaps don't ignore `assert`.
+      this.#logger?.ignoringImportAssert(specifier, assert);
+    }
+
     const found = this.#cache.get(specifier);
 
     if (found) {
@@ -190,13 +214,6 @@ export class LimitedLoader {
     this.#logger?.imported(specifier);
 
     this.#cache.set(specifier, result);
-    return result;
-  }
-
-  async #linker(specifier, refModule_unused, extra) {
-    this.#logger?.linking(specifier, extra);
-    const result = this.#importModule(specifier);
-    this.#logger?.linked(specifier, extra);
     return result;
   }
 }
