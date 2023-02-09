@@ -82,7 +82,7 @@ export class WarehouseMaker {
         // There was a syntax error somewhere in the config. TODO: If we ask
         // Node to load it as a top-level script, it might actually elucidate
         // the problem. For now, just note it and throw.
-        this.#logger.configFileSyntaxError(e);
+        this.#logger.configFileSyntaxError(e.message);
       }
       throw e;
     }
