@@ -74,10 +74,12 @@ export class LimitedLoader {
   /**
    * Loads the module indicated by the given specifier. Specifiers are the same
    * sorts of things as those used by the `import ...` or `import(...)` syntax.
-   * This returns `undefined` upon successful evaluation or throws whatever
-   * error was caused during the procedure.
+   * This returns the loaded (and evaluated) module upon successful evaluation
+   * or throws whatever error was caused during the procedure.
    *
    * @param {string} specifier Specifier for the module to import.
+   * @returns {Module} The module resulting from loading the code at
+   *   `specifier`.
    */
   async load(specifier) {
     if (specifier instanceof URL) {
@@ -86,18 +88,21 @@ export class LimitedLoader {
 
     const result = await this.#importModule(specifier, {});
     await this.#evaluate(result);
+    return result;
   }
 
   /**
-   * Loads and runs the given script (source text). This returns `undefined`
-   * upon successful evaluation or throws whatever error was caused during the
-   * procedure.
+   * Loads and runs the given script (source text). This returns the `Module`
+   * that was created for the script upon successful evaluation, or throws
+   * whatever error was caused during the procedure.
    *
    * @param {string} script Script (source text) to run.
+   * @returns {Module} The module resulting from `script`'s evaluation.
    */
   async runScript(script) {
     const result = new SourceTextModule(script, this.#defaultOptions());
     await this.#evaluate(result);
+    return result;
   }
 
   /**
