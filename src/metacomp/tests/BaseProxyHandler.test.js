@@ -53,6 +53,10 @@ describe('makeFunctionProxy()', () => {
   });
 });
 
+describe('makeFunctionInstanceProxy()', () => {
+  // TODO
+});
+
 describe('makeInstanceProxy()', () => {
   test('constructs an instance-like proxy around an instance of the called-upon subclass', () => {
     let gotArgs     = null;
