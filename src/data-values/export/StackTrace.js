@@ -131,8 +131,8 @@ export class StackTrace {
       return StackTrace.#framesFromArray(frames);
     }
 
-    const stack   = (typeof original === 'string') ? original : original.stack;
-    const result  = [];
+    const stack  = (typeof original === 'string') ? original : original.stack;
+    const result = [];
 
     // This matches a single stack frame line, in Node / V8 format.
     // TODO: Look into using the built-in V8 mechanism to avoid string parsing.
