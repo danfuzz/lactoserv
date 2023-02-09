@@ -129,12 +129,10 @@ check-dependency \
 # Notes:
 # * `--no-warnings` suppresses Node's built-in warning printer, which we do
 #   because this program includes its own warning handler.
-# * `exec` minimizes the number of processes left lying around. That is, no
-#   need for this script to take up space once the system is running. In
-#   addition to just being tidy, it helps when this project is run via / within
-#   a service manager such as `systemd`.
+# * `--experimental-vm-modules` enables the `node:vm/Module` class and related
+#   functionality.
 fullCommand=(
-    node "${nodeOpts[@]}" --no-warnings
+    node "${nodeOpts[@]}" --no-warnings --experimental-vm-modules
     "${baseDir}/lib/code/index.js"
     --outer-command-name="${cmdName}"
     "${mainArgs[@]}"
@@ -145,4 +143,8 @@ if (( printNodeCommand )); then
     printf 1>&2 '  %q\n' "${fullCommand[@]}"
 fi
 
+# Note: `exec` minimizes the number of processes left lying around. That is, no
+# need for this script to take up space once the system is running. In addition
+# to just being tidy, it helps when this project is run via / within a service
+# manager such as `systemd`.
 exec "${fullCommand[@]}"
