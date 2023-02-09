@@ -42,6 +42,7 @@ describe('makeFunctionProxy()', () => {
 
     const callResult = proxy(1, 2, 3);
     expect(callResult).toBe('boop');
+    expect(gotThis).toBeUndefined();
     expect(gotTarget).toBeFrozen();
     expect(gotTarget).toBeFunction();
     expect(gotArgs).toStrictEqual([1, 2, 3]);
@@ -54,19 +55,88 @@ describe('makeFunctionProxy()', () => {
 });
 
 describe('makeFunctionInstanceProxy()', () => {
-  // TODO
-});
-
-describe('makeInstanceProxy()', () => {
-  test('constructs an instance-like proxy around an instance of the called-upon subclass', () => {
+  test('constructs a function- and instance-like proxy around an instance of the called-upon subclass', () => {
     let gotArgs     = null;
     let gotTarget   = null;
+    let gotThis     = null;
     let gotProperty = null;
 
     class Subclass extends BaseProxyHandler {
       constructor(...args) {
         super();
         gotArgs = args;
+      }
+
+      apply(target, thisArg, args) {
+        gotTarget = target;
+        gotThis   = thisArg;
+        gotArgs   = args;
+
+        return 'zonk';
+      }
+
+      get(target, property, receiver_unused) {
+        gotTarget = target;
+        gotProperty = property;
+      }
+    }
+
+    let targetConstructorCalled = 0;
+    class SomeTarget {
+      constructor() {
+        targetConstructorCalled++;
+      }
+
+      get florp() {
+        throw new Error('Should not get accessed.');
+      }
+    }
+
+    const proxy = Subclass.makeFunctionInstanceProxy(SomeTarget, 'x', 'y', 'z');
+
+    expect(proxy).toBeInstanceOf(SomeTarget);
+    expect(targetConstructorCalled).toBe(0);
+    expect(gotArgs).toStrictEqual(['x', 'y', 'z']);
+
+    expect(proxy.florp).toBeUndefined();
+    expect(gotTarget).toBeInstanceOf(SomeTarget);
+    expect(gotTarget).toBeFrozen();
+    expect(gotProperty).toBe('florp');
+
+    gotTarget = null;
+    gotThis   = null;
+    gotArgs   = null;
+    expect(proxy('eep')).toBe('zonk');
+    expect(gotArgs).toStrictEqual(['eep']);
+    expect(gotTarget).toBeInstanceOf(SomeTarget);
+    expect(gotThis).toBeUndefined();
+
+    const someThis = { oh: 'yeah', p: proxy };
+    someThis.p('bonk', 123);
+    expect(gotThis).toBe(someThis);
+    expect(gotArgs).toStrictEqual(['bonk', 123]);
+  });
+});
+
+describe('makeInstanceProxy()', () => {
+  test('constructs an instance-like proxy around an instance of the called-upon subclass', () => {
+    let gotArgs     = null;
+    let gotTarget   = null;
+    let gotThis     = null;
+    let gotProperty = null;
+
+    class Subclass extends BaseProxyHandler {
+      constructor(...args) {
+        super();
+        gotArgs = args;
+      }
+
+      apply(target, thisArg, args) {
+        gotTarget = target;
+        gotThis   = thisArg;
+        gotArgs   = args;
+
+        return 'zonk';
       }
 
       get(target, property, receiver_unused) {
@@ -96,6 +166,14 @@ describe('makeInstanceProxy()', () => {
     expect(gotTarget).toBeInstanceOf(SomeTarget);
     expect(gotTarget).toBeFrozen();
     expect(gotProperty).toBe('florp');
+
+    gotTarget = null;
+    gotThis   = null;
+    gotArgs   = null;
+    expect(() => proxy('eep')).toThrow();
+    expect(gotTarget).toBeNull();
+    expect(gotThis).toBeNull();
+    expect(gotArgs).toBeNull();
   });
 });
 
