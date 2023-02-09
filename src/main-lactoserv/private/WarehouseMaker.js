@@ -73,8 +73,10 @@ export class WarehouseMaker {
     const loader    = new LimitedLoader(context, this.#logger);
     const configUrl = this.#configUrl;
 
+    let module;
+
     try {
-      await loader.load(configUrl);
+      module = await loader.load(configUrl);
     } catch (e) {
       if (e.name === 'SyntaxError') {
         // There was a syntax error somewhere in the config. TODO: If we ask
@@ -85,19 +87,12 @@ export class WarehouseMaker {
       throw e;
     }
 
-    await loader.runScript(`
-      import config from '${configUrl}';
-      global.CONFIG_RESULT = config;
-    `);
-
-    const result = context.CONFIG_RESULT;
+    const rawResult = module.namespace.default;
 
     // We need to do this because the config file was evaluated in a different
     // context from the default one, which means that its primordial objects /
     // classes aren't `===` to the default ones, which can lead to weirdness.
     // `structuredClone()` returns "normal" objects.
-    const clone = structuredClone(result);
-
-    return clone;
+    return structuredClone(rawResult);
   }
 }
