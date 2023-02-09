@@ -70,16 +70,20 @@ export class HostConfig extends BaseConfig {
   //
 
   /**
-   * If given a `Buffer`, converts it to a string, interpreting bytes as UTF-8.
-   * Otherwise, just passes the value through as-is.
+   * If given a `Buffer` or `Uint8Array` in general, converts it to a string,
+   * interpreting bytes as UTF-8. Otherwise, just passes the value through
+   * as-is.
    *
    * @param {*} value Value in question.
    * @returns {*} `value` converted to a string if it was a `Buffer`, otherwise
    *   `value`.
    */
   static #bufferFilter(value) {
-    return (value instanceof Buffer)
-      ? value.toString('utf-8')
-      : value;
+    if (value instanceof Uint8Array) {
+      const decoder = new TextDecoder('utf-8', { fatal: true });
+      return decoder.decode(value);
+    } else {
+      return value;
+    }
   }
 }
