@@ -135,6 +135,9 @@ export class StackTrace {
     const result  = [];
 
     // This matches a single stack frame line, in Node / V8 format.
+    // TODO: This doesn't actually match all possible forms. Fix it.
+    // TODO: Look into using the built-in V8 mechanism to avoid string parsing.
+    // See <https://v8.dev/docs/stack-trace-api>.
     const lineRx = /    at ([^()\n]+)(?: [(]([^()\n]*)[)])?(\n|$)/gy;
     lineRx.lastIndex = StackTrace.#findFirstFrame(original);
 
@@ -296,7 +299,7 @@ export class StackTrace {
    * @returns {number} Index for the first stack frame line.
    */
   static #findFirstFrameFromStackString(stack) {
-    const framesMatch = /(\n    at [^\n]+)+$/.exec(stack);
+    const framesMatch = /(\n    at [^\n]+)+[\n]?$/.exec(stack);
 
     if (framesMatch === null) {
       // Alas, nothing better to do. TODO: Consider something like wrapping
