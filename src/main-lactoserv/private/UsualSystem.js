@@ -27,9 +27,6 @@ export class UsualSystem extends Threadlet {
   /** @type {?Warehouse} Warehouse of parts. */
   #warehouse = null;
 
-  /** @type {?Error} Error to throw instead of running. */
-  #error = null;
-
   /**
    * @type {?IntfLogger} Logger for this instance, or `null` not to do any
    * logging.
@@ -57,33 +54,40 @@ export class UsualSystem extends Threadlet {
       return;
     }
 
-    Host.registerReloadCallback(() => this.#reload());
+    Host.registerReloadCallback(() => this.#requestReload());
     Host.registerShutdownCallback(() => this.stop());
 
     this.#initDone = true;
   }
 
   /**
-   * Constructs (and possibly replaces) {@link #warehouse}.
-   *
-   * @returns {boolean} `true` iff successful. `false` generally means there was
-   * a configuration issue.
+   * Helper for {@link #run}, which performs a system reload.
    */
-  async #makeWarehouse() {
+  async #reload() {
+    this.#logger.reloading();
+
+    let nextWarehouse;
+
     try {
-      this.#warehouse = await this.#args.warehouseMaker.make();
+      nextWarehouse = await this.#args.warehouseMaker.make();
     } catch (e) {
-      this.#error = e;
-      return false;
+      // Can't reload! There's an error in the config file.
+      this.#logger.errorInReloadedConfig(e);
+      this.#logger.notReloading();
+      return;
     }
 
-    return true;
+    await this.#stop(true);
+    this.#warehouse = nextWarehouse;
+    await this.#start(true);
+
+    this.#logger.reloaded();
   }
 
   /**
-   * Restarts the system.
+   * Requests that the system be reloaded.
    */
-  async #reload() {
+  async #requestReload() {
     if (this.isRunning()) {
       this.#logger.reload('requested');
       this.#reloadRequested.value = true;
@@ -98,24 +102,13 @@ export class UsualSystem extends Threadlet {
    * Main thread body: Runs the system.
    */
   async #run() {
-    if ((this.#error !== null) || (this.#warehouse === null)) {
-      if (this.#warehouse === null) {
-        this.#logger.noWarehouse();
-      }
-
-      if (this.#error === null) {
-        this.#error = new Error('Configuration trouble.');
-      }
-
-      throw this.#error;
+    if (this.#warehouse === null) {
+      throw new Error('Shouldn\'t happen (no warehouse).');
     }
 
     while (!this.shouldStop()) {
       if (this.#reloadRequested.value === true) {
-        this.#logger.reloading();
-        await this.#stop(true);
-        await this.#start(true);
-        this.#logger.reloaded();
+        await this.#reload();
         this.#reloadRequested.value = false;
       }
 
@@ -141,11 +134,13 @@ export class UsualSystem extends Threadlet {
 
     this.#logger.starting(logArg);
 
-    const warehouseIsGood = await this.#makeWarehouse();
-
-    if (!warehouseIsGood) {
-      this.#logger.startAborted();
-      return;
+    if (this.#warehouse === null) {
+      try {
+        this.#warehouse = await this.#args.warehouseMaker.make();
+      } catch (e) {
+        this.#logger.startAborted();
+        throw e;
+      }
     }
 
     await this.#warehouse.start(forReload);
