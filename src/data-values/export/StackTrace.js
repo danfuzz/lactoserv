@@ -177,37 +177,8 @@ export class StackTrace {
    *   The stack trace.
    */
   static framesNow(omitCount = 0, maxCount = null) {
-    omitCount += 2; // To skip the frame for this call and `_impl_newError()`.
-    maxCount ??= Number.POSITIVE_INFINITY;
-
-    // This regex matches Node / V8 stack traces. Other than the first line of
-    // `Error` (no-message instance), each line is expected to either be a
-    // file/location ID or a function/method ID followed by a file/location ID
-    // in parentheses.
-    const lineRx = /(?:Error\n)?    at ([^()\n]+)(?: [(]([^()\n]*)[)])?(\n|$)/gy;
-
-    const raw    = this._impl_newError().stack;
-    const result = [];
-
-    while (result.length < maxCount) {
-      const foundLine = lineRx.exec(raw);
-      if (foundLine === null) {
-        break;
-      } else if (omitCount-- > 0) {
-        continue;
-      }
-
-      const fileEtc  = foundLine[2] ?? foundLine[1];
-      const name     = (fileEtc === foundLine[1]) ? '<none>' : foundLine[1];
-      const foundPos = fileEtc.match(/^(.*?)(?::([0-9]+))(?::([0-9]+))?/);
-      const file     = foundPos ? foundPos[1] : fileEtc;
-      const line     = foundPos ? parseInt(foundPos[2]) : null;
-      const col      = foundPos ? parseInt(foundPos[3]) : null;
-
-      result.push(Object.freeze({ name, file, line, col }));
-    }
-
-    return Object.freeze(result);
+    const error = this._impl_newError();
+    return this.framesFrom(error, omitCount + 2, maxCount);
   }
 
   /**
