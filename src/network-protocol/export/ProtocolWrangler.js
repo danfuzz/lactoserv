@@ -304,10 +304,10 @@ export class ProtocolWrangler {
   }
 
   /**
-   * "First licks" request handler. This gets added as the first middlware
-   * handler to the high-level application. Parameters are as defined by the
-   * Express middleware spec. This method will call out to the configured
-   * `requestHandler` when appropriate (e.g. not rate-limited, etc.).
+   * "First licks" request handler during Express dispatch. This gets added as
+   * the first middlware handler to the high-level application. Parameters are
+   * as defined by the Express middleware spec. This method will call out to the
+   * configured `requestHandler` when appropriate (e.g. not rate-limited, etc.).
    *
    * @param {express.Request} req Request object.
    * @param {express.Response} res Response object.
@@ -347,7 +347,7 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Finish initialization of the instance, by setting up all the event and
+   * Finishes initialization of the instance, by setting up all the event and
    * route handlers on the protocol server and high-level application instance.
    * We can't do this in the constructor, because at the time this (base class)
    * constructor runs, the concrete class constructor hasn't finished, and it's
