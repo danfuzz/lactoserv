@@ -56,18 +56,8 @@ export class RequestLogHelper {
     const origin    = context.socketAddressPort ?? '<unknown-origin>';
     const method    = req.method;
 
-    const info = {
-      connectionId: context.connectionId ?? '<unknown-id>'
-    };
-
-    if (context.sessionId) {
-      info.sessionId = context.sessionId;
-      context.sessionLogger?.newRequest(requestId);
-    } else {
-      context.connectionLogger?.newRequest(requestId);
-    }
-
-    logger?.opened(info);
+    context.logger?.newRequest(requestId);
+    logger?.opened(context.ids);
     logger?.request(origin, req.method, urlish);
     logger?.headers(RequestLogHelper.#sanitizeRequestHeaders(req.headers));
 
