@@ -219,15 +219,11 @@ export class FormatUtils {
     const parts = [];
 
     if (days > 0) {
-      parts.push(days, 'd ');
+      parts.push(days, 'd ', hours);
+    } else if (hours > 0) {
+      parts.push(hours);
     }
-
-    if ((hours > 0) || (days > 0)) {
-      if (hours < 10n) {
-        parts.push('0');
-      }
-      parts.push(hours, ':');
-    }
+    parts.push(':');
 
     if (mins < 10) {
       parts.push('0');
