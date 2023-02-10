@@ -101,15 +101,6 @@ export class ProtocolWrangler {
   }
 
   /**
-   * @returns {object} The high-level application instance. This is an instance
-   * of `express:Express` or thing that is (approximately) compatible with same.
-   */
-  get application() {
-    this.#initialize();
-    return this._impl_application();
-  }
-
-  /**
    * Starts this instance listening for connections and dispatching them to
    * the high-level application. This method async-returns once the instance has
    * actually gotten started.
