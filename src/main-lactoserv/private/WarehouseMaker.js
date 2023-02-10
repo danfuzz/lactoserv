@@ -1,7 +1,10 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
 // This project is PROPRIETARY and UNLICENSED.
 
+import * as child_process from 'node:child_process';
+
 import { Warehouse } from '@this/app-framework';
+import { Condition } from '@this/async';
 import { IntfLogger } from '@this/loggy';
 import { MustBe } from '@this/typey';
 
@@ -79,11 +82,13 @@ export class WarehouseMaker {
       module = await loader.load(configUrl);
     } catch (e) {
       if (e.name === 'SyntaxError') {
-        // There was a syntax error somewhere in the config. TODO: If we ask
-        // Node to load it as a top-level script, it might actually elucidate
-        // the problem. For now, just note it and throw.
-        this.#logger.configFileSyntaxError(e.message);
+        // There was a syntax error somewhere in the config. Try to make it
+        // easy to spot.
+        const errorText = await this.#forkAndRelayError();
+        this.#logger.configFileSyntaxError(errorText);
+        throw new SyntaxError(errorText);
       }
+
       throw e;
     }
 
@@ -94,5 +99,49 @@ export class WarehouseMaker {
     // classes aren't `===` to the default ones, which can lead to weirdness.
     // `structuredClone()` returns "normal" objects.
     return structuredClone(rawResult);
+  }
+
+  /**
+   * Helper for {@link #loadConfig}, which handles the case of a syntax error
+   * in the config file (or something it in turn loads). This uses `fork()` to
+   * try loading the configuration in a subprocess and then captures stdout and
+   * stderr to replay to the main process (for the presumed user reading the
+   * logs or what-have-you). This all is done because -- as of this writing --
+   * Node doesn't provide line/column information about where a syntax error
+   * occurs in a file which is loaded via dynamic `import(...)`, that being
+   * exactly what we (most sensibly / sanely) have to do to load a configuration
+   * file.
+   *
+   * See related Node bug: <https://github.com/nodejs/node/issues/45862>
+   *
+   * @returns {string} The error reported by the subprocess.
+   */
+  async #forkAndRelayError() {
+    const configUrl = this.#configUrl;
+    const done      = new Condition();
+    const result    = [];
+
+    const proc = child_process.fork(configUrl,
+      {
+        stdio: 'pipe',
+        timeout: 1000
+      });
+
+    proc.stdout.on('data', (data) => result.push(data.toString()));
+    proc.stderr.on('data', (data) => result.push(data.toString()));
+    proc.on('close', () => { done.value = true; });
+
+    await done.whenTrue();
+
+    // If -- as expected -- the result has a line that starts `SyntaxError`,
+    // then everything beyond it is ignorable noise, so we just delete it.
+    const match = result.join('')
+      .match(/^(?<message>.*\nSyntaxError:[^\n]+\n)?(?<rest>.*)$/s);
+
+    if ((match?.groups.message ?? '') !== '') {
+      return match.groups.message;
+    } else {
+      return match.groups.rest;
+    }
   }
 }
