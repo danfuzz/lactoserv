@@ -2,6 +2,8 @@
 // This project is PROPRIETARY and UNLICENSED.
 
 import { AsyncLocalStorage } from 'node:async_hooks';
+import { IncomingMessage, ServerResponse } from 'node:http';
+import { Http2ServerRequest, Http2ServerResponse } from 'node:http2';
 import * as net from 'node:net';
 
 import express from 'express';
@@ -347,6 +349,55 @@ export class ProtocolWrangler {
   }
 
   /**
+   * Handles a request as received directly from the HTTP(ish) server object.
+   * Note that the parameters here are regular `http.*` or `http2.*` objects and
+   * not Express wrappers.
+   *
+   * @param {Http2ServerRequest|IncomingMessage} req Request object.
+   * @param {Http2ServerResponse|ServerResponse} res Response object.
+   */
+  #incomingRequest(req, res) {
+    const url     = req.url;
+    let   logger  = this.#logger;
+
+    const context = WranglerContext.get(req.socket, req.stream?.session);
+
+    if (context === null) {
+      // Shouldn't happen: We have no record of the socket.
+      logger?.incomingRequest(url, {});
+      logger?.apparentlyLostSocket(url);
+      req.socket?.destroy();
+      if (res.socket !== req.socket) {
+        res.socket?.destroy();
+      }
+      return;
+    }
+
+    logger = context.logger ?? logger;
+
+    try {
+      logger?.incomingRequest(url, context.ids);
+
+      const application = this._impl_application();
+      application(req, res);
+    } catch (e) {
+      // Note: This is theorized to occur in practice when the socket for a
+      // request gets closed after the request was received but before it
+      // managed to get dispatched.
+      logger?.errorDuringIncomingRequest(url, e);
+      const socket = req.socket;
+      const socketState = {
+        closed:        socket.closed,
+        destroyed:     socket.destroyed,
+        readable:      socket.readable,
+        readableEnded: socket.readableEnded,
+        writableEnded: socket.writableEnded
+      };
+      logger?.socketState(url, socketState);
+    }
+  }
+
+  /**
    * Finishes initialization of the instance, by setting up all the event and
    * route handlers on the protocol server and high-level application instance.
    * We can't do this in the constructor, because at the time this (base class)
@@ -385,10 +436,13 @@ export class ProtocolWrangler {
 
     // Set up high-level application routing, including getting the protocol
     // server to hand requests off to the application.
+    //
+    // Note: Express uses the function argument shape (count of arguments) to
+    // determine behavior, so we can't just use `(...args)` for those.
 
     application.use('/', (req, res, next) => this.#handleRequest(req, res, next));
     application.use('/', (err, req, res, next) => this.#handleError(err, req, res, next));
-    server.on('request', application);
+    server.on('request', (...args) => this.#incomingRequest(...args));
 
     // Set up an event handler to propagate the connection context. See
     // `_prot_newConnection()` for a treatise about what's going on.
