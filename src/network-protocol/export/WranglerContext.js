@@ -52,6 +52,17 @@ export class WranglerContext {
       ?? this.#connectionId;
   }
 
+  /** @returns {object} Plain object with all IDs in this context. */
+  get ids() {
+    const result = {};
+
+    if (this.#requestId)    result.requestId    = this.#requestId;
+    if (this.#sessionId)    result.sessionId    = this.#sessionId;
+    if (this.#connectionId) result.connectionId = this.#connectionId;
+
+    return result;
+  }
+
   /** @returns {?IntfLogger} Most-specific available logger, if any. */
   get logger() {
     return this.#requestLogger
