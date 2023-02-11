@@ -44,10 +44,10 @@ export class TopErrorHandler {
   static #problems = [];
 
   /**
-   * @returns {object[]} List of all unhandled problems that are precipitating
-   * shutdown. Typically no more than one element, but if an error happens
-   * during error-related shutdown then there can be more. Each element is an
-   * object which binds `type` and `problem`.
+   * @returns {{type: string, problem: Error}[]} List of all unhandled problems
+   * that are precipitating shutdown. Typically no more than one element, but if
+   * an error happens during error-related shutdown then there can be more. Each
+   * element is an object which binds `type` and `problem`.
    */
   static get problems() {
     const problems = [];

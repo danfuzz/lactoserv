@@ -9,6 +9,7 @@ import { IntfLogger } from '@this/loggy';
 
 import { CallbackList } from '#p/CallbackList';
 import { ThisModule } from '#p/ThisModule';
+import { TopErrorHandler } from '#p/TopErrorHandler';
 
 
 /**
@@ -93,7 +94,9 @@ export class ShutdownHandler {
   }
 
   /**
-   * Main thread function: Run all the hooks, and then exit the process.
+   * Main thread function: Run all the hooks, wait a moment, write any uncaught
+   * errors to the console (just in case a human is watching), and then exit the
+   * process.
    */
   static async #run() {
     try {
@@ -107,6 +110,16 @@ export class ShutdownHandler {
     this.#logger.bye(this.#exitCode);
 
     await timers.setTimeout(this.#PRE_EXIT_DELAY_MSEC);
+
+    const problems = TopErrorHandler.problems;
+
+    for (const { type, problem } of problems) {
+      console.log('\n%s:\n%s', type, problem.stack ?? problem);
+    }
+
+    if (this.#exitCode !== 0) {
+      console.log('\nExiting with code: %o', this.#exitCode);
+    }
 
     process.exit(this.#exitCode);
   }
