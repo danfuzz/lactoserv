@@ -82,7 +82,7 @@ export class BaseApplication extends BaseComponent {
 
     const innerNext = (...args) => {
       done();
-      this.logger.next(id, args);
+      this.logger?.next(id, args);
       timers.setImmediate(next, ...args);
       nextCalled = true;
     };
