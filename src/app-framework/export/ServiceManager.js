@@ -48,7 +48,7 @@ export class ServiceManager extends BaseControllable {
    */
   findService(name, type = null) {
     const instance = this.#instances.get(name);
-    const cls      = ServiceManager.#classFromType(type);
+    const cls      = ServiceManager.#classFromName(type);
 
     if (!instance) {
       throw new Error(`No such service: ${name}`);
@@ -68,7 +68,7 @@ export class ServiceManager extends BaseControllable {
    * @returns {BaseService[]} All the matching instances.
    */
   getAll(type = null) {
-    const cls = ServiceManager.#classFromType(type);
+    const cls = ServiceManager.#classFromName(type);
 
     const result = [];
     for (const controller of this.#instances.values()) {
@@ -129,11 +129,11 @@ export class ServiceManager extends BaseControllable {
    * @returns {?function(new:BaseService)} The corresponding class, or `null` if
    *   given `null`.
    */
-  static #classFromType(type) {
+  static #classFromName(type) {
     if (type === null) {
       return null;
     } else if (typeof type === 'string') {
-      return ServiceFactory.classFromType(type);
+      return ServiceFactory.classFromName(type);
     } else {
       // This asks the question, "Is `type` a subclass of `BaseService`?"
       if (!(type instanceof BaseService.constructor)) {

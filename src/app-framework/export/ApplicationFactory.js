@@ -13,42 +13,43 @@ import { BaseApplication } from '#x/BaseApplication';
 export class ApplicationFactory {
   /**
    * @type {Map<string, function(new:BaseApplication, ...*)>} Map from each
-   * application type to the application subclass that handles it.
+   * registerered application class name to the application subclass that
+   * handles it.
    */
   static #APPLICATION_CLASSES = new Map();
 
   /**
-   * Gets the application class for the given type.
+   * Gets the application class for the given name.
    *
-   * @param {string} type Type name of the application.
+   * @param {string} name Name of the application class.
    * @param {boolean} [nullIfNotFound = false] Throw an error if not found?
    * @returns {?function(new:BaseApplication)} Corresponding application class,
    *   or `null` if not found and `nullIfNotFound === true`.
    * @throws {Error} Thrown if there is no such application.
    */
-  static classFromType(type, nullIfNotFound = false) {
-    const cls = this.#APPLICATION_CLASSES.get(type);
+  static classFromName(name, nullIfNotFound = false) {
+    const cls = this.#APPLICATION_CLASSES.get(name);
 
     if (cls) {
       return cls;
     } else if (nullIfNotFound) {
       return null;
     } else {
-      throw new Error(`Unknown applicaton type: ${type}`);
+      throw new Error(`Unknown applicaton: ${name}`);
     }
   }
 
   /**
-   * Finds the configuration class associated with the given type name. This
-   * method is suitable for calling within a mapper argument to {@link
+   * Finds the configuration class associated with the given application name.
+   * This method is suitable for calling within a mapper argument to {@link
    * BaseConfig#parseArray}.
    *
-   * @param {string} type Application type name.
+   * @param {string} name Name of the application class.
    * @returns {function(new:ApplicationConfig)} Corresponding configuration
    *   class.
    */
-  static configClassFromType(type) {
-    const cls = this.classFromType(type);
+  static configClassFromName(name) {
+    const cls = this.classFromName(name);
     return cls.CONFIG_CLASS;
   }
 
@@ -60,23 +61,23 @@ export class ApplicationFactory {
    * @returns {BaseApplication} Constructed application instance.
    */
   static makeInstance(config, ...rest) {
-    const cls = this.classFromType(config.type);
+    const cls = this.classFromName(config.type);
     return new cls(config, ...rest);
   }
 
   /**
-   * Registers a type/application binding.
+   * Registers an application.
    *
    * @param {function(new:BaseApplication, ...*)} applicationClass Application
    *   class.
    */
   static register(applicationClass) {
-    const type = applicationClass.TYPE;
+    const name = applicationClass.TYPE;
 
-    if (this.classFromType(type, true)) {
-      throw new Error(`Already registered: ${type}`);
+    if (this.classFromName(name, true)) {
+      throw new Error(`Already registered: ${name}`);
     }
 
-    this.#APPLICATION_CLASSES.set(type, applicationClass);
+    this.#APPLICATION_CLASSES.set(name, applicationClass);
   }
 }
