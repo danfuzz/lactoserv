@@ -49,8 +49,11 @@ export class BaseComponent extends BaseControllable {
     return Methods.abstract();
   }
 
-  /** @returns {string} The type name for this component. */
+  /**
+   * @returns {string} The type name for this component.
+   * TODO: Remove this, and just use the class's name.
+   */
   static get TYPE() {
-    return Methods.abstract();
+    return this.name;
   }
 }
