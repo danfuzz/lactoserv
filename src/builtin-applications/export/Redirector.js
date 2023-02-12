@@ -16,7 +16,7 @@ import { MustBe } from '@this/typey';
  *   the incoming request (based on the mount point of the application) is
  *   appended to this value to become the full redirected URI.
  */
-export class RedirectApplication extends BaseApplication {
+export class Redirector extends BaseApplication {
   /** @type {number} The redirect status code to use. */
   #statusCode;
 

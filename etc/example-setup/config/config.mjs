@@ -97,13 +97,13 @@ const services = [
 const applications = [
   {
     name:       'my-wacky-redirector',
-    class:      'RedirectApplication',
+    class:      'Redirector',
     statusCode: 308,
     target:     'https://milk.com/boop/'
   },
   {
     name:          'my-static-fun',
-    class:         'StaticApplication',
+    class:         'StaticFiles',
     siteDirectory: filePath('../site'),
     notFoundPath:  filePath('../site-extra/not-found.html')
   }
