@@ -40,44 +40,32 @@ export class ServiceManager extends BaseControllable {
    * Finds the {@link BaseService} for a given service name.
    *
    * @param {string} name Service name to look for.
-   * @param {?string|function(new:BaseService)} [type = null] Required type
-   *   (class or string name) of the service.
+   * @param {?string|function(new:BaseService)} cls Class or (string) class
+   *   name that the named service must be, or `null` to not have any
+   *   restriction.
    * @returns {BaseService} The associated instance.
    * @throws {Error} Thrown if there is no instance with the given name, or it
-   *   does not match the given `type`.
+   *   does not match the given `cls`.
    */
-  findService(name, type = null) {
+  findService(name, cls = null) {
     const instance = this.#instances.get(name);
-    const cls      = ServiceManager.#classFromName(type);
 
     if (!instance) {
       throw new Error(`No such service: ${name}`);
-    } else if (cls && !(instance instanceof cls)) {
-      throw new Error(`Wrong type for service: ${name}`);
     }
+
+    ServiceManager.#checkInstanceClass(instance, cls);
 
     return instance;
   }
 
   /**
-   * Gets a list of all instances managed by this instance, optionally filtered
-   * to only be those of a particular class or (string) type.
+   * Gets a list of all services managed by this instance.
    *
-   * @param {?string|function(new:BaseService)} [type = null] Class or (string)
-   *   type to restrict results to, or `null` just to get everything.
-   * @returns {BaseService[]} All the matching instances.
+   * @returns {BaseService[]} All the services.
    */
-  getAll(type = null) {
-    const cls = ServiceManager.#classFromName(type);
-
-    const result = [];
-    for (const controller of this.#instances.values()) {
-      if ((cls === null) || (controller instanceof cls)) {
-        result.push(controller);
-      }
-    }
-
-    return result;
+  getAll() {
+    return [...this.#instances.values()];
   }
 
   /** @override */
@@ -122,24 +110,28 @@ export class ServiceManager extends BaseControllable {
   //
 
   /**
-   * Gets a class (or null) from a "type spec" for a service.
+   * Checks that a service instance fits the given class restriction.
    *
-   * @param {?string|function(new:BaseService)} type Class or (string) type
-   *   name, or `null` to not have any type restriction.
-   * @returns {?function(new:BaseService)} The corresponding class, or `null` if
-   *   given `null`.
+   * @param {BaseService} service The service instance to check.
+   * @param {?string|function(new:BaseService)} cls Class or (string) class
+   *   name that `service` must be, or `null` to not have any restriction.
+   * @throws {Error} Thrown if `service` is not an instance of an appropriate
+   *   class.
    */
-  static #classFromName(type) {
-    if (type === null) {
-      return null;
-    } else if (typeof type === 'string') {
-      return ServiceFactory.classFromName(type);
-    } else {
-      // This asks the question, "Is `type` a subclass of `BaseService`?"
-      if (!(type instanceof BaseService.constructor)) {
-        throw new Error(`Not a service class: ${type}`);
-      }
-      return type;
+  static #checkInstanceClass(service, cls) {
+    if (cls === null) {
+      // No restriction per se, but it had still better be _some_ kind of
+      // service.
+      cls = BaseService;
+    } else if (typeof cls === 'string') {
+      cls = ServiceFactory.classFromName(cls);
+    } else if (!(cls instanceof BaseService.constructor)) {
+      // That is, `cls` is not a subclass of `BaseService`.
+      throw new Error(`Not a service class: ${cls.name}`);
+    }
+
+    if (! (service instanceof cls)) {
+      throw new Error(`Wrong class for service: ${service.constructor.name}, expected ${cls.name}`);
     }
   }
 }
