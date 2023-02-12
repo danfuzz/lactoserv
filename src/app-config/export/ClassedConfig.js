@@ -15,7 +15,7 @@ import { Names } from '#x/Names';
  * * Bindings as defined by the superclass, {@link NamedConfig}.
  * * `{string} class` -- The (name of the) class of the item.
  */
-export class TypedConfig extends NamedConfig {
+export class ClassedConfig extends NamedConfig {
   /** @type {string} The (name of the) class of the item. */
   #class;
 
