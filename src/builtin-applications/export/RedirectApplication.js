@@ -64,11 +64,6 @@ export class RedirectApplication extends BaseApplication {
     return this.#Config;
   }
 
-  /** @override */
-  static get TYPE() {
-    return 'redirect-server';
-  }
-
   /**
    * Configuration item subclass for this (outer) class.
    */

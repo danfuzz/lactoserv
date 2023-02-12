@@ -66,9 +66,4 @@ export class RequestLoggerService extends BaseService {
   static get CONFIG_CLASS() {
     return FileServiceConfig;
   }
-
-  /** @override */
-  static get TYPE() {
-    return 'request-logger';
-  }
 }

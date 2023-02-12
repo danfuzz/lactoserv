@@ -73,11 +73,6 @@ export class StaticApplication extends BaseApplication {
     return this.#Config;
   }
 
-  /** @override */
-  static get TYPE() {
-    return 'static-server';
-  }
-
   /**
    * Configuration item subclass for this (outer) class.
    */

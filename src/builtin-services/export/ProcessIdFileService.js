@@ -231,11 +231,6 @@ export class ProcessIdFileService extends BaseService {
     return this.#Config;
   }
 
-  /** @override */
-  static get TYPE() {
-    return 'process-id-file';
-  }
-
   /**
    * Checks to see if a process exists with the given ID.
    *

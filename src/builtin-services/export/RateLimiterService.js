@@ -110,11 +110,6 @@ export class RateLimiterService extends BaseService {
     return this.#Config;
   }
 
-  /** @override */
-  static get TYPE() {
-    return 'rate-limiter';
-  }
-
   /**
    * Makes a bucket instance based on the given configuration, or returns `null`
    * if given `null`.

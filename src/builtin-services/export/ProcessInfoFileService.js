@@ -222,11 +222,6 @@ export class ProcessInfoFileService extends BaseService {
     return this.#Config;
   }
 
-  /** @override */
-  static get TYPE() {
-    return 'process-info-file';
-  }
-
   /**
    * Configuration item subclass for this (outer) class.
    */

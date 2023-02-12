@@ -111,11 +111,6 @@ export class SystemLoggerService extends BaseService {
     return this.#Config;
   }
 
-  /** @override */
-  static get TYPE() {
-    return 'system-logger';
-  }
-
   /**
    * Configuration item subclass for this (outer) class.
    */
