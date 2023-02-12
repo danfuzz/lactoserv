@@ -19,14 +19,14 @@ const hosts = [
 const services = [
   {
     name:       'process',
-    type:       'process-info-file',
+    class:      'process-info-file',
     directory:  filePath('../../../out/var'),
     baseName:   'process.json',
     updateSecs: 5 * 60
   },
   {
     name:         'process-id',
-    type:         'process-id-file',
+    class:        'process-id-file',
     directory:    filePath('../../../out/var'),
     baseName:     'process.txt',
     multiprocess: true,
@@ -34,7 +34,7 @@ const services = [
   },
   {
     name:      'syslog',
-    type:      'system-logger',
+    class:     'system-logger',
     directory: filePath('../../../out/var'),
     baseName:  'system-log.txt',
     format:    'human',
@@ -46,7 +46,7 @@ const services = [
   },
   {
     name:      'syslog-json',
-    type:      'system-logger',
+    class:     'system-logger',
     directory: filePath('../../../out/var'),
     baseName:  'system-log.json',
     format:    'json',
@@ -60,7 +60,7 @@ const services = [
   },
   {
     name:      'requests',
-    type:      'request-logger',
+    class:     'request-logger',
     directory: filePath('../../../out/var'),
     baseName:  'request-log.txt',
     rotate: {
@@ -70,7 +70,7 @@ const services = [
   },
   {
     name:        'limiter',
-    type:        'rate-limiter',
+    class:       'rate-limiter',
     connections: {
       maxBurstSize: 5,
       flowRate:     1,
@@ -97,13 +97,13 @@ const services = [
 const applications = [
   {
     name:       'my-wacky-redirector',
-    type:       'redirect-server',
+    class:      'redirect-server',
     statusCode: 308,
     target:     'https://milk.com/boop/'
   },
   {
     name:          'my-static-fun',
-    type:          'static-server',
+    class:         'static-server',
     siteDirectory: filePath('../site'),
     notFoundPath:  filePath('../site-extra/not-found.html')
   }

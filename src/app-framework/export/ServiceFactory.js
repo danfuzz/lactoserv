@@ -58,7 +58,7 @@ export class ServiceFactory {
    * @returns {BaseService} Constructed service instance.
    */
   static makeInstance(config, ...rest) {
-    const cls = this.classFromName(config.type);
+    const cls = this.classFromName(config.class);
     return new cls(config, ...rest);
   }
 

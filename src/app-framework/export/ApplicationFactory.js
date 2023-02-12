@@ -61,7 +61,7 @@ export class ApplicationFactory {
    * @returns {BaseApplication} Constructed application instance.
    */
   static makeInstance(config, ...rest) {
-    const cls = this.classFromName(config.type);
+    const cls = this.classFromName(config.class);
     return new cls(config, ...rest);
   }
 
