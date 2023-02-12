@@ -2,6 +2,7 @@
 // This project is PROPRIETARY and UNLICENSED.
 
 import { ApplicationConfig } from '@this/app-config';
+import { MustBe } from '@this/typey';
 
 import { BaseApplication } from '#x/BaseApplication';
 
@@ -68,16 +69,21 @@ export class ApplicationFactory {
   /**
    * Registers an application.
    *
-   * @param {function(new:BaseApplication, ...*)} applicationClass Application
-   *   class.
+   * @param {function(new:BaseApplication, ...*)} cls Application class.
    */
-  static register(applicationClass) {
-    const name = applicationClass.TYPE;
+  static register(cls) {
+    MustBe.constructorFunction(cls);
+    const name = cls.name;
+
+    if (!(cls instanceof BaseApplication.constructor)) {
+      // That is, `cls` is not a subclass of `BaseApplication`.
+      throw new Error(`Not an application class: ${name}`);
+    }
 
     if (this.classFromName(name, true)) {
       throw new Error(`Already registered: ${name}`);
     }
 
-    this.#APPLICATION_CLASSES.set(name, applicationClass);
+    this.#APPLICATION_CLASSES.set(name, cls);
   }
 }

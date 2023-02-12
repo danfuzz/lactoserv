@@ -2,6 +2,7 @@
 // This project is PROPRIETARY and UNLICENSED.
 
 import { ServiceConfig } from '@this/app-config';
+import { MustBe } from '@this/typey';
 
 import { BaseService } from '#x/BaseService';
 
@@ -65,15 +66,21 @@ export class ServiceFactory {
   /**
    * Registers a service class.
    *
-   * @param {function(new:BaseService, ...*)} serviceClass Service class.
+   * @param {function(new:BaseService, ...*)} cls Service class.
    */
-  static register(serviceClass) {
-    const name = serviceClass.TYPE;
+  static register(cls) {
+    MustBe.constructorFunction(cls);
+    const name = cls.name;
+
+    if (!(cls instanceof BaseService.constructor)) {
+      // That is, `cls` is not a subclass of `BaseService`.
+      throw new Error(`Not a service class: ${name}`);
+    }
 
     if (this.classFromName(name, true)) {
       throw new Error(`Already registered: ${name}`);
     }
 
-    this.#SERVICE_CLASSES.set(name, serviceClass);
+    this.#SERVICE_CLASSES.set(name, cls);
   }
 }

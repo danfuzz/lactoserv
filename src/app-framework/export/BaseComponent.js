@@ -48,12 +48,4 @@ export class BaseComponent extends BaseControllable {
   static get CONFIG_CLASS() {
     return Methods.abstract();
   }
-
-  /**
-   * @returns {string} The type name for this component.
-   * TODO: Remove this, and just use the class's name.
-   */
-  static get TYPE() {
-    return this.name;
-  }
 }
