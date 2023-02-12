@@ -19,14 +19,14 @@ const hosts = [
 const services = [
   {
     name:       'process',
-    class:      'ProcessInfoFileService',
+    class:      'ProcessInfoFile',
     directory:  filePath('../../../out/var'),
     baseName:   'process.json',
     updateSecs: 5 * 60
   },
   {
     name:         'process-id',
-    class:        'ProcessIdFileService',
+    class:        'ProcessIdFile',
     directory:    filePath('../../../out/var'),
     baseName:     'process.txt',
     multiprocess: true,
@@ -34,7 +34,7 @@ const services = [
   },
   {
     name:      'syslog',
-    class:     'SystemLoggerService',
+    class:     'SystemLogger',
     directory: filePath('../../../out/var'),
     baseName:  'system-log.txt',
     format:    'human',
@@ -46,7 +46,7 @@ const services = [
   },
   {
     name:      'syslog-json',
-    class:     'SystemLoggerService',
+    class:     'SystemLogger',
     directory: filePath('../../../out/var'),
     baseName:  'system-log.json',
     format:    'json',
@@ -60,7 +60,7 @@ const services = [
   },
   {
     name:      'requests',
-    class:     'RequestLoggerService',
+    class:     'RequestLogger',
     directory: filePath('../../../out/var'),
     baseName:  'request-log.txt',
     rotate: {
@@ -70,7 +70,7 @@ const services = [
   },
   {
     name:        'limiter',
-    class:       'RateLimiterService',
+    class:       'RateLimiter',
     connections: {
       maxBurstSize: 5,
       flowRate:     1,

@@ -23,10 +23,10 @@ import { MustBe } from '@this/typey';
  * * `{?number} updateSecs` -- How often to update the file, in seconds, or
  *   `null` to not perform updates. Defaults to `null`.
  *
- * **Note:** See {@link #ProcessInfoFileService} for a service which writes more
+ * **Note:** See {@link #ProcessInfoFile} for a service which writes more
  * complete information about the system.
  */
-export class ProcessInfoFileService extends BaseService {
+export class ProcessInfoFile extends BaseService {
   /**
    * @type {?number} How often to update the info file, in seconds, or `null` to
    * not perform updates.

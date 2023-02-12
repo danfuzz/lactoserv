@@ -2,8 +2,8 @@
 // This project is PROPRIETARY and UNLICENSED.
 
 export * from '#x/BuiltinServices';
-export * from '#x/ProcessIdFileService';
-export * from '#x/ProcessInfoFileService';
-export * from '#x/RateLimiterService';
-export * from '#x/RequestLoggerService';
-export * from '#x/SystemLoggerService';
+export * from '#x/ProcessIdFile';
+export * from '#x/ProcessInfoFile';
+export * from '#x/RateLimiter';
+export * from '#x/RequestLogger';
+export * from '#x/SystemLogger';

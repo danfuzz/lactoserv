@@ -22,7 +22,7 @@ import { MustBe } from '@this/typey';
  *   defined by {@link TextFileSink} (`json` or `human` as of this writing, but
  *   subject to change).
  */
-export class SystemLoggerService extends BaseService {
+export class SystemLogger extends BaseService {
   /** @type {string} Full path to the log file. */
   #logFilePath;
 
@@ -70,7 +70,7 @@ export class SystemLoggerService extends BaseService {
     // during a same-process system restart (e.g. in response to a restart
     // signal). In particular, this is an attempt to minimize double-logging
     // events.
-    this.logger[SystemLoggerService.#END_EVENT_TYPE]();
+    this.logger[SystemLogger.#END_EVENT_TYPE]();
 
     await this.#sink.drainAndStop();
     await this.#rotator?.stop(willReload);
@@ -91,7 +91,7 @@ export class SystemLoggerService extends BaseService {
     const tagToFind     = this.logger.$meta.tag;
 
     const found = tracker.advanceSync((event) => {
-      return (event.type === SystemLoggerService.#END_EVENT_TYPE)
+      return (event.type === SystemLogger.#END_EVENT_TYPE)
         && (event.tag.equals(tagToFind));
     });
 
