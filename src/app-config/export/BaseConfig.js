@@ -1,7 +1,7 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
 // This project is PROPRIETARY and UNLICENSED.
 
-import { MustBe } from '@this/typey';
+import { AskIf, MustBe } from '@this/typey';
 
 import { ConfigClassMapper } from '#x/ConfigClassMapper';
 
@@ -65,7 +65,7 @@ export class BaseConfig {
         return new this(item);
       } else {
         const cls = configClassMapper(item, this);
-        if (cls instanceof this.constructor) {
+        if (AskIf.subclassOf(cls, this)) {
           return new cls(item);
         } else {
           throw new Error('Configuration mapped to non-subclass.');

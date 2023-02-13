@@ -272,4 +272,21 @@ export class MustBe {
 
     return value;
   }
+
+  /**
+   * Checks for type "class which is a (possibly improper) subclass of some
+   * other class."
+   *
+   * @param {*} value Arbitrary value.
+   * @param {function(new:*)} baseClass Base class to check against `value`.
+   * @returns {function(new:*)} `value` if it is of the indicated type.
+   * @throws {Error} Thrown if `value` is of any other type.
+   */
+  static subclassOf(value, baseClass) {
+    if (AskIf.subclassOf(value, baseClass)) {
+      return value;
+    }
+
+    throw new Error(`Must be of type "subclass of ${baseClass.name}."`);
+  }
 }

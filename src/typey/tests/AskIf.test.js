@@ -209,3 +209,70 @@ describe('constructorFunction()', () => {
     });
   });
 });
+
+describe('subclassOf()', () => {
+  describe('on non-classes', () => {
+    test.each`
+    value
+    ${undefined}
+    ${false}
+    ${true}
+    ${0}
+    ${'florp'}
+    ${['florp', 'bloop']}
+    ${{ a: 100 }}
+    ${new Map()}
+    `('returns false given $value', ({ value }) => {
+      expect(AskIf.subclassOf(value, Object)).toBeFalse();
+    });
+  });
+
+  test('throws when given an invalid `baseClass`', () => {
+    expect(() => AskIf.subclassOf(Object, 123)).toThrow();
+  });
+
+  test('indicates a class counts as a "subclass" of itself (improper relationship)', () => {
+    class Florp {}
+
+    expect(AskIf.subclassOf(Object, Object)).toBeTrue();
+    expect(AskIf.subclassOf(Map, Map)).toBeTrue();
+    expect(AskIf.subclassOf(Florp, Florp)).toBeTrue();
+  });
+
+  test('indicates that all classes are subclasses of `Object`', () => {
+    class Florp {}
+    class Bloop extends Florp {}
+
+    expect(AskIf.subclassOf(Object, Object)).toBeTrue();
+    expect(AskIf.subclassOf(Map, Object)).toBeTrue();
+    expect(AskIf.subclassOf(Florp, Object)).toBeTrue();
+    expect(AskIf.subclassOf(Bloop, Object)).toBeTrue();
+  });
+
+  test('indicates that `Object` is not a subclass of any other class', () => {
+    class Florp {}
+    class Bloop extends Florp {}
+
+    expect(AskIf.subclassOf(Object, Map)).toBeFalse();
+    expect(AskIf.subclassOf(Object, Florp)).toBeFalse();
+    expect(AskIf.subclassOf(Object, Bloop)).toBeFalse();
+  });
+
+  test('indicates that a declared subclass is in fact a subclass, including indirectly', () => {
+    class Top {}
+    class Middle extends Top {}
+    class Bottom extends Middle {}
+
+    expect(AskIf.subclassOf(Bottom, Middle)).toBeTrue();
+    expect(AskIf.subclassOf(Bottom, Top)).toBeTrue();
+  });
+
+  test('indicates that a declared superclass is in fact a superclass, including indirectly', () => {
+    class Top {}
+    class Middle extends Top {}
+    class Bottom extends Middle {}
+
+    expect(AskIf.subclassOf(Top, Middle)).toBeFalse();
+    expect(AskIf.subclassOf(Top, Bottom)).toBeFalse();
+  });
+});

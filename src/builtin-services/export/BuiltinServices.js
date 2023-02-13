@@ -1,7 +1,7 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
 // This project is PROPRIETARY and UNLICENSED.
 
-import { BaseService, ServiceFactory } from '@this/app-framework';
+import { BaseService } from '@this/app-framework';
 
 import { ProcessIdFile } from '#x/ProcessIdFile';
 import { ProcessInfoFile } from '#x/ProcessInfoFile';
@@ -27,14 +27,5 @@ export class BuiltinServices {
       RequestLogger,
       SystemLogger
     ];
-  }
-
-  /**
-   * Registers all the services defined by this module.
-   */
-  static register() {
-    for (const cls of this.getAll()) {
-      ServiceFactory.register(cls);
-    }
   }
 }
