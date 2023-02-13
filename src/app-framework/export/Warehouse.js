@@ -52,18 +52,9 @@ export class Warehouse extends BaseControllable {
    * @param {object} config Configuration object.
    * @param {ComponentRegistry} registry Registry of component classes.
    */
-  constructor(config, registry = null) {
+  constructor(config, registry) {
     MustBe.plainObject(config);
-
-    if (registry !== null) {
-      MustBe.instanceOf(registry, ComponentRegistry);
-    } else {
-      const classes = [
-        ...ApplicationFactory.getAll(),
-        ...ServiceFactory.getAll()
-      ];
-      registry = new ComponentRegistry(classes);
-    }
+    MustBe.instanceOf(registry, ComponentRegistry);
 
     super(ThisModule.logger.warehouse);
 
