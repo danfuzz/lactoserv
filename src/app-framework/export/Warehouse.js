@@ -6,13 +6,11 @@ import * as timers from 'node:timers/promises';
 import { WarehouseConfig } from '@this/app-config';
 import { MustBe } from '@this/typey';
 
-import { ApplicationFactory } from '#x/ApplicationFactory';
 import { ApplicationManager } from '#x/ApplicationManager';
 import { BaseControllable } from '#x/BaseControllable';
 import { ComponentRegistry } from '#x/ComponentRegistry';
 import { HostManager } from '#x/HostManager';
 import { ServerManager } from '#x/ServerManager';
-import { ServiceFactory } from '#x/ServiceFactory';
 import { ServiceManager } from '#x/ServiceManager';
 import { ThisModule } from '#p/ThisModule';
 

@@ -1,8 +1,6 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
 // This project is PROPRIETARY and UNLICENSED.
 
-import { BuiltinApplications } from '@this/builtin-applications';
-import { BuiltinServices } from '@this/builtin-services';
 import { Host } from '@this/host';
 
 
@@ -22,8 +20,6 @@ export class SystemInit {
     }
 
     Host.init();
-    BuiltinApplications.register();
-    BuiltinServices.register();
 
     this.#initDone = true;
   }
