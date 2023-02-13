@@ -107,10 +107,10 @@ export class ServerManager extends BaseControllable {
       ? hostManager.makeSubset(hostnames)
       : null;
     const rateLimiter = limName
-      ? serviceManager.findService(limName)
+      ? serviceManager.get(limName)
       : null;
     const requestLogger = logName
-      ? serviceManager.findService(logName)
+      ? serviceManager.get(logName)
       : null;
 
     const extraConfig = {
@@ -141,7 +141,7 @@ export class ServerManager extends BaseControllable {
 
     for (const { application } of mounts) {
       if (!result.has(application)) {
-        const found = applicationManager.findApplication(application);
+        const found = applicationManager.get(application);
         result.set(application, found);
       }
     }

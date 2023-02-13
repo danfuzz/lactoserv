@@ -36,13 +36,13 @@ export class ApplicationManager extends BaseControllable {
   }
 
   /**
-   * Finds the {@link BaseApplication} for a given application name.
+   * Gets the {@link BaseApplication} for a given application name.
    *
    * @param {string} name Application name to look for.
    * @returns {BaseApplication} The associated instance.
    * @throws {Error} Thrown if there is no instance with the given name.
    */
-  findApplication(name) {
+  get(name) {
     const instance = this.#instances.get(name);
 
     if (!instance) {

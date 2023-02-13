@@ -37,7 +37,7 @@ export class ServiceManager extends BaseControllable {
   }
 
   /**
-   * Finds the {@link BaseService} for a given service name.
+   * Gets the {@link BaseService} for a given service name.
    *
    * @param {string} name Service name to look for.
    * @param {?string|function(new:BaseService)} cls Class or (string) class
@@ -47,7 +47,7 @@ export class ServiceManager extends BaseControllable {
    * @throws {Error} Thrown if there is no instance with the given name, or it
    *   does not match the given `cls`.
    */
-  findService(name, cls = null) {
+  get(name, cls = null) {
     const instance = this.#instances.get(name);
 
     if (!instance) {
