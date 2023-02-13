@@ -68,7 +68,7 @@ export class ComponentRegistry {
       return baseClass;
     }
 
-    if (!(found instanceof baseClass)) {
+    if (!(found instanceof baseClass.constructor)) {
       throw new Error(`Not an appropriate component class: ${name}, expected ${baseClass.name}`);
     }
 
