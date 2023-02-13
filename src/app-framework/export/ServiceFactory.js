@@ -2,20 +2,17 @@
 // This project is PROPRIETARY and UNLICENSED.
 
 import { ServiceConfig } from '@this/app-config';
-import { MustBe } from '@this/typey';
 
 import { BaseService } from '#x/BaseService';
+import { ComponentRegistry } from '#x/ComponentRegistry';
 
 
 /**
  * Utility class which constructs of concrete {@link BaseService} instances.
  */
 export class ServiceFactory {
-  /**
-   * @type {Map<string, function(new:BaseService, ...*)>} Map from each
-   * registerered service class name to the service subclass that handles it.
-   */
-  static #SERVICE_CLASSES = new Map();
+  /** @type {ComponentRegistry} Underlying registry instance. */
+  static #REGISTRY = new ComponentRegistry();
 
   /**
    * Gets the service class for the given name.
@@ -27,15 +24,10 @@ export class ServiceFactory {
    * @throws {Error} Thrown if there is no such service.
    */
   static classFromName(name, nullIfNotFound = false) {
-    const cls = this.#SERVICE_CLASSES.get(name);
-
-    if (cls) {
-      return cls;
-    } else if (nullIfNotFound) {
-      return null;
-    } else {
-      throw new Error(`Unknown service: ${name}`);
-    }
+    return this.#REGISTRY.get(name, {
+      class: BaseService,
+      nullIfNotFound
+    });
   }
 
   /**
@@ -47,8 +39,10 @@ export class ServiceFactory {
    * @returns {function(new:ServiceConfig)} Corresponding configuration class.
    */
   static configClassFromName(name) {
-    const cls = this.classFromName(name);
-    return cls.CONFIG_CLASS;
+    return this.#REGISTRY.get(name, {
+      class: BaseService,
+      wantConfig: true
+    });
   }
 
   /**
@@ -59,8 +53,7 @@ export class ServiceFactory {
    * @returns {BaseService} Constructed service instance.
    */
   static makeInstance(config, ...rest) {
-    const cls = this.classFromName(config.class);
-    return new cls(config, ...rest);
+    return this.#REGISTRY.makeInstance(config, ...rest);
   }
 
   /**
@@ -69,18 +62,6 @@ export class ServiceFactory {
    * @param {function(new:BaseService, ...*)} cls Service class.
    */
   static register(cls) {
-    MustBe.constructorFunction(cls);
-    const name = cls.name;
-
-    if (!(cls instanceof BaseService.constructor)) {
-      // That is, `cls` is not a subclass of `BaseService`.
-      throw new Error(`Not a service class: ${name}`);
-    }
-
-    if (this.classFromName(name, true)) {
-      throw new Error(`Already registered: ${name}`);
-    }
-
-    this.#SERVICE_CLASSES.set(name, cls);
+    this.#REGISTRY.register(cls, BaseService);
   }
 }
