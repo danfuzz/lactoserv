@@ -2,9 +2,9 @@
 // This project is PROPRIETARY and UNLICENSED.
 
 import { ApplicationConfig } from '@this/app-config';
-import { MustBe } from '@this/typey';
 
 import { BaseApplication } from '#x/BaseApplication';
+import { ComponentRegistry } from '#x/ComponentRegistry';
 
 
 /**
@@ -12,12 +12,8 @@ import { BaseApplication } from '#x/BaseApplication';
  * along with related functionality.
  */
 export class ApplicationFactory {
-  /**
-   * @type {Map<string, function(new:BaseApplication, ...*)>} Map from each
-   * registerered application class name to the application subclass that
-   * handles it.
-   */
-  static #APPLICATION_CLASSES = new Map();
+  /** @type {ComponentRegistry} Underlying registry instance. */
+  static #REGISTRY = new ComponentRegistry();
 
   /**
    * Gets the application class for the given name.
@@ -29,15 +25,10 @@ export class ApplicationFactory {
    * @throws {Error} Thrown if there is no such application.
    */
   static classFromName(name, nullIfNotFound = false) {
-    const cls = this.#APPLICATION_CLASSES.get(name);
-
-    if (cls) {
-      return cls;
-    } else if (nullIfNotFound) {
-      return null;
-    } else {
-      throw new Error(`Unknown applicaton: ${name}`);
-    }
+    return this.#REGISTRY.get(name, {
+      class: BaseApplication,
+      nullIfNotFound
+    });
   }
 
   /**
@@ -50,8 +41,10 @@ export class ApplicationFactory {
    *   class.
    */
   static configClassFromName(name) {
-    const cls = this.classFromName(name);
-    return cls.CONFIG_CLASS;
+    return this.#REGISTRY.get(name, {
+      class: BaseApplication,
+      wantConfig: true
+    });
   }
 
   /**
@@ -62,8 +55,7 @@ export class ApplicationFactory {
    * @returns {BaseApplication} Constructed application instance.
    */
   static makeInstance(config, ...rest) {
-    const cls = this.classFromName(config.class);
-    return new cls(config, ...rest);
+    return this.#REGISTRY.makeInstance(config, ...rest);
   }
 
   /**
@@ -72,18 +64,6 @@ export class ApplicationFactory {
    * @param {function(new:BaseApplication, ...*)} cls Application class.
    */
   static register(cls) {
-    MustBe.constructorFunction(cls);
-    const name = cls.name;
-
-    if (!(cls instanceof BaseApplication.constructor)) {
-      // That is, `cls` is not a subclass of `BaseApplication`.
-      throw new Error(`Not an application class: ${name}`);
-    }
-
-    if (this.classFromName(name, true)) {
-      throw new Error(`Already registered: ${name}`);
-    }
-
-    this.#APPLICATION_CLASSES.set(name, cls);
+    this.#REGISTRY.register(cls, BaseApplication);
   }
 }
