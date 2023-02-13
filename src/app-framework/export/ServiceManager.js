@@ -2,12 +2,11 @@
 // This project is PROPRIETARY and UNLICENSED.
 
 import { ServiceConfig } from '@this/app-config';
-import { AskIf } from '@this/typey';
+import { AskIf, MustBe } from '@this/typey';
 
-import { BaseApplication } from '#x/BaseApplication';
 import { BaseControllable } from '#x/BaseControllable';
 import { BaseService } from '#x/BaseService';
-import { ServiceFactory } from '#x/ServiceFactory';
+import { ComponentRegistry } from '#x/ComponentRegistry';
 import { ThisModule } from '#p/ThisModule';
 
 
@@ -18,8 +17,11 @@ import { ThisModule } from '#p/ThisModule';
  * **Note:** `start()`ing and `stop()`ing acts on all the services.
  */
 export class ServiceManager extends BaseControllable {
+  /** @type {ComponentRegistry} Registry of component classes. */
+  #registry;
+
   /**
-   * @type {Map<string, BaseApplication>} Map from each bound service name to
+   * @type {Map<string, BaseService>} Map from each bound service name to
    * the corresponding instance.
    */
   #instances = new Map();
@@ -28,11 +30,16 @@ export class ServiceManager extends BaseControllable {
    * Constructs an instance.
    *
    * @param {ServiceConfig[]} configs Configuration objects.
+   * @param {ComponentRegistry} registry Registry of component classes.
    */
-  constructor(configs) {
+  constructor(configs, registry) {
     super(ThisModule.logger.services);
 
+    this.#registry = MustBe.instanceOf(registry, ComponentRegistry);
+
+    MustBe.array(configs);
     for (const config of configs) {
+      MustBe.instanceOf(config, ServiceConfig);
       this.#addInstanceFor(config);
     }
   }
@@ -55,7 +62,7 @@ export class ServiceManager extends BaseControllable {
       throw new Error(`No such service: ${name}`);
     }
 
-    ServiceManager.#checkInstanceClass(instance, cls);
+    this.#checkInstanceClass(instance, cls);
 
     return instance;
   }
@@ -92,6 +99,8 @@ export class ServiceManager extends BaseControllable {
    * @param {ServiceConfig} config Parsed configuration item.
    */
   #addInstanceFor(config) {
+    MustBe.instanceOf(config, ServiceConfig);
+
     const name = config.name;
 
     if (this.#instances.has(name)) {
@@ -99,16 +108,13 @@ export class ServiceManager extends BaseControllable {
     }
 
     const serviceLogger = ThisModule.baseServiceLogger[name];
-    const instance      = ServiceFactory.makeInstance(config, serviceLogger);
+    const instance      = this.#registry.makeInstance(config, serviceLogger);
+
+    MustBe.instanceOf(instance, BaseService);
 
     this.#instances.set(name, instance);
     this.logger.bound(name);
   }
-
-
-  //
-  // Static members
-  //
 
   /**
    * Checks that a service instance fits the given class restriction.
@@ -119,13 +125,13 @@ export class ServiceManager extends BaseControllable {
    * @throws {Error} Thrown if `service` is not an instance of an appropriate
    *   class.
    */
-  static #checkInstanceClass(service, cls) {
+  #checkInstanceClass(service, cls) {
     if (cls === null) {
       // No restriction per se, but it had still better be _some_ kind of
       // service.
       cls = BaseService;
     } else if (typeof cls === 'string') {
-      cls = ServiceFactory.classFromName(cls);
+      cls = this.#registry.get(cls, { class: BaseService });
     } else if (!AskIf.subclassOf(cls, BaseService)) {
       throw new Error(`Not a service class: ${cls.name}`);
     }
