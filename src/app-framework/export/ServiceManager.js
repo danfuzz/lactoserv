@@ -2,6 +2,7 @@
 // This project is PROPRIETARY and UNLICENSED.
 
 import { ServiceConfig } from '@this/app-config';
+import { AskIf } from '@this/typey';
 
 import { BaseApplication } from '#x/BaseApplication';
 import { BaseControllable } from '#x/BaseControllable';
@@ -125,8 +126,7 @@ export class ServiceManager extends BaseControllable {
       cls = BaseService;
     } else if (typeof cls === 'string') {
       cls = ServiceFactory.classFromName(cls);
-    } else if (!(cls instanceof BaseService.constructor)) {
-      // That is, `cls` is not a subclass of `BaseService`.
+    } else if (!AskIf.subclassOf(cls, BaseService)) {
       throw new Error(`Not a service class: ${cls.name}`);
     }
 
