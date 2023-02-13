@@ -48,6 +48,15 @@ export class ApplicationFactory {
   }
 
   /**
+   * Gets an array of all registered classes.
+   *
+   * @returns {(function(new:BaseApplication, ...*))[]} The classes.
+   */
+  static getAll() {
+    return this.#REGISTRY.getAll();
+  }
+
+  /**
    * Constructs an application instance based on the given configuration.
    *
    * @param {ApplicationConfig} config Configuration object.

@@ -46,6 +46,15 @@ export class ServiceFactory {
   }
 
   /**
+   * Gets an array of all registered classes.
+   *
+   * @returns {(function(new:BaseService, ...*))[]} The classes.
+   */
+  static getAll() {
+    return this.#REGISTRY.getAll();
+  }
+
+  /**
    * Constructs a service instance based on the given configuration.
    *
    * @param {ServiceConfig} config Configuration object.
