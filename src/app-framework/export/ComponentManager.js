@@ -76,7 +76,7 @@ export class ComponentManager extends BaseControllable {
       : baseClass.CONFIG_CLASS;
     this.#baseSublogger = (baseSublogger === null)
       ? null
-      : MustBe.instanceOf(IntfLogger, baseSublogger);
+      : MustBe.instanceOf(baseSublogger, IntfLogger);
     this.#registry = MustBe.instanceOf(registry, ComponentRegistry);
 
     MustBe.array(configs);
