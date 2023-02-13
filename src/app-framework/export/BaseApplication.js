@@ -6,7 +6,7 @@ import * as timers from 'node:timers';
 import { ApplicationConfig } from '@this/app-config';
 import { BaseLoggingEnvironment, FormatUtils, IntfLogger } from '@this/loggy';
 import { WranglerContext } from '@this/network-protocol';
-import { Methods, MustBe } from '@this/typey';
+import { Methods } from '@this/typey';
 
 import { BaseComponent } from '#x/BaseComponent';
 
@@ -28,8 +28,6 @@ export class BaseApplication extends BaseComponent {
    * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    */
   constructor(config, logger) {
-    MustBe.instanceOf(config, ApplicationConfig);
-
     super(config, logger);
 
     this.#loggingEnv = this.logger?.$env ?? null;
@@ -108,5 +106,15 @@ export class BaseApplication extends BaseComponent {
    */
   _impl_handleRequest(req, res, next) {
     Methods.abstract(req, res, next);
+  }
+
+
+  //
+  // Static members
+  //
+
+  /** @override */
+  static get CONFIG_CLASS() {
+    return ApplicationConfig;
   }
 }

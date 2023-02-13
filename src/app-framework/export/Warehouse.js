@@ -6,12 +6,13 @@ import * as timers from 'node:timers/promises';
 import { WarehouseConfig } from '@this/app-config';
 import { MustBe } from '@this/typey';
 
-import { ApplicationManager } from '#x/ApplicationManager';
+import { BaseApplication } from '#x/BaseApplication';
 import { BaseControllable } from '#x/BaseControllable';
+import { BaseService } from '#x/BaseService';
+import { ComponentManager } from '#x/ComponentManager';
 import { ComponentRegistry } from '#x/ComponentRegistry';
 import { HostManager } from '#x/HostManager';
 import { ServerManager } from '#x/ServerManager';
-import { ServiceManager } from '#x/ServiceManager';
 import { ThisModule } from '#p/ThisModule';
 
 
@@ -32,7 +33,7 @@ import { ThisModule } from '#p/ThisModule';
  * press on with the `stop()` actions if an earlier layer is taking too long.
  */
 export class Warehouse extends BaseControllable {
-  /** @type {ApplicationManager} Application manager. */
+  /** @type {ComponentManager} Application manager. */
   #applicationManager;
 
   /** @type {?HostManager} Host manager, if configured. */
@@ -41,7 +42,7 @@ export class Warehouse extends BaseControllable {
   /** @type {ServerManager} Server manager, for all server bindings. */
   #serverManager;
 
-  /** @type {ServiceManager} Service manager. */
+  /** @type {ComponentManager} Service manager. */
   #serviceManager;
 
   /**
@@ -58,13 +59,25 @@ export class Warehouse extends BaseControllable {
 
     const parsed = new WarehouseConfig(config, registry.configClassMapper);
 
-    this.#hostManager        = new HostManager(parsed.hosts);
-    this.#serviceManager     = new ServiceManager(parsed.services, registry);
-    this.#applicationManager = new ApplicationManager(parsed.applications, registry);
-    this.#serverManager      = new ServerManager(parsed.servers, this);
+    this.#applicationManager = new ComponentManager(parsed.applications, {
+      baseClass:     BaseApplication,
+      baseSublogger: ThisModule.logger.app,
+      logger:        ThisModule.logger.apps,
+      registry
+    });
+
+    this.#serviceManager = new ComponentManager(parsed.services, {
+      baseClass:     BaseService,
+      baseSublogger: ThisModule.logger.service,
+      logger:        ThisModule.logger.services,
+      registry
+    });
+
+    this.#hostManager   = new HostManager(parsed.hosts);
+    this.#serverManager = new ServerManager(parsed.servers, this);
   }
 
-  /** @returns {ApplicationManager} Application manager. */
+  /** @returns {ComponentManager} Application manager. */
   get applicationManager() {
     return this.#applicationManager;
   }
@@ -82,7 +95,7 @@ export class Warehouse extends BaseControllable {
     return this.#serverManager;
   }
 
-  /** @returns {ServiceManager} Service manager. */
+  /** @returns {ComponentManager} Service manager. */
   get serviceManager() {
     return this.#serviceManager;
   }
