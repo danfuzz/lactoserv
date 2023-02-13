@@ -61,14 +61,14 @@ export class Warehouse extends BaseControllable {
 
     this.#applicationManager = new ComponentManager(parsed.applications, {
       baseClass:     BaseApplication,
-      baseSublogger: ThisModule.baseApplicationLogger,
+      baseSublogger: ThisModule.logger.app,
       logger:        ThisModule.logger.apps,
       registry
     });
 
     this.#serviceManager = new ComponentManager(parsed.services, {
       baseClass:     BaseService,
-      baseSublogger: ThisModule.baseServiceLogger,
+      baseSublogger: ThisModule.logger.service,
       logger:        ThisModule.logger.services,
       registry
     });
