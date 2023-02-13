@@ -19,8 +19,16 @@ export class BaseService extends BaseComponent {
    * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    */
   constructor(config, logger) {
-    MustBe.instanceOf(config, ServiceConfig);
-
     super(config, logger);
+  }
+
+
+  //
+  // Static members
+  //
+
+  /** @override */
+  static get CONFIG_CLASS() {
+    return ServiceConfig;
   }
 }

@@ -57,8 +57,6 @@ export class NetworkServer extends BaseComponent {
    *   description.
    */
   constructor(config, extraConfig) {
-    MustBe.instanceOf(config, ServerConfig);
-
     const { endpoint, mounts, name }           = config;
     const { interface: iface, port, protocol } = endpoint;
 
@@ -170,6 +168,11 @@ export class NetworkServer extends BaseComponent {
   //
   // Static members.
   //
+
+  /** @override */
+  static get CONFIG_CLASS() {
+    return ServerConfig;
+  }
 
   /**
    * Makes the map from each (possibly wildcarded) hostname that this server

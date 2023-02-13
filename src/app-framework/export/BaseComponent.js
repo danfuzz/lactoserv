@@ -23,7 +23,7 @@ export class BaseComponent extends BaseControllable {
    */
   constructor(config, logger) {
     super(logger);
-    this.#config = MustBe.instanceOf(config, BaseConfig);
+    this.#config = MustBe.instanceOf(config, this.constructor.CONFIG_CLASS);
   }
 
   /** @returns {BaseConfig} Configuration for this instance. */
@@ -46,6 +46,6 @@ export class BaseComponent extends BaseControllable {
    * component.
    */
   static get CONFIG_CLASS() {
-    return Methods.abstract();
+    return BaseConfig;
   }
 }
