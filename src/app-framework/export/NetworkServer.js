@@ -42,7 +42,7 @@ export class NetworkServer extends BaseComponent {
    * for what was passed in the original (but unbound) `config` (along with
    * other bits):
    *
-   * * `{Map<string,BaseApplication>} applicationMap` -- Map of names to
+   * * `{Map<string, BaseApplication>} applicationMap` -- Map of names to
    *   applications, for use in building the active mount map.
    * * `{?HostManager} hostManager` -- Replacement for `hostnames`.
    * * `{?IntfLogger} logger` -- Logger to use for reporting network activity,

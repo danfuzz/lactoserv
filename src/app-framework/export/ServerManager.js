@@ -133,7 +133,7 @@ export class ServerManager extends BaseControllable {
    * application name bindings.
    *
    * @param {MountConfig[]} mounts Original `mounts` configuration item.
-   * @returns {Map<string,BaseApplication>} Corresponding map.
+   * @returns {Map<string, BaseApplication>} Corresponding map.
    */
   #makeApplicationMap(mounts) {
     const applicationManager = this.#warehouse.applicationManager;
