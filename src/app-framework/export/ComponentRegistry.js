@@ -2,7 +2,7 @@
 // This project is PROPRIETARY and UNLICENSED.
 
 import { BaseConfig, ClassedConfig, ConfigClassMapper } from '@this/app-config';
-import { MustBe } from '@this/typey';
+import { AskIf, MustBe } from '@this/typey';
 
 import { BaseComponent } from '#x/BaseComponent';
 
@@ -55,7 +55,7 @@ export class ComponentRegistry {
     MustBe.plainObject(config);
     baseClass = (baseClass === null)
       ? BaseConfig
-      : MustBe.instanceOf(baseClass, BaseConfig.constructor);
+      : MustBe.subclassOf(baseClass, BaseConfig);
 
     const name  = config.class;
     const found = this.get(name, {
@@ -68,7 +68,7 @@ export class ComponentRegistry {
       return baseClass;
     }
 
-    if (!(found instanceof baseClass.constructor)) {
+    if (!AskIf.subclassOf(found, baseClass)) {
       throw new Error(`Not an appropriate component class: ${name}, expected ${baseClass.name}`);
     }
 
