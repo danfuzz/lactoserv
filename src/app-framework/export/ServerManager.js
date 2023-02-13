@@ -116,7 +116,7 @@ export class ServerManager extends BaseControllable {
     const extraConfig = {
       applicationMap: this.#makeApplicationMap(mounts),
       hostManager:    hmSubset,
-      logger:         ThisModule.baseServerLogger[name],
+      logger:         ThisModule.logger.server[name],
       rateLimiter,
       requestLogger
     };

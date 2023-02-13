@@ -15,20 +15,6 @@ export class ThisModule {
   static #logger = Loggy.loggerFor('framework');
 
   /**
-   * @type {?IntfLogger} Base logger for server instances, or `null` not to do
-   * any logging.
-   */
-  static #baseServerLogger = Loggy.loggerFor('server');
-
-  /**
-   * @returns {?IntfLogger} Base logger for server instances, or `null` not to
-   * do any logging.
-   */
-  static get baseServerLogger() {
-    return this.#baseServerLogger;
-  }
-
-  /**
    * @returns {?IntfLogger} Logger for this module, or `null` not to do any
    * logging.
    */
