@@ -6,7 +6,7 @@ import * as timers from 'node:timers';
 import { ApplicationConfig } from '@this/app-config';
 import { BaseLoggingEnvironment, FormatUtils, IntfLogger } from '@this/loggy';
 import { WranglerContext } from '@this/network-protocol';
-import { Methods, MustBe } from '@this/typey';
+import { Methods } from '@this/typey';
 
 import { BaseComponent } from '#x/BaseComponent';
 

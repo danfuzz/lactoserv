@@ -3,7 +3,7 @@
 
 import { BaseConfig } from '@this/app-config';
 import { IntfLogger } from '@this/loggy';
-import { Methods, MustBe } from '@this/typey';
+import { MustBe } from '@this/typey';
 
 import { BaseControllable } from '#x/BaseControllable';
 
