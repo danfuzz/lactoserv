@@ -3,11 +3,13 @@
 
 import * as timers from 'node:timers/promises';
 
-import { ApplicationConfig, ServiceConfig, WarehouseConfig } from '@this/app-config';
+import { WarehouseConfig } from '@this/app-config';
+import { MustBe } from '@this/typey';
 
 import { ApplicationFactory } from '#x/ApplicationFactory';
 import { ApplicationManager } from '#x/ApplicationManager';
 import { BaseControllable } from '#x/BaseControllable';
+import { ComponentRegistry } from '#x/ComponentRegistry';
 import { HostManager } from '#x/HostManager';
 import { ServerManager } from '#x/ServerManager';
 import { ServiceFactory } from '#x/ServiceFactory';
@@ -48,23 +50,28 @@ export class Warehouse extends BaseControllable {
    * Constructs an instance.
    *
    * @param {object} config Configuration object.
+   * @param {ComponentRegistry} registry Registry of component classes.
    */
-  constructor(config) {
+  constructor(config, registry = null) {
+    MustBe.plainObject(config);
+
+    if (registry !== null) {
+      MustBe.instanceOf(registry, ComponentRegistry);
+    } else {
+      const classes = [
+        ...ApplicationFactory.getAll(),
+        ...ServiceFactory.getAll()
+      ];
+      registry = new ComponentRegistry(classes);
+    }
+
     super(ThisModule.logger.warehouse);
 
-    const mapper = (conf, baseClass) => {
-      switch (baseClass) {
-        case ApplicationConfig: return ApplicationFactory.configClassFromName(conf.class);
-        case ServiceConfig:     return ServiceFactory.configClassFromName(conf.class);
-      }
-      return baseClass;
-    };
-
-    const parsed = new WarehouseConfig(config, mapper);
+    const parsed = new WarehouseConfig(config, registry.configClassMapper);
 
     this.#hostManager        = new HostManager(parsed.hosts);
-    this.#serviceManager     = new ServiceManager(parsed.services);
-    this.#applicationManager = new ApplicationManager(parsed.applications);
+    this.#serviceManager     = new ServiceManager(parsed.services, registry);
+    this.#applicationManager = new ApplicationManager(parsed.applications, registry);
     this.#serverManager      = new ServerManager(parsed.servers, this);
   }
 
