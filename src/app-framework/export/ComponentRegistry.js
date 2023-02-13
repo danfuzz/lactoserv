@@ -110,8 +110,7 @@ export class ComponentRegistry {
     }
 
     if (requiredClass !== null) {
-      if (!(found instanceof requiredClass.constructor)) {
-        // That is, `found` is not a subclass of `requiredClass`.
+      if (!AskIf.subclassOf(found, requiredClass)) {
         throw new Error(`Not an appropriate component class: ${name}, expected ${requiredClass.name}`);
       }
     }
@@ -155,15 +154,14 @@ export class ComponentRegistry {
    *   `cls` must be inherit from.
    */
   register(cls, baseClass = null) {
-    MustBe.constructorFunction(cls);
-    if (baseClass) MustBe.constructorFunction(baseClass);
+    MustBe.subclassOf(cls, BaseComponent);
+    baseClass = (baseClass === null)
+      ? BaseComponent
+      : MustBe.subclassOf(baseClass, BaseComponent);
 
     const name = cls.name;
 
-    if (!(cls instanceof BaseComponent.constructor)) {
-      // That is, `cls` is not a subclass of `BaseComponent`.
-      throw new Error(`Not a component class: ${name}`);
-    } else if (baseClass && !(cls instanceof baseClass.constructor)) {
+    if (!AskIf.subclassOf(cls, baseClass)) {
       throw new Error(`Not an appropriate component class: ${name}, expected ${baseClass.name}`);
     }
 
