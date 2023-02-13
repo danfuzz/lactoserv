@@ -2,10 +2,11 @@
 // This project is PROPRIETARY and UNLICENSED.
 
 import { ApplicationConfig } from '@this/app-config';
+import { MustBe } from '@this/typey';
 
-import { ApplicationFactory } from '#x/ApplicationFactory';
 import { BaseApplication } from '#x/BaseApplication';
 import { BaseControllable } from '#x/BaseControllable';
+import { ComponentRegistry } from '#x/ComponentRegistry';
 import { ThisModule } from '#p/ThisModule';
 
 
@@ -16,6 +17,9 @@ import { ThisModule } from '#p/ThisModule';
  * **Note:** `start()`ing and `stop()`ing acts on all the applications.
  */
 export class ApplicationManager extends BaseControllable {
+  /** @type {ComponentRegistry} Registry of component classes. */
+  #registry;
+
   /**
    * @type {Map<string, BaseApplication>} Map from each bound application name
    * to the corresponding instance.
@@ -26,11 +30,16 @@ export class ApplicationManager extends BaseControllable {
    * Constructs an instance.
    *
    * @param {ApplicationConfig[]} configs Configuration objects.
+   * @param {ComponentRegistry} registry Registry of component classes.
    */
-  constructor(configs) {
+  constructor(configs, registry) {
     super(ThisModule.logger.apps);
 
+    this.#registry = MustBe.instanceOf(registry, ComponentRegistry);
+
+    MustBe.array(configs);
     for (const config of configs) {
+      MustBe.instanceOf(config, ApplicationConfig);
       this.#addInstanceFor(config);
     }
   }
@@ -84,6 +93,8 @@ export class ApplicationManager extends BaseControllable {
    * @param {ApplicationConfig} config Parsed configuration item.
    */
   #addInstanceFor(config) {
+    MustBe.instanceOf(config, ApplicationConfig);
+
     const name = config.name;
 
     if (this.#instances.has(name)) {
@@ -91,7 +102,9 @@ export class ApplicationManager extends BaseControllable {
     }
 
     const appLogger = ThisModule.baseApplicationLogger[name];
-    const instance  = ApplicationFactory.makeInstance(config, appLogger);
+    const instance  = this.#registry.makeInstance(config, appLogger);
+
+    MustBe.instanceOf(instance, BaseApplication);
 
     this.#instances.set(name, instance);
     this.logger.bound(name);
