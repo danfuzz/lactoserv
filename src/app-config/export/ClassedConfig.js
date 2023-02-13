@@ -7,17 +7,17 @@ import { Names } from '#x/Names';
 
 /**
  * Class for configuration representations of things that each have a
- * unique-to-its-domain name and a not-necessarily-unique type (represented as a
- * type _name_).
+ * unique-to-its-domain name and a not-necessarily-unique class/type
+ * (represented as a class _name_).
  *
  * Accepted configuration bindings (in the constructor). All are required:
  *
  * * Bindings as defined by the superclass, {@link NamedConfig}.
- * * `{string} type` -- The (name of the) type of the item.
+ * * `{string} class` -- The (name of the) class of the item.
  */
-export class TypedConfig extends NamedConfig {
-  /** @type {string} The (name of the) type of the item. */
-  #type;
+export class ClassedConfig extends NamedConfig {
+  /** @type {string} The (name of the) class of the item. */
+  #class;
 
   /**
    * Constructs an instance.
@@ -27,11 +27,11 @@ export class TypedConfig extends NamedConfig {
   constructor(config) {
     super(config);
 
-    this.#type = Names.checkType(config.type);
+    this.#class = Names.checkType(config.class);
   }
 
   /** @returns {string} The (name of the) type of the item. */
-  get type() {
-    return this.#type;
+  get class() {
+    return this.#class;
   }
 }

@@ -2,5 +2,5 @@
 // This project is PROPRIETARY and UNLICENSED.
 
 export * from '#x/BuiltinApplications';
-export * from '#x/RedirectApplication';
-export * from '#x/StaticApplication';
+export * from '#x/Redirector';
+export * from '#x/StaticFiles';

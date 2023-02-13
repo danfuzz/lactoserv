@@ -41,7 +41,7 @@ import { RateLimitedStream } from '#p/RateLimitedStream';
  *
  * @implements {IntfRateLimiter}
  */
-export class RateLimiterService extends BaseService {
+export class RateLimiter extends BaseService {
   /** @type {?TokenBucket} Connection rate limiter, if any. */
   #connections = null;
 
@@ -62,19 +62,19 @@ export class RateLimiterService extends BaseService {
 
     const { connections, data, requests } = config;
 
-    this.#connections = RateLimiterService.#makeBucket(connections);
-    this.#data        = RateLimiterService.#makeBucket(data);
-    this.#requests    = RateLimiterService.#makeBucket(requests);
+    this.#connections = RateLimiter.#makeBucket(connections);
+    this.#data        = RateLimiter.#makeBucket(data);
+    this.#requests    = RateLimiter.#makeBucket(requests);
   }
 
   /** @override */
   async newConnection(logger) {
-    return RateLimiterService.#requestOneToken(this.#connections, logger);
+    return RateLimiter.#requestOneToken(this.#connections, logger);
   }
 
   /** @override */
   async newRequest(logger) {
-    return RateLimiterService.#requestOneToken(this.#requests, logger);
+    return RateLimiter.#requestOneToken(this.#requests, logger);
   }
 
   /** @override */
@@ -108,11 +108,6 @@ export class RateLimiterService extends BaseService {
   /** @override */
   static get CONFIG_CLASS() {
     return this.#Config;
-  }
-
-  /** @override */
-  static get TYPE() {
-    return 'rate-limiter';
   }
 
   /**

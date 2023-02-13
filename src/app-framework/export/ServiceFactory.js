@@ -2,6 +2,7 @@
 // This project is PROPRIETARY and UNLICENSED.
 
 import { ServiceConfig } from '@this/app-config';
+import { MustBe } from '@this/typey';
 
 import { BaseService } from '#x/BaseService';
 
@@ -11,42 +12,42 @@ import { BaseService } from '#x/BaseService';
  */
 export class ServiceFactory {
   /**
-   * @type {Map<string, function(new:BaseService, ...*)>} Map from each service
-   * type to the service subclass that implements it.
+   * @type {Map<string, function(new:BaseService, ...*)>} Map from each
+   * registerered service class name to the service subclass that handles it.
    */
   static #SERVICE_CLASSES = new Map();
 
   /**
-   * Gets the service class for the given type.
+   * Gets the service class for the given name.
    *
-   * @param {string} type Type name of the service.
+   * @param {string} name Name of the service class.
    * @param {boolean} [nullIfNotFound = false] Throw an error if not found?
    * @returns {?function(new:BaseService)} Corresponding service class, or`null`
    *   if not found and `nullIfNotFound === true`.
    * @throws {Error} Thrown if there is no such service.
    */
-  static classFromType(type, nullIfNotFound = false) {
-    const cls = this.#SERVICE_CLASSES.get(type);
+  static classFromName(name, nullIfNotFound = false) {
+    const cls = this.#SERVICE_CLASSES.get(name);
 
     if (cls) {
       return cls;
     } else if (nullIfNotFound) {
       return null;
     } else {
-      throw new Error(`Unknown service type: ${type}`);
+      throw new Error(`Unknown service: ${name}`);
     }
   }
 
   /**
-   * Finds the configuration class associated with the given type name. This
+   * Finds the configuration class associated with the given service name. This
    * method is suitable for calling within a mapper argument to {@link
    * BaseConfig#parseArray}.
    *
-   * @param {string} type Service type name.
+   * @param {string} name Name of the service class.
    * @returns {function(new:ServiceConfig)} Corresponding configuration class.
    */
-  static configClassFromType(type) {
-    const cls = this.classFromType(type);
+  static configClassFromName(name) {
+    const cls = this.classFromName(name);
     return cls.CONFIG_CLASS;
   }
 
@@ -58,22 +59,28 @@ export class ServiceFactory {
    * @returns {BaseService} Constructed service instance.
    */
   static makeInstance(config, ...rest) {
-    const cls = this.classFromType(config.type);
+    const cls = this.classFromName(config.class);
     return new cls(config, ...rest);
   }
 
   /**
-   * Registers a type/service binding.
+   * Registers a service class.
    *
-   * @param {function(new:BaseService, ...*)} serviceClass Service class.
+   * @param {function(new:BaseService, ...*)} cls Service class.
    */
-  static register(serviceClass) {
-    const type = serviceClass.TYPE;
+  static register(cls) {
+    MustBe.constructorFunction(cls);
+    const name = cls.name;
 
-    if (this.classFromType(type, true)) {
-      throw new Error(`Already registered: ${type}`);
+    if (!(cls instanceof BaseService.constructor)) {
+      // That is, `cls` is not a subclass of `BaseService`.
+      throw new Error(`Not a service class: ${name}`);
     }
 
-    this.#SERVICE_CLASSES.set(type, serviceClass);
+    if (this.classFromName(name, true)) {
+      throw new Error(`Already registered: ${name}`);
+    }
+
+    this.#SERVICE_CLASSES.set(name, cls);
   }
 }

@@ -28,10 +28,10 @@ import { MustBe } from '@this/typey';
  *   have this be non-`null` when `multiprocess` is used, to minimize the chance
  *   of a concurrency tragedy leaving a messed up file around.
  *
- * **Note:** See {@link #ProcessInfoFileService} for a service which writes more
+ * **Note:** See {@link #ProcessInfoFile} for a service which writes more
  * complete information about the system.
  */
-export class ProcessIdFileService extends BaseService {
+export class ProcessIdFile extends BaseService {
   /** @type {boolean} Allow multiple processes to be listed in the file? */
   #multiprocess;
 
@@ -108,7 +108,7 @@ export class ProcessIdFileService extends BaseService {
       // (which parses as `NaN`).
       if (   Number.isSafeInteger(num)
           && (num !== pid)
-          && ProcessIdFileService.#processExists(num)) {
+          && ProcessIdFile.#processExists(num)) {
         result.push(num);
       }
     }
@@ -173,7 +173,7 @@ export class ProcessIdFileService extends BaseService {
    * @param {boolean} running Is this process/system considered to be running?
    */
   async #updateFile(running) {
-    const maxAttempts = ProcessIdFileService.#MAX_WRITE_ATTEMPTS;
+    const maxAttempts = ProcessIdFile.#MAX_WRITE_ATTEMPTS;
 
     for (let i = 0; i < maxAttempts; i++) {
       if (i !== 0) {
@@ -200,13 +200,13 @@ export class ProcessIdFileService extends BaseService {
       // we wrote (but only if `running === true`, because if we're about to
       // shut down, we can rely on "partner" processes to ultimately do the
       // right thing).
-      await timers.setTimeout(ProcessIdFileService.#PRE_CHECK_DELAY_MSEC);
+      await timers.setTimeout(ProcessIdFile.#PRE_CHECK_DELAY_MSEC);
       const readBack = await this.#readFile();
       if (readBack === contents) {
         return;
       }
 
-      await timers.setTimeout(ProcessIdFileService.#RETRY_DELAY_MSEC);
+      await timers.setTimeout(ProcessIdFile.#RETRY_DELAY_MSEC);
     }
 
     this.logger.writeContention({ attempt: maxAttempts, gaveUp: true });
@@ -229,11 +229,6 @@ export class ProcessIdFileService extends BaseService {
   /** @override */
   static get CONFIG_CLASS() {
     return this.#Config;
-  }
-
-  /** @override */
-  static get TYPE() {
-    return 'process-id-file';
   }
 
   /**

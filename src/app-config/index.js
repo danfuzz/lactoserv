@@ -4,6 +4,7 @@
 export * from '#x/ApplicationConfig';
 export * from '#x/BaseConfig';
 export * from '#x/Certificates';
+export * from '#x/ClassedConfig';
 export * from '#x/ConfigClassMapper';
 export * from '#x/EndpointConfig';
 export * from '#x/FileServiceConfig';
@@ -15,7 +16,6 @@ export * from '#x/Names';
 export * from '#x/RotateConfig';
 export * from '#x/ServerConfig';
 export * from '#x/ServiceConfig';
-export * from '#x/TypedConfig';
 export * from '#x/Uris';
 export * from '#x/Util';
 export * from '#x/WarehouseConfig';

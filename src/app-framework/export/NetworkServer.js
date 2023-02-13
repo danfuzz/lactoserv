@@ -47,9 +47,9 @@ export class NetworkServer extends BaseComponent {
    * * `{?HostManager} hostManager` -- Replacement for `hostnames`.
    * * `{?IntfLogger} logger` -- Logger to use for reporting network activity,
    *   or `null not to do any logging.
-   * * `{?RateLimiterService} rateLimiter` -- Replacemant for `rateLimiter`
+   * * `{?RateLimiter} rateLimiter` -- Replacemant for `rateLimiter`
    *   (service instance, not just a name).
-   * * `{?RequestLoggerService} requestLogger` -- Replacemant for `rateLimiter`
+   * * `{?RequestLogger} requestLogger` -- Replacemant for `rateLimiter`
    *   (service instance, not just a name).
    *
    * @param {ServerConfig} config Parsed configuration item.

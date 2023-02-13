@@ -54,8 +54,8 @@ export class Warehouse extends BaseControllable {
 
     const mapper = (conf, baseClass) => {
       switch (baseClass) {
-        case ApplicationConfig: return ApplicationFactory.configClassFromType(conf.type);
-        case ServiceConfig:     return ServiceFactory.configClassFromType(conf.type);
+        case ApplicationConfig: return ApplicationFactory.configClassFromName(conf.class);
+        case ServiceConfig:     return ServiceFactory.configClassFromName(conf.class);
       }
       return baseClass;
     };

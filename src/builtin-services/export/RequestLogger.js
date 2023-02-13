@@ -21,7 +21,7 @@ import { IntfRequestLogger } from '@this/network-protocol';
  *
  * @implements {IntfRequestLogger}
  */
-export class RequestLoggerService extends BaseService {
+export class RequestLogger extends BaseService {
   /** @type {string} Full path to the log file. */
   #logFilePath;
 
@@ -65,10 +65,5 @@ export class RequestLoggerService extends BaseService {
   /** @override */
   static get CONFIG_CLASS() {
     return FileServiceConfig;
-  }
-
-  /** @override */
-  static get TYPE() {
-    return 'request-logger';
   }
 }

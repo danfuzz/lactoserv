@@ -3,7 +3,7 @@
 
 import * as fs from 'node:fs/promises';
 import * as timers from 'node:timers/promises';
-import { default as vm, Module, SourceTextModule, SyntheticModule } from 'node:vm';
+import { Module, SourceTextModule, SyntheticModule, default as vm } from 'node:vm';
 
 import { IntfLogger } from '@this/loggy';
 import { MustBe } from '@this/typey';

@@ -14,7 +14,7 @@ import { IntfLogger } from '@this/loggy';
  * * `{string} siteDirectory` -- Absolute path to the base directory for the
  *   site files.
  */
-export class StaticApplication extends BaseApplication {
+export class StaticFiles extends BaseApplication {
   /** @type {function(...*)} "Middleware" handler function for this instance. */
   #handleRequest;
 
@@ -71,11 +71,6 @@ export class StaticApplication extends BaseApplication {
   /** @override */
   static get CONFIG_CLASS() {
     return this.#Config;
-  }
-
-  /** @override */
-  static get TYPE() {
-    return 'static-server';
   }
 
   /**

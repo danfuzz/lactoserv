@@ -48,9 +48,4 @@ export class BaseComponent extends BaseControllable {
   static get CONFIG_CLASS() {
     return Methods.abstract();
   }
-
-  /** @returns {string} The type name for this component. */
-  static get TYPE() {
-    return Methods.abstract();
-  }
 }

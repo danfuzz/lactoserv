@@ -3,8 +3,8 @@
 
 import { ApplicationFactory } from '@this/app-framework';
 
-import { RedirectApplication } from '#x/RedirectApplication';
-import { StaticApplication } from '#x/StaticApplication';
+import { Redirector } from '#x/Redirector';
+import { StaticFiles } from '#x/StaticFiles';
 
 
 /**
@@ -15,7 +15,7 @@ export class BuiltinApplications {
    * Registers all the applications defined by this module.
    */
   static register() {
-    ApplicationFactory.register(StaticApplication);
-    ApplicationFactory.register(RedirectApplication);
+    ApplicationFactory.register(StaticFiles);
+    ApplicationFactory.register(Redirector);
   }
 }
