@@ -122,6 +122,15 @@ export class ComponentRegistry {
   }
 
   /**
+   * Gets an array of all classes registered by this instance.
+   *
+   * @returns {(function(new:BaseComponent, ...*))[]} The classes.
+   */
+  getAll() {
+    return [...this.#classes.values()];
+  }
+
+  /**
    * Constructs an instance based on the given configuration.
    *
    * @param {ClassedConfig} config Configuration object.
