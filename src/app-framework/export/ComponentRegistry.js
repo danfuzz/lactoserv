@@ -52,7 +52,7 @@ export class ComponentRegistry {
     const {
       class: requiredClass = null,
       nullIfNotFound       = false,
-      wantConfig           = false 
+      wantConfig           = false
     } = options ?? {};
 
     const found = this.#classes.get(name);
@@ -93,14 +93,20 @@ export class ComponentRegistry {
    * Registers a component class.
    *
    * @param {function(new:BaseComponent, ...*)} cls Component class.
+   * @param {?function((new:BaseComponent))} [baseClass = null] Base class that
+   *   `cls` must be inherit from.
    */
-  register(cls) {
+  register(cls, baseClass = null) {
     MustBe.constructorFunction(cls);
+    if (baseClass) MustBe.constructorFunction(baseClass);
+
     const name = cls.name;
 
     if (!(cls instanceof BaseComponent.constructor)) {
       // That is, `cls` is not a subclass of `BaseComponent`.
       throw new Error(`Not a component class: ${name}`);
+    } else if (baseClass && !(cls instanceof baseClass.constructor)) {
+      throw new Error(`Not an appropriate component class: ${name}, expected ${baseClass.name}`);
     }
 
     if (this.classFromName(name, true)) {
