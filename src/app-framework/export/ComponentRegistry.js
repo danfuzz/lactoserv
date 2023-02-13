@@ -86,6 +86,11 @@ export class ComponentRegistry {
    */
   makeInstance(config, ...rest) {
     const cls = this.get(config.class);
+
+    if (!(config instanceof cls.CONFIG_CLASS)) {
+      throw new Error(`Mismatched configuration class for component: ${config.class}`)
+    }
+
     return new cls(config, ...rest);
   }
 
