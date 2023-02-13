@@ -171,7 +171,7 @@ export class LogRecord {
     getters:     true
   });
 
-  /** @type {string} Default type to use for "kickoff" instances. */
+  /** @type {string} Default event type to use for "kickoff" instances. */
   static #KICKOFF_TYPE = 'kickoff';
 
   /** @type {LogTag} Default tag to use for "kickoff" instances. */
