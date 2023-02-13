@@ -1,6 +1,8 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
 // This project is PROPRIETARY and UNLICENSED.
 
+import { MustBe } from '#x/MustBe';
+
 /**
  * Simple type checks. Each one is a predicate (boolean-returning function).
  * These are all similar to the name-named methods in {@link MustBe}, except
@@ -196,6 +198,9 @@ export class AskIf {
   // Note: No method `function()`, because of the standard `typeof v ===
   // 'function'`.
 
+  // Note: No method `instanceOf()`, because of the standard `v instanceof
+  // Class`.
+
   // Note: No method `null()`, because of the standard `v === null`.
 
   // TODO: number()
@@ -213,8 +218,27 @@ export class AskIf {
       && Object.getPrototypeOf(value) === Object.prototype;
   }
 
-  // Note: No method `instanceOf()`, because of the standard `v instanceof
-  // Class`.
-
   // TODO: string()
+
+  /**
+   * Checks for type "class which is a (possibly improper) subclass of some
+   * other class."
+   *
+   * @param {*} value Arbitrary value.
+   * @param {function(new:*)} baseClass Base class to check against `value`.
+   * @returns {boolean} `true` iff `value` is of the indicated type.
+   */
+  static subclassOf(value, baseClass) {
+    // Type requirement for `baseClass`. We're not "asking" about this.
+    MustBe.constructorFunction(baseClass);
+
+    if (!AskIf.constructorFunction(value)) {
+      return false;
+    } else if (value === baseClass) {
+      return true;
+    } else {
+      return (value instanceof baseClass.constructor)
+        && (value.prototype instanceof baseClass);
+    }
+  }
 }
