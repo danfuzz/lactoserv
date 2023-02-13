@@ -42,7 +42,7 @@ export class Warehouse extends BaseControllable {
   /** @type {ServerManager} Server manager, for all server bindings. */
   #serverManager;
 
-  /** @type {ServiceManager} Service manager. */
+  /** @type {ComponentManager} Service manager. */
   #serviceManager;
 
   /**
