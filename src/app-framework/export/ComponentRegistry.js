@@ -85,7 +85,7 @@ export class ComponentRegistry {
    * @returns {BaseComponent} Constructed instance.
    */
   makeInstance(config, ...rest) {
-    const cls = this.classFromName(config.class);
+    const cls = this.get(config.class);
     return new cls(config, ...rest);
   }
 
@@ -109,7 +109,7 @@ export class ComponentRegistry {
       throw new Error(`Not an appropriate component class: ${name}, expected ${baseClass.name}`);
     }
 
-    if (this.classFromName(name, true)) {
+    if (this.get(name, { nullIfNotFound: true })) {
       throw new Error(`Already registered: ${name}`);
     }
 
