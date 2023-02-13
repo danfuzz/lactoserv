@@ -1,7 +1,7 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
 // This project is PROPRIETARY and UNLICENSED.
 
-import { ClassedConfig } from '@this/app-config';
+import { BaseConfig, ClassedConfig, ConfigClassMapper } from '@this/app-config';
 import { MustBe } from '@this/typey';
 
 import { BaseComponent } from '#x/BaseComponent';
@@ -29,6 +29,50 @@ export class ComponentRegistry {
         this.register(c);
       }
     }
+  }
+
+  /**
+   * @returns {ConfigClassMapper} A configuration class mapper function which
+   * uses this instance for its lookups.
+   */
+  get configClassMapper() {
+    return (config, baseClass) => this.configClassFor(config, baseClass);
+  }
+
+  /**
+   * Given a configuration object and a desired base class for the result,
+   * returns the configuration class which should be used to instantiate the
+   * configuration. This is the method behind {@link #configClassMapper}.
+   *
+   * @param {object} config Plain object representing the configuration in
+   *   question.
+   * @param {function(new:BaseConfig)} [baseClass = null] Required base class
+   *   for the result. `null` is equivalent to just `BaseConfig`.
+   * @returns {function(new:BaseConfig)} Actual class which should be used to
+   *   instantiate the configuration.
+   */
+  configClassFor(config, baseClass = null) {
+    MustBe.plainObject(config);
+    baseClass = (baseClass === null)
+      ? BaseConfig
+      : MustBe.instanceOf(baseClass, BaseConfig.constructor);
+
+    const name  = config.class;
+    const found = this.get(name, {
+      nullIfNotFound: true,
+      wantConfig:     true
+    });
+
+    if (found === null) {
+      // There is no more-specific registered class.
+      return baseClass;
+    }
+
+    if (!(found instanceof baseClass)) {
+      throw new Error(`Not an appropriate component class: ${name}, expected ${baseClass.name}`);
+    }
+
+    return found;
   }
 
   /**
@@ -88,7 +132,7 @@ export class ComponentRegistry {
     const cls = this.get(config.class);
 
     if (!(config instanceof cls.CONFIG_CLASS)) {
-      throw new Error(`Mismatched configuration class for component: ${config.class}`)
+      throw new Error(`Mismatched configuration class for component: ${config.class}`);
     }
 
     return new cls(config, ...rest);
