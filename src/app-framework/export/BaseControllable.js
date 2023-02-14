@@ -107,18 +107,6 @@ export class BaseControllable {
   }
 
   /**
-   * Logs a message about an item (component, etc.) initiating a `stop()`
-   * action.
-   *
-   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
-   * @param {boolean} willReload Is this a pending system reload (vs. final
-   *   shutdown)?
-   */
-  static logStopping(logger, willReload) {
-    logger?.stopping(willReload ? 'willReload' : 'shutdown');
-  }
-
-  /**
    * Logs a message about an item (component, etc.) completing a `stop()`
    * action.
    *
@@ -128,5 +116,17 @@ export class BaseControllable {
    */
   static logStopped(logger, willReload) {
     logger?.stopped(willReload ? 'willReload' : 'shutdown');
+  }
+
+  /**
+   * Logs a message about an item (component, etc.) initiating a `stop()`
+   * action.
+   *
+   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
+   * @param {boolean} willReload Is this a pending system reload (vs. final
+   *   shutdown)?
+   */
+  static logStopping(logger, willReload) {
+    logger?.stopping(willReload ? 'willReload' : 'shutdown');
   }
 }
