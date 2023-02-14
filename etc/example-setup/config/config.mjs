@@ -1,3 +1,6 @@
+// Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
+// SPDX-License-Identifier: Apache-2.0
+
 import * as fs from 'node:fs/promises';
 
 const fileUrl  = (path) => new URL(path, import.meta.url);
