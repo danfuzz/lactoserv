@@ -1,5 +1,5 @@
-// Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
-// This project is PROPRIETARY and UNLICENSED.
+// Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
+// SPDX-License-Identifier: Apache-2.0
 
 /**
  * Generator of unique-enough IDs to track connections, requests, etc., in the

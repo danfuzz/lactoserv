@@ -77,3 +77,9 @@ Recognized signals:
   using the "Memory" panel available in the Chrome developer tools.
 * `SIGINT` and `SIGTERM` -- Shuts down as cleanly as possible. (Note: `SIGINT`
   is usually what gets sent when you type `ctrl-C` in a console.)
+
+- - - - - - - - - -
+```
+Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
+SPDX-License-Identifier: Apache-2.0
+```

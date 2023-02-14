@@ -81,3 +81,9 @@ export class Florp {
 * `_prot_<name>` -- Defined in base classes and _not_ to be overridden. To be
   called by subclasses; _not_ supposed to be used outside of the class. These
   are more or less `protected final` methods defined by a base class.
+
+- - - - - - - - - -
+```
+Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
+SPDX-License-Identifier: Apache-2.0
+```
