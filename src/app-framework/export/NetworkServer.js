@@ -125,8 +125,8 @@ export class NetworkServer extends BaseComponent {
 
     // Iterate from most- to least-specific mounted path.
     for (let pathMatch = hostMatch.value.find(pathKey, true);
-         pathMatch;
-         pathMatch = pathMatch.next) {
+      pathMatch;
+      pathMatch = pathMatch.next) {
       const application = pathMatch.value;
 
       // Thwack the salient context into `req`; it gets restored after the
