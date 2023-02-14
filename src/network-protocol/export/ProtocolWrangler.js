@@ -74,8 +74,8 @@ export class ProtocolWrangler {
    *   that sort of thing.
    * * `rateLimiter: BaseService` -- Rate limiter to use. (If not specified, the
    *   instance won't do rate limiting.)
-   * * `requestHandler: function(req, res, next)` -- Request handler, in the
-   *   form of a standard Express middleware function. This is required.
+   * * `requestHandler: function(req, res)` -- Request handler, in the form used
+   *   by the `app-framework` module (Express-like but async). This is required.
    * * `requestLogger: BaseService` -- Request logger to send to. (If not
    *   specified, the instance won't do request logging.)
    * * `logger: ?IntfLogger` -- Logger to use to emit events about what the
@@ -315,7 +315,6 @@ export class ProtocolWrangler {
    * @param {express.Response} res Response object.
    * @param {function(?*)} next Function which causes the next-bound middleware
    *   to run.
-   * @returns {*} Result of application handler call, or `null` if not called.
    */
   async #handleRequest(req, res, next) {
     const context   = WranglerContext.getNonNull(req.socket, req.stream?.session);
@@ -340,12 +339,24 @@ export class ProtocolWrangler {
         res.once('finish', () => { resSocket.end();     });
         res.once('end',    () => { resSocket.destroy(); });
 
-        return null;
+        return;
       }
     }
 
-    // `?? null` to force it to be a function call and not a method call.
-    return (this.#requestHandler ?? null)(req, res, next);
+    try {
+      // `?? null` to force it to be a function call and not a method call.
+      const result = await (this.#requestHandler ?? null)(req, res);
+      if (result) {
+        // Validate that the request was actually handled.
+        if (!res.writableEnded) {
+          reqLogger?.responseNotActuallyHandled();
+        }
+      } else {
+        next();
+      }
+    } catch (e) {
+      next(e);
+    }
   }
 
   /**

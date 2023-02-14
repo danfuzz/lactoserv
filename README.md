@@ -18,7 +18,7 @@ This is a web server which knows how to serve a couple different types of
 * Can run multiple network endpoints, each (potentially) serving a different set
   of high-level applications.
 * Several built-in applications:
-  * Static asset server.
+  * Static file server (uses `Express.static`).
   * Redirect server.
   * More to come! TODO!
 * Path-hierarchy specificity-based endpoint configuration, for endpoints that
@@ -31,6 +31,10 @@ This is a web server which knows how to serve a couple different types of
 * Optionally produces request logs, in a standard-ish form.
 * Optionally produces detailed activity logs.
 * JS-based configuration file format, which isn't actually that awful!
+* For custom applications, reasonably friendly `async`-forward application
+  framework, which uses Express-augmented `Request` and `Response` objects.
+  Maximum ergonomics: Very straightforward application logic bottoming out at
+  a familiar, well-worn, and well-tested low-level API.
 
 ### Implementation features
 

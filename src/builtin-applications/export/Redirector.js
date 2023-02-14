@@ -40,8 +40,9 @@ export class Redirector extends BaseApplication {
   }
 
   /** @override */
-  _impl_handleRequest(req, res, next_unused) {
+  async _impl_handleRequest(req, res) {
     res.redirect(this.#statusCode, `${this.#target}${req.path}`);
+    return true;
   }
 
   /** @override */

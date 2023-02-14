@@ -69,7 +69,7 @@ export class NetworkServer extends BaseComponent {
 
     const wranglerOptions = {
       rateLimiter,
-      requestHandler: (req, res, next) => this.#handleRequest(req, res, next),
+      requestHandler: (req, res) => this.#handleRequest(req, res),
       requestLogger,
       logger,
       protocol,
@@ -104,10 +104,9 @@ export class NetworkServer extends BaseComponent {
    *
    * @param {object} req Request object.
    * @param {object} res Response object.
-   * @param {function(?*)} next Function which causes the next-bound middleware
-   *   to run.
+   * @returns {boolean} Was the request handled?
    */
-  #handleRequest(req, res, next) {
+  async #handleRequest(req, res) {
     const reqLogger = WranglerContext.get(req)?.logger;
 
     const { path, subdomains } = req;
@@ -120,48 +119,50 @@ export class NetworkServer extends BaseComponent {
     const hostMatch = this.#mountMap.find(hostKey);
     if (!hostMatch) {
       // No matching host.
-      reqLogger?.hostNotFound();
-      next();
-      return;
+      reqLogger?.hostNotFound(hostKey);
+      return false;
     }
 
-    const pathMatch = hostMatch.value.find(pathKey);
-    if (!pathMatch) {
-      // No matching path for host.
-      reqLogger?.pathNotFound(hostMatch.value);
-      next();
-      return;
+    // Iterate from most- to least-specific mounted path.
+    for (let pathMatch = hostMatch.value.find(pathKey, true);
+      pathMatch;
+      pathMatch = pathMatch.next) {
+      const application = pathMatch.value;
+
+      // Thwack the salient context into `req`; it gets restored after the
+      // application runs. This setup is analogous to what Express does when
+      // routing, but we have to do it ourselves here because Express is running
+      // our whole dispatch system as just a single Express middleware call.
+
+      const { baseUrl: origBaseUrl, url: origUrl } = req;
+      const baseUrlExtra = (pathMatch.key.length === 0)
+        ? ''
+        : TreePathKey.uriPathStringFrom(pathMatch.key, false);
+
+      req.baseUrl = `${origBaseUrl}${baseUrlExtra}`;
+      req.url     = TreePathKey.uriPathStringFrom(pathMatch.keyRemainder);
+
+      reqLogger?.dispatching({
+        application: application.name,
+        host:        TreePathKey.hostnameStringFrom(hostMatch.key),
+        path:        TreePathKey.uriPathStringFrom(pathMatch.key),
+        url:         req.url
+      });
+
+      try {
+        if (await application.handleRequest(req, res)) {
+          return true;
+        }
+      } finally {
+        // Restore `req`. See big comment above.
+        req.baseUrl = origBaseUrl;
+        req.url     = origUrl;
+      }
     }
 
-    const application = pathMatch.value;
-
-    // Thwack the salient context into `req`, set up a `next` to restore the
-    // thwackage, and call through to the application. This setup is similar to
-    // what Express does when routing, but we have to do it ourselves here
-    // because we aren't using Express routing to find our applications.
-
-    const { baseUrl: origBaseUrl, url: origUrl } = req;
-    const baseUrlExtra = (pathMatch.key.length === 0)
-      ? ''
-      : TreePathKey.uriPathStringFrom(pathMatch.key, false);
-
-    req.baseUrl = `${origBaseUrl}${baseUrlExtra}`;
-    req.url     = TreePathKey.uriPathStringFrom(pathMatch.keyRemainder);
-
-    reqLogger?.dispatching({
-      application: application.name,
-      host:        TreePathKey.hostnameStringFrom(hostMatch.key),
-      path:        TreePathKey.uriPathStringFrom(pathMatch.key),
-      url:         req.url
-    });
-
-    const innerNext = (...args) => {
-      req.baseUrl = origBaseUrl;
-      req.url     = origUrl;
-      next(...args);
-    };
-
-    application.handleRequest(req, res, innerNext);
+    // No mounted path actually handled the request.
+    reqLogger?.pathNotFound(pathKey);
+    return false;
   }
 
 
