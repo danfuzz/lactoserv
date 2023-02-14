@@ -96,13 +96,13 @@ const services = [
 // Application definitions.
 const applications = [
   {
-    name:       'my-wacky-redirector',
+    name:       'myWackyRedirector',
     class:      'Redirector',
     statusCode: 308,
     target:     'https://milk.com/boop/'
   },
   {
-    name:          'my-static-fun',
+    name:          'myStaticFun',
     class:         'StaticFiles',
     siteDirectory: filePath('../site'),
     notFoundPath:  filePath('../site-extra/not-found.html')
@@ -112,7 +112,7 @@ const applications = [
 // Server defintions, including mount points for applications.
 const servers = [
   {
-    name:          'insecure',
+    name: 'insecure',
     endpoint: {
       hostnames:     ['*'],
       interface:     '*',
@@ -121,7 +121,7 @@ const servers = [
     },
     mounts: [
       {
-        application: 'my-wacky-redirector',
+        application: 'myWackyRedirector',
         at:          '//*/'
       }
     ],
@@ -131,7 +131,7 @@ const servers = [
     }
   },
   {
-    name:          'secure',
+    name: 'secure',
     endpoint: {
       hostnames:     ['*'],
       interface:     '*',
@@ -140,7 +140,7 @@ const servers = [
     },
     mounts: [
       {
-        application: 'my-static-fun',
+        application: 'myStaticFun',
         at:          ['//*/', '//*/florp/']
       }
     ],
@@ -150,7 +150,7 @@ const servers = [
     }
   },
   {
-    name:          'also-secure',
+    name: 'alsoSecure',
     endpoint: {
       hostnames:     ['*'],
       interface:     '*',
@@ -159,7 +159,7 @@ const servers = [
     },
     mounts: [
       {
-        application: 'my-static-fun',
+        application: 'myStaticFun',
         at:          '//*/'
       }
     ],
