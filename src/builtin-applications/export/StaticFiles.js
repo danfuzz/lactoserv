@@ -91,8 +91,15 @@ export class StaticFiles extends BaseApplication {
     constructor(config) {
       super(config);
 
-      this.#notFoundPath  = Files.checkAbsolutePath(config.notFoundPath);
-      this.#siteDirectory = Files.checkAbsolutePath(config.siteDirectory);
+      const {
+        notFoundPath = null,
+        siteDirectory
+      } = config;
+
+      this.#notFoundPath = (notFoundPath === null)
+        ? null
+        : Files.checkAbsolutePath(notFoundPath);
+      this.#siteDirectory = Files.checkAbsolutePath(siteDirectory);
     }
 
     /** @returns {string} The base directory for the site files. */
