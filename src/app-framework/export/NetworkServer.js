@@ -133,7 +133,7 @@ export class NetworkServer extends BaseComponent {
       return;
     }
 
-    const controller = pathMatch.value;
+    const application = pathMatch.value;
 
     // Thwack the salient context into `req`, set up a `next` to restore the
     // thwackage, and call through to the application. This setup is similar to
@@ -149,7 +149,7 @@ export class NetworkServer extends BaseComponent {
     req.url     = TreePathKey.uriPathStringFrom(pathMatch.keyRemainder);
 
     reqLogger?.dispatching({
-      application: controller.name,
+      application: application.name,
       host:        TreePathKey.hostnameStringFrom(hostMatch.key),
       path:        TreePathKey.uriPathStringFrom(pathMatch.key),
       url:         req.url
@@ -161,7 +161,7 @@ export class NetworkServer extends BaseComponent {
       next(...args);
     };
 
-    controller.handleRequest(req, res, innerNext);
+    application.handleRequest(req, res, innerNext);
   }
 
 
