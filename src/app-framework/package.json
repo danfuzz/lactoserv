@@ -13,6 +13,7 @@
 
   "dependencies": {
     "@this/app-config": "*",
+    "@this/async": "*",
     "@this/collections": "*",
     "@this/loggy": "*",
     "@this/network-protocol": "*",
