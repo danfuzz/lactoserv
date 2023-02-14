@@ -84,7 +84,7 @@ export class HostManager {
    * Finds the TLS {@link SecureContext} to use, based on the given hostname.
    *
    * @param {string} name Hostname to look for, which may be a partial or full
-   *   wildcard.
+   *   wildcard. `*` to explicitly request the wildcard / fallback context.
    * @returns {?SecureContext} The associated {@link SecureContext}, or `null`
    *   if no hostname match is found.
    */
@@ -126,7 +126,7 @@ export class HostManager {
   }
 
   /**
-   * Wrapper for {@link #findContext} in the exact form that is expected as an
+   * Like {@link #findContext}, except in the exact form that is expected as an
    * `SNICallback` configured in the options of a call to (something like)
    * `http2.createSecureServer()`.
    *
@@ -134,14 +134,25 @@ export class HostManager {
    * for details.
    *
    * @param {string} serverName Name of the server to find, or `*` to
-   *   explicitly request the wildcard / fallback certificate.
+   *   explicitly request the wildcard / fallback context.
    * @param {function(?object, ?SecureContext)} callback Callback to present
    *   with the results.
    */
   sniCallback(serverName, callback) {
+    const found    = this.#findItem(serverName);
+    let   foundCtx = null;
+
+    if (found) {
+      this.#logger.foundMatchFor(serverName, found.config.hostnames);
+      foundCtx = found.secureContext;
+    } else {
+      this.#logger.noMatchFor(serverName);
+    }
+
     try {
-      callback(null, this.findContext(serverName));
+      callback(null, foundCtx);
     } catch (e) {
+      this.#logger.errorDuringCallback(e);
       callback(e, null);
     }
   }
