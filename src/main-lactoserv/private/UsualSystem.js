@@ -1,5 +1,5 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
-// This project is PROPRIETARY and UNLICENSED.
+// SPDX-License-Identifier: Apache-2.0
 
 import { Warehouse } from '@this/app-framework';
 import { Condition, Threadlet } from '@this/async';

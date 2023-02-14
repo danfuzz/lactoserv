@@ -1,5 +1,5 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
-// This project is PROPRIETARY and UNLICENSED.
+// SPDX-License-Identifier: Apache-2.0
 
 import process from 'node:process'; // Need to import as such, for `.on*()`.
 

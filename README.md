@@ -72,5 +72,5 @@ files -- was created by the Lactoserv Authors (Dan Bornstein et alia).
 
 ```
 Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
-This project is PROPRIETARY and UNLICENSED.
+SPDX-License-Identifier: Apache-2.0
 ```

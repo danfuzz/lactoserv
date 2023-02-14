@@ -1,5 +1,5 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
-// This project is PROPRIETARY and UNLICENSED.
+// SPDX-License-Identifier: Apache-2.0
 
 /**
  * Utilities for getting at various local directories.
