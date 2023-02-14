@@ -54,6 +54,12 @@ export class TreePathKey {
     return this.#wildcard;
   }
 
+  /**
+   * Standard `data-values` method to produce an encoded version of this
+   * instance.
+   *
+   * @returns {Construct} The encoded form.
+   */
   [BaseConverter.ENCODE]() {
     return new Construct(TreePathKey, this.#path, this.#wildcard);
   }
