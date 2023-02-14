@@ -1,8 +1,6 @@
 // Copyright 2022 the Lactoserv Authors (Dan Bornstein et alia).
 // This project is PROPRIETARY and UNLICENSED.
 
-import * as timers from 'node:timers';
-
 import { ApplicationConfig } from '@this/app-config';
 import { ManualPromise } from '@this/async';
 import { BaseLoggingEnvironment, FormatUtils, IntfLogger } from '@this/loggy';
@@ -58,7 +56,7 @@ export class BaseApplication extends BaseComponent {
    * @param {object} res Response object.
    * @returns {boolean} Was the request handled? Flag as described above.
    */
-  async handleRequestAsync(req, res) {
+  async handleRequest(req, res) {
     let startTime;
     let id;
 
@@ -68,7 +66,7 @@ export class BaseApplication extends BaseComponent {
       this.logger.handling(id, req.url);
     }
 
-    const result = this._impl_handleRequestAsync(req, res);
+    const result = this._impl_handleRequest(req, res);
 
     if (this.logger) {
       // Arrange to log about the result of the `_impl_` call once it settles.
@@ -95,14 +93,16 @@ export class BaseApplication extends BaseComponent {
   }
 
   /**
-   * Handles a request, as defined by the Express middleware spec and the
-   * public method on this class {@link #handleRequestAsync}.
+   * Handles a request, as defined by the Express middleware spec and this
+   * class's method {@link #handleRequest}.
    *
    * @abstract
    * @param {object} req Request object.
    * @param {object} res Response object.
+   * @returns {boolean} Was the request handled? Flag as defined by {@link
+   *   #handleRequest}
    */
-  async _impl_handleRequestAsync(req, res) {
+  async _impl_handleRequest(req, res) {
     Methods.abstract(req, res);
   }
 
@@ -125,7 +125,7 @@ export class BaseApplication extends BaseComponent {
    * @param {function(object, object, function(?string|object))} middleware
    *   Express-style middleware function.
    * @returns {boolean} Was the request handled? Flag as defined by {@link
-   *   #handleRequestAsync}
+   *   #handleRequest}
    */
   static async callMiddleware(req, res, middleware) {
     const resultMp = new ManualPromise();

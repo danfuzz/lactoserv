@@ -38,7 +38,7 @@ export class StaticFiles extends BaseApplication {
   }
 
   /** @override */
-  async _impl_handleRequestAsync(req, res) {
+  async _impl_handleRequest(req, res) {
     const result =
       await BaseApplication.callMiddleware(req, res, this.#staticMiddleware);
 

@@ -153,7 +153,7 @@ export class NetworkServer extends BaseComponent {
     });
 
     try {
-      return await application.handleRequestAsync(req, res);
+      return await application.handleRequest(req, res);
     } finally {
       // Restore `req`. See big comment above.
       req.baseUrl = origBaseUrl;
