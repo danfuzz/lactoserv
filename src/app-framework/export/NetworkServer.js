@@ -119,46 +119,50 @@ export class NetworkServer extends BaseComponent {
     const hostMatch = this.#mountMap.find(hostKey);
     if (!hostMatch) {
       // No matching host.
-      reqLogger?.hostNotFound();
+      reqLogger?.hostNotFound(hostKey);
       return false;
     }
 
-    const pathMatch = hostMatch.value.find(pathKey);
-    if (!pathMatch) {
-      // No matching path for host.
-      reqLogger?.pathNotFound(hostMatch.value);
-      return false;
+    // Iterate from most- to least-specific mounted path.
+    for (let pathMatch = hostMatch.value.find(pathKey, true);
+         pathMatch;
+         pathMatch = pathMatch.next) {
+      const application = pathMatch.value;
+
+      // Thwack the salient context into `req`; it gets restored after the
+      // application runs. This setup is analogous to what Express does when
+      // routing, but we have to do it ourselves here because Express is running
+      // our whole dispatch system as just a single Express middleware call.
+
+      const { baseUrl: origBaseUrl, url: origUrl } = req;
+      const baseUrlExtra = (pathMatch.key.length === 0)
+        ? ''
+        : TreePathKey.uriPathStringFrom(pathMatch.key, false);
+
+      req.baseUrl = `${origBaseUrl}${baseUrlExtra}`;
+      req.url     = TreePathKey.uriPathStringFrom(pathMatch.keyRemainder);
+
+      reqLogger?.dispatching({
+        application: application.name,
+        host:        TreePathKey.hostnameStringFrom(hostMatch.key),
+        path:        TreePathKey.uriPathStringFrom(pathMatch.key),
+        url:         req.url
+      });
+
+      try {
+        if (await application.handleRequest(req, res)) {
+          return true;
+        }
+      } finally {
+        // Restore `req`. See big comment above.
+        req.baseUrl = origBaseUrl;
+        req.url     = origUrl;
+      }
     }
 
-    const application = pathMatch.value;
-
-    // Thwack the salient context into `req`; it gets restored after the
-    // application runs. This setup is analogous to what Express does when
-    // routing, but we have to do it ourselves here because Express is running
-    // our whole dispatch system as just a single Express middleware call.
-
-    const { baseUrl: origBaseUrl, url: origUrl } = req;
-    const baseUrlExtra = (pathMatch.key.length === 0)
-      ? ''
-      : TreePathKey.uriPathStringFrom(pathMatch.key, false);
-
-    req.baseUrl = `${origBaseUrl}${baseUrlExtra}`;
-    req.url     = TreePathKey.uriPathStringFrom(pathMatch.keyRemainder);
-
-    reqLogger?.dispatching({
-      application: application.name,
-      host:        TreePathKey.hostnameStringFrom(hostMatch.key),
-      path:        TreePathKey.uriPathStringFrom(pathMatch.key),
-      url:         req.url
-    });
-
-    try {
-      return await application.handleRequest(req, res);
-    } finally {
-      // Restore `req`. See big comment above.
-      req.baseUrl = origBaseUrl;
-      req.url     = origUrl;
-    }
+    // No mounted path actually handled the request.
+    reqLogger?.pathNotFound(pathKey);
+    return false;
   }
 
 
