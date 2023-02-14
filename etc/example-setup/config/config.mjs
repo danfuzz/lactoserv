@@ -106,6 +106,11 @@ const applications = [
     class:         'StaticFiles',
     siteDirectory: filePath('../site'),
     notFoundPath:  filePath('../site-extra/not-found.html')
+  },
+  {
+    name:          'myStaticFunNo404',
+    class:         'StaticFiles',
+    siteDirectory: filePath('../site'),
   }
 ];
 
@@ -141,7 +146,11 @@ const servers = [
     mounts: [
       {
         application: 'myStaticFun',
-        at:          ['//*/', '//*/florp/']
+        at:          ['//*/', '//*/bonk/']
+      },
+      {
+        application: 'myStaticFunNo404',
+        at:          ['//*/florp/']
       }
     ],
     services: {
