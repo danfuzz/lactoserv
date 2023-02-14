@@ -3,6 +3,7 @@
 
 import * as util from 'node:util';
 
+import { BaseConverter, Construct } from '@this/data-values';
 import { MustBe } from '@this/typey';
 
 
@@ -51,6 +52,10 @@ export class TreePathKey {
   /** @returns {boolean} The wildcard indicator. */
   get wildcard() {
     return this.#wildcard;
+  }
+
+  [BaseConverter.ENCODE]() {
+    return new Construct(TreePathKey, this.#path, this.#wildcard);
   }
 
   /**
