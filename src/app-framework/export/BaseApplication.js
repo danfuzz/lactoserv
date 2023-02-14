@@ -98,91 +98,12 @@ export class BaseApplication extends BaseComponent {
    * Handles a request, as defined by the Express middleware spec and the
    * public method on this class {@link #handleRequestAsync}.
    *
+   * @abstract
    * @param {object} req Request object.
    * @param {object} res Response object.
    */
   async _impl_handleRequestAsync(req, res) {
-    // TODO: This should be an abstract method. What's here right now is
-    // scaffolding to convert from async back to callback-style handling.
-    this.logger?.SCAFFOLDING_BACK_TO_CALLBACK();
-
-    return BaseApplication.callMiddleware(req, res,
-      (...args) => this._impl_handleRequest(...args));
-  }
-
-  /**
-   * Asks this instance's underlying application to handle the given request.
-   * Parameters are as defined by the Express middleware spec.
-   *
-   * @param {object} req Request object.
-   * @param {object} res Response object.
-   * @param {function(?*)} next Function which causes the next-bound middleware
-   *   to run.
-   */
-  handleRequest(req, res, next) {
-    // What's going on here: The most straightforward way -- maybe the only
-    // reasonable way -- to time the action of an Express-style handler is to
-    // notice calls to either the `next` function passed into it or to `end()`
-    // getting called on the response. Whichever happens first signals the end
-    // of the action. Note that a `prefinish` event is _supposed_ to get emitted
-    // when `res.end()` is called, but in practice that does not happen with
-    // HTTP2. So instead, we replace `res.end()` with an instrumented version
-    // that calls through to the original.
-
-    const startTime = this.#loggingEnv?.nowSec();
-    const id        = WranglerContext.get(req)?.id;
-
-    this.logger?.handling(id, req.url);
-
-    let resEnded   = false;
-    let nextCalled = false;
-    const origEnd  = res.end;
-
-    const done = () => {
-      if (resEnded || nextCalled) {
-        // This will probably end up as an uncaught exception, which is about as
-        // reasonable as can be expected.
-        this.logger?.doubleCompletion(id, { nextCalled, resEnded });
-        throw new Error('Double completion');
-      }
-
-      if (this.logger) {
-        const endTime  = this.#loggingEnv.nowSec();
-        const duration = endTime - startTime;
-        this.logger.handled(id, FormatUtils.durationStringFromSecs(duration));
-      }
-
-      res.end = origEnd;
-    };
-
-    const innerNext = (...args) => {
-      done();
-      this.logger?.next(id, args);
-      timers.setImmediate(next, ...args);
-      nextCalled = true;
-    };
-
-    res.end = (...args) => {
-      origEnd.call(res, ...args);
-      done();
-      this.logger.done(id);
-      resEnded = true;
-    };
-
-    this._impl_handleRequest(req, res, innerNext);
-  }
-
-  /**
-   * Handles a request, as defined by the Express middleware spec.
-   *
-   * @abstract
-   * @param {object} req Request object.
-   * @param {object} res Response object.
-   * @param {function(?object)} next Function which causes the next-bound
-   *   middleware to run.
-   */
-  _impl_handleRequest(req, res, next) {
-    Methods.abstract(req, res, next);
+    Methods.abstract(req, res);
   }
 
 
