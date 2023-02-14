@@ -114,10 +114,10 @@ const servers = [
   {
     name: 'insecure',
     endpoint: {
-      hostnames:     ['*'],
-      interface:     '*',
-      port:          8080,
-      protocol:      'http'
+      hostnames: ['*'],
+      interface: '*',
+      port:      8080,
+      protocol:  'http'
     },
     mounts: [
       {
@@ -133,10 +133,10 @@ const servers = [
   {
     name: 'secure',
     endpoint: {
-      hostnames:     ['*'],
-      interface:     '*',
-      port:          8443,
-      protocol:      'http2',
+      hostnames: ['*'],
+      interface: '*',
+      port:      8443,
+      protocol:  'http2',
     },
     mounts: [
       {
@@ -152,10 +152,10 @@ const servers = [
   {
     name: 'alsoSecure',
     endpoint: {
-      hostnames:     ['*'],
-      interface:     '*',
-      port:          8444,
-      protocol:      'https'
+      hostnames: ['*'],
+      interface: '*',
+      port:      8444,
+      protocol:  'https'
     },
     mounts: [
       {
