@@ -106,33 +106,8 @@ export class BaseApplication extends BaseComponent {
     // scaffolding to convert from async back to callback-style handling.
     this.logger?.SCAFFOLDING_BACK_TO_CALLBACK();
 
-    const resultMp = new ManualPromise();
-    const origEnd  = res.end;
-
-    const next = (arg = null) => {
-      res.end = origEnd;
-      if ((arg === null) || (arg === 'route')) {
-        resultMp.resolve(false);
-      } else if (arg instanceof Error) {
-        resultMp.reject(arg);
-      } else {
-        resultMp.reject(new Error(`Strange value passed to \`next()\`: ${arg}`));
-      }
-    };
-
-    res.end = (...args) => {
-      res.end = origEnd;
-      res.end(...args);
-      resultMp.resolve(true);
-    };
-
-    try {
-      this._impl_handleRequest(req, res, next);
-    } catch (e) {
-      resultMp.reject(e);
-    }
-
-    return resultMp.promise;
+    return BaseApplication.callMiddleware(req, res,
+      (...args) => this._impl_handleRequest(...args));
   }
 
   /**
@@ -218,5 +193,46 @@ export class BaseApplication extends BaseComponent {
   /** @override */
   static get CONFIG_CLASS() {
     return ApplicationConfig;
+  }
+
+  /**
+   * Calls through to a regular Express-style middleware function, converting
+   * its `next()` usage to the `async` style used by this system.
+   *
+   * @param {object} req Request object.
+   * @param {object} res Response object.
+   * @param {function(object, object, function(?string|object))} middleware
+   *   Express-style middleware function.
+   * @returns {boolean} Was the request handled? Flag as defined by {@link
+   *   #handleRequestAsync}
+   */
+  static async callMiddleware(req, res, middleware) {
+    const resultMp = new ManualPromise();
+    const origEnd  = res.end;
+
+    const next = (arg = null) => {
+      res.end = origEnd;
+      if ((arg === null) || (arg === 'route')) {
+        resultMp.resolve(false);
+      } else if (arg instanceof Error) {
+        resultMp.reject(arg);
+      } else {
+        resultMp.reject(new Error(`Strange value passed to \`next()\`: ${arg}`));
+      }
+    };
+
+    res.end = (...args) => {
+      res.end = origEnd;
+      res.end(...args);
+      resultMp.resolve(true);
+    };
+
+    try {
+      middleware(req, res, next);
+    } catch (e) {
+      resultMp.reject(e);
+    }
+
+    return resultMp.promise;
   }
 }
