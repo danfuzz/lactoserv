@@ -10,3 +10,9 @@ for further disposition.
 The "line of demarcation" at the top is that this instance _creates_ application
 instances, but it does no _configuration_ of these instances. It merely emits
 events on them to get them to handle requests.
+
+- - - - - - - - - -
+```
+Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
+SPDX-License-Identifier: Apache-2.0
+```

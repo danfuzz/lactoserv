@@ -42,3 +42,9 @@ knows to look for a `.toJSON()` method, this class understands the symbol-named
 method `BaseConverter.ENCODE` to define an instance-specific value-encoding
 behavior. The expectation is that most such custom converters end up producing
 `Construct` instances (though that isn't strictly required).
+
+- - - - - - - - - -
+```
+Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
+SPDX-License-Identifier: Apache-2.0
+```
