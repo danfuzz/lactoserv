@@ -16,7 +16,7 @@ import { IntfLogger } from '@this/loggy';
  */
 export class StaticFiles extends BaseApplication {
   /** @type {function(...*)} "Middleware" handler function for this instance. */
-  #handleRequest;
+  #staticMiddleware;
 
   /**
    * @type {?string} Path to the file to server for a not-found result, or
@@ -33,14 +33,14 @@ export class StaticFiles extends BaseApplication {
   constructor(config, logger) {
     super(config, logger);
 
-    this.#notFoundPath  = config.notFoundPath;
-    this.#handleRequest = express.static(config.siteDirectory);
+    this.#notFoundPath     = config.notFoundPath;
+    this.#staticMiddleware = express.static(config.siteDirectory);
   }
 
   /** @override */
   async _impl_handleRequestAsync(req, res) {
     const result =
-      await BaseApplication.callMiddleware(req, res, this.#handleRequest);
+      await BaseApplication.callMiddleware(req, res, this.#staticMiddleware);
 
     if (!result && this.#notFoundPath) {
       res.status(404).sendFile(this.#notFoundPath);
