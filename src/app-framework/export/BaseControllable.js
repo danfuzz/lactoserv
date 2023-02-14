@@ -85,8 +85,8 @@ export class BaseControllable {
   //
 
   /**
-   * Logs a message about an item (component, controller, etc.) completing a
-   * `start()` action.
+   * Logs a message about an item (component, etc.) completing a `start()`
+   * action.
    *
    * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    * @param {boolean} isReload Is this a system reload (vs. first-time init)?
@@ -96,8 +96,8 @@ export class BaseControllable {
   }
 
   /**
-   * Logs a message about an item (component, controller, etc.) initiating a
-   * `start()` action.
+   * Logs a message about an item (component, etc.) initiating a `start()`
+   * action.
    *
    * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    * @param {boolean} isReload Is this a system reload (vs. first-time init)?
@@ -107,8 +107,8 @@ export class BaseControllable {
   }
 
   /**
-   * Logs a message about an item (component, controller, etc.) initiating a
-   * `stop()` action.
+   * Logs a message about an item (component, etc.) initiating a `stop()`
+   * action.
    *
    * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    * @param {boolean} willReload Is this a pending system reload (vs. final
@@ -119,8 +119,8 @@ export class BaseControllable {
   }
 
   /**
-   * Logs a message about an item (component, controller, etc.) completing a
-   * `stop()` action.
+   * Logs a message about an item (component, etc.) completing a `stop()`
+   * action.
    *
    * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    * @param {boolean} willReload Is this a pending system reload (vs. final
