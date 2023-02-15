@@ -35,33 +35,34 @@ export class BaseLoggingEnvironment {
    * If _not_ called with a {@link #LogRecord}, this method fills in the
    * timestamp and stack trace as implemented by the concrete subclass.
    *
-   * @param {LogRecord|number} recordOrOmitCount The complete log record, or the
-   *   number of caller frames to omit from the stack trace. If this is in fact
-   *   a `LogRecord`, then no other arguments may be passed.
-   * @param {?LogTag} [tag = null] The log tag.
-   * @param {?string} [type = null] The event type.
+   * @param {number} omitCount The number of caller frames to omit from the
+   *   stack trace.
+   * @param {LogTag} tag The log tag.
+   * @param {string} type The event type.
    * @param {...*} args Event arguments.
    */
-  log(recordOrOmitCount, tag = null, type = null, ...args) {
-    if (recordOrOmitCount instanceof LogRecord) {
-      MustBe.null(tag);
-      MustBe.null(type);
-      if (args.length !== 0) {
-        throw new Error('Cannot pass extra `args` with record instance.');
-      }
-      this._impl_log(recordOrOmitCount);
-    } else if (typeof recordOrOmitCount === 'number') {
-      MustBe.instanceOf(tag, LogTag);
-      MustBe.string(type);
+  log(omitCount, tag, type, ...args) {
+    MustBe.number(omitCount, { minInclusive: 0, safeInteger: true });
+    MustBe.instanceOf(tag, LogTag);
+    MustBe.string(type);
 
-      // `+1` to omit the frame for this method.
-      const omitCount = recordOrOmitCount + 1;
+    // `+1` to omit the frame for this method.
+    const record = this.#makeRecordUnchecked(omitCount + 1, tag, type, ...args);
+    this._impl_log(record);
+  }
 
-      const record = this.#makeRecordUnchecked(omitCount, tag, type, ...args);
-      this._impl_log(record);
-    } else {
-      throw new Error('Invalid value for `recordOrOmitCount`.');
-    }
+  /**
+   * Logs a pre-constructed {@link #LogRecord}. Typically, this ends up emitting
+   * a {@link #LogEvent} from an event source of some sort (which is, for
+   * example, what the standard concrete subclass of this class does), but it is
+   * not _necessarily_ what happens (that is, it depends on the concrete
+   * subclass).
+   *
+   * @param {LogRecord} record The record to log.
+   */
+  logRecord(record) {
+    MustBe.instanceOf(record, LogRecord);
+    this._impl_log(record);
   }
 
   /**
