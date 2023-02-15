@@ -4,7 +4,6 @@
 import { EventSource } from '@this/async';
 
 import { LogEvent } from '#x/LogEvent';
-import { LogRecord } from '#x/LogRecord';
 
 
 // TODO: Perhaps this class should be removed? Its only value is to ensure that
