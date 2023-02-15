@@ -3,12 +3,11 @@
 
 import * as process from 'node:process';
 
-import { Converter, ConverterConfig, StackTrace } from '@this/data-values';
+import { StackTrace } from '@this/data-values';
 import { MustBe } from '@this/typey';
 
 import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
 import { IdGenerator } from '#x/IdGenerator';
-import { LogRecord } from '#x/LogRecord';
 import { LogSource } from '#x/LogSource';
 
 
@@ -16,7 +15,7 @@ import { LogSource } from '#x/LogSource';
  * Standard logging environment, which is hooked up to the "real world."
  */
 export class StdLoggingEnvironment extends BaseLoggingEnvironment {
-  /** @type {LogSource} Log source attached to {@link #emit}. */
+  /** @type {LogSource} Log source attached to {@link #log}. */
   #source;
 
   /** @type {IdGenerator} ID generator to use. */
@@ -27,9 +26,6 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
 
   /** @type {bigint} Last result from {@link #_impl_nowSec}, as a `bigint`. */
   #lastNowNsec = -1n;
-
-  /** @type {Converter} Data converter to use for encoding record arguments. */
-  #dataConverter = new Converter(ConverterConfig.makeLoggingInstance());
 
   /**
    * Constructs an instance.
@@ -43,7 +39,7 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
   }
 
   /** @override */
-  _impl_emit(record) {
+  _impl_logRecord(record) {
     this.#source.emit(record);
   }
 
@@ -53,12 +49,9 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
   }
 
   /** @override */
-  _impl_makeRecord(tag, type, ...args) {
-    // TODO: Move the data conversion into the base class.
-    const fixedArgs = this.#dataConverter.encode(args);
-
-    return new LogRecord(this._impl_nowSec(), tag, type, fixedArgs,
-      new StackTrace(2, 4));
+  _impl_makeStackTrace(omitCount) {
+    // `+1` to omit the frame for this method.
+    return new StackTrace(omitCount + 1, 4);
   }
 
   /** @override */
