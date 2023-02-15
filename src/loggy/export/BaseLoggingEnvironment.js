@@ -25,10 +25,15 @@ export class BaseLoggingEnvironment {
   // Note: The default constructor is fine here.
 
   /**
-   * Emits an event from whatever event source this instance is connected to.
-   * This method accepts _either_ an instance of {@link LogRecord} _or_ the
-   * arguments to construct an instance (except for the stack and time, which
-   * are filled in by this method).
+   * Logs a {@link #LogRecord}, which is either passed directly or constructed
+   * from the arguments passed to this method. Typically, this ends up emitting
+   * a {@link #LogEvent} from an event source of some sort (which is, for
+   * example, what the standard concrete subclass of this class does), but it is
+   * not _necessarily_ what happens (that is, it depends on the concrete
+   * subclass).
+   *
+   * If _not_ called with a {@link #LogRecord}, this method fills in the
+   * timestamp and stack trace as implemented by the concrete subclass.
    *
    * @param {LogRecord|LogTag} recordOrTag The complete log record or the tag.
    * @param {?string} [type = null] Event type, if given a tag for
