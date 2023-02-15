@@ -4,8 +4,8 @@
 import { MustBe } from '@this/typey';
 
 import { BaseConverter } from '#x/BaseConverter';
-import { Struct } from '#x/Struct';
 import { StackTrace } from '#x/StackTrace';
+import { Struct } from '#x/Struct';
 
 
 /**

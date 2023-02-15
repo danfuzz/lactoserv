@@ -4,9 +4,9 @@
 import { AskIf, MustBe } from '@this/typey';
 
 import { BaseConverter } from '#x/BaseConverter';
-import { Struct } from '#x/Struct';
 import { Ref } from '#x/Ref';
 import { SpecialConverters } from '#x/SpecialConverters';
+import { Struct } from '#x/Struct';
 
 
 /**

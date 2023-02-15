@@ -1,7 +1,7 @@
 // Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseConverter, Struct, Converter, Ref } from '@this/data-values';
+import { BaseConverter, Converter, Ref, Struct } from '@this/data-values';
 import { AskIf } from '@this/typey';
 
 
