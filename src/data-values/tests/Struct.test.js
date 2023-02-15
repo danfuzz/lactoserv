@@ -22,7 +22,7 @@ describe('.type', () => {
     const type3 = 'stuff';
 
     expect(new Struct(type1, {}).type).toBe(type1);
-    expect(new Struct(type2, { a: 'boop'}, 'yes').type).toBe(type2);
+    expect(new Struct(type2, { a: 'boop' }, 'yes').type).toBe(type2);
     expect(new Struct(type3, null, 123, true).type).toBe(type3);
   });
 });

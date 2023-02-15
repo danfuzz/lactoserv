@@ -153,6 +153,13 @@ export class Struct {
   // Static members
   //
 
+  /**
+   * Converts an `options` value passed into the constructor into its proper
+   * form.
+   *
+   * @param {*} options Original options value.
+   * @returns {object} The converted form.
+   */
   static #fixOptions(options) {
     if (options === null) {
       return Object.freeze({});
