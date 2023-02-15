@@ -157,23 +157,21 @@ export class MustBe {
 
   /**
    * Checks for type `number`, which may optionally be restricted further.
-   * Options:
-   *
-   * * `{boolean} finite` -- If `true`, requires `value` to be finite.
-   * * `{number} maxExclusive` -- Exclusive maximum value. That is,
-   *   `value < maxExclusive` is required.
-   * * `{number} maxInclusive` -- Inclusive maximum value. That is,
-   *   `value <= maxInclusive` is required.
-   * * `{number} minExclusive` -- Exclusive minimum value. That is,
-   *   `value > minExclusive` is required.
-   * * `{number} minInclusive` -- Inclusive minimum value. That is,
-   *   `value > minInclusive` is required.
-   * * `{boolean} safeInteger` -- If `true`, requires `value` to be a safe
-   *   integer (exactly representable integer as a regular JavaScript number).
-   *   Implies `finite`.
    *
    * @param {*} value Arbitrary value.
-   * @param {?object} [options = null] Options, per the above description.
+   * @param {?object} [options = null] Options for restrictions.
+   * @param {boolean} [options.finite = false] Must `value` be finite?
+   * @param {?number} [options.maxExclusive = null] Exclusive maximum value.
+   *   That is, require `value < maxExclusive`.
+   * @param {?number} [options.maxInclusive = null] Inclusive maximum value.
+   *   That is, require `value <= maxInclusive`.
+   * @param {?number} [options.minExclusive = null] Exclusive minimum value.
+   *   That is, require `value > minExclusive`.
+   * @param {?number} [options.minInclusive = null] Inclusive minimum value.
+   *   That is, require `value > minInclusive`.
+   * @param {boolean} [options.safeInteger = false] Must `value` be a safe
+   *   integer (exactly representable integer as a regular JavaScript number).
+   *   Implies `options.finite: true`.
    * @returns {number} `value` if it is of the indicated type.
    * @throws {Error} Thrown if `value` is of any other type or does not meet the
    *   optional restrictions.
