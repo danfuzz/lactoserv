@@ -14,6 +14,7 @@ import { IntfLogger } from '@this/loggy';
 import { Methods, MustBe } from '@this/typey';
 
 import { IntfRateLimiter } from '#x/IntfRateLimiter';
+import { IntfRequestLogger } from '#x/IntfRequestLogger';
 import { RequestLogHelper } from '#p/RequestLogHelper';
 import { WranglerContext } from '#x/WranglerContext';
 
@@ -66,29 +67,30 @@ export class ProtocolWrangler {
 
 
   /**
-   * Constructs an instance. Accepted options:
+   * Constructs an instance.
    *
-   * * `hosts: object` -- Value returned from {@link
-   *   HostManager.secureServerOptions}, if this instance is (possibly) expected
+   * @param {object} options Construction options.
+   * @param {object} options.hosts Value returned from {@link
+   *   HostManager#secureServerOptions}, if this instance is (possibly) expected
    *   to need to use certificates (etc.). Ignored for instances which don't do
    *   that sort of thing.
-   * * `rateLimiter: BaseService` -- Rate limiter to use. (If not specified, the
-   *   instance won't do rate limiting.)
-   * * `requestHandler: function(req, res)` -- Request handler, in the form used
-   *   by the `app-framework` module (Express-like but async). This is required.
-   * * `requestLogger: BaseService` -- Request logger to send to. (If not
-   *   specified, the instance won't do request logging.)
-   * * `logger: ?IntfLogger` -- Logger to use to emit events about what the
-   *   instance is doing. (If not specified, the instance won't do logging.)
-   * * `protocol: string` -- The name of this protocol.
-   * * `socket: object` -- Options to use for creation of and/or listening on
-   *   the low-level server socket. See docs for `net.createServer()` and
-   *   `net.Server.listen()` for more details. Exception: `*` is treated as the
-   *   wildcard name for the `host` interface. Also, the default here is for
-   *   `allowHalfOpen` to be `true`, which is required in practice for HTTP2
-   *   (and is at least _useful_ in other contexts).
-   *
-   * @param {object} options Construction options, per the description above.
+   * @param {IntfRateLimiter} options.rateLimiter Rate limiter to use. If not
+   *   specified, the instance won't do rate limiting.
+   * @param {function(object, object)} options.requestHandler Request handler,
+   *   in the form used by the `app-framework` module (Express-like but async).
+   *   This is required.
+   * @param {IntfRequestLogger} options.requestLogger Request logger to send to.
+   *   If not specified, the instance won't do request logging.
+   * @param {?IntfLogger} options.logger Logger to use to emit events about what
+   *   the instance is doing. If not specified, the instance won't do logging.
+   * @param {string} options.protocol The name of the protocol to use.
+   * @param {object} options.socket  Options to use for creation of and/or
+   *   listening on the low-level server socket. See docs for
+   *   `net.createServer()` and `net.Server.listen()` for more details.
+   *   Exception: `*` is treated as the wildcard name for the `host` interface.
+   *   Also, the default here is for `allowHalfOpen` to be `true`, which is
+   *   required in practice for HTTP2 (and is at least _useful_ in other
+   *   contexts).
    */
   constructor(options) {
     const { logger, rateLimiter, requestHandler, requestLogger } = options;
