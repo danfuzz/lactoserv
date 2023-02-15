@@ -28,7 +28,7 @@ is a run-down of what is covered:
 The `Struct` class is particularly of note. It is the key class used to enable
 general representation of instances as data. On the way into a data value form,
 a supported instance gets "deconstructed" into a `Struct` instance, after which
-it may be serialized as apporpriate for the context. Then later, a (presumably
+it may be serialized as appropriate for the context. Then later, a (presumably
 recently) unserialized data value can get processed in a context that
 understands some set of `Struct`-able types, and proceed to reconstitute new
 objects that are (sufficiently) equivalent to the originals. The "twist"
