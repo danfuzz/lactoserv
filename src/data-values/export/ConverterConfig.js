@@ -5,7 +5,7 @@ import { AskIf, MustBe } from '@this/typey';
 
 import { BaseConverter } from '#x/BaseConverter';
 import { Construct } from '#x/Construct';
-import { NonData } from '#x/NonData';
+import { Ref } from '#x/Ref';
 import { SpecialConverters } from '#x/SpecialConverters';
 
 
@@ -29,8 +29,8 @@ import { SpecialConverters } from '#x/SpecialConverters';
  *   omitted (possibly causing an array to be sparse).
  * * `unhandled` -- Treat the value conversion as "unhandled." The return value
  *   from `encode()` will in fact be {@link BaseConverter#UNHANDLED}.
- * * `wrap` -- Wrap the value in question with an instance of {@link NonData},
- *   a class that is defined in this module.
+ * * `wrap` -- Wrap the value in question inside an instance of {@link Ref}, a
+ *   class that is defined in this module.
  *
  * In cases where these values are allowed, a function is also sometimes
  * allowed, which can be called on to provide a replacement value.
@@ -84,7 +84,7 @@ export class ConverterConfig {
     options = (options === null) ? {} : MustBe.plainObject(options);
 
     const {
-      dataClasses       = [Construct, NonData],
+      dataClasses       = [Construct, Ref],
       freeze            = true,
       functionAction    = 'wrap',
       honorEncodeMethod = true,
@@ -110,7 +110,7 @@ export class ConverterConfig {
    * @returns {(function(new:*))[]} Classes whose instances are treated as data
    * values.
    *
-   * Default value if not passed during construction: `[Construct, NonData]`.
+   * Default value if not passed during construction: `[Construct, Ref]`.
    *
    * This value is always frozen; if passed in upon construction as an unfrozen
    * value, then frozen clone is used.

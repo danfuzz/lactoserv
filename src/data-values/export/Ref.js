@@ -5,12 +5,13 @@ import * as util from 'node:util';
 
 
 /**
- * "Data" value that wraps (or "escapes") a non-data value, allowing it to live
- * undisturbed in a given data-value conversion context.
+ * "Data" value that wraps (or "escapes") a non-data value as an opaque
+ * "reference," allowing it to live undisturbed in a given data-value conversion
+ * context.
  *
  * Instances of this class are always frozen.
  */
-export class NonData {
+export class Ref {
   /** @type {*} The wrapped value. */
   #value;
 
@@ -62,13 +63,13 @@ export class NonData {
    */
   [util.inspect.custom](depth, options, inspect) {
     if (depth < 0) {
-      return '[NonData]';
+      return '[Ref]';
     }
 
     const innerOptions = Object.assign({}, options, {
       depth: (options.depth === null) ? null : options.depth - 1
     });
 
-    return `NonData { ${inspect(this.#value, innerOptions)} }`;
+    return `Ref { ${inspect(this.#value, innerOptions)} }`;
   }
 }

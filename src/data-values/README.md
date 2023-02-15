@@ -21,7 +21,7 @@ is a run-down of what is covered:
   bindings.
 * plain objects, without symbol bindings.
 * objects of class {@link Construct} (which is defined in this module).
-* objects of class {@link NonData} (which is defined in this module). This is
+* objects of class {@link Ref} (which is defined in this module). This is
   effectively an "escape hatch" to allow arbitrary objects to pass through a
   data value conversion without being touched.
 

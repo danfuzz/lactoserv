@@ -7,7 +7,7 @@ import { AskIf, MustBe } from '@this/typey';
 
 import { BaseConverter } from '#x/BaseConverter';
 import { ConverterConfig } from '#x/ConverterConfig';
-import { NonData } from '#x/NonData';
+import { Ref } from '#x/Ref';
 
 
 // TODO: Handle self-referential structures.
@@ -185,7 +185,7 @@ export class Converter extends BaseConverter {
       case 'omit':      return BaseConverter.OMIT;
       case 'asObject':  return this.#objectOrArrayToData(orig, false);
       case 'unhandled': return BaseConverter.UNHANDLED;
-      case 'wrap':      return new NonData(orig);
+      case 'wrap':      return new Ref(orig);
       case 'name': {
         const name = orig.name;
         return ((typeof name === 'string') && name !== '')
