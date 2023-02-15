@@ -98,9 +98,6 @@ export class BaseLoggingEnvironment {
     MustBe.instanceOf(tag, LogTag);
     MustBe.string(type);
 
-    const nowSec    = this.nowSec();
-    const fixedArgs = this.#dataConverter.encode(args);
-
     // `+1` to omit the frame for this method.
     return this.#makeRecordUnchecked(omitCount + 1, tag, type, ...args);
   }
