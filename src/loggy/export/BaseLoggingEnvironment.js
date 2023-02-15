@@ -48,7 +48,7 @@ export class BaseLoggingEnvironment {
 
     // `+1` to omit the frame for this method.
     const record = this.#makeRecordUnchecked(omitCount + 1, tag, type, ...args);
-    this._impl_log(record);
+    this._impl_logRecord(record);
   }
 
   /**
@@ -62,7 +62,7 @@ export class BaseLoggingEnvironment {
    */
   logRecord(record) {
     MustBe.instanceOf(record, LogRecord);
-    this._impl_log(record);
+    this._impl_logRecord(record);
   }
 
   /**
@@ -150,7 +150,7 @@ export class BaseLoggingEnvironment {
    * @abstract
    * @param {LogRecord} record The record to log.
    */
-  _impl_log(record) {
+  _impl_logRecord(record) {
     Methods.abstract(record);
   }
 
