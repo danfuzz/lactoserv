@@ -3,12 +3,11 @@
 
 import * as process from 'node:process';
 
-import { Converter, ConverterConfig, StackTrace } from '@this/data-values';
+import { StackTrace } from '@this/data-values';
 import { MustBe } from '@this/typey';
 
 import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
 import { IdGenerator } from '#x/IdGenerator';
-import { LogRecord } from '#x/LogRecord';
 import { LogSource } from '#x/LogSource';
 
 
@@ -27,9 +26,6 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
 
   /** @type {bigint} Last result from {@link #_impl_nowSec}, as a `bigint`. */
   #lastNowNsec = -1n;
-
-  /** @type {Converter} Data converter to use for encoding record arguments. */
-  #dataConverter = new Converter(ConverterConfig.makeLoggingInstance());
 
   /**
    * Constructs an instance.
@@ -50,15 +46,6 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
   /** @override */
   _impl_makeId() {
     return this.#idGenerator.makeId(this._impl_nowSec());
-  }
-
-  /** @override */
-  _impl_makeRecord(tag, type, ...args) {
-    // TODO: Move the data conversion into the base class.
-    const fixedArgs = this.#dataConverter.encode(args);
-
-    return new LogRecord(this._impl_nowSec(), tag, type, fixedArgs,
-      new StackTrace(2, 4));
   }
 
   /** @override */

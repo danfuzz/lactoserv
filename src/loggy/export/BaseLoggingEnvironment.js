@@ -1,7 +1,7 @@
 // Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { StackTrace } from '@this/data-values';
+import { Converter, ConverterConfig, StackTrace } from '@this/data-values';
 import { Methods, MustBe } from '@this/typey';
 
 import { LogRecord } from '#x/LogRecord';
@@ -19,6 +19,9 @@ import { LogTag } from '#x/LogTag';
  * sanity checks in both directions.
  */
 export class BaseLoggingEnvironment {
+  /** @type {Converter} Data converter to use for encoding record arguments. */
+  #dataConverter = new Converter(ConverterConfig.makeLoggingInstance());
+
   // Note: The default constructor is fine here.
 
   /**
@@ -78,8 +81,11 @@ export class BaseLoggingEnvironment {
     MustBe.instanceOf(tag, LogTag);
     MustBe.string(type);
 
-    const result = this._impl_makeRecord(tag, type, ...args);
-    return MustBe.instanceOf(result, LogRecord);
+    const nowSec    = this.nowSec();
+    const fixedArgs = this.#dataConverter.encode(args);
+    const trace     = this.makeStackTrace(1);
+
+    return new LogRecord(nowSec, tag, type, fixedArgs, trace);
   }
 
   /**
@@ -138,29 +144,6 @@ export class BaseLoggingEnvironment {
    */
   _impl_makeId() {
     Methods.abstract();
-  }
-
-  /**
-   * Makes a new {@link LogRecord}, suitable for returning through {@link
-   * #makeRecord}. The first two arguments are guaranteed to be valid, but the
-   * remaining arguments may need processing.
-   *
-   * For example and in particular on that last part, non-JSON-encodable values
-   * may want to be tweaked. The standard concrete implementation of this method
-   * takes care of that, but there is more than one reasonable way to accomplish
-   * this.
-   *
-   * As another example, systems may want to vary on how stack traces are
-   * generated (if generated at all).
-   *
-   * @abstract
-   * @param {LogTag} tag The record tag.
-   * @param {string} type Event type.
-   * @param {...*} args Event arguments.
-   * @returns {LogRecord} The constructed record.
-   */
-  _impl_makeRecord(tag, type, ...args) {
-    Methods.abstract(tag, type, args);
   }
 
   /**
