@@ -27,13 +27,4 @@ export class LogSource extends EventSource {
     const kickoffEvent = LogEvent.makeKickoffInstance();
     super({ keepCount, kickoffEvent });
   }
-
-  /**
-   * Emits an event from this instance's source.
-   *
-   * @param {LogRecord} record The payload of the event to emit.
-   */
-  emit(record) {
-    super.emit(record);
-  }
 }
