@@ -41,7 +41,7 @@ export class BaseLoggingEnvironment {
    * @param {...*} args Event arguments, if given a tag for `recordOrTag`; must
    *   be empty when given a full {@link LogRecord}.
    */
-  emit(recordOrTag, type = null, ...args) {
+  log(recordOrTag, type = null, ...args) {
     if (recordOrTag instanceof LogRecord) {
       MustBe.null(type);
       if (args.length !== 0) {

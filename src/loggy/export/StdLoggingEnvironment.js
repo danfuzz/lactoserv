@@ -15,7 +15,7 @@ import { LogSource } from '#x/LogSource';
  * Standard logging environment, which is hooked up to the "real world."
  */
 export class StdLoggingEnvironment extends BaseLoggingEnvironment {
-  /** @type {LogSource} Log source attached to {@link #emit}. */
+  /** @type {LogSource} Log source attached to {@link #log}. */
   #source;
 
   /** @type {IdGenerator} ID generator to use. */

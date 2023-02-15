@@ -81,14 +81,14 @@ export class LogProxyHandler extends PropertyCacheProxyHandler {
     if (thisArg) {
       // We are being called as a method.
       if (this.#typeOrNextTag) {
-        this.#environment.emit(this.#tag, this.#typeOrNextTag, ...args);
+        this.#environment.log(this.#tag, this.#typeOrNextTag, ...args);
       } else {
-        this.#environment.emit(this.#tag, ...args);
+        this.#environment.log(this.#tag, ...args);
       }
     } else {
       // We are being called as a regular function, not a method, so the first
       // argument is going to be the type.
-      this.#environment.emit(this.#subTag, ...args);
+      this.#environment.log(this.#subTag, ...args);
     }
   }
 
