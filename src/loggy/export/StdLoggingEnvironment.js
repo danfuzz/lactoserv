@@ -62,6 +62,12 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
   }
 
   /** @override */
+  _impl_makeStackTrace(omitCount) {
+    // `+1` to omit the frame for this method.
+    return new StackTrace(omitCount + 1, 4);
+  }
+
+  /** @override */
   _impl_nowSec() {
     // What's going on here: We attempt to use `hrtime()` -- which has nsec
     // precision but an arbitrary zero-time, and which we don't assume runs at

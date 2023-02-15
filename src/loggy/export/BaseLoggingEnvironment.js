@@ -1,6 +1,7 @@
 // Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { StackTrace } from '@this/data-values';
 import { Methods, MustBe } from '@this/typey';
 
 import { LogRecord } from '#x/LogRecord';
@@ -82,6 +83,24 @@ export class BaseLoggingEnvironment {
   }
 
   /**
+   * Makes a {@link StackTrace} representing the current call site (that is, the
+   * caller of this method), less the given number of additional inner frames.
+   * If this instance is configured to not include call site stack traces, then
+   * this method returns `null`.
+   *
+   * @param {number} [omitCount = 0] The number of caller frames to omit.
+   * @returns {?StackTrace} An appropriately-constructed instance.
+   */
+  makeStackTrace(omitCount = 0) {
+    MustBe.number(omitCount, { minInclusive: 0, safeInteger: true });
+
+    // `+1` to omit the frame for this method.
+    const result = this._impl_makeStackTrace(omitCount + 1);
+
+    return (result === null) ? null : MustBe.instanceOf(result, StackTrace);
+  }
+
+  /**
    * Gets a timestamp representing "now," represented as seconds since the
    * Unix Epoch, with microsecond-or-better precision.
    *
@@ -141,7 +160,19 @@ export class BaseLoggingEnvironment {
    * @returns {LogRecord} The constructed record.
    */
   _impl_makeRecord(tag, type, ...args) {
-    return Methods.abstract(tag, type, args);
+    Methods.abstract(tag, type, args);
+  }
+
+  /**
+   * Makes a {@link StackTrace} or returns `null`, as appropriate for returning
+   * through {@link #makeStackTrace}.
+   *
+   * @abstract
+   * @param {number} omitCount The number of caller frames to omit.
+   * @returns {?StackTrace} An appropriately-constructed instance.
+   */
+  _impl_makeStackTrace(omitCount) {
+    Methods.abstract(omitCount);
   }
 
   /**
