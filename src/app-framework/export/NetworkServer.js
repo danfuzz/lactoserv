@@ -3,11 +3,13 @@
 
 import { MountConfig, ServerConfig } from '@this/app-config';
 import { TreePathKey, TreePathMap } from '@this/collections';
+import { IntfLogger } from '@this/loggy';
 import { ProtocolWrangler, ProtocolWranglers, WranglerContext } from '@this/network-protocol';
 import { MustBe } from '@this/typey';
 
 import { BaseApplication } from '#x/BaseApplication';
 import { BaseComponent } from '#x/BaseComponent';
+import { BaseService } from '#x/BaseService';
 import { HostManager } from '#x/HostManager';
 import { ThisModule } from '#p/ThisModule';
 
@@ -42,19 +44,17 @@ export class NetworkServer extends BaseComponent {
    * for what was passed in the original (but unbound) `config` (along with
    * other bits):
    *
-   * * `{Map<string, BaseApplication>} applicationMap` -- Map of names to
-   *   applications, for use in building the active mount map.
-   * * `{?HostManager} hostManager` -- Replacement for `hostnames`.
-   * * `{?IntfLogger} logger` -- Logger to use for reporting network activity,
-   *   or `null not to do any logging.
-   * * `{?RateLimiter} rateLimiter` -- Replacemant for `rateLimiter`
-   *   (service instance, not just a name).
-   * * `{?RequestLogger} requestLogger` -- Replacemant for `rateLimiter`
-   *   (service instance, not just a name).
-   *
    * @param {ServerConfig} config Parsed configuration item.
-   * @param {object} extraConfig Additional configuration, per the above
-   *   description.
+   * @param {object} extraConfig Additional configuration.
+   * @param {Map<string, BaseApplication>} extraConfig.applicationMap Map of
+   *   names to applications, for use in building the active mount map.
+   * @param {?HostManager} extraConfig.hostManager Replacement for `hostnames`.
+   * @param {?IntfLogger} extraConfig.logger Logger to use for reporting network
+   *   activity, or `null not to do any logging.
+   * @param {?BaseService} extraConfig.rateLimiter Replacement for `rateLimiter`
+   *   (service instance, not just a name).
+   * @param {?BaseService} extraConfig.requestLogger Replacement for
+   *   `rateLimiter` (service instance, not just a name).
    */
   constructor(config, extraConfig) {
     const { endpoint, mounts, name }           = config;

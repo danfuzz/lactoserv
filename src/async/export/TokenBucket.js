@@ -82,43 +82,45 @@ export class TokenBucket {
   #waiterThread = new Threadlet(() => this.#serviceWaiters());
 
   /**
-   * Constructs an instance. Configuration options:
+   * Constructs an instance.
    *
-   * * `{number} flowRate` -- Token flow rate (a/k/a bucket fill rate), that is,
-   *   how quickly the bucket gets filled, in tokens per arbitrary time unit
-   *   (tokens / ATU). This defines the steady state "flow rate" allowed by the
-   *   instance. Must be a finite positive number. This is a required "option."
-   * * `{number} initialBurstSize` -- The instantaneously available burst size,
-   *   in tokens, at the moment of construction. Defaults to `maxBurstSize`
-   *   (that is, able to be maximally "bursted" from the get-go).
-   * * `{number} maxBurstSize` -- Maximum possible instantaneous burst size
-   *   (that is, the total bucket capacity in the "leaky bucket as meter"
+   * @param {object} options Configuration options.
+   * @param {number} options.flowRate Token flow rate (a/k/a bucket fill rate),
+   *   that is, how quickly the bucket gets filled, in tokens per arbitrary time
+   *   unit (tokens / ATU). This defines the steady state "flow rate" allowed by
+   *   the instance. Must be a finite positive number. This is a required
+   *   "option."
+   * @param {number} [options.initialBurstSize = options.maxBurstSize] The
+   *   instantaneously available burst size, in tokens, at the moment of
+   *   construction. Defaults to `maxBurstSize` (that is, able to be maximally
+   *   "bursted" from the get-go).
+   * @param {number} options.maxBurstSize Maximum possible instantaneous burst
+   *   size (that is, the total bucket capacity in the "leaky bucket as meter"
    *   metaphor), in tokens (arbitrary volume units). This defines the
    *   "burstiness" allowed by the instance. Must be a finite positive number.
    *   This is a required "option."
-   * * `{number} maxQueueGrantSize` -- Maximum grant size when granting requests
-   *   from the waiter queue, in tokens. No queued grant requests will ever
-   *   return a larger grant, even if there is available "burst volume" to
-   *   accommodate it. Must be a finite non-negative number less than or equal
-   *   to both `maxBurstSize` and `maxQueueSize`. If `partialTokens === false`,
-   *   then this is rounded down to an integer by `Math.floor()`. If `0`, then
-   *   this instance will only ever synchronously grant tokens. Defaults to the
-   *   smaller of `maxBurstSize` or `maxQueueSize`.
-   * * `{?number} maxQueueSize` -- The maximum allowed waiter queue size, in
-   *   tokens. Must be a finite non-negative number or `null`. If `null`, then
-   *   there is no limit on the queue size. If `0`, then this instance will only
-   *   ever synchronously grant tokens. Defaults to `null`.
-   * * `{boolean} partialTokens` -- If `true`, allows the instance to provide
-   *   partial tokens (e.g. give a client `1.25` tokens). If `false`, all token
-   *   handoffs from the instance are quantized to integer values. Defaults to
-   *   `false`.
-   * * `{TokenBucket.BaseTimeSource} timeSource` -- What to use to determine the
-   *   passage of time. If not specified, the instance will use a standard
-   *   implementation which measures time in seconds (_not_ msec) and bottoms
-   *   out at the usual JavaScript / Node wall time interface (e.g.
+   * @param {number} [options.maxQueueGrantSize = 'see description'] Maximum
+   *   grant size when granting requests from the waiter queue, in tokens. No
+   *   queued grant requests will ever return a larger grant, even if there is
+   *   available "burst volume" to accommodate it. Must be a finite non-negative
+   *   number less than or equal to both `maxBurstSize` and `maxQueueSize`. If
+   *   `partialTokens === false`, then this is rounded down to an integer by
+   *   `Math.floor()`. If `0`, then this instance will only ever synchronously
+   *   grant tokens. Defaults to the smaller of `maxBurstSize` or
+   *   `maxQueueSize`.
+   * @param {?number} [options.maxQueueSize = null] The maximum allowed waiter
+   *   queue size, in tokens. Must be a finite non-negative number or `null`.
+   *   If `null`, then there is no limit on the queue size. If `0`, then this
+   *   instance will only ever synchronously grant tokens.
+   * @param {boolean} [options.partialTokens = false] If `true`, allows the
+   *   instance to provide partial tokens (e.g. give a client `1.25` tokens). If
+   *   `false`, all token handoffs from the instance are quantized to integer
+   *   values.
+   * @param {TokenBucket.BaseTimeSource} options.timeSource What to use to
+   *   determine the passage of time. If not specified, the instance will use a
+   *   standard implementation which measures time in seconds (_not_ msec) and
+   *   bottoms out at the usual JavaScript / Node wall time interface (e.g.
    *   `Date.now()`, `timers.setTimeout()`).
-   *
-   * @param {object} options Configuration options, per the above description.
    */
   constructor(options) {
     const {

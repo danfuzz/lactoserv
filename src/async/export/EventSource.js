@@ -65,16 +65,14 @@ export class EventSource {
   #emitNext;
 
   /**
-   * Constructs an instance. Recognized options:
+   * Constructs an instance.
    *
-   * * `{number} [keepCount = 0]` -- Number of past events to keep (remember),
-   *   not including the current (most-recently emitted) event. Must be a whole
-   *   number or positive infinity.
-   * * `{?LinkedEvent} [kickoffEvent = null]` -- "Kickoff" event, or `null` to
-   *   use the default of a direct instance of {@link LinkedEvent}.
-   *
-   * @param {?object} [options = null] Construction options, per the above
-   *   description.
+   * @param {?object} [options = null] Construction options.
+   * @param {number} [options.keepCount = 0] Number of past events to keep
+   *   (remember), not including the current (most-recently emitted) event.
+   *   Must be a whole number or positive infinity.
+   * @param {?LinkedEvent} [options.kickoffEvent = null] "Kickoff" event, or
+   *   `null` to use the default of a direct instance of {@link LinkedEvent}.
    */
   constructor(options) {
     const kickoffEvent = options?.kickoffEvent ?? null;

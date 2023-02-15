@@ -67,17 +67,16 @@ export class TreePathKey {
   /**
    * Gets a human-useful string form of this instance.
    *
-   * @param {?{prefix: string, reverse: boolean, separator: string, suffix:
-   *   string, wildcard: ?string}} [options = null] Formatting options. Only
-   *   non-defaults need to be specified:
-   *   * `prefix`, default `'/'` -- Prefix for the result.
-   *   * `quote`, default `false` -- Quote components as strings?
-   *   * `reverse`, default `false` -- Render in back-to-front order?
-   *   * `separator`, default `'/'` -- Separator between path components.
-   *   * `suffix`, default `''` -- Suffix for the result.
-   *   * `wildcard`, default `'*'` -- Wildcard indicator. If `false`, then a
-   *     wildcard key is represented as if it were non-wildcard. (This is
-   *     different than if this is `''` (the empty string)).
+   * @param {?object} [options = null] Formatting options.
+   * @param {string} [options.prefix = '/'] Prefix for the result.
+   * @param {boolean} [options.quote = false] Quote components as strings?
+   * @param {boolean} [options.reverse = false] Render in back-to-front order?
+   * @param {string} [options.separator = '/'] Separator between path
+   *   components.
+   * @param {string} [options.suffix = ''] Suffix for the result.
+   * @param {string|boolean} [options.wildcard = '*'] Wildcard indicator. If
+   *   `false`, then a wildcard key is represented as if it were non-wildcard.
+   *   (This is different than if this is `''` (the empty string)).
    * @returns {string} String form of the instance.
    */
   toString(options = null) {
