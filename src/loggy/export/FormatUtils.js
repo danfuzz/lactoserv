@@ -1,6 +1,7 @@
 // Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { Duration } from '@this/data-values';
 
 /**
  * Utilities for logging.
@@ -103,10 +104,7 @@ export class FormatUtils {
    * @returns {object} Friendly compound object.
    */
   static compoundDurationFromSecs(durationSecs) {
-    return {
-      secs:     durationSecs,
-      duration: FormatUtils.durationStringFromSecs(durationSecs)
-    };
+    return Duration.plainObjectFromSecs(durationSecs);
   }
 
   /**
@@ -164,80 +162,6 @@ export class FormatUtils {
    * @returns {string} The friendly form.
    */
   static durationStringFromSecs(durationSecs, options = {}) {
-    const { spaces = true } = options;
-
-    const spaceyChar = spaces ? ' ' : '_';
-
-    // For small numbers of (including fractional) seconds, just represent a
-    // single number and a reasonable unit name.
-    if (durationSecs < 99.9995) {
-      const makeResult = (value, units) => {
-        return `${value.toFixed(3)}${spaceyChar}${units}`;
-      };
-
-      if (durationSecs <= 0) {
-        // This isn't generally expected to ever be the case in normal
-        // operation, but produce something sensible just in case something goes
-        // wonky.
-        return (durationSecs === 0)
-          ? `0${spaceyChar}sec${spaces ? ' (instantaneous)' : ''}`
-          : makeResult(durationSecs, 'sec');
-      }
-
-      let   range = Math.floor(Math.floor(Math.log10(durationSecs)) / 3) * 3;
-      let rounded = Math.round(durationSecs * (10 ** (-range + 3))) / 1000;
-      if (rounded === 1000) {
-        range += 3;
-        rounded = 1;
-      }
-      switch (range) {
-        case 0:  return makeResult(rounded, 'sec');
-        case -3: return makeResult(rounded, 'msec');
-        case -6: return makeResult(rounded, 'usec');
-        case -9: return makeResult(rounded, 'nsec');
-        default: {
-          const roundedNsec = Math.round(durationSecs * (10 ** (9 + 3))) / 1000;
-          return makeResult(roundedNsec, 'nsec');
-        }
-      }
-    }
-
-    // Convert `secs` to `BigInt`, because that makes the calculations much more
-    // straightforward.
-    const outputTenths = (durationSecs < ((60 * 60) - 0.05));
-    const totalTenths  = outputTenths
-      ? BigInt(Math.round(durationSecs * 10))
-      : BigInt(Math.round(durationSecs) * 10);
-
-    const tenths = totalTenths % 10n;
-    const secs   = (totalTenths / 10n) % 60n;
-    const mins   = (totalTenths / (10n * 60n)) % 60n;
-    const hours  = (totalTenths / (10n * 60n * 60n)) % 24n;
-    const days   = totalTenths / (10n * 60n * 60n * 24n);
-
-    const parts = [];
-
-    if (days > 0) {
-      parts.push(days, 'd ', hours);
-    } else if (hours > 0) {
-      parts.push(hours);
-    }
-    parts.push(':');
-
-    if (mins < 10) {
-      parts.push('0');
-    }
-    parts.push(mins, ':');
-
-    if (secs < 10) {
-      parts.push('0');
-    }
-    parts.push(secs);
-
-    if (outputTenths) {
-      parts.push('.', tenths);
-    }
-
-    return parts.join('');
+    return Duration.stringFromSecs(durationSecs, options);
   }
 }
