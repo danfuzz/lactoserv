@@ -1,7 +1,7 @@
 // Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { AskIf, MustBe } from '@this/typey';
+import { MustBe } from '@this/typey';
 
 import { BaseConverter } from '#x/BaseConverter';
 import { Struct } from '#x/Struct';
@@ -9,6 +9,10 @@ import { Struct } from '#x/Struct';
 
 /**
  * Representation of a time duration, along with some useful utility functions.
+ * This class allows negative durations; though not useful all the time, there's
+ * arguably at least some utility to them.
+ *
+ * Instances of this class are always frozen.
  */
 export class Duration {
   /** @type {number} The number of seconds being represented. */
@@ -17,11 +21,11 @@ export class Duration {
   /**
    * Constructs an instance.
    *
-   * @param {number} secs The number of seconds to represent. Must be finite and
-   *   non-negative.
+   * @param {number} secs The number of seconds to represent. Must be finite.
    */
   constructor(secs) {
-    this.#secs = MustBe.number(secs, { finite: true, minInclusive: 0 });
+    this.#secs = MustBe.number(secs, { finite: true });
+    Object.freeze(this);
   }
 
   /** @returns {number} The number of seconds being represented. */

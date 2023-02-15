@@ -4,11 +4,48 @@
 import { Duration } from '@this/data-values';
 
 
+describe('constructor()', () => {
+  test.each`
+  value
+  ${0}
+  ${0.1}
+  ${-10}
+  ${9999999999}
+  `('accepts $value', ({ value }) => {
+    expect(() => new Duration(value)).not.toThrow();
+  });
+
+  test.each`
+  value
+  ${undefined}
+  ${null}
+  ${123n}
+  ${'27s' /* but maybe we want to do this? */}
+  ${[1, 2, 3]}
+  `('throws given $value', ({ value }) => {
+    expect(() => new Duration(value)).toThrow();
+  });
+
+  test('produces a frozen instance', () => {
+    expect(new Duration(123)).toBeFrozen();
+  });
+});
+
+describe('.secs', () => {
+  test('returns the value from the constructor', () => {
+    expect(new Duration(0).secs).toBe(0);
+    expect(new Duration(123).secs).toBe(123);
+    expect(new Duration(456.789).secs).toBe(456.789);
+  });
+});
+
 describe.each`
-method
-${'stringFromSecs'}
-${'plainObjectFromSecs'}
-`('$method()', ({ method }) => {
+method                    | isStatic  | returnsObject
+${'stringFromSecs'}       | ${true}   | ${false}
+${'plainObjectFromSecs'}  | ${true}   | ${true}
+${'toPlainObject'}        | ${false}  | ${true}
+${'toJSON'}               | ${false}  | ${true}
+`('$method()', ({ method, isStatic, returnsObject }) => {
   test.each`
   secs                 | duration
   ${-999.123}          | ${'-999.123 sec'}
@@ -71,11 +108,14 @@ ${'plainObjectFromSecs'}
   ${49021687.1}        | ${'567d 9:08:07'}
   ${49021687.9}        | ${'567d 9:08:08'}
   `('with ($secs)', ({ secs, duration }) => {
-    const result = Duration[method](secs);
-    if (method === 'stringFromSecs') {
-      expect(result).toBe(duration);
-    } else {
+    const result = isStatic
+      ? Duration[method](secs)
+      : new Duration(secs)[method]();
+
+    if (returnsObject) {
       expect(result).toStrictEqual({ secs, duration });
+    } else {
+      expect(result).toBe(duration);
     }
   });
 });
