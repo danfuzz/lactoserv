@@ -5,7 +5,9 @@ import * as util from 'node:util';
 
 
 /**
- * Data value that represents the construction of a behavior-bearing object.
+ * Data value that represents a typed (but otherwise fairly free-form) structure
+ * of some sort. Instances of this class are commonly used as the "distillate"
+ * data of behavior-bearing class instances.
  *
  * Instances of this class are always frozen.
  */
