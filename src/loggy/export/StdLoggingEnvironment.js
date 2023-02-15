@@ -39,7 +39,7 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
   }
 
   /** @override */
-  _impl_emit(record) {
+  _impl_log(record) {
     this.#source.emit(record);
   }
 

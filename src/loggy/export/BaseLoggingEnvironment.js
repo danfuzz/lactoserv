@@ -47,11 +47,11 @@ export class BaseLoggingEnvironment {
       if (args.length !== 0) {
         throw new Error('Cannot pass extra `args` with record instance.');
       }
-      this._impl_emit(recordOrTag);
+      this._impl_log(recordOrTag);
     } else if (recordOrTag instanceof LogTag) {
       MustBe.string(type);
       const record = this.#makeRecordUnchecked(1, recordOrTag, type, ...args);
-      this._impl_emit(record);
+      this._impl_log(record);
     } else {
       throw new Error('Invalid value for `recordOrTag`.');
     }
@@ -135,13 +135,14 @@ export class BaseLoggingEnvironment {
   }
 
   /**
-   * Emits an event with the given payload from whatever event source this
-   * instance is connected to.
+   * Outputs the given record to its ultimate destination. For example, the
+   * standard concrete implementation of this method emits a {@link #LogEvent}
+   * with `record` as the payload.
    *
    * @abstract
    * @param {LogRecord} record The record to log.
    */
-  _impl_emit(record) {
+  _impl_log(record) {
     Methods.abstract(record);
   }
 
