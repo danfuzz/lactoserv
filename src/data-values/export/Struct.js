@@ -9,7 +9,7 @@ import * as util from 'node:util';
  *
  * Instances of this class are always frozen.
  */
-export class Construct {
+export class Struct {
   /** @type {*} Value representing the type (or class) to be constructed. */
   #type;
 
@@ -77,7 +77,7 @@ export class Construct {
    *   conversion.
    */
   withConvertedValue(innerValue) {
-    return new Construct(...innerValue);
+    return new Struct(...innerValue);
   }
 
   /**
@@ -90,7 +90,7 @@ export class Construct {
    */
   [util.inspect.custom](depth, options, inspect) {
     if (depth < 0) {
-      return '[Construct]';
+      return '[Struct]';
     }
 
     const innerOptions = Object.assign({}, options, {

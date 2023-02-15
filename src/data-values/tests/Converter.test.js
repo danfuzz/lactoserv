@@ -1,7 +1,7 @@
 // Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseConverter, Construct, Converter, Ref } from '@this/data-values';
+import { BaseConverter, Struct, Converter, Ref } from '@this/data-values';
 import { AskIf } from '@this/typey';
 
 
@@ -270,7 +270,7 @@ describe('encode()', () => {
 
     describe('on instances of data classes', () => {
       test('self-represent when directly converted', () => {
-        const value1 = new Construct('x', 1, 2, 3);
+        const value1 = new Struct('x', 1, 2, 3);
         const value2 = new Ref(['blort']);
 
         const conv = new Converter();
@@ -280,7 +280,7 @@ describe('encode()', () => {
       });
 
       test('self-represent when embedded in compound objects', () => {
-        const value1 = new Construct('x', 1, 2, 3);
+        const value1 = new Struct('x', 1, 2, 3);
         const value2 = new Ref(['blort']);
 
         const data = {
@@ -306,7 +306,7 @@ describe('encode()', () => {
         const conv = new Converter();
         const got  = conv.encode(err);
 
-        expect(got).toBeInstanceOf(Construct);
+        expect(got).toBeInstanceOf(Struct);
         expect(got.type).toBeInstanceOf(Ref);
         expect(got.type.value).toBe(Error);
         expect(got.args).toBeArrayOfSize(1);
@@ -328,7 +328,7 @@ describe('encode()', () => {
         const conv = new Converter();
         const got  = conv.encode(err);
 
-        expect(got).toBeInstanceOf(Construct);
+        expect(got).toBeInstanceOf(Struct);
         expect(got.type).toBeInstanceOf(Ref);
         expect(got.type.value).toBe(Error);
         expect(got.args).toBeArrayOfSize(2);
@@ -340,7 +340,7 @@ describe('encode()', () => {
         expect(message).toBe(err.message);
         expect(name).toBe(err.name);
         expect(stack).toBe(err.stack);
-        expect(convCause).toBeInstanceOf(Construct);
+        expect(convCause).toBeInstanceOf(Struct);
         expect(convCause.type).toBeInstanceOf(Ref);
         expect(convCause.type.value).toBe(TypeError);
         expect(convCause.args).toBeArrayOfSize(1);

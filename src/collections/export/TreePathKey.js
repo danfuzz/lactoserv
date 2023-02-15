@@ -3,7 +3,7 @@
 
 import * as util from 'node:util';
 
-import { BaseConverter, Construct } from '@this/data-values';
+import { BaseConverter, Struct } from '@this/data-values';
 import { MustBe } from '@this/typey';
 
 
@@ -58,10 +58,10 @@ export class TreePathKey {
    * Standard `data-values` method to produce an encoded version of this
    * instance.
    *
-   * @returns {Construct} The encoded form.
+   * @returns {Struct} The encoded form.
    */
   [BaseConverter.ENCODE]() {
-    return new Construct(TreePathKey, this.#path, this.#wildcard);
+    return new Struct(TreePathKey, this.#path, this.#wildcard);
   }
 
   /**

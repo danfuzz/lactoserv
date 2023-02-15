@@ -1,7 +1,7 @@
 // Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Construct, Converter, ConverterConfig } from '@this/data-values';
+import { Struct, Converter, ConverterConfig } from '@this/data-values';
 
 import { LoggingManager } from '#p/LoggingManager';
 import { ProcessInfo } from '#x/ProcessInfo';
@@ -139,7 +139,7 @@ export class Host {
    * @returns {*} The fixed (maximally human-friendly) form.
    */
   static #fixEncodedError(encoded) {
-    if (!(encoded instanceof Construct)) {
+    if (!(encoded instanceof Struct)) {
       // Something weird happened; just leave it, which will hopefully get at
       // least _some_ info out the door.
       return encoded;
@@ -155,7 +155,7 @@ export class Host {
       delete fixed.name;
     }
 
-    if (   (fixed.stack instanceof Construct)
+    if (   (fixed.stack instanceof Struct)
         && (fixed.stack.type === 'StackTrace')) {
       fixed.stack = fixed.stack.args[0];
     }
