@@ -44,6 +44,9 @@ method `BaseConverter.ENCODE` to define an instance-specific value-encoding
 behavior. The expectation is that most such custom converters end up producing
 `Struct` instances (though that isn't strictly required).
 
+This module includes a small handful of general low-ish-level classes that
+"play nice" with `BaseConverter.ENCODE`, including notably `StackTrace`.
+
 - - - - - - - - - -
 ```
 Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
