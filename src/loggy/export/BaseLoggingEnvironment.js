@@ -35,25 +35,32 @@ export class BaseLoggingEnvironment {
    * If _not_ called with a {@link #LogRecord}, this method fills in the
    * timestamp and stack trace as implemented by the concrete subclass.
    *
-   * @param {LogRecord|LogTag} recordOrTag The complete log record or the tag.
-   * @param {?string} [type = null] Event type, if given a tag for
-   *   `recordOrTag`; must be `null` when given a full {@link LogRecord}.
-   * @param {...*} args Event arguments, if given a tag for `recordOrTag`; must
-   *   be empty when given a full {@link LogRecord}.
+   * @param {LogRecord|number} recordOrOmitCount The complete log record, or the
+   *   number of caller frames to omit from the stack trace. If this is in fact
+   *   a `LogRecord`, then no other arguments may be passed.
+   * @param {?LogTag} [tag = null] The log tag.
+   * @param {?string} [type = null] The event type.
+   * @param {...*} args Event arguments.
    */
-  log(recordOrTag, type = null, ...args) {
-    if (recordOrTag instanceof LogRecord) {
+  log(recordOrOmitCount, tag = null, type = null, ...args) {
+    if (recordOrOmitCount instanceof LogRecord) {
+      MustBe.null(tag);
       MustBe.null(type);
       if (args.length !== 0) {
         throw new Error('Cannot pass extra `args` with record instance.');
       }
-      this._impl_log(recordOrTag);
-    } else if (recordOrTag instanceof LogTag) {
+      this._impl_log(recordOrOmitCount);
+    } else if (typeof recordOrOmitCount === 'number') {
+      MustBe.instanceOf(tag, LogTag);
       MustBe.string(type);
-      const record = this.#makeRecordUnchecked(1, recordOrTag, type, ...args);
+
+      // `+1` to omit the frame for this method.
+      const omitCount = recordOrOmitCount + 1;
+
+      const record = this.#makeRecordUnchecked(omitCount, tag, type, ...args);
       this._impl_log(record);
     } else {
-      throw new Error('Invalid value for `recordOrTag`.');
+      throw new Error('Invalid value for `recordOrOmitCount`.');
     }
   }
 
