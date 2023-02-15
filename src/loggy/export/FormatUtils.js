@@ -149,19 +149,4 @@ export class FormatUtils {
 
     return parts.join('');
   }
-
-  /**
-   * Makes a human-friendly duration (elapsed time) string. The result string
-   * represents a rounded value, in a format which varies based on the magnitude
-   * of the duration.
-   *
-   * @param {number} durationSecs Duration in seconds.
-   * @param {object} [options = {}] Formatting options.
-   * @param {boolean} [options.spaces = true] Use spaces to separate the number
-   *   from the units? If `false` an underscore is used.
-   * @returns {string} The friendly form.
-   */
-  static durationStringFromSecs(durationSecs, options = {}) {
-    return Duration.stringFromSecs(durationSecs, options);
-  }
 }
