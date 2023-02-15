@@ -50,9 +50,9 @@ export class FormatUtils {
    *
    * @param {?number} byteCount The byte count length. If passed as `null`,
    *   this method returns `<none>`.
-   * @param {object} [options = {}] Formatting options:
-   *   * `{boolean} spaces` -- Use spaces to separate the number from the units?
-   *     If `false` an underscore is used. Defaults to `true`.
+   * @param {object} [options = {}] Formatting options.
+   * @param {boolean} [options.spaces = true] Use spaces to separate the number
+   *   from the units? If `false` an underscore is used.
    * @returns {string} The friendly form.
    */
   static byteCountString(byteCount, options = {}) {
@@ -115,12 +115,11 @@ export class FormatUtils {
    * represnting time in the UTC time zone.
    *
    * @param {number} atSecs Time in the form of seconds since the Unix Epoch.
-   * @param {object} [options = {}] Formatting options:
-   *   * `{boolean} colons` -- Use colons to separate the time-of-day
-   *     components? Defaults to `true`.
-   *   * `{number} decimals` -- Number of fractional-second digits of precision.
-   *     Defaults to `0`. **Note:** Fractions of seconds are truncated, not
-   *     rounded.
+   * @param {object} [options = {}] Formatting options.
+   * @param {boolean} [options.colons = true] Use colons to separate the
+   *   time-of-day components?
+   * @param {number} [options.decimals = 0] Number of fractional-second digits
+   *    of precision. **Note:** Fractions of seconds are truncated, not rounded.
    * @returns {string} The friendly time string.
    */
   static dateTimeStringFromSecs(atSecs, options = {}) {
@@ -159,9 +158,9 @@ export class FormatUtils {
    * of the duration.
    *
    * @param {number} durationSecs Duration in seconds.
-   * @param {object} [options = {}] Formatting options:
-   *   * `{boolean} spaces` -- Use spaces to separate the number from the units?
-   *     If `false` an underscore is used. Defaults to `true`.
+   * @param {object} [options = {}] Formatting options.
+   * @param {boolean} [options.spaces = true] Use spaces to separate the number
+   *   from the units? If `false` an underscore is used.
    * @returns {string} The friendly form.
    */
   static durationStringFromSecs(durationSecs, options = {}) {

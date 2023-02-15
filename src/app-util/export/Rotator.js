@@ -146,13 +146,15 @@ export class Rotator {
    * Finds all the files that match the configured file name pattern.
    *
    * @param {object} [options = {}] Options for the search, which define a union
-   *   of items to find:
-   *   * `{boolean} current = false` -- Find the current (unmodified name) log
-   *        file?
-   *   * `{boolean} today = false` -- Find files with today's date (UTC)?
-   *   * `{boolean} pastDays = false` -- Find files from previous days (UTC)?
-   *   * `{?string} dateStr = null` -- Find files infixed with the given date
-   *       string?
+   *   of items to find.
+   * @param {boolean} [options.current = false] Find the current (unmodified
+   *   name) log file?
+   * @param {boolean} [options.today = false] Find files with today's date
+   *   (UTC)?
+   * @param {boolean} [options.pastDays = false] Find files from previous days
+   *   (UTC)?
+   * @param {?string} [options.dateStr = null] Find files infixed with the given
+   *   date string?
    * @returns {object[]} Array of useful information about each matched file.
    */
   async #findFiles(options = {}) {
