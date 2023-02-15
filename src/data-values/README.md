@@ -6,7 +6,7 @@ ultimately just represent simple data (and not, in particular, objects with
 "behavior").
 
 For the purposes of this module, "data values" are a superset of what can be
-represented in JSON and are intented to be (ultimately) a superset of what
+represented in JSON and are intended to be (ultimately) a superset of what
 JavaScript defines as "serializable" values, though with a bit of a twist. Here
 is a run-down of what is covered:
 
