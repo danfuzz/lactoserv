@@ -74,8 +74,8 @@ export class Debugging {
       }, 50);
 
       const cause = new TypeError('I am a cause.');
-      cause.name = 'Causeway';
-      cause.code = 'CAUSAL';
+      cause.name = 'CausewayError';
+      cause.code = 'CAUSAL-9000';
       throw new Error('I am an unhandled promise rejection.', { cause });
     })();
   }
