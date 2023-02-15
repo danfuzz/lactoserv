@@ -44,7 +44,7 @@ export class BaseLoggingEnvironment {
       }
       this._impl_emit(recordOrTag);
     } else if (recordOrTag instanceof LogTag) {
-      const record = this.makeRecord(recordOrTag, type, ...args);
+      const record = this.makeRecord(1, recordOrTag, type, ...args);
       this._impl_emit(record);
     } else {
       throw new Error('Invalid value for `recordOrTag`.');
@@ -72,18 +72,23 @@ export class BaseLoggingEnvironment {
    * that, but there is more than one reasonable way to accomplish this. Hence
    * this "hook."
    *
+   * @param {number} omitCount The number of caller frames to omit from the
+   *   stack trace.
    * @param {LogTag} tag The record tag.
    * @param {string} type Event type.
    * @param {...*} args Event arguments.
    * @returns {LogRecord} The constructed record.
    */
-  makeRecord(tag, type, ...args) {
+  makeRecord(omitCount, tag, type, ...args) {
+    MustBe.number(omitCount, { minInclusive: 0, safeInteger: true });
     MustBe.instanceOf(tag, LogTag);
     MustBe.string(type);
 
     const nowSec    = this.nowSec();
     const fixedArgs = this.#dataConverter.encode(args);
-    const trace     = this.makeStackTrace(1);
+
+    // `+1` to omit the frame for this method.
+    const trace = this.makeStackTrace(omitCount + 1);
 
     return new LogRecord(nowSec, tag, type, fixedArgs, trace);
   }
