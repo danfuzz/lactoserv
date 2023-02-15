@@ -3,6 +3,8 @@
 
 import * as util from 'node:util';
 
+import { AskIf } from '@this/typey';
+
 
 /**
  * Data value that represents a typed (but otherwise fairly free-form) structure
@@ -12,36 +14,52 @@ import * as util from 'node:util';
  * Instances of this class are always frozen.
  */
 export class Struct {
-  /** @type {*} Value representing the type (or class) to be constructed. */
+  /** @type {*} Value representing the type (or class) of the structure. */
   #type;
 
-  /** @type {*[]} Arguments to be used in constructing the value. */
+  /** @type {?object} Named "options" of the structure. */
+  #options;
+
+  /** @type {*[]} Positional "arguments" of the structure. */
   #args;
+
 
   /**
    * Constructs an instance.
    *
-   * @param {*} type Value representing the type (or class) to be constructed.
-   * @param {...*} args Arguments to be used in constructing the value.
+   * @param {*} type Value representing the type (or class) of the structure.
+   * @param {?object} [options = null] Named "options" of the structure, if any.
+   *   If non-`null` and not a frozen plain object, it will get cloned and
+   *   frozen. If `null`, becomes a frozen version of `{}` (the empty object).
+   * @param {...*} args Positional "arguments" of the structure.
    */
-  constructor(type, ...args) {
-    this.#type = type;
-    this.#args = Object.freeze(args);
+  constructor(type, options, ...args) {
+    this.#type    = type;
+    this.#options = Struct.#fixOptions(options);
+    this.#args    = Object.freeze(args);
 
     Object.freeze(this);
   }
 
-  /** @returns {*} Value representing the type (or class) to be constructed. */
-  get type() {
-    return this.#type;
-  }
-
   /**
-   * @returns {*[]} Arguments to be used in constructing the value. This is
-   * always a frozen array.
+   * @returns {*[]} Positional "arguments" of the structure. This is always a
+   * frozen array.
    */
   get args() {
     return this.#args;
+  }
+
+  /**
+   * @returns {object} Named "options" of the structure, if any. This is always
+   * a frozen plain object.
+   */
+  get options() {
+    return this.#options;
+  }
+
+  /** @returns {*} Value representing the type (or class) of the structure. */
+  get type() {
+    return this.#type;
   }
 
   /**
@@ -51,7 +69,7 @@ export class Struct {
    * @returns {*} Convertible inner value.
    */
   toConvertibleValue() {
-    return [this.#type, ...this.#args];
+    return [this.#type, this.#options, ...this.#args];
   }
 
   /**
@@ -100,9 +118,11 @@ export class Struct {
     });
 
     const parts = [
-      'new ',
-      inspect(this.#type, innerOptions),
-      '('
+      '@',
+      (typeof this.#type === 'string')
+        ? this.#type
+        : inspect(this.#type, innerOptions),
+      ' { '
     ];
 
     let first = true;
@@ -115,7 +135,31 @@ export class Struct {
       parts.push(inspect(arg, innerOptions));
     }
 
-    parts.push(')');
+    for (const [key, value] of Object.entries(this.#options)) {
+      if (first) {
+        first = false;
+      } else {
+        parts.push(', ');
+      }
+      parts.push(key, ': ', inspect(value, innerOptions));
+    }
+
+    parts.push(' }');
     return parts.join('');
+  }
+
+
+  //
+  // Static members
+  //
+
+  static #fixOptions(options) {
+    if (options === null) {
+      return Object.freeze({});
+    } else if (AskIf.plainObject(options) && Object.isFrozen(options)) {
+      return options;
+    } else {
+      return Object.freeze({ ...options });
+    }
   }
 }

@@ -60,9 +60,7 @@ export class ConvError extends BaseConverter {
     if (!main.code)  delete main.code;
     if (!main.stack) delete main.stack;
 
-    return (Object.entries(rest).length === 0)
-      ? new Struct(type, main)
-      : new Struct(type, main, rest);
+    return new Struct(type, rest, main);
   }
 
   /**

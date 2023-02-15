@@ -74,7 +74,7 @@ export class StackTrace {
    * @returns {Struct} Encoded form.
    */
   [BaseConverter.ENCODE]() {
-    return new Struct(StackTrace, this.#frames);
+    return new Struct(StackTrace, null, this.#frames);
   }
 
   /**

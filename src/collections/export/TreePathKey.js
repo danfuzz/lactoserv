@@ -61,7 +61,7 @@ export class TreePathKey {
    * @returns {Struct} The encoded form.
    */
   [BaseConverter.ENCODE]() {
-    return new Struct(TreePathKey, this.#path, this.#wildcard);
+    return new Struct(TreePathKey, null, this.#path, this.#wildcard);
   }
 
   /**

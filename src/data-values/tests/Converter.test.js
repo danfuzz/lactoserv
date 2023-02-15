@@ -270,7 +270,7 @@ describe('encode()', () => {
 
     describe('on instances of data classes', () => {
       test('self-represent when directly converted', () => {
-        const value1 = new Struct('x', 1, 2, 3);
+        const value1 = new Struct('x', null, 1, 2, 3);
         const value2 = new Ref(['blort']);
 
         const conv = new Converter();
@@ -280,8 +280,8 @@ describe('encode()', () => {
       });
 
       test('self-represent when embedded in compound objects', () => {
-        const value1 = new Struct('x', 1, 2, 3);
-        const value2 = new Ref(['blort']);
+        const value1 = new Struct('x', { x: 123 }, 1, 2, 3);
+        const value2 = new Ref(['blort', 'fleep']);
 
         const data = {
           v1: value1,
@@ -331,9 +331,9 @@ describe('encode()', () => {
         expect(got).toBeInstanceOf(Struct);
         expect(got.type).toBeInstanceOf(Ref);
         expect(got.type.value).toBe(Error);
-        expect(got.args).toBeArrayOfSize(2);
+        expect(got.args).toBeArrayOfSize(1);
         expect(got.args[0]).toContainAllKeys(['cause', 'code', 'message', 'name', 'stack']);
-        expect(got.args[1]).toStrictEqual({ blueberries: true });
+        expect(got.options).toStrictEqual({ blueberries: true });
 
         const { cause: convCause, code, message, name, stack } = got.args[0];
         expect(code).toBe(err.code);
