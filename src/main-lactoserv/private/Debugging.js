@@ -67,11 +67,15 @@ export class Debugging {
 
       // The timeout here is meant to jibe with `TopErrorHandler`'s grace period
       // given for unhandled promise rejections.
-      setTimeout(() => { throw new Error('I am an uncaught exception (from a callback).'); }, 50);
+      setTimeout(() => {
+        const error = new Error('I am an uncaught exception (from a callback).');
+        error.beep = 'boop';
+        throw error;
+      }, 50);
 
       const cause = new TypeError('I am a cause.');
-      cause.name = 'Causeway';
-      cause.code = 'CAUSAL';
+      cause.name = 'CausewayError';
+      cause.code = 'CAUSAL-9000';
       throw new Error('I am an unhandled promise rejection.', { cause });
     })();
   }

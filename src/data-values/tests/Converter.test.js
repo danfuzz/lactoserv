@@ -1,7 +1,7 @@
 // Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseConverter, Construct, Converter, NonData } from '@this/data-values';
+import { BaseConverter, Converter, Ref, Struct } from '@this/data-values';
 import { AskIf } from '@this/typey';
 
 
@@ -42,7 +42,7 @@ describe('encode()', () => {
       const conv = new Converter();
       const data = conv.encode(florp);
 
-      expect(data).toBeInstanceOf(NonData);
+      expect(data).toBeInstanceOf(Ref);
       expect(data.value).toBe(florp);
     });
 
@@ -56,7 +56,7 @@ describe('encode()', () => {
       const conv = new Converter();
       const data = conv.encode(florp);
 
-      expect(data).toBeInstanceOf(NonData);
+      expect(data).toBeInstanceOf(Ref);
       expect(data.value).toBe(florp);
     });
 
@@ -270,8 +270,8 @@ describe('encode()', () => {
 
     describe('on instances of data classes', () => {
       test('self-represent when directly converted', () => {
-        const value1 = new Construct('x', 1, 2, 3);
-        const value2 = new NonData(['blort']);
+        const value1 = new Struct('x', null, 1, 2, 3);
+        const value2 = new Ref(['blort']);
 
         const conv = new Converter();
 
@@ -280,8 +280,8 @@ describe('encode()', () => {
       });
 
       test('self-represent when embedded in compound objects', () => {
-        const value1 = new Construct('x', 1, 2, 3);
-        const value2 = new NonData(['blort']);
+        const value1 = new Struct('x', { x: 123 }, 1, 2, 3);
+        const value2 = new Ref(['blort', 'fleep']);
 
         const data = {
           v1: value1,
@@ -306,8 +306,8 @@ describe('encode()', () => {
         const conv = new Converter();
         const got  = conv.encode(err);
 
-        expect(got).toBeInstanceOf(Construct);
-        expect(got.type).toBeInstanceOf(NonData);
+        expect(got).toBeInstanceOf(Struct);
+        expect(got.type).toBeInstanceOf(Ref);
         expect(got.type.value).toBe(Error);
         expect(got.args).toBeArrayOfSize(1);
         expect(got.args[0]).toStrictEqual({
@@ -328,20 +328,20 @@ describe('encode()', () => {
         const conv = new Converter();
         const got  = conv.encode(err);
 
-        expect(got).toBeInstanceOf(Construct);
-        expect(got.type).toBeInstanceOf(NonData);
+        expect(got).toBeInstanceOf(Struct);
+        expect(got.type).toBeInstanceOf(Ref);
         expect(got.type.value).toBe(Error);
-        expect(got.args).toBeArrayOfSize(2);
+        expect(got.args).toBeArrayOfSize(1);
         expect(got.args[0]).toContainAllKeys(['cause', 'code', 'message', 'name', 'stack']);
-        expect(got.args[1]).toStrictEqual({ blueberries: true });
+        expect(got.options).toStrictEqual({ blueberries: true });
 
         const { cause: convCause, code, message, name, stack } = got.args[0];
         expect(code).toBe(err.code);
         expect(message).toBe(err.message);
         expect(name).toBe(err.name);
         expect(stack).toBe(err.stack);
-        expect(convCause).toBeInstanceOf(Construct);
-        expect(convCause.type).toBeInstanceOf(NonData);
+        expect(convCause).toBeInstanceOf(Struct);
+        expect(convCause.type).toBeInstanceOf(Ref);
         expect(convCause.type.value).toBe(TypeError);
         expect(convCause.args).toBeArrayOfSize(1);
         expect(convCause.args[0]).toStrictEqual({

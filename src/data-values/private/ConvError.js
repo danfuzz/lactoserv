@@ -4,8 +4,8 @@
 import { MustBe } from '@this/typey';
 
 import { BaseConverter } from '#x/BaseConverter';
-import { Construct } from '#x/Construct';
 import { StackTrace } from '#x/StackTrace';
+import { Struct } from '#x/Struct';
 
 
 /**
@@ -19,7 +19,7 @@ export class ConvError extends BaseConverter {
   #parseStacks;
 
   /**
-   * Construct an instance.
+   * Constructs an instance.
    *
    * @param {boolean} [parseStacks = false] Should stacks be parsed? If so,
    *   the `stack` property of encoded instances will, when possible, contain an
@@ -60,9 +60,7 @@ export class ConvError extends BaseConverter {
     if (!main.code)  delete main.code;
     if (!main.stack) delete main.stack;
 
-    return (Object.entries(rest).length === 0)
-      ? new Construct(type, main)
-      : new Construct(type, main, rest);
+    return new Struct(type, rest, main);
   }
 
   /**

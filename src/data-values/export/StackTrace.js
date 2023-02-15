@@ -4,7 +4,7 @@
 import { AskIf, MustBe } from '@this/typey';
 
 import { BaseConverter } from '#x/BaseConverter';
-import { Construct } from '#x/Construct';
+import { Struct } from '#x/Struct';
 
 
 /**
@@ -71,10 +71,10 @@ export class StackTrace {
   /**
    * Implementation of `data-values` custom-encode protocol.
    *
-   * @returns {Construct} Encoded form.
+   * @returns {Struct} Encoded form.
    */
   [BaseConverter.ENCODE]() {
-    return new Construct(StackTrace, this.#frames);
+    return new Struct(StackTrace, null, this.#frames);
   }
 
   /**

@@ -114,7 +114,23 @@ export class ShutdownHandler {
     const problems = TopErrorHandler.problems;
 
     for (const { type, problem } of problems) {
-      console.log('\n%s:\n%s', type, problem.stack ?? problem);
+      let label = ({
+        uncaughtException:  'uncaught exception',
+        unhandledRejection: 'unhandled rejection'
+      })[type] ?? type;
+
+      let p;
+      for (p = problem; p instanceof Error; p = p.cause) {
+        console.log('\n%s:\n%s', label, p.stack);
+        label = 'caused by';
+        for (const [key, value] of Object.entries(p)) {
+          console.log('  %s: %o', key, value);
+        }
+      }
+      if (p) {
+        console.log('\n%s:\n%s', label, p.stack);
+        console.log('%o', p);
+      }
     }
 
     if (this.#exitCode !== 0) {
