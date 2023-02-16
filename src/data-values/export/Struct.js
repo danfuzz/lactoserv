@@ -95,12 +95,12 @@ export class Struct {
   }
 
   /**
-   * Gets the "inner value" of this instance, which is suitable for conversion,
-   * to produce a converted instance of this class.
+   * Gets the "inner value" of this instance, which is suitable for encoding, to
+   * produce a converted instance of this class.
    *
    * @returns {*} Convertible inner value.
    */
-  toConvertibleValue() {
+  toEncodableValue() {
     return [this.#type, this.#options, ...this.#args];
   }
 
@@ -146,14 +146,14 @@ export class Struct {
   }
 
   /**
-   * Gets an instance just like this one, but with the given replacement
-   * inner value, and _never_ frozen.
+   * Gets an instance just like this one, but with the given replacement inner
+   * value, and _never_ frozen.
    *
    * @param {*} innerValue The new inner value.
    * @returns {*} A replacement instance for this one, representing its
    *   conversion.
    */
-  withConvertedValue(innerValue) {
+  withEncodedValue(innerValue) {
     return new Struct(...innerValue);
   }
 

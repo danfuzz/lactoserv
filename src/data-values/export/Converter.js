@@ -65,7 +65,7 @@ export class Converter extends BaseConverter {
    */
   #encodeDataInstance(orig) {
     const freeze   = this.#config.freeze;
-    const toEncode = orig.toConvertibleValue();
+    const toEncode = orig.toEncodableValue();
 
     if (freeze) {
       Object.freeze(toEncode);
@@ -76,7 +76,7 @@ export class Converter extends BaseConverter {
     if ((replacement === toEncode) && (freeze === Object.isFrozen(orig))) {
       return orig;
     } else {
-      const result = orig.withConvertedValue(replacement);
+      const result = orig.withEncodedValue(replacement);
       if (freeze) {
         Object.freeze(result);
       }

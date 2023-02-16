@@ -32,24 +32,24 @@ export class Ref {
   }
 
   /**
-   * Gets the "inner value" of this instance, which is suitable for conversion,
-   * to produce a converted instance of this class.
+   * Gets the "inner value" of this instance, which is suitable for encoding, to
+   * produce a converted instance of this class.
    *
    * @returns {*} Convertible inner value.
    */
-  toConvertibleValue() {
+  toEncodableValue() {
     return null;
   }
 
   /**
-   * Gets an instance just like this one, but with the given replacement
-   * inner value.
+   * Gets an instance just like this one, but with the given replacement inner
+   * value.
    *
    * @param {*} innerValue_unused The new inner value.
    * @returns {*} A replacement instance for this one, representing its
    *   conversion.
    */
-  withConvertedValue(innerValue_unused) {
+  withEncodedValue(innerValue_unused) {
     return this;
   }
 
