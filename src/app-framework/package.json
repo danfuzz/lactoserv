@@ -15,6 +15,7 @@
     "@this/app-config": "*",
     "@this/async": "*",
     "@this/collections": "*",
+    "@this/data-values": "*",
     "@this/loggy": "*",
     "@this/network-protocol": "*",
     "@this/typey": "*"
