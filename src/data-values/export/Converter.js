@@ -57,6 +57,34 @@ export class Converter extends BaseConverter {
   }
 
   /**
+   * Helper for {@link #encode}, which performs content encoding on data
+   * instances.
+   *
+   * @param {*} orig Value to convert.
+   * @returns {*} The converted version.
+   */
+  #encodeDataInstance(orig) {
+    const freeze   = this.#config.freeze;
+    const toEncode = orig.toEncodableValue();
+
+    if (freeze) {
+      Object.freeze(toEncode);
+    }
+
+    const replacement = this.#encode0(toEncode);
+
+    if ((replacement === toEncode) && (freeze === Object.isFrozen(orig))) {
+      return orig;
+    } else {
+      const result = orig.withEncodedValue(replacement);
+      if (freeze) {
+        Object.freeze(result);
+      }
+      return result;
+    }
+  }
+
+  /**
    * Helper for {@link #encode}, which does most of the work and is also the
    * recursive re-entry point for the conversion procedure.
    *
@@ -88,11 +116,7 @@ export class Converter extends BaseConverter {
         } else if (AskIf.plainObject(orig)) {
           return this.#objectOrArrayToData(orig, false);
         } else if (config.isDataInstance(orig)) {
-          const toConvert   = Object.freeze(orig.toConvertibleValue());
-          const replacement = this.#encode0(toConvert);
-          return (replacement === toConvert)
-            ? orig
-            : orig.withConvertedValue(replacement);
+          return this.#encodeDataInstance(orig);
         }
 
         if (config.specialCases) {
@@ -161,9 +185,9 @@ export class Converter extends BaseConverter {
         ? Object.freeze(result)
         : orig;
     } else {
-      if (Object.getOwnPropertySymbols(orig).length !== 0) {
+      if (Object.isFrozen(orig) || (Object.getOwnPropertySymbols(orig).length !== 0)) {
         // It is a "change" in that the result we return omits symbol-keyed
-        // properties.
+        // properties or is intentional not-frozen.
         anyChange = true;
       }
       return anyChange ? result : orig;

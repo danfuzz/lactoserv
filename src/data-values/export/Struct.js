@@ -3,7 +3,9 @@
 
 import * as util from 'node:util';
 
-import { AskIf } from '@this/typey';
+import { AskIf, MustBe } from '@this/typey';
+
+import { BaseDataClass } from '#x/BaseDataClass';
 
 
 /**
@@ -11,9 +13,10 @@ import { AskIf } from '@this/typey';
  * of some sort. Instances of this class are commonly used as the "distillate"
  * data of behavior-bearing class instances.
  *
- * Instances of this class are always frozen.
+ * Instances of this class react to `Object.freeze()` in an analogous way to how
+ * plain arrays and objects do.
  */
-export class Struct {
+export class Struct extends BaseDataClass {
   /** @type {*} Value representing the type (or class) of the structure. */
   #type;
 
@@ -34,11 +37,11 @@ export class Struct {
    * @param {...*} args Positional "arguments" of the structure.
    */
   constructor(type, options, ...args) {
+    super();
+
     this.#type    = type;
     this.#options = Struct.#fixOptions(options);
     this.#args    = Object.freeze(args);
-
-    Object.freeze(this);
   }
 
   /**
@@ -50,11 +53,34 @@ export class Struct {
   }
 
   /**
+   * Sets the positional "arguments." This is only allowed if this instance is
+   * not frozen.
+   *
+   * @param {*[]} args The new arguments.
+   */
+  set args(args) {
+    this.#frozenCheck();
+    MustBe.array(args);
+    this.#args = Object.freeze([...args]);
+  }
+
+  /**
    * @returns {object} Named "options" of the structure, if any. This is always
    * a frozen plain object.
    */
   get options() {
     return this.#options;
+  }
+
+  /**
+   * Sets the named "options." This is only allowed if this instance is not
+   * frozen.
+   *
+   * @param {object} options The new options.
+   */
+  set options(options) {
+    this.#frozenCheck();
+    this.#options = Struct.#fixOptions(options);
   }
 
   /** @returns {*} Value representing the type (or class) of the structure. */
@@ -63,12 +89,17 @@ export class Struct {
   }
 
   /**
-   * Gets the "inner value" of this instance, which is suitable for conversion,
-   * to produce a converted instance of this class.
+   * Sets the type. This is only allowed if this instance is not frozen.
    *
-   * @returns {*} Convertible inner value.
+   * @param {*} type The new type value.
    */
-  toConvertibleValue() {
+  set type(type) {
+    this.#frozenCheck();
+    this.#type = type;
+  }
+
+  /** @override */
+  toEncodableValue() {
     return [this.#type, this.#options, ...this.#args];
   }
 
@@ -113,15 +144,8 @@ export class Struct {
     }
   }
 
-  /**
-   * Gets an instance just like this one, but with the given replacement
-   * inner value.
-   *
-   * @param {*} innerValue The new inner value.
-   * @returns {*} A replacement instance for this one, representing its
-   *   conversion.
-   */
-  withConvertedValue(innerValue) {
+  /** @override */
+  withEncodedValue(innerValue) {
     return new Struct(...innerValue);
   }
 
@@ -188,6 +212,15 @@ export class Struct {
       return `@${type?.name ?? 'anonymous'}`;
     } else {
       return type;
+    }
+  }
+
+  /**
+   * Helper for the setters, to check for frozen-ness and respond accordingly.
+   */
+  #frozenCheck() {
+    if (Object.isFrozen(this)) {
+      throw new Error('Cannot modify frozen instance.');
     }
   }
 

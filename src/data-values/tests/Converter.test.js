@@ -1,7 +1,8 @@
 // Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseConverter, Converter, Ref, Struct } from '@this/data-values';
+import { BaseConverter, Converter, ConverterConfig, Ref, Struct }
+  from '@this/data-values';
 import { AskIf } from '@this/typey';
 
 
@@ -10,7 +11,7 @@ describe('decode()', () => {
 });
 
 describe('encode()', () => {
-  describe('with default options', () => {
+  describe('with default config', () => {
     describe('on simple data', () => {
       test.each`
       value
@@ -270,7 +271,7 @@ describe('encode()', () => {
 
     describe('on instances of data classes', () => {
       test('self-represent when directly converted', () => {
-        const value1 = new Struct('x', null, 1, 2, 3);
+        const value1 = Object.freeze(new Struct('x', null, 1, 2, 3));
         const value2 = new Ref(['blort']);
 
         const conv = new Converter();
@@ -280,7 +281,7 @@ describe('encode()', () => {
       });
 
       test('self-represent when embedded in compound objects', () => {
-        const value1 = new Struct('x', { x: 123 }, 1, 2, 3);
+        const value1 = Object.freeze(new Struct('x', { x: 123 }, 1, 2, 3));
         const value2 = new Ref(['blort', 'fleep']);
 
         const data = {
@@ -296,6 +297,18 @@ describe('encode()', () => {
         expect(got.v2).toBe(value2);
         expect(got.both[0]).toBe(value1);
         expect(got.both[1]).toBe(value2);
+      });
+
+      test('copies a non-frozen `Struct` that requires no inner encoding', () => {
+        const value = new Struct('floop', { a: 10, b: 20 }, 1, 2, 3);
+        const conv  = new Converter();
+        const got   = conv.encode(value);
+
+        expect(got).not.toBe(value);
+        expect(got).toBeFrozen();
+        expect(got.type).toBe(value.type);
+        expect(got.args).toStrictEqual(value.args);
+        expect(got.options).toStrictEqual(value.options);
       });
     });
 
@@ -352,6 +365,73 @@ describe('encode()', () => {
       });
 
       // TODO: More!
+    });
+  });
+});
+
+describe('encode()', () => {
+  describe('with default config, except `freeze === false`', () => {
+    const config = new ConverterConfig({ freeze: false });
+
+    test('returns a non-frozen array that did not need encoding, as-is', () => {
+      const conv  = new Converter(config);
+      const value = [1, 2, 3];
+      const got   = conv.encode(value);
+
+      expect(got).toBe(value);
+      expect(got).not.toBeFrozen();
+    });
+
+    test('returns a non-frozen object that did not need encoding, as-is', () => {
+      const conv  = new Converter(config);
+      const value = { a: 'hello', b: 'goodbye' };
+      const got   = conv.encode(value);
+
+      expect(got).toBe(value);
+      expect(got).not.toBeFrozen();
+    });
+
+    test('does not freeze an array that needed encoding', () => {
+      const conv  = new Converter(config);
+      const value = [1, 2, 3, new Map()];
+      const got   = conv.encode(value);
+
+      expect(got).not.toBe(value);
+      expect(got).not.toBeFrozen();
+      expect(got[0]).toBe(1);
+      expect(got[3]).toBeInstanceOf(Ref);
+      expect(got[3].value).toBe(value[3]);
+    });
+
+    test('does not freeze a plain object that needed encoding', () => {
+      const conv  = new Converter(config);
+      const value = { boop: new Map() };
+      const got   = conv.encode(value);
+
+      expect(got).not.toBe(value);
+      expect(got).not.toBeFrozen();
+      expect(got.boop).toBeInstanceOf(Ref);
+      expect(got.boop.value).toBe(value.boop);
+    });
+
+    test('copies an array that is frozen', () => {
+      const conv  = new Converter(config);
+      const value = Object.freeze([1, 2, 3]);
+      const got   = conv.encode(value);
+
+      expect(got).not.toBe(value);
+      expect(got).not.toBeFrozen();
+      expect(got).toStrictEqual(value);
+    });
+
+    test('copies a plain object that is frozen', () => {
+      const conv  = new Converter(config);
+      const value = Object.freeze({ florp: 'like' });
+      const got   = conv.encode(value);
+
+      expect(got).not.toBe(value);
+      expect(got).not.toBeFrozen();
+      expect(got).toStrictEqual(value);
     });
   });
 });

@@ -1,6 +1,7 @@
 // Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { BaseConverter, Struct } from '@this/data-values';
 import { MustBe } from '@this/typey';
 
 
@@ -17,11 +18,6 @@ export class LogTag {
 
   /** @type {string[]} Context strings. */
   #context;
-
-  /**
-   * @type {?string[]} Combined main tag and context string array, if available.
-   */
-  #fullArray = null;
 
   /** @type {?string[]} Precomputed "human form" strings, if available. */
   #humanStrings = null;
@@ -134,25 +130,6 @@ export class LogTag {
   }
 
   /**
-   * Gets a replacement value for this instance, which is suitable for JSON
-   * serialization.
-   *
-   * **Note:** This method is named as such (as opposed to the more
-   * standard-for-this-project `toJSON`), because the standard method
-   * `JSON.stringify()` looks for methods of this name to provide custom JSON
-   * serialization.
-   *
-   * @returns {object} The JSON-serializable form.
-   */
-  toJSON() {
-    if (!this.#fullArray) {
-      this.#fullArray = Object.freeze([this.#main, ...this.#context]);
-    }
-
-    return this.#fullArray;
-  }
-
-  /**
    * Constructs an instance just like this one, except with additional context
    * strings.
    *
@@ -161,6 +138,15 @@ export class LogTag {
    */
   withAddedContext(...context) {
     return new LogTag(this.#main, ...this.#context, ...context);
+  }
+
+  /**
+   * Implementation of `data-values` custom-encode protocol.
+   *
+   * @returns {Struct} Encoded form.
+   */
+  [BaseConverter.ENCODE]() {
+    return new Struct(LogTag, null, this.#main, ...this.#context);
   }
 
 

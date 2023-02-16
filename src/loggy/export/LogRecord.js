@@ -3,7 +3,7 @@
 
 import * as util from 'node:util';
 
-import { StackTrace } from '@this/data-values';
+import { BaseConverter, StackTrace, Struct } from '@this/data-values';
 import { MustBe } from '@this/typey';
 
 import { FormatUtils } from '#x/FormatUtils';
@@ -60,7 +60,6 @@ export class LogRecord {
       args = Object.freeze([...args]);
     }
     this.#args = args;
-
   }
 
   /**
@@ -110,24 +109,18 @@ export class LogRecord {
   }
 
   /**
-   * Gets a replacement value for this instance, which is suitable for JSON
-   * serialization.
+   * Implementation of `data-values` custom-encode protocol.
    *
-   * **Note:** This method is named as such (as opposed to the more
-   * standard-for-this-project `toJSON`), because the standard method
-   * `JSON.stringify()` looks for methods of this name to provide custom JSON
-   * serialization.
-   *
-   * @returns {object} The JSON-serializable form.
+   * @returns {Struct} Encoded form.
    */
-  toJSON() {
-    return {
+  [BaseConverter.ENCODE]() {
+    return new Struct(LogRecord, {
       atSecs: this.#atSecs,
       tag:    this.#tag,
       type:   this.#type,
       args:   this.#args,
       stack:  this.#stack
-    };
+    });
   }
 
   /**

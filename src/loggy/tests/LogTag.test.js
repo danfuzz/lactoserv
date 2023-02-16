@@ -1,6 +1,7 @@
 // Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { BaseConverter, Struct } from '@this/data-values';
 import { LogTag } from '@this/loggy';
 
 
@@ -188,12 +189,15 @@ describe('toHuman()', () => {
   });
 });
 
-describe('toJSON()', () => {
+describe('[BaseConverter.ENCODE]()', () => {
   const testOne = (...expected) => {
     const tag    = new LogTag(...expected);
-    const result = tag.toJSON();
-    expect(result).toStrictEqual(expected);
-    expect(result).toBeFrozen();
+    const result = tag[BaseConverter.ENCODE]();
+
+    expect(result).toBeInstanceOf(Struct);
+    expect(result.type).toBe(LogTag);
+    expect(result.options).toStrictEqual({});
+    expect(result.args).toStrictEqual(expected);
   };
 
   test('works with just a main tag (no context strings)', () => {
