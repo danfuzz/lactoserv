@@ -5,6 +5,7 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
 import { EventSink } from '@this/async';
+import { BaseConverter, Converter, ConverterConfig } from '@this/data-values';
 import { MustBe } from '@this/typey';
 
 import { LogEvent } from '#x/LogEvent';
@@ -90,12 +91,19 @@ export class TextFileSink extends EventSink {
   //
 
   /**
+   * @type {Converter} Data converter to use for encoding record arguments,
+   * specifically for the `json` format.
+   */
+  static #CONVERTER_FOR_JSON =
+    new Converter(ConverterConfig.makeLoggingInstance({ freeze: false }));
+
+  /**
    * @type {Map<string, function(LogRecord): Buffer|string>} Map from names to
    * corresponding formatter methods.
    */
   static #FORMATTERS = new Map(Object.entries({
-    human: TextFileSink.#formatHuman,
-    json:  TextFileSink.#formatJson
+    human: (record) => this.#formatHuman(record),
+    json:  (record) => this.#formatJson(record)
   }));
 
   /**
@@ -136,6 +144,20 @@ export class TextFileSink extends EventSink {
       return null;
     }
 
-    return JSON.stringify(record);
+    // What's going on: We assume that the `args` payload is already
+    // sufficiently encoded (because that would have / should have happened
+    // synchronously while logging), but we want to generically encode
+    // everything else. So, we do a top-level encode of the record, tweak it,
+    // let the normal encode mechanism do it's thing, and then tweak it back.
+
+    const encodedRecord = record[BaseConverter.ENCODE]();
+    const objToEncode   = { ...encodedRecord.options, args: null };
+    const encoded       = this.#CONVERTER_FOR_JSON.encode(objToEncode);
+
+    encoded.args = encodedRecord.options.args;
+    return JSON.stringify(encoded);
+
+    //const finalObj      = { ...encoded, args: encodedRecord.options.args };
+    //return JSON.stringify(finalObj);
   }
 }
