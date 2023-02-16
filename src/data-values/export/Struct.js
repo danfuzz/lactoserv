@@ -77,6 +77,11 @@ export class Struct {
    * serialization. In this case, this method is meant to be a convenience when
    * doing "manual" mixing of encoding (per this class) and JSON serialization.
    *
+   * The result of this specific method is meant more for human convenience than
+   * machine re-interpretation. If you find yourself wanting to write code to
+   * parse the output from this, consider figuring out how to get the object(s)
+   * in question to be "properly" encoded by this module instead.
+   *
    * **Note:** This method is named as such (as opposed to the more
    * standard-for-this-project `toJSON`), because the standard method
    * `JSON.stringify()` looks for methods of this name to provide custom JSON
