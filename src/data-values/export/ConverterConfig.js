@@ -211,13 +211,18 @@ export class ConverterConfig {
    * The return value is always a fresh instance which is safe for the caller to
    * modify. (It does not alter future results from this method.)
    *
+   * @param {?object} [options = null] Extra configuration options, or `null`
+   *   for nothing extra.
    * @returns {ConverterConfig} The default / baseline logging configuration.
    */
-  static makeLoggingInstance() {
+  static makeLoggingInstance(options = null) {
+    options ??= {};
+
     return new this({
       functionAction: 'name',
       instanceAction: 'inspect',
-      specialCases:   SpecialConverters.STANDARD_FOR_LOGGING
+      specialCases:   SpecialConverters.STANDARD_FOR_LOGGING,
+      ...options
     });
   }
 
