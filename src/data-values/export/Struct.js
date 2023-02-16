@@ -3,7 +3,7 @@
 
 import * as util from 'node:util';
 
-import { AskIf } from '@this/typey';
+import { AskIf, MustBe } from '@this/typey';
 
 
 /**
@@ -11,7 +11,8 @@ import { AskIf } from '@this/typey';
  * of some sort. Instances of this class are commonly used as the "distillate"
  * data of behavior-bearing class instances.
  *
- * Instances of this class are always frozen.
+ * Instances of this class react to `Object.freeze()` in an analogous way to how
+ * plain arrays and objects do.
  */
 export class Struct {
   /** @type {*} Value representing the type (or class) of the structure. */
@@ -37,8 +38,6 @@ export class Struct {
     this.#type    = type;
     this.#options = Struct.#fixOptions(options);
     this.#args    = Object.freeze(args);
-
-    Object.freeze(this);
   }
 
   /**
@@ -50,6 +49,18 @@ export class Struct {
   }
 
   /**
+   * Sets the positional "arguments." This is only allowed if this instance is
+   * not frozen.
+   *
+   * @param {*[]} args The new arguments.
+   */
+  set args(args) {
+    this.#frozenCheck();
+    MustBe.array(args);
+    this.#args = Object.freeze([...args]);
+  }
+
+  /**
    * @returns {object} Named "options" of the structure, if any. This is always
    * a frozen plain object.
    */
@@ -57,9 +68,30 @@ export class Struct {
     return this.#options;
   }
 
+  /**
+   * Sets the named "options." This is only allowed if this instance is not
+   * frozen.
+   *
+   * @param {object} options The new options.
+   */
+  set options(options) {
+    this.#frozenCheck();
+    this.#options = Struct.#fixOptions(options);
+  }
+
   /** @returns {*} Value representing the type (or class) of the structure. */
   get type() {
     return this.#type;
+  }
+
+  /**
+   * Sets the type. This is only allowed if this instance is not frozen.
+   *
+   * @param {*} type The new type value.
+   */
+  set type(type) {
+    this.#frozenCheck();
+    this.#type = type;
   }
 
   /**
@@ -188,6 +220,15 @@ export class Struct {
       return `@${type?.name ?? 'anonymous'}`;
     } else {
       return type;
+    }
+  }
+
+  /**
+   * Helper for the setters, to check for frozen-ness and respond accordingly.
+   */
+  #frozenCheck() {
+    if (Object.isFrozen(this)) {
+      throw new Error('Cannot modify frozen instance.');
     }
   }
 

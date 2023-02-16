@@ -10,12 +10,12 @@ describe('constructor()', () => {
     expect(() => new Struct('x', null)).not.toThrow();
   });
 
-  test('produces a frozen instance', () => {
-    expect(new Struct(['y'], {})).toBeFrozen();
+  test('produces a non-frozen instance', () => {
+    expect(new Struct(['y'], {})).not.toBeFrozen();
   });
 });
 
-describe('.type', () => {
+describe('get type', () => {
   test('is the `type` passed in the constructor', () => {
     const type1 = ['a'];
     const type2 = { name: 'blort' };
@@ -27,7 +27,21 @@ describe('.type', () => {
   });
 });
 
-describe('.args', () => {
+describe('set type', () => {
+  test('is disallowed on a frozen instance', () => {
+    const struct = new Struct('boop', null);
+    Object.freeze(struct);
+    expect(() => { struct.type = 'florp'; }).toThrow();
+  });
+
+  test('is allowed on a non-frozen instance, and affects the getter', () => {
+    const struct = new Struct('boop', null);
+    expect(() => { struct.type = 'florp'; }).not.toThrow();
+    expect(struct.type).toBe('florp');
+  });
+});
+
+describe('get args', () => {
   test('is an array', () => {
     expect(new Struct('x', null).args).toBeArray();
     expect(new Struct('x', {}, 1).args).toBeArray();
@@ -59,7 +73,29 @@ describe('.args', () => {
   }
 });
 
-describe('.options', () => {
+describe('set args', () => {
+  test('is disallowed on a frozen instance', () => {
+    const struct = new Struct('boop', null);
+    Object.freeze(struct);
+    expect(() => { struct.args = [1, 2, 3]; }).toThrow();
+  });
+
+  test('throws if passed a non-array', () => {
+    const struct = new Struct('boop', null);
+    expect(() => { struct.args = 'blorp'; }).toThrow();
+  });
+
+  test('is allowed on a non-frozen instance, and affects the getter', () => {
+    const newArgs = [1, 2, 3];
+    const struct  = new Struct('boop', null, 4, 5, 6);
+    expect(() => { struct.args = newArgs; }).not.toThrow();
+    expect(struct.args).toStrictEqual(newArgs);
+    expect(struct.args).not.toBe(newArgs);
+    expect(struct.args).toBeFrozen();
+  });
+});
+
+describe('get options', () => {
   test.each`
   opts
   ${null}
@@ -105,5 +141,22 @@ describe('.options', () => {
   `('converts $label as expected', ({ opts, expected }) => {
     const struct = new Struct('x', opts);
     expect(struct.options).toStrictEqual(expected);
+  });
+});
+
+describe('set options', () => {
+  test('is disallowed on a frozen instance', () => {
+    const struct = new Struct('boop', null);
+    Object.freeze(struct);
+    expect(() => { struct.options = { a: 10 }; }).toThrow();
+  });
+
+  test('is allowed on a non-frozen instance, and affects the getter', () => {
+    const newOpts = { a: 10, b: 20 };
+    const struct  = new Struct('boop', { c: 30 }, 123);
+    expect(() => { struct.options = newOpts; }).not.toThrow();
+    expect(struct.options).toStrictEqual(newOpts);
+    expect(struct.options).not.toBe(newOpts);
+    expect(struct.options).toBeFrozen();
   });
 });
