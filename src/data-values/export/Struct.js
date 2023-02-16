@@ -185,7 +185,7 @@ export class Struct {
     if (typeof type === 'string') {
       return type.startsWith('@') ? type : `@${type}`;
     } else if (typeof type === 'function') {
-      return `@${type?.name ?? 'anonymous'}`
+      return `@${type?.name ?? 'anonymous'}`;
     } else {
       return type;
     }
