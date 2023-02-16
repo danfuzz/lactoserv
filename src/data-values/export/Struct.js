@@ -105,8 +105,7 @@ export class Struct extends BaseDataClass {
 
   /**
    * Gets a replacement value for this instance, which is suitable for JSON
-   * serialization. In this case, this method is meant to be a convenience when
-   * doing "manual" mixing of encoding (per this class) and JSON serialization.
+   * serialization.
    *
    * The result of this specific method is meant more for human convenience than
    * machine re-interpretation, especially in that there is some ambiguity in
