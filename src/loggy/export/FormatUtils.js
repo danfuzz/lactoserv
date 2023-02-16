@@ -1,7 +1,6 @@
 // Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Duration } from '@this/data-values';
 
 /**
  * Utilities for logging.
@@ -92,19 +91,6 @@ export class FormatUtils {
       atSecs,
       utc:  FormatUtils.dateTimeStringFromSecs(atSecs, options)
     };
-  }
-
-  /**
-   * Makes a friendly compound object representing a temporal duration, with
-   * both an exact number of seconds (the original value) and a human-oriented
-   * string whose format varies based on the magnitude of the duration and which
-   * represents the rounded value.
-   *
-   * @param {number} durationSecs Duration in seconds.
-   * @returns {object} Friendly compound object.
-   */
-  static compoundDurationFromSecs(durationSecs) {
-    return Duration.plainObjectFromSecs(durationSecs);
   }
 
   /**

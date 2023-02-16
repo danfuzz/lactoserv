@@ -7,6 +7,7 @@ import * as timers from 'node:timers/promises';
 import { FileServiceConfig } from '@this/app-config';
 import { BaseService } from '@this/app-framework';
 import { Threadlet } from '@this/async';
+import { Duration } from '@this/data-values';
 import { Host, ProcessInfo, ProductInfo } from '@this/host';
 import { FormatUtils, IntfLogger } from '@this/loggy';
 import { MustBe } from '@this/typey';
@@ -168,7 +169,7 @@ export class ProcessInfoFile extends BaseService {
     const uptimeSecs    = stoppedAtSecs - contents.startedAt.atSecs;
 
     contents.stoppedAt = FormatUtils.compoundDateTimeFromSecs(stoppedAtSecs);
-    contents.uptime    = FormatUtils.compoundDurationFromSecs(uptimeSecs);
+    contents.uptime    = new Duration(uptimeSecs);
 
     if (Host.isShuttingDown()) {
       contents.disposition = Host.shutdownDisposition();
@@ -196,7 +197,7 @@ export class ProcessInfoFile extends BaseService {
     this.#contents.disposition = {
       running:   true,
       updatedAt: FormatUtils.compoundDateTimeFromSecs(updatedAtSecs),
-      uptime:    FormatUtils.compoundDurationFromSecs(updatedAtSecs - this.#contents.startedAt.atSecs)
+      uptime:    new Duration(updatedAtSecs - this.#contents.startedAt.atSecs)
     };
   }
 
