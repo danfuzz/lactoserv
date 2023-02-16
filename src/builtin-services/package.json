@@ -16,6 +16,7 @@
     "@this/app-framework": "*",
     "@this/app-util": "*",
     "@this/async": "*",
+    "@this/data-values": "*",
     "@this/host": "*",
     "@this/loggy": "*",
     "@this/network-protocol": "*",

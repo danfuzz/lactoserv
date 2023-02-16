@@ -20,10 +20,11 @@ is a run-down of what is covered:
 * arrays, without symbol bindings; may be sparse _and_ may have non-index
   bindings.
 * plain objects, without symbol bindings.
-* objects of class `Struct` (which is defined in this module).
-* objects of class `Ref` (which is defined in this module). This is effectively
-  an "escape hatch" to allow arbitrary objects to pass through a data value
-  conversion without being touched.
+* instances of class `Struct` (which is defined in this module). See below for
+  details.
+* instances of class `Ref` (which is defined in this module). This is
+  effectively an "escape hatch" to allow arbitrary objects to pass through a
+  data value conversion without being touched.
 
 The `Struct` class is particularly of note. It is the key class used to enable
 general representation of instances as data. On the way into a data value form,
@@ -42,6 +43,9 @@ knows to look for a `.toJSON()` method, this class understands the symbol-named
 method `BaseConverter.ENCODE` to define an instance-specific value-encoding
 behavior. The expectation is that most such custom converters end up producing
 `Struct` instances (though that isn't strictly required).
+
+This module includes a small handful of general low-ish-level classes that
+"play nice" with `BaseConverter.ENCODE`, including notably `StackTrace`.
 
 - - - - - - - - - -
 ```

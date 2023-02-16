@@ -3,7 +3,8 @@
 
 import { ApplicationConfig } from '@this/app-config';
 import { ManualPromise } from '@this/async';
-import { BaseLoggingEnvironment, FormatUtils, IntfLogger } from '@this/loggy';
+import { Duration } from '@this/data-values';
+import { BaseLoggingEnvironment, IntfLogger } from '@this/loggy';
 import { WranglerContext } from '@this/network-protocol';
 import { Methods } from '@this/typey';
 
@@ -84,7 +85,7 @@ export class BaseApplication extends BaseComponent {
 
         const endTime  = this.#loggingEnv.nowSec();
         const duration = endTime - startTime;
-        const durStr   = FormatUtils.durationStringFromSecs(duration);
+        const durStr   = Duration.stringFromSecs(duration);
         this.logger[eventType](id, durStr, ...error);
       })();
     }

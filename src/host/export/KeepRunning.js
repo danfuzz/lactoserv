@@ -4,7 +4,8 @@
 import * as timers from 'node:timers/promises';
 
 import { Threadlet } from '@this/async';
-import { FormatUtils, IntfLogger } from '@this/loggy';
+import { Duration } from '@this/data-values';
+import { IntfLogger } from '@this/loggy';
 
 import { ProcessInfo } from '#x/ProcessInfo';
 import { ThisModule } from '#p/ThisModule';
@@ -79,7 +80,7 @@ export class KeepRunning {
       ]);
 
       const uptimeSecs = (Date.now() / 1000) - startedAtSecs;
-      this.#logger.uptime(FormatUtils.compoundDurationFromSecs(uptimeSecs));
+      this.#logger.uptime(Duration.plainObjectFromSecs(uptimeSecs));
     }
 
     this.#logger.stopped();
