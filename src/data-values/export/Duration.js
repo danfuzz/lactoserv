@@ -51,7 +51,12 @@ export class Duration {
    * @returns {Struct} Encoded form.
    */
   [BaseConverter.ENCODE]() {
-    return new Struct(Duration, null, this.#secs);
+    // Note: This is included for the convenience of humans who happen to be
+    // looking at logs (etc.), but is not actually used when reconstructing an
+    // instance. TODO: Re-evaluate this tactic.
+    const str = Duration.stringFromSecs(this.#secs);
+
+    return new Struct(Duration, null, this.#secs, str);
   }
 
   /**
