@@ -44,7 +44,6 @@ method                    | isStatic  | returnsObject
 ${'stringFromSecs'}       | ${true}   | ${false}
 ${'plainObjectFromSecs'}  | ${true}   | ${true}
 ${'toPlainObject'}        | ${false}  | ${true}
-${'toJSON'}               | ${false}  | ${true}
 `('$method()', ({ method, isStatic, returnsObject }) => {
   test.each`
   secs                 | duration

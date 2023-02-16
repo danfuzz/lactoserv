@@ -59,21 +59,6 @@ export class Duration {
     return new Struct(Duration, null, this.#secs, str);
   }
 
-  /**
-   * Gets a replacement value for this instance, which is suitable for JSON
-   * serialization.
-   *
-   * **Note:** This method is named as such (as opposed to the more
-   * standard-for-this-project `toJSON`), because the standard method
-   * `JSON.stringify()` looks for methods of this name to provide custom JSON
-   * serialization.
-   *
-   * @returns {object} The JSON-serializable form.
-   */
-  toJSON() {
-    return this.toPlainObject();
-  }
-
 
   //
   // Static members
