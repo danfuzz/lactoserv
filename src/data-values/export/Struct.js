@@ -85,7 +85,17 @@ export class Struct {
    * @returns {object} The JSON-serializable form.
    */
   toJSON() {
-    return { '@construct': this.toConvertibleValue() };
+    const result = { type: this.#type };
+
+    if (Object.keys(this.#options).length !== 0) {
+      result.options = this.#options;
+    }
+
+    if (this.#args.length !== 0) {
+      result.args = this.#args;
+    }
+
+    return { '@struct': result };
   }
 
   /**
