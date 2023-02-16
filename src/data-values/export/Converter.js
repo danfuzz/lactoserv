@@ -161,9 +161,9 @@ export class Converter extends BaseConverter {
         ? Object.freeze(result)
         : orig;
     } else {
-      if (Object.getOwnPropertySymbols(orig).length !== 0) {
+      if (Object.isFrozen(orig) || (Object.getOwnPropertySymbols(orig).length !== 0)) {
         // It is a "change" in that the result we return omits symbol-keyed
-        // properties.
+        // properties or is intentional not-frozen.
         anyChange = true;
       }
       return anyChange ? result : orig;

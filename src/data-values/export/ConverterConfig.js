@@ -120,7 +120,9 @@ export class ConverterConfig {
   }
 
   /**
-   * @returns {boolean} Are converted data values to be frozen?
+   * @returns {boolean} Are converted data values to be frozen? If `false`, then
+   * no frozen data values will be returned, even if they required no other
+   * conversion during encoding.
    *
    * Default value if not passed during construction: `true`
    */
