@@ -3,6 +3,8 @@
 
 import * as util from 'node:util';
 
+import { BaseDataClass } from '#x/BaseDataClass';
+
 
 /**
  * "Data" value that wraps (or "escapes") a non-data value as an opaque
@@ -11,7 +13,7 @@ import * as util from 'node:util';
  *
  * Instances of this class are always frozen.
  */
-export class Ref {
+export class Ref extends BaseDataClass {
   /** @type {*} The wrapped value. */
   #value;
 
@@ -21,6 +23,8 @@ export class Ref {
    * @param {*} value The wrapped value.
    */
   constructor(value) {
+    super();
+
     this.#value = value;
 
     Object.freeze(this);
@@ -31,24 +35,12 @@ export class Ref {
     return this.#value;
   }
 
-  /**
-   * Gets the "inner value" of this instance, which is suitable for encoding, to
-   * produce a converted instance of this class.
-   *
-   * @returns {*} Convertible inner value.
-   */
+  /** @override */
   toEncodableValue() {
     return null;
   }
 
-  /**
-   * Gets an instance just like this one, but with the given replacement inner
-   * value.
-   *
-   * @param {*} innerValue_unused The new inner value.
-   * @returns {*} A replacement instance for this one, representing its
-   *   conversion.
-   */
+  /** @override */
   withEncodedValue(innerValue_unused) {
     return this;
   }

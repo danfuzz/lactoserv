@@ -5,6 +5,8 @@ import * as util from 'node:util';
 
 import { AskIf, MustBe } from '@this/typey';
 
+import { BaseDataClass } from '#x/BaseDataClass';
+
 
 /**
  * Data value that represents a typed (but otherwise fairly free-form) structure
@@ -14,7 +16,7 @@ import { AskIf, MustBe } from '@this/typey';
  * Instances of this class react to `Object.freeze()` in an analogous way to how
  * plain arrays and objects do.
  */
-export class Struct {
+export class Struct extends BaseDataClass {
   /** @type {*} Value representing the type (or class) of the structure. */
   #type;
 
@@ -35,6 +37,8 @@ export class Struct {
    * @param {...*} args Positional "arguments" of the structure.
    */
   constructor(type, options, ...args) {
+    super();
+
     this.#type    = type;
     this.#options = Struct.#fixOptions(options);
     this.#args    = Object.freeze(args);
@@ -94,12 +98,7 @@ export class Struct {
     this.#type = type;
   }
 
-  /**
-   * Gets the "inner value" of this instance, which is suitable for encoding, to
-   * produce a converted instance of this class.
-   *
-   * @returns {*} Convertible inner value.
-   */
+  /** @override */
   toEncodableValue() {
     return [this.#type, this.#options, ...this.#args];
   }
@@ -145,14 +144,7 @@ export class Struct {
     }
   }
 
-  /**
-   * Gets an instance just like this one, but with the given replacement inner
-   * value, and _never_ frozen.
-   *
-   * @param {*} innerValue The new inner value.
-   * @returns {*} A replacement instance for this one, representing its
-   *   conversion.
-   */
+  /** @override */
   withEncodedValue(innerValue) {
     return new Struct(...innerValue);
   }
