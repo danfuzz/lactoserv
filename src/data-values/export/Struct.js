@@ -147,7 +147,7 @@ export class Struct {
 
   /**
    * Gets an instance just like this one, but with the given replacement
-   * inner value.
+   * inner value, and _never_ frozen.
    *
    * @param {*} innerValue The new inner value.
    * @returns {*} A replacement instance for this one, representing its

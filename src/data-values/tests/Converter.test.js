@@ -271,7 +271,7 @@ describe('encode()', () => {
 
     describe('on instances of data classes', () => {
       test('self-represent when directly converted', () => {
-        const value1 = new Struct('x', null, 1, 2, 3);
+        const value1 = Object.freeze(new Struct('x', null, 1, 2, 3));
         const value2 = new Ref(['blort']);
 
         const conv = new Converter();
@@ -281,7 +281,7 @@ describe('encode()', () => {
       });
 
       test('self-represent when embedded in compound objects', () => {
-        const value1 = new Struct('x', { x: 123 }, 1, 2, 3);
+        const value1 = Object.freeze(new Struct('x', { x: 123 }, 1, 2, 3));
         const value2 = new Ref(['blort', 'fleep']);
 
         const data = {
@@ -298,6 +298,18 @@ describe('encode()', () => {
         expect(got.both[0]).toBe(value1);
         expect(got.both[1]).toBe(value2);
       });
+
+      test('copies a non-frozen `Struct` that requires no inner encoding', () => {
+        const value = new Struct('floop', { a: 10, b: 20 }, 1, 2, 3);
+        const conv  = new Converter();
+        const got   = conv.encode(value);
+
+        expect(got).not.toBe(value);
+        expect(got).toBeFrozen();
+        expect(got.type).toBe(value.type);
+        expect(got.args).toStrictEqual(value.args);
+        expect(got.options).toStrictEqual(value.options);
+      })
     });
 
     describe('on instances of specially-handled classes', () => {
