@@ -116,10 +116,10 @@ export class Struct extends BaseDataClass {
    * `json` format of system logs; this is _not_ intended to be the long-term
    * solution for that format.
    *
-   * **Note:** This method is named as such (as opposed to the more
-   * standard-for-this-project `toJSON`), because the standard method
-   * `JSON.stringify()` looks for methods of this name to provide custom JSON
-   * serialization.
+   * **Note:** This method is named as such (as opposed to `toJson`, which would
+   * be more usual for this project), because the standard JavaScript method
+   * `JSON.stringify()` looks for methods of this specific name to provide
+   * custom JSON serialization behavior.
    *
    * @returns {object} The JSON-serializable form.
    */
