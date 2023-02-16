@@ -78,9 +78,13 @@ export class Struct {
    * doing "manual" mixing of encoding (per this class) and JSON serialization.
    *
    * The result of this specific method is meant more for human convenience than
-   * machine re-interpretation. If you find yourself wanting to write code to
-   * parse the output from this, consider figuring out how to get the object(s)
-   * in question to be "properly" encoded by this module instead.
+   * machine re-interpretation, especially in that there is some ambiguity in
+   * the representation (it's not reversible). If you find yourself wanting to
+   * write code to parse the output from this, consider figuring out how to get
+   * the object(s) in question to be "properly" encoded by this module instead.
+   * That said, as of this writing, this method is in fact used to produce the
+   * `json` format of system logs; this is _not_ intended to be the long-term
+   * solution for that format.
    *
    * **Note:** This method is named as such (as opposed to the more
    * standard-for-this-project `toJSON`), because the standard method
@@ -90,17 +94,23 @@ export class Struct {
    * @returns {object} The JSON-serializable form.
    */
   toJSON() {
-    const result = { type: this.#type };
+    const args    = this.#args;
+    const options = this.#options;
+    const type    = this.#fixJsonType();
 
-    if (Object.keys(this.#options).length !== 0) {
-      result.options = this.#options;
+    const hasStringType = (typeof type === 'string');
+    const hasOptions    = (Object.keys(options).length !== 0);
+    const hasArgs       = (args.length !== 0);
+
+    if (hasStringType) {
+      if (hasOptions && hasArgs) return { [type]: { options, args } };
+      else if (hasArgs)          return { [type]: args };
+      else                       return { [type]: options };
+    } else {
+      if (hasOptions && hasArgs) return { '@struct': { type, options, args } };
+      else if (hasArgs)          return { '@struct': { type, args } };
+      else                       return { '@struct': { type, options } };
     }
-
-    if (this.#args.length !== 0) {
-      result.args = this.#args;
-    }
-
-    return { '@struct': result };
   }
 
   /**
@@ -163,6 +173,23 @@ export class Struct {
     return parts.join('');
   }
 
+  /**
+   * Helper for {@link #toJSON}, which converts {@link #type} to something
+   * better, if possible, for conversion to JSON.
+   *
+   * @returns {*} The JSON-encodable type value.
+   */
+  #fixJsonType() {
+    const type = this.#type;
+
+    if (typeof type === 'string') {
+      return type.startsWith('@') ? type : `@${type}`;
+    } else if (typeof type === 'function') {
+      return `@${type?.name ?? 'anonymous'}`
+    } else {
+      return type;
+    }
+  }
 
   //
   // Static members
