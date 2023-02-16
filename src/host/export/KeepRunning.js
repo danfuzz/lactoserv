@@ -80,7 +80,7 @@ export class KeepRunning {
       ]);
 
       const uptimeSecs = (Date.now() / 1000) - startedAtSecs;
-      this.#logger.uptime(Duration.plainObjectFromSecs(uptimeSecs));
+      this.#logger.uptime(new Duration(uptimeSecs));
     }
 
     this.#logger.stopped();
