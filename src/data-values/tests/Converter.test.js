@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { BaseConverter, Converter, ConverterConfig, Ref, Struct }
-    from '@this/data-values';
+  from '@this/data-values';
 import { AskIf } from '@this/typey';
 
 
@@ -309,7 +309,7 @@ describe('encode()', () => {
         expect(got.type).toBe(value.type);
         expect(got.args).toStrictEqual(value.args);
         expect(got.options).toStrictEqual(value.options);
-      })
+      });
     });
 
     describe('on instances of specially-handled classes', () => {
