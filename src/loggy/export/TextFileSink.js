@@ -4,9 +4,10 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
-import { EventSink, LinkedEvent } from '@this/async';
+import { EventSink } from '@this/async';
 import { MustBe } from '@this/typey';
 
+import { LogEvent } from '#x/LogEvent';
 import { LogRecord } from '#x/LogRecord';
 
 
@@ -33,8 +34,8 @@ export class TextFileSink extends EventSink {
    * @param {string} format Name of the formatter to use.
    * @param {string} filePath File to write to. It is immediately resolved to an
    *   absolute path.
-   * @param {LinkedEvent|Promise<LinkedEvent>} firstEvent First event to be
-   *   processed by the instance, or promise for same.
+   * @param {LogEvent|Promise<LogEvent>} firstEvent First event to be processed
+   *   by the instance, or promise for same.
    */
   constructor(format, filePath, firstEvent) {
     MustBe.string(format);
@@ -70,7 +71,7 @@ export class TextFileSink extends EventSink {
   /**
    * Processes an event, by writing it to this instance's designated file.
    *
-   * @param {LinkedEvent} event Event to log.
+   * @param {LogEvent} event Event to log.
    */
   async #process(event) {
     if (!this.#everWritten) {
