@@ -19,11 +19,6 @@ export class LogTag {
   /** @type {string[]} Context strings. */
   #context;
 
-  /**
-   * @type {?string[]} Combined main tag and context string array, if available.
-   */
-  #fullArray = null;
-
   /** @type {?string[]} Precomputed "human form" strings, if available. */
   #humanStrings = null;
 
