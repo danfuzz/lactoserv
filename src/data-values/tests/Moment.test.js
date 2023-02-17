@@ -4,10 +4,11 @@
 import { Moment } from '@this/data-values';
 
 describe.each`
-method
-${'stringFromSecs'}
-${'plainObjectFromSecs'}
-`('$method()', ({ method }) => {
+method                    | isStatic  | returnsObject
+${'stringFromSecs'}       | ${true}   | ${false}
+${'plainObjectFromSecs'}  | ${true}   | ${true}
+${'toPlainObject'}        | ${false}  | ${true}
+`('$method()', ({ method, isStatic, returnsObject }) => {
   test.each`
   atSecs              | options                           | expected
   ${0}                | ${undefined}                      | ${'19700101-00:00:00'}
@@ -38,11 +39,14 @@ ${'plainObjectFromSecs'}
   ${1673916141.1234}  | ${{ colons: true, decimals: 1 }}  | ${'20230117-00:42:21.1'}
   ${1673916141.1234}  | ${{ colons: true, decimals: 2 }}  | ${'20230117-00:42:21.12'}
   `('with ($atSecs, $options)', ({ atSecs, options, expected }) => {
-    const result = Moment[method](atSecs, options);
-    if (method === 'stringFromSecs') {
-      expect(result).toBe(expected);
-    } else {
+    const result = isStatic
+      ? Moment[method](atSecs, options)
+      : new Moment(atSecs)[method](options);
+
+    if (returnsObject) {
       expect(result).toStrictEqual({ atSecs, utc: expected });
+    } else {
+      expect(result).toBe(expected);
     }
   });
 });
