@@ -3,6 +3,42 @@
 
 import { Moment } from '@this/data-values';
 
+
+describe('constructor()', () => {
+  test.each`
+  value
+  ${0}
+  ${0.1}
+  ${-10}
+  ${9999999999}
+  `('accepts $value', ({ value }) => {
+    expect(() => new Moment(value)).not.toThrow();
+  });
+
+  test.each`
+  value
+  ${undefined}
+  ${null}
+  ${123n}
+  ${Number.POSITIVE_INFINITY}
+  ${[1, 2, 3]}
+  `('throws given $value', ({ value }) => {
+    expect(() => new Moment(value)).toThrow();
+  });
+
+  test('produces a frozen instance', () => {
+    expect(new Moment(123)).toBeFrozen();
+  });
+});
+
+describe('.atSecs', () => {
+  test('returns the value from the constructor', () => {
+    expect(new Moment(0).atSecs).toBe(0);
+    expect(new Moment(123).atSecs).toBe(123);
+    expect(new Moment(456.789).atSecs).toBe(456.789);
+  });
+});
+
 describe.each`
 method                    | isStatic  | returnsObject
 ${'stringFromSecs'}       | ${true}   | ${false}
