@@ -2,13 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 
+import { Moment } from '@this/data-values';
+
 /**
  * Utilities for logging.
  */
 export class FormatUtils {
-  /** @type {number} Number of milliseconds in a second. */
-  static #MSEC_PER_SEC = 1000;
-
   /**
    * Makes a human-friendly network address/port string.
    *
@@ -87,10 +86,7 @@ export class FormatUtils {
    * @returns {object} Friendly compound object.
    */
   static compoundDateTimeFromSecs(atSecs, options = {}) {
-    return {
-      atSecs,
-      utc:  FormatUtils.dateTimeStringFromSecs(atSecs, options)
-    };
+    return Moment.plainObjectFromSecs(atSecs, options);
   }
 
   /**
@@ -107,32 +103,6 @@ export class FormatUtils {
    * @returns {string} The friendly time string.
    */
   static dateTimeStringFromSecs(atSecs, options = {}) {
-    const { colons = true, decimals = 0 } = options;
-
-    const d       = new Date(atSecs * this.#MSEC_PER_SEC);
-    const timeSep = colons ? ':' : '';
-    const parts   = [
-      d.getUTCFullYear().toString(),
-      (d.getUTCMonth() + 1).toString().padStart(2, '0'),
-      d.getUTCDate().toString().padStart(2, '0'),
-      '-',
-      d.getUTCHours().toString().padStart(2, '0'),
-      timeSep,
-      d.getUTCMinutes().toString().padStart(2, '0'),
-      timeSep,
-      d.getUTCSeconds().toString().padStart(2, '0')
-    ];
-
-    if (decimals !== 0) {
-      // Non-obvious: If you take `atSecs % 1` and then operate on the remaining
-      // fraction, you can end up with a string representation that's off by 1,
-      // because of floating point (im)precision. That's why we _don't_ do that.
-      const tenPower = 10 ** decimals;
-      const frac     = Math.floor(atSecs * tenPower % tenPower);
-      const fracStr  = frac.toString().padStart(decimals, '0');
-      parts.push('.', fracStr);
-    }
-
-    return parts.join('');
+    return Moment.stringFromSecs(atSecs, options);
   }
 }
