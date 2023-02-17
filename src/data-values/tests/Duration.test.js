@@ -20,6 +20,7 @@ describe('constructor()', () => {
   ${undefined}
   ${null}
   ${123n}
+  ${Number.POSITIVE_INFINITY}
   ${'27s' /* but maybe we want to do this? */}
   ${[1, 2, 3]}
   `('throws given $value', ({ value }) => {

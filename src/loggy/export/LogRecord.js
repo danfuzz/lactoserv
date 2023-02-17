@@ -3,10 +3,9 @@
 
 import * as util from 'node:util';
 
-import { BaseConverter, StackTrace, Struct } from '@this/data-values';
+import { BaseConverter, Moment, StackTrace, Struct } from '@this/data-values';
 import { MustBe } from '@this/typey';
 
-import { FormatUtils } from '#x/FormatUtils';
 import { LogTag } from '#x/LogTag';
 
 
@@ -99,7 +98,7 @@ export class LogRecord {
    */
   toHuman() {
     const parts = [
-      FormatUtils.dateTimeStringFromSecs(this.#atSecs, { decimals: 4 }),
+      Moment.stringFromSecs(this.#atSecs, { decimals: 4 }),
       ' ',
       this.#tag.toHuman(true),
       ...this.#toHumanPayload()
