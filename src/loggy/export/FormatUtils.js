@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 
-import { Moment } from '@this/data-values';
-
 /**
  * Utilities for logging.
  */
@@ -73,22 +71,5 @@ export class FormatUtils {
         ? `${megabytes}${spaceyChar}MB`
         : `${megabytes.toFixed(2)}${spaceyChar}MB`;
     }
-  }
-
-  /**
-   * Makes a date/time string in a reasonably pithy and understandable form,
-   * from a standard Unix time in _seconds_ (not msec). The result is a string
-   * represnting time in the UTC time zone.
-   *
-   * @param {number} atSecs Time in the form of seconds since the Unix Epoch.
-   * @param {object} [options = {}] Formatting options.
-   * @param {boolean} [options.colons = true] Use colons to separate the
-   *   time-of-day components?
-   * @param {number} [options.decimals = 0] Number of fractional-second digits
-   *    of precision. **Note:** Fractions of seconds are truncated, not rounded.
-   * @returns {string} The friendly time string.
-   */
-  static dateTimeStringFromSecs(atSecs, options = {}) {
-    return Moment.stringFromSecs(atSecs, options);
   }
 }
