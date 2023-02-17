@@ -9,7 +9,7 @@ import { BaseService } from '@this/app-framework';
 import { Threadlet } from '@this/async';
 import { Converter, ConverterConfig, Duration, Moment } from '@this/data-values';
 import { Host, ProcessInfo, ProductInfo } from '@this/host';
-import { FormatUtils, IntfLogger } from '@this/loggy';
+import { IntfLogger } from '@this/loggy';
 import { MustBe } from '@this/typey';
 
 

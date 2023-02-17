@@ -76,20 +76,6 @@ export class FormatUtils {
   }
 
   /**
-   * Makes a very friendly compound date-time object, which represents both
-   * seconds since the Unix Epoch as well as a string indicating the date-time
-   * in UTC.
-   *
-   * @param {number} atSecs Time in the form of seconds since the Unix Epoch.
-   * @param {object} [options = {}] Options, as with {@link
-   *   #dateTimeStringFromSecs}.
-   * @returns {object} Friendly compound object.
-   */
-  static compoundDateTimeFromSecs(atSecs, options = {}) {
-    return Moment.plainObjectFromSecs(atSecs, options);
-  }
-
-  /**
    * Makes a date/time string in a reasonably pithy and understandable form,
    * from a standard Unix time in _seconds_ (not msec). The result is a string
    * represnting time in the UTC time zone.

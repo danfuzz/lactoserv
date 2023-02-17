@@ -5,7 +5,7 @@ import * as http2 from 'node:http2';
 
 import * as express from 'express';
 
-import { Duration } from '@this/data-values';
+import { Duration, Moment } from '@this/data-values';
 import { FormatUtils, IntfLogger } from '@this/loggy';
 
 import { IntfRequestLogger } from '#x/IntfRequestLogger';
@@ -97,7 +97,7 @@ export class RequestLogHelper {
       logger?.closed({ contentLength, elapsedSecs });
 
       const requestLogLine = [
-        FormatUtils.dateTimeStringFromSecs(Date.now() / 1000, { decimals: 4 }),
+        Moment.stringFromSecs(Date.now() / 1000, { decimals: 4 }),
         origin,
         method,
         JSON.stringify(urlish),
