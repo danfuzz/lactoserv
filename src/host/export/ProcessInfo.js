@@ -1,6 +1,7 @@
 // Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { Moment } from '@this/data-values';
 import { FormatUtils } from '@this/loggy';
 
 import { ThisModule } from '#p/ThisModule';
@@ -54,7 +55,7 @@ export class ProcessInfo {
     this.#fixedInfo = {
       pid,
       ppid,
-      startedAt: FormatUtils.compoundDateTimeFromSecs(startSecs)
+      startedAt: new Moment(startSecs).toPlainObject()
     };
 
     ThisModule.logger.processInfo(this.#fixedInfo);

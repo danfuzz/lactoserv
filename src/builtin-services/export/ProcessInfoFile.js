@@ -7,7 +7,7 @@ import * as timers from 'node:timers/promises';
 import { FileServiceConfig } from '@this/app-config';
 import { BaseService } from '@this/app-framework';
 import { Threadlet } from '@this/async';
-import { Duration } from '@this/data-values';
+import { Converter, ConverterConfig, Duration, Moment } from '@this/data-values';
 import { Host, ProcessInfo, ProductInfo } from '@this/host';
 import { FormatUtils, IntfLogger } from '@this/loggy';
 import { MustBe } from '@this/typey';
@@ -39,6 +39,9 @@ export class ProcessInfoFile extends BaseService {
 
   /** @type {?object} Current info file contents, if known. */
   #contents = null;
+
+  /** @type {Converter} Data converter to use for encoding the file. */
+  #dataConverter = new Converter(ConverterConfig.makeLoggingInstance());
 
   /** @type {Threadlet} Threadlet which runs this service. */
   #runner = new Threadlet(() => this.#start(), () => this.#run());
@@ -97,8 +100,7 @@ export class ProcessInfoFile extends BaseService {
       // `startedAt` from `ProcessInfo` (which will appear in the earliest of
       // the `earlierRuns`) is kinda moot. Instead, substitute the current time,
       // that is, the _restart_ time.
-      contents.startedAt =
-        FormatUtils.compoundDateTimeFromSecs(Date.now() / 1000);
+      contents.startedAt = new Moment(Date.now() / 1000).toPlainObject();
     }
 
     return contents;
@@ -168,8 +170,8 @@ export class ProcessInfoFile extends BaseService {
     const stoppedAtSecs = Date.now() / 1000;
     const uptimeSecs    = stoppedAtSecs - contents.startedAt.atSecs;
 
-    contents.stoppedAt = FormatUtils.compoundDateTimeFromSecs(stoppedAtSecs);
-    contents.uptime    = new Duration(uptimeSecs);
+    contents.stoppedAt = new Moment(stoppedAtSecs).toPlainObject();
+    contents.uptime    = new Duration(uptimeSecs).toPlainObject();
 
     if (Host.isShuttingDown()) {
       contents.disposition = Host.shutdownDisposition();
@@ -196,8 +198,8 @@ export class ProcessInfoFile extends BaseService {
 
     this.#contents.disposition = {
       running:   true,
-      updatedAt: FormatUtils.compoundDateTimeFromSecs(updatedAtSecs),
-      uptime:    new Duration(updatedAtSecs - this.#contents.startedAt.atSecs)
+      updatedAt: new Moment(updatedAtSecs).toPlainObject(),
+      uptime:    new Duration(updatedAtSecs - this.#contents.startedAt.atSecs).toPlainObject()
     };
   }
 
@@ -205,7 +207,8 @@ export class ProcessInfoFile extends BaseService {
    * Writes the info file.
    */
   async #writeFile() {
-    const text = `${JSON.stringify(this.#contents, null, 2)}\n`;
+    const encoded = this.#dataConverter.encode(this.#contents);
+    const text = `${JSON.stringify(encoded, null, 2)}\n`;
 
     await this.config.createDirectoryIfNecessary();
     await fs.writeFile(this.#filePath, text);
