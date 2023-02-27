@@ -1,7 +1,231 @@
 Configuration Guide
 ===================
 
-TODO: COMING SOON!
+Lactoserv is configured with a JavaScript source file, not a JSON file. This
+tactic is meant to remove the need for "halfhearted programming" facilities
+baked into the server configuration parser itself. A configuration file is
+expected to be a module (`.mjs` or `.cjs`) which has a single `default` export
+consisting of a JavaScript object of the ultimate configuration. Very
+skeletally (and reductively):
+
+```js
+const config = {
+  // ... configuration ...
+};
+
+export default config;
+```
+
+**Note:** Please refer to the
+[example configuration file](../etc/example-setup/config/config.mjs)
+for reference: First, while this guide is intended to be accurate, the example
+configuration is actually tested regularly. Second, the example uses some of the
+tactics which are mentioned here, so you can see them "in action."
+
+## Configuration object bindings
+
+The following are the bindings that are expected at the top level of the
+exported configuration object:
+
+### hosts
+
+`hosts` is a list of hostname bindings. These map possibly-wildcarded hostnames
+to certificate-key pairs to use to authenticate the server as those hosts. This
+section is only required if the server needs to respond to host-authenticated
+protocols (which is of course probably going to be most of the time).
+
+```js
+const hosts = [
+  {
+    hostnames:   ['localhost', '*'],
+    certificate: '-----BEGIN CERTIFICATE-----...',
+    privateKey:  '-----BEGIN PRIVATE KEY-----...'
+  },
+  {
+    hostnames:   ['*.example.com'],
+    certificate: '-----BEGIN CERTIFICATE-----...',
+    privateKey:  '-----BEGIN PRIVATE KEY-----...'
+  },
+  // ... more ...
+];
+```
+
+Hostnames are allowed to start with a `*` to indicate a wildcard of _any number
+of subdomains, including zero._ Note that this is unlike how wildcards work in
+the underlying certificates, where a `*` denotes exactly one subdomain. And, to
+be clear, the hostname `*` will match _any_ hostname at all, with any number of
+subdomains.
+
+**Note:** If you want to keep the text of the keys and certificates out of the
+main configuration file, then the thing to do is just use the standard Node `fs`
+package to read the contents.
+
+### services
+
+`services` is a list of system services to be used, with each element naming and
+configuring one of them. A system service is simply an encapsulated bit of
+functionality that gets hooked up to the system in general or to some other more
+specific part of the system (specifically, to one or more applications).
+
+There are two required bindings for each system service, its `name` and its
+`class` (type). Beyond that, the configuration depends on the `class`. See below
+for a list of all built-in system services. The `name` is used both when logging
+activity (to the system log) and when hooking services up.
+
+```js
+const services = [
+  {
+    name:       'someService',
+    class:      'ServiceClass',
+    // ... class-specific configuration ...
+  },
+  // ... more ...
+```
+
+### applications
+
+`applications` is a list of applications to be used, with each element naming
+and configuring one of them. An application is an encapsulated bit of
+functionality which specifically knows how to respond to external (HTTP-ish)
+requests.
+
+As with services, there are two required bindings for each application, its
+`name` and its `class` (type). Beyond that, the configuration depends on the
+`class`. See below for a list of all built-in applications. The `name` is used
+both when logging activity (to the system log) and when hooking applications up
+to servers (endpoints).
+
+```js
+const applications = [
+  {
+    name:       'someApplication',
+    class:      'ApplicationClass',
+    // ... class-specific configuration ...
+  },
+  // ... more ...
+```
+
+### servers
+
+`servers` is a list of network endpoints to listen on, with each element naming
+and configuring one of them. Each element has the following bindings:
+
+* `name` &mdash; The name of the server. This is just used for logging and
+  related informational purposes.
+* `endpoint` &mdash; Details about the network endpoint. It is an object with
+  the following bindings:
+  * `hostnames` &mdash; A list of one or more hostnames to recognize, each name
+    in the same form as accepted in the `hosts` section of the configuration. In
+    most cases, it will suffice to just specify this as `['*']`.
+  * `interface` &mdash; The address of the specific network interface to listen
+    on, or `'*'` to listen on all interfaces. In most cases, `'*'` is a-okay.
+  * `port` &mdash; The port number to listen on.
+  * `protocol` &mdash; The protocol to speak. This can be any of `http`,
+    `https`, or `http2`. `http2` includes fallback to `https`.
+* `mounts` &mdash; A list of application mount points, each of which is an
+  object with the following bindings:
+  * `application` &mdash; The name of the application to mount.
+  * `at` &mdash; The mount point of the application, in the form of a
+    protocol-less URI path, of the form `//hostname/base/path`, where `hostname`
+    is a hostname in the same form as accepted in the `hosts` section of the
+    configuration (including partial and full wildcards), and `base/path` is the
+    base path under that hostname at which the application is to respond.
+* `services` &mdash; An object which binds roles to system services by name.
+  This binding is optional, and if present all roles are optional. The following
+  roles are recognized:
+  * `rateLimiter` &mdash; A request/data rate limiter.
+  * `requestLogger` &mdash; A request logger.
+
+```js
+const servers = [
+  {
+    name: 'someServer',
+    endpoint: {
+      hostnames: ['*'],
+      interface: '*',
+      port:      8443,
+      protocol:  'http2'
+    },
+    mounts: [
+      {
+        application: 'mainSite',
+        at:          '//*/'
+      },
+      {
+        application: 'control',
+        at:          '//*/.control'
+      },
+      // ... more ...
+    ],
+    services: {
+      rateLimiter:   'limiter',
+      requestLogger: 'requests'
+    }
+  },
+```
+
+**A note about application mounts:** When finding an application to dispatch a
+request to, the system will pick the most-specific matching hostname from the
+mounts, and then within that hostname will pick the most-specific matching path.
+It then asks the so-identified application to handle the request. If the
+application chooses not to handle it, then the system will pick the next most
+specific path, and so on, until there are no more options within the selected
+hostname. (It will not fall back to less specific hostnames.)
+
+## Built-in Applications
+
+### `Redirector`
+
+An application which responds to all requests with an HTTP "redirect" response.
+It accepts the following configuration bindings:
+
+* `statusCode` &mdash; Optional HTTP status code to respond with. If not
+  specified, it defaults to `301` ("Moved Permanently").
+* `target` &mdash; The base URL to redirect to. This is prepended to the partial
+  path of each request to form the final redirection URL.
+
+```js
+const applications = [
+  {
+    name:       'myRedirector',
+    class:      'Redirector',
+    statusCode: 308,
+    target:     'https://example.com/boop/'
+  }
+];
+```
+
+### `StaticFiles`
+
+An application which serves static files from a local directory. (This is a
+thin veneer over the same functionality as bundled with Express.) It accepts the
+following configuration bindings:
+
+* `notFoundPath` &mdash; Optional filesystem path to the file to serve when a
+  file/path is not found. The indicated file will get sent back along with a
+  `404` ("Not Found") status code.
+* `siteDirectory` &mdash; Filesystem directory root for the files to serve.
+
+```js
+const applications = [
+  {
+    name:          'mySite',
+    class:         'StaticFiles',
+    siteDirectory: '/path/to/site',
+    notFoundPath:  '/path/to/404.html'
+  },
+];
+```
+
+## Built-in Services
+
+TODO
+
+## Custom Applications and Services
+
+As of this writing, there is no way to use the configuration file to add new
+classes of application or service. The intention is for that to be added in the
+future.
 
 - - - - - - - - - -
 ```
