@@ -50,7 +50,6 @@ export class Duration {
    * represents a rounded value, in a format which varies based on the magnitude
    * of the duration.
    *
-   * @param {number} durationSecs Duration in seconds.
    * @param {object} [options = {}] Formatting options, as with {@link
    *   #stringFromSecs}.
    * @returns {string} The friendly form.
