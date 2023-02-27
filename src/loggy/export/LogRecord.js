@@ -56,6 +56,11 @@ export class LogRecord {
     this.#args = args;
   }
 
+  /** @returns {*[]} Event arguments, whose meaning depends on {@link #type}. */
+  get args() {
+    return this.#args;
+  }
+
   /** @returns {number} Moment in time that this instance represents. */
   get atSecs() {
     return this.#atSecs;
@@ -74,11 +79,6 @@ export class LogRecord {
   /** @returns {string} Event "type." */
   get type() {
     return this.#type;
-  }
-
-  /** @returns {*[]} Event arguments, whose meaning depends on {@link #type}. */
-  get args() {
-    return this.#args;
   }
 
   /**
