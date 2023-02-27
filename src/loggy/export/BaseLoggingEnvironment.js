@@ -139,16 +139,6 @@ export class BaseLoggingEnvironment {
   }
 
   /**
-   * Gets a timestamp representing "now," represented as seconds since the
-   * Unix Epoch, with microsecond-or-better precision. TODO: Remove this!
-   *
-   * @returns {number} "Now" in seconds.
-   */
-  nowSec() {
-    return this.now().atSecs;
-  }
-
-  /**
    * Outputs the given record to its ultimate destination. For example, the
    * standard concrete implementation of this method emits a {@link #LogEvent}
    * with `record` as the payload.
@@ -183,8 +173,8 @@ export class BaseLoggingEnvironment {
   }
 
   /**
-   * Gets a {@link Moment} representing "now." This is called by {@link
-   * #nowSec}, which sanity-checks the value before returning it.
+   * Gets a {@link Moment} representing "now." This is called by {@link #now},
+   * which sanity-checks the value before returning it.
    *
    * @abstract
    * @returns {Moment} The moment "now."
