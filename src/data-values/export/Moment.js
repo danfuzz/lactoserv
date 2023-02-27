@@ -4,6 +4,7 @@
 import { MustBe } from '@this/typey';
 
 import { BaseConverter } from '#x/BaseConverter';
+import { Duration } from '#x/Duration';
 import { Struct } from '#x/Struct';
 
 
@@ -42,15 +43,40 @@ export class Moment {
   }
 
   /**
+   * Gets the difference `this - other` as a {@link Duration}.
+   *
+   * @param {Moment} other Moment to subtract from this instance.
+   * @returns {Duration} The duration from `this` to `other`.
+   */
+  subtract(other) {
+    MustBe.instanceOf(other, Moment);
+    return new Duration(this.#atSecs - other.#atSecs);
+  }
+
+  /**
    * Makes a friendly plain object representing this instance, which represents
    * both seconds since the Unix Epoch as well as a string indicating the
    * date-time in UTC.
    *
-   * @param {object} [options = {}] Options, as with {@link #stringFromSecs}.
+   * @param {object} [options = {}] Formatting options, as with {@link
+   *   #stringFromSecs}.
    * @returns {object} Friendly representation object.
    */
   toPlainObject(options = {}) {
     return Moment.plainObjectFromSecs(this.#atSecs, options);
+  }
+
+  /**
+   * Makes a date-time string representing this instance, in a reasonably pithy
+   * and understandable form. The result is a string representing the date-time
+   * in UTC.
+   *
+   * @param {object} [options = {}] Formatting options, as with {@link
+   *   #stringFromSecs}.
+   * @returns {string} The friendly time string.
+   */
+  toString(options = {}) {
+    return Moment.stringFromSecs(this.#atSecs, options);
   }
 
   /**
@@ -62,7 +88,7 @@ export class Moment {
     // Note: This is included for the convenience of humans who happen to be
     // looking at logs (etc.), but is not actually used when reconstructing an
     // instance. TODO: Re-evaluate this tactic.
-    const str = Moment.stringFromSecs(this.#atSecs);
+    const str = this.toString({ decimals: 6 });
 
     return new Struct(Moment, null, this.#atSecs, str);
   }
@@ -79,7 +105,8 @@ export class Moment {
    *
    * @param {number} atSecs The moment to represent, in the form of seconds
    *   since the Unix Epoch.
-   * @param {object} [options = {}] Options, as with {@link #stringFromSecs}.
+   * @param {object} [options = {}] Formatting options, as with {@link
+   *   #stringFromSecs}.
    * @returns {object} Friendly representation object.
    */
   static plainObjectFromSecs(atSecs, options = {}) {
@@ -91,7 +118,7 @@ export class Moment {
 
   /**
    * Makes a date-time string in a reasonably pithy and understandable form. The
-   * The result is a string representing the date-time in UTC.
+   * result is a string representing the date-time in UTC.
    *
    * @param {number} atSecs Time in the form of seconds since the Unix Epoch.
    * @param {object} [options = {}] Formatting options.

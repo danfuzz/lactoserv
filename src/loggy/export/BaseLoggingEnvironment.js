@@ -1,7 +1,7 @@
 // Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Converter, ConverterConfig, StackTrace } from '@this/data-values';
+import { Converter, ConverterConfig, Moment, StackTrace } from '@this/data-values';
 import { Methods, MustBe } from '@this/typey';
 
 import { LogRecord } from '#x/LogRecord';
@@ -121,19 +121,18 @@ export class BaseLoggingEnvironment {
   }
 
   /**
-   * Gets a timestamp representing "now," represented as seconds since the
-   * Unix Epoch, with microsecond-or-better precision.
+   * Gets a moment representing "now.""
    *
-   * @abstract
-   * @returns {number} "Now" in seconds.
+   * @returns {Moment} The moment "now."
    */
-  nowSec() {
-    const result = MustBe.number(this._impl_nowSec());
+  now() {
+    const result = MustBe.instanceOf(this._impl_now(), Moment);
+    const atSecs = result.atSecs;
 
-    if (result < BaseLoggingEnvironment.MIN_REASONABLE_NOW_SEC) {
-      throw new Error('Too small to be a reasonable timestamp.');
-    } else if (result > BaseLoggingEnvironment.MAX_REASONABLE_NOW_SEC) {
-      throw new Error('Too large to be a reasonable timestamp.');
+    if (atSecs < BaseLoggingEnvironment.MIN_REASONABLE_NOW_SEC) {
+      throw new Error('Too small to be a reasonable "now."');
+    } else if (atSecs > BaseLoggingEnvironment.MAX_REASONABLE_NOW_SEC) {
+      throw new Error('Too large to be a reasonable "now."');
     }
 
     return result;
@@ -174,14 +173,13 @@ export class BaseLoggingEnvironment {
   }
 
   /**
-   * Gets a timestamp representing "now," represented as seconds since the
-   * Unix Epoch, with microsecond-or-better precision. This is called by
-   * {@link #nowSec}, which sanity-checks the value before returning it.
+   * Gets a {@link Moment} representing "now." This is called by {@link #now},
+   * which sanity-checks the value before returning it.
    *
    * @abstract
-   * @returns {number} "Now" in seconds.
+   * @returns {Moment} The moment "now."
    */
-  _impl_nowSec() {
+  _impl_now() {
     Methods.abstract();
   }
 
@@ -197,13 +195,13 @@ export class BaseLoggingEnvironment {
    * @returns {LogRecord} The constructed record.
    */
   #makeRecordUnchecked(omitCount, tag, type, ...args) {
-    const nowSec    = this.nowSec();
+    const now       = this.now();
     const fixedArgs = this.#dataConverter.encode(args);
 
     // `+1` to omit the frame for this method.
     const trace = this.makeStackTrace(omitCount + 1);
 
-    return new LogRecord(nowSec, tag, type, fixedArgs, trace);
+    return new LogRecord(now, tag, type, fixedArgs, trace);
   }
 
 

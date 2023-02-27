@@ -5,7 +5,7 @@ import * as http2 from 'node:http2';
 
 import * as express from 'express';
 
-import { Duration, Moment } from '@this/data-values';
+import { Moment } from '@this/data-values';
 import { FormatUtils, IntfLogger } from '@this/loggy';
 
 import { IntfRequestLogger } from '#x/IntfRequestLogger';
@@ -50,7 +50,7 @@ export class RequestLogHelper {
    *   this request.
    */
   logRequest(req, res, context) {
-    const startTime = this.#logger?.$env.nowSec();
+    const startTime = this.#logger?.$env.now();
     const logger    = this.#logger?.$newId ?? null;
     const requestId = logger?.$meta.lastContext;
     const urlish    = `${req.protocol}://${req.hostname}${req.originalUrl}`;
@@ -91,10 +91,10 @@ export class RequestLogHelper {
       logger?.response(res.statusCode,
         RequestLogHelper.#sanitizeResponseHeaders(resHeaders));
 
-      const endTime     = this.#logger?.$env.nowSec();
-      const elapsedSecs = endTime - startTime;
+      const endTime  = this.#logger?.$env.now();
+      const duration = endTime.subtract(startTime);
 
-      logger?.closed({ contentLength, elapsedSecs });
+      logger?.closed({ contentLength, duration });
 
       const requestLogLine = [
         Moment.stringFromSecs(Date.now() / 1000, { decimals: 4 }),
@@ -103,7 +103,7 @@ export class RequestLogHelper {
         JSON.stringify(urlish),
         res.statusCode,
         FormatUtils.byteCountString(contentLength, { spaces: false }),
-        Duration.stringFromSecs(elapsedSecs, { spaces: false }),
+        duration.toString({ spaces: false }),
         errorMsg
       ].join(' ');
 

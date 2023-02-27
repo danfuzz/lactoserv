@@ -3,7 +3,6 @@
 
 import { ApplicationConfig } from '@this/app-config';
 import { ManualPromise } from '@this/async';
-import { Duration } from '@this/data-values';
 import { BaseLoggingEnvironment, IntfLogger } from '@this/loggy';
 import { WranglerContext } from '@this/network-protocol';
 import { Methods } from '@this/typey';
@@ -62,7 +61,7 @@ export class BaseApplication extends BaseComponent {
     let id;
 
     if (this.logger) {
-      startTime = this.#loggingEnv.nowSec();
+      startTime = this.#loggingEnv.now();
       id        = WranglerContext.get(req)?.id;
       this.logger.handling(id, req.url);
     }
@@ -83,10 +82,9 @@ export class BaseApplication extends BaseComponent {
           eventType = 'threw';
         }
 
-        const endTime  = this.#loggingEnv.nowSec();
-        const duration = endTime - startTime;
-        const durStr   = Duration.stringFromSecs(duration);
-        this.logger[eventType](id, durStr, ...error);
+        const endTime  = this.#loggingEnv.now();
+        const duration = endTime.subtract(startTime);
+        this.logger[eventType](id, duration, ...error);
       })();
     }
 

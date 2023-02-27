@@ -3,7 +3,7 @@
 
 import * as process from 'node:process';
 
-import { StackTrace } from '@this/data-values';
+import { Moment, StackTrace } from '@this/data-values';
 import { MustBe } from '@this/typey';
 
 import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
@@ -24,7 +24,7 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
   /** @type {bigint} Last result from `hrtime.bigint()`. */
   #lastHrtimeNsec = -1n;
 
-  /** @type {bigint} Last result from {@link #_impl_nowSec}, as a `bigint`. */
+  /** @type {bigint} Last result from {@link #nowSecs}, as a `bigint`. */
   #lastNowNsec = -1n;
 
   /**
@@ -45,7 +45,7 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
 
   /** @override */
   _impl_makeId() {
-    return this.#idGenerator.makeId(this._impl_nowSec());
+    return this.#idGenerator.makeId(this.#nowSecs());
   }
 
   /** @override */
@@ -55,7 +55,16 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
   }
 
   /** @override */
-  _impl_nowSec() {
+  _impl_now() {
+    return new Moment(this.#nowSecs());
+  }
+
+  /**
+   * Gets the "now" moment as a plain number of seconds since the Unix Epoch.
+   *
+   * @returns {number} "Now," as a number of seconds.
+   */
+  #nowSecs() {
     // What's going on here: We attempt to use `hrtime()` -- which has nsec
     // precision but an arbitrary zero-time, and which we don't assume runs at
     // exactly (effective) wall-clock rate -- to improve on the precision of
