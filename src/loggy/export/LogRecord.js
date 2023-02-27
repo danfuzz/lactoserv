@@ -14,8 +14,8 @@ import { LogTag } from '#x/LogTag';
  * module.
  */
 export class LogRecord {
-  /** @type {number} Moment in time that this instance represents. */
-  #atSecs;
+  /** @type {Moment} Moment in time that this instance represents. */
+  #when;
 
   /** @type {LogTag} Tag. */
   #tag;
@@ -32,7 +32,7 @@ export class LogRecord {
   /**
    * Constructs an instance.
    *
-   * @param {number} atSecs Moment in time that this instance represents.
+   * @param {Moment} when Moment in time that this instance represents.
    * @param {LogTag} tag Tag for the instance, that is, component name and
    *   optional context.
    * @param {string} type "Type" of the instance, e.g. think of this as
@@ -43,11 +43,11 @@ export class LogRecord {
    * @param {?StackTrace} [stack = null] Stack trace associated with this
    *   instance, if available.
    */
-  constructor(atSecs, tag, type, args, stack = null) {
-    this.#atSecs = MustBe.number(atSecs);
-    this.#tag    = MustBe.instanceOf(tag, LogTag);
-    this.#type   = MustBe.string(type);
-    this.#stack  = (stack === null) ? null : MustBe.instanceOf(stack, StackTrace);
+  constructor(when, tag, type, args, stack = null) {
+    this.#when  = MustBe.instanceOf(when, Moment);
+    this.#tag   = MustBe.instanceOf(tag, LogTag);
+    this.#type  = MustBe.string(type);
+    this.#stack = (stack === null) ? null : MustBe.instanceOf(stack, StackTrace);
 
     MustBe.array(args);
     if (!Object.isFrozen(args)) {
@@ -61,9 +61,12 @@ export class LogRecord {
     return this.#args;
   }
 
-  /** @returns {number} Moment in time that this instance represents. */
+  /**
+   * @returns {number} Moment in time that this instance represents, as a number
+   * of seconds. TODO: Remove this!.
+   */
   get atSecs() {
-    return this.#atSecs;
+    return this.#when.atSecs;
   }
 
   /** @returns {?StackTrace} Stack trace, if available. */
@@ -81,6 +84,11 @@ export class LogRecord {
     return this.#type;
   }
 
+  /** @returns {Moment} Moment in time that this instance represents. */
+  get when() {
+    return this.#when;
+  }
+
   /**
    * Gets a string representation of this instance intended for maximally-easy
    * human consumption.
@@ -89,7 +97,7 @@ export class LogRecord {
    */
   toHuman() {
     const parts = [
-      Moment.stringFromSecs(this.#atSecs, { decimals: 4 }),
+      this.#when.toString({ decimals: 4 }),
       ' ',
       this.#tag.toHuman(true),
       ...this.#toHumanPayload()
@@ -105,11 +113,11 @@ export class LogRecord {
    */
   [BaseConverter.ENCODE]() {
     return new Struct(LogRecord, {
-      atSecs: this.#atSecs,
-      tag:    this.#tag,
-      type:   this.#type,
-      args:   this.#args,
-      stack:  this.#stack
+      when:  this.#when,
+      tag:   this.#tag,
+      type:  this.#type,
+      args:  this.#args,
+      stack: this.#stack
     });
   }
 
@@ -154,6 +162,9 @@ export class LogRecord {
     getters:     true
   });
 
+  /** @type {Moment} Moment to use for "kickoff" instances. */
+  static #KICKOFF_MOMENT = new Moment(0);
+
   /** @type {string} Default event type to use for "kickoff" instances. */
   static #KICKOFF_TYPE = 'kickoff';
 
@@ -174,6 +185,6 @@ export class LogRecord {
   static makeKickoffInstance(tag = null, type = null) {
     tag  ??= this.#KICKOFF_TAG;
     type ??= this.#KICKOFF_TYPE;
-    return new LogRecord(0, tag, type, Object.freeze([]));
+    return new LogRecord(this.#KICKOFF_MOMENT, tag, type, Object.freeze([]));
   }
 }

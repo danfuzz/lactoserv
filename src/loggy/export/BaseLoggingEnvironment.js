@@ -1,7 +1,7 @@
 // Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Converter, ConverterConfig, StackTrace } from '@this/data-values';
+import { Converter, ConverterConfig, Moment, StackTrace } from '@this/data-values';
 import { Methods, MustBe } from '@this/typey';
 
 import { LogRecord } from '#x/LogRecord';
@@ -203,7 +203,7 @@ export class BaseLoggingEnvironment {
     // `+1` to omit the frame for this method.
     const trace = this.makeStackTrace(omitCount + 1);
 
-    return new LogRecord(nowSec, tag, type, fixedArgs, trace);
+    return new LogRecord(new Moment(nowSec), tag, type, fixedArgs, trace);
   }
 
 
