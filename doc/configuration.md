@@ -219,6 +219,24 @@ const applications = [
 
 ## Built-in Services
 
+### `ProcessIdFile`
+
+TODO
+
+### `ProcessInfoFile`
+
+TODO
+
+### `RateLimiter`
+
+TODO
+
+### `RequestLogger`
+
+TODO
+
+### `SystemLogger`
+
 TODO
 
 ## Custom Applications and Services
