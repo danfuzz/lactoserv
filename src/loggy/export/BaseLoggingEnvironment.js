@@ -205,13 +205,13 @@ export class BaseLoggingEnvironment {
    * @returns {LogRecord} The constructed record.
    */
   #makeRecordUnchecked(omitCount, tag, type, ...args) {
-    const nowSec    = this.nowSec();
+    const now       = this.now();
     const fixedArgs = this.#dataConverter.encode(args);
 
     // `+1` to omit the frame for this method.
     const trace = this.makeStackTrace(omitCount + 1);
 
-    return new LogRecord(new Moment(nowSec), tag, type, fixedArgs, trace);
+    return new LogRecord(now, tag, type, fixedArgs, trace);
   }
 
 
