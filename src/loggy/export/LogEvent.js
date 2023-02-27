@@ -27,6 +27,11 @@ export class LogEvent extends LinkedEvent {
     super(payload, next);
   }
 
+  /** @returns {*[]} Convenient accessor for `payload.args`. */
+  get args() {
+    return this.payload.args;
+  }
+
   /** @returns {?StackTrace} Convenient accessor for `payload.stack`. */
   get stack() {
     return this.payload.stack;
@@ -45,11 +50,6 @@ export class LogEvent extends LinkedEvent {
   /** @returns {number} Convenient accessor for `payload.when`. */
   get when() {
     return this.payload.when;
-  }
-
-  /** @returns {*[]} Convenient accessor for `payload.args`. */
-  get args() {
-    return this.payload.args;
   }
 
 
