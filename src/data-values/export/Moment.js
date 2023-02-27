@@ -76,7 +76,7 @@ export class Moment {
     // Note: This is included for the convenience of humans who happen to be
     // looking at logs (etc.), but is not actually used when reconstructing an
     // instance. TODO: Re-evaluate this tactic.
-    const str = Moment.stringFromSecs(this.#atSecs);
+    const str = this.toString({ decimals: 6 });
 
     return new Struct(Moment, null, this.#atSecs, str);
   }
