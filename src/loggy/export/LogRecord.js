@@ -61,14 +61,6 @@ export class LogRecord {
     return this.#args;
   }
 
-  /**
-   * @returns {number} Moment in time that this instance represents, as a number
-   * of seconds. TODO: Remove this!.
-   */
-  get atSecs() {
-    return this.#when.atSecs;
-  }
-
   /** @returns {?StackTrace} Stack trace, if available. */
   get stack() {
     return this.#stack;
