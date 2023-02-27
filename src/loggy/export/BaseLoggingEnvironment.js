@@ -128,7 +128,8 @@ export class BaseLoggingEnvironment {
    * @returns {number} "Now" in seconds.
    */
   nowSec() {
-    const result = MustBe.number(this._impl_nowSec());
+    const nowMoment = MustBe.instanceOf(this._impl_now(), Moment);
+    const result    = nowMoment.atSecs;
 
     if (result < BaseLoggingEnvironment.MIN_REASONABLE_NOW_SEC) {
       throw new Error('Too small to be a reasonable timestamp.');
@@ -174,14 +175,13 @@ export class BaseLoggingEnvironment {
   }
 
   /**
-   * Gets a timestamp representing "now," represented as seconds since the
-   * Unix Epoch, with microsecond-or-better precision. This is called by
-   * {@link #nowSec}, which sanity-checks the value before returning it.
+   * Gets a {@link Moment} representing "now." This is called by {@link
+   * #nowSec}, which sanity-checks the value before returning it.
    *
    * @abstract
-   * @returns {number} "Now" in seconds.
+   * @returns {Moment} The moment "now."
    */
-  _impl_nowSec() {
+  _impl_now() {
     Methods.abstract();
   }
 
