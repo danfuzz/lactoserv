@@ -3,7 +3,6 @@
 
 import { ApplicationConfig } from '@this/app-config';
 import { ManualPromise } from '@this/async';
-import { Duration } from '@this/data-values';
 import { BaseLoggingEnvironment, IntfLogger } from '@this/loggy';
 import { WranglerContext } from '@this/network-protocol';
 import { Methods } from '@this/typey';

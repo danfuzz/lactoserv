@@ -5,7 +5,7 @@ import * as http2 from 'node:http2';
 
 import * as express from 'express';
 
-import { Duration, Moment } from '@this/data-values';
+import { Moment } from '@this/data-values';
 import { FormatUtils, IntfLogger } from '@this/loggy';
 
 import { IntfRequestLogger } from '#x/IntfRequestLogger';
