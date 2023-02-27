@@ -32,11 +32,6 @@ export class LogEvent extends LinkedEvent {
     return this.payload.stack;
   }
 
-  /** @returns {number} Convenient accessor for `payload.atSecs`. */
-  get atSecs() {
-    return this.payload.atSecs;
-  }
-
   /** @returns {LogTag} Convenient accessor for `payload.tag`. */
   get tag() {
     return this.payload.tag;
@@ -45,6 +40,11 @@ export class LogEvent extends LinkedEvent {
   /** @returns {string} Convenient accessor for `payload.type`. */
   get type() {
     return this.payload.type;
+  }
+
+  /** @returns {number} Convenient accessor for `payload.when`. */
+  get when() {
+    return this.payload.when;
   }
 
   /** @returns {*[]} Convenient accessor for `payload.args`. */
