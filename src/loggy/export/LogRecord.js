@@ -14,10 +14,7 @@ import { LogTag } from '#x/LogTag';
  * module.
  */
 export class LogRecord {
-  /**
-   * @type {number} Moment in time, as Unix Epoch seconds, with precision
-   * expected to be microseconds or better.
-   */
+  /** @type {number} Moment in time that this instance represents. */
   #atSecs;
 
   /** @type {LogTag} Tag. */
@@ -35,9 +32,7 @@ export class LogRecord {
   /**
    * Constructs an instance.
    *
-   * @param {number} atSecs Moment in time that this instance represents, as
-   *   seconds since the start of the Unix Epoch, with precision expected to be
-   *   microseconds or better.
+   * @param {number} atSecs Moment in time that this instance represents.
    * @param {LogTag} tag Tag for the instance, that is, component name and
    *   optional context.
    * @param {string} type "Type" of the instance, e.g. think of this as
@@ -61,11 +56,7 @@ export class LogRecord {
     this.#args = args;
   }
 
-  /**
-   * @returns {number} Moment in time that this instance represents, as seconds
-   * since the start of the Unix Epoch, with precision expected to be
-   * microseconds or better.
-   */
+  /** @returns {number} Moment in time that this instance represents. */
   get atSecs() {
     return this.#atSecs;
   }
