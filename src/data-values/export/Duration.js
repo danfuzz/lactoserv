@@ -46,6 +46,20 @@ export class Duration {
   }
 
   /**
+   * Makes a human-friendly string representing this instance. The result string
+   * represents a rounded value, in a format which varies based on the magnitude
+   * of the duration.
+   *
+   * @param {number} durationSecs Duration in seconds.
+   * @param {object} [options = {}] Formatting options, as with {@link
+   *   #stringFromSecs}.
+   * @returns {string} The friendly form.
+   */
+  toString(options = {}) {
+    return Duration.stringFromSecs(this.#secs, options);
+  }
+
+  /**
    * Implementation of `data-values` custom-encode protocol.
    *
    * @returns {Struct} Encoded form.
