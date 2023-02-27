@@ -121,23 +121,31 @@ export class BaseLoggingEnvironment {
   }
 
   /**
-   * Gets a timestamp representing "now," represented as seconds since the
-   * Unix Epoch, with microsecond-or-better precision.
+   * Gets a moment representing "now.""
    *
-   * @abstract
-   * @returns {number} "Now" in seconds.
+   * @returns {Moment} The moment "now."
    */
-  nowSec() {
-    const nowMoment = MustBe.instanceOf(this._impl_now(), Moment);
-    const result    = nowMoment.atSecs;
+  now() {
+    const result = MustBe.instanceOf(this._impl_now(), Moment);
+    const atSecs = result.atSecs;
 
-    if (result < BaseLoggingEnvironment.MIN_REASONABLE_NOW_SEC) {
-      throw new Error('Too small to be a reasonable timestamp.');
-    } else if (result > BaseLoggingEnvironment.MAX_REASONABLE_NOW_SEC) {
-      throw new Error('Too large to be a reasonable timestamp.');
+    if (atSecs < BaseLoggingEnvironment.MIN_REASONABLE_NOW_SEC) {
+      throw new Error('Too small to be a reasonable "now."');
+    } else if (atSecs > BaseLoggingEnvironment.MAX_REASONABLE_NOW_SEC) {
+      throw new Error('Too large to be a reasonable "now."');
     }
 
     return result;
+  }
+
+  /**
+   * Gets a timestamp representing "now," represented as seconds since the
+   * Unix Epoch, with microsecond-or-better precision. TODO: Remove this!
+   *
+   * @returns {number} "Now" in seconds.
+   */
+  nowSec() {
+    return this.now().atSecs;
   }
 
   /**
