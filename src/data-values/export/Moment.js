@@ -4,6 +4,7 @@
 import { MustBe } from '@this/typey';
 
 import { BaseConverter } from '#x/BaseConverter';
+import { Duration } from '#x/Duration';
 import { Struct } from '#x/Struct';
 
 
@@ -39,6 +40,17 @@ export class Moment {
    */
   get atSecs() {
     return this.#atSecs;
+  }
+
+  /**
+   * Gets the difference `this - other` as a {@link Duration}.
+   *
+   * @param {Moment} other Moment to subtract from this instance.
+   * @returns {Duration} The duration from `this` to `other`.
+   */
+  subtract(other) {
+    MustBe.instanceOf(other, Moment);
+    return new Duration(this.#atSecs - other.#atSecs);
   }
 
   /**

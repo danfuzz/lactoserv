@@ -1,7 +1,7 @@
 // Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Moment } from '@this/data-values';
+import { Duration, Moment } from '@this/data-values';
 
 
 describe('constructor()', () => {
@@ -36,6 +36,20 @@ describe('.atSecs', () => {
     expect(new Moment(0).atSecs).toBe(0);
     expect(new Moment(123).atSecs).toBe(123);
     expect(new Moment(456.789).atSecs).toBe(456.789);
+  });
+});
+
+describe('subtract()', () => {
+  test.each`
+  m1          | m2           | expected
+  ${12345}    | ${12345}     | ${0}
+  ${10000002} | ${10000001}  | ${1}
+  ${10000001} | ${10000002}  | ${-1}
+  `('works given ($m1, $m2)', ({ m1, m2, expected }) => {
+    const moment1 = new Moment(m1);
+    const moment2 = new Moment(m2);
+    const diff    = moment1.subtract(moment2);
+    expect(diff.secs).toBe(expected);
   });
 });
 
