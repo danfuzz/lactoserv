@@ -165,12 +165,10 @@ export class Rotator {
       dateStr  = null
     } = options;
 
-    const todayStr   = Rotator.#makeInfix(new Date());
-    const directory  = this.#config.directory;
-    const basePrefix = this.#config.basePrefix;
-    const baseSuffix = this.#config.baseSuffix;
-    const contents   = await fs.readdir(directory);
-    const result     = [];
+    const { directory, basePrefix, baseSuffix } = this.#config.splitPath();
+    const todayStr = Rotator.#makeInfix(new Date());
+    const contents = await fs.readdir(directory);
+    const result   = [];
 
     for (const name of contents) {
       const parsed = Rotator.#parseInfix(name, basePrefix, baseSuffix);
