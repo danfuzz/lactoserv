@@ -5,7 +5,7 @@ import { MountConfig, ServerConfig } from '@this/app-config';
 
 import { BaseApplication } from '#x/BaseApplication';
 import { BaseControllable } from '#x/BaseControllable';
-import { NetworkServer } from '#x/NetworkServer';
+import { NetworkEndpoint } from '#x/NetworkEndpoint';
 import { ThisModule } from '#p/ThisModule';
 import { Warehouse } from '#x/Warehouse';
 
@@ -20,8 +20,8 @@ export class ServerManager extends BaseControllable {
   #warehouse;
 
   /**
-   * @type {Map<string, NetworkServer>} Map from each endpoint name to the
-   * {@link NetworkServer} object with that name.
+   * @type {Map<string, NetworkEndpoint>} Map from each endpoint name to the
+   * {@link NetworkEndpoint} object with that name.
    */
   #instances = new Map();
 
@@ -42,10 +42,10 @@ export class ServerManager extends BaseControllable {
   }
 
   /**
-   * Finds the {@link NetworkServer} for a given name.
+   * Finds the {@link NetworkEndpoint} for a given name.
    *
    * @param {string} name Endpoint name to look for.
-   * @returns {NetworkServer} The associated endpoint.
+   * @returns {NetworkEndpoint} The associated endpoint.
    * @throws {Error} Thrown if there is no endpoint with the given name.
    */
   findServer(name) {
@@ -61,7 +61,7 @@ export class ServerManager extends BaseControllable {
   /**
    * Gets a list of all endpoints managed by this instance.
    *
-   * @returns {NetworkServer[]} All the endpoints.
+   * @returns {NetworkEndpoint[]} All the endpoints.
    */
   getAll() {
     return [...this.#instances.values()];
@@ -84,7 +84,7 @@ export class ServerManager extends BaseControllable {
   }
 
   /**
-   * Constructs a {@link NetworkServer} based on the given information, and
+   * Constructs a {@link NetworkEndpoint} based on the given information, and
    * adds a mapping to {@link #instances} so it can be found.
    *
    * @param {ServerConfig} config Parsed configuration item.
@@ -121,7 +121,7 @@ export class ServerManager extends BaseControllable {
       requestLogger
     };
 
-    const instance = new NetworkServer(config, extraConfig);
+    const instance = new NetworkEndpoint(config, extraConfig);
 
     this.#instances.set(name, instance);
     this.logger.bound(name);
@@ -129,7 +129,7 @@ export class ServerManager extends BaseControllable {
 
   /**
    * Makes an `applicationMap` map suitable for use in constructing a {@link
-   * NetworkServer}, by also using the {@link #warehouse} to look up
+   * NetworkEndpoint}, by also using the {@link #warehouse} to look up
    * application name bindings.
    *
    * @param {MountConfig[]} mounts Original `mounts` configuration item.

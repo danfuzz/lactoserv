@@ -8,6 +8,6 @@ export * from '#x/BaseService';
 export * from '#x/ComponentManager';
 export * from '#x/ComponentRegistry';
 export * from '#x/HostManager';
-export * from '#x/NetworkServer';
+export * from '#x/NetworkEndpoint';
 export * from '#x/ServerManager';
 export * from '#x/Warehouse';

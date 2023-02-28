@@ -22,7 +22,7 @@ import { ThisModule } from '#p/ThisModule';
  * {@link BaseApplication} instances. This class is the connection between these
  * two things.
  */
-export class NetworkServer extends BaseComponent {
+export class NetworkEndpoint extends BaseComponent {
   /**
    * @type {HostManager} Host manager with bindings for all valid hostnames for
    * this instance.
@@ -66,7 +66,7 @@ export class NetworkServer extends BaseComponent {
     super(config, ThisModule.logger.endpoint[name]);
 
     this.#hostManager = hostManager;
-    this.#mountMap    = NetworkServer.#makeMountMap(mounts, applicationMap);
+    this.#mountMap    = NetworkEndpoint.#makeMountMap(mounts, applicationMap);
 
     const wranglerOptions = {
       rateLimiter,
@@ -114,7 +114,7 @@ export class NetworkServer extends BaseComponent {
 
     // Freezing `subdomains` lets `new TreePathKey()` avoid making a copy.
     const hostKey = new TreePathKey(Object.freeze(subdomains), false);
-    const pathKey = NetworkServer.#parsePath(path);
+    const pathKey = NetworkEndpoint.#parsePath(path);
 
     // Find the mount map for the most-specific matching host.
     const hostMatch = this.#mountMap.find(hostKey);
