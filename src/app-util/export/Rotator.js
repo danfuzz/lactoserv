@@ -209,7 +209,7 @@ export class Rotator {
    * Rotates the file and does any other related actions, as configured.
    */
   async #rotate() {
-    const origPath = this.#config.resolvePath();
+    const origPath = this.#config.path;
     let   stats;
 
     try {
@@ -272,7 +272,7 @@ export class Rotator {
     }
 
     try {
-      const stats = await fs.stat(this.#config.resolvePath());
+      const stats = await fs.stat(this.#config.path);
       if (stats.size >= this.#config.rotate.atSize) {
         return true;
       }
@@ -300,7 +300,7 @@ export class Rotator {
     const dateStr = Rotator.#makeInfix(stats.birthtime);
     const resolve = (count) => {
       const infix = Rotator.#makeInfix(dateStr, (count > 0) ? count : null);
-      return this.#config.resolvePath(`-${infix}`);
+      return this.#config.infixPath(`-${infix}`);
     };
 
     if (this.#lastInfix === dateStr) {
