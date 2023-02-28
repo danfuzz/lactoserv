@@ -22,8 +22,8 @@ import { WranglerContext } from '#x/WranglerContext';
 /**
  * Base class for things that "wrangle" each of the server protocols that this
  * system understands. Concrete instances of this class get instantiated once
- * per server; multiple servers which happen to use the same protocol will each
- * use a separate instance of this class.
+ * per server; multiple endpoints which happen to use the same protocol will
+ * each use a separate instance of this class.
  *
  * Each instance manages a low-level server socket, whose connections ultimately
  * get plumbed to an (Express-like) application instance. This class is
