@@ -151,14 +151,11 @@ export class LimitedLoader {
           return result;
         }
 
-        case 'evaluating':
-        case 'linking': {
-          // TODO: Wait in a better way.
-          await timers.setTimeout(10);
-          break;
-        }
-
         default: {
+          // In all other states than what's handled above, we've already gotten
+          // the evaluation process started and will inevitably log about what's
+          // going on. So there's nothing more to do at this point other than
+          // return the promise which settles when evaluation is complete.
           return module.evaluate();
         }
       }
