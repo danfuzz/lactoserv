@@ -23,24 +23,21 @@ const services = [
   {
     name:       'process',
     class:      'ProcessInfoFile',
-    directory:  filePath('../../../out/var'),
-    baseName:   'process.json',
+    path:       filePath('../../../out/var/process.json'),
     updateSecs: 5 * 60
   },
   {
     name:         'process-id',
     class:        'ProcessIdFile',
-    directory:    filePath('../../../out/var'),
-    baseName:     'process.txt',
+    path:         filePath('../../../out/var/process.txt'),
     multiprocess: true,
     updateSecs:   5 * 60
   },
   {
-    name:      'syslog',
-    class:     'SystemLogger',
-    directory: filePath('../../../out/var'),
-    baseName:  'system-log.txt',
-    format:    'human',
+    name:   'syslog',
+    class:  'SystemLogger',
+    path:   filePath('../../../out/var/system-log.txt'),
+    format: 'human',
     rotate: {
       atSize:      1024 * 1024,
       atStart:     true,
@@ -48,11 +45,10 @@ const services = [
     }
   },
   {
-    name:      'syslog-json',
-    class:     'SystemLogger',
-    directory: filePath('../../../out/var'),
-    baseName:  'system-log.json',
-    format:    'json',
+    name:   'syslog-json',
+    class:  'SystemLogger',
+    path:   filePath('../../../out/var/system-log.json'),
+    format: 'json',
     rotate: {
       atSize:      2 * 1024 * 1024,
       atStart:     true,
@@ -62,10 +58,9 @@ const services = [
     }
   },
   {
-    name:      'requests',
-    class:     'RequestLogger',
-    directory: filePath('../../../out/var'),
-    baseName:  'request-log.txt',
+    name:  'requests',
+    class: 'RequestLogger',
+    path:  filePath('../../../out/var/request-log.txt'),
     rotate: {
       atSize:      100000,
       maxOldBytes: 1024 * 1024
