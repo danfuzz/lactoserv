@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import * as fs from 'node:fs/promises';
-import * as timers from 'node:timers/promises';
 import { default as vm, Module, SourceTextModule, SyntheticModule } from 'node:vm';
 
 import { IntfLogger } from '@this/loggy';
