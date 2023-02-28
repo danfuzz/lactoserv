@@ -37,12 +37,6 @@ export class FileServiceConfig extends ServiceConfig {
   /** @type {string} The directory to write to. */
   #directory;
 
-  /** @type {string} The base file name's prefix. */
-  #basePrefix;
-
-  /** @type {string} The base file name's suffix. */
-  #baseSuffix;
-
   /**
    * Constructs an instance.
    *
@@ -65,10 +59,6 @@ export class FileServiceConfig extends ServiceConfig {
     this.#directory = match.groups.directory;
     this.#path      = path;
     this.#rotate    = config.rotate ? new RotateConfig(config.rotate) : null;
-
-    const { prefix, suffix } = FileServiceConfig.#parseBaseName(this.#baseName);
-    this.#basePrefix = prefix;
-    this.#baseSuffix = suffix;
   }
 
   /**
@@ -139,23 +129,5 @@ export class FileServiceConfig extends ServiceConfig {
       fileName.match(/^(?<filePrefix>.*?)(?<fileSuffix>[.][^.]*)?$/).groups;
 
     return { path, directory, fileName, filePrefix, fileSuffix };
-  }
-
-
-  //
-  // Static members
-  //
-
-  /**
-   * Parses a base file name into a main part and a suffix.
-   *
-   * @param {string} baseName The original base name.
-   * @returns {{ base: string, suffix: string }} The parsed parts.
-   */
-  static #parseBaseName(baseName) {
-    const { prefix, suffix = '' } =
-      baseName.match(/^(?<prefix>.*?)(?<suffix>[.][^.]*)?$/).groups;
-
-    return { prefix, suffix };
   }
 }
