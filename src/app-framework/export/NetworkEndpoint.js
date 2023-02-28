@@ -1,7 +1,7 @@
 // Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { MountConfig, ServerConfig } from '@this/app-config';
+import { MountConfig, EndpointConfig } from '@this/app-config';
 import { TreePathKey, TreePathMap } from '@this/collections';
 import { IntfLogger } from '@this/loggy';
 import { IntfRateLimiter, IntfRequestLogger, ProtocolWrangler,
@@ -45,7 +45,7 @@ export class NetworkEndpoint extends BaseComponent {
    * for what was passed in the original (but unbound) `config` (along with
    * other bits):
    *
-   * @param {ServerConfig} config Parsed configuration item.
+   * @param {EndpointConfig} config Parsed configuration item.
    * @param {object} extraConfig Additional configuration.
    * @param {Map<string, BaseApplication>} extraConfig.applicationMap Map of
    *   names to applications, for use in building the active mount map.
@@ -171,7 +171,7 @@ export class NetworkEndpoint extends BaseComponent {
 
   /** @override */
   static get CONFIG_CLASS() {
-    return ServerConfig;
+    return EndpointConfig;
   }
 
   /**

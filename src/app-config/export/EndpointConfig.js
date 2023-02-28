@@ -32,7 +32,7 @@ import { Util } from '#x/Util';
  *   which are to fill those roles, suitable for passing to the {@link
  *   ServiceUseConfig} constructor.
  */
-export class ServerConfig extends NamedConfig {
+export class EndpointConfig extends NamedConfig {
   /** @type {string[]} The hostnames in question. */
   #hostnames;
 

@@ -1,7 +1,7 @@
 // Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { MountConfig, ServerConfig } from '@this/app-config';
+import { MountConfig, EndpointConfig } from '@this/app-config';
 
 import { BaseApplication } from '#x/BaseApplication';
 import { BaseControllable } from '#x/BaseControllable';
@@ -28,7 +28,7 @@ export class EndpointManager extends BaseControllable {
   /**
    * Constructs an instance.
    *
-   * @param {ServerConfig[]} configs Configuration objects.
+   * @param {EndpointConfig[]} configs Configuration objects.
    * @param {Warehouse} warehouse The warehouse this instance is in.
    */
   constructor(configs, warehouse) {
@@ -87,7 +87,7 @@ export class EndpointManager extends BaseControllable {
    * Constructs a {@link NetworkEndpoint} based on the given information, and
    * adds a mapping to {@link #instances} so it can be found.
    *
-   * @param {ServerConfig} config Parsed configuration item.
+   * @param {EndpointConfig} config Parsed configuration item.
    */
   #addInstanceFor(config) {
     const {

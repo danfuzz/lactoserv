@@ -5,7 +5,7 @@ import { ApplicationConfig } from '#x/ApplicationConfig';
 import { BaseConfig } from '#x/BaseConfig';
 import { ConfigClassMapper } from '#x/ConfigClassMapper';
 import { HostConfig } from '#x/HostConfig';
-import { ServerConfig } from '#x/ServerConfig';
+import { EndpointConfig } from '#x/EndpointConfig';
 import { ServiceConfig } from '#x/ServiceConfig';
 
 
@@ -29,7 +29,7 @@ export class WarehouseConfig extends BaseConfig {
   /** @type {HostConfig[]} Host configuration objects. */
   #hosts;
 
-  /** @type {ServerConfig[]} Endpoint configuration objects. */
+  /** @type {EndpointConfig[]} Endpoint configuration objects. */
   #endpoints;
 
   /** @type {ServiceConfig[]} Service configuration objects. */
@@ -54,7 +54,7 @@ export class WarehouseConfig extends BaseConfig {
 
     this.#applications = ApplicationConfig.parseArray(applications, configClassMapper);
     this.#hosts        = HostConfig.parseArray(hosts, configClassMapper);
-    this.#endpoints    = ServerConfig.parseArray(endpoints, configClassMapper);
+    this.#endpoints    = EndpointConfig.parseArray(endpoints, configClassMapper);
     this.#services     = ServiceConfig.parseArray(services, configClassMapper);
   }
 
@@ -68,7 +68,7 @@ export class WarehouseConfig extends BaseConfig {
     return this.#hosts;
   }
 
-  /** @returns {ServerConfig[]} Endpoint configuration objects. */
+  /** @returns {EndpointConfig[]} Endpoint configuration objects. */
   get endpoints() {
     return this.#endpoints;
   }
