@@ -77,27 +77,6 @@ export class AskIf {
     return true;
   }
 
-  /**
-   * Checks for type `object[]`, where each item must furthermore be a _plain_
-   * object (i.e. not an instance of anything other than `Object` itself.)
-   *
-   * @param {*} value Arbitrary value.
-   * @returns {boolean} `true` iff `value` is of the indicated type.
-   */
-  static arrayOfPlainObject(value) {
-    if (!Array.isArray(value)) {
-      return false;
-    }
-
-    for (const v of value) {
-      if (!AskIf.plainObject(v)) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
   // Note: No method `boolean()`, because of the standard `typeof v ===
   // 'boolean'`.
 

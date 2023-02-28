@@ -63,22 +63,6 @@ export class MustBe {
   }
 
   /**
-   * Checks for type `object[]`, where each item must furthermore be a _plain_
-   * object (i.e. not an instance of anything other than `Object` itself.)
-   *
-   * @param {*} value Arbitrary value.
-   * @returns {object[]} `value` if it is of the indicated type.
-   * @throws {Error} Thrown if `value` is of any other type.
-   */
-  static arrayOfPlainObject(value) {
-    if (AskIf.arrayOfPlainObject(value)) {
-      return value;
-    }
-
-    throw new Error('Must be of type `object[]`, with all plain objects.');
-  }
-
-  /**
    * Checks for type `boolean`.
    *
    * @param {*} value Arbitrary value.
