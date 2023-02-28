@@ -11,7 +11,8 @@ Documentation:
 
 - - - - - - - - - -
 This is a web server which knows how to serve a couple different types of
-(more or less) static site.
+built-in "application," with plans to add more and to enable straightforward
+custom applications.
 
 ### Features
 
@@ -29,7 +30,7 @@ This is a web server which knows how to serve a couple different types of
 * Provides optional "token bucket" / "leaky bucket" rate limiting for
   connections, requests, and/or sent data (bytes / bandwidth).
 * Optionally produces request logs, in a standard-ish form.
-* Optionally produces detailed activity logs.
+* Optionally produces detailed system activity logs.
 * JS-based configuration file format, which isn't actually that awful!
 * For custom applications, reasonably friendly `async`-forward application
   framework, which uses Express-augmented `Request` and `Response` objects.
