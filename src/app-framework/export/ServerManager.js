@@ -44,7 +44,7 @@ export class ServerManager extends BaseControllable {
   /**
    * Finds the {@link NetworkServer} for a given name.
    *
-   * @param {string} name Server name to look for.
+   * @param {string} name Endpoint name to look for.
    * @returns {NetworkServer} The associated server.
    * @throws {Error} Thrown if there is no server with the given name.
    */

@@ -1,5 +1,5 @@
-`lactoserv` Web Server
-======================
+`lactoserv` Web Application Server
+==================================
 
 [![Require Lint](https://github.com/danfuzz/lactoserv/actions/workflows/main.yml/badge.svg)](https://github.com/danfuzz/lactoserv/actions/workflows/main.yml)
 
@@ -10,9 +10,9 @@ Documentation:
   * [Development Guide](./doc/development.md)
 
 - - - - - - - - - -
-This is a web server which knows how to serve a couple different types of
-built-in "application," with plans to add more and to enable straightforward
-custom applications.
+This is a web application server which knows how to serve a handful of different
+types of built-in "application," with plans to add more and to enable
+straightforward custom applications.
 
 ### Features
 
