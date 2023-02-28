@@ -26,14 +26,17 @@ import { ServiceConfig } from '#x/ServiceConfig';
  * configured values.
  */
 export class FileServiceConfig extends ServiceConfig {
+  /** @type {string} The absolute path to use. */
+  #path;
+
+  /** @type {?RotateConfig} Rotation configuration, if any. */
+  #rotate;
+
   /** @type {string} The base file name to use. */
   #baseName;
 
   /** @type {string} The directory to write to. */
   #directory;
-
-  /** @type {?RotateConfig} Rotation configuration, if any. */
-  #rotate;
 
   /** @type {string} The base file name's prefix. */
   #basePrefix;
@@ -61,6 +64,7 @@ export class FileServiceConfig extends ServiceConfig {
 
     this.#baseName  = match.groups.baseName;
     this.#directory = match.groups.directory;
+    this.#path      = path;
     this.#rotate    = config.rotate ? new RotateConfig(config.rotate) : null;
 
     const { prefix, suffix } = FileServiceConfig.#parseBaseName(this.#baseName);
@@ -94,6 +98,14 @@ export class FileServiceConfig extends ServiceConfig {
   /** @returns {string} The directory to write to. */
   get directory() {
     return this.#directory;
+  }
+
+  /**
+   * @returns {string} The absolute path to write to (with possible infixing of
+   * the final path component, depending on the specific use case).
+   */
+  get path() {
+    return this.#path;
   }
 
   /** @returns {?RotateConfig} Rotation configuration, if any. */
