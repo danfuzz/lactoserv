@@ -147,6 +147,10 @@ const servers = [
       port:      8443,
       protocol:  'http2'
     },
+    services: {
+      rateLimiter:   'limiter',
+      requestLogger: 'requests'
+    },
     mounts: [
       {
         application: 'mainSite',
@@ -157,11 +161,7 @@ const servers = [
         at:          '//*/.control/'
       },
       // ... more ...
-    ],
-    services: {
-      rateLimiter:   'limiter',
-      requestLogger: 'requests'
-    }
+    ]
   },
 ```
 
