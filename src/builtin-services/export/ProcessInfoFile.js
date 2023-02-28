@@ -57,7 +57,7 @@ export class ProcessInfoFile extends BaseService {
       ? null
       : MustBe.number(updateSecs, { finite: true, minInclusive: 1 });
 
-    this.#filePath   = config.resolvePath(`-${process.pid}`);
+    this.#filePath = config.infixPath(`-${process.pid}`);
   }
 
   /** @override */
