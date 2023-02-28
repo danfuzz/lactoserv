@@ -39,17 +39,7 @@ export class FileServiceConfig extends ServiceConfig {
   constructor(config) {
     super(config);
 
-    const path = Files.checkAbsolutePath(config.path);
-
-    // Split the path into a directory and base name.
-    const match = path.match(/^(?<directory>.*[/])(?<baseName>[^/]+)$/);
-    if (!match) {
-      // Shouldn't happen, in that `checkAbsolutePath()` should have caught any
-      // problems.
-      throw new Error(`Shouldn't happen; strange path: ${path}`);
-    }
-
-    this.#path   = path;
+    this.#path   = Files.checkAbsolutePath(config.path);
     this.#rotate = config.rotate ? new RotateConfig(config.rotate) : null;
   }
 
