@@ -17,9 +17,15 @@ import { ServiceConfig } from '#x/ServiceConfig';
  *
  * * `{string} baseName` -- The base file name of the file(s) to write,
  *   including a suffix (e.g. `.txt`) if wanted. Must be a simple name (no
- *   directories).
+ *   directories). Only valid to specify this when `path` is _not_ used. TODO:
+ *   Remove this option!
  * * `{string} directory` -- The directory to write files to. Must be an
- *   absolute path (not relative).
+ *   absolute path (not relative). Only valid to specify this when `path` is
+ *   _not_ used. TODO: Remove this option!
+ * * `{string} path` -- Filesystem path indicating the directory to write to,
+ *   and if being used to name files, the base file name. Must be an absolute
+ *   path (not relative). Required, unless the legacy `directory` + `baseName`
+ *   are used. TODO: Remove the legacy!
  * * `{?object} rotate` -- Optional plain object which can be parsed as a
  *   file-rotation configuration spec, or `null` for no rotation configuration.
  *   See {@link #RotateConfig} for details.
@@ -51,8 +57,21 @@ export class FileServiceConfig extends ServiceConfig {
   constructor(config) {
     super(config);
 
-    this.#baseName  = Files.checkFileName(config.baseName);
-    this.#directory = Files.checkAbsolutePath(config.directory);
+    const path = config.path ??
+      (Files.checkAbsolutePath(config.directory) + '/' + Files.checkFileName(config.baseName));
+
+    Files.checkAbsolutePath(path);
+
+    // Split the path into a directory and base name.
+    const match = path.match(/^(?<directory>.*[/])(?<baseName>[^/]+)$/);
+    if (!match) {
+      // Shouldn't happen, in that `checkAbsolutePath()` should have caught any
+      // problems.
+      throw new Error(`Shouldn't happen; strange path: ${path}`);
+    }
+
+    this.#baseName  = match.groups.baseName;
+    this.#directory = match.groups.directory;
     this.#rotate    = config.rotate ? new RotateConfig(config.rotate) : null;
 
     const { prefix, suffix } = FileServiceConfig.#parseBaseName(this.#baseName);
