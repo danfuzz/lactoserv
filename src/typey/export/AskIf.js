@@ -183,7 +183,58 @@ export class AskIf {
 
   // Note: No method `null()`, because of the standard `v === null`.
 
-  // TODO: number()
+  /**
+   * Checks for type `number`, which may optionally be restricted further.
+   *
+   * @param {*} value Arbitrary value.
+   * @param {?object} [options = null] Options for restrictions.
+   * @param {boolean} [options.finite = false] Must `value` be finite?
+   * @param {?number} [options.maxExclusive = null] Exclusive maximum value.
+   *   That is, require `value < maxExclusive`.
+   * @param {?number} [options.maxInclusive = null] Inclusive maximum value.
+   *   That is, require `value <= maxInclusive`.
+   * @param {?number} [options.minExclusive = null] Exclusive minimum value.
+   *   That is, require `value > minExclusive`.
+   * @param {?number} [options.minInclusive = null] Inclusive minimum value.
+   *   That is, require `value > minInclusive`.
+   * @param {boolean} [options.safeInteger = false] Must `value` be a safe
+   *   integer (exactly representable integer as a regular JavaScript number).
+   *   Implies `options.finite: true`.
+   * @returns {boolean} `true` iff `value` is of the indicated type.
+   */
+  static number(value, options = null) {
+    if (typeof value !== 'number') {
+      return false;
+    }
+
+    const {
+      finite = false,
+      maxExclusive = null,
+      maxInclusive = null,
+      minExclusive = null,
+      minInclusive = null,
+      safeInteger = false
+    } = options ?? {};
+
+    if (safeInteger) {
+      if (!Number.isSafeInteger(value)) {
+        return false;
+      }
+    } else if (finite) {
+      if (!Number.isFinite(value)) {
+        return false;
+      }
+    }
+
+    if (!(   ((minExclusive === null) || (value > minExclusive))
+          && ((minInclusive === null) || (value >= minInclusive))
+          && ((maxExclusive === null) || (value < maxExclusive))
+          && ((maxInclusive === null) || (value <= maxInclusive)))) {
+      return false;
+    }
+
+    return true;
+  }
 
   /**
    * Checks for type `object`, which must furthermore be a _plain_ object

@@ -1,6 +1,8 @@
 // Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import * as util from 'node:util';
+
 import { AskIf } from '#x/AskIf';
 
 
@@ -143,55 +145,23 @@ export class MustBe {
    * Checks for type `number`, which may optionally be restricted further.
    *
    * @param {*} value Arbitrary value.
-   * @param {?object} [options = null] Options for restrictions.
-   * @param {boolean} [options.finite = false] Must `value` be finite?
-   * @param {?number} [options.maxExclusive = null] Exclusive maximum value.
-   *   That is, require `value < maxExclusive`.
-   * @param {?number} [options.maxInclusive = null] Inclusive maximum value.
-   *   That is, require `value <= maxInclusive`.
-   * @param {?number} [options.minExclusive = null] Exclusive minimum value.
-   *   That is, require `value > minExclusive`.
-   * @param {?number} [options.minInclusive = null] Inclusive minimum value.
-   *   That is, require `value > minInclusive`.
-   * @param {boolean} [options.safeInteger = false] Must `value` be a safe
-   *   integer (exactly representable integer as a regular JavaScript number).
-   *   Implies `options.finite: true`.
+   * @param {?object} [options = null] Options for restrictions. See {@link
+   * AskIf#number} for details.
    * @returns {number} `value` if it is of the indicated type.
    * @throws {Error} Thrown if `value` is of any other type or does not meet the
    *   optional restrictions.
    */
   static number(value, options = null) {
-    if (typeof value !== 'number') {
+    if (AskIf.number(value, options)) {
+      return value;
+    }
+
+    if (options) {
+      const optStr = util.inspect(options);
+      throw new Error(`Must be of type \`number\`, with restrictions: ${optStr}`);
+    } else {
       throw new Error('Must be of type `number`.');
     }
-
-    const {
-      finite = false,
-      maxExclusive = null,
-      maxInclusive = null,
-      minExclusive = null,
-      minInclusive = null,
-      safeInteger = false
-    } = options ?? {};
-
-    if (safeInteger) {
-      if (!Number.isSafeInteger(value)) {
-        throw new Error('Must be of type `number` and a safe integer.');
-      }
-    } else if (finite) {
-      if (!Number.isFinite(value)) {
-        throw new Error('Must be of type `number` and finite.');
-      }
-    }
-
-    if (!(   ((minExclusive === null) || (value > minExclusive))
-          && ((minInclusive === null) || (value >= minInclusive))
-          && ((maxExclusive === null) || (value < maxExclusive))
-          && ((maxInclusive === null) || (value <= maxInclusive)))) {
-      throw new Error('Must be of type `number` in specified range.');
-    }
-
-    return value;
   }
 
   /**
