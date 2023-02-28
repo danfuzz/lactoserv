@@ -1,12 +1,12 @@
 Configuration Guide
 ===================
 
-Lactoserv is configured with a JavaScript source file, not a JSON file. This
-tactic is meant to remove the need for "halfhearted programming" facilities
-baked into the server configuration parser itself. A configuration file is
-expected to be a module (`.mjs` or `.cjs`) which has a single `default` export
-consisting of a JavaScript object of the ultimate configuration. Very
-skeletally (and reductively):
+Lactoserv is configured with a JavaScript source file (notably, as opposed to a
+JSON file). This tactic is meant to remove the need for "halfhearted
+programming" facilities baked into a system configuration parser itself. A
+configuration file is expected to be a module (`.mjs` or `.cjs`) which has a
+single `default` export consisting of a JavaScript object of the ultimate
+configuration. Very skeletally (and reductively):
 
 ```js
 const config = {
@@ -25,14 +25,18 @@ tactics which are mentioned here, so you can see them "in action."
 ## Configuration object bindings
 
 The following are the bindings that are expected at the top level of the
-exported configuration object:
+exported configuration object. In each case, the binding is described as a
+"list" and is typically a JavaScript array. However, in cases where only one
+element is needed, a plain object may be bound directly instead of being a
+one-element array.
 
-### hosts
+### `hosts`
 
 `hosts` is a list of hostname bindings. These map possibly-wildcarded hostnames
-to certificate-key pairs to use to authenticate the server as those hosts. This
-section is only required if the server needs to respond to host-authenticated
-protocols (which is of course probably going to be most of the time).
+to certificate-key pairs to use to authenticate an endpoint as those hosts. This
+section is only required if at least one endpoint is to respond to
+host-authenticated protocols (which is of course probably going to be most of
+the time).
 
 ```js
 const hosts = [
@@ -60,12 +64,12 @@ subdomains.
 main configuration file, then the thing to do is just use the standard Node `fs`
 package to read the contents.
 
-### services
+### `services`
 
 `services` is a list of system services to be used, with each element naming and
 configuring one of them. A system service is simply an encapsulated bit of
 functionality that gets hooked up to the system in general or to some other more
-specific part of the system (typically, to one or more server endpoints).
+specific part of the system (typically, to one or more network endpoints).
 
 There are two required bindings for each system service, its `name` and its
 `class` (type). Beyond that, the configuration depends on the `class`. See below
@@ -82,7 +86,7 @@ const services = [
   // ... more ...
 ```
 
-### applications
+### `applications`
 
 `applications` is a list of applications to be used, with each element naming
 and configuring one of them. An application is an encapsulated bit of
@@ -93,7 +97,7 @@ As with services, there are two required bindings for each application, its
 `name` and its `class` (type). Beyond that, the configuration depends on the
 `class`. See below for a list of all built-in applications. The `name` is used
 both when logging activity (to the system log) and when hooking applications up
-to servers (endpoints).
+to endpoints.
 
 ```js
 const applications = [
@@ -105,23 +109,21 @@ const applications = [
   // ... more ...
 ```
 
-### servers
+### `endpoints`
 
-`servers` is a list of network endpoints to listen on, with each element naming
-and configuring one of them. Each element has the following bindings:
+`endpoints` is a list of network endpoints to listen on, with each element
+naming and configuring one of them. Each element has the following bindings:
 
-* `name` &mdash; The name of the server. This is just used for logging and
+* `name` &mdash; The name of the endpoint. This is just used for logging and
   related informational purposes.
-* `endpoint` &mdash; Details about the network endpoint. It is an object with
-  the following bindings:
-  * `hostnames` &mdash; A list of one or more hostnames to recognize, each name
-    in the same form as accepted in the `hosts` section of the configuration. In
-    most cases, it will suffice to just specify this as `['*']`.
-  * `interface` &mdash; The address of the specific network interface to listen
-    on, or `'*'` to listen on all interfaces. In most cases, `'*'` is a-okay.
-  * `port` &mdash; The port number to listen on.
-  * `protocol` &mdash; The protocol to speak. This can be any of `http`,
-    `https`, or `http2`. `http2` includes fallback to `https`.
+* `hostnames` &mdash; A list of one or more hostnames to recognize, each name
+  in the same form as accepted in the `hosts` section of the configuration. In
+  most cases, it will suffice to just specify this as `['*']`.
+* `interface` &mdash; The address of the specific network interface to listen
+  on, or `'*'` to listen on all interfaces. In most cases, `'*'` is a-okay.
+* `port` &mdash; The port number to listen on.
+* `protocol` &mdash; The protocol to speak. This can be any of `http`, `https`,
+  or `http2`. `http2` includes fallback to `https`.
 * `mounts` &mdash; A list of application mount points, each of which is an
   object with the following bindings:
   * `application` &mdash; The name of the application to mount.
@@ -138,9 +140,9 @@ and configuring one of them. Each element has the following bindings:
   * `requestLogger` &mdash; A request logger.
 
 ```js
-const servers = [
+const endpoints = [
   {
-    name: 'someServer',
+    name: 'someEndpoint',
     endpoint: {
       hostnames: ['*'],
       interface: '*',
@@ -154,7 +156,7 @@ const servers = [
     mounts: [
       {
         application: 'mainSite',
-        at:          ['//*/', '//weird-server/just/for/example/'
+        at:          ['//*/', '//weird-mount/just/for/example/'
       },
       {
         application: 'control',
@@ -257,8 +259,8 @@ configured property, which enables automatic file rotation and cleanup. A
 
 A service which writes a simple text file containing the process ID (number) of
 the running system, and which optionally tries to deal with other simultaneous
-server processes that also write to the same file. The file is written when the
-system starts up, when it shuts down (if not killed with extreme prejudice), and
+processes that also write to the same file. The file is written when the system
+starts up, when it shuts down (if not killed with extreme prejudice), and
 optionally on a periodic basis. It accepts the following configuration bindings:
 
 * `path` &mdash; Path to the file. Must be an absolute path.
@@ -311,7 +313,7 @@ const services = [
 ### `RateLimiter`
 
 A service which provides rate limiting of any/all of network connections,
-server requests, or sent data. Rate limiting is modeled as a hybrid-model
+HTTP(ish) requests, or sent data. Rate limiting is modeled as a hybrid-model
 "leaky token bucket." The configuration consists of three sections, each
 optional, for `connections` (token unit, a connection), `requests` (token unit,
 a request), and `data` (token unit, a byte). Each of these is configured as an
@@ -354,9 +356,9 @@ const services = [
 ### `RequestLogger`
 
 A service which logs HTTP(ish) requests in a textual form meant to be similar to
-(though not identical to) what is often produced by other servers. As of this
-writing, the exact format is _not_ configurable. It accepts the following
-configuration bindings:
+(though not identical to) what is often produced by other webservers (out in the
+world). As of this writing, the exact format is _not_ configurable. It accepts
+the following configuration bindings:
 
 * `path` &mdash; Path to the log file(s) to write. When rotation is performed, a
   date stamp and (if necessary) sequence number are "infixed" into the final

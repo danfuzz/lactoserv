@@ -11,24 +11,16 @@ import { BaseControllable } from '#x/BaseControllable';
 import { BaseService } from '#x/BaseService';
 import { ComponentManager } from '#x/ComponentManager';
 import { ComponentRegistry } from '#x/ComponentRegistry';
+import { EndpointManager } from '#x/EndpointManager';
 import { HostManager } from '#x/HostManager';
-import { ServerManager } from '#x/ServerManager';
 import { ThisModule } from '#p/ThisModule';
 
 
 /**
  * "Warehouse" of bits and pieces created from a top-level configuration.
  *
- * Configuration object details:
- *
- * * `{object|object[]} hostnames` -- Host / certificate configuration.
- *   Required if a server is configured to listen for secure connections.
- * * `{object|object[]} servers` -- Server configuration.
- * * `{object|object[]} services` -- System service configuration.
- * * `{object|object[]} applications` -- Application configuration.
- *
  * **Note:** When `start()`ing, this operates in the order services then
- * applications then servers, so as to start dependencies before dependants.
+ * applications then endpoints, so as to start dependencies before dependants.
  * Similarly, when `stop()`ping, the order is reversed, though the system will
  * press on with the `stop()` actions if an earlier layer is taking too long.
  */
@@ -39,8 +31,8 @@ export class Warehouse extends BaseControllable {
   /** @type {?HostManager} Host manager, if configured. */
   #hostManager;
 
-  /** @type {ServerManager} Server manager, for all server bindings. */
-  #serverManager;
+  /** @type {EndpointManager} Endpoint manager, for all endpoint bindings. */
+  #endpointManager;
 
   /** @type {ComponentManager} Service manager. */
   #serviceManager;
@@ -74,7 +66,7 @@ export class Warehouse extends BaseControllable {
     });
 
     this.#hostManager   = new HostManager(parsed.hosts);
-    this.#serverManager = new ServerManager(parsed.servers, this);
+    this.#endpointManager = new EndpointManager(parsed.endpoints, this);
   }
 
   /** @returns {ComponentManager} Application manager. */
@@ -84,15 +76,15 @@ export class Warehouse extends BaseControllable {
 
   /**
    * @returns {?HostManager} Host manager secure contexts, if needed. Can be
-   * `null` if all servers are insecure.
+   * `null` if all endpoints are insecure.
    */
   get hostManager() {
     return this.#hostManager;
   }
 
-  /** @returns {ServerManager} Server manager. */
-  get serverManager() {
-    return this.#serverManager;
+  /** @returns {EndpointManager} Server manager. */
+  get endpointManager() {
+    return this.#endpointManager;
   }
 
   /** @returns {ComponentManager} Service manager. */
@@ -104,16 +96,16 @@ export class Warehouse extends BaseControllable {
   async _impl_start(isReload = false) {
     await this.#serviceManager.start(isReload);
     await this.#applicationManager.start(isReload);
-    await this.#serverManager.start(isReload);
+    await this.#endpointManager.start(isReload);
   }
 
   /** @override */
   async _impl_stop(willReload = false) {
-    const serversStopped = this.#serverManager.stop(willReload);
+    const endpointsStopped = this.#endpointManager.stop(willReload);
 
     await Promise.race([
-      serversStopped,
-      timers.setTimeout(Warehouse.#SERVER_STOP_GRACE_PERIOD_MSEC)
+      endpointsStopped,
+      timers.setTimeout(Warehouse.#ENDPOINT_STOP_GRACE_PERIOD_MSEC)
     ]);
 
     const applicationsStopped = this.#applicationManager.stop(willReload);
@@ -123,7 +115,7 @@ export class Warehouse extends BaseControllable {
     ]);
 
     await Promise.all([
-      serversStopped,
+      endpointsStopped,
       applicationsStopped,
       this.#serviceManager.stop(willReload)
     ]);
@@ -142,9 +134,9 @@ export class Warehouse extends BaseControllable {
   static #APPLICATION_STOP_GRACE_PERIOD_MSEC = 250;
 
   /**
-   * @type {number} Grace period after asking all servers to stop before asking
-   * applications and services to shut down. (If the servers stop more promptly,
-   * then the system will immediately move on.)
+   * @type {number} Grace period after asking all endpoints to stop before
+   * asking applications and services to shut down. (If the endpoints stop more
+   * promptly, then the system will immediately move on.)
    */
-  static #SERVER_STOP_GRACE_PERIOD_MSEC = 250;
+  static #ENDPOINT_STOP_GRACE_PERIOD_MSEC = 250;
 }

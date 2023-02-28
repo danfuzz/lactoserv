@@ -15,7 +15,7 @@ import { MustBe } from '@this/typey';
 /**
  * Service which writes process ID files to the filesystem. These are files that
  * just contain a simple process ID or list of same (in cases where multiple
- * server processes are writing to the same file).
+ * processes are expected to write to the same file).
  *
  * Configuration object details:
  *

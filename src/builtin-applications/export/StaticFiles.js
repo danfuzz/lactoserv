@@ -19,7 +19,7 @@ export class StaticFiles extends BaseApplication {
   #staticMiddleware;
 
   /**
-   * @type {?string} Path to the file to server for a not-found result, or
+   * @type {?string} Path to the file to serve for a not-found result, or
    * `null` if not-found handling shouldn't be done.
    */
   #notFoundPath;
@@ -75,7 +75,7 @@ export class StaticFiles extends BaseApplication {
    */
   static #Config = class Config extends ApplicationConfig {
     /**
-     * @type {?string} Path to the file to server for a not-found result, or
+     * @type {?string} Path to the file to serve for a not-found result, or
      * `null` if not-found handling shouldn't be done.
      */
     #notFoundPath;
@@ -108,7 +108,7 @@ export class StaticFiles extends BaseApplication {
     }
 
     /**
-     * @returns {?string} Path to the file to server for a not-found result, or
+     * @returns {?string} Path to the file to serve for a not-found result, or
      * `null` if not-found handling shouldn't be done.
      */
     get notFoundPath() {

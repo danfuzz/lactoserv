@@ -8,7 +8,8 @@ import { MustBe } from '@this/typey';
 
 
 /**
- * Server that redirects requests to different servers, protocols, paths, etc.
+ * Application that redirects requests to different hosts, protocols, paths,
+ * etc.
  *
  * Configuration object details:
  *

@@ -1,7 +1,7 @@
 // Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { MountConfig, ServerConfig } from '@this/app-config';
+import { EndpointConfig, MountConfig } from '@this/app-config';
 import { TreePathKey, TreePathMap } from '@this/collections';
 import { IntfLogger } from '@this/loggy';
 import { IntfRateLimiter, IntfRequestLogger, ProtocolWrangler,
@@ -22,7 +22,7 @@ import { ThisModule } from '#p/ThisModule';
  * {@link BaseApplication} instances. This class is the connection between these
  * two things.
  */
-export class NetworkServer extends BaseComponent {
+export class NetworkEndpoint extends BaseComponent {
   /**
    * @type {HostManager} Host manager with bindings for all valid hostnames for
    * this instance.
@@ -45,7 +45,7 @@ export class NetworkServer extends BaseComponent {
    * for what was passed in the original (but unbound) `config` (along with
    * other bits):
    *
-   * @param {ServerConfig} config Parsed configuration item.
+   * @param {EndpointConfig} config Parsed configuration item.
    * @param {object} extraConfig Additional configuration.
    * @param {Map<string, BaseApplication>} extraConfig.applicationMap Map of
    *   names to applications, for use in building the active mount map.
@@ -58,15 +58,13 @@ export class NetworkServer extends BaseComponent {
    *   `rateLimiter` (service instance, not just a name).
    */
   constructor(config, extraConfig) {
-    const { endpoint, mounts, name }           = config;
-    const { interface: iface, port, protocol } = endpoint;
-
+    const { interface: iface, mounts, name, port, protocol } = config;
     const { applicationMap, hostManager, logger, rateLimiter, requestLogger } = extraConfig;
 
-    super(config, ThisModule.logger.server[name]);
+    super(config, ThisModule.logger.endpoint[name]);
 
     this.#hostManager = hostManager;
-    this.#mountMap    = NetworkServer.#makeMountMap(mounts, applicationMap);
+    this.#mountMap    = NetworkEndpoint.#makeMountMap(mounts, applicationMap);
 
     const wranglerOptions = {
       rateLimiter,
@@ -90,8 +88,8 @@ export class NetworkServer extends BaseComponent {
   }
 
   /**
-   * **Note:** This returns when the server is actually stopped, with the server
-   * socket closed.
+   * **Note:** This returns when the endpoint is actually stopped, with the
+   * server socket closed.
    *
    * @override
    */
@@ -114,7 +112,7 @@ export class NetworkServer extends BaseComponent {
 
     // Freezing `subdomains` lets `new TreePathKey()` avoid making a copy.
     const hostKey = new TreePathKey(Object.freeze(subdomains), false);
-    const pathKey = NetworkServer.#parsePath(path);
+    const pathKey = NetworkEndpoint.#parsePath(path);
 
     // Find the mount map for the most-specific matching host.
     const hostMatch = this.#mountMap.find(hostKey);
@@ -173,11 +171,11 @@ export class NetworkServer extends BaseComponent {
 
   /** @override */
   static get CONFIG_CLASS() {
-    return ServerConfig;
+    return EndpointConfig;
   }
 
   /**
-   * Makes the map from each (possibly wildcarded) hostname that this server
+   * Makes the map from each (possibly wildcarded) hostname that this endpoint
    * handles to the map from each (typically wildcarded) path (that is, a path
    * _prefix_ when wildcarded) to the application which handles it.
    *

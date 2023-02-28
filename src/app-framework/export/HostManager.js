@@ -13,9 +13,9 @@ import { ThisModule } from '#p/ThisModule';
 
 /**
  * Manager for dealing with all the hostname bindings. "Hosts" in this sense are
- * network-available servers associated with particular names, certificates, and
- * private keys. The main thing offered by this class is the association between
- * hostnames and TLS contexts.
+ * network-available endpoints associated with particular names, certificates,
+ * and private keys. The main thing offered by this class is the association
+ * between hostnames and TLS contexts.
  */
 export class HostManager {
   /**
@@ -133,7 +133,7 @@ export class HostManager {
    * See <https://nodejs.org/dist/latest-v18.x/docs/api/tls.html#tlscreateserveroptions-secureconnectionlistener>
    * for details.
    *
-   * @param {string} serverName Name of the server to find, or `*` to
+   * @param {string} serverName Name of the host to find, or `*` to
    *   explicitly request the wildcard / fallback context.
    * @param {function(?object, ?SecureContext)} callback Callback to present
    *   with the results.

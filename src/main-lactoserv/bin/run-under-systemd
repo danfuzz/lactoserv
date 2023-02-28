@@ -21,8 +21,8 @@ baseDir="${cmdDir%/*}"
 
 function usage {
     echo 1>&2 'Usage:'
-    echo 1>&2 "  ${cmdName} run-foreground <server-arg> ..."
-    echo 1>&2 "  ${cmdName} --service-name=<name> start <server-arg> ..."
+    echo 1>&2 "  ${cmdName} run-foreground <system-arg> ..."
+    echo 1>&2 "  ${cmdName} --service-name=<name> start <system-arg> ..."
     echo 1>&2 "  ${cmdName} --service-name=<name> reload"
     echo 1>&2 "  ${cmdName} --service-name=<name> stop"
     exit 1
@@ -34,8 +34,8 @@ command=''
 # Service name.
 serviceName=''
 
-# Arguments to pass through when starting the server.
-serverArgs=()
+# Arguments to pass through when starting the system.
+systemArgs=()
 
 while (( $# != 0 )); do
     case "$1" in
@@ -70,13 +70,13 @@ shift
 
 if [[ ${command} =~ ^(run-foreground|start)$ ]]; then
     if (( $# == 0 )); then
-        echo 1>&2 'Server arguments required when starting service.'
+        echo 1>&2 'Service arguments required when starting service.'
         usage
     fi
-    serverArgs=("$@")
+    systemArgs=("$@")
 else
     if (( $# != 0 )); then
-        echo 1>&2 'Server arguments not allowed when manipulating a running service.'
+        echo 1>&2 'Service arguments not allowed when manipulating a running service.'
         usage
     fi
 fi
@@ -93,19 +93,19 @@ fi
 
 # Runs the system in the foreground.
 function do-run-foreground {
-    exec "${runCmd}" --log-to-stdout "${serverArgs[@]}"
+    exec "${runCmd}" --log-to-stdout "${systemArgs[@]}"
 }
 
 # Starts the system, daemon-style.
 function do-start {
-    local fullCommand=("${runCmd}" --print-node-command "${serverArgs[@]}")
+    local fullCommand=("${runCmd}" --print-node-command "${systemArgs[@]}")
 
     # Write the command about to be executed to the log. Note: In a typical OS
     # configuration, the service-specific log can be seen with `journalctl
     # --unit=<service-name>`, where <service-name> is the name of the systemd
     # service that runs this command, e.g. probably `lactoserv` or some variant
     # thereof.
-    echo 1>&2 'Running server via command:'
+    echo 1>&2 'Running system via command:'
     printf 1>&2 '  %q\n' "${fullCommand[@]}"
 
     # Note: `exec` is required so that the process running this script
