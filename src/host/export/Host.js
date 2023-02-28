@@ -45,7 +45,6 @@ export class Host {
 
     ProcessInfo.init();
     ProductInfo.init();
-    LoggingManager.init();
     SignalHandler.init();
     TopErrorHandler.init();
 
