@@ -1,12 +1,12 @@
 Configuration Guide
 ===================
 
-Lactoserv is configured with a JavaScript source file, not a JSON file. This
-tactic is meant to remove the need for "halfhearted programming" facilities
-baked into the server configuration parser itself. A configuration file is
-expected to be a module (`.mjs` or `.cjs`) which has a single `default` export
-consisting of a JavaScript object of the ultimate configuration. Very
-skeletally (and reductively):
+Lactoserv is configured with a JavaScript source file (notably, as opposed to a
+JSON file). This tactic is meant to remove the need for "halfhearted
+programming" facilities baked into a server configuration parser itself. A
+configuration file is expected to be a module (`.mjs` or `.cjs`) which has a
+single `default` export consisting of a JavaScript object of the ultimate
+configuration. Very skeletally (and reductively):
 
 ```js
 const config = {
