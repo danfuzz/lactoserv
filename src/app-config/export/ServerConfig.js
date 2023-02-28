@@ -17,8 +17,15 @@ import { Util } from '#x/Util';
  * except as noted:
  *
  * * Bindings as defined by the superclass, {@link NamedConfig}.
- * * `{object} endpoint` -- Endpoint configuration, suitable for passing to the
- *   {@link EndpointConfig} constructor.
+ * * `{string|string[]} hostnames` -- Hostnames which this endpoint should
+ *   accept as valid. Can include subdomain or complete wildcards. Defaults to
+ *   `*` (that is, accepts all hostnames as valid).
+ * * `{string} interface` -- Address of the physical interface that the endpoint
+ *   is to listen on. `*` indicates that all interfaces should be listened on.
+ *   Note: `::` and `0.0.0.0` are not allowed; use `*` instead.
+ * * `{int} port` -- Port number that the endpoint is to listen on.
+ * * `{string} protocol` -- Protocol that the endpoint is to speak. Must be one
+ *   of `http`, `http2`, or `https`.
  * * `{object[]} mounts` -- Array of application mounts, each of a form suitable
  *   for passing to the {@link MountConfig} constructor.
  * * `{object} services` -- Mapping of service roles to the names of services
@@ -55,20 +62,17 @@ export class ServerConfig extends NamedConfig {
     const {
       hostnames = '*',
       interface: iface, // `interface` is a reserved word.
+      mounts,
       port,
       protocol,
-    } = config.endpoint ?? config;
-
-    const {
-      mounts,
       services = {}
     } = config;
 
     this.#hostnames = Util.checkAndFreezeStrings(hostnames, Uris.HOSTNAME_PATTERN);
     this.#interface = Uris.checkInterface(iface);
+    this.#mounts    = MountConfig.parseArray(mounts);
     this.#port      = Uris.checkPort(port);
     this.#protocol  = Uris.checkProtocol(protocol);
-    this.#mounts    = MountConfig.parseArray(mounts);
     this.#services  = new ServiceUseConfig(services);
   }
 
