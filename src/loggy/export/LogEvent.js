@@ -1,7 +1,7 @@
 // Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { LinkedEvent } from '@this/async';
+import { EventSource, LinkedEvent } from '@this/async';
 import { StackTrace } from '@this/data-values';
 import { MustBe } from '@this/typey';
 
@@ -70,5 +70,31 @@ export class LogEvent extends LinkedEvent {
   static makeKickoffInstance(tag = null, type = null) {
     const payload = LogRecord.makeKickoffInstance(tag, type);
     return new LogEvent(payload);
+  }
+
+  /**
+   * Makes an {@link EventSource} which uses a "kickoff" event constructed by
+   * {@link #makeKickoffInstance}. Since the kickoff event is an instance of
+   * this class, the so-constructed event source is constrained to only ever
+   * emit instances of this class.
+   *
+   * @param {object} [options = {}] Configuration options.
+   * @param {number} [options.keepCount = 0] Number of older events to maintain
+   *   in the source, as per {@link EventSource#constructor}.
+   * @param {?LogTag} [options.tag = null] Tag to use, as per {@link
+   *   #makeKickoffInstance}.
+   * @param {?string} [options.type = null] Type to use, as per {@link
+   *   #makeKickoffInstance}.
+   * @returns {EventSource} An event source, as specified.
+   */
+  static makeSource(options = {}) {
+    const {
+      keepCount = 0,
+      tag       = null,
+      type      = null
+    } = options;
+
+    const kickoffEvent = this.makeKickoffInstance(tag, type);
+    return new EventSource({ keepCount, kickoffEvent });
   }
 }
