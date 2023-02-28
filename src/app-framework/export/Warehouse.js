@@ -12,7 +12,7 @@ import { BaseService } from '#x/BaseService';
 import { ComponentManager } from '#x/ComponentManager';
 import { ComponentRegistry } from '#x/ComponentRegistry';
 import { HostManager } from '#x/HostManager';
-import { ServerManager } from '#x/ServerManager';
+import { EndpointManager } from '#x/EndpointManager';
 import { ThisModule } from '#p/ThisModule';
 
 
@@ -31,7 +31,7 @@ export class Warehouse extends BaseControllable {
   /** @type {?HostManager} Host manager, if configured. */
   #hostManager;
 
-  /** @type {ServerManager} Endpoint manager, for all endpoint bindings. */
+  /** @type {EndpointManager} Endpoint manager, for all endpoint bindings. */
   #serverManager;
 
   /** @type {ComponentManager} Service manager. */
@@ -66,7 +66,7 @@ export class Warehouse extends BaseControllable {
     });
 
     this.#hostManager   = new HostManager(parsed.hosts);
-    this.#serverManager = new ServerManager(parsed.endpoints, this);
+    this.#serverManager = new EndpointManager(parsed.endpoints, this);
   }
 
   /** @returns {ComponentManager} Application manager. */
@@ -82,7 +82,7 @@ export class Warehouse extends BaseControllable {
     return this.#hostManager;
   }
 
-  /** @returns {ServerManager} Server manager. */
+  /** @returns {EndpointManager} Server manager. */
   get serverManager() {
     return this.#serverManager;
   }
