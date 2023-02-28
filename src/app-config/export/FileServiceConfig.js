@@ -31,9 +31,6 @@ export class FileServiceConfig extends ServiceConfig {
   /** @type {?RotateConfig} Rotation configuration, if any. */
   #rotate;
 
-  /** @type {string} The directory to write to. */
-  #directory;
-
   /**
    * Constructs an instance.
    *
@@ -52,9 +49,8 @@ export class FileServiceConfig extends ServiceConfig {
       throw new Error(`Shouldn't happen; strange path: ${path}`);
     }
 
-    this.#directory = match.groups.directory;
-    this.#path      = path;
-    this.#rotate    = config.rotate ? new RotateConfig(config.rotate) : null;
+    this.#path   = path;
+    this.#rotate = config.rotate ? new RotateConfig(config.rotate) : null;
   }
 
   /**
@@ -74,11 +70,13 @@ export class FileServiceConfig extends ServiceConfig {
    * Creates the directory of {@link #path}, if it doesn't already exist.
    */
   async createDirectoryIfNecessary() {
+    const { directory } = this.splitPath();
+
     try {
-      await fs.stat(this.#directory);
+      await fs.stat(directory);
     } catch (e) {
       if (e.code === 'ENOENT') {
-        await fs.mkdir(this.#directory, { recursive: true });
+        await fs.mkdir(directory, { recursive: true });
       } else {
         throw e;
       }
