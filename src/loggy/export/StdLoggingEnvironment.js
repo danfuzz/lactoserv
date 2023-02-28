@@ -3,19 +3,19 @@
 
 import * as process from 'node:process';
 
+import { EventSource } from '@this/async';
 import { Moment, StackTrace } from '@this/data-values';
 import { MustBe } from '@this/typey';
 
 import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
 import { IdGenerator } from '#x/IdGenerator';
-import { LogSource } from '#x/LogSource';
 
 
 /**
  * Standard logging environment, which is hooked up to the "real world."
  */
 export class StdLoggingEnvironment extends BaseLoggingEnvironment {
-  /** @type {LogSource} Log source attached to {@link #log}. */
+  /** @type {EventSource} Log source attached to {@link #log}. */
   #source;
 
   /** @type {IdGenerator} ID generator to use. */
@@ -30,12 +30,12 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
   /**
    * Constructs an instance.
    *
-   * @param {LogSource} source Source to emit events from.
+   * @param {EventSource} source Source to emit events from.
    */
   constructor(source) {
     super();
 
-    this.#source = MustBe.instanceOf(source, LogSource);
+    this.#source = MustBe.instanceOf(source, EventSource);
   }
 
   /** @override */
