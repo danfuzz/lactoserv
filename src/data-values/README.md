@@ -47,6 +47,10 @@ behavior. The expectation is that most such custom converters end up producing
 This module includes a small handful of general low-ish-level classes that
 "play nice" with `BaseConverter.ENCODE`, including notably `StackTrace`.
 
+**Note:** This module is intended to handle both encoding and decoding of
+values, but as of this writing decoding is not yet needed. So, that
+functionality is merely hinted at and stubbed out.
+
 - - - - - - - - - -
 ```
 Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
