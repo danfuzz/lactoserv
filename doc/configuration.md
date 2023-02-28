@@ -220,13 +220,15 @@ const applications = [
 
 ## Built-in Services
 
-**Note about file names:** Several of the services accept a "base file name" as
-a configured property. These are generally parsed into a prefix and a suffix,
-where the prefix is everything before a final dot (`.`), and the suffix is the
-final dot and everything that follows. (For example, `some.file.txt` would be
-parsed as prefix `some.file` and suffix `.txt`.) These names are used to
-construct _actual_ file names by inserting something in between the prefix and
-suffix, or in some cases just used as-is.
+**Note about file names:** Several of the services accept a file path as a
+configured property, which are typically required to be absolute paths. In
+_some_ cases, the final name component of the path is treated as a prefix +
+suffix combination, where the prefix is everything before a final dot (`.`), and
+the suffix is the final dot and everything that follows. (For example,
+`some.file.txt` would be parsed as prefix `some.file` and suffix `.txt`.) These
+parsed names are used to construct _actual_ file names by inserting something in
+between the prefix and suffix (such as a sequence number), or in some cases just
+used as-is.
 
 **A note about file rotation:** Some of the services accept `rotate` as a
 configured property, which enables automatic file rotation and cleanup. A
@@ -259,8 +261,7 @@ server processes that also write to the same file. The file is written when the
 system starts up, when it shuts down (if not killed with extreme prejudice), and
 optionally on a periodic basis. It accepts the following configuration bindings:
 
-* `directory` &mdash; Directory where the file is to be placed.
-* `baseName` &mdash; Base name for the file.
+* `path` &mdash; Path to the file. Must be an absolute path.
 * `multiprocess` &mdash; Deal with multiple processes writing to the file?
   Optional and defaults to `false`. If `true`, whenever the file is written, it
   is read first and any process IDs found in it are kept if they are in fact
@@ -290,9 +291,8 @@ when the system starts up, when it shuts down (if not killed with extreme
 prejudice), and optionally on a periodic basis. It accepts the following
 configuration bindings:
 
-* `directory` &mdash; Directory where the file is to be placed.
-* `baseName` &mdash; Base name for the file. The process ID is "infixed" into
-  this name.
+* `path` &mdash; Path to the file, with the final path component modified by
+  infixing the process ID.
 * `updateSecs` &mdash; How many seconds to wait between each file update while
   the system is running. Optional and defaults to "never."
 
@@ -358,9 +358,9 @@ A service which logs HTTP(ish) requests in a textual form meant to be similar to
 writing, the exact format is _not_ configurable. It accepts the following
 configuration bindings:
 
-* `directory` &mdash; Directory where the log files are to be placed.
-* `baseName` &mdash; Base name for the file. When rotation is required, a date
-  stamp and (if necessary) sequence number are "infixed" into this name.
+* `path` &mdash; Path to the log file(s) to write. When rotation is performed, a
+  date stamp and (if necessary) sequence number are "infixed" into the final
+  path component.
 * `rotate` &mdash; Optional file rotation configuration. If not specified, no
   file rotation is done.
 
@@ -381,9 +381,9 @@ const services = [
 A service which logs system activity either in a human-friendly or JSON form. It
 accepts the following configuration bindings:
 
-* `directory` &mdash; Directory where the log files are to be placed.
-* `baseName` &mdash; Base name for the file. When rotation is required, a date
-  stamp and (if necessary) sequence number are "infixed" into this name.
+* `path` &mdash; Path to the log file(s) to write. When rotation is performed, a
+  date stamp and (if necessary) sequence number are "infixed" into the final
+  path component.
 * `format` &mdash; Either `human` or `json`.
 * `rotate` &mdash; Optional file rotation configuration. If not specified, no
   file rotation is done.

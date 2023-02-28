@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import * as fs from 'node:fs/promises';
-import * as Path from 'node:path';
 
 import { Files } from '#x/Files';
 import { RotateConfig } from '#x/RotateConfig';
@@ -13,35 +12,24 @@ import { ServiceConfig } from '#x/ServiceConfig';
  * Common superclass for service configurations that write one or more files to
  * a particular directory.
  *
- * Accepted configuration bindings (in the constructor). All are required:
+ * Accepted configuration bindings (in the constructor):
  *
- * * `{string} baseName` -- The base file name of the file(s) to write,
- *   including a suffix (e.g. `.txt`) if wanted. Must be a simple name (no
- *   directories).
- * * `{string} directory` -- The directory to write files to. Must be an
- *   absolute path (not relative).
- * * `{?object} rotate` -- Plain object which can be parsed as a file-rotation
- *   configuration spec, or `null` for no rotation configuration. See
- *   {@link #RotateConfig} for details.
+ * * `{string} path` -- Filesystem path indicating the directory to write to,
+ *   and if being used to name files, the base file name. Must be an absolute
+ *   path (not relative). Required.
+ * * `{?object} rotate` -- Optional plain object which can be parsed as a
+ *   file-rotation configuration spec, or `null` for no rotation configuration.
+ *   See {@link #RotateConfig} for details.
  *
  * This class includes some utility functionality beyond just accessing the
  * configured values.
  */
 export class FileServiceConfig extends ServiceConfig {
-  /** @type {string} The base file name to use. */
-  #baseName;
-
-  /** @type {string} The directory to write to. */
-  #directory;
+  /** @type {string} The absolute path to use. */
+  #path;
 
   /** @type {?RotateConfig} Rotation configuration, if any. */
   #rotate;
-
-  /** @type {string} The base file name's prefix. */
-  #basePrefix;
-
-  /** @type {string} The base file name's suffix. */
-  #baseSuffix;
 
   /**
    * Constructs an instance.
@@ -51,41 +39,16 @@ export class FileServiceConfig extends ServiceConfig {
   constructor(config) {
     super(config);
 
-    this.#baseName  = Files.checkFileName(config.baseName);
-    this.#directory = Files.checkAbsolutePath(config.directory);
-    this.#rotate    = config.rotate ? new RotateConfig(config.rotate) : null;
-
-    const { prefix, suffix } = FileServiceConfig.#parseBaseName(this.#baseName);
-    this.#basePrefix = prefix;
-    this.#baseSuffix = suffix;
+    this.#path   = Files.checkAbsolutePath(config.path);
+    this.#rotate = config.rotate ? new RotateConfig(config.rotate) : null;
   }
 
   /**
-   * @returns {string} The prefix of {@link #baseName}. This is the part of the
-   * name from the start up to (but not including) the last dot (`.`). If there
-   * is no dot, then this is the same as {@link #baseName}.
+   * @returns {string} The absolute path to write to (with possible infixing of
+   * the final path component, depending on the specific use case).
    */
-  get basePrefix() {
-    return this.#basePrefix;
-  }
-
-  /** @returns {string} The base file name to use. */
-  get baseName() {
-    return this.#baseName;
-  }
-
-  /**
-   * @returns {string} The suffix of {@link #baseName}. This is the part of the
-   * name from (and including) the last dot (`.`) to the end of the string. If
-   * there is no dot, then this is the empty string (`''`).
-   */
-  get baseSuffix() {
-    return this.#baseSuffix;
-  }
-
-  /** @returns {string} The directory to write to. */
-  get directory() {
-    return this.#directory;
+  get path() {
+    return this.#path;
   }
 
   /** @returns {?RotateConfig} Rotation configuration, if any. */
@@ -94,26 +57,16 @@ export class FileServiceConfig extends ServiceConfig {
   }
 
   /**
-   * Constructs a base name consisting of the original but with a new string
-   * appended to the prefix. That is, this is a convenient shorthand for
-   * `basePrefix + extraPrefix + baseSuffix`.
-   *
-   * @param {string} extraPrefix String to append to the prefix.
-   * @returns {string} The combined name.
-   */
-  baseNameWithExtraPrefix(extraPrefix) {
-    return `${this.#basePrefix}${extraPrefix}${this.#baseSuffix}`;
-  }
-
-  /**
-   * Creates the {@link #directory}, if it doesn't already exist.
+   * Creates the directory of {@link #path}, if it doesn't already exist.
    */
   async createDirectoryIfNecessary() {
+    const { directory } = this.splitPath();
+
     try {
-      await fs.stat(this.#directory);
+      await fs.stat(directory);
     } catch (e) {
       if (e.code === 'ENOENT') {
-        await fs.mkdir(this.#directory, { recursive: true });
+        await fs.mkdir(directory, { recursive: true });
       } else {
         throw e;
       }
@@ -121,37 +74,44 @@ export class FileServiceConfig extends ServiceConfig {
   }
 
   /**
-   * Resolves the {@link #directory} and {@link #baseName} to an absolute path.
-   * If the optional `extraPrefix` is given, includes that in the name as with
-   * {@link #baseNameWithExtraPrefix}.
+   * Produces a modified {@link #path} by infixing the final path component with
+   * the given value.
    *
-   * @param {string} [extraPrefix = null] String to append to the prefix, if
-   *   any.
-   * @returns {string} The fully resolved path.
+   * @param {string} infix String to infix into the final path component.
+   * @returns {string} The so-modified path.
    */
-  resolvePath(extraPrefix = null) {
-    const baseName = extraPrefix
-      ? this.baseNameWithExtraPrefix(extraPrefix)
-      : this.#baseName;
-
-    return Path.resolve(this.#directory, baseName);
+  infixPath(infix) {
+    const split = this.splitPath();
+    return `${split.directory}/${split.filePrefix}${infix}${split.fileSuffix}`;
   }
 
-
-  //
-  // Static members
-  //
-
   /**
-   * Parses a base file name into a main part and a suffix.
+   * Splits the {@link #path} into components. The return value is a plain
+   * object with the following properties:
    *
-   * @param {string} baseName The original base name.
-   * @returns {{ base: string, suffix: string }} The parsed parts.
+   * * `path` -- The original path (for convenience).
+   * * `directory` -- The directory leading to the final path component, that
+   *   is, everything but the final path component. This _not_ end with a slash,
+   *   so in the case of a root-level file, this is the empty string.
+   * * `fileName` -- The final path component.
+   * * `filePrefix` -- The "prefix" portion of the file name, which is defined
+   *   as everything up to but not including the last dot (`.`) in the name. If
+   *   there is no dot in the name, then this is the same as `fileName`.
+   * * `fileSuffix` -- The "suffix" portion of the file name, which is
+   *   everything not included in `filePrefix`. If there is no dot in the name,
+   *   then this is the empty string.
+   *
+   * @returns {object} The split path, as described.
    */
-  static #parseBaseName(baseName) {
-    const { prefix, suffix = '' } =
-      baseName.match(/^(?<prefix>.*?)(?<suffix>[.][^.]*)?$/).groups;
+  splitPath() {
+    const path = this.#path;
 
-    return { prefix, suffix };
+    const { directory, fileName } =
+      path.match(/^(?<directory>.*)[/](?<fileName>[^/]+)$/).groups;
+
+    const { filePrefix, fileSuffix = '' } =
+      fileName.match(/^(?<filePrefix>.*?)(?<fileSuffix>[.][^.]*)?$/).groups;
+
+    return { path, directory, fileName, filePrefix, fileSuffix };
   }
 }

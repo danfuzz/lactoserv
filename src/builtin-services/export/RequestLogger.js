@@ -37,7 +37,7 @@ export class RequestLogger extends BaseService {
   constructor(config, logger) {
     super(config, logger);
 
-    this.#logFilePath = config.resolvePath();
+    this.#logFilePath = config.path;
     this.#rotator     = config.rotate ? new Rotator(config, this.logger) : null;
   }
 

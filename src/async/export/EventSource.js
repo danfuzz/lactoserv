@@ -98,6 +98,9 @@ export class EventSource {
    *
    * **Note:** Because of the chained nature of events, this property provides
    * access to all subsequent events emitted by this source.
+   *
+   * **Note:** The "kickoff" event is never considered to be emitted. As such,
+   * this getter will never return it.
    */
   get currentEvent() {
     if (this.#emittedCount > 0) {
@@ -118,6 +121,9 @@ export class EventSource {
    * **Note:** Because of the chained nature of events, this property (when
    * non-`null`) provides access to all subsequent events emitted by this
    * source.
+   *
+   * **Note:** The "kickoff" event is never considered to be emitted. As such,
+   * this getter will never return it.
    */
   get currentEventNow() {
     return (this.#emittedCount > 0) ? this.#currentEvent : null;
@@ -127,6 +133,9 @@ export class EventSource {
    * @returns {Promise<LinkedEvent>} Promise for the earliest event kept by
    * this instance. This is an immediately-resolved promise in all cases
    * _except_ when this instance has never emitted an event.
+   *
+   * **Note:** The "kickoff" event is never considered to be emitted. As such,
+   * this getter will never return it.
    */
   get earliestEvent() {
     // Same logic as for `currentEvent()`, see which.
@@ -138,6 +147,9 @@ export class EventSource {
   /**
    * @returns {?LinkedEvent} The earliest event kept by this instance, or
    * `null` if this instance has never emitted an event.
+   *
+   * **Note:** The "kickoff" event is never considered to be emitted. As such,
+   * this getter will never return it.
    */
   get earliestEventNow() {
     return (this.#emittedCount > 0) ? this.#earliestEvent : null;

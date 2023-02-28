@@ -59,8 +59,7 @@ export class ProcessIdFile extends BaseService {
     const { multiprocess, updateSecs } = config;
     this.#multiprocess = multiprocess;
     this.#updateSecs   = updateSecs;
-
-    this.#filePath = config.resolvePath();
+    this.#filePath     = config.path;
   }
 
   /** @override */

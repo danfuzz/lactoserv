@@ -1,9 +1,9 @@
 // Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { LinkedEvent } from '@this/async';
+import { EventSource, LinkedEvent } from '@this/async';
 
-import { LogSource } from '#x/LogSource';
+import { LogEvent } from '#x/LogEvent';
 import { StdLoggingEnvironment } from '#x/StdLoggingEnvironment';
 
 
@@ -16,8 +16,9 @@ export class ThisModule {
    */
   static #DEFAULT_KEEP_COUNT = 100;
 
-  /** @type {LogSource} Global default log source. */
-  static #DEFAULT_LOG_SOURCE = new LogSource(this.#DEFAULT_KEEP_COUNT);
+  /** @type {EventSource} Global default log source. */
+  static #DEFAULT_LOG_SOURCE =
+    LogEvent.makeSource({ keepCount: this.#DEFAULT_KEEP_COUNT });
 
   /** @type {StdLoggingEnvironment} Global default logging environment. */
   static #DEFAULT_ENVIRONMENT =
@@ -28,7 +29,7 @@ export class ThisModule {
     return this.#DEFAULT_ENVIRONMENT;
   }
 
-  /** @returns {LogSource} The default log source. */
+  /** @returns {EventSource} The default log source. */
   static get DEFAULT_LOG_SOURCE() {
     return this.#DEFAULT_LOG_SOURCE;
   }
