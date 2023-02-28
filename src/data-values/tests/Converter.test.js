@@ -6,7 +6,7 @@ import { AskIf } from '@this/typey';
 
 
 describe('decode()', () => {
-  // TODO
+  // Just a placeholder, until decoding is actually implemented.
 });
 
 describe('encode()', () => {

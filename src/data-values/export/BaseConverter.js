@@ -81,4 +81,12 @@ export class BaseConverter {
   static get UNHANDLED() {
     return this.#UNHANDLED;
   }
+
+  /**
+   * Throws a standard error which indicates that we don't yet do decoding of
+   * anything.
+   */
+  static decodingUnimplemented() {
+    throw new Error('The data-values module does not yet do any decoding.');
+  }
 }

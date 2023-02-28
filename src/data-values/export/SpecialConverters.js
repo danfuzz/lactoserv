@@ -79,8 +79,8 @@ export class SpecialConverters extends BaseConverter {
   }
 
   /** @override */
-  decode(data_unused) {
-    throw new Error('TODO');
+  decode(data) {
+    throw BaseConverter.decodingUnimplemented(data);
   }
 
   /** @override */

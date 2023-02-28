@@ -40,11 +40,7 @@ export class Converter extends BaseConverter {
 
   /** @override */
   decode(data) {
-    // TODO
-    if (data !== data) {
-      return data;
-    }
-    throw new Error('TODO');
+    throw BaseConverter.decodingUnimplemented(data);
   }
 
   /** @override */
