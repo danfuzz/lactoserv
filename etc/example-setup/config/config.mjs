@@ -127,16 +127,16 @@ const servers = [
       port:      8080,
       protocol:  'http'
     },
+    services: {
+      rateLimiter:   'limiter',
+      requestLogger: 'requests'
+    },
     mounts: [
       {
         application: 'myWackyRedirector',
         at:          '//*/'
       }
-    ],
-    services: {
-      rateLimiter:   'limiter',
-      requestLogger: 'requests'
-    }
+    ]
   },
   {
     name: 'secure',
@@ -145,6 +145,10 @@ const servers = [
       interface: '*',
       port:      8443,
       protocol:  'http2',
+    },
+    services: {
+      rateLimiter:   'limiter',
+      requestLogger: 'requests'
     },
     mounts: [
       {
@@ -155,11 +159,7 @@ const servers = [
         application: 'myStaticFunNo404',
         at:          ['//*/florp/']
       }
-    ],
-    services: {
-      rateLimiter:   'limiter',
-      requestLogger: 'requests'
-    }
+    ]
   },
   {
     name: 'alsoSecure',
@@ -169,15 +169,15 @@ const servers = [
       port:      8444,
       protocol:  'https'
     },
+    services: {
+      requestLogger: 'requests'
+    },
     mounts: [
       {
         application: 'myStaticFun',
         at:          '//*/'
       }
-    ],
-    services: {
-      requestLogger: 'requests'
-    }
+    ]
   }
 ];
 
