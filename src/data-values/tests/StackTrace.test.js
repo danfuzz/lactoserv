@@ -214,4 +214,53 @@ ${'framesNow'}   | ${''}                | ${(...a) => MockStackTrace.framesNow(.
   });
 });
 
-// TODO: isValidFrame()
+describe('isValidFrame()', () => {
+  // Non-plain-object cases.
+  test.each`
+  value
+  ${null}
+  ${undefined}
+  ${false}
+  ${true}
+  ${123}
+  ${[]}
+  ${[{ a: 123 }]}
+  ${'some-non-object'}
+  ${Symbol('blorch')}
+  ${Object.freeze(new Map())}
+  `('returns false for non-plain-object $value', ({ value }) => {
+    expect(StackTrace.isValidFrame(value)).toBeFalse();
+  });
+
+  // Incorrect plain object cases.
+  test.each`
+  label                        | freeze   | value
+  ${'non-frozen but complete'} | ${false} | ${{ name: 'x', file: 'x', line: 12, col: 23 }}
+  ${'missing name'}            | ${true}  | ${{ file: 'x', line: 12, col: 23 }}
+  ${'missing file'}            | ${true}  | ${{ name: 'x', line: 12, col: 23 }}
+  ${'missing line'}            | ${true}  | ${{ name: 'x', file: 'x', col: 23 }}
+  ${'missing col'}             | ${true}  | ${{ name: 'x', file: 'x', line: 12 }}
+  ${'null name'}               | ${true}  | ${{ name: null, file: 'x', line: 12, col: 23 }}
+  ${'null file'}               | ${true}  | ${{ name: 'x', file: null, line: 12, col: 23 }}
+  ${'non-string name'}         | ${true}  | ${{ name: 123, file: 'x', line: 12, col: 23 }}
+  ${'non-string file'}         | ${true}  | ${{ name: 'x', file: ['x'], line: 12, col: 23 }}
+  ${'non-number line'}         | ${true}  | ${{ name: 'x', file: ['x'], line: 'boop', col: 23 }}
+  ${'non-number col'}          | ${true}  | ${{ name: 'x', file: ['x'], line: 12, col: 'beep' }}
+  `('returns false for $label', ({ freeze, value }) => {
+    if (freeze) {
+      Object.freeze(value);
+    }
+    expect(StackTrace.isValidFrame(value)).toBeFalse();
+  });
+
+  // Correct cases.
+  test.each`
+  label                   | value
+  ${'basic correct case'} | ${{ name: 'x', file: 'x', line: 12, col: 23 }}
+  ${'null line'}          | ${{ name: 'x', file: 'x', line: null, col: 23 }}
+  ${'null col'}           | ${{ name: 'x', file: 'x', line: 12, col: null }}
+  `('returns true for $label', ({ value }) => {
+    Object.freeze(value);
+    expect(StackTrace.isValidFrame(value)).toBeTrue();
+  });
+});
