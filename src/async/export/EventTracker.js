@@ -9,14 +9,6 @@ import { PromiseUtil } from '#x/PromiseUtil';
 import { TypeEventPredicate } from '#x/TypeEventPredicate';
 
 
-// TODO:
-// * nextSync()
-// * peekSync() -- Only possible to work when `headNow` is known.
-//
-// Maybe:
-// * withPushedHead()
-// * withReplacedHead() (uses `event.withPayload()``)
-
 // Implementation note:
 //
 // Arguably surprisingly, JavaScript runs `async` functions synchronously up to
