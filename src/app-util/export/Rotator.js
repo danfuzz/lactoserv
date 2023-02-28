@@ -165,13 +165,13 @@ export class Rotator {
       dateStr  = null
     } = options;
 
-    const { directory, basePrefix, baseSuffix } = this.#config.splitPath();
+    const { directory, filePrefix, fileSuffix } = this.#config.splitPath();
     const todayStr = Rotator.#makeInfix(new Date());
     const contents = await fs.readdir(directory);
     const result   = [];
 
     for (const name of contents) {
-      const parsed = Rotator.#parseInfix(name, basePrefix, baseSuffix);
+      const parsed = Rotator.#parseInfix(name, filePrefix, fileSuffix);
       if (parsed === null) {
         continue;
       }
