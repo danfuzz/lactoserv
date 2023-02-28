@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import * as fs from 'node:fs/promises';
-import * as Path from 'node:path';
 
 import { Files } from '#x/Files';
 import { RotateConfig } from '#x/RotateConfig';
@@ -150,23 +149,6 @@ export class FileServiceConfig extends ServiceConfig {
   infixPath(infix) {
     const split = this.splitPath();
     return `${split.directory}/${split.filePrefix}${infix}${split.fileSuffix}`;
-  }
-
-  /**
-   * Resolves the {@link #directory} and {@link #baseName} to an absolute path.
-   * If the optional `extraPrefix` is given, includes that in the name as with
-   * {@link #baseNameWithExtraPrefix}.
-   *
-   * @param {string} [extraPrefix = null] String to append to the prefix, if
-   *   any.
-   * @returns {string} The fully resolved path.
-   */
-  resolvePath(extraPrefix = null) {
-    const baseName = extraPrefix
-      ? this.baseNameWithExtraPrefix(extraPrefix)
-      : this.#baseName;
-
-    return Path.resolve(this.#directory, baseName);
   }
 
   /**
