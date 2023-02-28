@@ -262,8 +262,10 @@ export class StackTrace {
     const framesMatch = /(\n    at [^\n]+)+[\n]?$/.exec(stack);
 
     if (framesMatch === null) {
-      // Alas, nothing better to do. TODO: Consider something like wrapping
-      // the contents such that it's not lost, etc.
+      // Alas, nothing better to do. If you find yourself looking at this error,
+      // perhaps the format has evolved, or perhaps there is some simple tactic
+      // that is worth doing (e.g. wrapping the contents) such that the system
+      // won't just die due to this problem.
       throw new Error('Not a stack trace string.');
     }
 
