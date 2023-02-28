@@ -13,16 +13,16 @@ import { ServiceConfig } from '#x/ServiceConfig';
  * Common superclass for service configurations that write one or more files to
  * a particular directory.
  *
- * Accepted configuration bindings (in the constructor). All are required:
+ * Accepted configuration bindings (in the constructor):
  *
  * * `{string} baseName` -- The base file name of the file(s) to write,
  *   including a suffix (e.g. `.txt`) if wanted. Must be a simple name (no
  *   directories).
  * * `{string} directory` -- The directory to write files to. Must be an
  *   absolute path (not relative).
- * * `{?object} rotate` -- Plain object which can be parsed as a file-rotation
- *   configuration spec, or `null` for no rotation configuration. See
- *   {@link #RotateConfig} for details.
+ * * `{?object} rotate` -- Optional plain object which can be parsed as a
+ *   file-rotation configuration spec, or `null` for no rotation configuration.
+ *   See {@link #RotateConfig} for details.
  *
  * This class includes some utility functionality beyond just accessing the
  * configured values.
