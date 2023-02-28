@@ -219,25 +219,193 @@ const applications = [
 
 ## Built-in Services
 
+**Note about file names:** Several of the services accept a "base file name" as
+a configured property. These are generally parsed into a prefix and a suffix,
+where the prefix is everything before a final dot (`.`), and the suffix is the
+final dot and everything that follows. (For example, `some.file.txt` would be
+parsed as prefix `some.file` and suffix `.txt`.) These names are used to
+construct _actual_ file names by inserting something in between the prefix and
+suffix, or in some cases just used as-is.
+
+**A note about file rotation:** Some of the services accept `rotation` as a
+configured property, which enables automatic file rotation and cleanup. A
+`rotation` configuration is an object with the following bindings:
+
+* `atSize` &mdash; Rotate when the file becomes the given size (in bytes) or
+  greater. Optional, and if not specified (or if `null`), does not rotate based
+  on size.
+* `checkSecs` &mdash; How often to check for a rotation condition, in seconds.
+  Optional, and if not specified (or if `null`), does not ever check at all.
+  This is only meaningful if `atSize` is also specified. Default `5 * 60`.
+* `maxOldBytes` &mdash; How many bytes' worth of old (post-rotation) files
+  should be allowed, or `null` not to have a limit. The oldest files over the
+  limit get deleted after a rotation.Optional, and defaults to `null`.
+* `maxOldCount` &mdash; How many old (post-rotation) files should be allowed, or
+  `null` not to have a limit. The oldest files over the limit get deleted after
+   a rotation. Optional, and defaults to `null`.
+* `onReload` &mdash; If `true`, rotates when the system is reloaded (restarted
+  in-process). Optional, and defaults to `false`.
+* `onStart` &mdash; If `true`, rotates when the system is first started.
+  Optional, and defaults to `false`.
+* `onStop` &mdash; If `true`, rotates when the system is about to be stopped.
+  Optional, and defaults to `false`.
+
 ### `ProcessIdFile`
 
-TODO
+A service which writes a simple text file containing the process ID (number) of
+the running system, and which optionally tries to deal with other simultaneous
+server processes that also write to the same file. The file is written when the
+system starts up, when it shuts down (if not killed with extreme prejudice), and
+optionally on a periodic basis. It accepts the following configuration bindings:
+
+* `directory` &mdash; Directory where the file is to be placed.
+* `baseName` &mdash; Base name for the file.
+* `multiprocess` &mdash; Deal with multiple processes writing to the file?
+  Optional and defaults to `false`. If `true`, whenever the file is written, it
+  is read first and any process IDs found in it are kept if they are in fact
+  still running.
+* `updateSecs` &mdash; How many seconds to wait between each file update.
+  Optional and defaults to "never." This is only meaningfully used when
+  `multiprocess` is `true`.
+
+```js
+const services = [
+  {
+    name:         'process-id',
+    class:        'ProcessIdFile',
+    directory:    '/path/to/var/run',
+    baseName:     'process.txt',
+    multiprocess: true,
+    updateSecs:   60 * 60
+  }
+];
+```
 
 ### `ProcessInfoFile`
 
-TODO
+A service which writes out a JSON-format file containing information about the
+running system. The file name includes the process ID; and the file is written
+when the system starts up, when it shuts down (if not killed with extreme
+prejudice), and optionally on a periodic basis. It accepts the following
+configuration bindings:
+
+* `directory` &mdash; Directory where the file is to be placed.
+* `baseName` &mdash; Base name for the file. The process ID is "infixed" into
+  this name.
+* `updateSecs` &mdash; How many seconds to wait between each file update while
+  the system is running. Optional and defaults to "never."
+
+```js
+const services = [
+  {
+    name:       'process',
+    class:      'ProcessInfoFile',
+    directory:  filePath('../../../out/var'),
+    baseName:   'process.json',
+    updateSecs: 5 * 60
+  }
+];
+```
 
 ### `RateLimiter`
 
-TODO
+A service which provides rate limiting of any/all of network connections,
+server requests, or sent data. Rate limiting is modeled as a hybrid-model
+"leaky token bucket." The configuration consists of three sections, each
+optional, for `connections` (token unit, a connection), `requests` (token unit,
+a request), and `data` (token unit, a byte). Each of these is configured as an
+object with the following bindings:
+
+* `flowRate` &mdash; The rate of token flow once any burst capacity is
+  exhausted.
+* `timeUnit` &mdash; The time unit of `flowRate`. This can be any of the
+  following: `day` (defined here as 24 hours), `hour`, `minute`, `second`, or
+  `msec` (millisecond).
+* `maxBurstSize` &mdash; The maximum allowed "burst" of tokens before
+  rate-limiting takes effect.
+* `maxQueueSize` &mdash; Optional maximum possible size of the wait queue, in
+  tokens. This is the number of tokens that are allowed to be queued up for a
+  grant, when there is insufficient burst capacity to satisfy all active
+  clients. Attempts to queue up more result in token denials (e.g. network
+  connections closed instead of sending bytes).
+* `maxQueueGrantSize` -- Optional maximum possible size of a grant given to a
+  requester in the wait queue, in tokens. If not specified, it is the same as
+  the `maxBurstSize`. (It is really only meaningful for `data` limiting, because
+  `connections` and `requests` are only requested one at a time.)
+
+```js
+const services = [
+  {
+    name:        'limiter',
+    class:       'RateLimiter',
+    connections: {
+      maxBurstSize: 5,
+      flowRate:     1,
+      timeUnit:     'second',
+      maxQueueSize: 15
+    },
+    requests: { /* ... */ },
+    data: { /* ... */ }
+  }
+];
+```
 
 ### `RequestLogger`
+
+A service which logs HTTP(ish) requests in a textual form meant to be similar to
+(though not identical to) what is often produced by other servers. As of this
+writing, the exact format is _not_ configurable.
+
+
 
 TODO
 
 ### `SystemLogger`
 
 TODO
+
+
+```js
+const services = [
+  {
+    name:      'syslog',
+    class:     'SystemLogger',
+    directory: filePath('../../../out/var'),
+    baseName:  'system-log.txt',
+    format:    'human',
+    rotate: {
+      atSize:      1024 * 1024,
+      atStart:     true,
+      maxOldBytes: 10 * 1024 * 1024
+    }
+  },
+  {
+    name:      'syslog-json',
+    class:     'SystemLogger',
+    directory: filePath('../../../out/var'),
+    baseName:  'system-log.json',
+    format:    'json',
+    rotate: {
+      atSize:      2 * 1024 * 1024,
+      atStart:     true,
+      atReload:    true,
+      atStop:      true,
+      maxOldCount: 10
+    }
+  },
+  {
+    name:      'requests',
+    class:     'RequestLogger',
+    directory: filePath('../../../out/var'),
+    baseName:  'request-log.txt',
+    rotate: {
+      atSize:      100000,
+      maxOldBytes: 1024 * 1024
+    }
+  },
+];
+```
+
 
 ## Custom Applications and Services
 
