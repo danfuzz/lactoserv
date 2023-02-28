@@ -58,9 +58,7 @@ export class NetworkEndpoint extends BaseComponent {
    *   `rateLimiter` (service instance, not just a name).
    */
   constructor(config, extraConfig) {
-    const { endpoint, mounts, name }           = config;
-    const { interface: iface, port, protocol } = endpoint;
-
+    const { interface: iface, mounts, name, port, protocol } = config;
     const { applicationMap, hostManager, logger, rateLimiter, requestLogger } = extraConfig;
 
     super(config, ThisModule.logger.endpoint[name]);

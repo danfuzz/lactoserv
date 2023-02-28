@@ -91,7 +91,7 @@ export class EndpointManager extends BaseControllable {
    */
   #addInstanceFor(config) {
     const {
-      endpoint: { hostnames },
+      hostnames,
       mounts,
       name,
       services: { rateLimiter: limName, requestLogger: logName }
