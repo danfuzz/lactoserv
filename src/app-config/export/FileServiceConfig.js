@@ -31,9 +31,6 @@ export class FileServiceConfig extends ServiceConfig {
   /** @type {?RotateConfig} Rotation configuration, if any. */
   #rotate;
 
-  /** @type {string} The base file name to use. */
-  #baseName;
-
   /** @type {string} The directory to write to. */
   #directory;
 
@@ -55,7 +52,6 @@ export class FileServiceConfig extends ServiceConfig {
       throw new Error(`Shouldn't happen; strange path: ${path}`);
     }
 
-    this.#baseName  = match.groups.baseName;
     this.#directory = match.groups.directory;
     this.#path      = path;
     this.#rotate    = config.rotate ? new RotateConfig(config.rotate) : null;
@@ -75,7 +71,7 @@ export class FileServiceConfig extends ServiceConfig {
   }
 
   /**
-   * Creates the {@link #directory}, if it doesn't already exist.
+   * Creates the directory of {@link #path}, if it doesn't already exist.
    */
   async createDirectoryIfNecessary() {
     try {
