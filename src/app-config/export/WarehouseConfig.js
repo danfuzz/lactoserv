@@ -4,8 +4,8 @@
 import { ApplicationConfig } from '#x/ApplicationConfig';
 import { BaseConfig } from '#x/BaseConfig';
 import { ConfigClassMapper } from '#x/ConfigClassMapper';
-import { HostConfig } from '#x/HostConfig';
 import { EndpointConfig } from '#x/EndpointConfig';
+import { HostConfig } from '#x/HostConfig';
 import { ServiceConfig } from '#x/ServiceConfig';
 
 

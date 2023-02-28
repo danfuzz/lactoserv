@@ -1,7 +1,7 @@
 // Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { MountConfig, EndpointConfig } from '@this/app-config';
+import { EndpointConfig, MountConfig } from '@this/app-config';
 
 import { BaseApplication } from '#x/BaseApplication';
 import { BaseControllable } from '#x/BaseControllable';

@@ -11,8 +11,8 @@ import { BaseControllable } from '#x/BaseControllable';
 import { BaseService } from '#x/BaseService';
 import { ComponentManager } from '#x/ComponentManager';
 import { ComponentRegistry } from '#x/ComponentRegistry';
-import { HostManager } from '#x/HostManager';
 import { EndpointManager } from '#x/EndpointManager';
+import { HostManager } from '#x/HostManager';
 import { ThisModule } from '#p/ThisModule';
 
 
