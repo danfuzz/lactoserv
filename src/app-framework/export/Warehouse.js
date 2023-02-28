@@ -32,7 +32,7 @@ export class Warehouse extends BaseControllable {
   #hostManager;
 
   /** @type {EndpointManager} Endpoint manager, for all endpoint bindings. */
-  #serverManager;
+  #endpointManager;
 
   /** @type {ComponentManager} Service manager. */
   #serviceManager;
@@ -66,7 +66,7 @@ export class Warehouse extends BaseControllable {
     });
 
     this.#hostManager   = new HostManager(parsed.hosts);
-    this.#serverManager = new EndpointManager(parsed.endpoints, this);
+    this.#endpointManager = new EndpointManager(parsed.endpoints, this);
   }
 
   /** @returns {ComponentManager} Application manager. */
@@ -83,8 +83,8 @@ export class Warehouse extends BaseControllable {
   }
 
   /** @returns {EndpointManager} Server manager. */
-  get serverManager() {
-    return this.#serverManager;
+  get endpointManager() {
+    return this.#endpointManager;
   }
 
   /** @returns {ComponentManager} Service manager. */
@@ -96,12 +96,12 @@ export class Warehouse extends BaseControllable {
   async _impl_start(isReload = false) {
     await this.#serviceManager.start(isReload);
     await this.#applicationManager.start(isReload);
-    await this.#serverManager.start(isReload);
+    await this.#endpointManager.start(isReload);
   }
 
   /** @override */
   async _impl_stop(willReload = false) {
-    const endpointsStopped = this.#serverManager.stop(willReload);
+    const endpointsStopped = this.#endpointManager.stop(willReload);
 
     await Promise.race([
       endpointsStopped,
