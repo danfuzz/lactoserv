@@ -139,7 +139,7 @@ fullCommand=(
 )
 
 if (( printNodeCommand )); then
-    echo 1>&2 'Running server via command:'
+    echo 1>&2 'Running system via command:'
     printf 1>&2 '  %q\n' "${fullCommand[@]}"
 fi
 

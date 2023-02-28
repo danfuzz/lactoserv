@@ -21,8 +21,8 @@ baseDir="${cmdDir%/*}"
 
 function usage {
     echo 1>&2 'Usage:'
-    echo 1>&2 "  ${cmdName} run-foreground <server-arg> ..."
-    echo 1>&2 "  ${cmdName} --service-name=<name> start <server-arg> ..."
+    echo 1>&2 "  ${cmdName} run-foreground <system-arg> ..."
+    echo 1>&2 "  ${cmdName} --service-name=<name> start <system-arg> ..."
     echo 1>&2 "  ${cmdName} --service-name=<name> reload"
     echo 1>&2 "  ${cmdName} --service-name=<name> stop"
     exit 1
@@ -34,7 +34,7 @@ command=''
 # Service name.
 serviceName=''
 
-# Arguments to pass through when starting the server.
+# Arguments to pass through when starting the system.
 serverArgs=()
 
 while (( $# != 0 )); do
@@ -105,7 +105,7 @@ function do-start {
     # --unit=<service-name>`, where <service-name> is the name of the systemd
     # service that runs this command, e.g. probably `lactoserv` or some variant
     # thereof.
-    echo 1>&2 'Running server via command:'
+    echo 1>&2 'Running system via command:'
     printf 1>&2 '  %q\n' "${fullCommand[@]}"
 
     # Note: `exec` is required so that the process running this script

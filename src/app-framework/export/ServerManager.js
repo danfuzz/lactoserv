@@ -11,7 +11,7 @@ import { Warehouse } from '#x/Warehouse';
 
 
 /**
- * Manager for dealing with all the network-bound server endpoints of a system.
+ * Manager for dealing with all the network-bound endpoints of a system.
  *
  * **Note:** `start()`ing and `stop()`ing acts on all the endpoints.
  */
@@ -20,7 +20,7 @@ export class ServerManager extends BaseControllable {
   #warehouse;
 
   /**
-   * @type {Map<string, NetworkServer>} Map from each server name to the
+   * @type {Map<string, NetworkServer>} Map from each endpoint name to the
    * {@link NetworkServer} object with that name.
    */
   #instances = new Map();
@@ -45,14 +45,14 @@ export class ServerManager extends BaseControllable {
    * Finds the {@link NetworkServer} for a given name.
    *
    * @param {string} name Endpoint name to look for.
-   * @returns {NetworkServer} The associated server.
-   * @throws {Error} Thrown if there is no server with the given name.
+   * @returns {NetworkServer} The associated endpoint.
+   * @throws {Error} Thrown if there is no endpoint with the given name.
    */
   findServer(name) {
     const instance = this.#instances.get(name);
 
     if (!instance) {
-      throw new Error(`No such server: ${name}`);
+      throw new Error(`No such endpoint: ${name}`);
     }
 
     return instance;

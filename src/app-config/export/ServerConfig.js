@@ -8,7 +8,7 @@ import { ServiceUseConfig } from '#x/ServiceUseConfig';
 
 
 /**
- * Configuration representation for a "server" item, that is, the thing that
+ * Configuration representation for an endpoint item, that is, the thing that
  * answers network requests and routes them to one or more applications, and
  * which can also be hooked up to one or more auxiliary services.
  *

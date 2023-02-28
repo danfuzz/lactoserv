@@ -3,7 +3,7 @@ Configuration Guide
 
 Lactoserv is configured with a JavaScript source file (notably, as opposed to a
 JSON file). This tactic is meant to remove the need for "halfhearted
-programming" facilities baked into a server configuration parser itself. A
+programming" facilities baked into a system configuration parser itself. A
 configuration file is expected to be a module (`.mjs` or `.cjs`) which has a
 single `default` export consisting of a JavaScript object of the ultimate
 configuration. Very skeletally (and reductively):
@@ -33,9 +33,10 @@ one-element array.
 ### `hosts`
 
 `hosts` is a list of hostname bindings. These map possibly-wildcarded hostnames
-to certificate-key pairs to use to authenticate the server as those hosts. This
-section is only required if the server needs to respond to host-authenticated
-protocols (which is of course probably going to be most of the time).
+to certificate-key pairs to use to authenticate an endpoint as those hosts. This
+section is only required if at least one endpoint is to respond to
+host-authenticated protocols (which is of course probably going to be most of
+the time).
 
 ```js
 const hosts = [
@@ -68,7 +69,7 @@ package to read the contents.
 `services` is a list of system services to be used, with each element naming and
 configuring one of them. A system service is simply an encapsulated bit of
 functionality that gets hooked up to the system in general or to some other more
-specific part of the system (typically, to one or more server endpoints).
+specific part of the system (typically, to one or more network endpoints).
 
 There are two required bindings for each system service, its `name` and its
 `class` (type). Beyond that, the configuration depends on the `class`. See below
@@ -113,7 +114,7 @@ const applications = [
 `endpoints` is a list of network endpoints to listen on, with each element
 naming and configuring one of them. Each element has the following bindings:
 
-* `name` &mdash; The name of the server. This is just used for logging and
+* `name` &mdash; The name of the endpoint. This is just used for logging and
   related informational purposes.
 * `endpoint` &mdash; Details about the network endpoint. It is an object with
   the following bindings:
@@ -157,7 +158,7 @@ const endpoints = [
     mounts: [
       {
         application: 'mainSite',
-        at:          ['//*/', '//weird-server/just/for/example/'
+        at:          ['//*/', '//weird-mount/just/for/example/'
       },
       {
         application: 'control',
@@ -260,8 +261,8 @@ configured property, which enables automatic file rotation and cleanup. A
 
 A service which writes a simple text file containing the process ID (number) of
 the running system, and which optionally tries to deal with other simultaneous
-server processes that also write to the same file. The file is written when the
-system starts up, when it shuts down (if not killed with extreme prejudice), and
+processes that also write to the same file. The file is written when the system
+starts up, when it shuts down (if not killed with extreme prejudice), and
 optionally on a periodic basis. It accepts the following configuration bindings:
 
 * `path` &mdash; Path to the file. Must be an absolute path.
@@ -314,7 +315,7 @@ const services = [
 ### `RateLimiter`
 
 A service which provides rate limiting of any/all of network connections,
-server requests, or sent data. Rate limiting is modeled as a hybrid-model
+HTTP(ish) requests, or sent data. Rate limiting is modeled as a hybrid-model
 "leaky token bucket." The configuration consists of three sections, each
 optional, for `connections` (token unit, a connection), `requests` (token unit,
 a request), and `data` (token unit, a byte). Each of these is configured as an

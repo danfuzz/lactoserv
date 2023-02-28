@@ -63,7 +63,7 @@ export class NetworkServer extends BaseComponent {
 
     const { applicationMap, hostManager, logger, rateLimiter, requestLogger } = extraConfig;
 
-    super(config, ThisModule.logger.server[name]);
+    super(config, ThisModule.logger.endpoint[name]);
 
     this.#hostManager = hostManager;
     this.#mountMap    = NetworkServer.#makeMountMap(mounts, applicationMap);
@@ -90,8 +90,8 @@ export class NetworkServer extends BaseComponent {
   }
 
   /**
-   * **Note:** This returns when the server is actually stopped, with the server
-   * socket closed.
+   * **Note:** This returns when the endpoint is actually stopped, with the
+   * server socket closed.
    *
    * @override
    */
@@ -177,7 +177,7 @@ export class NetworkServer extends BaseComponent {
   }
 
   /**
-   * Makes the map from each (possibly wildcarded) hostname that this server
+   * Makes the map from each (possibly wildcarded) hostname that this endpoint
    * handles to the map from each (typically wildcarded) path (that is, a path
    * _prefix_ when wildcarded) to the application which handles it.
    *

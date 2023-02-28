@@ -31,7 +31,7 @@ export class Warehouse extends BaseControllable {
   /** @type {?HostManager} Host manager, if configured. */
   #hostManager;
 
-  /** @type {ServerManager} Endpoint manager, for all server bindings. */
+  /** @type {ServerManager} Endpoint manager, for all endpoint bindings. */
   #serverManager;
 
   /** @type {ComponentManager} Service manager. */
