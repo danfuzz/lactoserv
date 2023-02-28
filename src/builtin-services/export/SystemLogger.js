@@ -44,7 +44,7 @@ export class SystemLogger extends BaseService {
     const { format, name } = config;
     const earliestEvent = this.#findEarliestEventToLog(name);
 
-    this.#logFilePath = config.resolvePath();
+    this.#logFilePath = config.path;
     this.#rotator     = config.rotate ? new Rotator(config, this.logger) : null;
     this.#sink        = new TextFileSink(format, this.#logFilePath, earliestEvent);
   }
