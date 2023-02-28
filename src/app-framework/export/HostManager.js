@@ -13,9 +13,9 @@ import { ThisModule } from '#p/ThisModule';
 
 /**
  * Manager for dealing with all the hostname bindings. "Hosts" in this sense are
- * network-available servers associated with particular names, certificates, and
- * private keys. The main thing offered by this class is the association between
- * hostnames and TLS contexts.
+ * network-available endpoints associated with particular names, certificates,
+ * and private keys. The main thing offered by this class is the association
+ * between hostnames and TLS contexts.
  */
 export class HostManager {
   /**

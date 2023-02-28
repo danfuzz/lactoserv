@@ -16,9 +16,10 @@ import { ServiceConfig } from '#x/ServiceConfig';
  * except as noted:
  *
  * * `{object|object[]} applications` -- Application configuration.
+ * * `{object|object[]} endpoints` -- Endpoint configuration.
  * * `{object|object[]} hosts` -- Optional host / certificate configuration.
- *   Required only if a server is configured to listen for secure connections.
- * * `{object|object[]} servers` -- Server configuration.
+ *   Required only if any endpoints are configured to listen for secure
+ *   connections.
  * * `{object|object[]} services` -- System service configuration.
  */
 export class WarehouseConfig extends BaseConfig {
@@ -28,8 +29,8 @@ export class WarehouseConfig extends BaseConfig {
   /** @type {HostConfig[]} Host configuration objects. */
   #hosts;
 
-  /** @type {ServerConfig[]} Server configuration objects. */
-  #servers;
+  /** @type {ServerConfig[]} Endpoint configuration objects. */
+  #endpoints;
 
   /** @type {ServiceConfig[]} Service configuration objects. */
   #services;
@@ -46,14 +47,14 @@ export class WarehouseConfig extends BaseConfig {
 
     const {
       applications,
+      endpoints,
       hosts = [],
-      servers,
-      services,
+      services
     } = config;
 
     this.#applications = ApplicationConfig.parseArray(applications, configClassMapper);
     this.#hosts        = HostConfig.parseArray(hosts, configClassMapper);
-    this.#servers      = ServerConfig.parseArray(servers, configClassMapper);
+    this.#endpoints    = ServerConfig.parseArray(endpoints, configClassMapper);
     this.#services     = ServiceConfig.parseArray(services, configClassMapper);
   }
 
@@ -67,9 +68,9 @@ export class WarehouseConfig extends BaseConfig {
     return this.#hosts;
   }
 
-  /** @returns {ServerConfig[]} Server configuration objects. */
-  get servers() {
-    return this.#servers;
+  /** @returns {ServerConfig[]} Endpoint configuration objects. */
+  get endpoints() {
+    return this.#endpoints;
   }
 
   /** @returns {ServiceConfig[]} Service configuration objects. */

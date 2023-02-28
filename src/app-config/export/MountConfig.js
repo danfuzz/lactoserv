@@ -10,8 +10,8 @@ import { Uris } from '#x/Uris';
 
 
 /**
- * Configuration representation for a mount point, used in configuring servers.
- * (See {@link ServerConfig}.)
+ * Configuration representation for a mount point, used in configuring
+ * endpoints. (See {@link ServerConfig}.)
  *
  * Accepted configuration bindings (in the constructor). All are required:
  *

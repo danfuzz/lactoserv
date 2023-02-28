@@ -25,9 +25,12 @@ tactics which are mentioned here, so you can see them "in action."
 ## Configuration object bindings
 
 The following are the bindings that are expected at the top level of the
-exported configuration object:
+exported configuration object. In each case, the binding is described as a
+"list" and is typically a JavaScript array. However, in cases where only one
+element is needed, a plain object may be bound directly instead of being a
+one-element array.
 
-### hosts
+### `hosts`
 
 `hosts` is a list of hostname bindings. These map possibly-wildcarded hostnames
 to certificate-key pairs to use to authenticate the server as those hosts. This
@@ -60,7 +63,7 @@ subdomains.
 main configuration file, then the thing to do is just use the standard Node `fs`
 package to read the contents.
 
-### services
+### `services`
 
 `services` is a list of system services to be used, with each element naming and
 configuring one of them. A system service is simply an encapsulated bit of
@@ -82,7 +85,7 @@ const services = [
   // ... more ...
 ```
 
-### applications
+### `applications`
 
 `applications` is a list of applications to be used, with each element naming
 and configuring one of them. An application is an encapsulated bit of
@@ -93,7 +96,7 @@ As with services, there are two required bindings for each application, its
 `name` and its `class` (type). Beyond that, the configuration depends on the
 `class`. See below for a list of all built-in applications. The `name` is used
 both when logging activity (to the system log) and when hooking applications up
-to servers (endpoints).
+to endpoints.
 
 ```js
 const applications = [
@@ -105,10 +108,10 @@ const applications = [
   // ... more ...
 ```
 
-### servers
+### `endpoints`
 
-`servers` is a list of network endpoints to listen on, with each element naming
-and configuring one of them. Each element has the following bindings:
+`endpoints` is a list of network endpoints to listen on, with each element
+naming and configuring one of them. Each element has the following bindings:
 
 * `name` &mdash; The name of the server. This is just used for logging and
   related informational purposes.
@@ -138,9 +141,9 @@ and configuring one of them. Each element has the following bindings:
   * `requestLogger` &mdash; A request logger.
 
 ```js
-const servers = [
+const endpoints = [
   {
-    name: 'someServer',
+    name: 'someEndpoint',
     endpoint: {
       hostnames: ['*'],
       interface: '*',
@@ -354,9 +357,9 @@ const services = [
 ### `RequestLogger`
 
 A service which logs HTTP(ish) requests in a textual form meant to be similar to
-(though not identical to) what is often produced by other servers. As of this
-writing, the exact format is _not_ configurable. It accepts the following
-configuration bindings:
+(though not identical to) what is often produced by other webservers (out in the
+world). As of this writing, the exact format is _not_ configurable. It accepts
+the following configuration bindings:
 
 * `path` &mdash; Path to the log file(s) to write. When rotation is performed, a
   date stamp and (if necessary) sequence number are "infixed" into the final

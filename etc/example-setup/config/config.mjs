@@ -116,8 +116,8 @@ const applications = [
   }
 ];
 
-// Server defintions, including mount points for applications.
-const servers = [
+// Endpoint defintions, including mount points for applications.
+const endpoints = [
   {
     name: 'insecure',
     endpoint: {
@@ -182,8 +182,8 @@ const servers = [
 
 const config = {
   applications,
+  endpoints,
   hosts,
-  servers,
   services
 };
 

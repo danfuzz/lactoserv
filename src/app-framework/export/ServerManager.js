@@ -13,7 +13,7 @@ import { Warehouse } from '#x/Warehouse';
 /**
  * Manager for dealing with all the network-bound server endpoints of a system.
  *
- * **Note:** `start()`ing and `stop()`ing acts on all the servers.
+ * **Note:** `start()`ing and `stop()`ing acts on all the endpoints.
  */
 export class ServerManager extends BaseControllable {
   /** @type {Warehouse} The warehouse this instance is in. */
@@ -32,7 +32,7 @@ export class ServerManager extends BaseControllable {
    * @param {Warehouse} warehouse The warehouse this instance is in.
    */
   constructor(configs, warehouse) {
-    super(ThisModule.logger.servers);
+    super(ThisModule.logger.endpoints);
 
     this.#warehouse = warehouse;
 
@@ -59,9 +59,9 @@ export class ServerManager extends BaseControllable {
   }
 
   /**
-   * Gets a list of all servers managed by this instance.
+   * Gets a list of all endpoints managed by this instance.
    *
-   * @returns {NetworkServer[]} All the servers.
+   * @returns {NetworkServer[]} All the endpoints.
    */
   getAll() {
     return [...this.#instances.values()];
@@ -69,16 +69,16 @@ export class ServerManager extends BaseControllable {
 
   /** @override */
   async _impl_start(isReload) {
-    const servers = this.getAll();
-    const results = servers.map((s) => s.start(isReload));
+    const endpoints = this.getAll();
+    const results   = endpoints.map((s) => s.start(isReload));
 
     await Promise.all(results);
   }
 
   /** @override */
   async _impl_stop(willReload) {
-    const servers = this.getAll();
-    const results = servers.map((s) => s.stop(willReload));
+    const endpoints = this.getAll();
+    const results = endpoints.map((s) => s.stop(willReload));
 
     await Promise.all(results);
   }
@@ -98,7 +98,7 @@ export class ServerManager extends BaseControllable {
     } = config;
 
     if (this.#instances.has(name)) {
-      throw new Error(`Duplicate server name: ${name}`);
+      throw new Error(`Duplicate endpoint name: ${name}`);
     }
 
     const { hostManager, serviceManager } = this.#warehouse;
@@ -116,7 +116,7 @@ export class ServerManager extends BaseControllable {
     const extraConfig = {
       applicationMap: this.#makeApplicationMap(mounts),
       hostManager:    hmSubset,
-      logger:         ThisModule.logger.server[name],
+      logger:         ThisModule.logger.endpoint[name],
       rateLimiter,
       requestLogger
     };
