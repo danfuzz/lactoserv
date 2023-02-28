@@ -15,17 +15,9 @@ import { ServiceConfig } from '#x/ServiceConfig';
  *
  * Accepted configuration bindings (in the constructor):
  *
- * * `{string} baseName` -- The base file name of the file(s) to write,
- *   including a suffix (e.g. `.txt`) if wanted. Must be a simple name (no
- *   directories). Only valid to specify this when `path` is _not_ used. TODO:
- *   Remove this option!
- * * `{string} directory` -- The directory to write files to. Must be an
- *   absolute path (not relative). Only valid to specify this when `path` is
- *   _not_ used. TODO: Remove this option!
  * * `{string} path` -- Filesystem path indicating the directory to write to,
  *   and if being used to name files, the base file name. Must be an absolute
- *   path (not relative). Required, unless the legacy `directory` + `baseName`
- *   are used. TODO: Remove the legacy!
+ *   path (not relative). Required.
  * * `{?object} rotate` -- Optional plain object which can be parsed as a
  *   file-rotation configuration spec, or `null` for no rotation configuration.
  *   See {@link #RotateConfig} for details.
@@ -57,10 +49,7 @@ export class FileServiceConfig extends ServiceConfig {
   constructor(config) {
     super(config);
 
-    const path = config.path ??
-      (Files.checkAbsolutePath(config.directory) + '/' + Files.checkFileName(config.baseName));
-
-    Files.checkAbsolutePath(path);
+    const path = Files.checkAbsolutePath(config.path);
 
     // Split the path into a directory and base name.
     const match = path.match(/^(?<directory>.*[/])(?<baseName>[^/]+)$/);
