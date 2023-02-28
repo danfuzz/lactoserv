@@ -41,7 +41,8 @@ const services = [
     rotate: {
       atSize:      1024 * 1024,
       atStart:     true,
-      maxOldBytes: 10 * 1024 * 1024
+      maxOldBytes: 10 * 1024 * 1024,
+      checkSecs:   60
     }
   },
   {
@@ -54,7 +55,9 @@ const services = [
       atStart:     true,
       atReload:    true,
       atStop:      true,
-      maxOldCount: 10
+      maxOldBytes: 10 * 1024 * 1024,
+      maxOldCount: 10,
+      checkSecs:   60
     }
   },
   {
@@ -62,8 +65,9 @@ const services = [
     class: 'RequestLogger',
     path:  filePath('../../../out/var/request-log.txt'),
     rotate: {
-      atSize:      100000,
-      maxOldBytes: 1024 * 1024
+      atSize:      10000,
+      maxOldCount: 10,
+      checkSecs:   60,
     }
   },
   {
