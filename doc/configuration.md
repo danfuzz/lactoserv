@@ -65,7 +65,7 @@ package to read the contents.
 `services` is a list of system services to be used, with each element naming and
 configuring one of them. A system service is simply an encapsulated bit of
 functionality that gets hooked up to the system in general or to some other more
-specific part of the system (typically, to one or more servers).
+specific part of the system (typically, to one or more server endpoints).
 
 There are two required bindings for each system service, its `name` and its
 `class` (type). Beyond that, the configuration depends on the `class`. See below
