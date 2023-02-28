@@ -119,13 +119,11 @@ const applications = [
 // Endpoint defintions, including mount points for applications.
 const endpoints = [
   {
-    name: 'insecure',
-    endpoint: {
-      hostnames: ['*'],
-      interface: '*',
-      port:      8080,
-      protocol:  'http'
-    },
+    name:      'insecure',
+    hostnames: ['*'],
+    interface: '*',
+    port:      8080,
+    protocol:  'http',
     services: {
       rateLimiter:   'limiter',
       requestLogger: 'requests'
@@ -138,13 +136,11 @@ const endpoints = [
     ]
   },
   {
-    name: 'secure',
-    endpoint: {
-      hostnames: ['*'],
-      interface: '*',
-      port:      8443,
-      protocol:  'http2',
-    },
+    name:      'secure',
+    hostnames: ['*'],
+    interface: '*',
+    port:      8443,
+    protocol:  'http2',
     services: {
       rateLimiter:   'limiter',
       requestLogger: 'requests'
@@ -162,12 +158,10 @@ const endpoints = [
   },
   {
     name: 'alsoSecure',
-    endpoint: {
-      hostnames: ['*'],
-      interface: '*',
-      port:      8444,
-      protocol:  'https'
-    },
+    hostnames: ['*'],
+    interface: '*',
+    port:      8444,
+    protocol:  'https',
     services: {
       requestLogger: 'requests'
     },
