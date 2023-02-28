@@ -113,18 +113,6 @@ export class FileServiceConfig extends ServiceConfig {
   }
 
   /**
-   * Constructs a base name consisting of the original but with a new string
-   * appended to the prefix. That is, this is a convenient shorthand for
-   * `basePrefix + extraPrefix + baseSuffix`.
-   *
-   * @param {string} extraPrefix String to append to the prefix.
-   * @returns {string} The combined name.
-   */
-  baseNameWithExtraPrefix(extraPrefix) {
-    return `${this.#basePrefix}${extraPrefix}${this.#baseSuffix}`;
-  }
-
-  /**
    * Creates the {@link #directory}, if it doesn't already exist.
    */
   async createDirectoryIfNecessary() {
