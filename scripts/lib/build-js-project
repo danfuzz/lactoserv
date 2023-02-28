@@ -292,9 +292,6 @@ function make-index-js {
 }
 
 # Does an `npm install` in the given directory.
-#
-# TODO: Figure out how to run safely. (E.g. fetch first and then run the actual
-# install in an environment with no networking.)
 function npm-install {
     local dir="$1"
 
@@ -303,7 +300,11 @@ function npm-install {
 
     (
         cd "${dir}"
-        npm install --no-fund --omit=dev
+        # `--ignore-scripts` is a tactic to avoid developer-targeted malware.
+        # As of this writing, none of the dependencies need to run scripts, so
+        # there's nothing additional to do in order to cope with the flag (e.g.,
+        # no need to run scripts in an "offline chroot" or somesuch).
+        npm install --ignore-scripts --no-fund --omit=dev
     ) \
     || return "$?"
 }
