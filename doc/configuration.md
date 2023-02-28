@@ -116,16 +116,14 @@ naming and configuring one of them. Each element has the following bindings:
 
 * `name` &mdash; The name of the endpoint. This is just used for logging and
   related informational purposes.
-* `endpoint` &mdash; Details about the network endpoint. It is an object with
-  the following bindings:
-  * `hostnames` &mdash; A list of one or more hostnames to recognize, each name
-    in the same form as accepted in the `hosts` section of the configuration. In
-    most cases, it will suffice to just specify this as `['*']`.
-  * `interface` &mdash; The address of the specific network interface to listen
-    on, or `'*'` to listen on all interfaces. In most cases, `'*'` is a-okay.
-  * `port` &mdash; The port number to listen on.
-  * `protocol` &mdash; The protocol to speak. This can be any of `http`,
-    `https`, or `http2`. `http2` includes fallback to `https`.
+* `hostnames` &mdash; A list of one or more hostnames to recognize, each name
+  in the same form as accepted in the `hosts` section of the configuration. In
+  most cases, it will suffice to just specify this as `['*']`.
+* `interface` &mdash; The address of the specific network interface to listen
+  on, or `'*'` to listen on all interfaces. In most cases, `'*'` is a-okay.
+* `port` &mdash; The port number to listen on.
+* `protocol` &mdash; The protocol to speak. This can be any of `http`, `https`,
+  or `http2`. `http2` includes fallback to `https`.
 * `mounts` &mdash; A list of application mount points, each of which is an
   object with the following bindings:
   * `application` &mdash; The name of the application to mount.
