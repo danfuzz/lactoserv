@@ -11,7 +11,14 @@ import { Struct } from '#x/Struct';
  * Representation of stack traces, along with utility for generating them from
  * various sources.
  *
- * **Note:** This class is written to expect Node / V8 stack traces.
+ * **Note:** This class is written to expect Node / V8 stack traces. And with
+ * that as context, V8 exposes facilities to manipulate stack traces in a form
+ * more structured than strings, which at first blush seems like a very
+ * attractive thing to do. Unfortunately, though, the nature of this class is
+ * that at least _sometimes_ it has to deal with already-formatted stack trace
+ * strings, so it's not like that stuff could just get dropped; it's more like
+ * there would be extra work for minimal (if any) benefit. In any case, see
+ * <https://v8.dev/docs/stack-trace-api> for the details on what V8 offers.
  */
 export class StackTrace {
   /**
@@ -120,8 +127,6 @@ export class StackTrace {
     const result = [];
 
     // This matches a single stack frame line, in Node / V8 format.
-    // TODO: Look into using the built-in V8 mechanism to avoid string parsing.
-    // See <https://v8.dev/docs/stack-trace-api>.
     const lineRx = /    at ([^\n]+?)(?: [(]([^\n]*)[)])?(\n|$)/gy;
     lineRx.lastIndex = StackTrace.#findFirstFrame(original);
 
