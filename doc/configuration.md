@@ -125,11 +125,12 @@ and configuring one of them. Each element has the following bindings:
 * `mounts` &mdash; A list of application mount points, each of which is an
   object with the following bindings:
   * `application` &mdash; The name of the application to mount.
-  * `at` &mdash; The mount point of the application, in the form of a
-    protocol-less URI path, of the form `//hostname/base/path`, where `hostname`
-    is a hostname in the same form as accepted in the `hosts` section of the
-    configuration (including partial and full wildcards), and `base/path` is the
-    base path under that hostname at which the application is to respond.
+  * `at` &mdash; The mount point(s) of the application, in the form of a
+    protocol-less URI path, of the form `//hostname/base/path/` or a list of
+    same, where `hostname` is a hostname in the same form as accepted in the
+    `hosts` section of the configuration (including partial and full wildcards),
+    and `base/path/` (which must end with a slash) is the base path under that
+    hostname at which the application is to respond.
 * `services` &mdash; An object which binds roles to system services by name.
   This binding is optional, and if present all roles are optional. The following
   roles are recognized:
@@ -149,11 +150,11 @@ const servers = [
     mounts: [
       {
         application: 'mainSite',
-        at:          '//*/'
+        at:          ['//*/', '//weird-server/just/for/example/'
       },
       {
         application: 'control',
-        at:          '//*/.control'
+        at:          '//*/.control/'
       },
       // ... more ...
     ],
