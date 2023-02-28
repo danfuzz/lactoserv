@@ -227,9 +227,9 @@ parsed as prefix `some.file` and suffix `.txt`.) These names are used to
 construct _actual_ file names by inserting something in between the prefix and
 suffix, or in some cases just used as-is.
 
-**A note about file rotation:** Some of the services accept `rotation` as a
+**A note about file rotation:** Some of the services accept `rotate` as a
 configured property, which enables automatic file rotation and cleanup. A
-`rotation` configuration is an object with the following bindings:
+`rotate` configuration is an object with the following bindings:
 
 * `atSize` &mdash; Rotate when the file becomes the given size (in bytes) or
   greater. Optional, and if not specified (or if `null`), does not rotate based
@@ -300,7 +300,7 @@ const services = [
   {
     name:       'process',
     class:      'ProcessInfoFile',
-    directory:  filePath('../../../out/var'),
+    directory:  '/path/to/var/run',
     baseName:   'process.json',
     updateSecs: 5 * 60
   }
@@ -336,8 +336,8 @@ object with the following bindings:
 ```js
 const services = [
   {
-    name:        'limiter',
-    class:       'RateLimiter',
+    name:  'limiter',
+    class: 'RateLimiter',
     connections: {
       maxBurstSize: 5,
       flowRate:     1,
@@ -354,55 +354,54 @@ const services = [
 
 A service which logs HTTP(ish) requests in a textual form meant to be similar to
 (though not identical to) what is often produced by other servers. As of this
-writing, the exact format is _not_ configurable.
+writing, the exact format is _not_ configurable. It accepts the following
+configuration bindings:
 
-
-
-TODO
-
-### `SystemLogger`
-
-TODO
-
+* `directory` &mdash; Directory where the log files are to be placed.
+* `baseName` &mdash; Base name for the file. When rotation is required, a date
+  stamp and (if necessary) sequence number are "infixed" into this name.
+* `rotate` &mdash; Optional file rotation configuration. If not specified, no
+  file rotation is done.
 
 ```js
 const services = [
   {
-    name:      'syslog',
-    class:     'SystemLogger',
-    directory: filePath('../../../out/var'),
-    baseName:  'system-log.txt',
-    format:    'human',
-    rotate: {
-      atSize:      1024 * 1024,
-      atStart:     true,
-      maxOldBytes: 10 * 1024 * 1024
-    }
-  },
+    name:      'requests',
+    class:     'RequestLogger',
+    directory: '/path/to/var/log',
+    baseName:  'request-log.txt',
+    rotate:    { /* ... */ }
+  }
+];
+```
+
+### `SystemLogger`
+
+A service which logs system activity either in a human-friendly or JSON form. It
+accepts the following configuration bindings:
+
+* `directory` &mdash; Directory where the log files are to be placed.
+* `baseName` &mdash; Base name for the file. When rotation is required, a date
+  stamp and (if necessary) sequence number are "infixed" into this name.
+* `format` &mdash; Either `human` or `json`.
+* `rotate` &mdash; Optional file rotation configuration. If not specified, no
+  file rotation is done.
+
+**Note:** As of this writing, the system tends to be _very_ chatty, and as such
+the system logs can be quite massive. If you choose to use this service, it is
+highly advisable to set up sane limits on the amount of storage used by
+configuring `rotate`.
+
+```js
+const services = [
   {
     name:      'syslog-json',
     class:     'SystemLogger',
-    directory: filePath('../../../out/var'),
+    directory: '/path/to/var/log',
     baseName:  'system-log.json',
     format:    'json',
-    rotate: {
-      atSize:      2 * 1024 * 1024,
-      atStart:     true,
-      atReload:    true,
-      atStop:      true,
-      maxOldCount: 10
-    }
-  },
-  {
-    name:      'requests',
-    class:     'RequestLogger',
-    directory: filePath('../../../out/var'),
-    baseName:  'request-log.txt',
-    rotate: {
-      atSize:      100000,
-      maxOldBytes: 1024 * 1024
-    }
-  },
+    rotate:    { /* ... */ }
+  }
 ];
 ```
 
