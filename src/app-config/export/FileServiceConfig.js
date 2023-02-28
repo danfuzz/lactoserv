@@ -72,34 +72,6 @@ export class FileServiceConfig extends ServiceConfig {
   }
 
   /**
-   * @returns {string} The prefix of {@link #baseName}. This is the part of the
-   * name from the start up to (but not including) the last dot (`.`). If there
-   * is no dot, then this is the same as {@link #baseName}.
-   */
-  get basePrefix() {
-    return this.#basePrefix;
-  }
-
-  /** @returns {string} The base file name to use. */
-  get baseName() {
-    return this.#baseName;
-  }
-
-  /**
-   * @returns {string} The suffix of {@link #baseName}. This is the part of the
-   * name from (and including) the last dot (`.`) to the end of the string. If
-   * there is no dot, then this is the empty string (`''`).
-   */
-  get baseSuffix() {
-    return this.#baseSuffix;
-  }
-
-  /** @returns {string} The directory to write to. */
-  get directory() {
-    return this.#directory;
-  }
-
-  /**
    * @returns {string} The absolute path to write to (with possible infixing of
    * the final path component, depending on the specific use case).
    */
