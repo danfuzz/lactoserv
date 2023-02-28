@@ -229,7 +229,7 @@ export class MustBe {
   }
 
   /**
-   * Checks for type `string`, and optionally matching a particular regular
+   * Checks for type `string`, optionally matching a particular regular
    * expression.
    *
    * @param {*} value Arbitrary value.
@@ -239,20 +239,15 @@ export class MustBe {
    * @throws {Error} Thrown if `value` is of any other type or doesn't match.
    */
   static string(value, match = null) {
-    if (typeof value !== 'string') {
-      throw new Error('Must be of type `string`.');
+    if (AskIf.string(value, match)) {
+      return value;
     }
 
     if (match) {
-      if (typeof match === 'string') {
-        match = new RegExp(match);
-      }
-      if (!match.test(value)) {
-        throw new Error(`Must match pattern: ${match}`);
-      }
+      throw new Error(`Must be of type \`string\` and match pattern: ${match}`);
+    } else {
+      throw new Error('Must be of type `string`.');
     }
-
-    return value;
   }
 
   /**

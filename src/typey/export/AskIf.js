@@ -198,7 +198,31 @@ export class AskIf {
       && Object.getPrototypeOf(value) === Object.prototype;
   }
 
-  // TODO: string()
+  /**
+   * Checks for type `string`, optionally matching a particular regular
+   * expression.
+   *
+   * @param {*} value Arbitrary value.
+   * @param {?RegExp|string} [match = null] Optional regular expression that
+   *  `value` must match.
+   * @returns {boolean} `true` iff `value` is of the indicated type.
+   */
+  static string(value, match = null) {
+    if (typeof value !== 'string') {
+      return false;
+    }
+
+    if (match) {
+      if (typeof match === 'string') {
+        match = new RegExp(match);
+      }
+      if (!match.test(value)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
 
   /**
    * Checks for type "class which is a (possibly improper) subclass of some
