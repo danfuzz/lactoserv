@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { TreePathKey } from '@this/collections';
-import { MustBe } from '@this/typey';
+import { AskIf, MustBe } from '@this/typey';
 
 
 /**
@@ -261,20 +261,14 @@ export class Uris {
    * @throws {Error} Thrown if `name` is invalid.
    */
   static parseHostname(name, allowWildcards = false) {
-    MustBe.string(name, this.HOSTNAME_PATTERN);
-    const path = name.split('.').reverse();
-    let wildcard = false;
+    const result = this.parseHostnameOrNull(name, allowWildcards);
 
-    if (path[path.length - 1] === '*') {
-      path.pop();
-      wildcard = true;
+    if (result) {
+      return result;
     }
 
-    if (wildcard && !allowWildcards) {
-      throw Error(`Wildcard not allowed for name: ${name}`);
-    }
-
-    return new TreePathKey(path, wildcard);
+    const wildMsg = allowWildcards ? 'allowed' : 'disallowed';
+    throw new Error(`Invalid hostname (wildcards ${wildMsg}): ${name}`);
   }
 
   /**
@@ -288,11 +282,22 @@ export class Uris {
    */
   static parseHostnameOrNull(name, allowWildcards = false) {
     MustBe.string(name);
-    // TODO: Make this method be the main implementation etc etc.
-    try {
-      return this.parseHostname(name, allowWildcards);
-    } catch {
+
+    if (!AskIf.string(name, this.HOSTNAME_PATTERN)) {
       return null;
+    }
+
+    const path = name.split('.').reverse();
+
+    if (path[path.length - 1] === '*') {
+      if (allowWildcards) {
+        path.pop();
+        return new TreePathKey(path, true);
+      } else {
+        return null;
+      }
+    } else {
+      return new TreePathKey(path, false);
     }
   }
 
