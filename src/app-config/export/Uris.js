@@ -95,20 +95,26 @@ export class Uris {
    * @throws {Error} Thrown if `value` does not match.
    */
   static checkBasicUri(value) {
-    MustBe.string(value);
+    // Basic constraints.
+    const pattern =
+      '^' +
+      '(http|https):' +        // Only `http` or `https` protocol.
+      '[/][/](?![/])' +        // Exactly two slashes after the colon.
+      '(?!.*[/][.]{0,2}[/])' + // No empty, `.`, or `..` components.
+      '.*/$';                  // Must end with a slash.
 
-    // Check the constraints by parsing as a URL and investigating the result.
+    MustBe.string(value, pattern);
+
+    // Check the rest of the constraints by parsing as a URL and investigating
+    // the result.
     try {
       const url = new URL(value);
-      if (   /^https?:$/.test(url.protocol)
-          && (url.username === '') && (url.password === '')
-          && value.endsWith(url.pathname)
-          && !/[/][.]{0,2}[/]/.test(url.pathname) // No invalid path components.
-          && /[/]$/.test(url.pathname)) {         // Path ends with a slash.
+      if (   (url.username === '') && (url.password === '')
+          && value.endsWith(url.pathname)) {
         return value;
       }
     } catch {
-      // Fall through.
+      // Fall through to throw the error.
     }
 
     throw new Error('Must be a basic absolute URI.');
