@@ -365,12 +365,47 @@ ${'parseHostnameOrNull'} | ${false}
 });
 
 describe('parseMount()', () => {
-  // TODO:
+  // Note: Other tests in this file check a lot of the code that's used by this
+  // method, so it's not really necessary to be super-exhaustive here.
+
+  // Failure cases.
+  test.each`
+  label                                | mount
+  ${'null'}                            | ${null}
+  ${'non-string'}                      | ${123}
+  ${'no slash at start'}               | ${'foo/bar/'}
+  ${'invalid component character'}     | ${'//foo/b@r/'}
+  ${'invalid hostname'}                | ${'//.foo./bar/'}
+  `('fails for $label', ({ mount }) => {
+    expect(() => Uris.parseMount(mount)).toThrow();
+  });
+
+  // "Smokey" success tests.
+
+  test('parses a mount with non-wildcard host as expected', () => {
+    const expectHost = new TreePathKey(['bar', 'foo'], false);
+    const expectPath = new TreePathKey(['a', 'b', 'c'], true);
+    const got        = Uris.parseMount('//foo.bar/a/b/c/');
+
+    expect(got.hostname.equals(expectHost)).toBeTrue();
+    expect(got.path.equals(expectPath)).toBeTrue();
+  });
+
+  test('parses a mount with partial wildcard host as expected', () => {
+    const expectHost = new TreePathKey(['zorp', 'beep'], true);
+    const expectPath = new TreePathKey(['blortch'], true);
+    const got        = Uris.parseMount('//*.beep.zorp/blortch/');
+
+    expect(got.hostname.equals(expectHost)).toBeTrue();
+    expect(got.path.equals(expectPath)).toBeTrue();
+  });
+
+  test('parses a mount with full wildcard host as expected', () => {
+    const expectHost = new TreePathKey([], true);
+    const expectPath = new TreePathKey(['xyz', 'abc', '123', 'zzz'], true);
+    const got        = Uris.parseMount('//*/xyz/abc/123/zzz/');
+
+    expect(got.hostname.equals(expectHost)).toBeTrue();
+    expect(got.path.equals(expectPath)).toBeTrue();
+  });
 });
-/**
- * Parses a mount point into its two components.
- *
- * @param {string} mount Mount point.
- * @returns {{hostname: TreePathKey, path: TreePathKey}} Components thereof.
- */
-//static parseMount(mount) {
