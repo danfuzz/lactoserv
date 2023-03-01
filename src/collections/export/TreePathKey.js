@@ -29,8 +29,7 @@ export class TreePathKey {
    *   related) things, depending on the context in which an instance is used.
    */
   constructor(path, wildcard) {
-    MustBe.arrayOfString(path);
-    MustBe.boolean(wildcard);
+    TreePathKey.checkArguments(path, wildcard);
 
     this.#path     = Object.isFrozen(path) ? path : Object.freeze([...path]);
     this.#wildcard = wildcard;
