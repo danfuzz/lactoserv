@@ -99,6 +99,7 @@ describe('checkInterface()', () => {
   ${'too few IPv6 colons'}              | ${'123:45:67:89:ab'}
   ${'invalid IPv6 digit'}               | ${'123::g:456'}
   ${'too-long IPv6 component'}          | ${'123::45678:9'}
+  ${'too many IPv6 components'}         | ${'1:2:3:4:5:6:7:8:9'}
   ${'canonical IPv4 wildcard'}          | ${'0.0.0.0'}
   ${'IPv4 wildcard'}                    | ${'0.00.0.0'}
   ${'too-long IPv4 component'}          | ${'10.0.0.0099'}
@@ -139,31 +140,49 @@ describe('checkInterface()', () => {
 
 
 describe('checkMount()', () => {
-  // TODO:
-});
+  // Failure cases.
+  test.each`
+  label                                | mount
+  ${'null'}                            | ${null}
+  ${'non-string'}                      | ${123}
+  ${'no slash at start'}               | ${'foo/bar/'}
+  ${'single slash at start'}           | ${'/foo/bar/'}
+  ${'triple slash at start'}           | ${'///foo/bar/'}
+  ${'no slash at end'}                 | ${'//foo/bar'}
+  ${'double slash at end'}             | ${'//foo/bar//'}
+  ${'triple slash at end'}             | ${'//foo/bar///'}
+  ${'double slash in middle'}          | ${'//foo//bar/'}
+  ${'triple slash in middle'}          | ${'//foo///bar/'}
+  ${'double slash at end'}             | ${'/foo/bar//'}
+  ${'`.` component'}                   | ${'//foo/./bar/'}
+  ${'`..` component'}                  | ${'//foo/../bar/'}
+  ${'`-` component'}                   | ${'//foo/-/bar/'}
+  ${'`-` at start of component'}       | ${'//foo/-bar/'}
+  ${'`-` at end of component'}         | ${'//foo/bar-/'}
+  ${'invalid component character'}     | ${'//foo/b@r/'}
+  ${'`-` at hostname component start'} | ${'//foo.-foo/bar/'}
+  ${'`-` at hostname component end'}   | ${'//foo.foo-/bar/'}
+  ${'hostname wildcard in middle'}     | ${'//foo.*.bar/'}
+  ${'hostname wildcard at end'}        | ${'//foo.*/'}
+  ${'invalid hostname character'}      | ${'//foo.b$r/bar/'}
+  `('fails for $label', ({ mount }) => {
+    expect(() => Uris.checkMount(mount)).toThrow();
+  });
 
-/**
- * Checks that a given value is a string in the form of a network mount point
- * (as used by this system). Mount points are URI-ish strings of the form
- * `//<hostname>/<path>/...`, where:
- *
- * * `hostname` is {@link Uris.HOSTNAME_PATTERN_FRAGMENT}.
- * * Each `path` is a non-empty string consisting of alphanumerics plus `-`,
- *   `_`, or `.`; which must furthermore start and end with an alphanumeric
- *   character.
- * * It must start with `//` and end with `/`.
- *
- * **Note:** Mount paths are more restrictive than what is acceptable in
- * general for paths as passed in via HTTP(ish) requests, i.e. an incoming
- * path can legitimately _not_ match a mount path while still being
- * syntactically correct.
- *
- * @param {*} value Value in question.
- * @returns {string} `value` if it is a string which matches the stated
- *   pattern.
- * @throws {Error} Thrown if `value` does not match.
- */
-//static checkMount(value) {
+  // Success cases.
+  test.each`
+  mount
+  ${'//foo/'}
+  ${'//foo/bar/'}
+  ${'//foo/bar/baz/'}
+  ${'//*/'}
+  ${'//*/florp/'}
+  ${'//*.foo/florp/'}
+  ${'//*.foo.bar/florp/'}
+  `('succeeds for $mount', ({ mount }) => {
+    expect(() => Uris.checkMount(mount)).not.toThrow();
+  });
+});
 
 describe('checkPort()', () => {
   // TODO:
