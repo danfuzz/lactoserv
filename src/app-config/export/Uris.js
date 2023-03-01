@@ -212,13 +212,13 @@ export class Uris {
   }
 
   /**
-   * Checks that a given value is a valid port number, optionally also allowing
-   * `*` to specify the wildcard port.
+   * Checks that a given value is a valid non-wildcard port number, optionally
+   * also allowing `*` to specify the wildcard port.
    *
    * @param {*} value Value in question.
    * @param {boolean} allowWildcard Is `*` allowed?
-   * @returns {number} `value` if it is a valid port number. If `allowWildcard
-   *   === true` and `value === '*'`, then the result is `0`.
+   * @returns {number} `value` if it is a valid non-wildcard port number. If
+   *  `allowWildcard === true` and `value === '*'`, then the result is `0`.
    * @throws {Error} Thrown if `value` does not match.
    */
   static checkPort(value, allowWildcard) {
