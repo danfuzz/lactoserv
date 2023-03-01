@@ -255,19 +255,19 @@ export class Uris {
    * contains the name components in back-to-front order.
    *
    * @param {string} name Hostname to parse.
-   * @param {boolean} [allowWildcards = false] Is a wildcard form allowed for
+   * @param {boolean} [allowWildcard = false] Is a wildcard form allowed for
    *   `name`?
    * @returns {TreePathKey} Parsed key.
    * @throws {Error} Thrown if `name` is invalid.
    */
-  static parseHostname(name, allowWildcards = false) {
-    const result = this.parseHostnameOrNull(name, allowWildcards);
+  static parseHostname(name, allowWildcard = false) {
+    const result = this.parseHostnameOrNull(name, allowWildcard);
 
     if (result) {
       return result;
     }
 
-    const wildMsg = allowWildcards ? 'allowed' : 'disallowed';
+    const wildMsg = allowWildcard ? 'allowed' : 'disallowed';
     throw new Error(`Invalid hostname (wildcards ${wildMsg}): ${name}`);
   }
 
@@ -276,11 +276,11 @@ export class Uris {
    * hostname.
    *
    * @param {string} name Hostname to parse.
-   * @param {boolean} [allowWildcards = false] Is a wildcard form allowed for
+   * @param {boolean} [allowWildcard = false] Is a wildcard form allowed for
    *   `name`?
    * @returns {?TreePathKey} Parsed key, or `null` if `name` is invalid.
    */
-  static parseHostnameOrNull(name, allowWildcards = false) {
+  static parseHostnameOrNull(name, allowWildcard = false) {
     MustBe.string(name);
 
     if (!AskIf.string(name, this.HOSTNAME_PATTERN)) {
@@ -290,7 +290,7 @@ export class Uris {
     const path = name.split('.').reverse();
 
     if (path[path.length - 1] === '*') {
-      if (allowWildcards) {
+      if (allowWildcard) {
         path.pop();
         return new TreePathKey(path, true);
       } else {

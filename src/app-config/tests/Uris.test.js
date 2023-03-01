@@ -353,7 +353,7 @@ ${'parseHostnameOrNull'} | ${false}
   ${'*.a'}
   ${'*.foo.bar'}
   ${'*.beep.boop.blork'}
-  `('succeeds for $hostname only when `allowWildcards === true`', ({ hostname }) => {
+  `('succeeds for $hostname only when `allowWildcard === true`', ({ hostname }) => {
     if (throws) {
       expect(() => Uris[method](hostname, false)).toThrow();
     } else {

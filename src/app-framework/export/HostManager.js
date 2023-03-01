@@ -178,13 +178,13 @@ export class HostManager {
    * an invalid hostname, this logs the problem but does not throw an error.
    *
    * @param {string} name Hostname to look for.
-   * @param {boolean} allowWildcards Is `name` allowed to be a wildcard (partial
+   * @param {boolean} allowWildcard Is `name` allowed to be a wildcard (partial
    *   or full)?
    * @returns {?HostItem} The associated item, or `null` if nothing suitable is
    *   found.
    */
-  #findItem(name, allowWildcards) {
-    const key   = Uris.parseHostname(name, allowWildcards);
+  #findItem(name, allowWildcard) {
+    const key   = Uris.parseHostname(name, allowWildcard);
     const found = this.#items.find(key);
 
     return found ? found.value : null;
