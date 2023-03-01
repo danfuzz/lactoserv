@@ -193,34 +193,67 @@ describe('checkMount()', () => {
 });
 
 describe('checkPort()', () => {
-  // TODO:
+  test('works for `*` when `allowWildcard === true`', () => {
+    expect(Uris.checkPort('*', true)).toBe(0);
+  });
+
+  test('fails for `*` when `allowWildcard === false`', () => {
+    expect(() => Uris.checkPort('*', false)).toThrow();
+  });
+
+  test('works for minimum valid value (1)', () => {
+    expect(Uris.checkPort(1, false)).toBe(1);
+    expect(Uris.checkPort(1, true)).toBe(1);
+  });
+
+  test('works for maximum valid value (65535)', () => {
+    expect(Uris.checkPort(65535, false)).toBe(65535);
+    expect(Uris.checkPort(65535, true)).toBe(65535);
+  });
+
+  test('works for all valid port numbers (non-exhaustive)', () => {
+    for (let p = 2; p <= 65534; p += 1235) {
+      expect(Uris.checkPort(p, false)).toBe(p);
+      expect(Uris.checkPort(p, true)).toBe(p);
+    }
+  });
+
+  // Failure cases.
+  test.each`
+  label                                | port
+  ${'null'}                            | ${null}
+  ${'non-`*` string'}                  | ${'123'}
+  ${'bigint'}                          | ${123n}
+  ${'non-integer'}                     | ${12.34}
+  ${'0'}                               | ${0}
+  ${'-1'}                              | ${-1}
+  ${'65536'}                           | ${65536}
+  `('fails for $label', ({ port }) => {
+    expect(() => Uris.checkPort(port)).toThrow();
+  });
 });
-/**
- * Checks that a given value is a valid port number, optionally also allowing
- * `*` to specify the wildcard port.
- *
- * @param {*} value Value in question.
- * @param {boolean} allowWildcard Is `*` allowed?
- * @returns {number} `value` if it is a valid port number. If `allowWildcard
- *   === true` and `value === '*'`, then the result is `0`.
- * @throws {Error} Thrown if `value` does not match.
- */
-//static checkPort(value, allowWildcard) {
 
 describe('checkProtocol()', () => {
-  // TODO:
+  // Failure cases.
+  test.each`
+  label                 | protocol
+  ${'null'}             | ${null}
+  ${'non-string'}       | ${123}
+  ${'invalid protocol'} | ${'ftp'}
+  `('fails for $label', ({ protocol }) => {
+    expect(() => Uris.checkProtocol(protocol)).toThrow();
+  });
+
+  // Success cases.
+  test.each`
+  protocol
+  ${'http'}
+  ${'https'}
+  ${'http2'}
+  `('succeeds for $protocol', ({ protocol }) => {
+    expect(Uris.checkProtocol(protocol)).toBe(protocol);
+  });
 });
-/**
- * Checks that a given value is a string representing a protocol name (as
- * allowed by this system).
- *
- * @param {*} value Value in question.
- * @returns {string} `value` if it is a string which matches the stated
- *   pattern.
- * @throws {Error} Thrown if `value` does not match.
- */
-//static checkProtocol(value) {
-//  const pattern = /^(http|https|http2)$/;
 
 describe('parseHostname()', () => {
   // TODO:
