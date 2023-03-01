@@ -32,7 +32,7 @@ describe('checkAbsolutePath()', () => {
   ${'/foo/bar/'}
   ${'/foo/b%20ar/'}
   `('succeeds for $path', ({ path }) => {
-    expect(() => Uris.checkAbsolutePath(path)).not.toThrow();
+    expect(Uris.checkAbsolutePath(path)).toBe(path);
   });
 });
 
@@ -70,7 +70,7 @@ describe('checkBasicUri()', () => {
   ${'https://foo.bar/baz/'}
   ${'https://foo.bar/b%20az/'}
   `('succeeds for $path', ({ path }) => {
-    expect(() => Uris.checkBasicUri(path)).not.toThrow();
+    expect(Uris.checkBasicUri(path)).toBe(path);
   });
 });
 
@@ -134,10 +134,9 @@ describe('checkInterface()', () => {
   ${`${LONGEST_COMPONENT}.${LONGEST_COMPONENT}`}
   ${LONGEST_NAME}
   `('succeeds for $iface', ({ iface }) => {
-    expect(() => Uris.checkInterface(iface)).not.toThrow();
+    expect(Uris.checkInterface(iface)).toBe(iface);
   });
 });
-
 
 describe('checkMount()', () => {
   // Failure cases.
@@ -188,7 +187,7 @@ describe('checkMount()', () => {
   ${'//foo/florp-like/'}
   ${'//foo/.../'} // Weird, but should be allowed.
   `('succeeds for $mount', ({ mount }) => {
-    expect(() => Uris.checkMount(mount)).not.toThrow();
+    expect(Uris.checkMount(mount)).toBe(mount);
   });
 });
 
