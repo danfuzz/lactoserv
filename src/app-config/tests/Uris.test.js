@@ -2,6 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Uris } from '@this/app-config';
+import { TreePathKey } from '@this/collections';
+
+const LONGEST_COMPONENT = 'x'.repeat(63);
+const LONGEST_NAME      = `${'florp.'.repeat(41)}vwxyz.com`;
 
 describe('checkAbsolutePath()', () => {
   // Failure cases.
@@ -75,9 +79,6 @@ describe('checkBasicUri()', () => {
 });
 
 describe('checkInterface()', () => {
-  const LONGEST_COMPONENT = 'x'.repeat(63);
-  const LONGEST_NAME      = `${'florp.'.repeat(41)}vwxyz.com`;
-
   // Failure cases.
   test.each`
   label                                 | iface
@@ -163,7 +164,10 @@ describe('checkMount()', () => {
   ${'`-` at hostname component end'}   | ${'//foo.foo-/bar/'}
   ${'hostname wildcard in middle'}     | ${'//foo.*.bar/'}
   ${'hostname wildcard at end'}        | ${'//foo.*/'}
+  ${'hostname wildcard without dot'}   | ${'//*foo/'}
   ${'invalid hostname character'}      | ${'//foo.b$r/bar/'}
+  ${'hostname component too long'}     | ${`//z${LONGEST_COMPONENT}/`}
+  ${'hostname too long'}               | ${`//z${LONGEST_NAME}/`}
   `('fails for $label', ({ mount }) => {
     expect(() => Uris.checkMount(mount)).toThrow();
   });
@@ -186,6 +190,11 @@ describe('checkMount()', () => {
   ${'//foo/florp_/'}
   ${'//foo/florp-like/'}
   ${'//foo/.../'} // Weird, but should be allowed.
+  ${`//${LONGEST_COMPONENT}/`}
+  ${`//${LONGEST_COMPONENT}.${LONGEST_COMPONENT}/`}
+  ${`//${LONGEST_NAME}/`}
+  ${`//${LONGEST_NAME}/a/`}
+  ${`//${LONGEST_NAME}/abcde/fghij/`}
   `('succeeds for $mount', ({ mount }) => {
     expect(Uris.checkMount(mount)).toBe(mount);
   });
@@ -254,23 +263,106 @@ describe('checkProtocol()', () => {
   });
 });
 
-describe('parseHostname()', () => {
-  // TODO:
+describe.each`
+method                   | throws
+${'parseHostname'}       | ${true}
+${'parseHostnameOrNull'} | ${false}
+`('$method()', ({ method, throws }) => {
+  // Non-string failures. These are supposed to throw even with `*OrNull()`.
+  test.each`
+  hostname
+  ${null}
+  ${undefined}
+  ${false}
+  ${true}
+  ${123}
+  ${Symbol('boop')}
+  ${['a', 'b']}
+  ${{ a: 'florp' }}
+  `('throws for $hostname', ({ hostname }) => {
+    expect(() => Uris[method](hostname, false)).toThrow();
+    expect(() => Uris[method](hostname, true)).toThrow();
+  });
+
+  // Failure cases.
+  test.each`
+  label                       | hostname
+  ${'empty string'}           | ${''}
+  ${'`-` at component start'} | ${'foo.-foo'}
+  ${'`-` at component end'}   | ${'foo-.foo'}
+  ${'wildcard in middle'}     | ${'foo.*.bar'}
+  ${'wildcard at end'}        | ${'foo.*'}
+  ${'wildcard without dot'}   | ${'*foo'}
+  ${'invalid character `$`'}  | ${'foo.b$r'}
+  ${'invalid character `_`'}  | ${'foo.b_r'}
+  ${'double dot'}             | ${'foo..bar'}
+  ${'dot at start'}           | ${'.foo.bar'}
+  ${'dot at end'}             | ${'foo.bar.'}
+  ${'component too long'}     | ${`m${LONGEST_COMPONENT}`}
+  ${'name too long'}          | ${`m${LONGEST_NAME}`}
+  `('fails for $label', ({ hostname }) => {
+    if (throws) {
+      expect(() => Uris[method](hostname, false)).toThrow();
+      expect(() => Uris[method](hostname, true)).toThrow();
+    } else {
+      expect(Uris[method](hostname, false)).toBeNull();
+      expect(Uris[method](hostname, true)).toBeNull();
+    }
+  });
+
+  const checkAnswer = (hostname, got) => {
+    const expectWildcard = hostname.startsWith('*');
+    const expectLength   = hostname.replace(/[^.]/g, '').length + Number(!expectWildcard);
+
+    expect(got.wildcard).toBe(expectWildcard);
+    expect(got.length).toBe(expectLength);
+    expect(TreePathKey.hostnameStringFrom(got)).toBe(hostname);
+  };
+
+  // Non-wildcard success cases.
+  test.each`
+  hostname
+  ${'a'}
+  ${'ab'}
+  ${'abc'}
+  ${'a.boop'}
+  ${'ab.boop'}
+  ${'abc.boop'}
+  ${'floop.a'}
+  ${'floop.ab'}
+  ${'floop.abc'}
+  ${'a.b.c'}
+  ${'foo.bar.baz.biff'}
+  ${'123.bar'}
+  ${'foo.0123456789.bar'}
+  ${'ABC.DEF.GHI.JKL.MNO.PQR.STU.VWX.YZ'}
+  ${'abcde.fghij.klmno.pqrst.uvwxyz'}
+  ${'foo-bar.biff-baz'}
+  ${LONGEST_COMPONENT}
+  ${`${LONGEST_COMPONENT}.${LONGEST_COMPONENT}`}
+  ${LONGEST_NAME}
+  `('succeeds for $hostname', ({ hostname }) => {
+    checkAnswer(hostname, Uris.parseHostname(hostname, false));
+    checkAnswer(hostname, Uris.parseHostname(hostname, true));
+  });
+
+  // Wildcard success cases.
+  test.each`
+  hostname
+  ${'*'}
+  ${'*.a'}
+  ${'*.foo.bar'}
+  ${'*.beep.boop.blork'}
+  `('succeeds for $hostname only when `allowWildcards === true`', ({ hostname }) => {
+    if (throws) {
+      expect(() => Uris[method](hostname, false)).toThrow();
+    } else {
+      expect(Uris[method](hostname, false)).toBeNull();
+    }
+
+    checkAnswer(hostname, Uris.parseHostname(hostname, true));
+  });
 });
-/**
- * Parses a possibly-wildcarded hostname into a {@link TreePathKey}.
- *
- * **Note:** Because hostname hierarchy is from right-to-left (e.g., wildcards
- * are at the front of a hostname not the back), the `.path` of the result
- * contains the name components in back-to-front order.
- *
- * @param {string} name Hostname to parse.
- * @param {boolean} [allowWildcards = false] Is a wildcard form allowed for
- *   `name`?
- * @returns {TreePathKey} Parsed key.
- * @throws {Error} Thrown if `name` is invalid.
- */
-//static parseHostname(name, allowWildcards = false) {
 
 describe('parseMount()', () => {
   // TODO:
