@@ -16,8 +16,9 @@ export class Uris {
    * This pattern allows regular dotted names (`foo.example.com`), regular names
    * prefixed with a wildcard (`*.example.com`) to represent subdomain
    * wildcards, and complete wildcards (`*`). Name components must be non-empty
-   * strings of alphanumerics plus `-`, which furthermore must neither start nor
-   * end with a dash.
+   * strings of up to 63 characters, consisting of only alphanumerics plus `-`,
+   * which furthermore must neither start nor end with a dash. The entire
+   * hostname must be no more than 255 characters.
    */
   static get HOSTNAME_PATTERN() {
     return `^${this.HOSTNAME_PATTERN_FRAGMENT}$`;
@@ -31,7 +32,8 @@ export class Uris {
     const simpleName = '(?!-)[-a-zA-Z0-9]{1,63}(?<!-)';
     const nameOrWild = `(?:[*]|${simpleName})`;
 
-    return `(?:${nameOrWild}(?:[.]${simpleName})*)`;
+    return '(?![-.a-zA-Z0-9]{256})' +            // No more than 255 characters.
+      `(?:${nameOrWild}(?:[.]${simpleName})*)`;  // List of components.
   }
 
   /**
