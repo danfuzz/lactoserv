@@ -276,6 +276,25 @@ export class Uris {
   }
 
   /**
+   * Like {@link #parseHostname}, except returns `null` to indicate an invalid
+   * hostname.
+   *
+   * @param {string} name Hostname to parse.
+   * @param {boolean} [allowWildcards = false] Is a wildcard form allowed for
+   *   `name`?
+   * @returns {?TreePathKey} Parsed key, or `null` if `name` is invalid.
+   */
+  static parseHostnameOrNull(name, allowWildcards = false) {
+    MustBe.string(name);
+    // TODO: Make this method be the main implementation etc etc.
+    try {
+      return this.parseHostname(name, allowWildcards);
+    } catch {
+      return null;
+    }
+  }
+
+  /**
    * Parses a mount point into its two components.
    *
    * @param {string} mount Mount point.
