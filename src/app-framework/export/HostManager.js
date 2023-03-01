@@ -184,9 +184,14 @@ export class HostManager {
    *   found.
    */
   #findItem(name, allowWildcard) {
-    const key   = Uris.parseHostname(name, allowWildcard);
-    const found = this.#items.find(key);
+    const key = Uris.parseHostnameOrNull(name, allowWildcard);
 
+    if (key === null) {
+      this.#logger.invalidHostname(name);
+      return null;
+    }
+
+    const found = this.#items.find(key);
     return found ? found.value : null;
   }
 }
