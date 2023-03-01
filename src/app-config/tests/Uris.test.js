@@ -179,6 +179,14 @@ describe('checkMount()', () => {
   ${'//*/florp/'}
   ${'//*.foo/florp/'}
   ${'//*.foo.bar/florp/'}
+  ${'//foo.bar/'}
+  ${'//foo.bar/florp/'}
+  ${'//foo/.florp/'}
+  ${'//foo/florp./'}
+  ${'//foo/_florp/'}
+  ${'//foo/florp_/'}
+  ${'//foo/florp-like/'}
+  ${'//foo/.../'} // Weird, but should be allowed.
   `('succeeds for $mount', ({ mount }) => {
     expect(() => Uris.checkMount(mount)).not.toThrow();
   });

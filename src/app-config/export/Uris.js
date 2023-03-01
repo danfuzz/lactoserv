@@ -184,13 +184,14 @@ export class Uris {
   /**
    * Checks that a given value is a string in the form of a network mount point
    * (as used by this system). Mount points are URI-ish strings of the form
-   * `//<hostname>/<path>/...`, where:
+   * `//<hostname>/<path-component>/.../`, where:
    *
-   * * `hostname` is {@link Uris.HOSTNAME_PATTERN_FRAGMENT}.
-   * * Each `path` is a non-empty string consisting of alphanumerics plus `-`,
-   *   `_`, or `.`; which must furthermore start and end with an alphanumeric
-   *   character.
-   * * It must start with `//` and end with `/`.
+   * * The whole string must start with `//` and end with `/`.
+   * * `hostname` matches {@link Uris.HOSTNAME_PATTERN_FRAGMENT}.
+   * * Each `path-component` is a non-empty string consisting of alphanumerics
+   *   plus `-`, `_`, or `.`.
+   * * No path component may be `.` or `..`.
+   * * No path component may start or end with a `-`.
    *
    * **Note:** Mount paths are more restrictive than what is acceptable in
    * general for paths as passed in via HTTP(ish) requests, i.e. an incoming
@@ -203,10 +204,9 @@ export class Uris {
    * @throws {Error} Thrown if `value` does not match.
    */
   static checkMount(value) {
-    const alnum         = 'a-zA-Z0-9';
-    const nameComponent = `(?=[${alnum}])[-_.${alnum}]*[${alnum}]`;
-    const pattern       =
-      `^//${this.HOSTNAME_PATTERN_FRAGMENT}(/${nameComponent})*/$`;
+    const hostname      = this.HOSTNAME_PATTERN_FRAGMENT;
+    const nameComponent = '(?!-|[.]{1,2}/)[-_.a-zA-Z0-9]+(?<!-)';
+    const pattern       = `^//${hostname}(/${nameComponent})*/$`;
 
     return MustBe.string(value, pattern);
   }
