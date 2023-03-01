@@ -29,8 +29,7 @@ export class TreePathKey {
    *   related) things, depending on the context in which an instance is used.
    */
   constructor(path, wildcard) {
-    MustBe.arrayOfString(path);
-    MustBe.boolean(wildcard);
+    TreePathKey.checkArguments(path, wildcard);
 
     this.#path     = Object.isFrozen(path) ? path : Object.freeze([...path]);
     this.#wildcard = wildcard;
@@ -62,6 +61,36 @@ export class TreePathKey {
    */
   [BaseConverter.ENCODE]() {
     return new Struct(TreePathKey, null, this.#path, this.#wildcard);
+  }
+
+  /**
+   * Checks to see if this instance is equal to another of the same class. Path
+   * components and wildcard flag must match for equality.
+   *
+   * @param {*} other Object to compare to.
+   * @returns {boolean} `true` iff this instance is equal to `other`.
+   */
+  equals(other) {
+    if (this === other) {
+      return true;
+    }
+
+    if (!(other instanceof this.constructor)) {
+      return false;
+    }
+
+    if (   (this.#wildcard    !== other.#wildcard)
+        || (this.#path.length !== other.#path.length)) {
+      return false;
+    }
+
+    for (let i = 0; i < this.#path.length; i++) {
+      if (this.#path[i] !== other.#path[i]) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   /**

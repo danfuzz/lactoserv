@@ -68,7 +68,7 @@ export class HostManager {
    *  hostname match is found.
    */
   findConfig(name) {
-    const item = this.#findItem(name);
+    const item = this.#findItem(name, true);
 
     if (!item) {
       return null;
@@ -84,12 +84,12 @@ export class HostManager {
    * Finds the TLS {@link SecureContext} to use, based on the given hostname.
    *
    * @param {string} name Hostname to look for, which may be a partial or full
-   *   wildcard. `*` to explicitly request the wildcard / fallback context.
+   *   wildcard.
    * @returns {?SecureContext} The associated {@link SecureContext}, or `null`
    *   if no hostname match is found.
    */
   findContext(name) {
-    const item = this.#findItem(name);
+    const item = this.#findItem(name, true);
     return item ? item.secureContext : null;
   }
 
@@ -139,7 +139,7 @@ export class HostManager {
    *   with the results.
    */
   sniCallback(serverName, callback) {
-    const found    = this.#findItem(serverName);
+    const found    = this.#findItem(serverName, false);
     let   foundCtx = null;
 
     if (found) {
@@ -174,17 +174,24 @@ export class HostManager {
   }
 
   /**
-   * Finds the most-specific {@link HostItem} for a given hostname.
+   * Finds the most-specific {@link HostItem} for a given hostname. In case of
+   * an invalid hostname, this logs the problem but does not throw an error.
    *
-   * @param {string} name Hostname to look for, which may be a partial or full
-   *   wildcard.
+   * @param {string} name Hostname to look for.
+   * @param {boolean} allowWildcard Is `name` allowed to be a wildcard (partial
+   *   or full)?
    * @returns {?HostItem} The associated item, or `null` if nothing suitable is
    *   found.
    */
-  #findItem(name) {
-    const key   = Uris.parseHostname(name, true);
-    const found = this.#items.find(key);
+  #findItem(name, allowWildcard) {
+    const key = Uris.parseHostnameOrNull(name, allowWildcard);
 
+    if (key === null) {
+      this.#logger.invalidHostname(name);
+      return null;
+    }
+
+    const found = this.#items.find(key);
     return found ? found.value : null;
   }
 }

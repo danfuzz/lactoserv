@@ -116,6 +116,71 @@ describe('.EMPTY', () => {
   });
 });
 
+describe('equals()', () => {
+  test('is false given a non-key', () => {
+    const key = new TreePathKey(['foo'], false);
+    expect(key.equals('blort')).toBeFalse();
+  });
+
+  test('is false given a key with the same path but opposite wildcard', () => {
+    const key1 = new TreePathKey(['foo', 'x'], false);
+    const key2 = new TreePathKey(['foo', 'x'], true);
+    expect(key1.equals(key2)).toBeFalse();
+    expect(key2.equals(key1)).toBeFalse();
+  });
+
+  test('is false given a key with a shorter path', () => {
+    const key1 = new TreePathKey(['boop', 'x', 'zorch'], false);
+    const key2 = new TreePathKey(['boop', 'x'], false);
+    expect(key1.equals(key2)).toBeFalse();
+  });
+
+  test('is false given a key with a longer path', () => {
+    const key1 = new TreePathKey(['foo', 'x'], true);
+    const key2 = new TreePathKey(['foo', 'x', 'zorch'], true);
+    expect(key1.equals(key2)).toBeFalse();
+  });
+
+  test('is false given a key with a non-matching component', () => {
+    const keys = [
+      new TreePathKey(['a', 'b', 'c'], false),
+      new TreePathKey(['X', 'b', 'c'], false),
+      new TreePathKey(['a', 'X', 'c'], false),
+      new TreePathKey(['a', 'b', 'X'], false)
+    ];
+
+    for (let i = 0; i < keys.length; i++) {
+      for (let j = 0; j < keys.length; j++) {
+        if (i !== j) {
+          expect(keys[i].equals(keys[j])).toBeFalse();
+        }
+      }
+    }
+  });
+
+  test('is true given `this`', () => {
+    const key = new TreePathKey(['beep'], true);
+    expect(key.equals(key)).toBeTrue();
+  });
+
+  for (let i = 0; i < 10; i++) {
+    test(`is true given path length ${i}`, () => {
+      const path = [];
+      for (let j = 0; j < i; j++) {
+        path.push(`item${j}`);
+      }
+
+      const key1 = new TreePathKey(path, false);
+      const key2 = new TreePathKey(path, false);
+      const key3 = new TreePathKey(path, true);
+      const key4 = new TreePathKey(path, true);
+
+      expect(key1.equals(key2)).toBeTrue();
+      expect(key3.equals(key4)).toBeTrue();
+    });
+  }
+});
+
 describe('toString()', () => {
   describe('with default options', () => {
     test.each`
