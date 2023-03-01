@@ -65,6 +65,36 @@ export class TreePathKey {
   }
 
   /**
+   * Checks to see if this instance is equal to another of the same class. Path
+   * components and wildcard flag must match for equality.
+   *
+   * @param {*} other Object to compare to.
+   * @returns {boolean} `true` iff this instance is equal to `other`.
+   */
+  equals(other) {
+    if (this === other) {
+      return true;
+    }
+
+    if (!(other instanceof this.constructor)) {
+      return false;
+    }
+
+    if (   (this.#wildcard    !== other.#wildcard)
+        || (this.#path.length !== other.#path.length)) {
+      return false;
+    }
+
+    for (let i = 0; i < this.#path.length; i++) {
+      if (this.#path[i] !== other.#path[i]) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
    * Gets a human-useful string form of this instance.
    *
    * @param {?object} [options = null] Formatting options.
