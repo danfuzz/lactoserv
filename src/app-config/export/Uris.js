@@ -28,12 +28,10 @@ export class Uris {
    * anchored to only match a full string.
    */
   static get HOSTNAME_PATTERN_FRAGMENT() {
-    const simpleName = '(?!-)[-a-zA-Z0-9]+(?<!-)';
-    return '(?:' +
-          '[*]' +
-          '|' +
-          `(?:[*][.])?(?:${simpleName}[.])*${simpleName}` +
-          ')';
+    const simpleName = '(?!-)[-a-zA-Z0-9]{1,63}(?<!-)';
+    const nameOrWild = `(?:[*]|${simpleName})`;
+
+    return `(?:${nameOrWild}(?:[.]${simpleName})*)`;
   }
 
   /**
