@@ -164,8 +164,8 @@ export class Uris {
 
     // IPv6 address.
     const ipv6Address =
-      '(?=.*:)' +              // AFAWC, IPv6 requires a colon _somewhere_.
-      '(?![:0]+)' +            // No IPv6 "any" addresses.
+      '(?=.*:)' +              // IPv6 addresses require a colon _somewhere_.
+      '(?![:0]+$)' +           // No IPv6 "any" addresses.
       '(?!.*[^:]{5})' +        // No more than four digits in a row.
       '(?!(.*::){2})' +        // No more than one `::`.
       '(?!.*:::)' +            // No triple-colons (or quad-, etc.).
