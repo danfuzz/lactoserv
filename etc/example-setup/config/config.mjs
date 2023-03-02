@@ -9,6 +9,10 @@ const readFile = async (path) => {
   return fs.readFile(fileUrl(path));
 }
 
+const VAR_DIR = filePath('../../../out/var');
+const LOG_DIR = `${VAR_DIR}/log`;
+const RUN_DIR = `${VAR_DIR}/run`;
+
 // Host / certificate bindings.
 const hosts = [
   {
@@ -23,20 +27,20 @@ const services = [
   {
     name:       'process',
     class:      'ProcessInfoFile',
-    path:       filePath('../../../out/var/process.json'),
+    path:       `${RUN_DIR}/process.json`,
     updateSecs: 5 * 60
   },
   {
     name:         'process-id',
     class:        'ProcessIdFile',
-    path:         filePath('../../../out/var/process.txt'),
+    path:         `${RUN_DIR}/process.txt`,
     multiprocess: true,
     updateSecs:   5 * 60
   },
   {
     name:   'syslog',
     class:  'SystemLogger',
-    path:   filePath('../../../out/var/system-log.txt'),
+    path:   `${LOG_DIR}/system-log.txt`,
     format: 'human',
     rotate: {
       atSize:      1024 * 1024,
@@ -48,7 +52,7 @@ const services = [
   {
     name:   'syslog-json',
     class:  'SystemLogger',
-    path:   filePath('../../../out/var/system-log.json'),
+    path:   `${LOG_DIR}/system-log.json`,
     format: 'json',
     rotate: {
       atSize:      2 * 1024 * 1024,
@@ -63,7 +67,7 @@ const services = [
   {
     name:  'requests',
     class: 'RequestLogger',
-    path:  filePath('../../../out/var/request-log.txt'),
+    path:  `${LOG_DIR}/request-log.txt`,
     rotate: {
       atSize:      10000,
       maxOldCount: 10,
