@@ -114,7 +114,7 @@ export class MainArgs {
           string:      true
         },
         'early-errors': {
-          describe: 'Debugging: Should some uncaught(ish) errors be thrown soon after starting?',
+          describe: 'Debugging: Should some uncaught-ish errors be thrown soon after starting?',
           boolean:   true
         },
         'dry-run': {

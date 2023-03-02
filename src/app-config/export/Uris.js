@@ -194,7 +194,7 @@ export class Uris {
    * * No path component may start or end with a `-`.
    *
    * **Note:** Mount paths are more restrictive than what is acceptable in
-   * general for paths as passed in via HTTP(ish) requests, i.e. an incoming
+   * general for paths as passed in via HTTP-ish requests, i.e. an incoming
    * path can legitimately _not_ match a mount path while still being
    * syntactically correct.
    *

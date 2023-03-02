@@ -313,7 +313,7 @@ const services = [
 ### `RateLimiter`
 
 A service which provides rate limiting of any/all of network connections,
-HTTP(ish) requests, or sent data. Rate limiting is modeled as a hybrid-model
+HTTP-ish requests, or sent data. Rate limiting is modeled as a hybrid-model
 "leaky token bucket." The configuration consists of three sections, each
 optional, for `connections` (token unit, a connection), `requests` (token unit,
 a request), and `data` (token unit, a byte). Each of these is configured as an
@@ -355,7 +355,7 @@ const services = [
 
 ### `RequestLogger`
 
-A service which logs HTTP(ish) requests in a textual form meant to be similar to
+A service which logs HTTP-ish requests in a textual form meant to be similar to
 (though not identical to) what is often produced by other webservers (out in the
 world). As of this writing, the exact format is _not_ configurable. It accepts
 the following configuration bindings:

@@ -13,7 +13,7 @@ import { WranglerContext } from '#x/WranglerContext';
 
 
 /**
- * Logger for HTTP(ish) requests.
+ * Logger for HTTP-ish requests.
  */
 export class RequestLogHelper {
   /** @type {IntfRequestLogger} Request logger service to use. */

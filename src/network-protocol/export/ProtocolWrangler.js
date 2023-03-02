@@ -45,7 +45,7 @@ export class ProtocolWrangler {
   #requestHandler;
 
   /**
-   * @type {?RequestLogHelper} Helper for HTTP(ish) request logging, or `null`
+   * @type {?RequestLogHelper} Helper for HTTP-ish request logging, or `null`
    * to not do any such logging.
    */
   #logHelper;
@@ -56,7 +56,7 @@ export class ProtocolWrangler {
    */
   #perConnectionStorage = new AsyncLocalStorage();
 
-  /** @type {string} Value to use for the `Server` HTTP(ish) response header. */
+  /** @type {string} Value to use for the `Server` HTTP-ish response header. */
   #serverHeader;
 
   /** @type {Threadlet} Threadlet which runs the "network stack." */
@@ -362,7 +362,7 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Handles a request as received directly from the HTTP(ish) server object.
+   * Handles a request as received directly from the HTTP-ish server object.
    * Note that the parameters here are regular `http.*` or `http2.*` objects and
    * not Express wrappers.
    *
