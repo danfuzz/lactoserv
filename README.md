@@ -10,14 +10,24 @@ Documentation:
   * [Development Guide](./doc/development.md)
 
 - - - - - - - - - -
+
+**Lactoserv is a deployable experiment to see just how far one can go in terms
+of directly serving network traffic (specifically HTTP-ish protocols) in Node,
+with minimal intermediation. It is actively run in production on a small number
+of public-facing websites.**
+
+It is also intended as a solid foundation for prototyping high-level OS system
+services.
+
+
 This is a web application server which knows how to serve a handful of different
 types of built-in "application," with plans to add more and to enable
 straightforward custom applications.
 
 ### Features
 
-* Can run multiple network endpoints, each (potentially) serving a different set
-  of high-level applications.
+* Can run multiple network endpoints, each serving a different set of high-level
+  applications.
 * Several built-in applications:
   * Static file server (uses `Express.static`).
   * Redirect server.
@@ -32,15 +42,16 @@ straightforward custom applications.
 * Optionally produces request logs, in a standard-ish form.
 * Optionally produces detailed system activity logs.
 * JS-based configuration file format, which isn't actually that awful!
-* For custom applications, reasonably friendly `async`-forward application
-  framework, which uses Express-augmented `Request` and `Response` objects.
-  Maximum ergonomics: Very straightforward application logic bottoming out at
-  a familiar, well-worn, and well-tested low-level API.
+* For custom (non-built-in) applications, reasonably friendly `async`-forward
+  application framework, which uses Express-augmented `Request` and `Response`
+  objects. Maximum ergonomics: Very straightforward application logic bottoming
+  out at a familiar, well-worn, and well-tested low-level API.
 
 ### Implementation features
 
-* Written in pure JavaScript, running on Node. (The only platform native code
-  is from Node, not from this codebase nor from any imported modules.)
+* Written in pure JavaScript (per se), running on Node. (The only platform
+  native code is from Node, not from this codebase nor from any imported
+  modules.)
   * Uses Node's standard library for low-level networking and protocol
     implementation (TCP, TLS, HTTP*).
   * Uses Express for protocol handling on top of what Node provides (but with a
@@ -54,16 +65,16 @@ straightforward custom applications.
 ### Requirements
 
 To build:
-* Standard(ish) POSIX command-line environment (works on macOS and probably
+* Standard-ish POSIX command-line environment (works on macOS and probably
   whatever flavor of Linux you happen to like).
-* Recent(ish) version of Bash (works with what macOS ships, which is about as
+* Recent-ish version of Bash (works with what macOS ships, which is about as
   old a version as you'll find on any up-to-date OS).
 * Recent version of Node (tested regularly on v18 and v19).
 * Recent version of `jq` (v1.6).
 
 To run (versions as above):
-* Standard(ish) POSIX operating environment.
-* Recent(ish) version of Bash.
+* Standard-ish POSIX operating environment.
+* Recent-ish version of Bash.
 * Recent version of Node.
 
 - - - - - - - - - -
