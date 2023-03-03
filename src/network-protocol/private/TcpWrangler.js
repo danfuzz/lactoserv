@@ -50,7 +50,7 @@ export class TcpWrangler extends ProtocolWrangler {
     this.#logger        = options.logger ?? null;
     this.#rateLimiter   = options.rateLimiter ?? null;
     this.#listenOptions =
-      TcpWrangler.#trimOptions(options.socket, TcpWrangler.#LISTEN_PROTO);
+      TcpWrangler.#trimOptions(options.interface, TcpWrangler.#LISTEN_PROTO);
     this.#loggableInfo  = {
       interface: this.#listenOptions.host,
       port:      this.#listenOptions.port,
@@ -64,7 +64,7 @@ export class TcpWrangler extends ProtocolWrangler {
 
     const serverOptions = {
       allowHalfOpen: true, // See `ProtocolWrangler` class doc for details.
-      ...TcpWrangler.#trimOptions(options.socket, TcpWrangler.#CREATE_PROTO)
+      ...TcpWrangler.#trimOptions(options.interface, TcpWrangler.#CREATE_PROTO)
     };
     this.#serverSocket = net.createServer(serverOptions);
 
@@ -275,10 +275,10 @@ export class TcpWrangler extends ProtocolWrangler {
 
   /** @type {object} "Prototype" of server listen options. */
   static #LISTEN_PROTO = Object.freeze({
-    port:      null,
-    host:      null,
+    address:   'host',
     backlog:   null,
-    exclusive: null
+    exclusive: null,
+    port:      null
   });
 
   /**
@@ -295,9 +295,9 @@ export class TcpWrangler extends ProtocolWrangler {
 
     const result = {};
 
-    for (const name in proto) {
+    for (const [name, mapTo] of Object.entries(proto)) {
       if (Object.hasOwn(options, name)) {
-        result[name] = options[name];
+        result[mapTo ?? name] = options[name];
       }
     }
 

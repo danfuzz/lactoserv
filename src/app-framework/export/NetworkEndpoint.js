@@ -74,7 +74,7 @@ export class NetworkEndpoint extends BaseComponent {
       requestLogger,
       logger,
       protocol,
-      socket: { host: address, port },
+      interface: { address, port },
       ...(
         this.#hostManager
           ? { hosts: this.#hostManager.secureServerOptions }
