@@ -10,6 +10,7 @@ export * from '#x/EndpointConfig';
 export * from '#x/FileServiceConfig';
 export * from '#x/Files';
 export * from '#x/HostConfig';
+export * from '#x/InterfaceConfig';
 export * from '#x/MountConfig';
 export * from '#x/NamedConfig';
 export * from '#x/Names';
