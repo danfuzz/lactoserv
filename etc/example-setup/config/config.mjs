@@ -128,7 +128,7 @@ const endpoints = [
     hostnames: ['*'],
     interface: {
       address: '*',
-      port: 8080
+      port:    8080
     },
     services: {
       rateLimiter:   'limiter',
@@ -147,7 +147,7 @@ const endpoints = [
     hostnames: ['*'],
     interface: {
       address: '*',
-      port: 8443
+      port:    8443
     },
     services: {
       rateLimiter:   'limiter',
@@ -170,7 +170,7 @@ const endpoints = [
     hostnames: ['*'],
     interface: {
       address: '*',
-      port: 8444
+      port:    8444
     },
     services: {
       requestLogger: 'requests'
