@@ -1,7 +1,6 @@
 // Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { InterfaceConfig } from '#x/InterfaceConfig';
 import { MountConfig } from '#x/MountConfig';
 import { NamedConfig } from '#x/NamedConfig';
 import { ServiceUseConfig } from '#x/ServiceUseConfig';
@@ -21,9 +20,9 @@ import { Util } from '#x/Util';
  * * `{string|string[]} hostnames` -- Hostnames which this endpoint should
  *   accept as valid. Can include subdomain or complete wildcards. Defaults to
  *   `*` (that is, accepts all hostnames as valid).
- * * `{object} interface` -- Physical interface that the endpoint is to listen
- *   on. Must be an object of a form suitable for passing to the {@link
- *   InterfaceConfig} constructor.
+ * * `{string} interface` -- Physical interface that the endpoint is to listen
+ *   on. Must be an object of a form suitable for parsing by {@link
+ *   Uris#parseInterface}.
  * * `{string} protocol` -- Protocol that the endpoint is to speak. Must be one
  *   of `http`, `http2`, or `https`.
  * * `{object[]} mounts` -- Array of application mounts, each of a form suitable
@@ -36,7 +35,7 @@ export class EndpointConfig extends NamedConfig {
   /** @type {string[]} The hostnames in question. */
   #hostnames;
 
-  /** @type {InterfaceConfig} Physical interface to listen on. */
+  /** @type {object} Physical interface to listen on. */
   #interface;
 
   /** @type {string} High-level protocol to speak. */
@@ -65,7 +64,7 @@ export class EndpointConfig extends NamedConfig {
     } = config;
 
     this.#hostnames = Util.checkAndFreezeStrings(hostnames, Uris.HOSTNAME_PATTERN);
-    this.#interface = new InterfaceConfig(iface);
+    this.#interface = Object.freeze(Uris.parseInterface(iface));
     this.#mounts    = MountConfig.parseArray(mounts);
     this.#protocol  = Uris.checkProtocol(protocol);
     this.#services  = new ServiceUseConfig(services);
@@ -79,7 +78,10 @@ export class EndpointConfig extends NamedConfig {
     return this.#hostnames;
   }
 
-  /** @returns {InterfaceConfig} Physical interface to listen on. */
+  /**
+   * @returns {object} Parsed interface. This is a frozen return value from
+   * {@link Uris#parseInterface}.
+   */
   get interface() {
     return this.#interface;
   }
