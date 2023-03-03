@@ -129,7 +129,7 @@ naming and configuring one of them. Each element has the following bindings:
   * `/dev/fd/<fd-num>` &mdash; Specifies a file descriptor which is expected to
     already correspond to an open server socket (e.g. set up by `systemd`).
     `<fd-num>` is an arbitrary (decimal) number in the range of valid file
-    descriptors.
+    descriptors. **Note:** FD interfaces are not yet well tested.
 * `protocol` &mdash; The protocol to speak. This can be any of `http`, `https`,
   or `http2`. `http2` includes fallback to `https`.
 * `mounts` &mdash; A list of application mount points, each of which is an
