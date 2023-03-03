@@ -6,7 +6,7 @@ Changelog
 Notable changes:
 
 * Change endpoint interface/port config form, to make it a little more
-  convenient in general and to plan for expansion.
+  convenient in general and to add a way to specify FDs.
 
 ### v0.5.1 -- 2023-03-02
 
