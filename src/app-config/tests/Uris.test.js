@@ -159,7 +159,9 @@ describe('checkInterfaceAddress()', () => {
   ${`${LONGEST_COMPONENT}.${LONGEST_COMPONENT}`}
   ${LONGEST_NAME}
   `('succeeds for $iface', ({ iface }) => {
-    expect(Uris.checkInterfaceAddress(iface)).toBe(iface);
+    const got      = Uris.checkInterfaceAddress(iface);
+    const expected = iface.replace(/\[|\]/g, '');
+    expect(got).toBe(expected);
   });
 });
 

@@ -122,12 +122,15 @@ export class Uris {
 
   /**
    * Checks that a given value is a string which can be used as a network
-   * interface address. This allows:
+   * interface address, and returns a somewhat-canonicalized form. This allows:
    *
    * * Normal dotted DNS names.
    * * Numeric IPv4 and IPv6 addresses, except _not_ "any" addresses. IPv6
    *   addresses are allowed to be enclosed in brackets.
    * * The special "name" `*` to represent the "any" address.
+   *
+   * The return value is the same as the given one, except that brackets are
+   * removed from bracket-delimited IPv6 forms.
    *
    * @param {*} value Value in question.
    * @returns {string} `value` if it is a string which matches the stated
@@ -182,7 +185,10 @@ export class Uris {
       `${ipv6Address}|\\[${ipv6Address}\\]` +
       ')$';
 
-    return MustBe.string(value, pattern);
+    MustBe.string(value, pattern);
+    return value.startsWith('[')
+      ? value.replace(/\[|\]/g, '')
+      : value;
   }
 
   /**
