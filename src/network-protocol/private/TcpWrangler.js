@@ -290,10 +290,6 @@ export class TcpWrangler extends ProtocolWrangler {
    * @returns {object} Pared down version.
    */
   static #fixOptions(options, proto) {
-    if (!options) {
-      return {};
-    }
-
     const result = {};
 
     for (const [name, mod] of Object.entries(proto)) {
