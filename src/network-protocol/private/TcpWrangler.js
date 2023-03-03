@@ -47,14 +47,15 @@ export class TcpWrangler extends ProtocolWrangler {
   constructor(options) {
     super(options);
 
+    const listenOptions =
+      TcpWrangler.#fixOptions(options.interface, TcpWrangler.#LISTEN_PROTO);
     const serverOptions =
       TcpWrangler.#fixOptions(options.interface, TcpWrangler.#CREATE_PROTO);
 
     this.#logger        = options.logger ?? null;
     this.#rateLimiter   = options.rateLimiter ?? null;
     this.#serverSocket  = net.createServer(serverOptions);
-    this.#listenOptions =
-      TcpWrangler.#fixOptions(options.interface, TcpWrangler.#LISTEN_PROTO);
+    this.#listenOptions = listenOptions;
     this.#loggableInfo  = {
       interface: FormatUtils.addressPortString(options.interface.address, options.interface.port),
       protocol:  options.protocol
