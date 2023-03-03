@@ -430,6 +430,9 @@ describe('parseInterface()', () => {
   ${'fd with extra char at end'}        | ${'/dev/fd/123a'}
   ${'non-fd dev path'}                  | ${'/dev/florp'}
   ${'non-dev path'}                     | ${'/home/zorch/123'}
+  ${'negative fd'}                      | ${'/dev/fd/-1'}
+  ${'too-large fd'}                     | ${'/dev/fd/65536'}
+  ${'much too-large fd'}                | ${'/dev/fd/999999999999999999999'}
   `('fails for $label', ({ mount }) => {
     expect(() => Uris.parseInterface(mount)).toThrow();
   });
@@ -451,9 +454,17 @@ describe('parseInterface()', () => {
     expect(got).toStrictEqual({ address: '*', port: 17777 });
   });
 
-  test('parses an fd interface as expected', () => {
+  test('parses an FD interface as expected', () => {
     const got = Uris.parseInterface('/dev/fd/109');
     expect(got).toStrictEqual({ fd: 109 });
+  });
+
+  test('accepts the minimum and maximum allowed FD numbers', () => {
+    const got1 = Uris.parseInterface('/dev/fd/0');
+    expect(got1).toStrictEqual({ fd: 0 });
+
+    const got2 = Uris.parseInterface('/dev/fd/65535');
+    expect(got2).toStrictEqual({ fd: 65535 });
   });
 });
 

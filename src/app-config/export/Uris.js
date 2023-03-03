@@ -320,7 +320,9 @@ export class Uris {
    * Parses a network interface spec into its components. Accepts the two forms
    * `<address>:<port>` or `/dev/fd/<fd-num>`. Returns an object which either
    * binds `address` (to a string) and `port` (to a number), or binds just `fd`
-   * (to a number).
+   * (to a number). For the purposes of this method, `fd` values are allowed to
+   * be in the range `0` to `65535` (even though many systems are more
+   * restrictive).
    *
    * @param {string} iface Interface spec to parse.
    * @returns {object} The parsed form.
@@ -337,7 +339,9 @@ export class Uris {
     }
 
     if (match.fd) {
-      return { fd: parseInt(match.fd) };
+      const fd = MustBe.number(parseInt(match.fd),
+        { safeInteger: true,  minInclusive: 0, maxInclusive: 65535 });
+      return { fd };
     }
 
     const address = this.checkInterfaceAddress(match.address);
