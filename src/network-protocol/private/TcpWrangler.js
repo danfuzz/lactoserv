@@ -47,20 +47,18 @@ export class TcpWrangler extends ProtocolWrangler {
   constructor(options) {
     super(options);
 
+    const serverOptions =
+      TcpWrangler.#fixOptions(options.interface, TcpWrangler.#CREATE_PROTO);
+
     this.#logger        = options.logger ?? null;
     this.#rateLimiter   = options.rateLimiter ?? null;
+    this.#serverSocket  = net.createServer(serverOptions);
     this.#listenOptions =
       TcpWrangler.#fixOptions(options.interface, TcpWrangler.#LISTEN_PROTO);
     this.#loggableInfo  = {
       interface: FormatUtils.addressPortString(options.interface.address, options.interface.port),
       protocol:  options.protocol
     };
-
-    const serverOptions = {
-      allowHalfOpen: true, // See `ProtocolWrangler` class doc for details.
-      ...TcpWrangler.#fixOptions(options.interface, TcpWrangler.#CREATE_PROTO)
-    };
-    this.#serverSocket = net.createServer(serverOptions);
 
     this.#serverSocket.on('connection', (...args) => this.#handleConnection(...args));
     this.#serverSocket.on('drop', (...args) => this.#handleDrop(...args));
@@ -258,20 +256,24 @@ export class TcpWrangler extends ProtocolWrangler {
   // Static members
   //
 
-  /** @type {object} "Prototype" of server socket creation options. */
+  /**
+   * @type {object} "Prototype" of server socket creation options. See
+   * `ProtocolWrangler` class doc for details.
+   */
   static #CREATE_PROTO = Object.freeze({
-    allowHalfOpen:         null,
+    allowHalfOpen:         { default: true },
     keepAlive:             null,
     keepAliveInitialDelay: null,
     noDelay:               null,
     pauseOnConnect:        null
   });
 
-  /** @type {object} "Prototype" of server listen options. */
+  /**
+   * @type {object} "Prototype" of server listen options.  See
+   * `ProtocolWrangler` class doc for details.
+   */
   static #LISTEN_PROTO = Object.freeze({
-    address:   (v) => {
-      return { host: (v === '*') ? '::' : v };
-    },
+    address:   { map: (v) => ({ host: (v === '*') ? '::' : v }) },
     backlog:   null,
     exclusive: null,
     port:      null
@@ -293,13 +295,15 @@ export class TcpWrangler extends ProtocolWrangler {
 
     const result = {};
 
-    for (const [name, mapper] of Object.entries(proto)) {
+    for (const [name, mod] of Object.entries(proto)) {
       if (Object.hasOwn(options, name)) {
-        if (mapper) {
-          Object.assign(result, mapper(options[name]));
+        if (mod?.map) {
+          Object.assign(result, (mod.map)(options[name]));
         } else {
           result[name] = options[name];
         }
+      } else if (mod?.default !== undefined) {
+        result[name] = mod.default;
       }
     }
 
