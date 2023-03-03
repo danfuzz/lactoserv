@@ -52,14 +52,12 @@ export class TcpWrangler extends ProtocolWrangler {
     this.#listenOptions =
       TcpWrangler.#trimOptions(options.interface, TcpWrangler.#LISTEN_PROTO);
     this.#loggableInfo  = {
-      interface: this.#listenOptions.host,
-      port:      this.#listenOptions.port,
+      interface: FormatUtils.addressPortString(options.interface.address, options.interface.port),
       protocol:  options.protocol
     };
 
     if (this.#listenOptions.host === '*') {
       this.#listenOptions.host = '::';
-      this.#loggableInfo.interface = '<any>';
     }
 
     const serverOptions = {
@@ -282,7 +280,9 @@ export class TcpWrangler extends ProtocolWrangler {
   });
 
   /**
-   * Trims down `options` using the given prototype.
+   * Trims down and "fixes" `options` using the given prototype. This is used
+   * to convert from our incoming `interface` form to what's expected by Node's
+   * `net.server`.
    *
    * @param {object} options Original options.
    * @param {object} proto The "prototype" for what bindings to keep.
