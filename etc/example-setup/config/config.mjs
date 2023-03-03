@@ -124,10 +124,12 @@ const applications = [
 const endpoints = [
   {
     name:      'insecure',
-    hostnames: ['*'],
-    interface: '*',
-    port:      8080,
     protocol:  'http',
+    hostnames: ['*'],
+    interface: {
+      address: '*',
+      port: 8080
+    },
     services: {
       rateLimiter:   'limiter',
       requestLogger: 'requests'
@@ -141,10 +143,12 @@ const endpoints = [
   },
   {
     name:      'secure',
-    hostnames: ['*'],
-    interface: '*',
-    port:      8443,
     protocol:  'http2',
+    hostnames: ['*'],
+    interface: {
+      address: '*',
+      port: 8443
+    },
     services: {
       rateLimiter:   'limiter',
       requestLogger: 'requests'
@@ -162,10 +166,12 @@ const endpoints = [
   },
   {
     name: 'alsoSecure',
-    hostnames: ['*'],
-    interface: '*',
-    port:      8444,
     protocol:  'https',
+    hostnames: ['*'],
+    interface: {
+      address: '*',
+      port: 8444
+    },
     services: {
       requestLogger: 'requests'
     },

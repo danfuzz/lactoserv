@@ -1,6 +1,7 @@
 // Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { InterfaceConfig } from '#x/InterfaceConfig';
 import { MountConfig } from '#x/MountConfig';
 import { NamedConfig } from '#x/NamedConfig';
 import { ServiceUseConfig } from '#x/ServiceUseConfig';
@@ -20,10 +21,9 @@ import { Util } from '#x/Util';
  * * `{string|string[]} hostnames` -- Hostnames which this endpoint should
  *   accept as valid. Can include subdomain or complete wildcards. Defaults to
  *   `*` (that is, accepts all hostnames as valid).
- * * `{string} interface` -- Address of the physical interface that the endpoint
- *   is to listen on. `*` indicates that all interfaces should be listened on.
- *   Note: `::` and `0.0.0.0` are not allowed; use `*` instead.
- * * `{int} port` -- Port number that the endpoint is to listen on.
+ * * `{object} interface` -- Physical interface that the endpoint is to listen
+ *   on. Must be an object of a form suitable for passing to the {@link
+ *   InterfaceConfig} constructor.
  * * `{string} protocol` -- Protocol that the endpoint is to speak. Must be one
  *   of `http`, `http2`, or `https`.
  * * `{object[]} mounts` -- Array of application mounts, each of a form suitable
@@ -36,11 +36,8 @@ export class EndpointConfig extends NamedConfig {
   /** @type {string[]} The hostnames in question. */
   #hostnames;
 
-  /** @type {string} Address of the physical interface to listen on. */
+  /** @type {InterfaceConfig} Physical interface to listen on. */
   #interface;
-
-  /** @type {number} Port to listen on. */
-  #port;
 
   /** @type {string} High-level protocol to speak. */
   #protocol;
@@ -63,15 +60,13 @@ export class EndpointConfig extends NamedConfig {
       hostnames = '*',
       interface: iface, // `interface` is a reserved word.
       mounts,
-      port,
       protocol,
       services = {}
     } = config;
 
     this.#hostnames = Util.checkAndFreezeStrings(hostnames, Uris.HOSTNAME_PATTERN);
-    this.#interface = Uris.checkInterface(iface);
+    this.#interface = new InterfaceConfig(iface);
     this.#mounts    = MountConfig.parseArray(mounts);
-    this.#port      = Uris.checkPort(port);
     this.#protocol  = Uris.checkProtocol(protocol);
     this.#services  = new ServiceUseConfig(services);
   }
@@ -84,7 +79,7 @@ export class EndpointConfig extends NamedConfig {
     return this.#hostnames;
   }
 
-  /** @returns {string} Address of the physical interface to listen on. */
+  /** @returns {InterfaceConfig} Physical interface to listen on. */
   get interface() {
     return this.#interface;
   }
@@ -92,11 +87,6 @@ export class EndpointConfig extends NamedConfig {
   /** @returns {MountConfig[]} Array of application mounts. */
   get mounts() {
     return this.#mounts;
-  }
-
-  /** @returns {number} Port to listen on. */
-  get port() {
-    return this.#port;
   }
 
   /** @returns {string} High-level protocol to speak. */

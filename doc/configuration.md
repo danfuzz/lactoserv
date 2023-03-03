@@ -119,9 +119,12 @@ naming and configuring one of them. Each element has the following bindings:
 * `hostnames` &mdash; A list of one or more hostnames to recognize, each name
   in the same form as accepted in the `hosts` section of the configuration. In
   most cases, it will suffice to just specify this as `['*']`.
-* `interface` &mdash; The address of the specific network interface to listen
-  on, or `'*'` to listen on all interfaces. In most cases, `'*'` is a-okay.
-* `port` &mdash; The port number to listen on.
+* `interface` &mdash; The network interface to listen on, in the form of an
+  object with the following bindings:
+  * `address` &mdash; The IP address or DNS names of the interface, or `'*'` to
+    listen on all interfaces. In most cases, `'*'` is a-okay. **Note:** It is
+    invalid to use the IP-version-specific "any" identifiers `::` or `0.0.0.0`.
+  * `port` &mdash; The port number to listen on. Must not be `0`.
 * `protocol` &mdash; The protocol to speak. This can be any of `http`, `https`,
   or `http2`. `http2` includes fallback to `https`.
 * `mounts` &mdash; A list of application mount points, each of which is an

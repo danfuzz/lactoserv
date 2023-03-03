@@ -58,7 +58,7 @@ export class NetworkEndpoint extends BaseComponent {
    *   `rateLimiter` (service instance, not just a name).
    */
   constructor(config, extraConfig) {
-    const { interface: iface, mounts, name, port, protocol } = config;
+    const { interface: iface, mounts, name, protocol } = config;
     const { applicationMap, hostManager, logger, rateLimiter, requestLogger } = extraConfig;
 
     super(config, ThisModule.logger.endpoint[name]);
@@ -66,13 +66,15 @@ export class NetworkEndpoint extends BaseComponent {
     this.#hostManager = hostManager;
     this.#mountMap    = NetworkEndpoint.#makeMountMap(mounts, applicationMap);
 
+    // TODO: Push `InterfaceConfig` instance further down.
+    const { address, port } = iface;
     const wranglerOptions = {
       rateLimiter,
       requestHandler: (req, res) => this.#handleRequest(req, res),
       requestLogger,
       logger,
       protocol,
-      socket: { host: iface, port },
+      socket: { host: address, port },
       ...(
         this.#hostManager
           ? { hosts: this.#hostManager.secureServerOptions }
