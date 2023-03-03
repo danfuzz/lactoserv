@@ -1,6 +1,13 @@
 Changelog
 =========
 
+### v0.5.2 -- 2023-03-03
+
+Notable changes:
+
+* Change endpoint interface/port config form, to make it a little more
+  convenient in general and to plan for expansion.
+
 ### v0.5.1 -- 2023-03-02
 
 Notable changes:
@@ -12,7 +19,7 @@ Notable changes:
 
 Notable changes:
 
-* Stabilize the config file format.
+* Stabilize the config file format (_mostly_ at least).
 * Document the config file format, including builtin apps and services.
 
 ### v0.4.3 -- 2023-02-27
