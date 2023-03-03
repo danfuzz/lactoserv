@@ -421,6 +421,10 @@ describe('parseInterface()', () => {
   ${'IPv6 with colon but missing port'} | ${'[::1234]:'}
   ${'IPv4 missing colon and port'}      | ${'10.0.0.120'}
   ${'IPv6 missing colon and port'}      | ${'[ab::1234:45:123]'}
+  ${'IPv4 port too large'}              | ${'192.168.0.33:65536'}
+  ${'IPv4 port way too large'}          | ${'192.168.0.33:123456789'}
+  ${'IPv6 port too large'}              | ${'[a:b::c:d]:65536'}
+  ${'IPv6 port way too large'}          | ${'[0:123::4:56]:1023456789'}
   ${'IPv6 missing brackets'}            | ${'a:b:c::1234:8080'}
   ${'IPv6 wildcard'}                    | ${'[::]:8080'}
   ${'IPv4 wildcard'}                    | ${'[0.0.0.0]:8080'}
