@@ -66,15 +66,13 @@ export class NetworkEndpoint extends BaseComponent {
     this.#hostManager = hostManager;
     this.#mountMap    = NetworkEndpoint.#makeMountMap(mounts, applicationMap);
 
-    // TODO: Push `InterfaceConfig` instance further down.
-    const { address, port } = iface;
     const wranglerOptions = {
       rateLimiter,
       requestHandler: (req, res) => this.#handleRequest(req, res),
       requestLogger,
       logger,
       protocol,
-      interface: { address, port },
+      interface: iface,
       ...(
         this.#hostManager
           ? { hosts: this.#hostManager.secureServerOptions }

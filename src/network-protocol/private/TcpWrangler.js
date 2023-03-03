@@ -297,14 +297,15 @@ export class TcpWrangler extends ProtocolWrangler {
     const result = {};
 
     for (const [name, mod] of Object.entries(proto)) {
-      if (Object.hasOwn(options, name)) {
-        if (mod?.map) {
-          Object.assign(result, (mod.map)(options[name]));
-        } else {
-          result[name] = options[name];
+      const value = options[name];
+      if (value === undefined) {
+        if (mod?.default !== undefined) {
+          result[name] = mod.default;
         }
-      } else if (mod?.default !== undefined) {
-        result[name] = mod.default;
+      } else if (mod?.map) {
+        Object.assign(result, (mod.map)(options[name]));
+      } else {
+        result[name] = options[name];
       }
     }
 

@@ -85,10 +85,12 @@ export class ProtocolWrangler {
    *   the instance is doing. If not specified, the instance won't do logging.
    * @param {string} options.protocol The name of the protocol to use.
    * @param {object} options.interface  Options to use for creation of and/or
-   *   listening on the low-level server socket. See docs for
-   *   `net.createServer()` and `net.Server.listen()` for details, though with
-   *   the following exceptions (done in order to harmonize with the rest of
-   *   this system):
+   *   listening on the low-level server socket. Though not declared here as
+   *   such (because of a dependency inversion), this can be an
+   *   `InterfaceConfig` as defined by the `app-config` module. See docs for
+   *   `net.createServer()` and `net.Server.listen()` for details on all the
+   *   available options, though with the following exceptions (done in order to
+   *   harmonize with the rest of this system):
    *   * `address` is the address of the interface instead of `host`.
    *   * `*` is treated as the wildcard address, instead of `::` or `0.0.0.0`.
    *   * The default for `allowHalfOpen` is `true`, which is required in
