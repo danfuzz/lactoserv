@@ -79,7 +79,7 @@ describe('checkBasicUri()', () => {
   });
 });
 
-describe('checkInterface()', () => {
+describe('checkInterfaceAddress()', () => {
   // Failure cases.
   test.each`
   label                                 | iface
@@ -107,7 +107,7 @@ describe('checkInterface()', () => {
   ${'too-long IPv4 component'}          | ${'10.0.0.0099'}
   ${'too-large IPv4 component'}         | ${'10.256.0.1'}
   `('fails for $label', ({ iface }) => {
-    expect(() => Uris.checkInterface(iface)).toThrow();
+    expect(() => Uris.checkInterfaceAddress(iface)).toThrow();
   });
 
   // Success cases.
@@ -136,7 +136,7 @@ describe('checkInterface()', () => {
   ${`${LONGEST_COMPONENT}.${LONGEST_COMPONENT}`}
   ${LONGEST_NAME}
   `('succeeds for $iface', ({ iface }) => {
-    expect(Uris.checkInterface(iface)).toBe(iface);
+    expect(Uris.checkInterfaceAddress(iface)).toBe(iface);
   });
 });
 

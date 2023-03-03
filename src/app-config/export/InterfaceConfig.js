@@ -33,7 +33,7 @@ export class InterfaceConfig extends BaseConfig {
 
     const { address, port } = config;
 
-    this.#address = Uris.checkInterface(address);
+    this.#address = Uris.checkInterfaceAddress(address);
     this.#port    = Uris.checkPort(port);
   }
 

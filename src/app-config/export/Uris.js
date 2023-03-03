@@ -122,7 +122,7 @@ export class Uris {
 
   /**
    * Checks that a given value is a string which can be used as a network
-   * interface name or address. This allows:
+   * interface address. This allows:
    *
    * * Normal dotted DNS names.
    * * Numeric IPv4 and IPv6 addresses, except _not_ "any" addresses.
@@ -133,7 +133,7 @@ export class Uris {
    *   pattern.
    * @throws {Error} Thrown if `value` does not match.
    */
-  static checkInterface(value) {
+  static checkInterfaceAddress(value) {
     // The one allowed "any" address.
     const anyAddress = '[*]';
 
