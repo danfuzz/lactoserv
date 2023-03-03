@@ -421,11 +421,22 @@ describe('parseInterface()', () => {
   ${'IPv6 with colon but missing port'} | ${'[::1234]:'}
   ${'IPv4 missing colon and port'}      | ${'10.0.0.120'}
   ${'IPv6 missing colon and port'}      | ${'[ab::1234:45:123]'}
+  ${'IPv4 port too large'}              | ${'192.168.0.33:65536'}
+  ${'IPv4 port way too large'}          | ${'192.168.0.33:123456789'}
+  ${'IPv6 port too large'}              | ${'[a:b::c:d]:65536'}
+  ${'IPv6 port way too large'}          | ${'[0:123::4:56]:1023456789'}
   ${'IPv6 missing brackets'}            | ${'a:b:c::1234:8080'}
   ${'IPv6 wildcard'}                    | ${'[::]:8080'}
   ${'IPv4 wildcard'}                    | ${'[0.0.0.0]:8080'}
   ${'wildcard port `0`'}                | ${'12.34.5.66:0'}
   ${'wildcard port `*`'}                | ${'[12:34::5:66]:*'}
+  ${'fd missing slash at start'}        | ${'dev/fd/3'}
+  ${'fd with extra char at end'}        | ${'/dev/fd/123a'}
+  ${'non-fd dev path'}                  | ${'/dev/florp'}
+  ${'non-dev path'}                     | ${'/home/zorch/123'}
+  ${'negative fd'}                      | ${'/dev/fd/-1'}
+  ${'too-large fd'}                     | ${'/dev/fd/65536'}
+  ${'much too-large fd'}                | ${'/dev/fd/999999999999999999999'}
   `('fails for $label', ({ mount }) => {
     expect(() => Uris.parseInterface(mount)).toThrow();
   });
@@ -445,6 +456,19 @@ describe('parseInterface()', () => {
   test('parses an interface with wildcard address as expected', () => {
     const got = Uris.parseInterface('*:17777');
     expect(got).toStrictEqual({ address: '*', port: 17777 });
+  });
+
+  test('parses an FD interface as expected', () => {
+    const got = Uris.parseInterface('/dev/fd/109');
+    expect(got).toStrictEqual({ fd: 109 });
+  });
+
+  test('accepts the minimum and maximum allowed FD numbers', () => {
+    const got1 = Uris.parseInterface('/dev/fd/0');
+    expect(got1).toStrictEqual({ fd: 0 });
+
+    const got2 = Uris.parseInterface('/dev/fd/65535');
+    expect(got2).toStrictEqual({ fd: 65535 });
   });
 });
 

@@ -119,11 +119,17 @@ naming and configuring one of them. Each element has the following bindings:
 * `hostnames` &mdash; A list of one or more hostnames to recognize, each name
   in the same form as accepted in the `hosts` section of the configuration. In
   most cases, it will suffice to just specify this as `['*']`.
-* `interface` &mdash; The network interface to listen on. This is a string of
-  the form `<address>:<port>`, where `<address>` is a DNS name, an IPv4 address,
-  a _bracketed_ IPv6 address, or the wildcard value `*`, and where `port` is a
-  non-zero port number. **Note:** It is invalid to use the IP-version-specific
-  "any" identifiers `::` or `0.0.0.0` (or similar).
+* `interface` &mdash; The network interface to listen on. This is a string which
+  can take one of two forms:
+  * `<address>:<port>` &mdash; Specifies a normal network-attached interface.
+    `<address>` is a DNS name, an IPv4 address, a _bracketed_ IPv6 address, or
+    the wildcard value `*`. `<port>` is a non-zero (decimal) port number.
+    **Note:** It is invalid to use the IP-version-specific "any" identifiers
+    `::` or `0.0.0.0` (or similar).
+  * `/dev/fd/<fd-num>` &mdash; Specifies a file descriptor which is expected to
+    already correspond to an open server socket (e.g. set up by `systemd`).
+    `<fd-num>` is an arbitrary (decimal) number in the range of valid file
+    descriptors. **Note:** FD interfaces are not yet well tested.
 * `protocol` &mdash; The protocol to speak. This can be any of `http`, `https`,
   or `http2`. `http2` includes fallback to `https`.
 * `mounts` &mdash; A list of application mount points, each of which is an
@@ -147,8 +153,7 @@ const endpoints = [
     name: 'someEndpoint',
     endpoint: {
       hostnames: ['*'],
-      interface: '*',
-      port:      8443,
+      interface: '*:8443',
       protocol:  'http2'
     },
     services: {
