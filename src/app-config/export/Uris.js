@@ -317,6 +317,34 @@ export class Uris {
   }
 
   /**
+   * Parses a network interface spec into its components. Returns an object
+   * which binds `address` and `port`.
+   *
+   * @param {string} iface Interface spec to parse.
+   * @returns {object} The parsed form.
+   */
+  static parseInterface(iface) {
+    MustBe.string(iface);
+
+    const match = iface.match(/^(?<address>.*)+:(?<port>[0-9]+)$/)?.groups;
+
+    if (!match) {
+      throw new Error(`Invalid network interface: ${iface}`);
+    }
+
+    const address = this.checkInterfaceAddress(match.address);
+    const port    = this.checkPort(match.port);
+
+    if (/^(?!\[).*:.*:/.test(iface)) {
+      // If we managed to parse and made it here, then we are necessarily
+      // looking at an IPv6 address without brackets.
+      throw new Error(`Invalid network interface (missing brackets): ${iface}`);
+    }
+
+    return { address, port };
+  }
+
+  /**
    * Parses a mount point into its two components.
    *
    * @param {string} mount Mount point.

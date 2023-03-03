@@ -405,6 +405,49 @@ ${'parseHostnameOrNull'} | ${false}
   });
 });
 
+describe('parseInterface()', () => {
+  // Note: Other tests in this file check a lot of the code that's used by this
+  // method, so it's not really necessary to be super-exhaustive here.
+
+  // Failure cases.
+  test.each`
+  label                                 | mount
+  ${'null'}                             | ${null}
+  ${'non-string'}                       | ${123}
+  ${'empty string'}                     | ${''}
+  ${'just colon'}                       | ${':'}
+  ${'missing address'}                  | ${':123'}
+  ${'IPv4 with colon but missing port'} | ${'10.0.0.120:'}
+  ${'IPv6 with colon but missing port'} | ${'[::1234]:'}
+  ${'IPv4 missing colon and port'}      | ${'10.0.0.120'}
+  ${'IPv6 missing colon and port'}      | ${'[ab::1234:45:123]'}
+  ${'IPv6 missing brackets'}            | ${'a:b:c::1234:8080'}
+  ${'IPv6 wildcard'}                    | ${'[::]:8080'}
+  ${'IPv4 wildcard'}                    | ${'[0.0.0.0]:8080'}
+  ${'wildcard port `0`'}                | ${'12.34.5.66:0'}
+  ${'wildcard port `*`'}                | ${'[12:34::5:66]:*'}
+  `('fails for $label', ({ mount }) => {
+    expect(() => Uris.parseInterface(mount)).toThrow();
+  });
+
+  // "Smokey" success tests.
+
+  test('parses an interface with IPv4 address as expected', () => {
+    const got = Uris.parseInterface('12.34.56.78:123');
+    expect(got).toStrictEqual({ address: '12.34.56.78', port: 123 });
+  });
+
+  test('parses an interface with IPv6 address as expected', () => {
+    const got = Uris.parseInterface('[abc::123:4567]:999');
+    expect(got).toStrictEqual({ address: 'abc::123:4567', port: 999 });
+  });
+
+  test('parses an interface with wildcard address as expected', () => {
+    const got = Uris.parseInterface('*:17777');
+    expect(got).toStrictEqual({ address: '*', port: 17777 });
+  });
+});
+
 describe('parseMount()', () => {
   // Note: Other tests in this file check a lot of the code that's used by this
   // method, so it's not really necessary to be super-exhaustive here.
