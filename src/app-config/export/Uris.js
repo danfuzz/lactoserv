@@ -125,7 +125,8 @@ export class Uris {
    * interface address. This allows:
    *
    * * Normal dotted DNS names.
-   * * Numeric IPv4 and IPv6 addresses, except _not_ "any" addresses.
+   * * Numeric IPv4 and IPv6 addresses, except _not_ "any" addresses. IPv6
+   *   addresses are allowed to be enclosed in brackets.
    * * The special "name" `*` to represent the "any" address.
    *
    * @param {*} value Value in question.
@@ -162,11 +163,11 @@ export class Uris {
       '(?!.*25[6-9])' +         // No `25x` number over `255`.
       '[0-9]{1,3}(?:[.][0-9]{1,3}){3}';
 
-    // IPv6 address.
+    // IPv6 address (without brackets).
     const ipv6Address =
       '(?=.*:)' +              // IPv6 addresses require a colon _somewhere_.
       '(?![:0]+$)' +           // No IPv6 "any" addresses.
-      '(?!.*[^:]{5})' +        // No more than four digits in a row.
+      '(?!.*[0-9A-Fa-f]{5})' + // No more than four digits in a row.
       '(?!(.*::){2})' +        // No more than one `::`.
       '(?!.*:::)' +            // No triple-colons (or quad-, etc.).
       '(?!([^:]*:){8})' +      // No more than seven colons total.
@@ -176,7 +177,10 @@ export class Uris {
       '(?<=(::|[^:]))';        // Must end with `::` or digit.
 
     const pattern =
-      `^(${anyAddress}|${dnsName}|${ipv4Address}|${ipv6Address})$`;
+      '^(?:' +
+      `${anyAddress}|${dnsName}|${ipv4Address}|` +
+      `${ipv6Address}|\\[${ipv6Address}\\]` +
+      ')$';
 
     return MustBe.string(value, pattern);
   }

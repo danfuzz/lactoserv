@@ -85,6 +85,7 @@ describe('checkInterfaceAddress()', () => {
   label                                 | iface
   ${'null'}                             | ${null}
   ${'non-string'}                       | ${123}
+  ${'empty string'}                     | ${''}
   ${'too-long DNS component'}           | ${`z${LONGEST_COMPONENT}`}
   ${'too-long DNS name'}                | ${`z${LONGEST_NAME}`}
   ${'first component starts with `-`'}  | ${'-foo.bar'}
@@ -106,6 +107,16 @@ describe('checkInterfaceAddress()', () => {
   ${'IPv4 wildcard'}                    | ${'0.00.0.0'}
   ${'too-long IPv4 component'}          | ${'10.0.0.0099'}
   ${'too-large IPv4 component'}         | ${'10.256.0.1'}
+  ${'IPv4 in brackets'}                 | ${'[1.2.3.4]'}
+  ${'IPv4 with extra char at start'}    | ${'@1.2.3.45'}
+  ${'IPv4 with extra char at end'}      | ${'1.2.3.45#'}
+  ${'IPv4 with extra dot at start'}     | ${'.12.2.3.45'}
+  ${'IPv4 with extra dot at end'}       | ${'14.25.37.24.'}
+  ${'DNS name in brackets'}             | ${'[foo.bar]'}
+  ${'IPv6 missing open bracket'}        | ${'1:2:3::4]'}
+  ${'IPv6 missing close bracket'}       | ${'[aa:bc::d:e:f'}
+  ${'IPv6 with extra at start'}         | ${'xaa:bc::1:2:34'}
+  ${'IPv6 with extra at end'}           | ${'aa:bc::1:2:34z'}
   `('fails for $label', ({ iface }) => {
     expect(() => Uris.checkInterfaceAddress(iface)).toThrow();
   });
@@ -131,6 +142,18 @@ describe('checkInterfaceAddress()', () => {
   ${'0123::4567:89ab'}
   ${'0123::4567'}
   ${'ABCD::EF'}
+  ${'::abcd'}
+  ${'[::abcd]'}
+  ${'[::abc]'}
+  ${'[::ab]'}
+  ${'[::a]'}
+  ${'[1::1]'}
+  ${'[1:2::12]'}
+  ${'[1:2:3::123]'}
+  ${'[1:2:3:4::1234]'}
+  ${'[1:2:3:4:5:6:7:8]'}
+  ${'[1234::]'}
+  ${'[12:ab::34:cd]'}
   ${LONGEST_COMPONENT}
   ${`${LONGEST_COMPONENT}.boop`}
   ${`${LONGEST_COMPONENT}.${LONGEST_COMPONENT}`}
