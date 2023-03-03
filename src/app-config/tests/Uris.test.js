@@ -426,6 +426,10 @@ describe('parseInterface()', () => {
   ${'IPv4 wildcard'}                    | ${'[0.0.0.0]:8080'}
   ${'wildcard port `0`'}                | ${'12.34.5.66:0'}
   ${'wildcard port `*`'}                | ${'[12:34::5:66]:*'}
+  ${'fd missing slash at start'}        | ${'dev/fd/3'}
+  ${'fd with extra char at end'}        | ${'/dev/fd/123a'}
+  ${'non-fd dev path'}                  | ${'/dev/florp'}
+  ${'non-dev path'}                     | ${'/home/zorch/123'}
   `('fails for $label', ({ mount }) => {
     expect(() => Uris.parseInterface(mount)).toThrow();
   });
@@ -445,6 +449,11 @@ describe('parseInterface()', () => {
   test('parses an interface with wildcard address as expected', () => {
     const got = Uris.parseInterface('*:17777');
     expect(got).toStrictEqual({ address: '*', port: 17777 });
+  });
+
+  test('parses an fd interface as expected', () => {
+    const got = Uris.parseInterface('/dev/fd/109');
+    expect(got).toStrictEqual({ fd: 109 });
   });
 });
 

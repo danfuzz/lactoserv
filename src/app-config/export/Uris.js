@@ -317,8 +317,10 @@ export class Uris {
   }
 
   /**
-   * Parses a network interface spec into its components. Returns an object
-   * which binds `address` and `port`.
+   * Parses a network interface spec into its components. Accepts the two forms
+   * `<address>:<port>` or `/dev/fd/<fd-num>`. Returns an object which either
+   * binds `address` (to a string) and `port` (to a number), or binds just `fd`
+   * (to a number).
    *
    * @param {string} iface Interface spec to parse.
    * @returns {object} The parsed form.
@@ -326,10 +328,16 @@ export class Uris {
   static parseInterface(iface) {
     MustBe.string(iface);
 
-    const match = iface.match(/^(?<address>.*)+:(?<port>[0-9]+)$/)?.groups;
+    const match = iface.match(
+      /^(?:[/]dev[/]fd[/](?<fd>[0-9]+)|(?<address>.*)+:(?<port>[0-9]+))$/)
+      ?.groups;
 
     if (!match) {
       throw new Error(`Invalid network interface: ${iface}`);
+    }
+
+    if (match.fd) {
+      return { fd: parseInt(match.fd) };
     }
 
     const address = this.checkInterfaceAddress(match.address);
