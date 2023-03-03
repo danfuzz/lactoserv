@@ -277,6 +277,7 @@ export class TcpWrangler extends ProtocolWrangler {
     address:   { map: (v) => ({ host: (v === '*') ? '::' : v }) },
     backlog:   null,
     exclusive: null,
+    fd:        null,
     port:      null
   });
 
