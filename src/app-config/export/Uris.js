@@ -122,18 +122,22 @@ export class Uris {
 
   /**
    * Checks that a given value is a string which can be used as a network
-   * interface name or address. This allows:
+   * interface address, and returns a somewhat-canonicalized form. This allows:
    *
    * * Normal dotted DNS names.
-   * * Numeric IPv4 and IPv6 addresses, except _not_ "any" addresses.
+   * * Numeric IPv4 and IPv6 addresses, except _not_ "any" addresses. IPv6
+   *   addresses are allowed to be enclosed in brackets.
    * * The special "name" `*` to represent the "any" address.
+   *
+   * The return value is the same as the given one, except that brackets are
+   * removed from bracket-delimited IPv6 forms.
    *
    * @param {*} value Value in question.
    * @returns {string} `value` if it is a string which matches the stated
    *   pattern.
    * @throws {Error} Thrown if `value` does not match.
    */
-  static checkInterface(value) {
+  static checkInterfaceAddress(value) {
     // The one allowed "any" address.
     const anyAddress = '[*]';
 
@@ -162,11 +166,11 @@ export class Uris {
       '(?!.*25[6-9])' +         // No `25x` number over `255`.
       '[0-9]{1,3}(?:[.][0-9]{1,3}){3}';
 
-    // IPv6 address.
+    // IPv6 address (without brackets).
     const ipv6Address =
       '(?=.*:)' +              // IPv6 addresses require a colon _somewhere_.
-      '(?![:0]+$)' +           // No IPv6 "any" addresses.
-      '(?!.*[^:]{5})' +        // No more than four digits in a row.
+      '(?=.*[1-9A-Fa-f])' +    // No "any" (at least one non-zero digit).
+      '(?!.*[0-9A-Fa-f]{5})' + // No more than four digits in a row.
       '(?!(.*::){2})' +        // No more than one `::`.
       '(?!.*:::)' +            // No triple-colons (or quad-, etc.).
       '(?!([^:]*:){8})' +      // No more than seven colons total.
@@ -176,9 +180,15 @@ export class Uris {
       '(?<=(::|[^:]))';        // Must end with `::` or digit.
 
     const pattern =
-      `^(${anyAddress}|${dnsName}|${ipv4Address}|${ipv6Address})$`;
+      '^(?:' +
+      `${anyAddress}|${dnsName}|${ipv4Address}|` +
+      `${ipv6Address}|\\[${ipv6Address}\\]` +
+      ')$';
 
-    return MustBe.string(value, pattern);
+    MustBe.string(value, pattern);
+    return value.startsWith('[')
+      ? value.replace(/\[|\]/g, '')
+      : value;
   }
 
   /**
@@ -213,7 +223,8 @@ export class Uris {
 
   /**
    * Checks that a given value is a valid non-wildcard port number, optionally
-   * also allowing `*` to specify the wildcard port.
+   * also allowing `*` to specify the wildcard port. Accepts both values of type
+   * `number` _and_ strings of decimal digits.
    *
    * @param {*} value Value in question.
    * @param {boolean} allowWildcard Is `*` allowed?
@@ -225,8 +236,12 @@ export class Uris {
     if (typeof value === 'string') {
       if (allowWildcard && (value === '*')) {
         return 0;
+      } else if (/^[0-9]+$/.test(value)) {
+        // Convert to number, and fall through for range check.
+        value = parseInt(value);
+      } else {
+        throw new Error('Must be a port number.');
       }
-      throw new Error('Must be a port number.');
     }
 
     return MustBe.number(value,
@@ -299,6 +314,34 @@ export class Uris {
     } else {
       return new TreePathKey(path, false);
     }
+  }
+
+  /**
+   * Parses a network interface spec into its components. Returns an object
+   * which binds `address` and `port`.
+   *
+   * @param {string} iface Interface spec to parse.
+   * @returns {object} The parsed form.
+   */
+  static parseInterface(iface) {
+    MustBe.string(iface);
+
+    const match = iface.match(/^(?<address>.*)+:(?<port>[0-9]+)$/)?.groups;
+
+    if (!match) {
+      throw new Error(`Invalid network interface: ${iface}`);
+    }
+
+    const address = this.checkInterfaceAddress(match.address);
+    const port    = this.checkPort(match.port);
+
+    if (/^(?!\[).*:.*:/.test(iface)) {
+      // If we managed to parse and made it here, then we are necessarily
+      // looking at an IPv6 address without brackets.
+      throw new Error(`Invalid network interface (missing brackets): ${iface}`);
+    }
+
+    return { address, port };
   }
 
   /**

@@ -84,13 +84,15 @@ export class ProtocolWrangler {
    * @param {?IntfLogger} options.logger Logger to use to emit events about what
    *   the instance is doing. If not specified, the instance won't do logging.
    * @param {string} options.protocol The name of the protocol to use.
-   * @param {object} options.socket  Options to use for creation of and/or
+   * @param {object} options.interface  Options to use for creation of and/or
    *   listening on the low-level server socket. See docs for
-   *   `net.createServer()` and `net.Server.listen()` for more details.
-   *   Exception: `*` is treated as the wildcard name for the `host` interface.
-   *   Also, the default here is for `allowHalfOpen` to be `true`, which is
-   *   required in practice for HTTP2 (and is at least _useful_ in other
-   *   contexts).
+   *   `net.createServer()` and `net.Server.listen()` for details on all the
+   *   available options, though with the following exceptions (done in order to
+   *   harmonize with the rest of this system):
+   *   * `address` is the address of the interface instead of `host`.
+   *   * `*` is treated as the wildcard address, instead of `::` or `0.0.0.0`.
+   *   * The default for `allowHalfOpen` is `true`, which is required in
+   *     practice for HTTP2 (and is at least _useful_ in other contexts).
    */
   constructor(options) {
     const { logger, rateLimiter, requestHandler, requestLogger } = options;

@@ -47,26 +47,19 @@ export class TcpWrangler extends ProtocolWrangler {
   constructor(options) {
     super(options);
 
+    const listenOptions =
+      TcpWrangler.#fixOptions(options.interface, TcpWrangler.#LISTEN_PROTO);
+    const serverOptions =
+      TcpWrangler.#fixOptions(options.interface, TcpWrangler.#CREATE_PROTO);
+
     this.#logger        = options.logger ?? null;
     this.#rateLimiter   = options.rateLimiter ?? null;
-    this.#listenOptions =
-      TcpWrangler.#trimOptions(options.socket, TcpWrangler.#LISTEN_PROTO);
+    this.#serverSocket  = net.createServer(serverOptions);
+    this.#listenOptions = listenOptions;
     this.#loggableInfo  = {
-      interface: this.#listenOptions.host,
-      port:      this.#listenOptions.port,
+      interface: FormatUtils.addressPortString(options.interface.address, options.interface.port),
       protocol:  options.protocol
     };
-
-    if (this.#listenOptions.host === '*') {
-      this.#listenOptions.host = '::';
-      this.#loggableInfo.interface = '<any>';
-    }
-
-    const serverOptions = {
-      allowHalfOpen: true, // See `ProtocolWrangler` class doc for details.
-      ...TcpWrangler.#trimOptions(options.socket, TcpWrangler.#CREATE_PROTO)
-    };
-    this.#serverSocket = net.createServer(serverOptions);
 
     this.#serverSocket.on('connection', (...args) => this.#handleConnection(...args));
     this.#serverSocket.on('drop', (...args) => this.#handleDrop(...args));
@@ -264,39 +257,50 @@ export class TcpWrangler extends ProtocolWrangler {
   // Static members
   //
 
-  /** @type {object} "Prototype" of server socket creation options. */
+  /**
+   * @type {object} "Prototype" of server socket creation options. See
+   * `ProtocolWrangler` class doc for details.
+   */
   static #CREATE_PROTO = Object.freeze({
-    allowHalfOpen:         null,
+    allowHalfOpen:         { default: true },
     keepAlive:             null,
     keepAliveInitialDelay: null,
     noDelay:               null,
     pauseOnConnect:        null
   });
 
-  /** @type {object} "Prototype" of server listen options. */
+  /**
+   * @type {object} "Prototype" of server listen options.  See
+   * `ProtocolWrangler` class doc for details.
+   */
   static #LISTEN_PROTO = Object.freeze({
-    port:      null,
-    host:      null,
+    address:   { map: (v) => ({ host: (v === '*') ? '::' : v }) },
     backlog:   null,
-    exclusive: null
+    exclusive: null,
+    port:      null
   });
 
   /**
-   * Trims down `options` using the given prototype.
+   * Trims down and "fixes" `options` using the given prototype. This is used
+   * to convert from our incoming `interface` form to what's expected by Node's
+   * `net.server`.
    *
    * @param {object} options Original options.
    * @param {object} proto The "prototype" for what bindings to keep.
    * @returns {object} Pared down version.
    */
-  static #trimOptions(options, proto) {
-    if (!options) {
-      return {};
-    }
-
+  static #fixOptions(options, proto) {
     const result = {};
 
-    for (const name in proto) {
-      if (Object.hasOwn(options, name)) {
+    for (const [name, mod] of Object.entries(proto)) {
+      const value = options[name];
+      if (value === undefined) {
+        if (mod?.default !== undefined) {
+          result[name] = mod.default;
+        }
+      } else if (mod?.map) {
+        Object.assign(result, (mod.map)(options[name]));
+      } else {
         result[name] = options[name];
       }
     }
