@@ -331,7 +331,7 @@ export class Uris {
     MustBe.string(iface);
 
     const match = iface.match(
-      /^(?:[/]dev[/]fd[/](?<fd>[0-9]+)|(?<address>.*)+:(?<port>[0-9]+))$/)
+      /^(?:[/]dev[/]fd[/](?<fd>[0-9]+)|(?<address>.+):(?<port>[0-9]+))$/)
       ?.groups;
 
     if (!match) {
