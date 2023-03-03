@@ -50,19 +50,15 @@ export class TcpWrangler extends ProtocolWrangler {
     this.#logger        = options.logger ?? null;
     this.#rateLimiter   = options.rateLimiter ?? null;
     this.#listenOptions =
-      TcpWrangler.#trimOptions(options.interface, TcpWrangler.#LISTEN_PROTO);
+      TcpWrangler.#fixOptions(options.interface, TcpWrangler.#LISTEN_PROTO);
     this.#loggableInfo  = {
       interface: FormatUtils.addressPortString(options.interface.address, options.interface.port),
       protocol:  options.protocol
     };
 
-    if (this.#listenOptions.host === '*') {
-      this.#listenOptions.host = '::';
-    }
-
     const serverOptions = {
       allowHalfOpen: true, // See `ProtocolWrangler` class doc for details.
-      ...TcpWrangler.#trimOptions(options.interface, TcpWrangler.#CREATE_PROTO)
+      ...TcpWrangler.#fixOptions(options.interface, TcpWrangler.#CREATE_PROTO)
     };
     this.#serverSocket = net.createServer(serverOptions);
 
@@ -273,7 +269,9 @@ export class TcpWrangler extends ProtocolWrangler {
 
   /** @type {object} "Prototype" of server listen options. */
   static #LISTEN_PROTO = Object.freeze({
-    address:   'host',
+    address:   (v) => {
+      return { host: (v === '*') ? '::' : v };
+    },
     backlog:   null,
     exclusive: null,
     port:      null
@@ -288,16 +286,20 @@ export class TcpWrangler extends ProtocolWrangler {
    * @param {object} proto The "prototype" for what bindings to keep.
    * @returns {object} Pared down version.
    */
-  static #trimOptions(options, proto) {
+  static #fixOptions(options, proto) {
     if (!options) {
       return {};
     }
 
     const result = {};
 
-    for (const [name, mapTo] of Object.entries(proto)) {
+    for (const [name, mapper] of Object.entries(proto)) {
       if (Object.hasOwn(options, name)) {
-        result[mapTo ?? name] = options[name];
+        if (mapper) {
+          Object.assign(result, mapper(options[name]));
+        } else {
+          result[name] = options[name];
+        }
       }
     }
 
