@@ -213,7 +213,8 @@ export class Uris {
 
   /**
    * Checks that a given value is a valid non-wildcard port number, optionally
-   * also allowing `*` to specify the wildcard port.
+   * also allowing `*` to specify the wildcard port. Accepts both values of type
+   * `number` _and_ strings of decimal digits.
    *
    * @param {*} value Value in question.
    * @param {boolean} allowWildcard Is `*` allowed?
@@ -225,8 +226,12 @@ export class Uris {
     if (typeof value === 'string') {
       if (allowWildcard && (value === '*')) {
         return 0;
+      } else if (/^[0-9]+$/.test(value)) {
+        // Convert to number, and fall through for range check.
+        value = parseInt(value);
+      } else {
+        throw new Error('Must be a port number.');
       }
-      throw new Error('Must be a port number.');
     }
 
     return MustBe.number(value,

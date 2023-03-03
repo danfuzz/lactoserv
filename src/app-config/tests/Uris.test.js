@@ -213,11 +213,15 @@ describe('checkPort()', () => {
   test('works for minimum valid value (1)', () => {
     expect(Uris.checkPort(1, false)).toBe(1);
     expect(Uris.checkPort(1, true)).toBe(1);
+    expect(Uris.checkPort('1', false)).toBe(1);
+    expect(Uris.checkPort('1', true)).toBe(1);
   });
 
   test('works for maximum valid value (65535)', () => {
     expect(Uris.checkPort(65535, false)).toBe(65535);
     expect(Uris.checkPort(65535, true)).toBe(65535);
+    expect(Uris.checkPort('65535', false)).toBe(65535);
+    expect(Uris.checkPort('65535', true)).toBe(65535);
   });
 
   test('works for all valid port numbers (non-exhaustive)', () => {
@@ -227,16 +231,25 @@ describe('checkPort()', () => {
     }
   });
 
+  test('works for all valid port numbers as strings (non-exhaustive)', () => {
+    for (let p = 2; p <= 65534; p += 1111) {
+      expect(Uris.checkPort(`${p}`, false)).toBe(p);
+      expect(Uris.checkPort(`${p}`, true)).toBe(p);
+    }
+  });
+
   // Failure cases.
   test.each`
-  label                                | port
-  ${'null'}                            | ${null}
-  ${'non-`*` string'}                  | ${'123'}
-  ${'bigint'}                          | ${123n}
-  ${'non-integer'}                     | ${12.34}
-  ${'0'}                               | ${0}
-  ${'-1'}                              | ${-1}
-  ${'65536'}                           | ${65536}
+  label                                     | port
+  ${'null'}                                 | ${null}
+  ${'empty string'}                         | ${''}
+  ${'non-`*` non-digit string'}             | ${'abc'}
+  ${'non-digit string starting with digit'} | ${'123abc'}
+  ${'bigint'}                               | ${123n}
+  ${'non-integer'}                          | ${12.34}
+  ${'0'}                                    | ${0}
+  ${'-1'}                                   | ${-1}
+  ${'65536'}                                | ${65536}
   `('fails for $label', ({ port }) => {
     expect(() => Uris.checkPort(port)).toThrow();
   });
