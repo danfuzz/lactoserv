@@ -82,41 +82,43 @@ describe('checkBasicUri()', () => {
 describe('checkInterfaceAddress()', () => {
   // Failure cases.
   test.each`
-  label                                 | iface
-  ${'null'}                             | ${null}
-  ${'non-string'}                       | ${123}
-  ${'empty string'}                     | ${''}
-  ${'too-long DNS component'}           | ${`z${LONGEST_COMPONENT}`}
-  ${'too-long DNS name'}                | ${`z${LONGEST_NAME}`}
-  ${'first component starts with `-`'}  | ${'-foo.bar'}
-  ${'first component ends with `-`'}    | ${'foo-.bar'}
-  ${'middle component starts with `-`'} | ${'foo.-x.bar'}
-  ${'middle component ends with `-`'}   | ${'foo.x-.bar'}
-  ${'final component starts with `-`'}  | ${'foo.-bar'}
-  ${'final component ends with `-`'}    | ${'foo.bar-'}
-  ${'invalid DNS character'}            | ${'foo!bar.baz'}
-  ${'canonical IPv6 wildcard'}          | ${'::'}
-  ${'IPv6 wildcard'}                    | ${'0::'}
-  ${'too many IPv6 double colons'}      | ${'123::45::67'}
-  ${'IPv6 triple colon'}                | ${'123:::45:67'}
-  ${'too few IPv6 colons'}              | ${'123:45:67:89:ab'}
-  ${'invalid IPv6 digit'}               | ${'123::g:456'}
-  ${'too-long IPv6 component'}          | ${'123::45678:9'}
-  ${'too many IPv6 components'}         | ${'1:2:3:4:5:6:7:8:9'}
-  ${'canonical IPv4 wildcard'}          | ${'0.0.0.0'}
-  ${'IPv4 wildcard'}                    | ${'0.00.0.0'}
-  ${'too-long IPv4 component'}          | ${'10.0.0.0099'}
-  ${'too-large IPv4 component'}         | ${'10.256.0.1'}
-  ${'IPv4 in brackets'}                 | ${'[1.2.3.4]'}
-  ${'IPv4 with extra char at start'}    | ${'@1.2.3.45'}
-  ${'IPv4 with extra char at end'}      | ${'1.2.3.45#'}
-  ${'IPv4 with extra dot at start'}     | ${'.12.2.3.45'}
-  ${'IPv4 with extra dot at end'}       | ${'14.25.37.24.'}
-  ${'DNS name in brackets'}             | ${'[foo.bar]'}
-  ${'IPv6 missing open bracket'}        | ${'1:2:3::4]'}
-  ${'IPv6 missing close bracket'}       | ${'[aa:bc::d:e:f'}
-  ${'IPv6 with extra at start'}         | ${'xaa:bc::1:2:34'}
-  ${'IPv6 with extra at end'}           | ${'aa:bc::1:2:34z'}
+  label                                    | iface
+  ${'null'}                                | ${null}
+  ${'non-string'}                          | ${123}
+  ${'empty string'}                        | ${''}
+  ${'too-long DNS component'}              | ${`z${LONGEST_COMPONENT}`}
+  ${'too-long DNS name'}                   | ${`z${LONGEST_NAME}`}
+  ${'first component starts with `-`'}     | ${'-foo.bar'}
+  ${'first component ends with `-`'}       | ${'foo-.bar'}
+  ${'middle component starts with `-`'}    | ${'foo.-x.bar'}
+  ${'middle component ends with `-`'}      | ${'foo.x-.bar'}
+  ${'final component starts with `-`'}     | ${'foo.-bar'}
+  ${'final component ends with `-`'}       | ${'foo.bar-'}
+  ${'invalid DNS character'}               | ${'foo!bar.baz'}
+  ${'canonical IPv6 wildcard'}             | ${'::'}
+  ${'canonical IPv6 wildcard in brackets'} | ${'[::]'}
+  ${'IPv6 wildcard'}                       | ${'0::'}
+  ${'IPv6 wildcard in brackets'}           | ${'[0::]'}
+  ${'too many IPv6 double colons'}         | ${'123::45::67'}
+  ${'IPv6 triple colon'}                   | ${'123:::45:67'}
+  ${'too few IPv6 colons'}                 | ${'123:45:67:89:ab'}
+  ${'invalid IPv6 digit'}                  | ${'123::g:456'}
+  ${'too-long IPv6 component'}             | ${'123::45678:9'}
+  ${'too many IPv6 components'}            | ${'1:2:3:4:5:6:7:8:9'}
+  ${'canonical IPv4 wildcard'}             | ${'0.0.0.0'}
+  ${'IPv4 wildcard'}                       | ${'0.00.0.0'}
+  ${'too-long IPv4 component'}             | ${'10.0.0.0099'}
+  ${'too-large IPv4 component'}            | ${'10.256.0.1'}
+  ${'IPv4 in brackets'}                    | ${'[1.2.3.4]'}
+  ${'IPv4 with extra char at start'}       | ${'@1.2.3.45'}
+  ${'IPv4 with extra char at end'}         | ${'1.2.3.45#'}
+  ${'IPv4 with extra dot at start'}        | ${'.12.2.3.45'}
+  ${'IPv4 with extra dot at end'}          | ${'14.25.37.24.'}
+  ${'DNS name in brackets'}                | ${'[foo.bar]'}
+  ${'IPv6 missing open bracket'}           | ${'1:2:3::4]'}
+  ${'IPv6 missing close bracket'}          | ${'[aa:bc::d:e:f'}
+  ${'IPv6 with extra at start'}            | ${'xaa:bc::1:2:34'}
+  ${'IPv6 with extra at end'}              | ${'aa:bc::1:2:34z'}
   `('fails for $label', ({ iface }) => {
     expect(() => Uris.checkInterfaceAddress(iface)).toThrow();
   });

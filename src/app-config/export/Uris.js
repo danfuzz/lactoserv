@@ -169,7 +169,7 @@ export class Uris {
     // IPv6 address (without brackets).
     const ipv6Address =
       '(?=.*:)' +              // IPv6 addresses require a colon _somewhere_.
-      '(?![:0]+$)' +           // No IPv6 "any" addresses.
+      '(?=.*[1-9A-Fa-f])' +    // No "any" (at least one non-zero digit).
       '(?!.*[0-9A-Fa-f]{5})' + // No more than four digits in a row.
       '(?!(.*::){2})' +        // No more than one `::`.
       '(?!.*:::)' +            // No triple-colons (or quad-, etc.).
