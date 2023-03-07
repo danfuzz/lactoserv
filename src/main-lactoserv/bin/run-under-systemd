@@ -108,6 +108,8 @@ function do-start {
         export LACTOSERV_FDS="${lactoservFds}"
     fi
 
+    export LACTOSERV_SERVICE_NAME="${serviceName}"
+
     # Write the command about to be executed to the log. Note: In a typical OS
     # configuration, the service-specific log can be seen with `journalctl
     # --unit=<service-name>`, where <service-name> is the name of the systemd
