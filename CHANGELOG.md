@@ -1,7 +1,7 @@
 Changelog
 =========
 
-### v0.5.3 -- TBD
+### v0.5.3 -- 2023-03-07
 
 Notable changes:
 
