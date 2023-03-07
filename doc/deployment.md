@@ -66,8 +66,8 @@ SyslogIdentifier=lactoserv
 ### Tactics for running without privileges
 
 If you want to run the system as an unprivileged user while still accepting
-traffic from the usual low-numbered ports, there are two tactics that can do
-that without too much trouble.
+traffic from the usual low-numbered ports, there are two tactics that can
+achieve that without too much trouble.
 
 * Use the OS's networking system to redirect the ports to the unprivileged
   range. For example, using `nftables` which ships with many Linux
@@ -100,15 +100,48 @@ that without too much trouble.
   [Socket]
   ListenStream=80
   ListenStream=443
+  ```
+
+### Tactics for running multiple instances on a single machine
+
+If you want to run multiple server instances of the server on a single machine,
+with the aim of sharing the traffic load, there are a couple of ways to achieve
+that. In either case, you can take advantage of the code-based configuration, so
+that you share a single (set of) configuration file(s). In particular, you can
+use environment variables which are then accessed as `process.env.<name>` to
+drive whatever differences are necessary.
+
+* Use a separate set of ports for each instance, and use a reverse proxy (either
+  on the same machine or a different one) to route traffic to all the instances.
+  In the same-machine case, `nftables` can be used as in effect a "lightweight
+  reverse proxy" using a `nat` chain, similar to what is described above in the
+  section "Tactics for running without privileges." In addition to what is
+  shown there, you will need to use a `map` as part of the routing expression,
+  along the lines of: `meta l4proto tcp th dport 80 redirect to :numgen inc mod
+  2 map { 0: 8080, 1: 9080 }`.
+
+  The downside of this tactic is that if one of the instances crashes, the proxy
+  layer might still end up routing traffic to it before it gets restarted.
+
+* Use cross-process port sharing, and have each instance listen on the same
+  interface(s) and port(s). At the low level, this involves setting the
+  `SO_REUSEPORT` option on the server sockets (which is widely available on
+  POSIX-ish operating systems these days). Unfortunately, as of this writing,
+  Node has no facility to set this option on sockets directly, but it is
+  possible to pass in a file descriptor to a server socket that is already
+  appropriately configured, and use that. If you are using `systemd`, then it
+  directly supports this via the `ReusePort` directive, which can be added to
+  the `[Socket]` section of a `.socket` file. For example:
+
+  ```
+  [Socket]
+  ListenStream=80
+  ListenStream=443
   ReusePort=true
   ```
 
-  Note the use of `ReusePort` here, which _should_ make it possible to run
-  multiple instances of Lactoserv which all bind to the same port.
-  (Unfortunately, as of this writing it isn't possible to get Node to do port
-  sharing when directly listening on a network interface. It's great that it's
-  possible using `systemd` but unfortunate that something like this arrangement
-  is _required_ to do so.)
+  In the absence of `systemd`, it is possible to write a small wrapper (e.g. in
+  C) which achieves the same effect.
 
 - - - - - - - - - -
 ```
