@@ -93,6 +93,7 @@ fi
 
 # Runs the system in the foreground.
 function do-run-foreground {
+    export LACTOSERV_SERVICE_NAME="${serviceName}"
     exec "${runCmd}" --log-to-stdout "${systemArgs[@]}"
 }
 
