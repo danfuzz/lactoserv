@@ -100,6 +100,14 @@ function do-run-foreground {
 function do-start {
     local fullCommand=("${runCmd}" --print-node-command "${systemArgs[@]}")
 
+    local lactoservFds
+    lactoservFds="$(make-lactoserv-fds)" \
+    || return "$?"
+
+    if [[ ${lactoservFds} != '' ]]; then
+        export LACTOSERV_FDS="${lactoservFds}"
+    fi
+
     # Write the command about to be executed to the log. Note: In a typical OS
     # configuration, the service-specific log can be seen with `journalctl
     # --unit=<service-name>`, where <service-name> is the name of the systemd
@@ -148,6 +156,36 @@ function get-service-pid {
         printf 1>&2 'Strange output: %q\n' "${result}"
         return 1
     fi
+}
+
+# Generates a value for `LACTOSERV_FDS`, based on what `systemd` put in the
+# environment variables it uses. The point is to avoid "infecting" a Lactoserv
+# config file with `systemd`-specific knowledge, and to make it a bit easier to
+# wrangle too.
+function make-lactoserv-fds {
+    if [[ (${LISTEN_FDNAMES} == '') || (${LISTEN_PID} != $$) ]]; then
+        # The FDs aren't actually for this process. (Unexpected case, but it
+        # can happen.)
+        return
+    fi
+
+    local result=''
+
+    local fdNames="${LISTEN_FDNAMES}"
+    local fd=3 # `systemd` binds FDs starting at #3.
+
+    while [[ ${fdNames} =~ ^([^:]+)(:(.*))?$ ]]; do
+        if (( ${#result} != 0 )); then
+            result+=', '
+        fi
+        result+="\"${BASH_REMATCH[1]}\": \"/dev/fd/${fd}\""
+        (( fd++ ))
+        fdNames="${BASH_REMATCH[3]}"
+    done
+
+    result="{ ${result} }"
+    echo 1>&2 "Sockets from systemd: ${result}"
+    echo "${result}"
 }
 
 
