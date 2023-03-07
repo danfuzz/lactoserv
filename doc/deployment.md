@@ -63,6 +63,38 @@ StandardOutput=journal
 SyslogIdentifier=lactoserv
 ```
 
+#### Socket FDs
+
+If you use `systemd` to do the server socket listening, the `run-under-systemd`
+script converts the file descriptors passed into the process into a form that
+is easily parsed in your configuration file, especially if you give the sockets
+distinct names. In particular, the script will define a new environment variable
+`$LACTOSERV_FDS` which contains a JSON-encoded object which binds socket names
+to `/dev/fd/<fd-num>` strings. For example,
+
+```
+# http-sock.socket
+...
+[Socket]
+FileDescriptorName=http
+ListenStream=80
+...
+
+# https-sock.socket
+...
+[Socket]
+FileDescriptorName=https
+ListenStream=443
+...
+
+# lactoserv-config.js
+...
+const fds = JSON.parse(process.env.LACTOSERV_FDS);
+// will be equal to something like:
+// { http: '/dev/fd/3', https: '/dev/fd/4' }
+...
+```
+
 ### Tactics for running without privileges
 
 If you want to run the system as an unprivileged user while still accepting
