@@ -1,6 +1,13 @@
 Changelog
 =========
 
+### v0.5.3 -- TBD
+
+Notable changes:
+
+* Fixed logging of network interfaces specified via the `/dev/fd/N` syntax.
+* Added a bunch of stuff, mostly `systemd`-related, to the deployment guide.
+
 ### v0.5.2 -- 2023-03-03
 
 Notable changes:
