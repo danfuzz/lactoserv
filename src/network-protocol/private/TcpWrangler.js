@@ -57,7 +57,7 @@ export class TcpWrangler extends ProtocolWrangler {
     this.#serverSocket  = net.createServer(serverOptions);
     this.#listenOptions = listenOptions;
     this.#loggableInfo  = {
-      interface: FormatUtils.addressPortString(options.interface.address, options.interface.port),
+      interface: FormatUtils.networkInterfaceString(options.interface),
       protocol:  options.protocol
     };
 
@@ -81,7 +81,7 @@ export class TcpWrangler extends ProtocolWrangler {
     const info    = { ...this.#loggableInfo };
 
     if (address) {
-      info.listening = FormatUtils.addressPortString(address.address, address.port);
+      info.listening = FormatUtils.networkInterfaceString(address);
     }
 
     return info;
