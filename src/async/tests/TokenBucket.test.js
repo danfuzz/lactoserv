@@ -848,8 +848,12 @@ describe('takeNow()', () => {
         ${9.25}   | ${9.25}      | ${90}        | ${9.25}
       `('will actually grant a partial token: $minInclusive .. $maxInclusive with $available available',
         ({ available, minInclusive, maxInclusive, expected }) => {
+          const now    = 226000;
+          const time   = new MockTimeSource(now);
           const bucket = new TokenBucket({
-            partialTokens: true, flowRate: 1, maxBurstSize: 100, initialBurstSize: available });
+            partialTokens: true, flowRate: 1, maxBurstSize: 100, initialBurstSize: available,
+            timeSource: time
+          });
 
           const result = bucket.takeNow({ minInclusive, maxInclusive });
           expect(result.done).toBe(true);
