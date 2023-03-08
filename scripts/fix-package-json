@@ -124,7 +124,7 @@ function do-fix {
         version: .version,
         type: "module",
         private: true,
-        license: "UNLICENSED",
+        license: "Apache-2.0",
         BLANK_LINE_1: "",
         exports: "./index.js",
         imports: {
