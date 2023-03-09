@@ -74,11 +74,6 @@ function base-dir {
     echo "${_init_mainDir%/*}"
 }
 
-# Gets the main "scripts" directory.
-function main-scripts-dir {
-    echo "${_init_mainDir}"
-}
-
 # Gets the directory of this command, "this command" being the (outer) script
 # that is running.
 function this-cmd-dir {
