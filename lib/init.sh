@@ -86,7 +86,7 @@ function subproject-dir {
         return 1
     fi
 
-    echo "${_init_cmdDir/*}"
+    echo "${_init_cmdDir%/*}"
 }
 
 # Gets the directory of this command, "this command" being the (outer) script
