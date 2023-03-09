@@ -81,7 +81,7 @@ function base-dir {
 # the base directory and have their scripts in a `scripts` subdirectory under
 # that.
 function subproject-dir {
-    if [[ (${_init_cmdDir} =~ ^("${_init_scriptsDir}"|"${_init_libDir}")$) ]]; then
+    if [[ ${_init_cmdDir} =~ ^("${_init_scriptsDir}"|"${_init_libDir}")$ ]]; then
         error-msg 'Not running a subproject command!'
         return 1
     fi
