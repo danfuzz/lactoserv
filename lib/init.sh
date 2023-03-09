@@ -76,6 +76,19 @@ function base-dir {
     echo "${_init_baseDir}"
 }
 
+# Gets the subproject directory, if any. It is an error to use this when not
+# running a subproject command. Subprojects are presumed to be directly under
+# the base directory and have their scripts in a `scripts` subdirectory under
+# that.
+function subproject-dir {
+    if [[ (${_init_cmdDir} =~ ^("${_init_scriptsDir}"|"${_init_libDir}")$) ]]; then
+        error-msg 'Not running a subproject command!'
+        return 1
+    fi
+
+    echo "${_init_cmdDir/*}"
+}
+
 # Gets the directory of this command, "this command" being the (outer) script
 # that is running.
 function this-cmd-dir {
