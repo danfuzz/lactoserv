@@ -89,6 +89,14 @@ function subproject-dir {
     echo "${_init_cmdDir%/*}"
 }
 
+# Gets the subproject name, if any. It is an error to use this when not running
+# a subproject command. (See `subproject-dir` for more details.)
+function subproject-name {
+    local dir && dir="$(subproject-dir)" || return "$?"
+
+    echo "${dir##*/}"
+}
+
 # Gets the directory of this command, "this command" being the (outer) script
 # that is running.
 function this-cmd-dir {
