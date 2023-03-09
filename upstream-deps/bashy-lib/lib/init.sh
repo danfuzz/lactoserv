@@ -20,14 +20,11 @@ _init_cmdDir="${_init_cmdPath%/*}"
 _init_libDir="$(readlink -f "${BASH_SOURCE[0]}")" || return "$?"
 _init_libDir="${_init_libDir%/*}"
 
-# Figure out the "main" directory. If `cmdDir` is the same as `libDir`, then
-# we're running a library script, and the main directory is the parent of
-# `libDir`. Otherwise, the main directory is `cmdDir`.
-if [[ ${_init_cmdDir} == ${_init_libDir} ]]; then
-    _init_mainDir="$(cd "${_init_libDir}/.."; /bin/pwd)"
-else
-    _init_mainDir="${_init_cmdPath%/*}"
-fi
+# Figure out the "scripts" and "base" directories, which are presumed to be one
+# and two layers up (respectively) from the library directory (that is, the
+# directory that this script is in).
+_init_scriptsDir="${_init_libDir%/*}"
+_init_baseDir="${_init_scriptsDir%/*}"
 
 # Load the "built-in" core libraries.
 . "${_init_libDir}/stderr-messages.sh" || return "$?"
@@ -35,7 +32,12 @@ fi
 
 # Set up the library search paths (for the `lib` command), and define the
 # lib-path-adder function, so that the product-specific init can use it.
-_init_libSearchPaths=("${_init_mainDir}" "${_init_libDir}")
+_init_libSearchPaths=("${_init_scriptsDir}" "${_init_libDir}")
+if [[ !(${_init_cmdDir} =~ ^("${_init_scriptsDir}"|"${_init_libDir}")$) ]]; then
+    # The directory of the command that is running is not either the scripts or
+    # library directory, so add it to the search path.
+    _init_libSearchPaths+=(${_init_cmdDir})
+fi
 function add-lib {
     _init_libSearchPaths+=("${_init_libDir}/$1")
 }
@@ -71,12 +73,20 @@ fi
 # Gets the base directory of the project, which is presumed to be one layer up
 # from the main scripts directory.
 function base-dir {
-    echo "${_init_mainDir%/*}"
+    echo "${_init_baseDir}"
 }
 
-# Gets the main "scripts" directory.
-function main-scripts-dir {
-    echo "${_init_mainDir}"
+# Gets the subproject directory, if any. It is an error to use this when not
+# running a subproject command. Subprojects are presumed to be directly under
+# the base directory and have their scripts in a `scripts` subdirectory under
+# that.
+function subproject-dir {
+    if [[ ${_init_cmdDir} =~ ^("${_init_scriptsDir}"|"${_init_libDir}")$ ]]; then
+        error-msg 'Not running a subproject command!'
+        return 1
+    fi
+
+    echo "${_init_cmdDir%/*}"
 }
 
 # Gets the directory of this command, "this command" being the (outer) script
