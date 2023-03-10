@@ -1,6 +1,12 @@
 Changelog
 =========
 
+### v0.5.4 -- 2023-03-10
+
+Notable changes:
+
+* Nothing really; just minor fixes.
+
 ### v0.5.3 -- 2023-03-07
 
 Notable changes:
