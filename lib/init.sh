@@ -115,18 +115,22 @@ function this-cmd-path {
     echo "${_init_cmdPath}"
 }
 
-# Calls through to an arbitrary library script. With option `--path`, instead
-# prints the path of the script. With option `--quiet`, does not write an error
-# message if there is no such script.
+# Calls through to an arbitrary library script. Options:
+# * `--include` -- Includes (sources) the file instead of running it as a
+#   command. Appends `.sh` to the given name.
+# * `--path` -- Prints the path of the script instead of running it.
+# * `--quiet` -- Does not print error messages.
 function lib {
+    local wantInclude=0
     local wantPath=0
     local quiet=0
 
     while true; do
         case "$1" in
-            --path)  wantPath=1; shift ;;
-            --quiet) quiet=1;    shift ;;
-            *)       break ;;
+            --include) wantInclude=1; shift ;;
+            --path)    wantPath=1;    shift ;;
+            --quiet)   quiet=1;       shift ;;
+            *)         break                ;;
         esac
     done
 
@@ -141,12 +145,14 @@ function lib {
     if ! [[ ${name} =~ ^[-_a-z0-9]+$ ]]; then
         error-msg 'Weird script name:' "${name}"
         return 1
+    elif (( wantInclude )); then
+        name="${name}.sh"
     fi
 
     local path
     for path in "${_init_libSearchPaths[@]}"; do
         path+="/${name}"
-        if [[ -x "${path}" ]]; then
+        if [[ -r "${path}" ]]; then
             break
         fi
         path=''
@@ -154,12 +160,20 @@ function lib {
 
     if [[ ${path} == '' ]]; then
         if (( !quiet )); then
-            error-msg 'No such library script:' "${name}"
+            error-msg "No such library script: ${name}"
         fi
         return 1
     elif (( wantPath )); then
         echo "${path}"
-    else
+    elif (( wantInclude )); then
+        unset name path quiet wantInclude wantPath
+        . "${path}"
+    elif [[ -x "${path}" ]]; then
         "${path}" "$@"
+    else
+        if (( !quiet )); then
+            error-msg "Library script not executable: ${name}"
+        fi
+        return 1
     fi
 }
