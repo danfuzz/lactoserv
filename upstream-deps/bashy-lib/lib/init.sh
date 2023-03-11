@@ -166,8 +166,11 @@ function lib {
     elif (( wantPath )); then
         echo "${path}"
     elif (( wantInclude )); then
+        # Use a variable name unlikely to conflict with whatever is loaded, and
+        # then unset all the other locals before sourcing the script.
+        local _init_path="${path}"
         unset name path quiet wantInclude wantPath
-        . "${path}"
+        . "${_init_path}" "$@"
     elif [[ -x "${path}" ]]; then
         "${path}" "$@"
     else
