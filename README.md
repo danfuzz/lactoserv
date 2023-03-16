@@ -1,7 +1,7 @@
 `lactoserv` Web Application Server
 ==================================
 
-[![Require Lint](https://github.com/danfuzz/lactoserv/actions/workflows/main.yml/badge.svg)](https://github.com/danfuzz/lactoserv/actions/workflows/main.yml)
+[![Build](https://github.com/danfuzz/lactoserv/actions/workflows/main.yml/badge.svg)](https://github.com/danfuzz/lactoserv/actions/workflows/main.yml)
 
 Documentation:
 * [`doc` directory](./doc), notably:
