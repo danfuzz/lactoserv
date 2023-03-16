@@ -3,25 +3,27 @@
 
 name: Lint / Build / Test
 
-# Controls when the workflow will run
+# Controls when the workflow will run.
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
+  # Triggers the workflow on push or PR events for the branch `main`.
   pull_request:
     branches: [ "main" ]
   push:
     branches: [ "main" ]
 
-  # Allows you to run this workflow manually from the Actions tab
+  # Allows you to run this workflow manually from the Actions tab.
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+# A workflow run is made up of one or more jobs that can run sequentially or in
+# parallel.
 jobs:
-  # This workflow contains a single job called "build"
+  # This workflow contains a single job called `build`.
   build:
-    # The type of runner that the job will run on
+    # The type of runner that the job will run on.
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
+    # Steps represent a sequence of tasks that will be executed as part of the
+    # job.
     steps:
       - name: Get Node.
         uses: actions/setup-node@v3
