@@ -14,23 +14,19 @@ on:
   # Allows you to run this workflow manually from the Actions tab.
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in
-# parallel.
+# Workflow. Jobs run in parallel by default, but that is moot here: there's only
+# one job.
 jobs:
-  # This workflow contains a single job called `build`.
+  # Build the project!
   build:
-    # The type of runner that the job will run on.
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the
-    # job.
     steps:
       - name: Get Node.
         uses: actions/setup-node@v3
         with:
           node-version: '18.x'
 
-      # Note: Checks out into $GITHUB_WORKSPACE, which is also the CWD.
+      # Note: Checks out into `$GITHUB_WORKSPACE`, which is also the `$CWD`.
       - name: Clone repo.
         uses: actions/checkout@v3
 
@@ -46,10 +42,9 @@ jobs:
       - name: Ensure the cert creator still works.
         run: ./scripts/make-localhost-cert
 
-      # Runs a set of commands using the runners shell
-      #- name: Run a multi-line script
+      #- name: Run a multi-line script.
       #  run: |
-      #    echo THIS IS ALSO
+      #    echo THIS IS
       #    echo A TEST.
       #    echo "Workspace: ${GITHUB_WORKSPACE}"
       #    ls -alF "${GITHUB_WORKSPACE}"
