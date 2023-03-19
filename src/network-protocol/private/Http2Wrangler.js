@@ -68,6 +68,12 @@ export class Http2Wrangler extends TcpWrangler {
     // set? -- and so maybe this is now overkill (or whatever).
     this.#protocolServer.setTimeout(Http2Wrangler.#SERVER_TIMEOUT_MSEC);
     this.#protocolServer.timeout = Http2Wrangler.#SOCKET_TIMEOUT_MSEC;
+
+    // TODO: Either remove this entirely, if it turns out that the server
+    // timeout is useless (for us), or add something useful here.
+    this.#protocolServer.on('timeout', () => {
+      this.#logger?.serverTimeout();
+    });
  }
 
   /** @override */
