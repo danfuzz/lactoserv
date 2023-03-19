@@ -245,7 +245,8 @@ export class Http2Wrangler extends TcpWrangler {
 
   /**
    * @type {number} How long in msec to wait before considering a server
-   * "timed out."
+   * "timed out." TODO: Figure out if this has any real meaning if one isn't
+   * actually doing anything when timeout occurs.
    */
   static #SERVER_TIMEOUT_MSEC = 5 * 60 * 1000; // Five minutes.
 
@@ -253,11 +254,11 @@ export class Http2Wrangler extends TcpWrangler {
    * @type {number} How long in msec to wait for a session to have activity
    * before considering it "timed out" and telling it to close.
    */
-  static #SESSION_TIMEOUT_MSEC = 5 * 60 * 1000; // Five minutes.
+  static #SESSION_TIMEOUT_MSEC = 2 * 60 * 1000; // Two minutes.
 
   /**
    * @type {number} How long in msec to wait before considering a socket
    * "timed out."
    */
-  static #SOCKET_TIMEOUT_MSEC = 5 * 60 * 1000; // Five minutes.
+  static #SOCKET_TIMEOUT_MSEC = 1 * 60 * 1000; // One minute.
 }
