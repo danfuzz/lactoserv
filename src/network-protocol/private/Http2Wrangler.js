@@ -55,6 +55,17 @@ export class Http2Wrangler extends TcpWrangler {
     this.#application    = http2ExpressBridge(express);
     this.#protocolServer = http2.createSecureServer(serverOptions);
 
+    // Explicitly set both an overall server timeout _and_ the server's default
+    // socket timeout, as doing these _might_ mitigate a memory leak as noted in
+    // <https://github.com/nodejs/node/issues/42710>. As of this writing, there
+    // _is_ a memory leak of some sort in this project, and the working
+    // hypothesis is that setting this timeout will suffice as a fix /
+    // workaround (depending on one's perspective). That said, the discussion
+    // in the bug in question is ambiguous -- does just one of these need to be
+    // set? -- and so maybe this is now overkill (or whatever).
+    this.#protocolServer.setTimeout(Http2Wrangler.#SERVER_TIMEOUT_MSEC);
+    this.#protocolServer.timeout = Http2Wrangler.#SOCKET_TIMEOUT_MSEC;
+
     this.#application.use('/', (req, res, next) => this.#tweakResponse(req, res, next));
     this.#protocolServer.on('session', (session) => this.#addSession(session));
   }
@@ -233,8 +244,20 @@ export class Http2Wrangler extends TcpWrangler {
   static #STOP_GRACE_PERIOD_MSEC = 250;
 
   /**
+   * @type {number} How long in msec to wait before considering a server
+   * "timed out."
+   */
+  static #SERVER_TIMEOUT_MSEC = 5 * 60 * 1000; // Five minutes.
+
+  /**
    * @type {number} How long in msec to wait for a session to have activity
-   * before telling it to close.
+   * before considering it "timed out" and telling it to close.
    */
   static #SESSION_TIMEOUT_MSEC = 5 * 60 * 1000; // Five minutes.
+
+  /**
+   * @type {number} How long in msec to wait before considering a socket
+   * "timed out."
+   */
+  static #SOCKET_TIMEOUT_MSEC = 5 * 60 * 1000; // Five minutes.
 }
