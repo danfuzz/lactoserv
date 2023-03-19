@@ -52,8 +52,11 @@ export class Http2Wrangler extends TcpWrangler {
     };
 
     // Express needs to be wrapped in order for it to use HTTP2.
-    this.#application    = http2ExpressBridge(express);
+    this.#application = http2ExpressBridge(express);
+    this.#application.use('/', (req, res, next) => this.#tweakResponse(req, res, next));
+
     this.#protocolServer = http2.createSecureServer(serverOptions);
+    this.#protocolServer.on('session', (session) => this.#addSession(session));
 
     // Explicitly set both an overall server timeout _and_ the server's default
     // socket timeout, as doing these _might_ mitigate a memory leak as noted in
@@ -65,10 +68,7 @@ export class Http2Wrangler extends TcpWrangler {
     // set? -- and so maybe this is now overkill (or whatever).
     this.#protocolServer.setTimeout(Http2Wrangler.#SERVER_TIMEOUT_MSEC);
     this.#protocolServer.timeout = Http2Wrangler.#SOCKET_TIMEOUT_MSEC;
-
-    this.#application.use('/', (req, res, next) => this.#tweakResponse(req, res, next));
-    this.#protocolServer.on('session', (session) => this.#addSession(session));
-  }
+ }
 
   /** @override */
   _impl_application() {
