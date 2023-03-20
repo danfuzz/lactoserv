@@ -1,6 +1,14 @@
 Changelog
 =========
 
+### v0.5.5 -- 2023-03-20
+
+Notable changes:
+
+* Tweaked timeouts for HTTP2 connections, in the hopes of working around an
+  apparent HTTP2-related memory leak in the Node core library. This is
+  [issue #42710](https://github.com/nodejs/node/issues/42710) in the Node repo.
+
 ### v0.5.4 -- 2023-03-10
 
 Notable changes:
