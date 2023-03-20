@@ -74,7 +74,7 @@ export class Http2Wrangler extends TcpWrangler {
     this.#protocolServer.on('timeout', () => {
       this.#logger?.serverTimeout();
     });
- }
+  }
 
   /** @override */
   _impl_application() {
