@@ -1,7 +1,7 @@
 // Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import * as net from 'node:net';
+import { Server, Socket, createServer as netCreateServer } from 'node:net';
 import * as timers from 'node:timers/promises';
 
 import { Condition, Threadlet } from '@this/async';
@@ -22,7 +22,7 @@ export class TcpWrangler extends ProtocolWrangler {
   /** @type {?IntfRateLimiter} Rate limiter service to use, if any. */
   #rateLimiter;
 
-  /** @type {net.Server} Server socket, per se. */
+  /** @type {Server} Server socket, per se. */
   #serverSocket;
 
   /** @type {object} Server socket `listen()` options. */
@@ -55,7 +55,7 @@ export class TcpWrangler extends ProtocolWrangler {
 
     this.#logger        = options.logger ?? null;
     this.#rateLimiter   = options.rateLimiter ?? null;
-    this.#serverSocket  = net.createServer(serverOptions);
+    this.#serverSocket  = netCreateServer(serverOptions);
     this.#listenOptions = listenOptions;
     this.#loggableInfo  = {
       interface: FormatUtils.networkInterfaceString(options.interface),
@@ -98,7 +98,7 @@ export class TcpWrangler extends ProtocolWrangler {
    * manually. This is a relatively small price to pay for getting to be able to
    * have visibility on the actual network traffic.
    *
-   * @param {net.Socket} socket Socket for the newly-opened connection.
+   * @param {Socket} socket Socket for the newly-opened connection.
    * @param {...*} rest Any other arguments that happened to be be part of the
    *   `connection` event.
    */
@@ -187,7 +187,7 @@ export class TcpWrangler extends ProtocolWrangler {
   /**
    * Handles a timed out socket.
    *
-   * @param {net.Socket} socket The socket that timed out.
+   * @param {Socket} socket The socket that timed out.
    * @param {?IntfLogger} logger Logger to use, if any.
    */
   async #handleTimeout(socket, logger) {
