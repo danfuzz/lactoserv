@@ -1,6 +1,12 @@
 Changelog
 =========
 
+### v0.5.6 -- 2023-03-21
+
+Notable changes:
+
+* A more holistic attempt at doing socket timeouts.
+
 ### v0.5.5 -- 2023-03-20
 
 Notable changes:
