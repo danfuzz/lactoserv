@@ -114,4 +114,26 @@ export class FileServiceConfig extends ServiceConfig {
 
     return { path, directory, fileName, filePrefix, fileSuffix };
   }
+
+  /**
+   * "Touches" (creates if necessary) the file at {@link #path}.
+   */
+  async touchPath() {
+    const path = this.#path;
+
+    try {
+      await fs.stat(path);
+    } catch (e) {
+      if (e.code === 'ENOENT') {
+        await fs.appendFile(path, '');
+        return;
+      } else {
+        throw e;
+      }
+    }
+
+    // File already existed; just update the modification time.
+    const now = new Date();
+    await fs.utimes(path, now, now);
+  }
 }

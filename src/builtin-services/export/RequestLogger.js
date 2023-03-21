@@ -49,6 +49,7 @@ export class RequestLogger extends BaseService {
   /** @override */
   async _impl_start(isReload) {
     await this.config.createDirectoryIfNecessary();
+    await this.config.touchPath();
     await this.#rotator?.start(isReload);
   }
 
