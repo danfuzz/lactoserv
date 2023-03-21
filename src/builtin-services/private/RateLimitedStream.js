@@ -133,6 +133,19 @@ export class RateLimitedStream {
   }
 
   /**
+   * Processes a `_destroy()` call (indicator that the instance has been
+   * "destroyed") from the outer stream.
+   *
+   * @param {?Error} error Optional error.
+   * @param {function(Error)} callback Callback to call when this method is
+   *   finished.
+   */
+  #destroy(error, callback) {
+    this.#innerStream.destroy(error);
+    callback();
+  }
+
+  /**
    * Handles an `error` event from the inner stream.
    *
    * @param {Error} error The error.
@@ -306,6 +319,11 @@ export class RateLimitedStream {
     }
 
     /** @override */
+    _destroy(...args) {
+      this.#outerThis.#destroy(...args);
+    }
+
+    /** @override */
     _read(...args) {
       this.#outerThis.#read(...args);
     }
@@ -368,7 +386,20 @@ export class RateLimitedStream {
      * Passthrough of same-named method to the underlying socket.
      */
     destroySoon() {
-      this.#outerThis.#innerStream.destroySoon();
+      if (!this.destroyed) {
+        if (this.closed) {
+          // This wrapper has already been closed, just not destroyed. The only
+          // thing to do is destroy it.
+          this.destroy();
+        } else {
+          // The wrapper hasn't yet been closed, so recapitulate the expected
+          // behavior from `Socket`, namely to `end()` the stream and then
+          // `destroy()` it.
+          this.end(() => {
+            this.destroy();
+          });
+        }
+      }
     }
 
     /**
