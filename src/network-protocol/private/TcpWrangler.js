@@ -1,7 +1,8 @@
 // Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import * as net from 'node:net';
+import { Server, Socket, createServer as netCreateServer } from 'node:net';
+import * as timers from 'node:timers/promises';
 
 import { Condition, Threadlet } from '@this/async';
 import { FormatUtils, IntfLogger } from '@this/loggy';
@@ -21,7 +22,7 @@ export class TcpWrangler extends ProtocolWrangler {
   /** @type {?IntfRateLimiter} Rate limiter service to use, if any. */
   #rateLimiter;
 
-  /** @type {net.Server} Server socket, per se. */
+  /** @type {Server} Server socket, per se. */
   #serverSocket;
 
   /** @type {object} Server socket `listen()` options. */
@@ -54,7 +55,7 @@ export class TcpWrangler extends ProtocolWrangler {
 
     this.#logger        = options.logger ?? null;
     this.#rateLimiter   = options.rateLimiter ?? null;
-    this.#serverSocket  = net.createServer(serverOptions);
+    this.#serverSocket  = netCreateServer(serverOptions);
     this.#listenOptions = listenOptions;
     this.#loggableInfo  = {
       interface: FormatUtils.networkInterfaceString(options.interface),
@@ -97,7 +98,7 @@ export class TcpWrangler extends ProtocolWrangler {
    * manually. This is a relatively small price to pay for getting to be able to
    * have visibility on the actual network traffic.
    *
-   * @param {net.Socket} socket Socket for the newly-opened connection.
+   * @param {Socket} socket Socket for the newly-opened connection.
    * @param {...*} rest Any other arguments that happened to be be part of the
    *   `connection` event.
    */
@@ -138,6 +139,17 @@ export class TcpWrangler extends ProtocolWrangler {
     this.#sockets.add(socket);
     this.#anySockets.value = true;
 
+    // Note: Doing a socket timeout is a good idea in general. But beyond that,
+    // as of this writing, there's a bug in Node which causes it to consistently
+    // leak memory when sockets aren't proactively timed out, see issue #42710
+    // <https://github.com/nodejs/node/issues/42710>. We have observed memory
+    // leakage consistent with the issue in this project, and the working
+    // hypothesis is that setting this timeout will suffice as a fix /
+    // workaround (depending on one's perspective).
+    socket.setTimeout(TcpWrangler.#SOCKET_TIMEOUT_MSEC, () => {
+      this.#handleTimeout(socket, connLogger);
+    });
+
     socket.on('error', (error) => {
       // A `close` event gets emitted right after this event -- which performs
       // connection cleanup -- so there's no need to do anything other than log
@@ -169,6 +181,54 @@ export class TcpWrangler extends ProtocolWrangler {
    */
   #handleDrop(data) {
     this.#logger?.droppedConnection(data);
+  }
+
+  /**
+   * Handles a timed out socket.
+   *
+   * @param {Socket} socket The socket that timed out.
+   * @param {?IntfLogger} logger Logger to use, if any.
+   */
+  async #handleTimeout(socket, logger) {
+    logger = logger?.socketTimeout;
+
+    if (socket.destroyed) {
+      logger?.alreadyDestroyed();
+      return;
+    }
+
+    const closedCond = new Condition();
+
+    logger?.closing();
+    socket.destroySoon();
+    socket.once('close', () => {
+      closedCond.value = true;
+      logger?.closed();
+    });
+
+    await Promise.race([
+      closedCond.whenTrue(),
+      timers.setTimeout(TcpWrangler.#SOCKET_TIMEOUT_CLOSE_GRACE_PERIOD_MSEC)
+    ]);
+
+    if (socket.destroyed) {
+      logger?.destroyed();
+      return;
+    }
+
+    logger?.destroyingForcefully();
+    socket.destroy();
+
+    await Promise.race([
+      closedCond.whenTrue(),
+      timers.setTimeout(TcpWrangler.#SOCKET_TIMEOUT_CLOSE_GRACE_PERIOD_MSEC)
+    ]);
+
+    if (socket.destroyed) {
+      logger?.destroyed();
+    } else {
+      logger?.givingUp();
+    }
   }
 
   /**
@@ -282,9 +342,22 @@ export class TcpWrangler extends ProtocolWrangler {
   });
 
   /**
+   * @type {number} How long in msec to wait before considering a connected
+   * socket (a/o/t a server socket doing a `listen()`) to be "timed out." When
+   * timed out, a socket is closed proactively.
+   */
+  static #SOCKET_TIMEOUT_MSEC = 3 * 60 * 1000; // Three minutes.
+
+  /**
+   * @type {number} Grace period in msec after trying to close a socket due to
+   * timeout, before doing it more forcefully.
+   */
+  static #SOCKET_TIMEOUT_CLOSE_GRACE_PERIOD_MSEC = 250; // Quarter of a second.
+
+  /**
    * Trims down and "fixes" `options` using the given prototype. This is used
    * to convert from our incoming `interface` form to what's expected by Node's
-   * `net.server`.
+   * `Server` creation methods.
    *
    * @param {object} options Original options.
    * @param {object} proto The "prototype" for what bindings to keep.

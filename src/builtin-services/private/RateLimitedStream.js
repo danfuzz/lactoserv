@@ -101,26 +101,48 @@ export class RateLimitedStream {
    * @returns {Duplex|Writable} The wrapper.
    */
   #createWrapper() {
-    const inner     = this.#innerStream;
-    const hasReader = inner instanceof Readable;
+    const inner      = this.#innerStream;
+    const isReadable = inner instanceof Readable;
+    const isSocket   = inner instanceof Socket;
 
     inner.on('close', () => this.#writableOnClose());
     inner.on('error', (error) => this.#onError(error));
 
-    if (hasReader) {
-      // Note: Adding the `readable` listener causes the stream to become
-      // "paused" (that is, it won't spontaneously emit `data` events).
+    if (isReadable) {
+      // Note: Adding a listener for the `readable` event (as is done here)
+      // causes the stream to become "paused" (that is, it won't spontaneously
+      // emit `data` events).
       inner.on('end',      () => this.#readableOnEnd());
       inner.on('readable', () => this.#readableOnReadable());
     }
 
-    if (inner instanceof Socket) {
+    if (isSocket) {
+      inner.on('timeout', () => {
+        this.#logger?.timedOut();
+        this.#outerStream.emit('timeout');
+      });
+    }
+
+    if (isSocket) {
       return new RateLimitedStream.#SocketWrapper(this);
-    } else if (inner instanceof Readable) {
+    } else if (isReadable) {
       return new RateLimitedStream.#DuplexWrapper(this);
     } else {
       return new RateLimitedStream.#WritableWrapper(this);
     }
+  }
+
+  /**
+   * Processes a `_destroy()` call (indicator that the instance has been
+   * "destroyed") from the outer stream.
+   *
+   * @param {?Error} error Optional error.
+   * @param {function(Error)} callback Callback to call when this method is
+   *   finished.
+   */
+  #destroy(error, callback) {
+    this.#innerStream.destroy(error);
+    callback();
   }
 
   /**
@@ -297,6 +319,11 @@ export class RateLimitedStream {
     }
 
     /** @override */
+    _destroy(...args) {
+      this.#outerThis.#destroy(...args);
+    }
+
+    /** @override */
     _read(...args) {
       this.#outerThis.#read(...args);
     }
@@ -337,6 +364,61 @@ export class RateLimitedStream {
     /** @returns {?number} Remote port (`Socket` interface). */
     get remotePort() {
       return this.#outerThis.#innerStream.remotePort;
+    }
+
+    /**
+     * @returns {number} The idle-timeout time, in msec (`Socket` interface).
+     * `0` indicates that timeout is disabled.
+     */
+    get timeout() {
+      return this.#outerThis.#innerStream.timeout;
+    }
+
+    /**
+     * @param {number} timeoutMsec The new idle-timeout time, in msec. `0`
+     * indicates that timeout is disabled.
+     */
+    set timeout(timeoutMsec) {
+      this.setTimeout(timeoutMsec);
+    }
+
+    /**
+     * Passthrough of same-named method to the underlying socket.
+     */
+    destroySoon() {
+      if (!this.destroyed) {
+        if (this.closed) {
+          // This wrapper has already been closed, just not destroyed. The only
+          // thing to do is destroy it.
+          this.destroy();
+        } else {
+          // The wrapper hasn't yet been closed, so recapitulate the expected
+          // behavior from `Socket`, namely to `end()` the stream and then
+          // `destroy()` it.
+          this.end(() => {
+            this.destroy();
+          });
+        }
+      }
+    }
+
+    /**
+     * Sets a new value for the socket timeout, and optionally adds a `timeout`
+     * listener.
+     *
+     * @param {number} timeoutMsec The new idle-timeout time, in msec. `0`
+     *   indicates that timeout is disabled.
+     * @param {?function()} [callback = null] Optional callback function.
+     */
+    setTimeout(timeoutMsec, callback = null) {
+      MustBe.number(timeoutMsec, { finite: true, minInclusive: 0 });
+      this.#outerThis.#innerStream.setTimeout(timeoutMsec);
+
+      if (callback) {
+        // Note: The `timeout` event gets plumbed through from the inner socket
+        // to this instance in `createWrapper()`, above.
+        this.on('timeout', callback);
+      }
     }
   };
 
