@@ -196,7 +196,7 @@ export class AskIf {
    * @param {?number} [options.minExclusive = null] Exclusive minimum value.
    *   That is, require `value > minExclusive`.
    * @param {?number} [options.minInclusive = null] Inclusive minimum value.
-   *   That is, require `value > minInclusive`.
+   *   That is, require `value >= minInclusive`.
    * @param {boolean} [options.safeInteger = false] Must `value` be a safe
    *   integer (exactly representable integer as a regular JavaScript number).
    *   Implies `options.finite: true`.
