@@ -116,9 +116,32 @@ export class Http2Wrangler extends TcpWrangler {
     session.on('frameError', removeSession);
     session.on('goaway',     removeSession);
 
+    // What's going on: If the underlying socket was closed and we didn't do
+    // anything here (that is, if this event handler weren't added), the HTTP2
+    // session-handling code wouldn't fully notice by itself. Later, the session
+    // would do its idle timeout, and the callback here (below) would try to
+    // close the session. At that point, the HTTP2 system would get confused and
+    // end up throwing an unhandleable error (method call on the internal socket
+    // reference, except the reference had gotten `null`ed out). So, with that
+    // as context, if -- as we do here -- we tell the session to close as soon
+    // as we see the underlying socket go away, there's no internal HTTP2 error.
+    ctx.socket.on('close', () => {
+      if (!session.closed) {
+        session.close();
+
+        // When we're in this situation, the HTTP2 library doesn't seem to emit
+        // the expected `close` event by itself.
+        session.emit('close');
+      }
+    });
+
     session.setTimeout(Http2Wrangler.#SESSION_TIMEOUT_MSEC, () => {
       ctx.sessionLogger?.idleTimeout();
-      session.close();
+      if (session.closed) {
+        ctx.sessionLogger?.alreadyClosed();
+      } else {
+        session.close();
+      }
     });
   }
 
