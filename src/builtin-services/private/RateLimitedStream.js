@@ -117,6 +117,10 @@ export class RateLimitedStream {
     }
 
     if (isSocket) {
+      inner.on('timeout', () => this.#outerStream.emit('timeout'));
+    }
+
+    if (isSocket) {
       return new RateLimitedStream.#SocketWrapper(this);
     } else if (isReadable) {
       return new RateLimitedStream.#DuplexWrapper(this);
