@@ -34,18 +34,6 @@ export class HttpsWrangler extends TcpWrangler {
     this.#logger         = options.logger?.https ?? null;
     this.#application    = express();
     this.#protocolServer = https.createServer(options.hosts);
-
-    // Explicitly set the default socket timeout, as doing this _might_ help
-    // prevent memory leaks. See the longer comment in the `Http2Wrangler`
-    // constructor for details. The bug noted there is HTTP2-specific, but the
-    // possibility of socket leakage seems like it could easily happen here too.
-    this.#protocolServer.timeout = HttpsWrangler.#SOCKET_TIMEOUT_MSEC;
-
-    // TODO: Either remove this entirely, if it turns out that the server
-    // timeout is useless (for us), or add something useful here.
-    this.#protocolServer.on('timeout', () => {
-      this.#logger?.serverTimeout();
-    });
   }
 
   /** @override */
@@ -71,15 +59,4 @@ export class HttpsWrangler extends TcpWrangler {
   _impl_server() {
     return this.#protocolServer;
   }
-
-
-  //
-  // Static members
-  //
-
-  /**
-   * @type {number} How long in msec to wait before considering a socket
-   * "timed out."
-   */
-  static #SOCKET_TIMEOUT_MSEC = 3 * 60 * 1000; // Three minutes.
 }

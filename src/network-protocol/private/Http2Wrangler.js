@@ -57,23 +57,6 @@ export class Http2Wrangler extends TcpWrangler {
 
     this.#protocolServer = http2.createSecureServer(serverOptions);
     this.#protocolServer.on('session', (session) => this.#addSession(session));
-
-    // Explicitly set the default socket timeout, as doing this _might_
-    // mitigate a memory leak as noted in
-    // <https://github.com/nodejs/node/issues/42710>. As of this writing, there
-    // _is_ a memory leak of some sort in this project, and the working
-    // hypothesis is that setting this timeout will suffice as a fix /
-    // workaround (depending on one's perspective).
-    // **Note:** `server.setTimeout(msec)` and `server.timeout = msec` do the
-    // same thing (though the former can be used with an extra argument to
-    // set up a callback at the same time).
-    this.#protocolServer.timeout = Http2Wrangler.#SOCKET_TIMEOUT_MSEC;
-
-    // TODO: Either remove this entirely, if it turns out that the server
-    // timeout is useless (for us), or add something useful here.
-    this.#protocolServer.on('timeout', () => {
-      this.#logger?.serverTimeout();
-    });
   }
 
   /** @override */
@@ -254,10 +237,4 @@ export class Http2Wrangler extends TcpWrangler {
    * before considering it "timed out" and telling it to close.
    */
   static #SESSION_TIMEOUT_MSEC = 1 * 60 * 1000; // One minute.
-
-  /**
-   * @type {number} How long in msec to wait before considering a socket
-   * "timed out."
-   */
-  static #SOCKET_TIMEOUT_MSEC = 3 * 60 * 1000; // Three minutes.
 }
