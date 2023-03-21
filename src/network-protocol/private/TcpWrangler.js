@@ -209,7 +209,7 @@ export class TcpWrangler extends ProtocolWrangler {
 
     await Promise.race([
       closedCond.whenTrue(),
-      timers.setTimeout(TcpWrangler.SOCKET_TIMEOUT_CLOSE_GRACE_PERIOD_MSEC)
+      timers.setTimeout(TcpWrangler.#SOCKET_TIMEOUT_CLOSE_GRACE_PERIOD_MSEC)
     ]);
 
     if (socket.destroyed) {
@@ -222,7 +222,7 @@ export class TcpWrangler extends ProtocolWrangler {
 
     await Promise.race([
       closedCond.whenTrue(),
-      timers.setTimeout(TcpWrangler.SOCKET_TIMEOUT_CLOSE_GRACE_PERIOD_MSEC)
+      timers.setTimeout(TcpWrangler.#SOCKET_TIMEOUT_CLOSE_GRACE_PERIOD_MSEC)
     ]);
 
     if (socket.destroyed) {
