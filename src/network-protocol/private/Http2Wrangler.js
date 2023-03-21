@@ -125,6 +125,9 @@ export class Http2Wrangler extends TcpWrangler {
     // reference, except the reference had gotten `null`ed out). So, with that
     // as context, if -- as we do here -- we tell the session to close as soon
     // as we see the underlying socket go away, there's no internal HTTP2 error.
+    // Salient issues in Node:
+    //   * <https://github.com/nodejs/node/issues/35695>
+    //   * <https://github.com/nodejs/node/issues/46094>
     ctx.socket.on('close', () => {
       if (!session.closed) {
         session.close();
