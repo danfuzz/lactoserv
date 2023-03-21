@@ -146,8 +146,7 @@ export class TcpWrangler extends ProtocolWrangler {
     // leakage consistent with the issue in this project, and the working
     // hypothesis is that setting this timeout will suffice as a fix /
     // workaround (depending on one's perspective).
-    socket.timeout = TcpWrangler.#SOCKET_TIMEOUT_MSEC;
-    socket.on('timeout', async () => {
+    socket.setTimeout(TcpWrangler.#SOCKET_TIMEOUT_MSEC, () => {
       this.#handleTimeout(socket, connLogger);
     });
 
