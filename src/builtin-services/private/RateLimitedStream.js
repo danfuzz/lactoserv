@@ -117,7 +117,10 @@ export class RateLimitedStream {
     }
 
     if (isSocket) {
-      inner.on('timeout', () => this.#outerStream.emit('timeout'));
+      inner.on('timeout', () => {
+        this.#logger?.timedOut();
+        this.#outerStream.emit('timeout');
+      });
     }
 
     if (isSocket) {
@@ -346,8 +349,8 @@ export class RateLimitedStream {
     }
 
     /**
-     * @returns {number} The idle-timeout time, in msec. `0` indicates that
-     * timeout is disabled.
+     * @returns {number} The idle-timeout time, in msec (`Socket` interface).
+     * `0` indicates that timeout is disabled.
      */
     get timeout() {
       return this.#outerThis.#innerStream.timeout;
@@ -358,8 +361,33 @@ export class RateLimitedStream {
      * indicates that timeout is disabled.
      */
     set timeout(timeoutMsec) {
+      this.setTimeout(timeoutMsec);
+    }
+
+    /**
+     * Passthrough of same-named method to the underlying socket.
+     */
+    destroySoon() {
+      this.#outerThis.#innerStream.destroySoon();
+    }
+
+    /**
+     * Sets a new value for the socket timeout, and optionally adds a `timeout`
+     * listener.
+     *
+     * @param {number} timeoutMsec The new idle-timeout time, in msec. `0`
+     *   indicates that timeout is disabled.
+     * @param {?function()} [callback = null] Optional callback function.
+     */
+    setTimeout(timeoutMsec, callback = null) {
       MustBe.number(timeoutMsec, { finite: true, minInclusive: 0 });
-      this.#outerThis.#innerStream.timeout = timeoutMsec;
+      this.#outerThis.#innerStream.setTimeout(timeoutMsec);
+
+      if (callback) {
+        // Note: The `timeout` event gets plumbed through from the inner socket
+        // to this instance in `createWrapper()`, above.
+        this.on('timeout', callback);
+      }
     }
   };
 
