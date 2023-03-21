@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import * as net from 'node:net';
+import * as timers from 'node:timers/promises';
 
 import { Condition, Threadlet } from '@this/async';
 import { FormatUtils, IntfLogger } from '@this/loggy';
@@ -138,6 +139,11 @@ export class TcpWrangler extends ProtocolWrangler {
     this.#sockets.add(socket);
     this.#anySockets.value = true;
 
+    socket.timeout = TcpWrangler.#SOCKET_TIMEOUT_MSEC;
+    socket.on('timeout', async () => {
+      this.#handleTimeout(socket, connLogger);
+    });
+
     socket.on('error', (error) => {
       // A `close` event gets emitted right after this event -- which performs
       // connection cleanup -- so there's no need to do anything other than log
@@ -169,6 +175,54 @@ export class TcpWrangler extends ProtocolWrangler {
    */
   #handleDrop(data) {
     this.#logger?.droppedConnection(data);
+  }
+
+  /**
+   * Handles a timed out socket.
+   *
+   * @param {Socket} socket The socket that timed out.
+   * @param {?IntfLogger} logger Logger to use, if any.
+   */
+  async #handleTimeout(socket, logger) {
+    logger = logger?.socketTimeout;
+
+    if (socket.destroyed) {
+      logger?.alreadyDestroyed();
+      return;
+    }
+
+    const closedCond = new Condition();
+
+    logger?.closing();
+    socket.destroySoon();
+    socket.once('close', () => {
+      closedCond.value = true;
+      logger?.closed();
+    });
+
+    await Promise.race([
+      closedCond.whenTrue(),
+      timers.setTimeout(TcpWrangler.SOCKET_TIMEOUT_CLOSE_GRACE_PERIOD_MSEC)
+    ]);
+
+    if (socket.destroyed) {
+      logger?.destroyed();
+      return;
+    }
+
+    logger?.destroyingForcefully();
+    socket.destroy();
+
+    await Promise.race([
+      closedCond.whenTrue(),
+      timers.setTimeout(TcpWrangler.SOCKET_TIMEOUT_CLOSE_GRACE_PERIOD_MSEC)
+    ]);
+
+    if (socket.destroyed) {
+      logger?.destroyed();
+    } else {
+      logger?.givingUp();
+    }
   }
 
   /**
@@ -280,6 +334,19 @@ export class TcpWrangler extends ProtocolWrangler {
     fd:        null,
     port:      null
   });
+
+  /**
+   * @type {number} How long in msec to wait before considering a connected
+   * socket (a/o/t a server socket doing a `listen()`) to be "timed out." When
+   * timed out, a socket is closed proactively.
+   */
+  static #SOCKET_TIMEOUT_MSEC = 3 * 60 * 1000; // Three minutes.
+
+  /**
+   * @type {number} Grace period in msec after trying to close a socket due to
+   * timeout, before doing it more forcefully.
+   */
+  static #SOCKET_TIMEOUT_CLOSE_GRACE_PERIOD_MSEC = 250; // Quarter of a second.
 
   /**
    * Trims down and "fixes" `options` using the given prototype. This is used
