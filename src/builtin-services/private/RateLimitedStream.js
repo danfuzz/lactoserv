@@ -338,6 +338,23 @@ export class RateLimitedStream {
     get remotePort() {
       return this.#outerThis.#innerStream.remotePort;
     }
+
+    /**
+     * @returns {number} The idle-timeout time, in msec. `0` indicates that
+     * timeout is disabled.
+     */
+    get timeout() {
+      return this.#outerThis.#innerStream.timeout;
+    }
+
+    /**
+     * @param {number} timeoutMsec The new idle-timeout time, in msec. `0`
+     * indicates that timeout is disabled.
+     */
+    set timeout(timeoutMsec) {
+      MustBe.number(timeoutMsec, { finite: true, minInclusive: 0 });
+      this.#outerThis.#innerStream.timeout = timeoutMsec;
+    }
   };
 
   /**
