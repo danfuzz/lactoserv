@@ -187,7 +187,7 @@ export class TcpWrangler extends ProtocolWrangler {
   /**
    * Handles a timed out socket.
    *
-   * @param {Socket} socket The socket that timed out.
+   * @param {net.Socket} socket The socket that timed out.
    * @param {?IntfLogger} logger Logger to use, if any.
    */
   async #handleTimeout(socket, logger) {
@@ -358,7 +358,7 @@ export class TcpWrangler extends ProtocolWrangler {
   /**
    * Trims down and "fixes" `options` using the given prototype. This is used
    * to convert from our incoming `interface` form to what's expected by Node's
-   * `net.server`.
+   * `Server` creation methods.
    *
    * @param {object} options Original options.
    * @param {object} proto The "prototype" for what bindings to keep.
