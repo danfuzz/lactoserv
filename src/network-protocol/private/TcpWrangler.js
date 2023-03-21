@@ -139,6 +139,13 @@ export class TcpWrangler extends ProtocolWrangler {
     this.#sockets.add(socket);
     this.#anySockets.value = true;
 
+    // Note: Doing a socket timeout is a good idea in general. But beyond that,
+    // as of this writing, there's a bug in Node which causes it to consistently
+    // leak memory when sockets aren't proactively timed out, see issue #42710
+    // <https://github.com/nodejs/node/issues/42710>. We have observed memory
+    // leakage consistent with the issue in this project, and the working
+    // hypothesis is that setting this timeout will suffice as a fix /
+    // workaround (depending on one's perspective).
     socket.timeout = TcpWrangler.#SOCKET_TIMEOUT_MSEC;
     socket.on('timeout', async () => {
       this.#handleTimeout(socket, connLogger);
