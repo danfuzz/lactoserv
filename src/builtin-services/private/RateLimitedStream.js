@@ -109,9 +109,9 @@ export class RateLimitedStream {
     inner.on('error', (error) => this.#onError(error));
 
     if (isReadable) {
-      // Note: Adding the `readable` listener (as is done here) causes the
-      // stream to become "paused" (that is, it won't spontaneously emit `data`
-      // events).
+      // Note: Adding a listener for the `readable` event (as is done here)
+      // causes the stream to become "paused" (that is, it won't spontaneously
+      // emit `data` events).
       inner.on('end',      () => this.#readableOnEnd());
       inner.on('readable', () => this.#readableOnReadable());
     }
