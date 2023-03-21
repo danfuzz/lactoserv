@@ -58,7 +58,7 @@ export class Http2Wrangler extends TcpWrangler {
     this.#protocolServer = http2.createSecureServer(serverOptions);
     this.#protocolServer.on('session', (session) => this.#addSession(session));
 
-    // Explicitly set the default socket timeout, as doing thise _might_
+    // Explicitly set the default socket timeout, as doing this _might_
     // mitigate a memory leak as noted in
     // <https://github.com/nodejs/node/issues/42710>. As of this writing, there
     // _is_ a memory leak of some sort in this project, and the working

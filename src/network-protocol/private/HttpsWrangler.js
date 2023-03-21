@@ -35,7 +35,7 @@ export class HttpsWrangler extends TcpWrangler {
     this.#application    = express();
     this.#protocolServer = https.createServer(options.hosts);
 
-    // Explicitly set the default socket timeout, as doing thise _might_ help
+    // Explicitly set the default socket timeout, as doing this _might_ help
     // prevent memory leaks. See the longer comment in the `Http2Wrangler`
     // constructor for details. The bug noted there is HTTP2-specific, but the
     // possibility of socket leakage seems like it could easily happen here too.
