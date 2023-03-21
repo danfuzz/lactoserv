@@ -101,22 +101,24 @@ export class RateLimitedStream {
    * @returns {Duplex|Writable} The wrapper.
    */
   #createWrapper() {
-    const inner     = this.#innerStream;
-    const hasReader = inner instanceof Readable;
+    const inner    = this.#innerStream;
+    const isReader = inner instanceof Readable;
+    const isSocket = inner instanceof Socket;
 
     inner.on('close', () => this.#writableOnClose());
     inner.on('error', (error) => this.#onError(error));
 
-    if (hasReader) {
-      // Note: Adding the `readable` listener causes the stream to become
-      // "paused" (that is, it won't spontaneously emit `data` events).
+    if (isReader) {
+      // Note: Adding the `readable` listener (as is done here) causes the
+      // stream to become "paused" (that is, it won't spontaneously emit `data`
+      // events).
       inner.on('end',      () => this.#readableOnEnd());
       inner.on('readable', () => this.#readableOnReadable());
     }
 
-    if (inner instanceof Socket) {
+    if (isSocket) {
       return new RateLimitedStream.#SocketWrapper(this);
-    } else if (inner instanceof Readable) {
+    } else if (isReadable) {
       return new RateLimitedStream.#DuplexWrapper(this);
     } else {
       return new RateLimitedStream.#WritableWrapper(this);
