@@ -105,10 +105,15 @@ export class Threadlet {
    * @throws {*} The rejected result of the promise that won the race.
    */
   async raceWhenStopRequested(promises) {
-    await PromiseUtil.race([
-      ...promises,
-      this.#runCondition.whenFalse()
-    ]);
+    const allProms = [...promises, this.#runCondition.whenFalse()];
+
+    if (allProms.length === 1) {
+      // No need to use `race()` if we turned out to get an empty argument
+      // (which can legit happen in practice).
+      await allProms[0];
+    } else {
+      await PromiseUtil.race(allProms);
+    }
 
     return this.shouldStop();
   }
