@@ -155,10 +155,7 @@ export class ProcessIdFile extends BaseService {
         ? [timers.setTimeout(this.#updateSecs * 1000)]
         : [];
 
-      await Promise.race([
-        ...updateTimeout,
-        this.#runner.whenStopRequested()
-      ]);
+      await this.#runner.raceWhenStopRequested(updateTimeout);
     }
 
     await this.#updateFile(false);

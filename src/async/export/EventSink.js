@@ -77,10 +77,7 @@ export class EventSink extends Threadlet {
       if (pass === 2) {
         // On the second pass, wait for something salient to happen. (On the
         // first pass, waiting would achieve nothing but inefficiency.)
-        await Promise.race([
-          this.#head.eventPromise,
-          this.whenStopRequested()
-        ]);
+        await this.raceWhenStopRequested([this.#head.eventPromise]);
       }
 
       if (!this.#draining && this.shouldStop()) {

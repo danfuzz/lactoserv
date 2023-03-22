@@ -548,9 +548,8 @@ export class TokenBucket {
         const waitTime = this.#lastNow - info.startTime;
         info.doGrant(this.#requestGrantResult(got.grant, 'grant', waitTime));
       } else {
-        await Promise.race([
-          this.#waitUntil(got.waitUntil),
-          this.#waiterThread.whenStopRequested()
+        await this.#waiterThread.raceWhenStopRequested([
+          this.#waitUntil(got.waitUntil)
         ]);
       }
     }

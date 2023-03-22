@@ -249,9 +249,8 @@ export class Rotator {
         ? [timers.setTimeout(this.#checkMsec)]
         : [];
 
-      await Promise.race([
+      await this.#runner.raceWhenStopRequested([
         this.#rotateNow.whenTrue(),
-        this.#runner.whenStopRequested(),
         ...checkTimeout
       ]);
     }
