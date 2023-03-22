@@ -31,7 +31,7 @@ const wasHandled = async (promise) => {
   return !gotCalled;
 };
 
-describe('handleRejection', () => {
+describe('handleRejection()', () => {
   test('does indeed handle the rejection', async () => {
     const error = new Error('erroneous-monk');
     const prom  = Promise.reject(error);
@@ -41,7 +41,7 @@ describe('handleRejection', () => {
   });
 });
 
-describe('rejectAndHandle', () => {
+describe('rejectAndHandle()', () => {
   test('makes a rejected promise with the given reason', async () => {
     const error = new Error('erroneous-monk');
     const prom = PromiseUtil.rejectAndHandle(error);
@@ -55,4 +55,8 @@ describe('rejectAndHandle', () => {
     const prom  = PromiseUtil.rejectAndHandle(error);
     expect(await wasHandled(prom)).toBeTrue();
   });
+});
+
+describe('race()', () => {
+  // TODO
 });
