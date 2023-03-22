@@ -150,6 +150,10 @@ describe('isRunning()', () => {
   });
 });
 
+describe('raceWhenStopRequested()', () => {
+  // TODO
+});
+
 describe('run()', () => {
   describe.each`
     useStartFunc | label
