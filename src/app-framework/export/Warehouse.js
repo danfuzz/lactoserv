@@ -4,6 +4,7 @@
 import * as timers from 'node:timers/promises';
 
 import { WarehouseConfig } from '@this/app-config';
+import { PromiseUtil } from '@this/async';
 import { MustBe } from '@this/typey';
 
 import { BaseApplication } from '#x/BaseApplication';
@@ -103,13 +104,13 @@ export class Warehouse extends BaseControllable {
   async _impl_stop(willReload = false) {
     const endpointsStopped = this.#endpointManager.stop(willReload);
 
-    await Promise.race([
+    await PromiseUtil.race([
       endpointsStopped,
       timers.setTimeout(Warehouse.#ENDPOINT_STOP_GRACE_PERIOD_MSEC)
     ]);
 
     const applicationsStopped = this.#applicationManager.stop(willReload);
-    await Promise.race([
+    await PromiseUtil.race([
       applicationsStopped,
       timers.setTimeout(Warehouse.#APPLICATION_STOP_GRACE_PERIOD_MSEC)
     ]);
