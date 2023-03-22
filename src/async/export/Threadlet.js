@@ -95,6 +95,30 @@ export class Threadlet {
   }
 
   /**
+   * Runs a `Promise.race()` between the result of {@link #whenStopRequested}
+   * and the given additional promises.
+   *
+   * @param {*[]} promises Array (or iterable in general) of promises to race.
+   * @returns {boolean} `true` iff this instance has been asked to stop
+   *  (as with {@link #shouldStop}), if the race was won by a non-rejected
+   *  promise.
+   * @throws {*} The rejected result of the promise that won the race.
+   */
+  async raceWhenStopRequested(promises) {
+    const allProms = [...promises, this.#runCondition.whenFalse()];
+
+    if (allProms.length === 1) {
+      // No need to use `race()` if we turned out to get an empty argument
+      // (which can legit happen in practice).
+      await allProms[0];
+    } else {
+      await PromiseUtil.race(allProms);
+    }
+
+    return this.shouldStop();
+  }
+
+  /**
    * Starts this instance running, if it isn't already.  All processing in the
    * thread happens asynchronously with respect to the caller of this method.
    * The async-return value or exception thrown from this method is (in order):

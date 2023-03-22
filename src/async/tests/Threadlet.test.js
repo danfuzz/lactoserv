@@ -3,7 +3,7 @@
 
 import * as timers from 'node:timers/promises';
 
-import { PromiseState, PromiseUtil, Threadlet } from '@this/async';
+import { ManualPromise, PromiseState, PromiseUtil, Threadlet } from '@this/async';
 
 
 describe('constructor(function)', () => {
@@ -147,6 +147,114 @@ describe('isRunning()', () => {
     expect(stopped).toBeTrue();
 
     await expect(runResult).toResolve();
+  });
+});
+
+describe('raceWhenStopRequested()', () => {
+  test('when running, promptly returns `false` if there is an already-resolved argument', async () => {
+    let shouldRun = true;
+    const thread = new Threadlet(async () => {
+      while (shouldRun) {
+        await timers.setImmediate();
+      }
+    });
+
+    const runResult = thread.run();
+    const result    = thread.raceWhenStopRequested([Promise.resolve('boop')]);
+
+    expect(PromiseState.isSettled(result)).toBeFalse();
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(result)).toBeTrue();
+    expect(await result).toBeFalse();
+
+    shouldRun = false;
+    await expect(runResult).toResolve();
+  });
+
+  test('when running, promptly throws if there is an already-rejected argument', async () => {
+    let shouldRun = true;
+    const thread = new Threadlet(async () => {
+      while (shouldRun) {
+        await timers.setImmediate();
+      }
+    });
+
+    const runResult = thread.run();
+    const rejected  = PromiseUtil.rejectAndHandle(new Error('oy!'));
+    const result    = thread.raceWhenStopRequested([rejected]);
+
+    PromiseUtil.handleRejection(result);
+    expect(PromiseState.isSettled(result)).toBeFalse();
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(result)).toBeTrue();
+    await expect(result).toReject();
+
+    shouldRun = false;
+    await expect(runResult).toResolve();
+  });
+
+  test('when running, returns `false` when an argument becomes resolved', async () => {
+    let shouldRun = true;
+    const thread = new Threadlet(async () => {
+      while (shouldRun) {
+        await timers.setImmediate();
+      }
+    });
+
+    const runResult = thread.run();
+    const mp        = new ManualPromise();
+    const result    = thread.raceWhenStopRequested([mp.promise]);
+
+    expect(PromiseState.isSettled(result)).toBeFalse();
+    mp.resolve('boop');
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(result)).toBeTrue();
+    expect(await result).toBeFalse();
+
+    shouldRun = false;
+    await expect(runResult).toResolve();
+  });
+
+  test('when running, throws when an argument becomes rejected', async () => {
+    let shouldRun = true;
+    const thread = new Threadlet(async () => {
+      while (shouldRun) {
+        await timers.setImmediate();
+      }
+    });
+
+    const runResult = thread.run();
+    const mp        = new ManualPromise();
+    const result    = thread.raceWhenStopRequested([mp.promise]);
+
+    PromiseUtil.handleRejection(result);
+    expect(PromiseState.isSettled(result)).toBeFalse();
+    mp.reject(new Error('eep!'));
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(result)).toBeTrue();
+    await expect(result).toReject();
+
+    shouldRun = false;
+    await expect(runResult).toResolve();
+  });
+
+  test('when not running, promptly returns `true` when given no other arguments', async () => {
+    const thread = new Threadlet(() => null);
+    const result = thread.raceWhenStopRequested([]);
+
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(result)).toBeTrue();
+    expect(await result).toBeTrue();
+  });
+
+  test('when not running, promptly returns `true` even given an unsettled argument', async () => {
+    const thread = new Threadlet(() => null);
+    const mp     = new ManualPromise();
+    const result = thread.raceWhenStopRequested([mp.promise]);
+
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(result)).toBeTrue();
+    expect(await result).toBeTrue();
   });
 });
 

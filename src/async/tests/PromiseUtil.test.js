@@ -4,7 +4,7 @@
 import process from 'node:process';
 import * as timers from 'node:timers/promises';
 
-import { PromiseState, PromiseUtil } from '@this/async';
+import { ManualPromise, PromiseState, PromiseUtil } from '@this/async';
 
 
 const wasHandled = async (promise) => {
@@ -31,7 +31,7 @@ const wasHandled = async (promise) => {
   return !gotCalled;
 };
 
-describe('handleRejection', () => {
+describe('handleRejection()', () => {
   test('does indeed handle the rejection', async () => {
     const error = new Error('erroneous-monk');
     const prom  = Promise.reject(error);
@@ -41,7 +41,7 @@ describe('handleRejection', () => {
   });
 });
 
-describe('rejectAndHandle', () => {
+describe('rejectAndHandle()', () => {
   test('makes a rejected promise with the given reason', async () => {
     const error = new Error('erroneous-monk');
     const prom = PromiseUtil.rejectAndHandle(error);
@@ -54,5 +54,95 @@ describe('rejectAndHandle', () => {
     const error = new Error('erroneous-monk');
     const prom  = PromiseUtil.rejectAndHandle(error);
     expect(await wasHandled(prom)).toBeTrue();
+  });
+});
+
+describe('race()', () => {
+  test('never settles, given an empty array', async () => {
+    const result = PromiseUtil.race([]);
+
+    expect(PromiseState.isSettled(result)).toBeFalse();
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(result)).toBeFalse();
+  });
+
+  test.each`
+  value
+  ${null}
+  ${'boop'}
+  ${123}
+  `('settles promptly given $value amongst unsettled promises', async ({ value }) => {
+    const result = PromiseUtil.race([
+      new ManualPromise().promise,
+      value,
+      new ManualPromise().promise
+    ]);
+
+    expect(PromiseState.isSettled(result)).toBeFalse();
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(result)).toBeTrue();
+    expect(await result).toBe(value);
+  });
+
+  test('settles promptly with an already-resolved promise', async () => {
+    const value  = ['florp'];
+    const result = PromiseUtil.race([
+      new ManualPromise().promise,
+      Promise.resolve(value),
+      new ManualPromise().promise
+    ]);
+
+    expect(PromiseState.isSettled(result)).toBeFalse();
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(result)).toBeTrue();
+    expect(await result).toBe(value);
+  });
+
+  test('settles promptly with an already-rejected promise', async () => {
+    const rejected = PromiseUtil.rejectAndHandle(new Error('unflorpy'));
+    const result   = PromiseUtil.race([
+      new ManualPromise().promise,
+      rejected,
+      new ManualPromise().promise
+    ]);
+
+    PromiseUtil.handleRejection(result);
+    expect(PromiseState.isSettled(result)).toBeFalse();
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(result)).toBeTrue();
+    await expect(result).toReject();
+  });
+
+  test('settles when a promise becomes resolved', async () => {
+    const mp     = new ManualPromise();
+    const value  = ['zonk'];
+    const result = PromiseUtil.race([
+      new ManualPromise().promise,
+      mp.promise,
+      new ManualPromise().promise
+    ]);
+
+    expect(PromiseState.isSettled(result)).toBeFalse();
+    mp.resolve(value);
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(result)).toBeTrue();
+    expect(await result).toBe(value);
+  });
+
+  test('settles when a promise becomes rejected', async () => {
+    const mp     = new ManualPromise();
+    const error  = new Error('eepers!');
+    const result = PromiseUtil.race([
+      new ManualPromise().promise,
+      mp.promise,
+      new ManualPromise().promise
+    ]);
+
+    PromiseUtil.handleRejection(result);
+    expect(PromiseState.isSettled(result)).toBeFalse();
+    mp.rejectAndHandle(error);
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(result)).toBeTrue();
+    await expect(result).toReject();
   });
 });

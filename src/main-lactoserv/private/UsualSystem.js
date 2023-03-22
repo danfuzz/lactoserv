@@ -112,8 +112,7 @@ export class UsualSystem extends Threadlet {
         this.#reloadRequested.value = false;
       }
 
-      await Promise.race([
-        this.whenStopRequested(),
+      await this.raceWhenStopRequested([
         this.#reloadRequested.whenTrue()
       ]);
     }

@@ -4,7 +4,7 @@
 import { Server, Socket, createServer as netCreateServer } from 'node:net';
 import * as timers from 'node:timers/promises';
 
-import { Condition, Threadlet } from '@this/async';
+import { Condition, PromiseUtil, Threadlet } from '@this/async';
 import { FormatUtils, IntfLogger } from '@this/loggy';
 
 import { IntfRateLimiter } from '#x/IntfRateLimiter';
@@ -206,7 +206,7 @@ export class TcpWrangler extends ProtocolWrangler {
       logger?.closed();
     });
 
-    await Promise.race([
+    await PromiseUtil.race([
       closedCond.whenTrue(),
       timers.setTimeout(TcpWrangler.#SOCKET_TIMEOUT_CLOSE_GRACE_PERIOD_MSEC)
     ]);
@@ -219,7 +219,7 @@ export class TcpWrangler extends ProtocolWrangler {
     logger?.destroyingForcefully();
     socket.destroy();
 
-    await Promise.race([
+    await PromiseUtil.race([
       closedCond.whenTrue(),
       timers.setTimeout(TcpWrangler.#SOCKET_TIMEOUT_CLOSE_GRACE_PERIOD_MSEC)
     ]);

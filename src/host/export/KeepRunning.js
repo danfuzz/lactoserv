@@ -74,9 +74,8 @@ export class KeepRunning {
     // a timeout (or, alternatively, set a recurring timeout), and cancel it
     // (one way or another) when it's okay for the process to exit.
     while (!this.#thread.shouldStop()) {
-      await Promise.race([
-        timers.setTimeout(KeepRunning.#MSEC_PER_DAY),
-        this.#thread.whenStopRequested()
+      await this.#thread.raceWhenStopRequested([
+        timers.setTimeout(KeepRunning.#MSEC_PER_DAY)
       ]);
 
       const uptimeSecs = (Date.now() / 1000) - startedAtSecs;
