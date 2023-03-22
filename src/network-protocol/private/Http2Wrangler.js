@@ -7,7 +7,7 @@ import * as timers from 'node:timers/promises';
 import express from 'express';
 import http2ExpressBridge from 'http2-express-bridge';
 
-import { Condition, Threadlet } from '@this/async';
+import { Condition, PromiseUtil, Threadlet } from '@this/async';
 import { IntfLogger } from '@this/loggy';
 
 import { TcpWrangler } from '#p/TcpWrangler';
@@ -213,7 +213,7 @@ export class Http2Wrangler extends TcpWrangler {
         break;
       }
 
-      await Promise.race([
+      await PromiseUtil.race([
         this.#anySessions.whenFalse(),
         timers.setTimeout(Http2Wrangler.#STOP_GRACE_PERIOD_MSEC)
       ]);
