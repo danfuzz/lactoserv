@@ -20,17 +20,20 @@ export class ProcessInfo {
   static get allInfo() {
     this.#makeFixedInfo();
 
+    return {
+      ...this.#fixedInfo,
+      ...this.ephemeralInfo
+    };
+  }
+
+  /** @returns {object} Process info which varies over time. */
+  static get ephemeralInfo() {
     const memoryUsage = process.memoryUsage();
     for (const [key, value] of Object.entries(memoryUsage)) {
       memoryUsage[key] = FormatUtils.byteCountString(value);
     }
 
-    const result = {
-      ...this.#fixedInfo,
-      memoryUsage
-    };
-
-    return result;
+    return { memoryUsage };
   }
 
   /**
