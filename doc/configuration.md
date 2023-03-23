@@ -302,17 +302,27 @@ configuration bindings:
 
 * `path` &mdash; Path to the file, with the final path component modified by
   infixing the process ID.
+* `maxOldCount` &mdash; How many old info files to leave around. Optional and
+  defaults to `0`. If it is more than zero, then the following happens at system
+  startup:
+  * If there is a pre-existing file:
+    * It is checked to see if it has a shutdown "disposition" (e.g. exited
+      cleanly), and if not, it is updated to indicate "unexpected shutdown."
+    * It is renamed by infixing a date stamp (and sequence number if necessary).
+  * A census of old (renamed) files is taken. If there are more than the
+    indicate maximum, then the oldest ones in excess are deleted.
 * `updateSecs` &mdash; How many seconds to wait between each file update while
   the system is running. Optional and defaults to "never."
 
 ```js
 const services = [
   {
-    name:       'process',
-    class:      'ProcessInfoFile',
-    directory:  '/path/to/var/run',
-    baseName:   'process.json',
-    updateSecs: 5 * 60
+    name:        'process',
+    class:       'ProcessInfoFile',
+    directory:   '/path/to/var/run',
+    baseName:    'process.json',
+    updateSecs:  5 * 60,
+    maxOldCount: 10
   }
 ];
 ```

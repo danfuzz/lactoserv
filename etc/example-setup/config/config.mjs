@@ -28,7 +28,8 @@ const services = [
     name:       'process',
     class:      'ProcessInfoFile',
     path:       `${RUN_DIR}/process.json`,
-    updateSecs: 5 * 60
+    updateSecs:  5 * 60,
+    maxOldCount: 10
   },
   {
     name:         'process-id',
