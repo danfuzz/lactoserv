@@ -9,7 +9,7 @@ import { BaseService } from '@this/app-framework';
 import { Saver } from '@this/app-util';
 import { Threadlet } from '@this/async';
 import { Duration, Moment } from '@this/data-values';
-import { Host, ProcessInfo, ProductInfo } from '@this/host';
+import { Host, ProcessInfo, ProcessUtil, ProductInfo } from '@this/host';
 import { IntfLogger } from '@this/loggy';
 import { MustBe } from '@this/typey';
 
@@ -68,7 +68,9 @@ export class ProcessInfoFile extends BaseService {
   /** @override */
   async _impl_start(isReload) {
     if (this.#saver) {
-      // TODO: Update the disposition of the pre-existing file.
+      if (!isReload) {
+        await this.#fixOldFileIfNecessary();
+      }
 
       // Give the saver a chance to take action _before_ we start our runner
       // (which will quickly overwrite a pre-existing info file at the
@@ -99,6 +101,33 @@ export class ProcessInfoFile extends BaseService {
       // file write could get renamed by the saver (if that's how it was
       // configured).
       this.#saver.stop(willReload);
+    }
+  }
+
+  /**
+   * "Fixes" a pre-existing file, if it turns out to represent a process which
+   * got shut down abruptly (without indicating a "shutdown" disposition).
+   */
+  async #fixOldFileIfNecessary() {
+    const contents = await this.#readFile();
+
+    if (!(contents?.disposition && contents?.pid)) {
+      // Indicative of the file not existing or there being trouble reading and
+      // parsing the file. So, don't bother with the rest.
+      return;
+    }
+
+    if (contents.disposition.running
+        && !ProcessUtil.processExists(contents.pid)) {
+      // The contents say that the process in question is running, but it
+      // verifiably is not. So, update and rewrite.
+      delete contents.disposition.running;
+      contents.disposition = {
+        abruptlyStopped: true, // So it is first when serialized.
+        ...contents.disposition
+      };
+      this.logger?.fixedOldFile();
+      await this.#writeFile(contents);
     }
   }
 
@@ -159,13 +188,13 @@ export class ProcessInfoFile extends BaseService {
       const text   = await fs.readFile(filePath);
       const parsed = JSON.parse(text);
 
-      this.logger.readFile();
+      this.logger?.readFile();
       return parsed;
     } catch (e) {
       if (e.code === 'ENOENT') {
         return null;
       } else {
-        this.logger.errorReadingFile(e);
+        this.logger?.errorReadingFile(e);
         return { error: e.stack };
       }
     }
@@ -243,15 +272,18 @@ export class ProcessInfoFile extends BaseService {
 
   /**
    * Writes the info file.
+   *
+   * @param {?object} [contents = null] Contents to write instead of {@link
+   * #contents}, or `null` to write from the private property.
    */
-  async #writeFile() {
-    const contents = this.#contents;
-    const text     = `${JSON.stringify(contents, null, 2)}\n`;
+  async #writeFile(contents = null) {
+    const obj  = contents ?? this.#contents;
+    const text = `${JSON.stringify(obj, null, 2)}\n`;
 
     await this.config.createDirectoryIfNecessary();
     await fs.writeFile(this.#filePath, text);
 
-    this.logger.wroteFile();
+    this.logger?.wroteFile();
   }
 
 
