@@ -239,9 +239,9 @@ parsed names are used to construct _actual_ file names by inserting something in
 between the prefix and suffix (such as a sequence number), or in some cases just
 used as-is.
 
-**A note about file rotation:** Some of the services accept `rotate` as a
-configured property, which enables automatic file rotation and cleanup. A
-`rotate` configuration is an object with the following bindings:
+**A note about file rotation and preservation:** Some of the services accept
+`rotate` as a configured property, which enables automatic file rotation and
+cleanup. A `rotate` configuration is an object with the following bindings:
 
 * `atSize` &mdash; Rotate when the file becomes the given size (in bytes) or
   greater. Optional, and if not specified (or if `null`), does not rotate based
@@ -261,6 +261,20 @@ configured property, which enables automatic file rotation and cleanup. A
   Optional, and defaults to `false`.
 * `onStop` &mdash; If `true`, rotates when the system is about to be stopped.
   Optional, and defaults to `false`.
+
+Relatedly, some services don't ever have a need to do rotation, but they _can_
+usefully save files from old runs. In this case, a `save` configuration is
+available. This is an object with bindings with the same meanings and defaults
+as `rotate`, except that rotation-specific ones are not recognized. These are
+the ones that are used by `save`:
+
+* `maxOldCount`
+* `onReload`
+* `onStart`
+* `onStop`
+
+Note that at least one of the `on*` bindings need to be provided for a `save` to
+have any meaning.
 
 ### `ProcessIdFile`
 
