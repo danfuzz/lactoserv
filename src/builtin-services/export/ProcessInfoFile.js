@@ -206,16 +206,16 @@ export class ProcessInfoFile extends BaseService {
     const stoppedAtSecs = Date.now() / 1000;
     const uptimeSecs    = stoppedAtSecs - contents.startedAt.atSecs;
 
-    contents.stoppedAt = new Moment(stoppedAtSecs).toPlainObject();
-    contents.uptime    = new Duration(uptimeSecs).toPlainObject();
-
     if (willReload) {
       contents.disposition = { reloading: true };
     } else {
       contents.disposition = Host.shutdownDisposition();
     }
 
-    // Try to get `earlierRuns` to be a the end of the object when it gets
+    contents.disposition.stoppedAt = new Moment(stoppedAtSecs).toPlainObject();
+    contents.disposition.uptime    = new Duration(uptimeSecs).toPlainObject();
+
+    // Try to get `earlierRuns` to be at the end of the object when it gets
     // encoded to JSON, for easier (human) reading.
     if (contents.earlierRuns) {
       const earlierRuns = contents.earlierRuns;
