@@ -81,7 +81,7 @@ export class ProcessInfoFile extends BaseService {
 
   /** @override */
   async _impl_stop(willReload) {
-    await this.#runner.stop();
+    await this.#runner.stop(willReload);
 
     if (this.#saver) {
       // Note: We stopped our runner before telling the saver, so that the final
@@ -179,8 +179,10 @@ export class ProcessInfoFile extends BaseService {
 
   /**
    * Stops the service thread.
+   *
+   * @param {boolean} willReload Is the system going to be reloaded in-process?
    */
-  async #stop() {
+  async #stop(willReload) {
     const contents      = this.#contents;
     const stoppedAtSecs = Date.now() / 1000;
     const uptimeSecs    = stoppedAtSecs - contents.startedAt.atSecs;
@@ -188,10 +190,10 @@ export class ProcessInfoFile extends BaseService {
     contents.stoppedAt = new Moment(stoppedAtSecs).toPlainObject();
     contents.uptime    = new Duration(uptimeSecs).toPlainObject();
 
-    if (Host.isShuttingDown()) {
-      contents.disposition = Host.shutdownDisposition();
+    if (willReload) {
+      contents.disposition = { reloading: true };
     } else {
-      contents.disposition = { restarting: true };
+      contents.disposition = Host.shutdownDisposition();
     }
 
     // Try to get `earlierRuns` to be a the end of the object when it gets
