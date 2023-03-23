@@ -70,9 +70,12 @@ export class FileServiceConfig extends ServiceConfig {
     return this.#rotate;
   }
 
-  /** @returns {?SaveConfig} Preservation configuration, if any. */
+  /**
+   * @returns {?SaveConfig} Preservation configuration, if any. If this instance
+   * has a {@link RotateConfig}, that is returned here too (it's a subclass).
+   */
   get save() {
-    return this.#save;
+    return this.#save ?? this.#rotate;
   }
 
   /**
