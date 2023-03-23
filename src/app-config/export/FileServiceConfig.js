@@ -5,6 +5,7 @@ import * as fs from 'node:fs/promises';
 
 import { Files } from '#x/Files';
 import { RotateConfig } from '#x/RotateConfig';
+import { SaveConfig } from '#x/SaveConfig';
 import { ServiceConfig } from '#x/ServiceConfig';
 
 
@@ -19,7 +20,12 @@ import { ServiceConfig } from '#x/ServiceConfig';
  *   path (not relative). Required.
  * * `{?object} rotate` -- Optional plain object which can be parsed as a
  *   file-rotation configuration spec, or `null` for no rotation configuration.
- *   See {@link #RotateConfig} for details.
+ *   See {@link RotateConfig} for details. It is not valid to specify both this
+ *   and `save`.
+ * * `{?object} save` -- Optional plain object which can be parsed as a
+ *   file-preservation configuration spec, or `null` for no preservation
+ *   configuration. See {@link SaveConfig} for details. It is not valid to
+ *   specify both this and `rotate`.
  *
  * This class includes some utility functionality beyond just accessing the
  * configured values.
@@ -31,6 +37,9 @@ export class FileServiceConfig extends ServiceConfig {
   /** @type {?RotateConfig} Rotation configuration, if any. */
   #rotate;
 
+  /** @type {?SaveConfig} Preservation configuration, if any. */
+  #save;
+
   /**
    * Constructs an instance.
    *
@@ -39,8 +48,13 @@ export class FileServiceConfig extends ServiceConfig {
   constructor(config) {
     super(config);
 
+    if (config.rotate && config.save) {
+      throw new Error('Cannot specify both `rotate` and `save`.');
+    }
+
     this.#path   = Files.checkAbsolutePath(config.path);
     this.#rotate = config.rotate ? new RotateConfig(config.rotate) : null;
+    this.#save   = config.save ? new SaveConfig(config.save) : null;
   }
 
   /**
@@ -54,6 +68,11 @@ export class FileServiceConfig extends ServiceConfig {
   /** @returns {?RotateConfig} Rotation configuration, if any. */
   get rotate() {
     return this.#rotate;
+  }
+
+  /** @returns {?SaveConfig} Preservation configuration, if any. */
+  get save() {
+    return this.#save;
   }
 
   /**
