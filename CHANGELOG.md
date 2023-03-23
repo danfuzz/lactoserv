@@ -1,6 +1,15 @@
 Changelog
 =========
 
+### v0.5.7 -- 2023-03-23
+
+Notable changes:
+
+* Address a memory leak by replacing V8's buggy (specifically, leaky)
+  `Promise.race()` implementation.
+* Rework how process info files get handled. They now operate more like how
+  log files do. Also, fixed a few bugs in the related code.
+
 ### v0.5.6 -- 2023-03-21
 
 Notable changes:
