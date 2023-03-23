@@ -76,6 +76,17 @@ export class ProcessInfoFile extends BaseService {
       await this.#saver.start(isReload);
     }
 
+    if (isReload) {
+      // This only matters if configured with `save: { onReload: true }`, in
+      // which case this gets included in the new file as a way of indicating
+      // continuity.
+      this.#contents = {
+        earlierRuns: [{
+          disposition: 'inOtherInfoFiles'
+        }]
+      };
+    }
+
     await this.#runner.start();
   }
 
@@ -115,7 +126,13 @@ export class ProcessInfoFile extends BaseService {
       } else {
         contents.earlierRuns = [fileContents];
       }
+    } else if (this.#contents?.earlierRuns) {
+      // **Note:** `this.#contents` is only possibly non-empty if this instance
+      // was configured with `save: { onReload: true }`.
+      contents.earlierRuns = this.#contents.earlierRuns;
+    }
 
+    if (contents.earlierRuns) {
       // Given that we're here, this is a reload, and so the `startedAt` from
       // `ProcessInfo` (which will appear in the earliest of the `earlierRuns`)
       // is kinda moot. Instead, substitute the current time, that is, the
