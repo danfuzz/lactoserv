@@ -159,7 +159,7 @@ export class ProcessInfoFile extends BaseService {
    */
   async #run() {
     while (!this.#runner.shouldStop()) {
-      this.#updateDisposition();
+      this.#updateContents();
       await this.#writeFile();
 
       const updateTimeout = this.#updateSecs
@@ -210,9 +210,9 @@ export class ProcessInfoFile extends BaseService {
   }
 
   /**
-   * Updates {@link #disposition} to reflect a run still in progress.
+   * Updates {@link #contents} to reflect the latest conditions.
    */
-  #updateDisposition() {
+  #updateContents() {
     const updatedAtSecs = Date.now() / 1000;
 
     this.#contents.disposition = {
@@ -220,6 +220,8 @@ export class ProcessInfoFile extends BaseService {
       updatedAt: new Moment(updatedAtSecs).toPlainObject(),
       uptime:    new Duration(updatedAtSecs - this.#contents.startedAt.atSecs).toPlainObject()
     };
+
+    Object.assign(this.#contents, ProcessInfo.ephemeralInfo);
   }
 
   /**
