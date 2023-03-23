@@ -6,6 +6,7 @@ import * as timers from 'node:timers/promises';
 
 import { FileServiceConfig } from '@this/app-config';
 import { BaseService } from '@this/app-framework';
+import { Saver } from '@this/app-util';
 import { Threadlet } from '@this/async';
 import { Duration, Moment } from '@this/data-values';
 import { Host, ProcessInfo, ProductInfo } from '@this/host';
@@ -20,7 +21,7 @@ import { MustBe } from '@this/typey';
  * Configuration object details:
  *
  * * Bindings as defined by the superclass configuration, {@link
- *   FileServiceConfig}.
+ *   FileServiceConfig}. Supports `save`.
  * * `{?number} updateSecs` -- How often to update the file, in seconds, or
  *   `null` to not perform updates. Defaults to `null`.
  *
@@ -40,6 +41,9 @@ export class ProcessInfoFile extends BaseService {
   /** @type {?object} Current info file contents, if known. */
   #contents = null;
 
+  /** @type {?Saver} File saver (preserver) to use, if any. */
+  #saver;
+
   /** @type {Threadlet} Threadlet which runs this service. */
   #runner = new Threadlet(() => this.#start(), () => this.#run());
 
@@ -57,17 +61,34 @@ export class ProcessInfoFile extends BaseService {
       ? null
       : MustBe.number(updateSecs, { finite: true, minInclusive: 1 });
 
-    this.#filePath = config.infixPath(`-${process.pid}`);
+    this.#filePath = config.path;
+    this.#saver    = config.save ? new Saver(config, this.logger) : null;
   }
 
   /** @override */
-  async _impl_start(isReload_unused) {
+  async _impl_start(isReload) {
+    if (this.#saver) {
+      // TODO: Update the disposition of the pre-existing file.
+
+      // Give the saver a chance to take action _before_ we start our runner
+      // (which will quickly overwrite a pre-existing info file at the
+      // un-infixed path).
+      await this.#saver.start(isReload);
+    }
+
     await this.#runner.start();
   }
 
   /** @override */
-  async _impl_stop(willReload_unused) {
+  async _impl_stop(willReload) {
     await this.#runner.stop();
+
+    if (this.#saver) {
+      // Note: We stopped our runner before telling the saver, so that the final
+      // file write could get renamed by the saver (if that's how it was
+      // configured).
+      this.#saver.stop(willReload);
+    }
   }
 
   /**
