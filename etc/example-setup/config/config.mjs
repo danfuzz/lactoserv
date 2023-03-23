@@ -75,7 +75,7 @@ const services = [
     rotate: {
       atSize:      10000,
       maxOldCount: 10,
-      checkSecs:   60,
+      checkSecs:   60
     }
   },
   {
