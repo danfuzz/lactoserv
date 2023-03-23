@@ -58,7 +58,9 @@ export class BaseFilePreserver {
   }
 
   /**
-   * Starts this instance.
+   * Starts this instance. If this instance is configured to take any start-time
+   * actions (e.g. and especially preserving an existing file), this method does
+   * not async-return until those actions are complete.
    *
    * @param {boolean} isReload Is this action due to an in-process reload?
    */
@@ -68,10 +70,12 @@ export class BaseFilePreserver {
     if (isReload) {
       if (this.#config.save.onReload) {
         this.#saveNow.value = true;
+        await this.#saveNow.whenFalse();
       }
     } else {
       if (this.#config.save.onStart) {
         this.#saveNow.value = true;
+        await this.#saveNow.whenFalse();
       }
     }
 
