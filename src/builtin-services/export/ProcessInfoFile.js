@@ -94,7 +94,8 @@ export class ProcessInfoFile extends BaseService {
 
   /** @override */
   async _impl_stop(willReload) {
-    await this.#runner.stop(willReload);
+    await this.#runner.stop();
+    await this.#stop(willReload);
 
     if (this.#saver) {
       // Note: We stopped our runner before telling the saver, so that the final
@@ -214,8 +215,6 @@ export class ProcessInfoFile extends BaseService {
 
       await this.#runner.raceWhenStopRequested(updateTimeout);
     }
-
-    await this.#stop();
   }
 
   /**
@@ -238,7 +237,12 @@ export class ProcessInfoFile extends BaseService {
     if (willReload) {
       contents.disposition = { reloading: true };
     } else {
-      contents.disposition = Host.shutdownDisposition();
+      // The part after the `??` shouldn't happen.
+      contents.disposition = Host.shutdownDisposition()
+        ?? {
+          reloading:         true,
+          shutdownRequested: true
+        };
     }
 
     contents.disposition.stoppedAt = new Moment(stoppedAtSecs).toPlainObject();
