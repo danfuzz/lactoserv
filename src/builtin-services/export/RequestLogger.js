@@ -17,7 +17,7 @@ import { IntfRequestLogger } from '@this/network-protocol';
  * Configuration object details:
  *
  * * Bindings as defined by the superclass configuration, {@link
- *   FileServiceConfig}.
+ *   FileServiceConfig}. Supports `rotate`.
  *
  * @implements {IntfRequestLogger}
  */
