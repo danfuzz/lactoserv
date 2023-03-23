@@ -17,7 +17,7 @@ import { MustBe } from '@this/typey';
  * Configuration object details:
  *
  * * Bindings as defined by the superclass configuration, {@link
- *   FileServiceConfig}.
+ *   FileServiceConfig}. Supports `rotate`.
  * * `{string} format` -- The format to write. Must be one of the formats
  *   defined by {@link TextFileSink} (`json` or `human` as of this writing, but
  *   subject to change).

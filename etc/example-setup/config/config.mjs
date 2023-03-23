@@ -28,7 +28,11 @@ const services = [
     name:       'process',
     class:      'ProcessInfoFile',
     path:       `${RUN_DIR}/process.json`,
-    updateSecs: 5 * 60
+    updateSecs:  5 * 60,
+    save: {
+      onStart:     true,
+      maxOldCount: 10
+    }
   },
   {
     name:         'process-id',
@@ -44,7 +48,7 @@ const services = [
     format: 'human',
     rotate: {
       atSize:      1024 * 1024,
-      atStart:     true,
+      onStart:     true,
       maxOldBytes: 10 * 1024 * 1024,
       checkSecs:   60
     }
@@ -56,9 +60,9 @@ const services = [
     format: 'json',
     rotate: {
       atSize:      2 * 1024 * 1024,
-      atStart:     true,
-      atReload:    true,
-      atStop:      true,
+      onStart:     true,
+      onReload:    true,
+      onStop:      true,
       maxOldBytes: 10 * 1024 * 1024,
       maxOldCount: 10,
       checkSecs:   60
@@ -71,7 +75,7 @@ const services = [
     rotate: {
       atSize:      10000,
       maxOldCount: 10,
-      checkSecs:   60,
+      checkSecs:   60
     }
   },
   {

@@ -6,9 +6,10 @@ import * as timers from 'node:timers/promises';
 
 import { FileServiceConfig } from '@this/app-config';
 import { BaseService } from '@this/app-framework';
+import { Saver } from '@this/app-util';
 import { Threadlet } from '@this/async';
 import { Duration, Moment } from '@this/data-values';
-import { Host, ProcessInfo, ProductInfo } from '@this/host';
+import { Host, ProcessInfo, ProcessUtil, ProductInfo } from '@this/host';
 import { IntfLogger } from '@this/loggy';
 import { MustBe } from '@this/typey';
 
@@ -20,12 +21,12 @@ import { MustBe } from '@this/typey';
  * Configuration object details:
  *
  * * Bindings as defined by the superclass configuration, {@link
- *   FileServiceConfig}.
+ *   FileServiceConfig}. Supports `save`.
  * * `{?number} updateSecs` -- How often to update the file, in seconds, or
  *   `null` to not perform updates. Defaults to `null`.
  *
- * **Note:** See {@link #ProcessInfoFile} for a service which writes more
- * complete information about the system.
+ * **Note:** See {@link #ProcessIdFile} for a service which writes minimal
+ * information about active processes.
  */
 export class ProcessInfoFile extends BaseService {
   /**
@@ -39,6 +40,9 @@ export class ProcessInfoFile extends BaseService {
 
   /** @type {?object} Current info file contents, if known. */
   #contents = null;
+
+  /** @type {?Saver} File saver (preserver) to use, if any. */
+  #saver;
 
   /** @type {Threadlet} Threadlet which runs this service. */
   #runner = new Threadlet(() => this.#start(), () => this.#run());
@@ -57,17 +61,74 @@ export class ProcessInfoFile extends BaseService {
       ? null
       : MustBe.number(updateSecs, { finite: true, minInclusive: 1 });
 
-    this.#filePath = config.infixPath(`-${process.pid}`);
+    this.#filePath = config.path;
+    this.#saver    = config.save ? new Saver(config, this.logger) : null;
   }
 
   /** @override */
-  async _impl_start(isReload_unused) {
+  async _impl_start(isReload) {
+    if (this.#saver) {
+      if (!isReload) {
+        await this.#fixOldFileIfNecessary();
+      }
+
+      // Give the saver a chance to take action _before_ we start our runner
+      // (which will quickly overwrite a pre-existing info file at the
+      // un-infixed path).
+      await this.#saver.start(isReload);
+    }
+
+    if (isReload) {
+      // This only matters if configured with `save: { onReload: true }`, in
+      // which case this gets included in the new file as a way of indicating
+      // continuity.
+      this.#contents = {
+        earlierRuns: [{
+          disposition: 'inOtherInfoFiles'
+        }]
+      };
+    }
+
     await this.#runner.start();
   }
 
   /** @override */
-  async _impl_stop(willReload_unused) {
-    await this.#runner.stop();
+  async _impl_stop(willReload) {
+    await this.#runner.stop(willReload);
+
+    if (this.#saver) {
+      // Note: We stopped our runner before telling the saver, so that the final
+      // file write could get renamed by the saver (if that's how it was
+      // configured).
+      this.#saver.stop(willReload);
+    }
+  }
+
+  /**
+   * "Fixes" a pre-existing file, if it turns out to represent a process which
+   * got shut down abruptly (without indicating a "shutdown" disposition).
+   */
+  async #fixOldFileIfNecessary() {
+    const contents = await this.#readFile();
+
+    if (!(contents?.disposition && contents?.pid)) {
+      // Indicative of the file not existing or there being trouble reading and
+      // parsing the file. So, don't bother with the rest.
+      return;
+    }
+
+    if (contents.disposition.running
+        && !ProcessUtil.processExists(contents.pid)) {
+      // The contents say that the process in question is running, but it
+      // verifiably is not. So, update and rewrite.
+      delete contents.disposition.running;
+      contents.disposition = {
+        abruptlyStopped: true, // So it is first when serialized.
+        ...contents.disposition
+      };
+      this.logger?.fixedOldFile();
+      await this.#writeFile(contents);
+    }
   }
 
   /**
@@ -83,7 +144,9 @@ export class ProcessInfoFile extends BaseService {
 
     const fileContents = await this.#readFile();
 
-    if (fileContents) {
+    if (fileContents?.pid === contents.pid) {
+      // The file existed and corresponds to this process. So, incorporate its
+      // info into our own contents.
       if (fileContents.earlierRuns) {
         const earlier = fileContents.earlierRuns;
         delete fileContents.earlierRuns;
@@ -92,11 +155,17 @@ export class ProcessInfoFile extends BaseService {
       } else {
         contents.earlierRuns = [fileContents];
       }
+    } else if (this.#contents?.earlierRuns) {
+      // **Note:** `this.#contents` is only possibly non-empty if this instance
+      // was configured with `save: { onReload: true }`.
+      contents.earlierRuns = this.#contents.earlierRuns;
+    }
 
-      // Given that the file already exists, this is a restart, and so the
-      // `startedAt` from `ProcessInfo` (which will appear in the earliest of
-      // the `earlierRuns`) is kinda moot. Instead, substitute the current time,
-      // that is, the _restart_ time.
+    if (contents.earlierRuns) {
+      // Given that we're here, this is a reload, and so the `startedAt` from
+      // `ProcessInfo` (which will appear in the earliest of the `earlierRuns`)
+      // is kinda moot. Instead, substitute the current time, that is, the
+      // _reload_ time.
       contents.startedAt = new Moment(Date.now() / 1000).toPlainObject();
     }
 
@@ -119,13 +188,13 @@ export class ProcessInfoFile extends BaseService {
       const text   = await fs.readFile(filePath);
       const parsed = JSON.parse(text);
 
-      this.logger.readFile();
+      this.logger?.readFile();
       return parsed;
     } catch (e) {
       if (e.code === 'ENOENT') {
         return null;
       } else {
-        this.logger.errorReadingFile(e);
+        this.logger?.errorReadingFile(e);
         return { error: e.stack };
       }
     }
@@ -136,7 +205,7 @@ export class ProcessInfoFile extends BaseService {
    */
   async #run() {
     while (!this.#runner.shouldStop()) {
-      this.#updateDisposition();
+      this.#updateContents();
       await this.#writeFile();
 
       const updateTimeout = this.#updateSecs
@@ -158,22 +227,24 @@ export class ProcessInfoFile extends BaseService {
 
   /**
    * Stops the service thread.
+   *
+   * @param {boolean} willReload Is the system going to be reloaded in-process?
    */
-  async #stop() {
+  async #stop(willReload) {
     const contents      = this.#contents;
     const stoppedAtSecs = Date.now() / 1000;
     const uptimeSecs    = stoppedAtSecs - contents.startedAt.atSecs;
 
-    contents.stoppedAt = new Moment(stoppedAtSecs).toPlainObject();
-    contents.uptime    = new Duration(uptimeSecs).toPlainObject();
-
-    if (Host.isShuttingDown()) {
-      contents.disposition = Host.shutdownDisposition();
+    if (willReload) {
+      contents.disposition = { reloading: true };
     } else {
-      contents.disposition = { restarting: true };
+      contents.disposition = Host.shutdownDisposition();
     }
 
-    // Try to get `earlierRuns` to be a the end of the object when it gets
+    contents.disposition.stoppedAt = new Moment(stoppedAtSecs).toPlainObject();
+    contents.disposition.uptime    = new Duration(uptimeSecs).toPlainObject();
+
+    // Try to get `earlierRuns` to be at the end of the object when it gets
     // encoded to JSON, for easier (human) reading.
     if (contents.earlierRuns) {
       const earlierRuns = contents.earlierRuns;
@@ -185,9 +256,9 @@ export class ProcessInfoFile extends BaseService {
   }
 
   /**
-   * Updates {@link #disposition} to reflect a run still in progress.
+   * Updates {@link #contents} to reflect the latest conditions.
    */
-  #updateDisposition() {
+  #updateContents() {
     const updatedAtSecs = Date.now() / 1000;
 
     this.#contents.disposition = {
@@ -195,19 +266,24 @@ export class ProcessInfoFile extends BaseService {
       updatedAt: new Moment(updatedAtSecs).toPlainObject(),
       uptime:    new Duration(updatedAtSecs - this.#contents.startedAt.atSecs).toPlainObject()
     };
+
+    Object.assign(this.#contents, ProcessInfo.ephemeralInfo);
   }
 
   /**
    * Writes the info file.
+   *
+   * @param {?object} [contents = null] Contents to write instead of {@link
+   * #contents}, or `null` to write from the private property.
    */
-  async #writeFile() {
-    const contents = this.#contents;
-    const text     = `${JSON.stringify(contents, null, 2)}\n`;
+  async #writeFile(contents = null) {
+    const obj  = contents ?? this.#contents;
+    const text = `${JSON.stringify(obj, null, 2)}\n`;
 
     await this.config.createDirectoryIfNecessary();
     await fs.writeFile(this.#filePath, text);
 
-    this.logger.wroteFile();
+    this.logger?.wroteFile();
   }
 
 

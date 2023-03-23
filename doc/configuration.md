@@ -236,12 +236,12 @@ suffix combination, where the prefix is everything before a final dot (`.`), and
 the suffix is the final dot and everything that follows. (For example,
 `some.file.txt` would be parsed as prefix `some.file` and suffix `.txt`.) These
 parsed names are used to construct _actual_ file names by inserting something in
-between the prefix and suffix (such as a sequence number), or in some cases just
-used as-is.
+between the prefix and suffix (such as a date stamp and/or a sequence number),
+or in some cases just used as-is.
 
-**A note about file rotation:** Some of the services accept `rotate` as a
-configured property, which enables automatic file rotation and cleanup. A
-`rotate` configuration is an object with the following bindings:
+**A note about file rotation and preservation:** Some of the services accept
+`rotate` as a configured property, which enables automatic file rotation and
+cleanup. A `rotate` configuration is an object with the following bindings:
 
 * `atSize` &mdash; Rotate when the file becomes the given size (in bytes) or
   greater. Optional, and if not specified (or if `null`), does not rotate based
@@ -261,6 +261,21 @@ configured property, which enables automatic file rotation and cleanup. A
   Optional, and defaults to `false`.
 * `onStop` &mdash; If `true`, rotates when the system is about to be stopped.
   Optional, and defaults to `false`.
+
+Relatedly, some services don't ever have a need to do rotation, but they _can_
+usefully save files from old runs. In this case, a `save` configuration is
+available. This is an object with bindings with the same meanings and defaults
+as `rotate`, except that rotation-specific ones are not recognized. These are
+the ones that are used by `save`:
+
+* `maxOldBytes`
+* `maxOldCount`
+* `onReload`
+* `onStart`
+* `onStop`
+
+Note that at least one of the `on*` bindings need to be provided for a `save` to
+have any meaning.
 
 ### `ProcessIdFile`
 
@@ -284,8 +299,7 @@ const services = [
   {
     name:         'process-id',
     class:        'ProcessIdFile',
-    directory:    '/path/to/var/run',
-    baseName:     'process.txt',
+    path:         '/path/to/var/run/process.txt',
     multiprocess: true,
     updateSecs:   60 * 60
   }
@@ -304,18 +318,26 @@ configuration bindings:
   infixing the process ID.
 * `updateSecs` &mdash; How many seconds to wait between each file update while
   the system is running. Optional and defaults to "never."
+* `save` &mdash; Optional file preservation configuration. If not specified, no
+  file preservation is done.
 
 ```js
 const services = [
   {
     name:       'process',
     class:      'ProcessInfoFile',
-    directory:  '/path/to/var/run',
-    baseName:   'process.json',
-    updateSecs: 5 * 60
+    path:       '/path/to/var/run/process.json',
+    updateSecs: 5 * 60,
+    save:       { /* ... */ }
   }
 ];
 ```
+
+**Note:** If file preservation (`save`) is being done, then any time an old file
+is preserved, it is first checked to see if it has a shutdown "disposition"
+(that is, an indication that the system had a chance to note why it was
+stopped). If not, the system will update that file to indicate "unexpected
+shutdown."
 
 ### `RateLimiter`
 
@@ -376,11 +398,10 @@ the following configuration bindings:
 ```js
 const services = [
   {
-    name:      'requests',
-    class:     'RequestLogger',
-    directory: '/path/to/var/log',
-    baseName:  'request-log.txt',
-    rotate:    { /* ... */ }
+    name:   'requests',
+    class:  'RequestLogger',
+    path:   '/path/to/var/log/request-log.txt',
+    rotate: { /* ... */ }
   }
 ];
 ```
@@ -405,12 +426,11 @@ configuring `rotate`.
 ```js
 const services = [
   {
-    name:      'syslog-json',
-    class:     'SystemLogger',
-    directory: '/path/to/var/log',
-    baseName:  'system-log.json',
-    format:    'json',
-    rotate:    { /* ... */ }
+    name:   'syslog-json',
+    class:  'SystemLogger',
+    path:   '/path/to/var/log/system-log.json',
+    format: 'json',
+    rotate: { /* ... */ }
   }
 ];
 ```

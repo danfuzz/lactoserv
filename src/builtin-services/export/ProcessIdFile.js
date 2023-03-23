@@ -8,6 +8,7 @@ import * as timers from 'node:timers/promises';
 import { FileServiceConfig } from '@this/app-config';
 import { BaseService } from '@this/app-framework';
 import { Threadlet } from '@this/async';
+import { ProcessUtil } from '@this/host';
 import { IntfLogger } from '@this/loggy';
 import { MustBe } from '@this/typey';
 
@@ -107,7 +108,7 @@ export class ProcessIdFile extends BaseService {
       // (which parses as `NaN`).
       if (   Number.isSafeInteger(num)
           && (num !== pid)
-          && ProcessIdFile.#processExists(num)) {
+          && ProcessUtil.processExists(num)) {
         result.push(num);
       }
     }
@@ -225,28 +226,6 @@ export class ProcessIdFile extends BaseService {
   /** @override */
   static get CONFIG_CLASS() {
     return this.#Config;
-  }
-
-  /**
-   * Checks to see if a process exists with the given ID.
-   *
-   * @param {number} pid The process ID to check for.
-   * @returns {boolean} `true` iff the process exists.
-   */
-  static #processExists(pid) {
-    try {
-      // Note: Per Node docs, `kill` with the signal `0` merely checks for
-      // process existence; just what we want here!
-      process.kill(pid, 0);
-      return true;
-    } catch (e) {
-      if (e.code === 'ESRCH') {
-        // This is the expected "no such process ID" error.
-        return false;
-      } else {
-        throw e;
-      }
-    }
   }
 
   /**
