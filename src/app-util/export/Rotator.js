@@ -8,13 +8,13 @@ import { FileServiceConfig } from '@this/app-config';
 import { IntfLogger } from '@this/loggy';
 import { MustBe } from '@this/typey';
 
-import { Saver } from '#x/Saver';
+import { BaseFilePreserver } from '#p/BaseFilePreserver';
 
 
 /**
  * Configurable file "rotator" for doing log rotation and the like.
  */
-export class Rotator extends Saver {
+export class Rotator extends BaseFilePreserver {
   /** @type {FileServiceConfig} Configuration to use. */
   #config;
 
@@ -63,13 +63,13 @@ export class Rotator extends Saver {
   }
 
   /** @override */
-  async _impl_whenWorkRequired() {
+  _impl_whenWorkRequired() {
     // If this instance is configured for timed checks, then this is where the
     // salient timeout is set up. Otherwise, this method doesn't need to do
     // anything.
 
-    if (this.#checkMsec) {
-      await timers.setTimeout(this.#checkMsec);
-    }
+    return this.#checkMsec
+      ? timers.setTimeout(this.#checkMsec)
+      : null;
   }
 }
