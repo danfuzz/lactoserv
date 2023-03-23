@@ -31,6 +31,7 @@ const services = [
     updateSecs:  5 * 60,
     save: {
       onStart:     true,
+      onStop:      true,
       maxOldCount: 10
     }
   },
