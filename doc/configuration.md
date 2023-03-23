@@ -236,8 +236,8 @@ suffix combination, where the prefix is everything before a final dot (`.`), and
 the suffix is the final dot and everything that follows. (For example,
 `some.file.txt` would be parsed as prefix `some.file` and suffix `.txt`.) These
 parsed names are used to construct _actual_ file names by inserting something in
-between the prefix and suffix (such as a sequence number), or in some cases just
-used as-is.
+between the prefix and suffix (such as a date stamp and/or a sequence number),
+or in some cases just used as-is.
 
 **A note about file rotation and preservation:** Some of the services accept
 `rotate` as a configured property, which enables automatic file rotation and
@@ -315,29 +315,28 @@ configuration bindings:
 
 * `path` &mdash; Path to the file, with the final path component modified by
   infixing the process ID.
-* `maxOldCount` &mdash; How many old info files to leave around. Optional and
-  defaults to `0`. If it is more than zero, then the following happens at system
-  startup:
-  * If there is a pre-existing file:
-    * It is checked to see if it has a shutdown "disposition" (e.g. exited
-      cleanly), and if not, it is updated to indicate "unexpected shutdown."
-    * It is renamed by infixing a date stamp (and sequence number if necessary).
-  * A census of old (renamed) files is taken. If there are more than the
-    indicate maximum, then the oldest ones in excess are deleted.
 * `updateSecs` &mdash; How many seconds to wait between each file update while
   the system is running. Optional and defaults to "never."
+* `save` &mdash; Optional file preservation configuration. If not specified, no
+  file preservation is done.
 
 ```js
 const services = [
   {
-    name:        'process',
-    class:       'ProcessInfoFile',
-    path:        '/path/to/var/run/process.json',
-    updateSecs:  5 * 60,
-    maxOldCount: 10
+    name:       'process',
+    class:      'ProcessInfoFile',
+    path:       '/path/to/var/run/process.json',
+    updateSecs: 5 * 60,
+    save:       { /* ... */ }
   }
 ];
 ```
+
+**Note:** If file preservation (`save`) is being done, then any time an old file
+is preserved, it is first checked to see if it has a shutdown "disposition"
+(that is, an indication that the system had a chance to note why it was
+stopped). If not, the system will update that file to indicate "unexpected
+shutdown."
 
 ### `RateLimiter`
 
