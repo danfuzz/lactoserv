@@ -104,7 +104,9 @@ export class ProcessInfoFile extends BaseService {
 
     const fileContents = await this.#readFile();
 
-    if (fileContents) {
+    if (fileContents?.pid === contents.pid) {
+      // The file existed and corresponds to this process. So, incorporate its
+      // info into our own contents.
       if (fileContents.earlierRuns) {
         const earlier = fileContents.earlierRuns;
         delete fileContents.earlierRuns;
@@ -114,10 +116,10 @@ export class ProcessInfoFile extends BaseService {
         contents.earlierRuns = [fileContents];
       }
 
-      // Given that the file already exists, this is a restart, and so the
-      // `startedAt` from `ProcessInfo` (which will appear in the earliest of
-      // the `earlierRuns`) is kinda moot. Instead, substitute the current time,
-      // that is, the _restart_ time.
+      // Given that we're here, this is a reload, and so the `startedAt` from
+      // `ProcessInfo` (which will appear in the earliest of the `earlierRuns`)
+      // is kinda moot. Instead, substitute the current time, that is, the
+      // _reload_ time.
       contents.startedAt = new Moment(Date.now() / 1000).toPlainObject();
     }
 
