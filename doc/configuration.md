@@ -268,6 +268,7 @@ available. This is an object with bindings with the same meanings and defaults
 as `rotate`, except that rotation-specific ones are not recognized. These are
 the ones that are used by `save`:
 
+* `maxOldBytes`
 * `maxOldCount`
 * `onReload`
 * `onStart`

@@ -19,9 +19,6 @@ import { SaveConfig } from '#x/SaveConfig';
  * * `{?number} checkSecs` -- How often to check for a rotation condition, in
  *   seconds, or `null` to not check. This is only meaningful if `atSize` is
  *   also specified. Default `5 * 60`.
- * * `{?number} maxOldBytes` -- How many bytes' worth of old (post-rotation)
- *   files should be allowed, or `null` not to have a limit. The oldest files
- *   over the limit get deleted after a rotation. Default `null`.
  */
 export class RotateConfig extends SaveConfig {
   /** @type {?number} The file size at which to rotate, if ever. */
@@ -34,12 +31,6 @@ export class RotateConfig extends SaveConfig {
   #checkSecs;
 
   /**
-   * @type {?number} The maximum number of old-file bytes to allow, if so
-   * limited.
-   */
-  #maxOldBytes;
-
-  /**
    * Constructs an instance.
    *
    * @param {object} config Configuration object. See class header for details.
@@ -49,17 +40,13 @@ export class RotateConfig extends SaveConfig {
 
     const {
       atSize      = null,
-      checkSecs   = 5 * 60,
-      maxOldBytes = null
+      checkSecs   = 5 * 60
     } = config;
 
     this.#atSize = (atSize === null)
       ? null
       : MustBe.number(atSize, { finite: true, minInclusive: 1 });
     this.#checkSecs = MustBe.number(checkSecs, { finite: true, minInclusive: 1 });
-    this.#maxOldBytes = (maxOldBytes === null)
-      ? null
-      : MustBe.number(maxOldBytes, { finite: true, minInclusive: 1 });
 
     if (this.#atSize === null) {
       // `checkSecs` is irrelevant in this case.
@@ -81,13 +68,5 @@ export class RotateConfig extends SaveConfig {
    */
   get checkSecs() {
     return this.#checkSecs;
-  }
-
-  /**
-   * @returns {?number} The maximum number of old-file bytes to allow, or `null`
-   * if there is no limit.
-   */
-  get maxOldBytes() {
-    return this.#maxOldBytes;
   }
 }

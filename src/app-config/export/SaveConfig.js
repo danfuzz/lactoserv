@@ -12,6 +12,9 @@ import { BaseConfig } from '#x/BaseConfig';
  *
  * Accepted configuration bindings (in the constructor). All are optional.
  *
+ * * `{?number} maxOldBytes` -- How many bytes' worth of old (post-rotation)
+ *   files should be allowed, or `null` not to have a limit. The oldest files
+ *   over the limit get deleted after a rotation. Default `null`.
  * * `{?number} maxOldCount` -- How many old (post-rotation) files should be
  *   allowed, or `null` not to have a limit. The oldest files over the limit get
  *   deleted after a rotation. Default `null`.
@@ -23,6 +26,12 @@ import { BaseConfig } from '#x/BaseConfig';
  *   Default `false`.
  */
 export class SaveConfig extends BaseConfig {
+  /**
+   * @type {?number} The maximum number of old-file bytes to allow, if so
+   * limited.
+   */
+  #maxOldBytes;
+
   /**
    * @type {?number} The maximum number of old files to allow, if so limited.
    */
@@ -46,18 +55,30 @@ export class SaveConfig extends BaseConfig {
     super(config);
 
     const {
+      maxOldBytes = null,
       maxOldCount = null,
       onReload    = false,
       onStart     = false,
       onStop      = false
     } = config;
 
+    this.#maxOldBytes = (maxOldBytes === null)
+      ? null
+      : MustBe.number(maxOldBytes, { finite: true, minInclusive: 1 });
     this.#maxOldCount = (maxOldCount === null)
       ? null
       : MustBe.number(maxOldCount, { finite: true, minInclusive: 1 });
     this.#onReload = MustBe.boolean(onReload);
     this.#onStart  = MustBe.boolean(onStart);
     this.#onStop   = MustBe.boolean(onStop);
+  }
+
+  /**
+   * @returns {?number} The maximum number of old-file bytes to allow, or `null`
+   * if there is no limit.
+   */
+  get maxOldBytes() {
+    return this.#maxOldBytes;
   }
 
   /**
