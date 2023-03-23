@@ -284,8 +284,7 @@ const services = [
   {
     name:         'process-id',
     class:        'ProcessIdFile',
-    directory:    '/path/to/var/run',
-    baseName:     'process.txt',
+    path:         '/path/to/var/run/process.txt',
     multiprocess: true,
     updateSecs:   60 * 60
   }
@@ -319,8 +318,7 @@ const services = [
   {
     name:        'process',
     class:       'ProcessInfoFile',
-    directory:   '/path/to/var/run',
-    baseName:    'process.json',
+    path:        '/path/to/var/run/process.json',
     updateSecs:  5 * 60,
     maxOldCount: 10
   }
@@ -386,11 +384,10 @@ the following configuration bindings:
 ```js
 const services = [
   {
-    name:      'requests',
-    class:     'RequestLogger',
-    directory: '/path/to/var/log',
-    baseName:  'request-log.txt',
-    rotate:    { /* ... */ }
+    name:   'requests',
+    class:  'RequestLogger',
+    path:   '/path/to/var/log/request-log.txt',
+    rotate: { /* ... */ }
   }
 ];
 ```
@@ -415,12 +412,11 @@ configuring `rotate`.
 ```js
 const services = [
   {
-    name:      'syslog-json',
-    class:     'SystemLogger',
-    directory: '/path/to/var/log',
-    baseName:  'system-log.json',
-    format:    'json',
-    rotate:    { /* ... */ }
+    name:   'syslog-json',
+    class:  'SystemLogger',
+    path:   '/path/to/var/log/system-log.json',
+    format: 'json',
+    rotate: { /* ... */ }
   }
 ];
 ```
