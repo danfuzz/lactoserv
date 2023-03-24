@@ -330,8 +330,8 @@ export class TcpWrangler extends ProtocolWrangler {
   });
 
   /**
-   * @type {object} "Prototype" of server listen options.  See
-   * `ProtocolWrangler` class doc for details.
+   * @type {object} "Prototype" of server listen options. See `ProtocolWrangler`
+   * class doc for details.
    */
   static #LISTEN_PROTO = Object.freeze({
     address:   { map: (v) => ({ host: (v === '*') ? '::' : v }) },
