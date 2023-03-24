@@ -25,15 +25,10 @@ export class BaseLoggingEnvironment {
   // Note: The default constructor is fine here.
 
   /**
-   * Logs a {@link #LogRecord}, which is either passed directly or constructed
-   * from the arguments passed to this method. Typically, this ends up emitting
-   * a {@link #LogEvent} from an event source of some sort (which is, for
-   * example, what the standard concrete subclass of this class does), but it is
-   * not _necessarily_ what happens (that is, it depends on the concrete
-   * subclass).
-   *
-   * If _not_ called with a {@link #LogRecord}, this method fills in the
-   * timestamp and stack trace as implemented by the concrete subclass.
+   * Logs a {@link #LogRecord}, which is constructed from the arguments passed
+   * to this method along with a timestamp and stack trace as implemented by the
+   * concrete subclass. The so-constructed record is then emitted, as if by
+   * {@link #logRecord}, see which for further details.
    *
    * @param {number} omitCount The number of caller frames to omit from the
    *   stack trace.
