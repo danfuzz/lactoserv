@@ -103,18 +103,56 @@ export class EventSink extends Threadlet {
     this.#draining = false;
 
     for (;;) {
-      const event = await this.#headEvent();
-      if (!event) {
-        break;
-      }
-
-      try {
-        await this.#processor(event);
-      } finally {
-        this.#head = this.#head.next;
+      if (await this.#runStep()) {
+        return null;
       }
     }
+  }
 
-    return null;
+  /**
+   * Helper for {@link #run}, which performs one iteration of the inner loop.
+   *
+   * @returns {boolean} Done flag: if `true`, the caller of this method should
+   *   itself return.
+   */
+  async #runStep() {
+    // This is a separate method only because _not_ doing so can trigger a bug
+    // in V8 (found in v10.8.168.25 as present in Node v19.7.0), wherein
+    // attaching a debugger can cause a permanent leak of a local variable's
+    // instantaneous value in a loop that uses `async`.
+
+    const event = await this.#headEvent();
+    if (!event) {
+      return true;
+    }
+
+    try {
+      await this.#processor(event);
+    } finally {
+      this.#head = this.#head.next;
+    }
+
+    return false;
+
+    // Just for the record, here's the original `#run()`:
+    //
+    // async #run() {
+    //   this.#draining = false;
+    //
+    //   for (;;) {
+    //     const event = await this.#headEvent();
+    //     if (!event) {
+    //       break;
+    //     }
+    //
+    //     try {
+    //       await this.#processor(event);
+    //     } finally {
+    //       this.#head = this.#head.next;
+    //     }
+    //   }
+    //
+    //   return null;
+    // }
   }
 }
