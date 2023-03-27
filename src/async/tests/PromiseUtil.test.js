@@ -71,6 +71,20 @@ describe('race()', () => {
   ${null}
   ${'boop'}
   ${123}
+  `('settles promptly given just $value', async ({ value }) => {
+    const result = PromiseUtil.race([value]);
+
+    expect(PromiseState.isSettled(result)).toBeFalse();
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(result)).toBeTrue();
+    expect(await result).toBe(value);
+  });
+
+  test.each`
+  value
+  ${null}
+  ${'boop'}
+  ${123}
   `('settles promptly given $value amongst unsettled promises', async ({ value }) => {
     const result = PromiseUtil.race([
       new ManualPromise().promise,
@@ -84,7 +98,17 @@ describe('race()', () => {
     expect(await result).toBe(value);
   });
 
-  test('settles promptly with an already-resolved promise', async () => {
+  test('settles promptly given just an already-resolved promise', async () => {
+    const value  = ['florp'];
+    const result = PromiseUtil.race([Promise.resolve(value)]);
+
+    expect(PromiseState.isSettled(result)).toBeFalse();
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(result)).toBeTrue();
+    expect(await result).toBe(value);
+  });
+
+  test('settles promptly given an already-resolved promise amongst unsettled promises', async () => {
     const value  = ['florp'];
     const result = PromiseUtil.race([
       new ManualPromise().promise,
@@ -98,7 +122,7 @@ describe('race()', () => {
     expect(await result).toBe(value);
   });
 
-  test('settles promptly with an already-rejected promise', async () => {
+  test('settles promptly given an already-rejected promise amongst unsettled promises', async () => {
     const rejected = PromiseUtil.rejectAndHandle(new Error('unflorpy'));
     const result   = PromiseUtil.race([
       new ManualPromise().promise,
@@ -113,7 +137,18 @@ describe('race()', () => {
     await expect(result).toReject();
   });
 
-  test('settles when a promise becomes resolved', async () => {
+  test('settles promptly given just an already-rejected promise', async () => {
+    const rejected = PromiseUtil.rejectAndHandle(new Error('unflorpy'));
+    const result   = PromiseUtil.race([rejected]);
+
+    PromiseUtil.handleRejection(result);
+    expect(PromiseState.isSettled(result)).toBeFalse();
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(result)).toBeTrue();
+    await expect(result).toReject();
+  });
+
+  test('settles when a promise becomes resolved, amongst unsettled promises', async () => {
     const mp     = new ManualPromise();
     const value  = ['zonk'];
     const result = PromiseUtil.race([
@@ -129,7 +164,7 @@ describe('race()', () => {
     expect(await result).toBe(value);
   });
 
-  test('settles when a promise becomes rejected', async () => {
+  test('settles when a promise becomes rejected, amongst unsettled promises', async () => {
     const mp     = new ManualPromise();
     const error  = new Error('eepers!');
     const result = PromiseUtil.race([
@@ -144,5 +179,56 @@ describe('race()', () => {
     await timers.setImmediate();
     expect(PromiseState.isSettled(result)).toBeTrue();
     await expect(result).toReject();
+  });
+
+  test('settles when a promise becomes resolved, given just that promise', async () => {
+    const mp     = new ManualPromise();
+    const value  = ['zonkers'];
+    const result = PromiseUtil.race([mp.promise]);
+
+    expect(PromiseState.isSettled(result)).toBeFalse();
+    mp.resolve(value);
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(result)).toBeTrue();
+    expect(await result).toBe(value);
+  });
+
+  test('settles when a promise becomes rejected, given just that promise', async () => {
+    const mp     = new ManualPromise();
+    const error  = new Error('bleepers!');
+    const result = PromiseUtil.race([mp.promise]);
+
+    PromiseUtil.handleRejection(result);
+    expect(PromiseState.isSettled(result)).toBeFalse();
+    mp.rejectAndHandle(error);
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(result)).toBeTrue();
+    await expect(result).toReject();
+  });
+
+  test('grants the win to an earlier-in-contenders already-settled promise, over a later primitive', async () => {
+    const value  = ['florp'];
+    const result = PromiseUtil.race([
+      Promise.resolve(value),
+      'zonk'
+    ]);
+
+    expect(PromiseState.isSettled(result)).toBeFalse();
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(result)).toBeTrue();
+    expect(await result).toBe(value);
+  });
+
+  test('grants the win to an earlier-in-contenders primitive, over a later already-settled promise', async () => {
+    const value  = ['florp'];
+    const result = PromiseUtil.race([
+      value,
+      Promise.resolve(['beep', 'boop']),
+    ]);
+
+    expect(PromiseState.isSettled(result)).toBeFalse();
+    await timers.setImmediate();
+    expect(PromiseState.isSettled(result)).toBeTrue();
+    expect(await result).toBe(value);
   });
 });
