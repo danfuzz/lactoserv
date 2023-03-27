@@ -65,12 +65,7 @@ export class PromiseUtil {
    * @throws {*} The rejected result from the first of `promises` to settle, if
    *   the first to settle becomes rejected.
    */
-  static race(contenders) {
-    //return this.race_brian(contenders);
-    return this.race_dan(contenders);
-  }
-
-  static async race_dan(contenders) {
+  static async race(contenders) {
     const isPrimitive = (value) => {
       return (value === null)
         || ((typeof value !== 'object') && (typeof value !== 'function'));
@@ -155,7 +150,14 @@ export class PromiseUtil {
     }
   }
 
-  static race_brian(contenders) {
+  //
+  // Just to help with source history / my (@danfuzz's) memory, this is the
+  // now-somewhat-modified version of @brainkim's implementation. It's got the
+  // bug fixed, and, because it uses the same helper method as the new version,
+  // the salient property has been renamed.
+  //
+  /*
+  static race(contenders) {
     // This specific method body is covered by an "unlicense;" it is public
     // domain to the extent possible.
 
@@ -203,6 +205,7 @@ export class PromiseUtil {
       }
     });
   }
+  */
 
   /**
    * Adds a new race contender to {@link #raceMap}. This method is called once
