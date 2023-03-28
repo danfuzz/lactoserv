@@ -4,9 +4,9 @@
 import * as util from 'node:util';
 
 
-// TODO: Make the methods here all `async`, and then use the tactic described in
-// the MDN docs for `Promise.race()` to avoid the Node dependency in this code.
-// * <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/race>
+// TODO: Make the methods here all `async`, and then use the tactic used in
+// `PromiseUtil.race()` to figure out promise state and thereby avoid the Node
+// dependency in this code.
 
 /**
  * Utility class to synchronously inspect promise state. This is primarily

@@ -9,9 +9,12 @@ import { MustBe } from '@this/typey';
  */
 export class PromiseUtil {
   /**
-   * @type {WeakMap<object, {deferreds: Set<{resolve, reject}>, settled:
-   * boolean}>} Weak map, which maps values passed to {@link #race} to the data
-   * needed to resolve finished races involving those values.
+   * @type {WeakMap<Promise, {races: Set<{resolve, reject}>, settled:
+   * boolean}>} Weak map, which links contenders passed to {@link #race} to all
+   * the races those contenders are involved in, along with a `settled` flag
+   * indicating the promise state of the contender. (Note: When an
+   * already-settled contender is first added to the map, its `settled` flag
+   * will be incorrect until the immediately-subsequent `await`.)
    */
   static #raceMap = new WeakMap();
 
@@ -62,6 +65,109 @@ export class PromiseUtil {
    * @throws {*} The rejected result from the first of `promises` to settle, if
    *   the first to settle becomes rejected.
    */
+  static async race(contenders) {
+    const isPrimitive = (value) => {
+      return (value === null)
+        || ((typeof value !== 'object') && (typeof value !== 'function'));
+    };
+
+    // `Promise.race()` accepts an arbitrary iterable/generator; settle it into
+    // a regular array, because we may have to iterate over it more than once.
+    contenders = [...contenders];
+
+    // `Promise.race()` on an empty argument is specified to return a promise
+    // which never resolves.
+    if (contenders.length === 0) {
+      return new Promise(() => null);
+    } else if (contenders.length === 1) {
+      // Just one contender, so it can't possibly be a race. Note:
+      // `Promise.race()` is specified to always return a pending promise, even
+      // if the argument(s) are already settled, which is why we `await` instead
+      // of `return` directly.
+      return await contenders[0];
+    }
+
+    // Set up each contender that hasn't ever been encountered before. While
+    // doing so, also short-circuit the race if we can determine a winner.
+    // Specifically, `Promise.race()` specifies that the first (earliest in
+    // `contenders`) already-settled contender wins, so if we observe N (N >= 0)
+    // definitely-unsettled values followed by a definitely-settled one, then
+    // the definitely-settled one is de facto the winner of the race.
+    for (const c of contenders) {
+      if (isPrimitive(c)) {
+        // Short circuit: This contender is the definite winner of the race.
+        // We `await` for the same reason as the `length === 1` case above.
+        return await c;
+      } else {
+        const record = this.#raceMap.get(c);
+        switch (record?.settled) {
+          case false: {
+            // Nothing to do. It's known-unsettled.
+            break;
+          }
+          case true: {
+            // Short circuit: This contender is the definite winner of the
+            // race. We `await` for the same reason as the `length === 1` case
+            // above.
+            return await c;
+          }
+          case undefined: {
+            // We've never encountered this contender before in any race. This
+            // setup call happens once for the lifetime of the contender.
+            const newRecord = this.#addRaceContender(c);
+            await null; // Ensure `settled === true` if `c` is already settled.
+            if (newRecord.settled) {
+              // Short circuit: This contender is the definite winner of the
+              // race.
+              return c;
+            }
+          }
+        }
+      }
+    }
+
+    // All contenders are pending promises.
+
+    let raceSettler;
+    const result = new Promise((resolve, reject) => {
+      raceSettler = { resolve, reject };
+    });
+
+    for (const c of contenders) {
+      const record = this.#raceMap.get(c);
+      if (record.settled) {
+        // Surprise! The contender got settled after it was checked during the
+        // first pass. We can't just return here (well, ok, unless it happened
+        // to be the first contender, but that's arguably more trouble than it's
+        // worth to handle specially), because we may have polluted the
+        // `raceMap` with our `raceSettler`. So, just resolve our `result`, and
+        // let the `finally` below clean up the mess.
+        raceSettler.resolve(c);
+        break;
+      }
+      record.races.add(raceSettler);
+    }
+
+    try {
+      return await result;
+    } finally {
+      // Drop `raceSettler` (that is, the link to the `result` of the race
+      // made by the call to this method) from any of the contenders that still
+      // refer to it.
+      for (const c of contenders) {
+        const record = this.#raceMap.get(c);
+        record.races.delete(raceSettler);
+      }
+    }
+  }
+
+  //
+  // Just to help with source history / my (@danfuzz's) memory, this is the
+  // now-somewhat-modified version of @brainkim's implementation. It's got the
+  // bug fixed, and, because it uses the same helper method as the new version,
+  // the salient property has been renamed.
+  //
+  /*
   static race(contenders) {
     // This specific method body is covered by an "unlicense;" it is public
     // domain to the extent possible.
@@ -77,7 +183,7 @@ export class PromiseUtil {
       for (const contender of contenders) {
         if (isPrimitive(contender)) {
           // If the contender is a primitive, attempting to use it as a key in
-          // the weakmap would throw an error. Luckily, it is safe to call
+          // the `WeakMap` would throw an error. Luckily, it is safe to call
           // `Promise.resolve(contender).then` on a primitive value multiple
           // times because the promise fulfills immediately.
           Promise.resolve(contender).then(resolve, reject);
@@ -86,33 +192,15 @@ export class PromiseUtil {
 
         let record = this.#raceMap.get(contender);
         if (record === undefined) {
-          record = { deferreds: new Set([deferred]), settled: false };
-          this.#raceMap.set(contender, record);
-          // This call to `then` happens once for the lifetime of the value.
-          Promise.resolve(contender).then(
-            (value) => {
-              for (const { resolve: recordResolve } of record.deferreds) {
-                recordResolve(value);
-              }
-
-              record.deferreds.clear();
-              record.settled = true;
-            },
-            (err) => {
-              for (const { reject: recordReject } of record.deferreds) {
-                recordReject(err);
-              }
-
-              record.deferreds.clear();
-              record.settled = true;
-            },
-          );
+          // This setup call happens once for the lifetime of the contender.
+          record = this.#addRaceContender(contender);
+          record.races.add(deferred);
         } else if (record.settled) {
-          // If the value has settled, it is safe to call
-          // `Promise.resolve(contender).then` on it.
+          // If the contender's value has settled, it is safe to call
+          // `Promise.resolve().then` on it.
           Promise.resolve(contender).then(resolve, reject);
         } else {
-          record.deferreds.add(deferred);
+          record.races.add(deferred);
         }
       }
     });
@@ -123,9 +211,53 @@ export class PromiseUtil {
       for (const contender of contenders) {
         if (!isPrimitive(contender)) {
           const record = this.#raceMap.get(contender);
-          record.deferreds.delete(deferred);
+          record.races.delete(deferred);
         }
       }
     });
+  }
+  */
+
+  /**
+   * Adds a new race contender to {@link #raceMap}. This method is called once
+   * ever per contender, even when that contender is involved in multiple races.
+   *
+   * **Note:** This method (a) is separate from {@link #race} (that is, the code
+   * isn't just inlined at the sole call site) and (b) does not accept any
+   * race-resolving functions as additional arguments (e.g. to conveniently add
+   * the first race). This is done to prevent the closures created in this
+   * method from possibly keeping any contenders GC-alive. (An earlier version
+   * of this "safe race" code in fact had the implied problem.)
+   *
+   * @param {Promise} contender The contender.
+   * @returns {object} The record for the contender, as was added to {@link
+   *   #raceMap}.
+   */
+  static #addRaceContender(contender) {
+    const races  = new Set();
+    const record = {
+      races,         // What races is this contender part of?
+      settled: false // Is this contender definitely settled?
+    };
+
+    this.#raceMap.set(contender, record);
+
+    (async () => {
+      try {
+        const value = await contender;
+        for (const { resolve } of races) {
+          resolve(value);
+        }
+      } catch (reason) {
+        for (const { reject } of races) {
+          reject(reason);
+        }
+      } finally {
+        races.clear();
+        record.settled = true;
+      }
+    })();
+
+    return record;
   }
 }
