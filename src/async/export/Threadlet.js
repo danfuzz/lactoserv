@@ -113,13 +113,7 @@ export class Threadlet {
     // thus might get to avoid some work in the call to `race()`.
     const allProms = [...promises, this.#runCondition.whenFalse()];
 
-    if (allProms.length === 1) {
-      // No need to use `race()` if we turned out to get an empty argument
-      // (which can legit happen in practice).
-      await allProms[0];
-    } else {
-      await PromiseUtil.race(allProms);
-    }
+    await PromiseUtil.race(allProms);
 
     return this.shouldStop();
   }
