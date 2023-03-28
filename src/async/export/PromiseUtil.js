@@ -112,7 +112,8 @@ export class PromiseUtil {
             return await c;
           }
           case undefined: {
-            // We've never encountered this contender before.
+            // We've never encountered this contender before in any race. This
+            // setup call happens once for the lifetime of the contender.
             const newRecord = this.#addRaceContender(c);
             await null; // Ensure `settled === true` if `c` is already settled.
             if (newRecord.settled) {
@@ -134,6 +135,16 @@ export class PromiseUtil {
 
     for (const c of contenders) {
       const record = this.#raceMap.get(c);
+      if (record.settled) {
+        // Surprise! The contender got settled after it was checked during the
+        // first pass. We can't just return here (well, ok, unless it happened
+        // to be the first contender, but that's arguably more trouble than it's
+        // worth to handle specially), because we may have polluted the
+        // `raceMap` with our `raceSettler`. So, just resolve our `result`, and
+        // let the `finally` below clean up the mess.
+        raceSettler.resolve(c);
+        break;
+      }
       record.races.add(raceSettler);
     }
 
