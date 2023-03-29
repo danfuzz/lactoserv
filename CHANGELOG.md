@@ -1,6 +1,14 @@
 Changelog
 =========
 
+### v0.5.8 -- 2023-03-29
+
+Notable changes:
+
+* Address a memory leak in the new "safe `race()`" (which was slightly less safe
+  than expected).
+* Work around a V8 memory leak that shows up when you attach a debugger.
+
 ### v0.5.7 -- 2023-03-23
 
 Notable changes:
