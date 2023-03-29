@@ -75,9 +75,9 @@ export class PromiseUtil {
     // a regular array, because we may have to iterate over it more than once.
     contenders = [...contenders];
 
-    // `Promise.race()` on an empty argument is specified to return a promise
-    // which never resolves.
     if (contenders.length === 0) {
+      // `Promise.race()` on an empty argument is specified to return a promise
+      // which never resolves.
       return new Promise(() => null);
     } else if (contenders.length === 1) {
       // Just one contender, so it can't possibly be a race. Note:
