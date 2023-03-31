@@ -174,6 +174,10 @@ export class TcpWrangler extends ProtocolWrangler {
    * by the underlying `Server` instance, based on its configured
    * `maxConnections`).
    *
+   * **Note:** As of this writing, `maxConnections` is never set on server
+   * sockets, which means we should never see any dropped connections (at this
+   * layer).
+   *
    * @param {object} data Information about the dropped connection.
    */
   #handleDrop(data) {
