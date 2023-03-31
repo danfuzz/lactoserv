@@ -33,7 +33,7 @@ export class AsyncServer {
     // Note: `interface` is a reserved word.
     this.#interface    = MustBe.plainObject(iface);
     this.#protocol     = MustBe.string(protocol);
-    this.#serverSocket = AsyncServer.createServer(iface);
+    this.#serverSocket = netCreateServer(AsyncServer.#extractConstructorOptions(iface));
   }
 
   /**
@@ -72,7 +72,37 @@ export class AsyncServer {
    * async-returns once the server is actually listening.
    */
   async listen() {
-    await AsyncServer.serverListen(this.#serverSocket, this.#interface);
+    const serverSocket = this.#serverSocket;
+
+    // This `await new Promise` arrangement is done to get the `listen()` call
+    // to be a good async citizen. Notably, the optional callback passed to
+    // `listen()` is only ever sent a single `listening` event upon success and
+    // never anything in case of an error.
+    await new Promise((resolve, reject) => {
+      function done(err) {
+        serverSocket.removeListener('listening', handleListening);
+        serverSocket.removeListener('error',     handleError);
+
+        if (err !== null) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      }
+
+      function handleListening() {
+        done(null);
+      }
+
+      function handleError(err) {
+        done(err);
+      }
+
+      serverSocket.on('listening', handleListening);
+      serverSocket.on('error',     handleError);
+
+      serverSocket.listen(AsyncServer.#extractListenOptions(this.#interface));
+    });
   }
 
   /**
@@ -115,17 +145,6 @@ export class AsyncServer {
   });
 
   /**
-   * Creates an instance of {@link Server}, based on the full `interface`
-   * options.
-   *
-   * @param {object} options The interface options.
-   * @returns {Server} An appropriately-constructed {@link Server} instance.
-   */
-  static createServer(options) {
-    return netCreateServer(this.#extractConstructorOptions(options));
-  }
-
-  /**
    * Performs a `close()` on the given {@link Server}, unless it is already
    * closed in which case this method does nothing. This method async-returns
    * once the server has actually stopped listening for connections.
@@ -166,46 +185,6 @@ export class AsyncServer {
         server.on('error', handleError);
       });
     }
-  }
-
-  /**
-   * Performs a `listen()` on the given {@link Server}, with arguments based on
-   * the full `interface` options. This method async-returns once the server is
-   * actually listening.
-   *
-   * @param {Server} server The server instance.
-   * @param {object} options The interface options.
-   */
-  static async serverListen(server, options) {
-    // This `await new Promise` arrangement is done to get the `listen()` call
-    // to be a good async citizen. Notably, the optional callback passed to
-    // `listen()` is only ever sent a single `listening` event upon success and
-    // never anything in case of an error.
-    await new Promise((resolve, reject) => {
-      function done(err) {
-        server.removeListener('listening', handleListening);
-        server.removeListener('error',     handleError);
-
-        if (err !== null) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      }
-
-      function handleListening() {
-        done(null);
-      }
-
-      function handleError(err) {
-        done(err);
-      }
-
-      server.on('listening', handleListening);
-      server.on('error',     handleError);
-
-      server.listen(this.#extractListenOptions(options));
-    });
   }
 
   /**
