@@ -1,7 +1,7 @@
 // Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Server, Socket } from 'node:net';
+import { Socket } from 'node:net';
 import * as timers from 'node:timers/promises';
 
 import { Condition, PromiseUtil, Threadlet } from '@this/async';
