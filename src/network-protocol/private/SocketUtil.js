@@ -45,13 +45,42 @@ export class SocketUtil {
 
   /**
    * Performs a `listen()` on the given {@link Server}, with arguments based on
-   * the full `interface` options.
+   * the full `interface` options. This method async-returns once the server is
+   * actually listening.
    *
    * @param {Server} server The server instance.
    * @param {object} options The interface options.
    */
-  static serverListen(server, options) {
-    server.listen(this.#extractListenOptions(options));
+  static async serverListen(server, options) {
+    // This `await new Promise` arrangement is done to get the `listen()` call
+    // to be a good async citizen. Notably, the optional callback passed to
+    // `listen()` is only ever sent a single `listening` event upon success and
+    // never anything in case of an error.
+    await new Promise((resolve, reject) => {
+      function done(err) {
+        server.removeListener('listening', handleListening);
+        server.removeListener('error',     handleError);
+
+        if (err !== null) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      }
+
+      function handleListening() {
+        done(null);
+      }
+
+      function handleError(err) {
+        done(err);
+      }
+
+      server.on('listening', handleListening);
+      server.on('error',     handleError);
+
+      server.listen(this.#extractListenOptions(options));
+    });
   }
 
   /**

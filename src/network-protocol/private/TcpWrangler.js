@@ -276,37 +276,7 @@ export class TcpWrangler extends ProtocolWrangler {
    * {@link #runner}.
    */
   async #start() {
-    const serverSocket = this.#serverSocket;
-
-    // This `await new Promise` arrangement is done to get the `listen` call to
-    // be a good async citizen. Notably, the optional callback passed to
-    // `Server.listen()` is only ever sent a single `listening` event upon
-    // success and never anything in case of an error.
-    await new Promise((resolve, reject) => {
-      function done(err) {
-        serverSocket.removeListener('listening', handleListening);
-        serverSocket.removeListener('error',     handleError);
-
-        if (err !== null) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      }
-
-      function handleListening() {
-        done(null);
-      }
-
-      function handleError(err) {
-        done(err);
-      }
-
-      serverSocket.on('listening', handleListening);
-      serverSocket.on('error',     handleError);
-
-      SocketUtil.serverListen(this.#serverSocket, this.#interfaceOptions);
-    });
+    await SocketUtil.serverListen(this.#serverSocket, this.#interfaceOptions);
   }
 
 
