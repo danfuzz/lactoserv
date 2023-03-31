@@ -5,9 +5,10 @@ import { Server, createServer as netCreateServer } from 'node:net';
 
 
 /**
- * Utility class for doing some of the lowest-level server socket manipulation.
+ * Utility class for doing some of the lowest-level server socket manipulation,
+ * in a way that is `async`-friendly.
  */
-export class SocketUtil {
+export class AsyncServer {
   /**
    * @type {object} "Prototype" of server socket creation options. See
    * `ProtocolWrangler` class doc for details.

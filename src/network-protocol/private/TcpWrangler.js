@@ -7,9 +7,9 @@ import * as timers from 'node:timers/promises';
 import { Condition, PromiseUtil, Threadlet } from '@this/async';
 import { FormatUtils, IntfLogger } from '@this/loggy';
 
+import { AsyncServer } from '#p/AsyncServer';
 import { IntfRateLimiter } from '#x/IntfRateLimiter';
 import { ProtocolWrangler } from '#x/ProtocolWrangler';
-import { SocketUtil } from '#p/SocketUtil';
 
 
 /**
@@ -52,7 +52,7 @@ export class TcpWrangler extends ProtocolWrangler {
     this.#logger           = options.logger ?? null;
     this.#interfaceOptions = options.interface;
     this.#rateLimiter      = options.rateLimiter ?? null;
-    this.#serverSocket     = SocketUtil.createServer(options.interface);
+    this.#serverSocket     = AsyncServer.createServer(options.interface);
 
     this.#loggableInfo = {
       interface: FormatUtils.networkInterfaceString(options.interface),
@@ -244,7 +244,7 @@ export class TcpWrangler extends ProtocolWrangler {
     // the stop request and then shut things down.
     await this.#runner.whenStopRequested();
 
-    await SocketUtil.serverClose(this.#serverSocket);
+    await AsyncServer.serverClose(this.#serverSocket);
     await this.#anySockets.whenFalse();
   }
 
@@ -253,7 +253,7 @@ export class TcpWrangler extends ProtocolWrangler {
    * {@link #runner}.
    */
   async #start() {
-    await SocketUtil.serverListen(this.#serverSocket, this.#interfaceOptions);
+    await AsyncServer.serverListen(this.#serverSocket, this.#interfaceOptions);
   }
 
 
