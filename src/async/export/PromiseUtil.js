@@ -161,63 +161,6 @@ export class PromiseUtil {
     }
   }
 
-  //
-  // Just to help with source history / my (@danfuzz's) memory, this is the
-  // now-somewhat-modified version of @brainkim's implementation. It's got the
-  // bug fixed, and, because it uses the same helper method as the new version,
-  // the salient property has been renamed.
-  //
-  /*
-  static race(contenders) {
-    // This specific method body is covered by an "unlicense;" it is public
-    // domain to the extent possible.
-
-    const isPrimitive = (value) => {
-      return (value === null)
-        || ((typeof value !== 'object') && (typeof value !== 'function'));
-    };
-
-    let deferred;
-    const result = new Promise((resolve, reject) => {
-      deferred = { resolve, reject };
-      for (const contender of contenders) {
-        if (isPrimitive(contender)) {
-          // If the contender is a primitive, attempting to use it as a key in
-          // the `WeakMap` would throw an error. Luckily, it is safe to call
-          // `Promise.resolve(contender).then` on a primitive value multiple
-          // times because the promise fulfills immediately.
-          Promise.resolve(contender).then(resolve, reject);
-          continue;
-        }
-
-        let record = this.#raceMap.get(contender);
-        if (record === undefined) {
-          // This setup call happens once for the lifetime of the contender.
-          record = this.#addRaceContender(contender);
-          record.races.add(deferred);
-        } else if (record.settled) {
-          // If the contender's value has settled, it is safe to call
-          // `Promise.resolve().then` on it.
-          Promise.resolve(contender).then(resolve, reject);
-        } else {
-          record.races.add(deferred);
-        }
-      }
-    });
-
-    // The finally callback executes when any value settles, preventing any of
-    // the unresolved values from retaining a reference to the resolved value.
-    return result.finally(() => {
-      for (const contender of contenders) {
-        if (!isPrimitive(contender)) {
-          const record = this.#raceMap.get(contender);
-          record.races.delete(deferred);
-        }
-      }
-    });
-  }
-  */
-
   /**
    * Adds a new race contender to {@link #raceMap}. This method is called once
    * ever per contender, even when that contender is involved in multiple races.
