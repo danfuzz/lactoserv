@@ -113,7 +113,7 @@ export class TcpWrangler extends ProtocolWrangler {
 
     if (connLogger) {
       try {
-        if (rest.length != 0) {
+        if (rest.length !== 0) {
           // The event is only supposed to have the one argument.
           connLogger.weirdConnectionEvent(socket, ...rest);
         }
