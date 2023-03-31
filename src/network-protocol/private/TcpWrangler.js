@@ -1,15 +1,15 @@
 // Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Server, Socket } from 'node:net';
+import { Socket } from 'node:net';
 import * as timers from 'node:timers/promises';
 
 import { Condition, PromiseUtil, Threadlet } from '@this/async';
 import { FormatUtils, IntfLogger } from '@this/loggy';
 
+import { AsyncServer } from '#p/AsyncServer';
 import { IntfRateLimiter } from '#x/IntfRateLimiter';
 import { ProtocolWrangler } from '#x/ProtocolWrangler';
-import { SocketUtil } from '#p/SocketUtil';
 
 
 /**
@@ -20,17 +20,14 @@ export class TcpWrangler extends ProtocolWrangler {
   /** @type {?IntfLogger} Logger to use, or `null` to not do any logging. */
   #logger;
 
-  /** @type {object} Server socket `interface` options. */
-  #interfaceOptions;
-
   /** @type {?IntfRateLimiter} Rate limiter service to use, if any. */
   #rateLimiter;
 
-  /** @type {Server} Server socket, per se. */
-  #serverSocket;
-
-  /** @type {object} Loggable info, minus any "active listening" info. */
-  #loggableInfo = {};
+  /**
+   * @type {AsyncServer} Underlying server socket, wrapped for `async`
+   * friendliness.
+   */
+  #asyncServer;
 
   /** @type {Condition} Are there currently any open sockets? */
   #anySockets = new Condition();
@@ -49,18 +46,12 @@ export class TcpWrangler extends ProtocolWrangler {
   constructor(options) {
     super(options);
 
-    this.#logger           = options.logger ?? null;
-    this.#interfaceOptions = options.interface;
-    this.#rateLimiter      = options.rateLimiter ?? null;
-    this.#serverSocket     = SocketUtil.createServer(options.interface);
+    this.#logger      = options.logger ?? null;
+    this.#rateLimiter = options.rateLimiter ?? null;
+    this.#asyncServer = new AsyncServer(options.interface, options.protocol);
 
-    this.#loggableInfo = {
-      interface: FormatUtils.networkInterfaceString(options.interface),
-      protocol:  options.protocol
-    };
-
-    this.#serverSocket.on('connection', (...args) => this.#handleConnection(...args));
-    this.#serverSocket.on('drop', (...args) => this.#handleDrop(...args));
+    this.#asyncServer.on('connection', (...args) => this.#handleConnection(...args));
+    this.#asyncServer.on('drop', (...args) => this.#handleDrop(...args));
   }
 
   /** @override */
@@ -75,14 +66,7 @@ export class TcpWrangler extends ProtocolWrangler {
 
   /** @override */
   _impl_loggableInfo() {
-    const address = this.#serverSocket.address();
-    const info    = { ...this.#loggableInfo };
-
-    if (address) {
-      info.listening = FormatUtils.networkInterfaceString(address);
-    }
-
-    return info;
+    return this.#asyncServer.loggableInfo;
   }
 
   /**
@@ -244,7 +228,7 @@ export class TcpWrangler extends ProtocolWrangler {
     // the stop request and then shut things down.
     await this.#runner.whenStopRequested();
 
-    await SocketUtil.serverClose(this.#serverSocket);
+    await this.#asyncServer.close();
     await this.#anySockets.whenFalse();
   }
 
@@ -253,7 +237,7 @@ export class TcpWrangler extends ProtocolWrangler {
    * {@link #runner}.
    */
   async #start() {
-    await SocketUtil.serverListen(this.#serverSocket, this.#interfaceOptions);
+    await this.#asyncServer.listen();
   }
 
 
