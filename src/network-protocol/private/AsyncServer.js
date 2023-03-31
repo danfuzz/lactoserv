@@ -63,7 +63,7 @@ export class AsyncServer {
    * closed in which case this method does nothing. This method async-returns
    * once the server has actually stopped listening for connections.
    */
-  static async close() {
+  async close() {
     await AsyncServer.serverClose(this.#serverSocket);
   }
 
@@ -73,6 +73,16 @@ export class AsyncServer {
    */
   async listen() {
     await AsyncServer.serverListen(this.#serverSocket, this.#interface);
+  }
+
+  /**
+   * Passthrough of `on()` to the underlying server socket.
+   *
+   * @param {string} eventName Event name.
+   * @param {function(...*)} listener Listener callback function.
+   */
+  on(eventName, listener) {
+    this.#serverSocket.on(eventName, listener);
   }
 
 
