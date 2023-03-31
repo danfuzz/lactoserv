@@ -44,6 +44,49 @@ export class SocketUtil {
   }
 
   /**
+   * Performs a `close()` on the given {@link Server}, unless it is already
+   * closed in which case this method does nothing. This method async-returns
+   * once the server has actually stopped listening for connections.
+   *
+   * @param {Server} server The server instance.
+   */
+  static async serverClose(server) {
+    if (!server.listening) {
+      // Apparently already closed.
+      return;
+    }
+
+    server.close();
+
+    // Wait for the server to claim to have stopped.
+    while (server.listening) {
+      await new Promise((resolve, reject) => {
+        function done(err) {
+          server.removeListener('close', handleClose);
+          server.removeListener('error', handleError);
+
+          if (err !== null) {
+            reject(err);
+          } else {
+            resolve();
+          }
+        }
+
+        function handleClose() {
+          done(null);
+        }
+
+        function handleError(err) {
+          done(err);
+        }
+
+        server.on('close', handleClose);
+        server.on('error', handleError);
+      });
+    }
+  }
+
+  /**
    * Performs a `listen()` on the given {@link Server}, with arguments based on
    * the full `interface` options. This method async-returns once the server is
    * actually listening.

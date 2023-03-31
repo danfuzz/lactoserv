@@ -237,37 +237,7 @@ export class TcpWrangler extends ProtocolWrangler {
     // the stop request and then shut things down.
     await this.#runner.whenStopRequested();
 
-    const serverSocket = this.#serverSocket;
-    serverSocket.close();
-
-    // If the server is still listening for connections, wait for it to claim
-    // to have stopped.
-    while (serverSocket.listening) {
-      await new Promise((resolve, reject) => {
-        function done(err) {
-          serverSocket.removeListener('close', handleClose);
-          serverSocket.removeListener('error', handleError);
-
-          if (err !== null) {
-            reject(err);
-          } else {
-            resolve();
-          }
-        }
-
-        function handleClose() {
-          done(null);
-        }
-
-        function handleError(err) {
-          done(err);
-        }
-
-        serverSocket.on('close', handleClose);
-        serverSocket.on('error', handleError);
-      });
-    }
-
+    await SocketUtil.serverClose(this.#serverSocket);
     await this.#anySockets.whenFalse();
   }
 
