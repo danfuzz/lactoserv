@@ -9,6 +9,7 @@ import { FormatUtils, IntfLogger } from '@this/loggy';
 
 import { IntfRateLimiter } from '#x/IntfRateLimiter';
 import { ProtocolWrangler } from '#x/ProtocolWrangler';
+import { SocketUtil } from '#p/SocketUtil';
 
 
 /**
@@ -48,10 +49,8 @@ export class TcpWrangler extends ProtocolWrangler {
   constructor(options) {
     super(options);
 
-    const listenOptions =
-      TcpWrangler.#fixOptions(options.interface, TcpWrangler.#LISTEN_PROTO);
-    const serverOptions =
-      TcpWrangler.#fixOptions(options.interface, TcpWrangler.#CREATE_PROTO);
+    const listenOptions = SocketUtil.extractListenOptions(options.interface);
+    const serverOptions = SocketUtil.extractConstructorOptions(options.interface);
 
     this.#logger        = options.logger ?? null;
     this.#rateLimiter   = options.rateLimiter ?? null;
@@ -318,30 +317,6 @@ export class TcpWrangler extends ProtocolWrangler {
   //
 
   /**
-   * @type {object} "Prototype" of server socket creation options. See
-   * `ProtocolWrangler` class doc for details.
-   */
-  static #CREATE_PROTO = Object.freeze({
-    allowHalfOpen:         { default: true },
-    keepAlive:             null,
-    keepAliveInitialDelay: null,
-    noDelay:               null,
-    pauseOnConnect:        null
-  });
-
-  /**
-   * @type {object} "Prototype" of server listen options. See `ProtocolWrangler`
-   * class doc for details.
-   */
-  static #LISTEN_PROTO = Object.freeze({
-    address:   { map: (v) => ({ host: (v === '*') ? '::' : v }) },
-    backlog:   null,
-    exclusive: null,
-    fd:        null,
-    port:      null
-  });
-
-  /**
    * @type {number} How long in msec to wait before considering a connected
    * socket (a/o/t a server socket doing a `listen()`) to be "timed out." When
    * timed out, a socket is closed proactively.
@@ -353,32 +328,4 @@ export class TcpWrangler extends ProtocolWrangler {
    * timeout, before doing it more forcefully.
    */
   static #SOCKET_TIMEOUT_CLOSE_GRACE_PERIOD_MSEC = 250; // Quarter of a second.
-
-  /**
-   * Trims down and "fixes" `options` using the given prototype. This is used
-   * to convert from our incoming `interface` form to what's expected by Node's
-   * `Server` creation methods.
-   *
-   * @param {object} options Original options.
-   * @param {object} proto The "prototype" for what bindings to keep.
-   * @returns {object} Pared down version.
-   */
-  static #fixOptions(options, proto) {
-    const result = {};
-
-    for (const [name, mod] of Object.entries(proto)) {
-      const value = options[name];
-      if (value === undefined) {
-        if (mod?.default !== undefined) {
-          result[name] = mod.default;
-        }
-      } else if (mod?.map) {
-        Object.assign(result, (mod.map)(options[name]));
-      } else {
-        result[name] = options[name];
-      }
-    }
-
-    return result;
-  }
 }
