@@ -1,7 +1,7 @@
 // Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Server, Socket, createServer as netCreateServer } from 'node:net';
+import { Server, Socket } from 'node:net';
 import * as timers from 'node:timers/promises';
 
 import { Condition, PromiseUtil, Threadlet } from '@this/async';
@@ -9,6 +9,7 @@ import { FormatUtils, IntfLogger } from '@this/loggy';
 
 import { IntfRateLimiter } from '#x/IntfRateLimiter';
 import { ProtocolWrangler } from '#x/ProtocolWrangler';
+import { SocketUtil } from '#p/SocketUtil';
 
 
 /**
@@ -19,14 +20,14 @@ export class TcpWrangler extends ProtocolWrangler {
   /** @type {?IntfLogger} Logger to use, or `null` to not do any logging. */
   #logger;
 
+  /** @type {object} Server socket `interface` options. */
+  #interfaceOptions;
+
   /** @type {?IntfRateLimiter} Rate limiter service to use, if any. */
   #rateLimiter;
 
   /** @type {Server} Server socket, per se. */
   #serverSocket;
-
-  /** @type {object} Server socket `listen()` options. */
-  #listenOptions;
 
   /** @type {object} Loggable info, minus any "active listening" info. */
   #loggableInfo = {};
@@ -48,16 +49,12 @@ export class TcpWrangler extends ProtocolWrangler {
   constructor(options) {
     super(options);
 
-    const listenOptions =
-      TcpWrangler.#fixOptions(options.interface, TcpWrangler.#LISTEN_PROTO);
-    const serverOptions =
-      TcpWrangler.#fixOptions(options.interface, TcpWrangler.#CREATE_PROTO);
+    this.#logger           = options.logger ?? null;
+    this.#interfaceOptions = options.interface;
+    this.#rateLimiter      = options.rateLimiter ?? null;
+    this.#serverSocket     = SocketUtil.createServer(options.interface);
 
-    this.#logger        = options.logger ?? null;
-    this.#rateLimiter   = options.rateLimiter ?? null;
-    this.#serverSocket  = netCreateServer(serverOptions);
-    this.#listenOptions = listenOptions;
-    this.#loggableInfo  = {
+    this.#loggableInfo = {
       interface: FormatUtils.networkInterfaceString(options.interface),
       protocol:  options.protocol
     };
@@ -116,12 +113,15 @@ export class TcpWrangler extends ProtocolWrangler {
 
     if (connLogger) {
       try {
+        if (rest.length !== 0) {
+          // The event is only supposed to have the one argument.
+          connLogger.weirdConnectionEvent(socket, ...rest);
+        }
         connLogger.opened({
           local:  FormatUtils.addressPortString(socket.localAddress, socket.localPort),
           remote: FormatUtils.addressPortString(socket.remoteAddress, socket.remotePort)
         });
       } catch (e) {
-        connLogger.weirdConnectionEvent(socket, ...rest);
         connLogger.error(e);
       }
     }
@@ -176,6 +176,10 @@ export class TcpWrangler extends ProtocolWrangler {
    * Handles a dropped connection (that is, a connection automatically dropped
    * by the underlying `Server` instance, based on its configured
    * `maxConnections`).
+   *
+   * **Note:** As of this writing, `maxConnections` is never set on server
+   * sockets, which means we should never see any dropped connections (at this
+   * layer).
    *
    * @param {object} data Information about the dropped connection.
    */
@@ -240,37 +244,7 @@ export class TcpWrangler extends ProtocolWrangler {
     // the stop request and then shut things down.
     await this.#runner.whenStopRequested();
 
-    const serverSocket = this.#serverSocket;
-    serverSocket.close();
-
-    // If the server is still listening for connections, wait for it to claim
-    // to have stopped.
-    while (serverSocket.listening) {
-      await new Promise((resolve, reject) => {
-        function done(err) {
-          serverSocket.removeListener('close', handleClose);
-          serverSocket.removeListener('error', handleError);
-
-          if (err !== null) {
-            reject(err);
-          } else {
-            resolve();
-          }
-        }
-
-        function handleClose() {
-          done(null);
-        }
-
-        function handleError(err) {
-          done(err);
-        }
-
-        serverSocket.on('close', handleClose);
-        serverSocket.on('error', handleError);
-      });
-    }
-
+    await SocketUtil.serverClose(this.#serverSocket);
     await this.#anySockets.whenFalse();
   }
 
@@ -279,67 +253,13 @@ export class TcpWrangler extends ProtocolWrangler {
    * {@link #runner}.
    */
   async #start() {
-    const serverSocket = this.#serverSocket;
-
-    // This `await new Promise` arrangement is done to get the `listen` call to
-    // be a good async citizen. Notably, the optional callback passed to
-    // `Server.listen()` is only ever sent a single `listening` event upon
-    // success and never anything in case of an error.
-    await new Promise((resolve, reject) => {
-      function done(err) {
-        serverSocket.removeListener('listening', handleListening);
-        serverSocket.removeListener('error',     handleError);
-
-        if (err !== null) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      }
-
-      function handleListening() {
-        done(null);
-      }
-
-      function handleError(err) {
-        done(err);
-      }
-
-      serverSocket.on('listening', handleListening);
-      serverSocket.on('error',     handleError);
-
-      serverSocket.listen(this.#listenOptions);
-    });
+    await SocketUtil.serverListen(this.#serverSocket, this.#interfaceOptions);
   }
 
 
   //
   // Static members
   //
-
-  /**
-   * @type {object} "Prototype" of server socket creation options. See
-   * `ProtocolWrangler` class doc for details.
-   */
-  static #CREATE_PROTO = Object.freeze({
-    allowHalfOpen:         { default: true },
-    keepAlive:             null,
-    keepAliveInitialDelay: null,
-    noDelay:               null,
-    pauseOnConnect:        null
-  });
-
-  /**
-   * @type {object} "Prototype" of server listen options. See `ProtocolWrangler`
-   * class doc for details.
-   */
-  static #LISTEN_PROTO = Object.freeze({
-    address:   { map: (v) => ({ host: (v === '*') ? '::' : v }) },
-    backlog:   null,
-    exclusive: null,
-    fd:        null,
-    port:      null
-  });
 
   /**
    * @type {number} How long in msec to wait before considering a connected
@@ -353,32 +273,4 @@ export class TcpWrangler extends ProtocolWrangler {
    * timeout, before doing it more forcefully.
    */
   static #SOCKET_TIMEOUT_CLOSE_GRACE_PERIOD_MSEC = 250; // Quarter of a second.
-
-  /**
-   * Trims down and "fixes" `options` using the given prototype. This is used
-   * to convert from our incoming `interface` form to what's expected by Node's
-   * `Server` creation methods.
-   *
-   * @param {object} options Original options.
-   * @param {object} proto The "prototype" for what bindings to keep.
-   * @returns {object} Pared down version.
-   */
-  static #fixOptions(options, proto) {
-    const result = {};
-
-    for (const [name, mod] of Object.entries(proto)) {
-      const value = options[name];
-      if (value === undefined) {
-        if (mod?.default !== undefined) {
-          result[name] = mod.default;
-        }
-      } else if (mod?.map) {
-        Object.assign(result, (mod.map)(options[name]));
-      } else {
-        result[name] = options[name];
-      }
-    }
-
-    return result;
-  }
 }
