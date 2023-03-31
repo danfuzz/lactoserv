@@ -113,12 +113,15 @@ export class TcpWrangler extends ProtocolWrangler {
 
     if (connLogger) {
       try {
+        if (rest.length != 0) {
+          // The event is only supposed to have the one argument.
+          connLogger.weirdConnectionEvent(socket, ...rest);
+        }
         connLogger.opened({
           local:  FormatUtils.addressPortString(socket.localAddress, socket.localPort),
           remote: FormatUtils.addressPortString(socket.remoteAddress, socket.remotePort)
         });
       } catch (e) {
-        connLogger.weirdConnectionEvent(socket, ...rest);
         connLogger.error(e);
       }
     }
