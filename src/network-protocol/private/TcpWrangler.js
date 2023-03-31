@@ -20,14 +20,14 @@ export class TcpWrangler extends ProtocolWrangler {
   /** @type {?IntfLogger} Logger to use, or `null` to not do any logging. */
   #logger;
 
+  /** @type {object} Server socket `interface` options. */
+  #interfaceOptions;
+
   /** @type {?IntfRateLimiter} Rate limiter service to use, if any. */
   #rateLimiter;
 
   /** @type {Server} Server socket, per se. */
   #serverSocket;
-
-  /** @type {object} Server socket `listen()` options. */
-  #listenOptions;
 
   /** @type {object} Loggable info, minus any "active listening" info. */
   #loggableInfo = {};
@@ -49,14 +49,12 @@ export class TcpWrangler extends ProtocolWrangler {
   constructor(options) {
     super(options);
 
-    const listenOptions = SocketUtil.extractListenOptions(options.interface);
-    const serverOptions = SocketUtil.extractConstructorOptions(options.interface);
+    this.#logger           = options.logger ?? null;
+    this.#interfaceOptions = options.interface;
+    this.#rateLimiter      = options.rateLimiter ?? null;
+    this.#serverSocket     = SocketUtil.createServer(options.interface);
 
-    this.#logger        = options.logger ?? null;
-    this.#rateLimiter   = options.rateLimiter ?? null;
-    this.#serverSocket  = netCreateServer(serverOptions);
-    this.#listenOptions = listenOptions;
-    this.#loggableInfo  = {
+    this.#loggableInfo = {
       interface: FormatUtils.networkInterfaceString(options.interface),
       protocol:  options.protocol
     };
@@ -307,7 +305,7 @@ export class TcpWrangler extends ProtocolWrangler {
       serverSocket.on('listening', handleListening);
       serverSocket.on('error',     handleError);
 
-      serverSocket.listen(this.#listenOptions);
+      SocketUtil.serverListen(this.#serverSocket, this.#interfaceOptions);
     });
   }
 

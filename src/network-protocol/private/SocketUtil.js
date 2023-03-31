@@ -40,15 +40,36 @@ export class SocketUtil {
   });
 
   /**
-   * Gets the options for a constructor(ish) call, given the full server socket
-   * `interface` options.
+   * Creates an instance of {@link Server}, based on the full `interface`
+   * options.
+   *
+   * @param {object} options The interface options.
+   * @returns {Server} An appropriately-constructed {@link Server} instance.
+   */
+  static createServer(options) {
+    return netCreateServer(this.#extractConstructorOptions(options));
+  }
+
+  /**
+   * Performs a `listen()` on the given {@link Server}, with arguments based on
+   * the full `interface` options.
+   *
+   * @param {Server} server The server instance.
+   * @param {object} options The interface options.
+   */
+  static serverListen(server, options) {
+    server.listen(this.#extractListenOptions(options));
+  }
+
+  /**
+   * Gets the options for a `Server` constructor(ish) call, given the full
+   * server socket `interface` options.
    *
    * @param {object} options The interface options.
    * @returns {object} The constructor-specific options.
    */
-  static extractConstructorOptions(options) {
+  static #extractConstructorOptions(options) {
     return this.#fixOptions(options, this.#CREATE_PROTO);
-
   }
 
   /**
@@ -58,7 +79,7 @@ export class SocketUtil {
    * @param {object} options The interface options.
    * @returns {object} The `listen()`-specific options.
    */
-  static extractListenOptions(options) {
+  static #extractListenOptions(options) {
     return this.#fixOptions(options, this.#LISTEN_PROTO);
   }
 
