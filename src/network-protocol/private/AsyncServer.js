@@ -3,12 +3,83 @@
 
 import { Server, createServer as netCreateServer } from 'node:net';
 
+import { FormatUtils } from '@this/loggy';
+import { MustBe } from '@this/typey';
+
 
 /**
  * Utility class for doing some of the lowest-level server socket manipulation,
  * in a way that is `async`-friendly.
  */
 export class AsyncServer {
+  /** @type {object} Parsed server socket `interface` specification. */
+  #interface;
+
+  /** @type {string} The protocol name; just used for logging. */
+  #protocol;
+
+  /**
+   * @type {Server} The underlying server socket instance (Node library class).
+   */
+  #serverSocket;
+
+  /**
+   * Constructs an instance.
+   *
+   * @param {object} iface Parsed server socket `interface` specification.
+   * @param {string} protocol The protocol name; just used for logging.
+   */
+  constructor(iface, protocol) {
+    // Note: `interface` is a reserved word.
+    this.#interface    = MustBe.plainObject(iface);
+    this.#protocol     = MustBe.string(protocol);
+    this.#serverSocket = AsyncServer.createServer(iface);
+  }
+
+  /**
+   * @returns {object} Loggable info about this instance, including interface
+   * address and current-listening info.
+   */
+  get loggableInfo() {
+    const address = this.#serverSocket.address();
+    const iface   = FormatUtils.networkInterfaceString(this.#interface);
+
+    return {
+      protocol:  this.#protocol,
+      interface: iface,
+      ...(address
+        ? { listening: FormatUtils.networkInterfaceString(address) }
+        : {})
+    };
+  }
+
+  /** @returns {Server} The underlying server socket instance. */
+  get serverSocket() {
+    return this.#serverSocket;
+  }
+
+  /**
+   * Performs a `close()` on the underlying {@link Server}, unless it is already
+   * closed in which case this method does nothing. This method async-returns
+   * once the server has actually stopped listening for connections.
+   */
+  static async close() {
+    await AsyncServer.serverClose(this.#serverSocket);
+  }
+
+  /**
+   * Performs a `listen()` on the underlying {@link Server}. This method
+   * async-returns once the server is actually listening.
+   */
+  async listen() {
+    await AsyncServer.serverListen(this.#serverSocket, this.#interface);
+  }
+
+
+  //
+  // Static members
+  //
+
   /**
    * @type {object} "Prototype" of server socket creation options. See
    * `ProtocolWrangler` class doc for details.
