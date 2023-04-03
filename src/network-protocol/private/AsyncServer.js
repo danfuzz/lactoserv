@@ -203,7 +203,7 @@ export class AsyncServer {
   /**
    * Trims down and "fixes" `options` using the given prototype. This is used
    * to convert from our incoming `interface` form to what's expected by Node's
-   * `Server` creation methods.
+   * `Server` construction and `listen()` methods.
    *
    * @param {object} options Original options.
    * @param {object} proto The "prototype" for what bindings to keep.
