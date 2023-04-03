@@ -3,6 +3,7 @@
 
 import { Server, createServer as netCreateServer } from 'node:net';
 
+import { EventSource, LinkedEvent, PromiseUtil } from '@this/async';
 import { FormatUtils } from '@this/loggy';
 import { MustBe } from '@this/typey';
 
@@ -19,9 +20,19 @@ export class AsyncServer {
   #protocol;
 
   /**
-   * @type {Server} The underlying server socket instance (Node library class).
+   * @type {?Server} The underlying server socket instance (Node library class),
+   * if constructed.
    */
-  #serverSocket;
+  #serverSocket = null;
+
+  /** @type {EventSource} Event source for `connection` and `drop` events. */
+  #eventSource = new EventSource();
+
+  /**
+   * @type {Promise<LinkedEvent>} Promise for the next event which will need
+   * action.
+   */
+  #eventHead = this.#eventSource.earliestEvent;
 
   /**
    * Constructs an instance.
@@ -31,9 +42,8 @@ export class AsyncServer {
    */
   constructor(iface, protocol) {
     // Note: `interface` is a reserved word.
-    this.#interface    = MustBe.plainObject(iface);
-    this.#protocol     = MustBe.string(protocol);
-    this.#serverSocket = netCreateServer(AsyncServer.#extractConstructorOptions(iface));
+    this.#interface = MustBe.plainObject(iface);
+    this.#protocol  = MustBe.string(protocol);
   }
 
   /**
@@ -41,7 +51,7 @@ export class AsyncServer {
    * address and current-listening info.
    */
   get loggableInfo() {
-    const address = this.#serverSocket.address();
+    const address = this.#serverSocket?.address();
     const iface   = FormatUtils.networkInterfaceString(this.#interface);
 
     return {
@@ -54,13 +64,42 @@ export class AsyncServer {
   }
 
   /**
-   * Passthrough of `on()` to the underlying server socket.
+   * Accepts a connection from the underlying server socket, with optional
+   * cancellation. If not canceled, this returns an event payload in one of
+   * these forms, analogous to the events defined by {@link Server}:
    *
-   * @param {string} eventName Event name.
-   * @param {function(...*)} listener Listener callback function.
+   * * `{ type: 'connection', args: [socket] }`
+   * * `{ type: 'drop', args: [<drop data>] }`
+   *
+   * @param {?Promise} [cancelPromise = null] If non-`null` a promise which
+   *   cancels this request when settled (either fulfilled or rejected).
+   * @returns {?object} Event payload as described above, or `null` if the
+   *  `cancelPromise` became settled.
    */
-  on(eventName, listener) {
-    this.#serverSocket.on(eventName, listener);
+  async accept(cancelPromise = null) {
+    let canceled = false;
+
+    if (cancelPromise) {
+      (async () => {
+        try {
+          await cancelPromise;
+        } finally {
+          canceled = true;
+        }
+      })();
+    }
+
+    const result = cancelPromise
+      ? await PromiseUtil.race([this.#eventHead, cancelPromise])
+      : await this.#eventHead;
+
+    if (canceled) {
+      return null;
+    }
+
+    this.#eventHead = result.nextPromise;
+
+    return result.payload;
   }
 
   /**
@@ -70,6 +109,16 @@ export class AsyncServer {
    */
   async start(isReload) {
     MustBe.boolean(isReload);
+
+    this.#serverSocket = netCreateServer(
+      AsyncServer.#extractConstructorOptions(this.#interface));
+
+    this.#serverSocket.on('connection', (...args) => {
+      this.#eventSource.emit({ type: 'connection', args });
+    });
+    this.#serverSocket.on('drop', (...args) => {
+      this.#eventSource.emit({ type: 'drop', args });
+    });
 
     await this.#listen();
   }

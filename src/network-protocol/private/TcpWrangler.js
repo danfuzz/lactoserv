@@ -49,9 +49,6 @@ export class TcpWrangler extends ProtocolWrangler {
     this.#logger      = options.logger ?? null;
     this.#rateLimiter = options.rateLimiter ?? null;
     this.#asyncServer = new AsyncServer(options.interface, options.protocol);
-
-    this.#asyncServer.on('connection', (...args) => this.#handleConnection(...args));
-    this.#asyncServer.on('drop', (...args) => this.#handleDrop(...args));
   }
 
   /** @override */
@@ -226,9 +223,22 @@ export class TcpWrangler extends ProtocolWrangler {
    * {@link #runner}.
    */
   async #run() {
-    // As things stand, there isn't actually anything to do other than wait for
-    // the stop request and then shut things down.
-    await this.#runner.whenStopRequested();
+    while (!this.#runner.shouldStop()) {
+      const event =
+        await this.#asyncServer.accept(this.#runner.whenStopRequested());
+      if (event) {
+        switch (event.type) {
+          case 'connection': {
+            this.#handleConnection(...event.args);
+            break;
+          }
+          case 'drop': {
+            this.#handleDrop(...event.args);
+            break;
+          }
+        }
+      }
+    }
 
     await this.#anySockets.whenFalse();
   }
