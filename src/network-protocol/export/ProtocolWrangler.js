@@ -65,6 +65,12 @@ export class ProtocolWrangler {
   /** @type {boolean} Has initialization been finished? */
   #initialized = false;
 
+  /**
+   * @type {boolean} Is a system reload in progress (either during start or
+   * stop)?
+   */
+  #reloading = false;
+
 
   /**
    * Constructs an instance.
@@ -111,9 +117,11 @@ export class ProtocolWrangler {
    * the high-level application. This method async-returns once the instance has
    * actually gotten started.
    *
+   * @param {boolean} isReload Is this action due to an in-process reload?
    * @throws {Error} Thrown if there was any trouble starting up.
    */
-  async start() {
+  async start(isReload) {
+    this.#reloading = isReload;
     this.#initialize();
     return this.#runner.start();
   }
@@ -125,9 +133,12 @@ export class ProtocolWrangler {
    * If this instance wasn't running in the first place, this method does
    * nothing.
    *
+   * @param {boolean} willReload Is this action due to an in-process reload
+   *   being requested?
    * @throws {Error} Whatever problem occurred during running.
    */
-  async stop() {
+  async stop(willReload) {
+    this.#reloading = willReload;
     return this.#runner.stop();
   }
 
