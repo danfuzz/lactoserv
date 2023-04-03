@@ -1,6 +1,8 @@
 // Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { MustBe } from '@this/typey';
+
 import { LinkedEvent } from '#x/LinkedEvent';
 
 
@@ -77,6 +79,10 @@ export class EventSource {
   constructor(options) {
     const kickoffEvent = options?.kickoffEvent ?? null;
     const keepCount    = options?.keepCount ?? 0;
+
+    if (kickoffEvent !== null) {
+      MustBe.instanceOf(kickoffEvent, LinkedEvent);
+    }
 
     if (!(   (Number.isSafeInteger(keepCount) && (keepCount >= 0))
           || (keepCount === Number.POSITIVE_INFINITY))) {
