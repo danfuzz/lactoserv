@@ -84,9 +84,8 @@ export class EventSource {
       MustBe.instanceOf(kickoffEvent, LinkedEvent);
     }
 
-    if (!(   (Number.isSafeInteger(keepCount) && (keepCount >= 0))
-          || (keepCount === Number.POSITIVE_INFINITY))) {
-      throw new Error('Invalid value for `keepCount`.');
+    if (keepCount !== Number.POSITIVE_INFINITY) {
+      MustBe.number(keepCount, { safeInteger: true });
     }
 
     this.#keepCount     = keepCount;
