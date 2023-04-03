@@ -55,12 +55,12 @@ export class TcpWrangler extends ProtocolWrangler {
   }
 
   /** @override */
-  async _impl_serverSocketStart() {
+  async _impl_serverSocketStart(isReload_unused) {
     return this.#runner.start();
   }
 
   /** @override */
-  async _impl_serverSocketStop() {
+  async _impl_serverSocketStop(willReload_unused) {
     return this.#runner.stop();
   }
 

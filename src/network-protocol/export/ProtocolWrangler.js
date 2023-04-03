@@ -159,9 +159,10 @@ export class ProtocolWrangler {
    * async-return once the stack really is ready.
    *
    * @abstract
+   * @param {boolean} isReload Is this action due to an in-process reload?
    */
-  async _impl_applicationStart() {
-    Methods.abstract();
+  async _impl_applicationStart(isReload) {
+    Methods.abstract(isReload);
   }
 
   /**
@@ -171,9 +172,11 @@ export class ProtocolWrangler {
    * async-return once the stack really is stopped.
    *
    * @abstract
+   * @param {boolean} willReload Is this action due to an in-process reload
+   *   being requested?
    */
-  async _impl_applicationStop() {
-    Methods.abstract();
+  async _impl_applicationStop(willReload) {
+    Methods.abstract(willReload);
   }
 
   /**
@@ -202,9 +205,10 @@ export class ProtocolWrangler {
    * should only async-return once the socket is really listening.
    *
    * @abstract
+   * @param {boolean} isReload Is this action due to an in-process reload?
    */
-  async _impl_serverSocketStart() {
-    Methods.abstract();
+  async _impl_serverSocketStart(isReload) {
+    Methods.abstract(isReload);
   }
 
   /**
@@ -212,9 +216,11 @@ export class ProtocolWrangler {
    * This should only async-return once the socket is truly stopped / closed.
    *
    * @abstract
+   * @param {boolean} willReload Is this action due to an in-process reload
+   *   being requested?
    */
-  async _impl_serverSocketStop() {
-    Methods.abstract();
+  async _impl_serverSocketStop(willReload) {
+    Methods.abstract(willReload);
   }
 
   /**
@@ -506,8 +512,8 @@ export class ProtocolWrangler {
     // We do these in parallel, because there can be mutual dependencies, e.g.
     // the application might need to see the server stopping _and_ vice versa.
     await Promise.all([
-      this._impl_serverSocketStop(),
-      this._impl_applicationStop()
+      this._impl_serverSocketStop(this.#reloading),
+      this._impl_applicationStop(this.#reloading)
     ]);
 
     if (this.#logger) {
@@ -524,8 +530,8 @@ export class ProtocolWrangler {
       this.#logger.starting(this._impl_loggableInfo());
     }
 
-    await this._impl_applicationStart();
-    await this._impl_serverSocketStart();
+    await this._impl_applicationStart(this.#reloading);
+    await this._impl_serverSocketStart(this.#reloading);
 
     if (this.#logger) {
       this.#logger.started(this._impl_loggableInfo());
