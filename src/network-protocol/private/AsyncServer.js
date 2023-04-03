@@ -59,11 +59,45 @@ export class AsyncServer {
   }
 
   /**
+   * Passthrough of `on()` to the underlying server socket.
+   *
+   * @param {string} eventName Event name.
+   * @param {function(...*)} listener Listener callback function.
+   */
+  on(eventName, listener) {
+    this.#serverSocket.on(eventName, listener);
+  }
+
+  /**
+   * Starts this instance.
+   *
+   * @param {boolean} isReload Is this action due to an in-process reload?
+   */
+  async start(isReload) {
+    MustBe.boolean(isReload);
+
+    await this.#listen();
+  }
+
+  /**
+   * Stops this this instance. This method returns when the instance is fully
+   * stopped.
+   *
+   * @param {boolean} willReload Is this action due to an in-process reload
+   *   being requested?
+   */
+  async stop(willReload) {
+    MustBe.boolean(willReload);
+
+    await this.#close();
+  }
+
+  /**
    * Performs a `close()` on the underlying {@link Server}, unless it is already
    * closed in which case this method does nothing. This method async-returns
    * once the server has actually stopped listening for connections.
    */
-  async close() {
+  async #close() {
     const serverSocket = this.#serverSocket;
 
     if (!serverSocket.listening) {
@@ -105,7 +139,7 @@ export class AsyncServer {
    * Performs a `listen()` on the underlying {@link Server}. This method
    * async-returns once the server is actually listening.
    */
-  async listen() {
+  async #listen() {
     const serverSocket = this.#serverSocket;
 
     // This `await new Promise` arrangement is done to get the `listen()` call
@@ -137,16 +171,6 @@ export class AsyncServer {
 
       serverSocket.listen(AsyncServer.#extractListenOptions(this.#interface));
     });
-  }
-
-  /**
-   * Passthrough of `on()` to the underlying server socket.
-   *
-   * @param {string} eventName Event name.
-   * @param {function(...*)} listener Listener callback function.
-   */
-  on(eventName, listener) {
-    this.#serverSocket.on(eventName, listener);
   }
 
 

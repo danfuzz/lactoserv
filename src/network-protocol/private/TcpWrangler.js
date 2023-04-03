@@ -36,7 +36,7 @@ export class TcpWrangler extends ProtocolWrangler {
   #sockets = new Set();
 
   /** @type {Threadlet} Thread which runs the low-level of the stack. */
-  #runner = new Threadlet(() => this.#start(), () => this.#run());
+  #runner = new Threadlet(() => this.#run());
 
   /**
    * Constructs an instance.
@@ -55,13 +55,15 @@ export class TcpWrangler extends ProtocolWrangler {
   }
 
   /** @override */
-  async _impl_serverSocketStart(isReload_unused) {
-    return this.#runner.start();
+  async _impl_serverSocketStart(isReload) {
+    await this.#runner.start();
+    await this.#asyncServer.start(isReload);
   }
 
   /** @override */
-  async _impl_serverSocketStop(willReload_unused) {
-    return this.#runner.stop();
+  async _impl_serverSocketStop(willReload) {
+    await this.#asyncServer.stop(willReload);
+    await this.#runner.stop();
   }
 
   /** @override */
@@ -228,16 +230,7 @@ export class TcpWrangler extends ProtocolWrangler {
     // the stop request and then shut things down.
     await this.#runner.whenStopRequested();
 
-    await this.#asyncServer.close();
     await this.#anySockets.whenFalse();
-  }
-
-  /**
-   * Starts the low-level stack. This is called as the start function of the
-   * {@link #runner}.
-   */
-  async #start() {
-    await this.#asyncServer.listen();
   }
 
 
