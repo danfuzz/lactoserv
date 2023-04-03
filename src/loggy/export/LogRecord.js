@@ -8,6 +8,7 @@ import { MustBe } from '@this/typey';
 
 import { LogTag } from '#x/LogTag';
 
+// TODO: Rename this to `LogPayload` and make it inherit from `EventPayload`.
 
 /**
  * The thing which is logged; it is the payload class for events used by this
