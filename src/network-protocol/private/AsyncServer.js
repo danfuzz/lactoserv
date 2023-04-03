@@ -3,7 +3,7 @@
 
 import { Server, createServer as netCreateServer } from 'node:net';
 
-import { EventSource, LinkedEvent, PromiseUtil } from '@this/async';
+import { EventPayload, EventSource, LinkedEvent, PromiseUtil } from '@this/async';
 import { FormatUtils } from '@this/loggy';
 import { MustBe } from '@this/typey';
 
@@ -26,7 +26,10 @@ export class AsyncServer {
   #serverSocket = null;
 
   /** @type {EventSource} Event source for `connection` and `drop` events. */
-  #eventSource = new EventSource();
+  #eventSource = new EventSource({
+    // TODO: Should be able to say `kickoffPayload`.
+    kickoffEvent: new LinkedEvent(EventPayload.makeKickoffInstance())
+  });
 
   /**
    * @type {Promise<LinkedEvent>} Promise for the next event which will need
@@ -73,7 +76,7 @@ export class AsyncServer {
    *
    * @param {?Promise} [cancelPromise = null] If non-`null` a promise which
    *   cancels this request when settled (either fulfilled or rejected).
-   * @returns {?object} Event payload as described above, or `null` if the
+   * @returns {?EventPayload} Event payload as described above, or `null` if the
    *  `cancelPromise` became settled.
    */
   async accept(cancelPromise = null) {
@@ -114,10 +117,10 @@ export class AsyncServer {
       AsyncServer.#extractConstructorOptions(this.#interface));
 
     this.#serverSocket.on('connection', (...args) => {
-      this.#eventSource.emit({ type: 'connection', args });
+      this.#eventSource.emit(new EventPayload('connection', ...args));
     });
     this.#serverSocket.on('drop', (...args) => {
-      this.#eventSource.emit({ type: 'drop', args });
+      this.#eventSource.emit(new EventPayload('drop', ...args));
     });
 
     await this.#listen();
