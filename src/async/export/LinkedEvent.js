@@ -7,6 +7,10 @@ import { EventOrPromise } from '#p/EventOrPromise';
 import { ManualPromise } from '#x/ManualPromise';
 
 
+// TODO: This class should enforce same-classness on payloads on the chain, and
+// then we should drop having subclasses of `LinkedEvent` be a thing (because
+// that's all they were doing.)
+
 /**
  * Promise-chained event. Each instance becomes chained (linked, as in a linked
  * list) to the next event which gets emitted by the same source. The chain is
