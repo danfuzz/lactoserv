@@ -53,11 +53,6 @@ export class AsyncServer {
     };
   }
 
-  /** @returns {Server} The underlying server socket instance. */
-  get serverSocket() {
-    return this.#serverSocket;
-  }
-
   /**
    * Passthrough of `on()` to the underlying server socket.
    *
