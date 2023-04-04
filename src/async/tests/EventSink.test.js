@@ -3,12 +3,13 @@
 
 import * as timers from 'node:timers/promises';
 
-import { EventSink, LinkedEvent, ManualPromise, PromiseState, PromiseUtil } from '@this/async';
+import { EventPayload, EventSink, LinkedEvent, ManualPromise, PromiseState,
+  PromiseUtil } from '@this/async';
 
 
-const payload1 = { type: 'wacky' };
-const payload2 = { type: 'zany' };
-const payload3 = { type: 'fantastic' };
+const payload1 = new EventPayload('wacky');
+const payload2 = new EventPayload('zany', 'z');
+const payload3 = new EventPayload('fantastic', ['f', 'a', 'n'], 123);
 
 describe('constructor(<invalid>, event)', () => {
   test.each([
@@ -296,9 +297,9 @@ describe('run()', () => {
     let emitter = null;
     for (let i = 0; i < 10; i++) {
       if (!emitter) {
-        events[0] = new LinkedEvent({ num: i });
+        events[0] = new LinkedEvent(new EventPayload('num', i));
       } else {
-        emitter = emitter({ num: i });
+        emitter = emitter(new EventPayload('num', i));
         events.push(events[i - 1].nextNow);
       }
     }
@@ -324,13 +325,13 @@ describe('run()', () => {
   test('processes 10 asynchronously-known events', async () => {
     let callCount = 0;
     const processor = (event) => {
-      if (event.payload.num !== callCount) {
+      if (event.payload.args[0] !== callCount) {
         throw new Error(`Wrong event #${callCount}`);
       }
       callCount++;
     };
 
-    const event0 = new LinkedEvent({ num: 0 });
+    const event0 = new LinkedEvent(new EventPayload('num', 0));
     let emitter  = event0.emitter;
     const sink   = new EventSink(processor, Promise.resolve(event0));
 
@@ -340,7 +341,7 @@ describe('run()', () => {
       expect(callCount).toBe(i - 1);
       await timers.setImmediate();
       expect(callCount).toBe(i);
-      emitter = emitter({ num: i });
+      emitter = emitter(new EventPayload('num', i));
     }
 
     await timers.setImmediate();

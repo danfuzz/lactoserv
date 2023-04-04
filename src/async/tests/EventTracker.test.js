@@ -3,27 +3,28 @@
 
 import * as timers from 'node:timers/promises';
 
-import { EventTracker, LinkedEvent, ManualPromise, PromiseState } from '@this/async';
+import { EventPayload, EventTracker, LinkedEvent, ManualPromise, PromiseState }
+  from '@this/async';
 
 
-const payload1 = { type: '1:wacky:1' };
-const payload2 = { type: '2:zany:2' };
-const payload3 = { type: '3:fantastic:3' };
-const payload4 = { type: '4:stupendous:4' };
+const payload1 = new EventPayload('1:wacky:1');
+const payload2 = new EventPayload('2:zany:2', 2);
+const payload3 = new EventPayload('3:fantastic:3', 'three');
+const payload4 = new EventPayload('4:stupendous:4', [4]);
 
 describe('constructor(LinkedEvent)', () => {
   test('trivially succeeds', () => {
-    expect(() => new EventTracker(new LinkedEvent('woop'))).not.toThrow();
+    expect(() => new EventTracker(new LinkedEvent(payload1))).not.toThrow();
   });
 
   test('makes an instance with the given first event as the `headNow`', () => {
-    const event   = new LinkedEvent('boop');
+    const event   = new LinkedEvent(payload2);
     const tracker = new EventTracker(event);
     expect(tracker.headNow).toBe(event);
   });
 
   test('makes an instance with a `headPromise` that promptly resolves to the given first event', async () => {
-    const event   = new LinkedEvent('boop');
+    const event   = new LinkedEvent(payload3);
     const tracker = new EventTracker(event);
 
     await expect(tracker.headPromise).resolves.toBe(event);
@@ -37,13 +38,13 @@ describe('constructor(Promise)', () => {
   });
 
   test('makes an instance with `headNow === null` (at first)', () => {
-    const eventProm = Promise.resolve(new LinkedEvent('boop'));
+    const eventProm = Promise.resolve(new LinkedEvent(payload4));
     const tracker   = new EventTracker(eventProm);
     expect(tracker.headNow).toBeNull();
   });
 
   test('makes an instance with a non-null `headPromise`', () => {
-    const eventProm = Promise.resolve(new LinkedEvent('boop'));
+    const eventProm = Promise.resolve(new LinkedEvent(payload1));
     const tracker   = new EventTracker(eventProm);
     expect(tracker.headPromise).not.toBeNull();
   });
@@ -223,7 +224,7 @@ describe.each`
 describe('advance(type)', () => {
   test('finds a matching `headNow`', async () => {
     const type    = 'florp';
-    const event   = new LinkedEvent({ type });
+    const event   = new LinkedEvent(new EventPayload(type));
     const tracker = new EventTracker(event);
 
     const result = tracker.advance(type);
@@ -237,7 +238,7 @@ describe('advance(type)', () => {
 
   test('finds a matching synchronous non-head', async () => {
     const type    = 'florp-like';
-    const event3  = new LinkedEvent({ type });
+    const event3  = new LinkedEvent(new EventPayload(type));
     const event2  = new LinkedEvent(payload2, event3);
     const event1  = new LinkedEvent(payload1, event2);
     const tracker = new EventTracker(event1);
@@ -253,7 +254,7 @@ describe('advance(type)', () => {
 
   test('finds a matching `headPromise`', async () => {
     const type    = 'floop';
-    const event   = new LinkedEvent({ type });
+    const event   = new LinkedEvent(new EventPayload(type));
     const tracker = new EventTracker(Promise.resolve(event));
 
     const result = tracker.advance(type);
@@ -287,7 +288,7 @@ describe('advance(type)', () => {
     await timers.setImmediate();
     expect(PromiseState.isSettled(result)).toBeFalse();
 
-    emitter2({ type });
+    emitter2(new EventPayload(type));
     const event3 = event2.nextNow;
     expect(tracker.headNow).toBeNull();
     await timers.setImmediate();
@@ -371,10 +372,10 @@ describe('advance(count)', () => {
       let emitter  = null;
       for (let i = 0; i < startCount; i++) {
         if (emitter) {
-          emitter = emitter({ at: i });
+          emitter = emitter(new EventPayload('at', i));
           events.push(events[events.length - 1].nextNow);
         } else {
-          events[0] = new LinkedEvent({ at: i });
+          events[0] = new LinkedEvent(new EventPayload('at', i));
           emitter = events[0].emitter;
         }
       }
@@ -396,7 +397,7 @@ describe('advance(count)', () => {
       const events = [];
       for (let i = startCount - 1; i >= 0; i--) {
         const next = events[0] ? Promise.resolve(events[0]) : null;
-        events.unshift(new LinkedEvent({ at: i }, next));
+        events.unshift(new LinkedEvent(new EventPayload('at', i), next));
       }
 
       const tracker = new EventTracker(Promise.resolve(events[0]));
@@ -414,7 +415,7 @@ describe('advance(count)', () => {
 
         let emitter = events[startCount - 1].emitter;
         for (let i = startCount; i <= advanceCount; i++) {
-          emitter = emitter({ at: i });
+          emitter = emitter(new EventPayload('at', i));
           events.push(events[i - 1].nextNow);
         }
 
@@ -431,7 +432,7 @@ describe('advance(count)', () => {
         const events = [];
         for (let i = startCount - 1; i >= 0; i--) {
           const next = events[0] ? Promise.resolve(events[0]) : null;
-          events.unshift(new LinkedEvent({ at: i }, next));
+          events.unshift(new LinkedEvent(new EventPayload('at', i), next));
         }
 
         const tracker = new EventTracker(Promise.resolve(events[0]));
@@ -442,7 +443,7 @@ describe('advance(count)', () => {
           expect(tracker.headNow).toBeNull();
           await timers.setImmediate();
           expect(PromiseState.isSettled(result)).toBeFalse();
-          emitter = emitter({ at: i });
+          emitter = emitter(new EventPayload('at', i));
           events.push(events[i - 1].nextNow);
         }
 
@@ -909,7 +910,7 @@ describe.each`
 
 describe('next(predicate)', () => {
   test('finds and advances just past a matching event', async () => {
-    const toFind  = { findMe: 'yes!' };
+    const toFind  = new EventPayload('yo', 1, 2, 3);
     const event3  = new LinkedEvent(payload3);
     const event2  = new LinkedEvent(toFind, event3);
     const event1  = new LinkedEvent(payload1, event2);
@@ -947,7 +948,7 @@ describe('next(predicate)', () => {
   });
 
   test('does not find an event which was to be skipped over', async () => {
-    const toFind  = { yes: 'really!' };
+    const toFind  = new EventPayload('hello', 'really!');
     const event2  = new LinkedEvent(toFind);
     const event1  = new LinkedEvent(toFind, event2);
     const tracker = new EventTracker(Promise.resolve(event1));
@@ -1013,7 +1014,7 @@ describe('peek()', () => {
   });
 
   test('finds a matching event without advancing to or past it', async () => {
-    const toFind  = { findMe: 'yes!' };
+    const toFind  = new EventPayload('findMe', 'yes!');
     const event3  = new LinkedEvent(toFind);
     const event2  = new LinkedEvent(toFind, event3);
     const event1  = new LinkedEvent(payload1, event2);

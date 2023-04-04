@@ -4,6 +4,7 @@
 import { MustBe } from '@this/typey';
 
 import { EventOrPromise } from '#p/EventOrPromise';
+import { EventPayload } from '#x/EventPayload';
 import { ManualPromise } from '#x/ManualPromise';
 
 
@@ -26,7 +27,7 @@ import { ManualPromise } from '#x/ManualPromise';
  *   actual subclass when appending (emitting / linking) events.
  */
 export class LinkedEvent {
-  /** @type {*} The event payload. */
+  /** @type {EventPayload} The event payload. */
   #payload;
 
   /**
@@ -48,7 +49,7 @@ export class LinkedEvent {
   /**
    * Constructs an instance.
    *
-   * @param {*} payload The event payload.
+   * @param {EventPayload} payload The event payload.
    * @param {?LinkedEvent|Promise<LinkedEvent>|EventOrPromise} [next = null]
    *   The next event in the chain or promise for same, if already known. If
    *   passed as non-`null`:
@@ -61,7 +62,7 @@ export class LinkedEvent {
    *   which is used in some of the underlying functionality of this class.
    */
   constructor(payload, next = null) {
-    this.#payload = payload;
+    this.#payload = MustBe.instanceOf(payload, EventPayload);
 
     if (next === null) {
       this.#hasEmitter = true;
@@ -242,7 +243,7 @@ export class LinkedEvent {
    */
   #validatePayload(payload) {
     if (!(payload instanceof this.payload.constructor)) {
-      throw new Error('Emitted payload does not match the de facto class.');
+      throw new Error('`payload` does not match this instance\'s payload class.');
     }
   }
 }

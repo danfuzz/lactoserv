@@ -165,6 +165,21 @@ export class MustBe {
   }
 
   /**
+   * Checks for type `object`, which must furthermore not be `null`.
+   *
+   * @param {*} value Arbitrary value.
+   * @returns {object} `value` if it is of the indicated type.
+   * @throws {Error} Thrown if `value` is of any other type.
+   */
+  static object(value) {
+    if (AskIf.object(value)) {
+      return value;
+    }
+
+    throw new Error('Must be of type `object` and non-null.');
+  }
+
+  /**
    * Checks for type `object`, which must furthermore be a _plain_ object
    * (direct instance of `Object` per se).
    *
