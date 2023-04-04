@@ -290,7 +290,7 @@ export class AsyncServer {
    * @type {number} How long in msec to allow a stashed instance to remain
    * stashed.
    */
-  static #STASH_TIMEOUT_MSEC = 15 * 1000;
+  static #STASH_TIMEOUT_MSEC = 5 * 1000;
 
   /**
    * @type {Set<AsyncServer>} Set of stashed instances, for use during a reload.
