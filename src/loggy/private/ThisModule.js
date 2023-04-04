@@ -3,7 +3,7 @@
 
 import { EventSource, LinkedEvent } from '@this/async';
 
-import { LogEvent } from '#x/LogEvent';
+import { LogPayload } from '#x/LogPayload';
 import { StdLoggingEnvironment } from '#x/StdLoggingEnvironment';
 
 
@@ -17,8 +17,10 @@ export class ThisModule {
   static #DEFAULT_KEEP_COUNT = 100;
 
   /** @type {EventSource} Global default log source. */
-  static #DEFAULT_LOG_SOURCE =
-    LogEvent.makeSource({ keepCount: this.#DEFAULT_KEEP_COUNT });
+  static #DEFAULT_LOG_SOURCE = new EventSource({
+    keepCount:      this.#DEFAULT_KEEP_COUNT,
+    kickoffPayload: LogPayload.makeKickoffInstance()
+  });
 
   /** @type {StdLoggingEnvironment} Global default logging environment. */
   static #DEFAULT_ENVIRONMENT =
