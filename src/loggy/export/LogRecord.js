@@ -3,29 +3,24 @@
 
 import * as util from 'node:util';
 
+import { EventPayload } from '@this/async';
 import { BaseConverter, Moment, StackTrace, Struct } from '@this/data-values';
 import { MustBe } from '@this/typey';
 
 import { LogTag } from '#x/LogTag';
 
-// TODO: Rename this to `LogPayload` and make it inherit from `EventPayload`.
+// TODO: Rename this to `LogPayload`.
 
 /**
  * The thing which is logged; it is the payload class for events used by this
  * module.
  */
-export class LogRecord {
+export class LogRecord extends EventPayload {
   /** @type {Moment} Moment in time that this instance represents. */
   #when;
 
   /** @type {LogTag} Tag. */
   #tag;
-
-  /** @type {string} Event "type." */
-  #type;
-
-  /** @type {*[]} Event arguments. */
-  #args;
 
   /** @type {?StackTrace} Stack trace, if available. */
   #stack;
@@ -45,21 +40,11 @@ export class LogRecord {
    *   instance, if available.
    */
   constructor(when, tag, type, args, stack = null) {
+    super(type, ...args);
+
     this.#when  = MustBe.instanceOf(when, Moment);
     this.#tag   = MustBe.instanceOf(tag, LogTag);
-    this.#type  = MustBe.string(type);
     this.#stack = (stack === null) ? null : MustBe.instanceOf(stack, StackTrace);
-
-    MustBe.array(args);
-    if (!Object.isFrozen(args)) {
-      args = Object.freeze([...args]);
-    }
-    this.#args = args;
-  }
-
-  /** @returns {*[]} Event arguments, whose meaning depends on {@link #type}. */
-  get args() {
-    return this.#args;
   }
 
   /** @returns {?StackTrace} Stack trace, if available. */
@@ -70,11 +55,6 @@ export class LogRecord {
   /** @returns {LogTag} Tag. */
   get tag() {
     return this.#tag;
-  }
-
-  /** @returns {string} Event "type." */
-  get type() {
-    return this.#type;
   }
 
   /** @returns {Moment} Moment in time that this instance represents. */
@@ -108,9 +88,9 @@ export class LogRecord {
     return new Struct(LogRecord, {
       when:  this.#when,
       tag:   this.#tag,
-      type:  this.#type,
-      args:  this.#args,
-      stack: this.#stack
+      stack: this.#stack,
+      type:  this.type,
+      args:  this.args
     });
   }
 
@@ -121,12 +101,12 @@ export class LogRecord {
    */
   #toHumanPayload() {
     const parts = [
-      this.#type,
+      this.type,
       '('
     ];
 
     let first = true;
-    for (const a of this.#args) {
+    for (const a of this.args) {
       if (first) {
         first = false;
       } else {
