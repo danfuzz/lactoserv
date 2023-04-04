@@ -23,14 +23,14 @@ import { MustBe } from '@this/typey';
  *   subject to change).
  */
 export class SystemLogger extends BaseService {
-  /** @type {string} Full path to the log file. */
-  #logFilePath;
-
   /** @type {?Rotator} File rotator to use, if any. */
   #rotator;
 
-  /** @type {TextFileSink} Event sink which does the actual writing. */
-  #sink;
+  /**
+   * @type {?TextFileSink} Event sink which does the actual writing, or `null`
+   * if not yet set up.
+   */
+  #sink = null;
 
   /**
    * Constructs an instance.
@@ -41,12 +41,7 @@ export class SystemLogger extends BaseService {
   constructor(config, logger) {
     super(config, logger);
 
-    const { format, name } = config;
-    const earliestEvent = this.#findEarliestEventToLog(name);
-
-    this.#logFilePath = config.path;
-    this.#rotator     = config.rotate ? new Rotator(config, this.logger) : null;
-    this.#sink        = new TextFileSink(format, this.#logFilePath, earliestEvent);
+    this.#rotator = config.rotate ? new Rotator(config, this.logger) : null;
   }
 
   /** @override */
@@ -54,6 +49,11 @@ export class SystemLogger extends BaseService {
     await this.config.createDirectoryIfNecessary();
     await this.config.touchPath();
     await this.#rotator?.start(isReload);
+
+    const { format, name, path } = this.config;
+    const earliestEvent = this.#findEarliestEventToLog(name);
+    this.#sink = new TextFileSink(format, path, earliestEvent);
+
     await this.#sink.start();
     this.logger.running();
   }
@@ -93,7 +93,7 @@ export class SystemLogger extends BaseService {
 
     const found = tracker.advanceSync((event) => {
       return (event.type === SystemLogger.#END_EVENT_TYPE)
-        && (event.tag.equals(tagToFind));
+        && (event.payload.tag.equals(tagToFind));
     });
 
     return found ? found.nextPromise : earliestEvent;
