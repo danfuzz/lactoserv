@@ -17,18 +17,20 @@ import { LogTag } from '#x/LogTag';
  * logging-specific properties.
  */
 export class LogPayload extends EventPayload {
+  /** @type {?StackTrace} Stack trace, if available. */
+  #stack;
+
   /** @type {Moment} Moment in time that this instance represents. */
   #when;
 
   /** @type {LogTag} Tag. */
   #tag;
 
-  /** @type {?StackTrace} Stack trace, if available. */
-  #stack;
-
   /**
    * Constructs an instance.
    *
+   * @param {?StackTrace} stack Stack trace associated with this instance, or
+   *   `null` if not available.
    * @param {Moment} when Moment in time that this instance represents.
    * @param {LogTag} tag Tag for the instance, that is, component name and
    *   optional context.
@@ -37,15 +39,13 @@ export class LogPayload extends EventPayload {
    *   "invoked" (which... they kinda might be able to be at some point).
    * @param {*[]} args Arbitrary arguments of the instance, whose meaning
    *   depends on the type.
-   * @param {?StackTrace} [stack = null] Stack trace associated with this
-   *   instance, if available.
    */
-  constructor(when, tag, type, args, stack = null) {
+  constructor(stack, when, tag, type, args) {
     super(type, ...args);
 
+    this.#stack = (stack === null) ? null : MustBe.instanceOf(stack, StackTrace);
     this.#when  = MustBe.instanceOf(when, Moment);
     this.#tag   = MustBe.instanceOf(tag, LogTag);
-    this.#stack = (stack === null) ? null : MustBe.instanceOf(stack, StackTrace);
   }
 
   /** @returns {?StackTrace} Stack trace, if available. */
@@ -159,6 +159,6 @@ export class LogPayload extends EventPayload {
   static makeKickoffInstance(tag = null, type = null) {
     tag  ??= this.#KICKOFF_TAG;
     type ??= this.#KICKOFF_TYPE;
-    return new LogPayload(this.#KICKOFF_MOMENT, tag, type, Object.freeze([]));
+    return new LogPayload(null, this.#KICKOFF_MOMENT, tag, type, Object.freeze([]));
   }
 }

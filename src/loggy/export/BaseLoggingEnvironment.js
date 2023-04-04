@@ -196,7 +196,7 @@ export class BaseLoggingEnvironment {
     // `+1` to omit the frame for this method.
     const trace = this.makeStackTrace(omitCount + 1);
 
-    return new LogPayload(now, tag, type, fixedArgs, trace);
+    return new LogPayload(trace, now, tag, type, fixedArgs);
   }
 
 
