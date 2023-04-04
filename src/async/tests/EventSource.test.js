@@ -3,7 +3,7 @@
 
 import * as timers from 'node:timers/promises';
 
-import { EventSource, LinkedEvent, PromiseState } from '@this/async';
+import { EventPayload, EventSource, LinkedEvent, PromiseState } from '@this/async';
 
 
 // For testing subclass scenarios.
@@ -11,21 +11,21 @@ class ZanyEvent extends LinkedEvent {
   // This space intentionally left blank.
 }
 
-const payload1 = { type: 'wacky' };
-const payload2 = { type: 'zany' };
-const payload3 = { type: 'questionable' };
+const payload1 = new EventPayload('wacky');
+const payload2 = new EventPayload('zany');
+const payload3 = new EventPayload('questionable');
 
 describe.each`
-  label                             | argFn                                           | cls             | keepCount
-  ${''}                             | ${() => []}                                     | ${LinkedEvent} | ${0}
-  ${'null'}                         | ${() => [null]}                                 | ${LinkedEvent} | ${0}
-  ${'undefined'}                    | ${() => [undefined]}                            | ${LinkedEvent} | ${0}
-  ${'{ keepCount: 0 }'}             | ${() => [{ keepCount: 0 }]}                     | ${LinkedEvent} | ${0}
-  ${'{ keepCount: 1 }'}             | ${() => [{ keepCount: 1 }]}                     | ${LinkedEvent} | ${1}
-  ${'{ keepCount: 10 }'}            | ${() => [{ keepCount: 10 }]}                    | ${LinkedEvent} | ${10}
-  ${'{ keepCount: +inf }'}          | ${() => [{ keepCount: Infinity }]}              | ${LinkedEvent} | ${Infinity}
-  ${'{ kickoffEvent: null }'}       | ${() => [{ kickoffEvent: null }]}               | ${LinkedEvent} | ${0}
-  ${'{ kickoffEvent: <subclass> }'} | ${() => [{ kickoffEvent: new ZanyEvent('x') }]} | ${ZanyEvent}    | ${0}
+  label                             | argFn                                                | cls             | keepCount
+  ${''}                             | ${() => []}                                          | ${LinkedEvent} | ${0}
+  ${'null'}                         | ${() => [null]}                                      | ${LinkedEvent} | ${0}
+  ${'undefined'}                    | ${() => [undefined]}                                 | ${LinkedEvent} | ${0}
+  ${'{ keepCount: 0 }'}             | ${() => [{ keepCount: 0 }]}                          | ${LinkedEvent} | ${0}
+  ${'{ keepCount: 1 }'}             | ${() => [{ keepCount: 1 }]}                          | ${LinkedEvent} | ${1}
+  ${'{ keepCount: 10 }'}            | ${() => [{ keepCount: 10 }]}                         | ${LinkedEvent} | ${10}
+  ${'{ keepCount: +inf }'}          | ${() => [{ keepCount: Infinity }]}                   | ${LinkedEvent} | ${Infinity}
+  ${'{ kickoffEvent: null }'}       | ${() => [{ kickoffEvent: null }]}                    | ${LinkedEvent} | ${0}
+  ${'{ kickoffEvent: <subclass> }'} | ${() => [{ kickoffEvent: new ZanyEvent(payload1) }]} | ${ZanyEvent}    | ${0}
 `('constructor($label)', ({ argFn, cls, keepCount }) => {
   test('trivially succeeds', () => {
     expect(() => new EventSource(...argFn())).not.toThrow();
@@ -164,7 +164,7 @@ describe.each`
         testCounts.shift();
         await checkCount(i, source[prop]);
       }
-      events.push(source.emit({ count: i }));
+      events.push(source.emit(new EventPayload('count', i)));
       if (doTest) {
         await checkCount(i + 1, source[prop]);
       }

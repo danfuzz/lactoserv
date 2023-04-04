@@ -7,10 +7,6 @@ import { EventOrPromise } from '#p/EventOrPromise';
 import { ManualPromise } from '#x/ManualPromise';
 
 
-// TODO: This class should enforce same-classness on payloads on the chain, and
-// then we should drop having subclasses of `LinkedEvent` be a thing (because
-// that's all they were doing.)
-
 /**
  * Promise-chained event. Each instance becomes chained (linked, as in a linked
  * list) to the next event which gets emitted by the same source. The chain is
@@ -19,9 +15,15 @@ import { ManualPromise } from '#x/ManualPromise';
  * asynchronous case, the properties and accessors return promises that only
  * become resolved once an event has been emitted by the source.
  *
- * It is possible -- and appropriate -- to subclass this class. If subclassed,
- * this (base) class will only construct instances of the actual subclass when
- * appending (linking / chaining) emitted events.
+ * As a bit of "ad-hoc type-safety," this class enforces two restrictions:
+ *
+ * * Any appended (emitted / linked) payload must be an instance of the same
+ *   class as the emitting instance's payload. So, e.g., if you construct a
+ *   "kickoff event" whose payload is of class `MySpecialPayload`, then all
+ *   linked instances will also necessarily have payloads of class
+ *   `MySpecialPayload`.
+ * * If subclassed, this (base) class will only construct instances of the
+ *   actual subclass when appending (emitting / linking) events.
  */
 export class LinkedEvent {
   /** @type {*} The event payload. */
@@ -163,6 +165,7 @@ export class LinkedEvent {
    *   of the same names.
    */
   withPayload(payload) {
+    this.#validatePayload(payload);
     return new this.constructor(payload, this.#next ?? this.nextPromise);
   }
 
@@ -177,6 +180,7 @@ export class LinkedEvent {
    *   whose `nextPromise` and `nextNow` refer to this instance.
    */
   withPushedHead(payload) {
+    this.#validatePayload(payload);
     return new this.constructor(payload, this);
   }
 
@@ -193,6 +197,8 @@ export class LinkedEvent {
     if (this.#next && ((this.#next.isRejected() || this.#next.eventNow))) {
       throw new Error('Can only call next-event emitter once per instance.');
     }
+
+    this.#validatePayload(payload);
 
     const event = new this.constructor(payload);
 
@@ -216,5 +222,18 @@ export class LinkedEvent {
     this.#next = next;
 
     return event;
+  }
+
+  /**
+   * Validates a potential payload.
+   *
+   * @param {*} payload The payload to check.
+   * @throws {Error} Thrown if the payload is not considered valid for emission
+   *   by this instance.
+   */
+  #validatePayload(payload) {
+    if (!(payload instanceof this.payload.constructor)) {
+      throw new Error('Emitted payload does not match the de facto class.');
+    }
   }
 }

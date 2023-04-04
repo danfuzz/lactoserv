@@ -3,6 +3,7 @@
 
 import { MustBe } from '@this/typey';
 
+import { EventPayload } from '#x/EventPayload';
 import { LinkedEvent } from '#x/LinkedEvent';
 
 
@@ -74,7 +75,9 @@ export class EventSource {
    *   (remember), not including the current (most-recently emitted) event.
    *   Must be a whole number or positive infinity.
    * @param {?LinkedEvent} [options.kickoffEvent = null] "Kickoff" event, or
-   *   `null` to use the default of a direct instance of {@link LinkedEvent}.
+   *   `null` to use the default of a direct instance of {@link LinkedEvent}
+   *   which holds the result of a call to {@link
+   *   EventPayload#makeKickoffInstance}.
    */
   constructor(options) {
     const kickoffEvent = options?.kickoffEvent ?? null;
@@ -89,7 +92,7 @@ export class EventSource {
     }
 
     this.#keepCount     = keepCount;
-    this.#earliestEvent = kickoffEvent ?? new LinkedEvent('chain-head');
+    this.#earliestEvent = kickoffEvent ?? new LinkedEvent(EventPayload.makeKickoffInstance());
     this.#currentEvent  = this.#earliestEvent;
     this.#emitNext      = this.#currentEvent.emitter;
   }
