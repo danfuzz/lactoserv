@@ -136,7 +136,7 @@ export class BaseLoggingEnvironment {
   /**
    * Outputs the given record to its ultimate destination. For example, the
    * standard concrete implementation of this method emits a {@link #LogEvent}
-   * with `record` as the payload.
+   * with `payload` as the payload.
    *
    * @abstract
    * @param {LogPayload} payload What to log.
