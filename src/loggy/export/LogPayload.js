@@ -37,10 +37,10 @@ export class LogPayload extends EventPayload {
    * @param {string} type "Type" of the instance, e.g. think of this as
    *   something like a constructor class name if log records could be
    *   "invoked" (which... they kinda might be able to be at some point).
-   * @param {*[]} args Arbitrary arguments of the instance, whose meaning
+   * @param {...*} args Arbitrary arguments of the instance, whose meaning
    *   depends on the type.
    */
-  constructor(stack, when, tag, type, args) {
+  constructor(stack, when, tag, type, ...args) {
     super(type, ...args);
 
     this.#stack = (stack === null) ? null : MustBe.instanceOf(stack, StackTrace);
@@ -159,6 +159,6 @@ export class LogPayload extends EventPayload {
   static makeKickoffInstance(tag = null, type = null) {
     tag  ??= this.#KICKOFF_TAG;
     type ??= this.#KICKOFF_TYPE;
-    return new LogPayload(null, this.#KICKOFF_MOMENT, tag, type, Object.freeze([]));
+    return new LogPayload(null, this.#KICKOFF_MOMENT, tag, type);
   }
 }
