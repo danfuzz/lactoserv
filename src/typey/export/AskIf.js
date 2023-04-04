@@ -237,6 +237,16 @@ export class AskIf {
   }
 
   /**
+   * Checks for type `object`, which must furthermore not be `null`.
+   *
+   * @param {*} value Arbitrary value.
+   * @returns {boolean} `true` iff `value` is of the indicated type.
+   */
+  static object(value) {
+    return (value !== null) && (typeof value === 'object');
+  }
+
+  /**
    * Checks for type `object`, which must furthermore be a _plain_ object
    * (direct instance of `Object` per se).
    *

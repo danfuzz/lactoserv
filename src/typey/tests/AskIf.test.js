@@ -210,6 +210,33 @@ describe('constructorFunction()', () => {
   });
 });
 
+describe('object()', () => {
+  test.each`
+  value
+  ${null}
+  ${undefined}
+  ${false}
+  ${true}
+  ${0}
+  ${123n}
+  ${'florp'}
+  ${Symbol('florp')}
+  `('returns `false` given $value', ({ value }) => {
+    expect(AskIf.object(value)).toBeFalse();
+  });
+
+  test.each`
+  value
+  ${{}}
+  ${[]}
+  ${{ a: 10 }}
+  ${[1, 2, 3]}
+  ${new Map()}
+  `('returns `true` given $value', ({ value }) => {
+    expect(AskIf.object(value)).toBeTrue();
+  });
+});
+
 describe('subclassOf()', () => {
   describe('on non-classes', () => {
     test.each`
