@@ -39,7 +39,7 @@ export class EventSource {
    * not including the one referenced by {@link #currentEvent}. If infinite,
    * then this instance keeps the entire event chain.
    */
-  #keepCount = 0;
+  #keepCount;
 
   /** @type {number} How many events has this instance ever emitted. */
   #emittedCount = 0;
