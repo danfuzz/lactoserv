@@ -19,7 +19,7 @@ import { LogTag } from '#x/LogTag';
  * sanity checks in both directions.
  */
 export class BaseLoggingEnvironment {
-  /** @type {Converter} Data converter to use for encoding record arguments. */
+  /** @type {Converter} Data converter to use for encoding payload arguments. */
   #dataConverter = new Converter(ConverterConfig.makeLoggingInstance());
 
   // Note: The default constructor is fine here.
@@ -27,7 +27,7 @@ export class BaseLoggingEnvironment {
   /**
    * Logs a {@link #LogPayload}, which is constructed from the arguments passed
    * to this method along with a timestamp and stack trace as implemented by the
-   * concrete subclass. The so-constructed record is then emitted, as if by
+   * concrete subclass. The so-constructed payload is then emitted, as if by
    * {@link #logPayload}, see which for further details.
    *
    * @param {number} omitCount The number of caller frames to omit from the
@@ -83,7 +83,7 @@ export class BaseLoggingEnvironment {
    *
    * @param {number} omitCount The number of caller frames to omit from the
    *   stack trace.
-   * @param {LogTag} tag The record tag.
+   * @param {LogTag} tag The payload tag.
    * @param {string} type Event type.
    * @param {...*} args Event arguments.
    * @returns {LogPayload} The constructed payload.
@@ -134,7 +134,7 @@ export class BaseLoggingEnvironment {
   }
 
   /**
-   * Outputs the given record to its ultimate destination. For example, the
+   * Outputs the given payload to its ultimate destination. For example, the
    * standard concrete implementation of this method emits a {@link #LogEvent}
    * with `payload` as the payload.
    *
@@ -184,7 +184,7 @@ export class BaseLoggingEnvironment {
    *
    * @param {number} omitCount The number of caller frames to omit from the
    *   stack trace.
-   * @param {LogTag} tag The record tag.
+   * @param {LogTag} tag The payload tag.
    * @param {string} type Event type.
    * @param {...*} args Event arguments.
    * @returns {LogPayload} The constructed payload.

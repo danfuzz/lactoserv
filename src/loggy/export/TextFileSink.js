@@ -91,7 +91,7 @@ export class TextFileSink extends EventSink {
   //
 
   /**
-   * @type {Converter} Data converter to use for encoding record arguments,
+   * @type {Converter} Data converter to use for encoding payload arguments,
    * specifically for the `json` format.
    */
   static #CONVERTER_FOR_JSON =
@@ -102,8 +102,8 @@ export class TextFileSink extends EventSink {
    * corresponding formatter methods.
    */
   static #FORMATTERS = new Map(Object.entries({
-    human: (record) => this.#formatHuman(record),
-    json:  (record) => this.#formatJson(record)
+    human: (payload) => this.#formatHuman(payload),
+    json:  (payload) => this.#formatJson(payload)
   }));
 
   /**
@@ -147,7 +147,7 @@ export class TextFileSink extends EventSink {
     // What's going on: We assume that the `args` payload is already
     // sufficiently encoded (because that would have / should have happened
     // synchronously while logging), but we want to generically encode
-    // everything else. So, we do a top-level encode of the record, tweak it,
+    // everything else. So, we do a top-level encode of the payload, tweak it,
     // let the normal encode mechanism do it's thing, and then tweak it back.
 
     const encodedPayload = payload[BaseConverter.ENCODE]();
