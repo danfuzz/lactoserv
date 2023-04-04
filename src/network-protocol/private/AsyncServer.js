@@ -26,10 +26,7 @@ export class AsyncServer {
   #serverSocket = null;
 
   /** @type {EventSource} Event source for `connection` and `drop` events. */
-  #eventSource = new EventSource({
-    // TODO: Should be able to say `kickoffPayload`.
-    kickoffEvent: new LinkedEvent(EventPayload.makeKickoffInstance())
-  });
+  #eventSource = new EventSource();
 
   /**
    * @type {Promise<LinkedEvent>} Promise for the next event which will need
