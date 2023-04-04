@@ -3,6 +3,7 @@
 
 import { Server, createServer as netCreateServer } from 'node:net';
 
+import { EventPayload, EventSource, LinkedEvent, PromiseUtil } from '@this/async';
 import { FormatUtils } from '@this/loggy';
 import { MustBe } from '@this/typey';
 
@@ -19,9 +20,19 @@ export class AsyncServer {
   #protocol;
 
   /**
-   * @type {Server} The underlying server socket instance (Node library class).
+   * @type {?Server} The underlying server socket instance (Node library class),
+   * if constructed.
    */
-  #serverSocket;
+  #serverSocket = null;
+
+  /** @type {EventSource} Event source for `connection` and `drop` events. */
+  #eventSource = new EventSource();
+
+  /**
+   * @type {Promise<LinkedEvent>} Promise for the next event which will need
+   * action.
+   */
+  #eventHead = this.#eventSource.earliestEvent;
 
   /**
    * Constructs an instance.
@@ -31,9 +42,8 @@ export class AsyncServer {
    */
   constructor(iface, protocol) {
     // Note: `interface` is a reserved word.
-    this.#interface    = MustBe.plainObject(iface);
-    this.#protocol     = MustBe.string(protocol);
-    this.#serverSocket = netCreateServer(AsyncServer.#extractConstructorOptions(iface));
+    this.#interface = MustBe.plainObject(iface);
+    this.#protocol  = MustBe.string(protocol);
   }
 
   /**
@@ -41,7 +51,7 @@ export class AsyncServer {
    * address and current-listening info.
    */
   get loggableInfo() {
-    const address = this.#serverSocket.address();
+    const address = this.#serverSocket?.address();
     const iface   = FormatUtils.networkInterfaceString(this.#interface);
 
     return {
@@ -53,9 +63,77 @@ export class AsyncServer {
     };
   }
 
-  /** @returns {Server} The underlying server socket instance. */
-  get serverSocket() {
-    return this.#serverSocket;
+  /**
+   * Accepts a connection from the underlying server socket, with optional
+   * cancellation. If not canceled, this returns an event payload in one of
+   * these forms, analogous to the events defined by {@link Server}:
+   *
+   * * `{ type: 'connection', args: [socket] }`
+   * * `{ type: 'drop', args: [<drop data>] }`
+   *
+   * @param {?Promise} [cancelPromise = null] If non-`null` a promise which
+   *   cancels this request when settled (either fulfilled or rejected).
+   * @returns {?EventPayload} Event payload as described above, or `null` if the
+   *  `cancelPromise` became settled.
+   */
+  async accept(cancelPromise = null) {
+    let canceled = false;
+
+    if (cancelPromise) {
+      (async () => {
+        try {
+          await cancelPromise;
+        } finally {
+          canceled = true;
+        }
+      })();
+    }
+
+    const result = cancelPromise
+      ? await PromiseUtil.race([this.#eventHead, cancelPromise])
+      : await this.#eventHead;
+
+    if (canceled) {
+      return null;
+    }
+
+    this.#eventHead = result.nextPromise;
+
+    return result.payload;
+  }
+
+  /**
+   * Starts this instance.
+   *
+   * @param {boolean} isReload Is this action due to an in-process reload?
+   */
+  async start(isReload) {
+    MustBe.boolean(isReload);
+
+    this.#serverSocket = netCreateServer(
+      AsyncServer.#extractConstructorOptions(this.#interface));
+
+    this.#serverSocket.on('connection', (...args) => {
+      this.#eventSource.emit(new EventPayload('connection', ...args));
+    });
+    this.#serverSocket.on('drop', (...args) => {
+      this.#eventSource.emit(new EventPayload('drop', ...args));
+    });
+
+    await this.#listen();
+  }
+
+  /**
+   * Stops this this instance. This method returns when the instance is fully
+   * stopped.
+   *
+   * @param {boolean} willReload Is this action due to an in-process reload
+   *   being requested?
+   */
+  async stop(willReload) {
+    MustBe.boolean(willReload);
+
+    await this.#close();
   }
 
   /**
@@ -63,7 +141,7 @@ export class AsyncServer {
    * closed in which case this method does nothing. This method async-returns
    * once the server has actually stopped listening for connections.
    */
-  async close() {
+  async #close() {
     const serverSocket = this.#serverSocket;
 
     if (!serverSocket.listening) {
@@ -105,7 +183,7 @@ export class AsyncServer {
    * Performs a `listen()` on the underlying {@link Server}. This method
    * async-returns once the server is actually listening.
    */
-  async listen() {
+  async #listen() {
     const serverSocket = this.#serverSocket;
 
     // This `await new Promise` arrangement is done to get the `listen()` call
@@ -137,16 +215,6 @@ export class AsyncServer {
 
       serverSocket.listen(AsyncServer.#extractListenOptions(this.#interface));
     });
-  }
-
-  /**
-   * Passthrough of `on()` to the underlying server socket.
-   *
-   * @param {string} eventName Event name.
-   * @param {function(...*)} listener Listener callback function.
-   */
-  on(eventName, listener) {
-    this.#serverSocket.on(eventName, listener);
   }
 
 

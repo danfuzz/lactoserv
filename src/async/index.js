@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 export * from '#x/Condition';
+export * from '#x/EventPayload';
 export * from '#x/EventSink';
 export * from '#x/EventSource';
 export * from '#x/EventTracker';

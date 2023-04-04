@@ -42,12 +42,12 @@ export class HttpWrangler extends TcpWrangler {
   }
 
   /** @override */
-  async _impl_applicationStart() {
+  async _impl_applicationStart(isReload_unused) {
     // Nothing to do in this case.
   }
 
   /** @override */
-  async _impl_applicationStop() {
+  async _impl_applicationStop(willReload_unused) {
     this.#protocolServer.close();
     this.#protocolServer.closeIdleConnections();
 

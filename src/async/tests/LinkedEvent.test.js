@@ -3,12 +3,12 @@
 
 import * as timers from 'node:timers/promises';
 
-import { LinkedEvent, ManualPromise, PromiseState } from '@this/async';
+import { EventPayload, LinkedEvent, ManualPromise, PromiseState } from '@this/async';
 
 
-const payload1 = { type: 'wacky' };
-const payload2 = { type: 'zany' };
-const payload3 = { type: 'questionable' };
+const payload1 = new EventPayload('wacky');
+const payload2 = new EventPayload('zany');
+const payload3 = new EventPayload('questionable');
 
 describe.each`
   label                   | args
@@ -189,6 +189,15 @@ describe('constructor(payload, next: Promise) -- invalid resolution', () => {
   });
 });
 
+describe('.args', () => {
+  test('is the `args` (by content) of the payload from construction', async () => {
+    const args  = ['bleep', 'bloop', 1, 2, 3];
+    const event = new LinkedEvent(new EventPayload('x', ...args));
+
+    expect(event.args).toStrictEqual(args);
+  });
+});
+
 describe('.emitter', () => {
   test('returns something the first time it is called', () => {
     const event = new LinkedEvent(payload1);
@@ -226,6 +235,18 @@ describe('.emitter', () => {
     expect(() => emitter(payload2)).toThrow();
     expect(() => emitter(payload2)).toThrow();
     expect(() => emitter(payload2)).toThrow();
+  });
+
+  test('returns a function which requires the payload to be an `instanceof` this class\'s payload', () => {
+    class SomePayload extends EventPayload {
+      // This space intentionally left blank.
+    }
+
+    const event   = new LinkedEvent(new SomePayload('beep', 1, 2, 3));
+    const emitter = event.emitter;
+
+    expect(() => emitter(new EventPayload('blorp'))).toThrow();
+    expect(() => emitter(new SomePayload('blorp'))).not.toThrow();
   });
 });
 
@@ -358,6 +379,16 @@ describe('withPayload()', () => {
     const result2 = event.withPayload(payload2);
     expect(() => result2.emitter).toThrow();
   });
+
+  test('fails if the given payload does not match the class of the existing payload', () => {
+    class SomePayload extends EventPayload {
+      // This space intentionally left blank.
+    }
+
+    const event = new LinkedEvent(new SomePayload('boop'));
+    expect(() => event.withPayload(payload1)).toThrow();
+    expect(() => event.withPayload(new SomePayload('bop'))).not.toThrow();
+  });
 });
 
 describe('withPushedHead()', () => {
@@ -392,6 +423,16 @@ describe('withPushedHead()', () => {
     const event2  = new LinkedEvent(payload1, new LinkedEvent(payload3));
     const result2 = event2.withPushedHead(payload2);
     expect(() => result2.emitter).toThrow();
+  });
+
+  test('fails if the given payload does not match the class of the existing payload', () => {
+    class SomePayload extends EventPayload {
+      // This space intentionally left blank.
+    }
+
+    const event = new LinkedEvent(new SomePayload('boop'));
+    expect(() => event.withPushedHead(payload1)).toThrow();
+    expect(() => event.withPushedHead(new SomePayload('bop'))).not.toThrow();
   });
 });
 
