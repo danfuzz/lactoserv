@@ -9,13 +9,13 @@ import { MustBe } from '@this/typey';
 
 import { LogTag } from '#x/LogTag';
 
-// TODO: Rename this to `LogPayload`.
-
 /**
- * The thing which is logged; it is the payload class for events used by this
- * module.
+ * The thing which is logged; it is the payload class used for events
+ * constructed by this module. It includes the same basic event properties as
+ * {@link EventPayload} (which it inherits from), to which it adds a few
+ * logging-specific properties.
  */
-export class LogRecord extends EventPayload {
+export class LogPayload extends EventPayload {
   /** @type {Moment} Moment in time that this instance represents. */
   #when;
 
@@ -85,7 +85,7 @@ export class LogRecord extends EventPayload {
    * @returns {Struct} Encoded form.
    */
   [BaseConverter.ENCODE]() {
-    return new Struct(LogRecord, {
+    return new Struct(LogPayload, {
       when:  this.#when,
       tag:   this.#tag,
       stack: this.#stack,
@@ -114,7 +114,7 @@ export class LogRecord extends EventPayload {
       }
 
       // TODO: Evaluate whether `util.inspect()` is sufficient.
-      parts.push(util.inspect(a, LogRecord.#HUMAN_INSPECT_OPTIONS));
+      parts.push(util.inspect(a, LogPayload.#HUMAN_INSPECT_OPTIONS));
     }
 
     parts.push(')');
@@ -153,11 +153,11 @@ export class LogRecord extends EventPayload {
    *   a default.
    * @param {?string} [type = null] Type to use for the instance, or `null` to
    *   use a default.
-   * @returns {LogRecord} A minimal instance for "kickoff."
+   * @returns {LogPayload} A minimal instance for "kickoff."
    */
   static makeKickoffInstance(tag = null, type = null) {
     tag  ??= this.#KICKOFF_TAG;
     type ??= this.#KICKOFF_TYPE;
-    return new LogRecord(this.#KICKOFF_MOMENT, tag, type, Object.freeze([]));
+    return new LogPayload(this.#KICKOFF_MOMENT, tag, type, Object.freeze([]));
   }
 }

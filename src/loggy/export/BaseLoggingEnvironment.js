@@ -4,7 +4,7 @@
 import { Converter, ConverterConfig, Moment, StackTrace } from '@this/data-values';
 import { Methods, MustBe } from '@this/typey';
 
-import { LogRecord } from '#x/LogRecord';
+import { LogPayload } from '#x/LogPayload';
 import { LogTag } from '#x/LogTag';
 
 
@@ -25,7 +25,7 @@ export class BaseLoggingEnvironment {
   // Note: The default constructor is fine here.
 
   /**
-   * Logs a {@link #LogRecord}, which is constructed from the arguments passed
+   * Logs a {@link #LogPayload}, which is constructed from the arguments passed
    * to this method along with a timestamp and stack trace as implemented by the
    * concrete subclass. The so-constructed record is then emitted, as if by
    * {@link #logRecord}, see which for further details.
@@ -47,16 +47,16 @@ export class BaseLoggingEnvironment {
   }
 
   /**
-   * Logs a pre-constructed {@link #LogRecord}. Typically, this ends up emitting
+   * Logs a pre-constructed {@link #LogPayload}. Typically, this ends up emitting
    * a {@link #LogEvent} from an event source of some sort (which is, for
    * example, what the standard concrete subclass of this class does), but it is
    * not _necessarily_ what happens (that is, it depends on the concrete
    * subclass).
    *
-   * @param {LogRecord} record The record to log.
+   * @param {LogPayload} record The record to log.
    */
   logRecord(record) {
-    MustBe.instanceOf(record, LogRecord);
+    MustBe.instanceOf(record, LogPayload);
     this._impl_logRecord(record);
   }
 
@@ -73,7 +73,7 @@ export class BaseLoggingEnvironment {
   }
 
   /**
-   * Makes a `LogRecord` instance, processing arguments as needed for the
+   * Makes a `LogPayload` instance, processing arguments as needed for the
    * ultimate destination.
    *
    * For example and in particular, non-JSON-encodable values may want to be
@@ -86,7 +86,7 @@ export class BaseLoggingEnvironment {
    * @param {LogTag} tag The record tag.
    * @param {string} type Event type.
    * @param {...*} args Event arguments.
-   * @returns {LogRecord} The constructed record.
+   * @returns {LogPayload} The constructed record.
    */
   makeRecord(omitCount, tag, type, ...args) {
     MustBe.number(omitCount, { minInclusive: 0, safeInteger: true });
@@ -139,7 +139,7 @@ export class BaseLoggingEnvironment {
    * with `record` as the payload.
    *
    * @abstract
-   * @param {LogRecord} record The record to log.
+   * @param {LogPayload} record The record to log.
    */
   _impl_logRecord(record) {
     Methods.abstract(record);
@@ -187,7 +187,7 @@ export class BaseLoggingEnvironment {
    * @param {LogTag} tag The record tag.
    * @param {string} type Event type.
    * @param {...*} args Event arguments.
-   * @returns {LogRecord} The constructed record.
+   * @returns {LogPayload} The constructed record.
    */
   #makeRecordUnchecked(omitCount, tag, type, ...args) {
     const now       = this.now();
@@ -196,7 +196,7 @@ export class BaseLoggingEnvironment {
     // `+1` to omit the frame for this method.
     const trace = this.makeStackTrace(omitCount + 1);
 
-    return new LogRecord(now, tag, type, fixedArgs, trace);
+    return new LogPayload(now, tag, type, fixedArgs, trace);
   }
 
 

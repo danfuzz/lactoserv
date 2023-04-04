@@ -6,7 +6,7 @@ export * from '#x/FormatUtils';
 export * from '#x/IdGenerator';
 export * from '#x/IntfLogger';
 export * from '#x/LogEvent';
-export * from '#x/LogRecord';
+export * from '#x/LogPayload';
 export * from '#x/LogTag';
 export * from '#x/Loggy';
 export * from '#x/StdLoggingEnvironment';

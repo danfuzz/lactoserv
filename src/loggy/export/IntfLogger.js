@@ -19,7 +19,7 @@ import { LogTag } from '#x/LogTag';
  * `logger.someName(1, 2, 'three')` logs the structured message `someName(1, 2,
  * 'three')` to whatever source the logger is attached to. The method name --
  * called the "event type" in this context -- along with the arguments and other
- * context from the logger instance become part of a `LogRecord` in a
+ * context from the logger instance become part of a `LogPayload` in a
  * `LogEvent`.
  *
  * Every logger has a "tag" which gets associated with each event logged through

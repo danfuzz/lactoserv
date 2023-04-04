@@ -9,7 +9,7 @@ import { BaseConverter, Converter, ConverterConfig } from '@this/data-values';
 import { MustBe } from '@this/typey';
 
 import { LogEvent } from '#x/LogEvent';
-import { LogRecord } from '#x/LogRecord';
+import { LogPayload } from '#x/LogPayload';
 
 
 /**
@@ -21,7 +21,7 @@ export class TextFileSink extends EventSink {
   #filePath;
 
   /**
-   * @type {function(LogRecord): Buffer|string} Function to convert an event
+   * @type {function(LogPayload): Buffer|string} Function to convert an event
    * into writable form.
    */
   #formatter;
@@ -55,7 +55,7 @@ export class TextFileSink extends EventSink {
   /**
    * Formats and writes the indicated record or "first write" marker.
    *
-   * @param {?LogRecord} record Record to write, or `null` to write a "first
+   * @param {?LogPayload} record Record to write, or `null` to write a "first
    *   write" marker.
    */
   async #writeRecord(record) {
@@ -98,7 +98,7 @@ export class TextFileSink extends EventSink {
     new Converter(ConverterConfig.makeLoggingInstance({ freeze: false }));
 
   /**
-   * @type {Map<string, function(LogRecord): Buffer|string>} Map from names to
+   * @type {Map<string, function(LogPayload): Buffer|string>} Map from names to
    * corresponding formatter methods.
    */
   static #FORMATTERS = new Map(Object.entries({
@@ -119,7 +119,7 @@ export class TextFileSink extends EventSink {
   /**
    * Formatter `human`, which converts to human-oriented text.
    *
-   * @param {?LogRecord} record Record to convert, or `null` if this is to be
+   * @param {?LogPayload} record Record to convert, or `null` if this is to be
    *   a "first write" marker.
    * @returns {string} Converted form.
    */
@@ -135,7 +135,7 @@ export class TextFileSink extends EventSink {
   /**
    * Formatter `json`, which converts to JSON text.
    *
-   * @param {?LogRecord} record Record to convert, or `null` if this is to be
+   * @param {?LogPayload} record Record to convert, or `null` if this is to be
    *   a "first write" marker.
    * @returns {?string} Converted form, or `null` if nothing is to be written.
    */
