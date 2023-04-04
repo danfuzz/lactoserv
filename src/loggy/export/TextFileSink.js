@@ -58,7 +58,7 @@ export class TextFileSink extends EventSink {
    * @param {?LogPayload} payload What to write, or `null` to write a "first
    *   write" marker.
    */
-  async #writeRecord(payload) {
+  async #writePayload(payload) {
     // `?? null` to force it to be a function call and not a method call on
     // `this`.
     const text = (this.#formatter ?? null)(payload);
@@ -77,12 +77,12 @@ export class TextFileSink extends EventSink {
   async #process(event) {
     if (!this.#everWritten) {
       if (!/^[/]dev[/]std(err|out)$/.test(this.#filePath)) {
-        await this.#writeRecord(null);
+        await this.#writePayload(null);
       }
       this.#everWritten = true;
     }
 
-    await this.#writeRecord(event.payload);
+    await this.#writePayload(event.payload);
   }
 
 
