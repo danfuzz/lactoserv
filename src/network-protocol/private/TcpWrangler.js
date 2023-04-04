@@ -48,7 +48,7 @@ export class TcpWrangler extends ProtocolWrangler {
 
     this.#logger      = options.logger ?? null;
     this.#rateLimiter = options.rateLimiter ?? null;
-    this.#asyncServer = new AsyncServer(options.interface, options.protocol);
+    this.#asyncServer = new AsyncServer(options.interface, options.protocol, this.#logger);
   }
 
   /** @override */

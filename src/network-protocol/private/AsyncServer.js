@@ -2,9 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Server, createServer as netCreateServer } from 'node:net';
+import { setTimeout } from 'node:timers/promises';
+
+import lodash from 'lodash';
 
 import { EventPayload, EventSource, LinkedEvent, PromiseUtil } from '@this/async';
-import { FormatUtils } from '@this/loggy';
+import { FormatUtils, IntfLogger } from '@this/loggy';
 import { MustBe } from '@this/typey';
 
 
@@ -13,6 +16,9 @@ import { MustBe } from '@this/typey';
  * in a way that is `async`-friendly.
  */
 export class AsyncServer {
+  /** @type {?IntfLogger} Logger to use, or `null` to not do any logging. */
+  #logger;
+
   /** @type {object} Parsed server socket `interface` specification. */
   #interface;
 
@@ -39,11 +45,13 @@ export class AsyncServer {
    *
    * @param {object} iface Parsed server socket `interface` specification.
    * @param {string} protocol The protocol name; just used for logging.
+   * @param {?IntfLogger} logger Logger to use, if any.
    */
-  constructor(iface, protocol) {
+  constructor(iface, protocol, logger) {
     // Note: `interface` is a reserved word.
     this.#interface = MustBe.plainObject(iface);
     this.#protocol  = MustBe.string(protocol);
+    this.#logger    = logger;
   }
 
   /**
@@ -110,8 +118,33 @@ export class AsyncServer {
   async start(isReload) {
     MustBe.boolean(isReload);
 
-    this.#serverSocket = netCreateServer(
-      AsyncServer.#extractConstructorOptions(this.#interface));
+    // In case of a reload, look for a stashed instance which is already set up
+    // the same way.
+    const found = isReload
+      ? AsyncServer.#unstashInstance(this.#interface)
+      : null;
+
+    if (found) {
+      // Inherit the "guts" of the now-unstashed instance.
+      this.#serverSocket = found.#serverSocket;
+      this.#serverSocket.removeAllListeners();
+
+      // Transfer any unhandled events to the new instance.
+      found.#eventSource.emit(new EventPayload('done'));
+      let eventHead = await found.#eventHead;
+      while (eventHead) {
+        if (eventHead.type === 'done') {
+          break;
+        }
+        this.emit(eventHead.payload);
+        eventHead = eventHead.nextNow;
+      }
+    } else {
+      // Either this isn't a reload, or it's a reload with an endpoint that
+      // isn't configured the same way as one of the pre-reload ones.
+      this.#serverSocket = netCreateServer(
+        AsyncServer.#extractConstructorOptions(this.#interface));
+    }
 
     this.#serverSocket.on('connection', (...args) => {
       this.#eventSource.emit(new EventPayload('connection', ...args));
@@ -133,7 +166,11 @@ export class AsyncServer {
   async stop(willReload) {
     MustBe.boolean(willReload);
 
-    await this.#close();
+    if (willReload) {
+      AsyncServer.#stashInstance(this);
+    } else {
+      await this.#close();
+    }
   }
 
   /**
@@ -177,14 +214,34 @@ export class AsyncServer {
         serverSocket.on('error', handleError);
       });
     }
+
+    // Close any sockets that happened to have been accepted in this class but
+    // which weren't then passed on to a client.
+    // Transfer any unhandled events to the new instance.
+    this.#eventSource.emit(new EventPayload('done'));
+    let eventHead = await this.#eventHead;
+    while (eventHead) {
+      if (eventHead.type === 'done') {
+        break;
+      } else if (eventHead.type === 'connection') {
+        const socket = eventHead.args[0];
+        socket.destroy();
+      }
+      eventHead = eventHead.nextNow;
+    }
+
   }
 
   /**
-   * Performs a `listen()` on the underlying {@link Server}. This method
-   * async-returns once the server is actually listening.
+   * Performs a `listen()` on the underlying {@link Server}, if not already
+   * done. This method async-returns once the server is actually listening.
    */
   async #listen() {
     const serverSocket = this.#serverSocket;
+
+    if (serverSocket.listening) {
+      return;
+    }
 
     // This `await new Promise` arrangement is done to get the `listen()` call
     // to be a good async citizen. Notably, the optional callback passed to
@@ -217,7 +274,6 @@ export class AsyncServer {
     });
   }
 
-
   //
   // Static members
   //
@@ -245,6 +301,18 @@ export class AsyncServer {
     fd:        null,
     port:      null
   });
+
+  /**
+   * @type {number} How long in msec to allow a stashed instance to remain
+   * stashed.
+   */
+  static #STASH_TIMEOUT_MSEC = 5 * 1000;
+
+  /**
+   * @type {Set<AsyncServer>} Set of stashed instances, for use during a reload.
+   * Such instances were left open and listening during a previous `stop()`.
+   */
+  static #stashedInstances = new Set();
 
   /**
    * Gets the options for a `Server` constructor(ish) call, given the full
@@ -294,5 +362,51 @@ export class AsyncServer {
     }
 
     return result;
+  }
+
+  /**
+   * Stashes an instance for possible reuse during a reload.
+   *
+   * @param {AsyncServer} instance The instance to stash.
+   */
+  static #stashInstance(instance) {
+    // Remove any pre-existing matching instance. This shouldn't happen in the
+    // first place, but if it does this will minimize the downstream confusion.
+    this.#unstashInstance(instance.#interface);
+
+    this.#stashedInstances.add(instance);
+    instance.#logger?.stashed();
+
+    (async () => {
+      await setTimeout(this.#STASH_TIMEOUT_MSEC);
+      if (this.#stashedInstances.delete(instance)) {
+        instance.#logger?.stashTimeout();
+        await instance.#close();
+      }
+    })();
+  }
+
+  /**
+   * Finds a matching instance of this class, if any, which was stashed away
+   * during a reload. If found, it is removed from the stash.
+   *
+   * @param {object} iface The interface specification for the instance.
+   * @returns {?AsyncServer} The found instance, if any.
+   */
+  static #unstashInstance(iface) {
+    let found = null;
+    for (const si of this.#stashedInstances) {
+      if (lodash.isEqual(iface, si.#interface)) {
+        found = si;
+        break;
+      }
+    }
+
+    if (found) {
+      this.#stashedInstances.delete(found);
+      found.#logger?.unstashed();
+    }
+
+    return found;
   }
 }
