@@ -4,7 +4,7 @@
 import { Converter, ConverterConfig, Moment, StackTrace } from '@this/data-values';
 import { Methods, MustBe } from '@this/typey';
 
-import { LogRecord } from '#x/LogRecord';
+import { LogPayload } from '#x/LogPayload';
 import { LogTag } from '#x/LogTag';
 
 
@@ -19,16 +19,16 @@ import { LogTag } from '#x/LogTag';
  * sanity checks in both directions.
  */
 export class BaseLoggingEnvironment {
-  /** @type {Converter} Data converter to use for encoding record arguments. */
+  /** @type {Converter} Data converter to use for encoding payload arguments. */
   #dataConverter = new Converter(ConverterConfig.makeLoggingInstance());
 
   // Note: The default constructor is fine here.
 
   /**
-   * Logs a {@link #LogRecord}, which is constructed from the arguments passed
+   * Logs a {@link #LogPayload}, which is constructed from the arguments passed
    * to this method along with a timestamp and stack trace as implemented by the
-   * concrete subclass. The so-constructed record is then emitted, as if by
-   * {@link #logRecord}, see which for further details.
+   * concrete subclass. The so-constructed payload is then emitted, as if by
+   * {@link #logPayload}, see which for further details.
    *
    * @param {number} omitCount The number of caller frames to omit from the
    *   stack trace.
@@ -42,22 +42,22 @@ export class BaseLoggingEnvironment {
     MustBe.string(type);
 
     // `+1` to omit the frame for this method.
-    const record = this.#makeRecordUnchecked(omitCount + 1, tag, type, ...args);
-    this._impl_logRecord(record);
+    const payload = this.#makePayloadUnchecked(omitCount + 1, tag, type, ...args);
+    this._impl_logPayload(payload);
   }
 
   /**
-   * Logs a pre-constructed {@link #LogRecord}. Typically, this ends up emitting
-   * a {@link #LogEvent} from an event source of some sort (which is, for
-   * example, what the standard concrete subclass of this class does), but it is
-   * not _necessarily_ what happens (that is, it depends on the concrete
+   * Logs a pre-constructed {@link #LogPayload}. Typically, this ends up
+   * emitting a {@link #LogEvent} from an event source of some sort (which is,
+   * for example, what the standard concrete subclass of this class does), but
+   * it is not _necessarily_ what happens (that is, it depends on the concrete
    * subclass).
    *
-   * @param {LogRecord} record The record to log.
+   * @param {LogPayload} payload What to log.
    */
-  logRecord(record) {
-    MustBe.instanceOf(record, LogRecord);
-    this._impl_logRecord(record);
+  logPayload(payload) {
+    MustBe.instanceOf(payload, LogPayload);
+    this._impl_logPayload(payload);
   }
 
   /**
@@ -73,7 +73,7 @@ export class BaseLoggingEnvironment {
   }
 
   /**
-   * Makes a `LogRecord` instance, processing arguments as needed for the
+   * Makes a `LogPayload` instance, processing arguments as needed for the
    * ultimate destination.
    *
    * For example and in particular, non-JSON-encodable values may want to be
@@ -83,18 +83,18 @@ export class BaseLoggingEnvironment {
    *
    * @param {number} omitCount The number of caller frames to omit from the
    *   stack trace.
-   * @param {LogTag} tag The record tag.
+   * @param {LogTag} tag The payload tag.
    * @param {string} type Event type.
    * @param {...*} args Event arguments.
-   * @returns {LogRecord} The constructed record.
+   * @returns {LogPayload} The constructed payload.
    */
-  makeRecord(omitCount, tag, type, ...args) {
+  makePayload(omitCount, tag, type, ...args) {
     MustBe.number(omitCount, { minInclusive: 0, safeInteger: true });
     MustBe.instanceOf(tag, LogTag);
     MustBe.string(type);
 
     // `+1` to omit the frame for this method.
-    return this.#makeRecordUnchecked(omitCount + 1, tag, type, ...args);
+    return this.#makePayloadUnchecked(omitCount + 1, tag, type, ...args);
   }
 
   /**
@@ -134,15 +134,15 @@ export class BaseLoggingEnvironment {
   }
 
   /**
-   * Outputs the given record to its ultimate destination. For example, the
+   * Outputs the given payload to its ultimate destination. For example, the
    * standard concrete implementation of this method emits a {@link #LogEvent}
-   * with `record` as the payload.
+   * with `payload` as the payload.
    *
    * @abstract
-   * @param {LogRecord} record The record to log.
+   * @param {LogPayload} payload What to log.
    */
-  _impl_logRecord(record) {
-    Methods.abstract(record);
+  _impl_logPayload(payload) {
+    Methods.abstract(payload);
   }
 
   /**
@@ -179,24 +179,24 @@ export class BaseLoggingEnvironment {
   }
 
   /**
-   * Like {@link #makeRecord}, except without any argument checking, so that
+   * Like {@link #makePayload}, except without any argument checking, so that
    * intra-class callers don't have to have redundant checks.
    *
    * @param {number} omitCount The number of caller frames to omit from the
    *   stack trace.
-   * @param {LogTag} tag The record tag.
+   * @param {LogTag} tag The payload tag.
    * @param {string} type Event type.
    * @param {...*} args Event arguments.
-   * @returns {LogRecord} The constructed record.
+   * @returns {LogPayload} The constructed payload.
    */
-  #makeRecordUnchecked(omitCount, tag, type, ...args) {
+  #makePayloadUnchecked(omitCount, tag, type, ...args) {
     const now       = this.now();
     const fixedArgs = this.#dataConverter.encode(args);
 
     // `+1` to omit the frame for this method.
     const trace = this.makeStackTrace(omitCount + 1);
 
-    return new LogRecord(now, tag, type, fixedArgs, trace);
+    return new LogPayload(now, tag, type, fixedArgs, trace);
   }
 
 

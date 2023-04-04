@@ -9,7 +9,7 @@ import { BaseConverter, Converter, ConverterConfig } from '@this/data-values';
 import { MustBe } from '@this/typey';
 
 import { LogEvent } from '#x/LogEvent';
-import { LogRecord } from '#x/LogRecord';
+import { LogPayload } from '#x/LogPayload';
 
 
 /**
@@ -21,7 +21,7 @@ export class TextFileSink extends EventSink {
   #filePath;
 
   /**
-   * @type {function(LogRecord): Buffer|string} Function to convert an event
+   * @type {function(LogPayload): Buffer|string} Function to convert an event
    * into writable form.
    */
   #formatter;
@@ -53,15 +53,15 @@ export class TextFileSink extends EventSink {
   }
 
   /**
-   * Formats and writes the indicated record or "first write" marker.
+   * Formats and writes the indicated payload or "first write" marker.
    *
-   * @param {?LogRecord} record Record to write, or `null` to write a "first
+   * @param {?LogPayload} payload What to write, or `null` to write a "first
    *   write" marker.
    */
-  async #writeRecord(record) {
+  async #writePayload(payload) {
     // `?? null` to force it to be a function call and not a method call on
     // `this`.
-    const text = (this.#formatter ?? null)(record);
+    const text = (this.#formatter ?? null)(payload);
 
     if (text !== null) {
       const finalText = text.endsWith('\n') ? text : `${text}\n`;
@@ -77,12 +77,12 @@ export class TextFileSink extends EventSink {
   async #process(event) {
     if (!this.#everWritten) {
       if (!/^[/]dev[/]std(err|out)$/.test(this.#filePath)) {
-        await this.#writeRecord(null);
+        await this.#writePayload(null);
       }
       this.#everWritten = true;
     }
 
-    await this.#writeRecord(event.payload);
+    await this.#writePayload(event.payload);
   }
 
 
@@ -91,19 +91,19 @@ export class TextFileSink extends EventSink {
   //
 
   /**
-   * @type {Converter} Data converter to use for encoding record arguments,
+   * @type {Converter} Data converter to use for encoding payload arguments,
    * specifically for the `json` format.
    */
   static #CONVERTER_FOR_JSON =
     new Converter(ConverterConfig.makeLoggingInstance({ freeze: false }));
 
   /**
-   * @type {Map<string, function(LogRecord): Buffer|string>} Map from names to
+   * @type {Map<string, function(LogPayload): Buffer|string>} Map from names to
    * corresponding formatter methods.
    */
   static #FORMATTERS = new Map(Object.entries({
-    human: (record) => this.#formatHuman(record),
-    json:  (record) => this.#formatJson(record)
+    human: (payload) => this.#formatHuman(payload),
+    json:  (payload) => this.#formatJson(payload)
   }));
 
   /**
@@ -119,42 +119,42 @@ export class TextFileSink extends EventSink {
   /**
    * Formatter `human`, which converts to human-oriented text.
    *
-   * @param {?LogRecord} record Record to convert, or `null` if this is to be
+   * @param {?LogPayload} payload Payload to convert, or `null` if this is to be
    *   a "first write" marker.
    * @returns {string} Converted form.
    */
-  static #formatHuman(record) {
-    if (record === null) {
+  static #formatHuman(payload) {
+    if (payload === null) {
       // This is a "page break" written to non-console files.
       return `\n\n${'- '.repeat(38)}-\n\n\n`;
     }
 
-    return record.toHuman();
+    return payload.toHuman();
   }
 
   /**
    * Formatter `json`, which converts to JSON text.
    *
-   * @param {?LogRecord} record Record to convert, or `null` if this is to be
+   * @param {?LogPayload} payload Payload to convert, or `null` if this is to be
    *   a "first write" marker.
    * @returns {?string} Converted form, or `null` if nothing is to be written.
    */
-  static #formatJson(record) {
-    if (record === null) {
+  static #formatJson(payload) {
+    if (payload === null) {
       return null;
     }
 
     // What's going on: We assume that the `args` payload is already
     // sufficiently encoded (because that would have / should have happened
     // synchronously while logging), but we want to generically encode
-    // everything else. So, we do a top-level encode of the record, tweak it,
+    // everything else. So, we do a top-level encode of the payload, tweak it,
     // let the normal encode mechanism do it's thing, and then tweak it back.
 
-    const encodedRecord = record[BaseConverter.ENCODE]();
-    const objToEncode   = { ...encodedRecord.options, args: null };
-    const encoded       = this.#CONVERTER_FOR_JSON.encode(objToEncode);
+    const encodedPayload = payload[BaseConverter.ENCODE]();
+    const objToEncode    = { ...encodedPayload.options, args: null };
+    const encoded        = this.#CONVERTER_FOR_JSON.encode(objToEncode);
 
-    encoded.args = encodedRecord.options.args;
+    encoded.args = encodedPayload.options.args;
     return JSON.stringify(encoded);
 
     //const finalObj      = { ...encoded, args: encodedRecord.options.args };

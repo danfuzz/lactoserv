@@ -5,25 +5,25 @@ import { EventSource, LinkedEvent } from '@this/async';
 import { StackTrace } from '@this/data-values';
 import { MustBe } from '@this/typey';
 
-import { LogRecord } from '#x/LogRecord';
+import { LogPayload } from '#x/LogPayload';
 import { LogTag } from '#x/LogTag';
 
 
 /**
- * Event subclass that holds {@link LogRecord}s as their payloads. It exists for
- * convenience (to avoid having to dig into the payload), for (a little bit of)
- * type safety, and for documentation.
+ * Event subclass that holds {@link LogPayload}s as their payloads. It exists
+ * for convenience (to avoid having to dig into the payload), for (a little bit
+ * of type safety, and for documentation.
  */
 export class LogEvent extends LinkedEvent {
   /**
    * Constructs an instance.
    *
-   * @param {LogRecord} payload The event payload.
+   * @param {LogPayload} payload The event payload.
    * @param {?LogEvent|Promise<LogEvent>} [next = null] The next event in the
    *   chain or promise for same, if already known.
    */
   constructor(payload, next) {
-    MustBe.instanceOf(payload, LogRecord);
+    MustBe.instanceOf(payload, LogPayload);
     super(payload, next);
   }
 
@@ -68,7 +68,7 @@ export class LogEvent extends LinkedEvent {
    * @returns {LogEvent} A minimal instance for "kickoff."
    */
   static makeKickoffInstance(tag = null, type = null) {
-    const payload = LogRecord.makeKickoffInstance(tag, type);
+    const payload = LogPayload.makeKickoffInstance(tag, type);
     return new LogEvent(payload);
   }
 
