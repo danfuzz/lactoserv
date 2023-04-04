@@ -214,6 +214,22 @@ export class AsyncServer {
         serverSocket.on('error', handleError);
       });
     }
+
+    // Close any sockets that happened to have been accepted in this class but
+    // which weren't then passed on to a client.
+    // Transfer any unhandled events to the new instance.
+    this.#eventSource.emit(new EventPayload('done'));
+    let eventHead = await this.#eventHead;
+    while (eventHead) {
+      if (eventHead.type === 'done') {
+        break;
+      } else if (eventHead.type === 'connection') {
+        const socket = eventHead.args[0];
+        socket.destroy();
+      }
+      eventHead = eventHead.nextNow;
+    }
+
   }
 
   /**
