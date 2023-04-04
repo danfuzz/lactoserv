@@ -189,6 +189,31 @@ describe('constructor(payload, next: Promise) -- invalid resolution', () => {
   });
 });
 
+describe('constructor(<invalid>)', () => {
+  test.each`
+  value
+  ${{}}
+  ${{ type: 'beep', args: [1, 2, 3] }}
+  ${[]}
+  ${['beep', 'boop']}
+  ${new Map()}
+  `('throws given non-`EventPayload` object $value', (value) => {
+    expect(() => new LinkedEvent(value)).toThrow();
+  });
+
+  test.each`
+  value
+  ${undefined}
+  ${null}
+  ${true}
+  ${123}
+  ${'beep'}
+  ${Symbol('boop')}
+  `('throws given non-object $value', (value) => {
+    expect(() => new LinkedEvent(value)).toThrow();
+  });
+});
+
 describe('.args', () => {
   test('is the `args` (by content) of the payload from construction', async () => {
     const args  = ['bleep', 'bloop', 1, 2, 3];
@@ -308,7 +333,7 @@ describe('.payload', () => {
 describe('.type', () => {
   test('is the `type` of the payload from construction', async () => {
     const type  = 'bleep';
-    const event = new LinkedEvent({ x: 'florp', type });
+    const event = new LinkedEvent(new EventPayload(type, { x: 'florp' }));
 
     expect(event.type).toBe(type);
   });
