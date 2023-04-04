@@ -28,7 +28,7 @@ export class BaseLoggingEnvironment {
    * Logs a {@link #LogPayload}, which is constructed from the arguments passed
    * to this method along with a timestamp and stack trace as implemented by the
    * concrete subclass. The so-constructed record is then emitted, as if by
-   * {@link #logRecord}, see which for further details.
+   * {@link #logPayload}, see which for further details.
    *
    * @param {number} omitCount The number of caller frames to omit from the
    *   stack trace.
@@ -42,8 +42,8 @@ export class BaseLoggingEnvironment {
     MustBe.string(type);
 
     // `+1` to omit the frame for this method.
-    const record = this.#makePayloadUnchecked(omitCount + 1, tag, type, ...args);
-    this._impl_logRecord(record);
+    const payload = this.#makePayloadUnchecked(omitCount + 1, tag, type, ...args);
+    this._impl_logPayload(payload);
   }
 
   /**
@@ -55,9 +55,9 @@ export class BaseLoggingEnvironment {
    *
    * @param {LogPayload} payload What to log.
    */
-  logRecord(payload) {
+  logPayload(payload) {
     MustBe.instanceOf(payload, LogPayload);
-    this._impl_logRecord(payload);
+    this._impl_logPayload(payload);
   }
 
   /**
@@ -141,7 +141,7 @@ export class BaseLoggingEnvironment {
    * @abstract
    * @param {LogPayload} payload What to log.
    */
-  _impl_logRecord(payload) {
+  _impl_logPayload(payload) {
     Methods.abstract(payload);
   }
 
