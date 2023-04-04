@@ -75,6 +75,15 @@ export class LinkedEvent {
   }
 
   /**
+   * @returns {*[]} The event's argument list, as defined by the {@link
+   * #payload}. This just passes through to `.args` on the payload, and
+   * guarantees the return type.
+   */
+  get args() {
+    return MustBe.array(this.#payload.args);
+  }
+
+  /**
    * Gets a function which emits the next event -- that is, which causes {@link
    * #nextNow} to become known and thus appends a new event to the chain -- and
    * then returns the emitter function for the next-next event.

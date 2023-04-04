@@ -189,6 +189,15 @@ describe('constructor(payload, next: Promise) -- invalid resolution', () => {
   });
 });
 
+describe('.args', () => {
+  test('is the `args` (by content) of the payload from construction', async () => {
+    const args  = ['bleep', 'bloop', 1, 2, 3];
+    const event = new LinkedEvent(new EventPayload('x', ...args));
+
+    expect(event.args).toStrictEqual(args);
+  });
+});
+
 describe('.emitter', () => {
   test('returns something the first time it is called', () => {
     const event = new LinkedEvent(payload1);
