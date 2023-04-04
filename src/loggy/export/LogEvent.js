@@ -10,9 +10,9 @@ import { LogTag } from '#x/LogTag';
 
 
 /**
- * Event subclass that holds {@link LogPayload}s as their payloads. It exists for
- * convenience (to avoid having to dig into the payload), for (a little bit of)
- * type safety, and for documentation.
+ * Event subclass that holds {@link LogPayload}s as their payloads. It exists
+ * for convenience (to avoid having to dig into the payload), for (a little bit
+ * of type safety, and for documentation.
  */
 export class LogEvent extends LinkedEvent {
   /**
