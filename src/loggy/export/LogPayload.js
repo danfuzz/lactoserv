@@ -9,6 +9,7 @@ import { MustBe } from '@this/typey';
 
 import { LogTag } from '#x/LogTag';
 
+
 /**
  * The thing which is logged; it is the payload class used for events
  * constructed by this module. It includes the same basic event properties as
