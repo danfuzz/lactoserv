@@ -75,26 +75,40 @@ export class EventSource {
    *   (remember), not including the current (most-recently emitted) event.
    *   Must be a whole number or positive infinity.
    * @param {?LinkedEvent} [options.kickoffEvent = null] "Kickoff" event, or
-   *   `null` to use the default of a direct instance of {@link LinkedEvent}
-   *   which holds the result of a call to {@link
-   *   EventPayload#makeKickoffInstance}.
+   *   `null` to use `options.kickoffPayload` (below). It is not valid to
+   *   specify both this and `kickoffPayload`.
+   * @param {?EventPayload} [options.kickoffPayload = null] Payload for the
+   *   "kickoff" event, or `null` to use the default of the result of a call to
+   *   {@link EventPayload#makeKickoffInstance}. The event itself is a direct
+   *   instance of {@link LinkedEvent}. It is not valid to specify both this and
+   *   `kickoffEvent`.
    */
-  constructor(options) {
-    const kickoffEvent = options?.kickoffEvent ?? null;
-    const keepCount    = options?.keepCount ?? 0;
-
-    if (kickoffEvent !== null) {
-      MustBe.instanceOf(kickoffEvent, LinkedEvent);
-    }
+  constructor(options = null) {
+    const {
+      keepCount      = 0,
+      kickoffEvent   = null,
+      kickoffPayload = null
+    } = options ?? {};
 
     if (keepCount !== Number.POSITIVE_INFINITY) {
       MustBe.number(keepCount, { safeInteger: true });
     }
 
-    this.#keepCount     = keepCount;
-    this.#earliestEvent = kickoffEvent ?? new LinkedEvent(EventPayload.makeKickoffInstance());
-    this.#currentEvent  = this.#earliestEvent;
-    this.#emitNext      = this.#currentEvent.emitter;
+    if (kickoffEvent) {
+      if (kickoffPayload) {
+        throw new Error('Cannot specify both `kickoffEvent` and `kickoffPayload`');
+      }
+      this.#earliestEvent = MustBe.instanceOf(kickoffEvent, LinkedEvent);
+    } else {
+      const payload = kickoffPayload
+        ? MustBe.instanceOf(kickoffPayload, EventPayload)
+        : EventPayload.makeKickoffInstance();
+      this.#earliestEvent = new LinkedEvent(payload);
+    }
+
+    this.#keepCount    = keepCount;
+    this.#currentEvent = this.#earliestEvent;
+    this.#emitNext     = this.#currentEvent.emitter;
   }
 
   /**

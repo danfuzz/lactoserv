@@ -11,22 +11,30 @@ class ZanyEvent extends LinkedEvent {
   // This space intentionally left blank.
 }
 
+// For testing subclass scenarios.
+class ZanyPayload extends EventPayload {
+  // This space intentionally left blank.
+}
+
+
 const payload1 = new EventPayload('wacky');
 const payload2 = new EventPayload('zany');
 const payload3 = new EventPayload('questionable');
 
 describe.each`
-  label                             | argFn                                                | cls             | keepCount
-  ${''}                             | ${() => []}                                          | ${LinkedEvent} | ${0}
-  ${'null'}                         | ${() => [null]}                                      | ${LinkedEvent} | ${0}
-  ${'undefined'}                    | ${() => [undefined]}                                 | ${LinkedEvent} | ${0}
-  ${'{ keepCount: 0 }'}             | ${() => [{ keepCount: 0 }]}                          | ${LinkedEvent} | ${0}
-  ${'{ keepCount: 1 }'}             | ${() => [{ keepCount: 1 }]}                          | ${LinkedEvent} | ${1}
-  ${'{ keepCount: 10 }'}            | ${() => [{ keepCount: 10 }]}                         | ${LinkedEvent} | ${10}
-  ${'{ keepCount: +inf }'}          | ${() => [{ keepCount: Infinity }]}                   | ${LinkedEvent} | ${Infinity}
-  ${'{ kickoffEvent: null }'}       | ${() => [{ kickoffEvent: null }]}                    | ${LinkedEvent} | ${0}
-  ${'{ kickoffEvent: <subclass> }'} | ${() => [{ kickoffEvent: new ZanyEvent(payload1) }]} | ${ZanyEvent}    | ${0}
-`('constructor($label)', ({ argFn, cls, keepCount }) => {
+  label                               | argFn                                                | eventClass     | payloadClass    | keepCount
+  ${''}                               | ${() => []}                                          | ${LinkedEvent} | ${EventPayload} | ${0}
+  ${'null'}                           | ${() => [null]}                                      | ${LinkedEvent} | ${EventPayload} | ${0}
+  ${'undefined'}                      | ${() => [undefined]}                                 | ${LinkedEvent} | ${EventPayload} | ${0}
+  ${'{ keepCount: 0 }'}               | ${() => [{ keepCount: 0 }]}                          | ${LinkedEvent} | ${EventPayload} | ${0}
+  ${'{ keepCount: 1 }'}               | ${() => [{ keepCount: 1 }]}                          | ${LinkedEvent} | ${EventPayload} | ${1}
+  ${'{ keepCount: 10 }'}              | ${() => [{ keepCount: 10 }]}                         | ${LinkedEvent} | ${EventPayload} | ${10}
+  ${'{ keepCount: +inf }'}            | ${() => [{ keepCount: Infinity }]}                   | ${LinkedEvent} | ${EventPayload} | ${Infinity}
+  ${'{ kickoffPayload: null }'}       | ${() => [{ kickoffPayload: null }]}                  | ${LinkedEvent} | ${EventPayload} | ${0}
+  ${'{ kickoffPayload: <subclass> }'} | ${() => [{ kickoffPayload: new ZanyPayload('x') }]}  | ${LinkedEvent} | ${ZanyPayload}  | ${0}
+  ${'{ kickoffEvent: null }'}         | ${() => [{ kickoffEvent: null }]}                    | ${LinkedEvent} | ${EventPayload} | ${0}
+  ${'{ kickoffEvent: <subclass> }'}   | ${() => [{ kickoffEvent: new ZanyEvent(payload1) }]} | ${ZanyEvent}   | ${EventPayload} | ${0}
+`('constructor($label)', ({ argFn, eventClass, payloadClass, keepCount }) => {
   test('trivially succeeds', () => {
     expect(() => new EventSource(...argFn())).not.toThrow();
   });
@@ -62,8 +70,17 @@ describe.each`
 
   test('produces an instance which emits instances of the appropriate class', () => {
     const source = new EventSource(...argFn());
-    const event  = source.emit(payload1);
-    expect(event).toBeInstanceOf(cls);
+    const event  = source.emit(new payloadClass('florp'));
+    expect(event).toBeInstanceOf(eventClass);
+  });
+
+  test('produces an instance which refuses to emit payloads of the wrong class', () => {
+    const source = new EventSource(...argFn());
+    if (payloadClass === EventPayload) {
+      expect(() => source.emit({ x: 10 })).toThrow();
+    } else {
+      expect(() => source.emit(new EventPayload('beep', 20))).toThrow();
+    }
   });
 });
 
@@ -196,5 +213,36 @@ describe('emit()', () => {
     const source = new EventSource();
     const result = source.emit(payload1);
     expect(() => result.emitter).toThrow();
+  });
+
+  test('refuses to emit a payload that doesn\'t match the kickoff payload', () => {
+    const source = new EventSource({ kickoffPayload: new ZanyPayload('beep') });
+    expect(() => source.emit(new EventPayload('boop'))).toThrow();
+    expect(() => source.emit(new ZanyPayload('boop'))).not.toThrow();
+  });
+
+  test.each`
+  value
+  ${{}}
+  ${{ type: 'beep', args: [1, 2, 3] }}
+  ${[]}
+  ${['beep', 'boop']}
+  ${new Map()}
+  `('refuses to emit non-`EventPayload` object $value', (value) => {
+    const source = new EventSource();
+    expect(() => source.emit(value)).toThrow();
+  });
+
+  test.each`
+  value
+  ${undefined}
+  ${null}
+  ${true}
+  ${123}
+  ${'beep'}
+  ${Symbol('boop')}
+  `('refuses to emit non-object $value', (value) => {
+    const source = new EventSource();
+    expect(() => source.emit(value)).toThrow();
   });
 });
