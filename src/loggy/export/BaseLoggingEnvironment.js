@@ -47,17 +47,17 @@ export class BaseLoggingEnvironment {
   }
 
   /**
-   * Logs a pre-constructed {@link #LogPayload}. Typically, this ends up emitting
-   * a {@link #LogEvent} from an event source of some sort (which is, for
-   * example, what the standard concrete subclass of this class does), but it is
-   * not _necessarily_ what happens (that is, it depends on the concrete
+   * Logs a pre-constructed {@link #LogPayload}. Typically, this ends up
+   * emitting a {@link #LogEvent} from an event source of some sort (which is,
+   * for example, what the standard concrete subclass of this class does), but
+   * it is not _necessarily_ what happens (that is, it depends on the concrete
    * subclass).
    *
-   * @param {LogPayload} record The record to log.
+   * @param {LogPayload} payload What to log.
    */
-  logRecord(record) {
-    MustBe.instanceOf(record, LogPayload);
-    this._impl_logRecord(record);
+  logRecord(payload) {
+    MustBe.instanceOf(payload, LogPayload);
+    this._impl_logRecord(payload);
   }
 
   /**
@@ -86,7 +86,7 @@ export class BaseLoggingEnvironment {
    * @param {LogTag} tag The record tag.
    * @param {string} type Event type.
    * @param {...*} args Event arguments.
-   * @returns {LogPayload} The constructed record.
+   * @returns {LogPayload} The constructed payload.
    */
   makeRecord(omitCount, tag, type, ...args) {
     MustBe.number(omitCount, { minInclusive: 0, safeInteger: true });
@@ -139,10 +139,10 @@ export class BaseLoggingEnvironment {
    * with `record` as the payload.
    *
    * @abstract
-   * @param {LogPayload} record The record to log.
+   * @param {LogPayload} payload What to log.
    */
-  _impl_logRecord(record) {
-    Methods.abstract(record);
+  _impl_logRecord(payload) {
+    Methods.abstract(payload);
   }
 
   /**
@@ -187,7 +187,7 @@ export class BaseLoggingEnvironment {
    * @param {LogTag} tag The record tag.
    * @param {string} type Event type.
    * @param {...*} args Event arguments.
-   * @returns {LogPayload} The constructed record.
+   * @returns {LogPayload} The constructed payload.
    */
   #makeRecordUnchecked(omitCount, tag, type, ...args) {
     const now       = this.now();
