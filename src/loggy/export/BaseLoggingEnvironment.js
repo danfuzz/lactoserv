@@ -42,7 +42,7 @@ export class BaseLoggingEnvironment {
     MustBe.string(type);
 
     // `+1` to omit the frame for this method.
-    const record = this.#makeRecordUnchecked(omitCount + 1, tag, type, ...args);
+    const record = this.#makePayloadUnchecked(omitCount + 1, tag, type, ...args);
     this._impl_logRecord(record);
   }
 
@@ -88,13 +88,13 @@ export class BaseLoggingEnvironment {
    * @param {...*} args Event arguments.
    * @returns {LogPayload} The constructed payload.
    */
-  makeRecord(omitCount, tag, type, ...args) {
+  makePayload(omitCount, tag, type, ...args) {
     MustBe.number(omitCount, { minInclusive: 0, safeInteger: true });
     MustBe.instanceOf(tag, LogTag);
     MustBe.string(type);
 
     // `+1` to omit the frame for this method.
-    return this.#makeRecordUnchecked(omitCount + 1, tag, type, ...args);
+    return this.#makePayloadUnchecked(omitCount + 1, tag, type, ...args);
   }
 
   /**
@@ -179,7 +179,7 @@ export class BaseLoggingEnvironment {
   }
 
   /**
-   * Like {@link #makeRecord}, except without any argument checking, so that
+   * Like {@link #makePayload}, except without any argument checking, so that
    * intra-class callers don't have to have redundant checks.
    *
    * @param {number} omitCount The number of caller frames to omit from the
@@ -189,7 +189,7 @@ export class BaseLoggingEnvironment {
    * @param {...*} args Event arguments.
    * @returns {LogPayload} The constructed payload.
    */
-  #makeRecordUnchecked(omitCount, tag, type, ...args) {
+  #makePayloadUnchecked(omitCount, tag, type, ...args) {
     const now       = this.now();
     const fixedArgs = this.#dataConverter.encode(args);
 
