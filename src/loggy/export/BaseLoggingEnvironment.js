@@ -48,10 +48,10 @@ export class BaseLoggingEnvironment {
 
   /**
    * Logs a pre-constructed {@link #LogPayload}. Typically, this ends up
-   * emitting a {@link #LogEvent} from an event source of some sort (which is,
-   * for example, what the standard concrete subclass of this class does), but
-   * it is not _necessarily_ what happens (that is, it depends on the concrete
-   * subclass).
+   * emitting a {@link #LinkedEvent} from an event source of some sort (which
+   * is, for example, what the standard concrete subclass of this class does),
+   * but it is not _necessarily_ what happens (that is, it depends on the
+   * concrete subclass).
    *
    * @param {LogPayload} payload What to log.
    */
@@ -135,8 +135,8 @@ export class BaseLoggingEnvironment {
 
   /**
    * Outputs the given payload to its ultimate destination. For example, the
-   * standard concrete implementation of this method emits a {@link #LogEvent}
-   * with `payload` as the payload.
+   * standard concrete implementation of this method emits a {@link
+   * #LinkedEvent} with `payload` as the payload.
    *
    * @abstract
    * @param {LogPayload} payload What to log.

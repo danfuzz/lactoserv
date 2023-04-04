@@ -20,7 +20,7 @@ import { LogTag } from '#x/LogTag';
  * 'three')` to whatever source the logger is attached to. The method name --
  * called the "event type" in this context -- along with the arguments and other
  * context from the logger instance become part of a `LogPayload` in a
- * `LogEvent`.
+ * `LinkedEvent`.
  *
  * Every logger has a "tag" which gets associated with each event logged through
  * it. A tag is an ordered list of context strings, including a "main" one (e.g.

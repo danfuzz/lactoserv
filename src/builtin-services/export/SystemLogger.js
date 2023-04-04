@@ -6,8 +6,8 @@ import * as timers from 'node:timers/promises';
 import { FileServiceConfig } from '@this/app-config';
 import { BaseService } from '@this/app-framework';
 import { Rotator } from '@this/app-util';
-import { EventTracker } from '@this/async';
-import { IntfLogger, LogEvent, Loggy, TextFileSink } from '@this/loggy';
+import { EventTracker, LinkedEvent } from '@this/async';
+import { IntfLogger, Loggy, TextFileSink } from '@this/loggy';
 import { MustBe } from '@this/typey';
 
 
@@ -84,7 +84,7 @@ export class SystemLogger extends BaseService {
    * event just after the last one expected to have been logged by a predecessor
    * instance.
    *
-   * @returns {LogEvent|Promise<LogEvent>} First event to log.
+   * @returns {LinkedEvent|Promise<LinkedEvent>} First event to log.
    */
   #findEarliestEventToLog() {
     const earliestEvent = Loggy.earliestEvent;
