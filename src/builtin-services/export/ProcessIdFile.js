@@ -33,35 +33,10 @@ import { MustBe } from '@this/typey';
  * complete information about the system.
  */
 export class ProcessIdFile extends BaseService {
-  /** @type {boolean} Allow multiple processes to be listed in the file? */
-  #multiprocess;
-
-  /**
-   * @type {?number} How often to update the file, in seconds, or `null` to not
-   * perform updates.
-   */
-  #updateSecs;
-
-  /** @type {string} Full path to the file. */
-  #filePath;
-
   /** @type {Threadlet} Threadlet which runs this service. */
   #runner = new Threadlet(() => this.#run());
 
-  /**
-   * Constructs an instance.
-   *
-   * @param {FileServiceConfig} config Configuration for this service.
-   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
-   */
-  constructor(config, logger) {
-    super(config, logger);
-
-    const { multiprocess, updateSecs } = config;
-    this.#multiprocess = multiprocess;
-    this.#updateSecs   = updateSecs;
-    this.#filePath     = config.path;
-  }
+  // Note: Default constructor is fine for this class.
 
   /** @override */
   async _impl_start(isReload_unused) {
@@ -84,7 +59,7 @@ export class ProcessIdFile extends BaseService {
   async #makeContents(running) {
     const pid = process.pid;
 
-    if (!this.#multiprocess) {
+    if (!this.config.multiprocess) {
       // Easy case when not handling multiple processes.
       return running ? `${pid}\n` : '';
     }
@@ -130,7 +105,7 @@ export class ProcessIdFile extends BaseService {
    * exist or could not be read for some reason.
    */
   async #readFile() {
-    const filePath = this.#filePath;
+    const filePath = this.config.path;
 
     try {
       await fs.stat(filePath);
@@ -152,8 +127,9 @@ export class ProcessIdFile extends BaseService {
     while (!this.#runner.shouldStop()) {
       await this.#updateFile(true);
 
-      const updateTimeout = this.#updateSecs
-        ? [timers.setTimeout(this.#updateSecs * 1000)]
+      const { updateSecs } = this.config;
+      const updateTimeout  = updateSecs
+        ? [timers.setTimeout(updateSecs * 1000)]
         : [];
 
       await this.#runner.raceWhenStopRequested(updateTimeout);
@@ -177,7 +153,7 @@ export class ProcessIdFile extends BaseService {
         this.logger.writeContention({ attempt: i + 1 });
       }
 
-      const filePath = this.#filePath;
+      const filePath = this.config.path;
       const contents = await this.#makeContents(running);
 
       if (contents === '') {
