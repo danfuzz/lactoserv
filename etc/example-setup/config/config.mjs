@@ -25,6 +25,14 @@ const hosts = [
 // Service definitions.
 const services = [
   {
+    name:            'memory',
+    class:           'MemoryMonitor',
+    checkSecs:       5 * 60,
+    gracePeriodSecs: 60,
+    maxHeapBytes:    100 * 1024 * 1024,
+    maxRssBytes:     150 * 1024 * 1024
+  },
+  {
     name:       'process',
     class:      'ProcessInfoFile',
     path:       `${RUN_DIR}/process.json`,
