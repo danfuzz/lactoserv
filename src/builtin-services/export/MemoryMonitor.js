@@ -19,20 +19,21 @@ import { MustBe } from '@this/typey';
  * * `{?number} checkSecs` -- How often to check things, in seconds, or `null`
  *   to use the default frequency. Minimum `1`. Defaults to `60` (once per
  *   minute).
- * * `{?number} gracePeriodSecs` -- Once the maximum size has been reached, how
- *   long it must remain at or beyond the maximum before this service takes
- *   action, or `null` not to have a grace period at all (equivalent to `0`).
- *   When in the middle of a grace period, the system checks more often than
- *   `checkSecs` so as not to miss a significant dip. Defaults to `null`.
- * * `{?number} maxHeapBytes` -- How large to allow the heap to get before
- *   initiating shutdown, or `null` for no limit on this. Defaults to `null`.
- *   In order to catch probably-unintentional misconfiguration, if non-`null`,
- *   must be one megabyte or larger.
+ * * `{?number} gracePeriodSecs` -- Once a memory limit has been reached, how
+ *   long it is allowed to remain at or beyond the maximum before this service
+ *   takes action, or `null` not to have a grace period at all (equivalent to
+ *   `0`). When in the middle of a grace period, the system checks more often
+ *   than `checkSecs` so as not to miss a significant dip. Defaults to `null`.
+ * * `{?number} maxHeapBytes` -- How many bytes of heap is considered "over
+ *   limit," or `null` for no limit on this. The amount counted is `heapTotal +
+ *   external` from `process.memoryUsage()`. Defaults to `null`. **Note:** In
+ *   order to catch probably-unintentional misconfiguration, if a number, must
+ *   be at least one megabyte.
  *   The amount counted is `heapTotal + external` from `process.memoryUsage()`.
- * * `{?number} maxRssBytes` -- How large to allow the RSS to get before
- *   initiating shutdown, or `null` for no limit on this. Defaults to `null`. In
+ * * `{?number} maxRssBytes` -- How many bytes of RSS is considered "over
+ *   limit," or `null` for no limit on this. Defaults to `null`. **Note:** In
  *   order to catch probably-unintentional misconfiguration, if non-`null`, must
- *   be one megabyte or larger.
+ *   be at least one megabyte.
  */
 export class MemoryMonitor extends BaseService {
   /** @type {Threadlet} Threadlet which runs this service. */
@@ -199,7 +200,7 @@ export class MemoryMonitor extends BaseService {
       } = config;
 
       this.#checkSecs = (checkSecs === null)
-        ? 60
+        ? 5 * 60
         : MustBe.number(checkSecs, { finite: true, minInclusive: 1 });
       this.#gracePeriodSecs = (gracePeriodSecs === null)
         ? 0
