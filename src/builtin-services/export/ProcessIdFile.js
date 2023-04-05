@@ -9,7 +9,6 @@ import { FileServiceConfig } from '@this/app-config';
 import { BaseService } from '@this/app-framework';
 import { Threadlet } from '@this/async';
 import { ProcessUtil } from '@this/host';
-import { IntfLogger } from '@this/loggy';
 import { MustBe } from '@this/typey';
 
 
