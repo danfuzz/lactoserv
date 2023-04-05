@@ -3,6 +3,7 @@
 
 import { BaseService } from '@this/app-framework';
 
+import { MemoryMonitor } from '#x/MemoryMonitor';
 import { ProcessIdFile } from '#x/ProcessIdFile';
 import { ProcessInfoFile } from '#x/ProcessInfoFile';
 import { RateLimiter } from '#x/RateLimiter';
@@ -21,6 +22,7 @@ export class BuiltinServices {
    */
   static getAll() {
     return [
+      MemoryMonitor,
       ProcessIdFile,
       ProcessInfoFile,
       RateLimiter,
