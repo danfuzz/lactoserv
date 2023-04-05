@@ -39,6 +39,19 @@ describe('.atSecs', () => {
   });
 });
 
+describe('addSecs()', () => {
+  test.each`
+  moment        | secs       | expected
+  ${12345}      | ${0}       | ${12345}
+  ${10000000}   | ${54321}   | ${10054321}
+  ${1600000000} | ${-999888} | ${1599000112}
+  `('works given ($moment, $secs)', ({ moment, secs, expected }) => {
+    const mobj   = new Moment(moment);
+    const result = mobj.addSecs(secs);
+    expect(result.atSecs).toBe(expected);
+  });
+});
+
 describe('subtract()', () => {
   test.each`
   m1          | m2           | expected

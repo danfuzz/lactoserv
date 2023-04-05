@@ -43,6 +43,17 @@ export class Moment {
   }
 
   /**
+   * Gets the sume `this + secs` as a new instance of this class.
+   *
+   * @param {number} secs Number of seconds to add.
+   * @returns {Moment} The summed result.
+   */
+  addSecs(secs) {
+    MustBe.number(secs, { finite: true });
+    return new Moment(this.#atSecs + secs);
+  }
+
+  /**
    * Gets the difference `this - other` as a {@link Duration}.
    *
    * @param {Moment} other Moment to subtract from this instance.
