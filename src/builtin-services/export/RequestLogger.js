@@ -22,9 +22,6 @@ import { IntfRequestLogger } from '@this/network-protocol';
  * @implements {IntfRequestLogger}
  */
 export class RequestLogger extends BaseService {
-  /** @type {string} Full path to the log file. */
-  #logFilePath;
-
   /** @type {?Rotator} File rotator to use, if any. */
   #rotator;
 
@@ -37,13 +34,12 @@ export class RequestLogger extends BaseService {
   constructor(config, logger) {
     super(config, logger);
 
-    this.#logFilePath = config.path;
-    this.#rotator     = config.rotate ? new Rotator(config, this.logger) : null;
+    this.#rotator = config.rotate ? new Rotator(config, this.logger) : null;
   }
 
   /** @override */
   async logCompletedRequest(line) {
-    await fs.appendFile(this.#logFilePath, `${line}\n`);
+    await fs.appendFile(this.config.path, `${line}\n`);
   }
 
   /** @override */

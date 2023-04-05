@@ -43,6 +43,17 @@ export class Moment {
   }
 
   /**
+   * Gets the sume `this + secs` as a new instance of this class.
+   *
+   * @param {number} secs Number of seconds to add.
+   * @returns {Moment} The summed result.
+   */
+  addSecs(secs) {
+    MustBe.number(secs, { finite: true });
+    return new Moment(this.#atSecs + secs);
+  }
+
+  /**
    * Gets the difference `this - other` as a {@link Duration}.
    *
    * @param {Moment} other Moment to subtract from this instance.
@@ -97,6 +108,17 @@ export class Moment {
   //
   // Static members
   //
+
+  /**
+   * Makes an instance of this class from a _millisecond_ time, such as might be
+   * returned from `Date.now()`.
+   *
+   * @param {number} atMsec The millisecond time.
+   * @returns {Moment} Corresponding instance of this class.
+   */
+  static fromMsec(atMsec) {
+    return new Moment(atMsec / 1000);
+  }
 
   /**
    * Makes a friendly plain object representing a moment in time, which

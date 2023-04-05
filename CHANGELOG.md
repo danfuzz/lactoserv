@@ -1,6 +1,18 @@
 Changelog
 =========
 
+### v0.5.9 -- 2023-04-05
+
+Notable changes:
+
+* During reload (e.g. `kill -HUP`), endpoint sockets (server sockets) are no
+  longer immediately closed. Instead, they're held open for several seconds, and
+  the reloaded configuration is given an opportunity to take them over. This
+  makes it possible for endpoints that use incoming FDs to actually be reloaded.
+* New service `MemoryMonitor`, to induce graceful shutdown if memory usage goes
+  beyond defined limits, with an optional grace period to ignore transient
+  spikes.
+
 ### v0.5.8 -- 2023-03-29
 
 Notable changes:

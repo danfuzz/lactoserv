@@ -29,15 +29,6 @@ import { MustBe } from '@this/typey';
  * information about active processes.
  */
 export class ProcessInfoFile extends BaseService {
-  /**
-   * @type {?number} How often to update the info file, in seconds, or `null` to
-   * not perform updates.
-   */
-  #updateSecs;
-
-  /** @type {string} The path to the info file. */
-  #filePath;
-
   /** @type {?object} Current info file contents, if known. */
   #contents = null;
 
@@ -56,13 +47,7 @@ export class ProcessInfoFile extends BaseService {
   constructor(config, logger) {
     super(config, logger);
 
-    const { updateSecs } = config;
-    this.#updateSecs = (updateSecs === null)
-      ? null
-      : MustBe.number(updateSecs, { finite: true, minInclusive: 1 });
-
-    this.#filePath = config.path;
-    this.#saver    = config.save ? new Saver(config, this.logger) : null;
+    this.#saver = config.save ? new Saver(config, this.logger) : null;
   }
 
   /** @override */
@@ -182,7 +167,7 @@ export class ProcessInfoFile extends BaseService {
    *   does not exist.
    */
   async #readFile() {
-    const filePath = this.#filePath;
+    const filePath = this.config.path;
 
     try {
       await fs.stat(filePath);
@@ -209,8 +194,9 @@ export class ProcessInfoFile extends BaseService {
       this.#updateContents();
       await this.#writeFile();
 
-      const updateTimeout = this.#updateSecs
-        ? [timers.setTimeout(this.#updateSecs * 1000)]
+      const { updateSecs } = this.config;
+      const updateTimeout = updateSecs
+        ? [timers.setTimeout(updateSecs * 1000)]
         : [];
 
       await this.#runner.raceWhenStopRequested(updateTimeout);
@@ -285,7 +271,7 @@ export class ProcessInfoFile extends BaseService {
     const text = `${JSON.stringify(obj, null, 2)}\n`;
 
     await this.config.createDirectoryIfNecessary();
-    await fs.writeFile(this.#filePath, text);
+    await fs.writeFile(this.config.path, text);
 
     this.logger?.wroteFile();
   }

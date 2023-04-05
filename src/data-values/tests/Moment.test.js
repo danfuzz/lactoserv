@@ -39,6 +39,19 @@ describe('.atSecs', () => {
   });
 });
 
+describe('addSecs()', () => {
+  test.each`
+  moment        | secs       | expected
+  ${12345}      | ${0}       | ${12345}
+  ${10000000}   | ${54321}   | ${10054321}
+  ${1600000000} | ${-999888} | ${1599000112}
+  `('works given ($moment, $secs)', ({ moment, secs, expected }) => {
+    const mobj   = new Moment(moment);
+    const result = mobj.addSecs(secs);
+    expect(result.atSecs).toBe(expected);
+  });
+});
+
 describe('subtract()', () => {
   test.each`
   m1          | m2           | expected
@@ -98,6 +111,15 @@ ${'toString'}             | ${false}  | ${false}
       expect(result).toStrictEqual({ atSecs, utc: expected });
     } else {
       expect(result).toBe(expected);
+    }
+  });
+});
+
+describe('fromMsec()', () => {
+  test('produces an instance with 1/1000 the given value', () => {
+    for (let atMsec = -12345; atMsec < 1999988877; atMsec += 10000017) {
+      const result = Moment.fromMsec(atMsec);
+      expect(result.atSecs).toBe(atMsec / 1000);
     }
   });
 });
