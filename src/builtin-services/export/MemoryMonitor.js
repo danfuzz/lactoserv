@@ -125,9 +125,9 @@ export class MemoryMonitor extends BaseService {
       let timeoutMsec = checkMsec;
       if (snapshot.actionAt) {
         const msecUntilAction = snapshot.actionAt.subtract(snapshot.at).secs * 1000;
-        const msecUntilCheck  = Math.max(
+        const msecUntilCheck  = Math.min(
           checkMsec,
-          Math.min(
+          Math.max(
             msecUntilAction * MemoryMonitor.#TROUBLE_CHECK_FRACTION,
             MemoryMonitor.#MIN_TROUBLE_CHECK_MSEC));
         timeoutMsec = msecUntilCheck;
@@ -154,7 +154,7 @@ export class MemoryMonitor extends BaseService {
    * @type {number} Fraction of time between "now" and when action needs to
    * happen, when the next check should take place in an "over limit" situation.
    */
-  static #TROUBLE_CHECK_FRACTION = 0.25;
+  static #TROUBLE_CHECK_FRACTION = 0.4;
 
   /** @override */
   static get CONFIG_CLASS() {
