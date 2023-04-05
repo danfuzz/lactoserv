@@ -101,3 +101,12 @@ ${'toString'}             | ${false}  | ${false}
     }
   });
 });
+
+describe('fromMsec()', () => {
+  test('produces an instance with 1/1000 the given value', () => {
+    for (let atMsec = -12345; atMsec < 1999988877; atMsec += 10000017) {
+      const result = Moment.fromMsec(atMsec);
+      expect(result.atSecs).toBe(atMsec / 1000);
+    }
+  });
+});
