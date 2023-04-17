@@ -73,8 +73,10 @@ Recognized signals:
   (This is a standard signal recognized by Node. Just noting it here as a
   reminder or perhaps a TIL.)
 * `SIGUSR2` -- Produces a heap dump file. Look in the log for the file name.
-  (Writes to the current directory if it is writable.) The file can be inspected
-  using the "Memory" panel available in the Chrome developer tools.
+  (Writes to the current directory if it is writable, and falls back to the
+  value of environment variables `$HOME` or `$TMPDIR`, finally trying `/tmp` as
+  a last-ditch effort. The file can be inspected using the "Memory" panel
+  available in the Chrome developer tools.
 * `SIGINT` and `SIGTERM` -- Shuts down as cleanly as possible. (Note: `SIGINT`
   is usually what gets sent when you type `ctrl-C` in a console.)
 
