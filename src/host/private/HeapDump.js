@@ -6,7 +6,7 @@ import inspector from 'node:inspector';
 import path from 'node:path';
 import { promisify } from 'node:util';
 
-import { EventSink, EventSource } from '@this/async';
+import { EventPayload, EventSink, EventSource } from '@this/async';
 import { Moment } from '@this/data-values';
 import { IntfLogger } from '@this/loggy';
 
@@ -44,7 +44,7 @@ export class HeapDump {
     let byteCount  = 0;
 
     const writeChunk = async (event) => {
-      const chunk = event.payload;
+      const [chunk] = event.payload.args;
 
       await handle.write(chunk);
 
@@ -68,7 +68,7 @@ export class HeapDump {
     sess.connect();
 
     sess.on('HeapProfiler.addHeapSnapshotChunk', async (msg) => {
-      source.emit(msg.params.chunk);
+      source.emit(new EventPayload('chunk', msg.params.chunk));
     });
 
     // TODO: Use 'node:inspector/promises' once this project starts requiring
