@@ -72,9 +72,14 @@ Recognized signals:
 * `SIGUSR1` -- Starts the Node inspector/debugger, listening on the usual port.
   (This is a standard signal recognized by Node. Just noting it here as a
   reminder or perhaps a TIL.)
-* `SIGUSR2` -- Produces a heap dump file. Look in the log for the file name.
-  (Writes to the current directory if it is writable.) The file can be inspected
-  using the "Memory" panel available in the Chrome developer tools.
+* `SIGUSR2` -- Produces a heap snapshot file. Look in the log for the file name.
+  (Writes to the current directory if it is writable, and falls back to the
+  value of environment variables `$HOME` or `$TMPDIR`, finally trying `/tmp` as
+  a last-ditch effort. The file can be inspected using the "Memory" panel
+  available in the Chrome developer tools. **Note:** Node documentation claims
+  that a process needs _additional_ memory of about the same size as the heap
+  being dumped; if the memory is not available you might find that your OS has
+  killed the process before it completes the snapshot.
 * `SIGINT` and `SIGTERM` -- Shuts down as cleanly as possible. (Note: `SIGINT`
   is usually what gets sent when you type `ctrl-C` in a console.)
 
