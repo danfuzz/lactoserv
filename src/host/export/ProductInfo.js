@@ -72,6 +72,9 @@ export class ProductInfo {
       ThisModule.logger.productInfoError(e);
     }
 
+    process.title = `node :: ${info.name} ${info.version} ${info.commit}`
+      .replaceAll(/ <unknown>/g, '');
+
     this.#info = info;
   }
 }
