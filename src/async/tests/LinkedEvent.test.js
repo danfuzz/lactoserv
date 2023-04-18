@@ -339,6 +339,55 @@ describe('.type', () => {
   });
 });
 
+describe('isLinkedFrom()', () => {
+  test.each`
+  value
+  ${null}
+  ${undefined}
+  ${false}
+  ${1234}
+  ${'florp'}
+  ${new Map()}
+  `('returns `false` given a non-event $value', (value) => {
+    const event = new LinkedEvent(payload1);
+    expect(event.isLinkedFrom(value)).toBeFalse();
+  });
+
+  test('returns `false` given an event that is not linked to the instance', () => {
+    const event1 = new LinkedEvent(payload1);
+    const event2 = new LinkedEvent(payload2);
+    expect(event1.isLinkedFrom(event2)).toBeFalse();
+  });
+
+  test('returns `true` given the instance itself', () => {
+    const event = new LinkedEvent(payload1);
+    expect(event.isLinkedFrom(event)).toBeTrue();
+  });
+
+  test('returns `true` given an event that directly links to the instance', () => {
+    const event2 = new LinkedEvent(payload2);
+    const event1 = new LinkedEvent(payload1, event2);
+    expect(event2.isLinkedFrom(event1)).toBeTrue();
+  });
+
+  test('returns `false` given an event an event that _is linked to_ the instance', () => {
+    const event2 = new LinkedEvent(payload2);
+    const event1 = new LinkedEvent(payload1, event2);
+    expect(event1.isLinkedFrom(event2)).toBeFalse();
+  });
+
+  test('returns `true` given an event that indirectly links to the instance', () => {
+    const last   = new LinkedEvent(payload1);
+    const events = [last];
+
+    for (let i = 0; i < 20; i++) {
+      events.unshift(new LinkedEvent(payload1, events[0]));
+    }
+
+    expect(last.isLinkedFrom(events[0])).toBeTrue();
+  });
+});
+
 describe('withPayload()', () => {
   test('produces an instance with the indicated payload', () => {
     const event  = new LinkedEvent(payload1);
