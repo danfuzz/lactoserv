@@ -246,3 +246,49 @@ describe('emit()', () => {
     expect(() => source.emit(value)).toThrow();
   });
 });
+
+describe('isLinkedFrom()', () => {
+  test.each`
+  value
+  ${null}
+  ${undefined}
+  ${false}
+  ${1234}
+  ${'florp'}
+  ${new Map()}
+  `('returns `false` given a non-event $value', (value) => {
+    const source = new EventSource();
+    expect(source.isLinkedFrom(value)).toBeFalse();
+  });
+
+  test('returns `false` given an event that was not emitted by the instance', () => {
+    const source = new EventSource();
+    const event  = new LinkedEvent(payload1);
+    expect(source.isLinkedFrom(event)).toBeFalse();
+  });
+
+  test('returns `true` given the most-recently emitted event', () => {
+    const source = new EventSource();
+    const event  = source.emit(payload1);
+    expect(source.isLinkedFrom(event)).toBeTrue();
+  });
+
+  test('returns `true` given an event that directly links to the most-recently emitted event', () => {
+    const source = new EventSource();
+    const event1 = source.emit(payload1);
+
+    source.emit(payload2);
+    expect(source.isLinkedFrom(event1)).toBeTrue();
+  });
+
+  test('returns `true` given an event that indirectly links to the most-recently emitted event', () => {
+    const source = new EventSource();
+    const event1 = source.emit(payload1);
+
+    for (let i = 0; i < 20; i++) {
+      source.emit(payload2);
+    }
+
+    expect(source.isLinkedFrom(event1)).toBeTrue();
+  });
+});

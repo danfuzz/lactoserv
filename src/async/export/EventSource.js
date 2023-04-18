@@ -211,4 +211,19 @@ export class EventSource {
 
     return this.#currentEvent;
   }
+
+  /**
+   * Indicates whether or not a given (alleged) event is linked into the chain
+   * that ends at the head of this instance, or if it is the head itself. If the
+   * given `event` is not an instance of {@link LinkedEvent}, this method
+   * returns `false` (as opposed to throwing an error).
+   *
+   * @param {*} event (Alleged) event to check.
+   * @returns {boolean} `true` iff `event` is in fact an event instance and it
+   *   is either the head of this instance (the most-recently emitted event) or
+   *   it links to the head of this instance (either directly or indirectly).
+   */
+  isLinkedFrom(event) {
+    return this.#currentEvent.isLinkedFrom(event);
+  }
 }

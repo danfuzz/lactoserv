@@ -105,22 +105,21 @@ export class Debugging {
         remainingSecs = 60;
       }
 
-      let warningFreqSecs = 10;
-      let extraSecs       = remainingSecs % warningFreqSecs;
+      const WARNING_FREQ_SECS = 10;
 
       while (remainingSecs > 0) {
         logger.timeRemaining({ seconds: remainingSecs });
 
-        const secs = extraSecs + warningFreqSecs;
-        await timers.setTimeout(secs * 1000);
-        remainingSecs -= secs;
-        extraSecs = 0;
-
-        if (remainingSecs <= 5) {
-          warningFreqSecs = 1;
-        } else if (remainingSecs <= 10) {
-          warningFreqSecs = 5;
+        let waitSecs = 1;
+        if (remainingSecs >= (WARNING_FREQ_SECS * 2)) {
+          waitSecs = WARNING_FREQ_SECS + (remainingSecs % WARNING_FREQ_SECS);
+        } else if (remainingSecs >= WARNING_FREQ_SECS) {
+          const HALF_FREQ_SECS = Math.trunc(WARNING_FREQ_SECS / 2);
+          waitSecs = HALF_FREQ_SECS + (remainingSecs % HALF_FREQ_SECS);
         }
+
+        await timers.setTimeout(waitSecs * 1000);
+        remainingSecs -= waitSecs;
       }
 
       logger.timerExpired({ seconds: maxRunTimeSecs });

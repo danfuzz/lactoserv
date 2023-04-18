@@ -162,8 +162,9 @@ export class PromiseUtil {
   }
 
   /**
-   * Adds a new race contender to {@link #raceMap}. This method is called once
-   * ever per contender, even when that contender is involved in multiple races.
+   * Helper for {@link #race}, which adds a new race contender to the {@link
+   * #raceMap}. This method is called once ever per contender, even when that
+   * contender is involved in multiple races.
    *
    * **Note:** This method (a) is separate from {@link #race} (that is, the code
    * isn't just inlined at the sole call site) and (b) does not accept any

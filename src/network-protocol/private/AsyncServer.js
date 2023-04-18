@@ -85,29 +85,21 @@ export class AsyncServer {
    *  `cancelPromise` became settled.
    */
   async accept(cancelPromise = null) {
-    let canceled = false;
-
-    if (cancelPromise) {
-      (async () => {
-        try {
-          await cancelPromise;
-        } finally {
-          canceled = true;
-        }
-      })();
-    }
-
     const result = cancelPromise
       ? await PromiseUtil.race([this.#eventHead, cancelPromise])
       : await this.#eventHead;
 
-    if (canceled) {
+    if (this.#eventSource.isLinkedFrom(result)) {
+      // _Not_ canceled. Note: We use `isLinkedFrom()` instead of just an
+      // `instanceof` check, because we don't want to rely on `cancelPromise`
+      // _not_ resolving to a `LinkedEvent` (even though that's the status quo
+      // as of this writing).
+      this.#eventHead = result.nextPromise;
+      return result.payload;
+    } else {
+      // Canceled.
       return null;
     }
-
-    this.#eventHead = result.nextPromise;
-
-    return result.payload;
   }
 
   /**

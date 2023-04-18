@@ -164,6 +164,35 @@ export class LinkedEvent {
   }
 
   /**
+   * Indicates whether or not a given (alleged) event either _is_ this instance
+   * or links to this instance, either directly or indirectly. If the given
+   * `event` is not an instance of this class, this method returns `false` (as
+   * opposed to throwing an error).
+   *
+   * @param {*} event (Alleged) event to check.
+   * @returns {boolean} `true` iff `event` is either this instance or it links
+   *   to this instance (either directly or indirectly).
+   */
+  isLinkedFrom(event) {
+    if (this === event) {
+      return true;
+    } else if (!(event instanceof LinkedEvent)) {
+      return false;
+    }
+
+    let at = event.#next;
+    while (at) {
+      const eventNow = at.eventNow;
+      if (eventNow === this) {
+        return true;
+      }
+      at = eventNow?.#next;
+    }
+
+    return false;
+  }
+
+  /**
    * Constructs a new instance which is set up to be at the head of an event
    * chain which continues with _this_ instance's next event, but with a
    * different payload. Put another way, this method constructs a replacement

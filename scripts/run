@@ -26,6 +26,8 @@ function usage {
     --inspect[=...]
       Passes this option to the `node` invocation, to enable interactive
       debugging.
+    --max-run-time-secs=<num>
+      Debugging option passed to the system.
     --out=<dir>
       Directory where built output goes. Defaults to `out` directly under the
       main product directory.
@@ -45,6 +47,7 @@ opt-value --var=action --init=run --enum='build clean run' do
 
 # Debugging options passed directly to the main `run` script.
 opt-toggle --var=earlyErrors early-errors
+opt-value --var=maxRunTimeSecs max-run-time-secs
 
 # Inspect?
 doInspect=0
@@ -102,9 +105,11 @@ fi
 if (( earlyErrors )); then
     extraOpts+=(--early-errors)
 fi
+if [[ ${maxRunTimeSecs} != '' ]]; then
+    extraOpts+=(--max-run-time-secs="${maxRunTimeSecs}")
+fi
 
 exec "${outRun}" \
     "${extraOpts[@]}" \
     --config="$(base-dir)/etc/example-setup/config/config.mjs" \
-    --max-run-time-secs="$(( 5 * 60 ))" \
     --log-to-stdout
