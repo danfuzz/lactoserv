@@ -1,6 +1,13 @@
 Changelog
 =========
 
+### v0.5.11 -- 2023-04-18
+
+Notable changes:
+
+* Fixed a promise-related leak introduced in the fix for the FD-socket-reload
+  issue.
+
 ### v0.5.10 -- 2023-04-17
 
 Notable changes:
