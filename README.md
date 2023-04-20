@@ -68,7 +68,7 @@ To build:
   whatever flavor of Linux you happen to like).
 * Recent-ish version of Bash (works with what macOS ships, which is about as
   old a version as you'll find on any up-to-date OS).
-* Recent version of Node (tested regularly on v18 and v19).
+* Recent version of Node (tested regularly on v18 and v20).
 * Recent version of `jq` (v1.6).
 
 To run (versions as above):

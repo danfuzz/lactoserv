@@ -74,8 +74,8 @@ function _init_check-prerequisites {
     check-dependency \
         'Node' \
         'node --version | sed -e "s/^v//"' \
-        '^(18|19)\.' \
-        '18 or 19' \
+        '^(18|19|20)\.' \
+        '18..20' \
     || error=1
 
     check-dependency \
