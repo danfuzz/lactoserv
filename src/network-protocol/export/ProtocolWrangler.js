@@ -123,7 +123,7 @@ export class ProtocolWrangler {
   async start(isReload) {
     this.#reloading = isReload;
     this.#initialize();
-    return this.#runner.start();
+    await this.#runner.start();
   }
 
   /**
@@ -139,7 +139,7 @@ export class ProtocolWrangler {
    */
   async stop(willReload) {
     this.#reloading = willReload;
-    return this.#runner.stop();
+    await this.#runner.stop();
   }
 
   /**

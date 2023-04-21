@@ -62,7 +62,7 @@ export class EventSink extends Threadlet {
    */
   async drainAndStop() {
     this.#draining = true;
-    return this.stop();
+    await this.stop();
   }
 
   /**
@@ -104,7 +104,7 @@ export class EventSink extends Threadlet {
 
     for (;;) {
       if (await this.#runStep()) {
-        return null;
+        break;
       }
     }
   }

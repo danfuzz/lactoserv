@@ -123,6 +123,7 @@ export class LimitedLoader {
    * during the procedure.
    *
    * @param {Module} module The module to link and evaluate.
+   * @returns {undefined} Async-returned when evaluation is complete.
    */
   async #evaluate(module) {
     for (;;) {

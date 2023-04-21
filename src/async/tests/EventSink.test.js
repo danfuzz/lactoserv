@@ -124,7 +124,7 @@ describe('drainAndStop()', () => {
     }
     expect(PromiseState.isFulfilled(result)).toBeTrue();
 
-    expect(await runResult).toBeNull();
+    expect(await runResult).toBeUndefined();
   });
 
   test('processes events that came in concurrently with a stop request', async () => {
@@ -155,8 +155,8 @@ describe('drainAndStop()', () => {
     expect(callCount).toBe(2);
     expect(sink.isRunning()).toBeFalse();
 
-    expect(await runResult).toBeNull();
-    expect(await result).toBeNull();
+    expect(await runResult).toBeUndefined();
+    expect(await result).toBeUndefined();
   });
 
   test('does not cause regular `stop()` to drain, after being restarted', async () => {
@@ -201,7 +201,7 @@ describe('drainAndStop()', () => {
     expect(PromiseState.isFulfilled(result)).toBeTrue();
     expect(callCount).toBe(2); // The crux of the test: _not_ 3!
 
-    expect(await runResult2).toBeNull();
+    expect(await runResult2).toBeUndefined();
   });
 });
 
@@ -224,7 +224,7 @@ describe('run()', () => {
     expect(callGot).toBe(event);
 
     sink.stop();
-    expect(await runResult).toBeNull();
+    expect(await runResult).toBeUndefined();
   });
 
   test('processes the first event when it is a promise that resolves to an event', async () => {
@@ -245,7 +245,7 @@ describe('run()', () => {
     expect(callGot).toBe(event);
 
     sink.stop();
-    expect(await runResult).toBeNull();
+    expect(await runResult).toBeUndefined();
   });
 
   test('processes the first "event" when it is a promise that is rejected', async () => {
@@ -319,7 +319,7 @@ describe('run()', () => {
     expect(callCount).toBe(events.length);
 
     sink.stop();
-    expect(await runResult).toBeNull();
+    expect(await runResult).toBeUndefined();
   });
 
   test('processes 10 asynchronously-known events', async () => {
@@ -348,7 +348,7 @@ describe('run()', () => {
     expect(callCount).toBe(10);
 
     sink.stop();
-    expect(await runResult).toBeNull();
+    expect(await runResult).toBeUndefined();
   });
 
   test('can be `stop()`ed and then re-`run()`', async () => {
@@ -368,7 +368,7 @@ describe('run()', () => {
     expect(callCount).toBe(1);
     expect(callGot).toBe(event1);
     sink.stop();
-    expect(await runResult1).toBeNull();
+    expect(await runResult1).toBeUndefined();
 
     // The actual test.
 
@@ -380,7 +380,7 @@ describe('run()', () => {
     expect(callCount).toBe(2);
     expect(callGot).toBe(event2);
     sink.stop();
-    expect(await runResult2).toBeNull();
+    expect(await runResult2).toBeUndefined();
   });
 });
 
@@ -411,7 +411,7 @@ describe('stop()', () => {
     await timers.setImmediate();
     expect(callCount).toBe(0);
 
-    expect (await runResult).toBeNull();
+    expect (await runResult).toBeUndefined();
   });
 });
 
@@ -431,7 +431,7 @@ describe('processor function calling', () => {
     expect(callGot).toStrictEqual([event]);
 
     sink.stop();
-    expect(await runResult).toBeNull();
+    expect(await runResult).toBeUndefined();
   });
 
   test('called with a single event argument (resolved promise)', async () => {
@@ -449,7 +449,7 @@ describe('processor function calling', () => {
     expect(callGot).toStrictEqual([event]);
 
     sink.stop();
-    expect(await runResult).toBeNull();
+    expect(await runResult).toBeUndefined();
   });
 
   test('called with `this` unbound', async () => {
@@ -467,6 +467,6 @@ describe('processor function calling', () => {
     expect(callGotThis).toBeNull();
 
     sink.stop();
-    expect(await runResult).toBeNull();
+    expect(await runResult).toBeUndefined();
   });
 });
