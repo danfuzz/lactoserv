@@ -17,15 +17,23 @@ function usage {
 
     ${name} <path> ...
       Uses `rsync` to do an all-local (not actually remote) "archive" copy
-      operation (preserving permissions, modtimes, etc.). Note that trailing
-      slashes on source directory names are significant to `rsync`, and this
-      significance is "passed through" to the users of this tool.
+      operation (preserving permissions, modtimes, etc.), including deleting
+      files at the destination that don\'t exist at the source by default.
+
+      Note that trailing slashes on source directory names are significant to
+      `rsync`, and this significance is "passed through" to the users of this
+      tool.
 
       More context: This tool uses `rsync` and not `cp` -- even though this is a
-      totally local operation -- because it has well-defined behavior when
+      totally local operation -- because `rsync` has well-defined behavior when
       copying a tree on top of another tree and also knows how to create
       directories as needed. `cp` _often_ does what one wants but has a few very
       surprising edge cases.
+
+    --no-delete
+      Do not delete files at the destination that are not present in the source.
+    --exclude=<spec>
+      Exclude files. Passed as-is to the underlying `rsync`.
 
     ${name} [--help | -h]
       Displays this message.
@@ -37,10 +45,22 @@ function usage {
 # Want help?
 opt-action --call='{ usage }' help/h
 
+# Delete files not present at the source?
+opt-toggle --var=delete --init=1 delete
+
+# Exclude file(s).
+excludeOpts=()
+opt-value --call='{ excludeOpts+=("--exclude=$1") }' exclude
+
 # Paths to copy from/to.
 rest-arg --var=paths paths
 
 process-args "$@" || usage "$?"
+
+if (( ${#paths} < 2 )); then
+    error-msg 'Must specify at least two paths.'
+    usage 1
+fi
 
 
 #
@@ -66,4 +86,13 @@ done
 # freshly checked-out source tree, many many files have the same timestamps,
 # so only the file sizes come into play, and it's very easy to have a file
 # size coincidence.)
-rsync --archive --delete --ignore-times -- "${args[@]}"
+
+opts=(--archive --ignore-times)
+
+if (( delete )); then
+    opts+=(--delete)
+fi
+
+opts+=("${excludeOpts[@]}")
+
+rsync "${opts[@]}" -- "${args[@]}"

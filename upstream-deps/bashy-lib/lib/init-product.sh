@@ -26,10 +26,5 @@ function _init_product-name {
 
 # Performs any prerequisite checks needed by this product.
 function _init_check-prerequisites {
-    local error=0
-
-    echo 1>&2 'No prerequisites defined!'
-    error=1
-
-    return "${error}"
+    echo 1>&2 'Warning: No prerequisites defined!'
 }
