@@ -40,3 +40,5 @@ fi
 . "${_bashy_libDir}/arg-processor.sh" || return "$?"
 
 # TODO: Library dispatch.
+
+# TODO: Prerequisites.

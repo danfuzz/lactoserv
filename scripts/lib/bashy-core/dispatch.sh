@@ -55,7 +55,6 @@ function lib-dispatch {
     for libDir in "${libDirs[@]}"; do
         path="${libDir}/${cmdName}"
         if [[ -x ${path} ]]; then
-            info-msg --exec printf '>>%q\n' "$@"
             _dispatch_dispatch-in-dir "${libDir}" "$@"
             return "$?"
         fi
