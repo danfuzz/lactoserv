@@ -10,14 +10,14 @@
 #
 
 # Sanity check.
-if [[ ${_bashy_libDir} != '' ]]; then
-    error-msg "Warning: Not reinitializing library: ${_bashy_libDir##*/}"
+if [[ ${_bashy_dir} != '' ]]; then
+    error-msg "Warning: Not reinitializing library: ${_bashy_dir##*/}"
     return 1
 fi
 
 # The symlink-resolved directory of this script.
-_bashy_libDir="$(readlink -f "${BASH_SOURCE[0]}")" || return "$?"
-_bashy_libDir="${_bashy_libDir%/*}"
+_bashy_dir="$(readlink -f "${BASH_SOURCE[0]}")" || return "$?"
+_bashy_dir="${_bashy_dir%/*}"
 
 # The symlink-resolved path of the command that is running (that is, the
 # top-level script).
@@ -35,9 +35,10 @@ else
 fi
 
 # Load the core library's own sub-libraries.
-. "${_bashy_libDir}/meta.sh" || return "$?"
-. "${_bashy_libDir}/stderr-messages.sh" || return "$?"
-. "${_bashy_libDir}/arg-processor.sh" || return "$?"
+. "${_bashy_dir}/meta.sh" || return "$?"
+. "${_bashy_dir}/stderr-messages.sh" || return "$?"
+. "${_bashy_dir}/arg-processor.sh" || return "$?"
+. "${_bashy_dir}/dispatch.sh" || return "$?"
 
 # TODO: Library dispatch.
 

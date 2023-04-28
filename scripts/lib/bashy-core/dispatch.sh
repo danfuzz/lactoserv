@@ -7,14 +7,8 @@
 # scripts.
 #
 
-# The symlink-resolved directory of this script.
-_dispatch_dir="$(readlink -f "${BASH_SOURCE[0]}")" || return "$?"
-_dispatch_dir="${_dispatch_dir%/*}"
-
 # The directory holding all sub-libraries.
-_dispatch_libDir="${_dispatch_dir%/*}"
-
-. "${_dispatch_dir}/init.sh" || return "$?"
+_dispatch_libDir="${_bashy_dir%/*}"
 
 
 #

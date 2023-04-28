@@ -18,3 +18,14 @@ else
     info-msg 'Arguments:'
     info-msg --exec printf '  %q\n' "$@"
 fi
+
+if [[ $# != 0 ]]; then
+    info-msg 'Self-call but with no arguments:'
+    lib do-something
+    info-msg 'Done with self-call.'
+    info-msg
+fi
+
+info-msg 'Other call:'
+lib sub hello called from "$(this-cmd-name)"
+info-msg 'Done with other call.'
