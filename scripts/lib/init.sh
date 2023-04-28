@@ -2,10 +2,12 @@
 # SPDX-License-Identifier: Apache-2.0
 
 #
-# This is an example project initialization file.
+# Main library initialization file.
 #
 
 . "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/bashy-core/init.sh" \
 || return "$?"
 
+# Indicate that the base directory of this project is two layers up from this
+# file.
 base-dir --set=../..
