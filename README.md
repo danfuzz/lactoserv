@@ -41,20 +41,19 @@ It is built to be a base for other libraries, including an initialization file,
    are interested in using, into `scripts/lib` in your project. At a minumum,
    you need to include `bashy-core`.
 
-4. Create a file called `scripts/lib/init.sh`, to hook up `bashy-core` and
-   your project. The contents of this file should be:
+4. Make a directory for your own script sub-library, `scripts/lib/my-project`.
+
+5. Create a file called `scripts/lib/my-project/init.sh`, to hook up
+   `bashy-core` to your project's script sub-library. The contents of this file
+   should be:
 
    ```bash
-   . "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/bashy-core/init.sh" \
+   . "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/../bashy-core/init.sh" \
    || return "$?"
-
-   lib-init 'my-project'
    ```
 
    where (to reiterate) `my-project` is replaced with the actual name of your
    project.
-
-5. Make a directory for your own scripts, `scripts/lib/my-project`.
 
 6. Create your scripts in `scripts/lib/my-project`. At the top of each script,
    include the following:
@@ -67,4 +66,8 @@ It is built to be a base for other libraries, including an initialization file,
    ```
 
    where `lib-name` is replaced with the name (directory name) of a library
-   you will be using in the script.
+   you will be using in the script. You need to name each used library _except_
+   `bashy-core` (which is necessary and assumed) and your own library.
+
+**Note:** The files named with a `.sh` suffix are _not_ supposed to be marked
+executable (`chmod +x ...`). These are _include_ files.
