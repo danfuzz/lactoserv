@@ -54,9 +54,7 @@ function lib-dispatch {
     local libDir path
     for libDir in "${libDirs[@]}"; do
         path="${libDir}/${cmdName}"
-        info-msg '#### LOOKING FOR' "${path}"
         if [[ -x ${path} ]]; then
-            info-msg '### DISPATCHING' ">>${libDir}<<"
             info-msg --exec printf '>>%q\n' "$@"
             _dispatch_dispatch-in-dir "${libDir}" "$@"
             return "$?"
@@ -76,12 +74,7 @@ function lib-dispatch {
 function _dispatch_dispatch-in-dir {
     local libDir="$1"
     local cmdName="$2"
-
     shift 2
-
-    info-msg '##### LIB DIR' "${libDir}"
-    info-msg '##### CMD NAME' ">>${cmdName}<<"
-    info-msg '##### ARGS' "$@"
 
     local cmdWords=("${cmdName}")
     local path="${libDir}/${cmdName}"
