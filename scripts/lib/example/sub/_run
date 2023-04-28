@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 #
-# This is an example script.
+# This is an example subcommand default script.
 #
 
 . "$(dirname "$(readlink -f "$0")")/init.sh" || exit "$?"
