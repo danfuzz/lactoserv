@@ -26,10 +26,6 @@
 # Global variable setup
 #
 
-# Symlink-resolved command name (not of this file, but our top-level includer).
-_stderr_cmdName="$(readlink -f "$0")" || return "$?"
-_stderr_cmdName="${_stderr_cmdName##*/}"
-
 # Has an error been emitted?
 _stderr_anyErrors=0
 
@@ -122,7 +118,7 @@ function _stderr_print-handler {
 
     if [[ ${anyMessagesVarName} != '' ]] && (( !${!anyMessagesVarName} )); then
         if (( printName )); then
-            printf 1>&2 '%s: ' "${_stderr_cmdName}"
+            printf 1>&2 '%s: ' "$(this-cmd-name)"
         fi
         eval "${anyMessagesVarName}=1"
     fi
