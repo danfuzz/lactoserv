@@ -78,9 +78,11 @@ function this-cmd-dir {
 }
 
 # Gets the name of this command, that is, "this command" being the (outer)
-# script that is running.
+# script that is running. If this command was initiated via a subcommand
+# dispatch, then the result of this call is the space-separated list of the
+# command and all subcommands.
 function this-cmd-name {
-    echo "${_bashy_cmdPath##*/}"
+    echo "${_bashy_cmdName}"
 }
 
 # Gets the full path of this command, "this command" being the (outer) script

@@ -14,10 +14,7 @@ _dispatch_dir="${_dispatch_dir%/*}"
 # The directory holding all sub-libraries.
 _dispatch_libDir="${_dispatch_dir%/*}"
 
-# This helper isn't loaded in the context of the full library, and so we need to
-# our own sub-library inclusion.
-. "${_dispatch_dir}/arg-processor.sh" || return "$?"
-. "${_dispatch_dir}/stderr-messages.sh" || return "$?"
+. "${_dispatch_dir}/init.sh" || return "$?"
 
 
 #
@@ -95,7 +92,7 @@ function _dispatch_dispatch-in-dir {
             # unsearchable directory.
             break
         elif [[ -f ${path} ]]; then
-            _dispatch_run-script "${path}" "$@"
+            _dispatch_run-script "${path}" "${cmdWords[*]}" "$@"
             return "$?"
         elif [[ -d ${path} ]]; then
             local subCmdName="$1"
@@ -108,7 +105,7 @@ function _dispatch_dispatch-in-dir {
             elif [[ -f "${path}/_run" && -x "${path}/_run" ]]; then
                 # The next word isn't a subcommand name, but there's a `_run`
                 # in the innermost subcommand directory. Run it.
-                _dispatch_run-script "${path}/_run" "$@"
+                _dispatch_run-script "${path}/_run" "${cmdWords[*]}" "$@"
             else
                 # Error: The next word isn't a subcommand name, and there's no
                 # `default` to fall back on.
@@ -140,7 +137,8 @@ function _dispatch_is-subcommand-name {
 # Runs the indicated script.
 function _dispatch_run-script {
     local path="$1"
-    shift
+    local cmdWords="$2"
+    shift 2
 
-    exec "${path}" "$@"
+    exec "${path}" --bashy-dispatched="$(this-cmd-name) ${cmdWords}" "$@"
 }
