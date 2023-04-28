@@ -25,8 +25,7 @@ It is built to be a base for other libraries, including an initialization file,
 ## To use -- NEW INSTRUCTIONS
 
 1. Pick a name for your project's "script library" directory, typically at the
-   top level of your project (top-levelness is assumed in some of the scripts).
-   `scripts` and `bin` are good choices.
+   top level of your project. `scripts` and `bin` are good choices.
 
    The rest of these instructions assume you picked `scripts`, for ease of
    exposition. Adjust accordingly.

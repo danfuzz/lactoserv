@@ -5,5 +5,5 @@
 # This is an example sub-library initialization file.
 #
 
-. "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/../bashy-core/init.sh" \
+. "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/../init.sh" \
 || return "$?"

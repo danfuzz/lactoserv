@@ -9,22 +9,23 @@
 # Global setup
 #
 
-if [[ ${_init_libDir} != '' ]]; then
-    error-msg "Warning: Not reinitializing library: ${_init_libDir##*/}"
+# Sanity check.
+if [[ ${_bashy_libDir} != '' ]]; then
+    error-msg "Warning: Not reinitializing library: ${_bashy_libDir##*/}"
     return 1
 fi
 
 # The symlink-resolved directory of this script.
-_init_libDir="$(readlink -f "${BASH_SOURCE[0]}")" || return "$?"
-_init_libDir="${_init_libDir%/*}"
+_bashy_libDir="$(readlink -f "${BASH_SOURCE[0]}")" || return "$?"
+_bashy_libDir="${_bashy_libDir%/*}"
 
 # The symlink-resolved path of the command that is running (that is, the
-# top-level script), and its directory.
-_init_cmdPath="$(readlink -f "$0")" || return "$?"
-_init_cmdDir="${_init_cmdPath%/*}"
+# top-level script).
+_bashy_cmdPath="$(readlink -f "$0")" || return "$?"
 
-# Load the core library's "built-in" functions.
-. "${_init_libDir}/stderr-messages.sh" || return "$?"
-. "${_init_libDir}/arg-processor.sh" || return "$?"
+# Load the core library's own sub-libraries.
+. "${_bashy_libDir}/meta.sh" || return "$?"
+. "${_bashy_libDir}/stderr-messages.sh" || return "$?"
+. "${_bashy_libDir}/arg-processor.sh" || return "$?"
 
-# TODO!
+# TODO: Library dispatch.
