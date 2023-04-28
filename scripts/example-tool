@@ -1,0 +1,47 @@
+#!/bin/bash
+#
+# Copyright 2022-2023 the Bashy-lib Authors (Dan Bornstein et alia).
+# SPDX-License-Identifier: Apache-2.0
+
+#
+# This is an example top-level script dispatcher.
+#
+
+. "$(dirname "$(readlink -f "$0")")/lib/bashy-core/dispatch.sh" || exit "$?"
+
+
+#
+# Argument parsing
+#
+
+function usage {
+    print-usage $'
+    Usage:
+
+    ${name} <subcommand> ... [<opt> ...] [--] [<arg> ...]
+      Does something exemplar. <opt>s and <arg>s depend on the specific
+      subcommand.
+
+    ${name} [--help | -h]
+      Displays this message.
+    '
+
+    exit "$@"
+}
+
+# Want help?
+opt-action --call='{ usage }' help/h
+
+# The actual command arguments.
+rest-arg --var=args args
+
+process-args "$@" || usage "$?"
+
+
+#
+# Main script
+#
+
+# You can list any number of sub-library names in place of `example` below.
+lib-dispatch example -- "$@" \
+|| usage "$?"
