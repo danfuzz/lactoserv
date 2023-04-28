@@ -90,7 +90,6 @@ function _dispatch_dispatch-in-dir {
     local path="${libDir}/${cmdName}"
 
     while true; do
-        info-msg '#### LOOKING AT' "${path}"
         if [[ ! -x "${path}" ]]; then
             # Error: We landed at a non-exsitent path, unexecutable file, or
             # unsearchable directory.
@@ -100,12 +99,14 @@ function _dispatch_dispatch-in-dir {
             return "$?"
         elif [[ -d ${path} ]]; then
             local subCmdName="$1"
-            if [[ -x "${path}/${subCmdName}" ]]; then
+            local subPath="${path}/${subCmdName}"
+            if _dispatch_is-subcommand-name "${subCmdName}" && [[ -x "${subPath}" ]]; then
+                # The next word is a valid next subcommand. Iterate.
                 shift
                 cmdWords+=("${subCmdName}")
-                path+="/${subCmdName}"
+                path="${subPath}"
             elif [[ -f "${path}/_run" && -x "${path}/_run" ]]; then
-                # The next word isn't a subcommand name, but there's a `default`
+                # The next word isn't a subcommand name, but there's a `_run`
                 # in the innermost subcommand directory. Run it.
                 _dispatch_run-script "${path}/_run" "$@"
             else
@@ -122,6 +123,18 @@ function _dispatch_dispatch-in-dir {
 
     error-msg "Subcommand not found: ${cmdWords[*]}"
     return 1
+}
+
+# Indicates by return code whether the given name is a syntactically correct
+# command / subcommand name, as far as this system is concerned.
+function _dispatch_is-subcommand-name {
+    local name="$1"
+
+    if [[ ${name} =~ ^[_a-z][-_.:a-z0-9]+$ ]]; then
+        return 0
+    else
+        return 1
+    fi
 }
 
 # Runs the indicated script.
