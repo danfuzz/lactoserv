@@ -20,7 +20,7 @@ _dispatch_libNames=()
 # Includes (sources) a library file with the given name. (`.sh` is appended to
 # the name to produce the actual name of the library file.) A file with this
 # name must exist at the top level of a sublibrary directory.
-function lib-include {
+function include {
     if (( $# == 0 )); then
         error-msg 'Missing library name.'
         return 1
