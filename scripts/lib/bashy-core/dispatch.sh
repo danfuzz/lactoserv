@@ -87,7 +87,7 @@ function lib {
     if (( wantPath )); then
         echo "${path}"
     else
-        "${path}" --bashy-dispatched="${cmdName}" "$@"
+        "${path}" --bashy-dispatched="${cmdName}" "${args[@]}"
     fi
 }
 
