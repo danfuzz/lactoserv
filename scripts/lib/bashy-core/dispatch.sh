@@ -239,12 +239,3 @@ function _dispatch_is-valid-name {
         return 1
     fi
 }
-
-# Runs the indicated script.
-function _dispatch_run-script {
-    local path="$1"
-    local cmdWords="$2"
-    shift 2
-
-    "${path}" --bashy-dispatched="$(this-cmd-name) ${cmdWords}" "$@"
-}
