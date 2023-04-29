@@ -72,14 +72,14 @@ function lib {
     done
 
     if (( $# == 0 )); then
-        error-msg 'Missing command name.'
+        error-msg 'lib: Missing command name.'
         return 1
     fi
 
     # These are the "arguments" / "returns" for the next call.
     local beQuiet="${quiet}"
-    local libNames="${_dispatch_libNames[@]}"
-    local args="${args[@]}"
+    local libNames=("${_dispatch_libNames[@]}")
+    local args=("$@")
     local path=''
     local cmdName=''
     _dispatch_find || return "$?"
@@ -199,12 +199,12 @@ function _dispatch_dispatch-in-dir {
 function _dispatch_find {
     if (( ${#args[@]} == 0 )); then
         if (( !beQuiet )); then
-            error-msg 'Missing command name.'
+            error-msg 'lib: Missing command name.'
         fi
         return 1
     elif ! _dispatch_is-valid-name "${args[0]}"; then
         if (( !beQuiet )); then
-            error-msg "Invalid command name: ${args[0]}"
+            error-msg "lib: Invalid command name: ${args[0]}"
         fi
         return 1
     fi
@@ -216,7 +216,7 @@ function _dispatch_find {
     done
 
     if (( !beQuiet )); then
-        error-msg "Command not found: ${args[0]}"
+        error-msg "lib: Command not found: ${args[0]}"
     fi
     return 1
 }
