@@ -239,7 +239,7 @@ function _dispatch_find-in-dir {
         local nextWord="${args[$at]}"
         local nextPath="${path}/${nextWord}"
 
-        if ! _dispatch_is-valid-name "${subCmdName}"; then
+        if ! _dispatch_is-valid-name "${nextWord}"; then
             # End of search: The next word is not a valid command name.
             break
         elif [[ ! -x ${nextPath} ]]; then
@@ -274,10 +274,21 @@ function _dispatch_find-in-dir {
         return 1
     fi
 
+    # Delete the initial space from `cmdName`.
+    cmdName="${cmdName:1}"
+
     # Delete the args that became the command/subcommand.
     args=("${args[@]:$at}")
 
-    info-msg "#### FINAL ARGS ${args[@]}"
+    if [[ -d ${path} ]]; then
+        # Append subcommand directory runner.
+        path+='/_run'
+    fi
+
+    info-msg '########### FINAL #########'
+    info-msg "#### CMD NAME >>${cmdName}<<"
+    info-msg "#### PATH >>${path}<<"
+    info-msg "#### ARGS ${args[@]}"
 }
 
 # Initializes `_dispatch_libNames` if not already done.
