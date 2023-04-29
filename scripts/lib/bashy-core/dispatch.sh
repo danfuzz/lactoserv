@@ -55,6 +55,8 @@ function include-lib {
 }
 
 # Calls through to an arbitrary library command. Options:
+# * `--libs=<names>` -- List simple names (not paths) of the sublibraries to
+#   search. Without this, all sublibraries are searched.
 # * `--path` -- Prints the path of the script instead of running it.
 # * `--quiet` -- Does not print error messages.
 function lib {
@@ -62,12 +64,14 @@ function lib {
 
     local wantPath=0
     local quiet=0
+    local libs=''
 
     while true; do
         case "$1" in
-            --path)    wantPath=1;    shift ;;
-            --quiet)   quiet=1;       shift ;;
-            *)         break                ;;
+            --libs=*) libs="${1#*=}"; shift ;;
+            --path)   wantPath=1;     shift ;;
+            --quiet)  quiet=1;        shift ;;
+            *)        break                 ;;
         esac
     done
 
@@ -76,12 +80,20 @@ function lib {
         return 1
     fi
 
-    # These are the "arguments" / "returns" for the next call.
+    # These are the "arguments" / "returns" for the call to `_dispatch_find`.
     local beQuiet="${quiet}"
     local libNames=("${_dispatch_libNames[@]}")
     local args=("$@")
     local path=''
     local cmdName=''
+    local libNames
+
+    if [[ ${libs} == '' ]]; then
+        libNames=("${_dispatch_libNames[@]}")
+    else
+        libNames=(${libs})
+    fi
+
     _dispatch_find || return "$?"
 
     if (( wantPath )); then

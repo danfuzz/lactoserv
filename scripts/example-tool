@@ -43,5 +43,5 @@ process-args "$@" || usage "$?"
 #
 
 # You can list any number of sub-library names in place of `example` below.
-lib-dispatch example -- "$@" \
+lib --libs=example "$@" \
 || usage "$?"
