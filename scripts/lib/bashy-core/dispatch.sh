@@ -211,9 +211,11 @@ function _dispatch_find {
 
     local d
     for d in "${libNames[@]}"; do
+        info-msg "#### FINDING IN >>${d}<<"
         _dispatch_find-in-dir "${d}" \
         && return
     done
+    info-msg "#### DID NOT FIND"
 
     if (( !beQuiet )); then
         error-msg "lib: Command not found: ${args[0]}"
@@ -229,10 +231,8 @@ function _dispatch_find {
 function _dispatch_find-in-dir {
     local libDir="$1"
 
-    local cmdWords=("${cmdName}")
-
-    cmdName="${args[0]}"        # Not `local`: This is returned to the caller.
-    path="${libDir}/${cmdName}" # Ditto.
+    cmdName=''                    # Not `local`: This is returned to the caller.
+    path="${_dispatch_libDir}/${libDir}" # Ditto.
 
     local at
     for (( at = 0; at < ${#args[@]}; at++ )); do
