@@ -198,6 +198,22 @@ function _dispatch_dispatch-in-dir {
     return 1
 }
 
+# Initializes `_dispatch_libNames` if not already done.
+function _dispatch_initLibNames {
+    if (( ${#_dispatch_initLibNames[@]} != 0 )); then
+        return
+    fi
+
+    local names && names=($(
+        cd "${_dispatch_libDir}"
+        find . -mindepth 1 -maxdepth 1 -type d \
+        | awk -F/ '{ print $2; }'
+    )) \
+    || return "$?"
+
+    _dispatch_initLibNames=("${names[@]}")
+}
+
 # Indicates by return code whether the given name is a syntactically correct
 # command / subcommand name, as far as this system is concerned.
 function _dispatch_is-valid-name {
@@ -217,20 +233,4 @@ function _dispatch_run-script {
     shift 2
 
     exec "${path}" --bashy-dispatched="$(this-cmd-name) ${cmdWords}" "$@"
-}
-
-# Initializes `_dispatch_libNames` if not already done.
-function _dispatch_initLibNames {
-    if (( ${#_dispatch_initLibNames[@]} != 0 )); then
-        return
-    fi
-
-    local names && names=($(
-        cd "${_dispatch_libDir}"
-        find . -mindepth 1 -maxdepth 1 -type d \
-        | awk -F/ '{ print $2; }'
-    )) \
-    || return "$?"
-
-    _dispatch_initLibNames=("${names[@]}")
 }
