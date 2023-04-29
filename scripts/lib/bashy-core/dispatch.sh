@@ -21,19 +21,22 @@ _dispatch_libNames=()
 # Includes (sources) a library file with the given name. (`.sh` is appended to
 # the name to produce the actual name of the library file.) A file with this
 # name must exist at the top level of a sublibrary directory.
+#
+# It is assumed that failure to load a library is a fatal problem. As such, if
+# a library isn't found, the process will exit.
 function include-lib {
     _dispatch_initLibNames || return "$?"
 
     if (( $# == 0 )); then
         error-msg 'Missing library name.'
-        return 1
+        exit 1
     fi
 
     local incName="$1"
 
     if ! _dispatch_is-valid-name "${incName}"; then
         error-msg "include-lib: Invalid library name: ${incName}"
-        return 1
+        exit 1
     fi
 
     incName+='.sh'
@@ -46,13 +49,14 @@ function include-lib {
             # and then unset all the other locals before sourcing the script.
             local _dispatch_path="${path}"
             unset incName libDir path
-            . "${_dispatch_path}" "$@"
-            return "$?"
+            . "${_dispatch_path}" "$@" \
+            && return \
+            || exit "$?"
         fi
     done
 
     error-msg "include-lib: Not found: ${incName}"
-    return 1
+    exit 1
 }
 
 # Calls through to an arbitrary library command. Options:
