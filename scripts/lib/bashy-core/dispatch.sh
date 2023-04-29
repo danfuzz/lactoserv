@@ -282,18 +282,19 @@ function _dispatch_find-in-dir {
 
 # Initializes `_dispatch_libNames` if not already done.
 function _dispatch_initLibNames {
-    if (( ${#_dispatch_initLibNames[@]} != 0 )); then
+    if (( ${#_dispatch_libNames[@]} != 0 )); then
         return
     fi
 
     local names && names=($(
         cd "${_dispatch_libDir}"
         find . -mindepth 1 -maxdepth 1 -type d \
-        | awk -F/ '{ print $2; }'
+        | awk -F/ '{ print $2; }' \
+        | sort
     )) \
     || return "$?"
 
-    _dispatch_initLibNames=("${names[@]}")
+    _dispatch_libNames=("${names[@]}")
 }
 
 # Indicates by return code whether the given name is a syntactically correct
