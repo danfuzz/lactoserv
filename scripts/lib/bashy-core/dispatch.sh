@@ -262,11 +262,6 @@ function _dispatch_find-in-dir {
         fi
     done
 
-    info-msg "#### AT ${at}"
-    info-msg "#### CMD NAME >>${cmdName}<<"
-    info-msg "#### PATH >>${path}<<"
-    info-msg "#### ARGS ${args[@]}"
-
     if (( at == 0 )); then
         # Did not find a match at all.
         return 1
@@ -282,11 +277,6 @@ function _dispatch_find-in-dir {
         # Append subcommand directory runner.
         path+='/_run'
     fi
-
-    info-msg '########### FINAL #########'
-    info-msg "#### CMD NAME >>${cmdName}<<"
-    info-msg "#### PATH >>${path}<<"
-    info-msg "#### ARGS ${args[@]}"
 }
 
 # Initializes `_dispatch_libNames` if not already done.
