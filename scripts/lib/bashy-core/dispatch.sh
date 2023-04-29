@@ -21,23 +21,36 @@ _dispatch_libNames=()
 # the name to produce the actual name of the library file.) A file with this
 # name must exist at the top level of a sublibrary directory.
 function include-lib {
+    _dispatch_initLibNames || return "$?"
+
     if (( $# == 0 )); then
         error-msg 'Missing library name.'
         return 1
     fi
 
-    local name="$1"
+    local incName="$1"
 
-    if ! _dispatch_is-valid-name "${name}"; then
-        error-msg "Invalid library name: ${name}"
+    if ! _dispatch_is-valid-name "${incName}"; then
+        error-msg "include-lib: Invalid library name: ${incName}"
         return 1
     fi
 
-    name="${name}.sh"
+    incName+='.sh'
 
-    _dispatch_initLibNames || return "$?"
+    local libDir
+    for libDir in "${libDirs[@]}"; do
+        local path="${libDir}/${incName}"
+        if [[ -f ${path} ]]; then
+            # Use a variable name unlikely to conflict with whatever is loaded,
+            # and then unset all the other locals before sourcing the script.
+            local _dispatch_path="${path}"
+            unset incName libDir path
+            . "${_dispatch_path}" "$@"
+            return "$?"
+        fi
+    done
 
-    info-msg TODO
+    error-msg "include-lib: Not found: ${incName}"
     return 1
 }
 
@@ -92,9 +105,9 @@ function lib {
     elif (( wantInclude )); then
         # Use a variable name unlikely to conflict with whatever is loaded, and
         # then unset all the other locals before sourcing the script.
-        local _init_path="${path}"
+        local _dispatch_path="${path}"
         unset name path quiet wantInclude wantPath
-        . "${_init_path}" "$@"
+        . "${_dispatch_path}" "$@"
     elif [[ -x "${path}" ]]; then
         "${path}" "$@"
     else
