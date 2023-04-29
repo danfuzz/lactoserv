@@ -26,6 +26,10 @@ if [[ $# != 0 ]]; then
     info-msg
 fi
 
-info-msg 'Other call:'
+info-msg 'Call to `sub`:'
 lib sub hello called from "$(this-cmd-name)"
-info-msg 'Done with other call.'
+info-msg 'Done with call to `sub`.'
+
+info-msg 'Call to `sub stuff`:'
+lib sub stuff hello called from "$(this-cmd-name)"
+info-msg 'Done with call to `sub stuff`.'
