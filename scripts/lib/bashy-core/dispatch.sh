@@ -87,7 +87,7 @@ function lib {
     if (( wantPath )); then
         echo "${path}"
     else
-        _dispatch_run-script "${path}" "${cmdName}" "${args[@]}"
+        "${path}" --bashy-dispatched="${cmdName}" "$@"
     fi
 }
 
@@ -211,11 +211,9 @@ function _dispatch_find {
 
     local d
     for d in "${libNames[@]}"; do
-        info-msg "#### FINDING IN >>${d}<<"
         _dispatch_find-in-dir "${d}" \
         && return
     done
-    info-msg "#### DID NOT FIND"
 
     if (( !beQuiet )); then
         error-msg "lib: Command not found: ${args[0]}"
