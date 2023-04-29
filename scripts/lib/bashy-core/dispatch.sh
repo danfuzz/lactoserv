@@ -76,45 +76,18 @@ function lib {
         return 1
     fi
 
-    local name="$1"
-    shift
+    # These are the "arguments" / "returns" for the next call.
+    local beQuiet="${quiet}"
+    local libNames="${_dispatch_libNames[@]}"
+    local args="${args[@]}"
+    local path=''
+    local cmdName=''
+    _dispatch_find || return "$?"
 
-    if ! _dispatch_is-valid-name "${name}"; then
-        error-msg "Invalid command name: ${name}"
-        return 1
-    fi
-
-    # THE FOLLOWING COPIED FROM THE ORIGINAL AND IN NEED OF REWRITE.
-
-    local path
-    for path in "${_init_libSearchPaths[@]}"; do
-        path+="/${name}"
-        if [[ -r "${path}" ]]; then
-            break
-        fi
-        path=''
-    done
-
-    if [[ ${path} == '' ]]; then
-        if (( !quiet )); then
-            error-msg "No such library script: ${name}"
-        fi
-        return 1
-    elif (( wantPath )); then
+    if (( wantPath )); then
         echo "${path}"
-    elif (( wantInclude )); then
-        # Use a variable name unlikely to conflict with whatever is loaded, and
-        # then unset all the other locals before sourcing the script.
-        local _dispatch_path="${path}"
-        unset name path quiet wantInclude wantPath
-        . "${_dispatch_path}" "$@"
-    elif [[ -x "${path}" ]]; then
-        "${path}" "$@"
     else
-        if (( !quiet )); then
-            error-msg "Library script not executable: ${name}"
-        fi
-        return 1
+        _dispatch_run-script "${path}" "${cmdName}" "${args[@]}"
     fi
 }
 
@@ -126,10 +99,9 @@ function lib {
 #
 # A "script name" does not have to be a single word: Sub-libraries can define
 # a command hierarchy via directories named as if they were scripts. Each such
-# directory can contain multiple scripts _or_ further script directories. And
-# each such directory may (but is not required to) define a script called
-# literally `_run`, to run if no further sub-commands are listed on the original
-# commandline.
+# directory can contain multiple scripts _or_ further script directories. In
+# addition, each such directory must define a script called literally `_run`, to
+# be run if no further sub-commands are listed on the original commandline.
 function lib-dispatch {
     local libDirs=()
     while (( $# > 0 )); do
@@ -209,6 +181,103 @@ function _dispatch_dispatch-in-dir {
 
     error-msg "Subcommand not found: ${cmdWords[*]}"
     return 1
+}
+
+# Finds the named library script, based on the given commandline arguments. This
+# uses variables to communicate with its caller (both for efficiency and
+# specifically because there's no saner way to pass arrays back and forth):
+#
+# * `beQuiet` input -- Boolean, whether to suppress error messages.
+# * `libNames` input -- An array which names all of the sublibraries to search
+#   (just simple names, not paths).
+# * `args` input/output -- An array of the base command name and all of the
+#   arguments. It is updated to remove all of the words that name the command
+#   (including subcommands) that was found.
+# * `path` output -- Set to indicate the path of the command that was found.
+# * `cmdName` output -- Name of the command that was found. This is a
+#   space-separated lists of the words of the command and subcommand(s).
+function _dispatch_find {
+    if (( ${#args[@]} == 0 )); then
+        if (( !beQuiet )); then
+            error-msg 'Missing command name.'
+        fi
+        return 1
+    elif ! _dispatch_is-valid-name "${args[0]}"; then
+        if (( !beQuiet )); then
+            error-msg "Invalid command name: ${args[0]}"
+        fi
+        return 1
+    fi
+
+    local d
+    for d in "${libNames[@]}"; do
+        _dispatch_find-in-dir "${d}" \
+        && return
+    done
+
+    if (( !beQuiet )); then
+        error-msg "Command not found: ${args[0]}"
+    fi
+    return 1
+}
+
+# Helper for `_dispatch_find`, which does lookup of a command or subcommand
+# within a specific directory. Inputs and outputs are as with `_dispatch_find`,
+# except this also takes a regular argument indicating the path to the directory
+# in which to perform the lookup. Returns non-zero without any message if the
+# command was not found.
+function _dispatch_find-in-dir {
+    local libDir="$1"
+
+    local cmdWords=("${cmdName}")
+
+    cmdName="${args[0]}"        # Not `local`: This is returned to the caller.
+    path="${libDir}/${cmdName}" # Ditto.
+
+    local at
+    for (( at = 0; at < ${#args[@]}; at++ )); do
+        local nextWord="${args[$at]}"
+        local nextPath="${path}/${nextWord}"
+
+        if ! _dispatch_is-valid-name "${subCmdName}"; then
+            # End of search: The next word is not a valid command name.
+            break
+        elif [[ ! -x ${nextPath} ]]; then
+            # End of search: We landed at a non-exsitent path, unexecutable
+            # file, or unsearchable directory.
+            break
+        elif [[ -f ${nextPath} ]]; then
+            # We are looking at a regular executable script. Include it in the
+            # result, and return it.
+            cmdName+=" ${nextWord}"
+            path="${nextPath}"
+            (( at++ ))
+            break
+        elif [[ -f "${nextPath}/_run" && -x "${nextPath}/_run" ]]; then
+            # We are looking at a valid subcommand directory. Include it in the
+            # result, and iterate.
+            cmdName+=" ${nextWord}"
+            path="${nextPath}"
+        else
+            # End of search: We landed at a special file (device, etc.).
+            break
+        fi
+    done
+
+    info-msg "#### AT ${at}"
+    info-msg "#### CMD NAME >>${cmdName}<<"
+    info-msg "#### PATH >>${path}<<"
+    info-msg "#### ARGS ${args[@]}"
+
+    if (( at == 0 )); then
+        # Did not find a match at all.
+        return 1
+    fi
+
+    # Delete the args that became the command/subcommand.
+    args=("${args[@]:$at}")
+
+    info-msg "#### FINAL ARGS ${args[@]}"
 }
 
 # Initializes `_dispatch_libNames` if not already done.
