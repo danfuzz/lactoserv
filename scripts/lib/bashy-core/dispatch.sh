@@ -326,5 +326,5 @@ function _dispatch_run-script {
     local cmdWords="$2"
     shift 2
 
-    exec "${path}" --bashy-dispatched="$(this-cmd-name) ${cmdWords}" "$@"
+    "${path}" --bashy-dispatched="$(this-cmd-name) ${cmdWords}" "$@"
 }
