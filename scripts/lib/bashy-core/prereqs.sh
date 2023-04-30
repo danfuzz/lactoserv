@@ -4,17 +4,36 @@
 #
 # Prerequisite checks
 #
-# This performs any prerequisite checks for the entire library, that can't be
-# verified to have been done, and then marks them done such that inner library
-# calls can (usually) tell.
+# This performs all prerequisite checks for the entire library, if such checking
+# can't be verified to have already been done, and then marks them done such
+# that inner library calls can (usually) tell.
 #
 
-# TODO
+# Name of an environment variable to indicate that prerequisites have been
+# checked for this specific library, using a hash of the path to the
+# sublibraries directory as the "key."
+_prereqs_envVarName="$(
+    printf 'BASHY_PREREQS_CHECKED_'
+    if which shasum >/dev/null 2>&1; then
+        # Darwin (macOS).
+        shasum --algorithm=256
+    else
+        sha256sum
+    fi \
+    <<<'hello' \
+    | cut -c 1-32
+)"
 
-# Something like:
-# prereqEnvName: make env var name based on absolute path.
-# check prereqEnvName for a "done" value. if done, stop.
-# _dispatch_initLibNames
+if [[ ${!_prereqs_envVarName} == '1' ]]; then
+    echo 1>&2 'PREREQS DONE'
+    return
+fi
+
+# TODO: Run prerequisites.
 # iterate over libNames:
 #   if base/name/_prereq is a script, then run it.
-# set prereqEnvName to "done"
+
+# Set the environment variable, so that inner library calls can see that the
+# checks have been done.
+declare "${_prereqs_envVarName}=1"
+export "${_prereqs_envVarName}"
