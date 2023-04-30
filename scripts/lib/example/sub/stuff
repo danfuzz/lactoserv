@@ -9,6 +9,7 @@
 
 . "$(dirname "$(readlink -f "$0")")/init.sh" || exit "$?"
 
+include-lib my-lib BEEP BOOP
 include-lib my-lib
 
 info-msg "Hello from $(this-cmd-name)!"

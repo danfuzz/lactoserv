@@ -10,7 +10,7 @@
 # The directory holding all sub-libraries.
 _dispatch_libDir="${_bashy_dir%/*}"
 
-# List of all sub-library directories. Initialized lazily.
+# List of all sub-library directory names. Initialized lazily.
 _dispatch_libNames=()
 
 
@@ -20,7 +20,8 @@ _dispatch_libNames=()
 
 # Includes (sources) a library file with the given name. (`.sh` is appended to
 # the name to produce the actual name of the library file.) A file with this
-# name must exist at the top level of a sublibrary directory.
+# name must exist at the top level of a sublibrary directory. Additional
+# arguments are passed to the included script and become available as `$1` etc.
 #
 # It is assumed that failure to load a library is a fatal problem. As such, if
 # a library isn't found, the process will exit.
@@ -33,6 +34,7 @@ function include-lib {
     fi
 
     local incName="$1"
+    shift
 
     if ! _dispatch_is-valid-name "${incName}"; then
         error-msg "include-lib: Invalid library name: ${incName}"
@@ -41,14 +43,14 @@ function include-lib {
 
     incName+='.sh'
 
-    local libDir
-    for libDir in "${libDirs[@]}"; do
-        local path="${libDir}/${incName}"
+    local d
+    for d in "${_dispatch_libNames[@]}"; do
+        local path="${_dispatch_libDir}/${d}/${incName}"
         if [[ -f ${path} ]]; then
             # Use a variable name unlikely to conflict with whatever is loaded,
             # and then unset all the other locals before sourcing the script.
             local _dispatch_path="${path}"
-            unset incName libDir path
+            unset d incName path
             . "${_dispatch_path}" "$@" \
             && return \
             || exit "$?"
