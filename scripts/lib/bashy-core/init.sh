@@ -19,6 +19,25 @@ fi
 _bashy_dir="$(readlink -f "${BASH_SOURCE[0]}")" || return "$?"
 _bashy_dir="${_bashy_dir%/*}"
 
+# The directory holding all sub-libraries (including this one).
+_bashy_libDir="${_bashy_dir%/*}"
+
+# List of all sub-library directory names.
+_bashy_libNames=()
+function _bashy_initLibNames {
+    local names && names=($(
+        cd "${_bashy_libDir}"
+        find . -mindepth 1 -maxdepth 1 -type d \
+        | awk -F/ '{ print $2; }' \
+        | sort
+    )) \
+    || return "$?"
+
+    _bashy_libNames=("${names[@]}")
+}
+_bashy_initLibNames && unset -f _bashy_initLibNames \
+|| return "$?"
+
 # The symlink-resolved path of the command that is running (that is, the
 # top-level script).
 _bashy_cmdPath="$(readlink -f "$0")" || return "$?"

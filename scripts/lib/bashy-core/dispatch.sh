@@ -7,12 +7,6 @@
 # subcommand" script (`lib --libs=<my-project> "$@"`).
 #
 
-# The directory holding all sub-libraries.
-_dispatch_libDir="${_bashy_dir%/*}"
-
-# List of all sub-library directory names. Initialized lazily.
-_dispatch_libNames=()
-
 
 #
 # Public functions
@@ -26,8 +20,6 @@ _dispatch_libNames=()
 # It is assumed that failure to load a library is a fatal problem. As such, if
 # a library isn't found, the process will exit.
 function include-lib {
-    _dispatch_initLibNames || return "$?"
-
     if (( $# == 0 )); then
         error-msg 'Missing library name.'
         exit 1
@@ -44,8 +36,8 @@ function include-lib {
     incName+='.sh'
 
     local d
-    for d in "${_dispatch_libNames[@]}"; do
-        local path="${_dispatch_libDir}/${d}/${incName}"
+    for d in "${_bashy_libNames[@]}"; do
+        local path="${_bashy_libDir}/${d}/${incName}"
         if [[ -f ${path} ]]; then
             # Use a variable name unlikely to conflict with whatever is loaded,
             # and then unset all the other locals before sourcing the script.
@@ -73,8 +65,6 @@ function include-lib {
 # A subcommand is a directory with a `_run` script in it along with any number
 # of other executable scripts or subcommand directories.
 function lib {
-    _dispatch_initLibNames || return "$?"
-
     local wantPath=0
     local quiet=0
     local libs=''
@@ -95,14 +85,14 @@ function lib {
 
     # These are the "arguments" / "returns" for the call to `_dispatch_find`.
     local beQuiet="${quiet}"
-    local libNames=("${_dispatch_libNames[@]}")
     local args=("$@")
+    local libNames=()
     local path=''
     local cmdName=''
     local libNames
 
     if [[ ${libs} == '' ]]; then
-        libNames=("${_dispatch_libNames[@]}")
+        libNames=("${_bashy_libNames[@]}")
     else
         libNames=(${libs})
     fi
@@ -168,7 +158,7 @@ function _dispatch_find-in-dir {
     local libDir="$1"
 
     cmdName=''                    # Not `local`: This is returned to the caller.
-    path="${_dispatch_libDir}/${libDir}" # Ditto.
+    path="${_bashy_libDir}/${libDir}" # Ditto.
 
     local at
     for (( at = 0; at < ${#args[@]}; at++ )); do
@@ -215,23 +205,6 @@ function _dispatch_find-in-dir {
         # Append subcommand directory runner.
         path+='/_run'
     fi
-}
-
-# Initializes `_dispatch_libNames` if not already done.
-function _dispatch_initLibNames {
-    if (( ${#_dispatch_libNames[@]} != 0 )); then
-        return
-    fi
-
-    local names && names=($(
-        cd "${_dispatch_libDir}"
-        find . -mindepth 1 -maxdepth 1 -type d \
-        | awk -F/ '{ print $2; }' \
-        | sort
-    )) \
-    || return "$?"
-
-    _dispatch_libNames=("${names[@]}")
 }
 
 # Indicates by return code whether the given name is a syntactically correct
