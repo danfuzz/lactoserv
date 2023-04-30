@@ -20,12 +20,11 @@ _prereqs_envVarName="$(
     else
         sha256sum
     fi \
-    <<<'hello' \
+    <<<"${_bashy_libDir}" \
     | cut -c 1-32
 )"
 
 if [[ ${!_prereqs_envVarName} == '1' ]]; then
-    echo 1>&2 'PREREQS DONE'
     return
 fi
 
