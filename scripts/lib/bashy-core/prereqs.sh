@@ -24,15 +24,30 @@ _prereqs_envVarName="$(
     | cut -c 1-32
 )"
 
-if [[ ${!_prereqs_envVarName} == '1' ]]; then
+if [[ ${!_prereqs_envVarName} =~ ^(running|done)$ ]]; then
+    # Prerequisites are either already done or are currently in-progress. So,
+    # don't redo the checks.
     return
 fi
 
-# TODO: Run prerequisites.
-# iterate over libNames:
-#   if base/name/_prereq is a script, then run it.
+# Set the environment variable, so that inner library calls can see that the
+# checks are now in-progress.
+declare "${_prereqs_envVarName}=running"
+export "${_prereqs_envVarName}"
+
+# Run all the sublibrary prerequisites.
+function _prereqs_run {
+    local name
+    for name in "${_bashy_libNames[@]}"; do
+        local path="${_bashy_libDir}/${name}/_prereqs"
+        if [[ -x ${path} && -f ${path} ]];then
+            "${path}" || return "$?"
+        fi
+    done
+}
+_prereqs_run && unset -f _prereqs_run \
+|| return "$?"
 
 # Set the environment variable, so that inner library calls can see that the
-# checks have been done.
-declare "${_prereqs_envVarName}=1"
-export "${_prereqs_envVarName}"
+# checks have completed successfully.
+declare "${_prereqs_envVarName}=done"
