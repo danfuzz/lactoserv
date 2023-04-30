@@ -9,4 +9,4 @@
 
 . "$(dirname "$(readlink -f "$0")")/init.sh" || exit "$?"
 
-info-msg 'HELLO FROM EXAMPLE PREREQ!'
+info-msg '#### HELLO FROM EXAMPLE PREREQ!'
