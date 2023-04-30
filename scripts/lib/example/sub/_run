@@ -8,7 +8,6 @@
 #
 
 . "$(dirname "$(readlink -f "$0")")/init.sh" || exit "$?"
-# use-lib 'lib-name'
 
 info-msg "Hello from $(this-cmd-name)!"
 
