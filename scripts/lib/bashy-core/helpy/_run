@@ -7,7 +7,6 @@
 # Help-helper utility
 #
 
-# Initialize the library system.
 . "$(dirname "$(readlink -f "$0")")/init.sh" || exit "$?"
 
-# TODO
+lib helpy print-subcommands "$(this-cmd-name)"
