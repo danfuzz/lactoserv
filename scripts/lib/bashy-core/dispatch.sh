@@ -2,15 +2,26 @@
 # SPDX-License-Identifier: Apache-2.0
 
 #
-# Script dispatch helper. This can be used by scripts to invoke other scripts.
-# It is particularly useful as the main call to implement a top-level "run some
-# subcommand" script (`lib --libs=<my-project> "$@"`).
+# Script dispatch and general call helper.
+#
+# Note that `lib` in particular is what is used by scripts to invoke other
+# scripts, and can also be used as the main call to implement a top-level "run
+# some subcommand" script (`lib --libs=<my-project> "$@"`).
 #
 
 
 #
 # Public functions
 #
+
+# Calls an arbitrary command, and then exits the process with the given code.
+function call-then-exit {
+    local exitCode="$1"
+    shift
+
+    "$@"
+    exit "${exitCode}"
+}
 
 # Includes (sources) a library file with the given name. (`.sh` is appended to
 # the name to produce the actual name of the library file.) A file with this
