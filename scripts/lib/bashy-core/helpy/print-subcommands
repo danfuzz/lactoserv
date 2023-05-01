@@ -40,7 +40,11 @@ process-args "$@" || usage --short
 # Main script
 #
 
-cmdPath="$(lib --path "${cmdName}")" \
+# Split the command into words, and keep the last word for later.
+cmdWords=(${cmdName})
+cmdName="${cmdName##* }"
+
+cmdPath="$(lib --path "${cmdWords[@]}")" \
 || exit "$?"
 
 # Derive the directory that the main command is in, including walking back from
