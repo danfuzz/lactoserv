@@ -12,25 +12,24 @@
 #
 
 function usage {
-    lib helpy print-usage $'
+    lib helpy print-usage "$@" $'
     ${name} <json-value>
 
     Prints the length of the given JSON value, per the `jq` length rules.
 
     ${name} [--help | -h]
-      Displays this message.
-    '
 
-    exit "$@"
+    Displays this message.
+    '
 }
 
 # Want help?
-opt-action --call='{ usage }' help/h
+opt-action --call='{ usage; exit }' help/h
 
 # JSON value.
 positional-arg --required --var=value json-value
 
-process-args "$@" || usage "$?"
+process-args "$@" || call-then-exit "$?" usage --short
 
 
 #

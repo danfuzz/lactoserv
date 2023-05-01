@@ -12,21 +12,22 @@
 #
 
 function usage {
-    lib helpy print-usage $'
+    lib helpy print-usage "$@" $'
     ${name} <path> ...
-      Uses `rsync` to do an all-local (not actually remote) "archive" copy
-      operation (preserving permissions, modtimes, etc.), including deleting
-      files at the destination that don\'t exist at the source by default.
 
-      Note that trailing slashes on source directory names are significant to
-      `rsync`, and this significance is "passed through" to the users of this
-      tool.
+    Uses `rsync` to do an all-local (not actually remote) "archive" copy
+    operation (preserving permissions, modtimes, etc.), including deleting
+    files at the destination that don\'t exist at the source by default.
 
-      More context: This tool uses `rsync` and not `cp` -- even though this is a
-      totally local operation -- because `rsync` has well-defined behavior when
-      copying a tree on top of another tree and also knows how to create
-      directories as needed. `cp` _often_ does what one wants but has a few very
-      surprising edge cases.
+    Note that trailing slashes on source directory names are significant to
+    `rsync`, and this significance is "passed through" to the users of this
+    tool.
+
+    More context: This tool uses `rsync` and not `cp` -- even though this is a
+    totally local operation -- because `rsync` has well-defined behavior when
+    copying a tree on top of another tree and also knows how to create
+    directories as needed. `cp` _often_ does what one wants but has a few very
+    surprising edge cases.
 
     --no-delete
       Do not delete files at the destination that are not present in the source.
@@ -34,14 +35,13 @@ function usage {
       Exclude files. Passed as-is to the underlying `rsync`.
 
     ${name} [--help | -h]
-      Displays this message.
-    '
 
-    exit "$@"
+    Displays this message.
+    '
 }
 
 # Want help?
-opt-action --call='{ usage }' help/h
+opt-action --call='{ usage; exit }' help/h
 
 # Delete files not present at the source?
 opt-toggle --var=delete --init=1 delete
@@ -53,11 +53,12 @@ opt-value --call='{ excludeOpts+=("--exclude=$1") }' exclude
 # Paths to copy from/to.
 rest-arg --var=paths paths
 
-process-args "$@" || usage "$?"
+process-args "$@" || call-then-exit "$?" usage --short
 
 if (( ${#paths} < 2 )); then
     error-msg 'Must specify at least two paths.'
-    usage 1
+    usage --short
+    exit 1
 fi
 
 
