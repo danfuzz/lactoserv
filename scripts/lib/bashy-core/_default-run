@@ -1,0 +1,42 @@
+#!/bin/bash
+#
+# Copyright 2022 the Bashy-lib Authors (Dan Bornstein et alia).
+# Licensed AS IS and WITHOUT WARRANTY under the Apache License, Version 2.0.
+# Details: <http://www.apache.org/licenses/LICENSE-2.0>
+
+# Load the helper libraries.
+. "$(dirname "$(readlink -f "$0")")/init.sh" || exit "$?"
+
+#
+# Argument parsing
+#
+
+define-usage $'
+    ${name} <arg> ...
+
+    Default (sub)command runner, for a command with subcommands being invoked on
+    a (sub)command that doesn\'t have a script. That is, this is for the case
+    where the named (sub)command indicates a directory of subcommands that does
+    not have a default `_run` script in it.
+
+    This prints a list of available subcommands.
+
+    ${name} [--help | -h]
+
+    Displays this message.
+'
+
+# Want help?
+opt-action --call='{ usage; exit }' help/h
+
+# Arbitrary args.
+rest-arg --var=args args
+
+process-args "$@" || usage --short
+
+
+#
+# Main script
+#
+
+lib helpy print-subcommands "$(this-cmd-name)"

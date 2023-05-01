@@ -48,7 +48,7 @@ opt-action --call='{ usage; exit }' help/h
 opt-value --var=exitCode --init=0 --filter='/^[0-9]{1,3}$/' exit
 
 # Command name.
-opt-value --required --var=cmdName --filter='/^[a-z]/' name
+opt-value --required --var=cmdName --filter='/^[_a-zA-Z]/' name
 
 # Extract short usage?
 opt-toggle --var=short short

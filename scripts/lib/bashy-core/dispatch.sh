@@ -64,8 +64,8 @@ function include-lib {
 # After the options, the next argument is taken to be a main command. After
 # that, any number of subcommands are accepted as long as they are allowed by
 # the main command. See the docs for more details on directory structure. TLDR:
-# A subcommand is a directory with a `_run` script in it along with any number
-# of other executable scripts or subcommand directories.
+# A subcommand is a directory with an optional `_run` script in it along with
+# any number of other executable scripts or subcommand directories.
 #
 # As with running a normal shell command, if the command is not found (including
 # if the name is invalid), this returns code `127`.
@@ -162,8 +162,14 @@ function _dispatch_find {
 function _dispatch_find-in-dir {
     local libDir="$1"
 
-    cmdName=''                    # Not `local`: This is returned to the caller.
-    path="${_bashy_libDir}/${libDir}" # Ditto.
+    # Not `local`: These are returned to the caller.
+    cmdName=''
+    path="${_bashy_libDir}/${libDir}"
+
+    # Info about the deepest `_run` script found.
+    local runAt=-1
+    local runCmdName=''
+    local runPath=''
 
     local at
     for (( at = 0; at < ${#args[@]}; at++ )); do
@@ -184,11 +190,16 @@ function _dispatch_find-in-dir {
             path="${nextPath}"
             (( at++ ))
             break
-        elif [[ -f "${nextPath}/_run" && -x "${nextPath}/_run" ]]; then
-            # We are looking at a valid subcommand directory. Include it in the
+        elif [[ -d "${nextPath}" ]]; then
+            # We are looking at a subcommand directory. Include it in the
             # result, and iterate.
             cmdName+=" ${nextWord}"
             path="${nextPath}"
+            if [[ -f "${nextPath}/run" && -x "${nextPath}/_run" ]]; then
+                runAt="${at}"
+                runCmdName="${runCmdName}"
+                runPath="${path}/_run"
+            fi
         else
             # End of search: We landed at a special file (device, etc.).
             break
@@ -200,16 +211,24 @@ function _dispatch_find-in-dir {
         return 1
     fi
 
+    if [[ -d ${path} ]]; then
+        # We found a subcommand directory. Adjust to point at the deepest `_run`
+        # script that was found (if any).
+        if (( runAt == -1 )); then
+            # Use the default run script.
+            path="${_bashy_dir}/_default-run"
+        else
+            at="${runCmdAt}"
+            cmdName="${runCmdName}"
+            path="${runCmdPath}"
+        fi
+    fi
+
     # Delete the initial space from `cmdName`.
     cmdName="${cmdName:1}"
 
     # Delete the args that became the command/subcommand.
     args=("${args[@]:$at}")
-
-    if [[ -d ${path} ]]; then
-        # Append subcommand directory runner.
-        path+='/_run'
-    fi
 }
 
 # Indicates by return code whether the given name is a syntactically correct

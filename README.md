@@ -42,12 +42,15 @@ project-base-directory/
         project-script
         project-subcommand-dir/
           init.sh -- boilerplate init file
-          _run -- default subcommand script
+          _run -- default subcommand script (optional)
           subcommand-script
           subcommand-script
+          subsub-dir/
+            _run -- default subcommand script (optional)
+            subcommand-script
         project-subcommand-dir/
           init.sh -- boilerplate init file
-          _run -- default subcommand script
+          _run -- default subcommand script (optional)
           subcommand-script
           subcommand-script
 ```
