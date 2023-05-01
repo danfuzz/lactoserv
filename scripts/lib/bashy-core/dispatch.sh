@@ -64,6 +64,9 @@ function include-lib {
 # the main command. See the docs for more details on directory structure. TLDR:
 # A subcommand is a directory with a `_run` script in it along with any number
 # of other executable scripts or subcommand directories.
+#
+# As with running a normal shell command, if the command is not found (including
+# if the name is invalid), this returns code `127`.
 function lib {
     local wantPath=0
     local quiet=0
@@ -80,7 +83,7 @@ function lib {
 
     if (( $# == 0 )); then
         error-msg 'lib: Missing command name.'
-        return 1
+        return 127
     fi
 
     # These are the "arguments" / "returns" for the call to `_dispatch_find`.
@@ -129,12 +132,12 @@ function _dispatch_find {
         if (( !beQuiet )); then
             error-msg 'lib: Missing command name.'
         fi
-        return 1
+        return 127
     elif ! _dispatch_is-valid-name "${args[0]}"; then
         if (( !beQuiet )); then
             error-msg "lib: Invalid command name: ${args[0]}"
         fi
-        return 1
+        return 127
     fi
 
     local d
@@ -146,7 +149,7 @@ function _dispatch_find {
     if (( !beQuiet )); then
         error-msg "lib: Command not found: ${args[0]}"
     fi
-    return 1
+    return 127
 }
 
 # Helper for `_dispatch_find`, which does lookup of a command or subcommand
