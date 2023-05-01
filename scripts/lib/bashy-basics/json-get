@@ -12,7 +12,7 @@
 #
 
 function usage {
-    lib helpy print-usage "$@" $'
+    lib helpy print-usage --name="$(this-cmd-name)" "$@" $'
     ${name} [<opt> ...] [--] <value> [<jval-expr> ...]
     ${name} [--file=<path> <opt> ...] [--] [<jval-expr> ...]
 

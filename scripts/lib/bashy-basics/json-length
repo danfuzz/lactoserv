@@ -12,7 +12,7 @@
 #
 
 function usage {
-    lib helpy print-usage "$@" $'
+    lib helpy print-usage --name="$(this-cmd-name)" "$@" $'
     ${name} <json-value>
 
     Prints the length of the given JSON value, per the `jq` length rules.

@@ -12,7 +12,7 @@
 
 function usage {
     # Yes, this is a recursive call to this script.
-    lib helpy print-usage "$@" $'
+    lib helpy print-usage --name="$(this-cmd-name)" "$@" $'
     ${name} [<opt> ...] [--] <message>
 
     Prints a usage message. This does the following to the given <message>:
@@ -20,10 +20,12 @@ function usage {
     * Trim away empty lines at the start and end of the string.
     * Trim away whitespace from the start of lines, based on the indentation of
       the first not-just-whitespace line.
-    * Substitute the name of the program for the variable-like string `${name}`.
+    * Substitute the name of the command for the variable-like string `${name}`.
     * Prepend `Usage:` and a blank line.
     * Print to `stderr`.
 
+    --name=<name>
+      The name of the command to use for `${name}.` This is required.
     --short
       Prints a short version of the <message>. This only prints double-newline
       delimited sections whose first line starts with `${name}`. In addition, it
@@ -40,6 +42,9 @@ function usage {
 # Want help?
 opt-action --call='{ usage; exit }' help/h
 
+# Command name.
+opt-value --required --var=cmdName --filter='/^[a-z]/' name
+
 # Extract short usage?
 opt-toggle --var=short short
 
@@ -50,17 +55,12 @@ process-args "$@" || call-then-exit "$?" usage --short
 
 
 #
-# Helper functions
+# Main script
 #
 
-# Main command implementation.
-function print-usage {
-    local short="$1"
-    local msg="$2"
-
     info-msg --exec \
-    awk <<<"${msg}" \
-        -v name="$(this-cmd-name)" \
+    awk <<<"${message}" \
+        -v name="${cmdName}" \
         -v short="${short}" \
     '
     BEGIN {
@@ -111,11 +111,3 @@ function print-usage {
         }
     }
     '
-}
-
-
-#
-# Main script
-#
-
-print-usage "${short}" "${message}"

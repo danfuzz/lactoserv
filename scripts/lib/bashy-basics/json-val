@@ -12,7 +12,7 @@
 #
 
 function usage {
-    lib helpy print-usage "$@" $'
+    lib helpy print-usage --name="$(this-cmd-name)" "$@" $'
     ${name} [<opt> ...] [--] [<assignment> ...] [--] [<jq-expression> ...]
 
     Constructs and prints one or more JSON values from variable assignments
