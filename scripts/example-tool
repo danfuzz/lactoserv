@@ -15,9 +15,7 @@
 #
 
 function usage {
-    print-usage $'
-    Usage:
-
+    lib helpy print-usage $'
     ${name} <subcommand> ... [<opt> ...] [--] [<arg> ...]
       Does something exemplar. <opt>s and <arg>s depend on the specific
       subcommand.
@@ -43,5 +41,12 @@ process-args "$@" || usage "$?"
 #
 
 # You can list any number of sub-library names in place of `example` below.
-lib --libs=example "$@" \
-|| usage "$?"
+lib --libs=example --quiet "${cmdName}" "${args[@]}"
+exitCode="$?"
+
+if (( exitCode == 127 )); then
+    error-msg "Command not found: ${cmdName}"
+    exit 1
+fi
+
+exit "${exitCode}"

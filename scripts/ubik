@@ -16,10 +16,8 @@
 #
 
 function usage {
-    print-usage $'
-    Usage:
-
-    ${name} <subcommand> ... [<opt> ...] [--] [<arg> ...]
+    lib helpy print-usage $'
+    ${name} <command> [<subcommand> ...] [<opt> ...] [--] [<arg> ...]
       Run a subcommand. <opt>s and <arg>s depend on the specific subcommand.
 
     ${name} [--help | -h]
@@ -32,6 +30,9 @@ function usage {
 # Want help?
 opt-action --call='{ usage }' help/h
 
+# The main command.
+positional-arg --required --var=cmdName command
+
 # The actual command arguments.
 rest-arg --var=args args
 
@@ -42,5 +43,12 @@ process-args "$@" || usage "$?"
 # Main script
 #
 
-lib "$@" \
-|| usage "$?"
+lib --quiet "${cmdName}" "${args[@]}"
+exitCode="$?"
+
+if (( exitCode == 127 )); then
+    error-msg "Command not found: ${cmdName}"
+    exit 1
+fi
+
+exit "${exitCode}"
