@@ -3,11 +3,98 @@
 # Copyright 2022-2023 the Bashy-lib Authors (Dan Bornstein et alia).
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Prints a usage message, using variable substitutions.
-#
-
-# Initialize the library system.
 . "$(dirname "$(readlink -f "$0")")/init.sh" || exit "$?"
 
-# TODO
+
+#
+# Helper functions
+#
+# Note: In most commands, we list the "argument processing" section above
+# "helper functions," but in this case, a helper function is used during
+# argument processing. So here we are.
+#
+
+# Main command implementation.
+function print-usage {
+    local msg="$1"
+
+    info-msg --exec \
+    awk <<<"${msg}" -v name="$(this-cmd-name)" \
+    '
+    BEGIN {
+        atStart = 1;
+        blankCount = 0;
+        indentExpr = ""; # Regex to match indentation to strip.
+
+        print "Usage:\n";
+    }
+
+    # Count blank lines, but do not emit them.
+    /^[ \t]*$/ {
+        blankCount++;
+        next;
+    }
+
+    blankCount != 0 {
+        if (!atStart) {
+            # Emit some blank lines in the middle of the message. (Ignore them
+            # at the start of the message.)
+            while (blankCount-- > 0) print "";
+        }
+        blankCount = 0;
+    }
+
+    # Determine first-line indentation; convert to regex.
+    indentExpr == "" {
+        match($0, /^[ \t]*/);
+        indentExpr = "^" substr($0, 1, RLENGTH);
+    }
+
+    {
+        atStart = 0;
+        sub(indentExpr, "");
+        gsub(/\${name}/, name);
+        print;
+    }
+    '
+}
+
+
+#
+# Argument parsing
+#
+
+function usage {
+    print-usage $'
+    ${name} [<opt> ...] [--] <message>
+
+    Prints a usage message. This is just a convenient shorthand to do a few
+    things to a given literal string:
+
+    * Trim away empty lines at the start and end of the string.
+    * Trim away whitespace from the start of lines, based on the indentation of
+      the first not-just-whitespace line.
+    * Substitute the name of the program for the variable-like string `${name}`.
+    * Prepend `Usage:` and a blank line.
+    * Print to `stderr`.
+
+    ${name} [--help | -h]
+      Displays this message.
+    '
+
+    exit "$@"
+}
+
+# Want help?
+opt-action --call='{ usage }' help/h
+
+positional-arg --required --var=message message
+
+process-args "$@" || usage "$?"
+
+
+#
+# Main script
+#
+
+print-usage "${message}"
