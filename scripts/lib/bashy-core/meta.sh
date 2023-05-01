@@ -18,6 +18,12 @@ _bashy_baseDir=''
 # init file.
 _bashy_subprojectDir=''
 
+# The simple name of the command that is running (that is, the top-level
+# script). This doesn't include the directory path of the script, but it _does_
+# include the "subcommand path" of the script if it was run via the subcommand
+# dispatch system. It is initialized lazily (see below).
+_bashy_cmdName=''
+
 
 #
 # Library functions
@@ -82,6 +88,23 @@ function this-cmd-dir {
 # dispatch, then the result of this call is the space-separated list of the
 # command and all subcommands.
 function this-cmd-name {
+    if [[ ${_bashy_cmdName} == '' ]]; then
+        # First time this function has been called.
+        local name="${_bashy_cmdPath}" # Start with the full command path.
+        local len="${#_bashy_libDir}"
+        if [[ ${_bashy_libDir} == ${name:0:$len} ]]; then
+            # We are looking at a command run from this library...
+            name="${name:$((len + 1))}" # Drop the library directory prefix.
+            name="${name#*/}"           # Drop the sublibrary directory name.
+            name="${name%/_run}"        # Drop trailing `/_run` (if present).
+            name="${name//\// }"        # Replace slashes with spaces.
+        else
+            # All other cases, just use the simple script name.
+            name="${name##*/}"
+        fi
+        _bashy_cmdName="${name}"
+    fi
+
     echo "${_bashy_cmdName}"
 }
 

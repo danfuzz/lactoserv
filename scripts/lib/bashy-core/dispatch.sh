@@ -93,7 +93,7 @@ function lib {
     local args=("$@")
     local libNames=()
     local path=''
-    local cmdName=''
+    local cmdName='' # TODO: Delete this. Not needed.
     local libNames
 
     if [[ ${libs} == '' ]]; then
@@ -107,7 +107,7 @@ function lib {
     if (( wantPath )); then
         echo "${path}"
     else
-        "${path}" --bashy-dispatched="${cmdName}" "${args[@]}"
+        "${path}" "${args[@]}"
     fi
 }
 

@@ -42,17 +42,6 @@ _bashy_initLibNames && unset -f _bashy_initLibNames \
 # top-level script).
 _bashy_cmdPath="$(readlink -f "$0")" || return "$?"
 
-# The simple name of the command that is running (that is, the top-level
-# script). This doesn't include the directory path of the script, but it _does_
-# include the "subcommand path" of the script if it was run via the subcommand
-# dispatch system.
-if [[ $1 =~ ^--bashy-dispatched=(.*)$ ]]; then
-    _bashy_cmdName="${BASH_REMATCH[1]}"
-    shift
-else
-    _bashy_cmdName="${_bashy_cmdPath##*/}"
-fi
-
 # Load the core library's own sub-libraries.
 . "${_bashy_dir}/arg-processor.sh" || return "$?"
 . "${_bashy_dir}/dispatch.sh" || return "$?"
