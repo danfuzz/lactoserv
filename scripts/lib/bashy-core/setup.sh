@@ -17,7 +17,7 @@
 # Name of an environment variable to indicate that prerequisites have been
 # checked for this specific library, using a hash of the path to the
 # sublibraries directory as the "key."
-_prereqs_envVarName="$(
+_bashy_prereqsEnvVarName="$(
     printf 'BASHY_PREREQS_CHECKED_'
     if which shasum >/dev/null 2>&1; then
         # Darwin (macOS).
@@ -49,7 +49,7 @@ _setup_load-all && unset -f _setup_load-all \
 
 # Handle prerequisite checks.
 function _setup_check-prereqs {
-    if [[ ${!_prereqs_envVarName} =~ ^(running|done)$ ]]; then
+    if [[ ${!_bashy_prereqsEnvVarName} =~ ^(running|done)$ ]]; then
         # Prerequisite checks are either already done or are currently
         # in-progress. So, don't redo the checks.
         return
@@ -57,8 +57,8 @@ function _setup_check-prereqs {
 
     # Set the environment variable, so that inner library calls can see that the
     # checks are now in-progress.
-    declare "${_prereqs_envVarName}=running"
-    export "${_prereqs_envVarName}"
+    declare "${_bashy_prereqsEnvVarName}=running"
+    export "${_bashy_prereqsEnvVarName}"
 
     # Run all the sublibrary prerequisites.
     local name
@@ -71,7 +71,7 @@ function _setup_check-prereqs {
 
     # Set the environment variable, so that inner library calls can see that the
     # checks have completed successfully.
-    declare "${_prereqs_envVarName}=done"
+    declare "${_bashy_prereqsEnvVarName}=done"
 }
 _setup_check-prereqs && unset -f _setup_check-prereqs \
 || return "$?"
