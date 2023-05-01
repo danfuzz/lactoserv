@@ -93,7 +93,6 @@ function lib {
     local args=("$@")
     local libNames=()
     local path=''
-    local cmdName='' # TODO: Delete this. Not needed.
     local libNames
 
     if [[ ${libs} == '' ]]; then
@@ -127,8 +126,6 @@ function lib {
 #   arguments. It is updated to remove all of the words that name the command
 #   (including subcommands) that was found.
 # * `path` output -- Set to indicate the path of the command that was found.
-# * `cmdName` output -- Name of the command that was found. This is a
-#   space-separated lists of the words of the command and subcommand(s).
 function _dispatch_find {
     if (( ${#args[@]} == 0 )); then
         if (( !beQuiet )); then
@@ -162,8 +159,7 @@ function _dispatch_find {
 function _dispatch_find-in-dir {
     local libDir="$1"
 
-    # Not `local`: These are returned to the caller.
-    cmdName=''
+    # Not `local`: This is returned to the caller.
     path="${_bashy_libDir}/${libDir}"
 
     # Info about the deepest `_run` script found.
@@ -186,14 +182,12 @@ function _dispatch_find-in-dir {
         elif [[ -f ${nextPath} ]]; then
             # We are looking at a regular executable script. Include it in the
             # result, and return it.
-            cmdName+=" ${nextWord}"
             path="${nextPath}"
             (( at++ ))
             break
         elif [[ -d "${nextPath}" ]]; then
             # We are looking at a subcommand directory. Include it in the
             # result, and iterate.
-            cmdName+=" ${nextWord}"
             path="${nextPath}"
             if [[ -f "${nextPath}/run" && -x "${nextPath}/_run" ]]; then
                 runAt="${at}"
@@ -219,13 +213,9 @@ function _dispatch_find-in-dir {
             path="${_bashy_dir}/_default-run"
         else
             at="${runCmdAt}"
-            cmdName="${runCmdName}"
             path="${runCmdPath}"
         fi
     fi
-
-    # Delete the initial space from `cmdName`.
-    cmdName="${cmdName:1}"
 
     # Delete the args that became the command/subcommand.
     args=("${args[@]:$at}")
