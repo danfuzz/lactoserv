@@ -54,11 +54,12 @@ else
 fi
 
 # Load the core library's own sub-libraries.
-. "${_bashy_dir}/meta.sh" || return "$?"
-. "${_bashy_dir}/stderr-messages.sh" || return "$?"
 . "${_bashy_dir}/arg-processor.sh" || return "$?"
 . "${_bashy_dir}/dispatch.sh" || return "$?"
+. "${_bashy_dir}/meta.sh" || return "$?"
+. "${_bashy_dir}/misc.sh" || return "$?"
+. "${_bashy_dir}/stderr-messages.sh" || return "$?"
 
-# Perform prerequisite checking.
-# TODO
+# Perform prerequisite checking. This has to be loaded after all the above; the
+# custom sublibrary prerequisite checkers can use any of it they want to.
 . "${_bashy_dir}/prereqs.sh" || return "$?"
