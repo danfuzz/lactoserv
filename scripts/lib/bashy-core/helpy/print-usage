@@ -10,9 +10,8 @@
 # Argument parsing
 #
 
-function usage {
-    # Yes, this is a recursive call to this script.
-    lib helpy print-usage --name="$(this-cmd-name)" "$@" $'
+# Yes, this constructs a recursive call to this script.
+define-usage $'
     ${name} [<opt> ...] [--] <message>
 
     Prints a usage message. This does the following to the given <message>:
@@ -20,7 +19,8 @@ function usage {
     * Trim away empty lines at the start and end of the string.
     * Trim away whitespace from the start of lines, based on the indentation of
       the first not-just-whitespace line.
-    * Substitute the name of the command for the variable-like string `${name}`.
+    * Substitute the name of the command for the variable-like string `$${name}`.
+      (`$$$$` indicates a literal `$`.)
     * Prepend `Usage:` and a blank line.
     * Print to `stderr`.
 
@@ -28,19 +28,18 @@ function usage {
       On success, exit with the indicated exit code instead of `0`. This is
       intended to help reduce the boilerplate in using this command.
     --name=<name>
-      The name of the command to use for `${name}.` This is required.
+      The name of the command to use for `$${name}.` This is required.
     --short
       Prints a short version of the <message>. This only prints double-newline
-      delimited sections whose first line starts with `${name}`. In addition, it
+      delimited sections whose first line starts with `$${name}`. In addition, it
       prints just a single newline (not "Usage:") at the start. Note: For this
       to work as intended, always put a double-newline after each command
-      summary section.
+      summary section. ${florp}${flop}
 
     ${name} [--help | -h]
 
     Displays this message.
-    '
-}
+'
 
 # Want help?
 opt-action --call='{ usage; exit }' help/h
@@ -57,7 +56,7 @@ opt-toggle --var=short short
 # Usage message to print.
 positional-arg --required --var=message message
 
-process-args "$@" || call-then-exit "$?" usage --short
+process-args "$@" || usage --short
 
 
 #
@@ -111,10 +110,41 @@ indentExpr == "" {
         }
 
         atStart = 0;
-        gsub(/\${name}/, name);
 
-        print;
+        if ($0 ~ /[$]/) {
+            print varSubst($0);
+        } else {
+            print;
+        }
     }
+}
+
+# Performs variable substitutions on the given line.
+function varSubst(line, withLocals, machStr, out) {
+    out = ""
+
+    while (line != "") {
+        if (!match(line, /[$]([$]|[{][a-z]+[}])?/)) {
+            break;
+        }
+        out = out substr(line, 1, RSTART - 1);
+        matchStr = substr(line, RSTART, RLENGTH);
+        if ((matchStr == "$") || (matchStr == "$$")) {
+            # `$$` or non-variable `$`.
+            out = out "$";
+        } else {
+            if (matchStr == "${name}") {
+                out = out name;
+            } else {
+                out = out "${UNKNOWN VARIABLE " \
+                    substr(matchStr, 3, length(matchStr) - 3) \
+                    "}";
+            }
+        }
+        line = substr(line, RSTART + RLENGTH);
+    }
+
+    return out line;
 }
 '
 
