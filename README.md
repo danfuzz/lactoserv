@@ -76,30 +76,39 @@ project-base-directory/
    `init.sh` file will need to be adjusted if `scripts` is not directly under
    your project's base directory.
 
-4. Make a directory for your own script sub-library, `scripts/lib/my-project`.
+4. Create a file `scripts/lib/init.sh`, with the following lines:
 
-5. Create a file called `scripts/lib/my-project/init.sh`, to hook up
-   `bashy-core` to your project's script sub-library. The file should start
-   with this:
+   ```bash
+   . "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/bashy-core/init.sh" \
+   || return "$?"
+
+   base-dir --set=../..
+   ```
+
+   This (a) loads the core library and all sublibraries, and (b) tells the
+   system where the top-of-project directory is.
+
+5. Make a directory for your own script sub-library, `scripts/lib/my-project`.
+
+6. Create a file called `scripts/lib/my-project/init.sh`, to hook up
+   `bashy-core` to your project's script sub-library. The file should just
+   contain this:
 
    ```bash
    . "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/../init.sh" \
    || return "$?"
    ```
 
-   In addition, this is where you can add project-specific definitions,
-   including notably specifying prerequisite checks.
-
-6. Create one or more scripts in `scripts/lib/my-project`. At the top of each
+7. Create one or more scripts in `scripts/lib/my-project`. At the top of each
    script, include the following:
 
    ```bash
-   . "$(dirname "$(readlink -f "$0")")/../init.sh" || exit "$?"
+   . "$(dirname "$(readlink -f "$0")")/init.sh" || exit "$?"
    ```
 
-7. Create one or more subcommand directories in `scripts/lib/my-project`. Add
-   an `init.sh` file to it (same as in step 5), and one or more scripts or
-   subcommand directories (same as step 6 or this step).
+8. Create one or more subcommand directories in `scripts/lib/my-project`. Add
+   an `init.sh` file to it (same as in step 6), and one or more scripts or
+   subcommand directories (same as step 7 or this step).
 
 **Note:** The files named with a `.sh` suffix are _not_ supposed to be marked
 executable (`chmod +x ...`). These are _include_ files.
