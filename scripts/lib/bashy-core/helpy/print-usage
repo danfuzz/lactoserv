@@ -7,6 +7,43 @@
 
 
 #
+# Argument parsing
+#
+
+function usage {
+    # Yes, this is a recursive call to this script.
+    lib helpy print-usage "$@" $'
+    ${name} [<opt> ...] [--] <message>
+
+    Prints a usage message. This is just a convenient shorthand to do a few
+    things to a given literal string:
+
+    * Trim away empty lines at the start and end of the string.
+    * Trim away whitespace from the start of lines, based on the indentation of
+      the first not-just-whitespace line.
+    * Substitute the name of the program for the variable-like string `${name}`.
+    * Prepend `Usage:` and a blank line.
+    * Print to `stderr`.
+
+    ${name} [--help | -h]
+
+    Displays this message.
+    '
+}
+
+# Want help?
+opt-action --call='{ usage; exit }' help/h
+
+# Extract short usage?
+opt-toggle --var=short short
+
+# Usage message to print.
+positional-arg --required --var=message message
+
+process-args "$@" || call-then-exit "$?" usage --short
+
+
+#
 # Helper functions
 #
 
@@ -69,43 +106,6 @@ function print-usage {
     }
     '
 }
-
-
-#
-# Argument parsing
-#
-
-function usage {
-    # Yes, this is a recursive call to this script.
-    lib helpy print-usage "$@" $'
-    ${name} [<opt> ...] [--] <message>
-
-    Prints a usage message. This is just a convenient shorthand to do a few
-    things to a given literal string:
-
-    * Trim away empty lines at the start and end of the string.
-    * Trim away whitespace from the start of lines, based on the indentation of
-      the first not-just-whitespace line.
-    * Substitute the name of the program for the variable-like string `${name}`.
-    * Prepend `Usage:` and a blank line.
-    * Print to `stderr`.
-
-    ${name} [--help | -h]
-
-    Displays this message.
-    '
-}
-
-# Want help?
-opt-action --call='{ usage; exit }' help/h
-
-# Extract short usage?
-opt-toggle --var=short short
-
-# Usage message to print.
-positional-arg --required --var=message message
-
-process-args "$@" || call-then-exit "$?" usage --short
 
 
 #
