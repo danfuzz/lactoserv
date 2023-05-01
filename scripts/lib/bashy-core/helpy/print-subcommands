@@ -12,25 +12,25 @@
 #
 
 function usage {
-    lib helpy print-usage $'
+    lib helpy print-usage "$@" $'
     ${name} [<opt> ...] [--] <command>
-      Lists all the subcommands (and sub-subcommands, etc.) of the given
-      command.
+
+    Lists all the subcommands (and sub-subcommands, etc.) of the given
+    command.
 
     ${name} [--help | -h]
-      Displays this message.
-    '
 
-    exit "$@"
+    Displays this message.
+    '
 }
 
 # Want help?
-opt-action --call='{ usage }' help/h
+opt-action --call='{ usage; exit }' help/h
 
 # The command to print stuff about.
 positional-arg --required --var=cmdName --filter='/^[a-z]/' command
 
-process-args "$@" || usage "$?"
+process-args "$@" || call-then-exit "$?" usage --short
 
 
 #
