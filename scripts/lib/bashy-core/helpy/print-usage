@@ -15,8 +15,7 @@ function usage {
     lib helpy print-usage "$@" $'
     ${name} [<opt> ...] [--] <message>
 
-    Prints a usage message. This is just a convenient shorthand to do a few
-    things to a given literal string:
+    Prints a usage message. This does the following to the given <message>:
 
     * Trim away empty lines at the start and end of the string.
     * Trim away whitespace from the start of lines, based on the indentation of
@@ -24,6 +23,13 @@ function usage {
     * Substitute the name of the program for the variable-like string `${name}`.
     * Prepend `Usage:` and a blank line.
     * Print to `stderr`.
+
+    --short
+      Prints a short version of the <message>. This only prints double-newline
+      delimited sections whose first line starts with `${name}`. In addition, it
+      prints just a single newline (not "Usage:") at the start. Note: For this
+      to work as intended, always put a double-newline after each command
+      summary section.
 
     ${name} [--help | -h]
 
