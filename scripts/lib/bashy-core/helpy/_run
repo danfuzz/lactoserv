@@ -9,4 +9,12 @@
 
 . "$(dirname "$(readlink -f "$0")")/init.sh" || exit "$?"
 
+error=0
+if (( $# != 0 )) && [[ $1 =~ [^-] ]]; then
+    error-msg "Unknown subcommand: $1"
+    error-msg
+    error=1
+fi
+
 lib helpy print-subcommands "$(this-cmd-name)"
+exit "${error}"
