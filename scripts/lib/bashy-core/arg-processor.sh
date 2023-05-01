@@ -263,7 +263,7 @@ function positional-arg {
 function print-usage {
     local msg="$1"
 
-    info-msg 'WARNING: DEPRECATED usage helper. Please use `helpy print-usage`'
+    info-msg 'WARNING: DEPRECATED usage helper. Please use `lib helpy print-usage`'
     info-msg '(and omit the initial literal `Usage:` line).'
     info-msg
 
@@ -306,7 +306,7 @@ function print-usage {
     '
 
     info-msg
-    info-msg 'WARNING: DEPRECATED usage helper. Please use `helpy print-usage`'
+    info-msg 'WARNING: DEPRECATED usage helper. Please use `lib helpy print-usage`'
     info-msg '(and omit the initial literal `Usage:` line).'
 }
 
