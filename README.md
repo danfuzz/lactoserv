@@ -35,9 +35,10 @@ project-base-directory/
       init.sh -- boilerplate (mostly) init file
       bashy-core/ -- copy of directory from this project
       other-lib/ -- copy of other library (from this project or elsewhere)
-      my-project/
+      my-project-lib/
         init.sh -- sublibrary-specific init file (with some boilerplate)
-        _prereqs -- sublibrary-specific prerequisites checker
+        _prereqs -- sublibrary-specific prerequisites checker (optional)
+        _setup.sh -- sublibrary-specific setup (optional)
         project-script
         project-script
         project-subcommand-dir/

@@ -60,6 +60,7 @@ fi
 . "${_bashy_dir}/misc.sh" || return "$?"
 . "${_bashy_dir}/stderr-messages.sh" || return "$?"
 
-# Perform prerequisite checking. This has to be loaded after all the above; the
-# custom sublibrary prerequisite checkers can use any of it they want to.
-. "${_bashy_dir}/prereqs.sh" || return "$?"
+# Perform sublibrary setup (including prerequisite checking). This has to be
+# loaded after all the above; the custom sublibrary bits are allowed to use any
+# of it they want to.
+. "${_bashy_dir}/setup.sh" || return "$?"
