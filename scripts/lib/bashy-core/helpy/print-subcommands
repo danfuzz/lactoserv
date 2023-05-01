@@ -43,7 +43,7 @@ process-args "$@" || usage --short
 cmdPath="$(lib --path "${cmdName}")" \
 || exit "$?"
 
-# Derive the directory that the main command is in, including walkin back from
+# Derive the directory that the main command is in, including walking back from
 # a `_run`.
 if [[ ${cmdPath} =~ ^(.*)/[^/]+/_run$ ]]; then
     cmdDir="${BASH_REMATCH[1]}"

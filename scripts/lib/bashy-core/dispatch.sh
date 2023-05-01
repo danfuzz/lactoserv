@@ -210,7 +210,9 @@ function _dispatch_find-in-dir {
         # script that was found (if any).
         if (( runAt == -1 )); then
             # Use the default run script.
+            args=(--original-command="${args[@]:0:at}" ${args[@]})
             path="${_bashy_dir}/_default-run"
+            at=0
         else
             at="${runCmdAt}"
             path="${runCmdPath}"

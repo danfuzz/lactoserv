@@ -21,6 +21,9 @@ define-usage $'
 
     This prints a list of available subcommands.
 
+    --original-command=<path>
+      Path to the originally-called command.
+
     ${name} [--help | -h]
 
     Displays this message.
@@ -28,6 +31,9 @@ define-usage $'
 
 # Want help?
 opt-action --call='{ usage; exit }' help/h
+
+# Path to the original command.
+opt-value --required --var=origCmd original-command
 
 # Arbitrary args.
 rest-arg --var=args args
@@ -39,4 +45,4 @@ process-args "$@" || usage --short
 # Main script
 #
 
-lib helpy print-subcommands "$(this-cmd-name)"
+lib helpy print-subcommands "${origCmd}"
