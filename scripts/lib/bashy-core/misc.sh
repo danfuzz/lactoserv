@@ -17,15 +17,6 @@ _bashy_usageMessage=''
 # Library functions
 #
 
-# Calls an arbitrary command, and then exits the process with the given code.
-function call-then-exit {
-    local exitCode="$1"
-    shift
-
-    "$@"
-    exit "${exitCode}"
-}
-
 # Defines a standard-form `usage` function. When `usage` is defined with this,
 # any non-zero pending exit code (`$?`) becomes a process exit, so, for example,
 # it is possible to say something like `process-args "$@" || usage --short`, and
