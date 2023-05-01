@@ -1,0 +1,13 @@
+#!/bin/bash
+#
+# Copyright 2022-2023 the Bashy-lib Authors (Dan Bornstein et alia).
+# SPDX-License-Identifier: Apache-2.0
+
+#
+# Prints a usage message, using variable substitutions.
+#
+
+# Initialize the library system.
+. "$(dirname "$(readlink -f "$0")")/init.sh" || exit "$?"
+
+# TODO
