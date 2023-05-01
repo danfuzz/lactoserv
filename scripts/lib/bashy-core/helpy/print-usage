@@ -9,39 +9,30 @@
 #
 # Helper functions
 #
-# Note: In most commands, we list the "argument processing" section above
-# "helper functions," but in this case, a helper function is used during
-# argument processing. So here we are.
-#
 
 # Main command implementation.
 function print-usage {
-    local msg="$1"
+    local short="$1"
+    local msg="$2"
 
     info-msg --exec \
-    awk <<<"${msg}" -v name="$(this-cmd-name)" \
+    awk <<<"${msg}" \
+        -v name="$(this-cmd-name)" \
+        -v short="${short}" \
     '
     BEGIN {
         atStart = 1;
         blankCount = 0;
         indentExpr = ""; # Regex to match indentation to strip.
+        inShortPart = 0; # Currently in section used for short output?
 
-        print "Usage:\n";
+        print short ? "" : "Usage:\n";
     }
 
-    # Count blank lines, but do not emit them.
     /^[ \t]*$/ {
-        blankCount++;
+        blankCount++;    # Count blank lines, but do not emit them.
+        inShortPart = 0; # Also, a blank ends a short-output section.
         next;
-    }
-
-    blankCount != 0 {
-        if (!atStart) {
-            # Emit some blank lines in the middle of the message. (Ignore them
-            # at the start of the message.)
-            while (blankCount-- > 0) print "";
-        }
-        blankCount = 0;
     }
 
     # Determine first-line indentation; convert to regex.
@@ -51,10 +42,30 @@ function print-usage {
     }
 
     {
-        atStart = 0;
         sub(indentExpr, "");
-        gsub(/\${name}/, name);
-        print;
+
+        if (short && ($0 ~ /^\${name}/)) {
+            # Short-output section starts with the command name and continues
+            # until a blank line.
+            inShortPart = 1;
+        }
+
+        if (inShortPart || !short) {
+            if (blankCount > 0) {
+                if (!(atStart || short)) {
+                    # Emit some blank lines in the middle of the message.
+                    # (Ignore them at the start and end of the message, and if
+                    # doing short output.)
+                    while (blankCount-- > 0) print "";
+                }
+                blankCount = 0;
+            }
+
+            atStart = 0;
+            gsub(/\${name}/, name);
+
+            print;
+        }
     }
     '
 }
@@ -65,7 +76,8 @@ function print-usage {
 #
 
 function usage {
-    print-usage $'
+    # Yes, this is a recursive call to this script.
+    lib helpy print-usage "$@" $'
     ${name} [<opt> ...] [--] <message>
 
     Prints a usage message. This is just a convenient shorthand to do a few
@@ -79,22 +91,25 @@ function usage {
     * Print to `stderr`.
 
     ${name} [--help | -h]
-      Displays this message.
-    '
 
-    exit "$@"
+    Displays this message.
+    '
 }
 
 # Want help?
-opt-action --call='{ usage }' help/h
+opt-action --call='{ usage; exit }' help/h
 
+# Extract short usage?
+opt-toggle --var=short short
+
+# Usage message to print.
 positional-arg --required --var=message message
 
-process-args "$@" || usage "$?"
+process-args "$@" || call-then-exit "$?" usage --short
 
 
 #
 # Main script
 #
 
-print-usage "${message}"
+print-usage "${short}" "${message}"
