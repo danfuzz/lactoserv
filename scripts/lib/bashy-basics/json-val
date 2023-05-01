@@ -11,8 +11,7 @@
 # Argument parsing
 #
 
-function usage {
-    lib helpy print-usage --name="$(this-cmd-name)" "$@" $'
+define-usage $'
     ${name} [<opt> ...] [--] [<assignment> ...] [--] [<jq-expression> ...]
 
     Constructs and prints one or more JSON values from variable assignments
@@ -62,8 +61,7 @@ function usage {
     ${name} [--help | -h]
 
     Displays this message.
-    '
-}
+'
 
 # Want help?
 opt-action --call='{ usage; exit }' help/h
@@ -132,7 +130,7 @@ function parse-rest {
     fi
 }
 
-process-args "$@" || call-then-exit "$?" usage --short
+process-args "$@" || usage --short
 
 
 #

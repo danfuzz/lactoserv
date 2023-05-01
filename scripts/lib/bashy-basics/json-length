@@ -11,8 +11,7 @@
 # Argument parsing
 #
 
-function usage {
-    lib helpy print-usage --name="$(this-cmd-name)" "$@" $'
+define-usage $'
     ${name} <json-value>
 
     Prints the length of the given JSON value, per the `jq` length rules.
@@ -20,8 +19,7 @@ function usage {
     ${name} [--help | -h]
 
     Displays this message.
-    '
-}
+'
 
 # Want help?
 opt-action --call='{ usage; exit }' help/h
@@ -29,7 +27,7 @@ opt-action --call='{ usage; exit }' help/h
 # JSON value.
 positional-arg --required --var=value json-value
 
-process-args "$@" || call-then-exit "$?" usage --short
+process-args "$@" || usage --short
 
 
 #

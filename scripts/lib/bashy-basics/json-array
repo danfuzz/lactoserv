@@ -11,8 +11,7 @@
 # Argument parsing
 #
 
-function usage {
-    lib helpy print-usage --name="$(this-cmd-name)" "$@" $'
+define-usage $'
     ${name} [<opt> ...] [--] [<value> ...]
 
     Constructs and prints a JSON array of values, of all of the value arguments
@@ -28,8 +27,7 @@ function usage {
     ${name} [--help | -h]
 
     Displays this message.
-    '
-}
+'
 
 # Want help?
 opt-action --call='{ usage; exit }' help/h
@@ -43,7 +41,7 @@ opt-value --var=inputStyle --init=json --enum='json strings' input
 # The array elements.
 rest-arg --var=values values
 
-process-args "$@" || call-then-exit "$?" usage --short
+process-args "$@" || usage --short
 
 
 #
