@@ -51,10 +51,6 @@
 # name. Generated functions use the convention `_argproc:<name>`, to make the
 # origin clear and to avoid collisions.
 
-# Symlink-resolved command name (not of this file, but our top-level includer).
-_argproc_cmdName="$(readlink -f "$0")" || return "$?"
-_argproc_cmdName="${_argproc_cmdName##*/}"
-
 # List of statements to run just before parsing. This includes:
 #
 # * global variable assignment statements
@@ -263,11 +259,16 @@ function positional-arg {
 #   the first not-just-whitespace line.
 # * Substitute the name of the program for the variable-like string `${name}`.
 # * Print to `stderr`.
+# TODO: Remove this function.
 function print-usage {
     local msg="$1"
 
+    info-msg 'WARNING: DEPRECATED usage helper. Please use `helpy print-usage`'
+    info-msg '(and omit the initial literal `Usage:` line).'
+    info-msg
+
     info-msg --exec \
-    awk <<<"${msg}" -v name="${_argproc_cmdName}" \
+    awk <<<"${msg}" -v name="$(this-cmd-name)" \
     '
     BEGIN {
         atStart = 1;
@@ -303,6 +304,10 @@ function print-usage {
         print;
     }
     '
+
+    info-msg
+    info-msg 'WARNING: DEPRECATED usage helper. Please use `helpy print-usage`'
+    info-msg '(and omit the initial literal `Usage:` line).'
 }
 
 # Processes all of the given arguments, according to the configured handlers.
