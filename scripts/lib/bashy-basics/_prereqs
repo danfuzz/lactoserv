@@ -9,5 +9,13 @@
 
 . "$(dirname "$(readlink -f "$0")")/init.sh" || exit "$?"
 
-# TODO
-info-msg '#### HELLO FROM BASHY-BASICS PREREQ!'
+jqVersion="$(jq 2>/dev/null --version)" \
+|| {
+    error-msg 'Missing `jq` binary.'
+    return 1
+}
+
+if ! [[ ${jqVersion} =~ ^jq-1.[6-9]$ ]]; then
+    error-msg '`jq` must be version 1.6 or later.'
+    return 1
+fi
