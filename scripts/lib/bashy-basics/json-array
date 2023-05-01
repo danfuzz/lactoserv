@@ -12,9 +12,7 @@
 #
 
 function usage {
-    print-usage $'
-    Usage:
-
+    lib helpy print-usage $'
     ${name} [<opt> ...] [--] [<value> ...]
       Constructs and prints a JSON array of values, of all of the value arguments
       passed to this command.

@@ -12,9 +12,7 @@
 #
 
 function usage {
-    print-usage $'
-    Usage:
-
+    lib helpy print-usage $'
     ${name} <path> ...
       Uses `rsync` to do an all-local (not actually remote) "archive" copy
       operation (preserving permissions, modtimes, etc.), including deleting

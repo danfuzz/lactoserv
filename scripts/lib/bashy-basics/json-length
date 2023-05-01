@@ -12,9 +12,7 @@
 #
 
 function usage {
-    print-usage $'
-    Usage:
-
+    lib helpy print-usage $'
     ${name} <json-value>
 
     Prints the length of the given JSON value, per the `jq` length rules.

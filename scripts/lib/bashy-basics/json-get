@@ -12,9 +12,7 @@
 #
 
 function usage {
-    print-usage $'
-    Usage:
-
+    lib helpy print-usage $'
     ${name} [<opt> ...] [--] <value> [<jval-expr> ...]
     ${name} [--file=<path> <opt> ...] [--] [<jval-expr> ...]
       Performs an operation on a single JSON value (at least with typical usage).

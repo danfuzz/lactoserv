@@ -12,9 +12,7 @@
 #
 
 function usage {
-    print-usage $'
-    Usage:
-
+    lib helpy print-usage $'
     ${name} [<opt> ...] [--] [<assignment> ...] [--] [<jq-expression> ...]
       Constructs and prints one or more JSON values from variable assignments
       passed into an expression evaluated by `jq` either with `--null-input` (by
