@@ -73,7 +73,8 @@ for c in "${cmds[@]}"; do
         if [[ ${c} =~ ^(.*)/_run$ ]]; then
             c="${BASH_REMATCH[1]}"
         fi
-        lines+=("$(tr <<<"${c}" / ' ')")
+        c="${c//\// }" # Replace slashes with spaces.
+        lines+=("${c}")
     fi
 done
 
