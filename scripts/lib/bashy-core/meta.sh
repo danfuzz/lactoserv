@@ -87,8 +87,14 @@ function this-cmd-dir {
 # script that is running. If this command was initiated via a subcommand
 # dispatch, then the result of this call is the space-separated list of the
 # command and all subcommands.
+#
+# With `--set`, this sets the command name to the one given. This is useful for
+# scripts that take on the identity of other commands.
 function this-cmd-name {
-    if [[ ${_bashy_cmdName} == '' ]]; then
+    if [[ $1 == --set ]]; then
+        _bashy_cmdName="$2"
+        return
+    elif [[ ${_bashy_cmdName} == '' ]]; then
         # First time this function has been called.
         local name="${_bashy_cmdPath}" # Start with the full command path.
         local len="${#_bashy_libDir}"

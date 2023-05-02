@@ -12,7 +12,7 @@
 #
 
 define-usage $'
-    ${name} <arg> ...
+    ${name} <subcommand> <arg> ...
 
     Default (sub)command runner, for a command with subcommands being invoked on
     a (sub)command that doesn\'t have a script. That is, this is for the case
@@ -35,6 +35,12 @@ opt-action --call='{ usage; exit }' help/h
 # Path to the original command.
 opt-value --required --var=origCmd original-command
 
+# The main command.
+positional-arg --var=command command
+
+# The first subcommand.
+positional-arg --var=subcommand subcommand
+
 # Arbitrary args.
 rest-arg --var=args args
 
@@ -45,4 +51,15 @@ process-args "$@" || usage --short
 # Main script
 #
 
+this-cmd-name --set "${origCmd}"
+
+error=0
+
+if [[ ${subcommand} != '' ]]; then
+    error-msg "No such subcommand: ${subcommand}"
+    error-msg ''
+    error=1
+fi
+
 lib helpy print-subcommands "${origCmd}"
+exit "${error}"
