@@ -64,7 +64,8 @@ cmds=($(
     # actually executable by the user running this script.
     find "${findArgs[@]}" \
         -name '[a-z]*' -perm +ugo+x '(' -type f -o -type d ')'
-))
+)) \
+|| exit "$?"
 
 for c in "${cmds[@]}"; do
     printf '%s%s\n' "${prefix}" "${c##*/}"
