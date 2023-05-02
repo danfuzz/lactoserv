@@ -13,9 +13,8 @@ in the Appendix to the License, this project uses the following briefer
 file header (or footer in documentation):
 
 ```
-Copyright 2022 the Bashy-lib Authors (Dan Bornstein et alia).
-Licensed AS IS and WITHOUT WARRANTY under the Apache License, Version 2.0.
-Details: <http://www.apache.org/licenses/LICENSE-2.0>
+Copyright 2022-2023 the Bashy-lib Authors (Dan Bornstein et alia).
+SPDX-License-Identifier: Apache-2.0
 ```
 
 - - - - - - - - - -
