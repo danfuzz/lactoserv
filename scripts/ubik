@@ -42,7 +42,7 @@ process-args "$@" || usage --short "$?"
 #
 
 if [[ ${cmdName} == '' ]]; then
-    lib helpy print-all-commands
+    lib helpy print-all-commands --prefix="$(this-cmd-name) "
     exit 1
 fi
 

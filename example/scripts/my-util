@@ -40,12 +40,22 @@ process-args "$@" || usage --short "$?"
 # Main script
 #
 
-# You can list any number of sub-library names in place of `my-project` below.
-lib --libs=my-project --quiet "${cmdName}" "${args[@]}"
+# You can list any number of sub-library names in place of `my-project` below
+# (as a space-separated list).
+libsOpt='--libs=my-project'
+
+if [[ ${cmdName} == '' ]]; then
+    lib helpy print-all-commands "${libsOpt}" --prefix="$(this-cmd-name) "
+    exit 1
+fi
+
+lib "${libsOpt}" --quiet "${cmdName}" "${args[@]}"
 exitCode="$?"
 
 if (( exitCode == 127 )); then
     error-msg "Command not found: ${cmdName}"
+    error-msg
+    lib helpy print-all-commands "${libsOpt}" --prefix="$(this-cmd-name) "
     exit 1
 fi
 
