@@ -31,6 +31,7 @@ project-base-directory/
   scripts/
     top-level-script
     top-level-script
+    ubik -- general library caller (copy from this project)
     lib/
       init.sh -- boilerplate (mostly) init file
       bashy-core/ -- copy of directory from this project
@@ -109,6 +110,15 @@ project-base-directory/
 8. Create one or more subcommand directories in `scripts/lib/my-project`. Add
    an `init.sh` file to it (same as in step 6), and one or more scripts or
    subcommand directories (same as step 7 or this step).
+
+9. To expose a script for direct usage, create a script with its name in the
+   top-level `scripts` directory, with the following contents:
+
+   ```bash
+   # Just redirect to the same-named script in the library.
+   thisCmdPath="$(readlink -f "$0")"
+   exec "${thisCmdPath%/*}/ubik" "${thisCmdPath##*/}" "$@"
+   ```
 
 **Note:** The files named with a `.sh` suffix are _not_ supposed to be marked
 executable (`chmod +x ...`). These are _include_ files.
