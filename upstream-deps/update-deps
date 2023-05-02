@@ -6,7 +6,7 @@
 # Note: To add a new upstream dependency:
 #     git subtree add --prefix=upstream-deps/<name> <repo-url> HEAD
 
-. "$(dirname "$(readlink -f "$0")")/../scripts/lib/init.sh" || exit "$?"
+. "$(dirname "$(readlink -f "$0")")/../scripts/lib/_init.sh" || exit "$?"
 
 #
 # Argument parsing
