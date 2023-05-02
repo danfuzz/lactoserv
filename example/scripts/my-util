@@ -30,7 +30,10 @@ function usage {
 # Want help?
 opt-action --call='{ usage }' help/h
 
-# The actual command arguments.
+# The subcommand.
+positional-arg --var=cmdName subcommand
+
+# The subcommand arguments (including possibly sub-subcommand names).
 rest-arg --var=args args
 
 process-args "$@" || usage "$?"
