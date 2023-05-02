@@ -31,7 +31,7 @@ define-usage $'
 opt-action --call='{ usage; exit }' help/h
 
 # Sublibraries to search.
-opt-value --var=libNames --filter='/^[-_.a-zA-Z0-9" "]+$/' libs
+opt-value --var=libNames --filter='/^[-_.a-zA-Z0-9 ]+$/' libs
 
 # Prefix string.
 opt-value --var=prefix prefix

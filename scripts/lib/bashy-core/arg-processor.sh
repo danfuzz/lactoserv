@@ -590,7 +590,15 @@ function _argproc_define-value-taking-arg {
     fi
 }
 
-# Produce an argument handler body, from the given components.
+# "Fixes" a regular expression, so it can be `eval`ed.
+function _argproc_fix-regex {
+    local regex="$1"
+    regex="${regex//[\" ]/'&'}" # Wrap space and double-quote in single-quotes.
+    regex="${regex//'/\"'\"}"   # Wrap single-quote in double-quotes.
+    echo "${regex}"
+}
+
+# Produces an argument handler body, from the given components.
 function _argproc_handler-body {
     local longName="$1"
     local desc="$2"
@@ -604,7 +612,7 @@ function _argproc_handler-body {
         filters="${BASH_REMATCH[2]}"
         if [[ ${f} =~ ^/(.*)/$ ]]; then
             # Add a loop to perform the regex check on each argument.
-            f="${BASH_REMATCH[1]}"
+            f="$(_argproc_fix-regex "${BASH_REMATCH[1]}")"
             result+=(
                 "$(printf '
                     local _argproc_value
