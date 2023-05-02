@@ -4,15 +4,10 @@
 # SPDX-License-Identifier: Apache-2.0
 
 #
-# Per-product definitions needed by the product-agnostic top-level library
-# initialization script `init.sh`
+# Prerequisite checks for this sublibrary.
 #
 
-#
-# Sibling libraries
-#
-
-. "${_init_libDir}/init-wrappers.sh" || return "$?"
+. "$(dirname "$(readlink -f "$0")")/init.sh" || exit "$?"
 
 
 #
@@ -61,31 +56,23 @@ function check-dependency {
 
 
 #
-# Library functions
+# Main script
 #
 
-# Gets the name of this product (or "product").
-function _init_product-name {
-    echo 'milk-sites'
-}
+error=0
 
-# Performs any prerequisite checks needed by this product.
-function _init_check-prerequisites {
-    local error=0
+check-dependency \
+    'Node' \
+    'node --version | sed -e "s/^v//"' \
+    '^(18|19|20)\.' \
+    '18..20' \
+|| error=1
 
-    check-dependency \
-        'Node' \
-        'node --version | sed -e "s/^v//"' \
-        '^(18|19|20)\.' \
-        '18..20' \
-    || error=1
+check-dependency \
+    'jq' \
+    'jq --version | sed -e "s/^jq-//"' \
+    '^1.6$' \
+    '1.6' \
+|| error=1
 
-    check-dependency \
-        'jq' \
-        'jq --version | sed -e "s/^jq-//"' \
-        '^1.6$' \
-        '1.6' \
-    || error=1
-
-    return "${error}"
-}
+return "${error}"
