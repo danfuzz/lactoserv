@@ -75,4 +75,4 @@ check-dependency \
     '1.6' \
 || error=1
 
-return "${error}"
+exit "${error}"
