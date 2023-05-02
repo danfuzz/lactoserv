@@ -1,0 +1,21 @@
+#!/bin/bash
+#
+# Copyright 2022-2023 the Bashy-lib Authors (Dan Bornstein et alia).
+# SPDX-License-Identifier: Apache-2.0
+
+#
+# This is an example script.
+#
+
+. "$(dirname "$(readlink -f "$0")")/init.sh" || exit "$?"
+
+include-lib my-lib
+
+info-msg "Hello from $(this-cmd-name)!"
+
+if (( $# == 0 )); then
+    info-msg 'No arguments.'
+else
+    info-msg 'Arguments:'
+    info-msg --exec printf '  %q\n' "$@"
+fi
