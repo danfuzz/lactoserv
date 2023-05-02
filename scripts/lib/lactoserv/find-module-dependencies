@@ -10,34 +10,30 @@
 # Argument parsing
 #
 
-function usage {
-    print-usage $'
-    Usage:
-
+define-usage $'
     ${name} [<opt> ...] [--] <module-name>
-      Transitively finds all module dependencies from the one given, which must
-      be the name of a module defined in this codebase. Prints out a JSON object
-      with bindings as follows:
 
-      * `main: string` -- The originally requested module.
-      * `localDeps: [name, ...]` -- Local module dependencies.
-      * `extDeps: { name: version, ... }` -- External (e.g. npm) module
-        dependencies.
+    Transitively finds all module dependencies from the one given, which must
+    be the name of a module defined in this codebase. Prints out a JSON object
+    with bindings as follows:
+
+    * `main: string` -- The originally requested module.
+    * `localDeps: [name, ...]` -- Local module dependencies.
+    * `extDeps: { name: version, ... }` -- External (e.g. npm) module
+      dependencies.
 
     ${name} [--help | -h]
-      Displays this message.
-    '
 
-    exit "$@"
-}
+    Displays this message.
+'
 
 # Want help?
-opt-action --call='{ usage }' help/h
+opt-action --call='{ usage; exit }' help/h
 
 # The module to start at.
 positional-arg --required --var=moduleName module-name
 
-process-args "$@" || usage "$?"
+process-args "$@" || usage --short
 
 
 #

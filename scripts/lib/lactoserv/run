@@ -10,12 +10,10 @@
 # Argument parsing
 #
 
-function usage {
-    print-usage $'
-    Usage:
-
+define-usage $'
     ${name} [<opt> ...]
-      Runs the product, building it first if necessary.
+
+    Runs the product, building it first if necessary.
 
     --do=<action>
       `build` -- Always build, even if there is something to run.
@@ -33,14 +31,12 @@ function usage {
       main product directory.
 
     ${name} [--help | -h]
-      Displays this message.
-    '
 
-    exit "$@"
-}
+    Displays this message.
+'
 
 # Want help?
-opt-action --call='{ usage }' help/h
+opt-action --call='{ usage; exit }' help/h
 
 # What to do?
 opt-value --var=action --init=run --enum='build clean run' do
@@ -56,7 +52,7 @@ opt-value --var=inspect --call='{ doInspect=1 }' inspect=
 # Build-output directory.
 opt-value --var=outDir out
 
-process-args "$@" || usage "$?"
+process-args "$@" || usage --short
 
 
 #

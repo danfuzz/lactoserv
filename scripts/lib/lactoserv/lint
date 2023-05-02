@@ -17,12 +17,10 @@ TOOL_DEPENDENCIES='{
 # Argument parsing
 #
 
-function usage {
-    print-usage $'
-    Usage:
-
+define-usage $'
     ${name} [<opt> ...] <lint-arg> ...
-      Runs the linter.
+
+    Runs the linter.
 
     --fix
       Fix whatever issues are fixable.
@@ -31,14 +29,12 @@ function usage {
       main product directory.
 
     ${name} [--help | -h]
-      Displays this message.
-    '
 
-    exit "$@"
-}
+    Displays this message.
+'
 
 # Want help?
-opt-action --call='{ usage }' help/h
+opt-action --call='{ usage; exit }' help/h
 
 # Perform fixes?
 opt-toggle --var=doFix fix
@@ -49,7 +45,7 @@ opt-value --var=outDir out
 # Arbitrary args to pass to the tool.
 rest-arg --var=args args
 
-process-args "$@" || usage "$?"
+process-args "$@" || usage --short
 
 
 #
