@@ -1,0 +1,65 @@
+#!/bin/bash
+#
+# Copyright 2022 the Bashy-lib Authors (Dan Bornstein et alia).
+# Licensed AS IS and WITHOUT WARRANTY under the Apache License, Version 2.0.
+# Details: <http://www.apache.org/licenses/LICENSE-2.0>
+
+# Load the helper libraries.
+. "$(dirname "$(readlink -f "$0")")/init.sh" || exit "$?"
+
+#
+# Argument parsing
+#
+
+define-usage $'
+    ${name} <subcommand> <arg> ...
+
+    Default (sub)command runner, for a command with subcommands being invoked on
+    a (sub)command that doesn\'t have a script. That is, this is for the case
+    where the named (sub)command indicates a directory of subcommands that does
+    not have a default `_run` script in it.
+
+    This prints a list of available subcommands.
+
+    --original-command=<path>
+      Path to the originally-called command.
+
+    ${name} [--help | -h]
+
+    Displays this message.
+'
+
+# Want help?
+opt-action --call='{ usage; exit }' help/h
+
+# Path to the original command.
+opt-value --required --var=origCmd original-command
+
+# The main command.
+positional-arg --var=command command
+
+# The first subcommand.
+positional-arg --var=subcommand subcommand
+
+# Arbitrary args.
+rest-arg --var=args args
+
+process-args "$@" || usage --short
+
+
+#
+# Main script
+#
+
+this-cmd-name --set "${origCmd}"
+
+error=0
+
+if [[ ${subcommand} != '' ]]; then
+    error-msg "No such subcommand: ${subcommand}"
+    error-msg ''
+    error=1
+fi
+
+lib helpy print-subcommands "${origCmd}"
+exit "${error}"

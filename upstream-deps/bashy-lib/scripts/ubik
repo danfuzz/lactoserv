@@ -1,0 +1,59 @@
+#!/bin/bash
+#
+# Copyright 2022-2023 the Bashy-lib Authors (Dan Bornstein et alia).
+# SPDX-License-Identifier: Apache-2.0
+
+#
+# This is a top-level script dispatcher which dispatches to a command found in
+# any of the sublibraries. It is named `ubik` for historical reasons.
+#
+
+. "$(dirname "$(readlink -f "$0")")/lib/bashy-core/init.sh" || exit "$?"
+
+
+#
+# Argument parsing
+#
+
+define-usage $'
+    ${name} <command> [<subcommand> ...] [<opt> ...] [--] [<arg> ...]
+
+    Run a subcommand. <opt>s and <arg>s depend on the specific subcommand.
+
+    ${name} [--help | -h]
+
+    Displays this message.
+'
+
+# Want help?
+opt-action --call='{ usage; exit }' help/h
+
+# The main command.
+positional-arg --var=cmdName command
+
+# The actual command arguments.
+rest-arg --var=args args
+
+process-args "$@" || usage --short
+
+
+#
+# Main script
+#
+
+if [[ ${cmdName} == '' ]]; then
+    lib helpy print-all-commands --prefix="$(this-cmd-name) "
+    exit 1
+fi
+
+lib --quiet "${cmdName}" "${args[@]}"
+exitCode="$?"
+
+if (( exitCode == 127 )); then
+    error-msg "Command not found: ${cmdName}"
+    error-msg
+    lib helpy print-all-commands --prefix="$(this-cmd-name) "
+    exit 1
+fi
+
+exit "${exitCode}"

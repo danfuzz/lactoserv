@@ -1,0 +1,95 @@
+#!/bin/bash
+#
+# Copyright 2022 the Bashy-lib Authors (Dan Bornstein et alia).
+# Licensed AS IS and WITHOUT WARRANTY under the Apache License, Version 2.0.
+# Details: <http://www.apache.org/licenses/LICENSE-2.0>
+
+# Load the helper libraries.
+. "$(dirname "$(readlink -f "$0")")/init.sh" || exit "$?"
+
+#
+# Argument parsing
+#
+
+define-usage $'
+    ${name} <path> ...
+
+    Uses `rsync` to do an all-local (not actually remote) "archive" copy
+    operation (preserving permissions, modtimes, etc.), including deleting
+    files at the destination that don\'t exist at the source by default.
+
+    Note that trailing slashes on source directory names are significant to
+    `rsync`, and this significance is "passed through" to the users of this
+    tool.
+
+    More context: This tool uses `rsync` and not `cp` -- even though this is a
+    totally local operation -- because `rsync` has well-defined behavior when
+    copying a tree on top of another tree and also knows how to create
+    directories as needed. `cp` _often_ does what one wants but has a few very
+    surprising edge cases.
+
+    --no-delete
+      Do not delete files at the destination that are not present in the source.
+    --exclude=<spec>
+      Exclude files. Passed as-is to the underlying `rsync`.
+
+    ${name} [--help | -h]
+
+    Displays this message.
+'
+
+# Want help?
+opt-action --call='{ usage; exit }' help/h
+
+# Delete files not present at the source?
+opt-toggle --var=delete --init=1 delete
+
+# Exclude file(s).
+excludeOpts=()
+opt-value --call='{ excludeOpts+=("--exclude=$1") }' exclude
+
+# Paths to copy from/to.
+rest-arg --var=paths paths
+
+process-args "$@" || usage --short
+
+if (( ${#paths} < 2 )); then
+    error-msg 'Must specify at least two paths.'
+    usage --short
+    exit 1
+fi
+
+
+#
+# Main script
+#
+
+
+# Prepend `./` to any argument that could be mistaken for a remote path
+# (i.e., when there's a `:` before the first `/`).
+args=()
+for arg in "${paths[@]}"; do
+    if [[ ${arg} =~ ^[^/]+: ]]; then
+        args+=("./${arg}")
+    else
+        args+=("${arg}")
+    fi
+done
+
+# Note: We turn off file-sameness checking (`--ignore-times`), which is
+# irrelevant for this use and is furthermore counterproductive, in that it can
+# cause a failure to copy when two non-identical files happen to match in both
+# size and timestamp. (This has happened in practice. When running a build on a
+# freshly checked-out source tree, many many files have the same timestamps,
+# so only the file sizes come into play, and it's very easy to have a file
+# size coincidence.)
+
+opts=(--archive --ignore-times)
+
+if (( delete )); then
+    opts+=(--delete)
+fi
+
+opts+=("${excludeOpts[@]}")
+
+rsync "${opts[@]}" -- "${args[@]}"

@@ -1,0 +1,62 @@
+#!/bin/bash
+#
+# Copyright 2022-2023 the Bashy-lib Authors (Dan Bornstein et alia).
+# SPDX-License-Identifier: Apache-2.0
+
+#
+# This is an example top-level script dispatcher.
+#
+
+. "$(dirname "$(readlink -f "$0")")/lib/bashy-core/init.sh" || exit "$?"
+
+
+#
+# Argument parsing
+#
+
+define-usage $'
+    ${name} <subcommand> ... [<opt> ...] [--] [<arg> ...]
+
+    Does something exemplar. <opt>s and <arg>s depend on the specific subcommand.
+
+    ${name} [--help | -h]
+
+    Displays this message.
+'
+
+# Want help?
+opt-action --call='{ usage; exit }' help/h
+
+# The subcommand.
+positional-arg --var=cmdName subcommand
+
+# The subcommand arguments (including possibly sub-subcommand names).
+rest-arg --var=args args
+
+process-args "$@" || usage --short "$?"
+
+
+#
+# Main script
+#
+
+# You can list any number of sub-library names in place of `my-project` below
+# (as a space-separated list).
+libsOpt='--libs=my-project'
+
+if [[ ${cmdName} == '' ]]; then
+    lib helpy print-all-commands "${libsOpt}" --prefix="$(this-cmd-name) "
+    exit 1
+fi
+
+lib "${libsOpt}" --quiet "${cmdName}" "${args[@]}"
+exitCode="$?"
+
+if (( exitCode == 127 )); then
+    error-msg "Command not found: ${cmdName}"
+    error-msg
+    lib helpy print-all-commands "${libsOpt}" --prefix="$(this-cmd-name) "
+    exit 1
+fi
+
+exit "${exitCode}"
