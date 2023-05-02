@@ -1,6 +1,12 @@
 Development Guide
 =================
 
+### Note about `scripts` directory
+
+The `scripts` directory directly contains a handful of scripts you will probably
+run regularly, plus a catch-all called `ubik` which can be used to dispatch to
+other subcommands.
+
 ### Building
 
 ```sh
