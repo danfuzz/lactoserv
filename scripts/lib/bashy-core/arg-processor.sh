@@ -1,6 +1,5 @@
-# Copyright 2022 the Bashy-lib Authors (Dan Bornstein et alia).
-# Licensed AS IS and WITHOUT WARRANTY under the Apache License, Version 2.0.
-# Details: <http://www.apache.org/licenses/LICENSE-2.0>
+# Copyright 2022-2023 the Bashy-lib Authors (Dan Bornstein et alia).
+# SPDX-License-Identifier: Apache-2.0
 
 #
 # Library for reasonably okay argument / option processing.
@@ -51,10 +50,6 @@
 # `_argproc_<name>`, where `<name>` is an otherwise normal function or variable
 # name. Generated functions use the convention `_argproc:<name>`, to make the
 # origin clear and to avoid collisions.
-
-# Symlink-resolved command name (not of this file, but our top-level includer).
-_argproc_cmdName="$(readlink -f "$0")" || return "$?"
-_argproc_cmdName="${_argproc_cmdName##*/}"
 
 # List of statements to run just before parsing. This includes:
 #
@@ -264,11 +259,16 @@ function positional-arg {
 #   the first not-just-whitespace line.
 # * Substitute the name of the program for the variable-like string `${name}`.
 # * Print to `stderr`.
+# TODO: Remove this function.
 function print-usage {
     local msg="$1"
 
+    info-msg 'WARNING: DEPRECATED usage helper. Please use `define-usage`'
+    info-msg '(and omit the initial literal `Usage:` line).'
+    info-msg
+
     info-msg --exec \
-    awk <<<"${msg}" -v name="${_argproc_cmdName}" \
+    awk <<<"${msg}" -v name="$(this-cmd-name)" \
     '
     BEGIN {
         atStart = 1;
@@ -304,6 +304,10 @@ function print-usage {
         print;
     }
     '
+
+    info-msg
+    info-msg 'WARNING: DEPRECATED usage helper. Please use `define-usage`'
+    info-msg '(and omit the initial literal `Usage:` line).'
 }
 
 # Processes all of the given arguments, according to the configured handlers.
@@ -586,7 +590,7 @@ function _argproc_define-value-taking-arg {
     fi
 }
 
-# Produce an argument handler body, from the given components.
+# Produces an argument handler body, from the given components.
 function _argproc_handler-body {
     local longName="$1"
     local desc="$2"
@@ -599,19 +603,12 @@ function _argproc_handler-body {
         local f="${BASH_REMATCH[1]}"
         filters="${BASH_REMATCH[2]}"
         if [[ ${f} =~ ^/(.*)/$ ]]; then
-            # Add a loop to perform the regex check on each argument.
+            # Add a call to perform the regex check on each argument.
             f="${BASH_REMATCH[1]}"
-            result+=(
-                "$(printf '
-                    local _argproc_value
-                    for _argproc_value in "$@"; do
-                        if ! [[ ${_argproc_value} =~ %s ]]; then
-                            error-msg "Invalid value for %s: ${_argproc_value}"
-                            return 1
-                        fi
-                    done' \
-                    "${f}" "${desc}")"
-            )
+            result+=("$(printf \
+                '_argproc_regex-filter-check %q %q "$@" || return "$?"\n' \
+                "${desc}" "${f}"
+            )")
         else
             # Add a loop to call the filter function on each argument.
             result+=(
@@ -830,6 +827,22 @@ function _argproc_parse-spec {
         error-msg "Value not allowed in spec: ${spec}"
         return 1
     fi
+}
+
+# Helper (called by code produced by `_argproc_handler-body`) which performs
+# a regex filter check.
+function _argproc_regex-filter-check {
+    local desc="$1"
+    local regex="$2"
+    shift 2
+
+    local arg
+    for arg in "$@"; do
+        if [[ ! (${arg} =~ ${regex}) ]]; then
+            error-msg "Invalid value for ${desc}: ${arg}"
+            return 1
+        fi
+    done
 }
 
 # Sets the description of the named argument based on its type. This function

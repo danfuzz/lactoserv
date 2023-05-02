@@ -6,32 +6,27 @@
 # Note: To add a new upstream dependency:
 #     git subtree add --prefix=upstream-deps/<name> <repo-url> HEAD
 
-# Load the helper libraries.
 . "$(dirname "$(readlink -f "$0")")/../scripts/lib/init.sh" || exit "$?"
 
 #
 # Argument parsing
 #
 
-function usage {
-    print-usage $'
-    Usage:
-
+define-usage $'
     ${name} [<opt> ...]
-      Manages / updates upstream dependencies.
+
+    Manages / updates upstream dependencies.
 
     --no-pull -- Don\'t do the `git pull` portion of the update.
     --no-copy -- Don\'t do the "copy into place" portion of the update.
 
     ${name} [--help | -h]
-      Displays this message.
-    '
 
-    exit "$@"
-}
+    Displays this message.
+'
 
 # Want help?
-opt-action --call='{ usage }' help/h
+opt-action --call='{ usage; exit }' help/h
 
 # Copy files into place?
 opt-toggle --var=doCopy --init=1 copy
@@ -39,7 +34,7 @@ opt-toggle --var=doCopy --init=1 copy
 # Pull from upstream?
 opt-toggle --var=doPull --init=1 pull
 
-process-args "$@" || usage "$?"
+process-args "$@" || usage --short
 
 
 #
@@ -60,7 +55,7 @@ fi
 if (( doCopy )); then
     # Copy upstream bashy-lib files into place.
     destDir="$(base-dir)/scripts/lib"
-    cd "$(this-cmd-dir)/bashy-lib/lib"
-    find . -type f '!' -name 'init-product.sh' \
-        -exec cp '{}' "${destDir}" ';'
+    rm -rf "${destDir}/bashy-*"
+    cd "$(this-cmd-dir)/bashy-lib/scripts/lib"
+    cp -r ./bashy-* "${destDir}"
 fi

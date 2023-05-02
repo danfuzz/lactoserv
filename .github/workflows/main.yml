@@ -40,7 +40,7 @@ jobs:
         run: ./scripts/run-tests
 
       - name: Ensure the cert creator still works.
-        run: ./scripts/make-localhost-cert
+        run: ./scripts/ubik make-localhost-cert
 
       #- name: Run a multi-line script.
       #  run: |

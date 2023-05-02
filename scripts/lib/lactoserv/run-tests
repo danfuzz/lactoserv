@@ -1,0 +1,174 @@
+#!/bin/bash
+#
+# Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
+# SPDX-License-Identifier: Apache-2.0
+
+. "$(dirname "$(readlink -f "$0")")/init.sh" || exit "$?"
+
+
+TOOL_DEPENDENCIES='{
+    "jest": "^29.0.3",
+    "jest-extended": "^3.1.0",
+    "jest-light-runner": "^0.4.0",
+    "trace-unhandled": "^2.0.1"
+}'
+
+
+#
+# Argument parsing
+#
+
+define-usage $'
+    ${name} [<opt> ...] <test-arg> ...
+
+    Runs the unit test system.
+
+    --do=<action>
+      `build` -- Always build, even if there is something already built.
+      `clean` -- Always do a clean build.
+      `run` -- Build only if there is nothing yet built. This is the default.
+    --out=<dir>
+      Directory where built output goes. Defaults to `out` directly under the
+      main product directory.
+
+    ${name} [--help | -h]
+
+    Displays this message.
+'
+
+# Want help?
+opt-action --call='{ usage; exit }' help/h
+
+# What to do?
+opt-value --var=action --init=run --enum='build clean run' do
+
+# Built output directory.
+opt-value --var=outDir out
+
+# Arbitrary args to pass to the tool.
+rest-arg --var=args args
+
+process-args "$@" || usage --short
+
+
+#
+# Helper functions
+#
+
+# Builds the tool.
+function build-tool {
+    local name="$1"
+
+    rm -rf node_modules "${name}" *.json
+
+    jval >package.json \
+        dependencies:json="${TOOL_DEPENDENCIES}" \
+        '{ dependencies: $dependencies }'
+
+    npm install \
+    || return "$?"
+
+    {
+        echo '#!/bin/bash'
+        echo 'CMD_DIR="$(dirname "$(readlink -f "$0")")"'
+        echo 'node "${CMD_DIR}/node_modules/.bin/jest" "$@"'
+    } \
+    >"${name}"
+    chmod 755 "${name}"
+}
+
+
+#
+# Main script
+#
+
+srcDir="$(base-dir)/src"
+outDir="$(lib out-dir --out="${outDir}")" \
+|| exit "$?"
+
+# Build the system if necessary.
+
+buildCmd=(lib build --out="${outDir}")
+doBuild=0
+
+case "${action}" in
+    build)
+        doBuild=1
+        ;;
+    clean)
+        buildCmd+=(--clean)
+        doBuild=1
+        ;;
+    run)
+        if [[ ! -x "${outDir}/lactoserv/lib/code/node_modules" ]]; then
+            doBuild=1
+        fi
+        ;;
+esac
+
+if (( doBuild )); then
+    progress-msg 'Building...'
+    "${buildCmd[@]}" || exit "$?"
+    progress-msg
+    progress-msg 'Running...'
+    progress-msg
+fi
+
+# Build the tool if necessary.
+
+toolDir="${outDir}/tester"
+toolBinName='jest'
+toolBinary="${toolDir}/${toolBinName}"
+
+if [[ ! -x ${toolBinary} ]]; then
+    rm -rf "${toolDir}"
+    mkdir -p "${toolDir}"
+    (
+        cd "${toolDir}"
+        build-tool "${toolBinName}"
+    ) \
+    || exit "$?"
+fi
+
+# Find the tests, and generally set up the testing directory.
+
+testsDir="${outDir}/tests"
+rm -rf "${testsDir}"
+mkdir -p "${testsDir}"
+cd "${testsDir}"
+rm -rf node_modules
+ln -s ../lactoserv/lib/code/node_modules .
+cat >package.json <<< '{ "type": "module" }'
+dirsWithTests=($(cd "${srcDir}"; find . -type d -name tests))
+for fromDir in "${dirsWithTests[@]}"; do
+    toDir="$(sed <<<"${fromDir}" -e 's#^[.]/##' -e 's#/tests$##' -e 's#/#-#g')"
+    cp -r "${srcDir}/${fromDir}" "${toDir}"
+done
+
+configFile=($(
+    find "${srcDir}" -mindepth 1 -maxdepth 1 -name 'jest.config.*'
+))
+if (( ${#configFile[@]} != 1 )); then
+    if (( ${#configFile[@]} == 0 )); then
+        error-msg 'No Jest config file!'
+    else
+        error-msg 'No unique Jest config file!'
+    fi
+    exit 1
+fi
+cp "${configFile}" "${testsDir}"
+configFile="${testsDir}/$(basename "${configFile}")"
+
+# Run the tool!
+
+"${toolBinary}" --config="${configFile}" "${args[@]}"
+status="$?"
+
+info-msg
+
+if (( ${status} == 0 )); then
+    info-msg 'No errors! Yay!'
+else
+    error-msg --no-name 'Errors. Alas.'
+    exit "${status}"
+fi

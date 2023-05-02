@@ -3,25 +3,24 @@
 # Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 # SPDX-License-Identifier: Apache-2.0
 
-. "$(dirname "$(readlink -f "$0")")/lib/init.sh" || exit "$?"
+. "$(dirname "$(readlink -f "$0")")/init.sh" || exit "$?"
+
 
 
 #
 # Argument parsing
 #
 
-function usage {
-    print-usage $'
-    Usage:
-
+define-usage $'
     ${name} [<opt> ...]
-      Makes a certificate and associated key which can be used when serving HTTPS
-      (or HTTP2 maybe?) from `localhost`. The files are stored in the built output
-      directory. The certificate needs to be added as a trusted root to the web
-      browser.
 
-      For more information, see:
-          <https://letsencrypt.org/docs/certificates-for-localhost/>
+    Makes a certificate and associated key which can be used when serving HTTPS
+    (or HTTP2 maybe?) from `localhost`. The files are stored in the built output
+    directory. The certificate needs to be added as a trusted root to the web
+    browser.
+
+    For more information, see:
+      <https://letsencrypt.org/docs/certificates-for-localhost/>
 
     --force
       Create new files, even if they already exist.
@@ -30,14 +29,12 @@ function usage {
       main product directory.
 
     ${name} [--help | -h]
-      Displays this message.
-    '
 
-    exit "$@"
-}
+    Displays this message.
+'
 
 # Want help?
-opt-action --call='{ usage }' help/h
+opt-action --call='{ usage; exit }' help/h
 
 # Force creation?
 opt-toggle --var=force force
@@ -45,7 +42,7 @@ opt-toggle --var=force force
 # Built output directory.
 opt-value --var=outDir out
 
-process-args "$@" || usage "$?"
+process-args "$@" || usage --short
 
 
 #

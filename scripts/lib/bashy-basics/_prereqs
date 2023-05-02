@@ -1,0 +1,21 @@
+#!/bin/bash
+#
+# Copyright 2022-2023 the Bashy-lib Authors (Dan Bornstein et alia).
+# SPDX-License-Identifier: Apache-2.0
+
+#
+# Prerequisite checks for this sublibrary.
+#
+
+. "$(dirname "$(readlink -f "$0")")/init.sh" || exit "$?"
+
+jqVersion="$(jq 2>/dev/null --version)" \
+|| {
+    error-msg 'Missing `jq` binary.'
+    return 1
+}
+
+if ! [[ ${jqVersion} =~ ^jq-1.[6-9]$ ]]; then
+    error-msg '`jq` must be version 1.6 or later.'
+    return 1
+fi

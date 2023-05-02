@@ -1,10 +1,10 @@
-# Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
+#!/bin/bash
+#
+# Copyright 2022-2023 the Bashy-lib Authors (Dan Bornstein et alia).
 # SPDX-License-Identifier: Apache-2.0
 
 #
-# Library functions: Convenience callers for external scripts. These are for
-# items that are used often enough to be shorter to name, or in contexts that
-# require a simple function name.
+# Setup for this sublibrary.
 #
 
 # Calls `lib json-array`.

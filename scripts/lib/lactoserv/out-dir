@@ -10,12 +10,10 @@
 # Argument parsing
 #
 
-function usage {
-    print-usage $'
-    Usage:
-
+define-usage $'
     ${name} [<opt> ...]
-      Deal with the build-output directory in various ways.
+
+    Deal with the build-output directory in various ways.
 
     --out=<dir>
       Directory where build-output goes. Defaults to `out` directly under the
@@ -35,14 +33,12 @@ function usage {
       removal happens first.
 
     ${name} [--help | -h]
-      Displays this message.
-    '
 
-    exit "$@"
-}
+    Displays this message.
+'
 
 # Want help?
-opt-action --call='{ usage }' help/h
+opt-action --call='{ usage; exit }' help/h
 
 # Build-output directory.
 opt-value --var=outDir out
@@ -55,7 +51,7 @@ opt-toggle --var=doRemove remove
 # Progress messages?
 opt-toggle --call='{ progress-msg --set="$1" }' progress
 
-process-args "$@" || usage "$?"
+process-args "$@" || usage --short
 
 
 #

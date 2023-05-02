@@ -1,6 +1,5 @@
-# Copyright 2022 the Bashy-lib Authors (Dan Bornstein et alia).
-# Licensed AS IS and WITHOUT WARRANTY under the Apache License, Version 2.0.
-# Details: <http://www.apache.org/licenses/LICENSE-2.0>
+# Copyright 2022-2023 the Bashy-lib Authors (Dan Bornstein et alia).
+# SPDX-License-Identifier: Apache-2.0
 
 #
 # Library for more palatable printing of stuff to stderr.
@@ -23,13 +22,10 @@
 #   to make it easy to propagate the enabled state down into another command.)
 #
 
+
 #
 # Global variable setup
 #
-
-# Symlink-resolved command name (not of this file, but our top-level includer).
-_stderr_cmdName="$(readlink -f "$0")" || return "$?"
-_stderr_cmdName="${_stderr_cmdName##*/}"
 
 # Has an error been emitted?
 _stderr_anyErrors=0
@@ -123,7 +119,7 @@ function _stderr_print-handler {
 
     if [[ ${anyMessagesVarName} != '' ]] && (( !${!anyMessagesVarName} )); then
         if (( printName )); then
-            printf 1>&2 '%s: ' "${_stderr_cmdName}"
+            printf 1>&2 '%s: ' "$(this-cmd-name)"
         fi
         eval "${anyMessagesVarName}=1"
     fi

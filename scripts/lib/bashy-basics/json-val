@@ -1,74 +1,69 @@
 #!/bin/bash
 #
-# Copyright 2022 the Bashy-lib Authors (Dan Bornstein et alia).
-# Licensed AS IS and WITHOUT WARRANTY under the Apache License, Version 2.0.
-# Details: <http://www.apache.org/licenses/LICENSE-2.0>
+# Copyright 2022-2023 the Bashy-lib Authors (Dan Bornstein et alia).
+# SPDX-License-Identifier: Apache-2.0
 
-# Load the helper libraries.
 . "$(dirname "$(readlink -f "$0")")/init.sh" || exit "$?"
+
 
 #
 # Argument parsing
 #
 
-function usage {
-    print-usage $'
-    Usage:
-
+define-usage $'
     ${name} [<opt> ...] [--] [<assignment> ...] [--] [<jq-expression> ...]
-      Constructs and prints one or more JSON values from variable assignments
-      passed into an expression evaluated by `jq` either with `--null-input` (by
-      default) or as a usual pipeline over input values. If no expression is
-      given, it is taken to be `.`, which will end up formatting the input as
-      implied/specified by the output option.
 
-      The <jq-expression> arguments are concatenated together (separated by
-      spaces) to form the final expression to be evaluated.
+    Constructs and prints one or more JSON values from variable assignments
+    passed into an expression evaluated by `jq` either with `--null-input` (by
+    default) or as a usual pipeline over input values. If no expression is
+    given, it is taken to be `.`, which will end up formatting the input as
+    implied/specified by the output option.
 
-      <assignment>
-        <name>:<type>[:file]=<value> -- Assign `$name` to be the indicated value.
-          With optional `:file`, <value> is interpreted as a filesystem path, and
-          the so-named file is read; without it, <value> is just taken to be the
-          text to be interpreted and assigned. <type> determines the interpretation:
+    The <jq-expression> arguments are concatenated together (separated by
+    spaces) to form the final expression to be evaluated.
 
-          `json` -- Interpret <value> as JSON text.
-          `raw` -- Interpret <value> as a raw string. This is the default if
-            type is not specified.
+    <assignment>
+      <name>:<type>[:file]=<value> -- Assign `$name` to be the indicated value.
+        With optional `:file`, <value> is interpreted as a filesystem path, and
+        the so-named file is read; without it, <value> is just taken to be the
+        text to be interpreted and assigned. <type> determines the interpretation:
 
-      --input=<style>
-        `none` -- Do not read from stdin. This is the default.
-        `raw[:slurp]` -- Read newline-terminated lines of text from stdin to form
-           pipeline input. With `:slurp`, produces an array of all lines as the
-           sole input.
-        `raw0[:slurp]` -- Read NUL-terminated (`\\0`) strings of text from stdin
-           to form pipeline input. With `:slurp`, produces an single array of all
-           strings as the sole input.
-        `read` -- Read JSON values from stdin individually to form pipeline input.
-        `slurp` -- Read a series of JSON values from stdin into a single array,
-          producing a single-value pipeline input.
-      --output=<style>
-        `compact` -- Output in compact (single line) JSON form.
-        `json` -- Output in multiline JSON form. This is the default.
-        `lines` -- Output each item as a single line. Similar to `raw`, except
-          that strings with newlines or CRs in them get treated as non-raw so as
-          to maintain the guarantee of item-per-line.
-        `none` -- Suppress all non-error output.
-        `raw` -- Output strings as newline-terminated raw text (and other values
-          as `compact`).
-        `raw0` -- Output strings as NUL-terminated (`\\0`) raw text (and other
-          values as `compact`).
-        `words` -- Like `lines`, except that the guarantee is a word per line.
-          As such, strings containing whitespace get treated as non-raw.
+        `json` -- Interpret <value> as JSON text.
+        `raw` -- Interpret <value> as a raw string. This is the default if
+          type is not specified.
+
+    --input=<style>
+      `none` -- Do not read from stdin. This is the default.
+      `raw[:slurp]` -- Read newline-terminated lines of text from stdin to form
+         pipeline input. With `:slurp`, produces an array of all lines as the
+         sole input.
+      `raw0[:slurp]` -- Read NUL-terminated (`\\0`) strings of text from stdin
+         to form pipeline input. With `:slurp`, produces an single array of all
+         strings as the sole input.
+      `read` -- Read JSON values from stdin individually to form pipeline input.
+      `slurp` -- Read a series of JSON values from stdin into a single array,
+        producing a single-value pipeline input.
+    --output=<style>
+      `compact` -- Output in compact (single line) JSON form.
+      `json` -- Output in multiline JSON form. This is the default.
+      `lines` -- Output each item as a single line. Similar to `raw`, except
+        that strings with newlines or CRs in them get treated as non-raw so as
+        to maintain the guarantee of item-per-line.
+      `none` -- Suppress all non-error output.
+      `raw` -- Output strings as newline-terminated raw text (and other values
+        as `compact`).
+      `raw0` -- Output strings as NUL-terminated (`\\0`) raw text (and other
+        values as `compact`).
+      `words` -- Like `lines`, except that the guarantee is a word per line.
+        As such, strings containing whitespace get treated as non-raw.
 
     ${name} [--help | -h]
-      Displays this message.
-    '
 
-    exit "$@"
-}
+    Displays this message.
+'
 
 # Want help?
-opt-action --call='{ usage }' help/h
+opt-action --call='{ usage; exit }' help/h
 
 # Input style.
 opt-value --var=inputStyle --init=none \
@@ -134,7 +129,7 @@ function parse-rest {
     fi
 }
 
-process-args "$@" || usage "$?"
+process-args "$@" || usage --short
 
 
 #

@@ -3,35 +3,31 @@
 # Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 # SPDX-License-Identifier: Apache-2.0
 
-. "$(dirname "$(readlink -f "$0")")/lib/init.sh" || exit "$?"
+. "$(dirname "$(readlink -f "$0")")/init.sh" || exit "$?"
 
 
 #
 # Argument parsing
 #
 
-function usage {
-    print-usage $'
-    Usage:
-
+define-usage $'
     ${name} [<opt> ...] [<file> ...]
-      Fixes `package.json` files in various ways. With <file>s, processes only
-      the indicated files; otherwise processes the entire source tree.
+
+    Fixes `package.json` files in various ways. With <file>s, processes only
+    the indicated files; otherwise processes the entire source tree.
 
     ${name} [--help | -h]
-      Displays this message.
-    '
 
-    exit "$@"
-}
+    Displays this message.
+'
 
 # Want help?
-opt-action --call='{ usage }' help/h
+opt-action --call='{ usage; exit }' help/h
 
 # Specific paths to process
 rest-arg --var=files --filter=/./ file
 
-process-args "$@" || usage "$?"
+process-args "$@" || usage --short
 
 
 #
