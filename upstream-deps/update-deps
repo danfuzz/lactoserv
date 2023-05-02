@@ -6,7 +6,7 @@
 # Note: To add a new upstream dependency:
 #     git subtree add --prefix=upstream-deps/<name> <repo-url> HEAD
 
-. "$(dirname "$(readlink -f "$0")")/../scripts/lib/init.sh" || exit "$?"
+. "$(dirname "$(readlink -f "$0")")/../scripts/lib/_init.sh" || exit "$?"
 
 #
 # Argument parsing
@@ -55,9 +55,9 @@ fi
 if (( doCopy )); then
     # Copy upstream bashy-lib files into place.
     destDir="$(base-dir)/scripts"
-    rm -rf ${destDir}/bashy-*
+    rm -rf ${destDir}/lib/bashy-*
     cd "$(this-cmd-dir)/bashy-lib/scripts"
     cp ./ubik "${destDir}"
     cd lib
-    cp -r ./init.sh ./bashy-* "${destDir}/lib"
+    cp -r ./_init.sh ./bashy-* "${destDir}/lib"
 fi

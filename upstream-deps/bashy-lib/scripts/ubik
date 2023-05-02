@@ -8,7 +8,7 @@
 # any of the sublibraries. It is named `ubik` for historical reasons.
 #
 
-. "$(dirname "$(readlink -f "$0")")/lib/bashy-core/init.sh" || exit "$?"
+. "$(dirname "$(readlink -f "$0")")/lib/bashy-core/_init.sh" || exit "$?"
 
 
 #

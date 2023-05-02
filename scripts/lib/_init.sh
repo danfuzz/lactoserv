@@ -5,7 +5,7 @@
 # Main library initialization file.
 #
 
-. "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/bashy-core/init.sh" \
+. "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/bashy-core/_init.sh" \
 || return "$?"
 
 # Indicate that the base directory of this project is two layers up from this

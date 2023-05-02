@@ -7,7 +7,7 @@
 # This is an example top-level script dispatcher.
 #
 
-. "$(dirname "$(readlink -f "$0")")/lib/bashy-core/init.sh" || exit "$?"
+. "$(dirname "$(readlink -f "$0")")/lib/bashy-core/_init.sh" || exit "$?"
 
 
 #
