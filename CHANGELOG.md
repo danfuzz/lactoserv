@@ -1,6 +1,13 @@
 Changelog
 =========
 
+### v0.5.12 -- 2023-05-02
+
+Notable changes:
+
+* Officially support Node v20.
+* Major build infrastructure update (new `bashy-lib`, new ESLint version).
+
 ### v0.5.11 -- 2023-04-18
 
 Notable changes:
