@@ -25,11 +25,11 @@ $
 
 There are also two tools which adjust source files to be in a standardized form:
 
-* `./scripts/fix-package-json` -- Derives intra-project dependencies from the
-  actual source files, and updates each module's `package.json` to match. It
+* `./scripts/ubik fix-package-json` -- Derives intra-project dependencies from
+  the actual source files, and updates each module's `package.json` to match. It
   actually entirely rewrites the file with project-standard boilerplate and
   formatting.
-* `./scripts/sort-imports` -- Sorts and arranges `import` lines into a
+* `./scripts/ubik sort-imports` -- Sorts and arranges `import` lines into a
   project-standard form.
 
 ### Testing
