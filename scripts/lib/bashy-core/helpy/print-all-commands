@@ -1,0 +1,73 @@
+#!/bin/bash
+#
+# Copyright 2022 the Bashy-lib Authors (Dan Bornstein et alia).
+# Licensed AS IS and WITHOUT WARRANTY under the Apache License, Version 2.0.
+# Details: <http://www.apache.org/licenses/LICENSE-2.0>
+
+. "$(dirname "$(readlink -f "$0")")/init.sh" || exit "$?"
+
+
+#
+# Argument parsing
+#
+
+define-usage $'
+    ${name} [<opt> ...] [--] <command>
+
+    Prints all the top-level commands.
+
+    --libs=<names>
+      Space-separated list of simple names (not paths) of the sublibraries to
+      search. Without this, all sublibraries are searched.
+    --prefix=<string>
+      Prefix each line of output with the given string.
+
+    ${name} [--help | -h]
+
+    Displays this message.
+'
+
+# Want help?
+opt-action --call='{ usage; exit }' help/h
+
+# Sublibraries to search.
+opt-value --var=libNames --filter='/^[-_.a-zA-Z0-9 ]+$/' libs
+
+# Prefix string.
+opt-value --var=prefix prefix
+
+process-args "$@" || usage --short
+
+
+#
+# Helper functions
+#
+
+
+#
+# Main script
+#
+
+# Split the library list into words.
+libNames=(${libNames})
+
+if (( ${#libNames[@]} == 0 )); then
+    findArgs=(. -mindepth 2 -maxdepth 2)
+else
+    findArgs=("${libNames[@]}" -mindepth 1 -maxdepth 1)
+fi
+
+cmds=($(
+    cd "$(this-base-library-dir)"
+    # Non-obvious: `+ugo+x` just means _an_ execute bit is on, which is
+    # necessary but not sufficient. We still need to check that the command is
+    # actually executable by the user running this script.
+    find "${findArgs[@]}" \
+        -name '[a-z]*' -perm +ugo+x '(' -type f -o -type d ')'
+)) \
+|| exit "$?"
+
+for c in "${cmds[@]}"; do
+    printf '%s%s\n' "${prefix}" "${c##*/}"
+done \
+| sort

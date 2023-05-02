@@ -1,0 +1,143 @@
+#!/bin/bash
+#
+# Copyright 2022-2023 the Bashy-lib Authors (Dan Bornstein et alia).
+# SPDX-License-Identifier: Apache-2.0
+
+. "$(dirname "$(readlink -f "$0")")/init.sh" || exit "$?"
+
+
+#
+# Argument parsing
+#
+
+# Yes, this constructs a recursive call to this script.
+define-usage $'
+    ${name} [<opt> ...] [--] <message>
+
+    Prints a usage message. This does the following to the given <message>:
+
+    * Trim away empty lines at the start and end of the string.
+    * Trim away whitespace from the start of lines, based on the indentation of
+      the first not-just-whitespace line.
+    * Substitute the name of the command for the variable-like string `$${name}`.
+      (`$$$$` indicates a literal `$`.)
+    * Prepend `Usage:` and a blank line.
+    * Print to `stderr`.
+
+    --name=<name>
+      The name of the command to use for `$${name}.` This is required.
+    --short
+      Prints a short version of the <message>. This only prints double-newline
+      delimited sections whose first line starts with `$${name}`. In addition, it
+      prints just a single newline (not "Usage:") at the start. Note: For this
+      to work as intended, always put a double-newline after each command
+      summary section. ${florp}${flop}
+
+    ${name} [--help | -h]
+
+    Displays this message.
+'
+
+# Want help?
+opt-action --call='{ usage; exit }' help/h
+
+# Command name.
+opt-value --required --var=cmdName --filter='/^[_a-zA-Z]/' name
+
+# Extract short usage?
+opt-toggle --var=short short
+
+# Usage message to print.
+positional-arg --required --var=message message
+
+process-args "$@" || usage --short
+
+
+#
+# Main script
+#
+
+info-msg --exec \
+awk <<<"${message}" \
+    -v name="${cmdName}" \
+    -v short="${short}" \
+'
+BEGIN {
+    atStart = 1;
+    blankCount = 0;
+    indentExpr = ""; # Regex to match indentation to strip.
+    inShortPart = 0; # Currently in section used for short output?
+
+    print short ? "" : "Usage:\n";
+}
+
+/^[ \t]*$/ {
+    blankCount++;    # Count blank lines, but do not emit them.
+    inShortPart = 0; # Also, a blank ends a short-output section.
+    next;
+}
+
+# Determine first-line indentation; convert to regex.
+indentExpr == "" {
+    match($0, /^[ \t]*/);
+    indentExpr = "^" substr($0, 1, RLENGTH);
+}
+
+{
+    sub(indentExpr, "");
+
+    if (short && ($0 ~ /^\${name}/)) {
+        # Short-output section starts with the command name and continues
+        # until a blank line.
+        inShortPart = 1;
+    }
+
+    if (inShortPart || !short) {
+        if (blankCount > 0) {
+            if (!(atStart || short)) {
+                # Emit some blank lines in the middle of the message.
+                # (Ignore them at the start and end of the message, and if
+                # doing short output.)
+                while (blankCount-- > 0) print "";
+            }
+            blankCount = 0;
+        }
+
+        atStart = 0;
+
+        if ($0 ~ /[$]/) {
+            print varSubst($0);
+        } else {
+            print;
+        }
+    }
+}
+
+# Performs variable substitutions on the given line.
+function varSubst(line, withLocals, machStr, out) {
+    out = ""
+
+    while (line != "") {
+        if (!match(line, /[$]([$]|[{][a-z]+[}])?/)) {
+            break;
+        }
+        out = out substr(line, 1, RSTART - 1);
+        matchStr = substr(line, RSTART, RLENGTH);
+        if ((matchStr == "$") || (matchStr == "$$")) {
+            # `$$` or non-variable `$`.
+            out = out "$";
+        } else {
+            if (matchStr == "${name}") {
+                out = out name;
+            } else {
+                out = out "${UNKNOWN VARIABLE " \
+                    substr(matchStr, 3, length(matchStr) - 3) \
+                    "}";
+            }
+        }
+        line = substr(line, RSTART + RLENGTH);
+    }
+
+    return out line;
+}
+'
