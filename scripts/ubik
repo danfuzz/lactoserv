@@ -31,7 +31,7 @@ function usage {
 opt-action --call='{ usage }' help/h
 
 # The main command.
-positional-arg --required --var=cmdName command
+positional-arg --var=cmdName command
 
 # The actual command arguments.
 rest-arg --var=args args
@@ -43,11 +43,18 @@ process-args "$@" || usage "$?"
 # Main script
 #
 
+if [[ ${cmdName} == '' ]]; then
+    lib helpy print-all-commands
+    exit 1
+fi
+
 lib --quiet "${cmdName}" "${args[@]}"
 exitCode="$?"
 
 if (( exitCode == 127 )); then
     error-msg "Command not found: ${cmdName}"
+    error-msg
+    lib helpy print-all-commands --prefix="$(this-cmd-name) "
     exit 1
 fi
 
