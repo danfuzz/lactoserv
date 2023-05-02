@@ -7,7 +7,7 @@
 # This is an example script.
 #
 
-. "$(dirname "$(readlink -f "$0")")/init.sh" || exit "$?"
+. "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"
 
 include-lib my-lib
 

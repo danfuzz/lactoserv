@@ -5,5 +5,5 @@
 # Boilerplate init file.
 #
 
-. "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/../init.sh" \
+. "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/../_init.sh" \
 || return "$?"
