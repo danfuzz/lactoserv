@@ -24,9 +24,6 @@ define-usage $'
     * Prepend `Usage:` and a blank line.
     * Print to `stderr`.
 
-    --exit=<code>
-      On success, exit with the indicated exit code instead of `0`. This is
-      intended to help reduce the boilerplate in using this command.
     --name=<name>
       The name of the command to use for `$${name}.` This is required.
     --short
@@ -43,9 +40,6 @@ define-usage $'
 
 # Want help?
 opt-action --call='{ usage; exit }' help/h
-
-# Exit code
-opt-value --var=exitCode --init=0 --filter='/^[0-9]{1,3}$/' exit
 
 # Command name.
 opt-value --required --var=cmdName --filter='/^[_a-zA-Z]/' name
@@ -147,5 +141,3 @@ function varSubst(line, withLocals, machStr, out) {
     return out line;
 }
 '
-
-exit "${exitCode}"
