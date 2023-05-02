@@ -15,20 +15,18 @@
 # Argument parsing
 #
 
-function usage {
-    lib helpy print-usage $'
+define-usage $'
     ${name} <command> [<subcommand> ...] [<opt> ...] [--] [<arg> ...]
-      Run a subcommand. <opt>s and <arg>s depend on the specific subcommand.
+
+    Run a subcommand. <opt>s and <arg>s depend on the specific subcommand.
 
     ${name} [--help | -h]
-      Displays this message.
-    '
 
-    exit "$@"
-}
+    Displays this message.
+'
 
 # Want help?
-opt-action --call='{ usage }' help/h
+opt-action --call='{ usage; exit }' help/h
 
 # The main command.
 positional-arg --var=cmdName command
@@ -36,7 +34,7 @@ positional-arg --var=cmdName command
 # The actual command arguments.
 rest-arg --var=args args
 
-process-args "$@" || usage "$?"
+process-args "$@" || usage --short "$?"
 
 
 #
