@@ -1,0 +1,115 @@
+#!/bin/bash
+#
+# Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
+# SPDX-License-Identifier: Apache-2.0
+
+. "$(dirname "$(readlink -f "$0")")/lib/init.sh" || exit "$?"
+
+
+#
+# Argument parsing
+#
+
+function usage {
+    print-usage $'
+    Usage:
+
+    ${name} [<opt> ...]
+      Runs the product, building it first if necessary.
+
+    --do=<action>
+      `build` -- Always build, even if there is something to run.
+      `clean` -- Always do a clean build.
+      `run` -- Build only if there is nothing to run. This is the default.
+    --early-errors
+      Debugging option passed to the system.
+    --inspect[=...]
+      Passes this option to the `node` invocation, to enable interactive
+      debugging.
+    --max-run-time-secs=<num>
+      Debugging option passed to the system.
+    --out=<dir>
+      Directory where built output goes. Defaults to `out` directly under the
+      main product directory.
+
+    ${name} [--help | -h]
+      Displays this message.
+    '
+
+    exit "$@"
+}
+
+# Want help?
+opt-action --call='{ usage }' help/h
+
+# What to do?
+opt-value --var=action --init=run --enum='build clean run' do
+
+# Debugging options passed directly to the main `run` script.
+opt-toggle --var=earlyErrors early-errors
+opt-value --var=maxRunTimeSecs max-run-time-secs
+
+# Inspect?
+doInspect=0
+opt-value --var=inspect --call='{ doInspect=1 }' inspect=
+
+# Build-output directory.
+opt-value --var=outDir out
+
+process-args "$@" || usage "$?"
+
+
+#
+# Main script
+#
+
+progress-msg --enable
+
+outDir="$(lib out-dir --out="${outDir}")" \
+|| exit "$?"
+
+outRun="${outDir}/lactoserv/bin/run"
+buildCmd=(lib build --out="${outDir}")
+doBuild=0
+
+case "${action}" in
+    build)
+        doBuild=1
+        ;;
+    clean)
+        buildCmd+=(--clean)
+        doBuild=1
+        ;;
+    run)
+        if [[ ! -x "${outRun}" ]]; then
+            doBuild=1
+        fi
+        ;;
+esac
+
+if (( doBuild )); then
+    progress-msg 'Building...'
+    "${buildCmd[@]}" || exit "$?"
+    progress-msg
+    progress-msg 'Running...'
+    progress-msg
+fi
+
+extraOpts=()
+if (( doInspect )); then
+    if [[ ${inspect} != '' ]]; then
+        inspect="=${inspect}"
+    fi
+    extraOpts=(--node-opts --inspect"${inspect}" --)
+fi
+if (( earlyErrors )); then
+    extraOpts+=(--early-errors)
+fi
+if [[ ${maxRunTimeSecs} != '' ]]; then
+    extraOpts+=(--max-run-time-secs="${maxRunTimeSecs}")
+fi
+
+exec "${outRun}" \
+    "${extraOpts[@]}" \
+    --config="$(base-dir)/etc/example-setup/config/config.mjs" \
+    --log-to-stdout

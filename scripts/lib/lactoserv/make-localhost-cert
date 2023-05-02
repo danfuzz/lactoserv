@@ -1,0 +1,110 @@
+#!/bin/bash
+#
+# Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
+# SPDX-License-Identifier: Apache-2.0
+
+. "$(dirname "$(readlink -f "$0")")/lib/init.sh" || exit "$?"
+
+
+#
+# Argument parsing
+#
+
+function usage {
+    print-usage $'
+    Usage:
+
+    ${name} [<opt> ...]
+      Makes a certificate and associated key which can be used when serving HTTPS
+      (or HTTP2 maybe?) from `localhost`. The files are stored in the built output
+      directory. The certificate needs to be added as a trusted root to the web
+      browser.
+
+      For more information, see:
+          <https://letsencrypt.org/docs/certificates-for-localhost/>
+
+    --force
+      Create new files, even if they already exist.
+    --out=<dir>
+      Directory where built output goes. Defaults to `out` directly under the
+      main product directory.
+
+    ${name} [--help | -h]
+      Displays this message.
+    '
+
+    exit "$@"
+}
+
+# Want help?
+opt-action --call='{ usage }' help/h
+
+# Force creation?
+opt-toggle --var=force force
+
+# Built output directory.
+opt-value --var=outDir out
+
+process-args "$@" || usage "$?"
+
+
+#
+# Main script
+#
+
+progress-msg --enable
+
+outDir="$(lib out-dir --out="${outDir}")" \
+|| exit "$?"
+
+certDir="${outDir}/etc/certs"
+certFile='localhost-cert.pem'
+keyFile='localhost-key.pem'
+
+if (( !force )) && [[ -d "${certDir}" ]]; then
+  cd "${certDir}"
+  if [[ -r "${certFile}" || -r "${keyFile}" ]]; then
+    info-msg 'Certificate file(s) already exist. Not overwriting.'
+    exit
+  fi
+fi
+
+mkdir -p "${certDir}"
+cd "${certDir}"
+
+progress-msg 'Creating certificate files...'
+
+# This `openssl` command is based on the info from
+# <https://letsencrypt.org/docs/certificates-for-localhost/>, with a couple
+# tweaks (longer key, later expiration, different file names).
+
+config='
+    [dn]
+    CN = localhost
+    [req]
+    default_bits = 4096
+    default_md = sha256
+    distinguished_name = dn
+    x509_extensions = x509_ext
+    [x509_ext]
+    subjectAltName = DNS:localhost
+    keyUsage = digitalSignature
+    extendedKeyUsage = serverAuth
+'
+
+# `openssl req` -- Create a CSR (certificate signing request), or...
+# `-x509` -- Actually, make a self-signed certificate.
+# `-newkey rsa` -- Use RSA for the keypair.
+# `-nodes` -- "No DES." Don't require a passphrase for the key.
+# `-subj ...` -- The "subject" of the certificate.
+# `-days 365` -- The certificate should be valid for a year.
+# `-config ...` -- Additional config (see above).
+#
+# Useful docs:
+# * `openssl req` -- <https://www.openssl.org/docs/man1.0.2/man1/openssl-req.html>
+# * config file for X509 -- <https://www.openssl.org/docs/manmaster/man5/x509v3_config.html>
+openssl req -x509 -newkey rsa -nodes -subj '/CN=localhost' -days 365 \
+  -config <(echo "${config}") \
+  -out "${certFile}" -keyout "${keyFile}"
+
+progress-msg 'Done!'
