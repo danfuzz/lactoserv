@@ -119,3 +119,9 @@ function this-cmd-name {
 function this-cmd-path {
     echo "${_bashy_cmdPath}"
 }
+
+# Gets the full path to this command's base library directory. This is the `lib`
+# directory containing the sublibrary of this command.
+function this-base-library-dir {
+    echo "${_bashy_libDir}"
+}
