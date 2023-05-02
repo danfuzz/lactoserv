@@ -590,14 +590,6 @@ function _argproc_define-value-taking-arg {
     fi
 }
 
-# "Fixes" a regular expression, so it can be `eval`ed.
-function _argproc_fix-regex {
-    local regex="$1"
-    regex="${regex//[\" ]/'&'}" # Wrap space and double-quote in single-quotes.
-    regex="${regex//'/\"'\"}"   # Wrap single-quote in double-quotes.
-    echo "${regex}"
-}
-
 # Produces an argument handler body, from the given components.
 function _argproc_handler-body {
     local longName="$1"
@@ -611,19 +603,12 @@ function _argproc_handler-body {
         local f="${BASH_REMATCH[1]}"
         filters="${BASH_REMATCH[2]}"
         if [[ ${f} =~ ^/(.*)/$ ]]; then
-            # Add a loop to perform the regex check on each argument.
-            f="$(_argproc_fix-regex "${BASH_REMATCH[1]}")"
-            result+=(
-                "$(printf '
-                    local _argproc_value
-                    for _argproc_value in "$@"; do
-                        if ! [[ ${_argproc_value} =~ %s ]]; then
-                            error-msg "Invalid value for %s: ${_argproc_value}"
-                            return 1
-                        fi
-                    done' \
-                    "${f}" "${desc}")"
-            )
+            # Add a call to perform the regex check on each argument.
+            f="${BASH_REMATCH[1]}"
+            result+=("$(printf \
+                '_argproc_regex-filter-check %q %q "$@" || return "$?"\n' \
+                "${desc}" "${f}"
+            )")
         else
             # Add a loop to call the filter function on each argument.
             result+=(
@@ -842,6 +827,22 @@ function _argproc_parse-spec {
         error-msg "Value not allowed in spec: ${spec}"
         return 1
     fi
+}
+
+# Helper (called by code produced by `_argproc_handler-body`) which performs
+# a regex filter check.
+function _argproc_regex-filter-check {
+    local desc="$1"
+    local regex="$2"
+    shift 2
+
+    local arg
+    for arg in "$@"; do
+        if [[ ! (${arg} =~ ${regex}) ]]; then
+            error-msg "Invalid value for ${desc}: ${arg}"
+            return 1
+        fi
+    done
 }
 
 # Sets the description of the named argument based on its type. This function
