@@ -7,7 +7,7 @@
 #     git subtree add --prefix=upstream-deps/<name> <repo-url> HEAD
 
 # Load the helper libraries.
-. "$(dirname "$(readlink -f "$0")")/../scripts/lib/init.sh" || exit "$?"
+. "$(dirname "$(readlink -f "$0")")/../scripts-old/lib/init.sh" || exit "$?"
 
 #
 # Argument parsing
