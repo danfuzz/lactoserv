@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 #
-# Main initialization for Bashy-lib.
+# Main entrypoint for Bashy-lib.
 #
 
 
