@@ -7,7 +7,7 @@
 # This is an example subcommand default script.
 #
 
-. "$(dirname "$(readlink -f "$0")")/init.sh" || exit "$?"
+. "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"
 
 info-msg "Hello from $(this-cmd-name)!"
 

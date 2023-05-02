@@ -7,7 +7,7 @@
 # Prerequisite checks for this sublibrary.
 #
 
-. "$(dirname "$(readlink -f "$0")")/init.sh" || exit "$?"
+. "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"
 
 jqVersion="$(jq 2>/dev/null --version)" \
 || {

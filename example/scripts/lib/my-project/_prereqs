@@ -7,6 +7,6 @@
 # This is an example prerequisite checker script.
 #
 
-. "$(dirname "$(readlink -f "$0")")/init.sh" || exit "$?"
+. "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"
 
 info-msg '#### HELLO FROM EXAMPLE PREREQ!'
