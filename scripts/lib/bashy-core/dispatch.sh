@@ -188,7 +188,7 @@ function _dispatch_find-in-dir {
             # We are looking at a subcommand directory. Include it in the
             # result, and iterate.
             path="${nextPath}"
-            if [[ -f "${nextPath}/run" && -x "${nextPath}/_run" ]]; then
+            if [[ -f "${nextPath}/_run" && -x "${nextPath}/_run" ]]; then
                 runAt="${at}"
                 runCmdName="${runCmdName}"
                 runPath="${path}/_run"
