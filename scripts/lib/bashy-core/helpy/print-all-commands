@@ -39,11 +39,6 @@ process-args "$@" || usage --short
 
 
 #
-# Helper functions
-#
-
-
-#
 # Main script
 #
 
