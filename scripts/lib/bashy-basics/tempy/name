@@ -11,7 +11,7 @@
 #
 
 define-usage $'
-    ${name} [<opt> ...] [--] <command>
+    ${name} [<opt> ...]
 
     Makes and prints out a new temporary file or directory name. This uses a
     hash based on a combination of random numbers, a timestamp, and a process
@@ -40,7 +40,7 @@ process-args "$@" || usage --short
 # Main script
 #
 
-preHash="${prefix}-$(date '+%s')-$(( (RANDOM << 15) | RANDOM ))"
+preHash="${prefix}-$$-$(date '+%s')-$(( (RANDOM << 15) | RANDOM ))"
 
 # Handle both common ways to get a SHA-256.
 fullHash="$(
