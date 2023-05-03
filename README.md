@@ -47,6 +47,18 @@ project-base-directory/
           subcommand-script
 ```
 
+### TLDR
+
+* Copy the `scripts` directory of this project.
+
+* Put your scripts in one of two places:
+  * A sublibrary directory for your project in `scripts/lib`.
+  * Directly in `scripts` (if they don't need to be called by other scripts).
+
+* Put a non-executable file called `_init.sh` in every directory where a script
+  lives. This file is included by your scripts and serves to link them up to the
+  main library.
+
 ### Detailed Instructions
 
 1. Pick a name for your project's "script library" directory, typically at the
@@ -61,26 +73,19 @@ project-base-directory/
    The rest of these instructions assume you named your project `my-project`.
    Adjust accordingly.
 
-3. Copy the items from the `scripts/lib` directory in _this_ project, that you
-   are interested in using, into `scripts/lib` in your project. At a minimum,
-   you need to include the `bashy-core` directory and the `_init.sh` file. The
-   `_init.sh` file will need to be adjusted if `scripts` is not directly under
-   your project's base directory.
+3. Copy the items from the `scripts` directory in _this_ project, that you are
+   interested in using, into `scripts` in your project. At a minimum, you need
+   to include the `lib/bashy-core` and `lib/_init.sh`. The files directly in
+   `scripts` (`_init.sh` and `ubik`) are needed if you want to expose library
+   scripts "publicly" in `scripts` (at least, in the standard way supported by
+   this project).
 
-4. Create a file `scripts/lib/_init.sh`, with the following lines:
+   **Note:** `lib/_init.sh` file will need to be adjusted if `scripts` is not
+   directly under your project's base directory.
 
-   ```bash
-   . "${BASH_SOURCE[0]%/*}/bashy-core/_init.sh" || return "$?"
+4. Make a directory for your own script sub-library, `scripts/lib/my-project`.
 
-   base-dir --set=../..
-   ```
-
-   This (a) loads the core library and all sublibraries, and (b) tells the
-   system where the top-of-project directory is.
-
-5. Make a directory for your own script sub-library, `scripts/lib/my-project`.
-
-6. Create a file called `scripts/lib/my-project/_init.sh`, to hook up
+5. Create a file called `scripts/lib/my-project/_init.sh`, to hook up
    your project's script sub-library to `bashy-core`. The file should just
    contain this:
 
@@ -88,18 +93,22 @@ project-base-directory/
    . "${BASH_SOURCE[0]%/lib/*}/lib/_init.sh" || return "$?"
    ```
 
-7. Create one or more scripts in `scripts/lib/my-project`. At the top of each
-   script, include the following:
+6. Create one or more scripts in `scripts/lib/my-project`, or directly in
+   `scripts`. At the top of each script, include the following:
 
    ```bash
    . "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"
    ```
 
-8. Create one or more subcommand directories in `scripts/lib/my-project`. Add
-   an `_init.sh` file to it (same as in step 6), and one or more scripts or
-   subcommand directories (same as step 7 or this step).
+   **Note:** Scripts directly in `scripts` should generally not be called from
+   other scripts. See below about "exposing" a script in your library for
+   direct "public" calling.
 
-9. To expose a script for direct usage, create a script with its name in the
+7. Create one or more subcommand directories in `scripts/lib/my-project`. Add
+   an `_init.sh` file to it (same as in step 5), and one or more scripts or
+   subcommand directories (same as step 6 or this step).
+
+8. To expose a script for direct usage, create a script with its name in the
    top-level `scripts` directory, with the following contents:
 
    ```bash
