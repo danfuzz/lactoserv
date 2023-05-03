@@ -1,8 +1,4 @@
 #!/bin/bash
-#
-# Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
-# SPDX-License-Identifier: Apache-2.0
 
-# Just redirect to the same-named script in the library.
-thisCmdPath="$(readlink -f "$0")"
-exec "${thisCmdPath%/*}/ubik" "${thisCmdPath##*/}" "$@"
+. "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"
+lib "$(this-cmd-name)" "$@"

@@ -29,6 +29,7 @@ _bashy_prereqsEnvVarName="$(
     <<<"${_bashy_libDir}" \
     | cut -c 1-32
 )"
+export "${_bashy_prereqsEnvVarName}"
 
 
 #
@@ -57,9 +58,9 @@ function _setup_check-prereqs {
     fi
 
     # Set the environment variable, so that inner library calls can see that the
-    # checks are now in-progress.
-    declare "${_bashy_prereqsEnvVarName}=running"
-    export "${_bashy_prereqsEnvVarName}"
+    # checks are now in-progress. Note: `eval` is required for Bash-3.2
+    # compatibility. (`declare -g -n` would work on later versions.)
+    eval "${_bashy_prereqsEnvVarName}=running"
 
     # Run all the sublibrary prerequisites.
     local name
@@ -72,7 +73,7 @@ function _setup_check-prereqs {
 
     # Set the environment variable, so that inner library calls can see that the
     # checks have completed successfully.
-    declare "${_bashy_prereqsEnvVarName}=done"
+    eval "${_bashy_prereqsEnvVarName}=done"
 }
 _setup_check-prereqs && unset -f _setup_check-prereqs \
 || return "$?"
