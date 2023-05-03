@@ -62,8 +62,7 @@ project-base-directory/
 4. Create a file `scripts/lib/_init.sh`, with the following lines:
 
    ```bash
-   . "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/bashy-core/_init.sh" \
-   || return "$?"
+   . "${BASH_SOURCE[0]%/*}/bashy-core/_init.sh" || return "$?"
 
    base-dir --set=../..
    ```
@@ -74,12 +73,11 @@ project-base-directory/
 5. Make a directory for your own script sub-library, `scripts/lib/my-project`.
 
 6. Create a file called `scripts/lib/my-project/_init.sh`, to hook up
-   `bashy-core` to your project's script sub-library. The file should just
+   your project's script sub-library to `bashy-core`. The file should just
    contain this:
 
    ```bash
-   . "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/../_init.sh" \
-   || return "$?"
+   . "${BASH_SOURCE[0]%/lib/*}/lib/_init.sh" || return "$?"
    ```
 
 7. Create one or more scripts in `scripts/lib/my-project`. At the top of each
