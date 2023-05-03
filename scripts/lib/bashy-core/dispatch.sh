@@ -223,7 +223,7 @@ function _dispatch_find-in-dir {
             # so it can figure out how it was invoked.
             args=(--original-command="${args[*]:$runCmdAt:$at}" "${args[@]:$at}")
             at="${runCmdAt}"
-            path="${runCmdPath}"
+            path="${runPath}"
         fi
     else
         # Delete the args that became the command/subcommand.
