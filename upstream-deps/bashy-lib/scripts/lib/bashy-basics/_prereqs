@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 #
-# Prerequisite checks for this sublibrary.
+# Prerequisite checks for this unit.
 #
 
 . "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"
