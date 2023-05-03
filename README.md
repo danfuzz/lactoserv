@@ -63,6 +63,12 @@ project-base-directory/
   lives. This file is included by your scripts and serves to link them up to the
   main library.
 
+* Put the following line at the top of every script:
+
+  ```bash
+  . "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"
+  ```
+
 ### Detailed Instructions
 
 1. Pick a name for your project's "script library" directory, typically at the
