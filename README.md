@@ -110,10 +110,9 @@ project-base-directory/
 
 8. To expose a script in a sublibrary for direct "public" usage, create a script
    with its name in the top-level `scripts` directory, with the following
-   contents:
+   contents, which causes it to call through to the sublibrary script:
 
    ```bash
-   # Just redirect to the same-named script in the library.
    . "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"
    lib "$(this-cmd-name)" "$@"
    ```
