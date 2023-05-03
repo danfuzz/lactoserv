@@ -16,8 +16,8 @@ define-usage $'
     Prints all the top-level commands.
 
     --libs=<names>
-      Space-separated list of simple names (not paths) of the sublibraries to
-      search. Without this, all sublibraries are searched.
+      Space-separated list of simple names (not paths) of the units to search.
+      Without this, all units are searched.
     --prefix=<string>
       Prefix each line of output with the given string.
 

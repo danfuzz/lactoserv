@@ -5,7 +5,7 @@
 
 #
 # This is a top-level script dispatcher which dispatches to a command found in
-# any of the sublibraries. It is named `ubik` for historical reasons.
+# any of the units. It is named `ubik` for historical reasons.
 #
 
 . "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"

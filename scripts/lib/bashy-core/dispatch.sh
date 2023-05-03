@@ -56,8 +56,8 @@ function include-lib {
 }
 
 # Calls through to an arbitrary library command. Options:
-# * `--libs=<names>` -- List simple names (not paths) of the sublibraries to
-#   search. Without this, all sublibraries are searched.
+# * `--libs=<names>` -- List simple names (not paths) of the units to search.
+#   Without this, all units are searched.
 # * `--path` -- Prints the path of the script instead of running it.
 # * `--quiet` -- Does not print error messages.
 #
@@ -120,8 +120,8 @@ function lib {
 # specifically because there's no saner way to pass arrays back and forth):
 #
 # * `beQuiet` input -- Boolean, whether to suppress error messages.
-# * `libNames` input -- An array which names all of the sublibraries to search
-#   (just simple names, not paths).
+# * `libNames` input -- An array which names all of the units to search (just
+#   simple names, not paths).
 # * `args` input/output -- An array of the base command name and all of the
 #   arguments. It is updated to remove all of the words that name the command
 #   (including subcommands) that was found.

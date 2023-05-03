@@ -16,8 +16,8 @@
 #
 
 # Name of an environment variable to indicate that prerequisites have been
-# checked for this specific library, using a hash of the path to the
-# sublibraries directory as the "key."
+# checked for this specific library, using a hash of the path to the `lib`
+# directory as the "key."
 _bashy_prereqsEnvVarName="$(
     printf 'BASHY_PREREQS_CHECKED_'
     if which shasum >/dev/null 2>&1; then
