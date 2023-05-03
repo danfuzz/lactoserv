@@ -39,7 +39,7 @@ export "${_bashy_prereqsEnvVarName}"
 # Load (source) all the setup scripts.
 function _setup_load-all {
     local name
-    for name in "${_bashy_libNames[@]}"; do
+    for name in "${_bashy_unitNames[@]}"; do
         local path="${_bashy_libDir}/${name}/_setup.sh"
         if [[ -f ${path} ]]; then
             . "${path}" || return "$?"
@@ -64,7 +64,7 @@ function _setup_check-prereqs {
 
     # Run all the units' prerequisite checks.
     local name
-    for name in "${_bashy_libNames[@]}"; do
+    for name in "${_bashy_unitNames[@]}"; do
         local path="${_bashy_libDir}/${name}/_prereqs"
         if [[ -x ${path} && -f ${path} ]]; then
             "${path}" || return "$?"

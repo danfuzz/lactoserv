@@ -24,7 +24,7 @@ _bashy_dir="${_bashy_dir%/*}"
 _bashy_libDir="${_bashy_dir%/*}"
 
 # List of all sub-library directory names.
-_bashy_libNames=()
+_bashy_unitNames=()
 function _bashy_initLibNames {
     local names && names=($(
         cd "${_bashy_libDir}"
@@ -34,7 +34,7 @@ function _bashy_initLibNames {
     )) \
     || return "$?"
 
-    _bashy_libNames=("${names[@]}")
+    _bashy_unitNames=("${names[@]}")
 }
 _bashy_initLibNames && unset -f _bashy_initLibNames \
 || return "$?"

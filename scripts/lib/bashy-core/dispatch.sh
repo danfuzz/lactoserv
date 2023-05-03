@@ -38,7 +38,7 @@ function include-lib {
     incName+='.sh'
 
     local d
-    for d in "${_bashy_libNames[@]}"; do
+    for d in "${_bashy_unitNames[@]}"; do
         local path="${_bashy_libDir}/${d}/${incName}"
         if [[ -f ${path} ]]; then
             # Use a variable name unlikely to conflict with whatever is loaded,
@@ -95,7 +95,7 @@ function lib {
     local path=''
 
     if [[ ${libs} == '' ]]; then
-        unitNames=("${_bashy_libNames[@]}")
+        unitNames=("${_bashy_unitNames[@]}")
     else
         unitNames=(${libs})
     fi
