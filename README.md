@@ -101,20 +101,21 @@ project-base-directory/
    ```
 
    **Note:** Scripts directly in `scripts` should generally not be called from
-   other scripts. See below about "exposing" a script in your library for
+   other scripts. See below about "exposing" a script in your sublibrary for
    direct "public" calling.
 
 7. Create one or more subcommand directories in `scripts/lib/my-project`. Add
    an `_init.sh` file to it (same as in step 5), and one or more scripts or
    subcommand directories (same as step 6 or this step).
 
-8. To expose a script for direct usage, create a script with its name in the
-   top-level `scripts` directory, with the following contents:
+8. To expose a script in a sublibrary for direct "public" usage, create a script
+   with its name in the top-level `scripts` directory, with the following
+   contents:
 
    ```bash
    # Just redirect to the same-named script in the library.
-   thisCmdPath="$(readlink -f "$0")"
-   exec "${thisCmdPath%/*}/ubik" "${thisCmdPath##*/}" "$@"
+   . "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"
+   lib "$(this-cmd-name)" "$@"
    ```
 
 **Note:** The files named with a `.sh` suffix are _not_ supposed to be marked
