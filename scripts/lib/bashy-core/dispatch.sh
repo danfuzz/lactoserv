@@ -6,7 +6,7 @@
 #
 # Note that `lib` in particular is what is used by scripts to invoke other
 # scripts, and can also be used as the main call to implement a top-level "run
-# some subcommand" script (`lib --libs=<my-project> "$@"`).
+# some subcommand" script (`lib --units=<my-project> "$@"`).
 #
 
 
@@ -16,8 +16,8 @@
 
 # Includes (sources) a library file with the given name. (`.sh` is appended to
 # the name to produce the actual name of the library file.) A file with this
-# name must exist at the top level of a sublibrary directory. Additional
-# arguments are passed to the included script and become available as `$1` etc.
+# name must exist at the top level of some unit directory. Additional arguments
+# are passed to the included script and become available as `$1` etc.
 #
 # It is assumed that failure to load a library is a fatal problem. As such, if
 # a library isn't found, the process will exit.
@@ -38,7 +38,7 @@ function include-lib {
     incName+='.sh'
 
     local d
-    for d in "${_bashy_libNames[@]}"; do
+    for d in "${_bashy_unitNames[@]}"; do
         local path="${_bashy_libDir}/${d}/${incName}"
         if [[ -f ${path} ]]; then
             # Use a variable name unlikely to conflict with whatever is loaded,
@@ -56,8 +56,8 @@ function include-lib {
 }
 
 # Calls through to an arbitrary library command. Options:
-# * `--libs=<names>` -- List simple names (not paths) of the sublibraries to
-#   search. Without this, all sublibraries are searched.
+# * `--units=<names>` -- List simple names (not paths) of the units to search.
+#   Without this, all units are searched.
 # * `--path` -- Prints the path of the script instead of running it.
 # * `--quiet` -- Does not print error messages.
 #
@@ -72,14 +72,14 @@ function include-lib {
 function lib {
     local wantPath=0
     local quiet=0
-    local libs=''
+    local units=''
 
     while true; do
         case "$1" in
-            --libs=*) libs="${1#*=}"; shift ;;
-            --path)   wantPath=1;     shift ;;
-            --quiet)  quiet=1;        shift ;;
-            *)        break                 ;;
+            --units=*) units="${1#*=}"; shift ;;
+            --path)    wantPath=1;      shift ;;
+            --quiet)   quiet=1;         shift ;;
+            *)        break                  ;;
         esac
     done
 
@@ -91,14 +91,13 @@ function lib {
     # These are the "arguments" / "returns" for the call to `_dispatch_find`.
     local beQuiet="${quiet}"
     local args=("$@")
-    local libNames=()
+    local unitNames=()
     local path=''
-    local libNames
 
-    if [[ ${libs} == '' ]]; then
-        libNames=("${_bashy_libNames[@]}")
+    if [[ ${units} == '' ]]; then
+        unitNames=("${_bashy_unitNames[@]}")
     else
-        libNames=(${libs})
+        unitNames=(${units})
     fi
 
     _dispatch_find || return "$?"
@@ -120,8 +119,8 @@ function lib {
 # specifically because there's no saner way to pass arrays back and forth):
 #
 # * `beQuiet` input -- Boolean, whether to suppress error messages.
-# * `libNames` input -- An array which names all of the sublibraries to search
-#   (just simple names, not paths).
+# * `unitNames` input -- An array which names all of the units to search (just
+#   simple names, not paths).
 # * `args` input/output -- An array of the base command name and all of the
 #   arguments. It is updated to remove all of the words that name the command
 #   (including subcommands) that was found.
@@ -140,7 +139,7 @@ function _dispatch_find {
     fi
 
     local d
-    for d in "${libNames[@]}"; do
+    for d in "${unitNames[@]}"; do
         _dispatch_find-in-dir "${d}" \
         && return
     done

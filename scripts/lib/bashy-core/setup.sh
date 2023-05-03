@@ -2,9 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 #
-# Per-sublibrary setup
+# Per-unit initialization
 #
-# This runs the environment setup script for all sublibraries, including running
+# This runs the environment setup script for all units, including running
 # prerequisite checks if they cannot be verified to have already been done.
 # (Prerequisite doneness is checked via an environment variable, so that inner
 # library calls can typically tell and avoid redoing them.)
@@ -16,8 +16,8 @@
 #
 
 # Name of an environment variable to indicate that prerequisites have been
-# checked for this specific library, using a hash of the path to the
-# sublibraries directory as the "key."
+# checked for this specific library, using a hash of the path to the `lib`
+# directory as the "key."
 _bashy_prereqsEnvVarName="$(
     printf 'BASHY_PREREQS_CHECKED_'
     if which shasum >/dev/null 2>&1; then
@@ -39,7 +39,7 @@ export "${_bashy_prereqsEnvVarName}"
 # Load (source) all the setup scripts.
 function _setup_load-all {
     local name
-    for name in "${_bashy_libNames[@]}"; do
+    for name in "${_bashy_unitNames[@]}"; do
         local path="${_bashy_libDir}/${name}/_setup.sh"
         if [[ -f ${path} ]]; then
             . "${path}" || return "$?"
@@ -62,9 +62,9 @@ function _setup_check-prereqs {
     # compatibility. (`declare -g -n` would work on later versions.)
     eval "${_bashy_prereqsEnvVarName}=running"
 
-    # Run all the sublibrary prerequisites.
+    # Run all the units' prerequisite checks.
     local name
-    for name in "${_bashy_libNames[@]}"; do
+    for name in "${_bashy_unitNames[@]}"; do
         local path="${_bashy_libDir}/${name}/_prereqs"
         if [[ -x ${path} && -f ${path} ]]; then
             "${path}" || return "$?"

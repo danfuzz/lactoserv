@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 #
-# Setup for this sublibrary.
+# Setup for this unit.
 #
 
 # Calls `lib json-array`.

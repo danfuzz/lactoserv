@@ -24,7 +24,7 @@ _bashy_dir="${_bashy_dir%/*}"
 _bashy_libDir="${_bashy_dir%/*}"
 
 # List of all sub-library directory names.
-_bashy_libNames=()
+_bashy_unitNames=()
 function _bashy_initLibNames {
     local names && names=($(
         cd "${_bashy_libDir}"
@@ -34,7 +34,7 @@ function _bashy_initLibNames {
     )) \
     || return "$?"
 
-    _bashy_libNames=("${names[@]}")
+    _bashy_unitNames=("${names[@]}")
 }
 _bashy_initLibNames && unset -f _bashy_initLibNames \
 || return "$?"
@@ -50,7 +50,7 @@ _bashy_cmdPath="$(readlink -f "$0")" || return "$?"
 . "${_bashy_dir}/misc.sh" || return "$?"
 . "${_bashy_dir}/stderr-messages.sh" || return "$?"
 
-# Perform sublibrary setup (including prerequisite checking). This has to be
-# loaded after all the above; the custom sublibrary bits are allowed to use any
-# of it they want to.
+# Perform setup for all units (including prerequisite checking). This has to be
+# loaded after all the above; the custom unit bits are allowed to use any of it
+# they want to.
 . "${_bashy_dir}/setup.sh" || return "$?"
