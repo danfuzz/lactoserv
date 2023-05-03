@@ -11,9 +11,14 @@
 #
 
 define-usage $'
-    ${name}
+    ${name} [<opt> ...]
 
-    Makes a new temporary directory, and prints out the path to it.
+    Makes a new temporary directory, and prints out the path to it. The final
+    component name starts with the prefix `tmp-` unless overridden by an option.
+
+    --prefix=<string>
+      Prefix to use instead of `tmp-`. Note: If you want a `-` at the end, you
+      need to include it.
 
     ${name} [--help | -h]
 
@@ -22,6 +27,9 @@ define-usage $'
 
 # Want help?
 opt-action --call='{ usage; exit }' help/h
+
+# Prefix.
+opt-value --var=prefix --init='tmp-' prefix
 
 process-args "$@" || usage --short
 
@@ -35,7 +43,7 @@ tmpDir="$(readlink -f "${TMPDIR:-/tmp}")" || exit "$?"
 
 path=''
 while true; do
-    path="${tmpDir}/$("$(this-cmd-dir)/name")"
+    path="${tmpDir}/$("$(this-cmd-dir)/name" --prefix="${prefix}")"
     if [[ ! -e ${path} ]]; then
         break
     fi
