@@ -20,8 +20,11 @@ define-usage $'
 
     This prints a list of available subcommands.
 
-    --original-command=<path>
-      Path to the originally-called command.
+    --original-command=<words>
+      The space-separated list of words for the originally-called command.
+    --original-path=<path>
+      The filesystem path to the originally-called command. This will always
+      be a path to a directory.
 
     ${name} [--help | -h]
 
@@ -31,8 +34,11 @@ define-usage $'
 # Want help?
 opt-action --call='{ usage; exit }' help/h
 
+# List of words of the original command.
+opt-value --required --var=origCmdWords original-command
+
 # Path to the original command.
-opt-value --required --var=origCmd original-command
+opt-value --required --var=origCmdPath original-path
 
 # The main command.
 positional-arg --var=command command
@@ -50,7 +56,7 @@ process-args "$@" || usage --short
 # Main script
 #
 
-this-cmd-name --set "${origCmd}"
+this-cmd-name --set "${origCmdWords}"
 
 error=0
 
@@ -60,5 +66,8 @@ if [[ ${subcommand} != '' ]]; then
     error=1
 fi
 
-lib helpy print-subcommands "${origCmd}"
+# Split the words.
+origCmdWords=(${origCmdWords})
+
+lib helpy print-subcommands "${origCmdWords[@]}"
 exit "${error}"
