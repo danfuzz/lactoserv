@@ -22,6 +22,7 @@ without code duplication.
 ```
 project-base-directory/
   scripts/
+    _init.sh -- boilerplate init file
     top-level-script
     top-level-script
     ubik -- general library caller (copy from this project)
