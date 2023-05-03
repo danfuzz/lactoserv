@@ -10,7 +10,9 @@ from time to time." &mdash; @danfuzz, with apologies to Sir Winston Churchill
 - - - - - - - - - -
 
 This is a "core library" of sorts for Bash, containing a bunch of stuff that
-I (@danfuzz) have found useful when developing new tools in Bash.
+I (@danfuzz) have found useful when developing new tools in Bash. It is
+structured such that sublibraries may be composed into a unified whole, _mostly_
+without interfering with each other, and _mostly_ without code duplication.
 
 ## To use
 
