@@ -1,0 +1,35 @@
+#!/bin/bash
+#
+# Copyright 2022-2023 the Bashy-lib Authors (Dan Bornstein et alia).
+# SPDX-License-Identifier: Apache-2.0
+
+. "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"
+
+
+#
+# Argument parsing
+#
+
+define-usage $'
+    ${name} [<opt> ...] [--] <command>
+
+    Makes and prints out a new temporary file or directory name. This uses
+    a combination of random numbers and a timestamp in an attempt to make it
+    unlikely to be already used.
+
+    ${name} [--help | -h]
+
+    Displays this message.
+'
+
+# Want help?
+opt-action --call='{ usage; exit }' help/h
+
+process-args "$@" || usage --short
+
+
+#
+# Main script
+#
+
+echo "tmp-$(date +%s)-$(( (RANDOM << 15) | RANDOM ))"
