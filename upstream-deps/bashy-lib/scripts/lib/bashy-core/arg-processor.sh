@@ -251,65 +251,6 @@ function positional-arg {
     _argproc_positionalFuncs+=("_argproc:positional-${specName}")
 }
 
-# Prints a usage message. This is just a convenient shorthand to do just a few
-# things to a given literal string:
-#
-# * Trim away empty lines at the start and end of the string.
-# * Trim away whitespace from the start of lines, based on the indentation of
-#   the first not-just-whitespace line.
-# * Substitute the name of the program for the variable-like string `${name}`.
-# * Print to `stderr`.
-# TODO: Remove this function.
-function print-usage {
-    local msg="$1"
-
-    info-msg 'WARNING: DEPRECATED usage helper. Please use `define-usage`'
-    info-msg '(and omit the initial literal `Usage:` line).'
-    info-msg
-
-    info-msg --exec \
-    awk <<<"${msg}" -v name="$(this-cmd-name)" \
-    '
-    BEGIN {
-        atStart = 1;
-        blankCount = 0;
-        indentExpr = ""; # Regex to match indentation to strip.
-    }
-
-    # Count blank lines, but do not emit them.
-    /^[ \t]*$/ {
-        blankCount++;
-        next;
-    }
-
-    blankCount != 0 {
-        if (!atStart) {
-            # Emit some blank lines in the middle of the message. (Ignore them
-            # at the start of the message.)
-            while (blankCount-- > 0) print "";
-        }
-        blankCount = 0;
-    }
-
-    # Determine first-line indentation; convert to regex.
-    indentExpr == "" {
-        match($0, /^[ \t]*/);
-        indentExpr = "^" substr($0, 1, RLENGTH);
-    }
-
-    {
-        atStart = 0;
-        sub(indentExpr, "");
-        gsub(/\${name}/, name);
-        print;
-    }
-    '
-
-    info-msg
-    info-msg 'WARNING: DEPRECATED usage helper. Please use `define-usage`'
-    info-msg '(and omit the initial literal `Usage:` line).'
-}
-
 # Processes all of the given arguments, according to the configured handlers.
 # Returns non-zero if there is trouble parsing options or if any handler returns
 # non-zero.
