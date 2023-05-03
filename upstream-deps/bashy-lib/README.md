@@ -22,6 +22,7 @@ without code duplication.
 ```
 project-base-directory/
   scripts/
+    _init.sh -- boilerplate init file
     top-level-script
     top-level-script
     ubik -- general library caller (copy from this project)
@@ -61,6 +62,12 @@ project-base-directory/
 * Put a non-executable file called `_init.sh` in every directory where a script
   lives. This file is included by your scripts and serves to link them up to the
   main library.
+
+* Put the following line at the top of every script:
+
+  ```bash
+  . "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"
+  ```
 
 ### Detailed Instructions
 
