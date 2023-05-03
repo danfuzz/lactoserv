@@ -50,7 +50,7 @@ _bashy_cmdPath="$(readlink -f "$0")" || return "$?"
 . "${_bashy_dir}/misc.sh" || return "$?"
 . "${_bashy_dir}/stderr-messages.sh" || return "$?"
 
-# Perform sublibrary setup (including prerequisite checking). This has to be
-# loaded after all the above; the custom sublibrary bits are allowed to use any
-# of it they want to.
+# Perform setup for all units (including prerequisite checking). This has to be
+# loaded after all the above; the custom unit bits are allowed to use any of it
+# they want to.
 . "${_bashy_dir}/setup.sh" || return "$?"

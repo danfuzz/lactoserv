@@ -16,8 +16,8 @@
 
 # Includes (sources) a library file with the given name. (`.sh` is appended to
 # the name to produce the actual name of the library file.) A file with this
-# name must exist at the top level of a sublibrary directory. Additional
-# arguments are passed to the included script and become available as `$1` etc.
+# name must exist at the top level of some unit directory. Additional arguments
+# are passed to the included script and become available as `$1` etc.
 #
 # It is assumed that failure to load a library is a fatal problem. As such, if
 # a library isn't found, the process will exit.

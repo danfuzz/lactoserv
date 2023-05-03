@@ -11,8 +11,9 @@ from time to time." &mdash; @danfuzz, with apologies to Sir Winston Churchill
 
 This is a "core library" of sorts for Bash, containing a bunch of stuff that
 I (@danfuzz) have found useful when developing new tools in Bash. It is
-structured such that sublibraries may be composed into a unified whole, _mostly_
-without interfering with each other, and _mostly_ without code duplication.
+structured such that library units (sub-libraries) may be composed into a
+unified whole, _mostly_ without interfering with each other, and _mostly_
+without code duplication.
 
 ## To use
 
@@ -28,10 +29,10 @@ project-base-directory/
       _init.sh -- boilerplate (mostly) init file
       bashy-core/ -- copy of directory from this project
       other-lib/ -- copy of other library (from this project or elsewhere)
-      my-project-lib/
-        _init.sh -- sublibrary-specific init file (with some boilerplate)
-        _prereqs -- sublibrary-specific prerequisites checker (optional)
-        _setup.sh -- sublibrary-specific setup (optional)
+      my-project/
+        _init.sh -- boilerplate init file
+        _prereqs -- unit-specific prerequisites checker (optional)
+        _setup.sh -- unit-specific setup (optional)
         project-script
         project-script
         project-subcommand-dir/
@@ -54,7 +55,7 @@ project-base-directory/
 * Copy the `scripts` directory of this project.
 
 * Put your scripts in one of two places:
-  * A sublibrary directory for your project in `scripts/lib`.
+  * A unit (sub-library) directory for your project in `scripts/lib`.
   * Directly in `scripts` (if they don't need to be called by other scripts).
 
 * Put a non-executable file called `_init.sh` in every directory where a script
@@ -103,16 +104,16 @@ project-base-directory/
    ```
 
    **Note:** Scripts directly in `scripts` should generally not be called from
-   other scripts. See below about "exposing" a script in your sublibrary for
-   direct "public" calling.
+   other scripts. See below about "exposing" a script in your unit for direct
+   "public" calling.
 
 7. Create one or more subcommand directories in `scripts/lib/my-project`. Add
    an `_init.sh` file to it (same as in step 5), and one or more scripts or
    subcommand directories (same as step 6 or this step).
 
-8. To expose a script in a sublibrary for direct "public" usage, create a script
-   with its name in the top-level `scripts` directory, with the following
-   contents, which causes it to call through to the sublibrary script:
+8. To expose a script in a unit for direct "public" usage, create a script with
+   the same name as the script in the top-level `scripts` directory, with the
+   following contents, which causes it to call through to the unit script:
 
    ```bash
    #!/bin/bash

@@ -101,7 +101,7 @@ function this-cmd-name {
         if [[ ${_bashy_libDir} == ${name:0:$len} ]]; then
             # We are looking at a command run from this library...
             name="${name:$((len + 1))}" # Drop the library directory prefix.
-            name="${name#*/}"           # Drop the sublibrary directory name.
+            name="${name#*/}"           # Drop the unit directory name.
             name="${name%/_run}"        # Drop trailing `/_run` (if present).
             name="${name//\// }"        # Replace slashes with spaces.
         else
@@ -121,7 +121,7 @@ function this-cmd-path {
 }
 
 # Gets the full path to this command's base library directory. This is the `lib`
-# directory containing the sublibrary of this command.
+# directory containing the unit of this command.
 function this-base-library-dir {
     echo "${_bashy_libDir}"
 }
