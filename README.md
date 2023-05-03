@@ -115,6 +115,8 @@ project-base-directory/
    contents, which causes it to call through to the sublibrary script:
 
    ```bash
+   #!/bin/bash
+
    . "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"
    lib "$(this-cmd-name)" "$@"
    ```
