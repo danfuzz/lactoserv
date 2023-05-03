@@ -91,14 +91,13 @@ function lib {
     # These are the "arguments" / "returns" for the call to `_dispatch_find`.
     local beQuiet="${quiet}"
     local args=("$@")
-    local libNames=()
+    local unitNames=()
     local path=''
-    local libNames
 
     if [[ ${libs} == '' ]]; then
-        libNames=("${_bashy_libNames[@]}")
+        unitNames=("${_bashy_libNames[@]}")
     else
-        libNames=(${libs})
+        unitNames=(${libs})
     fi
 
     _dispatch_find || return "$?"
@@ -120,7 +119,7 @@ function lib {
 # specifically because there's no saner way to pass arrays back and forth):
 #
 # * `beQuiet` input -- Boolean, whether to suppress error messages.
-# * `libNames` input -- An array which names all of the units to search (just
+# * `unitNames` input -- An array which names all of the units to search (just
 #   simple names, not paths).
 # * `args` input/output -- An array of the base command name and all of the
 #   arguments. It is updated to remove all of the words that name the command
@@ -140,7 +139,7 @@ function _dispatch_find {
     fi
 
     local d
-    for d in "${libNames[@]}"; do
+    for d in "${unitNames[@]}"; do
         _dispatch_find-in-dir "${d}" \
         && return
     done
