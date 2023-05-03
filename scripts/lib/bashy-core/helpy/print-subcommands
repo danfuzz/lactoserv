@@ -11,7 +11,7 @@
 #
 
 define-usage $'
-    ${name} [<opt> ...] [--] <command>
+    ${name} [<opt> ...] [--] <command> [<subcommand> ...]
 
     Lists all the subcommands (and sub-subcommands, etc.) of the given
     command.
@@ -27,6 +27,9 @@ opt-action --call='{ usage; exit }' help/h
 # The command to print stuff about.
 positional-arg --required --var=cmdName --filter='/^[a-z]/' command
 
+# Subcommands if any.
+rest-arg --var=subWords --filter='/^[a-z]/' subcommands
+
 process-args "$@" || usage --short
 
 
@@ -39,41 +42,39 @@ process-args "$@" || usage --short
 # Main script
 #
 
-# Split the command into words, and keep the last word for later.
-cmdWords=(${cmdName})
-cmdName="${cmdName##* }"
+# Unify all the words.
+cmdWords=("${cmdName}" "${subWords[@]}")
 
 cmdPath="$(lib --path "${cmdWords[@]}")" \
 || exit "$?"
 
-# Derive the directory that the main command is in, including walking back from
-# a `_run`.
-if [[ ${cmdPath} =~ ^(.*)/[^/]+/_run$ ]]; then
-    cmdDir="${BASH_REMATCH[1]}"
-else
-    cmdDir="${cmdPath%/*}"
+if [[ -f "${cmdPath}" ]]; then
+    # We found a regular command script, not a directory.
+    error-msg "No subcommands found: ${cmdWords[@]}"
+    exit 1
 fi
 
 cmds=($(
-    cd "${cmdDir}"
+    cd "${cmdPath}"
     # Non-obvious: `+ugo+x` just means _an_ execute bit is on, which is
     # necessary but not sufficient. We still need to check that the command is
     # actually executable by the user running this script.
-    find "${cmdName}" -type f -perm +ugo+x
+    find . -type f -perm +ugo+x
 )) \
 || {
-    error-msg "Command not found: ${cmdName}"
+    error-msg "No subcommands found: ${cmdWords[@]}"
     exit 1
 }
 
-lines=()
+lines=("${cmdWords[*]}")
 for c in "${cmds[@]}"; do
-    if [[ -x "${cmdDir}/${c}" ]]; then
+    if [[ -x "${cmdPath}/${c}" ]]; then
         if [[ ${c} =~ ^(.*)/_run$ ]]; then
             c="${BASH_REMATCH[1]}"
         fi
+        c="${c#./}"    # Drop the initial `./`.
         c="${c//\// }" # Replace slashes with spaces.
-        lines+=("${c}")
+        lines+=("${cmdWords[*]} ${c}")
     fi
 done
 
