@@ -6,7 +6,7 @@
 #
 # Note that `lib` in particular is what is used by scripts to invoke other
 # scripts, and can also be used as the main call to implement a top-level "run
-# some subcommand" script (`lib --libs=<my-project> "$@"`).
+# some subcommand" script (`lib --units=<my-project> "$@"`).
 #
 
 
@@ -56,7 +56,7 @@ function include-lib {
 }
 
 # Calls through to an arbitrary library command. Options:
-# * `--libs=<names>` -- List simple names (not paths) of the units to search.
+# * `--units=<names>` -- List simple names (not paths) of the units to search.
 #   Without this, all units are searched.
 # * `--path` -- Prints the path of the script instead of running it.
 # * `--quiet` -- Does not print error messages.
@@ -72,14 +72,14 @@ function include-lib {
 function lib {
     local wantPath=0
     local quiet=0
-    local libs=''
+    local units=''
 
     while true; do
         case "$1" in
-            --libs=*) libs="${1#*=}"; shift ;;
-            --path)   wantPath=1;     shift ;;
-            --quiet)  quiet=1;        shift ;;
-            *)        break                 ;;
+            --units=*) units="${1#*=}"; shift ;;
+            --path)    wantPath=1;      shift ;;
+            --quiet)   quiet=1;         shift ;;
+            *)        break                  ;;
         esac
     done
 
@@ -94,10 +94,10 @@ function lib {
     local unitNames=()
     local path=''
 
-    if [[ ${libs} == '' ]]; then
+    if [[ ${units} == '' ]]; then
         unitNames=("${_bashy_unitNames[@]}")
     else
-        unitNames=(${libs})
+        unitNames=(${units})
     fi
 
     _dispatch_find || return "$?"

@@ -15,7 +15,7 @@ define-usage $'
 
     Prints all the top-level commands.
 
-    --libs=<names>
+    --units=<names>
       Space-separated list of simple names (not paths) of the units to search.
       Without this, all units are searched.
     --prefix=<string>
@@ -30,7 +30,7 @@ define-usage $'
 opt-action --call='{ usage; exit }' help/h
 
 # Sublibraries to search.
-opt-value --var=unitNames --filter='/^[-_.a-zA-Z0-9 ]+$/' libs
+opt-value --var=unitNames --filter='/^[-_.a-zA-Z0-9 ]+$/' units
 
 # Prefix string.
 opt-value --var=prefix prefix
