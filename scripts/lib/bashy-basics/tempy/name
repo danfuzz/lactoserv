@@ -13,9 +13,14 @@
 define-usage $'
     ${name} [<opt> ...] [--] <command>
 
-    Makes and prints out a new temporary file or directory name. This uses
-    a combination of random numbers and a timestamp in an attempt to make it
-    unlikely to be already used.
+    Makes and prints out a new temporary file or directory name. This uses a
+    hash based on a combination of random numbers, a timestamp, and a process
+    ID, in an attempt to make the result unlikely to be already used. The
+    result is prefixed with `tmp-`, unless overridden by an option.
+
+    --prefix=<string>
+      Prefix to use instead of `tmp-`. Note: If you want a `-` at the end, you
+      need to include it.
 
     ${name} [--help | -h]
 
@@ -25,6 +30,9 @@ define-usage $'
 # Want help?
 opt-action --call='{ usage; exit }' help/h
 
+# Prefix.
+opt-value --var=prefix --init='tmp-' prefix
+
 process-args "$@" || usage --short
 
 
@@ -32,4 +40,16 @@ process-args "$@" || usage --short
 # Main script
 #
 
-echo "tmp-$(date +%s)-$(( (RANDOM << 15) | RANDOM ))"
+preHash="${prefix}-$(date '+%s')-$(( (RANDOM << 15) | RANDOM ))"
+
+# Handle both common ways to get a SHA-256.
+fullHash="$(
+sha256sum <<<"${preHash}" 2>/dev/null \
+|| shasum --algorithm=256 <<<"${preHash}" 2>/dev/null
+)" \
+|| {
+    error-msg 'Could not create hash!'
+    exit 1
+}
+
+echo "${prefix}${fullHash:0:32}"
