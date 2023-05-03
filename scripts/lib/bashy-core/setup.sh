@@ -17,18 +17,15 @@
 
 # Name of an environment variable to indicate that prerequisites have been
 # checked for this specific library, using a hash of the path to the `lib`
-# directory as the "key."
+# directory as the "key." Note: This handles both common ways to get a SHA-256.
 _bashy_prereqsEnvVarName="$(
-    printf 'BASHY_PREREQS_CHECKED_'
-    if which shasum >/dev/null 2>&1; then
-        # Darwin (macOS).
-        shasum --algorithm=256
-    else
-        sha256sum
-    fi \
-    <<<"${_bashy_libDir}" \
-    | cut -c 1-32
-)"
+    sha256sum <<<"${_bashy_libDir}" 2>/dev/null \
+    || shasum --algorithm=256 <<<"${_bashy_libDir}" 2>/dev/null
+)" || {
+    error-msg 'Could not create prereqs environment variable name!'
+    exit 1
+}
+_bashy_prereqsEnvVarName="BASHY_PREREQS_CHECKED_${_bashy_prereqsEnvVarName:0:32}"
 export "${_bashy_prereqsEnvVarName}"
 
 
