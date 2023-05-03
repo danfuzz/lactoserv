@@ -1,6 +1,14 @@
 Bashy-lib
 =========
 
+<h4>
+"Using Bash-3.2 plus the intersection of BSD and GNU tools is the worst form
+of commandline scripting, except for all those other forms that have been tried
+from time to time." &mdash; (with apologies to) Sir Winston Churchill
+</h4>
+
+- - - - - - - - - -
+
 This is a "core library" of sorts for Bash, containing a bunch of stuff that
 I (@danfuzz) have found useful when developing new tools in Bash.
 
