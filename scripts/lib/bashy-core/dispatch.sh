@@ -58,7 +58,9 @@ function include-lib {
 # Calls through to an arbitrary library command. Options:
 # * `--units=<names>` -- List simple names (not paths) of the units to search.
 #   Without this, all units are searched.
-# * `--path` -- Prints the path of the script instead of running it.
+# * `--path` -- Prints the path of the script instead of running it. In the case
+#   of a hierarchical (sub)command, this prints the directory (not the `_run`
+#   script, if any).
 # * `--quiet` -- Does not print error messages.
 #
 # After the options, the next argument is taken to be a main command. After
@@ -103,7 +105,11 @@ function lib {
     _dispatch_find || return "$?"
 
     if (( wantPath )); then
-        echo "${path}"
+        if [[ ${args[0]} =~ ^--original-path=(.*)$ ]]; then
+            echo "${BASH_REMATCH[1]}"
+        else
+            echo "${path}"
+        fi
     else
         "${path}" "${args[@]}"
     fi
@@ -208,18 +214,21 @@ function _dispatch_find-in-dir {
         # We found a subcommand directory. Adjust to point at the deepest `_run`
         # script that was found (if any).
         if (( runAt == -1 )); then
-            # Use the default run script.
-            args=(--original-command="${args[@]:0:at}" ${args[@]})
+            # Use the default run script, and augment `args` to have enough info
+            # for the default runner to make sense of things.
+            args=(--original-path="${path}" --original-command="${args[*]:0:$at}" "${args[@]}")
             path="${_bashy_dir}/_default-run"
-            at=0
         else
+            # Use the runner that was found in the command, and augment `args`
+            # so it can figure out how it was invoked.
+            args=(--original-command="${args[*]:$runCmdAt:$at}" "${args[@]:$at}")
             at="${runCmdAt}"
             path="${runCmdPath}"
         fi
+    else
+        # Delete the args that became the command/subcommand.
+        args=("${args[@]:$at}")
     fi
-
-    # Delete the args that became the command/subcommand.
-    args=("${args[@]:$at}")
 }
 
 # Indicates by return code whether the given name is a syntactically correct
