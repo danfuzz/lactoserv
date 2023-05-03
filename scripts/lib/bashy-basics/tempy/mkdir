@@ -11,7 +11,7 @@
 #
 
 define-usage $'
-    ${name} [<opt> ...] [--] <command>
+    ${name}
 
     Makes a new temporary directory, and prints out the path to it.
 
