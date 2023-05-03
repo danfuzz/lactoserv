@@ -8,7 +8,7 @@ Notable changes:
 * Major rework of boilerplate files, for much faster library loading.
 * Rename "sublibrary" to "unit" in both prose and code.
 * New `tempy` (temporary file/dir) utilities.
-* Fix a handful of bugs that were introduced during the restructuring.
+* Fix a handful of bugs that were introduced during the earlier restructuring.
 
 ### v2.0 -- 2023-05-02
 
