@@ -73,6 +73,7 @@ function build-js-project {
     local mainModule="main-${projectName}"
     local srcMainModule="${srcDir}/${mainModule}"
     local srcPackageJson="${srcMainModule}/package.json"
+    local srcPackageLockJson="${srcMainModule}/package-lock.json"
     local localCodeDirName='code'
     local destLocalCode="${destLibDir}/${localCodeDirName}"
     local destLocalModules="${destLocalCode}/node_modules"
@@ -118,19 +119,20 @@ function build-js-project {
     }' \
     || return "$?"
 
-    make-index-js "${destLocalCode}" \
+    if [[ -f "${srcPackageLockJson}" ]]; then
+        progress-msg 'Copying `package-lock.json`...'
+        cp "${srcPackageLockJson}" "${destLibDir}/package-lock.json"
+    fi
+
+    true \
+    && make-index-js "${destLocalCode}" \
+    && copy-scripts "${srcMainModule}" "${destDir}" \
+    && copy-local-modules "${srcDir}" "${destLocalModules}" "${deps}" \
+    && remove-dead-local-modules "${destLocalModules}" "${deps}" \
+    && npm-install "${destLibDir}" \
     || return "$?"
 
-    copy-scripts "${srcMainModule}" "${destDir}" \
-    || return "$?"
-
-    copy-local-modules "${srcDir}" "${destLocalModules}" "${deps}" \
-    || return "$?"
-
-    remove-dead-local-modules "${destLocalModules}" "${deps}" \
-    || return "$?"
-
-    npm-install "${destLibDir}"
+    cp "${destLibDir}/package-lock.json" "${srcPackageLockJson}"
 }
 
 # Figures out the pithy commit info to associate with the build.

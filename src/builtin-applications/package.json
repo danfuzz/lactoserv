@@ -16,6 +16,6 @@
     "@this/app-framework": "*",
     "@this/loggy": "*",
     "@this/typey": "*",
-    "express": "^4.18.1"
+    "express": "^4.18.2"
   }
 }
