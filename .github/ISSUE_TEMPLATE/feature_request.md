@@ -15,7 +15,7 @@ A clear and concise description of what the problem is.
 
 A clear and concise description of what you want to happen.
 
-**Is there a workarounds?**
+**Is there a workaround?**
 
 Is there something you can do to work around the problem, in the meantime?
 
