@@ -10,7 +10,7 @@ import { MustBe } from '@this/typey';
 /**
  * General filesystem utility class.
  */
-export class FsUtils {
+export class FsUtil {
   /**
    * Checks to see if the given path exists in the filesystem, and is a
    * directory (not a regular or special file).
