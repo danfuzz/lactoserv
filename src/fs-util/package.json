@@ -1,0 +1,17 @@
+{
+  "name": "@this/fs-util",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "license": "Apache-2.0",
+
+  "exports": "./index.js",
+  "imports": {
+    "#x/*": "./export/*.js",
+    "#p/*": "./private/*.js"
+  },
+
+  "dependencies": {
+    "@this/typey": "*"
+  }
+}
