@@ -5,6 +5,7 @@ import * as fs from 'node:fs/promises';
 
 import { FileServiceConfig } from '@this/app-config';
 import { Condition, Threadlet } from '@this/async';
+import { FsUtil } from '@this/fs-util';
 import { IntfLogger } from '@this/loggy';
 import { Methods, MustBe } from '@this/typey';
 
@@ -305,7 +306,7 @@ export class BaseFilePreserver {
       // turns out to be wrong, we'll fall back to the more involved code.
       const count    = this.#lastInfixCount + 1;
       const firstTry = resolve(count);
-      if (!await BaseFilePreserver.#fileExists(firstTry)) {
+      if (!await FsUtil.fileExists(firstTry)) {
         this.#lastInfixCount = count;
         return firstTry;
       }
@@ -333,25 +334,6 @@ export class BaseFilePreserver {
   //
   // Static members
   //
-
-  /**
-   * Checks to see if the given file exists.
-   *
-   * @param {string} filePath Path to the file.
-   * @returns {boolean} The answer.
-   */
-  static async #fileExists(filePath) {
-    try {
-      await fs.stat(filePath);
-      return true;
-    } catch (e) {
-      if (e.code === 'ENOENT') {
-        // Not found. Not a real error in this case.
-        return false;
-      }
-      throw e;
-    }
-  }
 
   /**
    * Gets a date string with optional count to use as an "infix" for a preserved
