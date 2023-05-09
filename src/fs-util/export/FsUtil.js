@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import * as fs from 'node:fs/promises';
-import * as util from 'node:util';
 
 import { MustBe } from '@this/typey';
 
@@ -69,6 +68,8 @@ export class FsUtil {
    * @returns {?fs.Stats} The stats, if the path exists, or `null` if not.
    */
   static async #statOrNull(path) {
+    MustBe.string(path);
+
     try {
       return await fs.stat(path);
     } catch (e) {
