@@ -14,6 +14,7 @@
   "dependencies": {
     "@this/app-config": "*",
     "@this/app-framework": "*",
+    "@this/fs-util": "*",
     "@this/loggy": "*",
     "@this/typey": "*",
     "express": "^4.18.2"
