@@ -4,7 +4,8 @@
 import * as timers from 'node:timers/promises';
 
 import { EventPayload, EventSink, LinkedEvent, ManualPromise, PromiseState,
-  PromiseUtil } from '@this/async';
+  PromiseUtil }
+  from '@this/async';
 
 
 const payload1 = new EventPayload('wacky');

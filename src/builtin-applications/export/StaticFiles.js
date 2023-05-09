@@ -5,6 +5,7 @@ import express from 'express';
 
 import { ApplicationConfig, Files } from '@this/app-config';
 import { BaseApplication } from '@this/app-framework';
+import { FsUtil } from '@this/fs-util';
 import { IntfLogger } from '@this/loggy';
 
 
@@ -33,8 +34,10 @@ export class StaticFiles extends BaseApplication {
   constructor(config, logger) {
     super(config, logger);
 
-    this.#notFoundPath     = config.notFoundPath;
-    this.#staticMiddleware = express.static(config.siteDirectory);
+    const { notFoundPath, siteDirectory } = config;
+
+    this.#notFoundPath     = notFoundPath;
+    this.#staticMiddleware = express.static(siteDirectory);
   }
 
   /** @override */
@@ -52,7 +55,17 @@ export class StaticFiles extends BaseApplication {
 
   /** @override */
   async _impl_start(isReload_unused) {
-    // Nothing to do here.
+    const { notFoundPath, siteDirectory } = this.config;
+
+    if (!await FsUtil.directoryExists(siteDirectory)) {
+      throw new Error(`Not found or not a directory: ${siteDirectory}`);
+    }
+
+    if (notFoundPath) {
+      if (!await FsUtil.fileExists(notFoundPath)) {
+        throw new Error(`Not found or not a file: ${notFoundPath}`);
+      }
+    }
   }
 
   /** @override */

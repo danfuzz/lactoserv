@@ -1,6 +1,15 @@
 Changelog
 =========
 
+### v0.5.13 -- 2023-05-09
+
+Notable changes:
+
+* Somewhat better error checking on startup.
+* Build infrastructure update:
+  * Introduced use of `package-lock.json`.
+  * Pulled in improved `bashy-lib`.
+
 ### v0.5.12 -- 2023-05-02
 
 Notable changes:

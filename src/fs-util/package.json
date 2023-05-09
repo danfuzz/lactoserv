@@ -1,5 +1,5 @@
 {
-  "name": "@this/app-util",
+  "name": "@this/fs-util",
   "version": "0.0.1",
   "type": "module",
   "private": true,
@@ -12,10 +12,6 @@
   },
 
   "dependencies": {
-    "@this/app-config": "*",
-    "@this/async": "*",
-    "@this/fs-util": "*",
-    "@this/loggy": "*",
     "@this/typey": "*"
   }
 }
