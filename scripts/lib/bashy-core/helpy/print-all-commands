@@ -51,17 +51,19 @@ else
     findArgs=("${unitNames[@]}" -mindepth 1 -maxdepth 1)
 fi
 
+baseDir="$(this-base-library-dir)"
+
+# Get a list of all candidates. We check each for actual executability below.
 cmds=($(
-    cd "$(this-base-library-dir)"
-    # Non-obvious: `+ugo+x` just means _an_ execute bit is on, which is
-    # necessary but not sufficient. We still need to check that the command is
-    # actually executable by the user running this script.
+    cd "${baseDir}"
     find "${findArgs[@]}" \
-        -name '[a-z]*' -perm +ugo+x '(' -type f -o -type d ')'
+        -name '[a-z]*' '(' -type f -o -type d ')'
 )) \
 || exit "$?"
 
 for c in "${cmds[@]}"; do
-    printf '%s%s\n' "${prefix}" "${c##*/}"
+    if [[ -x "${baseDir}/${c}" ]]; then
+        printf '%s%s\n' "${prefix}" "${c##*/}"
+    fi
 done \
 | sort
