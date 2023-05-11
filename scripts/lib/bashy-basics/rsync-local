@@ -27,8 +27,9 @@ define-usage $'
     directories as needed. `cp` _often_ does what one wants but has a few very
     surprising edge cases.
 
-    --no-delete
-      Do not delete files at the destination that are not present in the source.
+    --[no-]delete
+      Delete files at the destination that are not present in the source. Passed
+      as-is to the underlying `rsync`.
     --exclude=<spec>
       Exclude files. Passed as-is to the underlying `rsync`.
 
@@ -41,7 +42,7 @@ define-usage $'
 opt-action --call='{ usage; exit }' help/h
 
 # Delete files not present at the source?
-opt-toggle --var=delete --init=1 delete
+opt-toggle --var=delete delete
 
 # Exclude file(s).
 excludeOpts=()

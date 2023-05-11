@@ -10,6 +10,8 @@ Notable changes:
 * New `tempy` (temporary file/dir) utilities.
 * New "smart dispatch" shell function wrapper for `ubik`.
 * Fix a handful of bugs that were introduced during the earlier restructuring.
+* Changed the default of `rsync-local` to be `--no-delete` and not `--delete`,
+  to match regular `rsync`.
 
 ### v2.0 -- 2023-05-02
 
