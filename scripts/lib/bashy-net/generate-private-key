@@ -1,0 +1,84 @@
+#!/bin/bash
+#
+# Copyright 2022-2023 the Bashy-lib Authors (Dan Bornstein et alia).
+# SPDX-License-Identifier: Apache-2.0
+
+. "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"
+
+
+#
+# Argument parsing
+#
+
+define-usage $'
+    ${name} [<opt> ...]
+
+    Creates a new private key, with a couple different options for type.
+
+    --out=<file>
+      File to write to. Defaults to stdout.
+    --type=<type>
+      What type of key to create. Must be specified
+      `host` -- Same as `host-ec`.
+      `host-ec` -- SSH host key, elliptic curve (ED25519 algorithm).
+      `user` -- Same as `user-2048`.
+      `user-2048` -- OpenSSL user key, 2048-bit RSA.
+      `user-4096` -- OpenSSL user key, 4096-bit RSA.
+      `user-ec` -- SSH-format user key, elliptic curve (ED25519 algorithm).
+
+    ${name} [--help | -h]
+
+    Displays this message.
+'
+
+# Want help?
+opt-action --call='{ usage; exit }' help/h
+
+# Key type.
+opt-value --required --var=type \
+    --enum='host host-ec user user-2048 user-4096 user-ec' \
+    type
+
+# Where to output.
+opt-value --var=out --init='/dev/stdout' out
+
+process-args "$@" || usage --short
+
+
+#
+# Main script
+#
+
+case "${type}" in
+    host|host-ec|user-ec)
+        # Boy howdy `ssh-keygen` is a pain in the butt to script. That is, it
+        # _really_ wants to be used interactively, and it doesn't "get" how
+        # writing to stdout (or any non-file) works, so we fake it out. What's
+        # going on here:
+        #
+        # FD #3 gets wired back to _our_ stdout to get the actual output we
+        # want, and then `ssh-keygen`'s stdout gets squelched. We make a couple
+        # symbolic links for the command to write to, including `/dev/null` for
+        # the public key (which we don't care about here). We pipe `y` into the
+        # command to answer the question, "Overwrite <output-file>?" And then
+        # after running the command, we remove the links (via `trap` so that the
+        # exit status is trivially preserved). Source of inspiration:
+        #   <https://gist.github.com/kraftb/9918106>
+        tmpDir="$(lib tempy mkdir)" || exit "$?"
+        trap "rm -rf \"${tmpDir}\"" EXIT
+
+        outName="${tmpDir}/key"
+        ln -s /dev/fd/3 "${outName}" || exit "$?"
+        ln -s /dev/null "${outName}.pub" || exit "$?"
+        ssh-keygen <<<'y' 3>&1 >/dev/null \
+            -q -t ed25519 -N '' -C '' -f "${outName}"
+        ;;
+    user|user-2048)
+        # Squelch stderr to avoid the progress spew.
+        openssl genrsa -out "${out}" 2048 2>/dev/null
+        ;;
+    user-4096)
+        # Squelch stderr to avoid the progress spew.
+        openssl genrsa -out "${out}" 4096 2>/dev/null
+        ;;
+esac
