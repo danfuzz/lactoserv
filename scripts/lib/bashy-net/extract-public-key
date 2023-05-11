@@ -1,0 +1,170 @@
+#!/bin/bash
+#
+# Copyright 2022-2023 the Bashy-lib Authors (Dan Bornstein et alia).
+# SPDX-License-Identifier: Apache-2.0
+
+. "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"
+
+
+#
+# Argument parsing
+#
+
+define-usage $'
+    ${name} [<opt> ...] [<file-path>]
+
+    Extracts the public key from a private key PEM or SSH file, or converts a
+    public key PEM file to different formats. If no path is given, this command
+    will read from stdin.
+
+    --output=<style>
+      What to output.
+      `aws-fingerprint` -- AWS fingerprint for the key, for keys imported into
+        AWS.
+      `aws-generated-fingerprint` -- AWS fingerprint for the key, for keys that
+        AWS generates internally. This is based on the contents of the _private_
+        key, and as such cannot be used when passing a public key to this command.
+      `public-key` -- Public key in PEM format. This is the default.
+      `ssh-auth` -- Public key in SSH format, usable for example in
+        `.ssh/authorized_keys` files.
+
+    ${name} [--help | -h]
+
+    Displays this message.
+'
+
+# Want help?
+opt-action --call='{ usage; exit }' help/h
+
+# What to output.
+opt-value --var=outputStyle --init=public-key \
+    --enum='aws-fingerprint aws-generated-fingerprint public-key ssh-auth' \
+    output
+
+# File path.
+positional-arg --init='/dev/stdin' --var=path file-path
+
+process-args "$@" || usage --short
+
+
+#
+# Helper functions
+#
+
+# Extracts an imported-style AWS fingerprint.
+function do-aws-fingerprint {
+    local keyType="$1"
+    local keyFile="$2"
+
+    local opts=()
+    case "${keyType}" in
+        public)
+            opts=(-pubin)
+            ;;
+        private-ssh)
+            error-msg 'Cannot fingerprint an SSH key.'
+            return 1
+            ;;
+    esac
+
+    openssl pkey <<<"${keyFile}" -pubout -outform DER "${opts[@]}" \
+    | openssl md5 -c
+}
+
+# Extracts an internal-style AWS fingerprint.
+function do-aws-generated-fingerprint {
+    local keyType="$1"
+    local keyFile="$2"
+
+    if [[ ${keyType} != 'private' ]]; then
+        error-msg 'Internally-generated AWS form requires a private SSL key.'
+        error-msg 'Does not work for public or SSH keys.'
+        return 1
+    fi
+
+    openssl pkcs8 <<<"${keyFile}" -nocrypt -topk8 -outform DER \
+    | openssl sha1 -c
+}
+
+# Extracts a PEM public key.
+function do-public-key {
+    local keyType="$1"
+    local keyFile="$2"
+
+    case "${keyType}" in
+        public)
+            openssl pkey <<<"${keyFile}" -pubin -pubout
+            ;;
+        private)
+            openssl pkey <<<"${keyFile}" -pubout
+            ;;
+        private-ssh)
+            error-msg 'Cannot extract public PEM key from an SSH key.'
+            return 1
+            ;;
+    esac
+}
+
+# Extracts an SSH-style public key.
+function do-ssh-auth {
+    local keyType="$1"
+    local keyFile="$2"
+
+    # Note: When given an SSH private key, we have to force it to be in a file
+    # that is user-readable-only, because `ssh-keygen` will otherwise refuse to
+    # read the file (even from stdin); this is well-intentioned but highly
+    # misguided.
+    case "${keyType}" in
+        public)
+            ssh-keygen <<<"${keyFile}" -i -mPKCS8 -f /dev/stdin
+            ;;
+        private)
+            # Extract the public key, to avoid `ssh-keygen` complaints (see
+            # above).
+            keyFile="$(do-public-key "${keyType}" "${keyFile}")"
+            ssh-keygen <<<"${keyFile}" -i -mPKCS8 -f /dev/stdin
+            ;;
+        private-ssh)
+            # Need to use a temporary file to avoid `ssh-keygen` complaints (see
+            # above).
+            local tmpDir && tmpDir="$(lib tempy mkdir)" || return "$?"
+            trap "rm -rf \"${tmpDir}\"" EXIT
+
+            local tmpFile="${tmpDir}/key"
+            cat <<<"${keyFile}" >"${tmpFile}"
+            chmod 600 "${tmpFile}"
+
+            local result && result="$(ssh-keygen -y -f "${tmpFile}")" \
+            || return "$?"
+
+            echo "${result}"
+            ;;
+    esac
+}
+
+
+#
+# Main script
+#
+
+if [[ ! -r "${path}" ]]; then
+    error-msg "Not readable: ${path}"
+    exit 1
+fi
+
+# Extract only the _first_ PEM-looking block from the file.
+keyFile="$(awk <"${path}" '
+    BEGIN { found = 0; }
+    !found && /^-----BEGIN / { found = 1; }
+    found { print; }
+    found && /^-----END / { exit; }
+')"
+
+keyType='private'
+if [[ ${keyFile} =~ ^$'-----BEGIN PUBLIC KEY-----\n' ]]; then
+    keyType='public'
+elif [[ ${keyFile} =~ ^$'-----BEGIN OPENSSH PRIVATE KEY-----\n' ]]; then
+    keyType='private-ssh'
+fi
+
+"do-${outputStyle}" "${keyType}" "${keyFile}"
