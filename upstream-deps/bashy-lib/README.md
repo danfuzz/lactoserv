@@ -15,6 +15,13 @@ structured such that library units (sub-libraries) may be composed into a
 unified whole, _mostly_ without interfering with each other, and _mostly_
 without code duplication.
 
+### Stability note
+
+The 1.0 release is stable but not recommended for use.
+
+The 2.* series of releases isn't yet stable. You can still expect breaking
+changes with each release. Expect a stable release sometime in 2024.
+
 ## To use
 
 ### Basic directory layout
