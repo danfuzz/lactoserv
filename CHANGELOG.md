@@ -13,6 +13,7 @@ Notable changes:
   to match regular `rsync`.
 * New scripts:
   * `tempy` (temporary file/dir) utilities.
+  * `timey` (date/time) utilities.
   * Sublibrary `bashy-net`, with a few tools extracted from the sibling project
    `milky-cloud`.
 
