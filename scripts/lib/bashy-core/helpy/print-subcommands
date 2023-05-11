@@ -54,12 +54,11 @@ if [[ -f "${cmdPath}" ]]; then
     exit 1
 fi
 
+# Get a list of all candidates. We check each for actual executability below,
+# along with other tweakage.
 cmds=($(
     cd "${cmdPath}"
-    # Non-obvious: `+ugo+x` just means _an_ execute bit is on, which is
-    # necessary but not sufficient. We still need to check that the command is
-    # actually executable by the user running this script.
-    find . -type f -perm +ugo+x
+    find . -type f
 )) \
 || {
     error-msg "No subcommands found: ${cmdWords[@]}"
