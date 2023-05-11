@@ -1,0 +1,92 @@
+#!/bin/bash
+#
+# Copyright 2022-2023 the Bashy-lib Authors (Dan Bornstein et alia).
+# SPDX-License-Identifier: Apache-2.0
+
+. "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"
+
+
+#
+# Argument parsing
+#
+
+define-usage $'
+    ${name} [<opt> ...] <time> [+<format>]
+
+    Prints a given time value, optionally using the format given (same syntax as
+    `date`).
+
+    --input=<type> :: rfc822 secs
+      Indicates the format of the given <time>.
+      `secs` -- A number of seconds since the Unix Epoch, or, as a special case,
+        `now` to mean the current moment. This is the default.
+      `rfc822` -- A string in RFC822 format.
+    --utc
+      Produce output for the UTC time zone.
+
+    ${name} [--help | -h]
+
+    Displays this message.
+'
+
+# Want help?
+opt-action --call='{ usage; exit }' help/h
+
+# Input type.
+opt-value --var=inputType --init='secs' --enum='secs rfc822' input
+
+# UTC?
+opt-toggle --var=utc utc
+
+# Time value to parse.
+positional-arg --required --var=time time
+
+# Output format.
+positional-arg --var=format --filter='/^[+]/' format
+
+process-args "$@" || usage --short
+
+
+#
+# Main script
+#
+
+# Gross hack: If `date` has the `--version` option then it's GNU, otherwise
+# it's BSD.
+if date --version 1>&/dev/null; then
+    impl=gnu
+else
+    impl=bsd
+fi
+
+if [[ ${format} == '' ]]; then
+    formatArg=()
+else
+    formatArg=("${format}")
+fi
+
+if (( utc )); then
+    utcOpt=('-u')
+else
+    utcOpt=()
+fi
+
+case "${inputType}" in
+    rfc822)
+        if [[ ${impl} == 'gnu' ]]; then
+            date "${utcOpt[@]}" --date="${time}" "${formatArg[@]}"
+        else
+            # E.g., `May 11 15:38:47 2023 PDT`.
+            date "${utcOpt[@]}" -j -f '%b %d %T %Y %Z' "${time}" "${formatArg[@]}"
+        fi
+        ;;
+    secs)
+        if [[ ${time} == 'now' ]]; then
+            date "${utcOpt[@]}" "${formatArg[@]}"
+        elif [[ ${impl} == 'gnu' ]]; then
+            date "${utcOpt[@]}" --date="@${time}" "${formatArg[@]}"
+        else
+            date "${utcOpt[@]}" -r "${time}" "${formatArg[@]}"
+        fi
+        ;;
+esac

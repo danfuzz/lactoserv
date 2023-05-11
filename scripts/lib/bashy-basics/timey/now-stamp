@@ -1,0 +1,45 @@
+#!/bin/bash
+#
+# Copyright 2022-2023 the Bashy-lib Authors (Dan Bornstein et alia).
+# SPDX-License-Identifier: Apache-2.0
+
+. "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"
+
+
+#
+# Argument parsing
+#
+
+define-usage $'
+    ${name} [<opt> ...]
+
+    Prints a standardized timestamp representing "now" with optional prefix
+    and suffix. This can be used to label things that have nothing more suitable.
+
+    --prefix=<string>
+      Prefix to use. Note: If you want a `-` at the end, you need to include it.
+    --suffix=<string>
+      Suffix to use. Note: If you want a `-` at the start, you need to include it.
+
+    ${name} [--help | -h]
+
+    Displays this message.
+'
+
+# Want help?
+opt-action --call='{ usage; exit }' help/h
+
+# Prefix.
+opt-value --var=prefix prefix
+
+# Suffix.
+opt-value --var=suffix suffix
+
+process-args "$@" || usage --short
+
+
+#
+# Main script
+#
+
+echo "${prefix}$(date -u '+%Y-%m-%d-%H%M%S')${suffix}"
