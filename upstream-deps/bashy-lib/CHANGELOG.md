@@ -1,15 +1,15 @@
 Changelog
 =========
 
-### v2.0.1 -- ??
+### v2.1 -- 2023-05-12
 
 Notable changes:
 
 * Major rework of boilerplate files, for much faster library loading.
+* Fix a handful of bugs that were introduced during the earlier restructuring.
 * Rename "sublibrary" to "unit" in both prose and code.
 * New "smart dispatch" shell function wrapper for `ubik`.
-* Fix a handful of bugs that were introduced during the earlier restructuring.
-* Changed the default of `rsync-local` to be `--no-delete` and not `--delete`,
+* Change the default of `rsync-local` to be `--no-delete` and not `--delete`,
   to match regular `rsync`.
 * New scripts:
   * `tempy` (temporary file/dir) utilities.

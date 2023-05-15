@@ -716,17 +716,18 @@ function _argproc_janky-args {
 }
 
 # Parses a single argument / option spec. `--abbrev` to accept an abbreviation.
-# `--value` to accept a value. Sets `spec<Item>` (presumed locals in the calling
-# scope) to "return" results.
+# `--value` to accept a value. `--value-eq` to accept a value and leave the
+# `=` in the result (to distinguish unset and set-to-empty). Sets `spec<Item>`
+# (presumed locals in the calling scope) to "return" results.
 function _argproc_parse-spec {
     local abbrevOk=0
     local valueOk=0
     local valueWithEq=0
     while [[ $1 =~ ^-- ]]; do
         case "$1" in
-            --abbrev)   abbrevOk=1;               ;;
-            --value)    valueOk=1;                ;;
-            --value-eq) valueOk=1; valueWithEq=1; ;;
+            --abbrev)   abbrevOk=1               ;;
+            --value)    valueOk=1                ;;
+            --value-eq) valueOk=1; valueWithEq=1 ;;
             *)
                 error-msg "Unrecognized option: $1"
                 return 1
