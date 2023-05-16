@@ -14,6 +14,7 @@ define-usage $'
     ${name}
 
     Prints the current time as an integer number of seconds since the Unix Epoch.
+    NOTE: This command is deprecated. Use `timey secs now`.
 
     ${name} [--help | -h]
 
@@ -30,4 +31,5 @@ process-args "$@" || usage --short
 # Main script
 #
 
+info-msg 'WARNING: DEPRECATED.'
 date '+%s'
