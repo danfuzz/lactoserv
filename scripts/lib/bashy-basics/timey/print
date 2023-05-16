@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 . "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"
+. "$(this-cmd-dir)/timey-help.sh"
 
 
 #
@@ -14,7 +15,7 @@ define-usage $'
     ${name} [<opt> ...] <time> [+<format>]
 
     Prints a given time value, optionally using the format given (same syntax as
-    `date`).
+    `date`). With no format given, prints using the system default date format.
 
     --input=<type> :: rfc822 secs
       Indicates the format of the given <time>.
@@ -51,14 +52,6 @@ process-args "$@" || usage --short
 # Main script
 #
 
-# Gross hack: If `date` has the `--version` option then it's GNU, otherwise
-# it's BSD.
-if date --version 1>&/dev/null; then
-    impl=gnu
-else
-    impl=bsd
-fi
-
 if [[ ${format} == '' ]]; then
     formatArg=()
 else
@@ -66,27 +59,12 @@ else
 fi
 
 if (( utc )); then
-    utcOpt=('-u')
+    utcOpt=('--utc')
 else
     utcOpt=()
 fi
 
-case "${inputType}" in
-    rfc822)
-        if [[ ${impl} == 'gnu' ]]; then
-            date "${utcOpt[@]}" --date="${time}" "${formatArg[@]}"
-        else
-            # E.g., `May 11 15:38:47 2023 PDT`.
-            date "${utcOpt[@]}" -j -f '%b %d %T %Y %Z' "${time}" "${formatArg[@]}"
-        fi
-        ;;
-    secs)
-        if [[ ${time} == 'now' ]]; then
-            date "${utcOpt[@]}" "${formatArg[@]}"
-        elif [[ ${impl} == 'gnu' ]]; then
-            date "${utcOpt[@]}" --date="@${time}" "${formatArg[@]}"
-        else
-            date "${utcOpt[@]}" -r "${time}" "${formatArg[@]}"
-        fi
-        ;;
-esac
+timeSecs="$(timey-parse "${inputType}" "${time}")" \
+|| exit "$?"
+
+timey-format "${utcOpt[@]}" "${timeSecs}" "${formatArg[@]}"

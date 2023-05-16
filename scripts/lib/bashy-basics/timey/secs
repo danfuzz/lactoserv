@@ -1,0 +1,45 @@
+#!/bin/bash
+#
+# Copyright 2022-2023 the Bashy-lib Authors (Dan Bornstein et alia).
+# SPDX-License-Identifier: Apache-2.0
+
+. "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"
+. "$(this-cmd-dir)/timey-help.sh"
+
+
+#
+# Argument parsing
+#
+
+define-usage $'
+    ${name} [<opt> ...] <time>
+
+    Converts the given time value to a number of seconds since the Unix Epoch.
+    This command is a convenient shorthand for `timey print ... \'+%s\'`.
+
+    --input=<type> :: rfc822 secs
+      Indicates the format of the given <time>. See `timey print` for more
+      details. Notably, `timey secs now` prints the current time.
+
+    ${name} [--help | -h]
+
+    Displays this message.
+'
+
+# Want help?
+opt-action --call='{ usage; exit }' help/h
+
+# Input type.
+opt-value --var=inputType --init='secs' --enum='secs rfc822' input
+
+# Time value to parse.
+positional-arg --required --var=time time
+
+process-args "$@" || usage --short
+
+
+#
+# Main script
+#
+
+timey-parse "${inputType}" "${time}"

@@ -1,6 +1,12 @@
 Changelog
 =========
 
+### v?
+
+Notable changes:
+
+* New script `timey secs`. Subsumes and deprecates `timey now-secs`.
+
 ### v2.1 -- 2023-05-12
 
 Notable changes:
