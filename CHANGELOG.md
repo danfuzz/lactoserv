@@ -5,7 +5,9 @@ Changelog
 
 Notable changes:
 
-* New script `timey secs`. Subsumes and deprecates `timey now-secs`.
+* `bashy-basics`:
+  * New script `timey secs`. Subsumes and deprecates `timey now-secs`.
+  * New helper function `jpostproc`.
 
 ### v2.1 -- 2023-05-12
 
