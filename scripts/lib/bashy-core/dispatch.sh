@@ -56,12 +56,13 @@ function include-lib {
 }
 
 # Calls through to an arbitrary library command. Options:
-# * `--units=<names>` -- List simple names (not paths) of the units to search.
-#   Without this, all units are searched.
+# * `--exec` -- `exec` the script instead of calling it in a subshell.
 # * `--path` -- Prints the path of the script instead of running it. In the case
 #   of a hierarchical (sub)command, this prints the directory (not the `_run`
 #   script, if any).
 # * `--quiet` -- Does not print error messages.
+# * `--units=<names>` -- List simple names (not paths) of the units to search.
+#   Without this, all units are searched.
 #
 # After the options, the next argument is taken to be a main command. After
 # that, any number of subcommands are accepted as long as they are allowed by
@@ -72,15 +73,17 @@ function include-lib {
 # As with running a normal shell command, if the command is not found (including
 # if the name is invalid), this returns code `127`.
 function lib {
+    local doExec=0
     local wantPath=0
     local quiet=0
     local units=''
 
     while true; do
         case "$1" in
-            --units=*) units="${1#*=}"; shift ;;
+            --exec)    doExec=1;        shift ;;
             --path)    wantPath=1;      shift ;;
             --quiet)   quiet=1;         shift ;;
+            --units=*) units="${1#*=}"; shift ;;
             *)        break                  ;;
         esac
     done
@@ -110,6 +113,8 @@ function lib {
         else
             echo "${path}"
         fi
+    elif (( doExec )); then
+        exec "${path}" "${args[@]}"
     else
         "${path}" "${args[@]}"
     fi

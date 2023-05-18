@@ -5,6 +5,8 @@ Changelog
 
 Notable changes:
 
+* `bashy-core`:
+  * `lib`: New option `--exec`.
 * `bashy-basics`:
   * New script `timey secs`. Subsumes and deprecates `timey now-secs`.
   * New helper function `jpostproc`.
