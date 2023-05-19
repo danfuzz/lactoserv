@@ -12,6 +12,46 @@ function jarray {
     lib json-array "$@"
 }
 
+# Converts a JSON array to a Bash array of elements. Stores into the named
+# variable. With option `--lenient`, treats a non-array as a single-element
+# array.
+function jbash-array {
+    # Note: Because we use `eval`, local variables are given name prefixes to
+    # avoid conflicts with the caller.
+
+    local _bashy_lenient=0
+    if [[ $1 == --lenient ]]; then
+        _bashy_lenient=1
+        shift
+    fi
+
+    local _bashy_name="$1"
+    local _bashy_value="$2"
+
+    # `--output=compact` guarantees an element per line.
+    if (( _bashy_lenient )); then
+        _bashy_value="$(
+            jget --output=compact "${_bashy_value}" \
+                'if type == "array" then .[] else . end'
+        )" \
+        || return "$?"
+    else
+        _bashy_value="$(
+            jget --output=compact "${_bashy_value}" '
+                if type == "array" then
+                    .[]
+                else
+                    "Not an array: \(.)" | halt_error(1)
+                end
+            '
+        )" \
+        || return "$?"
+    fi
+
+    # No choice but `eval` for Bash-3.2 compatibility.
+    eval "IFS=\$'\\n' ${_bashy_name}=(\${_bashy_value})"
+}
+
 # Calls `lib json-get`.
 function jget {
     lib json-get "$@"

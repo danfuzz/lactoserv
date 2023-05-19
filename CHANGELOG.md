@@ -9,7 +9,7 @@ Notable changes:
   * `lib`: New option `--exec`.
 * `bashy-basics`:
   * New script `timey secs`. Subsumes and deprecates `timey now-secs`.
-  * New helper function `jpostproc`.
+  * New helper functions `jbash-array` and `jpostproc`.
 
 ### v2.1 -- 2023-05-12
 
