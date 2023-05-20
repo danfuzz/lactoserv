@@ -49,7 +49,7 @@ function jbash-array {
     fi
 
     # No choice but `eval` for Bash-3.2 compatibility.
-    _bashy_oldIfs="${IFS}"
+    local _bashy_oldIfs="${IFS}"
     IFS=$'\n'
     eval "${_bashy_name}=(\${_bashy_value})"
     IFS="${_bashy_oldIfs}"
