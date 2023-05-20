@@ -7,6 +7,7 @@ Notable changes:
 
 * `bashy-core`:
   * `lib`: New option `--exec`.
+  * `ubik`: Finds functions from the library, not just commands (scripts).
 * `bashy-basics`:
   * New script `timey secs`. Subsumes and deprecates `timey now-secs`.
   * New helper functions `jbash-array` and `jpostproc`.

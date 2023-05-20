@@ -46,6 +46,12 @@ if [[ ${cmdName} == '' ]]; then
     exit 1
 fi
 
+if declare -F "${cmdName}" >/dev/null 2>&1; then
+    # It's actually a function from the library, not a separate command.
+    "${cmdName}" "${args[@]}"
+    exit "$?"
+fi
+
 lib --quiet "${cmdName}" "${args[@]}"
 exitCode="$?"
 
