@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 #
-# Miscellaneous Bashy-lib "built-in" commands
+# Miscellaneous Bashy-lib "built-in" commands / functions
 #
 
 
@@ -34,4 +34,19 @@ function define-usage {
     }'
 
     eval "${func}"
+}
+
+# Splits a multi-line string into an array. Assigns the indicated variable.
+# Note: This ignores blank lines.
+function set-array-from-lines {
+    # Note: Because we use `eval`, local variables are given name prefixes to
+    # avoid conflicts with the caller.
+    local _bashy_name="$1"
+    local _bashy_value="$2"
+
+    # No choice but `eval` for Bash-3.2 compatibility.
+    local _bashy_oldIfs="${IFS}"
+    IFS=$'\n'
+    eval "${_bashy_name}=(\${_bashy_value})"
+    IFS="${_bashy_oldIfs}"
 }

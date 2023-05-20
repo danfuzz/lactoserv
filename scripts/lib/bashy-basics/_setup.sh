@@ -48,11 +48,8 @@ function jbash-array {
         || return "$?"
     fi
 
-    # No choice but `eval` for Bash-3.2 compatibility.
-    local _bashy_oldIfs="${IFS}"
-    IFS=$'\n'
-    eval "${_bashy_name}=(\${_bashy_value})"
-    IFS="${_bashy_oldIfs}"
+    # This uses `eval`.
+    set-array-from-lines "${_bashy_name}" "${_bashy_value}"
 }
 
 # Calls `lib json-get`.
