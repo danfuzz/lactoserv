@@ -52,14 +52,17 @@ if declare -F "${cmdName}" >/dev/null 2>&1; then
     exit "$?"
 fi
 
-lib --quiet "${cmdName}" "${args[@]}"
+lib "${cmdName}" "${args[@]}"
 exitCode="$?"
 
 if (( exitCode == 127 )); then
-    error-msg "Command not found: ${cmdName}"
-    error-msg
-    lib helpy print-all-commands --prefix="$(this-cmd-name) "
-    exit 1
+    # Print out top-level help, if it looks like this exit code was due to the
+    # `lib` command itself not finding the command.
+    if ! lib --path --quiet "${cmdName}"; then
+        error-msg "Command not found: ${cmdName}"
+        error-msg
+        lib helpy print-all-commands --prefix="$(this-cmd-name) "
+    fi
 fi
 
 exit "${exitCode}"
