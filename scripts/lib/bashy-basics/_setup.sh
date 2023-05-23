@@ -7,9 +7,57 @@
 # Setup for this unit.
 #
 
+
+#
+# Shortened aliases.
+#
+
 # Calls `lib json-array`.
 function jarray {
     lib json-array "$@"
+}
+
+# Calls `lib json-get`.
+function jget {
+    lib json-get "$@"
+}
+
+# Calls `lib json-length`.
+function jlength {
+    lib json-length "$@"
+}
+
+# Calls `lib json-val`.
+function jval {
+    lib json-val "$@"
+}
+
+
+#
+# Other functions
+#
+
+# Where the `--output` option lands when parsed.
+_bashy_jsonOutputStyle=
+
+# Where JSON postprocessing arguments land when parsed.
+_bashy_jsonPostArgs=()
+
+# Checks JSON output and postprocessing arguments for sanity.
+function check-json-output-args {
+    if (( ${#_bashy_jsonPostArgs[@]} != 0 )); then
+        if [[ ${_bashy_jsonOutputStyle} == 'none' ]]; then
+            error-msg 'Cannot do post-processing given `--output=none`.'
+            usage --short
+            return 1
+        fi
+
+        jpostproc --check "${_bashy_jsonPostArgs[@]}" \
+        || {
+            usage --short
+            return 1
+        }
+    fi
 }
 
 # Converts a JSON array to a Bash array of elements. Stores into the named
@@ -50,21 +98,6 @@ function jbash-array {
 
     # This uses `eval`.
     set-array-from-lines "${_bashy_name}" "${_bashy_value}"
-}
-
-# Calls `lib json-get`.
-function jget {
-    lib json-get "$@"
-}
-
-# Calls `lib json-length`.
-function jlength {
-    lib json-length "$@"
-}
-
-# Calls `lib json-val`.
-function jval {
-    lib json-val "$@"
 }
 
 # Interprets standardized (for this project) JSON "post-processing" arguments.
@@ -140,4 +173,48 @@ function jpostproc {
         error-msg 'Trouble with post-processing.'
         return 1
     }
+}
+
+# Performs JSON output postprocessing as directed by arguments. Expects to be
+# given an _array_ of potential output (which it unwraps into a stream if so
+# directed).
+function json-postproc-output {
+    local outputArray="$1"
+
+    case "${_bashy_jsonOutputStyle}" in
+        array)
+            jpostproc <<<"${outputArray}" "${_bashy_jsonPostArgs[@]}"
+            ;;
+        json)
+            # Extract the results out of the array, to form a "naked" sequence of
+            # JSON objects, and pass that into the post-processor if necessary.
+            if (( ${#_bashy_jsonPostArgs[@]} == 0 )); then
+                jget "${outputArray}" '.[]'
+            else
+                jget "${outputArray}" '.[]' | jpostproc "${_bashy_jsonPostArgs[@]}"
+            fi
+            ;;
+        none)
+            : # Nothing to do.
+            ;;
+    esac
+}
+
+# Sets up argument processing to take the usual JSON output and postprocessing
+# arguments (usual as defined by this project), arranging for them to be stored
+# so they can be found by other parts of this helper library. More specifically:
+#
+# * Adds an `--output=<style>` option which accepts `array` (array of JSON
+#   values), `json` (stream of JSON values), or `none` (suppress output). It
+#   defaults to `json`.
+# * Adds a `rest-arg`, which expects either no arguments or a literal `::`
+#   followed by options and arguments for `json-val` (where the only option that
+#   is recognized is `--output`).
+function usual-json-output-args {
+    # Output style.
+    opt-value --var=_bashy_jsonOutputStyle --init=json \
+        --enum='array json none' output
+
+    # Optional post-processing arguments.
+    rest-arg --var=_bashy_jsonPostArgs post-arg
 }
