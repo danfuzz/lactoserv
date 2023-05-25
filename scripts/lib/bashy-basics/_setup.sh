@@ -211,10 +211,28 @@ function json-postproc-output {
 #   followed by options and arguments for `json-val` (where the only option that
 #   is recognized is `--output`).
 function usual-json-output-args {
+    local doOutput=1
+    local doRest=1
+
+    while (( $# > 0 )); do
+        case "$1" in
+            --no-output) doOutput=0 ;;
+            --no-rest)   doRest=0   ;;
+            *)
+                error-msg "Unrecognized option: $1"
+                return 1
+        esac
+        shift
+    done
+
     # Output style.
-    opt-value --var=_bashy_jsonOutputStyle --init=json \
-        --enum='array json none' output
+    if (( doOutput )); then
+        opt-value --var=_bashy_jsonOutputStyle --init=json \
+            --enum='array json none' output
+    fi
 
     # Optional post-processing arguments.
-    rest-arg --var=_bashy_jsonPostArgs post-arg
+    if (( doRest )); then
+        rest-arg --var=_bashy_jsonPostArgs post-arg
+    fi
 }
