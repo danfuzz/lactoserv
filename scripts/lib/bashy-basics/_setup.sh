@@ -200,6 +200,13 @@ function json-postproc-output {
     esac
 }
 
+# Sets the JSON postprocessing arguments. This can be used in combination with
+# `usual-json-output-args --no-rest` when special rest-argument handling needs
+# to be done.
+function set-json-postproc-args {
+    _bashy_jsonPostArgs=("$@")
+}
+
 # Sets up argument processing to take the usual JSON output and postprocessing
 # arguments (usual as defined by this project), arranging for them to be stored
 # so they can be found by other parts of this helper library. More specifically:
