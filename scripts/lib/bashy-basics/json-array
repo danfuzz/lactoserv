@@ -70,7 +70,7 @@ fi
 
 expr=''
 for (( n = 0; n < ${#values[@]}; n++ )); do
-    jqArgs+=("${argOpt}" "a${n}" "${values[${n}]}")
+    jqArgs+=("${argOpt}" "a${n}" "${values[n]}")
     if (( n != 0 )); then
         expr+=','
     fi
