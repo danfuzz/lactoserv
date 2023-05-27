@@ -178,8 +178,8 @@ function _dispatch_find-in-dir {
     local runPath=''
 
     local at
-    for (( at = 0; at < ${#args[@]}; at++ )); do
-        local nextWord="${args[$at]}"
+    for at in "${!args[@]}"; do
+        local nextWord="${args[at]}"
         local nextPath="${path}/${nextWord}"
 
         if ! _dispatch_is-valid-name "${nextWord}"; then
