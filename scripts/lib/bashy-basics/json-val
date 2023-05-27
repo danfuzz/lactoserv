@@ -206,10 +206,10 @@ case "${outputStyle}" in
         ;;
 esac
 
-for (( i = 0; i < ${#varNames[@]}; i++ )); do
-    varName="${varNames[${i}]}"
-    varType="${varTypes[${i}]}"
-    varValue="${varValues[${i}]}"
+for i in "${!varNames[@]}"; do
+    varName="${varNames[i]}"
+    varType="${varTypes[i]}"
+    varValue="${varValues[i]}"
 
     if [[ ${varType} =~ ^([^:]+):file$ ]]; then
         varType="${BASH_REMATCH[1]}"
