@@ -197,6 +197,14 @@ function json-postproc-output {
         none)
             : # Nothing to do.
             ;;
+        '')
+            error-msg 'No JSON --output option supplied (or implied).'
+            return 1
+            ;;
+        *)
+            error-msg "Unrecognized JSON --output option: ${_bashy_jsonOutputStyle}"
+            return 1
+            ;;
     esac
 }
 
@@ -236,6 +244,8 @@ function usual-json-output-args {
     if (( doOutput )); then
         opt-value --var=_bashy_jsonOutputStyle --init=json \
             --enum='array json none' output
+    else
+        _bashy_jsonOutputStyle=json
     fi
 
     # Optional post-processing arguments.
