@@ -31,7 +31,7 @@ define-usage $'
       delimited sections whose first line starts with `$${name}`. In addition, it
       prints just a single newline (not "Usage:") at the start. Note: For this
       to work as intended, always put a double-newline after each command
-      summary section. ${florp}${flop}
+      summary section.
 
     ${name} [--help | -h]
 
