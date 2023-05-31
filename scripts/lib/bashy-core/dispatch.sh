@@ -177,6 +177,7 @@ function _dispatch_find-in-dir {
     local runCmdName=''
     local runPath=''
 
+    local foundAt=-1
     local at
     for at in "${!args[@]}"; do
         local nextWord="${args[at]}"
@@ -193,12 +194,13 @@ function _dispatch_find-in-dir {
             # We are looking at a regular executable script. Include it in the
             # result, and return it.
             path="${nextPath}"
-            (( at++ ))
+            foundAt="${at}"
             break
         elif [[ -d "${nextPath}" ]]; then
             # We are looking at a subcommand directory. Include it in the
             # result, and iterate.
             path="${nextPath}"
+            foundAt="${at}"
             if [[ -f "${nextPath}/_run" && -x "${nextPath}/_run" ]]; then
                 runAt="${at}"
                 runCmdName="${runCmdName}"
@@ -210,29 +212,31 @@ function _dispatch_find-in-dir {
         fi
     done
 
-    if (( at == 0 )); then
+    if (( foundAt < 0 )); then
         # Did not find a match at all.
         return 1
     fi
 
+    (( at = foundAt + 1 )) # To make array slicing easier below.
+
     if [[ -d ${path} ]]; then
         # We found a subcommand directory. Adjust to point at the deepest `_run`
-        # script that was found (if any).
+        # script that was found if any or the default runner if there is no
+        # `_run`.
         if (( runAt == -1 )); then
             # Use the default run script, and augment `args` to have enough info
             # for the default runner to make sense of things.
-            args=(--original-path="${path}" --original-command="${args[*]:0:$at}" "${args[@]}")
+            args=(--original-path="${path}" --original-command="${args[*]:0:at}" "${args[@]}")
             path="${_bashy_dir}/_default-run"
         else
             # Use the runner that was found in the command, and augment `args`
             # so it can figure out how it was invoked.
-            args=(--original-command="${args[*]:$runCmdAt:$at}" "${args[@]:$at}")
-            at="${runCmdAt}"
+            args=(--original-command="${args[*]:runCmdAt:at}" "${args[@]:at}")
             path="${runPath}"
         fi
     else
         # Delete the args that became the command/subcommand.
-        args=("${args[@]:$at}")
+        args=("${args[@]:at}")
     fi
 }
 
