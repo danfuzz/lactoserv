@@ -652,7 +652,7 @@ function _argproc_janky-args {
                         # `:1` to drop the initial `|`.
                         optFilter="/^(${optFilter:1})\$/"
                         # "Escape" `.` so it's not treated as regex syntax.
-                        optFilter="$(sed <<<"${optFilter}" -e 's/[.]/[.]/g')"
+                        optFilter="${optFilter//./[.]}"
                     else
                         argError=1
                     fi
