@@ -26,6 +26,8 @@ define-usage $'
     Available variables:
     `$${help}` -- The standard blurb about the usual help option `--help` / `-h`
     `$${name}` -- The name of the command, as passed via `--name`.
+    `$${stderr}` -- The standard blurb about the usual stderr control options
+      `--verbose` and `--quiet` / `-q`.
 
     --name=<name>
       The name of the command to use for `$${name}.` This is required.
@@ -74,6 +76,12 @@ help
     \${name} [--help | -h]
 
     Displays this message.
+;
+
+stderr
+    --verbose=<level> --quiet -q :: \`none\` \`error\` \`warn\` \`all\`
+      How much to print to stderr. \`--quiet\` / \`-q\` is equivalent to
+      \`--verbose=none\`.
 ;
 
 message
