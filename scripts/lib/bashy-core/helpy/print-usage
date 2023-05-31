@@ -19,10 +19,10 @@ define-usage $'
     * Trim away empty lines at the start and end of the string.
     * Trim away whitespace from the start of lines, based on the indentation of
       the first not-just-whitespace line.
-    * Substitute the name of the command for the variable-like string `$${name}`.
-      (`$$$$` indicates a literal `$`.)
+    * Substitute variables (see below) in the form `$${name}`.
+    * Substitute `$$$$` with a literal `$$`.)
     * Prepend `Usage:` and a blank line.
-    * Print to `stderr`.
+    * Print everything to `stderr`.
 
     Available variables:
     `$${help}` -- The standard blurb about the usual help option `--help` / `-h`
