@@ -12,24 +12,24 @@
 # Shortened aliases.
 #
 
-# Calls `lib json-array`.
+# Calls `lib jarray`.
 function jarray {
-    lib json-array "$@"
+    lib jarray "$@"
 }
 
-# Calls `lib json-get`.
+# Calls `lib jget`.
 function jget {
-    lib json-get "$@"
+    lib jget "$@"
 }
 
-# Calls `lib json-length`.
+# Calls `lib jlength`.
 function jlength {
-    lib json-length "$@"
+    lib jlength "$@"
 }
 
-# Calls `lib json-val`.
+# Calls `lib jval`.
 function jval {
-    lib json-val "$@"
+    lib jval "$@"
 }
 
 
@@ -102,11 +102,10 @@ function jbash-array {
 
 # Interprets standardized (for this project) JSON "post-processing" arguments.
 # This processes `stdin`. The arguments must start with `::`. After that are
-# options and arguments just as with `json-val`, except `--input` is not
-# accepted.
+# options and arguments just as with `jval`, except `--input` is not accepted.
 #
 # As a convenience, if not passed any arguments at all (not even `::`), this
-# just (re)formats `stdin` to `stdout` using `json-val`.
+# just (re)formats `stdin` to `stdout` using `jval`.
 #
 # Finally, if `--check` is passed as the first argument (before `::`), then the
 # remaining arguments are checked for basic validity (though not guaranteed
@@ -223,8 +222,8 @@ function set-json-postproc-args {
 #   values), `json` (stream of JSON values), or `none` (suppress output). It
 #   defaults to `json`.
 # * Adds a `rest-arg`, which expects either no arguments or a literal `::`
-#   followed by options and arguments for `json-val` (where the only option that
-#   is recognized is `--output`).
+#   followed by options and arguments for `jval` (where the only option that is
+#   recognized is `--output`).
 function usual-json-output-args {
     local doOutput=1
     local doRest=1

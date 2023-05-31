@@ -19,8 +19,8 @@ define-usage $'
     produced by the `--output=json` option of this tool).
 
     --output=<style> :: `compact` `json` `lines`
-      Output style, as with `json-val`. Defaults to `lines`, which produces a
-      series of one or more standard-form CIDRs, one per line.
+      Output style, as with `jval`. Defaults to `lines`, which produces a series
+      of one or more standard-form CIDRs, one per line.
 
     Commands:
 
