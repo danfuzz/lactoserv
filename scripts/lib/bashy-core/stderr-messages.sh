@@ -50,8 +50,8 @@ function error-msg {
     _stderr_print-handler '_stderr_errorEnabled' '_stderr_anyErrors' "$@"
 }
 
-# Prints an info message to stderr, if such are enabled. **Note:** Info
-# messages are _enabled_ by default.
+# Prints an info or warning message to stderr, if such are enabled. **Note:**
+# Info messages are _enabled_ by default.
 function info-msg {
     _stderr_print-handler '_stderr_infoEnabled' '' "$@"
 }
@@ -62,6 +62,18 @@ function progress-msg {
     _stderr_print-handler '_stderr_progressEnabled' '' "$@"
 }
 
+# Adds the usual stderr-control options.
+# * `--verbose=<level>` -- Indicates which kinds of messages will pass. From
+#   least to most:
+#   * `none` -- None.
+#   * `error` -- Just errors.
+#   * `warn` -- Warning and informational messages.
+#   * `all` -- Everything.
+# * `--quiet` -- Same as `--verbose=none`
+function usual-stderr-args {
+    opt-value --call=_stderr_verbose --enum='none error warn all' verbose
+    opt-action --call='{ _stderr_verbose none }' quiet
+}
 
 #
 # Internal functions
@@ -130,4 +142,32 @@ function _stderr_print-handler {
         # `printf` to avoid option-parsing weirdness with `echo`.
         printf 1>&2 '%s\n' "$*"
     fi
+}
+
+# Handles the options `--quiet` and `--verbose`.
+function _stderr_verbose {
+    local level="$1"
+
+    case "${level}" in
+        none)
+            error-msg --disable
+            info-msg --disable
+            progress-msg --disable
+            ;;
+        error)
+            error-msg --enable
+            info-msg --disable
+            progress-msg --disable
+            ;;
+        warn)
+            error-msg --enable
+            info-msg --enable
+            progress-msg --disable
+            ;;
+        all)
+            error-msg --enable
+            info-msg --enable
+            progress-msg --enable
+            ;;
+    esac
 }
