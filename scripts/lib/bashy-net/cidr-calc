@@ -50,9 +50,7 @@ define-usage $'
       Widens the address in a CIDR by adding enough low-order zero bits to result
       in the indicated length. Prints the resulting CIDR.
 
-    ${name} [--help | -h]
-
-    Displays this message.
+    ${help}
 '
 
 # Output style.

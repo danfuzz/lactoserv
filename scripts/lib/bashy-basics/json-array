@@ -23,9 +23,7 @@ define-usage $'
       `compact` -- Output in compact (single line) JSON form.
       `json` -- Output in multiline JSON form. This is the default.
 
-    ${name} [--help | -h]
-
-    Displays this message.
+    ${help}
 '
 
 # Want help?

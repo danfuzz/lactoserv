@@ -25,9 +25,7 @@ define-usage $'
     --utc
       Produce output for the UTC time zone.
 
-    ${name} [--help | -h]
-
-    Displays this message.
+    ${help}
 '
 
 # Want help?

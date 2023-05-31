@@ -20,9 +20,7 @@ define-usage $'
 
     Run a subcommand. <opt>s and <arg>s depend on the specific subcommand.
 
-    ${name} [--help | -h]
-
-    Displays this message.
+    ${help}
 '
 
 # Want help?

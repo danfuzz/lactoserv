@@ -21,9 +21,7 @@ define-usage $'
       Indicates the format of the given <time>. See `timey print` for more
       details. Notably, `timey secs now` prints the current time.
 
-    ${name} [--help | -h]
-
-    Displays this message.
+    ${help}
 '
 
 # Want help?

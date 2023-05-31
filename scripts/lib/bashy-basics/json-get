@@ -26,9 +26,7 @@ define-usage $'
     --output=<style>
       Same options as with `json-val` (see which).
 
-    ${name} [--help | -h]
-
-    Displays this message.
+    ${help}
 '
 
 # Want help?

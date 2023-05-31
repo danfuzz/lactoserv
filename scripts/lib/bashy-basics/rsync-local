@@ -33,9 +33,7 @@ define-usage $'
     --exclude=<spec>
       Exclude files. Passed as-is to the underlying `rsync`.
 
-    ${name} [--help | -h]
-
-    Displays this message.
+    ${help}
 '
 
 # Want help?

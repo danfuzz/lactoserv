@@ -57,9 +57,7 @@ define-usage $'
       `words` -- Like `lines`, except that the guarantee is a word per line.
         As such, strings containing whitespace get treated as non-raw.
 
-    ${name} [--help | -h]
-
-    Displays this message.
+    ${help}
 '
 
 # Want help?
