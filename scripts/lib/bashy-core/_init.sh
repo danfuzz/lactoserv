@@ -16,6 +16,10 @@ if [[ ${_bashy_dir} != '' ]]; then
     return 1
 fi
 
+# The symlink-resolved path of the command that is running (that is, the
+# top-level script).
+_bashy_cmdPath="$(readlink -f "$0")" || return "$?"
+
 # The symlink-resolved directory of this script.
 _bashy_dir="$(readlink -f "${BASH_SOURCE[0]}")" || return "$?"
 _bashy_dir="${_bashy_dir%/*}"
@@ -38,10 +42,6 @@ function _bashy_initUnitNames {
 }
 _bashy_initUnitNames && unset -f _bashy_initUnitNames \
 || return "$?"
-
-# The symlink-resolved path of the command that is running (that is, the
-# top-level script).
-_bashy_cmdPath="$(readlink -f "$0")" || return "$?"
 
 # Load the core library's own sub-libraries.
 . "${_bashy_dir}/arg-processor.sh" || return "$?"
