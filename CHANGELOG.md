@@ -8,6 +8,7 @@ Notable changes:
 * `bashy-core`:
   * New helper function `set-array-from-lines`.
   * `lib`: New option `--exec`.
+  * Expanded functionality of `helpy print-usage`.
   * `ubik`:
     * Finds functions from the library, not just commands (scripts).
     * Smarter error reporting.
