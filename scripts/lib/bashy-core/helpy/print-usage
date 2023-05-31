@@ -154,16 +154,12 @@ function shorten(orig, matchStr, _withLocals_, at) {
             break;
         }
         orig = substr(orig, at + 1);
-        at = index(orig, "\n\n");
-        if (at == 0) {
-            out = out orig;
-            orig = "";
-        } else {
-            out = out substr(orig, 1, at);
-            orig = substr(orig, at + 1);
-        }
+        match(orig, /\n\n|\n*$/);
+        out = out substr(orig, 1, RSTART);
+        orig = substr(orig, RSTART + 1);
     }
 
+    sub(/\n+$/, "", out); # Drop final `\n`s.
     return out;
 }
 
