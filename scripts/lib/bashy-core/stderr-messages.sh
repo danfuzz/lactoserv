@@ -37,7 +37,7 @@ _stderr_errorEnabled=1
 _stderr_infoEnabled=1
 
 # Whether progress messages are enabled.
-_stderr_progressEnabled=0
+_stderr_progressEnabled=1
 
 
 #
@@ -57,7 +57,7 @@ function info-msg {
 }
 
 # Prints a progress message to stderr, if such are enabled. **Note:** Progress
-# messages are _disabled_ by default.
+# messages are _enabled_ by default.
 function progress-msg {
     _stderr_print-handler '_stderr_progressEnabled' '' "$@"
 }
