@@ -24,7 +24,41 @@ The 1.0 release is stable but not recommended for use.
 The 2.* series of releases isn't yet stable. You can still expect breaking
 changes with each release. Expect a stable release sometime in 2024.
 
-## To use
+## To use included commands
+
+1. Copy the `scripts` directory from this project (or its contents) to a
+   directory that is part of your `$PATH`.
+
+2. To use a Bashy-lib command from the command line, call `ubik` and pass it
+   the (possibly-hierarchical) name of the command, e.g.:
+
+   ```
+   $ ubik timey secs now
+   1685569338
+   $
+   ```
+
+   Just saying `ubik` will list all the available commands. Every command
+   responds to `--help` with a decently-detailed description.
+
+2. To call a Bashy-lib command from one of your own scripts, either:
+
+   * Recommended: Include the top-level `_init.sh` from your script, and then
+     call `lib` with the (possibly-hierarchical) command, e.g.:
+
+     ```bash
+     . "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"
+
+     ...
+     nowSecs="$(lib timey secs now)"
+     ...
+     ```
+
+   * Not recommended: Just use `ubik` as above. (Not recommended because it is
+       less efficient, because it does extra stuff to be a nice interactive
+       command.)
+
+## To extend with your own library
 
 ### Basic directory layout
 
