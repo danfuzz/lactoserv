@@ -12,7 +12,7 @@ Notable changes:
     * Finds functions from the library, not just commands (scripts).
     * Smarter error reporting.
   * `stderr`
-    * New helper function to define standardized control options.
+    * New helper functions for more consistency amongst commands.
     * `progress-msg` defaults to enabled.
 * `bashy-basics`:
   * New script `timey secs`. Subsumes and deprecates `timey now-secs`.

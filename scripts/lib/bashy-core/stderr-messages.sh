@@ -62,6 +62,23 @@ function progress-msg {
     _stderr_print-handler '_stderr_progressEnabled' '' "$@"
 }
 
+# Prints an option which reasonably approximates the current stderr settings.
+# Specifically, it prints `--verbose=<level>` with the most detailed <level>
+# currently enabled.
+function stderr-opt {
+    printf '%s' '--verbose='
+
+    if (( _stderr_progressEnabled )); then
+        echo 'all'
+    elif (( _stderr_infoEnabled )); then
+        echo 'warn'
+    elif (( _stderr_errorEnabled )); then
+        echo 'error'
+    else
+        echo 'none'
+    fi
+}
+
 # Adds the usual stderr-control options.
 # * `--verbose=<level>` -- Indicates which kinds of messages will pass. From
 #   least to most:
