@@ -86,10 +86,10 @@ function stderr-opt {
 #   * `error` -- Just errors.
 #   * `warn` -- Warning and informational messages.
 #   * `all` -- Everything.
-# * `--quiet` -- Same as `--verbose=none`
+# * `--quiet` / `-q` -- Same as `--verbose=none`
 function usual-stderr-args {
     opt-value --call=_stderr_verbose --enum='none error warn all' verbose
-    opt-action --call='{ _stderr_verbose none }' quiet
+    opt-action --call='{ _stderr_verbose none }' quiet/q
 }
 
 #
