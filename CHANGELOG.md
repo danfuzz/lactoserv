@@ -13,7 +13,7 @@ Notable changes:
     * Smarter error reporting.
   * `stderr`
     * New helper function to define standardized control options.
-    * progress-msg` defaults to enabled.
+    * `progress-msg` defaults to enabled.
 * `bashy-basics`:
   * New script `timey secs`. Subsumes and deprecates `timey now-secs`.
   * New helper functions `jbash-array` and `jpostproc`.
