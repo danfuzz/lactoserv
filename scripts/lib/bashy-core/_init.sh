@@ -37,7 +37,7 @@ _bashy_libDir="${_bashy_dir%/*}"
 
 # List of all sub-library directory names.
 _bashy_unitNames=()
-function _bashy_initUnitNames {
+function _bashy_init-unit-names {
     local names=("${_bashy_libDir}"/*)
     local i
     for i in "${!names[@]}"; do
@@ -51,7 +51,7 @@ function _bashy_initUnitNames {
     sort-array names
     _bashy_unitNames=("${names[@]}")
 }
-_bashy_initUnitNames && unset -f _bashy_initUnitNames \
+_bashy_init-unit-names && unset -f _bashy_init-unit-names \
 || return "$?"
 
 # Perform setup for all units (including prerequisite checking). This has to be
