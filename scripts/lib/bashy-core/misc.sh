@@ -59,9 +59,22 @@ function sort-array {
     local _bashy_arr
     eval "_bashy_arr=(\"\${${_bashy_arrayName}[@]}\")"
 
-    local count="${#_bashy_arr[@]}"
+    _misc_sort-array-inner
 
-    # This is shell sort, reducing to just insertion sort for small arrays.
+    eval "${_bashy_arrayName}=(\"\${_bashy_arr[@]}\")"
+}
+
+
+#
+# Helper functions
+#
+
+# Main guts of `sort-array`. This is separated out to avoid local variable
+# shadowing where the `eval` occurs. This assumes `_bashy_arr` is the array to
+# work on. The algorithm is shell sort, with just one round (that is, insertion
+# sort) for small inputs.
+function _misc_sort-array-inner {
+    local count="${#_bashy_arr[@]}"
 
     local gap
     if (( count >= 10 )); then
@@ -85,7 +98,4 @@ function sort-array {
         done
         (( gap /= 2 ))
     done
-
-    unset count gap i j slice temp # To avoid shadowing the target array.
-    eval "${_bashy_arrayName}=(\"\${_bashy_arr[@]}\")"
 }
