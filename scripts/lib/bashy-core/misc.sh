@@ -54,18 +54,18 @@ function set-array-from-lines {
 # Sorts an array in-place.
 function sort-array {
     # Because of Bash-3.2 compatibility, this is the sanest way to get the
-    # array. `_` to hopefully avoid naming conflicts.
-    local _arrayName="$1"
-    local _arr
-    eval "_arr=(\"\${${_arrayName}[@]}\")"
+    # array. `_bashy_` prefix to hopefully avoid naming conflicts.
+    local _bashy_arrayName="$1"
+    local _bashy_arr
+    eval "_bashy_arr=(\"\${${_bashy_arrayName}[@]}\")"
 
-    local _count="${#_arr[@]}"
+    local count="${#_bashy_arr[@]}"
 
     # This is shell sort, reducing to just insertion sort for small arrays.
 
     local gap
-    if (( _count >= 10 )); then
-        gap=$(( _count / 2 ))
+    if (( count >= 10 )); then
+        gap=$(( count / 2 ))
     else
         gap=1
     fi
@@ -73,12 +73,12 @@ function sort-array {
     local i j slice temp
     while (( gap > 0 )); do
         for (( slice = 0; slice < gap; slice++ )); do
-            for (( i = slice; (i + gap) < _count; i += gap )); do
-                for (( j = i + gap; j < _count; j += gap )); do
-                    if [[ ${_arr[i]} > ${_arr[j]} ]]; then
-                        temp="${_arr[i]}"
-                        _arr[i]="${_arr[j]}"
-                        _arr[j]="${temp}"
+            for (( i = slice; (i + gap) < count; i += gap )); do
+                for (( j = i + gap; j < count; j += gap )); do
+                    if [[ ${_bashy_arr[i]} > ${_bashy_arr[j]} ]]; then
+                        temp="${_bashy_arr[i]}"
+                        _bashy_arr[i]="${_bashy_arr[j]}"
+                        _bashy_arr[j]="${temp}"
                     fi
                 done
             done
@@ -86,6 +86,6 @@ function sort-array {
         (( gap /= 2 ))
     done
 
-    unset count i j temp
-    eval "${_arrayName}=(\"\${_arr[@]}\")"
+    unset count gap i j slice temp # To avoid shadowing the target array.
+    eval "${_bashy_arrayName}=(\"\${_bashy_arr[@]}\")"
 }
