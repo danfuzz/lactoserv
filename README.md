@@ -55,8 +55,8 @@ changes with each release. Expect a stable release sometime in 2024.
      ```
 
    * Not recommended: Just use `ubik` as above. (Not recommended because it is
-       less efficient, because it does extra stuff to be a nice interactive
-       command.)
+     less efficient, in that it does extra stuff to be a nice interactive
+     command.)
 
 ## To extend with your own library
 
