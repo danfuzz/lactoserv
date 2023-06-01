@@ -15,6 +15,7 @@ define-usage $'
 
     Prints a standardized timestamp representing "now" with optional prefix
     and suffix. This can be used to label things that have nothing more suitable.
+    The output includes a UTC time.
 
     --prefix=<string>
       Prefix to use. Note: If you want a `-` at the end, you need to include it.
