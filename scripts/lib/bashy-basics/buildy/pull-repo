@@ -26,6 +26,13 @@ define-usage $'
     directly under the `repos` directory under the (configurable) `out`
     directory.
 
+    --clone-config=<git-config>
+      Add a repo configuration, as with the `--config` option of `git clone`.
+      May be used more than once to add multiple configs. This _only_ has an
+      effect when the repo has not yet been cloned.
+    --just-print-dir
+      Instead of doing any actual clone/pull work, _just_ print the name of the
+      directory where the repo is or will be.
     --out=<dir>
       Directory where built output goes. Defaults to `out` directly under the
       main product directory.
@@ -39,6 +46,13 @@ define-usage $'
 
 # Want help?
 opt-action --call='{ usage; exit }' help/h
+
+# `git clone` configs.
+cloneConfigs=()
+opt-value --call='{ cloneConfigs+=("$1") }' --filter='/=/' clone-config
+
+# Just print the directory?
+opt-toggle --var=justPrintDir just-print-dir
 
 # Built output directory.
 opt-value --var=outDir out
@@ -55,6 +69,52 @@ process-args "$@" || usage --short
 #
 # Helper functions
 #
+
+# Do most of the actual work of the script.
+function actually-pull {
+    local repoUrl="$1"
+    local destDir="$2"
+
+    if [[ ! -d ${destDir} ]]; then
+        # Fresh build: Clone the repo for the first time.
+        progress-msg '  Cloning...'
+
+        mkdir -p "${destDir%/*}" \
+        || return "$?"
+
+        args=()
+        for c in "${cloneConfigs[@]}"; do
+            args+=(-c "${c}")
+        done
+
+        git 1>&2 clone --quiet "${args[@]}" "${repoUrl}" "${destDir}" \
+        || return "$?"
+    else
+        # Rebuild: Update the repo from upstream.
+        progress-msg '  Updating...'
+
+        mainBranch="$(main-branch-name "${destDir}")" \
+        || return "$?"
+
+        (
+            cd "${destDir}"
+            true \
+            && git checkout --quiet "${mainBranch}" \
+            && git 1>&2 pull --quiet "${idArgs[@]}" \
+            && git 1>&2 pull --quiet --tags --force
+        ) \
+        || return "$?"
+    fi
+
+    if [[ ${tagSpec} != '' ]]; then
+        progress-msg "  Tag: ${tagSpec}"
+        (
+            cd "${destDir}"
+            git checkout --quiet "${tagSpec}"
+        ) \
+        || return "$?"
+    fi
+}
 
 # Determines the main branch name of the repo in the given directory.
 function main-branch-name {
@@ -83,49 +143,18 @@ outDir="$(lib . out-dir)" \
 
 if [[ !(${repoUrl} =~ /([^./]+)([.]git)?$) ]]; then
     error-msg "Could not parse repo URL: ${repoUrl}"
-    return 1
+    exit 1
 fi
 
 repoName="${BASH_REMATCH[1]}"
 reposDir="${outDir}/repos"
 destDir="${reposDir}/${repoName}"
 
-mkdir -p "${reposDir}" \
-|| exit "$?"
-
-progress-msg "Pulling repo: ${repoName}"
-
-if [[ ! -d ${destDir} ]]; then
-    # Fresh build: Clone the repo for the first time.
-    progress-msg '  Cloning...'
-
-    git 1>&2 clone --quiet "${repoUrl}" "${destDir}" \
+if (( !justPrintDir )); then
+    progress-msg "Pulling repo: ${repoName}"
+    actually-pull "${repoUrl}" "${destDir}" \
     || exit "$?"
-else
-    # Rebuild: Update the repo from upstream.
-    progress-msg '  Updating...'
-
-    mainBranch="$(main-branch-name "${destDir}")" \
-    || exit "$?"
-
-    (
-        cd "${destDir}"
-        true \
-        && git checkout --quiet "${mainBranch}" \
-        && git 1>&2 pull --quiet "${idArgs[@]}" \
-        && git 1>&2 pull --quiet --tags --force
-    ) \
-    || exit "$?"
+    progress-msg '  Done!'
 fi
 
-if [[ ${tagSpec} != '' ]]; then
-    progress-msg "  Tag: ${tagSpec}"
-    (
-        cd "${destDir}"
-        git checkout --quiet "${tagSpec}"
-    ) \
-    || exit "$?"
-fi
-
-progress-msg '  Done!'
 echo "${destDir}"
