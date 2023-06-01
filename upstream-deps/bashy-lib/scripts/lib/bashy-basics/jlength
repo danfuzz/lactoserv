@@ -11,17 +11,18 @@
 #
 
 define-usage $'
-    ${name}
+    ${name} <json-value>
 
-    Prints the current time as an integer number of seconds since the Unix Epoch.
+    Prints the length of the given JSON value, per the `jq` length rules.
 
-    ${name} [--help | -h]
-
-    Displays this message.
+    ${help}
 '
 
 # Want help?
 opt-action --call='{ usage; exit }' help/h
+
+# JSON value.
+positional-arg --required --var=value json-value
 
 process-args "$@" || usage --short
 
@@ -30,4 +31,4 @@ process-args "$@" || usage --short
 # Main script
 #
 
-date '+%s'
+exec jq --null-input --argjson value "${value}" '$value | length'

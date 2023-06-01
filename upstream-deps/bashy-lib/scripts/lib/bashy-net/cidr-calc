@@ -19,8 +19,8 @@ define-usage $'
     produced by the `--output=json` option of this tool).
 
     --output=<style> :: `compact` `json` `lines`
-      Output style, as with `json-val`. Defaults to `lines`, which produces a
-      series of one or more standard-form CIDRs, one per line.
+      Output style, as with `jval`. Defaults to `lines`, which produces a series
+      of one or more standard-form CIDRs, one per line.
 
     Commands:
 
@@ -50,9 +50,7 @@ define-usage $'
       Widens the address in a CIDR by adding enough low-order zero bits to result
       in the indicated length. Prints the resulting CIDR.
 
-    ${name} [--help | -h]
-
-    Displays this message.
+    ${help}
 '
 
 # Output style.
@@ -285,7 +283,7 @@ function cidr-v6-address {
                 result+=':'
             fi
 
-            result+="$(printf '%x' "${address[${n}]}")"
+            result+="$(printf '%x' "${address[n]}")"
         fi
     done
 

@@ -98,12 +98,12 @@ function this-cmd-name {
         # First time this function has been called.
         local name="${_bashy_cmdPath}" # Start with the full command path.
         local len="${#_bashy_libDir}"
-        if [[ ${_bashy_libDir} == ${name:0:$len} ]]; then
+        if [[ ${_bashy_libDir} == ${name:0:len} ]]; then
             # We are looking at a command run from this library...
-            name="${name:$((len + 1))}" # Drop the library directory prefix.
-            name="${name#*/}"           # Drop the unit directory name.
-            name="${name%/_run}"        # Drop trailing `/_run` (if present).
-            name="${name//\// }"        # Replace slashes with spaces.
+            name="${name:len+1}" # Drop the library directory prefix.
+            name="${name#*/}"    # Drop the unit directory name.
+            name="${name%/_run}" # Drop trailing `/_run` (if present).
+            name="${name//\// }" # Replace slashes with spaces.
         else
             # All other cases, just use the simple script name.
             name="${name##*/}"
