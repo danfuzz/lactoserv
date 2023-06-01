@@ -4,7 +4,7 @@ Deployment Guide
 ### Build a distribution
 
 ```bash
-$ ./scripts/build --make-distro
+$ ubik build --make-distro
 ```
 
 This will deposit `lactoserv-<version>.tgz` in the `out` directory. This
