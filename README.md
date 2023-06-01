@@ -58,6 +58,24 @@ changes with each release. Expect a stable release sometime in 2024.
      less efficient, in that it does extra stuff to be a nice interactive
      command.)
 
+### Setup for even better interactive use
+
+The top-level script named `ubik` (so named for historical reasons) is a
+general dispatcher, which can be called like `ubik <command> <args>`, where
+`<command>` is any command defined in the `lib` next to the `ubik` script.
+
+You can of course set your `$PATH` to include the `scripts` directory in
+question, however it's often useful to be able to switch from project to project
+without having to reset the `$PATH`. To that end, you can include the contents
+of the file `scripts/lib/bashy-core/ubik-interactive.sh` in your interactive
+setup, e.g. by using `. .../ubik-interactive.sh` or by just pasting its
+contents directly (it is self-contained).
+
+`ubik-interactive.sh` defines a shell function called `ubik`. This function
+searches up the directory hierarchy from the CWD for an `ubik` script to run (in
+a `bin` or `scripts` directory), and if it finds one it will run it with
+whatever arguments you passed to the function.
+
 ## To extend with your own library
 
 ### Basic directory layout
@@ -174,21 +192,3 @@ project-base-directory/
 
 **Note:** The files named with a `.sh` suffix are _not_ supposed to be marked
 executable (`chmod +x ...`). These are _include_ files.
-
-### Setup for interactive use
-
-The top-level script named `ubik` (so named for historical reasons) is a
-general dispatcher, which can be called like `ubik <command> <args>`, where
-`<command>` is any command defined in the `lib` next to the `ubik` script.
-
-You can of course set your `PATH` to include the `scripts` directory in
-question, however it's often useful to be able to switch from project to project
-without having to reset the `PATH`. To that end, you can include the contents
-of the file `scripts/lib/bashy-core/ubik-interactive.sh` in your interactive
-setup, e.g. by using `. .../ubik-interactive.sh` or by just including its
-contents directly (it is self-contained).
-
-`ubik-interactive.sh` defines a shell function called `ubik`. This function
-searches up the directory hierarchy from the CWD for an `ubik` script to run (in
-a `bin` or `scripts` directory), and if it finds one it will run it with
-whatever arguments you passed to the function.
