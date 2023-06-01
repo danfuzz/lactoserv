@@ -74,8 +74,8 @@ function sort-array {
 
 # Main guts of `sort-array`. This is separated out to avoid local variable
 # shadowing where the `eval` occurs. This assumes `_bashy_arr` is the array to
-# work on. The algorithm is shell sort, with just one round (that is, insertion
-# sort) for small inputs.
+# work on. The algorithm is shell sort, with just one round (of selection sort)
+# for small inputs.
 function _misc_sort-array-inner {
     local count="${#_bashy_arr[@]}"
 
