@@ -28,9 +28,7 @@ define-usage $'
       `ssh-auth` -- Public key in SSH format, usable for example in
         `.ssh/authorized_keys` files.
 
-    ${name} [--help | -h]
-
-    Displays this message.
+    ${help}
 '
 
 # Want help?

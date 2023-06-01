@@ -56,31 +56,41 @@ function include-lib {
 }
 
 # Calls through to an arbitrary library command. Options:
-# * `--units=<names>` -- List simple names (not paths) of the units to search.
-#   Without this, all units are searched.
+# * `--exec` -- `exec` the script instead of calling it in a subshell.
 # * `--path` -- Prints the path of the script instead of running it. In the case
 #   of a hierarchical (sub)command, this prints the directory (not the `_run`
 #   script, if any).
 # * `--quiet` -- Does not print error messages.
+# * `--units=<names>` -- List simple names (not paths) of the units to search.
+#   Without this, all units are searched.
 #
 # After the options, the next argument is taken to be a main command. After
 # that, any number of subcommands are accepted as long as they are allowed by
-# the main command. See the docs for more details on directory structure. TLDR:
-# A subcommand is a directory with an optional `_run` script in it along with
-# any number of other executable scripts or subcommand directories.
+# the main command. As a special case, if the caller of this function is a
+# subcommand, the "main command" can be replaced with a number of dots
+# indicating a number of layers to "trim" from the subcommand to form a new
+# base. (E.g. in the command `blort beep boop`, `lib . florp` would correspond
+# to the command `blort beep florp` and `lib .. bonk` would indicate
+# `blort bonk`.)
 #
 # As with running a normal shell command, if the command is not found (including
 # if the name is invalid), this returns code `127`.
+#
+# See the docs for more details on directory structure. TLDR: A subcommand is a
+# directory with an optional `_run` script in it along with any number of other
+# executable scripts or subcommand directories.
 function lib {
+    local doExec=0
     local wantPath=0
     local quiet=0
     local units=''
 
     while true; do
         case "$1" in
-            --units=*) units="${1#*=}"; shift ;;
+            --exec)    doExec=1;        shift ;;
             --path)    wantPath=1;      shift ;;
             --quiet)   quiet=1;         shift ;;
+            --units=*) units="${1#*=}"; shift ;;
             *)        break                  ;;
         esac
     done
@@ -110,6 +120,8 @@ function lib {
         else
             echo "${path}"
         fi
+    elif (( doExec )); then
+        exec "${path}" "${args[@]}"
     else
         "${path}" "${args[@]}"
     fi
@@ -137,6 +149,17 @@ function _dispatch_find {
             error-msg 'lib: Missing command name.'
         fi
         return 127
+    elif [[ ${args[0]} =~ ^'.'+ ]]; then
+        local cmdWords=($(this-cmd-name))
+        local cmdLen="${#cmdWords[@]}"
+        local dotLen="${#args[0]}"
+        if (( cmdLen <= dotLen )); then
+            if (( !beQuiet )); then
+                error-msg "lib: Too many dots for command: ${cmdWords[*]}"
+            fi
+            return 127
+        fi
+        args=("${cmdWords[@]:0:cmdLen - dotLen}" "${args[@]:1}")
     elif ! _dispatch_is-valid-name "${args[0]}"; then
         if (( !beQuiet )); then
             error-msg "lib: Invalid command name: ${args[0]}"
@@ -172,9 +195,10 @@ function _dispatch_find-in-dir {
     local runCmdName=''
     local runPath=''
 
+    local foundAt=-1
     local at
-    for (( at = 0; at < ${#args[@]}; at++ )); do
-        local nextWord="${args[$at]}"
+    for at in "${!args[@]}"; do
+        local nextWord="${args[at]}"
         local nextPath="${path}/${nextWord}"
 
         if ! _dispatch_is-valid-name "${nextWord}"; then
@@ -188,12 +212,13 @@ function _dispatch_find-in-dir {
             # We are looking at a regular executable script. Include it in the
             # result, and return it.
             path="${nextPath}"
-            (( at++ ))
+            foundAt="${at}"
             break
         elif [[ -d "${nextPath}" ]]; then
             # We are looking at a subcommand directory. Include it in the
             # result, and iterate.
             path="${nextPath}"
+            foundAt="${at}"
             if [[ -f "${nextPath}/_run" && -x "${nextPath}/_run" ]]; then
                 runAt="${at}"
                 runCmdName="${runCmdName}"
@@ -205,29 +230,31 @@ function _dispatch_find-in-dir {
         fi
     done
 
-    if (( at == 0 )); then
+    if (( foundAt < 0 )); then
         # Did not find a match at all.
         return 1
     fi
 
+    (( at = foundAt + 1 )) # To make array slicing easier below.
+
     if [[ -d ${path} ]]; then
         # We found a subcommand directory. Adjust to point at the deepest `_run`
-        # script that was found (if any).
+        # script that was found if any or the default runner if there is no
+        # `_run`.
         if (( runAt == -1 )); then
             # Use the default run script, and augment `args` to have enough info
             # for the default runner to make sense of things.
-            args=(--original-path="${path}" --original-command="${args[*]:0:$at}" "${args[@]}")
+            args=(--original-path="${path}" --original-command="${args[*]:0:at}" "${args[@]}")
             path="${_bashy_dir}/_default-run"
         else
             # Use the runner that was found in the command, and augment `args`
             # so it can figure out how it was invoked.
-            args=(--original-command="${args[*]:$runCmdAt:$at}" "${args[@]:$at}")
-            at="${runCmdAt}"
+            args=(--original-command="${args[*]:runCmdAt:at}" "${args[@]:at}")
             path="${runPath}"
         fi
     else
         # Delete the args that became the command/subcommand.
-        args=("${args[@]:$at}")
+        args=("${args[@]:at}")
     fi
 }
 

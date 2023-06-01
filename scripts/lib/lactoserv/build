@@ -23,9 +23,7 @@ define-usage $'
       Directory where built output goes. Defaults to `out` directly under the
       main product directory.
 
-    ${name} [--help | -h]
-
-    Displays this message.
+    ${help}
 '
 
 # Want help?
@@ -54,7 +52,7 @@ function set-up-out-dir {
         extraOpts=(--remove)
     fi
 
-    lib out-dir --progress \
+    lib out-dir \
         --out="${outDir}" --create --print "${extraOpts[@]}"
 }
 
@@ -62,8 +60,6 @@ function set-up-out-dir {
 #
 # Main script
 #
-
-progress-msg --enable
 
 srcDir="$(base-dir)/src"
 etcDir="$(base-dir)/etc"

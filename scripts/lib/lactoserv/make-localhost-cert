@@ -28,9 +28,7 @@ define-usage $'
       Directory where built output goes. Defaults to `out` directly under the
       main product directory.
 
-    ${name} [--help | -h]
-
-    Displays this message.
+    ${help}
 '
 
 # Want help?
@@ -48,8 +46,6 @@ process-args "$@" || usage --short
 #
 # Main script
 #
-
-progress-msg --enable
 
 outDir="$(lib out-dir --out="${outDir}")" \
 || exit "$?"

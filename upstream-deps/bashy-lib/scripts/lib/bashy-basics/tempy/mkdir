@@ -20,9 +20,7 @@ define-usage $'
       Prefix to use instead of `tmp-`. Note: If you want a `-` at the end, you
       need to include it.
 
-    ${name} [--help | -h]
-
-    Displays this message.
+    ${help}
 '
 
 # Want help?
@@ -43,7 +41,7 @@ tmpDir="$(readlink -f "${TMPDIR:-/tmp}")" || exit "$?"
 
 path=''
 while true; do
-    path="${tmpDir}/$("$(this-cmd-dir)/name" --prefix="${prefix}")"
+    path="${tmpDir}/$(lib . name --prefix="${prefix}")"
     if [[ ! -e ${path} ]]; then
         break
     fi

@@ -26,9 +26,7 @@ define-usage $'
       The filesystem path to the originally-called command. This will always
       be a path to a directory.
 
-    ${name} [--help | -h]
-
-    Displays this message.
+    ${help}
 '
 
 # Want help?

@@ -17,9 +17,7 @@ define-usage $'
     ordering. With <file>s, processes only the indicated files; otherwise
     processes the entire source tree.
 
-    ${name} [--help | -h]
-
-    Displays this message.
+    ${help}
 '
 
 # Want help?

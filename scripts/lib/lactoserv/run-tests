@@ -31,9 +31,7 @@ define-usage $'
       Directory where built output goes. Defaults to `out` directly under the
       main product directory.
 
-    ${name} [--help | -h]
-
-    Displays this message.
+    ${help}
 '
 
 # Want help?

@@ -16,9 +16,7 @@ define-usage $'
     Lists all the subcommands (and sub-subcommands, etc.) of the given
     command.
 
-    ${name} [--help | -h]
-
-    Displays this message.
+    ${help}
 '
 
 # Want help?

@@ -21,9 +21,7 @@ define-usage $'
     --prefix=<string>
       Prefix each line of output with the given string.
 
-    ${name} [--help | -h]
-
-    Displays this message.
+    ${help}
 '
 
 # Want help?

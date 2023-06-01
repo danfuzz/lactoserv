@@ -57,9 +57,7 @@ define-usage $'
       `words` -- Like `lines`, except that the guarantee is a word per line.
         As such, strings containing whitespace get treated as non-raw.
 
-    ${name} [--help | -h]
-
-    Displays this message.
+    ${help}
 '
 
 # Want help?
@@ -206,10 +204,10 @@ case "${outputStyle}" in
         ;;
 esac
 
-for (( i = 0; i < ${#varNames[@]}; i++ )); do
-    varName="${varNames[${i}]}"
-    varType="${varTypes[${i}]}"
-    varValue="${varValues[${i}]}"
+for i in "${!varNames[@]}"; do
+    varName="${varNames[i]}"
+    varType="${varTypes[i]}"
+    varValue="${varValues[i]}"
 
     if [[ ${varType} =~ ^([^:]+):file$ ]]; then
         varType="${BASH_REMATCH[1]}"

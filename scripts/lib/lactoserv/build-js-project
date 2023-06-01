@@ -30,9 +30,7 @@ define-usage $'
       Directory where built output goes. Defaults to `out` directly under the
       main product directory.
 
-    ${name} [--help | -h]
-
-    Displays this message.
+    ${help}
 '
 
 # Want help?
@@ -362,7 +360,8 @@ function set-up-out-dir {
         extraOpts=(--remove)
     fi
 
-    lib out-dir --out="${outDir}" --create --print "${extraOpts[@]}"
+    lib out-dir --quiet \
+        --out="${outDir}" --create --print "${extraOpts[@]}"
 }
 
 # Checks a `node_modules` directory (or similar) for "suspect" files, given a
@@ -403,7 +402,6 @@ function suspect-file-check {
 # Main script
 #
 
-progress-msg --enable
 progress-msg "Building JS project ${projectName}..."
 
 srcDir="$(base-dir)/src"

@@ -21,9 +21,7 @@ define-usage $'
     --suffix=<string>
       Suffix to use. Note: If you want a `-` at the start, you need to include it.
 
-    ${name} [--help | -h]
-
-    Displays this message.
+    ${help}
 '
 
 # Want help?

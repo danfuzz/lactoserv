@@ -16,9 +16,7 @@ define-usage $'
     Fixes `package.json` files in various ways. With <file>s, processes only
     the indicated files; otherwise processes the entire source tree.
 
-    ${name} [--help | -h]
-
-    Displays this message.
+    ${help}
 '
 
 # Want help?

@@ -16,19 +16,16 @@ define-usage $'
 
     Performs an operation on a single JSON value (at least with typical usage).
     More specifically, a given <value> or the content of a file is used as the
-    sole input to a `json-val` invocation consisting of the rest of the
-    arguments. If no expression is given, it is taken to be `.`, which will
-    end up just formatting the input value as implied/specified by the output
-    options.
+    sole input to a `jval` invocation consisting of the rest of the arguments.
+    If no expression is given, it is taken to be `.`, which will end up just
+    formatting the input value as implied/specified by the output options.
 
     --file=<path>
       Read from the file instead of taking a value as a positional argument.
     --output=<style>
-      Same options as with `json-val` (see which).
+      Same options as with `jval` (see which).
 
-    ${name} [--help | -h]
-
-    Displays this message.
+    ${help}
 '
 
 # Want help?
@@ -74,7 +71,7 @@ if [[ ${filePath} != '' ]]; then
         error-msg "Cannot read file: ${filePath}"
         exit 1
     fi
-    lib json-val "${jvalArgs[@]}" <"${filePath}"
+    lib jval "${jvalArgs[@]}" <"${filePath}"
 else
-    lib json-val "${jvalArgs[@]}" <<<"${value}"
+    lib jval "${jvalArgs[@]}" <<<"${value}"
 fi

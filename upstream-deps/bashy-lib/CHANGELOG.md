@@ -1,6 +1,25 @@
 Changelog
 =========
 
+### v?
+
+Notable changes:
+
+* `bashy-core`:
+  * New helper function: `set-array-from-lines` and `sort-array`.
+  * `lib`: New option `--exec`.
+  * Expanded functionality of `helpy print-usage`.
+  * `ubik`:
+    * Finds functions from the library, not just commands (scripts).
+    * Smarter error reporting.
+  * `stderr`
+    * New helper functions for more consistency amongst commands.
+    * `progress-msg` defaults to enabled.
+* `bashy-basics`:
+  * New script `timey secs`. Subsumes and deprecates `timey now-secs`.
+  * New helper functions `jbash-array` and `jpostproc`.
+  * Renamed commands `json-*` to just `j*`.
+
 ### v2.1 -- 2023-05-12
 
 Notable changes:

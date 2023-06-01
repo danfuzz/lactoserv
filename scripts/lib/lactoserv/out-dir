@@ -18,8 +18,7 @@ define-usage $'
     --out=<dir>
       Directory where build-output goes. Defaults to `out` directly under the
       main product directory.
-    --progress (--no-progress to disable)
-      Print progress messages to stderr.
+    ${stderr}
 
     Actions:
 
@@ -32,13 +31,14 @@ define-usage $'
       Remove the directory. If both this and `--create` are specified, then the
       removal happens first.
 
-    ${name} [--help | -h]
-
-    Displays this message.
+    ${help}
 '
 
 # Want help?
 opt-action --call='{ usage; exit }' help/h
+
+# `--verbose` etc.
+usual-stderr-args
 
 # Build-output directory.
 opt-value --var=outDir out
@@ -47,9 +47,6 @@ opt-value --var=outDir out
 opt-toggle --var=doCreate create
 opt-toggle --var=doPrint print
 opt-toggle --var=doRemove remove
-
-# Progress messages?
-opt-toggle --call='{ progress-msg --set="$1" }' progress
 
 process-args "$@" || usage --short
 
