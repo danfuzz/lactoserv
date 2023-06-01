@@ -54,7 +54,7 @@ function set-up-out-dir {
         extraOpts=(--remove)
     fi
 
-    lib out-dir --progress \
+    lib out-dir \
         --out="${outDir}" --create --print "${extraOpts[@]}"
 }
 

@@ -362,7 +362,8 @@ function set-up-out-dir {
         extraOpts=(--remove)
     fi
 
-    lib out-dir --out="${outDir}" --create --print "${extraOpts[@]}"
+    lib out-dir --quiet \
+        --out="${outDir}" --create --print "${extraOpts[@]}"
 }
 
 # Checks a `node_modules` directory (or similar) for "suspect" files, given a
