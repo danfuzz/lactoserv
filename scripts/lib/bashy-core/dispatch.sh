@@ -66,12 +66,14 @@ function include-lib {
 #
 # After the options, the next argument is taken to be a main command. After
 # that, any number of subcommands are accepted as long as they are allowed by
-# the main command. See the docs for more details on directory structure. TLDR:
-# A subcommand is a directory with an optional `_run` script in it along with
-# any number of other executable scripts or subcommand directories.
+# the main command.
 #
 # As with running a normal shell command, if the command is not found (including
 # if the name is invalid), this returns code `127`.
+#
+# See the docs for more details on directory structure. TLDR: A subcommand is a
+# directory with an optional `_run` script in it along with any number of other
+# executable scripts or subcommand directories.
 function lib {
     local doExec=0
     local wantPath=0
