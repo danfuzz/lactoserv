@@ -50,3 +50,42 @@ function set-array-from-lines {
     eval "${_bashy_name}=(\${_bashy_value})"
     IFS="${_bashy_oldIfs}"
 }
+
+# Sorts an array in-place.
+function sort-array {
+    # Because of Bash-3.2 compatibility, this is the sanest way to get the
+    # array. `_` to hopefully avoid naming conflicts.
+    local _arrayName="$1"
+    local _arr
+    eval "_arr=(\"\${${_arrayName}[@]}\")"
+
+    local _count="${#_arr[@]}"
+
+    # This is shell sort, reducing to just insertion sort for small arrays.
+
+    local gap
+    if (( _count >= 10 )); then
+        gap=$(( _count / 2 ))
+    else
+        gap=1
+    fi
+
+    local i j slice temp
+    while (( gap > 0 )); do
+        for (( slice = 0; slice < gap; slice++ )); do
+            for (( i = slice; (i + gap) < _count; i += gap )); do
+                for (( j = i + gap; j < _count; j += gap )); do
+                    if [[ ${_arr[i]} > ${_arr[j]} ]]; then
+                        temp="${_arr[i]}"
+                        _arr[i]="${_arr[j]}"
+                        _arr[j]="${temp}"
+                    fi
+                done
+            done
+        done
+        (( gap /= 2 ))
+    done
+
+    unset count i j temp
+    eval "${_arrayName}=(\"\${_arr[@]}\")"
+}

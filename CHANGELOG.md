@@ -6,7 +6,7 @@ Changelog
 Notable changes:
 
 * `bashy-core`:
-  * New helper function `set-array-from-lines`.
+  * New helper function: `set-array-from-lines` and `sort-array`.
   * `lib`: New option `--exec`.
   * Expanded functionality of `helpy print-usage`.
   * `ubik`:
