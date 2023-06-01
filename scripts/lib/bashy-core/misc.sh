@@ -59,6 +59,9 @@ function sort-array {
     local _bashy_arr
     eval "_bashy_arr=(\"\${${_bashy_arrayName}[@]}\")"
 
+    # Note: The assignment to a new variable has the beneficial side-effect of
+    # compacting away any gaps (deleted elements) in the original.
+
     _misc_sort-array-inner
 
     eval "${_bashy_arrayName}=(\"\${_bashy_arr[@]}\")"

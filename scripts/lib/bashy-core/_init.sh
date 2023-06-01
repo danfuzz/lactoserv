@@ -38,14 +38,17 @@ _bashy_libDir="${_bashy_dir%/*}"
 # List of all sub-library directory names.
 _bashy_unitNames=()
 function _bashy_initUnitNames {
-    local names && names=($(
-        cd "${_bashy_libDir}"
-        find . -mindepth 1 -maxdepth 1 -type d \
-        | awk -F/ '{ print $2; }' \
-        | sort
-    )) \
-    || return "$?"
+    local names=("${_bashy_libDir}"/*)
+    local i
+    for i in "${!names[@]}"; do
+        if [[ -d ${names[i]} ]]; then
+            names[i]="${names[i]##*/}"
+        else
+            unset names[i]
+        fi
+    done
 
+    sort-array names
     _bashy_unitNames=("${names[@]}")
 }
 _bashy_initUnitNames && unset -f _bashy_initUnitNames \
