@@ -1,7 +1,7 @@
 Changelog
 =========
 
-### v* -- ?
+### v0.5.14 -- 2023-06-01
 
 Notable changes:
 * Pulled in improved `bashy-lib`, and adjusted accordingly.
