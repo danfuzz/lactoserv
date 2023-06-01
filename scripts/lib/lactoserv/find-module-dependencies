@@ -22,9 +22,7 @@ define-usage $'
     * `extDeps: { name: version, ... }` -- External (e.g. npm) module
       dependencies.
 
-    ${name} [--help | -h]
-
-    Displays this message.
+    ${help}
 '
 
 # Want help?
