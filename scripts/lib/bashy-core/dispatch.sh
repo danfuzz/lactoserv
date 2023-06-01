@@ -66,7 +66,12 @@ function include-lib {
 #
 # After the options, the next argument is taken to be a main command. After
 # that, any number of subcommands are accepted as long as they are allowed by
-# the main command.
+# the main command. As a special case, if the caller of this function is a
+# subcommand, the "main command" can be replaced with a number of dots
+# indicating a number of layers to "trim" from the subcommand to form a new
+# base. (E.g. in the command `blort beep boop`, `lib . florp` would correspond
+# to the command `blort beep florp` and `lib .. bonk` would indicate
+# `blort bonk`.)
 #
 # As with running a normal shell command, if the command is not found (including
 # if the name is invalid), this returns code `127`.
@@ -144,6 +149,17 @@ function _dispatch_find {
             error-msg 'lib: Missing command name.'
         fi
         return 127
+    elif [[ ${args[0]} =~ ^'.'+ ]]; then
+        local cmdWords=($(this-cmd-name))
+        local cmdLen="${#cmdWords[@]}"
+        local dotLen="${#args[0]}"
+        if (( cmdLen <= dotLen )); then
+            if (( !beQuiet )); then
+                error-msg "lib: Too many dots for command: ${cmdWords[*]}"
+            fi
+            return 127
+        fi
+        args=("${cmdWords[@]:0:cmdLen - dotLen}" "${args[@]:1}")
     elif ! _dispatch_is-valid-name "${args[0]}"; then
         if (( !beQuiet )); then
             error-msg "lib: Invalid command name: ${args[0]}"
