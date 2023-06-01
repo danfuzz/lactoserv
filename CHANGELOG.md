@@ -16,6 +16,7 @@ Notable changes:
     * New helper functions for more consistency amongst commands.
     * `progress-msg` defaults to enabled.
 * `bashy-basics`:
+  * New command hierarchy `buildy`, to do some common project-build type stuff.
   * New script `timey secs`. Subsumes and deprecates `timey now-secs`.
   * New helper functions `jbash-array` and `jpostproc`.
   * Renamed commands `json-*` to just `j*`.
