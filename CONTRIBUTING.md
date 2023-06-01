@@ -16,9 +16,9 @@ linter complaints or test failures. You can check these via convenient scripts:
 
 ```
 $ cd lactoserv
-$ ./scripts/lint
+$ ./scripts/ubik lint
 ...
-$ ./scripts/run-tests --do=build
+$ ./scripts/ubik run-tests --do=build
 ```
 
 ### Need some orientation?

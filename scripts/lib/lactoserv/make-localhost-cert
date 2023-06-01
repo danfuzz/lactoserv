@@ -47,7 +47,7 @@ process-args "$@" || usage --short
 # Main script
 #
 
-outDir="$(lib out-dir --out="${outDir}")" \
+outDir="$(lib buildy out-dir --out="${outDir}")" \
 || exit "$?"
 
 certDir="${outDir}/etc/certs"

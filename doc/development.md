@@ -3,14 +3,15 @@ Development Guide
 
 ### Note about `scripts` directory
 
-The `scripts` directory directly contains a handful of scripts you will probably
-run regularly, plus a catch-all called `ubik` which can be used to dispatch to
-other subcommands.
+The `scripts` directory directly contains a "catch-all" command called `ubik`,
+which is used to dispatch various subcommands in this project. This script
+comes from the [Bashy-lib](https://github.com/danfuzz-bashy-lib) project, see
+which for helpful advice about integrating it into your shell environment.
 
 ### Building
 
 ```sh
-$ ./scripts/build
+$ ubik build
 ...
 Build complete!
 $
@@ -20,10 +21,12 @@ By default, `build` deposits both a runnable build and a distribution tarball in
 the directory `out` directly under the top-level source directory. The script
 takes other options; `build --help` for details.
 
+`ubik clean` does what you (presumably) expect.
+
 ### Linting Etc.
 
 ```sh
-$ ./scripts/lint
+$ ubik lint
 
 No linter errors! Yay!
 $
@@ -31,11 +34,10 @@ $
 
 There are also two tools which adjust source files to be in a standardized form:
 
-* `./scripts/ubik fix-package-json` -- Derives intra-project dependencies from
-  the actual source files, and updates each module's `package.json` to match. It
-  actually entirely rewrites the file with project-standard boilerplate and
-  formatting.
-* `./scripts/ubik sort-imports` -- Sorts and arranges `import` lines into a
+* `ubik fix-package-json` -- Derives intra-project dependencies from the actual
+  source files, and updates each module's `package.json` to match. It actually
+  entirely rewrites the file with project-standard boilerplate and formatting.
+* `ubik sort-imports` -- Sorts and arranges `import` lines into a
   project-standard form.
 
 ### Testing
@@ -45,7 +47,7 @@ package. They use Jest for both test definitons (`describe(...)`, `test(...)`)
 and assertions (`expect(...)...`).
 
 ```sh
-$ ./scripts/run-tests
+$ ubik run-tests
 ...
 No errors! Yay!
 ```
@@ -62,7 +64,7 @@ This will run the system using the example configuration defined in
 _might_ satisfy your local web browser.
 
 ```sh
-$ ./scripts/run
+$ ubik run
 ...
 ```
 

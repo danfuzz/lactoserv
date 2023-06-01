@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "command": "${workspaceFolder}/scripts/run",
+            "command": "${workspaceFolder}/scripts/lib/lactoserv/run",
             "name": "Run example configuration",
             "request": "launch",
             "type": "node-terminal"

@@ -72,7 +72,7 @@ function build-tool {
 #
 
 srcDir="$(base-dir)/src"
-outDir="$(lib out-dir --out="${outDir}")" \
+outDir="$(lib buildy out-dir --out="${outDir}")" \
 || exit "$?"
 
 toolDir="${outDir}/linter"

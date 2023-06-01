@@ -3,10 +3,8 @@
 # Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 # SPDX-License-Identifier: Apache-2.0
 
-# Note: To add a new upstream dependency:
-#     git subtree add --prefix=upstream-deps/<name> <repo-url> HEAD
+. "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"
 
-. "$(dirname "$(readlink -f "$0")")/../scripts/lib/_init.sh" || exit "$?"
 
 #
 # Argument parsing
@@ -20,9 +18,7 @@ define-usage $'
     --no-pull -- Don\'t do the `git pull` portion of the update.
     --no-copy -- Don\'t do the "copy into place" portion of the update.
 
-    ${name} [--help | -h]
-
-    Displays this message.
+    ${help}
 '
 
 # Want help?
@@ -41,22 +37,18 @@ process-args "$@" || usage --short
 # Main script
 #
 
-upstreamDir="$(basename "$(this-cmd-dir)")"
+repoUrl='git@github.com:danfuzz/bashy-lib'
+repoDir="$(lib buildy out-dir)/repos/bashy-lib"
+destDir="$(base-dir)/scripts"
 
 if (( doPull )); then
-    cd "$(base-dir)"
-
-    git subtree pull \
-        --prefix="${upstreamDir}/bashy-lib" \
-        git@github.com:danfuzz/bashy-lib HEAD \
+    lib buildy pull-repo >/dev/null "${repoUrl}" \
     || exit "$?"
 fi
 
 if (( doCopy )); then
-    # Copy upstream bashy-lib files into place.
-    destDir="$(base-dir)/scripts"
     rm -rf ${destDir}/lib/bashy-*
-    cd "$(this-cmd-dir)/bashy-lib/scripts"
+    cd "${repoDir}/scripts"
     cp ./ubik ./_init.sh "${destDir}"
     cd lib
     cp -r ./_init.sh ./bashy-* "${destDir}/lib"

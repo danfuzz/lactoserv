@@ -1,42 +1,4 @@
 #!/bin/bash
-#
-# Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
-# SPDX-License-Identifier: Apache-2.0
 
 . "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"
-
-
-#
-# Argument parsing
-#
-
-define-usage $'
-    ${name} [<opt> ...]
-
-    Removes the build-output directory. This is just a convenient shorthand for
-    `out-dir --remove`.
-
-    --out=<dir>
-      Directory where built output goes. Defaults to `out` directly under the
-      main product directory.
-
-    ${help}
-'
-
-# Want help?
-opt-action --call='{ usage; exit }' help/h
-
-# Built output directory.
-opt-value --var=outDir out
-
-process-args "$@" || usage --short
-
-
-#
-# Main script
-#
-
-lib out-dir --out="${outDir}" --remove \
-|| exit "$?"
-
-progress-msg 'Clean!'
+lib buildy clean "$@"
