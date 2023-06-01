@@ -93,7 +93,6 @@ destDir="${reposDir}/${repoName}"
 mkdir -p "${reposDir}" \
 || exit "$?"
 
-progress-msg
 progress-msg "Pulling repo: ${repoName}"
 
 if [[ ! -d ${destDir} ]]; then
