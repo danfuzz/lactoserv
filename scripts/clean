@@ -1,4 +1,4 @@
 #!/bin/bash
 
 . "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"
-lib "$(this-cmd-name)" "$@"
+lib buildy clean "$@"

@@ -360,7 +360,7 @@ function set-up-out-dir {
         extraOpts=(--remove)
     fi
 
-    lib out-dir --quiet \
+    lib buildy out-dir --quiet \
         --out="${outDir}" --create --print "${extraOpts[@]}"
 }
 
