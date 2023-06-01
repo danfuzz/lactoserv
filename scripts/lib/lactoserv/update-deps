@@ -38,8 +38,9 @@ process-args "$@" || usage --short
 #
 
 repoUrl='git@github.com:danfuzz/bashy-lib'
-repoDir="$(lib buildy out-dir)/repos/bashy-lib"
 destDir="$(base-dir)/scripts"
+
+repoDir="$(lib buildy pull-repo --just-print-dir "${repoUrl}")"
 
 if (( doPull )); then
     lib buildy pull-repo >/dev/null "${repoUrl}" \
