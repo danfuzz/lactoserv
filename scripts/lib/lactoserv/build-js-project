@@ -403,7 +403,6 @@ function suspect-file-check {
 # Main script
 #
 
-progress-msg --enable
 progress-msg "Building JS project ${projectName}..."
 
 srcDir="$(base-dir)/src"

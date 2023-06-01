@@ -63,8 +63,6 @@ function set-up-out-dir {
 # Main script
 #
 
-progress-msg --enable
-
 srcDir="$(base-dir)/src"
 etcDir="$(base-dir)/etc"
 outDir="$(set-up-out-dir)"

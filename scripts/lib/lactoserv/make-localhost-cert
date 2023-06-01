@@ -49,8 +49,6 @@ process-args "$@" || usage --short
 # Main script
 #
 
-progress-msg --enable
-
 outDir="$(lib out-dir --out="${outDir}")" \
 || exit "$?"
 
