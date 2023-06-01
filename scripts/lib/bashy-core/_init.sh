@@ -27,6 +27,14 @@ _bashy_dir="${_bashy_dir%/*}"
 # The directory holding all sub-libraries (including this one).
 _bashy_libDir="${_bashy_dir%/*}"
 
+# Load the core library's own sub-libraries. These all have no load-time
+# dependencies.
+. "${_bashy_dir}/arg-processor.sh" || return "$?"
+. "${_bashy_dir}/dispatch.sh" || return "$?"
+. "${_bashy_dir}/misc.sh" || return "$?"
+. "${_bashy_dir}/meta.sh" || return "$?"
+. "${_bashy_dir}/stderr-messages.sh" || return "$?"
+
 # List of all sub-library directory names.
 _bashy_unitNames=()
 function _bashy_initUnitNames {
@@ -42,13 +50,6 @@ function _bashy_initUnitNames {
 }
 _bashy_initUnitNames && unset -f _bashy_initUnitNames \
 || return "$?"
-
-# Load the core library's own sub-libraries.
-. "${_bashy_dir}/arg-processor.sh" || return "$?"
-. "${_bashy_dir}/dispatch.sh" || return "$?"
-. "${_bashy_dir}/meta.sh" || return "$?"
-. "${_bashy_dir}/misc.sh" || return "$?"
-. "${_bashy_dir}/stderr-messages.sh" || return "$?"
 
 # Perform setup for all units (including prerequisite checking). This has to be
 # loaded after all the above; the custom unit bits are allowed to use any of it
