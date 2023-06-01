@@ -41,7 +41,7 @@ tmpDir="$(readlink -f "${TMPDIR:-/tmp}")" || exit "$?"
 
 path=''
 while true; do
-    path="${tmpDir}/$("$(this-cmd-dir)/name" --prefix="${prefix}")"
+    path="${tmpDir}/$(lib . name --prefix="${prefix}")"
     if [[ ! -e ${path} ]]; then
         break
     fi
