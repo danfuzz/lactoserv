@@ -1,0 +1,55 @@
+#!/bin/bash
+#
+# Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
+# SPDX-License-Identifier: Apache-2.0
+
+. "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"
+
+
+#
+# Argument parsing
+#
+
+define-usage $'
+    ${name} [<opt> ...]
+
+    Manages / updates upstream dependencies.
+
+    --no-pull -- Don\'t do the `git pull` portion of the update.
+    --no-copy -- Don\'t do the "copy into place" portion of the update.
+
+    ${help}
+'
+
+# Want help?
+opt-action --call='{ usage; exit }' help/h
+
+# Copy files into place?
+opt-toggle --var=doCopy --init=1 copy
+
+# Pull from upstream?
+opt-toggle --var=doPull --init=1 pull
+
+process-args "$@" || usage --short
+
+
+#
+# Main script
+#
+
+repoUrl='git@github.com:danfuzz/bashy-lib'
+repoDir="$(lib buildy out-dir)/repos/bashy-lib"
+destDir="$(base-dir)/scripts"
+
+if (( doPull )); then
+    lib buildy pull-repo >/dev/null "${repoUrl}" \
+    || exit "$?"
+fi
+
+if (( doCopy )); then
+    rm -rf ${destDir}/lib/bashy-*
+    cd "${repoDir}/scripts"
+    cp ./ubik ./_init.sh "${destDir}"
+    cd lib
+    cp -r ./_init.sh ./bashy-* "${destDir}/lib"
+fi
