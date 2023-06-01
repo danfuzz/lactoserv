@@ -19,19 +19,24 @@ define-usage $'
     * Trim away empty lines at the start and end of the string.
     * Trim away whitespace from the start of lines, based on the indentation of
       the first not-just-whitespace line.
-    * Substitute the name of the command for the variable-like string `$${name}`.
-      (`$$$$` indicates a literal `$`.)
-    * Prepend `Usage:` and a blank line.
-    * Print to `stderr`.
+    * Substitute variables (see below) in the form `$${name}`.
+    * Substitute `$$$$` with a literal `$$`.)
+    * Print everything to `stderr`.
+
+    Available variables:
+    `$${help}` -- The standard blurb about the usual help option `--help` / `-h`
+    `$${name}` -- The name of the command, as passed via `--name`.
+    `$${stderr}` -- The standard blurb about the usual stderr control options
+      `--verbose` and `--quiet` / `-q`.
 
     --name=<name>
       The name of the command to use for `$${name}.` This is required.
     --short
       Prints a short version of the <message>. This only prints double-newline
-      delimited sections whose first line starts with `$${name}`. In addition, it
-      prints just a single newline (not "Usage:") at the start. Note: For this
-      to work as intended, always put a double-newline after each command
-      summary section. ${florp}${flop}
+      delimited sections whose first line starts with the value of `$${name}`. In
+      addition, it prepends an extra newline at the start. Note: For this to
+      work as intended, always put a double-newline after each command summary
+      section.
 
     ${name} [--help | -h]
 
@@ -57,87 +62,140 @@ process-args "$@" || usage --short
 # Main script
 #
 
-info-msg --exec \
-awk <<<"${message}" \
-    -v name="${cmdName}" \
-    -v short="${short}" \
-'
-BEGIN {
-    atStart = 1;
-    blankCount = 0;
-    indentExpr = ""; # Regex to match indentation to strip.
-    inShortPart = 0; # Currently in section used for short output?
+# Ensure newline at the end of `${message}`.
+if ! [[ ${message} =~ $'\n'$ ]]; then
+    message+=$'\n'
+fi
 
-    print short ? "" : "Usage:\n";
+vars="
+name
+${cmdName}
+;
+
+help
+    \${name} [--help | -h]
+
+    Displays this message.
+;
+
+stderr
+    --verbose=<level> --quiet -q :: \`none\` \`error\` \`warn\` \`all\`
+      How much to print to stderr. \`--quiet\` / \`-q\` is equivalent to
+      \`--verbose=none\`.
+;
+
+message
+${message}
+;
+"
+
+info-msg --exec awk -v short="${short}" <<<"${vars}" '
+BEGIN {
+    wantName = 1;
+    inBody = 0;
 }
 
-/^[ \t]*$/ {
-    blankCount++;    # Count blank lines, but do not emit them.
-    inShortPart = 0; # Also, a blank ends a short-output section.
+/^[ \t]*$/ && !inBody {
     next;
 }
 
-# Determine first-line indentation; convert to regex.
-indentExpr == "" {
+wantName {
+    name = $0;
+    gsub(/[ \t]/, "", name);
+    wantName = 0;
+    inBody = 1;
+    body = "";
+    next;
+}
+
+inBody && /^;/ {
+    sub(/\n+$/, "", body); # Drop final `\n`s.
+    vars[name] = body;
+    wantName = 1;
+    inBody = 0;
+    next;
+}
+
+# Ignore blank lines at the start of a body.
+inBody && (body == "") && /^[ \t]*$/ {
+    next;
+}
+
+# Determine first-line indent, so as to apply out-denting. Convert to a regex.
+inBody && (body == "") {
     match($0, /^[ \t]*/);
     indentExpr = "^" substr($0, 1, RLENGTH);
 }
 
-{
+inBody {
     sub(indentExpr, "");
 
-    if (short && ($0 ~ /^\${name}/)) {
-        # Short-output section starts with the command name and continues
-        # until a blank line.
-        inShortPart = 1;
+    line = $0;
+    if (line ~ /[$]/) {
+        line = varSubst(line);
     }
 
-    if (inShortPart || !short) {
-        if (blankCount > 0) {
-            if (!(atStart || short)) {
-                # Emit some blank lines in the middle of the message.
-                # (Ignore them at the start and end of the message, and if
-                # doing short output.)
-                while (blankCount-- > 0) print "";
-            }
-            blankCount = 0;
-        }
+    body = body line "\n";
+}
 
-        atStart = 0;
+END {
+    message = vars["message"];
 
-        if ($0 ~ /[$]/) {
-            print varSubst($0);
-        } else {
-            print;
-        }
+    if (short) {
+        print "";
+        print shorten(message, vars["name"]);
+    } else {
+        print message;
     }
 }
 
+# Performs "shortening," by only including newline-separated sections that start
+# with the given string.
+function shorten(orig, matchStr, _withLocals_, at) {
+    out = "";
+    orig = "\n" orig;         # Simplifies matching.
+    matchStr = "\n" matchStr; # Likewise.
+
+    while (orig != "") {
+        at = index(orig, matchStr);
+        if (at == 0) {
+            break;
+        }
+        orig = substr(orig, at + 1);
+        match(orig, /\n\n|\n*$/);
+        out = out substr(orig, 1, RSTART);
+        orig = substr(orig, RSTART + 1);
+    }
+
+    sub(/\n+$/, "", out); # Drop final `\n`s.
+    return out;
+}
+
 # Performs variable substitutions on the given line.
-function varSubst(line, withLocals, machStr, out) {
-    out = ""
+function varSubst(line, _withLocals_, endAt, matchStr, out) {
+    out = "";
 
     while (line != "") {
         if (!match(line, /[$]([$]|[{][a-z]+[}])?/)) {
             break;
         }
+
         out = out substr(line, 1, RSTART - 1);
         matchStr = substr(line, RSTART, RLENGTH);
+        line = substr(line, RSTART + RLENGTH);
+
         if ((matchStr == "$") || (matchStr == "$$")) {
             # `$$` or non-variable `$`.
             out = out "$";
         } else {
-            if (matchStr == "${name}") {
-                out = out name;
+            gsub(/^\$\{|\}$/, "", matchStr);
+            if (matchStr in vars) {
+                out = out vars[matchStr];
             } else {
-                out = out "${UNKNOWN VARIABLE " \
-                    substr(matchStr, 3, length(matchStr) - 3) \
-                    "}";
+                out = out "${UNKNOWN VARIABLE " matchStr "}";
             }
         }
-        line = substr(line, RSTART + RLENGTH);
     }
 
     return out line;
-}
-'
+}'

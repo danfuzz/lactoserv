@@ -26,9 +26,7 @@ define-usage $'
       `user-4096` -- OpenSSL user key, 4096-bit RSA.
       `user-ec` -- SSH-format user key, elliptic curve (ED25519 algorithm).
 
-    ${name} [--help | -h]
-
-    Displays this message.
+    ${help}
 '
 
 # Want help?

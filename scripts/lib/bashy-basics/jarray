@@ -23,9 +23,7 @@ define-usage $'
       `compact` -- Output in compact (single line) JSON form.
       `json` -- Output in multiline JSON form. This is the default.
 
-    ${name} [--help | -h]
-
-    Displays this message.
+    ${help}
 '
 
 # Want help?
@@ -69,8 +67,8 @@ else
 fi
 
 expr=''
-for (( n = 0; n < ${#values[@]}; n++ )); do
-    jqArgs+=("${argOpt}" "a${n}" "${values[${n}]}")
+for n in "${!values[@]}"; do
+    jqArgs+=("${argOpt}" "a${n}" "${values[n]}")
     if (( n != 0 )); then
         expr+=','
     fi
