@@ -163,7 +163,11 @@ function jpostproc {
     fi
 
     if (( $# == 0 )) && [[ ${outputStyle} == 'none' ]]; then
-        # No need to run a nop-filter just to not produce output.
+        # No need to run a nop-filter just to not-produce output. That said,
+        # because whatever is feeding into this nop-filter _might_ want to write
+        # and _might_ get unhappy if it finds its output closed (looking at you
+        # `jq`), we still `cat` the input and just drop it on the floor.
+        cat >/dev/null
         return
     fi
 
