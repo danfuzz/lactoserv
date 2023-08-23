@@ -1,6 +1,12 @@
 Changelog
 =========
 
+### v0.5.15 -- 2023-08-23
+
+Notable changes:
+* Pulled in improved `bashy-lib`, and adjusted accordingly. This is a build-only
+  change. The built artifacts should remain the same.
+
 ### v0.5.14 -- 2023-06-01
 
 Notable changes:
