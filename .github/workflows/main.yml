@@ -28,7 +28,7 @@ jobs:
 
       # Note: Checks out into `$GITHUB_WORKSPACE`, which is also the `$CWD`.
       - name: Clone repo.
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Run the linter.
         run: ./scripts/ubik lint
