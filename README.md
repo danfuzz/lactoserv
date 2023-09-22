@@ -69,7 +69,7 @@ To build:
 * Recent-ish version of Bash (works with what macOS ships, which is about as
   old a version as you'll find on any up-to-date OS).
 * Recent version of Node (tested regularly on v18 and v20).
-* Recent version of `jq` (v1.6).
+* Recent version of `jq` (v1.6 or later).
 
 To run (versions as above):
 * Standard-ish POSIX operating environment.

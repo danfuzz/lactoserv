@@ -17,7 +17,7 @@ Jest (unit testing):
 * https://jest-extended.jestcommunity.dev/docs
 
 `jq` (JSON wrangler):
-* https://stedolan.github.io/jq/manual/v1.6/
+* https://jqlang.github.io/jq/manual/v1.6/
 
 Node:
 * https://nodejs.org/api/
