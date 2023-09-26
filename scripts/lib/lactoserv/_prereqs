@@ -68,11 +68,4 @@ check-dependency \
     '18..20' \
 || error=1
 
-check-dependency \
-    'jq' \
-    'jq --version | sed -e "s/^jq-//"' \
-    '^1.6$' \
-    '1.6' \
-|| error=1
-
 exit "${error}"
