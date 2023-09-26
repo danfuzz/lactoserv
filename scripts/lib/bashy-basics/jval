@@ -39,7 +39,9 @@ define-usage $'
          sole input.
       `raw0[:slurp]` -- Read NUL-terminated (`\\0`) strings of text from stdin
          to form pipeline input. With `:slurp`, produces an single array of all
-         strings as the sole input.
+         strings as the sole input. Note: This tolerates a missing NUL from the
+         end of input; it does _not_ produce an extra blank element with NUL at
+         the end of input.
       `read` -- Read JSON values from stdin individually to form pipeline input.
       `slurp` -- Read a series of JSON values from stdin into a single array,
         producing a single-value pipeline input.
@@ -156,12 +158,12 @@ case "${inputStyle}" in
         ;;
     raw0)
         jqArgs+=('--raw-input' '--slurp')
-        raw0Helper='split("\u0000") | .[]'
+        raw0Helper='sub("\u0000$"; "") | split("\u0000") | .[]'
         valueExpression="${raw0Helper} | (${valueExpression})"
         ;;
     raw0:slurp)
         jqArgs+=('--raw-input' '--slurp')
-        raw0SlurpHelper='split("\u0000")'
+        raw0SlurpHelper='sub("\u0000$"; "") | split("\u0000")'
         valueExpression="${raw0SlurpHelper} | (${valueExpression})"
         ;;
     read)
