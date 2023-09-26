@@ -1,6 +1,15 @@
 Changelog
 =========
 
+### v0.5.16 -- 2023-09-26
+
+This is a build-only change. The built artifacts should remain the same.
+
+Notable changes:
+* Pulled in improved `bashy-lib`, and adjusted accordingly.
+* Tweaked build scripts which relied on a now-fixed bug in `jq`. (Aside, yay
+  finally a new version of `jq`!)
+
 ### v0.5.15 -- 2023-08-23
 
 Notable changes:
