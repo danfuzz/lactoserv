@@ -29,9 +29,9 @@ _bashy_cmdName=''
 # Library functions
 #
 
-# Gets the base directory of the project. With `--set=`, sets it to the given
-# directory, which can be specified relative to the calling script. It is an
-# error to try to get the directory before having set it.
+# Gets the absolute path to the base directory of the project. With `--set=`,
+# sets it to the given directory, which can be specified relative to the calling
+# script. It is an error to try to get the directory before having set it.
 function base-dir {
     if [[ $1 =~ --set=(.*)$ ]]; then
         local setDir="${BASH_REMATCH[1]}"
@@ -49,9 +49,10 @@ function base-dir {
     fi
 }
 
-# Gets the current subproject directory. With `--set=`, sets it to the given
-# directory, which can be specified relative to the calling script. It is an
-# error to try to get the directory before having set it.
+# Gets the absolute path to the current subproject directory. With `--set=`,
+# sets it to the given directory, which can be specified relative to the
+# calling script. It is an error to try to get the directory before having set
+# it.
 function subproject-dir {
     if [[ $1 =~ --set=(.*)$ ]]; then
         local setDir="${BASH_REMATCH[1]}"
@@ -77,8 +78,24 @@ function subproject-name {
     echo "${dir##*/}"
 }
 
-# Gets the directory of this command, "this command" being the (outer) script
-# that is running.
+# Gets the subproject directory, relative to the base project directory (that
+# is, to `base-dir`).
+function subproject-subdir {
+    local baseDir && baseDir="$(base-dir)" || return "$?"
+    local subprojectDir && subprojectDir="$(subproject-dir)" || return "$?"
+
+    [[ ${subprojectDir} =~ ^"${baseDir}"/(.*)$ ]] || {
+        error-msg 'Subproject directory not actually under base directory?!'
+        error-msg "  base-dir:       ${baseDir}"
+        error-msg "  subproject-dir: ${subprojectDir}"
+        return 1
+    }
+
+    echo "${BASH_REMATCH[1]}"
+}
+
+# Gets the absolute path to the directory of this command, "this command" being
+# the (outer) script that is running.
 function this-cmd-dir {
     echo "${_bashy_cmdPath%/*}"
 }
@@ -114,13 +131,13 @@ function this-cmd-name {
     echo "${_bashy_cmdName}"
 }
 
-# Gets the full path of this command, "this command" being the (outer) script
-# that is running.
+# Gets the full absolute path of this command, "this command" being the (outer)
+# script that is running.
 function this-cmd-path {
     echo "${_bashy_cmdPath}"
 }
 
-# Gets the full path to this command's base library directory. This is the `lib`
+# Gets the full absolute path to this command's base library directory. This is the `lib`
 # directory containing the unit of this command.
 function this-base-library-dir {
     echo "${_bashy_libDir}"

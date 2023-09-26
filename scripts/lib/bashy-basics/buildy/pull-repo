@@ -7,14 +7,6 @@
 
 
 #
-# Configuration
-#
-
-# Tag (or branch) to use for updating the `lactoserv` repo.
-lactoservTag='v0.5.13'
-
-
-#
 # Argument parsing
 #
 

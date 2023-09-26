@@ -204,17 +204,13 @@ function _dispatch_find-in-dir {
         if ! _dispatch_is-valid-name "${nextWord}"; then
             # End of search: The next word is not a valid command name.
             break
-        elif [[ ! -x ${nextPath} ]]; then
-            # End of search: We landed at a non-exsitent path, unexecutable
-            # file, or unsearchable directory.
-            break
         elif [[ -f ${nextPath} ]]; then
             # We are looking at a regular executable script. Include it in the
             # result, and return it.
             path="${nextPath}"
             foundAt="${at}"
             break
-        elif [[ -d "${nextPath}" ]]; then
+        elif [[ -d ${nextPath} ]]; then
             # We are looking at a subcommand directory. Include it in the
             # result, and iterate.
             path="${nextPath}"
@@ -224,8 +220,18 @@ function _dispatch_find-in-dir {
                 runCmdName="${runCmdName}"
                 runPath="${path}/_run"
             fi
+        elif [[ -f "${nextPath}.link" ]]; then
+            # We are looking at a "file-reified link." Follow it, and iterate.
+            nextWord="$(cat "${nextPath}.link")" || return 1
+            if [[ ${nextWord} =~ ^/ ]]; then
+                path="${nextWord}" # Absolute path.
+            else
+                path="$(base-dir)/${nextWord}" # Relative path w/r/t project base.
+            fi
+            foundAt="${at}"
         else
-            # End of search: We landed at a special file (device, etc.).
+            # End of search: We landed at a non-existent path or special file
+            # (device, etc.).
             break
         fi
     done

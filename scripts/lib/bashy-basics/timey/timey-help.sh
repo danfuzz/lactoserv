@@ -65,10 +65,10 @@ function timey-parse {
             fi
 
             if [[ ${_timey_impl} == 'gnu' ]]; then
-                # This acts to validate and canonicalize the input.
+                # This validates and canonicalizes the input.
                 date 2>/dev/null --date="@${time}" '+%s'
             else
-                # This acts to validate and canonicalize the input.
+                # This validates and canonicalizes the input.
                 date 2>/dev/null -r "${time}" '+%s'
             fi \
             || {
