@@ -65,13 +65,15 @@ srcDir="$(base-dir)/src"
 etcDir="$(base-dir)/etc"
 outDir="$(set-up-out-dir)"
 
-extraOpts=()
-if (( doDistro )); then
-    extraOpts+=(--make-distro)
-fi
-
-lib build-js-project --out="${outDir}" "${extraOpts[@]}" lactoserv \
+lib build-js-project --out="${outDir}" lactoserv \
 || exit "$?"
+
+if (( doDistro )); then
+    progress-msg
+    progress-msg 'Making distribution tarball...'
+    lib buildy make-distro --out="${outDir}" "${outDir}/lactoserv" \
+    || exit "$?"
+fi
 
 progress-msg
 progress-msg 'Build complete!'
