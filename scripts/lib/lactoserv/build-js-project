@@ -238,32 +238,6 @@ function copy-scripts {
     done
 }
 
-# Makes a distribution tarball of the built result.
-function make-distro {
-    local dir="$1"
-    local destDir="$2"
-
-    local baseName
-    baseName="$(jget --output=raw --file="${dir}/product-info.json" '.name + "-" + .version')" \
-    || return "$?"
-
-    local tarballPath="${destDir}/${baseName}.tgz"
-
-    local fileList
-    fileList="$(
-        cd "${dir}"
-        find . -mindepth 1 -maxdepth 1 -print0 \
-        | jval --input=raw0 '.[2:]'
-    )" \
-    || return "$?"
-
-    rm -rf "${tarballPath}" || exit "$?"
-
-    tar --create --file="${tarballPath}" --directory="${dir}" \
-        --null --files-from=<(jval <<<"${fileList}" --input=read --output=raw0 .) \
-    || exit "$?"
-}
-
 # Writes a top-level `index.js` for a project.
 function make-index-js {
     local dir="$1"
@@ -432,7 +406,7 @@ fi
 
 if (( doDistro )); then
     progress-msg 'Making distribution tarball...'
-    make-distro "${outProjectDir}" "${outDir}" \
+    lib buildy make-distro --out="${outDir}" "${outProjectDir}" \
     || exit "$?"
 fi
 
