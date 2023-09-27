@@ -130,7 +130,7 @@ function main-branch-name {
 # Main script
 #
 
-outDir="$(lib . out-dir)" \
+outDir="$(lib . out-dir --out="${outDir}")" \
 || exit "$?"
 
 if [[ !(${repoUrl} =~ /([^./]+)([.]git)?$) ]]; then

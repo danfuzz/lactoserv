@@ -1,0 +1,84 @@
+#!/bin/bash
+#
+# Copyright 2022-2023 the Bashy-lib Authors (Dan Bornstein et alia).
+# SPDX-License-Identifier: Apache-2.0
+
+. "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"
+
+
+#
+# Argument parsing
+#
+
+define-usage $'
+    ${name} [<opt> ...] <built-dir>
+
+    Makes a distribution tarball from the given built-project directory. The
+    directory is assumed to have a file called `product-info.json` containing a
+    top-level object with at least a `name` and `version` binding.
+
+    --out=<dir>
+      Directory where the built distro goes. Defaults to `out` directly under the
+      main product directory.
+
+    ${help}
+'
+
+# Want help?
+opt-action --call='{ usage; exit }' help/h
+
+# Built output directory.
+opt-value --var=outDir out
+
+# Directory containing the built project.
+positional-arg --var=builtDir built-dir
+
+process-args "$@" || usage --short
+
+
+#
+# Helper functions
+#
+
+# Makes a distribution tarball.
+function make-distro {
+    local dir="$1"
+    local destDir="$2"
+
+    local baseName
+    baseName="$(jget --output=raw --file="${dir}/product-info.json" '.name + "-" + .version')" \
+    || return "$?"
+
+    local tarballPath="${destDir}/${baseName}.tgz"
+
+    local fileList
+    fileList="$(
+        cd "${dir}"
+        find . -mindepth 1 -maxdepth 1 -print0 \
+        | jval --input=raw0 '.[2:]'
+    )" \
+    || return "$?"
+
+    rm -rf "${tarballPath}" || exit "$?"
+
+    tar --create --file="${tarballPath}" --directory="${dir}" \
+        --null --files-from=<(jval <<<"${fileList}" --input=read --output=raw0 .) \
+    || exit "$?"
+
+    info-msg 'Created distro:'
+    info-msg "  ${tarballPath}"
+}
+
+
+#
+# Main script
+#
+
+outDir="$(lib . out-dir --out="${outDir}" --create --print)" \
+|| exit "$?"
+
+if [[ ! -d ${builtDir} ]]; then
+    error-msg "Not a directory: ${builtDir}"
+fi
+
+make-distro "${builtDir}" "${outDir}"
