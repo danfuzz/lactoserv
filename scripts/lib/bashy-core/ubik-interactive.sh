@@ -4,21 +4,22 @@
 # "Meta-ubik" function for interactive (human-driven) usage. Define this in your
 # interactive shell, and `ubik ...` will attempt to find the "nearest" directory
 # above the CWD containing either `scripts/ubik` or `bin/ubik`, and then call
-# _that_ `ubik`.
+# _that_ `ubik`. If not found at or above the CWD, it will use an `ubik` in
+# `PATH` if any.
 function ubik {
     local ubikPath
 
     ubikPath="$(
-        while true; do
-            [[ -x scripts/ubik ]] && echo "${PWD}/scripts/ubik" && break
-            [[ -x bin/ubik ]] && echo "${PWD}/bin/ubik" && break
+        while [[ ${PWD} != '/' ]]; do
+            [[ -x scripts/ubik ]] && echo "${PWD}/scripts/ubik" && exit
+            [[ -x bin/ubik ]] && echo "${PWD}/bin/ubik" && exit
             cd ..
-            [[ ${PWD} == '/' ]] && exit 1
         done
+        which 2>/dev/null ubik
     )" \
     || {
-        echo 1>&2 'ubik (interactive): No `ubik` script found to run in or above directory:'
-        echo 1>&2 "  ${PWD}"
+        echo 1>&2 'ubik (interactive):'
+        echo 1>&2 '  No `ubik` script found in/above current directory or in PATH.'
         return 127
     }
 
