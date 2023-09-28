@@ -1,0 +1,113 @@
+#!/bin/bash
+#
+# Copyright 2022-2023 the Bashy-lib Authors (Dan Bornstein et alia).
+# SPDX-License-Identifier: Apache-2.0
+
+. "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"
+
+
+#
+# Argument parsing
+#
+
+define-usage $'
+    ${name} [<path> ...]
+
+    List files in the project at or under the given <path>s, respecting
+    `.gitignore` (etc.). With no <path>s, lists all project files.
+
+    --full-paths
+      Output full paths. By default, outputs paths that are relative to the
+      project\'s base directory.
+    --output=<style> :: `json` `lines` `raw0`
+      * `json` -- Output a JSON array of all file paths. This is the default.
+      * `lines` -- Output newline-terminated file paths.
+      * `raw0` -- Output NUL-terminated file paths.
+    --include=<regex>
+      Regular expression indicating which files to include.
+
+    ${help}
+'
+
+# Want help?
+opt-action --call='{ usage; exit }' help/h
+
+# Full paths?
+opt-toggle --var=fullPaths full-paths
+
+# Output style.
+opt-value --var=outputStyle --init=json --enum='json lines raw0' output
+
+# Include pattern.
+opt-value --var=includeRegex --init='.' --filter='/./' include
+
+# The paths.
+rest-arg --var=paths --filter='/./' paths
+
+process-args "$@" || usage --short
+
+
+#
+# Helper functions
+#
+
+
+#
+# Main script
+#
+
+baseDir="$(base-dir)" || exit "$?"
+
+# Canonicalize the paths.
+error=0
+for i in "${!paths[@]}"; do
+    p="${paths[i]}"
+    newPath="$(readlink -f "${p}")" || {
+        error-msg "No such path: ${p}"
+        error=1
+        continue
+    }
+
+    if [[ ! (${newPath} =~ ^"${baseDir}/") ]]; then
+        error-msg "Not a project path: ${p}"
+        error=1
+    fi
+    paths[i]="${newPath}"
+done
+
+if (( error )); then
+    exit 1
+fi
+
+cd "${baseDir}"
+
+results=()
+
+while IFS='' read -r -d $'\0' file; do
+    if [[ ${file} == $'\x01error' ]]; then
+        exit 1
+    fi
+    if [[ ${file} =~ ${includeRegex} ]]; then
+        if (( fullPaths )); then
+            file="${baseDir}/${file}"
+        fi
+        results+=("${file}")
+    fi
+done < <(
+    # Note: The `|| printf` is to make it possible to unambiguously notice
+    # errors coming from `git ls-files`.
+    git ls-files -z --cached --others --exclude-standard "${paths[@]}" \
+    || printf '\x01error\x00'
+)
+
+case "${outputStyle}" in
+    json)
+        jarray --input=strings "${results[@]}"
+        ;;
+    lines)
+        printf '%s\n' "${results[@]}"
+        ;;
+    raw0)
+        printf '%s\x00' "${results[@]}"
+        ;;
+esac

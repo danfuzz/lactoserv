@@ -18,6 +18,9 @@ define-usage $'
     directly under the `repos` directory under the (configurable) `out`
     directory.
 
+    If the repo exists and there are uncommitted changes, then those changes
+    get stashed.
+
     --clone-config=<git-config>
       Add a repo configuration, as with the `--config` option of `git clone`.
       May be used more than once to add multiple configs. This _only_ has an
@@ -90,6 +93,13 @@ function actually-pull {
 
         (
             cd "${destDir}"
+
+            if any-changes; then
+                progress-msg '  Stashing uncommitted changes...'
+                git 1>&2 stash --quiet || return "$?"
+                progress-msg '  Now updating for realsies...'
+            fi
+
             true \
             && git checkout --quiet "${mainBranch}" \
             && git 1>&2 pull --quiet "${idArgs[@]}" \
@@ -106,6 +116,15 @@ function actually-pull {
         ) \
         || return "$?"
     fi
+}
+
+# Checks to see if there are any changes in the repo containing the CWD.
+function any-changes {
+    git update-index
+
+    git diff-index --quiet HEAD -- \
+    && return 1 \
+    || return 0
 }
 
 # Determines the main branch name of the repo in the given directory.
