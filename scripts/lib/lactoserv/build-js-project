@@ -277,10 +277,6 @@ function npm-install {
 
     (
         cd "${dir}"
-        # `--ignore-scripts` is a tactic to avoid developer-targeted malware.
-        # As of this writing, none of the dependencies need to run scripts, so
-        # there's nothing additional to do in order to cope with the flag (e.g.,
-        # no need to run scripts in an "offline chroot" or somesuch).
         npm install --no-fund --omit=dev "${extraOpts[@]}"
     ) \
     || return "$?"
