@@ -5,10 +5,10 @@ Much of the basic coding conventions are enforced by the linter (e.g.
 indentation, string quotes, JSDoc annotations). See the ESLint config file for
 details.
 
-Similarly, `import` ordering is maintained with `ubik sort-imports`, which you
-can run if you're ever in need of some automated help. The basic idea is that
-imports go from "general" to "specific" with an extra newline between each
-related section.
+Similarly, `import` ordering is maintained with `ubik node-project
+sort-imports`, which you can run if you're ever in need of some automated help.
+The basic idea is that imports go from "general" to "specific" with an extra
+newline between each related section.
 
 - - - - - - - - - -
 
