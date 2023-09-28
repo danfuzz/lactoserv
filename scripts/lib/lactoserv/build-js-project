@@ -81,7 +81,10 @@ function build-js-project {
     progress-msg 'Determining local and external dependencies...'
 
     local deps
-    deps="$(lib find-module-dependencies "${mainModule}")" \
+    deps="$(
+        lib node-project find-module-dependencies \
+            --modules-dir="${srcDir}" "${mainModule}"
+    )" \
     || return "$?"
 
     # Construct a top-level package.json.
