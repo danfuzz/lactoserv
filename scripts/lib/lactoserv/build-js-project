@@ -21,6 +21,12 @@ define-usage $'
     --out=<dir>
       Directory where built output goes. Defaults to `out` directly under the
       main product directory.
+    --unsafely-run-npm-install-scripts
+      If specified, runs any install-time scripts defined by modules. This is
+      reasonably considered an unsafe practice (it is a vector for
+      developer-directed malware), which is why it is disabled by default. This
+      option exists to enable tactical problem-solving, with the hope that it
+      will be left on only ephemerally.
 
     ${help}
 '
@@ -33,6 +39,9 @@ opt-toggle --var=platformSpecific allow-platform-specific-files
 
 # Built output directory.
 opt-value --var=outDir out
+
+# Run npm install-time scripts?
+opt-toggle --var=runNpmInstallScripts unsafely-run-npm-install-scripts
 
 # Project name.
 positional-arg --filter='/^[-a-z0-9]+$/' --var=projectName project-name
@@ -255,13 +264,24 @@ function npm-install {
     progress-msg 'Fetching and installing external dependencies...'
     progress-msg
 
+    local extraOpts=()
+    if (( !runNpmInstallScripts )); then
+        # `--ignore-scripts` is a tactic to avoid developer-targeted malware.
+        # (See the note in the usage message above.) As of this writing, none of
+        # the dependencies of any project using this system actually need to run
+        # install scripts, so there's nothing additional to do in order to cope
+        # with the flag (e.g., no need to run scripts in an "offline chroot" or
+        # somesuch).
+        extraOpts=(--ignore-scripts)
+    fi
+
     (
         cd "${dir}"
         # `--ignore-scripts` is a tactic to avoid developer-targeted malware.
         # As of this writing, none of the dependencies need to run scripts, so
         # there's nothing additional to do in order to cope with the flag (e.g.,
         # no need to run scripts in an "offline chroot" or somesuch).
-        npm install --ignore-scripts --no-fund --omit=dev
+        npm install --no-fund --omit=dev "${extraOpts[@]}"
     ) \
     || return "$?"
 }
