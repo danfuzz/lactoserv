@@ -44,7 +44,7 @@ opt-action --call='{ usage; exit }' help/h
 # Allow the build to be platform-specific?
 opt-toggle --var=platformSpecific allow-platform-specific-files
 
-# Directory containing all the modules
+# Directory containing all the modules.
 opt-value --required --var=modulesDir --filter='/./' modules-dir
 
 # Built output directory.
@@ -63,8 +63,8 @@ process-args "$@" || usage --short
 # Helper functions
 #
 
-# The main actions of this script. The "main module" is taken to be `main-<name>`.
-function build-js-project {
+# The main actions of this script.
+function build-project {
     local projectName="$1"
     local modulesDir="$2"
     local destDir="$3"
@@ -130,7 +130,7 @@ function build-js-project {
     true \
     && make-index-js "${destLocalCode}" \
     && copy-scripts "${srcMainModule}" "${destDir}" \
-    && copy-local-modules "${modulesDir}" "${destLocalModules}" "${deps}" \
+    && copy-local-modules "${destLocalModules}" "${deps}" \
     && remove-dead-local-modules "${destLocalModules}" "${deps}" \
     && npm-install "${destLibDir}" \
     || return "$?"
@@ -159,9 +159,8 @@ function commit-info {
 
 # Copies all the local modules for a project.
 function copy-local-modules {
-    local moduleSrcDir="$1"
-    local moduleDestDir="$2"
-    local deps="$3"
+    local moduleDestDir="$1"
+    local deps="$2"
 
     progress-msg 'Copying local modules...'
 
@@ -172,24 +171,21 @@ function copy-local-modules {
     copyCmd="$(
         jget --output=raw "${deps}" \
             cmd='lib rsync-local' \
-            fromDir="${moduleSrcDir}" \
             toDir="${moduleDestDir}" '
-        .localDeps
-        |
-        map({
-                fromPath: ($fromDir + "/" + (. | sub("^[^/]*/"; "") + "/") | @sh),
-                toPath:   ($toDir + "/" + . | @sh)
-            }
-            |
+          .localDirs
+        | to_entries
+        | map({ name: .key, fromPath: .value })
+        | map({
+            fromPath: ("\(.fromPath)/" | @sh),
+            toPath:   ("\($toDir)/\(.name)" | @sh)
+        })
+        | map(
             "mkdir -p " + .toPath,
             $cmd + " " + .fromPath + " " + .toPath
-            |
-            "&& " + . + " \\"
         )
-        |
-        ["true \\"] + . + ["&& true"]
-        |
-        join("\n")
+        | map("&& " + . + " \\")
+        | ["true \\"] + . + ["&& true"]
+        | join("\n")
         '
     )" \
     || return "$?"
@@ -389,7 +385,7 @@ if [[ ! -d ${outProjectDir} ]]; then
     || exit "$?"
 fi
 
-build-js-project "${projectName}" "${modulesDir}" "${outProjectDir}" \
+build-project "${projectName}" "${modulesDir}" "${outProjectDir}" \
 || exit "$?"
 
 if (( !platformSpecific )); then

@@ -19,6 +19,8 @@ define-usage $'
 
     * `main: string` -- The originally requested module.
     * `localDeps: [name, ...]` -- Local module dependencies.
+    * `localDirs: { name: path, ... }` -- Mapping from each local module name to
+      the source directory it lives in.
     * `extDeps: { name: version, ... }` -- External (e.g. npm) module
       dependencies.
 
@@ -26,7 +28,7 @@ define-usage $'
     exits with an error.
 
     --modules-dir=<dir>
-      Directory containing all source modules. Required. *Note:* Each of the
+      Directory containing all source modules. Required. **Note:** Each of the
       modules is expected to be defined to have the name `@this/<name>` where
       <name> names the directory the module is in.
 
@@ -77,7 +79,8 @@ while true; do
 
     # Reminder: `${var##*/}` removes everything up to the last slash. In this
     # case, it's trimming `@this/` off of `oneDep`.
-    pkgFile="${modulesDir}/${oneDep##*/}/package.json"
+    moduleDir="${modulesDir}/${oneDep##*/}"
+    pkgFile="${moduleDir}/package.json"
 
     if [[ ! -r "${pkgFile}" ]]; then
         echo "Not readable: ${pkgFile}" 1>&2
@@ -86,6 +89,7 @@ while true; do
 
     state="$(
         jget --file="${pkgFile}" \
+            moduleDir="${moduleDir}" \
             oneDep="${oneDep}" \
             state:json="${state}" '
         ((.dependencies // {}) | to_entries) as $allDeps
@@ -98,6 +102,7 @@ while true; do
             graph:       ($state.graph + ($localDeps | map({ from: $oneDep, to: .}))),
             unprocessed: (($state.unprocessed + $localDeps) | unique),
             localDeps:   (($state.localDeps + [$oneDep]) | unique),
+            localDirs:   (($state.localDirs + { ($oneDep): $moduleDir })),
             extDeps:     (($state.extDeps + $extDeps) | unique)
         }
         | . + { unprocessed: (.unprocessed - .localDeps) }
@@ -168,6 +173,7 @@ fi
 jget "${state}" '{
     main,
     localDeps,
+    localDirs,
     extDeps:
         (.extDeps | map(split("@") | { key: .[0], value: .[1] }) | from_entries)
 }'
