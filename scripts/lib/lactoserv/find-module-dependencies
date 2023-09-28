@@ -22,6 +22,9 @@ define-usage $'
     * `extDeps: { name: version, ... }` -- External (e.g. npm) module
       dependencies.
 
+    If a dependency cycle is detected, this prints a diagnostic message and
+    exits with an error.
+
     ${help}
 '
 
