@@ -315,8 +315,8 @@ function remove-dead-local-modules {
                 deadModules:json="${deadModules}" '
             $deadModules
             | map(
-                "progress-msg \("  " + . | @sh)",
-                "rm -rf \($dir + "/" + . | @sh)"
+                "progress-msg \("  \(.)" | @sh)",
+                "rm -rf \("\($dir)/\(.)" | @sh)"
             )
             | map("&& \(.) \\")
             | ["true \\", .[], "&& true"]
