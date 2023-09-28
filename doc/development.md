@@ -34,9 +34,10 @@ $
 
 There are also two tools which adjust source files to be in a standardized form:
 
-* `ubik fix-package-json` -- Derives intra-project dependencies from the actual
-  source files, and updates each module's `package.json` to match. It actually
-  entirely rewrites the file with project-standard boilerplate and formatting.
+* `ubik node-project fix-package-json` -- Derives intra-project dependencies
+  from the actual source files, and updates each module's `package.json` to
+  match. It actually entirely rewrites the file with project-standard
+  boilerplate and formatting.
 * `ubik node-project sort-imports` -- Sorts and arranges `import` lines into a
   project-standard form.
 
