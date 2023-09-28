@@ -198,12 +198,12 @@ function copy-scripts {
     local srcDir="$1/bin"
     local destDir="$2/bin"
 
-    # Get a JSON array of all the files. `.[2:]` strips off the leading `./`.
+    # Get a JSON array of all the files.
     local fileList
     fileList="$(
         cd "${srcDir}"
         find . -mindepth 1 -maxdepth 1 -print0 \
-        | jval --input=raw0:slurp 'map(.[2:])'
+        | jval --input=raw0:slurp 'map(ltrimstr("./"))'
     )" \
     || return "$?"
 
