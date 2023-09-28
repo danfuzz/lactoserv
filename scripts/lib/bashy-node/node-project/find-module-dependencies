@@ -1,0 +1,173 @@
+#!/bin/bash
+#
+# Copyright 2022-2023 the Bashy-lib Authors (Dan Bornstein et alia).
+# SPDX-License-Identifier: Apache-2.0
+
+. "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"
+
+
+#
+# Argument parsing
+#
+
+define-usage $'
+    ${name} [<opt> ...] [--] <module-name>
+
+    Transitively finds all module dependencies from the one given, which must
+    be the name of a module defined in this codebase. Prints out a JSON object
+    with bindings as follows:
+
+    * `main: string` -- The originally requested module.
+    * `localDeps: [name, ...]` -- Local module dependencies.
+    * `extDeps: { name: version, ... }` -- External (e.g. npm) module
+      dependencies.
+
+    If a dependency cycle is detected, this prints a diagnostic message and
+    exits with an error.
+
+    --modules-dir=<dir>
+      Directory containing all source modules. Required. *Note:* Each of the
+      modules is expected to be defined to have the name `@this/<name>` where
+      <name> names the directory the module is in.
+
+    ${help}
+'
+
+# Want help?
+opt-action --call='{ usage; exit }' help/h
+
+# Directory containing all the modules
+opt-value --required --var=modulesDir --filter='/./' modules-dir
+
+# The module to start at.
+positional-arg --required --var=moduleName module-name
+
+process-args "$@" || usage --short
+
+
+#
+# Main script
+#
+
+if [[ ! (-d ${modulesDir} && -r ${modulesDir}) ]]; then
+    error-msg "Not a readable directory: ${modulesDir}"
+    exit 1
+fi
+
+# Collect all of the modules referenced by this package, transitively including
+# all referenced local modules. The result is two lists, one of local modules
+# and one of regular (published via npm) dependencies. This uses a work queue
+# arrangement where we start with the main subproject as the sole element of the
+# to-be-processed queue.
+
+state="$(jval mainModule="@this/${moduleName}" '{
+    unprocessed: [],
+    graph:       [],
+    localDeps:   [],
+    extDeps:     [],
+    main:        $mainModule,
+    next:        $mainModule
+}')"
+
+while true; do
+    oneDep="$(jget --output=raw "${state}" '.next')"
+    if [[ ${oneDep} == '<done>' ]]; then
+        break;
+    fi
+
+    # Reminder: `${var##*/}` removes everything up to the last slash. In this
+    # case, it's trimming `@this/` off of `oneDep`.
+    pkgFile="${modulesDir}/${oneDep##*/}/package.json"
+
+    if [[ ! -r "${pkgFile}" ]]; then
+        echo "Not readable: ${pkgFile}" 1>&2
+        exit 1
+    fi
+
+    state="$(
+        jget --file="${pkgFile}" \
+            oneDep="${oneDep}" \
+            state:json="${state}" '
+        ((.dependencies // {}) | to_entries) as $allDeps
+        |
+        ($allDeps | map(select(.key | startswith("@this/")) | .key)) as $localDeps
+        |
+        ($allDeps | map(select(.key | startswith("@this/") | not) | .key + "@" + .value)) as $extDeps
+        |
+        {
+            graph:       ($state.graph + ($localDeps | map({ from: $oneDep, to: .}))),
+            unprocessed: (($state.unprocessed + $localDeps) | unique),
+            localDeps:   (($state.localDeps + [$oneDep]) | unique),
+            extDeps:     (($state.extDeps + $extDeps) | unique)
+        }
+        | . + { unprocessed: (.unprocessed - .localDeps) }
+        | . + { next: (.unprocessed[0] // "<done>") }
+        | $state + .
+        '
+    )"
+done
+
+# Verify that there aren't two (or more) different versions listed for any
+# single external dependency.
+
+conflicts="$(jget "${state}" '
+    .extDeps
+    | map([(sub("@.*$"; "")), [.]])
+    | reduce .[] as $item ({}; . + { ($item[0]): (.[$item[0]] + $item[1]) })
+    | to_entries | map(select((.value | length) > 1)) | from_entries
+')"
+
+if [[ ${conflicts} != '{}' ]]; then
+    error-msg 'Conflicting external module versions:'
+    error-msg --exec jget "${conflicts}"
+    exit 1
+fi
+
+# Verify that the local module dependency graph has no cycles. If there's at
+# least one cycle, list all the modules involved with cycles.
+#
+# What's going on: We start with the full directed graph, and iteratively remove
+# all edges for nodes that only appear on the `from` side (because de facto they
+# are not involved in a cycle). Once no more edges can be removed, any remaining
+# ones are involved in cycles.
+
+cycles="$(jval \
+    state:json="${state}" '
+    $state.graph as $edges
+    |
+    {
+        edges: $edges,
+        done:  false
+    }
+    |
+    until(.done;
+          (.edges | map(.from) | unique) as $froms
+        | (.edges | map(.to) | unique) as $tos
+        | ($froms | map(select(. as $from | $tos | bsearch($from) < 0)))
+            as $removables
+        | (.edges | map(select(.from as $from | $removables | bsearch($from) < 0)))
+            as $edges
+        |
+        {
+            edges: $edges,
+            done:  (.edges == $edges)
+        }
+    )
+    |
+    .edges | map(.from)
+')"
+
+if [[ ${cycles} != '[]' ]]; then
+    error-msg 'Local module dependency cycle(s) detected.'
+    error-msg 'Modules involved:'
+    error-msg --exec jget --output=raw "${cycles}" '.[] | "  " + .'
+    exit 1
+fi
+
+# Form the final result.
+jget "${state}" '{
+    main,
+    localDeps,
+    extDeps:
+        (.extDeps | map(split("@") | { key: .[0], value: .[1] }) | from_entries)
+}'
