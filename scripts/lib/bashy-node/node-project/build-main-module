@@ -180,11 +180,11 @@ function copy-local-modules {
             toPath:   ("\($toDir)/\(.name)" | @sh)
         })
         | map(
-            "mkdir -p " + .toPath,
-            $cmd + " " + .fromPath + " " + .toPath
+            "mkdir -p \(.toPath)",
+            "\($cmd) \(.fromPath) \(.toPath)"
         )
-        | map("&& " + . + " \\")
-        | ["true \\"] + . + ["&& true"]
+        | map("&& \(.) \\")
+        | ["true \\", .[], "&& true"]
         | join("\n")
         '
     )" \
@@ -314,17 +314,13 @@ function remove-dead-local-modules {
                 dir="${dir}" \
                 deadModules:json="${deadModules}" '
             $deadModules
-            |
-            map(
-                "progress-msg " + ("  " + . | @sh),
-                "rm -rf " + ($dir + "/" + . | @sh)
-                |
-                "&& " + . + " \\"
+            | map(
+                "progress-msg \("  " + . | @sh)",
+                "rm -rf \($dir + "/" + . | @sh)"
             )
-            |
-            ["true \\"] + . + ["&& true"]
-            |
-            join("\n")
+            | map("&& \(.) \\")
+            | ["true \\", .[], "&& true"]
+            | join("\n")
         ')"
 
         progress-msg 'Removing defunct local modules:'
