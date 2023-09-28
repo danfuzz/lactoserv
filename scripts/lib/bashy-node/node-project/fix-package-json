@@ -41,7 +41,6 @@ WRANGLER_AWK=$'
     $0 = from;
     if (from ~ /^@this\//) {
         deps[from] = 1;
-        #print from;
     }
 }
 
@@ -79,11 +78,14 @@ function get-deps {
     local files
 
     files=($(
-        find "${srcDir}" \
-            '(' -type d -name tests -prune ')' \
-            -o -name '*.js' -print
-    ))
-    awk "${WRANGLER_AWK}" "${files[@]}"
+        lib buildy ls-files --output=lines --include='\.js$' "${srcDir}"
+    )) \
+    || return "$?"
+
+    if (( ${#files[@]} != 0 )); then
+        awk "${WRANGLER_AWK}" "${files[@]}" \
+        || return "$?"
+    fi
 }
 
 # Runs the fixer on the given file.
@@ -118,7 +120,7 @@ function do-fix {
         version: .version,
         type: "module",
         private: true,
-        license: "Apache-2.0",
+        license: (.license // "UNLICENSED"),
         BLANK_LINE_1: "",
         exports: "./index.js",
         imports: {
