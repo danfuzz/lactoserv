@@ -46,7 +46,6 @@ localModulesDir="$(base-dir)/src"
 # arrangement where we start with the main subproject as the sole element of the
 # to-be-processed queue.
 
-
 state="$(jval mainModule="@this/${moduleName}" '{
     unprocessed: [],
     graph:       [],
