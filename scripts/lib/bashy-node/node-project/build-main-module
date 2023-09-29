@@ -18,13 +18,20 @@ define-usage $'
     directory. The module used to build this is named `@this/main-<project-name>`
     which is expected to be present in the modules directory.
 
+    This tool is opinionated: The modules directories are taken to define
+    submodules (in the Node sense) under the top-level name `@this`.
+
+    **Note:** Exactly one of the two `--modules-*` options must be specified.
+
     --allow-platform-specific-files
       If specified, the build does *not* check to see if any platform-specific
       files ended up in the built output.
     --modules-dir=<dir>
-      Directory containing all source modules. Required. *Note:* Each of the
-      modules is expected to be defined to have the name `@this/<name>` where
-      <name> names the directory the module is in.
+      Path to a directory containing all module sources to be used.
+    --modules-dirs=<json>
+      JSON array of one or more paths to directories containing module sources.
+      If the same-named module exists in more than one modules directory, the
+      first one listed "wins."
     --out=<dir>
       Directory where built output goes. Defaults to `out` directly under the
       main product directory.
@@ -44,8 +51,11 @@ opt-action --call='{ usage; exit }' help/h
 # Allow the build to be platform-specific?
 opt-toggle --var=platformSpecific allow-platform-specific-files
 
-# Directory containing all the modules.
-opt-value --required --var=modulesDir --filter='/./' modules-dir
+# Directory or directories containing all the modules.
+modulesOpt=''
+opt-value --call='{ modulesOpt="--modules-dir=$1" }' --filter='/./' modules-dir
+opt-value --call='{ modulesOpt="--modules-dirs=$1" }' --filter='/^\[.*\]$/' modules-dirs
+require-exactly-one-arg-of modules-dir modules-dirs
 
 # Built output directory.
 opt-value --var=outDir out
@@ -66,14 +76,11 @@ process-args "$@" || usage --short
 # The main actions of this script.
 function build-project {
     local projectName="$1"
-    local modulesDir="$2"
+    local modulesOpt="$2"
     local destDir="$3"
 
     local destLibDir="${destDir}/lib"
     local mainModule="main-${projectName}"
-    local srcMainModule="${modulesDir}/${mainModule}"
-    local srcPackageJson="${srcMainModule}/package.json"
-    local srcPackageLockJson="${srcMainModule}/package-lock.json"
     local localCodeDirName='code'
     local destLocalCode="${destLibDir}/${localCodeDirName}"
     local destLocalModules="${destLocalCode}/node_modules"
@@ -89,14 +96,19 @@ function build-project {
 
     local deps
     deps="$(
-        lib . find-module-dependencies \
-            --modules-dir="${modulesDir}" "${mainModule}"
+        lib . find-module-dependencies "${modulesOpt}" "${mainModule}"
     )" \
     || return "$?"
 
     # Construct a top-level package.json.
 
     progress-msg 'Making `package.json` and `product-info.json`...'
+
+    local srcMainModule
+    srcMainModule="$(jget --output=raw "${deps}" '.localDirs[.main]')" \
+    || return 1
+    local srcPackageJson="${srcMainModule}/package.json"
+    local srcPackageLockJson="${srcMainModule}/package-lock.json"
 
     jget >"${destLibDir}/package.json" \
         --file="${srcPackageJson}" \
@@ -369,7 +381,7 @@ function suspect-file-check {
 # Main script
 #
 
-progress-msg "Building JS project ${projectName}..."
+progress-msg "Building Node project ${projectName}..."
 
 outDir="$(lib buildy out-dir --out="${outDir}" --create --print --quiet)"
 
@@ -381,7 +393,7 @@ if [[ ! -d ${outProjectDir} ]]; then
     || exit "$?"
 fi
 
-build-project "${projectName}" "${modulesDir}" "${outProjectDir}" \
+build-project "${projectName}" "${modulesOpt}" "${outProjectDir}" \
 || exit "$?"
 
 if (( !platformSpecific )); then
@@ -391,4 +403,4 @@ if (( !platformSpecific )); then
 fi
 
 progress-msg
-progress-msg "Built JS project ${projectName}."
+progress-msg "Built Node project ${projectName}."
