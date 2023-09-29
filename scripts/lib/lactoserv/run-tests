@@ -150,9 +150,13 @@ while IFS='' read -r -d $'\0' dir; do
     cp -r "${dir}" "${testsDir}/${moduleName}"
 done < <(jget --output=raw0 "${dirsWithTests}" '.[]')
 
+# Find a hopefully-unique file at the top level whose name has the right prefix.
 configFile=($(
-    find "${srcDir}" -mindepth 1 -maxdepth 1 -name 'jest.config.*'
-))
+    lib ls-files --output=lines \
+        --cd="${srcDir}" --full-paths --depth=1 --include='^jest\.config\.'
+)) \
+|| exit "$?"
+
 if (( ${#configFile[@]} != 1 )); then
     if (( ${#configFile[@]} == 0 )); then
         error-msg 'No Jest config file!'

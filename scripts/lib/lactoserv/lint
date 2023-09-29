@@ -88,8 +88,7 @@ if [[ ! -x ${toolBinary} ]]; then
     || exit "$?"
 fi
 
-# Find a hopefully-unique file at the top level whose name begins with
-# `.eslintrc`.
+# Find a hopefully-unique file at the top level whose name has the right prefix.
 configFile=($(
     lib ls-files --output=lines \
         --cd="${srcDir}" --full-paths --depth=1 --include='^\.eslintrc'
