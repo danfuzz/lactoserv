@@ -11,7 +11,7 @@
 #
 
 define-usage $'
-    ${name} <subcommand> <arg> ...
+    ${name} [<opt> ...] [--] <command> <arg> ...
 
     Default (sub)command runner, for a command with subcommands being invoked on
     a (sub)command that doesn\'t have a script. That is, this is for the case
@@ -41,11 +41,8 @@ opt-value --required --var=origCmdPath original-path
 # The main command.
 positional-arg --var=command command
 
-# The first subcommand.
-positional-arg --var=subcommand subcommand
-
-# Arbitrary args.
-rest-arg --var=args args
+# The original command arguments, including any subcommands and other arguments.
+rest-arg --var=origArgs args
 
 process-args "$@" || usage --short
 
@@ -56,16 +53,21 @@ process-args "$@" || usage --short
 
 this-cmd-name --set "${origCmdWords}"
 
-error=0
+# Split the words of the command.
+origCmdWords=(${origCmdWords})
 
-if [[ ${subcommand} != '' ]]; then
-    error-msg "No such subcommand: ${subcommand}"
+# Drop any subcommands off of `args`.
+cmdWordCount="${#origCmdWords[@]}"
+if (( cmdWordCount > 1 )); then
+    args=("${origArgs[@]:cmdWordCount}")
+fi
+
+error=0
+if (( ${#origArgs[@]} > 0 )) && [[ ${origArgs[0]:0:1} != '-' ]]; then
+    error-msg "No such subcommand: ${origArgs[0]}"
     error-msg ''
     error=1
 fi
-
-# Split the words.
-origCmdWords=(${origCmdWords})
 
 lib helpy print-subcommands "${origCmdWords[@]}"
 exit "${error}"

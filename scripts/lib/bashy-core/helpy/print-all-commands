@@ -11,7 +11,7 @@
 #
 
 define-usage $'
-    ${name} [<opt> ...] [--] <command>
+    ${name} [<opt> ...]
 
     Prints all the top-level commands.
 
@@ -44,18 +44,17 @@ process-args "$@" || usage --short
 unitNames=(${unitNames})
 
 if (( ${#unitNames[@]} == 0 )); then
-    findArgs=(. -mindepth 2 -maxdepth 2)
+    lsArgs=(--depth=2)
 else
-    findArgs=("${unitNames[@]}" -mindepth 1 -maxdepth 1)
+    lsArgs=(--depth=1 "${unitNames[@]}")
 fi
 
 baseDir="$(this-base-library-dir)"
 
 # Get a list of all candidates. We check each for actual executability below.
 cmds=($(
-    cd "${baseDir}"
-    find "${findArgs[@]}" \
-        -name '[a-z]*' '(' -type f -o -type d ')'
+    lib ls-files --output=lines \
+        --cd="${baseDir}" --files --dirs --include='/[-a-z0-9]+$' "${lsArgs[@]}"
 )) \
 || exit "$?"
 

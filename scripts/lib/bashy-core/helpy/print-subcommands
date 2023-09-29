@@ -23,17 +23,12 @@ define-usage $'
 opt-action --call='{ usage; exit }' help/h
 
 # The command to print stuff about.
-positional-arg --required --var=cmdName --filter='/^[a-z]/' command
+positional-arg --required --var=cmdName --filter='/^[-a-z]/' command
 
 # Subcommands if any.
-rest-arg --var=subWords --filter='/^[a-z]/' subcommands
+rest-arg --var=subWords --filter='/^[-a-z]/' subcommands
 
 process-args "$@" || usage --short
-
-
-#
-# Helper functions
-#
 
 
 #
@@ -54,10 +49,7 @@ fi
 
 # Get a list of all candidates. We check each for actual executability below,
 # along with other tweakage.
-cmds=($(
-    cd "${cmdPath}"
-    find . -type f
-)) \
+cmds=($(lib ls-files --output=lines --cd="${cmdPath}")) \
 || {
     error-msg "No subcommands found: ${cmdWords[@]}"
     exit 1
@@ -69,8 +61,7 @@ for c in "${cmds[@]}"; do
         if [[ ${c} =~ ^(.*)/_run$ ]]; then
             c="${BASH_REMATCH[1]}"
         fi
-        c="${c#./}"    # Drop the initial `./`.
-        c="${c//\// }" # Replace slashes with spaces.
+        c="${c//'\'//' '}" # Replace slashes with spaces.
         lines+=("${cmdWords[*]} ${c}")
     fi
 done
