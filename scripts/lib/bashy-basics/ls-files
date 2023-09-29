@@ -27,6 +27,10 @@ define-usage $'
       Only include paths at the given depth below the starting <path>s.
     --dirs
       Include directories in the output.
+    --exclude=<regex>
+      Regular expression indicating which files to exclude. This is treated as
+      an "extended" regex. If both this and `--include` are used, then this
+      option takes precedence.
     --files
       Include files in the output. This is the default if neither this option nor
       `--dirs` is specified.
@@ -34,13 +38,13 @@ define-usage $'
       Output full canonicalized (absolute) paths. By default, outputs paths that
       are prefixed with one of the <path> arguments, or in the case of no <path>
       arguments not prefixed at all (just a straight relative path from CWD).
+    --include=<regex>
+      Regular expression indicating which files to include. This is treated as
+      an "extended" regex.
     --output=<style> :: `json` `lines` `raw0`
       * `json` -- Output a JSON array of all file paths. This is the default.
       * `lines` -- Output newline-terminated file paths.
       * `raw0` -- Output NUL-terminated file paths.
-    --include=<regex>
-      Regular expression indicating which files to include. This is treated as
-      an "extended" regex.
 
     ${help}
 '
@@ -54,6 +58,9 @@ opt-value --var=cdTo --filter='/./' cd
 # Depth for results.
 opt-value --var=depth --filter='/^[0-9]+$/' depth
 
+# Exclude pattern.
+opt-value --var=excludeRegex --filter='/./' exclude
+
 # Include directories in the output?
 opt-toggle --var=doDirs dirs
 
@@ -63,11 +70,11 @@ opt-toggle --var=doFiles files
 # Full paths?
 opt-toggle --var=fullPaths full-paths
 
+# Include pattern.
+opt-value --var=includeRegex --filter='/./' include
+
 # Output style.
 opt-value --var=outputStyle --init=json --enum='json lines raw0' output
-
-# Include pattern.
-opt-value --var=includeRegex --init='.' --filter='/./' include
 
 # The paths.
 rest-arg --var=paths --filter='/./' paths
@@ -79,7 +86,7 @@ process-args "$@" || usage --short
 # Main script
 #
 
-if (( !doDirectories )); then
+if (( !doDirs )); then
     doFiles=1
 fi
 
@@ -100,16 +107,30 @@ while IFS='' read -r -d $'\0' file; do
     if [[ ${file} == $'\x01error' ]]; then
         exit 1
     fi
-    if [[ ${file} =~ ${includeRegex} ]]; then
-        if (( fullPaths )); then
-            file="$(readlink -f "${file}")" \
-            || exit 1
-        elif (( impliedCwd )); then
+
+    if (( impliedCwd )); then
+        if [[ ${file} == '.' ]]; then
+            # Drop the top-level `.` entirely.
+            continue
+        else
             # Drop the `./` prefix from the result.
             file="${file#'./'}"
         fi
-        results+=("${file}")
     fi
+
+    # Process exclusions and inclusions, if any.
+    if [[ (${excludeRegex} != '') && (${file} =~ ${excludeRegex}) ]]; then
+        continue
+    elif [[ (${includeRegex} != '') && !(${file} =~ ${includeRegex}) ]]; then
+        continue
+    fi
+
+    if (( fullPaths )); then
+        file="$(readlink -f "${file}")" \
+        || exit 1
+    fi
+
+    results+=("${file}")
 done < <(
     findArgs=("${paths[@]}")
 
