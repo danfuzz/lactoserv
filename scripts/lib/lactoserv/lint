@@ -88,9 +88,14 @@ if [[ ! -x ${toolBinary} ]]; then
     || exit "$?"
 fi
 
+# Find a hopefully-unique file at the top level whose name begins with
+# `.eslintrc`.
 configFile=($(
-    find "${srcDir}" -mindepth 1 -maxdepth 1 -name '.eslintrc*'
-))
+    lib ls-files --output=lines \
+        --cd="${srcDir}" --full-paths --depth=1 --include='^\.eslintrc'
+)) \
+|| exit "$?"
+
 if (( ${#configFile[@]} != 1 )); then
     if (( ${#configFile[@]} == 0 )); then
         error-msg 'No ESLint config file!'
