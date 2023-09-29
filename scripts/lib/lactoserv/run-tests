@@ -137,11 +137,18 @@ cd "${testsDir}"
 rm -rf node_modules
 ln -s ../lactoserv/lib/code/node_modules .
 cat >package.json <<< '{ "type": "module" }'
-dirsWithTests=($(cd "${srcDir}"; find . -type d -name tests))
-for fromDir in "${dirsWithTests[@]}"; do
-    toDir="$(sed <<<"${fromDir}" -e 's#^[.]/##' -e 's#/tests$##' -e 's#/#-#g')"
-    cp -r "${srcDir}/${fromDir}" "${toDir}"
-done
+
+dirsWithTests="$(
+    lib ls-files --cd="${srcDir}" --dirs --full-paths --include='/tests$')" \
+|| exit "$?"
+while IFS='' read -r -d $'\0' dir; do
+    [[ ${dir} =~ /([^/]+)/tests$ ]] || {
+        error-msg "Weird directory name: ${dir}"
+        exit 1
+    }
+    moduleName="${BASH_REMATCH[1]}"
+    cp -r "${dir}" "${testsDir}/${moduleName}"
+done < <(jget --output=raw0 "${dirsWithTests}" '.[]')
 
 configFile=($(
     find "${srcDir}" -mindepth 1 -maxdepth 1 -name 'jest.config.*'
