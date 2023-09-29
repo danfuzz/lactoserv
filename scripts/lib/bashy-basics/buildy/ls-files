@@ -16,15 +16,21 @@ define-usage $'
     List files in the project at or under the given <path>s, respecting
     `.gitignore` (etc.). With no <path>s, lists all project files.
 
+    This tool is inspired by (and based on) `git ls-files`, and is similar to
+    the non-git-specific `ls-files` in this library.
+
     --full-paths
-      Output full paths. By default, outputs paths that are relative to the
-      project\'s base directory.
+      Output full canonicalized (absolute) paths. By default, outputs paths that
+      are relative to the project\'s base directory.
     --output=<style> :: `json` `lines` `raw0`
       * `json` -- Output a JSON array of all file paths. This is the default.
       * `lines` -- Output newline-terminated file paths.
       * `raw0` -- Output NUL-terminated file paths.
     --include=<regex>
-      Regular expression indicating which files to include.
+      Regular expression indicating which files to include. This is treated as
+      an unanchored "extended" regex. Matching is performed on relative paths
+      from the project\'s base directory; that is, the absolute path to the
+      project is not part of the text being matched.
 
     ${help}
 '
@@ -45,11 +51,6 @@ opt-value --var=includeRegex --init='.' --filter='/./' include
 rest-arg --var=paths --filter='/./' paths
 
 process-args "$@" || usage --short
-
-
-#
-# Helper functions
-#
 
 
 #
@@ -94,8 +95,8 @@ while IFS='' read -r -d $'\0' file; do
         results+=("${file}")
     fi
 done < <(
-    # Note: The `|| printf` is to make it possible to unambiguously notice
-    # errors coming from `git ls-files`.
+    # Note: The `printf` contents are designed to make it possible for the loop
+    # above to (nearly) unambiguously notice errors.
     git ls-files -z --cached --others --exclude-standard "${paths[@]}" \
     || printf '\x01error\x00'
 )
