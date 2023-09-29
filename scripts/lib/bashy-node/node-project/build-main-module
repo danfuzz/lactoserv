@@ -334,23 +334,28 @@ function suspect-file-check {
     fi
 
     suspectFiles="$(
-        cd "${dir}"
-        find . -type f \
-            '!' '(' \
-                -name '*.js' -o -name '*.json' -o -name '*.html' -o -name '*.md' \
-            ')' \
-            -exec file '{}' ';' \
-        | grep -Ev 'ASCII|JSON|PNG|UTF-8|empty|short file' \
-        | awk '{ sub(/^\.\//, "  "); sub(/:[ \t].*$/, ""); print; }'
-    )"
+        lib ls-files --cd="${dir}" \
+            --exclude='\.(cjs|js|json|html|md|mjs|ts|yml)$'
+    )" \
+    || return "$?"
 
-    if (( $? != 0 )); then
-        return 1
-    fi
+    local file first=1
+    while IFS='' read -r -d $'\0' file; do
+        local info="$(file -- "${dir}/${file}")"
 
-    if [[ ${suspectFiles} != '' ]]; then
-        error-msg 'Files possibly containing platform-specific binaries:'
-        error-msg -- "${suspectFiles}"
+        if [[ ${info} =~ ASCII|JSON|PNG|UTF-8|empty|'short file' ]]; then
+            continue
+        fi
+
+        if (( first )); then
+            error-msg 'Files possibly containing platform-specific binaries:'
+            first=0
+        fi
+
+        error-msg "  ${file}"
+    done < <(jget --output=raw0 "${suspectFiles}" '.[]')
+
+    if (( !first )); then
         return 1
     fi
 }
