@@ -104,7 +104,7 @@ function jbash-array {
             elif type == "array" then
                 .
             else
-                "Not an array: \(.)" | halt_error(1)
+                "Not an array: \(.)\n" | halt_error(1)
             end
             | map(processOne)
             | ["\($name)=(", .[], ")"]
