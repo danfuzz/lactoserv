@@ -62,42 +62,55 @@ function check-json-output-args {
 
 # Converts a JSON array to a Bash array of elements. Stores into the named
 # variable. With option `--lenient`, treats a non-array as a single-element
-# array.
+# array. By default, the set elements are JSON values; with option `--raw`,
+# produces raw (unquoted strings, etc.) elements.
 function jbash-array {
     # Note: Because we use `eval`, local variables are given name prefixes to
     # avoid conflicts with the caller.
 
-    local _bashy_lenient=0
-    if [[ $1 == --lenient ]]; then
-        _bashy_lenient=1
+    local _bashy_lenient=false
+    local _bashy_raw=false
+    while true; do
+        case "$1" in
+            --lenient)
+                _bashy_lenient=true
+                ;;
+            --raw)
+                _bashy_raw=true
+                ;;
+            *)
+                break
+                ;;
+        esac
         shift
-    fi
+    done
 
     local _bashy_name="$1"
     local _bashy_value="$2"
 
-    # `--output=compact` guarantees an element per line.
-    if (( _bashy_lenient )); then
-        _bashy_value="$(
-            jget --output=compact "${_bashy_value}" \
-                'if type == "array" then .[] else . end'
-        )" \
-        || return "$?"
-    else
-        _bashy_value="$(
-            jget --output=compact "${_bashy_value}" '
-                if type == "array" then
-                    .[]
-                else
-                    "Not an array: \(.)" | halt_error(1)
-                end
-            '
-        )" \
-        || return "$?"
-    fi
+    eval "$(
+        jget --output=raw "${_bashy_value}" \
+            lenient:json="${_bashy_lenient}" \
+            name="${_bashy_name}" \
+            raw:json="${_bashy_raw}" \
+        '
+            def processOne:
+                if $raw and (type == "string") then . else tojson end
+                | "  \(@sh)"
+            ;
 
-    # This uses `eval`.
-    set-array-from-lines "${_bashy_name}" "${_bashy_value}"
+            if $lenient then
+                if type == "array" then . else [.] end
+            elif type == "array" then
+                .
+            else
+                "Not an array: \(.)" | halt_error(1)
+            end
+            | map(processOne)
+            | ["\($name)=(", .[], ")"]
+            | join("\n")
+        '
+    )"
 }
 
 # Interprets standardized (for this project) JSON "post-processing" arguments.
