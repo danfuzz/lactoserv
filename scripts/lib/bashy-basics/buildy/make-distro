@@ -55,8 +55,6 @@ function make-distro {
     fileList="$(lib ls-files --cd="${dir}" --depth=1 --files --dirs)" \
     || return "$?"
 
-    jval <<<"${fileList}" --input=read '.[]'; exit 1
-
     rm -rf "${tarballPath}" || exit "$?"
 
     tar --create --file="${tarballPath}" --directory="${dir}" \
