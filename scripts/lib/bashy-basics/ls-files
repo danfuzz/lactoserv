@@ -45,6 +45,9 @@ define-usage $'
       * `json` -- Output a JSON array of all file paths. This is the default.
       * `lines` -- Output newline-terminated file paths.
       * `raw0` -- Output NUL-terminated file paths.
+    --sort
+      Sort the output. By default, the order is whatever happens to be returned
+      by the underlying `find` command (which depends on the OS and filesystem).
 
     ${help}
 '
@@ -75,6 +78,9 @@ opt-value --var=includeRegex --filter='/./' include
 
 # Output style.
 opt-value --var=outputStyle --init=json --enum='json lines raw0' output
+
+# Sort the output?
+opt-toggle --var=sortOutput sort
 
 # The paths.
 rest-arg --var=paths --filter='/./' paths
@@ -150,8 +156,13 @@ done < <(
 
     # Note: The `printf` contents are designed to make it possible for the loop
     # above to (nearly) unambiguously notice errors.
-    find "${findArgs[@]}" -print0 \
-    || printf '\x01error\x00'
+    if (( sortOutput )); then
+        (
+            find "${findArgs[@]}" -print0 || printf '\x01error\x00'
+        ) | sort -z
+    else
+        find "${findArgs[@]}" -print0 || printf '\x01error\x00'
+    fi
 )
 
 case "${outputStyle}" in
