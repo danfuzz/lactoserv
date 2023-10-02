@@ -27,6 +27,11 @@ function jlength {
     lib jlength "$@"
 }
 
+# Calls `lib jstring`.
+function jstring {
+    lib jstring "$@"
+}
+
 # Calls `lib jval`.
 function jval {
     lib jval "$@"
@@ -95,7 +100,7 @@ function jpostproc {
         case "$1" in
             --output=*)
                 outputStyle="${1#*=}"
-                if ! [[ "${outputStyle}" =~ ^(compact|json|lines|none|raw|words)$ ]]; then
+                if ! [[ "${outputStyle}" =~ ^(compact|json|lines|none|raw|raw0|words)$ ]]; then
                     error-msg "Invalid result output style: ${outputStyle}"
                     return 1
                 fi
@@ -191,9 +196,9 @@ function jset-array {
     )"
 }
 
-# Performs JSON output postprocessing as directed by arguments. Expects to be
-# given an _array_ of potential output (which it unwraps into a stream if so
-# directed).
+# Performs JSON output postprocessing as directed by originally-passed
+# options/arguments. Expects to be given a JSON _array_ of potential output
+# (which it unwraps into a stream if so directed).
 function json-postproc-output {
     local outputArray="$1"
 
@@ -212,6 +217,47 @@ function json-postproc-output {
             ;;
         none)
             : # Nothing to do.
+            ;;
+        lines|raw|raw0|words)
+            jget "${outputArray}" --output="${_bashy_jsonOutputStyle}" '.[]'
+            ;;
+        '')
+            error-msg 'No JSON --output option supplied (or implied).'
+            return 1
+            ;;
+        *)
+            error-msg "Unrecognized JSON --output option: ${_bashy_jsonOutputStyle}"
+            return 1
+            ;;
+    esac
+}
+
+# Performs JSON output processing as directed by originally-passed
+# options/arguments. Expects to be passed a series of individual strings of
+# potential output.
+function json-postproc-strings {
+    local output=("$@")
+
+    case "${_bashy_jsonOutputStyle}" in
+        array)
+            # Form a JSON array, and tell the postprocessor about it.
+            jarray --input=strings -- "${output[@]}" \
+            | jpostproc "${_bashy_jsonPostArgs[@]}"
+            ;;
+        json)
+            # Form a sequence of JSON strings, and tell the postprocessor about
+            # it.
+            jstring -- "${output[@]}" \
+            | jpostproc "${_bashy_jsonPostArgs[@]}"
+            ;;
+        none)
+            : # Nothing to do.
+            ;;
+        lines|raw|raw0|words)
+            # Form a sequence of JSON strings, and then ask `jval` to use its
+            # output processing on it.
+            jstring -- "${output[@]}" \
+            | jval --input=read --output="${_bashy_jsonOutputStyle}"
             ;;
         '')
             error-msg 'No JSON --output option supplied (or implied).'
@@ -235,9 +281,10 @@ function set-json-postproc-args {
 # arguments (usual as defined by this project), arranging for them to be stored
 # so they can be found by other parts of this helper library. More specifically:
 #
-# * Adds an `--output=<style>` option which accepts `array` (array of JSON
-#   values), `json` (stream of JSON values), or `none` (suppress output). It
-#   defaults to `json`.
+# * Adds an `--output=<style>` option which accepts `array`, json`, `lines`,
+#   `none`, `raw`, `raw0`, or `words`. It defaults to `json`. These all have the
+#   same meaning as with `jval`, with the one extra detail that `json` means a
+#   stream of JSON values, and array means a single JSON array of all results.
 # * Adds a `rest-arg`, which expects either no arguments or a literal `::`
 #   followed by options and arguments for `jval` (where the only option that is
 #   recognized is `--output`).
@@ -259,7 +306,7 @@ function usual-json-output-args {
     # Output style.
     if (( doOutput )); then
         opt-value --var=_bashy_jsonOutputStyle --init=json \
-            --enum='array json none' output
+            --enum='array json lines none raw raw0 words' output
     else
         _bashy_jsonOutputStyle=json
     fi

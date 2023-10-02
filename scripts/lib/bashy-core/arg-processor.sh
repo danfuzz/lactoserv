@@ -319,6 +319,11 @@ function rest-arg {
     _argproc_janky-args call enum filter var \
     || return 1
 
+    if declare >/dev/null -F _argproc:rest; then
+        error-msg 'Duplicate definition of rest argument.'
+        return 1
+    fi
+
     local specName=''
     _argproc_parse-spec "${args[0]}" \
     || return 1
@@ -328,7 +333,7 @@ function rest-arg {
         _argproc_initStatements+=("${optVar}=()")
     fi
 
-    _argproc_set-arg-description "${longName}" argument || return 1
+    _argproc_set-arg-description "${specName}" argument || return 1
 
     local desc="argument <${specName}>"
     local handlerBody="$(

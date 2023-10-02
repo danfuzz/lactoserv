@@ -212,7 +212,7 @@ function copy-scripts {
 
     # Get a JSON array of all the files.
     local fileList
-    fileList="$(lib ls-files --cd="${srcDir}" --depth=1)" \
+    fileList="$(lib ls-files --output=array --cd="${srcDir}" --depth=1)" \
     || return "$?"
 
     if [[ ${fileList} == '[]' ]]; then
@@ -302,8 +302,8 @@ function remove-dead-local-modules {
 
     local deadModules
     deadModules="$(
-        lib ls-files --cd="${dir}" --depth=2 --dirs \
-        | jval --input=read deps:json="${deps}" '. - $deps.localDeps'
+        lib ls-files --output=array --cd="${dir}" --depth=2 --dirs \
+            '::' deps:json="${deps}" '. - $deps.localDeps'
     )"
 
     local mod first=1
@@ -334,7 +334,7 @@ function suspect-file-check {
     fi
 
     suspectFiles="$(
-        lib ls-files --cd="${dir}" \
+        lib ls-files --output=array --cd="${dir}" \
             --exclude='\.(cjs|js|json|html|md|mjs|ts|yml)$'
     )" \
     || return "$?"
