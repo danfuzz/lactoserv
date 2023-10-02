@@ -60,59 +60,6 @@ function check-json-output-args {
     fi
 }
 
-# Converts a JSON array to a Bash array of elements. Stores into the named
-# variable. With option `--lenient`, treats a non-array as a single-element
-# array. By default, the set elements are JSON values; with option `--raw`,
-# produces raw (unquoted strings, etc.) elements.
-function jbash-array {
-    # Note: Because we use `eval`, local variables are given name prefixes to
-    # avoid conflicts with the caller.
-
-    local _bashy_lenient=false
-    local _bashy_raw=false
-    while true; do
-        case "$1" in
-            --lenient)
-                _bashy_lenient=true
-                ;;
-            --raw)
-                _bashy_raw=true
-                ;;
-            *)
-                break
-                ;;
-        esac
-        shift
-    done
-
-    local _bashy_name="$1"
-    local _bashy_value="$2"
-
-    eval "$(
-        jget --output=raw "${_bashy_value}" \
-            lenient:json="${_bashy_lenient}" \
-            name="${_bashy_name}" \
-            raw:json="${_bashy_raw}" \
-        '
-            def processOne:
-                if $raw and (type == "string") then . else tojson end
-                | "  \(@sh)"
-            ;
-
-            if $lenient then
-                if type == "array" then . else [.] end
-            elif type == "array" then
-                .
-            else
-                "Not an array: \(.)\n" | halt_error(1)
-            end
-            | map(processOne)
-            | ["\($name)=(", .[], ")"]
-            | join("\n")
-        '
-    )"
-}
-
 # Interprets standardized (for this project) JSON "post-processing" arguments.
 # This processes `stdin`. The arguments must start with `::`. After that are
 # options and arguments just as with `jval`, except `--input` is not accepted.
@@ -189,6 +136,59 @@ function jpostproc {
         error-msg 'Trouble with post-processing.'
         return 1
     }
+}
+
+# Converts a JSON array to a Bash array of elements. Stores into the named
+# variable. With option `--lenient`, treats a non-array as a single-element
+# array. By default, the set elements are JSON values; with option `--raw`,
+# produces raw (unquoted strings, etc.) elements.
+function jset-array {
+    # Note: Because we use `eval`, local variables are given name prefixes to
+    # avoid conflicts with the caller.
+
+    local _bashy_lenient=false
+    local _bashy_raw=false
+    while true; do
+        case "$1" in
+            --lenient)
+                _bashy_lenient=true
+                ;;
+            --raw)
+                _bashy_raw=true
+                ;;
+            *)
+                break
+                ;;
+        esac
+        shift
+    done
+
+    local _bashy_name="$1"
+    local _bashy_value="$2"
+
+    eval "$(
+        jget --output=raw "${_bashy_value}" \
+            lenient:json="${_bashy_lenient}" \
+            name="${_bashy_name}" \
+            raw:json="${_bashy_raw}" \
+        '
+            def processOne:
+                if $raw and (type == "string") then . else tojson end
+                | "  \(@sh)"
+            ;
+
+            if $lenient then
+                if type == "array" then . else [.] end
+            elif type == "array" then
+                .
+            else
+                "Not an array: \(.)\n" | halt_error(1)
+            end
+            | map(processOne)
+            | ["\($name)=(", .[], ")"]
+            | join("\n")
+        '
+    )"
 }
 
 # Performs JSON output postprocessing as directed by arguments. Expects to be

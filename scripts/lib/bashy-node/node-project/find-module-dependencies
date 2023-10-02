@@ -68,7 +68,7 @@ if [[ ${modulesDir} != '' ]]; then
     fi
     modulesDirs=("${modulesDir}")
 else
-    jbash-array --raw modulesDirs "${modulesDirsJson}" \
+    jset-array --raw modulesDirs "${modulesDirsJson}" \
     || exit "$?"
 fi
 
