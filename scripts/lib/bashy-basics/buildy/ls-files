@@ -11,10 +11,13 @@
 #
 
 define-usage $'
-    ${name} [<path> ...]
+    ${name} [<path> ...] [:: [<out-opt> ...] [<jval-expr> ...]]
 
     List files in the project at or under the given <path>s, respecting
     `.gitignore` (etc.). With no <path>s, lists all project files.
+
+    An optional `::` followed by additional arguments causes the initial output
+    to be further processed by `jval`.
 
     This tool is inspired by (and based on) `git ls-files`, and is similar to
     the non-git-specific `ls-files` in this library.
@@ -27,10 +30,18 @@ define-usage $'
       an unanchored "extended" regex. Matching is performed on relative paths
       from the project\'s base directory; that is, the absolute path to the
       project is not part of the text being matched.
-    --output=<style> :: `json` `lines` `raw0`
-      * `json` -- Output a JSON array of all file paths. This is the default.
-      * `lines` -- Output newline-terminated file paths.
-      * `raw0` -- Output NUL-terminated file paths.
+    --output=<style> :: array json lines none raw raw0 words
+      What to output. This controls the initial output, not postprocessing if
+      any (which can specify its own `--output`). See `jval` for the meaning of
+      most of these; beyond that, `array` means that the output is a single
+      array of all values, and `json` means a stream of values. `json` is the
+      default.
+
+    Output options (after the `::`):
+
+    --output=<style> :: `compact` `json` `lines` `none` `raw` `raw0` `words`
+      How to process the final output. All options are as with `jval`. The default
+      is `json`.
 
     ${help}
 '
@@ -38,19 +49,44 @@ define-usage $'
 # Want help?
 opt-action --call='{ usage; exit }' help/h
 
+# Handles JSON `--output` option.
+usual-json-output-args --no-rest
+
 # Full paths?
 opt-toggle --var=fullPaths full-paths
 
 # Include pattern.
 opt-value --var=includeRegex --init='.' --filter='/./' include
 
-# Output style.
-opt-value --var=outputStyle --init=json --enum='json lines raw0' output
-
 # The paths.
-rest-arg --var=paths --filter='/./' paths
+paths=()
+
+rest-arg --call=parse-rest args
+function parse-rest {
+    local error=0
+    local arg
+
+    # Collect paths.
+    while (( $# > 0 )); do
+        arg="$1"
+        if [[ ${arg} == '::' ]]; then
+            break
+        fi
+
+        paths+=("${arg}")
+        shift
+    done
+
+    # Pass the postprocessing arguments, if any, through to the helper library.
+    if [[ "$1" == '::' ]]; then
+        set-json-postproc-args "$@"
+    fi
+}
 
 process-args "$@" || usage --short
+
+check-json-output-args \
+|| exit "$?"
 
 
 #
@@ -112,3 +148,5 @@ case "${outputStyle}" in
         printf '%s\x00' "${results[@]}"
         ;;
 esac
+
+json-postproc-strings "${results[@]}"

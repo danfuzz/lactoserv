@@ -11,10 +11,13 @@
 #
 
 define-usage $'
-    ${name} [<path> ...]
+    ${name} [<path> ...] [:: [<out-opt> ...] [<jval-expr> ...]]
 
     List files and/or directories at or under the given <path>s. With no <path>s,
     lists all items in or under the current directory.
+
+    An optional `::` followed by additional arguments causes the initial output
+    to be further processed by `jval`.
 
     This tool is inspired by `git ls-files`, and is similar to the git-specific
     `buildy ls-files` in this library.
@@ -41,19 +44,30 @@ define-usage $'
     --include=<regex>
       Regular expression indicating which files to include. This is treated as
       an "extended" regex.
-    --output=<style> :: `json` `lines` `raw0`
-      * `json` -- Output a JSON array of all file paths. This is the default.
-      * `lines` -- Output newline-terminated file paths.
-      * `raw0` -- Output NUL-terminated file paths.
+    --output=<style> :: array json lines none raw raw0 words
+      What to output. This controls the initial output, not postprocessing if
+      any (which can specify its own `--output`). See `jval` for the meaning of
+      most of these; beyond that, `array` means that the output is a single
+      array of all values, and `json` means a stream of values. `json` is the
+      default.
     --sort
       Sort the output. By default, the order is whatever happens to be returned
       by the underlying `find` command (which depends on the OS and filesystem).
+
+    Output options (after the `::`):
+
+    --output=<style> :: `compact` `json` `lines` `none` `raw` `raw0` `words`
+      How to process the final output. All options are as with `jval`. The default
+      is `json`.
 
     ${help}
 '
 
 # Want help?
 opt-action --call='{ usage; exit }' help/h
+
+# Handles JSON `--output` option.
+usual-json-output-args --no-rest
 
 # Directory to `cd` to before running.
 opt-value --var=cdTo --filter='/./' cd
@@ -76,16 +90,38 @@ opt-toggle --var=fullPaths full-paths
 # Include pattern.
 opt-value --var=includeRegex --filter='/./' include
 
-# Output style.
-opt-value --var=outputStyle --init=json --enum='json lines raw0' output
-
 # Sort the output?
 opt-toggle --var=sortOutput sort
 
 # The paths.
-rest-arg --var=paths --filter='/./' paths
+paths=()
+
+rest-arg --call=parse-rest args
+function parse-rest {
+    local error=0
+    local arg
+
+    # Collect paths.
+    while (( $# > 0 )); do
+        arg="$1"
+        if [[ ${arg} == '::' ]]; then
+            break
+        fi
+
+        paths+=("${arg}")
+        shift
+    done
+
+    # Pass the postprocessing arguments, if any, through to the helper library.
+    if [[ "$1" == '::' ]]; then
+        set-json-postproc-args "$@"
+    fi
+}
 
 process-args "$@" || usage --short
+
+check-json-output-args \
+|| exit "$?"
 
 
 #
@@ -165,14 +201,4 @@ done < <(
     fi
 )
 
-case "${outputStyle}" in
-    json)
-        jarray --input=strings "${results[@]}"
-        ;;
-    lines)
-        printf '%s\n' "${results[@]}"
-        ;;
-    raw0)
-        printf '%s\x00' "${results[@]}"
-        ;;
-esac
+json-postproc-strings "${results[@]}"

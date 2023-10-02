@@ -52,7 +52,7 @@ function make-distro {
     local tarballPath="${destDir}/${baseName}.tgz"
 
     local fileList
-    fileList="$(lib ls-files --cd="${dir}" --depth=1 --files --dirs)" \
+    fileList="$(lib ls-files --cd="${dir}" --output=array --depth=1 --files --dirs)" \
     || return "$?"
 
     rm -rf "${tarballPath}" || exit "$?"

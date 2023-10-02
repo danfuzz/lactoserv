@@ -1,0 +1,58 @@
+#!/bin/bash
+#
+# Copyright 2022-2023 the Bashy-lib Authors (Dan Bornstein et alia).
+# SPDX-License-Identifier: Apache-2.0
+
+. "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"
+
+
+#
+# Argument parsing
+#
+
+define-usage $'
+    ${name} <string> ...
+
+    Prints a series of zero or more JSON strings, representing the arguments in
+    order.
+
+    ${help}
+'
+
+# Want help?
+opt-action --call='{ usage; exit }' help/h
+
+# Strings to convert
+rest-arg --var=values string
+
+process-args "$@" || usage --short
+
+
+#
+# Main script
+#
+
+
+# Note: Unfortunately, because `jq` doesn't actually do the usual shell command
+# behavior of not attempting to interpret things that look like options but are
+# positioned after non-option arguments, it's not actually possible to use
+# `--args` because the intended arguments could end up interpreted as options.
+
+jqArgs=(--null-input)
+
+if [[ ${inputStyle} == 'strings' ]]; then
+    argOpt='--arg'
+else
+    argOpt='--argjson'
+fi
+
+expr=''
+for n in "${!values[@]}"; do
+    jqArgs+=(--arg "a${n}" "${values[n]}")
+    if (( n != 0 )); then
+        expr+=','
+    fi
+    expr+='$a'"${n}"
+done
+
+exec jq "${jqArgs[@]}" "${expr}"
