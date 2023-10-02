@@ -56,8 +56,6 @@ define-usage $'
         as `compact`).
       `raw0` -- Output strings as NUL-terminated (`\\0`) raw text (and other
         values as `compact`).
-      `words` -- Like `lines`, except that the guarantee is a word per line.
-        As such, strings containing whitespace get treated as non-raw.
 
     ${help}
 '
@@ -72,7 +70,7 @@ opt-value --var=inputStyle --init=none \
 
 # Output style.
 opt-value --var=outputStyle --init=json \
-    --enum='compact json lines none raw raw0 words' output
+    --enum='compact json lines none raw raw0' output
 
 # List of variable assignments, as parallel arrays of type, name, and value.
 varTypes=()
@@ -194,15 +192,6 @@ case "${outputStyle}" in
         jqArgs+=('--join-output' '--compact-output')
         raw0Helper='. + "\u0000"'
         valueExpression="(${valueExpression}) | ${raw0Helper}"
-        ;;
-    words)
-        jqArgs+=('--raw-output' '--compact-output')
-        wordHelper='
-            if type == "string" and test("[ \n\r\t]"; "m")
-            then (. | @json)
-            else .
-            end'
-        valueExpression="(${valueExpression}) | ${wordHelper}"
         ;;
 esac
 

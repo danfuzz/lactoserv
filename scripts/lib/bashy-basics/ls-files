@@ -44,7 +44,7 @@ define-usage $'
     --include=<regex>
       Regular expression indicating which files to include. This is treated as
       an "extended" regex.
-    --output=<style> :: array json lines none raw raw0 words
+    --output=<style> :: array json lines none raw raw0
       What to output. This controls the initial output, not postprocessing if
       any (which can specify its own `--output`). See `jval` for the meaning of
       most of these; beyond that, `array` means that the output is a single
@@ -56,7 +56,7 @@ define-usage $'
 
     Output options (after the `::`):
 
-    --output=<style> :: `compact` `json` `lines` `none` `raw` `raw0` `words`
+    --output=<style> :: compact json lines none raw raw0
       How to process the final output. All options are as with `jval`. The default
       is `json`.
 

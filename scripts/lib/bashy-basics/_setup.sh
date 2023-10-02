@@ -100,7 +100,7 @@ function jpostproc {
         case "$1" in
             --output=*)
                 outputStyle="${1#*=}"
-                if ! [[ "${outputStyle}" =~ ^(compact|json|lines|none|raw|raw0|words)$ ]]; then
+                if ! [[ "${outputStyle}" =~ ^(compact|json|lines|none|raw|raw0)$ ]]; then
                     error-msg "Invalid result output style: ${outputStyle}"
                     return 1
                 fi
@@ -218,7 +218,7 @@ function json-postproc-output {
         none)
             : # Nothing to do.
             ;;
-        lines|raw|raw0|words)
+        lines|raw|raw0)
             jget "${outputArray}" --output="${_bashy_jsonOutputStyle}" '.[]'
             ;;
         '')
@@ -253,7 +253,7 @@ function json-postproc-strings {
         none)
             : # Nothing to do.
             ;;
-        lines|raw|raw0|words)
+        lines|raw|raw0)
             # Form a sequence of JSON strings, and then ask `jval` to use its
             # output processing on it.
             jstring -- "${output[@]}" \
@@ -282,9 +282,9 @@ function set-json-postproc-args {
 # so they can be found by other parts of this helper library. More specifically:
 #
 # * Adds an `--output=<style>` option which accepts `array`, json`, `lines`,
-#   `none`, `raw`, `raw0`, or `words`. It defaults to `json`. These all have the
-#   same meaning as with `jval`, with the one extra detail that `json` means a
-#   stream of JSON values, and array means a single JSON array of all results.
+#   `none`, `raw`, or `raw0`. It defaults to `json`. These all have the same
+#   meaning as with `jval`, with the one extra detail that `json` means a stream
+#   of JSON values, and array means a single JSON array of all results.
 # * Adds a `rest-arg`, which expects either no arguments or a literal `::`
 #   followed by options and arguments for `jval` (where the only option that is
 #   recognized is `--output`).
@@ -306,7 +306,7 @@ function usual-json-output-args {
     # Output style.
     if (( doOutput )); then
         opt-value --var=_bashy_jsonOutputStyle --init=json \
-            --enum='array json lines none raw raw0 words' output
+            --enum='array json lines none raw raw0' output
     else
         _bashy_jsonOutputStyle=json
     fi
