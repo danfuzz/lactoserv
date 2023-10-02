@@ -139,7 +139,8 @@ ln -s ../lactoserv/lib/code/node_modules .
 cat >package.json <<< '{ "type": "module" }'
 
 dirsWithTests="$(
-    lib ls-files --cd="${srcDir}" --dirs --full-paths --include='/tests$')" \
+    lib ls-files --output=array --cd="${srcDir}" --dirs --full-paths \
+        --include='/tests$')" \
 || exit "$?"
 while IFS='' read -r -d $'\0' dir; do
     [[ ${dir} =~ /([^/]+)/tests$ ]] || {
