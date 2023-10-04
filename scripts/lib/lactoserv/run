@@ -10,7 +10,7 @@
 # Argument parsing
 #
 
-define-usage $'
+define-usage --with-help $'
     ${name} [<opt> ...]
 
     Runs the product, building it first if necessary.
@@ -29,12 +29,7 @@ define-usage $'
     --out=<dir>
       Directory where built output goes. Defaults to `out` directly under the
       main product directory.
-
-    ${help}
 '
-
-# Want help?
-opt-action --call='{ usage; exit }' help/h
 
 # What to do?
 opt-value --var=action --init=run --enum='build clean run' do

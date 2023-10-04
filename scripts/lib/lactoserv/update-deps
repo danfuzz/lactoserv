@@ -10,19 +10,14 @@
 # Argument parsing
 #
 
-define-usage $'
+define-usage --with-help $'
     ${name} [<opt> ...]
 
     Manages / updates upstream dependencies.
 
     --no-pull -- Don\'t do the `git pull` portion of the update.
     --no-copy -- Don\'t do the "copy into place" portion of the update.
-
-    ${help}
 '
-
-# Want help?
-opt-action --call='{ usage; exit }' help/h
 
 # Copy files into place?
 opt-toggle --var=doCopy --init=1 copy
