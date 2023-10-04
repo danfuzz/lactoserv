@@ -18,10 +18,10 @@ fi
 
 # The symlink-resolved path of the command that is running (that is, the
 # top-level script).
-_bashy_cmdPath="$(readlink -f "$0")" || return "$?"
+_bashy_cmdPath="$(readlink -f -- "$0")" || return "$?"
 
 # The symlink-resolved directory of this script.
-_bashy_dir="$(readlink -f "${BASH_SOURCE[0]}")" || return "$?"
+_bashy_dir="$(readlink -f -- "${BASH_SOURCE[0]}")" || return "$?"
 _bashy_dir="${_bashy_dir%/*}"
 
 # The directory holding all sub-libraries (including this one).

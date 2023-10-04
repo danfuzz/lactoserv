@@ -32,19 +32,18 @@ process-args "$@" || usage --short
 # Main script
 #
 
+if (( ${#values[@]} == 0 )); then
+    # No need to do anything.
+    exit
+fi
 
-# Note: Unfortunately, because `jq` doesn't actually do the usual shell command
-# behavior of not attempting to interpret things that look like options but are
-# positioned after non-option arguments, it's not actually possible to use
-# `--args` because the intended arguments could end up interpreted as options.
+# Note: Unfortunately, because `jq` v1.6 or earlier doesn't actually do the
+# usual shell command behavior of not attempting to interpret things that look
+# like options but are positioned after non-option arguments, it's not actually
+# possible to use `--args` because the intended arguments could end up
+# interpreted as options.
 
 jqArgs=(--null-input)
-
-if [[ ${inputStyle} == 'strings' ]]; then
-    argOpt='--arg'
-else
-    argOpt='--argjson'
-fi
 
 expr=''
 for n in "${!values[@]}"; do

@@ -92,6 +92,7 @@ function usual-stderr-args {
     opt-action --call='{ _stderr_verbose none }' quiet/q
 }
 
+
 #
 # Internal functions
 #

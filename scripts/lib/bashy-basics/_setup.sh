@@ -53,15 +53,11 @@ function check-json-output-args {
     if (( ${#_bashy_jsonPostArgs[@]} != 0 )); then
         if [[ ${_bashy_jsonOutputStyle} == 'none' ]]; then
             error-msg 'Cannot do post-processing given `--output=none`.'
-            usage --short
             return 1
         fi
 
         jpostproc --check "${_bashy_jsonPostArgs[@]}" \
-        || {
-            usage --short
-            return 1
-        }
+        || return 1
     fi
 }
 
@@ -315,4 +311,6 @@ function usual-json-output-args {
     if (( doRest )); then
         rest-arg --var=_bashy_jsonPostArgs post-arg
     fi
+
+    post-process-args-call check-json-output-args
 }

@@ -31,7 +31,7 @@
 # * `--filter=/<regex>/` -- Matches each argument value against the regex. If
 #   the regex doesn't match, the argument is rejected.
 # * `--var=<name>` -- Sets the named variable to the argument value(s). The
-#   variable is always initialized to _some_, which is itself optionally
+#   variable is always initialized to _something_, which is itself optionally
 #   specified via `--init=<value>`. If `--init` isn't used (or isn't available),
 #   then the default initialized value depends on the specific function.
 #
@@ -251,6 +251,17 @@ function positional-arg {
     _argproc_positionalFuncs+=("_argproc:positional-${specName}")
 }
 
+# Adds a call to perform post-processing -- usually checking -- after an
+# otherwise successful call to `process-args`. This accepts a function name and
+# zero or more arguments.
+function post-process-args-call {
+    local args=("$@")
+    _argproc_janky-args --multi-arg \
+    || return 1
+
+    _argproc_preReturnStatements+=("$(printf '%q ' "${args[@]}")")
+}
+
 # Processes all of the given arguments, according to the configured handlers.
 # Returns non-zero if there is trouble parsing options or if any handler returns
 # non-zero.
@@ -333,7 +344,7 @@ function rest-arg {
         _argproc_initStatements+=("${optVar}=()")
     fi
 
-    _argproc_set-arg-description "${specName}" argument || return 1
+    _argproc_set-arg-description "${specName}" rest-argument || return 1
 
     local desc="argument <${specName}>"
     local handlerBody="$(
@@ -600,8 +611,8 @@ function _argproc_handler-body {
 # parsed option. Assumes the variable `args` (again presumed local to the
 # caller) contains all the arguments, which gets updates by this function.
 # After option parsing, this expects there to be one argument remaining, except
-# if `--multi-arg` is passed to this function, in which case there must be at
-# least one.
+# if `--multi-arg` is passed to this function, in which case there must be _at
+# least_ one.
 function _argproc_janky-args {
     local multiArg=0
     if [[ $1 == '--multi-arg' ]]; then
@@ -813,6 +824,9 @@ function _argproc_set-arg-description {
         option)
             desc="option --${longName}"
             ;;
+        rest-argument)
+            desc="rest argument <${longName}...>"
+            ;;
         *)
             error-msg "Unknown type: ${typeName}"
             return 1
@@ -889,13 +903,13 @@ function _argproc_statements-from-args {
         shift
     done
 
-    local statement
-    for statement in "${_argproc_positionalFuncs[@]}"; do
+    local func
+    for func in "${_argproc_positionalFuncs[@]}"; do
         if (( $# == 0 )); then
             break
         fi
 
-        _argproc_statements+=("${statement} $(_argproc_quote "$1")")
+        _argproc_statements+=("${func} $(_argproc_quote "$1")")
         shift
     done
 

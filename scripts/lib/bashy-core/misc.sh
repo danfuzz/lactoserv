@@ -30,7 +30,9 @@ function define-usage {
     local func=$'function usage {
         local exitCode="$?"
         lib helpy print-usage --name="$(this-cmd-name)" "$@" "${_bashy_usageMessage}"
-        (( exitCode )) && exit "${exitCode}"
+        if (( exitCode != 0 )); then
+            exit "${exitCode}"
+        fi
     }'
 
     eval "${func}"

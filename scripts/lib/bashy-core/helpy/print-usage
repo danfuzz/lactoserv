@@ -32,11 +32,11 @@ define-usage $'
     --name=<name>
       The name of the command to use for `$${name}.` This is required.
     --short
-      Prints a short version of the <message>. This only prints double-newline
-      delimited sections whose first line starts with the value of `$${name}`. In
-      addition, it prepends an extra newline at the start. Note: For this to
-      work as intended, always put a double-newline after each command summary
-      section.
+      Prints a short version of the <message>, intended to be the coda on some
+      other error message. This only prints double-newline delimited sections
+      whose first line starts with the value of `$${name}`. In addition, it
+      prepends an extra newline at the start. Note: For this to work as intended,
+      always put a double-newline after each command summary section.
 
     ${name} [--help | -h]
 

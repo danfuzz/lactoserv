@@ -37,7 +37,7 @@ process-args "$@" || usage --short
 #
 
 # Use the env variable if set, or `/tmp` if not. And canonicalize it.
-tmpDir="$(readlink -f "${TMPDIR:-/tmp}")" || exit "$?"
+tmpDir="$(readlink -f -- "${TMPDIR:-/tmp}")" || exit "$?"
 
 path=''
 while true; do

@@ -65,7 +65,7 @@ fi
 if [[ -d "${outDir}" ]]; then
     # Resolve path eagerly, if the directory currently exists. (Won't be able to
     # do so after removal.)
-    outDir="$(readlink -f "${outDir}")" \
+    outDir="$(readlink -f -- "${outDir}")" \
     || exit "$?"
 fi
 
@@ -94,7 +94,7 @@ if (( doCreate )); then
         || exit "$?"
 
         # Resolve path; we know for sure it exists now.
-        outDir="$(readlink -f "${outDir}")" \
+        outDir="$(readlink -f -- "${outDir}")" \
         || exit "$?"
     fi
 fi

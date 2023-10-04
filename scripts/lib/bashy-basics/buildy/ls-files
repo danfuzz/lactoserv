@@ -85,9 +85,6 @@ function parse-rest {
 
 process-args "$@" || usage --short
 
-check-json-output-args \
-|| exit "$?"
-
 
 #
 # Main script
@@ -99,7 +96,7 @@ baseDir="$(base-dir)" || exit "$?"
 error=0
 for i in "${!paths[@]}"; do
     p="${paths[i]}"
-    newPath="$(readlink -f "${p}")" || {
+    newPath="$(readlink -f -- "${p}")" || {
         error-msg "No such path: ${p}"
         error=1
         continue
@@ -133,7 +130,7 @@ while IFS='' read -r -d $'\0' file; do
 done < <(
     # Note: The `printf` contents are designed to make it possible for the loop
     # above to (nearly) unambiguously notice errors.
-    git ls-files -z --cached --others --exclude-standard "${paths[@]}" \
+    git ls-files -z --cached --others --exclude-standard -- "${paths[@]}" \
     || printf '\x01error\x00'
 )
 

@@ -47,12 +47,12 @@ process-args "$@" || usage --short
 
 # Note: An earlier -- and to be clear buggy -- version of this script tried to
 # use `jq`'s options `--args` or `--jsonargs` which promised to make this script
-# much simpler. Unfortunately, because `jq` doesn't actually do the usual shell
-# command behavior of not attempting to interpret things that look like options
-# but are positioned after non-option arguments, it's not actually possible to
-# use `--args` or `--jsonargs`, especially if we want to be resilient to errant
-# input to this script (and not blithely pass it into a `jq` which will do
-# who-knows-what with it).
+# much simpler. Unfortunately, because `jq` v1.6 or earlier doesn't actually do
+# the usual shell command behavior of not attempting to interpret things that
+# look like options but are positioned after non-option arguments, it's not
+# actually possible to use `--args` or `--jsonargs`, especially if we want to be
+# resilient to errant input to this script (and not blithely pass it into a `jq`
+# which will do who-knows-what with it).
 
 jqArgs=(--null-input)
 

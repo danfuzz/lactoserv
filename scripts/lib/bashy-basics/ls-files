@@ -120,9 +120,6 @@ function parse-rest {
 
 process-args "$@" || usage --short
 
-check-json-output-args \
-|| exit "$?"
-
 
 #
 # Main script
@@ -141,6 +138,23 @@ impliedCwd=0
 if [[ ${#paths[@]} == 0 ]]; then
     paths=('.')
     impliedCwd=1
+else
+    # Check to see if any of the paths start with a dash. If so, prefix all
+    # relative paths with `./` so that `find` (which doesn't have any other
+    # standard way to deal with this) won't confuse them with options.
+    for path in "${paths[@]}"; do
+        if [[ ${path} =~ ^- ]]; then
+            impliedCwd=1
+            break
+        fi
+    done
+    if (( impliedCwd )); then
+        for n in "${!paths[@]}"; do
+            if [[ ${paths[n]} =~ ^- ]]; then
+                paths[n]="./${paths[n]}"
+            fi
+        done
+    fi
 fi
 
 results=()
@@ -155,7 +169,7 @@ while IFS='' read -r -d $'\0' file; do
             # Drop the top-level `.` entirely.
             continue
         else
-            # Drop the `./` prefix from the result.
+            # Drop the `./` prefix from the result if present.
             file="${file#'./'}"
         fi
     fi
@@ -168,7 +182,7 @@ while IFS='' read -r -d $'\0' file; do
     fi
 
     if (( fullPaths )); then
-        file="$(readlink -f "${file}")" \
+        file="$(readlink -f -- "${file}")" \
         || exit 1
     fi
 

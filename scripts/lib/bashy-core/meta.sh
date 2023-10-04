@@ -36,10 +36,10 @@ function base-dir {
     if [[ $1 =~ --set=(.*)$ ]]; then
         local setDir="${BASH_REMATCH[1]}"
         if [[ ${setDir} =~ [^/] ]]; then
-            local callerDir="$(dirname "$(readlink -f "${BASH_SOURCE[1]}")")"
+            local callerDir="$(dirname "$(readlink -f -- "${BASH_SOURCE[1]}")")"
             setDir="${callerDir}/${setDir}"
         fi
-        _bashy_baseDir="$(readlink -f "${setDir}")"
+        _bashy_baseDir="$(readlink -f -- "${setDir}")"
     elif [[ ${_bashy_baseDir} == '' ]]; then
         error-msg 'Base directory not set. (Use `base-dir --set` in your project'
         error-msg 'init file.)'
@@ -57,10 +57,10 @@ function subproject-dir {
     if [[ $1 =~ --set=(.*)$ ]]; then
         local setDir="${BASH_REMATCH[1]}"
         if [[ ${setDir} =~ [^/] ]]; then
-            local callerDir="$(dirname "$(readlink -f "${BASH_SOURCE[1]}")")"
+            local callerDir="$(dirname "$(readlink -f -- "${BASH_SOURCE[1]}")")"
             setDir="${callerDir}/${setDir}"
         fi
-        _bashy_subprojectDir="$(readlink -f "${setDir}")"
+        _bashy_subprojectDir="$(readlink -f -- "${setDir}")"
     elif [[ ${_bashy_subprojectDir} == '' ]]; then
         error-msg 'Subproject directory not set. (Use `subproject-dir --set` in'
         error-msg 'your subproject init file.)'
