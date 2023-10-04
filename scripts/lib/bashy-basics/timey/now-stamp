@@ -10,7 +10,7 @@
 # Argument parsing
 #
 
-define-usage $'
+define-usage --with-help $'
     ${name} [<opt> ...]
 
     Prints a standardized timestamp representing "now" with optional prefix
@@ -21,12 +21,7 @@ define-usage $'
       Prefix to use. Note: If you want a `-` at the end, you need to include it.
     --suffix=<string>
       Suffix to use. Note: If you want a `-` at the start, you need to include it.
-
-    ${help}
 '
-
-# Want help?
-opt-action --call='{ usage; exit }' help/h
 
 # Prefix.
 opt-value --var=prefix prefix

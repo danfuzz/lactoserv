@@ -10,7 +10,7 @@
 # Argument parsing
 #
 
-define-usage $'
+define-usage --with-help $'
     ${name} [<opt> ...]
 
     Makes and prints out a new temporary file or directory name. This uses a
@@ -21,12 +21,7 @@ define-usage $'
     --prefix=<string>
       Prefix to use instead of `tmp-`. Note: If you want a `-` at the end, you
       need to include it.
-
-    ${help}
 '
-
-# Want help?
-opt-action --call='{ usage; exit }' help/h
 
 # Prefix.
 opt-value --var=prefix --init='tmp-' prefix

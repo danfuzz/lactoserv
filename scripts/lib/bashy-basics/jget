@@ -10,7 +10,7 @@
 # Argument parsing
 #
 
-define-usage $'
+define-usage --with-help $'
     ${name} [<opt> ...] [--] <value> [<jval-expr> ...]
     ${name} [--file=<path> <opt> ...] [--] [<jval-expr> ...]
 
@@ -24,12 +24,7 @@ define-usage $'
       Read from the file instead of taking a value as a positional argument.
     --output=<style>
       Same options as with `jval` (see which).
-
-    ${help}
 '
-
-# Want help?
-opt-action --call='{ usage; exit }' help/h
 
 # File to read.
 opt-value --var=filePath file

@@ -11,7 +11,7 @@
 # Argument parsing
 #
 
-define-usage $'
+define-usage --with-help $'
     ${name} [<opt> ...] <time> [+<format>]
 
     Prints a given time value, optionally using the format given (same syntax as
@@ -24,12 +24,7 @@ define-usage $'
       `rfc822` -- A string in RFC822 format.
     --utc
       Produce output for the UTC time zone.
-
-    ${help}
 '
-
-# Want help?
-opt-action --call='{ usage; exit }' help/h
 
 # Input type.
 opt-value --var=inputType --init='secs' --enum='secs rfc822' input

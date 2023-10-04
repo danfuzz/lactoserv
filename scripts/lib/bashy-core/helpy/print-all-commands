@@ -10,7 +10,7 @@
 # Argument parsing
 #
 
-define-usage $'
+define-usage --with-help $'
     ${name} [<opt> ...]
 
     Prints all the top-level commands.
@@ -20,12 +20,7 @@ define-usage $'
       Without this, all units are searched.
     --prefix=<string>
       Prefix each line of output with the given string.
-
-    ${help}
 '
-
-# Want help?
-opt-action --call='{ usage; exit }' help/h
 
 # Sublibraries to search.
 opt-value --var=unitNames --filter='/^[-_.a-zA-Z0-9 ]+$/' units

@@ -10,7 +10,7 @@
 # Argument parsing
 #
 
-define-usage $'
+define-usage --with-help $'
     ${name} [<opt> ...] [--] [<assignment> ...] [--] [<jq-expression> ...]
 
     Constructs and prints one or more JSON values from variable assignments
@@ -56,12 +56,7 @@ define-usage $'
         as `compact`).
       `raw0` -- Output strings as NUL-terminated (`\\0`) raw text (and other
         values as `compact`).
-
-    ${help}
 '
-
-# Want help?
-opt-action --call='{ usage; exit }' help/h
 
 # Input style.
 opt-value --var=inputStyle --init=none \

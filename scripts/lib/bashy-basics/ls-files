@@ -10,7 +10,7 @@
 # Argument parsing
 #
 
-define-usage $'
+define-usage --with-help $'
     ${name} [<path> ...] [:: [<out-opt> ...] [<jval-expr> ...]]
 
     List files and/or directories at or under the given <path>s. With no <path>s,
@@ -59,12 +59,7 @@ define-usage $'
     --output=<style> :: compact json lines none raw raw0
       How to process the final output. All options are as with `jval`. The default
       is `json`.
-
-    ${help}
 '
-
-# Want help?
-opt-action --call='{ usage; exit }' help/h
 
 # Handles JSON `--output` option.
 usual-json-output-args --no-rest

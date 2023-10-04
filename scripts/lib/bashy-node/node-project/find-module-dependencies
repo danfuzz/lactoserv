@@ -10,7 +10,7 @@
 # Argument parsing
 #
 
-define-usage $'
+define-usage --with-help $'
     ${name} [<opt> ...] [--] <module-name>
 
     Transitively finds all module dependencies from the one given, which must
@@ -38,12 +38,7 @@ define-usage $'
       JSON array of one or more paths to directories containing module sources.
       If the same-named module exists in more than one modules directory, the
       first one listed "wins."
-
-    ${help}
 '
-
-# Want help?
-opt-action --call='{ usage; exit }' help/h
 
 # Directory or directories containing all the modules.
 opt-value --var=modulesDir --filter='/./' modules-dir

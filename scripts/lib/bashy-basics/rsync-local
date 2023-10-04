@@ -10,7 +10,7 @@
 # Argument parsing
 #
 
-define-usage $'
+define-usage --with-help $'
     ${name} <path> ...
 
     Uses `rsync` to do an all-local (not actually remote) "archive" copy
@@ -32,12 +32,7 @@ define-usage $'
       as-is to the underlying `rsync`.
     --exclude=<spec>
       Exclude files. Passed as-is to the underlying `rsync`.
-
-    ${help}
 '
-
-# Want help?
-opt-action --call='{ usage; exit }' help/h
 
 # Delete files not present at the source?
 opt-toggle --var=delete delete

@@ -51,6 +51,9 @@
 # name. Generated functions use the convention `_argproc:<name>`, to make the
 # origin clear and to avoid collisions.
 
+# Was there an error during argument and option declaration?
+_argproc_declarationError=0
+
 # List of statements to run just before parsing. This includes:
 #
 # * global variable assignment statements
@@ -269,6 +272,11 @@ function process-args {
     local _argproc_error=0
     local _argproc_s
 
+    if (( _argproc_declarationError )); then
+        error-msg 'Cannot process arguments, due to declaration errors.'
+        return 1
+    fi
+
     # Run all the pre-parse statements.
     for _argproc_s in "${_argproc_initStatements[@]}"; do
         eval "${_argproc_s}"
@@ -331,7 +339,7 @@ function rest-arg {
     || return 1
 
     if declare >/dev/null -F _argproc:rest; then
-        error-msg 'Duplicate definition of rest argument.'
+        error-msg --file-line=1 'Duplicate definition of rest argument.'
         return 1
     fi
 
@@ -344,16 +352,9 @@ function rest-arg {
         _argproc_initStatements+=("${optVar}=()")
     fi
 
-    _argproc_set-arg-description "${specName}" rest-argument || return 1
-
-    local desc="argument <${specName}>"
-    local handlerBody="$(
-        _argproc_handler-body "${specName}" "${desc}" "${optFilter}" "${optCall}" "${optVar}"
-    )"
-
-    eval 'function _argproc:rest {
-        '"${handlerBody}"'
-    }'
+    _argproc_define-multi-value-arg \
+        "${specName}" "${optFilter}" "${optCall}" "${optVar}" \
+    || return "$?"
 }
 
 
@@ -428,7 +429,7 @@ function _argproc_arg-description {
     local desc
 
     if ! declare -F "${funcName}" >/dev/null; then
-        error-msg "No such argument: <${longName}>"
+        error-msg --file-line=1 "No such argument: <${longName}>"
         return 1
     fi
 
@@ -453,6 +454,25 @@ function _argproc_define-abbrev {
     }'
 }
 
+# Defines an activation function for a multi-value argument.
+function _argproc_define-multi-value-arg {
+    local longName="$1"
+    local filter="$2"
+    local callFunc="$3"
+    local varName="$4"
+
+    _argproc_set-arg-description "${specName}" rest-argument || return 1
+
+    local desc="argument <${longName}>"
+    local handlerBody="$(
+        _argproc_handler-body "${longName}" "${desc}" "${filter}" "${callFunc}" "${varName}"
+    )"
+
+    eval 'function _argproc:rest {
+        '"${handlerBody}"'
+    }'
+}
+
 # Defines an activation function for an argument/option which prohibits getting
 # passed a value.
 function _argproc_define-no-value-arg {
@@ -460,7 +480,7 @@ function _argproc_define-no-value-arg {
         shift
     else
         # `--option` is really defined here for parallel structure, not utility.
-        error-msg 'Not supported.'
+        error-msg --file-line=1 'Not supported.'
         return 1
     fi
 
@@ -623,6 +643,7 @@ function _argproc_janky-args {
     local argError=0
     local argSpecs=" $* " # Spaces on the ends to make the match code work.
     local optsDone=0
+    local gotInit=0
     local a
 
     for a in "${args[@]}"; do
@@ -632,8 +653,9 @@ function _argproc_janky-args {
         fi
 
         if [[ ${a} =~ ^--. ]]; then
-            if ! [[ ${a} =~ ^--([a-z]+)(=.*)?$ ]]; then
-                error-msg "Invalid option syntax: ${a}"
+            if ! [[ ${a} =~ ^--([a-z][-a-z]+)(=.*)?$ ]]; then
+                error-msg --file-line=2 "Invalid option syntax: ${a}"
+                _argproc_declarationError=1
                 return 1
             fi
 
@@ -641,7 +663,8 @@ function _argproc_janky-args {
             local value="${BASH_REMATCH[2]}"
 
             if ! [[ ${argSpecs} =~ " ${name} " ]]; then
-                error-msg "Unknown option: --${name}"
+                error-msg --file-line=2 "Unknown option: --${name}"
+                _argproc_declarationError=1
                 return 1
             fi
 
@@ -652,6 +675,7 @@ function _argproc_janky-args {
                     || argError=1
                     ;;
                 init)
+                    gotInit=1
                     [[ ${value} =~ ^=(.*)$ ]] \
                     && optInit="${BASH_REMATCH[1]}" \
                     || argError=1
@@ -689,17 +713,19 @@ function _argproc_janky-args {
                     || argError=1
                     ;;
                 *)
-                    error-msg "Unknown arg-processing option: --${name}"
+                    error-msg --file-line=2 "Unknown arg-processing option: --${name}"
+                    _argproc_declarationError=1
                     return 1
                     ;;
             esac
 
             if (( argError )); then
                 if [[ ${value} != '' ]]; then
-                    error-msg "Invalid value for option --${name}: ${value:1}"
+                    error-msg --file-line=2 "Invalid value for option --${name}: ${value:1}"
                 else
-                    error-msg "Value required for option --${name}."
+                    error-msg --file-line=2 "Value required for option --${name}."
                 fi
+                _argproc_declarationError=1
                 return 1
             fi
         elif [[ ${a} == '--' ]]; then
@@ -711,24 +737,38 @@ function _argproc_janky-args {
             args=("${a}")
             optsDone=1
         else
-            error-msg "Invalid option syntax: ${a}"
+            error-msg --file-line=2 "Invalid option syntax: ${a}"
+            _argproc_declarationError=1
             return 1
         fi
-   done
+    done
 
-   if (( !optsDone || (${#args[@]} == 0) )); then
-       error-msg 'Missing argument specification.'
-       return 1
-   elif (( ${#args[@]} > 1 && !multiArg )); then
-       error-msg 'Too many arguments.'
-       return 1
-   elif [[ ${argSpecs} =~ ' call '|' var ' ]]; then
-       # Special case for `--call` and `--var` (which always go together).
-       if [[ (${optCall} == '') && (${optVar} == '') ]]; then
-           error-msg 'Must use at least one of --call or --var.'
-           return 1
-       fi
-   fi
+    if (( !optsDone || (${#args[@]} == 0) )); then
+        error-msg --file-line=2 'Missing argument specification.'
+        _argproc_declarationError=1
+        return 1
+    elif (( ${#args[@]} > 1 && !multiArg )); then
+        error-msg --file-line=2 'Too many arguments.'
+        _argproc_declarationError=1
+        return 1
+    elif (( gotInit && optRequired )); then
+        # Special case: `--init` is meaningless if `--required` was passed.
+        error-msg --file-line=2 'Cannot use both --required and --init.'
+        _argproc_declarationError=1
+        return 1
+    elif (( gotInit )) && [[ ${optVar} == '' ]]; then
+        # Special case: `--init` is meaningless without `--var`.
+        error-msg --file-line=2 'Must use --var when --init is used.'
+        _argproc_declarationError=1
+        return 1
+    elif [[ ${argSpecs} =~ ' call '|' var ' ]]; then
+        # Special case for `--call` and `--var` (which always go together).
+        if [[ (${optCall} == '') && (${optVar} == '') ]]; then
+            error-msg --file-line=2 'Must use at least one of --call or --var.'
+            _argproc_declarationError=1
+            return 1
+        fi
+    fi
 }
 
 # Parses a single argument / option spec. `--abbrev` to accept an abbreviation.
@@ -745,7 +785,8 @@ function _argproc_parse-spec {
             --value)    valueOk=1                ;;
             --value-eq) valueOk=1; valueWithEq=1 ;;
             *)
-                error-msg "Unrecognized option: $1"
+                error-msg --file-line=1 "Unrecognized option: $1"
+                _argproc_declarationError=1
                 return 1
                 ;;
         esac
@@ -755,7 +796,8 @@ function _argproc_parse-spec {
     local spec="$1"
 
     if ! [[ ${spec} =~ ^([a-zA-Z0-9][-a-zA-Z0-9]*)(/[a-zA-Z])?(=.*)?$ ]]; then
-        error-msg "Invalid spec: ${spec}"
+        error-msg --file-line=2 "Invalid spec: ${spec}"
+        _argproc_declarationError=1
         return 1
     fi
 
@@ -766,7 +808,8 @@ function _argproc_parse-spec {
     if (( abbrevOk )); then
         specAbbrev="${abbrev:1}" # `:1` to drop the slash.
     elif [[ ${abbrev} != '' ]]; then
-        error-msg "Abbrev not allowed in spec: ${spec}"
+        error-msg --file-line=2 "Abbrev not allowed in spec: ${spec}"
+        _argproc_declarationError=1
         return 1
     fi
 
@@ -782,7 +825,8 @@ function _argproc_parse-spec {
             specValue="${value}"
         fi
     elif [[ ${value} != '' ]]; then
-        error-msg "Value not allowed in spec: ${spec}"
+        error-msg --file-line=2 "Value not allowed in spec: ${spec}"
+        _argproc_declarationError=1
         return 1
     fi
 }
@@ -812,7 +856,8 @@ function _argproc_set-arg-description {
     local funcName="_argproc:arg-description-${longName}"
 
     if declare -F "${funcName}" >/dev/null; then
-        error-msg "Duplicate argument: ${longName}"
+        error-msg --file-line=3 "Duplicate argument: ${longName}"
+        _argproc_declarationError=1
         return 1
     fi
 
@@ -828,7 +873,8 @@ function _argproc_set-arg-description {
             desc="rest argument <${longName}...>"
             ;;
         *)
-            error-msg "Unknown type: ${typeName}"
+            error-msg --file-line=1 "Unknown type: ${typeName}"
+            _argproc_declarationError=1
             return 1
             ;;
     esac

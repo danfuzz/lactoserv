@@ -10,7 +10,7 @@
 # Argument parsing
 #
 
-define-usage $'
+define-usage --with-help $'
     ${name} [<opt> ...]
 
     Deal with the build-output directory in various ways.
@@ -30,12 +30,7 @@ define-usage $'
     --remove
       Remove the directory. If both this and `--create` are specified, then the
       removal happens first.
-
-    ${help}
 '
-
-# Want help?
-opt-action --call='{ usage; exit }' help/h
 
 # `--verbose` etc.
 usual-stderr-args

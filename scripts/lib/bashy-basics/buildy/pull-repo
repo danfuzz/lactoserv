@@ -10,7 +10,7 @@
 # Argument parsing
 #
 
-define-usage $'
+define-usage --with-help $'
     ${name} [<opt> ...] <repo-url>
 
     Pulls / syncs up a given repo to be used for a build. On success, prints the
@@ -35,12 +35,7 @@ define-usage $'
       Tag or branch spec. If specified, then the indicated tag (or etc.) will be
       checked out. By default, the repo\'s default branch (e.g. `main`) is
       checked out.
-
-    ${help}
 '
-
-# Want help?
-opt-action --call='{ usage; exit }' help/h
 
 # `git clone` configs.
 cloneConfigs=()

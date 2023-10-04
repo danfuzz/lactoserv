@@ -15,16 +15,11 @@
 # Argument parsing
 #
 
-define-usage $'
+define-usage --with-help $'
     ${name} <command> [<subcommand> ...] [<opt> ...] [--] [<arg> ...]
 
     Run a subcommand. <opt>s and <arg>s depend on the specific subcommand.
-
-    ${help}
 '
-
-# Want help?
-opt-action --call='{ usage; exit }' help/h
 
 # The main command.
 positional-arg --var=cmdName command

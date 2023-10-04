@@ -11,7 +11,7 @@
 #
 
 # Prints the usage message.
-define-usage $'
+define-usage --with-help $'
     ${name} [<opt> ...] <command> <arg> ...
 
     Performs a calculation of some sort on a CIDR address/mask. Input CIDR values
@@ -49,15 +49,10 @@ define-usage $'
     widen-to <cidr> <bits>
       Widens the address in a CIDR by adding enough low-order zero bits to result
       in the indicated length. Prints the resulting CIDR.
-
-    ${help}
 '
 
 # Output style.
 opt-value --var=outputStyle --init=lines --enum='compact json lines' output
-
-# Want help?
-opt-action --call='{ usage; exit }' help/h
 
 # Command.
 positional-arg --required --var=command command

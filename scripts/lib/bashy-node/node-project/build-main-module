@@ -10,7 +10,7 @@
 # Argument parsing
 #
 
-define-usage $'
+define-usage --with-help $'
     ${name} [<opt> ...] <project-name>
 
     Builds a Node main module, pulling in all its local dependencies. The
@@ -41,12 +41,7 @@ define-usage $'
       developer-directed malware), which is why it is disabled by default. This
       option exists to enable tactical problem-solving, with the hope that it
       will be left on only ephemerally.
-
-    ${help}
 '
-
-# Want help?
-opt-action --call='{ usage; exit }' help/h
 
 # Allow the build to be platform-specific?
 opt-toggle --var=platformSpecific allow-platform-specific-files

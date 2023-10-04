@@ -10,16 +10,11 @@
 # Argument parsing
 #
 
-define-usage $'
+define-usage --with-help $'
     ${name} <json-value>
 
     Prints the length of the given JSON value, per the `jq` length rules.
-
-    ${help}
 '
-
-# Want help?
-opt-action --call='{ usage; exit }' help/h
 
 # JSON value.
 positional-arg --required --var=value json-value

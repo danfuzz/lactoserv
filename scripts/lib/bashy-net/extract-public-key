@@ -10,7 +10,7 @@
 # Argument parsing
 #
 
-define-usage $'
+define-usage --with-help $'
     ${name} [<opt> ...] [<file-path>]
 
     Extracts the public key from a private key PEM or SSH file, or converts a
@@ -27,12 +27,7 @@ define-usage $'
       `public-key` -- Public key in PEM format. This is the default.
       `ssh-auth` -- Public key in SSH format, usable for example in
         `.ssh/authorized_keys` files.
-
-    ${help}
 '
-
-# Want help?
-opt-action --call='{ usage; exit }' help/h
 
 # What to output.
 opt-value --var=outputStyle --init=public-key \

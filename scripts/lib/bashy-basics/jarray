@@ -10,7 +10,7 @@
 # Argument parsing
 #
 
-define-usage $'
+define-usage --with-help $'
     ${name} [<opt> ...] [--] [<value> ...]
 
     Constructs and prints a JSON array of values, of all of the value arguments
@@ -22,12 +22,7 @@ define-usage $'
     --output=<style>
       `compact` -- Output in compact (single line) JSON form.
       `json` -- Output in multiline JSON form. This is the default.
-
-    ${help}
 '
-
-# Want help?
-opt-action --call='{ usage; exit }' help/h
 
 # Output style.
 opt-value --var=outputStyle --init=json --enum='compact json' output

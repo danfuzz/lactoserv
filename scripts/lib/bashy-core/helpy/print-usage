@@ -11,7 +11,7 @@
 #
 
 # Yes, this constructs a recursive call to this script.
-define-usage $'
+define-usage --with-help $'
     ${name} [<opt> ...] [--] <message>
 
     Prints a usage message. This does the following to the given <message>:
@@ -37,14 +37,7 @@ define-usage $'
       whose first line starts with the value of `$${name}`. In addition, it
       prepends an extra newline at the start. Note: For this to work as intended,
       always put a double-newline after each command summary section.
-
-    ${name} [--help | -h]
-
-    Displays this message.
 '
-
-# Want help?
-opt-action --call='{ usage; exit }' help/h
 
 # Command name.
 opt-value --required --var=cmdName --filter='/^[_a-zA-Z]/' name

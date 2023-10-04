@@ -10,7 +10,7 @@
 # Argument parsing
 #
 
-define-usage $'
+define-usage --with-help $'
     ${name} [<opt> ...]
 
     Creates a new private key, with a couple different options for type.
@@ -25,12 +25,7 @@ define-usage $'
       `user-2048` -- OpenSSL user key, 2048-bit RSA.
       `user-4096` -- OpenSSL user key, 4096-bit RSA.
       `user-ec` -- SSH-format user key, elliptic curve (ED25519 algorithm).
-
-    ${help}
 '
-
-# Want help?
-opt-action --call='{ usage; exit }' help/h
 
 # Key type.
 opt-value --required --var=type \

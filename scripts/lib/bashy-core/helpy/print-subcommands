@@ -10,17 +10,12 @@
 # Argument parsing
 #
 
-define-usage $'
+define-usage --with-help $'
     ${name} [<opt> ...] [--] <command> [<subcommand> ...]
 
     Lists all the subcommands (and sub-subcommands, etc.) of the given
     command.
-
-    ${help}
 '
-
-# Want help?
-opt-action --call='{ usage; exit }' help/h
 
 # The command to print stuff about.
 positional-arg --required --var=cmdName --filter='/^[-a-z]/' command

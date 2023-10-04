@@ -17,6 +17,9 @@
 #   when "manually" turning on or off messages.
 # --exec -- Execute the arguments as a command, instead of treating them as
 #   arguments to print. The command's output gets redirected to `stderr`.
+# --file-line=<depth> -- Include the caller's file and line number, at the
+#   indicated stack depth up from the caller, with `0` being the caller. That
+#   is, a user of the command can use this to refer to what called it.
 # --set=0|1 -- Enable or disable printing of this kind of message.
 # --status -- Prints `1` or `0` to stdout, to indicate enabled status. (This is
 #   to make it easy to propagate the enabled state down into another command.)
@@ -104,6 +107,7 @@ function _stderr_print-handler {
     shift 2
 
     local doExec=0
+    local fileLineDepth=-1
     local printName=1
     local wasCmd=0
 
@@ -119,6 +123,9 @@ function _stderr_print-handler {
                 ;;
             --exec)
                 doExec=1
+                ;;
+            --file-line=*)
+                fileLineDepth="${1#*=}"
                 ;;
             --no-name)
                 if [[ ${anyMessagesVarName} == '' ]]; then
@@ -147,11 +154,22 @@ function _stderr_print-handler {
         return
     fi
 
+    local didPrintName=0
     if [[ ${anyMessagesVarName} != '' ]] && (( !${!anyMessagesVarName} )); then
         if (( printName )); then
+            didPrintName=1
             printf 1>&2 '%s: ' "$(this-cmd-name)"
         fi
         eval "${anyMessagesVarName}=1"
+    fi
+
+    if (( fileLineDepth >= 0 )); then
+        if (( didPrintName )); then
+            printf 1>&2 '\n'
+        fi
+        # `+ 1` because there's an internal caller layer to elide.
+        [[ "$(caller "$((fileLineDepth + 1))")" =~ ^([0-9]+).*/(.*)$ ]]
+        printf 1>&2 '%s:%s: ' "${BASH_REMATCH[2]}" "${BASH_REMATCH[1]}"
     fi
 
     if (( doExec )); then

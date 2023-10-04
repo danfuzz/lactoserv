@@ -10,18 +10,13 @@
 # Argument parsing
 #
 
-define-usage $'
+define-usage --with-help $'
     ${name} [<opt> ...] [<file> ...]
 
     Sorts imports in `.js` files according to this project\'s preferred
     ordering. With <file>s, processes only the indicated files; otherwise
     processes the entire source tree.
-
-    ${help}
 '
-
-# Want help?
-opt-action --call='{ usage; exit }' help/h
 
 # Specific paths to process
 rest-arg --var=files --filter=/./ file

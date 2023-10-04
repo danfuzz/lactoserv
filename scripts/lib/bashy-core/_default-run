@@ -10,7 +10,7 @@
 # Argument parsing
 #
 
-define-usage $'
+define-usage --with-help $'
     ${name} [<opt> ...] [--] <command> <arg> ...
 
     Default (sub)command runner, for a command with subcommands being invoked on
@@ -25,12 +25,7 @@ define-usage $'
     --original-path=<path>
       The filesystem path to the originally-called command. This will always
       be a path to a directory.
-
-    ${help}
 '
-
-# Want help?
-opt-action --call='{ usage; exit }' help/h
 
 # List of words of the original command.
 opt-value --required --var=origCmdWords original-command
