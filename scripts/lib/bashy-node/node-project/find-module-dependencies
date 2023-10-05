@@ -48,7 +48,7 @@ require-exactly-one-arg-of modules-dir modules-dirs
 # The module to start at.
 positional-arg --required --var=moduleName module-name
 
-process-args "$@" || usage --short
+process-args "$@" || exit "$?"
 
 
 #

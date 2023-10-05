@@ -27,7 +27,7 @@ positional-arg --var=cmdName command
 # The actual command arguments.
 rest-arg --var=args args
 
-process-args "$@" || usage --short
+process-args "$@" || exit "$?"
 
 
 #

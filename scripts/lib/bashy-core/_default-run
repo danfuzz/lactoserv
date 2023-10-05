@@ -39,7 +39,7 @@ positional-arg --var=command command
 # The original command arguments, including any subcommands and other arguments.
 rest-arg --var=origArgs args
 
-process-args "$@" || usage --short
+process-args "$@" || exit "$?"
 
 
 #

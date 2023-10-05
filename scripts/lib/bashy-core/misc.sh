@@ -19,12 +19,8 @@ _bashy_usageMessage=''
 #
 
 # Defines a standard-form `usage` function, optionally adding standardized help
-# options. When `usage` is defined with this, any non-zero pending exit code
-# (`$?`) becomes a process exit, so, for example, it is possible to say
-# something like `process-args "$@" || usage --short`, and know that that exit
-# the process on error. With option `--with-help`, this defines standard help
-# options `--help` and short form `-h`, and appends help-for-help to the
-# description.
+# options. With option `--with-help`, this defines standard help options
+# `--help` and short form `-h`, and appends help-for-help to the description.
 function define-usage {
     local withHelp=0
     if [[ $1 == --with-help ]]; then
@@ -49,11 +45,7 @@ function define-usage {
     fi
 
     local func=$'function usage {
-        local exitCode="$?"
         lib helpy print-usage --name="$(this-cmd-name)" "$@" "${_bashy_usageMessage}"
-        if (( exitCode != 0 )); then
-            exit "${exitCode}"
-        fi
     }'
 
     eval "${func}"

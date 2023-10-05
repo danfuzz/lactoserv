@@ -26,7 +26,7 @@ define-usage --with-help $'
 # Prefix.
 opt-value --var=prefix --init='tmp-' prefix
 
-process-args "$@" || usage --short
+process-args "$@" || exit "$?"
 
 
 #

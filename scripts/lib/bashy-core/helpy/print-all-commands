@@ -28,7 +28,7 @@ opt-value --var=unitNames --filter='/^[-_.a-zA-Z0-9 ]+$/' units
 # Prefix string.
 opt-value --var=prefix prefix
 
-process-args "$@" || usage --short
+process-args "$@" || exit "$?"
 
 
 #

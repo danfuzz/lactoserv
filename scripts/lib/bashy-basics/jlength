@@ -19,7 +19,7 @@ define-usage --with-help $'
 # JSON value.
 positional-arg --required --var=value json-value
 
-process-args "$@" || usage --short
+process-args "$@" || exit "$?"
 
 
 #

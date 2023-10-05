@@ -16,15 +16,14 @@ define-usage --with-help $'
 
     Prints a usage message. This does the following to the given <message>:
 
-    * Trim away empty lines at the start and end of the string.
-    * Trim away whitespace from the start of lines, based on the indentation of
+    * Trims away empty lines at the start and end of the string.
+    * Trims away whitespace from the start of lines, based on the indentation of
       the first not-just-whitespace line.
-    * Substitute variables (see below) in the form `$${name}`.
-    * Substitute `$$$$` with a literal `$$`.)
-    * Print everything to `stderr`.
+    * Substitutes variables (see below) in the form `$${name}`.
+    * Substitutes `$$$$` with a literal `$$`.)
+    * Prints everything to `stderr`.
 
     Available variables:
-    `$${help}` -- The standard blurb about the usual help option `--help` / `-h`
     `$${name}` -- The name of the command, as passed via `--name`.
     `$${stderr}` -- The standard blurb about the usual stderr control options
       `--verbose` and `--quiet` / `-q`.
@@ -34,9 +33,9 @@ define-usage --with-help $'
     --short
       Prints a short version of the <message>, intended to be the coda on some
       other error message. This only prints double-newline delimited sections
-      whose first line starts with the value of `$${name}`. In addition, it
-      prepends an extra newline at the start. Note: For this to work as intended,
-      always put a double-newline after each command summary section.
+      whose first line starts with the value of `$${name}`. Note: For this to
+      work as intended, always put a double-newline after each command summary
+      section.
 '
 
 # Command name.
@@ -48,7 +47,7 @@ opt-toggle --var=short short
 # Usage message to print.
 positional-arg --required --var=message message
 
-process-args "$@" || usage --short
+process-args "$@" || exit "$?"
 
 
 #
@@ -63,12 +62,6 @@ fi
 vars="
 name
 ${cmdName}
-;
-
-help
-    \${name} [--help | -h]
-
-    Displays this message.
 ;
 
 stderr
@@ -135,7 +128,6 @@ END {
     message = vars["message"];
 
     if (short) {
-        print "";
         print shorten(message, vars["name"]);
     } else {
         print message;

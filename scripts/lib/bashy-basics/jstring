@@ -20,7 +20,7 @@ define-usage --with-help $'
 # Strings to convert
 rest-arg --var=values string
 
-process-args "$@" || usage --short
+process-args "$@" || exit "$?"
 
 
 #

@@ -61,7 +61,7 @@ opt-toggle --var=runNpmInstallScripts unsafely-run-npm-install-scripts
 # Project name.
 positional-arg --filter='/^[-a-z0-9]+$/' --var=projectName project-name
 
-process-args "$@" || usage --short
+process-args "$@" || exit "$?"
 
 
 #

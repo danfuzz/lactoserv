@@ -266,14 +266,16 @@ function post-process-args-call {
 }
 
 # Processes all of the given arguments, according to the configured handlers.
-# Returns non-zero if there is trouble parsing options or if any handler returns
-# non-zero.
+# Returns normally upon successful processing. If there is any trouble parsing
+# (including if there were errors during argument/option declaration), this
+# prints the short form of the `usage` message (if `usage` is available) and
+# then returns with a non-zero code.
 function process-args {
     local _argproc_error=0
     local _argproc_s
 
     if (( _argproc_declarationError )); then
-        error-msg 'Cannot process arguments, due to declaration errors.'
+        _argproc_error-coda 'Cannot process arguments, due to declaration errors.'
         return 1
     fi
 
@@ -295,6 +297,7 @@ function process-args {
         # Don't continue if there were problems above, because that will lead to
         # spurious extra errors (e.g. "missing" a required option that was
         # present but didn't pass a validity check).
+        _argproc_error-coda
         return "${_argproc_error}"
     fi
 
@@ -303,7 +306,10 @@ function process-args {
         eval "${_argproc_s}" || _argproc_error="$?"
     done
 
-    return "${_argproc_error}"
+    if (( _argproc_error )); then
+        _argproc_error-coda
+        return "${_argproc_error}"
+    fi
 }
 
 # Requires that exactly one of the indicated arguments / options is present.
@@ -564,6 +570,21 @@ function _argproc_define-value-taking-arg {
 
     if [[ ${abbrevChar} != '' ]]; then
         _argproc_define-abbrev "${abbrevChar}" "${longName}"
+    fi
+}
+
+# Helper for `process-args`, which prints an optional final error message and
+# then short `usage` if it is defined.
+function _argproc_error-coda {
+    local msg=("$@")
+
+    if (( ${#msg[@]} != 0 )); then
+        error-msg "${msg[@]}"
+    fi
+
+    if declare -F usage >/dev/null; then
+        error-msg ''
+        usage --short
     fi
 }
 

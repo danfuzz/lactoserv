@@ -44,7 +44,7 @@ opt-value --call='{ excludeOpts+=("--exclude=$1") }' exclude
 # Paths to copy from/to.
 rest-arg --var=paths paths
 
-process-args "$@" || usage --short
+process-args "$@" || exit "$?"
 
 if (( ${#paths} < 2 )); then
     error-msg 'Must specify at least two paths.'

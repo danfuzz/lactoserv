@@ -40,7 +40,7 @@ positional-arg --required --var=value value
 # Expressions to operate on the value.
 rest-arg --var=exprArgs jval-exprs
 
-process-args "$@" || usage --short
+process-args "$@" || exit "$?"
 
 if [[ ${filePath} != '' ]]; then
     if [[ ${value} != '' ]]; then

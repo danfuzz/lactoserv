@@ -29,7 +29,7 @@ opt-value --var=prefix prefix
 # Suffix.
 opt-value --var=suffix suffix
 
-process-args "$@" || usage --short
+process-args "$@" || exit "$?"
 
 
 #

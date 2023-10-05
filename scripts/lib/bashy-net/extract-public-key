@@ -37,7 +37,7 @@ opt-value --var=outputStyle --init=public-key \
 # File path.
 positional-arg --init='/dev/stdin' --var=path file-path
 
-process-args "$@" || usage --short
+process-args "$@" || exit "$?"
 
 
 #

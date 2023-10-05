@@ -53,7 +53,7 @@ opt-value --var=tagSpec --filter='/./' tag
 # Repo URL.
 positional-arg --var=repoUrl repo-url
 
-process-args "$@" || usage --short
+process-args "$@" || exit "$?"
 
 
 #

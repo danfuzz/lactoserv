@@ -38,7 +38,7 @@ positional-arg --required --var=time time
 # Output format.
 positional-arg --var=format --filter='/^[+]/' format
 
-process-args "$@" || usage --short
+process-args "$@" || exit "$?"
 
 
 #

@@ -43,7 +43,7 @@ opt-toggle --var=doCreate create
 opt-toggle --var=doPrint print
 opt-toggle --var=doRemove remove
 
-process-args "$@" || usage --short
+process-args "$@" || exit "$?"
 
 
 #

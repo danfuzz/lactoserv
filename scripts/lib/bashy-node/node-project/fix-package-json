@@ -20,7 +20,7 @@ define-usage --with-help $'
 # Specific paths to process
 rest-arg --var=files --filter=/./ file
 
-process-args "$@" || usage --short
+process-args "$@" || exit "$?"
 
 
 #

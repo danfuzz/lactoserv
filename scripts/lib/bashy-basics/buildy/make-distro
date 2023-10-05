@@ -28,7 +28,7 @@ opt-value --var=outDir out
 # Directory containing the built project.
 positional-arg --var=builtDir built-dir
 
-process-args "$@" || usage --short
+process-args "$@" || exit "$?"
 
 
 #

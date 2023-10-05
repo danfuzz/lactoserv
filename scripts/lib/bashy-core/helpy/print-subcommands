@@ -23,7 +23,7 @@ positional-arg --required --var=cmdName --filter='/^[-a-z]/' command
 # Subcommands if any.
 rest-arg --var=subWords --filter='/^[-a-z]/' subcommands
 
-process-args "$@" || usage --short
+process-args "$@" || exit "$?"
 
 
 #

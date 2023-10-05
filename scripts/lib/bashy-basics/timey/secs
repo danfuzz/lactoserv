@@ -28,7 +28,7 @@ opt-value --var=inputType --init='secs' --enum='secs rfc822' input
 # Time value to parse.
 positional-arg --required --var=time time
 
-process-args "$@" || usage --short
+process-args "$@" || exit "$?"
 
 
 #
