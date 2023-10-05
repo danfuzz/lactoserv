@@ -38,7 +38,7 @@ opt-value --var=outDir out
 # Arbitrary args to pass to the tool.
 rest-arg --var=args args
 
-process-args "$@" || usage --short
+process-args "$@" || exit "$?"
 
 
 #

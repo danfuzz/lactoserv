@@ -45,7 +45,7 @@ opt-value --var=inspect --call='{ doInspect=1 }' inspect=
 # Build-output directory.
 opt-value --var=outDir out
 
-process-args "$@" || usage --short
+process-args "$@" || exit "$?"
 
 
 #

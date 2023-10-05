@@ -25,7 +25,7 @@ opt-toggle --var=doCopy --init=1 copy
 # Pull from upstream?
 opt-toggle --var=doPull --init=1 pull
 
-process-args "$@" || usage --short
+process-args "$@" || exit "$?"
 
 
 #

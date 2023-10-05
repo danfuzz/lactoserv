@@ -33,7 +33,7 @@ opt-toggle --var=doDistro make-distro
 # Built output directory.
 opt-value --var=outDir out
 
-process-args "$@" || usage --short
+process-args "$@" || exit "$?"
 
 
 #

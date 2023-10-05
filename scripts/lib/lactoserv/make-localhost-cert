@@ -35,7 +35,7 @@ opt-toggle --var=force force
 # Built output directory.
 opt-value --var=outDir out
 
-process-args "$@" || usage --short
+process-args "$@" || exit "$?"
 
 
 #
