@@ -40,7 +40,7 @@
 # Some argument-definers also accept these options:
 # * `--default=<value>` -- Specifies a default value for an argument or option
 #   if it isn't explicitly passed. This is only valid to use if `--var` is also
-#   used. TEMP DURING TRANSITION: `--init` is a synonym for this.
+#   used.
 # * `--required` -- Indicates that the argument or option is required
 #   (mandatory). **Note:** `--required` and `--default` are mutually exclusive.
 #
@@ -714,11 +714,6 @@ function _argproc_janky-args {
     local gotDefault=0
     local a
 
-    # TEMP DURING TRANSITION: If `default` is specified, add `init`.
-    if [[ ${argSpecs} =~ ' default ' ]]; then
-        argSpecs+='init '
-    fi
-
     for a in "${args[@]}"; do
         if (( optsDone )); then
             args+=("${a}")
@@ -747,8 +742,7 @@ function _argproc_janky-args {
                     && optCall="${BASH_REMATCH[1]}" \
                     || argError=1
                     ;;
-                # TEMP DURING TRANSITION: Synonym for `default`.
-                default|init)
+                default)
                     gotDefault=1
                     [[ ${value} =~ ^=(.*)$ ]] \
                     && optDefault="${BASH_REMATCH[1]}" \
