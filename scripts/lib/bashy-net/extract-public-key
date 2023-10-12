@@ -30,12 +30,12 @@ define-usage --with-help $'
 '
 
 # What to output.
-opt-value --var=outputStyle --init=public-key \
+opt-value --var=outputStyle --default=public-key \
     --enum='aws-fingerprint aws-generated-fingerprint public-key ssh-auth' \
     output
 
 # File path.
-positional-arg --init='/dev/stdin' --var=path file-path
+positional-arg --default='/dev/stdin' --var=path file-path
 
 process-args "$@" || exit "$?"
 

@@ -82,6 +82,29 @@ function sort-array {
     eval "${_bashy_arrayName}=(\"\${_bashy_arr[@]}\")"
 }
 
+# Helper for passing multiple values to multi-value options (`--name[...]`),
+# which formats its arguments so that the argument processor can recover the
+# original multiple values. This works for any number of values including zero
+# or one. Use it like `cmd --opt-name["$(values ...)"]`, or more specifically
+# when you want to pass an array like `cmd --opt-name["$(values
+# "${arrayName[@]}")"]`.
+function vals {
+    case "$#" in
+        0)
+            : # No need to emit anything.
+            ;;
+        1)
+            printf '%q\n' "$1"
+            ;;
+        *)
+            printf '%q' "$1"
+            shift
+            printf ' %q' "$@"
+            printf '\n'
+            ;;
+    esac
+}
+
 
 #
 # Helper functions

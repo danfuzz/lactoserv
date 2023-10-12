@@ -22,7 +22,7 @@ define-usage --with-help $'
 '
 
 # Prefix.
-opt-value --var=prefix --init='tmp-' prefix
+opt-value --var=prefix --default='tmp-' prefix
 
 process-args "$@" || exit "$?"
 

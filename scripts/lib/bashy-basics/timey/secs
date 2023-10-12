@@ -23,7 +23,7 @@ define-usage --with-help $'
 '
 
 # Input type.
-opt-value --var=inputType --init='secs' --enum='secs rfc822' input
+opt-value --var=inputType --default='secs' --enum='secs rfc822' input
 
 # Time value to parse.
 positional-arg --required --var=time time

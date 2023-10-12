@@ -7,7 +7,7 @@
 # Option processing is done in the common style with double-dashes to pass long
 # options, which can optionally be passed values after an `=`, e.g. `--foo` for
 # a valueless option and `--bar=zorch` for one with a value. The argument `--`
-# indicates the explicit end of options, and single dash (`-`) and negative
+# indicates the explicit end of options, and both single dash (`-`) and negative
 # integers (e.g. `-123`) are interpreted as non-option arguments.
 #
 # The public argument-defining functions all take argument specifications of the
@@ -24,24 +24,25 @@
 #   the argument value(s), or runs the indicated code snippet. If the call
 #   fails, the argument is rejected. In the snippet form, normal positional
 #   parameter references (`$1` `$@` `set <value>` etc.) are available.
+# * `--var=<name>` -- Sets the named variable to the argument value(s).
+#
+# Value-accepting argument definers allow these additional options:
 # * `--filter=<name>` -- Calls the named function passing it a single argument
 #   value; the function must output a replacement value. If the call fails, the
 #   argument is rejected. Note: The filter function runs in a subshell, and as
 #   such it cannot be used to affect the global environment of the main script.
 # * `--filter=/<regex>/` -- Matches each argument value against the regex. If
 #   the regex doesn't match, the argument is rejected.
-# * `--var=<name>` -- Sets the named variable to the argument value(s). The
-#   variable is always initialized to _something_, which is itself optionally
-#   specified via `--init=<value>`. If `--init` isn't used (or isn't available),
-#   then the default initialized value depends on the specific function.
+# * `--enum=<spec>` -- Matches each argument value against a set of valid names.
+#   `<spec>` must be a space-separated list of names, e.g. `--enum='yes no
+#   maybe'`.
 #
-# Value-accepting argument definers allow `--enum=<spec>` as an alternate form
-# of filter. In this case `<spec>` must be a space-separated list of names --
-# e.g. `--enum='yes no maybe'` -- and the argument is restricted to only take on
-# those possible values.
-#
-# Some argument-definers also accept `--required`, to indicate that the argument
-# or option is required (mandatory).
+# Some argument-definers also accept these options:
+# * `--default=<value>` -- Specifies a default value for an argument or option
+#   if it isn't explicitly passed. This is only valid to use if `--var` is also
+#   used. TEMP DURING TRANSITION: `--init` is a synonym for this.
+# * `--required` -- Indicates that the argument or option is required
+#   (mandatory). **Note:** `--required` and `--default` are mutually exclusive.
 #
 # Beyond the above, see the docs for the functions for restrictions and
 # additional options.
@@ -65,7 +66,8 @@ _argproc_positionalFuncs=()
 # List of statements to run after parsing, to do pre-return validation. This
 # includes:
 #
-# * required argument checkers
+# * `--required` argument checkers
+# * client-added post-processing calls
 _argproc_preReturnStatements=()
 
 
@@ -82,11 +84,10 @@ _argproc_preReturnStatements=()
 # activation value is `1`.
 function opt-action {
     local optCall=''
-    local optInit='0'
-    local optFilter=''
+    local optDefault='0'
     local optVar=''
     local args=("$@")
-    _argproc_janky-args call filter init var \
+    _argproc_janky-args call default var \
     || return 1
 
     local specName=''
@@ -97,11 +98,11 @@ function opt-action {
     || return 1
 
     _argproc_define-no-value-arg --option \
-        "${specName}" "${specValue}" "${optFilter}" "${optCall}" "${optVar}" "${specAbbrev}"
+        "${specName}" "${specValue}" "${optCall}" "${optVar}" "${specAbbrev}"
 
     if [[ ${optVar} != '' ]]; then
         # Set up the variable initializer.
-        _argproc_initStatements+=("${optVar}=$(_argproc_quote "${optInit}")")
+        _argproc_initStatements+=("${optVar}=$(_argproc_quote "${optDefault}")")
     fi
 }
 
@@ -112,17 +113,16 @@ function opt-action {
 # `--required` option.
 function opt-choice {
     local optCall=''
-    local optFilter=''
-    local optInit=''
+    local optDefault=''
     local optRequired=0
     local optVar=''
     local args=("$@")
-    _argproc_janky-args --multi-arg call filter init required var \
+    _argproc_janky-args --multi-arg call default required var \
     || return 1
 
     if [[ ${optVar} != '' ]]; then
         # Set up the variable initializer.
-        _argproc_initStatements+=("${optVar}=$(_argproc_quote "${optInit}")")
+        _argproc_initStatements+=("${optVar}=$(_argproc_quote "${optDefault}")")
     fi
 
     local allNames=()
@@ -140,13 +140,47 @@ function opt-choice {
         fi
 
         _argproc_define-no-value-arg --option \
-            "${specName}" "${specValue}" "${optFilter}" "${optCall}" "${optVar}" "${specAbbrev}"
+            "${specName}" "${specValue}" "${optCall}" "${optVar}" "${specAbbrev}"
 
         allNames+=("${specName}")
     done
 
     if (( optRequired )); then
         _argproc_add-required-arg-postcheck "${allNames[@]}"
+    fi
+}
+
+# Declares a "multi-value" option, which allows passing zero or more values. No
+# `<abbrev>` or `<value>` is allowed in the argument spec. These options are
+# accepted via the syntax `--<name>[]=<values>` where <values> is a
+# space-separated list of literal values, with standard shell quoting and
+# escaping allowed in order to pass special characters. This definer also
+# accepts the `--required` option. The initial variable value is `()` (the empty
+# array).
+function opt-multi {
+    local optCall=''
+    local optFilter=''
+    local optRequired=0
+    local optVar=''
+    local args=("$@")
+    _argproc_janky-args call enum filter required var \
+    || return 1
+
+    local specName=''
+    _argproc_parse-spec "${args[0]}" \
+    || return 1
+
+    if [[ ${optVar} != '' ]]; then
+        # Set up the variable initializer.
+        _argproc_initStatements+=("${optVar}=()")
+    fi
+
+    _argproc_define-multi-value-arg --option \
+        "${specName}" "${optFilter}" "${optCall}" "${optVar}" \
+    || return "$?"
+
+    if (( optRequired )); then
+        _argproc_add-required-arg-postcheck "${specName}"
     fi
 }
 
@@ -158,11 +192,10 @@ function opt-choice {
 # unspecified, the initial variable value for a toggle option is `0`.
 function opt-toggle {
     local optCall=''
-    local optFilter=''
-    local optInit=0
+    local optDefault=0
     local optVar=''
     local args=("$@")
-    _argproc_janky-args call filter init var \
+    _argproc_janky-args call default var \
     || return 1
 
     local specName=''
@@ -172,34 +205,33 @@ function opt-toggle {
 
     if [[ ${optVar} != '' ]]; then
         # Set up the variable initializer.
-        _argproc_initStatements+=("${optVar}=$(_argproc_quote "${optInit}")")
+        _argproc_initStatements+=("${optVar}=$(_argproc_quote "${optDefault}")")
     fi
 
-    # Extra filter on the positive option, so it can take a value.
-    _argproc_define-value-taking-arg --option "${specName}" \
-        '=1' $'/^[01]$/\n'"${optFilter}" "${optCall}" "${optVar}"
-    _argproc_define-no-value-arg --option "no-${specName}" \
-        '0' "${optFilter}" "${optCall}" "${optVar}" ''
+    _argproc_define-value-taking-arg --option \
+        "${specName}" '=1' '/^[01]$/' "${optCall}" "${optVar}"
+    _argproc_define-no-value-arg --option \
+        "no-${specName}" '0' "${optCall}" "${optVar}" ''
 
     if [[ ${specAbbrev} != '' ]]; then
         _argproc_define-abbrev "${specAbbrev}" "${specName}"
     fi
 }
 
-# Declares a "value" option, which requires a value when passed on a
-# commandline. If a <value> is passed in the spec, then the resulting option is
-# value-optional, with the no-value form using the given <value>. No <abbrev> is
-# allowed in the argument spec. If left unspecified, the initial variable value
-# for a value option is `''` (the empty string). This definer also accepts the
-# `--required` option.
+# Declares a "value" option, which allows passing an arbitrary value. If a
+# <value> is passed in the spec, then the resulting option is value-optional,
+# with the no-value form using the given <value>. No <abbrev> is allowed in the
+# argument spec. If left unspecified, the default variable value for a value
+# option is `''` (the empty string). This definer also accepts the `--required`
+# option.
 function opt-value {
     local optCall=''
+    local optDefault=''
     local optFilter=''
-    local optInit=''
     local optRequired=0
     local optVar=''
     local args=("$@")
-    _argproc_janky-args call enum filter init required var \
+    _argproc_janky-args call default enum filter required var \
     || return 1
 
     local specName=''
@@ -209,11 +241,12 @@ function opt-value {
 
     if [[ ${optVar} != '' ]]; then
         # Set up the variable initializer.
-        _argproc_initStatements+=("${optVar}=$(_argproc_quote "${optInit}")")
+        _argproc_initStatements+=("${optVar}=$(_argproc_quote "${optDefault}")")
     fi
 
     _argproc_define-value-taking-arg --option \
-        "${specName}" "${specValue}" "${optFilter}" "${optCall}" "${optVar}"
+        "${specName}" "${specValue}" "${optFilter}" "${optCall}" "${optVar}" \
+    || return "$?"
 
     if (( optRequired )); then
         _argproc_add-required-arg-postcheck "${specName}"
@@ -227,12 +260,12 @@ function opt-value {
 # `--required` option.
 function positional-arg {
     local optCall=''
+    local optDefault=''
     local optFilter=''
-    local optInit=''
     local optRequired=0
     local optVar=''
     local args=("$@")
-    _argproc_janky-args call enum filter init required var \
+    _argproc_janky-args call default enum filter required var \
     || return 1
 
     local specName=''
@@ -241,7 +274,7 @@ function positional-arg {
 
     if [[ ${optVar} != '' ]]; then
         # Set up the variable initializer.
-        _argproc_initStatements+=("${optVar}=$(_argproc_quote "${optInit}")")
+        _argproc_initStatements+=("${optVar}=$(_argproc_quote "${optDefault}")")
     fi
 
     _argproc_define-value-taking-arg \
@@ -344,11 +377,6 @@ function rest-arg {
     _argproc_janky-args call enum filter var \
     || return 1
 
-    if declare >/dev/null -F _argproc:rest; then
-        error-msg --file-line=1 'Duplicate definition of rest argument.'
-        return 1
-    fi
-
     local specName=''
     _argproc_parse-spec "${args[0]}" \
     || return 1
@@ -358,7 +386,7 @@ function rest-arg {
         _argproc_initStatements+=("${optVar}=()")
     fi
 
-    _argproc_define-multi-value-arg \
+    _argproc_define-multi-value-arg --rest \
         "${specName}" "${optFilter}" "${optCall}" "${optVar}" \
     || return "$?"
 }
@@ -383,14 +411,14 @@ function _argproc_add-required-arg-postcheck {
     local argNoun='option'
     local allNames=''
 
-    local longName desc
-    for longName in "$@"; do
+    local specName desc
+    for specName in "$@"; do
         _argproc_preReturnStatements+=("$(
             printf '[[ ${_argproc_receivedArgNames} =~ "<%s>" ]] && (( _argproc_count++ )) || true' \
-                "${longName}"
+                "${specName}"
         )")
 
-        desc="$(_argproc_arg-description --short "${longName}")" || return 1
+        desc="$(_argproc_arg-description --short "${specName}")" || return 1
         if ! [[ ${desc} =~ ^- ]]; then
             # The description doesn't start with a dash (`-`), so it's an
             # argument, not an option.
@@ -430,12 +458,12 @@ function _argproc_arg-description {
         shift
     fi
 
-    local longName="$1"
-    local funcName="_argproc:arg-description-${longName}"
+    local specName="$1"
+    local funcName="_argproc:arg-description-${specName}"
     local desc
 
     if ! declare -F "${funcName}" >/dev/null; then
-        error-msg --file-line=1 "No such argument: <${longName}>"
+        error-msg --file-line=1 "No such argument: <${specName}>"
         return 1
     fi
 
@@ -453,28 +481,49 @@ function _argproc_arg-description {
 # short-form option.
 function _argproc_define-abbrev {
     local abbrevChar="$1"
-    local longName="$2"
+    local specName="$2"
 
     eval 'function _argproc:abbrev-'"${abbrevChar}"' {
-        _argproc:long-'"${longName}"' "$@"
+        _argproc:long-'"${specName}"' "$@"
     }'
 }
 
 # Defines an activation function for a multi-value argument.
 function _argproc_define-multi-value-arg {
-    local longName="$1"
+    local isOption=0 isRest=0
+    if [[ $1 == '--option' ]]; then
+        isOption=1
+        shift
+    elif [[ $1 == '--rest' ]]; then
+        isRest=1
+        shift
+        if declare >/dev/null -F _argproc:rest; then
+            error-msg --file-line=2 'Duplicate definition of rest argument.'
+            return 1
+        fi
+    fi
+
+    local specName="$1"
     local filter="$2"
     local callFunc="$3"
     local varName="$4"
 
-    _argproc_set-arg-description "${specName}" rest-argument || return 1
+    if (( isOption )); then
+        _argproc_set-arg-description "${specName}" multi-option || return 1
+        handlerName="_argproc:long-${specName}"
+    elif (( isRest )); then
+        _argproc_set-arg-description "${specName}" rest-argument || return 1
+        handlerName='_argproc:rest'
+    else
+        _argproc_set-arg-description "${specName}" multi-argument || return 1
+        handlerName="_argproc:positional-${specName}"
+    fi
 
-    local desc="argument <${longName}>"
     local handlerBody="$(
-        _argproc_handler-body "${longName}" "${desc}" "${filter}" "${callFunc}" "${varName}"
+        _argproc_handler-body "${specName}" "${filter}" "${callFunc}" "${varName}"
     )"
 
-    eval 'function _argproc:rest {
+    eval 'function '"${handlerName}"' {
         '"${handlerBody}"'
     }'
 }
@@ -490,19 +539,18 @@ function _argproc_define-no-value-arg {
         return 1
     fi
 
-    local longName="$1"
+    local specName="$1"
     local value="$2"
-    local filter="$3"
-    local callFunc="$4"
-    local varName="$5"
-    local abbrevChar="$6"
+    local callFunc="$3"
+    local varName="$4"
+    local abbrevChar="$5"
 
-    _argproc_set-arg-description "${longName}" option || return 1
+    _argproc_set-arg-description "${specName}" option || return 1
 
-    local desc="$(_argproc_arg-description "${longName}")"
-    local handlerName="_argproc:long-${longName}"
+    local desc="$(_argproc_arg-description "${specName}")"
+    local handlerName="_argproc:long-${specName}"
     local handlerBody="$(
-        _argproc_handler-body "${longName}" "${desc}" "${filter}" "${callFunc}" "${varName}"
+        _argproc_handler-body "${specName}" '' "${callFunc}" "${varName}"
     )"
 
     value="$(_argproc_quote "${value}")"
@@ -517,7 +565,7 @@ function _argproc_define-no-value-arg {
     }'
 
     if [[ ${abbrevChar} != '' ]]; then
-        _argproc_define-abbrev "${abbrevChar}" "${longName}"
+        _argproc_define-abbrev "${abbrevChar}" "${specName}"
     fi
 }
 
@@ -530,7 +578,7 @@ function _argproc_define-value-taking-arg {
         shift
     fi
 
-    local longName="$1"
+    local specName="$1"
     local eqDefault="$2"
     local filter="$3"
     local callFunc="$4"
@@ -538,16 +586,16 @@ function _argproc_define-value-taking-arg {
 
     local handlerName
     if (( isOption )); then
-        _argproc_set-arg-description "${longName}" option || return 1
-        handlerName="_argproc:long-${longName}"
+        _argproc_set-arg-description "${specName}" option || return 1
+        handlerName="_argproc:long-${specName}"
     else
-        _argproc_set-arg-description "${longName}" argument || return 1
-        handlerName="_argproc:positional-${longName}"
+        _argproc_set-arg-description "${specName}" argument || return 1
+        handlerName="_argproc:positional-${specName}"
     fi
 
-    local desc="$(_argproc_arg-description "${longName}")"
+    local desc="$(_argproc_arg-description "${specName}")"
     local handlerBody="$(
-        _argproc_handler-body "${longName}" "${desc}" "${filter}" "${callFunc}" "${varName}"
+        _argproc_handler-body "${specName}" "${filter}" "${callFunc}" "${varName}"
     )"
 
     local ifNoValue=''
@@ -564,12 +612,15 @@ function _argproc_define-value-taking-arg {
     eval 'function '"${handlerName}"' {
         if (( $# < 1 )); then
             '"${ifNoValue}"'
+        elif (( $# > 1 )); then
+            error-msg "Too many values for '"${desc}"'."
+            return 1
         fi
         '"${handlerBody}"'
     }'
 
     if [[ ${abbrevChar} != '' ]]; then
-        _argproc_define-abbrev "${abbrevChar}" "${longName}"
+        _argproc_define-abbrev "${abbrevChar}" "${specName}"
     fi
 }
 
@@ -590,36 +641,32 @@ function _argproc_error-coda {
 
 # Produces an argument handler body, from the given components.
 function _argproc_handler-body {
-    local longName="$1"
-    local desc="$2"
-    local filters="$3"
-    local callFunc="$4"
-    local varName="$5"
+    local specName="$1"
+    local filter="$2"
+    local callFunc="$3"
+    local varName="$4"
     local result=()
 
-    while [[ ${filters} =~ ^$'\n'*([^$'\n']+)(.*)$ ]]; do
-        local f="${BASH_REMATCH[1]}"
-        filters="${BASH_REMATCH[2]}"
-        if [[ ${f} =~ ^/(.*)/$ ]]; then
-            # Add a call to perform the regex check on each argument.
-            f="${BASH_REMATCH[1]}"
-            result+=("$(printf \
-                '_argproc_regex-filter-check %q %q "$@" || return "$?"\n' \
-                "${desc}" "${f}"
-            )")
-        else
-            # Add a loop to call the filter function on each argument.
-            result+=(
-                "$(printf '
-                    local _argproc_value _argproc_args=()
-                    for _argproc_value in "$@"; do
-                        _argproc_args+=("$(%s "${_argproc_value}")") || return 1
-                    done
-                    set -- "${_argproc_args[@]}"' \
-                    "${f}")"
-            )
-        fi
-    done
+    if [[ ${filter} =~ ^/(.*)/$ ]]; then
+        # Add a call to perform the regex check on each argument.
+        filter="${BASH_REMATCH[1]}"
+        local desc="$(_argproc_arg-description "${specName}")"
+        result+=("$(printf \
+            '_argproc_regex-filter-check %q %q "$@" || return "$?"\n' \
+            "${desc}" "${filter}"
+        )")
+    elif [[ ${filter} != '' ]]; then
+        # Add a loop to call the filter function on each argument.
+        result+=(
+            "$(printf '
+                local _argproc_value _argproc_args=()
+                for _argproc_value in "$@"; do
+                    _argproc_args+=("$(%s "${_argproc_value}")") || return 1
+                done
+                set -- "${_argproc_args[@]}"' \
+                "${filter}")"
+        )
+    fi
 
     if [[ ${callFunc} =~ ^\{(.*)\}$ ]]; then
         # Add a compound statement for the code block.
@@ -639,7 +686,7 @@ function _argproc_handler-body {
     fi
 
     result+=(
-        "$(printf '_argproc_receivedArgNames+="<%s>"' "${longName}")"
+        "$(printf '_argproc_receivedArgNames+="<%s>"' "${specName}")"
     )
 
     printf '%s\n' "${result[@]}"
@@ -664,8 +711,13 @@ function _argproc_janky-args {
     local argError=0
     local argSpecs=" $* " # Spaces on the ends to make the match code work.
     local optsDone=0
-    local gotInit=0
+    local gotDefault=0
     local a
+
+    # TEMP DURING TRANSITION: If `default` is specified, add `init`.
+    if [[ ${argSpecs} =~ ' default ' ]]; then
+        argSpecs+='init '
+    fi
 
     for a in "${args[@]}"; do
         if (( optsDone )); then
@@ -695,10 +747,11 @@ function _argproc_janky-args {
                     && optCall="${BASH_REMATCH[1]}" \
                     || argError=1
                     ;;
-                init)
-                    gotInit=1
+                # TEMP DURING TRANSITION: Synonym for `default`.
+                default|init)
+                    gotDefault=1
                     [[ ${value} =~ ^=(.*)$ ]] \
-                    && optInit="${BASH_REMATCH[1]}" \
+                    && optDefault="${BASH_REMATCH[1]}" \
                     || argError=1
                     ;;
                 enum)
@@ -772,14 +825,14 @@ function _argproc_janky-args {
         error-msg --file-line=2 'Too many arguments.'
         _argproc_declarationError=1
         return 1
-    elif (( gotInit && optRequired )); then
-        # Special case: `--init` is meaningless if `--required` was passed.
-        error-msg --file-line=2 'Cannot use both --required and --init.'
+    elif (( gotDefault && optRequired )); then
+        # Special case: `--default` is meaningless if `--required` was passed.
+        error-msg --file-line=2 'Cannot use both --required and --default.'
         _argproc_declarationError=1
         return 1
-    elif (( gotInit )) && [[ ${optVar} == '' ]]; then
-        # Special case: `--init` is meaningless without `--var`.
-        error-msg --file-line=2 'Must use --var when --init is used.'
+    elif (( gotDefault )) && [[ ${optVar} == '' ]]; then
+        # Special case: `--default` is meaningless without `--var`.
+        error-msg --file-line=2 'Must use --var when --default is used.'
         _argproc_declarationError=1
         return 1
     elif [[ ${argSpecs} =~ ' call '|' var ' ]]; then
@@ -871,13 +924,13 @@ function _argproc_regex-filter-check {
 # Sets the description of the named argument based on its type. This function
 # will fail if an argument with the given name was already defined.
 function _argproc_set-arg-description {
-    local longName="$1"
+    local specName="$1"
     local typeName="$2"
 
-    local funcName="_argproc:arg-description-${longName}"
+    local funcName="_argproc:arg-description-${specName}"
 
     if declare -F "${funcName}" >/dev/null; then
-        error-msg --file-line=3 "Duplicate argument: ${longName}"
+        error-msg --file-line=3 "Duplicate argument declaration: ${specName}"
         _argproc_declarationError=1
         return 1
     fi
@@ -885,16 +938,22 @@ function _argproc_set-arg-description {
     local desc
     case "${typeName}" in
         argument)
-            desc="argument <${longName}>"
+            desc="argument <${specName}>"
+            ;;
+        multi-argument)
+            desc="argument <${specName}[]>"
+            ;;
+        multi-option)
+            desc="option --${specName}[]"
             ;;
         option)
-            desc="option --${longName}"
+            desc="option --${specName}"
             ;;
         rest-argument)
-            desc="rest argument <${longName}...>"
+            desc="rest argument <${specName}...>"
             ;;
         *)
-            error-msg --file-line=1 "Unknown type: ${typeName}"
+            error-msg --file-line=1 "Unknown argument type: ${typeName}"
             _argproc_declarationError=1
             return 1
             ;;
@@ -915,7 +974,7 @@ function _argproc_set-arg-description {
 # read.
 function _argproc_statements-from-args {
     local argError=0
-    local arg handler name value
+    local arg handler name value values
 
     # This is used for required-argument checking.
     _argproc_statements+=($'local _argproc_receivedArgNames=\'\'')
@@ -931,7 +990,7 @@ function _argproc_statements-from-args {
             # Non-option argument.
             break
         elif [[ ${arg} =~ ^--([-a-zA-Z0-9]+)(=.*)?$ ]]; then
-            # Long-form argument.
+            # Long-form no- or single-value option.
             name="${BASH_REMATCH[1]}"
             value="${BASH_REMATCH[2]}"
             handler="_argproc:long-${name}"
@@ -944,8 +1003,24 @@ function _argproc_statements-from-args {
                 # `:1` to drop the `=` from the start of `value`.
                 _argproc_statements+=("${handler} $(_argproc_quote "${value:1}")")
             fi
+        elif [[ ${arg} =~ ^--([-a-zA-Z0-9]+)'[]='(.*)$ ]]; then
+            # Long-form multi-value option.
+            name="${BASH_REMATCH[1]}"
+            value="${BASH_REMATCH[2]}"
+            handler="_argproc:long-${name}"
+            if ! declare -F "${handler}" >/dev/null; then
+                error-msg "Unknown option: --${name}"
+                argError=1
+            else
+                # Parse the value into elements.
+                eval 2>/dev/null "values=(${value})" || {
+                    error-msg "Invalid multi-value syntax for option --${name}:"
+                    error-msg "  ${value}"
+                }
+                _argproc_statements+=("${handler} $(_argproc_quote "${values[@]}")")
+            fi
         elif [[ $arg =~ ^-([a-zA-Z0-9]+)$ ]]; then
-            # Short-form argument.
+            # Short-form option.
             arg="${BASH_REMATCH[1]}"
             while [[ ${arg} =~ ^(.)(.*)$ ]]; do
                 name="${BASH_REMATCH[1]}"

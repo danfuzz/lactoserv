@@ -51,7 +51,7 @@ usual-json-output-args --no-rest
 opt-toggle --var=fullPaths full-paths
 
 # Include pattern.
-opt-value --var=includeRegex --init='.' --filter='/./' include
+opt-value --var=includeRegex --default='.' --filter='/./' include
 
 # The paths.
 paths=()

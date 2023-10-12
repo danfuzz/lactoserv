@@ -33,7 +33,7 @@ opt-value --required --var=type \
     type
 
 # Where to output.
-opt-value --var=out --init='/dev/stdout' out
+opt-value --var=out --default='/dev/stdout' out
 
 process-args "$@" || exit "$?"
 
