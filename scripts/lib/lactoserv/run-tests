@@ -33,7 +33,7 @@ define-usage --with-help $'
 '
 
 # What to do?
-opt-value --var=action --init=run --enum='build clean run' do
+opt-value --var=action --default=run --enum='build clean run' do
 
 # Built output directory.
 opt-value --var=outDir out

@@ -20,10 +20,10 @@ define-usage --with-help $'
 '
 
 # Copy files into place?
-opt-toggle --var=doCopy --init=1 copy
+opt-toggle --var=doCopy --default=1 copy
 
 # Pull from upstream?
-opt-toggle --var=doPull --init=1 pull
+opt-toggle --var=doPull --default=1 pull
 
 process-args "$@" || exit "$?"
 
