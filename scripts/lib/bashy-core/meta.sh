@@ -54,9 +54,9 @@ function base-dir {
 # calling script. It is an error to try to get the directory before having set
 # it.
 function subproject-dir {
-    if [[ $1 =~ --set=(.*)$ ]]; then
+    if [[ $1 =~ ^--set=(.*)$ ]]; then
         local setDir="${BASH_REMATCH[1]}"
-        if [[ ${setDir} =~ [^/] ]]; then
+        if [[ ${setDir} =~ ^[^/] ]]; then
             local callerDir="$(dirname "$(readlink -f -- "${BASH_SOURCE[1]}")")"
             setDir="${callerDir}/${setDir}"
         fi
@@ -137,8 +137,9 @@ function this-cmd-path {
     echo "${_bashy_cmdPath}"
 }
 
-# Gets the full absolute path to this command's base library directory. This is the `lib`
-# directory containing the unit of this command.
+# Gets the full absolute path to this command's base library directory. This is
+# the `lib` directory containing the core `_init` which set the current shell
+# environment up.
 function this-base-library-dir {
     echo "${_bashy_libDir}"
 }

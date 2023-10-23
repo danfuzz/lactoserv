@@ -52,18 +52,41 @@ function define-usage {
 }
 
 # Splits a multi-line string into an array. Assigns the indicated variable.
-# Note: This ignores blank lines.
+# This ignores blank lines by default. With the option `--nl-terminated`, this
+# instead expects every line to be newline-terminated and will report an error
+# if the last character in the given string is _not_ a newline.
 function set-array-from-lines {
     # Note: Because we use `eval`, local variables are given name prefixes to
     # avoid conflicts with the caller.
+    local _bashy_nlTerm=0
+    if [[ $1 == --nl-terminated ]]; then
+        _bashy_nlTerm=1
+        shift
+    fi
+
     local _bashy_name="$1"
     local _bashy_value="$2"
 
+    local _bashy_parsed=()
+    if (( _bashy_nlTerm )); then
+        while [[ ${_bashy_value} =~ ^([^$'\n']*)$'\n'(.*)$ ]]; do
+            _bashy_parsed+=("${BASH_REMATCH[1]}")
+            _bashy_value="${BASH_REMATCH[2]}"
+        done
+        if [[ ${_bashy_value} != '' ]]; then
+            error-msg --file-line=1 'Last line unterminated.'
+            return 1
+        fi
+    else
+        while [[ ${_bashy_value} =~ ^$'\n'*([^$'\n']+)(.*)$ ]]; do
+            _bashy_parsed+=("${BASH_REMATCH[1]}")
+            _bashy_value="${BASH_REMATCH[2]}"
+        done
+    fi
+
     # No choice but `eval` for Bash-3.2 compatibility.
-    local _bashy_oldIfs="${IFS}"
-    IFS=$'\n'
-    eval "${_bashy_name}=(\${_bashy_value})"
-    IFS="${_bashy_oldIfs}"
+    eval "${_bashy_name}=(\"\${_bashy_parsed[@]}\")"
+    return "$?"
 }
 
 # Sorts an array in-place.

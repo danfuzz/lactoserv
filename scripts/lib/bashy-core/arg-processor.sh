@@ -17,8 +17,9 @@
 # `<value>` are always optional and (independently) sometimes prohibited,
 # depending on the definition function.
 #
-# The public argument-defining functions also allow these options, of which
-# at least one of `--call` or `--var` must be used. When multiple of these are
+# Most public argument-defining functions also all allow these options, of which
+# at least one must be used. When both are used, the `--call` is performed
+# first, and then the `--var` setting.
 # present, evaluation order is filter then call then variable setting.
 # * `--call=<name>` or `--call={<code>}` -- Calls the named function passing it
 #   the argument value(s), or runs the indicated code snippet. If the call
@@ -26,7 +27,8 @@
 #   parameter references (`$1` `$@` `set <value>` etc.) are available.
 # * `--var=<name>` -- Sets the named variable to the argument value(s).
 #
-# Value-accepting argument definers allow these additional options:
+# Value-accepting argument definers allow these additional options to pre-filter
+# a value, before it gets set or passed to a `--call`:
 # * `--filter=<name>` -- Calls the named function passing it a single argument
 #   value; the function must output a replacement value. If the call fails, the
 #   argument is rejected. Note: The filter function runs in a subshell, and as
@@ -104,6 +106,36 @@ function opt-action {
         # Set up the variable initializer.
         _argproc_initStatements+=("${optVar}=$(_argproc_quote "${optDefault}")")
     fi
+}
+
+# Declares an "alias" option, which expands into an arbitrary set of other
+# options. On a commandline, alias options do not accept values (because values,
+# if any, are provided in the expansion). Similarly, and unlike most of the
+# argument-definining functions, alias options cannot be specified with either
+# `--call` or `--var` (because any calls or variable setting is done with the
+# expanded options). In fact, _no_ options are available when defining an alias.
+function opt-alias {
+    local args=("$@")
+    _argproc_janky-args --multi-arg \
+    || return 1
+
+    local specName=''
+    local specAbbrev=''
+    _argproc_parse-spec --abbrev "${args[0]}" \
+    || return 1
+
+    args=("${args[@]:1}")
+
+    local arg
+    for arg in "${args[@]}"; do
+        if [[ ! (${arg} =~ ^-) ]]; then
+            error-msg --file-line=1 "Invalid alias expansion: ${arg}"
+            return 1
+        fi
+    done
+
+    _argproc_define-alias-arg --option "${specName}" "${specAbbrev}" \
+        "${args[@]}"
 }
 
 # Declares a "choice" option set, consisting of one or more options. On a
@@ -483,9 +515,43 @@ function _argproc_define-abbrev {
     local abbrevChar="$1"
     local specName="$2"
 
-    eval 'function _argproc:abbrev-'"${abbrevChar}"' {
-        _argproc:long-'"${specName}"' "$@"
+    eval 'function _argproc:short-alias-'"${abbrevChar}"' {
+        echo --'"${specName}"'
     }'
+}
+
+# Defines an activation function for an alias.
+function _argproc_define-alias-arg {
+    if [[ $1 == '--option' ]]; then
+        shift
+    else
+        # `--option` is really defined here for parallel structure, not utility.
+        error-msg --file-line=1 'Not supported.'
+        return 1
+    fi
+
+    local specName="$1"
+    local abbrevChar="$2"
+    shift 2
+    local args=("$@")
+
+    _argproc_set-arg-description "${specName}" option || return 1
+
+    local desc="$(_argproc_arg-description "${specName}")"
+    local handlerName="_argproc:alias-${specName}"
+    eval 'function '"${handlerName}"' {
+        if (( $# > 0 )); then
+            error-msg "Value not allowed for '"${desc}"'."
+            return 1
+        fi
+        printf "%q\\n" '"$(_argproc_quote "${args[@]}")"'
+    }'
+
+    if [[ ${abbrevChar} != '' ]]; then
+        eval 'function _argproc:short-alias-'"${abbrevChar}"' {
+            '"${handlerName}"' "$@"
+        }'
+    fi
 }
 
 # Defines an activation function for a multi-value argument.
@@ -960,7 +1026,7 @@ function _argproc_set-arg-description {
 
 # Builds up a list of statements to evaluate, based on the given arguments. It
 # is stored in the variable `_argproc_statements`, which is assumed to be
-# declared by its caller.
+# declared `local` by its caller.
 #
 # Note: This arrangement, where argument parsing is done in a separate
 # function and as a separate pass from evaluation, makes it possible to use
@@ -968,7 +1034,7 @@ function _argproc_set-arg-description {
 # read.
 function _argproc_statements-from-args {
     local argError=0
-    local arg handler name value values
+    local arg handler name assign value values
 
     # This is used for required-argument checking.
     _argproc_statements+=($'local _argproc_receivedArgNames=\'\'')
@@ -983,35 +1049,55 @@ function _argproc_statements-from-args {
         elif [[ ${arg} == '' || ${arg} =~ ^-[0-9]*$ || ${arg} =~ ^[^-] ]]; then
             # Non-option argument.
             break
-        elif [[ ${arg} =~ ^--([-a-zA-Z0-9]+)(=.*)?$ ]]; then
-            # Long-form no- or single-value option.
+        elif [[ ${arg} =~ ^--([-a-zA-Z0-9]+)(('[]='|=)(.*))?$ ]]; then
+            # Long-form option.
             name="${BASH_REMATCH[1]}"
-            value="${BASH_REMATCH[2]}"
-            handler="_argproc:long-${name}"
-            if ! declare -F "${handler}" >/dev/null; then
+            assign="${BASH_REMATCH[3]}"
+            value="${BASH_REMATCH[4]}"
+            if handler="_argproc:long-${name}" \
+                    && declare -F "${handler}" >/dev/null; then
+                case "${assign}" in
+                    '')
+                        # No-value option.
+                        _argproc_statements+=("${handler}")
+                        ;;
+                    '=')
+                        # Single-value option.
+                        _argproc_statements+=(
+                            "${handler} $(_argproc_quote "${value}")")
+                        ;;
+                    '[]=')
+                        # Multi-value option. Parse the value into elements.
+                        if eval 2>/dev/null "values=(${value})"; then
+                            _argproc_statements+=(
+                                "${handler} $(_argproc_quote "${values[@]}")")
+                        else
+                            error-msg "Invalid multi-value syntax for option --${name}:"
+                            error-msg "  ${value}"
+                            argError=1
+                        fi
+                        ;;
+                esac
+            elif handler="_argproc:alias-${name}" \
+                    && declare -F "${handler}" >/dev/null; then
+                # Alias option; must not be passed any values.
+                if [[ ${assign} == '' ]]; then
+                    # Parse the output of `handler` into new options, and
+                    # "unshift" them onto `$@`.
+                    if eval 2>/dev/null "values=($("${handler}"))"; then
+                        shift # Shift the alias option away.
+                        set -- shifted-away-below "${values[@]}" "$@"
+                    else
+                        error-msg "Could not expand alias option: --${name}"
+                        argError=1
+                    fi
+                else
+                    error-msg "Cannot pass values to alias option: --${name}"
+                    argError=1
+                fi
+            else
                 error-msg "Unknown option: --${name}"
                 argError=1
-            elif [[ ${value} == '' ]]; then
-                _argproc_statements+=("${handler}")
-            else
-                # `:1` to drop the `=` from the start of `value`.
-                _argproc_statements+=("${handler} $(_argproc_quote "${value:1}")")
-            fi
-        elif [[ ${arg} =~ ^--([-a-zA-Z0-9]+)'[]='(.*)$ ]]; then
-            # Long-form multi-value option.
-            name="${BASH_REMATCH[1]}"
-            value="${BASH_REMATCH[2]}"
-            handler="_argproc:long-${name}"
-            if ! declare -F "${handler}" >/dev/null; then
-                error-msg "Unknown option: --${name}"
-                argError=1
-            else
-                # Parse the value into elements.
-                eval 2>/dev/null "values=(${value})" || {
-                    error-msg "Invalid multi-value syntax for option --${name}:"
-                    error-msg "  ${value}"
-                }
-                _argproc_statements+=("${handler} $(_argproc_quote "${values[@]}")")
             fi
         elif [[ $arg =~ ^-([a-zA-Z0-9]+)$ ]]; then
             # Short-form option.
@@ -1019,15 +1105,23 @@ function _argproc_statements-from-args {
             while [[ ${arg} =~ ^(.)(.*)$ ]]; do
                 name="${BASH_REMATCH[1]}"
                 arg="${BASH_REMATCH[2]}"
-                handler="_argproc:abbrev-${name}"
-                if ! declare -F "${handler}" >/dev/null; then
+                if handler="_argproc:short-alias-${name}" \
+                        && declare -F "${handler}" >/dev/null; then
+                    # Parse the output of `handler` into new options, and
+                    # "unshift" them onto `$@`.
+                    if eval 2>/dev/null "values=($("${handler}"))"; then
+                        shift # Shift the alias option away.
+                        set -- shifted-away-below "${values[@]}" "$@"
+                    else
+                        error-msg "Could not expand alias option: --${name}"
+                        argError=1
+                    fi
+                else
                     error-msg "Unknown option: -${name}"
                     argError=1
                     # Break, to avoid spewing a ton of errors in case of a pilot
                     # error along the lines of `-longOptionName`.
                     break
-                else
-                    _argproc_statements+=("${handler}")
                 fi
             done
         else

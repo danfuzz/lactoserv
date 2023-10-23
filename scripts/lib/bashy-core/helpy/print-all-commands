@@ -41,7 +41,7 @@ unitNames=(${unitNames})
 if (( ${#unitNames[@]} == 0 )); then
     lsArgs=(--depth=2)
 else
-    lsArgs=(--depth=1 "${unitNames[@]}")
+    lsArgs=(--depth=1 -- "${unitNames[@]}")
 fi
 
 baseDir="$(this-base-library-dir)"
