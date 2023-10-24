@@ -215,7 +215,7 @@ function json-postproc-output {
             : # Nothing to do.
             ;;
         lines|raw|raw0)
-            jget "${outputArray}" --output="${_bashy_jsonOutputStyle}" '.[]'
+            jget --output="${_bashy_jsonOutputStyle}" "${outputArray}" '.[]'
             ;;
         '')
             error-msg 'No JSON --output option supplied (or implied).'
@@ -235,33 +235,16 @@ function json-postproc-strings {
     local output=("$@")
 
     case "${_bashy_jsonOutputStyle}" in
-        array)
-            # Form a JSON array, and tell the postprocessor about it.
-            jarray --input=strings -- "${output[@]}" \
-            | jpostproc "${_bashy_jsonPostArgs[@]}"
-            ;;
-        json)
-            # Form a sequence of JSON strings, and tell the postprocessor about
-            # it.
-            jstring -- "${output[@]}" \
-            | jpostproc "${_bashy_jsonPostArgs[@]}"
-            ;;
         none)
             : # Nothing to do.
             ;;
-        lines|raw|raw0)
-            # Form a sequence of JSON strings, and then ask `jval` to use its
-            # output processing on it.
-            jstring -- "${output[@]}" \
-            | jval --input=read --output="${_bashy_jsonOutputStyle}"
-            ;;
-        '')
-            error-msg 'No JSON --output option supplied (or implied).'
-            return 1
-            ;;
         *)
-            error-msg "Unrecognized JSON --output option: ${_bashy_jsonOutputStyle}"
-            return 1
+            # Form a JSON array, and tell the postprocessor about it.
+            local outputArray
+            outputArray="$(jarray --input=strings -- "${output[@]}")" \
+            || return "$?"
+
+            json-postproc-output "${outputArray}"
             ;;
     esac
 }

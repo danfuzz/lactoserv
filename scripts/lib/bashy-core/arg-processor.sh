@@ -11,10 +11,10 @@
 # integers (e.g. `-123`) are interpreted as non-option arguments.
 #
 # The public argument-defining functions all take argument specifications of the
-# form `<name>/<abbrev>=<value>`. `<name>` is the argument (long option) name.
-# `<abbrev>` is a one-letter abbreviation for a single-dash option form.
-# `<value>` is a (string) value to associate with the argument. `<abbrev>` and
-# `<value>` are always optional and (independently) sometimes prohibited,
+# form `<name>/<short>=<value>`. `<name>` is the argument (long option) name.
+# `<short>` is a one-letter short-option abbreviation for a single-dash option
+# form. `<value>` is a (string) value to associate with the argument. `<short>`
+# and `<value>` are always optional and (independently) sometimes prohibited,
 # depending on the definition function.
 #
 # Most public argument-defining functions also all allow these options, of which
@@ -93,14 +93,14 @@ function opt-action {
     || return 1
 
     local specName=''
-    local specAbbrev=''
     local specHasValue=0 # Ignored, but needed because `parse-spec` will set it.
+    local specShort=''
     local specValue='1'
-    _argproc_parse-spec --abbrev --value "${args[0]}" \
+    _argproc_parse-spec --short --value "${args[0]}" \
     || return 1
 
     _argproc_define-no-value-arg --option \
-        "${specName}" "${specValue}" "${optCall}" "${optVar}" "${specAbbrev}"
+        "${specName}" "${specValue}" "${optCall}" "${optVar}" "${specShort}"
 
     if [[ ${optVar} != '' ]]; then
         # Set up the variable initializer.
@@ -120,8 +120,8 @@ function opt-alias {
     || return 1
 
     local specName=''
-    local specAbbrev=''
-    _argproc_parse-spec --abbrev "${args[0]}" \
+    local specShort=''
+    _argproc_parse-spec --short "${args[0]}" \
     || return 1
 
     args=("${args[@]:1}")
@@ -134,56 +134,12 @@ function opt-alias {
         fi
     done
 
-    _argproc_define-alias-arg --option "${specName}" "${specAbbrev}" \
+    _argproc_define-alias-arg --option "${specName}" "${specShort}" \
         "${args[@]}"
 }
 
-# Declares a "choice" option set, consisting of one or more options. On a
-# commandline, no choice option accepts a value (because the option name itself
-# implies the value). If left unspecified, the initial variable value for a
-# choice option is `''` (the empty string). This definer also accepts the
-# `--required` option.
-function opt-choice {
-    local optCall=''
-    local optDefault=''
-    local optRequired=0
-    local optVar=''
-    local args=("$@")
-    _argproc_janky-args --multi-arg call default required var \
-    || return 1
-
-    if [[ ${optVar} != '' ]]; then
-        # Set up the variable initializer.
-        _argproc_initStatements+=("${optVar}=$(_argproc_quote "${optDefault}")")
-    fi
-
-    local allNames=()
-    local spec
-    for spec in "${args[@]}"; do
-        local specName=''
-        local specAbbrev=''
-        local specHasValue=0
-        local specValue=''
-        _argproc_parse-spec --abbrev --value "${spec}" \
-        || return 1
-
-        if (( !specHasValue )); then
-            specValue="${specName}"
-        fi
-
-        _argproc_define-no-value-arg --option \
-            "${specName}" "${specValue}" "${optCall}" "${optVar}" "${specAbbrev}"
-
-        allNames+=("${specName}")
-    done
-
-    if (( optRequired )); then
-        _argproc_add-required-arg-postcheck "${allNames[@]}"
-    fi
-}
-
 # Declares a "multi-value" option, which allows passing zero or more values. No
-# `<abbrev>` or `<value>` is allowed in the argument spec. These options are
+# `<short>` or `<value>` is allowed in the argument spec. These options are
 # accepted via the syntax `--<name>[]=<values>` where <values> is a
 # space-separated list of literal values, with standard shell quoting and
 # escaping allowed in order to pass special characters. This definer also
@@ -231,8 +187,8 @@ function opt-toggle {
     || return 1
 
     local specName=''
-    local specAbbrev=''
-    _argproc_parse-spec --abbrev "${args[0]}" \
+    local specShort=''
+    _argproc_parse-spec --short "${args[0]}" \
     || return 1
 
     if [[ ${optVar} != '' ]]; then
@@ -242,17 +198,16 @@ function opt-toggle {
 
     _argproc_define-value-taking-arg --option \
         "${specName}" '=1' '/^[01]$/' "${optCall}" "${optVar}"
-    _argproc_define-no-value-arg --option \
-        "no-${specName}" '0' "${optCall}" "${optVar}" ''
+    _argproc_define-alias-arg --option "no-${specName}" '' "--${specName}=0"
 
-    if [[ ${specAbbrev} != '' ]]; then
-        _argproc_define-abbrev "${specAbbrev}" "${specName}"
+    if [[ ${specShort} != '' ]]; then
+        _argproc_define-alias-arg --short-only "${specName}" "${specShort}"
     fi
 }
 
 # Declares a "value" option, which allows passing an arbitrary value. If a
 # <value> is passed in the spec, then the resulting option is value-optional,
-# with the no-value form using the given <value>. No <abbrev> is allowed in the
+# with the no-value form using the given <value>. No <short> is allowed in the
 # argument spec. If left unspecified, the default variable value for a value
 # option is `''` (the empty string). This definer also accepts the `--required`
 # option.
@@ -285,7 +240,7 @@ function opt-value {
     fi
 }
 
-# Declares a positional argument. No `<abbrev>` or `<value>` is allowed in the
+# Declares a positional argument. No `<short>` or `<value>` is allowed in the
 # argument spec. If left unspecified, the initial variable value is `''` (the
 # empty string). Unlike options, a positional argument name is _only_ used for
 # error messages and internal bookkeeping. This definer also accepts the
@@ -509,47 +464,45 @@ function _argproc_arg-description {
     fi
 }
 
-# Defines an "abbrev" function, which is what gets called to activate a
-# short-form option.
-function _argproc_define-abbrev {
-    local abbrevChar="$1"
-    local specName="$2"
-
-    eval 'function _argproc:short-alias-'"${abbrevChar}"' {
-        echo --'"${specName}"'
-    }'
-}
-
-# Defines an activation function for an alias.
+# Defines an activation function for an alias and/or a short alias.
 function _argproc_define-alias-arg {
-    if [[ $1 == '--option' ]]; then
-        shift
-    else
-        # `--option` is really defined here for parallel structure, not utility.
-        error-msg --file-line=1 'Not supported.'
-        return 1
-    fi
+    local shortOnly=0
+    case "$1" in
+        --option)
+            : # Nothing special to do for this case.
+            ;;
+        --short-only)
+            shortOnly=1
+            ;;
+        *)
+            error-msg --file-line=1 'Need --option or --short-only.'
+            return 1
+            ;;
+    esac
+    shift
 
     local specName="$1"
-    local abbrevChar="$2"
+    local specShort="$2"
     shift 2
     local args=("$@")
 
-    _argproc_set-arg-description "${specName}" option || return 1
+    if (( !shortOnly )); then
+        _argproc_set-arg-description "${specName}" option || return 1
 
-    local desc="$(_argproc_arg-description "${specName}")"
-    local handlerName="_argproc:alias-${specName}"
-    eval 'function '"${handlerName}"' {
-        if (( $# > 0 )); then
-            error-msg "Value not allowed for '"${desc}"'."
-            return 1
-        fi
-        printf "%q\\n" '"$(_argproc_quote "${args[@]}")"'
-    }'
+        local desc="$(_argproc_arg-description "${specName}")"
+        local handlerName="_argproc:alias-${specName}"
+        eval 'function '"${handlerName}"' {
+            if (( $# > 0 )); then
+                error-msg "Value not allowed for '"${desc}"'."
+                return 1
+            fi
+            printf "%q\\n" '"$(_argproc_quote "${args[@]}")"'
+        }'
+    fi
 
-    if [[ ${abbrevChar} != '' ]]; then
-        eval 'function _argproc:short-alias-'"${abbrevChar}"' {
-            '"${handlerName}"' "$@"
+    if [[ ${specShort} != '' ]]; then
+        eval 'function _argproc:short-alias-'"${specShort}"' {
+            echo --'"${specName}"'
         }'
     fi
 }
@@ -609,7 +562,7 @@ function _argproc_define-no-value-arg {
     local value="$2"
     local callFunc="$3"
     local varName="$4"
-    local abbrevChar="$5"
+    local specShort="$5"
 
     _argproc_set-arg-description "${specName}" option || return 1
 
@@ -630,8 +583,8 @@ function _argproc_define-no-value-arg {
         '"${handlerBody}"'
     }'
 
-    if [[ ${abbrevChar} != '' ]]; then
-        _argproc_define-abbrev "${abbrevChar}" "${specName}"
+    if [[ ${specShort} != '' ]]; then
+        _argproc_define-alias-arg --short-only "${specName}" "${specShort}"
     fi
 }
 
@@ -685,8 +638,8 @@ function _argproc_define-value-taking-arg {
         '"${handlerBody}"'
     }'
 
-    if [[ ${abbrevChar} != '' ]]; then
-        _argproc_define-abbrev "${abbrevChar}" "${specName}"
+    if [[ ${specShort} != '' ]]; then
+        _argproc_define-alias-arg --short-only "${specName}" "${specShort}"
     fi
 }
 
@@ -905,17 +858,18 @@ function _argproc_janky-args {
     fi
 }
 
-# Parses a single argument / option spec. `--abbrev` to accept an abbreviation.
-# `--value` to accept a value. `--value-eq` to accept a value and leave the
-# `=` in the result (to distinguish unset and set-to-empty). Sets `spec<Item>`
-# (presumed locals in the calling scope) to "return" results.
+# Parses a single argument / option spec. `--short` to accept a <short>
+# (short-option) character. `--value` to accept a value. `--value-eq` to accept
+# a value and leave the `=` in the result (to distinguish unset and
+# set-to-empty). Sets `spec<Item>` (presumed locals in the calling scope) to
+# "return" results.
 function _argproc_parse-spec {
-    local abbrevOk=0
+    local shortOk=0
     local valueOk=0
     local valueWithEq=0
     while [[ $1 =~ ^-- ]]; do
         case "$1" in
-            --abbrev)   abbrevOk=1               ;;
+            --short)    shortOk=1               ;;
             --value)    valueOk=1                ;;
             --value-eq) valueOk=1; valueWithEq=1 ;;
             *)
@@ -935,14 +889,14 @@ function _argproc_parse-spec {
         return 1
     fi
 
-    specName="${BASH_REMATCH[1]}" # Name always allowed. Others need to be checked.
-    local abbrev="${BASH_REMATCH[2]}"
+    specName="${BASH_REMATCH[1]}" # Name always allowed. Others must be checked.
+    local shortChar="${BASH_REMATCH[2]}"
     local value="${BASH_REMATCH[3]}"
 
-    if (( abbrevOk )); then
-        specAbbrev="${abbrev:1}" # `:1` to drop the slash.
-    elif [[ ${abbrev} != '' ]]; then
-        error-msg --file-line=2 "Abbrev not allowed in spec: ${spec}"
+    if (( shortOk )); then
+        specShort="${shortChar#/}" # `#/` to drop the initial slash.
+    elif [[ ${shortChar} != '' ]]; then
+        error-msg --file-line=2 "Short-option character not allowed in spec: ${spec}"
         _argproc_declarationError=1
         return 1
     fi
@@ -1100,18 +1054,17 @@ function _argproc_statements-from-args {
                 argError=1
             fi
         elif [[ $arg =~ ^-([a-zA-Z0-9]+)$ ]]; then
-            # Short-form option.
+            # Short-form option (which is always an alias in this system).
             arg="${BASH_REMATCH[1]}"
+            local newArgs=()
             while [[ ${arg} =~ ^(.)(.*)$ ]]; do
                 name="${BASH_REMATCH[1]}"
                 arg="${BASH_REMATCH[2]}"
                 if handler="_argproc:short-alias-${name}" \
                         && declare -F "${handler}" >/dev/null; then
-                    # Parse the output of `handler` into new options, and
-                    # "unshift" them onto `$@`.
+                    # Parse the output of `handler` into new options to include.
                     if eval 2>/dev/null "values=($("${handler}"))"; then
-                        shift # Shift the alias option away.
-                        set -- shifted-away-below "${values[@]}" "$@"
+                        newArgs+=("${values[@]}")
                     else
                         error-msg "Could not expand alias option: --${name}"
                         argError=1
@@ -1124,6 +1077,8 @@ function _argproc_statements-from-args {
                     break
                 fi
             done
+            shift # Shift the original short option away.
+            set -- shifted-away-below "${newArgs[@]}" "$@"
         else
             # Something weird and invalid, e.g. `--=`.
             error-msg "Invalid option syntax: ${arg}"
