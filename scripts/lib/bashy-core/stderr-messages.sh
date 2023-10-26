@@ -23,6 +23,9 @@
 # --set=0|1 -- Enable or disable printing of this kind of message.
 # --status -- Prints `1` or `0` to stdout, to indicate enabled status. (This is
 #   to make it easy to propagate the enabled state down into another command.)
+# --suppress-cmd -- Forces the system to think an error has already been emitted
+#   and so do _not_ subsequently emit a first-error "header" of the command
+#   name.
 #
 
 
@@ -91,7 +94,7 @@ function stderr-opt {
 #   * `all` -- Everything.
 # * `--quiet` / `-q` -- Same as `--verbose=none`
 function usual-stderr-args {
-    opt-value --call=_stderr_verbose --enum='none error warn all' verbose
+    opt-value --call=_stderr_verbose --enum[]='none error warn all' verbose
     opt-alias quiet/q --verbose=none
 }
 
@@ -136,6 +139,14 @@ function _stderr_print-handler {
                 ;;
             --status)
                 echo "${!enabledVarName}"
+                wasCmd=1
+                ;;
+            --suppress-cmd)
+                if [[ ${anyMessagesVarName} == '' ]]; then
+                    error-msg "Unrecognized option: $1"
+                    return 1
+                fi
+                eval "${anyMessagesVarName}=1"
                 wasCmd=1
                 ;;
             --)

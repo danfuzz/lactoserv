@@ -89,6 +89,53 @@ function set-array-from-lines {
     return "$?"
 }
 
+# Reverse of `vals`: Assigns parsed elements of the given multi-value string
+# (as produced by `vals` or similar) into the indicated variable, as an array.
+function set-array-from-vals {
+    if (( $# != 2 )); then
+        error-msg --file-line=1 'Missing argument(s) to `set-array-from-vals`.'
+        return 1
+    fi
+
+    # Note: Because we use `eval`, local variables are given name prefixes to
+    # avoid conflicts with the caller.
+    local _bashy_name="$1"
+    local _bashy_value="$2"
+
+    # Trim _ending_ whitespace, and prefix `value` with a space, the latter to
+    # maintain the constraint that values are space-separated.
+    if [[ ${_bashy_value} =~ ^(.*[^ ])' '+$ ]]; then
+        _bashy_value=" ${BASH_REMATCH[1]}"
+    else
+        _bashy_value=" ${_bashy_value}"
+    fi
+
+    local _bashy_values=() _bashy_print
+    while [[ ${_bashy_value} =~ ^' '+([^ ].*)$ ]]; do
+        _bashy_value="${BASH_REMATCH[1]}"
+        if [[ ${_bashy_value} =~ ^([-+=_:./%@a-zA-Z0-9]+)(.*)$ ]]; then
+            _bashy_values+=("${BASH_REMATCH[1]}")
+            _bashy_value="${BASH_REMATCH[2]}"
+        elif [[ ${_bashy_value} =~ ^(\'[^\']*\')(.*)$ ]]; then
+            _bashy_values+=("${BASH_REMATCH[1]}")
+            _bashy_value="${BASH_REMATCH[2]}"
+        elif [[ ${_bashy_value} =~ ^\"([^\"]*)\"(.*)$ ]]; then
+            printf -v _bashy_print '%q' "${BASH_REMATCH[1]}"
+            _bashy_values+=("${_bashy_print}")
+            _bashy_value="${BASH_REMATCH[2]}"
+        elif [[ ${_bashy_value} =~ ^(\$\'([^\']|\\\')*\')(.*)$ ]]; then
+            _bashy_values+=("${BASH_REMATCH[1]}")
+            _bashy_value="${BASH_REMATCH[3]}"
+        fi
+    done
+
+    if ! [[ ${_bashy_value} =~ ^' '*$ ]]; then
+        return 1
+    fi
+
+    eval "${_bashy_name}=("${_bashy_values[@]}")"
+}
+
 # Sorts an array in-place.
 function sort-array {
     # Because of Bash-3.2 compatibility, this is the sanest way to get the
@@ -105,27 +152,59 @@ function sort-array {
     eval "${_bashy_arrayName}=(\"\${_bashy_arr[@]}\")"
 }
 
-# Helper for passing multiple values to multi-value options (`--name[...]`),
+# Helper for passing multiple values to multi-value options (`--name[]=...`),
 # which formats its arguments so that the argument processor can recover the
 # original multiple values. This works for any number of values including zero
-# or one. Use it like `cmd --opt-name["$(values ...)"]`, or more specifically
-# when you want to pass an array like `cmd --opt-name["$(values
-# "${arrayName[@]}")"]`.
+# or one. Use it like `cmd --opt-name[]="$(vals -- ...)"`, or, more specifically
+# when you want to pass an array, like `cmd --opt-name[]="$(vals --
+# "${arrayName[@]}")"`. With option --dollar, _only_ uses dollar-quoting
+# (`$'...'`).
 function vals {
-    case "$#" in
-        0)
-            : # No need to emit anything.
-            ;;
-        1)
-            printf '%q\n' "$1"
-            ;;
-        *)
-            printf '%q' "$1"
+    local justDollar=0
+    while (( $# > 0 )); do
+        if [[ $1 == --dollar ]]; then
+            justDollar=1
             shift
-            printf ' %q' "$@"
-            printf '\n'
-            ;;
-    esac
+        elif [[ $1 == -- ]]; then
+            shift
+            break
+        else
+            break
+        fi
+    done
+
+    if (( $# == 0 )); then
+        return
+    fi
+
+    local v space=''
+    for v in "$@"; do
+        if (( !justDollar )) && [[ ${v} =~ ^[-+=_:./%@a-zA-Z0-9]+$ ]]; then
+            printf $'%s%s' "${space}" "${v}"
+        elif (( !justDollar )) && ! [[ ${v} =~ [$'\'\n\r\t'] ]]; then
+            printf $'%s\'%s\'' "${space}" "${v}"
+        else
+            local newv=''
+            while [[ ${v} != '' ]]; do
+                if [[ ${v} =~ ^([^$'\\\'\n\r\t']+)(.*)$ ]]; then
+                    newv+="${BASH_REMATCH[1]}"
+                    v="${BASH_REMATCH[2]}"
+                else
+                    case "${v:0:1}" in
+                        $'\\'|$'\'') newv+=$'\\'"${v:0:1}" ;;
+                        $'\n')       newv+=$'\\n'          ;;
+                        $'\r')       newv+=$'\\r'          ;;
+                        $'\t')       newv+=$'\\t'          ;;
+                    esac
+                    v="${v:1}"
+                fi
+            done
+            printf $'%s$\'%s\'' "${space}" "${newv}"
+        fi
+        space=' '
+    done
+
+    printf $'\n'
 }
 
 

@@ -31,7 +31,7 @@ define-usage --with-help $'
 
 # What to output.
 opt-value --var=outputStyle --default=public-key \
-    --enum='aws-fingerprint aws-generated-fingerprint public-key ssh-auth' \
+    --enum[]='aws-fingerprint aws-generated-fingerprint public-key ssh-auth' \
     output
 
 # File path.

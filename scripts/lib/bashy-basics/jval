@@ -60,12 +60,12 @@ define-usage --with-help $'
 
 # Input style.
 opt-value --var=inputStyle --default=none \
-    --enum='none raw raw:slurp raw0 raw0:slurp read slurp' \
+    --enum[]='none raw raw:slurp raw0 raw0:slurp read slurp' \
     input
 
 # Output style.
 opt-value --var=outputStyle --default=json \
-    --enum='compact json lines none raw raw0' output
+    --enum[]='compact json lines none raw raw0' output
 
 # List of variable assignments, as parallel arrays of type, name, and value.
 varTypes=()

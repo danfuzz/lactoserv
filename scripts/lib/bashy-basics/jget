@@ -31,7 +31,7 @@ opt-value --var=filePath file
 
 # Output style.
 opt-value --var=outputStyle --default=json \
-    --enum='compact json lines none raw raw:slurp raw0 raw0:slurp' output
+    --enum[]='compact json lines none raw raw:slurp raw0 raw0:slurp' output
 
 # Value to operate on. (Will actually be the first expression if `--file` is
 # used.)

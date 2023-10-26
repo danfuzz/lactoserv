@@ -52,7 +52,7 @@ define-usage --with-help $'
 '
 
 # Output style.
-opt-value --var=outputStyle --default=lines --enum='compact json lines' output
+opt-value --var=outputStyle --default=lines --enum[]='compact json lines' output
 
 # Command.
 positional-arg --required --var=command command

@@ -29,7 +29,7 @@ define-usage --with-help $'
 
 # Key type.
 opt-value --required --var=type \
-    --enum='host host-ec user user-2048 user-4096 user-ec' \
+    --enum[]='host host-ec user user-2048 user-4096 user-ec' \
     type
 
 # Where to output.

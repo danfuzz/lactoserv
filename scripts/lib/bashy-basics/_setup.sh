@@ -285,7 +285,7 @@ function usual-json-output-args {
     # Output style.
     if (( doOutput )); then
         opt-value --var=_bashy_jsonOutputStyle --default=json \
-            --enum='array json lines none raw raw0' output
+            --enum[]='array json lines none raw raw0' output
     else
         _bashy_jsonOutputStyle=json
     fi

@@ -27,7 +27,7 @@ define-usage --with-help $'
 '
 
 # Input type.
-opt-value --var=inputType --default='secs' --enum='secs rfc822' input
+opt-value --var=inputType --default='secs' --enum[]='secs rfc822' input
 
 # UTC?
 opt-toggle --var=utc utc

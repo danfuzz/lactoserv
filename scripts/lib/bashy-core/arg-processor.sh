@@ -29,15 +29,16 @@
 #
 # Value-accepting argument definers allow these additional options to pre-filter
 # a value, before it gets set or passed to a `--call`:
-# * `--filter=<name>` -- Calls the named function passing it a single argument
-#   value; the function must output a replacement value. If the call fails, the
-#   argument is rejected. Note: The filter function runs in a subshell, and as
-#   such it cannot be used to affect the global environment of the main script.
+# * `--filter=<name>` or `filter={code}` -- Calls the named function passing it
+#   a single argument value, or runs the indicated code snippet. The function
+#   or snippet must output a replacement value. If the call fails, the argument
+#   is rejected. Note: The filter runs in a subshell, and as such it cannot be
+#   used to affect the global environment of the main script.
 # * `--filter=/<regex>/` -- Matches each argument value against the regex. If
 #   the regex doesn't match, the argument is rejected.
-# * `--enum=<spec>` -- Matches each argument value against a set of valid names.
-#   `<spec>` must be a space-separated list of names, e.g. `--enum='yes no
-#   maybe'`.
+# * `--enum[]=<spec>` -- Matches each argument value against a set of valid
+#   names. `<spec>` must be a non-empty list of values, in the usual multi-value
+#   form accepted by this system, e.g. `--enum[]='yes no "maybe so"'`.
 #
 # Some argument-definers also accept these options:
 # * `--default=<value>` -- Specifies a default value for an argument or option
@@ -151,7 +152,7 @@ function opt-multi {
     local optRequired=0
     local optVar=''
     local args=("$@")
-    _argproc_janky-args call enum filter required var \
+    _argproc_janky-args call enum[] filter required var \
     || return 1
 
     local specName=''
@@ -218,7 +219,7 @@ function opt-value {
     local optRequired=0
     local optVar=''
     local args=("$@")
-    _argproc_janky-args call default enum filter required var \
+    _argproc_janky-args call default enum[] filter required var \
     || return 1
 
     local specName=''
@@ -252,7 +253,7 @@ function positional-arg {
     local optRequired=0
     local optVar=''
     local args=("$@")
-    _argproc_janky-args call default enum filter required var \
+    _argproc_janky-args call default enum[] filter required var \
     || return 1
 
     local specName=''
@@ -361,7 +362,7 @@ function rest-arg {
     local optFilter=''
     local optVar=''
     local args=("$@")
-    _argproc_janky-args call enum filter var \
+    _argproc_janky-args call enum[] filter var \
     || return 1
 
     local specName=''
@@ -658,6 +659,31 @@ function _argproc_error-coda {
     fi
 }
 
+# Helper (called by code produced by `_argproc_handler-body`) which performs
+# a filter call. Upon success, prints all the filtered values.
+function _argproc_filter-call {
+    local desc="$1"
+    local filter="$2"
+    shift 2
+
+    if [[ ${filter} =~ ^\{(.*)\}$ ]]; then
+        # Kinda gross, but this makes it easy to call the filter code block.
+        eval "function _argproc_filter-call:inner {
+            ${BASH_REMATCH[1]}
+        }"
+        filter='_argproc_filter-call:inner'
+    fi
+
+    local arg result
+    for arg in "$@"; do
+        if ! result=("$("${filter}" "${arg}")"); then
+            error-msg "Invalid value for ${desc}: ${arg}"
+            return 1
+        fi
+        vals -- "${result}"
+    done
+}
+
 # Produces an argument handler body, from the given components.
 function _argproc_handler-body {
     local specName="$1"
@@ -675,16 +701,20 @@ function _argproc_handler-body {
             "${desc}" "${filter}"
         )")
     elif [[ ${filter} != '' ]]; then
-        # Add a loop to call the filter function on each argument.
-        result+=(
-            "$(printf '
-                local _argproc_value _argproc_args=()
-                for _argproc_value in "$@"; do
-                    _argproc_args+=("$(%s "${_argproc_value}")") || return 1
-                done
-                set -- "${_argproc_args[@]}"' \
-                "${filter}")"
-        )
+        # Add a call to perform the filtering.
+        local desc="$(_argproc_arg-description "${specName}")"
+        result+=("$(printf '
+            local _argproc_args
+            _argproc_args="$(_argproc_filter-call %q %q "$@")" \
+            && set-array-from-vals _argproc_args "${_argproc_args}" \
+            || {
+                local error="$?"
+                error-msg --suppress-cmd
+                return "${error}"
+            }
+            set -- "${_argproc_args[@]}"' \
+            "${desc}" "${filter}"
+        )")
     fi
 
     if [[ ${callFunc} =~ ^\{(.*)\}$ ]]; then
@@ -733,6 +763,11 @@ function _argproc_janky-args {
     local gotDefault=0
     local a
 
+    # TEMP: Remove spec mod once use sites are migrated.
+    if [[ ${argSpecs} =~ ' enum[] ' ]]; then
+        argSpecs+='enum '
+    fi
+
     for a in "${args[@]}"; do
         if (( optsDone )); then
             args+=("${a}")
@@ -740,7 +775,7 @@ function _argproc_janky-args {
         fi
 
         if [[ ${a} =~ ^--. ]]; then
-            if ! [[ ${a} =~ ^--([a-z][-a-z]+)(=.*)?$ ]]; then
+            if ! [[ ${a} =~ ^--([a-z][-a-z]+\[?\]?)(=.*)?$ ]]; then
                 error-msg --file-line=2 "Invalid option syntax: ${a}"
                 _argproc_declarationError=1
                 return 1
@@ -767,25 +802,14 @@ function _argproc_janky-args {
                     && optDefault="${BASH_REMATCH[1]}" \
                     || argError=1
                     ;;
-                enum)
-                    if [[ ${value} =~ ^=(' '*([-_:.a-zA-Z0-9]+' '*)+)$ ]]; then
-                        # Re-form as a filter expression.
-                        value="${BASH_REMATCH[1]}"
-                        optFilter=''
-                        while [[ ${value} =~ ^' '*([^ ]+)' '*(.*)$ ]]; do
-                            optFilter+="|${BASH_REMATCH[1]}"
-                            value="${BASH_REMATCH[2]}"
-                        done
-                        # `:1` to drop the initial `|`.
-                        optFilter="/^(${optFilter:1})\$/"
-                        # "Escape" `.` so it's not treated as regex syntax.
-                        optFilter="${optFilter//./[.]}"
-                    else
+                # TEMP: Remove plain `enum` once use sites are migrated.
+                enum|enum[])
+                    if ! _argproc_parse-enum "${value#=}"; then
                         argError=1
                     fi
                     ;;
                 filter)
-                    [[ ${value} =~ ^=(/.*/|[_a-zA-Z][-_:a-zA-Z0-9]*)$ ]] \
+                    [[ ${value} =~ ^=(/.*/|\{.*\}|[_a-zA-Z][-_:a-zA-Z0-9]*)$ ]] \
                     && optFilter="${BASH_REMATCH[1]}" \
                     || argError=1
                     ;;
@@ -856,6 +880,32 @@ function _argproc_janky-args {
             return 1
         fi
     fi
+}
+
+# Parses a single enumeration-set value. Upon success sets a `optFilter`
+# (presumed local in the calling scope) to "return" a filter expression that
+# matches the specified enumeration.
+function _argproc_parse-enum {
+    local value="$1"
+    local values
+
+    set-array-from-vals values "${value}" \
+    || return "$?"
+
+    if (( ${#values[@]} == 0 )); then
+        # Error: Must have at least one value.
+        return 1
+    fi
+
+    optFilter="$(
+        printf '{ [[ "$1" =~ ^('
+        local or='' print
+        for value in "${values[@]}"; do
+            printf '%s%s' "${or}" "$(vals --dollar -- "${value}")"
+            or='|'
+        done
+        printf $')$ ]] && printf \'%%s\' "$1" }'
+    )"
 }
 
 # Parses a single argument / option spec. `--short` to accept a <short>
@@ -1022,12 +1072,12 @@ function _argproc_statements-from-args {
                         ;;
                     '[]=')
                         # Multi-value option. Parse the value into elements.
-                        if eval 2>/dev/null "values=(${value})"; then
+                        if set-array-from-vals values "${value}"; then
                             _argproc_statements+=(
                                 "${handler} $(_argproc_quote "${values[@]}")")
                         else
                             error-msg "Invalid multi-value syntax for option --${name}:"
-                            error-msg "  ${value}"
+                            error-msg "  $(vals -- "${value}")"
                             argError=1
                         fi
                         ;;
