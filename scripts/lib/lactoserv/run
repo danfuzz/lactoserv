@@ -32,7 +32,7 @@ define-usage --with-help $'
 '
 
 # What to do?
-opt-value --var=action --default=run --enum='build clean run' do
+opt-value --var=action --default=run --enum[]='build clean run' do
 
 # Debugging options passed directly to the main `run` script.
 opt-toggle --var=earlyErrors early-errors
