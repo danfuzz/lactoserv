@@ -97,7 +97,7 @@ function parse-rest {
         elif [[ ${varType} == ':file' ]]; then
             varType='raw:file'
         else
-            varType="${varType:1}" # `:1` to drop the initial `:`.
+            varType="${varType#:}"
         fi
 
         varTypes+=("${varType}")

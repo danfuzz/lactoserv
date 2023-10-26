@@ -91,6 +91,7 @@ function set-array-from-lines {
 
 # Reverse of `vals`: Assigns parsed elements of the given multi-value string
 # (as produced by `vals` or similar) into the indicated variable, as an array.
+# Values must be separated by at least one whitespace character.
 function set-array-from-vals {
     if (( $# != 2 )); then
         error-msg --file-line=1 'Missing argument(s) to `set-array-from-vals`.'
@@ -102,16 +103,19 @@ function set-array-from-vals {
     local _bashy_name="$1"
     local _bashy_value="$2"
 
+    local _bashy_notsp=$'[^ \n\r\t]'
+    local _bashy_space=$'[ \n\r\t]'
+
     # Trim _ending_ whitespace, and prefix `value` with a space, the latter to
-    # maintain the constraint that values are space-separated.
-    if [[ ${_bashy_value} =~ ^(.*[^ ])' '+$ ]]; then
+    # maintain the constraint that values are whitespace-separated.
+    if [[ ${_bashy_value} =~ ^(.*${bashy_notsp})${_bashy_space}+$ ]]; then
         _bashy_value=" ${BASH_REMATCH[1]}"
     else
         _bashy_value=" ${_bashy_value}"
     fi
 
     local _bashy_values=() _bashy_print
-    while [[ ${_bashy_value} =~ ^' '+([^ ].*)$ ]]; do
+    while [[ ${_bashy_value} =~ ^${_bashy_space}+(${bashy_notsp}.*)$ ]]; do
         _bashy_value="${BASH_REMATCH[1]}"
         if [[ ${_bashy_value} =~ ^([-+=_:./%@a-zA-Z0-9]+)(.*)$ ]]; then
             _bashy_values+=("${BASH_REMATCH[1]}")
@@ -123,13 +127,13 @@ function set-array-from-vals {
             printf -v _bashy_print '%q' "${BASH_REMATCH[1]}"
             _bashy_values+=("${_bashy_print}")
             _bashy_value="${BASH_REMATCH[2]}"
-        elif [[ ${_bashy_value} =~ ^(\$\'([^\']|\\\')*\')(.*)$ ]]; then
+        elif [[ ${_bashy_value} =~ ^(\$\'([^\'\\]|\\.)*\')(.*)$ ]]; then
             _bashy_values+=("${BASH_REMATCH[1]}")
             _bashy_value="${BASH_REMATCH[3]}"
         fi
     done
 
-    if ! [[ ${_bashy_value} =~ ^' '*$ ]]; then
+    if ! [[ ${_bashy_value} =~ ^${_bashy_space}*$ ]]; then
         return 1
     fi
 
