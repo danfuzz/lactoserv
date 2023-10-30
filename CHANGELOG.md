@@ -7,10 +7,19 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* None.
+* None
+
+Other notable changes:
+* None
+
+### v0.5.17 -- 2023-10-30
+
+Breaking changes:
+* None. This is a build-only change. The built artifacts should remain the same.
 
 Other notable changes:
 * Updated automated build to use Node 20.
+* Pulled in improved `bashy-lib`, and adjusted accordingly.
 
 ### v0.5.16 -- 2023-09-26
 
