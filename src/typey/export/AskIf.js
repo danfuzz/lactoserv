@@ -187,17 +187,17 @@ export class AskIf {
    * Checks for type `number`, which may optionally be restricted further.
    *
    * @param {*} value Arbitrary value.
-   * @param {?object} [options = null] Options for restrictions.
-   * @param {boolean} [options.finite = false] Must `value` be finite?
-   * @param {?number} [options.maxExclusive = null] Exclusive maximum value.
+   * @param {?object} [options] Options for restrictions.
+   * @param {boolean} [options.finite] Must `value` be finite?
+   * @param {?number} [options.maxExclusive] Exclusive maximum value.
    *   That is, require `value < maxExclusive`.
-   * @param {?number} [options.maxInclusive = null] Inclusive maximum value.
+   * @param {?number} [options.maxInclusive] Inclusive maximum value.
    *   That is, require `value <= maxInclusive`.
-   * @param {?number} [options.minExclusive = null] Exclusive minimum value.
+   * @param {?number} [options.minExclusive] Exclusive minimum value.
    *   That is, require `value > minExclusive`.
-   * @param {?number} [options.minInclusive = null] Inclusive minimum value.
+   * @param {?number} [options.minInclusive] Inclusive minimum value.
    *   That is, require `value >= minInclusive`.
-   * @param {boolean} [options.safeInteger = false] Must `value` be a safe
+   * @param {boolean} [options.safeInteger] Must `value` be a safe
    *   integer (exactly representable integer as a regular JavaScript number).
    *   Implies `options.finite: true`.
    * @returns {boolean} `true` iff `value` is of the indicated type.
@@ -264,7 +264,7 @@ export class AskIf {
    * expression.
    *
    * @param {*} value Arbitrary value.
-   * @param {?RegExp|string} [match = null] Optional regular expression that
+   * @param {?RegExp|string} [match] Optional regular expression that
    *  `value` must match.
    * @returns {boolean} `true` iff `value` is of the indicated type.
    */

@@ -21,7 +21,7 @@ export class ConvError extends BaseConverter {
   /**
    * Constructs an instance.
    *
-   * @param {boolean} [parseStacks = false] Should stacks be parsed? If so,
+   * @param {boolean} [parseStacks] Should stacks be parsed? If so,
    *   the `stack` property of encoded instances will, when possible, contain an
    *   (encoded) instance of {@link StackTrace}.
    */

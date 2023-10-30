@@ -88,7 +88,7 @@ export class MountConfig extends BaseConfig {
    *
    * @override
    * @param {object|object[]} items Configuration object or array of same.
-   * @param {?ConfigClassMapper} [configClassMapper = null] Optional mapper from
+   * @param {?ConfigClassMapper} [configClassMapper] Optional mapper from
    *   configuration objects to corresponding configuration classes. In this
    *   case it is required to be `null`.
    * @returns {MountConfig[]} Frozen array of instances of the called class, if

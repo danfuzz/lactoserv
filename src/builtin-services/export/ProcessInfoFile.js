@@ -263,7 +263,7 @@ export class ProcessInfoFile extends BaseService {
   /**
    * Writes the info file.
    *
-   * @param {?object} [contents = null] Contents to write instead of {@link
+   * @param {?object} [contents] Contents to write instead of {@link
    * #contents}, or `null` to write from the private property.
    */
   async #writeFile(contents = null) {

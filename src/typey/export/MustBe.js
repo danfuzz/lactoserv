@@ -145,7 +145,7 @@ export class MustBe {
    * Checks for type `number`, which may optionally be restricted further.
    *
    * @param {*} value Arbitrary value.
-   * @param {?object} [options = null] Options for restrictions. See {@link
+   * @param {?object} [options] Options for restrictions. See {@link
    * AskIf#number} for details.
    * @returns {number} `value` if it is of the indicated type.
    * @throws {Error} Thrown if `value` is of any other type or does not meet the
@@ -200,7 +200,7 @@ export class MustBe {
    * class.
    *
    * @param {*} value Arbitrary value.
-   * @param {function(new:*, ...*)} [cls = null] Class (constructor function)
+   * @param {function(new:*, ...*)} [cls] Class (constructor function)
    *   `value` must be an instance of.
    * @returns {object} `value` if it is of the indicated type.
    * @throws {Error} Thrown if `value` is of any other type.
@@ -218,7 +218,7 @@ export class MustBe {
    * expression.
    *
    * @param {*} value Arbitrary value.
-   * @param {?RegExp|string} [match = null] Optional regular expression that
+   * @param {?RegExp|string} [match] Optional regular expression that
    *  `value` must match.
    * @returns {string} `value` if it is of the indicated type.
    * @throws {Error} Thrown if `value` is of any other type or doesn't match.

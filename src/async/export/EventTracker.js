@@ -100,7 +100,7 @@ export class EventTracker {
    * **Note:** If the predicate throws an error -- even synchronously -- the
    * error becomes manifest by the state of the instance becoming broken.
    *
-   * @param {TypeEventPredicate} [predicate = null] Predicate to satisfy.
+   * @param {TypeEventPredicate} [predicate] Predicate to satisfy.
    * @returns {LinkedEvent} What {@link #headNow} is (or would have been) at
    *   the moment the operation is complete.
    * @throws {Error} Thrown if there was any trouble. If so, and the trouble was
@@ -164,7 +164,7 @@ export class EventTracker {
    * instance will still ultimately become broken, though, which is (presumably)
    * a desirable outcome.
    *
-   * @param {TypeEventPredicate} [predicate = null] Predicate to satisfy.
+   * @param {TypeEventPredicate} [predicate] Predicate to satisfy.
    * @returns {?LinkedEvent} The synchronously-known {@link #headNow} from the
    *   successful result of the operation if it was indeed synchronously
    *   successful, or `null` if either it needs to perform asynchronous
@@ -206,7 +206,7 @@ export class EventTracker {
    * cause this breakage scenario. (With high confidence, it would be indicative
    * of a bug in this class.)
    *
-   * @param {TypeEventPredicate} [predicate = null] Predicate to satisfy.
+   * @param {TypeEventPredicate} [predicate] Predicate to satisfy.
    * @returns {LinkedEvent} The event just _behind_ {@link #headNow} at the
    *   the moment the operation is complete.
    * @throws {Error} Thrown if there was any trouble _before_ attempting to
@@ -245,7 +245,7 @@ export class EventTracker {
    * instance to the found event. For example, `peek()` and `peek(0)` are
    * equivalent to just accessing {@link #headPromise}.
    *
-   * @param {TypeEventPredicate} [predicate = null] Predicate to satisfy.
+   * @param {TypeEventPredicate} [predicate] Predicate to satisfy.
    * @returns {LinkedEvent} The earliest event on the tracked chain that
    *   matches `predicate`.
    * @throws {Error} Thrown if there was any trouble. Unlike {@link #advance},

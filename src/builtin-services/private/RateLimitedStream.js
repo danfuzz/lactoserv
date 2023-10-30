@@ -71,7 +71,7 @@ export class RateLimitedStream {
    * within this class.
    *
    * @param {Error} error The error.
-   * @param {boolean} [fromEvent = false] Was it from an `error` event?
+   * @param {boolean} [fromEvent] Was it from an `error` event?
    */
   #becomeBroken(error, fromEvent = false) {
     if (fromEvent) {
@@ -408,7 +408,7 @@ export class RateLimitedStream {
      *
      * @param {number} timeoutMsec The new idle-timeout time, in msec. `0`
      *   indicates that timeout is disabled.
-     * @param {?function()} [callback = null] Optional callback function.
+     * @param {?function()} [callback] Optional callback function.
      */
     setTimeout(timeoutMsec, callback = null) {
       MustBe.number(timeoutMsec, { finite: true, minInclusive: 0 });

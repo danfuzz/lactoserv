@@ -96,14 +96,14 @@ export class TreePathKey {
   /**
    * Gets a human-useful string form of this instance.
    *
-   * @param {?object} [options = null] Formatting options.
-   * @param {string} [options.prefix = '/'] Prefix for the result.
-   * @param {boolean} [options.quote = false] Quote components as strings?
-   * @param {boolean} [options.reverse = false] Render in back-to-front order?
-   * @param {string} [options.separator = '/'] Separator between path
+   * @param {?object} [options] Formatting options.
+   * @param {string} [options.prefix] Prefix for the result.
+   * @param {boolean} [options.quote] Quote components as strings?
+   * @param {boolean} [options.reverse] Render in back-to-front order?
+   * @param {string} [options.separator] Separator between path
    *   components.
-   * @param {string} [options.suffix = ''] Suffix for the result.
-   * @param {string|boolean} [options.wildcard = '*'] Wildcard indicator. If
+   * @param {string} [options.suffix] Suffix for the result.
+   * @param {string|boolean} [options.wildcard] Wildcard indicator. If
    *   `false`, then a wildcard key is represented as if it were non-wildcard.
    *   (This is different than if this is `''` (the empty string)).
    * @returns {string} String form of the instance.
@@ -193,7 +193,7 @@ export class TreePathKey {
    * that is, the part of a URI after the hostname.
    *
    * @param {TreePathKey} key The key to convert.
-   * @param {boolean} [showWildcard = true] Represent a wildcard key as such? If
+   * @param {boolean} [showWildcard] Represent a wildcard key as such? If
    *   `false`, then the result is as if `key` were created with `wildcard ===
    *   false`.
    * @returns {string} The string form.

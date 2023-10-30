@@ -50,7 +50,7 @@ export class LinkedEvent {
    * Constructs an instance.
    *
    * @param {EventPayload} payload The event payload.
-   * @param {?LinkedEvent|Promise<LinkedEvent>|EventOrPromise} [next = null]
+   * @param {?LinkedEvent|Promise<LinkedEvent>|EventOrPromise} [next]
    *   The next event in the chain or promise for same, if already known. If
    *   passed as non-`null`:
    *   * The value (or eventually-resolved value) is type-checked to be an

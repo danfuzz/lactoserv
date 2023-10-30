@@ -90,7 +90,7 @@ export class TokenBucket {
    *   unit (tokens / ATU). This defines the steady state "flow rate" allowed by
    *   the instance. Must be a finite positive number. This is a required
    *   "option."
-   * @param {number} [options.initialBurstSize = options.maxBurstSize] The
+   * @param {number} [options.initialBurstSize] The
    *   instantaneously available burst size, in tokens, at the moment of
    *   construction. Defaults to `maxBurstSize` (that is, able to be maximally
    *   "bursted" from the get-go).
@@ -99,7 +99,7 @@ export class TokenBucket {
    *   metaphor), in tokens (arbitrary volume units). This defines the
    *   "burstiness" allowed by the instance. Must be a finite positive number.
    *   This is a required "option."
-   * @param {number} [options.maxQueueGrantSize = 'see description'] Maximum
+   * @param {number} [options.maxQueueGrantSize] Maximum
    *   grant size when granting requests from the waiter queue, in tokens. No
    *   queued grant requests will ever return a larger grant, even if there is
    *   available "burst volume" to accommodate it. Must be a finite non-negative
@@ -108,11 +108,11 @@ export class TokenBucket {
    *   `Math.floor()`. If `0`, then this instance will only ever synchronously
    *   grant tokens. Defaults to the smaller of `maxBurstSize` or
    *   `maxQueueSize`.
-   * @param {?number} [options.maxQueueSize = null] The maximum allowed waiter
+   * @param {?number} [options.maxQueueSize] The maximum allowed waiter
    *   queue size, in tokens. Must be a finite non-negative number or `null`.
    *   If `null`, then there is no limit on the queue size. If `0`, then this
    *   instance will only ever synchronously grant tokens.
-   * @param {boolean} [options.partialTokens = false] If `true`, allows the
+   * @param {boolean} [options.partialTokens] If `true`, allows the
    *   instance to provide partial tokens (e.g. give a client `1.25` tokens). If
    *   `false`, all token handoffs from the instance are quantized to integer
    *   values.
@@ -439,7 +439,7 @@ export class TokenBucket {
    *
    * @param {number} minInclusive Minimum requested quantity of tokens.
    * @param {number} maxInclusive Maximum requested quantity of tokens.
-   * @param {boolean} [forceZero = false] Force a `0` grant?
+   * @param {boolean} [forceZero] Force a `0` grant?
    * @returns {object} Grant result, as described above.
    */
   #grantNow(minInclusive, maxInclusive, forceZero = false) {

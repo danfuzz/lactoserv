@@ -29,7 +29,7 @@ export class Condition {
   /**
    * Constructs an instance.
    *
-   * @param {boolean} [initialValue = false] Initial value.
+   * @param {boolean} [initialValue] Initial value.
    */
   constructor(initialValue = false) {
     MustBe.boolean(initialValue);

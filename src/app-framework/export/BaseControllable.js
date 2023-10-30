@@ -32,7 +32,7 @@ export class BaseControllable {
   /**
    * Starts this instance.
    *
-   * @param {boolean} [isReload = false] Is this action due to an in-process
+   * @param {boolean} [isReload] Is this action due to an in-process
    *   reload?
    */
   async start(isReload = false) {
@@ -47,7 +47,7 @@ export class BaseControllable {
    * Stops this this instance. This method returns when the instance is fully
    * stopped.
    *
-   * @param {boolean} [willReload = false] Is this action due to an in-process
+   * @param {boolean} [willReload] Is this action due to an in-process
    *   reload being requested?
    */
   async stop(willReload = false) {

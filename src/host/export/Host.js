@@ -24,7 +24,7 @@ export class Host {
    * Attempts to shut down the system as cleanly as possible, including running
    * all the registered shutdown-time callbacks.
    *
-   * @param {number} [exitCode = 0] Exit code to pass to `process.exit()`.
+   * @param {number} [exitCode] Exit code to pass to `process.exit()`.
    */
   static async exit(exitCode = 0) {
     this.init();

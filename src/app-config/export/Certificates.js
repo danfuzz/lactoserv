@@ -40,7 +40,7 @@ export class Certificates {
    * Makes a PEM-matching pattern.
    *
    * @param {string} label The label to match.
-   * @param {boolean} [multiple = false] Allow multiple PEM sections?
+   * @param {boolean} [multiple] Allow multiple PEM sections?
    * @returns {string} The constructed pattern.
    */
   static #makePemPattern(label, multiple = false) {

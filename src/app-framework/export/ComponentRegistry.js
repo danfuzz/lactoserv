@@ -20,7 +20,7 @@ export class ComponentRegistry {
   /**
    * Constructs an instance.
    *
-   * @param {?(function(new:BaseComponent))[]} [classes = null] Initial classes
+   * @param {?(function(new:BaseComponent))[]} [classes] Initial classes
    *   to be registered.
    */
   constructor(classes = null) {
@@ -46,7 +46,7 @@ export class ComponentRegistry {
    *
    * @param {object} config Plain object representing the configuration in
    *   question.
-   * @param {function(new:BaseConfig)} [baseClass = null] Required base class
+   * @param {function(new:BaseConfig)} [baseClass] Required base class
    *   for the result. `null` is equivalent to just `BaseConfig`.
    * @returns {function(new:BaseConfig)} Actual class which should be used to
    *   instantiate the configuration.
@@ -80,12 +80,12 @@ export class ComponentRegistry {
    * class name.
    *
    * @param {string} name Name of the component class.
-   * @param {object} [options = null] Options for the search and result.
-   * @param {?function((new:BaseComponent))} [options.class = null] Class
+   * @param {object} [options] Options for the search and result.
+   * @param {?function((new:BaseComponent))} [options.class] Class
    *   (concrete or base) that the returned class must be or inherit from.
-   * @param {boolean} [options.nullIfNotFound = false] Return `null` if there is
+   * @param {boolean} [options.nullIfNotFound] Return `null` if there is
    *   no such class? If `false`, throws an error.
-   * @param {boolean} [options.wantConfig = false] Return the _config_ class,
+   * @param {boolean} [options.wantConfig] Return the _config_ class,
    *   instead of the implementation class?
    * @returns {?function((new:BaseComponent))} The component class, or `null` if
    *   not found (and `options.nullIfNotFound === true`).
@@ -150,7 +150,7 @@ export class ComponentRegistry {
    * Registers a component class.
    *
    * @param {function(new:BaseComponent, ...*)} cls Component class.
-   * @param {?function((new:BaseComponent))} [baseClass = null] Base class that
+   * @param {?function((new:BaseComponent))} [baseClass] Base class that
    *   `cls` must be inherit from.
    */
   register(cls, baseClass = null) {

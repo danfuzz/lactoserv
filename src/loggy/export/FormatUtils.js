@@ -12,7 +12,7 @@ export class FormatUtils {
    * @param {?string} address The address, or `null` if not known. If passed as
    *   `null`, the literal string `<unknown>` is returned in place of the
    *   address.
-   * @param {?number} [port = null] The port, or `null` if unknown or
+   * @param {?number} [port] The port, or `null` if unknown or
    *   irrelevant. If passed as `null`, there is no port designation in the
    *   result.
    * @returns {string} The friendly form.
@@ -47,8 +47,8 @@ export class FormatUtils {
    *
    * @param {?number} byteCount The byte count length. If passed as `null`,
    *   this method returns `<none>`.
-   * @param {object} [options = {}] Formatting options.
-   * @param {boolean} [options.spaces = true] Use spaces to separate the number
+   * @param {object} [options] Formatting options.
+   * @param {boolean} [options.spaces] Use spaces to separate the number
    *   from the units? If `false` an underscore is used.
    * @returns {string} The friendly form.
    */

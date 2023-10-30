@@ -77,7 +77,7 @@ export class ConverterConfig {
    * Constructs an instance. See the accessors on this class for details on the
    * options, including defaults.
    *
-   * @param {?object} [options = null] Configuration options, or `null` to use
+   * @param {?object} [options] Configuration options, or `null` to use
    *   the default configuration.
    */
   constructor(options = null) {
@@ -213,7 +213,7 @@ export class ConverterConfig {
    * The return value is always a fresh instance which is safe for the caller to
    * modify. (It does not alter future results from this method.)
    *
-   * @param {?object} [options = null] Extra configuration options, or `null`
+   * @param {?object} [options] Extra configuration options, or `null`
    *   for nothing extra.
    * @returns {ConverterConfig} The default / baseline logging configuration.
    */

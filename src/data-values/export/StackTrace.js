@@ -38,13 +38,13 @@ export class StackTrace {
    * at all, even if passing the later arguments.
    *
    * @param {string|StackTrace|{ message: string, stack: string }|{ name:
-   *   ?string, file: string, line: ?number, col: ?number }[]} [original = null]
+   *   ?string, file: string, line: ?number, col: ?number }[]} [original]
    *   Source for the stack frames. If passed as `null` or omitted, this
    *   constructs an instance based on the current call (to this constructor),
    *   with the actual call to this method omitted from the result.
-   * @param {number} [omitCount = 0] The number of innermost stack frames to
+   * @param {number} [omitCount] The number of innermost stack frames to
    *   omit.
-   * @param {?number} [maxCount = null] Maximum number of frames to include, or
+   * @param {?number} [maxCount] Maximum number of frames to include, or
    *   `null` to have no limit.
    */
   constructor(original = null, omitCount, maxCount) {
@@ -101,9 +101,9 @@ export class StackTrace {
    * @param {string|StackTrace|{ message: string, stack: string }|{ name:
    *   ?string, file: string, line: ?number, col: ?number }[]} original Source
    *   for the stack frames.
-   * @param {number} [omitCount = 0] Number of innermost stack frames to omit
+   * @param {number} [omitCount] Number of innermost stack frames to omit
    *   (not including the one for this method call, which is _always_ omitted).
-   * @param {?number} [maxCount = null] Maximum number of frames to include, or
+   * @param {?number} [maxCount] Maximum number of frames to include, or
    *   `null` to have no limit.
    * @returns {{ name: ?string, file: string, line: ?number, col: ?number }[]}
    *   The stack trace.
@@ -159,9 +159,9 @@ export class StackTrace {
    * frame. The result is a simple compound object, not an instance of this
    * class. The result is always deeply frozen.
    *
-   * @param {number} [omitCount = 0] Number of innermost stack frames to omit
+   * @param {number} [omitCount] Number of innermost stack frames to omit
    *   (not including the one for this method call, which is _always_ omitted).
-   * @param {?number} [maxCount = null] Maximum number of frames to include, or
+   * @param {?number} [maxCount] Maximum number of frames to include, or
    *   `null` to have no limit.
    * @returns {{ name: ?string, file: string, line: ?number, col: ?number }[]}
    *   The stack trace.
