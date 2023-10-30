@@ -10,7 +10,7 @@ Breaking changes:
 * None
 
 Other notable changes:
-* None
+* Updated to latest ESLint. Adjusted comments and code accordingly.
 
 ### v0.5.17 -- 2023-10-30
 
