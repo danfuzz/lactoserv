@@ -3,6 +3,8 @@
 
 import { Methods } from '@this/typey';
 
+import { ConverterConfig } from '#x/ConverterConfig';
+
 
 /**
  * Base class for all classes which are considered to be peer data value types

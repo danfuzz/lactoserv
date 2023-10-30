@@ -423,7 +423,7 @@ export class RateLimitedStream {
   };
 
   /**
-   * Wrapper for (non-{@link Duplex}) {@link Wriatable} instances.
+   * Wrapper for (non-{@link Duplex}) {@link Writable} instances.
    */
   static #WritableWrapper = class WritableWrapper extends Writable {
     /** @type {RateLimitedStream} Outer instance. */

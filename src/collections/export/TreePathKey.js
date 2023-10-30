@@ -6,6 +6,7 @@ import * as util from 'node:util';
 import { BaseConverter, Struct } from '@this/data-values';
 import { MustBe } from '@this/typey';
 
+import { TreePathMap } from '#x/TreePathMap';
 
 /**
  * Key for use with {@link TreePathMap}. Instances are immutable, and contents

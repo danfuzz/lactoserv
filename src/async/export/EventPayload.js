@@ -3,6 +3,8 @@
 
 import { MustBe } from '@this/typey';
 
+import { EventSource } from '#x/EventSource';
+
 
 /**
  * Standard minimal event payload.

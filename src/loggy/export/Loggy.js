@@ -1,7 +1,7 @@
 // Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { LinkedEvent } from '@this/async';
+import { EventSource, LinkedEvent } from '@this/async';
 
 import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
 import { IntfLogger } from '#x/IntfLogger';

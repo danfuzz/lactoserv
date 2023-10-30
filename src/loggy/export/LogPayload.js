@@ -3,7 +3,7 @@
 
 import * as util from 'node:util';
 
-import { EventPayload } from '@this/async';
+import { EventPayload, EventSource } from '@this/async';
 import { BaseConverter, Moment, StackTrace, Struct } from '@this/data-values';
 import { MustBe } from '@this/typey';
 
