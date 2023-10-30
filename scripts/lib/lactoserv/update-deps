@@ -48,4 +48,7 @@ if (( doCopy )); then
     cp ./ubik ./_init.sh "${destDir}"
     cd lib
     cp -r ./_init.sh ./bashy-* "${destDir}/lib"
+
+    cd "$(base-dir)"
+    git status
 fi
