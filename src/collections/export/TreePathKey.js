@@ -8,6 +8,7 @@ import { MustBe } from '@this/typey';
 
 import { TreePathMap } from '#x/TreePathMap';
 
+
 /**
  * Key for use with {@link TreePathMap}. Instances are immutable, and contents
  * are strongly type-checked.

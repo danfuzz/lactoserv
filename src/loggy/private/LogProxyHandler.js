@@ -5,8 +5,8 @@ import { PropertyCacheProxyHandler } from '@this/metacomp';
 
 import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
 import { IntfLogger } from '#x/IntfLogger';
-import { Loggy } from '#x/Loggy';
 import { LogTag } from '#x/LogTag';
+import { Loggy } from '#x/Loggy';
 
 
 /**
