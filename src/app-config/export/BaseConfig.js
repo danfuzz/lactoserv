@@ -45,7 +45,7 @@ export class BaseConfig {
    * @param {*} items Single configuration object or array of them.
    *   Configuration objects are required to be as described by the called
    *   class's (or subclasses') constructor(s).
-   * @param {?ConfigClassMapper} [configClassMapper = null] Optional mapper from
+   * @param {?ConfigClassMapper} [configClassMapper] Optional mapper from
    *   configuration objects to corresponding configuration classes.
    * @returns {BaseConfig[]} Frozen array of instances of the called class, if
    *   successfully parsed.
@@ -81,7 +81,7 @@ export class BaseConfig {
    * `items === null`.
    *
    * @param {*} items Array of configuration objects, or `null`.
-   * @param {?ConfigClassMapper} [configClassMapper = null] Optional mapper.
+   * @param {?ConfigClassMapper} [configClassMapper] Optional mapper.
    * @returns {?BaseConfig[]} Frozen array of instances, or `null` if
    *   `items === null`.
    * @throws {Error} Thrown if there was any trouble.

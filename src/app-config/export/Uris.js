@@ -270,7 +270,7 @@ export class Uris {
    * contains the name components in back-to-front order.
    *
    * @param {string} name Hostname to parse.
-   * @param {boolean} [allowWildcard = false] Is a wildcard form allowed for
+   * @param {boolean} [allowWildcard] Is a wildcard form allowed for
    *   `name`?
    * @returns {TreePathKey} Parsed key.
    * @throws {Error} Thrown if `name` is invalid.
@@ -291,7 +291,7 @@ export class Uris {
    * hostname.
    *
    * @param {string} name Hostname to parse.
-   * @param {boolean} [allowWildcard = false] Is a wildcard form allowed for
+   * @param {boolean} [allowWildcard] Is a wildcard form allowed for
    *   `name`?
    * @returns {?TreePathKey} Parsed key, or `null` if `name` is invalid.
    */

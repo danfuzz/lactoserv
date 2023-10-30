@@ -31,7 +31,7 @@ export class Struct extends BaseDataClass {
    * Constructs an instance.
    *
    * @param {*} type Value representing the type (or class) of the structure.
-   * @param {?object} [options = null] Named "options" of the structure, if any.
+   * @param {?object} [options] Named "options" of the structure, if any.
    *   If non-`null` and not a frozen plain object, it will get cloned and
    *   frozen. If `null`, becomes a frozen version of `{}` (the empty object).
    * @param {...*} args Positional "arguments" of the structure.

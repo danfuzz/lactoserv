@@ -3,6 +3,8 @@
 
 import { MustBe } from '@this/typey';
 
+import { EventSource } from '#x/EventSource';
+
 
 /**
  * Standard minimal event payload.
@@ -51,7 +53,7 @@ export class EventPayload {
    * payload for a "kickoff" event passed to the {@link EventSource}
    * constructor.
    *
-   * @param {?string} [type = null] Type to use for the instance, or `null` to
+   * @param {?string} [type] Type to use for the instance, or `null` to
    *   use a default.
    * @returns {EventPayload} A minimal instance for "kickoff."
    */

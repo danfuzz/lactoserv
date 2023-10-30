@@ -1,7 +1,7 @@
 // Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { LinkedEvent } from '@this/async';
+import { EventSource, LinkedEvent } from '@this/async';
 
 import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
 import { IntfLogger } from '#x/IntfLogger';
@@ -35,7 +35,7 @@ export class Loggy {
    * @param {?LogTag|string|string[]} tag Tag to use on all logged events, or
    *   constructor arguments for same. If `null`, the instance will have no
    *   context tag.
-   * @param {BaseLoggingEnvironment} [environment = null] Logging environment to
+   * @param {BaseLoggingEnvironment} [environment] Logging environment to
    *   use (it's the source for timestamps and stack traces, and what initially
    *   receives all logged events), or `null` to use the default one which is
    *   hooked up to the "real world."

@@ -79,7 +79,7 @@ export class AsyncServer {
    * * `{ type: 'connection', args: [socket] }`
    * * `{ type: 'drop', args: [<drop data>] }`
    *
-   * @param {?Promise} [cancelPromise = null] If non-`null` a promise which
+   * @param {?Promise} [cancelPromise] If non-`null` a promise which
    *   cancels this request when settled (either fulfilled or rejected).
    * @returns {?EventPayload} Event payload as described above, or `null` if the
    *  `cancelPromise` became settled.

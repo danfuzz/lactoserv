@@ -49,12 +49,12 @@ export class ComponentManager extends BaseControllable {
    *
    * @param {ClassedConfig[]} configs Configuration objects.
    * @param {object} options Instantiation options.
-   * @param {?function(new:BaseComponent)} [options.baseClass = null] Base class
+   * @param {?function(new:BaseComponent)} [options.baseClass] Base class
    *   of all components to be managed by this instance. `null` (the default) is
    *   the same as passing `BaseComponent`.
-   * @param {?IntfLogger} [options.baseSublogger = null] Base sublogger to use
+   * @param {?IntfLogger} [options.baseSublogger] Base sublogger to use
    *   for instantiated components, or `null` not to do any logging.
-   * @param {?IntfLogger} [options.logger = null] Logger to use for this
+   * @param {?IntfLogger} [options.logger] Logger to use for this
    *   instance, or `null` not to do any logging.
    * @param {ComponentRegistry} options.registry Registry of component classes.
    */

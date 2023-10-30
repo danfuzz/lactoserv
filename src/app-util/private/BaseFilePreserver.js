@@ -169,15 +169,15 @@ export class BaseFilePreserver {
   /**
    * Finds all the files that match the configured file name pattern.
    *
-   * @param {object} [options = {}] Options for the search, which define a union
+   * @param {object} [options] Options for the search, which define a union
    *   of items to find.
-   * @param {boolean} [options.current = false] Find the current (unmodified
+   * @param {boolean} [options.current] Find the current (unmodified
    *   name) log file?
-   * @param {boolean} [options.today = false] Find files with today's date
+   * @param {boolean} [options.today] Find files with today's date
    *   (UTC)?
-   * @param {boolean} [options.pastDays = false] Find files from previous days
+   * @param {boolean} [options.pastDays] Find files from previous days
    *   (UTC)?
-   * @param {?string} [options.dateStr = null] Find files infixed with the given
+   * @param {?string} [options.dateStr] Find files infixed with the given
    *   date string?
    * @returns {object[]} Array of useful information about each matched file.
    */
@@ -341,7 +341,7 @@ export class BaseFilePreserver {
    *
    * @param {Date|string} date Date to derive the (UTC) date label for the file,
    *   or an already-derived date string.
-   * @param {?count} [count = null] Count to include in the result, or `null` to
+   * @param {?count} [count] Count to include in the result, or `null` to
    *   not include a count.
    * @returns {string} The infix.
    */

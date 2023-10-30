@@ -4,6 +4,7 @@
 import { MustBe } from '@this/typey';
 
 import { TreePathKey } from '#x/TreePathKey';
+import { TreePathMap } from '#x/TreePathMap';
 
 
 /**

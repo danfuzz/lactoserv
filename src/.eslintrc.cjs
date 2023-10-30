@@ -150,6 +150,10 @@ const jsdocRules = {
   ]
 };
 
+const jsdocSettings = {
+  mode: 'jsdoc'
+};
+
 module.exports = {
   root: true,
   plugins,
@@ -157,5 +161,8 @@ module.exports = {
   env,
   parserOptions,
   rules: {...mainRules, ...jsdocRules},
+  settings: {
+    jsdoc: jsdocSettings
+  },
   overrides: [testOverrides]
 };

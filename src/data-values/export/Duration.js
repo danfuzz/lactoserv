@@ -50,7 +50,7 @@ export class Duration {
    * represents a rounded value, in a format which varies based on the magnitude
    * of the duration.
    *
-   * @param {object} [options = {}] Formatting options, as with {@link
+   * @param {object} [options] Formatting options, as with {@link
    *   #stringFromSecs}.
    * @returns {string} The friendly form.
    */
@@ -99,8 +99,8 @@ export class Duration {
    * of the duration.
    *
    * @param {number} durationSecs Duration in seconds.
-   * @param {object} [options = {}] Formatting options.
-   * @param {boolean} [options.spaces = true] Use spaces to separate the number
+   * @param {object} [options] Formatting options.
+   * @param {boolean} [options.spaces] Use spaces to separate the number
    *   from the units? If `false` an underscore is used.
    * @returns {string} The friendly form.
    */

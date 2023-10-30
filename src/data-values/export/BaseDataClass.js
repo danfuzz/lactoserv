@@ -4,10 +4,14 @@
 import { Methods } from '@this/typey';
 
 
+// Note: `ConverterConfig` below can't be a `{@link ...}` because that would
+// require an `import` above, which would in turn cause a circular reference
+// during system init.
+
 /**
  * Base class for all classes which are considered to be peer data value types
  * to the "real" data value types of JavaScript (number, string, plain object,
- * array, etc.). Note that {@link ConverterConfig} lets one specify which actual
+ * array, etc.). Note that `ConverterConfig` lets one specify which actual
  * classes are to be treated as data values, but whatever classes are in that
  * set are all expected to inherit from this base class.
  */

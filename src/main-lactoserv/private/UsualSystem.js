@@ -124,7 +124,7 @@ export class UsualSystem extends Threadlet {
    * System start function. Used as the thread start function and also during
    * requested reloads.
    *
-   * @param {boolean} [forReload = false] Is this for a reload?
+   * @param {boolean} [forReload] Is this for a reload?
    */
   async #start(forReload = false) {
     const logArg = forReload ? 'reload' : 'init';
@@ -151,7 +151,7 @@ export class UsualSystem extends Threadlet {
    * System stop function. Used when the system is shutting down on the way to
    * exiting, and also used during requested reloads.
    *
-   * @param {boolean} [forReload = false] Is this for a reload?
+   * @param {boolean} [forReload] Is this for a reload?
    */
   async #stop(forReload = false) {
     const logArg = forReload ? 'willReload' : 'shutdown';

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { BaseConfig } from '#x/BaseConfig';
+import { EndpointConfig } from '#x/EndpointConfig';
 import { Names } from '#x/Names';
 
 

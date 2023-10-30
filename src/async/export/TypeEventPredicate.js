@@ -1,6 +1,7 @@
 // Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { EventTracker } from '#x/EventTracker';
 import { LinkedEvent } from '#x/LinkedEvent';
 
 

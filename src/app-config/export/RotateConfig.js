@@ -3,6 +3,7 @@
 
 import { MustBe } from '@this/typey';
 
+import { FileServiceConfig } from '#x/FileServiceConfig';
 import { SaveConfig } from '#x/SaveConfig';
 
 

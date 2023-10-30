@@ -99,7 +99,7 @@ export class LogTag {
    * Gets a string representation of this instance intended for maximally-easy
    * human consumption.
    *
-   * @param {boolean} [addSeparator = false] Should a separator character be
+   * @param {boolean} [addSeparator] Should a separator character be
    *   appended at the end? If so, it is ` ` (space) for a top-level tag (no
    *   context) or `.` for a tag with context.
    * @returns {string} The "human form" string.

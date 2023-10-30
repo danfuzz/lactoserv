@@ -103,7 +103,7 @@ export class BaseLoggingEnvironment {
    * If this instance is configured to not include call site stack traces, then
    * this method returns `null`.
    *
-   * @param {number} [omitCount = 0] The number of caller frames to omit.
+   * @param {number} [omitCount] The number of caller frames to omit.
    * @returns {?StackTrace} An appropriately-constructed instance.
    */
   makeStackTrace(omitCount = 0) {

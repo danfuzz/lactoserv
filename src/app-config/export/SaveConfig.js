@@ -4,6 +4,7 @@
 import { MustBe } from '@this/typey';
 
 import { BaseConfig } from '#x/BaseConfig';
+import { FileServiceConfig } from '#x/FileServiceConfig';
 
 
 /**

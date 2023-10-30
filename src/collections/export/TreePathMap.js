@@ -36,7 +36,7 @@ export class TreePathMap {
   /**
    * Constructs an empty instance.
    *
-   * @param {?function(TreePathKey): string} [keyStringFunc = null] The function
+   * @param {?function(TreePathKey): string} [keyStringFunc] The function
    *   to use to render keys into strings. If `null`, this uses {@link
    *   TreePathKey#toString} with no arguments.
    */
@@ -115,7 +115,7 @@ export class TreePathMap {
    *   up. If `.wildcard` is `true`, then this method will only find bindings
    *   which are wildcards, though they might be more general than the `.path`
    *   being looked for.
-   * @param {boolean} [wantNextChain = false] Should the return value have a
+   * @param {boolean} [wantNextChain] Should the return value have a
    *   `next` binding indicating the next-most-specific binding? If so,
    *   `next.next` will be similarly bound, and so on. The final element of the
    *   chain will have no binding for `next` (not even `null`).
@@ -177,7 +177,7 @@ export class TreePathMap {
    *
    * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to look
    *   up.
-   * @param {*} [ifNotFound = null] What to return if a binding is not found.
+   * @param {*} [ifNotFound] What to return if a binding is not found.
    * @returns {*} The value bound for the given `key`, or `ifNotFound` if there
    *   is no such binding.
    */

@@ -69,7 +69,7 @@ export class Moment {
    * both seconds since the Unix Epoch as well as a string indicating the
    * date-time in UTC.
    *
-   * @param {object} [options = {}] Formatting options, as with {@link
+   * @param {object} [options] Formatting options, as with {@link
    *   #stringFromSecs}.
    * @returns {object} Friendly representation object.
    */
@@ -82,7 +82,7 @@ export class Moment {
    * and understandable form. The result is a string representing the date-time
    * in UTC.
    *
-   * @param {object} [options = {}] Formatting options, as with {@link
+   * @param {object} [options] Formatting options, as with {@link
    *   #stringFromSecs}.
    * @returns {string} The friendly time string.
    */
@@ -127,7 +127,7 @@ export class Moment {
    *
    * @param {number} atSecs The moment to represent, in the form of seconds
    *   since the Unix Epoch.
-   * @param {object} [options = {}] Formatting options, as with {@link
+   * @param {object} [options] Formatting options, as with {@link
    *   #stringFromSecs}.
    * @returns {object} Friendly representation object.
    */
@@ -143,10 +143,10 @@ export class Moment {
    * result is a string representing the date-time in UTC.
    *
    * @param {number} atSecs Time in the form of seconds since the Unix Epoch.
-   * @param {object} [options = {}] Formatting options.
-   * @param {boolean} [options.colons = true] Use colons to separate the
+   * @param {object} [options] Formatting options.
+   * @param {boolean} [options.colons] Use colons to separate the
    *   time-of-day components?
-   * @param {number} [options.decimals = 0] Number of fractional-second digits
+   * @param {number} [options.decimals] Number of fractional-second digits
    *    of precision. **Note:** Fractions of seconds are truncated, not rounded.
    * @returns {string} The friendly time string.
    */

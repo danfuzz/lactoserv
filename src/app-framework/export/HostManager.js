@@ -33,7 +33,7 @@ export class HostManager {
   /**
    * Constructs an instance.
    *
-   * @param {HostConfig[]} [configs = []] Configuration objects.
+   * @param {HostConfig[]} [configs] Configuration objects.
    */
   constructor(configs = []) {
     for (const config of configs) {
