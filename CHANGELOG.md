@@ -7,7 +7,8 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* None
+* None. Though there have been no intentionally-meaningful code changes, please
+  note that the ESLint update (see below) _did_ require some code tweakage.
 
 Other notable changes:
 * Updated to latest ESLint. Adjusted comments and code accordingly.
