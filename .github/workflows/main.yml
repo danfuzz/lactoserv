@@ -24,7 +24,7 @@ jobs:
       - name: Get Node.
         uses: actions/setup-node@v4
         with:
-          node-version: '18.x'
+          node-version: '20.x'
 
       # Note: Checks out into `$GITHUB_WORKSPACE`, which is also the `$CWD`.
       - name: Clone repo.

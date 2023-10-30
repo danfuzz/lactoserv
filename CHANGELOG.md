@@ -1,6 +1,17 @@
 Changelog
 =========
 
+**Note:** Version numbers for _stable_ (so marked) releases follow semantic
+versioning principles. Unstable releases do not.
+
+### [Unreleased]
+
+Breaking changes:
+* None.
+
+Other notable changes:
+* Updated automated build to use Node 20.
+
 ### v0.5.16 -- 2023-09-26
 
 This is a build-only change. The built artifacts should remain the same.
