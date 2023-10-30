@@ -905,7 +905,7 @@ function _argproc_parse-enum {
     local value="$1"
     local values
 
-    set-array-from-vals values "${value}" \
+    set-array-from-vals --quiet values "${value}" \
     || return "$?"
 
     if (( ${#values[@]} == 0 )); then
@@ -1072,7 +1072,7 @@ function _argproc_statements-from-args {
                         ;;
                     '[]=')
                         # Multi-value option. Parse the value into elements.
-                        if set-array-from-vals values "${value}"; then
+                        if set-array-from-vals --quiet values "${value}"; then
                             _argproc_statements+=(
                                 "${handler} $(vals "${values[@]}")")
                         else

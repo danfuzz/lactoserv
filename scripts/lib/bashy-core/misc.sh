@@ -91,20 +91,36 @@ function set-array-from-lines {
 
 # Reverse of `vals`: Assigns parsed elements of the given multi-value string
 # (as produced by `vals` or similar) into the indicated variable, as an array.
-# Values must be separated by at least one whitespace character.
+# Values must be separated by at least one whitespace character. The option
+# `--quiet` suppresses error output.
 function set-array-from-vals {
+    # Note: Because we use `eval`, local variables are given name prefixes to
+    # avoid conflicts with the caller.
+    local _bashy_quiet=0
+    if [[ $1 == '--quiet' ]]; then
+        _bashy_quiet=1
+        shift
+    fi
+
     if (( $# != 2 )); then
-        error-msg --file-line=1 'Missing argument(s) to `set-array-from-vals`.'
+        if (( !_bashy_quiet )); then
+            local msg
+            if (( $# < 2 )); then
+                msg='Missing argument(s)'
+            else
+                msg='Too many arguments'
+            fi
+            error-msg --file-line=1 "${msg}"' to `set-array-from-vals`.'
+        fi
         return 1
     fi
 
-    # Note: Because we use `eval`, local variables are given name prefixes to
-    # avoid conflicts with the caller.
     local _bashy_name="$1"
-    local _bashy_value="$2"
+    local _bashy_origValue="$2"
 
-    local _bashy_notsp=$'[^ \n\r\t]'
-    local _bashy_space=$'[ \n\r\t]'
+    local _bashy_value="${_bashy_origValue}"
+    local _bashy_notsp=$'[^ \n\r\t]' # Regex constant.
+    local _bashy_space=$'[ \n\r\t]'  # Ditto.
 
     # Trim _ending_ whitespace, and prefix `value` with a space, the latter to
     # maintain the constraint that values are whitespace-separated.
@@ -134,6 +150,10 @@ function set-array-from-vals {
     done
 
     if ! [[ ${_bashy_value} =~ ^${_bashy_space}*$ ]]; then
+        if (( !_bashy_quiet )); then
+            error-msg 'Invalid `vals`-style multi-value string:'
+            error-msg "  $(vals "${_bashy_origValue}")"
+        fi
         return 1
     fi
 
