@@ -106,17 +106,6 @@ if (( ${#args[@]} == 0 )); then
     args=("${srcDir}")
 fi
 
-# TEMP!!!! FOR TESTING
-sleep 1
-info-msg '#################'
-info-msg ">>${toolPath}<<" ">>${toolPath%/*}<<"
-info-msg --exec ls -alF "${toolPath%/*}"
-info-msg '#################'
-(cd "${outDir}"; find 2>&1 . -name node_modules -prune -o -type f -print)
-info-msg '#################'
-sleep 1
-# TEMP!!!! FOR TESTING
-
 "${toolPath}" "${opts[@]}" -- "${args[@]}"
 status="$?"
 
