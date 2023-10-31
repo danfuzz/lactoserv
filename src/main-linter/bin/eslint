@@ -1,0 +1,14 @@
+#!/bin/bash
+#
+# Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
+# SPDX-License-Identifier: Apache-2.0
+
+# Figure out the symlink-resolved program name and directory.
+cmdName="$(readlink -f "$0")" || exit "$?"
+cmdDir="${cmdName%/*}"
+cmdName="${cmdName##*/}"
+baseDir="${cmdDir%/*}"
+
+# Just call through to the `eslint` that got built by the main ESLint
+# dependency.
+exec "${baseDir}/lib/node_modules/.bin/eslint" "$@"

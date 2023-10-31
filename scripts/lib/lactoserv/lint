@@ -6,13 +6,6 @@
 . "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"
 
 
-TOOL_DEPENDENCIES='{
-    "eslint": "^8.52.0",
-    "eslint-plugin-jsdoc": "^46.8.2",
-    "eslint-plugin-jest": "^27.6.0"
-}'
-
-
 #
 # Argument parsing
 #
@@ -45,20 +38,49 @@ process-args "$@" || exit "$?"
 # Helper functions
 #
 
-# Builds the tool.
-function build-tool {
-    local name="$1"
+# Finds a hopefully-unique file at the top level of the project whose name has
+# the right prefix. Prints it.
+function config-file-path {
+    local configFile
 
-    rm -rf node_modules "${name}" *.json
-
-    jval >package.json \
-        dependencies:json="${TOOL_DEPENDENCIES}" \
-        '{ dependencies: $dependencies }'
-
-    npm install \
+    configFile=($(
+        lib ls-files --output=lines \
+            --cd="${srcDir}" --full-paths --depth=1 --include='^\.eslintrc'
+    )) \
     || return "$?"
 
-    ln -s node_modules/.bin/eslint "${name}"
+    if (( ${#configFile[@]} != 1 )); then
+        if (( ${#configFile[@]} == 0 )); then
+            error-msg 'Did not find a config file in the project!'
+        else
+            error-msg 'Did not find a _unique_ config file!'
+        fi
+        return 1
+    fi
+
+    echo "${configFile[0]}"
+}
+
+# Given a config file path, builds the linter if necessary, and then runs it
+# with the given arguments (including any linter options, not just file names).
+function run-linter {
+    local args=("$@")
+
+    local toolModule=linter
+    local toolDir="${outDir}/${toolModule}"
+    local toolPath="${toolDir}/bin/eslint"
+
+    # Build the linter, if necessary.
+    if [[ ! -x ${toolPath} ]]; then
+        lib node-project build-main-module \
+            --out="${outDir}" --modules-dir="${srcDir}" "${toolModule}" \
+        || return "$?"
+    fi
+
+    "${toolPath}" \
+        --resolve-plugins-relative-to "${toolDir}/lib" \
+        --cache --cache-location "${toolDir}/cache" \
+        "$@"
 }
 
 
@@ -70,39 +92,11 @@ srcDir="$(base-dir)/src"
 outDir="$(lib buildy out-dir --out="${outDir}")" \
 || exit "$?"
 
-toolDir="${outDir}/linter"
-toolBinName='lint'
-toolBinary="${toolDir}/${toolBinName}"
-
-if [[ ! -x ${toolBinary} ]]; then
-    mkdir -p "${toolDir}"
-    (
-        cd "${toolDir}"
-        build-tool "${toolBinName}"
-    ) \
-    || exit "$?"
-fi
-
-# Find a hopefully-unique file at the top level whose name has the right prefix.
-configFile=($(
-    lib ls-files --output=lines \
-        --cd="${srcDir}" --full-paths --depth=1 --include='^\.eslintrc'
-)) \
+configFile="$(config-file-path)" \
 || exit "$?"
-
-if (( ${#configFile[@]} != 1 )); then
-    if (( ${#configFile[@]} == 0 )); then
-        error-msg 'No ESLint config file!'
-    else
-        error-msg 'No unique ESLint config file!'
-    fi
-    exit 1
-fi
 
 opts=(
     --config "${configFile}"
-    --resolve-plugins-relative-to "${toolDir}"
-    --cache --cache-location "${toolDir}/cache"
     --max-warnings 0
 )
 
@@ -115,7 +109,7 @@ if (( ${#args[@]} == 0 )); then
     args=("${srcDir}")
 fi
 
-"${toolBinary}" "${opts[@]}" -- "${args[@]}"
+run-linter "${opts[@]}" -- "${args[@]}"
 status="$?"
 
 info-msg
