@@ -108,9 +108,10 @@ fi
 
 # TEMP!!!! FOR TESTING
 info-msg '#################'
-ls -alF "${toolPath%/*}"
+info-msg --exec ">>${toolPath}<<" ">>${toolPath%/*}<<"
+info-msg --exec ls -alF "${toolPath%/*}"
 info-msg '#################'
-(cd "${outDir}"; find . -name node_modules -prune -type f -print)
+(cd "${outDir}"; find . -name node_modules -prune -o -type f -print)
 info-msg '#################'
 # TEMP!!!! FOR TESTING
 
