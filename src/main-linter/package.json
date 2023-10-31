@@ -1,5 +1,5 @@
 {
-  "name": "@this/main-lint",
+  "name": "@this/main-linter",
   "version": "0.0.1",
   "type": "module",
   "private": true,
