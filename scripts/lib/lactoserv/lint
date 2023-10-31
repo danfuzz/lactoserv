@@ -106,6 +106,12 @@ if (( ${#args[@]} == 0 )); then
     args=("${srcDir}")
 fi
 
+# TEMP!!!! FOR TESTING
+info-msg '#################'
+(cd "${outDir}"; find . -type f)
+info-msg '#################'
+# TEMP!!!! FOR TESTING
+
 "${toolPath}" "${opts[@]}" -- "${args[@]}"
 status="$?"
 
