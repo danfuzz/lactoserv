@@ -11,7 +11,10 @@ Breaking changes:
   note that the ESLint update (see below) _did_ require some code tweakage.
 
 Other notable changes:
-* Updated to latest ESLint. Adjusted comments and code accordingly.
+* Lint:
+  * Updated to latest ESLint. Adjusted comments and code accordingly.
+  * Un-janked how the linter gets built. It's now built using the same mechanism
+    as the main application build.
 
 ### v0.5.17 -- 2023-10-30
 
