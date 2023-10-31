@@ -109,8 +109,6 @@ fi
 "${toolPath}" "${opts[@]}" -- "${args[@]}"
 status="$?"
 
-info-msg
-
 if (( ${status} == 0 )); then
     info-msg 'No linter errors! Yay!'
 else
