@@ -77,10 +77,7 @@ function run-linter {
         || return "$?"
     fi
 
-    "${toolPath}" \
-        --resolve-plugins-relative-to "${toolDir}/lib" \
-        --cache --cache-location "${toolDir}/cache" \
-        "$@"
+    "${toolPath}" "$@"
 }
 
 
