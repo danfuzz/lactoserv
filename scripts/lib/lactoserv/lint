@@ -107,12 +107,14 @@ if (( ${#args[@]} == 0 )); then
 fi
 
 # TEMP!!!! FOR TESTING
+sleep 1
 info-msg '#################'
-info-msg --exec ">>${toolPath}<<" ">>${toolPath%/*}<<"
+info-msg ">>${toolPath}<<" ">>${toolPath%/*}<<"
 info-msg --exec ls -alF "${toolPath%/*}"
 info-msg '#################'
-(cd "${outDir}"; find . -name node_modules -prune -o -type f -print)
+(cd "${outDir}"; find 2>&1 . -name node_modules -prune -o -type f -print)
 info-msg '#################'
+sleep 1
 # TEMP!!!! FOR TESTING
 
 "${toolPath}" "${opts[@]}" -- "${args[@]}"
