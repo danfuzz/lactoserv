@@ -61,11 +61,8 @@ function config-file-path {
     echo "${configFile[0]}"
 }
 
-# Given a config file path, builds the linter if necessary, and then runs it
-# with the given arguments (including any linter options, not just file names).
-function run-linter {
-    local args=("$@")
-
+# Builds the linter if necessary, and then prints the path to it main binary.
+function linter-path {
     local toolModule=linter
     local toolDir="${outDir}/${toolModule}"
     local toolPath="${toolDir}/bin/eslint"
@@ -77,7 +74,7 @@ function run-linter {
         || return "$?"
     fi
 
-    "${toolPath}" "$@"
+    echo "${toolPath}"
 }
 
 
@@ -90,6 +87,9 @@ outDir="$(lib buildy out-dir --out="${outDir}")" \
 || exit "$?"
 
 configFile="$(config-file-path)" \
+|| exit "$?"
+
+toolPath="$(linter-path)" \
 || exit "$?"
 
 opts=(
@@ -106,7 +106,7 @@ if (( ${#args[@]} == 0 )); then
     args=("${srcDir}")
 fi
 
-run-linter "${opts[@]}" -- "${args[@]}"
+"${toolPath}" "${opts[@]}" -- "${args[@]}"
 status="$?"
 
 info-msg
