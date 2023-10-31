@@ -1,0 +1,19 @@
+{
+  "name": "@this/main-linter",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "license": "Apache-2.0",
+
+  "exports": "./index.js",
+  "imports": {
+    "#x/*": "./export/*.js",
+    "#p/*": "./private/*.js"
+  },
+
+  "dependencies": {
+    "eslint": "^8.52.0",
+    "eslint-plugin-jsdoc": "^46.8.2",
+    "eslint-plugin-jest": "^27.6.0"
+  }
+}
