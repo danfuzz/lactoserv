@@ -330,7 +330,7 @@ function suspect-file-check {
 
     suspectFiles="$(
         lib ls-files --output=array --cd="${dir}" \
-            --exclude='\.(cjs|js|json|html|md|mjs|ts|yml)$'
+            --exclude='\.(cjs|js|json|html|md|mjs|pyc|ts|yml)$'
     )" \
     || return "$?"
 
