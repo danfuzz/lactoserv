@@ -1,0 +1,20 @@
+{
+  "name": "@this/main-tester",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "license": "Apache-2.0",
+
+  "exports": "./index.js",
+  "imports": {
+    "#x/*": "./export/*.js",
+    "#p/*": "./private/*.js"
+  },
+
+  "dependencies": {
+    "jest": "^29.0.3",
+    "jest-extended": "^3.1.0",
+    "jest-light-runner": "^0.4.0",
+    "trace-unhandled": "^2.0.1"
+  }
+}
