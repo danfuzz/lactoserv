@@ -15,6 +15,7 @@ Other notable changes:
   * Updated to latest ESLint. Adjusted comments and code accordingly.
   * Un-janked how the linter gets built. It's now built using the same mechanism
     as the main application build.
+* Testing: As with the linter, un-janked how it gets built.
 
 ### v0.5.17 -- 2023-10-30
 
