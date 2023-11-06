@@ -433,7 +433,7 @@ export class TokenBucket {
    *   the returned wait time. (This is the method used to actually grant tokens
    *   on behalf of waiters!)
    *
-   * This method returns an object with the following binding, which all have
+   * This method returns an object with the following bindings, which all have
    * the same meaning as with {@link #takeNow}: `done`, `grant`, and
    * `waitUntil`.
    *
