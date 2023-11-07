@@ -60,9 +60,12 @@ srcDir="$(base-dir)/src"
 etcDir="$(base-dir)/etc"
 outDir="$(set-up-out-dir)"
 
-lib node-project build-main-module \
-    --out="${outDir}" --modules-dirs="${srcDir}" lactoserv \
-|| exit "$?"
+(
+    true \
+    && env-minimize \
+    && lib node-project build-main-module \
+        --out="${outDir}" --modules-dirs="${srcDir}" lactoserv \
+) || exit "$?"
 
 if (( doDistro )); then
     progress-msg
