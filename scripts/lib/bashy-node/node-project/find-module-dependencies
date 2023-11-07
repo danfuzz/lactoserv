@@ -13,9 +13,9 @@
 define-usage --with-help $'
     ${name} [<opt> ...] [--] <module-name>
 
-    Transitively finds all module dependencies from the one given, which must
-    be the name of a module defined under the indicated modules directory.
-    Prints out a JSON object with bindings as follows:
+    Transitively finds all module dependencies from the given <module-name>,
+    which must be the name of a module defined under one of the indicated
+    modules directories. Prints out a JSON object with bindings as follows:
 
     * `main: string` -- The originally requested module.
     * `localDeps: [name, ...]` -- Local module dependencies.
@@ -30,20 +30,15 @@ define-usage --with-help $'
     This tool is opinionated: The modules directories are taken to define
     submodules (in the Node sense) under the top-level name `@this`.
 
-    **Note:** Exactly one of the two `--modules-*` options must be specified.
-
-    --modules-dir=<dir>
-      Path to a directory containing all module sources to be used.
-    --modules-dirs=<json>
-      JSON array of one or more paths to directories containing module sources.
-      If the same-named module exists in more than one modules directory, the
-      first one listed "wins."
+    --modules-dirs=<dir>
+    --modules-dirs[]=<dir> ...
+      Paths to one or more module source directories, collectively containing
+      all module sources to be used. If there are same-named modules under more
+      than one of the given paths, the first-listed path\'s one "wins."
 '
 
-# Directory or directories containing all the modules.
-opt-value --var=modulesDir --filter='/./' modules-dir
-opt-value --var=modulesDirsJson --filter='/^\[.*\]$/' modules-dirs
-require-exactly-one-arg-of modules-dir modules-dirs
+# Paths to all module directories.
+opt-multi --required --var=modulesDirs --filter='/./' modules-dirs
 
 # The module to start at.
 positional-arg --required --var=moduleName module-name
@@ -54,18 +49,6 @@ process-args "$@" || exit "$?"
 #
 # Main script
 #
-
-modulesDirs=()
-if [[ ${modulesDir} != '' ]]; then
-    if [[ ! (-d ${modulesDir} && -r ${modulesDir}) ]]; then
-        error-msg "Not a readable directory: ${modulesDir}"
-        exit 1
-    fi
-    modulesDirs=("${modulesDir}")
-else
-    jset-array --raw modulesDirs "${modulesDirsJson}" \
-    || exit "$?"
-fi
 
 # Collect all of the modules referenced by this package, transitively including
 # all referenced local modules. The result is two lists, one of local modules

@@ -61,6 +61,40 @@ function check-json-output-args {
     fi
 }
 
+# Removes from the environment all the variables except for the ones listed.
+# Note that it is probably best to only run this in a subshell, e.g. just before
+# running code that can't be fully trusted with a fuller set of environment
+# variables.
+function env-clean {
+    local allowList=" $* " # Minor cleverness for easier regex matching below.
+
+    local allNames
+    allNames=($(env-names)) || return "$?"
+
+    local n
+    for n in "${allNames[@]}"; do
+        if [[ ! (${allowList} =~ " ${n} ") ]]; then
+            export -n "${n}"
+        fi
+    done
+}
+
+# Runs `env-clean` passing it a reasonably "minimal" set of environment
+# variables to keep.
+function env-minimize {
+    env-clean HOME HOSTNAME LANG LOGNAME PATH PWD SHELL SHLVL TERM TMPDIR USER
+}
+
+# Prints a list of the names of all defined environment variables.
+function env-names {
+    # It turns out that the most straightforward way to get a list of
+    # currently-defined environment variables is arguably to use `awk`. Notably,
+    # the output of `declare -x` can't be trivially parsed in the case where an
+    # environment variable contains a newline (perhaps followed by a line that
+    # mimics the output of `declare -x`).
+    awk 'BEGIN { for (x in ENVIRON) print x; }'
+}
+
 # Interprets standardized (for this project) JSON "post-processing" arguments.
 # This processes `stdin`. The arguments must start with `::`. After that are
 # options and arguments just as with `jval`, except `--input` is not accepted.

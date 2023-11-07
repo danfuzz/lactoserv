@@ -4,6 +4,14 @@ Changelog
 **Note:** Version numbers for _stable_ (so marked) releases follow semantic
 versioning principles. Unstable releases do not.
 
+### [Unreleased]
+
+Breaking changes:
+* None.
+
+Other notable changes:
+* Pulled in improved `bashy-lib`, and adjusted accordingly.
+
 ### v0.5.18 -- 2023-11-02
 
 Breaking changes:

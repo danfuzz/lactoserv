@@ -26,12 +26,11 @@ define-usage --with-help $'
     --allow-platform-specific-files
       If specified, the build does *not* check to see if any platform-specific
       files ended up in the built output.
-    --modules-dir=<dir>
-      Path to a directory containing all module sources to be used.
-    --modules-dirs=<json>
-      JSON array of one or more paths to directories containing module sources.
-      If the same-named module exists in more than one modules directory, the
-      first one listed "wins."
+    --modules-dirs=<dir>
+    --modules-dirs[]=<dir> ...
+      Paths to one or more module source directories, collectively containing
+      all module sources to be used. If there are same-named modules under more
+      than one of the given paths, the first-listed path\'s one "wins."
     --out=<dir>
       Directory where built output goes. Defaults to `out` directly under the
       main product directory.
@@ -46,11 +45,8 @@ define-usage --with-help $'
 # Allow the build to be platform-specific?
 opt-toggle --var=platformSpecific allow-platform-specific-files
 
-# Directory or directories containing all the modules.
-modulesOpt=''
-opt-value --call='{ modulesOpt="--modules-dir=$1" }' --filter='/./' modules-dir
-opt-value --call='{ modulesOpt="--modules-dirs=$1" }' --filter='/^\[.*\]$/' modules-dirs
-require-exactly-one-arg-of modules-dir modules-dirs
+# Paths to all module directories.
+opt-multi --required --var=modulesDirs --filter='/./' modules-dirs
 
 # Built output directory.
 opt-value --var=outDir out
@@ -71,8 +67,9 @@ process-args "$@" || exit "$?"
 # The main actions of this script.
 function build-project {
     local projectName="$1"
-    local modulesOpt="$2"
-    local destDir="$3"
+    local destDir="$2"
+    shift 2
+    local modulesDirs=("$@")
 
     local destLibDir="${destDir}/lib"
     local mainModule="main-${projectName}"
@@ -91,7 +88,9 @@ function build-project {
 
     local deps
     deps="$(
-        lib . find-module-dependencies "${modulesOpt}" "${mainModule}"
+        lib . find-module-dependencies \
+            --modules-dirs[]="$(vals "${modulesDirs[@]}")" \
+            "${mainModule}"
     )" \
     || return "$?"
 
@@ -372,7 +371,7 @@ if [[ ! -d ${outProjectDir} ]]; then
     || exit "$?"
 fi
 
-build-project "${projectName}" "${modulesOpt}" "${outProjectDir}" \
+build-project "${projectName}" "${outProjectDir}" "${modulesDirs[@]}" \
 || exit "$?"
 
 if (( !platformSpecific )); then
