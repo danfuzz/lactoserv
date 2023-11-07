@@ -113,7 +113,7 @@ function tester-path {
     if [[ ! -x ${toolPath} ]]; then
         lib 1>&2 node-project build-main-module \
             --allow-platform-specific-files \
-            --out="${outDir}" --modules-dir="${srcDir}" "${toolModule}" \
+            --out="${outDir}" --modules-dirs="${srcDir}" "${toolModule}" \
         || return "$?"
     fi
 
