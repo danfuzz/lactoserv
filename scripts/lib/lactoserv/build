@@ -73,9 +73,7 @@ trap "rm -rf \"${tmpDir}\"" EXIT
 include-lib buildy-help --tmp-dir="${tmpDir}"
 
 outDir="$(set-up-out-dir --out="${outDir}" --clean="${doClean}")" || exit "$?"
-
 srcDir="$(base-dir)/src"
-etcDir="$(base-dir)/etc"
 
 targets=(main)
 
