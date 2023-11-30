@@ -40,25 +40,17 @@ process-args "$@" || exit "$?"
 # Helper functions
 #
 
-# Sets up the output directory.
-function set-up-out-dir {
-    local extraOpts=()
-    if (( doClean )); then
-        extraOpts=(--remove)
-    fi
-
-    lib buildy out-dir \
-        --out="${outDir}" --create --print "${extraOpts[@]}"
-}
-
 
 #
 # Main script
 #
 
+include-lib buildy-help
+
+outDir="$(set-up-out-dir --out="${outDir}" --clean="${doClean}")" || exit "$?"
+
 srcDir="$(base-dir)/src"
 etcDir="$(base-dir)/etc"
-outDir="$(set-up-out-dir)"
 
 (
     true \
