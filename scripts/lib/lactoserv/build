@@ -37,34 +37,50 @@ process-args "$@" || exit "$?"
 
 
 #
-# Helper functions
+# Build targets
 #
+
+# Target: `distro`
+function target-distro {
+    satisfy-target main \
+    || return "$?"
+
+    progress-msg 'Making distribution tarball...'
+
+    lib buildy make-distro --out="${outDir}" "${outDir}/lactoserv"
+}
+
+# Target: `main`
+function target-main {
+    # Run in a subshell so that `env-minimize` has no lasting effect.
+    (
+        true \
+        && env-minimize \
+        && lib node-project build-main-module \
+            --out="${outDir}" --modules-dirs="${srcDir}" lactoserv \
+    )
+}
 
 
 #
 # Main script
 #
 
-include-lib buildy-help
+# Make a temporary directory, and arrange for its deletion upon exit.
+tmpDir="$(lib tempy mkdir)" || exit "$?"
+trap "rm -rf \"${tmpDir}\"" EXIT
+
+include-lib buildy-help --tmp-dir="${tmpDir}"
 
 outDir="$(set-up-out-dir --out="${outDir}" --clean="${doClean}")" || exit "$?"
 
 srcDir="$(base-dir)/src"
 etcDir="$(base-dir)/etc"
 
-(
-    true \
-    && env-minimize \
-    && lib node-project build-main-module \
-        --out="${outDir}" --modules-dirs="${srcDir}" lactoserv \
-) || exit "$?"
+targets=(main)
 
 if (( doDistro )); then
-    progress-msg
-    progress-msg 'Making distribution tarball...'
-    lib buildy make-distro --out="${outDir}" "${outDir}/lactoserv" \
-    || exit "$?"
+    targets+=(distro)
 fi
 
-progress-msg
-progress-msg 'Build complete!'
+satisfy-all-targets "${targets[@]}"
