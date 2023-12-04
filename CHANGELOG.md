@@ -6,8 +6,10 @@ versioning principles. Unstable releases do not.
 
 ### [Unreleased]
 
+### v0.5.19 -- 2023-12-04
+
 Breaking changes:
-* None.
+* None. This is a build-only change. The built artifacts should remain the same.
 
 Other notable changes:
 * Pulled in improved `bashy-lib`, and adjusted accordingly.
