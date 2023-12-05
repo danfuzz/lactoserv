@@ -16,7 +16,7 @@ baseDir="${cmdDir%/*}"
 
 
 #
-# Argument parsing.
+# Argument parsing
 #
 
 function usage {
