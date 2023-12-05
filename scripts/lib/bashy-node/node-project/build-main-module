@@ -34,6 +34,9 @@ define-usage --with-help $'
     --out=<dir>
       Directory where built output goes. Defaults to `out` directly under the
       main product directory.
+    --runner-script=<name>
+      Create a script to run the system in the `out` directory, with the given
+      name.
     --unsafely-run-npm-install-scripts
       If specified, runs any install-time scripts defined by modules. This is
       reasonably considered an unsafe practice (it is a vector for
@@ -50,6 +53,9 @@ opt-multi --required --var=modulesDirs --filter='/./' modules-dirs
 
 # Built output directory.
 opt-value --var=outDir out
+
+# Name of runner script to add to the output, if any.
+opt-value --var=runnerScript runner-script
 
 # Run npm install-time scripts?
 opt-toggle --var=runNpmInstallScripts unsafely-run-npm-install-scripts
@@ -203,6 +209,10 @@ function copy-local-modules {
 function copy-scripts {
     local srcDir="$1/bin"
     local destDir="$2/bin"
+
+    if [[ ! -d "${srcDir}" ]]; then
+        return
+    fi
 
     # Get a JSON array of all the files.
     local fileList
@@ -377,6 +387,16 @@ build-project "${projectName}" "${outProjectDir}" "${modulesDirs[@]}" \
 if (( !platformSpecific )); then
     progress-msg 'Checking for platform agnosticity...'
     suspect-file-check "${outProjectDir}/lib/node_modules" \
+    || exit "$?"
+fi
+
+if [[ ${runnerScript} != '' ]]; then
+    progress-msg 'Copying runner script...'
+    binDir="${outProjectDir}/bin"
+    true \
+    && mkdir -p "${binDir}" \
+    && cp "$(this-cmd-dir)/runner-script.txt" "${binDir}/${runnerScript}" \
+    && chmod 755 "${binDir}/${runnerScript}" \
     || exit "$?"
 fi
 
