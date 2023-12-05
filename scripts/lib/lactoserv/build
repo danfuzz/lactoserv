@@ -57,7 +57,8 @@ function target-main {
         true \
         && env-minimize \
         && lib node-project build-main-module \
-            --out="${outDir}" --modules-dirs="${srcDir}" lactoserv \
+            --out="${outDir}" --modules-dirs="${srcDir}" \
+            lactoserv
     )
 }
 
