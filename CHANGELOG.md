@@ -10,6 +10,8 @@ Breaking changes:
 * None.
 
 Other notable changes:
+* Extracted base class `BaseSystem` from `UsualSystem`, to help avoid code
+  duplication in downstream projects.
 * Pulled in improved `bashy-lib`, and adjusted accordingly.
 
 ### v0.5.19 -- 2023-12-04
