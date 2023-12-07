@@ -34,7 +34,7 @@ export class BaseSystem extends Threadlet {
 
   /**
    * @type {*} Value returned from {@link #_impl_init} which is to be used on
-   * the next restart.
+   * the next start (including a restart).
    */
   #nextInitValue = null;
 
