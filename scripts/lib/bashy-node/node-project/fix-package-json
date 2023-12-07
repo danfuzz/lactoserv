@@ -73,7 +73,9 @@ function get-deps {
     local files
 
     files=($(
-        lib buildy ls-files --output=lines --include='\.js$' "${srcDir}"
+        lib ls-files --output=lines \
+            --include='\.js$' --exclude='/tests/' \
+            "${srcDir}"
     )) \
     || return "$?"
 
