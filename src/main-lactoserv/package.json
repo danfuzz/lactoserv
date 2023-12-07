@@ -13,6 +13,7 @@
 
   "dependencies": {
     "@this/app-framework": "*",
+    "@this/app-util": "*",
     "@this/async": "*",
     "@this/builtin-applications": "*",
     "@this/builtin-services": "*",

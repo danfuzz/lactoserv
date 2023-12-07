@@ -13,8 +13,10 @@
 
   "dependencies": {
     "@this/app-config": "*",
+    "@this/app-framework": "*",
     "@this/async": "*",
     "@this/fs-util": "*",
+    "@this/host": "*",
     "@this/loggy": "*",
     "@this/typey": "*"
   }
