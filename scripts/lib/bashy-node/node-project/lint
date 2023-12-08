@@ -1,0 +1,128 @@
+#!/bin/bash
+#
+# Copyright 2022-2023 the Bashy-lib Authors (Dan Bornstein et alia).
+# SPDX-License-Identifier: Apache-2.0
+
+. "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"
+
+
+#
+# Argument parsing
+#
+
+define-usage --with-help $'
+    ${name} [<opt> ...] <lint-arg> ...
+
+    Runs the linter. With no specific files listed, this will run the linter on
+    all source files found.
+
+    --fix
+      Fix whatever issues are fixable.
+    --out=<dir>
+      Directory where built output goes. Defaults to `out` directly under the
+      main product directory.
+    --src=<dir>
+      Path to the base directory of source files. This tool expects to find a
+      linter configuration file there. Defaults to the base project directory.
+'
+
+# Perform fixes?
+opt-toggle --var=doFix fix
+
+# Built output directory.
+opt-value --var=outDir out
+
+# Source directory.
+opt-value --var=srcDir src
+
+# Arbitrary args to pass to the tool.
+rest-arg --var=args args
+
+process-args "$@" || exit "$?"
+
+
+#
+# Helper functions
+#
+
+# Finds a hopefully-unique file at the top level of the project whose name has
+# the right prefix. Prints it.
+function config-file-path {
+    local configFile
+
+    configFile=($(
+        lib ls-files --output=lines \
+            --cd="${srcDir}" --full-paths --depth=1 --include='^\.eslintrc'
+    )) \
+    || return "$?"
+
+    if (( ${#configFile[@]} != 1 )); then
+        if (( ${#configFile[@]} == 0 )); then
+            error-msg 'Did not find a config file in the project!'
+        else
+            error-msg 'Did not find a _unique_ config file!'
+        fi
+        return 1
+    fi
+
+    echo "${configFile[0]}"
+}
+
+# Builds the linter if necessary, and then prints the path to it main binary.
+function linter-path {
+    local toolModule=linter
+    local toolDir="${outDir}/${toolModule}"
+    local toolPath="${toolDir}/bin/eslint"
+
+    # Build the linter, if necessary.
+    if [[ ! -x ${toolPath} ]]; then
+        lib 1>&2 node-project build-main-module \
+            --out="${outDir}" --modules-dirs="$(this-cmd-dir)/lint-src" \
+            "${toolModule}" \
+        || return "$?"
+    fi
+
+    echo "${toolPath}"
+}
+
+
+#
+# Main script
+#
+
+if [[ ${srcDir} == '' ]]; then
+    srcDir="$(base-dir)"
+fi
+
+outDir="$(lib buildy out-dir --out="${outDir}")" \
+|| exit "$?"
+
+configFile="$(config-file-path)" \
+|| exit "$?"
+
+toolPath="$(linter-path)" \
+|| exit "$?"
+
+opts=(
+    --config "${configFile}"
+    --max-warnings 0
+)
+
+if (( doFix )); then
+    opts+=(--fix)
+fi
+
+if (( ${#args[@]} == 0 )); then
+    # Run over all of the source by default.
+    args=("${srcDir}")
+fi
+
+"${toolPath}" "${opts[@]}" -- "${args[@]}"
+status="$?"
+
+if (( ${status} == 0 )); then
+    info-msg 'No linter errors! Yay!'
+else
+    error-msg --no-name 'Linter errors. Alas.'
+    exit "${status}"
+fi
