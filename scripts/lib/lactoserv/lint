@@ -86,32 +86,14 @@ srcDir="$(base-dir)/src"
 outDir="$(lib buildy out-dir --out="${outDir}")" \
 || exit "$?"
 
-configFile="$(config-file-path)" \
-|| exit "$?"
-
-toolPath="$(linter-path)" \
-|| exit "$?"
-
-opts=(
-    --config "${configFile}"
-    --max-warnings 0
+cmdArgs=(
+    --out="${outDir}"
+    --src="$(base-dir)/src"
 )
 
 if (( doFix )); then
-    opts+=(--fix)
+    cmdArgs+=(--fix)
 fi
 
-if (( ${#args[@]} == 0 )); then
-    # Run over all of the source by default.
-    args=("${srcDir}")
-fi
-
-"${toolPath}" "${opts[@]}" -- "${args[@]}"
-status="$?"
-
-if (( ${status} == 0 )); then
-    info-msg 'No linter errors! Yay!'
-else
-    error-msg --no-name 'Linter errors. Alas.'
-    exit "${status}"
-fi
+cmdArgs+=(-- "${args[@]}")
+lib node-project lint "${cmdArgs[@]}"
