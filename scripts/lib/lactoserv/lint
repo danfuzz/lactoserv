@@ -35,50 +35,6 @@ process-args "$@" || exit "$?"
 
 
 #
-# Helper functions
-#
-
-# Finds a hopefully-unique file at the top level of the project whose name has
-# the right prefix. Prints it.
-function config-file-path {
-    local configFile
-
-    configFile=($(
-        lib ls-files --output=lines \
-            --cd="${srcDir}" --full-paths --depth=1 --include='^\.eslintrc'
-    )) \
-    || return "$?"
-
-    if (( ${#configFile[@]} != 1 )); then
-        if (( ${#configFile[@]} == 0 )); then
-            error-msg 'Did not find a config file in the project!'
-        else
-            error-msg 'Did not find a _unique_ config file!'
-        fi
-        return 1
-    fi
-
-    echo "${configFile[0]}"
-}
-
-# Builds the linter if necessary, and then prints the path to it main binary.
-function linter-path {
-    local toolModule=linter
-    local toolDir="${outDir}/${toolModule}"
-    local toolPath="${toolDir}/bin/eslint"
-
-    # Build the linter, if necessary.
-    if [[ ! -x ${toolPath} ]]; then
-        lib 1>&2 node-project build-main-module \
-            --out="${outDir}" --modules-dirs="${srcDir}" "${toolModule}" \
-        || return "$?"
-    fi
-
-    echo "${toolPath}"
-}
-
-
-#
 # Main script
 #
 
