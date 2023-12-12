@@ -39,10 +39,11 @@ export class WarehouseConfig extends BaseConfig {
    * Constructs an instance.
    *
    * @param {object} config Configuration object. See class header for details.
-   * @param {ConfigClassMapper} configClassMapper Mapper from configuration
-   *   objects to corresponding configuration classes.
+   * @param {?ConfigClassMapper} [configClassMapper] Optional mapper from
+   *   configuration objects to corresponding configuration classes, or `null`
+   *   to not do mapping. (See {@link BaseConfig#parseArray}.)
    */
-  constructor(config, configClassMapper) {
+  constructor(config, configClassMapper = null) {
     super(config);
 
     const {
