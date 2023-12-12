@@ -103,4 +103,13 @@ export class EndpointConfig extends NamedConfig {
   get services() {
     return this.#services;
   }
+
+  /**
+   * Indicates whether the protocol requires host certificate configuration.
+   *
+   * @returns {boolean} `true` iff certificates are required.
+   */
+  requiresCertificates() {
+    return this.#protocol !== 'http';
+  }
 }

@@ -103,7 +103,7 @@ export class EndpointManager extends BaseControllable {
 
     const { hostManager, serviceManager } = this.#warehouse;
 
-    const hmSubset = hostManager
+    const hmSubset = config.requiresCertificates()
       ? hostManager.makeSubset(hostnames)
       : null;
     const rateLimiter = limName
