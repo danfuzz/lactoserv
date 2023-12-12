@@ -66,7 +66,7 @@ export class Warehouse extends BaseControllable {
       registry
     });
 
-    this.#hostManager   = new HostManager(parsed.hosts);
+    this.#hostManager     = new HostManager(parsed.hosts);
     this.#endpointManager = new EndpointManager(parsed.endpoints, this);
   }
 
