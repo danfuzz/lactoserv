@@ -33,10 +33,7 @@ one-element array.
 ### `hosts`
 
 `hosts` is a list of hostname bindings. These map possibly-wildcarded hostnames
-to certificate-key pairs to use to authenticate an endpoint as those hosts. This
-section is only required if at least one endpoint is to respond to
-host-authenticated protocols (which is of course probably going to be most of
-the time).
+to certificate-key pairs to use to authenticate an endpoint as those hosts.
 
 ```js
 const hosts = [
@@ -59,6 +56,10 @@ of subdomains, including zero._ Note that this is unlike how wildcards work in
 the underlying certificates, where a `*` denotes exactly one subdomain. And, to
 be clear, the hostname `*` will match _any_ hostname at all, with any number of
 subdomains.
+
+This section is only required if at least one endpoint is to respond to
+host-authenticated protocols (which is nearly always, at least in standalone
+uses).
 
 **Note:** If you want to keep the text of the keys and certificates out of the
 main configuration file, then the thing to do is just use the standard Node `fs`
@@ -85,6 +86,8 @@ const services = [
   },
   // ... more ...
 ```
+
+This section is only required if there are any services being defined at all.
 
 ### `applications`
 

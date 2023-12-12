@@ -20,7 +20,8 @@ import { ServiceConfig } from '#x/ServiceConfig';
  * * `{object|object[]} hosts` -- Optional host / certificate configuration.
  *   Required only if any endpoints are configured to listen for secure
  *   connections.
- * * `{object|object[]} services` -- System service configuration.
+ * * `{object|object[]} services` -- Optional system service configuration.
+ *   If not present, no services are configured.
  */
 export class WarehouseConfig extends BaseConfig {
   /** @type {ApplicationConfig[]} Application configuration objects. */
@@ -50,7 +51,7 @@ export class WarehouseConfig extends BaseConfig {
       applications,
       endpoints,
       hosts = [],
-      services
+      services = []
     } = config;
 
     this.#applications = ApplicationConfig.parseArray(applications, configClassMapper);
