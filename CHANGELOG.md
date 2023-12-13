@@ -12,7 +12,10 @@ Breaking changes:
 Other notable changes:
 * Extracted base class `BaseSystem` from `UsualSystem`, to help avoid code
   duplication in downstream projects.
-* Mostly minor tweaks and improvements, throughout the codebase.
+* Added ability to make one or more hostnames use automatically-generated
+  self-signed certificates.
+* A handful of cleanup / rationalization around the configuration code.
+* Other mostly minor tweaks and improvements, throughout the codebase.
 * Pulled in improved `bashy-lib`, and adjusted accordingly.
 
 ### v0.5.19 -- 2023-12-04
