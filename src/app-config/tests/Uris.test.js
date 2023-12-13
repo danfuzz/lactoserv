@@ -383,11 +383,12 @@ describe('checkProtocol()', () => {
 });
 
 describe.each`
-method                   | throws
-${'parseHostname'}       | ${true}
-${'parseHostnameOrNull'} | ${false}
-`('$method()', ({ method, throws }) => {
-  // Non-string failures. These are supposed to throw even with `*OrNull()`.
+method                   | throws   | returns
+${'checkHostname'}       | ${true}  | ${'string'}
+${'parseHostname'}       | ${true}  | ${'path'}
+${'parseHostnameOrNull'} | ${false} | ${'path'}
+`('$method()', ({ method, throws, returns }) => {
+  // Failures from passing non-strings. These are always supposed to throw.
   test.each`
   hostname
   ${null}
@@ -423,19 +424,26 @@ ${'parseHostnameOrNull'} | ${false}
     if (throws) {
       expect(() => Uris[method](hostname, false)).toThrow();
       expect(() => Uris[method](hostname, true)).toThrow();
-    } else {
+    } else if (returns === 'path') {
       expect(Uris[method](hostname, false)).toBeNull();
       expect(Uris[method](hostname, true)).toBeNull();
+    } else {
+      // No such methods are defined.
+      throw new Error('Shouldn\'t happen');
     }
   });
 
   const checkAnswer = (hostname, got) => {
-    const expectWildcard = hostname.startsWith('*');
-    const expectLength   = hostname.replace(/[^.]/g, '').length + Number(!expectWildcard);
+    if (returns === 'string') {
+      expect(got).toBe(hostname);
+    } else {
+      const expectWildcard = hostname.startsWith('*');
+      const expectLength   = hostname.replace(/[^.]/g, '').length + Number(!expectWildcard);
 
-    expect(got.wildcard).toBe(expectWildcard);
-    expect(got.length).toBe(expectLength);
-    expect(TreePathKey.hostnameStringFrom(got)).toBe(hostname);
+      expect(got.wildcard).toBe(expectWildcard);
+      expect(got.length).toBe(expectLength);
+      expect(TreePathKey.hostnameStringFrom(got)).toBe(hostname);
+    }
   };
 
   // Non-wildcard success cases.
@@ -461,8 +469,8 @@ ${'parseHostnameOrNull'} | ${false}
   ${`${LONGEST_COMPONENT}.${LONGEST_COMPONENT}`}
   ${LONGEST_NAME}
   `('succeeds for $hostname', ({ hostname }) => {
-    checkAnswer(hostname, Uris.parseHostname(hostname, false));
-    checkAnswer(hostname, Uris.parseHostname(hostname, true));
+    checkAnswer(hostname, Uris[method](hostname, false));
+    checkAnswer(hostname, Uris[method](hostname, true));
   });
 
   // Wildcard success cases.
@@ -479,7 +487,7 @@ ${'parseHostnameOrNull'} | ${false}
       expect(Uris[method](hostname, false)).toBeNull();
     }
 
-    checkAnswer(hostname, Uris.parseHostname(hostname, true));
+    checkAnswer(hostname, Uris[method](hostname, true));
   });
 });
 

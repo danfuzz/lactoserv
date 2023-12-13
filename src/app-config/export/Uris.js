@@ -163,6 +163,26 @@ export class Uris {
   }
 
   /**
+   * Checks that a given string can be used as a hostname.
+   *
+   * @param {string} name Hostname to parse.
+   * @param {boolean} [allowWildcard] Is a wildcard form allowed for
+   *   `name`?
+   * @returns {string} `value` if it is a string which matches the stated
+   *   pattern.
+   * @throws {Error} Thrown if `value` does not match.
+   */
+  static checkHostname(name, allowWildcard = false) {
+    MustBe.string(name, this.HOSTNAME_PATTERN);
+
+    if ((!allowWildcard) && /[*]/.test(name)) {
+      throw new Error(`Must not have a wildcard: ${name}`);
+    }
+
+    return name;
+  }
+
+  /**
    * Checks that a given value is a string which can be used as a network
    * interface address, and returns a somewhat-canonicalized form. This allows:
    *
