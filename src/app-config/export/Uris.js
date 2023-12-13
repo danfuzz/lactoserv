@@ -227,7 +227,7 @@ export class Uris {
    * `//<hostname>/<path-component>/.../`, where:
    *
    * * The whole string must start with `//` and end with `/`.
-   * * `hostname` matches {@link Uris.HOSTNAME_PATTERN_FRAGMENT}.
+   * * `hostname` matches {@link #HOSTNAME_PATTERN_FRAGMENT}.
    * * Each `path-component` is a non-empty string consisting of alphanumerics
    *   plus `-`, `_`, or `.`.
    * * No path component may be `.` or `..`.
