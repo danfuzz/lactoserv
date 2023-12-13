@@ -371,29 +371,29 @@ export class Uris {
   //
 
   /**
-  * @returns {string} Regex pattern which matches a hostname, anchored so that
-  * it matches a complete string.
-  *
-  * This pattern allows regular dotted names (`foo.example.com`), regular names
-  * prefixed with a wildcard (`*.example.com`) to represent subdomain
-  * wildcards, and complete wildcards (`*`). Name components must be non-empty
-  * strings of up to 63 characters, consisting of only alphanumerics plus `-`,
-  * which furthermore must neither start nor end with a dash. The entire
-  * hostname must be no more than 255 characters.
-  */
-  static #HOSTNAME_PATTERN = `^${this.#HOSTNAME_PATTERN_FRAGMENT}$`;
-
-  /**
   * @returns {string} Regex pattern which matches a hostname, but _not_
   * anchored to only match a full string.
   */
-  static get #HOSTNAME_PATTERN_FRAGMENT() {
+  static #HOSTNAME_PATTERN_FRAGMENT = (() => {
     const simpleName = '(?!-)[-a-zA-Z0-9]{1,63}(?<!-)';
     const nameOrWild = `(?:[*]|${simpleName})`;
 
     return '(?![-.a-zA-Z0-9]{256})' +            // No more than 255 characters.
       `(?:${nameOrWild}(?:[.]${simpleName})*)`;  // List of components.
-  }
+  })();
+
+  /**
+   * @returns {string} Regex pattern which matches a hostname, anchored so that
+   * it matches a complete string.
+   *
+   * This pattern allows regular dotted names (`foo.example.com`), regular names
+   * prefixed with a wildcard (`*.example.com`) to represent subdomain
+   * wildcards, and complete wildcards (`*`). Name components must be non-empty
+   * strings of up to 63 characters, consisting of only alphanumerics plus `-`,
+   * which furthermore must neither start nor end with a dash. The entire
+   * hostname must be no more than 255 characters.
+   */
+  static #HOSTNAME_PATTERN = `^${this.#HOSTNAME_PATTERN_FRAGMENT}$`;
 
   /**
   * @returns {string} Regex pattern which matches an IP address (v4 or v6),
