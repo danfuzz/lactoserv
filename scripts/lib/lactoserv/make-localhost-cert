@@ -75,7 +75,7 @@ config='
     distinguished_name = dn
     x509_extensions = x509_ext
     [x509_ext]
-    subjectAltName = DNS:localhost
+    subjectAltName = DNS:localhost,DNS:*.localhost,IP:127.0.0.1,IP:::1
     keyUsage = digitalSignature
     extendedKeyUsage = serverAuth
 '
