@@ -1,7 +1,7 @@
 // Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { MustBe } from '@this/typey';
+import { AskIf, MustBe } from '@this/typey';
 
 
 /**
@@ -10,35 +10,44 @@ import { MustBe } from '@this/typey';
 export class Util {
   /**
    * Takes either a string or array of strings, and checks that each one matches
-   * a given pattern.
+   * a given pattern or passes a given filter.
    *
    * @param {*} items Items to check.
-   * @param {string|RegExp} pattern Pattern which must match all the items.
-   * @returns {string[]} Frozen copy of the original `items` if a `string[]`,
-   *   frozen array of just `items` if a simple `string`, as long as all items
-   *   matched the `pattern`.
+   * @param {string|RegExp|function(string): string} patternOrFilter Pattern or
+   *   filter/checker function which must match all the items.
+   * @returns {string[]} Frozen copy of the `items` if a `string[]`, frozen
+   *   array of just `items` if a simple `string`. If given a filter, the return
+   *   value is a frozen array of all the results from calls to the filter.
    * @throws {Error} Thrown if `items` is neither a `string` nor a `string[]`,
-   *   or if any of the items failed to match `pattern`.
+   *   or if any of the items failed to match.
    */
-  static checkAndFreezeStrings(items, pattern) {
+  static checkAndFreezeStrings(items, patternOrFilter) {
     if (typeof items === 'string') {
       items = [items];
     } else {
       MustBe.arrayOfString(items);
     }
 
-    if (typeof pattern === 'string') {
-      pattern = new RegExp(pattern);
+    let filter;
+
+    if (AskIf.callableFunction(patternOrFilter)) {
+      filter = patternOrFilter;
     } else {
-      MustBe.instanceOf(pattern, RegExp);
-    }
-
-    for (const item of items) {
-      if (!pattern.test(item)) {
-        throw new Error(`String does not match pattern ${pattern}: ${item}`);
+      if (typeof patternOrFilter === 'string') {
+        patternOrFilter = new RegExp(patternOrFilter);
+      } else {
+        MustBe.instanceOf(patternOrFilter, RegExp);
       }
+      const pattern = patternOrFilter;
+      filter = (item) => {
+        if (!pattern.test(item)) {
+          throw new Error(`String does not match pattern ${pattern}: ${item}`);
+        }
+        return item;
+      };
     }
 
-    return Object.freeze([...items]);
+    const result = items.map(filter);
+    return Object.freeze(result);
   }
 }
