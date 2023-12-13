@@ -66,7 +66,10 @@ export class EndpointConfig extends NamedConfig {
       services = {}
     } = config;
 
-    this.#hostnames = Util.checkAndFreezeStrings(hostnames, Uris.HOSTNAME_PATTERN);
+    this.#hostnames = Util.checkAndFreezeStrings(
+      hostnames,
+      (item) => Uris.checkHostname(item, true));
+
     this.#interface = Object.freeze(Uris.parseInterface(iface));
     this.#mounts    = MountConfig.parseArray(mounts);
     this.#protocol  = Uris.checkProtocol(protocol);

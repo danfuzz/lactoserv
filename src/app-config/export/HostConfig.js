@@ -50,7 +50,10 @@ export class HostConfig extends BaseConfig {
 
     const { hostnames, certificate, privateKey, selfSigned = false } = config;
 
-    this.#hostnames  = Util.checkAndFreezeStrings(hostnames, Uris.HOSTNAME_PATTERN);
+    this.#hostnames = Util.checkAndFreezeStrings(
+      hostnames,
+      (item) => Uris.checkHostname(item, true));
+
     this.#selfSigned = MustBe.boolean(selfSigned);
 
     if (selfSigned) {
