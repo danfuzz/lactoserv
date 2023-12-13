@@ -167,6 +167,84 @@ describe('checkInterfaceAddress()', () => {
   });
 });
 
+describe('checkIpAddress()', () => {
+  // Failure cases.
+  test.each`
+  label                                    | addr
+  ${'null'}                                | ${null}
+  ${'non-string'}                          | ${123}
+  ${'empty string'}                        | ${''}
+  ${'complete wildcard'}                   | ${'*'}
+  ${'wildcard IPv4-ish address'}           | ${'*.2.3.4'}
+  ${'wildcard IPv6-ish address'}           | ${'*:10::5'}
+  ${'DNS name (1 component)'}              | ${'foo'}
+  ${'DNS name (2 components)'}             | ${'foo.bar'}
+  ${'DNS name (3 components)'}             | ${'foo.bar.baz'}
+  ${'wildcard DNS name'}                   | ${'*.foo.bar'}
+  ${'DNS-like but with numeric component'} | ${'123.foo'}
+  ${'canonical IPv6 wildcard'}             | ${'::'}
+  ${'canonical IPv6 wildcard in brackets'} | ${'[::]'}
+  ${'IPv6 wildcard'}                       | ${'0::'}
+  ${'IPv6 wildcard in brackets'}           | ${'[0::]'}
+  ${'too many IPv6 double colons'}         | ${'123::45::67'}
+  ${'IPv6 triple colon'}                   | ${'123:::45:67'}
+  ${'too few IPv6 colons'}                 | ${'123:45:67:89:ab'}
+  ${'invalid IPv6 digit'}                  | ${'123::g:456'}
+  ${'too-long IPv6 component'}             | ${'123::45678:9'}
+  ${'too many IPv6 components'}            | ${'1:2:3:4:5:6:7:8:9'}
+  ${'canonical IPv4 wildcard'}             | ${'0.0.0.0'}
+  ${'IPv4 wildcard'}                       | ${'0.00.0.0'}
+  ${'too-long IPv4 component'}             | ${'10.0.0.0099'}
+  ${'too-large IPv4 component'}            | ${'10.256.0.1'}
+  ${'IPv4 in brackets'}                    | ${'[1.2.3.4]'}
+  ${'IPv4 with extra char at start'}       | ${'@1.2.3.45'}
+  ${'IPv4 with extra char at end'}         | ${'1.2.3.45#'}
+  ${'IPv4 with extra dot at start'}        | ${'.12.2.3.45'}
+  ${'IPv4 with extra dot at end'}          | ${'14.25.37.24.'}
+  ${'DNS name in brackets'}                | ${'[foo.bar]'}
+  ${'IPv6 missing open bracket'}           | ${'1:2:3::4]'}
+  ${'IPv6 missing close bracket'}          | ${'[aa:bc::d:e:f'}
+  ${'IPv6 with extra at start'}            | ${'xaa:bc::1:2:34'}
+  ${'IPv6 with extra at end'}              | ${'aa:bc::1:2:34z'}
+  `('fails for $label', ({ addr }) => {
+    expect(() => Uris.checkIpAddress(addr)).toThrow();
+  });
+
+  // Success cases.
+  test.each`
+  addr
+  ${'10.0.0.1'}
+  ${'255.255.255.255'}
+  ${'199.199.199.199'}
+  ${'99.99.99.99'}
+  ${'::a'}
+  ${'1::'}
+  ${'0123:4567:89ab:cdef:0123:4567:89ab:cdef'}
+  ${'0123:4567:89ab::0123:4567:89ab:cdef'}
+  ${'0123:4567::0123:4567:89ab:cdef'}
+  ${'0123:4567::4567:89ab:cdef'}
+  ${'0123::4567:89ab:cdef'}
+  ${'0123::4567:89ab'}
+  ${'0123::4567'}
+  ${'ABCD::EF'}
+  ${'::abcd'}
+  ${'[::abcd]'}
+  ${'[::abc]'}
+  ${'[::ab]'}
+  ${'[::a]'}
+  ${'[1::1]'}
+  ${'[1:2::12]'}
+  ${'[1:2:3::123]'}
+  ${'[1:2:3:4::1234]'}
+  ${'[1:2:3:4:5:6:7:8]'}
+  ${'[1234::]'}
+  ${'[12:ab::34:cd]'}
+  `('succeeds for $addr', ({ addr }) => {
+    const got = Uris.checkIpAddress(addr);
+    expect(got).toBe(addr);
+  });
+});
+
 describe('checkMount()', () => {
   // Failure cases.
   test.each`

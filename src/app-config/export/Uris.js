@@ -37,6 +37,48 @@ export class Uris {
   }
 
   /**
+   * @returns {string} Regex pattern which matches an IP address (v4 or v6),
+   * anchored so that it matches a complete string.
+   *
+   * This pattern allows but does not requires IPv6 addresses to be enclosed in
+   * square brackets. This pattern does _not_ allow "any" addresses (i.e.,
+   * `0.0.0.0` and `::`).
+   */
+  static get IP_ADDRESS_PATTERN() {
+    return `^${this.IP_ADDRESS_PATTERN_FRAGMENT}$`;
+  }
+
+  /**
+   * @returns {string} Regex pattern which matches an IP address (v4 or v6), but
+   * _not_ anchored so that it matches a complete string.
+   */
+  static get IP_ADDRESS_PATTERN_FRAGMENT() {
+    // IPv4 address.
+    const ipv4Address =
+      '(?!0+[.]0+[.]0+[.]0+)' + // No IPv4 "any" addresses.
+      '(?!.*[^.]{4})' +         // No more than three digits in a row.
+      '(?!.*[3-9][^.]{2})' +    // No 3-digit number over `299`.
+      '(?!.*2[6-9][^.])' +      // No `2xx` number over `259`.
+      '(?!.*25[6-9])' +         // No `25x` number over `255`.
+      '[0-9]{1,3}(?:[.][0-9]{1,3}){3}';
+
+    // IPv6 address (without brackets).
+    const ipv6Address =
+      '(?=.*:)' +              // IPv6 addresses require a colon _somewhere_.
+      '(?=.*[1-9A-Fa-f])' +    // No "any" (at least one non-zero digit).
+      '(?!.*[0-9A-Fa-f]{5})' + // No more than four digits in a row.
+      '(?!(.*::){2})' +        // No more than one `::`.
+      '(?!.*:::)' +            // No triple-colons (or quad-, etc.).
+      '(?!([^:]*:){8})' +      // No more than seven colons total.
+      '(?=.*::|([^:]*:){7}[^:]*$)' + // Contains `::` or exactly seven colons.
+      '(?=(::|[^:]))' +        // Must start with `::` or digit.
+      '[:0-9A-Fa-f]{2,39}' +   // (Bunch of valid characters.)
+      '(?<=(::|[^:]))';        // Must end with `::` or digit.
+
+    return `(?:${ipv4Address}|${ipv6Address}|\\[${ipv6Address}\\])`;
+  }
+
+  /**
    * Checks that a given value is a string which can be interpreted as an
    * absolute URI path (no protocol, host, etc.). It must:
    *
@@ -157,38 +199,26 @@ export class Uris {
       '(?=.*[a-zA-Z])' +                // At least one letter _somewhere_.
       `${dnsLabel}(?:[.]${dnsLabel})*`; // `.`-delimited sequence of labels.
 
-    // IPv4 address.
-    const ipv4Address =
-      '(?!0+[.]0+[.]0+[.]0+)' + // No IPv4 "any" addresses.
-      '(?!.*[^.]{4})' +         // No more than three digits in a row.
-      '(?!.*[3-9][^.]{2})' +    // No 3-digit number over `299`.
-      '(?!.*2[6-9][^.])' +      // No `2xx` number over `259`.
-      '(?!.*25[6-9])' +         // No `25x` number over `255`.
-      '[0-9]{1,3}(?:[.][0-9]{1,3}){3}';
-
-    // IPv6 address (without brackets).
-    const ipv6Address =
-      '(?=.*:)' +              // IPv6 addresses require a colon _somewhere_.
-      '(?=.*[1-9A-Fa-f])' +    // No "any" (at least one non-zero digit).
-      '(?!.*[0-9A-Fa-f]{5})' + // No more than four digits in a row.
-      '(?!(.*::){2})' +        // No more than one `::`.
-      '(?!.*:::)' +            // No triple-colons (or quad-, etc.).
-      '(?!([^:]*:){8})' +      // No more than seven colons total.
-      '(?=.*::|([^:]*:){7}[^:]*$)' + // Contains `::` or exactly seven colons.
-      '(?=(::|[^:]))' +        // Must start with `::` or digit.
-      '[:0-9A-Fa-f]{2,39}' +   // (Bunch of valid characters.)
-      '(?<=(::|[^:]))';        // Must end with `::` or digit.
-
     const pattern =
-      '^(?:' +
-      `${anyAddress}|${dnsName}|${ipv4Address}|` +
-      `${ipv6Address}|\\[${ipv6Address}\\]` +
-      ')$';
+      `^(?:${anyAddress}|${dnsName}|${this.IP_ADDRESS_PATTERN_FRAGMENT})$`;
 
     MustBe.string(value, pattern);
     return value.startsWith('[')
       ? value.replace(/\[|\]/g, '')
       : value;
+  }
+
+  /**
+   * Checks that a given value is a valid IP address. See
+   * {@link #IP_ADDRESS_PATTERN}.
+   *
+   * @param {*} value Value in question.
+   * @returns {string} `value` if it is a string which matches the stated
+   *   pattern.
+   * @throws {Error} Thrown if `value` does not match.
+   */
+  static checkIpAddress(value) {
+    return MustBe.string(value, this.IP_ADDRESS_PATTERN);
   }
 
   /**
