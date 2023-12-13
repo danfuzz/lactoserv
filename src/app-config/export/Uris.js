@@ -381,9 +381,7 @@ export class Uris {
   * which furthermore must neither start nor end with a dash. The entire
   * hostname must be no more than 255 characters.
   */
-  static get #HOSTNAME_PATTERN() {
-    return `^${this.#HOSTNAME_PATTERN_FRAGMENT}$`;
-  }
+  static #HOSTNAME_PATTERN = `^${this.#HOSTNAME_PATTERN_FRAGMENT}$`;
 
   /**
   * @returns {string} Regex pattern which matches a hostname, but _not_
@@ -405,9 +403,7 @@ export class Uris {
   * square brackets. This pattern does _not_ allow "any" addresses (i.e.,
   * `0.0.0.0` and `::`).
   */
-  static get #IP_ADDRESS_PATTERN() {
-    return `^${this.#IP_ADDRESS_PATTERN_FRAGMENT}$`;
-  }
+  static #IP_ADDRESS_PATTERN = `^${this.#IP_ADDRESS_PATTERN_FRAGMENT}$`;
 
   /**
   * @returns {string} Regex pattern which matches an IP address (v4 or v6), but

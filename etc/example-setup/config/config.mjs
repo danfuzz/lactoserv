@@ -19,6 +19,10 @@ const hosts = [
     hostnames:   ['localhost', '*'],
     certificate: await readFile('localhost-cert.pem'),
     privateKey:  await readFile('localhost-key.pem')
+  },
+  {
+    hostnames:  ['127.0.0.1'],
+    selfSigned: true
   }
 ];
 
