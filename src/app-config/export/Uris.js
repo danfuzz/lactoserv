@@ -371,9 +371,9 @@ export class Uris {
   //
 
   /**
-  * @returns {string} Regex pattern which matches a hostname, but _not_
-  * anchored to only match a full string.
-  */
+   * @returns {string} Regex pattern which matches a hostname, but _not_
+   * anchored to only match a full string.
+   */
   static #HOSTNAME_PATTERN_FRAGMENT = (() => {
     const simpleName = '(?!-)[-a-zA-Z0-9]{1,63}(?<!-)';
     const nameOrWild = `(?:[*]|${simpleName})`;
@@ -396,20 +396,10 @@ export class Uris {
   static #HOSTNAME_PATTERN = `^${this.#HOSTNAME_PATTERN_FRAGMENT}$`;
 
   /**
-  * @returns {string} Regex pattern which matches an IP address (v4 or v6),
-  * anchored so that it matches a complete string.
-  *
-  * This pattern allows but does not requires IPv6 addresses to be enclosed in
-  * square brackets. This pattern does _not_ allow "any" addresses (i.e.,
-  * `0.0.0.0` and `::`).
-  */
-  static #IP_ADDRESS_PATTERN = `^${this.#IP_ADDRESS_PATTERN_FRAGMENT}$`;
-
-  /**
   * @returns {string} Regex pattern which matches an IP address (v4 or v6), but
   * _not_ anchored so that it matches a complete string.
   */
-  static get #IP_ADDRESS_PATTERN_FRAGMENT() {
+  static #IP_ADDRESS_PATTERN_FRAGMENT = (() => {
     // IPv4 address.
     const ipv4Address =
       '(?!0+[.]0+[.]0+[.]0+)' + // No IPv4 "any" addresses.
@@ -433,5 +423,15 @@ export class Uris {
       '(?<=(::|[^:]))';        // Must end with `::` or digit.
 
     return `(?:${ipv4Address}|${ipv6Address}|\\[${ipv6Address}\\])`;
-  }
+  })();
+
+  /**
+   * @returns {string} Regex pattern which matches an IP address (v4 or v6),
+   * anchored so that it matches a complete string.
+   *
+   * This pattern allows but does not requires IPv6 addresses to be enclosed in
+   * square brackets. This pattern does _not_ allow "any" addresses (i.e.,
+   * `0.0.0.0` and `::`).
+   */
+  static #IP_ADDRESS_PATTERN = `^${this.#IP_ADDRESS_PATTERN_FRAGMENT}$`;
 }
