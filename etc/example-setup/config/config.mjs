@@ -21,7 +21,7 @@ const hosts = [
     privateKey:  await readFile('localhost-key.pem')
   },
   {
-    hostnames:  ['127.0.0.1'],
+    hostnames:  ['127.0.0.1', '::1'],
     selfSigned: true
   }
 ];
