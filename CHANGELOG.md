@@ -14,7 +14,8 @@ Other notable changes:
   duplication in downstream projects.
 * Added ability to make one or more hostnames use automatically-generated
   self-signed certificates.
-* A handful of cleanup / rationalization around the configuration code.
+* A bunch of cleanup / rationalization around the configuration code, especially
+  with hostname and IP address parsiong.
 * Other mostly minor tweaks and improvements, throughout the codebase.
 * Pulled in improved `bashy-lib`, and adjusted accordingly.
 
