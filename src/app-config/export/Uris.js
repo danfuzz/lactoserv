@@ -246,12 +246,12 @@ export class Uris {
 
     const origValue = value;
 
-    function dropBrackets(value) {
-      return value.replaceAll(/\[|\]/g, '');
+    function dropBrackets(v) {
+      return v.replaceAll(/\[|\]/g, '');
     }
 
-    function dropLeadingZeros(value) {
-      return value.replaceAll(/(?<=[.:]|^)0+(?=[0-9])/g, '');
+    function dropLeadingZeros(v) {
+      return v.replaceAll(/(?<=[.:]|^)0+(?=[0-9])/g, '');
     }
 
     if (/[.]/.test(value)) {
