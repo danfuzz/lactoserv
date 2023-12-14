@@ -10,6 +10,71 @@ import { AskIf, MustBe } from '@this/typey';
  */
 export class Uris {
   /**
+   * @returns {string} Regex pattern which matches a hostname, but _not_
+   * anchored to only match a full string.
+   */
+  static #HOSTNAME_PATTERN_FRAGMENT = (() => {
+    const simpleName = '(?!-)[-a-zA-Z0-9]{1,63}(?<!-)';
+    const nameOrWild = `(?:[*]|${simpleName})`;
+
+    return '(?![-.a-zA-Z0-9]{256})' +            // No more than 255 characters.
+      `(?:${nameOrWild}(?:[.]${simpleName})*)`;  // List of components.
+  })();
+
+  /**
+   * @returns {string} Regex pattern which matches a hostname, anchored so that
+   * it matches a complete string.
+   *
+   * This pattern allows regular dotted names (`foo.example.com`), regular names
+   * prefixed with a wildcard (`*.example.com`) to represent subdomain
+   * wildcards, and complete wildcards (`*`). Name components must be non-empty
+   * strings of up to 63 characters, consisting of only alphanumerics plus `-`,
+   * which furthermore must neither start nor end with a dash. The entire
+   * hostname must be no more than 255 characters.
+   */
+  static #HOSTNAME_PATTERN = `^${this.#HOSTNAME_PATTERN_FRAGMENT}$`;
+
+  /**
+  * @returns {string} Regex pattern which matches an IP address (v4 or v6), but
+  * _not_ anchored so that it matches a complete string.
+  */
+  static #IP_ADDRESS_PATTERN_FRAGMENT = (() => {
+    // IPv4 address.
+    const ipv4Address =
+      '(?!0+[.]0+[.]0+[.]0+)' + // No IPv4 "any" addresses.
+      '(?!.*[^.]{4})' +         // No more than three digits in a row.
+      '(?!.*[3-9][^.]{2})' +    // No 3-digit number over `299`.
+      '(?!.*2[6-9][^.])' +      // No `2xx` number over `259`.
+      '(?!.*25[6-9])' +         // No `25x` number over `255`.
+      '[0-9]{1,3}(?:[.][0-9]{1,3}){3}';
+
+    // IPv6 address (without brackets).
+    const ipv6Address =
+      '(?=.*:)' +              // IPv6 addresses require a colon _somewhere_.
+      '(?=.*[1-9A-Fa-f])' +    // No "any" (at least one non-zero digit).
+      '(?!.*[0-9A-Fa-f]{5})' + // No more than four digits in a row.
+      '(?!(.*::){2})' +        // No more than one `::`.
+      '(?!.*:::)' +            // No triple-colons (or quad-, etc.).
+      '(?!([^:]*:){8})' +      // No more than seven colons total.
+      '(?=.*::|([^:]*:){7}[^:]*$)' + // Contains `::` or exactly seven colons.
+      '(?=(::|[^:]))' +        // Must start with `::` or digit.
+      '[:0-9A-Fa-f]{2,39}' +   // (Bunch of valid characters.)
+      '(?<=(::|[^:]))';        // Must end with `::` or digit.
+
+    return `(?:${ipv4Address}|${ipv6Address}|\\[${ipv6Address}\\])`;
+  })();
+
+  /**
+   * @returns {string} Regex pattern which matches an IP address (v4 or v6),
+   * anchored so that it matches a complete string.
+   *
+   * This pattern allows but does not requires IPv6 addresses to be enclosed in
+   * square brackets. This pattern does _not_ allow "any" addresses (i.e.,
+   * `0.0.0.0` and `::`).
+   */
+  static #IP_ADDRESS_PATTERN = `^${this.#IP_ADDRESS_PATTERN_FRAGMENT}$`;
+
+  /**
    * Checks that a given value is a string which can be interpreted as an
    * absolute URI path (no protocol, host, etc.). It must:
    *
@@ -364,74 +429,4 @@ export class Uris {
       path:     new TreePathKey(pathParts, true)
     });
   }
-
-
-  //
-  // Static members
-  //
-
-  /**
-   * @returns {string} Regex pattern which matches a hostname, but _not_
-   * anchored to only match a full string.
-   */
-  static #HOSTNAME_PATTERN_FRAGMENT = (() => {
-    const simpleName = '(?!-)[-a-zA-Z0-9]{1,63}(?<!-)';
-    const nameOrWild = `(?:[*]|${simpleName})`;
-
-    return '(?![-.a-zA-Z0-9]{256})' +            // No more than 255 characters.
-      `(?:${nameOrWild}(?:[.]${simpleName})*)`;  // List of components.
-  })();
-
-  /**
-   * @returns {string} Regex pattern which matches a hostname, anchored so that
-   * it matches a complete string.
-   *
-   * This pattern allows regular dotted names (`foo.example.com`), regular names
-   * prefixed with a wildcard (`*.example.com`) to represent subdomain
-   * wildcards, and complete wildcards (`*`). Name components must be non-empty
-   * strings of up to 63 characters, consisting of only alphanumerics plus `-`,
-   * which furthermore must neither start nor end with a dash. The entire
-   * hostname must be no more than 255 characters.
-   */
-  static #HOSTNAME_PATTERN = `^${this.#HOSTNAME_PATTERN_FRAGMENT}$`;
-
-  /**
-  * @returns {string} Regex pattern which matches an IP address (v4 or v6), but
-  * _not_ anchored so that it matches a complete string.
-  */
-  static #IP_ADDRESS_PATTERN_FRAGMENT = (() => {
-    // IPv4 address.
-    const ipv4Address =
-      '(?!0+[.]0+[.]0+[.]0+)' + // No IPv4 "any" addresses.
-      '(?!.*[^.]{4})' +         // No more than three digits in a row.
-      '(?!.*[3-9][^.]{2})' +    // No 3-digit number over `299`.
-      '(?!.*2[6-9][^.])' +      // No `2xx` number over `259`.
-      '(?!.*25[6-9])' +         // No `25x` number over `255`.
-      '[0-9]{1,3}(?:[.][0-9]{1,3}){3}';
-
-    // IPv6 address (without brackets).
-    const ipv6Address =
-      '(?=.*:)' +              // IPv6 addresses require a colon _somewhere_.
-      '(?=.*[1-9A-Fa-f])' +    // No "any" (at least one non-zero digit).
-      '(?!.*[0-9A-Fa-f]{5})' + // No more than four digits in a row.
-      '(?!(.*::){2})' +        // No more than one `::`.
-      '(?!.*:::)' +            // No triple-colons (or quad-, etc.).
-      '(?!([^:]*:){8})' +      // No more than seven colons total.
-      '(?=.*::|([^:]*:){7}[^:]*$)' + // Contains `::` or exactly seven colons.
-      '(?=(::|[^:]))' +        // Must start with `::` or digit.
-      '[:0-9A-Fa-f]{2,39}' +   // (Bunch of valid characters.)
-      '(?<=(::|[^:]))';        // Must end with `::` or digit.
-
-    return `(?:${ipv4Address}|${ipv6Address}|\\[${ipv6Address}\\])`;
-  })();
-
-  /**
-   * @returns {string} Regex pattern which matches an IP address (v4 or v6),
-   * anchored so that it matches a complete string.
-   *
-   * This pattern allows but does not requires IPv6 addresses to be enclosed in
-   * square brackets. This pattern does _not_ allow "any" addresses (i.e.,
-   * `0.0.0.0` and `::`).
-   */
-  static #IP_ADDRESS_PATTERN = `^${this.#IP_ADDRESS_PATTERN_FRAGMENT}$`;
 }
