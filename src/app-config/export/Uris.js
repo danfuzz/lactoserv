@@ -275,8 +275,6 @@ export class Uris {
       return null;
     }
 
-    const origValue = value;
-
     function dropBrackets(v) {
       return v.replaceAll(/\[|\]/g, '');
     }
@@ -530,15 +528,15 @@ export class Uris {
     for (const p of pathParts) {
       switch (p) {
         case '': {
-          throw new Error(`Empty path component in: ${path}`)
+          throw new Error(`Empty path component in: ${path}`);
         }
         case '.':
         case '..': {
-          throw new Error(`Invalid path component ${p} in: ${path}`)
+          throw new Error(`Invalid path component ${p} in: ${path}`);
         }
         default: {
           if (!/^(?!-)[-_.a-zA-Z0-9]+(?<!-)$/.test(p)) {
-            throw new Error(`Invalid path component ${p} in: ${path}`)
+            throw new Error(`Invalid path component ${p} in: ${path}`);
           }
         }
       }
