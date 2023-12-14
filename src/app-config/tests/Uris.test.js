@@ -182,18 +182,18 @@ describe('checkIpAddress()', () => {
   ${'DNS name (3 components)'}             | ${'foo.bar.baz'}
   ${'wildcard DNS name'}                   | ${'*.foo.bar'}
   ${'DNS-like but with numeric component'} | ${'123.foo'}
-  ${'canonical IPv6 wildcard'}             | ${'::'}
-  ${'canonical IPv6 wildcard in brackets'} | ${'[::]'}
-  ${'IPv6 wildcard'}                       | ${'0::'}
-  ${'IPv6 wildcard in brackets'}           | ${'[0::]'}
+  ${'canonical IPv6 "any" address'}        | ${'::'}
+  ${'canonical IPv6 "any" in brackets'}    | ${'[::]'}
+  ${'IPv6 "any" address'}                  | ${'0::'}
+  ${'IPv6 "any" in brackets'}              | ${'[0::]'}
   ${'too many IPv6 double colons'}         | ${'123::45::67'}
   ${'IPv6 triple colon'}                   | ${'123:::45:67'}
   ${'too few IPv6 colons'}                 | ${'123:45:67:89:ab'}
   ${'invalid IPv6 digit'}                  | ${'123::g:456'}
   ${'too-long IPv6 component'}             | ${'123::45678:9'}
   ${'too many IPv6 components'}            | ${'1:2:3:4:5:6:7:8:9'}
-  ${'canonical IPv4 wildcard'}             | ${'0.0.0.0'}
-  ${'IPv4 wildcard'}                       | ${'0.00.0.0'}
+  ${'canonical IPv4 "any" address'}        | ${'0.0.0.0'}
+  ${'IPv4 "any" address'}                  | ${'0.00.0.0'}
   ${'too-long IPv4 component'}             | ${'10.0.0.0099'}
   ${'too-large IPv4 component'}            | ${'10.256.0.1'}
   ${'IPv4 in brackets'}                    | ${'[1.2.3.4]'}
