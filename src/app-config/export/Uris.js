@@ -355,7 +355,7 @@ export class Uris {
    * `//<hostname>/<path-component>/.../`, where:
    *
    * * The whole string must start with `//` and end with `/`.
-   * * `hostname` matches {@link #HOSTNAME_PATTERN_FRAGMENT}.
+   * * `hostname` is a valid hostname (see {@link #checkHostname}).
    * * Each `path-component` is a non-empty string consisting of alphanumerics
    *   plus `-`, `_`, or `.`.
    * * No path component may be `.` or `..`.
@@ -523,25 +523,56 @@ export class Uris {
   }
 
   /**
-   * Parses a mount point into its two components.
+   * Parses a network mount point (as used by this system) into its two
+   * components. Mount points are URI-ish strings of the form
+   * `//<hostname>/<path-component>/.../`, where:
+   *
+   * * The whole string must start with `//` and end with `/`.
+   * * `hostname` is a valid hostname (see {@link #checkHostname}).
+   * * Each `path-component` is a non-empty string consisting of alphanumerics
+   *   plus `-`, `_`, or `.`.
+   * * No path component may be `.` or `..`.
+   * * No path component may start or end with a `-`.
+   *
+   * **Note:** Mount paths are more restrictive than what is acceptable in
+   * general for paths as passed in via HTTP-ish requests, i.e. an incoming
+   * path can legitimately _not_ match a mount path while still being
+   * syntactically correct.
    *
    * @param {string} mount Mount point.
    * @returns {{hostname: TreePathKey, path: TreePathKey}} Components thereof.
    */
   static parseMount(mount) {
-    this.checkMount(mount);
+    MustBe.string(mount);
 
-    // Somewhat simplified regexp, because we already know that `mount` is
-    // syntactically correct, per `checkMount()` above.
+    // Regexp to check the outermost syntax and parse out just the hostname and
+    // path. These are further parsed below.
     const topParse = /^[/][/](?<hostname>[^/]+)[/](?:(?<path>.*)[/])?$/
       .exec(mount);
 
     if (!topParse) {
-      throw new Error(`Strange mount point: ${mount}`);
+      throw new Error(`Invalid mount point: ${mount}`);
     }
 
     const { hostname, path } = topParse.groups;
     const pathParts = path ? path.split('/') : [];
+
+    for (const p of pathParts) {
+      switch (p) {
+        case '': {
+          throw new Error(`Empty path component in: ${path}`)
+        }
+        case '.':
+        case '..': {
+          throw new Error(`Invalid path component ${p} in: ${path}`)
+        }
+        default: {
+          if (!/^(?!-)[-_.a-zA-Z0-9]+(?<!-)$/.test(p)) {
+            throw new Error(`Invalid path component ${p} in: ${path}`)
+          }
+        }
+      }
+    }
 
     // `TreePathKey...true` below because all mounts are effectively wildcards.
     return Object.freeze({

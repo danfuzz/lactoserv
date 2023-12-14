@@ -656,24 +656,83 @@ describe('parseInterface()', () => {
 });
 
 describe('parseMount()', () => {
-  // Note: Other tests in this file check a lot of the code that's used by this
-  // method, so it's not really necessary to be super-exhaustive here.
-
   // Failure cases.
   test.each`
   label                                | mount
   ${'null'}                            | ${null}
   ${'non-string'}                      | ${123}
   ${'no slash at start'}               | ${'foo/bar/'}
+  ${'single slash at start'}           | ${'/foo/bar/'}
+  ${'triple slash at start'}           | ${'///foo/bar/'}
+  ${'no slash at end'}                 | ${'//foo/bar'}
+  ${'double slash at end'}             | ${'//foo/bar//'}
+  ${'triple slash at end'}             | ${'//foo/bar///'}
+  ${'double slash in middle'}          | ${'//foo//bar/'}
+  ${'triple slash in middle'}          | ${'//foo///bar/'}
+  ${'double slash at end'}             | ${'/foo/bar//'}
+  ${'`.` component alone'}             | ${'//foo/./'}
+  ${'`..` component alone'}            | ${'//foo/../'}
+  ${'`.` component at start'}          | ${'//foo/./bar/'}
+  ${'`..` component at start'}         | ${'//foo/../bar/'}
+  ${'`.` component in middle'}         | ${'//foo/abc/./bar/'}
+  ${'`..` component in middle'}        | ${'//foo/abc/../bar/'}
+  ${'`.` component at end'}            | ${'//foo/bar/./'}
+  ${'`..` component at end'}           | ${'//foo/bar/../'}
+  ${'`-` component alone'}             | ${'//foo/-/'}
+  ${'`-` component at start'}          | ${'//foo/-/bar/'}
+  ${'`-` component in middle'}         | ${'//foo/abc/-/bar/'}
+  ${'`-` component at end'}            | ${'//foo/bar/-/'}
+  ${'`-` at start of component'}       | ${'//foo/-bar/'}
+  ${'`-` at end of component'}         | ${'//foo/bar-/'}
   ${'invalid component character'}     | ${'//foo/b@r/'}
-  ${'invalid hostname'}                | ${'//.foo./bar/'}
+  ${'`-` at hostname component start'} | ${'//foo.-foo/bar/'}
+  ${'`-` at hostname component end'}   | ${'//foo.foo-/bar/'}
+  ${'hostname wildcard in middle'}     | ${'//foo.*.bar/'}
+  ${'hostname wildcard at end'}        | ${'//foo.*/'}
+  ${'hostname wildcard without dot'}   | ${'//*foo/'}
+  ${'invalid hostname character'}      | ${'//foo.b$r/bar/'}
+  ${'hostname component too long'}     | ${`//z${LONGEST_COMPONENT}/`}
+  ${'hostname too long'}               | ${`//z${LONGEST_NAME}/`}
   `('fails for $label', ({ mount }) => {
     expect(() => Uris.parseMount(mount)).toThrow();
   });
 
+  // Success cases, just checked for non-throwing and basic return value (not
+  // interrogated more deeply).
+  test.each`
+  mount
+  ${'//foo/'}
+  ${'//foo/bar/'}
+  ${'//foo/bar/baz/'}
+  ${'//*/'}
+  ${'//*/florp/'}
+  ${'//*.foo/florp/'}
+  ${'//*.foo.bar/florp/'}
+  ${'//foo.bar/'}
+  ${'//foo.bar/florp/'}
+  ${'//foo/.florp/'}
+  ${'//foo/florp./'}
+  ${'//foo/_florp/'}
+  ${'//foo/florp_/'}
+  ${'//foo/florp-like/'}
+  ${'//foo/.../'} // Weird, but should be allowed.
+  ${`//${LONGEST_COMPONENT}/`}
+  ${`//${LONGEST_COMPONENT}.${LONGEST_COMPONENT}/`}
+  ${`//${LONGEST_NAME}/`}
+  ${`//${LONGEST_NAME}/a/`}
+  ${`//${LONGEST_NAME}/abcde/fghij/`}
+  `('succeeds for $mount', ({ mount }) => {
+    const got = Uris.parseMount(mount);
+    expect(got).toBeObject();
+    expect(got).toContainAllKeys(['hostname', 'path']);
+    expect(got.hostname).toBeInstanceOf(TreePathKey);
+    expect(got.path).toBeInstanceOf(TreePathKey);
+    expect(got.path.wildcard).toBeTrue();
+  });
+
   // "Smokey" success tests.
 
-  test('parses a mount with non-wildcard host as expected', () => {
+  test('parses a mount with non-wildcard named host as expected', () => {
     const expectHost = new TreePathKey(['bar', 'foo'], false);
     const expectPath = new TreePathKey(['a', 'b', 'c'], true);
     const got        = Uris.parseMount('//foo.bar/a/b/c/');
@@ -695,6 +754,33 @@ describe('parseMount()', () => {
     const expectHost = new TreePathKey([], true);
     const expectPath = new TreePathKey(['xyz', 'abc', '123', 'zzz'], true);
     const got        = Uris.parseMount('//*/xyz/abc/123/zzz/');
+
+    expect(got.hostname.equals(expectHost)).toBeTrue();
+    expect(got.path.equals(expectPath)).toBeTrue();
+  });
+
+  test('parses a mount with an IPv4 host as expected', () => {
+    const expectHost = new TreePathKey(['127.0.0.1'], false);
+    const expectPath = new TreePathKey(['a', 'zonk'], true);
+    const got        = Uris.parseMount('//127.0.0.1/a/zonk/');
+
+    expect(got.hostname.equals(expectHost)).toBeTrue();
+    expect(got.path.equals(expectPath)).toBeTrue();
+  });
+
+  test('parses a mount with a bracketed IPv6 host as expected', () => {
+    const expectHost = new TreePathKey(['aa::bb'], false);
+    const expectPath = new TreePathKey(['a', 'zonk'], true);
+    const got        = Uris.parseMount('//[aa::bb]/a/zonk/');
+
+    expect(got.hostname.equals(expectHost)).toBeTrue();
+    expect(got.path.equals(expectPath)).toBeTrue();
+  });
+
+  test('parses a mount with an unbracketed IPv6 host as expected', () => {
+    const expectHost = new TreePathKey(['::1'], false);
+    const expectPath = new TreePathKey(['a', 'zonk'], true);
+    const got        = Uris.parseMount('//::1/a/zonk/');
 
     expect(got.hostname.equals(expectHost)).toBeTrue();
     expect(got.path.equals(expectPath)).toBeTrue();
