@@ -172,12 +172,30 @@ describe('checkInterfaceAddress()', () => {
   });
 });
 
-describe('checkIpAddress()', () => {
+describe.each`
+method                    | throws
+${'checkIpAddress'}       | ${true}
+${'checkIpAddressOrNull'} | ${false}
+`('$method()', ({ method, throws }) => {
+  // Failures from passing non-strings. These are always supposed to throw.
+  test.each`
+  addr
+  ${null}
+  ${undefined}
+  ${false}
+  ${true}
+  ${123}
+  ${Symbol('boop')}
+  ${['a', 'b']}
+  ${{ a: 'florp' }}
+  `('throws for $addr', ({ addr }) => {
+    expect(() => Uris[method](addr, false)).toThrow();
+    expect(() => Uris[method](addr, true)).toThrow();
+  });
+
   // Failure cases.
   test.each`
   label                                    | addr
-  ${'null'}                                | ${null}
-  ${'non-string'}                          | ${123}
   ${'empty string'}                        | ${''}
   ${'complete wildcard'}                   | ${'*'}
   ${'wildcard IPv4-ish address'}           | ${'*.2.3.4'}
@@ -207,7 +225,13 @@ describe('checkIpAddress()', () => {
   ${'IPv6 with extra at start'}            | ${'xaa:bc::1:2:34'}
   ${'IPv6 with extra at end'}              | ${'aa:bc::1:2:34z'}
   `('fails for $label', ({ addr }) => {
-    expect(() => Uris.checkIpAddress(addr)).toThrow();
+    if (throws) {
+      expect(() => Uris[method](addr, false)).toThrow();
+      expect(() => Uris[method](addr, true)).toThrow();
+    } else {
+      expect(Uris[method](addr, false)).toBeNull();
+      expect(Uris[method](addr, true)).toBeNull();
+    }
   });
 
   // Success cases that are given in canonical form.
@@ -229,8 +253,8 @@ describe('checkIpAddress()', () => {
   ${'abcd::ef'}
   ${'::abcd'}
   `('succeeds for $addr', ({ addr }) => {
-    const got = Uris.checkIpAddress(addr);
-    expect(got).toBe(addr);
+    expect(Uris[method](addr, false)).toBe(addr);
+    expect(Uris[method](addr, true)).toBe(addr);
   });
 
   // Success cases that are given in non-canonical form.
@@ -265,8 +289,8 @@ describe('checkIpAddress()', () => {
   ${'[1234::]'}                                | ${'1234::'}
   ${'[12:ab::34:cd]'}                          | ${'12:ab::34:cd'}
   `('succeeds for $addr', ({ addr, expected }) => {
-    const got = Uris.checkIpAddress(addr);
-    expect(got).toBe(expected);
+    expect(Uris[method](addr, false)).toBe(expected);
+    expect(Uris[method](addr, true)).toBe(expected);
   });
 
   // Tests for "any" addresses. These should succeed if `allowAny === true` and
@@ -292,10 +316,12 @@ describe('checkIpAddress()', () => {
     ${'000.000.000.000'} | ${'0.0.0.0'}
     `(`${verb} for $addr`, ({ addr, expected }) => {
       if (allowAny) {
-        const got = Uris.checkIpAddress(addr, true);
+        const got = Uris[method](addr, true);
         expect(got).toBe(expected);
+      } else if (throws) {
+        expect(() => Uris[method](addr, false)).toThrow();
       } else {
-        expect(() => Uris.checkIpAddress(addr, false)).toThrow();
+        expect(Uris[method](addr, false)).toBeNull();
       }
     });
   });
