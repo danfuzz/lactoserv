@@ -502,6 +502,8 @@ ${'parseHostnameOrNull'} | ${false} | ${'path'}
   ${'dot at end'}             | ${'foo.bar.'}
   ${'component too long'}     | ${`m${LONGEST_COMPONENT}`}
   ${'name too long'}          | ${`m${LONGEST_NAME}`}
+  ${'IPv4 "any" address'}     | ${'0.0.0.0'}
+  ${'IPv6 "any" address'}     | ${'::'}
   `('fails for $label', ({ hostname }) => {
     if (throws) {
       expect(() => Uris[method](hostname, false)).toThrow();
@@ -516,8 +518,18 @@ ${'parseHostnameOrNull'} | ${false} | ${'path'}
   });
 
   const checkAnswer = (hostname, got) => {
+    const canonicalIp = Uris.checkIpAddressOrNull(hostname, false);
     if (returns === 'string') {
-      expect(got).toBe(hostname);
+      if (canonicalIp) {
+        // Expect IP addresses to be canonicalized.
+        expect(got).toBe(canonicalIp);
+      } else {
+        expect(got).toBe(hostname);
+      }
+    } else if (canonicalIp) {
+      expect(got.wildcard).toBeFalse();
+      expect(got.length).toBe(1);
+      expect(got.path[0]).toBe(canonicalIp);
     } else {
       const expectWildcard = hostname.startsWith('*');
       const expectLength   = hostname.replace(/[^.]/g, '').length + Number(!expectWildcard);
@@ -547,6 +559,9 @@ ${'parseHostnameOrNull'} | ${false} | ${'path'}
   ${'ABC.DEF.GHI.JKL.MNO.PQR.STU.VWX.YZ'}
   ${'abcde.fghij.klmno.pqrst.uvwxyz'}
   ${'foo-bar.biff-baz'}
+  ${'127.0.0.1'}
+  ${'::1'}
+  ${'[::1]'}
   ${LONGEST_COMPONENT}
   ${`${LONGEST_COMPONENT}.${LONGEST_COMPONENT}`}
   ${LONGEST_NAME}

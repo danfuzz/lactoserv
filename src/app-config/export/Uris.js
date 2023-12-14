@@ -10,14 +10,15 @@ import { AskIf, MustBe } from '@this/typey';
  */
 export class Uris {
   /**
-   * @returns {string} Regex pattern which matches a hostname, but _not_
-   * anchored to only match a full string.
+   * @returns {string} Regex pattern which matches a possibly-wildcarded
+   * hostname, but _not_ anchored to only match a full string.
    */
   static #HOSTNAME_PATTERN_FRAGMENT = (() => {
     const simpleName = '(?!-)[-a-zA-Z0-9]{1,63}(?<!-)';
     const nameOrWild = `(?:[*]|${simpleName})`;
 
     return '(?![-.a-zA-Z0-9]{256})' +            // No more than 255 characters.
+      '(?=.*[*a-zA-Z])' +                        // At least one letter or star.
       `(?:${nameOrWild}(?:[.]${simpleName})*)`;  // List of components.
   })();
 
@@ -156,16 +157,23 @@ export class Uris {
   }
 
   /**
-   * Checks that a given string can be used as a hostname.
+   * Checks that a given string can be used as a hostname, including non-"any"
+   * IP addresses.
    *
    * @param {string} name Hostname to parse.
    * @param {boolean} [allowWildcard] Is a wildcard form allowed for
    *   `name`?
    * @returns {string} `value` if it is a string which matches the stated
-   *   pattern.
+   *   pattern, canonicalized if it is an IP address.
    * @throws {Error} Thrown if `value` does not match.
    */
   static checkHostname(name, allowWildcard = false) {
+    // Handle IP address cases.
+    const canonicalIp = this.checkIpAddressOrNull(name, false);
+    if (canonicalIp) {
+      return canonicalIp;
+    }
+
     MustBe.string(name, this.#HOSTNAME_PATTERN);
 
     if ((!allowWildcard) && /[*]/.test(name)) {
@@ -413,7 +421,9 @@ export class Uris {
   }
 
   /**
-   * Parses a possibly-wildcarded hostname into a {@link TreePathKey}.
+   * Parses a possibly-wildcarded hostname into a {@link TreePathKey}. This
+   * accepts both DNS names and IP addresses. In the case of an IP address, the
+   * result is a single-component path key.
    *
    * **Note:** Because hostname hierarchy is from right-to-left (e.g., wildcards
    * are at the front of a hostname not the back), the `.path` of the result
@@ -447,6 +457,12 @@ export class Uris {
    */
   static parseHostnameOrNull(name, allowWildcard = false) {
     MustBe.string(name);
+
+    // Handle IP address cases.
+    const canonicalIp = this.checkIpAddressOrNull(name, false);
+    if (canonicalIp) {
+      return new TreePathKey([canonicalIp], false);
+    }
 
     if (!AskIf.string(name, this.#HOSTNAME_PATTERN)) {
       return null;
