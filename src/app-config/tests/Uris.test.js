@@ -327,67 +327,6 @@ ${'checkIpAddressOrNull'} | ${false}
   });
 });
 
-describe('checkMount()', () => {
-  // Failure cases.
-  test.each`
-  label                                | mount
-  ${'null'}                            | ${null}
-  ${'non-string'}                      | ${123}
-  ${'no slash at start'}               | ${'foo/bar/'}
-  ${'single slash at start'}           | ${'/foo/bar/'}
-  ${'triple slash at start'}           | ${'///foo/bar/'}
-  ${'no slash at end'}                 | ${'//foo/bar'}
-  ${'double slash at end'}             | ${'//foo/bar//'}
-  ${'triple slash at end'}             | ${'//foo/bar///'}
-  ${'double slash in middle'}          | ${'//foo//bar/'}
-  ${'triple slash in middle'}          | ${'//foo///bar/'}
-  ${'double slash at end'}             | ${'/foo/bar//'}
-  ${'`.` component'}                   | ${'//foo/./bar/'}
-  ${'`..` component'}                  | ${'//foo/../bar/'}
-  ${'`-` component'}                   | ${'//foo/-/bar/'}
-  ${'`-` at start of component'}       | ${'//foo/-bar/'}
-  ${'`-` at end of component'}         | ${'//foo/bar-/'}
-  ${'invalid component character'}     | ${'//foo/b@r/'}
-  ${'`-` at hostname component start'} | ${'//foo.-foo/bar/'}
-  ${'`-` at hostname component end'}   | ${'//foo.foo-/bar/'}
-  ${'hostname wildcard in middle'}     | ${'//foo.*.bar/'}
-  ${'hostname wildcard at end'}        | ${'//foo.*/'}
-  ${'hostname wildcard without dot'}   | ${'//*foo/'}
-  ${'invalid hostname character'}      | ${'//foo.b$r/bar/'}
-  ${'hostname component too long'}     | ${`//z${LONGEST_COMPONENT}/`}
-  ${'hostname too long'}               | ${`//z${LONGEST_NAME}/`}
-  `('fails for $label', ({ mount }) => {
-    expect(() => Uris.checkMount(mount)).toThrow();
-  });
-
-  // Success cases.
-  test.each`
-  mount
-  ${'//foo/'}
-  ${'//foo/bar/'}
-  ${'//foo/bar/baz/'}
-  ${'//*/'}
-  ${'//*/florp/'}
-  ${'//*.foo/florp/'}
-  ${'//*.foo.bar/florp/'}
-  ${'//foo.bar/'}
-  ${'//foo.bar/florp/'}
-  ${'//foo/.florp/'}
-  ${'//foo/florp./'}
-  ${'//foo/_florp/'}
-  ${'//foo/florp_/'}
-  ${'//foo/florp-like/'}
-  ${'//foo/.../'} // Weird, but should be allowed.
-  ${`//${LONGEST_COMPONENT}/`}
-  ${`//${LONGEST_COMPONENT}.${LONGEST_COMPONENT}/`}
-  ${`//${LONGEST_NAME}/`}
-  ${`//${LONGEST_NAME}/a/`}
-  ${`//${LONGEST_NAME}/abcde/fghij/`}
-  `('succeeds for $mount', ({ mount }) => {
-    expect(Uris.checkMount(mount)).toBe(mount);
-  });
-});
-
 describe('checkPort()', () => {
   test('works for `*` when `allowWildcard === true`', () => {
     expect(Uris.checkPort('*', true)).toBe(0);

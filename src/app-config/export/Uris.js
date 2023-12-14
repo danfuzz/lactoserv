@@ -350,36 +350,6 @@ export class Uris {
   }
 
   /**
-   * Checks that a given value is a string in the form of a network mount point
-   * (as used by this system). Mount points are URI-ish strings of the form
-   * `//<hostname>/<path-component>/.../`, where:
-   *
-   * * The whole string must start with `//` and end with `/`.
-   * * `hostname` is a valid hostname (see {@link #checkHostname}).
-   * * Each `path-component` is a non-empty string consisting of alphanumerics
-   *   plus `-`, `_`, or `.`.
-   * * No path component may be `.` or `..`.
-   * * No path component may start or end with a `-`.
-   *
-   * **Note:** Mount paths are more restrictive than what is acceptable in
-   * general for paths as passed in via HTTP-ish requests, i.e. an incoming
-   * path can legitimately _not_ match a mount path while still being
-   * syntactically correct.
-   *
-   * @param {*} value Value in question.
-   * @returns {string} `value` if it is a string which matches the stated
-   *   pattern.
-   * @throws {Error} Thrown if `value` does not match.
-   */
-  static checkMount(value) {
-    const hostname      = this.#HOSTNAME_PATTERN_FRAGMENT;
-    const nameComponent = '(?!-|[.]{1,2}/)[-_.a-zA-Z0-9]+(?<!-)';
-    const pattern       = `^//${hostname}(/${nameComponent})*/$`;
-
-    return MustBe.string(value, pattern);
-  }
-
-  /**
    * Checks that a given value is a valid non-wildcard port number, optionally
    * also allowing `*` to specify the wildcard port. Accepts both values of type
    * `number` _and_ strings of decimal digits.
