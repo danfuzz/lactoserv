@@ -536,8 +536,8 @@ describe('parseInterface()', () => {
   ${'IPv6 port too large'}              | ${'[a:b::c:d]:65536'}
   ${'IPv6 port way too large'}          | ${'[0:123::4:56]:1023456789'}
   ${'IPv6 missing brackets'}            | ${'a:b:c::1234:8080'}
-  ${'IPv6 wildcard'}                    | ${'[::]:8080'}
-  ${'IPv4 wildcard'}                    | ${'[0.0.0.0]:8080'}
+  ${'IPv6 "any" address'}               | ${'[::]:8080'}
+  ${'IPv4 "any" address'}               | ${'[0.0.0.0]:8080'}
   ${'wildcard port `0`'}                | ${'12.34.5.66:0'}
   ${'wildcard port `*`'}                | ${'[12:34::5:66]:*'}
   ${'fd missing slash at start'}        | ${'dev/fd/3'}
