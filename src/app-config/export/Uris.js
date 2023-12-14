@@ -225,16 +225,98 @@ export class Uris {
   }
 
   /**
-   * Checks that a given value is a valid IP address. See
-   * {@link #IP_ADDRESS_PATTERN}.
+   * Checks that a given value is a valid IP address, either v4 or v6. See
+   * {@link #IP_ADDRESS_PATTERN}. This returns the canonicalized form of the
+   * address. Canonicalization includes:
+   *
+   * * dropping irrelevant zero digits (IPv4 and IPv6).
+   * * for IPv6:
+   *   * removing square brackets, if present.
+   *   * downcasing hex digits.
+   *   * including `0` values and `::` in the proper positions.
    *
    * @param {*} value Value in question.
-   * @returns {string} `value` if it is a string which matches the stated
-   *   pattern.
-   * @throws {Error} Thrown if `value` does not match.
+   * @param {boolean} [allowAny] Allow "any" addresses (`0.0.0.0` or `::`)?
+   * @returns {string} The canonicalized version of `value`.
+   * @throws {Error} Thrown if `value` does not match the pattern for an IP
+   *   address.
    */
-  static checkIpAddress(value) {
-    return MustBe.string(value, this.#IP_ADDRESS_PATTERN);
+  static checkIpAddress(value, allowAny = false) {
+    MustBe.string(value, this.#IP_ADDRESS_PATTERN);
+
+    const origValue = value;
+
+    function dropBrackets(value) {
+      return value.replaceAll(/\[|\]/g, '');
+    }
+
+    function dropLeadingZeros(value) {
+      return value.replaceAll(/(?<=[.:]|^)0+(?=[0-9])/g, '');
+    }
+
+    if (/[.]/.test(value)) {
+      // IPv4.
+      value = dropLeadingZeros(value);
+
+      if ((!allowAny) && (value === '0.0.0.0')) {
+        throw new Error(`"Any" address not allowed: ${origValue}`);
+      }
+
+      return value;
+    }
+
+    // IPv6.
+
+    // Downcase and drop brackets and leading zeros.
+    value = value.toLowerCase();
+    value = dropLeadingZeros(dropBrackets(value));
+
+    // Split into parts, and expand `::` (if any).
+
+    const needsExpansion = /::/.test(value);
+    const parts = value
+      .replace(/::/, ':x:')
+      .split(':')
+      .filter((part) => part !== '');
+
+    if (needsExpansion) {
+      const expandAt = parts.indexOf('x');
+      const zeros    = new Array(8 - parts.length + 1).fill('0');
+      parts.splice(expandAt, 1, ...zeros);
+    }
+
+    // Find the longest run of zeros, for `::` replacement (if appropriate).
+
+    let zerosAt    = -1;
+    let zerosCount = 0;
+    for (let n = 0; n < 8; n++) {
+      if (parts[n] === '0') {
+        let endAt = n + 1;
+        while ((endAt < 8) && (parts[endAt] === '0')) {
+          endAt++;
+        }
+        if ((endAt - n) > zerosCount) {
+          zerosCount = endAt - n;
+          zerosAt    = n;
+        }
+        n = endAt - 1;
+      }
+    }
+
+    if (zerosAt < 0) {
+      return parts.join(':');
+    } else {
+      // A `::` in a middle part will end up being `:::` after the `join()`,
+      // hence the `replace(...)`.
+      parts.splice(zerosAt, zerosCount, ':');
+      value = parts.join(':').replace(/:::/, '::');
+
+      if ((!allowAny) && (value === '::')) {
+        throw new Error(`"Any" address not allowed: ${origValue}`);
+      }
+
+      return value;
+    }
   }
 
   /**
