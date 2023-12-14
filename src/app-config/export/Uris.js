@@ -41,7 +41,6 @@ export class Uris {
   static #IP_ADDRESS_PATTERN_FRAGMENT = (() => {
     // IPv4 address.
     const ipv4Address =
-      '(?!0+[.]0+[.]0+[.]0+)' + // No IPv4 "any" addresses.
       '(?!.*[^.]{4})' +         // No more than three digits in a row.
       '(?!.*[3-9][^.]{2})' +    // No 3-digit number over `299`.
       '(?!.*2[6-9][^.])' +      // No `2xx` number over `259`.
@@ -51,11 +50,10 @@ export class Uris {
     // IPv6 address (without brackets).
     const ipv6Address =
       '(?=.*:)' +              // IPv6 addresses require a colon _somewhere_.
-      '(?=.*[1-9A-Fa-f])' +    // No "any" (at least one non-zero digit).
       '(?!.*[0-9A-Fa-f]{5})' + // No more than four digits in a row.
       '(?!(.*::){2})' +        // No more than one `::`.
       '(?!.*:::)' +            // No triple-colons (or quad-, etc.).
-      '(?!([^:]*:){8})' +      // No more than seven colons total.
+      '(?!([^:]*:){9})' +      // No more than eight colons total.
       '(?=.*::|([^:]*:){7}[^:]*$)' + // Contains `::` or exactly seven colons.
       '(?=(::|[^:]))' +        // Must start with `::` or digit.
       '[:0-9A-Fa-f]{2,39}' +   // (Bunch of valid characters.)
@@ -69,8 +67,7 @@ export class Uris {
    * anchored so that it matches a complete string.
    *
    * This pattern allows but does not requires IPv6 addresses to be enclosed in
-   * square brackets. This pattern does _not_ allow "any" addresses (i.e.,
-   * `0.0.0.0` and `::`).
+   * square brackets.
    */
   static #IP_ADDRESS_PATTERN = `^${this.#IP_ADDRESS_PATTERN_FRAGMENT}$`;
 
@@ -187,8 +184,8 @@ export class Uris {
    *   addresses are allowed to be enclosed in brackets.
    * * The special "name" `*` to represent the "any" address.
    *
-   * The return value is the same as the given one, except that brackets are
-   * removed from bracket-delimited IPv6 forms.
+   * The return value is the same as the given one, except that IP addresses are
+   * canonicalized (see {@link #checkIpAddress}).
    *
    * @param {*} value Value in question.
    * @returns {string} `value` if it is a string which matches the stated
@@ -196,6 +193,11 @@ export class Uris {
    * @throws {Error} Thrown if `value` does not match.
    */
   static checkInterfaceAddress(value) {
+    const canonicalIp = this.checkIpAddressOrNull(value, false);
+    if (canonicalIp) {
+      return canonicalIp;
+    }
+
     // The one allowed "any" address.
     const anyAddress = '[*]';
 
@@ -215,13 +217,9 @@ export class Uris {
       '(?=.*[a-zA-Z])' +                // At least one letter _somewhere_.
       `${dnsLabel}(?:[.]${dnsLabel})*`; // `.`-delimited sequence of labels.
 
-    const pattern =
-      `^(?:${anyAddress}|${dnsName}|${this.#IP_ADDRESS_PATTERN_FRAGMENT})$`;
+    const pattern = `^(?:${anyAddress}|${dnsName})$`;
 
-    MustBe.string(value, pattern);
-    return value.startsWith('[')
-      ? value.replace(/\[|\]/g, '')
-      : value;
+    return MustBe.string(value, pattern);
   }
 
   /**
@@ -242,7 +240,32 @@ export class Uris {
    *   address.
    */
   static checkIpAddress(value, allowAny = false) {
-    MustBe.string(value, this.#IP_ADDRESS_PATTERN);
+    const result = this.checkIpAddressOrNull(value, allowAny);
+
+    if (result) {
+      return result;
+    }
+
+    const addendum = allowAny ? '' : ' ("any" not allowed)';
+    throw new Error(`Not an IP address${addendum}: ${value}`);
+  }
+
+  /**
+   * Like {@link #checkIpAddress}, execpt returns `null` to indicate a parsing
+   * error.
+   *
+   * @param {*} value Value in question.
+   * @param {boolean} [allowAny] Allow "any" addresses (`0.0.0.0` or `::`)?
+   * @returns {?string} The canonicalized version of `value`, or `null` if it
+   *   could not be parsed.
+   * @throws {Error} Thrown if `value` is not a string.
+   */
+  static checkIpAddressOrNull(value, allowAny = false) {
+    MustBe.string(value);
+
+    if (!AskIf.string(value, this.#IP_ADDRESS_PATTERN)) {
+      return null;
+    }
 
     const origValue = value;
 
@@ -259,7 +282,7 @@ export class Uris {
       value = dropLeadingZeros(value);
 
       if ((!allowAny) && (value === '0.0.0.0')) {
-        throw new Error(`"Any" address not allowed: ${origValue}`);
+        return null;
       }
 
       return value;
@@ -305,17 +328,16 @@ export class Uris {
 
     if (zerosAt < 0) {
       return parts.join(':');
+    } else if (zerosCount === 8) {
+      if (!allowAny) {
+        return null;
+      }
+      return '::';
     } else {
       // A `::` in a middle part will end up being `:::` after the `join()`,
       // hence the `replace(...)`.
       parts.splice(zerosAt, zerosCount, ':');
-      value = parts.join(':').replace(/:::/, '::');
-
-      if ((!allowAny) && (value === '::')) {
-        throw new Error(`"Any" address not allowed: ${origValue}`);
-      }
-
-      return value;
+      return parts.join(':').replace(/:::/, '::');
     }
   }
 

@@ -105,6 +105,7 @@ describe('checkInterfaceAddress()', () => {
   ${'invalid IPv6 digit'}                  | ${'123::g:456'}
   ${'too-long IPv6 component'}             | ${'123::45678:9'}
   ${'too many IPv6 components'}            | ${'1:2:3:4:5:6:7:8:9'}
+  ${'too many IPv6 components with `::`'}  | ${'1:2:3:4:5::6:7:8:9'}
   ${'canonical IPv4 wildcard'}             | ${'0.0.0.0'}
   ${'IPv4 wildcard'}                       | ${'0.00.0.0'}
   ${'too-long IPv4 component'}             | ${'10.0.0.0099'}
@@ -123,7 +124,7 @@ describe('checkInterfaceAddress()', () => {
     expect(() => Uris.checkInterfaceAddress(iface)).toThrow();
   });
 
-  // Success cases.
+  // Success cases that are given in canonical form.
   test.each`
   iface
   ${'*'}
@@ -136,26 +137,14 @@ describe('checkInterfaceAddress()', () => {
   ${'99.99.99.99'}
   ${'::a'}
   ${'1::'}
-  ${'0123:4567:89ab:cdef:0123:4567:89ab:cdef'}
-  ${'0123:4567:89ab::0123:4567:89ab:cdef'}
-  ${'0123:4567::0123:4567:89ab:cdef'}
-  ${'0123:4567::4567:89ab:cdef'}
-  ${'0123::4567:89ab:cdef'}
-  ${'0123::4567:89ab'}
-  ${'0123::4567'}
-  ${'ABCD::EF'}
+  ${'123:4567:89ab:cdef:123:4567:89ab:cdef'}
+  ${'123:4567:89ab::123:4567:89ab:cdef'}
+  ${'123:4567::1230:4567:89ab:cdef'}
+  ${'123:4567::4567:89ab:cdef'}
+  ${'123::4567:89ab:cdef'}
+  ${'123::4567:89ab'}
+  ${'123::4567'}
   ${'::abcd'}
-  ${'[::abcd]'}
-  ${'[::abc]'}
-  ${'[::ab]'}
-  ${'[::a]'}
-  ${'[1::1]'}
-  ${'[1:2::12]'}
-  ${'[1:2:3::123]'}
-  ${'[1:2:3:4::1234]'}
-  ${'[1:2:3:4:5:6:7:8]'}
-  ${'[1234::]'}
-  ${'[12:ab::34:cd]'}
   ${LONGEST_COMPONENT}
   ${`${LONGEST_COMPONENT}.boop`}
   ${`${LONGEST_COMPONENT}.${LONGEST_COMPONENT}`}
@@ -163,6 +152,22 @@ describe('checkInterfaceAddress()', () => {
   `('succeeds for $iface', ({ iface }) => {
     const got      = Uris.checkInterfaceAddress(iface);
     const expected = iface.replace(/\[|\]/g, '');
+    expect(got).toBe(expected);
+  });
+
+  // Success cases that are given in non-canonical form.
+  test.each`
+  iface                   | expected
+  ${'0:0:0:0:12:34:56::'} | ${'::12:34:56:0'}
+  ${'02:003:0004::'}      | ${'2:3:4::'}
+  ${'ABCD::EF'}           | ${'abcd::ef'}
+  ${'[0123::]'}           | ${'123::'}
+  ${'[::abcd]'}           | ${'::abcd'}
+  ${'[1::1]'}             | ${'1::1'}
+  ${'[1:2:3:4:5:6:7:8]'}  | ${'1:2:3:4:5:6:7:8'}
+  ${'[12:Ab::34:cD]'}     | ${'12:ab::34:cd'}
+  `('succeeds for $iface', ({ iface, expected }) => {
+    const got = Uris.checkInterfaceAddress(iface);
     expect(got).toBe(expected);
   });
 });
@@ -182,18 +187,13 @@ describe('checkIpAddress()', () => {
   ${'DNS name (3 components)'}             | ${'foo.bar.baz'}
   ${'wildcard DNS name'}                   | ${'*.foo.bar'}
   ${'DNS-like but with numeric component'} | ${'123.foo'}
-  ${'canonical IPv6 "any" address'}        | ${'::'}
-  ${'canonical IPv6 "any" in brackets'}    | ${'[::]'}
-  ${'IPv6 "any" address'}                  | ${'0::'}
-  ${'IPv6 "any" in brackets'}              | ${'[0::]'}
   ${'too many IPv6 double colons'}         | ${'123::45::67'}
   ${'IPv6 triple colon'}                   | ${'123:::45:67'}
   ${'too few IPv6 colons'}                 | ${'123:45:67:89:ab'}
   ${'invalid IPv6 digit'}                  | ${'123::g:456'}
   ${'too-long IPv6 component'}             | ${'123::45678:9'}
   ${'too many IPv6 components'}            | ${'1:2:3:4:5:6:7:8:9'}
-  ${'canonical IPv4 "any" address'}        | ${'0.0.0.0'}
-  ${'IPv4 "any" address'}                  | ${'0.00.0.0'}
+  ${'too many IPv6 components, with `::`'} | ${'1:2::3:4:5:6:7:8:9'}
   ${'too-long IPv4 component'}             | ${'10.0.0.0099'}
   ${'too-large IPv4 component'}            | ${'10.256.0.1'}
   ${'IPv4 in brackets'}                    | ${'[1.2.3.4]'}
@@ -249,6 +249,7 @@ describe('checkIpAddress()', () => {
   ${'0000::1'}                                 | ${'::1'}
   ${'f::0000'}                                 | ${'f::'}
   ${'aa:bb:0::cc:dd:ee:ff'}                    | ${'aa:bb::cc:dd:ee:ff'}
+  ${'0:0:0:0:12:34:56::'}                      | ${'::12:34:56:0'}
   ${'::1:2:0:0:0:3'}                           | ${'0:0:1:2::3'}
   ${'0001:0002:0003:0004:0005:0006:0007:0008'} | ${'1:2:3:4:5:6:7:8'}
   ${'ABCD::EF'}                                | ${'abcd::ef'}
@@ -266,6 +267,37 @@ describe('checkIpAddress()', () => {
   `('succeeds for $addr', ({ addr, expected }) => {
     const got = Uris.checkIpAddress(addr);
     expect(got).toBe(expected);
+  });
+
+  // Tests for "any" addresses. These should succeed if `allowAny === true` and
+  // fail for `allowAny === false`.
+  describe.each`
+  allowAny
+  ${true}
+  ${false}
+  `('with `allowAny === $allowAny`', ({ allowAny }) => {
+    const verb = allowAny ? 'succeeds' : 'fails';
+    test.each`
+    addr                 | expected
+    ${'::'}              | ${'::'}
+    ${'[::]'}            | ${'::'}
+    ${'0::'}             | ${'::'}
+    ${'[0::]'}           | ${'::'}
+    ${'0:0:0:0:0:0:0:0'} | ${'::'}
+    ${'0::0'}            | ${'::'}
+    ${'0000::'}          | ${'::'}
+    ${'::0000'}          | ${'::'}
+    ${'0.0.0.0'}         | ${'0.0.0.0'}
+    ${'0.00.0.0'}        | ${'0.0.0.0'}
+    ${'000.000.000.000'} | ${'0.0.0.0'}
+    `(`${verb} for $addr`, ({ addr, expected }) => {
+      if (allowAny) {
+        const got = Uris.checkIpAddress(addr, true);
+        expect(got).toBe(expected);
+      } else {
+        expect(() => Uris.checkIpAddress(addr, false)).toThrow();
+      }
+    });
   });
 });
 
