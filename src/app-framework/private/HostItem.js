@@ -25,7 +25,12 @@ export class HostItem {
    * @param {HostConfig} config Parsed configuration item.
    */
   constructor(config) {
-    const { certificate, privateKey } = config;
+    const { certificate, privateKey, selfSigned } = config;
+
+    if (selfSigned) {
+      // TODO
+      throw new Error('selfSigned not supported...yet!');
+    }
 
     this.#config        = config;
     this.#secureContext = tls.createSecureContext({
