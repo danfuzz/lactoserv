@@ -35,9 +35,9 @@ export class Uris {
   static #HOSTNAME_PATTERN = `^${this.#HOSTNAME_PATTERN_FRAGMENT}$`;
 
   /**
-  * @returns {string} Regex pattern which matches an IP address (v4 or v6), but
-  * _not_ anchored so that it matches a complete string.
-  */
+   * @returns {string} Regex pattern which matches an IP address (v4 or v6), but
+   * _not_ anchored so that it matches a complete string.
+   */
   static #IP_ADDRESS_PATTERN_FRAGMENT = (() => {
     // IPv4 address.
     const ipv4Address =
