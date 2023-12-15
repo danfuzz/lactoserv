@@ -64,8 +64,8 @@ error=0
 check-dependency \
     'Node' \
     'node --version | sed -e "s/^v//"' \
-    '^(18|19|20)\.' \
-    '18..20' \
+    '^(18|19|20|21)\.' \
+    '18..21' \
 || error=1
 
 exit "${error}"
