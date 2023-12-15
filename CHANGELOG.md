@@ -6,6 +6,8 @@ versioning principles. Unstable releases do not.
 
 ### [Unreleased]
 
+### v0.5.20 -- 2023-12-15
+
 Breaking changes:
 * None.
 
@@ -16,7 +18,6 @@ Other notable changes:
   certificates.
 * A bunch of cleanup / rationalization around the configuration code, especially
   with hostname and IP address parsing.
-* Other mostly minor tweaks and improvements, throughout the codebase.
 * Pulled in improved `bashy-lib`, and adjusted accordingly.
 
 ### v0.5.19 -- 2023-12-04
