@@ -86,7 +86,8 @@ export class HostItem {
     // what's going on. Probably needs to be sorted out.
     const pemResult = await pem.promisified.createCertificate({
       selfSigned: true,
-      days:       366,
+      days:       100,
+      keyBitsize: 4096,
       commonName: config.hostnames[0],
       altNames:   config.hostnames
     });
