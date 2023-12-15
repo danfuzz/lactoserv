@@ -16,13 +16,13 @@ const RUN_DIR = `${VAR_DIR}/run`;
 // Host / certificate bindings.
 const hosts = [
   {
-    hostnames:   ['localhost'],
-    selfSigned:  true
+    hostnames:   ['localhost', '*.localhost'],
+    certificate: await readFile('localhost-cert.pem'),
+    privateKey:  await readFile('localhost-key.pem')
   },
   {
     hostnames:   ['*', '127.0.0.1', '::1'],
-    certificate: await readFile('localhost-cert.pem'),
-    privateKey:  await readFile('localhost-key.pem')
+    selfSigned:  true
   }
 ];
 
