@@ -84,14 +84,23 @@ export class HostManager {
    * @returns {object} Options for secure server/context construction.
    */
   async getSecureServerOptions() {
-    // The `key` and `cert` bound in the result of this getter are for cases
-    // when the (network) client doesn't invoke the server-name extension.
-    // Hence, it's the wildcard... if available.
-    const wildcard = this.findConfig('*') ?? {};
+    let result = {
+      SNICallback: (serverName, cb) => this.sniCallback(serverName, cb)
+    };
 
-    const sniCallback = (serverName, cb) => this.sniCallback(serverName, cb);
+    // The wildcard here is for cases when the (network) client doesn't invoke
+    // the server-name (SNI) extension. In such cases, we arrange to present our
+    // configured wildcard (hostname `*`) certificate, if there is one
+    // configured.
+    const wildcardItem = this.#findItem('*', true);
 
-    return { ...wildcard, SNICallback: sniCallback };
+    if (wildcardItem) {
+      const { certificate, privateKey } = await wildcardItem.getParameters();
+      result.cert = certificate;
+      result.key  = privateKey;
+    }
+
+    return result;
   }
 
   /**
