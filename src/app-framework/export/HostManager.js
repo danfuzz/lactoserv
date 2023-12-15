@@ -61,7 +61,7 @@ export class HostManager {
    * @returns {object} Options for secure server/context construction.
    */
   async getSecureServerOptions() {
-    let result = {
+    const result = {
       SNICallback: (serverName, cb) => this.sniCallback(serverName, cb)
     };
 
