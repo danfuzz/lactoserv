@@ -24,12 +24,6 @@ import { ThisModule } from '#p/ThisModule';
  */
 export class NetworkEndpoint extends BaseComponent {
   /**
-   * @type {HostManager} Host manager with bindings for all valid hostnames for
-   * this instance.
-   */
-  #hostManager;
-
-  /**
    * @type {TreePathMap<TreePathMap<BaseApplication>>} Map from hostnames to
    * map from paths to applications. See {@link #makeMountMap} for details.
    */
@@ -63,8 +57,7 @@ export class NetworkEndpoint extends BaseComponent {
 
     super(config, ThisModule.logger.endpoint[name]);
 
-    this.#hostManager = hostManager;
-    this.#mountMap    = NetworkEndpoint.#makeMountMap(mounts, applicationMap);
+    this.#mountMap = NetworkEndpoint.#makeMountMap(mounts, applicationMap);
 
     const wranglerOptions = {
       rateLimiter,
@@ -74,8 +67,8 @@ export class NetworkEndpoint extends BaseComponent {
       protocol,
       interface: iface,
       ...(
-        this.#hostManager
-          ? { hosts: this.#hostManager.secureServerOptions }
+        hostManager
+          ? { hosts: hostManager.secureServerOptions }
           : {})
     };
 
