@@ -136,7 +136,7 @@ export class ProtocolWrangler {
    */
   async start(isReload) {
     this.#reloading = isReload;
-    this.#initialize();
+    await this.#initialize();
     await this.#runner.start();
   }
 
@@ -154,6 +154,18 @@ export class ProtocolWrangler {
   async stop(willReload) {
     this.#reloading = willReload;
     await this.#runner.stop();
+  }
+
+  /**
+   * Initializes the instance. After this is called and (asynchronously)
+   * returns, both {@link #_impl_application} and {@link #_impl_server} should
+   * work without error. This can get called more than once; the second and
+   * subsequent times should be considered a no-op.
+   *
+   * @abstract
+   */
+  async _impl_initialize() {
+    Methods.abstract();
   }
 
   /**
@@ -456,10 +468,12 @@ export class ProtocolWrangler {
    * only after it's finished that we can grab the objects that it's responsible
    * for creating.
    */
-  #initialize() {
+  async #initialize() {
     if (this.#initialized) {
       return;
     }
+
+    await this._impl_initialize();
 
     const application = this._impl_application();
     const server      = this._impl_server();

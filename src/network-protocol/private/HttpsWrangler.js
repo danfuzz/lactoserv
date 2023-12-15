@@ -55,12 +55,15 @@ export class HttpsWrangler extends TcpWrangler {
   }
 
   /** @override */
-  _impl_server() {
+  async _impl_initialize() {
     if (!this.#protocolServer) {
       this.#protocolServer =
         https.createServer(this._prot_hostManager.secureServerOptions);
     }
+  }
 
+  /** @override */
+  _impl_server() {
     return this.#protocolServer;
   }
 }

@@ -56,6 +56,11 @@ export class HttpWrangler extends TcpWrangler {
   }
 
   /** @override */
+  async _impl_initialize() {
+    // Nothing needed here.
+  }
+
+  /** @override */
   _impl_server() {
     return this.#protocolServer;
   }

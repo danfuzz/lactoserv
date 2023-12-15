@@ -67,7 +67,7 @@ export class Http2Wrangler extends TcpWrangler {
   }
 
   /** @override */
-  _impl_server() {
+  async _impl_initialize() {
     if (!this.#protocolServer) {
       const serverOptions = {
         ...(this._prot_hostManager.secureServerOptions),
@@ -77,7 +77,10 @@ export class Http2Wrangler extends TcpWrangler {
       this.#protocolServer = http2.createSecureServer(serverOptions);
       this.#protocolServer.on('session', (session) => this.#addSession(session));
     }
+  }
 
+  /** @override */
+  _impl_server() {
     return this.#protocolServer;
   }
 
