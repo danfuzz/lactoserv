@@ -21,7 +21,7 @@ export class HttpsWrangler extends TcpWrangler {
   #application;
 
   /** @type {?https.Server} High-level protocol server. */
-  #protocolServer;
+  #protocolServer = null;
 
   /**
    * Constructs an instance.
@@ -31,9 +31,8 @@ export class HttpsWrangler extends TcpWrangler {
   constructor(options) {
     super(options);
 
-    this.#logger         = options.logger?.https ?? null;
-    this.#application    = express();
-    this.#protocolServer = https.createServer(options.hosts);
+    this.#logger      = options.logger?.https ?? null;
+    this.#application = express();
   }
 
   /** @override */
@@ -53,6 +52,14 @@ export class HttpsWrangler extends TcpWrangler {
 
     // TODO: Consider tracking connections and forcing things closed after a
     // timeout, similar to what's done with HTTP2.
+  }
+
+  /** @override */
+  async _impl_initialize() {
+    if (!this.#protocolServer) {
+      const hostOptions = await this._prot_hostManager.getSecureServerOptions();
+      this.#protocolServer = https.createServer(hostOptions);
+    }
   }
 
   /** @override */

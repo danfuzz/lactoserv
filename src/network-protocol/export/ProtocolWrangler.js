@@ -13,6 +13,7 @@ import { ProductInfo } from '@this/host';
 import { IntfLogger } from '@this/loggy';
 import { Methods, MustBe } from '@this/typey';
 
+import { IntfHostManager } from '#x/IntfHostManager';
 import { IntfRateLimiter } from '#x/IntfRateLimiter';
 import { IntfRequestLogger } from '#x/IntfRequestLogger';
 import { RequestLogHelper } from '#p/RequestLogHelper';
@@ -34,6 +35,12 @@ import { WranglerContext } from '#x/WranglerContext';
 export class ProtocolWrangler {
   /** @type {?IntfLogger} Logger to use, or `null` to not do any logging. */
   #logger;
+
+  /**
+   * @type {?IntfHostManager} Optional host manager; only needed for some
+   * protocols.
+   */
+  #hostManager;
 
   /** @type {?IntfRateLimiter} Rate limiter service to use, if any. */
   #rateLimiter;
@@ -76,10 +83,8 @@ export class ProtocolWrangler {
    * Constructs an instance.
    *
    * @param {object} options Construction options.
-   * @param {object} options.hosts Value returned from {@link
-   *   HostManager#secureServerOptions}, if this instance is (possibly) expected
-   *   to need to use certificates (etc.). Ignored for instances which don't do
-   *   that sort of thing.
+   * @param {object} options.hostManager Host manager to use. Ignored for
+   *   instances which don't do need to do host-based security (certs, etc.).
    * @param {IntfRateLimiter} options.rateLimiter Rate limiter to use. If not
    *   specified, the instance won't do rate limiting.
    * @param {function(object, object)} options.requestHandler Request handler,
@@ -101,9 +106,16 @@ export class ProtocolWrangler {
    *     practice for HTTP2 (and is at least _useful_ in other contexts).
    */
   constructor(options) {
-    const { logger, rateLimiter, requestHandler, requestLogger } = options;
+    const {
+      hostManager,
+      logger,
+      rateLimiter,
+      requestHandler,
+      requestLogger
+    } = options;
 
     this.#logger         = logger ?? null;
+    this.#hostManager    = hostManager ?? null;
     this.#rateLimiter    = rateLimiter ?? null;
     this.#requestHandler = MustBe.callableFunction(requestHandler);
     this.#logHelper      = requestLogger
@@ -122,7 +134,7 @@ export class ProtocolWrangler {
    */
   async start(isReload) {
     this.#reloading = isReload;
-    this.#initialize();
+    await this.#initialize();
     await this.#runner.start();
   }
 
@@ -140,6 +152,18 @@ export class ProtocolWrangler {
   async stop(willReload) {
     this.#reloading = willReload;
     await this.#runner.stop();
+  }
+
+  /**
+   * Initializes the instance. After this is called and (asynchronously)
+   * returns, both {@link #_impl_application} and {@link #_impl_server} should
+   * work without error. This can get called more than once; the second and
+   * subsequent times should be considered a no-op.
+   *
+   * @abstract
+   */
+  async _impl_initialize() {
+    Methods.abstract();
   }
 
   /**
@@ -221,6 +245,11 @@ export class ProtocolWrangler {
    */
   async _impl_serverSocketStop(willReload) {
     Methods.abstract(willReload);
+  }
+
+  /** @returns {?IntfHostManager} The host manager, if any. */
+  get _prot_hostManager() {
+    return this.#hostManager;
   }
 
   /**
@@ -437,10 +466,12 @@ export class ProtocolWrangler {
    * only after it's finished that we can grab the objects that it's responsible
    * for creating.
    */
-  #initialize() {
+  async #initialize() {
     if (this.#initialized) {
       return;
     }
+
+    await this._impl_initialize();
 
     const application = this._impl_application();
     const server      = this._impl_server();

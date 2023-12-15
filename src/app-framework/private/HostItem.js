@@ -18,16 +18,22 @@ export class HostItem {
   #config;
 
   /**
-   * @type {?tls.SecureContext} TLS context representing this instance's info,
-   * if it is in fact ready.
+   * @type {?{certificate: string, privateKey: string}} The certificate and
+   * for this instance, if known.
    */
-  #secureContext = null;
+  #parameters = null;
 
   /**
-   * @type {Promise<tls.SecureContext>} Promise for {@link #secureContext}, if
-   * it is not yet resolved.
+   * @type {Promise} Promise for value of {@link #parameters}, if it is not yet
+   * (effectively) resolved.
    */
-  #scPromise = null;
+  #parametersPromise = null;
+
+  /**
+   * @type {?tls.SecureContext} TLS context representing this instance's info,
+   * lazily initialized.
+   */
+  #secureContext = null;
 
   /**
    * Constructs an instance.
@@ -40,16 +46,13 @@ export class HostItem {
     this.#config = config;
 
     if (selfSigned) {
-      this.#scPromise = HostItem.#makeSelfSignedContext(config);
+      this.#parametersPromise = HostItem.#makeSelfSignedParameters(config);
       (async () => {
-        this.#secureContext = await this.#scPromise;
-        this.#scPromise     = null;
+        this.#parameters        = await this.#parametersPromise;
+        this.#parametersPromise = null;
       })();
     } else {
-      this.#secureContext = tls.createSecureContext({
-        cert: certificate,
-        key:  privateKey
-      });
+      this.#parameters = { certificate, privateKey };
     }
   }
 
@@ -59,13 +62,32 @@ export class HostItem {
   }
 
   /**
-   * Gets the TLS context. Note: This is `async` and not just a getter, because
-   * in some cases the context is only generated asynchronously.
+   * Gets the TLS context. **Note:** This is `async` and not just a getter,
+   * because in some cases the context can only be generated asynchronously.
    *
    * @returns {tls.SecureContext} The TLS context.
    */
   async getSecureContext() {
-    return this.#secureContext ?? await this.#scPromise;
+    if (!this.#secureContext) {
+      const params = await this.getParameters();
+      this.#secureContext = tls.createSecureContext({
+        cert: params.certificate,
+        key:  params.privateKey
+      });
+    }
+
+    return this.#secureContext;
+  }
+
+  /**
+   * Gets the resolved parameters -- specifically, the certificate and key --
+   * for this instance. **Note:** This is `async` and not just a getter, because
+   * in some cases the context is only generated asynchronously.
+   *
+   * @returns {{certificate: string, privateKey: string}} The parameters.
+   */
+  async getParameters() {
+    return this.#parameters ?? await this.#parametersPromise;
   }
 
 
@@ -74,18 +96,13 @@ export class HostItem {
   //
 
   /**
-   * Creates a TLS context with a newly-generated self-signed certificate and
+   * Makes the parameters for a newly-generated self-signed certificate and
    * corresponding key.
    *
    * @param {HostConfig} config Parsed configuration item.
-   * @returns {tls.SecureContext} Constructed context.
+   * @returns {{certificate: string, privateKey: string}} The parameters.
    */
-  static async #makeSelfSignedContext(config) {
-    // TODO: If a certificate made this way is offered as the catch-all for
-    // when SNI isn't used, and an incoming request is for an IP address (not a
-    // DNS name), then the server will silently fail (but not crash). Unclear
-    // what's going on. Probably needs to be sorted out.
-
+  static async #makeSelfSignedParameters(config) {
     const altNames = [];
     for (let i = 0; i < config.hostnames.length; i++) {
       const name = config.hostnames[i];
@@ -121,9 +138,9 @@ export class HostItem {
       config:     certConfig
     });
 
-    return tls.createSecureContext({
-      cert: pemResult.certificate,
-      key:  pemResult.clientKey
-    });
+    return {
+      certificate: pemResult.certificate,
+      privateKey:  pemResult.clientKey
+    };
   }
 }
