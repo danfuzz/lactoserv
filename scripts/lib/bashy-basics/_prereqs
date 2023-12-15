@@ -15,7 +15,7 @@ jqVersion="$(jq 2>/dev/null --version)" \
     return 1
 }
 
-if ! [[ ${jqVersion} =~ ^jq-1.[6-9]$ ]]; then
+if ! [[ ${jqVersion} =~ ^jq-1.[6-9]([.].*)$ ]]; then
     error-msg '`jq` must be version 1.6 or later.'
-    return 1
+    exit 1
 fi
