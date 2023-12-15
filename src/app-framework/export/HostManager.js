@@ -42,29 +42,6 @@ export class HostManager {
   }
 
   /**
-   * Finds the configuration info (cert/key pair) associated with the given
-   * hostname. The return value is suitable for use in options passed to Node
-   * `TLS` functions / methods.
-   *
-   * @param {string} name Hostname to look for, which may be a partial or full
-   *   wildcard.
-   * @returns {?{cert: string, key: string}} Configuration info, or `null` if no
-   *  hostname match is found.
-   */
-  findConfig(name) {
-    const item = this.#findItem(name, true);
-
-    if (!item) {
-      return null;
-    }
-
-    return Object.freeze({
-      cert: item.config.certificate,
-      key:  item.config.privateKey
-    });
-  }
-
-  /**
    * Finds the TLS {@link SecureContext} to use, based on the given hostname.
    *
    * @param {string} name Hostname to look for, which may be a partial or full
