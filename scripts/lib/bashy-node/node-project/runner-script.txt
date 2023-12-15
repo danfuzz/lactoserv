@@ -121,9 +121,9 @@ function check-dependency {
 
 check-dependency \
     'Node' \
-    'node --version | sed -e "s/^v//g"' \
-    '^(18|19|20)\.' \
-    '18..20' \
+    'node --version | sed -e "s/^v//"' \
+    '^(18|19|20|21)\.' \
+    '18..21' \
 || exit "$?"
 
 # Notes:
