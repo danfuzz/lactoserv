@@ -15,7 +15,7 @@ Other notable changes:
 * Added ability to make hostnames use automatically-generated self-signed
   certificates.
 * A bunch of cleanup / rationalization around the configuration code, especially
-  with hostname and IP address parsiong.
+  with hostname and IP address parsing.
 * Other mostly minor tweaks and improvements, throughout the codebase.
 * Pulled in improved `bashy-lib`, and adjusted accordingly.
 
