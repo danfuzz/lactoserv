@@ -6,6 +6,7 @@ import { SecureContext } from 'node:tls';
 import { HostConfig, Uris } from '@this/app-config';
 import { TreePathKey, TreePathMap } from '@this/collections';
 import { IntfLogger } from '@this/loggy';
+import { IntfHostManager } from '@this/network-protocol';
 
 import { HostItem } from '#p/HostItem';
 import { ThisModule } from '#p/ThisModule';
@@ -16,6 +17,8 @@ import { ThisModule } from '#p/ThisModule';
  * network-available endpoints associated with particular names, certificates,
  * and private keys. The main thing offered by this class is the association
  * between hostnames and TLS contexts.
+ *
+ * @implements {IntfHostManager}
  */
 export class HostManager {
   /**
@@ -41,25 +44,13 @@ export class HostManager {
     }
   }
 
-  /**
-   * Finds the TLS {@link SecureContext} to use, based on the given hostname.
-   *
-   * @param {string} name Hostname to look for, which may be a partial or full
-   *   wildcard.
-   * @returns {?SecureContext} The associated {@link SecureContext}, or `null`
-   *   if no hostname match is found.
-   */
+  /** @override */
   async findContext(name) {
     const item = this.#findItem(name, true);
     return item ? await item.getSecureContext() : null;
   }
 
-  /**
-   * Gets options suitable for use with `http2.createSecureServer()` and the
-   * like, such that this instance will be used to find certificates and keys.
-   *
-   * @returns {object} Options for secure server/context construction.
-   */
+  /** @override */
   async getSecureServerOptions() {
     const result = {
       SNICallback: (serverName, cb) => this.sniCallback(serverName, cb)

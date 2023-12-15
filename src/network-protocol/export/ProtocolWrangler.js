@@ -13,6 +13,7 @@ import { ProductInfo } from '@this/host';
 import { IntfLogger } from '@this/loggy';
 import { Methods, MustBe } from '@this/typey';
 
+import { IntfHostManager } from '#x/IntfHostManager';
 import { IntfRateLimiter } from '#x/IntfRateLimiter';
 import { IntfRequestLogger } from '#x/IntfRequestLogger';
 import { RequestLogHelper } from '#p/RequestLogHelper';
@@ -36,7 +37,8 @@ export class ProtocolWrangler {
   #logger;
 
   /**
-   * @type {?HostManager} Optional host manager; only needed for some protocols.
+   * @type {?IntfHostManager} Optional host manager; only needed for some
+   * protocols.
    */
   #hostManager;
 
@@ -245,7 +247,7 @@ export class ProtocolWrangler {
     Methods.abstract(willReload);
   }
 
-  /** @returns {?HostManager} The host manager, if any. */
+  /** @returns {?IntfHostManager} The host manager, if any. */
   get _prot_hostManager() {
     return this.#hostManager;
   }
