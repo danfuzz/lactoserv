@@ -69,8 +69,9 @@ export class Http2Wrangler extends TcpWrangler {
   /** @override */
   async _impl_initialize() {
     if (!this.#protocolServer) {
+      const hostOptions = await this._prot_hostManager.getSecureServerOptions();
       const serverOptions = {
-        ...(this._prot_hostManager.secureServerOptions),
+        ...hostOptions,
         allowHTTP1: true
       };
 
