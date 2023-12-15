@@ -33,14 +33,29 @@ one-element array.
 ### `hosts`
 
 `hosts` is a list of hostname bindings. These map possibly-wildcarded hostnames
-to certificate-key pairs to use to authenticate an endpoint as those hosts.
+to certificate-key pairs to use to authenticate an endpoint as those hosts. Each
+entry has the following bindings:
+
+* `hostnames` &mdash; A list of one or more hostnames to recognize; this is
+   required. Hostnames are allowed to start with a `*` to indicate a wildcard of
+   _any number of subdomains, including zero._ Note that this is unlike how
+   wildcards work in the underlying certificates, where a `*` denotes exactly
+   one subdomain. And, to be clear, the hostname `*` will match _any_ hostname
+   at all, with any number of subdomains.
+* `certificate` &mdash; PEM format string containing the certificate to use for
+  this entry. This is required if `selfSigned` is absent or `false`.
+* `privateKey` &mdash; PEM format string containing the private key to use for
+  this entry. This is required if `selfSigned` is absent or `false`.
+* `selfSigned` &mdash; Optional boolean, which, if `true`, causes the system to
+  generate a self-signed certificate for this entry. This is mostly useful in
+  testing scenarios, and more specifically when running a server on your
+  development machine, e.g. and commonly responding on `localhost`.
 
 ```js
 const hosts = [
   {
-    hostnames:   ['localhost', '*'],
-    certificate: '-----BEGIN CERTIFICATE-----...',
-    privateKey:  '-----BEGIN PRIVATE KEY-----...'
+    hostnames:  ['localhost', '*'],
+    selfSigned: true
   },
   {
     hostnames:   ['*.example.com'],
@@ -51,19 +66,13 @@ const hosts = [
 ];
 ```
 
-Hostnames are allowed to start with a `*` to indicate a wildcard of _any number
-of subdomains, including zero._ Note that this is unlike how wildcards work in
-the underlying certificates, where a `*` denotes exactly one subdomain. And, to
-be clear, the hostname `*` will match _any_ hostname at all, with any number of
-subdomains.
-
 This section is only required if at least one endpoint is to respond to
 host-authenticated protocols (which is nearly always, at least in standalone
 uses).
 
 **Note:** If you want to keep the text of the keys and certificates out of the
-main configuration file, then the thing to do is just use the standard Node `fs`
-package to read the contents.
+main configuration file, then a reasonablhy easy tactic is to use the standard
+Node `fs` package to read the contents of files named in the configuration.
 
 ### `services`
 

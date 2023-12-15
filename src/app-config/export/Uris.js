@@ -10,6 +10,19 @@ import { AskIf, MustBe } from '@this/typey';
  */
 export class Uris {
   /**
+   * @returns {string} Regex pattern which matches a possibly-wildcarded
+   * hostname, but _not_ anchored to only match a full string.
+   */
+  static #HOSTNAME_PATTERN_FRAGMENT = (() => {
+    const simpleName = '(?!-)[-a-zA-Z0-9]{1,63}(?<!-)';
+    const nameOrWild = `(?:[*]|${simpleName})`;
+
+    return '(?![-.a-zA-Z0-9]{256})' +            // No more than 255 characters.
+      '(?=.*[*a-zA-Z])' +                        // At least one letter or star.
+      `(?:${nameOrWild}(?:[.]${simpleName})*)`;  // List of components.
+  })();
+
+  /**
    * @returns {string} Regex pattern which matches a hostname, anchored so that
    * it matches a complete string.
    *
@@ -20,21 +33,44 @@ export class Uris {
    * which furthermore must neither start nor end with a dash. The entire
    * hostname must be no more than 255 characters.
    */
-  static get HOSTNAME_PATTERN() {
-    return `^${this.HOSTNAME_PATTERN_FRAGMENT}$`;
-  }
+  static #HOSTNAME_PATTERN = `^${this.#HOSTNAME_PATTERN_FRAGMENT}$`;
 
   /**
-   * @returns {string} Regex pattern which matches a hostname, but _not_
-   * anchored to only match a full string.
+   * @returns {string} Regex pattern which matches an IP address (v4 or v6), but
+   * _not_ anchored so that it matches a complete string.
    */
-  static get HOSTNAME_PATTERN_FRAGMENT() {
-    const simpleName = '(?!-)[-a-zA-Z0-9]{1,63}(?<!-)';
-    const nameOrWild = `(?:[*]|${simpleName})`;
+  static #IP_ADDRESS_PATTERN_FRAGMENT = (() => {
+    // IPv4 address.
+    const ipv4Address =
+      '(?!.*[^.]{4})' +         // No more than three digits in a row.
+      '(?!.*[3-9][^.]{2})' +    // No 3-digit number over `299`.
+      '(?!.*2[6-9][^.])' +      // No `2xx` number over `259`.
+      '(?!.*25[6-9])' +         // No `25x` number over `255`.
+      '[0-9]{1,3}(?:[.][0-9]{1,3}){3}';
 
-    return '(?![-.a-zA-Z0-9]{256})' +            // No more than 255 characters.
-      `(?:${nameOrWild}(?:[.]${simpleName})*)`;  // List of components.
-  }
+    // IPv6 address (without brackets).
+    const ipv6Address =
+      '(?=.*:)' +              // IPv6 addresses require a colon _somewhere_.
+      '(?!.*[0-9A-Fa-f]{5})' + // No more than four digits in a row.
+      '(?!(.*::){2})' +        // No more than one `::`.
+      '(?!.*:::)' +            // No triple-colons (or quad-, etc.).
+      '(?!([^:]*:){9})' +      // No more than eight colons total.
+      '(?=.*::|([^:]*:){7}[^:]*$)' + // Contains `::` or exactly seven colons.
+      '(?=(::|[^:]))' +        // Must start with `::` or digit.
+      '[:0-9A-Fa-f]{2,39}' +   // (Bunch of valid characters.)
+      '(?<=(::|[^:]))';        // Must end with `::` or digit.
+
+    return `(?:${ipv4Address}|${ipv6Address}|\\[${ipv6Address}\\])`;
+  })();
+
+  /**
+   * @returns {string} Regex pattern which matches an IP address (v4 or v6),
+   * anchored so that it matches a complete string.
+   *
+   * This pattern allows but does not requires IPv6 addresses to be enclosed in
+   * square brackets.
+   */
+  static #IP_ADDRESS_PATTERN = `^${this.#IP_ADDRESS_PATTERN_FRAGMENT}$`;
 
   /**
    * Checks that a given value is a string which can be interpreted as an
@@ -121,6 +157,33 @@ export class Uris {
   }
 
   /**
+   * Checks that a given string can be used as a hostname, including non-"any"
+   * IP addresses.
+   *
+   * @param {string} name Hostname to parse.
+   * @param {boolean} [allowWildcard] Is a wildcard form allowed for
+   *   `name`?
+   * @returns {string} `value` if it is a string which matches the stated
+   *   pattern, canonicalized if it is an IP address.
+   * @throws {Error} Thrown if `value` does not match.
+   */
+  static checkHostname(name, allowWildcard = false) {
+    // Handle IP address cases.
+    const canonicalIp = this.checkIpAddressOrNull(name, false);
+    if (canonicalIp) {
+      return canonicalIp;
+    }
+
+    MustBe.string(name, this.#HOSTNAME_PATTERN);
+
+    if ((!allowWildcard) && /[*]/.test(name)) {
+      throw new Error(`Must not have a wildcard: ${name}`);
+    }
+
+    return name;
+  }
+
+  /**
    * Checks that a given value is a string which can be used as a network
    * interface address, and returns a somewhat-canonicalized form. This allows:
    *
@@ -129,8 +192,8 @@ export class Uris {
    *   addresses are allowed to be enclosed in brackets.
    * * The special "name" `*` to represent the "any" address.
    *
-   * The return value is the same as the given one, except that brackets are
-   * removed from bracket-delimited IPv6 forms.
+   * The return value is the same as the given one, except that IP addresses are
+   * canonicalized (see {@link #checkIpAddress}).
    *
    * @param {*} value Value in question.
    * @returns {string} `value` if it is a string which matches the stated
@@ -138,6 +201,11 @@ export class Uris {
    * @throws {Error} Thrown if `value` does not match.
    */
   static checkInterfaceAddress(value) {
+    const canonicalIp = this.checkIpAddressOrNull(value, false);
+    if (canonicalIp) {
+      return canonicalIp;
+    }
+
     // The one allowed "any" address.
     const anyAddress = '[*]';
 
@@ -157,68 +225,126 @@ export class Uris {
       '(?=.*[a-zA-Z])' +                // At least one letter _somewhere_.
       `${dnsLabel}(?:[.]${dnsLabel})*`; // `.`-delimited sequence of labels.
 
-    // IPv4 address.
-    const ipv4Address =
-      '(?!0+[.]0+[.]0+[.]0+)' + // No IPv4 "any" addresses.
-      '(?!.*[^.]{4})' +         // No more than three digits in a row.
-      '(?!.*[3-9][^.]{2})' +    // No 3-digit number over `299`.
-      '(?!.*2[6-9][^.])' +      // No `2xx` number over `259`.
-      '(?!.*25[6-9])' +         // No `25x` number over `255`.
-      '[0-9]{1,3}(?:[.][0-9]{1,3}){3}';
+    const pattern = `^(?:${anyAddress}|${dnsName})$`;
 
-    // IPv6 address (without brackets).
-    const ipv6Address =
-      '(?=.*:)' +              // IPv6 addresses require a colon _somewhere_.
-      '(?=.*[1-9A-Fa-f])' +    // No "any" (at least one non-zero digit).
-      '(?!.*[0-9A-Fa-f]{5})' + // No more than four digits in a row.
-      '(?!(.*::){2})' +        // No more than one `::`.
-      '(?!.*:::)' +            // No triple-colons (or quad-, etc.).
-      '(?!([^:]*:){8})' +      // No more than seven colons total.
-      '(?=.*::|([^:]*:){7}[^:]*$)' + // Contains `::` or exactly seven colons.
-      '(?=(::|[^:]))' +        // Must start with `::` or digit.
-      '[:0-9A-Fa-f]{2,39}' +   // (Bunch of valid characters.)
-      '(?<=(::|[^:]))';        // Must end with `::` or digit.
-
-    const pattern =
-      '^(?:' +
-      `${anyAddress}|${dnsName}|${ipv4Address}|` +
-      `${ipv6Address}|\\[${ipv6Address}\\]` +
-      ')$';
-
-    MustBe.string(value, pattern);
-    return value.startsWith('[')
-      ? value.replace(/\[|\]/g, '')
-      : value;
+    return MustBe.string(value, pattern);
   }
 
   /**
-   * Checks that a given value is a string in the form of a network mount point
-   * (as used by this system). Mount points are URI-ish strings of the form
-   * `//<hostname>/<path-component>/.../`, where:
+   * Checks that a given value is a valid IP address, either v4 or v6. See
+   * {@link #IP_ADDRESS_PATTERN}. This returns the canonicalized form of the
+   * address. Canonicalization includes:
    *
-   * * The whole string must start with `//` and end with `/`.
-   * * `hostname` matches {@link Uris.HOSTNAME_PATTERN_FRAGMENT}.
-   * * Each `path-component` is a non-empty string consisting of alphanumerics
-   *   plus `-`, `_`, or `.`.
-   * * No path component may be `.` or `..`.
-   * * No path component may start or end with a `-`.
-   *
-   * **Note:** Mount paths are more restrictive than what is acceptable in
-   * general for paths as passed in via HTTP-ish requests, i.e. an incoming
-   * path can legitimately _not_ match a mount path while still being
-   * syntactically correct.
+   * * dropping irrelevant zero digits (IPv4 and IPv6).
+   * * for IPv6:
+   *   * removing square brackets, if present.
+   *   * downcasing hex digits.
+   *   * including `0` values and `::` in the proper positions.
    *
    * @param {*} value Value in question.
-   * @returns {string} `value` if it is a string which matches the stated
-   *   pattern.
-   * @throws {Error} Thrown if `value` does not match.
+   * @param {boolean} [allowAny] Allow "any" addresses (`0.0.0.0` or `::`)?
+   * @returns {string} The canonicalized version of `value`.
+   * @throws {Error} Thrown if `value` does not match the pattern for an IP
+   *   address.
    */
-  static checkMount(value) {
-    const hostname      = this.HOSTNAME_PATTERN_FRAGMENT;
-    const nameComponent = '(?!-|[.]{1,2}/)[-_.a-zA-Z0-9]+(?<!-)';
-    const pattern       = `^//${hostname}(/${nameComponent})*/$`;
+  static checkIpAddress(value, allowAny = false) {
+    const result = this.checkIpAddressOrNull(value, allowAny);
 
-    return MustBe.string(value, pattern);
+    if (result) {
+      return result;
+    }
+
+    const addendum = allowAny ? '' : ' ("any" not allowed)';
+    throw new Error(`Not an IP address${addendum}: ${value}`);
+  }
+
+  /**
+   * Like {@link #checkIpAddress}, execpt returns `null` to indicate a parsing
+   * error.
+   *
+   * @param {*} value Value in question.
+   * @param {boolean} [allowAny] Allow "any" addresses (`0.0.0.0` or `::`)?
+   * @returns {?string} The canonicalized version of `value`, or `null` if it
+   *   could not be parsed.
+   * @throws {Error} Thrown if `value` is not a string.
+   */
+  static checkIpAddressOrNull(value, allowAny = false) {
+    MustBe.string(value);
+
+    if (!AskIf.string(value, this.#IP_ADDRESS_PATTERN)) {
+      return null;
+    }
+
+    function dropBrackets(v) {
+      return v.replaceAll(/\[|\]/g, '');
+    }
+
+    function dropLeadingZeros(v) {
+      return v.replaceAll(/(?<=[.:]|^)0+(?=[0-9])/g, '');
+    }
+
+    if (/[.]/.test(value)) {
+      // IPv4.
+      value = dropLeadingZeros(value);
+
+      if ((!allowAny) && (value === '0.0.0.0')) {
+        return null;
+      }
+
+      return value;
+    }
+
+    // IPv6.
+
+    // Downcase and drop brackets and leading zeros.
+    value = value.toLowerCase();
+    value = dropLeadingZeros(dropBrackets(value));
+
+    // Split into parts, and expand `::` (if any).
+
+    const needsExpansion = /::/.test(value);
+    const parts = value
+      .replace(/::/, ':x:')
+      .split(':')
+      .filter((part) => part !== '');
+
+    if (needsExpansion) {
+      const expandAt = parts.indexOf('x');
+      const zeros    = new Array(8 - parts.length + 1).fill('0');
+      parts.splice(expandAt, 1, ...zeros);
+    }
+
+    // Find the longest run of zeros, for `::` replacement (if appropriate).
+
+    let zerosAt    = -1;
+    let zerosCount = 0;
+    for (let n = 0; n < 8; n++) {
+      if (parts[n] === '0') {
+        let endAt = n + 1;
+        while ((endAt < 8) && (parts[endAt] === '0')) {
+          endAt++;
+        }
+        if ((endAt - n) > zerosCount) {
+          zerosCount = endAt - n;
+          zerosAt    = n;
+        }
+        n = endAt - 1;
+      }
+    }
+
+    if (zerosAt < 0) {
+      return parts.join(':');
+    } else if (zerosCount === 8) {
+      if (!allowAny) {
+        return null;
+      }
+      return '::';
+    } else {
+      // A `::` in a middle part will end up being `:::` after the `join()`,
+      // hence the `replace(...)`.
+      parts.splice(zerosAt, zerosCount, ':');
+      return parts.join(':').replace(/:::/, '::');
+    }
   }
 
   /**
@@ -263,7 +389,9 @@ export class Uris {
   }
 
   /**
-   * Parses a possibly-wildcarded hostname into a {@link TreePathKey}.
+   * Parses a possibly-wildcarded hostname into a {@link TreePathKey}. This
+   * accepts both DNS names and IP addresses. In the case of an IP address, the
+   * result is a single-component path key.
    *
    * **Note:** Because hostname hierarchy is from right-to-left (e.g., wildcards
    * are at the front of a hostname not the back), the `.path` of the result
@@ -298,7 +426,13 @@ export class Uris {
   static parseHostnameOrNull(name, allowWildcard = false) {
     MustBe.string(name);
 
-    if (!AskIf.string(name, this.HOSTNAME_PATTERN)) {
+    // Handle IP address cases.
+    const canonicalIp = this.checkIpAddressOrNull(name, false);
+    if (canonicalIp) {
+      return new TreePathKey([canonicalIp], false);
+    }
+
+    if (!AskIf.string(name, this.#HOSTNAME_PATTERN)) {
       return null;
     }
 
@@ -357,25 +491,56 @@ export class Uris {
   }
 
   /**
-   * Parses a mount point into its two components.
+   * Parses a network mount point (as used by this system) into its two
+   * components. Mount points are URI-ish strings of the form
+   * `//<hostname>/<path-component>/.../`, where:
+   *
+   * * The whole string must start with `//` and end with `/`.
+   * * `hostname` is a valid hostname (see {@link #checkHostname}).
+   * * Each `path-component` is a non-empty string consisting of alphanumerics
+   *   plus `-`, `_`, or `.`.
+   * * No path component may be `.` or `..`.
+   * * No path component may start or end with a `-`.
+   *
+   * **Note:** Mount paths are more restrictive than what is acceptable in
+   * general for paths as passed in via HTTP-ish requests, i.e. an incoming
+   * path can legitimately _not_ match a mount path while still being
+   * syntactically correct.
    *
    * @param {string} mount Mount point.
    * @returns {{hostname: TreePathKey, path: TreePathKey}} Components thereof.
    */
   static parseMount(mount) {
-    this.checkMount(mount);
+    MustBe.string(mount);
 
-    // Somewhat simplified regexp, because we already know that `mount` is
-    // syntactically correct, per `checkMount()` above.
+    // Regexp to check the outermost syntax and parse out just the hostname and
+    // path. These are further parsed below.
     const topParse = /^[/][/](?<hostname>[^/]+)[/](?:(?<path>.*)[/])?$/
       .exec(mount);
 
     if (!topParse) {
-      throw new Error(`Strange mount point: ${mount}`);
+      throw new Error(`Invalid mount point: ${mount}`);
     }
 
     const { hostname, path } = topParse.groups;
     const pathParts = path ? path.split('/') : [];
+
+    for (const p of pathParts) {
+      switch (p) {
+        case '': {
+          throw new Error(`Empty path component in: ${path}`);
+        }
+        case '.':
+        case '..': {
+          throw new Error(`Invalid path component ${p} in: ${path}`);
+        }
+        default: {
+          if (!/^(?!-)[-_.a-zA-Z0-9]+(?<!-)$/.test(p)) {
+            throw new Error(`Invalid path component ${p} in: ${path}`);
+          }
+        }
+      }
+    }
 
     // `TreePathKey...true` below because all mounts are effectively wildcards.
     return Object.freeze({
