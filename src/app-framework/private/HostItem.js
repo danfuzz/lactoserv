@@ -96,12 +96,12 @@ export class HostItem {
   //
 
   /**
-  * Makes the parameters for a newly-generated self-signed certificate and
-  * corresponding key.
-  *
-  * @param {HostConfig} config Parsed configuration item.
-  * @returns {{certificate: string, privateKey: string}} The parameters.
-  */
+   * Makes the parameters for a newly-generated self-signed certificate and
+   * corresponding key.
+   *
+   * @param {HostConfig} config Parsed configuration item.
+   * @returns {{certificate: string, privateKey: string}} The parameters.
+   */
   static async #makeSelfSignedParameters(config) {
     const altNames = [];
     for (let i = 0; i < config.hostnames.length; i++) {
