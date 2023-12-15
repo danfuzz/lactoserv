@@ -12,8 +12,8 @@ Breaking changes:
 Other notable changes:
 * Extracted base class `BaseSystem` from `UsualSystem`, to help avoid code
   duplication in downstream projects.
-* Added ability to make one or more hostnames use automatically-generated
-  self-signed certificates.
+* Added ability to make hostnames use automatically-generated self-signed
+  certificates.
 * A bunch of cleanup / rationalization around the configuration code, especially
   with hostname and IP address parsiong.
 * Other mostly minor tweaks and improvements, throughout the codebase.
