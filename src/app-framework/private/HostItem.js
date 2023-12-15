@@ -1,6 +1,7 @@
 // Copyright 2022-2023 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import * as net from 'node:net';
 import * as tls from 'node:tls';
 
 import pem from 'pem';
@@ -84,12 +85,40 @@ export class HostItem {
     // when SNI isn't used, and an incoming request is for an IP address (not a
     // DNS name), then the server will silently fail (but not crash). Unclear
     // what's going on. Probably needs to be sorted out.
+
+    const altNames = [];
+    for (let i = 0; i < config.hostnames.length; i++) {
+      const name = config.hostnames[i];
+      if (net.isIP(name) === 0) {
+        altNames.push(`DNS.${i} = ${name}`);
+      } else {
+        altNames.push(`IP.${i} = ${name}`);
+      }
+    }
+
+    const certConfig = `
+    [req]
+    req_extensions = v3_req
+    distinguished_name = req_distinguished_name
+
+    [req_distinguished_name]
+    commonName = ${config.hostnames[0]}
+
+    [v3_req]
+    keyUsage = digitalSignature
+    extendedKeyUsage = serverAuth
+    subjectAltName = @alt_names
+
+    [alt_names]
+    ${altNames.join('\n')}
+    `;
+
     const pemResult = await pem.promisified.createCertificate({
       selfSigned: true,
       days:       100,
       keyBitsize: 4096,
       commonName: config.hostnames[0],
-      altNames:   config.hostnames
+      config:     certConfig
     });
 
     return tls.createSecureContext({
