@@ -73,6 +73,8 @@ To build:
 
 To run (versions as above):
 * Standard-ish POSIX operating environment.
+  * Notably, it assumes `openssl` (or similar) is available in the runtime
+    environment.
 * Recent-ish version of Bash.
 * Recent version of Node.
 
