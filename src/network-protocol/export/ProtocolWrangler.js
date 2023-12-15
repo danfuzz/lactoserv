@@ -81,10 +81,6 @@ export class ProtocolWrangler {
    * Constructs an instance.
    *
    * @param {object} options Construction options.
-   * @param {object} options.hosts Value returned from {@link
-   *   HostManager#secureServerOptions}, if this instance is (possibly) expected
-   *   to need to use certificates (etc.). Ignored for instances which don't do
-   *   that sort of thing.
    * @param {object} options.hostManager Host manager to use. Ignored for
    *   instances which don't do need to do host-based security (certs, etc.).
    * @param {IntfRateLimiter} options.rateLimiter Rate limiter to use. If not
