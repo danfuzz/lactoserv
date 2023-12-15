@@ -21,7 +21,7 @@ export class HttpsWrangler extends TcpWrangler {
   #application;
 
   /** @type {?https.Server} High-level protocol server. */
-  #protocolServer;
+  #protocolServer = null;
 
   /**
    * Constructs an instance.
@@ -31,9 +31,8 @@ export class HttpsWrangler extends TcpWrangler {
   constructor(options) {
     super(options);
 
-    this.#logger         = options.logger?.https ?? null;
-    this.#application    = express();
-    this.#protocolServer = https.createServer(options.hosts);
+    this.#logger      = options.logger?.https ?? null;
+    this.#application = express();
   }
 
   /** @override */
@@ -57,6 +56,11 @@ export class HttpsWrangler extends TcpWrangler {
 
   /** @override */
   _impl_server() {
+    if (!this.#protocolServer) {
+      this.#protocolServer =
+        https.createServer(this._prot_hostManager.secureServerOptions);
+    }
+
     return this.#protocolServer;
   }
 }

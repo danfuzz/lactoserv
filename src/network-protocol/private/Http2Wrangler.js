@@ -25,7 +25,7 @@ export class Http2Wrangler extends TcpWrangler {
   #application;
 
   /** @type {?http2.Http2Server} High-level protocol server. */
-  #protocolServer;
+  #protocolServer = null;
 
   /** @type {Condition} Are there currently any sessions? */
   #anySessions = new Condition();
@@ -46,17 +46,9 @@ export class Http2Wrangler extends TcpWrangler {
 
     this.#logger = options.logger?.http2 ?? null;
 
-    const serverOptions = {
-      ...options.hosts,
-      allowHTTP1: true
-    };
-
     // Express needs to be wrapped in order for it to use HTTP2.
     this.#application = http2ExpressBridge(express);
     this.#application.use('/', (req, res, next) => this.#tweakResponse(req, res, next));
-
-    this.#protocolServer = http2.createSecureServer(serverOptions);
-    this.#protocolServer.on('session', (session) => this.#addSession(session));
   }
 
   /** @override */
@@ -76,6 +68,16 @@ export class Http2Wrangler extends TcpWrangler {
 
   /** @override */
   _impl_server() {
+    if (!this.#protocolServer) {
+      const serverOptions = {
+        ...(this._prot_hostManager.secureServerOptions),
+        allowHTTP1: true
+      };
+
+      this.#protocolServer = http2.createSecureServer(serverOptions);
+      this.#protocolServer.on('session', (session) => this.#addSession(session));
+    }
+
     return this.#protocolServer;
   }
 
