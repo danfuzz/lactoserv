@@ -17,6 +17,7 @@
     "@this/collections": "*",
     "@this/loggy": "*",
     "@this/network-protocol": "*",
-    "@this/typey": "*"
+    "@this/typey": "*",
+    "pem": "^1.14.8"
   }
 }

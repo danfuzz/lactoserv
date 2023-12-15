@@ -88,9 +88,9 @@ export class HostManager {
    * @returns {?SecureContext} The associated {@link SecureContext}, or `null`
    *   if no hostname match is found.
    */
-  findContext(name) {
+  async findContext(name) {
     const item = this.#findItem(name, true);
-    return item ? item.secureContext : null;
+    return item ? await item.getSecureContext() : null;
   }
 
   /**
@@ -138,13 +138,13 @@ export class HostManager {
    * @param {function(?object, ?SecureContext)} callback Callback to present
    *   with the results.
    */
-  sniCallback(serverName, callback) {
+  async sniCallback(serverName, callback) {
     const found    = this.#findItem(serverName, false);
     let   foundCtx = null;
 
     if (found) {
       this.#logger.foundMatchFor(serverName, found.config.hostnames);
-      foundCtx = found.secureContext;
+      foundCtx = await found.getSecureContext();
     } else {
       this.#logger.noMatchFor(serverName);
     }
