@@ -68,7 +68,7 @@ export class NetworkEndpoint extends BaseComponent {
       interface: iface,
       ...(
         hostManager
-          ? { hosts: hostManager.secureServerOptions }
+          ? { hostManager, hosts: hostManager.secureServerOptions }
           : {})
     };
 

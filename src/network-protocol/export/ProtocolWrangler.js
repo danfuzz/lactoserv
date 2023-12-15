@@ -35,6 +35,11 @@ export class ProtocolWrangler {
   /** @type {?IntfLogger} Logger to use, or `null` to not do any logging. */
   #logger;
 
+  /**
+   * @type {?HostManager} Optional host manager; only needed for some protocols.
+   */
+  #hostManager;
+
   /** @type {?IntfRateLimiter} Rate limiter service to use, if any. */
   #rateLimiter;
 
@@ -80,6 +85,8 @@ export class ProtocolWrangler {
    *   HostManager#secureServerOptions}, if this instance is (possibly) expected
    *   to need to use certificates (etc.). Ignored for instances which don't do
    *   that sort of thing.
+   * @param {object} options.hostManager Host manager to use. Ignored for
+   *   instances which don't do need to do host-based security (certs, etc.).
    * @param {IntfRateLimiter} options.rateLimiter Rate limiter to use. If not
    *   specified, the instance won't do rate limiting.
    * @param {function(object, object)} options.requestHandler Request handler,
@@ -101,9 +108,16 @@ export class ProtocolWrangler {
    *     practice for HTTP2 (and is at least _useful_ in other contexts).
    */
   constructor(options) {
-    const { logger, rateLimiter, requestHandler, requestLogger } = options;
+    const {
+      hostManager,
+      logger,
+      rateLimiter,
+      requestHandler,
+      requestLogger
+    } = options;
 
     this.#logger         = logger ?? null;
+    this.#hostManager    = hostManager ?? null;
     this.#rateLimiter    = rateLimiter ?? null;
     this.#requestHandler = MustBe.callableFunction(requestHandler);
     this.#logHelper      = requestLogger
@@ -221,6 +235,11 @@ export class ProtocolWrangler {
    */
   async _impl_serverSocketStop(willReload) {
     Methods.abstract(willReload);
+  }
+
+  /** @returns {?HostManager} The host manager, if any. */
+  get _prot_hostManager() {
+    return this.#hostManager;
   }
 
   /**
