@@ -10,6 +10,14 @@ Breaking changes:
 * None.
 
 Other notable changes:
+* None.
+
+### v0.6.0 -- 2023-12-29
+
+Breaking changes:
+* None.
+
+Other notable changes:
 * Now willing to run in Node v21, though not yet heavily tested with it.
 
 ### v0.5.20 -- 2023-12-15
