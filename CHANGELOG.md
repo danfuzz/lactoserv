@@ -4,7 +4,7 @@ Changelog
 **Note:** Version numbers for _stable_ (so marked) releases follow semantic
 versioning principles. Unstable releases do not.
 
-### [Unreleased]
+### v0.6.0 -- 2023-12-29
 
 Breaking changes:
 * None.
