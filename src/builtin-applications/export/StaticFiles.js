@@ -47,7 +47,7 @@ export class StaticFiles extends BaseApplication {
 
     if (!result && this.#notFoundPath) {
       request.expressResponse.status(404).sendFile(this.#notFoundPath);
-      return true;
+      return await BaseApplication.whenEnded(request);
     }
 
     return result;

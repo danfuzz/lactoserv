@@ -140,4 +140,35 @@ export class BaseApplication extends BaseComponent {
 
     return resultMp.promise;
   }
+
+  /**
+   * Sets up a regular Express-style response object (that is wrapped by the
+   * given {@link Request}), such that a call to `end()` on it will in turn
+   * cause this method to async-return.
+   *
+   * This method is meant as a helper when wrapping Express middleware in a
+   * concrete instance of this class.
+   *
+   * @param {Request} request Request object.
+   * @returns {boolean} `true`, after `end()` was called.
+   */
+  static async whenEnded(request) {
+    const res = request.expressResponse;
+
+    if (res.writableEnded) {
+      // Already ended!
+      return true;
+    }
+
+    const origEnd  = res.end;
+    const resultMp = new ManualPromise();
+
+    res.end = (...args) => {
+      res.end = origEnd;
+      res.end(...args);
+      resultMp.resolve(true);
+    };
+
+    return resultMp.promise;
+  }
 }
