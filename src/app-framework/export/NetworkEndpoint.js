@@ -5,7 +5,7 @@ import { EndpointConfig, MountConfig } from '@this/app-config';
 import { TreePathKey, TreePathMap } from '@this/collections';
 import { IntfLogger } from '@this/loggy';
 import { IntfRateLimiter, IntfRequestHandler, IntfRequestLogger,
-  ProtocolWrangler, ProtocolWranglers, Request }
+  ProtocolWrangler, ProtocolWranglers }
   from '@this/network-protocol';
 import { MustBe } from '@this/typey';
 
