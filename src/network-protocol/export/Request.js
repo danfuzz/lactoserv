@@ -6,6 +6,8 @@ import { ClientRequest, ServerResponse } from 'node:http';
 import { IntfLogger } from '@this/loggy';
 import { MustBe } from '@this/typey';
 
+import { RequestLogHelper } from '#p/RequestLogHelper';
+
 import express from 'express';
 
 
@@ -27,6 +29,9 @@ export class Request {
    * instance is not doing logging.
    */
   #logger;
+
+  /** @type {string} Request ID. */
+  #id;
 
   /** @type {ClientRequest|express.Request} HTTP(ish) request object. */
   #expressRequest;
@@ -66,6 +71,14 @@ export class Request {
    */
   get expressResponse() {
     return this.#expressResponse;
+  }
+
+  /**
+   * @returns {?string} The unique-ish request ID, or `null` if there is none
+   * (which will happen if there is no associated logger).
+   */
+  get id() {
+    return RequestLogHelper.idFromLogger(this.#logger);
   }
 
   /**
