@@ -3,12 +3,12 @@
 
 import { ClientRequest, ServerResponse } from 'node:http';
 
+import express from 'express';
+
 import { IntfLogger } from '@this/loggy';
 import { MustBe } from '@this/typey';
 
 import { RequestLogHelper } from '#p/RequestLogHelper';
-
-import express from 'express';
 
 
 /**
