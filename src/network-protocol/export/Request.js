@@ -6,6 +6,8 @@ import { ClientRequest, ServerResponse } from 'node:http';
 import { IntfLogger } from '@this/loggy';
 import { MustBe } from '@this/typey';
 
+import express from 'express';
+
 
 /**
  * Representation of an in-progress HTTP(ish) request, including both request
@@ -26,37 +28,42 @@ export class Request {
    */
   #logger;
 
-  /**
-   * @type {object} HTTP(ish) request object. This is a request object as passed
-   * by Express to a middleware handler.
-   */
+  /** @type {ClientRequest|express.Request} HTTP(ish) request object. */
   #expressRequest;
 
-  /**
-   * @type {object} HTTP(ish) response object. This is a response object as
-   * passed by Express to a middleware handler.
-   */
+  /** @type {ServerResponse|express.Response} HTTP(ish) response object. */
   #expressResponse;
 
   /**
    * Constructs an instance.
    *
-   * @param {ClientRequest} request Express request object.
-   * @param {ServerResponse} response Express response object.
+   * @param {ClientRequest|express.Request} request Request object. This is a
+   *   request object as used by Express to a middleware handler (or similar).
+   * @param {ServerResponse|express.Response} response Response object. This is
+   *   a response object as used by Express to a middleware handler (or
+   *   similar).
    * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    */
   constructor(request, response, logger) {
-    this.#expressRequest  = MustBe.instanceOf(ClientRequest, request);
-    this.#expressResponse = MustBe.instanceOf(ServerResponse, response);
+    // Note: It's impractical to do more thorough type checking here (and
+    // probably not worth it anyway).
+    this.#expressRequest  = MustBe.object(request);
+    this.#expressResponse = MustBe.object(response);
     this.#logger          = logger;
   }
 
-  /** @returns {ClientRequest} The underlying Express request object. */
+  /**
+   * @returns {ClientRequest|express.Request} The underlying Express(-like)
+   * request object.
+   */
   get expressRequest() {
     return this.#expressRequest;
   }
 
-  /** @returns {ServerResponse} The underlying Express response object. */
+  /**
+   * @returns {ServerResponse|express.Response} The underlying Express(-like)
+   * response object.
+   */
   get expressResponse() {
     return this.#expressResponse;
   }
