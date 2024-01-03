@@ -7,10 +7,13 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* None.
+* Changed interface of `BaseApplication` to use `Request` (see below). This
+  breaks downstream clients of this codebase.
 
 Other notable changes:
-* None.
+* Introduced a `Request` class specific to this project, instead of just
+  "absorbing" Express's `Request` and `Response` objects. Our `Request` holds
+  both the underlying request and response (and other related goodies).
 
 ### v0.6.0 -- 2023-12-29
 
