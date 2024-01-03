@@ -119,6 +119,9 @@ export class BaseApplication extends BaseComponent {
    * Calls through to a regular Express-style middleware function, converting
    * its `next()` usage to the `async` style used by this system.
    *
+   * This method is meant as a helper when wrapping Express middleware in a
+   * concrete instance of this class.
+   *
    * @param {object} req Request object.
    * @param {object} res Response object.
    * @param {function(object, object, function(?string|object))} middleware
