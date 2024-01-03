@@ -4,7 +4,7 @@
 import { ApplicationConfig } from '@this/app-config';
 import { ManualPromise } from '@this/async';
 import { BaseLoggingEnvironment, IntfLogger } from '@this/loggy';
-import { WranglerContext } from '@this/network-protocol';
+import { IntfRequestHandler, Request } from '@this/network-protocol';
 import { Methods } from '@this/typey';
 
 import { BaseComponent } from '#x/BaseComponent';
@@ -12,6 +12,8 @@ import { BaseComponent } from '#x/BaseComponent';
 
 /**
  * Base class for the exported (public) application classes.
+ *
+ * @implements {IntfRequestHandler}
  */
 export class BaseApplication extends BaseComponent {
   /**
@@ -24,7 +26,9 @@ export class BaseApplication extends BaseComponent {
    * Constructs an instance.
    *
    * @param {ApplicationConfig} config Configuration for this application.
-   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
+   * @param {?IntfLogger} logger Logger to use at the application layer
+   *   (incoming requests have their own logger), or `null` to not do any
+   *   logging.
    */
   constructor(config, logger) {
     super(config, logger);
@@ -32,41 +36,20 @@ export class BaseApplication extends BaseComponent {
     this.#loggingEnv = this.logger?.$env ?? null;
   }
 
-  /**
-   * Asks this instance's underlying application to handle the given request.
-   * Parameters are as defined by the Express middleware spec, except that
-   * instead of a `next` callback argument, this method async-returns to
-   * indicate the status of the request. Specifically:
-   *
-   * * Returning `true` means that the request was fully handled. (In regular
-   *   Express, this is achieved by not-calling `next()` at all.)
-   * * Returning `false` means that the request was not handled at all. (In
-   *   regular Express, this is achieved by calling `next()` or `next('route')`,
-   *   that is, with no argument or the single argument `'route'`.)
-   * * Throwing an error means that the request failed fatally. (In regular
-   *   Express, this is achieved by calling `next(error)`, that is, passing it
-   *   an `Error` object.)
-   *
-   * **Note:** Express differentiates between `next()` and `next('route')`, but
-   * the nature of this system is that there is no distinction, because there
-   * are no sub-chained routes. To achieve that effect, a concrete subclass of
-   * this class would instead perform its own internal route chaining.
-   *
-   * @param {object} req Request object.
-   * @param {object} res Response object.
-   * @returns {boolean} Was the request handled? Flag as described above.
-   */
-  async handleRequest(req, res) {
+  /** @override */
+  async handleRequest(request) {
+    const { expressRequest: req } = request;
+
     let startTime;
     let id;
 
     if (this.logger) {
       startTime = this.#loggingEnv.now();
-      id        = WranglerContext.get(req)?.id;
+      id        = request.id;
       this.logger.handling(id, req.url);
     }
 
-    const result = this._impl_handleRequest(req, res);
+    const result = this._impl_handleRequest(request);
 
     if (this.logger) {
       // Arrange to log about the result of the `_impl_` call once it settles.
@@ -92,17 +75,15 @@ export class BaseApplication extends BaseComponent {
   }
 
   /**
-   * Handles a request, as defined by the Express middleware spec and this
-   * class's method {@link #handleRequest}.
+   * Handles a request, as defined by {@link IntfRequestHandler}.
    *
    * @abstract
-   * @param {object} req Request object.
-   * @param {object} res Response object.
-   * @returns {boolean} Was the request handled? Flag as defined by {@link
-   *   #handleRequest}
+   * @param {Request} request Request object.
+   * @returns {boolean} Was the request handled? Flag as defined by the method
+   *   {@link IntfRequestHandler#handleRequest}.
    */
-  async _impl_handleRequest(req, res) {
-    Methods.abstract(req, res);
+  async _impl_handleRequest(request) {
+    Methods.abstract(request);
   }
 
 
@@ -122,14 +103,14 @@ export class BaseApplication extends BaseComponent {
    * This method is meant as a helper when wrapping Express middleware in a
    * concrete instance of this class.
    *
-   * @param {object} req Request object.
-   * @param {object} res Response object.
+   * @param {Request} request Request object.
    * @param {function(object, object, function(?string|object))} middleware
    *   Express-style middleware function.
-   * @returns {boolean} Was the request handled? Flag as defined by {@link
-   *   #handleRequest}
+   * @returns {boolean} Was the request handled? This is the result request
+   *   handling as defined by {@link IntfRequestHandler#handleRequest}.
    */
-  static async callMiddleware(req, res, middleware) {
+  static async callMiddleware(request, middleware) {
+    const { expressRequest: req, expressResponse: res } = request;
     const resultMp = new ManualPromise();
     const origEnd  = res.end;
 
@@ -155,6 +136,37 @@ export class BaseApplication extends BaseComponent {
     } catch (e) {
       resultMp.reject(e);
     }
+
+    return resultMp.promise;
+  }
+
+  /**
+   * Sets up a regular Express-style response object (that is wrapped by the
+   * given {@link Request}), such that a call to `end()` on it will in turn
+   * cause this method to async-return.
+   *
+   * This method is meant as a helper when wrapping Express middleware in a
+   * concrete instance of this class.
+   *
+   * @param {Request} request Request object.
+   * @returns {boolean} `true`, after `end()` was called.
+   */
+  static async whenEnded(request) {
+    const res = request.expressResponse;
+
+    if (res.writableEnded) {
+      // Already ended!
+      return true;
+    }
+
+    const origEnd  = res.end;
+    const resultMp = new ManualPromise();
+
+    res.end = (...args) => {
+      res.end = origEnd;
+      res.end(...args);
+      resultMp.resolve(true);
+    };
 
     return resultMp.promise;
   }

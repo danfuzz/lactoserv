@@ -41,13 +41,13 @@ export class StaticFiles extends BaseApplication {
   }
 
   /** @override */
-  async _impl_handleRequest(req, res) {
+  async _impl_handleRequest(request) {
     const result =
-      await BaseApplication.callMiddleware(req, res, this.#staticMiddleware);
+      await BaseApplication.callMiddleware(request, this.#staticMiddleware);
 
     if (!result && this.#notFoundPath) {
-      res.status(404).sendFile(this.#notFoundPath);
-      return true;
+      request.expressResponse.status(404).sendFile(this.#notFoundPath);
+      return await BaseApplication.whenEnded(request);
     }
 
     return result;

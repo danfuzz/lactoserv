@@ -15,7 +15,9 @@ import { Methods, MustBe } from '@this/typey';
 
 import { IntfHostManager } from '#x/IntfHostManager';
 import { IntfRateLimiter } from '#x/IntfRateLimiter';
+import { IntfRequestHandler } from '#x/IntfRequestHandler';
 import { IntfRequestLogger } from '#x/IntfRequestLogger';
+import { Request } from '#x/Request';
 import { RequestLogHelper } from '#p/RequestLogHelper';
 import { WranglerContext } from '#x/WranglerContext';
 
@@ -45,10 +47,7 @@ export class ProtocolWrangler {
   /** @type {?IntfRateLimiter} Rate limiter service to use, if any. */
   #rateLimiter;
 
-  /**
-   * @type {function(object, object, function(?*))} Request handler function, in
-   * the style of Express middleware.
-   */
+  /** @type {IntfRequestHandler} Request handler. */
   #requestHandler;
 
   /**
@@ -87,9 +86,8 @@ export class ProtocolWrangler {
    *   instances which don't do need to do host-based security (certs, etc.).
    * @param {IntfRateLimiter} options.rateLimiter Rate limiter to use. If not
    *   specified, the instance won't do rate limiting.
-   * @param {function(object, object)} options.requestHandler Request handler,
-   *   in the form used by the `app-framework` module (Express-like but async).
-   *   This is required.
+   * @param {IntfRequestHandler} options.requestHandler Request handler. This is
+   *   required.
    * @param {IntfRequestLogger} options.requestLogger Request logger to send to.
    *   If not specified, the instance won't do request logging.
    * @param {?IntfLogger} options.logger Logger to use to emit events about what
@@ -117,7 +115,7 @@ export class ProtocolWrangler {
     this.#logger         = logger ?? null;
     this.#hostManager    = hostManager ?? null;
     this.#rateLimiter    = rateLimiter ?? null;
-    this.#requestHandler = MustBe.callableFunction(requestHandler);
+    this.#requestHandler = MustBe.object(requestHandler);
     this.#logHelper      = requestLogger
       ? new RequestLogHelper(requestLogger, logger)
       : null;
@@ -366,7 +364,7 @@ export class ProtocolWrangler {
    * @param {function(?*)} next Function which causes the next-bound middleware
    *   to run.
    */
-  async #handleRequest(req, res, next) {
+  async #handleExpressRequest(req, res, next) {
     const context   = WranglerContext.getNonNull(req.socket, req.stream?.session);
     const reqLogger = this.#logHelper?.logRequest(req, res, context) ?? null;
 
@@ -394,12 +392,15 @@ export class ProtocolWrangler {
     }
 
     try {
-      // `?? null` to force it to be a function call and not a method call.
-      const result = await (this.#requestHandler ?? null)(req, res);
+      const result = await this.#requestHandler.handleRequest(
+        new Request(req, res, reqLogger));
+
       if (result) {
         // Validate that the request was actually handled.
         if (!res.writableEnded) {
           reqLogger?.responseNotActuallyHandled();
+          // Gets caught immediately below.
+          throw new Error('Response returned "successfully" without completing.');
         }
       } else {
         next();
@@ -503,7 +504,7 @@ export class ProtocolWrangler {
     // Note: Express uses the function argument shape (count of arguments) to
     // determine behavior, so we can't just use `(...args)` for those.
 
-    application.use('/', (req, res, next) => this.#handleRequest(req, res, next));
+    application.use('/', (req, res, next) => this.#handleExpressRequest(req, res, next));
     application.use('/', (err, req, res, next) => this.#handleError(err, req, res, next));
     server.on('request', (...args) => this.#incomingRequest(...args));
 

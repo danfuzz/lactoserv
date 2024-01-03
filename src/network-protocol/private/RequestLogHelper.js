@@ -120,6 +120,17 @@ export class RequestLogHelper {
   //
 
   /**
+   * Given a logger created by this class, returns the request ID it logs
+   * with.
+   *
+   * @param {?IntfLogger} logger The logger.
+   * @returns {?string} The ID string, or `null` if `logger === null`.
+   */
+  static idFromLogger(logger) {
+    return logger?.$meta.lastContext ?? null;
+  }
+
+  /**
    * Cleans up request headers for logging.
    *
    * @param {object} headers Original request headers.

@@ -4,8 +4,8 @@
 import { EndpointConfig, MountConfig } from '@this/app-config';
 import { TreePathKey, TreePathMap } from '@this/collections';
 import { IntfLogger } from '@this/loggy';
-import { IntfRateLimiter, IntfRequestLogger, ProtocolWrangler,
-  ProtocolWranglers, WranglerContext }
+import { IntfRateLimiter, IntfRequestHandler, IntfRequestLogger,
+  ProtocolWrangler, ProtocolWranglers }
   from '@this/network-protocol';
 import { MustBe } from '@this/typey';
 
@@ -21,6 +21,8 @@ import { ThisModule } from '#p/ThisModule';
  * deal with the lower-level networking details and a map from mount points to
  * {@link BaseApplication} instances. This class is the connection between these
  * two things.
+ *
+ * @implements {IntfRequestHandler}
  */
 export class NetworkEndpoint extends BaseComponent {
   /**
@@ -61,7 +63,7 @@ export class NetworkEndpoint extends BaseComponent {
 
     const wranglerOptions = {
       rateLimiter,
-      requestHandler: (req, res) => this.#handleRequest(req, res),
+      requestHandler: this,
       requestLogger,
       logger,
       protocol,
@@ -73,6 +75,69 @@ export class NetworkEndpoint extends BaseComponent {
     };
 
     this.#wrangler = ProtocolWranglers.make(wranglerOptions);
+  }
+
+  /** @override */
+  async handleRequest(request) {
+    const req = request.expressRequest;
+    const {
+      baseUrl: origBaseUrl,
+      path,
+      subdomains,
+      url: origUrl
+    } = req;
+
+    // Freezing `subdomains` lets `new TreePathKey()` avoid making a copy.
+    const hostKey = new TreePathKey(Object.freeze(subdomains), false);
+    const pathKey = NetworkEndpoint.#parsePath(path);
+
+    // Find the mount map for the most-specific matching host.
+    const hostMatch = this.#mountMap.find(hostKey);
+    if (!hostMatch) {
+      // No matching host.
+      request.logger?.hostNotFound(hostKey);
+      return false;
+    }
+
+    // Iterate from most- to least-specific mounted path.
+    for (let pathMatch = hostMatch.value.find(pathKey, true);
+      pathMatch;
+      pathMatch = pathMatch.next) {
+      const application = pathMatch.value;
+
+      // Thwack the salient context into `req`; it gets restored after the
+      // application runs. This setup is analogous to what Express does when
+      // routing, but we have to do it ourselves here because Express is running
+      // our whole dispatch system as just a single Express middleware call.
+
+      const baseUrlExtra = (pathMatch.key.length === 0)
+        ? ''
+        : TreePathKey.uriPathStringFrom(pathMatch.key, false);
+
+      req.baseUrl = `${origBaseUrl}${baseUrlExtra}`;
+      req.url     = TreePathKey.uriPathStringFrom(pathMatch.keyRemainder);
+
+      request.logger?.dispatching({
+        application: application.name,
+        host:        TreePathKey.hostnameStringFrom(hostMatch.key),
+        path:        TreePathKey.uriPathStringFrom(pathMatch.key),
+        url:         req.url
+      });
+
+      try {
+        if (await application.handleRequest(request)) {
+          return true;
+        }
+      } finally {
+        // Restore `req`. See big comment above.
+        req.baseUrl = origBaseUrl;
+        req.url     = origUrl;
+      }
+    }
+
+    // No mounted path actually handled the request.
+    request.logger?.pathNotFound(pathKey);
+    return false;
   }
 
   /** @override */
@@ -88,73 +153,6 @@ export class NetworkEndpoint extends BaseComponent {
    */
   async _impl_stop(willReload) {
     await this.#wrangler.stop(willReload);
-  }
-
-  /**
-   * Handles a request dispatched from Express (or similar). Parameters are as
-   * defined by the Express middleware spec.
-   *
-   * @param {object} req Request object.
-   * @param {object} res Response object.
-   * @returns {boolean} Was the request handled?
-   */
-  async #handleRequest(req, res) {
-    const reqLogger = WranglerContext.get(req)?.logger;
-
-    const { path, subdomains } = req;
-
-    // Freezing `subdomains` lets `new TreePathKey()` avoid making a copy.
-    const hostKey = new TreePathKey(Object.freeze(subdomains), false);
-    const pathKey = NetworkEndpoint.#parsePath(path);
-
-    // Find the mount map for the most-specific matching host.
-    const hostMatch = this.#mountMap.find(hostKey);
-    if (!hostMatch) {
-      // No matching host.
-      reqLogger?.hostNotFound(hostKey);
-      return false;
-    }
-
-    // Iterate from most- to least-specific mounted path.
-    for (let pathMatch = hostMatch.value.find(pathKey, true);
-      pathMatch;
-      pathMatch = pathMatch.next) {
-      const application = pathMatch.value;
-
-      // Thwack the salient context into `req`; it gets restored after the
-      // application runs. This setup is analogous to what Express does when
-      // routing, but we have to do it ourselves here because Express is running
-      // our whole dispatch system as just a single Express middleware call.
-
-      const { baseUrl: origBaseUrl, url: origUrl } = req;
-      const baseUrlExtra = (pathMatch.key.length === 0)
-        ? ''
-        : TreePathKey.uriPathStringFrom(pathMatch.key, false);
-
-      req.baseUrl = `${origBaseUrl}${baseUrlExtra}`;
-      req.url     = TreePathKey.uriPathStringFrom(pathMatch.keyRemainder);
-
-      reqLogger?.dispatching({
-        application: application.name,
-        host:        TreePathKey.hostnameStringFrom(hostMatch.key),
-        path:        TreePathKey.uriPathStringFrom(pathMatch.key),
-        url:         req.url
-      });
-
-      try {
-        if (await application.handleRequest(req, res)) {
-          return true;
-        }
-      } finally {
-        // Restore `req`. See big comment above.
-        req.baseUrl = origBaseUrl;
-        req.url     = origUrl;
-      }
-    }
-
-    // No mounted path actually handled the request.
-    reqLogger?.pathNotFound(pathKey);
-    return false;
   }
 
 
