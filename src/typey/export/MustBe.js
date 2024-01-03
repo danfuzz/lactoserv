@@ -127,6 +127,24 @@ export class MustBe {
   }
 
   /**
+   * Checks for type `object` and specifically being an instance of a particular
+   * class.
+   *
+   * @param {*} value Arbitrary value.
+   * @param {function(new:*, ...*)} [cls] Class (constructor function)
+   *   `value` must be an instance of.
+   * @returns {object} `value` if it is of the indicated type.
+   * @throws {Error} Thrown if `value` is of any other type.
+   */
+  static instanceOf(value, cls) {
+    if (value instanceof cls) {
+      return value;
+    }
+
+    throw new Error(`Must be instance of class \`${cls.name}\`.`);
+  }
+
+  /**
    * Checks for the value `null`.
    *
    * @param {*} value Arbitrary value.
@@ -193,24 +211,6 @@ export class MustBe {
     }
 
     throw new Error('Must be of type plain `object`.');
-  }
-
-  /**
-   * Checks for type `object` and specifically being an instance of a particular
-   * class.
-   *
-   * @param {*} value Arbitrary value.
-   * @param {function(new:*, ...*)} [cls] Class (constructor function)
-   *   `value` must be an instance of.
-   * @returns {object} `value` if it is of the indicated type.
-   * @throws {Error} Thrown if `value` is of any other type.
-   */
-  static instanceOf(value, cls) {
-    if (value instanceof cls) {
-      return value;
-    }
-
-    throw new Error(`Must be instance of class \`${cls.name}\`.`);
   }
 
   /**
