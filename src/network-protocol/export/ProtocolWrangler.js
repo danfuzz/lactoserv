@@ -364,7 +364,7 @@ export class ProtocolWrangler {
    * @param {function(?*)} next Function which causes the next-bound middleware
    *   to run.
    */
-  async #handleRequest(req, res, next) {
+  async #handleExpressRequest(req, res, next) {
     const context   = WranglerContext.getNonNull(req.socket, req.stream?.session);
     const reqLogger = this.#logHelper?.logRequest(req, res, context) ?? null;
 
@@ -503,7 +503,7 @@ export class ProtocolWrangler {
     // Note: Express uses the function argument shape (count of arguments) to
     // determine behavior, so we can't just use `(...args)` for those.
 
-    application.use('/', (req, res, next) => this.#handleRequest(req, res, next));
+    application.use('/', (req, res, next) => this.#handleExpressRequest(req, res, next));
     application.use('/', (err, req, res, next) => this.#handleError(err, req, res, next));
     server.on('request', (...args) => this.#incomingRequest(...args));
 
