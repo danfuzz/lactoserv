@@ -61,7 +61,7 @@ export class NetworkEndpoint extends BaseComponent {
 
     const wranglerOptions = {
       rateLimiter,
-      requestHandler: (req, res) => this.#handleRequest(req, res),
+      requestHandler: (req, res) => this.#handleExpressRequest(req, res),
       requestLogger,
       logger,
       protocol,
@@ -98,7 +98,7 @@ export class NetworkEndpoint extends BaseComponent {
    * @param {object} res Response object.
    * @returns {boolean} Was the request handled?
    */
-  async #handleRequest(req, res) {
+  async #handleExpressRequest(req, res) {
     const reqLogger = WranglerContext.get(req)?.logger;
 
     const { path, subdomains } = req;
