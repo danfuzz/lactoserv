@@ -6,4 +6,5 @@ export * from '#x/IntfRateLimiter';
 export * from '#x/IntfRequestLogger';
 export * from '#x/ProtocolWrangler';
 export * from '#x/ProtocolWranglers';
+export * from '#x/Request';
 export * from '#x/WranglerContext';
