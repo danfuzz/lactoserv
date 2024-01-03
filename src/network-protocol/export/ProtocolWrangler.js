@@ -399,7 +399,8 @@ export class ProtocolWrangler {
         // Validate that the request was actually handled.
         if (!res.writableEnded) {
           reqLogger?.responseNotActuallyHandled();
-          // TODO: Maybe throw an error here?
+          // Gets caught immediately below.
+          throw new Error('Response returned "successfully" without completing.');
         }
       } else {
         next();
