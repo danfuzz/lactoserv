@@ -79,33 +79,6 @@ export class NetworkEndpoint extends BaseComponent {
 
   /** @override */
   async handleRequest(request) {
-    // TODO: Inline this call.
-    return this.#handleExpressRequest(request);
-  }
-
-  /** @override */
-  async _impl_start(isReload) {
-    await this.#wrangler.start(isReload);
-  }
-
-  /**
-   * **Note:** This returns when the endpoint is actually stopped, with the
-   * server socket closed.
-   *
-   * @override
-   */
-  async _impl_stop(willReload) {
-    await this.#wrangler.stop(willReload);
-  }
-
-  /**
-   * Handles a request dispatched from Express (or similar). Parameters are as
-   * defined by the Express middleware spec.
-   *
-   * @param {Request} request Request object.
-   * @returns {boolean} Was the request handled?
-   */
-  async #handleExpressRequest(request) {
     const req = request.expressRequest;
     const { path, subdomains } = req;
 
@@ -161,6 +134,21 @@ export class NetworkEndpoint extends BaseComponent {
     // No mounted path actually handled the request.
     request.logger?.pathNotFound(pathKey);
     return false;
+  }
+
+  /** @override */
+  async _impl_start(isReload) {
+    await this.#wrangler.start(isReload);
+  }
+
+  /**
+   * **Note:** This returns when the endpoint is actually stopped, with the
+   * server socket closed.
+   *
+   * @override
+   */
+  async _impl_stop(willReload) {
+    await this.#wrangler.stop(willReload);
   }
 
 
