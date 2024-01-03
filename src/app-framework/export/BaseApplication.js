@@ -4,8 +4,7 @@
 import { ApplicationConfig } from '@this/app-config';
 import { ManualPromise } from '@this/async';
 import { BaseLoggingEnvironment, IntfLogger } from '@this/loggy';
-import { IntfRequestHandler, Request, WranglerContext }
-  from '@this/network-protocol';
+import { IntfRequestHandler, Request } from '@this/network-protocol';
 import { Methods } from '@this/typey';
 
 import { BaseComponent } from '#x/BaseComponent';
@@ -46,7 +45,7 @@ export class BaseApplication extends BaseComponent {
 
     if (this.logger) {
       startTime = this.#loggingEnv.now();
-      id        = WranglerContext.get(req)?.id;
+      id        = request.id;
       this.logger.handling(id, req.url);
     }
 
