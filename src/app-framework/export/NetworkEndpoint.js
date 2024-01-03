@@ -5,7 +5,7 @@ import { EndpointConfig, MountConfig } from '@this/app-config';
 import { TreePathKey, TreePathMap } from '@this/collections';
 import { IntfLogger } from '@this/loggy';
 import { IntfRateLimiter, IntfRequestHandler, IntfRequestLogger,
-  ProtocolWrangler, ProtocolWranglers }
+  ProtocolWrangler, ProtocolWranglers, Request }
   from '@this/network-protocol';
 import { MustBe } from '@this/typey';
 
@@ -79,10 +79,8 @@ export class NetworkEndpoint extends BaseComponent {
 
   /** @override */
   async handleRequest(request) {
-    // TODO: Don't unwrap it here! The `Request` object should be plumbed all
-    // the way down.
-    return this.#handleExpressRequest(
-      request.expressRequest, request.expressResponse, request.logger);
+    // TODO: Inline this call.
+    return this.#handleExpressRequest(request);
   }
 
   /** @override */
@@ -104,12 +102,11 @@ export class NetworkEndpoint extends BaseComponent {
    * Handles a request dispatched from Express (or similar). Parameters are as
    * defined by the Express middleware spec.
    *
-   * @param {object} req Request object.
-   * @param {object} res Response object.
-   * @param {?IntfLogger} reqLogger Request logger, if any.
+   * @param {Request} request Request object.
    * @returns {boolean} Was the request handled?
    */
-  async #handleExpressRequest(req, res, reqLogger) {
+  async #handleExpressRequest(request) {
+    const req = request.expressRequest;
     const { path, subdomains } = req;
 
     // Freezing `subdomains` lets `new TreePathKey()` avoid making a copy.
@@ -120,7 +117,7 @@ export class NetworkEndpoint extends BaseComponent {
     const hostMatch = this.#mountMap.find(hostKey);
     if (!hostMatch) {
       // No matching host.
-      reqLogger?.hostNotFound(hostKey);
+      request.logger?.hostNotFound(hostKey);
       return false;
     }
 
@@ -143,7 +140,7 @@ export class NetworkEndpoint extends BaseComponent {
       req.baseUrl = `${origBaseUrl}${baseUrlExtra}`;
       req.url     = TreePathKey.uriPathStringFrom(pathMatch.keyRemainder);
 
-      reqLogger?.dispatching({
+      request.logger?.dispatching({
         application: application.name,
         host:        TreePathKey.hostnameStringFrom(hostMatch.key),
         path:        TreePathKey.uriPathStringFrom(pathMatch.key),
@@ -151,7 +148,7 @@ export class NetworkEndpoint extends BaseComponent {
       });
 
       try {
-        if (await application.handleRequest(req, res)) {
+        if (await application.handleRequest(request)) {
           return true;
         }
       } finally {
@@ -162,7 +159,7 @@ export class NetworkEndpoint extends BaseComponent {
     }
 
     // No mounted path actually handled the request.
-    reqLogger?.pathNotFound(pathKey);
+    request.logger?.pathNotFound(pathKey);
     return false;
   }
 
