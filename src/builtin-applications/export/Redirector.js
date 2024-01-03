@@ -41,7 +41,9 @@ export class Redirector extends BaseApplication {
   }
 
   /** @override */
-  async _impl_handleRequest(req, res) {
+  async _impl_handleRequest(request) {
+    const { expressRequest: req, expressResponse: res } = request;
+
     res.redirect(this.#statusCode, `${this.#target}${req.path}`);
     return true;
   }

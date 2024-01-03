@@ -27,7 +27,9 @@ export class BaseApplication extends BaseComponent {
    * Constructs an instance.
    *
    * @param {ApplicationConfig} config Configuration for this application.
-   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
+   * @param {?IntfLogger} logger Logger to use at the application layer
+   *   (incoming requests have their own logger), or `null` to not do any
+   *   logging.
    */
   constructor(config, logger) {
     super(config, logger);
@@ -37,7 +39,7 @@ export class BaseApplication extends BaseComponent {
 
   /** @override */
   async handleRequest(request) {
-    const { expressRequest: req, expressResponse: res } = request;
+    const { expressRequest: req } = request;
 
     let startTime;
     let id;
@@ -48,7 +50,7 @@ export class BaseApplication extends BaseComponent {
       this.logger.handling(id, req.url);
     }
 
-    const result = this._impl_handleRequest(req, res);
+    const result = this._impl_handleRequest(request);
 
     if (this.logger) {
       // Arrange to log about the result of the `_impl_` call once it settles.
@@ -74,17 +76,15 @@ export class BaseApplication extends BaseComponent {
   }
 
   /**
-   * Handles a request, as defined by the Express middleware spec and this
-   * class's method {@link #handleRequest}.
+   * Handles a request, as defined by {@link IntfRequestHandler}.
    *
    * @abstract
-   * @param {object} req Request object.
-   * @param {object} res Response object.
-   * @returns {boolean} Was the request handled? Flag as defined by {@link
-   *   #handleRequest}
+   * @param {Request} request Request object.
+   * @returns {boolean} Was the request handled? Flag as defined by the method
+   *   {@link IntfRequestHandler#handleRequest}.
    */
-  async _impl_handleRequest(req, res) {
-    Methods.abstract(req, res);
+  async _impl_handleRequest(request) {
+    Methods.abstract(request);
   }
 
 
@@ -104,14 +104,14 @@ export class BaseApplication extends BaseComponent {
    * This method is meant as a helper when wrapping Express middleware in a
    * concrete instance of this class.
    *
-   * @param {object} req Request object.
-   * @param {object} res Response object.
+   * @param {Request} request Request object.
    * @param {function(object, object, function(?string|object))} middleware
    *   Express-style middleware function.
-   * @returns {boolean} Was the request handled? This is the result of a call
-   *   to `handleRequest()` as defined by {@link IntfRequestHandler}.
+   * @returns {boolean} Was the request handled? This is the result request
+   *   handling as defined by {@link IntfRequestHandler#handleRequest}.
    */
-  static async callMiddleware(req, res, middleware) {
+  static async callMiddleware(request, middleware) {
+    const { expressRequest: req, expressResponse: res } = request;
     const resultMp = new ManualPromise();
     const origEnd  = res.end;
 
