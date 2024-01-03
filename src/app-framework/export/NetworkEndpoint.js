@@ -80,7 +80,12 @@ export class NetworkEndpoint extends BaseComponent {
   /** @override */
   async handleRequest(request) {
     const req = request.expressRequest;
-    const { path, subdomains } = req;
+    const {
+      baseUrl: origBaseUrl,
+      path,
+      subdomains,
+      url: origUrl
+    } = req;
 
     // Freezing `subdomains` lets `new TreePathKey()` avoid making a copy.
     const hostKey = new TreePathKey(Object.freeze(subdomains), false);
@@ -105,7 +110,6 @@ export class NetworkEndpoint extends BaseComponent {
       // routing, but we have to do it ourselves here because Express is running
       // our whole dispatch system as just a single Express middleware call.
 
-      const { baseUrl: origBaseUrl, url: origUrl } = req;
       const baseUrlExtra = (pathMatch.key.length === 0)
         ? ''
         : TreePathKey.uriPathStringFrom(pathMatch.key, false);
