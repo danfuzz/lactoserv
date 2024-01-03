@@ -10,4 +10,5 @@ export * from '#x/ComponentRegistry';
 export * from '#x/EndpointManager';
 export * from '#x/HostManager';
 export * from '#x/NetworkEndpoint';
+export * from '#x/Request';
 export * from '#x/Warehouse';
