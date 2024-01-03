@@ -15,7 +15,9 @@ import { Methods, MustBe } from '@this/typey';
 
 import { IntfHostManager } from '#x/IntfHostManager';
 import { IntfRateLimiter } from '#x/IntfRateLimiter';
+import { IntfRequestHandler } from '#x/IntfRequestHandler';
 import { IntfRequestLogger } from '#x/IntfRequestLogger';
+import { Request } from '#x/Request';
 import { RequestLogHelper } from '#p/RequestLogHelper';
 import { WranglerContext } from '#x/WranglerContext';
 
@@ -45,10 +47,7 @@ export class ProtocolWrangler {
   /** @type {?IntfRateLimiter} Rate limiter service to use, if any. */
   #rateLimiter;
 
-  /**
-   * @type {function(object, object, function(?*))} Request handler function, in
-   * the style of Express middleware.
-   */
+  /** @type {IntfRequestHandler} Request handler. */
   #requestHandler;
 
   /**
@@ -87,9 +86,8 @@ export class ProtocolWrangler {
    *   instances which don't do need to do host-based security (certs, etc.).
    * @param {IntfRateLimiter} options.rateLimiter Rate limiter to use. If not
    *   specified, the instance won't do rate limiting.
-   * @param {function(object, object)} options.requestHandler Request handler,
-   *   in the form used by the `app-framework` module (Express-like but async).
-   *   This is required.
+   * @param {IntfRequestHandler} options.requestHandler Request handler. This is
+   *   required.
    * @param {IntfRequestLogger} options.requestLogger Request logger to send to.
    *   If not specified, the instance won't do request logging.
    * @param {?IntfLogger} options.logger Logger to use to emit events about what
@@ -117,7 +115,7 @@ export class ProtocolWrangler {
     this.#logger         = logger ?? null;
     this.#hostManager    = hostManager ?? null;
     this.#rateLimiter    = rateLimiter ?? null;
-    this.#requestHandler = MustBe.callableFunction(requestHandler);
+    this.#requestHandler = MustBe.object(requestHandler);
     this.#logHelper      = requestLogger
       ? new RequestLogHelper(requestLogger, logger)
       : null;
@@ -394,12 +392,14 @@ export class ProtocolWrangler {
     }
 
     try {
-      // `?? null` to force it to be a function call and not a method call.
-      const result = await (this.#requestHandler ?? null)(req, res);
+      const result = await this.#requestHandler.handleRequest(
+        new Request(req, res, reqLogger));
+
       if (result) {
         // Validate that the request was actually handled.
         if (!res.writableEnded) {
           reqLogger?.responseNotActuallyHandled();
+          // TODO: Maybe throw an error here?
         }
       } else {
         next();

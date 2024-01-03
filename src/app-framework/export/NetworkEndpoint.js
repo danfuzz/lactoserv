@@ -4,8 +4,8 @@
 import { EndpointConfig, MountConfig } from '@this/app-config';
 import { TreePathKey, TreePathMap } from '@this/collections';
 import { IntfLogger } from '@this/loggy';
-import { IntfRateLimiter, IntfRequestLogger, ProtocolWrangler,
-  ProtocolWranglers, WranglerContext }
+import { IntfRateLimiter, IntfRequestHandler, IntfRequestLogger,
+  ProtocolWrangler, ProtocolWranglers }
   from '@this/network-protocol';
 import { MustBe } from '@this/typey';
 
@@ -21,6 +21,8 @@ import { ThisModule } from '#p/ThisModule';
  * deal with the lower-level networking details and a map from mount points to
  * {@link BaseApplication} instances. This class is the connection between these
  * two things.
+ *
+ * @implements {IntfRequestHandler}
  */
 export class NetworkEndpoint extends BaseComponent {
   /**
@@ -61,7 +63,7 @@ export class NetworkEndpoint extends BaseComponent {
 
     const wranglerOptions = {
       rateLimiter,
-      requestHandler: (req, res) => this.#handleExpressRequest(req, res),
+      requestHandler: this,
       requestLogger,
       logger,
       protocol,
@@ -73,6 +75,14 @@ export class NetworkEndpoint extends BaseComponent {
     };
 
     this.#wrangler = ProtocolWranglers.make(wranglerOptions);
+  }
+
+  /** @override */
+  async handleRequest(request) {
+    // TODO: Don't unwrap it here! The `Request` object should be plumbed all
+    // the way down.
+    return this.#handleExpressRequest(
+      request.expressRequest, request.expressResponse, request.logger);
   }
 
   /** @override */
@@ -96,11 +106,10 @@ export class NetworkEndpoint extends BaseComponent {
    *
    * @param {object} req Request object.
    * @param {object} res Response object.
+   * @param {?IntfLogger} reqLogger Request logger, if any.
    * @returns {boolean} Was the request handled?
    */
-  async #handleExpressRequest(req, res) {
-    const reqLogger = WranglerContext.get(req)?.logger;
-
+  async #handleExpressRequest(req, res, reqLogger) {
     const { path, subdomains } = req;
 
     // Freezing `subdomains` lets `new TreePathKey()` avoid making a copy.
