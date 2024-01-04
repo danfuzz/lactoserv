@@ -117,7 +117,8 @@ export class Request {
 
   /**
    * @returns {string} The path portion of {@link #unparsedUrl}, as a string.
-   * This omits the search a/k/a query (`?...`), if any.
+   * This starts with a slash (`/`) and omits the search a/k/a query (`?...`),
+   * if any.
    *
    * **Note:** The name of this field matches the equivalent field of the
    * standard `URL` class.
