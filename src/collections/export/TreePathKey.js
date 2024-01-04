@@ -96,6 +96,39 @@ export class TreePathKey {
   }
 
   /**
+   * Gets the string form of this instance, interpreted as a hostname, where the
+   * TLD is the initial path component. That is, the result renders the path in
+   * reverse.
+   *
+   * @returns {string} The string form.
+   */
+  toHostnameString() {
+    return this.toString({
+      prefix:    '',
+      separator: '.',
+      reverse:   true
+    });
+  }
+
+  /**
+   * Gets the string form of this instance, interpreted as an absolute URI path,
+   * that is, the part of a URI after the hostname. The result always includes
+   * an initial slash (`/`) and never includes a final slash.
+   *
+   * @param {boolean} [showWildcard] Represent a wildcard key as a final `/*`?
+   *   If `false`, then the result is as if `key` were created with `wildcard
+   *   === false`.
+   * @returns {string} The string form.
+   */
+  toUriPathString(showWildcard = true) {
+    return this.toString({
+      prefix:    '/',
+      separator: '/',
+      wildcard:  showWildcard ? '*' : null
+    });
+  }
+
+  /**
    * Gets a human-useful string form of this instance.
    *
    * @param {?object} [options] Formatting options.
@@ -175,36 +208,25 @@ export class TreePathKey {
   }
 
   /**
-   * Gets the string form of the given key, interpreted as a hostname, where the
-   * TLD is the initial path component. That is, the result renders the path in
-   * reverse.
+   * The same as {@link #toHostnameString}, except as a `static` method, for
+   * convenient use as a stringifier function, e.g. in `TreePathMap`.
    *
    * @param {TreePathKey} key The key to convert.
    * @returns {string} The string form.
    */
   static hostnameStringFrom(key) {
-    return key.toString({
-      prefix:    '',
-      separator: '.',
-      reverse:   true
-    });
+    return key.toHostnameString();
   }
 
   /**
-   * Gets the string form of the given key, interpreted as an absolute URI path,
-   * that is, the part of a URI after the hostname.
+   * The same as {@link #toUriPathString}, except as a `static` method, for
+   * convenient use as a stringifier function, e.g. in `TreePathMap`.
    *
    * @param {TreePathKey} key The key to convert.
-   * @param {boolean} [showWildcard] Represent a wildcard key as such? If
-   *   `false`, then the result is as if `key` were created with `wildcard ===
-   *   false`.
+   * @param {boolean} [showWildcard] Represent a wildcard key as such?
    * @returns {string} The string form.
    */
   static uriPathStringFrom(key, showWildcard = true) {
-    return key.toString({
-      prefix:    '/',
-      separator: '/',
-      wildcard:  showWildcard ? '*' : null
-    });
+    return key.toUriPathString(showWildcard);
   }
 }
