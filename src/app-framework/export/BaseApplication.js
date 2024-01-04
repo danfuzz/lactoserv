@@ -38,15 +38,13 @@ export class BaseApplication extends BaseComponent {
 
   /** @override */
   async handleRequest(request) {
-    const { expressRequest: req } = request;
-
     let startTime;
     let id;
 
     if (this.logger) {
       startTime = this.#loggingEnv.now();
       id        = request.id;
-      this.logger.handling(id, req.url);
+      this.logger.handling(id, request.unparsedUrl);
     }
 
     const result = this._impl_handleRequest(request);
