@@ -40,6 +40,14 @@ export class Request {
   #expressResponse;
 
   /**
+   * @type {?URL} The parsed version of `.#expressRequest.url`, if calculated,
+   * or `null` if not yet done. **Note:** Despite its name, `.url` doesn't
+   * contain any of the usual URL bits before the start of the path, so those
+   * fields are meaningless here.
+   */
+  #parsedUrlObject = null;
+
+  /**
    * Constructs an instance.
    *
    * @param {ClientRequest|express.Request} request Request object. This is a
@@ -87,5 +95,60 @@ export class Request {
    */
   get logger() {
     return this.#logger;
+  }
+
+  /**
+   * @returns {string} The unparsed URL path that was passed in to the original
+   * HTTP(ish) request. Colloquially, this is the suffix of the URL-per-se
+   * starting at the first slash (`/`) after the host identifier.
+   *
+   * For example, for the requested URL
+   * `https://example.com:123/foo/bar?baz=10`, this would be `/foo/bar?baz=10`.
+   */
+  get unparsedUrl() {
+    // Note: Though this framework uses Express under the covers (as of this
+    // writing), and Express _does_ rewrite the underlying request's `.url` in
+    // some circumstances, the way we use Express should never cause it to do
+    // such rewriting. As such, it's appropriate for us to just use `.url`, and
+    // not the Express-specific `.originalUrl`. (Ultimately, the hope is to drop
+    // use of Express, as it provides little value to this project.)
+    return this.#expressRequest.url;
+  }
+
+  /**
+   * @returns {string} The path portion of {@link #unparsedUrl}, as a string.
+   * This omits the search a/k/a query (`?...`), if any.
+   *
+   * **Note:** The name of this field matches the equivalent field of the
+   * standard `URL` class.
+   */
+  get unparsedPathname() {
+    return this.#parsedUrl.pathname;
+  }
+
+  /**
+   * @returns {string} The search a/k/a query portion of {@link #unparsedUrl},
+   * as an unparsed string, or `''` (the empty string) if there is no search
+   * string. The result includes anything at or after the first question mark
+   * (`?`) in the URL.
+   *
+   * **Note:** The name of this field matches the equivalent field of the
+   * standard `URL` class.
+   */
+  get unparsedSearch() {
+    return this.#parsedUrl.search;
+  }
+
+  /**
+   * @returns {URL} The parsed version of {@link #unparsedUrl}. This is a
+   * private getter because the return value is mutable, and we don't want to
+   * allow clients to actually mutate it.
+   */
+  get #parsedUrl() {
+    if (!this.#parsedUrlObject) {
+      this.#parsedUrlObject = new URL(this.unparsedUrl, 'x://x');
+    }
+
+    return this.#parsedUrlObject;
   }
 }
