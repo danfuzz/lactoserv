@@ -475,7 +475,7 @@ ${'parseHostnameOrNull'} | ${false} | ${'path'}
 
       expect(got.wildcard).toBe(expectWildcard);
       expect(got.length).toBe(expectLength);
-      expect(TreePathKey.hostnameStringFrom(got)).toBe(hostname);
+      expect(got.toHostnameString()).toBe(hostname);
     }
   };
 

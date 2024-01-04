@@ -102,7 +102,7 @@ export class NetworkEndpoint extends BaseComponent {
 
       request.logger?.dispatching({
         application: application.name,
-        host:        TreePathKey.hostnameStringFrom(hostMatch.key),
+        host:        hostMatch.key.toHostnameString(),
         base:        dispReq.baseString,
         extra:       dispReq.extraString
       });

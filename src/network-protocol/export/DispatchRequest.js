@@ -63,7 +63,7 @@ export class DispatchRequest {
     // `false` == don't append `/*` for a wildcard `TreePathKey` instance.
     return (base.length === 0)
       ? ''
-      : TreePathKey.uriPathStringFrom(this.#base, false);
+      : this.#base.toUriPathString(false);
   }
 
   /**
@@ -76,7 +76,8 @@ export class DispatchRequest {
 
   /** @returns {string} {@link #extra}, as a path string. */
   get extraString() {
-    return TreePathKey.uriPathStringFrom(this.#extra);
+    // `false` == don't append `/*` for a wildcard `TreePathKey` instance.
+    return this.#extra.toUriPathString(false);
   }
 
   /** @returns {Request} The original request. */
