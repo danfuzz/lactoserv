@@ -51,9 +51,19 @@ export class DispatchRequest {
     return this.#base;
   }
 
-  /** @returns {string} {@link #base}, as a path string. */
+  /**
+   * @returns {string} {@link #base}, as a path string. If it is actually an
+   * empty (zero-length) key, this returns the empty string (`''`), which
+   * maintains an invariant that concatenating {@link #baseString} and {@link
+   * #extraString} yields the original request's `pathnameString`.
+   */
   get baseString() {
-    return TreePathKey.uriPathStringFrom(this.#base);
+    const base = this.#base;
+
+    // `false` == don't append `/*` for a wildcard `TreePathKey` instance.
+    return (base.length === 0)
+      ? ''
+      : TreePathKey.uriPathStringFrom(this.#base, false);
   }
 
   /**
