@@ -49,7 +49,7 @@ export class Request {
   #parsedUrlObject = null;
 
   /**
-   * @type {?TreePathKey} The parsed version of {@link #unparsedPathname}, or
+   * @type {?TreePathKey} The parsed version of {@link #pathnameString}, or
    * `null` if not yet calculated.
    */
   #parsedPathname = null;
@@ -105,11 +105,11 @@ export class Request {
   }
 
   /**
-   * @returns {TreePathKey} Parsed path key form of {@link #unparsedPathname}.
+   * @returns {TreePathKey} Parsed path key form of {@link #pathnameString}.
    */
   get pathname() {
     if (!this.#parsedPathname) {
-      const parts = this.unparsedPathname.split('/');
+      const parts = this.pathnameString.split('/');
       parts.shift(); // Shift off the empty component from the initial slash.
 
       // Freezing `parts` lets `new TreePathKey()` avoid making a copy.
@@ -126,8 +126,11 @@ export class Request {
    *
    * For example, for the requested URL
    * `https://example.com:123/foo/bar?baz=10`, this would be `/foo/bar?baz=10`.
+   * This field name, though arguably confusing, is as such so as to harmonize
+   * with the standard Node field `IncomingRequest.url`. The `url` name with
+   * similar semantics is also used by Express.
    */
-  get unparsedUrl() {
+  get urlString() {
     // Note: Though this framework uses Express under the covers (as of this
     // writing), and Express _does_ rewrite the underlying request's `.url` in
     // some circumstances, the way we use Express should never cause it to do
@@ -138,19 +141,19 @@ export class Request {
   }
 
   /**
-   * @returns {string} The path portion of {@link #unparsedUrl}, as a string.
+   * @returns {string} The path portion of {@link #urlString}, as a string.
    * This starts with a slash (`/`) and omits the search a/k/a query (`?...`),
    * if any.
    *
    * **Note:** The name of this field matches the equivalent field of the
    * standard `URL` class.
    */
-  get unparsedPathname() {
+  get pathnameString() {
     return this.#parsedUrl.pathname;
   }
 
   /**
-   * @returns {string} The search a/k/a query portion of {@link #unparsedUrl},
+   * @returns {string} The search a/k/a query portion of {@link #urlString},
    * as an unparsed string, or `''` (the empty string) if there is no search
    * string. The result includes anything at or after the first question mark
    * (`?`) in the URL.
@@ -158,18 +161,18 @@ export class Request {
    * **Note:** The name of this field matches the equivalent field of the
    * standard `URL` class.
    */
-  get unparsedSearch() {
+  get searchString() {
     return this.#parsedUrl.search;
   }
 
   /**
-   * @returns {URL} The parsed version of {@link #unparsedUrl}. This is a
+   * @returns {URL} The parsed version of {@link #urlString}. This is a
    * private getter because the return value is mutable, and we don't want to
    * allow clients to actually mutate it.
    */
   get #parsedUrl() {
     if (!this.#parsedUrlObject) {
-      this.#parsedUrlObject = new URL(this.unparsedUrl, 'x://x');
+      this.#parsedUrlObject = new URL(this.urlString, 'x://x');
     }
 
     return this.#parsedUrlObject;
