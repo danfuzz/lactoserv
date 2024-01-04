@@ -4,7 +4,7 @@
 import { TreePathKey } from '@this/collections';
 import { MustBe } from '@this/typey';
 
-import { Request } from '#p/Request';
+import { Request } from '#x/Request';
 
 
 /**
@@ -38,9 +38,9 @@ export class DispatchRequest {
    *   path, after removing `base`.
    */
   constructor(request, base, extra) {
-    this.#request = MustBe.instanceof(request, Request);
-    this.#base    = MustBe.instanceof(base, TreePathKey);
-    this.#extra   = MustBe.instanceof(extra, TreePathKey);
+    this.#request = MustBe.instanceOf(request, Request);
+    this.#base    = MustBe.instanceOf(base, TreePathKey);
+    this.#extra   = MustBe.instanceOf(extra, TreePathKey);
   }
 
   /**
@@ -51,12 +51,22 @@ export class DispatchRequest {
     return this.#base;
   }
 
+  /** @returns {string} {@link #base}, as a path string. */
+  get baseString() {
+    return TreePathKey.uriPathStringFrom(this.#base);
+  }
+
   /**
    * @returns {TreePathKey} The remaining suffix portion of the path, after
    * removing {@link #base}.
    */
   get extra() {
     return this.#extra;
+  }
+
+  /** @returns {string} {@link #extra}, as a path string. */
+  get extraString() {
+    return TreePathKey.uriPathStringFrom(this.#extra);
   }
 
   /** @returns {Request} The original request. */
