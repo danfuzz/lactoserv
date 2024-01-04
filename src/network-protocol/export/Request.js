@@ -5,6 +5,7 @@ import { ClientRequest, ServerResponse } from 'node:http';
 
 import express from 'express';
 
+import { TreePathKey } from '@this/collections';
 import { IntfLogger } from '@this/loggy';
 import { MustBe } from '@this/typey';
 
@@ -40,12 +41,18 @@ export class Request {
   #expressResponse;
 
   /**
-   * @type {?URL} The parsed version of `.#expressRequest.url`, if calculated,
-   * or `null` if not yet done. **Note:** Despite its name, `.url` doesn't
-   * contain any of the usual URL bits before the start of the path, so those
-   * fields are meaningless here.
+   * @type {?URL} The parsed version of `.#expressRequest.url`, or `null` if not
+   * yet calculated. **Note:** Despite its name, `.url` doesn't contain any of
+   * the usual URL bits before the start of the path, so those fields are
+   * meaningless here.
    */
   #parsedUrlObject = null;
+
+  /**
+   * @type {?TreePathKey} The parsed version of {@link #unparsedPathname}, or
+   * `null` if not yet calculated.
+   */
+  #parsedPathname = null;
 
   /**
    * Constructs an instance.
@@ -95,6 +102,21 @@ export class Request {
    */
   get logger() {
     return this.#logger;
+  }
+
+  /**
+   * @returns {TreePathKey} Parsed path key form of {@link #unparsedPathname}.
+   */
+  get pathname() {
+    if (!this.#parsedPathname) {
+      const parts = this.unparsedPathname.split('/');
+      parts.shift(); // Shift off the empty component from the initial slash.
+
+      // Freezing `parts` lets `new TreePathKey()` avoid making a copy.
+      this.#parsedPathname = new TreePathKey(Object.freeze(parts), false);
+    }
+
+    return this.#parsedPathname;
   }
 
   /**

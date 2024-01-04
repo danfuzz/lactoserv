@@ -13,6 +13,7 @@
 
   "dependencies": {
     "@this/async": "*",
+    "@this/collections": "*",
     "@this/data-values": "*",
     "@this/host": "*",
     "@this/loggy": "*",
