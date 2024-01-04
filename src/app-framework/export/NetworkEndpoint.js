@@ -4,8 +4,8 @@
 import { EndpointConfig, MountConfig } from '@this/app-config';
 import { TreePathKey, TreePathMap } from '@this/collections';
 import { IntfLogger } from '@this/loggy';
-import { IntfRateLimiter, IntfRequestHandler, IntfRequestLogger,
-  ProtocolWrangler, ProtocolWranglers }
+import { DispatchRequest, IntfRateLimiter, IntfRequestHandler,
+  IntfRequestLogger, ProtocolWrangler, ProtocolWranglers }
   from '@this/network-protocol';
 import { MustBe } from '@this/typey';
 
@@ -80,16 +80,9 @@ export class NetworkEndpoint extends BaseComponent {
   /** @override */
   async handleRequest(request) {
     const req = request.expressRequest;
-    const {
-      baseUrl: origBaseUrl,
-      path,
-      subdomains,
-      url: origUrl
-    } = req;
 
     // Freezing `subdomains` lets `new TreePathKey()` avoid making a copy.
-    const hostKey = new TreePathKey(Object.freeze(subdomains), false);
-    const pathKey = NetworkEndpoint.#parsePath(path);
+    const hostKey = new TreePathKey(Object.freeze(req.subdomains), false);
 
     // Find the mount map for the most-specific matching host.
     const hostMatch = this.#mountMap.find(hostKey);
@@ -100,43 +93,27 @@ export class NetworkEndpoint extends BaseComponent {
     }
 
     // Iterate from most- to least-specific mounted path.
-    for (let pathMatch = hostMatch.value.find(pathKey, true);
+    for (let pathMatch = hostMatch.value.find(request.pathname, true);
       pathMatch;
       pathMatch = pathMatch.next) {
       const application = pathMatch.value;
-
-      // Thwack the salient context into `req`; it gets restored after the
-      // application runs. This setup is analogous to what Express does when
-      // routing, but we have to do it ourselves here because Express is running
-      // our whole dispatch system as just a single Express middleware call.
-
-      const baseUrlExtra = (pathMatch.key.length === 0)
-        ? ''
-        : TreePathKey.uriPathStringFrom(pathMatch.key, false);
-
-      req.baseUrl = `${origBaseUrl}${baseUrlExtra}`;
-      req.url     = TreePathKey.uriPathStringFrom(pathMatch.keyRemainder);
+      const dispReq =
+        new DispatchRequest(request, pathMatch.key, pathMatch.keyRemainder);
 
       request.logger?.dispatching({
         application: application.name,
         host:        TreePathKey.hostnameStringFrom(hostMatch.key),
-        path:        TreePathKey.uriPathStringFrom(pathMatch.key),
-        url:         req.url
+        base:        dispReq.baseString,
+        extra:       dispReq.extraString
       });
 
-      try {
-        if (await application.handleRequest(request)) {
-          return true;
-        }
-      } finally {
-        // Restore `req`. See big comment above.
-        req.baseUrl = origBaseUrl;
-        req.url     = origUrl;
+      if (await application.handleRequest(request, dispReq)) {
+        return true;
       }
     }
 
     // No mounted path actually handled the request.
-    request.logger?.pathNotFound(pathKey);
+    request.logger?.pathNotFound(request.pathname);
     return false;
   }
 
