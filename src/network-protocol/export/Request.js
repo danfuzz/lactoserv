@@ -120,27 +120,6 @@ export class Request {
   }
 
   /**
-   * @returns {string} The unparsed URL path that was passed in to the original
-   * HTTP(ish) request. Colloquially, this is the suffix of the URL-per-se
-   * starting at the first slash (`/`) after the host identifier.
-   *
-   * For example, for the requested URL
-   * `https://example.com:123/foo/bar?baz=10`, this would be `/foo/bar?baz=10`.
-   * This field name, though arguably confusing, is as such so as to harmonize
-   * with the standard Node field `IncomingRequest.url`. The `url` name with
-   * similar semantics is also used by Express.
-   */
-  get urlString() {
-    // Note: Though this framework uses Express under the covers (as of this
-    // writing), and Express _does_ rewrite the underlying request's `.url` in
-    // some circumstances, the way we use Express should never cause it to do
-    // such rewriting. As such, it's appropriate for us to just use `.url`, and
-    // not the Express-specific `.originalUrl`. (Ultimately, the hope is to drop
-    // use of Express, as it provides little value to this project.)
-    return this.#expressRequest.url;
-  }
-
-  /**
    * @returns {string} The path portion of {@link #urlString}, as a string.
    * This starts with a slash (`/`) and omits the search a/k/a query (`?...`),
    * if any.
@@ -163,6 +142,27 @@ export class Request {
    */
   get searchString() {
     return this.#parsedUrl.search;
+  }
+
+  /**
+   * @returns {string} The unparsed URL path that was passed in to the original
+   * HTTP(ish) request. Colloquially, this is the suffix of the URL-per-se
+   * starting at the first slash (`/`) after the host identifier.
+   *
+   * For example, for the requested URL
+   * `https://example.com:123/foo/bar?baz=10`, this would be `/foo/bar?baz=10`.
+   * This field name, though arguably confusing, is as such so as to harmonize
+   * with the standard Node field `IncomingRequest.url`. The `url` name with
+   * similar semantics is also used by Express.
+   */
+  get urlString() {
+    // Note: Though this framework uses Express under the covers (as of this
+    // writing), and Express _does_ rewrite the underlying request's `.url` in
+    // some circumstances, the way we use Express should never cause it to do
+    // such rewriting. As such, it's appropriate for us to just use `.url`, and
+    // not the Express-specific `.originalUrl`. (Ultimately, the hope is to drop
+    // use of Express, as it provides little value to this project.)
+    return this.#expressRequest.url;
   }
 
   /**
