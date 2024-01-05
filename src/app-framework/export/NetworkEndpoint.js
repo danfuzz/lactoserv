@@ -7,7 +7,6 @@ import { IntfLogger } from '@this/loggy';
 import { DispatchInfo, IntfRateLimiter, IntfRequestHandler,
   IntfRequestLogger, ProtocolWrangler, ProtocolWranglers }
   from '@this/network-protocol';
-import { MustBe } from '@this/typey';
 
 import { BaseApplication } from '#x/BaseApplication';
 import { BaseComponent } from '#x/BaseComponent';
