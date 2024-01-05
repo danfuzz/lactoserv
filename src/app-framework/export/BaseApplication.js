@@ -97,7 +97,12 @@ export class BaseApplication extends BaseComponent {
 
   /**
    * Calls through to a regular Express-style middleware function, converting
-   * its `next()` usage to the `async` style used by this system.
+   * its `next()` usage to the `async` style used by this system. Because
+   * Express doesn't offer a straightforward way to tell when a request has
+   * definitely been handled, this method uses a couple different tactics to try
+   * to suss it out, but it _might_ end up being flaky in some cases. (No actual
+   * flakiness has been observed as of this writing, but it's definitely
+   * something to watch out for).
    *
    * This method is meant as a helper when wrapping Express middleware in a
    * concrete instance of this class.
@@ -114,6 +119,21 @@ export class BaseApplication extends BaseComponent {
     const resultMp = new ManualPromise();
     const origEnd  = res.end;
 
+    // "Spy" on `res.end`, so we can async-return when appropriate.
+    res.end = (...args) => {
+      res.end = origEnd;
+      res.end(...args);
+
+      req.baseUrl = baseUrl;
+      req.url     = url;
+
+      if (!resultMp.isSettled()) {
+        resultMp.resolve(true);
+      }
+    };
+
+    // Hook up a `next()` which cleans up the "spy" on `res` and causes this
+    // method to return.
     const next = (arg = null) => {
       res.end = origEnd;
       if ((arg === null) || (arg === 'route')) {
@@ -133,17 +153,6 @@ export class BaseApplication extends BaseComponent {
 
     req.baseUrl = dispatch.baseString;
     req.url     = dispatch.extraString;
-
-    // "Spy" on `res.end`, so we can async-return when appropriate.
-    res.end = (...args) => {
-      res.end = origEnd;
-      res.end(...args);
-
-      req.baseUrl = baseUrl;
-      req.url = url;
-
-      resultMp.resolve(true);
-    };
 
     try {
       middleware(req, res, next);
