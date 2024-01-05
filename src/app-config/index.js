@@ -16,6 +16,5 @@ export * from '#x/Names';
 export * from '#x/RotateConfig';
 export * from '#x/SaveConfig';
 export * from '#x/ServiceConfig';
-export * from '#x/Uris';
 export * from '#x/Util';
 export * from '#x/WarehouseConfig';

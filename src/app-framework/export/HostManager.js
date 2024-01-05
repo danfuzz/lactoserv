@@ -3,9 +3,10 @@
 
 import { SecureContext } from 'node:tls';
 
-import { HostConfig, Uris } from '@this/app-config';
+import { HostConfig } from '@this/app-config';
 import { TreePathKey, TreePathMap } from '@this/collections';
 import { IntfLogger } from '@this/loggy';
+import { Uris } from '@this/net-util';
 import { IntfHostManager } from '@this/network-protocol';
 
 import { HostItem } from '#p/HostItem';

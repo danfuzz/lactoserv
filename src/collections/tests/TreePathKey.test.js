@@ -334,7 +334,11 @@ describe('checkArguments()', () => {
   });
 });
 
-describe('hostnameStringFrom()', () => {
+describe.each`
+name  |  isStatic
+${'toHostnameString'}   | ${false}
+${'hostnameStringFrom'} | ${true}
+`('$name()', ({ name, isStatic }) => {
   test.each`
   path                     | wildcard | expected
   ${[]}                    | ${false} | ${''}
@@ -344,12 +348,20 @@ describe('hostnameStringFrom()', () => {
   ${['foo', 'bar', 'baz']} | ${false} | ${'baz.bar.foo'}
   ${['foo', 'bar', 'baz']} | ${true}  | ${'*.baz.bar.foo'}
   `('on { path: $path, wildcard: $wildcard }', ({ path, wildcard, expected }) => {
-    const key = new TreePathKey(path, wildcard);
-    expect(TreePathKey.hostnameStringFrom(key)).toBe(expected);
+    const key    = new TreePathKey(path, wildcard);
+    const result = isStatic
+      ? TreePathKey[name](key)
+      : key[name]();
+
+    expect(result).toBe(expected);
   });
 });
 
-describe('uriPathStringFrom()', () => {
+describe.each`
+name  |  isStatic
+${'toUriPathString'}   | ${false}
+${'uriPathStringFrom'} | ${true}
+`('$name()', ({ name, isStatic }) => {
   describe.each`
   wildArg   | label
   ${[]}     | ${'without `showWildcard` passed (defaults to `true`)'}
@@ -364,8 +376,12 @@ describe('uriPathStringFrom()', () => {
     ${['foo', 'bar', 'baz']} | ${false} | ${'/foo/bar/baz'}
     ${['foo', 'bar', 'baz']} | ${true}  | ${'/foo/bar/baz/*'}
     `('on { path: $path, wildcard: $wildcard }', ({ path, wildcard, expected }) => {
-      const key = new TreePathKey(path, wildcard);
-      expect(TreePathKey.uriPathStringFrom(key, ...wildArg)).toBe(expected);
+      const key    = new TreePathKey(path, wildcard);
+      const result = isStatic
+        ? TreePathKey[name](key, ...wildArg)
+        : key[name](...wildArg);
+
+      expect(result).toBe(expected);
     });
   });
 
@@ -380,7 +396,11 @@ describe('uriPathStringFrom()', () => {
     ${['foo', 'bar', 'baz']} | ${true}  | ${'/foo/bar/baz'}
     `('on { path: $path, wildcard: $wildcard }', ({ path, wildcard, expected }) => {
       const key = new TreePathKey(path, wildcard);
-      expect(TreePathKey.uriPathStringFrom(key, false)).toBe(expected);
+      const result = isStatic
+        ? TreePathKey[name](key, false)
+        : key[name](false);
+
+      expect(result).toBe(expected);
     });
   });
 });

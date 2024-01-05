@@ -1,10 +1,11 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { Uris } from '@this/net-util';
+
 import { MountConfig } from '#x/MountConfig';
 import { NamedConfig } from '#x/NamedConfig';
 import { ServiceUseConfig } from '#x/ServiceUseConfig';
-import { Uris } from '#x/Uris';
 import { Util } from '#x/Util';
 
 

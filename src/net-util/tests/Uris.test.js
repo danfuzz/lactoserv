@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Uris } from '@this/app-config';
+import { Uris } from '@this/net-util';
 import { TreePathKey } from '@this/collections';
 
 
@@ -475,7 +475,7 @@ ${'parseHostnameOrNull'} | ${false} | ${'path'}
 
       expect(got.wildcard).toBe(expectWildcard);
       expect(got.length).toBe(expectLength);
-      expect(TreePathKey.hostnameStringFrom(got)).toBe(hostname);
+      expect(got.toHostnameString()).toBe(hostname);
     }
   };
 

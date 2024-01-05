@@ -4,7 +4,8 @@
 import { ApplicationConfig } from '@this/app-config';
 import { ManualPromise } from '@this/async';
 import { BaseLoggingEnvironment, IntfLogger } from '@this/loggy';
-import { IntfRequestHandler, Request } from '@this/network-protocol';
+import { DispatchInfo, IntfRequestHandler, Request }
+  from '@this/network-protocol';
 import { Methods } from '@this/typey';
 
 import { BaseComponent } from '#x/BaseComponent';
@@ -37,19 +38,17 @@ export class BaseApplication extends BaseComponent {
   }
 
   /** @override */
-  async handleRequest(request) {
-    const { expressRequest: req } = request;
-
+  async handleRequest(request, dispatch) {
     let startTime;
     let id;
 
     if (this.logger) {
       startTime = this.#loggingEnv.now();
       id        = request.id;
-      this.logger.handling(id, req.url);
+      this.logger.handling(id, dispatch.extraString);
     }
 
-    const result = this._impl_handleRequest(request);
+    const result = this._impl_handleRequest(request, dispatch);
 
     if (this.logger) {
       // Arrange to log about the result of the `_impl_` call once it settles.
@@ -79,11 +78,12 @@ export class BaseApplication extends BaseComponent {
    *
    * @abstract
    * @param {Request} request Request object.
+   * @param {DispatchInfo} dispatch Dispatch information.
    * @returns {boolean} Was the request handled? Flag as defined by the method
    *   {@link IntfRequestHandler#handleRequest}.
    */
-  async _impl_handleRequest(request) {
-    Methods.abstract(request);
+  async _impl_handleRequest(request, dispatch) {
+    Methods.abstract(request, dispatch);
   }
 
 
@@ -104,12 +104,13 @@ export class BaseApplication extends BaseComponent {
    * concrete instance of this class.
    *
    * @param {Request} request Request object.
+   * @param {DispatchInfo} dispatch Dispatch information.
    * @param {function(object, object, function(?string|object))} middleware
    *   Express-style middleware function.
    * @returns {boolean} Was the request handled? This is the result request
    *   handling as defined by {@link IntfRequestHandler#handleRequest}.
    */
-  static async callMiddleware(request, middleware) {
+  static async callMiddleware(request, dispatch, middleware) {
     const { expressRequest: req, expressResponse: res } = request;
     const resultMp = new ManualPromise();
     const origEnd  = res.end;
@@ -125,9 +126,23 @@ export class BaseApplication extends BaseComponent {
       }
     };
 
+    // Modify the request, to insert the dispatch information (this system
+    // normally doesn't mess with incoming request objects), but Express
+    // middleware _does_ expect dispatch-related bits to be set), and then
+    // restore it on the way back out.
+    const { baseUrl, url } = req;
+
+    req.baseUrl = dispatch.baseString;
+    req.url     = dispatch.extraString;
+
+    // "Spy" on `res.end`, so we can async-return when appropriate.
     res.end = (...args) => {
       res.end = origEnd;
       res.end(...args);
+
+      req.baseUrl = baseUrl;
+      req.url = url;
+
       resultMp.resolve(true);
     };
 

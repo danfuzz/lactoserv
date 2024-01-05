@@ -16,6 +16,7 @@
     "@this/app-framework": "*",
     "@this/fs-util": "*",
     "@this/loggy": "*",
+    "@this/net-util": "*",
     "@this/typey": "*",
     "express": "^4.18.2"
   }
