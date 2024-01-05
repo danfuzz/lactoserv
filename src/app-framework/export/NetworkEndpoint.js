@@ -79,13 +79,8 @@ export class NetworkEndpoint extends BaseComponent {
 
   /** @override */
   async handleRequest(request) {
-    const req = request.expressRequest;
-
-    // Freezing `subdomains` lets `new TreePathKey()` avoid making a copy.
-    const hostKey = new TreePathKey(Object.freeze(req.subdomains), false);
-
     // Find the mount map for the most-specific matching host.
-    const hostMatch = this.#mountMap.find(hostKey);
+    const hostMatch = this.#mountMap.find(request.hostname);
     if (!hostMatch) {
       // No matching host.
       request.logger?.hostNotFound(hostKey);
