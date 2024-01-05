@@ -14,6 +14,7 @@
   "dependencies": {
     "@this/app-config": "*",
     "@this/app-framework": "*",
+    "@this/collections": "*",
     "@this/fs-util": "*",
     "@this/loggy": "*",
     "@this/net-util": "*",

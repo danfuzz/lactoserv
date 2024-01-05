@@ -1,17 +1,32 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import fs from 'node:fs/promises';
+
 import express from 'express';
 
 import { ApplicationConfig, Files } from '@this/app-config';
 import { BaseApplication } from '@this/app-framework';
+import { TreePathKey } from '@this/collections';
 import { FsUtil } from '@this/fs-util';
 import { IntfLogger } from '@this/loggy';
-import { MustBe } from '@this/typey';
+import { DispatchInfo } from '@this/network-protocol';
 
 
 /**
  * Static content server. See docs for configuration object details.
+ *
+ * This class will refuse to serve (error `404`) URLs which:
+ * * Contain `..` components which would "back out" of the root directory.
+ * * Contain an _encoded_ slash in them, that is to say literally `%2F`, because
+ *   the underlying filesystem API doesn't have any way to specify a path
+ *   _component_ which contains a slash.
+ * * Contain an internal empty path component (`...//...`), again because the
+ *   filesystem API doesn't understand those as names (and we are being
+ *   conservative in that we'd rather report an error than wade blithely into
+ *   DWIM territory).
+ * * End with an empty path component (that is, end with a slash), if the path
+ *   does _not_ correspond to a readable directory.
  */
 export class StaticFiles extends BaseApplication {
   /**
@@ -38,19 +53,31 @@ export class StaticFiles extends BaseApplication {
     const { notFoundPath, siteDirectory } = config;
 
     this.#notFoundPath     = notFoundPath;
-    this.#siteDirectory    = MustBe.string(siteDirectory);
+    this.#siteDirectory    = siteDirectory;
     this.#staticMiddleware = express.static(siteDirectory);
   }
 
   /** @override */
   async _impl_handleRequest(request, dispatch) {
+    const resolved = this.#resolvePath(dispatch);
+
+    if (!resolved) {
+      if (this.#notFoundPath) {
+        request.expressResponse.status(404).sendFile(this.#notFoundPath);
+        return await BaseApplication.whenEnded(request);
+      } else {
+        return false;
+      }
+    }
+
+    if (resolved.redirect) {
+      // TODO: Use request.redirect.
+      this.logger?.wouldRedirect(dispatch, request.redirect);
+    }
+
+    // TODO: Just use sendFile, I think?
     const result =
       await BaseApplication.callMiddleware(request, dispatch, this.#staticMiddleware);
-
-    if (!result && this.#notFoundPath) {
-      request.expressResponse.status(404).sendFile(this.#notFoundPath);
-      return await BaseApplication.whenEnded(request);
-    }
 
     return result;
   }
@@ -73,6 +100,84 @@ export class StaticFiles extends BaseApplication {
   /** @override */
   async _impl_stop(willReload_unused) {
     // Nothing to do here.
+  }
+
+  /**
+   * Figures out the absolute path to serve for the given request path.
+   *
+   * @param {DispatchInfo} dispatch Dispatch info containing the path to serve.
+   * @returns {{path: string, stats: fs.Stats}|{redirect: TreePathKey}|null} The
+   *   absolute path and stat info, the path to redirect to, or `null` if given
+   *   invalid input.
+   */
+  async #resolvePath(dispatch) {
+    const path     = dispatch.extra;
+    const parts    = [];
+    let   endSlash = false;
+
+    for (const p of path.path) {
+      if (endSlash) {
+        // We got an empty path component _not_ at the end of the path.
+        return null;
+      }
+
+      switch (p) {
+        case '': {
+          endSlash = true;
+          break;
+        }
+        case '.': {
+          // Nothing to do.
+          break;
+        }
+        case '..': {
+          if (parts.length === 0) {
+            // Backing up past the base directory.
+            return null;
+          }
+          parts.pop();
+          break;
+        }
+        default: {
+          try {
+            const decoded = decodeURIComponent(p);
+            if (/[/]/.test(decoded)) {
+              // Not allowed to have an encoded slash.
+              return null;
+            }
+            parts.push(decoded);
+          } catch {
+            // Syntax error in encoded path.
+            return null;
+          }
+        }
+      }
+    }
+
+    const fullPath = `${this.#siteDirectory}/${parts.join('/')}`;
+    this.logger?.fullPath(fullPath);
+
+    try {
+      const stats = await fs.stat(fullPath);
+      if (stats.isDirectory()) {
+        if (!endSlash) {
+          // Redirect from non-ending-slash directory path.
+          parts.push('');
+          return { redirect: new TreePathKey(Object.freeze(parts), false) };
+        }
+      } else if (endSlash) {
+        // Non-directory with a slash. Not accepted per class contract.
+        return null;
+      }
+      return { path: fullPath, stats };
+    } catch (e) {
+      if (e.code === 'ENOENT') {
+        this.logger?.notFound(fullPath);
+      } else {
+        this.logger?.statError(fullPath, e);
+      }
+      return null;
+    }
   }
 
 
