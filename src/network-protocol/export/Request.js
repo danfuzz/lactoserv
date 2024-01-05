@@ -114,9 +114,9 @@ export class Request {
    * `express.Request`.
    */
   get hostname() {
-    // This doesn't rely on Express, so as to make it easier to ultimately drop
-    // Express entirely as a dependency. Also, unlike Express, this
-    // canonicalizes IP addresses.
+    // This use `subdomains` from `express.Request`, so as to make it easier to
+    // ultimately drop Express entirely as a dependency. Also, unlike Express,
+    // this canonicalizes IP addresses.
     if (!this.#parsedHostname) {
       const hostname = this.hostnameString;
       let parts;
@@ -143,6 +143,10 @@ export class Request {
    */
   get hostnameString() {
     if (this.#hostnameIsIp === null) {
+      // Note: `expressRequest.hostname` is an Express-specific field. TODO:
+      // Replace this usage with our own implementation here, as part of the
+      // effort to drop the dependency on Express.
+
       const hostname    = this.#expressRequest.hostname ?? null;
       const canonicalIp = hostname
         ? Uris.checkIpAddressOrNull(hostname)
