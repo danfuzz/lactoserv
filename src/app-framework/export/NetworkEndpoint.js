@@ -77,8 +77,13 @@ export class NetworkEndpoint extends BaseComponent {
     this.#wrangler = ProtocolWranglers.make(wranglerOptions);
   }
 
-  /** @override */
-  async handleRequest(request) {
+  /**
+   * **Note:** The second argument (`dispatch`) is expected to always be passed
+   * in as `null` here, so we can safely ignore it.
+   *
+   * @override
+   */
+  async handleRequest(request, dispatch_unused) {
     // Find the mount map for the most-specific matching host.
     const hostMatch = this.#mountMap.find(request.hostname);
     if (!hostMatch) {

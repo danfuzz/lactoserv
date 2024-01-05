@@ -393,7 +393,7 @@ export class ProtocolWrangler {
 
     try {
       const result = await this.#requestHandler.handleRequest(
-        new Request(req, res, reqLogger));
+        new Request(req, res, reqLogger), null);
 
       if (result) {
         // Validate that the request was actually handled.
