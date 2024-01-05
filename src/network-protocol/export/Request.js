@@ -4,6 +4,7 @@
 import { ClientRequest, ServerResponse } from 'node:http';
 
 import express from 'express';
+import statuses from 'statuses';
 
 import { TreePathKey } from '@this/collections';
 import { IntfLogger } from '@this/loggy';
@@ -247,6 +248,51 @@ export class Request {
     // not the Express-specific `.originalUrl`. (Ultimately, the hope is to drop
     // use of Express, as it provides little value to this project.)
     return this.#expressRequest.url;
+  }
+
+  /**
+   * Issues a redirect response, with a standard response message and plain text
+   * body. The response message depends on the status code.
+   *
+   * Calling this method results in this request being considered complete, and
+   * as such no additional response-related methods will work.
+   *
+   * @param {string} target Possibly-relative target URL.
+   * @param {number} [status] Status code.
+   */
+  redirect(target, status = 302) {
+    // Note: This method avoids using `express.Response.redirect()` (a) to avoid
+    // ambiguity with the argument `"back"`, and (b) generally with an eye
+    // towards dropping Express entirely as a dependency.
+
+    MustBe.string(target);
+    MustBe.number(status,
+      { safeInteger: true, minInclusive: 100, maxInclusive: 599 });
+
+    const res = this.#expressResponse;
+    const message =
+      `${status} ${statuses(status)}\n` +
+      'Redirecting to:\n' +
+      `  ${target}\n`;
+
+    res.status(status);
+    res.set('Location', target);
+    res.contentType('text/plain');
+    res.send(message);
+  }
+
+  /**
+   * Issues a redirect response targeted at the original request's referrer. If
+   * there was no referrer, this redirects to `/`.
+   *
+   * Calling this method results in this request being considered complete, and
+   * as such no additional response-related methods will work.
+   *
+   * @param {number} [status] Status code.
+   */
+  redirectBack(status = 302) {
+    const target = this.#expressRequest.header('referrer') ?? '/';
+    this.redirect(target, status);
   }
 
   /**
