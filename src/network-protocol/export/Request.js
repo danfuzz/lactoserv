@@ -257,6 +257,11 @@ export class Request {
    * Calling this method results in this request being considered complete, and
    * as such no additional response-related methods will work.
    *
+   * **Note:** This method does _not_ do any URL-encoding on the given `target`.
+   * It is assumed to be valid and already encoded if necessary. (This is unlike
+   * Express which tries to be "smart" about encoding, which can ultimately be
+   * more like "confusing.")
+   *
    * @param {string} target Possibly-relative target URL.
    * @param {number} [status] Status code.
    */

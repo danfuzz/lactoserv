@@ -7,6 +7,7 @@ import { ApplicationConfig, Files } from '@this/app-config';
 import { BaseApplication } from '@this/app-framework';
 import { FsUtil } from '@this/fs-util';
 import { IntfLogger } from '@this/loggy';
+import { MustBe } from '@this/typey';
 
 
 /**
@@ -18,6 +19,9 @@ export class StaticFiles extends BaseApplication {
    * `null` if not-found handling shouldn't be done.
    */
   #notFoundPath;
+
+  /** @type {string} Absolute path to the base directory of files to serve. */
+  #siteDirectory;
 
   /** @type {function(...*)} "Middleware" handler function for this instance. */
   #staticMiddleware;
@@ -34,6 +38,7 @@ export class StaticFiles extends BaseApplication {
     const { notFoundPath, siteDirectory } = config;
 
     this.#notFoundPath     = notFoundPath;
+    this.#siteDirectory    = MustBe.string(siteDirectory);
     this.#staticMiddleware = express.static(siteDirectory);
   }
 
