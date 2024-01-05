@@ -10,20 +10,17 @@ import { IntfLogger } from '@this/loggy';
 
 
 /**
- * Static content server. Configuration object details:
- *
- * * `{string} siteDirectory` -- Absolute path to the base directory for the
- *   site files.
+ * Static content server. See docs for configuration object details.
  */
 export class StaticFiles extends BaseApplication {
-  /** @type {function(...*)} "Middleware" handler function for this instance. */
-  #staticMiddleware;
-
   /**
    * @type {?string} Path to the file to serve for a not-found result, or
    * `null` if not-found handling shouldn't be done.
    */
   #notFoundPath;
+
+  /** @type {function(...*)} "Middleware" handler function for this instance. */
+  #staticMiddleware;
 
   /**
    * Constructs an instance.
