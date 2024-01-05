@@ -3,7 +3,7 @@
 
 import { Methods } from '@this/typey';
 
-import { DispatchRequest } from '#x/DispatchRequest';
+import { DispatchInfo } from '#x/DispatchInfo';
 import { Request } from '#x/Request';
 
 
@@ -35,7 +35,7 @@ export class IntfRequestHandler {
    *
    * @abstract
    * @param {Request} request Request object.
-   * @param {?DispatchRequest} dispatch Dispatch information, or `null` if no
+   * @param {?DispatchInfo} dispatch Dispatch information, or `null` if no
    *   dispatch determination has yet been made.
    * @returns {boolean} Was the request handled? Flag as described above.
    * @throws {Error} Thrown in case of fatal error.

@@ -15,7 +15,7 @@ import { Request } from '#x/Request';
  * aiming for maximum immutability of the objects (even if we don't quite
  * achieve it).
  */
-export class DispatchRequest {
+export class DispatchInfo {
   /** @type {TreePathKey} The base path. */
   #base;
 

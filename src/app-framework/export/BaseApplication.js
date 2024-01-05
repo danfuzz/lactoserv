@@ -4,7 +4,7 @@
 import { ApplicationConfig } from '@this/app-config';
 import { ManualPromise } from '@this/async';
 import { BaseLoggingEnvironment, IntfLogger } from '@this/loggy';
-import { DispatchRequest, IntfRequestHandler, Request }
+import { DispatchInfo, IntfRequestHandler, Request }
   from '@this/network-protocol';
 import { Methods } from '@this/typey';
 
@@ -78,7 +78,7 @@ export class BaseApplication extends BaseComponent {
    *
    * @abstract
    * @param {Request} request Request object.
-   * @param {DispatchRequest} dispatch Dispatch information.
+   * @param {DispatchInfo} dispatch Dispatch information.
    * @returns {boolean} Was the request handled? Flag as defined by the method
    *   {@link IntfRequestHandler#handleRequest}.
    */
@@ -104,7 +104,7 @@ export class BaseApplication extends BaseComponent {
    * concrete instance of this class.
    *
    * @param {Request} request Request object.
-   * @param {DispatchRequest} dispatch Dispatch information.
+   * @param {DispatchInfo} dispatch Dispatch information.
    * @param {function(object, object, function(?string|object))} middleware
    *   Express-style middleware function.
    * @returns {boolean} Was the request handled? This is the result request

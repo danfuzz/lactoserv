@@ -4,7 +4,7 @@
 import { EndpointConfig, MountConfig } from '@this/app-config';
 import { TreePathKey, TreePathMap } from '@this/collections';
 import { IntfLogger } from '@this/loggy';
-import { DispatchRequest, IntfRateLimiter, IntfRequestHandler,
+import { DispatchInfo, IntfRateLimiter, IntfRequestHandler,
   IntfRequestLogger, ProtocolWrangler, ProtocolWranglers }
   from '@this/network-protocol';
 import { MustBe } from '@this/typey';
@@ -92,7 +92,7 @@ export class NetworkEndpoint extends BaseComponent {
       pathMatch;
       pathMatch = pathMatch.next) {
       const application = pathMatch.value;
-      const dispatch = new DispatchRequest(pathMatch.key, pathMatch.keyRemainder);
+      const dispatch = new DispatchInfo(pathMatch.key, pathMatch.keyRemainder);
 
       request.logger?.dispatching({
         application: application.name,
