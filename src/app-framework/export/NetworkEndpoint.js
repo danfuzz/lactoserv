@@ -83,7 +83,7 @@ export class NetworkEndpoint extends BaseComponent {
     const hostMatch = this.#mountMap.find(request.hostname);
     if (!hostMatch) {
       // No matching host.
-      request.logger?.hostNotFound(hostKey);
+      request.logger?.hostNotFound(request.hostname);
       return false;
     }
 
