@@ -4,8 +4,7 @@
 import { ApplicationConfig } from '@this/app-config';
 import { ManualPromise } from '@this/async';
 import { BaseLoggingEnvironment, IntfLogger } from '@this/loggy';
-import { DispatchInfo, IntfRequestHandler, Request }
-  from '@this/network-protocol';
+import { DispatchInfo, IntfRequestHandler, Request } from '@this/network-protocol';
 import { Methods } from '@this/typey';
 
 import { BaseComponent } from '#x/BaseComponent';

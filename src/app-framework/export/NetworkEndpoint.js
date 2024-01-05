@@ -4,8 +4,8 @@
 import { EndpointConfig, MountConfig } from '@this/app-config';
 import { TreePathKey, TreePathMap } from '@this/collections';
 import { IntfLogger } from '@this/loggy';
-import { DispatchInfo, IntfRateLimiter, IntfRequestHandler,
-  IntfRequestLogger, ProtocolWrangler, ProtocolWranglers }
+import { DispatchInfo, IntfRateLimiter, IntfRequestHandler, IntfRequestLogger,
+  ProtocolWrangler, ProtocolWranglers }
   from '@this/network-protocol';
 
 import { BaseApplication } from '#x/BaseApplication';
