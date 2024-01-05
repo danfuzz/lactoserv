@@ -141,7 +141,7 @@ export class ManualPromise {
    */
   resolve(value) {
     if (this.#resolution) {
-      throw new Error('Cannot re-settled promise.');
+      throw new Error('Cannot re-settle promise.');
     }
 
     if (value instanceof Promise) {
