@@ -7,6 +7,7 @@ import express from 'express';
 
 import { TreePathKey } from '@this/collections';
 import { IntfLogger } from '@this/loggy';
+import { Uris } from '@this/net-util';
 import { MustBe } from '@this/typey';
 
 import { RequestLogHelper } from '#p/RequestLogHelper';
@@ -39,6 +40,21 @@ export class Request {
 
   /** @type {ServerResponse|express.Response} HTTP(ish) response object. */
   #expressResponse;
+
+  /**
+   * @type {?boolean} Is the hostname an IP address? Or `null` if not yet
+   * determined.
+   */
+  #hostnameIsIp = null;
+
+  /**
+   * @type {?string} Canonicalized hostname string, or `null` if not yet
+   * calculated.
+   */
+  #hostnameStringCanonical = null;
+
+  /** @type {?TreePathKey} Parsed hostname, or `null` if not yet calculated. */
+  #parsedHostname = null;
 
   /**
    * @type {?URL} The parsed version of `.#expressRequest.url`, or `null` if not
@@ -86,6 +102,62 @@ export class Request {
    */
   get expressResponse() {
     return this.#expressResponse;
+  }
+
+  /**
+   * @returns {TreePathKey} Parsed path key representing the hostname, in most-
+   * to least-specific order (that is, back to front). If the original hostname
+   * looks like an IP address, this just returns a single-element key with the
+   * canonicalized IP address string as the sole element.
+   *
+   * **Note:** This corresponds to the `subdomains` value defined by
+   * `express.Request`.
+   */
+  get hostname() {
+    // This doesn't rely on Express, so as to make it easier to ultimately drop
+    // Express entirely as a dependency. Also, unlike Express, this
+    // canonicalizes IP addresses.
+    if (!this.#parsedHostname) {
+      const hostname = this.hostnameString;
+      let parts;
+
+      if (!hostname) {
+        parts = [];
+      } else if (this.#hostnameIsIp) {
+        parts = [hostname];
+      } else {
+        parts = hostname.split('.').reverse();
+      }
+
+      // Freezing `parts` lets `new TreePathKey()` avoid making a copy.
+      this.#parsedHostname = new TreePathKey(Object.freeze(parts), false);
+    }
+
+    return this.#parsedHostname;
+  }
+
+  /**
+   * @returns {?string} The hostname that was passed with the original request,
+   * canonicalized if it happened to be an IP address in non-canonical form,
+   * or `null` if there was no `Host` header (or similar).
+   */
+  get hostnameString() {
+    if (this.#hostnameIsIp === null) {
+      const hostname    = this.#expressRequest.hostname ?? null;
+      const canonicalIp = hostname
+        ? Uris.checkIpAddressOrNull(hostname)
+        : null;
+
+      if (canonicalIp) {
+        this.#hostnameIsIp            = true;
+        this.#hostnameStringCanonical = canonicalIp;
+      } else {
+        this.#hostnameIsIp            = false;
+        this.#hostnameStringCanonical = hostname;
+      }
+    }
+
+    return this.#hostnameStringCanonical;
   }
 
   /**
