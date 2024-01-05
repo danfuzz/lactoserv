@@ -92,17 +92,16 @@ export class NetworkEndpoint extends BaseComponent {
       pathMatch;
       pathMatch = pathMatch.next) {
       const application = pathMatch.value;
-      const dispReq =
-        new DispatchRequest(request, pathMatch.key, pathMatch.keyRemainder);
+      const dispatch = new DispatchRequest(pathMatch.key, pathMatch.keyRemainder);
 
       request.logger?.dispatching({
         application: application.name,
         host:        hostMatch.key.toHostnameString(),
-        base:        dispReq.baseString,
-        extra:       dispReq.extraString
+        base:        dispatch.baseString,
+        extra:       dispatch.extraString
       });
 
-      if (await application.handleRequest(request, dispReq)) {
+      if (await application.handleRequest(request, dispatch)) {
         return true;
       }
     }

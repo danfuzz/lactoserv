@@ -8,7 +8,7 @@ import { Request } from '#x/Request';
 
 
 /**
- * A {@link Request}, plus dispatch information.
+ * Dispatch information related to a {@link Request}.
  *
  * In Express, the non-`Request` information held by this class is bolted onto
  * the `express.Request` object. In this system, we instead keep it separate,
@@ -16,9 +16,6 @@ import { Request } from '#x/Request';
  * achieve it).
  */
 export class DispatchRequest {
-  /** @type {Request} The underlying request. */
-  #request;
-
   /** @type {TreePathKey} The base path. */
   #base;
 
@@ -28,19 +25,14 @@ export class DispatchRequest {
   /**
    * Constructs an instance.
    *
-   * **Note:** This class makes no attempt to verify that the given `base` and
-   * `extra` correspond to the original request's full `pathname`.
-   *
-   * @param {Request} request Original request.
    * @param {TreePathKey} base The base path (that is, the path prefix) to which
    *   the request is being dispatched.
    * @param {TreePathKey} extra The remaining suffix portion of the original
    *   path, after removing `base`.
    */
-  constructor(request, base, extra) {
-    this.#request = MustBe.instanceOf(request, Request);
-    this.#base    = MustBe.instanceOf(base, TreePathKey);
-    this.#extra   = MustBe.instanceOf(extra, TreePathKey);
+  constructor(base, extra) {
+    this.#base  = MustBe.instanceOf(base, TreePathKey);
+    this.#extra = MustBe.instanceOf(extra, TreePathKey);
   }
 
   /**
@@ -78,10 +70,5 @@ export class DispatchRequest {
   get extraString() {
     // `false` == don't append `/*` for a wildcard `TreePathKey` instance.
     return this.#extra.toUriPathString(false);
-  }
-
-  /** @returns {Request} The original request. */
-  get request() {
-    return this.#request;
   }
 }
