@@ -181,6 +181,14 @@ export class Request {
   }
 
   /**
+   * @returns {string} The HTTP(ish) request method, downcased, e.g. commonly
+   * one of `'get'`, `'head'`, or `'post'`.
+   */
+  get method() {
+    return this.#expressRequest.method.toLowercase();
+  }
+
+  /**
    * @returns {TreePathKey} Parsed path key form of {@link #pathnameString}.
    */
   get pathname() {
