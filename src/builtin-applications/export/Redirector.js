@@ -37,11 +37,9 @@ export class Redirector extends BaseApplication {
 
   /** @override */
   async _impl_handleRequest(request, dispatch) {
-    request.redirect(
+    return request.redirect(
       `${this.#target}${dispatch.extraString}`,
       this.#statusCode);
-
-    return true;
   }
 
   /** @override */
