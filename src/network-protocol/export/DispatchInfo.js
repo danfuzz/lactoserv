@@ -55,10 +55,9 @@ export class DispatchInfo {
   }
 
   /**
-   * @returns {string} {@link #base}, as a path string. If it is actually an
-   * empty (zero-length) key, this returns the empty string (`''`), which
-   * maintains an invariant that concatenating {@link #baseString} and {@link
-   * #extraString} yields the original request's `pathnameString`.
+   * @returns {string} {@link #base}, as a path string. It is always prefixed
+   * with a slash (`/`) and only ends with a slash if the final path component
+   * is empty.
    */
   get baseString() {
     // `false` == don't append `/*` for a wildcard `TreePathKey` instance.
@@ -74,15 +73,12 @@ export class DispatchInfo {
   }
 
   /**
-   * @returns {string} {@link #extra}, as a path string. If it is actually an
-   * empty (zero-length) key, this returns the empty string (`''`), which
-   * maintains an invariant that concatenating {@link #baseString} and this
-   * string yields the original request's `pathnameString`.
+   * @returns {string} {@link #extra}, as a path string. It is always prefixed
+   * with a slash (`/`) and only ends with a slash if the final path component
+   * is empty.
    */
   get extraString() {
-    const extra = this.#extra;
-
     // `false` == don't append `/*` for a wildcard `TreePathKey` instance.
-    return (extra.length === 0) ? '' : extra.toUriPathString(false);
+    return this.#extra.toUriPathString(false);
   }
 }
