@@ -61,12 +61,8 @@ export class DispatchInfo {
    * #extraString} yields the original request's `pathnameString`.
    */
   get baseString() {
-    const base = this.#base;
-
     // `false` == don't append `/*` for a wildcard `TreePathKey` instance.
-    return (base.length === 0)
-      ? ''
-      : this.#base.toUriPathString(false);
+    return this.#base.toUriPathString(false);
   }
 
   /**
@@ -77,9 +73,16 @@ export class DispatchInfo {
     return this.#extra;
   }
 
-  /** @returns {string} {@link #extra}, as a path string. */
+  /**
+   * @returns {string} {@link #extra}, as a path string. If it is actually an
+   * empty (zero-length) key, this returns the empty string (`''`), which
+   * maintains an invariant that concatenating {@link #baseString} and this
+   * string yields the original request's `pathnameString`.
+   */
   get extraString() {
+    const extra = this.#extra;
+
     // `false` == don't append `/*` for a wildcard `TreePathKey` instance.
-    return this.#extra.toUriPathString(false);
+    return (extra.length === 0) ? '' : extra.toUriPathString(false);
   }
 }
