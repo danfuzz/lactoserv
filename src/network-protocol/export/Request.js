@@ -195,8 +195,8 @@ export class Request {
    */
   get pathname() {
     if (!this.#parsedPathname) {
-      const parts = this.pathnameString.split('/');
-      parts.shift(); // Shift off the empty component from the initial slash.
+      // `slice(1)` to avoid having an empty component as the first element.
+      const parts = this.pathnameString.slice(1).split('/');
 
       // Freezing `parts` lets `new TreePathKey()` avoid making a copy.
       this.#parsedPathname = new TreePathKey(Object.freeze(parts), false);
