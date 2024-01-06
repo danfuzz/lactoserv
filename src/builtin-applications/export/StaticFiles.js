@@ -59,9 +59,12 @@ export class StaticFiles extends BaseApplication {
 
   /** @override */
   async _impl_handleRequest(request, dispatch) {
-    const resolved = this.#resolvePath(dispatch);
+    const resolved = await this.#resolvePath(dispatch);
+
+    this.logger?.RESOLVED(resolved);
 
     if (!resolved) {
+      this.logger?.NOT_FOUND();
       if (this.#notFoundPath) {
         request.expressResponse.status(404).sendFile(this.#notFoundPath);
         return await BaseApplication.whenEnded(request);
@@ -72,7 +75,9 @@ export class StaticFiles extends BaseApplication {
 
     if (resolved.redirect) {
       // TODO: Use request.redirect.
-      this.logger?.wouldRedirect(dispatch, request.redirect);
+      // request.redirect(301, xxxxx)
+      const redirectTo = resolved.redirect;
+      this.logger?.wouldRedirect(dispatch, redirectTo);
     }
 
     // TODO: Just use sendFile, I think?
