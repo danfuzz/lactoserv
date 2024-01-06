@@ -292,12 +292,12 @@ export class Request {
       if (!resultMp.isSettled()) {
         resultMp.reject(e);
       }
-    })
+    });
     res.once('finish', () => {
       if (!resultMp.isSettled()) {
         resultMp.resolve(true);
       }
-    })
+    });
 
     return resultMp.promise;
   }
