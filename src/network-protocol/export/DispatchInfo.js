@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { TreePathKey } from '@this/collections';
+import { BaseConverter, Struct } from '@this/data-values';
 import { MustBe } from '@this/typey';
 
 import { Request } from '#x/Request';
@@ -33,6 +34,16 @@ export class DispatchInfo {
   constructor(base, extra) {
     this.#base  = MustBe.instanceOf(base, TreePathKey);
     this.#extra = MustBe.instanceOf(extra, TreePathKey);
+  }
+
+  /**
+   * Standard `data-values` method to produce an encoded version of this
+   * instance.
+   *
+   * @returns {Struct} The encoded form.
+   */
+  [BaseConverter.ENCODE]() {
+    return new Struct(DispatchInfo, null, this.#base, this.#extra);
   }
 
   /**
