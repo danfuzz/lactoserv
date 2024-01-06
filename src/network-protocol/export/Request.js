@@ -6,6 +6,7 @@ import { ClientRequest, ServerResponse } from 'node:http';
 import express from 'express';
 import statuses from 'statuses';
 
+import { ManualPromise } from '@this/async';
 import { TreePathKey } from '@this/collections';
 import { IntfLogger } from '@this/loggy';
 import { Uris } from '@this/net-util';
@@ -264,6 +265,7 @@ export class Request {
    *
    * @param {string} target Possibly-relative target URL.
    * @param {number} [status] Status code.
+   * @returns {boolean} `true` when the response is complete.
    */
   redirect(target, status = 302) {
     // Note: This method avoids using `express.Response.redirect()` (a) to avoid
@@ -284,6 +286,20 @@ export class Request {
     res.set('Location', target);
     res.contentType('text/plain');
     res.send(message);
+
+    const resultMp = new ManualPromise();
+    res.once('error', (e) => {
+      if (!resultMp.isSettled()) {
+        resultMp.reject(e);
+      }
+    })
+    res.once('finish', () => {
+      if (!resultMp.isSettled()) {
+        resultMp.resolve(true);
+      }
+    })
+
+    return resultMp.promise;
   }
 
   /**
@@ -294,10 +310,11 @@ export class Request {
    * as such no additional response-related methods will work.
    *
    * @param {number} [status] Status code.
+   * @returns {boolean} `true` when the response is complete.
    */
   redirectBack(status = 302) {
     const target = this.#expressRequest.header('referrer') ?? '/';
-    this.redirect(target, status);
+    return this.redirect(target, status);
   }
 
   /**
