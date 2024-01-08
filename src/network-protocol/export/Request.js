@@ -88,6 +88,12 @@ export class Request {
     this.#expressRequest  = MustBe.object(request);
     this.#expressResponse = MustBe.object(response);
     this.#logger          = logger;
+
+    if (!/^[/]/.test(request.url)) {
+      // Sanity check. If this throws, it's a bug and not (in particular) a
+      // malformed request (which never should have made it this far).
+      throw new Error('Shouldn\'t happen.');
+    }
   }
 
   /**
@@ -257,16 +263,7 @@ export class Request {
     // such rewriting. As such, it's appropriate for us to just use `.url`, and
     // not the Express-specific `.originalUrl`. (Ultimately, the hope is to drop
     // use of Express, as it provides little value to this project.)
-
-    const url = this.#expressRequest.url;
-
-    if (!/^[/]/.test(url)) {
-      // Sanity check. If this throws, it's a bug and not (in particular) a
-      // malformed request (which never should have made it this far).
-      throw new Error('Shouldn\'t happen.');
-    }
-
-    return url;
+    return this.#expressRequest.url;
   }
 
   /**
@@ -348,7 +345,16 @@ export class Request {
       // requirement is for `urlString` to _always_ be the path. The most
       // notable case where the old code failed was in parsing a path that began
       // with two slashes, which would get incorrectly parsed as having a host.
-      this.#parsedUrlObject = new URL(`x://x${this.urlString}`);
+      const urlObj = new URL(`x://x${this.urlString}`);
+
+      if (urlObj.pathname === '') {
+        // Shouldn't normally happen, but tolerate an empty pathname, converting
+        // it to `/`. (`new URL()` will return an instance like this if there's
+        // no slash after the hostname.)
+        urlObj.pathname = '/';
+      }
+
+      this.#parsedUrlObject = urlObj;
     }
 
     return this.#parsedUrlObject;
