@@ -217,7 +217,7 @@ export class Request {
   /**
    * @returns {string} The path portion of {@link #urlString}, as a string.
    * This starts with a slash (`/`) and omits the search a/k/a query (`?...`),
-   * if any.
+   * if any. This also includes "resolving" away any `.` or `..` components.
    *
    * **Note:** The name of this field matches the equivalent field of the
    * standard `URL` class.
