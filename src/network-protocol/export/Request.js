@@ -257,7 +257,16 @@ export class Request {
     // such rewriting. As such, it's appropriate for us to just use `.url`, and
     // not the Express-specific `.originalUrl`. (Ultimately, the hope is to drop
     // use of Express, as it provides little value to this project.)
-    return this.#expressRequest.url;
+
+    const url = this.#expressRequest.url;
+
+    if (!/^[/]/.test(url)) {
+      // Sanity check. If this throws, it's a bug and not (in particular) a
+      // malformed request (which never should have made it this far).
+      throw new Error('Shouldn\'t happen.');
+    }
+
+    return url;
   }
 
   /**
@@ -333,7 +342,13 @@ export class Request {
    */
   get #parsedUrl() {
     if (!this.#parsedUrlObject) {
-      this.#parsedUrlObject = new URL(this.urlString, 'x://x');
+      // Note: An earlier version of this code said `new URL(this.urlString,
+      // 'x://x')`, so as to make it possible for `urlString` to omit the scheme
+      // and host. However, that was totally incorrect, because the _real_
+      // requirement is for `urlString` to _always_ be the path. The most
+      // notable case where the old code failed was in parsing a path that began
+      // with two slashes, which would get incorrectly parsed as having a host.
+      this.#parsedUrlObject = new URL(`x://x${this.urlString}`);
     }
 
     return this.#parsedUrlObject;
