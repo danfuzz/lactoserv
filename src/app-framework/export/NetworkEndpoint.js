@@ -80,9 +80,9 @@ export class NetworkEndpoint extends BaseComponent {
 
       for (const [host, hostMounts] of this.#mountMap) {
         const hostString = host.toHostnameString();
-        const paths      = [];
-        for (const [path] of hostMounts) {
-          paths.push(path.toUriPathString(true));
+        const paths      = {};
+        for (const [path, app] of hostMounts) {
+          paths[path.toUriPathString(true)] = app.name;
         }
         mounts[hostString] = paths;
       }
