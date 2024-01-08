@@ -61,10 +61,7 @@ export class StaticFiles extends BaseApplication {
   async _impl_handleRequest(request, dispatch) {
     const resolved = await this.#resolvePath(dispatch);
 
-    this.logger?.RESOLVED(resolved);
-
     if (!resolved) {
-      this.logger?.NOT_FOUND();
       if (this.#notFoundPath) {
         request.expressResponse.status(404).sendFile(this.#notFoundPath);
         return await BaseApplication.whenEnded(request);
@@ -74,13 +71,11 @@ export class StaticFiles extends BaseApplication {
     }
 
     if (resolved.redirect) {
-      // TODO: Use request.redirect.
-      // request.redirect(301, xxxxx)
       const redirectTo = resolved.redirect;
-      this.logger?.wouldRedirect(dispatch, redirectTo);
+      return request.redirect(redirectTo, 301);
     }
 
-    // TODO: Just use sendFile, I think?
+    // TODO: Just use `sendFile`, I think?
     const result =
       await BaseApplication.callMiddleware(request, dispatch, this.#staticMiddleware);
 
@@ -111,36 +106,34 @@ export class StaticFiles extends BaseApplication {
    * Figures out the absolute path to serve for the given request path.
    *
    * @param {DispatchInfo} dispatch Dispatch info containing the path to serve.
-   * @returns {{path: string, stats: fs.Stats}|{redirect: TreePathKey}|null} The
-   *   absolute path and stat info, the path to redirect to, or `null` if given
-   *   invalid input.
+   * @returns {{path: string, stats: fs.Stats}|{redirect: string}|null} The
+   *   absolute path and stat info of the file to serve, the (absolute or
+   *   relative) URL to redirect to, or `null` if given invalid input or the
+   *   indicated path is not found.
    */
   async #resolvePath(dispatch) {
-    const path     = dispatch.extra;
+    const path     = dispatch.extra.path;
     const parts    = [];
-    let   endSlash = false;
+    let   endSlash = false; // Path ends with a slash?
 
-    for (const p of path.path) {
+    this.logger?.RESOLVING(dispatch);
+
+    for (const p of path) {
       if (endSlash) {
         // We got an empty path component _not_ at the end of the path.
         return null;
       }
 
       switch (p) {
+        case '.':
+        case '..': {
+          // These should have already been resolved away. This is a thrown
+          // error (and not `return null`) because it is indicative of a bug in
+          // this project.
+          throw new Error('Shouldn\'t happen.');
+        }
         case '': {
           endSlash = true;
-          break;
-        }
-        case '.': {
-          // Nothing to do.
-          break;
-        }
-        case '..': {
-          if (parts.length === 0) {
-            // Backing up past the base directory.
-            return null;
-          }
-          parts.pop();
           break;
         }
         default: {
@@ -166,9 +159,14 @@ export class StaticFiles extends BaseApplication {
       const stats = await fs.stat(fullPath);
       if (stats.isDirectory()) {
         if (!endSlash) {
-          // Redirect from non-ending-slash directory path.
-          parts.push('');
-          return { redirect: new TreePathKey(Object.freeze(parts), false) };
+          // Redirect from non-ending-slash directory path. As a special case,
+          // `parts.length === 0` happens when the mount point was requested
+          // directly, without a final slash. So we need to look at the base
+          // to figure out what to redirect to.
+          const source = (parts.length === 0)
+            ? dispatch.base.path
+            : parts;
+          return { redirect: `${source[source.length - 1]}/` };
         }
       } else if (endSlash) {
         // Non-directory with a slash. Not accepted per class contract.

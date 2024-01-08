@@ -198,23 +198,20 @@ export class Request {
 
   /**
    * @returns {TreePathKey} Parsed path key form of {@link #pathnameString}.
+   * **Note:** If the original incoming pathname was just `'/'` (e.g., it was
+   * from an HTTP request of literally `GET /`), then the value here is a
+   * single-element key with empty value, that is `['']`, and _not_ an empty
+   * key. This preserves the invariant that the keys for all directory-like
+   * requests end with an empty path element.
    */
   get pathname() {
     if (!this.#parsedPathname) {
-      const pathnameString = this.pathnameString;
+      // `slice(1)` to avoid having an empty component as the first element.
+      const pathStr = this.pathnameString;
+      const parts   = pathStr.slice(1).split('/');
 
-      if (pathnameString.length <= 1) {
-        // Special case: This is an empty path (could be either `''` or `'/'`).
-        // If we just let the `else` logic try to handle this, we'd run into
-        // trouble because `''.split('/')` // returns `['']` not `[]`.
-        this.#parsedPathname = TreePathKey.EMPTY;
-      } else {
-        // `slice(1)` to avoid having an empty component as the first element.
-        const parts = pathnameString.slice(1).split('/');
-
-        // Freezing `parts` lets `new TreePathKey()` avoid making a copy.
-        this.#parsedPathname = new TreePathKey(Object.freeze(parts), false);
-      }
+      // Freezing `parts` lets `new TreePathKey()` avoid making a copy.
+      this.#parsedPathname = new TreePathKey(Object.freeze(parts), false);
     }
 
     return this.#parsedPathname;
