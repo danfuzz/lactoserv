@@ -195,11 +195,20 @@ export class Request {
    */
   get pathname() {
     if (!this.#parsedPathname) {
-      // `slice(1)` to avoid having an empty component as the first element.
-      const parts = this.pathnameString.slice(1).split('/');
+      const pathnameString = this.pathnameString;
 
-      // Freezing `parts` lets `new TreePathKey()` avoid making a copy.
-      this.#parsedPathname = new TreePathKey(Object.freeze(parts), false);
+      if (pathnameString === '/') {
+        // Special case: This is an empty path. If we just let the `else` logic
+        // try to handle this, we'd run into trouble because `''.slice('/')`
+        // returns `['']` not `[]`.
+        this.#parsedPathname = TreePathKey.EMPTY;
+      } else {
+        // `slice(1)` to avoid having an empty component as the first element.
+        const parts = this.pathnameString.slice(1).split('/');
+
+        // Freezing `parts` lets `new TreePathKey()` avoid making a copy.
+        this.#parsedPathname = new TreePathKey(Object.freeze(parts), false);
+      }
     }
 
     return this.#parsedPathname;
