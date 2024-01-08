@@ -106,7 +106,7 @@ export class BaseSystem extends Threadlet {
    */
   async #run() {
     if (this.#initValue === null) {
-      throw new Error('Shouldn\'t happen (no initialization value).');
+      throw new Error('Shouldn\'t happen: No initialization value.');
     }
 
     while (!this.shouldStop()) {
