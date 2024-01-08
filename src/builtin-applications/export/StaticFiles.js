@@ -7,7 +7,6 @@ import express from 'express';
 
 import { ApplicationConfig, Files } from '@this/app-config';
 import { BaseApplication } from '@this/app-framework';
-import { TreePathKey } from '@this/collections';
 import { FsUtil } from '@this/fs-util';
 import { IntfLogger } from '@this/loggy';
 import { DispatchInfo } from '@this/network-protocol';
