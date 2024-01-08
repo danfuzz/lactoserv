@@ -116,8 +116,6 @@ export class StaticFiles extends BaseApplication {
     const parts    = [];
     let   endSlash = false; // Path ends with a slash?
 
-    this.logger?.RESOLVING(dispatch);
-
     for (const p of path) {
       if (endSlash) {
         // We got an empty path component _not_ at the end of the path.
