@@ -10,13 +10,7 @@ import { MustBe } from '@this/typey';
 
 /**
  * Application that redirects requests to different hosts, protocols, paths,
- * etc.
- *
- * Configuration object details:
- *
- * * `{string} target` -- Absolute base URI to redirect to. The relative path of
- *   the incoming request (based on the mount point of the application) is
- *   appended to this value to become the full redirected URI.
+ * etc. See docs for configuration object details.
  */
 export class Redirector extends BaseApplication {
   /** @type {number} The redirect status code to use. */
@@ -43,10 +37,9 @@ export class Redirector extends BaseApplication {
 
   /** @override */
   async _impl_handleRequest(request, dispatch) {
-    const res = request.expressResponse;
-
-    res.redirect(this.#statusCode, `${this.#target}${dispatch.extraString}`);
-    return true;
+    return request.redirect(
+      `${this.#target}${dispatch.extraString}`,
+      this.#statusCode);
   }
 
   /** @override */

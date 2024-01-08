@@ -7,13 +7,17 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* Changed interface of `BaseApplication` to use `Request` (see below). This
-  breaks downstream clients of this codebase.
+* Changed interface of `BaseApplication` to use `Request` and `Dispatch` (see
+  below). This breaks downstream clients of this codebase.
 
 Other notable changes:
 * Introduced a `Request` class specific to this project, instead of just
   "absorbing" Express's `Request` and `Response` objects. Our `Request` holds
   both the underlying request and response (and other related goodies).
+* Relatedly, introduced new class `DispatchInfo`, to hold the bits of a request
+  that are subject to alteration during dispatch. In Express, this is
+  represented by mutating the request object, but we're an immutable-forward
+  shop here.
 
 ### v0.6.0 -- 2023-12-29
 

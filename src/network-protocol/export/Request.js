@@ -4,7 +4,9 @@
 import { ClientRequest, ServerResponse } from 'node:http';
 
 import express from 'express';
+import statuses from 'statuses';
 
+import { ManualPromise } from '@this/async';
 import { TreePathKey } from '@this/collections';
 import { IntfLogger } from '@this/loggy';
 import { Uris } from '@this/net-util';
@@ -86,6 +88,12 @@ export class Request {
     this.#expressRequest  = MustBe.object(request);
     this.#expressResponse = MustBe.object(response);
     this.#logger          = logger;
+
+    if (!/^[/]/.test(request.url)) {
+      // Sanity check. If this throws, it's a bug and not (in particular) a
+      // malformed request (which never should have made it this far).
+      throw new Error('Shouldn\'t happen.');
+    }
   }
 
   /**
@@ -181,12 +189,26 @@ export class Request {
   }
 
   /**
+   * @returns {string} The HTTP(ish) request method, downcased, e.g. commonly
+   * one of `'get'`, `'head'`, or `'post'`.
+   */
+  get method() {
+    return this.#expressRequest.method.toLowercase();
+  }
+
+  /**
    * @returns {TreePathKey} Parsed path key form of {@link #pathnameString}.
+   * **Note:** If the original incoming pathname was just `'/'` (e.g., it was
+   * from an HTTP request of literally `GET /`), then the value here is a
+   * single-element key with empty value, that is `['']`, and _not_ an empty
+   * key. This preserves the invariant that the keys for all directory-like
+   * requests end with an empty path element.
    */
   get pathname() {
     if (!this.#parsedPathname) {
-      const parts = this.pathnameString.split('/');
-      parts.shift(); // Shift off the empty component from the initial slash.
+      // `slice(1)` to avoid having an empty component as the first element.
+      const pathStr = this.pathnameString;
+      const parts   = pathStr.slice(1).split('/');
 
       // Freezing `parts` lets `new TreePathKey()` avoid making a copy.
       this.#parsedPathname = new TreePathKey(Object.freeze(parts), false);
@@ -198,7 +220,7 @@ export class Request {
   /**
    * @returns {string} The path portion of {@link #urlString}, as a string.
    * This starts with a slash (`/`) and omits the search a/k/a query (`?...`),
-   * if any.
+   * if any. This also includes "resolving" away any `.` or `..` components.
    *
    * **Note:** The name of this field matches the equivalent field of the
    * standard `URL` class.
@@ -242,13 +264,94 @@ export class Request {
   }
 
   /**
+   * Issues a redirect response, with a standard response message and plain text
+   * body. The response message depends on the status code.
+   *
+   * Calling this method results in this request being considered complete, and
+   * as such no additional response-related methods will work.
+   *
+   * **Note:** This method does _not_ do any URL-encoding on the given `target`.
+   * It is assumed to be valid and already encoded if necessary. (This is unlike
+   * Express which tries to be "smart" about encoding, which can ultimately be
+   * more like "confusing.")
+   *
+   * @param {string} target Possibly-relative target URL.
+   * @param {number} [status] Status code.
+   * @returns {boolean} `true` when the response is complete.
+   */
+  redirect(target, status = 302) {
+    // Note: This method avoids using `express.Response.redirect()` (a) to avoid
+    // ambiguity with the argument `"back"`, and (b) generally with an eye
+    // towards dropping Express entirely as a dependency.
+
+    MustBe.string(target);
+    MustBe.number(status,
+      { safeInteger: true, minInclusive: 100, maxInclusive: 599 });
+
+    const res = this.#expressResponse;
+    const message =
+      `${status} ${statuses(status)}\n` +
+      'Redirecting to:\n' +
+      `  ${target}\n`;
+
+    res.status(status);
+    res.set('Location', target);
+    res.contentType('text/plain');
+    res.send(message);
+
+    const resultMp = new ManualPromise();
+    res.once('error', (e) => {
+      if (!resultMp.isSettled()) {
+        resultMp.reject(e);
+      }
+    });
+    res.once('finish', () => {
+      if (!resultMp.isSettled()) {
+        resultMp.resolve(true);
+      }
+    });
+
+    return resultMp.promise;
+  }
+
+  /**
+   * Issues a redirect response targeted at the original request's referrer. If
+   * there was no referrer, this redirects to `/`.
+   *
+   * Calling this method results in this request being considered complete, and
+   * as such no additional response-related methods will work.
+   *
+   * @param {number} [status] Status code.
+   * @returns {boolean} `true` when the response is complete.
+   */
+  redirectBack(status = 302) {
+    const target = this.#expressRequest.header('referrer') ?? '/';
+    return this.redirect(target, status);
+  }
+
+  /**
    * @returns {URL} The parsed version of {@link #urlString}. This is a
    * private getter because the return value is mutable, and we don't want to
    * allow clients to actually mutate it.
    */
   get #parsedUrl() {
     if (!this.#parsedUrlObject) {
-      this.#parsedUrlObject = new URL(this.urlString, 'x://x');
+      // Note: An earlier version of this code said `new URL(this.urlString,
+      // 'x://x')`, so as to make it possible for `urlString` to omit the scheme
+      // and host. However, that was totally incorrect, because the _real_
+      // requirement is for `urlString` to _always_ be the path. The most
+      // notable case where the old code failed was in parsing a path that began
+      // with two slashes, which would get incorrectly parsed as having a host.
+      const urlObj = new URL(`x://x${this.urlString}`);
+
+      if (urlObj.pathname === '') {
+        // Shouldn't normally happen, but tolerate an empty pathname, converting
+        // it to `/`. (`new URL()` will return an instance like this if there's
+        // no slash after the hostname.)
+        urlObj.pathname = '/';
+      }
+
+      this.#parsedUrlObject = urlObj;
     }
 
     return this.#parsedUrlObject;

@@ -74,6 +74,21 @@ export class NetworkEndpoint extends BaseComponent {
     };
 
     this.#wrangler = ProtocolWranglers.make(wranglerOptions);
+
+    if (logger) {
+      const mountMap = {};
+
+      for (const [host, hostMounts] of this.#mountMap) {
+        const hostString = host.toHostnameString();
+        const paths      = {};
+        for (const [path, app] of hostMounts) {
+          paths[path.toUriPathString(true)] = app.name;
+        }
+        mountMap[hostString] = paths;
+      }
+
+      logger.mounts(mountMap);
+    }
   }
 
   /**

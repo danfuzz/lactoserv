@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { TreePathKey } from '@this/collections';
+import { BaseConverter, Struct } from '@this/data-values';
 import { MustBe } from '@this/typey';
 
 import { Request } from '#x/Request';
@@ -26,13 +27,25 @@ export class DispatchInfo {
    * Constructs an instance.
    *
    * @param {TreePathKey} base The base path (that is, the path prefix) to which
-   *   the request is being dispatched.
+   *   the request is being dispatched. This is expected to already have `.` and
+   *   `..` components resolved away.
    * @param {TreePathKey} extra The remaining suffix portion of the original
-   *   path, after removing `base`.
+   *   path, after removing `base`. This is expected to already have `.` and
+   *   `..` components resolved away.
    */
   constructor(base, extra) {
     this.#base  = MustBe.instanceOf(base, TreePathKey);
     this.#extra = MustBe.instanceOf(extra, TreePathKey);
+  }
+
+  /**
+   * Standard `data-values` method to produce an encoded version of this
+   * instance.
+   *
+   * @returns {Struct} The encoded form.
+   */
+  [BaseConverter.ENCODE]() {
+    return new Struct(DispatchInfo, null, this.#base, this.#extra);
   }
 
   /**
@@ -44,18 +57,13 @@ export class DispatchInfo {
   }
 
   /**
-   * @returns {string} {@link #base}, as a path string. If it is actually an
-   * empty (zero-length) key, this returns the empty string (`''`), which
-   * maintains an invariant that concatenating {@link #baseString} and {@link
-   * #extraString} yields the original request's `pathnameString`.
+   * @returns {string} {@link #base}, as a path string. It is always prefixed
+   * with a slash (`/`) and only ends with a slash if the final path component
+   * is empty.
    */
   get baseString() {
-    const base = this.#base;
-
     // `false` == don't append `/*` for a wildcard `TreePathKey` instance.
-    return (base.length === 0)
-      ? ''
-      : this.#base.toUriPathString(false);
+    return this.#base.toUriPathString(false);
   }
 
   /**
@@ -66,7 +74,11 @@ export class DispatchInfo {
     return this.#extra;
   }
 
-  /** @returns {string} {@link #extra}, as a path string. */
+  /**
+   * @returns {string} {@link #extra}, as a path string. It is always prefixed
+   * with a slash (`/`) and only ends with a slash if the final path component
+   * is empty.
+   */
   get extraString() {
     // `false` == don't append `/*` for a wildcard `TreePathKey` instance.
     return this.#extra.toUriPathString(false);

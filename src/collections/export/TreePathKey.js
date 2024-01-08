@@ -113,7 +113,8 @@ export class TreePathKey {
   /**
    * Gets the string form of this instance, interpreted as an absolute URI path,
    * that is, the part of a URI after the hostname. The result always includes
-   * an initial slash (`/`) and never includes a final slash.
+   * an initial slash (`/`) and never includes a final slash (or more accurately
+   * a final slash indicates an empty path component at the end).
    *
    * @param {boolean} [showWildcard] Represent a wildcard key as a final `/*`?
    *   If `false`, then the result is as if `key` were created with `wildcard

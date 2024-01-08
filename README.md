@@ -42,9 +42,10 @@ and to enable straightforward custom applications.
 * Optionally produces detailed system activity logs.
 * JS-based configuration file format, which isn't actually that awful!
 * For custom (non-built-in) applications, reasonably friendly `async`-forward
-  application framework, which uses Express-augmented `Request` and `Response`
-  objects. Maximum ergonomics: Very straightforward application logic bottoming
-  out at a familiar, well-worn, and well-tested low-level API.
+  application framework, which uses a friendly wrapper around the underlying
+  Node / Express request and response objects. Maximum ergonomics: Very
+  straightforward application logic bottoming out at a well-tested low-level
+  implementation.
 
 ### Implementation features
 
