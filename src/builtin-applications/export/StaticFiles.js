@@ -84,6 +84,9 @@ export class StaticFiles extends BaseApplication {
         await BaseApplication.callMiddleware(request, dispatch, this.#staticMiddleware);
 
       return result;
+    } else {
+      // Shouldn't happen. If we get here, it's a bug in this class.
+      throw new Error('Shouldn\'t happen.');
     }
   }
 
