@@ -197,10 +197,10 @@ export class Request {
     if (!this.#parsedPathname) {
       const pathnameString = this.pathnameString;
 
-      if (pathnameString === '/') {
-        // Special case: This is an empty path. If we just let the `else` logic
-        // try to handle this, we'd run into trouble because `''.slice('/')`
-        // returns `['']` not `[]`.
+      if (pathnameString.length <= 1) {
+        // Special case: This is an empty path (could be either `''` or `'/'`).
+        // If we just let the `else` logic try to handle this, we'd run into
+        // trouble because `''.split('/')` // returns `['']` not `[]`.
         this.#parsedPathname = TreePathKey.EMPTY;
       } else {
         // `slice(1)` to avoid having an empty component as the first element.
