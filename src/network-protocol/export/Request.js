@@ -204,7 +204,7 @@ export class Request {
         this.#parsedPathname = TreePathKey.EMPTY;
       } else {
         // `slice(1)` to avoid having an empty component as the first element.
-        const parts = this.pathnameString.slice(1).split('/');
+        const parts = pathnameString.slice(1).split('/');
 
         // Freezing `parts` lets `new TreePathKey()` avoid making a copy.
         this.#parsedPathname = new TreePathKey(Object.freeze(parts), false);
