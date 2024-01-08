@@ -76,7 +76,7 @@ export class NetworkEndpoint extends BaseComponent {
     this.#wrangler = ProtocolWranglers.make(wranglerOptions);
 
     if (logger) {
-      const mounts = {};
+      const mountMap = {};
 
       for (const [host, hostMounts] of this.#mountMap) {
         const hostString = host.toHostnameString();
@@ -84,10 +84,10 @@ export class NetworkEndpoint extends BaseComponent {
         for (const [path, app] of hostMounts) {
           paths[path.toUriPathString(true)] = app.name;
         }
-        mounts[hostString] = paths;
+        mountMap[hostString] = paths;
       }
 
-      logger.mounted(mounts);
+      logger.mounts(mountMap);
     }
   }
 
