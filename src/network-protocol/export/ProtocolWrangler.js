@@ -489,6 +489,10 @@ export class ProtocolWrangler {
     // permanently.
     application.set('env', 'production');
 
+    // Don't generate etags automatically. Particular apps -- e.g., notably
+    // `StaticFiles`, might still choose to generate them, though.
+    application.set('etag fn', false);
+
     // This means paths `/foo` and `/foo/` are different.
     application.set('strict routing', true);
 

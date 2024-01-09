@@ -9,6 +9,7 @@ import { ApplicationConfig, Files } from '@this/app-config';
 import { BaseApplication } from '@this/app-framework';
 import { FsUtil } from '@this/fs-util';
 import { IntfLogger } from '@this/loggy';
+import { MimeTypes } from '@this/net-util';
 import { DispatchInfo } from '@this/network-protocol';
 
 
@@ -40,6 +41,12 @@ export class StaticFiles extends BaseApplication {
   /** @type {function(...*)} "Middleware" handler function for this instance. */
   #staticMiddleware;
 
+  /** @type {?string} MIME type of the not-found file, if known. */
+  #notFoundType = null;
+
+  /** @type {?Buffer} Contents of the not-found file, if known. */
+  #notFoundContents = null;
+
   /**
    * Constructs an instance.
    *
@@ -62,10 +69,8 @@ export class StaticFiles extends BaseApplication {
     const resolved = await this.#resolvePath(dispatch);
 
     if (!resolved) {
-      if (this.#notFoundPath) {
-        request.expressResponse.status(404)
-          .sendFile(this.#notFoundPath, StaticFiles.#SEND_OPTIONS);
-        return await BaseApplication.whenEnded(request);
+      if (this.#notFoundType) {
+        return request.notFound(this.#notFoundType, this.#notFoundContents);
       } else {
         return false;
       }
@@ -94,16 +99,21 @@ export class StaticFiles extends BaseApplication {
 
   /** @override */
   async _impl_start(isReload_unused) {
-    const { notFoundPath, siteDirectory } = this.config;
+    const siteDirectory = this.#siteDirectory;
 
     if (!await FsUtil.directoryExists(siteDirectory)) {
       throw new Error(`Not found or not a directory: ${siteDirectory}`);
     }
 
+    const notFoundPath = this.#notFoundPath;
+
     if (notFoundPath) {
       if (!await FsUtil.fileExists(notFoundPath)) {
         throw new Error(`Not found or not a file: ${notFoundPath}`);
       }
+
+      this.#notFoundType     = MimeTypes.typeFromExtension(notFoundPath);
+      this.#notFoundContents = await fs.readFile(notFoundPath);
     }
   }
 

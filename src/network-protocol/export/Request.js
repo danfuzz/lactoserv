@@ -264,6 +264,43 @@ export class Request {
   }
 
   /**
+   * Issues a "not found" (status `404`) response, with optional body. If no
+   * body is provided, a simple default plain-text body is used. The response
+   * includes the single content/cache-related header `Cache-Control: no-store,
+   * must-revalidate`. If the request method is `HEAD`, this will _not_ send the
+   * body as part of the response.
+   *
+   * @param {string} [type] Content type for the body. Must be valid if `body`
+   *   is passed as non-`null`.
+   * @param {string|Buffer} [body] Body content.
+   * @returns {boolean} `true` when the response is completed.
+   */
+  notFound(type = null, body = null) {
+    const STATUS = 404;
+
+    if (body) {
+      MustBe.string(type);
+      if (!(body instanceof Buffer)) {
+        MustBe.string(body);
+      }
+    } else {
+      type = 'text/plain';
+      body =
+        `${STATUS} ${statuses(STATUS)}:\n` +
+        `  ${this.urlString}\n`;
+    }
+
+    const res = this.#expressResponse;
+
+    res.status(STATUS);
+    res.contentType(type);
+    res.set('Cache-Control', 'no-store, must-revalidate');
+    res.send(body);
+
+    return this.whenResponseDone();
+  }
+
+  /**
    * Issues a redirect response, with a standard response message and plain text
    * body. The response message depends on the status code.
    *
@@ -277,7 +314,7 @@ export class Request {
    *
    * @param {string} target Possibly-relative target URL.
    * @param {number} [status] Status code.
-   * @returns {boolean} `true` when the response is complete.
+   * @returns {boolean} `true` when the response is completed.
    */
   redirect(target, status = 302) {
     // Note: This method avoids using `express.Response.redirect()` (a) to avoid
@@ -322,11 +359,55 @@ export class Request {
    * as such no additional response-related methods will work.
    *
    * @param {number} [status] Status code.
-   * @returns {boolean} `true` when the response is complete.
+   * @returns {boolean} `true` when the response is completed.
    */
   redirectBack(status = 302) {
     const target = this.#expressRequest.header('referrer') ?? '/';
     return this.redirect(target, status);
+  }
+
+  /**
+   * Returns when the underlying response has been closed successfully or has
+   * errored. Returns `true` for a normal close, or throws whatever error the
+   * response reports.
+   *
+   * @returns {boolean} `true` when closed without error.
+   * @throws {Error} Any error reported by the underlying response object.
+   */
+  async whenResponseDone() {
+    const res = this.#expressResponse;
+
+    function makeProperError(error) {
+      return (error instanceof Error)
+        ? error
+        : new Error(`non-error object: ${error}`);
+    }
+
+    if (res.closed || res.destroyed || res.writableEnded) {
+      const error = res.errored;
+      if (error) {
+        throw makeProperError(error);
+      }
+      return true;
+    }
+
+    const resultMp = new ManualPromise();
+
+    res.once('error', (error) => {
+      if (error) {
+        resultMp.reject(makeProperError(error));
+      } else {
+        resultMp.resolve(true);
+      }
+    });
+
+    res.once('close', () => {
+      if (!resultMp.isSettled()) {
+        resultMp.resolve(true);
+      }
+    });
+
+    return resultMp.promise;
   }
 
   /**
