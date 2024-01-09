@@ -53,7 +53,8 @@ export class StaticFiles extends BaseApplication {
 
     this.#notFoundPath     = notFoundPath;
     this.#siteDirectory    = siteDirectory;
-    this.#staticMiddleware = express.static(siteDirectory);
+    this.#staticMiddleware =
+      express.static(siteDirectory, StaticFiles.#SEND_OPTIONS);
   }
 
   /** @override */
@@ -62,7 +63,8 @@ export class StaticFiles extends BaseApplication {
 
     if (!resolved) {
       if (this.#notFoundPath) {
-        request.expressResponse.status(404).sendFile(this.#notFoundPath);
+        request.expressResponse.status(404)
+          .sendFile(this.#notFoundPath, StaticFiles.#SEND_OPTIONS);
         return await BaseApplication.whenEnded(request);
       } else {
         return false;
@@ -193,6 +195,11 @@ export class StaticFiles extends BaseApplication {
   //
   // Static members
   //
+
+  /** @type {object} File sending/serving configuration options. */
+  static #SEND_OPTIONS = Object.freeze({
+    maxAge: 5 * 60 * 1000 // 5 minutes.
+  });
 
   /** @override */
   static get CONFIG_CLASS() {
