@@ -13,6 +13,7 @@
 
   "dependencies": {
     "@this/collections": "*",
-    "@this/typey": "*"
+    "@this/typey": "*",
+    "mime": "^4.0.1"
   }
 }
