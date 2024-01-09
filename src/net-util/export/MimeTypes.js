@@ -31,8 +31,8 @@ export class MimeTypes {
   }
 
   /**
-   * Returns the given string if it is a known MIME type, or uses {@link
-   * #typeForExtension} if it looks like a simple extension value (string of
+   * Returns the given string if it is a known MIME type, or acts like {@link
+   * #typeFromExtension} if it looks like a simple extension value (string of
    * less than 10 characters with no dot or slash). If it is an extension that
    * is unrecognized, this returns `'application/octet-stream'`. This throws an
    * an error in other cases.
