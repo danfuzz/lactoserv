@@ -383,7 +383,7 @@ export class Request {
         : new Error(`non-error object: ${error}`);
     }
 
-    if (res.closed || res.destroyed) {
+    if (res.closed || res.destroyed || res.writableEnded) {
       const error = res.errored;
       if (error) {
         throw makeProperError(error);
@@ -407,7 +407,7 @@ export class Request {
       }
     });
 
-    return resultMp;
+    return resultMp.promise;
   }
 
   /**
