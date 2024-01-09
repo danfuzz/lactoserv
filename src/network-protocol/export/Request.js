@@ -267,26 +267,32 @@ export class Request {
    * Issues a "not found" (status `404`) response, with optional body. If no
    * body is provided, a simple default plain-text body is used. The response
    * includes the single content/cache-related header `Cache-Control: no-store,
-   * must-revalidate`.
+   * must-revalidate`. If the request method is `HEAD`, this will _not_ send the
+   * body as part of the response.
    *
    * @param {string} [type] Content type for the body. Must be valid if `body`
    *   is passed as non-`null`.
-   * @param {string} [body] Body content.
+   * @param {string|Buffer} [body] Body content.
    * @returns {boolean} `true` when the response is completed.
    */
   notFound(type = null, body = null) {
+    const STATUS = 404;
+
     if (body) {
       MustBe.string(type);
-      MustBe.string(body);
+      if (!(body instanceof Buffer)) {
+        MustBe.string(body);
+      }
     } else {
       type = 'text/plain';
-      body = 'Not found:\n'
-        + `  ${this.urlString}\n`;
+      body =
+        `${STATUS} ${statuses(STATUS)}:\n` +
+        `  ${this.urlString}\n`;
     }
 
     const res = this.#expressResponse;
 
-    res.status(404);
+    res.status(STATUS);
     res.contentType(type);
     res.set('Cache-Control', 'no-store, must-revalidate');
     res.send(body);
