@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 export * from '#x/DispatchInfo';
+export * from '#x/ExpressLegacy';
 export * from '#x/IntfHostManager';
 export * from '#x/IntfRateLimiter';
 export * from '#x/IntfRequestHandler';
