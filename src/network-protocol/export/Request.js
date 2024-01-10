@@ -529,7 +529,7 @@ export class Request {
    *   `options.bodyExtra`.
    * @param {?string} [options.bodyExtra] Text to append to a constructed body.
    *   Only used if `options.body` is not passed.
-   * @param {?object} [headers] Extra response headers to send, if any.
+   * @param {?object} [options.headers] Extra response headers to send, if any.
    * @returns {boolean} `true` when the response is completed.
    */
   #sendNonContentResponse(status, options = null) {
