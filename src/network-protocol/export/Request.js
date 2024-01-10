@@ -272,34 +272,17 @@ export class Request {
    * must-revalidate`. If the request method is `HEAD`, this will _not_ send the
    * body as part of the response.
    *
-   * @param {string} [type] Content type for the body. Must be valid if `body`
-   *   is passed as non-`null`.
+   * @param {string} [contentType] Content type for the body. Must be valid if
+   *  `body` is passed as non-`null`.
    * @param {string|Buffer} [body] Body content.
    * @returns {boolean} `true` when the response is completed.
    */
-  async notFound(type = null, body = null) {
-    const STATUS = 404;
+  async notFound(contentType = null, body = null) {
+    const sendOpts = body
+      ? { contentType, body }
+      : { bodyExtra: `  ${this.urlString}\n` };
 
-    if (body) {
-      MustBe.string(type);
-      if (!(body instanceof Buffer)) {
-        MustBe.string(body);
-      }
-    } else {
-      type = 'text/plain';
-      body =
-        `${STATUS} ${statuses(STATUS)}:\n` +
-        `  ${this.urlString}\n`;
-    }
-
-    const res = this.#expressResponse;
-
-    res.status(STATUS);
-    res.contentType(type);
-    res.set('Cache-Control', 'no-store, must-revalidate');
-    res.send(body);
-
-    return this.whenResponseDone();
+    return this.#sendNonContentResponse(404, sendOpts);
   }
 
   /**
@@ -522,5 +505,58 @@ export class Request {
     }
 
     return this.#parsedUrlObject;
+  }
+
+  /**
+   * Sends a response of the given status, with various options for the response
+   * headers and body. The response headers always get set to make the response
+   * _not_ be cacheable. This method is intended to be used for all "meta-ish"
+   * non-content responses, such as not-founds, redirects, etc., so as to
+   * provide a standard form of response (though with some flexibility).
+   *
+   * @param {number} status The status code.
+   * @param {?object} [options] Options for the response.
+   * @param {?string} [options.contentType] Content type for the body. Required
+   *   if `options.body` is passed.
+   * @param {string|Buffer|null} [options.body] Complete body to send, if any.
+   *   If not supplied, one is constructed based on the `status` and
+   *   `options.bodyExtra`.
+   * @param {?string} [options.bodyExtra] Text to append to a constructed body.
+   *   Only used if `options.body` is not passed.
+   * @param {?object} [headers] Extra response headers to send, if any.
+   * @returns {boolean} `true` when the response is completed.
+   */
+  #sendNonContentResponse(status, options = null) {
+    MustBe.number(status, { safeInteger: true, minInclusive: 0, maxInclusive: 599 });
+    const { contentType, body, bodyExtra, headers } = options ?? {};
+
+    let finalBody;
+    let finalContentType;
+
+    if (body) {
+      if (!contentType) {
+        throw new Error('Missing `contentType`.');
+      }
+      finalBody        = body;
+      finalContentType = MimeTypes.typeFromExtensionOrType(contentType);
+    } else {
+      const bodyHeader = `${status} ${statuses(status)}:\n`;
+      finalBody        = `${bodyHeader}${bodyExtra ?? ''}`;
+      finalContentType = 'text/plain';
+    }
+
+    const res = this.#expressResponse;
+
+    res.status(status);
+    res.contentType(finalContentType);
+
+    if (headers) {
+      res.set(headers);
+    }
+
+    res.set('Cache-Control', 'no-store, must-revalidate');
+    res.send(finalBody);
+
+    return this.whenResponseDone();
   }
 }
