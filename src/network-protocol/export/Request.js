@@ -1,6 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import * as fs from 'node:fs/promises';
 import { ClientRequest, ServerResponse } from 'node:http';
 
 import express from 'express';
@@ -9,6 +10,7 @@ import statuses from 'statuses';
 import { ManualPromise } from '@this/async';
 import { TreePathKey } from '@this/collections';
 import { IntfLogger } from '@this/loggy';
+import { MimeTypes } from '@this/net-util';
 import { Uris } from '@this/net-util';
 import { MustBe } from '@this/typey';
 
@@ -270,34 +272,17 @@ export class Request {
    * must-revalidate`. If the request method is `HEAD`, this will _not_ send the
    * body as part of the response.
    *
-   * @param {string} [type] Content type for the body. Must be valid if `body`
-   *   is passed as non-`null`.
+   * @param {string} [contentType] Content type for the body. Must be valid if
+   *  `body` is passed as non-`null`.
    * @param {string|Buffer} [body] Body content.
    * @returns {boolean} `true` when the response is completed.
    */
-  notFound(type = null, body = null) {
-    const STATUS = 404;
+  async notFound(contentType = null, body = null) {
+    const sendOpts = body
+      ? { contentType, body }
+      : { bodyExtra: `  ${this.urlString}\n` };
 
-    if (body) {
-      MustBe.string(type);
-      if (!(body instanceof Buffer)) {
-        MustBe.string(body);
-      }
-    } else {
-      type = 'text/plain';
-      body =
-        `${STATUS} ${statuses(STATUS)}:\n` +
-        `  ${this.urlString}\n`;
-    }
-
-    const res = this.#expressResponse;
-
-    res.status(STATUS);
-    res.contentType(type);
-    res.set('Cache-Control', 'no-store, must-revalidate');
-    res.send(body);
-
-    return this.whenResponseDone();
+    return this.#sendNonContentResponse(404, sendOpts);
   }
 
   /**
@@ -316,39 +301,17 @@ export class Request {
    * @param {number} [status] Status code.
    * @returns {boolean} `true` when the response is completed.
    */
-  redirect(target, status = 302) {
+  async redirect(target, status = 302) {
     // Note: This method avoids using `express.Response.redirect()` (a) to avoid
     // ambiguity with the argument `"back"`, and (b) generally with an eye
     // towards dropping Express entirely as a dependency.
 
     MustBe.string(target);
-    MustBe.number(status,
-      { safeInteger: true, minInclusive: 100, maxInclusive: 599 });
 
-    const res = this.#expressResponse;
-    const message =
-      `${status} ${statuses(status)}\n` +
-      'Redirecting to:\n' +
-      `  ${target}\n`;
-
-    res.status(status);
-    res.set('Location', target);
-    res.contentType('text/plain');
-    res.send(message);
-
-    const resultMp = new ManualPromise();
-    res.once('error', (e) => {
-      if (!resultMp.isSettled()) {
-        resultMp.reject(e);
-      }
+    return this.#sendNonContentResponse(status, {
+      bodyExtra: `  ${target}\n`,
+      headers:   { 'Location': target }
     });
-    res.once('finish', () => {
-      if (!resultMp.isSettled()) {
-        resultMp.resolve(true);
-      }
-    });
-
-    return resultMp.promise;
   }
 
   /**
@@ -361,9 +324,121 @@ export class Request {
    * @param {number} [status] Status code.
    * @returns {boolean} `true` when the response is completed.
    */
-  redirectBack(status = 302) {
+  async redirectBack(status = 302) {
     const target = this.#expressRequest.header('referrer') ?? '/';
     return this.redirect(target, status);
+  }
+
+  /**
+   * Issues a successful response, with the contents of the given file or with
+   * an empty body as appropriate. The actual reported status will be one of:
+   *
+   * * `200` -- The file is non-empty, and there were no conditional request
+   *   parameters (e.g., `if-none-match`) which indicate that the body shouldn't
+   *   be sent. The body is sent in this case, unless the request method was
+   *   `HEAD`.
+   * * `204` -- The file is empty, and there were no matching conditional
+   *   request parameters. No body is sent.
+   * * `206` -- A body is being returned, and a range request matches.
+   * * `304` -- There was at least one conditional request parameter which
+   *   matched. No body is sent.
+   * * `416` -- A range request couldn't be satisfied. The original body isn't
+   *   sent, but an error message body _is_ sent.
+   *
+   * This method throws an error if the given `path` does not correspond to a
+   * readable non-directory file. That is, this method is not in the business of
+   * handling directory redirection, higher level not-found reporting, etc. That
+   * sort of stuff should be handled _before_ calling this method.
+   *
+   * @param {string} path Absolute path to the file to send.
+   * @param {object} options Options to control response behavior.
+   * @param {?object} [options.headers] Extra headers to include in the
+   *   response, if any.
+   * @param {?number} [options.maxAgeMsec] Value to send back in the
+   *   `max-age` property of the `Cache-Control` response header. Defaults to
+   *   `0`.
+   * @returns {boolean} `true` when the response is completed.
+   * @throws {Error} Thrown if there is any trouble sending the file.
+   */
+  async sendFile(path, options = {}) {
+    MustBe.string(path, /^[/]/);
+    MustBe.object(options);
+
+    const { headers = null, maxAgeMsec = 0 } = options;
+
+    if (headers) {
+      MustBe.object(headers);
+    }
+
+    MustBe.number(maxAgeMsec, { minInclusive: 0, safeInteger: true });
+
+    const stats = await fs.stat(path);
+    if (stats.isDirectory()) {
+      throw new Error(`Cannot send directory: ${path}`);
+    }
+
+    const res          = this.#expressResponse;
+    const finalHeaders = headers ? { ...headers } : {};
+
+    // Set up `Content-Type` if the caller didn't specify it explicitly.
+    finalHeaders['Content-Type'] ??= MimeTypes.typeFromExtension(path);
+
+    // In re `dotfiles`: If the caller wants to send a dotfile, that's their
+    // business. (`sendFile()` by default tries to be something like a
+    // "friendly" static file server, but we're lower level here.)
+    const sendOpts = {
+      dotfiles: 'allow',
+      headers:  finalHeaders,
+      maxAge:   maxAgeMsec
+    };
+
+    // TODO: Stop using Express's `response.sendFile()`, as part of the
+    // long-term aim to stop using Express at all. In the short term, switch
+    // to the `send` package (which is what Express bottoms out at here). In the
+    // long term, do what `send` does, but even more directly (among other
+    // reasons, so we can use our style of logging in it and so we don't have to
+    // translate between callback and promise call styles). Things that we'll
+    // have to deal with include _at least_: HEAD requests, conditional
+    // requests, ranges, etags, and maybe more. For some of those, it will
+    // probably be fine to just use the same packages `send` does, much of which
+    // is more stuff from Express / PillarJS.
+
+    const doneMp = new ManualPromise();
+    res.sendFile(path, sendOpts, (err) => {
+      if (err instanceof Error) {
+        doneMp.reject(err);
+      } else if (err) {
+        doneMp.reject(new Error(`Non-Error error: ${err}`));
+      } else {
+        doneMp.resolve(true);
+      }
+    });
+
+    // Wait for `sendFile()` to claim to be done, and handle errors that can
+    // reasonably be reported back as HTTP(ish) responses.
+    try {
+      await doneMp.promise;
+    } catch (e) {
+      // Only attempt to report this via an HTTP(ish) response if the error
+      // comes with the tell-tale properties that indicate that it should in
+      // fact be reported this way. (We do this check as such instead of doing
+      // `e instanceof http-errors.HttpError` because the latter could end up
+      // spuriously failing if we end up with a build that has multiple
+      // competing versions of the `http-error` package due to NPM version
+      // "fun.")
+      if (e.expose && typeof e.status === 'number') {
+        return this.#sendNonContentResponse(e.status, {
+          bodyExtra: e.message,
+          headers:   e.headers ?? {}
+        });
+      }
+      throw e;
+    }
+
+    // ...but don't return to _our_ caller until the response is actually
+    // completed (which could be slightly later), and also plumb through any
+    // errors that were encountered during final response processing.
+    return this.whenResponseDone();
   }
 
   /**
@@ -436,5 +511,66 @@ export class Request {
     }
 
     return this.#parsedUrlObject;
+  }
+
+  /**
+   * Sends a response of the given status, with various options for the response
+   * headers and body. The response headers always get set to make the response
+   * _not_ be cacheable. This method is intended to be used for all "meta-ish"
+   * non-content responses, such as not-founds, redirects, etc., so as to
+   * provide a standard form of response (though with some flexibility).
+   *
+   * @param {number} status The status code.
+   * @param {?object} [options] Options for the response.
+   * @param {?string} [options.contentType] Content type for the body. Required
+   *   if `options.body` is passed.
+   * @param {string|Buffer|null} [options.body] Complete body to send, if any.
+   *   If not supplied, one is constructed based on the `status` and
+   *   `options.bodyExtra`.
+   * @param {?string} [options.bodyExtra] Text to append to a constructed body.
+   *   Only used if `options.body` is not passed.
+   * @param {?object} [options.headers] Extra response headers to send, if any.
+   * @returns {boolean} `true` when the response is completed.
+   */
+  #sendNonContentResponse(status, options = null) {
+    MustBe.number(status, { safeInteger: true, minInclusive: 0, maxInclusive: 599 });
+    const { contentType, body, bodyExtra, headers } = options ?? {};
+
+    let finalBody;
+    let finalContentType;
+
+    if (body) {
+      if (!contentType) {
+        throw new Error('Missing `contentType`.');
+      }
+      finalBody        = body;
+      finalContentType = MimeTypes.typeFromExtensionOrType(contentType);
+    } else {
+      const statusStr  = statuses(status);
+      const bodyHeader = `${status} ${statusStr}`;
+
+      if (((bodyExtra ?? '') === '') || (bodyExtra === statusStr)) {
+        finalBody = `${bodyHeader}\n`;
+      } else {
+        const finalNl = (bodyExtra.endsWith('\n')) ? '' : '\n';
+        finalBody = `${bodyHeader}:\n${bodyExtra}${finalNl}`;
+      }
+
+      finalContentType = 'text/plain';
+    }
+
+    const res = this.#expressResponse;
+
+    res.status(status);
+    res.contentType(finalContentType);
+
+    if (headers) {
+      res.set(headers);
+    }
+
+    res.set('Cache-Control', 'no-store, must-revalidate');
+    res.send(finalBody);
+
+    return this.whenResponseDone();
   }
 }

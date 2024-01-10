@@ -28,7 +28,7 @@ and to enable straightforward custom applications.
 * Can run multiple network endpoints, each serving a different set of high-level
   applications.
 * Several built-in applications:
-  * Static file server (uses `Express.static`).
+  * Static file server (uses `express.response.sendFile()`).
   * Redirect server.
   * More to come! TODO!
 * Path-hierarchy specificity-based endpoint configuration, for endpoints that
@@ -55,7 +55,7 @@ and to enable straightforward custom applications.
   * Uses Node's standard library for low-level networking and protocol
     implementation (TCP, TLS, HTTP*).
   * Uses Express for protocol handling on top of what Node provides (but with a
-    bit of custom routing, see above).
+    different routing implementation; see above).
   * Only modest use of external module dependencies (via `npm`).
 * Built to be installed as a normal POSIX-ish service (though _without_ Node
   bundled into the installation).

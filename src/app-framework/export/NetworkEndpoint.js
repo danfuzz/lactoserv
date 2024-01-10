@@ -120,8 +120,12 @@ export class NetworkEndpoint extends BaseComponent {
         extra:       dispatch.extraString
       });
 
-      if (await application.handleRequest(request, dispatch)) {
-        return true;
+      try {
+        if (await application.handleRequest(request, dispatch)) {
+          return true;
+        }
+      } catch (e) {
+        request.logger?.applicationError(e);
       }
     }
 

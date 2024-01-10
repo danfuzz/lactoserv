@@ -3,8 +3,6 @@
 
 import fs from 'node:fs/promises';
 
-import express from 'express';
-
 import { ApplicationConfig, Files } from '@this/app-config';
 import { BaseApplication } from '@this/app-framework';
 import { FsUtil } from '@this/fs-util';
@@ -38,9 +36,6 @@ export class StaticFiles extends BaseApplication {
   /** @type {string} Absolute path to the base directory of files to serve. */
   #siteDirectory;
 
-  /** @type {function(...*)} "Middleware" handler function for this instance. */
-  #staticMiddleware;
-
   /** @type {?string} MIME type of the not-found file, if known. */
   #notFoundType = null;
 
@@ -58,10 +53,8 @@ export class StaticFiles extends BaseApplication {
 
     const { notFoundPath, siteDirectory } = config;
 
-    this.#notFoundPath     = notFoundPath;
-    this.#siteDirectory    = siteDirectory;
-    this.#staticMiddleware =
-      express.static(siteDirectory, StaticFiles.#SEND_OPTIONS);
+    this.#notFoundPath  = notFoundPath;
+    this.#siteDirectory = siteDirectory;
   }
 
   /** @override */
@@ -80,15 +73,8 @@ export class StaticFiles extends BaseApplication {
       const redirectTo = resolved.redirect;
       return request.redirect(redirectTo, 301);
     } else if (resolved.path) {
-      // TODO: In the short term, use Express's `res.sendFile()`, or use NPM
-      // package `send` directly. In the long term, do what those things do (in
-      // all cases it bottoms out at the `send` package) but even more directly.
-      // Notably, it handles all of: content type calculation, HEAD requests,
-      // conditional requests, ranges, and etags. For some of those, it will
-      // probably be fine to just peel back the onion a bit and use what `send`
-      // uses, much of which is more stuff from Express / PillarJS.
       const result =
-        await BaseApplication.callMiddleware(request, dispatch, this.#staticMiddleware);
+        await request.sendFile(resolved.path, StaticFiles.#SEND_OPTIONS);
 
       return result;
     } else {
@@ -185,6 +171,16 @@ export class StaticFiles extends BaseApplication {
             ? dispatch.base.path
             : parts;
           return { redirect: `${source[source.length - 1]}/` };
+        } else {
+          // It's a proper directory reference. Look for the index file.
+          const indexPath  = `${fullPath}/index.html`;
+          const indexStats = await fs.stat(indexPath);
+          if (indexStats.isDirectory()) {
+            // Weird case, to be clear!
+            this.logger?.indexIsDirectory(indexPath);
+            return null;
+          }
+          return { path: indexPath, stats: indexStats };
         }
       } else if (endSlash) {
         // Non-directory with a slash. Not accepted per class contract.
@@ -208,7 +204,7 @@ export class StaticFiles extends BaseApplication {
 
   /** @type {object} File sending/serving configuration options. */
   static #SEND_OPTIONS = Object.freeze({
-    maxAge: 5 * 60 * 1000 // 5 minutes.
+    maxAgeMsec: 5 * 60 * 1000 // 5 minutes.
   });
 
   /** @override */
