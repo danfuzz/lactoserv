@@ -330,20 +330,41 @@ export class Request {
   }
 
   /**
-   * Issues a successful response, with the contents of the given file or with
-   * an empty body as appropriate. The actual reported status will be one of:
+   * Issues a successful response, with the given body contents or with an empty
+   * body as appropriate. The actual reported status will be one of:
    *
-   * * `200` -- The file is non-empty, and there were no conditional request
+   * * `200` -- The body is non-empty, and there were no conditional request
    *   parameters (e.g., `if-none-match`) which indicate that the body shouldn't
    *   be sent. The body is sent in this case, unless the request method was
    *   `HEAD`.
-   * * `204` -- The file is empty, and there were no matching conditional
+   * * `204` -- The body is empty, and there were no matching conditional
    *   request parameters. No body is sent.
    * * `206` -- A body is being returned, and a range request matches.
    * * `304` -- There was at least one conditional request parameter which
    *   matched. No body is sent.
    * * `416` -- A range request couldn't be satisfied. The original body isn't
    *   sent, but an error message body _is_ sent.
+   *
+   * @param {object} options Options to control response behavior.
+   * @param {string|Buffer|null} [options.body] Complete body to send, if any.
+   * @param {?string} [options.contentType] Content type for the body. Required
+   *   if `options.body` is passed.
+   * @param {?object} [options.headers] Extra headers to include in the
+   *   response, if any.
+   * @param {?number} [options.maxAgeMsec] Value to send back in the
+   *   `max-age` property of the `Cache-Control` response header. Defaults to
+   *   `0`.
+   * @returns {boolean} `true` when the response is completed.
+   * @throws {Error} Thrown if there is any trouble sending the response.
+   */
+  async sendContent(options = {}) {
+    // TODO
+  }
+
+  /**
+   * Issues a successful response, with the contents of the given file or with
+   * an empty body as appropriate. The actual reported status will vary, with
+   * the same possibilities as with {@link #sendContent}.
    *
    * This method throws an error if the given `path` does not correspond to a
    * readable non-directory file. That is, this method is not in the business of
@@ -358,7 +379,7 @@ export class Request {
    *   `max-age` property of the `Cache-Control` response header. Defaults to
    *   `0`.
    * @returns {boolean} `true` when the response is completed.
-   * @throws {Error} Thrown if there is any trouble sending the file.
+   * @throws {Error} Thrown if there is any trouble sending the response.
    */
   async sendFile(path, options = {}) {
     MustBe.string(path, /^[/]/);
