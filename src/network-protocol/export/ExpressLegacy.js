@@ -78,10 +78,14 @@ export class ExpressLegacy {
       resultMp.reject(e);
     }
 
-    await resultMp.promise;
+    const result = await resultMp.promise;
 
-    // Only return when the response actually gets completed from the
-    // perspective of the original `request`.
-    return request.whenResponseDone();
+    if (result) {
+      // Only return when the response actually gets completed from the
+      // perspective of the original `request`.
+      await request.whenResponseDone();
+    }
+
+    return result;
   }
 }
