@@ -543,13 +543,13 @@ export class Request {
    *
    * @param {number} status The status code.
    * @param {?object} [options] Options for the response.
-   * @param {?string} [options.contentType] Content type for the body. Required
-   *   if `options.body` is passed.
    * @param {string|Buffer|null} [options.body] Complete body to send, if any.
    *   If not supplied, one is constructed based on the `status` and
    *   `options.bodyExtra`.
    * @param {?string} [options.bodyExtra] Text to append to a constructed body.
    *   Only used if `options.body` is not passed.
+   * @param {?string} [options.contentType] Content type for the body. Required
+   *   if `options.body` is passed.
    * @param {?object} [options.headers] Extra response headers to send, if any.
    * @returns {boolean} `true` when the response is completed.
    */
