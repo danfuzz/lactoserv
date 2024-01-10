@@ -239,6 +239,28 @@ const applications = [
 ];
 ```
 
+There are a few notable things which _aren't_ configurable for this application.
+These may be configurable in a future version, if there is sufficient and
+reasonable demand:
+
+* Caching:
+  * The `Last-Modified`, `ETag`, and `Cache-Control` response headers are sent.
+  * The `max-age` property of the `Cache-Control` response header is _not_
+    configurable.
+  * Conditional request headers are honored.
+* Ranges:
+  * The `Accept-Ranges` response header is sent.
+  * Range request headers are honored.
+* Directory responses:
+  * "Naked" directory paths (i.e. ones that do not end with a slash) are
+    redirected to the same path with a final slash appended.
+  * Directory paths are responded to with the contents of a file called
+    `index.html` in that directory.
+* The bodies of error and other non-content responses, other than `404`s, are
+  not configurable.
+* No files under the `siteDirectory` are filtered out and treated as not found.
+  Notably, dot files are served.
+
 ## Built-in Services
 
 **Note about file names:** Several of the services accept a file path as a
