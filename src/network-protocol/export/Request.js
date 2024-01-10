@@ -403,9 +403,26 @@ export class Request {
       }
     });
 
-    // Wait for `sendFile()` to claim to be done, and throw any error it
-    // reported.
-    await doneMp;
+    // Wait for `sendFile()` to claim to be done, and handle errors that can
+    // reasonably be reported back as HTTP(ish) responses.
+    try {
+      await doneMp.promise;
+    } catch (e) {
+      // Only attempt to report this via an HTTP(ish) response if the error
+      // comes with the tell-tale properties that indicate that it should in
+      // fact be reported this way. (We do this check as such instead of doing
+      // `e instanceof http-errors.HttpError` because the latter could end up
+      // spuriously failing if we end up with a build that has multiple
+      // competing versions of the `http-error` package due to NPM version
+      // "fun.")
+      if (e.expose && typeof e.status === 'number') {
+        return this.#sendNonContentResponse(e.status, {
+          bodyExtra: e.message,
+          headers:   e.headers ?? {}
+        });
+      }
+      throw e;
+    }
 
     // ...but don't return to _our_ caller until the response is actually
     // completed (which could be slightly later), and also plumb through any
