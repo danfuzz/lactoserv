@@ -540,8 +540,16 @@ export class Request {
       finalBody        = body;
       finalContentType = MimeTypes.typeFromExtensionOrType(contentType);
     } else {
-      const bodyHeader = `${status} ${statuses(status)}:\n`;
-      finalBody        = `${bodyHeader}${bodyExtra ?? ''}`;
+      const statusStr  = statuses(status);
+      const bodyHeader = `${status} ${statusStr}`;
+
+      if (((bodyExtra ?? '') === '') || (bodyExtra === statusStr)) {
+        finalBody = `${bodyHeader}\n`;
+      } else {
+        const finalNl = (bodyExtra.endsWith('\n')) ? '' : '\n';
+        finalBody = `${bodyHeader}:\n${bodyExtra}${finalNl}`;
+      }
+
       finalContentType = 'text/plain';
     }
 
