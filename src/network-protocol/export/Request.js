@@ -392,6 +392,17 @@ export class Request {
       maxAge:   maxAgeMsec
     };
 
+    // TODO: Stop using Express's `response.sendFile()`, as part of the
+    // long-term aim to stop using Express at all. In the short term, switch
+    // to the `send` package (which is what Express bottoms out at here). In the
+    // long term, do what `send` does, but even more directly (among other
+    // reasons, so we can use our style of logging in it and so we don't have to
+    // translate between callback and promise call styles). Things that we'll
+    // have to deal with include _at least_: HEAD requests, conditional
+    // requests, ranges, etags, and maybe more. For some of those, it will
+    // probably be fine to just use the same packages `send` does, much of which
+    // is more stuff from Express / PillarJS.
+
     const doneMp = new ManualPromise();
     res.sendFile(path, sendOpts, (err) => {
       if (err instanceof Error) {

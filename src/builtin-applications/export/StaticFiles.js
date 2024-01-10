@@ -73,13 +73,6 @@ export class StaticFiles extends BaseApplication {
       const redirectTo = resolved.redirect;
       return request.redirect(redirectTo, 301);
     } else if (resolved.path) {
-      // TODO: In the short term, use Express's `res.sendFile()`, or use NPM
-      // package `send` directly. In the long term, do what those things do (in
-      // all cases it bottoms out at the `send` package) but even more directly.
-      // Notably, it handles all of: content type calculation, HEAD requests,
-      // conditional requests, ranges, and etags. For some of those, it will
-      // probably be fine to just peel back the onion a bit and use what `send`
-      // uses, much of which is more stuff from Express / PillarJS.
       const result =
         await request.sendFile(resolved.path, StaticFiles.#SEND_OPTIONS);
 
