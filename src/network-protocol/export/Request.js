@@ -307,33 +307,11 @@ export class Request {
     // towards dropping Express entirely as a dependency.
 
     MustBe.string(target);
-    MustBe.number(status,
-      { safeInteger: true, minInclusive: 100, maxInclusive: 599 });
 
-    const res = this.#expressResponse;
-    const message =
-      `${status} ${statuses(status)}\n` +
-      'Redirecting to:\n' +
-      `  ${target}\n`;
-
-    res.status(status);
-    res.set('Location', target);
-    res.contentType('text/plain');
-    res.send(message);
-
-    const resultMp = new ManualPromise();
-    res.once('error', (e) => {
-      if (!resultMp.isSettled()) {
-        resultMp.reject(e);
-      }
+    return this.#sendNonContentResponse(status, {
+      bodyExtra: `  ${target}\n`,
+      headers:   { 'Location': target }
     });
-    res.once('finish', () => {
-      if (!resultMp.isSettled()) {
-        resultMp.resolve(true);
-      }
-    });
-
-    return resultMp.promise;
   }
 
   /**
