@@ -255,11 +255,11 @@ reasonable demand:
   * "Naked" directory paths (i.e. ones that do not end with a slash) are
     redirected to the same path with a final slash appended.
   * Directory paths are responded to with the contents of a file called
-    `index.html` in that directory.
+    `index.html` in that directory. The index file name is not configurable.
 * The bodies of error and other non-content responses, other than `404`s, are
   not configurable.
 * No files under the `siteDirectory` are filtered out and treated as not found.
-  Notably, dot files are served.
+  Notably, dot files are served when found.
 
 ## Built-in Services
 
