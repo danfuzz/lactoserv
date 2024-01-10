@@ -22,6 +22,8 @@ Other notable changes:
   shop here.
 * _Mostly_ got rid of direct uses of Express's `Request` and `Response` classes,
   other than within _our_ `Request`.
+* Reworked `StaticFiles` to use our `Request` instead of wrapping
+  `express.static()`.
 
 ### v0.6.0 -- 2023-12-29
 
