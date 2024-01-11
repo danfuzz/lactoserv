@@ -235,8 +235,33 @@ bindings:
   with.
 
 It is valid to specify neither `body` nor `filePath`; this indicates that the
-application should only ever produce empty responses. It is _not_ valid to
-specify _both_ `body` and `filePath`.
+application should only ever produce no-content (status `204`) responses. It is
+_not_ valid to specify _both_ `body` and `filePath`.
+
+**Note:** Passing `body` as an empty string or `Buffer` is treated as
+zero-length but contentful, e.g. a regular successful response will be status
+`200` with `Content-Length: 0`. Likewise, this is how an empty file pointed at
+by a `filePath` behaves.
+
+```js
+const applications = [
+  {
+    name:        'literal',
+    class:       'SimpleResponse',
+    contentType: 'text/plain',
+    body:        'Hello!\n'
+  },
+  {
+    name:     'fromFile',
+    class:    'SimpleResponse',
+    filePath: '/etc/site/someFile.txt'
+  },
+  {
+    name:  'empty',
+    class: 'SimpleResponse'
+  }
+];
+```
 
 ### `StaticFiles`
 
@@ -255,7 +280,7 @@ const applications = [
     class:         'StaticFiles',
     siteDirectory: '/path/to/site',
     notFoundPath:  '/path/to/404.html'
-  },
+  }
 ];
 ```
 
