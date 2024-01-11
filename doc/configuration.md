@@ -217,10 +217,55 @@ const applications = [
 ];
 ```
 
+### `SimpleResponse`
+
+An application which only ever sends one particular response. It's approximately
+like `StaticFiles`, except just one file. It accepts the following configuration
+bindings:
+
+* `body` &mdash; Optional body contents to respond with. If specified, this must
+  be either a string or a Node `Buffer` object.
+* `contentType` &mdash; Content type to report. This can be either a MIME type
+  or a commonly-understood extension (e.g., `txt` or `html`). This must be
+  specified if `body` is. If this is not specified but `filePath` is, then the
+  type is inferred from the extension on the path. If neither `body` nor
+  `filePath` is specified (that is, for an empty body), then this must not be
+  specified either.
+* `filePath` &mdash; Optional absolute filesystem path to the file to respond
+  with.
+
+It is valid to specify neither `body` nor `filePath`; this indicates that the
+application should only ever produce no-content (status `204`) responses. It is
+_not_ valid to specify _both_ `body` and `filePath`.
+
+**Note:** Passing `body` as an empty string or `Buffer` is treated as
+zero-length but contentful, e.g. a regular successful response will be status
+`200` with `Content-Length: 0`. Likewise, this is how an empty file pointed at
+by a `filePath` behaves.
+
+```js
+const applications = [
+  {
+    name:        'literal',
+    class:       'SimpleResponse',
+    contentType: 'text/plain',
+    body:        'Hello!\n'
+  },
+  {
+    name:     'fromFile',
+    class:    'SimpleResponse',
+    filePath: '/etc/site/someFile.txt'
+  },
+  {
+    name:  'empty',
+    class: 'SimpleResponse'
+  }
+];
+```
+
 ### `StaticFiles`
 
-An application which serves static files from a local directory. (This is a
-thin veneer over the same functionality as bundled with Express.) It accepts the
+An application which serves static files from a local directory. It accepts the
 following configuration bindings:
 
 * `notFoundPath` &mdash; Optional filesystem path to the file to serve when a
@@ -235,7 +280,7 @@ const applications = [
     class:         'StaticFiles',
     siteDirectory: '/path/to/site',
     notFoundPath:  '/path/to/404.html'
-  },
+  }
 ];
 ```
 
@@ -255,11 +300,23 @@ reasonable demand:
   * "Naked" directory paths (i.e. ones that do not end with a slash) are
     redirected to the same path with a final slash appended.
   * Directory paths are responded to with the contents of a file called
-    `index.html` in that directory.
+    `index.html` in that directory. The index file name is not configurable.
+* These "odd" URL paths all cause not-found responses:
+  * Ones with a `..` that would "back out" of the site directory.
+  * Ones with an _encoded_ slash in them, that is to say literally `%2F`. (It is
+    more trouble than it's worth to try to figure out a way for this to be
+    implementable in a non-wacky unambiguous way.)
+  * Ones with an internal empty path component, e.g. with `//` somewhere in
+    them. Many filesystems will "collapse" multiple slashes away, but we choose
+    to err on the side of being conservative and report this as an error than
+    wade blithely into DWIM territory.
+  * End with an empty path component (that is, end with a slash), when the path
+    does not in fact correspond to a directory.
 * The bodies of error and other non-content responses, other than `404`s, are
   not configurable.
 * No files under the `siteDirectory` are filtered out and treated as not found.
-  Notably, dot files are served.
+  Notably, dotfiles &mdsah; that is, paths where the final component starts with
+  a dot (`.`) &mdash; are served when corresponding files are found.
 
 ## Built-in Services
 

@@ -134,6 +134,21 @@ const applications = [
     name:          'myStaticFunNo404',
     class:         'StaticFiles',
     siteDirectory: filePath('../site'),
+  },
+  {
+    name:     'responseEmpty',
+    class:    'SimpleResponse',
+    filePath: filePath('../site-extra/empty-file.txt')
+  },
+  {
+    name:        'responseNoContent',
+    class:       'SimpleResponse'
+  },
+  {
+    name:        'responseOne',
+    class:       'SimpleResponse',
+    contentType: 'text/plain',
+    body:        'One!\n'
   }
 ];
 
@@ -172,6 +187,18 @@ const endpoints = [
       {
         application: 'myStaticFunNo404',
         at:          ['//*/florp/']
+      },
+      {
+        application: 'responseEmpty',
+        at:          ['//*/resp/empty/']
+      },
+      {
+        application: 'responseNoContent',
+        at:          ['//*/resp/no-content/']
+      },
+      {
+        application: 'responseOne',
+        at:          ['//*/resp/one/']
       }
     ]
   },

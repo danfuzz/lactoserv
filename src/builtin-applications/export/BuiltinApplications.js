@@ -4,6 +4,7 @@
 import { BaseApplication } from '@this/app-framework';
 
 import { Redirector } from '#x/Redirector';
+import { SimpleResponse } from '#x/SimpleResponse';
 import { StaticFiles } from '#x/StaticFiles';
 
 
@@ -19,8 +20,9 @@ export class BuiltinApplications {
    */
   static getAll() {
     return [
-      StaticFiles,
-      Redirector
+      Redirector,
+      SimpleResponse,
+      StaticFiles
     ];
   }
 }

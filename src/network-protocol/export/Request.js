@@ -4,7 +4,10 @@
 import * as fs from 'node:fs/promises';
 import { ClientRequest, ServerResponse } from 'node:http';
 
+import etag from 'etag';
 import express from 'express';
+import fresh from 'fresh';
+import rangeParser from 'range-parser';
 import statuses from 'statuses';
 
 import { ManualPromise } from '@this/async';
@@ -12,7 +15,7 @@ import { TreePathKey } from '@this/collections';
 import { IntfLogger } from '@this/loggy';
 import { MimeTypes } from '@this/net-util';
 import { Uris } from '@this/net-util';
-import { MustBe } from '@this/typey';
+import { AskIf, MustBe } from '@this/typey';
 
 import { RequestLogHelper } from '#p/RequestLogHelper';
 
@@ -195,7 +198,7 @@ export class Request {
    * one of `'get'`, `'head'`, or `'post'`.
    */
   get method() {
-    return this.#expressRequest.method.toLowercase();
+    return this.#expressRequest.method.toLowerCase();
   }
 
   /**
@@ -266,6 +269,39 @@ export class Request {
   }
 
   /**
+   * Checks to see if a response with the given headers would be considered
+   * "fresh" such that a not-modified (status `304`) response could be issued.
+   *
+   * A request is considered fresh if all of the following are true:
+   * * The request method is `HEAD` or `GET`.
+   * * The request doesn't ask for caching to be off.
+   * * The request has at least one condition which checks for freshness, and
+   *   all such conditions pass.
+   *
+   * This assumes that the response would have a sans-check status code that is
+   * acceptable for conversion to the not-modified status (`304`).
+   *
+   * **Note:** This is akin to Express's `request.fresh` getter.
+   *
+   * @param {?object} [responseHeaders] Would-be response headers that could
+   *   possibly affect the freshness calculation.
+   * @returns {boolean} `true` iff the request is to be considered "fresh."
+   */
+  isFreshWithRespectTo(responseHeaders = null) {
+    responseHeaders ??= {};
+
+    const method = this.method;
+    const req    = this.#expressRequest;
+
+    if ((method !== 'head') && (method !== 'get')) {
+      return false;
+    }
+
+    return fresh(req.headers,
+      Request.#extractHeaders(responseHeaders, 'etag', 'last-modified'));
+  }
+
+  /**
    * Issues a "not found" (status `404`) response, with optional body. If no
    * body is provided, a simple default plain-text body is used. The response
    * includes the single content/cache-related header `Cache-Control: no-store,
@@ -330,20 +366,115 @@ export class Request {
   }
 
   /**
-   * Issues a successful response, with the contents of the given file or with
-   * an empty body as appropriate. The actual reported status will be one of:
+   * Issues a successful response, with the given body contents or with an empty
+   * body as appropriate. The actual reported status will be one of:
    *
-   * * `200` -- The file is non-empty, and there were no conditional request
-   *   parameters (e.g., `if-none-match`) which indicate that the body shouldn't
-   *   be sent. The body is sent in this case, unless the request method was
-   *   `HEAD`.
-   * * `204` -- The file is empty, and there were no matching conditional
-   *   request parameters. No body is sent.
-   * * `206` -- A body is being returned, and a range request matches.
+   * * `200` -- A `body` was passed (even if empty), and there were no
+   *   conditional request parameters (e.g., `if-none-match`) which indicate
+   *   that the body shouldn't be sent. The body is sent in this case, unless
+   *   the request method was `HEAD`.
+   * * `204` -- No `body` was passed. (And no body is sent in response.)
+   * * `206` -- A body is being returned, and a range request matches which can
+   *   be satisfied with a single range result. (Multiple disjoint range matches
+   *   are treated like non-range requests.)
    * * `304` -- There was at least one conditional request parameter which
    *   matched. No body is sent.
    * * `416` -- A range request couldn't be satisfied. The original body isn't
    *   sent, but an error message body _is_ sent.
+   *
+   * In all successful cases, this method always responds with a `Cache-Control`
+   * header.
+   *
+   * In all successful cases where a `body` is passed (even if empty), this
+   * always reponds with the headers `Accept-Ranges` and `ETag`.
+   *
+   * This method honors range requests, and will reject ones that cannot be
+   * satisfied.
+   *
+   * @param {object} options Options to control response behavior.
+   * @param {string|Buffer|null} [options.body] Complete body to send, if any.
+   *   If passed as a `string`, it is encoded as UTF-8, and the content type of
+   *   the response will list that as the charset.
+   * @param {?string} [options.contentType] Content type for the body. Required
+   *   if `options.body` is passed. If this value starts with `text/` and/or
+   *   the `body` is passed as a string, then the actual `Content-Type` header
+   *   will indicate a charset of `utf-8`.
+   * @param {?object} [options.headers] Extra headers to include in the
+   *   response, if any. These are only included if the response is successful.
+   * @param {?number} [options.maxAgeMsec] Value to send back in the
+   *   `max-age` property of the `Cache-Control` response header. Defaults to
+   *   `0`.
+   * @returns {boolean} `true` when the response is completed.
+   * @throws {Error} Thrown if there is any trouble sending the response.
+   */
+  async sendContent(options = {}) {
+    const { body, contentType, headers = null, maxAgeMsec = 0 } = options ?? {};
+    const stringBody = AskIf.string(body);
+    const res        = this.#expressResponse;
+
+    const finalHeaders = { ...(headers ?? {}) };
+
+    if (body) {
+      if (!contentType) {
+        throw new Error('Missing `contentType`.');
+      } else if (!(body instanceof Buffer)) {
+        MustBe.string(body);
+      }
+
+      finalHeaders['Content-Type'] =
+        MimeTypes.typeFromExtensionOrType(contentType);
+    } else {
+      // Reject range requests when there is no content.
+      return this.#sendNonContentResponse(416, {
+        headers: { 'Content-Range': 'bytes */0' }
+      });
+    }
+
+    finalHeaders['Cache-Control'] =
+      `public, max-age=${Math.floor(maxAgeMsec / 1000)}`;
+
+    if (body) {
+      let bodyBuffer = stringBody ? Buffer.from(body, 'utf8') : body;
+
+      if (stringBody || /^text[/]/.test(finalHeaders['Content-Type'])) {
+        finalHeaders['Content-Type'] += '; charset=utf-8';
+      }
+
+      finalHeaders['ETag'] = etag(bodyBuffer);
+
+      if (this.isFreshWithRespectTo(finalHeaders)) {
+        res.status(304);
+        res.set(finalHeaders);
+        res.set(this.#rangeInfo().headers); // For basic range-support headers.
+        res.end();
+      } else {
+        const rangeInfo = this.#rangeInfo(bodyBuffer.length, finalHeaders);
+        if (rangeInfo.error) {
+          return this.#sendNonContentResponse(rangeInfo.status, rangeInfo.headers);
+        } else {
+          res.set(rangeInfo.headers);
+          bodyBuffer = bodyBuffer.subarray(rangeInfo.start, rangeInfo.end);
+        }
+
+        finalHeaders['Content-Length'] = bodyBuffer.length;
+        res.set(finalHeaders);
+
+        res.status(rangeInfo.status);
+        res.end(bodyBuffer);
+      }
+    } else {
+      res.status(204);
+      res.set(finalHeaders);
+      res.end();
+    }
+
+    return this.whenResponseDone();
+  }
+
+  /**
+   * Issues a successful response, with the contents of the given file or with
+   * an empty body as appropriate. The actual reported status will vary, with
+   * the same possibilities as with {@link #sendContent}.
    *
    * This method throws an error if the given `path` does not correspond to a
    * readable non-directory file. That is, this method is not in the business of
@@ -358,7 +489,7 @@ export class Request {
    *   `max-age` property of the `Cache-Control` response header. Defaults to
    *   `0`.
    * @returns {boolean} `true` when the response is completed.
-   * @throws {Error} Thrown if there is any trouble sending the file.
+   * @throws {Error} Thrown if there is any trouble sending the response.
    */
   async sendFile(path, options = {}) {
     MustBe.string(path, /^[/]/);
@@ -399,9 +530,9 @@ export class Request {
     // reasons, so we can use our style of logging in it and so we don't have to
     // translate between callback and promise call styles). Things that we'll
     // have to deal with include _at least_: HEAD requests, conditional
-    // requests, ranges, etags, and maybe more. For some of those, it will
-    // probably be fine to just use the same packages `send` does, much of which
-    // is more stuff from Express / PillarJS.
+    // requests, ranges, etags, and maybe more. As of this writing,
+    // `sendContent()` above handles all of this, and can be used as a basis for
+    // the code here (hopefully with a bit of DRYing out in the process).
 
     const doneMp = new ManualPromise();
     res.sendFile(path, sendOpts, (err) => {
@@ -514,6 +645,81 @@ export class Request {
   }
 
   /**
+   * Given a maximum allowed length and pending response headers, parses
+   * range-related request headers, if any, and and returns information about
+   * range disposition.
+   *
+   * @param {?number} [length] Length of the underlying response. If `null`,
+   *   this method just returns a basic no-range-request success response.
+   * @param {?object} [responseHeaders] Response headers to-be.
+   * @returns {object} Disposition info.
+   */
+  #rangeInfo(length = null, responseHeaders = null) {
+    const RANGE_UNIT = 'bytes';
+    function status200() {
+      return {
+        status:  200,
+        headers: { 'Accept-Ranges': RANGE_UNIT }
+      };
+    }
+
+    if (!length) {
+      return status200();
+    }
+
+    const { 'if-range': ifRange, range } = this.#expressRequest.headers;
+
+    if (!range) {
+      // Not a range request!
+      return status200();
+    }
+
+    // Note: The package `range-parser` is pretty lenient about the syntax it
+    // accepts. TODO: Replace with something stricter.
+    const ranges = rangeParser(length, range, { combine: true });
+    if ((ranges === -1) || (ranges === -2) || (ranges.type !== RANGE_UNIT)) {
+      // Couldn't parse at all, not satisfiable, or wrong unit.
+      return {
+        status:  416,
+        headers: { 'Content-Range': `${RANGE_UNIT} */${length}` }
+      };
+    }
+
+    if (ifRange) {
+      if (/"/.test(ifRange)) {
+        // The range request is conditional on an etag match.
+        const { etag: etagHeader } =
+          Request.#extractHeaders(responseHeaders, 'etag');
+        if (etagHeader !== ifRange) {
+          return status200(); // _Not_ matched.
+        }
+      } else {
+        // The range request is a last-modified date.
+        const { 'last-modified': lastModified } =
+          Request.#extractHeaders(responseHeaders, 'last-modified');
+        const lmDate = Request.#parseDate(lastModified);
+        const ifDate = Request.#parseDate(ifRange);
+        if (lmDate > ifDate) {
+          return status200(); // _Not_ matched.
+        }
+      }
+    }
+
+    if (ranges.length !== 1) {
+      // We don't deal with non-overlapping ranges.
+      return status200();
+    }
+
+    const { start, end } = ranges[0];
+    return {
+      status: 206,
+      headers: { 'Content-Range': `${RANGE_UNIT} ${start}-${end}/${length}` },
+      start,
+      end
+    };
+  }
+
+  /**
    * Sends a response of the given status, with various options for the response
    * headers and body. The response headers always get set to make the response
    * _not_ be cacheable. This method is intended to be used for all "meta-ish"
@@ -522,19 +728,19 @@ export class Request {
    *
    * @param {number} status The status code.
    * @param {?object} [options] Options for the response.
-   * @param {?string} [options.contentType] Content type for the body. Required
-   *   if `options.body` is passed.
    * @param {string|Buffer|null} [options.body] Complete body to send, if any.
    *   If not supplied, one is constructed based on the `status` and
    *   `options.bodyExtra`.
    * @param {?string} [options.bodyExtra] Text to append to a constructed body.
    *   Only used if `options.body` is not passed.
+   * @param {?string} [options.contentType] Content type for the body. Required
+   *   if `options.body` is passed.
    * @param {?object} [options.headers] Extra response headers to send, if any.
    * @returns {boolean} `true` when the response is completed.
    */
   #sendNonContentResponse(status, options = null) {
     MustBe.number(status, { safeInteger: true, minInclusive: 0, maxInclusive: 599 });
-    const { contentType, body, bodyExtra, headers } = options ?? {};
+    const { body, bodyExtra, contentType, headers } = options ?? {};
 
     let finalBody;
     let finalContentType;
@@ -572,5 +778,59 @@ export class Request {
     res.send(finalBody);
 
     return this.whenResponseDone();
+  }
+
+
+  //
+  // Static members
+  //
+
+  /**
+   * Extracts a subset of the given object, which is taken to be a set of
+   * request or response headers, ignoring the case of the keys in that object.
+   *
+   * Keys which aren't found are not listed in the result, and don't cause an
+   * error.
+   *
+   * It _is_ an error if it turns out there are two matching keys in the
+   * given `headers` (because of case folding).
+   *
+   * @param {object} [headers] The headers to extract from.
+   * @param {...string} keys Keys to extract. These must all be in lower-case
+   *   form.
+   * @returns {object} The extracted subset.
+   */
+  static #extractHeaders(headers, ...keys) {
+    // Note: As of this writing, there are very few `keys` at the call sites of
+    // this method, so linear search through that array is probably ideal.
+
+    const result = {};
+
+    for (const [k, v] of Object.entries(headers)) {
+      const lowerKey = k.toLowerCase();
+      if (keys.indexOf(lowerKey >= 0)) {
+        if (result[lowerKey]) {
+          throw new Error(`Duplicate key: ${lowerKey}`);
+        }
+        result[lowerKey] = v;
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Parses an (alleged) HTTP date string.
+   *
+   * @param {?string} dateString An (alleged) HTTP date string.
+   * @returns {?number} A millisecond time if successfully parsed, or `null` if
+   *   not.
+   */
+  static #parseDate(dateString) {
+    // Note: Technically, HTTP date strings are all supposed to be GMT, but we
+    // just let `Date.parse()` blithely accept anything it wants.
+    const result = Date.parse(dateString);
+
+    return (typeof result === 'number') ? result : null;
   }
 }

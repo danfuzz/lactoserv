@@ -12,19 +12,8 @@ import { DispatchInfo } from '@this/network-protocol';
 
 
 /**
- * Static content server. See docs for configuration object details.
- *
- * This class will refuse to serve (error `404`) URLs which:
- * * Contain `..` components which would "back out" of the root directory.
- * * Contain an _encoded_ slash in them, that is to say literally `%2F`, because
- *   the underlying filesystem API doesn't have any way to specify a path
- *   _component_ which contains a slash.
- * * Contain an internal empty path component (`...//...`), again because the
- *   filesystem API doesn't understand those as names (and we are being
- *   conservative in that we'd rather report an error than wade blithely into
- *   DWIM territory).
- * * End with an empty path component (that is, end with a slash), if the path
- *   does _not_ correspond to a readable directory.
+ * Static content server. See docs for configuration object details as well as
+ * information about the class's behavior in general.
  */
 export class StaticFiles extends BaseApplication {
   /**
@@ -73,10 +62,7 @@ export class StaticFiles extends BaseApplication {
       const redirectTo = resolved.redirect;
       return request.redirect(redirectTo, 301);
     } else if (resolved.path) {
-      const result =
-        await request.sendFile(resolved.path, StaticFiles.#SEND_OPTIONS);
-
-      return result;
+      return await request.sendFile(resolved.path, StaticFiles.#SEND_OPTIONS);
     } else {
       // Shouldn't happen. If we get here, it's a bug in this class.
       throw new Error('Shouldn\'t happen.');

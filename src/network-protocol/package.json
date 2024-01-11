@@ -19,9 +19,12 @@
     "@this/loggy": "*",
     "@this/net-util": "*",
     "@this/typey": "*",
+    "etag": "^1.8.1",
     "express": "^4.18.2",
+    "fresh": "^0.5.2",
     "http2-express-bridge": "^1.0.7",
     "lodash": "^4.17.21",
+    "range-parser": "^1.2.1",
     "statuses": "^2.0.1"
   }
 }

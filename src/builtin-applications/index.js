@@ -3,4 +3,5 @@
 
 export * from '#x/BuiltinApplications';
 export * from '#x/Redirector';
+export * from '#x/SimpleResponse';
 export * from '#x/StaticFiles';

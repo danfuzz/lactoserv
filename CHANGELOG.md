@@ -11,6 +11,8 @@ Breaking changes:
   below). This breaks downstream clients of this codebase.
 
 Other notable changes:
+* Added new application `SimpleResponse`, which is kind of like a one-file
+  `StaticFiles`.
 * Introduced a `Request` class specific to this project, instead of just
   "absorbing" Express's `Request` and `Response` objects. Our `Request` holds
   both the underlying request and response (and other related goodies). For now,
@@ -22,6 +24,8 @@ Other notable changes:
   shop here.
 * _Mostly_ got rid of direct uses of Express's `Request` and `Response` classes,
   other than within _our_ `Request`.
+* Reworked `StaticFiles` to use our `Request` instead of wrapping
+  `express.static()`.
 
 ### v0.6.0 -- 2023-12-29
 
