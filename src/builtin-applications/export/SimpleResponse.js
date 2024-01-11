@@ -84,7 +84,7 @@ export class SimpleResponse extends BaseApplication {
      * @type {?string} Content type of the response, or `null` to infer it from
      * {@link #filePath}.
      */
-    #contentType;
+    #contentType = null;
 
     /**
      * @type {?(string|Buffer)} Body contents of the response, or `null` to
@@ -109,24 +109,28 @@ export class SimpleResponse extends BaseApplication {
       const { body = null, contentType = null, filePath = null } = config;
 
       if (body !== null) {
+        if (!(body instanceof Buffer)) {
+          MustBe.string(body);
+        }
+
         if (contentType === null) {
           throw new Error('Must supply `contentType` if `body` is used.');
         } else if (filePath !== null) {
           throw new Error('Cannot specify both `body` and `filePath`.');
         }
-      }
 
-      this.#contentType = (contentType === null)
-        ? MimeTypes.typeFromExtension(filePath)
-        : MimeTypes.typeFromExtensionOrType(contentType);
-
-      if (filePath !== null) {
-        this.#filePath = Files.checkAbsolutePath(filePath);
+        this.#body        = body;
+        this.#contentType = MimeTypes.typeFromExtensionOrType(contentType);
+      } else if (filePath !== null) {
+        this.#filePath    = Files.checkAbsolutePath(filePath);
+        this.#contentType = (contentType === null)
+          ? MimeTypes.typeFromExtension(filePath)
+          : MimeTypes.typeFromExtensionOrType(contentType);
       } else {
-        if (!(body instanceof Buffer)) {
-          MustBe.string(body);
+        // It's an empty body.
+        if (contentType === null) {
+          throw new Error('Cannot supply `contentType` with empty body.');
         }
-        this.#body = body;
       }
     }
 
