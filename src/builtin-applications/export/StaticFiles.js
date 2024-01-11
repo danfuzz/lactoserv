@@ -62,10 +62,7 @@ export class StaticFiles extends BaseApplication {
       const redirectTo = resolved.redirect;
       return request.redirect(redirectTo, 301);
     } else if (resolved.path) {
-      const result =
-        await request.sendFile(resolved.path, StaticFiles.#SEND_OPTIONS);
-
-      return result;
+      return await request.sendFile(resolved.path, StaticFiles.#SEND_OPTIONS);
     } else {
       // Shouldn't happen. If we get here, it's a bug in this class.
       throw new Error('Shouldn\'t happen.');

@@ -35,10 +35,7 @@ export class SimpleResponse extends BaseApplication {
 
   /** @override */
   async _impl_handleRequest(request, dispatch_unused) {
-    const result =
-      await request.sendContent(this.#body, SimpleResponse.#SEND_OPTIONS);
-
-    return result;
+    return await request.sendContent(this.#body, SimpleResponse.#SEND_OPTIONS);
   }
 
   /** @override */
