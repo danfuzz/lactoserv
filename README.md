@@ -28,6 +28,7 @@ and to enable straightforward custom applications.
 * Can run multiple network endpoints, each serving a different set of high-level
   applications.
 * Several built-in applications:
+  * Simple response server (approximately a single-file static server).
   * Static file server (uses `express.response.sendFile()`).
   * Redirect server.
   * More to come! TODO!
