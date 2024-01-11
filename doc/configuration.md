@@ -228,7 +228,9 @@ bindings:
 * `contentType` &mdash; Content type to report. This can be either a MIME type
   or a commonly-understood extension (e.g., `txt` or `html`). This must be
   specified if `body` is. If this is not specified but `filePath` is, then the
-  type is inferred from the extension on the path.
+  type is inferred from the extension on the path. If neither `body` nor
+  `filePath` is specified (that is, for an empty body), then this must not be
+  specified either.
 * `filePath` &mdash; Absolute filesystem path to the file to respond with.
 
 It is valid to specify neither `body` nor `filePath`; this indicates that the
