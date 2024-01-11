@@ -333,21 +333,19 @@ export class Request {
    * Issues a successful response, with the given body contents or with an empty
    * body as appropriate. The actual reported status will be one of:
    *
-   * * `200` -- The body is non-empty, and there were no conditional request
-   *   parameters (e.g., `if-none-match`) which indicate that the body shouldn't
-   *   be sent. The body is sent in this case, unless the request method was
-   *   `HEAD`.
-   * * `204` -- The body is empty, and there were no matching conditional
-   *   request parameters. No body is sent.
+   * * `200` -- A `body` was passed (even if empty), and there were no
+   *   conditional request parameters (e.g., `if-none-match`) which indicate
+   *   that the body shouldn't be sent. The body is sent in this case, unless
+   *   the request method was `HEAD`.
+   * * `204` -- No `body` was passed. (And no body is sent in response.)
    * * `206` -- A body is being returned, and a range request matches.
    * * `304` -- There was at least one conditional request parameter which
    *   matched. No body is sent.
    * * `416` -- A range request couldn't be satisfied. The original body isn't
    *   sent, but an error message body _is_ sent.
    *
-   * This always reponds with the header `Accept-Ranges: bytes` and a
-   * `Cache-Control` header. With a non-empty `body`, this always responds with
-   * an `ETag` header.
+   * In all cases where a `body` is passed (even if empty), this always reponds
+   * with the headers `Accept-Ranges`, `Cache-Control`, and `ETag`.
    *
    * @param {object} options Options to control response behavior.
    * @param {string|Buffer|null} [options.body] Complete body to send, if any.
@@ -362,10 +360,10 @@ export class Request {
    * @throws {Error} Thrown if there is any trouble sending the response.
    */
   async sendContent(options = {}) {
-    const { body, contentType, headers, maxAgeMsec } = options ?? {};
+    const { body, contentType, headers, maxAgeMsec = 0 } = options ?? {};
     const res = this.#expressResponse;
 
-    if (body && (body.length !== 0)) {
+    if (body) {
       if (!contentType) {
         throw new Error('Missing `contentType`.');
       } else if (!(body instanceof Buffer)) {
@@ -379,14 +377,14 @@ export class Request {
       res.set(headers);
     }
 
-    res.set('Accept-Ranges', 'bytes');
-    res.set('Cache-Control', `public, max-age=${Math.floor(maxAgeMsec / 1000)}`);
-    res.set('ETag', '"TODO-etag-goes-here"');
-    res.status(200);
-
-    if (body && (body.length !== 0)) {
+    if (body) {
+      res.set('Accept-Ranges', 'bytes');
+      res.set('Cache-Control', `public, max-age=${Math.floor(maxAgeMsec / 1000)}`);
+      res.set('ETag', '"TODO-etag-goes-here"');
+      res.status(200);
       res.send(body);
     } else {
+      res.status(204);
       res.end();
     }
 
