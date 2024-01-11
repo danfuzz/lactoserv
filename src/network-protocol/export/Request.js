@@ -345,7 +345,8 @@ export class Request {
    *   sent, but an error message body _is_ sent.
    *
    * In all cases where a `body` is passed (even if empty), this always reponds
-   * with the headers `Accept-Ranges`, `Cache-Control`, and `ETag`.
+   * with the headers `Accept-Ranges`, `Cache-Control`, and `ETag`. If a `body`
+   * is _not_ passed, this always responds with a `Cache-Control` header.
    *
    * @param {object} options Options to control response behavior.
    * @param {string|Buffer|null} [options.body] Complete body to send, if any.
@@ -377,9 +378,10 @@ export class Request {
       res.set(headers);
     }
 
+    res.set('Cache-Control', `public, max-age=${Math.floor(maxAgeMsec / 1000)}`);
+
     if (body) {
       res.set('Accept-Ranges', 'bytes');
-      res.set('Cache-Control', `public, max-age=${Math.floor(maxAgeMsec / 1000)}`);
       res.set('ETag', '"TODO-etag-goes-here"');
       res.status(200);
       res.send(body);
