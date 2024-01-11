@@ -231,7 +231,8 @@ bindings:
   type is inferred from the extension on the path. If neither `body` nor
   `filePath` is specified (that is, for an empty body), then this must not be
   specified either.
-* `filePath` &mdash; Absolute filesystem path to the file to respond with.
+* `filePath` &mdash; Optional absolute filesystem path to the file to respond
+  with.
 
 It is valid to specify neither `body` nor `filePath`; this indicates that the
 application should only ever produce empty responses. It is _not_ valid to
