@@ -276,7 +276,7 @@ reasonable demand:
     redirected to the same path with a final slash appended.
   * Directory paths are responded to with the contents of a file called
     `index.html` in that directory. The index file name is not configurable.
-* These "odd" URL paths all cause not-found reponses:
+* These "odd" URL paths all cause not-found responses:
   * Ones with a `..` that would "back out" of the site directory.
   * Ones with an _encoded_ slash in them, that is to say literally `%2F`. (It is
     more trouble than it's worth to try to figure out a way for this to be
