@@ -4,6 +4,7 @@
 import * as fs from 'node:fs/promises';
 import { ClientRequest, ServerResponse } from 'node:http';
 
+import etag from 'etag';
 import express from 'express';
 import fresh from 'fresh';
 import statuses from 'statuses';
@@ -439,7 +440,7 @@ export class Request {
         finalHeaders['Content-Type'] += '; charset=utf-8';
       }
 
-      finalHeaders['ETag'] = '"TODO-etag-goes-here"';
+      finalHeaders['ETag'] = etag(bodyBuffer);
 
       // TODO: Handle ranges here.
 
