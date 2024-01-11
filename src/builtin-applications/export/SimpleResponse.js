@@ -128,7 +128,7 @@ export class SimpleResponse extends BaseApplication {
           : MimeTypes.typeFromExtensionOrType(contentType);
       } else {
         // It's an empty body.
-        if (contentType === null) {
+        if (contentType !== null) {
           throw new Error('Cannot supply `contentType` with empty body.');
         }
       }
