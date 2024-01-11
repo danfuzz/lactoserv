@@ -344,16 +344,21 @@ export class Request {
    * * `416` -- A range request couldn't be satisfied. The original body isn't
    *   sent, but an error message body _is_ sent.
    *
-   * In all cases where a `body` is passed (even if empty), this always reponds
-   * with the headers `Accept-Ranges`, `Cache-Control`, and `ETag`. If a `body`
-   * is _not_ passed, this always responds with a `Cache-Control` header.
+   * In all successful cases, this method always responds with a `Cache-Control`
+   * header.
+   *
+   * In all successful cases where a `body` is passed (even if empty), this
+   * always reponds with the headers `Accept-Ranges` and `ETag`.
+   *
+   * This method honors range requests, and will reject ones that cannot be
+   * satisfied.
    *
    * @param {object} options Options to control response behavior.
    * @param {string|Buffer|null} [options.body] Complete body to send, if any.
    * @param {?string} [options.contentType] Content type for the body. Required
    *   if `options.body` is passed.
    * @param {?object} [options.headers] Extra headers to include in the
-   *   response, if any.
+   *   response, if any. These are only included if the response is successful.
    * @param {?number} [options.maxAgeMsec] Value to send back in the
    *   `max-age` property of the `Cache-Control` response header. Defaults to
    *   `0`.
@@ -372,6 +377,11 @@ export class Request {
       }
 
       res.contentType(MimeTypes.typeFromExtensionOrType(contentType));
+    } else {
+      // Reject range requests when there is no content.
+      return this.#sendNonContentResponse(416, {
+        headers: { 'Content-Range': 'bytes */0' }
+      });
     }
 
     if (headers) {
