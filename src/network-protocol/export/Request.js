@@ -5,6 +5,7 @@ import * as fs from 'node:fs/promises';
 import { ClientRequest, ServerResponse } from 'node:http';
 
 import express from 'express';
+import fresh from 'fresh';
 import statuses from 'statuses';
 
 import { ManualPromise } from '@this/async';
@@ -12,7 +13,7 @@ import { TreePathKey } from '@this/collections';
 import { IntfLogger } from '@this/loggy';
 import { MimeTypes } from '@this/net-util';
 import { Uris } from '@this/net-util';
-import { MustBe } from '@this/typey';
+import { AskIf, MustBe } from '@this/typey';
 
 import { RequestLogHelper } from '#p/RequestLogHelper';
 
@@ -195,7 +196,7 @@ export class Request {
    * one of `'get'`, `'head'`, or `'post'`.
    */
   get method() {
-    return this.#expressRequest.method.toLowercase();
+    return this.#expressRequest.method.toLowerCase();
   }
 
   /**
@@ -263,6 +264,39 @@ export class Request {
     // not the Express-specific `.originalUrl`. (Ultimately, the hope is to drop
     // use of Express, as it provides little value to this project.)
     return this.#expressRequest.url;
+  }
+
+  /**
+   * Checks to see if a response with the given headers would be considered
+   * "fresh" such that a not-modified (status `304`) response could be issued.
+   *
+   * A request is considered fresh if all of the following are true:
+   * * The request method is `HEAD` or `GET`.
+   * * The request doesn't ask for caching to be off.
+   * * The request has at least one condition which checks for freshness, and
+   *   all such conditions pass.
+   *
+   * This assumes that the response would have a sans-check status code that is
+   * acceptable for conversion to the not-modified status (`304`).
+   *
+   * **Note:** This is akin to Express's `request.fresh` getter.
+   *
+   * @param {?object} [responseHeaders] Would-be response headers that could
+   *   possibly affect the freshness calculation.
+   * @returns {boolean} `true` iff the request is to be considered "fresh."
+   */
+  isFreshWithRespectTo(responseHeaders = null) {
+    responseHeaders ??= {};
+
+    const method = this.method;
+    const req    = this.#expressRequest;
+
+    if ((method !== 'head') && (method !== 'get')) {
+      return false;
+    }
+
+    return fresh(req.headers,
+      Request.#extractHeaders(responseHeaders, 'etag', 'last-modified'));
   }
 
   /**
@@ -355,8 +389,12 @@ export class Request {
    *
    * @param {object} options Options to control response behavior.
    * @param {string|Buffer|null} [options.body] Complete body to send, if any.
+   *   If passed as a `string`, it is encoded as UTF-8, and the content type of
+   *   the response will list that as the charset.
    * @param {?string} [options.contentType] Content type for the body. Required
-   *   if `options.body` is passed.
+   *   if `options.body` is passed. If this value starts with `text/` and/or
+   *   the `body` is passed as a string, then the actual `Content-Type` header
+   *   will indicate a charset of `utf-8`.
    * @param {?object} [options.headers] Extra headers to include in the
    *   response, if any. These are only included if the response is successful.
    * @param {?number} [options.maxAgeMsec] Value to send back in the
@@ -366,8 +404,11 @@ export class Request {
    * @throws {Error} Thrown if there is any trouble sending the response.
    */
   async sendContent(options = {}) {
-    const { body, contentType, headers, maxAgeMsec = 0 } = options ?? {};
-    const res = this.#expressResponse;
+    const { body, contentType, headers = null, maxAgeMsec = 0 } = options ?? {};
+    const stringBody = AskIf.string(body);
+    const res        = this.#expressResponse;
+
+    const finalHeaders = { ...(headers ?? {}) };
 
     if (body) {
       if (!contentType) {
@@ -376,7 +417,8 @@ export class Request {
         MustBe.string(body);
       }
 
-      res.contentType(MimeTypes.typeFromExtensionOrType(contentType));
+      finalHeaders['Content-Type'] =
+        MimeTypes.typeFromExtensionOrType(contentType);
     } else {
       // Reject range requests when there is no content.
       return this.#sendNonContentResponse(416, {
@@ -384,19 +426,35 @@ export class Request {
       });
     }
 
-    if (headers) {
-      res.set(headers);
-    }
-
-    res.set('Cache-Control', `public, max-age=${Math.floor(maxAgeMsec / 1000)}`);
+    finalHeaders['Cache-Control'] =
+      `public, max-age=${Math.floor(maxAgeMsec / 1000)}`;
 
     if (body) {
-      res.set('Accept-Ranges', 'bytes');
-      res.set('ETag', '"TODO-etag-goes-here"');
-      res.status(200);
-      res.send(body);
+      const bodyBuffer = stringBody ? Buffer.from(body, 'utf8') : body;
+
+      finalHeaders['Accept-Ranges']  = 'bytes';
+      finalHeaders['Content-Length'] = bodyBuffer.length;
+
+      if (stringBody || /^text[/]/.test(finalHeaders['Content-Type'])) {
+        finalHeaders['Content-Type'] += '; charset=utf-8';
+      }
+
+      finalHeaders['ETag'] = '"TODO-etag-goes-here"';
+
+      // TODO: Handle ranges here.
+
+      res.set(finalHeaders);
+
+      if (this.isFreshWithRespectTo(finalHeaders)) {
+        res.status(304);
+        res.end();
+      } else {
+        res.status(200);
+        res.end(bodyBuffer);
+      }
     } else {
       res.status(204);
+      res.set(finalHeaders);
       res.end();
     }
 
@@ -635,5 +693,44 @@ export class Request {
     res.send(finalBody);
 
     return this.whenResponseDone();
+  }
+
+
+  //
+  // Static members
+  //
+
+  /**
+   * Extracts a subset of the given object, which is taken to be a set of
+   * request or response headers, ignoring the case of the keys in that object.
+   *
+   * Keys which aren't found are not listed in the result, and don't cause an
+   * error.
+   *
+   * It _is_ an error if it turns out there are two matching keys in the
+   * given `headers` (because of case folding).
+   *
+   * @param {object} [headers] The headers to extract from.
+   * @param {...string} keys Keys to extract. These must all be in lower-case
+   *   form.
+   * @returns {object} The extracted subset.
+   */
+  static #extractHeaders(headers, ...keys) {
+    // Note: As of this writing, there are very few `keys` at the call sites of
+    // this method, so linear search through that array is probably ideal.
+
+    const result = {};
+
+    for (const [k, v] of Object.entries(headers)) {
+      const lowerKey = k.toLowerCase();
+      if (keys.indexOf(lowerKey >= 0)) {
+        if (result[lowerKey]) {
+          throw new Error(`Duplicate key: ${lowerKey}`);
+        }
+        result[lowerKey] = v;
+      }
+    }
+
+    return result;
   }
 }
