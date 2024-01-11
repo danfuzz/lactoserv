@@ -55,7 +55,7 @@ export class SimpleResponse extends BaseApplication {
 
     this.#sendOptions = {
       ...SimpleResponse.#SEND_OPTIONS,
-      contentType: this.config.mimeType
+      contentType: this.config.contentType
     };
   }
 
@@ -84,10 +84,10 @@ export class SimpleResponse extends BaseApplication {
    */
   static #Config = class Config extends ApplicationConfig {
     /**
-     * @type {?string} MIME type of the response, or `null` to infer it from
+     * @type {?string} Content type of the response, or `null` to infer it from
      * {@link #filePath}.
      */
-    #mimeType;
+    #contentType;
 
     /**
      * @type {?(string|Buffer)} Body contents of the response, or `null` to
@@ -109,21 +109,19 @@ export class SimpleResponse extends BaseApplication {
     constructor(config) {
       super(config);
 
-      const { body = null, filePath = null, type = null } = config;
+      const { body = null, contentType = null, filePath = null } = config;
 
       if (body !== null) {
-        if (type === null) {
-          throw new Error('Must supply `type` if `body` is used.');
+        if (contentType === null) {
+          throw new Error('Must supply `contentType` if `body` is used.');
         } else if (filePath !== null) {
           throw new Error('Cannot specify both `body` and `filePath`.');
         }
-      } else if (filePath === null) {
-        throw new Error('Must specify one of `body` or `filePath`.');
       }
 
-      this.#mimeType = (type === null)
-        ? MimeTypes.typeFromExtensionOrType(type)
-        : MimeTypes.typeFromExtension(filePath);
+      this.#contentType = (contentType === null)
+        ? MimeTypes.typeFromExtension(filePath)
+        : MimeTypes.typeFromExtensionOrType(contentType);
 
       if (filePath !== null) {
         this.#filePath = Files.checkAbsolutePath(filePath);
@@ -144,11 +142,11 @@ export class SimpleResponse extends BaseApplication {
     }
 
     /**
-     * @returns {?string} MIME type of the response, or `null` to infer it from
-     * {@link #filePath}.
+     * @returns {?string} Content type of the response, or `null` to infer it
+     * from {@link #filePath}.
      */
-    get mimeType() {
-      return this.#mimeType;
+    get contentType() {
+      return this.#contentType;
     }
 
     /**
