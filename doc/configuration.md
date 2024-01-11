@@ -290,7 +290,8 @@ reasonable demand:
 * The bodies of error and other non-content responses, other than `404`s, are
   not configurable.
 * No files under the `siteDirectory` are filtered out and treated as not found.
-  Notably, dot files are served when found.
+  Notably, dotfiles &mdsah; that is, paths where the final component starts with
+  a dot (`.`) &mdash; are served when corresponding files are found.
 
 ## Built-in Services
 
