@@ -256,6 +256,17 @@ reasonable demand:
     redirected to the same path with a final slash appended.
   * Directory paths are responded to with the contents of a file called
     `index.html` in that directory. The index file name is not configurable.
+* These "odd" URL paths all cause not-found reponses:
+  * Ones with a `..` that would "back out" of the site directory.
+  * Ones with an _encoded_ slash in them, that is to say literally `%2F`. (It is
+    more trouble than it's worth to try to figure out a way for this to be
+    implementable in a non-wacky unambiguous way.)
+  * Ones with an internal empty path component, e.g. with `//` somewhere in
+    them. Many filesystems will "collapse" multiple slashes away, but we choose
+    to err on the side of being conservative and report this as an error than
+    wade blithely into DWIM territory.
+  * End with an empty path component (that is, end with a slash), when the path
+    does not in fact correspond to a directory.
 * The bodies of error and other non-content responses, other than `404`s, are
   not configurable.
 * No files under the `siteDirectory` are filtered out and treated as not found.
