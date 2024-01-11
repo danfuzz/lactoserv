@@ -15,9 +15,6 @@ import { MustBe } from '@this/typey';
  * Simple response server. See docs for configuration object details.
  */
 export class SimpleResponse extends BaseApplication {
-  /** @type {?(Buffer|string)} Body contents of the response, if known. */
-  #body = null;
-
   /** @type {?object} Send options to use, if known. */
   #sendOptions = null;
 
@@ -29,31 +26,35 @@ export class SimpleResponse extends BaseApplication {
    */
   constructor(config, logger) {
     super(config, logger);
-
-    this.#body = config.body;
   }
 
   /** @override */
   async _impl_handleRequest(request, dispatch_unused) {
-    return await request.sendContent(this.#body, SimpleResponse.#SEND_OPTIONS);
+    return await request.sendContent(this.#sendOptions);
   }
 
   /** @override */
   async _impl_start(isReload_unused) {
-    if (!this.#body) {
-      const filePath = this.config.filePath;
-
-      if (!await FsUtil.fileExists(filePath)) {
-        throw new Error(`Not found or not a file: ${filePath}`);
-      }
-
-      this.#body = await fs.readFile(filePath);
+    if (this.#sendOptions) {
+      return;
     }
 
-    this.#sendOptions = {
+    const { body, contentType, filePath } = this.config;
+    const sendOptions = {
       ...SimpleResponse.#SEND_OPTIONS,
-      contentType: this.config.contentType
+      body,
+      contentType
     };
+
+    if (filePath) {
+      if (!await FsUtil.fileExists(filePath)) {
+        throw new Error(`Not found or not a non-directory file: ${filePath}`);
+      }
+
+      sendOptions.body = await fs.readFile(filePath);
+    }
+
+    this.#sendOptions = sendOptions;
   }
 
   /** @override */
