@@ -345,6 +345,10 @@ export class Request {
    * * `416` -- A range request couldn't be satisfied. The original body isn't
    *   sent, but an error message body _is_ sent.
    *
+   * This always reponds with the header `Accept-Ranges: bytes` and a
+   * `Cache-Control` header. With a non-empty `body`, this always responds with
+   * an `ETag` header.
+   *
    * @param {object} options Options to control response behavior.
    * @param {string|Buffer|null} [options.body] Complete body to send, if any.
    * @param {?string} [options.contentType] Content type for the body. Required
@@ -358,7 +362,35 @@ export class Request {
    * @throws {Error} Thrown if there is any trouble sending the response.
    */
   async sendContent(options = {}) {
-    // TODO
+    const { body, contentType, headers, maxAgeMsec } = options ?? {};
+    const res = this.#expressResponse;
+
+    if (body && (body.length !== 0)) {
+      if (!contentType) {
+        throw new Error('Missing `contentType`.');
+      } else if (!(body instanceof Buffer)) {
+        MustBe.string(body);
+      }
+
+      res.contentType(MimeTypes.typeFromExtensionOrType(contentType));
+    }
+
+    if (headers) {
+      res.set(headers);
+    }
+
+    res.set('Accept-Ranges', 'bytes');
+    res.set('Cache-Control', `public, max-age=${Math.floor(maxAgeMsec / 1000)}`);
+    res.set('ETag', '"TODO-etag-goes-here"');
+    res.status(200);
+
+    if (body && (body.length !== 0)) {
+      res.send(body);
+    } else {
+      res.end();
+    }
+
+    return this.whenResponseDone();
   }
 
   /**
