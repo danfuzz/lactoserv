@@ -217,10 +217,27 @@ const applications = [
 ];
 ```
 
+### `SimpleResponse`
+
+An application which only ever sends one particular response. It's approximately
+like `StaticFiles`, except just one file. It accepts the following configuration
+bindings:
+
+* `body` &mdash; Optional body contents to respond with. If specified, this must
+  be either a string or a Node `Buffer` object.
+* `contentType` &mdash; Content type to report. This can be either a MIME type
+  or a commonly-understood extension (e.g., `txt` or `html`). This must be
+  specified if `body` is. If this is not specified but `filePath` is, then the
+  type is inferred from the extension on the path.
+* `filePath` &mdash; Absolute filesystem path to the file to respond with.
+
+It is valid to specify neither `body` nor `filePath`; this indicates that the
+application should only ever produce empty responses. It is _not_ valid to
+specify _both_ `body` and `filePath`.
+
 ### `StaticFiles`
 
-An application which serves static files from a local directory. (This is a
-thin veneer over the same functionality as bundled with Express.) It accepts the
+An application which serves static files from a local directory. It accepts the
 following configuration bindings:
 
 * `notFoundPath` &mdash; Optional filesystem path to the file to serve when a
