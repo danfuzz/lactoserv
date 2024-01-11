@@ -587,7 +587,7 @@ export class Request {
    */
   #sendNonContentResponse(status, options = null) {
     MustBe.number(status, { safeInteger: true, minInclusive: 0, maxInclusive: 599 });
-    const { contentType, body, bodyExtra, headers } = options ?? {};
+    const { body, bodyExtra, contentType, headers } = options ?? {};
 
     let finalBody;
     let finalContentType;
