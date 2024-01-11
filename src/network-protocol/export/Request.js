@@ -530,9 +530,9 @@ export class Request {
     // reasons, so we can use our style of logging in it and so we don't have to
     // translate between callback and promise call styles). Things that we'll
     // have to deal with include _at least_: HEAD requests, conditional
-    // requests, ranges, etags, and maybe more. For some of those, it will
-    // probably be fine to just use the same packages `send` does, much of which
-    // is more stuff from Express / PillarJS.
+    // requests, ranges, etags, and maybe more. As of this writing,
+    // `sendContent()` above handles all of this, and can be used as a basis for
+    // the code here (hopefully with a bit of DRYing out in the process).
 
     const doneMp = new ManualPromise();
     res.sendFile(path, sendOpts, (err) => {
