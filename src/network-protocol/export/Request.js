@@ -142,19 +142,6 @@ export class Request {
   }
 
   /**
-   * @returns {TreePathKey} Parsed path key representing the hostname, in most-
-   * to least-specific order (that is, back to front). If the original hostname
-   * looks like an IP address, this just returns a single-element key with the
-   * canonicalized IP address string as the sole element.
-   *
-   * **Note:** This corresponds to the `subdomains` value defined by
-   * `express.Request`.
-   */
-  get hostname() {
-    return this.host.nameKey;
-  }
-
-  /**
    * @returns {?string} The unique-ish request ID, or `null` if there is none
    * (which will happen if there is no associated logger).
    */
