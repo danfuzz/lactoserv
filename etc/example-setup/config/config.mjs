@@ -122,7 +122,7 @@ const applications = [
     name:       'myWackyRedirector',
     class:      'Redirector',
     statusCode: 308,
-    target:     'https://milk.com/boop/'
+    target:     'https://localhost:8443/resp/'
   },
   {
     name:          'myStaticFun',

@@ -14,7 +14,7 @@ import { ManualPromise } from '@this/async';
 import { TreePathKey } from '@this/collections';
 import { IntfLogger } from '@this/loggy';
 import { MimeTypes } from '@this/net-util';
-import { Uris } from '@this/net-util';
+import { HostInfo } from '@this/net-util';
 import { AskIf, MustBe } from '@this/typey';
 
 import { RequestLogHelper } from '#p/RequestLogHelper';
@@ -31,6 +31,14 @@ import { RequestLogHelper } from '#p/RequestLogHelper';
  * time, this will be less and less necessary, and eventually the wrapped
  * objects will be able to be fully hidden from the interface presented by this
  * class.
+ *
+ * **Note:** This class does not implement any understanding of reverse proxy
+ * headers. It is up to constructors of this class to pass appropriate
+ * constructor parameters to get this class to do the right thing when running
+ * behind a reverse proxy. That said, as of this writing there isn't anything
+ * that actually does that. See
+ * <https://github.com/danfuzz/lactoserv/issues/213>.
+ *
  */
 export class Request {
   /**
@@ -49,19 +57,10 @@ export class Request {
   #expressResponse;
 
   /**
-   * @type {?boolean} Is the hostname an IP address? Or `null` if not yet
-   * determined.
+   * @type {HostInfo} The host header(ish) info, or `null` if not yet figured
+   * out.
    */
-  #hostnameIsIp = null;
-
-  /**
-   * @type {?string} Canonicalized hostname string, or `null` if not yet
-   * calculated.
-   */
-  #hostnameStringCanonical = null;
-
-  /** @type {?TreePathKey} Parsed hostname, or `null` if not yet calculated. */
-  #parsedHostname = null;
+  #host = null;
 
   /**
    * @type {?URL} The parsed version of `.#expressRequest.url`, or `null` if not
@@ -118,63 +117,28 @@ export class Request {
   }
 
   /**
-   * @returns {TreePathKey} Parsed path key representing the hostname, in most-
-   * to least-specific order (that is, back to front). If the original hostname
-   * looks like an IP address, this just returns a single-element key with the
-   * canonicalized IP address string as the sole element.
-   *
-   * **Note:** This corresponds to the `subdomains` value defined by
-   * `express.Request`.
+   * @returns {HostInfo} Info about the `Host` header (or equivalent). If there
+   * is no header (etc.), it is treated as if it were specified as just
+   * `localhost`.
    */
-  get hostname() {
-    // Note: This doesn't actually use `subdomains` from `express.Request`, so
-    // as to make it easier to ultimately drop Express entirely as a dependency.
-    // Also, unlike Express, this canonicalizes IP addresses.
-    if (!this.#parsedHostname) {
-      const hostname = this.hostnameString;
-      let parts;
+  get host() {
+    if (!this.#host) {
+      const req = this.#expressRequest;
 
-      if (!hostname) {
-        parts = [];
-      } else if (this.#hostnameIsIp) {
-        parts = [hostname];
+      // Note: `authority` is used by HTTP2.
+      const { authority, protocol } = req;
+
+      if (authority) {
+        this.#host = HostInfo.safeParseHostHeader(authority, protocol);
       } else {
-        parts = hostname.split('.').reverse();
-      }
-
-      // Freezing `parts` lets `new TreePathKey()` avoid making a copy.
-      this.#parsedHostname = new TreePathKey(Object.freeze(parts), false);
-    }
-
-    return this.#parsedHostname;
-  }
-
-  /**
-   * @returns {?string} The hostname that was passed with the original request,
-   * canonicalized if it happened to be an IP address in non-canonical form,
-   * or `null` if there was no `Host` header (or similar).
-   */
-  get hostnameString() {
-    if (this.#hostnameIsIp === null) {
-      // Note: `expressRequest.hostname` is an Express-specific field. TODO:
-      // Replace this usage with our own implementation here, as part of the
-      // effort to drop the dependency on Express.
-
-      const hostname    = this.#expressRequest.hostname ?? null;
-      const canonicalIp = hostname
-        ? Uris.checkIpAddressOrNull(hostname)
-        : null;
-
-      if (canonicalIp) {
-        this.#hostnameIsIp            = true;
-        this.#hostnameStringCanonical = canonicalIp;
-      } else {
-        this.#hostnameIsIp            = false;
-        this.#hostnameStringCanonical = hostname;
+        const host = req.get('host');
+        this.#host = host
+          ? HostInfo.safeParseHostHeader(host, protocol)
+          : HostInfo.localhostInstance(protocol);
       }
     }
 
-    return this.#hostnameStringCanonical;
+    return this.#host;
   }
 
   /**

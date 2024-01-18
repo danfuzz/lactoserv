@@ -184,6 +184,35 @@ export class Uris {
   }
 
   /**
+   * Like {@link #checkHostname}, except it returns `null` to indicate a parsing
+   * error.
+   *
+   * @param {string} name Hostname to parse.
+   * @param {boolean} [allowWildcard] Is a wildcard form allowed for
+   *   `name`?
+   * @returns {?string} `value` if it is a string which matches the stated
+   *   pattern, canonicalized if it is an IP address. Returns `null` to indicate
+   *   a parsing error.
+   */
+  static checkHostnameOrNull(name, allowWildcard = false) {
+    // Handle IP address cases.
+    const canonicalIp = this.checkIpAddressOrNull(name, false);
+    if (canonicalIp) {
+      return canonicalIp;
+    }
+
+    if (!AskIf.string(name, this.#HOSTNAME_PATTERN)) {
+      return null;
+    }
+
+    if ((!allowWildcard) && /[*]/.test(name)) {
+      return null;
+    }
+
+    return name;
+  }
+
+  /**
    * Checks that a given value is a string which can be used as a network
    * interface address, and returns a somewhat-canonicalized form. This allows:
    *

@@ -99,10 +99,10 @@ export class NetworkEndpoint extends BaseComponent {
    */
   async handleRequest(request, dispatch_unused) {
     // Find the mount map for the most-specific matching host.
-    const hostMatch = this.#mountMap.find(request.hostname);
+    const hostMatch = this.#mountMap.find(request.host.nameKey);
     if (!hostMatch) {
       // No matching host.
-      request.logger?.hostNotFound(request.hostname);
+      request.logger?.hostNotFound(request.host.nameString);
       return false;
     }
 
