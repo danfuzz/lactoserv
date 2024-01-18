@@ -152,11 +152,12 @@ describe('localhostInstance()', () => {
 });
 
 describe.each`
-methodName               | throws
-${'parseHostHeader'}     | ${true}
-${'safeParseHostHeader'} | ${false}
-`('$methodName', ({ methodName, throws }) => {
-  // Type failure cases. These should throw even in the "safe" version.
+methodName                 | onError
+${'parseHostHeader'}       | ${'throws'}
+${'parseHostHeaderOrNull'} | ${'null'}
+${'safeParseHostHeader'}   | ${'localhost'}
+`('$methodName', ({ methodName, onError }) => {
+  // Type failure cases. These should throw even in the "safe" versions.
   test.each`
   protocol     | host
   ${null}      | ${'x'}
@@ -175,8 +176,8 @@ ${'safeParseHostHeader'} | ${false}
     expect(() => HostInfo[methodName](host, protocol)).toThrow();
   });
 
-  // Syntactically incorrect host strings. These should return "localhost"
-  // instances when called safely.
+  // Syntactically incorrect host strings. These either throw or return
+  // something, depending on which method is being used.
   test.each`
   host
   ${''}
@@ -194,12 +195,21 @@ ${'safeParseHostHeader'} | ${false}
   `('fails in the expected manner for host $host', ({ host }) => {
     const doParse = () => HostInfo[methodName](host, 'https');
 
-    if (throws) {
-      expect(doParse).toThrow();
-    } else {
-      const hi = doParse();
-      expect(hi.nameString).toBe('localhost');
-      expect(hi.portNumber).toBe(443);
+    switch (onError) {
+      case 'localhost': {
+        const hi = doParse();
+        expect(hi.nameString).toBe('localhost');
+        expect(hi.portNumber).toBe(443);
+        break;
+      }
+      case 'null': {
+        expect(doParse()).toBeNull();
+        break;
+      }
+      case 'throws': {
+        expect(doParse).toThrow();
+        break;
+      }
     }
   });
 

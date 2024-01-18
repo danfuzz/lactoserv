@@ -50,7 +50,7 @@ export class HostInfo {
       safeInteger:  true,
       minInclusive: 0,
       maxInclusive: 65535
-    })
+    });
   }
 
   /**
@@ -132,6 +132,25 @@ export class HostInfo {
    * @throws {Error} Thrown if there was parsing trouble.
    */
   static parseHostHeader(hostString, protocol) {
+    const result = this.parseHostHeaderOrNull(hostString, protocol);
+
+    if (!result) {
+      throw this.#parsingError(hostString);
+    }
+
+    return result;
+  }
+
+  /**
+   * Like {@link #parseHostHeader}, except returns `null` to indicate a bad
+   * parse.
+   *
+   * @param {string} hostString The `Host` header string to parse.
+   * @param {string} protocol The network protocol used.
+   * @returns {?HostInfo} The parsed info, or `null` if `hostString` was
+   *   syntactically invalid.
+   */
+  static parseHostHeaderOrNull(hostString, protocol) {
     MustBe.string(hostString);
     MustBe.string(protocol);
 
@@ -140,7 +159,7 @@ export class HostInfo {
       hostString.match(/^(?<hostname>\[.{1,39}\]|[^:]{1,256})(?::(?<port>[0-9]{1,5}))?$/)?.groups;
 
     if (!topParse) {
-      throw this.#parsingError(hostString);
+      return null;
     }
 
     const { hostname, port } = topParse;
@@ -149,7 +168,7 @@ export class HostInfo {
     const canonicalHostname = Uris.checkHostnameOrNull(hostname, false);
 
     if (!canonicalHostname) {
-      throw this.#parsingError(hostString);
+      return null;
     }
 
     if (!port) {
@@ -157,7 +176,7 @@ export class HostInfo {
     } else {
       const portNumber = parseInt(port);
       if (portNumber > 65535) {
-        throw this.#parsingError(hostString);
+        return null;
       }
       return new HostInfo(canonicalHostname, portNumber);
     }
@@ -174,14 +193,8 @@ export class HostInfo {
    * @returns {HostInfo} The parsed info.
    */
   static safeParseHostHeader(hostString, protocol) {
-    MustBe.string(hostString);
-    MustBe.string(protocol);
-
-    try {
-      return this.parseHostHeader(hostString, protocol);
-    } catch (e) {
-      return this.localhostInstance(protocol);
-    }
+    return this.parseHostHeaderOrNull(hostString, protocol)
+      ?? this.localhostInstance(protocol);
   }
 
   /**
