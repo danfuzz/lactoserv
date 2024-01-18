@@ -4,6 +4,8 @@
 import { TreePathKey } from '@this/collections';
 import { AskIf, MustBe } from '@this/typey';
 
+import { Uris } from '#x/Uris';
+
 
 /**
  * Information about a network host, including port number, along with parsing
@@ -70,7 +72,7 @@ export class HostInfo {
     return this.#nameKey;
   }
 
-  /** @returns {string} The (fully qualified) name string. */
+  /** @returns {string} The (fully qualified) canonicalized name string. */
   get nameString() {
     return this.#nameString;
   }
@@ -96,7 +98,7 @@ export class HostInfo {
    */
   nameIsIpAddress() {
     if (this.#nameIsIp === null) {
-      this.#nameIsIp = /^(\[[:0-9a-fA-F]+\]|[.0-9]+)$/.test(this.#nameString);
+      this.#nameIsIp = /[:]|^[.0-9]+$/.test(this.#nameString);
     }
 
     return this.#nameIsIp;
@@ -115,7 +117,7 @@ export class HostInfo {
    * @returns {HostInfo} The constructed instance.
    */
   static localhostInstance(protocol) {
-    return this.parseHostHeader('localhost', protocol);
+    return new HostInfo('localhost', (protocol === 'http') ? 80 : 443);
   }
 
   /**
@@ -133,21 +135,31 @@ export class HostInfo {
     MustBe.string(hostString);
     MustBe.string(protocol);
 
-    // After ensuring it contains no ats or slashes (which are definitely not
-    // allowed by the URI syntax as part of the hostname per se, and would
-    // confuse / mess up our parsing attempt), just let `new URL()` parse the
-    // header; it's _probably_ not going to turn out to be an efficiency
-    // problem, and it handles a bunch of edge cases too.
+    // Basic top-level parse.
+    const topParse =
+      hostString.match(/^(?<hostname>\[.{1,39}\]|[^:]{1,256})(?::(?<port>[0-9]{1,5}))?$/)?.groups;
 
-    if (/[/@]/.test(hostString)) {
+    if (!topParse) {
       throw this.#parsingError(hostString);
     }
 
-    const { hostname, port } = new URL(`x://${hostString}`);
-    if (port === '') {
-      return new HostInfo(hostname, (protocol === 'http') ? 80 : 443);
+    const { hostname, port } = topParse;
+
+    // Refined `hostname` check, along with IP address canonicalization.
+    const canonicalHostname = Uris.checkHostnameOrNull(hostname, false);
+
+    if (!canonicalHostname) {
+      throw this.#parsingError(hostString);
+    }
+
+    if (!port) {
+      return new HostInfo(canonicalHostname, (protocol === 'http') ? 80 : 443);
     } else {
-      return new HostInfo(hostname, parseInt(port));
+      const portNumber = parseInt(port);
+      if (portNumber > 65535) {
+        throw this.#parsingError(hostString);
+      }
+      return new HostInfo(canonicalHostname, portNumber);
     }
   }
 
