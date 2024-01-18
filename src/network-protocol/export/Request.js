@@ -14,7 +14,7 @@ import { ManualPromise } from '@this/async';
 import { TreePathKey } from '@this/collections';
 import { IntfLogger } from '@this/loggy';
 import { MimeTypes } from '@this/net-util';
-import { HostInfo, Uris } from '@this/net-util';
+import { HostInfo } from '@this/net-util';
 import { AskIf, MustBe } from '@this/typey';
 
 import { RequestLogHelper } from '#p/RequestLogHelper';
