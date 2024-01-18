@@ -406,6 +406,7 @@ describe('checkProtocol()', () => {
 describe.each`
 method                   | throws   | returns
 ${'checkHostname'}       | ${true}  | ${'string'}
+${'checkHostnameOrNull'} | ${false} | ${'string'}
 ${'parseHostname'}       | ${true}  | ${'path'}
 ${'parseHostnameOrNull'} | ${false} | ${'path'}
 `('$method()', ({ method, throws, returns }) => {
@@ -447,12 +448,9 @@ ${'parseHostnameOrNull'} | ${false} | ${'path'}
     if (throws) {
       expect(() => Uris[method](hostname, false)).toThrow();
       expect(() => Uris[method](hostname, true)).toThrow();
-    } else if (returns === 'path') {
+    } else {
       expect(Uris[method](hostname, false)).toBeNull();
       expect(Uris[method](hostname, true)).toBeNull();
-    } else {
-      // No such methods are defined.
-      throw new Error('Shouldn\'t happen');
     }
   });
 
