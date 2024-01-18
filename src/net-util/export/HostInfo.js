@@ -162,6 +162,9 @@ export class HostInfo {
    * @returns {HostInfo} The parsed info.
    */
   static safeParseHostHeader(hostString, protocol) {
+    MustBe.string(hostString);
+    MustBe.string(protocol);
+
     try {
       return this.parseHostHeader(hostString, protocol);
     } catch (e) {
