@@ -14,6 +14,7 @@ describe('constructor', () => {
   ${false}
   ${1}
   ${['x']}
+  ${''}
   `('fails when passing name as $arg', ({ arg }) => {
     expect(() => new HostInfo(arg, 123)).toThrow();
   });
@@ -42,9 +43,48 @@ describe('constructor', () => {
 });
 
 // TODO: nameKey
-// TODO: nameString
-// TODO: portNumber
-// TODO: portString
+
+describe('nameString', () => {
+  test('gets the name that was passed in the constructor', () => {
+    const name = 'floop.florp';
+    const hi   = new HostInfo(name, 123);
+
+    expect(hi.nameString).toBe(name);
+  });
+});
+
+describe('portNumber', () => {
+  test('gets the port number-per-se that was passed in the constructor', () => {
+    const port = 5432;
+    const hi   = new HostInfo('host', port);
+
+    expect(hi.portNumber).toBe(port);
+  });
+
+  test('gets the parsed port number-as-string that was passed in the constructor', () => {
+    const port = 7771;
+    const hi   = new HostInfo('host', port.toString());
+
+    expect(hi.portNumber).toBe(port);
+  });
+});
+
+describe('portString', () => {
+  test('gets the string form of the port number-per-se that was passed in the constructor', () => {
+    const port = 99;
+    const hi   = new HostInfo('host', port);
+
+    expect(hi.portString).toBe(port.toString());
+  });
+
+  test('gets the port number-as-string that was passed in the constructor', () => {
+    const port = '8001';
+    const hi   = new HostInfo('host', port);
+
+    expect(hi.portString).toBe(port);
+  });
+});
+
 // TODO: nameIsIpAddress
 // TODO: localhostInstance
 // TODO: parseHostHeader

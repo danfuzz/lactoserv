@@ -39,7 +39,7 @@ export class HostInfo {
    *   se or a string.
    */
   constructor(nameString, portNumber) {
-    this.#nameString = MustBe.string(nameString);
+    this.#nameString = MustBe.string(nameString, /./);
     this.#portNumber = AskIf.string(portNumber)
       ? Number(MustBe.string(portNumber, /^[0-9]+$/))
       : MustBe.number(portNumber);
