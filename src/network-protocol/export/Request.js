@@ -127,9 +127,9 @@ export class Request {
    * `express.Request`.
    */
   get hostname() {
-    // This use `subdomains` from `express.Request`, so as to make it easier to
-    // ultimately drop Express entirely as a dependency. Also, unlike Express,
-    // this canonicalizes IP addresses.
+    // Note: This doesn't actually use `subdomains` from `express.Request`, so
+    // as to make it easier to ultimately drop Express entirely as a dependency.
+    // Also, unlike Express, this canonicalizes IP addresses.
     if (!this.#parsedHostname) {
       const hostname = this.hostnameString;
       let parts;
