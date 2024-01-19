@@ -36,9 +36,8 @@ export class RequestLogHelper {
    */
   async logRequest(request, context) {
     const {
-      expressResponse: res,
       cookies,
-      headers,
+      headers: reqHeaders,
       logger,
       method,
       urlForLogging
@@ -50,46 +49,52 @@ export class RequestLogHelper {
     context.logger?.newRequest(request.id);
     logger?.opened(context.ids);
     logger?.request(origin, method, urlForLogging);
-    logger?.headers(RequestLogHelper.#sanitizeRequestHeaders(headers));
+    logger?.headers(RequestLogHelper.#sanitizeRequestHeaders(reqHeaders));
 
     if (cookies) {
       logger?.cookies(cookies);
     }
 
-    try {
-      await request.whenResponseDone();
-    } catch (e) {
-      logger?.requestError(e);
-    }
-
-    const resHeaders    = res.getHeaders();
-    const statusCode    = res.statusCode;
-    const contentLength = resHeaders['content-length'] ?? 0;
-
-    // Check to see if the connection socket has errored out. If so, indicate
-    // as much.
-    const connError = context.socket.errored;
-    let   errorMsg  = 'ok';
-    if (connError) {
-      if (connError.code) {
-        errorMsg = connError.code.toLowerCase().replaceAll(/_/g, '-');
-      } else if (connError.message) {
-        errorMsg = connError.message.slice(0, 32).toLowerCase()
-          .replaceAll(/[_ ]/g, '-')
-          .replaceAll(/[^-a-z0-9]/g, '');
-      } else {
-        errorMsg = 'err-unknown';
-      }
-      logger?.connectionError(errorMsg);
-    }
-
-    logger?.response(statusCode,
-      RequestLogHelper.#sanitizeResponseHeaders(resHeaders));
+    // Note: This call isn't supposed to `throw`, even if there were errors
+    // thrown during handling.
+    const info = await request.getLoggableResponseInfo();
 
     const endTime  = logger?.$env.now();
     const duration = endTime.subtract(startTime);
 
-    logger?.closed({ contentLength, duration });
+    // Rearrange `info` into preferred loggable form.
+
+    const {
+      contentLength,
+      errors,
+      fullErrors,
+      headers: resHeaders,
+      statusCode
+    } = info;
+
+    const code = errors ?? 'ok';
+
+    delete info.contentLength;
+    delete info.errors;
+    delete info.fullErrors;
+    delete info.headers;
+    delete info.ok;
+    delete info.statusCode;
+
+    const finalInfo = {
+      code,
+      duration,
+      status: statusCode,
+      contentLength,
+      headers: resHeaders,
+      ...info
+    };
+
+    logger?.response(finalInfo);
+
+    if (fullErrors) {
+      logger?.errors(fullErrors);
+    }
 
     const requestLogLine = [
       Moment.stringFromSecs(Date.now() / 1000, { decimals: 4 }),
@@ -99,7 +104,7 @@ export class RequestLogHelper {
       statusCode,
       FormatUtils.byteCountString(contentLength, { spaces: false }),
       duration.toString({ spaces: false }),
-      errorMsg
+      code
     ].join(' ');
 
     logger?.requestLog(requestLogLine);
@@ -132,20 +137,6 @@ export class RequestLogHelper {
     // desirable cryptography properties). This _isn't_ supposed to actually
     // delete the headers named by this value.
     delete result[http2.sensitiveHeaders];
-
-    return result;
-  }
-
-  /**
-   * Cleans up response headers for logging.
-   *
-   * @param {object} headers Original response headers.
-   * @returns {object} Cleaned up version.
-   */
-  static #sanitizeResponseHeaders(headers) {
-    const result = { ...headers };
-
-    delete result[':status'];
 
     return result;
   }
