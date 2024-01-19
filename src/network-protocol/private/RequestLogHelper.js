@@ -3,7 +3,6 @@
 
 import * as http2 from 'node:http2';
 
-import { Moment } from '@this/data-values';
 import { FormatUtils } from '@this/loggy';
 
 import { IntfRequestLogger } from '#x/IntfRequestLogger';
