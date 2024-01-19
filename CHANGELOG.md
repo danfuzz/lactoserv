@@ -25,6 +25,10 @@ Other notable changes:
 * Got rid of direct uses of Express's `Request` and `Response` classes, other
   than within _our_ `Request`. Most notably, the request logging code got a
   major rewrite.
+* Reworked _most_ of the code in our `Request` class that does
+  actually-Express-specific stuff, to instead do approximately what Express
+  does, or just not do it at all. Notably, we no longer try to deal with reverse
+  proxies; support will probably be added for them eventually (assuming demand).
 * Reworked `StaticFiles` to use our `Request` instead of wrapping
   `express.static()`.
 
