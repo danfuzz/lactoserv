@@ -308,6 +308,59 @@ export class Request {
   }
 
   /**
+   * Gets all reasonably-logged info about the response that was made. This
+   * method async-returns after the response has been completed, either
+   * successfully or with an error. In case of an error, this method aims to
+   * report the error-ish info via a normal return (not by `throw`ing).
+   *
+   * **Note:** The `headers` in the result omits anything that is redundant
+   * with respect to other parts of the return value. (E.g., the `:status`
+   * pseudo-header is omitted from HTTP2 response headers.)
+   *
+   * @returns {object} Loggable information about the response.
+   */
+  async getLoggableResponseInfo() {
+    let requestError = null;
+
+    try {
+      await this.whenResponseDone();
+    } catch (e) {
+      requestError = e;
+    }
+
+    const connectionError = this.#outerContext.socket.errored ?? null;
+    const res             = this.#expressResponse;
+    const statusCode      = res.statusCode;
+    const headers         = res.getHeaders();
+    const contentLength   = headers['content-length'] ?? 0;
+
+    const result = {
+      anyError: requestError || connectionError,
+      contentLength,
+      statusCode,
+      headers: Request.#sanitizeResponseHeaders(headers),
+    };
+
+    const fullErrors = [];
+
+    if (requestError) {
+      result.requestError = Request.#extractErrorCode(requestError);
+      fullErrors.push(requestError);
+    }
+
+    if (connectionError) {
+      result.connectionError = Request.#extractErrorCode(connectionError);
+      fullErrors.push(connectionError);
+    }
+
+    if (fullErrors.length !== 0) {
+      result.fullErrors = fullErrors;
+    }
+
+    return result;
+  }
+
+  /**
    * Checks to see if a response with the given headers would be considered
    * "fresh" such that a not-modified (status `304`) response could be issued.
    *
@@ -836,6 +889,33 @@ export class Request {
   }
 
   /**
+   * Extracts a string error code from the given `Error`, or returns a generic
+   * "unknown error" if there's nothing else reasonable.
+   *
+   * @param {*} error The error to extract from.
+   * @returns {string} The extracted code.
+   */
+  static #extractErrorCode(error) {
+    const shortenAndFormat = (str) => {
+      return str.slice(0, 32).toLowerCase()
+        .replaceAll(/[_ ]/g, '-')
+        .replaceAll(/[^-a-z0-9]/g, '');
+    };
+
+    if (error instanceof Error) {
+      if (error.code) {
+        return error.code.toLowerCase().replaceAll(/_/g, '-');
+      } else if (error.message) {
+        return shortenAndFormat(error.message);
+      }
+    } else if (AskIf.string(error)) {
+      return shortenAndFormat(error);
+    }
+
+    return 'err-unknown';
+  }
+
+  /**
    * Extracts a subset of the given object, which is taken to be a set of
    * request or response headers, ignoring the case of the keys in that object.
    *
@@ -882,5 +962,19 @@ export class Request {
     const result = Date.parse(dateString);
 
     return (typeof result === 'number') ? result : null;
+  }
+
+  /**
+   * Cleans up response headers for logging.
+   *
+   * @param {object} headers Original response headers.
+   * @returns {object} Cleaned up version.
+   */
+  static #sanitizeResponseHeaders(headers) {
+    const result = { ...headers };
+
+    delete result[':status'];
+
+    return result;
   }
 }
