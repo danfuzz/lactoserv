@@ -6,7 +6,7 @@ import * as stream from 'node:stream';
 
 import { FormatUtils, IntfLogger } from '@this/loggy';
 
-import { RequestLogHelper } from '#p/RequestLogHelper';
+import { Request } from '#x/Request';
 
 
 /**
@@ -173,7 +173,7 @@ export class WranglerContext {
 
     if (logger) {
       ctx.#requestLogger = logger;
-      ctx.#requestId     = RequestLogHelper.idFromLogger(logger);
+      ctx.#requestId     = Request.idFromLogger(logger);
     }
 
     return ctx;

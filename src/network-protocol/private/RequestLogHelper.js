@@ -3,12 +3,11 @@
 
 import * as http2 from 'node:http2';
 
-import * as express from 'express';
-
 import { Moment } from '@this/data-values';
-import { FormatUtils, IntfLogger } from '@this/loggy';
+import { FormatUtils } from '@this/loggy';
 
 import { IntfRequestLogger } from '#x/IntfRequestLogger';
+import { Request } from '#x/Request';
 import { WranglerContext } from '#x/WranglerContext';
 
 
@@ -20,46 +19,32 @@ export class RequestLogHelper {
   #requestLogger;
 
   /**
-   * @type {?IntfLogger} _System_ logger to use, or `null` not to do any system
-   * logging.
-   */
-  #logger;
-
-  /**
    * Constructs an instance.
    *
    * @param {IntfRequestLogger} requestLogger Request logger service to use.
-   * @param {?IntfLogger} logger Underlying system event logger instance to
-   *   use, if any.
    */
-  constructor(requestLogger, logger) {
+  constructor(requestLogger) {
     this.#requestLogger = requestLogger;
-    this.#logger        = logger ? logger.req : null;
   }
 
   /**
-   * Logs the indicated request / response pair. This returns the
-   * request-specific logger so that it can be used by other parts of the system
-   * that are acting in service of the request (or `null` if the system is not
-   * doing logging for this request).
+   * Causes the indicated {@link Request} to be logged once completed. Also
+   * logs various intermediate details to the `Request`'s _system_ logger.
    *
-   * @param {express.Request} req Request object.
-   * @param {express.Response} res Response object.
+   * @param {Request} request Request object.
    * @param {WranglerContext} context Connection or session context.
-   * @returns {?IntfLogger} The request-specific logger, or `null` not to log
-   *   this request.
    */
-  logRequest(req, res, context) {
-    const startTime = this.#logger?.$env.now();
-    const logger    = this.#logger?.$newId ?? null;
-    const requestId = logger?.$meta.lastContext;
-    const urlish    = `${req.protocol}://${req.hostname}${req.originalUrl}`;
-    const origin    = context.socketAddressPort ?? '<unknown-origin>';
-    const method    = req.method;
+  logRequest(request, context) {
+    const { expressRequest: req, expressResponse: res, logger } = request;
 
-    context.logger?.newRequest(requestId);
+    const startTime = logger?.$env.now();
+    const urlish    = `${req.protocol}://${request.host.nameString}${request.urlString}`;
+    const origin    = context.socketAddressPort ?? '<unknown-origin>';
+    const method    = request.method;
+
+    context.logger?.newRequest(request.id);
     logger?.opened(context.ids);
-    logger?.request(origin, req.method, urlish);
+    logger?.request(origin, method, urlish);
     logger?.headers(RequestLogHelper.#sanitizeRequestHeaders(req.headers));
 
     const cookies = req.cookies;
@@ -91,7 +76,7 @@ export class RequestLogHelper {
       logger?.response(res.statusCode,
         RequestLogHelper.#sanitizeResponseHeaders(resHeaders));
 
-      const endTime  = this.#logger?.$env.now();
+      const endTime  = logger?.$env.now();
       const duration = endTime.subtract(startTime);
 
       logger?.closed({ contentLength, duration });
@@ -110,25 +95,12 @@ export class RequestLogHelper {
       logger?.requestLog(requestLogLine);
       this.#requestLogger?.logCompletedRequest(requestLogLine);
     });
-
-    return logger;
   }
 
 
   //
   // Static members
   //
-
-  /**
-   * Given a logger created by this class, returns the request ID it logs
-   * with.
-   *
-   * @param {?IntfLogger} logger The logger.
-   * @returns {?string} The ID string, or `null` if `logger === null`.
-   */
-  static idFromLogger(logger) {
-    return logger?.$meta.lastContext ?? null;
-  }
 
   /**
    * Cleans up request headers for logging.
