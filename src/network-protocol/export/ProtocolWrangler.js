@@ -379,7 +379,7 @@ export class ProtocolWrangler {
     const reqLogger = request.logger;
     const context   = WranglerContext.getNonNull(req.socket, req.stream?.session);
 
-    const reqCtx = WranglerContext.forRequest(context, reqLogger);
+    const reqCtx = WranglerContext.forRequest(context, request);
     WranglerContext.bind(req, reqCtx);
 
     this.#logHelper?.logRequest(request, context);
