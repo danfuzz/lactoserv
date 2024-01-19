@@ -15,6 +15,11 @@ import { Struct } from '#x/Struct';
  * other than a couple modest utilities it doesn't parse / deconstruct values.
  *
  * Instances of this class are always frozen.
+ *
+ * **Note:** This class intentionally does _not_ implement a `static` method to
+ * get the current wall time. There are many possible "sources of truth" for the
+ * time, and it is up to other code to use whatever source is appropriate in
+ * context.
  */
 export class Moment {
   /**
