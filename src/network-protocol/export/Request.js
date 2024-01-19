@@ -17,8 +17,6 @@ import { MimeTypes } from '@this/net-util';
 import { HostInfo } from '@this/net-util';
 import { AskIf, MustBe } from '@this/typey';
 
-import { RequestLogHelper } from '#p/RequestLogHelper';
-
 
 /**
  * Representation of an in-progress HTTP(ish) request, including both request
@@ -45,10 +43,12 @@ export class Request {
    * @type {?IntfLogger} Logger to use for this instance, or `null` if the
    * instance is not doing logging.
    */
-  #logger;
+  #logger = null;
 
-  /** @type {string} Request ID. */
-  #id;
+  /**
+   * @type {?string} Request ID, or `null` if the instance is not doing logging.
+   */
+  #id = null;
 
   /** @type {ClientRequest|express.Request} HTTP(ish) request object. */
   #expressRequest;
@@ -84,14 +84,21 @@ export class Request {
    * @param {ServerResponse|express.Response} response Response object. This is
    *   a response object as used by Express to a middleware handler (or
    *   similar).
-   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
+   * @param {?IntfLogger} logger Logger to use as a base, or `null` to not do
+   *   any logging. If passed as non-`null`, the actual logger instance will be
+   *   one that includes an additional subtag representing a new unique(ish) ID
+   *   for the request.
    */
   constructor(request, response, logger) {
     // Note: It's impractical to do more thorough type checking here (and
     // probably not worth it anyway).
     this.#expressRequest  = MustBe.object(request);
     this.#expressResponse = MustBe.object(response);
-    this.#logger          = logger;
+
+    if (logger) {
+      this.#id     = logger.$meta.makeId();
+      this.#logger = logger[this.#id];
+    }
 
     if (!/^[/]/.test(request.url)) {
       // Sanity check. If this throws, it's a bug and not (in particular) a
@@ -146,12 +153,12 @@ export class Request {
    * (which will happen if there is no associated logger).
    */
   get id() {
-    return RequestLogHelper.idFromLogger(this.#logger);
+    return this.#id;
   }
 
   /**
-   * @returns {?IntfLogger} The logger to use with this instance, or `null` not
-   * to do any logging.
+   * @returns {?IntfLogger} The logger to use with this instance, or `null` if
+   * the instance is not doing any logging.
    */
   get logger() {
     return this.#logger;
@@ -748,6 +755,17 @@ export class Request {
   //
   // Static members
   //
+
+  /**
+   * Given a logger created by this class, returns the request ID it logs
+   * with.
+   *
+   * @param {?IntfLogger} logger The logger.
+   * @returns {?string} The ID string, or `null` if `logger === null`.
+   */
+  static idFromLogger(logger) {
+    return logger?.$meta.lastContext ?? null;
+  }
 
   /**
    * Extracts a subset of the given object, which is taken to be a set of

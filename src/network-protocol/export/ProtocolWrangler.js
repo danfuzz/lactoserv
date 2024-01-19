@@ -39,6 +39,13 @@ export class ProtocolWrangler {
   #logger;
 
   /**
+   * @type {?IntfLogger} Logger to use for {@link Request}s, or `null` to not do
+   * any logging. This is passed into the {@link Request} constructor, which
+   * will end up making a sub-logger with a generated request ID.
+   */
+  #requestLogger;
+
+  /**
    * @type {?IntfHostManager} Optional host manager; only needed for some
    * protocols.
    */
@@ -116,10 +123,13 @@ export class ProtocolWrangler {
     this.#hostManager    = hostManager ?? null;
     this.#rateLimiter    = rateLimiter ?? null;
     this.#requestHandler = MustBe.object(requestHandler);
-    this.#logHelper      = requestLogger
-      ? new RequestLogHelper(requestLogger, logger)
-      : null;
+    this.#logHelper      = requestLogger ? new RequestLogHelper(requestLogger) : null;
     this.#serverHeader   = ProtocolWrangler.#makeServerHeader();
+
+    // Confusion alert!: This is not the same as the `requestLogger` (a "request
+    // logger") per se) passed in as an option. This is the sub-logger of the
+    // _system_ logger, which is used for detailed logging inside `Request`.
+    this.#requestLogger = logger?.req ?? null;
   }
 
   /**
@@ -365,11 +375,14 @@ export class ProtocolWrangler {
    *   to run.
    */
   async #handleExpressRequest(req, res, next) {
+    const request   = new Request(req, res, this.#requestLogger);
+    const reqLogger = request.logger;
     const context   = WranglerContext.getNonNull(req.socket, req.stream?.session);
-    const reqLogger = this.#logHelper?.logRequest(req, res, context) ?? null;
 
     const reqCtx = WranglerContext.forRequest(context, reqLogger);
     WranglerContext.bind(req, reqCtx);
+
+    this.#logHelper?.logRequest(request, context);
 
     res.set('Server', this.#serverHeader);
 
@@ -392,8 +405,7 @@ export class ProtocolWrangler {
     }
 
     try {
-      const result = await this.#requestHandler.handleRequest(
-        new Request(req, res, reqLogger), null);
+      const result = await this.#requestHandler.handleRequest(request, null);
 
       if (result) {
         // Validate that the request was actually handled.
