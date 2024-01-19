@@ -108,6 +108,17 @@ export class Request {
   }
 
   /**
+   * @returns {?object} _Unsecure_ cookies that have been parsed from the
+   * request, or `null` if there are not any.
+   */
+  get cookies() {
+    // Note: The `cookies` property of the request is provided by Express or
+    // by the `cookie-parser` middleware. As of this writing, there is
+    // nothing actually set up in the system to cause this value to be set.
+    return this.#expressRequest.cookies ?? null;
+  }
+
+  /**
    * @returns {ClientRequest|express.Request} The underlying Express(-like)
    * request object.
    */
@@ -237,6 +248,17 @@ export class Request {
    */
   get searchString() {
     return this.#parsedUrl.search;
+  }
+
+  /**
+   * @returns {?object} _Secure_ cookies that have been parsed from the request,
+   * or `null` if there are not any.
+   */
+  get secureCookies() {
+    // Note: The `secureCookies` property of the request is provided by Express
+    // or by the `cookie-parser` middleware. As of this writing, there is
+    // nothing actually set up in the system to cause this value to be set.
+    return this.#expressRequest.secureCookies ?? null;
   }
 
   /**
