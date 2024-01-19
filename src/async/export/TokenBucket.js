@@ -1,10 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import * as timers from 'node:timers/promises';
-
 import { IntfTimeSource, StdTimeSource } from '@this/metacomp';
-import { Methods, MustBe } from '@this/typey';
+import { MustBe } from '@this/typey';
 
 import { ManualPromise } from '#x/ManualPromise';
 import { Threadlet } from '#x/Threadlet';
