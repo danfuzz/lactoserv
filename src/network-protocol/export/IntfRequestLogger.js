@@ -11,6 +11,15 @@ import { Methods } from '@this/typey';
  */
 export class IntfRequestLogger {
   /**
+   * Gets this instance's idea of what the current time is.
+   *
+   * @returns {Moment} The current time.
+   */
+  now() {
+    return Methods.abstract();
+  }
+
+  /**
    * Logs a completed request.
    *
    * @abstract

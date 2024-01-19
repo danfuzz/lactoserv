@@ -6,6 +6,7 @@ import * as fs from 'node:fs/promises';
 import { FileServiceConfig } from '@this/app-config';
 import { BaseService } from '@this/app-framework';
 import { Rotator } from '@this/app-util';
+import { Moment } from '@this/data-values';
 import { IntfLogger } from '@this/loggy';
 import { IntfRequestLogger } from '@this/network-protocol';
 
@@ -40,6 +41,11 @@ export class RequestLogger extends BaseService {
   /** @override */
   async logCompletedRequest(line) {
     await fs.appendFile(this.config.path, `${line}\n`);
+  }
+
+  /** @override */
+  async now() {
+    return Moment.fromMsec(Date.now());
   }
 
   /** @override */
