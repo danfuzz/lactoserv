@@ -15,8 +15,8 @@ Other notable changes:
 ### v0.6.1 -- 2024-01-19
 
 Breaking changes:
-* Changed interface of `BaseApplication` to use `Request` and `Dispatch` (see
-  below). This breaks downstream clients of this codebase.
+* Changed interface of `BaseApplication` to use `Request` and `DispatchInfo`
+  (see below). This breaks downstream clients of this codebase.
 
 Other notable changes:
 * Added new application `SimpleResponse`, which is kind of like a one-file
