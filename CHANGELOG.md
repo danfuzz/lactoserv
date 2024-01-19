@@ -22,8 +22,9 @@ Other notable changes:
   that are subject to alteration during dispatch. In Express, this is
   represented by mutating the request object, but we're an immutable-forward
   shop here.
-* _Mostly_ got rid of direct uses of Express's `Request` and `Response` classes,
-  other than within _our_ `Request`.
+* Got rid of direct uses of Express's `Request` and `Response` classes, other
+  than within _our_ `Request`. Most notably, the request logging code got a
+  major rewrite.
 * Reworked `StaticFiles` to use our `Request` instead of wrapping
   `express.static()`.
 
