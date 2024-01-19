@@ -12,6 +12,7 @@
   },
 
   "dependencies": {
+    "@this/metacomp": "*",
     "@this/typey": "*"
   }
 }
