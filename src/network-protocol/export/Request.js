@@ -314,8 +314,9 @@ export class Request {
    * report the error-ish info via a normal return (not by `throw`ing).
    *
    * **Note:** The `headers` in the result omits anything that is redundant
-   * with respect to other parts of the return value. (E.g., the `:status`
-   * pseudo-header is omitted from HTTP2 response headers.)
+   * with respect to other parts of the return value. (E.g., the
+   * `content-length` header is always omitted, and the `:status` pseudo-header
+   * is omitted from HTTP2 response headers.)
    *
    * @returns {object} Loggable information about the response.
    */
@@ -335,25 +336,33 @@ export class Request {
     const contentLength   = headers['content-length'] ?? 0;
 
     const result = {
-      anyError: requestError || connectionError,
+      ok: !(requestError || connectionError),
       contentLength,
       statusCode,
       headers: Request.#sanitizeResponseHeaders(headers),
     };
 
     const fullErrors = [];
+    let   errorStr   = null;
 
     if (requestError) {
-      result.requestError = Request.#extractErrorCode(requestError);
+      const code = Request.#extractErrorCode(requestError);
+
       fullErrors.push(requestError);
+      result.requestError = code;
+      errorStr = code;
     }
 
     if (connectionError) {
-      result.connectionError = Request.#extractErrorCode(connectionError);
+      const code = Request.#extractErrorCode(connectionError);
+
       fullErrors.push(connectionError);
+      result.connectionError = code;
+      errorStr = errorStr ? `${errorStr},${code}` : code;
     }
 
     if (fullErrors.length !== 0) {
+      result.errors     = errorStr;
       result.fullErrors = fullErrors;
     }
 
@@ -974,6 +983,7 @@ export class Request {
     const result = { ...headers };
 
     delete result[':status'];
+    delete result['content-length'];
 
     return result;
   }
