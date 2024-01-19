@@ -3,7 +3,7 @@
 
 import * as timers from 'node:timers/promises';
 
-import { IntfTimeSource } from '@this/metacomp';
+import { IntfTimeSource, StdTimeSource } from '@this/metacomp';
 import { Methods, MustBe } from '@this/typey';
 
 import { ManualPromise } from '#x/ManualPromise';
@@ -602,49 +602,6 @@ export class TokenBucket {
   // Static members
   //
 
-  /** @type {TokenBucket.StdTimeSource} Default time source. */
-  static #DEFAULT_TIME_SOURCE;
-
-  /**
-   * Standard implementation of {@link IntfTimeSource}, which uses "wall time"
-   * as provided by the JavaScript / Node implementation, and for which the ATU
-   * is actually a second (_not_ a msec).
-   */
-  static StdTimeSource = class StdTimeSource extends IntfTimeSource {
-    // Note: The default constructor is fine.
-
-    /** @override */
-    get unitName() {
-      return 'seconds';
-    }
-
-    /** @override */
-    now() {
-      return Date.now() * StdTimeSource.#SECS_PER_MSEC;
-    }
-
-    /** @override */
-    async waitUntil(time) {
-      for (;;) {
-        const delay = time - this.now();
-        if ((delay <= 0) || !Number.isFinite(delay)) {
-          break;
-        }
-
-        const delayMsec = delay * StdTimeSource.#MSEC_PER_SEC;
-        await timers.setTimeout(delayMsec);
-      }
-    }
-
-    /** @type {number} The number of milliseconds in a second. */
-    static #MSEC_PER_SEC = 1000;
-
-    /** @type {number} The number of seconds in a millisecond. */
-    static #SECS_PER_MSEC = 1 / 1000;
-  };
-
-  static {
-    this.#DEFAULT_TIME_SOURCE = new TokenBucket.StdTimeSource();
-    Object.freeze(this);
-  }
+  /** @type {StdTimeSource} Default time source. */
+  static #DEFAULT_TIME_SOURCE = StdTimeSource.INSTANCE;
 }

@@ -4,7 +4,7 @@
 import * as timers from 'node:timers/promises';
 
 import { ManualPromise, PromiseState, TokenBucket } from '@this/async';
-import { IntfTimeSource } from '@this/metacomp';
+import { IntfTimeSource, StdTimeSource } from '@this/metacomp';
 
 
 /**
@@ -95,7 +95,7 @@ describe('constructor()', () => {
     ${{ flowRate: 1,      maxBurstSize: 1,     partialTokens: false }}
     ${{ flowRate: 12.3,   maxBurstSize: 123.4, partialTokens: false }}
     ${{ flowRate: 1,      maxBurstSize: 1,     partialTokens: true }}
-    ${{ flowRate: 1,      maxBurstSize: 1,     timeSource: new TokenBucket.StdTimeSource() }}
+    ${{ flowRate: 1,      maxBurstSize: 1,     timeSource: new StdTimeSource() }}
     ${{ flowRate: 1,      maxBurstSize: 1,     timeSource: new MockTimeSource() }}
     ${{ flowRate: 1, maxBurstSize: 1, initialBurstSize: 0.5, maxQueueGrantSize: 0.5,
         maxQueueSize: 10, partialTokens: true, timeSource: new MockTimeSource() }}
