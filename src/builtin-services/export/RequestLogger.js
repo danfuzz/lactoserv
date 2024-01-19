@@ -44,7 +44,7 @@ export class RequestLogger extends BaseService {
   }
 
   /** @override */
-  async now() {
+  now() {
     return Moment.fromMsec(Date.now());
   }
 
