@@ -38,6 +38,7 @@ export class RequestLogHelper {
     const {
       expressRequest: req,
       expressResponse: res,
+      cookies,
       headers,
       host,
       logger,
@@ -55,7 +56,6 @@ export class RequestLogHelper {
     logger?.request(origin, method, urlish);
     logger?.headers(RequestLogHelper.#sanitizeRequestHeaders(headers));
 
-    const cookies = req.cookies;
     if (cookies) {
       logger?.cookies(cookies);
     }
