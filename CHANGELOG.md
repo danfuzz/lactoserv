@@ -18,12 +18,17 @@ Other notable changes:
   both the underlying request and response (and other related goodies). For now,
   the underlying Express bits are exposed to clients, but the intention is for
   them to get hidden and for this project's API to be sufficient.
-* Relatedly, introduced new class `DispatchInfo`, to hold the bits of a request
-  that are subject to alteration during dispatch. In Express, this is
-  represented by mutating the request object, but we're an immutable-forward
-  shop here.
-* _Mostly_ got rid of direct uses of Express's `Request` and `Response` classes,
-  other than within _our_ `Request`.
+* Relatedly, introduced new class `DispatchInfo`, to hold information about a
+  request dispatch-in-progress (i.e., routing information, more or less). In
+  Express, the equivalent state is represented by mutating the request object,
+  but we're an immutable-forward shop here.
+* Got rid of direct uses of Express's `Request` and `Response` classes, other
+  than within _our_ `Request`. Most notably, the request logging code got a
+  major rewrite.
+* Reworked _most_ of the code in our `Request` class that does
+  actually-Express-specific stuff, to instead do approximately what Express
+  does, or just not do it at all. Notably, we no longer try to deal with reverse
+  proxies; support will probably be added for them eventually (assuming demand).
 * Reworked `StaticFiles` to use our `Request` instead of wrapping
   `express.static()`.
 

@@ -116,7 +116,7 @@ export class BaseLoggingEnvironment {
   }
 
   /**
-   * Gets a moment representing "now.""
+   * Gets a moment representing "now."
    *
    * @returns {Moment} The moment "now."
    */

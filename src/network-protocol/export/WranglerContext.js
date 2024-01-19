@@ -29,11 +29,8 @@ export class WranglerContext {
   /** @type {?IntfLogger} Logger for a session. */
   #sessionLogger = null;
 
-  /** @type {?string} ID of a request. */
-  #requestId = null;
-
-  /** @type {?IntfLogger} Logger for a request. */
-  #requestLogger = null;
+  /** @type {?Request} Request. */
+  #request = null;
 
   // Note: The default constructor is fine here.
 
@@ -49,16 +46,14 @@ export class WranglerContext {
 
   /** @returns {?string} Most-specific available id, if any. */
   get id() {
-    return this.#requestId
-      ?? this.#sessionId
-      ?? this.#connectionId;
+    return this.requestId ?? this.#sessionId ?? this.#connectionId;
   }
 
   /** @returns {object} Plain object with all IDs in this context. */
   get ids() {
     const result = {};
 
-    if (this.#requestId)    result.requestId    = this.#requestId;
+    if (this.requestId)     result.requestId    = this.requestId;
     if (this.#sessionId)    result.sessionId    = this.#sessionId;
     if (this.#connectionId) result.connectionId = this.#connectionId;
 
@@ -67,19 +62,22 @@ export class WranglerContext {
 
   /** @returns {?IntfLogger} Most-specific available logger, if any. */
   get logger() {
-    return this.#requestLogger
-      ?? this.#sessionLogger
-      ?? this.#connectionLogger;
+    return this.requestLogger ?? this.#sessionLogger ?? this.#connectionLogger;
   }
 
-  /** @returns {?string} ID of a request. */
+  /** @returns {?Request} Request, if any. */
+  get request() {
+    return this.#request;
+  }
+
+  /** @returns {?string} ID of a request, if any. */
   get requestId() {
-    return this.#requestId;
+    return this.#request?.id;
   }
 
-  /** @returns {?IntfLogger} Logger for a request, or `null` if none. */
+  /** @returns {?IntfLogger} Logger for a request, if any. */
   get requestLogger() {
-    return this.#requestLogger;
+    return this.#request?.logger;
   }
 
   /** @returns {?string} ID of a session. */
@@ -157,10 +155,10 @@ export class WranglerContext {
    *
    * @param {?WranglerContext} outerContext Instance of this class which has
    *   outer context (for the connection and/or session), if any.
-   * @param {?IntfLogger} logger The request logger, if any.
+   * @param {Request} request The request.
    * @returns {WranglerContext} An appropriately-constructed instance.
    */
-  static forRequest(outerContext, logger) {
+  static forRequest(outerContext, request) {
     const ctx = new WranglerContext();
 
     if (outerContext) {
@@ -171,10 +169,7 @@ export class WranglerContext {
       ctx.#sessionId        = outerContext.#sessionId;
     }
 
-    if (logger) {
-      ctx.#requestLogger = logger;
-      ctx.#requestId     = Request.idFromLogger(logger);
-    }
+    ctx.#request = request;
 
     return ctx;
   }

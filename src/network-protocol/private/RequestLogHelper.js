@@ -3,7 +3,6 @@
 
 import * as http2 from 'node:http2';
 
-import { Moment } from '@this/data-values';
 import { FormatUtils } from '@this/loggy';
 
 import { IntfRequestLogger } from '#x/IntfRequestLogger';
@@ -34,67 +33,81 @@ export class RequestLogHelper {
    * @param {Request} request Request object.
    * @param {WranglerContext} context Connection or session context.
    */
-  logRequest(request, context) {
-    const { expressRequest: req, expressResponse: res, logger } = request;
+  async logRequest(request, context) {
+    const {
+      cookies,
+      headers: reqHeaders,
+      logger,
+      method,
+      urlForLogging
+    } = request;
 
-    const startTime = logger?.$env.now();
-    const urlish    = `${req.protocol}://${request.host.nameString}${request.urlString}`;
+    const startTime = this.#requestLogger.now();
     const origin    = context.socketAddressPort ?? '<unknown-origin>';
-    const method    = request.method;
 
     context.logger?.newRequest(request.id);
     logger?.opened(context.ids);
-    logger?.request(origin, method, urlish);
-    logger?.headers(RequestLogHelper.#sanitizeRequestHeaders(req.headers));
+    logger?.request(origin, method, urlForLogging);
+    logger?.headers(RequestLogHelper.#sanitizeRequestHeaders(reqHeaders));
 
-    const cookies = req.cookies;
     if (cookies) {
       logger?.cookies(cookies);
     }
 
-    res.on('finish', () => {
-      const resHeaders    = res.getHeaders();
-      const contentLength = resHeaders['content-length'] ?? 0;
+    // Note: This call isn't supposed to `throw`, even if there were errors
+    // thrown during handling.
+    const info = await request.getLoggableResponseInfo();
 
-      // Check to see if the connection socket has errored out. If so, indicate
-      // as much.
-      const connError = context.socket.errored;
-      let   errorMsg  = 'ok';
-      if (connError) {
-        if (connError.code) {
-          errorMsg = connError.code.toLowerCase().replaceAll(/_/g, '-');
-        } else if (connError.message) {
-          errorMsg = connError.message.slice(0, 32).toLowerCase()
-            .replaceAll(/[_ ]/g, '-')
-            .replaceAll(/[^-a-z0-9]/g, '');
-        } else {
-          errorMsg = 'err-unknown';
-        }
-        logger?.connectionError(errorMsg);
-      }
+    const endTime  = this.#requestLogger.now();
+    const duration = endTime.subtract(startTime);
 
-      logger?.response(res.statusCode,
-        RequestLogHelper.#sanitizeResponseHeaders(resHeaders));
+    // Rearrange `info` into preferred loggable form.
 
-      const endTime  = logger?.$env.now();
-      const duration = endTime.subtract(startTime);
+    const {
+      contentLength,
+      errors,
+      fullErrors,
+      headers: resHeaders,
+      statusCode
+    } = info;
 
-      logger?.closed({ contentLength, duration });
+    const code = errors ?? 'ok';
 
-      const requestLogLine = [
-        Moment.stringFromSecs(Date.now() / 1000, { decimals: 4 }),
-        origin,
-        method,
-        JSON.stringify(urlish),
-        res.statusCode,
-        FormatUtils.byteCountString(contentLength, { spaces: false }),
-        duration.toString({ spaces: false }),
-        errorMsg
-      ].join(' ');
+    delete info.contentLength;
+    delete info.errors;
+    delete info.fullErrors;
+    delete info.headers;
+    delete info.ok;
+    delete info.statusCode;
 
-      logger?.requestLog(requestLogLine);
-      this.#requestLogger?.logCompletedRequest(requestLogLine);
-    });
+    const finalInfo = {
+      code,
+      duration,
+      status: statusCode,
+      contentLength,
+      headers: resHeaders,
+      ...info
+    };
+
+    logger?.response(finalInfo);
+
+    if (fullErrors) {
+      logger?.errors(fullErrors);
+    }
+
+    const requestLogLine = [
+      endTime.toString({ decimals: 4 }),
+      origin,
+      method,
+      JSON.stringify(urlForLogging),
+      statusCode,
+      FormatUtils.byteCountString(contentLength, { spaces: false }),
+      duration.toString({ spaces: false }),
+      code
+    ].join(' ');
+
+    logger?.requestLog(requestLogLine);
+    this.#requestLogger?.logCompletedRequest(requestLogLine);
   }
 
 
@@ -111,26 +124,18 @@ export class RequestLogHelper {
   static #sanitizeRequestHeaders(headers) {
     const result = { ...headers };
 
-    delete result[http2.sensitiveHeaders];
     delete result[':authority'];
     delete result[':method'];
     delete result[':path'];
     delete result[':scheme'];
     delete result.host;
 
-    return result;
-  }
-
-  /**
-   * Cleans up response headers for logging.
-   *
-   * @param {object} headers Original response headers.
-   * @returns {object} Cleaned up version.
-   */
-  static #sanitizeResponseHeaders(headers) {
-    const result = { ...headers };
-
-    delete result[':status'];
+    // Non-obvious: This deletes the symbol property `http2.sensitiveHeaders`
+    // from the result (whose array is a value of header names that, per Node
+    // docs, aren't supposed to be compressed due to poor interaction with
+    // desirable cryptography properties). This _isn't_ supposed to actually
+    // delete the headers named by this value.
+    delete result[http2.sensitiveHeaders];
 
     return result;
   }

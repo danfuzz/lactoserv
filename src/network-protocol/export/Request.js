@@ -13,9 +13,10 @@ import statuses from 'statuses';
 import { ManualPromise } from '@this/async';
 import { TreePathKey } from '@this/collections';
 import { IntfLogger } from '@this/loggy';
-import { MimeTypes } from '@this/net-util';
-import { HostInfo } from '@this/net-util';
+import { HostInfo, MimeTypes } from '@this/net-util';
 import { AskIf, MustBe } from '@this/typey';
+
+import { WranglerContext } from '#x/WranglerContext';
 
 
 /**
@@ -50,6 +51,13 @@ export class Request {
    */
   #id = null;
 
+  /**
+   * @type {WranglerContext} Most-specific outer context responsible for this
+   * instance. (This instance might also get directly associated with a context,
+   * but it doesn't get to find out about it.)
+   */
+  #outerContext;
+
   /** @type {ClientRequest|express.Request} HTTP(ish) request object. */
   #expressRequest;
 
@@ -79,6 +87,8 @@ export class Request {
   /**
    * Constructs an instance.
    *
+   * @param {WranglerContext} context Most-specific context that was responsible
+   *   for constructing this instance.
    * @param {ClientRequest|express.Request} request Request object. This is a
    *   request object as used by Express to a middleware handler (or similar).
    * @param {ServerResponse|express.Response} response Response object. This is
@@ -89,7 +99,9 @@ export class Request {
    *   one that includes an additional subtag representing a new unique(ish) ID
    *   for the request.
    */
-  constructor(request, response, logger) {
+  constructor(context, request, response, logger) {
+    this.#outerContext = MustBe.instanceOf(context, WranglerContext);
+
     // Note: It's impractical to do more thorough type checking here (and
     // probably not worth it anyway).
     this.#expressRequest  = MustBe.object(request);
@@ -108,6 +120,17 @@ export class Request {
   }
 
   /**
+   * @returns {?object} _Unsecure_ cookies that have been parsed from the
+   * request, or `null` if there are not any.
+   */
+  get cookies() {
+    // Note: The `cookies` property of the request is provided by Express or
+    // by the `cookie-parser` middleware. As of this writing, there is
+    // nothing actually set up in the system to cause this value to be set.
+    return this.#expressRequest.cookies ?? null;
+  }
+
+  /**
    * @returns {ClientRequest|express.Request} The underlying Express(-like)
    * request object.
    */
@@ -121,6 +144,22 @@ export class Request {
    */
   get expressResponse() {
     return this.#expressResponse;
+  }
+
+  /**
+   * @returns {object} Map of all incoming headers to their values, as defined
+   * by Node's `IncomingMessage.headers`.
+   */
+  get headers() {
+    return this.#expressRequest.headers;
+  }
+
+  /**
+   * @returns {object} Map of all incoming headers to their values, as defined
+   * by Node's `IncomingMessage.headersDistinct`.
+   */
+  get headersDistinct() {
+    return this.#expressRequest.headersDistinct;
   }
 
   /**
@@ -205,6 +244,11 @@ export class Request {
     return this.#parsedUrl.pathname;
   }
 
+  /** @returns {string} The name of the protocol which spawned this instance. */
+  get protocol() {
+    return this.#expressRequest.protocol;
+  }
+
   /**
    * @returns {string} The search a/k/a query portion of {@link #urlString},
    * as an unparsed string, or `''` (the empty string) if there is no search
@@ -216,6 +260,29 @@ export class Request {
    */
   get searchString() {
     return this.#parsedUrl.search;
+  }
+
+  /**
+   * @returns {?object} _Secure_ cookies that have been parsed from the request,
+   * or `null` if there are not any.
+   */
+  get secureCookies() {
+    // Note: The `secureCookies` property of the request is provided by Express
+    // or by the `cookie-parser` middleware. As of this writing, there is
+    // nothing actually set up in the system to cause this value to be set.
+    return this.#expressRequest.secureCookies ?? null;
+  }
+
+  /**
+   * @returns {string} A reasonably-suggestive but possibly incomplete
+   * representation of the incoming request, in the form of an URL. This is
+   * meant for logging, and specifically _not_ for any routing or other more
+   * meaningful computation (hence the name).
+   */
+  get urlForLogging() {
+    const { protocol, host, urlString } = this;
+
+    return `${protocol}://${host.nameString}${urlString}`;
   }
 
   /**
@@ -237,6 +304,68 @@ export class Request {
     // not the Express-specific `.originalUrl`. (Ultimately, the hope is to drop
     // use of Express, as it provides little value to this project.)
     return this.#expressRequest.url;
+  }
+
+  /**
+   * Gets all reasonably-logged info about the response that was made. This
+   * method async-returns after the response has been completed, either
+   * successfully or with an error. In case of an error, this method aims to
+   * report the error-ish info via a normal return (not by `throw`ing).
+   *
+   * **Note:** The `headers` in the result omits anything that is redundant
+   * with respect to other parts of the return value. (E.g., the
+   * `content-length` header is always omitted, and the `:status` pseudo-header
+   * is omitted from HTTP2 response headers.)
+   *
+   * @returns {object} Loggable information about the response.
+   */
+  async getLoggableResponseInfo() {
+    let requestError = null;
+
+    try {
+      await this.whenResponseDone();
+    } catch (e) {
+      requestError = e;
+    }
+
+    const connectionError = this.#outerContext.socket.errored ?? null;
+    const res             = this.#expressResponse;
+    const statusCode      = res.statusCode;
+    const headers         = res.getHeaders();
+    const contentLength   = headers['content-length'] ?? 0;
+
+    const result = {
+      ok: !(requestError || connectionError),
+      contentLength,
+      statusCode,
+      headers: Request.#sanitizeResponseHeaders(headers),
+    };
+
+    const fullErrors = [];
+    let   errorStr   = null;
+
+    if (requestError) {
+      const code = Request.#extractErrorCode(requestError);
+
+      fullErrors.push(requestError);
+      result.requestError = code;
+      errorStr = code;
+    }
+
+    if (connectionError) {
+      const code = Request.#extractErrorCode(connectionError);
+
+      fullErrors.push(connectionError);
+      result.connectionError = code;
+      errorStr = errorStr ? `${errorStr},${code}` : code;
+    }
+
+    if (fullErrors.length !== 0) {
+      result.errors     = errorStr;
+      result.fullErrors = fullErrors;
+    }
+
+    return result;
   }
 
   /**
@@ -768,6 +897,33 @@ export class Request {
   }
 
   /**
+   * Extracts a string error code from the given `Error`, or returns a generic
+   * "unknown error" if there's nothing else reasonable.
+   *
+   * @param {*} error The error to extract from.
+   * @returns {string} The extracted code.
+   */
+  static #extractErrorCode(error) {
+    const shortenAndFormat = (str) => {
+      return str.slice(0, 32).toLowerCase()
+        .replaceAll(/[_ ]/g, '-')
+        .replaceAll(/[^-a-z0-9]/g, '');
+    };
+
+    if (error instanceof Error) {
+      if (error.code) {
+        return error.code.toLowerCase().replaceAll(/_/g, '-');
+      } else if (error.message) {
+        return shortenAndFormat(error.message);
+      }
+    } else if (AskIf.string(error)) {
+      return shortenAndFormat(error);
+    }
+
+    return 'err-unknown';
+  }
+
+  /**
    * Extracts a subset of the given object, which is taken to be a set of
    * request or response headers, ignoring the case of the keys in that object.
    *
@@ -814,5 +970,20 @@ export class Request {
     const result = Date.parse(dateString);
 
     return (typeof result === 'number') ? result : null;
+  }
+
+  /**
+   * Cleans up response headers for logging.
+   *
+   * @param {object} headers Original response headers.
+   * @returns {object} Cleaned up version.
+   */
+  static #sanitizeResponseHeaders(headers) {
+    const result = { ...headers };
+
+    delete result[':status'];
+    delete result['content-length'];
+
+    return result;
   }
 }

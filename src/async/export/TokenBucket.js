@@ -1,9 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import * as timers from 'node:timers/promises';
-
-import { Methods, MustBe } from '@this/typey';
+import { IntfTimeSource, StdTimeSource } from '@this/metacomp';
+import { MustBe } from '@this/typey';
 
 import { ManualPromise } from '#x/ManualPromise';
 import { Threadlet } from '#x/Threadlet';
@@ -53,7 +52,7 @@ export class TokenBucket {
   /** @type {boolean} Provide partial (non-integral / fractional) tokens? */
   #partialTokens;
 
-  /** @type {TokenBucket.BaseTimeSource} Time measurement implementation. */
+  /** @type {IntfTimeSource} Time measurement implementation. */
   #timeSource;
 
   /** @type {number} Most recently measured time. */
@@ -116,7 +115,7 @@ export class TokenBucket {
    *   instance to provide partial tokens (e.g. give a client `1.25` tokens). If
    *   `false`, all token handoffs from the instance are quantized to integer
    *   values.
-   * @param {TokenBucket.BaseTimeSource} options.timeSource What to use to
+   * @param {IntfTimeSource} options.timeSource What to use to
    *   determine the passage of time. If not specified, the instance will use a
    *   standard implementation which measures time in seconds (_not_ msec) and
    *   bottoms out at the usual JavaScript / Node wall time interface (e.g.
@@ -136,7 +135,7 @@ export class TokenBucket {
     this.#maxBurstSize  = MustBe.number(maxBurstSize, { finite: true, minExclusive: 0 });
     this.#flowRate      = MustBe.number(flowRate, { finite: true, minExclusive: 0 });
     this.#partialTokens = MustBe.boolean(partialTokens);
-    this.#timeSource    = MustBe.instanceOf(timeSource, TokenBucket.BaseTimeSource);
+    this.#timeSource    = MustBe.instanceOf(timeSource, IntfTimeSource);
 
     this.#maxQueueSize = (maxQueueSize === null)
       ? Number.POSITIVE_INFINITY
@@ -601,88 +600,6 @@ export class TokenBucket {
   // Static members
   //
 
-  /** @type {TokenBucket.StdTimeSource} Default time source. */
-  static #DEFAULT_TIME_SOURCE;
-
-  /**
-   * Base class for time sources used by instances of this (outer) class.
-   */
-  static BaseTimeSource = class BaseTimeSource {
-    // Note: The default constructor is fine.
-
-    /** @returns {string} The name of the unit which this instance uses. */
-    get unitName() {
-      return Methods.abstract();
-    }
-
-    /**
-     * Gets the current time, in arbitrary time units (ATU) which have elapsed
-     * since an arbitrary base time.
-     *
-     * @abstract
-     * @returns {number} The current time.
-     */
-    now() {
-      return Methods.abstract();
-    }
-
-    /**
-     * Async-returns `null` when {@link #now} would return a value at or beyond
-     * the given time, with the hope that the actual time will be reasonably
-     * close.
-     *
-     * **Note:** Unlike `setTimeout()`, this method indicates the actual time
-     * value, not a duration.
-     *
-     * @abstract
-     * @param {number} time The time after which this method is to async-return.
-     * @returns {null} `null`, always.
-     */
-    async waitUntil(time) {
-      return Methods.abstract(time);
-    }
-  };
-
-  /**
-   * Standard implementation of {@link #BaseTimeSource}, which uses "wall time"
-   * as provided by the JavaScript / Node implementation, and for which the ATU
-   * is actually a second (_not_ a msec).
-   */
-  static StdTimeSource = class StdTimeSource extends this.BaseTimeSource {
-    // Note: The default constructor is fine.
-
-    /** @override */
-    get unitName() {
-      return 'seconds';
-    }
-
-    /** @override */
-    now() {
-      return Date.now() * StdTimeSource.#SECS_PER_MSEC;
-    }
-
-    /** @override */
-    async waitUntil(time) {
-      for (;;) {
-        const delay = time - this.now();
-        if ((delay <= 0) || !Number.isFinite(delay)) {
-          break;
-        }
-
-        const delayMsec = delay * StdTimeSource.#MSEC_PER_SEC;
-        await timers.setTimeout(delayMsec);
-      }
-    }
-
-    /** @type {number} The number of milliseconds in a second. */
-    static #MSEC_PER_SEC = 1000;
-
-    /** @type {number} The number of seconds in a millisecond. */
-    static #SECS_PER_MSEC = 1 / 1000;
-  };
-
-  static {
-    this.#DEFAULT_TIME_SOURCE = new TokenBucket.StdTimeSource();
-    Object.freeze(this);
-  }
+  /** @type {StdTimeSource} Default time source. */
+  static #DEFAULT_TIME_SOURCE = StdTimeSource.INSTANCE;
 }

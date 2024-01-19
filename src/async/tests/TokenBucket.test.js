@@ -4,12 +4,13 @@
 import * as timers from 'node:timers/promises';
 
 import { ManualPromise, PromiseState, TokenBucket } from '@this/async';
+import { IntfTimeSource, StdTimeSource } from '@this/metacomp';
 
 
 /**
- * Mock implementation of `BaseTimeSource`.
+ * Mock implementation of `IntfTimeSource`.
  */
-class MockTimeSource extends TokenBucket.BaseTimeSource {
+class MockTimeSource extends IntfTimeSource {
   #now      = 0;
   #timeouts = [];
   #ended    = false;
@@ -94,7 +95,7 @@ describe('constructor()', () => {
     ${{ flowRate: 1,      maxBurstSize: 1,     partialTokens: false }}
     ${{ flowRate: 12.3,   maxBurstSize: 123.4, partialTokens: false }}
     ${{ flowRate: 1,      maxBurstSize: 1,     partialTokens: true }}
-    ${{ flowRate: 1,      maxBurstSize: 1,     timeSource: new TokenBucket.StdTimeSource() }}
+    ${{ flowRate: 1,      maxBurstSize: 1,     timeSource: new StdTimeSource() }}
     ${{ flowRate: 1,      maxBurstSize: 1,     timeSource: new MockTimeSource() }}
     ${{ flowRate: 1, maxBurstSize: 1, initialBurstSize: 0.5, maxQueueGrantSize: 0.5,
         maxQueueSize: 10, partialTokens: true, timeSource: new MockTimeSource() }}
@@ -323,7 +324,7 @@ describe('constructor(<invalid>)', () => {
     ${null}
     ${[1, 2, 3]}
     ${new Map()}
-    ${TokenBucket.BaseTimeSource /* supposed to be an instance, not a class */}
+    ${IntfTimeSource /* supposed to be an instance, not a class */}
     ${MockTimeSource /* ditto */}
   `('rejects invalid `timeSource`: $timeSource', ({ timeSource }) => {
     expect(() => new TokenBucket({ flowRate: 1, maxBurstSize: 1, timeSource })).toThrow();
