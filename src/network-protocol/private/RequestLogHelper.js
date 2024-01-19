@@ -43,7 +43,7 @@ export class RequestLogHelper {
       urlForLogging
     } = request;
 
-    const startTime = logger?.$env.now();
+    const startTime = this.#requestLogger.now();
     const origin    = context.socketAddressPort ?? '<unknown-origin>';
 
     context.logger?.newRequest(request.id);
@@ -59,7 +59,7 @@ export class RequestLogHelper {
     // thrown during handling.
     const info = await request.getLoggableResponseInfo();
 
-    const endTime  = logger?.$env.now();
+    const endTime  = this.#requestLogger.now();
     const duration = endTime.subtract(startTime);
 
     // Rearrange `info` into preferred loggable form.
@@ -97,7 +97,7 @@ export class RequestLogHelper {
     }
 
     const requestLogLine = [
-      Moment.stringFromSecs(Date.now() / 1000, { decimals: 4 }),
+      endTime.toString({ decimals: 4 }),
       origin,
       method,
       JSON.stringify(urlForLogging),
