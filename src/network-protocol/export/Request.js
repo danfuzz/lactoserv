@@ -17,6 +17,8 @@ import { MimeTypes } from '@this/net-util';
 import { HostInfo } from '@this/net-util';
 import { AskIf, MustBe } from '@this/typey';
 
+import { WranglerContext } from '#x/WranglerContext';
+
 
 /**
  * Representation of an in-progress HTTP(ish) request, including both request
@@ -50,6 +52,13 @@ export class Request {
    */
   #id = null;
 
+  /**
+   * @type {WranglerContext} Most-specific outer context responsible for this
+   * instance. (This instance might also get directly associated with a context,
+   * but it doesn't get to find out about it.)
+   */
+  #outerContext;
+
   /** @type {ClientRequest|express.Request} HTTP(ish) request object. */
   #expressRequest;
 
@@ -79,6 +88,8 @@ export class Request {
   /**
    * Constructs an instance.
    *
+   * @param {WranglerContext} context Most-specific context that was responsible
+   *   for constructing this instance.
    * @param {ClientRequest|express.Request} request Request object. This is a
    *   request object as used by Express to a middleware handler (or similar).
    * @param {ServerResponse|express.Response} response Response object. This is
@@ -89,7 +100,9 @@ export class Request {
    *   one that includes an additional subtag representing a new unique(ish) ID
    *   for the request.
    */
-  constructor(request, response, logger) {
+  constructor(context, request, response, logger) {
+    this.#outerContext = MustBe.instanceOf(context, WranglerContext);
+
     // Note: It's impractical to do more thorough type checking here (and
     // probably not worth it anyway).
     this.#expressRequest  = MustBe.object(request);

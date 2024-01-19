@@ -375,9 +375,9 @@ export class ProtocolWrangler {
    *   to run.
    */
   async #handleExpressRequest(req, res, next) {
-    const request   = new Request(req, res, this.#requestLogger);
-    const reqLogger = request.logger;
     const context   = WranglerContext.getNonNull(req.socket, req.stream?.session);
+    const request   = new Request(context, req, res, this.#requestLogger);
+    const reqLogger = request.logger;
 
     const reqCtx = WranglerContext.forRequest(context, request);
     WranglerContext.bind(req, reqCtx);
