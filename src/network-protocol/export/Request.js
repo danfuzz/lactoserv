@@ -124,6 +124,22 @@ export class Request {
   }
 
   /**
+   * @returns {object} Map of all incoming headers to their values, as defined
+   * by Node's `IncomingMessage.headers`.
+   */
+  get headers() {
+    return this.#expressRequest.headers;
+  }
+
+  /**
+   * @returns {object} Map of all incoming headers to their values, as defined
+   * by Node's `IncomingMessage.headersDistinct`.
+   */
+  get headersDistinct() {
+    return this.#expressRequest.headersDistinct;
+  }
+
+  /**
    * @returns {HostInfo} Info about the `Host` header (or equivalent). If there
    * is no header (etc.), it is treated as if it were specified as just
    * `localhost`.

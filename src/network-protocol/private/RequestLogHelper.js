@@ -38,6 +38,7 @@ export class RequestLogHelper {
     const {
       expressRequest: req,
       expressResponse: res,
+      headers,
       host,
       logger,
       method,
@@ -52,7 +53,7 @@ export class RequestLogHelper {
     context.logger?.newRequest(request.id);
     logger?.opened(context.ids);
     logger?.request(origin, method, urlish);
-    logger?.headers(RequestLogHelper.#sanitizeRequestHeaders(req.headers));
+    logger?.headers(RequestLogHelper.#sanitizeRequestHeaders(headers));
 
     const cookies = req.cookies;
     if (cookies) {
@@ -118,12 +119,18 @@ export class RequestLogHelper {
   static #sanitizeRequestHeaders(headers) {
     const result = { ...headers };
 
-    delete result[http2.sensitiveHeaders];
     delete result[':authority'];
     delete result[':method'];
     delete result[':path'];
     delete result[':scheme'];
     delete result.host;
+
+    // Non-obvious: This deletes the symbol property `http2.sensitiveHeaders`
+    // from the result (whose array is a value of header names that, per Node
+    // docs, aren't supposed to be compressed due to poor interaction with
+    // desirable cryptography properties). This _isn't_ supposed to actually
+    // delete the headers named by this value.
+    delete result[http2.sensitiveHeaders];
 
     return result;
   }
