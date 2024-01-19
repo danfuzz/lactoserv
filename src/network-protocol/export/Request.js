@@ -262,6 +262,18 @@ export class Request {
   }
 
   /**
+   * @returns {string} A reasonably-suggestive but possibly incomplete
+   * representation of the incoming request, in the form of an URL. This is
+   * meant for logging, and specifically _not_ for any routing or other more
+   * meaningful computation (hence the name).
+   */
+  get urlForLogging() {
+    const { protocol, host, urlString } = this;
+
+    return `${protocol}://${host.nameString}${urlString}`;
+  }
+
+  /**
    * @returns {string} The unparsed URL path that was passed in to the original
    * HTTP(ish) request. Colloquially, this is the suffix of the URL-per-se
    * starting at the first slash (`/`) after the host identifier.

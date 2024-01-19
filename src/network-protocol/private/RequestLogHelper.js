@@ -39,20 +39,17 @@ export class RequestLogHelper {
       expressResponse: res,
       cookies,
       headers,
-      host,
       logger,
       method,
-      protocol,
-      urlString
+      urlForLogging
     } = request;
 
     const startTime = logger?.$env.now();
-    const urlish    = `${protocol}://${host.nameString}${urlString}`;
     const origin    = context.socketAddressPort ?? '<unknown-origin>';
 
     context.logger?.newRequest(request.id);
     logger?.opened(context.ids);
-    logger?.request(origin, method, urlish);
+    logger?.request(origin, method, urlForLogging);
     logger?.headers(RequestLogHelper.#sanitizeRequestHeaders(headers));
 
     if (cookies) {
@@ -92,7 +89,7 @@ export class RequestLogHelper {
         Moment.stringFromSecs(Date.now() / 1000, { decimals: 4 }),
         origin,
         method,
-        JSON.stringify(urlish),
+        JSON.stringify(urlForLogging),
         res.statusCode,
         FormatUtils.byteCountString(contentLength, { spaces: false }),
         duration.toString({ spaces: false }),
