@@ -36,7 +36,6 @@ export class RequestLogHelper {
    */
   logRequest(request, context) {
     const {
-      expressRequest: req,
       expressResponse: res,
       cookies,
       headers,
