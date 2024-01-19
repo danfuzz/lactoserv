@@ -7,6 +7,14 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
+* None.
+
+Other notable changes:
+* None.
+
+### v0.6.1 -- 2024-01-19
+
+Breaking changes:
 * Changed interface of `BaseApplication` to use `Request` and `Dispatch` (see
   below). This breaks downstream clients of this codebase.
 
