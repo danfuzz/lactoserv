@@ -38,13 +38,15 @@ export class RequestLogHelper {
     const {
       expressRequest: req,
       expressResponse: res,
+      host,
       logger,
       method,
-      protocol
+      protocol,
+      urlString
     } = request;
 
     const startTime = logger?.$env.now();
-    const urlish    = `${protocol}://${request.host.nameString}${request.urlString}`;
+    const urlish    = `${protocol}://${host.nameString}${urlString}`;
     const origin    = context.socketAddressPort ?? '<unknown-origin>';
 
     context.logger?.newRequest(request.id);
