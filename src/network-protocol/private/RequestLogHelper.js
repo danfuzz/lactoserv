@@ -34,7 +34,7 @@ export class RequestLogHelper {
    * @param {Request} request Request object.
    * @param {WranglerContext} context Connection or session context.
    */
-  logRequest(request, context) {
+  async logRequest(request, context) {
     const {
       expressResponse: res,
       cookies,
@@ -56,49 +56,54 @@ export class RequestLogHelper {
       logger?.cookies(cookies);
     }
 
-    res.on('finish', () => {
-      const resHeaders    = res.getHeaders();
-      const contentLength = resHeaders['content-length'] ?? 0;
+    try {
+      await request.whenResponseDone();
+    } catch (e) {
+      logger?.requestError(e);
+    }
 
-      // Check to see if the connection socket has errored out. If so, indicate
-      // as much.
-      const connError = context.socket.errored;
-      let   errorMsg  = 'ok';
-      if (connError) {
-        if (connError.code) {
-          errorMsg = connError.code.toLowerCase().replaceAll(/_/g, '-');
-        } else if (connError.message) {
-          errorMsg = connError.message.slice(0, 32).toLowerCase()
-            .replaceAll(/[_ ]/g, '-')
-            .replaceAll(/[^-a-z0-9]/g, '');
-        } else {
-          errorMsg = 'err-unknown';
-        }
-        logger?.connectionError(errorMsg);
+    const resHeaders    = res.getHeaders();
+    const statusCode    = res.statusCode;
+    const contentLength = resHeaders['content-length'] ?? 0;
+
+    // Check to see if the connection socket has errored out. If so, indicate
+    // as much.
+    const connError = context.socket.errored;
+    let   errorMsg  = 'ok';
+    if (connError) {
+      if (connError.code) {
+        errorMsg = connError.code.toLowerCase().replaceAll(/_/g, '-');
+      } else if (connError.message) {
+        errorMsg = connError.message.slice(0, 32).toLowerCase()
+          .replaceAll(/[_ ]/g, '-')
+          .replaceAll(/[^-a-z0-9]/g, '');
+      } else {
+        errorMsg = 'err-unknown';
       }
+      logger?.connectionError(errorMsg);
+    }
 
-      logger?.response(res.statusCode,
-        RequestLogHelper.#sanitizeResponseHeaders(resHeaders));
+    logger?.response(statusCode,
+      RequestLogHelper.#sanitizeResponseHeaders(resHeaders));
 
-      const endTime  = logger?.$env.now();
-      const duration = endTime.subtract(startTime);
+    const endTime  = logger?.$env.now();
+    const duration = endTime.subtract(startTime);
 
-      logger?.closed({ contentLength, duration });
+    logger?.closed({ contentLength, duration });
 
-      const requestLogLine = [
-        Moment.stringFromSecs(Date.now() / 1000, { decimals: 4 }),
-        origin,
-        method,
-        JSON.stringify(urlForLogging),
-        res.statusCode,
-        FormatUtils.byteCountString(contentLength, { spaces: false }),
-        duration.toString({ spaces: false }),
-        errorMsg
-      ].join(' ');
+    const requestLogLine = [
+      Moment.stringFromSecs(Date.now() / 1000, { decimals: 4 }),
+      origin,
+      method,
+      JSON.stringify(urlForLogging),
+      statusCode,
+      FormatUtils.byteCountString(contentLength, { spaces: false }),
+      duration.toString({ spaces: false }),
+      errorMsg
+    ].join(' ');
 
-      logger?.requestLog(requestLogLine);
-      this.#requestLogger?.logCompletedRequest(requestLogLine);
-    });
+    logger?.requestLog(requestLogLine);
+    this.#requestLogger?.logCompletedRequest(requestLogLine);
   }
 
 
