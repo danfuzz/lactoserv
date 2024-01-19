@@ -205,6 +205,11 @@ export class Request {
     return this.#parsedUrl.pathname;
   }
 
+  /** @returns {string} The name of the protocol which spawned this instance. */
+  get protocol() {
+    return this.#expressRequest.protocol;
+  }
+
   /**
    * @returns {string} The search a/k/a query portion of {@link #urlString},
    * as an unparsed string, or `''` (the empty string) if there is no search

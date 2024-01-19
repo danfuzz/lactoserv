@@ -35,12 +35,17 @@ export class RequestLogHelper {
    * @param {WranglerContext} context Connection or session context.
    */
   logRequest(request, context) {
-    const { expressRequest: req, expressResponse: res, logger } = request;
+    const {
+      expressRequest: req,
+      expressResponse: res,
+      logger,
+      method,
+      protocol
+    } = request;
 
     const startTime = logger?.$env.now();
-    const urlish    = `${req.protocol}://${request.host.nameString}${request.urlString}`;
+    const urlish    = `${protocol}://${request.host.nameString}${request.urlString}`;
     const origin    = context.socketAddressPort ?? '<unknown-origin>';
-    const method    = request.method;
 
     context.logger?.newRequest(request.id);
     logger?.opened(context.ids);
