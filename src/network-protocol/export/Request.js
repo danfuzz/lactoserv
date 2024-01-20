@@ -71,12 +71,12 @@ export class Request {
   #host = null;
 
   /**
-   * @type {?URL} The parsed version of `.#expressRequest.url`, or `null` if not
-   * yet calculated. **Note:** Despite its name, `.url` doesn't contain any of
-   * the usual URL bits before the start of the path, so those fields are
-   * meaningless here.
+   * @type {?URL} The parsed version of {@link #targetString}, or `null` if not
+   * yet calculated. **Note:** Despite it being an instance of `URL`, the
+   * `target` doesn't ever contain the parts of a URL before the path, so those
+   * fields are meaningless here.
    */
-  #parsedUrlObject = null;
+  #parsedTargetObject = null;
 
   /**
    * @type {?TreePathKey} The parsed version of {@link #pathnameString}, or
@@ -249,7 +249,7 @@ export class Request {
    * standard `URL` class.
    */
   get pathnameString() {
-    return this.#parsedUrl.pathname;
+    return this.#parsedTarget.pathname;
   }
 
   /** @returns {string} The name of the protocol which spawned this instance. */
@@ -267,7 +267,7 @@ export class Request {
    * standard `URL` class.
    */
   get searchString() {
-    return this.#parsedUrl.search;
+    return this.#parsedTarget.search;
   }
 
   /**
@@ -729,8 +729,8 @@ export class Request {
    * private getter because the return value is mutable, and we don't want to
    * allow clients to actually mutate it.
    */
-  get #parsedUrl() {
-    if (!this.#parsedUrlObject) {
+  get #parsedTarget() {
+    if (!this.#parsedTargetObject) {
       // Note: An earlier version of this code said `new URL(this.targetString,
       // 'x://x')`, so as to make it possible for `targetString` to omit the
       // scheme and host. However, that was totally incorrect, because the
@@ -747,10 +747,10 @@ export class Request {
         urlObj.pathname = '/';
       }
 
-      this.#parsedUrlObject = urlObj;
+      this.#parsedTargetObject = urlObj;
     }
 
-    return this.#parsedUrlObject;
+    return this.#parsedTargetObject;
   }
 
   /**
