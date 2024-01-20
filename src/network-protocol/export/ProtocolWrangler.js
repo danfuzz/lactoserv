@@ -399,10 +399,14 @@ export class ProtocolWrangler {
 
     res.set('Server', this.#serverHeader);
 
-    if (this.#rateLimiter) {
+    if (!request.pathnameString) {
+      // It's not an `origin` request. We don't handle any other type of
+      // target... yet.
+      return request.sendError(400); // "Bad Request."
+    } else if (this.#rateLimiter) {
       const granted = await this.#rateLimiter.newRequest(reqLogger);
       if (!granted) {
-        res.sendStatus(503);
+        res.sendStatus(503); // "Service Unavailable."
 
         // Wait for the response to have been at least nominally sent before
         // closing the socket, in the hope that there is a good chance that it
