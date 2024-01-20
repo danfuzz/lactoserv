@@ -421,50 +421,6 @@ export class Request {
   }
 
   /**
-   * Issues a redirect response, with a standard response message and plain text
-   * body. The response message depends on the status code.
-   *
-   * Calling this method results in this request being considered complete, and
-   * as such no additional response-related methods will work.
-   *
-   * **Note:** This method does _not_ do any URL-encoding on the given `target`.
-   * It is assumed to be valid and already encoded if necessary. (This is unlike
-   * Express which tries to be "smart" about encoding, which can ultimately be
-   * more like "confusing.")
-   *
-   * @param {string} target Possibly-relative target URL.
-   * @param {number} [status] Status code.
-   * @returns {boolean} `true` when the response is completed.
-   */
-  async sendRedirect(target, status = 302) {
-    // Note: This method avoids using `express.Response.redirect()` (a) to avoid
-    // ambiguity with the argument `"back"`, and (b) generally with an eye
-    // towards dropping Express entirely as a dependency.
-
-    MustBe.string(target);
-
-    return this.#sendNonContentResponse(status, {
-      bodyExtra: `  ${target}\n`,
-      headers:   { 'Location': target }
-    });
-  }
-
-  /**
-   * Issues a redirect response targeted at the original request's referrer. If
-   * there was no referrer, this redirects to `/`.
-   *
-   * Calling this method results in this request being considered complete, and
-   * as such no additional response-related methods will work.
-   *
-   * @param {number} [status] Status code.
-   * @returns {boolean} `true` when the response is completed.
-   */
-  async sendRedirectBack(status = 302) {
-    const target = this.#expressRequest.header('referrer') ?? '/';
-    return this.sendRedirect(target, status);
-  }
-
-  /**
    * Issues a successful response, with the given body contents or with an empty
    * body as appropriate. The actual reported status will be one of:
    *
@@ -669,6 +625,50 @@ export class Request {
     // completed (which could be slightly later), and also plumb through any
     // errors that were encountered during final response processing.
     return this.whenResponseDone();
+  }
+
+  /**
+   * Issues a redirect response, with a standard response message and plain text
+   * body. The response message depends on the status code.
+   *
+   * Calling this method results in this request being considered complete, and
+   * as such no additional response-related methods will work.
+   *
+   * **Note:** This method does _not_ do any URL-encoding on the given `target`.
+   * It is assumed to be valid and already encoded if necessary. (This is unlike
+   * Express which tries to be "smart" about encoding, which can ultimately be
+   * more like "confusing.")
+   *
+   * @param {string} target Possibly-relative target URL.
+   * @param {number} [status] Status code.
+   * @returns {boolean} `true` when the response is completed.
+   */
+  async sendRedirect(target, status = 302) {
+    // Note: This method avoids using `express.Response.redirect()` (a) to avoid
+    // ambiguity with the argument `"back"`, and (b) generally with an eye
+    // towards dropping Express entirely as a dependency.
+
+    MustBe.string(target);
+
+    return this.#sendNonContentResponse(status, {
+      bodyExtra: `  ${target}\n`,
+      headers:   { 'Location': target }
+    });
+  }
+
+  /**
+   * Issues a redirect response targeted at the original request's referrer. If
+   * there was no referrer, this redirects to `/`.
+   *
+   * Calling this method results in this request being considered complete, and
+   * as such no additional response-related methods will work.
+   *
+   * @param {number} [status] Status code.
+   * @returns {boolean} `true` when the response is completed.
+   */
+  async sendRedirectBack(status = 302) {
+    const target = this.#expressRequest.header('referrer') ?? '/';
+    return this.sendRedirect(target, status);
   }
 
   /**
