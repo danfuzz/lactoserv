@@ -282,18 +282,6 @@ export class Request {
   }
 
   /**
-   * @returns {string} A reasonably-suggestive but possibly incomplete
-   * representation of the incoming request, in the form of an URL. This is
-   * meant for logging, and specifically _not_ for any routing or other more
-   * meaningful computation (hence the name).
-   */
-  get urlForLogging() {
-    const { protocol, host, targetString } = this;
-
-    return `${protocol}://${host.nameString}${targetString}`;
-  }
-
-  /**
    * @returns {string} The unparsed URL path that was passed in to the original
    * HTTP(ish) request. Colloquially, this is the suffix of the URL-per-se
    * starting at the first slash (`/`) after the host identifier.
@@ -312,6 +300,18 @@ export class Request {
     // not the Express-specific `.originalUrl`. (Ultimately, the hope is to drop
     // use of Express, as it provides little value to this project.)
     return this.#expressRequest.url;
+  }
+
+  /**
+   * @returns {string} A reasonably-suggestive but possibly incomplete
+   * representation of the incoming request, in the form of an URL. This is
+   * meant for logging, and specifically _not_ for any routing or other more
+   * meaningful computation (hence the name).
+   */
+  get urlForLogging() {
+    const { protocol, host, targetString } = this;
+
+    return `${protocol}://${host.nameString}${targetString}`;
   }
 
   /**
