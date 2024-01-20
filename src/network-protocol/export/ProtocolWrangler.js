@@ -389,7 +389,8 @@ export class ProtocolWrangler {
     if (!request.pathnameString) {
       // It's not an `origin` request. We don't handle any other type of
       // target... yet.
-      return request.sendError(400); // "Bad Request."
+      await request.sendError(400); // "Bad Request."
+      return;
     } else if (this.#rateLimiter) {
       const granted = await this.#rateLimiter.newRequest(reqLogger);
       if (!granted) {
