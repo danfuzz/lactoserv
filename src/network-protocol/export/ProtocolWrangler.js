@@ -393,7 +393,7 @@ export class ProtocolWrangler {
     } else if (this.#rateLimiter) {
       const granted = await this.#rateLimiter.newRequest(reqLogger);
       if (!granted) {
-        res.sendStatus(503); // "Service Unavailable."
+        await request.sendError(503); // "Service Unavailable."
 
         // Wait for the response to have been at least nominally sent before
         // closing the socket, in the hope that there is a good chance that it
