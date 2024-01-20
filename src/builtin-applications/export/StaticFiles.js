@@ -60,7 +60,7 @@ export class StaticFiles extends BaseApplication {
 
     if (resolved.redirect) {
       const redirectTo = resolved.redirect;
-      return request.redirect(redirectTo, 301);
+      return request.sendRedirect(redirectTo, 301);
     } else if (resolved.path) {
       return await request.sendFile(resolved.path, StaticFiles.#SEND_OPTIONS);
     } else {

@@ -436,7 +436,7 @@ export class Request {
    * @param {number} [status] Status code.
    * @returns {boolean} `true` when the response is completed.
    */
-  async redirect(target, status = 302) {
+  async sendRedirect(target, status = 302) {
     // Note: This method avoids using `express.Response.redirect()` (a) to avoid
     // ambiguity with the argument `"back"`, and (b) generally with an eye
     // towards dropping Express entirely as a dependency.
@@ -459,9 +459,9 @@ export class Request {
    * @param {number} [status] Status code.
    * @returns {boolean} `true` when the response is completed.
    */
-  async redirectBack(status = 302) {
+  async sendRedirectBack(status = 302) {
     const target = this.#expressRequest.header('referrer') ?? '/';
-    return this.redirect(target, status);
+    return this.sendRedirect(target, status);
   }
 
   /**
