@@ -381,7 +381,7 @@ export class ProtocolWrangler {
     // legitimately be the form used when talking to a proxy (see RFC7230,
     // section 5.3). `Request` does its own sanity check and will reject those,
     // but we should catch it here, in a less ad-hoc way, before trying to
-    // construct the `Request`.
+    // construct the `Request`. And we should log it!
     let request;
     try {
       request = new Request(context, req, res, this.#requestLogger);

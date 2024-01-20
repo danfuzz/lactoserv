@@ -241,7 +241,7 @@ export class Request {
   }
 
   /**
-   * @returns {string} The path portion of {@link #urlString}, as a string.
+   * @returns {string} The path portion of {@link #targetString}, as a string.
    * This starts with a slash (`/`) and omits the search a/k/a query (`?...`),
    * if any. This also includes "resolving" away any `.` or `..` components.
    *
@@ -258,7 +258,7 @@ export class Request {
   }
 
   /**
-   * @returns {string} The search a/k/a query portion of {@link #urlString},
+   * @returns {string} The search a/k/a query portion of {@link #targetString},
    * as an unparsed string, or `''` (the empty string) if there is no search
    * string. The result includes anything at or after the first question mark
    * (`?`) in the URL.
@@ -288,9 +288,9 @@ export class Request {
    * meaningful computation (hence the name).
    */
   get urlForLogging() {
-    const { protocol, host, urlString } = this;
+    const { protocol, host, targetString } = this;
 
-    return `${protocol}://${host.nameString}${urlString}`;
+    return `${protocol}://${host.nameString}${targetString}`;
   }
 
   /**
@@ -300,11 +300,11 @@ export class Request {
    *
    * For example, for the requested URL
    * `https://example.com:123/foo/bar?baz=10`, this would be `/foo/bar?baz=10`.
-   * This field name, though arguably confusing, is as such so as to harmonize
-   * with the standard Node field `IncomingRequest.url`. The `url` name with
-   * similar semantics is also used by Express.
+   * This property name corresponds to the standard Node field
+   * `IncomingRequest.url`, even though it's not actually a URL per se. We chose
+   * to diverge from Node for the sake of clarity.
    */
-  get urlString() {
+  get targetString() {
     // Note: Though this framework uses Express under the covers (as of this
     // writing), and Express _does_ rewrite the underlying request's `.url` in
     // some circumstances, the way we use Express should never cause it to do
@@ -424,7 +424,7 @@ export class Request {
   async notFound(contentType = null, body = null) {
     const sendOpts = body
       ? { contentType, body }
-      : { bodyExtra: `  ${this.urlString}\n` };
+      : { bodyExtra: `  ${this.targetString}\n` };
 
     return this.#sendNonContentResponse(404, sendOpts);
   }
@@ -725,19 +725,20 @@ export class Request {
   }
 
   /**
-   * @returns {URL} The parsed version of {@link #urlString}. This is a
+   * @returns {URL} The parsed version of {@link #targetString}. This is a
    * private getter because the return value is mutable, and we don't want to
    * allow clients to actually mutate it.
    */
   get #parsedUrl() {
     if (!this.#parsedUrlObject) {
-      // Note: An earlier version of this code said `new URL(this.urlString,
-      // 'x://x')`, so as to make it possible for `urlString` to omit the scheme
-      // and host. However, that was totally incorrect, because the _real_
-      // requirement is for `urlString` to _always_ be the path. The most
-      // notable case where the old code failed was in parsing a path that began
-      // with two slashes, which would get incorrectly parsed as having a host.
-      const urlObj = new URL(`x://x${this.urlString}`);
+      // Note: An earlier version of this code said `new URL(this.targetString,
+      // 'x://x')`, so as to make it possible for `targetString` to omit the
+      // scheme and host. However, that was totally incorrect, because the
+      // _real_ requirement is for `targetString` to _always_ be the path. The
+      // most notable case where the old code failed was in parsing a path that
+      // began with two slashes, which would get incorrectly parsed as having a
+      // host.
+      const urlObj = new URL(`x://x${this.targetString}`);
 
       if (urlObj.pathname === '') {
         // Shouldn't normally happen, but tolerate an empty pathname, converting
