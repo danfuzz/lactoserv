@@ -282,9 +282,13 @@ export class Request {
   }
 
   /**
-   * @returns {string} The unparsed URL path that was passed in to the original
-   * HTTP(ish) request. Colloquially, this is the suffix of the URL-per-se
-   * starting at the first slash (`/`) after the host identifier.
+   * @returns {string} The unparsed target that was passed in to the original
+   * HTTP(ish) request. In the common case of the target being a path to a
+   * resource, colloquially speaking, this is the suffix of the URL-per-se
+   * starting at the first slash (`/`) after the host identifier. That said,
+   * there are other non-path forms for a target. See
+   * <https://www.rfc-editor.org/rfc/rfc7230#section-5.3> for the excruciating
+   * details.
    *
    * For example, for the requested URL
    * `https://example.com:123/foo/bar?baz=10`, this would be `/foo/bar?baz=10`.
@@ -293,6 +297,9 @@ export class Request {
    * to diverge from Node for the sake of clarity.
    */
   get targetString() {
+    // Note: Node calls the target the `.url`, but it's totes _not_ actually a
+    // URL, bless their innocent hearts.
+
     // Note: Though this framework uses Express under the covers (as of this
     // writing), and Express _does_ rewrite the underlying request's `.url` in
     // some circumstances, the way we use Express should never cause it to do
