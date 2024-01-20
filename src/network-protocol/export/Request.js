@@ -732,12 +732,12 @@ export class Request {
   get #parsedTarget() {
     if (!this.#parsedTargetObject) {
       // Note: An earlier version of this code said `new URL(this.targetString,
-      // 'x://x')`, so as to make it possible for `targetString` to omit the
-      // scheme and host. However, that was totally incorrect, because the
-      // _real_ requirement is for `targetString` to _always_ be the path. The
-      // most notable case where the old code failed was in parsing a path that
-      // began with two slashes, which would get incorrectly parsed as having a
-      // host.
+      // 'x://x')`, so as to make the constructor work given that `targetString`
+      // should omit the scheme and host. However, that was totally incorrect,
+      // because the _real_ requirement is for `targetString` to _always_ be
+      // _just_ the path. The most notable case where the old code failed was in
+      // parsing a path that began with two slashes, which would get incorrectly
+      // parsed as having a host.
       const urlObj = new URL(`x://x${this.targetString}`);
 
       if (urlObj.pathname === '') {
