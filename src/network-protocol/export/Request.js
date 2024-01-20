@@ -79,12 +79,6 @@ export class Request {
   #parsedTargetObject = null;
 
   /**
-   * @type {?TreePathKey} The parsed version of {@link #pathnameString}, or
-   * `null` if not yet calculated.
-   */
-  #parsedPathname = null;
-
-  /**
    * Constructs an instance.
    *
    * @param {WranglerContext} context Most-specific context that was responsible
@@ -230,21 +224,7 @@ export class Request {
    * requests end with an empty path element.
    */
   get pathname() {
-    if (!this.#parsedPathname) {
-      const { type, pathnameString: pathStr } = this.#parsedTarget;
-
-      if (type !== 'origin') {
-        return null;
-      }
-
-      // `slice(1)` to avoid having an empty component as the first element.
-      const parts = pathStr.slice(1).split('/');
-
-      // Freezing `parts` lets `new TreePathKey()` avoid making a copy.
-      this.#parsedPathname = new TreePathKey(Object.freeze(parts), false);
-    }
-
-    return this.#parsedPathname;
+    return this.#parsedTarget.pathname ?? null;
   }
 
   /**
@@ -766,18 +746,22 @@ export class Request {
       // _just_ the path. The most notable case where the old code failed was in
       // parsing a path that began with two slashes, which would get incorrectly
       // parsed as having a host.
-      const urlObj = new URL(`x://x${targetString}`);
+      const urlObj  = new URL(`x://x${targetString}`);
 
-      if (urlObj.pathname === '') {
-        // Shouldn't normally happen, but tolerate an empty pathname, converting
-        // it to `/`. (`new URL()` will return an instance like this if there's
-        // no slash after the hostname.)
-        urlObj.pathname = '/';
-      }
+      // Shouldn't normally happen, but tolerate an empty pathname, converting
+      // it to `/`. (`new URL()` will return an instance like this if there's
+      // no slash after the hostname, but by the time we're here,
+      // `targetString` is supposed to start with a slash).
+      const pathnameString = (urlObj.pathname === '') ? '/' : urlObj.pathname;
+
+      // `slice(1)` to avoid having an empty component as the first element. And
+      // Freezing `parts` lets `new TreePathKey()` avoid making a copy.
+      const pathParts = Object.freeze(pathnameString.slice(1).split('/'));
 
       result.type           = 'origin';
-      result.pathnameString = urlObj.pathname;
-      result.searchString   = urlObj.searc;
+      result.pathname       = new TreePathKey(pathParts, false);
+      result.pathnameString = pathnameString;
+      result.searchString   = urlObj.search;
     } else if (targetString === '*') {
       // This is the `asterisk-form` as defined by
       // <https://www.rfc-editor.org/rfc/rfc7230#section-5.3.4>.
