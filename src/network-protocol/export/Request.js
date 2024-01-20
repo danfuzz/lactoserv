@@ -401,26 +401,6 @@ export class Request {
   }
 
   /**
-   * Issues a "not found" (status `404`) response, with optional body. If no
-   * body is provided, a simple default plain-text body is used. The response
-   * includes the single content/cache-related header `Cache-Control: no-store,
-   * must-revalidate`. If the request method is `HEAD`, this will _not_ send the
-   * body as part of the response.
-   *
-   * @param {string} [contentType] Content type for the body. Must be valid if
-   *  `body` is passed as non-`null`.
-   * @param {string|Buffer} [body] Body content.
-   * @returns {boolean} `true` when the response is completed.
-   */
-  async sendNotFound(contentType = null, body = null) {
-    const sendOpts = body
-      ? { contentType, body }
-      : { bodyExtra: `  ${this.targetString}\n` };
-
-    return this.#sendNonContentResponse(404, sendOpts);
-  }
-
-  /**
    * Issues a successful response, with the given body contents or with an empty
    * body as appropriate. The actual reported status will be one of:
    *
@@ -625,6 +605,26 @@ export class Request {
     // completed (which could be slightly later), and also plumb through any
     // errors that were encountered during final response processing.
     return this.whenResponseDone();
+  }
+
+  /**
+   * Issues a "not found" (status `404`) response, with optional body. If no
+   * body is provided, a simple default plain-text body is used. The response
+   * includes the single content/cache-related header `Cache-Control: no-store,
+   * must-revalidate`. If the request method is `HEAD`, this will _not_ send the
+   * body as part of the response.
+   *
+   * @param {string} [contentType] Content type for the body. Must be valid if
+   *  `body` is passed as non-`null`.
+   * @param {string|Buffer} [body] Body content.
+   * @returns {boolean} `true` when the response is completed.
+   */
+  async sendNotFound(contentType = null, body = null) {
+    const sendOpts = body
+      ? { contentType, body }
+      : { bodyExtra: `  ${this.targetString}\n` };
+
+    return this.#sendNonContentResponse(404, sendOpts);
   }
 
   /**
