@@ -10,7 +10,10 @@ Breaking changes:
 * None.
 
 Other notable changes:
-* None.
+* Fixed handling of non-`origin` request targets. Before v0.6.1, these were
+  treated as if they were `origin` requests (that is, the usual kind that
+  specify a resource path), and in v0.6.1 they started causing crashes. Now,
+  they're properly classified.
 
 ### v0.6.1 -- 2024-01-19
 

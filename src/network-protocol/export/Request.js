@@ -71,18 +71,12 @@ export class Request {
   #host = null;
 
   /**
-   * @type {?URL} The parsed version of `.#expressRequest.url`, or `null` if not
-   * yet calculated. **Note:** Despite its name, `.url` doesn't contain any of
-   * the usual URL bits before the start of the path, so those fields are
-   * meaningless here.
+   * @type {?URL} The parsed version of {@link #targetString}, or `null` if not
+   * yet calculated. **Note:** Despite it being an instance of `URL`, the
+   * `target` doesn't ever contain the parts of a URL before the path, so those
+   * fields are meaningless here.
    */
-  #parsedUrlObject = null;
-
-  /**
-   * @type {?TreePathKey} The parsed version of {@link #pathnameString}, or
-   * `null` if not yet calculated.
-   */
-  #parsedPathname = null;
+  #parsedTargetObject = null;
 
   /**
    * Constructs an instance.
@@ -110,20 +104,6 @@ export class Request {
     if (logger) {
       this.#id     = logger.$meta.makeId();
       this.#logger = logger[this.#id];
-    }
-
-    if (!/^[/]/.test(request.url)) {
-      // Sanity check. If we end up here, it's a bug and not (in particular) a
-      // malformed request (which never should have made it this far).
-      // TODO: In practice this is happening, and it's not clear why. Log it,
-      // so we can figure out what's going on.
-      this.#logger.strangeOriginalUrl({
-        hostname: request.hostname,
-        method:   request.method,
-        protocol: request.protocol,
-        url:      request.url
-      });
-      throw new Error(`Shouldn't happen: ${request.url}`);
     }
   }
 
@@ -220,7 +200,9 @@ export class Request {
   }
 
   /**
-   * @returns {TreePathKey} Parsed path key form of {@link #pathnameString}.
+   * @returns {?TreePathKey} Parsed path key form of {@link #pathnameString}, or
+   * `null` if this instance doesn't represent a usual `origin` request.
+   *
    * **Note:** If the original incoming pathname was just `'/'` (e.g., it was
    * from an HTTP request of literally `GET /`), then the value here is a
    * single-element key with empty value, that is `['']`, and _not_ an empty
@@ -228,28 +210,21 @@ export class Request {
    * requests end with an empty path element.
    */
   get pathname() {
-    if (!this.#parsedPathname) {
-      // `slice(1)` to avoid having an empty component as the first element.
-      const pathStr = this.pathnameString;
-      const parts   = pathStr.slice(1).split('/');
-
-      // Freezing `parts` lets `new TreePathKey()` avoid making a copy.
-      this.#parsedPathname = new TreePathKey(Object.freeze(parts), false);
-    }
-
-    return this.#parsedPathname;
+    return this.#parsedTarget.pathname ?? null;
   }
 
   /**
-   * @returns {string} The path portion of {@link #urlString}, as a string.
-   * This starts with a slash (`/`) and omits the search a/k/a query (`?...`),
-   * if any. This also includes "resolving" away any `.` or `..` components.
+   * @returns {?string} The path portion of {@link #targetString}, as a string,
+   * or `null` if this instance doesn't represent a usual `origin` request (that
+   * is, the kind that includes a path). This starts with a slash (`/`) and
+   * omits the search a/k/a query (`?...`), if any. This also includes
+   * "resolving" away any `.` or `..` components.
    *
    * **Note:** The name of this field matches the equivalent field of the
    * standard `URL` class.
    */
   get pathnameString() {
-    return this.#parsedUrl.pathname;
+    return this.#parsedTarget.pathnameString ?? null;
   }
 
   /** @returns {string} The name of the protocol which spawned this instance. */
@@ -258,7 +233,7 @@ export class Request {
   }
 
   /**
-   * @returns {string} The search a/k/a query portion of {@link #urlString},
+   * @returns {string} The search a/k/a query portion of {@link #targetString},
    * as an unparsed string, or `''` (the empty string) if there is no search
    * string. The result includes anything at or after the first question mark
    * (`?`) in the URL.
@@ -267,7 +242,7 @@ export class Request {
    * standard `URL` class.
    */
   get searchString() {
-    return this.#parsedUrl.search;
+    return this.#parsedTarget.searchString;
   }
 
   /**
@@ -282,36 +257,38 @@ export class Request {
   }
 
   /**
-   * @returns {string} A reasonably-suggestive but possibly incomplete
-   * representation of the incoming request, in the form of an URL. This is
-   * meant for logging, and specifically _not_ for any routing or other more
-   * meaningful computation (hence the name).
-   */
-  get urlForLogging() {
-    const { protocol, host, urlString } = this;
-
-    return `${protocol}://${host.nameString}${urlString}`;
-  }
-
-  /**
-   * @returns {string} The unparsed URL path that was passed in to the original
-   * HTTP(ish) request. Colloquially, this is the suffix of the URL-per-se
-   * starting at the first slash (`/`) after the host identifier.
+   * @returns {string} The unparsed target that was passed in to the original
+   * HTTP(ish) request. In the common case of the target being a path to a
+   * resource, colloquially speaking, this is the suffix of the URL-per-se
+   * starting at the first slash (`/`) after the host identifier. That said,
+   * there are other non-path forms for a target. See
+   * <https://www.rfc-editor.org/rfc/rfc7230#section-5.3> for the excruciating
+   * details.
    *
    * For example, for the requested URL
    * `https://example.com:123/foo/bar?baz=10`, this would be `/foo/bar?baz=10`.
-   * This field name, though arguably confusing, is as such so as to harmonize
-   * with the standard Node field `IncomingRequest.url`. The `url` name with
-   * similar semantics is also used by Express.
+   * This property name corresponds to the standard Node field
+   * `IncomingRequest.url`, even though it's not actually a URL per se. We chose
+   * to diverge from Node for the sake of clarity.
    */
-  get urlString() {
-    // Note: Though this framework uses Express under the covers (as of this
-    // writing), and Express _does_ rewrite the underlying request's `.url` in
-    // some circumstances, the way we use Express should never cause it to do
-    // such rewriting. As such, it's appropriate for us to just use `.url`, and
-    // not the Express-specific `.originalUrl`. (Ultimately, the hope is to drop
-    // use of Express, as it provides little value to this project.)
-    return this.#expressRequest.url;
+  get targetString() {
+    return this.#parsedTarget.targetString;
+  }
+
+  /**
+   * @returns {string} A reasonably-suggestive but possibly incomplete
+   * representation of the incoming request, in the form of a URL. This is meant
+   * for logging, and specifically _not_ for any routing or other more
+   * meaningful computation (hence the name).
+   */
+  get urlForLogging() {
+    const { protocol, host }     = this;
+    const { targetString, type } = this.#parsedTarget;
+    const protoHost              = `${protocol}://${host.nameString}`;
+
+    return (type === 'origin')
+      ? `${protoHost}${targetString}`
+      : `${protoHost}:${type}=${targetString}`;
   }
 
   /**
@@ -407,70 +384,6 @@ export class Request {
 
     return fresh(req.headers,
       Request.#extractHeaders(responseHeaders, 'etag', 'last-modified'));
-  }
-
-  /**
-   * Issues a "not found" (status `404`) response, with optional body. If no
-   * body is provided, a simple default plain-text body is used. The response
-   * includes the single content/cache-related header `Cache-Control: no-store,
-   * must-revalidate`. If the request method is `HEAD`, this will _not_ send the
-   * body as part of the response.
-   *
-   * @param {string} [contentType] Content type for the body. Must be valid if
-   *  `body` is passed as non-`null`.
-   * @param {string|Buffer} [body] Body content.
-   * @returns {boolean} `true` when the response is completed.
-   */
-  async notFound(contentType = null, body = null) {
-    const sendOpts = body
-      ? { contentType, body }
-      : { bodyExtra: `  ${this.urlString}\n` };
-
-    return this.#sendNonContentResponse(404, sendOpts);
-  }
-
-  /**
-   * Issues a redirect response, with a standard response message and plain text
-   * body. The response message depends on the status code.
-   *
-   * Calling this method results in this request being considered complete, and
-   * as such no additional response-related methods will work.
-   *
-   * **Note:** This method does _not_ do any URL-encoding on the given `target`.
-   * It is assumed to be valid and already encoded if necessary. (This is unlike
-   * Express which tries to be "smart" about encoding, which can ultimately be
-   * more like "confusing.")
-   *
-   * @param {string} target Possibly-relative target URL.
-   * @param {number} [status] Status code.
-   * @returns {boolean} `true` when the response is completed.
-   */
-  async redirect(target, status = 302) {
-    // Note: This method avoids using `express.Response.redirect()` (a) to avoid
-    // ambiguity with the argument `"back"`, and (b) generally with an eye
-    // towards dropping Express entirely as a dependency.
-
-    MustBe.string(target);
-
-    return this.#sendNonContentResponse(status, {
-      bodyExtra: `  ${target}\n`,
-      headers:   { 'Location': target }
-    });
-  }
-
-  /**
-   * Issues a redirect response targeted at the original request's referrer. If
-   * there was no referrer, this redirects to `/`.
-   *
-   * Calling this method results in this request being considered complete, and
-   * as such no additional response-related methods will work.
-   *
-   * @param {number} [status] Status code.
-   * @returns {boolean} `true` when the response is completed.
-   */
-  async redirectBack(status = 302) {
-    const target = this.#expressRequest.header('referrer') ?? '/';
-    return this.redirect(target, status);
   }
 
   /**
@@ -580,6 +493,28 @@ export class Request {
   }
 
   /**
+   * Issues an error (status `4xx` or `5xx`) response, with optional body. If no
+   * body is provided, a simple default plain-text body is used. The response
+   * includes the single content/cache-related header `Cache-Control: no-store,
+   * must-revalidate`. If the request method is `HEAD`, this will _not_ send the
+   * body as part of the response.
+   *
+   * @param {number} statusCode The status code.
+   * @param {?string} [contentType] Content type for the body. Must be valid if
+   *  `body` is passed as non-`null`.
+   * @param {?string|Buffer} [body] Body content.
+   * @returns {boolean} `true` when the response is completed.
+   */
+  async sendError(statusCode, contentType = null, body = null) {
+    MustBe.number(statusCode, { safeInteger: true, minInclusive: 400, maxInclusive: 599 });
+    const sendOpts = body
+      ? { contentType, body }
+      : { bodyExtra: `  ${this.targetString}\n` };
+
+    return this.#sendNonContentResponse(statusCode, sendOpts);
+  }
+
+  /**
    * Issues a successful response, with the contents of the given file or with
    * an empty body as appropriate. The actual reported status will vary, with
    * the same possibilities as with {@link #sendContent}.
@@ -681,6 +616,63 @@ export class Request {
   }
 
   /**
+   * Issues a "not found" (status `404`) response, with optional body. This is
+   * just a convenient shorthand for `sendError(404, ...)`.
+   *
+   * @param {?string} [contentType] Content type for the body. Must be valid if
+   *  `body` is passed as non-`null`.
+   * @param {?string|Buffer} [body] Body content.
+   * @returns {boolean} `true` when the response is completed.
+   */
+  async sendNotFound(contentType = null, body = null) {
+    return this.sendError(404, contentType, body);
+  }
+
+  /**
+   * Issues a redirect response, with a standard response message and plain text
+   * body. The response message depends on the status code.
+   *
+   * Calling this method results in this request being considered complete, and
+   * as such no additional response-related methods will work.
+   *
+   * **Note:** This method does _not_ do any URL-encoding on the given `target`.
+   * It is assumed to be valid and already encoded if necessary. (This is unlike
+   * Express which tries to be "smart" about encoding, which can ultimately be
+   * more like "confusing.")
+   *
+   * @param {string} target Possibly-relative target URL.
+   * @param {number} [status] Status code.
+   * @returns {boolean} `true` when the response is completed.
+   */
+  async sendRedirect(target, status = 302) {
+    // Note: This method avoids using `express.Response.redirect()` (a) to avoid
+    // ambiguity with the argument `"back"`, and (b) generally with an eye
+    // towards dropping Express entirely as a dependency.
+
+    MustBe.string(target);
+
+    return this.#sendNonContentResponse(status, {
+      bodyExtra: `  ${target}\n`,
+      headers:   { 'Location': target }
+    });
+  }
+
+  /**
+   * Issues a redirect response targeted at the original request's referrer. If
+   * there was no referrer, this redirects to `/`.
+   *
+   * Calling this method results in this request being considered complete, and
+   * as such no additional response-related methods will work.
+   *
+   * @param {number} [status] Status code.
+   * @returns {boolean} `true` when the response is completed.
+   */
+  async sendRedirectBack(status = 302) {
+    const target = this.#expressRequest.header('referrer') ?? '/';
+    return this.sendRedirect(target, status);
+  }
+
+  /**
    * Returns when the underlying response has been closed successfully or has
    * errored. Returns `true` for a normal close, or throws whatever error the
    * response reports.
@@ -725,31 +717,73 @@ export class Request {
   }
 
   /**
-   * @returns {URL} The parsed version of {@link #urlString}. This is a
-   * private getter because the return value is mutable, and we don't want to
-   * allow clients to actually mutate it.
+   * @returns {object} The parsed version of {@link #targetString}. This is a
+   * private getter because the return value is pretty ad-hoc, and we don't want
+   * to expose it as part of this class's API.
    */
-  get #parsedUrl() {
-    if (!this.#parsedUrlObject) {
-      // Note: An earlier version of this code said `new URL(this.urlString,
-      // 'x://x')`, so as to make it possible for `urlString` to omit the scheme
-      // and host. However, that was totally incorrect, because the _real_
-      // requirement is for `urlString` to _always_ be the path. The most
-      // notable case where the old code failed was in parsing a path that began
-      // with two slashes, which would get incorrectly parsed as having a host.
-      const urlObj = new URL(`x://x${this.urlString}`);
-
-      if (urlObj.pathname === '') {
-        // Shouldn't normally happen, but tolerate an empty pathname, converting
-        // it to `/`. (`new URL()` will return an instance like this if there's
-        // no slash after the hostname.)
-        urlObj.pathname = '/';
-      }
-
-      this.#parsedUrlObject = urlObj;
+  get #parsedTarget() {
+    if (this.#parsedTargetObject) {
+      return this.#parsedTargetObject;
     }
 
-    return this.#parsedUrlObject;
+    // Note: Node calls the target the `.url`, but it's totes _not_ actually a
+    // URL, bless their innocent hearts.
+    //
+    // Also note: Though this framework uses Express under the covers (as of
+    // this writing), and Express _does_ rewrite the underlying request's `.url`
+    // in some circumstances, the way we use Express should never cause it to do
+    // such rewriting. As such, it's appropriate for us to just use `.url`, and
+    // not the Express-specific `.originalUrl`. (Ultimately, the hope is to drop
+    // use of Express, as it provides little value to this project.)
+    const targetString = this.#expressRequest.url;
+    const result       = { targetString };
+
+    if (targetString.startsWith('/')) {
+      // It's the usual (most common) form for a target, namely an absolute
+      // path. Use `new URL(...)` to parse and canonicalize it. This is the
+      // `origin-form` as defined by
+      // <https://www.rfc-editor.org/rfc/rfc7230#section-5.3.1>.
+
+      // Note: An earlier version of this code said `new URL(this.targetString,
+      // 'x://x')`, so as to make the constructor work given that `targetString`
+      // should omit the scheme and host. However, that was totally incorrect,
+      // because the _real_ requirement is for `targetString` to _always_ be
+      // _just_ the path. The most notable case where the old code failed was in
+      // parsing a path that began with two slashes, which would get incorrectly
+      // parsed as having a host.
+      const urlObj  = new URL(`x://x${targetString}`);
+
+      // Shouldn't normally happen, but tolerate an empty pathname, converting
+      // it to `/`. (`new URL()` will return an instance like this if there's
+      // no slash after the hostname, but by the time we're here,
+      // `targetString` is supposed to start with a slash).
+      const pathnameString = (urlObj.pathname === '') ? '/' : urlObj.pathname;
+
+      // `slice(1)` to avoid having an empty component as the first element. And
+      // Freezing `parts` lets `new TreePathKey()` avoid making a copy.
+      const pathParts = Object.freeze(pathnameString.slice(1).split('/'));
+
+      result.type           = 'origin';
+      result.pathname       = new TreePathKey(pathParts, false);
+      result.pathnameString = pathnameString;
+      result.searchString   = urlObj.search;
+    } else if (targetString === '*') {
+      // This is the `asterisk-form` as defined by
+      // <https://www.rfc-editor.org/rfc/rfc7230#section-5.3.4>.
+      result.type = 'asterisk';
+    } else {
+      // This can be either the `authority-form` or the `absolute-form`, as
+      // defined by <https://www.rfc-editor.org/rfc/rfc7230#section-5.3.2> and
+      // <https://www.rfc-editor.org/rfc/rfc7230#section-5.3.3>. These two
+      // forms have some overlap, so it's not possible to easily tell for sure
+      // which one this is (or if it's just invalid).
+      result.type = 'other';
+    }
+
+    Object.freeze(result);
+    this.#parsedTargetObject = result;
+
+    return result;
   }
 
   /**

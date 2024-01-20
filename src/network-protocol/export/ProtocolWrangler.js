@@ -375,21 +375,8 @@ export class ProtocolWrangler {
    *   to run.
    */
   async #handleExpressRequest(req, res, next) {
-    const context = WranglerContext.getNonNull(req.socket, req.stream?.session);
-
-    // TODO: `request.url` is not sanitized by Node, and furthermore it could
-    // legitimately be the form used when talking to a proxy (see RFC7230,
-    // section 5.3). `Request` does its own sanity check and will reject those,
-    // but we should catch it here, in a less ad-hoc way, before trying to
-    // construct the `Request`.
-    let request;
-    try {
-      request = new Request(context, req, res, this.#requestLogger);
-    } catch (e) {
-      res.sendStatus(400); // "Bad Request."
-      return;
-    }
-
+    const context   = WranglerContext.getNonNull(req.socket, req.stream?.session);
+    const request   = new Request(context, req, res, this.#requestLogger);
     const reqLogger = request.logger;
 
     const reqCtx = WranglerContext.forRequest(context, request);
@@ -399,10 +386,15 @@ export class ProtocolWrangler {
 
     res.set('Server', this.#serverHeader);
 
-    if (this.#rateLimiter) {
+    if (!request.pathnameString) {
+      // It's not an `origin` request. We don't handle any other type of
+      // target... yet.
+      await request.sendError(400); // "Bad Request."
+      return;
+    } else if (this.#rateLimiter) {
       const granted = await this.#rateLimiter.newRequest(reqLogger);
       if (!granted) {
-        res.sendStatus(503);
+        await request.sendError(503); // "Service Unavailable."
 
         // Wait for the response to have been at least nominally sent before
         // closing the socket, in the hope that there is a good chance that it
