@@ -7,7 +7,11 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* None.
+* Renamed most `url`-named properties on `Request` to instead use the term
+  `target`. This represents a divergence from Node, which confusingly uses the
+  property name `url` to refer to an HTTP(ish) request target, even though it
+  isn't actually ever a URL per se except when the server is implementing a
+  proxy (and not just a regular webserver).
 
 Other notable changes:
 * Fixed handling of non-`origin` request targets. Before v0.6.1, these were
