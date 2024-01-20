@@ -375,11 +375,12 @@ export class ProtocolWrangler {
    *   to run.
    */
   async #handleExpressRequest(req, res, next) {
-    const context   = WranglerContext.getNonNull(req.socket, req.stream?.session);
+    const context = WranglerContext.getNonNull(req.socket, req.stream?.session);
 
-    // TEMP: `request.url` is sometimes weird, and this confuses `Request`.
-    // Unclear if Node should even be willing to pass such a URL in the first
-    // place.
+    // TEMP: `request.url` is not sanitized by Node, and furthermore it could
+    // legitimately be the form used when talking to a proxy (see RFC7230,
+    // section 5.3). `Request` does its own sanity check and will reject those,
+    // but we should catch it here.
     let request;
     try {
       request = new Request(context, req, res, this.#requestLogger);
