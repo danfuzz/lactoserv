@@ -291,14 +291,18 @@ export class Request {
 
   /**
    * @returns {string} A reasonably-suggestive but possibly incomplete
-   * representation of the incoming request, in the form of an URL. This is
-   * meant for logging, and specifically _not_ for any routing or other more
+   * representation of the incoming request, in the form of a URL. This is meant
+   * for logging, and specifically _not_ for any routing or other more
    * meaningful computation (hence the name).
    */
   get urlForLogging() {
-    const { protocol, host, targetString } = this;
+    const { protocol, host }     = this;
+    const { targetString, type } = this.#parsedTarget;
+    const protoHost              = `${protocol}://${host.nameString}`;
 
-    return `${protocol}://${host.nameString}${targetString}`;
+    return (type === 'origin')
+      ? `${protoHost}${targetString}`
+      : `${protoHost}:${type}=${targetString}`;
   }
 
   /**
