@@ -220,7 +220,9 @@ export class Request {
   }
 
   /**
-   * @returns {TreePathKey} Parsed path key form of {@link #pathnameString}.
+   * @returns {?TreePathKey} Parsed path key form of {@link #pathnameString}, or
+   * `null` if this instance doesn't represent a usual `origin` request.
+   *
    * **Note:** If the original incoming pathname was just `'/'` (e.g., it was
    * from an HTTP request of literally `GET /`), then the value here is a
    * single-element key with empty value, that is `['']`, and _not_ an empty
@@ -229,9 +231,14 @@ export class Request {
    */
   get pathname() {
     if (!this.#parsedPathname) {
+      const { type, pathnameString: pathStr } = this.#parsedTarget;
+
+      if (type !== 'origin') {
+        return null;
+      }
+
       // `slice(1)` to avoid having an empty component as the first element.
-      const pathStr = this.pathnameString;
-      const parts   = pathStr.slice(1).split('/');
+      const parts = pathStr.slice(1).split('/');
 
       // Freezing `parts` lets `new TreePathKey()` avoid making a copy.
       this.#parsedPathname = new TreePathKey(Object.freeze(parts), false);
@@ -241,15 +248,17 @@ export class Request {
   }
 
   /**
-   * @returns {string} The path portion of {@link #targetString}, as a string.
-   * This starts with a slash (`/`) and omits the search a/k/a query (`?...`),
-   * if any. This also includes "resolving" away any `.` or `..` components.
+   * @returns {?string} The path portion of {@link #targetString}, as a string,
+   * or `null` if this instance doesn't represent a usual `origin` request (that
+   * is, the kind that includes a path). This starts with a slash (`/`) and
+   * omits the search a/k/a query (`?...`), if any. This also includes
+   * "resolving" away any `.` or `..` components.
    *
    * **Note:** The name of this field matches the equivalent field of the
    * standard `URL` class.
    */
   get pathnameString() {
-    return this.#parsedTarget.pathname;
+    return this.#parsedTarget.pathnameString ?? null;
   }
 
   /** @returns {string} The name of the protocol which spawned this instance. */
@@ -267,7 +276,7 @@ export class Request {
    * standard `URL` class.
    */
   get searchString() {
-    return this.#parsedTarget.search;
+    return this.#parsedTarget.searchString;
   }
 
   /**
@@ -297,16 +306,7 @@ export class Request {
    * to diverge from Node for the sake of clarity.
    */
   get targetString() {
-    // Note: Node calls the target the `.url`, but it's totes _not_ actually a
-    // URL, bless their innocent hearts.
-
-    // Note: Though this framework uses Express under the covers (as of this
-    // writing), and Express _does_ rewrite the underlying request's `.url` in
-    // some circumstances, the way we use Express should never cause it to do
-    // such rewriting. As such, it's appropriate for us to just use `.url`, and
-    // not the Express-specific `.originalUrl`. (Ultimately, the hope is to drop
-    // use of Express, as it provides little value to this project.)
-    return this.#expressRequest.url;
+    return this.#parsedTarget.targetString;
   }
 
   /**
@@ -732,12 +732,33 @@ export class Request {
   }
 
   /**
-   * @returns {URL} The parsed version of {@link #targetString}. This is a
-   * private getter because the return value is mutable, and we don't want to
-   * allow clients to actually mutate it.
+   * @returns {object} The parsed version of {@link #targetString}. This is a
+   * private getter because the return value is pretty ad-hoc, and we don't want
+   * to expose it as part of this class's API.
    */
   get #parsedTarget() {
-    if (!this.#parsedTargetObject) {
+    if (this.#parsedTargetObject) {
+      return this.#parsedTargetObject;
+    }
+
+    // Note: Node calls the target the `.url`, but it's totes _not_ actually a
+    // URL, bless their innocent hearts.
+    //
+    // Also note: Though this framework uses Express under the covers (as of
+    // this writing), and Express _does_ rewrite the underlying request's `.url`
+    // in some circumstances, the way we use Express should never cause it to do
+    // such rewriting. As such, it's appropriate for us to just use `.url`, and
+    // not the Express-specific `.originalUrl`. (Ultimately, the hope is to drop
+    // use of Express, as it provides little value to this project.)
+    const targetString = this.#expressRequest.url;
+    const result       = { targetString };
+
+    if (targetString.startsWith('/')) {
+      // It's the usual (most common) form for a target, namely an absolute
+      // path. Use `new URL(...)` to parse and canonicalize it. This is the
+      // `origin-form` as defined by
+      // <https://www.rfc-editor.org/rfc/rfc7230#section-5.3.1>.
+
       // Note: An earlier version of this code said `new URL(this.targetString,
       // 'x://x')`, so as to make the constructor work given that `targetString`
       // should omit the scheme and host. However, that was totally incorrect,
@@ -745,7 +766,7 @@ export class Request {
       // _just_ the path. The most notable case where the old code failed was in
       // parsing a path that began with two slashes, which would get incorrectly
       // parsed as having a host.
-      const urlObj = new URL(`x://x${this.targetString}`);
+      const urlObj = new URL(`x://x${targetString}`);
 
       if (urlObj.pathname === '') {
         // Shouldn't normally happen, but tolerate an empty pathname, converting
@@ -754,10 +775,26 @@ export class Request {
         urlObj.pathname = '/';
       }
 
-      this.#parsedTargetObject = urlObj;
+      result.type           = 'origin';
+      result.pathnameString = urlObj.pathname;
+      result.searchString   = urlObj.searc;
+    } else if (targetString === '*') {
+      // This is the `asterisk-form` as defined by
+      // <https://www.rfc-editor.org/rfc/rfc7230#section-5.3.4>.
+      result.type = 'asterisk';
+    } else {
+      // This can be either the `authority-form` or the `absolute-form`, as
+      // defined by <https://www.rfc-editor.org/rfc/rfc7230#section-5.3.2> and
+      // <https://www.rfc-editor.org/rfc/rfc7230#section-5.3.3>. These two
+      // forms have some overlap, so it's not possible to easily tell for sure
+      // which one this is (or if it's just invalid).
+      result.type = 'other';
     }
 
-    return this.#parsedTargetObject;
+    Object.freeze(result);
+    this.#parsedTargetObject = result;
+
+    return result;
   }
 
   /**
