@@ -385,7 +385,7 @@ export class ProtocolWrangler {
     try {
       request = new Request(context, req, res, this.#requestLogger);
     } catch (e) {
-      res.sendStatus(503);
+      res.sendStatus(400); // "Bad Request."
       return;
     }
 
