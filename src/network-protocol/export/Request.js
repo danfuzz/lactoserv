@@ -412,7 +412,7 @@ export class Request {
    * @param {string|Buffer} [body] Body content.
    * @returns {boolean} `true` when the response is completed.
    */
-  async notFound(contentType = null, body = null) {
+  async sendNotFound(contentType = null, body = null) {
     const sendOpts = body
       ? { contentType, body }
       : { bodyExtra: `  ${this.targetString}\n` };

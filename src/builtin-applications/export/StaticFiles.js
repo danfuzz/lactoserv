@@ -52,7 +52,7 @@ export class StaticFiles extends BaseApplication {
 
     if (!resolved) {
       if (this.#notFoundType) {
-        return request.notFound(this.#notFoundType, this.#notFoundContents);
+        return request.sendNotFound(this.#notFoundType, this.#notFoundContents);
       } else {
         return false;
       }
