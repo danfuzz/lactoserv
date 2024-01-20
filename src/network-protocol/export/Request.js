@@ -115,7 +115,7 @@ export class Request {
     if (!/^[/]/.test(request.url)) {
       // Sanity check. If this throws, it's a bug and not (in particular) a
       // malformed request (which never should have made it this far).
-      throw new Error('Shouldn\'t happen.');
+      throw new Error(`Shouldn't happen: ${request.url}`);
     }
   }
 
