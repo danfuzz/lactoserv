@@ -113,8 +113,16 @@ export class Request {
     }
 
     if (!/^[/]/.test(request.url)) {
-      // Sanity check. If this throws, it's a bug and not (in particular) a
+      // Sanity check. If we end up here, it's a bug and not (in particular) a
       // malformed request (which never should have made it this far).
+      // TODO: In practice this is happening, and it's not clear why. Log it,
+      // so we can figure out what's going on.
+      this.#logger.strangeOriginalUrl({
+        hostname: request.hostname,
+        method:   request.method,
+        protocol: request.protocol,
+        url:      request.url
+      });
       throw new Error(`Shouldn't happen: ${request.url}`);
     }
   }

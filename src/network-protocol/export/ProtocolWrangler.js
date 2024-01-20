@@ -376,7 +376,18 @@ export class ProtocolWrangler {
    */
   async #handleExpressRequest(req, res, next) {
     const context   = WranglerContext.getNonNull(req.socket, req.stream?.session);
-    const request   = new Request(context, req, res, this.#requestLogger);
+
+    // TEMP: `request.url` is sometimes weird, and this confuses `Request`.
+    // Unclear if Node should even be willing to pass such a URL in the first
+    // place.
+    let request;
+    try {
+      request = new Request(context, req, res, this.#requestLogger);
+    } catch (e) {
+      res.sendStatus(503);
+      return;
+    }
+
     const reqLogger = request.logger;
 
     const reqCtx = WranglerContext.forRequest(context, request);
