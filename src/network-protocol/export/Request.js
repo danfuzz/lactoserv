@@ -785,7 +785,9 @@ export class Request {
       // <https://www.rfc-editor.org/rfc/rfc7230#section-5.3.3>. We are somewhat
       // _looser_ here than the spec requires, but because (as of this writing)
       // we aren't trying to do anything serious with this form, we aren't going
-      // to spend a lot of (brain or CPU) cycles worrying about it.
+      // to spend a lot of (brain or CPU) cycles worrying about it. Also, as of
+      // this writing, it seems that Node rejects this form entirely, so maybe
+      // this is all moot.
       result.type = 'authority';
     } else {
       // Node is supposed to reject anything invalid before we get here, but
