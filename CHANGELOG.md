@@ -18,7 +18,7 @@ Breaking changes:
 * Renamed most `url`-named properties on `Request` to instead use the term
   `target`. This represents a divergence from Node, which confusingly uses the
   property name `url` to refer to an HTTP(ish) request target, even though it
-  isn't actually ever a URL per se except when the server is implementing a
+  isn't actually ever a URL per se except when the server is being called as a
   proxy (and not just a regular webserver).
 
 Other notable changes:
