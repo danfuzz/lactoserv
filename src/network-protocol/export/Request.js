@@ -771,12 +771,26 @@ export class Request {
       // This is the `asterisk-form` as defined by
       // <https://www.rfc-editor.org/rfc/rfc7230#section-5.3.4>.
       result.type = 'asterisk';
+    } else if (/^[a-zA-Z][-+.0-9a-zA-Z]+:[/][/]/.test(targetString)) {
+      // This is the `absolute-form`, as defined by
+      // <https://www.rfc-editor.org/rfc/rfc7230#section-5.3.2>. The regex we
+      // use is actually somewhat more restrictive than the spec seems to allow
+      // (specifically, we require `://`), but in practice it's almost certainly
+      // pointless (and arguably a bad idea) to accept anything looser. Note
+      // that without our restriction (or similar), there is ambiguity between
+      // this form and the `authority-form`.
+      result.type = 'absolute';
+    } else if (/^[-~_.%:@!$&'()*+,;=0-9a-zA-Z]+$/.test(targetString)) {
+      // This is the `authority-form`, as defined by
+      // <https://www.rfc-editor.org/rfc/rfc7230#section-5.3.3>. We are somewhat
+      // _looser_ here than the spec requires, but because (as of this writing)
+      // we aren't trying to do anything serious with this form, we aren't going
+      // to spend a lot of (brain or CPU) cycles worrying about it.
+      result.type = 'authority';
     } else {
-      // This can be either the `authority-form` or the `absolute-form`, as
-      // defined by <https://www.rfc-editor.org/rfc/rfc7230#section-5.3.2> and
-      // <https://www.rfc-editor.org/rfc/rfc7230#section-5.3.3>. These two
-      // forms have some overlap, so it's not possible to easily tell for sure
-      // which one this is (or if it's just invalid).
+      // Node is supposed to reject anything invalid before we get here, but
+      // just in case, it's arguably better to just tag it here rather than
+      // report an error. (Famous last words?)
       result.type = 'other';
     }
 
