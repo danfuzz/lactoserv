@@ -7,6 +7,14 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
+* None.
+
+Other notable changes:
+* None.
+
+### v0.6.2 -- 2024-01-22
+
+Breaking changes:
 * Renamed most `url`-named properties on `Request` to instead use the term
   `target`. This represents a divergence from Node, which confusingly uses the
   property name `url` to refer to an HTTP(ish) request target, even though it
@@ -17,7 +25,8 @@ Other notable changes:
 * Fixed handling of non-`origin` request targets. Before v0.6.1, these were
   treated as if they were `origin` requests (that is, the usual kind that
   specify a resource path), and in v0.6.1 they started causing crashes. Now,
-  they're properly classified.
+  they're properly classified and (by and large) rejected with an error reported
+  to clients.
 
 ### v0.6.1 -- 2024-01-19
 
