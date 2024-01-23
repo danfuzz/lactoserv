@@ -394,16 +394,17 @@ export class ProtocolWrangler {
     } else if (this.#rateLimiter) {
       const granted = await this.#rateLimiter.newRequest(reqLogger);
       if (!granted) {
+        // Send the error response, and wait for it to be (believed to be) sent.
         await request.sendError(503); // "Service Unavailable."
 
-        // Wait for the response to have been at least nominally sent before
-        // closing the socket, in the hope that there is a good chance that it
-        // will allow for the far side to see the 503 response. Note: The
-        // `ServerResponse` object nulls out the socket after `end()` completes,
-        // which is why we grab it outside the `finish` callback.
-        const resSocket = res.socket;
-        res.once('finish', () => { resSocket.end();     });
-        res.once('end',    () => { resSocket.destroy(); });
+        // ...and then just thwack the underlying socket. The hope is that the
+        // waiting above will make it likely that the far side will actually see
+        // the 503 response.
+        const csock = context.socket;
+        csock.end();
+        csock.once('finish', () => {
+          csock.destroy();
+        });
 
         return;
       }
