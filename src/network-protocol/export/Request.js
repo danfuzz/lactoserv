@@ -3,6 +3,7 @@
 
 import * as fs from 'node:fs/promises';
 import { ClientRequest, ServerResponse } from 'node:http';
+import * as http2 from 'node:http2';
 
 import etag from 'etag';
 import express from 'express';
@@ -286,6 +287,40 @@ export class Request {
     return (type === 'origin')
       ? `${protoHost}${targetString}`
       : `${protoHost}:${type}=${targetString}`;
+  }
+
+  /**
+   * Gets all reasonably-logged info about the request that was made.
+   *
+   * **Note:** The `headers` in the result omits anything that is redundant
+   * with respect to other parts of the return value. (E.g., the `cookie` header
+   * is omitted if it was able to be parsed.)
+   *
+   * @returns {object} Loggable information about the request.
+   */
+  getLoggableRequestInfo() {
+    const {
+      cookies,
+      headers,
+      method,
+      urlForLogging
+    } = this;
+
+    const origin = this.#outerContext.socketAddressPort ?? '<unknown>';
+
+    const result = {
+      origin,
+      method,
+      url: urlForLogging,
+      headers: Request.#sanitizeRequestHeaders(headers),
+    };
+
+    if (cookies.size !== 0) {
+      result.cookies = Object.fromEntries(cookies);
+      delete result.headers.cookie;
+    }
+
+    return result;
   }
 
   /**
@@ -1029,6 +1064,31 @@ export class Request {
     const result = Date.parse(dateString);
 
     return (typeof result === 'number') ? result : null;
+  }
+
+  /**
+   * Cleans up request headers for logging.
+   *
+   * @param {object} headers Original request headers.
+   * @returns {object} Cleaned up version.
+   */
+  static #sanitizeRequestHeaders(headers) {
+    const result = { ...headers };
+
+    delete result[':authority'];
+    delete result[':method'];
+    delete result[':path'];
+    delete result[':scheme'];
+    delete result.host;
+
+    // Non-obvious: This deletes the symbol property `http2.sensitiveHeaders`
+    // from the result (whose array is a value of header names that, per Node
+    // docs, aren't supposed to be compressed due to poor interaction with
+    // desirable cryptography properties). This _isn't_ supposed to actually
+    // delete the headers _named_ by this value.
+    delete result[http2.sensitiveHeaders];
+
+    return result;
   }
 
   /**

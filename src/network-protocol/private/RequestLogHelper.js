@@ -1,8 +1,6 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import * as http2 from 'node:http2';
-
 import { FormatUtils } from '@this/loggy';
 
 import { IntfRequestLogger } from '#x/IntfRequestLogger';
@@ -34,25 +32,13 @@ export class RequestLogHelper {
    * @param {WranglerContext} context Connection or session context.
    */
   async logRequest(request, context) {
-    const {
-      cookies,
-      headers: reqHeaders,
-      logger,
-      method,
-      urlForLogging
-    } = request;
-
+    const logger    = request.logger;
     const startTime = this.#requestLogger.now();
-    const origin    = context.socketAddressPort ?? '<unknown-origin>';
+    const reqInfo   = request.getLoggableRequestInfo();
 
     context.logger?.newRequest(request.id);
     logger?.opened(context.ids);
-    logger?.request(origin, method, urlForLogging);
-    logger?.headers(RequestLogHelper.#sanitizeRequestHeaders(reqHeaders));
-
-    if (cookies) {
-      logger?.cookies(cookies);
-    }
+    logger?.request(reqInfo);
 
     // Note: This call isn't supposed to `throw`, even if there were errors
     // thrown during handling.
@@ -97,9 +83,9 @@ export class RequestLogHelper {
 
     const requestLogLine = [
       endTime.toString({ decimals: 4 }),
-      origin,
-      method,
-      JSON.stringify(urlForLogging),
+      reqInfo.origin,
+      reqInfo.method,
+      JSON.stringify(reqInfo.url),
       statusCode,
       FormatUtils.byteCountString(contentLength, { spaces: false }),
       duration.toString({ spaces: false }),
@@ -108,35 +94,5 @@ export class RequestLogHelper {
 
     logger?.requestLog(requestLogLine);
     this.#requestLogger?.logCompletedRequest(requestLogLine);
-  }
-
-
-  //
-  // Static members
-  //
-
-  /**
-   * Cleans up request headers for logging.
-   *
-   * @param {object} headers Original request headers.
-   * @returns {object} Cleaned up version.
-   */
-  static #sanitizeRequestHeaders(headers) {
-    const result = { ...headers };
-
-    delete result[':authority'];
-    delete result[':method'];
-    delete result[':path'];
-    delete result[':scheme'];
-    delete result.host;
-
-    // Non-obvious: This deletes the symbol property `http2.sensitiveHeaders`
-    // from the result (whose array is a value of header names that, per Node
-    // docs, aren't supposed to be compressed due to poor interaction with
-    // desirable cryptography properties). This _isn't_ supposed to actually
-    // delete the headers named by this value.
-    delete result[http2.sensitiveHeaders];
-
-    return result;
   }
 }
