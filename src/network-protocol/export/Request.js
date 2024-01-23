@@ -700,7 +700,10 @@ export class Request {
    * @returns {boolean} `true` when the response is completed.
    */
   async sendRedirectBack(status = 302) {
-    const target = this.#expressRequest.header('referrer') ?? '/';
+    // Note: Express lets you ask for `referrer` (spelled properly), but the
+    // actual header that's supposed to be sent is `referer` (which is of course
+    // misspelled).
+    const target = this.#expressRequest.header('referer') ?? '/';
     return this.sendRedirect(target, status);
   }
 
