@@ -10,7 +10,8 @@ Breaking changes:
 * None.
 
 Other notable changes:
-* None.
+* Notice promptly when clients drop connections, instead of letting them time
+  out (and end up getting a write-after-close error).
 
 ### v0.6.2 -- 2024-01-22
 

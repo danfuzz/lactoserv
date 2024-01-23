@@ -133,6 +133,17 @@ export class TcpWrangler extends ProtocolWrangler {
       this.#handleTimeout(socket, connLogger);
     });
 
+    // The `end` event is what a socket gets when the far side proactively
+    // closes the connection. We react by just closing our side. Note that
+    // network sockets are generally created in "allow half open" mode, which is
+    // why we have to explicitly close our side. And, to be clear, we _don't_
+    // want to disable half-open, because we ourselves want to be able to close
+    // our side without worrying about how the remote side reacts.
+    socket.once('end', () => {
+      connLogger?.remoteClosed();
+      socket.destroySoon(); // "Soon" means "after all pending data is written."
+    });
+
     let loggedClose = false;
 
     const logClose = (...args) => {
