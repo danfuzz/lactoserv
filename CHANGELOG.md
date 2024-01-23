@@ -10,6 +10,7 @@ Breaking changes:
 * None.
 
 Other notable changes:
+* Added support for incoming cookies.
 * Notice promptly when clients drop connections, instead of letting them time
   out (and end up getting a write-after-close error).
 
