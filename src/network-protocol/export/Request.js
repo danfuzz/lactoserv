@@ -13,7 +13,7 @@ import statuses from 'statuses';
 import { ManualPromise } from '@this/async';
 import { TreePathKey } from '@this/collections';
 import { IntfLogger } from '@this/loggy';
-import { HostInfo, MimeTypes } from '@this/net-util';
+import { Cookies, HostInfo, MimeTypes } from '@this/net-util';
 import { AskIf, MustBe } from '@this/typey';
 
 import { WranglerContext } from '#x/WranglerContext';
@@ -69,6 +69,9 @@ export class Request {
    */
   #host = null;
 
+  /** @type {?Cookies} The parsed cookies, or `null` if not yet figured out. */
+  #cookies = null;
+
   /**
    * @type {?URL} The parsed version of {@link #targetString}, or `null` if not
    * yet calculated. **Note:** Despite it being an instance of `URL`, the
@@ -107,14 +110,20 @@ export class Request {
   }
 
   /**
-   * @returns {?object} _Unsecure_ cookies that have been parsed from the
-   * request, or `null` if there are not any.
+   * @returns {Cookies} Cookies that have been parsed from the request, if any.
+   * This is an empty instance if there were no cookies (or at least no
+   * syntactically correct cookies). Whether or not empty, the instance is
+   * always frozen.
    */
   get cookies() {
-    // Note: The `cookies` property of the request is provided by Express or
-    // by the `cookie-parser` middleware. As of this writing, there is
-    // nothing actually set up in the system to cause this value to be set.
-    return this.#expressRequest.cookies ?? null;
+    if (!this.#cookies) {
+      const cookieStr = this.#expressRequest.header('cookie');
+      const result    = cookieStr ? Cookies.parse(cookieStr) : null;
+
+      this.#cookies = result ? Object.freeze(result) : Cookies.EMPTY;
+    }
+
+    return this.#cookies;
   }
 
   /**
@@ -242,17 +251,6 @@ export class Request {
    */
   get searchString() {
     return this.#parsedTarget.searchString;
-  }
-
-  /**
-   * @returns {?object} _Secure_ cookies that have been parsed from the request,
-   * or `null` if there are not any.
-   */
-  get secureCookies() {
-    // Note: The `secureCookies` property of the request is provided by Express
-    // or by the `cookie-parser` middleware. As of this writing, there is
-    // nothing actually set up in the system to cause this value to be set.
-    return this.#expressRequest.secureCookies ?? null;
   }
 
   /**
