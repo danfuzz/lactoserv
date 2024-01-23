@@ -133,11 +133,39 @@ export class TcpWrangler extends ProtocolWrangler {
       this.#handleTimeout(socket, connLogger);
     });
 
+    let loggedClose = false;
+
+    const logClose = (...args) => {
+      if (!connLogger) {
+        return;
+      }
+
+      const isError = (args.length !== 0);
+
+      if (!loggedClose) {
+        // Only log this once. (That is, don't re-log it if there's a second
+        // call to this function, for whatever reason.)
+        connLogger.totalBytesWritten(socket.bytesWritten);
+      }
+
+      if (args.length === 0) {
+        // Only log a non-error close once, and only if no error close has been
+        // reported.
+        if (!loggedClose) {
+          connLogger.closed('ok');
+        }
+      } else {
+        connLogger.closed('error', ...args);
+      }
+
+      loggedClose = true;
+    }
+
     socket.on('error', (error) => {
       // A `close` event gets emitted right after this event -- which performs
       // connection cleanup -- so there's no need to do anything other than log
       // the event in this handler.
-      connLogger.connectionError(error);
+      logClose(error);
     });
 
     socket.on('close', () => {
@@ -146,10 +174,7 @@ export class TcpWrangler extends ProtocolWrangler {
         this.#anySockets.value = false;
       }
 
-      if (connLogger) {
-        connLogger.totalBytesWritten(socket.bytesWritten);
-        connLogger.closed();
-      }
+      logClose();
     });
 
     this._prot_newConnection(socket, connLogger);
