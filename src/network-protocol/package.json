@@ -19,7 +19,6 @@
     "@this/loggy": "*",
     "@this/net-util": "*",
     "@this/typey": "*",
-    "cookie": "^0.6.0",
     "etag": "^1.8.1",
     "express": "^4.18.2",
     "fresh": "^0.5.2",
