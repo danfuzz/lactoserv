@@ -338,10 +338,10 @@ export class ProtocolWrangler {
         connectionId: ctx.connectionId ?? '<unknown-id>'
       });
 
-      session.on('close',      () => sessionLogger.closed('ok'));
-      session.on('error',      (e) => sessionLogger.closed('error', e));
-      session.on('goaway',     (code) => sessionLogger.closed('goaway', code));
-      session.on('frameError', (type, code, id) =>
+      session.once('close',      () => sessionLogger.closed('ok'));
+      session.on(  'error',      (e) => sessionLogger.closed('error', e));
+      session.once('goaway',     (code) => sessionLogger.closed('goaway', code));
+      session.once('frameError', (type, code, id) =>
         sessionLogger.closed('frameError', type, code, id));
     }
 

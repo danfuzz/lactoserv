@@ -179,7 +179,7 @@ export class TcpWrangler extends ProtocolWrangler {
       logClose(error);
     });
 
-    socket.on('close', () => {
+    socket.once('close', () => {
       this.#sockets.delete(socket);
       if (this.#sockets.size === 0) {
         this.#anySockets.value = false;
