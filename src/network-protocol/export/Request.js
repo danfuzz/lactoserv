@@ -3,6 +3,7 @@
 
 import * as fs from 'node:fs/promises';
 import { ClientRequest, ServerResponse } from 'node:http';
+import * as http2 from 'node:http2';
 
 import etag from 'etag';
 import express from 'express';
@@ -13,7 +14,7 @@ import statuses from 'statuses';
 import { ManualPromise } from '@this/async';
 import { TreePathKey } from '@this/collections';
 import { IntfLogger } from '@this/loggy';
-import { HostInfo, MimeTypes } from '@this/net-util';
+import { Cookies, HostInfo, MimeTypes } from '@this/net-util';
 import { AskIf, MustBe } from '@this/typey';
 
 import { WranglerContext } from '#x/WranglerContext';
@@ -37,7 +38,6 @@ import { WranglerContext } from '#x/WranglerContext';
  * behind a reverse proxy. That said, as of this writing there isn't anything
  * that actually does that. See
  * <https://github.com/danfuzz/lactoserv/issues/213>.
- *
  */
 export class Request {
   /**
@@ -69,6 +69,9 @@ export class Request {
    * out.
    */
   #host = null;
+
+  /** @type {?Cookies} The parsed cookies, or `null` if not yet figured out. */
+  #cookies = null;
 
   /**
    * @type {?URL} The parsed version of {@link #targetString}, or `null` if not
@@ -108,14 +111,20 @@ export class Request {
   }
 
   /**
-   * @returns {?object} _Unsecure_ cookies that have been parsed from the
-   * request, or `null` if there are not any.
+   * @returns {Cookies} Cookies that have been parsed from the request, if any.
+   * This is an empty instance if there were no cookies (or at least no
+   * syntactically correct cookies). Whether or not empty, the instance is
+   * always frozen.
    */
   get cookies() {
-    // Note: The `cookies` property of the request is provided by Express or
-    // by the `cookie-parser` middleware. As of this writing, there is
-    // nothing actually set up in the system to cause this value to be set.
-    return this.#expressRequest.cookies ?? null;
+    if (!this.#cookies) {
+      const cookieStr = this.#expressRequest.header('cookie');
+      const result    = cookieStr ? Cookies.parse(cookieStr) : null;
+
+      this.#cookies = result ? Object.freeze(result) : Cookies.EMPTY;
+    }
+
+    return this.#cookies;
   }
 
   /**
@@ -246,17 +255,6 @@ export class Request {
   }
 
   /**
-   * @returns {?object} _Secure_ cookies that have been parsed from the request,
-   * or `null` if there are not any.
-   */
-  get secureCookies() {
-    // Note: The `secureCookies` property of the request is provided by Express
-    // or by the `cookie-parser` middleware. As of this writing, there is
-    // nothing actually set up in the system to cause this value to be set.
-    return this.#expressRequest.secureCookies ?? null;
-  }
-
-  /**
    * @returns {string} The unparsed target that was passed in to the original
    * HTTP(ish) request. In the common case of the target being a path to a
    * resource, colloquially speaking, this is the suffix of the URL-per-se
@@ -289,6 +287,40 @@ export class Request {
     return (type === 'origin')
       ? `${protoHost}${targetString}`
       : `${protoHost}:${type}=${targetString}`;
+  }
+
+  /**
+   * Gets all reasonably-logged info about the request that was made.
+   *
+   * **Note:** The `headers` in the result omits anything that is redundant
+   * with respect to other parts of the return value. (E.g., the `cookie` header
+   * is omitted if it was able to be parsed.)
+   *
+   * @returns {object} Loggable information about the request.
+   */
+  getLoggableRequestInfo() {
+    const {
+      cookies,
+      headers,
+      method,
+      urlForLogging
+    } = this;
+
+    const origin = this.#outerContext.socketAddressPort ?? '<unknown>';
+
+    const result = {
+      origin,
+      method,
+      url: urlForLogging,
+      headers: Request.#sanitizeRequestHeaders(headers),
+    };
+
+    if (cookies.size !== 0) {
+      result.cookies = Object.fromEntries(cookies);
+      delete result.headers.cookie;
+    }
+
+    return result;
   }
 
   /**
@@ -668,7 +700,10 @@ export class Request {
    * @returns {boolean} `true` when the response is completed.
    */
   async sendRedirectBack(status = 302) {
-    const target = this.#expressRequest.header('referrer') ?? '/';
+    // Note: Express lets you ask for `referrer` (spelled properly), but the
+    // actual header that's supposed to be sent is `referer` (which is of course
+    // misspelled).
+    const target = this.#expressRequest.header('referer') ?? '/';
     return this.sendRedirect(target, status);
   }
 
@@ -1032,6 +1067,31 @@ export class Request {
     const result = Date.parse(dateString);
 
     return (typeof result === 'number') ? result : null;
+  }
+
+  /**
+   * Cleans up request headers for logging.
+   *
+   * @param {object} headers Original request headers.
+   * @returns {object} Cleaned up version.
+   */
+  static #sanitizeRequestHeaders(headers) {
+    const result = { ...headers };
+
+    delete result[':authority'];
+    delete result[':method'];
+    delete result[':path'];
+    delete result[':scheme'];
+    delete result.host;
+
+    // Non-obvious: This deletes the symbol property `http2.sensitiveHeaders`
+    // from the result (whose array is a value of header names that, per Node
+    // docs, aren't supposed to be compressed due to poor interaction with
+    // desirable cryptography properties). This _isn't_ supposed to actually
+    // delete the headers _named_ by this value.
+    delete result[http2.sensitiveHeaders];
+
+    return result;
   }
 
   /**
