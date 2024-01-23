@@ -37,7 +37,6 @@ import { WranglerContext } from '#x/WranglerContext';
  * behind a reverse proxy. That said, as of this writing there isn't anything
  * that actually does that. See
  * <https://github.com/danfuzz/lactoserv/issues/213>.
- *
  */
 export class Request {
   /**
