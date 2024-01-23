@@ -673,9 +673,9 @@ export class Request {
   }
 
   /**
-   * Returns when the underlying response has been closed successfully or has
-   * errored. Returns `true` for a normal close, or throws whatever error the
-   * response reports.
+   * Returns when the underlying response has been closed successfully (after
+   * all of the response is believed to be sent) or has errored. Returns `true`
+   * for a normal close, or throws whatever error the response reports.
    *
    * @returns {boolean} `true` when closed without error.
    * @throws {Error} Any error reported by the underlying response object.
@@ -689,7 +689,11 @@ export class Request {
         : new Error(`non-error object: ${error}`);
     }
 
-    if (res.closed || res.destroyed || res.writableEnded) {
+    // Note: It's not correct to also check for `.writableEnded` here (as an
+    // earlier version of this code did), because that becomes `true` _before_
+    // the outgoing data is believed to be actually made it to the networking
+    // stack to be sent out.
+    if (res.closed || res.destroyed) {
       const error = res.errored;
       if (error) {
         throw makeProperError(error);
