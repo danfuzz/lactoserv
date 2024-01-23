@@ -48,6 +48,14 @@ export class StdTimeSource extends IntfTimeSource {
   /** @type {number} The number of seconds in a millisecond. */
   static #SECS_PER_MSEC = 1 / 1000;
 
-  /** @type {StdTimeSource} Standard instance of this class */
-  static INSTANCE = new StdTimeSource();
+  /** @type {StdTimeSource} Standard instance of this class. */
+  static #INSTANCE = new StdTimeSource();
+  static {
+    Object.freeze(this.#INSTANCE);
+  }
+
+  /** @returns {StdTimeSource} Standard instance of this class. */
+  static get INSTANCE() {
+    return this.#INSTANCE;
+  }
 }
