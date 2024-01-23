@@ -92,6 +92,17 @@ export class Cookies {
   // Static members
   //
 
+  /** @type {Cookies} Standard frozen empty instance of this class. */
+  static #EMPTY = new Cookies();
+  static {
+    Object.freeze(this.#EMPTY);
+  }
+
+  /** @returns {Cookies} Standard frozen empty instance of this class. */
+  static get EMPTY() {
+    return this.#EMPTY;
+  }
+
   /**
    * Parses a `Cookie` header, and constructs an instance based on the contents.
    * Cookie values are interpreted using the global function

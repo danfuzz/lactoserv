@@ -10,6 +10,22 @@ describe('constructor', () => {
   });
 });
 
+describe('.size', () => {
+  test('is `0` for an empty instance', () => {
+    expect(new Cookies().size).toBe(0);
+  });
+
+  test('is `10` for a size-10 instance', () => {
+    const cookies = new Cookies();
+
+    for (let i = 0; i < 10; i++) {
+      cookies.set(`n${i}`, 'yeah');
+    }
+
+    expect(cookies.size).toBe(10);
+  });
+});
+
 describe.each`
 label          | method
 ${'entries()'} | ${'entries'}
@@ -142,6 +158,21 @@ describe('set()', () => {
     Object.freeze(cookies);
 
     expect(() => cookies.set('x', 'y')).toThrow();
+  });
+});
+
+describe('.EMPTY', () => {
+  test('is an instance of the class', () => {
+    expect(Cookies.EMPTY).toBeInstanceOf(Cookies);
+  });
+
+  test('has no elements', () => {
+    expect(Cookies.EMPTY.size).toBe(0);
+    expect([...Cookies.EMPTY]).toEqual([]);
+  });
+
+  test('is frozen', () => {
+    expect(Cookies.EMPTY).toBeFrozen();
   });
 });
 
