@@ -151,8 +151,6 @@ export class TcpWrangler extends ProtocolWrangler {
         return;
       }
 
-      const isError = (args.length !== 0);
-
       if (!loggedClose) {
         // Only log this once. (That is, don't re-log it if there's a second
         // call to this function, for whatever reason.)
@@ -170,7 +168,7 @@ export class TcpWrangler extends ProtocolWrangler {
       }
 
       loggedClose = true;
-    }
+    };
 
     socket.on('error', (error) => {
       // A `close` event gets emitted right after this event -- which performs
