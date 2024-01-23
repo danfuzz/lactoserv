@@ -298,6 +298,10 @@ export class ProtocolWrangler {
     this.#perConnectionStorage.run(connectionCtx, () => {
       this._impl_server().emit('connection', socket);
     });
+
+    // Note: The code responsible for handing us the connection also does
+    // logging for it, so there's no need for additional connection logging
+    // here.
   }
 
   /**
@@ -334,8 +338,8 @@ export class ProtocolWrangler {
         connectionId: ctx.connectionId ?? '<unknown-id>'
       });
 
-      session.on('close',      () => sessionLogger.closed('close'));
-      session.on('error',      () => sessionLogger.closed('error'));
+      session.on('close',      () => sessionLogger.closed('ok'));
+      session.on('error',      (e) => sessionLogger.closed('error', e));
       session.on('goaway',     (code) => sessionLogger.closed('goaway', code));
       session.on('frameError', (type, code, id) =>
         sessionLogger.closed('frameError', type, code, id));
