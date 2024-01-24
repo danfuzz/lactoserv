@@ -14,7 +14,6 @@
   "dependencies": {
     "@this/collections": "*",
     "@this/typey": "*",
-    "cookie": "^0.6.0",
     "mime": "^4.0.1"
   }
 }
