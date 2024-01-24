@@ -131,6 +131,71 @@ describe('get()', () => {
 });
 
 describe('set()', () => {
+  describe('invalid names (not strings)', () => {
+    test.each`
+      arg
+      ${undefined}
+      ${null}
+      ${false}
+      ${1}
+      ${[]}
+      ${['x']}
+    `('throws given $arg', ({ arg }) => {
+      const cookies = new Cookies();
+      expect(() => cookies.set(arg, 'beep')).toThrow();
+    });
+  });
+
+  describe('invalid values (not strings)', () => {
+    test.each`
+      arg
+      ${undefined}
+      ${null}
+      ${false}
+      ${1}
+      ${[]}
+      ${['x']}
+    `('throws given $arg', ({ arg }) => {
+      const cookies = new Cookies();
+      expect(() => cookies.set('x', arg)).toThrow();
+    });
+  });
+
+  describe('syntactically incorrect names', () => {
+    test.each`
+      arg
+      ${''}
+      ${' '}
+      ${','}
+      ${';'}
+      ${':'}
+      ${'@'}
+      ${'='}
+      ${'<uh>'}
+      ${'{wha}'}
+      ${'(yeah)'}
+      ${'[whee]'}
+    `('throws given $arg', ({ arg }) => {
+      const cookies = new Cookies();
+      expect(() => cookies.set(arg, 'beep')).toThrow();
+    });
+  });
+
+  describe('syntactically incorrect values', () => {
+    test.each`
+      arg
+      ${' '}
+      ${';'}
+      ${'\\'}
+      ${','}
+      ${'"'}
+      ${'"boop"'} // If passed with double quotes, the end result is de-quoted.
+    `('throws given $arg', ({ arg }) => {
+      const cookies = new Cookies();
+      expect(() => cookies.set('x', arg)).toThrow();
+    });
+  });
+
   test('can set a not-yet-set cookie', () => {
     const cookies = new Cookies();
     const name    = 'florp';
@@ -177,6 +242,16 @@ describe('.EMPTY', () => {
 });
 
 describe('parse()', () => {
+  function prefixSuffixTest(prefix, suffix) {
+    const name      = 'blort';
+    const value     = 'fleep';
+    const cUnquoted = Cookies.parse(`${prefix}${name}=${value}${suffix}`);
+    const cQuoted   = Cookies.parse(`${prefix}${name}="${value}"${suffix}`);
+
+    expect([...cUnquoted]).toEqual([[name, value]]);
+    expect([...cQuoted]).toEqual([[name, value]]);
+  }
+
   test('returns `null` given an empty string', () => {
     expect(Cookies.parse('')).toBeNull();
   });
@@ -202,6 +277,17 @@ describe('parse()', () => {
     });
   });
 
+  describe('syntax errors in the name', () => {
+    test.each`
+    name
+    ${''}
+    ${' '}
+    ${'('}
+    `('returns `null` given name: $name', ({ name }) => {
+      expect(Cookies.parse(`${name}=boop`)).toBeNull();
+    });
+  });
+
   test('works for a single unquoted assignment', () => {
     const name    = 'blort';
     const value   = 'fleep';
@@ -219,67 +305,45 @@ describe('parse()', () => {
   });
 
   test('tolerates a leading space', () => {
-    const name    = 'blort';
-    const value   = 'fleep';
-    const cookies = Cookies.parse(` ${name}=${value}`);
-
-    expect([...cookies]).toEqual([[name, value]]);
+    prefixSuffixTest(' ', '');
   });
 
   test('tolerates a trailing space', () => {
-    const name    = 'blort';
-    const value   = 'fleep';
-    const cookies = Cookies.parse(`${name}=${value} `);
-
-    expect([...cookies]).toEqual([[name, value]]);
+    prefixSuffixTest('', ' ');
   });
 
   test('tolerates a leading semicolon', () => {
-    const name    = 'blort';
-    const value   = 'fleep';
-    const cookies = Cookies.parse(`;${name}=${value}`);
-
-    expect([...cookies]).toEqual([[name, value]]);
+    prefixSuffixTest(';', '');
   });
 
   test('tolerates a trailing semicolon', () => {
-    const name    = 'blort';
-    const value   = 'fleep';
-    const cookies = Cookies.parse(`${name}=${value};`);
-
-    expect([...cookies]).toEqual([[name, value]]);
+    prefixSuffixTest('', ';');
   });
 
   test('tolerates a leading semicolon-space', () => {
-    const name    = 'blort';
-    const value   = 'fleep';
-    const cookies = Cookies.parse(`; ${name}=${value}`);
-
-    expect([...cookies]).toEqual([[name, value]]);
+    prefixSuffixTest('; ', '');
   });
 
   test('tolerates a trailing semicolon-space', () => {
-    const name    = 'blort';
-    const value   = 'fleep';
-    const cookies = Cookies.parse(`${name}=${value}; `);
+    prefixSuffixTest('', '; ');
+  });
 
-    expect([...cookies]).toEqual([[name, value]]);
+  test('tolerates a leading space-semicolon', () => {
+    prefixSuffixTest(' ;', '');
+  });
+
+  test('tolerates a trailing space-semicolon', () => {
+    prefixSuffixTest('', ' ;');
   });
 
   test('tolerates a leading recoverable syntax error', () => {
-    const name    = 'blort';
-    const value   = 'fleep';
-    const cookies = Cookies.parse(`zonk; ${name}=${value}`);
-
-    expect([...cookies]).toEqual([[name, value]]);
+    prefixSuffixTest('zonk; ', '');
+    prefixSuffixTest('@# ', '');
   });
 
   test('tolerates a trailing recoverable syntax error', () => {
-    const name    = 'blort';
-    const value   = 'fleep';
-    const cookies = Cookies.parse(`${name}=${value}; 123!`);
-
-    expect([...cookies]).toEqual([[name, value]]);
+    prefixSuffixTest('', '; 123!');
+    prefixSuffixTest('', '; ()*  ');
   });
 
   test('works for a two-unquoted-assignment instance', () => {
@@ -315,7 +379,7 @@ describe('parse()', () => {
 
   test('returns `null` given a syntactically incorrect quoted value', () => {
     const name    = 'yah';
-    const value   = 'foo%bar';
+    const value   = 'foo\\bar';
     const cookies = Cookies.parse(`${name}="${value}"`);
 
     expect(cookies).toBeNull();
