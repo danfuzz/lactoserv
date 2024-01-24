@@ -9,6 +9,8 @@ import { MustBe } from '@this/typey';
 /**
  * Holder of sets of cookies, either for a request or a response, along with
  * related parsing and utility functionality.
+ *
+ * **Note:** See <https://www.rfc-editor.org/info/rfc6265> for the RFC spec.
  */
 export class Cookies {
   /** @type {Map<string, string>} Map from each cookie name to its value. */
@@ -80,10 +82,24 @@ export class Cookies {
    * @param {string} value Cookie value.
    */
   set(name, value) {
+    MustBe.string(name, Cookies.#NAME_REGEX);
+    MustBe.string(value, Cookies.#VALUE_REGEX);
+
     if (Object.isFrozen(this)) {
       throw new Error('Frozen instance.');
     }
 
+    this.#setUnchecked(name, value);
+  }
+
+  /**
+   * Like {@link #set}, but without the checks. This allows for {@link #parse}
+   * to construct instances without redundant argument checks.
+   *
+   * @param {string} name Cookie name.
+   * @param {string} value Cookie value.
+   */
+  #setUnchecked(name, value) {
     this.#cookies.set(name, value);
   }
 
@@ -91,6 +107,42 @@ export class Cookies {
   //
   // Static members
   //
+
+  /**
+   * @type {RegExp} Regex which matches a cookie name. This is derived from the
+   * definition of `cookie-name` in RFC6265, which is in terms of the definition
+   * of `token` in RFC2616.
+   */
+  static #NAME_REGEX;
+
+  /**
+   * @type {RegExp} Regex which matches a cookie value, either with or without
+   * surrounding quotes. This is derived from the definition of `cookie-value`
+   * in RFC6265.
+   */
+  static #VALUE_REGEX;
+
+  /** @type {RegExp} Regex which matches a cookie assignment, unanchored. */
+  static #ASSIGN_REGEX;
+
+  static {
+    // Note: This uses the (as of this writing) relatively new `/v` regex mode,
+    // which enables set operations inside character classes (`[...]`).
+
+    const nameRx  = '[[\\x21-\\x7f]--[\\[\\]\\\\\\(\\)<>\\{\\}@,;:"=]]+';
+    const valueRx = '[[\\x21-\\x7f]--[\\\\,;"]]*';
+
+    this.#NAME_REGEX  = Object.freeze(new RegExp(`^${nameRx}$`, 'v'));
+    this.#VALUE_REGEX = Object.freeze(new RegExp(`^${valueRx}$`, 'v'));
+
+    // Note: The negative assertion `(?!")` in `<value1>` seems to be necessary,
+    // even though the "longest match" rule should have let the `<value2>`
+    // alternative "win" when a quoted form is present.
+    this.#ASSIGN_REGEX = Object.freeze(
+      new RegExp(
+        `(?<name>${nameRx})=(?:(?<value1>(?!")${valueRx})|"(?<value2>${valueRx})");?`,
+        'gv'));
+  }
 
   /** @type {Cookies} Standard frozen empty instance of this class. */
   static #EMPTY = new Cookies();
@@ -109,6 +161,10 @@ export class Cookies {
    * `decodeURIComponent()`; if that function reports an error, then the
    * corresponding cookie is not included in the result.
    *
+   * This method takes a strict view of what is valid syntax for a cookie
+   * assignment (including allowed characters), but it is lenient with respect
+   * how those assignments are delimited.
+   *
    * @param {string} header The header to parse.
    * @returns {?Cookies} Constructed instance, or `null` if there was an error
    *   parsing `header` such that no cookies at all could be found.
@@ -116,14 +172,12 @@ export class Cookies {
   static parse(header) {
     MustBe.string(header);
 
-    // Note: We use an explicit no-op decoder, because if we don't pass one
-    // `cookie` will do its own URI-decoding, and its tactic for error handling
-    // isn't the same as ours.
-    const parsed = cookie.parse(header, { decode: (x) => x });
-
     let result = null;
 
-    for (const [name, value] of Object.entries(parsed)) {
+    for (const { groups } of header.matchAll(this.#ASSIGN_REGEX)) {
+      const { name, value1, value2 } = groups;
+      const value = value1 ?? value2;
+
       try {
         const decoded = decodeURIComponent(value);
 
@@ -131,7 +185,7 @@ export class Cookies {
           result = new Cookies();
         }
 
-        result.set(name, decoded);
+        result.#setUnchecked(name, decoded);
       } catch (e) {
         // Ignore it, but don't add a cookie to the result.
       }

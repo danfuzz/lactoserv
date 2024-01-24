@@ -131,6 +131,71 @@ describe('get()', () => {
 });
 
 describe('set()', () => {
+  describe('invalid names (not strings)', () => {
+    test.each`
+      arg
+      ${undefined}
+      ${null}
+      ${false}
+      ${1}
+      ${[]}
+      ${['x']}
+    `('throws given $arg', ({ arg }) => {
+      const cookies = new Cookies();
+      expect(() => cookies.set(arg, 'beep')).toThrow();
+    });
+  });
+
+  describe('invalid values (not strings)', () => {
+    test.each`
+      arg
+      ${undefined}
+      ${null}
+      ${false}
+      ${1}
+      ${[]}
+      ${['x']}
+    `('throws given $arg', ({ arg }) => {
+      const cookies = new Cookies();
+      expect(() => cookies.set('x', arg)).toThrow();
+    });
+  });
+
+  describe('syntactically incorrect names', () => {
+    test.each`
+      arg
+      ${''}
+      ${' '}
+      ${','}
+      ${';'}
+      ${':'}
+      ${'@'}
+      ${'='}
+      ${'<uh>'}
+      ${'{wha}'}
+      ${'(yeah)'}
+      ${'[whee]'}
+    `('throws given $arg', ({ arg }) => {
+      const cookies = new Cookies();
+      expect(() => cookies.set(arg, 'beep')).toThrow();
+    });
+  });
+
+  describe('syntactically incorrect values', () => {
+    test.each`
+      arg
+      ${' '}
+      ${';'}
+      ${'\\'}
+      ${','}
+      ${'"'}
+      ${'"boop"'} // If passed with double quotes, the end result is de-quoted.
+    `('throws given $arg', ({ arg }) => {
+      const cookies = new Cookies();
+      expect(() => cookies.set('x', arg)).toThrow();
+    });
+  });
+
   test('can set a not-yet-set cookie', () => {
     const cookies = new Cookies();
     const name    = 'florp';
@@ -199,6 +264,17 @@ describe('parse()', () => {
     ${'12312'}
     `('returns `null` given: $input', ({ input }) => {
       expect(Cookies.parse(input)).toBeNull();
+    });
+  });
+
+  describe('syntax errors in the name', () => {
+    test.each`
+    name
+    ${''}
+    ${' '}
+    ${'('}
+    `('returns `null` given name: $name', ({ name }) => {
+      expect(Cookies.parse(`${name}=boop`)).toBeNull();
     });
   });
 
@@ -315,7 +391,7 @@ describe('parse()', () => {
 
   test('returns `null` given a syntactically incorrect quoted value', () => {
     const name    = 'yah';
-    const value   = 'foo%bar';
+    const value   = 'foo\\bar';
     const cookies = Cookies.parse(`${name}="${value}"`);
 
     expect(cookies).toBeNull();
