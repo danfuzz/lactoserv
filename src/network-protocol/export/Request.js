@@ -408,13 +408,12 @@ export class Request {
     responseHeaders ??= {};
 
     const method = this.method;
-    const req    = this.#expressRequest;
 
     if ((method !== 'head') && (method !== 'get')) {
       return false;
     }
 
-    return fresh(req.headers,
+    return fresh(this.headers,
       Request.#extractHeaders(responseHeaders, 'etag', 'last-modified'));
   }
 
@@ -864,7 +863,7 @@ export class Request {
       return status200();
     }
 
-    const { 'if-range': ifRange, range } = this.#expressRequest.headers;
+    const { 'if-range': ifRange, range } = this.headers;
 
     if (!range) {
       // Not a range request!
