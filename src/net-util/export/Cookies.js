@@ -137,9 +137,10 @@ export class Cookies {
     // even though the "longest match" rule should have let the `<value2>`
     // alternative "win" when a quoted form is present.
     this.#ASSIGN_REGEX = Object.freeze(
-      new RegExp(
-        `(?<name>${nameRx})=(?:(?<value1>(?!")${valueRx})|"(?<value2>${valueRx})")(?: *;| *$)`,
-        'gv'));
+      new RegExp(''
+        + `(?<name>${nameRx})=`
+        + `(?:(?<value1>(?!")${valueRx})|"(?<value2>${valueRx})")`
+        + `(?: *;| *$)`, 'gv'));
   }
 
   /** @type {Cookies} Standard frozen empty instance of this class. */
