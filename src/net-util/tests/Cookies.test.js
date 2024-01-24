@@ -242,6 +242,16 @@ describe('.EMPTY', () => {
 });
 
 describe('parse()', () => {
+  function prefixSuffixTest(prefix, suffix) {
+    const name      = 'blort';
+    const value     = 'fleep';
+    const cUnquoted = Cookies.parse(`${prefix}${name}=${value}${suffix}`);
+    const cQuoted   = Cookies.parse(`${prefix}${name}="${value}"${suffix}`);
+
+    expect([...cUnquoted]).toEqual([[name, value]]);
+    expect([...cQuoted]).toEqual([[name, value]]);
+  }
+
   test('returns `null` given an empty string', () => {
     expect(Cookies.parse('')).toBeNull();
   });
@@ -295,67 +305,45 @@ describe('parse()', () => {
   });
 
   test('tolerates a leading space', () => {
-    const name    = 'blort';
-    const value   = 'fleep';
-    const cookies = Cookies.parse(` ${name}=${value}`);
-
-    expect([...cookies]).toEqual([[name, value]]);
+    prefixSuffixTest(' ', '');
   });
 
   test('tolerates a trailing space', () => {
-    const name    = 'blort';
-    const value   = 'fleep';
-    const cookies = Cookies.parse(`${name}=${value} `);
-
-    expect([...cookies]).toEqual([[name, value]]);
+    prefixSuffixTest('', ' ');
   });
 
   test('tolerates a leading semicolon', () => {
-    const name    = 'blort';
-    const value   = 'fleep';
-    const cookies = Cookies.parse(`;${name}=${value}`);
-
-    expect([...cookies]).toEqual([[name, value]]);
+    prefixSuffixTest(';', '');
   });
 
   test('tolerates a trailing semicolon', () => {
-    const name    = 'blort';
-    const value   = 'fleep';
-    const cookies = Cookies.parse(`${name}=${value};`);
-
-    expect([...cookies]).toEqual([[name, value]]);
+    prefixSuffixTest('', ';');
   });
 
   test('tolerates a leading semicolon-space', () => {
-    const name    = 'blort';
-    const value   = 'fleep';
-    const cookies = Cookies.parse(`; ${name}=${value}`);
-
-    expect([...cookies]).toEqual([[name, value]]);
+    prefixSuffixTest('; ', '');
   });
 
   test('tolerates a trailing semicolon-space', () => {
-    const name    = 'blort';
-    const value   = 'fleep';
-    const cookies = Cookies.parse(`${name}=${value}; `);
+    prefixSuffixTest('', '; ');
+  });
 
-    expect([...cookies]).toEqual([[name, value]]);
+  test('tolerates a leading space-semicolon', () => {
+    prefixSuffixTest(' ;', '');
+  });
+
+  test('tolerates a trailing space-semicolon', () => {
+    prefixSuffixTest('', ' ;');
   });
 
   test('tolerates a leading recoverable syntax error', () => {
-    const name    = 'blort';
-    const value   = 'fleep';
-    const cookies = Cookies.parse(`zonk; ${name}=${value}`);
-
-    expect([...cookies]).toEqual([[name, value]]);
+    prefixSuffixTest('zonk; ', '');
+    prefixSuffixTest('@# ', '');
   });
 
   test('tolerates a trailing recoverable syntax error', () => {
-    const name    = 'blort';
-    const value   = 'fleep';
-    const cookies = Cookies.parse(`${name}=${value}; 123!`);
-
-    expect([...cookies]).toEqual([[name, value]]);
+    prefixSuffixTest('', '; 123!');
+    prefixSuffixTest('', '; ()*  ');
   });
 
   test('works for a two-unquoted-assignment instance', () => {
