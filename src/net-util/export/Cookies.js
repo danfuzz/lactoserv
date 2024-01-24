@@ -138,7 +138,7 @@ export class Cookies {
     // alternative "win" when a quoted form is present.
     this.#ASSIGN_REGEX = Object.freeze(
       new RegExp(
-        `(?<name>${nameRx})=(?:(?<value1>(?!")${valueRx})|"(?<value2>${valueRx})");?`,
+        `(?<name>${nameRx})=(?:(?<value1>(?!")${valueRx})|"(?<value2>${valueRx})")(?:;| *$)`,
         'gv'));
   }
 
