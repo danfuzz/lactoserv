@@ -136,12 +136,12 @@ const applications = [
     siteDirectory: filePath('../site'),
   },
   {
-    name:     'responseEmpty',
+    name:     'responseEmptyBody',
     class:    'SimpleResponse',
     filePath: filePath('../site-extra/empty-file.txt')
   },
   {
-    name:        'responseNoContent',
+    name:        'responseNoBody',
     class:       'SimpleResponse'
   },
   {
@@ -189,12 +189,12 @@ const endpoints = [
         at:          ['//*/florp/']
       },
       {
-        application: 'responseEmpty',
-        at:          ['//*/resp/empty/']
+        application: 'responseEmptyBody',
+        at:          ['//*/resp/empty-body/']
       },
       {
-        application: 'responseNoContent',
-        at:          ['//*/resp/no-content/']
+        application: 'responseNoBody',
+        at:          ['//*/resp/no-body/']
       },
       {
         application: 'responseOne',
