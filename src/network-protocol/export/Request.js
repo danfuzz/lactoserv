@@ -1020,6 +1020,16 @@ export class Request {
   }
 
   /**
+   * Gets a `Cache-Control` header for the given max-age.
+   *
+   * @param {number} maxAgeMsec The max age, for cache control.
+   * @returns {string} The corresponding header.
+   */
+  static #cacheControlHeader(maxAgeMsec) {
+    return `public, max-age=${Math.floor(maxAgeMsec / 1000)}`;
+  }
+
+  /**
    * Extracts a string error code from the given `Error`, or returns a generic
    * "unknown error" if there's nothing else reasonable.
    *
