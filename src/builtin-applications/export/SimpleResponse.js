@@ -47,11 +47,11 @@ export class SimpleResponse extends BaseApplication {
 
     if (finalBody) {
       this.#respondFunc = (request) => {
-        request.sendContent(finalBody, contentType, sendOptions);
+        return request.sendContent(finalBody, contentType, sendOptions);
       };
     } else {
       this.#respondFunc = (request) => {
-        request.sendEmptyResponse(sendOptions);
+        return request.sendEmptyResponse(sendOptions);
       };
     }
   }
