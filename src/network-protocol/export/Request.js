@@ -524,6 +524,37 @@ export class Request {
   }
 
   /**
+   * Issues a successful response, with no body. The reported status will always
+   * be `204` ("No content"), and the response always includes a `Cache-Control`
+   * header.
+   *
+   * This method ignores range requests entirely.
+   *
+   * @param {object} options Options to control response behavior.
+   * @param {?object} [options.headers] Extra headers to include in the
+   *   response, if any. These are only included if the response is successful.
+   * @param {?number} [options.maxAgeMsec] Value to send back in the
+   *   `max-age` property of the `Cache-Control` response header. Defaults to
+   *   `0`.
+   * @returns {boolean} `true` when the response is completed.
+   * @throws {Error} Thrown if there is any trouble sending the response.
+   */
+  async sendEmptyResponse(options = {}) {
+    const { headers = null, maxAgeMsec = 0 } = options ?? {};
+    const res          = this.#expressResponse;
+    const finalHeaders = { ...(headers ?? {}) };
+
+    finalHeaders['Cache-Control'] =
+      `public, max-age=${Math.floor(maxAgeMsec / 1000)}`;
+
+    res.status(204);
+    res.set(finalHeaders);
+    res.end();
+
+    return this.whenResponseDone();
+  }
+
+  /**
    * Issues an error (status `4xx` or `5xx`) response, with optional body. If no
    * body is provided, a simple default plain-text body is used. The response
    * includes the single content/cache-related header `Cache-Control: no-store,
