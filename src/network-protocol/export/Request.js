@@ -521,6 +521,9 @@ export class Request {
    *
    * This method ignores range requests entirely.
    *
+   * **Note:** What this method does is different than calling {@link
+   * #sendContent} with a zero-length body.
+   *
    * @param {object} options Options to control response behavior.
    * @param {?object} [options.headers] Extra headers to include in the
    *   response, if any. These are only included if the response is successful.
@@ -530,7 +533,7 @@ export class Request {
    * @returns {boolean} `true` when the response is completed.
    * @throws {Error} Thrown if there is any trouble sending the response.
    */
-  async sendEmptyResponse(options = {}) {
+  async sendNoBodyResponse(options = {}) {
     const { headers = null, maxAgeMsec = 0 } = options ?? {};
     const res          = this.#expressResponse;
     const finalHeaders = { ...(headers ?? {}) };

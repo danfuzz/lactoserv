@@ -51,7 +51,7 @@ export class SimpleResponse extends BaseApplication {
       };
     } else {
       this.#respondFunc = (request) => {
-        return request.sendEmptyResponse(sendOptions);
+        return request.sendNoBodyResponse(sendOptions);
       };
     }
   }
