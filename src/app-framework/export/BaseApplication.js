@@ -46,7 +46,7 @@ export class BaseApplication extends BaseComponent {
       this.logger.handling(id, dispatch.extraString);
     }
 
-    const result = this._impl_handleRequest(request, dispatch);
+    const result = this.#callHandler(request, dispatch);
 
     if (this.logger) {
       // Arrange to log about the result of the `_impl_` call once it settles.
@@ -82,6 +82,42 @@ export class BaseApplication extends BaseComponent {
    */
   async _impl_handleRequest(request, dispatch) {
     Methods.abstract(request, dispatch);
+  }
+
+  /**
+   * Calls {@link #_impl_handleRequest}, and ensures a proper return value.
+   *
+   * @param {Request} request Request object.
+   * @param {DispatchInfo} dispatch Dispatch information.
+   * @returns {boolean} Was the request handled? Flag as defined by the method
+   *   {@link IntfRequestHandler#handleRequest}.
+   */
+  async #callHandler(request, dispatch) {
+    const result = this._impl_handleRequest(request, dispatch);
+
+    const error = (msg) => {
+      return new Error(`\`${this.name}._impl_handleRequest()\` ${msg}.`);
+    };
+
+    if (typeof result === 'boolean') {
+      return result;
+    } else if (!(result instanceof Promise)) {
+      if (result === undefined) {
+        throw error('returned undefined; probably needs an explicit `return`');
+      } else {
+        throw error('returned something other than a boolean or a promise');
+      }
+    }
+
+    const finalResult = await result;
+
+    if (typeof finalResult === 'boolean') {
+      return finalResult;
+    } else if (finalResult === undefined) {
+      throw error('async-returned undefined; probably needs an explicit `return`');
+    } else {
+      throw error('async-returned something other than a boolean');
+    }
   }
 
 
