@@ -35,7 +35,7 @@ export class SimpleResponse extends BaseApplication {
     const { body, contentType, filePath } = this.config;
     let finalBody = body;
 
-    const sendOptions = { ...SimpleResponse.#SEND_OPTIONS };
+    const sendOptions = SimpleResponse.#SEND_OPTIONS;
 
     if (filePath) {
       if (!await FsUtil.fileExists(filePath)) {
@@ -46,10 +46,8 @@ export class SimpleResponse extends BaseApplication {
     }
 
     if (finalBody) {
-      sendOptions.body        = finalBody;
-      sendOptions.contentType = contentType;
       this.#respondFunc = (request) => {
-        request.sendContent(sendOptions);
+        request.sendContent(finalBody, contentType, sendOptions);
       };
     } else {
       this.#respondFunc = (request) => {

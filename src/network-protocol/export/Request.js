@@ -443,14 +443,15 @@ export class Request {
    * This method honors range requests, and will reject ones that cannot be
    * satisfied.
    *
+   * @param {string|Buffer|null} body Complete body to send, with `null`
+   *   indicating a zero-length response (which, to be clear is different than
+   *   not sending a body at all). If passed as a `string`, it is encoded as
+   *   UTF-8, and the content type of the response will list that as the
+   *   charset.
+   * @param {string} contentType Content type for the body. If this value starts
+   *   with `text/` and/or the `body` is passed as a string, then the actual
+   *   `Content-Type` header will indicate a charset of `utf-8`.
    * @param {object} options Options to control response behavior.
-   * @param {string|Buffer|null} [options.body] Complete body to send, if any.
-   *   If passed as a `string`, it is encoded as UTF-8, and the content type of
-   *   the response will list that as the charset.
-   * @param {?string} [options.contentType] Content type for the body. Required
-   *   if `options.body` is passed. If this value starts with `text/` and/or
-   *   the `body` is passed as a string, then the actual `Content-Type` header
-   *   will indicate a charset of `utf-8`.
    * @param {?object} [options.headers] Extra headers to include in the
    *   response, if any. These are only included if the response is successful.
    * @param {?number} [options.maxAgeMsec] Value to send back in the
@@ -459,65 +460,55 @@ export class Request {
    * @returns {boolean} `true` when the response is completed.
    * @throws {Error} Thrown if there is any trouble sending the response.
    */
-  async sendContent(options = {}) {
-    const { body, contentType, headers = null, maxAgeMsec = 0 } = options ?? {};
-    const stringBody = AskIf.string(body);
-    const res        = this.#expressResponse;
+  async sendContent(body, contentType, options = {}) {
+    let bodyBuffer;
+    let stringBody = false;
 
-    const finalHeaders = { ...(headers ?? {}) };
-
-    if (body) {
-      if (!contentType) {
-        throw new Error('Missing `contentType`.');
-      } else if (!(body instanceof Buffer)) {
-        MustBe.string(body);
-      }
-
-      finalHeaders['Content-Type'] =
-        MimeTypes.typeFromExtensionOrType(contentType);
+    if (body === null) {
+      // This is an unusual case, and it's not worth doing anything particularly
+      // special for it (e.g. pre-allocating a zero-length buffer).
+      bodyBuffer = Buffer.alloc(0);
+    } else if (AskIf.string(body)) {
+      bodyBuffer = Buffer.from(body, 'utf8');
+      stringBody = true;
+    } else if (body instanceof Buffer) {
+      bodyBuffer = body;
     } else {
-      // Reject range requests when there is no content.
-      return this.#sendNonContentResponse(416, {
-        headers: { 'Content-Range': 'bytes */0' }
-      });
+      throw new Error('`body` must be a string, a `Buffer`, or `null`.');
     }
 
-    finalHeaders['Cache-Control'] =
-      `public, max-age=${Math.floor(maxAgeMsec / 1000)}`;
+    MustBe.string(contentType);
+    contentType = MimeTypes.typeFromExtensionOrType(contentType);
 
-    if (body) {
-      let bodyBuffer = stringBody ? Buffer.from(body, 'utf8') : body;
+    const { headers = null, maxAgeMsec = 0 } = options ?? {};
+    const res          = this.#expressResponse;
+    const finalHeaders = { ...(headers ?? {}) };
 
-      if (stringBody || /^text[/]/.test(finalHeaders['Content-Type'])) {
-        finalHeaders['Content-Type'] += '; charset=utf-8';
-      }
+    finalHeaders['ETag']          = etag(bodyBuffer);
+    finalHeaders['Cache-Control'] = `public, max-age=${Math.floor(maxAgeMsec / 1000)}`;
+    finalHeaders['Content-Type']  = (stringBody || /^text[/]/.test(contentType))
+      ? `${contentType}; charset=utf-8`
+      : contentType;
 
-      finalHeaders['ETag'] = etag(bodyBuffer);
-
-      if (this.isFreshWithRespectTo(finalHeaders)) {
-        res.status(304);
-        res.set(finalHeaders);
-        res.set(this.#rangeInfo().headers); // For basic range-support headers.
-        res.end();
-      } else {
-        const rangeInfo = this.#rangeInfo(bodyBuffer.length, finalHeaders);
-        if (rangeInfo.error) {
-          return this.#sendNonContentResponse(rangeInfo.status, rangeInfo.headers);
-        } else {
-          res.set(rangeInfo.headers);
-          bodyBuffer = bodyBuffer.subarray(rangeInfo.start, rangeInfo.end);
-        }
-
-        finalHeaders['Content-Length'] = bodyBuffer.length;
-        res.set(finalHeaders);
-
-        res.status(rangeInfo.status);
-        res.end(bodyBuffer);
-      }
-    } else {
-      res.status(204);
+    if (this.isFreshWithRespectTo(finalHeaders)) {
+      res.status(304);
       res.set(finalHeaders);
+      res.set(this.#rangeInfo().headers); // For basic range-support headers.
       res.end();
+    } else {
+      const rangeInfo = this.#rangeInfo(bodyBuffer.length, finalHeaders);
+      if (rangeInfo.error) {
+        return this.#sendNonContentResponse(rangeInfo.status, rangeInfo.headers);
+      } else {
+        res.set(rangeInfo.headers);
+        bodyBuffer = bodyBuffer.subarray(rangeInfo.start, rangeInfo.end);
+      }
+
+      finalHeaders['Content-Length'] = bodyBuffer.length;
+      res.set(finalHeaders);
+
+      res.status(rangeInfo.status);
+      res.end(bodyBuffer);
     }
 
     return this.whenResponseDone();
