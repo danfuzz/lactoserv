@@ -498,7 +498,7 @@ export class Request {
     } else {
       const rangeInfo = this.#rangeInfo(bodyBuffer.length, finalHeaders);
       if (rangeInfo.error) {
-        return this.#sendNonContentResponse(rangeInfo.status, rangeInfo.headers);
+        return this.#sendNonContentResponse(rangeInfo.status, { headers: rangeInfo.headers });
       } else {
         res.set(rangeInfo.headers);
         bodyBuffer = bodyBuffer.subarray(rangeInfo.start, rangeInfo.end);
@@ -898,6 +898,7 @@ export class Request {
     if ((ranges === -1) || (ranges === -2) || (ranges.type !== RANGE_UNIT)) {
       // Couldn't parse at all, not satisfiable, or wrong unit.
       return {
+        error:   true,
         status:  416,
         headers: { 'Content-Range': `${RANGE_UNIT} */${length}` }
       };
@@ -954,7 +955,7 @@ export class Request {
    * @param {?string} [options.contentType] Content type for the body. Required
    *   if `options.body` is passed.
    * @param {?object} [options.headers] Extra response headers to send, if any.
-   * @returns {boolean} `true` when the response is completed.
+   * @returns {Promise<boolean>} `true` when the response is completed.
    */
   #sendNonContentResponse(status, options = null) {
     MustBe.number(status, { safeInteger: true, minInclusive: 0, maxInclusive: 599 });
