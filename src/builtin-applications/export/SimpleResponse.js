@@ -6,7 +6,6 @@ import fs from 'node:fs/promises';
 import { ApplicationConfig, Files } from '@this/app-config';
 import { BaseApplication } from '@this/app-framework';
 import { FsUtil } from '@this/fs-util';
-import { IntfLogger } from '@this/loggy';
 import { MimeTypes } from '@this/net-util';
 import { MustBe } from '@this/typey';
 
@@ -15,46 +14,46 @@ import { MustBe } from '@this/typey';
  * Simple response server. See docs for configuration object details.
  */
 export class SimpleResponse extends BaseApplication {
-  /** @type {?object} Send options to use, if known. */
-  #sendOptions = null;
-
   /**
-   * Constructs an instance.
-   *
-   * @param {ApplicationConfig} config Configuration for this application.
-   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
+   * @type {?function(Request): Promise} Function to call to issue a response.
    */
-  constructor(config, logger) {
-    super(config, logger);
-  }
+  #respondFunc = null;
+
+  // Note: The default contructor is fine for this class.
 
   /** @override */
   async _impl_handleRequest(request, dispatch_unused) {
-    return await request.sendContent(this.#sendOptions);
+    return await this.#respondFunc(request);
   }
 
   /** @override */
   async _impl_start(isReload_unused) {
-    if (this.#sendOptions) {
+    if (this.#respondFunc) {
       return;
     }
 
     const { body, contentType, filePath } = this.config;
-    const sendOptions = {
-      ...SimpleResponse.#SEND_OPTIONS,
-      body,
-      contentType
-    };
+    let finalBody = body;
+
+    const sendOptions = SimpleResponse.#SEND_OPTIONS;
 
     if (filePath) {
       if (!await FsUtil.fileExists(filePath)) {
         throw new Error(`Not found or not a non-directory file: ${filePath}`);
       }
 
-      sendOptions.body = await fs.readFile(filePath);
+      finalBody = await fs.readFile(filePath);
     }
 
-    this.#sendOptions = sendOptions;
+    if (finalBody) {
+      this.#respondFunc = (request) => {
+        return request.sendContent(finalBody, contentType, sendOptions);
+      };
+    } else {
+      this.#respondFunc = (request) => {
+        return request.sendNoBodyResponse(sendOptions);
+      };
+    }
   }
 
   /** @override */
