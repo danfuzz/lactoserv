@@ -538,8 +538,7 @@ export class Request {
     const res          = this.#expressResponse;
     const finalHeaders = { ...(headers ?? {}) };
 
-    finalHeaders['Cache-Control'] =
-      `public, max-age=${Math.floor(maxAgeMsec / 1000)}`;
+    finalHeaders['Cache-Control'] = Request.#cacheControlHeader(maxAgeMsec);
 
     res.status(204);
     res.set(finalHeaders);
