@@ -7,10 +7,13 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* None.
+* Split off `Request.sendNoBodyResponse()` from `sendContent()`, and made the
+  latter take separate `body` and `contentType` arguments instead of those being
+  part of the `options`.
 
 Other notable changes:
 * Added support for incoming cookies.
+* Fixed `Range` request edge cases.
 * Notice promptly when clients drop connections, instead of letting them time
   out (and end up getting a write-after-close error).
 * Cleaned up the request logging code, including details of what lands in the
