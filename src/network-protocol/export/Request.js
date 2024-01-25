@@ -481,14 +481,16 @@ export class Request {
     contentType = MimeTypes.typeFromExtensionOrType(contentType);
 
     const { headers = null, maxAgeMsec = 0 } = options ?? {};
-    const res          = this.#expressResponse;
-    const finalHeaders = { ...(headers ?? {}) };
+    const res = this.#expressResponse;
 
-    finalHeaders['ETag']          = etag(bodyBuffer);
-    finalHeaders['Cache-Control'] = `public, max-age=${Math.floor(maxAgeMsec / 1000)}`;
-    finalHeaders['Content-Type']  = (stringBody || /^text[/]/.test(contentType))
-      ? `${contentType}; charset=utf-8`
-      : contentType;
+    const finalHeaders = {
+      ...(headers ?? {}),
+      'Cache-Control': Request.#cacheControlHeader(maxAgeMsec),
+      'Content-Type': (stringBody || /^text[/]/.test(contentType))
+        ? `${contentType}; charset=utf-8`
+        : contentType,
+      'ETag': etag(bodyBuffer)
+    };
 
     if (this.isFreshWithRespectTo(finalHeaders)) {
       res.status(304);
@@ -535,10 +537,12 @@ export class Request {
    */
   async sendNoBodyResponse(options = {}) {
     const { headers = null, maxAgeMsec = 0 } = options ?? {};
-    const res          = this.#expressResponse;
-    const finalHeaders = { ...(headers ?? {}) };
+    const res = this.#expressResponse;
 
-    finalHeaders['Cache-Control'] = Request.#cacheControlHeader(maxAgeMsec);
+    const finalHeaders = {
+      ...(headers ?? {}),
+      'Cache-Control': Request.#cacheControlHeader(maxAgeMsec)
+    };
 
     res.status(204);
     res.set(finalHeaders);
