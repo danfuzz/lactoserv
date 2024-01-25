@@ -872,7 +872,8 @@ export class Request {
    *
    * @param {?number} [length] Length of the underlying response. If `null`,
    *   this method just returns a basic no-range-request success response.
-   * @param {?object} [responseHeaders] Response headers to-be.
+   * @param {?object} [responseHeaders] Response headers to-be. Not used when
+   *   passing `null` for `length`.
    * @returns {object} Disposition info.
    */
   #rangeInfo(length = null, responseHeaders = null) {
@@ -884,7 +885,7 @@ export class Request {
       };
     }
 
-    if (!length) {
+    if (length === null) {
       return status200();
     }
 
