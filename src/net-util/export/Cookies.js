@@ -287,7 +287,7 @@ export class Cookies {
     }
 
     if (maxAge) {
-      result.push('; Max-Age=', maxAge.secs);
+      result.push('; Max-Age=', Math.trunc(maxAge.secs));
     }
 
     if (partitioned) {
