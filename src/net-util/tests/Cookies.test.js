@@ -27,102 +27,61 @@ describe('.size', () => {
   });
 });
 
-describe('attributeSets()', () => {
-  test('works on an empty instance', () => {
-    const cookies = new Cookies();
-    const iter    = cookies.attributeSets();
-
-    expect(iter.next().done).toBeTrue();
-  });
-
-  test('works on a single-element instance', () => {
-    const cookies = new Cookies();
-    const name    = 'beep';
-    const value   = 'boop';
-    const att     = { partitioned: true };
-
-    cookies.set(name, value, att);
-
-    const iter   = cookies.attributeSets();
-    const result = iter.next();
-
-    expect(iter.next().done).toBeTrue();
-    expect(result.done).toBeFalsy();
-    expect(result.value).toEqual({ name, value, ...att });
-  });
-
-  test('works on a two-element instance', () => {
-    const cookies = new Cookies();
-    const name1   = 'beep';
-    const value1  = 'boop';
-    const name2   = 'bink';
-    const value2  = 'bonk';
-    const att2    = { httpOnly: true };
-
-    cookies.set(name1, value1);
-    cookies.set(name2, value2, att2);
-
-    const iter   = cookies.attributeSets();
-    const result1 = iter.next();
-    const result2 = iter.next();
-
-    expect(iter.next().done).toBeTrue();
-    expect(result1.done).toBeFalsy();
-    expect(result2.done).toBeFalsy();
-    expect([result1.value, result2.value]).toIncludeSameMembers([
-      { name: name1, value: value1 },
-      { name: name2, value: value2, ...att2 }]);
-  });
-});
-
 describe.each`
-label          | method
-${'entries()'} | ${'entries'}
-${'iterator'}  | ${Symbol.iterator}
-`('$label', ({ method }) => {
+label                  | method                | yields
+${'entries()'}         | ${'entries'}          | ${'entry'}
+${'iterator'}          | ${Symbol.iterator}    | ${'entry'}
+${'attributeSets()'}   | ${'attributeSets'}    | ${'attrib'}
+${'responseHeaders()'} | ${'responseHeaders'}  | ${'header'}
+`('$label', ({ method, yields }) => {
+  function expectedFor(name, value, attribs = {}) {
+    switch (yields) {
+      case 'attrib': { return { name, value, ...attribs }; }
+      case 'entry':  { return [name, value]; }
+      case 'header': { return Cookies.responseHeaderFrom({ name, value, ...attribs }); }
+    }
+    throw new Error('Shouldn\'t happen.'); // Need to add a case if we see this.
+  }
+
   test('works on an empty instance', () => {
     const cookies = new Cookies();
     const iter    = cookies[method]();
 
-    expect(iter.next().done).toBeTrue();
+    expect(iter.next()).toEqual({ done: true });
   });
 
   test('works on a single-element instance', () => {
     const cookies = new Cookies();
-    const name    = 'beep';
-    const value   = 'boop';
+    const val1    = ['beep', 'boop', { partitioned: true }];
 
-    cookies.set(name, value);
+    cookies.set(...val1);
 
     const iter   = cookies[method]();
     const result = iter.next();
 
-    expect(iter.next().done).toBeTrue();
+    expect(iter.next()).toEqual({ done: true });
     expect(result.done).toBeFalsy();
-    expect(result.value).toEqual([name, value]);
-
+    expect(result.value).toEqual(expectedFor(...val1));
   });
 
   test('works on a two-element instance', () => {
     const cookies = new Cookies();
-    const name1   = 'beep';
-    const value1  = 'boop';
-    const name2   = 'bink';
-    const value2  = 'bonk';
-    const att2    = { httpOnly: true };
+    const val1    = ['beep', 'boop'];
+    const val2    = ['flip', 'florp', { httpOnly: true, domain: 'x.y.z' }];
 
-    cookies.set(name1, value1);
-    cookies.set(name2, value2, att2);
+    cookies.set(...val1);
+    cookies.set(...val2);
 
-    const iter   = cookies[method]();
+    const iter    = cookies[method]();
     const result1 = iter.next();
     const result2 = iter.next();
 
-    expect(iter.next().done).toBeTrue();
+    expect(iter.next()).toEqual({ done: true });
     expect(result1.done).toBeFalsy();
     expect(result2.done).toBeFalsy();
-    expect([result1.value, result2.value]).toIncludeSameMembers(
-      [[name1, value1], [name2, value2]]);
+    expect([result1.value, result2.value]).toIncludeSameMembers([
+      expectedFor(...val1),
+      expectedFor(...val2)]);
   });
 });
 
