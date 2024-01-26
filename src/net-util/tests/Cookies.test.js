@@ -76,11 +76,11 @@ ${'iterator'}  | ${Symbol.iterator}
   });
 });
 
-describe('get()', () => {
+describe('getValue()', () => {
   test('throws if a cookie is not found', () => {
     const cookies = new Cookies();
 
-    expect(() => cookies.get('florp')).toThrow();
+    expect(() => cookies.getValue('florp')).toThrow();
   });
 
   test('finds a cookie that was set', () => {
@@ -90,15 +90,15 @@ describe('get()', () => {
 
     cookies.set(name, value);
 
-    expect(cookies.get(name)).toBe(value);
+    expect(cookies.getValue(name)).toBe(value);
   });
 });
 
-describe('getOrNull()', () => {
+describe('getValueOrNull()', () => {
   test('returns `null` if a cookie is not found', () => {
     const cookies = new Cookies();
 
-    expect(cookies.getOrNull('florp')).toBeNull();
+    expect(cookies.getValueOrNull('florp')).toBeNull();
   });
 
   test('finds a cookie that was set', () => {
@@ -108,25 +108,7 @@ describe('getOrNull()', () => {
 
     cookies.set(name, value);
 
-    expect(cookies.getOrNull(name)).toBe(value);
-  });
-});
-
-describe('get()', () => {
-  test('throws if a cookie is not found', () => {
-    const cookies = new Cookies();
-
-    expect(() => cookies.get('florp')).toThrow();
-  });
-
-  test('finds a cookie that was set', () => {
-    const cookies = new Cookies();
-    const name    = 'florp';
-    const value   = 'bloop';
-
-    cookies.set(name, value);
-
-    expect(cookies.get(name)).toBe(value);
+    expect(cookies.getValueOrNull(name)).toBe(value);
   });
 });
 
@@ -214,7 +196,7 @@ describe('set()', () => {
     cookies.set(name, value1);
     cookies.set(name, value2);
     expect(cookies.size).toBe(1);
-    expect(cookies.get(name)).toBe(value2);
+    expect(cookies.getValue(name)).toBe(value2);
   });
 
   test('does not allow modification if the instance is frozen', () => {

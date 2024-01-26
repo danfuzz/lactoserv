@@ -44,8 +44,8 @@ export class Cookies {
   }
 
   /**
-   * Gets the iterator of the cookies in this instance. Each entry is a
-   * two-element array of a name and corresponding value.
+   * Gets a map-like iterator of cookie values. Each entry is a two-element
+   * array of a name and corresponding value.
    *
    * @returns {object} The iterator.
    */
@@ -60,8 +60,8 @@ export class Cookies {
    * @returns {string} Cookie value.
    * @throws {Error} Thrown if `name` is not bound.
    */
-  get(name) {
-    const result = this.getOrNull(name);
+  getValue(name) {
+    const result = this.getValueOrNull(name);
 
     if (result !== null) {
       return result;
@@ -76,7 +76,7 @@ export class Cookies {
    * @param {string} name Cookie name.
    * @returns {?string} Cookie value, or `null` if not found.
    */
-  getOrNull(name) {
+  getValueOrNull(name) {
     return this.#cookies.get(name) ?? null;
   }
 
