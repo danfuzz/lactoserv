@@ -1,6 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { Duration, Moment } from '@this/data-values';
 import { Cookies } from '@this/net-util';
 
 
@@ -555,6 +556,78 @@ describe('responseHeaderFrom()', () => {
     value: 'florp!'
   }}
   ${'blort=florp!'}
+  --
+  ${{
+    name:   'a',
+    value:  'b',
+    domain: 'beep.boop'
+  }}
+  ${'a=b; Domain=beep.boop'}
+  --
+  ${{
+    name:    'a',
+    value:   'b',
+    expires: Moment.fromMsec(Date.UTC(2020, 0, 1, 2, 3, 4))
+  }}
+  ${'a=b; Expires=Wed, 01 Jan 2020 02:03:04 GMT'}
+  --
+  ${{
+    name:     'a',
+    value:    'b',
+    httpOnly: true
+  }}
+  ${'a=b; HttpOnly'}
+  --
+  ${{
+    name:  'a',
+    value: 'b',
+    maxAge: new Duration(12345)
+  }}
+  ${'a=b; Max-Age=12345'}
+  --
+  ${{
+    name:  'a',
+    value: 'b',
+    maxAge: new Duration(12.987)
+  }}
+  ${'a=b; Max-Age=12'}
+  --
+  ${{
+    name:        'a',
+    value:       'b',
+    partitioned: true
+  }}
+  ${'a=b; Partitioned'}
+  --
+  ${{
+    name:  'a',
+    value: 'b',
+    path:  '/beep/boop'
+  }}
+  ${'a=b; Path=/beep/boop'}
+  --
+  ${{
+    name:     'a',
+    value:    'b',
+    sameSite: 'strict'
+  }}
+  ${'a=b; SameSite=Strict'}
+  --
+  ${{
+    name:   'a',
+    value:  'b',
+    secure: true
+  }}
+  ${'a=b; Secure'}
+  --
+  ${{
+    name:     'a',
+    value:    'b',
+    // This is a standard combo.
+    sameSite: 'none',
+    secure:   true
+  }}
+  ${'a=b; SameSite=None; Secure'}
   `('works for: $attribs', ({ attribs, expected }) => {
     expect(Cookies.responseHeaderFrom(attribs)).toBe(expected);
   });
