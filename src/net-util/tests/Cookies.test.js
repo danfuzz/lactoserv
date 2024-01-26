@@ -100,9 +100,20 @@ describe('getAttributes()', () => {
       ...att
     });
   });
+
+  test('when non-null, returns a frozen instance', () => {
+    const cookies = new Cookies();
+    const name    = 'florp';
+    const value   = 'bloop';
+    const att     = { domain: 'florp.fleep', path: '/' };
+
+    cookies.set(name, value, att);
+
+    expect(cookies.getAttributes(name)).toBeFrozen();
+  });
 });
 
-describe('getValueOrNull()', () => {
+describe('getAttributesOrNull()', () => {
   test('returns `null` if a cookie is not found', () => {
     const cookies = new Cookies();
 
@@ -122,6 +133,17 @@ describe('getValueOrNull()', () => {
       value,
       ...att
     });
+  });
+
+  test('when non-null, returns a frozen instance', () => {
+    const cookies = new Cookies();
+    const name    = 'florp';
+    const value   = 'bloop';
+    const att     = { domain: 'florp.fleep', path: '/' };
+
+    cookies.set(name, value, att);
+
+    expect(cookies.getAttributesOrNull(name)).toBeFrozen();
   });
 });
 
