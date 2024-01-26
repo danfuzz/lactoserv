@@ -189,8 +189,19 @@ export class Moment {
       return (num < 10) ? `0${num}` : `${num}`;
     };
 
+    // Creates the fractional seconds part of the string.
+    const makeFrac = () => {
+      // Non-obvious: If you take `atSecs % 1` and then operate on the remaining
+      // fraction, you can end up with a string representation that's off by 1,
+      // because of floating point (im)precision. That's why we _don't_ do that.
+      const tenPower = 10 ** decimals;
+      const frac     = Math.floor(atSecs * tenPower % tenPower);
+      const result   = frac.toString().padStart(decimals, '0');
+
+      return `.${result}`;
+    };
+
     const when    = new Date(atSecs * 1000);
-    const day     = when.getUTCDay();
     const date    = when.getUTCDate();
     const month   = when.getUTCMonth();
     const year    = when.getUTCFullYear();
@@ -198,22 +209,10 @@ export class Moment {
     const mins    = when.getUTCMinutes();
     const secs    = when.getUTCSeconds();
     const timeSep = colons ? ':' : '';
+    const frac    = (decimals === 0) ? '' : makeFrac();
 
-    const result =
+    return '' +
       `${year}${td(month + 1)}${td(date)}-` +
-      `${td(hours)}${timeSep}${td(mins)}${timeSep}${td(secs)}`;
-
-    if (decimals === 0) {
-      return result;
-    }
-
-    // Non-obvious: If you take `atSecs % 1` and then operate on the remaining
-    // fraction, you can end up with a string representation that's off by 1,
-    // because of floating point (im)precision. That's why we _don't_ do that.
-    const tenPower = 10 ** decimals;
-    const frac     = Math.floor(atSecs * tenPower % tenPower);
-    const fracStr  = frac.toString().padStart(decimals, '0');
-
-    return `${result}.${fracStr}`;
+      `${td(hours)}${timeSep}${td(mins)}${timeSep}${td(secs)}${frac}`;
   }
 }
