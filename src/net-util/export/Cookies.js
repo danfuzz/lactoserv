@@ -119,6 +119,20 @@ export class Cookies {
   }
 
   /**
+   * Gets an array-like iterator of `Set-Cookie` response header strings, one
+   * per entry in this instance. This is equivalent to applying {@link
+   * #responseHeaderFrom} to each set of attributes yielded from {@link
+   * #attributeSets}.
+   *
+   * @yields {string} A `Set-Cookie` header string.
+   */
+  *responseHeaders() {
+    for (const attrib of this.attributeSets()) {
+      yield Cookies.responseHeaderFrom(attrib);
+    }
+  }
+
+  /**
    * Adds or replaces a cookie.
    *
    * **Note:** The `attributes` object, if present, is copied, so that clients
@@ -219,9 +233,9 @@ export class Cookies {
 
   /**
    * Parses a `Cookie` header, and constructs an instance based on the contents.
-   * Cookie values are interpreted using the global function
-   * `decodeURIComponent()`; if that function reports an error, then the
-   * corresponding cookie is not included in the result.
+   * Cookie values are interpreted using the global function `decodeURI()`; if
+   * that function reports an error, then the corresponding cookie is not
+   * included in the result.
    *
    * This method takes a strict view of what is valid syntax for a cookie
    * assignment (including allowed characters), but it is lenient with respect
@@ -241,7 +255,7 @@ export class Cookies {
       const value = value1 ?? value2;
 
       try {
-        const decoded = decodeURIComponent(value);
+        const decoded = decodeURI(value);
 
         if (!result) {
           result = new Cookies();
@@ -254,6 +268,62 @@ export class Cookies {
     }
 
     return result;
+  }
+
+  /**
+   * Converts an "attributes" object as returned by this class (which includes
+   * `name` and `value`) into a `Set-Cookie` response header value string.
+   *
+   * @param {object} attributes The attributes.
+   * @returns {string} The corresponding header value string.
+   */
+  static responseHeaderFrom(attributes) {
+    const {
+      domain, expires, httpOnly, maxAge, name,
+      partitioned, path, sameSite, secure, value
+    } = attributes;
+
+    const encode = encodeURI;
+
+    const result = [name, '=', encode(value)];
+
+    if (domain !== undefined) {
+      result.push('; Domain=', encode(domain));
+    }
+
+    if (expires !== undefined) {
+      result.push('; Expires=', expires.toHttpString());
+    }
+
+    if (httpOnly) {
+      result.push('; HttpOnly');
+    }
+
+    if (maxAge) {
+      result.push('; Max-Age=', Math.trunc(maxAge.secs));
+    }
+
+    if (partitioned) {
+      result.push('; Partitioned');
+    }
+
+    if (path !== undefined) {
+      result.push('; Path=', encode(path));
+    }
+
+    if (sameSite !== undefined) {
+      // `attributes` represents the values as lower case, but the spec wants
+      // them capitalized.
+      result.push('; SameSite=',
+        sameSite.charAt(0).toUpperCase(),
+        sameSite.slice(1));
+    }
+
+    if (secure) {
+      result.push('; Secure');
+    }
+
+    return result.join('');
   }
 
   /**
@@ -292,7 +362,7 @@ export class Cookies {
         }
 
         case 'sameSite': {
-          MustBe.string(value, /^(strict|lax|none)$/);
+          MustBe.string(value, /^(lax|none|strict)$/);
           break;
         }
 

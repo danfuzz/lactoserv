@@ -70,6 +70,16 @@ export class Moment {
   }
 
   /**
+   * Makes a string representing this instance, in the standard HTTP format.
+   * See {@link #httpStringFromSecs} for more details.
+   *
+   * @returns {string} The HTTP standard form.
+   */
+  toHttpString() {
+    return Moment.httpStringFromSecs(this.#atSecs);
+  }
+
+  /**
    * Makes a friendly plain object representing this instance, which represents
    * both seconds since the Unix Epoch as well as a string indicating the
    * date-time in UTC.
@@ -126,6 +136,22 @@ export class Moment {
   }
 
   /**
+   * Makes a string representing the given number of seconds since the Unix
+   * Epoch (note: _not_ milliseconds), in the standard HTTP format. This format
+   * is used, notably, for request and response header fields that represent
+   * dates.
+   *
+   * **Note:** The HTTP standard, RFC 9110 section 5.6.7 in particular, is very
+   * specific about the format.
+   *
+   * @param {number} atSecs Time in the form of seconds since the Unix Epoch.
+   * @returns {string} The HTTP standard form.
+   */
+  static httpStringFromSecs(atSecs) {
+    return new Date(atSecs * 1000).toUTCString();
+  }
+
+  /**
    * Makes a friendly plain object representing a moment in time, which
    * represents both seconds since the Unix Epoch as well as a string indicating
    * the date-time in UTC.
@@ -158,30 +184,35 @@ export class Moment {
   static stringFromSecs(atSecs, options = {}) {
     const { colons = true, decimals = 0 } = options;
 
-    const d       = new Date(atSecs * 1000);
-    const timeSep = colons ? ':' : '';
-    const parts   = [
-      d.getUTCFullYear().toString(),
-      (d.getUTCMonth() + 1).toString().padStart(2, '0'),
-      d.getUTCDate().toString().padStart(2, '0'),
-      '-',
-      d.getUTCHours().toString().padStart(2, '0'),
-      timeSep,
-      d.getUTCMinutes().toString().padStart(2, '0'),
-      timeSep,
-      d.getUTCSeconds().toString().padStart(2, '0')
-    ];
+    // Formats a number as *t*wo *d*igits.
+    const td = (num) => {
+      return (num < 10) ? `0${num}` : `${num}`;
+    };
 
-    if (decimals !== 0) {
+    // Creates the fractional seconds part of the string.
+    const makeFrac = () => {
       // Non-obvious: If you take `atSecs % 1` and then operate on the remaining
       // fraction, you can end up with a string representation that's off by 1,
       // because of floating point (im)precision. That's why we _don't_ do that.
       const tenPower = 10 ** decimals;
       const frac     = Math.floor(atSecs * tenPower % tenPower);
-      const fracStr  = frac.toString().padStart(decimals, '0');
-      parts.push('.', fracStr);
-    }
+      const result   = frac.toString().padStart(decimals, '0');
 
-    return parts.join('');
+      return `.${result}`;
+    };
+
+    const when    = new Date(atSecs * 1000);
+    const date    = when.getUTCDate();
+    const month   = when.getUTCMonth();
+    const year    = when.getUTCFullYear();
+    const hours   = when.getUTCHours();
+    const mins    = when.getUTCMinutes();
+    const secs    = when.getUTCSeconds();
+    const timeSep = colons ? ':' : '';
+    const frac    = (decimals === 0) ? '' : makeFrac();
+
+    return '' +
+      `${year}${td(month + 1)}${td(date)}-` +
+      `${td(hours)}${timeSep}${td(mins)}${timeSep}${td(secs)}${frac}`;
   }
 }

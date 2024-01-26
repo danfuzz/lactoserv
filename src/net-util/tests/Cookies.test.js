@@ -1,6 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { Duration, Moment } from '@this/data-values';
 import { Cookies } from '@this/net-util';
 
 
@@ -26,102 +27,61 @@ describe('.size', () => {
   });
 });
 
-describe('attributeSets()', () => {
-  test('works on an empty instance', () => {
-    const cookies = new Cookies();
-    const iter    = cookies.attributeSets();
-
-    expect(iter.next().done).toBeTrue();
-  });
-
-  test('works on a single-element instance', () => {
-    const cookies = new Cookies();
-    const name    = 'beep';
-    const value   = 'boop';
-    const att     = { partitioned: true };
-
-    cookies.set(name, value, att);
-
-    const iter   = cookies.attributeSets();
-    const result = iter.next();
-
-    expect(iter.next().done).toBeTrue();
-    expect(result.done).toBeFalsy();
-    expect(result.value).toEqual({ name, value, ...att });
-  });
-
-  test('works on a two-element instance', () => {
-    const cookies = new Cookies();
-    const name1   = 'beep';
-    const value1  = 'boop';
-    const name2   = 'bink';
-    const value2  = 'bonk';
-    const att2    = { httpOnly: true };
-
-    cookies.set(name1, value1);
-    cookies.set(name2, value2, att2);
-
-    const iter   = cookies.attributeSets();
-    const result1 = iter.next();
-    const result2 = iter.next();
-
-    expect(iter.next().done).toBeTrue();
-    expect(result1.done).toBeFalsy();
-    expect(result2.done).toBeFalsy();
-    expect([result1.value, result2.value]).toIncludeSameMembers([
-      { name: name1, value: value1 },
-      { name: name2, value: value2, ...att2 }]);
-  });
-});
-
 describe.each`
-label          | method
-${'entries()'} | ${'entries'}
-${'iterator'}  | ${Symbol.iterator}
-`('$label', ({ method }) => {
+label                  | method                | yields
+${'entries()'}         | ${'entries'}          | ${'entry'}
+${'iterator'}          | ${Symbol.iterator}    | ${'entry'}
+${'attributeSets()'}   | ${'attributeSets'}    | ${'attrib'}
+${'responseHeaders()'} | ${'responseHeaders'}  | ${'header'}
+`('$label', ({ method, yields }) => {
+  function expectedFor(name, value, attribs = {}) {
+    switch (yields) {
+      case 'attrib': { return { name, value, ...attribs }; }
+      case 'entry':  { return [name, value]; }
+      case 'header': { return Cookies.responseHeaderFrom({ name, value, ...attribs }); }
+    }
+    throw new Error('Shouldn\'t happen.'); // Need to add a case if we see this.
+  }
+
   test('works on an empty instance', () => {
     const cookies = new Cookies();
     const iter    = cookies[method]();
 
-    expect(iter.next().done).toBeTrue();
+    expect(iter.next()).toEqual({ done: true });
   });
 
   test('works on a single-element instance', () => {
     const cookies = new Cookies();
-    const name    = 'beep';
-    const value   = 'boop';
+    const val1    = ['beep', 'boop', { partitioned: true }];
 
-    cookies.set(name, value);
+    cookies.set(...val1);
 
     const iter   = cookies[method]();
     const result = iter.next();
 
-    expect(iter.next().done).toBeTrue();
+    expect(iter.next()).toEqual({ done: true });
     expect(result.done).toBeFalsy();
-    expect(result.value).toEqual([name, value]);
-
+    expect(result.value).toEqual(expectedFor(...val1));
   });
 
   test('works on a two-element instance', () => {
     const cookies = new Cookies();
-    const name1   = 'beep';
-    const value1  = 'boop';
-    const name2   = 'bink';
-    const value2  = 'bonk';
-    const att2    = { httpOnly: true };
+    const val1    = ['beep', 'boop'];
+    const val2    = ['flip', 'florp', { httpOnly: true, domain: 'x.y.z' }];
 
-    cookies.set(name1, value1);
-    cookies.set(name2, value2, att2);
+    cookies.set(...val1);
+    cookies.set(...val2);
 
-    const iter   = cookies[method]();
+    const iter    = cookies[method]();
     const result1 = iter.next();
     const result2 = iter.next();
 
-    expect(iter.next().done).toBeTrue();
+    expect(iter.next()).toEqual({ done: true });
     expect(result1.done).toBeFalsy();
     expect(result2.done).toBeFalsy();
-    expect([result1.value, result2.value]).toIncludeSameMembers(
-      [[name1, value1], [name2, value2]]);
+    expect([result1.value, result2.value]).toIncludeSameMembers([
+      expectedFor(...val1),
+      expectedFor(...val2)]);
   });
 });
 
@@ -514,7 +474,7 @@ describe('parse()', () => {
   test('decodes a syntactically correct quoted value', () => {
     const name    = 'yah';
     const value   = '!@#$%^&*()\u{27a1}\u{1f723}';
-    const encVal  = encodeURIComponent(value);
+    const encVal  = encodeURI(value);
     const cookies = Cookies.parse(`${name}="${encVal}"`);
 
     expect([...cookies]).toEqual([[name, value]]);
@@ -537,5 +497,121 @@ describe('parse()', () => {
 
     expect([...cookies]).toIncludeSameMembers(
       [[name1, value1], [name2, value2]]);
+  });
+});
+
+describe('responseHeaderFrom()', () => {
+  test.each`
+  attribs | expected
+  --
+  ${{
+    name:  'x',
+    value: 'y'
+  }}
+  ${'x=y'}
+  --
+  ${{
+    name: 'blort',
+    value: 'beep/florp!'
+  }}
+  ${'blort=beep/florp!'}
+  --
+  ${{
+    name: 'blort',
+    value: 'a b c'
+  }}
+  ${'blort=a%20b%20c'}
+  --
+  ${{
+    name:   'a',
+    value:  'b',
+    domain: 'beep.boop'
+  }}
+  ${'a=b; Domain=beep.boop'}
+  --
+  ${{
+    name:    'a',
+    value:   'b',
+    expires: Moment.fromMsec(Date.UTC(2020, 0, 1, 2, 3, 4))
+  }}
+  ${'a=b; Expires=Wed, 01 Jan 2020 02:03:04 GMT'}
+  --
+  ${{
+    name:     'a',
+    value:    'b',
+    httpOnly: true
+  }}
+  ${'a=b; HttpOnly'}
+  --
+  ${{
+    name:  'a',
+    value: 'b',
+    maxAge: new Duration(12345)
+  }}
+  ${'a=b; Max-Age=12345'}
+  --
+  ${{
+    name:  'a',
+    value: 'b',
+    maxAge: new Duration(12.987)
+  }}
+  ${'a=b; Max-Age=12'}
+  --
+  ${{
+    name:        'a',
+    value:       'b',
+    partitioned: true
+  }}
+  ${'a=b; Partitioned'}
+  --
+  ${{
+    name:  'a',
+    value: 'b',
+    path:  '/beep/boop'
+  }}
+  ${'a=b; Path=/beep/boop'}
+  --
+  ${{
+    name:     'a',
+    value:    'b',
+    sameSite: 'strict'
+  }}
+  ${'a=b; SameSite=Strict'}
+  --
+  ${{
+    name:   'a',
+    value:  'b',
+    secure: true
+  }}
+  ${'a=b; Secure'}
+  --
+  ${{
+    name:     'a',
+    value:    'b',
+    // This is a standard combo.
+    sameSite: 'none',
+    secure:   true
+  }}
+  ${'a=b; SameSite=None; Secure'}
+  --
+  ${{
+    name:        'a',
+    value:       'b',
+    domain:      'zip.zap.zoop',
+    expires:     Moment.fromMsec(Date.UTC(2069, 8, 7, 6, 55, 44)),
+    httpOnly:    true,
+    maxAge:      new Duration(987654321),
+    partitioned: true,
+    path:        '/a/bb/ccc',
+    sameSite:    'lax',
+    secure:      true
+  }}
+  ${
+    'a=b; Domain=zip.zap.zoop; Expires=Sat, 07 Sep 2069 06:55:44 GMT; ' +
+    'HttpOnly; Max-Age=987654321; Partitioned; Path=/a/bb/ccc; SameSite=Lax; ' +
+    'Secure'
+  }
+  `('works for: $attribs', ({ attribs, expected }) => {
+    expect(Cookies.responseHeaderFrom(attribs)).toBe(expected);
   });
 });
