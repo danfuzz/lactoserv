@@ -1,6 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { Duration, Moment } from '@this/data-values';
 import { MustBe } from '@this/typey';
 
 
@@ -11,8 +12,12 @@ import { MustBe } from '@this/typey';
  * **Note:** See <https://www.rfc-editor.org/info/rfc6265> for the RFC spec.
  */
 export class Cookies {
-  /** @type {Map<string, string>} Map from each cookie name to its value. */
-  #cookies = new Map();
+  /**
+   * @type {Map<string, object>} Map from each cookie name to its attributes,
+   * including attributes per se for use as `Set-Cookie` headers, but also
+   * properties `name` and `value`.
+   */
+  #attributes = new Map();
 
   /**
    * Constructs an empty instance.
@@ -23,7 +28,7 @@ export class Cookies {
 
   /** @returns {number} How many cookies are in this instance. */
   get size() {
-    return this.#cookies.size;
+    return this.#attributes.size;
   }
 
   /**
@@ -37,24 +42,41 @@ export class Cookies {
   }
 
   /**
-   * Gets the iterator of the cookies in this instance. Each entry is a
-   * two-element array of a name and corresponding value.
+   * Gets an array-like iterator for the sets of attributes for each cookie, for
+   * use in generating `Set-Cookie` headers (or similar). Each yielded value is
+   * a frozen plain object with attribute mappings (as per the `attributes`
+   * argument to {@link #set}), plus extra property bindings for `name` and
+   * `value`.
    *
    * @returns {object} The iterator.
    */
-  entries() {
-    return this.#cookies.entries();
+  attributeSets() {
+    return this.#attributes.values();
   }
 
   /**
-   * Gets a cookie value, which is expected to be set.
+   * Gets a map-like iterator of cookie values. Each yielded entry is a
+   * two-element array of a name and corresponding value.
+   *
+   * @yields {string[]} Name-value pair.
+   */
+  *entries() {
+    for (const [name, attribs] of this.#attributes) {
+      yield [name, attribs.value];
+    }
+  }
+
+  /**
+   * Gets cookie attributes, for a cookie which is expected to be set.
    *
    * @param {string} name Cookie name.
-   * @returns {string} Cookie value.
+   * @returns {object} Cookie attributes, as a frozen object. In addition to the
+   *   attributes from the original call to {@link #set}, this also includes
+   *   `name` and `value` properties.
    * @throws {Error} Thrown if `name` is not bound.
    */
-  get(name) {
-    const result = this.getOrNull(name);
+  getAttributes(name) {
+    const result = this.getAttributesOrNull(name);
 
     if (result !== null) {
       return result;
@@ -67,27 +89,61 @@ export class Cookies {
    * Gets a cookie value, if available.
    *
    * @param {string} name Cookie name.
+   * @returns {?object} Cookie attributes, as a frozen object, or `null` if
+   *   there is no such cookie. In addition to the attributes from the original
+   *   call to {@link #set}, this also includes `name` and `value` properties.
+   */
+  getAttributesOrNull(name) {
+    return this.#attributes.get(name) ?? null;
+  }
+
+  /**
+   * Gets cookie attributes, if there is a so-named cookie.
+   *
+   * @param {string} name Cookie name.
+   * @returns {string} Cookie value.
+   * @throws {Error} Thrown if `name` is not bound.
+   */
+  getValue(name) {
+    return this.getAttributes(name).value;
+  }
+
+  /**
+   * Gets a cookie value, if there is a so-named cookie.
+   *
+   * @param {string} name Cookie name.
    * @returns {?string} Cookie value, or `null` if not found.
    */
-  getOrNull(name) {
-    return this.#cookies.get(name) ?? null;
+  getValueOrNull(name) {
+    return this.getAttributesOrNull(name)?.value ?? null;
   }
 
   /**
    * Adds or replaces a cookie.
    *
+   * **Note:** The `attributes` object, if present, is copied, so that clients
+   * cannot modify what is stored in this object.
+   *
    * @param {string} name Cookie name.
    * @param {string} value Cookie value.
+   * @param {?object} [attributes] Attributes, when being used as a `Set-Cookie`
+   *   response header. Attribute names are the lowerCamelCase version of the
+   *   name as defined by the cookie spec (e.g., `maxAge` for `Max-Age` and
+   *   `httpOnly` for `HttpOnly`). Attribute types are `boolean` for no-value
+   *   attributes, and vary for the others.
    */
-  set(name, value) {
+  set(name, value, attributes = null) {
     MustBe.string(name, Cookies.#NAME_REGEX);
     MustBe.string(value, Cookies.#VALUE_REGEX);
+    if (attributes !== null) {
+      Cookies.#checkAttributes(attributes);
+    }
 
     if (Object.isFrozen(this)) {
       throw new Error('Frozen instance.');
     }
 
-    this.#setUnchecked(name, value);
+    this.#setUnchecked(name, value, attributes);
   }
 
   /**
@@ -96,9 +152,16 @@ export class Cookies {
    *
    * @param {string} name Cookie name.
    * @param {string} value Cookie value.
+   * @param {?object} attributes Attributes.
    */
-  #setUnchecked(name, value) {
-    this.#cookies.set(name, value);
+  #setUnchecked(name, value, attributes) {
+    const finalAttribs = Object.freeze({
+      name,
+      value,
+      ...(attributes ?? {})
+    });
+
+    this.#attributes.set(name, finalAttribs);
   }
 
 
@@ -191,5 +254,54 @@ export class Cookies {
     }
 
     return result;
+  }
+
+  /**
+   * Validates a cookie attributes object.
+   *
+   * @param {object} attributes The attributes.
+   * @returns {object} `attributes` iff valid.
+   * @throws {Error} Thrown if there is a problem with `attributes`.
+   */
+  static #checkAttributes(attributes) {
+    MustBe.plainObject(attributes);
+
+    for (const [name, value] of Object.entries(attributes)) {
+      switch (name) {
+        case 'httpOnly':
+        case 'partitioned':
+        case 'secure': {
+          MustBe.boolean(value);
+          break;
+        }
+
+        case 'domain':
+        case 'path': {
+          MustBe.string(value);
+          break;
+        }
+
+        case 'expires': {
+          MustBe.instanceOf(value, Moment);
+          break;
+        }
+
+        case 'maxAge': {
+          MustBe.instanceOf(value, Duration);
+          break;
+        }
+
+        case 'sameSite': {
+          MustBe.string(value, /^(strict|lax|none)$/);
+          break;
+        }
+
+        default: {
+          throw new Error(`Unknown cookie attribute: ${name}`);
+        }
+      }
+    }
+
+    return attributes;
   }
 }
