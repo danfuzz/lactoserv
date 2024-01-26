@@ -26,7 +26,53 @@ describe('.size', () => {
   });
 });
 
-// TODO: cookieSets()
+describe('cookieSets()', () => {
+  test('works on an empty instance', () => {
+    const cookies = new Cookies();
+    const iter    = cookies.cookieSets();
+
+    expect(iter.next().done).toBeTrue();
+  });
+
+  test('works on a single-element instance', () => {
+    const cookies = new Cookies();
+    const name    = 'beep';
+    const value   = 'boop';
+    const att     = { partitioned: true };
+
+    cookies.set(name, value, att);
+
+    const iter   = cookies.cookieSets();
+    const result = iter.next();
+
+    expect(iter.next().done).toBeTrue();
+    expect(result.done).toBeFalsy();
+    expect(result.value).toEqual({ name, value, ...att });
+  });
+
+  test('works on a two-element instance', () => {
+    const cookies = new Cookies();
+    const name1   = 'beep';
+    const value1  = 'boop';
+    const name2   = 'bink';
+    const value2  = 'bonk';
+    const att2    = { httpOnly: true };
+
+    cookies.set(name1, value1);
+    cookies.set(name2, value2, att2);
+
+    const iter   = cookies.cookieSets();
+    const result1 = iter.next();
+    const result2 = iter.next();
+
+    expect(iter.next().done).toBeTrue();
+    expect(result1.done).toBeFalsy();
+    expect(result2.done).toBeFalsy();
+    expect([result1.value, result2.value]).toIncludeSameMembers([
+      { name: name1, value: value1 },
+      { name: name2, value: value2, ...att2 }]);
+  });
+});
 
 describe.each`
 label          | method

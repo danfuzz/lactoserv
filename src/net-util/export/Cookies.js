@@ -51,7 +51,7 @@ export class Cookies {
    * @returns {object} The iterator.
    */
   cookieSets() {
-    return this.#attributes.entries();
+    return this.#attributes.values();
   }
 
   /**
