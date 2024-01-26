@@ -189,30 +189,31 @@ export class Moment {
       return (num < 10) ? `0${num}` : `${num}`;
     };
 
-    const d       = new Date(atSecs * 1000);
+    const when    = new Date(atSecs * 1000);
+    const day     = when.getUTCDay();
+    const date    = when.getUTCDate();
+    const month   = when.getUTCMonth();
+    const year    = when.getUTCFullYear();
+    const hours   = when.getUTCHours();
+    const mins    = when.getUTCMinutes();
+    const secs    = when.getUTCSeconds();
     const timeSep = colons ? ':' : '';
-    const parts   = [
-      d.getUTCFullYear().toString(),
-      (d.getUTCMonth() + 1).toString().padStart(2, '0'),
-      d.getUTCDate().toString().padStart(2, '0'),
-      '-',
-      d.getUTCHours().toString().padStart(2, '0'),
-      timeSep,
-      d.getUTCMinutes().toString().padStart(2, '0'),
-      timeSep,
-      d.getUTCSeconds().toString().padStart(2, '0')
-    ];
 
-    if (decimals !== 0) {
-      // Non-obvious: If you take `atSecs % 1` and then operate on the remaining
-      // fraction, you can end up with a string representation that's off by 1,
-      // because of floating point (im)precision. That's why we _don't_ do that.
-      const tenPower = 10 ** decimals;
-      const frac     = Math.floor(atSecs * tenPower % tenPower);
-      const fracStr  = frac.toString().padStart(decimals, '0');
-      parts.push('.', fracStr);
+    const result =
+      `${year}${td(month + 1)}${td(date)}-` +
+      `${td(hours)}${timeSep}${td(mins)}${timeSep}${td(secs)}`;
+
+    if (decimals === 0) {
+      return result;
     }
 
-    return parts.join('');
+    // Non-obvious: If you take `atSecs % 1` and then operate on the remaining
+    // fraction, you can end up with a string representation that's off by 1,
+    // because of floating point (im)precision. That's why we _don't_ do that.
+    const tenPower = 10 ** decimals;
+    const frac     = Math.floor(atSecs * tenPower % tenPower);
+    const fracStr  = frac.toString().padStart(decimals, '0');
+
+    return `${result}.${fracStr}`;
   }
 }
