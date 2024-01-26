@@ -119,6 +119,20 @@ export class Cookies {
   }
 
   /**
+   * Gets an array-like iterator of `Set-Cookie` response header strings, one
+   * per entry in this instance. This is equivalent to applying {@link
+   * #responseHeaderFrom} to each set of attributes yielded from {@link
+   * #attributeSets}.
+   *
+   * @yields {string} A `Set-Cookie` header string.
+   */
+  *responseHeaders() {
+    for (const attrib of this.attributeSets()) {
+      yield Cookies.responseHeaderFrom(attrib);
+    }
+  }
+
+  /**
    * Adds or replaces a cookie.
    *
    * **Note:** The `attributes` object, if present, is copied, so that clients
