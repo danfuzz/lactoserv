@@ -257,6 +257,59 @@ export class Cookies {
   }
 
   /**
+   * Converts an "attributes" object as returned by this class (which includes
+   * `name` and `value`) into a `Set-Cookie` response header value string.
+   *
+   * @param {object} attributes The attributes.
+   * @returns {string} The corresponding header value string.
+   */
+  static responseHeaderFrom(attributes) {
+    const {
+      domain, expires, httpOnly, maxAge, name,
+      partitioned, path, sameSite, secure, value
+    } = attributes;
+
+    const encode = encodeURIComponent;
+
+    const result = [name, '=', encode(value)
+    ];
+
+    if (domain !== undefined) {
+      result.push('; Domain=', encode(domain));
+    }
+
+    if (expires !== undefined) {
+      result.push('; Expires=', expires.toHttpDateString());
+    }
+
+    if (httpOnly) {
+      result.push('; HttpOnly');
+    }
+
+    if (maxAge) {
+      result.push('; Max-Age=', maxAge.secs);
+    }
+
+    if (partitioned) {
+      result.push('; Partitioned');
+    }
+
+    if (path !== undefined) {
+      result.push('; Path=', encodeURI(path));
+    }
+
+    if (sameSite !== undefined) {
+      // `attributes` represents the values as lower case, but the spec wants
+      // them capitalized.
+      result.push('; SameSite=',
+        sameSite.charAt(0).toUpperCase(),
+        sameSite.slice(1));
+    }
+
+    return result.join('');
+  }
+
+  /**
    * Validates a cookie attributes object.
    *
    * @param {object} attributes The attributes.
@@ -292,7 +345,7 @@ export class Cookies {
         }
 
         case 'sameSite': {
-          MustBe.string(value, /^(strict|lax|none)$/);
+          MustBe.string(value, /^(lax|none|strict)$/);
           break;
         }
 

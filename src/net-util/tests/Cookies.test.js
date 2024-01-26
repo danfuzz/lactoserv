@@ -539,3 +539,23 @@ describe('parse()', () => {
       [[name1, value1], [name2, value2]]);
   });
 });
+
+describe('responseHeaderFrom()', () => {
+  test.each`
+  attribs | expected
+  --
+  ${{
+    name:  'x',
+    value: 'y'
+  }}
+  ${'x=y'}
+  --
+  ${{
+    name: 'blort',
+    value: 'florp!'
+  }}
+  ${'blort=florp!'}
+  `('works for: $attribs', ({ attribs, expected }) => {
+    expect(Cookies.responseHeaderFrom(attribs)).toBe(expected);
+  });
+});
