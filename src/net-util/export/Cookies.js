@@ -279,7 +279,7 @@ export class Cookies {
     }
 
     if (expires !== undefined) {
-      result.push('; Expires=', expires.toHttpDateString());
+      result.push('; Expires=', expires.toHttpString());
     }
 
     if (httpOnly) {
@@ -304,6 +304,10 @@ export class Cookies {
       result.push('; SameSite=',
         sameSite.charAt(0).toUpperCase(),
         sameSite.slice(1));
+    }
+
+    if (secure) {
+      result.push('; Secure');
     }
 
     return result.join('');
