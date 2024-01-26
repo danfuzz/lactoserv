@@ -58,7 +58,7 @@ export class Cookies {
    * Gets a map-like iterator of cookie values. Each yielded entry is a
    * two-element array of a name and corresponding value.
    *
-   * @returns {object} The iterator.
+   * @yields {string[]} Name-value pair.
    */
   *entries() {
     for (const [name, attribs] of this.#attributes) {
