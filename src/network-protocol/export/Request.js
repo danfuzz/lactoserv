@@ -452,6 +452,9 @@ export class Request {
    *   with `text/` and/or the `body` is passed as a string, then the actual
    *   `Content-Type` header will indicate a charset of `utf-8`.
    * @param {object} options Options to control response behavior.
+   * @param {?Cookies} [options.cookies] Cookies to include (via `Set-Cookie`
+   *   headers) in the response, if any. These are only included if the response
+   *   is successful.
    * @param {?object} [options.headers] Extra headers to include in the
    *   response, if any. These are only included if the response is successful.
    * @param {?number} [options.maxAgeMsec] Value to send back in the
@@ -527,6 +530,9 @@ export class Request {
    * #sendContent} with a zero-length body.
    *
    * @param {object} options Options to control response behavior.
+   * @param {?Cookies} [options.cookies] Cookies to include (via `Set-Cookie`
+   *   headers) in the response, if any. These are only included if the response
+   *   is successful.
    * @param {?object} [options.headers] Extra headers to include in the
    *   response, if any. These are only included if the response is successful.
    * @param {?number} [options.maxAgeMsec] Value to send back in the
