@@ -12,6 +12,7 @@
   },
 
   "dependencies": {
+    "@this/data-values": "*",
     "@this/collections": "*",
     "@this/typey": "*",
     "mime": "^4.0.1"

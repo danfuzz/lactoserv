@@ -1,6 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { Duration, Moment } from '@this/data-values';
 import { MustBe } from '@this/typey';
 
 
@@ -13,6 +14,12 @@ import { MustBe } from '@this/typey';
 export class Cookies {
   /** @type {Map<string, string>} Map from each cookie name to its value. */
   #cookies = new Map();
+
+  /**
+   * @type {Map<string, object>} Map from each cookie name to its attributes
+   * for use as `Set-Cookie` headers.
+   */
+  #attributes = new Map();
 
   /**
    * Constructs an empty instance.
@@ -78,16 +85,24 @@ export class Cookies {
    *
    * @param {string} name Cookie name.
    * @param {string} value Cookie value.
+   * @param {?object} [attributes] Attributes, when being used as a `Set-Cookie`
+   *   response header. Attribute names are the lowerCamelCase version of the
+   *   name as defined by the cookie spec (e.g., `maxAge` for `Max-Age` and
+   *   `httpOnly` for `HttpOnly`). Attribute types are `boolean` for no-value
+   *   attributes, and vary for the others.
    */
-  set(name, value) {
+  set(name, value, attributes = null) {
     MustBe.string(name, Cookies.#NAME_REGEX);
     MustBe.string(value, Cookies.#VALUE_REGEX);
+    if (attributes) {
+      Cookies.#checkAttributes(attributes);
+    }
 
     if (Object.isFrozen(this)) {
       throw new Error('Frozen instance.');
     }
 
-    this.#setUnchecked(name, value);
+    this.#setUnchecked(name, value, attributes);
   }
 
   /**
@@ -96,9 +111,14 @@ export class Cookies {
    *
    * @param {string} name Cookie name.
    * @param {string} value Cookie value.
+   * @param {?object} attributes Attributes.
    */
-  #setUnchecked(name, value) {
+  #setUnchecked(name, value, attributes) {
     this.#cookies.set(name, value);
+
+    if (attributes) {
+      this.#attributes.set(name, attributes);
+    }
   }
 
 
@@ -191,5 +211,54 @@ export class Cookies {
     }
 
     return result;
+  }
+
+  /**
+   * Validates a cookie attributes object.
+   *
+   * @param {object} attributes The attributes.
+   * @returns {object} `attributes` iff valid.
+   * @throws {Error} Thrown if there is a problem with `attributes`.
+   */
+  static #checkAttributes(attributes) {
+    MustBe.plainObject(attributes);
+
+    for (const [name, value] of Object.entries(attributes)) {
+      switch (name) {
+        case 'httpOnly':
+        case 'partitioned':
+        case 'secure': {
+          MustBe.boolean(value);
+          break;
+        }
+
+        case 'domain':
+        case 'path': {
+          MustBe.string(value);
+          break;
+        }
+
+        case 'expires': {
+          MustBe.instanceOf(value, Moment);
+          break;
+        }
+
+        case 'maxAge': {
+          MustBe.instanceOf(value, Duration);
+          break;
+        }
+
+        case 'sameSite': {
+          MustBe.string(value, /^(strict|lax|none)$/);
+          break;
+        }
+
+        default: {
+          throw new Error(`Unknown cookie attribute: ${name}`);
+        }
+      }
+    }
+
+    return attributes;
   }
 }
