@@ -70,6 +70,16 @@ export class Moment {
   }
 
   /**
+   * Makes a string representing this instance, in the standard HTTP format.
+   * See {@link #httpStringFromSecs} for more details.
+   *
+   * @returns {string} The HTTP standard form.
+   */
+  toHttpString() {
+    return Moment.httpStringFromSecs(this.#atSecs);
+  }
+
+  /**
    * Makes a friendly plain object representing this instance, which represents
    * both seconds since the Unix Epoch as well as a string indicating the
    * date-time in UTC.
@@ -123,6 +133,46 @@ export class Moment {
    */
   static fromMsec(atMsec) {
     return new Moment(atMsec / 1000);
+  }
+
+  /**
+   * Makes a string representing the given number of seconds since the Unix
+   * Epoch (note: _not_ milliseconds), in the standard HTTP format. This format
+   * is used, notably, for request and response header fields that represent
+   * dates.
+   *
+   * **Note:** The HTTP standard, RFC 9110 section 5.6.7 in particular, is very
+   * specific about the format.
+   *
+   * @param {number} atSecs Time in the form of seconds since the Unix Epoch.
+   * @returns {string} The HTTP standard form.
+   */
+  static httpStringFromSecs(atSecs) {
+    // In the Year of Our Muffin 2024, there is still no built-in Javascript
+    // function to do this. SMDH.
+
+    const DAYS   = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const MONTHS = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+
+    // Formats a number as *t*wo *d*igits.
+    const td = (num) => {
+      return (num < 10) ? `0${num}` : `${num}`;
+    };
+
+    const when  = new Date(atSecs * 1000);
+    const day   = when.getUTCDay();
+    const date  = when.getUTCDate();
+    const month = when.getUTCMonth();
+    const year  = when.getUTCFullYear();
+    const hours = when.getUTCHours();
+    const mins  = when.getUTCMinutes();
+    const secs  = when.getUTCSeconds();
+
+    return `${DAYS[day]}, ${td(date)} ${MONTHS[month]} ${year} ` +
+     `${td(hours)}:${td(mins)}:${td(secs)} GMT`;
   }
 
   /**

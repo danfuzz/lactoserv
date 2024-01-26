@@ -67,6 +67,26 @@ describe('subtract()', () => {
 });
 
 describe.each`
+method                    | isStatic
+${'httpStringFromSecs'}   | ${true}
+${'toHttpString'}         | ${false}
+`('$method()', ({ method, isStatic }) => {
+  test.each`
+  atSecs              | expected
+  ${0}                | ${'Thu, 01 Jan 1970 00:00:00 GMT'}
+  ${0.00001}          | ${'Thu, 01 Jan 1970 00:00:00 GMT'}
+  ${0.1}              | ${'Thu, 01 Jan 1970 00:00:00 GMT'}
+  ${0.99999}          | ${'Thu, 01 Jan 1970 00:00:00 GMT'}
+  `('with ($atSecs, $options)', ({ atSecs, expected }) => {
+    const result = isStatic
+      ? Moment[method](atSecs)
+      : new Moment(atSecs)[method]();
+
+    expect(result).toBe(expected);
+  });
+});
+
+describe.each`
 method                    | isStatic  | returnsObject
 ${'stringFromSecs'}       | ${true}   | ${false}
 ${'plainObjectFromSecs'}  | ${true}   | ${true}
