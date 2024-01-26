@@ -26,10 +26,10 @@ describe('.size', () => {
   });
 });
 
-describe('cookieSets()', () => {
+describe('attributeSets()', () => {
   test('works on an empty instance', () => {
     const cookies = new Cookies();
-    const iter    = cookies.cookieSets();
+    const iter    = cookies.attributeSets();
 
     expect(iter.next().done).toBeTrue();
   });
@@ -42,7 +42,7 @@ describe('cookieSets()', () => {
 
     cookies.set(name, value, att);
 
-    const iter   = cookies.cookieSets();
+    const iter   = cookies.attributeSets();
     const result = iter.next();
 
     expect(iter.next().done).toBeTrue();
@@ -61,7 +61,7 @@ describe('cookieSets()', () => {
     cookies.set(name1, value1);
     cookies.set(name2, value2, att2);
 
-    const iter   = cookies.cookieSets();
+    const iter   = cookies.attributeSets();
     const result1 = iter.next();
     const result2 = iter.next();
 
