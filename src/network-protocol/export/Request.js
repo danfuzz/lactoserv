@@ -38,6 +38,18 @@ import { WranglerContext } from '#x/WranglerContext';
  * behind a reverse proxy. That said, as of this writing there isn't anything
  * that actually does that. See
  * <https://github.com/danfuzz/lactoserv/issues/213>.
+ *
+ * #### `options` on `send*()` methods
+ *
+ * The `send*()` methods accept an `options` object argument, which accepts the
+ * following properties, which all affect only _successful_ responses (not ones
+ * reporting an error status).
+ *
+ * * `{?Cookies} cookies` -- Cookies to include (via `Set-Cookie` headers) in
+ *   the response, if any.
+ * * `{?object} headers` -- Extra headers to include in the response, if any.
+ * * `{?number} maxAgeMsec` -- Value to send back in the `max-age` property of
+ *   the `Cache-Control` response header. Defaults to `0`.
  */
 export class Request {
   /**
@@ -451,15 +463,8 @@ export class Request {
    * @param {string} contentType Content type for the body. If this value starts
    *   with `text/` and/or the `body` is passed as a string, then the actual
    *   `Content-Type` header will indicate a charset of `utf-8`.
-   * @param {object} options Options to control response behavior.
-   * @param {?Cookies} [options.cookies] Cookies to include (via `Set-Cookie`
-   *   headers) in the response, if any. These are only included if the response
-   *   is successful.
-   * @param {?object} [options.headers] Extra headers to include in the
-   *   response, if any. These are only included if the response is successful.
-   * @param {?number} [options.maxAgeMsec] Value to send back in the
-   *   `max-age` property of the `Cache-Control` response header. Defaults to
-   *   `0`.
+   * @param {object} options Options to control response behavior. See class
+   *   header comment for more details.
    * @returns {boolean} `true` when the response is completed.
    * @throws {Error} Thrown if there is any trouble sending the response.
    */
@@ -529,15 +534,8 @@ export class Request {
    * **Note:** What this method does is different than calling {@link
    * #sendContent} with a zero-length body.
    *
-   * @param {object} options Options to control response behavior.
-   * @param {?Cookies} [options.cookies] Cookies to include (via `Set-Cookie`
-   *   headers) in the response, if any. These are only included if the response
-   *   is successful.
-   * @param {?object} [options.headers] Extra headers to include in the
-   *   response, if any. These are only included if the response is successful.
-   * @param {?number} [options.maxAgeMsec] Value to send back in the
-   *   `max-age` property of the `Cache-Control` response header. Defaults to
-   *   `0`.
+   * @param {object} options Options to control response behavior. See class
+   *   header comment for more details.
    * @returns {boolean} `true` when the response is completed.
    * @throws {Error} Thrown if there is any trouble sending the response.
    */
@@ -590,12 +588,8 @@ export class Request {
    * sort of stuff should be handled _before_ calling this method.
    *
    * @param {string} path Absolute path to the file to send.
-   * @param {object} options Options to control response behavior.
-   * @param {?object} [options.headers] Extra headers to include in the
-   *   response, if any.
-   * @param {?number} [options.maxAgeMsec] Value to send back in the
-   *   `max-age` property of the `Cache-Control` response header. Defaults to
-   *   `0`.
+   * @param {object} options Options to control response behavior. See class
+   *   header comment for more details.
    * @returns {boolean} `true` when the response is completed.
    * @throws {Error} Thrown if there is any trouble sending the response.
    */
