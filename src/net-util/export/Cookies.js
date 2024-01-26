@@ -12,12 +12,10 @@ import { MustBe } from '@this/typey';
  * **Note:** See <https://www.rfc-editor.org/info/rfc6265> for the RFC spec.
  */
 export class Cookies {
-  /** @type {Map<string, string>} Map from each cookie name to its value. */
-  #cookies = new Map();
-
   /**
-   * @type {Map<string, object>} Map from each cookie name to its attributes
-   * for use as `Set-Cookie` headers.
+   * @type {Map<string, object>} Map from each cookie name to its attributes,
+   * including attributes per se for use as `Set-Cookie` headers, but also
+   * properties `name` and `value`.
    */
   #attributes = new Map();
 
@@ -30,7 +28,7 @@ export class Cookies {
 
   /** @returns {number} How many cookies are in this instance. */
   get size() {
-    return this.#cookies.size;
+    return this.#attributes.size;
   }
 
   /**
@@ -49,8 +47,10 @@ export class Cookies {
    *
    * @returns {object} The iterator.
    */
-  entries() {
-    return this.#cookies.entries();
+  *entries() {
+    for (const [name, attribs] of this.#attributes) {
+      yield [name, attribs.value];
+    }
   }
 
   /**
@@ -77,11 +77,16 @@ export class Cookies {
    * @returns {?string} Cookie value, or `null` if not found.
    */
   getValueOrNull(name) {
-    return this.#cookies.get(name) ?? null;
+    const attribs = this.#attributes.get(name);
+
+    return attribs?.value ?? null;
   }
 
   /**
    * Adds or replaces a cookie.
+   *
+   * **Note:** The `attributes` object, if present, is copied, so that clients
+   * cannot modify what is stored in this object.
    *
    * @param {string} name Cookie name.
    * @param {string} value Cookie value.
@@ -114,11 +119,13 @@ export class Cookies {
    * @param {?object} attributes Attributes.
    */
   #setUnchecked(name, value, attributes) {
-    this.#cookies.set(name, value);
+    const finalAttribs = Object.freeze({
+      name,
+      value,
+      ...(attributes ?? {})
+    });
 
-    if (attributes) {
-      this.#attributes.set(name, attributes);
-    }
+    this.#attributes.set(name, finalAttribs);
   }
 
 
