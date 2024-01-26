@@ -178,6 +178,42 @@ describe('set()', () => {
     });
   });
 
+  describe('invalid attributes', () => {
+    test.each`
+      arg
+      ${false}
+      ${'boop'}
+      ${123}
+      ${[{ secure: true }]}
+      ${{ name: 'x' }}
+      ${{ value: 'x' }}
+      ${{ bloop: 'x' }}
+      ${{ domain: true }}
+      ${{ domain: 123 }}
+      ${{ expires: true }}
+      ${{ expires: 123 }}
+      ${{ expires: 'boop' }}
+      ${{ expires: new Date() }}
+      ${{ httpOnly: 123 }}
+      ${{ httpOnly: 'boop' }}
+      ${{ maxAge: true }}
+      ${{ maxAge: 123 }}
+      ${{ maxAge: 'boop' }}
+      ${{ partitioned: 123 }}
+      ${{ partitioned: 'boop' }}
+      ${{ path: true }}
+      ${{ path: 123 }}
+      ${{ sameSite: true }}
+      ${{ sameSite: 123 }}
+      ${{ sameSite: 'boop' }}
+      ${{ secure: 123 }}
+      ${{ secure: 'boop' }}
+    `('throws given $arg', ({ arg }) => {
+      const cookies = new Cookies();
+      expect(() => cookies.set('x', 'y', arg)).toThrow();
+    });
+  });
+
   test('can set a not-yet-set cookie', () => {
     const cookies = new Cookies();
     const name    = 'florp';

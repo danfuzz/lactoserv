@@ -42,8 +42,8 @@ export class Cookies {
   }
 
   /**
-   * Gets a map-like iterator of cookie values. Each entry is a two-element
-   * array of a name and corresponding value.
+   * Gets a map-like iterator of cookie values. Each yielded entry is a
+   * two-element array of a name and corresponding value.
    *
    * @returns {object} The iterator.
    */
@@ -51,6 +51,19 @@ export class Cookies {
     for (const [name, attribs] of this.#attributes) {
       yield [name, attribs.value];
     }
+  }
+
+  /**
+   * Gets an array-like iterator for the sets of attributes for each cookie, for
+   * use in generating `Set-Cookie` headers (or similar). Each yielded value is
+   * a frozen plain object with attribute mappings (as per the `attributes`
+   * argument to {@link #set}), plus extra property bindings for `name` and
+   * `value`.
+   *
+   * @returns {object} The iterator.
+   */
+  cookieSets() {
+    return this.#attributes.entries();
   }
 
   /**
@@ -99,7 +112,7 @@ export class Cookies {
   set(name, value, attributes = null) {
     MustBe.string(name, Cookies.#NAME_REGEX);
     MustBe.string(value, Cookies.#VALUE_REGEX);
-    if (attributes) {
+    if (attributes !== null) {
       Cookies.#checkAttributes(attributes);
     }
 
