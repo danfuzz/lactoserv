@@ -70,9 +70,9 @@ export class Cookies {
    * Gets cookie attributes, for a cookie which is expected to be set.
    *
    * @param {string} name Cookie name.
-   * @returns {object} Cookie attributes. In addition to the attributes from
-   *   the original call to {@link #set}, this also includes `name` and `value`
-   *   properties.
+   * @returns {object} Cookie attributes, as a frozen object. In addition to the
+   *   attributes from the original call to {@link #set}, this also includes
+   *   `name` and `value` properties.
    * @throws {Error} Thrown if `name` is not bound.
    */
   getAttributes(name) {
@@ -89,7 +89,9 @@ export class Cookies {
    * Gets a cookie value, if available.
    *
    * @param {string} name Cookie name.
-   * @returns {?object} Cookie attributes, or `null` if not found.
+   * @returns {?object} Cookie attributes, as a frozen object, or `null` if
+   *   there is no such cookie. In addition to the attributes from the original
+   *   call to {@link #set}, this also includes `name` and `value` properties.
    */
   getAttributesOrNull(name) {
     return this.#attributes.get(name) ?? null;
