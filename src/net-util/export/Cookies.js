@@ -219,9 +219,9 @@ export class Cookies {
 
   /**
    * Parses a `Cookie` header, and constructs an instance based on the contents.
-   * Cookie values are interpreted using the global function
-   * `decodeURIComponent()`; if that function reports an error, then the
-   * corresponding cookie is not included in the result.
+   * Cookie values are interpreted using the global function `decodeURI()`; if
+   * that function reports an error, then the corresponding cookie is not
+   * included in the result.
    *
    * This method takes a strict view of what is valid syntax for a cookie
    * assignment (including allowed characters), but it is lenient with respect
@@ -241,7 +241,7 @@ export class Cookies {
       const value = value1 ?? value2;
 
       try {
-        const decoded = decodeURIComponent(value);
+        const decoded = decodeURI(value);
 
         if (!result) {
           result = new Cookies();
@@ -269,10 +269,9 @@ export class Cookies {
       partitioned, path, sameSite, secure, value
     } = attributes;
 
-    const encode = encodeURIComponent;
+    const encode = encodeURI;
 
-    const result = [name, '=', encode(value)
-    ];
+    const result = [name, '=', encode(value)];
 
     if (domain !== undefined) {
       result.push('; Domain=', encode(domain));
@@ -295,7 +294,7 @@ export class Cookies {
     }
 
     if (path !== undefined) {
-      result.push('; Path=', encodeURI(path));
+      result.push('; Path=', encode(path));
     }
 
     if (sameSite !== undefined) {

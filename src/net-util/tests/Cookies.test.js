@@ -515,7 +515,7 @@ describe('parse()', () => {
   test('decodes a syntactically correct quoted value', () => {
     const name    = 'yah';
     const value   = '!@#$%^&*()\u{27a1}\u{1f723}';
-    const encVal  = encodeURIComponent(value);
+    const encVal  = encodeURI(value);
     const cookies = Cookies.parse(`${name}="${encVal}"`);
 
     expect([...cookies]).toEqual([[name, value]]);
