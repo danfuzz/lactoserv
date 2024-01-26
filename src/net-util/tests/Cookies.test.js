@@ -553,9 +553,15 @@ describe('responseHeaderFrom()', () => {
   --
   ${{
     name: 'blort',
-    value: 'florp!'
+    value: 'beep/florp!'
   }}
-  ${'blort=florp!'}
+  ${'blort=beep/florp!'}
+  --
+  ${{
+    name: 'blort',
+    value: 'a b c'
+  }}
+  ${'blort=a%20b%20c'}
   --
   ${{
     name:   'a',
@@ -628,6 +634,24 @@ describe('responseHeaderFrom()', () => {
     secure:   true
   }}
   ${'a=b; SameSite=None; Secure'}
+  --
+  ${{
+    name:        'a',
+    value:       'b',
+    domain:      'zip.zap.zoop',
+    expires:     Moment.fromMsec(Date.UTC(2069, 8, 7, 6, 55, 44)),
+    httpOnly:    true,
+    maxAge:      new Duration(987654321),
+    partitioned: true,
+    path:        '/a/bb/ccc',
+    sameSite:    'lax',
+    secure:      true
+  }}
+  ${
+    'a=b; Domain=zip.zap.zoop; Expires=Sat, 07 Sep 2069 06:55:44 GMT; ' +
+    'HttpOnly; Max-Age=987654321; Partitioned; Path=/a/bb/ccc; SameSite=Lax; ' +
+    'Secure'
+  }
   `('works for: $attribs', ({ attribs, expected }) => {
     expect(Cookies.responseHeaderFrom(attribs)).toBe(expected);
   });
