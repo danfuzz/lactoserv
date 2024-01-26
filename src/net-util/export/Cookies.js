@@ -67,14 +67,16 @@ export class Cookies {
   }
 
   /**
-   * Gets a cookie value, which is expected to be set.
+   * Gets cookie attributes, for a cookie which is expected to be set.
    *
    * @param {string} name Cookie name.
-   * @returns {string} Cookie value.
+   * @returns {object} Cookie attributes. In addition to the attributes from
+   *   the original call to {@link #set}, this also includes `name` and `value`
+   *   properties.
    * @throws {Error} Thrown if `name` is not bound.
    */
-  getValue(name) {
-    const result = this.getValueOrNull(name);
+  getAttributes(name) {
+    const result = this.getAttributesOrNull(name);
 
     if (result !== null) {
       return result;
@@ -87,12 +89,31 @@ export class Cookies {
    * Gets a cookie value, if available.
    *
    * @param {string} name Cookie name.
+   * @returns {?object} Cookie attributes, or `null` if not found.
+   */
+  getAttributesOrNull(name) {
+    return this.#attributes.get(name) ?? null;
+  }
+
+  /**
+   * Gets cookie attributes, if there is a so-named cookie.
+   *
+   * @param {string} name Cookie name.
+   * @returns {string} Cookie value.
+   * @throws {Error} Thrown if `name` is not bound.
+   */
+  getValue(name) {
+    return this.getAttributes(name).value;
+  }
+
+  /**
+   * Gets a cookie value, if there is a so-named cookie.
+   *
+   * @param {string} name Cookie name.
    * @returns {?string} Cookie value, or `null` if not found.
    */
   getValueOrNull(name) {
-    const attribs = this.#attributes.get(name);
-
-    return attribs?.value ?? null;
+    return this.getAttributesOrNull(name)?.value ?? null;
   }
 
   /**
