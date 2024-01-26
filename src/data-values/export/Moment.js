@@ -148,31 +148,7 @@ export class Moment {
    * @returns {string} The HTTP standard form.
    */
   static httpStringFromSecs(atSecs) {
-    // In the Year of Our Muffin 2024, there is still no built-in Javascript
-    // function to do this. SMDH.
-
-    const DAYS   = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const MONTHS = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-
-    // Formats a number as *t*wo *d*igits.
-    const td = (num) => {
-      return (num < 10) ? `0${num}` : `${num}`;
-    };
-
-    const when  = new Date(atSecs * 1000);
-    const day   = when.getUTCDay();
-    const date  = when.getUTCDate();
-    const month = when.getUTCMonth();
-    const year  = when.getUTCFullYear();
-    const hours = when.getUTCHours();
-    const mins  = when.getUTCMinutes();
-    const secs  = when.getUTCSeconds();
-
-    return `${DAYS[day]}, ${td(date)} ${MONTHS[month]} ${year} ` +
-     `${td(hours)}:${td(mins)}:${td(secs)} GMT`;
+    return new Date(atSecs * 1000).toUTCString();
   }
 
   /**
@@ -207,6 +183,11 @@ export class Moment {
    */
   static stringFromSecs(atSecs, options = {}) {
     const { colons = true, decimals = 0 } = options;
+
+    // Formats a number as *t*wo *d*igits.
+    const td = (num) => {
+      return (num < 10) ? `0${num}` : `${num}`;
+    };
 
     const d       = new Date(atSecs * 1000);
     const timeSep = colons ? ':' : '';
