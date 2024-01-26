@@ -26,6 +26,8 @@ describe('.size', () => {
   });
 });
 
+// TODO: cookieSets()
+
 describe.each`
 label          | method
 ${'entries()'} | ${'entries'}
@@ -60,9 +62,10 @@ ${'iterator'}  | ${Symbol.iterator}
     const value1  = 'boop';
     const name2   = 'bink';
     const value2  = 'bonk';
+    const att2    = { httpOnly: true };
 
     cookies.set(name1, value1);
-    cookies.set(name2, value2);
+    cookies.set(name2, value2, att2);
 
     const iter   = cookies[method]();
     const result1 = iter.next();
@@ -98,7 +101,6 @@ describe('getAttributes()', () => {
     });
   });
 });
-
 
 describe('getValueOrNull()', () => {
   test('returns `null` if a cookie is not found', () => {
