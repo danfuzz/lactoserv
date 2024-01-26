@@ -216,11 +216,12 @@ describe('set()', () => {
 
   test('can set a not-yet-set cookie', () => {
     const cookies = new Cookies();
-    const name    = 'florp';
-    const value   = 'bloop';
 
-    cookies.set(name, value);
+    cookies.set('x', 'y');
     expect(cookies.size).toBe(1);
+
+    cookies.set('a', 'b', { path: '/' });
+    expect(cookies.size).toBe(2);
   });
 
   test('can overwrite a cookie', () => {
@@ -228,11 +229,18 @@ describe('set()', () => {
     const name    = 'florp';
     const value1  = 'bloop';
     const value2  = 'bleep';
+    const att1    = { path: '/' };
+    const att2    = { httpOnly: true };
 
-    cookies.set(name, value1);
-    cookies.set(name, value2);
+    cookies.set(name, value1, att1);
+    cookies.set(name, value2, att2);
     expect(cookies.size).toBe(1);
     expect(cookies.getValue(name)).toBe(value2);
+    expect(cookies.getAttributes(name)).toEqual({
+      name,
+      value: value2,
+      ...att2
+    });
   });
 
   test('does not allow modification if the instance is frozen', () => {
