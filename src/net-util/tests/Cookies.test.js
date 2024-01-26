@@ -76,6 +76,53 @@ ${'iterator'}  | ${Symbol.iterator}
   });
 });
 
+describe('getAttributes()', () => {
+  test('throws if a cookie is not found', () => {
+    const cookies = new Cookies();
+
+    expect(() => cookies.getAttributes('florp')).toThrow();
+  });
+
+  test('finds a cookie that was set', () => {
+    const cookies = new Cookies();
+    const name    = 'florp';
+    const value   = 'bloop';
+    const att     = { domain: 'florp.fleep', path: '/' };
+
+    cookies.set(name, value, att);
+
+    expect(cookies.getAttributes(name)).toEqual({
+      name,
+      value,
+      ...att
+    });
+  });
+});
+
+
+describe('getValueOrNull()', () => {
+  test('returns `null` if a cookie is not found', () => {
+    const cookies = new Cookies();
+
+    expect(cookies.getAttributesOrNull('florp')).toBeNull();
+  });
+
+  test('finds a cookie that was set', () => {
+    const cookies = new Cookies();
+    const name    = 'florp';
+    const value   = 'bloop';
+    const att     = { domain: 'florp.fleep', path: '/' };
+
+    cookies.set(name, value, att);
+
+    expect(cookies.getAttributesOrNull(name)).toEqual({
+      name,
+      value,
+      ...att
+    });
+  });
+});
+
 describe('getValue()', () => {
   test('throws if a cookie is not found', () => {
     const cookies = new Cookies();
