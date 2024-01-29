@@ -540,16 +540,14 @@ export class Request {
    */
   async sendNoBodyResponse(options = {}) {
     const { headers = null } = options ?? {};
-    const res = this.#expressResponse;
 
     const finalHeaders = {
       ...(headers ?? {}),
       'Cache-Control': Request.#cacheControlHeader(options.maxAgeMsec)
     };
 
-    res.status(204);
-    res.set(finalHeaders);
-    res.end();
+    this.#writeHead(204, finalHeaders);
+    this.#expressResponse.end();
 
     return this.whenResponseDone();
   }
