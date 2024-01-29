@@ -1003,28 +1003,10 @@ export class Request {
    * shouldn't-be-differences between the concrete protocol implementations.
    *
    * @param {number} statusCode The HTTP(ish) status code.
-   * @param {?Headers|object} headers Response headers.
+   * @param {Headers} headers Response headers.
    */
-  #writeHead(statusCode, headers = null) {
+  #writeHead(statusCode, headers) {
     const res = this.#expressResponse;
-
-    if (headers === null) {
-      headers = new Headers();
-    } else if (!(headers instanceof Headers)) {
-      // We got a plain object. Make it into a `Headers` object. TODO: Remove
-      // this once we consistently use `Headers` objects in this class.
-      const obj = headers;
-      headers = new Headers();
-      for (const [name, value] of Object.entries(obj)) {
-        if (typeof value !== 'object') {
-          headers.append(name, value);
-        } else {
-          for (const v of value) {
-            headers.append(name, v);
-          }
-        }
-      }
-    }
 
     res.status(statusCode);
 
