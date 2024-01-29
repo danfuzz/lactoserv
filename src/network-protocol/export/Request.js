@@ -1006,6 +1006,69 @@ export class Request {
     return this.whenResponseDone();
   }
 
+  /**
+   * Kicks off the response procedure by emitting the status code and response
+   * headers. This is _approximately_ a wrapper around
+   * `HttpResponse.writeHead()` (and similar), meant to hide all the
+   * shouldn't-be-differences between the concrete protocol implementations.
+   *
+   * @param {number} statusCode The HTTP(ish) status code.
+   * @param {?Headers|object} headers Response headers.
+   */
+  #writeHead(statusCode, headers = null) {
+    const res = this.#expressResponse;
+
+    if (headers === null) {
+      headers = new Headers();
+    } else if (!(headers instanceof Headers)) {
+      // We got a plain object. Make it into a `Headers` object. TODO: Remove
+      // this once we consistently use `Headers` objects in this class.
+      const obj = headers;
+      headers = new Headers();
+      for (const [name, value] of Object.entries(obj)) {
+        if (typeof value === 'string') {
+          headers.append(name, value);
+        } else {
+          for (const v of value) {
+            headers.append(name, v);
+          }
+        }
+      }
+    }
+
+    res.status(statusCode);
+
+    // We'd love to use `response.setHeaders()` here, but as of this writing
+    // (checked on Node 21.4), there are three issues which prevent its use:
+    //
+    // * It is not implemented on `Http2ServerResponse`. This is filed as Node
+    //   issue #51573 <https://github.com/nodejs/node/issues/51573>.
+    // * Calling it on a `Headers` object will cause it to fail to handle
+    //   multiple `Set-Cookies` headers correctly. This is filed as Node issue
+    //   #51599 <https://github.com/nodejs/node/issues/51599>.
+    // * When used on a HTTP1 server (that is not the HTTP2 protocol), it forces
+    //   header names to lower case. Though not against the spec, it is atypical
+    //   to send lowercased headers in HTTP1. TODO: We don't fix that issue here
+    //   yet.
+
+    let gotSetCookie = false;
+    for (const [name, value] of headers) {
+      if (name === 'set-cookie') {
+        // When iterating, a `Headers` object will emit multiple entries
+        // with `set-cookie`. We use the first to trigger use of the
+        // special `set-cookie` accessor and ignore subsequent ones.
+        if (!gotSetCookie) {
+          gotSetCookie = true;
+          res.setHeader(name, headers.getSetCookie());
+        }
+      } else {
+        res.setHeader(name, value);
+      }
+    }
+
+    this.#logger.SET_HEADERS(headers); // ####### TEMP
+  }
+
 
   //
   // Static members
