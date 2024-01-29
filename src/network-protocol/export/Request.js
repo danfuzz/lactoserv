@@ -48,6 +48,8 @@ import { WranglerContext } from '#x/WranglerContext';
  * * `{?Cookies} cookies` -- Cookies to include (via `Set-Cookie` headers) in
  *   the response, if any.
  * * `{?object} headers` -- Extra headers to include in the response, if any.
+ *   If specified, this can be any of the types accepted by the standard
+ *   `Headers` constructor.
  * * `{?number} maxAgeMsec` -- Value to send back in the `max-age` property of
  *   the `Cache-Control` response header. Defaults to `0`.
  */
@@ -412,13 +414,11 @@ export class Request {
    *
    * **Note:** This is akin to Express's `request.fresh` getter.
    *
-   * @param {?object} [responseHeaders] Would-be response headers that could
+   * @param {Headers} responseHeaders Would-be response headers that could
    *   possibly affect the freshness calculation.
    * @returns {boolean} `true` iff the request is to be considered "fresh."
    */
-  isFreshWithRespectTo(responseHeaders = null) {
-    responseHeaders ??= {};
-
+  isFreshWithRespectTo(responseHeaders) {
     const method = this.method;
 
     if ((method !== 'head') && (method !== 'get')) {
@@ -488,26 +488,29 @@ export class Request {
     MustBe.string(contentType);
     contentType = MimeTypes.typeFromExtensionOrType(contentType);
 
-    const { headers = null } = options ?? {};
+    const headers = Request.#makeResponseHeaders(options, {
+      'Cache-Control': () => {
+        return Request.#cacheControlHeader(options.maxAgeMsec);
+      },
+      'Content-Type': () => {
+        return (stringBody || /^text[/]/.test(contentType))
+          ? `${contentType}; charset=utf-8`
+          : contentType;
+      },
+      'ETag': () => {
+        return etag(bodyBuffer);
+      }
+    });
+
     const res = this.#expressResponse;
 
-    const finalHeaders = {
-      ...(headers ?? {}),
-      'Cache-Control': Request.#cacheControlHeader(options.maxAgeMsec),
-      'Content-Type': (stringBody || /^text[/]/.test(contentType))
-        ? `${contentType}; charset=utf-8`
-        : contentType,
-      'ETag': etag(bodyBuffer)
-    };
-
-    if (this.isFreshWithRespectTo(finalHeaders)) {
+    if (this.isFreshWithRespectTo(headers)) {
       // For basic range-support headers.
-      Object.assign(finalHeaders, this.#rangeInfo().headers);
-
-      this.#writeHead(304, finalHeaders);
+      Request.#appendHeaders(headers, this.#rangeInfo().headers);
+      this.#writeHead(304, headers);
       res.end();
     } else {
-      const rangeInfo = this.#rangeInfo(bodyBuffer.length, finalHeaders);
+      const rangeInfo = this.#rangeInfo(bodyBuffer.length, headers);
       if (rangeInfo.error) {
         return this.#sendNonContentResponse(rangeInfo.status, { headers: rangeInfo.headers });
       } else {
@@ -515,8 +518,8 @@ export class Request {
         bodyBuffer = bodyBuffer.subarray(rangeInfo.start, rangeInfo.end);
       }
 
-      finalHeaders['Content-Length'] = bodyBuffer.length;
-      this.#writeHead(rangeInfo.status, finalHeaders);
+      headers.set('Content-Length', bodyBuffer.length);
+      this.#writeHead(rangeInfo.status, headers);
       res.end(bodyBuffer);
     }
 
@@ -539,15 +542,15 @@ export class Request {
    * @throws {Error} Thrown if there is any trouble sending the response.
    */
   async sendNoBodyResponse(options = {}) {
-    const { headers = null } = options ?? {};
+    const headers = Request.#makeResponseHeaders(options, {
+      'Cache-Control': () => {
+        return Request.#cacheControlHeader(options.maxAgeMsec);
+      }
+    });
 
-    const finalHeaders = {
-      ...(headers ?? {}),
-      'Cache-Control': Request.#cacheControlHeader(options.maxAgeMsec)
-    };
-
-    this.#writeHead(204, finalHeaders);
-    this.#expressResponse.end();
+    const res = this.#expressResponse;
+    this.#writeHead(204, headers);
+    res.end();
 
     return this.whenResponseDone();
   }
@@ -594,33 +597,19 @@ export class Request {
     MustBe.string(path, /^[/]/);
     MustBe.object(options);
 
-    const { headers = null, maxAgeMsec = 0 } = options;
-
-    if (headers) {
-      MustBe.object(headers);
-    }
-
-    MustBe.number(maxAgeMsec, { minInclusive: 0, safeInteger: true });
-
     const stats = await fs.stat(path);
     if (stats.isDirectory()) {
       throw new Error(`Cannot send directory: ${path}`);
     }
 
-    const res          = this.#expressResponse;
-    const finalHeaders = headers ? { ...headers } : {};
-
-    // Set up `Content-Type` if the caller didn't specify it explicitly.
-    finalHeaders['Content-Type'] ??= MimeTypes.typeFromExtension(path);
-
-    // In re `dotfiles`: If the caller wants to send a dotfile, that's their
-    // business. (`sendFile()` by default tries to be something like a
-    // "friendly" static file server, but we're lower level here.)
-    const sendOpts = {
-      dotfiles: 'allow',
-      headers:  finalHeaders,
-      maxAge:   maxAgeMsec
-    };
+    const headers = Request.#makeResponseHeaders(options, {
+      'Cache-Control': () => {
+        return Request.#cacheControlHeader(options.maxAgeMsec);
+      },
+      'Content-Type': () => {
+        return MimeTypes.typeFromExtension(path);
+      }
+    });
 
     // TODO: Stop using Express's `response.sendFile()`, as part of the
     // long-term aim to stop using Express at all. In the short term, switch
@@ -634,6 +623,14 @@ export class Request {
     // the code here (hopefully with a bit of DRYing out in the process).
 
     const doneMp = new ManualPromise();
+    const res    = this.#expressResponse;
+
+    // In re `dotfiles`: If the caller wants to send a dotfile, that's their
+    // business. (`sendFile()` by default tries to be something like a
+    // "friendly" static file server, but we're lower level here.)
+    const sendOpts = { dotfiles: 'allow' };
+
+    res.setHeaders(headers);
     res.sendFile(path, sendOpts, (err) => {
       if (err instanceof Error) {
         doneMp.reject(err);
@@ -872,7 +869,7 @@ export class Request {
    *
    * @param {?number} [length] Length of the underlying response. If `null`,
    *   this method just returns a basic no-range-request success response.
-   * @param {?object} [responseHeaders] Response headers to-be. Not used when
+   * @param {?Headers} [responseHeaders] Response headers to-be. Not used when
    *   passing `null` for `length`.
    * @returns {object} Disposition info.
    */
@@ -963,7 +960,7 @@ export class Request {
    */
   #sendNonContentResponse(status, options = null) {
     MustBe.number(status, { safeInteger: true, minInclusive: 0, maxInclusive: 599 });
-    const { body, bodyExtra, contentType, headers } = options ?? {};
+    const { body, bodyExtra, contentType } = options ?? {};
 
     let finalBody;
     let finalContentType;
@@ -988,13 +985,12 @@ export class Request {
       finalContentType = 'text/plain';
     }
 
-    const finalHeaders = {
-      ...(headers ?? {}),
-      'Cache-Control': 'no-store, must-revalidate',
-      'Content-Type':  finalContentType
-    };
+    const headers = Request.#makeResponseHeaders(options, {
+      'Cache-Control': () => 'no-store, must-revalidate',
+      'Content-Type':  () => finalContentType
+    });
 
-    this.#writeHead(status, finalHeaders);
+    this.#writeHead(status, headers);
     this.#expressResponse.send(finalBody);
 
     return this.whenResponseDone();
@@ -1080,6 +1076,24 @@ export class Request {
   }
 
   /**
+   * Like `Object.assign()`, but for combining `Headers` objects.
+   *
+   * @param {Headers} target Target to add to.
+   * @param {Headers|object} source Source to add from.
+   */
+  static #appendHeaders(target, source) {
+    if (source instanceof Headers) {
+      for (const [name, value] of source) {
+        target.append(name, value);
+      }
+    } else {
+      for (const [name, value] of Object.entries(source)) {
+        target.append(name, value);
+      }
+    }
+  }
+
+  /**
    * Gets a `Cache-Control` header for the given max-age.
    *
    * @param {?number} [maxAgeMsec] The max age, for cache control, or `null` for
@@ -1125,27 +1139,50 @@ export class Request {
    * Keys which aren't found are not listed in the result, and don't cause an
    * error.
    *
-   * It _is_ an error if it turns out there are two matching keys in the
-   * given `headers` (because of case folding).
-   *
-   * @param {object} [headers] The headers to extract from.
-   * @param {...string} keys Keys to extract. These must all be in lower-case
-   *   form.
+   * @param {Headers} headers The headers to extract from.
+   * @param {...string} keys Keys to extract.
    * @returns {object} The extracted subset.
    */
   static #extractHeaders(headers, ...keys) {
-    // Note: As of this writing, there are very few `keys` at the call sites of
-    // this method, so linear search through that array is probably ideal.
-
     const result = {};
 
-    for (const [k, v] of Object.entries(headers)) {
-      const lowerKey = k.toLowerCase();
-      if (keys.indexOf(lowerKey >= 0)) {
-        if (result[lowerKey]) {
-          throw new Error(`Duplicate key: ${lowerKey}`);
-        }
-        result[lowerKey] = v;
+    for (const k of keys) {
+      const got = headers.get(k);
+      if (got !== undefined) {
+        result[k] = got;
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Makes a set of response headers based on the given `options` (as per the
+   * class's public contract for same), along with a set of extra headers to
+   * potentially add. Extra headers are only added if the headers in `options`
+   * don't already specify them.
+   *
+   * @param {object} options Result-sending options, notably including `cookies`
+   *   and `headers` bindings.
+   * @param {?object} [extras] Any extra headers to include, in the form of a
+   *   simple object from header names to _functions_ to call to generate the
+   *   header value, should it be required.
+   * @returns {object} The response headers.
+   */
+  static #makeResponseHeaders(options, extras) {
+    const { cookies = null, headers = null } = options ?? {};
+
+    const result = headers ? new Headers(headers) : new Headers();
+
+    if (cookies) {
+      for (const cookie of cookies.responseHeaders()) {
+        result.append('Set-Cookie', cookie);
+      }
+    }
+
+    for (const [name, func] of Object.entries(extras)) {
+      if (!result.has(name)) {
+        result.set(name, func());
       }
     }
 
