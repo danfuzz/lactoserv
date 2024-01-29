@@ -922,7 +922,7 @@ export class Request {
           Request.#extractHeaders(responseHeaders, 'last-modified');
         const lmDate = Request.#parseDate(lastModified);
         const ifDate = Request.#parseDate(ifRange);
-        if (lmDate > ifDate) {
+        if ((lmDate === null) || (ifDate === null) || (lmDate > ifDate)) {
           return status200(); // _Not_ matched.
         }
       }
