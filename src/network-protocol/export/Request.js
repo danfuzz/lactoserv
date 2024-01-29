@@ -1023,7 +1023,7 @@ export class Request {
       const obj = headers;
       headers = new Headers();
       for (const [name, value] of Object.entries(obj)) {
-        if (typeof value === 'string') {
+        if (typeof value !== 'object') {
           headers.append(name, value);
         } else {
           for (const v of value) {
