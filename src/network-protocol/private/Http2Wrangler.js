@@ -180,12 +180,14 @@ export class Http2Wrangler extends TcpWrangler {
       res.setHeaders = (headers) => {
         let gotSetCookie = false;
         for (const [name, value] of headers) {
-          if ((name === 'set-cookie') && !gotSetCookie) {
+          if (name === 'set-cookie') {
             // When iterating, a `Headers` object will emit multiple entries
             // with `set-cookie`. We use the first to trigger use of the
             // special `set-cookie` accessor and ignore subsequent ones.
-            gotSetCookie = true;
-            res.setHeader(name, headers.getSetCookie());
+            if (!gotSetCookie) {
+              gotSetCookie = true;
+              res.setHeader(name, headers.getSetCookie());
+            }
           } else {
             res.setHeader(name, value);
           }
