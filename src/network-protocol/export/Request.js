@@ -991,17 +991,14 @@ export class Request {
       finalContentType = 'text/plain';
     }
 
-    const res = this.#expressResponse;
+    const finalHeaders = {
+      ...(headers ?? {}),
+      'Cache-Control': 'no-store, must-revalidate',
+      'Content-Type':  finalContentType
+    };
 
-    res.status(status);
-    res.contentType(finalContentType);
-
-    if (headers) {
-      res.set(headers);
-    }
-
-    res.set('Cache-Control', 'no-store, must-revalidate');
-    res.send(finalBody);
+    this.#writeHead(status, finalHeaders);
+    this.#expressResponse.send(finalBody);
 
     return this.whenResponseDone();
   }
