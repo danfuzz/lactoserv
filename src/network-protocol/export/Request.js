@@ -1025,10 +1025,12 @@ export class Request {
   /**
    * Gets a `Cache-Control` header for the given max-age.
    *
-   * @param {number} maxAgeMsec The max age, for cache control.
+   * @param {?number} [maxAgeMsec] The max age, for cache control, or `null` for
+   *   the default value of `0`.
    * @returns {string} The corresponding header.
    */
-  static #cacheControlHeader(maxAgeMsec) {
+  static #cacheControlHeader(maxAgeMsec = null) {
+    maxAgeMsec ??= 0;
     return `public, max-age=${Math.floor(maxAgeMsec / 1000)}`;
   }
 
