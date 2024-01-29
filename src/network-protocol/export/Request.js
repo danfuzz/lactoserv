@@ -488,12 +488,12 @@ export class Request {
     MustBe.string(contentType);
     contentType = MimeTypes.typeFromExtensionOrType(contentType);
 
-    const { headers = null, maxAgeMsec = 0 } = options ?? {};
+    const { headers = null } = options ?? {};
     const res = this.#expressResponse;
 
     const finalHeaders = {
       ...(headers ?? {}),
-      'Cache-Control': Request.#cacheControlHeader(maxAgeMsec),
+      'Cache-Control': Request.#cacheControlHeader(options.maxAgeMsec),
       'Content-Type': (stringBody || /^text[/]/.test(contentType))
         ? `${contentType}; charset=utf-8`
         : contentType,
@@ -540,12 +540,12 @@ export class Request {
    * @throws {Error} Thrown if there is any trouble sending the response.
    */
   async sendNoBodyResponse(options = {}) {
-    const { headers = null, maxAgeMsec = 0 } = options ?? {};
+    const { headers = null } = options ?? {};
     const res = this.#expressResponse;
 
     const finalHeaders = {
       ...(headers ?? {}),
-      'Cache-Control': Request.#cacheControlHeader(maxAgeMsec)
+      'Cache-Control': Request.#cacheControlHeader(options.maxAgeMsec)
     };
 
     res.status(204);
