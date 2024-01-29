@@ -501,9 +501,10 @@ export class Request {
     };
 
     if (this.isFreshWithRespectTo(finalHeaders)) {
-      res.status(304);
-      res.set(finalHeaders);
-      res.set(this.#rangeInfo().headers); // For basic range-support headers.
+      // For basic range-support headers.
+      Object.assign(finalHeaders, this.#rangeInfo().headers);
+
+      this.#writeHead(304, finalHeaders);
       res.end();
     } else {
       const rangeInfo = this.#rangeInfo(bodyBuffer.length, finalHeaders);
@@ -515,9 +516,7 @@ export class Request {
       }
 
       finalHeaders['Content-Length'] = bodyBuffer.length;
-      res.set(finalHeaders);
-
-      res.status(rangeInfo.status);
+      this.#writeHead(rangeInfo.status, finalHeaders);
       res.end(bodyBuffer);
     }
 
