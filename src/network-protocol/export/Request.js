@@ -14,7 +14,7 @@ import statuses from 'statuses';
 import { ManualPromise } from '@this/async';
 import { TreePathKey } from '@this/collections';
 import { IntfLogger } from '@this/loggy';
-import { Cookies, HostInfo, MimeTypes } from '@this/net-util';
+import { Cookies, HeaderNames, HostInfo, MimeTypes } from '@this/net-util';
 import { AskIf, MustBe } from '@this/typey';
 
 import { WranglerContext } from '#x/WranglerContext';
@@ -1023,22 +1023,23 @@ export class Request {
     //   to send lowercased headers in HTTP1. TODO: We don't fix that issue here
     //   yet.
 
+    const classicNaming = (this.#expressRequest.httpVersion[0] === '1');
+
     let gotSetCookie = false;
     for (const [name, value] of headers) {
+      const finalName = classicNaming ? HeaderNames.classicFrom(name) : name;
       if (name === 'set-cookie') {
         // When iterating, a `Headers` object will emit multiple entries
         // with `set-cookie`. We use the first to trigger use of the
         // special `set-cookie` accessor and ignore subsequent ones.
         if (!gotSetCookie) {
           gotSetCookie = true;
-          res.setHeader(name, headers.getSetCookie());
+          res.setHeader(finalName, headers.getSetCookie());
         }
       } else {
-        res.setHeader(name, value);
+        res.setHeader(finalName, value);
       }
     }
-
-    this.#logger.SET_HEADERS(headers); // ####### TEMP
   }
 
 
