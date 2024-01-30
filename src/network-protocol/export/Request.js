@@ -489,15 +489,15 @@ export class Request {
     contentType = MimeTypes.typeFromExtensionOrType(contentType);
 
     const headers = Request.#makeResponseHeaders(options, {
-      'Cache-Control': () => {
+      'cache-control': () => {
         return Request.#cacheControlHeader(options.maxAgeMsec);
       },
-      'Content-Type': () => {
+      'content-type': () => {
         return (stringBody || /^text[/]/.test(contentType))
           ? `${contentType}; charset=utf-8`
           : contentType;
       },
-      'ETag': () => {
+      'etag': () => {
         return etag(bodyBuffer);
       }
     });
@@ -518,7 +518,7 @@ export class Request {
         bodyBuffer = bodyBuffer.subarray(rangeInfo.start, rangeInfo.end);
       }
 
-      headers.set('Content-Length', bodyBuffer.length);
+      headers.set('content-length', bodyBuffer.length);
       this.#writeHead(rangeInfo.status, headers);
       res.end(bodyBuffer);
     }
@@ -543,7 +543,7 @@ export class Request {
    */
   async sendNoBodyResponse(options = {}) {
     const headers = Request.#makeResponseHeaders(options, {
-      'Cache-Control': () => {
+      'cache-control': () => {
         return Request.#cacheControlHeader(options.maxAgeMsec);
       }
     });
@@ -603,10 +603,10 @@ export class Request {
     }
 
     const headers = Request.#makeResponseHeaders(options, {
-      'Cache-Control': () => {
+      'cache-control': () => {
         return Request.#cacheControlHeader(options.maxAgeMsec);
       },
-      'Content-Type': () => {
+      'content-type': () => {
         return MimeTypes.typeFromExtension(path);
       }
     });
@@ -987,8 +987,8 @@ export class Request {
     }
 
     const headers = Request.#makeResponseHeaders(options, {
-      'Cache-Control': () => 'no-store, must-revalidate',
-      'Content-Type':  () => finalContentType
+      'cache-control': () => 'no-store, must-revalidate',
+      'content-type':  () => finalContentType
     });
 
     this.#writeHead(status, headers);
@@ -1105,7 +1105,7 @@ export class Request {
 
     if (cookies) {
       for (const cookie of cookies.responseHeaders()) {
-        result.append('Set-Cookie', cookie);
+        result.append('set-cookie', cookie);
       }
     }
 
