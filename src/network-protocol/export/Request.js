@@ -683,8 +683,7 @@ export class Request {
     });
 
     const res = this.#expressResponse;
-    this.#writeHead(204, headers);
-    res.end();
+    this.#writeCompleteResponse(204, headers);
 
     return this.whenResponseDone();
   }
