@@ -1002,10 +1002,8 @@ export class Request {
       'content-type':  () => finalContentType
     });
 
-    this.#writeHead(status, headers);
-    this.#expressResponse.send(finalBody);
-
-    return this.whenResponseDone();
+    const bodyToSend = (this.method === 'head') ? null : finalBody;
+    return this.#writeCompleteResponse(status, headers, bodyToSend);
   }
 
   /**
