@@ -521,8 +521,6 @@ export class Request {
       }
     });
 
-    const res = this.#expressResponse;
-
     if (this.isFreshWithRespectTo(headers)) {
       // For basic range-support headers.
       headers.appendAll(this.#rangeInfo().headers);
@@ -680,7 +678,6 @@ export class Request {
       }
     });
 
-    const res = this.#expressResponse;
     return this.#writeCompleteResponse(204, headers);
   }
 
