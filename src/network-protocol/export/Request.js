@@ -1019,10 +1019,9 @@ export class Request {
     // * Calling it on a `Headers` object will cause it to fail to handle
     //   multiple `Set-Cookies` headers correctly. This is filed as Node issue
     //   #51599 <https://github.com/nodejs/node/issues/51599>.
-    // * When used on a HTTP1 server (that is not the HTTP2 protocol), it forces
-    //   header names to lower case. Though not against the spec, it is atypical
-    //   to send lowercased headers in HTTP1. TODO: We don't fix that issue here
-    //   yet.
+    // * When used on an HTTP1 server (that is not the HTTP2 protocol), it
+    //   forces header names to lower case. Though not against the spec, it is
+    //   atypical to send lowercased headers in HTTP1.
 
     const entries = headers.entriesForVersion(this.#expressRequest.httpVersion);
     for (const [name, value] of entries) {
