@@ -258,6 +258,10 @@ export class Request {
 
   /** @returns {string} The name of the protocol which spawned this instance. */
   get protocol() {
+    // Note: `.protocol` is an Express-specific property, and it's got a pretty
+    // ad-hoc definition, that we'd be better off improving upon. TODO: Do that!
+    // Specifically, every instance of this class effectively has an associated
+    // `ProtocolWrangler` instance, and that could expose a `protocolName`.
     return this.#expressRequest.protocol;
   }
 
