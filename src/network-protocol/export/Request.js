@@ -133,7 +133,7 @@ export class Request {
    */
   get cookies() {
     if (!this.#cookies) {
-      const cookieStr = this.#expressRequest.header('cookie');
+      const cookieStr = this.getHeaderOrNull('cookie');
       const result    = cookieStr ? Cookies.parse(cookieStr) : null;
 
       this.#cookies = result ? Object.freeze(result) : Cookies.EMPTY;
@@ -184,12 +184,13 @@ export class Request {
       const req = this.#expressRequest;
 
       // Note: `authority` is used by HTTP2.
-      const { authority, protocol } = req;
+      const { authority } = req;
+      const protocol      = this.protocol;
 
       if (authority) {
         this.#host = HostInfo.safeParseHostHeader(authority, protocol);
       } else {
-        const host = req.get('host');
+        const host = this.getHeaderOrNull('host');
         this.#host = host
           ? HostInfo.safeParseHostHeader(host, protocol)
           : HostInfo.localhostInstance(protocol);
@@ -302,6 +303,17 @@ export class Request {
     return (type === 'origin')
       ? `${protoHost}${targetString}`
       : `${protoHost}:${type}=${targetString}`;
+  }
+
+  /**
+   * Gets a request header, by name.
+   *
+   * @param {string} name The header name.
+   * @returns {?string|Array<string>} The corresponding value, or `null` if
+   *   there was no such header.
+   */
+  getHeaderOrNull(name) {
+    return this.#expressRequest.headers[name] ?? null;
   }
 
   /**
@@ -726,7 +738,7 @@ export class Request {
     // Note: Express lets you ask for `referrer` (spelled properly), but the
     // actual header that's supposed to be sent is `referer` (which is of course
     // misspelled).
-    const target = this.#expressRequest.header('referer') ?? '/';
+    const target = this.getHeaderOrNull('referer') ?? '/';
     return this.sendRedirect(target, status);
   }
 
