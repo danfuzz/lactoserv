@@ -247,9 +247,11 @@ describe('extract()', () => {
     hh.set('FOO', 'bar');
     hh.set('SET-COOKIE', 'a=b');
 
-    expect(hh.extract('Set-Cookie', 'Foo')).toEqual({
+    expect(hh.extract('Set-Cookie', 'Foo', 'foo', 'FOO')).toEqual({
       'Set-Cookie': ['a=b'],
-      'Foo': 'bar'
+      'Foo': 'bar',
+      'foo': 'bar',
+      'FOO': 'bar'
     });
   });
 });
