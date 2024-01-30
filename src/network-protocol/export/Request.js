@@ -14,7 +14,7 @@ import statuses from 'statuses';
 import { ManualPromise } from '@this/async';
 import { TreePathKey } from '@this/collections';
 import { IntfLogger } from '@this/loggy';
-import { Cookies, HostInfo, MimeTypes } from '@this/net-util';
+import { Cookies, HostInfo, HttpHeaders, MimeTypes } from '@this/net-util';
 import { AskIf, MustBe } from '@this/typey';
 
 import { WranglerContext } from '#x/WranglerContext';
@@ -38,6 +38,21 @@ import { WranglerContext } from '#x/WranglerContext';
  * behind a reverse proxy. That said, as of this writing there isn't anything
  * that actually does that. See
  * <https://github.com/danfuzz/lactoserv/issues/213>.
+ *
+ * #### `options` on `send*()` methods
+ *
+ * The `send*()` methods accept an `options` object argument, which accepts the
+ * following properties, which all affect only _successful_ responses (not ones
+ * reporting an error status).
+ *
+ * * `{?Cookies} cookies` -- Cookies to include (via `Set-Cookie` headers) in
+ *   the response, if any.
+ * * `{?object} headers` -- Extra headers to include in the response, if any.
+ *   If specified, this can be any of the types accepted by the standard
+ *   `Headers` constructor. Note that this system defines a useful `Headers`
+ *   subclass, {@link HttpHeaders}.
+ * * `{?number} maxAgeMsec` -- Value to send back in the `max-age` property of
+ *   the `Cache-Control` response header. Defaults to `0`.
  */
 export class Request {
   /**
@@ -400,21 +415,18 @@ export class Request {
    *
    * **Note:** This is akin to Express's `request.fresh` getter.
    *
-   * @param {?object} [responseHeaders] Would-be response headers that could
+   * @param {HttpHeaders} responseHeaders Would-be response headers that could
    *   possibly affect the freshness calculation.
    * @returns {boolean} `true` iff the request is to be considered "fresh."
    */
-  isFreshWithRespectTo(responseHeaders = null) {
-    responseHeaders ??= {};
-
+  isFreshWithRespectTo(responseHeaders) {
     const method = this.method;
 
     if ((method !== 'head') && (method !== 'get')) {
       return false;
     }
 
-    return fresh(this.headers,
-      Request.#extractHeaders(responseHeaders, 'etag', 'last-modified'));
+    return fresh(this.headers, responseHeaders.extract('etag', 'last-modified'));
   }
 
   /**
@@ -451,12 +463,8 @@ export class Request {
    * @param {string} contentType Content type for the body. If this value starts
    *   with `text/` and/or the `body` is passed as a string, then the actual
    *   `Content-Type` header will indicate a charset of `utf-8`.
-   * @param {object} options Options to control response behavior.
-   * @param {?object} [options.headers] Extra headers to include in the
-   *   response, if any. These are only included if the response is successful.
-   * @param {?number} [options.maxAgeMsec] Value to send back in the
-   *   `max-age` property of the `Cache-Control` response header. Defaults to
-   *   `0`.
+   * @param {object} options Options to control response behavior. See class
+   *   header comment for more details.
    * @returns {boolean} `true` when the response is completed.
    * @throws {Error} Thrown if there is any trouble sending the response.
    */
@@ -480,25 +488,29 @@ export class Request {
     MustBe.string(contentType);
     contentType = MimeTypes.typeFromExtensionOrType(contentType);
 
-    const { headers = null, maxAgeMsec = 0 } = options ?? {};
+    const headers = Request.#makeResponseHeaders(options, {
+      'cache-control': () => {
+        return Request.#cacheControlHeader(options.maxAgeMsec);
+      },
+      'content-type': () => {
+        return (stringBody || /^text[/]/.test(contentType))
+          ? `${contentType}; charset=utf-8`
+          : contentType;
+      },
+      'etag': () => {
+        return etag(bodyBuffer);
+      }
+    });
+
     const res = this.#expressResponse;
 
-    const finalHeaders = {
-      ...(headers ?? {}),
-      'Cache-Control': Request.#cacheControlHeader(maxAgeMsec),
-      'Content-Type': (stringBody || /^text[/]/.test(contentType))
-        ? `${contentType}; charset=utf-8`
-        : contentType,
-      'ETag': etag(bodyBuffer)
-    };
-
-    if (this.isFreshWithRespectTo(finalHeaders)) {
-      res.status(304);
-      res.set(finalHeaders);
-      res.set(this.#rangeInfo().headers); // For basic range-support headers.
+    if (this.isFreshWithRespectTo(headers)) {
+      // For basic range-support headers.
+      headers.appendAll(this.#rangeInfo().headers);
+      this.#writeHead(304, headers);
       res.end();
     } else {
-      const rangeInfo = this.#rangeInfo(bodyBuffer.length, finalHeaders);
+      const rangeInfo = this.#rangeInfo(bodyBuffer.length, headers);
       if (rangeInfo.error) {
         return this.#sendNonContentResponse(rangeInfo.status, { headers: rangeInfo.headers });
       } else {
@@ -506,10 +518,8 @@ export class Request {
         bodyBuffer = bodyBuffer.subarray(rangeInfo.start, rangeInfo.end);
       }
 
-      finalHeaders['Content-Length'] = bodyBuffer.length;
-      res.set(finalHeaders);
-
-      res.status(rangeInfo.status);
+      headers.set('content-length', bodyBuffer.length);
+      this.#writeHead(rangeInfo.status, headers);
       res.end(bodyBuffer);
     }
 
@@ -526,26 +536,20 @@ export class Request {
    * **Note:** What this method does is different than calling {@link
    * #sendContent} with a zero-length body.
    *
-   * @param {object} options Options to control response behavior.
-   * @param {?object} [options.headers] Extra headers to include in the
-   *   response, if any. These are only included if the response is successful.
-   * @param {?number} [options.maxAgeMsec] Value to send back in the
-   *   `max-age` property of the `Cache-Control` response header. Defaults to
-   *   `0`.
+   * @param {object} options Options to control response behavior. See class
+   *   header comment for more details.
    * @returns {boolean} `true` when the response is completed.
    * @throws {Error} Thrown if there is any trouble sending the response.
    */
   async sendNoBodyResponse(options = {}) {
-    const { headers = null, maxAgeMsec = 0 } = options ?? {};
+    const headers = Request.#makeResponseHeaders(options, {
+      'cache-control': () => {
+        return Request.#cacheControlHeader(options.maxAgeMsec);
+      }
+    });
+
     const res = this.#expressResponse;
-
-    const finalHeaders = {
-      ...(headers ?? {}),
-      'Cache-Control': Request.#cacheControlHeader(maxAgeMsec)
-    };
-
-    res.status(204);
-    res.set(finalHeaders);
+    this.#writeHead(204, headers);
     res.end();
 
     return this.whenResponseDone();
@@ -584,12 +588,8 @@ export class Request {
    * sort of stuff should be handled _before_ calling this method.
    *
    * @param {string} path Absolute path to the file to send.
-   * @param {object} options Options to control response behavior.
-   * @param {?object} [options.headers] Extra headers to include in the
-   *   response, if any.
-   * @param {?number} [options.maxAgeMsec] Value to send back in the
-   *   `max-age` property of the `Cache-Control` response header. Defaults to
-   *   `0`.
+   * @param {object} options Options to control response behavior. See class
+   *   header comment for more details.
    * @returns {boolean} `true` when the response is completed.
    * @throws {Error} Thrown if there is any trouble sending the response.
    */
@@ -597,33 +597,19 @@ export class Request {
     MustBe.string(path, /^[/]/);
     MustBe.object(options);
 
-    const { headers = null, maxAgeMsec = 0 } = options;
-
-    if (headers) {
-      MustBe.object(headers);
-    }
-
-    MustBe.number(maxAgeMsec, { minInclusive: 0, safeInteger: true });
-
     const stats = await fs.stat(path);
     if (stats.isDirectory()) {
       throw new Error(`Cannot send directory: ${path}`);
     }
 
-    const res          = this.#expressResponse;
-    const finalHeaders = headers ? { ...headers } : {};
-
-    // Set up `Content-Type` if the caller didn't specify it explicitly.
-    finalHeaders['Content-Type'] ??= MimeTypes.typeFromExtension(path);
-
-    // In re `dotfiles`: If the caller wants to send a dotfile, that's their
-    // business. (`sendFile()` by default tries to be something like a
-    // "friendly" static file server, but we're lower level here.)
-    const sendOpts = {
-      dotfiles: 'allow',
-      headers:  finalHeaders,
-      maxAge:   maxAgeMsec
-    };
+    const headers = Request.#makeResponseHeaders(options, {
+      'cache-control': () => {
+        return Request.#cacheControlHeader(options.maxAgeMsec);
+      },
+      'content-type': () => {
+        return MimeTypes.typeFromExtension(path);
+      }
+    });
 
     // TODO: Stop using Express's `response.sendFile()`, as part of the
     // long-term aim to stop using Express at all. In the short term, switch
@@ -637,7 +623,17 @@ export class Request {
     // the code here (hopefully with a bit of DRYing out in the process).
 
     const doneMp = new ManualPromise();
-    res.sendFile(path, sendOpts, (err) => {
+
+    // In re `dotfiles`: If the caller wants to send a dotfile, that's their
+    // business. (`sendFile()` by default tries to be something like a
+    // "friendly" static file server, but we're lower level here.)
+    const sendOpts = { dotfiles: 'allow' };
+
+    // Note: `sendFile()` below will change the status code when appropriate,
+    // to respond to range and conditional requests.
+    this.#writeHead(200, headers);
+
+    this.#expressResponse.sendFile(path, sendOpts, (err) => {
       if (err instanceof Error) {
         doneMp.reject(err);
       } else if (err) {
@@ -875,8 +871,8 @@ export class Request {
    *
    * @param {?number} [length] Length of the underlying response. If `null`,
    *   this method just returns a basic no-range-request success response.
-   * @param {?object} [responseHeaders] Response headers to-be. Not used when
-   *   passing `null` for `length`.
+   * @param {?HttpHeaders} [responseHeaders] Response headers to-be. Not used
+   *   when passing `null` for `length`.
    * @returns {object} Disposition info.
    */
   #rangeInfo(length = null, responseHeaders = null) {
@@ -914,18 +910,17 @@ export class Request {
     if (ifRange) {
       if (/"/.test(ifRange)) {
         // The range request is conditional on an etag match.
-        const { etag: etagHeader } =
-          Request.#extractHeaders(responseHeaders, 'etag');
+        const { etag: etagHeader } = responseHeaders.extract('etag');
         if (etagHeader !== ifRange) {
           return status200(); // _Not_ matched.
         }
       } else {
         // The range request is a last-modified date.
         const { 'last-modified': lastModified } =
-          Request.#extractHeaders(responseHeaders, 'last-modified');
+          responseHeaders.extract('last-modified');
         const lmDate = Request.#parseDate(lastModified);
         const ifDate = Request.#parseDate(ifRange);
-        if (lmDate > ifDate) {
+        if ((lmDate === null) || (ifDate === null) || (lmDate > ifDate)) {
           return status200(); // _Not_ matched.
         }
       }
@@ -966,7 +961,7 @@ export class Request {
    */
   #sendNonContentResponse(status, options = null) {
     MustBe.number(status, { safeInteger: true, minInclusive: 0, maxInclusive: 599 });
-    const { body, bodyExtra, contentType, headers } = options ?? {};
+    const { body, bodyExtra, contentType } = options ?? {};
 
     let finalBody;
     let finalContentType;
@@ -991,19 +986,48 @@ export class Request {
       finalContentType = 'text/plain';
     }
 
-    const res = this.#expressResponse;
+    const headers = Request.#makeResponseHeaders(options, {
+      'cache-control': () => 'no-store, must-revalidate',
+      'content-type':  () => finalContentType
+    });
 
-    res.status(status);
-    res.contentType(finalContentType);
-
-    if (headers) {
-      res.set(headers);
-    }
-
-    res.set('Cache-Control', 'no-store, must-revalidate');
-    res.send(finalBody);
+    this.#writeHead(status, headers);
+    this.#expressResponse.send(finalBody);
 
     return this.whenResponseDone();
+  }
+
+  /**
+   * Kicks off the response procedure by emitting the status code and response
+   * headers. This is _approximately_ a wrapper around
+   * `HttpResponse.writeHead()` (and similar), meant to hide all the
+   * shouldn't-be-differences between the concrete protocol implementations.
+   *
+   * @param {number} statusCode The HTTP(ish) status code.
+   * @param {HttpHeaders} headers Response headers.
+   */
+  #writeHead(statusCode, headers) {
+    const res = this.#expressResponse;
+
+    res.status(statusCode);
+
+    // We'd love to use `response.setHeaders()` here, but as of this writing
+    // (checked on Node 21.4), there are three issues which prevent its use:
+    //
+    // * It is not implemented on `Http2ServerResponse`. This is filed as Node
+    //   issue #51573 <https://github.com/nodejs/node/issues/51573>.
+    // * Calling it on a `Headers` object will cause it to fail to handle
+    //   multiple `Set-Cookies` headers correctly. This is filed as Node issue
+    //   #51599 <https://github.com/nodejs/node/issues/51599>.
+    // * When used on a HTTP1 server (that is not the HTTP2 protocol), it forces
+    //   header names to lower case. Though not against the spec, it is atypical
+    //   to send lowercased headers in HTTP1. TODO: We don't fix that issue here
+    //   yet.
+
+    const entries = headers.entriesForVersion(this.#expressRequest.httpVersion);
+    for (const [name, value] of entries) {
+      res.setHeader(name, value);
+    }
   }
 
 
@@ -1025,10 +1049,12 @@ export class Request {
   /**
    * Gets a `Cache-Control` header for the given max-age.
    *
-   * @param {number} maxAgeMsec The max age, for cache control.
+   * @param {?number} [maxAgeMsec] The max age, for cache control, or `null` for
+   *   the default value of `0`.
    * @returns {string} The corresponding header.
    */
-  static #cacheControlHeader(maxAgeMsec) {
+  static #cacheControlHeader(maxAgeMsec = null) {
+    maxAgeMsec ??= 0;
     return `public, max-age=${Math.floor(maxAgeMsec / 1000)}`;
   }
 
@@ -1060,33 +1086,30 @@ export class Request {
   }
 
   /**
-   * Extracts a subset of the given object, which is taken to be a set of
-   * request or response headers, ignoring the case of the keys in that object.
+   * Makes a set of response headers based on the given `options` (as per the
+   * class's public contract for same), along with a set of extra headers to
+   * potentially add. Extra headers are only added if the headers in `options`
+   * don't already specify them.
    *
-   * Keys which aren't found are not listed in the result, and don't cause an
-   * error.
-   *
-   * It _is_ an error if it turns out there are two matching keys in the
-   * given `headers` (because of case folding).
-   *
-   * @param {object} [headers] The headers to extract from.
-   * @param {...string} keys Keys to extract. These must all be in lower-case
-   *   form.
-   * @returns {object} The extracted subset.
+   * @param {object} options Result-sending options, notably including `cookies`
+   *   and `headers` bindings.
+   * @param {?object} [extras] Any extra headers to include, in the form of a
+   *   simple object from header names to _functions_ to call to generate the
+   *   header value, should it be required.
+   * @returns {object} The response headers.
    */
-  static #extractHeaders(headers, ...keys) {
-    // Note: As of this writing, there are very few `keys` at the call sites of
-    // this method, so linear search through that array is probably ideal.
+  static #makeResponseHeaders(options, extras) {
+    const { cookies = null, headers = null } = options ?? {};
 
-    const result = {};
+    const result = headers ? new HttpHeaders(headers) : new HttpHeaders();
 
-    for (const [k, v] of Object.entries(headers)) {
-      const lowerKey = k.toLowerCase();
-      if (keys.indexOf(lowerKey >= 0)) {
-        if (result[lowerKey]) {
-          throw new Error(`Duplicate key: ${lowerKey}`);
-        }
-        result[lowerKey] = v;
+    if (cookies) {
+      result.appendSetCookie(cookies);
+    }
+
+    for (const [name, func] of Object.entries(extras)) {
+      if (!result.has(name)) {
+        result.set(name, func());
       }
     }
 

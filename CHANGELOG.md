@@ -12,8 +12,9 @@ Breaking changes:
   part of the `options`.
 
 Other notable changes:
-* Added support for incoming cookies.
+* Added support for sending and receiving cookies.
 * Fixed `Range` request edge cases.
+* Expanded the `net-util` package with a bunch of HTTP-related stuff.
 * Notice promptly when clients drop connections, instead of letting them time
   out (and end up getting a write-after-close error).
 * Cleaned up the request logging code, including details of what lands in the
