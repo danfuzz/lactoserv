@@ -173,28 +173,6 @@ export class Http2Wrangler extends TcpWrangler {
       set: () => { /* Ignore it. */ }
     });
 
-    // As of Node 21, `http2.Http2ServerResponse` doesn't define `setHeaders()`,
-    // so provide one for it, here. TODO: Remove this once all versions we
-    // support have this method.
-    if (!res.setHeaders) {
-      res.setHeaders = (headers) => {
-        let gotSetCookie = false;
-        for (const [name, value] of headers) {
-          if (name === 'set-cookie') {
-            // When iterating, a `Headers` object will emit multiple entries
-            // with `set-cookie`. We use the first to trigger use of the
-            // special `set-cookie` accessor and ignore subsequent ones.
-            if (!gotSetCookie) {
-              gotSetCookie = true;
-              res.setHeader(name, headers.getSetCookie());
-            }
-          } else {
-            res.setHeader(name, value);
-          }
-        }
-      };
-    }
-
     next();
   }
 
