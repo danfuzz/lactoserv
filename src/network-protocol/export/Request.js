@@ -79,6 +79,9 @@ export class Request {
   /** @type {ServerResponse|express.Response} HTTP(ish) response object. */
   #expressResponse;
 
+  /** @type {string} The request method, downcased. */
+  #requestMethod;
+
   /**
    * @type {HostInfo} The host header(ish) info, or `null` if not yet figured
    * out.
@@ -118,6 +121,7 @@ export class Request {
     // probably not worth it anyway).
     this.#expressRequest  = MustBe.object(request);
     this.#expressResponse = MustBe.object(response);
+    this.#requestMethod   = request.method.toLowerCase();
 
     if (logger) {
       this.#id     = logger.$meta.makeId();
@@ -221,7 +225,7 @@ export class Request {
    * one of `'get'`, `'head'`, or `'post'`.
    */
   get method() {
-    return this.#expressRequest.method.toLowerCase();
+    return this.#requestMethod;
   }
 
   /**
@@ -432,7 +436,7 @@ export class Request {
    * @returns {boolean} `true` iff the request is to be considered "fresh."
    */
   isFreshWithRespectTo(responseHeaders) {
-    const method = this.method;
+    const method = this.#requestMethod;
 
     if ((method !== 'head') && (method !== 'get')) {
       return false;
@@ -1055,7 +1059,7 @@ export class Request {
     if (body) {
       if ((status === 204) || (status === 205) || (status === 304)) {
         throw new Error(`Non-null body incompatible with status code: ${status}`);
-      } else if ((this.method === 'head') && (status === 200)) {
+      } else if ((this.#requestMethod === 'head') && (status === 200)) {
         throw new Error(`Non-null body incompatible with successful HEAD response.`);
       }
     }
