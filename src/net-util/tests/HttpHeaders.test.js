@@ -151,6 +151,36 @@ describe('appendAll()', () => {
   });
 });
 
+describe('entriesForVersion()', () => {
+  test('works for version 1 (smoke test)', () => {
+    const hh = new HttpHeaders({
+      'beep-BOOP':  ['10', '20'],
+      'EtAg':       '"zonk"',
+      'SET-cookie': ['a=123', 'b=456']
+    });
+
+    expect([...(hh.entriesForVersion('1.1'))]).toIncludeSameMembers([
+      ['Beep-Boop',  '10, 20'],
+      ['ETag',       '"zonk"'],
+      ['Set-Cookie', ['a=123', 'b=456']]
+    ]);
+  });
+
+  test('works for version 2 (smoke test)', () => {
+    const hh = new HttpHeaders({
+      'beep-BOOP':  ['10', '20'],
+      'EtAg':       '"zonk"',
+      'SET-cookie': ['a=123', 'b=456']
+    });
+
+    expect([...(hh.entriesForVersion('2.0'))]).toIncludeSameMembers([
+      ['beep-boop',  '10, 20'],
+      ['etag',       '"zonk"'],
+      ['set-cookie', ['a=123', 'b=456']]
+    ]);
+  });
+});
+
 describe('extract()', () => {
   test('tolerates all not-found names', () => {
     const hh = new HttpHeaders();

@@ -58,6 +58,37 @@ export class HttpHeaders extends Headers {
   }
 
   /**
+   * Like the default `entries()` method, except alters names to be cased
+   * appropriately for the indicated HTTP version. In addition, most values
+   * returned are strings, but `Set-Cookie` values are always arrays of strings.
+   *
+   * This method is meant to make it easy to call `setHeader()` on an HTTP(ish)
+   * response object.
+   *
+   * @param {string} httpVersion HTTP version string, e.g. `1.1` or `2.0`.
+   * @yields {Array} Entry with appropriately-cased name.
+   */
+  *entriesForVersion(httpVersion) {
+    const classicNaming = (httpVersion[0] === '1');
+
+    let gotSetCookie = false;
+    for (const [name, value] of this) {
+      const finalName = classicNaming ? HeaderNames.classicFrom(name) : name;
+      if (name === 'set-cookie') {
+        // When iterating, a `Headers` object will emit multiple entries with
+        // `set-cookie`. We use the first to trigger use of our special form and
+        // then ignore subsequent ones.
+        if (!gotSetCookie) {
+          gotSetCookie = true;
+          yield [finalName, this.getSetCookie()];
+        }
+      } else {
+        yield [finalName, value];
+      }
+    }
+  }
+
+  /**
    * Extracts a subset of the headers. Names which aren't found are not listed
    * in the result, and don't cause an error. Extracted values are always
    * simple (pre-combined) strings, except for `Set-Cookies`, which is always
