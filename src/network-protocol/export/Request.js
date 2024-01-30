@@ -1104,9 +1104,7 @@ export class Request {
     const result = headers ? new HttpHeaders(headers) : new HttpHeaders();
 
     if (cookies) {
-      for (const cookie of cookies.responseHeaders()) {
-        result.append('set-cookie', cookie);
-      }
+      result.appendSetCookie(cookies);
     }
 
     for (const [name, func] of Object.entries(extras)) {
