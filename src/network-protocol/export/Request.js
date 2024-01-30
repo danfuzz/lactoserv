@@ -14,8 +14,7 @@ import statuses from 'statuses';
 import { ManualPromise } from '@this/async';
 import { TreePathKey } from '@this/collections';
 import { IntfLogger } from '@this/loggy';
-import { Cookies, HeaderNames, HostInfo, HttpHeaders, MimeTypes }
-  from '@this/net-util';
+import { Cookies, HostInfo, HttpHeaders, MimeTypes } from '@this/net-util';
 import { AskIf, MustBe } from '@this/typey';
 
 import { WranglerContext } from '#x/WranglerContext';
@@ -416,7 +415,7 @@ export class Request {
    *
    * **Note:** This is akin to Express's `request.fresh` getter.
    *
-   * @param {Headers} responseHeaders Would-be response headers that could
+   * @param {HttpHeaders} responseHeaders Would-be response headers that could
    *   possibly affect the freshness calculation.
    * @returns {boolean} `true` iff the request is to be considered "fresh."
    */
@@ -427,8 +426,7 @@ export class Request {
       return false;
     }
 
-    return fresh(this.headers,
-      Request.#extractHeaders(responseHeaders, 'etag', 'last-modified'));
+    return fresh(this.headers, responseHeaders.extract('etag', 'last-modified'));
   }
 
   /**
@@ -508,7 +506,7 @@ export class Request {
 
     if (this.isFreshWithRespectTo(headers)) {
       // For basic range-support headers.
-      Request.#appendHeaders(headers, this.#rangeInfo().headers);
+      headers.appendAll(this.#rangeInfo().headers);
       this.#writeHead(304, headers);
       res.end();
     } else {
@@ -871,8 +869,8 @@ export class Request {
    *
    * @param {?number} [length] Length of the underlying response. If `null`,
    *   this method just returns a basic no-range-request success response.
-   * @param {?Headers} [responseHeaders] Response headers to-be. Not used when
-   *   passing `null` for `length`.
+   * @param {?HttpHeaders} [responseHeaders] Response headers to-be. Not used
+   *   when passing `null` for `length`.
    * @returns {object} Disposition info.
    */
   #rangeInfo(length = null, responseHeaders = null) {
@@ -910,15 +908,14 @@ export class Request {
     if (ifRange) {
       if (/"/.test(ifRange)) {
         // The range request is conditional on an etag match.
-        const { etag: etagHeader } =
-          Request.#extractHeaders(responseHeaders, 'etag');
+        const { etag: etagHeader } = responseHeaders.extract('etag');
         if (etagHeader !== ifRange) {
           return status200(); // _Not_ matched.
         }
       } else {
         // The range request is a last-modified date.
         const { 'last-modified': lastModified } =
-          Request.#extractHeaders(responseHeaders, 'last-modified');
+          responseHeaders.extract('last-modified');
         const lmDate = Request.#parseDate(lastModified);
         const ifDate = Request.#parseDate(ifRange);
         if ((lmDate === null) || (ifDate === null) || (lmDate > ifDate)) {
@@ -1005,7 +1002,7 @@ export class Request {
    * shouldn't-be-differences between the concrete protocol implementations.
    *
    * @param {number} statusCode The HTTP(ish) status code.
-   * @param {Headers} headers Response headers.
+   * @param {HttpHeaders} headers Response headers.
    */
   #writeHead(statusCode, headers) {
     const res = this.#expressResponse;
@@ -1025,22 +1022,9 @@ export class Request {
     //   to send lowercased headers in HTTP1. TODO: We don't fix that issue here
     //   yet.
 
-    const classicNaming = (this.#expressRequest.httpVersion[0] === '1');
-
-    let gotSetCookie = false;
-    for (const [name, value] of headers) {
-      const finalName = classicNaming ? HeaderNames.classicFrom(name) : name;
-      if (name === 'set-cookie') {
-        // When iterating, a `Headers` object will emit multiple entries
-        // with `set-cookie`. We use the first to trigger use of the
-        // special `set-cookie` accessor and ignore subsequent ones.
-        if (!gotSetCookie) {
-          gotSetCookie = true;
-          res.setHeader(finalName, headers.getSetCookie());
-        }
-      } else {
-        res.setHeader(finalName, value);
-      }
+    const entries = headers.entriesForVersion(this.#expressRequest.httpVersion);
+    for (const [name, value] of entries) {
+      res.setHeader(name, value);
     }
   }
 
@@ -1058,24 +1042,6 @@ export class Request {
    */
   static idFromLogger(logger) {
     return logger?.$meta.lastContext ?? null;
-  }
-
-  /**
-   * Like `Object.assign()`, but for combining `Headers` objects.
-   *
-   * @param {Headers} target Target to add to.
-   * @param {Headers|object} source Source to add from.
-   */
-  static #appendHeaders(target, source) {
-    if (source instanceof Headers) {
-      for (const [name, value] of source) {
-        target.append(name, value);
-      }
-    } else {
-      for (const [name, value] of Object.entries(source)) {
-        target.append(name, value);
-      }
-    }
   }
 
   /**
@@ -1118,30 +1084,6 @@ export class Request {
   }
 
   /**
-   * Extracts a subset of the given object, which is taken to be a set of
-   * request or response headers, ignoring the case of the keys in that object.
-   *
-   * Keys which aren't found are not listed in the result, and don't cause an
-   * error.
-   *
-   * @param {Headers} headers The headers to extract from.
-   * @param {...string} keys Keys to extract.
-   * @returns {object} The extracted subset.
-   */
-  static #extractHeaders(headers, ...keys) {
-    const result = {};
-
-    for (const k of keys) {
-      const got = headers.get(k);
-      if (got !== undefined) {
-        result[k] = got;
-      }
-    }
-
-    return result;
-  }
-
-  /**
    * Makes a set of response headers based on the given `options` (as per the
    * class's public contract for same), along with a set of extra headers to
    * potentially add. Extra headers are only added if the headers in `options`
@@ -1157,7 +1099,7 @@ export class Request {
   static #makeResponseHeaders(options, extras) {
     const { cookies = null, headers = null } = options ?? {};
 
-    const result = headers ? new Headers(headers) : new Headers();
+    const result = headers ? new HttpHeaders(headers) : new HttpHeaders();
 
     if (cookies) {
       for (const cookie of cookies.responseHeaders()) {
