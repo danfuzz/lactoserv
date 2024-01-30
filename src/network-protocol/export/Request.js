@@ -527,35 +527,6 @@ export class Request {
   }
 
   /**
-   * Issues a successful response, with no body. The reported status will always
-   * be `204` ("No content"), and the response always includes a `Cache-Control`
-   * header.
-   *
-   * This method ignores range requests entirely.
-   *
-   * **Note:** What this method does is different than calling {@link
-   * #sendContent} with a zero-length body.
-   *
-   * @param {object} options Options to control response behavior. See class
-   *   header comment for more details.
-   * @returns {boolean} `true` when the response is completed.
-   * @throws {Error} Thrown if there is any trouble sending the response.
-   */
-  async sendNoBodyResponse(options = {}) {
-    const headers = Request.#makeResponseHeaders(options, {
-      'cache-control': () => {
-        return Request.#cacheControlHeader(options.maxAgeMsec);
-      }
-    });
-
-    const res = this.#expressResponse;
-    this.#writeHead(204, headers);
-    res.end();
-
-    return this.whenResponseDone();
-  }
-
-  /**
    * Issues an error (status `4xx` or `5xx`) response, with optional body. If no
    * body is provided, a simple default plain-text body is used. The response
    * includes the single content/cache-related header `Cache-Control: no-store,
@@ -667,6 +638,35 @@ export class Request {
     // ...but don't return to _our_ caller until the response is actually
     // completed (which could be slightly later), and also plumb through any
     // errors that were encountered during final response processing.
+    return this.whenResponseDone();
+  }
+
+  /**
+   * Issues a successful response, with no body. The reported status will always
+   * be `204` ("No content"), and the response always includes a `Cache-Control`
+   * header.
+   *
+   * This method ignores range requests entirely.
+   *
+   * **Note:** What this method does is different than calling {@link
+   * #sendContent} with a zero-length body.
+   *
+   * @param {object} options Options to control response behavior. See class
+   *   header comment for more details.
+   * @returns {boolean} `true` when the response is completed.
+   * @throws {Error} Thrown if there is any trouble sending the response.
+   */
+  async sendNoBodyResponse(options = {}) {
+    const headers = Request.#makeResponseHeaders(options, {
+      'cache-control': () => {
+        return Request.#cacheControlHeader(options.maxAgeMsec);
+      }
+    });
+
+    const res = this.#expressResponse;
+    this.#writeHead(204, headers);
+    res.end();
+
     return this.whenResponseDone();
   }
 
