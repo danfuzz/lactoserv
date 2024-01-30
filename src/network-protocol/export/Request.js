@@ -462,6 +462,9 @@ export class Request {
    * * `416` -- A range request couldn't be satisfied. The original body isn't
    *   sent, but an error message body _is_ sent.
    *
+   * If the request method was `HEAD`, this does _not_ send the `body`, but it
+   * still calculates the length and etag.
+   *
    * In all successful cases, this method always responds with a `Cache-Control`
    * header.
    *
@@ -523,20 +526,20 @@ export class Request {
     if (this.isFreshWithRespectTo(headers)) {
       // For basic range-support headers.
       headers.appendAll(this.#rangeInfo().headers);
-      this.#writeHead(304, headers);
-      res.end();
+      this.#writeCompleteResponse(304, headers);
     } else {
       const rangeInfo = this.#rangeInfo(bodyBuffer.length, headers);
       if (rangeInfo.error) {
         return this.#sendNonContentResponse(rangeInfo.status, { headers: rangeInfo.headers });
       } else {
-        res.set(rangeInfo.headers);
+        headers.appendAll(rangeInfo.headers);
         bodyBuffer = bodyBuffer.subarray(rangeInfo.start, rangeInfo.end);
       }
 
       headers.set('content-length', bodyBuffer.length);
-      this.#writeHead(rangeInfo.status, headers);
-      res.end(bodyBuffer);
+
+      const bodyToSend = (this.method === 'head') ? null : bodyBuffer;
+      this.#writeCompleteResponse(rangeInfo.status, headers, bodyToSend);
     }
 
     return this.whenResponseDone();
