@@ -79,7 +79,7 @@ export class HttpHeaders extends Headers {
         }
       } else {
         const got = this.get(modName);
-        if (got !== undefined) {
+        if (got !== null) {
           result[n] = got;
         }
       }
