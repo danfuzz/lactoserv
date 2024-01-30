@@ -623,15 +623,17 @@ export class Request {
     // the code here (hopefully with a bit of DRYing out in the process).
 
     const doneMp = new ManualPromise();
-    const res    = this.#expressResponse;
 
     // In re `dotfiles`: If the caller wants to send a dotfile, that's their
     // business. (`sendFile()` by default tries to be something like a
     // "friendly" static file server, but we're lower level here.)
     const sendOpts = { dotfiles: 'allow' };
 
-    res.setHeaders(headers);
-    res.sendFile(path, sendOpts, (err) => {
+    // Note: `sendFile()` below will change the status code when appropriate,
+    // to respond to range and conditional requests.
+    this.#writeHead(200, headers);
+
+    this.#expressResponse.sendFile(path, sendOpts, (err) => {
       if (err instanceof Error) {
         doneMp.reject(err);
       } else if (err) {
