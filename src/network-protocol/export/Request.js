@@ -526,7 +526,7 @@ export class Request {
     if (this.isFreshWithRespectTo(headers)) {
       // For basic range-support headers.
       headers.appendAll(this.#rangeInfo().headers);
-      this.#writeCompleteResponse(304, headers);
+      return this.#writeCompleteResponse(304, headers);
     } else {
       const rangeInfo = this.#rangeInfo(bodyBuffer.length, headers);
       if (rangeInfo.error) {
@@ -539,10 +539,8 @@ export class Request {
       headers.set('content-length', bodyBuffer.length);
 
       const bodyToSend = (this.method === 'head') ? null : bodyBuffer;
-      this.#writeCompleteResponse(rangeInfo.status, headers, bodyToSend);
+      return this.#writeCompleteResponse(rangeInfo.status, headers, bodyToSend);
     }
-
-    return this.whenResponseDone();
   }
 
   /**
@@ -683,9 +681,7 @@ export class Request {
     });
 
     const res = this.#expressResponse;
-    this.#writeCompleteResponse(204, headers);
-
-    return this.whenResponseDone();
+    return this.#writeCompleteResponse(204, headers);
   }
 
   /**
@@ -1056,8 +1052,9 @@ export class Request {
    * @param {number} status The HTTP(ish) status code.
    * @param {HttpHeaders} headers Response headers.
    * @param {?Buffer} [body] Body, or `null` not to include one in the response.
+   * @returns {boolean} `true` when the response is completed.
    */
-  #writeCompleteResponse(status, headers, body = null) {
+  async #writeCompleteResponse(status, headers, body = null) {
     if (body) {
       if ((status === 204) || (status === 205) || (status === 304)) {
         throw new Error(`Non-null body incompatible with status code: ${status}`);
@@ -1075,6 +1072,8 @@ export class Request {
     } else {
       res.end();
     }
+
+    return this.whenResponseDone();
   }
 
 
