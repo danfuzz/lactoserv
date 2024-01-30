@@ -73,11 +73,23 @@ function linter-path {
     local toolModule=linter
     local toolDir="${outDir}/${toolModule}"
     local toolPath="${toolDir}/bin/eslint"
+    local srcDir="$(this-cmd-dir)/lint-src"
 
     # Build the linter, if necessary.
+    local needBuild=0
     if [[ ! -x ${toolPath} ]]; then
+        needBuild=1
+    else
+        local mainSrc="${srcDir}/main-linter"
+        if [[ "${mainSrc}/package.json" -nt "${mainSrc}/package-lock.json" ]]; then
+            needBuild=1
+        fi
+    fi
+
+    if (( needBuild )); then
         lib 1>&2 node-project build-main-module \
-            --out="${outDir}" --modules-dirs="$(this-cmd-dir)/lint-src" \
+            --allow-platform-specific-files \
+            --out="${outDir}" --modules-dirs="${srcDir}" \
             "${toolModule}" \
         || return "$?"
     fi
