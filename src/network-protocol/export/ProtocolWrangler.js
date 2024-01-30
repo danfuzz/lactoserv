@@ -388,7 +388,7 @@ export class ProtocolWrangler {
 
     this.#logHelper?.logRequest(request, context);
 
-    res.set('Server', this.#serverHeader);
+    res.setHeader('Server', this.#serverHeader);
 
     if (!request.pathnameString) {
       // It's not an `origin` request. We don't handle any other type of

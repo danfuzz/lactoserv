@@ -48,7 +48,6 @@ export class Http2Wrangler extends TcpWrangler {
 
     // Express needs to be wrapped in order for it to use HTTP2.
     this.#application = http2ExpressBridge(express);
-    this.#application.use('/', (req, res, next) => this.#tweakResponse(req, res, next));
   }
 
   /** @override */
@@ -155,50 +154,6 @@ export class Http2Wrangler extends TcpWrangler {
   }
 
   /**
-   * Tweaks the response object of an incoming request. (Note: Actual high-level
-   * application dispatch happens in the base class.)
-   *
-   * @param {http2.Http2ServerRequest} req_unused The incoming request.
-   * @param {http2.Http2ServerResponse} res Response creator.
-   * @param {function(?*)} next Next-middleware function.
-   */
-  #tweakResponse(req_unused, res, next) {
-    // Express likes to set status messages, but HTTP2 doesn't actually have
-    // those. Node helpfully warns about that, but in practice this is just an
-    // artifact of Express wanting to not-rely on Node to get default status
-    // messages right. So, it's reasonable to squelch the problem with this
-    // somewhat grotty patch to the response object.
-    Object.defineProperty(res, 'statusMessage', {
-      get: () => '',
-      set: () => { /* Ignore it. */ }
-    });
-
-    // As of Node 21, `http2.Http2ServerResponse` doesn't define `setHeaders()`,
-    // so provide one for it, here. TODO: Remove this once all versions we
-    // support have this method.
-    if (!res.setHeaders) {
-      res.setHeaders = (headers) => {
-        let gotSetCookie = false;
-        for (const [name, value] of headers) {
-          if (name === 'set-cookie') {
-            // When iterating, a `Headers` object will emit multiple entries
-            // with `set-cookie`. We use the first to trigger use of the
-            // special `set-cookie` accessor and ignore subsequent ones.
-            if (!gotSetCookie) {
-              gotSetCookie = true;
-              res.setHeader(name, headers.getSetCookie());
-            }
-          } else {
-            res.setHeader(name, value);
-          }
-        }
-      };
-    }
-
-    next();
-  }
-
-  /**
    * Runs the high-level stack.
    */
   async #run() {
@@ -291,4 +246,18 @@ export class Http2Wrangler extends TcpWrangler {
    * before considering it "timed out" and telling it to close.
    */
   static #SESSION_TIMEOUT_MSEC = 1 * 60 * 1000; // One minute.
+
+  static {
+    // Various networking code (that we don't control) occasionally uses the
+    // `.statusMessage` setter, but HTTP2 doesn't actually have status messages,
+    // and Node "helpfully" warns about that. But in practice, the warnings are
+    // just an annoying reminder of dependencies that we can't in practice
+    // usefully tweak. So, it's reasonable to squelch the problem with this
+    // somewhat grotty patch.
+    const proto = http2.Http2ServerResponse.prototype;
+    Object.defineProperty(proto, 'statusMessage', {
+      get: () => '',
+      set: () => { /* Ignore it. */ }
+    });
+  }
 }

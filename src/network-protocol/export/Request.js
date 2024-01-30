@@ -79,6 +79,9 @@ export class Request {
   /** @type {ServerResponse|express.Response} HTTP(ish) response object. */
   #expressResponse;
 
+  /** @type {string} The request method, downcased. */
+  #requestMethod;
+
   /**
    * @type {HostInfo} The host header(ish) info, or `null` if not yet figured
    * out.
@@ -118,6 +121,7 @@ export class Request {
     // probably not worth it anyway).
     this.#expressRequest  = MustBe.object(request);
     this.#expressResponse = MustBe.object(response);
+    this.#requestMethod   = request.method.toLowerCase();
 
     if (logger) {
       this.#id     = logger.$meta.makeId();
@@ -133,7 +137,7 @@ export class Request {
    */
   get cookies() {
     if (!this.#cookies) {
-      const cookieStr = this.#expressRequest.header('cookie');
+      const cookieStr = this.getHeaderOrNull('cookie');
       const result    = cookieStr ? Cookies.parse(cookieStr) : null;
 
       this.#cookies = result ? Object.freeze(result) : Cookies.EMPTY;
@@ -184,12 +188,13 @@ export class Request {
       const req = this.#expressRequest;
 
       // Note: `authority` is used by HTTP2.
-      const { authority, protocol } = req;
+      const { authority } = req;
+      const protocol      = this.protocol;
 
       if (authority) {
         this.#host = HostInfo.safeParseHostHeader(authority, protocol);
       } else {
-        const host = req.get('host');
+        const host = this.getHeaderOrNull('host');
         this.#host = host
           ? HostInfo.safeParseHostHeader(host, protocol)
           : HostInfo.localhostInstance(protocol);
@@ -220,7 +225,7 @@ export class Request {
    * one of `'get'`, `'head'`, or `'post'`.
    */
   get method() {
-    return this.#expressRequest.method.toLowerCase();
+    return this.#requestMethod;
   }
 
   /**
@@ -253,6 +258,10 @@ export class Request {
 
   /** @returns {string} The name of the protocol which spawned this instance. */
   get protocol() {
+    // Note: `.protocol` is an Express-specific property, and it's got a pretty
+    // ad-hoc definition, that we'd be better off improving upon. TODO: Do that!
+    // Specifically, every instance of this class effectively has an associated
+    // `ProtocolWrangler` instance, and that could expose a `protocolName`.
     return this.#expressRequest.protocol;
   }
 
@@ -302,6 +311,17 @@ export class Request {
     return (type === 'origin')
       ? `${protoHost}${targetString}`
       : `${protoHost}:${type}=${targetString}`;
+  }
+
+  /**
+   * Gets a request header, by name.
+   *
+   * @param {string} name The header name.
+   * @returns {?string|Array<string>} The corresponding value, or `null` if
+   *   there was no such header.
+   */
+  getHeaderOrNull(name) {
+    return this.#expressRequest.headers[name] ?? null;
   }
 
   /**
@@ -420,7 +440,7 @@ export class Request {
    * @returns {boolean} `true` iff the request is to be considered "fresh."
    */
   isFreshWithRespectTo(responseHeaders) {
-    const method = this.method;
+    const method = this.#requestMethod;
 
     if ((method !== 'head') && (method !== 'get')) {
       return false;
@@ -445,6 +465,9 @@ export class Request {
    *   matched. No body is sent.
    * * `416` -- A range request couldn't be satisfied. The original body isn't
    *   sent, but an error message body _is_ sent.
+   *
+   * If the request method was `HEAD`, this does _not_ send the `body`, but it
+   * still calculates the length and etag.
    *
    * In all successful cases, this method always responds with a `Cache-Control`
    * header.
@@ -502,28 +525,24 @@ export class Request {
       }
     });
 
-    const res = this.#expressResponse;
-
     if (this.isFreshWithRespectTo(headers)) {
       // For basic range-support headers.
       headers.appendAll(this.#rangeInfo().headers);
-      this.#writeHead(304, headers);
-      res.end();
+      return this.#writeCompleteResponse(304, headers);
     } else {
       const rangeInfo = this.#rangeInfo(bodyBuffer.length, headers);
       if (rangeInfo.error) {
         return this.#sendNonContentResponse(rangeInfo.status, { headers: rangeInfo.headers });
       } else {
-        res.set(rangeInfo.headers);
+        headers.appendAll(rangeInfo.headers);
         bodyBuffer = bodyBuffer.subarray(rangeInfo.start, rangeInfo.end);
       }
 
       headers.set('content-length', bodyBuffer.length);
-      this.#writeHead(rangeInfo.status, headers);
-      res.end(bodyBuffer);
-    }
 
-    return this.whenResponseDone();
+      const bodyToSend = (this.method === 'head') ? null : bodyBuffer;
+      return this.#writeCompleteResponse(rangeInfo.status, headers, bodyToSend);
+    }
   }
 
   /**
@@ -663,11 +682,7 @@ export class Request {
       }
     });
 
-    const res = this.#expressResponse;
-    this.#writeHead(204, headers);
-    res.end();
-
-    return this.whenResponseDone();
+    return this.#writeCompleteResponse(204, headers);
   }
 
   /**
@@ -726,7 +741,7 @@ export class Request {
     // Note: Express lets you ask for `referrer` (spelled properly), but the
     // actual header that's supposed to be sent is `referer` (which is of course
     // misspelled).
-    const target = this.#expressRequest.header('referer') ?? '/';
+    const target = this.getHeaderOrNull('referer') ?? '/';
     return this.sendRedirect(target, status);
   }
 
@@ -991,10 +1006,8 @@ export class Request {
       'content-type':  () => finalContentType
     });
 
-    this.#writeHead(status, headers);
-    this.#expressResponse.send(finalBody);
-
-    return this.whenResponseDone();
+    const bodyToSend = (this.method === 'head') ? null : finalBody;
+    return this.#writeCompleteResponse(status, headers, bodyToSend);
   }
 
   /**
@@ -1019,15 +1032,47 @@ export class Request {
     // * Calling it on a `Headers` object will cause it to fail to handle
     //   multiple `Set-Cookies` headers correctly. This is filed as Node issue
     //   #51599 <https://github.com/nodejs/node/issues/51599>.
-    // * When used on a HTTP1 server (that is not the HTTP2 protocol), it forces
-    //   header names to lower case. Though not against the spec, it is atypical
-    //   to send lowercased headers in HTTP1. TODO: We don't fix that issue here
-    //   yet.
+    // * When used on an HTTP1 server (that is not the HTTP2 protocol), it
+    //   forces header names to lower case. Though not against the spec, it is
+    //   atypical to send lowercased headers in HTTP1.
 
     const entries = headers.entriesForVersion(this.#expressRequest.httpVersion);
     for (const [name, value] of entries) {
       res.setHeader(name, value);
     }
+  }
+
+  /**
+   * Writes and finishes a response. This does not do anything to adjust the
+   * status code, headers, or body. That said, this _does_ do a modicum of error
+   * checking, and will throw if `body !== null` and the `statusCode` or
+   * request method definitely indicates that a body shouldn't be present.
+   *
+   * @param {number} status The HTTP(ish) status code.
+   * @param {HttpHeaders} headers Response headers.
+   * @param {?Buffer} [body] Body, or `null` not to include one in the response.
+   * @returns {boolean} `true` when the response is completed.
+   */
+  async #writeCompleteResponse(status, headers, body = null) {
+    if (body) {
+      if ((status === 204) || (status === 205) || (status === 304)) {
+        throw new Error(`Non-null body incompatible with status code: ${status}`);
+      } else if ((this.#requestMethod === 'head') && (status === 200)) {
+        throw new Error(`Non-null body incompatible with successful HEAD response.`);
+      }
+    }
+
+    const res = this.#expressResponse;
+
+    this.#writeHead(status, headers);
+
+    if (body) {
+      res.end(body);
+    } else {
+      res.end();
+    }
+
+    return this.whenResponseDone();
   }
 
 
