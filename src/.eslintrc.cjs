@@ -1,5 +1,6 @@
 const plugins = [
-  'jsdoc'
+  'jsdoc',
+  '@stylistic'
 ];
 
 const extendsList = [
