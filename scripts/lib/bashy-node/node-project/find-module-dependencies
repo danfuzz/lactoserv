@@ -100,7 +100,7 @@ while true; do
         |
         ($allDeps | map(select(.key | startswith("@this/")) | .key)) as $localDeps
         |
-        ($allDeps | map(select(.key | startswith("@this/") | not) | .key + "@" + .value)) as $extDeps
+        ($allDeps | map(select(.key | startswith("@this/") | not) | "\(.key)@\(.value)")) as $extDeps
         |
         {
             graph:       ($state.graph + ($localDeps | map({ from: $oneDep, to: .}))),
@@ -121,7 +121,7 @@ done
 
 conflicts="$(jget "${state}" '
     .extDeps
-    | map([(sub("@.*$"; "")), [.]])
+    | map([(sub("@[^@]*$"; "")), [.]])
     | reduce .[] as $item ({}; . + { ($item[0]): (.[$item[0]] + $item[1]) })
     | to_entries | map(select((.value | length) > 1)) | from_entries
 ')"
@@ -179,5 +179,5 @@ jget "${state}" '{
     localDeps,
     localDirs,
     extDeps:
-        (.extDeps | map(split("@") | { key: .[0], value: .[1] }) | from_entries)
+        (.extDeps | map(capture("^(?<key>.+)@(?<value>[^@]+)$")) | from_entries)
 }'
