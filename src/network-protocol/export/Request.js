@@ -14,7 +14,8 @@ import statuses from 'statuses';
 import { ManualPromise } from '@this/async';
 import { TreePathKey } from '@this/collections';
 import { IntfLogger } from '@this/loggy';
-import { Cookies, HeaderNames, HostInfo, MimeTypes } from '@this/net-util';
+import { Cookies, HeaderNames, HostInfo, HttpHeaders, MimeTypes }
+  from '@this/net-util';
 import { AskIf, MustBe } from '@this/typey';
 
 import { WranglerContext } from '#x/WranglerContext';
@@ -49,7 +50,8 @@ import { WranglerContext } from '#x/WranglerContext';
  *   the response, if any.
  * * `{?object} headers` -- Extra headers to include in the response, if any.
  *   If specified, this can be any of the types accepted by the standard
- *   `Headers` constructor.
+ *   `Headers` constructor. Note that this system defines a useful `Headers`
+ *   subclass, {@link HttpHeaders}.
  * * `{?number} maxAgeMsec` -- Value to send back in the `max-age` property of
  *   the `Cache-Control` response header. Defaults to `0`.
  */
