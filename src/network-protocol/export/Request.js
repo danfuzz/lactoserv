@@ -1043,16 +1043,26 @@ export class Request {
 
   /**
    * Writes and finishes a response. This does not do anything to adjust the
-   * status code, headers, or body.
+   * status code, headers, or body. That said, this _does_ do a modicum of error
+   * checking, and will throw if `body !== null` and the `statusCode` or
+   * request method definitely indicates that a body shouldn't be present.
    *
-   * @param {number} statusCode The HTTP(ish) status code.
+   * @param {number} status The HTTP(ish) status code.
    * @param {HttpHeaders} headers Response headers.
    * @param {?Buffer} [body] Body, or `null` not to include one in the response.
    */
-  #writeCompleteResponse(statusCode, headers, body = null) {
+  #writeCompleteResponse(status, headers, body = null) {
+    if (body) {
+      if ((status === 204) || (status === 205) || (status === 304)) {
+        throw new Error(`Non-null body incompatible with status code: ${status}`);
+      } else if ((this.method === 'head') && (status === 200)) {
+        throw new Error(`Non-null body incompatible with successful HEAD response.`);
+      }
+    }
+
     const res = this.#expressResponse;
 
-    this.#writeHead(statusCode, headers);
+    this.#writeHead(status, headers);
 
     if (body) {
       res.end(body);
