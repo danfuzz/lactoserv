@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { HttpHeaders } from '@this/net-util';
+import { Cookies, HttpHeaders } from '@this/net-util';
 
 describe('constructor', () => {
   describe('given no arguments', () => {
@@ -147,6 +147,32 @@ describe('appendAll()', () => {
       ['set-cookie', 'a=1'],
       ['set-cookie', 'b=2'],
       ['set-cookie', 'c=3']
+    ]);
+  });
+});
+
+describe('appendSetCookie()', () => {
+  test('appends a single cookie', () => {
+    const cookies = new Cookies();
+    const hh      = new HttpHeaders();
+
+    cookies.set('beep', 'boop', { httpOnly: true });
+    hh.appendSetCookie(cookies);
+
+    expect([...hh]).toEqual([['set-cookie', 'beep=boop; HttpOnly']]);
+  });
+
+  test('appends two cookies', () => {
+    const cookies = new Cookies();
+    const hh      = new HttpHeaders();
+
+    cookies.set('beep', 'boop', { httpOnly: true });
+    cookies.set('fleep', 'floop', { secure: true });
+    hh.appendSetCookie(cookies);
+
+    expect([...hh]).toIncludeSameMembers([
+      ['set-cookie', 'beep=boop; HttpOnly'],
+      ['set-cookie', 'fleep=floop; Secure']
     ]);
   });
 });

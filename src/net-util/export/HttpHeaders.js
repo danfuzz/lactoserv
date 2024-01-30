@@ -58,6 +58,17 @@ export class HttpHeaders extends Headers {
   }
 
   /**
+   * Appends all of the given cookies as `Set-Cookie` headers.
+   *
+   * @param {Cookies} cookies Cookies to append.
+   */
+  appendSetCookie(cookies) {
+    for (const cookie of cookies.responseHeaders()) {
+      this.append('set-cookie', cookie);
+    }
+  }
+
+  /**
    * Like the default `entries()` method, except alters names to be cased
    * appropriately for the indicated HTTP version. In addition, most values
    * returned are strings, but `Set-Cookie` values are always arrays of strings.
