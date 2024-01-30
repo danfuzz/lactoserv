@@ -1030,6 +1030,26 @@ export class Request {
     }
   }
 
+  /**
+   * Writes and finishes a response. This does not do anything to adjust the
+   * status code, headers, or body.
+   *
+   * @param {number} statusCode The HTTP(ish) status code.
+   * @param {HttpHeaders} headers Response headers.
+   * @param {?Buffer} [body] Body, or `null` not to include one in the response.
+   */
+  #writeCompleteResponse(statusCode, headers, body = null) {
+    const res = this.#expressResponse;
+
+    this.#writeHead(statusCode, headers);
+
+    if (body) {
+      res.end(body);
+    } else {
+      res.end();
+    }
+  }
+
 
   //
   // Static members
