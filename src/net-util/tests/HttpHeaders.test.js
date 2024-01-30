@@ -151,4 +151,49 @@ describe('appendAll()', () => {
   });
 });
 
-// TODO: `extract()`
+describe('extract()', () => {
+  test('tolerates all not-found names', () => {
+    const hh = new HttpHeaders();
+
+    hh.set('foo', 'bar');
+
+    expect(hh.extract('a', 'b', 'zzz')).toEqual({});
+  });
+
+  test('tolerates some but not all not-found names', () => {
+    const hh = new HttpHeaders();
+
+    hh.set('foo', 'bar');
+
+    expect(hh.extract('a', 'foo', 'b')).toEqual({ foo: 'bar' });
+  });
+
+  test('extracts a single `set-cookies` as an array', () => {
+    const hh = new HttpHeaders();
+
+    hh.set('set-cookie', 'a=b');
+
+    expect(hh.extract('set-cookie')).toEqual({ 'set-cookie': ['a=b'] });
+  });
+
+  test('extracts multiple `set-cookies` as an array', () => {
+    const hh = new HttpHeaders();
+
+    hh.set('set-cookie', 'a=b');
+    hh.append('set-cookie', 'c=d');
+
+    expect(hh.extract('set-cookie')).toEqual({ 'set-cookie': ['a=b', 'c=d'] });
+  });
+
+  test('preserves case of extracted result', () => {
+    const hh = new HttpHeaders();
+
+    hh.set('FOO', 'bar');
+    hh.set('SET-COOKIE', 'a=b');
+
+    expect(hh.extract('Set-Cookie', 'Foo')).toEqual({
+      'Set-Cookie': ['a=b'],
+      'Foo': 'bar'
+    });
+  });
+});
