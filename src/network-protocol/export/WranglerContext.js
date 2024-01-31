@@ -169,6 +169,7 @@ export class WranglerContext {
     const ctx = new WranglerContext();
 
     if (outerContext) {
+      ctx.#wrangler         = outerContext.#wrangler;
       ctx.#socket           = outerContext.#socket;
       ctx.#connectionLogger = outerContext.#connectionLogger;
       ctx.#connectionId     = outerContext.#connectionId;
@@ -193,6 +194,7 @@ export class WranglerContext {
     const ctx = new WranglerContext();
 
     if (outerContext) {
+      ctx.#wrangler         = outerContext.#wrangler;
       ctx.#socket           = outerContext.#socket;
       ctx.#connectionLogger = outerContext.#connectionLogger;
       ctx.#connectionId     = outerContext.#connectionId;
