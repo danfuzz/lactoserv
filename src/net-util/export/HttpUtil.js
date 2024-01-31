@@ -14,11 +14,20 @@ export class HttpUtil {
    * @returns {boolean} `true` if a body is possibly allowed, or `false` if it
    *   definitely is not allowed.
    */
-  static statusMayHaveBody(status) {
-    return (status <= 199)
-      || (status === 200) || (status === 201)
-      || (status === 204) || (status === 205)
-      || (status === 304)
-      || (status >= 400);
+  static statusMayHaveBody(status)
+  {
+    // This is all based on a reading of the "Status Codes" section of RFC9110.
+
+    if (status <= 199) {
+      return false;
+    }
+
+    switch (status) {
+      case 204: case 205: case 304: {
+        return false;
+      }
+    }
+
+    return true;
   }
 }
