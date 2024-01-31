@@ -532,7 +532,7 @@ export class Request {
     MustBe.string(contentType);
     contentType = MimeTypes.typeFromExtensionOrType(contentType);
 
-    const headers = Request.#makeResponseHeaders(options, {
+    const headers = this.#makeResponseHeaders(options, {
       'cache-control': () => {
         return Request.#cacheControlHeader(options.maxAgeMsec);
       },
@@ -614,7 +614,7 @@ export class Request {
       throw new Error(`Cannot send directory: ${path}`);
     }
 
-    const headers = Request.#makeResponseHeaders(options, {
+    const headers = this.#makeResponseHeaders(options, {
       'cache-control': () => {
         return Request.#cacheControlHeader(options.maxAgeMsec);
       },
@@ -698,7 +698,7 @@ export class Request {
    * @throws {Error} Thrown if there is any trouble sending the response.
    */
   async sendNoBodyResponse(options = {}) {
-    const headers = Request.#makeResponseHeaders(options, {
+    const headers = this.#makeResponseHeaders(options, {
       'cache-control': () => {
         return Request.#cacheControlHeader(options.maxAgeMsec);
       }
@@ -902,6 +902,37 @@ export class Request {
   }
 
   /**
+   * Makes a set of response headers based on the given `options` (as per the
+   * class's public contract for same), along with a set of extra headers to
+   * potentially add. Extra headers are only added if the headers in `options`
+   * don't already specify them.
+   *
+   * @param {object} options Result-sending options, notably including `cookies`
+   *   and `headers` bindings.
+   * @param {?object} [extras] Any extra headers to include, in the form of a
+   *   simple object from header names to _functions_ to call to generate the
+   *   header value, should it be required.
+   * @returns {object} The response headers.
+   */
+  #makeResponseHeaders(options, extras) {
+    const { cookies = null, headers = null } = options ?? {};
+
+    const result = headers ? new HttpHeaders(headers) : new HttpHeaders();
+
+    if (cookies) {
+      result.appendSetCookie(cookies);
+    }
+
+    for (const [name, func] of Object.entries(extras)) {
+      if (!result.has(name)) {
+        result.set(name, func());
+      }
+    }
+
+    return result;
+  }
+
+  /**
    * Given a maximum allowed length and pending response headers, parses
    * range-related request headers, if any, and and returns information about
    * range disposition.
@@ -1006,6 +1037,8 @@ export class Request {
     MustBe.number(status, { safeInteger: true, minInclusive: 0, maxInclusive: 599 });
     const { body, bodyExtra, contentType } = options ?? {};
 
+    const method = this.#requestMethod;
+
     // Why `get`? Because that one's permissive, and we don't want to throw
     // unless a body is strictly disallowed. But then below, we figure out
     // whether to _actually_ send a body based on the real method.
@@ -1013,14 +1046,14 @@ export class Request {
       throw new Error(`Cannot call with status code: ${status}`);
     }
 
-    const headers = Request.#makeResponseHeaders(options, {
+    const headers = this.#makeResponseHeaders(options, {
       'cache-control': () => 'no-store, must-revalidate'
     });
 
     let finalBody;
     let finalContentType;
 
-    if (!HttpUtil.responseBodyIsAllowedFor(this.#requestMethod, status)) {
+    if (!HttpUtil.responseBodyIsAllowedFor(method, status)) {
       // It's probably a HEAD request for something like a redirect.
       finalBody        = null;
       finalContentType = null;
@@ -1188,37 +1221,6 @@ export class Request {
     }
 
     return 'err-unknown';
-  }
-
-  /**
-   * Makes a set of response headers based on the given `options` (as per the
-   * class's public contract for same), along with a set of extra headers to
-   * potentially add. Extra headers are only added if the headers in `options`
-   * don't already specify them.
-   *
-   * @param {object} options Result-sending options, notably including `cookies`
-   *   and `headers` bindings.
-   * @param {?object} [extras] Any extra headers to include, in the form of a
-   *   simple object from header names to _functions_ to call to generate the
-   *   header value, should it be required.
-   * @returns {object} The response headers.
-   */
-  static #makeResponseHeaders(options, extras) {
-    const { cookies = null, headers = null } = options ?? {};
-
-    const result = headers ? new HttpHeaders(headers) : new HttpHeaders();
-
-    if (cookies) {
-      result.appendSetCookie(cookies);
-    }
-
-    for (const [name, func] of Object.entries(extras)) {
-      if (!result.has(name)) {
-        result.set(name, func());
-      }
-    }
-
-    return result;
   }
 
   /**
