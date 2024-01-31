@@ -37,3 +37,7 @@ describe('classicHeaderNameFrom()', () => {
     expect(HttpUtil.classicHeaderNameFrom(arg)).toBe(expected);
   });
 });
+
+// TODO: responseBodyIsAllowedFor()
+// TODO: responseBodyIsRequiredFor()
+// TODO: responseIsCacheableFor()
