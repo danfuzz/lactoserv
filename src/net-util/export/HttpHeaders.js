@@ -133,4 +133,38 @@ export class HttpHeaders extends Headers {
 
     return result;
   }
+
+  /**
+   * Indicates whether this instance has all of the named headers.
+   *
+   * @param {...string} names Header names.
+   * @returns {boolean} `true` if this instance has all of the headers, or
+   *   `false` if not.
+   */
+  hasAll(...names) {
+    for (const name of names) {
+      if (!this.has(name)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Indicates whether this instance has any of the named headers.
+   *
+   * @param {...string} names Header names.
+   * @returns {boolean} `true` if this instance has any of the headers, or
+   *   `false` if not.
+   */
+  hasAny(...names) {
+    for (const name of names) {
+      if (this.has(name)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
 }

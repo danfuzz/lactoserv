@@ -268,3 +268,35 @@ describe('extract()', () => {
     });
   });
 });
+
+describe.each`
+methodName
+${'hasAll'}
+${'hasAny'}
+`('$methodName()', ({ methodName }) => {
+  test.each`
+  args                            | expectHasAll | expectHasAny
+  ${[]}                           | ${true}      | ${false}
+  ${['nopers']}                   | ${false}     | ${false}
+  ${['really-no', 'nopers']}      | ${false}     | ${false}
+  ${['a']}                        | ${true}      | ${true}
+  ${['a', 'b']}                   | ${true}      | ${true}
+  ${['set-cookie']}               | ${true}      | ${true}
+  ${['set-cookie', 'zorch', 'b']} | ${true}      | ${true}
+  ${['a', 'nope']}                | ${false}     | ${true}
+  ${['nope', 'a']}                | ${false}     | ${true}
+  ${['nope', 'a', 'zilch']}       | ${false}     | ${true}
+  ${['set-cookie', 'no']}         | ${false}     | ${true}
+  ${['no', 'set-cookie']}         | ${false}     | ${true}
+  `('works for: $args', ({ args, expectHasAll, expectHasAny }) => {
+    const expected = (methodName === 'hasAll') ? expectHasAll : expectHasAny;
+    const hh = new HttpHeaders({
+      'a': 'yes',
+      'b': ['yeppers', 'yeah'],
+      'set-cookie': ['x=oh', 'y=yes', 'z=really'],
+      'zorch': 'splat'
+    });
+
+    expect(hh[methodName](...args)).toBe(expected);
+  });
+});
