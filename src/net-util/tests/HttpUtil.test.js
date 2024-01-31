@@ -1,10 +1,10 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { HeaderNames } from '@this/net-util';
+import { HttpUtil } from '@this/net-util';
 
 
-describe('modernFrom()', () => {
+describe('modernHeaderNameFrom()', () => {
   test.each`
   arg                | expected
   ${'Cache-Control'} | ${'cache-control'}
@@ -17,11 +17,11 @@ describe('modernFrom()', () => {
   ${'beep-boop-bop'} | ${'beep-boop-bop'}
   ${'beep-BOOP-bop'} | ${'beep-boop-bop'}
   `('returns $expected for $arg', ({ arg, expected }) => {
-    expect(HeaderNames.modernFrom(arg)).toBe(expected);
+    expect(HttpUtil.modernHeaderNameFrom(arg)).toBe(expected);
   });
 });
 
-describe('classicFrom()', () => {
+describe('classicHeaderNameFrom()', () => {
   test.each`
   arg                | expected
   ${'Cache-Control'} | ${'Cache-Control'}
@@ -34,6 +34,6 @@ describe('classicFrom()', () => {
   ${'beep-boop-bop'} | ${'Beep-Boop-Bop'}
   ${'beep-BOOP-bop'} | ${'Beep-Boop-Bop'}
   `('returns $expected for $arg', ({ arg, expected }) => {
-    expect(HeaderNames.classicFrom(arg)).toBe(expected);
+    expect(HttpUtil.classicHeaderNameFrom(arg)).toBe(expected);
   });
 });

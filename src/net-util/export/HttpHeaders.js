@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Cookies } from '#x/Cookies';
-import { HeaderNames } from '#x/HeaderNames';
+import { HttpUtil } from '#x/HttpUtil';
 
 
 /**
@@ -88,7 +88,7 @@ export class HttpHeaders extends Headers {
 
     let gotSetCookie = false;
     for (const [name, value] of this) {
-      const finalName = classicNaming ? HeaderNames.classicFrom(name) : name;
+      const finalName = classicNaming ? HttpUtil.classicHeaderNameFrom(name) : name;
       if (name === 'set-cookie') {
         // When iterating, a `Headers` object will emit multiple entries with
         // `set-cookie`. We use the first to trigger use of our special form and
@@ -117,7 +117,7 @@ export class HttpHeaders extends Headers {
     const result = {};
 
     for (const n of names) {
-      const modName = HeaderNames.modernFrom(n);
+      const modName = HttpUtil.modernHeaderNameFrom(n);
       if (modName === 'set-cookie') {
         const cookies = this.getSetCookie();
         if (cookies.length !== 0) {
