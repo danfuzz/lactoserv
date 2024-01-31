@@ -7,7 +7,7 @@
  */
 export class HttpUtil {
   /**
-   * Given an HTTP(ish) response status code and request method, indicates if
+   * Given an HTTP(ish) response request method and status code, indicates if
    * the corresponding response _is allowed to_ include a body.
    *
    * @param {string} method Request method, either downcased or all-caps.
@@ -36,7 +36,7 @@ export class HttpUtil {
   }
 
   /**
-   * Given an HTTP(ish) response status code and request method, indicates if
+   * Given an HTTP(ish) response request method and status code, indicates if
    * the corresponding response _is required to_ include a body.
    *
    * @param {string} method Request method, either downcased or all-caps.
@@ -57,5 +57,25 @@ export class HttpUtil {
 
       return false;
     }
+  }
+
+  /**
+   * Given an HTTP(ish) response status code, indicates if the response is
+   * allowed to be cached.
+   *
+   * @param {number} status Status code.
+   * @returns {boolean} `true` if a response is cacheable, or `false` if not.
+   */
+  static responseIsCacheableFor(status) {
+    switch (status) {
+      case 200: case 203: case 204: case 206:
+      case 300: case 301: case 308:
+      case 404: case 405: case 410: case 414:
+      case 501: {
+        return true;
+      }
+    }
+
+    return false;
   }
 }
