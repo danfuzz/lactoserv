@@ -1036,7 +1036,7 @@ export class Request {
     //   forces header names to lower case. Though not against the spec, it is
     //   atypical to send lowercased headers in HTTP1.
 
-    const entries = headers.entriesForVersion(this.#expressRequest.httpVersion);
+    const entries = headers.entriesForVersion(this.#expressRequest.httpVersionMajor);
     for (const [name, value] of entries) {
       res.setHeader(name, value);
     }
