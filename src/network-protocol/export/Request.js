@@ -80,6 +80,9 @@ export class Request {
   /** @type {ServerResponse|express.Response} HTTP(ish) response object. */
   #expressResponse;
 
+  /** @type {string} The protocol name. */
+  #protocolName;
+
   /** @type {string} The request method, downcased. */
   #requestMethod;
 
@@ -123,6 +126,7 @@ export class Request {
     this.#expressRequest  = MustBe.object(request);
     this.#expressResponse = MustBe.object(response);
     this.#requestMethod   = request.method.toLowerCase();
+    this.#protocolName    = `http-${request.httpVersion}`;
 
     if (logger) {
       this.#id     = logger.$meta.makeId();
@@ -190,15 +194,15 @@ export class Request {
 
       // Note: `authority` is used by HTTP2.
       const { authority } = req;
-      const protocol      = this.protocol;
+      const localPort     = this.#outerContext.wrangler.interface.port;
 
       if (authority) {
-        this.#host = HostInfo.safeParseHostHeader(authority, protocol);
+        this.#host = HostInfo.safeParseHostHeader(authority, localPort);
       } else {
         const host = this.getHeaderOrNull('host');
         this.#host = host
-          ? HostInfo.safeParseHostHeader(host, protocol)
-          : HostInfo.localhostInstance(protocol);
+          ? HostInfo.safeParseHostHeader(host, localPort)
+          : HostInfo.localhostInstance(localPort);
       }
     }
 
@@ -270,13 +274,19 @@ export class Request {
     return this.#parsedTarget.pathnameString ?? null;
   }
 
-  /** @returns {string} The name of the protocol which spawned this instance. */
-  get protocol() {
-    // Note: `.protocol` is an Express-specific property, and it's got a pretty
-    // ad-hoc definition, that we'd be better off improving upon. TODO: Do that!
-    // Specifically, every instance of this class effectively has an associated
-    // `ProtocolWrangler` instance, and that could expose a `protocolName`.
-    return this.#expressRequest.protocol;
+  /**
+   * @returns {string} The name of the protocol which this instance is using.
+   * This is generally a string starting with `http-` and ending with the
+   * dotted version. This corresponds to the (unencrypted) protocol being used
+   * over the (possibly encrypted) transport, and has nothing to do _per se_
+   * with the port number which the remote side of this request connected to in
+   * order to send the request.
+   */
+  get protocolName() {
+    // Note: Express defines `.protocol` with fairly different semantics, as
+    // being either `http` or `https`, which is really more about the
+    // _transport_ than the protocol.
+    return this.#protocolName;
   }
 
   /**
@@ -313,18 +323,18 @@ export class Request {
 
   /**
    * @returns {string} A reasonably-suggestive but possibly incomplete
-   * representation of the incoming request, in the form of a URL. This is meant
-   * for logging, and specifically _not_ for any routing or other more
-   * meaningful computation (hence the name).
+   * representation of the incoming request, in the form of a protocol-less URL.
+   * This is meant for logging, and specifically _not_ for any routing or other
+   * more meaningful computation (hence the name).
    */
   get urlForLogging() {
-    const { protocol, host }     = this;
+    const { host }               = this;
     const { targetString, type } = this.#parsedTarget;
-    const protoHost              = `${protocol}://${host.nameString}`;
+    const prefix                 = `//${host.namePortString}`;
 
     return (type === 'origin')
-      ? `${protoHost}${targetString}`
-      : `${protoHost}:${type}=${targetString}`;
+      ? `${prefix}${targetString}`
+      : `${prefix}:${type}=${targetString}`;
   }
 
   /**
@@ -362,7 +372,7 @@ export class Request {
 
     const result = {
       origin:   originString,
-      protocol: this.#expressRequest.httpVersion,
+      protocol: this.protocolName,
       method,
       url:      urlForLogging,
       headers:  Request.#sanitizeRequestHeaders(headers),

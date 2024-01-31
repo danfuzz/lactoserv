@@ -105,6 +105,8 @@ describe('.portString', () => {
   });
 });
 
+// TODO: getNameAndPortString()
+
 describe('nameIsIpAddress()', () => {
   test('returns `true` given an IPv4 address for the name', () => {
     const hi = new HostInfo('1.2.3.4', 123);
@@ -133,18 +135,18 @@ describe('nameIsIpAddress()', () => {
 
 describe('localhostInstance()', () => {
   describe.each`
-  protocol   | port
-  ${'http'}  | ${80}
-  ${'https'} | ${443}
-  ${'http2'} | ${443}
-  `('for protocol $protocol (port $port)', ({ protocol, port }) => {
+  port
+  ${80}
+  ${123}
+  ${443}
+  `('for $port', ({ port }) => {
     test('constructs an instance with name `localhost`', () => {
-      const hi = HostInfo.localhostInstance(protocol);
+      const hi = HostInfo.localhostInstance(port);
       expect(hi.nameString).toBe('localhost');
     });
 
     test('constructs an instance with the expected port', () => {
-      const hi = HostInfo.localhostInstance(protocol);
+      const hi = HostInfo.localhostInstance(port);
       expect(hi.portNumber).toBe(port);
       expect(hi.portString).toBe(port.toString());
     });
@@ -159,11 +161,9 @@ ${'safeParseHostHeader'}   | ${'localhost'}
 `('$methodName', ({ methodName, onError }) => {
   // Type failure cases. These should throw even in the "safe" versions.
   test.each`
-  protocol     | host
-  ${null}      | ${'x'}
-  ${undefined} | ${'x'}
+  port         | host
   ${true}      | ${'x'}
-  ${123}       | ${'x'}
+  ${'xyz'}     | ${'x'}
   ${['boop']}  | ${'x'}
   ${new Map()} | ${'x'}
   ${'x'}       | ${null}
@@ -172,8 +172,8 @@ ${'safeParseHostHeader'}   | ${'localhost'}
   ${'x'}       | ${123}
   ${'x'}       | ${['boop']}
   ${'x'}       | ${new Map()}
-  `('throws given ($host, $protocol)', ({ protocol, host }) => {
-    expect(() => HostInfo[methodName](host, protocol)).toThrow();
+  `('throws given ($host, $port)', ({ host, port }) => {
+    expect(() => HostInfo[methodName](host, port)).toThrow();
   });
 
   // Syntactically incorrect host strings. These either throw or return
@@ -193,7 +193,7 @@ ${'safeParseHostHeader'}   | ${'localhost'}
   ${'foo.boop:-1'}
   ${'foo:123x'}
   `('fails in the expected manner for host $host', ({ host }) => {
-    const doParse = () => HostInfo[methodName](host, 'https');
+    const doParse = () => HostInfo[methodName](host, 443);
 
     switch (onError) {
       case 'localhost': {
@@ -215,23 +215,23 @@ ${'safeParseHostHeader'}   | ${'localhost'}
 
   // Success cases
   test.each`
-  protocol   | host                      | name                 | port
-  ${'http'}  | ${'x'}                    | ${'x'}               | ${80}
-  ${'https'} | ${'x'}                    | ${'x'}               | ${443}
-  ${'http2'} | ${'x'}                    | ${'x'}               | ${443}
-  ${'http'}  | ${'x:8080'}               | ${'x'}               | ${8080}
-  ${'http'}  | ${'x:443'}                | ${'x'}               | ${443}
-  ${'https'} | ${'x:8443'}               | ${'x'}               | ${8443}
-  ${'http2'} | ${'x:80'}                 | ${'x'}               | ${80}
-  ${'https'} | ${'zoop.boop.floop'}      | ${'zoop.boop.floop'} | ${443}
-  ${'https'} | ${'zoop.boop.floop:9999'} | ${'zoop.boop.floop'} | ${9999}
-  ${'http2'} | ${'192.168.55.66'}        | ${'192.168.55.66'}   | ${443}
-  ${'http2'} | ${'192.168.55.66:60001'}  | ${'192.168.55.66'}   | ${60001}
-  ${'https'} | ${'[a:b::c:d]'}           | ${'a:b::c:d'}        | ${443}
-  ${'https'} | ${'[a:b::c:d]:0'}         | ${'a:b::c:d'}        | ${0}
-  ${'http'}  | ${'[1:2::0:0:345]'}       | ${'1:2::345'}        | ${80}
-  `('works for $protocol://$host', ({ protocol, host, name, port }) => {
-    const hi = HostInfo[methodName](host, protocol);
+  localPort | host                      | name                 | port
+  ${80}     | ${'x'}                    | ${'x'}               | ${80}
+  ${123}    | ${'x'}                    | ${'x'}               | ${123}
+  ${443}    | ${'x'}                    | ${'x'}               | ${443}
+  ${6}      | ${'x:8080'}               | ${'x'}               | ${8080}
+  ${7}      | ${'x:443'}                | ${'x'}               | ${443}
+  ${8}      | ${'x:8443'}               | ${'x'}               | ${8443}
+  ${9}      | ${'x:80'}                 | ${'x'}               | ${80}
+  ${10}     | ${'zoop.boop.floop'}      | ${'zoop.boop.floop'} | ${10}
+  ${11}     | ${'zoop.boop.floop:9999'} | ${'zoop.boop.floop'} | ${9999}
+  ${12}     | ${'192.168.55.66'}        | ${'192.168.55.66'}   | ${12}
+  ${13}     | ${'192.168.55.66:60001'}  | ${'192.168.55.66'}   | ${60001}
+  ${14}     | ${'[a:b::c:d]'}           | ${'a:b::c:d'}        | ${14}
+  ${15}     | ${'[a:b::c:d]:0'}         | ${'a:b::c:d'}        | ${0}
+  ${16}     | ${'[1:2::0:0:345]'}       | ${'1:2::345'}        | ${16}
+  `('works for $host (local port $localPort)', ({ localPort, host, name, port }) => {
+    const hi = HostInfo[methodName](host, localPort);
     expect(hi.nameString).toBe(name);
     expect(hi.portNumber).toBe(port);
   });

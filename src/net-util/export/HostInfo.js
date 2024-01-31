@@ -77,6 +77,11 @@ export class HostInfo {
     return this.#nameString;
   }
 
+  /** @returns {string} The name and port, colon-separated. */
+  get namePortString() {
+    return `${this.#nameString}:${this.#portNumber}`;
+  }
+
   /** @returns {number} The port number. */
   get portNumber() {
     return this.#portNumber;
@@ -89,6 +94,19 @@ export class HostInfo {
     }
 
     return this.#portString;
+  }
+
+  /**
+   * Gets the name-and-port string, colon separated, except without the port if
+   * it is equal to the given one.
+   *
+   * @param {?number} [portToElide] Port to _not_ include in the result.
+   * @returns {string} The name-and-port string.
+   */
+  getNamePortString(portToElide = null) {
+    return (this.#portNumber === portToElide)
+      ? this.#nameString
+      : this.namePortString;
   }
 
   /**
@@ -113,26 +131,32 @@ export class HostInfo {
    * Gets an instance of this class representing `localhost` with the given
    * protocol.
    *
-   * @param {string} protocol The network protocol used.
+   * @param {?number} [localPort] Local port being listened on, if known.
    * @returns {HostInfo} The constructed instance.
    */
-  static localhostInstance(protocol) {
-    return new HostInfo('localhost', (protocol === 'http') ? 80 : 443);
+  static localhostInstance(localPort = null) {
+    if (localPort !== null) {
+      MustBe.number(localPort);
+    } else {
+      localPort = 0;
+    }
+
+    return new HostInfo('localhost', localPort);
   }
 
   /**
    * Constructs an instance of this class by parsing a string in the format
-   * used by the `Host` header of an HTTP(ish) request. The incoming protocol
-   * is also required, so as to be able to figure out the port number if not
-   * included in the string.
+   * used by the `Host` header of an HTTP(ish) request. The local port number,
+   * if provided, is used when there is no explicit port number in `hostString`;
+   * if needed and not provided, it is treated as if it is `0`.
    *
    * @param {string} hostString The `Host` header string to parse.
-   * @param {string} protocol The network protocol used.
+   * @param {?number} [localPort] Local port being listened on, if known.
    * @returns {HostInfo} The parsed info.
    * @throws {Error} Thrown if there was parsing trouble.
    */
-  static parseHostHeader(hostString, protocol) {
-    const result = this.parseHostHeaderOrNull(hostString, protocol);
+  static parseHostHeader(hostString, localPort = null) {
+    const result = this.parseHostHeaderOrNull(hostString, localPort);
 
     if (!result) {
       throw this.#parsingError(hostString);
@@ -146,13 +170,18 @@ export class HostInfo {
    * parse.
    *
    * @param {string} hostString The `Host` header string to parse.
-   * @param {string} protocol The network protocol used.
+   * @param {?number} [localPort] Local port being listened on, if known.
    * @returns {?HostInfo} The parsed info, or `null` if `hostString` was
    *   syntactically invalid.
    */
-  static parseHostHeaderOrNull(hostString, protocol) {
+  static parseHostHeaderOrNull(hostString, localPort = null) {
     MustBe.string(hostString);
-    MustBe.string(protocol);
+
+    if (localPort !== null) {
+      MustBe.number(localPort);
+    } else {
+      localPort = 0;
+    }
 
     // Basic top-level parse.
     const topParse =
@@ -172,7 +201,7 @@ export class HostInfo {
     }
 
     if (!port) {
-      return new HostInfo(canonicalHostname, (protocol === 'http') ? 80 : 443);
+      return new HostInfo(canonicalHostname, localPort);
     } else {
       const portNumber = parseInt(port);
       if (portNumber > 65535) {
@@ -189,12 +218,12 @@ export class HostInfo {
    * just crashing).
    *
    * @param {string} hostString The `Host` header string to parse.
-   * @param {string} protocol The network protocol used.
+   * @param {?number} [localPort] Local port being listened on, if known.
    * @returns {HostInfo} The parsed info.
    */
-  static safeParseHostHeader(hostString, protocol) {
-    return this.parseHostHeaderOrNull(hostString, protocol)
-      ?? this.localhostInstance(protocol);
+  static safeParseHostHeader(hostString, localPort = null) {
+    return this.parseHostHeaderOrNull(hostString, localPort)
+      ?? this.localhostInstance(localPort);
   }
 
   /**
