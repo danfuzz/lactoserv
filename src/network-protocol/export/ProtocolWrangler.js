@@ -63,6 +63,9 @@ export class ProtocolWrangler {
    */
   #logHelper;
 
+  /** @type {object} Return value for {@link #interface}. */
+  #interfaceObject;
+
   /**
    * @type {AsyncLocalStorage} Per-connection storage, used to plumb connection
    * context through to the various objects that use the connection.
@@ -113,6 +116,7 @@ export class ProtocolWrangler {
   constructor(options) {
     const {
       hostManager,
+      interface: interfaceConfig,
       logger,
       rateLimiter,
       requestHandler,
@@ -126,10 +130,24 @@ export class ProtocolWrangler {
     this.#logHelper      = requestLogger ? new RequestLogHelper(requestLogger) : null;
     this.#serverHeader   = ProtocolWrangler.#makeServerHeader();
 
+    this.#interfaceObject = Object.freeze({
+      address: interfaceConfig.address,
+      port:    interfaceConfig.port
+    });
+
     // Confusion alert!: This is not the same as the `requestLogger` (a "request
     // logger") per se) passed in as an option. This is the sub-logger of the
     // _system_ logger, which is used for detailed logging inside `Request`.
     this.#requestLogger = logger?.req ?? null;
+  }
+
+  /**
+   * @returns {{ address: string, port: number }} The IP address and port of
+   * the interface which this instance listens on. This is always a frozen
+   * object.
+   */
+  get interface() {
+    return this.#interfaceObject;
   }
 
   /**
