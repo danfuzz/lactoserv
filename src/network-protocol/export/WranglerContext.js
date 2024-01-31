@@ -38,7 +38,23 @@ export class WranglerContext {
   /** @type {?Request} Request. */
   #request = null;
 
-  // Note: The default constructor is fine here.
+  /**
+   * Constructs an instance.
+   *
+   * @param {WranglerContext} [source] Source instance to copy from, if any.
+   *   If `null`, the new instance is empty.
+   */
+  constructor(source = null) {
+    if (source) {
+      this.#wrangler         = source.#wrangler;
+      this.#socket           = source.#socket;
+      this.#connectionId     = source.#connectionId;
+      this.#connectionLogger = source.#connectionLogger;
+      this.#sessionLogger    = source.#sessionLogger;
+      this.#sessionId        = source.#sessionId;
+      this.#request          = source.#request;
+    }
+  }
 
   /** @returns {?string} ID of a connection. */
   get connectionId() {
@@ -166,16 +182,7 @@ export class WranglerContext {
    * @returns {WranglerContext} An appropriately-constructed instance.
    */
   static forRequest(outerContext, request) {
-    const ctx = new WranglerContext();
-
-    if (outerContext) {
-      ctx.#wrangler         = outerContext.#wrangler;
-      ctx.#socket           = outerContext.#socket;
-      ctx.#connectionLogger = outerContext.#connectionLogger;
-      ctx.#connectionId     = outerContext.#connectionId;
-      ctx.#sessionLogger    = outerContext.#sessionLogger;
-      ctx.#sessionId        = outerContext.#sessionId;
-    }
+    const ctx = new WranglerContext(outerContext);
 
     ctx.#request = request;
 
@@ -191,14 +198,7 @@ export class WranglerContext {
    * @returns {WranglerContext} An appropriately-constructed instance.
    */
   static forSession(outerContext, logger) {
-    const ctx = new WranglerContext();
-
-    if (outerContext) {
-      ctx.#wrangler         = outerContext.#wrangler;
-      ctx.#socket           = outerContext.#socket;
-      ctx.#connectionLogger = outerContext.#connectionLogger;
-      ctx.#connectionId     = outerContext.#connectionId;
-    }
+    const ctx = new WranglerContext(outerContext);
 
     if (logger) {
       ctx.#sessionLogger = logger;
