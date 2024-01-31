@@ -73,6 +73,15 @@ describe('.nameString', () => {
   });
 });
 
+describe('.namePortString', () => {
+  test('gets the name and port that were passed in the constructor', () => {
+    const name = 'floop.florp';
+    const hi   = new HostInfo(name, 123);
+
+    expect(hi.namePortString).toBe('floop.florp:123');
+  });
+});
+
 describe('.portNumber', () => {
   test('gets the port number-per-se that was passed in the constructor', () => {
     const port = 5432;
@@ -105,7 +114,28 @@ describe('.portString', () => {
   });
 });
 
-// TODO: getNameAndPortString()
+describe('getNamePortString()', () => {
+  test('does not skip the port if it does not match', () => {
+    const name = 'bonk.boop';
+    const hi   = new HostInfo(name, 111);
+
+    expect(hi.getNamePortString(9)).toBe('bonk.boop:111');
+  });
+
+  test('does not skip the port if `localPort` is not passed', () => {
+    const name = 'bonk.boop';
+    const hi   = new HostInfo(name, 111);
+
+    expect(hi.getNamePortString()).toBe('bonk.boop:111');
+  });
+
+  test('skips the port if it matches', () => {
+    const name = 'bonk.boop';
+    const hi   = new HostInfo(name, 111);
+
+    expect(hi.getNamePortString(111)).toBe('bonk.boop');
+  });
+});
 
 describe('nameIsIpAddress()', () => {
   test('returns `true` given an IPv4 address for the name', () => {
