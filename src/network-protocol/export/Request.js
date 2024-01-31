@@ -13,7 +13,7 @@ import statuses from 'statuses';
 
 import { ManualPromise } from '@this/async';
 import { TreePathKey } from '@this/collections';
-import { IntfLogger } from '@this/loggy';
+import { FormatUtils, IntfLogger } from '@this/loggy';
 import { Cookies, HostInfo, HttpHeaders, HttpUtil, MimeTypes }
   from '@this/net-util';
 import { AskIf, MustBe } from '@this/typey';
@@ -230,6 +230,19 @@ export class Request {
   }
 
   /**
+   * @returns {?{ address: string, port: number }} The IP address and port of
+   * the origin (remote side) of the request, if known. `null` if not known.
+   */
+  get origin() {
+    const {
+      remoteAddress: address,
+      remotePort: port
+    } = this.#outerContext.socket ?? {};
+
+    return address ? { address, port } : null;
+  }
+
+  /**
    * @returns {?TreePathKey} Parsed path key form of {@link #pathnameString}, or
    * `null` if this instance doesn't represent a usual `origin` request.
    *
@@ -339,16 +352,20 @@ export class Request {
       cookies,
       headers,
       method,
+      origin,
       urlForLogging
     } = this;
 
-    const origin = this.#outerContext.socketAddressPort ?? '<unknown>';
+    const originString = origin
+      ? FormatUtils.addressPortString(origin.address, origin.port)
+      : '<unknown>';
 
     const result = {
-      origin,
+      origin:   originString,
+      protocol: this.#expressRequest.httpVersion,
       method,
-      url: urlForLogging,
-      headers: Request.#sanitizeRequestHeaders(headers),
+      url:      urlForLogging,
+      headers:  Request.#sanitizeRequestHeaders(headers),
     };
 
     if (cookies.size !== 0) {

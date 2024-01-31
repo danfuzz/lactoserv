@@ -99,15 +99,6 @@ export class WranglerContext {
     return this.#socket;
   }
 
-  /**
-   * @returns {string} Loggable form of the remote address and port from the
-   * {@link #socket}, if and as available.
-   */
-  get socketAddressPort() {
-    const { remoteAddress, remotePort } = this.#socket ?? {};
-    return FormatUtils.addressPortString(remoteAddress, remotePort);
-  }
-
 
   //
   // Static members
