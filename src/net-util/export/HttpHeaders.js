@@ -77,11 +77,14 @@ export class HttpHeaders extends Headers {
    * This method is meant to make it easy to call `setHeader()` on an HTTP(ish)
    * response object.
    *
-   * @param {string} httpVersion HTTP version string, e.g. `1.1` or `2.0`.
+   * @param {string|number} httpVersion HTTP version string (e.g. `'1.1'` or
+   *   `'2.0'`) or major version number (e.g. `2`).
    * @yields {Array} Entry with appropriately-cased name.
    */
   *entriesForVersion(httpVersion) {
-    const classicNaming = (httpVersion[0] === '1');
+    const classicNaming = (typeof httpVersion === 'string')
+      ? (httpVersion[0] <= '1')
+      : (httpVersion <= 1);
 
     let gotSetCookie = false;
     for (const [name, value] of this) {

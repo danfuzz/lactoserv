@@ -178,28 +178,41 @@ describe('appendSetCookie()', () => {
 });
 
 describe('entriesForVersion()', () => {
-  test('works for version 1 (smoke test)', () => {
+  test.each`
+  label             | arg
+  ${'string `0.9`'} | ${'0.9'}
+  ${'string `1.0`'} | ${'1.0'}
+  ${'string `1.1`'} | ${'1.1'}
+  ${'number `0`'}   | ${0}
+  ${'number `1`'}   | ${1}
+  `('returns classic names given $label', ({ arg }) => {
     const hh = new HttpHeaders({
       'beep-BOOP':  ['10', '20'],
       'EtAg':       '"zonk"',
       'SET-cookie': ['a=123', 'b=456']
     });
 
-    expect([...(hh.entriesForVersion('1.1'))]).toIncludeSameMembers([
+    expect([...(hh.entriesForVersion(arg))]).toIncludeSameMembers([
       ['Beep-Boop',  '10, 20'],
       ['ETag',       '"zonk"'],
       ['Set-Cookie', ['a=123', 'b=456']]
     ]);
   });
 
-  test('works for version 2 (smoke test)', () => {
+  test.each`
+  label             | arg
+  ${'string `2.0`'} | ${'2.0'}
+  ${'string `2.1`'} | ${'2.1'}
+  ${'number `2`'}   | ${2}
+  ${'number `3`'}   | ${3}
+  `('returns modern names given $label', ({ arg }) => {
     const hh = new HttpHeaders({
       'beep-BOOP':  ['10', '20'],
       'EtAg':       '"zonk"',
       'SET-cookie': ['a=123', 'b=456']
     });
 
-    expect([...(hh.entriesForVersion('2.0'))]).toIncludeSameMembers([
+    expect([...(hh.entriesForVersion(arg))]).toIncludeSameMembers([
       ['beep-boop',  '10, 20'],
       ['etag',       '"zonk"'],
       ['set-cookie', ['a=123', 'b=456']]
