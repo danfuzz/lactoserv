@@ -38,6 +38,39 @@ describe('classicHeaderNameFrom()', () => {
   });
 });
 
-// TODO: responseBodyIsAllowedFor()
-// TODO: responseBodyIsRequiredFor()
-// TODO: responseIsCacheableFor()
+describe.each`
+methodName                     | expName
+${'responseBodyIsAllowedFor'}  | ${'expAllowed'}
+${'responseBodyIsRequiredFor'} | ${'expRequired'}
+`('$methodName()', ({ methodName, expName }) => {
+  test.each`
+  method    | status | expAllowed | expRequired
+  ${'head'} | ${100} | ${false}   | ${false}
+  ${'HEAD'} | ${200} | ${false}   | ${false}
+  ${'HEAD'} | ${200} | ${false}   | ${false}
+  ${'head'} | ${204} | ${false}   | ${false}
+  ${'head'} | ${205} | ${false}   | ${false}
+  ${'head'} | ${300} | ${false}   | ${false}
+  ${'head'} | ${306} | ${false}   | ${false}
+  ${'head'} | ${400} | ${true}    | ${false}
+  ${'head'} | ${500} | ${true}    | ${false}
+  ${'head'} | ${599} | ${true}    | ${false}
+  ${'get'}  | ${100} | ${false}   | ${false}
+  ${'post'} | ${101} | ${false}   | ${false}
+  ${'GET'}  | ${200} | ${true}    | ${true}
+  ${'get'}  | ${206} | ${true}    | ${true}
+  ${'POST'} | ${200} | ${true}    | ${true}
+  ${'POST'} | ${206} | ${true}    | ${true}
+  ${'get'}  | ${204} | ${false}   | ${false}
+  ${'get'}  | ${205} | ${false}   | ${false}
+  ${'get'}  | ${304} | ${false}   | ${false}
+  `('works for ($method, $status)', (args) => {
+    const { method, status } = args;
+    const expected = args[expName];
+    expect(HttpUtil[methodName](method, status)).toBe(expected);
+  });
+});
+
+describe('responseIsCacheableFor()', () => {
+  // TODO
+});
