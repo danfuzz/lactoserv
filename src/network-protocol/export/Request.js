@@ -1067,8 +1067,17 @@ export class Request {
   /**
    * Writes and finishes a response. This does not do anything to adjust the
    * status code, headers, or body. That said, this _does_ do a modicum of error
-   * checking, and will throw if `body !== null` and the `statusCode` or
-   * request method definitely indicates that a body shouldn't be present.
+   * checking, and will throw:
+   *
+   * * if `body !== null` and...
+   *   * the request method was `HEAD` and the status is successful (`2xx`).
+   *   * the `statusCode` definitely indicates that a body shouldn't be present.
+   *   * either the `content-type` or `content-length` header is missing.
+   * * if `body === null` and...
+   *   * either the `content-type` or `content-length` header is present.
+   *
+   * To be clear, this is far from an exhaustive list of possible error checks.
+   * It is meant to catch the most common and blatant caller problems.
    *
    * @param {number} status The HTTP(ish) status code.
    * @param {HttpHeaders} headers Response headers.
@@ -1077,10 +1086,16 @@ export class Request {
    */
   async #writeCompleteResponse(status, headers, body = null) {
     if (body) {
-      if ((status === 204) || (status === 205) || (status === 304)) {
-        throw new Error(`Non-null body incompatible with status code: ${status}`);
-      } else if ((this.#requestMethod === 'head') && (status === 200)) {
-        throw new Error(`Non-null body incompatible with successful HEAD response.`);
+      if (!HttpUtil.responseBodyIsAllowedFor(this.#requestMethod, status)) {
+        throw new Error(`Non-null body incompatible with \`${this.#requestMethod}\` and status ${status}.`);
+      } else if (!headers.hasAll('content-length', 'content-type')) {
+        throw new Error('Non-null body requires `content-*` headers.');
+      }
+    } else {
+      if (HttpUtil.responseBodyIsRequiredFor(this.#requestMethod, status)) {
+        throw new Error(`Null body incompatible with \`${this.#requestMethod}\` and status ${status}.`);
+      } else if (headers.hasAny('content-length', 'content-type')) {
+        throw new Error('Null body incompatible with `content-*` headers.');
       }
     }
 
