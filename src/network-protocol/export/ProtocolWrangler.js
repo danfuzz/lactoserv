@@ -461,17 +461,10 @@ export class ProtocolWrangler {
   #incomingRequest(req, res) {
     let logger = this.#logger;
     const {
-      httpVersion,
-      httpVersionMajor,
       socket,
       stream,
       url
     } = req;
-
-    // TODO: The protocol determination should get done by the concrete
-    // wrangler subclasses.
-    const { alpnProtocol } = (httpVersionMajor >= 2) ? stream.session : req;
-    const protocolName     = (alpnProtocol === 'h2') ? 'http2' : `http${httpVersion}`;
 
     const context = WranglerContext.get(socket, stream?.session);
 
@@ -491,7 +484,6 @@ export class ProtocolWrangler {
     try {
       logger?.incomingRequest({
         ids: context.ids,
-        protocol: protocolName,
         url
       });
 
