@@ -163,18 +163,6 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Initializes the instance. After this is called and (asynchronously)
-   * returns, both {@link #_impl_application} and {@link #_impl_server} should
-   * work without error. This can get called more than once; the second and
-   * subsequent times should be considered a no-op.
-   *
-   * @abstract
-   */
-  async _impl_initialize() {
-    Methods.abstract();
-  }
-
-  /**
    * Gets the (Express-like) application instance.
    *
    * @abstract
@@ -209,6 +197,18 @@ export class ProtocolWrangler {
    */
   async _impl_applicationStop(willReload) {
     Methods.abstract(willReload);
+  }
+
+  /**
+   * Initializes the instance. After this is called and (asynchronously)
+   * returns, both {@link #_impl_application} and {@link #_impl_server} should
+   * work without error. This can get called more than once; the second and
+   * subsequent times should be considered a no-op.
+   *
+   * @abstract
+   */
+  async _impl_initialize() {
+    Methods.abstract();
   }
 
   /**
