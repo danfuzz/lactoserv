@@ -149,6 +149,12 @@ const applications = [
     class:       'SimpleResponse',
     contentType: 'text/plain',
     body:        'One!\n'
+  },
+  {
+    name:        'responseTwo',
+    class:       'SimpleResponse',
+    contentType: 'text/html',
+    body:        '<html><body><h1>Two!</h1></body></html>\n'
   }
 ];
 
@@ -199,6 +205,10 @@ const endpoints = [
       {
         application: 'responseOne',
         at:          ['//*/resp/one/']
+      },
+      {
+        application: 'responseTwo',
+        at:          ['//*/resp/two/']
       }
     ]
   },

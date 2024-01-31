@@ -13,8 +13,9 @@ import statuses from 'statuses';
 
 import { ManualPromise } from '@this/async';
 import { TreePathKey } from '@this/collections';
-import { IntfLogger } from '@this/loggy';
-import { Cookies, HostInfo, HttpHeaders, MimeTypes } from '@this/net-util';
+import { FormatUtils, IntfLogger } from '@this/loggy';
+import { Cookies, HostInfo, HttpHeaders, HttpUtil, MimeTypes }
+  from '@this/net-util';
 import { AskIf, MustBe } from '@this/typey';
 
 import { WranglerContext } from '#x/WranglerContext';
@@ -79,6 +80,9 @@ export class Request {
   /** @type {ServerResponse|express.Response} HTTP(ish) response object. */
   #expressResponse;
 
+  /** @type {string} The protocol name. */
+  #protocolName;
+
   /** @type {string} The request method, downcased. */
   #requestMethod;
 
@@ -122,6 +126,7 @@ export class Request {
     this.#expressRequest  = MustBe.object(request);
     this.#expressResponse = MustBe.object(response);
     this.#requestMethod   = request.method.toLowerCase();
+    this.#protocolName    = `http-${request.httpVersion}`;
 
     if (logger) {
       this.#id     = logger.$meta.makeId();
@@ -167,15 +172,8 @@ export class Request {
    * by Node's `IncomingMessage.headers`.
    */
   get headers() {
+    // TODO: This should be a `HttpHeaders` object.
     return this.#expressRequest.headers;
-  }
-
-  /**
-   * @returns {object} Map of all incoming headers to their values, as defined
-   * by Node's `IncomingMessage.headersDistinct`.
-   */
-  get headersDistinct() {
-    return this.#expressRequest.headersDistinct;
   }
 
   /**
@@ -189,15 +187,15 @@ export class Request {
 
       // Note: `authority` is used by HTTP2.
       const { authority } = req;
-      const protocol      = this.protocol;
+      const localPort     = this.#outerContext.wrangler.interface.port;
 
       if (authority) {
-        this.#host = HostInfo.safeParseHostHeader(authority, protocol);
+        this.#host = HostInfo.safeParseHostHeader(authority, localPort);
       } else {
         const host = this.getHeaderOrNull('host');
         this.#host = host
-          ? HostInfo.safeParseHostHeader(host, protocol)
-          : HostInfo.localhostInstance(protocol);
+          ? HostInfo.safeParseHostHeader(host, localPort)
+          : HostInfo.localhostInstance(localPort);
       }
     }
 
@@ -229,6 +227,19 @@ export class Request {
   }
 
   /**
+   * @returns {?{ address: string, port: number }} The IP address and port of
+   * the origin (remote side) of the request, if known. `null` if not known.
+   */
+  get origin() {
+    const {
+      remoteAddress: address,
+      remotePort: port
+    } = this.#outerContext.socket ?? {};
+
+    return address ? { address, port } : null;
+  }
+
+  /**
    * @returns {?TreePathKey} Parsed path key form of {@link #pathnameString}, or
    * `null` if this instance doesn't represent a usual `origin` request.
    *
@@ -256,13 +267,19 @@ export class Request {
     return this.#parsedTarget.pathnameString ?? null;
   }
 
-  /** @returns {string} The name of the protocol which spawned this instance. */
-  get protocol() {
-    // Note: `.protocol` is an Express-specific property, and it's got a pretty
-    // ad-hoc definition, that we'd be better off improving upon. TODO: Do that!
-    // Specifically, every instance of this class effectively has an associated
-    // `ProtocolWrangler` instance, and that could expose a `protocolName`.
-    return this.#expressRequest.protocol;
+  /**
+   * @returns {string} The name of the protocol which this instance is using.
+   * This is generally a string starting with `http-` and ending with the
+   * dotted version. This corresponds to the (unencrypted) protocol being used
+   * over the (possibly encrypted) transport, and has nothing to do _per se_
+   * with the port number which the remote side of this request connected to in
+   * order to send the request.
+   */
+  get protocolName() {
+    // Note: Express defines `.protocol` with fairly different semantics, as
+    // being either `http` or `https`, which is really more about the
+    // _transport_ than the protocol.
+    return this.#protocolName;
   }
 
   /**
@@ -299,18 +316,18 @@ export class Request {
 
   /**
    * @returns {string} A reasonably-suggestive but possibly incomplete
-   * representation of the incoming request, in the form of a URL. This is meant
-   * for logging, and specifically _not_ for any routing or other more
-   * meaningful computation (hence the name).
+   * representation of the incoming request, in the form of a protocol-less URL.
+   * This is meant for logging, and specifically _not_ for any routing or other
+   * more meaningful computation (hence the name).
    */
   get urlForLogging() {
-    const { protocol, host }     = this;
+    const { host }               = this;
     const { targetString, type } = this.#parsedTarget;
-    const protoHost              = `${protocol}://${host.nameString}`;
+    const prefix                 = `//${host.namePortString}`;
 
     return (type === 'origin')
-      ? `${protoHost}${targetString}`
-      : `${protoHost}:${type}=${targetString}`;
+      ? `${prefix}${targetString}`
+      : `${prefix}:${type}=${targetString}`;
   }
 
   /**
@@ -338,16 +355,20 @@ export class Request {
       cookies,
       headers,
       method,
+      origin,
       urlForLogging
     } = this;
 
-    const origin = this.#outerContext.socketAddressPort ?? '<unknown>';
+    const originString = origin
+      ? FormatUtils.addressPortString(origin.address, origin.port)
+      : '<unknown>';
 
     const result = {
-      origin,
+      origin:   originString,
+      protocol: this.protocolName,
       method,
-      url: urlForLogging,
-      headers: Request.#sanitizeRequestHeaders(headers),
+      url:      urlForLogging,
+      headers:  Request.#sanitizeRequestHeaders(headers),
     };
 
     if (cookies.size !== 0) {
@@ -532,7 +553,8 @@ export class Request {
     } else {
       const rangeInfo = this.#rangeInfo(bodyBuffer.length, headers);
       if (rangeInfo.error) {
-        return this.#sendNonContentResponse(rangeInfo.status, { headers: rangeInfo.headers });
+        return this.#sendNonContentResponseWithMessageBody(
+          rangeInfo.status, { headers: rangeInfo.headers });
       } else {
         headers.appendAll(rangeInfo.headers);
         bodyBuffer = bodyBuffer.subarray(rangeInfo.start, rangeInfo.end);
@@ -564,7 +586,7 @@ export class Request {
       ? { contentType, body }
       : { bodyExtra: `  ${this.targetString}\n` };
 
-    return this.#sendNonContentResponse(statusCode, sendOpts);
+    return this.#sendNonContentResponseWithMessageBody(statusCode, sendOpts);
   }
 
   /**
@@ -646,7 +668,7 @@ export class Request {
       // competing versions of the `http-error` package due to NPM version
       // "fun.")
       if (e.expose && typeof e.status === 'number') {
-        return this.#sendNonContentResponse(e.status, {
+        return this.#sendNonContentResponseWithMessageBody(e.status, {
           bodyExtra: e.message,
           headers:   e.headers ?? {}
         });
@@ -721,7 +743,7 @@ export class Request {
 
     MustBe.string(target);
 
-    return this.#sendNonContentResponse(status, {
+    return this.#sendNonContentResponseWithMessageBody(status, {
       bodyExtra: `  ${target}\n`,
       headers:   { 'Location': target }
     });
@@ -956,11 +978,14 @@ export class Request {
   }
 
   /**
-   * Sends a response of the given status, with various options for the response
-   * headers and body. The response headers always get set to make the response
-   * _not_ be cacheable. This method is intended to be used for all "meta-ish"
+   * Sends a response of the given status with a body either as given or
+   * generated by default. This method is intended to be used for all "meta-ish"
    * non-content responses, such as not-founds, redirects, etc., so as to
    * provide a standard form of response (though with some flexibility).
+   *
+   * This method should _not_ be used for status codes that aren't ever supposed
+   * to have a body at all. That said, when the request method is `head`, this
+   * method will avoid sending a response body when appropriate.
    *
    * @param {number} status The status code.
    * @param {?object} [options] Options for the response.
@@ -974,14 +999,29 @@ export class Request {
    * @param {?object} [options.headers] Extra response headers to send, if any.
    * @returns {Promise<boolean>} `true` when the response is completed.
    */
-  #sendNonContentResponse(status, options = null) {
+  #sendNonContentResponseWithMessageBody(status, options = null) {
     MustBe.number(status, { safeInteger: true, minInclusive: 0, maxInclusive: 599 });
     const { body, bodyExtra, contentType } = options ?? {};
+
+    // Why `get`? Because that one's permissive, and we don't want to throw
+    // unless a body is strictly disallowed. But then below, we figure out
+    // whether to _actually_ send a body based on the real method.
+    if (!HttpUtil.responseBodyIsAllowedFor('get', status)) {
+      throw new Error(`Cannot call with status code: ${status}`);
+    }
+
+    const headers = Request.#makeResponseHeaders(options, {
+      'cache-control': () => 'no-store, must-revalidate'
+    });
 
     let finalBody;
     let finalContentType;
 
-    if (body) {
+    if (!HttpUtil.responseBodyIsAllowedFor(this.#requestMethod, status)) {
+      // It's probably a HEAD request for something like a redirect.
+      finalBody        = null;
+      finalContentType = null;
+    } else if (body) {
       if (!contentType) {
         throw new Error('Missing `contentType`.');
       }
@@ -1001,13 +1041,15 @@ export class Request {
       finalContentType = 'text/plain';
     }
 
-    const headers = Request.#makeResponseHeaders(options, {
-      'cache-control': () => 'no-store, must-revalidate',
-      'content-type':  () => finalContentType
-    });
+    if (finalBody) {
+      if (typeof finalBody === 'string') {
+        finalBody = Buffer.from(finalBody);
+      }
+      headers.set('content-length', finalBody.length);
+      headers.set('content-type',   finalContentType);
+    }
 
-    const bodyToSend = (this.method === 'head') ? null : finalBody;
-    return this.#writeCompleteResponse(status, headers, bodyToSend);
+    return this.#writeCompleteResponse(status, headers, finalBody);
   }
 
   /**
@@ -1036,7 +1078,7 @@ export class Request {
     //   forces header names to lower case. Though not against the spec, it is
     //   atypical to send lowercased headers in HTTP1.
 
-    const entries = headers.entriesForVersion(this.#expressRequest.httpVersion);
+    const entries = headers.entriesForVersion(this.#expressRequest.httpVersionMajor);
     for (const [name, value] of entries) {
       res.setHeader(name, value);
     }
@@ -1045,8 +1087,17 @@ export class Request {
   /**
    * Writes and finishes a response. This does not do anything to adjust the
    * status code, headers, or body. That said, this _does_ do a modicum of error
-   * checking, and will throw if `body !== null` and the `statusCode` or
-   * request method definitely indicates that a body shouldn't be present.
+   * checking, and will throw:
+   *
+   * * if `body !== null` and...
+   *   * the request method was `HEAD` and the status is successful (`2xx`).
+   *   * the `statusCode` definitely indicates that a body shouldn't be present.
+   *   * either the `content-type` or `content-length` header is missing.
+   * * if `body === null` and...
+   *   * either the `content-type` or `content-length` header is present.
+   *
+   * To be clear, this is far from an exhaustive list of possible error checks.
+   * It is meant to catch the most common and blatant caller problems.
    *
    * @param {number} status The HTTP(ish) status code.
    * @param {HttpHeaders} headers Response headers.
@@ -1055,10 +1106,16 @@ export class Request {
    */
   async #writeCompleteResponse(status, headers, body = null) {
     if (body) {
-      if ((status === 204) || (status === 205) || (status === 304)) {
-        throw new Error(`Non-null body incompatible with status code: ${status}`);
-      } else if ((this.#requestMethod === 'head') && (status === 200)) {
-        throw new Error(`Non-null body incompatible with successful HEAD response.`);
+      if (!HttpUtil.responseBodyIsAllowedFor(this.#requestMethod, status)) {
+        throw new Error(`Non-null body incompatible with \`${this.#requestMethod}\` and status ${status}.`);
+      } else if (!headers.hasAll('content-length', 'content-type')) {
+        throw new Error('Non-null body requires `content-*` headers.');
+      }
+    } else {
+      if (HttpUtil.responseBodyIsRequiredFor(this.#requestMethod, status)) {
+        throw new Error(`Null body incompatible with \`${this.#requestMethod}\` and status ${status}.`);
+      } else if (headers.hasAny('content-length', 'content-type')) {
+        throw new Error('Null body incompatible with `content-*` headers.');
       }
     }
 

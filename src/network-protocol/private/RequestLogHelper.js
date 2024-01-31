@@ -84,6 +84,7 @@ export class RequestLogHelper {
     const requestLogLine = [
       endTime.toString({ decimals: 4 }),
       reqInfo.origin,
+      reqInfo.protocol,
       reqInfo.method,
       JSON.stringify(reqInfo.url),
       statusCode,

@@ -4,8 +4,9 @@
 import * as net from 'node:net';
 import * as stream from 'node:stream';
 
-import { FormatUtils, IntfLogger } from '@this/loggy';
+import { IntfLogger } from '@this/loggy';
 
+import { ProtocolWrangler } from '#x/ProtocolWrangler';
 import { Request } from '#x/Request';
 
 
@@ -14,6 +15,11 @@ import { Request } from '#x/Request';
  * module, along with accessors to get at that context.
  */
 export class WranglerContext {
+  /**
+   * @type {ProtocolWrangler} Wrangler instance responsible for this context.
+   */
+  #wrangler = null;
+
   /** @type {?net.Socket} Unencrypted socket associated with a connection. */
   #socket = null;
 
@@ -32,7 +38,23 @@ export class WranglerContext {
   /** @type {?Request} Request. */
   #request = null;
 
-  // Note: The default constructor is fine here.
+  /**
+   * Constructs an instance.
+   *
+   * @param {WranglerContext} [source] Source instance to copy from, if any.
+   *   If `null`, the new instance is empty.
+   */
+  constructor(source = null) {
+    if (source) {
+      this.#wrangler         = source.#wrangler;
+      this.#socket           = source.#socket;
+      this.#connectionId     = source.#connectionId;
+      this.#connectionLogger = source.#connectionLogger;
+      this.#sessionLogger    = source.#sessionLogger;
+      this.#sessionId        = source.#sessionId;
+      this.#request          = source.#request;
+    }
+  }
 
   /** @returns {?string} ID of a connection. */
   get connectionId() {
@@ -100,12 +122,10 @@ export class WranglerContext {
   }
 
   /**
-   * @returns {string} Loggable form of the remote address and port from the
-   * {@link #socket}, if and as available.
+   * @returns {ProtocolWrangler} Wrangler instance responsible for this context.
    */
-  get socketAddressPort() {
-    const { remoteAddress, remotePort } = this.#socket ?? {};
-    return FormatUtils.addressPortString(remoteAddress, remotePort);
+  get wrangler() {
+    return this.#wrangler;
   }
 
 
@@ -133,14 +153,17 @@ export class WranglerContext {
   /**
    * Makes a new instance of this class for a connection.
    *
+   * @param {ProtocolWrangler} wrangler The wrangler instance which is managing
+   *   the `socket`.
    * @param {net.Socket} socket The raw socket for the connection.
    * @param {?IntfLogger} logger The connection logger, if any.
    * @returns {WranglerContext} An appropriately-constructed instance.
    */
-  static forConnection(socket, logger) {
+  static forConnection(wrangler, socket, logger) {
     const ctx = new WranglerContext();
 
-    ctx.#socket = socket;
+    ctx.#wrangler = wrangler;
+    ctx.#socket   = socket;
 
     if (logger) {
       ctx.#connectionLogger = logger;
@@ -159,15 +182,7 @@ export class WranglerContext {
    * @returns {WranglerContext} An appropriately-constructed instance.
    */
   static forRequest(outerContext, request) {
-    const ctx = new WranglerContext();
-
-    if (outerContext) {
-      ctx.#socket           = outerContext.#socket;
-      ctx.#connectionLogger = outerContext.#connectionLogger;
-      ctx.#connectionId     = outerContext.#connectionId;
-      ctx.#sessionLogger    = outerContext.#sessionLogger;
-      ctx.#sessionId        = outerContext.#sessionId;
-    }
+    const ctx = new WranglerContext(outerContext);
 
     ctx.#request = request;
 
@@ -183,13 +198,7 @@ export class WranglerContext {
    * @returns {WranglerContext} An appropriately-constructed instance.
    */
   static forSession(outerContext, logger) {
-    const ctx = new WranglerContext();
-
-    if (outerContext) {
-      ctx.#socket           = outerContext.#socket;
-      ctx.#connectionLogger = outerContext.#connectionLogger;
-      ctx.#connectionId     = outerContext.#connectionId;
-    }
+    const ctx = new WranglerContext(outerContext);
 
     if (logger) {
       ctx.#sessionLogger = logger;

@@ -63,6 +63,9 @@ export class ProtocolWrangler {
    */
   #logHelper;
 
+  /** @type {object} Return value for {@link #interface}. */
+  #interfaceObject;
+
   /**
    * @type {AsyncLocalStorage} Per-connection storage, used to plumb connection
    * context through to the various objects that use the connection.
@@ -113,6 +116,7 @@ export class ProtocolWrangler {
   constructor(options) {
     const {
       hostManager,
+      interface: interfaceConfig,
       logger,
       rateLimiter,
       requestHandler,
@@ -126,10 +130,24 @@ export class ProtocolWrangler {
     this.#logHelper      = requestLogger ? new RequestLogHelper(requestLogger) : null;
     this.#serverHeader   = ProtocolWrangler.#makeServerHeader();
 
+    this.#interfaceObject = Object.freeze({
+      address: interfaceConfig.address,
+      port:    interfaceConfig.port
+    });
+
     // Confusion alert!: This is not the same as the `requestLogger` (a "request
     // logger") per se) passed in as an option. This is the sub-logger of the
     // _system_ logger, which is used for detailed logging inside `Request`.
     this.#requestLogger = logger?.req ?? null;
+  }
+
+  /**
+   * @returns {{ address: string, port: number }} The IP address and port of
+   * the interface which this instance listens on. This is always a frozen
+   * object.
+   */
+  get interface() {
+    return this.#interfaceObject;
   }
 
   /**
@@ -160,18 +178,6 @@ export class ProtocolWrangler {
   async stop(willReload) {
     this.#reloading = willReload;
     await this.#runner.stop();
-  }
-
-  /**
-   * Initializes the instance. After this is called and (asynchronously)
-   * returns, both {@link #_impl_application} and {@link #_impl_server} should
-   * work without error. This can get called more than once; the second and
-   * subsequent times should be considered a no-op.
-   *
-   * @abstract
-   */
-  async _impl_initialize() {
-    Methods.abstract();
   }
 
   /**
@@ -209,6 +215,18 @@ export class ProtocolWrangler {
    */
   async _impl_applicationStop(willReload) {
     Methods.abstract(willReload);
+  }
+
+  /**
+   * Initializes the instance. After this is called and (asynchronously)
+   * returns, both {@link #_impl_application} and {@link #_impl_server} should
+   * work without error. This can get called more than once; the second and
+   * subsequent times should be considered a no-op.
+   *
+   * @abstract
+   */
+  async _impl_initialize() {
+    Methods.abstract();
   }
 
   /**
@@ -291,7 +309,7 @@ export class ProtocolWrangler {
     // The API for this (to the rest of the system) is the class
     // `WranglerContext`.
 
-    const connectionCtx = WranglerContext.forConnection(socket, logger);
+    const connectionCtx = WranglerContext.forConnection(this, socket, logger);
 
     WranglerContext.bind(socket, connectionCtx);
 
@@ -441,10 +459,14 @@ export class ProtocolWrangler {
    * @param {Http2ServerResponse|ServerResponse} res Response object.
    */
   #incomingRequest(req, res) {
-    const url     = req.url;
-    let   logger  = this.#logger;
+    let logger = this.#logger;
+    const {
+      socket,
+      stream,
+      url
+    } = req;
 
-    const context = WranglerContext.get(req.socket, req.stream?.session);
+    const context = WranglerContext.get(socket, stream?.session);
 
     if (context === null) {
       // Shouldn't happen: We have no record of the socket.
@@ -460,7 +482,10 @@ export class ProtocolWrangler {
     logger = context.logger ?? logger;
 
     try {
-      logger?.incomingRequest(url, context.ids);
+      logger?.incomingRequest({
+        ids: context.ids,
+        url
+      });
 
       const application = this._impl_application();
       application(req, res);
@@ -469,7 +494,6 @@ export class ProtocolWrangler {
       // request gets closed after the request was received but before it
       // managed to get dispatched.
       logger?.errorDuringIncomingRequest(url, e);
-      const socket = req.socket;
       const socketState = {
         closed:        socket.closed,
         destroyed:     socket.destroyed,
