@@ -983,6 +983,9 @@ export class Request {
    * non-content responses, such as not-founds, redirects, etc., so as to
    * provide a standard form of response (though with some flexibility).
    *
+   * If the status code is allowed to be cached (per HTTP spec), the response
+   * will always have a standard `Cache-Control` header.
+   *
    * This method should _not_ be used for status codes that aren't ever supposed
    * to have a body at all. That said, when the request method is `head`, this
    * method will avoid sending a response body when appropriate.
