@@ -4,8 +4,9 @@
 import * as net from 'node:net';
 import * as stream from 'node:stream';
 
-import { FormatUtils, IntfLogger } from '@this/loggy';
+import { IntfLogger } from '@this/loggy';
 
+import { ProtocolWrangler } from '#x/ProtocolWrangler';
 import { Request } from '#x/Request';
 
 
