@@ -291,7 +291,7 @@ export class ProtocolWrangler {
     // The API for this (to the rest of the system) is the class
     // `WranglerContext`.
 
-    const connectionCtx = WranglerContext.forConnection(socket, logger);
+    const connectionCtx = WranglerContext.forConnection(this, socket, logger);
 
     WranglerContext.bind(socket, connectionCtx);
 

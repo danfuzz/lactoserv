@@ -14,6 +14,11 @@ import { Request } from '#x/Request';
  * module, along with accessors to get at that context.
  */
 export class WranglerContext {
+  /**
+   * @type {ProtocolWrangler} Wrangler instance responsible for this context.
+   */
+  #wrangler = null;
+
   /** @type {?net.Socket} Unencrypted socket associated with a connection. */
   #socket = null;
 
@@ -99,6 +104,13 @@ export class WranglerContext {
     return this.#socket;
   }
 
+  /**
+   * @returns {ProtocolWrangler} Wrangler instance responsible for this context.
+   */
+  get wrangler() {
+    return this.#wrangler;
+  }
+
 
   //
   // Static members
@@ -124,14 +136,17 @@ export class WranglerContext {
   /**
    * Makes a new instance of this class for a connection.
    *
+   * @param {ProtocolWrangler} wrangler The wrangler instance which is managing
+   *   the `socket`.
    * @param {net.Socket} socket The raw socket for the connection.
    * @param {?IntfLogger} logger The connection logger, if any.
    * @returns {WranglerContext} An appropriately-constructed instance.
    */
-  static forConnection(socket, logger) {
+  static forConnection(wrangler, socket, logger) {
     const ctx = new WranglerContext();
 
-    ctx.#socket = socket;
+    ctx.#wrangler = wrangler;
+    ctx.#socket   = socket;
 
     if (logger) {
       ctx.#connectionLogger = logger;
