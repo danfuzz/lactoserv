@@ -441,10 +441,21 @@ export class ProtocolWrangler {
    * @param {Http2ServerResponse|ServerResponse} res Response object.
    */
   #incomingRequest(req, res) {
-    const url     = req.url;
-    let   logger  = this.#logger;
+    let logger = this.#logger;
+    const {
+      httpVersion,
+      httpVersionMajor,
+      socket,
+      stream,
+      url
+    } = req;
 
-    const context = WranglerContext.get(req.socket, req.stream?.session);
+    // TODO: The protocol determination should get done by the concrete
+    // wrangler subclasses.
+    const { alpnProtocol } = (httpVersionMajor >= 2) ? stream.session : req;
+    const protocolName     = (alpnProtocol === 'h2') ? 'http2' : `http${httpVersion}`;
+
+    const context = WranglerContext.get(socket, stream?.session);
 
     if (context === null) {
       // Shouldn't happen: We have no record of the socket.
@@ -460,7 +471,11 @@ export class ProtocolWrangler {
     logger = context.logger ?? logger;
 
     try {
-      logger?.incomingRequest(url, context.ids);
+      logger?.incomingRequest({
+        ids: context.ids,
+        protocol: protocolName,
+        url
+      });
 
       const application = this._impl_application();
       application(req, res);
@@ -469,7 +484,6 @@ export class ProtocolWrangler {
       // request gets closed after the request was received but before it
       // managed to get dispatched.
       logger?.errorDuringIncomingRequest(url, e);
-      const socket = req.socket;
       const socketState = {
         closed:        socket.closed,
         destroyed:     socket.destroyed,
