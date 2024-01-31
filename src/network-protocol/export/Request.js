@@ -172,15 +172,8 @@ export class Request {
    * by Node's `IncomingMessage.headers`.
    */
   get headers() {
+    // TODO: This should be a `HttpHeaders` object.
     return this.#expressRequest.headers;
-  }
-
-  /**
-   * @returns {object} Map of all incoming headers to their values, as defined
-   * by Node's `IncomingMessage.headersDistinct`.
-   */
-  get headersDistinct() {
-    return this.#expressRequest.headersDistinct;
   }
 
   /**
