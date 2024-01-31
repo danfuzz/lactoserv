@@ -163,13 +163,34 @@ export class HttpUtil {
   }
 
   /**
-   * Given an HTTP(ish) response status code, indicates if the response is
-   * allowed to be cached.
+   * Given an HTTP(ish) response request method and status code, indicates if
+   * the response is allowed to be cached.
    *
+   * @param {string} method Request method, either downcased or all-caps.
    * @param {number} status Status code.
    * @returns {boolean} `true` if a response is cacheable, or `false` if not.
    */
-  static responseIsCacheableFor(status) {
+  static responseIsCacheableFor(method, status) {
+    // This is all based on a reading of the "Method Definitions" and "Status
+    // Codes" sections of RFC9110.
+
+    switch (method) {
+      case 'get':  case 'GET':
+      case 'head': case 'HEAD': {
+        // These might be cacheable.
+        break;
+      }
+      case 'post': case 'POST': {
+        // `POST` is only cacheable if its response could be `GET`-able. We
+        // conservatively return `false` here.
+        return false;
+      }
+      default: {
+        // Nothing else is cacheable.
+        return false;
+      }
+    }
+
     switch (status) {
       case 200: case 203: case 204: case 206:
       case 300: case 301: case 308:
