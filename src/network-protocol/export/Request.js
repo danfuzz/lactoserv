@@ -765,15 +765,15 @@ export class Request {
 
   /**
    * Issues a "not found" (status `404`) response, with optional body. This is
-   * just a convenient shorthand for `sendError(404, ...)`.
+   * just a convenient shorthand for `sendMetaResponse(404, ...)`.
    *
-   * @param {?string} [contentType] Content type for the body. Must be valid if
-   *  `body` is passed as non-`null`.
-   * @param {?string|Buffer} [body] Body content.
+   * @param {?object} [options] Options to control response behavior. See class
+   *   header comment for more details.
    * @returns {boolean} `true` when the response is completed.
+   * @throws {Error} Thrown if there is any trouble sending the response.
    */
-  async sendNotFound(contentType = null, body = null) {
-    return this.sendError(404, contentType, body);
+  async sendNotFound(options = null) {
+    return this.sendMetaResponse(404, options);
   }
 
   /**

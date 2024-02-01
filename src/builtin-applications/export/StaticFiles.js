@@ -25,11 +25,11 @@ export class StaticFiles extends BaseApplication {
   /** @type {string} Absolute path to the base directory of files to serve. */
   #siteDirectory;
 
-  /** @type {?string} MIME type of the not-found file, if known. */
-  #notFoundType = null;
-
-  /** @type {?Buffer} Contents of the not-found file, if known. */
-  #notFoundContents = null;
+  /**
+   * @type {?object} Options to use when issuing a not-found response, or `null`
+   * if not yet calculated (including if not handling not-found errors).
+   */
+  #notFoundOptions = null;
 
   /**
    * Constructs an instance.
@@ -51,8 +51,8 @@ export class StaticFiles extends BaseApplication {
     const resolved = await this.#resolvePath(dispatch);
 
     if (!resolved) {
-      if (this.#notFoundType) {
-        return request.sendNotFound(this.#notFoundType, this.#notFoundContents);
+      if (this.#notFoundOptions) {
+        return request.sendNotFound(this.#notFoundOptions);
       } else {
         return false;
       }
@@ -84,8 +84,11 @@ export class StaticFiles extends BaseApplication {
         throw new Error(`Not found or not a file: ${notFoundPath}`);
       }
 
-      this.#notFoundType     = MimeTypes.typeFromExtension(notFoundPath);
-      this.#notFoundContents = await fs.readFile(notFoundPath);
+      this.#notFoundOptions = {
+        ...(StaticFiles.#SEND_OPTIONS),
+        body:        await fs.readFile(notFoundPath),
+        contentType: MimeTypes.typeFromExtension(notFoundPath)
+      };
     }
   }
 
