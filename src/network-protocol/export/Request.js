@@ -554,37 +554,32 @@ export class Request {
 
     if (this.isFreshWithRespectTo(headers)) {
       // For basic range-support headers.
-      headers.appendAll(this.#rangeInfo().headers);
+      headers.setAll(this.#rangeInfo().headers);
       return this.#writeCompleteResponse(304, headers);
     }
 
     // At this point, we need to make a "non-fresh" response (that is, send
     // content, assuming no header parsing issues).
 
-    headers.appendAll({
+    headers.setAll({
       'content-length': bodyBuffer.length,
       'content-type': (stringBody || /^text[/]/.test(contentType))
         ? `${contentType}; charset=utf-8`
         : contentType
     });
 
-    const rangeInfo = this.#rangeInfo(bodyBuffer.length, headers);
+    const rangeInfo = this.#rangeInfo(bodyBuffer, headers);
     if (rangeInfo.error) {
       // Note: We _don't_ use the for-success `headers` here.
       return this.#sendNonContentResponseWithMessageBody(
         rangeInfo.status, { headers: rangeInfo.headers });
-    } else {
-      headers.appendAll(rangeInfo.headers);
-      // Only need to modify the body if there was an actual range request.
-      if (rangeInfo.isRange) {
-        // Note: Range `end` is inclusive.
-        bodyBuffer = bodyBuffer.subarray(rangeInfo.start, rangeInfo.end + 1);
-        headers.set('content-length', bodyBuffer.length);
-      }
     }
 
-    const bodyToSend = (this.method === 'head') ? null : bodyBuffer;
-    return this.#writeCompleteResponse(rangeInfo.status, headers, bodyToSend);
+    // Note: `#rangeInfo()` notices if this is a HEAD request, and returns a
+    // `bodyBuffer === null` if so.
+
+    headers.setAll(rangeInfo.headers);
+    return this.#writeCompleteResponse(rangeInfo.status, headers, rangeInfo.bodyBuffer);
   }
 
   /**
@@ -647,7 +642,7 @@ export class Request {
         status
       });
 
-      headers.appendAll(bodyHeaders);
+      headers.setAll(bodyHeaders);
       return this.#writeCompleteResponse(status, headers, bodyBuffer);
     }
   }
@@ -1019,24 +1014,27 @@ export class Request {
   }
 
   /**
-   * Given a maximum allowed length and pending response headers, parses
-   * range-related request headers, if any, and and returns information about
-   * range disposition.
+   * Given an original response body and pending response headers, parses
+   * range-related request headers, if any, and and returns sufficient info for
+   * making the ultimate response.
    *
-   * @param {?number} [length] Length of the underlying response. If `null`,
-   *   this method just returns a basic no-range-request success response.
+   * @param {?Buffer} [bodyBuffer] The original response body. If `null`, this
+   *   method just returns a basic no-range-request success response.
    * @param {?HttpHeaders} [responseHeaders] Response headers to-be. Not used
-   *   when passing `null` for `length`.
+   *   when passing `null` for `bodyBuffer`.
    * @returns {object} Disposition info.
    */
-  #rangeInfo(length = null, responseHeaders = null) {
+  #rangeInfo(bodyBuffer = null, responseHeaders = null) {
     const RANGE_UNIT = 'bytes';
     function status200() {
       return {
+        bodyBuffer,
         status:  200,
-        headers: { 'Accept-Ranges': RANGE_UNIT }
+        headers: { 'accept-ranges': RANGE_UNIT }
       };
     }
+
+    const length = bodyBuffer.length;
 
     if (length === null) {
       return status200();
@@ -1045,7 +1043,7 @@ export class Request {
     const { 'if-range': ifRange, range } = this.headers;
 
     if (!range) {
-      // Not a range request!
+      // Not a range request.
       return status200();
     }
 
@@ -1057,7 +1055,7 @@ export class Request {
       return {
         error:   true,
         status:  416,
-        headers: { 'Content-Range': `${RANGE_UNIT} */${length}` }
+        headers: { 'content-range': `${RANGE_UNIT} */${length}` }
       };
     }
 
@@ -1086,12 +1084,19 @@ export class Request {
     }
 
     const { start, end } = ranges[0];
+    const finalLength = (end - start) + 1; // Note: `end` is inclusive.
+    const finalBuffer = (this.#requestMethod === 'head')
+      ? null
+      : bodyBuffer.subarray(start, end + 1);
+
     return {
-      isRange: true,
-      status: 206,
-      headers: { 'Content-Range': `${RANGE_UNIT} ${start}-${end}/${length}` },
-      start,
-      end
+      bodyBuffer: finalBuffer,
+      status:     206,
+      headers: {
+        'accept-ranges':  RANGE_UNIT,
+        'content-length': finalLength,
+        'content-range':  `${RANGE_UNIT} ${start}-${end}/${length}`
+      }
     };
   }
 
