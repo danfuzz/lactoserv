@@ -38,6 +38,31 @@ describe('classicHeaderNameFrom()', () => {
   });
 });
 
+describe('msecFromDateString()', () => {
+  // Argument type errors. Expected to throw.
+  test.each`
+  arg
+  ${undefined}
+  ${true}
+  ${123}
+  ${['x']}
+  `('throws given $arg', ({ arg }) => {
+    expect(() => HttpUtil.msecFromDateString(arg)).toThrow();
+  });
+
+  test.each`
+  arg                                 | expected
+  ${null}                             | ${null}
+  ${'who knows'}                      | ${null}
+  ${'Sun, 06 Nov 1994 08:49:37 GMT'}  | ${784111777000} // The "preferred" form.
+  ${'Sun, 01 Feb 2024 11:12:13 GMT'}  | ${1706785933000}
+  ${'Sunday, 06-Nov-94 08:49:37 GMT'} | ${784111777000} // "Obsolete" form #1.
+  ${'Sun Nov  6 08:49:37 1994'}       | ${784111777000} // "Obsolete" form #2.
+  `('returns $expected for $arg', ({ arg, expected }) => {
+    expect(HttpUtil.msecFromDateString(arg)).toBe(expected);
+  });
+});
+
 describe.each`
 methodName                     | expName
 ${'responseBodyIsAllowedFor'}  | ${'expAllowed'}

@@ -1,6 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { MustBe } from '@this/typey';
+
 
 /**
  * Utility class for various HTTP stuff.
@@ -108,6 +110,38 @@ export class HttpUtil {
       this.#ANY_TO_MODERN.set(orig, result);
       return result;
     }
+  }
+
+  /**
+   * Parses an (alleged) HTTP date string. Returns a millisecond Epoch time if
+   * successfully parsed.
+   *
+   * @param {?string} dateString An (alleged) HTTP date string.
+   * @returns {?number} A millisecond time, or `null` if not parseable.
+   */
+  static msecFromDateString(dateString) {
+    if (dateString === null) {
+      return null;
+    }
+
+    MustBe.string(dateString);
+
+    // Note: Technically, HTTP date strings are all supposed to be GMT and have
+    // one of three very specific format, but we mostly just let `Date.parse()`
+    // blithely accept anything it wants, which _does_ accept the required
+    // formats in addition to who-knows-what-else.
+
+    let result;
+
+    if (/ (GMT|UTC)$/.test(dateString)) {
+      result = Date.parse(dateString);
+    } else {
+      // It doesn't have the expected suffix, so tack one on, and hope for the
+      // best.
+      result = Date.parse(`${dateString} UTC`);
+    }
+
+    return isNaN(result) ? null : result;
   }
 
   /**
