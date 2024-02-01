@@ -43,9 +43,18 @@ import { WranglerContext } from '#x/WranglerContext';
  * #### `options` on `send*()` methods
  *
  * The `send*()` methods accept an `options` object argument, which accepts the
- * following properties, which all affect only _successful_ responses (not ones
- * reporting an error status).
+ * following properties (with exceptions as noted).
  *
+ * * `{Buffer|string|null} body` -- Body content to include. If passed as a
+ *   `string`, the actual body gets encoded as UTF-8, and the `contentType` is
+ *   adjusted if necessary to indicate that fact. This property is only
+ *   available on methods that don't take a separate `body` argument.
+ * * `{?string} bodyExtra` -- Extra body content to include when wanting to
+ *   _mostly_ use a default body. This is only available on {@link
+ *   #sendMetaResponse}.
+ * * `{?string} contentType` -- Content type of the body, in the form expected
+ *   by {@link MimeTypes}. Required if `body` is present and ignored in all
+ *   other cases.
  * * `{?Cookies} cookies` -- Cookies to include (via `Set-Cookie` headers) in
  *   the response, if any.
  * * `{?object} headers` -- Extra headers to include in the response, if any.
@@ -507,7 +516,7 @@ export class Request {
    * @param {string} contentType Content type for the body. If this value starts
    *   with `text/` and/or the `body` is passed as a string, then the actual
    *   `Content-Type` header will indicate a charset of `utf-8`.
-   * @param {object} options Options to control response behavior. See class
+   * @param {object} [options] Options to control response behavior. See class
    *   header comment for more details.
    * @returns {boolean} `true` when the response is completed.
    * @throws {Error} Thrown if there is any trouble sending the response.
@@ -570,6 +579,90 @@ export class Request {
 
     const bodyToSend = (this.method === 'head') ? null : bodyBuffer;
     return this.#writeCompleteResponse(rangeInfo.status, headers, bodyToSend);
+  }
+
+  /**
+   * Issues a non-content meta-ish response, with optional body. "Non-content
+   * meta-ish" here means that the status code _doesn't_ indicate that the body
+   * is meant to be higher-level application content, which furthermore means
+   * that it is possibly appropriate to use the body for a diagnostic message.
+   * And indeed, this method will use it for that when appropriate, that is,
+   * when the method/status combo allows it.
+   *
+   * If the status code is allowed to be cached (per HTTP spec), the response
+   * will always have a standard `Cache-Control` header.
+   *
+   * The response _never_ includes an `Etag` header.
+   *
+   * If a body is not supplied and _is_ appropriate to send, this method
+   * constructs a `text/plain` body in a standard form which includes the
+   * status code, a short form of the status message (the same as the short
+   * message part of an HTTP1 response), and the original target (that is,
+   * typically the path) of the request.
+   *
+   * This method is intended to be used for all meta-ish non-content responses,
+   * such as not-founds, redirects, etc., so as to provide a consistent form of
+   * response (though with some flexibility). This method will report an error
+   * if the status code indicates that the response body (or lack thereof) is
+   * based on the higher-level application (and not from the server
+   * infrastructure).
+   *
+   * @param {number} status The status code.
+   * @param {?object} [options] Options to control response behavior. See class
+   *   header comment for more details.
+   * @returns {boolean} `true` when the response is completed.
+   */
+  async sendMetaResponse(status, options = {}) {
+    MustBe.number(status, { safeInteger: true, minInclusive: 100, maxInclusive: 599 });
+    const { body, bodyExtra, contentType } = options ?? {};
+    const method = this.#requestMethod;
+
+    // Why `get` in this test? Because that one's permissive, and we don't want
+    // to throw unless a body is disallowed for any method. But then below, we
+    // figure out whether to _actually_ send a body based on the real method.
+    if (HttpUtil.responseBodyIsApplicationContentFor(status)
+      || !HttpUtil.responseBodyIsAllowedFor('get', status)) {
+      throw new Error(`Cannot call with status code: ${status}`);
+    }
+
+    const headers = this.#makeResponseHeaders(status, options);
+
+    let finalBody;
+    let finalContentType;
+
+    if (!HttpUtil.responseBodyIsAllowedFor(method, status)) {
+      // It's probably a HEAD request for something like a redirect.
+      finalBody        = null;
+      finalContentType = null;
+    } else if (body) {
+      if (!contentType) {
+        throw new Error('Missing `contentType`.');
+      }
+      finalBody        = body;
+      finalContentType = MimeTypes.typeFromExtensionOrType(contentType);
+    } else {
+      const statusStr  = statuses(status);
+      const bodyHeader = `${status} ${statusStr}`;
+
+      if (((bodyExtra ?? '') === '') || (bodyExtra === statusStr)) {
+        finalBody = `${bodyHeader}\n`;
+      } else {
+        const finalNl = (bodyExtra.endsWith('\n')) ? '' : '\n';
+        finalBody = `${bodyHeader}:\n\n${bodyExtra}${finalNl}`;
+      }
+
+      finalContentType = 'text/plain';
+    }
+
+    if (finalBody) {
+      if (typeof finalBody === 'string') {
+        finalBody = Buffer.from(finalBody);
+      }
+      headers.set('content-length', finalBody.length);
+      headers.set('content-type',   finalContentType);
+    }
+
+    return this.#writeCompleteResponse(status, headers, finalBody);
   }
 
   /**
