@@ -80,6 +80,16 @@ ${'setAll()'}    | ${'setAll'}
       expect(hh.getSetCookie()).toIncludeSameMembers(['x=1', 'y=2']);
     });
   });
+
+  test('includes all values in an array', () => {
+    const hh = prep({ 'foo': ['bar', 'baz'] });
+    expect([...hh]).toEqual([['foo', 'bar, baz']]);
+  });
+
+  test('includes all values from multiple entries with the same name', () => {
+    const hh = prep([['foo', 'bar'], ['foo', 'baz']]);
+    expect([...hh]).toEqual([['foo', 'bar, baz']]);
+  });
 });
 
 describe('appendAll()', () => {
@@ -344,4 +354,112 @@ ${'hasAny'}
   });
 });
 
-// TODO: setAll()
+describe('setAll()', () => {
+  test('sets a non-existent name to a single given value', () => {
+    const hh = new HttpHeaders();
+
+    hh.set('a', 'b');
+    hh.setAll({ 'x': 'y' });
+
+    expect([...hh]).toIncludeSameMembers([['a', 'b'], ['x', 'y']]);
+  });
+
+  test('sets a non-existent name to multiple given values', () => {
+    const hh = new HttpHeaders();
+
+    hh.set('a', 'b');
+    hh.setAll({ 'x': ['y', 'z'] });
+
+    expect([...hh]).toIncludeSameMembers([['a', 'b'], ['x', 'y, z']]);
+  });
+
+  test('replaces a pre-existing name with a single value', () => {
+    const hh = new HttpHeaders();
+
+    hh.set('a', 'b');
+    hh.set('x', 'y');
+    hh.setAll({ 'x': 'z' });
+
+    expect([...hh]).toIncludeSameMembers([['a', 'b'], ['x', 'z']]);
+  });
+
+  test('replaces a pre-existing name with multiple values', () => {
+    const hh = new HttpHeaders();
+
+    hh.set('a', 'b');
+    hh.set('x', 'y');
+    hh.append('x', 'z');
+    hh.setAll({ 'x': ['z1', 'z2'] });
+
+    expect([...hh]).toIncludeSameMembers([
+      ['a', 'b'], ['x', 'z1, z2']
+    ]);
+  });
+
+  test('sets multiple `set-cookies` from a plain object', () => {
+    const hh = new HttpHeaders();
+
+    hh.set('set-cookie', 'a=1');
+    hh.setAll({ 'set-cookie': ['b=2', 'c=3'] });
+
+    expect([...hh]).toIncludeSameMembers([
+      ['set-cookie', 'b=2'],
+      ['set-cookie', 'c=3']
+    ]);
+  });
+
+  test('sets multiple `set-cookies` from a `Headers`', () => {
+    const hh   = new HttpHeaders();
+    const orig = new Headers();
+
+    hh.set('set-cookie', 'a=1');
+    orig.append('set-cookie', 'b=2');
+    orig.append('set-cookie', 'c=3');
+    hh.setAll(orig);
+
+    expect([...hh]).toIncludeSameMembers([
+      ['set-cookie', 'b=2'],
+      ['set-cookie', 'c=3']
+    ]);
+  });
+
+  test('uses an underlay function when it would not replace to a pre-existing header', () => {
+    const hh = new HttpHeaders();
+
+    hh.setAll({ 'blorp': () => 'beep-boop' });
+
+    expect([...hh]).toEqual([['blorp', 'beep-boop']]);
+  });
+
+  test('does not use the underlay function when it would replace a pre-existing header', () => {
+    const hh            = new HttpHeaders();
+    let   overlayCalled = false;
+
+    hh.set('foo', 'bar');
+
+    hh.setAll({
+      'foo': () => {
+        overlayCalled = true;
+        return 'beeeeeeeep!!!!!';
+      }
+    });
+
+    expect([...hh]).toEqual([['foo', 'bar']]);
+    expect(overlayCalled).toBeFalse();
+  });
+
+  test('uses multiple underlay functions when they would not replace a pre-existing header', () => {
+    const hh = new HttpHeaders();
+
+    // This tests multiple entries with the same name.
+    hh.setAll([['blorp', () => 'beep1'], ['blorp', () => 'beep2']]);
+
+    // This tests a single array entry binding to an array of functions.
+    hh.setAll({ zorch: [() => 'zonk1', () => 'zonk2'] });
+
+    expect([...hh]).toIncludeSameMembers([
+      ['blorp', 'beep1, beep2'],
+      ['zorch', 'zonk1, zonk2']
+    ]);
+  });
+});
