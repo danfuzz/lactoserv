@@ -54,7 +54,9 @@ import { WranglerContext } from '#x/WranglerContext';
  *   #sendMetaResponse}.
  * * `{?string} contentType` -- Content type of the body, in the form expected
  *   by {@link MimeTypes}. Required if `body` is present and ignored in all
- *   other cases.
+ *   other cases. If this value starts with `text/` and/or the `body` is passed
+ *   as a string, then the actual `Content-Type` header will indicate a charset
+ *   of `utf-8`.
  * * `{?Cookies} cookies` -- Cookies to include (via `Set-Cookie` headers) in
  *   the response, if any.
  * * `{?object} headers` -- Extra headers to include in the response, if any.
