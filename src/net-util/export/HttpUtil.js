@@ -129,13 +129,39 @@ export class HttpUtil {
       }
 
       switch (status) {
-        case 204: case 205: case 304: {
+        case 204: case 205:
+        case 304: {
           return false;
         }
       }
 
       return true;
     }
+  }
+
+  /**
+   * Given an HTTP(ish) response status code, indicates if the corresponding
+   * response body (or lack thereof) is expected to be high-level application
+   * content.
+   *
+   * @param {number} status Status code.
+   * @returns {boolean} `true` if the body is for high-level application
+   *   content.
+   */
+  static responseBodyIsApplicationContentFor(status) {
+    // This is all based on a reading of the "Status Codes" section of RFC9110.
+
+    if ((status >= 200) && (status <= 299)) {
+      return true;
+    }
+
+    switch (status) {
+      case 300: case 304: {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /**

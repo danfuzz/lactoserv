@@ -132,3 +132,28 @@ ${'responseIsCacheableFor'}    | ${'expCache'}
     expect(HttpUtil[methodName](method, status)).toBe(expected);
   });
 });
+
+describe('responseBodyIsApplicationContentFor()', () => {
+  test.each`
+  status | expected
+  ${100} | ${false}
+  ${101} | ${false}
+  ${199} | ${false}
+  ${200} | ${true}
+  ${204} | ${true}
+  ${299} | ${true}
+  ${300} | ${true}
+  ${301} | ${false}
+  ${302} | ${false}
+  ${303} | ${false}
+  ${304} | ${true}
+  ${305} | ${false}
+  ${399} | ${false}
+  ${400} | ${false}
+  ${499} | ${false}
+  ${500} | ${false}
+  ${599} | ${false}
+  `('works for ($status)', ({ status, expected }) => {
+    expect(HttpUtil.responseBodyIsApplicationContentFor(status)).toBe(expected);
+  });
+});
