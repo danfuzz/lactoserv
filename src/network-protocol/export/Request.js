@@ -622,7 +622,6 @@ export class Request {
    */
   async sendMetaResponse(status, options = {}) {
     MustBe.number(status, { safeInteger: true, minInclusive: 100, maxInclusive: 599 });
-    const { body, bodyExtra, contentType } = options ?? {};
     const method = this.#requestMethod;
 
     // Why `get` in this test? Because that one's permissive, and we don't want
@@ -635,42 +634,19 @@ export class Request {
 
     const headers = this.#makeResponseHeaders(status, options);
 
-    let finalBody;
-    let finalContentType;
-
     if (!HttpUtil.responseBodyIsAllowedFor(method, status)) {
       // It's probably a HEAD request for something like a redirect.
-      finalBody        = null;
-      finalContentType = null;
-    } else if (body) {
-      if (!contentType) {
-        throw new Error('Missing `contentType`.');
-      }
-      finalBody        = body;
-      finalContentType = MimeTypes.typeFromExtensionOrType(contentType);
+      return this.#writeCompleteResponse(status, headers);
     } else {
-      const statusStr  = statuses(status);
-      const bodyHeader = `${status} ${statusStr}`;
+      const { bodyBuffer, bodyHeaders } = this.#makeBody({
+        ...options,
+        isMetaResponse: true,
+        status
+      });
 
-      if (((bodyExtra ?? '') === '') || (bodyExtra === statusStr)) {
-        finalBody = `${bodyHeader}\n`;
-      } else {
-        const finalNl = (bodyExtra.endsWith('\n')) ? '' : '\n';
-        finalBody = `${bodyHeader}:\n\n${bodyExtra}${finalNl}`;
-      }
-
-      finalContentType = 'text/plain';
+      headers.appendAll(bodyHeaders);
+      return this.#writeCompleteResponse(status, headers, bodyBuffer);
     }
-
-    if (finalBody) {
-      if (typeof finalBody === 'string') {
-        finalBody = Buffer.from(finalBody);
-      }
-      headers.set('content-length', finalBody.length);
-      headers.set('content-type',   finalContentType);
-    }
-
-    return this.#writeCompleteResponse(status, headers, finalBody);
   }
 
   /**
@@ -1314,6 +1290,101 @@ export class Request {
     }
 
     return 'err-unknown';
+  }
+
+  /**
+   * Helper for constructing a response body, used by both content and meta
+   * (non-content) code paths. This is only appropriate to call in cases where a
+   * body really will be returned with a response (so, e.g., _not_ when
+   * responding to a `HEAD` request).
+   *
+   * @param {object} options Options for body generation.
+   * @param {Buffer|string|null} options.body Body to send. Required for
+   *   non-meta responses.
+   * @param {?string} options.bodyExtra For meta responses with no `body`, extra
+   *   detail to append to the default body.
+   * @param {string} options.contentType Content type.
+   * @param {?boolean} options.isMetaResponse Is this a meta (non-content)
+   *   response? If so, it's valid to omit `body` and optional to use
+   *   `bodyExtra`.
+   * @param {?number} options.status Status code. Required for meta responses.
+   * @returns {{ bodyBuffer: Buffer, bodyHeaders: HttpHeaders }} The details
+   *   needed for the ultimate response.
+   */
+  static #makeBody(options) {
+    const { body: origBody, contentType: origContentType, isMetaResponse } = options;
+
+    if (origBody && !origContentType) {
+      throw new Error('Missing `contentType`.');
+    }
+
+    let body;
+    let contentType;
+
+    if (isMetaResponse) {
+      const { bodyExtra, status } = options;
+
+      if (!status) {
+        throw new Error('Missing `status`.');
+      }
+
+      if (origBody) {
+        if (bodyExtra) {
+          throw new Error('Cannot use both `body` and `bodyExtra`.');
+        }
+
+        body        = origBody;
+        contentType = origContentType;
+      } else {
+        const statusStr  = statuses(status);
+        const bodyHeader = `${status} ${statusStr}`;
+
+        if (((bodyExtra ?? '') === '') || (bodyExtra === statusStr)) {
+          body = `${bodyHeader}\n`;
+        } else {
+          const finalNl = (bodyExtra.endsWith('\n')) ? '' : '\n';
+          body = `${bodyHeader}:\n\n${bodyExtra}${finalNl}`;
+        }
+
+        contentType = 'text/plain';
+      }
+    } else {
+      if (origBody === null) {
+        // This is an unusual case, and it's not worth doing anything
+        // particularly special for it (e.g. pre-allocating an empty buffer).
+        bodyBuffer = Buffer.alloc(0);
+      } else if (!origBody) {
+        throw new Error('Missing `body`.');
+      }
+
+      body        = origBody;
+      contentType = MustBe.string(origContentType);
+    }
+
+    let bodyBuffer;
+    let stringBody = false;
+
+    if (typeof body === 'string') {
+      bodyBuffer = Buffer.from(body, 'utf8');
+      stringBody = true;
+    } else if (body instanceof Buffer) {
+      bodyBuffer = body;
+    } else {
+      throw new Error('`body` must be a string, a `Buffer`, or `null`.');
+    }
+
+    contentType = MimeTypes.typeFromExtensionOrType(contentType);
+    if (stringBody || /^text[/]/.test(contentType)) {
+      contentType = `${contentType}; charset=utf-8`;
+    }
+
+    return {
+      bodyBuffer,
+      bodyHeaders: {
+        'content-length': bodyBuffer.length,
+        'content-type':   contentType
+      }
+    };
   }
 
   /**
