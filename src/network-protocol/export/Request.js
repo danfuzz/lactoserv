@@ -601,11 +601,15 @@ export class Request {
    * typically the path) of the request.
    *
    * This method is intended to be used for all meta-ish non-content responses,
-   * such as not-founds, redirects, etc., so as to provide a consistent form of
-   * response (though with some flexibility). This method will report an error
-   * if the status code indicates that the response body (or lack thereof) is
-   * based on the higher-level application (and not from the server
-   * infrastructure).
+   * including all error and ephemeral (`1xx`) responses, and _most_ redirect
+   * (`3xx`) responses (but notably not `300` or `304`). It is meant to help the
+   * application provide a consistent form of response (though with some
+   * flexibility).
+   *
+   * This method will report an error if the status code is never allowed to
+   * have an associated body (e.g., `304`), or if the response body is only
+   * supposed to contain higher-level application content (e.g., `200` or
+   * `300`), as opposed to content produced by the server infrastructure.
    *
    * @param {number} status The status code.
    * @param {?object} [options] Options to control response behavior. See class
