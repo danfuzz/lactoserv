@@ -65,6 +65,8 @@ import { WranglerContext } from '#x/WranglerContext';
  *   subclass, {@link HttpHeaders}.
  * * `{?number} maxAgeMsec` -- Value to send back in the `max-age` property of
  *   the `Cache-Control` response header. Defaults to `0`.
+ * * `{?number} statusCode` -- Response status code. This is only available on
+ *   {@link #sendRedirect}.
  */
 export class Request {
   /**
@@ -653,7 +655,7 @@ export class Request {
     // errors that were encountered during final response processing.
     return this.whenResponseDone();
   }
-  
+
   /**
    * Issues a non-content meta-ish response, with optional body. "Non-content
    * meta-ish" here means that the status code _doesn't_ indicate that the body
@@ -755,11 +757,8 @@ export class Request {
   }
 
   /**
-   * Issues a redirect response, with a standard response message and plain text
-   * body. The response message depends on the status code.
-   *
-   * Calling this method results in this request being considered complete, and
-   * as such no additional response-related methods will work.
+   * Issues a redirect response. This ultimately calls through to {@link
+   * #sendMetaResponse}.
    *
    * **Note:** This method does _not_ do any URL-encoding on the given `target`.
    * It is assumed to be valid and already encoded if necessary. (This is unlike
@@ -767,20 +766,25 @@ export class Request {
    * more like "confusing.")
    *
    * @param {string} target Possibly-relative target URL.
-   * @param {number} [status] Status code.
+   * @param {?object} [options] Options to control response behavior. See class
+   *   header comment for more details.
+   * @param {?number} [options.statusCode] The status code to report. Defaults
+   *   to `302` ("Found").
    * @returns {boolean} `true` when the response is completed.
    */
-  async sendRedirect(target, status = 302) {
-    // Note: This method avoids using `express.Response.redirect()` (a) to avoid
-    // ambiguity with the argument `"back"`, and (b) generally with an eye
-    // towards dropping Express entirely as a dependency.
-
+  async sendRedirect(target, options = null) {
     MustBe.string(target);
 
-    return this.#sendNonContentResponseWithMessageBody(status, {
-      bodyExtra: `  ${target}\n`,
-      headers:   { 'Location': target }
-    });
+    // Arrange to merge in `options` or start fresh, as appropriate.
+    options = options ? { ...options } : {};
+
+    options.status    ??= 302;
+    options.bodyExtra ??= `${target}\n`;
+    options.headers   ??= {};
+
+    options.headers['location'] = target;
+
+    return this.sendMetaResponse(options.status, options);
   }
 
   /**
@@ -790,15 +794,18 @@ export class Request {
    * Calling this method results in this request being considered complete, and
    * as such no additional response-related methods will work.
    *
-   * @param {number} [status] Status code.
+   * @param {?object} [options] Options to control response behavior. See class
+   *   header comment for more details.
+   * @param {?number} [options.statusCode] The status code to report. Defaults
+   *   to `302` ("Found").
    * @returns {boolean} `true` when the response is completed.
    */
-  async sendRedirectBack(status = 302) {
+  async sendRedirectBack(options = null) {
     // Note: Express lets you ask for `referrer` (spelled properly), but the
     // actual header that's supposed to be sent is `referer` (which is of course
     // misspelled).
     const target = this.getHeaderOrNull('referer') ?? '/';
-    return this.sendRedirect(target, status);
+    return this.sendRedirect(target, options);
   }
 
   /**
