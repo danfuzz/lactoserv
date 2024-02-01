@@ -574,10 +574,13 @@ export class Request {
       return this.#sendNonContentResponseWithMessageBody(
         rangeInfo.status, { headers: rangeInfo.headers });
     } else {
-      // Note: Range `end` is inclusive.
       headers.appendAll(rangeInfo.headers);
-      bodyBuffer = bodyBuffer.subarray(rangeInfo.start, rangeInfo.end + 1);
-      headers.set('content-length', bodyBuffer.length);
+      // Only need to modify the body if there was an actual range request.
+      if (rangeInfo.isRange) {
+        // Note: Range `end` is inclusive.
+        bodyBuffer = bodyBuffer.subarray(rangeInfo.start, rangeInfo.end + 1);
+        headers.set('content-length', bodyBuffer.length);
+      }
     }
 
     const bodyToSend = (this.method === 'head') ? null : bodyBuffer;
@@ -1084,6 +1087,7 @@ export class Request {
 
     const { start, end } = ranges[0];
     return {
+      isRange: true,
       status: 206,
       headers: { 'Content-Range': `${RANGE_UNIT} ${start}-${end}/${length}` },
       start,
