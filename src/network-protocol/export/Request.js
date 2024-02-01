@@ -636,7 +636,7 @@ export class Request {
       // It's probably a HEAD request for something like a redirect.
       return this.#writeCompleteResponse(status, headers);
     } else {
-      const { bodyBuffer, bodyHeaders } = this.#makeBody({
+      const { bodyBuffer, bodyHeaders } = Request.#makeBody({
         ...options,
         isMetaResponse: true,
         status
@@ -1034,9 +1034,7 @@ export class Request {
       };
     }
 
-    const length = bodyBuffer.length;
-
-    if (length === null) {
+    if (bodyBuffer === null) {
       return status200();
     }
 
@@ -1046,6 +1044,8 @@ export class Request {
       // Not a range request.
       return status200();
     }
+
+    const length = bodyBuffer.length;
 
     // Note: The package `range-parser` is pretty lenient about the syntax it
     // accepts. TODO: Replace with something stricter.
