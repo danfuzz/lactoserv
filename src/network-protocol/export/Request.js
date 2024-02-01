@@ -1245,17 +1245,6 @@ export class Request {
   //
 
   /**
-   * Given a logger created by this class, returns the request ID it logs
-   * with.
-   *
-   * @param {?IntfLogger} logger The logger.
-   * @returns {?string} The ID string, or `null` if `logger === null`.
-   */
-  static idFromLogger(logger) {
-    return logger?.$meta.lastContext ?? null;
-  }
-
-  /**
    * Extracts a string error code from the given `Error`, or returns a generic
    * "unknown error" if there's nothing else reasonable.
    *
