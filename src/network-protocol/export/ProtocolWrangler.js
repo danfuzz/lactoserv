@@ -411,13 +411,19 @@ export class ProtocolWrangler {
     if (!request.pathnameString) {
       // It's not an `origin` request. We don't handle any other type of
       // target... yet.
-      await request.sendError(400); // "Bad Request."
+      //
+      // Handy command for testing this code path:
+      // ```
+      // echo $'GET * HTTP/1.1\r\nHost: milk.com\r\n\r' \
+      //   | curl telnet://localhost:8080
+      // ```
+      await request.sendMetaResponse(400); // "Bad Request."
       return;
     } else if (this.#rateLimiter) {
       const granted = await this.#rateLimiter.newRequest(reqLogger);
       if (!granted) {
         // Send the error response, and wait for it to be (believed to be) sent.
-        await request.sendError(503); // "Service Unavailable."
+        await request.sendMetaResponse(503); // "Service Unavailable."
 
         // ...and then just thwack the underlying socket. The hope is that the
         // waiting above will make it likely that the far side will actually see
