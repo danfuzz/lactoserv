@@ -1051,8 +1051,8 @@ export class Request {
       } else {
         // The range request is a last-modified date.
         const lastModified = responseHeaders.get('last-modified');
-        const lmDate       = Request.#parseDate(lastModified);
-        const ifDate       = Request.#parseDate(ifRange);
+        const lmDate       = HttpUtil.msecFromDateString(lastModified);
+        const ifDate       = HttpUtil.msecFromDateString(ifRange);
         if ((lmDate === null) || (ifDate === null) || (lmDate > ifDate)) {
           return status200(); // _Not_ matched.
         }
@@ -1375,21 +1375,6 @@ export class Request {
         'content-type':   contentType
       }
     };
-  }
-
-  /**
-   * Parses an (alleged) HTTP date string.
-   *
-   * @param {?string} dateString An (alleged) HTTP date string.
-   * @returns {?number} A millisecond time if successfully parsed, or `null` if
-   *   not.
-   */
-  static #parseDate(dateString) {
-    // Note: Technically, HTTP date strings are all supposed to be GMT, but we
-    // just let `Date.parse()` blithely accept anything it wants.
-    const result = Date.parse(dateString);
-
-    return (typeof result === 'number') ? result : null;
   }
 
   /**
