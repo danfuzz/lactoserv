@@ -519,7 +519,8 @@ export class Request {
    *   with `text/` and/or the `body` is passed as a string, then the actual
    *   `Content-Type` header will indicate a charset of `utf-8`.
    * @param {object} [options] Options to control response behavior. See class
-   *   header comment for more details.
+   *   header comment for more details. Header-related options are only used
+   *   for non-error responses.
    * @returns {boolean} `true` when the response is completed.
    * @throws {Error} Thrown if there is any trouble sending the response.
    */
@@ -617,6 +618,7 @@ export class Request {
    * @param {?object} [options] Options to control response behavior. See class
    *   header comment for more details.
    * @returns {boolean} `true` when the response is completed.
+   * @throws {Error} Thrown if there is any trouble sending the response.
    */
   async sendMetaResponse(status, options = {}) {
     MustBe.number(status, { safeInteger: true, minInclusive: 100, maxInclusive: 599 });
