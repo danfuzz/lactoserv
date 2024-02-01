@@ -565,71 +565,6 @@ export class Request {
   }
 
   /**
-   * Issues a non-content meta-ish response, with optional body. "Non-content
-   * meta-ish" here means that the status code _doesn't_ indicate that the body
-   * is meant to be higher-level application content, which furthermore means
-   * that it is possibly appropriate to use the body for a diagnostic message.
-   * And indeed, this method will use it for that when appropriate, that is,
-   * when the method/status combo allows it.
-   *
-   * If the status code is allowed to be cached (per HTTP spec), the response
-   * will always have a standard `Cache-Control` header.
-   *
-   * The response _never_ includes an `Etag` header.
-   *
-   * If a body is not supplied and _is_ appropriate to send, this method
-   * constructs a `text/plain` body in a standard form which includes the
-   * status code, a short form of the status message (the same as the short
-   * message part of an HTTP1 response), and the original target (that is,
-   * typically the path) of the request.
-   *
-   * This method is intended to be used for all meta-ish non-content responses,
-   * including all error and ephemeral (`1xx`) responses, and _most_ redirect
-   * (`3xx`) responses (but notably not `300` or `304`). It is meant to help the
-   * application provide a consistent form of response (though with some
-   * flexibility).
-   *
-   * This method will report an error if the status code is never allowed to
-   * have an associated body (e.g., `304`), or if the response body is only
-   * supposed to contain higher-level application content (e.g., `200` or
-   * `300`), as opposed to content produced by the server infrastructure.
-   *
-   * @param {number} status The status code.
-   * @param {?object} [options] Options to control response behavior. See class
-   *   header comment for more details.
-   * @returns {boolean} `true` when the response is completed.
-   * @throws {Error} Thrown if there is any trouble sending the response.
-   */
-  async sendMetaResponse(status, options = {}) {
-    MustBe.number(status, { safeInteger: true, minInclusive: 100, maxInclusive: 599 });
-    const method = this.#requestMethod;
-
-    // Why `get` in this test? Because that one's permissive, and we don't want
-    // to throw unless a body is disallowed for any method. But then below, we
-    // figure out whether to _actually_ send a body based on the real method.
-    if (HttpUtil.responseBodyIsApplicationContentFor(status)
-      || !HttpUtil.responseBodyIsAllowedFor('get', status)) {
-      throw new Error(`Cannot call with status code: ${status}`);
-    }
-
-    const headers = this.#makeResponseHeaders(status, options);
-
-    if (!HttpUtil.responseBodyIsAllowedFor(method, status)) {
-      // It's probably a HEAD request for something like a redirect.
-      return this.#writeCompleteResponse(status, headers);
-    } else {
-      const { bodyBuffer, bodyHeaders } = Request.#makeBody({
-        ...options,
-        isMetaResponse: true,
-        status
-      });
-
-      headers.setAll(bodyHeaders);
-      return this.#writeCompleteResponse(status, headers, bodyBuffer);
-    }
-  }
-
-  /**
    * Issues a successful response, with the contents of the given file or with
    * an empty body as appropriate. The actual reported status will vary, with
    * the same possibilities as with {@link #sendContent}.
@@ -717,6 +652,71 @@ export class Request {
     // completed (which could be slightly later), and also plumb through any
     // errors that were encountered during final response processing.
     return this.whenResponseDone();
+  }
+  
+  /**
+   * Issues a non-content meta-ish response, with optional body. "Non-content
+   * meta-ish" here means that the status code _doesn't_ indicate that the body
+   * is meant to be higher-level application content, which furthermore means
+   * that it is possibly appropriate to use the body for a diagnostic message.
+   * And indeed, this method will use it for that when appropriate, that is,
+   * when the method/status combo allows it.
+   *
+   * If the status code is allowed to be cached (per HTTP spec), the response
+   * will always have a standard `Cache-Control` header.
+   *
+   * The response _never_ includes an `Etag` header.
+   *
+   * If a body is not supplied and _is_ appropriate to send, this method
+   * constructs a `text/plain` body in a standard form which includes the
+   * status code, a short form of the status message (the same as the short
+   * message part of an HTTP1 response), and the original target (that is,
+   * typically the path) of the request.
+   *
+   * This method is intended to be used for all meta-ish non-content responses,
+   * including all error and ephemeral (`1xx`) responses, and _most_ redirect
+   * (`3xx`) responses (but notably not `300` or `304`). It is meant to help the
+   * application provide a consistent form of response (though with some
+   * flexibility).
+   *
+   * This method will report an error if the status code is never allowed to
+   * have an associated body (e.g., `304`), or if the response body is only
+   * supposed to contain higher-level application content (e.g., `200` or
+   * `300`), as opposed to content produced by the server infrastructure.
+   *
+   * @param {number} status The status code.
+   * @param {?object} [options] Options to control response behavior. See class
+   *   header comment for more details.
+   * @returns {boolean} `true` when the response is completed.
+   * @throws {Error} Thrown if there is any trouble sending the response.
+   */
+  async sendMetaResponse(status, options = {}) {
+    MustBe.number(status, { safeInteger: true, minInclusive: 100, maxInclusive: 599 });
+    const method = this.#requestMethod;
+
+    // Why `get` in this test? Because that one's permissive, and we don't want
+    // to throw unless a body is disallowed for any method. But then below, we
+    // figure out whether to _actually_ send a body based on the real method.
+    if (HttpUtil.responseBodyIsApplicationContentFor(status)
+      || !HttpUtil.responseBodyIsAllowedFor('get', status)) {
+      throw new Error(`Cannot call with status code: ${status}`);
+    }
+
+    const headers = this.#makeResponseHeaders(status, options);
+
+    if (!HttpUtil.responseBodyIsAllowedFor(method, status)) {
+      // It's probably a HEAD request for something like a redirect.
+      return this.#writeCompleteResponse(status, headers);
+    } else {
+      const { bodyBuffer, bodyHeaders } = Request.#makeBody({
+        ...options,
+        isMetaResponse: true,
+        status
+      });
+
+      headers.setAll(bodyHeaders);
+      return this.#writeCompleteResponse(status, headers, bodyBuffer);
+    }
   }
 
   /**
