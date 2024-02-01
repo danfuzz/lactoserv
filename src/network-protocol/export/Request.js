@@ -532,15 +532,9 @@ export class Request {
     MustBe.string(contentType);
     contentType = MimeTypes.typeFromExtensionOrType(contentType);
 
-    const headers = Request.#makeResponseHeaders(options, {
-      'cache-control': () => {
-        return Request.#cacheControlHeader(options.maxAgeMsec);
-      },
-      'content-type': () => {
-        return (stringBody || /^text[/]/.test(contentType))
-          ? `${contentType}; charset=utf-8`
-          : contentType;
-      },
+    // Start with the headers that will be used for any non-error response. All
+    // such responses are cacheable, per spec.
+    const headers = this.#makeResponseHeaders('cacheable', options, {
       'etag': () => {
         return etag(bodyBuffer);
       }
@@ -550,29 +544,40 @@ export class Request {
       // For basic range-support headers.
       headers.appendAll(this.#rangeInfo().headers);
       return this.#writeCompleteResponse(304, headers);
-    } else {
-      const rangeInfo = this.#rangeInfo(bodyBuffer.length, headers);
-      if (rangeInfo.error) {
-        return this.#sendNonContentResponseWithMessageBody(
-          rangeInfo.status, { headers: rangeInfo.headers });
-      } else {
-        headers.appendAll(rangeInfo.headers);
-        bodyBuffer = bodyBuffer.subarray(rangeInfo.start, rangeInfo.end);
-      }
-
-      headers.set('content-length', bodyBuffer.length);
-
-      const bodyToSend = (this.method === 'head') ? null : bodyBuffer;
-      return this.#writeCompleteResponse(rangeInfo.status, headers, bodyToSend);
     }
+
+    // At this point, we need to make a "non-fresh" response (that is, send
+    // content, assuming no header parsing issues).
+
+    headers.appendAll({
+      'content-length': bodyBuffer.length,
+      'content-type': (stringBody || /^text[/]/.test(contentType))
+        ? `${contentType}; charset=utf-8`
+        : contentType
+    });
+
+    const rangeInfo = this.#rangeInfo(bodyBuffer.length, headers);
+    if (rangeInfo.error) {
+      // Note: We _don't_ use the for-success `headers` here.
+      return this.#sendNonContentResponseWithMessageBody(
+        rangeInfo.status, { headers: rangeInfo.headers });
+    } else {
+      // Note: Range `end` is inclusive.
+      headers.appendAll(rangeInfo.headers);
+      bodyBuffer = bodyBuffer.subarray(rangeInfo.start, rangeInfo.end + 1);
+      headers.set('content-length', bodyBuffer.length);
+    }
+
+    const bodyToSend = (this.method === 'head') ? null : bodyBuffer;
+    return this.#writeCompleteResponse(rangeInfo.status, headers, bodyToSend);
   }
 
   /**
    * Issues an error (status `4xx` or `5xx`) response, with optional body. If no
    * body is provided, a simple default plain-text body is used. The response
-   * includes the single content/cache-related header `Cache-Control: no-store,
-   * must-revalidate`. If the request method is `HEAD`, this will _not_ send the
-   * body as part of the response.
+   * includes a `Cache-Control` header if the status code is (per spec)
+   * cacheable. If the request method is `HEAD`, this will _not_ send a body
+   * as part of the response.
    *
    * @param {number} statusCode The status code.
    * @param {?string} [contentType] Content type for the body. Must be valid if
@@ -614,10 +619,7 @@ export class Request {
       throw new Error(`Cannot send directory: ${path}`);
     }
 
-    const headers = Request.#makeResponseHeaders(options, {
-      'cache-control': () => {
-        return Request.#cacheControlHeader(options.maxAgeMsec);
-      },
+    const headers = this.#makeResponseHeaders('cacheable', options, {
       'content-type': () => {
         return MimeTypes.typeFromExtension(path);
       }
@@ -698,13 +700,10 @@ export class Request {
    * @throws {Error} Thrown if there is any trouble sending the response.
    */
   async sendNoBodyResponse(options = {}) {
-    const headers = Request.#makeResponseHeaders(options, {
-      'cache-control': () => {
-        return Request.#cacheControlHeader(options.maxAgeMsec);
-      }
-    });
+    const status  = 204;
+    const headers = this.#makeResponseHeaders(status, options);
 
-    return this.#writeCompleteResponse(204, headers);
+    return this.#writeCompleteResponse(status, headers);
   }
 
   /**
@@ -902,6 +901,44 @@ export class Request {
   }
 
   /**
+   * Makes a set of response headers based on the given status code and
+   * `options` (as per the class's public contract for same), along with a set
+   * of extra headers to potentially add. Extra headers are only added if the
+   * headers in `options` don't already specify them (that is, they're an
+   * _underlay_).
+   *
+   * @param {number|string} status The response status code, or `cacheable` to
+   *   indicate definite cacheability.
+   * @param {object} options Result-sending options, notably including `cookies`
+   *   and `headers` bindings.
+   * @param {?object} [extras] Any extra headers to overlay or underlay, in the
+   *   same form as accepted by {@link HttpHeaders#appendAll}.
+   * @returns {object} The response headers.
+   */
+  #makeResponseHeaders(status, options, extras) {
+    const { cookies = null, headers = null } = options ?? {};
+
+    const result = headers ? new HttpHeaders(headers) : new HttpHeaders();
+
+    if (cookies) {
+      result.appendSetCookie(cookies);
+    }
+
+    if ((status === 'cacheable')
+      || HttpUtil.responseIsCacheableFor(this.#requestMethod, status)) {
+      const maxAgeMsec = options.maxAgeMsec ?? 0;
+      result.append('cache-control',
+        `public, max-age=${Math.floor(maxAgeMsec / 1000)}`);
+    }
+
+    if (extras) {
+      result.appendAll(extras);
+    }
+
+    return result;
+  }
+
+  /**
    * Given a maximum allowed length and pending response headers, parses
    * range-related request headers, if any, and and returns information about
    * range disposition.
@@ -983,6 +1020,9 @@ export class Request {
    * non-content responses, such as not-founds, redirects, etc., so as to
    * provide a standard form of response (though with some flexibility).
    *
+   * If the status code is allowed to be cached (per HTTP spec), the response
+   * will always have a standard `Cache-Control` header.
+   *
    * This method should _not_ be used for status codes that aren't ever supposed
    * to have a body at all. That said, when the request method is `head`, this
    * method will avoid sending a response body when appropriate.
@@ -1003,6 +1043,8 @@ export class Request {
     MustBe.number(status, { safeInteger: true, minInclusive: 0, maxInclusive: 599 });
     const { body, bodyExtra, contentType } = options ?? {};
 
+    const method = this.#requestMethod;
+
     // Why `get`? Because that one's permissive, and we don't want to throw
     // unless a body is strictly disallowed. But then below, we figure out
     // whether to _actually_ send a body based on the real method.
@@ -1010,14 +1052,12 @@ export class Request {
       throw new Error(`Cannot call with status code: ${status}`);
     }
 
-    const headers = Request.#makeResponseHeaders(options, {
-      'cache-control': () => 'no-store, must-revalidate'
-    });
+    const headers = this.#makeResponseHeaders(status, options);
 
     let finalBody;
     let finalContentType;
 
-    if (!HttpUtil.responseBodyIsAllowedFor(this.#requestMethod, status)) {
+    if (!HttpUtil.responseBodyIsAllowedFor(method, status)) {
       // It's probably a HEAD request for something like a redirect.
       finalBody        = null;
       finalContentType = null;
@@ -1149,18 +1189,6 @@ export class Request {
   }
 
   /**
-   * Gets a `Cache-Control` header for the given max-age.
-   *
-   * @param {?number} [maxAgeMsec] The max age, for cache control, or `null` for
-   *   the default value of `0`.
-   * @returns {string} The corresponding header.
-   */
-  static #cacheControlHeader(maxAgeMsec = null) {
-    maxAgeMsec ??= 0;
-    return `public, max-age=${Math.floor(maxAgeMsec / 1000)}`;
-  }
-
-  /**
    * Extracts a string error code from the given `Error`, or returns a generic
    * "unknown error" if there's nothing else reasonable.
    *
@@ -1185,37 +1213,6 @@ export class Request {
     }
 
     return 'err-unknown';
-  }
-
-  /**
-   * Makes a set of response headers based on the given `options` (as per the
-   * class's public contract for same), along with a set of extra headers to
-   * potentially add. Extra headers are only added if the headers in `options`
-   * don't already specify them.
-   *
-   * @param {object} options Result-sending options, notably including `cookies`
-   *   and `headers` bindings.
-   * @param {?object} [extras] Any extra headers to include, in the form of a
-   *   simple object from header names to _functions_ to call to generate the
-   *   header value, should it be required.
-   * @returns {object} The response headers.
-   */
-  static #makeResponseHeaders(options, extras) {
-    const { cookies = null, headers = null } = options ?? {};
-
-    const result = headers ? new HttpHeaders(headers) : new HttpHeaders();
-
-    if (cookies) {
-      result.appendSetCookie(cookies);
-    }
-
-    for (const [name, func] of Object.entries(extras)) {
-      if (!result.has(name)) {
-        result.set(name, func());
-      }
-    }
-
-    return result;
   }
 
   /**

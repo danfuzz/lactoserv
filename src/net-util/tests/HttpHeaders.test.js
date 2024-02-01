@@ -135,7 +135,7 @@ describe('appendAll()', () => {
   });
 
   test('appends multiple `set-cookies` from a `Headers`', () => {
-    const hh = new HttpHeaders();
+    const hh   = new HttpHeaders();
     const orig = new Headers();
 
     hh.set('set-cookie', 'a=1');
@@ -148,6 +148,31 @@ describe('appendAll()', () => {
       ['set-cookie', 'b=2'],
       ['set-cookie', 'c=3']
     ]);
+  });
+
+  test('uses an underlay function when it would not overwrite an existing header', () => {
+    const hh = new HttpHeaders();
+
+    hh.appendAll({ 'blorp': () => 'beep-boop' });
+
+    expect([...hh]).toEqual([['blorp', 'beep-boop']]);
+  });
+
+  test('does not use the underlay function when it would overwrite an existing header', () => {
+    const hh            = new HttpHeaders();
+    let   overlayCalled = false;
+
+    hh.set('foo', 'bar');
+
+    hh.appendAll({
+      'foo': () => {
+        overlayCalled = true;
+        return 'beeeeeeeep!!!!!';
+      }
+    });
+
+    expect([...hh]).toEqual([['foo', 'bar']]);
+    expect(overlayCalled).toBeFalse();
   });
 });
 

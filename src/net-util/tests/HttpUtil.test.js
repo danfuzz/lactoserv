@@ -58,6 +58,7 @@ ${'responseIsCacheableFor'}    | ${'expCache'}
   ${'head'} | ${300} | ${false}   | ${false}    | ${true}
   ${'head'} | ${301} | ${false}   | ${false}    | ${true}
   ${'head'} | ${306} | ${false}   | ${false}    | ${false}
+  ${'head'} | ${304} | ${false}   | ${false}    | ${true}
   ${'head'} | ${308} | ${false}   | ${false}    | ${true}
   ${'head'} | ${400} | ${true}    | ${false}    | ${false}
   ${'head'} | ${401} | ${true}    | ${false}    | ${false}
@@ -83,7 +84,7 @@ ${'responseIsCacheableFor'}    | ${'expCache'}
   ${'get'}  | ${206} | ${true}    | ${true}     | ${true}
   ${'get'}  | ${300} | ${true}    | ${false}    | ${true}
   ${'GET'}  | ${301} | ${true}    | ${false}    | ${true}
-  ${'get'}  | ${304} | ${false}   | ${false}    | ${false}
+  ${'get'}  | ${304} | ${false}   | ${false}    | ${true}
   ${'get'}  | ${306} | ${true}    | ${false}    | ${false}
   ${'get'}  | ${308} | ${true}    | ${false}    | ${true}
   ${'get'}  | ${400} | ${true}    | ${false}    | ${false}
