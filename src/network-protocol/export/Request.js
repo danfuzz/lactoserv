@@ -1044,16 +1044,15 @@ export class Request {
     if (ifRange) {
       if (/"/.test(ifRange)) {
         // The range request is conditional on an etag match.
-        const { etag: etagHeader } = responseHeaders.extract('etag');
+        const etagHeader = responseHeaders.get('etag');
         if (etagHeader !== ifRange) {
           return status200(); // _Not_ matched.
         }
       } else {
         // The range request is a last-modified date.
-        const { 'last-modified': lastModified } =
-          responseHeaders.extract('last-modified');
-        const lmDate = Request.#parseDate(lastModified);
-        const ifDate = Request.#parseDate(ifRange);
+        const lastModified = responseHeaders.get('last-modified');
+        const lmDate       = Request.#parseDate(lastModified);
+        const ifDate       = Request.#parseDate(ifRange);
         if ((lmDate === null) || (ifDate === null) || (lmDate > ifDate)) {
           return status200(); // _Not_ matched.
         }
