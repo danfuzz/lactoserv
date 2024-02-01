@@ -630,28 +630,6 @@ export class Request {
   }
 
   /**
-   * Issues an error (status `4xx` or `5xx`) response, with optional body. If no
-   * body is provided, a simple default plain-text body is used. The response
-   * includes a `Cache-Control` header if the status code is (per spec)
-   * cacheable. If the request method is `HEAD`, this will _not_ send a body
-   * as part of the response.
-   *
-   * @param {number} statusCode The status code.
-   * @param {?string} [contentType] Content type for the body. Must be valid if
-   *  `body` is passed as non-`null`.
-   * @param {?string|Buffer} [body] Body content.
-   * @returns {boolean} `true` when the response is completed.
-   */
-  async sendError(statusCode, contentType = null, body = null) {
-    MustBe.number(statusCode, { safeInteger: true, minInclusive: 400, maxInclusive: 599 });
-    const sendOpts = body
-      ? { contentType, body }
-      : { bodyExtra: `  ${this.targetString}\n` };
-
-    return this.#sendNonContentResponseWithMessageBody(statusCode, sendOpts);
-  }
-
-  /**
    * Issues a successful response, with the contents of the given file or with
    * an empty body as appropriate. The actual reported status will vary, with
    * the same possibilities as with {@link #sendContent}.
