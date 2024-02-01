@@ -33,6 +33,7 @@ export class HttpUtil {
     add('Cache-Control');
     add('Connection');
     add('Content-Length');
+    add('Content-Range');
     add('Content-Type');
     add('Cookie');
     add('Date');
