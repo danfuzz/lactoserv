@@ -10,6 +10,8 @@ Breaking changes:
 * Split off `Request.sendNoBodyResponse()` from `sendContent()`, and made the
   latter take separate `body` and `contentType` arguments instead of those being
   part of the `options`.
+* Reworked `Request.sendError()` as `Request.sendMetaResponse()`, giving it both
+  a somewhat-wider purview along with the ability to control response headers.
 * Changed `Request.protocolName` to actually be the protocol name (and not just
   a guess based on the port number).
 * Changed `HostInfo` to do its port-defaulting based on a port number (instead
