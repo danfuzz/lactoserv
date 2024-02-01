@@ -15,7 +15,8 @@ export class HttpHeaders extends Headers {
    *
    * @param {?Headers|Map|object} [other] Initial source of entries. This is
    *   allowed to be anything that implements a map-like iterator, or a plain
-   *   object.
+   *   object. If non-`null`, this is treated the same way as would be done in
+   *   {@link #appendAll}.
    */
   constructor(other = null) {
     super();
@@ -31,8 +32,22 @@ export class HttpHeaders extends Headers {
   }
 
   /**
-   * Appends all of the entries in the given other value to this one. In the
-   * case of a plain object, this appends its enumerable property values.
+   * Appends entries in the given other value to this one. In the case of a
+   * plain object, this uses its enumerable property names as the header names,
+   * with the corresponding values.
+   *
+   * Given a `Headers` object (including an instance of this subclass), all of
+   * the entries are appended.
+   *
+   * Given a plain object or `Map` (or, really, more generally any object that
+   * returns a map-like iterator), what is appended depends on the value:
+   *
+   * * String values are appended directly.
+   * * The converted string value of other non-compound values is appended.
+   * * The contents of arrays are appended individually.
+   * * Functions are treated as "underlays:" If this instance does not have the
+   *   header in question, the function is called to produce a value, and that
+   *   value is then appended.
    *
    * @param {Headers|Map|object} other Source of entries to append. This is
    *   allowed to be anything that implements a map-like iterator, or a plain
@@ -43,11 +58,22 @@ export class HttpHeaders extends Headers {
       ? other[Symbol.iterator]() // Use the defined iterator.
       : Object.entries(other);   // Treat it as a plain object.
 
-    for (const [name, value] of iterator) {
-      if (((typeof value) === 'object') && (value !== null)) {
-        if (Array.isArray(value)) {
+    const appendOne = (name, value, functionOk = false) => {
+      if ((typeof value === 'object') && (value !== null)) {
+        if (typeof value === 'string') {
+          // The overwhelmingly most common case.
+          this.append(name, value);
+        } else if (Array.isArray(value)) {
           for (const v of value) {
-            this.append(name, v);
+            appendOne(name, v);
+          }
+        } else {
+          throw new Error(`Strange header value: ${value}`);
+        }
+      } else if (typeof value === 'function') {
+        if (functionOk) {
+          if (!this.has(name)) {
+            appendOne(name, value());
           }
         } else {
           throw new Error(`Strange header value: ${value}`);
@@ -55,6 +81,10 @@ export class HttpHeaders extends Headers {
       } else {
         this.append(name, `${value}`);
       }
+    };
+
+    for (const [name, value] of iterator) {
+      appendOne(name, value, true);
     }
   }
 
