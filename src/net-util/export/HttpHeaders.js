@@ -32,59 +32,28 @@ export class HttpHeaders extends Headers {
   }
 
   /**
-   * Appends entries in the given other value to this one. In the case of a
-   * plain object, this uses its enumerable property names as the header names,
-   * with the corresponding values.
-   *
-   * Given a `Headers` object (including an instance of this subclass), all of
-   * the entries are appended.
-   *
-   * Given a plain object or `Map` (or, really, more generally any object that
-   * returns a map-like iterator), what is appended depends on the value:
-   *
-   * * String values are appended directly.
-   * * The converted string value of other non-compound values is appended.
-   * * The contents of arrays are appended individually.
-   * * Functions are treated as "underlays:" If this instance does not have the
-   *   header in question, the function is called to produce a value, and that
-   *   value is then appended.
+   * Like {@link #setAll} (see which), except appends to headers if they already
+   * exist in the instance.
    *
    * @param {Headers|Map|object} other Source of entries to append. This is
    *   allowed to be anything that implements a map-like iterator, or a plain
    *   object.
    */
   appendAll(other) {
-    const iterator = other[Symbol.iterator]
-      ? other[Symbol.iterator]() // Use the defined iterator.
-      : Object.entries(other);   // Treat it as a plain object.
+    const originallyHad = {};
 
-    const appendOne = (name, value, functionOk = false) => {
-      if ((typeof value === 'object') && (value !== null)) {
-        if (typeof value === 'string') {
-          // The overwhelmingly most common case.
-          this.append(name, value);
-        } else if (Array.isArray(value)) {
-          for (const v of value) {
-            appendOne(name, v);
-          }
-        } else {
-          throw new Error(`Strange header value: ${value}`);
+    for (const [name, value] of HttpHeaders.#entriesForOther(other)) {
+      if (typeof value === 'function') {
+        if (originallyHad[name] === undefined) {
+          // First time seeing this name.
+          originallyHad[name] = this.has(name);
         }
-      } else if (typeof value === 'function') {
-        if (functionOk) {
-          if (!this.has(name)) {
-            appendOne(name, value());
-          }
-        } else {
-          throw new Error(`Strange header value: ${value}`);
+        if (!originallyHad[name]) {
+          this.append(name, value());
         }
       } else {
-        this.append(name, `${value}`);
+        this.append(name, value);
       }
-    };
-
-    for (const [name, value] of iterator) {
-      appendOne(name, value, true);
     }
   }
 
@@ -196,5 +165,99 @@ export class HttpHeaders extends Headers {
     }
 
     return false;
+  }
+
+  /**
+   * Sets headers on this instance for each of the entries in the given other
+   * instance. This is _almost_ like iterating over the value and calling
+   * `set()` on each, except that `Header` iterators can sometimes report the
+   * same header name multiple times (because of `set-cookie`), and this method
+   * takes care not to let that mess things up.
+   *
+   * Given a `Headers` object (including an instance of this subclass), all of
+   * the entries are appended.
+   *
+   * Given a plain object or `Map` (or, really, more generally any object that
+   * returns a map-like iterator), what is appended depends on the value:
+   *
+   * * Type `string`: The value is used directly.
+   * * Other non-compound values: The value is converted to a string and then
+   *   used.
+   * * Functions: The entry is treated as an "underlay." If this instance does
+   *   not have the header in question, the function is called to produce a
+   *   value, and that value is then appended.
+   * * Arrays: The contents of arrays are processed recursively, per these
+   *   rules.
+   * * Everything else is an error.
+   *
+   * **Note:** "Underlaying" (when given a function value) is based on the state
+   * of the instance _before_ this method starts running.
+   *
+   * @param {Headers|Map|object} other Source of entries to append. This is
+   *   allowed to be anything that implements a map-like iterator, or a plain
+   *   object.
+   */
+  setAll(other) {
+    const originallyHad = {};
+
+    for (const [name, value] of HttpHeaders.#entriesForOther(other)) {
+      const firstTime = (originallyHad[name] === undefined);
+      if (firstTime) {
+        // First time seeing this name.
+        originallyHad[name] = this.has(name);
+      }
+
+      if (typeof value === 'function') {
+        if (!originallyHad[name]) {
+          this.append(name, value());
+        }
+      } else if (firstTime) {
+        this.set(name, value);
+      } else {
+        this.append(name, value);
+      }
+    }
+  }
+
+
+  //
+  // Static members
+  //
+
+  /**
+   * Helper for {@link #appendAll} and {@link #setAll}, which iterates
+   * (potentially recursively) over an `other` argument, as defined by those
+   * methods.
+   *
+   * @param {*} other The instance to iterate over.
+   * @yields {Array<string, *>} An entry, suitable for appending or setting.
+   */
+  static *#entriesForOther(other) {
+    function* doOne(name, value) {
+      if ((typeof value === 'string') || (typeof value === 'function')) {
+        // The overwhelmingly most common cases.
+        yield [name, value];
+      } else if (typeof value === 'object') {
+        if (Array.isArray(value)) {
+          for (const v of value) {
+            yield* doOne(name, v);
+          }
+        } else if (value === null) {
+          yield [name, 'null'];
+        } else {
+          throw new Error(`Strange header value: ${value}`);
+        }
+      } else {
+        yield [name, `${value}`];
+      }
+    }
+
+    const iterateOver = other[Symbol.iterator]
+      ? other                  // Use `other`'s defined iterator.
+      : Object.entries(other); // Treat `other` as a plain object.
+
+    for (const [name, value] of iterateOver) {
+      yield* doOne(name, value);
+    }
   }
 }

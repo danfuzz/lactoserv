@@ -20,17 +20,20 @@ describe('constructor', () => {
   });
 });
 
+// This tests the constructor and methods in terms of modifying an initially
+// empty instance.
 describe.each`
-label            | constructor
-${'constructor'} | ${true}
-${'appendAll()'} | ${false}
-`('$label', ({ constructor }) => {
+label            | methodName
+${'constructor'} | ${'constructor'}
+${'appendAll()'} | ${'appendAll'}
+${'setAll()'}    | ${'setAll'}
+`('$label', ({ methodName }) => {
   function prep(arg) {
-    if (constructor) {
+    if (methodName === 'constructor') {
       return new HttpHeaders(arg);
     } else {
       const hh = new HttpHeaders();
-      hh.appendAll(arg);
+      hh[methodName](arg);
       return hh;
     }
   }
@@ -150,7 +153,7 @@ describe('appendAll()', () => {
     ]);
   });
 
-  test('uses an underlay function when it would not overwrite an existing header', () => {
+  test('uses an underlay function when it would not add to a pre-existing header', () => {
     const hh = new HttpHeaders();
 
     hh.appendAll({ 'blorp': () => 'beep-boop' });
@@ -158,7 +161,7 @@ describe('appendAll()', () => {
     expect([...hh]).toEqual([['blorp', 'beep-boop']]);
   });
 
-  test('does not use the underlay function when it would overwrite an existing header', () => {
+  test('does not use the underlay function when it would add to a pre-existing header', () => {
     const hh            = new HttpHeaders();
     let   overlayCalled = false;
 
@@ -173,6 +176,21 @@ describe('appendAll()', () => {
 
     expect([...hh]).toEqual([['foo', 'bar']]);
     expect(overlayCalled).toBeFalse();
+  });
+
+  test('uses multiple underlay functions when they would not add to a pre-existing header', () => {
+    const hh = new HttpHeaders();
+
+    // This tests multiple entries with the same name.
+    hh.appendAll([['blorp', () => 'beep1'], ['blorp', () => 'beep2']]);
+
+    // This tests a single array entry binding to an array of functions.
+    hh.appendAll({ zorch: [() => 'zonk1', () => 'zonk2'] });
+
+    expect([...hh]).toIncludeSameMembers([
+      ['blorp', 'beep1, beep2'],
+      ['zorch', 'zonk1, zonk2']
+    ]);
   });
 });
 
@@ -325,3 +343,5 @@ ${'hasAny'}
     expect(hh[methodName](...args)).toBe(expected);
   });
 });
+
+// TODO: setAll()
