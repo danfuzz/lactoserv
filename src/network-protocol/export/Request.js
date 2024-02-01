@@ -646,10 +646,13 @@ export class Request {
       // competing versions of the `http-error` package due to NPM version
       // "fun.")
       if (e.expose && typeof e.status === 'number') {
-        return this.#sendNonContentResponseWithMessageBody(e.status, {
+        const errOptions = {
+          ...options,
           bodyExtra: e.message,
-          headers:   e.headers ?? {}
-        });
+          headers:   e.headers ?? null,
+          cookies:   null
+        };
+        return this.sendMetaResponse(e.status, errOptions);
       }
       throw e;
     }
