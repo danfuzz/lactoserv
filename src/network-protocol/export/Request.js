@@ -530,7 +530,8 @@ export class Request {
     const { bodyBuffer, bodyHeaders } = Request.#makeBody({
       ...options,
       body,
-      contentType
+      contentType,
+      isMetaResponse: false // So a client can't confuse `makeBody()`.
     });
 
     // Start with the headers that will be used for any non-error response. All
