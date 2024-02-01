@@ -1,6 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { MustBe } from '@this/typey';
+
 
 /**
  * Utility class for various HTTP stuff.
@@ -33,6 +35,7 @@ export class HttpUtil {
     add('Cache-Control');
     add('Connection');
     add('Content-Length');
+    add('Content-Range');
     add('Content-Type');
     add('Cookie');
     add('Date');
@@ -110,6 +113,38 @@ export class HttpUtil {
   }
 
   /**
+   * Parses an (alleged) HTTP date string. Returns a millisecond Epoch time if
+   * successfully parsed.
+   *
+   * @param {?string} dateString An (alleged) HTTP date string.
+   * @returns {?number} A millisecond time, or `null` if not parseable.
+   */
+  static msecFromDateString(dateString) {
+    if (dateString === null) {
+      return null;
+    }
+
+    MustBe.string(dateString);
+
+    // Note: Technically, HTTP date strings are all supposed to be GMT and have
+    // one of three very specific format, but we mostly just let `Date.parse()`
+    // blithely accept anything it wants, which _does_ accept the required
+    // formats in addition to who-knows-what-else.
+
+    let result;
+
+    if (/ (GMT|UTC)$/.test(dateString)) {
+      result = Date.parse(dateString);
+    } else {
+      // It doesn't have the expected suffix, so tack one on, and hope for the
+      // best.
+      result = Date.parse(`${dateString} UTC`);
+    }
+
+    return isNaN(result) ? null : result;
+  }
+
+  /**
    * Given an HTTP(ish) response request method and status code, indicates if
    * the corresponding response _is allowed to_ include a body.
    *
@@ -129,13 +164,39 @@ export class HttpUtil {
       }
 
       switch (status) {
-        case 204: case 205: case 304: {
+        case 204: case 205:
+        case 304: {
           return false;
         }
       }
 
       return true;
     }
+  }
+
+  /**
+   * Given an HTTP(ish) response status code, indicates if the corresponding
+   * response body (or lack thereof) is expected to be high-level application
+   * content.
+   *
+   * @param {number} status Status code.
+   * @returns {boolean} `true` if the body is for high-level application
+   *   content.
+   */
+  static responseBodyIsApplicationContentFor(status) {
+    // This is all based on a reading of the "Status Codes" section of RFC9110.
+
+    if ((status >= 200) && (status <= 299)) {
+      return true;
+    }
+
+    switch (status) {
+      case 300: case 304: {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /**

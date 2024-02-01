@@ -43,9 +43,20 @@ import { WranglerContext } from '#x/WranglerContext';
  * #### `options` on `send*()` methods
  *
  * The `send*()` methods accept an `options` object argument, which accepts the
- * following properties, which all affect only _successful_ responses (not ones
- * reporting an error status).
+ * following properties (with exceptions as noted).
  *
+ * * `{Buffer|string|null} body` -- Body content to include. If passed as a
+ *   `string`, the actual body gets encoded as UTF-8, and the `contentType` is
+ *   adjusted if necessary to indicate that fact. This property is only
+ *   available on methods that don't take a separate `body` argument.
+ * * `{?string} bodyExtra` -- Extra body content to include when wanting to
+ *   _mostly_ use a default body. This is only available on {@link
+ *   #sendMetaResponse}.
+ * * `{?string} contentType` -- Content type of the body, in the form expected
+ *   by {@link MimeTypes}. Required if `body` is present and ignored in all
+ *   other cases. If this value starts with `text/` and/or the `body` is passed
+ *   as a string, then the actual `Content-Type` header will indicate a charset
+ *   of `utf-8`.
  * * `{?Cookies} cookies` -- Cookies to include (via `Set-Cookie` headers) in
  *   the response, if any.
  * * `{?object} headers` -- Extra headers to include in the response, if any.
@@ -54,6 +65,8 @@ import { WranglerContext } from '#x/WranglerContext';
  *   subclass, {@link HttpHeaders}.
  * * `{?number} maxAgeMsec` -- Value to send back in the `max-age` property of
  *   the `Cache-Control` response header. Defaults to `0`.
+ * * `{?number} statusCode` -- Response status code. This is only available on
+ *   {@link #sendRedirect}.
  */
 export class Request {
   /**
@@ -507,30 +520,18 @@ export class Request {
    * @param {string} contentType Content type for the body. If this value starts
    *   with `text/` and/or the `body` is passed as a string, then the actual
    *   `Content-Type` header will indicate a charset of `utf-8`.
-   * @param {object} options Options to control response behavior. See class
-   *   header comment for more details.
+   * @param {object} [options] Options to control response behavior. See class
+   *   header comment for more details. Header-related options are only used
+   *   for non-error responses.
    * @returns {boolean} `true` when the response is completed.
    * @throws {Error} Thrown if there is any trouble sending the response.
    */
   async sendContent(body, contentType, options = {}) {
-    let bodyBuffer;
-    let stringBody = false;
-
-    if (body === null) {
-      // This is an unusual case, and it's not worth doing anything particularly
-      // special for it (e.g. pre-allocating a zero-length buffer).
-      bodyBuffer = Buffer.alloc(0);
-    } else if (AskIf.string(body)) {
-      bodyBuffer = Buffer.from(body, 'utf8');
-      stringBody = true;
-    } else if (body instanceof Buffer) {
-      bodyBuffer = body;
-    } else {
-      throw new Error('`body` must be a string, a `Buffer`, or `null`.');
-    }
-
-    MustBe.string(contentType);
-    contentType = MimeTypes.typeFromExtensionOrType(contentType);
+    const { bodyBuffer, bodyHeaders } = Request.#makeBody({
+      ...options,
+      body,
+      contentType
+    });
 
     // Start with the headers that will be used for any non-error response. All
     // such responses are cacheable, per spec.
@@ -542,56 +543,31 @@ export class Request {
 
     if (this.isFreshWithRespectTo(headers)) {
       // For basic range-support headers.
-      headers.appendAll(this.#rangeInfo().headers);
+      headers.setAll(this.#rangeInfo().headers);
       return this.#writeCompleteResponse(304, headers);
     }
 
     // At this point, we need to make a "non-fresh" response (that is, send
     // content, assuming no header parsing issues).
 
-    headers.appendAll({
-      'content-length': bodyBuffer.length,
-      'content-type': (stringBody || /^text[/]/.test(contentType))
-        ? `${contentType}; charset=utf-8`
-        : contentType
-    });
+    headers.setAll(bodyHeaders);
 
-    const rangeInfo = this.#rangeInfo(bodyBuffer.length, headers);
+    const rangeInfo = this.#rangeInfo(bodyBuffer, headers);
     if (rangeInfo.error) {
       // Note: We _don't_ use the for-success `headers` here.
-      return this.#sendNonContentResponseWithMessageBody(
-        rangeInfo.status, { headers: rangeInfo.headers });
-    } else {
-      // Note: Range `end` is inclusive.
-      headers.appendAll(rangeInfo.headers);
-      bodyBuffer = bodyBuffer.subarray(rangeInfo.start, rangeInfo.end + 1);
-      headers.set('content-length', bodyBuffer.length);
+      const errOptions = {
+        ...options,
+        cookies: null,
+        headers: rangeInfo.headers
+      };
+      return this.sendMetaResponse(rangeInfo.status, errOptions);
     }
 
-    const bodyToSend = (this.method === 'head') ? null : bodyBuffer;
-    return this.#writeCompleteResponse(rangeInfo.status, headers, bodyToSend);
-  }
+    // Note: `#rangeInfo()` notices if this is a HEAD request, and returns a
+    // `bodyBuffer === null` if so.
 
-  /**
-   * Issues an error (status `4xx` or `5xx`) response, with optional body. If no
-   * body is provided, a simple default plain-text body is used. The response
-   * includes a `Cache-Control` header if the status code is (per spec)
-   * cacheable. If the request method is `HEAD`, this will _not_ send a body
-   * as part of the response.
-   *
-   * @param {number} statusCode The status code.
-   * @param {?string} [contentType] Content type for the body. Must be valid if
-   *  `body` is passed as non-`null`.
-   * @param {?string|Buffer} [body] Body content.
-   * @returns {boolean} `true` when the response is completed.
-   */
-  async sendError(statusCode, contentType = null, body = null) {
-    MustBe.number(statusCode, { safeInteger: true, minInclusive: 400, maxInclusive: 599 });
-    const sendOpts = body
-      ? { contentType, body }
-      : { bodyExtra: `  ${this.targetString}\n` };
-
-    return this.#sendNonContentResponseWithMessageBody(statusCode, sendOpts);
+    headers.setAll(rangeInfo.headers);
+    return this.#writeCompleteResponse(rangeInfo.status, headers, rangeInfo.bodyBuffer);
   }
 
   /**
@@ -670,10 +646,13 @@ export class Request {
       // competing versions of the `http-error` package due to NPM version
       // "fun.")
       if (e.expose && typeof e.status === 'number') {
-        return this.#sendNonContentResponseWithMessageBody(e.status, {
+        const errOptions = {
+          ...options,
           bodyExtra: e.message,
-          headers:   e.headers ?? {}
-        });
+          headers:   e.headers ?? null,
+          cookies:   null
+        };
+        return this.sendMetaResponse(e.status, errOptions);
       }
       throw e;
     }
@@ -682,6 +661,71 @@ export class Request {
     // completed (which could be slightly later), and also plumb through any
     // errors that were encountered during final response processing.
     return this.whenResponseDone();
+  }
+
+  /**
+   * Issues a non-content meta-ish response, with optional body. "Non-content
+   * meta-ish" here means that the status code _doesn't_ indicate that the body
+   * is meant to be higher-level application content, which furthermore means
+   * that it is possibly appropriate to use the body for a diagnostic message.
+   * And indeed, this method will use it for that when appropriate, that is,
+   * when the method/status combo allows it.
+   *
+   * If the status code is allowed to be cached (per HTTP spec), the response
+   * will always have a standard `Cache-Control` header.
+   *
+   * The response _never_ includes an `Etag` header.
+   *
+   * If a body is not supplied and _is_ appropriate to send, this method
+   * constructs a `text/plain` body in a standard form which includes the
+   * status code, a short form of the status message (the same as the short
+   * message part of an HTTP1 response), and the original target (that is,
+   * typically the path) of the request.
+   *
+   * This method is intended to be used for all meta-ish non-content responses,
+   * including all error and ephemeral (`1xx`) responses, and _most_ redirect
+   * (`3xx`) responses (but notably not `300` or `304`). It is meant to help the
+   * application provide a consistent form of response (though with some
+   * flexibility).
+   *
+   * This method will report an error if the status code is never allowed to
+   * have an associated body (e.g., `304`), or if the response body is only
+   * supposed to contain higher-level application content (e.g., `200` or
+   * `300`), as opposed to content produced by the server infrastructure.
+   *
+   * @param {number} status The status code.
+   * @param {?object} [options] Options to control response behavior. See class
+   *   header comment for more details.
+   * @returns {boolean} `true` when the response is completed.
+   * @throws {Error} Thrown if there is any trouble sending the response.
+   */
+  async sendMetaResponse(status, options = {}) {
+    MustBe.number(status, { safeInteger: true, minInclusive: 100, maxInclusive: 599 });
+    const method = this.#requestMethod;
+
+    // Why `get` in this test? Because that one's permissive, and we don't want
+    // to throw unless a body is disallowed for any method. But then below, we
+    // figure out whether to _actually_ send a body based on the real method.
+    if (HttpUtil.responseBodyIsApplicationContentFor(status)
+      || !HttpUtil.responseBodyIsAllowedFor('get', status)) {
+      throw new Error(`Cannot call with status code: ${status}`);
+    }
+
+    const headers = this.#makeResponseHeaders(status, options);
+
+    if (!HttpUtil.responseBodyIsAllowedFor(method, status)) {
+      // It's probably a HEAD request for something like a redirect.
+      return this.#writeCompleteResponse(status, headers);
+    } else {
+      const { bodyBuffer, bodyHeaders } = Request.#makeBody({
+        ...options,
+        isMetaResponse: true,
+        status
+      });
+
+      headers.setAll(bodyHeaders);
+      return this.#writeCompleteResponse(status, headers, bodyBuffer);
+    }
   }
 
   /**
@@ -708,23 +752,20 @@ export class Request {
 
   /**
    * Issues a "not found" (status `404`) response, with optional body. This is
-   * just a convenient shorthand for `sendError(404, ...)`.
+   * just a convenient shorthand for `sendMetaResponse(404, ...)`.
    *
-   * @param {?string} [contentType] Content type for the body. Must be valid if
-   *  `body` is passed as non-`null`.
-   * @param {?string|Buffer} [body] Body content.
+   * @param {?object} [options] Options to control response behavior. See class
+   *   header comment for more details.
    * @returns {boolean} `true` when the response is completed.
+   * @throws {Error} Thrown if there is any trouble sending the response.
    */
-  async sendNotFound(contentType = null, body = null) {
-    return this.sendError(404, contentType, body);
+  async sendNotFound(options = null) {
+    return this.sendMetaResponse(404, options);
   }
 
   /**
-   * Issues a redirect response, with a standard response message and plain text
-   * body. The response message depends on the status code.
-   *
-   * Calling this method results in this request being considered complete, and
-   * as such no additional response-related methods will work.
+   * Issues a redirect response. This ultimately calls through to {@link
+   * #sendMetaResponse}.
    *
    * **Note:** This method does _not_ do any URL-encoding on the given `target`.
    * It is assumed to be valid and already encoded if necessary. (This is unlike
@@ -732,20 +773,25 @@ export class Request {
    * more like "confusing.")
    *
    * @param {string} target Possibly-relative target URL.
-   * @param {number} [status] Status code.
+   * @param {?object} [options] Options to control response behavior. See class
+   *   header comment for more details.
+   * @param {?number} [options.statusCode] The status code to report. Defaults
+   *   to `302` ("Found").
    * @returns {boolean} `true` when the response is completed.
    */
-  async sendRedirect(target, status = 302) {
-    // Note: This method avoids using `express.Response.redirect()` (a) to avoid
-    // ambiguity with the argument `"back"`, and (b) generally with an eye
-    // towards dropping Express entirely as a dependency.
-
+  async sendRedirect(target, options = null) {
     MustBe.string(target);
 
-    return this.#sendNonContentResponseWithMessageBody(status, {
-      bodyExtra: `  ${target}\n`,
-      headers:   { 'Location': target }
-    });
+    // Arrange to merge in `options` or start fresh, as appropriate.
+    options = options ? { ...options } : {};
+
+    options.status    ??= 302;
+    options.bodyExtra ??= `${target}\n`;
+    options.headers   ??= {};
+
+    options.headers['location'] = target;
+
+    return this.sendMetaResponse(options.status, options);
   }
 
   /**
@@ -755,15 +801,18 @@ export class Request {
    * Calling this method results in this request being considered complete, and
    * as such no additional response-related methods will work.
    *
-   * @param {number} [status] Status code.
+   * @param {?object} [options] Options to control response behavior. See class
+   *   header comment for more details.
+   * @param {?number} [options.statusCode] The status code to report. Defaults
+   *   to `302` ("Found").
    * @returns {boolean} `true` when the response is completed.
    */
-  async sendRedirectBack(status = 302) {
+  async sendRedirectBack(options = null) {
     // Note: Express lets you ask for `referrer` (spelled properly), but the
     // actual header that's supposed to be sent is `referer` (which is of course
     // misspelled).
     const target = this.getHeaderOrNull('referer') ?? '/';
-    return this.sendRedirect(target, status);
+    return this.sendRedirect(target, options);
   }
 
   /**
@@ -939,35 +988,38 @@ export class Request {
   }
 
   /**
-   * Given a maximum allowed length and pending response headers, parses
-   * range-related request headers, if any, and and returns information about
-   * range disposition.
+   * Given an original response body and pending response headers, parses
+   * range-related request headers, if any, and and returns sufficient info for
+   * making the ultimate response.
    *
-   * @param {?number} [length] Length of the underlying response. If `null`,
-   *   this method just returns a basic no-range-request success response.
+   * @param {?Buffer} [bodyBuffer] The original response body. If `null`, this
+   *   method just returns a basic no-range-request success response.
    * @param {?HttpHeaders} [responseHeaders] Response headers to-be. Not used
-   *   when passing `null` for `length`.
+   *   when passing `null` for `bodyBuffer`.
    * @returns {object} Disposition info.
    */
-  #rangeInfo(length = null, responseHeaders = null) {
+  #rangeInfo(bodyBuffer = null, responseHeaders = null) {
     const RANGE_UNIT = 'bytes';
     function status200() {
       return {
+        bodyBuffer,
         status:  200,
-        headers: { 'Accept-Ranges': RANGE_UNIT }
+        headers: { 'accept-ranges': RANGE_UNIT }
       };
     }
 
-    if (length === null) {
+    if (bodyBuffer === null) {
       return status200();
     }
 
     const { 'if-range': ifRange, range } = this.headers;
 
     if (!range) {
-      // Not a range request!
+      // Not a range request.
       return status200();
     }
+
+    const length = bodyBuffer.length;
 
     // Note: The package `range-parser` is pretty lenient about the syntax it
     // accepts. TODO: Replace with something stricter.
@@ -977,23 +1029,22 @@ export class Request {
       return {
         error:   true,
         status:  416,
-        headers: { 'Content-Range': `${RANGE_UNIT} */${length}` }
+        headers: { 'content-range': `${RANGE_UNIT} */${length}` }
       };
     }
 
     if (ifRange) {
       if (/"/.test(ifRange)) {
         // The range request is conditional on an etag match.
-        const { etag: etagHeader } = responseHeaders.extract('etag');
+        const etagHeader = responseHeaders.get('etag');
         if (etagHeader !== ifRange) {
           return status200(); // _Not_ matched.
         }
       } else {
         // The range request is a last-modified date.
-        const { 'last-modified': lastModified } =
-          responseHeaders.extract('last-modified');
-        const lmDate = Request.#parseDate(lastModified);
-        const ifDate = Request.#parseDate(ifRange);
+        const lastModified = responseHeaders.get('last-modified');
+        const lmDate       = HttpUtil.msecFromDateString(lastModified);
+        const ifDate       = HttpUtil.msecFromDateString(ifRange);
         if ((lmDate === null) || (ifDate === null) || (lmDate > ifDate)) {
           return status200(); // _Not_ matched.
         }
@@ -1006,90 +1057,20 @@ export class Request {
     }
 
     const { start, end } = ranges[0];
+    const finalLength = (end - start) + 1; // Note: `end` is inclusive.
+    const finalBuffer = (this.#requestMethod === 'head')
+      ? null
+      : bodyBuffer.subarray(start, end + 1);
+
     return {
-      status: 206,
-      headers: { 'Content-Range': `${RANGE_UNIT} ${start}-${end}/${length}` },
-      start,
-      end
+      bodyBuffer: finalBuffer,
+      status:     206,
+      headers: {
+        'accept-ranges':  RANGE_UNIT,
+        'content-length': finalLength,
+        'content-range':  `${RANGE_UNIT} ${start}-${end}/${length}`
+      }
     };
-  }
-
-  /**
-   * Sends a response of the given status with a body either as given or
-   * generated by default. This method is intended to be used for all "meta-ish"
-   * non-content responses, such as not-founds, redirects, etc., so as to
-   * provide a standard form of response (though with some flexibility).
-   *
-   * If the status code is allowed to be cached (per HTTP spec), the response
-   * will always have a standard `Cache-Control` header.
-   *
-   * This method should _not_ be used for status codes that aren't ever supposed
-   * to have a body at all. That said, when the request method is `head`, this
-   * method will avoid sending a response body when appropriate.
-   *
-   * @param {number} status The status code.
-   * @param {?object} [options] Options for the response.
-   * @param {string|Buffer|null} [options.body] Complete body to send, if any.
-   *   If not supplied, one is constructed based on the `status` and
-   *   `options.bodyExtra`.
-   * @param {?string} [options.bodyExtra] Text to append to a constructed body.
-   *   Only used if `options.body` is not passed.
-   * @param {?string} [options.contentType] Content type for the body. Required
-   *   if `options.body` is passed.
-   * @param {?object} [options.headers] Extra response headers to send, if any.
-   * @returns {Promise<boolean>} `true` when the response is completed.
-   */
-  #sendNonContentResponseWithMessageBody(status, options = null) {
-    MustBe.number(status, { safeInteger: true, minInclusive: 0, maxInclusive: 599 });
-    const { body, bodyExtra, contentType } = options ?? {};
-
-    const method = this.#requestMethod;
-
-    // Why `get`? Because that one's permissive, and we don't want to throw
-    // unless a body is strictly disallowed. But then below, we figure out
-    // whether to _actually_ send a body based on the real method.
-    if (!HttpUtil.responseBodyIsAllowedFor('get', status)) {
-      throw new Error(`Cannot call with status code: ${status}`);
-    }
-
-    const headers = this.#makeResponseHeaders(status, options);
-
-    let finalBody;
-    let finalContentType;
-
-    if (!HttpUtil.responseBodyIsAllowedFor(method, status)) {
-      // It's probably a HEAD request for something like a redirect.
-      finalBody        = null;
-      finalContentType = null;
-    } else if (body) {
-      if (!contentType) {
-        throw new Error('Missing `contentType`.');
-      }
-      finalBody        = body;
-      finalContentType = MimeTypes.typeFromExtensionOrType(contentType);
-    } else {
-      const statusStr  = statuses(status);
-      const bodyHeader = `${status} ${statusStr}`;
-
-      if (((bodyExtra ?? '') === '') || (bodyExtra === statusStr)) {
-        finalBody = `${bodyHeader}\n`;
-      } else {
-        const finalNl = (bodyExtra.endsWith('\n')) ? '' : '\n';
-        finalBody = `${bodyHeader}:\n${bodyExtra}${finalNl}`;
-      }
-
-      finalContentType = 'text/plain';
-    }
-
-    if (finalBody) {
-      if (typeof finalBody === 'string') {
-        finalBody = Buffer.from(finalBody);
-      }
-      headers.set('content-length', finalBody.length);
-      headers.set('content-type',   finalContentType);
-    }
-
-    return this.#writeCompleteResponse(status, headers, finalBody);
   }
 
   /**
@@ -1178,17 +1159,6 @@ export class Request {
   //
 
   /**
-   * Given a logger created by this class, returns the request ID it logs
-   * with.
-   *
-   * @param {?IntfLogger} logger The logger.
-   * @returns {?string} The ID string, or `null` if `logger === null`.
-   */
-  static idFromLogger(logger) {
-    return logger?.$meta.lastContext ?? null;
-  }
-
-  /**
    * Extracts a string error code from the given `Error`, or returns a generic
    * "unknown error" if there's nothing else reasonable.
    *
@@ -1216,18 +1186,98 @@ export class Request {
   }
 
   /**
-   * Parses an (alleged) HTTP date string.
+   * Helper for constructing a response body, used by both content and meta
+   * (non-content) code paths. This is only appropriate to call in cases where a
+   * body really will be returned with a response (so, e.g., _not_ when
+   * responding to a `HEAD` request).
    *
-   * @param {?string} dateString An (alleged) HTTP date string.
-   * @returns {?number} A millisecond time if successfully parsed, or `null` if
-   *   not.
+   * @param {object} options Options for body generation.
+   * @param {Buffer|string|null} options.body Body to send. Required for
+   *   non-meta responses.
+   * @param {?string} options.bodyExtra For meta responses with no `body`, extra
+   *   detail to append to the default body.
+   * @param {string} options.contentType Content type.
+   * @param {?boolean} options.isMetaResponse Is this a meta (non-content)
+   *   response? If so, it's valid to omit `body` and optional to use
+   *   `bodyExtra`.
+   * @param {?number} options.status Status code. Required for meta responses.
+   * @returns {{ bodyBuffer: Buffer, bodyHeaders: HttpHeaders }} The details
+   *   needed for the ultimate response.
    */
-  static #parseDate(dateString) {
-    // Note: Technically, HTTP date strings are all supposed to be GMT, but we
-    // just let `Date.parse()` blithely accept anything it wants.
-    const result = Date.parse(dateString);
+  static #makeBody(options) {
+    const { body: origBody, contentType: origContentType, isMetaResponse } = options;
 
-    return (typeof result === 'number') ? result : null;
+    if (origBody && !origContentType) {
+      throw new Error('Missing `contentType`.');
+    }
+
+    let body;
+    let contentType;
+
+    if (isMetaResponse) {
+      const { bodyExtra, status } = options;
+
+      if (!status) {
+        throw new Error('Missing `status`.');
+      }
+
+      if (origBody) {
+        if (bodyExtra) {
+          throw new Error('Cannot use both `body` and `bodyExtra`.');
+        }
+
+        body        = origBody;
+        contentType = origContentType;
+      } else {
+        const statusStr  = statuses(status);
+        const bodyHeader = `${status} ${statusStr}`;
+
+        if (((bodyExtra ?? '') === '') || (bodyExtra === statusStr)) {
+          body = `${bodyHeader}\n`;
+        } else {
+          const finalNl = (bodyExtra.endsWith('\n')) ? '' : '\n';
+          body = `${bodyHeader}:\n\n${bodyExtra}${finalNl}`;
+        }
+
+        contentType = 'text/plain';
+      }
+    } else {
+      if (origBody === null) {
+        // This is an unusual case, and it's not worth doing anything
+        // particularly special for it (e.g. pre-allocating an empty buffer).
+        bodyBuffer = Buffer.alloc(0);
+      } else if (!origBody) {
+        throw new Error('Missing `body`.');
+      }
+
+      body        = origBody;
+      contentType = MustBe.string(origContentType);
+    }
+
+    let bodyBuffer;
+    let stringBody = false;
+
+    if (typeof body === 'string') {
+      bodyBuffer = Buffer.from(body, 'utf8');
+      stringBody = true;
+    } else if (body instanceof Buffer) {
+      bodyBuffer = body;
+    } else {
+      throw new Error('`body` must be a string, a `Buffer`, or `null`.');
+    }
+
+    contentType = MimeTypes.typeFromExtensionOrType(contentType);
+    if (stringBody || /^text[/]/.test(contentType)) {
+      contentType = `${contentType}; charset=utf-8`;
+    }
+
+    return {
+      bodyBuffer,
+      bodyHeaders: {
+        'content-length': bodyBuffer.length,
+        'content-type':   contentType
+      }
+    };
   }
 
   /**
