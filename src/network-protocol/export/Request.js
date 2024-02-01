@@ -562,8 +562,9 @@ export class Request {
       return this.#sendNonContentResponseWithMessageBody(
         rangeInfo.status, { headers: rangeInfo.headers });
     } else {
+      // Note: Range `end` is inclusive.
       headers.appendAll(rangeInfo.headers);
-      bodyBuffer = bodyBuffer.subarray(rangeInfo.start, rangeInfo.end);
+      bodyBuffer = bodyBuffer.subarray(rangeInfo.start, rangeInfo.end + 1);
       headers.set('content-length', bodyBuffer.length);
     }
 
