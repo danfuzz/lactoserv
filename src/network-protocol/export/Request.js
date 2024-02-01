@@ -555,8 +555,12 @@ export class Request {
     const rangeInfo = this.#rangeInfo(bodyBuffer, headers);
     if (rangeInfo.error) {
       // Note: We _don't_ use the for-success `headers` here.
-      return this.#sendNonContentResponseWithMessageBody(
-        rangeInfo.status, { headers: rangeInfo.headers });
+      const errOptions = {
+        ...options,
+        cookies: null,
+        headers: rangeInfo.headers
+      };
+      return this.sendMetaResponse(rangeInfo.status, errOptions);
     }
 
     // Note: `#rangeInfo()` notices if this is a HEAD request, and returns a
