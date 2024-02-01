@@ -525,24 +525,11 @@ export class Request {
    * @throws {Error} Thrown if there is any trouble sending the response.
    */
   async sendContent(body, contentType, options = {}) {
-    let bodyBuffer;
-    let stringBody = false;
-
-    if (body === null) {
-      // This is an unusual case, and it's not worth doing anything particularly
-      // special for it (e.g. pre-allocating a zero-length buffer).
-      bodyBuffer = Buffer.alloc(0);
-    } else if (AskIf.string(body)) {
-      bodyBuffer = Buffer.from(body, 'utf8');
-      stringBody = true;
-    } else if (body instanceof Buffer) {
-      bodyBuffer = body;
-    } else {
-      throw new Error('`body` must be a string, a `Buffer`, or `null`.');
-    }
-
-    MustBe.string(contentType);
-    contentType = MimeTypes.typeFromExtensionOrType(contentType);
+    const { bodyBuffer, bodyHeaders } = Request.#makeBody({
+      ...options,
+      body,
+      contentType
+    });
 
     // Start with the headers that will be used for any non-error response. All
     // such responses are cacheable, per spec.
@@ -561,12 +548,7 @@ export class Request {
     // At this point, we need to make a "non-fresh" response (that is, send
     // content, assuming no header parsing issues).
 
-    headers.setAll({
-      'content-length': bodyBuffer.length,
-      'content-type': (stringBody || /^text[/]/.test(contentType))
-        ? `${contentType}; charset=utf-8`
-        : contentType
-    });
+    headers.setAll(bodyHeaders);
 
     const rangeInfo = this.#rangeInfo(bodyBuffer, headers);
     if (rangeInfo.error) {
