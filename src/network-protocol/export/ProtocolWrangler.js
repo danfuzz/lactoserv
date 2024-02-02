@@ -142,9 +142,11 @@ export class ProtocolWrangler {
   }
 
   /**
-   * @returns {{ address: string, port: number }} The IP address and port of
-   * the interface which this instance listens on. This is always a frozen
-   * object.
+   * @returns {{ address: ?string, port: ?number, fd: ?number }} The IP address
+   * and port of the interface, _or_ the file descriptor, which this instance
+   * listens on. In the case of a file descriptor, `port` might be defined, in
+   * which case it is the "declared port" to report to clients, e.g. for
+   * logging.
    */
   get interface() {
     return this.#interfaceObject;
