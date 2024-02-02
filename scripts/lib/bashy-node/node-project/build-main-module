@@ -270,22 +270,24 @@ function create-runner-script {
         # Available to the template code.
         RUNNER_NODE_VERSIONS=("${versions[@]}")
 
-        collecting=0 # Are we collecting an embedded script?
-        toEval=()    # Lines to evaluate.
+        # Because we `eval`, prefix these names to try to avoid conflict.
+        _bmm_collecting=0 # Are we collecting an embedded script?
+        _bmm_toEval=()    # Lines to evaluate.
+        _bmm_line=''      # Current line.
 
-        while IFS='' read -r line || [[ ${line} != '' ]]; do
-            if (( collecting )); then
-                if [[ ${line} == '#}#' ]]; then
-                    collecting=0
+        while IFS='' read -r _bmm_line || [[ ${_bmm_line} != '' ]]; do
+            if (( _bmm_collecting )); then
+                if [[ ${_bmm_line} == '#}#' ]]; then
+                    _bmm_collecting=0
                     # TODO: Evaluate!
                 else
-                    toEval+=("${line}")
+                    _bmm_toEval+=("${_bmm_line}")
                 fi
-            elif [[ ${line} == '#{#' ]]; then
-                collecting=1
-                toEval=()
+            elif [[ ${_bmm_line} == '#{#' ]]; then
+                _bmm_collecting=1
+                _bmm_toEval=()
             else
-                printf '%s\n' "${line}"
+                printf '%s\n' "${_bmm_line}"
             fi
         done <"$(this-cmd-dir)/runner-script.txt"
     ) > "${outFile}"
