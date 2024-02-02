@@ -70,7 +70,7 @@ To build:
   whatever flavor of Linux you happen to like).
 * Recent-ish version of Bash (works with what macOS ships, which is about as
   old a version as you'll find on any up-to-date OS).
-* Recent version of Node (tested regularly on v18 and v20).
+* Node v20 or later (tested regularly on v20 and v21).
 * Recent version of `jq` (v1.6 or later).
 
 To run (versions as above):
@@ -78,7 +78,10 @@ To run (versions as above):
   * Notably, it assumes `openssl` (or similar) is available in the runtime
     environment.
 * Recent-ish version of Bash.
-* Recent version of Node.
+* Node v20 or later.
+
+Node note: Among other things, Lactoserv uses the relatively new `/v` flag on
+regular expressions.
 
 - - - - - - - - - -
 ```
