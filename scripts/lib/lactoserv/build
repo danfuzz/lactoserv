@@ -57,7 +57,8 @@ function target-main {
         true \
         && env-minimize \
         && lib node-project build-main-module \
-            --out="${outDir}" --runner-script=run --modules-dirs="${srcDir}" \
+            --out="${outDir}" --modules-dirs="${srcDir}" \
+            --runner-script=run --runner-versions[]='20 21' \
             lactoserv
     )
 }

@@ -7,15 +7,18 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* Split off `Request.sendNoBodyResponse()` from `sendContent()`, and made the
-  latter take separate `body` and `contentType` arguments instead of those being
-  part of the `options`.
-* Reworked `Request.sendError()` as `Request.sendMetaResponse()`, giving it both
-  a somewhat-wider purview along with the ability to control response headers.
-  Relatedly, tweaked the other non-content response methods to accept an
-  options object.
-* Changed `Request.protocolName` to actually be the protocol name (and not just
-  a guess based on the port number).
+* We now require at least Node v20. This is so we can use the new-ish regex flag
+  `/v` ("Unicode Sets").
+* `Request`:
+  * Split off `sendNoBodyResponse()` from `sendContent()`, and made the latter
+    take separate `body` and `contentType` arguments instead of those being
+    part of the `options`.
+  * Reworked `sendError()` into `sendMetaResponse()`, giving it both a
+    somewhat-wider purview along with the ability to control response headers.
+    Relatedly, tweaked the other non-content response methods to accept an
+    options object.
+  * Changed `.protocolName` to actually be the protocol name (and not just a
+    guess based on the port number).
 * Changed `HostInfo` to do its port-defaulting based on a port number (instead
   of a "protocol").
 
