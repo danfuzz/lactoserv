@@ -267,9 +267,26 @@ function create-runner-script {
     || return "$?"
 
     (
+        # Available to the template code.
         RUNNER_NODE_VERSIONS=("${versions[@]}")
+
+        collecting=0 # Are we collecting an embedded script?
+        toEval=()    # Lines to evaluate.
+
         while IFS='' read -r line || [[ ${line} != '' ]]; do
-            printf '%s\n' "${line}"
+            if (( collecting )); then
+                if [[ ${line} == '#}#' ]]; then
+                    collecting=0
+                    # TODO: Evaluate!
+                else
+                    toEval+=("${line}")
+                fi
+            elif [[ ${line} == '#{#' ]]; then
+                collecting=1
+                toEval=()
+            else
+                printf '%s\n' "${line}"
+            fi
         done <"$(this-cmd-dir)/runner-script.txt"
     ) > "${outFile}"
 
