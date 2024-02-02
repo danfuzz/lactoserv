@@ -255,6 +255,21 @@ function copy-scripts {
     done < <(jget --output=raw0 "${fileList}" '.[]')
 }
 
+# Creates the runner script.
+function create-runner-script {
+    local outFile="$1"
+    shift
+    local versions=("$@")
+
+    local outDir="${outFile%/*}"
+
+    true \
+    && mkdir -p "${outDir}" \
+    && cp "$(this-cmd-dir)/runner-script.txt" "${outFile}" \
+    && chmod 755 "${outFile}" \
+    || return "$?"
+}
+
 # Writes a top-level `index.js` for a project.
 function make-index-js {
     local dir="$1"
@@ -398,12 +413,8 @@ if (( !platformSpecific )); then
 fi
 
 if [[ ${runnerScript} != '' ]]; then
-    progress-msg 'Copying runner script...'
-    binDir="${outProjectDir}/bin"
-    true \
-    && mkdir -p "${binDir}" \
-    && cp "$(this-cmd-dir)/runner-script.txt" "${binDir}/${runnerScript}" \
-    && chmod 755 "${binDir}/${runnerScript}" \
+    progress-msg 'Creating runner script...'
+    create-runner-script "${outProjectDir}/bin/${runnerScript}" \
     || exit "$?"
 fi
 
