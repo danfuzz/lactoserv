@@ -481,39 +481,53 @@ export class Uris {
 
   /**
    * Parses a network interface spec into its components. Accepts the two forms
-   * `<address>:<port>` or `/dev/fd/<fd-num>`. Returns an object which either
-   * binds `address` (to a string) and `port` (to a number), or binds just `fd`
-   * (to a number). For the purposes of this method, `fd` values are allowed to
-   * be in the range `0` to `65535` (even though many systems are more
-   * restrictive).
+   * `<address>:<port>` or `/dev/fd/<fd-num>:<port>` (with the port optional in
+   * the latter form). Returns an object with bindings for `address` (a string),
+   * `port` (a number), and/or `fd` (a number), depending on the input.
+   *
+   * For the purposes of this method, `fd` values are allowed to be in the range
+   * `0` to `65535` (even though many systems are more restrictive).
+   *
+   * **Note:** The optional `port` associated with an `fd` is meant for logging
+   * purposes, e.g. to indicate that a request came in on a particular port.
+   * But, due to the nature of a FD not having a generally-discoverable listen
+   * port, users of this system might want to provide it more directly.
    *
    * @param {string} iface Interface spec to parse.
-   * @returns {object} The parsed form.
+   * @returns {{address: ?string, fd: ?number, port: ?number}} The parsed form.
    */
   static parseInterface(iface) {
     MustBe.string(iface);
 
-    const match = iface.match(
-      /^(?:[/]dev[/]fd[/](?<fd>[0-9]{1,5})|(?<address>.{1,300}):(?<port>[0-9]{1,5}))$/)
-      ?.groups;
+    const portStr = iface.match(/:(?<port>[0-9]{1,5})$/)?.groups.port ?? null;
+    const port    = portStr ? this.checkPort(portStr) : null;
 
-    if (!match) {
+    const addressStr = portStr
+      ? iface.match(/^(?<address>.*):[^:]+$/).groups.address
+      : iface;
+
+    const addressOrFd = addressStr
+      .match(/^(?:(?:[/]dev[/]fd[/](?<fd>[0-9]{1,5}))|(?<address>[^/].*))$/)?.groups;
+
+    if (!addressOrFd) {
       throw new Error(`Invalid network interface: ${iface}`);
     }
 
-    if (match.fd) {
-      const fd = MustBe.number(parseInt(match.fd),
+    if (addressOrFd.fd) {
+      const fd = MustBe.number(parseInt(addressOrFd.fd),
         { safeInteger: true,  minInclusive: 0, maxInclusive: 65535 });
-      return { fd };
+      return (port === null) ? { fd } : { fd, port };
     }
 
-    const address = this.checkInterfaceAddress(match.address);
-    const port    = this.checkPort(match.port);
+    const address = this.checkInterfaceAddress(addressOrFd.address);
 
     if (/^(?!\[).*:.*:/.test(iface)) {
       // If we managed to parse and made it here, then we are necessarily
       // looking at an IPv6 address without brackets.
       throw new Error(`Invalid network interface (missing brackets): ${iface}`);
+    } else if (port === null) {
+      // Must specify port at this point. (It's optional with the FD form).
+      throw new Error(`Invalid network interface (missing port): ${iface}`);
     }
 
     return { address, port };
