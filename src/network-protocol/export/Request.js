@@ -193,6 +193,13 @@ export class Request {
    * @returns {HostInfo} Info about the `Host` header (or equivalent). If there
    * is no header (etc.), it is treated as if it were specified as just
    * `localhost`.
+   *
+   * The `port` of the returned object is as follows:
+   *
+   * * If the `Host` header has a port, use that.
+   * * If the connection has a "declared listening port," use that.
+   * * If the connection has a known listening port, use that.
+   * * Otherwise, use `0` for the port.
    */
   get host() {
     if (!this.#host) {
