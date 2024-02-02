@@ -274,12 +274,14 @@ function create-runner-script {
         _bmm_collecting=0 # Are we collecting an embedded script?
         _bmm_toEval=()    # Lines to evaluate.
         _bmm_line=''      # Current line.
+        _bmm_error=0      # Got an error during eval?
 
         while IFS='' read -r _bmm_line || [[ ${_bmm_line} != '' ]]; do
             if (( _bmm_collecting )); then
                 if [[ ${_bmm_line} == '#}#' ]]; then
                     _bmm_collecting=0
-                    # TODO: Evaluate!
+                    eval "$(printf '%s\n' "${_bmm_toEval[@]}")" \
+                    || _bmm_error=1
                 else
                     _bmm_toEval+=("${_bmm_line}")
                 fi
@@ -290,7 +292,16 @@ function create-runner-script {
                 printf '%s\n' "${_bmm_line}"
             fi
         done <"$(this-cmd-dir)/runner-script.txt"
-    ) > "${outFile}"
+
+        if (( _bmm_error )); then
+            exit 1
+        fi
+    ) >"${outFile}" 2>&1
+
+    if (( $? != 0 )); then
+        error-msg 'Error during runner script generation!'
+        return 1
+    fi
 
     chmod 755 "${outFile}" \
     || return "$?"
