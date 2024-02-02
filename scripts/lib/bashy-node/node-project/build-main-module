@@ -448,6 +448,7 @@ fi
 if [[ ${runnerScript} != '' ]]; then
     progress-msg 'Creating runner script...'
     create-runner-script "${outProjectDir}/bin/${runnerScript}" \
+        "${runnerVersions[@]}" \
     || exit "$?"
 fi
 
