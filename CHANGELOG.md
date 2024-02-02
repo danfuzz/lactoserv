@@ -7,6 +7,8 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
+* Require at least Node v20. This is so we can use the new-ish regex flag `/v`
+  ("Unicode Sets").
 * Split off `Request.sendNoBodyResponse()` from `sendContent()`, and made the
   latter take separate `body` and `contentType` arguments instead of those being
   part of the `options`.
