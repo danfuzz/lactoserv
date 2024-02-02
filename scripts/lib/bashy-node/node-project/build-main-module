@@ -37,6 +37,10 @@ define-usage --with-help $'
     --runner-script=<name>
       Create a script to run the system in the `out` directory, with the given
       name.
+    --runner-versions[]=<version> ...
+      What major versions of Node are allowed to run the project. Optional. If
+      specified, a check is inserted into the runner script to enforce the
+      restriction.
     --unsafely-run-npm-install-scripts
       If specified, runs any install-time scripts defined by modules. This is
       reasonably considered an unsafe practice (it is a vector for
@@ -56,6 +60,9 @@ opt-value --var=outDir out
 
 # Name of runner script to add to the output, if any.
 opt-value --var=runnerScript runner-script
+
+# Major versions of Node which are allowed to run the project.
+opt-multi --var=runnerVersions --filter='/^[0-9]+$/' runner-versions
 
 # Run npm install-time scripts?
 opt-toggle --var=runNpmInstallScripts unsafely-run-npm-install-scripts
