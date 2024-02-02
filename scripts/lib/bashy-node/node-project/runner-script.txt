@@ -121,14 +121,19 @@ function check-dependency {
 # Main script
 #
 
-#{#
-
-#}#
 check-dependency \
     'Node' \
     'node --version | sed -e "s/^v//"' \
-    '^(18|19|20|21)\.' \
-    '18..21' \
+#{#
+if (( ${#RUNNER_NODE_VERSIONS[@]} == 0 )); then
+    regex='^[1-9].\.'
+    desc='10 or later'
+else
+    versionStr="$(tr <<<"${RUNNER_NODE_VERSIONS[*]}" ' ' '|')"
+    regex="^(${versionStr})\."
+fi
+printf $'    %q \\\n' "${regex}" "${desc}"
+#}#
 || exit "$?"
 
 # Notes:
