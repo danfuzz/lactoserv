@@ -7,9 +7,17 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
+* None.
+
+Other notable changes:
+* None.
+
+### v0.6.3 -- 2024-02-02
+
+Breaking changes:
 * We now require at least Node v20. This is so we can use the new-ish regex flag
   `/v` ("Unicode Sets").
-* `Request`:
+* `Request` class:
   * Split off `sendNoBodyResponse()` from `sendContent()`, and made the latter
     take separate `body` and `contentType` arguments instead of those being
     part of the `options`.
@@ -21,6 +29,7 @@ Breaking changes:
     guess based on the port number).
 * Changed `HostInfo` to do its port-defaulting based on a port number (instead
   of a "protocol").
+* Revised the plaintext request log format.
 
 Other notable changes:
 * Added support for sending and receiving cookies.
