@@ -578,9 +578,14 @@ describe('parseInterface()', () => {
     expect(got).toStrictEqual({ address: '*', port: 17777 });
   });
 
-  test('parses an FD interface as expected', () => {
+  test('parses an FD interface with no port as expected', () => {
     const got = Uris.parseInterface('/dev/fd/109');
     expect(got).toStrictEqual({ fd: 109 });
+  });
+
+  test('parses an FD interface with port as expected', () => {
+    const got = Uris.parseInterface('/dev/fd/109:914');
+    expect(got).toStrictEqual({ fd: 109, port: 914 });
   });
 
   test('accepts the minimum and maximum allowed FD numbers', () => {
