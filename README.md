@@ -79,9 +79,8 @@ To run (versions as above):
     environment.
 * Recent-ish version of Bash.
 * Node v20 or later.
-
-Node note: Among other things, Lactoserv uses the relatively new `/v` flag on
-regular expressions.
+  * **Note:**: Lactoserv uses the relatively new `/v` flag on regular
+    expressions, which became available as of v20.
 
 - - - - - - - - - -
 ```
