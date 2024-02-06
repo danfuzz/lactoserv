@@ -4,7 +4,7 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 
-import { Paths } from '@this/fs-util';
+import { Paths, Statter } from '@this/fs-util';
 import { MustBe } from '@this/typey';
 
 
@@ -134,13 +134,49 @@ export class EtagGenerator {
   async etagFromFileData(absolutePath) {
     Paths.checkAbsolutePath(absolutePath);
 
-    const stats = await fs.stat(absolutePath, true);
+    const stats = await Statter.statOrNull(absolutePath);
     if (!stats) {
       return null;
+    } else if (!stats.isFile()) {
+      throw new Error(`Cannot make etag from non-file: ${absolutePath}`);
     }
 
-    // TODO
-    throw new Error('TODO');
+    const MAX_SIZE = EtagGenerator.#MAX_FILE_SIZE_TO_READ_ATOMICALLY;
+
+    if (stats.size <= MAX_SIZE) {
+      const data = await fs.readFile(absolutePath);
+      return this.etagFromData(data);
+    }
+
+    // The file is too large to do in a single read.
+
+    const hasher     = this.#newHasher();
+    const buffer     = Buffer.alloc(MAX_SIZE);
+    const fileHandle = await fs.open(absolutePath);
+
+    try {
+      loop: for (;;) {
+        const { bytesRead } = await fileHandle.read(buffer);
+        switch (bytesRead) {
+          case 0: {
+            break loop;
+          }
+          case MAX_SIZE: {
+            hasher.update(buffer);
+            break;
+          }
+          default: {
+            // Note: `subarray()` creates a shared-data view of the buffer.
+            hasher.update(buffer.subarray(0, bytesRead));
+            break;
+          }
+        }
+      }
+    } finally {
+      await fileHandle.close();
+    }
+
+    return hasher.digest('base64');
   }
 
   /**
@@ -194,15 +230,22 @@ export class EtagGenerator {
   }
 
   /**
+   * Makes a fresh hasher per this instance's configuration.
+   *
+   * @returns {crypto.Hash} The new hasher.
+   */
+  #newHasher() {
+    return crypto.createHash(this.config.hashAlgorithm);
+  }
+
+  /**
    * Gets the raw configured hash result of the given data.
    *
    * @param {string|Buffer} data The data.
    * @returns {string} The raw hash result.
    */
   #rawHashFromData(data) {
-    return crypto.createHash(this.config.hashAlgorithm)
-      .update(data, 'utf8')
-      .digest('base64');
+    return this.#newHasher().update(data, 'utf8').digest('base64');
   }
 
 
