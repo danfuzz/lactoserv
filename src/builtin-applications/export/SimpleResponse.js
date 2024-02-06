@@ -3,9 +3,9 @@
 
 import fs from 'node:fs/promises';
 
-import { ApplicationConfig, Files } from '@this/app-config';
+import { ApplicationConfig } from '@this/app-config';
 import { BaseApplication } from '@this/app-framework';
-import { FsUtil } from '@this/fs-util';
+import { FsUtil, Paths } from '@this/fs-util';
 import { MimeTypes } from '@this/net-util';
 import { MustBe } from '@this/typey';
 
@@ -122,7 +122,7 @@ export class SimpleResponse extends BaseApplication {
         this.#body        = body;
         this.#contentType = MimeTypes.typeFromExtensionOrType(contentType);
       } else if (filePath !== null) {
-        this.#filePath    = Files.checkAbsolutePath(filePath);
+        this.#filePath    = Paths.checkAbsolutePath(filePath);
         this.#contentType = (contentType === null)
           ? MimeTypes.typeFromExtension(filePath)
           : MimeTypes.typeFromExtensionOrType(contentType);
