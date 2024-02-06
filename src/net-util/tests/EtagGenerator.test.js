@@ -1,6 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import fs from 'node:fs/promises';
+
 import { EtagGenerator } from '@this/net-util';
 
 
@@ -110,5 +112,51 @@ describe('etagFromData()', () => {
     const eg     = new EtagGenerator({ hashAlgorithm: 'sha1', hashLength: { weak: 12 }, tagForm: 'weak' });
     const result = await eg.etagFromData('');
     expect(result).toBe('W/"2jmj7l5rSw0y"');
+  });
+});
+
+describe('etagFromFileData()', () => {
+  const longFilePath = new URL('fixtures/long-file.txt', import.meta.url).pathname;
+
+  // Make the long file.
+  beforeAll(async () => {
+    const buffer = Buffer.alloc(999123); // _Not_ going to be the read size.
+
+    for (let i = 0, v = 33; i < buffer.length; i++) {
+      if ((i % 75) === 0) {
+        buffer[i] = '\n'.charCodeAt(0);
+      } else {
+        buffer[i] = v;
+        v++;
+        if (v === 127) {
+          v = 33;
+        }
+      }
+    }
+
+    buffer[buffer.length - 1] = '\n'.charCodeAt(0);
+
+    const fh = await fs.open(longFilePath, 'w');
+    for (let i = 0; i < 10; i++) {
+      await fh.write(buffer);
+    }
+    await fh.close();
+  });
+
+  afterAll(async () => {
+    await fs.unlink(longFilePath);
+  });
+
+  test('works on a short file', async () => {
+    const url    = new URL('fixtures/short-file.txt', import.meta.url);
+    const eg     = new EtagGenerator({ hashAlgorithm: 'sha256' });
+    const result = await eg.etagFromFileData(url.pathname);
+    expect(result).toBe('"56N/bC8zkXo0ikXQMMs9eNGAzFIRKyH4gTp52cDsIFk"');
+  });
+
+  test('works on a long file', async () => {
+    const eg     = new EtagGenerator({ hashAlgorithm: 'sha256' });
+    const result = await eg.etagFromFileData(longFilePath);
+    expect(result).toBe('"6xm8E7ciSk9pXBJRsIOsX2ifTCpWL4nMriZf8UYoWSk"');
   });
 });
