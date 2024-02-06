@@ -1,12 +1,17 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 
 import { EtagGenerator } from '@this/net-util';
 
 
 describe('constructor', () => {
+  test('does not throw if not passed any options', () => {
+    expect(() => new EtagGenerator()).not.toThrow();
+  });
+
   test.each`
   arg
   ${'sha1'}
@@ -182,5 +187,54 @@ describe('etagFromFileData()', () => {
     const eg     = new EtagGenerator({ hashAlgorithm: 'sha1', hashLength: { weak: null }, tagForm: 'weak' });
     const result = await eg.etagFromFileData(shortFilePath);
     expect(result).toBe('W/"aZtirMkeaJFgxHEdUuy+RVb64ck"');
+  });
+});
+
+describe('etagFromFileStats()', () => {
+  const shortFilePath = new URL('fixtures/short-file.txt', import.meta.url).pathname;
+
+  // This is a bit icky, but instead of trying to mock out the FS call, we just
+  // redo the hash calculation here, and the tests are mostly about making sure
+  // the real code does the same thing and also honors form and length, etc.
+  let fullHash;
+  beforeAll(async () => {
+    const hex = (num) => {
+      return (typeof num === 'number')
+        ? Math.floor(num).toString(16)
+        : num.toString(16);
+    };
+
+    const stats = await fs.stat(shortFilePath, true);
+    const mtime = stats.mtimeMs;
+    const size  = stats.size;
+
+    const toBeHashed = `${shortFilePath}|${hex(mtime)}|${hex(size)}`;
+
+    fullHash = crypto.createHash('sha1').update(toBeHashed).digest('base64');
+    fullHash = fullHash.slice(0, 27);
+  });
+
+  test('generates the full hash in the expected way', async () => {
+    const eg     = new EtagGenerator({ hashAlgorithm: 'sha1', hashLength: { weak: null } });
+    const result = await eg.etagFromFileStats(shortFilePath);
+    expect(result).toBe(`W/"${fullHash}"`);
+  });
+
+  test('honors overall length', async () => {
+    const eg     = new EtagGenerator({ hashAlgorithm: 'sha1', hashLength: 8 });
+    const result = await eg.etagFromFileStats(shortFilePath);
+    expect(result).toBe(`W/"${fullHash.slice(0, 8)}"`);
+  });
+
+  test('honors strong form', async () => {
+    const eg     = new EtagGenerator({ hashAlgorithm: 'sha1', tagForm: 'strong' });
+    const result = await eg.etagFromFileStats(shortFilePath);
+    expect(result).toBe(`"${fullHash}"`);
+  });
+
+  test('honors strong length with strong form', async () => {
+    const eg     = new EtagGenerator({ hashAlgorithm: 'sha1', hashLength: { strong: 15 }, tagForm: 'strong' });
+    const result = await eg.etagFromFileStats(shortFilePath);
+    expect(result).toBe(`"${fullHash.slice(0, 15)}"`);
   });
 });
