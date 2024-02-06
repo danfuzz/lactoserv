@@ -5,7 +5,7 @@ import * as fs from 'node:fs/promises';
 
 import { FileServiceConfig } from '@this/app-config';
 import { Condition, Threadlet } from '@this/async';
-import { FsUtil } from '@this/fs-util';
+import { Statter } from '@this/fs-util';
 import { IntfLogger } from '@this/loggy';
 import { Methods, MustBe } from '@this/typey';
 
@@ -306,7 +306,7 @@ export class BaseFilePreserver {
       // turns out to be wrong, we'll fall back to the more involved code.
       const count    = this.#lastInfixCount + 1;
       const firstTry = resolve(count);
-      if (!await FsUtil.fileExists(firstTry)) {
+      if (!await Statter.fileExists(firstTry)) {
         this.#lastInfixCount = count;
         return firstTry;
       }

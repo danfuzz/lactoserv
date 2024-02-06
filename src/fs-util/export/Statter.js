@@ -7,9 +7,9 @@ import { MustBe } from '@this/typey';
 
 
 /**
- * General filesystem utility class.
+ * Utilities to do useful stuff around calls to `stat()` and similar.
  */
-export class FsUtil {
+export class Statter {
   /**
    * Checks to see if the given path exists in the filesystem, and is a
    * directory (not a regular or special file).
