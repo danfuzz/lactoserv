@@ -118,7 +118,9 @@ export class EtagGenerator {
   }
 
   /**
-   * Generates an etag from the contents of the given file.
+   * Generates an etag from the contents of the given file. This returns `null`
+   * if the file doesn't exist, and throws other file-related errors through to
+   * the caller transparently.
    *
    * The returned etag is in the "strong" form, unless this instance was
    * configured with `tagForm: 'weak'`. (The actual hashing procedure is not
@@ -126,14 +128,16 @@ export class EtagGenerator {
    *
    * @param {string} absolutePath Absolute path to the file containing the
    *   entity data.
-   * @returns {string} The corresponding etag.
+   * @returns {?string} The corresponding etag, or `null` if the file does not
+   *   exist.
    */
   async etagFromFileData(absolutePath) {
     Paths.checkAbsolutePath(absolutePath);
 
-    // What's going on with the cache here: We make a "live" (not cached) stats
-    // check, and if the file doesn't appear to be modified, we return the
-    // previously-calculated tag.
+    const stats = await fs.stat(absolutePath, true);
+    if (!stats) {
+      return null;
+    }
 
     // TODO
     throw new Error('TODO');
@@ -205,6 +209,9 @@ export class EtagGenerator {
   //
   // Static members
   //
+
+  /** @type {bigint} Largest file to read in a single call. */
+  static #MAX_FILE_SIZE_TO_READ_ATOMICALLY = 1024n * 1024n; // One megabyte.
 
   /**
    * Checks a hash length value for validity.
