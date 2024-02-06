@@ -48,6 +48,11 @@ export class ServiceUseConfig extends BaseConfig {
     return this.#map;
   }
 
+  /** @returns {?string} Service name for `etagGenerator` role, if any. */
+  get etagGenerator() {
+    return this.#map.get('rateLimiter') ?? null;
+  }
+
   /** @returns {?string} Service name for `rateLimiter` role, if any. */
   get rateLimiter() {
     return this.#map.get('rateLimiter') ?? null;
@@ -64,5 +69,9 @@ export class ServiceUseConfig extends BaseConfig {
   //
 
   /** @type {Set<string>} Set of allowed role names. */
-  static #ROLES = Object.freeze(new Set(['rateLimiter', 'requestLogger']));
+  static #ROLES = Object.freeze(new Set([
+    'etagGenerator',
+    'rateLimiter',
+    'requestLogger'
+  ]));
 }
