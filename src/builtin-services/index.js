@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 export * from '#x/BuiltinServices';
-export * from '#x/EtagGenerator';
 export * from '#x/MemoryMonitor';
 export * from '#x/ProcessIdFile';
 export * from '#x/ProcessInfoFile';
