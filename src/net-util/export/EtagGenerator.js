@@ -10,26 +10,6 @@ import { MustBe } from '@this/typey';
 
 /**
  * Configurable etag generator (e.g. for `ETag` headers).
- *
- * Configuration object details:
- *
- * * `{?string} hashAlgorithm` -- Algorithm to use to generate hashes from
- *   entity data. Allowed to be `sha1`, `sha256`, or `sha512`. Defaults to
- *   `sha256`.
- * * `{?number} strongLength` -- Number of characters to actually use from a
- *   generated hash, when producing a strong-form etag. Each character
- *   represents 6 bits of original hash (because hashes are extracted as
- *   base64-encoded values). Defaults to the full length of the hash.
- * * `{?string} tagForm` -- What tag form to produce etags in (indicating the
- *   "strength" of the tag), one of `weak`, `strong`, or `vary`. "Strong" etags
- *   are meant to convey that the entire underlying data is hashed into the tag,
- *   and as such it is safe to make range requests if a tag matches. "Weak" tags
- *   are, on the other hand, intended to indicate that the data was not fully
- *   hashed into the tag. If passed as `vary`, the methods return the arguably
- *   most appropriate form (and are documented as to what they produce). The
- *   default is `vary`.
- * * `{?number} weakLength` -- Number of characters to actually use from a
- *   generated hash, when producing a weak-form etag. Defaults to `16`.
  */
 export class EtagGenerator {
   /** @type {string} The hash algorithm. */
