@@ -176,7 +176,7 @@ export class EtagGenerator {
       await fileHandle.close();
     }
 
-    return hasher.digest('base64');
+    return this.#etagResultFromHash(hasher.digest('base64'), true);
   }
 
   /**
@@ -252,8 +252,8 @@ export class EtagGenerator {
   // Static members
   //
 
-  /** @type {bigint} Largest file to read in a single call. */
-  static #MAX_FILE_SIZE_TO_READ_ATOMICALLY = 1024n * 1024n; // One megabyte.
+  /** @type {number} Largest file to read in a single call. */
+  static #MAX_FILE_SIZE_TO_READ_ATOMICALLY = 1024 * 1024; // One megabyte.
 
   /** @type {object} Per-algorithm length maximums. */
   static #MAX_HASH_LENGTHS = {
