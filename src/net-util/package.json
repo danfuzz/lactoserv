@@ -12,8 +12,9 @@
   },
 
   "dependencies": {
-    "@this/data-values": "*",
     "@this/collections": "*",
+    "@this/data-values": "*",
+    "@this/fs-util": "*",
     "@this/typey": "*",
     "mime": "^4.0.1"
   }

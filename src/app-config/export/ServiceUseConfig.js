@@ -64,5 +64,8 @@ export class ServiceUseConfig extends BaseConfig {
   //
 
   /** @type {Set<string>} Set of allowed role names. */
-  static #ROLES = Object.freeze(new Set(['rateLimiter', 'requestLogger']));
+  static #ROLES = Object.freeze(new Set([
+    'rateLimiter',
+    'requestLogger'
+  ]));
 }
