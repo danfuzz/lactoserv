@@ -71,6 +71,27 @@ method                    | isStatic
 ${'httpStringFromSecs'}   | ${true}
 ${'toHttpString'}         | ${false}
 `('$method()', ({ method, isStatic }) => {
+  // Failure cases.
+  test.each`
+  atSecs
+  ${NaN}
+  ${+Infinity}
+  ${-Infinity}
+  ${undefined}
+  ${null}
+  ${'12345'}
+  ${[12345]}
+  `('fails given $atSecs', ({ atSecs }) => {
+    const doIt = () => {
+      return isStatic
+        ? Moment[method](atSecs)
+        : new Moment(atSecs)[method]();
+    };
+
+    expect(doIt).toThrow();
+  });
+
+  // Success cases.
   test.each`
   atSecs        | expected
   ${0}          | ${'Thu, 01 Jan 1970 00:00:00 GMT'}

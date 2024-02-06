@@ -148,6 +148,8 @@ export class Moment {
    * @returns {string} The HTTP standard form.
    */
   static httpStringFromSecs(atSecs) {
+    MustBe.number(atSecs, { finite: true });
+
     return new Date(atSecs * 1000).toUTCString();
   }
 
