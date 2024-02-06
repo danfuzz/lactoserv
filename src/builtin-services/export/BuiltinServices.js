@@ -3,6 +3,7 @@
 
 import { BaseService } from '@this/app-framework';
 
+import { EtagGenerator } from '#x/EtagGenerator';
 import { MemoryMonitor } from '#x/MemoryMonitor';
 import { ProcessIdFile } from '#x/ProcessIdFile';
 import { ProcessInfoFile } from '#x/ProcessInfoFile';
@@ -22,6 +23,7 @@ export class BuiltinServices {
    */
   static getAll() {
     return [
+      EtagGenerator,
       MemoryMonitor,
       ProcessIdFile,
       ProcessInfoFile,
