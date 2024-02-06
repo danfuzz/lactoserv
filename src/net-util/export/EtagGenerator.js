@@ -85,13 +85,13 @@ export class EtagGenerator {
     this.#tagForm       = tagForm;
 
     if (typeof hashLength === 'number') {
-      EtagGenerator.#checkHashLength(hashLength);
+      EtagGenerator.#checkHashLength(hashAlgorithm, hashLength);
       this.#hashLengthStrong = hashLength;
       this.#hashLengthWeak   = hashLength;
     } else {
       const { strong = null, weak = 16 } = hashLength ?? {};
-      this.#hashLengthStrong = EtagGenerator.#checkHashLength(strong);
-      this.#hashLengthWeak   = EtagGenerator.#checkHashLength(weak);
+      this.#hashLengthStrong = EtagGenerator.#checkHashLength(hashAlgorithm, strong);
+      this.#hashLengthWeak   = EtagGenerator.#checkHashLength(hashAlgorithm, weak);
     }
   }
 
@@ -219,13 +219,12 @@ export class EtagGenerator {
    * @returns {string} The final result.
    */
   #etagResultFromHash(hash, isFullHash) {
-    const config  = this.config;
-    const tagForm = config.tagForm;
+    const tagForm = this.#tagForm;
 
     if ((tagForm === 'strong') || ((tagForm === 'vary') && isFullHash)) {
-      return `"${hash.slice(0, config.strongHashLength)}"`;
+      return `"${hash.slice(0, this.#hashLengthStrong)}"`;
     } else {
-      return `W/"${hash.slice(0, config.weakHashLength)}"`;
+      return `W/"${hash.slice(0, this.#hashLengthWeak)}"`;
     }
   }
 
@@ -235,7 +234,7 @@ export class EtagGenerator {
    * @returns {crypto.Hash} The new hasher.
    */
   #newHasher() {
-    return crypto.createHash(this.config.hashAlgorithm);
+    return crypto.createHash(this.#hashAlgorithm);
   }
 
   /**
@@ -256,18 +255,29 @@ export class EtagGenerator {
   /** @type {bigint} Largest file to read in a single call. */
   static #MAX_FILE_SIZE_TO_READ_ATOMICALLY = 1024n * 1024n; // One megabyte.
 
-  /**
-   * Checks a hash length value for validity.
-   *
-   * @param {*} hashLength The alleged hash length.
-   * @returns {?number} `hashLength` if valid.
-   */
-  static #checkHashLength(hashLength) {
-    if (hashLength !== null) {
-      MustBe.number(hashLength,
-        { safeInteger: true, minInclusive: 8, maxInclusive: 100 });
-    }
+  /** @type {object} Per-algorithm length maximums. */
+  static #MAX_HASH_LENGTHS = {
+    'sha1':   27,
+    'sha256': 43,
+    'sha512': 86
+  };
 
-    return hashLength;
+  /**
+   * Checks a hash length value for validity, converting `null` into the actual
+   * maximum.
+   *
+   * @param {string} hashAlgorithm The algorigthm.
+   * @param {*} hashLength The alleged hash length.
+   * @returns {number} `hashLength` if valid.
+   */
+  static #checkHashLength(hashAlgorithm, hashLength) {
+    const max = this.#MAX_HASH_LENGTHS[hashAlgorithm];
+
+    if (hashLength === null) {
+      return max;
+    } else {
+      return MustBe.number(hashLength,
+        { safeInteger: true, minInclusive: 8, maxInclusive: max });
+    }
   }
 }
