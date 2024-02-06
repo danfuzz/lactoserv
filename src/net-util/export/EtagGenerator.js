@@ -4,7 +4,7 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 
-import { Files } from '@this/app-config';
+import { Paths } from '@this/fs-util';
 import { MustBe } from '@this/typey';
 
 
@@ -129,7 +129,7 @@ export class EtagGenerator {
    * @returns {string} The corresponding etag.
    */
   async etagFromFileData(absolutePath) {
-    Files.checkAbsolutePath(absolutePath);
+    Paths.checkAbsolutePath(absolutePath);
 
     // What's going on with the cache here: We make a "live" (not cached) stats
     // check, and if the file doesn't appear to be modified, we return the
@@ -151,7 +151,7 @@ export class EtagGenerator {
    * @returns {string} The corresponding etag.
    */
   async etagFromFileStats(absolutePath) {
-    Files.checkAbsolutePath(absolutePath);
+    Paths.checkAbsolutePath(absolutePath);
 
     // Converts a number (including bigint) to hex.
     const hex = (num) => {
