@@ -72,7 +72,6 @@ export class EtagGenerator extends BaseService {
       MustBe.instanceOf(data, Buffer);
     }
 
-    const config    = this.config;
     const cacheable = Object.isFrozen(data);
 
     if (cacheable) {
@@ -82,10 +81,7 @@ export class EtagGenerator extends BaseService {
       }
     }
 
-    const hash = crypto.createHash(config.hashAlgorithm)
-      .update(data, 'utf8')
-      .digest('base64');
-
+    const hash   = this.#rawHashFromData(data);
     const result = this.#etagResultFromHash(hash, true);
 
     if (cacheable) {
@@ -135,8 +131,26 @@ export class EtagGenerator extends BaseService {
   async etagFromFileStats(absolutePath, stats = null) {
     Files.checkAbsolutePath(absolutePath);
 
-    // TODO
-    throw new Error('TODO', stats);
+    if (!stats) {
+      stats = await fs.stat(absolutePath, true);
+    }
+
+    const hex = (num) => {
+      return (typeof num === 'number')
+        ? Math.floor(num).toString(16)
+        : num.toString(16);
+    };
+
+    const inode = stats.ino;
+    const mtime = stats.mtimeMs;
+    const size  = stats.size;
+
+    const toBeHashed =
+      `${absolutePath}|${hex(inode)}|${hex(mtime)}|${hex(size)}`;
+    const hash   = this.#rawHashFromData(toBeHashed);
+    const result = this.#etagResultFromHash(hash, false);
+
+    return result;
   }
 
   /** @override */
@@ -169,6 +183,18 @@ export class EtagGenerator extends BaseService {
     } else {
       return `W/"${hash.slice(0, config.weakHashLength)}"`;
     }
+  }
+
+  /**
+   * Gets the raw configured hash result of the given data.
+   *
+   * @param {string|Buffer} data The data.
+   * @returns {string} The raw hash result.
+   */
+  #rawHashFromData(data) {
+    return crypto.createHash(this.config.hashAlgorithm)
+      .update(data, 'utf8')
+      .digest('base64');
   }
 
 
