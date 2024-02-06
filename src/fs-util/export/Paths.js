@@ -11,7 +11,8 @@ export class Paths {
   /**
    * Checks that a given value is a string which can be interpreted as an
    * absolute filesystem path. It must start with a slash (`/`), _not_ end with
-   * a slash, and contain _no_ empty components nor `.` or `..` components.
+   * a slash unless it is literally just `/`, and contain _no_ empty components
+   * nor `.` or `..` components.
    *
    * @param {*} value Value in question.
    * @returns {string} `value` if it is a string which matches the pattern.
@@ -22,8 +23,8 @@ export class Paths {
       '(?!.*/[.]{1,2}/)' + // No dot or double-dot internal component.
       '(?!.*/[.]{1,2}$)' + // No dot or double-dot final component.
       '(?!.*//)' +         // No empty components.
-      '(?!.*/$)' +         // No slash at the end.
-      '/[^/]';             // Starts with a slash. Has at least one component.
+      '(?!.+/$)' +         // No slash at the end (after the first character).
+      '/';                 // Starts with a slash.
 
     return MustBe.string(value, pattern);
   }
