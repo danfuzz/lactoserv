@@ -116,6 +116,7 @@ describe('etagFromData()', () => {
 });
 
 describe('etagFromFileData()', () => {
+  const shortFilePath = new URL('fixtures/short-file.txt', import.meta.url).pathname;
   const longFilePath = new URL('fixtures/long-file.txt', import.meta.url).pathname;
 
   // Make the long file.
@@ -148,9 +149,8 @@ describe('etagFromFileData()', () => {
   });
 
   test('works on a short file', async () => {
-    const url    = new URL('fixtures/short-file.txt', import.meta.url);
     const eg     = new EtagGenerator({ hashAlgorithm: 'sha256' });
-    const result = await eg.etagFromFileData(url.pathname);
+    const result = await eg.etagFromFileData(shortFilePath);
     expect(result).toBe('"56N/bC8zkXo0ikXQMMs9eNGAzFIRKyH4gTp52cDsIFk"');
   });
 
@@ -158,5 +158,29 @@ describe('etagFromFileData()', () => {
     const eg     = new EtagGenerator({ hashAlgorithm: 'sha256' });
     const result = await eg.etagFromFileData(longFilePath);
     expect(result).toBe('"6xm8E7ciSk9pXBJRsIOsX2ifTCpWL4nMriZf8UYoWSk"');
+  });
+
+  test('honors overall length', async () => {
+    const eg     = new EtagGenerator({ hashAlgorithm: 'sha256', hashLength: 12 });
+    const result = await eg.etagFromFileData(shortFilePath);
+    expect(result).toBe('"56N/bC8zkXo0"');
+  });
+
+  test('honors strong length', async () => {
+    const eg     = new EtagGenerator({ hashAlgorithm: 'sha256', hashLength: { strong: 12 } });
+    const result = await eg.etagFromFileData(shortFilePath);
+    expect(result).toBe('"56N/bC8zkXo0"');
+  });
+
+  test('honors weak form', async () => {
+    const eg     = new EtagGenerator({ hashAlgorithm: 'sha1', tagForm: 'weak' });
+    const result = await eg.etagFromFileData(shortFilePath);
+    expect(result).toBe('W/"aZtirMkeaJFgxHEd"');
+  });
+
+  test('honors weak length with weak form', async () => {
+    const eg     = new EtagGenerator({ hashAlgorithm: 'sha1', hashLength: { weak: null }, tagForm: 'weak' });
+    const result = await eg.etagFromFileData(shortFilePath);
+    expect(result).toBe('W/"aZtirMkeaJFgxHEdUuy+RVb64ck"');
   });
 });

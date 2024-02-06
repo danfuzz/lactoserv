@@ -156,7 +156,9 @@ export class EtagGenerator {
 
     try {
       loop: for (;;) {
-        const { bytesRead } = await fileHandle.read(buffer);
+        // Note: `read(buffer)` with no other arguments behaves incorrectly
+        // prior to Node v21.6.
+        const { bytesRead } = await fileHandle.read(buffer, 0, buffer.length);
         switch (bytesRead) {
           case 0: {
             break loop;
