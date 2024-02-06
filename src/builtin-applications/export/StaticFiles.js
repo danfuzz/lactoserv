@@ -3,9 +3,9 @@
 
 import fs from 'node:fs/promises';
 
-import { ApplicationConfig, Files } from '@this/app-config';
+import { ApplicationConfig } from '@this/app-config';
 import { BaseApplication } from '@this/app-framework';
-import { FsUtil } from '@this/fs-util';
+import { FsUtil, Paths } from '@this/fs-util';
 import { IntfLogger } from '@this/loggy';
 import { MimeTypes } from '@this/net-util';
 import { DispatchInfo } from '@this/network-protocol';
@@ -229,8 +229,8 @@ export class StaticFiles extends BaseApplication {
 
       this.#notFoundPath = (notFoundPath === null)
         ? null
-        : Files.checkAbsolutePath(notFoundPath);
-      this.#siteDirectory = Files.checkAbsolutePath(siteDirectory);
+        : Paths.checkAbsolutePath(notFoundPath);
+      this.#siteDirectory = Paths.checkAbsolutePath(siteDirectory);
     }
 
     /** @returns {string} The base directory for the site files. */

@@ -7,7 +7,7 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* None.
+* Moved the utility class `app-config.Files` to `fs-util.Paths`.
 
 Other notable changes:
 * None.
