@@ -6,6 +6,7 @@ import fs from 'node:fs/promises';
 
 import { Files, ServiceConfig } from '@this/app-config';
 import { BaseService } from '@this/app-framework';
+import { Duration, Moment } from '@this/data-values';
 import { IntfLogger } from '@this/loggy';
 import { MustBe } from '@this/typey';
 
@@ -42,6 +43,12 @@ export class EtagGenerator extends BaseService {
    * already-known etag.
    */
   #dataCache = new Map();
+
+  /**
+   * {Map <string, {etag: string, until: Moment}>}} Map from an absolute path to
+   * its already-known stats-based etag and an expiration moment.
+   */
+  #statsCache = new Map();
 
   /**
    * Constructs an instance.
@@ -85,7 +92,7 @@ export class EtagGenerator extends BaseService {
     const result = this.#etagResultFromHash(hash, true);
 
     if (cacheable) {
-      if (this.#dataCache.size > EtagGenerator.#MAX_CACHE_SIZE) {
+      if (this.#dataCache.size >= EtagGenerator.#MAX_CACHE_SIZE) {
         // TODO: Be smarter.
         this.#dataCache.clear();
       }
@@ -131,6 +138,13 @@ export class EtagGenerator extends BaseService {
   async etagFromFileStats(absolutePath, stats = null) {
     Files.checkAbsolutePath(absolutePath);
 
+    const now     = Moment.fromMsec(Date.now());
+    const already = this.#statsCache.get(absolutePath);
+
+    if (already && now.isBefore(already.until)) {
+      return already.etag;
+    }
+
     if (!stats) {
       stats = await fs.stat(absolutePath, true);
     }
@@ -149,6 +163,16 @@ export class EtagGenerator extends BaseService {
       `${absolutePath}|${hex(inode)}|${hex(mtime)}|${hex(size)}`;
     const hash   = this.#rawHashFromData(toBeHashed);
     const result = this.#etagResultFromHash(hash, false);
+
+    if (this.#statsCache.size >= EtagGenerator.#MAX_CACHE_SIZE) {
+      // TODO: Be smarter.
+      this.#statsCache.clear();
+    }
+
+    this.#statsCache.set(absolutePath, {
+      etag: result,
+      until: now.add(EtagGenerator.#STATS_VALIDITY_DURATION)
+    });
 
     return result;
   }
@@ -204,6 +228,9 @@ export class EtagGenerator extends BaseService {
 
   /** @type {number} The largest size the cache is allowed to be. */
   static #MAX_CACHE_SIZE = 100;
+
+  /** @type {Duration} How long stats-based etags are considered valid for. */
+  static #STATS_VALIDITY_DURATION = new Duration(60); // One minute.
 
   /** @override */
   static get CONFIG_CLASS() {
