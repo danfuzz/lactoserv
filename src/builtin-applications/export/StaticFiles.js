@@ -5,7 +5,7 @@ import fs from 'node:fs/promises';
 
 import { ApplicationConfig } from '@this/app-config';
 import { BaseApplication } from '@this/app-framework';
-import { FsUtil, Paths } from '@this/fs-util';
+import { Paths, Statter } from '@this/fs-util';
 import { IntfLogger } from '@this/loggy';
 import { MimeTypes } from '@this/net-util';
 import { DispatchInfo } from '@this/network-protocol';
@@ -73,14 +73,14 @@ export class StaticFiles extends BaseApplication {
   async _impl_start(isReload_unused) {
     const siteDirectory = this.#siteDirectory;
 
-    if (!await FsUtil.directoryExists(siteDirectory)) {
+    if (!await Statter.directoryExists(siteDirectory)) {
       throw new Error(`Not found or not a directory: ${siteDirectory}`);
     }
 
     const notFoundPath = this.#notFoundPath;
 
     if (notFoundPath) {
-      if (!await FsUtil.fileExists(notFoundPath)) {
+      if (!await Statter.fileExists(notFoundPath)) {
         throw new Error(`Not found or not a file: ${notFoundPath}`);
       }
 
