@@ -117,7 +117,7 @@ describe('etagFromData()', () => {
 
 describe('etagFromFileData()', () => {
   const shortFilePath = new URL('fixtures/short-file.txt', import.meta.url).pathname;
-  const longFilePath = new URL('fixtures/long-file.txt', import.meta.url).pathname;
+  const longFilePath  = new URL('fixtures/long-file.txt', import.meta.url).pathname;
 
   // Make the long file.
   beforeAll(async () => {
