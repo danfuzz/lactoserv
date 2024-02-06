@@ -14,8 +14,7 @@ import statuses from 'statuses';
 import { ManualPromise } from '@this/async';
 import { TreePathKey } from '@this/collections';
 import { FormatUtils, IntfLogger } from '@this/loggy';
-import { Cookies, HostInfo, HttpHeaders, HttpUtil, MimeTypes }
-  from '@this/net-util';
+import { Cookies, HostInfo, HttpHeaders, HttpUtil, MimeTypes } from '@this/net-util';
 import { AskIf, MustBe } from '@this/typey';
 
 import { WranglerContext } from '#x/WranglerContext';
