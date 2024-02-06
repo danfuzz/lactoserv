@@ -3,7 +3,8 @@
 
 import * as fs from 'node:fs/promises';
 
-import { Files } from '#x/Files';
+import { Paths } from '@this/fs-util';
+
 import { RotateConfig } from '#x/RotateConfig';
 import { SaveConfig } from '#x/SaveConfig';
 import { ServiceConfig } from '#x/ServiceConfig';
@@ -52,7 +53,7 @@ export class FileServiceConfig extends ServiceConfig {
       throw new Error('Cannot specify both `rotate` and `save`.');
     }
 
-    this.#path   = Files.checkAbsolutePath(config.path);
+    this.#path   = Paths.checkAbsolutePath(config.path);
     this.#rotate = config.rotate ? new RotateConfig(config.rotate) : null;
     this.#save   = config.save ? new SaveConfig(config.save) : null;
   }

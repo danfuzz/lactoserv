@@ -13,6 +13,7 @@
 
   "dependencies": {
     "@this/collections": "*",
+    "@this/fs-util": "*",
     "@this/net-util": "*",
     "@this/typey": "*"
   }

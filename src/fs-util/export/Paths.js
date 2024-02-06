@@ -7,7 +7,7 @@ import { MustBe } from '@this/typey';
 /**
  * Utilities for parsing various sorts of filesystem stuff.
  */
-export class Files {
+export class Paths {
   /**
    * Checks that a given value is a string which can be interpreted as an
    * absolute filesystem path. It must start with a slash (`/`), _not_ end with
