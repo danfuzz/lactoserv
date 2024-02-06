@@ -1,9 +1,10 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 
-import { ServiceConfig } from '@this/app-config';
+import { Files, ServiceConfig } from '@this/app-config';
 import { BaseService } from '@this/app-framework';
 import { IntfLogger } from '@this/loggy';
 import { MustBe } from '@this/typey';
@@ -13,7 +14,7 @@ import { MustBe } from '@this/typey';
  * Service which provides a standardized way to generate `ETag`s, along with
  * optional caching of same.
  *
- * TODO: Caching.
+ * TODO: Cache control.
  *
  * Configuration object details:
  *
@@ -36,6 +37,12 @@ import { MustBe } from '@this/typey';
  *   generated hash, when producing a weak-form etag. Defaults to `16`.
  */
 export class EtagGenerator extends BaseService {
+  /**
+   * {Map <string|Buffer, string>}} Map from a cacheable entity value to its
+   * already-known etag.
+   */
+  #cache = new Map();
+
   /**
    * Constructs an instance.
    *
@@ -65,7 +72,31 @@ export class EtagGenerator extends BaseService {
       MustBe.instanceOf(data, Buffer);
     }
 
-    // TODO
+    const config    = this.config;
+    const cacheable = Object.isFrozen(data);
+
+    if (cacheable) {
+      const already = this.#cache.get(data);
+      if (already) {
+        return already;
+      }
+    }
+
+    const hash = crypto.createHash(config.hashAlgorithm)
+      .update(data, 'utf8')
+      .digest('base64');
+
+    const result = this.#etagResultFromHash(hash, true);
+
+    if (cacheable) {
+      if (this.#cache.size > EtagGenerator.#MAX_CACHE_SIZE) {
+        // TODO: Be smarter.
+        this.#cache.clear();
+      }
+      this.#cache.set(data, result);
+    }
+
+    return result;
   }
 
   /**
@@ -80,7 +111,7 @@ export class EtagGenerator extends BaseService {
    * @returns {string} The corresponding etag.
    */
   async etagFromFileData(absolutePath) {
-    MustBe.string(absolutePath, /^[/]/);
+    Files.checkAbsolutePath(absolutePath);
 
     // TODO
     throw new Error('TODO');
@@ -102,7 +133,7 @@ export class EtagGenerator extends BaseService {
    * @returns {string} The corresponding etag.
    */
   async etagFromFileStats(absolutePath, stats = null) {
-    MustBe.string(absolutePath, /^[/]/);
+    Files.checkAbsolutePath(absolutePath);
 
     // TODO
     throw new Error('TODO', stats);
@@ -122,10 +153,31 @@ export class EtagGenerator extends BaseService {
     this.logger.stopped();
   }
 
+  /**
+   * Constructs a final etag result from a hash and a strength indicator.
+   *
+   * @param {string} hash The hash.
+   * @param {boolean} isFullHash Is it a full data hash?
+   * @returns {string} The final result.
+   */
+  #etagResultFromHash(hash, isFullHash) {
+    const config  = this.config;
+    const tagForm = config.tagForm;
+
+    if ((tagForm === 'strong') || ((tagForm === 'vary') && isFullHash)) {
+      return `"${hash.slice(0, config.strongHashLength)}"`;
+    } else {
+      return `W/"${hash.slice(0, config.weakHashLength)}"`;
+    }
+  }
+
 
   //
   // Static members
   //
+
+  /** @type {number} The largest size the cache is allowed to be. */
+  static #MAX_CACHE_SIZE = 100;
 
   /** @override */
   static get CONFIG_CLASS() {
