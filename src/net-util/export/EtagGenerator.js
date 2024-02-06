@@ -53,7 +53,8 @@ export class EtagGenerator {
   /**
    * Constructs an instance.
    *
-   * @param {object} options Configuration options.
+   * @param {object} [options] Configuration options, or `null` to use all
+   *   defaults.
    * @param {?string} [options.hashAlgorithm] Algorithm to use to generate
    *   hashes. Allowed to be `sha1`, `sha256`, or `sha512`. Defaults to
    *  `sha256`.
@@ -71,12 +72,12 @@ export class EtagGenerator {
    *   return the arguably most appropriate form (and are documented as to what
    *   they produce). Defaults to `vary`.
    */
-  constructor(options) {
+  constructor(options = null) {
     const {
       hashAlgorithm = 'sha256',
       hashLength    = null,
       tagForm       = 'vary'
-    } = options;
+    } = options ?? {};
 
     MustBe.string(hashAlgorithm, /^(sha1|sha256|sha512)$/);
     MustBe.string(tagForm, /^(strong|vary|weak)$/);
