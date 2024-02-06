@@ -203,11 +203,10 @@ export class EtagGenerator {
     };
 
     const stats = await fs.stat(absolutePath, true);
-    const inode = stats.ino;
     const mtime = stats.mtimeMs;
     const size  = stats.size;
 
-    const toBeHashed = `${absolutePath}|${hex(inode)}|${hex(mtime)}|${hex(size)}`;
+    const toBeHashed = `${absolutePath}|${hex(mtime)}|${hex(size)}`;
     const hash       = this.#rawHashFromData(toBeHashed);
 
     return this.#etagResultFromHash(hash, false);
