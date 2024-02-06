@@ -46,43 +46,69 @@ describe('constructor', () => {
   });
 });
 
-// Short-data hashes to verify that the expected algorithms and encoding are
-// used. Handy command:
-//
-// `printf '...' | openssl dgst -binary -sha1 | base64`
-describe.each`
-algorithm | empty | data1 | data2
-${'sha1'}
-${'2jmj7l5rSw0yVb/vlWAYkK/YBwk'}
-${'H4rBDyPFtbwRZ72oS4M+XAV6d9I'}
-${'PHPSQsr4uCc74Vb6KXggU1r1dXU'}
---
-${'sha256'}
-${'47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU'}
-${'vvV+x/U6bUC+tkCngKY5yDvCmsipgW8fxsXG3Nk8RyE'}
-${'jCZW9q9qYqNGHJLB8BBQp1oIovTgZE9bsjt/ebY+uXQ'}
---
-${'sha512'}
-${'z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg'}
-${'4y7xliPo7Z0mf2V6gZRLPQetu3aFGAaOiENXRVZOjUFQoKcDvip9iLYePTkMK7l+LUwxH9xp1rEmfwX1mqkg5w'}
-${'4nMqeuEpUDGHCQgVXpJSUqVxDhkm9Od9RGlR0Sv/pvnLLV7ifJi06PekIuC8Oc0fcy7iMkimj38yBmzjRHICcw'}
-`('for algorithm $algorithm', ({ algorithm, ...hashes }) => {
+describe('etagFromData()', () => {
+  // Short-data hashes to verify that the expected algorithms and encoding are
+  // used. Handy command:
+  //
+  // `printf '...' | openssl dgst -binary -sha1 | base64`
   describe.each`
-  which      | data
-  ${'empty'} | ${''}
-  ${'data1'} | ${'abcdef'}
-  ${'data2'} | ${'\u{1f680} \u{1f60e} \u{0ca0}_\u{0ca0}'}
-  `('with value $which', ({ which, data }) => {
-    test('works with string', async () => {
-      const eg     = new EtagGenerator({ hashAlgorithm: algorithm, hashLength: null });
-      const result = await eg.etagFromData(data);
-      expect(result).toBe(`"${hashes[which]}"`);
-    });
+  algorithm | empty | data1 | data2
+  ${'sha1'}
+  ${'2jmj7l5rSw0yVb/vlWAYkK/YBwk'}
+  ${'H4rBDyPFtbwRZ72oS4M+XAV6d9I'}
+  ${'PHPSQsr4uCc74Vb6KXggU1r1dXU'}
+  --
+  ${'sha256'}
+  ${'47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU'}
+  ${'vvV+x/U6bUC+tkCngKY5yDvCmsipgW8fxsXG3Nk8RyE'}
+  ${'jCZW9q9qYqNGHJLB8BBQp1oIovTgZE9bsjt/ebY+uXQ'}
+  --
+  ${'sha512'}
+  ${'z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg'}
+  ${'4y7xliPo7Z0mf2V6gZRLPQetu3aFGAaOiENXRVZOjUFQoKcDvip9iLYePTkMK7l+LUwxH9xp1rEmfwX1mqkg5w'}
+  ${'4nMqeuEpUDGHCQgVXpJSUqVxDhkm9Od9RGlR0Sv/pvnLLV7ifJi06PekIuC8Oc0fcy7iMkimj38yBmzjRHICcw'}
+  `('for algorithm $algorithm', ({ algorithm, ...hashes }) => {
+    describe.each`
+    which      | data
+    ${'empty'} | ${''}
+    ${'data1'} | ${'abcdef'}
+    ${'data2'} | ${'\u{1f680} \u{1f60e} \u{0ca0}_\u{0ca0}'}
+    `('with value $which', ({ which, data }) => {
+      test('works with string', async () => {
+        const eg     = new EtagGenerator({ hashAlgorithm: algorithm, hashLength: null });
+        const result = await eg.etagFromData(data);
+        expect(result).toBe(`"${hashes[which]}"`);
+      });
 
-    test('works with buffer', async () => {
-      const eg     = new EtagGenerator({ hashAlgorithm: algorithm, hashLength: null });
-      const result = await eg.etagFromData(Buffer.from(data, 'utf8'));
-      expect(result).toBe(`"${hashes[which]}"`);
+      test('works with buffer', async () => {
+        const eg     = new EtagGenerator({ hashAlgorithm: algorithm, hashLength: null });
+        const result = await eg.etagFromData(Buffer.from(data, 'utf8'));
+        expect(result).toBe(`"${hashes[which]}"`);
+      });
     });
+  });
+
+  test('honors overall length', async () => {
+    const eg     = new EtagGenerator({ hashAlgorithm: 'sha256', hashLength: 10 });
+    const result = await eg.etagFromData('');
+    expect(result).toBe('"47DEQpj8HB"');
+  });
+
+  test('honors strong length', async () => {
+    const eg     = new EtagGenerator({ hashAlgorithm: 'sha256', hashLength: { strong: 8 } });
+    const result = await eg.etagFromData('');
+    expect(result).toBe('"47DEQpj8"');
+  });
+
+  test('honors weak form', async () => {
+    const eg     = new EtagGenerator({ hashAlgorithm: 'sha1', tagForm: 'weak' });
+    const result = await eg.etagFromData('');
+    expect(result).toBe('W/"2jmj7l5rSw0yVb/v"');
+  });
+
+  test('honors weak length with weak form', async () => {
+    const eg     = new EtagGenerator({ hashAlgorithm: 'sha1', hashLength: { weak: 12 }, tagForm: 'weak' });
+    const result = await eg.etagFromData('');
+    expect(result).toBe('W/"2jmj7l5rSw0y"');
   });
 });
