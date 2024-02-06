@@ -41,7 +41,7 @@ export class EtagGenerator extends BaseService {
    * {Map <string|Buffer, string>}} Map from a cacheable entity value to its
    * already-known etag.
    */
-  #cache = new Map();
+  #dataCache = new Map();
 
   /**
    * Constructs an instance.
@@ -75,7 +75,7 @@ export class EtagGenerator extends BaseService {
     const cacheable = Object.isFrozen(data);
 
     if (cacheable) {
-      const already = this.#cache.get(data);
+      const already = this.#dataCache.get(data);
       if (already) {
         return already;
       }
@@ -85,11 +85,11 @@ export class EtagGenerator extends BaseService {
     const result = this.#etagResultFromHash(hash, true);
 
     if (cacheable) {
-      if (this.#cache.size > EtagGenerator.#MAX_CACHE_SIZE) {
+      if (this.#dataCache.size > EtagGenerator.#MAX_CACHE_SIZE) {
         // TODO: Be smarter.
-        this.#cache.clear();
+        this.#dataCache.clear();
       }
-      this.#cache.set(data, result);
+      this.#dataCache.set(data, result);
     }
 
     return result;
