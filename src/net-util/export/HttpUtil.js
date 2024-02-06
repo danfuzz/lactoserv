@@ -94,6 +94,19 @@ export class HttpUtil {
   }
 
   /**
+   * Produces a date-time string in the standard HTTP format, given a
+   * millisecond Epoch time.
+   *
+   * @param {number} atMsec The millisecond Epoch time.
+   * @returns {string} The corresponding HTTP-format date-time string.
+   */
+  static dateStringFromMsec(atMsec) {
+    MustBe.number(atMsec, { finite: true });
+
+    return new Date(atMsec).toUTCString();
+  }
+
+  /**
    * Given a header name in any casing, return the canonical modern casing,
    * which is to say fully downcased.
    *
