@@ -56,7 +56,8 @@ export class EtagGenerator extends BaseService {
    * configured with `tagForm: 'weak'`. (The actual hash value is not affected
    * by the choice of returned form.)
    *
-   * @param {string|Buffer} data The entity data in question.
+   * @param {string|Buffer} data The entity data in question. `Buffer`s must be
+   *   frozen in order to be cached.
    * @returns {string} The corresponding etag.
    */
   async etagFromData(data) {
@@ -74,8 +75,8 @@ export class EtagGenerator extends BaseService {
    * configured with `tagForm: 'weak'`. (The actual hash value is not affected
    * by the choice of returned form.)
    *
-   * @param {string|Buffer} absolutePath Absolute path to the file containing
-   *   the entity data.
+   * @param {string} absolutePath Absolute path to the file containing the
+   *   entity data.
    * @returns {string} The corresponding etag.
    */
   async etagFromFileData(absolutePath) {
