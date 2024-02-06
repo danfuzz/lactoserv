@@ -19,8 +19,7 @@
 #
 # Most public argument-defining functions also all allow these options, of which
 # at least one must be used. When both are used, the `--call` is performed
-# first, and then the `--var` setting.
-# present, evaluation order is filter then call then variable setting.
+# first, and then the `--var` setting:
 # * `--call=<name>` or `--call={<code>}` -- Calls the named function passing it
 #   the argument value(s), or runs the indicated code snippet. If the call
 #   fails, the argument is rejected. In the snippet form, normal positional

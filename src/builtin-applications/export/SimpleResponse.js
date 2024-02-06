@@ -5,7 +5,7 @@ import fs from 'node:fs/promises';
 
 import { ApplicationConfig } from '@this/app-config';
 import { BaseApplication } from '@this/app-framework';
-import { FsUtil, Paths } from '@this/fs-util';
+import { Paths, Statter } from '@this/fs-util';
 import { MimeTypes } from '@this/net-util';
 import { MustBe } from '@this/typey';
 
@@ -38,7 +38,7 @@ export class SimpleResponse extends BaseApplication {
     const sendOptions = SimpleResponse.#SEND_OPTIONS;
 
     if (filePath) {
-      if (!await FsUtil.fileExists(filePath)) {
+      if (!await Statter.fileExists(filePath)) {
         throw new Error(`Not found or not a non-directory file: ${filePath}`);
       }
 
