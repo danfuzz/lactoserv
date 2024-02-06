@@ -39,14 +39,21 @@ import { MustBe } from '@this/typey';
  */
 export class EtagGenerator extends BaseService {
   /**
-   * {Map <string|Buffer, string>}} Map from a cacheable entity value to its
-   * already-known etag.
+   * @type {Map <string|Buffer, string>}} Map from a cacheable entity value to
+   * its already-known etag.
    */
   #dataCache = new Map();
 
   /**
-   * {Map <string, {etag: string, until: Moment}>}} Map from an absolute path to
-   * its already-known stats-based etag and an expiration moment.
+   * @type {Map <string, {fullDataEtag: string, stats: fs.BigIntStats,
+   * statsEtag: string, statsEtagUntil: Moment, fullHash}>}} Map from an
+   * absolute path to all of:
+   *
+   * * `fullDataEtag` -- The full data etag, if calculated.
+   * * `stats` -- the most-recently gathered stats (a `BigIntStats`, though as
+   *   of Node v21 one can't actually name that type in code).
+   * * `statsEtag` -- its already-known stats-based etag.
+   * * `statsEtagUntil` -- The expiration moment of the stats-based etag.
    */
   #statsCache = new Map();
 
@@ -116,14 +123,16 @@ export class EtagGenerator extends BaseService {
   async etagFromFileData(absolutePath) {
     Files.checkAbsolutePath(absolutePath);
 
+    // What's going on with the cache here: We make a "live" (not cached) stats
+    // check, and if the file doesn't appear to be modified, we return the
+    // previously-calculated tag.
+
     // TODO
     throw new Error('TODO');
   }
 
   /**
-   * Generates an etag from the `Stats` of a particular file. If the stats are
-   * already known, they can be passed so as to avoid redundant filesystem
-   * access.
+   * Generates an etag from the `Stats` of a particular file.
    *
    * The returned etag is in the "weak" form, unless this instance was
    * configured with `tagForm: 'weak'`. (The actual hash value is not affected
@@ -131,30 +140,26 @@ export class EtagGenerator extends BaseService {
    *
    * @param {string} absolutePath Absolute path to the file associated with the
    *   entity.
-   * @param {?fs.Stats|fs.BigIntStats} [stats] Stats to base the tag on, if
-   *   already available.
    * @returns {string} The corresponding etag.
    */
-  async etagFromFileStats(absolutePath, stats = null) {
+  async etagFromFileStats(absolutePath) {
     Files.checkAbsolutePath(absolutePath);
 
-    const now     = Moment.fromMsec(Date.now());
-    const already = this.#statsCache.get(absolutePath);
-
-    if (already && now.isBefore(already.until)) {
-      return already.etag;
-    }
-
-    if (!stats) {
-      stats = await fs.stat(absolutePath, true);
-    }
-
+    // Converts a number (including bigint) to hex.
     const hex = (num) => {
       return (typeof num === 'number')
         ? Math.floor(num).toString(16)
         : num.toString(16);
     };
 
+    const now     = Moment.fromMsec(Date.now());
+    const already = this.#statsCache.get(absolutePath);
+
+    if (already && now.isBefore(already.statsEtagUntil)) {
+      return already.statsEtag;
+    }
+
+    const stats = await fs.stat(absolutePath, true);
     const inode = stats.ino;
     const mtime = stats.mtimeMs;
     const size  = stats.size;
@@ -170,8 +175,9 @@ export class EtagGenerator extends BaseService {
     }
 
     this.#statsCache.set(absolutePath, {
-      etag: result,
-      until: now.add(EtagGenerator.#STATS_VALIDITY_DURATION)
+      stats,
+      statsEtag:      result,
+      statsEtagUntil: now.add(EtagGenerator.#STATS_VALIDITY_DURATION)
     });
 
     return result;
