@@ -12,9 +12,9 @@
   },
 
   "dependencies": {
+    "@stylistic/eslint-plugin": "^1.5.4",
     "eslint": "^8.56.0",
     "eslint-plugin-jest": "^27.6.3",
-    "eslint-plugin-jsdoc": "^48.0.4",
-    "@stylistic/eslint-plugin": "^1.5.4"
+    "eslint-plugin-jsdoc": "^48.0.4"
   }
 }
