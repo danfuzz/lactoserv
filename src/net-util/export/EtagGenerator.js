@@ -12,6 +12,9 @@ import { MustBe } from '@this/typey';
  * Configurable etag generator (e.g. for `ETag` headers).
  */
 export class EtagGenerator {
+  /** @type {boolean} Is this a data-only instance? */
+  #dataOnly;
+
   /** @type {string} The hash algorithm. */
   #hashAlgorithm;
 
@@ -89,6 +92,24 @@ export class EtagGenerator {
   }
 
   /**
+   * Generates an etag for the given file. This returns `null` if the file
+   * doesn't exist, and throws other file-related errors through to the caller
+   * transparently. This is implemented by calling through to either {@link
+   * #etagFromFileData} or {@link #etagFromFileStats}, depending on the
+   * `dataOnly` configuration option.
+   *
+   * @param {string} absolutePath Absolute path to the file in question.
+   *   entity data.
+   * @returns {?string} The corresponding etag, or `null` if the file does not
+   *   exist.
+   */
+  async etagFromFile(absolutePath) {
+    return this.#dataOnly
+      ? this.etagFromFileData(absolutePath)
+      : this.etagFromFileStats(absolutePath);
+  }
+
+  /**
    * Generates an etag from the contents of the given file. This returns `null`
    * if the file doesn't exist, and throws other file-related errors through to
    * the caller transparently.
@@ -159,11 +180,18 @@ export class EtagGenerator {
    * configured with `tagForm: 'weak'`. (The actual hashing procedure is not
    * affected by the choice of returned form.)
    *
+   * If this instance was configured with `dataOnly: true`, this method always
+   * throws an error.
+   *
    * @param {string} absolutePath Absolute path to the file associated with the
    *   entity.
    * @returns {string} The corresponding etag.
    */
   async etagFromFileStats(absolutePath) {
+    if (this.#dataOnly) {
+      throw new Error('Cannot use with data-only instance.');
+    }
+
     Paths.checkAbsolutePath(absolutePath);
 
     // Converts a number (including bigint) to hex.
