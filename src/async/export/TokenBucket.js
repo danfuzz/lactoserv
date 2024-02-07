@@ -1,6 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { Moment } from '@this/data-values';
 import { IntfTimeSource, StdTimeSource } from '@this/metacomp';
 import { MustBe } from '@this/typey';
 
@@ -204,7 +205,7 @@ export class TokenBucket {
    *   is, the quantity of tokens that could potentially be reserved for new
    *   grant waiters. If this instance has no limit on the queue size, then
    *   this is `Number.POSITIVE_INFINITY`.
-   * * `{number} nowSec` -- The time as of the snapshot, according to this
+   * * `{Moment} now` -- The time as of the snapshot, according to this
    *   instance's time source.
    * * `{number} waiterCount` -- The number of queued (awaited) grant requests.
    *
@@ -214,7 +215,7 @@ export class TokenBucket {
     return {
       availableBurstSize: this.#lastBurstSize,
       availableQueueSize: this.#maxQueueSize - this.#queueSize,
-      nowSec:             this.#lastNowSec,
+      now:                new Moment(this.#lastNowSec),
       waiterCount:        this.#waiters.length,
     };
   }

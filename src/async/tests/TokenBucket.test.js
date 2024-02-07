@@ -170,7 +170,7 @@ describe('constructor()', () => {
     const ts = new MockTimeSource(321);
     const bucket = new TokenBucket({ flowRatePerSec: 1, maxBurstSize: 1, timeSource: ts });
     expect(bucket.config.timeSource).toBe(ts);
-    expect(bucket.latestState().nowSec).toBe(321);
+    expect(bucket.latestState().now.atSec).toBe(321);
   });
 
   test('produces an instance which (apparently) uses the default time source if not passed `timeSource`', () => {
@@ -660,7 +660,7 @@ describe('latestState()', () => {
   test('has exactly the expected properties', () => {
     const bucket = new TokenBucket({ flowRatePerSec: 123, maxBurstSize: 100000 });
     expect(bucket.latestState()).toContainAllKeys([
-      'availableBurstSize', 'availableQueueSize', 'nowSec', 'waiterCount'
+      'availableBurstSize', 'availableQueueSize', 'now', 'waiterCount'
     ]);
   });
 
@@ -670,7 +670,7 @@ describe('latestState()', () => {
       flowRatePerSec: 1, maxBurstSize: 10000, initialBurstSize: 100, timeSource: time });
 
     const baseResult = bucket.latestState();
-    expect(baseResult.nowSec).toBe(900);
+    expect(baseResult.now.atSec).toBe(900);
     expect(baseResult.availableBurstSize).toBe(100);
 
     time._setTime(901);
@@ -791,7 +791,7 @@ describe('takeNow()', () => {
 
       const latest = bucket.latestState();
       expect(latest.availableBurstSize).toBe(0);
-      expect(latest.nowSec).toBe(1001);
+      expect(latest.now.atSec).toBe(1001);
 
       time._end();
     });
