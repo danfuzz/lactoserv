@@ -21,10 +21,10 @@ export class Duration {
   /**
    * Constructs an instance.
    *
-   * @param {number} secs The number of seconds to represent. Must be finite.
+   * @param {number} sec The number of seconds to represent. Must be finite.
    */
-  constructor(secs) {
-    this.#sec = MustBe.number(secs, { finite: true });
+  constructor(sec) {
+    this.#sec = MustBe.number(sec, { finite: true });
     Object.freeze(this);
   }
 
@@ -146,7 +146,7 @@ export class Duration {
       }
     }
 
-    // Convert `secs` to `BigInt`, because that makes the calculations much more
+    // We use bigints here because that makes the calculations much more
     // straightforward.
     const outputTenths = (durationSec < ((60 * 60) - 0.05));
     const totalTenths  = outputTenths
