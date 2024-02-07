@@ -6,10 +6,25 @@ import fs from 'node:fs/promises';
 
 import { EtagGenerator } from '@this/net-util';
 
+describe.each`
+label                | isConstructor
+${'constructor'}     | ${true}
+${'expandOptions()'} | ${false}
+`('$label', ({ isConstructor }) => {
+  const doCall = (options) => {
+    if (isConstructor) {
+      return new EtagGenerator(options);
+    } else {
+      return EtagGenerator.expandOptions(options);
+    }
+  };
 
-describe('constructor', () => {
   test('does not throw if not passed any options', () => {
-    expect(() => new EtagGenerator()).not.toThrow();
+    expect(() => doCall()).not.toThrow();
+  });
+
+  test('does not throw if passed `null`', () => {
+    expect(() => doCall(null)).not.toThrow();
   });
 
   test.each`
@@ -18,7 +33,7 @@ describe('constructor', () => {
   ${'sha256'}
   ${'sha512'}
   `('accepts algorithm $arg', ({ arg }) => {
-    expect(() => new EtagGenerator({ hashAlgorithm: arg })).not.toThrow();
+    expect(() => doCall({ hashAlgorithm: arg })).not.toThrow();
   });
 
   test.each`
@@ -40,7 +55,7 @@ describe('constructor', () => {
   ${'sha1'}   | ${{ weak: 22 }}
   ${'sha256'} | ${{ strong: 32, weak: 10 }}
   `('accepts hash length $len for $algorithm', ({ len, algorithm }) => {
-    expect(() => new EtagGenerator({ hashAlgorithm: algorithm, hashLength: len })).not.toThrow();
+    expect(() => doCall({ hashAlgorithm: algorithm, hashLength: len })).not.toThrow();
   });
 
   test.each`
@@ -49,7 +64,7 @@ describe('constructor', () => {
   ${'vary'}
   ${'weak'}
   `('accepts tag form $arg', ({ arg }) => {
-    expect(() => new EtagGenerator({ tagForm: arg })).not.toThrow();
+    expect(() => doCall({ tagForm: arg })).not.toThrow();
   });
 });
 

@@ -53,27 +53,12 @@ export class EtagGenerator {
    *   they produce). Defaults to `vary`.
    */
   constructor(options = null) {
-    const {
-      hashAlgorithm = 'sha256',
-      hashLength    = null,
-      tagForm       = 'vary'
-    } = options ?? {};
+    options = EtagGenerator.expandOptions(options);
 
-    MustBe.string(hashAlgorithm, /^(sha1|sha256|sha512)$/);
-    MustBe.string(tagForm, /^(strong|vary|weak)$/);
-
-    this.#hashAlgorithm = hashAlgorithm;
-    this.#tagForm       = tagForm;
-
-    if (typeof hashLength === 'number') {
-      EtagGenerator.#checkHashLength(hashAlgorithm, hashLength);
-      this.#hashLengthStrong = hashLength;
-      this.#hashLengthWeak   = hashLength;
-    } else {
-      const { strong = null, weak = 16 } = hashLength ?? {};
-      this.#hashLengthStrong = EtagGenerator.#checkHashLength(hashAlgorithm, strong);
-      this.#hashLengthWeak   = EtagGenerator.#checkHashLength(hashAlgorithm, weak);
-    }
+    this.#hashAlgorithm    = options.hashAlgorithm;
+    this.#hashLengthStrong = options.hashLength.strong;
+    this.#hashLengthWeak   = options.hashLength.weak;
+    this.#tagForm          = options.tagForm;
   }
 
   /**
@@ -243,6 +228,50 @@ export class EtagGenerator {
     'sha256': 43,
     'sha512': 86
   };
+
+  /**
+   * Checks constructor options for validity, and returns the "expanded" form
+   * (where defaults are replaced with the corresponding true values).
+   *
+   * @param {*} options (Alleged) constructor options. `null` is treated as
+   *   valid all-default options.
+   * @returns {object} The expanded version of `options`, if `options` is valid.
+   * @throws {Error} Thrown if there is trouble with `options`.
+   */
+  static expandOptions(options) {
+    const {
+      hashAlgorithm = 'sha256',
+      hashLength    = null,
+      tagForm       = 'vary'
+    } = options ?? {};
+
+    MustBe.string(hashAlgorithm, /^(sha1|sha256|sha512)$/);
+    MustBe.string(tagForm, /^(strong|vary|weak)$/);
+
+    if (typeof hashLength === 'number') {
+      EtagGenerator.#checkHashLength(hashAlgorithm, hashLength);
+
+      return {
+        hashAlgorithm,
+        hashLength: { strong: hashLength, weak: hashLength },
+        tagForm
+      };
+    } else {
+      const { strong = null, weak = 16 } = hashLength ?? {};
+
+      EtagGenerator.#checkHashLength(hashAlgorithm, strong);
+      EtagGenerator.#checkHashLength(hashAlgorithm, weak);
+
+      return {
+        hashAlgorithm,
+        hashLength: {
+          strong: EtagGenerator.#checkHashLength(hashAlgorithm, strong),
+          weak:   EtagGenerator.#checkHashLength(hashAlgorithm, weak)
+        },
+        tagForm
+      };
+    }
+  }
 
   /**
    * Checks a hash length value for validity, converting `null` into the actual

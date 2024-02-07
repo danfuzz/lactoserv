@@ -5,7 +5,6 @@ import * as fs from 'node:fs/promises';
 import { ClientRequest, ServerResponse } from 'node:http';
 import * as http2 from 'node:http2';
 
-import etag from 'etag';
 import express from 'express';
 import fresh from 'fresh';
 import rangeParser from 'range-parser';
@@ -506,8 +505,7 @@ export class Request {
    * * `416` -- A range request couldn't be satisfied. The original body isn't
    *   sent, but an error message body _is_ sent.
    *
-   * If the request method was `HEAD`, this does _not_ send the `body`, but it
-   * still calculates the length and etag.
+   * If the request method was `HEAD`, this does _not_ send the `body`.
    *
    * In all successful cases, this method always responds with a `Cache-Control`
    * header.
@@ -542,11 +540,7 @@ export class Request {
 
     // Start with the headers that will be used for any non-error response. All
     // such responses are cacheable, per spec.
-    const headers = this.#makeResponseHeaders('cacheable', options, {
-      'etag': () => {
-        return etag(bodyBuffer);
-      }
-    });
+    const headers = this.#makeResponseHeaders('cacheable', options);
 
     if (this.isFreshWithRespectTo(headers)) {
       // For basic range-support headers.
@@ -624,7 +618,10 @@ export class Request {
     // In re `dotfiles`: If the caller wants to send a dotfile, that's their
     // business. (`sendFile()` by default tries to be something like a
     // "friendly" static file server, but we're lower level here.)
-    const sendOpts = { dotfiles: 'allow' };
+    const sendOpts = {
+      dotfiles: 'allow',
+      etag:     false
+    };
 
     // Note: `sendFile()` below will change the status code when appropriate,
     // to respond to range and conditional requests.

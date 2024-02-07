@@ -128,7 +128,8 @@ const applications = [
     name:          'myStaticFun',
     class:         'StaticFiles',
     siteDirectory: filePath('../site'),
-    notFoundPath:  filePath('../site-extra/not-found.html')
+    notFoundPath:  filePath('../site-extra/not-found.html'),
+    etag:          { hashLength: 20 }
   },
   {
     name:          'myStaticFunNo404',
@@ -141,14 +142,20 @@ const applications = [
     filePath: filePath('../site-extra/empty-file.txt')
   },
   {
-    name:        'responseNoBody',
-    class:       'SimpleResponse'
+    name:  'responseNoBody',
+    class: 'SimpleResponse',
+    etag:  true
   },
   {
     name:        'responseOne',
     class:       'SimpleResponse',
     contentType: 'text/plain',
-    body:        'One!\n'
+    body:        'One!\n',
+    etag: {
+      hashAlgorithm: 'sha1',
+      hashLength:    12,
+      tagForm:       'weak'
+    }
   },
   {
     name:        'responseTwo',

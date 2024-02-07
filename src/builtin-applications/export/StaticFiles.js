@@ -7,7 +7,7 @@ import { ApplicationConfig } from '@this/app-config';
 import { BaseApplication } from '@this/app-framework';
 import { Paths, Statter } from '@this/fs-util';
 import { IntfLogger } from '@this/loggy';
-import { MimeTypes } from '@this/net-util';
+import { EtagGenerator, HttpUtil, MimeTypes } from '@this/net-util';
 import { DispatchInfo } from '@this/network-protocol';
 
 
@@ -26,6 +26,11 @@ export class StaticFiles extends BaseApplication {
   #siteDirectory;
 
   /**
+   * @type {?EtagGenerator} Etag generator to use, or `null` if not using one.
+   */
+  #etagGenerator = null;
+
+  /**
    * @type {?object} Options to use when issuing a not-found response, or `null`
    * if not yet calculated (including if not handling not-found errors).
    */
@@ -40,10 +45,11 @@ export class StaticFiles extends BaseApplication {
   constructor(config, logger) {
     super(config, logger);
 
-    const { notFoundPath, siteDirectory } = config;
+    const { etagOptions, notFoundPath, siteDirectory } = config;
 
     this.#notFoundPath  = notFoundPath;
     this.#siteDirectory = siteDirectory;
+    this.#etagGenerator = etagOptions ? new EtagGenerator(etagOptions) : null;
   }
 
   /** @override */
@@ -60,9 +66,22 @@ export class StaticFiles extends BaseApplication {
 
     if (resolved.redirect) {
       const redirectTo = resolved.redirect;
+
       return request.sendRedirect(redirectTo, { status: 301 });
     } else if (resolved.path) {
-      return await request.sendFile(resolved.path, StaticFiles.#SEND_OPTIONS);
+      const options = {
+        ...StaticFiles.#SEND_OPTIONS,
+        headers: {
+          'last-modified': HttpUtil.dateStringFromMsec(resolved.stats.mtimeMs)
+        }
+      };
+
+      if (this.#etagGenerator) {
+        options.headers['etag'] =
+          await this.#etagGenerator.etagFromFileStats(resolved.path);
+      }
+
+      return await request.sendFile(resolved.path, options);
     } else {
       // Shouldn't happen. If we get here, it's a bug in this class.
       throw new Error('Shouldn\'t happen.');
@@ -149,7 +168,7 @@ export class StaticFiles extends BaseApplication {
     this.logger?.fullPath(fullPath);
 
     try {
-      const stats = await fs.stat(fullPath);
+      const stats = await fs.stat(fullPath, true);
       if (stats.isDirectory()) {
         if (!endSlash) {
           // Redirect from non-ending-slash directory path. As a special case,
@@ -161,9 +180,10 @@ export class StaticFiles extends BaseApplication {
             : parts;
           return { redirect: `${source[source.length - 1]}/` };
         } else {
-          // It's a proper directory reference. Look for the index file.
-          const indexPath  = `${fullPath}/index.html`;
-          const indexStats = await fs.stat(indexPath);
+          // It's a proper directory reference. Look for the index file. Note:
+          // No slash after `fullPath` because it already ends with a slash.
+          const indexPath  = `${fullPath}index.html`;
+          const indexStats = await fs.stat(indexPath, true);
           if (indexStats.isDirectory()) {
             // Weird case, to be clear!
             this.logger?.indexIsDirectory(indexPath);
@@ -215,6 +235,12 @@ export class StaticFiles extends BaseApplication {
     #siteDirectory;
 
     /**
+     * @type {?object} Etag configuration options, or `null` not to generate
+     * etags.
+     */
+    #etagOptions;
+
+    /**
      * Constructs an instance.
      *
      * @param {object} config Configuration object.
@@ -223,6 +249,7 @@ export class StaticFiles extends BaseApplication {
       super(config);
 
       const {
+        etag = null,
         notFoundPath = null,
         siteDirectory
       } = config;
@@ -231,6 +258,17 @@ export class StaticFiles extends BaseApplication {
         ? null
         : Paths.checkAbsolutePath(notFoundPath);
       this.#siteDirectory = Paths.checkAbsolutePath(siteDirectory);
+      this.#etagOptions = ((etag === null) || (etag === false))
+        ? null
+        : EtagGenerator.expandOptions(etag);
+    }
+
+    /**
+     * @returns {?object} Etag configuration options, or `null` not to generate
+     * etags.
+     */
+    get etagOptions() {
+      return this.#etagOptions;
     }
 
     /** @returns {string} The base directory for the site files. */

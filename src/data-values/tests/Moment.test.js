@@ -11,6 +11,7 @@ describe('constructor()', () => {
   ${0.1}
   ${-10}
   ${9999999999}
+  ${1234n}
   `('accepts $value', ({ value }) => {
     expect(() => new Moment(value)).not.toThrow();
   });
@@ -19,7 +20,6 @@ describe('constructor()', () => {
   value
   ${undefined}
   ${null}
-  ${123n}
   ${Number.POSITIVE_INFINITY}
   ${[1, 2, 3]}
   `('throws given $value', ({ value }) => {
@@ -36,6 +36,10 @@ describe('.atSecs', () => {
     expect(new Moment(0).atSecs).toBe(0);
     expect(new Moment(123).atSecs).toBe(123);
     expect(new Moment(456.789).atSecs).toBe(456.789);
+  });
+
+  test('returns a converted bigint', () => {
+    expect(new Moment(123999n).atSecs).toBe(123999);
   });
 });
 
@@ -71,12 +75,34 @@ method                    | isStatic
 ${'httpStringFromSecs'}   | ${true}
 ${'toHttpString'}         | ${false}
 `('$method()', ({ method, isStatic }) => {
+  // Failure cases.
+  test.each`
+  atSecs
+  ${NaN}
+  ${+Infinity}
+  ${-Infinity}
+  ${undefined}
+  ${null}
+  ${'12345'}
+  ${[12345]}
+  `('fails given $atSecs', ({ atSecs }) => {
+    const doIt = () => {
+      return isStatic
+        ? Moment[method](atSecs)
+        : new Moment(atSecs)[method]();
+    };
+
+    expect(doIt).toThrow();
+  });
+
+  // Success cases.
   test.each`
   atSecs        | expected
   ${0}          | ${'Thu, 01 Jan 1970 00:00:00 GMT'}
   ${0.00001}    | ${'Thu, 01 Jan 1970 00:00:00 GMT'}
   ${0.1}        | ${'Thu, 01 Jan 1970 00:00:00 GMT'}
   ${0.99999}    | ${'Thu, 01 Jan 1970 00:00:00 GMT'}
+  ${631155661n} | ${'Mon, 01 Jan 1990 01:01:01 GMT'}
   ${631155661}  | ${'Mon, 01 Jan 1990 01:01:01 GMT'}
   ${631245722}  | ${'Tue, 02 Jan 1990 02:02:02 GMT'}
   ${631335783}  | ${'Wed, 03 Jan 1990 03:03:03 GMT'}

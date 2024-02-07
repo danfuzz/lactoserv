@@ -231,6 +231,9 @@ bindings:
   type is inferred from the extension on the path. If neither `body` nor
   `filePath` is specified (that is, for an empty body), then this must not be
   specified either.
+* `etag` &mdash; ETag-generating options. If present and not `false`, the
+  response comes with an `ETag` header. See "ETag Configuration" below for
+  details.
 * `filePath` &mdash; Optional absolute filesystem path to the file to respond
   with.
 
@@ -268,6 +271,9 @@ const applications = [
 An application which serves static files from a local directory. It accepts the
 following configuration bindings:
 
+* `etag` &mdash; ETag-generating options. If present and not `false`, the
+  response comes with an `ETag` header. See "ETag Configuration" below for
+  details.
 * `notFoundPath` &mdash; Optional filesystem path to the file to serve when a
   file/path is not found. The indicated file will get sent back along with a
   `404` ("Not Found") status code.
@@ -329,44 +335,6 @@ the suffix is the final dot and everything that follows. (For example,
 parsed names are used to construct _actual_ file names by inserting something in
 between the prefix and suffix (such as a date stamp and/or a sequence number),
 or in some cases just used as-is.
-
-**A note about file rotation and preservation:** Some of the services accept
-`rotate` as a configured property, which enables automatic file rotation and
-cleanup. A `rotate` configuration is an object with the following bindings:
-
-* `atSize` &mdash; Rotate when the file becomes the given size (in bytes) or
-  greater. Optional, and if not specified (or if `null`), does not rotate based
-  on size.
-* `checkSecs` &mdash; How often to check for a rotation condition, in seconds.
-  Optional, and if not specified (or if `null`), does not ever check at all.
-  This is only meaningful if `atSize` is also specified. Default `5 * 60`.
-* `maxOldBytes` &mdash; How many bytes' worth of old (post-rotation) files
-  should be allowed, or `null` not to have a limit. The oldest files over the
-  limit get deleted after a rotation.Optional, and defaults to `null`.
-* `maxOldCount` &mdash; How many old (post-rotation) files should be allowed, or
-  `null` not to have a limit. The oldest files over the limit get deleted after
-   a rotation. Optional, and defaults to `null`.
-* `onReload` &mdash; If `true`, rotates when the system is reloaded (restarted
-  in-process). Optional, and defaults to `false`.
-* `onStart` &mdash; If `true`, rotates when the system is first started.
-  Optional, and defaults to `false`.
-* `onStop` &mdash; If `true`, rotates when the system is about to be stopped.
-  Optional, and defaults to `false`.
-
-Relatedly, some services don't ever have a need to do rotation, but they _can_
-usefully save files from old runs. In this case, a `save` configuration is
-available. This is an object with bindings with the same meanings and defaults
-as `rotate`, except that rotation-specific ones are not recognized. These are
-the ones that are used by `save`:
-
-* `maxOldBytes`
-* `maxOldCount`
-* `onReload`
-* `onStart`
-* `onStop`
-
-Note that at least one of the `on*` bindings need to be provided for a `save` to
-have any meaning.
 
 ### `MemoryMonitor`
 
@@ -522,7 +490,8 @@ the following configuration bindings:
   date stamp and (if necessary) sequence number are "infixed" into the final
   path component.
 * `rotate` &mdash; Optional file rotation configuration. If not specified, no
-  file rotation is done.
+  file rotation is done. See "File Rotation and Preservation" below for
+  configuration details.
 
 ```js
 const services = [
@@ -545,7 +514,8 @@ accepts the following configuration bindings:
   path component.
 * `format` &mdash; Either `human` or `json`.
 * `rotate` &mdash; Optional file rotation configuration. If not specified, no
-  file rotation is done.
+  file rotation is done. See "File Rotation and Preservation" below for
+  configuration details.
 
 **Note:** As of this writing, the system tends to be _very_ chatty, and as such
 the system logs can be quite massive. If you choose to use this service, it is
@@ -564,6 +534,77 @@ const services = [
 ];
 ```
 
+## Configuration Sub-Objects
+
+This section documents the configuration objects that are used within top-level
+configurations.
+
+### ETag Configuration: `etag`
+
+Applications and services that generate ETags accept an `etag` binding. When it
+is absent or `false` (if allowed), no ETags are generated. If it is specified as
+`true` or `{}` (the empty object), ETags are generated using a default
+configuration. If it is specified as an object with bindings, the following
+properties are recognized:
+
+* `hashAlgorithm` &mdash; Algorithm to use to generate hashes. Allowed to be
+  `sha1`, `sha256`, or `sha512`. Defaults to `sha256`.
+* `hashLength` Number of characters to use from a generated hash when producing
+  a tag. To have different lengths for strong vs. weak tags, specify this as an
+  object with `strong` and `weak` properties. In object form, a `null` mapping
+  indicates that the full hash length is to be used. Defaults to `{ strong:
+  null, weak: 16}`.
+* `tagForm` What ETag form to produce (indicating the "strength" of the tag),
+  one of `weak`, `strong`, or `vary`. "Strong" tags are meant to convey that the
+  entire underlying data is hashed into the tag, and as such it is safe to make
+  range requests if a tag matches. "Weak" tags are, on the other hand, intended
+  to indicate that the data was not fully hashed into the tag. If passed as
+  `vary`, tags are produced in the arguably-most-appropriate form. Defaults to
+  `vary`.
+
+### File Rotation And Preservation
+
+#### `rotate`
+
+Some services accept `rotate` as a configured property, which enables automatic
+file rotation and cleanup. A `rotate` configuration is an object with the
+following bindings:
+
+* `atSize` &mdash; Rotate when the file becomes the given size (in bytes) or
+  greater. Optional, and if not specified (or if `null`), does not rotate based
+  on size.
+* `checkSecs` &mdash; How often to check for a rotation condition, in seconds.
+  Optional, and if not specified (or if `null`), does not ever check at all.
+  This is only meaningful if `atSize` is also specified. Default `5 * 60`.
+* `maxOldBytes` &mdash; How many bytes' worth of old (post-rotation) files
+  should be allowed, or `null` not to have a limit. The oldest files over the
+  limit get deleted after a rotation.Optional, and defaults to `null`.
+* `maxOldCount` &mdash; How many old (post-rotation) files should be allowed, or
+  `null` not to have a limit. The oldest files over the limit get deleted after
+   a rotation. Optional, and defaults to `null`.
+* `onReload` &mdash; If `true`, rotates when the system is reloaded (restarted
+  in-process). Optional, and defaults to `false`.
+* `onStart` &mdash; If `true`, rotates when the system is first started.
+  Optional, and defaults to `false`.
+* `onStop` &mdash; If `true`, rotates when the system is about to be stopped.
+  Optional, and defaults to `false`.
+
+#### `save`
+
+Relatedly, some services don't ever have a need to do rotation, but they _can_
+usefully save files from old runs. In this case, a `save` configuration is
+available. This is an object with bindings with the same meanings and defaults
+as `rotate`, except that rotation-specific ones are not recognized. These are
+the ones that are used by `save`:
+
+* `maxOldBytes`
+* `maxOldCount`
+* `onReload`
+* `onStart`
+* `onStop`
+
+Note that at least one of the `on*` bindings need to be provided for a `save` to
+have any meaning.
 
 ## Custom Applications and Services
 

@@ -38,6 +38,58 @@ describe('classicHeaderNameFrom()', () => {
   });
 });
 
+describe('dateStringFromMsec()', () => {
+  // Failure cases.
+  test.each`
+  atMsec
+  ${NaN}
+  ${+Infinity}
+  ${-Infinity}
+  ${undefined}
+  ${null}
+  ${'12345'}
+  ${[12345]}
+  `('fails given $atMsec', ({ atMsec }) => {
+    expect(() => HttpUtil.dateStringFromMsec(atMsec)).toThrow();
+  });
+
+  // Success cases.
+  test.each`
+  atMsec           | expected
+  ${0}             | ${'Thu, 01 Jan 1970 00:00:00 GMT'}
+  ${0.1}           | ${'Thu, 01 Jan 1970 00:00:00 GMT'}
+  ${0.01}          | ${'Thu, 01 Jan 1970 00:00:00 GMT'}
+  ${100}           | ${'Thu, 01 Jan 1970 00:00:00 GMT'}
+  ${999.99}        | ${'Thu, 01 Jan 1970 00:00:00 GMT'}
+  ${631155661000n} | ${'Mon, 01 Jan 1990 01:01:01 GMT'}
+  ${631155661000}  | ${'Mon, 01 Jan 1990 01:01:01 GMT'}
+  ${631245722000}  | ${'Tue, 02 Jan 1990 02:02:02 GMT'}
+  ${631335783000}  | ${'Wed, 03 Jan 1990 03:03:03 GMT'}
+  ${631425844000}  | ${'Thu, 04 Jan 1990 04:04:04 GMT'}
+  ${631515905000}  | ${'Fri, 05 Jan 1990 05:05:05 GMT'}
+  ${631605966000}  | ${'Sat, 06 Jan 1990 06:06:06 GMT'}
+  ${631696027000}  | ${'Sun, 07 Jan 1990 07:07:07 GMT'}
+  ${631786088000}  | ${'Mon, 08 Jan 1990 08:08:08 GMT'}
+  ${631876149000}  | ${'Tue, 09 Jan 1990 09:09:09 GMT'}
+  ${631966210000}  | ${'Wed, 10 Jan 1990 10:10:10 GMT'}
+  ${632059994000}  | ${'Thu, 11 Jan 1990 12:13:14 GMT'}
+  ${982873840000}  | ${'Thu, 22 Feb 2001 20:30:40 GMT'}
+  ${985304085000}  | ${'Thu, 22 Mar 2001 23:34:45 GMT'}
+  ${988004327000}  | ${'Mon, 23 Apr 2001 05:38:47 GMT'}
+  ${991265551000}  | ${'Wed, 30 May 2001 23:32:31 GMT'}
+  ${991952480000}  | ${'Thu, 07 Jun 2001 22:21:20 GMT'}
+  ${994622399000}  | ${'Sun, 08 Jul 2001 19:59:59 GMT'}
+  ${998113621000}  | ${'Sat, 18 Aug 2001 05:47:01 GMT'}
+  ${1001652489000} | ${'Fri, 28 Sep 2001 04:48:09 GMT'}
+  ${1004527353000} | ${'Wed, 31 Oct 2001 11:22:33 GMT'}
+  ${1004577804000} | ${'Thu, 01 Nov 2001 01:23:24 GMT'}
+  ${1007885236000} | ${'Sun, 09 Dec 2001 08:07:16 GMT'}
+  `('with ($atMsec)', ({ atMsec, expected }) => {
+    const result = HttpUtil.dateStringFromMsec(atMsec);
+    expect(result).toBe(expected);
+  });
+});
+
 describe('msecFromDateString()', () => {
   // Argument type errors. Expected to throw.
   test.each`
