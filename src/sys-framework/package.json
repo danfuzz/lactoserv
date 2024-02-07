@@ -12,12 +12,12 @@
   },
 
   "dependencies": {
-    "@this/sys-config": "*",
     "@this/async": "*",
     "@this/collections": "*",
     "@this/loggy": "*",
-    "@this/net-util": "*",
     "@this/net-protocol": "*",
+    "@this/net-util": "*",
+    "@this/sys-config": "*",
     "@this/typey": "*",
     "pem": "^1.14.8"
   }

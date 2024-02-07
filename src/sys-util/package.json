@@ -12,11 +12,11 @@
   },
 
   "dependencies": {
-    "@this/sys-config": "*",
     "@this/async": "*",
     "@this/fs-util": "*",
     "@this/host": "*",
     "@this/loggy": "*",
+    "@this/sys-config": "*",
     "@this/typey": "*"
   }
 }
