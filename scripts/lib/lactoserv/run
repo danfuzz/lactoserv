@@ -24,7 +24,7 @@ define-usage --with-help $'
     --inspect[=...]
       Passes this option to the `node` invocation, to enable interactive
       debugging.
-    --max-run-time-secs=<num>
+    --max-run-time-sec=<num>
       Debugging option passed to the system.
     --out=<dir>
       Directory where built output goes. Defaults to `out` directly under the
@@ -36,7 +36,7 @@ opt-value --var=action --default=run --enum[]='build clean run' do
 
 # Debugging options passed directly to the main `run` script.
 opt-toggle --var=earlyErrors early-errors
-opt-value --var=maxRunTimeSecs max-run-time-secs
+opt-value --var=maxRunTimeSec max-run-time-sec
 
 # Inspect?
 doInspect=0
@@ -92,8 +92,8 @@ fi
 if (( earlyErrors )); then
     extraOpts+=(--early-errors)
 fi
-if [[ ${maxRunTimeSecs} != '' ]]; then
-    extraOpts+=(--max-run-time-secs="${maxRunTimeSecs}")
+if [[ ${maxRunTimeSec} != '' ]]; then
+    extraOpts+=(--max-run-time-sec="${maxRunTimeSec}")
 fi
 
 exec "${outRun}" \

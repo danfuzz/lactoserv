@@ -75,7 +75,7 @@ export class Moment {
    * @param {number} secs Number of seconds to add.
    * @returns {Moment} The summed result.
    */
-  addSecs(secs) {
+  addSec(secs) {
     MustBe.number(secs, { finite: true });
     return new Moment(this.#atSec + secs);
   }
@@ -128,12 +128,12 @@ export class Moment {
 
   /**
    * Makes a string representing this instance, in the standard HTTP format.
-   * See {@link #httpStringFromSecs} for more details.
+   * See {@link #httpStringFromSec} for more details.
    *
    * @returns {string} The HTTP standard form.
    */
   toHttpString() {
-    return Moment.httpStringFromSecs(this.#atSec);
+    return Moment.httpStringFromSec(this.#atSec);
   }
 
   /**
@@ -142,11 +142,11 @@ export class Moment {
    * date-time in UTC.
    *
    * @param {object} [options] Formatting options, as with {@link
-   *   #stringFromSecs}.
+   *   #stringFromSec}.
    * @returns {object} Friendly representation object.
    */
   toPlainObject(options = {}) {
-    return Moment.plainObjectFromSecs(this.#atSec, options);
+    return Moment.plainObjectFromSec(this.#atSec, options);
   }
 
   /**
@@ -155,11 +155,11 @@ export class Moment {
    * in UTC.
    *
    * @param {object} [options] Formatting options, as with {@link
-   *   #stringFromSecs}.
+   *   #stringFromSec}.
    * @returns {string} The friendly time string.
    */
   toString(options = {}) {
-    return Moment.stringFromSecs(this.#atSec, options);
+    return Moment.stringFromSec(this.#atSec, options);
   }
 
   /**
@@ -205,7 +205,7 @@ export class Moment {
    *   Epoch.
    * @returns {string} The HTTP standard form.
    */
-  static httpStringFromSecs(atSec) {
+  static httpStringFromSec(atSec) {
     atSec = (typeof atSec === 'bigint')
       ? Number(atSec)
       : MustBe.number(atSec, { finite: true });
@@ -221,13 +221,13 @@ export class Moment {
    * @param {number} atSec The moment to represent, in the form of seconds
    *   since the Unix Epoch.
    * @param {object} [options] Formatting options, as with {@link
-   *   #stringFromSecs}.
+   *   #stringFromSec}.
    * @returns {object} Friendly representation object.
    */
-  static plainObjectFromSecs(atSec, options = {}) {
+  static plainObjectFromSec(atSec, options = {}) {
     return {
       atSec,
-      utc: Moment.stringFromSecs(atSec, options)
+      utc: Moment.stringFromSec(atSec, options)
     };
   }
 
@@ -243,7 +243,7 @@ export class Moment {
    *    of precision. **Note:** Fractions of seconds are truncated, not rounded.
    * @returns {string} The friendly time string.
    */
-  static stringFromSecs(atSec, options = {}) {
+  static stringFromSec(atSec, options = {}) {
     const { colons = true, decimals = 0 } = options;
 
     // Formats a number as *t*wo *d*igits.

@@ -66,7 +66,7 @@ export class KeepRunning {
    * stop.
    */
   async #keepRunning() {
-    const startedAtSecs = ProcessInfo.allInfo.startedAt.atSec;
+    const startedAtSec = ProcessInfo.allInfo.startedAt.atSec;
 
     this.#logger.running();
 
@@ -78,8 +78,8 @@ export class KeepRunning {
         timers.setTimeout(KeepRunning.#MSEC_PER_DAY)
       ]);
 
-      const uptimeSecs = (Date.now() / 1000) - startedAtSecs;
-      this.#logger.uptime(new Duration(uptimeSecs));
+      const uptimeSec = (Date.now() / 1000) - startedAtSec;
+      this.#logger.uptime(new Duration(uptimeSec));
     }
 
     this.#logger.stopped();

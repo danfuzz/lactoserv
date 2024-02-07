@@ -46,7 +46,7 @@ function checkTakeNow(grant, expected) {
 
   if (expected.waitUntil !== 'any') {
     const waitUntilSec = (expected.waitUntil instanceof Moment)
-      ? expected.waitUntil.atSecs
+      ? expected.waitUntil.atSec
       : expected.waitUntil;
 
     expect(grant.waitUntil.atSec).toBe(waitUntilSec);
@@ -72,10 +72,6 @@ class MockTimeSource extends IntfTimeSource {
     }
 
     return this.#now;
-  }
-
-  nowSec() {
-    return this.now().atSec;
   }
 
   async waitUntil(time) {

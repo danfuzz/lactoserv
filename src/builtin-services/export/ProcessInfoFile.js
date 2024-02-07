@@ -216,9 +216,9 @@ export class ProcessInfoFile extends BaseService {
    * @param {boolean} willReload Is the system going to be reloaded in-process?
    */
   async #stop(willReload) {
-    const contents      = this.#contents;
-    const stoppedAtSecs = Date.now() / 1000;
-    const uptimeSecs    = stoppedAtSecs - contents.startedAt.atSec;
+    const contents     = this.#contents;
+    const stoppedAtSec = Date.now() / 1000;
+    const uptimeSec    = stoppedAtSec - contents.startedAt.atSec;
 
     if (willReload) {
       contents.disposition = { reloading: true };
@@ -231,8 +231,8 @@ export class ProcessInfoFile extends BaseService {
         };
     }
 
-    contents.disposition.stoppedAt = new Moment(stoppedAtSecs).toPlainObject();
-    contents.disposition.uptime    = new Duration(uptimeSecs).toPlainObject();
+    contents.disposition.stoppedAt = new Moment(stoppedAtSec).toPlainObject();
+    contents.disposition.uptime    = new Duration(uptimeSec).toPlainObject();
 
     // Try to get `earlierRuns` to be at the end of the object when it gets
     // encoded to JSON, for easier (human) reading.

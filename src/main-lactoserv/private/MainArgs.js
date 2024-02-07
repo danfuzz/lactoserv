@@ -42,9 +42,9 @@ export class MainArgs {
     const args = this.#parsedArgs;
 
     return {
-      earlyErrors:    args.earlyErrors ?? false,
-      logToStdout:    args.logToStdout ?? false,
-      maxRunTimeSecs: args.maxRunTimeSecs ?? null
+      earlyErrors:   args.earlyErrors ?? false,
+      logToStdout:   args.logToStdout ?? false,
+      maxRunTimeSec: args.maxRunTimeSec ?? null
     };
   }
 
@@ -125,7 +125,7 @@ export class MainArgs {
           describe: 'Debugging: Should log messages be printed to stdout?',
           boolean:   true
         },
-        'max-run-time-secs': {
+        'max-run-time-sec': {
           describe: 'Debugging: Maximum run time in seconds',
           number:   true
         },

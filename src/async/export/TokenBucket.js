@@ -392,7 +392,7 @@ export class TokenBucket {
 
     if (!result.done) {
       result.waitUntil =
-        result.waitUntil.addSecs(this.#queueSize / this.#flowRatePerSec);
+        result.waitUntil.addSec(this.#queueSize / this.#flowRatePerSec);
     }
 
     return result;
@@ -458,7 +458,7 @@ export class TokenBucket {
     const waitedGrantSize = Math.min(maxInclusive, this.#maxQueueGrantSize);
     const waitedSize      = waitedGrantSize - this.#lastBurstSize;
     const waitTimeSec     = waitedSize / this.#flowRatePerSec;
-    const waitUntil       = this.#lastNow.addSecs(waitTimeSec);
+    const waitUntil       = this.#lastNow.addSec(waitTimeSec);
 
     return { done: false, grant: 0, waitUntil };
   }

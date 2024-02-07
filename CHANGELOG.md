@@ -11,6 +11,9 @@ Breaking changes:
   overall _system_ already has bits inside it called _applications_).
 * Expanded and reworked `fs-util`, including moving the utility class
   `app-config.Files` to `fs-util.Paths`.
+* Changed almost all time-related variables and parameters to be instances of
+  `Moment` or `Duration` instead of dimensionless `number`s. This affected
+  several APIs.
 * Removed automatic ETag generation as part of the `Request` API. generation.
 
 Other notable changes:

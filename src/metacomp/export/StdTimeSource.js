@@ -21,11 +21,6 @@ export class StdTimeSource extends IntfTimeSource {
   }
 
   /** @override */
-  nowSec() {
-    return this.now().atSec;
-  }
-
-  /** @override */
   async waitUntil(time) {
     for (;;) {
       const delay = time.atSec - this.now().atSec;
