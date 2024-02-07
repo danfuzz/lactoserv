@@ -20,10 +20,6 @@ class MockTimeSource extends IntfTimeSource {
     this.#now = firstNow;
   }
 
-  get unitName() {
-    return 'some-unit';
-  }
-
   now() {
     if (this.#ended) {
       throw new Error(`MockTimeSource ended! (Time was ${this.#now}.)`);

@@ -8,16 +8,10 @@ import { IntfTimeSource } from '#x/IntfTimeSource';
 
 /**
  * Standard implementation of {@link #IntfTimeSource}, which uses "wall time"
- * as provided by the JavaScript / Node implementation, and for which the ATU
- * is actually a second (_not_ a msec).
+ * as provided by the JavaScript / Node implementation.
  */
 export class StdTimeSource extends IntfTimeSource {
   // Note: The default constructor is fine.
-
-  /** @override */
-  get unitName() {
-    return 'seconds';
-  }
 
   /** @override */
   now() {
