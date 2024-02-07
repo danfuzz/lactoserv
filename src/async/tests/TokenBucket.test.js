@@ -363,9 +363,9 @@ describe('denyAllRequests()', () => {
     expect(PromiseState.isFulfilled(result1)).toBeTrue();
     expect(PromiseState.isFulfilled(result2)).toBeTrue();
     expect(PromiseState.isFulfilled(result3)).toBeTrue();
-    expect(await result1).toStrictEqual({ done: false, grant: 0, reason: 'stopping', waitTime: 987 });
-    expect(await result2).toStrictEqual({ done: false, grant: 0, reason: 'stopping', waitTime: 987 });
-    expect(await result3).toStrictEqual({ done: false, grant: 0, reason: 'stopping', waitTime: 987 });
+    expect(await result1).toStrictEqual({ done: false, grant: 0, reason: 'stopping', waitTimeSec: 987 });
+    expect(await result2).toStrictEqual({ done: false, grant: 0, reason: 'stopping', waitTimeSec: 987 });
+    expect(await result3).toStrictEqual({ done: false, grant: 0, reason: 'stopping', waitTimeSec: 987 });
 
     time._end();
   });
@@ -381,7 +381,7 @@ describe('requestGrant()', () => {
       const result = bucket.requestGrant(123);
       expect(bucket.latestState().availableBurstSize).toBe(0);
       expect(bucket.latestState().waiterCount).toBe(0);
-      expect(await result).toStrictEqual({ done: true, grant: 123, reason: 'grant', waitTime: 0 });
+      expect(await result).toStrictEqual({ done: true, grant: 123, reason: 'grant', waitTimeSec: 0 });
 
       time._end();
     });
@@ -395,7 +395,7 @@ describe('requestGrant()', () => {
       const result = bucket.requestGrant(300);
       expect(bucket.latestState().availableBurstSize).toBe(21);
       expect(bucket.latestState().waiterCount).toBe(0);
-      expect(await result).toStrictEqual({ done: true, grant: 300, reason: 'grant', waitTime: 0 });
+      expect(await result).toStrictEqual({ done: true, grant: 300, reason: 'grant', waitTimeSec: 0 });
 
       time._end();
     });
@@ -408,7 +408,7 @@ describe('requestGrant()', () => {
       const result = bucket.requestGrant({ minInclusive: 0, maxInclusive: 25 });
       expect(bucket.latestState().availableBurstSize).toBe(0);
       expect(bucket.latestState().waiterCount).toBe(0);
-      expect(await result).toStrictEqual({ done: true, grant: 0, reason: 'grant', waitTime: 0 });
+      expect(await result).toStrictEqual({ done: true, grant: 0, reason: 'grant', waitTimeSec: 0 });
 
       time._end();
     });
@@ -421,7 +421,7 @@ describe('requestGrant()', () => {
       const result = bucket.requestGrant({ minInclusive: 0, maxInclusive: 100 });
       expect(bucket.latestState().availableBurstSize).toBe(0);
       expect(bucket.latestState().waiterCount).toBe(0);
-      expect(await result).toStrictEqual({ done: true, grant: 96, reason: 'grant', waitTime: 0 });
+      expect(await result).toStrictEqual({ done: true, grant: 96, reason: 'grant', waitTimeSec: 0 });
 
       time._end();
     });
@@ -445,7 +445,7 @@ describe('requestGrant()', () => {
       expect(PromiseState.isPending(request1)).toBeTrue();
       expect(PromiseState.isFulfilled(request2)).toBeTrue();
 
-      expect(await request2).toStrictEqual({ done: true, grant: 0, reason: 'grant', waitTime: 0 });
+      expect(await request2).toStrictEqual({ done: true, grant: 0, reason: 'grant', waitTimeSec: 0 });
 
       // Get the bucket to quiesce.
       time._setTime(now + 1000);
@@ -470,7 +470,7 @@ describe('requestGrant()', () => {
       expect(bucket.latestState().waiterCount).toBe(1);
       await timers.setImmediate();
       expect(PromiseState.isFulfilled(request2)).toBeTrue();
-      expect(await request2).toStrictEqual({ done: false, grant: 0, reason: 'full', waitTime: 0 });
+      expect(await request2).toStrictEqual({ done: false, grant: 0, reason: 'full', waitTimeSec: 0 });
 
       // Get the bucket to quiesce.
       time._setTime(now + 1000);
@@ -495,7 +495,7 @@ describe('requestGrant()', () => {
       expect(bucket.latestState().waiterCount).toBe(1);
       await timers.setImmediate();
       expect(PromiseState.isFulfilled(request2)).toBeTrue();
-      expect(await request2).toStrictEqual({ done: false, grant: 0, reason: 'full', waitTime: 0 });
+      expect(await request2).toStrictEqual({ done: false, grant: 0, reason: 'full', waitTimeSec: 0 });
 
       // Get the bucket to quiesce.
       time._setTime(now + 1000);
@@ -516,7 +516,7 @@ describe('requestGrant()', () => {
       time._setTime(now + 321);
       await timers.setImmediate();
       expect(PromiseState.isFulfilled(request)).toBeTrue();
-      expect(await request).toStrictEqual({ done: true, grant: 50, reason: 'grant', waitTime: 321 });
+      expect(await request).toStrictEqual({ done: true, grant: 50, reason: 'grant', waitTimeSec: 321 });
 
       time._end();
     });
@@ -533,7 +533,7 @@ describe('requestGrant()', () => {
       time._setTime(now + 90909);
       await timers.setImmediate();
       expect(PromiseState.isFulfilled(request)).toBeTrue();
-      expect(await request).toStrictEqual({ done: true, grant: 100, reason: 'grant', waitTime: 90909 });
+      expect(await request).toStrictEqual({ done: true, grant: 100, reason: 'grant', waitTimeSec: 90909 });
 
       time._end();
     });
@@ -571,9 +571,9 @@ describe('requestGrant()', () => {
       expect(PromiseState.isFulfilled(request2)).toBeTrue();
       expect(PromiseState.isFulfilled(request3)).toBeTrue();
 
-      expect(await request1).toStrictEqual({ done: true, grant: 10, reason: 'grant', waitTime: 10 });
-      expect(await request2).toStrictEqual({ done: true, grant: 20, reason: 'grant', waitTime: 10 + 20 });
-      expect(await request3).toStrictEqual({ done: true, grant: 30, reason: 'grant', waitTime: 10 + 20 + 30 });
+      expect(await request1).toStrictEqual({ done: true, grant: 10, reason: 'grant', waitTimeSec: 10 });
+      expect(await request2).toStrictEqual({ done: true, grant: 20, reason: 'grant', waitTimeSec: 10 + 20 });
+      expect(await request3).toStrictEqual({ done: true, grant: 30, reason: 'grant', waitTimeSec: 10 + 20 + 30 });
 
       time._end();
     });

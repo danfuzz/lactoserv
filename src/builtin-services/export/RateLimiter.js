@@ -137,8 +137,8 @@ export class RateLimiter extends BaseService {
     }
 
     const got = await bucket.requestGrant(1);
-    if (got.waitTime > 0) {
-      logger?.rateLimiterWaited(got.waitTime);
+    if (got.waitTimeSec > 0) {
+      logger?.rateLimiterWaited(got.waitTimeSec);
     }
 
     if (!got.done) {

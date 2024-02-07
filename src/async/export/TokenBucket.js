@@ -271,7 +271,7 @@ export class TokenBucket {
    *     call to {@link #denyAllRequests} which is currently in progress.
    *   * `full` -- This request would cause the waiter queue to be too large
    *     (including the case where `maxQueueSize === 0`).
-   * * `{number} waitTime` -- The amount of time (in seconds) that was spent
+   * * `{number} waitTimeSec` -- The amount of time (in seconds) that was spent
    *   waiting for the grant.
    *
    * @param {number|object} quantity Requested quantity of tokens, as described
@@ -456,8 +456,8 @@ export class TokenBucket {
     // would be.
     const waitedGrantSize = Math.min(maxInclusive, this.#maxQueueGrantSize);
     const waitedSize      = waitedGrantSize - this.#lastBurstSize;
-    const waitTime        = waitedSize / this.#flowRatePerSec;
-    const waitUntil       = this.#lastNow + waitTime;
+    const waitTimeSec     = waitedSize / this.#flowRatePerSec;
+    const waitUntil       = this.#lastNow + waitTimeSec;
 
     return { done: false, grant: 0, waitUntil };
   }
@@ -506,12 +506,12 @@ export class TokenBucket {
    *
    * @param {number} grant Grant amount.
    * @param {string} reason Grant (or lack thereof) reason.
-   * @param {number} waitTime Amount of time spent waiting.
+   * @param {number} waitTimeSec Amount of time spent waiting, in seconds.
    * @returns {object} An appropriately-constructed result.
    */
-  #requestGrantResult(grant, reason, waitTime) {
+  #requestGrantResult(grant, reason, waitTimeSec) {
     const done = (reason === 'grant');
-    return { done, grant, reason, waitTime };
+    return { done, grant, reason, waitTimeSec };
   }
 
   /**
@@ -543,8 +543,8 @@ export class TokenBucket {
       if (got.done) {
         this.#waiters.shift();
         this.#queueSize -= info.grant;
-        const waitTime = this.#lastNow - info.startTime;
-        info.doGrant(this.#requestGrantResult(got.grant, 'grant', waitTime));
+        const waitTimeSec = this.#lastNow - info.startTime;
+        info.doGrant(this.#requestGrantResult(got.grant, 'grant', waitTimeSec));
       } else {
         await this.#waiterThread.raceWhenStopRequested([
           this.#waitUntil(got.waitUntil)
@@ -557,8 +557,8 @@ export class TokenBucket {
       // `denyAllRequests()` was called. So, deny all requests.
       this.#topUpBucket(); // Makes `#lastTime` be current.
       for (const info of this.#waiters) {
-        const waitTime = this.#lastNow - info.startTime;
-        info.doGrant(this.#requestGrantResult(0, 'stopping', waitTime));
+        const waitTimeSec = this.#lastNow - info.startTime;
+        info.doGrant(this.#requestGrantResult(0, 'stopping', waitTimeSec));
       }
 
       this.#waiters = [];
