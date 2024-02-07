@@ -144,7 +144,13 @@ describe('etagFromData()', () => {
 });
 
 describe('etagFromFile()', () => {
-  // TODO
+  test('uses `etagFromFileStats` when configured as `dataOnly: false`', async () => {
+    // TODO
+  });
+
+  test('uses `etagFromFileData` when configured as `dataOnly: true`', async () => {
+    // TODO
+  });
 });
 
 describe('etagFromFileData()', () => {
