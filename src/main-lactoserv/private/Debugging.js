@@ -3,6 +3,7 @@
 
 import * as timers from 'node:timers/promises';
 
+import { Duration } from '@this/data-values';
 import { Host } from '@this/host';
 import { IntfLogger } from '@this/loggy';
 
@@ -97,32 +98,32 @@ export class Debugging {
     const logger = this.#logger;
 
     (async () => {
-      logger.timerStarted({ seconds: maxRunTimeSec });
+      logger.timerStarted(new Duration(maxRunTimeSec));
 
-      let remainingSecs = maxRunTimeSec;
+      let remainingSec = maxRunTimeSec;
       if (maxRunTimeSec > 60) {
         await timers.setTimeout((maxRunTimeSec - 60) * 1000);
-        remainingSecs = 60;
+        remainingSec = 60;
       }
 
       const WARNING_FREQ_SECS = 10;
 
-      while (remainingSecs > 0) {
-        logger.timeRemaining({ seconds: remainingSecs });
+      while (remainingSec > 0) {
+        logger.timeRemaining(new Duration(remainingSec));
 
-        let waitSecs = 1;
-        if (remainingSecs >= (WARNING_FREQ_SECS * 2)) {
-          waitSecs = WARNING_FREQ_SECS + (remainingSecs % WARNING_FREQ_SECS);
-        } else if (remainingSecs >= WARNING_FREQ_SECS) {
+        let waitSec = 1;
+        if (remainingSec >= (WARNING_FREQ_SECS * 2)) {
+          waitSec = WARNING_FREQ_SECS + (remainingSec % WARNING_FREQ_SECS);
+        } else if (remainingSec >= WARNING_FREQ_SECS) {
           const HALF_FREQ_SECS = Math.trunc(WARNING_FREQ_SECS / 2);
-          waitSecs = HALF_FREQ_SECS + (remainingSecs % HALF_FREQ_SECS);
+          waitSec = HALF_FREQ_SECS + (remainingSec % HALF_FREQ_SECS);
         }
 
-        await timers.setTimeout(waitSecs * 1000);
-        remainingSecs -= waitSecs;
+        await timers.setTimeout(waitSec * 1000);
+        remainingSec -= waitSec;
       }
 
-      logger.timerExpired({ seconds: maxRunTimeSec });
+      logger.timerExpired(new Duration(maxRunTimeSec));
       await system.stop();
     })();
   }

@@ -15,6 +15,7 @@
     "@this/async": "*",
     "@this/builtin-applications": "*",
     "@this/builtin-services": "*",
+    "@this/data-values": "*",
     "@this/host": "*",
     "@this/loggy": "*",
     "@this/sys-framework": "*",
