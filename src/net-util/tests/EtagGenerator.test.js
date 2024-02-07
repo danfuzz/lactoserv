@@ -144,12 +144,22 @@ describe('etagFromData()', () => {
 });
 
 describe('etagFromFile()', () => {
-  test('uses `etagFromFileStats` when configured as `dataOnly: false`', async () => {
-    // TODO
+  const shortFilePath = new URL('fixtures/short-file.txt', import.meta.url).pathname;
+
+  test('uses `etagFromFileStats()` when configured as `dataOnly: false`', async () => {
+    const eg       = new EtagGenerator({ dataOnly: false });
+    const expected = await eg.etagFromFileStats(shortFilePath);
+    const result   = await eg.etagFromFile(shortFilePath);
+
+    expect(result).toBe(expected);
   });
 
-  test('uses `etagFromFileData` when configured as `dataOnly: true`', async () => {
-    // TODO
+  test('uses `etagFromFileData()` when configured as `dataOnly: true`', async () => {
+    const eg = new EtagGenerator({ dataOnly: true });
+    const expected = await eg.etagFromFileData(shortFilePath);
+    const result   = await eg.etagFromFile(shortFilePath);
+
+    expect(result).toBe(expected);
   });
 });
 
