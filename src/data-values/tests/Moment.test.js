@@ -52,6 +52,29 @@ describe('.atMsec', () => {
 });
 
 describe.each`
+methodName
+${'equals'}
+${'isAfter'}
+${'isBefore'}
+`('$methodName()', ({ methodName }) => {
+  test.each`
+  m1          | m2          | equals   | isAfter  | isBefore
+  ${0}        | ${0}        | ${true}  | ${false} | ${false}
+  ${0}        | ${1}        | ${false} | ${false} | ${true}
+  ${1}        | ${0}        | ${false} | ${true}  | ${false}
+  ${100.9}    | ${100.9001} | ${false} | ${false} | ${true}
+  ${9999.999} | ${9999.998} | ${false} | ${true}  | ${false}
+  ${12345678} | ${12345678} | ${true}  | ${false} | ${false}
+  `('works for ($m1, $m2)', ({ m1, m2, ...expected }) => {
+    const mo1    = new Moment(m1);
+    const mo2    = new Moment(m2);
+    const result = mo1[methodName](mo2);
+
+    expect(result).toBe(expected[methodName]);
+  });
+});
+
+describe.each`
 methodName   | passDuration
 ${'add'}     | ${true}
 ${'addSecs'} | ${false}

@@ -81,6 +81,41 @@ export class Moment {
   }
 
   /**
+   * Indicates if this instance represents the same moment in time as the given
+   * one.
+   *
+   * @param {*} other Instance to compare to.
+   * @returns {boolean} `true` iff this is a `Moment` with the same time as
+   *   `other`.
+   */
+  equals(other) {
+    return (other instanceof Moment)
+      && (this.#atSecs === other.#atSecs);
+  }
+
+  /**
+   * Indicates if this instance represents a later time than the given one.
+   *
+   * @param {Moment} other Instance to compare to.
+   * @returns {boolean} `true` iff this is later than `other`.
+   */
+  isAfter(other) {
+    MustBe.instanceOf(other, Moment);
+    return this.#atSecs > other.#atSecs;
+  }
+
+  /**
+   * Indicates if this instance represents an earlier time than the given one.
+   *
+   * @param {Moment} other Instance to compare to.
+   * @returns {boolean} `true` iff this is earlier than `other`.
+   */
+  isBefore(other) {
+    MustBe.instanceOf(other, Moment);
+    return this.#atSecs < other.#atSecs;
+  }
+
+  /**
    * Gets the difference `this - other` as a {@link Duration}.
    *
    * @param {Moment} other Moment to subtract from this instance.
