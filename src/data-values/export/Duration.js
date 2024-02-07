@@ -77,6 +77,9 @@ export class Duration {
   // Static members
   //
 
+  /** @type {Duration} Instance with value of `0`. */
+  static ZERO = new Duration(0);
+
   /**
    * Makes a friendly plain object representing a time duration, with both an
    * exact number of seconds (the original value) and a human-oriented string
