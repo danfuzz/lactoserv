@@ -1,4 +1,4 @@
-@this/app-config
+@this/sys-config
 ================
 
 This module contains all the stuff to do with parsing, validating, and (to some

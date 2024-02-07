@@ -3,7 +3,7 @@
 
 import * as timers from 'node:timers/promises';
 
-import { FileServiceConfig } from '@this/app-config';
+import { FileServiceConfig } from '@this/sys-config';
 import { BaseService } from '@this/app-framework';
 import { Rotator } from '@this/app-util';
 import { EventTracker, LinkedEvent } from '@this/async';

@@ -12,7 +12,7 @@
   },
 
   "dependencies": {
-    "@this/app-config": "*",
+    "@this/sys-config": "*",
     "@this/async": "*",
     "@this/collections": "*",
     "@this/loggy": "*",

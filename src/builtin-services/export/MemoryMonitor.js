@@ -4,7 +4,7 @@
 import { memoryUsage } from 'node:process';
 import { setTimeout } from 'node:timers/promises';
 
-import { ServiceConfig } from '@this/app-config';
+import { ServiceConfig } from '@this/sys-config';
 import { BaseService } from '@this/app-framework';
 import { Threadlet } from '@this/async';
 import { Moment } from '@this/data-values';

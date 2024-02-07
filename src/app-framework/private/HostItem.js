@@ -6,7 +6,7 @@ import * as tls from 'node:tls';
 
 import pem from 'pem';
 
-import { HostConfig } from '@this/app-config';
+import { HostConfig } from '@this/sys-config';
 
 
 /**

@@ -3,7 +3,7 @@
 
 import { SecureContext } from 'node:tls';
 
-import { HostConfig } from '@this/app-config';
+import { HostConfig } from '@this/sys-config';
 import { TreePathKey, TreePathMap } from '@this/collections';
 import { IntfLogger } from '@this/loggy';
 import { Uris } from '@this/net-util';

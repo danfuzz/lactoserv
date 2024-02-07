@@ -4,7 +4,7 @@
 import * as fs from 'node:fs/promises';
 import * as timers from 'node:timers/promises';
 
-import { FileServiceConfig } from '@this/app-config';
+import { FileServiceConfig } from '@this/sys-config';
 import { IntfLogger } from '@this/loggy';
 import { MustBe } from '@this/typey';
 

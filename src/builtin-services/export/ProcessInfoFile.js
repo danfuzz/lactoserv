@@ -4,7 +4,7 @@
 import * as fs from 'node:fs/promises';
 import * as timers from 'node:timers/promises';
 
-import { FileServiceConfig } from '@this/app-config';
+import { FileServiceConfig } from '@this/sys-config';
 import { BaseService } from '@this/app-framework';
 import { Saver } from '@this/app-util';
 import { Threadlet } from '@this/async';

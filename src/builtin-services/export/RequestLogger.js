@@ -3,7 +3,7 @@
 
 import * as fs from 'node:fs/promises';
 
-import { FileServiceConfig } from '@this/app-config';
+import { FileServiceConfig } from '@this/sys-config';
 import { BaseService } from '@this/app-framework';
 import { Rotator } from '@this/app-util';
 import { Moment } from '@this/data-values';

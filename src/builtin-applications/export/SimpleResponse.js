@@ -3,7 +3,7 @@
 
 import fs from 'node:fs/promises';
 
-import { ApplicationConfig } from '@this/app-config';
+import { ApplicationConfig } from '@this/sys-config';
 import { BaseApplication } from '@this/app-framework';
 import { Paths, Statter } from '@this/fs-util';
 import { EtagGenerator, HttpUtil, MimeTypes } from '@this/net-util';
