@@ -260,4 +260,10 @@ describe('etagFromFileStats()', () => {
     const result = await eg.etagFromFileStats(shortFilePath);
     expect(result).toBe(`"${fullHash.slice(0, 15)}"`);
   });
+
+  test('fails when the instance is configured as data-only', async () => {
+    const eg = new EtagGenerator({ dataOnly: true });
+
+    await expect(eg.etagFromFileStats(shortFilePath)).toReject();
+  });
 });
