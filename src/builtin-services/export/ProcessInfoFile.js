@@ -249,12 +249,12 @@ export class ProcessInfoFile extends BaseService {
    * Updates {@link #contents} to reflect the latest conditions.
    */
   #updateContents() {
-    const updatedAtSecs = Date.now() / 1000;
+    const updatedAtSec = Date.now() / 1000;
 
     this.#contents.disposition = {
       running:   true,
-      updatedAt: new Moment(updatedAtSecs).toPlainObject(),
-      uptime:    new Duration(updatedAtSecs - this.#contents.startedAt.atSec).toPlainObject()
+      updatedAt: new Moment(updatedAtSec).toPlainObject(),
+      uptime:    new Duration(updatedAtSec - this.#contents.startedAt.atSec).toPlainObject()
     };
 
     Object.assign(this.#contents, ProcessInfo.ephemeralInfo);
