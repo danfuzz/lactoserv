@@ -7,7 +7,7 @@ import { ApplicationConfig } from '@this/app-config';
 import { BaseApplication } from '@this/app-framework';
 import { Paths, Statter } from '@this/fs-util';
 import { IntfLogger } from '@this/loggy';
-import { MimeTypes } from '@this/net-util';
+import { EtagGenerator, HttpUtil, MimeTypes } from '@this/net-util';
 import { DispatchInfo } from '@this/network-protocol';
 
 
@@ -24,6 +24,11 @@ export class StaticFiles extends BaseApplication {
 
   /** @type {string} Absolute path to the base directory of files to serve. */
   #siteDirectory;
+
+  /**
+   * @type {?EtagGenerator} Etag generator to use, or `null` if not using one.
+   */
+  #etagGenerator = null;
 
   /**
    * @type {?object} Options to use when issuing a not-found response, or `null`
@@ -44,6 +49,7 @@ export class StaticFiles extends BaseApplication {
 
     this.#notFoundPath  = notFoundPath;
     this.#siteDirectory = siteDirectory;
+    this.#etagGenerator = new EtagGenerator();
   }
 
   /** @override */
@@ -60,9 +66,22 @@ export class StaticFiles extends BaseApplication {
 
     if (resolved.redirect) {
       const redirectTo = resolved.redirect;
+
       return request.sendRedirect(redirectTo, { status: 301 });
     } else if (resolved.path) {
-      return await request.sendFile(resolved.path, StaticFiles.#SEND_OPTIONS);
+      const options = {
+        ...StaticFiles.#SEND_OPTIONS,
+        headers: {
+          'last-modified': HttpUtil.dateStringFromMsec(resolved.stats.mtimeMs)
+        }
+      };
+
+      if (this.#etagGenerator) {
+        options.headers['etag'] =
+          await this.#etagGenerator.etagFromFileStats(resolved.path);
+      }
+
+      return await request.sendFile(resolved.path, options);
     } else {
       // Shouldn't happen. If we get here, it's a bug in this class.
       throw new Error('Shouldn\'t happen.');
@@ -161,8 +180,9 @@ export class StaticFiles extends BaseApplication {
             : parts;
           return { redirect: `${source[source.length - 1]}/` };
         } else {
-          // It's a proper directory reference. Look for the index file.
-          const indexPath  = `${fullPath}/index.html`;
+          // It's a proper directory reference. Look for the index file. Note:
+          // No slash after `fullPath` because it already ends with a slash.
+          const indexPath  = `${fullPath}index.html`;
           const indexStats = await fs.stat(indexPath);
           if (indexStats.isDirectory()) {
             // Weird case, to be clear!
