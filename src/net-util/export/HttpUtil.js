@@ -97,11 +97,13 @@ export class HttpUtil {
    * Produces a date-time string in the standard HTTP format, given a
    * millisecond Epoch time.
    *
-   * @param {number} atMsec The millisecond Epoch time.
+   * @param {number|bigint} atMsec The millisecond Epoch time.
    * @returns {string} The corresponding HTTP-format date-time string.
    */
   static dateStringFromMsec(atMsec) {
-    MustBe.number(atMsec, { finite: true });
+    atMsec = (typeof atMsec === 'bigint')
+      ? Number(atMsec)
+      : MustBe.number(atMsec, { finite: true });
 
     return new Date(atMsec).toUTCString();
   }
