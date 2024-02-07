@@ -45,11 +45,11 @@ export class StaticFiles extends BaseApplication {
   constructor(config, logger) {
     super(config, logger);
 
-    const { notFoundPath, siteDirectory } = config;
+    const { etagOptions, notFoundPath, siteDirectory } = config;
 
     this.#notFoundPath  = notFoundPath;
     this.#siteDirectory = siteDirectory;
-    this.#etagGenerator = new EtagGenerator();
+    this.#etagGenerator = etagOptions ? new EtagGenerator(etagOptions) : null;
   }
 
   /** @override */
@@ -235,6 +235,12 @@ export class StaticFiles extends BaseApplication {
     #siteDirectory;
 
     /**
+     * @type {?object} Etag configuration options, or `null` not to generate
+     * etags.
+     */
+    #etagOptions;
+
+    /**
      * Constructs an instance.
      *
      * @param {object} config Configuration object.
@@ -243,6 +249,7 @@ export class StaticFiles extends BaseApplication {
       super(config);
 
       const {
+        etag = null,
         notFoundPath = null,
         siteDirectory
       } = config;
@@ -251,6 +258,17 @@ export class StaticFiles extends BaseApplication {
         ? null
         : Paths.checkAbsolutePath(notFoundPath);
       this.#siteDirectory = Paths.checkAbsolutePath(siteDirectory);
+      this.#etagOptions = (etag === null)
+        ? null
+        : EtagGenerator.expandOptions(etag);
+    }
+
+    /**
+     * @returns {?object} Etag configuration options, or `null` not to generate
+     * etags.
+     */
+    get etagOptions() {
+      return this.#etagOptions;
     }
 
     /** @returns {string} The base directory for the site files. */
