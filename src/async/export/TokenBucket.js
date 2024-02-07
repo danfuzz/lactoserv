@@ -35,7 +35,7 @@ export class TokenBucket {
 
   /**
    * @type {number} Token flow rate (a/k/a bucket fill rate), in tokens per
-   * arbitrary time unit (tokens / ATU).
+   * second.
    */
   #flowRate;
 
@@ -85,10 +85,9 @@ export class TokenBucket {
    *
    * @param {object} options Configuration options.
    * @param {number} options.flowRate Token flow rate (a/k/a bucket fill rate),
-   *   that is, how quickly the bucket gets filled, in tokens per arbitrary time
-   *   unit (tokens / ATU). This defines the steady state "flow rate" allowed by
-   *   the instance. Must be a finite positive number. This is a required
-   *   "option."
+   *   that is, how quickly the bucket gets filled, in tokens per second. This
+   *   This defines the steady state "flow rate" allowed by the instance. Must
+   *   be a finite positive number. This is a required "option."
    * @param {number} [options.initialBurstSize] The
    *   instantaneously available burst size, in tokens, at the moment of
    *   construction. Defaults to `maxBurstSize` (that is, able to be maximally
@@ -272,8 +271,8 @@ export class TokenBucket {
    *     call to {@link #denyAllRequests} which is currently in progress.
    *   * `full` -- This request would cause the waiter queue to be too large
    *     (including the case where `maxQueueSize === 0`).
-   * * `{number} waitTime` -- The amount of time (in ATU) that was spent waiting
-   *   for the grant.
+   * * `{number} waitTime` -- The amount of time (in seconds) that was spent
+   *   waiting for the grant.
    *
    * @param {number|object} quantity Requested quantity of tokens, as described
    *   above.
