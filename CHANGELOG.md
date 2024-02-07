@@ -15,7 +15,7 @@ Breaking changes:
   * Settled on `sec` (not `secs`) when identifying numbers of seconds.
   * Changed almost all time-related variables and parameters to be instances of
    `Moment` or `Duration` instead of dimensionless `number`s.
-* Removed automatic ETag generation as part of the `Request` API. generation.
+* Removed automatic ETag generation as part of the `Request` API.
 
 Other notable changes:
 * New class `EtagGenerator`, for generating ETags. Added configuration options
