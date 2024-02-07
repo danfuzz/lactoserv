@@ -148,38 +148,38 @@ export class Duration {
 
     // We use bigints here because that makes the calculations much more
     // straightforward.
-    const outputTenths = (durationSec < ((60 * 60) - 0.05));
-    const totalTenths  = outputTenths
+    const outputTenth = (durationSec < ((60 * 60) - 0.05));
+    const totalTenths = outputTenth
       ? BigInt(Math.round(durationSec * 10))
       : BigInt(Math.round(durationSec) * 10);
 
-    const tenths = totalTenths % 10n;
-    const secs   = (totalTenths / 10n) % 60n;
-    const mins   = (totalTenths / (10n * 60n)) % 60n;
-    const hours  = (totalTenths / (10n * 60n * 60n)) % 24n;
-    const days   = totalTenths / (10n * 60n * 60n * 24n);
+    const tenth = totalTenths % 10n;
+    const sec   = (totalTenths / 10n) % 60n;
+    const min   = (totalTenths / (10n * 60n)) % 60n;
+    const hour  = (totalTenths / (10n * 60n * 60n)) % 24n;
+    const day   = totalTenths / (10n * 60n * 60n * 24n);
 
     const parts = [];
 
-    if (days > 0) {
-      parts.push(days, 'd ', hours);
-    } else if (hours > 0) {
-      parts.push(hours);
+    if (day > 0) {
+      parts.push(day, 'd ', hour);
+    } else if (hour > 0) {
+      parts.push(hour);
     }
     parts.push(':');
 
-    if (mins < 10) {
+    if (min < 10) {
       parts.push('0');
     }
-    parts.push(mins, ':');
+    parts.push(min, ':');
 
-    if (secs < 10) {
+    if (sec < 10) {
       parts.push('0');
     }
-    parts.push(secs);
+    parts.push(sec);
 
-    if (outputTenths) {
-      parts.push('.', tenths);
+    if (outputTenth) {
+      parts.push('.', tenth);
     }
 
     return parts.join('');
