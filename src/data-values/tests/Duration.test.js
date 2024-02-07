@@ -153,5 +153,5 @@ describe('stringFromSecs()', () => {
 describe('.ZERO', () => {
   test('has the value `0`', () => {
     expect(Duration.ZERO.secs).toBe(0);
-  })
+  });
 });
