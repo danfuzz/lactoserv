@@ -19,12 +19,12 @@ export class IntfTimeSource {
    * @abstract
    * @returns {number} The current time.
    */
-  now() {
+  nowSec() {
     return Methods.abstract();
   }
 
   /**
-   * Async-returns `null` when {@link #now} would return a value at or beyond
+   * Async-returns `null` when {@link #nowSec} would return a value at or beyond
    * the given time, with the hope that the actual time will be reasonably
    * close.
    *

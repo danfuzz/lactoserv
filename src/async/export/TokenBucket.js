@@ -153,7 +153,7 @@ export class TokenBucket {
     }
 
     this.#lastBurstSize = MustBe.number(initialBurstSize, { minInclusive: 0, maxInclusive: maxBurstSize });
-    this.#lastNow       = this.#timeSource.now();
+    this.#lastNow       = this.#timeSource.nowSec();
   }
 
   /**
@@ -355,7 +355,7 @@ export class TokenBucket {
    *   time source until the request would be expected to be granted, if this
    *   were an asynchronously-requested grant, as if by {@link #requestGrant}
    *   (see which). If `done === true`, then this will be a time at or before
-   *   the time source's `now()`.
+   *   the time source's `nowSec()`.
    *
    * If the `minInclusive` request is non-zero, then this method will only ever
    * return `done === true` if there is no immediate contention for tokens
@@ -570,7 +570,7 @@ export class TokenBucket {
    * topping-up.
    */
   #topUpBucket() {
-    const nowSec        = this.#timeSource.now();
+    const nowSec        = this.#timeSource.nowSec();
     const lastBurstSize = this.#lastBurstSize;
 
     if (lastBurstSize < this.#maxBurstSize) {

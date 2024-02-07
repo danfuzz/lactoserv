@@ -20,7 +20,7 @@ class MockTimeSource extends IntfTimeSource {
     this.#nowSec = firstNow;
   }
 
-  now() {
+  nowSec() {
     if (this.#ended) {
       throw new Error(`MockTimeSource ended! (Time was ${this.#nowSec}.)`);
     }
@@ -669,7 +669,7 @@ describe('latestState()', () => {
     time._setTime(901);
     expect(bucket.latestState()).toStrictEqual(baseResult);
 
-    time.now = () => { throw new Error('oy!'); };
+    time.nowSec = () => { throw new Error('oy!'); };
     expect(() => bucket.latestState()).not.toThrow();
 
     time._end();

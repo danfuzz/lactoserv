@@ -14,14 +14,14 @@ export class StdTimeSource extends IntfTimeSource {
   // Note: The default constructor is fine.
 
   /** @override */
-  now() {
+  nowSec() {
     return Date.now() * StdTimeSource.#SECS_PER_MSEC;
   }
 
   /** @override */
   async waitUntil(time) {
     for (;;) {
-      const delay = time - this.now();
+      const delay = time - this.nowSec();
       if ((delay <= 0) || !Number.isFinite(delay)) {
         break;
       }
