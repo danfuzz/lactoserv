@@ -506,8 +506,7 @@ export class Request {
    * * `416` -- A range request couldn't be satisfied. The original body isn't
    *   sent, but an error message body _is_ sent.
    *
-   * If the request method was `HEAD`, this does _not_ send the `body`, but it
-   * still calculates the length and etag.
+   * If the request method was `HEAD`, this does _not_ send the `body`.
    *
    * In all successful cases, this method always responds with a `Cache-Control`
    * header.
@@ -542,11 +541,7 @@ export class Request {
 
     // Start with the headers that will be used for any non-error response. All
     // such responses are cacheable, per spec.
-    const headers = this.#makeResponseHeaders('cacheable', options, {
-      'etag': () => {
-        return etag(bodyBuffer);
-      }
-    });
+    const headers = this.#makeResponseHeaders('cacheable', options);
 
     if (this.isFreshWithRespectTo(headers)) {
       // For basic range-support headers.

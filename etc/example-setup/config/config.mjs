@@ -141,14 +141,20 @@ const applications = [
     filePath: filePath('../site-extra/empty-file.txt')
   },
   {
-    name:        'responseNoBody',
-    class:       'SimpleResponse'
+    name:  'responseNoBody',
+    class: 'SimpleResponse',
+    etag:  true
   },
   {
     name:        'responseOne',
     class:       'SimpleResponse',
     contentType: 'text/plain',
-    body:        'One!\n'
+    body:        'One!\n',
+    etag: {
+      hashAlgorithm: 'sha1',
+      hashLength:    12,
+      tagForm:       'weak'
+    }
   },
   {
     name:        'responseTwo',

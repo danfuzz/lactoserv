@@ -6,7 +6,7 @@ import fs from 'node:fs/promises';
 import { ApplicationConfig } from '@this/app-config';
 import { BaseApplication } from '@this/app-framework';
 import { Paths, Statter } from '@this/fs-util';
-import { MimeTypes } from '@this/net-util';
+import { EtagGenerator, HttpUtil, MimeTypes } from '@this/net-util';
 import { MustBe } from '@this/typey';
 
 
@@ -32,10 +32,15 @@ export class SimpleResponse extends BaseApplication {
       return;
     }
 
-    const { body, contentType, filePath } = this.config;
+    const { body, contentType, etagOptions, filePath } = this.config;
     let finalBody = body;
 
-    const sendOptions = SimpleResponse.#SEND_OPTIONS;
+    const sendOptions = {
+      ...SimpleResponse.#SEND_OPTIONS,
+      headers: {
+        'last-modified': HttpUtil.dateStringFromMsec(Date.now())
+      }
+    };
 
     if (filePath) {
       if (!await Statter.fileExists(filePath)) {
@@ -43,6 +48,12 @@ export class SimpleResponse extends BaseApplication {
       }
 
       finalBody = await fs.readFile(filePath);
+    }
+
+    if (etagOptions) {
+      const etagGen = new EtagGenerator(etagOptions);
+      const etag    = await etagGen.etagFromData(finalBody ?? '');
+      sendOptions.headers['etag'] = etag;
     }
 
     if (finalBody) {
@@ -92,6 +103,9 @@ export class SimpleResponse extends BaseApplication {
      */
     #body = null;
 
+    /** @type {?object} Etag-generating options, or `null` not to do that. */
+    #etagOptions = null;
+
     /**
      * @type {?string} Absolute path to a file for the body contents, or `null`
      * if {@link #body} is supplied directly.
@@ -106,7 +120,12 @@ export class SimpleResponse extends BaseApplication {
     constructor(config) {
       super(config);
 
-      const { body = null, contentType = null, filePath = null } = config;
+      const {
+        body        = null,
+        contentType = null,
+        etag        = null,
+        filePath    = null
+      } = config;
 
       if (body !== null) {
         if (!(body instanceof Buffer)) {
@@ -132,6 +151,11 @@ export class SimpleResponse extends BaseApplication {
           throw new Error('Cannot supply `contentType` with empty body.');
         }
       }
+
+      if (etag !== null) {
+        this.#etagOptions =
+          EtagGenerator.expandOptions((etag === true) ? {} : etag);
+      }
     }
 
     /**
@@ -148,6 +172,11 @@ export class SimpleResponse extends BaseApplication {
      */
     get contentType() {
       return this.#contentType;
+    }
+
+    /** @returns {?object} Etag-generating options, or `null` not to do that. */
+    get etagOptions() {
+      return this.#etagOptions;
     }
 
     /**
