@@ -94,7 +94,7 @@ export class HeapDump {
    */
   static async #openDumpFile(fileName) {
     if (!fileName.endsWith('.heapsnapshot')) {
-      const nowStr = Moment.stringFromSecs(Date.now() / 1000, { colons: false });
+      const nowStr = Moment.stringFromSec(Date.now() / 1000, { colons: false });
       fileName += `-${nowStr}.heapsnapshot`;
     }
 

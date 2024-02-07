@@ -41,11 +41,11 @@ describe('.secs', () => {
 });
 
 describe.each`
-method                    | isStatic  | returnsObject
-${'stringFromSecs'}       | ${true}   | ${false}
-${'plainObjectFromSecs'}  | ${true}   | ${true}
-${'toPlainObject'}        | ${false}  | ${true}
-${'toString'}             | ${false}  | ${false}
+method                  | isStatic  | returnsObject
+${'stringFromSec'}      | ${true}   | ${false}
+${'plainObjectFromSec'} | ${true}   | ${true}
+${'toPlainObject'}      | ${false}  | ${true}
+${'toString'}           | ${false}  | ${false}
 `('$method()', ({ method, isStatic, returnsObject }) => {
   test.each`
   secs                 | duration
@@ -123,7 +123,7 @@ ${'toString'}             | ${false}  | ${false}
 
 // A couple extra cases for this method (after the above), to check the
 // `options` behavior.
-describe('stringFromSecs()', () => {
+describe('stringFromSec()', () => {
   test.each`
   secs             | options              | duration
   ${-1.23}         | ${undefined}         | ${'-1.230 sec'}
@@ -145,7 +145,7 @@ describe('stringFromSecs()', () => {
   ${0.00009876}    | ${{ spaces: false }} | ${'98.760_usec'}
   ${0.00000009876} | ${{ spaces: false }} | ${'98.760_nsec'}
   `('with ($secs, $options)', ({ secs, options, duration }) => {
-    const result = Duration.stringFromSecs(secs, options);
+    const result = Duration.stringFromSec(secs, options);
     expect(result).toBe(duration);
   });
 });

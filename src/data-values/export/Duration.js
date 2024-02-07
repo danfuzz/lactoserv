@@ -42,7 +42,7 @@ export class Duration {
    * @returns {object} Friendly compound object.
    */
   toPlainObject() {
-    return Duration.plainObjectFromSecs(this.#secs);
+    return Duration.plainObjectFromSec(this.#secs);
   }
 
   /**
@@ -51,11 +51,11 @@ export class Duration {
    * of the duration.
    *
    * @param {object} [options] Formatting options, as with {@link
-   *   #stringFromSecs}.
+   *   #stringFromSec}.
    * @returns {string} The friendly form.
    */
   toString(options = {}) {
-    return Duration.stringFromSecs(this.#secs, options);
+    return Duration.stringFromSec(this.#secs, options);
   }
 
   /**
@@ -67,7 +67,7 @@ export class Duration {
     // Note: This is included for the convenience of humans who happen to be
     // looking at logs (etc.), but is not actually used when reconstructing an
     // instance. TODO: Re-evaluate this tactic.
-    const str = Duration.stringFromSecs(this.#secs);
+    const str = Duration.stringFromSec(this.#secs);
 
     return new Struct(Duration, null, this.#secs, str);
   }
@@ -89,10 +89,10 @@ export class Duration {
    * @param {number} durationSec Duration in seconds.
    * @returns {object} Friendly compound object.
    */
-  static plainObjectFromSecs(durationSec) {
+  static plainObjectFromSec(durationSec) {
     return {
       secs:     durationSec,
-      duration: Duration.stringFromSecs(durationSec)
+      duration: Duration.stringFromSec(durationSec)
     };
   }
 
@@ -107,7 +107,7 @@ export class Duration {
    *   from the units? If `false` an underscore is used.
    * @returns {string} The friendly form.
    */
-  static stringFromSecs(durationSec, options = {}) {
+  static stringFromSec(durationSec, options = {}) {
     const { spaces = true } = options;
 
     const spaceyChar = spaces ? ' ' : '_';

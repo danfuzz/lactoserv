@@ -108,9 +108,9 @@ describe('subtract()', () => {
 });
 
 describe.each`
-method                    | isStatic
-${'httpStringFromSecs'}   | ${true}
-${'toHttpString'}         | ${false}
+method                 | isStatic
+${'httpStringFromSec'} | ${true}
+${'toHttpString'}      | ${false}
 `('$method()', ({ method, isStatic }) => {
   // Failure cases.
   test.each`
@@ -172,11 +172,11 @@ ${'toHttpString'}         | ${false}
 });
 
 describe.each`
-method                    | isStatic  | returnsObject
-${'stringFromSecs'}       | ${true}   | ${false}
-${'plainObjectFromSecs'}  | ${true}   | ${true}
-${'toPlainObject'}        | ${false}  | ${true}
-${'toString'}             | ${false}  | ${false}
+method                  | isStatic  | returnsObject
+${'stringFromSec'}      | ${true}   | ${false}
+${'plainObjectFromSec'} | ${true}   | ${true}
+${'toPlainObject'}      | ${false}  | ${true}
+${'toString'}           | ${false}  | ${false}
 `('$method()', ({ method, isStatic, returnsObject }) => {
   test.each`
   atSec               | options                           | expected
