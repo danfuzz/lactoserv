@@ -231,8 +231,9 @@ bindings:
   type is inferred from the extension on the path. If neither `body` nor
   `filePath` is specified (that is, for an empty body), then this must not be
   specified either.
-* `etag` &mdash; ETag-generating options. If present, the response comes with an
-  `ETag` header. See "ETag Configuration" below for details.
+* `etag` &mdash; ETag-generating options. If present and not `false`, the
+  response comes with an `ETag` header. See "ETag Configuration" below for
+  details.
 * `filePath` &mdash; Optional absolute filesystem path to the file to respond
   with.
 
@@ -270,6 +271,9 @@ const applications = [
 An application which serves static files from a local directory. It accepts the
 following configuration bindings:
 
+* `etag` &mdash; ETag-generating options. If present and not `false`, the
+  response comes with an `ETag` header. See "ETag Configuration" below for
+  details.
 * `notFoundPath` &mdash; Optional filesystem path to the file to serve when a
   file/path is not found. The indicated file will get sent back along with a
   `404` ("Not Found") status code.
@@ -538,10 +542,10 @@ configurations.
 ### ETag Configuration: `etag`
 
 Applications and services that generate ETags accept an `etag` binding. When it
-is absent (if allowed), no ETags are generated. If it is specified as `true` or
-`{}` (the empty object), ETags are generated using a default configuration. If
-it is specified as an object with bindings, the following properties are
-recognized:
+is absent or `false` (if allowed), no ETags are generated. If it is specified as
+`true` or `{}` (the empty object), ETags are generated using a default
+configuration. If it is specified as an object with bindings, the following
+properties are recognized:
 
 * `hashAlgorithm` &mdash; Algorithm to use to generate hashes. Allowed to be
   `sha1`, `sha256`, or `sha512`. Defaults to `sha256`.
