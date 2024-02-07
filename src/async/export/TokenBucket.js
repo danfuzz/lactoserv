@@ -22,8 +22,7 @@ import { Threadlet } from '#x/Threadlet';
  * "leaky bucket as queue," where token grant requests are queued up and
  * processed at a steady token flow rate.
  *
- * This class defines neither the token (bucket volume) units nor the time
- * units (though there is a sensible default for the latter). It is up to
+ * This class does not define the token (bucket volume) unit. It is up to
  * clients to use whatever makes sense in their context.
  */
 export class TokenBucket {
