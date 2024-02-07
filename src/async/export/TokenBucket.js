@@ -55,17 +55,17 @@ export class TokenBucket {
   /** @type {IntfTimeSource} Time measurement implementation. */
   #timeSource;
 
-  /** @type {number} Most recently measured time. */
-  #lastNowSec;
+  /** @type {Moment} Most recently measured time. */
+  #lastNow;
 
   /**
    * @type {number} The number of tokens available for a burst, at time {@link
-   * #lastNowSec).
+   * #lastNow).
    */
   #lastBurstSize;
 
   /**
-   * @type {{ grant: number, startTime: number, doGrant: function(number) }[]}
+   * @type {{ grant: number, startTime: Moment, doGrant: function(number) }[]}
    * Array of grant waiters.
    */
   #waiters = [];
@@ -153,7 +153,7 @@ export class TokenBucket {
     }
 
     this.#lastBurstSize = MustBe.number(initialBurstSize, { minInclusive: 0, maxInclusive: maxBurstSize });
-    this.#lastNowSec    = this.#timeSource.nowSec();
+    this.#lastNow       = this.#timeSource.now();
   }
 
   /**
@@ -215,7 +215,7 @@ export class TokenBucket {
     return {
       availableBurstSize: this.#lastBurstSize,
       availableQueueSize: this.#maxQueueSize - this.#queueSize,
-      now:                new Moment(this.#lastNowSec),
+      now:                this.#lastNow,
       waiterCount:        this.#waiters.length,
     };
   }
@@ -318,7 +318,7 @@ export class TokenBucket {
     this.#queueSize += grant;
     this.#waiters.push({
       grant,
-      startTime:    this.#lastNowSec,
+      startTime:    this.#lastNow,
       doGrant:      (v) => mp.resolve(v)
     });
 
@@ -449,7 +449,7 @@ export class TokenBucket {
 
     if (done) {
       this.#lastBurstSize -= grant;
-      return { done: true, grant, waitUntil: new Moment(this.#lastNowSec) };
+      return { done: true, grant, waitUntil: this.#lastNow };
     }
 
     // Per contract, we figure out a wait time as if the grant is from the
@@ -458,7 +458,7 @@ export class TokenBucket {
     const waitedGrantSize = Math.min(maxInclusive, this.#maxQueueGrantSize);
     const waitedSize      = waitedGrantSize - this.#lastBurstSize;
     const waitTimeSec     = waitedSize / this.#flowRatePerSec;
-    const waitUntil       = new Moment(this.#lastNowSec + waitTimeSec);
+    const waitUntil       = this.#lastNow.addSecs(waitTimeSec);
 
     return { done: false, grant: 0, waitUntil };
   }
@@ -544,7 +544,7 @@ export class TokenBucket {
       if (got.done) {
         this.#waiters.shift();
         this.#queueSize -= info.grant;
-        const waitTime = new Duration(this.#lastNowSec - info.startTime);
+        const waitTime = this.#lastNow.subtract(info.startTime);
         info.doGrant(this.#requestGrantResult(got.grant, 'grant', waitTime));
       } else {
         await this.#waiterThread.raceWhenStopRequested([
@@ -558,7 +558,7 @@ export class TokenBucket {
       // `denyAllRequests()` was called. So, deny all requests.
       this.#topUpBucket(); // Makes `#lastTime` be current.
       for (const info of this.#waiters) {
-        const waitTime = new Duration(this.#lastNowSec - info.startTime);
+        const waitTime = this.#lastNow.subtract(info.startTime);
         info.doGrant(this.#requestGrantResult(0, 'stopping', waitTime));
       }
 
@@ -571,26 +571,26 @@ export class TokenBucket {
    * topping-up.
    */
   #topUpBucket() {
-    const nowSec        = this.#timeSource.nowSec();
+    const now           = this.#timeSource.now();
     const lastBurstSize = this.#lastBurstSize;
 
     if (lastBurstSize < this.#maxBurstSize) {
-      const elapsedTime   = nowSec - this.#lastNowSec;
+      const elapsedTime   = now.subtract(this.#lastNow).secs;
       const grant         = elapsedTime * this.#flowRatePerSec;
       this.#lastBurstSize = Math.min(lastBurstSize + grant, this.#maxBurstSize);
     }
 
-    this.#lastNowSec = nowSec;
+    this.#lastNow = now;
   }
 
   /**
    * Async-returns (hopefully very soon) after the time becomes the given value,
-   * using the time units and base defined by this instance's time source.
+   * using this instance's time source.
    *
    * @param {Moment} time The time to wait until.
    */
   async #waitUntil(time) {
-    if (time.atSec > this.#lastNowSec) {
+    if (time.isAfter(this.#lastNow)) {
       await this.#timeSource.waitUntil(time);
     }
   }
