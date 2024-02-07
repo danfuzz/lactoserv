@@ -806,7 +806,9 @@ describe('takeNow()', () => {
       const nowSec = 91400;
       const time   = new MockTimeSource(nowSec);
       const bucket = new TokenBucket({
-        flowRatePerSec: 5, maxBurstSize: 10000, initialBurstSize: 75, maxQueueGrantSize: 50, timeSource: time });
+        flowRatePerSec: 5, maxBurstSize: 10000, initialBurstSize: 75,
+        maxQueueGrantSize: 50, timeSource: time
+      });
 
       // Notably, this is not supposed to be clamped to `maxQueueGrantSize`,
       // because this request isn't being queued (that is, there's no
@@ -841,7 +843,9 @@ describe('takeNow()', () => {
       const nowSec = 1000;
       const time   = new MockTimeSource(nowSec);
       const bucket = new TokenBucket({
-        flowRatePerSec: 5, maxBurstSize: 100, initialBurstSize: 0, maxQueueGrantSize: 10, timeSource: time });
+        flowRatePerSec: 5, maxBurstSize: 100, initialBurstSize: 0,
+        maxQueueGrantSize: 10, timeSource: time
+      });
 
       const result = bucket.takeNow({ minInclusive: 2, maxInclusive: 91 });
       checkTakeNow(result, { done: false, grant: 0, waitUntil: nowSec + (10/5) });
@@ -856,7 +860,9 @@ describe('takeNow()', () => {
       const nowSec = 1000;
       const time   = new MockTimeSource(nowSec);
       const bucket = new TokenBucket({
-        flowRatePerSec: 10, maxBurstSize: 100, initialBurstSize: 5, maxQueueGrantSize: 20, timeSource: time });
+        flowRatePerSec: 10, maxBurstSize: 100, initialBurstSize: 5,
+        maxQueueGrantSize: 20, timeSource: time
+      });
 
       const result = bucket.takeNow({ minInclusive: 12, maxInclusive: 31 });
       checkTakeNow(result, { done: false, grant: 0, waitUntil: nowSec + (20 - 5) / 10 });
@@ -877,7 +883,9 @@ describe('takeNow()', () => {
           const nowSec = 10;
           const time   = new MockTimeSource(nowSec);
           const bucket = new TokenBucket({
-            partialTokens: false, flowRatePerSec: 1, maxBurstSize: 100, initialBurstSize: available, timeSource: time });
+            partialTokens: false, flowRatePerSec: 1, maxBurstSize: 100,
+            initialBurstSize: available, timeSource: time
+          });
 
           const result = bucket.takeNow({ minInclusive, maxInclusive });
           checkTakeNow(result, { ...expected, waitUntil: 'any' });
@@ -933,7 +941,9 @@ describe('takeNow()', () => {
       const nowSec = 50015;
       const time   = new MockTimeSource(nowSec);
       const bucket = new TokenBucket({
-        flowRatePerSec: 10, maxBurstSize: 10000, initialBurstSize: 0, maxQueueGrantSize: 1000, timeSource: time });
+        flowRatePerSec: 10, maxBurstSize: 10000, initialBurstSize: 0,
+        maxQueueGrantSize: 1000, timeSource: time
+      });
 
       // Setup / baseline assumptions.
       const requestResult = bucket.requestGrant(300);
@@ -955,7 +965,9 @@ describe('takeNow()', () => {
       const nowSec = 60015;
       const time   = new MockTimeSource(nowSec);
       const bucket = new TokenBucket({
-        flowRatePerSec: 10, maxBurstSize: 10000, initialBurstSize: 200, maxQueueGrantSize: 1000, timeSource: time });
+        flowRatePerSec: 10, maxBurstSize: 10000, initialBurstSize: 200,
+        maxQueueGrantSize: 1000, timeSource: time
+      });
 
       // Setup / baseline assumptions.
       const requestResult = bucket.requestGrant(300);
