@@ -29,7 +29,7 @@ export class Duration {
   }
 
   /** @returns {number} The number of seconds being represented. */
-  get secs() {
+  get sec() {
     return this.#sec;
   }
 
@@ -91,7 +91,7 @@ export class Duration {
    */
   static plainObjectFromSec(durationSec) {
     return {
-      secs:     durationSec,
+      sec:      durationSec,
       duration: Duration.stringFromSec(durationSec)
     };
   }

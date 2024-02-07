@@ -80,13 +80,13 @@ ${'add'}    | ${true}
 ${'addSec'} | ${false}
 `('$methodName()', ({ methodName, passDuration }) => {
   test.each`
-  moment        | secs       | expected
+  moment        | sec        | expected
   ${12345}      | ${0}       | ${12345}
   ${10000000}   | ${54321}   | ${10054321}
   ${1600000000} | ${-999888} | ${1599000112}
-  `('works given ($moment, $secs)', ({ moment, secs, expected }) => {
+  `('works given ($moment, $sec)', ({ moment, sec, expected }) => {
     const mobj   = new Moment(moment);
-    const arg    = passDuration ? new Duration(secs) : secs;
+    const arg    = passDuration ? new Duration(sec) : sec;
     const result = mobj[methodName](arg);
 
     expect(result.atSec).toBe(expected);
@@ -103,7 +103,7 @@ describe('subtract()', () => {
     const moment1 = new Moment(m1);
     const moment2 = new Moment(m2);
     const diff    = moment1.subtract(moment2);
-    expect(diff.secs).toBe(expected);
+    expect(diff.sec).toBe(expected);
   });
 });
 

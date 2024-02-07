@@ -66,18 +66,18 @@ export class Moment {
    */
   add(duration) {
     MustBe.instanceOf(duration, Duration);
-    return new Moment(this.#atSec + duration.secs);
+    return new Moment(this.#atSec + duration.sec);
   }
 
   /**
-   * Gets the sum `this + secs` as a new instance of this class.
+   * Gets the sum `this + sec` as a new instance of this class.
    *
-   * @param {number} secs Number of seconds to add.
+   * @param {number} sec Number of seconds to add.
    * @returns {Moment} The summed result.
    */
-  addSec(secs) {
-    MustBe.number(secs, { finite: true });
-    return new Moment(this.#atSec + secs);
+  addSec(sec) {
+    MustBe.number(sec, { finite: true });
+    return new Moment(this.#atSec + sec);
   }
 
   /**

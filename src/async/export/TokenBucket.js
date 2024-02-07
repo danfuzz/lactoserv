@@ -575,7 +575,7 @@ export class TokenBucket {
     const lastBurstSize = this.#lastBurstSize;
 
     if (lastBurstSize < this.#maxBurstSize) {
-      const elapsedTime   = now.subtract(this.#lastNow).secs;
+      const elapsedTime   = now.subtract(this.#lastNow).sec;
       const grant         = elapsedTime * this.#flowRatePerSec;
       this.#lastBurstSize = Math.min(lastBurstSize + grant, this.#maxBurstSize);
     }
