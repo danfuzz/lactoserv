@@ -231,6 +231,8 @@ bindings:
   type is inferred from the extension on the path. If neither `body` nor
   `filePath` is specified (that is, for an empty body), then this must not be
   specified either.
+* `etag` &mdash; ETag-generating options. If present, the response comes with an
+  `ETag` header. See "ETag Configuration" below for details.
 * `filePath` &mdash; Optional absolute filesystem path to the file to respond
   with.
 
@@ -564,6 +566,33 @@ const services = [
 ];
 ```
 
+## Configuration Sub-Objects
+
+This section documents the configuration objects that are used within top-level
+configurations.
+
+### ETag Configuration
+
+Applications and services that generate ETags accept an `etag` binding. When it
+is absent (if allowed), no ETags are generated. If it is specified as `true` or
+`{}` (the empty object), ETags are generated using a default configuration. If
+it is specified as an object with bindings, the following properties are
+recognized:
+
+* `hashAlgorithm` &mdash; Algorithm to use to generate hashes. Allowed to be
+  `sha1`, `sha256`, or `sha512`. Defaults to `sha256`.
+* `hashLength` Number of characters to use from a generated hash when producing
+  a tag. To have different lengths for strong vs. weak tags, specify this as an
+  object with `strong` and `weak` properties. In object form, a `null` mapping
+  indicates that the full hash length is to be used. Defaults to `{ strong:
+  null, weak: 16}`.
+* `tagForm` What ETag form to produce (indicating the "strength" of the tag),
+  one of `weak`, `strong`, or `vary`. "Strong" tags are meant to convey that the
+  entire underlying data is hashed into the tag, and as such it is safe to make
+  range requests if a tag matches. "Weak" tags are, on the other hand, intended
+  to indicate that the data was not fully hashed into the tag. If passed as
+  `vary`, tags are produced in the arguably-most-appropriate form. Defaults to
+  `vary`.
 
 ## Custom Applications and Services
 
