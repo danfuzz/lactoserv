@@ -101,7 +101,7 @@ Breaking changes:
 Other notable changes:
 * Now willing to run in Node v21, though not yet heavily tested with it.
 
-### v0.5.20 -- 2023-12-15
+### v0.5.20 -- 2023-12-15 -- stable release
 
 Breaking changes:
 * None.
