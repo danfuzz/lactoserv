@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ServiceConfig } from '@this/sys-config';
-import { BaseService } from '@this/app-framework';
+import { BaseService } from '@this/sys-framework';
 import { TokenBucket } from '@this/async';
 import { IntfLogger } from '@this/loggy';
 import { IntfRateLimiter } from '@this/network-protocol';

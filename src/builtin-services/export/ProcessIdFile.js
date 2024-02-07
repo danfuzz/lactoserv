@@ -6,7 +6,7 @@ import * as process from 'node:process';
 import * as timers from 'node:timers/promises';
 
 import { FileServiceConfig } from '@this/sys-config';
-import { BaseService } from '@this/app-framework';
+import { BaseService } from '@this/sys-framework';
 import { Threadlet } from '@this/async';
 import { ProcessUtil } from '@this/host';
 import { MustBe } from '@this/typey';

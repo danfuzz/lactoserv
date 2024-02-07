@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ApplicationConfig } from '@this/sys-config';
-import { BaseApplication } from '@this/app-framework';
+import { BaseApplication } from '@this/sys-framework';
 import { IntfLogger } from '@this/loggy';
 import { Uris } from '@this/net-util';
 import { MustBe } from '@this/typey';

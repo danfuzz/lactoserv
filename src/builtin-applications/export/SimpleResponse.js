@@ -4,7 +4,7 @@
 import fs from 'node:fs/promises';
 
 import { ApplicationConfig } from '@this/sys-config';
-import { BaseApplication } from '@this/app-framework';
+import { BaseApplication } from '@this/sys-framework';
 import { Paths, Statter } from '@this/fs-util';
 import { EtagGenerator, HttpUtil, MimeTypes } from '@this/net-util';
 import { MustBe } from '@this/typey';

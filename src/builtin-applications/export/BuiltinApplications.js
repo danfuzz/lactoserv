@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseApplication } from '@this/app-framework';
+import { BaseApplication } from '@this/sys-framework';
 
 import { Redirector } from '#x/Redirector';
 import { SimpleResponse } from '#x/SimpleResponse';

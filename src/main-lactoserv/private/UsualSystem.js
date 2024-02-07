@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Warehouse } from '@this/app-framework';
+import { Warehouse } from '@this/sys-framework';
 import { BaseSystem } from '@this/app-util';
 
 import { MainArgs } from '#p/MainArgs';

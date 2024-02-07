@@ -3,7 +3,7 @@
 
 import * as child_process from 'node:child_process';
 
-import { ComponentRegistry, Warehouse } from '@this/app-framework';
+import { ComponentRegistry, Warehouse } from '@this/sys-framework';
 import { Condition } from '@this/async';
 import { BuiltinApplications } from '@this/builtin-applications';
 import { BuiltinServices } from '@this/builtin-services';

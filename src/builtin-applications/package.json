@@ -13,7 +13,7 @@
 
   "dependencies": {
     "@this/sys-config": "*",
-    "@this/app-framework": "*",
+    "@this/sys-framework": "*",
     "@this/fs-util": "*",
     "@this/loggy": "*",
     "@this/net-util": "*",
