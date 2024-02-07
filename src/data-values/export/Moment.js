@@ -31,11 +31,14 @@ export class Moment {
   /**
    * Constructs an instance.
    *
-   * @param {number} atSecs The moment to represent, in the form of seconds
-   * since the Unix Epoch. Must be finite.
+   * @param {number|bigint} atSecs The moment to represent, in the form of
+   *   seconds since the Unix Epoch. Must be finite.
    */
   constructor(atSecs) {
-    this.#atSecs = MustBe.number(atSecs, { finite: true });
+    this.#atSecs = (typeof atSecs === 'bigint')
+      ? Number(atSecs)
+      : MustBe.number(atSecs, { finite: true });
+
     Object.freeze(this);
   }
 
@@ -144,11 +147,14 @@ export class Moment {
    * **Note:** The HTTP standard, RFC 9110 section 5.6.7 in particular, is very
    * specific about the format.
    *
-   * @param {number} atSecs Time in the form of seconds since the Unix Epoch.
+   * @param {number|bigint} atSecs Time in the form of seconds since the Unix
+   *   Epoch.
    * @returns {string} The HTTP standard form.
    */
   static httpStringFromSecs(atSecs) {
-    MustBe.number(atSecs, { finite: true });
+    atSecs = (typeof atSecs === 'bigint')
+      ? Number(atSecs)
+      : MustBe.number(atSecs, { finite: true });
 
     return new Date(atSecs * 1000).toUTCString();
   }
