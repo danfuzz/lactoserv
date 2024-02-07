@@ -547,6 +547,10 @@ is absent or `false` (if allowed), no ETags are generated. If it is specified as
 configuration. If it is specified as an object with bindings, the following
 properties are recognized:
 
+* `dataOnly` &mdash; Boolean indicating whether _only_ entity data should be
+  used to generate tags, as opposed to using metadata such as file names and
+  modification times. When `true`, filesystem-based applications/services use
+  file data. When `false`, they use metadata. Defaults to `false`.
 * `hashAlgorithm` &mdash; Algorithm to use to generate hashes. Allowed to be
   `sha1`, `sha256`, or `sha512`. Defaults to `sha256`.
 * `hashLength` Number of characters to use from a generated hash when producing

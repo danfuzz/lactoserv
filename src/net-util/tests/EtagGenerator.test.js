@@ -29,6 +29,14 @@ ${'expandOptions()'} | ${false}
 
   test.each`
   arg
+  ${false}
+  ${true}
+  `('accepts `dataOnly` as $arg', ({ arg }) => {
+    expect(() => doCall({ dataOnly: arg })).not.toThrow();
+  });
+
+  test.each`
+  arg
   ${'sha1'}
   ${'sha256'}
   ${'sha512'}
@@ -132,6 +140,26 @@ describe('etagFromData()', () => {
     const eg     = new EtagGenerator({ hashAlgorithm: 'sha1', hashLength: { weak: 12 }, tagForm: 'weak' });
     const result = await eg.etagFromData('');
     expect(result).toBe('W/"2jmj7l5rSw0y"');
+  });
+});
+
+describe('etagFromFile()', () => {
+  const shortFilePath = new URL('fixtures/short-file.txt', import.meta.url).pathname;
+
+  test('uses `etagFromFileStats()` when configured as `dataOnly: false`', async () => {
+    const eg       = new EtagGenerator({ dataOnly: false });
+    const expected = await eg.etagFromFileStats(shortFilePath);
+    const result   = await eg.etagFromFile(shortFilePath);
+
+    expect(result).toBe(expected);
+  });
+
+  test('uses `etagFromFileData()` when configured as `dataOnly: true`', async () => {
+    const eg = new EtagGenerator({ dataOnly: true });
+    const expected = await eg.etagFromFileData(shortFilePath);
+    const result   = await eg.etagFromFile(shortFilePath);
+
+    expect(result).toBe(expected);
   });
 });
 
@@ -251,5 +279,11 @@ describe('etagFromFileStats()', () => {
     const eg     = new EtagGenerator({ hashAlgorithm: 'sha1', hashLength: { strong: 15 }, tagForm: 'strong' });
     const result = await eg.etagFromFileStats(shortFilePath);
     expect(result).toBe(`"${fullHash.slice(0, 15)}"`);
+  });
+
+  test('fails when the instance is configured as data-only', async () => {
+    const eg = new EtagGenerator({ dataOnly: true });
+
+    await expect(eg.etagFromFileStats(shortFilePath)).toReject();
   });
 });

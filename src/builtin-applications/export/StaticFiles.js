@@ -78,7 +78,7 @@ export class StaticFiles extends BaseApplication {
 
       if (this.#etagGenerator) {
         options.headers['etag'] =
-          await this.#etagGenerator.etagFromFileStats(resolved.path);
+          await this.#etagGenerator.etagFromFile(resolved.path);
       }
 
       return await request.sendFile(resolved.path, options);

@@ -129,7 +129,7 @@ const applications = [
     class:         'StaticFiles',
     siteDirectory: filePath('../site'),
     notFoundPath:  filePath('../site-extra/not-found.html'),
-    etag:          { hashLength: 20 }
+    etag:          { dataOnly: true, hashLength: 20 }
   },
   {
     name:          'myStaticFunNo404',
