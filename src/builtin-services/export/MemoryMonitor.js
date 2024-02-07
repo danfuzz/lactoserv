@@ -125,12 +125,14 @@ export class MemoryMonitor extends BaseService {
 
       let timeoutMsec = checkMsec;
       if (snapshot.actionAt) {
-        const msecUntilAction = snapshot.actionAt.subtract(snapshot.at).secs * 1000;
-        const msecUntilCheck  = Math.min(
+        const msecUntilAction =
+          snapshot.actionAt.subtract(snapshot.at).sec * 1000;
+        const msecUntilCheck = Math.min(
           checkMsec,
           Math.max(
             msecUntilAction * MemoryMonitor.#TROUBLE_CHECK_FRACTION,
             MemoryMonitor.#MIN_TROUBLE_CHECK_MSEC));
+
         timeoutMsec = msecUntilCheck;
       }
 

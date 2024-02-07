@@ -32,11 +32,11 @@ describe('constructor()', () => {
   });
 });
 
-describe('.secs', () => {
+describe('.sec', () => {
   test('returns the value from the constructor', () => {
-    expect(new Duration(0).secs).toBe(0);
-    expect(new Duration(123).secs).toBe(123);
-    expect(new Duration(456.789).secs).toBe(456.789);
+    expect(new Duration(0).sec).toBe(0);
+    expect(new Duration(123).sec).toBe(123);
+    expect(new Duration(456.789).sec).toBe(456.789);
   });
 });
 
@@ -48,7 +48,7 @@ ${'toPlainObject'}      | ${false}  | ${true}
 ${'toString'}           | ${false}  | ${false}
 `('$method()', ({ method, isStatic, returnsObject }) => {
   test.each`
-  secs                 | duration
+  sec                  | duration
   ${-999.123}          | ${'-999.123 sec'}
   ${-1}                | ${'-1.000 sec'}
   ${0}                 | ${'0 sec (instantaneous)'}
@@ -108,13 +108,13 @@ ${'toString'}           | ${false}  | ${false}
   ${127353}            | ${'1d 11:22:33'}
   ${49021687.1}        | ${'567d 9:08:07'}
   ${49021687.9}        | ${'567d 9:08:08'}
-  `('with ($secs)', ({ secs, duration }) => {
+  `('with ($sec)', ({ sec, duration }) => {
     const result = isStatic
-      ? Duration[method](secs)
-      : new Duration(secs)[method]();
+      ? Duration[method](sec)
+      : new Duration(sec)[method]();
 
     if (returnsObject) {
-      expect(result).toStrictEqual({ secs, duration });
+      expect(result).toStrictEqual({ sec, duration });
     } else {
       expect(result).toBe(duration);
     }
@@ -125,7 +125,7 @@ ${'toString'}           | ${false}  | ${false}
 // `options` behavior.
 describe('stringFromSec()', () => {
   test.each`
-  secs             | options              | duration
+  sec              | options              | duration
   ${-1.23}         | ${undefined}         | ${'-1.230 sec'}
   ${0}             | ${undefined}         | ${'0 sec (instantaneous)'}
   ${9.876}         | ${undefined}         | ${'9.876 sec'}
@@ -144,14 +144,14 @@ describe('stringFromSec()', () => {
   ${0.09876}       | ${{ spaces: false }} | ${'98.760_msec'}
   ${0.00009876}    | ${{ spaces: false }} | ${'98.760_usec'}
   ${0.00000009876} | ${{ spaces: false }} | ${'98.760_nsec'}
-  `('with ($secs, $options)', ({ secs, options, duration }) => {
-    const result = Duration.stringFromSec(secs, options);
+  `('with ($sec, $options)', ({ sec, options, duration }) => {
+    const result = Duration.stringFromSec(sec, options);
     expect(result).toBe(duration);
   });
 });
 
 describe('.ZERO', () => {
   test('has the value `0`', () => {
-    expect(Duration.ZERO.secs).toBe(0);
+    expect(Duration.ZERO.sec).toBe(0);
   });
 });

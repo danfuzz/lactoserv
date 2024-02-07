@@ -21,14 +21,14 @@ async function checkGrant(grantPromise, expected) {
   expect(grant).toBeObject();
 
   const waitTimeSec = (expected.waitTime instanceof Duration)
-    ? expected.waitTime.secs
+    ? expected.waitTime.sec
     : expected.waitTime;
 
   expect(grant.done).toBe(expected.done);
   expect(grant.grant).toBe(expected.grant);
   expect(grant.reason).toBe(expected.reason);
   expect(grant.waitTime).toBeInstanceOf(Duration);
-  expect(grant.waitTime.secs).toBe(waitTimeSec);
+  expect(grant.waitTime.sec).toBe(waitTimeSec);
 }
 
 /**

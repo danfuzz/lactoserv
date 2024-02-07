@@ -66,18 +66,18 @@ export class Moment {
    */
   add(duration) {
     MustBe.instanceOf(duration, Duration);
-    return new Moment(this.#atSec + duration.secs);
+    return new Moment(this.#atSec + duration.sec);
   }
 
   /**
-   * Gets the sum `this + secs` as a new instance of this class.
+   * Gets the sum `this + sec` as a new instance of this class.
    *
-   * @param {number} secs Number of seconds to add.
+   * @param {number} sec Number of seconds to add.
    * @returns {Moment} The summed result.
    */
-  addSec(secs) {
-    MustBe.number(secs, { finite: true });
-    return new Moment(this.#atSec + secs);
+  addSec(sec) {
+    MustBe.number(sec, { finite: true });
+    return new Moment(this.#atSec + sec);
   }
 
   /**
@@ -267,14 +267,14 @@ export class Moment {
     const date    = when.getUTCDate();
     const month   = when.getUTCMonth();
     const year    = when.getUTCFullYear();
-    const hours   = when.getUTCHours();
-    const mins    = when.getUTCMinutes();
-    const secs    = when.getUTCSeconds();
+    const hour    = when.getUTCHours();
+    const min     = when.getUTCMinutes();
+    const sec     = when.getUTCSeconds();
     const timeSep = colons ? ':' : '';
     const frac    = (decimals === 0) ? '' : makeFrac();
 
     return '' +
       `${year}${td(month + 1)}${td(date)}-` +
-      `${td(hours)}${timeSep}${td(mins)}${timeSep}${td(secs)}${frac}`;
+      `${td(hour)}${timeSep}${td(min)}${timeSep}${td(sec)}${frac}`;
   }
 }
