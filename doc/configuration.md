@@ -387,7 +387,7 @@ optionally on a periodic basis. It accepts the following configuration bindings:
   Optional and defaults to `false`. If `true`, whenever the file is written, it
   is read first and any process IDs found in it are kept if they are in fact
   still running.
-* `updateSecs` &mdash; How many seconds to wait between each file update.
+* `updateSecs` &mdash; How long to wait between each file update, in seconds.
   Optional and defaults to "never." This is only meaningfully used when
   `multiprocess` is `true`.
 
