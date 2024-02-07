@@ -26,18 +26,18 @@ export class Moment {
    * @type {number} The moment being represented, in the form of seconds since
    * the Unix Epoch.
    */
-  #atSecs;
+  #atSec;
 
   /**
    * Constructs an instance.
    *
-   * @param {number|bigint} atSecs The moment to represent, in the form of
+   * @param {number|bigint} atSec The moment to represent, in the form of
    *   seconds since the Unix Epoch. Must be finite.
    */
-  constructor(atSecs) {
-    this.#atSecs = (typeof atSecs === 'bigint')
-      ? Number(atSecs)
-      : MustBe.number(atSecs, { finite: true });
+  constructor(atSec) {
+    this.#atSec = (typeof atSec === 'bigint')
+      ? Number(atSec)
+      : MustBe.number(atSec, { finite: true });
 
     Object.freeze(this);
   }
@@ -47,15 +47,15 @@ export class Moment {
    * since the Unix Epoch.
    */
   get atMsec() {
-    return this.#atSecs * 1000;
+    return this.#atSec * 1000;
   }
 
   /**
    * @returns {number} The moment being represented, in the form of seconds
    * since the Unix Epoch.
    */
-  get atSecs() {
-    return this.#atSecs;
+  get atSec() {
+    return this.#atSec;
   }
 
   /**
@@ -66,7 +66,7 @@ export class Moment {
    */
   add(duration) {
     MustBe.instanceOf(duration, Duration);
-    return new Moment(this.#atSecs + duration.secs);
+    return new Moment(this.#atSec + duration.secs);
   }
 
   /**
@@ -77,7 +77,7 @@ export class Moment {
    */
   addSecs(secs) {
     MustBe.number(secs, { finite: true });
-    return new Moment(this.#atSecs + secs);
+    return new Moment(this.#atSec + secs);
   }
 
   /**
@@ -90,7 +90,7 @@ export class Moment {
    */
   equals(other) {
     return (other instanceof Moment)
-      && (this.#atSecs === other.#atSecs);
+      && (this.#atSec === other.#atSec);
   }
 
   /**
@@ -101,7 +101,7 @@ export class Moment {
    */
   isAfter(other) {
     MustBe.instanceOf(other, Moment);
-    return this.#atSecs > other.#atSecs;
+    return this.#atSec > other.#atSec;
   }
 
   /**
@@ -112,7 +112,7 @@ export class Moment {
    */
   isBefore(other) {
     MustBe.instanceOf(other, Moment);
-    return this.#atSecs < other.#atSecs;
+    return this.#atSec < other.#atSec;
   }
 
   /**
@@ -123,7 +123,7 @@ export class Moment {
    */
   subtract(other) {
     MustBe.instanceOf(other, Moment);
-    return new Duration(this.#atSecs - other.#atSecs);
+    return new Duration(this.#atSec - other.#atSec);
   }
 
   /**
@@ -133,7 +133,7 @@ export class Moment {
    * @returns {string} The HTTP standard form.
    */
   toHttpString() {
-    return Moment.httpStringFromSecs(this.#atSecs);
+    return Moment.httpStringFromSecs(this.#atSec);
   }
 
   /**
@@ -146,7 +146,7 @@ export class Moment {
    * @returns {object} Friendly representation object.
    */
   toPlainObject(options = {}) {
-    return Moment.plainObjectFromSecs(this.#atSecs, options);
+    return Moment.plainObjectFromSecs(this.#atSec, options);
   }
 
   /**
@@ -159,7 +159,7 @@ export class Moment {
    * @returns {string} The friendly time string.
    */
   toString(options = {}) {
-    return Moment.stringFromSecs(this.#atSecs, options);
+    return Moment.stringFromSecs(this.#atSec, options);
   }
 
   /**
@@ -173,7 +173,7 @@ export class Moment {
     // instance. TODO: Re-evaluate this tactic.
     const str = this.toString({ decimals: 6 });
 
-    return new Struct(Moment, null, this.#atSecs, str);
+    return new Struct(Moment, null, this.#atSec, str);
   }
 
 
@@ -201,16 +201,16 @@ export class Moment {
    * **Note:** The HTTP standard, RFC 9110 section 5.6.7 in particular, is very
    * specific about the format.
    *
-   * @param {number|bigint} atSecs Time in the form of seconds since the Unix
+   * @param {number|bigint} atSec Time in the form of seconds since the Unix
    *   Epoch.
    * @returns {string} The HTTP standard form.
    */
-  static httpStringFromSecs(atSecs) {
-    atSecs = (typeof atSecs === 'bigint')
-      ? Number(atSecs)
-      : MustBe.number(atSecs, { finite: true });
+  static httpStringFromSecs(atSec) {
+    atSec = (typeof atSec === 'bigint')
+      ? Number(atSec)
+      : MustBe.number(atSec, { finite: true });
 
-    return new Date(atSecs * 1000).toUTCString();
+    return new Date(atSec * 1000).toUTCString();
   }
 
   /**
@@ -218,16 +218,16 @@ export class Moment {
    * represents both seconds since the Unix Epoch as well as a string indicating
    * the date-time in UTC.
    *
-   * @param {number} atSecs The moment to represent, in the form of seconds
+   * @param {number} atSec The moment to represent, in the form of seconds
    *   since the Unix Epoch.
    * @param {object} [options] Formatting options, as with {@link
    *   #stringFromSecs}.
    * @returns {object} Friendly representation object.
    */
-  static plainObjectFromSecs(atSecs, options = {}) {
+  static plainObjectFromSecs(atSec, options = {}) {
     return {
-      atSecs,
-      utc: Moment.stringFromSecs(atSecs, options)
+      atSec,
+      utc: Moment.stringFromSecs(atSec, options)
     };
   }
 
@@ -235,7 +235,7 @@ export class Moment {
    * Makes a date-time string in a reasonably pithy and understandable form. The
    * result is a string representing the date-time in UTC.
    *
-   * @param {number} atSecs Time in the form of seconds since the Unix Epoch.
+   * @param {number} atSec Time in the form of seconds since the Unix Epoch.
    * @param {object} [options] Formatting options.
    * @param {boolean} [options.colons] Use colons to separate the
    *   time-of-day components?
@@ -243,7 +243,7 @@ export class Moment {
    *    of precision. **Note:** Fractions of seconds are truncated, not rounded.
    * @returns {string} The friendly time string.
    */
-  static stringFromSecs(atSecs, options = {}) {
+  static stringFromSecs(atSec, options = {}) {
     const { colons = true, decimals = 0 } = options;
 
     // Formats a number as *t*wo *d*igits.
@@ -253,17 +253,17 @@ export class Moment {
 
     // Creates the fractional seconds part of the string.
     const makeFrac = () => {
-      // Non-obvious: If you take `atSecs % 1` and then operate on the remaining
+      // Non-obvious: If you take `atSec % 1` and then operate on the remaining
       // fraction, you can end up with a string representation that's off by 1,
       // because of floating point (im)precision. That's why we _don't_ do that.
       const tenPower = 10 ** decimals;
-      const frac     = Math.floor(atSecs * tenPower % tenPower);
+      const frac     = Math.floor(atSec * tenPower % tenPower);
       const result   = frac.toString().padStart(decimals, '0');
 
       return `.${result}`;
     };
 
-    const when    = new Date(atSecs * 1000);
+    const when    = new Date(atSec * 1000);
     const date    = when.getUTCDate();
     const month   = when.getUTCMonth();
     const year    = when.getUTCFullYear();

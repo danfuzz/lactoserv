@@ -24,7 +24,7 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
   /** @type {bigint} Last result from `hrtime.bigint()`. */
   #lastHrtimeNsec = -1n;
 
-  /** @type {bigint} Last result from {@link #nowSecs}, as a `bigint`. */
+  /** @type {bigint} Last result from {@link #nowSec}, as a `bigint`. */
   #lastNowNsec = -1n;
 
   /**
@@ -45,7 +45,7 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
 
   /** @override */
   _impl_makeId() {
-    return this.#idGenerator.makeId(this.#nowSecs());
+    return this.#idGenerator.makeId(this.#nowSec());
   }
 
   /** @override */
@@ -56,7 +56,7 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
 
   /** @override */
   _impl_now() {
-    return new Moment(this.#nowSecs());
+    return new Moment(this.#nowSec());
   }
 
   /**
@@ -64,7 +64,7 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
    *
    * @returns {number} "Now," as a number of seconds.
    */
-  #nowSecs() {
+  #nowSec() {
     // What's going on here: We attempt to use `hrtime()` -- which has nsec
     // precision but an arbitrary zero-time, and which we don't assume runs at
     // exactly (effective) wall-clock rate -- to improve on the precision of

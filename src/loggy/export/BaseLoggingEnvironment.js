@@ -122,11 +122,11 @@ export class BaseLoggingEnvironment {
    */
   now() {
     const result = MustBe.instanceOf(this._impl_now(), Moment);
-    const atSecs = result.atSecs;
+    const atSec = result.atSec;
 
-    if (atSecs < BaseLoggingEnvironment.MIN_REASONABLE_NOW_SEC) {
+    if (atSec < BaseLoggingEnvironment.MIN_REASONABLE_NOW_SEC) {
       throw new Error('Too small to be a reasonable "now."');
-    } else if (atSecs > BaseLoggingEnvironment.MAX_REASONABLE_NOW_SEC) {
+    } else if (atSec > BaseLoggingEnvironment.MAX_REASONABLE_NOW_SEC) {
       throw new Error('Too large to be a reasonable "now."');
     }
 

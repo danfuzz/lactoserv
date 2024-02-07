@@ -12,24 +12,19 @@ import { Methods } from '@this/typey';
 export class IntfTimeSource {
   // Note: The default constructor is fine.
 
-  /** @returns {string} The name of the unit which this instance uses. */
-  get unitName() {
-    return Methods.abstract();
-  }
-
   /**
-   * Gets the current time, in arbitrary time units (ATU) which have elapsed
-   * since an arbitrary base time.
+   * Gets the current time, as a standard Unix Epoch time in seconds (_not_
+   * milliseconds).
    *
    * @abstract
    * @returns {number} The current time.
    */
-  now() {
+  nowSec() {
     return Methods.abstract();
   }
 
   /**
-   * Async-returns `null` when {@link #now} would return a value at or beyond
+   * Async-returns `null` when {@link #nowSec} would return a value at or beyond
    * the given time, with the hope that the actual time will be reasonably
    * close.
    *

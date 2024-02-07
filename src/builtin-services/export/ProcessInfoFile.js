@@ -218,7 +218,7 @@ export class ProcessInfoFile extends BaseService {
   async #stop(willReload) {
     const contents      = this.#contents;
     const stoppedAtSecs = Date.now() / 1000;
-    const uptimeSecs    = stoppedAtSecs - contents.startedAt.atSecs;
+    const uptimeSecs    = stoppedAtSecs - contents.startedAt.atSec;
 
     if (willReload) {
       contents.disposition = { reloading: true };
@@ -254,7 +254,7 @@ export class ProcessInfoFile extends BaseService {
     this.#contents.disposition = {
       running:   true,
       updatedAt: new Moment(updatedAtSecs).toPlainObject(),
-      uptime:    new Duration(updatedAtSecs - this.#contents.startedAt.atSecs).toPlainObject()
+      uptime:    new Duration(updatedAtSecs - this.#contents.startedAt.atSec).toPlainObject()
     };
 
     Object.assign(this.#contents, ProcessInfo.ephemeralInfo);

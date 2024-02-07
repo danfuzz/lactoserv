@@ -230,8 +230,8 @@ export class RateLimitedStream {
       const grantResult = await this.#bucket.requestGrant(
         { minInclusive: 1, maxInclusive: remaining });
 
-      if (grantResult.waitTime !== 0) {
-        this.#logger?.waited(grantResult.waitTime);
+      if (grantResult.waitTimeSec !== 0) {
+        this.#logger?.waited(grantResult.waitTimeSec);
       }
 
       if (!grantResult.done) {

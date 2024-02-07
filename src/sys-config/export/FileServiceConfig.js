@@ -156,7 +156,7 @@ export class FileServiceConfig extends ServiceConfig {
     }
 
     // File already existed; just update the modification time.
-    const now = new Date();
-    await fs.utimes(path, now, now);
+    const dateNow = new Date();
+    await fs.utimes(path, dateNow, dateNow);
   }
 }

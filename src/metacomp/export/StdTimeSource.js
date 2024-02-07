@@ -8,26 +8,20 @@ import { IntfTimeSource } from '#x/IntfTimeSource';
 
 /**
  * Standard implementation of {@link #IntfTimeSource}, which uses "wall time"
- * as provided by the JavaScript / Node implementation, and for which the ATU
- * is actually a second (_not_ a msec).
+ * as provided by the JavaScript / Node implementation.
  */
 export class StdTimeSource extends IntfTimeSource {
   // Note: The default constructor is fine.
 
   /** @override */
-  get unitName() {
-    return 'seconds';
-  }
-
-  /** @override */
-  now() {
+  nowSec() {
     return Date.now() * StdTimeSource.#SECS_PER_MSEC;
   }
 
   /** @override */
   async waitUntil(time) {
     for (;;) {
-      const delay = time - this.now();
+      const delay = time - this.nowSec();
       if ((delay <= 0) || !Number.isFinite(delay)) {
         break;
       }

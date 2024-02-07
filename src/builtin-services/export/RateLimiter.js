@@ -137,8 +137,8 @@ export class RateLimiter extends BaseService {
     }
 
     const got = await bucket.requestGrant(1);
-    if (got.waitTime > 0) {
-      logger?.rateLimiterWaited(got.waitTime);
+    if (got.waitTimeSec > 0) {
+      logger?.rateLimiterWaited(got.waitTimeSec);
     }
 
     if (!got.done) {
@@ -243,8 +243,8 @@ export class RateLimiter extends BaseService {
         MustBe.number(maxQueueSize, { minInclusive: 0, maxInclusive: 1e100 });
       }
 
-      const flowRate = Config.#flowRatePerSecFrom(origFlowRate, timeUnit);
-      const result   = { flowRate, maxBurstSize, maxQueueSize };
+      const flowRatePerSec = Config.#flowRatePerSecFrom(origFlowRate, timeUnit);
+      const result   = { flowRatePerSec, maxBurstSize, maxQueueSize };
 
       if (maxQueueGrantSize !== null) {
         result.maxQueueGrantSize = maxQueueGrantSize;

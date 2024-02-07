@@ -115,7 +115,7 @@ export class MemoryMonitor extends BaseService {
     while (!this.#runner.shouldStop()) {
       const snapshot = this.#takeSnapshot();
 
-      if (snapshot.actionAt && (snapshot.actionAt.atSecs < snapshot.at.atSecs)) {
+      if (snapshot.actionAt && (snapshot.actionAt.atSec < snapshot.at.atSec)) {
         this.logger?.takingAction();
         // No `await`, because then the shutdown handler would end up deadlocked
         // with the stopping of this threadlet.

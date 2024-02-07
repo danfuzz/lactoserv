@@ -22,8 +22,7 @@ import { Threadlet } from '#x/Threadlet';
  * "leaky bucket as queue," where token grant requests are queued up and
  * processed at a steady token flow rate.
  *
- * This class defines neither the token (bucket volume) units nor the time
- * units (though there is a sensible default for the latter). It is up to
+ * This class does not define the token (bucket volume) unit. It is up to
  * clients to use whatever makes sense in their context.
  */
 export class TokenBucket {
@@ -35,9 +34,9 @@ export class TokenBucket {
 
   /**
    * @type {number} Token flow rate (a/k/a bucket fill rate), in tokens per
-   * arbitrary time unit (tokens / ATU).
+   * second.
    */
-  #flowRate;
+  #flowRatePerSec;
 
   /** @type {number} Maximum grant size for a waiter in the queue, in tokens. */
   #maxQueueGrantSize;
@@ -56,11 +55,11 @@ export class TokenBucket {
   #timeSource;
 
   /** @type {number} Most recently measured time. */
-  #lastNow;
+  #lastNowSec;
 
   /**
    * @type {number} The number of tokens available for a burst, at time {@link
-   * #lastNow).
+   * #lastNowSec).
    */
   #lastBurstSize;
 
@@ -84,11 +83,10 @@ export class TokenBucket {
    * Constructs an instance.
    *
    * @param {object} options Configuration options.
-   * @param {number} options.flowRate Token flow rate (a/k/a bucket fill rate),
-   *   that is, how quickly the bucket gets filled, in tokens per arbitrary time
-   *   unit (tokens / ATU). This defines the steady state "flow rate" allowed by
-   *   the instance. Must be a finite positive number. This is a required
-   *   "option."
+   * @param {number} options.flowRatePerSec Token flow rate (a/k/a bucket fill
+   *   rate), that is, how quickly the bucket gets filled, in tokens per second.
+   *   This defines the steady state "flow rate" allowed by the instance. Must
+   *   be a finite positive number. This is a required "option."
    * @param {number} [options.initialBurstSize] The
    *   instantaneously available burst size, in tokens, at the moment of
    *   construction. Defaults to `maxBurstSize` (that is, able to be maximally
@@ -123,7 +121,7 @@ export class TokenBucket {
    */
   constructor(options) {
     const {
-      flowRate,
+      flowRatePerSec,
       initialBurstSize  = options.maxBurstSize,
       maxBurstSize,
       maxQueueGrantSize,
@@ -132,10 +130,10 @@ export class TokenBucket {
       timeSource        = TokenBucket.#DEFAULT_TIME_SOURCE
     } = options;
 
-    this.#maxBurstSize  = MustBe.number(maxBurstSize, { finite: true, minExclusive: 0 });
-    this.#flowRate      = MustBe.number(flowRate, { finite: true, minExclusive: 0 });
-    this.#partialTokens = MustBe.boolean(partialTokens);
-    this.#timeSource    = MustBe.instanceOf(timeSource, IntfTimeSource);
+    this.#maxBurstSize   = MustBe.number(maxBurstSize, { finite: true, minExclusive: 0 });
+    this.#flowRatePerSec = MustBe.number(flowRatePerSec, { finite: true, minExclusive: 0 });
+    this.#partialTokens  = MustBe.boolean(partialTokens);
+    this.#timeSource     = MustBe.instanceOf(timeSource, IntfTimeSource);
 
     this.#maxQueueSize = (maxQueueSize === null)
       ? Number.POSITIVE_INFINITY
@@ -154,7 +152,7 @@ export class TokenBucket {
     }
 
     this.#lastBurstSize = MustBe.number(initialBurstSize, { minInclusive: 0, maxInclusive: maxBurstSize });
-    this.#lastNow       = this.#timeSource.now();
+    this.#lastNowSec    = this.#timeSource.nowSec();
   }
 
   /**
@@ -174,7 +172,7 @@ export class TokenBucket {
       ? null : this.#timeSource;
 
     return {
-      flowRate:          this.#flowRate,
+      flowRatePerSec:    this.#flowRatePerSec,
       maxBurstSize:      this.#maxBurstSize,
       maxQueueGrantSize: this.#maxQueueGrantSize,
       maxQueueSize,
@@ -206,7 +204,7 @@ export class TokenBucket {
    *   is, the quantity of tokens that could potentially be reserved for new
    *   grant waiters. If this instance has no limit on the queue size, then
    *   this is `Number.POSITIVE_INFINITY`.
-   * * `{number} now` -- The time as of the snapshot, according to this
+   * * `{number} nowSec` -- The time as of the snapshot, according to this
    *   instance's time source.
    * * `{number} waiterCount` -- The number of queued (awaited) grant requests.
    *
@@ -216,7 +214,7 @@ export class TokenBucket {
     return {
       availableBurstSize: this.#lastBurstSize,
       availableQueueSize: this.#maxQueueSize - this.#queueSize,
-      now:                this.#lastNow,
+      nowSec:             this.#lastNowSec,
       waiterCount:        this.#waiters.length,
     };
   }
@@ -272,8 +270,8 @@ export class TokenBucket {
    *     call to {@link #denyAllRequests} which is currently in progress.
    *   * `full` -- This request would cause the waiter queue to be too large
    *     (including the case where `maxQueueSize === 0`).
-   * * `{number} waitTime` -- The amount of time (in ATU) that was spent waiting
-   *   for the grant.
+   * * `{number} waitTimeSec` -- The amount of time (in seconds) that was spent
+   *   waiting for the grant.
    *
    * @param {number|object} quantity Requested quantity of tokens, as described
    *   above.
@@ -319,7 +317,7 @@ export class TokenBucket {
     this.#queueSize += grant;
     this.#waiters.push({
       grant,
-      startTime:    this.#lastNow,
+      startTime:    this.#lastNowSec,
       doGrant:      (v) => mp.resolve(v)
     });
 
@@ -356,7 +354,7 @@ export class TokenBucket {
    *   time source until the request would be expected to be granted, if this
    *   were an asynchronously-requested grant, as if by {@link #requestGrant}
    *   (see which). If `done === true`, then this will be a time at or before
-   *   the time source's `now()`.
+   *   the time source's `nowSec()`.
    *
    * If the `minInclusive` request is non-zero, then this method will only ever
    * return `done === true` if there is no immediate contention for tokens
@@ -392,7 +390,7 @@ export class TokenBucket {
     }
 
     if (!result.done) {
-      result.waitUntil += this.#queueSize / this.#flowRate;
+      result.waitUntil += this.#queueSize / this.#flowRatePerSec;
     }
 
     return result;
@@ -449,7 +447,7 @@ export class TokenBucket {
 
     if (done) {
       this.#lastBurstSize -= grant;
-      return { done: true, grant, waitUntil: this.#lastNow };
+      return { done: true, grant, waitUntil: this.#lastNowSec };
     }
 
     // Per contract, we figure out a wait time as if the grant is from the
@@ -457,8 +455,8 @@ export class TokenBucket {
     // would be.
     const waitedGrantSize = Math.min(maxInclusive, this.#maxQueueGrantSize);
     const waitedSize      = waitedGrantSize - this.#lastBurstSize;
-    const waitTime        = waitedSize / this.#flowRate;
-    const waitUntil       = this.#lastNow + waitTime;
+    const waitTimeSec     = waitedSize / this.#flowRatePerSec;
+    const waitUntil       = this.#lastNowSec + waitTimeSec;
 
     return { done: false, grant: 0, waitUntil };
   }
@@ -507,12 +505,12 @@ export class TokenBucket {
    *
    * @param {number} grant Grant amount.
    * @param {string} reason Grant (or lack thereof) reason.
-   * @param {number} waitTime Amount of time spent waiting.
+   * @param {number} waitTimeSec Amount of time spent waiting, in seconds.
    * @returns {object} An appropriately-constructed result.
    */
-  #requestGrantResult(grant, reason, waitTime) {
+  #requestGrantResult(grant, reason, waitTimeSec) {
     const done = (reason === 'grant');
-    return { done, grant, reason, waitTime };
+    return { done, grant, reason, waitTimeSec };
   }
 
   /**
@@ -544,8 +542,8 @@ export class TokenBucket {
       if (got.done) {
         this.#waiters.shift();
         this.#queueSize -= info.grant;
-        const waitTime = this.#lastNow - info.startTime;
-        info.doGrant(this.#requestGrantResult(got.grant, 'grant', waitTime));
+        const waitTimeSec = this.#lastNowSec - info.startTime;
+        info.doGrant(this.#requestGrantResult(got.grant, 'grant', waitTimeSec));
       } else {
         await this.#waiterThread.raceWhenStopRequested([
           this.#waitUntil(got.waitUntil)
@@ -558,8 +556,8 @@ export class TokenBucket {
       // `denyAllRequests()` was called. So, deny all requests.
       this.#topUpBucket(); // Makes `#lastTime` be current.
       for (const info of this.#waiters) {
-        const waitTime = this.#lastNow - info.startTime;
-        info.doGrant(this.#requestGrantResult(0, 'stopping', waitTime));
+        const waitTimeSec = this.#lastNowSec - info.startTime;
+        info.doGrant(this.#requestGrantResult(0, 'stopping', waitTimeSec));
       }
 
       this.#waiters = [];
@@ -571,16 +569,16 @@ export class TokenBucket {
    * topping-up.
    */
   #topUpBucket() {
-    const now           = this.#timeSource.now();
+    const nowSec        = this.#timeSource.nowSec();
     const lastBurstSize = this.#lastBurstSize;
 
     if (lastBurstSize < this.#maxBurstSize) {
-      const elapsedTime   = now - this.#lastNow;
-      const grant         = elapsedTime * this.#flowRate;
+      const elapsedTime   = nowSec - this.#lastNowSec;
+      const grant         = elapsedTime * this.#flowRatePerSec;
       this.#lastBurstSize = Math.min(lastBurstSize + grant, this.#maxBurstSize);
     }
 
-    this.#lastNow = now;
+    this.#lastNowSec = nowSec;
   }
 
   /**
@@ -590,7 +588,7 @@ export class TokenBucket {
    * @param {number} time The time to wait until.
    */
   async #waitUntil(time) {
-    if (time > this.#lastNow) {
+    if (time > this.#lastNowSec) {
       await this.#timeSource.waitUntil(time);
     }
   }

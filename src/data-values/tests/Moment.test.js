@@ -31,15 +31,15 @@ describe('constructor()', () => {
   });
 });
 
-describe('.atSecs', () => {
+describe('.atSec', () => {
   test('returns the value from the constructor', () => {
-    expect(new Moment(0).atSecs).toBe(0);
-    expect(new Moment(123).atSecs).toBe(123);
-    expect(new Moment(456.789).atSecs).toBe(456.789);
+    expect(new Moment(0).atSec).toBe(0);
+    expect(new Moment(123).atSec).toBe(123);
+    expect(new Moment(456.789).atSec).toBe(456.789);
   });
 
   test('returns a converted bigint', () => {
-    expect(new Moment(123999n).atSecs).toBe(123999);
+    expect(new Moment(123999n).atSec).toBe(123999);
   });
 });
 
@@ -89,7 +89,7 @@ ${'addSecs'} | ${false}
     const arg    = passDuration ? new Duration(secs) : secs;
     const result = mobj[methodName](arg);
 
-    expect(result.atSecs).toBe(expected);
+    expect(result.atSec).toBe(expected);
   });
 });
 
@@ -114,7 +114,7 @@ ${'toHttpString'}         | ${false}
 `('$method()', ({ method, isStatic }) => {
   // Failure cases.
   test.each`
-  atSecs
+  atSec
   ${NaN}
   ${+Infinity}
   ${-Infinity}
@@ -122,11 +122,11 @@ ${'toHttpString'}         | ${false}
   ${null}
   ${'12345'}
   ${[12345]}
-  `('fails given $atSecs', ({ atSecs }) => {
+  `('fails given $atSec', ({ atSec }) => {
     const doIt = () => {
       return isStatic
-        ? Moment[method](atSecs)
-        : new Moment(atSecs)[method]();
+        ? Moment[method](atSec)
+        : new Moment(atSec)[method]();
     };
 
     expect(doIt).toThrow();
@@ -134,7 +134,7 @@ ${'toHttpString'}         | ${false}
 
   // Success cases.
   test.each`
-  atSecs        | expected
+  atSec         | expected
   ${0}          | ${'Thu, 01 Jan 1970 00:00:00 GMT'}
   ${0.00001}    | ${'Thu, 01 Jan 1970 00:00:00 GMT'}
   ${0.1}        | ${'Thu, 01 Jan 1970 00:00:00 GMT'}
@@ -162,10 +162,10 @@ ${'toHttpString'}         | ${false}
   ${1004527353} | ${'Wed, 31 Oct 2001 11:22:33 GMT'}
   ${1004577804} | ${'Thu, 01 Nov 2001 01:23:24 GMT'}
   ${1007885236} | ${'Sun, 09 Dec 2001 08:07:16 GMT'}
-  `('with ($atSecs)', ({ atSecs, expected }) => {
+  `('with ($atSec)', ({ atSec, expected }) => {
     const result = isStatic
-      ? Moment[method](atSecs)
-      : new Moment(atSecs)[method]();
+      ? Moment[method](atSec)
+      : new Moment(atSec)[method]();
 
     expect(result).toBe(expected);
   });
@@ -179,7 +179,7 @@ ${'toPlainObject'}        | ${false}  | ${true}
 ${'toString'}             | ${false}  | ${false}
 `('$method()', ({ method, isStatic, returnsObject }) => {
   test.each`
-  atSecs              | options                           | expected
+  atSec               | options                           | expected
   ${0}                | ${undefined}                      | ${'19700101-00:00:00'}
   ${-14195365}        | ${undefined}                      | ${'19690720-16:50:35'}
   ${1666016999.99999} | ${undefined}                      | ${'20221017-14:29:59'}
@@ -207,13 +207,13 @@ ${'toString'}             | ${false}  | ${false}
   ${1673916141.1234}  | ${{ colons: true }}               | ${'20230117-00:42:21'}
   ${1673916141.1234}  | ${{ colons: true, decimals: 1 }}  | ${'20230117-00:42:21.1'}
   ${1673916141.1234}  | ${{ colons: true, decimals: 2 }}  | ${'20230117-00:42:21.12'}
-  `('with ($atSecs, $options)', ({ atSecs, options, expected }) => {
+  `('with ($atSec, $options)', ({ atSec, options, expected }) => {
     const result = isStatic
-      ? Moment[method](atSecs, options)
-      : new Moment(atSecs)[method](options);
+      ? Moment[method](atSec, options)
+      : new Moment(atSec)[method](options);
 
     if (returnsObject) {
-      expect(result).toStrictEqual({ atSecs, utc: expected });
+      expect(result).toStrictEqual({ atSec, utc: expected });
     } else {
       expect(result).toBe(expected);
     }
@@ -224,7 +224,7 @@ describe('fromMsec()', () => {
   test('produces an instance with 1/1000 the given value', () => {
     for (let atMsec = -12345; atMsec < 1999988877; atMsec += 10000017) {
       const result = Moment.fromMsec(atMsec);
-      expect(result.atSecs).toBe(atMsec / 1000);
+      expect(result.atSec).toBe(atMsec / 1000);
     }
   });
 });
