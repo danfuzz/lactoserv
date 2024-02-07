@@ -168,7 +168,7 @@ export class StaticFiles extends BaseApplication {
     this.logger?.fullPath(fullPath);
 
     try {
-      const stats = await fs.stat(fullPath);
+      const stats = await fs.stat(fullPath, true);
       if (stats.isDirectory()) {
         if (!endSlash) {
           // Redirect from non-ending-slash directory path. As a special case,
@@ -183,7 +183,7 @@ export class StaticFiles extends BaseApplication {
           // It's a proper directory reference. Look for the index file. Note:
           // No slash after `fullPath` because it already ends with a slash.
           const indexPath  = `${fullPath}index.html`;
-          const indexStats = await fs.stat(indexPath);
+          const indexStats = await fs.stat(indexPath, true);
           if (indexStats.isDirectory()) {
             // Weird case, to be clear!
             this.logger?.indexIsDirectory(indexPath);
