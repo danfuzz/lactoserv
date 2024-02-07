@@ -83,8 +83,8 @@ export class TokenBucket {
    * Constructs an instance.
    *
    * @param {object} options Configuration options.
-   * @param {number} options.flowRatePerSec Token flow rate (a/k/a bucket fill rate),
-   *   that is, how quickly the bucket gets filled, in tokens per second. This
+   * @param {number} options.flowRatePerSec Token flow rate (a/k/a bucket fill
+   *   rate), that is, how quickly the bucket gets filled, in tokens per second.
    *   This defines the steady state "flow rate" allowed by the instance. Must
    *   be a finite positive number. This is a required "option."
    * @param {number} [options.initialBurstSize] The

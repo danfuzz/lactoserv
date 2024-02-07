@@ -286,7 +286,9 @@ describe('constructor(<invalid>)', () => {
   });
 
   test('rejects invalid `maxQueueGrantSize` (`> maxQueueSize`)', () => {
-    expect(() => new TokenBucket({ flowRatePerSec: 1, maxBurstSize: 10, maxQueueSize: 5, maxQueueGrantSize: 6 })).toThrow();
+    expect(() => new TokenBucket(
+      { flowRatePerSec: 1, maxBurstSize: 10, maxQueueSize: 5, maxQueueGrantSize: 6 }
+    )).toThrow();
   });
 
   test('rejects invalid `maxQueueGrantSize` (`> maxBurstSize`)', () => {
