@@ -1,6 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { Moment } from '@this/data-values';
+
 /**
  * Generator of unique-enough IDs to track connections, requests, etc., in the
  * logs.
@@ -27,10 +29,11 @@ export class IdGenerator {
   /**
    * Makes a new ID.
    *
-   * @param {number} nowSec The current time in _seconds_.
+   * @param {Moment} now The current time.
    * @returns {string} An appropriately-constructed ID.
    */
-  makeId(nowSec) {
+  makeId(now) {
+    const nowSec       = now.atSec;
     const minuteNumber = Math.trunc(nowSec * IdGenerator.#MINS_PER_SEC) & 0xfffff;
 
     if (minuteNumber !== this.#minuteNumber) {

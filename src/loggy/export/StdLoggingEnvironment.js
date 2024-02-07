@@ -24,7 +24,10 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
   /** @type {bigint} Last result from `hrtime.bigint()`. */
   #lastHrtimeNsec = -1n;
 
-  /** @type {bigint} Last result from {@link #nowSec}, as a `bigint`. */
+  /**
+   * @type {bigint} Last "now" measured by {@link #now}, as a `bigint`
+   * representing a nanosecond-based Unix Epoch time.
+   */
   #lastNowNsec = -1n;
 
   /**
@@ -45,7 +48,7 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
 
   /** @override */
   _impl_makeId() {
-    return this.#idGenerator.makeId(this.#nowSec());
+    return this.#idGenerator.makeId(this.#now());
   }
 
   /** @override */
@@ -56,15 +59,15 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
 
   /** @override */
   _impl_now() {
-    return new Moment(this.#nowSec());
+    return this.#now();
   }
 
   /**
    * Gets the "now" moment as a plain number of seconds since the Unix Epoch.
    *
-   * @returns {number} "Now," as a number of seconds.
+   * @returns {Moment} "Now."
    */
-  #nowSec() {
+  #now() {
     // What's going on here: We attempt to use `hrtime()` -- which has nsec
     // precision but an arbitrary zero-time, and which we don't assume runs at
     // exactly (effective) wall-clock rate -- to improve on the precision of
@@ -98,7 +101,8 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
     this.#lastHrtimeNsec  = hrtimeNsec;
     this.#lastNowNsec     = nowNsec;
 
-    return Number(nowNsec) * StdLoggingEnvironment.#SECS_PER_NSEC;
+    const nowSec = Number(nowNsec) * StdLoggingEnvironment.#SECS_PER_NSEC;
+    return new Moment(nowSec);
   }
 
 
