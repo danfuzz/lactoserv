@@ -205,7 +205,7 @@ export class TokenBucket {
    *   is, the quantity of tokens that could potentially be reserved for new
    *   grant waiters. If this instance has no limit on the queue size, then
    *   this is `Number.POSITIVE_INFINITY`.
-   * * `{number} now` -- The time as of the snapshot, according to this
+   * * `{number} nowSec` -- The time as of the snapshot, according to this
    *   instance's time source.
    * * `{number} waiterCount` -- The number of queued (awaited) grant requests.
    *
@@ -215,7 +215,7 @@ export class TokenBucket {
     return {
       availableBurstSize: this.#lastBurstSize,
       availableQueueSize: this.#maxQueueSize - this.#queueSize,
-      now:                this.#lastNow,
+      nowSec:             this.#lastNow,
       waiterCount:        this.#waiters.length,
     };
   }
@@ -570,16 +570,16 @@ export class TokenBucket {
    * topping-up.
    */
   #topUpBucket() {
-    const now           = this.#timeSource.now();
+    const nowSec        = this.#timeSource.now();
     const lastBurstSize = this.#lastBurstSize;
 
     if (lastBurstSize < this.#maxBurstSize) {
-      const elapsedTime   = now - this.#lastNow;
+      const elapsedTime   = nowSec - this.#lastNow;
       const grant         = elapsedTime * this.#flowRatePerSec;
       this.#lastBurstSize = Math.min(lastBurstSize + grant, this.#maxBurstSize);
     }
 
-    this.#lastNow = now;
+    this.#lastNow = nowSec;
   }
 
   /**
