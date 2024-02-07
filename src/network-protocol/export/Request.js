@@ -618,7 +618,10 @@ export class Request {
     // In re `dotfiles`: If the caller wants to send a dotfile, that's their
     // business. (`sendFile()` by default tries to be something like a
     // "friendly" static file server, but we're lower level here.)
-    const sendOpts = { dotfiles: 'allow' };
+    const sendOpts = {
+      dotfiles: 'allow',
+      etag:     false
+    };
 
     // Note: `sendFile()` below will change the status code when appropriate,
     // to respond to range and conditional requests.
