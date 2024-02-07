@@ -37,7 +37,7 @@ export class TokenBucket {
    * @type {number} Token flow rate (a/k/a bucket fill rate), in tokens per
    * second.
    */
-  #flowRate;
+  #flowRatePerSec;
 
   /** @type {number} Maximum grant size for a waiter in the queue, in tokens. */
   #maxQueueGrantSize;
@@ -84,7 +84,7 @@ export class TokenBucket {
    * Constructs an instance.
    *
    * @param {object} options Configuration options.
-   * @param {number} options.flowRate Token flow rate (a/k/a bucket fill rate),
+   * @param {number} options.flowRatePerSec Token flow rate (a/k/a bucket fill rate),
    *   that is, how quickly the bucket gets filled, in tokens per second. This
    *   This defines the steady state "flow rate" allowed by the instance. Must
    *   be a finite positive number. This is a required "option."
@@ -122,7 +122,7 @@ export class TokenBucket {
    */
   constructor(options) {
     const {
-      flowRate,
+      flowRatePerSec,
       initialBurstSize  = options.maxBurstSize,
       maxBurstSize,
       maxQueueGrantSize,
@@ -131,10 +131,10 @@ export class TokenBucket {
       timeSource        = TokenBucket.#DEFAULT_TIME_SOURCE
     } = options;
 
-    this.#maxBurstSize  = MustBe.number(maxBurstSize, { finite: true, minExclusive: 0 });
-    this.#flowRate      = MustBe.number(flowRate, { finite: true, minExclusive: 0 });
-    this.#partialTokens = MustBe.boolean(partialTokens);
-    this.#timeSource    = MustBe.instanceOf(timeSource, IntfTimeSource);
+    this.#maxBurstSize   = MustBe.number(maxBurstSize, { finite: true, minExclusive: 0 });
+    this.#flowRatePerSec = MustBe.number(flowRatePerSec, { finite: true, minExclusive: 0 });
+    this.#partialTokens  = MustBe.boolean(partialTokens);
+    this.#timeSource     = MustBe.instanceOf(timeSource, IntfTimeSource);
 
     this.#maxQueueSize = (maxQueueSize === null)
       ? Number.POSITIVE_INFINITY
@@ -173,7 +173,7 @@ export class TokenBucket {
       ? null : this.#timeSource;
 
     return {
-      flowRate:          this.#flowRate,
+      flowRatePerSec:    this.#flowRatePerSec,
       maxBurstSize:      this.#maxBurstSize,
       maxQueueGrantSize: this.#maxQueueGrantSize,
       maxQueueSize,
@@ -391,7 +391,7 @@ export class TokenBucket {
     }
 
     if (!result.done) {
-      result.waitUntil += this.#queueSize / this.#flowRate;
+      result.waitUntil += this.#queueSize / this.#flowRatePerSec;
     }
 
     return result;
@@ -456,7 +456,7 @@ export class TokenBucket {
     // would be.
     const waitedGrantSize = Math.min(maxInclusive, this.#maxQueueGrantSize);
     const waitedSize      = waitedGrantSize - this.#lastBurstSize;
-    const waitTime        = waitedSize / this.#flowRate;
+    const waitTime        = waitedSize / this.#flowRatePerSec;
     const waitUntil       = this.#lastNow + waitTime;
 
     return { done: false, grant: 0, waitUntil };
@@ -575,7 +575,7 @@ export class TokenBucket {
 
     if (lastBurstSize < this.#maxBurstSize) {
       const elapsedTime   = now - this.#lastNow;
-      const grant         = elapsedTime * this.#flowRate;
+      const grant         = elapsedTime * this.#flowRatePerSec;
       this.#lastBurstSize = Math.min(lastBurstSize + grant, this.#maxBurstSize);
     }
 
