@@ -14,7 +14,7 @@
   "dependencies": {
     "@this/sys-config": "*",
     "@this/sys-framework": "*",
-    "@this/app-util": "*",
+    "@this/sys-util": "*",
     "@this/async": "*",
     "@this/data-values": "*",
     "@this/host": "*",

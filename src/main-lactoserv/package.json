@@ -13,7 +13,7 @@
 
   "dependencies": {
     "@this/sys-framework": "*",
-    "@this/app-util": "*",
+    "@this/sys-util": "*",
     "@this/async": "*",
     "@this/builtin-applications": "*",
     "@this/builtin-services": "*",
