@@ -66,7 +66,7 @@ export class KeepRunning {
    * stop.
    */
   async #keepRunning() {
-    const startedAtSecs = ProcessInfo.allInfo.startedAt.atSecs;
+    const startedAtSecs = ProcessInfo.allInfo.startedAt.atSec;
 
     this.#logger.running();
 
