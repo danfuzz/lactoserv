@@ -4,11 +4,11 @@
 import { memoryUsage } from 'node:process';
 import { setTimeout } from 'node:timers/promises';
 
-import { ServiceConfig } from '@this/sys-config';
-import { BaseService } from '@this/sys-framework';
 import { Threadlet } from '@this/async';
 import { Moment } from '@this/data-values';
 import { Host } from '@this/host';
+import { ServiceConfig } from '@this/sys-config';
+import { BaseService } from '@this/sys-framework';
 import { MustBe } from '@this/typey';
 
 

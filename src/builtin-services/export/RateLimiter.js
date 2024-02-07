@@ -1,11 +1,11 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { ServiceConfig } from '@this/sys-config';
-import { BaseService } from '@this/sys-framework';
 import { TokenBucket } from '@this/async';
 import { IntfLogger } from '@this/loggy';
 import { IntfRateLimiter } from '@this/net-protocol';
+import { ServiceConfig } from '@this/sys-config';
+import { BaseService } from '@this/sys-framework';
 import { MustBe } from '@this/typey';
 
 import { RateLimitedStream } from '#p/RateLimitedStream';

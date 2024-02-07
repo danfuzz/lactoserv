@@ -3,11 +3,11 @@
 
 import * as timers from 'node:timers/promises';
 
+import { EventTracker, LinkedEvent } from '@this/async';
+import { IntfLogger, Loggy, TextFileSink } from '@this/loggy';
 import { FileServiceConfig } from '@this/sys-config';
 import { BaseService } from '@this/sys-framework';
 import { Rotator } from '@this/sys-util';
-import { EventTracker, LinkedEvent } from '@this/async';
-import { IntfLogger, Loggy, TextFileSink } from '@this/loggy';
 import { MustBe } from '@this/typey';
 
 
