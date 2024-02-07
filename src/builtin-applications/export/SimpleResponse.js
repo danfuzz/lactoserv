@@ -152,7 +152,7 @@ export class SimpleResponse extends BaseApplication {
         }
       }
 
-      if (etag !== null) {
+      if ((etag !== null) && (etag !== false)) {
         this.#etagOptions =
           EtagGenerator.expandOptions((etag === true) ? {} : etag);
       }

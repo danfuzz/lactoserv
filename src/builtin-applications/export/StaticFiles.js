@@ -258,7 +258,7 @@ export class StaticFiles extends BaseApplication {
         ? null
         : Paths.checkAbsolutePath(notFoundPath);
       this.#siteDirectory = Paths.checkAbsolutePath(siteDirectory);
-      this.#etagOptions = (etag === null)
+      this.#etagOptions = ((etag === null) || (etag === false))
         ? null
         : EtagGenerator.expandOptions(etag);
     }
