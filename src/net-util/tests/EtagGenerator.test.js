@@ -29,6 +29,14 @@ ${'expandOptions()'} | ${false}
 
   test.each`
   arg
+  ${false}
+  ${true}
+  `('accepts `dataOnly` as $arg', ({ arg }) => {
+    expect(() => doCall({ dataOnly: arg })).not.toThrow();
+  });
+
+  test.each`
+  arg
   ${'sha1'}
   ${'sha256'}
   ${'sha512'}
