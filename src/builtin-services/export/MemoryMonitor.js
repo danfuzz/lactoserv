@@ -19,7 +19,7 @@ import { MustBe } from '@this/typey';
  * * `{?number} checkSec` -- How often to check things, in seconds, or `null`
  *   to use the default frequency. Minimum `1`. Defaults to `60` (once per
  *   minute).
- * * `{?number} gracePeriodSecs` -- Once a memory limit has been reached, how
+ * * `{?number} gracePeriodSec` -- Once a memory limit has been reached, how
  *   long it is allowed to remain at or beyond the maximum before this service
  *   takes action, or `null` not to have a grace period at all (equivalent to
  *   `0`). When in the middle of a grace period, the system checks more often
@@ -88,7 +88,7 @@ export class MemoryMonitor extends BaseService {
         || (maxRssBytes  && (snapshot.rss  >= maxRssBytes))) {
       if (!snapshot.troubleAt) {
         // We just transitioned to an "over limit" situation.
-        const actionAt = now.addSec(this.config.gracePeriodSecs);
+        const actionAt = now.addSec(this.config.gracePeriodSec);
         snapshot.troubleAt = now;
         snapshot.actionAt  = actionAt;
         this.logger?.overLimit({ actionAt });
@@ -172,7 +172,7 @@ export class MemoryMonitor extends BaseService {
     #checkSec;
 
     /** @type {number} Grace period before triggering an action, in seconds. */
-    #gracePeriodSecs;
+    #gracePeriodSec;
 
     /**
      * @type {?number} Maximum allowed size of heap usage, in bytes, or `null`
@@ -195,18 +195,18 @@ export class MemoryMonitor extends BaseService {
       super(config);
 
       const {
-        checkSec        = null,
-        gracePeriodSecs = null,
-        maxHeapBytes    = null,
-        maxRssBytes     = null
+        checkSec       = null,
+        gracePeriodSec = null,
+        maxHeapBytes   = null,
+        maxRssBytes    = null
       } = config;
 
       this.#checkSec = (checkSec === null)
         ? 5 * 60
         : MustBe.number(checkSec, { finite: true, minInclusive: 1 });
-      this.#gracePeriodSecs = (gracePeriodSecs === null)
+      this.#gracePeriodSec = (gracePeriodSec === null)
         ? 0
-        : MustBe.number(gracePeriodSecs, { finite: true, minInclusive: 0 });
+        : MustBe.number(gracePeriodSec, { finite: true, minInclusive: 0 });
       this.#maxHeapBytes = (maxHeapBytes === null)
         ? null
         : MustBe.number(maxHeapBytes, { finite: true, minInclusive: 1024 * 1024 });
@@ -223,8 +223,8 @@ export class MemoryMonitor extends BaseService {
     /**
      * @returns {number} Grace period before triggering an action, in seconds.
      */
-    get gracePeriodSecs() {
-      return this.#gracePeriodSecs;
+    get gracePeriodSec() {
+      return this.#gracePeriodSec;
     }
 
     /**

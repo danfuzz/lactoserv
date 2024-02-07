@@ -346,7 +346,7 @@ bindings:
 * `checkSec` &mdash; How often to check for memory usage being over the
   defined limit, in seconds. Optional. Minimum `1` (which is frankly way too
   often). Default `5 * 60` (once every five minutes).
-* `gracePeriodSecs` &mdash; Once a memory limit has been reached, how long, in
+* `gracePeriodSec` &mdash; Once a memory limit has been reached, how long, in
   seconds, it is allowed to remain at or beyond the maximum before this service
   takes action. `0` (or `null`) to not have a grace period at all. Default `0`.
   **Note:**: When in the middle of a grace period, the service will check
@@ -367,7 +367,7 @@ const services = [
     name:            'memory',
     class:           'MemoryMonitor',
     checkSec:        5 * 60,
-    gracePeriodSecs: 60,
+    gracePeriodSec:  60,
     maxHeapBytes:    100 * 1024 * 1024,
     maxRssBytes:     150 * 1024 * 1024
   }
