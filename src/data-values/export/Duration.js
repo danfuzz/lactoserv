@@ -16,7 +16,7 @@ import { Struct } from '#x/Struct';
  */
 export class Duration {
   /** @type {number} The number of seconds being represented. */
-  #secs;
+  #sec;
 
   /**
    * Constructs an instance.
@@ -24,13 +24,13 @@ export class Duration {
    * @param {number} secs The number of seconds to represent. Must be finite.
    */
   constructor(secs) {
-    this.#secs = MustBe.number(secs, { finite: true });
+    this.#sec = MustBe.number(secs, { finite: true });
     Object.freeze(this);
   }
 
   /** @returns {number} The number of seconds being represented. */
   get secs() {
-    return this.#secs;
+    return this.#sec;
   }
 
   /**
@@ -42,7 +42,7 @@ export class Duration {
    * @returns {object} Friendly compound object.
    */
   toPlainObject() {
-    return Duration.plainObjectFromSec(this.#secs);
+    return Duration.plainObjectFromSec(this.#sec);
   }
 
   /**
@@ -55,7 +55,7 @@ export class Duration {
    * @returns {string} The friendly form.
    */
   toString(options = {}) {
-    return Duration.stringFromSec(this.#secs, options);
+    return Duration.stringFromSec(this.#sec, options);
   }
 
   /**
@@ -67,9 +67,9 @@ export class Duration {
     // Note: This is included for the convenience of humans who happen to be
     // looking at logs (etc.), but is not actually used when reconstructing an
     // instance. TODO: Re-evaluate this tactic.
-    const str = Duration.stringFromSec(this.#secs);
+    const str = Duration.stringFromSec(this.#sec);
 
-    return new Struct(Duration, null, this.#secs, str);
+    return new Struct(Duration, null, this.#sec, str);
   }
 
 
