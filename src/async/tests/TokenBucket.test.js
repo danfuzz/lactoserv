@@ -11,29 +11,29 @@ import { IntfTimeSource, StdTimeSource } from '@this/metacomp';
  * Mock implementation of `IntfTimeSource`.
  */
 class MockTimeSource extends IntfTimeSource {
-  #now      = 0;
+  #nowSec   = 0;
   #timeouts = [];
   #ended    = false;
 
   constructor(firstNow = 0) {
     super();
-    this.#now = firstNow;
+    this.#nowSec = firstNow;
   }
 
   now() {
     if (this.#ended) {
-      throw new Error(`MockTimeSource ended! (Time was ${this.#now}.)`);
+      throw new Error(`MockTimeSource ended! (Time was ${this.#nowSec}.)`);
     }
 
-    return this.#now;
+    return this.#nowSec;
   }
 
   async waitUntil(time) {
     if (this.#ended) {
-      throw new Error(`MockTimeSource ended! (Time was ${this.#now}.)`);
+      throw new Error(`MockTimeSource ended! (Time was ${this.#nowSec}.)`);
     }
 
-    if (time <= this.#now) {
+    if (time <= this.#nowSec) {
       return;
     }
 
@@ -54,14 +54,14 @@ class MockTimeSource extends IntfTimeSource {
     this.#ended = true;
   }
 
-  _setTime(now) {
-    this.#now = now;
+  _setTime(nowSec) {
+    this.#nowSec = nowSec;
     this.#timeouts.sort((a, b) => {
       if (a.at < b.at) return -1;
       if (a.at > b.at) return 1;
       return 0;
     });
-    while (this.#timeouts[0]?.at <= now) {
+    while (this.#timeouts[0]?.at <= nowSec) {
       this.#timeouts[0].resolve();
       this.#timeouts.shift();
     }
@@ -429,8 +429,8 @@ describe('requestGrant()', () => {
 
   describe('when there are waiters', () => {
     test('synchronously grants a request with `minInclusive === 0`', async () => {
-      const now    = 12300;
-      const time   = new MockTimeSource(now);
+      const nowSec = 12300;
+      const time   = new MockTimeSource(nowSec);
       const bucket = new TokenBucket({
         flowRatePerSec: 1, maxBurstSize: 10000, initialBurstSize: 0, timeSource: time });
 
@@ -448,15 +448,15 @@ describe('requestGrant()', () => {
       expect(await request2).toStrictEqual({ done: true, grant: 0, reason: 'grant', waitTimeSec: 0 });
 
       // Get the bucket to quiesce.
-      time._setTime(now + 1000);
+      time._setTime(nowSec + 1000);
       await expect(request1).toResolve();
 
       time._end();
     });
 
     test('synchronously fails when `availableQueueSize === 0`', async () => {
-      const now    = 99000;
-      const time   = new MockTimeSource(now);
+      const nowSec = 99000;
+      const time   = new MockTimeSource(nowSec);
       const bucket = new TokenBucket({
         flowRatePerSec: 1, maxBurstSize: 10000, maxQueueSize: 100,
         initialBurstSize: 0, timeSource: time });
@@ -473,15 +473,15 @@ describe('requestGrant()', () => {
       expect(await request2).toStrictEqual({ done: false, grant: 0, reason: 'full', waitTimeSec: 0 });
 
       // Get the bucket to quiesce.
-      time._setTime(now + 1000);
+      time._setTime(nowSec + 1000);
       await expect(request1).toResolve();
 
       time._end();
     });
 
     test('synchronously fails if `availableQueueSize` would drop below `0`', async () => {
-      const now    = 89100;
-      const time   = new MockTimeSource(now);
+      const nowSec = 89100;
+      const time   = new MockTimeSource(nowSec);
       const bucket = new TokenBucket({
         flowRatePerSec: 1, maxBurstSize: 10000, maxQueueSize: 100,
         initialBurstSize: 0, timeSource: time });
@@ -498,22 +498,22 @@ describe('requestGrant()', () => {
       expect(await request2).toStrictEqual({ done: false, grant: 0, reason: 'full', waitTimeSec: 0 });
 
       // Get the bucket to quiesce.
-      time._setTime(now + 1000);
+      time._setTime(nowSec + 1000);
       await expect(request1).toResolve();
 
       time._end();
     });
 
     test('queues up a request with `0 < maxInclusive < maxQueueGrantSize`, and ultimately grants `maxInclusive`', async () => {
-      const now    = 777000;
-      const time   = new MockTimeSource(now);
+      const nowSec = 777000;
+      const time   = new MockTimeSource(nowSec);
       const bucket = new TokenBucket({
         flowRatePerSec: 1, maxBurstSize: 10000, maxQueueGrantSize: 100,
         initialBurstSize: 0, timeSource: time });
 
       const request = bucket.requestGrant({ minInclusive: 25, maxInclusive: 50 });
       expect(bucket.latestState().waiterCount).toBe(1);
-      time._setTime(now + 321);
+      time._setTime(nowSec + 321);
       await timers.setImmediate();
       expect(PromiseState.isFulfilled(request)).toBeTrue();
       expect(await request).toStrictEqual({ done: true, grant: 50, reason: 'grant', waitTimeSec: 321 });
@@ -522,15 +522,15 @@ describe('requestGrant()', () => {
     });
 
     test('queues up a request with `maxInclusive > maxQueueGrantSize`, and ultimately grants `maxQueueGrantSize`', async () => {
-      const now    = 888000;
-      const time   = new MockTimeSource(now);
+      const nowSec = 888000;
+      const time   = new MockTimeSource(nowSec);
       const bucket = new TokenBucket({
         flowRatePerSec: 1, maxBurstSize: 10000, maxQueueGrantSize: 100,
         initialBurstSize: 0, timeSource: time });
 
       const request = bucket.requestGrant({ minInclusive: 50, maxInclusive: 150 });
       expect(bucket.latestState().waiterCount).toBe(1);
-      time._setTime(now + 90909);
+      time._setTime(nowSec + 90909);
       await timers.setImmediate();
       expect(PromiseState.isFulfilled(request)).toBeTrue();
       expect(await request).toStrictEqual({ done: true, grant: 100, reason: 'grant', waitTimeSec: 90909 });
@@ -539,8 +539,8 @@ describe('requestGrant()', () => {
     });
 
     test('grants requests in the order they were received', async () => {
-      const now    = 182100;
-      const time   = new MockTimeSource(now);
+      const nowSec = 182100;
+      const time   = new MockTimeSource(nowSec);
       const bucket = new TokenBucket({
         flowRatePerSec: 1, maxBurstSize: 10000, maxQueueGrantSize: 100,
         initialBurstSize: 0, timeSource: time });
@@ -553,19 +553,19 @@ describe('requestGrant()', () => {
       expect(PromiseState.isPending(request2)).toBeTrue();
       expect(PromiseState.isPending(request3)).toBeTrue();
 
-      time._setTime(now + 10);
+      time._setTime(nowSec + 10);
       await timers.setImmediate();
       expect(PromiseState.isFulfilled(request1)).toBeTrue();
       expect(PromiseState.isPending(request2)).toBeTrue();
       expect(PromiseState.isPending(request3)).toBeTrue();
 
-      time._setTime(now + 10 + 20);
+      time._setTime(nowSec + 10 + 20);
       await timers.setImmediate();
       expect(PromiseState.isFulfilled(request1)).toBeTrue();
       expect(PromiseState.isFulfilled(request2)).toBeTrue();
       expect(PromiseState.isPending(request3)).toBeTrue();
 
-      time._setTime(now + 10 + 20 + 30);
+      time._setTime(nowSec + 10 + 20 + 30);
       await timers.setImmediate();
       expect(PromiseState.isFulfilled(request1)).toBeTrue();
       expect(PromiseState.isFulfilled(request2)).toBeTrue();
@@ -595,8 +595,8 @@ describe('requestGrant()', () => {
     });
 
     test('will not grant a partial token even if otherwise available (asynchronously)', async () => {
-      const now    = 900;
-      const time   = new MockTimeSource(now);
+      const nowSec = 900;
+      const time   = new MockTimeSource(nowSec);
       const bucket = new TokenBucket({
         partialTokens: false, flowRatePerSec: 1, maxBurstSize: 100,
         maxQueueGrantSize: 10, initialBurstSize: 0, timeSource: time });
@@ -604,7 +604,7 @@ describe('requestGrant()', () => {
       const resultPromise = bucket.requestGrant({ minInclusive: 1.5, maxInclusive: 2.5 });
       await timers.setImmediate();
       expect(PromiseState.isPending(resultPromise)).toBeTrue();
-      time._setTime(now + 10);
+      time._setTime(nowSec + 10);
       const result = await resultPromise;
       expect(result.done).toBeTrue();
       expect(result.grant).toBe(2);
@@ -630,8 +630,8 @@ describe('requestGrant()', () => {
 
     test('can actually grant a partial token asynchronously', async () => {
       const grant  = 3.21;
-      const now    = 900;
-      const time   = new MockTimeSource(now);
+      const nowSec = 900;
+      const time   = new MockTimeSource(nowSec);
       const bucket = new TokenBucket({
         partialTokens: true, flowRatePerSec: 1, maxBurstSize: 100,
         maxQueueGrantSize: grant, initialBurstSize: 0, timeSource: time });
@@ -639,7 +639,7 @@ describe('requestGrant()', () => {
       const resultPromise = bucket.requestGrant({ minInclusive: 1, maxInclusive: 10 });
       await timers.setImmediate();
       expect(PromiseState.isPending(resultPromise)).toBeTrue();
-      time._setTime(now + 10);
+      time._setTime(nowSec + 10);
       const result = await resultPromise;
       expect(result.done).toBeTrue();
       expect(result.grant).toBe(grant);
@@ -722,28 +722,28 @@ describe('latestState()', () => {
 describe('takeNow()', () => {
   describe('when there are no waiters', () => {
     test('succeeds given an exact token quantity and sufficient available burst', () => {
-      const now    = 98000;
-      const time   = new MockTimeSource(now);
+      const nowSec = 98000;
+      const time   = new MockTimeSource(nowSec);
       const bucket = new TokenBucket({
         flowRatePerSec: 1, maxBurstSize: 10000, initialBurstSize: 123, timeSource: time });
 
       const result = bucket.takeNow(123);
-      expect(result).toStrictEqual({ done: true, grant: 123, waitUntil: now });
+      expect(result).toStrictEqual({ done: true, grant: 123, waitUntil: nowSec });
       expect(bucket.latestState().availableBurstSize).toBe(0);
 
       time._end();
     });
 
     test('succeeds with as much as is available', () => {
-      const now    = 43210;
-      const time   = new MockTimeSource(now);
+      const nowSec = 43210;
+      const time   = new MockTimeSource(nowSec);
       const bucket = new TokenBucket({
         flowRatePerSec: 5, maxBurstSize: 10000, initialBurstSize: 100, timeSource: time });
 
       const result = bucket.takeNow({ minInclusive: 10, maxInclusive: 110 });
       expect(result.done).toBeTrue();
       expect(result.grant).toBe(100);
-      expect(result.waitUntil).toBe(now + 0);
+      expect(result.waitUntil).toBe(nowSec + 0);
 
       expect(bucket.latestState().availableBurstSize).toBe(0);
 
@@ -751,8 +751,8 @@ describe('takeNow()', () => {
     });
 
     test('succeeds with as much burst capacity as is available', () => {
-      const now    = 91400;
-      const time   = new MockTimeSource(now);
+      const nowSec = 91400;
+      const time   = new MockTimeSource(nowSec);
       const bucket = new TokenBucket({
         flowRatePerSec: 5, maxBurstSize: 10000, initialBurstSize: 75, maxQueueGrantSize: 50, timeSource: time });
 
@@ -762,7 +762,7 @@ describe('takeNow()', () => {
       const result1 = bucket.takeNow({ minInclusive: 10, maxInclusive: 200 });
       expect(result1.done).toBeTrue();
       expect(result1.grant).toBe(75);
-      expect(result1.waitUntil).toBe(now + 0);
+      expect(result1.waitUntil).toBe(nowSec + 0);
 
       expect(bucket.latestState().availableBurstSize).toBe(0);
 
@@ -770,12 +770,12 @@ describe('takeNow()', () => {
     });
 
     test('uses the time source', () => {
-      const now    = 1000;
-      const time   = new MockTimeSource(now);
+      const nowSec = 1000;
+      const time   = new MockTimeSource(nowSec);
       const bucket = new TokenBucket({
         flowRatePerSec: 5, maxBurstSize: 100, initialBurstSize: 0, timeSource: time });
 
-      const now1 = now + 1; // Enough for 5 tokens to become available.
+      const now1 = nowSec + 1; // Enough for 5 tokens to become available.
       time._setTime(now1);
       const result = bucket.takeNow({ minInclusive: 0, maxInclusive: 10 });
       expect(result.done).toBeTrue();
@@ -790,29 +790,29 @@ describe('takeNow()', () => {
     });
 
     test('fails and reports an as-if-queued `waitUntil` when there is insufficient burst capacity', () => {
-      const now    = 1000;
-      const time   = new MockTimeSource(now);
+      const nowSec = 1000;
+      const time   = new MockTimeSource(nowSec);
       const bucket = new TokenBucket({
         flowRatePerSec: 5, maxBurstSize: 100, initialBurstSize: 0, maxQueueGrantSize: 10, timeSource: time });
 
       const result = bucket.takeNow({ minInclusive: 2, maxInclusive: 91 });
       expect(result.done).toBeFalse();
       expect(result.grant).toBe(0);
-      expect(result.waitUntil).toBe(now + (10 / 5));
+      expect(result.waitUntil).toBe(nowSec + (10 / 5));
 
       time._end();
     });
 
     test('takes `availableBurstSize` into account in failures', () => {
-      const now    = 1000;
-      const time   = new MockTimeSource(now);
+      const nowSec = 1000;
+      const time   = new MockTimeSource(nowSec);
       const bucket = new TokenBucket({
         flowRatePerSec: 10, maxBurstSize: 100, initialBurstSize: 5, maxQueueGrantSize: 20, timeSource: time });
 
       const result = bucket.takeNow({ minInclusive: 12, maxInclusive: 31 });
       expect(result.done).toBeFalse();
       expect(result.grant).toBe(0);
-      expect(result.waitUntil).toBe(now + (20 - 5) / 10);
+      expect(result.waitUntil).toBe(nowSec + (20 - 5) / 10);
 
       time._end();
     });
@@ -845,8 +845,8 @@ describe('takeNow()', () => {
         ${9.25}   | ${9.25}      | ${90}        | ${9.25}
       `('will actually grant a partial token: $minInclusive .. $maxInclusive with $available available',
         ({ available, minInclusive, maxInclusive, expected }) => {
-          const now    = 226000;
-          const time   = new MockTimeSource(now);
+          const nowSec = 226000;
+          const time   = new MockTimeSource(nowSec);
           const bucket = new TokenBucket({
             partialTokens: true, flowRatePerSec: 1, maxBurstSize: 100, initialBurstSize: available,
             timeSource: time
@@ -861,8 +861,8 @@ describe('takeNow()', () => {
 
   describe('when there is at least one waiter', () => {
     test('succeeds with `0` on a zero-minimum request', async () => {
-      const now    = 226000;
-      const time   = new MockTimeSource(now);
+      const nowSec = 226000;
+      const time   = new MockTimeSource(nowSec);
       const bucket = new TokenBucket({
         flowRatePerSec: 13, maxBurstSize: 10000, initialBurstSize: 0, timeSource: time });
 
@@ -875,18 +875,18 @@ describe('takeNow()', () => {
       const result = bucket.takeNow({ minInclusive: 0, maxInclusive: 26 });
       expect(result.done).toBeTrue();
       expect(result.grant).toBe(0);
-      expect(result.waitUntil).toBe(now + 0);
+      expect(result.waitUntil).toBe(nowSec + 0);
 
       // Get the bucket to quiesce.
-      time._setTime(now + 1000);
+      time._setTime(nowSec + 1000);
       await expect(requestResult).toResolve();
 
       time._end();
     });
 
     test('fails on a nonzero-minimum request', async () => {
-      const now    = 50015;
-      const time   = new MockTimeSource(now);
+      const nowSec = 50015;
+      const time   = new MockTimeSource(nowSec);
       const bucket = new TokenBucket({
         flowRatePerSec: 10, maxBurstSize: 10000, initialBurstSize: 0, maxQueueGrantSize: 1000, timeSource: time });
 
@@ -899,18 +899,18 @@ describe('takeNow()', () => {
       const result = bucket.takeNow({ minInclusive: 700, maxInclusive: 1400 });
       expect(result.done).toBeFalse();
       expect(result.grant).toBe(0);
-      expect(result.waitUntil).toBe(now + ((300 + 1000) / 10));
+      expect(result.waitUntil).toBe(nowSec + ((300 + 1000) / 10));
 
       // Get the bucket to quiesce.
-      time._setTime(now + 1000);
+      time._setTime(nowSec + 1000);
       await expect(requestResult).toResolve();
 
       time._end();
     });
 
     test('fails on a nonzero-minimum request, taking `availableBurstSize` into account', async () => {
-      const now    = 60015;
-      const time   = new MockTimeSource(now);
+      const nowSec = 60015;
+      const time   = new MockTimeSource(nowSec);
       const bucket = new TokenBucket({
         flowRatePerSec: 10, maxBurstSize: 10000, initialBurstSize: 200, maxQueueGrantSize: 1000, timeSource: time });
 
@@ -923,10 +923,10 @@ describe('takeNow()', () => {
       const result = bucket.takeNow({ minInclusive: 700, maxInclusive: 1400 });
       expect(result.done).toBeFalse();
       expect(result.grant).toBe(0);
-      expect(result.waitUntil).toBe(now + ((300 + 1000 - 200) / 10));
+      expect(result.waitUntil).toBe(nowSec + ((300 + 1000 - 200) / 10));
 
       // Get the bucket to quiesce.
-      time._setTime(now + 1000);
+      time._setTime(nowSec + 1000);
       await expect(requestResult).toResolve();
 
       time._end();
@@ -935,8 +935,8 @@ describe('takeNow()', () => {
 
   describe('when there _was_ at least one waiter, but now there are none', () => {
     test('succeeds when there is sufficient available burst', async () => {
-      const now    = 1000;
-      const time   = new MockTimeSource(now);
+      const nowSec = 1000;
+      const time   = new MockTimeSource(nowSec);
       const bucket = new TokenBucket({
         flowRatePerSec: 1, maxBurstSize: 10000, initialBurstSize: 0, timeSource: time });
 
@@ -944,7 +944,7 @@ describe('takeNow()', () => {
       const requestResult = bucket.requestGrant(1);
       expect(PromiseState.isPending(requestResult)).toBeTrue();
       expect(bucket.latestState().waiterCount).toBe(1);
-      const now1 = now + 3;
+      const now1 = nowSec + 3;
       time._setTime(now1);
       await timers.setImmediate();
       expect(PromiseState.isFulfilled(requestResult)).toBeTrue();
