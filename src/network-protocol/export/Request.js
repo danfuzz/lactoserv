@@ -5,7 +5,6 @@ import * as fs from 'node:fs/promises';
 import { ClientRequest, ServerResponse } from 'node:http';
 import * as http2 from 'node:http2';
 
-import etag from 'etag';
 import express from 'express';
 import fresh from 'fresh';
 import rangeParser from 'range-parser';
