@@ -75,7 +75,7 @@ export class Moment {
    * @param {number} secs Number of seconds to add.
    * @returns {Moment} The summed result.
    */
-  addSecs(secs) {
+  addSec(secs) {
     MustBe.number(secs, { finite: true });
     return new Moment(this.#atSec + secs);
   }

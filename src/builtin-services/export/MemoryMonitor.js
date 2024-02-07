@@ -88,7 +88,7 @@ export class MemoryMonitor extends BaseService {
         || (maxRssBytes  && (snapshot.rss  >= maxRssBytes))) {
       if (!snapshot.troubleAt) {
         // We just transitioned to an "over limit" situation.
-        const actionAt = now.addSecs(this.config.gracePeriodSecs);
+        const actionAt = now.addSec(this.config.gracePeriodSecs);
         snapshot.troubleAt = now;
         snapshot.actionAt  = actionAt;
         this.logger?.overLimit({ actionAt });

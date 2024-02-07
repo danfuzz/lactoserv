@@ -75,9 +75,9 @@ ${'isBefore'}
 });
 
 describe.each`
-methodName   | passDuration
-${'add'}     | ${true}
-${'addSecs'} | ${false}
+methodName  | passDuration
+${'add'}    | ${true}
+${'addSec'} | ${false}
 `('$methodName()', ({ methodName, passDuration }) => {
   test.each`
   moment        | secs       | expected
