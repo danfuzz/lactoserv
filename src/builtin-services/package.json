@@ -19,7 +19,7 @@
     "@this/data-values": "*",
     "@this/host": "*",
     "@this/loggy": "*",
-    "@this/network-protocol": "*",
+    "@this/net-protocol": "*",
     "@this/typey": "*"
   }
 }

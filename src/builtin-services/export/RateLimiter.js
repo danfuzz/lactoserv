@@ -5,7 +5,7 @@ import { ServiceConfig } from '@this/sys-config';
 import { BaseService } from '@this/sys-framework';
 import { TokenBucket } from '@this/async';
 import { IntfLogger } from '@this/loggy';
-import { IntfRateLimiter } from '@this/network-protocol';
+import { IntfRateLimiter } from '@this/net-protocol';
 import { MustBe } from '@this/typey';
 
 import { RateLimitedStream } from '#p/RateLimitedStream';

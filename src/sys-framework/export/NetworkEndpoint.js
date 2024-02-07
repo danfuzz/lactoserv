@@ -6,7 +6,7 @@ import { TreePathKey, TreePathMap } from '@this/collections';
 import { IntfLogger } from '@this/loggy';
 import { DispatchInfo, IntfRateLimiter, IntfRequestHandler, IntfRequestLogger,
   ProtocolWrangler, ProtocolWranglers }
-  from '@this/network-protocol';
+  from '@this/net-protocol';
 
 import { BaseApplication } from '#x/BaseApplication';
 import { BaseComponent } from '#x/BaseComponent';

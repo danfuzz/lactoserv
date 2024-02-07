@@ -8,7 +8,7 @@ import { BaseApplication } from '@this/sys-framework';
 import { Paths, Statter } from '@this/fs-util';
 import { IntfLogger } from '@this/loggy';
 import { EtagGenerator, HttpUtil, MimeTypes } from '@this/net-util';
-import { DispatchInfo } from '@this/network-protocol';
+import { DispatchInfo } from '@this/net-protocol';
 
 
 /**

@@ -7,7 +7,7 @@ import { HostConfig } from '@this/sys-config';
 import { TreePathKey, TreePathMap } from '@this/collections';
 import { IntfLogger } from '@this/loggy';
 import { Uris } from '@this/net-util';
-import { IntfHostManager } from '@this/network-protocol';
+import { IntfHostManager } from '@this/net-protocol';
 
 import { HostItem } from '#p/HostItem';
 import { ThisModule } from '#p/ThisModule';

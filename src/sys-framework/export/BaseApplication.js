@@ -3,7 +3,7 @@
 
 import { ApplicationConfig } from '@this/sys-config';
 import { BaseLoggingEnvironment, IntfLogger } from '@this/loggy';
-import { DispatchInfo, IntfRequestHandler, Request } from '@this/network-protocol';
+import { DispatchInfo, IntfRequestHandler, Request } from '@this/net-protocol';
 import { Methods } from '@this/typey';
 
 import { BaseComponent } from '#x/BaseComponent';
