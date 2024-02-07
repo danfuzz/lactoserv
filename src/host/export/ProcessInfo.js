@@ -51,14 +51,14 @@ export class ProcessInfo {
       return;
     }
 
-    const startSecs = (Date.now() - (process.uptime() * 1000)) / 1000;
-    const pid       = process.pid;
-    const ppid      = process.ppid;
+    const startSec = (Date.now() - (process.uptime() * 1000)) / 1000;
+    const pid      = process.pid;
+    const ppid     = process.ppid;
 
     this.#fixedInfo = {
       pid,
       ppid,
-      startedAt: new Moment(startSecs).toPlainObject()
+      startedAt: new Moment(startSec).toPlainObject()
     };
 
     ThisModule.logger.processInfo(this.#fixedInfo);
