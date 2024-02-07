@@ -23,7 +23,7 @@ import { MustBe } from '@this/typey';
  *   FileServiceConfig}.
  * * `{boolean} multiprocess` -- Allow multiple processes to be registered in a
  *   single file. Defaults to `false`.
- * * `{?number} updateSecs` -- How often to update the file, in seconds, or
+ * * `{?number} updateSec` -- How often to update the file, in seconds, or
  *   `null` to not perform updates. Defaults to `null`. It is recommended to
  *   have this be non-`null` when `multiprocess` is used, to minimize the chance
  *   of a concurrency tragedy leaving a messed up file around.
@@ -126,9 +126,9 @@ export class ProcessIdFile extends BaseService {
     while (!this.#runner.shouldStop()) {
       await this.#updateFile(true);
 
-      const { updateSecs } = this.config;
-      const updateTimeout  = updateSecs
-        ? [timers.setTimeout(updateSecs * 1000)]
+      const { updateSec } = this.config;
+      const updateTimeout = updateSec
+        ? [timers.setTimeout(updateSec * 1000)]
         : [];
 
       await this.#runner.raceWhenStopRequested(updateTimeout);
@@ -214,7 +214,7 @@ export class ProcessIdFile extends BaseService {
      * @type {?number} How often to update the info file, in seconds, or `null`
      * to not perform updates.
      */
-    #updateSecs;
+    #updateSec;
 
     /**
      * Constructs an instance.
@@ -227,9 +227,9 @@ export class ProcessIdFile extends BaseService {
       this.#multiprocess = (typeof config.multiprocess === 'boolean')
         ? config.multiprocess
         : MustBe.null(config.multiprocess ?? null);
-      this.#updateSecs = config.updateSecs
-        ? MustBe.number(config.updateSecs, { finite: true, minInclusive: 1 })
-        : MustBe.null(config.updateSecs ?? null);
+      this.#updateSec = config.updateSec
+        ? MustBe.number(config.updateSec, { finite: true, minInclusive: 1 })
+        : MustBe.null(config.updateSec ?? null);
     }
 
     /** @returns {boolean} Allow multiple processes to be listed in the file? */
@@ -241,8 +241,8 @@ export class ProcessIdFile extends BaseService {
      * @returns {?number} How often to update the info file, in seconds, or
      * `null` to not perform updates.
      */
-    get updateSecs() {
-      return this.#updateSecs;
+    get updateSec() {
+      return this.#updateSec;
     }
   };
 }

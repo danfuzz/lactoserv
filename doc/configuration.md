@@ -343,14 +343,14 @@ A service which occasionally checks the system's memory usage, and will force a
 period to allow momentary usage spikes. It accepts the following configuration
 bindings:
 
-* `checkSecs` &mdash; How often to check for memory usage being over the
+* `checkSec` &mdash; How often to check for memory usage being over the
   defined limit, in seconds. Optional. Minimum `1` (which is frankly way too
   often). Default `5 * 60` (once every five minutes).
-* `gracePeriodSecs` &mdash; Once a memory limit has been reached, how long, in
+* `gracePeriodSec` &mdash; Once a memory limit has been reached, how long, in
   seconds, it is allowed to remain at or beyond the maximum before this service
   takes action. `0` (or `null`) to not have a grace period at all. Default `0`.
   **Note:**: When in the middle of a grace period, the service will check
-  memory usage more often than `checkSecs` so as not to miss a significant dip.
+  memory usage more often than `checkSec` so as not to miss a significant dip.
 * `maxHeapBytes` &mdash; How many bytes of heap is considered "over limit," or
   `null` for no limit on this. The amount counted is `heapTotal + external` from
   `process.memoryUsage()`. Defaults to `null`. **Note:** In order to catch
@@ -366,8 +366,8 @@ const services = [
   {
     name:            'memory',
     class:           'MemoryMonitor',
-    checkSecs:       5 * 60,
-    gracePeriodSecs: 60,
+    checkSec:        5 * 60,
+    gracePeriodSec:  60,
     maxHeapBytes:    100 * 1024 * 1024,
     maxRssBytes:     150 * 1024 * 1024
   }
@@ -387,7 +387,7 @@ optionally on a periodic basis. It accepts the following configuration bindings:
   Optional and defaults to `false`. If `true`, whenever the file is written, it
   is read first and any process IDs found in it are kept if they are in fact
   still running.
-* `updateSecs` &mdash; How long to wait between each file update, in seconds.
+* `updateSec` &mdash; How long to wait between each file update, in seconds.
   Optional and defaults to "never." This is only meaningfully used when
   `multiprocess` is `true`.
 
@@ -398,7 +398,7 @@ const services = [
     class:        'ProcessIdFile',
     path:         '/path/to/var/run/process.txt',
     multiprocess: true,
-    updateSecs:   60 * 60
+    updateSec:    60 * 60
   }
 ];
 ```
@@ -413,7 +413,7 @@ configuration bindings:
 
 * `path` &mdash; Path to the file, with the final path component modified by
   infixing the process ID.
-* `updateSecs` &mdash; How many seconds to wait between each file update while
+* `updateSec` &mdash; How many seconds to wait between each file update while
   the system is running. Optional and defaults to "never."
 * `save` &mdash; Optional file preservation configuration. If not specified, no
   file preservation is done.
@@ -424,7 +424,7 @@ const services = [
     name:       'process',
     class:      'ProcessInfoFile',
     path:       '/path/to/var/run/process.json',
-    updateSecs: 5 * 60,
+    updateSec:  5 * 60,
     save:       { /* ... */ }
   }
 ];
@@ -577,7 +577,7 @@ following bindings:
 * `atSize` &mdash; Rotate when the file becomes the given size (in bytes) or
   greater. Optional, and if not specified (or if `null`), does not rotate based
   on size.
-* `checkSecs` &mdash; How often to check for a rotation condition, in seconds.
+* `checkSec` &mdash; How often to check for a rotation condition, in seconds.
   Optional, and if not specified (or if `null`), does not ever check at all.
   This is only meaningful if `atSize` is also specified. Default `5 * 60`.
 * `maxOldBytes` &mdash; How many bytes' worth of old (post-rotation) files

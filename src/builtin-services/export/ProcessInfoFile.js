@@ -22,7 +22,7 @@ import { MustBe } from '@this/typey';
  *
  * * Bindings as defined by the superclass configuration, {@link
  *   FileServiceConfig}. Supports `save`.
- * * `{?number} updateSecs` -- How often to update the file, in seconds, or
+ * * `{?number} updateSec` -- How often to update the file, in seconds, or
  *   `null` to not perform updates. Defaults to `null`.
  *
  * **Note:** See {@link #ProcessIdFile} for a service which writes minimal
@@ -194,9 +194,9 @@ export class ProcessInfoFile extends BaseService {
       this.#updateContents();
       await this.#writeFile();
 
-      const { updateSecs } = this.config;
-      const updateTimeout = updateSecs
-        ? [timers.setTimeout(updateSecs * 1000)]
+      const { updateSec } = this.config;
+      const updateTimeout = updateSec
+        ? [timers.setTimeout(updateSec * 1000)]
         : [];
 
       await this.#runner.raceWhenStopRequested(updateTimeout);
@@ -249,12 +249,12 @@ export class ProcessInfoFile extends BaseService {
    * Updates {@link #contents} to reflect the latest conditions.
    */
   #updateContents() {
-    const updatedAtSecs = Date.now() / 1000;
+    const updatedAtSec = Date.now() / 1000;
 
     this.#contents.disposition = {
       running:   true,
-      updatedAt: new Moment(updatedAtSecs).toPlainObject(),
-      uptime:    new Duration(updatedAtSecs - this.#contents.startedAt.atSec).toPlainObject()
+      updatedAt: new Moment(updatedAtSec).toPlainObject(),
+      uptime:    new Duration(updatedAtSec - this.#contents.startedAt.atSec).toPlainObject()
     };
 
     Object.assign(this.#contents, ProcessInfo.ephemeralInfo);
@@ -294,7 +294,7 @@ export class ProcessInfoFile extends BaseService {
      * @type {?number} How often to update the info file, in seconds, or `null`
      * to not perform updates.
      */
-    #updateSecs;
+    #updateSec;
 
     /**
      * Constructs an instance.
@@ -304,17 +304,17 @@ export class ProcessInfoFile extends BaseService {
     constructor(config) {
       super(config);
 
-      this.#updateSecs = config.updateSecs
-        ? MustBe.number(config.updateSecs, { finite: true, minInclusive: 1 })
-        : MustBe.null(config.updateSecs ?? null);
+      this.#updateSec = config.updateSec
+        ? MustBe.number(config.updateSec, { finite: true, minInclusive: 1 })
+        : MustBe.null(config.updateSec ?? null);
     }
 
     /**
      * @returns {?number} How often to update the info file, in seconds, or
      * `null` to not perform updates.
      */
-    get updateSecs() {
-      return this.#updateSecs;
+    get updateSec() {
+      return this.#updateSec;
     }
   };
 }

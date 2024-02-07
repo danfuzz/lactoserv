@@ -29,18 +29,18 @@ const hosts = [
 // Service definitions.
 const services = [
   {
-    name:            'memory',
-    class:           'MemoryMonitor',
-    checkSecs:       10 * 60,
-    gracePeriodSecs: 60,
-    maxHeapBytes:    100 * 1024 * 1024,
-    maxRssBytes:     150 * 1024 * 1024
+    name:           'memory',
+    class:          'MemoryMonitor',
+    checkSec:       10 * 60,
+    gracePeriodSec: 60,
+    maxHeapBytes:   100 * 1024 * 1024,
+    maxRssBytes:    150 * 1024 * 1024
   },
   {
     name:       'process',
     class:      'ProcessInfoFile',
     path:       `${RUN_DIR}/process.json`,
-    updateSecs:  5 * 60,
+    updateSec:  5 * 60,
     save: {
       onStart:     true,
       onStop:      true,
@@ -52,7 +52,7 @@ const services = [
     class:        'ProcessIdFile',
     path:         `${RUN_DIR}/process.txt`,
     multiprocess: true,
-    updateSecs:   5 * 60
+    updateSec:    5 * 60
   },
   {
     name:   'syslog',
@@ -63,7 +63,7 @@ const services = [
       atSize:      1024 * 1024,
       onStart:     true,
       maxOldBytes: 10 * 1024 * 1024,
-      checkSecs:   60
+      checkSec:    60
     }
   },
   {
@@ -78,7 +78,7 @@ const services = [
       onStop:      true,
       maxOldBytes: 10 * 1024 * 1024,
       maxOldCount: 10,
-      checkSecs:   60
+      checkSec:    60
     }
   },
   {
@@ -88,7 +88,7 @@ const services = [
     rotate: {
       atSize:      10000,
       maxOldCount: 10,
-      checkSecs:   60
+      checkSec:    60
     }
   },
   {

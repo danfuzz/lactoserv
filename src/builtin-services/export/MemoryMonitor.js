@@ -16,14 +16,14 @@ import { MustBe } from '@this/typey';
  * Service which monitors the system's memory usage and can initiate shutdown
  * before a memory problem becomes dire. Configuration object details:
  *
- * * `{?number} checkSecs` -- How often to check things, in seconds, or `null`
+ * * `{?number} checkSec` -- How often to check things, in seconds, or `null`
  *   to use the default frequency. Minimum `1`. Defaults to `60` (once per
  *   minute).
- * * `{?number} gracePeriodSecs` -- Once a memory limit has been reached, how
+ * * `{?number} gracePeriodSec` -- Once a memory limit has been reached, how
  *   long it is allowed to remain at or beyond the maximum before this service
  *   takes action, or `null` not to have a grace period at all (equivalent to
  *   `0`). When in the middle of a grace period, the system checks more often
- *   than `checkSecs` so as not to miss a significant dip. Defaults to `null`.
+ *   than `checkSec` so as not to miss a significant dip. Defaults to `null`.
  * * `{?number} maxHeapBytes` -- How many bytes of heap is considered "over
  *   limit," or `null` for no limit on this. The amount counted is `heapTotal +
  *   external` from `process.memoryUsage()`. Defaults to `null`. **Note:** In
@@ -88,7 +88,7 @@ export class MemoryMonitor extends BaseService {
         || (maxRssBytes  && (snapshot.rss  >= maxRssBytes))) {
       if (!snapshot.troubleAt) {
         // We just transitioned to an "over limit" situation.
-        const actionAt = now.addSec(this.config.gracePeriodSecs);
+        const actionAt = now.addSec(this.config.gracePeriodSec);
         snapshot.troubleAt = now;
         snapshot.actionAt  = actionAt;
         this.logger?.overLimit({ actionAt });
@@ -110,7 +110,7 @@ export class MemoryMonitor extends BaseService {
    * Runs the service thread.
    */
   async #run() {
-    const checkMsec = this.config.checkSecs * 1000;
+    const checkMsec = this.config.checkSec * 1000;
 
     while (!this.#runner.shouldStop()) {
       const snapshot = this.#takeSnapshot();
@@ -169,10 +169,10 @@ export class MemoryMonitor extends BaseService {
    */
   static #Config = class Config extends ServiceConfig {
     /** @type {number} How often to check, in seconds. */
-    #checkSecs;
+    #checkSec;
 
     /** @type {number} Grace period before triggering an action, in seconds. */
-    #gracePeriodSecs;
+    #gracePeriodSec;
 
     /**
      * @type {?number} Maximum allowed size of heap usage, in bytes, or `null`
@@ -195,18 +195,18 @@ export class MemoryMonitor extends BaseService {
       super(config);
 
       const {
-        checkSecs       = null,
-        gracePeriodSecs = null,
-        maxHeapBytes    = null,
-        maxRssBytes     = null
+        checkSec       = null,
+        gracePeriodSec = null,
+        maxHeapBytes   = null,
+        maxRssBytes    = null
       } = config;
 
-      this.#checkSecs = (checkSecs === null)
+      this.#checkSec = (checkSec === null)
         ? 5 * 60
-        : MustBe.number(checkSecs, { finite: true, minInclusive: 1 });
-      this.#gracePeriodSecs = (gracePeriodSecs === null)
+        : MustBe.number(checkSec, { finite: true, minInclusive: 1 });
+      this.#gracePeriodSec = (gracePeriodSec === null)
         ? 0
-        : MustBe.number(gracePeriodSecs, { finite: true, minInclusive: 0 });
+        : MustBe.number(gracePeriodSec, { finite: true, minInclusive: 0 });
       this.#maxHeapBytes = (maxHeapBytes === null)
         ? null
         : MustBe.number(maxHeapBytes, { finite: true, minInclusive: 1024 * 1024 });
@@ -216,15 +216,15 @@ export class MemoryMonitor extends BaseService {
     }
 
     /** @returns {number} How often to check, in seconds. */
-    get checkSecs() {
-      return this.#checkSecs;
+    get checkSec() {
+      return this.#checkSec;
     }
 
     /**
      * @returns {number} Grace period before triggering an action, in seconds.
      */
-    get gracePeriodSecs() {
-      return this.#gracePeriodSecs;
+    get gracePeriodSec() {
+      return this.#gracePeriodSec;
     }
 
     /**
