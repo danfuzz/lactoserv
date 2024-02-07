@@ -35,9 +35,9 @@ export class Rotator extends BaseFilePreserver {
 
     this.#config = MustBe.instanceOf(config, FileServiceConfig);
 
-    this.#checkMsec = (config.rotate.checkSecs === null)
+    this.#checkMsec = (config.rotate.checkSec === null)
       ? null
-      : config.rotate.checkSecs * 1000;
+      : config.rotate.checkSec * 1000;
   }
 
   /** @override */

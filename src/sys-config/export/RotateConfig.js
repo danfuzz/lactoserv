@@ -17,7 +17,7 @@ import { SaveConfig } from '#x/SaveConfig';
  * * `{?number} atSize` -- Rotate when the file becomes the given size (in
  *   bytes) or greater. If `null`, does not rotate based on size. Default
  *  `null`.
- * * `{?number} checkSecs` -- How often to check for a rotation condition, in
+ * * `{?number} checkSec` -- How often to check for a rotation condition, in
  *   seconds, or `null` to not check. This is only meaningful if `atSize` is
  *   also specified. Default `5 * 60`.
  */
@@ -29,7 +29,7 @@ export class RotateConfig extends SaveConfig {
    * @type {?number} How often to check for rotation eligibility, in seconds, if
    * at all.
    */
-  #checkSecs;
+  #checkSec;
 
   /**
    * Constructs an instance.
@@ -40,18 +40,18 @@ export class RotateConfig extends SaveConfig {
     super(config);
 
     const {
-      atSize      = null,
-      checkSecs   = 5 * 60
+      atSize   = null,
+      checkSec = 5 * 60
     } = config;
 
     this.#atSize = (atSize === null)
       ? null
       : MustBe.number(atSize, { finite: true, minInclusive: 1 });
-    this.#checkSecs = MustBe.number(checkSecs, { finite: true, minInclusive: 1 });
+    this.#checkSec = MustBe.number(checkSec, { finite: true, minInclusive: 1 });
 
     if (this.#atSize === null) {
-      // `checkSecs` is irrelevant in this case.
-      this.#checkSecs = null;
+      // `checkSec` is irrelevant in this case.
+      this.#checkSec = null;
     }
   }
 
@@ -67,7 +67,7 @@ export class RotateConfig extends SaveConfig {
    * @returns {?number} How often to check for rotation eligibility, in seconds,
    * or `null` not to ever check.
    */
-  get checkSecs() {
-    return this.#checkSecs;
+  get checkSec() {
+    return this.#checkSec;
   }
 }
