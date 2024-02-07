@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Moment } from '@this/data-values';
+import { Duration, Moment } from '@this/data-values';
 import { IntfTimeSource, StdTimeSource } from '@this/metacomp';
 import { MustBe } from '@this/typey';
 
@@ -271,8 +271,8 @@ export class TokenBucket {
    *     call to {@link #denyAllRequests} which is currently in progress.
    *   * `full` -- This request would cause the waiter queue to be too large
    *     (including the case where `maxQueueSize === 0`).
-   * * `{number} waitTimeSec` -- The amount of time (in seconds) that was spent
-   *   waiting for the grant.
+   * * `{Duration} waitTime` -- The amount of time that was spent waiting for
+   *   the grant.
    *
    * @param {number|object} quantity Requested quantity of tokens, as described
    *   above.
@@ -289,12 +289,12 @@ export class TokenBucket {
       this.#topUpBucket();
       const got = this.#grantNow(minInclusive, maxInclusive);
       if (got.done) {
-        return this.#requestGrantResult(got.grant, 'grant', 0);
+        return this.#requestGrantResult(got.grant, 'grant', Duration.ZERO);
       }
     }
 
     if (minInclusive === 0) {
-      return this.#requestGrantResult(0, 'grant', 0);
+      return this.#requestGrantResult(0, 'grant', Duration.ZERO);
     }
 
     // The request could not be completed synchronously. Figure out if it should
@@ -307,7 +307,7 @@ export class TokenBucket {
       // Either the instance doesn't do queueing at all (`grant === 0`) or the
       // wait queue would overflow if this grant were queued up. So immediately
       // fail.
-      return this.#requestGrantResult(0, 'full', 0);
+      return this.#requestGrantResult(0, 'full', Duration.ZERO);
     }
 
     // Queue up a new request, and make sure the waiter queue servicer thread is
@@ -507,12 +507,12 @@ export class TokenBucket {
    *
    * @param {number} grant Grant amount.
    * @param {string} reason Grant (or lack thereof) reason.
-   * @param {number} waitTimeSec Amount of time spent waiting, in seconds.
+   * @param {Duration} waitTime Amount of time spent waiting, in seconds.
    * @returns {object} An appropriately-constructed result.
    */
-  #requestGrantResult(grant, reason, waitTimeSec) {
+  #requestGrantResult(grant, reason, waitTime) {
     const done = (reason === 'grant');
-    return { done, grant, reason, waitTimeSec };
+    return { done, grant, reason, waitTime };
   }
 
   /**
@@ -544,8 +544,8 @@ export class TokenBucket {
       if (got.done) {
         this.#waiters.shift();
         this.#queueSize -= info.grant;
-        const waitTimeSec = this.#lastNowSec - info.startTime;
-        info.doGrant(this.#requestGrantResult(got.grant, 'grant', waitTimeSec));
+        const waitTime = new Duration(this.#lastNowSec - info.startTime);
+        info.doGrant(this.#requestGrantResult(got.grant, 'grant', waitTime));
       } else {
         await this.#waiterThread.raceWhenStopRequested([
           this.#waitUntil(got.waitUntil)
@@ -558,8 +558,8 @@ export class TokenBucket {
       // `denyAllRequests()` was called. So, deny all requests.
       this.#topUpBucket(); // Makes `#lastTime` be current.
       for (const info of this.#waiters) {
-        const waitTimeSec = this.#lastNowSec - info.startTime;
-        info.doGrant(this.#requestGrantResult(0, 'stopping', waitTimeSec));
+        const waitTime = new Duration(this.#lastNowSec - info.startTime);
+        info.doGrant(this.#requestGrantResult(0, 'stopping', waitTime));
       }
 
       this.#waiters = [];
