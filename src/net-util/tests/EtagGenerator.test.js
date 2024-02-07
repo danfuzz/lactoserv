@@ -17,7 +17,7 @@ ${'expandOptions()'} | ${false}
     } else {
       return EtagGenerator.expandOptions(options);
     }
-  }
+  };
 
   test('does not throw if not passed any options', () => {
     expect(() => doCall()).not.toThrow();
