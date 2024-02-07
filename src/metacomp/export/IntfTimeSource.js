@@ -24,17 +24,6 @@ export class IntfTimeSource {
   }
 
   /**
-   * Gets the current time, as a standard Unix Epoch time in seconds (_not_
-   * milliseconds).
-   *
-   * @abstract
-   * @returns {number} The current time.
-   */
-  nowSec() {
-    return Methods.abstract();
-  }
-
-  /**
    * Async-returns `null` when {@link #now} would return a value at or beyond
    * the given time, with the hope that the actual time will be reasonably
    * close.

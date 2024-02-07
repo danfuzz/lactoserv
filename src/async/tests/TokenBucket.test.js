@@ -74,10 +74,6 @@ class MockTimeSource extends IntfTimeSource {
     return this.#now;
   }
 
-  nowSec() {
-    return this.now().atSec;
-  }
-
   async waitUntil(time) {
     if (this.#ended) {
       throw new Error(`MockTimeSource ended! (Time was ${this.#now.atSec}.)`);
