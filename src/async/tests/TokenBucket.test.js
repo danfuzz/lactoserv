@@ -4,42 +4,92 @@
 import * as timers from 'node:timers/promises';
 
 import { ManualPromise, PromiseState, TokenBucket } from '@this/async';
+import { Duration, Moment } from '@this/data-values';
 import { IntfTimeSource, StdTimeSource } from '@this/metacomp';
 
+/**
+ * Helper to check grant return values from `requestGrant()`.
+ *
+ * @param {Promise} grantPromise Promise for a grant return value object.
+ * @param {object} expected Expected values.
+ */
+async function checkGrant(grantPromise, expected) {
+  expect(grantPromise).toBeInstanceOf(Promise);
+
+  const grant = await grantPromise;
+
+  expect(grant).toBeObject();
+
+  const waitTimeSec = (expected.waitTime instanceof Duration)
+    ? expected.waitTime.secs
+    : expected.waitTime;
+
+  expect(grant.done).toBe(expected.done);
+  expect(grant.grant).toBe(expected.grant);
+  expect(grant.reason).toBe(expected.reason);
+  expect(grant.waitTime).toBeInstanceOf(Duration);
+  expect(grant.waitTime.secs).toBe(waitTimeSec);
+}
+
+/**
+ * Helper to check grant return values from `takeNow()`.
+ *
+ * @param {object} grant A grant return value from `takeNow()`.
+ * @param {object} expected Expected values.
+ */
+function checkTakeNow(grant, expected) {
+  expect(grant).toBeObject();
+
+  expect(grant.done).toBe(expected.done);
+  expect(grant.grant).toBe(expected.grant);
+  expect(grant.waitUntil).toBeInstanceOf(Moment);
+
+  if (expected.waitUntil !== 'any') {
+    const waitUntilSec = (expected.waitUntil instanceof Moment)
+      ? expected.waitUntil.atSecs
+      : expected.waitUntil;
+
+    expect(grant.waitUntil.atSec).toBe(waitUntilSec);
+  }
+}
 
 /**
  * Mock implementation of `IntfTimeSource`.
  */
 class MockTimeSource extends IntfTimeSource {
-  #nowSec   = 0;
+  #now;
   #timeouts = [];
   #ended    = false;
 
   constructor(firstNow = 0) {
     super();
-    this.#nowSec = firstNow;
+    this.#now = new Moment(firstNow);
+  }
+
+  now() {
+    if (this.#ended) {
+      throw new Error(`MockTimeSource ended! (Time was ${this.#now.atSec}.)`);
+    }
+
+    return this.#now;
   }
 
   nowSec() {
-    if (this.#ended) {
-      throw new Error(`MockTimeSource ended! (Time was ${this.#nowSec}.)`);
-    }
-
-    return this.#nowSec;
+    return this.now().atSec;
   }
 
   async waitUntil(time) {
     if (this.#ended) {
-      throw new Error(`MockTimeSource ended! (Time was ${this.#nowSec}.)`);
+      throw new Error(`MockTimeSource ended! (Time was ${this.#now.atSec}.)`);
     }
 
-    if (time <= this.#nowSec) {
+    if (time.atSec <= this.#now.atSec) {
       return;
     }
 
     const mp = new ManualPromise();
     this.#timeouts.push({
-      at:      time,
+      at:      time.atSec,
       resolve: () => mp.resolve()
     });
 
@@ -55,7 +105,7 @@ class MockTimeSource extends IntfTimeSource {
   }
 
   _setTime(nowSec) {
-    this.#nowSec = nowSec;
+    this.#now = new Moment(nowSec);
     this.#timeouts.sort((a, b) => {
       if (a.at < b.at) return -1;
       if (a.at > b.at) return 1;
@@ -165,7 +215,7 @@ describe('constructor()', () => {
     const ts = new MockTimeSource(321);
     const bucket = new TokenBucket({ flowRatePerSec: 1, maxBurstSize: 1, timeSource: ts });
     expect(bucket.config.timeSource).toBe(ts);
-    expect(bucket.latestState().nowSec).toBe(321);
+    expect(bucket.latestState().now.atSec).toBe(321);
   });
 
   test('produces an instance which (apparently) uses the default time source if not passed `timeSource`', () => {
@@ -365,9 +415,10 @@ describe('denyAllRequests()', () => {
     expect(PromiseState.isFulfilled(result1)).toBeTrue();
     expect(PromiseState.isFulfilled(result2)).toBeTrue();
     expect(PromiseState.isFulfilled(result3)).toBeTrue();
-    expect(await result1).toStrictEqual({ done: false, grant: 0, reason: 'stopping', waitTimeSec: 987 });
-    expect(await result2).toStrictEqual({ done: false, grant: 0, reason: 'stopping', waitTimeSec: 987 });
-    expect(await result3).toStrictEqual({ done: false, grant: 0, reason: 'stopping', waitTimeSec: 987 });
+
+    await checkGrant(result1, { done: false, grant: 0, reason: 'stopping', waitTime: 987 });
+    await checkGrant(result2, { done: false, grant: 0, reason: 'stopping', waitTime: 987 });
+    await checkGrant(result3, { done: false, grant: 0, reason: 'stopping', waitTime: 987 });
 
     time._end();
   });
@@ -383,7 +434,7 @@ describe('requestGrant()', () => {
       const result = bucket.requestGrant(123);
       expect(bucket.latestState().availableBurstSize).toBe(0);
       expect(bucket.latestState().waiterCount).toBe(0);
-      expect(await result).toStrictEqual({ done: true, grant: 123, reason: 'grant', waitTimeSec: 0 });
+      await checkGrant(result, { done: true, grant: 123, reason: 'grant', waitTime: 0 });
 
       time._end();
     });
@@ -397,7 +448,7 @@ describe('requestGrant()', () => {
       const result = bucket.requestGrant(300);
       expect(bucket.latestState().availableBurstSize).toBe(21);
       expect(bucket.latestState().waiterCount).toBe(0);
-      expect(await result).toStrictEqual({ done: true, grant: 300, reason: 'grant', waitTimeSec: 0 });
+      await checkGrant(result, { done: true, grant: 300, reason: 'grant', waitTime: 0 });
 
       time._end();
     });
@@ -410,7 +461,7 @@ describe('requestGrant()', () => {
       const result = bucket.requestGrant({ minInclusive: 0, maxInclusive: 25 });
       expect(bucket.latestState().availableBurstSize).toBe(0);
       expect(bucket.latestState().waiterCount).toBe(0);
-      expect(await result).toStrictEqual({ done: true, grant: 0, reason: 'grant', waitTimeSec: 0 });
+      await checkGrant(result, { done: true, grant: 0, reason: 'grant', waitTime: 0 });
 
       time._end();
     });
@@ -423,7 +474,7 @@ describe('requestGrant()', () => {
       const result = bucket.requestGrant({ minInclusive: 0, maxInclusive: 100 });
       expect(bucket.latestState().availableBurstSize).toBe(0);
       expect(bucket.latestState().waiterCount).toBe(0);
-      expect(await result).toStrictEqual({ done: true, grant: 96, reason: 'grant', waitTimeSec: 0 });
+      await checkGrant(result, { done: true, grant: 96, reason: 'grant', waitTime: 0 });
 
       time._end();
     });
@@ -447,7 +498,7 @@ describe('requestGrant()', () => {
       expect(PromiseState.isPending(request1)).toBeTrue();
       expect(PromiseState.isFulfilled(request2)).toBeTrue();
 
-      expect(await request2).toStrictEqual({ done: true, grant: 0, reason: 'grant', waitTimeSec: 0 });
+      await checkGrant(request2, { done: true, grant: 0, reason: 'grant', waitTime: 0 });
 
       // Get the bucket to quiesce.
       time._setTime(nowSec + 1000);
@@ -472,7 +523,7 @@ describe('requestGrant()', () => {
       expect(bucket.latestState().waiterCount).toBe(1);
       await timers.setImmediate();
       expect(PromiseState.isFulfilled(request2)).toBeTrue();
-      expect(await request2).toStrictEqual({ done: false, grant: 0, reason: 'full', waitTimeSec: 0 });
+      await checkGrant(request2, { done: false, grant: 0, reason: 'full', waitTime: 0 });
 
       // Get the bucket to quiesce.
       time._setTime(nowSec + 1000);
@@ -497,7 +548,7 @@ describe('requestGrant()', () => {
       expect(bucket.latestState().waiterCount).toBe(1);
       await timers.setImmediate();
       expect(PromiseState.isFulfilled(request2)).toBeTrue();
-      expect(await request2).toStrictEqual({ done: false, grant: 0, reason: 'full', waitTimeSec: 0 });
+      await checkGrant(request2, { done: false, grant: 0, reason: 'full', waitTime: 0 });
 
       // Get the bucket to quiesce.
       time._setTime(nowSec + 1000);
@@ -518,7 +569,7 @@ describe('requestGrant()', () => {
       time._setTime(nowSec + 321);
       await timers.setImmediate();
       expect(PromiseState.isFulfilled(request)).toBeTrue();
-      expect(await request).toStrictEqual({ done: true, grant: 50, reason: 'grant', waitTimeSec: 321 });
+      await checkGrant(request, { done: true, grant: 50, reason: 'grant', waitTime: 321 });
 
       time._end();
     });
@@ -535,7 +586,7 @@ describe('requestGrant()', () => {
       time._setTime(nowSec + 90909);
       await timers.setImmediate();
       expect(PromiseState.isFulfilled(request)).toBeTrue();
-      expect(await request).toStrictEqual({ done: true, grant: 100, reason: 'grant', waitTimeSec: 90909 });
+      await checkGrant(request, { done: true, grant: 100, reason: 'grant', waitTime: 90909 });
 
       time._end();
     });
@@ -573,9 +624,9 @@ describe('requestGrant()', () => {
       expect(PromiseState.isFulfilled(request2)).toBeTrue();
       expect(PromiseState.isFulfilled(request3)).toBeTrue();
 
-      expect(await request1).toStrictEqual({ done: true, grant: 10, reason: 'grant', waitTimeSec: 10 });
-      expect(await request2).toStrictEqual({ done: true, grant: 20, reason: 'grant', waitTimeSec: 10 + 20 });
-      expect(await request3).toStrictEqual({ done: true, grant: 30, reason: 'grant', waitTimeSec: 10 + 20 + 30 });
+      await checkGrant(request1, { done: true, grant: 10, reason: 'grant', waitTime: 10 });
+      await checkGrant(request2, { done: true, grant: 20, reason: 'grant', waitTime: 10 + 20 });
+      await checkGrant(request3, { done: true, grant: 30, reason: 'grant', waitTime: 10 + 20 + 30 });
 
       time._end();
     });
@@ -655,7 +706,7 @@ describe('latestState()', () => {
   test('has exactly the expected properties', () => {
     const bucket = new TokenBucket({ flowRatePerSec: 123, maxBurstSize: 100000 });
     expect(bucket.latestState()).toContainAllKeys([
-      'availableBurstSize', 'availableQueueSize', 'nowSec', 'waiterCount'
+      'availableBurstSize', 'availableQueueSize', 'now', 'waiterCount'
     ]);
   });
 
@@ -665,13 +716,13 @@ describe('latestState()', () => {
       flowRatePerSec: 1, maxBurstSize: 10000, initialBurstSize: 100, timeSource: time });
 
     const baseResult = bucket.latestState();
-    expect(baseResult.nowSec).toBe(900);
+    expect(baseResult.now.atSec).toBe(900);
     expect(baseResult.availableBurstSize).toBe(100);
 
     time._setTime(901);
     expect(bucket.latestState()).toStrictEqual(baseResult);
 
-    time.nowSec = () => { throw new Error('oy!'); };
+    time.now = () => { throw new Error('oy!'); };
     expect(() => bucket.latestState()).not.toThrow();
 
     time._end();
@@ -730,7 +781,8 @@ describe('takeNow()', () => {
         flowRatePerSec: 1, maxBurstSize: 10000, initialBurstSize: 123, timeSource: time });
 
       const result = bucket.takeNow(123);
-      expect(result).toStrictEqual({ done: true, grant: 123, waitUntil: nowSec });
+      checkTakeNow(result, { done: true, grant: 123, waitUntil: nowSec });
+
       expect(bucket.latestState().availableBurstSize).toBe(0);
 
       time._end();
@@ -743,9 +795,7 @@ describe('takeNow()', () => {
         flowRatePerSec: 5, maxBurstSize: 10000, initialBurstSize: 100, timeSource: time });
 
       const result = bucket.takeNow({ minInclusive: 10, maxInclusive: 110 });
-      expect(result.done).toBeTrue();
-      expect(result.grant).toBe(100);
-      expect(result.waitUntil).toBe(nowSec + 0);
+      checkTakeNow(result, { done: true, grant: 100, waitUntil: nowSec + 0 });
 
       expect(bucket.latestState().availableBurstSize).toBe(0);
 
@@ -756,15 +806,15 @@ describe('takeNow()', () => {
       const nowSec = 91400;
       const time   = new MockTimeSource(nowSec);
       const bucket = new TokenBucket({
-        flowRatePerSec: 5, maxBurstSize: 10000, initialBurstSize: 75, maxQueueGrantSize: 50, timeSource: time });
+        flowRatePerSec: 5, maxBurstSize: 10000, initialBurstSize: 75,
+        maxQueueGrantSize: 50, timeSource: time
+      });
 
       // Notably, this is not supposed to be clamped to `maxQueueGrantSize`,
       // because this request isn't being queued (that is, there's no
       // contention.)
-      const result1 = bucket.takeNow({ minInclusive: 10, maxInclusive: 200 });
-      expect(result1.done).toBeTrue();
-      expect(result1.grant).toBe(75);
-      expect(result1.waitUntil).toBe(nowSec + 0);
+      const result = bucket.takeNow({ minInclusive: 10, maxInclusive: 200 });
+      checkTakeNow(result, { done: true, grant: 75, waitUntil: nowSec + 0 });
 
       expect(bucket.latestState().availableBurstSize).toBe(0);
 
@@ -780,13 +830,11 @@ describe('takeNow()', () => {
       const now1 = nowSec + 1; // Enough for 5 tokens to become available.
       time._setTime(now1);
       const result = bucket.takeNow({ minInclusive: 0, maxInclusive: 10 });
-      expect(result.done).toBeTrue();
-      expect(result.grant).toBe(5);
-      expect(result.waitUntil).toBe(now1 + 0);
+      checkTakeNow(result, { done: true, grant: 5, waitUntil: now1 + 0 });
 
       const latest = bucket.latestState();
       expect(latest.availableBurstSize).toBe(0);
-      expect(latest.nowSec).toBe(1001);
+      expect(latest.now.atSec).toBe(1001);
 
       time._end();
     });
@@ -795,12 +843,15 @@ describe('takeNow()', () => {
       const nowSec = 1000;
       const time   = new MockTimeSource(nowSec);
       const bucket = new TokenBucket({
-        flowRatePerSec: 5, maxBurstSize: 100, initialBurstSize: 0, maxQueueGrantSize: 10, timeSource: time });
+        flowRatePerSec: 5, maxBurstSize: 100, initialBurstSize: 0,
+        maxQueueGrantSize: 10, timeSource: time
+      });
 
       const result = bucket.takeNow({ minInclusive: 2, maxInclusive: 91 });
+      checkTakeNow(result, { done: false, grant: 0, waitUntil: nowSec + (10/5) });
       expect(result.done).toBeFalse();
       expect(result.grant).toBe(0);
-      expect(result.waitUntil).toBe(nowSec + (10 / 5));
+      expect(result.waitUntil.atSec).toBe(nowSec + (10 / 5));
 
       time._end();
     });
@@ -809,12 +860,12 @@ describe('takeNow()', () => {
       const nowSec = 1000;
       const time   = new MockTimeSource(nowSec);
       const bucket = new TokenBucket({
-        flowRatePerSec: 10, maxBurstSize: 100, initialBurstSize: 5, maxQueueGrantSize: 20, timeSource: time });
+        flowRatePerSec: 10, maxBurstSize: 100, initialBurstSize: 5,
+        maxQueueGrantSize: 20, timeSource: time
+      });
 
       const result = bucket.takeNow({ minInclusive: 12, maxInclusive: 31 });
-      expect(result.done).toBeFalse();
-      expect(result.grant).toBe(0);
-      expect(result.waitUntil).toBe(nowSec + (20 - 5) / 10);
+      checkTakeNow(result, { done: false, grant: 0, waitUntil: nowSec + (20 - 5) / 10 });
 
       time._end();
     });
@@ -829,12 +880,15 @@ describe('takeNow()', () => {
         ${6.1}    | ${3}         | ${5.2}       | ${{ done: true,  grant: 5 }}
       `('will not grant a partial token even if requested and "available": $minInclusive .. $maxInclusive with $available available',
         ({ available, minInclusive, maxInclusive, expected }) => {
+          const nowSec = 10;
+          const time   = new MockTimeSource(nowSec);
           const bucket = new TokenBucket({
-            partialTokens: false, flowRatePerSec: 1, maxBurstSize: 100, initialBurstSize: available });
+            partialTokens: false, flowRatePerSec: 1, maxBurstSize: 100,
+            initialBurstSize: available, timeSource: time
+          });
 
           const result = bucket.takeNow({ minInclusive, maxInclusive });
-          expect(result.done).toBe(expected.done);
-          expect(result.grant).toBe(expected.grant);
+          checkTakeNow(result, { ...expected, waitUntil: 'any' });
         });
     });
 
@@ -855,8 +909,7 @@ describe('takeNow()', () => {
           });
 
           const result = bucket.takeNow({ minInclusive, maxInclusive });
-          expect(result.done).toBe(true);
-          expect(result.grant).toBe(expected);
+          checkTakeNow(result, { done: true, grant: expected, waitUntil: nowSec });
         });
     });
   });
@@ -875,9 +928,7 @@ describe('takeNow()', () => {
 
       // The actual test.
       const result = bucket.takeNow({ minInclusive: 0, maxInclusive: 26 });
-      expect(result.done).toBeTrue();
-      expect(result.grant).toBe(0);
-      expect(result.waitUntil).toBe(nowSec + 0);
+      checkTakeNow(result, { done: true, grant: 0, waitUntil: nowSec + 0 });
 
       // Get the bucket to quiesce.
       time._setTime(nowSec + 1000);
@@ -890,7 +941,9 @@ describe('takeNow()', () => {
       const nowSec = 50015;
       const time   = new MockTimeSource(nowSec);
       const bucket = new TokenBucket({
-        flowRatePerSec: 10, maxBurstSize: 10000, initialBurstSize: 0, maxQueueGrantSize: 1000, timeSource: time });
+        flowRatePerSec: 10, maxBurstSize: 10000, initialBurstSize: 0,
+        maxQueueGrantSize: 1000, timeSource: time
+      });
 
       // Setup / baseline assumptions.
       const requestResult = bucket.requestGrant(300);
@@ -899,9 +952,7 @@ describe('takeNow()', () => {
 
       // The actual test.
       const result = bucket.takeNow({ minInclusive: 700, maxInclusive: 1400 });
-      expect(result.done).toBeFalse();
-      expect(result.grant).toBe(0);
-      expect(result.waitUntil).toBe(nowSec + ((300 + 1000) / 10));
+      checkTakeNow(result, { done: false, grant: 0, waitUntil: nowSec + ((300 + 1000) / 10) });
 
       // Get the bucket to quiesce.
       time._setTime(nowSec + 1000);
@@ -914,7 +965,9 @@ describe('takeNow()', () => {
       const nowSec = 60015;
       const time   = new MockTimeSource(nowSec);
       const bucket = new TokenBucket({
-        flowRatePerSec: 10, maxBurstSize: 10000, initialBurstSize: 200, maxQueueGrantSize: 1000, timeSource: time });
+        flowRatePerSec: 10, maxBurstSize: 10000, initialBurstSize: 200,
+        maxQueueGrantSize: 1000, timeSource: time
+      });
 
       // Setup / baseline assumptions.
       const requestResult = bucket.requestGrant(300);
@@ -923,9 +976,7 @@ describe('takeNow()', () => {
 
       // The actual test.
       const result = bucket.takeNow({ minInclusive: 700, maxInclusive: 1400 });
-      expect(result.done).toBeFalse();
-      expect(result.grant).toBe(0);
-      expect(result.waitUntil).toBe(nowSec + ((300 + 1000 - 200) / 10));
+      checkTakeNow(result, { done: false, grant: 0, waitUntil: nowSec + ((300 + 1000 - 200) / 10) });
 
       // Get the bucket to quiesce.
       time._setTime(nowSec + 1000);
@@ -955,9 +1006,10 @@ describe('takeNow()', () => {
 
       // The actual test.
       const result = bucket.takeNow({ minInclusive: 0, maxInclusive: 5 });
+      checkTakeNow(result, { done: true, grant: 2, waitUntil: now1 + 0 });
       expect(result.done).toBeTrue();
       expect(result.grant).toBe(2);
-      expect(result.waitUntil).toBe(now1 + 0);
+      expect(result.waitUntil.atSec).toBe(now1 + 0);
 
       time._end();
     });

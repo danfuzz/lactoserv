@@ -3,6 +3,8 @@
 
 import * as timers from 'node:timers/promises';
 
+import { Moment } from '@this/data-values';
+
 import { IntfTimeSource } from '#x/IntfTimeSource';
 
 
@@ -14,14 +16,19 @@ export class StdTimeSource extends IntfTimeSource {
   // Note: The default constructor is fine.
 
   /** @override */
+  now() {
+    return new Moment(Date.now() * StdTimeSource.#SECS_PER_MSEC);
+  }
+
+  /** @override */
   nowSec() {
-    return Date.now() * StdTimeSource.#SECS_PER_MSEC;
+    return this.now().atSec;
   }
 
   /** @override */
   async waitUntil(time) {
     for (;;) {
-      const delay = time - this.nowSec();
+      const delay = time.atSec - this.now().atSec;
       if ((delay <= 0) || !Number.isFinite(delay)) {
         break;
       }
