@@ -46,7 +46,7 @@ function checkTakeNow(grant, expected) {
 
   if (expected.waitUntil !== 'any') {
     const waitUntilSec = (expected.waitUntil instanceof Moment)
-      ? expected.waitUntil.atSecs
+      ? expected.waitUntil.atSec
       : expected.waitUntil;
 
     expect(grant.waitUntil.atSec).toBe(waitUntilSec);
