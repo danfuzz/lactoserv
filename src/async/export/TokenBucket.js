@@ -351,11 +351,11 @@ export class TokenBucket {
    *   grant is in fact `0`.
    * * `{number} grant` -- The quantity of tokens granted to the caller. This is
    *   `0` if the minimum requested grant cannot be made.
-   * * `{number} waitUntil` -- The time to `waitUntil()` on this instance's
+   * * `{Moment} waitUntil` -- The time to `waitUntil()` on this instance's
    *   time source until the request would be expected to be granted, if this
    *   were an asynchronously-requested grant, as if by {@link #requestGrant}
    *   (see which). If `done === true`, then this will be a time at or before
-   *   the time source's `nowSec()`.
+   *   the time source's `now()`.
    *
    * If the `minInclusive` request is non-zero, then this method will only ever
    * return `done === true` if there is no immediate contention for tokens
@@ -391,7 +391,8 @@ export class TokenBucket {
     }
 
     if (!result.done) {
-      result.waitUntil += this.#queueSize / this.#flowRatePerSec;
+      result.waitUntil =
+        result.waitUntil.addSecs(this.#queueSize / this.#flowRatePerSec);
     }
 
     return result;
@@ -448,7 +449,7 @@ export class TokenBucket {
 
     if (done) {
       this.#lastBurstSize -= grant;
-      return { done: true, grant, waitUntil: this.#lastNowSec };
+      return { done: true, grant, waitUntil: new Moment(this.#lastNowSec) };
     }
 
     // Per contract, we figure out a wait time as if the grant is from the
@@ -457,7 +458,7 @@ export class TokenBucket {
     const waitedGrantSize = Math.min(maxInclusive, this.#maxQueueGrantSize);
     const waitedSize      = waitedGrantSize - this.#lastBurstSize;
     const waitTimeSec     = waitedSize / this.#flowRatePerSec;
-    const waitUntil       = this.#lastNowSec + waitTimeSec;
+    const waitUntil       = new Moment(this.#lastNowSec + waitTimeSec);
 
     return { done: false, grant: 0, waitUntil };
   }
@@ -586,10 +587,10 @@ export class TokenBucket {
    * Async-returns (hopefully very soon) after the time becomes the given value,
    * using the time units and base defined by this instance's time source.
    *
-   * @param {number} time The time to wait until.
+   * @param {Moment} time The time to wait until.
    */
   async #waitUntil(time) {
-    if (time > this.#lastNowSec) {
+    if (time.atSec > this.#lastNowSec) {
       await this.#timeSource.waitUntil(time);
     }
   }

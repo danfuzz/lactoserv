@@ -28,7 +28,7 @@ export class StdTimeSource extends IntfTimeSource {
   /** @override */
   async waitUntil(time) {
     for (;;) {
-      const delay = time - this.now().atSec;
+      const delay = time.atSec - this.now().atSec;
       if ((delay <= 0) || !Number.isFinite(delay)) {
         break;
       }

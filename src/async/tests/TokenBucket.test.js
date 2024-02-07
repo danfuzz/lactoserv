@@ -38,13 +38,13 @@ class MockTimeSource extends IntfTimeSource {
       throw new Error(`MockTimeSource ended! (Time was ${this.#now.atSec}.)`);
     }
 
-    if (time <= this.#now.atSec) {
+    if (time.atSec <= this.#now.atSec) {
       return;
     }
 
     const mp = new ManualPromise();
     this.#timeouts.push({
-      at:      time,
+      at:      time.atSec,
       resolve: () => mp.resolve()
     });
 
@@ -735,7 +735,10 @@ describe('takeNow()', () => {
         flowRatePerSec: 1, maxBurstSize: 10000, initialBurstSize: 123, timeSource: time });
 
       const result = bucket.takeNow(123);
-      expect(result).toStrictEqual({ done: true, grant: 123, waitUntil: nowSec });
+      expect(result.done).toBeTrue();
+      expect(result.grant).toBe(123);
+      expect(result.waitUntil.atSec).toBe(nowSec);
+
       expect(bucket.latestState().availableBurstSize).toBe(0);
 
       time._end();
@@ -750,7 +753,7 @@ describe('takeNow()', () => {
       const result = bucket.takeNow({ minInclusive: 10, maxInclusive: 110 });
       expect(result.done).toBeTrue();
       expect(result.grant).toBe(100);
-      expect(result.waitUntil).toBe(nowSec + 0);
+      expect(result.waitUntil.atSec).toBe(nowSec + 0);
 
       expect(bucket.latestState().availableBurstSize).toBe(0);
 
@@ -769,7 +772,7 @@ describe('takeNow()', () => {
       const result1 = bucket.takeNow({ minInclusive: 10, maxInclusive: 200 });
       expect(result1.done).toBeTrue();
       expect(result1.grant).toBe(75);
-      expect(result1.waitUntil).toBe(nowSec + 0);
+      expect(result1.waitUntil.atSec).toBe(nowSec + 0);
 
       expect(bucket.latestState().availableBurstSize).toBe(0);
 
@@ -787,7 +790,7 @@ describe('takeNow()', () => {
       const result = bucket.takeNow({ minInclusive: 0, maxInclusive: 10 });
       expect(result.done).toBeTrue();
       expect(result.grant).toBe(5);
-      expect(result.waitUntil).toBe(now1 + 0);
+      expect(result.waitUntil.atSec).toBe(now1 + 0);
 
       const latest = bucket.latestState();
       expect(latest.availableBurstSize).toBe(0);
@@ -805,7 +808,7 @@ describe('takeNow()', () => {
       const result = bucket.takeNow({ minInclusive: 2, maxInclusive: 91 });
       expect(result.done).toBeFalse();
       expect(result.grant).toBe(0);
-      expect(result.waitUntil).toBe(nowSec + (10 / 5));
+      expect(result.waitUntil.atSec).toBe(nowSec + (10 / 5));
 
       time._end();
     });
@@ -819,7 +822,7 @@ describe('takeNow()', () => {
       const result = bucket.takeNow({ minInclusive: 12, maxInclusive: 31 });
       expect(result.done).toBeFalse();
       expect(result.grant).toBe(0);
-      expect(result.waitUntil).toBe(nowSec + (20 - 5) / 10);
+      expect(result.waitUntil.atSec).toBe(nowSec + (20 - 5) / 10);
 
       time._end();
     });
@@ -882,7 +885,7 @@ describe('takeNow()', () => {
       const result = bucket.takeNow({ minInclusive: 0, maxInclusive: 26 });
       expect(result.done).toBeTrue();
       expect(result.grant).toBe(0);
-      expect(result.waitUntil).toBe(nowSec + 0);
+      expect(result.waitUntil.atSec).toBe(nowSec + 0);
 
       // Get the bucket to quiesce.
       time._setTime(nowSec + 1000);
@@ -906,7 +909,7 @@ describe('takeNow()', () => {
       const result = bucket.takeNow({ minInclusive: 700, maxInclusive: 1400 });
       expect(result.done).toBeFalse();
       expect(result.grant).toBe(0);
-      expect(result.waitUntil).toBe(nowSec + ((300 + 1000) / 10));
+      expect(result.waitUntil.atSec).toBe(nowSec + ((300 + 1000) / 10));
 
       // Get the bucket to quiesce.
       time._setTime(nowSec + 1000);
@@ -930,7 +933,7 @@ describe('takeNow()', () => {
       const result = bucket.takeNow({ minInclusive: 700, maxInclusive: 1400 });
       expect(result.done).toBeFalse();
       expect(result.grant).toBe(0);
-      expect(result.waitUntil).toBe(nowSec + ((300 + 1000 - 200) / 10));
+      expect(result.waitUntil.atSec).toBe(nowSec + ((300 + 1000 - 200) / 10));
 
       // Get the bucket to quiesce.
       time._setTime(nowSec + 1000);
@@ -962,7 +965,7 @@ describe('takeNow()', () => {
       const result = bucket.takeNow({ minInclusive: 0, maxInclusive: 5 });
       expect(result.done).toBeTrue();
       expect(result.grant).toBe(2);
-      expect(result.waitUntil).toBe(now1 + 0);
+      expect(result.waitUntil.atSec).toBe(now1 + 0);
 
       time._end();
     });
