@@ -43,6 +43,14 @@ export class Moment {
   }
 
   /**
+   * @returns {number} The moment being represented, in the form of milliseconds
+   * since the Unix Epoch.
+   */
+  get atMsec() {
+    return this.#atSecs * 1000;
+  }
+
+  /**
    * @returns {number} The moment being represented, in the form of seconds
    * since the Unix Epoch.
    */
@@ -51,7 +59,7 @@ export class Moment {
   }
 
   /**
-   * Gets the sume `this + secs` as a new instance of this class.
+   * Gets the sum `this + secs` as a new instance of this class.
    *
    * @param {number} secs Number of seconds to add.
    * @returns {Moment} The summed result.

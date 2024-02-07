@@ -43,6 +43,14 @@ describe('.atSecs', () => {
   });
 });
 
+describe('.atMsec', () => {
+  test('returns the value from the constructor, multiplied by 1000', () => {
+    expect(new Moment(0).atMsec).toBe(0);
+    expect(new Moment(123).atMsec).toBe(123000);
+    expect(new Moment(456.789).atMsec).toBe(456789);
+  });
+});
+
 describe('addSecs()', () => {
   test.each`
   moment        | secs       | expected
