@@ -35,6 +35,10 @@ export class EtagGenerator {
    *
    * @param {object} [options] Configuration options, or `null` to use all
    *   defaults.
+   * @param {boolean} [options.dataOnly] Only ever hash based on entity data,
+   *   not metadata such as path and modification time. If `true`, this disables
+   *   {@link #etagFromFileStats} and makes {@link #etagFromFile} use
+   *   {@link #etagFromFileData}. Defaults to `false`.
    * @param {?string} [options.hashAlgorithm] Algorithm to use to generate
    *   hashes. Allowed to be `sha1`, `sha256`, or `sha512`. Defaults to
    *  `sha256`.
@@ -55,6 +59,7 @@ export class EtagGenerator {
   constructor(options = null) {
     options = EtagGenerator.expandOptions(options);
 
+    this.#dataOnly         = options.dataOnly;
     this.#hashAlgorithm    = options.hashAlgorithm;
     this.#hashLengthStrong = options.hashLength.strong;
     this.#hashLengthWeak   = options.hashLength.weak;
@@ -240,11 +245,13 @@ export class EtagGenerator {
    */
   static expandOptions(options) {
     const {
+      dataOnly      = false,
       hashAlgorithm = 'sha256',
       hashLength    = null,
       tagForm       = 'vary'
     } = options ?? {};
 
+    MustBe.boolean(dataOnly);
     MustBe.string(hashAlgorithm, /^(sha1|sha256|sha512)$/);
     MustBe.string(tagForm, /^(strong|vary|weak)$/);
 
@@ -252,6 +259,7 @@ export class EtagGenerator {
       EtagGenerator.#checkHashLength(hashAlgorithm, hashLength);
 
       return {
+        dataOnly,
         hashAlgorithm,
         hashLength: { strong: hashLength, weak: hashLength },
         tagForm
@@ -263,6 +271,7 @@ export class EtagGenerator {
       EtagGenerator.#checkHashLength(hashAlgorithm, weak);
 
       return {
+        dataOnly,
         hashAlgorithm,
         hashLength: {
           strong: EtagGenerator.#checkHashLength(hashAlgorithm, strong),
