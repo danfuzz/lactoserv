@@ -27,14 +27,14 @@ export class Debugging {
    * @param {UsualSystem} system The system to be run.
    */
   static handleDebugArgs(args, system) {
-    const { earlyErrors, logToStdout, maxRunTimeSecs } = args;
+    const { earlyErrors, logToStdout, maxRunTimeSec } = args;
 
     if (logToStdout) {
       this.#logToStdout();
     }
 
-    if (maxRunTimeSecs) {
-      this.#setMaxRunTimeSecs(maxRunTimeSecs, system);
+    if (maxRunTimeSec) {
+      this.#setMaxRunTimeSec(maxRunTimeSec, system);
     }
 
     if (earlyErrors) {
@@ -90,18 +90,18 @@ export class Debugging {
   /**
    * Sets the maximum run time.
    *
-   * @param {number} maxRunTimeSecs The maximum run time.
+   * @param {number} maxRunTimeSec The maximum run time.
    * @param {UsualSystem} system The system to be run.
    */
-  static #setMaxRunTimeSecs(maxRunTimeSecs, system) {
+  static #setMaxRunTimeSec(maxRunTimeSec, system) {
     const logger = this.#logger;
 
     (async () => {
-      logger.timerStarted({ seconds: maxRunTimeSecs });
+      logger.timerStarted({ seconds: maxRunTimeSec });
 
-      let remainingSecs = maxRunTimeSecs;
-      if (maxRunTimeSecs > 60) {
-        await timers.setTimeout((maxRunTimeSecs - 60) * 1000);
+      let remainingSecs = maxRunTimeSec;
+      if (maxRunTimeSec > 60) {
+        await timers.setTimeout((maxRunTimeSec - 60) * 1000);
         remainingSecs = 60;
       }
 
@@ -122,7 +122,7 @@ export class Debugging {
         remainingSecs -= waitSecs;
       }
 
-      logger.timerExpired({ seconds: maxRunTimeSecs });
+      logger.timerExpired({ seconds: maxRunTimeSec });
       await system.stop();
     })();
   }
