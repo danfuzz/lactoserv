@@ -1,16 +1,27 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { Moment } from '@this/data-values';
 import { Methods } from '@this/typey';
 
 
 /**
- * Interface for accessing a source of time information.
+ * Interface for accessing and utilizing a source of time information.
  *
  * @interface
  */
 export class IntfTimeSource {
   // Note: The default constructor is fine.
+
+  /**
+   * Gets the current time.
+   *
+   * @abstract
+   * @returns {Moment} The current time.
+   */
+  now() {
+    return Methods.abstract();
+  }
 
   /**
    * Gets the current time, as a standard Unix Epoch time in seconds (_not_

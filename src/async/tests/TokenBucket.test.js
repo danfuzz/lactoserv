@@ -4,6 +4,7 @@
 import * as timers from 'node:timers/promises';
 
 import { ManualPromise, PromiseState, TokenBucket } from '@this/async';
+import { Moment } from '@this/data-values';
 import { IntfTimeSource, StdTimeSource } from '@this/metacomp';
 
 
@@ -11,29 +12,33 @@ import { IntfTimeSource, StdTimeSource } from '@this/metacomp';
  * Mock implementation of `IntfTimeSource`.
  */
 class MockTimeSource extends IntfTimeSource {
-  #nowSec   = 0;
+  #now;
   #timeouts = [];
   #ended    = false;
 
   constructor(firstNow = 0) {
     super();
-    this.#nowSec = firstNow;
+    this.#now = new Moment(firstNow);
+  }
+
+  now() {
+    if (this.#ended) {
+      throw new Error(`MockTimeSource ended! (Time was ${this.#now.atSec}.)`);
+    }
+
+    return this.#now;
   }
 
   nowSec() {
-    if (this.#ended) {
-      throw new Error(`MockTimeSource ended! (Time was ${this.#nowSec}.)`);
-    }
-
-    return this.#nowSec;
+    return this.now().atSec;
   }
 
   async waitUntil(time) {
     if (this.#ended) {
-      throw new Error(`MockTimeSource ended! (Time was ${this.#nowSec}.)`);
+      throw new Error(`MockTimeSource ended! (Time was ${this.#now.atSec}.)`);
     }
 
-    if (time <= this.#nowSec) {
+    if (time <= this.#now.atSec) {
       return;
     }
 
@@ -55,7 +60,7 @@ class MockTimeSource extends IntfTimeSource {
   }
 
   _setTime(nowSec) {
-    this.#nowSec = nowSec;
+    this.#now = new Moment(nowSec);
     this.#timeouts.sort((a, b) => {
       if (a.at < b.at) return -1;
       if (a.at > b.at) return 1;
@@ -671,7 +676,7 @@ describe('latestState()', () => {
     time._setTime(901);
     expect(bucket.latestState()).toStrictEqual(baseResult);
 
-    time.nowSec = () => { throw new Error('oy!'); };
+    time.now = () => { throw new Error('oy!'); };
     expect(() => bucket.latestState()).not.toThrow();
 
     time._end();
