@@ -9,9 +9,11 @@ versioning principles. Unstable releases do not.
 Breaking changes:
 * Expanded and reworked `fs-util`, including moving the utility class
   `app-config.Files` to `fs-util.Paths`.
+* Removed automatic ETag generation as part of the `Request` API. generation.
 
 Other notable changes:
-* None.
+* New class `EtagGenerator`, for generating ETags. Added configuration options
+  to `StaticFiles` and `SimpleResponse` to optionally use it.
 
 ### v0.6.3 -- 2024-02-02
 
