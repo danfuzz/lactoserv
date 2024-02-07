@@ -40,7 +40,7 @@ const services = [
     name:       'process',
     class:      'ProcessInfoFile',
     path:       `${RUN_DIR}/process.json`,
-    updateSecs:  5 * 60,
+    updateSec:  5 * 60,
     save: {
       onStart:     true,
       onStop:      true,
@@ -52,7 +52,7 @@ const services = [
     class:        'ProcessIdFile',
     path:         `${RUN_DIR}/process.txt`,
     multiprocess: true,
-    updateSecs:   5 * 60
+    updateSec:   5 * 60
   },
   {
     name:   'syslog',
