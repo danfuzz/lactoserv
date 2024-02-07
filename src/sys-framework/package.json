@@ -1,5 +1,5 @@
 {
-  "name": "@this/app-framework",
+  "name": "@this/sys-framework",
   "version": "0.0.1",
   "type": "module",
   "private": true,
@@ -12,12 +12,12 @@
   },
 
   "dependencies": {
-    "@this/app-config": "*",
     "@this/async": "*",
     "@this/collections": "*",
     "@this/loggy": "*",
+    "@this/net-protocol": "*",
     "@this/net-util": "*",
-    "@this/network-protocol": "*",
+    "@this/sys-config": "*",
     "@this/typey": "*",
     "pem": "^1.14.8"
   }

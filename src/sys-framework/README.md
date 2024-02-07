@@ -1,4 +1,4 @@
-@this/app-framework
+@this/sys-framework
 ===================
 
 This module contains the Lactoserv framework, including all the base classes

@@ -3,11 +3,11 @@
 
 import { SecureContext } from 'node:tls';
 
-import { HostConfig } from '@this/app-config';
 import { TreePathKey, TreePathMap } from '@this/collections';
 import { IntfLogger } from '@this/loggy';
+import { IntfHostManager } from '@this/net-protocol';
 import { Uris } from '@this/net-util';
-import { IntfHostManager } from '@this/network-protocol';
+import { HostConfig } from '@this/sys-config';
 
 import { HostItem } from '#p/HostItem';
 import { ThisModule } from '#p/ThisModule';

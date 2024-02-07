@@ -1,5 +1,5 @@
 {
-  "name": "@this/app-config",
+  "name": "@this/sys-util",
   "version": "0.0.1",
   "type": "module",
   "private": true,
@@ -12,9 +12,11 @@
   },
 
   "dependencies": {
-    "@this/collections": "*",
+    "@this/async": "*",
     "@this/fs-util": "*",
-    "@this/net-util": "*",
+    "@this/host": "*",
+    "@this/loggy": "*",
+    "@this/sys-config": "*",
     "@this/typey": "*"
   }
 }

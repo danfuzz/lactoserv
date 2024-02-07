@@ -3,11 +3,11 @@
 
 import * as child_process from 'node:child_process';
 
-import { ComponentRegistry, Warehouse } from '@this/app-framework';
 import { Condition } from '@this/async';
 import { BuiltinApplications } from '@this/builtin-applications';
 import { BuiltinServices } from '@this/builtin-services';
 import { IntfLogger } from '@this/loggy';
+import { ComponentRegistry, Warehouse } from '@this/sys-framework';
 import { MustBe } from '@this/typey';
 
 import { LimitedLoader } from '#p/LimitedLoader';

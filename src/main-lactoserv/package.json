@@ -12,13 +12,13 @@
   },
 
   "dependencies": {
-    "@this/app-framework": "*",
-    "@this/app-util": "*",
     "@this/async": "*",
     "@this/builtin-applications": "*",
     "@this/builtin-services": "*",
     "@this/host": "*",
     "@this/loggy": "*",
+    "@this/sys-framework": "*",
+    "@this/sys-util": "*",
     "@this/typey": "*",
     "yargs": "^17.6.0"
   }

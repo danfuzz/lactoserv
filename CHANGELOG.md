@@ -7,6 +7,8 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
+* Renamed `app-*` modules to `sys-*`, to avoid name confusion (because the
+  overall _system_ already has bits inside it called _applications_).
 * Expanded and reworked `fs-util`, including moving the utility class
   `app-config.Files` to `fs-util.Paths`.
 * Removed automatic ETag generation as part of the `Request` API. generation.

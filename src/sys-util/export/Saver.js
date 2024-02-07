@@ -1,8 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { FileServiceConfig } from '@this/app-config';
 import { IntfLogger } from '@this/loggy';
+import { FileServiceConfig } from '@this/sys-config';
 
 import { BaseFilePreserver } from '#p/BaseFilePreserver';
 

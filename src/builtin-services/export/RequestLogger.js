@@ -3,12 +3,12 @@
 
 import * as fs from 'node:fs/promises';
 
-import { FileServiceConfig } from '@this/app-config';
-import { BaseService } from '@this/app-framework';
-import { Rotator } from '@this/app-util';
 import { Moment } from '@this/data-values';
 import { IntfLogger } from '@this/loggy';
-import { IntfRequestLogger } from '@this/network-protocol';
+import { IntfRequestLogger } from '@this/net-protocol';
+import { FileServiceConfig } from '@this/sys-config';
+import { BaseService } from '@this/sys-framework';
+import { Rotator } from '@this/sys-util';
 
 
 /**

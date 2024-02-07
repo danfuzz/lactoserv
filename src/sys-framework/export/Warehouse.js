@@ -3,8 +3,8 @@
 
 import * as timers from 'node:timers/promises';
 
-import { WarehouseConfig } from '@this/app-config';
 import { PromiseUtil } from '@this/async';
+import { WarehouseConfig } from '@this/sys-config';
 import { MustBe } from '@this/typey';
 
 import { BaseApplication } from '#x/BaseApplication';

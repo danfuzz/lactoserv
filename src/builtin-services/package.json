@@ -12,14 +12,14 @@
   },
 
   "dependencies": {
-    "@this/app-config": "*",
-    "@this/app-framework": "*",
-    "@this/app-util": "*",
     "@this/async": "*",
     "@this/data-values": "*",
     "@this/host": "*",
     "@this/loggy": "*",
-    "@this/network-protocol": "*",
+    "@this/net-protocol": "*",
+    "@this/sys-config": "*",
+    "@this/sys-framework": "*",
+    "@this/sys-util": "*",
     "@this/typey": "*"
   }
 }

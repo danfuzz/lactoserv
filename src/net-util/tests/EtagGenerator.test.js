@@ -6,6 +6,7 @@ import fs from 'node:fs/promises';
 
 import { EtagGenerator } from '@this/net-util';
 
+
 describe.each`
 label                | isConstructor
 ${'constructor'}     | ${true}

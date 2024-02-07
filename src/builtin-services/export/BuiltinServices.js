@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseService } from '@this/app-framework';
+import { BaseService } from '@this/sys-framework';
 
 import { MemoryMonitor } from '#x/MemoryMonitor';
 import { ProcessIdFile } from '#x/ProcessIdFile';
