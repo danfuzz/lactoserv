@@ -168,8 +168,10 @@ export class StaticFiles extends BaseApplication {
     this.logger?.fullPath(fullPath);
 
     try {
-      const stats = await fs.stat(fullPath, true);
-      if (stats.isDirectory()) {
+      const stats = await Statter.statOrNull(fullPath);
+      if (stats === null) {
+        this.logger?.notFound(fullPath);
+      } else if (stats.isDirectory()) {
         if (!endSlash) {
           // Redirect from non-ending-slash directory path. As a special case,
           // `parts.length === 0` happens when the mount point was requested
@@ -183,8 +185,11 @@ export class StaticFiles extends BaseApplication {
           // It's a proper directory reference. Look for the index file. Note:
           // No slash after `fullPath` because it already ends with a slash.
           const indexPath  = `${fullPath}index.html`;
-          const indexStats = await fs.stat(indexPath, true);
-          if (indexStats.isDirectory()) {
+          const indexStats = await Statter.statOrNull(indexPath, true);
+          if (indexStats === null) {
+            this.logger?.indexNotFound(indexPath);
+            return null;
+          } else if (indexStats.isDirectory()) {
             // Weird case, to be clear!
             this.logger?.indexIsDirectory(indexPath);
             return null;
@@ -197,11 +202,7 @@ export class StaticFiles extends BaseApplication {
       }
       return { path: fullPath, stats };
     } catch (e) {
-      if (e.code === 'ENOENT') {
-        this.logger?.notFound(fullPath);
-      } else {
-        this.logger?.statError(fullPath, e);
-      }
+      this.logger?.statError(fullPath, e);
       return null;
     }
   }
