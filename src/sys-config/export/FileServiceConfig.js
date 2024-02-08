@@ -138,19 +138,12 @@ export class FileServiceConfig extends ServiceConfig {
   async touchPath() {
     const path = this.#path;
 
-    try {
-      await fs.stat(path);
-    } catch (e) {
-      if (e.code === 'ENOENT') {
-        await fs.appendFile(path, '');
-        return;
-      } else {
-        throw e;
-      }
+    if (await Statter.pathExists(path)) {
+      // File already existed; just update the modification time.
+      const dateNow = new Date();
+      await fs.utimes(path, dateNow, dateNow);
+    } else {
+      await fs.appendFile(path, '');
     }
-
-    // File already existed; just update the modification time.
-    const dateNow = new Date();
-    await fs.utimes(path, dateNow, dateNow);
   }
 }
