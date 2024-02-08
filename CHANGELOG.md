@@ -10,6 +10,7 @@ Breaking changes:
 * None.
 
 Other notable changes:
+* Added a new "quick start" guide, with runnable example code.
 * `StaticFiles`: Fixed a bug which made all not-found requests end up throwing
   an error (which would get caught and turned into a default not-found
   response). Oopsie!
