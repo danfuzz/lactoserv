@@ -183,8 +183,14 @@ export class StaticFiles extends BaseApplication {
           return { redirect: `${source[source.length - 1]}/` };
         } else {
           // It's a proper directory reference. Look for the index file. Note:
-          // No slash after `fullPath` because it already ends with a slash.
-          const indexPath  = `${fullPath}index.html`;
+          // The only time the `fullPath` ends with `/` is when the incoming path
+          // is empty, in which case we don't want to use `/` to separate it
+          // from the `index.html` suffix, because that would form a
+          // non-canonical path (which other parts of the system will reject).
+          // Hence the following conditional.
+          const indexPath = (parts.length === 0)
+            ? `${fullPath}index.html`
+            : `${fullPath}/index.html`;
           const indexStats = await Statter.statOrNull(indexPath, true);
           if (indexStats === null) {
             this.logger?.indexNotFound(indexPath);
