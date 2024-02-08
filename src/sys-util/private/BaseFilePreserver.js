@@ -233,8 +233,8 @@ export class BaseFilePreserver {
    * @returns {string} The so-modified path.
    */
   #infixPath(infix) {
-    const split = this.#config.pathParts;
-    return `${split.directory}/${split.filePrefix}${infix}${split.fileSuffix}`;
+    const { directory, filePrefix, fileSuffix } = this.#config.pathParts;
+    return `${directory}/${filePrefix}${infix}${fileSuffix}`;
   }
 
   /**
