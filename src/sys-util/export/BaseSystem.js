@@ -69,22 +69,22 @@ export class BaseSystem extends Threadlet {
    * Helper for {@link #run}, which performs a system reload.
    */
   async #reload() {
-    this.#logger.reloading();
+    this.#logger?.reloading();
 
     try {
       this.#nextInitValue = await this._impl_init(true);
     } catch (e) {
       // Can't reload! There's was a problem during re-initialization (e.g. an
       // error in the config file).
-      this.#logger.errorDuringReloaded(e);
-      this.#logger.notReloading();
+      this.#logger?.errorDuringReloaded(e);
+      this.#logger?.notReloading();
       return;
     }
 
     await this.#stop(true);
     await this.#start(true);
 
-    this.#logger.reloaded();
+    this.#logger?.reloaded();
   }
 
   /**
@@ -92,12 +92,12 @@ export class BaseSystem extends Threadlet {
    */
   async #requestReload() {
     if (this.isRunning()) {
-      this.#logger.reload('requested');
+      this.#logger?.reload('requested');
       this.#reloadRequested.value = true;
     } else {
       // Not actually running (probably in the middle of completely shutting
       // down).
-      this.#logger.reload('ignoring');
+      this.#logger?.reload('ignoring');
     }
   }
 
@@ -134,13 +134,13 @@ export class BaseSystem extends Threadlet {
 
     this.#init();
 
-    this.#logger.starting(logArg);
+    this.#logger?.starting(logArg);
 
     if (!forReload) {
       try {
         this.#nextInitValue = await this._impl_init(false);
       } catch (e) {
-        this.#logger.startAborted();
+        this.#logger?.startAborted();
         throw e;
       }
     }
@@ -149,7 +149,7 @@ export class BaseSystem extends Threadlet {
     this.#nextInitValue = null;
     await this._impl_start(forReload, this.#initValue);
 
-    this.#logger.started(logArg);
+    this.#logger?.started(logArg);
   }
 
   /**
@@ -161,9 +161,9 @@ export class BaseSystem extends Threadlet {
   async #stop(forReload = false) {
     const logArg = forReload ? 'willReload' : 'shutdown';
 
-    this.#logger.stopping(logArg);
+    this.#logger?.stopping(logArg);
     await this._impl_stop(forReload, this.#initValue);
-    this.#logger.stopped(logArg);
+    this.#logger?.stopped(logArg);
 
     this.#initValue = null;
   }
