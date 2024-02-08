@@ -176,6 +176,7 @@ export class StaticFiles extends BaseApplication {
       const stats = await Statter.statOrNull(fullPath);
       if (stats === null) {
         this.logger?.notFound(fullPath);
+        return null;
       } else if (stats.isDirectory()) {
         if (!endSlash) {
           // Redirect from non-ending-slash directory path. As a special case,
