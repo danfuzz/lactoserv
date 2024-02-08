@@ -109,18 +109,6 @@ export class FileServiceConfig extends ServiceConfig {
   }
 
   /**
-   * Produces a modified {@link #path} by infixing the final path component with
-   * the given value.
-   *
-   * @param {string} infix String to infix into the final path component.
-   * @returns {string} The so-modified path.
-   */
-  infixPath(infix) {
-    const split = this.pathParts;
-    return `${split.directory}/${split.filePrefix}${infix}${split.fileSuffix}`;
-  }
-
-  /**
    * Calculates the value for {@link #pathParts}.
    *
    * @returns {object} The split path, as described.

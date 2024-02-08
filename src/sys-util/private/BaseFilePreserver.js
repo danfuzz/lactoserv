@@ -226,6 +226,18 @@ export class BaseFilePreserver {
   }
 
   /**
+   * Produces a modified `path` by infixing the final path component with the
+   * given value.
+   *
+   * @param {string} infix String to infix into the final path component.
+   * @returns {string} The so-modified path.
+   */
+  #infixPath(infix) {
+    const split = this.#config.pathParts;
+    return `${split.directory}/${split.filePrefix}${infix}${split.fileSuffix}`;
+  }
+
+  /**
    * Preserves the file and does any other related actions, as configured.
    */
   async #preserve() {
@@ -294,7 +306,7 @@ export class BaseFilePreserver {
     const dateStr = BaseFilePreserver.#makeInfix(stats.birthtime);
     const resolve = (count) => {
       const infix = BaseFilePreserver.#makeInfix(dateStr, (count > 0) ? count : null);
-      return this.#config.infixPath(`-${infix}`);
+      return this.#infixPath(`-${infix}`);
     };
 
     if (this.#lastInfix === dateStr) {
