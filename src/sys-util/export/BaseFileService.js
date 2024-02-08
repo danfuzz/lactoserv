@@ -4,7 +4,6 @@
 import * as fs from 'node:fs/promises';
 
 import { Statter } from '@this/fs-util';
-import { IntfLogger } from '@this/loggy';
 import { FileServiceConfig } from '@this/sys-config';
 import { BaseService } from '@this/sys-framework';
 

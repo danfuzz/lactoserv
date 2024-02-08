@@ -1,9 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import * as fs from 'node:fs/promises';
-
-import { Paths, Statter } from '@this/fs-util';
+import { Paths } from '@this/fs-util';
 
 import { RotateConfig } from '#x/RotateConfig';
 import { SaveConfig } from '#x/SaveConfig';
