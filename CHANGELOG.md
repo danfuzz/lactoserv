@@ -10,7 +10,9 @@ Breaking changes:
 * None.
 
 Other notable changes:
-* None.
+* `StaticFiles`: Fixed a bug which made all not-found requests end up throwing
+  an error (which would get caught and turned into a default not-found
+  response). Oopsie!
 
 ### v0.6.4 -- 2024-02-08
 
