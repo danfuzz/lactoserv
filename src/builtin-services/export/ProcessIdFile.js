@@ -159,7 +159,7 @@ export class ProcessIdFile extends BaseFileService {
         await fs.rm(filePath, { force: true });
         this.logger.removedFile();
       } else {
-        await this.config.createDirectoryIfNecessary();
+        await this._prot_createDirectoryIfNecessary();
         await fs.writeFile(filePath, contents);
         this.logger.wroteFile();
       }

@@ -45,7 +45,7 @@ export class SystemLogger extends BaseFileService {
 
   /** @override */
   async _impl_start(isReload) {
-    await this.config.createDirectoryIfNecessary();
+    await this._prot_createDirectoryIfNecessary();
     await this.config.touchPath();
     await this.#rotator?.start(isReload);
 

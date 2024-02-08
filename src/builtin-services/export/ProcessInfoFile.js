@@ -269,7 +269,7 @@ export class ProcessInfoFile extends BaseFileService {
     const obj  = contents ?? this.#contents;
     const text = `${JSON.stringify(obj, null, 2)}\n`;
 
-    await this.config.createDirectoryIfNecessary();
+    await this._prot_createDirectoryIfNecessary();
     await fs.writeFile(this.config.path, text);
 
     this.logger?.wroteFile();

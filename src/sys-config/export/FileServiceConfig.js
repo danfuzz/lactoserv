@@ -80,17 +80,6 @@ export class FileServiceConfig extends ServiceConfig {
   }
 
   /**
-   * Creates the directory of {@link #path}, if it doesn't already exist.
-   */
-  async createDirectoryIfNecessary() {
-    const { directory } = this.splitPath();
-
-    if (!await Statter.directoryExists(directory)) {
-      await fs.mkdir(directory, { recursive: true });
-    }
-  }
-
-  /**
    * Produces a modified {@link #path} by infixing the final path component with
    * the given value.
    *
