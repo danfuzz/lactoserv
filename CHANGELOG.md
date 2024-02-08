@@ -26,7 +26,7 @@ Breaking changes:
   * Changed almost all time-related variables and parameters to be instances of
    `Moment` or `Duration` instead of dimensionless `number`s.
 * Removed automatic ETag generation as part of the `Request` API. Removed all
-  use of the old (and mildly problematic) `etag` npm package.
+  uses of the old (and mildly problematic) `etag` npm package.
 
 Other notable changes:
 * New class `EtagGenerator`, for generating ETags. Added configuration options
