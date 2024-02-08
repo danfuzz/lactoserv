@@ -3,7 +3,7 @@
 
 import * as fs from 'node:fs/promises';
 
-import { Paths } from '@this/fs-util';
+import { Paths, Statter } from '@this/fs-util';
 
 import { RotateConfig } from '#x/RotateConfig';
 import { SaveConfig } from '#x/SaveConfig';
@@ -85,14 +85,8 @@ export class FileServiceConfig extends ServiceConfig {
   async createDirectoryIfNecessary() {
     const { directory } = this.splitPath();
 
-    try {
-      await fs.stat(directory);
-    } catch (e) {
-      if (e.code === 'ENOENT') {
-        await fs.mkdir(directory, { recursive: true });
-      } else {
-        throw e;
-      }
+    if (!await Statter.directoryExists(directory)) {
+      await fs.mkdir(directory, { recursive: true });
     }
   }
 
