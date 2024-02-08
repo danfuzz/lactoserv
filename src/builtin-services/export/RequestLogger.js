@@ -50,7 +50,7 @@ export class RequestLogger extends BaseFileService {
   /** @override */
   async _impl_start(isReload) {
     await this._prot_createDirectoryIfNecessary();
-    await this.config.touchPath();
+    await this._prot_touchPath();
     await this.#rotator?.start(isReload);
   }
 

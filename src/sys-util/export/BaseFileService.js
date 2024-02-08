@@ -26,4 +26,19 @@ export class BaseFileService extends BaseService {
       await fs.mkdir(directory, { recursive: true });
     }
   }
+
+  /**
+   * "Touches" (creates if necessary) the file at {@link #path}.
+   */
+  async _prot_touchPath() {
+    const path = this.config.path;
+
+    if (await Statter.pathExists(path)) {
+      // File already exists; just update the modification time.
+      const dateNow = new Date();
+      await fs.utimes(path, dateNow, dateNow);
+    } else {
+      await fs.appendFile(path, '');
+    }
+  }
 }
