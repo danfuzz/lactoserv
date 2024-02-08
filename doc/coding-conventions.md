@@ -82,6 +82,17 @@ export class Florp {
   called by subclasses; _not_ supposed to be used outside of the class. These
   are more or less `protected final` methods defined by a base class.
 
+### Ledger of arbitrary decisions
+
+Every enduring project of nontrivial size ends up having the results of myriad
+small and mostly inconsequential decisions embedded in it. This section is
+meant to record them, in order to keep track of them and maintain consistency.
+
+* Anything that is complained about by the linter.
+* The string `'utf-8'` to refer to the UTF-8 encoding. Context: Node
+  historically prefers `'utf8'`, but web standards seem to prefer `'utf-8'`.
+  Node generally accepts both, and so we go with the latter.
+
 - - - - - - - - - -
 ```
 Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).

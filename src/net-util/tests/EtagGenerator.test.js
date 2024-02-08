@@ -113,7 +113,7 @@ describe('etagFromData()', () => {
 
       test('works with buffer', async () => {
         const eg     = new EtagGenerator({ hashAlgorithm: algorithm, hashLength: null });
-        const result = await eg.etagFromData(Buffer.from(data, 'utf8'));
+        const result = await eg.etagFromData(Buffer.from(data, 'utf-8'));
         expect(result).toBe(`"${hashes[which]}"`);
       });
     });
