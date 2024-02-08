@@ -35,9 +35,10 @@ export class SystemLogger extends BaseFileService {
    * Constructs an instance.
    *
    * @param {FileServiceConfig} config Configuration for this service.
-   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
+   * @param {IntfLogger} logger Logger to use. Required for this class!
    */
   constructor(config, logger) {
+    MustBe.object(logger);
     super(config, logger);
 
     this.#rotator = config.rotate ? new Rotator(config, this.logger) : null;

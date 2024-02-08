@@ -114,7 +114,7 @@ export class ProcessIdFile extends BaseFileService {
         return '';
       }
     } catch (e) {
-      this.logger.errorReadingFile(e);
+      this.logger?.errorReadingFile(e);
       return '';
     }
   }
@@ -149,7 +149,7 @@ export class ProcessIdFile extends BaseFileService {
 
     for (let i = 0; i < maxAttempts; i++) {
       if (i !== 0) {
-        this.logger.writeContention({ attempt: i + 1 });
+        this.logger?.writeContention({ attempt: i + 1 });
       }
 
       const filePath = this.config.path;
@@ -157,11 +157,11 @@ export class ProcessIdFile extends BaseFileService {
 
       if (contents === '') {
         await fs.rm(filePath, { force: true });
-        this.logger.removedFile();
+        this.logger?.removedFile();
       } else {
         await this._prot_createDirectoryIfNecessary();
         await fs.writeFile(filePath, contents);
-        this.logger.wroteFile();
+        this.logger?.wroteFile();
       }
 
       if (!running) {
@@ -181,7 +181,7 @@ export class ProcessIdFile extends BaseFileService {
       await timers.setTimeout(ProcessIdFile.#RETRY_DELAY_MSEC);
     }
 
-    this.logger.writeContention({ attempt: maxAttempts, gaveUp: true });
+    this.logger?.writeContention({ attempt: maxAttempts, gaveUp: true });
   }
 
 
