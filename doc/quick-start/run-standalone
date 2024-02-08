@@ -18,4 +18,4 @@ if [[ ! -x "${serverBin}" ]]; then
 fi
 
 SITE_DIR="${siteDir}" \
-    "${serverBin}" --config="${cmdDir}/my-config.mjs" --log-to-stdout
+    "${serverBin}" --config="${cmdDir}/code/config.mjs" --log-to-stdout
