@@ -1,0 +1,21 @@
+#!/bin/bash
+#
+# Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
+# SPDX-License-Identifier: Apache-2.0
+
+# Figure out the symlink-resolved program name and directory.
+cmdName="$(readlink -f "$0")" || exit "$?"
+cmdDir="${cmdName%/*}"
+cmdName="${cmdName##*/}"
+
+siteDir="${cmdDir}/website"                  # Website files.
+baseDir="$(readlink -f "${cmdDir}/../..")"   # Base directory of this project.
+serverBin="${baseDir}/out/lactoserv/bin/run" # Server binary.
+
+if [[ ! -x "${serverBin}" ]]; then
+    "${baseDir}/scripts/ubik" build || exit "$?"
+    echo ''
+fi
+
+SITE_DIR="${siteDir}" \
+    "${serverBin}" --config="${cmdDir}/my-config.mjs" --log-to-stdout
