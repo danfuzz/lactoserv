@@ -1,7 +1,6 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import * as fs from 'node:fs/promises';
 import * as timers from 'node:timers/promises';
 
 import { Statter } from '@this/fs-util';
