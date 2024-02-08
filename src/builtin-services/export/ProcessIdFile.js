@@ -7,6 +7,7 @@ import * as timers from 'node:timers/promises';
 
 import { Threadlet } from '@this/async';
 import { ProcessUtil } from '@this/host';
+import { Statter } from '@this/fs-util';
 import { FileServiceConfig } from '@this/sys-config';
 import { BaseService } from '@this/sys-framework';
 import { MustBe } from '@this/typey';
@@ -107,14 +108,13 @@ export class ProcessIdFile extends BaseService {
     const filePath = this.config.path;
 
     try {
-      await fs.stat(filePath);
-      return await fs.readFile(filePath, { encoding: 'utf-8' });
-    } catch (e) {
-      if (e.code === 'ENOENT') {
-        // Ignore the error: It's okay if the file doesn't exist.
+      if (await Statter.fileExists(filePath)) {
+        return await fs.readFile(filePath, { encoding: 'utf-8' });
       } else {
-        this.logger.errorReadingFile(e);
+        return '';
       }
+    } catch (e) {
+      this.logger.errorReadingFile(e);
       return '';
     }
   }
