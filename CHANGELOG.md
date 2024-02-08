@@ -15,11 +15,12 @@ Breaking changes:
   * Settled on `sec` (not `secs`) when identifying numbers of seconds.
   * Changed almost all time-related variables and parameters to be instances of
    `Moment` or `Duration` instead of dimensionless `number`s.
-* Removed automatic ETag generation as part of the `Request` API.
+* Removed automatic ETag generation as part of the `Request` API. Removed all
+  use of the old `etag` npm package.
 
 Other notable changes:
 * New class `EtagGenerator`, for generating ETags. Added configuration options
-  to `StaticFiles` and `SimpleResponse` to optionally use it.
+  to `StaticFiles` and `SimpleResponse` to (optionally) use it.
 
 ### v0.6.3 -- 2024-02-02
 
