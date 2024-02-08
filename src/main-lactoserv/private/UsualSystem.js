@@ -25,7 +25,7 @@ export class UsualSystem extends BaseSystem {
    * @param {MainArgs} args Command-line arguments.
    */
   constructor(args) {
-    super(ThisModule.logger.system);
+    super(ThisModule.logger?.system);
 
     this.#args = args;
   }

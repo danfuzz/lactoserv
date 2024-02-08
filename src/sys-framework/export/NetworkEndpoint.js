@@ -56,7 +56,7 @@ export class NetworkEndpoint extends BaseComponent {
     const { interface: iface, mounts, name, protocol } = config;
     const { applicationMap, hostManager, logger, rateLimiter, requestLogger } = extraConfig;
 
-    super(config, ThisModule.logger.endpoint[name]);
+    super(config, ThisModule.logger?.endpoint[name]);
 
     this.#mountMap = NetworkEndpoint.#makeMountMap(mounts, applicationMap);
 
@@ -87,7 +87,7 @@ export class NetworkEndpoint extends BaseComponent {
         mountMap[hostString] = paths;
       }
 
-      logger.mounts(mountMap);
+      logger?.mounts(mountMap);
     }
   }
 

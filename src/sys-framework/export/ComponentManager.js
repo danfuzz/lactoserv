@@ -155,7 +155,7 @@ export class ComponentManager extends BaseControllable {
     MustBe.instanceOf(instance, this.#baseClass);
 
     this.#instances.set(name, instance);
-    this.logger.bound(name);
+    this.logger?.bound(name);
   }
 
   /**

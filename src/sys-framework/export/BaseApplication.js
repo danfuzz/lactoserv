@@ -106,7 +106,7 @@ export class BaseApplication extends BaseComponent {
     const logger    = this.logger;
     const id        = request.id;
 
-    logger.handling(id, dispatch.extraString);
+    logger?.handling(id, dispatch.extraString);
 
     const done = (fate, ...error) => {
       const endTime  = this.#loggingEnv.now();

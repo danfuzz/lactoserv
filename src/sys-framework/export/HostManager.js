@@ -32,7 +32,7 @@ export class HostManager {
    * @type {?IntfLogger} Logger for this class, or `null` not to do any
    * logging.
    */
-  #logger = ThisModule.logger.hosts;
+  #logger = ThisModule.logger?.hosts;
 
   /**
    * Constructs an instance.
@@ -122,16 +122,16 @@ export class HostManager {
     let   foundCtx = null;
 
     if (found) {
-      this.#logger.foundMatchFor(serverName, found.config.hostnames);
+      this.#logger?.foundMatchFor(serverName, found.config.hostnames);
       foundCtx = await found.getSecureContext();
     } else {
-      this.#logger.noMatchFor(serverName);
+      this.#logger?.noMatchFor(serverName);
     }
 
     try {
       callback(null, foundCtx);
     } catch (e) {
-      this.#logger.errorDuringCallback(e);
+      this.#logger?.errorDuringCallback(e);
       callback(e, null);
     }
   }
@@ -148,7 +148,7 @@ export class HostManager {
     for (const name of item.config.hostnames) {
       const key = Uris.parseHostname(name, true);
       this.#items.add(key, item);
-      this.#logger.bound(name);
+      this.#logger?.bound(name);
     }
   }
 
@@ -166,7 +166,7 @@ export class HostManager {
     const key = Uris.parseHostnameOrNull(name, allowWildcard);
 
     if (key === null) {
-      this.#logger.invalidHostname(name);
+      this.#logger?.invalidHostname(name);
       return null;
     }
 

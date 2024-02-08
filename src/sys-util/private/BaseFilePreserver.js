@@ -47,7 +47,7 @@ export class BaseFilePreserver {
    */
   constructor(config, logger) {
     this.#config = MustBe.instanceOf(config, FileServiceConfig);
-    this.#logger = logger ? logger.saver : null;
+    this.#logger = logger?.saver;
   }
 
   /**

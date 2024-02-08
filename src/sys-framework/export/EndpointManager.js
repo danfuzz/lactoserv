@@ -32,7 +32,7 @@ export class EndpointManager extends BaseControllable {
    * @param {Warehouse} warehouse The warehouse this instance is in.
    */
   constructor(configs, warehouse) {
-    super(ThisModule.logger.endpoints);
+    super(ThisModule.logger?.endpoints);
 
     this.#warehouse = warehouse;
 
@@ -116,7 +116,7 @@ export class EndpointManager extends BaseControllable {
     const extraConfig = {
       applicationMap: this.#makeApplicationMap(mounts),
       hostManager:    hmSubset,
-      logger:         ThisModule.logger.endpoint[name],
+      logger:         ThisModule.logger?.endpoint[name],
       rateLimiter,
       requestLogger
     };
@@ -124,7 +124,7 @@ export class EndpointManager extends BaseControllable {
     const instance = new NetworkEndpoint(config, extraConfig);
 
     this.#instances.set(name, instance);
-    this.logger.bound(name);
+    this.logger?.bound(name);
   }
 
   /**

@@ -27,7 +27,7 @@ export class WarehouseMaker {
    * @type {?IntfLogger} Logger for this instance, or `null` not to do any
    * logging.
    */
-  #logger = ThisModule.logger.system;
+  #logger = ThisModule.logger?.system;
 
   /**
    * Constructs an instance.
@@ -49,11 +49,11 @@ export class WarehouseMaker {
     let config;
 
     try {
-      this.#logger.readingConfiguration();
+      this.#logger?.readingConfiguration();
       config = await this.#loadConfig();
-      this.#logger.readConfiguration();
+      this.#logger?.readConfiguration();
     } catch (e) {
-      this.#logger.configFileError(e);
+      this.#logger?.configFileError(e);
       throw e;
     }
 
@@ -66,12 +66,12 @@ export class WarehouseMaker {
     const registry = new ComponentRegistry(classes);
 
     try {
-      this.#logger.constructingWarehouse();
+      this.#logger?.constructingWarehouse();
       const result = new Warehouse(config, registry);
-      this.#logger.constructedWarehouse();
+      this.#logger?.constructedWarehouse();
       return result;
     } catch (e) {
-      this.#logger.warehouseConstructionError(e);
+      this.#logger?.warehouseConstructionError(e);
       throw e;
     }
   }
@@ -95,7 +95,7 @@ export class WarehouseMaker {
         // There was a syntax error somewhere in the config. Try to make it
         // easy to spot.
         const errorText = await this.#forkAndRelayError();
-        this.#logger.configFileSyntaxError(errorText);
+        this.#logger?.configFileSyntaxError(errorText);
         throw new SyntaxError(errorText);
       }
 
