@@ -1,0 +1,26 @@
+#!/bin/bash
+#
+# Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
+# SPDX-License-Identifier: Apache-2.0
+
+# Figure out the symlink-resolved program name and directory.
+cmdName="$(readlink -f "$0")" || exit "$?"
+cmdDir="${cmdName%/*}"
+cmdName="${cmdName##*/}"
+
+siteDir="${cmdDir}/website"                # Website files.
+baseDir="$(readlink -f "${cmdDir}/../..")" # Base directory of this project.
+outDir="${baseDir}/out"                    # Project build directory.
+qsDir="${outDir}/quick-start"              # Project subdir for this example.
+
+if [[ ! -x "${outDir}/lactoserv" ]]; then
+    "${baseDir}/scripts/ubik" build || exit "$?"
+    echo ''
+fi
+
+rm -rf "${qsDir}"
+mkdir -p "${qsDir}"
+cp -r "${cmdDir}/code" "${cmdDir}/website" "${qsDir}"
+ln -s ../lactoserv/lib/code/node_modules "${qsDir}"
+
+node --no-warnings --experimental-vm-modules "${qsDir}/code/index.mjs"
