@@ -7,6 +7,14 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
+* None.
+
+Other notable changes:
+* None.
+
+### v0.6.4 -- 2024-02-08
+
+Breaking changes:
 * Renamed `app-*` modules to `sys-*`, to avoid name confusion (because the
   overall _system_ already has bits inside it called _applications_).
 * Renamed module `network-protocol` to `net-protocol`, to harmonize with
@@ -18,7 +26,7 @@ Breaking changes:
   * Changed almost all time-related variables and parameters to be instances of
    `Moment` or `Duration` instead of dimensionless `number`s.
 * Removed automatic ETag generation as part of the `Request` API. Removed all
-  use of the old `etag` npm package.
+  use of the old (and mildly problematic) `etag` npm package.
 
 Other notable changes:
 * New class `EtagGenerator`, for generating ETags. Added configuration options
