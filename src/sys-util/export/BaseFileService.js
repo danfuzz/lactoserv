@@ -20,7 +20,7 @@ export class BaseFileService extends BaseService {
    * Creates the directory of `config.path`, if it doesn't already exist.
    */
   async _prot_createDirectoryIfNecessary() {
-    const { directory } = this.config.splitPath();
+    const { directory } = this.config.pathParts;
 
     if (!await Statter.directoryExists(directory)) {
       await fs.mkdir(directory, { recursive: true });

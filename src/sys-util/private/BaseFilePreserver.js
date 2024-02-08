@@ -187,7 +187,7 @@ export class BaseFilePreserver {
       dateStr  = null
     } = options;
 
-    const { directory, filePrefix, fileSuffix } = this.#config.splitPath();
+    const { directory, filePrefix, fileSuffix } = this.#config.pathParts;
     const todayStr = BaseFilePreserver.#makeInfix(new Date());
     const contents = await fs.readdir(directory);
     const result   = [];

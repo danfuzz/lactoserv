@@ -35,6 +35,9 @@ export class FileServiceConfig extends ServiceConfig {
   /** @type {string} The absolute path to use. */
   #path;
 
+  /** @type {?object} Path parts, or `null` if not yet calculated. */
+  #pathParts = null;
+
   /** @type {?RotateConfig} Rotation configuration, if any. */
   #rotate;
 
@@ -66,6 +69,32 @@ export class FileServiceConfig extends ServiceConfig {
     return this.#path;
   }
 
+  /**
+   * The various parts of {@link #path}. The return value is a frozen plain
+   * object with the following properties:
+   *
+   * * `path` -- The original path (for convenience).
+   * * `directory` -- The directory leading to the final path component, that
+   *   is, everything but the final path component. This _not_ end with a slash,
+   *   so in the case of a root-level file, this is the empty string.
+   * * `fileName` -- The final path component.
+   * * `filePrefix` -- The "prefix" portion of the file name, which is defined
+   *   as everything up to but not including the last dot (`.`) in the name. If
+   *   there is no dot in the name, then this is the same as `fileName`.
+   * * `fileSuffix` -- The "suffix" portion of the file name, which is
+   *   everything not included in `filePrefix`. If there is no dot in the name,
+   *   then this is the empty string.
+   *
+   * @returns {object} The split path, as described.
+   */
+  get pathParts() {
+    if (!this.#pathParts) {
+      this.#pathParts = this.#makePathParts();
+    }
+
+    return this.#pathParts;
+  }
+
   /** @returns {?RotateConfig} Rotation configuration, if any. */
   get rotate() {
     return this.#rotate;
@@ -87,29 +116,16 @@ export class FileServiceConfig extends ServiceConfig {
    * @returns {string} The so-modified path.
    */
   infixPath(infix) {
-    const split = this.splitPath();
+    const split = this.pathParts;
     return `${split.directory}/${split.filePrefix}${infix}${split.fileSuffix}`;
   }
 
   /**
-   * Splits the {@link #path} into components. The return value is a plain
-   * object with the following properties:
-   *
-   * * `path` -- The original path (for convenience).
-   * * `directory` -- The directory leading to the final path component, that
-   *   is, everything but the final path component. This _not_ end with a slash,
-   *   so in the case of a root-level file, this is the empty string.
-   * * `fileName` -- The final path component.
-   * * `filePrefix` -- The "prefix" portion of the file name, which is defined
-   *   as everything up to but not including the last dot (`.`) in the name. If
-   *   there is no dot in the name, then this is the same as `fileName`.
-   * * `fileSuffix` -- The "suffix" portion of the file name, which is
-   *   everything not included in `filePrefix`. If there is no dot in the name,
-   *   then this is the empty string.
+   * Calculates the value for {@link #pathParts}.
    *
    * @returns {object} The split path, as described.
    */
-  splitPath() {
+  #makePathParts() {
     const path = this.#path;
 
     const { directory, fileName } =
@@ -118,6 +134,6 @@ export class FileServiceConfig extends ServiceConfig {
     const { filePrefix, fileSuffix = '' } =
       fileName.match(/^(?<filePrefix>.*?)(?<fileSuffix>[.][^.]*)?$/).groups;
 
-    return { path, directory, fileName, filePrefix, fileSuffix };
+    return Object.freeze({ path, directory, fileName, filePrefix, fileSuffix });
   }
 }
