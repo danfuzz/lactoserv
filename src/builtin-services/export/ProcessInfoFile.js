@@ -10,8 +10,7 @@ import { Statter } from '@this/fs-util';
 import { Host, ProcessInfo, ProcessUtil, ProductInfo } from '@this/host';
 import { IntfLogger } from '@this/loggy';
 import { FileServiceConfig } from '@this/sys-config';
-import { BaseService } from '@this/sys-framework';
-import { Saver } from '@this/sys-util';
+import { BaseFileService, Saver } from '@this/sys-util';
 import { MustBe } from '@this/typey';
 
 
@@ -29,7 +28,7 @@ import { MustBe } from '@this/typey';
  * **Note:** See {@link #ProcessIdFile} for a service which writes minimal
  * information about active processes.
  */
-export class ProcessInfoFile extends BaseService {
+export class ProcessInfoFile extends BaseFileService {
   /** @type {?object} Current info file contents, if known. */
   #contents = null;
 

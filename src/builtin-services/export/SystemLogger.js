@@ -6,8 +6,7 @@ import * as timers from 'node:timers/promises';
 import { EventTracker, LinkedEvent } from '@this/async';
 import { IntfLogger, Loggy, TextFileSink } from '@this/loggy';
 import { FileServiceConfig } from '@this/sys-config';
-import { BaseService } from '@this/sys-framework';
-import { Rotator } from '@this/sys-util';
+import { BaseFileService, Rotator } from '@this/sys-util';
 import { MustBe } from '@this/typey';
 
 
@@ -22,7 +21,7 @@ import { MustBe } from '@this/typey';
  *   defined by {@link TextFileSink} (`json` or `human` as of this writing, but
  *   subject to change).
  */
-export class SystemLogger extends BaseService {
+export class SystemLogger extends BaseFileService {
   /** @type {?Rotator} File rotator to use, if any. */
   #rotator;
 

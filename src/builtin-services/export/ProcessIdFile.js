@@ -9,7 +9,7 @@ import { Threadlet } from '@this/async';
 import { ProcessUtil } from '@this/host';
 import { Statter } from '@this/fs-util';
 import { FileServiceConfig } from '@this/sys-config';
-import { BaseService } from '@this/sys-framework';
+import { BaseFileService } from '@this/sys-util';
 import { MustBe } from '@this/typey';
 
 
@@ -32,7 +32,7 @@ import { MustBe } from '@this/typey';
  * **Note:** See {@link #ProcessInfoFile} for a service which writes more
  * complete information about the system.
  */
-export class ProcessIdFile extends BaseService {
+export class ProcessIdFile extends BaseFileService {
   /** @type {Threadlet} Threadlet which runs this service. */
   #runner = new Threadlet(() => this.#run());
 
