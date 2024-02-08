@@ -169,16 +169,14 @@ export class BaseFilePreserver {
   /**
    * Finds all the files that match the configured file name pattern.
    *
-   * @param {object} [options] Options for the search, which define a union
-   *   of items to find.
-   * @param {boolean} [options.current] Find the current (unmodified
-   *   name) log file?
-   * @param {boolean} [options.today] Find files with today's date
-   *   (UTC)?
-   * @param {boolean} [options.pastDays] Find files from previous days
-   *   (UTC)?
-   * @param {?string} [options.dateStr] Find files infixed with the given
-   *   date string?
+   * @param {object} [options] Options for the search, which define a union of
+   *   items to find.
+   * @param {boolean} [options.current] Find the current (unmodified name) log
+   *   file?
+   * @param {boolean} [options.today] Find files with today's date (UTC)?
+   * @param {boolean} [options.pastDays] Find files from previous days (UTC)?
+   * @param {?string} [options.dateStr] Find files infixed with the given date
+   *   string?
    * @returns {object[]} Array of useful information about each matched file.
    */
   async #findFiles(options = {}) {
