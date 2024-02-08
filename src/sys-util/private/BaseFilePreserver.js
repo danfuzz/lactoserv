@@ -235,11 +235,12 @@ export class BaseFilePreserver {
     let   stats;
 
     try {
-      stats = await fs.stat(origPath);
-    } catch (e) {
-      if (e.code !== 'ENOENT') {
-        this.#logger?.errorWithStat(e);
+      stats = await Statter.statOrNull(origPath);
+      if (!stats) {
+        return;
       }
+    } catch (e) {
+      this.#logger?.errorWithStat(e);
       return;
     }
 
@@ -248,9 +249,7 @@ export class BaseFilePreserver {
       await fs.rename(origPath, targetPath);
       this.#logger?.renamedTo(targetPath);
     } catch (e) {
-      if (e.code !== 'ENOENT') {
-        this.#logger?.errorWithRename(e);
-      }
+      this.#logger?.errorWithRename(e);
     }
 
     await this.#deleteOldFiles();
