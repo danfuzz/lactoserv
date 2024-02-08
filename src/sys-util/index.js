@@ -3,6 +3,5 @@
 
 export * from '#x/BaseFileService';
 export * from '#x/BaseSystem';
-export * from '#x/FileServiceHelper';
 export * from '#x/Rotator';
 export * from '#x/Saver';
