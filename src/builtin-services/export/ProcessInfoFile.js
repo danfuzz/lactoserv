@@ -6,6 +6,7 @@ import * as timers from 'node:timers/promises';
 
 import { Threadlet } from '@this/async';
 import { Duration, Moment } from '@this/data-values';
+import { Statter } from '@this/fs-util';
 import { Host, ProcessInfo, ProcessUtil, ProductInfo } from '@this/host';
 import { IntfLogger } from '@this/loggy';
 import { FileServiceConfig } from '@this/sys-config';
@@ -170,19 +171,18 @@ export class ProcessInfoFile extends BaseService {
     const filePath = this.config.path;
 
     try {
-      await fs.stat(filePath);
-      const text   = await fs.readFile(filePath);
+      if (!await Statter.fileExists(filePath)) {
+        return null;
+      }
+
+      const text   = await fs.readFile(filePath, { encoding: 'utf-8' });
       const parsed = JSON.parse(text);
 
       this.logger?.readFile();
       return parsed;
     } catch (e) {
-      if (e.code === 'ENOENT') {
-        return null;
-      } else {
-        this.logger?.errorReadingFile(e);
-        return { error: e.stack };
-      }
+      this.logger?.errorReadingFile(e);
+      return { error: e.stack };
     }
   }
 
