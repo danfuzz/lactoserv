@@ -2,5 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 export * from '#x/BaseSystem';
+export * from '#x/FileServiceHelper';
 export * from '#x/Rotator';
 export * from '#x/Saver';
