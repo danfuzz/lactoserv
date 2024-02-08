@@ -28,7 +28,7 @@ export class TreePathMap {
   #size = 0;
 
   /**
-   * @type {function(TreePathKey): string} Function to use to render keys into
+   * @type {function(TreePathKey): string} Function which renders keys into
    * strings.
    */
   #keyStringFunc;
