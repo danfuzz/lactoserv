@@ -20,7 +20,7 @@ Breaking changes:
 * Renamed module `network-protocol` to `net-protocol`, to harmonize with
   `net-util` (and `node:net`).
 * Expanded and reworked `fs-util`, including moving the utility class
-  `app-config.Files` to `fs-util.Paths`.
+  `sys-config.Files` to `fs-util.Paths`.
 * Time stuff, which affects both APIs and configuration:
   * Settled on `sec` (not `secs`) when identifying numbers of seconds.
   * Changed almost all time-related variables and parameters to be instances of
