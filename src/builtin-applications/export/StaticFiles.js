@@ -164,7 +164,12 @@ export class StaticFiles extends BaseApplication {
       }
     }
 
-    const fullPath = `${this.#siteDirectory}/${parts.join('/')}`;
+    // The conditional guarantees that the `fullPath` does not end with a slash,
+    // which makes the code below a bit simpler (because we care about only
+    // producing canonicalized paths that have no double slashes).
+    const fullPath = (parts.length === 0)
+      ? this.#siteDirectory
+      : `${this.#siteDirectory}/${parts.join('/')}`;
     this.logger?.fullPath(fullPath);
 
     try {
@@ -182,15 +187,8 @@ export class StaticFiles extends BaseApplication {
             : parts;
           return { redirect: `${source[source.length - 1]}/` };
         } else {
-          // It's a proper directory reference. Look for the index file. Note:
-          // The only time the `fullPath` ends with `/` is when the incoming
-          // path is empty, in which case we don't want to use `/` to separate
-          // it from the `index.html` suffix, because that would form a
-          // non-canonical path (which other parts of the system will reject).
-          // Hence the following conditional.
-          const indexPath = (parts.length === 0)
-            ? `${fullPath}index.html`
-            : `${fullPath}/index.html`;
+          // It's a proper directory reference. Look for the index file.
+          const indexPath = `${fullPath}/index.html`;
           const indexStats = await Statter.statOrNull(indexPath, true);
           if (indexStats === null) {
             this.logger?.indexNotFound(indexPath);
