@@ -9,6 +9,8 @@ versioning principles. Unstable releases do not.
 Breaking changes:
 * Renamed `app-*` modules to `sys-*`, to avoid name confusion (because the
   overall _system_ already has bits inside it called _applications_).
+* Renamed module `network-protocol` to `net-protocol`, to harmonize with
+  `net-util` (and `node:net`).
 * Expanded and reworked `fs-util`, including moving the utility class
   `app-config.Files` to `fs-util.Paths`.
 * Time stuff, which affects both APIs and configuration:
