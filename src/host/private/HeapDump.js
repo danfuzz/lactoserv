@@ -38,7 +38,7 @@ export class HeapDump {
   static async dump(fileName) {
     const { filePath, handle } = await this.#openDumpFile(fileName);
 
-    this.#logger.dumpingTo(filePath);
+    this.#logger?.dumpingTo(filePath);
 
     let chunkCount = 0;
     let byteCount  = 0;
@@ -56,7 +56,7 @@ export class HeapDump {
       byteCount = thisByteCount;
 
       if (lastInterval !== thisInterval) {
-        this.#logger.wrote({ bytes: byteCount, chunks: chunkCount });
+        this.#logger?.wrote({ bytes: byteCount, chunks: chunkCount });
       }
     };
 
@@ -77,12 +77,12 @@ export class HeapDump {
     await post('HeapProfiler.takeHeapSnapshot', null);
     await sink.drainAndStop();
 
-    this.#logger.wrote({ bytes: byteCount, chunks: chunkCount });
+    this.#logger?.wrote({ bytes: byteCount, chunks: chunkCount });
 
     sess.disconnect();
     await handle.close();
 
-    this.#logger.dumpedTo(filePath);
+    this.#logger?.dumpedTo(filePath);
   }
 
   /**

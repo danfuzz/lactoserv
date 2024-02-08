@@ -32,7 +32,7 @@ export class CallbackList {
    * @param {number} maxRunMsec Maximum time for running all callbacks, in msec.
    */
   constructor(name, maxRunMsec) {
-    this.#logger     = ThisModule.logger.callback[name];
+    this.#logger     = ThisModule.logger?.callback[name];
     this.#maxRunMsec = maxRunMsec;
   }
 
@@ -53,21 +53,21 @@ export class CallbackList {
   async run() {
     if (this.#inProgress.value) {
       // Already running. Ignore the request.
-      this.#logger.ignoring();
+      this.#logger?.ignoring();
       return;
     }
 
     this.#inProgress.value = true;
 
-    this.#logger.running();
+    this.#logger?.running();
 
     try {
       await this.#run0();
     } catch (e) {
-      this.#logger.error(e);
+      this.#logger?.error(e);
       throw e;
     } finally {
-      this.#logger.done();
+      this.#logger?.done();
       this.#inProgress.value = false;
     }
   }
@@ -88,7 +88,7 @@ export class CallbackList {
       for (const result of results) {
         if (result.status === 'rejected') {
           rejectedCount++;
-          this.#logger.error(result.reason);
+          this.#logger?.error(result.reason);
         }
       }
 
@@ -115,7 +115,7 @@ export class CallbackList {
       }
 
       // Similar to above, throw an error to indicate timeout.
-      this.#logger.timedOut();
+      this.#logger?.timedOut();
       throw new Error(`Timed out during callback handler!`);
     })();
 

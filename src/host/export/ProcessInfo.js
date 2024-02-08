@@ -61,6 +61,6 @@ export class ProcessInfo {
       startedAt: new Moment(startSec).toPlainObject()
     };
 
-    ThisModule.logger.processInfo(this.#fixedInfo);
+    ThisModule.logger?.processInfo(this.#fixedInfo);
   }
 }

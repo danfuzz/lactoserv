@@ -25,7 +25,7 @@ export class KeepRunning {
    * @type {?IntfLogger} Logger for this class, or `null` not to do any
    * logging.
    */
-  #logger = ThisModule.logger.keepRunning;
+  #logger = ThisModule.logger?.keepRunning;
 
 
   /**
@@ -40,11 +40,11 @@ export class KeepRunning {
    */
   run() {
     if (this.#thread.isRunning()) {
-      this.#logger.run('ignored');
+      this.#logger?.run('ignored');
       return;
     }
 
-    this.#logger.run();
+    this.#logger?.run();
     this.#thread.run();
   }
 
@@ -53,11 +53,11 @@ export class KeepRunning {
    */
   stop() {
     if (!this.#thread.isRunning()) {
-      this.#logger.stop('ignored');
+      this.#logger?.stop('ignored');
       return;
     }
 
-    this.#logger.stop();
+    this.#logger?.stop();
     this.#thread.stop();
   }
 
@@ -68,7 +68,7 @@ export class KeepRunning {
   async #keepRunning() {
     const startedAtSec = ProcessInfo.allInfo.startedAt.atSec;
 
-    this.#logger.running();
+    this.#logger?.running();
 
     // This is a standard-ish trick to keep a Node process alive: Repeatedly set
     // a timeout (or, alternatively, set a recurring timeout), and cancel it
@@ -79,10 +79,10 @@ export class KeepRunning {
       ]);
 
       const uptimeSec = (Date.now() / 1000) - startedAtSec;
-      this.#logger.uptime(new Duration(uptimeSec));
+      this.#logger?.uptime(new Duration(uptimeSec));
     }
 
-    this.#logger.stopped();
+    this.#logger?.stopped();
   }
 
 

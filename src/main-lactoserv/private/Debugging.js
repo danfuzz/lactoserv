@@ -19,7 +19,7 @@ export class Debugging {
    * @type {?IntfLogger} Logger for this class, or `null` not to do any
    * logging.
    */
-  static #logger = ThisModule.logger.debug;
+  static #logger = ThisModule.logger?.debug;
 
   /**
    * Processes the debugging-related arguments / options, if any.
@@ -98,7 +98,7 @@ export class Debugging {
     const logger = this.#logger;
 
     (async () => {
-      logger.timerStarted(new Duration(maxRunTimeSec));
+      logger?.timerStarted(new Duration(maxRunTimeSec));
 
       let remainingSec = maxRunTimeSec;
       if (maxRunTimeSec > 60) {
@@ -109,7 +109,7 @@ export class Debugging {
       const WARNING_FREQ_SECS = 10;
 
       while (remainingSec > 0) {
-        logger.timeRemaining(new Duration(remainingSec));
+        logger?.timeRemaining(new Duration(remainingSec));
 
         let waitSec = 1;
         if (remainingSec >= (WARNING_FREQ_SECS * 2)) {
@@ -123,7 +123,7 @@ export class Debugging {
         remainingSec -= waitSec;
       }
 
-      logger.timerExpired(new Duration(maxRunTimeSec));
+      logger?.timerExpired(new Duration(maxRunTimeSec));
       await system.stop();
     })();
   }

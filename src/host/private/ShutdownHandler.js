@@ -34,7 +34,7 @@ export class ShutdownHandler {
    * @type {?IntfLogger} Logger for this class, or `null` not to do any
    * logging.
    */
-  static #logger = ThisModule.logger.shutdown;
+  static #logger = ThisModule.logger?.shutdown;
 
   /** @type {CallbackList} Callbacks to invoke before shutting down. */
   static #callbacks = new CallbackList('shutdown', this.#MAX_SHUTDOWN_MSEC);
@@ -62,9 +62,9 @@ export class ShutdownHandler {
     if (exitCode !== 0) {
       if (this.#exitCode === 0) {
         this.#exitCode = exitCode;
-        this.#logger.exiting(exitCode);
+        this.#logger?.exiting(exitCode);
       } else if (this.#exitCode !== exitCode) {
-        this.#logger.ignoringExitCode(exitCode);
+        this.#logger?.ignoringExitCode(exitCode);
       }
     }
 
@@ -107,7 +107,7 @@ export class ShutdownHandler {
       }
     }
 
-    this.#logger.bye(this.#exitCode);
+    this.#logger?.bye(this.#exitCode);
 
     await timers.setTimeout(this.#PRE_EXIT_DELAY_MSEC);
 

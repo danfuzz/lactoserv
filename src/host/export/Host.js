@@ -29,7 +29,7 @@ export class Host {
   static async exit(exitCode = 0) {
     this.init();
 
-    ThisModule.logger.exitCalled(exitCode);
+    ThisModule.logger?.exitCalled(exitCode);
     await ShutdownHandler.exit(exitCode);
   }
 
@@ -48,7 +48,7 @@ export class Host {
     SignalHandler.init();
     TopErrorHandler.init();
 
-    ThisModule.logger.initialized();
+    ThisModule.logger?.initialized();
 
     this.#initDone = true;
   }

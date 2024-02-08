@@ -45,7 +45,7 @@ export class ProductInfo {
    */
   static init() {
     this.#extractInfo();
-    ThisModule.logger.productInfo(this.#info);
+    ThisModule.logger?.productInfo(this.#info);
   }
 
   /**
@@ -69,7 +69,7 @@ export class ProductInfo {
       Object.assign(info, JSON.parse(text));
     } catch (e) {
       // Ignore it, other than logging.
-      ThisModule.logger.productInfoError(e);
+      ThisModule.logger?.productInfoError(e);
     }
 
     process.title = `node :: ${info.name} ${info.version} ${info.commit}`

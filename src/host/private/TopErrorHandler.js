@@ -29,7 +29,7 @@ export class TopErrorHandler {
    * @type {?IntfLogger} Logger for this class, or `null` not to do any
    * logging.
    */
-  static #logger = ThisModule.logger.topError;
+  static #logger = ThisModule.logger?.topError;
 
   /** @type {boolean} Initialized? */
   static #initDone = false;
@@ -154,7 +154,7 @@ export class TopErrorHandler {
     for (let i = 1; i <= this.#PROMISE_REJECTION_GRACE_PERIOD_TICKS; i++) {
       await timers.setImmediate();
       if (!this.#unhandledRejections.has(promise)) {
-        this.#logger.rejectionHandledSlowly(reason, { afterTicks: i });
+        this.#logger?.rejectionHandledSlowly(reason, { afterTicks: i });
         return;
       }
     }
@@ -174,6 +174,6 @@ export class TopErrorHandler {
       }
     }
 
-    this.#logger.warning(warning);
+    this.#logger?.warning(warning);
   }
 }

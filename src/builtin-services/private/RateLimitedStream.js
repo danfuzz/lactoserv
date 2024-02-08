@@ -51,7 +51,7 @@ export class RateLimitedStream {
   constructor(bucket, stream, logger) {
     this.#bucket      = MustBe.instanceOf(bucket, TokenBucket);
     this.#innerStream = MustBe.instanceOf(stream, Writable);
-    this.#logger      = logger.dataRateLimiter;
+    this.#logger      = logger?.dataRateLimiter;
 
     if (stream.readableObjectMode || stream.writableObjectMode) {
       throw new Error('Object mode not supported.');

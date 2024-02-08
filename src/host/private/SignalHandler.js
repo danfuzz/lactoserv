@@ -26,7 +26,7 @@ export class SignalHandler {
    * @type {?IntfLogger} Logger for this class, or `null` not to do any
    * logging.
    */
-  static #logger = ThisModule.logger.signal;
+  static #logger = ThisModule.logger?.signal;
 
   /** @type {boolean} Initialized? */
   static #initDone = false;
