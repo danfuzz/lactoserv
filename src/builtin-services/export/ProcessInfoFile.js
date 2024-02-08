@@ -6,11 +6,11 @@ import * as timers from 'node:timers/promises';
 
 import { Threadlet } from '@this/async';
 import { Duration, Moment } from '@this/data-values';
+import { Statter } from '@this/fs-util';
 import { Host, ProcessInfo, ProcessUtil, ProductInfo } from '@this/host';
 import { IntfLogger } from '@this/loggy';
 import { FileServiceConfig } from '@this/sys-config';
-import { BaseService } from '@this/sys-framework';
-import { Saver } from '@this/sys-util';
+import { BaseFileService, Saver } from '@this/sys-util';
 import { MustBe } from '@this/typey';
 
 
@@ -28,7 +28,7 @@ import { MustBe } from '@this/typey';
  * **Note:** See {@link #ProcessIdFile} for a service which writes minimal
  * information about active processes.
  */
-export class ProcessInfoFile extends BaseService {
+export class ProcessInfoFile extends BaseFileService {
   /** @type {?object} Current info file contents, if known. */
   #contents = null;
 
@@ -170,19 +170,18 @@ export class ProcessInfoFile extends BaseService {
     const filePath = this.config.path;
 
     try {
-      await fs.stat(filePath);
-      const text   = await fs.readFile(filePath);
+      if (!await Statter.fileExists(filePath)) {
+        return null;
+      }
+
+      const text   = await fs.readFile(filePath, { encoding: 'utf-8' });
       const parsed = JSON.parse(text);
 
       this.logger?.readFile();
       return parsed;
     } catch (e) {
-      if (e.code === 'ENOENT') {
-        return null;
-      } else {
-        this.logger?.errorReadingFile(e);
-        return { error: e.stack };
-      }
+      this.logger?.errorReadingFile(e);
+      return { error: e.stack };
     }
   }
 
@@ -270,7 +269,7 @@ export class ProcessInfoFile extends BaseService {
     const obj  = contents ?? this.#contents;
     const text = `${JSON.stringify(obj, null, 2)}\n`;
 
-    await this.config.createDirectoryIfNecessary();
+    await this._prot_createDirectoryIfNecessary();
     await fs.writeFile(this.config.path, text);
 
     this.logger?.wroteFile();

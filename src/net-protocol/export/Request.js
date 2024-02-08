@@ -1262,7 +1262,7 @@ export class Request {
     let stringBody = false;
 
     if (typeof body === 'string') {
-      bodyBuffer = Buffer.from(body, 'utf8');
+      bodyBuffer = Buffer.from(body, 'utf-8');
       stringBody = true;
     } else if (body instanceof Buffer) {
       bodyBuffer = body;

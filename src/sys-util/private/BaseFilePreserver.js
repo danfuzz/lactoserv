@@ -169,16 +169,14 @@ export class BaseFilePreserver {
   /**
    * Finds all the files that match the configured file name pattern.
    *
-   * @param {object} [options] Options for the search, which define a union
-   *   of items to find.
-   * @param {boolean} [options.current] Find the current (unmodified
-   *   name) log file?
-   * @param {boolean} [options.today] Find files with today's date
-   *   (UTC)?
-   * @param {boolean} [options.pastDays] Find files from previous days
-   *   (UTC)?
-   * @param {?string} [options.dateStr] Find files infixed with the given
-   *   date string?
+   * @param {object} [options] Options for the search, which define a union of
+   *   items to find.
+   * @param {boolean} [options.current] Find the current (unmodified name) log
+   *   file?
+   * @param {boolean} [options.today] Find files with today's date (UTC)?
+   * @param {boolean} [options.pastDays] Find files from previous days (UTC)?
+   * @param {?string} [options.dateStr] Find files infixed with the given date
+   *   string?
    * @returns {object[]} Array of useful information about each matched file.
    */
   async #findFiles(options = {}) {
@@ -189,7 +187,7 @@ export class BaseFilePreserver {
       dateStr  = null
     } = options;
 
-    const { directory, filePrefix, fileSuffix } = this.#config.splitPath();
+    const { directory, filePrefix, fileSuffix } = this.#config.pathParts;
     const todayStr = BaseFilePreserver.#makeInfix(new Date());
     const contents = await fs.readdir(directory);
     const result   = [];
@@ -228,6 +226,18 @@ export class BaseFilePreserver {
   }
 
   /**
+   * Produces a modified `path` by infixing the final path component with the
+   * given value.
+   *
+   * @param {string} infix String to infix into the final path component.
+   * @returns {string} The so-modified path.
+   */
+  #infixPath(infix) {
+    const { directory, filePrefix, fileSuffix } = this.#config.pathParts;
+    return `${directory}/${filePrefix}${infix}${fileSuffix}`;
+  }
+
+  /**
    * Preserves the file and does any other related actions, as configured.
    */
   async #preserve() {
@@ -235,11 +245,12 @@ export class BaseFilePreserver {
     let   stats;
 
     try {
-      stats = await fs.stat(origPath);
-    } catch (e) {
-      if (e.code !== 'ENOENT') {
-        this.#logger?.errorWithStat(e);
+      stats = await Statter.statOrNull(origPath);
+      if (!stats) {
+        return;
       }
+    } catch (e) {
+      this.#logger?.errorWithStat(e);
       return;
     }
 
@@ -248,9 +259,7 @@ export class BaseFilePreserver {
       await fs.rename(origPath, targetPath);
       this.#logger?.renamedTo(targetPath);
     } catch (e) {
-      if (e.code !== 'ENOENT') {
-        this.#logger?.errorWithRename(e);
-      }
+      this.#logger?.errorWithRename(e);
     }
 
     await this.#deleteOldFiles();
@@ -297,7 +306,7 @@ export class BaseFilePreserver {
     const dateStr = BaseFilePreserver.#makeInfix(stats.birthtime);
     const resolve = (count) => {
       const infix = BaseFilePreserver.#makeInfix(dateStr, (count > 0) ? count : null);
-      return this.#config.infixPath(`-${infix}`);
+      return this.#infixPath(`-${infix}`);
     };
 
     if (this.#lastInfix === dateStr) {

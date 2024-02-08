@@ -37,7 +37,8 @@ export class Statter {
   }
 
   /**
-   * Checks to see if the given path exists in the filesystem.
+   * Checks to see if the given path exists in the filesystem, and is of any
+   * type (regular file, directory, named socket, etc.).
    *
    * @param {string} path Path to check.
    * @returns {boolean} The answer.

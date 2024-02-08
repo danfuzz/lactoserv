@@ -7,8 +7,7 @@ import { Moment } from '@this/data-values';
 import { IntfLogger } from '@this/loggy';
 import { IntfRequestLogger } from '@this/net-protocol';
 import { FileServiceConfig } from '@this/sys-config';
-import { BaseService } from '@this/sys-framework';
-import { Rotator } from '@this/sys-util';
+import { BaseFileService, Rotator } from '@this/sys-util';
 
 
 /**
@@ -22,7 +21,7 @@ import { Rotator } from '@this/sys-util';
  *
  * @implements {IntfRequestLogger}
  */
-export class RequestLogger extends BaseService {
+export class RequestLogger extends BaseFileService {
   /** @type {?Rotator} File rotator to use, if any. */
   #rotator;
 
@@ -50,8 +49,8 @@ export class RequestLogger extends BaseService {
 
   /** @override */
   async _impl_start(isReload) {
-    await this.config.createDirectoryIfNecessary();
-    await this.config.touchPath();
+    await this._prot_createDirectoryIfNecessary();
+    await this._prot_touchPath();
     await this.#rotator?.start(isReload);
   }
 

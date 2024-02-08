@@ -14,6 +14,7 @@
   "dependencies": {
     "@this/async": "*",
     "@this/data-values": "*",
+    "@this/fs-util": "*",
     "@this/host": "*",
     "@this/loggy": "*",
     "@this/net-protocol": "*",

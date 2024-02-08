@@ -1,8 +1,6 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import * as fs from 'node:fs/promises';
-
 import { Paths } from '@this/fs-util';
 
 import { RotateConfig } from '#x/RotateConfig';
@@ -35,6 +33,9 @@ export class FileServiceConfig extends ServiceConfig {
   /** @type {string} The absolute path to use. */
   #path;
 
+  /** @type {?object} Path parts, or `null` if not yet calculated. */
+  #pathParts = null;
+
   /** @type {?RotateConfig} Rotation configuration, if any. */
   #rotate;
 
@@ -66,50 +67,8 @@ export class FileServiceConfig extends ServiceConfig {
     return this.#path;
   }
 
-  /** @returns {?RotateConfig} Rotation configuration, if any. */
-  get rotate() {
-    return this.#rotate;
-  }
-
   /**
-   * @returns {?SaveConfig} Preservation configuration, if any. If this instance
-   * has a {@link RotateConfig}, that is returned here too (it's a subclass).
-   */
-  get save() {
-    return this.#save ?? this.#rotate;
-  }
-
-  /**
-   * Creates the directory of {@link #path}, if it doesn't already exist.
-   */
-  async createDirectoryIfNecessary() {
-    const { directory } = this.splitPath();
-
-    try {
-      await fs.stat(directory);
-    } catch (e) {
-      if (e.code === 'ENOENT') {
-        await fs.mkdir(directory, { recursive: true });
-      } else {
-        throw e;
-      }
-    }
-  }
-
-  /**
-   * Produces a modified {@link #path} by infixing the final path component with
-   * the given value.
-   *
-   * @param {string} infix String to infix into the final path component.
-   * @returns {string} The so-modified path.
-   */
-  infixPath(infix) {
-    const split = this.splitPath();
-    return `${split.directory}/${split.filePrefix}${infix}${split.fileSuffix}`;
-  }
-
-  /**
-   * Splits the {@link #path} into components. The return value is a plain
+   * The various parts of {@link #path}. The return value is a frozen plain
    * object with the following properties:
    *
    * * `path` -- The original path (for convenience).
@@ -126,7 +85,33 @@ export class FileServiceConfig extends ServiceConfig {
    *
    * @returns {object} The split path, as described.
    */
-  splitPath() {
+  get pathParts() {
+    if (!this.#pathParts) {
+      this.#pathParts = this.#makePathParts();
+    }
+
+    return this.#pathParts;
+  }
+
+  /** @returns {?RotateConfig} Rotation configuration, if any. */
+  get rotate() {
+    return this.#rotate;
+  }
+
+  /**
+   * @returns {?SaveConfig} Preservation configuration, if any. If this instance
+   * has a {@link RotateConfig}, that is returned here too (it's a subclass).
+   */
+  get save() {
+    return this.#save ?? this.#rotate;
+  }
+
+  /**
+   * Calculates the value for {@link #pathParts}.
+   *
+   * @returns {object} The split path, as described.
+   */
+  #makePathParts() {
     const path = this.#path;
 
     const { directory, fileName } =
@@ -135,28 +120,6 @@ export class FileServiceConfig extends ServiceConfig {
     const { filePrefix, fileSuffix = '' } =
       fileName.match(/^(?<filePrefix>.*?)(?<fileSuffix>[.][^.]*)?$/).groups;
 
-    return { path, directory, fileName, filePrefix, fileSuffix };
-  }
-
-  /**
-   * "Touches" (creates if necessary) the file at {@link #path}.
-   */
-  async touchPath() {
-    const path = this.#path;
-
-    try {
-      await fs.stat(path);
-    } catch (e) {
-      if (e.code === 'ENOENT') {
-        await fs.appendFile(path, '');
-        return;
-      } else {
-        throw e;
-      }
-    }
-
-    // File already existed; just update the modification time.
-    const dateNow = new Date();
-    await fs.utimes(path, dateNow, dateNow);
+    return Object.freeze({ path, directory, fileName, filePrefix, fileSuffix });
   }
 }

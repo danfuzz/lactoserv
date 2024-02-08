@@ -199,7 +199,7 @@ export class LimitedLoader {
         }
       }, this.#defaultOptions());
     } else if (specifier.startsWith('file:///')) {
-      const text = await fs.readFile(new URL(specifier), 'utf8');
+      const text = await fs.readFile(new URL(specifier), 'utf-8');
       result = new SourceTextModule(text, {
         ...this.#defaultOptions(),
         identifier: specifier,

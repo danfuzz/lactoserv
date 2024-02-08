@@ -17,6 +17,7 @@
     "@this/host": "*",
     "@this/loggy": "*",
     "@this/sys-config": "*",
+    "@this/sys-framework": "*",
     "@this/typey": "*"
   }
 }
