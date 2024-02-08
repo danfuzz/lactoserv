@@ -4,6 +4,7 @@
 import * as fs from 'node:fs/promises';
 import * as timers from 'node:timers/promises';
 
+import { Statter } from '@this/fs-util';
 import { IntfLogger } from '@this/loggy';
 import { FileServiceConfig } from '@this/sys-config';
 import { MustBe } from '@this/typey';
@@ -51,14 +52,12 @@ export class Rotator extends BaseFilePreserver {
     }
 
     try {
-      const stats = await fs.stat(this.#config.path);
-      if (stats.size >= this.#config.rotate.atSize) {
+      const stats = await Statter.statOrNull(this.#config.path);
+      if (stats && (stats.size >= this.#config.rotate.atSize)) {
         this._prot_saveNow();
       }
     } catch (e) {
-      if (e.code !== 'ENOENT') {
-        this.logger?.errorWithStat(e);
-      }
+      this.logger?.errorWithStat(e);
     }
   }
 
