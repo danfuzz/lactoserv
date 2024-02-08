@@ -14,8 +14,8 @@ deployment, you'll probably want to move the built application somewhere else
 (you can also make a tarball distro to unpack wherever is appropriate).
 
 This example, in a slightly modified form, is available by running the script
-`./etc/doc/quick-start/run`, which will even build the system for you if you
-haven't done that yet.
+`./doc/quick-start/run-standalone`, which will even build the system for you
+if you haven't done that yet.
 
 Build the system:
 
@@ -79,7 +79,13 @@ Browse! Use your web browser or `curl` to visit `http://localhost:8080` or
 
 ## Framework
 
-TODO!
+The framework example can be found in the directory
+[quick-start/code](./quick-start/code), including a configuration class which
+is shared with the standalone example.
+
+This example can be run using the script `./doc/quick-start/run-standalone`,
+which will even build the system for you if you haven't done that yet.
+
 
 - - - - - - - - - -
 ```
