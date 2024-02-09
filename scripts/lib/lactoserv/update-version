@@ -82,7 +82,7 @@ collecting && (count != 0) && /^###/ {
     } else {
         # `lines` has the section to mark with the version.
         for (i = 0; i < count; i++) {
-            print "xxx" lines[i];
+            print lines[i];
         }
 
         # The current line is the start of the next section.
