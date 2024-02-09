@@ -52,8 +52,9 @@ lib node-project fix-package-json "${mainModuleDir}/package.json"
 
 progress-msg "Updating: ${changelogPath}"
 
+header="v${versionNumber} -- $(date '+%Y-%m-%d')"
 awk <"${changelogPath}" >"${tmpPath}" \
-    -v versionNumber="${versionNumber}" '
+    -v header="${header}" '
 BEGIN {
     collecting = 0;
     count = 0;
@@ -75,7 +76,7 @@ collecting && (count != 0) && /^###/ {
     print "Other notable changes:";
     print "* None.";
     print "";
-    print "### v" versionNumber " -- COMING SOON";
+    print "###  " header;
 
     if ((lines[2] == "* None.") && (lines[5] == "* None.")) {
         # There was already a fresh next-release section, so we are all done.
