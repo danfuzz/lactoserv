@@ -8,7 +8,6 @@ cmdName="$(readlink -f "$0")" || exit "$?"
 cmdDir="${cmdName%/*}"
 cmdName="${cmdName##*/}"
 
-siteDir="${cmdDir}/website"                  # Website files.
 baseDir="$(readlink -f "${cmdDir}/../..")"   # Base directory of this project.
 serverBin="${baseDir}/out/lactoserv/bin/run" # Server binary.
 
@@ -17,5 +16,4 @@ if [[ ! -x "${serverBin}" ]]; then
     echo ''
 fi
 
-SITE_DIR="${siteDir}" \
-    "${serverBin}" --config="${cmdDir}/code/config.mjs" --log-to-stdout
+"${serverBin}" --config="${cmdDir}/code/config.mjs" --log-to-stdout
