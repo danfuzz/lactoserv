@@ -38,7 +38,10 @@ export class SystemLogger extends BaseFileService {
    * @param {IntfLogger} logger Logger to use. Required for this class!
    */
   constructor(config, logger) {
-    MustBe.object(logger);
+    // Note: Loggers are all supposed to be callable functions. The interface
+    // type `IntfLogger` (above) should also be true, but interfaces aren't
+    // actually reified in the JavaScript runtime, so we can't easily check it.
+    MustBe.function(logger);
     super(config, logger);
 
     this.#rotator = config.rotate ? new Rotator(config, this.logger) : null;
