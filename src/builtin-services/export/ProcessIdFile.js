@@ -6,8 +6,8 @@ import * as process from 'node:process';
 import * as timers from 'node:timers/promises';
 
 import { Threadlet } from '@this/async';
-import { ProcessUtil } from '@this/host';
 import { Statter } from '@this/fs-util';
+import { ProcessUtil } from '@this/host';
 import { FileServiceConfig } from '@this/sys-config';
 import { BaseFileService } from '@this/sys-util';
 import { MustBe } from '@this/typey';
