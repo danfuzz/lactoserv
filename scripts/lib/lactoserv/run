@@ -19,6 +19,8 @@ define-usage --with-help $'
       `build` -- Always build, even if there is something to run.
       `clean` -- Always do a clean build.
       `run` -- Build only if there is nothing to run. This is the default.
+    --dry-run
+      Do a dry run which just checks the configuration file and exits.
     --early-errors
       Debugging option passed to the system.
     --inspect[=...]
@@ -34,7 +36,8 @@ define-usage --with-help $'
 # What to do?
 opt-value --var=action --default=run --enum[]='build clean run' do
 
-# Debugging options passed directly to the main `run` script.
+# Options passed directly to the main `run` script.
+opt-toggle --var=dryRun dry-run
 opt-toggle --var=earlyErrors early-errors
 opt-value --var=maxRunTimeSec max-run-time-sec
 
@@ -83,6 +86,9 @@ if (( doBuild )); then
 fi
 
 extraOpts=()
+if (( dryRun )); then
+    extraOpts+=(--dry-run)
+fi
 if (( doInspect )); then
     if [[ ${inspect} != '' ]]; then
         inspect="=${inspect}"
