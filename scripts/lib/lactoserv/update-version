@@ -1,0 +1,76 @@
+#!/bin/bash
+#
+# Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
+# SPDX-License-Identifier: Apache-2.0
+
+. "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"
+
+
+#
+# Argument parsing
+#
+
+define-usage --with-help $'
+    ${name} [<opt> ...] <version>
+
+    Updates the version of the project. <version> is the version number.
+'
+
+# Version number.
+positional-arg --var=versionNumber --filter='/^[0-9]+\.[0-9]+\.[0-9]+$/' version
+
+process-args "$@" || exit "$?"
+
+
+#
+# Main script
+#
+
+baseDir="$(base-dir)"
+mainModuleDir="${baseDir}/src/main-lactoserv"
+changelogPath="${baseDir}/CHANGELOG.md"
+tmpPath="${baseDir}/tmp.txt"
+
+for f in "${mainModuleDir}/package.json" "${mainModuleDir}/package-lock.json"; do
+    progress-msg "Updating: ${f}"
+    lib >"${tmpPath}" jget --file="${f}" \
+        versionNumber="${versionNumber}" '
+        .version = $versionNumber
+        |
+        if .packages[""] then
+            .packages[""].version = $versionNumber
+        else
+            .
+        end
+    ' \
+    || exit "$?"
+
+    mv "${tmpPath}" "${f}"
+done
+
+lib node-project fix-package-json "${mainModuleDir}/package.json"
+
+progress-msg "Updating: ${changelogPath}"
+
+awk <"${changelogPath}" >"${tmpPath}" \
+    -v versionNumber="${versionNumber}" '
+$0 == "### [Unreleased]" {
+    print "### [Unreleased]";
+    print "";
+    print "Breaking changes:";
+    print "* None.";
+    print "";
+    print "Other notable changes:";
+    print "* None.";
+    print "";
+    print "### v" versionNumber " -- COMING SOON";
+    next;
+}
+
+{ print; }
+' \
+|| exit "$?"
+
+mv "${tmpPath}" "${changelogPath}"
+
+progress-msg 'Done!'
