@@ -35,8 +35,32 @@ describe('typeFromExtension()', () => {
 });
 
 describe('typeFromExtensionOrType()', () => {
-  test('finds the type given an extension without a dot', () => {
-    expect(MimeTypes.typeFromExtensionOrType('js')).toBe('text/javascript');
+  // Failure cases: Wrong argument type.
+  test.each`
+  arg
+  ${null}
+  ${undefined}
+  ${false}
+  ${123}
+  ${['.x']}
+  ${{ a: 10 }}
+  ${new Map()}
+  `('throws given $arg', ({ arg }) => {
+    expect(() => MimeTypes.typeFromExtensionOrType(arg)).toThrow();
+  });
+
+  // Failure cases: Incorrect syntax.
+  test.each`
+  arg
+  ${''}
+  ${'txt'}               // Extensions are supposed to start with a dot.
+  ${'/application/json'} // MIME types don't start with a slash.
+  `('throws given $arg', ({ arg }) => {
+    expect(() => MimeTypes.typeFromExtensionOrType(arg)).toThrow(/^Invalid syntax/);
+  });
+
+  test('throws if given an unknown MIME type', () => {
+    expect(() => MimeTypes.typeFromExtensionOrType('text/florp')).toThrow(/^Unknown MIME type/);
   });
 
   test('confirms the existence of a given MIME type', () => {
@@ -45,7 +69,7 @@ describe('typeFromExtensionOrType()', () => {
   });
 
   test('defaults to `application/octet-stream` given an unknown extension', () => {
-    expect(MimeTypes.typeFromExtensionOrType('abcdefgXYZ')).toBe('application/octet-stream');
+    expect(MimeTypes.typeFromExtensionOrType('.abcdefgXYZ')).toBe('application/octet-stream');
   });
 
   test('preserves a charset if given', () => {

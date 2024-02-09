@@ -32,10 +32,11 @@ export class MimeTypes {
 
   /**
    * Returns the given string if it is a known MIME type, or acts like {@link
-   * #typeFromExtension} if it looks like a simple extension value (string of
-   * less than 10 characters with no dot or slash). If it is an extension that
-   * is unrecognized, this returns `'application/octet-stream'`. This throws an
-   * an error in other cases.
+   * #typeFromExtension} if it looks like a simple extension value (string
+   * consisting of a dot followed by one to ten characters, not including any
+   * other dots or slashes). If it is an extension that is unrecognized, this
+   * returns `'application/octet-stream'`. This throws an an error in all other
+   * cases.
    *
    * @param {string} extensionOrType File extension or MIME type.
    * @returns {string} The MIME type.
@@ -43,15 +44,17 @@ export class MimeTypes {
   static typeFromExtensionOrType(extensionOrType) {
     MustBe.string(extensionOrType);
 
-    if (/[./]/.test(extensionOrType)) {
+    if (/^\.[^./]{1,10}$/.test(extensionOrType)) {
+      const found = mime.getType(extensionOrType);
+      return found ?? 'application/octet-stream';
+    } else if (/^(?=.*[/])[a-zA-Z][-_.=/; a-zA-Z0-9]+$/.test(extensionOrType)) {
       const found = mime.getExtension(extensionOrType);
       if (!found) {
         throw new Error(`Unknown MIME type: ${extensionOrType}`);
       }
       return extensionOrType;
     } else {
-      const found = mime.getType(extensionOrType);
-      return found ?? 'application/octet-stream';
+      throw new Error(`Invalid syntax for MIME type or file extension: ${extensionOrType}`);
     }
   }
 }
