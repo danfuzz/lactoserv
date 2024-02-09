@@ -6,6 +6,7 @@ import { BuiltinServices } from '@this/builtin-services';
 import { ComponentRegistry, Warehouse } from '@this/sys-framework';
 import { BaseSystem } from '@this/sys-util';
 import { Host, KeepRunning } from '@this/host';
+import { Loggy } from '@this/loggy';
 
 import { default as CONFIG } from './config.mjs';
 
@@ -16,6 +17,13 @@ import { default as CONFIG } from './config.mjs';
 class UsualSystem extends BaseSystem {
   /** @type {?Warehouse} Warehouse of parts. */
   #warehouse = null;
+
+  /**
+   * Constructs an instance.
+   */
+  constructor() {
+    super(Loggy.loggerFor('main'));
+  }
 
   /** @override */
   async _impl_init(forReload_unused) {
