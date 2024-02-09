@@ -1,14 +1,15 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { default as CONFIG } from './config.mjs';
+
 import { BuiltinApplications } from '@this/builtin-applications';
 import { BuiltinServices } from '@this/builtin-services';
-import { ComponentRegistry, Warehouse } from '@this/sys-framework';
-import { BaseSystem } from '@this/sys-util';
 import { Host, KeepRunning } from '@this/host';
 import { Loggy } from '@this/loggy';
+import { ComponentRegistry, Warehouse } from '@this/sys-framework';
+import { BaseSystem } from '@this/sys-util';
 
-import { default as CONFIG } from './config.mjs';
 
 /**
  * A usual system, like, the normal setup for running this product in a
