@@ -46,7 +46,8 @@ import { WranglerContext } from '#x/WranglerContext';
  * * `{Buffer|string|null} body` -- Body content to include. If passed as a
  *   `string`, the actual body gets encoded as UTF-8, and the `contentType` is
  *   adjusted if necessary to indicate that fact. This property is only
- *   available on methods that don't take a separate `body` argument.
+ *   available on methods that (a) could conceivably send a body, and (b) don't
+ *   have any other way to specify a body (e.g. through other arguments).
  * * `{?string} bodyExtra` -- Extra body content to include when wanting to
  *   _mostly_ use a default body. This is only available on {@link
  *   #sendMetaResponse}.
