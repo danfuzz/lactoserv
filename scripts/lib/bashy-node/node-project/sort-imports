@@ -208,7 +208,7 @@ function do-sort {
 srcDir="$(base-dir)/src"
 
 if (( ${#files[@]} == 0 )); then
-    files=($(lib buildy ls-files --output=lines --include='\.js$')) \
+    files=($(lib buildy ls-files --output=lines --include='\.m?js$')) \
     || exit "$?"
 else
     error=0
