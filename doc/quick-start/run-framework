@@ -8,7 +8,6 @@ cmdName="$(readlink -f "$0")" || exit "$?"
 cmdDir="${cmdName%/*}"
 cmdName="${cmdName##*/}"
 
-siteDir="${cmdDir}/website"                # Website files.
 baseDir="$(readlink -f "${cmdDir}/../..")" # Base directory of this project.
 outDir="${baseDir}/out"                    # Project build directory.
 qsDir="${outDir}/quick-start"              # Project subdir for this example.
