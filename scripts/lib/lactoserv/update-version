@@ -54,7 +54,19 @@ progress-msg "Updating: ${changelogPath}"
 
 awk <"${changelogPath}" >"${tmpPath}" \
     -v versionNumber="${versionNumber}" '
+BEGIN {
+    collecting = 0;
+    count = 0;
+}
+
 $0 == "### [Unreleased]" {
+    collecting = 1;
+    next; # No need to store this line.
+}
+
+collecting && (count != 0) && /^###/ {
+    collecting = 0;
+
     print "### [Unreleased]";
     print "";
     print "Breaking changes:";
@@ -64,6 +76,25 @@ $0 == "### [Unreleased]" {
     print "* None.";
     print "";
     print "### v" versionNumber " -- COMING SOON";
+
+    if ((lines[2] == "* None.") && (lines[5] == "* None.")) {
+        # There was already a fresh next-release section, so we are all done.
+    } else {
+        # `lines` has the section to mark with the version.
+        for (i = 0; i < count; i++) {
+            print "xxx" lines[i];
+        }
+
+        # The current line is the start of the next section.
+        print;
+    }
+
+    next;
+}
+
+collecting {
+    lines[count] = $0;
+    count++;
     next;
 }
 
