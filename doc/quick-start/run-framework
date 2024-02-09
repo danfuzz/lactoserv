@@ -3,6 +3,12 @@
 # Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 # SPDX-License-Identifier: Apache-2.0
 
+#
+# "Quick Start" sample code: Run a mini system built using Lactoserv as a
+# framework. Source code is in the directory `code/`, and the site files are in
+# the directory `website/`.
+#
+
 # Figure out the symlink-resolved program name and directory.
 cmdName="$(readlink -f "$0")" || exit "$?"
 cmdDir="${cmdName%/*}"
@@ -12,14 +18,17 @@ baseDir="$(readlink -f "${cmdDir}/../..")" # Base directory of this project.
 outDir="${baseDir}/out"                    # Project build directory.
 qsDir="${outDir}/quick-start"              # Project subdir for this example.
 
+# Build the base project, if necessary.
 if [[ ! -x "${outDir}/lactoserv" ]]; then
     "${baseDir}/scripts/ubik" build || exit "$?"
     echo ''
 fi
 
+# Copy this example into the `out` directory, and hook it up to the framework.
 rm -rf "${qsDir}"
 mkdir -p "${qsDir}"
 cp -r "${cmdDir}/code" "${cmdDir}/website" "${qsDir}"
 ln -s ../lactoserv/lib/code/node_modules "${qsDir}"
 
+# Run the system.
 node --no-warnings --experimental-vm-modules "${qsDir}/code/index.mjs"

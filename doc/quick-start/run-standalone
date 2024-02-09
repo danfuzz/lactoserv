@@ -3,6 +3,13 @@
 # Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 # SPDX-License-Identifier: Apache-2.0
 
+#
+# "Quick Start" sample code: Run the system using the config and site files in
+# this directory. Configuration is in `code/config.mjs`, and the site files are
+# in the directory `website/`. The file `code/index.mjs` is _not_ used by this
+# example.
+#
+
 # Figure out the symlink-resolved program name and directory.
 cmdName="$(readlink -f "$0")" || exit "$?"
 cmdDir="${cmdName%/*}"
@@ -11,9 +18,11 @@ cmdName="${cmdName##*/}"
 baseDir="$(readlink -f "${cmdDir}/../..")"   # Base directory of this project.
 serverBin="${baseDir}/out/lactoserv/bin/run" # Server binary.
 
+# Build the base project, if necessary.
 if [[ ! -x "${serverBin}" ]]; then
     "${baseDir}/scripts/ubik" build || exit "$?"
     echo ''
 fi
 
+# Run the system.
 "${serverBin}" --config="${cmdDir}/code/config.mjs" --log-to-stdout
