@@ -600,7 +600,7 @@ export class Request {
 
     const headers = this.#makeResponseHeaders('cacheable', options, {
       'content-type': () => {
-        return MimeTypes.typeFromExtension(path);
+        return MimeTypes.typeFromPathExtension(path);
       }
     });
 

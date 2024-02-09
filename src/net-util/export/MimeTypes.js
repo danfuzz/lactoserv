@@ -14,12 +14,11 @@ import { MustBe } from '@this/typey';
  */
 export class MimeTypes {
   /**
-   * Gets the MIME type for the given extension (no dot or just initial dot in
-   * the given string) or extension of the given file path (dot in the middle of
-   * the string). This returns `'application/octet-stream'` if nothing better
-   * can be determined.
+   * Gets the MIME type for the filename extension on the given absolute path.
+   * This returns `'application/octet-stream'` if nothing better can be
+   * determined.
    *
-   * @param {string} extensionOrPath File extension or path.
+   * @param {string} absolutePath Absolute path to derive a MIME type from.
    * @param {?object} [options] Options.
    * @param {?string} [options.charSet] Character set to return _if_ the
    *   returned type has the prefix `text/` or is otherwise considered to be
@@ -31,11 +30,11 @@ export class MimeTypes {
    *   Defaults to `false`.
    * @returns {string} The MIME type.
    */
-  static typeFromExtension(extensionOrPath, options = {}) {
-    MustBe.string(extensionOrPath);
+  static typeFromPathExtension(absolutePath, options = {}) {
+    MustBe.string(absolutePath);
     const { charSet = null, isText = false } = MustBe.object(options);
 
-    const mimeType = mime.getType(extensionOrPath)
+    const mimeType = mime.getType(absolutePath)
       ?? (isText ? 'text/plain' : 'application/octet-stream');
 
     return (charSet && (isText || /^text[/]/.test(mimeType)))
@@ -45,7 +44,7 @@ export class MimeTypes {
 
   /**
    * Returns the given string if it is a known MIME type, or acts like {@link
-   * #typeFromExtension} if it looks like a simple extension value (string
+   * #typeFromPathExtension} if it looks like a simple extension value (string
    * consisting of a dot followed by one to ten characters, not including any
    * other dots or slashes). If it is an extension that is unrecognized, this
    * returns `'application/octet-stream'`. This throws an an error in all other
