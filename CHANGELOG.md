@@ -10,6 +10,14 @@ Breaking changes:
 * None.
 
 Other notable changes:
+* None.
+
+###  v0.6.5 -- 2024-02-09
+
+Breaking changes:
+* None.
+
+Other notable changes:
 * Added a new "quick start" guide, with runnable example code. Find it here:
   <https://github.com/danfuzz/lactoserv/blob/main/doc/quick-start.md>
 * `StaticFiles`: Fixed a bug which made all not-found requests end up throwing
