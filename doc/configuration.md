@@ -226,11 +226,11 @@ bindings:
 * `body` &mdash; Optional body contents to respond with. If specified, this must
   be either a string or a Node `Buffer` object.
 * `contentType` &mdash; Content type to report. This can be either a MIME type
-  or a commonly-understood extension (e.g., `txt` or `html`). This must be
-  specified if `body` is. If this is not specified but `filePath` is, then the
-  type is inferred from the extension on the path. If neither `body` nor
-  `filePath` is specified (that is, for an empty body), then this must not be
-  specified either.
+  per se (e.g. `text/plain`) or a commonly-understood extension (with leading
+  dot, e.g., `.txt` or `.html`). This must be specified if `body` is. If this is
+  not specified but `filePath` is, then the type is inferred from the extension
+  on the path. If neither `body` nor `filePath` is specified (that is, for an
+  empty body), then this must not be specified either.
 * `etag` &mdash; ETag-generating options. If present and not `false`, the
   response comes with an `ETag` header. See "ETag Configuration" below for
   details.

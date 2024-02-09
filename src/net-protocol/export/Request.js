@@ -52,10 +52,10 @@ import { WranglerContext } from '#x/WranglerContext';
  *   _mostly_ use a default body. This is only available on {@link
  *   #sendMetaResponse}.
  * * `{?string} contentType` -- Content type of the body, in the form expected
- *   by {@link MimeTypes}. Required if `body` is present and ignored in all
- *   other cases. If this value starts with `text/` and/or the `body` is passed
- *   as a string, then the actual `Content-Type` header will indicate a charset
- *   of `utf-8`.
+ *   by {@link MimeTypes#typeFromExtensionOrType}. Required if `body` is present
+ *   and ignored in all other cases. If this value starts with `text/` and/or
+ *   the `body` is passed as a string, then the actual `Content-Type` header
+ *   will indicate a charset of `utf-8`.
  * * `{?Cookies} cookies` -- Cookies to include (via `Set-Cookie` headers) in
  *   the response, if any.
  * * `{?object} headers` -- Extra headers to include in the response, if any.
@@ -524,9 +524,8 @@ export class Request {
    *   not sending a body at all). If passed as a `string`, it is encoded as
    *   UTF-8, and the content type of the response will list that as the
    *   charset.
-   * @param {string} contentType Content type for the body. If this value starts
-   *   with `text/` and/or the `body` is passed as a string, then the actual
-   *   `Content-Type` header will indicate a charset of `utf-8`.
+   * @param {string} contentType Content type for the body, in a form as
+   *   described by this class's header comment.
    * @param {object} [options] Options to control response behavior. See class
    *   header comment for more details. Header-related options are only used
    *   for non-error responses.
