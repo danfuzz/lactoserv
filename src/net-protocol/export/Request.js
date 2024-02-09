@@ -64,8 +64,10 @@ import { WranglerContext } from '#x/WranglerContext';
  *   subclass, {@link HttpHeaders}.
  * * `{?number} maxAgeMsec` -- Value to send back in the `max-age` property of
  *   the `Cache-Control` response header. Defaults to `0`.
- * * `{?number} statusCode` -- Response status code. This is only available on
- *   {@link #sendRedirect}.
+ * * `{?number} status` -- Response status code. This is only available on a
+ *   couple methods (as noted in their documentation) which (a) don't strongly
+ *   imply a status (or possible set thereof), and (b) don't have any other way
+ *   to specify a status (e.g. through other arguments).
  */
 export class Request {
   /**
@@ -780,8 +782,8 @@ export class Request {
    * @param {string} target Possibly-relative target URL.
    * @param {?object} [options] Options to control response behavior. See class
    *   header comment for more details.
-   * @param {?number} [options.statusCode] The status code to report. Defaults
-   *   to `302` ("Found").
+   * @param {?number} [options.status] The status code to report. Defaults to
+   *   `302` ("Found").
    * @returns {boolean} `true` when the response is completed.
    */
   async sendRedirect(target, options = null) {
@@ -808,8 +810,8 @@ export class Request {
    *
    * @param {?object} [options] Options to control response behavior. See class
    *   header comment for more details.
-   * @param {?number} [options.statusCode] The status code to report. Defaults
-   *   to `302` ("Found").
+   * @param {?number} [options.status] The status code to report. Defaults to
+   *   `302` ("Found").
    * @returns {boolean} `true` when the response is completed.
    */
   async sendRedirectBack(options = null) {
