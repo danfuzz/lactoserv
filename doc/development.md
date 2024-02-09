@@ -92,6 +92,15 @@ Recognized signals:
 * `SIGINT` and `SIGTERM` -- Shuts down as cleanly as possible. (Note: `SIGINT`
   is usually what gets sent when you type `ctrl-C` in a console.)
 
+### Releasing
+
+Use the script `update-version` will change the main version number, and
+prepare the `CHANGELOG` file for release.
+
+```sh
+$ ubik update-version 123.45.6
+```
+
 - - - - - - - - - -
 ```
 Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
