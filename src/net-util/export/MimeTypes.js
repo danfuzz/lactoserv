@@ -20,14 +20,27 @@ export class MimeTypes {
    * can be determined.
    *
    * @param {string} extensionOrPath File extension or path.
+   * @param {?object} [options] Options.
+   * @param {?string} [options.charSet] Character set to return _if_ the
+   *   returned type has the prefix `text/` or is otherwise considered to be
+   *   text. Defaults to `null`, that is, not to ever include a character set in
+   *   the result.
+   * @param {?boolean} [options.isText] Indicates that the type is definitely
+   *   text. If `true`, `options.charSet` is always used if present, and the
+   *   default type if no other type can be ascertained is `text/plain`.
+   *   Defaults to `false`.
    * @returns {string} The MIME type.
    */
-  static typeFromExtension(extensionOrPath) {
+  static typeFromExtension(extensionOrPath, options = {}) {
     MustBe.string(extensionOrPath);
+    const { charSet = null, isText = false } = MustBe.object(options);
 
-    const result = mime.getType(extensionOrPath);
+    const mimeType = mime.getType(extensionOrPath)
+      ?? (isText ? 'text/plain' : 'application/octet-stream');
 
-    return result ?? 'application/octet-stream';
+    return (charSet && (isText || /^text[/]/.test(mimeType)))
+      ? `${mimeType}; charset=${charSet}`
+      : mimeType;
   }
 
   /**
