@@ -3,6 +3,7 @@
 
 import mime from 'mime';
 
+import { Paths } from '@this/fs-util';
 import { MustBe } from '@this/typey';
 
 
@@ -31,7 +32,7 @@ export class MimeTypes {
    * @returns {string} The MIME type.
    */
   static typeFromPathExtension(absolutePath, options = {}) {
-    MustBe.string(absolutePath);
+    Paths.checkAbsolutePath(absolutePath);
     const { charSet = null, isText = false } = MustBe.object(options);
 
     const mimeType = mime.getType(absolutePath)
