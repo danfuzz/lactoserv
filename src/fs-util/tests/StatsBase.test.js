@@ -7,6 +7,7 @@ import { StatsBase } from '@this/fs-util';
 
 
 describe('StatsBase', () => {
+  // A convenient known-to-exist path.
   const path = (new URL(import.meta.url)).pathname;
 
   test('is a superclass of `fs.Stats`', async () => {

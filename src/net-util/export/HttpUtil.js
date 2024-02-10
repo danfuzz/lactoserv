@@ -1,6 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { StatsBase } from '@this/fs-util';
 import { MustBe } from '@this/typey';
 
 
@@ -106,6 +107,19 @@ export class HttpUtil {
       : MustBe.number(atMsec, { finite: true });
 
     return new Date(atMsec).toUTCString();
+  }
+
+  /**
+   * Produces a date-time string in the standard HTTP format, for the
+   * modification time of a given {@link fs.Stats} or {@link fs.BigIntStats}
+   * object.
+   *
+   * @param {fs.Stats|fs.BigIntStats} stats The file stats.
+   * @returns {string} The corresponding HTTP-format date-time string.
+   */
+  static dateStringFromStatsMtime(stats) {
+    MustBe.instanceOf(stats, StatsBase);
+    return stats.mtime.toUTCString();
   }
 
   /**

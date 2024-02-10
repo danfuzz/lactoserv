@@ -1,6 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import fs from 'node:fs/promises';
+
 import { HttpUtil } from '@this/net-util';
 
 
@@ -87,6 +89,34 @@ describe('dateStringFromMsec()', () => {
   `('with ($atMsec)', ({ atMsec, expected }) => {
     const result = HttpUtil.dateStringFromMsec(atMsec);
     expect(result).toBe(expected);
+  });
+});
+
+describe('dateStringFromStatsMtime()', () => {
+  // Failure cases.
+  test.each`
+  arg
+  ${undefined}
+  ${null}
+  ${false}
+  ${'/bin'}
+  `('fails given $arg', ({ arg }) => {
+    expect(() => HttpUtil.dateStringFromStatsMtime(atMsec)).toThrow();
+  });
+
+  // A convenient known-to-exist path.
+  const path = (new URL(import.meta.url)).pathname;
+
+  test('works on an instance of `fs.Stats`', async () => {
+    const stats    = await fs.stat(path);
+    const expected = HttpUtil.dateStringFromMsec(stats.mtimeMs);
+    expect(HttpUtil.dateStringFromStatsMtime(stats)).toBe(expected);
+  });
+
+  test('works on an instance of `fs.BigIntStats`', async () => {
+    const stats    = await fs.stat(path, { bigint: true });
+    const expected = HttpUtil.dateStringFromMsec(stats.mtimeMs);
+    expect(HttpUtil.dateStringFromStatsMtime(stats)).toBe(expected);
   });
 });
 
