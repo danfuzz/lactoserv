@@ -26,7 +26,12 @@ export class Paths {
       '(?!.+/$)' +         // No slash at the end (after the first character).
       '/';                 // Starts with a slash.
 
-    return MustBe.string(value, pattern);
+    try {
+      return MustBe.string(value, pattern);
+    } catch {
+      // Better error message.
+      throw new Error(`Not an absolute path: ${value}`);
+    }
   }
 
   /**
@@ -42,6 +47,12 @@ export class Paths {
    */
   static checkFileName(value) {
     const pattern = /^(?![.]{1,2}$)[^/]+$/;
-    return MustBe.string(value, pattern);
+
+    try {
+      return MustBe.string(value, pattern);
+    } catch {
+      // Better error message.
+      throw new Error(`Not a file name: ${value}`);
+    }
   }
 }

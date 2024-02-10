@@ -7,10 +7,12 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* None.
+* Tweaked the contract of `contentType` bindings in configurations, to help
+  avoid ambiguity and confusion. Specifically, file extensions now need to start
+  with a dot.
 
 Other notable changes:
-* None.
+* Expanded `MimeTypes` to handle character set stuff.
 
 ###  v0.6.5 -- 2024-02-09
 
