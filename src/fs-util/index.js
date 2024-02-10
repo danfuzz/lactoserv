@@ -2,4 +2,5 @@
 // SPDX-License-Identifier: Apache-2.0
 
 export * from '#x/Paths';
+export * from '#x/StatsBase';
 export * from '#x/Statter';
