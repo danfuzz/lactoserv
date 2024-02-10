@@ -35,12 +35,7 @@ export class MimeTypes {
     Paths.checkAbsolutePath(absolutePath);
     const { charSet = null, isText = false } = MustBe.object(options);
 
-    const mimeType = mime.getType(absolutePath)
-      ?? (isText ? 'text/plain' : 'application/octet-stream');
-
-    return (charSet && (isText || /^text[/]/.test(mimeType)))
-      ? `${mimeType}; charset=${charSet}`
-      : mimeType;
+    return this.#typeFromPathOrExtension(absolutePath, charSet, isText);
   }
 
   /**
@@ -52,22 +47,69 @@ export class MimeTypes {
    * cases.
    *
    * @param {string} extensionOrType File extension or MIME type.
+   * @param {?object} [options] Options.
+   * @param {?string} [options.charSet] Character set to return _if_ the
+   *   returned type has the prefix `text/` or is otherwise considered to be
+   *   text, and doesn't already come with a character set. Defaults to `null`,
+   *   that is, not to ever add a character set when given an extension, nor to
+   *   add a character set when given a MIME type without one.
+   * @param {?boolean} [options.isText] Indicates that the type is definitely
+   *   text. If `true`, `options.charSet` is taken into account if present, and
+   *   the default type if no other type can be ascertained is `text/plain`.
+   *   Defaults to `false`.
    * @returns {string} The MIME type.
    */
-  static typeFromExtensionOrType(extensionOrType) {
+  static typeFromExtensionOrType(extensionOrType, options = {}) {
     MustBe.string(extensionOrType);
+    const { charSet = null, isText = false } = MustBe.object(options);
 
     if (/^\.[^./]{1,10}$/.test(extensionOrType)) {
-      const found = mime.getType(extensionOrType);
-      return found ?? 'application/octet-stream';
-    } else if (/^(?=.*[/])[a-zA-Z][-_.=/; a-zA-Z0-9]+$/.test(extensionOrType)) {
+      return this.#typeFromPathOrExtension(extensionOrType, charSet, isText);
+    }
+
+    if (/^(?=.*[/])[a-zA-Z][-_.=/; a-zA-Z0-9]+$/.test(extensionOrType)) {
       const found = mime.getExtension(extensionOrType);
       if (!found) {
         throw new Error(`Unknown MIME type: ${extensionOrType}`);
       }
-      return extensionOrType;
-    } else {
-      throw new Error(`Invalid syntax for MIME type or file extension: ${extensionOrType}`);
+      return this.#addCharSetIfAppropriate(extensionOrType, charSet, isText);
     }
+
+    throw new Error(`Invalid syntax for MIME type or file extension: ${extensionOrType}`);
+  }
+
+  /**
+   * Helper method, which does extension-based lookup.
+   *
+   * @param {string} pathOrExtension String ending with the file extension.
+   * @param {?string} charSet `charSet` option as defined by this class's API.
+   * @param {?boolean} isText `isText` option as defined by this class's API.
+   * @returns {string} The final result.
+   */
+  static #typeFromPathOrExtension(pathOrExtension, charSet, isText) {
+    const mimeType = mime.getType(pathOrExtension)
+      ?? (isText ? 'text/plain' : 'application/octet-stream');
+
+    return this.#addCharSetIfAppropriate(mimeType, charSet, isText);
+  }
+
+  /**
+   * Helper method, which adds a `charset=` section to a MIME type result, when
+   * appropriate.
+   *
+   * @param {string} mimeType The basic MIME type result to possibly alter.
+   * @param {?string} charSet `charSet` option as defined by this class's API.
+   * @param {?boolean} isText `isText` option as defined by this class's API.
+   * @returns {string} The final result.
+   */
+  static #addCharSetIfAppropriate(mimeType, charSet, isText) {
+    if (!charSet || /; *charset=/.test(mimeType)) {
+      // No `charSet` to add, or `charset=` already present.
+      return mimeType;
+    }
+
+    return (isText || /^text[/]/.test(mimeType))
+      ? `${mimeType}; charset=${charSet}`
+      : mimeType;
   }
 }

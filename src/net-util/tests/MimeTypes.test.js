@@ -132,21 +132,131 @@ describe('typeFromExtensionOrType()', () => {
     expect(() => MimeTypes.typeFromExtensionOrType(arg)).toThrow(/^Invalid syntax/);
   });
 
-  test('throws if given an unknown MIME type', () => {
-    expect(() => MimeTypes.typeFromExtensionOrType('text/florp')).toThrow(/^Unknown MIME type/);
+  describe('with no config argument', () => {
+    test('throws if given an unknown MIME type', () => {
+      expect(() => MimeTypes.typeFromExtensionOrType('text/florp')).toThrow(/^Unknown MIME type/);
+    });
+
+    test('confirms the existence of a given MIME type', () => {
+      const theType = 'image/jpeg';
+      expect(MimeTypes.typeFromExtensionOrType(theType)).toBe(theType);
+    });
+
+    test('finds the MIME type of a known extension', () => {
+      expect(MimeTypes.typeFromExtensionOrType('.png')).toBe('image/png');
+    });
+
+    test('defaults to `application/octet-stream` given an unknown extension', () => {
+      expect(MimeTypes.typeFromExtensionOrType('.abcdefgXYZ')).toBe('application/octet-stream');
+    });
+
+    test('preserves a charset if given', () => {
+      const theType = 'text/plain; charset=utf-8';
+      expect(MimeTypes.typeFromExtensionOrType(theType)).toBe(theType);
+    });
   });
 
-  test('confirms the existence of a given MIME type', () => {
-    const theType = 'image/jpeg';
-    expect(MimeTypes.typeFromExtensionOrType(theType)).toBe(theType);
+  describe('with config `{ charSet: \'florp\' }`', () => {
+    const config = { charSet: 'florp' };
+
+    test('alters a text MIME type', () => {
+      const theType  = 'text/plain';
+      const expected = `${theType}; charset=${config.charSet}`;
+      expect(MimeTypes.typeFromExtensionOrType(theType, config)).toBe(expected);
+    });
+
+    test('does not alter a non-text MIME type', () => {
+      const theType = 'image/jpeg';
+      expect(MimeTypes.typeFromExtensionOrType(theType, config)).toBe(theType);
+    });
+
+    test('finds the MIME type of a known non-text extension, as-is', () => {
+      expect(MimeTypes.typeFromExtensionOrType('.png', config)).toBe('image/png');
+    });
+
+    test('finds the MIME type of a known text extension, and adds the charset', () => {
+      const theType  = 'text/javascript';
+      const expected = `${theType}; charset=${config.charSet}`;
+      expect(MimeTypes.typeFromExtensionOrType('.js', config)).toBe(expected);
+    });
+
+    test('defaults to `application/octet-stream` given an unknown extension', () => {
+      expect(MimeTypes.typeFromExtensionOrType('.abcdefgXYZ', config)).toBe('application/octet-stream');
+    });
+
+    test('preserves a charset if given', () => {
+      const theType = 'text/plain; charset=utf-8';
+      expect(MimeTypes.typeFromExtensionOrType(theType, config)).toBe(theType);
+    });
   });
 
-  test('defaults to `application/octet-stream` given an unknown extension', () => {
-    expect(MimeTypes.typeFromExtensionOrType('.abcdefgXYZ')).toBe('application/octet-stream');
+  describe('with config `{ isText: true }`', () => {
+    const config = { isText: true };
+
+    test('does not alter a text MIME type', () => {
+      const theType  = 'text/plain';
+      expect(MimeTypes.typeFromExtensionOrType(theType, config)).toBe(theType);
+    });
+
+    test('does not alter a non-text MIME type', () => {
+      const theType = 'image/jpeg';
+      expect(MimeTypes.typeFromExtensionOrType(theType, config)).toBe(theType);
+    });
+
+    test('finds the MIME type of a known non-text extension, as-is', () => {
+      expect(MimeTypes.typeFromExtensionOrType('.png', config)).toBe('image/png');
+    });
+
+    test('finds the MIME type of a known text extension, as-is', () => {
+      expect(MimeTypes.typeFromExtensionOrType('.js', config)).toBe('text/javascript');
+    });
+
+    test('defaults to `text/plain` given an unknown extension', () => {
+      expect(MimeTypes.typeFromExtensionOrType('.abcdefgXYZ', config)).toBe('text/plain');
+    });
+
+    test('preserves a charset if given', () => {
+      const theType = 'text/plain; charset=utf-8';
+      expect(MimeTypes.typeFromExtensionOrType(theType, config)).toBe(theType);
+    });
   });
 
-  test('preserves a charset if given', () => {
-    const theType = 'text/plain; charset=utf-8';
-    expect(MimeTypes.typeFromExtensionOrType(theType)).toBe(theType);
+  describe('with config `{ charSet: \'boop\', isText: true }`', () => {
+    const config = { charSet: 'boop', isText: true };
+
+    test('alters a text MIME type', () => {
+      const theType  = 'text/plain';
+      const expected = `${theType}; charset=${config.charSet}`;
+      expect(MimeTypes.typeFromExtensionOrType(theType, config)).toBe(expected);
+    });
+
+    test('alters a non-text MIME type', () => {
+      const theType = 'image/jpeg';
+      const expected = `${theType}; charset=${config.charSet}`;
+      expect(MimeTypes.typeFromExtensionOrType(theType, config)).toBe(expected);
+    });
+
+    test('finds the MIME type of a known non-text extension, and alters it', () => {
+      const theType = 'image/png';
+      const expected = `${theType}; charset=${config.charSet}`;
+      expect(MimeTypes.typeFromExtensionOrType('.png', config)).toBe(expected);
+    });
+
+    test('finds the MIME type of a known text extension, and alters it', () => {
+      const theType  = 'text/javascript';
+      const expected = `${theType}; charset=${config.charSet}`;
+      expect(MimeTypes.typeFromExtensionOrType('.js', config)).toBe(expected);
+    });
+
+    test('defaults to `text/plain` with the charset given an unknown extension', () => {
+      const theType  = 'text/plain';
+      const expected = `${theType}; charset=${config.charSet}`;
+      expect(MimeTypes.typeFromExtensionOrType('.abcdefgXYZ', config)).toBe(expected);
+    });
+
+    test('preserves a charset if given', () => {
+      const theType = 'text/plain; charset=utf-8';
+      expect(MimeTypes.typeFromExtensionOrType(theType, config)).toBe(theType);
+    });
   });
 });
