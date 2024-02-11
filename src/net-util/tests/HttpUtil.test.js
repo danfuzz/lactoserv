@@ -101,7 +101,7 @@ describe('dateStringFromStatsMtime()', () => {
   ${false}
   ${'/bin'}
   `('fails given $arg', ({ arg }) => {
-    expect(() => HttpUtil.dateStringFromStatsMtime(atMsec)).toThrow();
+    expect(() => HttpUtil.dateStringFromStatsMtime(arg)).toThrow();
   });
 
   // A convenient known-to-exist path.

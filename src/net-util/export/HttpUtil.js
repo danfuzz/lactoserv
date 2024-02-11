@@ -1,6 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import fs from 'node:fs/promises';
+
 import { StatsBase } from '@this/fs-util';
 import { MustBe } from '@this/typey';
 
