@@ -120,6 +120,13 @@ export class Request {
   #parsedTargetObject = null;
 
   /**
+   * @type {Promise<boolean>} Promise which resolves to `true` when the response
+   * to this request is complete, or is rejected with whatever error caused it
+   * to fail.
+   */
+  #responsePromise = new ManualPromise();
+
+  /**
    * Constructs an instance.
    *
    * @param {WranglerContext} context Most-specific context that was responsible
@@ -637,11 +644,11 @@ export class Request {
       return this.sendMetaResponse(rangeInfo.status, errOptions);
     }
 
+    headers.setAll(rangeInfo.headers);
+
     if (this.#requestMethod === 'head') {
       return this.#writeCompleteResponse(rangeInfo.status, headers, null);
     } else {
-      headers.setAll(rangeInfo.headers);
-
       const response = new HttpResponse();
 
       response.requestMethod = this.method;
@@ -654,7 +661,9 @@ export class Request {
         length: rangeInfo.bodyLength
       });
 
-      return response.writeTo(this.#expressResponse);
+      const result = response.writeTo(this.#expressResponse);
+      this.#responsePromise.resolve(result);
+      return result;
     }
   }
 
@@ -819,43 +828,7 @@ export class Request {
    * @throws {Error} Any error reported by the underlying response object.
    */
   async whenResponseDone() {
-    const res = this.#expressResponse;
-
-    function makeProperError(error) {
-      return (error instanceof Error)
-        ? error
-        : new Error(`non-error object: ${error}`);
-    }
-
-    // Note: It's not correct to also check for `.writableEnded` here (as an
-    // earlier version of this code did), because that becomes `true` _before_
-    // the outgoing data is believed to be actually made it to the networking
-    // stack to be sent out.
-    if (res.closed || res.destroyed) {
-      const error = res.errored;
-      if (error) {
-        throw makeProperError(error);
-      }
-      return true;
-    }
-
-    const resultMp = new ManualPromise();
-
-    res.once('error', (error) => {
-      if (error) {
-        resultMp.reject(makeProperError(error));
-      } else {
-        resultMp.resolve(true);
-      }
-    });
-
-    res.once('close', () => {
-      if (!resultMp.isSettled()) {
-        resultMp.resolve(true);
-      }
-    });
-
-    return resultMp.promise;
+    return this.#responsePromise;
   }
 
   /**
@@ -1100,7 +1073,10 @@ export class Request {
       response.setNoBody();
     }
 
-    return response.writeTo(this.#expressResponse);
+    const result = response.writeTo(this.#expressResponse);
+
+    this.#responsePromise.resolve(result);
+    return result;
   }
 
 
