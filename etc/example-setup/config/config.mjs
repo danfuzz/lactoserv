@@ -162,7 +162,8 @@ const applications = [
     name:        'responseTwo',
     class:       'SimpleResponse',
     contentType: 'text/html',
-    body:        '<html><body><h1>Two!</h1></body></html>\n'
+    body:        '<html><body><h1>Two!</h1></body></html>\n',
+    etag:        true
   }
 ];
 
