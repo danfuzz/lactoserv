@@ -308,7 +308,7 @@ export class HttpResponse {
       let remaining = length;
 
       while (remaining > 0) {
-        const { bytesRead } = handle.read(buffer, { position: at });
+        const { bytesRead } = await handle.read(buffer, { position: at });
 
         if (bytesRead === 0) {
           throw new Error(`File changed length during response processing: ${path}`);
