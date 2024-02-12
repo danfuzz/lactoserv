@@ -63,7 +63,9 @@ export class Statter {
 
   /**
    * Gets the `fs.BigIntStats` of the path if it exists, or returns `null` if
-   * the path does not exist in the filesystem.
+   * the path does not exist in the filesystem. "Not existing" includes,
+   * notably, the case where a non-final path component (that is, something
+   * which ought to be a directory) exists but is _not_ a directory.
    *
    * @param {string} path Path to check.
    * @returns {?fs.BigIntStats} The stats, if the path exists, or `null` if not.
@@ -74,9 +76,12 @@ export class Statter {
     try {
       return await fs.stat(path, true);
     } catch (e) {
-      if (e.code === 'ENOENT') {
-        // Not found. Not a real error in this case.
-        return null;
+      // Return `null` for errors which indicate that the file wasn't found.
+      switch (e.code) {
+        case 'ENOENT':    // Some path component wasn't found.
+        case 'ENOTDIR': { // A non-final path component isn't a directory.
+          return null;
+        }
       }
       throw e;
     }
