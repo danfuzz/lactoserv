@@ -1079,38 +1079,6 @@ export class Request {
   }
 
   /**
-   * Kicks off the response procedure by emitting the status code and response
-   * headers. This is _approximately_ a wrapper around
-   * `HttpResponse.writeHead()` (and similar), meant to hide all the
-   * shouldn't-be-differences between the concrete protocol implementations.
-   *
-   * @param {number} statusCode The HTTP(ish) status code.
-   * @param {HttpHeaders} headers Response headers.
-   */
-  #writeHead(statusCode, headers) {
-    const res = this.#expressResponse;
-
-    res.status(statusCode);
-
-    // We'd love to use `response.setHeaders()` here, but as of this writing
-    // (checked on Node 21.4), there are three issues which prevent its use:
-    //
-    // * It is not implemented on `Http2ServerResponse`. This is filed as Node
-    //   issue #51573 <https://github.com/nodejs/node/issues/51573>.
-    // * Calling it on a `Headers` object will cause it to fail to handle
-    //   multiple `Set-Cookies` headers correctly. This is filed as Node issue
-    //   #51599 <https://github.com/nodejs/node/issues/51599>.
-    // * When used on an HTTP1 server (that is not the HTTP2 protocol), it
-    //   forces header names to lower case. Though not against the spec, it is
-    //   atypical to send lowercased headers in HTTP1.
-
-    const entries = headers.entriesForVersion(this.#expressRequest.httpVersionMajor);
-    for (const [name, value] of entries) {
-      res.setHeader(name, value);
-    }
-  }
-
-  /**
    * Writes and finishes a response that is either no-body or has already-known
    * contents.
    *
