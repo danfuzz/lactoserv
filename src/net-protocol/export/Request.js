@@ -346,9 +346,12 @@ export class Request {
 
   /**
    * @returns {string} A reasonably-suggestive but possibly incomplete
-   * representation of the incoming request, in the form of a protocol-less URL.
-   * This is meant for logging, and specifically _not_ for any routing or other
-   * more meaningful computation (hence the name).
+   * representation of the incoming request including both the host and target,
+   * in the form of a protocol-less URL in most cases (and something vaguely
+   * URL-like when the target isn't the usual `origin` type).
+   *
+   * This value is meant for logging, and specifically _not_ for any routing or
+   * other more meaningful computation (hence the name).
    */
   get urlForLogging() {
     const { host }               = this;
