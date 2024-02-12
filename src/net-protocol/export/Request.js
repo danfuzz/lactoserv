@@ -423,12 +423,12 @@ export class Request {
    * @returns {object} Loggable information about the response.
    */
   async getLoggableResponseInfo() {
-    let requestError = null;
+    let responseError = null;
 
     try {
       await this.whenResponseDone();
     } catch (e) {
-      requestError = e;
+      responseError = e;
     }
 
     const connectionError = this.#outerContext.socket.errored ?? null;
@@ -438,7 +438,7 @@ export class Request {
     const contentLength   = headers['content-length'] ?? 0;
 
     const result = {
-      ok: !(requestError || connectionError),
+      ok: !(responseError || connectionError),
       contentLength,
       statusCode,
       headers: Request.#sanitizeResponseHeaders(headers),
@@ -447,11 +447,11 @@ export class Request {
     const fullErrors = [];
     let   errorStr   = null;
 
-    if (requestError) {
-      const code = Request.#extractErrorCode(requestError);
+    if (responseError) {
+      const code = Request.#extractErrorCode(responseError);
 
-      fullErrors.push(requestError);
-      result.requestError = code;
+      fullErrors.push(responseError);
+      result.responseError = code;
       errorStr = code;
     }
 
