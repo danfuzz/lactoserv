@@ -298,8 +298,6 @@ export class HttpResponse {
       return HttpResponse.#whenResponseDone(res);
     }
 
-    const buffer = Buffer.alloc(CHUNK_SIZE);
-
     let handle = null;
     try {
       handle = await fs.open(path);
@@ -308,6 +306,10 @@ export class HttpResponse {
       let remaining = length;
 
       while (remaining > 0) {
+        // TODO: Consider using a pool for buffers, though probably _don't_ want
+        // to use `Buffer.allocUnsafe()` so as to avoid relying on the global
+        // `poolSize` being something we'd want.
+        const buffer = Buffer.alloc(Math.min(remaining, CHUNK_SIZE));
         const { bytesRead } = await handle.read(buffer, { position: at });
 
         if (bytesRead === 0) {
