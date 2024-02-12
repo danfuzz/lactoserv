@@ -108,11 +108,11 @@ const services = [
       maxQueueSize: 100
     },
     data: {
-      maxBurstSize:      500000,
-      flowRate:          10000,
+      maxBurstSize:      1024 * 1024,      // 1MB.
+      flowRate:          100 * 1024,       // 100kB.
       timeUnit:          'second',
-      maxQueueGrantSize: 10000,
-      maxQueueSize:      1000000
+      maxQueueGrantSize: 50 * 1024,       // 50kB.
+      maxQueueSize:      2 * 1024 * 1024  // 2MB.
     }
   }
 ];
@@ -162,7 +162,8 @@ const applications = [
     name:        'responseTwo',
     class:       'SimpleResponse',
     contentType: 'text/html',
-    body:        '<html><body><h1>Two!</h1></body></html>\n'
+    body:        '<html><body><h1>Two!</h1></body></html>\n',
+    etag:        true
   }
 ];
 
