@@ -12,8 +12,10 @@ import statuses from 'statuses';
 
 import { ManualPromise } from '@this/async';
 import { TreePathKey } from '@this/collections';
+import { Paths } from '@this/fs-util';
 import { FormatUtils, IntfLogger } from '@this/loggy';
-import { Cookies, HostInfo, HttpHeaders, HttpUtil, MimeTypes } from '@this/net-util';
+import { Cookies, HostInfo, HttpHeaders, HttpResponse, HttpUtil, MimeTypes }
+  from '@this/net-util';
 import { AskIf, MustBe } from '@this/typey';
 
 import { WranglerContext } from '#x/WranglerContext';
@@ -584,14 +586,26 @@ export class Request {
    * sort of stuff should be handled _before_ calling this method.
    *
    * @param {string} path Absolute path to the file to send.
-   * @param {object} options Options to control response behavior. See class
+   * @param {object} options Options to control response behavior.
+   *   Header-related options are only used for non-error responses. See class
    *   header comment for more details.
+   * @param {string} [options.contentType] Content type for the response. If
+   *   not present or `null`, the content type will be derived from the suffix
+   *   of the final file name of `path`.
    * @returns {boolean} `true` when the response is completed.
    * @throws {Error} Thrown if there is any trouble sending the response.
    */
   async sendFile(path, options = {}) {
-    MustBe.string(path, /^[/]/);
+    Paths.checkAbsolutePath(path);
     MustBe.object(options);
+
+    const {
+      contentType: origContentType = null
+    } = options;
+
+    const contentType = origContentType
+      ? MimeTypes.typeFromExtensionOrType(origContentType, { charSet: 'utf-8' })
+      : MimeTypes.typeFromPathExtension(path, { charSet: 'utf-8' });
 
     const stats = await fs.stat(path);
     if (stats.isDirectory()) {
@@ -599,74 +613,49 @@ export class Request {
     }
 
     const headers = this.#makeResponseHeaders('cacheable', options, {
-      'content-type': () => {
-        return MimeTypes.typeFromPathExtension(path);
-      }
+      'content-type':   contentType,
+      'last-modified':  HttpUtil.dateStringFromStatsMtime(stats)
     });
 
-    // TODO: Stop using Express's `response.sendFile()`, as part of the
-    // long-term aim to stop using Express at all. In the short term, switch
-    // to the `send` package (which is what Express bottoms out at here). In the
-    // long term, do what `send` does, but even more directly (among other
-    // reasons, so we can use our style of logging in it and so we don't have to
-    // translate between callback and promise call styles). Things that we'll
-    // have to deal with include _at least_: HEAD requests, conditional
-    // requests, ranges, etags, and maybe more. As of this writing,
-    // `sendContent()` above handles all of this, and can be used as a basis for
-    // the code here (hopefully with a bit of DRYing out in the process).
-
-    const doneMp = new ManualPromise();
-
-    // In re `dotfiles`: If the caller wants to send a dotfile, that's their
-    // business. (`sendFile()` by default tries to be something like a
-    // "friendly" static file server, but we're lower level here.)
-    const sendOpts = {
-      dotfiles: 'allow',
-      etag:     false
-    };
-
-    // Note: `sendFile()` below will change the status code when appropriate,
-    // to respond to range and conditional requests.
-    this.#writeHead(200, headers);
-
-    this.#expressResponse.sendFile(path, sendOpts, (err) => {
-      if (err instanceof Error) {
-        doneMp.reject(err);
-      } else if (err) {
-        doneMp.reject(new Error(`Non-Error error: ${err}`));
-      } else {
-        doneMp.resolve(true);
-      }
-    });
-
-    // Wait for `sendFile()` to claim to be done, and handle errors that can
-    // reasonably be reported back as HTTP(ish) responses.
-    try {
-      await doneMp.promise;
-    } catch (e) {
-      // Only attempt to report this via an HTTP(ish) response if the error
-      // comes with the tell-tale properties that indicate that it should in
-      // fact be reported this way. (We do this check as such instead of doing
-      // `e instanceof http-errors.HttpError` because the latter could end up
-      // spuriously failing if we end up with a build that has multiple
-      // competing versions of the `http-error` package due to NPM version
-      // "fun.")
-      if (e.expose && typeof e.status === 'number') {
-        const errOptions = {
-          ...options,
-          bodyExtra: e.message,
-          headers:   e.headers ?? null,
-          cookies:   null
-        };
-        return this.sendMetaResponse(e.status, errOptions);
-      }
-      throw e;
+    if (this.isFreshWithRespectTo(headers)) {
+      // For basic range-support headers.
+      headers.setAll(this.#rangeInfo().headers);
+      return this.#writeCompleteResponse(304, headers);
     }
 
-    // ...but don't return to _our_ caller until the response is actually
-    // completed (which could be slightly later), and also plumb through any
-    // errors that were encountered during final response processing.
-    return this.whenResponseDone();
+    // At this point, we need to make a "non-fresh" response (that is, send
+    // content, assuming no header parsing issues).
+
+    const rangeInfo = this.#rangeInfo(stats.size, headers);
+    if (rangeInfo.error) {
+      // Note: We _don't_ use the for-success `headers` here.
+      const errOptions = {
+        ...options,
+        cookies: null,
+        headers: rangeInfo.headers
+      };
+      return this.sendMetaResponse(rangeInfo.status, errOptions);
+    }
+
+    if (this.#requestMethod === 'head') {
+      return this.#writeCompleteResponse(rangeInfo.status, headers, null);
+    } else {
+      headers.setAll(rangeInfo.headers);
+
+      const response = new HttpResponse();
+
+      response.requestMethod = this.method;
+      response.status        = rangeInfo.status;
+      response.headers       = headers;
+
+      await response.setBodyFile(path, {
+        stats,
+        offset: rangeInfo.bodyOffset,
+        length: rangeInfo.bodyLength
+      });
+
+      return response.writeTo(this.#expressResponse);
+    }
   }
 
   /**
@@ -1008,6 +997,13 @@ export class Request {
   #rangeInfo(bodyBufferOrLength = null, responseHeaders = null) {
     const RANGE_UNIT = 'bytes';
 
+    if (bodyBufferOrLength === null) {
+      return {
+        status:  200,
+        headers: { 'accept-ranges': RANGE_UNIT },
+      };
+    }
+
     const [bodyBuffer, bodyLength] = (typeof bodyBufferOrLength === 'number')
       ? [null, bodyBufferOrLength]
       : [bodyBufferOrLength, bodyBufferOrLength.length];
@@ -1020,10 +1016,6 @@ export class Request {
         bodyOffset: 0,
         bodyLength
       };
-    }
-
-    if (bodyBuffer === null) {
-      return status200();
     }
 
     const { 'if-range': ifRange, range } = this.headers;
@@ -1077,9 +1069,8 @@ export class Request {
     return {
       status:     206,
       headers: {
-        'accept-ranges':  RANGE_UNIT,
-        'content-length': finalLength,
-        'content-range':  `${RANGE_UNIT} ${start}-${end}/${bodyLength}`
+        'accept-ranges': RANGE_UNIT,
+        'content-range': `${RANGE_UNIT} ${start}-${end}/${bodyLength}`
       },
       bodyBuffer: finalBuffer,
       bodyOffset: start,
@@ -1120,19 +1111,8 @@ export class Request {
   }
 
   /**
-   * Writes and finishes a response. This does not do anything to adjust the
-   * status code, headers, or body. That said, this _does_ do a modicum of error
-   * checking, and will throw:
-   *
-   * * if `body !== null` and...
-   *   * the request method was `HEAD` and the status is successful (`2xx`).
-   *   * the `statusCode` definitely indicates that a body shouldn't be present.
-   *   * either the `content-type` or `content-length` header is missing.
-   * * if `body === null` and...
-   *   * either the `content-type` or `content-length` header is present.
-   *
-   * To be clear, this is far from an exhaustive list of possible error checks.
-   * It is meant to catch the most common and blatant caller problems.
+   * Writes and finishes a response that is either no-body or has already-known
+   * contents.
    *
    * @param {number} status The HTTP(ish) status code.
    * @param {HttpHeaders} headers Response headers.
@@ -1140,31 +1120,19 @@ export class Request {
    * @returns {boolean} `true` when the response is completed.
    */
   async #writeCompleteResponse(status, headers, body = null) {
-    if (body) {
-      if (!HttpUtil.responseBodyIsAllowedFor(this.#requestMethod, status)) {
-        throw new Error(`Non-null body incompatible with \`${this.#requestMethod}\` and status ${status}.`);
-      } else if (!headers.hasAll('content-length', 'content-type')) {
-        throw new Error('Non-null body requires `content-*` headers.');
-      }
-    } else {
-      if (HttpUtil.responseBodyIsRequiredFor(this.#requestMethod, status)) {
-        throw new Error(`Null body incompatible with \`${this.#requestMethod}\` and status ${status}.`);
-      } else if (headers.hasAny('content-length', 'content-type')) {
-        throw new Error('Null body incompatible with `content-*` headers.');
-      }
-    }
+    const response = new HttpResponse();
 
-    const res = this.#expressResponse;
-
-    this.#writeHead(status, headers);
+    response.requestMethod = this.method;
+    response.status        = status;
+    response.headers       = headers;
 
     if (body) {
-      res.end(body);
+      response.setBodyBuffer(body);
     } else {
-      res.end();
+      response.setNoBody();
     }
 
-    return this.whenResponseDone();
+    return response.writeTo(this.#expressResponse);
   }
 
 
@@ -1288,8 +1256,7 @@ export class Request {
     return {
       bodyBuffer,
       bodyHeaders: {
-        'content-length': bodyBuffer.length,
-        'content-type':   contentType
+        'content-type': contentType
       }
     };
   }
