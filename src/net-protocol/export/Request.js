@@ -994,23 +994,31 @@ export class Request {
   }
 
   /**
-   * Given an original response body and pending response headers, parses
-   * range-related request headers, if any, and and returns sufficient info for
-   * making the ultimate response.
+   * Given an original response body-or-length and pending response headers,
+   * parses range-related request headers, if any, and and returns sufficient
+   * info for making the ultimate response.
    *
-   * @param {?Buffer} [bodyBuffer] The original response body. If `null`, this
-   *   method just returns a basic no-range-request success response.
+   * @param {?Buffer|number} [bodyBufferOrLength] The original response body if
+   *   available, or its length in bytes. If `null`, this method just returns a
+   *   basic no-range-request success response.
    * @param {?HttpHeaders} [responseHeaders] Response headers to-be. Not used
    *   when passing `null` for `bodyBuffer`.
    * @returns {object} Disposition info.
    */
-  #rangeInfo(bodyBuffer = null, responseHeaders = null) {
+  #rangeInfo(bodyBufferOrLength = null, responseHeaders = null) {
     const RANGE_UNIT = 'bytes';
+
+    const [bodyBuffer, bodyLength] = (typeof bodyBufferOrLength === 'number')
+      ? [null, bodyBufferOrLength]
+      : [bodyBufferOrLength, bodyBufferOrLength.length];
+
     function status200() {
       return {
-        bodyBuffer,
         status:  200,
-        headers: { 'accept-ranges': RANGE_UNIT }
+        headers: { 'accept-ranges': RANGE_UNIT },
+        bodyBuffer,
+        bodyOffset: 0,
+        bodyLength
       };
     }
 
@@ -1025,17 +1033,15 @@ export class Request {
       return status200();
     }
 
-    const length = bodyBuffer.length;
-
     // Note: The package `range-parser` is pretty lenient about the syntax it
     // accepts. TODO: Replace with something stricter.
-    const ranges = rangeParser(length, range, { combine: true });
+    const ranges = rangeParser(bodyLength, range, { combine: true });
     if ((ranges === -1) || (ranges === -2) || (ranges.type !== RANGE_UNIT)) {
       // Couldn't parse at all, not satisfiable, or wrong unit.
       return {
         error:   true,
         status:  416,
-        headers: { 'content-range': `${RANGE_UNIT} */${length}` }
+        headers: { 'content-range': `${RANGE_UNIT} */${bodyLength}` }
       };
     }
 
@@ -1064,18 +1070,20 @@ export class Request {
 
     const { start, end } = ranges[0];
     const finalLength = (end - start) + 1; // Note: `end` is inclusive.
-    const finalBuffer = (this.#requestMethod === 'head')
-      ? null
-      : bodyBuffer.subarray(start, end + 1);
+    const finalBuffer = (bodyBuffer && (this.#requestMethod !== 'head'))
+      ? bodyBuffer.subarray(start, end + 1)
+      : null;
 
     return {
-      bodyBuffer: finalBuffer,
       status:     206,
       headers: {
         'accept-ranges':  RANGE_UNIT,
         'content-length': finalLength,
-        'content-range':  `${RANGE_UNIT} ${start}-${end}/${length}`
-      }
+        'content-range':  `${RANGE_UNIT} ${start}-${end}/${bodyLength}`
+      },
+      bodyBuffer: finalBuffer,
+      bodyOffset: start,
+      bodyLength: finalLength
     };
   }
 
