@@ -1,0 +1,66 @@
+#!/bin/bash
+#
+# Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
+# SPDX-License-Identifier: Apache-2.0
+
+. "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"
+
+
+#
+# Argument parsing
+#
+
+define-usage --with-help $'
+    ${name} [<opt> ...] [--]
+
+    Runs all the tests.
+'
+
+process-args "$@" || exit "$?"
+
+
+#
+# Main script
+#
+
+testsDir="$(this-cmd-dir)"
+
+# Test directories are identified as directories that have a file called `run`
+# in them.
+jset-array --raw allRunScripts "$(
+    lib ls-files --output=array --sort \
+        --cd="${testsDir}" --include='^[0-9][-/a-z0-9]+/run' \
+    || echo '["error"]'
+)" \
+|| exit "$?"
+
+if [[ ${allRunScripts[0]} == 'error' ]]; then
+    exit 1
+fi
+
+errors=()
+for run in "${allRunScripts[@]}"; do
+    testName="${run%/run}"
+    "${testsDir}/run-one" "${testName}" \
+    || errors+=("${testName}")
+done
+
+errorCount="${#errors[@]}"
+
+echo ''
+
+if (( errorCount == 0 )); then
+    echo 'All passed. Yay!'
+else
+    echo 'Problems with:'
+
+    for e in "${errors[@]}"; do
+        echo "  ${e}"
+    done
+
+    (( errorCount == 1 )) && noun=error || noun=errors
+    echo ''
+    echo "${errorCount} ${noun}. Alas."
+
+    exit 1
+fi

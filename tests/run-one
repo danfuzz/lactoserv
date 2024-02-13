@@ -1,0 +1,251 @@
+#!/bin/bash
+#
+# Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
+# SPDX-License-Identifier: Apache-2.0
+
+. "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"
+
+
+#
+# Argument parsing
+#
+
+define-usage --with-help $'
+    ${name} [<opt> ...] [--] <test-name>
+
+    Runs a single named test. The name of the test is fundamentally the partial
+    path from the `tests` directory to the directory of the test, but as a
+    commandline convenience:
+
+    * Any prefix on the test which looks like a path to the `tests` directory is
+      ignored.
+    * If the name consists only of digits and slashes, then it is expanded to
+      include the names of the test directories in question. E.g. `01/05` might
+      expand into `01-smoke-tests/05-dry-ice`.
+    * If the name has no slashes and starts with a digit, then it is expanded to
+      be the unique test directory (leaf in the hierarchy) with that name as a
+      prefix. E.g. `05-dry` might expand into `01-smoke-tests/05-dry-ice`.
+
+    Note that all test directories are expected to be named with a sequential
+    numeric prefix followed by a dash.
+
+    --print
+      Print the test run output to stdout, instead of doing a diff with the
+      expected output.
+    --update
+      Update the expected output to match the actual output.
+'
+
+# Print the test run output?
+opt-toggle --var=doPrint print
+
+# Update the expected output?
+opt-toggle --var=doUpdate update
+
+# The test to run.
+positional-arg --required --var=testName --filter='/[0-9][-/a-z0-9]*$/' test-name
+
+process-args "$@" || exit "$?"
+
+
+#
+# Helper functions
+#
+
+# Any errors yet?
+anyErrors=0
+
+# Emits an error. This is only used once the test name has been successfully
+# found to be an existing test directory.
+function emit-error {
+    if (( !anyErrors )); then
+        error-msg 'Trouble running test:'
+        error-msg "  ${testName}"
+        error-msg ''
+        anyErrors=1
+    fi
+
+    error-msg "$@"
+}
+
+# Expands from just numbers and slashes, to a full test path.
+function expand-numbers {
+    local numbersName="$1"
+
+    local part partExpanded
+    local newName='/'
+    while [[ ${numbersName} =~ ^/*([0-9]+)(.*)$ ]]; do
+        part="${BASH_REMATCH[1]}"
+        numbersName="${BASH_REMATCH[2]}"
+        partExpanded=($(
+            lib ls-files --output=lines --cd="${testsDir}${newName}" --dirs \
+                --depth=1 --include="^${part}-"
+        ))
+
+        case "${#partExpanded[@]}" in
+            0)
+                error-msg 'Test not found:'
+                error-msg "  ${newName#/}${part}"
+                return 1
+                ;;
+            1)
+                : # It's good
+                ;;
+            *)
+                error-msg 'Ambiguous test name:'
+                error-msg "  ${newName#/}${part}"
+                error-msg --exec printf '    %s\n' "${partExpanded[@]}"
+                return 1
+                ;;
+        esac
+
+        newName+="${partExpanded[0]}/"
+    done
+
+    echo "tests${newName}"
+}
+
+# Expands from a simple name (no slashes) taken to be a prefix, to a full test
+# path.
+function expand-prefix {
+    local prefix="$1"
+
+    local found
+    found="$(
+        lib ls-files --output=array \
+            --cd="${testsDir}" --dirs --include="/${prefix}[^/]*$" \
+            :: --output=raw '
+            if length == 0 then
+                "err: Could not find test directory with given prefix."
+            elif length == 1 then
+                .[0]
+            else
+                [
+                    "err: Ambiguous prefix matches all of:",
+                    (.[] | "  \(.)")
+                ]
+                | join("\n")
+            end'
+    )" \
+    || return "$?"
+
+    if [[ ${found} =~ ^err:\ (.*)$ ]]; then
+        error-msg "${BASH_REMATCH[1]}"
+        return 1
+    fi
+
+    echo "${found}"
+}
+
+
+#
+# Main script
+#
+
+testsDir="$(this-cmd-dir)"
+
+# Expand (if necessary) and validate the given test name.
+
+if [[ ${testName} =~ ^[/0-9]+$ ]]; then
+    # The name appears to be a shorthand that omits the non-numeric portion of
+    # the directories. Try to expand it.
+    testName="$(expand-numbers "${testName}")" \
+    || exit "$?"
+elif [[ ${testName} =~ ^[0-9][-0-9a-z]+$ ]]; then
+    # The name appears to be a shorthand prefix for a specific leaf test
+    # directory. Try to expand it.
+    testName="$(expand-prefix "${testName}")" \
+    || exit "$?"
+fi
+
+# Drop initial `.../tests/` and/or final `/` on name, if present.
+[[ ${testName} =~ ^((.*/)?tests/)?([0-9][-/a-z0-9]*[a-z0-9])/?$ ]] || {
+    error-msg 'Cannot parse test name:'
+    error-msg "  ${testName}"
+    usage --short
+    exit 1
+}
+testName="${BASH_REMATCH[3]}"
+
+testDir="${testsDir}/${testName}"
+runScript="${testDir}/run"
+infoFile="${testDir}/info.md"
+expectMd="${testDir}/expect.md"
+
+if [[ !(-d "${testDir}" && -r "${testDir}") ]]; then
+    emit-error "Test not found: ${testName}"
+    exit 1
+fi
+
+# Check the test directory for validity.
+
+if [[ !(-f "${runScript}" && -r "${runScript}") ]]; then
+    emit-error 'Run script not found.'
+elif [[ ! -x "${runScript}" ]]; then
+    emit-error 'Run script not executable. Do this:'
+    emit-error "  chmod 755 ${runScript}"
+    emit-error ''
+fi
+
+if [[ !(-f "${expectMd}" && -r "${expectMd}") ]] && (( !doUpdate )); then
+    emit-error 'Expected output not found.'
+fi
+
+if [[ !(-f "${infoFile}" && -r "${infoFile}") ]]; then
+    emit-error 'Info file not found.'
+fi
+
+if (( anyErrors )); then
+    exit 1
+fi
+
+# Run the test!
+
+echo "# ${testName}"
+
+testOutput="$("${runScript}")" \
+|| {
+    echo "${testOutput}"
+    echo "Run script exited with code: $?"
+    exit 1
+}
+
+if (( doPrint )); then
+    echo "${testOutput}"
+fi
+
+if (( doUpdate )); then
+    echo >"${expectMd}" "${testOutput}" \
+    || exit "$?"
+fi
+
+if (( doPrint || doUpdate )); then
+    exit
+fi
+
+expectedOutput="$(cat "${expectMd}")" \
+|| exit "$?"
+
+if cmp >/dev/null "${expectMd}" <(echo "${testOutput}"); then
+    echo "## passed"
+else
+    echo "## failed"
+    echo ''
+    diff -u "${expectMd}" <(echo "${testOutput}") \
+    | awk '
+        # Fix up the diff labels
+        !done && /^---/ {
+            print "--- expected";
+            print "+++ got";
+            next;
+        }
+        !done && /^+++/ {
+            done = 1;
+            next;
+        }
+        {
+            print;
+        }
+    '
+    exit 1
+fi

@@ -1,0 +1,17 @@
+#!/bin/bash
+# Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
+# SPDX-License-Identifier: Apache-2.0
+
+toStdout="$1"
+toStderr="$2"
+exitCode="$3"
+
+if [[ ${toStdout} != '' ]]; then
+    printf '%s' "${toStdout}"
+fi
+
+if [[ ${toStderr} != '' ]]; then
+    printf 1>&2 '%s' "${toStderr}"
+fi
+
+exit "${exitCode}"
