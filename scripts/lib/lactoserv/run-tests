@@ -27,6 +27,8 @@ define-usage --with-help $'
       `build` -- Always build, even if there is something already built.
       `clean` -- Always do a clean build.
       `run` -- Build only if there is nothing yet built. This is the default.
+    --integration
+      Run integration tests. By default, runs unit tests.
     --out=<dir>
       Directory where built output goes. Defaults to `out` directly under the
       main product directory.
@@ -34,6 +36,9 @@ define-usage --with-help $'
 
 # What to do?
 opt-value --var=action --default=run --enum[]='build clean run' do
+
+# Run integration tests?
+opt-toggle --var=doIntegration integration
 
 # Built output directory.
 opt-value --var=outDir out
@@ -103,6 +108,62 @@ function config-file-path {
     echo "${configFile[0]}"
 }
 
+# Runs integration tests.
+function run-integration-tests {
+    "$(base-dir)/tests/run-all" "${args[@]}"
+}
+
+# Runs unit tests.
+function run-unit-tests {
+    local configFile
+    configFile="$(config-file-path)" \
+    || exit "$?"
+
+    local toolPath
+    toolPath="$(tester-path)" \
+    || exit "$?"
+
+    # Find the tests, and generally set up the testing directory.
+
+    local testsDir="${outDir}/tests"
+
+    rm -rf "${testsDir}"
+    mkdir -p "${testsDir}"
+    cd "${testsDir}"
+    rm -rf node_modules
+    ln -s ../lactoserv/lib/code/node_modules .
+    echo >package.json '{ "type": "module" }'
+
+    # TODO: Try this to see if Pulsar and/or Zed still mess up syntax highlighting.
+    #cat >package.json <<< '{ "type": "module" }'
+
+    local dirsWithTests
+    dirsWithTests="$(
+        lib ls-files --output=array --cd="${srcDir}" --dirs --full-paths \
+            --include='/tests$')" \
+    || exit "$?"
+
+    while IFS='' read -r -d $'\0' dir; do
+        [[ ${dir} =~ /([^/]+)/tests$ ]] || {
+            error-msg "Weird directory name: ${dir}"
+            exit 1
+        }
+
+        local moduleName="${BASH_REMATCH[1]}"
+        cp -r "${dir}" "${testsDir}/${moduleName}"
+    done < <(jget --output=raw0 "${dirsWithTests}" '.[]')
+
+    # Copy the config file into place, where it will be found when the test
+    # harness is run.
+    cp "${configFile}" "${testsDir}"
+    configFile="${testsDir}/$(basename "${configFile}")"
+
+    # Run the tool!
+
+    "${toolPath}" --config="${configFile}" "${args[@]}" \
+    || return "$?"
+}
+
 # Builds the tester if necessary, and then prints the path to it main binary.
 function tester-path {
     local toolModule=tester
@@ -129,46 +190,15 @@ srcDir="$(base-dir)/src"
 outDir="$(lib buildy out-dir --out="${outDir}")" \
 || exit "$?"
 
-configFile="$(config-file-path)" \
-|| exit "$?"
-
-toolPath="$(tester-path)" \
-|| exit "$?"
-
 build-if-necessary "${action}" \
 || exit "$?"
 
-# Find the tests, and generally set up the testing directory.
+if (( doIntegration )); then
+    run-integration-tests
+else
+    run-unit-tests
+fi
 
-testsDir="${outDir}/tests"
-rm -rf "${testsDir}"
-mkdir -p "${testsDir}"
-cd "${testsDir}"
-rm -rf node_modules
-ln -s ../lactoserv/lib/code/node_modules .
-cat >package.json <<< '{ "type": "module" }'
-
-dirsWithTests="$(
-    lib ls-files --output=array --cd="${srcDir}" --dirs --full-paths \
-        --include='/tests$')" \
-|| exit "$?"
-while IFS='' read -r -d $'\0' dir; do
-    [[ ${dir} =~ /([^/]+)/tests$ ]] || {
-        error-msg "Weird directory name: ${dir}"
-        exit 1
-    }
-    moduleName="${BASH_REMATCH[1]}"
-    cp -r "${dir}" "${testsDir}/${moduleName}"
-done < <(jget --output=raw0 "${dirsWithTests}" '.[]')
-
-# Copy the config file into place, where it will be found when the test harness
-# is run.
-cp "${configFile}" "${testsDir}"
-configFile="${testsDir}/$(basename "${configFile}")"
-
-# Run the tool!
-
-"${toolPath}" --config="${configFile}" "${args[@]}"
 status="$?"
 
 info-msg
