@@ -126,9 +126,7 @@ export class HttpResponse {
   }
 
   /**
-   * Sets the response body to be based on a file. If the response length (e.g.
-   * the `length` if specified) is small enough, the response body is read from
-   * the file during this call.
+   * Sets the response body to be based on a file.
    *
    * Unless directed not to (by an option), this method will cause a
    * `last-modified` header to be added to the response, based on the stats of
@@ -160,20 +158,13 @@ export class HttpResponse {
     const finalOffset = HttpResponse.#adjustByteIndex(offset ?? 0, fileLength);
     const finalLength = HttpResponse.#adjustByteIndex(length, fileLength - finalOffset);
 
-    if (finalLength <= HttpResponse.#MAX_IMMEDIATE_READ_SIZE) {
-      const buffer =
-        await HttpResponse.#readFilePortion(absolutePath, finalOffset, finalLength);
-
-      this.#body = { type: 'buffer', buffer };
-    } else {
-      this.#body = {
-        type:   'file',
-        path:   absolutePath,
-        offset: finalOffset,
-        length: finalLength,
-        lastModified
-      };
-    }
+    this.#body = {
+      type:   'file',
+      path:   absolutePath,
+      offset: finalOffset,
+      length: finalLength,
+      lastModified
+    };
   }
 
   /**
@@ -496,12 +487,6 @@ export class HttpResponse {
     'content-security-policy-report-only',
     'content-type'
   ]);
-
-  /**
-   * @type {number} Maximum size of a response body to immediately read from a
-   * file and keep in an instance.
-   */
-  static #MAX_IMMEDIATE_READ_SIZE = 16 * 1024; // 16k
 
   /**
    * @type {number} Chunk size to use when reading a file and writing it as a
