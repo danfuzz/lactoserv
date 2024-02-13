@@ -578,9 +578,6 @@ export class Request {
       return this.sendMetaResponse(rangeInfo.status, errOptions);
     }
 
-    // Note: `#rangeInfo()` notices if this is a HEAD request, and returns a
-    // `bodyBuffer === null` if so.
-
     headers.setAll(rangeInfo.headers);
     return this.#writeCompleteResponse(rangeInfo.status, headers, rangeInfo.bodyBuffer);
   }
@@ -654,9 +651,8 @@ export class Request {
     } else {
       const response = new HttpResponse();
 
-      response.requestMethod = this.method;
-      response.status        = rangeInfo.status;
-      response.headers       = headers;
+      response.status  = rangeInfo.status;
+      response.headers = headers;
 
       await response.setBodyFile(path, {
         stats,
@@ -680,8 +676,6 @@ export class Request {
    *
    * If the status code is allowed to be cached (per HTTP spec), the response
    * will always have a standard `Cache-Control` header.
-   *
-   * The response _never_ includes an `Etag` header.
    *
    * If a body is not supplied and _is_ appropriate to send, this method
    * constructs a `text/plain` body in a standard form which includes the
@@ -1037,10 +1031,8 @@ export class Request {
     }
 
     const { start, end } = ranges[0];
-    const finalLength = (end - start) + 1; // Note: `end` is inclusive.
-    const finalBuffer = (bodyBuffer && (this.#requestMethod !== 'head'))
-      ? bodyBuffer.subarray(start, end + 1)
-      : null;
+    const finalLength    = (end - start) + 1; // Note: `end` is inclusive.
+    const finalBuffer    = bodyBuffer?.subarray(start, end + 1) ?? null;
 
     return {
       status:     206,
@@ -1066,9 +1058,8 @@ export class Request {
   async #writeCompleteResponse(status, headers, body = null) {
     const response = new HttpResponse();
 
-    response.requestMethod = this.method;
-    response.status        = status;
-    response.headers       = headers;
+    response.status  = status;
+    response.headers = headers;
 
     if (body) {
       response.setBodyBuffer(body);
