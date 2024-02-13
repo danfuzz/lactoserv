@@ -620,8 +620,7 @@ export class Request {
     }
 
     const headers = this.#makeResponseHeaders('cacheable', options, {
-      'content-type':   contentType,
-      'last-modified':  HttpUtil.dateStringFromStatsMtime(stats)
+      'content-type': contentType
     });
 
     if (this.isFreshWithRespectTo(headers)) {
