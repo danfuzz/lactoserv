@@ -27,8 +27,8 @@ define-usage --with-help $'
       `build` -- Always build, even if there is something already built.
       `clean` -- Always do a clean build.
       `run` -- Build only if there is nothing yet built. This is the default.
-    --integration
-      Run integration tests. By default, runs unit tests.
+    --type=<type> :: `integration` `unit`
+      Test type to run. By default, runs unit tests.
     --out=<dir>
       Directory where built output goes. Defaults to `out` directly under the
       main product directory.
@@ -37,8 +37,8 @@ define-usage --with-help $'
 # What to do?
 opt-value --var=action --default=run --enum[]='build clean run' do
 
-# Run integration tests?
-opt-toggle --var=doIntegration integration
+# Test type.
+opt-value --var=testType --enum[]='integration unit' type
 
 # Built output directory.
 opt-value --var=outDir out
@@ -193,7 +193,7 @@ outDir="$(lib buildy out-dir --out="${outDir}")" \
 build-if-necessary "${action}" \
 || exit "$?"
 
-if (( doIntegration )); then
+if [[ ${testType} == integration ]]; then
     run-integration-tests
 else
     run-unit-tests
