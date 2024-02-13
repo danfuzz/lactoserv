@@ -26,10 +26,10 @@ process-args "$@" || exit "$?"
 testsDir="$(this-cmd-dir)"
 
 # Test directories are identified as directories that have a file called `run`
-# in them.
+# or `run.*` in them.
 jset-array --raw allRunScripts "$(
     lib ls-files --output=array --sort \
-        --cd="${testsDir}" --include='^[0-9][-/a-z0-9]+/run' \
+        --cd="${testsDir}" --include='^[0-9][-/a-z0-9]+/run(\.[a-z]+)?$' \
     || echo '["error"]'
 )" \
 || exit "$?"
@@ -40,7 +40,7 @@ fi
 
 errors=()
 for run in "${allRunScripts[@]}"; do
-    testName="${run%/run}"
+    testName="${run%/run*}"
     "${testsDir}/run-one" "${testName}" \
     || errors+=("${testName}")
 done

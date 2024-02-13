@@ -179,12 +179,27 @@ fi
 
 # Check the test directory for validity.
 
-if [[ !(-f "${runScript}" && -r "${runScript}") ]]; then
+runSh="${runScript}"
+runMjs="${runScript}.mjs"
+
+if [[ -f "${runSh}" && -r "${runSh}" ]]; then
+    if [[ ! -x "${runSh}" ]]; then
+        emit-error 'Run script not executable. Do this:'
+        emit-error "  chmod 755 ${runSh}"
+        emit-error ''
+    fi
+else
+    runSh=''
+fi
+
+if [[ !(-f "${runMjs}" && -r "${runMjs}") ]]; then
+    runMjs=''
+fi
+
+if [[ ("${runSh}" == '') && ("${runMjs}" == '') ]]; then
     emit-error 'Run script not found.'
-elif [[ ! -x "${runScript}" ]]; then
-    emit-error 'Run script not executable. Do this:'
-    emit-error "  chmod 755 ${runScript}"
-    emit-error ''
+elif [[ ("${runSh}" != '') && ("${runMjs}" != '') ]]; then
+    emit-error 'Multiple run scripts found. Pick one type!'
 fi
 
 if [[ !(-f "${expectMd}" && -r "${expectMd}") ]] && (( !doUpdate )); then
@@ -201,9 +216,22 @@ fi
 
 # Run the test!
 
+runScript="${runSh}${runMjs}" # Only one will be non-empty
+
 echo "# ${testName}"
 
-testOutput="$("${runScript}")" \
+testOutput="$(
+    if [[ ${runSh} != '' ]]; then
+        "${runSh}"
+    else
+        # We run with a self-signed certificate, and there's no other way as of
+        # this writing to convince Node's version of `fetch()` to accept that
+        # other than to disable TLS cert checking altogether. And then we also
+        # need to squelch the warning that that setting elicits. Whee!
+        NODE_TLS_REJECT_UNAUTHORIZED=0 \
+            node --no-warnings "${runMjs}"
+    fi
+)" \
 || {
     echo "${testOutput}"
     echo "Run script exited with code: $?"
