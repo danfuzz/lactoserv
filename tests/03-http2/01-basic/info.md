@@ -1,1 +1,1 @@
-Test of HTTP request basics.
+Test of HTTP2 request basics.
