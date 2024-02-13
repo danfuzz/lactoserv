@@ -248,7 +248,11 @@ export class HttpResponse {
     this.validate();
 
     const { headers, status } = this;
-    const body = this.#body;
+    const { type: bodyType }  = this.#body;
+    const requestMethod       = res.method; // Note: This is in all-caps.
+
+    const shouldSendBody = (bodyType !== 'none')
+      && HttpUtil.responseBodyIsAllowedFor(requestMethod, status);
 
     res.status(status);
 
@@ -272,19 +276,22 @@ export class HttpResponse {
     // Note: At this point, all headers have been set on `res` _except_
     // `content-length` (which is always set per body type as necessary).
 
-    switch (body.type) {
+    switch (bodyType) {
       case 'buffer': {
-        return await this.#writeBodyBuffer(res);
+        return await this.#writeBodyBuffer(res, shouldSendBody);
       }
       case 'file':  {
-        return await this.#writeBodyFile(res);
+        return await this.#writeBodyFile(res, shouldSendBody);
+      }
+      case 'message': {
+        return await this.#writeBodyMessage(res, shouldSendBody);
       }
       case 'none': {
         return await this.#writeNoBody(res);
       }
       default: {
         // If we get here, it indicates a bug in this class.
-        throw new Error(`Shouldn't happen: Weird body type: ${body.type}.`);
+        throw new Error(`Shouldn't happen: Weird body type: ${bodyType}.`);
       }
     }
   }
@@ -293,14 +300,20 @@ export class HttpResponse {
    * Writes the body from a buffer, and ends the response.
    *
    * @param {http.HttpResponse} res The response object to use.
+   * @param {boolean} shouldSendBody Should the body actually be sent?
    * @returns {boolean} `true` when closed without error.
    * @throws {Error} Any error reported by `res`.
    */
-  async #writeBodyBuffer(res) {
+  async #writeBodyBuffer(res, shouldSendBody) {
     const buffer = this.#body.buffer;
 
     res.setHeader('Content-Length', buffer.length);
-    res.end(buffer);
+
+    if (shouldSendBody) {
+      res.end(buffer);
+    } else {
+      res.end();
+    }
 
     return HttpResponse.#whenResponseDone(res);
   }
@@ -309,16 +322,24 @@ export class HttpResponse {
    * Writes the body from a file, and ends the response.
    *
    * @param {http.HttpResponse} res The response object to use.
+   * @param {boolean} shouldSendBody Should the body actually be sent?
    * @returns {boolean} `true` when closed without error.
    * @throws {Error} Any error reported by `res`.
    */
-  async #writeBodyFile(res) {
+  async #writeBodyFile(res, shouldSendBody) {
     const CHUNK_SIZE = HttpResponse.#READ_CHUNK_SIZE;
     const { path, offset, length } = this.#body;
 
     res.setHeader('Content-Length', length);
 
+    if (!shouldSendBody) {
+      res.end();
+      return HttpResponse.#whenResponseDone(res);
+    }
+
     if (length <= CHUNK_SIZE) {
+      // It's a small enough length that we just send the response with a single
+      // `write()`.
       const buffer =
         await HttpResponse.#readFilePortion(path, offset, length);
       res.end(buffer);
