@@ -4,6 +4,8 @@
 import fs from 'node:fs/promises';
 import http from 'node:http';
 
+import statuses from 'statuses';
+
 import { ManualPromise } from '@this/async';
 import { Paths, StatsBase } from '@this/fs-util';
 import { MustBe } from '@this/typey';
@@ -106,6 +108,31 @@ export class HttpResponse {
       : body.subarray(finalOffset, finalOffset + finalLength);
 
     this.#body = { type: 'buffer', buffer };
+  }
+
+  /**
+   * Sets the response body to be a diagnostic message of some sort. This is
+   * meant to be used for non-content responses (anything other than status
+   * `2xx` and _some_ `3xx`). If no `options` are given, a simple default
+   * message is produced based on the status code. In all cases, the response
+   * body is sent as content type `text/plain` with encoding `utf-8`.
+   *
+   * @param {?object} [options] Options to control the response body.
+   * @param {?string} [options.body] Complete body content to include.
+   * @param {?string} [options.bodyExtra] Extra body content to include, in
+   *   addition to the default body.
+   */
+  setBodyMessage(options = null) {
+    const { body = null, bodyExtra = null } = options ?? {};
+
+    if (body !== null) {
+      if (bodyExtra !== null) {
+        throw new Error('Cannot specify both `body` and `bodyExtra`.');
+      }
+      this.#body = { type: 'message', message: MustBe.string(body) };
+    } else if (bodyExtra !== null) {
+      this.#body = { type: 'message', messageExtra: MustBe.string(bodyExtra) };
+    }
   }
 
   /**
@@ -327,6 +354,54 @@ export class HttpResponse {
     }
 
     res.end();
+    return HttpResponse.#whenResponseDone(res);
+  }
+
+  /**
+   * Writes the body for a diagnostic message, and ends the response.
+   *
+   * @param {http.HttpResponse} res The response object to use.
+   * @param {boolean} shouldSendBody Should the body actually be sent?
+   * @returns {boolean} `true` when closed without error.
+   * @throws {Error} Any error reported by `res`.
+   */
+  async #writeBodyMessage(res, shouldSendBody) {
+    const { message, messageExtra } = this.#body;
+
+    if (!shouldSendBody) {
+      // Note: Because message response content isn't ever supposed to get
+      // cached, it's okay _not_ to build a body _just_ to figure out its
+      // `content-length` header value (and then not send the body). So we don't
+      // do that here.
+      res.end();
+      return HttpResponse.#whenResponseDone(res);
+    }
+
+    let body;
+
+    if (message) {
+      body = message.endsWith('\n')
+        ? message
+        : `message\n`;
+    } else {
+      const { status } = this;
+      const statusStr  = statuses(status);
+      const bodyHeader = `${status} ${statusStr}`;
+
+      if (((messageExtra ?? '') === '') || (messageExtra === statusStr)) {
+        body = `${bodyHeader}\n`;
+      } else {
+        const finalNl = (messageExtra.endsWith('\n')) ? '' : '\n';
+        body = `${bodyHeader}:\n\n${messageExtra}${finalNl}`;
+      }
+    }
+
+    const bodyBuffer = Buffer.from(body, 'utf-8');
+
+    res.setHeader('Content-Type',   'text/plain; charset=utf-8');
+    res.setHeader('Content-length', bodyBuffer.length);
+    res.end(bodyBuffer);
+
     return HttpResponse.#whenResponseDone(res);
   }
 
