@@ -305,10 +305,10 @@ export class HttpHeaders extends Headers {
     // The hard part: The case of `name` and the keys of `headers` might not
     // match, so we need to do a more manual search.
 
-    const lowerName = name.toLowercase();
+    const lowerName = name.toLowerCase();
 
     for (const [k, v] of Object.entries(headers)) {
-      if (k.toLowercase() === lowerName) {
+      if (k.toLowerCase() === lowerName) {
         return v;
       }
     }
