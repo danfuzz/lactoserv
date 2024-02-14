@@ -6,7 +6,6 @@ import { ClientRequest, ServerResponse } from 'node:http';
 import * as http2 from 'node:http2';
 
 import express from 'express';
-import fresh from 'fresh';
 import rangeParser from 'range-parser';
 import statuses from 'statuses';
 
@@ -14,8 +13,8 @@ import { ManualPromise } from '@this/async';
 import { TreePathKey } from '@this/collections';
 import { Paths } from '@this/fs-util';
 import { FormatUtils, IntfLogger } from '@this/loggy';
-import { Cookies, HostInfo, HttpHeaders, HttpResponse, HttpUtil, MimeTypes }
-  from '@this/net-util';
+import { Cookies, HostInfo, HttpConditional, HttpHeaders, HttpResponse,
+  HttpUtil, MimeTypes } from '@this/net-util';
 import { AskIf, MustBe } from '@this/typey';
 
 import { WranglerContext } from '#x/WranglerContext';
@@ -475,35 +474,6 @@ export class Request {
   }
 
   /**
-   * Checks to see if a response with the given headers would be considered
-   * "fresh" such that a not-modified (status `304`) response could be issued.
-   *
-   * A request is considered fresh if all of the following are true:
-   * * The request method is `HEAD` or `GET`.
-   * * The request doesn't ask for caching to be off.
-   * * The request has at least one condition which checks for freshness, and
-   *   all such conditions pass.
-   *
-   * This assumes that the response would have a sans-check status code that is
-   * acceptable for conversion to the not-modified status (`304`).
-   *
-   * **Note:** This is akin to Express's `request.fresh` getter.
-   *
-   * @param {HttpHeaders} responseHeaders Would-be response headers that could
-   *   possibly affect the freshness calculation.
-   * @returns {boolean} `true` iff the request is to be considered "fresh."
-   */
-  isFreshWithRespectTo(responseHeaders) {
-    const method = this.#requestMethod;
-
-    if ((method !== 'head') && (method !== 'get')) {
-      return false;
-    }
-
-    return fresh(this.headers, responseHeaders.extract('etag', 'last-modified'));
-  }
-
-  /**
    * Issues a successful response, with the given body contents or with an empty
    * body as appropriate. The actual reported status will be one of:
    *
@@ -556,8 +526,8 @@ export class Request {
     // such responses are cacheable, per spec.
     const headers = this.#makeResponseHeaders('cacheable', options);
 
-    if (this.isFreshWithRespectTo(headers)) {
-      // For basic range-support headers.
+    if (HttpConditional.isContentFresh(this.method, this.headers, headers)) {
+      // `rangeInfo()` is just to get basic range-support headers.
       headers.setAll(this.#rangeInfo().headers);
       headers.deleteContent();
       return this.#writeCompleteResponse(304, headers);
@@ -624,8 +594,8 @@ export class Request {
       'content-type': contentType
     });
 
-    if (this.isFreshWithRespectTo(headers)) {
-      // For basic range-support headers.
+    if (HttpConditional.isContentFresh(this.method, this.headers, headers, stats)) {
+      // `rangeInfo()` is just to get basic range-support headers.
       headers.setAll(this.#rangeInfo().headers);
       headers.deleteContent();
       return this.#writeCompleteResponse(304, headers);
