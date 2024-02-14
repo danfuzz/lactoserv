@@ -50,7 +50,9 @@ export class HttpConditional {
   static isContentFresh(requestMethod, requestHeaders, responseHeaders, stats = null) {
     MustBe.string(requestMethod);
     // MustBe.instanceOf(requestHeaders, HttpHeaders); TODO: Make it true.
-    MustBe.instanceOf(responseHeaders, HttpHeaders);
+    if (responseHeaders !== null) {
+      MustBe.instanceOf(responseHeaders, HttpHeaders);
+    }
     if (stats !== null) {
       MustBe.instanceOf(stats, StatsBase);
     }
@@ -75,7 +77,7 @@ export class HttpConditional {
     const ifNoneMatch = HttpHeaders.get(requestHeaders, 'if-none-match');
 
     if (ifNoneMatch) {
-      const responseEtag = responseHeaders.get('etag');
+      const responseEtag = responseHeaders?.get('etag') ?? null;
 
       if (!responseEtag || (responseEtag === '')) {
         return false;
@@ -98,12 +100,11 @@ export class HttpConditional {
     if (ifModifiedSince) {
       const modifiedSince = HttpUtil.msecFromDateString(ifModifiedSince);
 
-      if (isNaN(modifiedSince)) {
+      if (!modifiedSince) {
         return false;
       }
 
-      const lastModified = stats?.mtime.getTime()
-        ?? HttpUtil.msecFromDateString(responseHeaders.get('last-modified') ?? null);
+      const lastModified = this.#msecTimeFrom(requestHeaders, stats);
 
       if (!lastModified || isNaN(lastModified)) {
         return false;
@@ -112,8 +113,40 @@ export class HttpConditional {
       if (lastModified > modifiedSince) {
         return false;
       }
+
+      return true;
     }
 
-    return true;
+    // It turned out not to be a conditional request, which makes it
+    // definitionally "not fresh."
+    return false;
+  }
+
+  /**
+   * Gets a seconds-precision modification time from a stats or from a
+   * `last-modified` header, with stats taking priority (because it's more
+   * efficient, and it should be overwhelmingly more common to end up here with
+   * one of those).
+   *
+   * When dealing with a stats value, the time is produced by truncating off
+   * milliseconds. (This is done because the precision of timestamp headers is
+   * only to the second, and we want to compare one of those to the timestamp
+   * header that _would have been produced_ when converting a stats value.)
+   *
+   * @param {?HttpHeaders} responseHeaders Would-be response headers, if
+   *   available.
+   * @param {?StatsBase} stats File stats, if available.
+   * @returns {?number} A millisecond Epoch time, if one was found, or `null` if
+   *   not.
+   */
+  static #msecTimeFrom(responseHeaders, stats) {
+    if (stats) {
+      return Math.trunc(Number(stats.mtimeMs) / 1000) * 1000;
+    } else if (responseHeaders) {
+      const lastModified = responseHeaders.get('last-modified');
+      return HttpUtil.msecFromDateString(lastModified);
+    } else {
+      return null;
+    }
   }
 }
