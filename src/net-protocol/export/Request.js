@@ -559,6 +559,7 @@ export class Request {
     if (this.isFreshWithRespectTo(headers)) {
       // For basic range-support headers.
       headers.setAll(this.#rangeInfo().headers);
+      headers.deleteContent();
       return this.#writeCompleteResponse(304, headers);
     }
 
@@ -626,6 +627,7 @@ export class Request {
     if (this.isFreshWithRespectTo(headers)) {
       // For basic range-support headers.
       headers.setAll(this.#rangeInfo().headers);
+      headers.deleteContent();
       return this.#writeCompleteResponse(304, headers);
     }
 
