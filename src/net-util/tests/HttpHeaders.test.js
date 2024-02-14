@@ -495,5 +495,75 @@ describe('setAll()', () => {
 });
 
 describe('static get()', () => {
-  // TODO
+  test('rejects non-string name', () => {
+    expect(() => HttpHeaders.get({}, 123)).toThrow();
+  });
+
+  test('finds a name in a regular `Headers`', () => {
+    const name    = 'beep';
+    const value   = 'boop';
+    const headers = new Headers();
+
+    headers.set(name, value);
+    expect(HttpHeaders.get(headers, name)).toBe(value);
+  });
+
+  test('correctly fails to find a name in a regular `Headers`', () => {
+    const name    = 'beep';
+    const value   = 'boop';
+    const headers = new Headers();
+
+    headers.set(name, value);
+    expect(HttpHeaders.get(headers, `x${name}x`)).toBeNull();
+  });
+
+  test('finds a name in an `HttpHeaders`', () => {
+    const name    = 'beep';
+    const value   = 'boop';
+    const headers = new HttpHeaders();
+
+    headers.set(name, value);
+    expect(HttpHeaders.get(headers, name)).toBe(value);
+  });
+
+  test('correctly fails to find a name an `HttpHeaders`', () => {
+    const name    = 'beep';
+    const value   = 'boop';
+    const headers = new HttpHeaders();
+
+    headers.set(name, value);
+    expect(HttpHeaders.get(headers, `x${name}x`)).toBeNull();
+  });
+
+  test('finds a name in a plain object', () => {
+    const name    = 'beep';
+    const value   = 'boop';
+    const headers = { [name]: value };
+
+    expect(HttpHeaders.get(headers, name)).toBe(value);
+  });
+
+  test('correctly fails to find a name a plain object', () => {
+    const name    = 'beep';
+    const value   = 'boop';
+    const headers = { [name]: value };
+
+    expect(HttpHeaders.get(headers, `x${name}x`)).toBeNull();
+  });
+
+  test('correctly finds a name in a plain object, where the object name is not all lowercase', () => {
+    const name    = 'beep';
+    const value   = 'boop';
+    const headers = { [name.toUpperCase()]: value };
+
+    expect(HttpHeaders.get(headers, name)).toBe(value);
+  });
+
+  test('correctly finds a name in a plain object, where the given name is not all lowercase', () => {
+    const name    = 'beep';
+    const value   = 'boop';
+    const headers = { [name]: value };
+
+    expect(HttpHeaders.get(headers, name.toUpperCase())).toBe(value);
+  });
 });
