@@ -64,9 +64,9 @@ await checkResponse(response3, {
   }
 });
 
-console.log('\n## Miss\n');
-
 // Try to get a miss, even though there is an etag header (it doesn't match).
+
+console.log('\n## Miss 1\n');
 
 const response4 = await fetch(theUrl,
   {

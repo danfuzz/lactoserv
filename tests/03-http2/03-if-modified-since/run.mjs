@@ -69,9 +69,9 @@ await checkResponse(response3, {
   }
 });
 
-console.log('\n## Miss\n');
-
 // Try to get a miss.
+
+console.log('\n## Miss\n');
 
 const earlierDate = new Date(lastMod);
 earlierDate.setSeconds(-1);
