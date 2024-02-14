@@ -826,7 +826,7 @@ export class Request {
    * @throws {Error} Any error reported by the underlying response object.
    */
   async whenResponseDone() {
-    return this.#responsePromise;
+    return this.#responsePromise.promise;
   }
 
   /**
