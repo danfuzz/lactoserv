@@ -1,6 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { MustBe } from '@this/typey';
+
 import { Cookies } from '#x/Cookies';
 import { HttpUtil } from '#x/HttpUtil';
 
@@ -65,6 +67,26 @@ export class HttpHeaders extends Headers {
   appendSetCookie(cookies) {
     for (const cookie of cookies.responseHeaders()) {
       this.append('set-cookie', cookie);
+    }
+  }
+
+  /**
+   * Deletes all content-related headers. These are (unsurprisingly) the ones
+   * whose names begin with `content-`.
+   */
+  deleteContent() {
+    // Note: Can't safely delete in the middle of an iteration. Arguably a bug
+    // in `Headers`.
+    const toDelete = [];
+
+    for (const [name] of this) {
+      if (name.startsWith('content-')) {
+        toDelete.push(name);
+      }
+    }
+
+    for (const name of toDelete) {
+      this.delete(name);
     }
   }
 
@@ -259,5 +281,42 @@ export class HttpHeaders extends Headers {
     for (const [name, value] of iterateOver) {
       yield* doOne(name, value);
     }
+  }
+
+
+  //
+  // Static methods
+  //
+
+  /**
+   * Like {@link #get}, except will operate on either an instance of `Headers`
+   * (including this class) _or_ on a plain object. This is meant to make things
+   * easier during transition away from use of plain objects.
+   *
+   * @param {Headers|object} headers A `Headers`-ish thing to query.
+   * @param {string} name A header name.
+   * @returns {?string} The value of the header, or `null` if not found.
+   */
+  static get(headers, name) {
+    MustBe.string(name);
+
+    if (headers instanceof Headers) {
+      return headers.get(name);
+    } else if (headers[name] !== undefined) {
+      return headers[name];
+    }
+
+    // The hard part: The case of `name` and the keys of `headers` might not
+    // match, so we need to do a more manual search.
+
+    const lowerName = name.toLowerCase();
+
+    for (const [k, v] of Object.entries(headers)) {
+      if (k.toLowerCase() === lowerName) {
+        return v;
+      }
+    }
+
+    return null;
   }
 }

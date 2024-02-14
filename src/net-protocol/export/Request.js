@@ -6,7 +6,6 @@ import { ClientRequest, ServerResponse } from 'node:http';
 import * as http2 from 'node:http2';
 
 import express from 'express';
-import fresh from 'fresh';
 import rangeParser from 'range-parser';
 import statuses from 'statuses';
 
@@ -14,8 +13,8 @@ import { ManualPromise } from '@this/async';
 import { TreePathKey } from '@this/collections';
 import { Paths } from '@this/fs-util';
 import { FormatUtils, IntfLogger } from '@this/loggy';
-import { Cookies, HostInfo, HttpHeaders, HttpResponse, HttpUtil, MimeTypes }
-  from '@this/net-util';
+import { Cookies, HostInfo, HttpConditional, HttpHeaders, HttpResponse,
+  HttpUtil, MimeTypes } from '@this/net-util';
 import { AskIf, MustBe } from '@this/typey';
 
 import { WranglerContext } from '#x/WranglerContext';
@@ -120,9 +119,9 @@ export class Request {
   #parsedTargetObject = null;
 
   /**
-   * @type {Promise<boolean>} Promise which resolves to `true` when the response
-   * to this request is complete, or is rejected with whatever error caused it
-   * to fail.
+   * @type {ManualPromise<boolean>} Manual promise whose actual-promise resolves
+   * to `true` when the response to this request is complete, or is rejected
+   * with whatever error caused it to fail.
    */
   #responsePromise = new ManualPromise();
 
@@ -475,35 +474,6 @@ export class Request {
   }
 
   /**
-   * Checks to see if a response with the given headers would be considered
-   * "fresh" such that a not-modified (status `304`) response could be issued.
-   *
-   * A request is considered fresh if all of the following are true:
-   * * The request method is `HEAD` or `GET`.
-   * * The request doesn't ask for caching to be off.
-   * * The request has at least one condition which checks for freshness, and
-   *   all such conditions pass.
-   *
-   * This assumes that the response would have a sans-check status code that is
-   * acceptable for conversion to the not-modified status (`304`).
-   *
-   * **Note:** This is akin to Express's `request.fresh` getter.
-   *
-   * @param {HttpHeaders} responseHeaders Would-be response headers that could
-   *   possibly affect the freshness calculation.
-   * @returns {boolean} `true` iff the request is to be considered "fresh."
-   */
-  isFreshWithRespectTo(responseHeaders) {
-    const method = this.#requestMethod;
-
-    if ((method !== 'head') && (method !== 'get')) {
-      return false;
-    }
-
-    return fresh(this.headers, responseHeaders.extract('etag', 'last-modified'));
-  }
-
-  /**
    * Issues a successful response, with the given body contents or with an empty
    * body as appropriate. The actual reported status will be one of:
    *
@@ -556,9 +526,10 @@ export class Request {
     // such responses are cacheable, per spec.
     const headers = this.#makeResponseHeaders('cacheable', options);
 
-    if (this.isFreshWithRespectTo(headers)) {
-      // For basic range-support headers.
+    if (HttpConditional.isContentFresh(this.method, this.headers, headers)) {
+      // `rangeInfo()` is just to get basic range-support headers.
       headers.setAll(this.#rangeInfo().headers);
+      headers.deleteContent();
       return this.#writeCompleteResponse(304, headers);
     }
 
@@ -577,9 +548,6 @@ export class Request {
       };
       return this.sendMetaResponse(rangeInfo.status, errOptions);
     }
-
-    // Note: `#rangeInfo()` notices if this is a HEAD request, and returns a
-    // `bodyBuffer === null` if so.
 
     headers.setAll(rangeInfo.headers);
     return this.#writeCompleteResponse(rangeInfo.status, headers, rangeInfo.bodyBuffer);
@@ -623,13 +591,13 @@ export class Request {
     }
 
     const headers = this.#makeResponseHeaders('cacheable', options, {
-      'content-type':   contentType,
-      'last-modified':  HttpUtil.dateStringFromStatsMtime(stats)
+      'content-type': contentType
     });
 
-    if (this.isFreshWithRespectTo(headers)) {
-      // For basic range-support headers.
+    if (HttpConditional.isContentFresh(this.method, this.headers, headers, stats)) {
+      // `rangeInfo()` is just to get basic range-support headers.
       headers.setAll(this.#rangeInfo().headers);
+      headers.deleteContent();
       return this.#writeCompleteResponse(304, headers);
     }
 
@@ -654,9 +622,8 @@ export class Request {
     } else {
       const response = new HttpResponse();
 
-      response.requestMethod = this.method;
-      response.status        = rangeInfo.status;
-      response.headers       = headers;
+      response.status  = rangeInfo.status;
+      response.headers = headers;
 
       await response.setBodyFile(path, {
         stats,
@@ -680,8 +647,6 @@ export class Request {
    *
    * If the status code is allowed to be cached (per HTTP spec), the response
    * will always have a standard `Cache-Control` header.
-   *
-   * The response _never_ includes an `Etag` header.
    *
    * If a body is not supplied and _is_ appropriate to send, this method
    * constructs a `text/plain` body in a standard form which includes the
@@ -831,7 +796,7 @@ export class Request {
    * @throws {Error} Any error reported by the underlying response object.
    */
   async whenResponseDone() {
-    return this.#responsePromise;
+    return this.#responsePromise.promise;
   }
 
   /**
@@ -1037,10 +1002,8 @@ export class Request {
     }
 
     const { start, end } = ranges[0];
-    const finalLength = (end - start) + 1; // Note: `end` is inclusive.
-    const finalBuffer = (bodyBuffer && (this.#requestMethod !== 'head'))
-      ? bodyBuffer.subarray(start, end + 1)
-      : null;
+    const finalLength    = (end - start) + 1; // Note: `end` is inclusive.
+    const finalBuffer    = bodyBuffer?.subarray(start, end + 1) ?? null;
 
     return {
       status:     206,
@@ -1066,9 +1029,8 @@ export class Request {
   async #writeCompleteResponse(status, headers, body = null) {
     const response = new HttpResponse();
 
-    response.requestMethod = this.method;
-    response.status        = status;
-    response.headers       = headers;
+    response.status  = status;
+    response.headers = headers;
 
     if (body) {
       response.setBodyBuffer(body);

@@ -6,7 +6,7 @@ import fs from 'node:fs/promises';
 import { Paths, Statter } from '@this/fs-util';
 import { IntfLogger } from '@this/loggy';
 import { DispatchInfo } from '@this/net-protocol';
-import { EtagGenerator, HttpUtil, MimeTypes } from '@this/net-util';
+import { EtagGenerator, MimeTypes } from '@this/net-util';
 import { ApplicationConfig } from '@this/sys-config';
 import { BaseApplication } from '@this/sys-framework';
 
@@ -69,16 +69,12 @@ export class StaticFiles extends BaseApplication {
 
       return request.sendRedirect(redirectTo, { status: 301 });
     } else if (resolved.path) {
-      const options = {
-        ...StaticFiles.#SEND_OPTIONS,
-        headers: {
-          'last-modified': HttpUtil.dateStringFromMsec(resolved.stats.mtimeMs)
-        }
-      };
+      const options = { ...StaticFiles.#SEND_OPTIONS };
 
       if (this.#etagGenerator) {
-        options.headers['etag'] =
-          await this.#etagGenerator.etagFromFile(resolved.path);
+        options.headers = {
+          'etag': await this.#etagGenerator.etagFromFile(resolved.path)
+        };
       }
 
       return await request.sendFile(resolved.path, options);

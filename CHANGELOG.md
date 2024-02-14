@@ -12,6 +12,8 @@ Breaking changes:
   with a dot.
 
 Other notable changes:
+* New integration test setup, along with a handful of tests.
+* New class `HttpConditional` to take over from the old npm module `fresh`.
 * New class `HttpResponse` to encapsulate data required to make an HTTP(ish)
   response and to handle much of the mechanics of actually producing a response.
 * Rewrote `Request.sendFile()` to no longer use Express-specific functionality.

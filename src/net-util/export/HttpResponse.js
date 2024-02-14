@@ -4,6 +4,8 @@
 import fs from 'node:fs/promises';
 import http from 'node:http';
 
+import statuses from 'statuses';
+
 import { ManualPromise } from '@this/async';
 import { Paths, StatsBase } from '@this/fs-util';
 import { MustBe } from '@this/typey';
@@ -14,11 +16,16 @@ import { HttpUtil } from '#x/HttpUtil';
 /**
  * Responder to an HTTP request. This class holds all the information needed to
  * perform a response, along with the functionality to produce it.
+ *
+ * **Note:** This class is designed so that clients can ignore the special
+ * response behavior required by the `HEAD` request method. Specifically, even
+ * if the method is `HEAD`, this class expects clients to set a body when the
+ * result status calls for it, and this class takes care of (a) calculating
+ * `content-length` when appropriate, (b) _not_ wasting any effort on building
+ * up a response body that won't get sent, and (c) _not_ actually sending a
+ * response body.
  */
 export class HttpResponse {
-  /** @type {?string} The original request method, or `null` if not yet set. */
-  #requestMethod = null;
-
   /** @type {?number} The response status code, or `null` if not yet set. */
   #status = null;
 
@@ -53,21 +60,6 @@ export class HttpResponse {
    */
   set headers(headers) {
     this.#headers = MustBe.instanceOf(headers, HttpHeaders);
-  }
-
-  /**
-   * @returns {string} The original HTTP(ish) request's "method" (e.g. `get`
-   * or `post`).
-   */
-  get requestMethod() {
-    return this.#requestMethod;
-  }
-
-  /**
-   * @param {string} value The original request method.
-   */
-  set requestMethod(value) {
-    this.#requestMethod = MustBe.string(value, /^[a-z]{1,15}$/);
   }
 
   /**
@@ -109,9 +101,36 @@ export class HttpResponse {
   }
 
   /**
-   * Sets the response body to be based on a file. If the response length (e.g.
-   * the `length` if specified) is small enough, the response body is read from
-   * the file during this call.
+   * Sets the response body to be a diagnostic message of some sort. This is
+   * meant to be used for non-content responses (anything other than status
+   * `2xx` and _some_ `3xx`). If no `options` are given, a simple default
+   * message is produced based on the status code. In all cases, the response
+   * body is sent as content type `text/plain` with encoding `utf-8`.
+   *
+   * @param {?object} [options] Options to control the response body.
+   * @param {?string} [options.body] Complete body content to include.
+   * @param {?string} [options.bodyExtra] Extra body content to include, in
+   *   addition to the default body.
+   */
+  setBodyMessage(options = null) {
+    const { body = null, bodyExtra = null } = options ?? {};
+
+    if (body !== null) {
+      if (bodyExtra !== null) {
+        throw new Error('Cannot specify both `body` and `bodyExtra`.');
+      }
+      this.#body = { type: 'message', message: MustBe.string(body) };
+    } else if (bodyExtra !== null) {
+      this.#body = { type: 'message', messageExtra: MustBe.string(bodyExtra) };
+    }
+  }
+
+  /**
+   * Sets the response body to be based on a file.
+   *
+   * Unless directed not to (by an option), this method will cause a
+   * `last-modified` header to be added to the response, based on the stats of
+   * the given file.
    *
    * @param {string} absolutePath Absolute path to the file.
    * @param {?object} [options] Options.
@@ -121,10 +140,17 @@ export class HttpResponse {
    *   of what to actually send. Defaults to `0` (that is, the start).
    * @param {?number} [options.length] How many bytes to actually send, or
    *   `null` to indicate the maximum amount possible. Defaults to `null`.
+   * @param {?boolean} [options.lastModified] Whether to send a `last-modified`
+   *   header based on the file's stats. Defaults to `true`.
    */
   async setBodyFile(absolutePath, options = null) {
     Paths.checkAbsolutePath(absolutePath);
-    const { offset = null, length = null, stats: maybeStats = null } = options ?? {};
+    const {
+      offset = null,
+      length = null,
+      lastModified = true,
+      stats: maybeStats = null
+    } = options ?? {};
 
     const stats = await HttpResponse.#adjustStats(maybeStats, absolutePath);
 
@@ -132,19 +158,13 @@ export class HttpResponse {
     const finalOffset = HttpResponse.#adjustByteIndex(offset ?? 0, fileLength);
     const finalLength = HttpResponse.#adjustByteIndex(length, fileLength - finalOffset);
 
-    if (finalLength <= HttpResponse.#MAX_IMMEDIATE_READ_SIZE) {
-      const buffer =
-        await HttpResponse.#readFilePortion(absolutePath, finalOffset, finalLength);
-
-      this.#body = { type: 'buffer', buffer };
-    } else {
-      this.#body = {
-        type:   'file',
-        path:   absolutePath,
-        offset: finalOffset,
-        length: finalLength,
-      };
-    }
+    this.#body = {
+      type:   'file',
+      path:   absolutePath,
+      offset: finalOffset,
+      length: finalLength,
+      lastModified
+    };
   }
 
   /**
@@ -157,7 +177,6 @@ export class HttpResponse {
   /**
    * Validates this instance for completeness and correctness. This includes:
    *
-   * * Checking that {@link #requestMethod} is set.
    * * Checking that {@link #status} is set.
    * * Checking that one of the body-setup methods has been called (that is, one
    *   of {@link #setBodyBuffer}, {@link #setBodyFile}, or {@link #setNoBody}).
@@ -165,8 +184,6 @@ export class HttpResponse {
    * And, depending on the body:
    *
    * * If `body !== null`:
-   *   * Checking that request method was not `HEAD` if the the status is
-   *     successful (`2xx`).
    *   * Checking that `status` allows a body.
    *   * Checking that a `content-type` header is present.
    *   * Checking that a `content-length` header is _not_ present (because this
@@ -178,34 +195,64 @@ export class HttpResponse {
    * It is meant to catch the most common and blatant client problems.
    */
   validate() {
-    const { headers, requestMethod, status } = this;
-    const body = this.#body;
+    const { headers, status } = this;
+    const body                = this.#body;
 
-    if (requestMethod === null) {
-      throw new Error('`.requestMethod` not set.');
-    } else if (status === null) {
+    if (status === null) {
       throw new Error('`.status` not set.');
     } else if (body === null) {
       throw new Error('Body (or lack thereof) not defined.');
     }
 
-    if (body.type === 'none') {
-      if (HttpUtil.responseBodyIsRequiredFor(requestMethod, status)) {
-        throw new Error(`Non-body response is incompatible with method \`${requestMethod}\` and status ${status}.`);
+    // Why `get` as the method for the tests below? Because this class wants all
+    // data-bearing statuses to actually have data, even if it turns out to be
+    // a `head` request. See the header comment for details.
+
+    switch (body.type) {
+      case 'none': {
+        if (HttpUtil.responseBodyIsRequiredFor('get', status)) {
+          throw new Error(`Non-body response is incompatible with status ${status}.`);
+        }
+
+        for (const h of HttpResponse.#CONTENT_HEADERS) {
+          if (headers.get(h)) {
+            throw new Error(`Non-body response cannot use header \`${h}\`.`);
+          }
+        }
+
+        break;
       }
 
-      for (const h of HttpResponse.#CONTENT_HEADERS) {
-        if (headers.get(h)) {
-          throw new Error(`Non-body response cannot use header \`${h}\`.`);
+      case 'buffer':
+      case 'file': {
+        if (!HttpUtil.responseBodyIsAllowedFor('get', status)) {
+          throw new Error(`Body-bearing response is incompatible with status ${status}.`);
+        } else if (headers.get('content-length')) {
+          throw new Error('Body-bearing response must not have `content-length` header pre-set.');
+        } else if (!headers.get('content-type')) {
+          throw new Error('Body-bearing response must have `content-type` header pre-set.');
         }
+
+        if (body.lastModified && headers.get('last-modified')) {
+          throw new Error('Must not use automatic `lastModified` with `last-modified` header pre-set.');
+        }
+
+        break;
       }
-    } else {
-      if (!HttpUtil.responseBodyIsAllowedFor(requestMethod, status)) {
-        throw new Error(`Body-bearing response is incompatible with method \`${requestMethod}\` and status ${status}.`);
-      } else if (headers.get('content-length')) {
-        throw new Error('Body-bearing response must not have `content-length` header pre-set.');
-      } else if (!headers.get('content-type')) {
-        throw new Error('Body-bearing response must have `content-type` header pre-set.');
+
+      case 'message': {
+        for (const h of HttpResponse.#CONTENT_HEADERS) {
+          if (headers.get(h)) {
+            throw new Error(`Message response cannot use header \`${h}\`.`);
+          }
+        }
+
+        break;
+      }
+
+      default: {
+        // Indicates a bug in this class.
+        throw new Error('Shouldn\'t happen.');
       }
     }
   }
@@ -214,6 +261,11 @@ export class HttpResponse {
    * Sends this instance as a response to the request linked to the given core
    * {@link http.HttpResponse} object (or similar).
    *
+   * **Note:** This method takes into account if the given response corresponds
+   * to a `HEAD` request, in which case it won't bother trying to send any body
+   * data for a successful response (status `2xx` or `3xx`), even if this
+   * instance has a body set.
+   *
    * @param {http.HttpResponse} res The response object to invoke.
    * @returns {boolean} `true` when the response is completed.
    */
@@ -221,7 +273,11 @@ export class HttpResponse {
     this.validate();
 
     const { headers, status } = this;
-    const body = this.#body;
+    const { type: bodyType }  = this.#body;
+    const requestMethod       = res.method; // Note: This is in all-caps.
+
+    const shouldSendBody = (bodyType !== 'none')
+      && HttpUtil.responseBodyIsAllowedFor(requestMethod, status);
 
     res.status(status);
 
@@ -245,19 +301,22 @@ export class HttpResponse {
     // Note: At this point, all headers have been set on `res` _except_
     // `content-length` (which is always set per body type as necessary).
 
-    switch (body.type) {
+    switch (bodyType) {
       case 'buffer': {
-        return await this.#writeBodyBuffer(res);
+        return await this.#writeBodyBuffer(res, shouldSendBody);
       }
       case 'file':  {
-        return await this.#writeBodyFile(res);
+        return await this.#writeBodyFile(res, shouldSendBody);
+      }
+      case 'message': {
+        return await this.#writeBodyMessage(res, shouldSendBody);
       }
       case 'none': {
         return await this.#writeNoBody(res);
       }
       default: {
         // If we get here, it indicates a bug in this class.
-        throw new Error(`Shouldn't happen: Weird body type: ${body.type}.`);
+        throw new Error(`Shouldn't happen: Weird body type: ${bodyType}.`);
       }
     }
   }
@@ -266,14 +325,20 @@ export class HttpResponse {
    * Writes the body from a buffer, and ends the response.
    *
    * @param {http.HttpResponse} res The response object to use.
+   * @param {boolean} shouldSendBody Should the body actually be sent?
    * @returns {boolean} `true` when closed without error.
    * @throws {Error} Any error reported by `res`.
    */
-  async #writeBodyBuffer(res) {
+  async #writeBodyBuffer(res, shouldSendBody) {
     const buffer = this.#body.buffer;
 
     res.setHeader('Content-Length', buffer.length);
-    res.end(buffer);
+
+    if (shouldSendBody) {
+      res.end(buffer);
+    } else {
+      res.end();
+    }
 
     return HttpResponse.#whenResponseDone(res);
   }
@@ -282,16 +347,29 @@ export class HttpResponse {
    * Writes the body from a file, and ends the response.
    *
    * @param {http.HttpResponse} res The response object to use.
+   * @param {boolean} shouldSendBody Should the body actually be sent?
    * @returns {boolean} `true` when closed without error.
    * @throws {Error} Any error reported by `res`.
    */
-  async #writeBodyFile(res) {
+  async #writeBodyFile(res, shouldSendBody) {
     const CHUNK_SIZE = HttpResponse.#READ_CHUNK_SIZE;
-    const { path, offset, length } = this.#body;
+    const { path, offset, length, lastModified } = this.#body;
 
     res.setHeader('Content-Length', length);
 
+    if (lastModified) {
+      const stats = await fs.stat(path, { bigint: true });
+      res.setHeader('Last-Modified', HttpUtil.dateStringFromStatsMtime(stats));
+    }
+
+    if (!shouldSendBody) {
+      res.end();
+      return HttpResponse.#whenResponseDone(res);
+    }
+
     if (length <= CHUNK_SIZE) {
+      // It's a small enough length that we just send the response with a single
+      // `write()`.
       const buffer =
         await HttpResponse.#readFilePortion(path, offset, length);
       res.end(buffer);
@@ -331,6 +409,54 @@ export class HttpResponse {
   }
 
   /**
+   * Writes the body for a diagnostic message, and ends the response.
+   *
+   * @param {http.HttpResponse} res The response object to use.
+   * @param {boolean} shouldSendBody Should the body actually be sent?
+   * @returns {boolean} `true` when closed without error.
+   * @throws {Error} Any error reported by `res`.
+   */
+  async #writeBodyMessage(res, shouldSendBody) {
+    const { message, messageExtra } = this.#body;
+
+    if (!shouldSendBody) {
+      // Note: Because message response content isn't ever supposed to get
+      // cached, it's okay _not_ to build a body _just_ to figure out its
+      // `content-length` header value (and then not send the body). So we don't
+      // do that here.
+      res.end();
+      return HttpResponse.#whenResponseDone(res);
+    }
+
+    let body;
+
+    if (message) {
+      body = message.endsWith('\n')
+        ? message
+        : `message\n`;
+    } else {
+      const { status } = this;
+      const statusStr  = statuses(status);
+      const bodyHeader = `${status} ${statusStr}`;
+
+      if (((messageExtra ?? '') === '') || (messageExtra === statusStr)) {
+        body = `${bodyHeader}\n`;
+      } else {
+        const finalNl = (messageExtra.endsWith('\n')) ? '' : '\n';
+        body = `${bodyHeader}:\n\n${messageExtra}${finalNl}`;
+      }
+    }
+
+    const bodyBuffer = Buffer.from(body, 'utf-8');
+
+    res.setHeader('Content-Type',   'text/plain; charset=utf-8');
+    res.setHeader('Content-length', bodyBuffer.length);
+    res.end(bodyBuffer);
+
+    return HttpResponse.#whenResponseDone(res);
+  }
+
+  /**
    * Ends a response without writing a body.
    *
    * @param {http.HttpResponse} res The response object to use.
@@ -361,12 +487,6 @@ export class HttpResponse {
     'content-security-policy-report-only',
     'content-type'
   ]);
-
-  /**
-   * @type {number} Maximum size of a response body to immediately read from a
-   * file and keep in an instance.
-   */
-  static #MAX_IMMEDIATE_READ_SIZE = 16 * 1024; // 16k
 
   /**
    * @type {number} Chunk size to use when reading a file and writing it as a
