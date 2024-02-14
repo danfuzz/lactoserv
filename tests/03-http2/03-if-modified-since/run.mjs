@@ -6,10 +6,11 @@ import { checkResponse } from '@this/integration-testing';
 const theUrl = 'https://localhost:8443/';
 
 // First, get the response without a conditional check, and note the
-// last-modfied date.
+// last-modfied date and body.
 
 const response1 = await fetch(theUrl);
 const lastMod   = new Date(Date.parse(response1.headers.get('last-modified')));
+const bodyText  = await response1.text();
 
 
 // Try to get a match.
@@ -69,9 +70,9 @@ await checkResponse(response3, {
   }
 });
 
-// Try to get a miss.
+// Try to get a miss, by virtue of passing a too-early date.
 
-console.log('\n## Miss\n');
+console.log('\n## Miss 1\n');
 
 const earlierDate = new Date(lastMod);
 earlierDate.setSeconds(-1);
@@ -98,5 +99,35 @@ await checkResponse(response4, {
     'etag':           /^"[-0-9a-zA-Z]+"$/,
     'server':         /./
   },
-  body: await response1.text()
+  body: bodyText
+});
+
+// Try to get a miss, by virtue of using `no-cache`, even though the date
+// would qualify.
+
+console.log('\n## Miss 2\n');
+
+const response5 = await fetch(theUrl,
+  {
+    headers: {
+      'cache-control': 'no-cache',
+      'if-modified-since': lastMod.toUTCString()
+    }
+  });
+
+await checkResponse(response5, {
+  status: 200,
+  statusText: 'OK',
+  headers: {
+    'accept-ranges':  'bytes',
+    'cache-control':  /./,
+    'connection':     /./,
+    'content-length': response1.headers.get('content-length'),
+    'content-type':   response1.headers.get('content-type'),
+    'date':           /./,
+    'last-modified':  response1.headers.get('last-modified'),
+    'etag':           /^"[-0-9a-zA-Z]+"$/,
+    'server':         /./
+  },
+  body: bodyText
 });
