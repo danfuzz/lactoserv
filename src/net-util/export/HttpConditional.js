@@ -104,9 +104,9 @@ export class HttpConditional {
         return false;
       }
 
-      const lastModified = this.#msecTimeFrom(requestHeaders, stats);
+      const lastModified = this.#msecTimeFrom(responseHeaders, stats);
 
-      if (!lastModified || isNaN(lastModified)) {
+      if (!lastModified) {
         return false;
       }
 
