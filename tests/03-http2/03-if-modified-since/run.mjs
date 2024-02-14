@@ -74,13 +74,13 @@ console.log('\n## Miss\n');
 // Try to get a miss.
 
 const earlierDate = new Date(lastMod);
-laterDate.setSeconds(-1);
+earlierDate.setSeconds(-1);
 
 const response4 = await fetch(theUrl,
   {
     headers: {
       'cache-control': 'max-age=0',
-      'if-modified-since': laterDate.toUTCString()
+      'if-modified-since': earlierDate.toUTCString()
     }
   });
 
