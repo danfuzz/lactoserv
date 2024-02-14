@@ -1,6 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { MustBe } from '@this/typey';
+
 import { Cookies } from '#x/Cookies';
 import { HttpUtil } from '#x/HttpUtil';
 
@@ -296,6 +298,8 @@ export class HttpHeaders extends Headers {
    * @returns {?string} The value of the header, or `null` if not found.
    */
   static get(headers, name) {
+    MustBe.string(name);
+
     if (headers instanceof Headers) {
       return headers.get(name);
     } else if (headers[name] !== undefined) {
