@@ -120,9 +120,9 @@ export class Request {
   #parsedTargetObject = null;
 
   /**
-   * @type {Promise<boolean>} Promise which resolves to `true` when the response
-   * to this request is complete, or is rejected with whatever error caused it
-   * to fail.
+   * @type {ManualPromise<boolean>} Manual promise whose actual-promise resolves
+   * to `true` when the response to this request is complete, or is rejected
+   * with whatever error caused it to fail.
    */
   #responsePromise = new ManualPromise();
 
