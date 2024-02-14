@@ -12,6 +12,8 @@ const etag      = response1.headers.get('etag');
 
 // Try to get a match.
 
+console.log('## Match 1\n');
+
 const response2 = await fetch(theUrl,
   {
     // Note: Node's `fetch()` puts in a conditional-busting `cache-control:
@@ -21,8 +23,6 @@ const response2 = await fetch(theUrl,
       'if-none-match': etag
     }
   });
-
-console.log('## Match 1\n');
 
 await checkResponse(response2, {
   status: 304,
@@ -37,9 +37,9 @@ await checkResponse(response2, {
   }
 });
 
-console.log('\n## Match 2\n');
-
 // Try to get a match with one of N etags.
+
+console.log('\n## Match 2\n');
 
 const response3 = await fetch(theUrl,
   {
