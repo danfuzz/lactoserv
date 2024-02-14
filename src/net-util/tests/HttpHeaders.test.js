@@ -323,6 +323,35 @@ describe('extract()', () => {
   });
 });
 
+describe('deleteContent()', () => {
+  test('deletes all `content-*` headers', () => {
+    const hh = new HttpHeaders({
+      'a': 'aa',
+      'content-type': 'florp',
+      'content-length': 'floop',
+      'content-zorch': 'flongle',
+      'z': 'zz'
+    });
+
+    hh.deleteContent();
+    expect(hh.get('content-type')).toBeNull();
+    expect(hh.get('content-length')).toBeNull();
+    expect(hh.get('content-zorch')).toBeNull();
+  });
+
+  test('does not delete non-`content-*` headers', () => {
+    const hh = new HttpHeaders({
+      'a': 'aa',
+      'content-type': 'florp',
+      'z': 'zz'
+    });
+
+    hh.deleteContent();
+    expect(hh.get('a')).toBe('aa');
+    expect(hh.get('z')).toBe('zz');
+  });
+});
+
 describe.each`
 methodName
 ${'hasAll'}

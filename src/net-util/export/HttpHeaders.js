@@ -69,6 +69,26 @@ export class HttpHeaders extends Headers {
   }
 
   /**
+   * Deletes all content-related headers. These are (unsurprisingly) the ones
+   * whose names begin with `content-`.
+   */
+  deleteContent() {
+    // Note: Can't safely delete in the middle of an iteration. Arguably a bug
+    // in `Headers`.
+    const toDelete = [];
+
+    for (const [name] of this) {
+      if (name.startsWith('content-')) {
+        toDelete.push(name);
+      }
+    }
+
+    for (const name of toDelete) {
+      this.delete(name);
+    }
+  }
+
+  /**
    * Like the default `entries()` method, except alters names to be cased
    * appropriately for the indicated HTTP version. In addition, most values
    * returned are strings, but `Set-Cookie` values are always arrays of strings.
