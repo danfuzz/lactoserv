@@ -241,6 +241,10 @@ export class HttpResponse {
       }
 
       case 'message': {
+        if (HttpUtil.responseBodyIsApplicationContentFor(status)) {
+          throw new Error(`Message response is inappropriate with status ${status}.`);
+        }
+
         for (const h of HttpResponse.#CONTENT_HEADERS) {
           if (headers.get(h)) {
             throw new Error(`Message response cannot use header \`${h}\`.`);
