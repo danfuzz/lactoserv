@@ -280,4 +280,39 @@ export class HttpHeaders extends Headers {
       yield* doOne(name, value);
     }
   }
+
+
+  //
+  // Static methods
+  //
+
+  /**
+   * Like {@link #get}, except will operate on either an instance of `Headers`
+   * (including this class) _or_ on a plain object. This is meant to make things
+   * easier during transition away from use of plain objects.
+   *
+   * @param {Headers|object} headers A `Headers`-ish thing to query.
+   * @param {string} name A header name.
+   * @returns {?string} The value of the header, or `null` if not found.
+   */
+  static get(headers, name) {
+    if (headers instanceof Headers) {
+      return headers.get(name);
+    } else if (headers[name] !== undefined) {
+      return headers[name];
+    }
+
+    // The hard part: The case of `name` and the keys of `headers` might not
+    // match, so we need to do a more manual search.
+
+    const lowerName = name.toLowercase();
+
+    for (const [k, v] of Object.entries(headers)) {
+      if (k.toLowercase() === lowerName) {
+        return v;
+      }
+    }
+
+    return null;
+  }
 }

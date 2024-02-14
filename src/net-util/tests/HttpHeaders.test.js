@@ -493,3 +493,7 @@ describe('setAll()', () => {
     ]);
   });
 });
+
+describe('static get()', () => {
+  // TODO
+});
