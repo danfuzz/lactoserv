@@ -1061,16 +1061,13 @@ export class Request {
   }
 
   /**
-   * Helper for constructing a response body, used by both content and meta
-   * (non-content) code paths. This is only appropriate to call in cases where a
-   * body really will be returned with a response (so, e.g., _not_ when
-   * responding to a `HEAD` request).
+   * Helper for constructing a contentful response body. This is only
+   * appropriate to call in cases where a body really will be returned with a
+   * response (so, e.g., _not_ with a `204` status).
    *
    * @param {object} options Options for body generation.
-   * @param {Buffer|string|null} options.body Body to send. Required for
-   *   non-meta responses.
+   * @param {Buffer|string|null} options.body Body to send.
    * @param {string} options.contentType Content type.
-   * @param {?number} options.status Status code. Required for meta responses.
    * @returns {{ bodyBuffer: Buffer, bodyHeaders: HttpHeaders }} The details
    *   needed for the ultimate response.
    */
