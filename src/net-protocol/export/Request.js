@@ -1157,7 +1157,7 @@ export class Request {
       throw new Error('`body` must be a string, a `Buffer`, or `null`.');
     }
 
-    contentType = MimeTypes.typeFromExtensionOrType(contentType);
+    contentType = MimeTypes.typeFromExtensionOrType(contentType, { charSet: 'utf-8' });
     if (stringBody || /^text[/]/.test(contentType)) {
       contentType = `${contentType}; charset=utf-8`;
     }
