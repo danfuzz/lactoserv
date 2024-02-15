@@ -691,7 +691,11 @@ export class Request {
     response.status  = status;
     response.headers = this.#makeResponseHeaders(status, options);
 
-    response.setBodyMessage(options);
+    if (options.body || options.bodyExtra) {
+      response.setBodyMessage(options);
+    } else {
+      response.setNoBody();
+    }
 
     return this.respond(response);
   }
