@@ -673,31 +673,17 @@ export class Request {
    */
   async sendMetaResponse(status, options = {}) {
     MustBe.number(status, { safeInteger: true, minInclusive: 100, maxInclusive: 599 });
-    const method = this.#requestMethod;
 
-    // Why `get` in this test? Because that one's permissive, and we don't want
-    // to throw unless a body is disallowed for any method. But then below, we
-    // figure out whether to _actually_ send a body based on the real method.
-    if (HttpUtil.responseBodyIsApplicationContentFor(status)
-      || !HttpUtil.responseBodyIsAllowedFor('get', status)) {
-      throw new Error(`Cannot call with status code: ${status}`);
-    }
+    const response = new HttpResponse();
 
-    const headers = this.#makeResponseHeaders(status, options);
+    response.status  = status;
+    response.headers = this.#makeResponseHeaders(status, options);
 
-    if (!HttpUtil.responseBodyIsAllowedFor(method, status)) {
-      // It's probably a HEAD request for something like a redirect.
-      return this.#writeCompleteResponse(status, headers);
-    } else {
-      const { bodyBuffer, bodyHeaders } = Request.#makeBody({
-        ...options,
-        isMetaResponse: true,
-        status
-      });
+    response.setBodyMessage(options);
 
-      headers.setAll(bodyHeaders);
-      return this.#writeCompleteResponse(status, headers, bodyBuffer);
-    }
+    const result = response.writeTo(this.#expressResponse);
+    this.#responsePromise.resolve(result);
+    return result;
   }
 
   /**
