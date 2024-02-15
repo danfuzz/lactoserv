@@ -437,7 +437,12 @@ export class HttpResponse {
    * @throws {Error} Any error reported by `res`.
    */
   async #writeBodyMessage(res, shouldSendBody) {
-    const { message, messageBuffer, messageExtra } = this.#body;
+    const {
+      contentType: bufferContentType,
+      message,
+      messageBuffer,
+      messageExtra
+    } = this.#body;
 
     if (!shouldSendBody) {
       // Note: Because message response content isn't ever supposed to get
@@ -449,14 +454,16 @@ export class HttpResponse {
     }
 
     let body;
-    let bodyBuffer = null;
+    let bodyBuffer  = null;
+    let contentType = 'text/plain; charset=utf-8';
 
     if (message) {
       body = message.endsWith('\n')
         ? message
         : `message\n`;
     } else if (messageBuffer) {
-      bodyBuffer = messageBuffer;
+      bodyBuffer  = messageBuffer;
+      contentType = bufferContentType;
     } else {
       const { status } = this;
       const statusStr  = statuses(status);
@@ -472,7 +479,7 @@ export class HttpResponse {
 
     bodyBuffer ??= Buffer.from(body, 'utf-8');
 
-    res.setHeader('Content-Type',   'text/plain; charset=utf-8');
+    res.setHeader('Content-Type',   contentType);
     res.setHeader('Content-length', bodyBuffer.length);
     res.end(bodyBuffer);
 
