@@ -596,7 +596,7 @@ export class HttpResponse {
   static #READ_CHUNK_SIZE = 64 * 1024; // 64k
 
   /**
-   * @type {Symbol} Key to use on response objects to hold a result from
+   * @type {symbol} Key to use on response objects to hold a result from
    * {@link #whenResponseDone}. See comment at use site for more explanation.
    */
   static #RESPONSE_DONE_SYMBOL = Symbol('HttpResponseDone');
