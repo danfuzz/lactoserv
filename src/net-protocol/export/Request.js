@@ -763,27 +763,6 @@ export class Request {
   }
 
   /**
-   * Issues a redirect response targeted at the original request's referrer. If
-   * there was no referrer, this redirects to `/`.
-   *
-   * Calling this method results in this request being considered complete, and
-   * as such no additional response-related methods will work.
-   *
-   * @param {?object} [options] Options to control response behavior. See class
-   *   header comment for more details.
-   * @param {?number} [options.status] The status code to report. Defaults to
-   *   `302` ("Found").
-   * @returns {boolean} `true` when the response is completed.
-   */
-  async sendRedirectBack(options = null) {
-    // Note: Express lets you ask for `referrer` (spelled properly), but the
-    // actual header that's supposed to be sent is `referer` (which is of course
-    // misspelled).
-    const target = this.getHeaderOrNull('referer') ?? '/';
-    return this.sendRedirect(target, options);
-  }
-
-  /**
    * Returns when the underlying response has been closed successfully (after
    * all of the response is believed to be sent) or has errored. Returns `true`
    * for a normal close, or throws whatever error the response reports.
