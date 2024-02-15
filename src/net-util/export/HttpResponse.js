@@ -238,7 +238,8 @@ export class HttpResponse {
    * And, depending on the body:
    *
    * * If there is no body:
-   *   * Checking that no content-related headers are present.
+   *   * Checking that no content-related headers are present. One exception:
+   *     Status `416` ("Range Not Satisfiable") allows `content-range`.
    * * If there is a content body:
    *   * Checking that `status` allows a body.
    *   * Checking that a `content-type` header is present _or_ {@link
@@ -275,8 +276,10 @@ export class HttpResponse {
           throw new Error(`Non-body response is incompatible with status ${status}.`);
         }
 
+        const headerExceptions = HttpResponse.#CONTENT_HEADER_EXCEPTIONS[status];
+
         for (const h of HttpResponse.#CONTENT_HEADERS) {
-          if (headers.get(h)) {
+          if (!headerExceptions?.has(h) && headers.get(h)) {
             throw new Error(`Non-body response cannot use header \`${h}\`.`);
           }
         }
@@ -565,8 +568,8 @@ export class HttpResponse {
   //
 
   /**
-   * @type {Array<string>} Array of header names associated with non-empty
-   * bodies.
+   * @type {Array<string>} Array of header names associated with content (that
+   * is, non-empty bodies that represent high-level application content).
    */
   static #CONTENT_HEADERS = Object.freeze([
     'content-encoding',
@@ -578,6 +581,13 @@ export class HttpResponse {
     'content-security-policy-report-only',
     'content-type'
   ]);
+
+  /**
+   * @type {...} Excpetions to restrictions of {@link #CONTENT_HEADERS}.
+   */
+  static #CONTENT_HEADER_EXCEPTIONS = Object.freeze({
+    416: new Set(['content-range'])
+  });
 
   /**
    * @type {number} Chunk size to use when reading a file and writing it as a
