@@ -4,6 +4,50 @@
 import { MimeTypes } from '@this/net-util';
 
 
+describe('charSetFromType()', () => {
+  // Failure cases: Wrong argument type.
+  test.each`
+  arg
+  ${null}
+  ${undefined}
+  ${false}
+  ${123}
+  ${['.x']}
+  ${{ a: 10 }}
+  ${new Map()}
+  `('throws given $arg', ({ arg }) => {
+    expect(() => MimeTypes.charSetFromType(arg)).toThrow();
+  });
+
+  test.each`
+  arg                                        | expected
+  ${''}                                      | ${null}
+  ${'text/plain'}                            | ${null}
+  ${'text/plain; charset=abc'}               | ${'abc'}
+  ${'text/plain;charset=abc'}                | ${'abc'}
+  ${'application/json; charset=abc-123-xyz'} | ${'abc-123-xyz'}
+  ${'x/y'}                                   | ${null}
+  ${'x/y; a=z'}                              | ${null}
+  ${'x/y; charset=z9z'}                      | ${'z9z'}
+  ${'x/y; charset=z9z; b=c'}                 | ${'z9z'}
+  ${'x/y; charset=z9z ; b=c'}                | ${'z9z'}
+  ${'x/y; charset=z9z ;b=c'}                 | ${'z9z'}
+  ${'x/y; b=c; charset=z9z'}                 | ${'z9z'}
+  ${'x/y; b=c; charset=z9z; d=e'}            | ${'z9z'}
+  ${'x/y; xcharset=z'}                       | ${null}
+  ${'x/y; charset=boop; xcharset=z'}         | ${'boop'}
+  ${'x/y; charsetx=z'}                       | ${null}
+  ${'x/y; charsetx=z; charset=beep'}         | ${'beep'}
+  ${'w/eird; charset=-~_\'`!#$%&+^{}'}       | ${'-~_\'`!#$%&+^{}'} // All the allowed special chars.
+  ${'w/eird; charset=x@y'}                   | ${null} // Disallowed special char.
+  ${'w/eird; charset="xy"'}                  | ${null} // Ditto.
+  ${'w/eird; charset=(xy)'}                  | ${null} // Ditto.
+  ${'w/eird; charset=[xy]'}                  | ${null} // Ditto.
+  `('returns `$expected` given `$arg`', ({ arg, expected }) => {
+    expect(MimeTypes.charSetFromType(arg)).toBe(expected);
+  });
+});
+
 describe('typeFromPathExtension()', () => {
   // Failure cases: Wrong argument type.
   test.each`
