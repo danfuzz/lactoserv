@@ -16,7 +16,10 @@ import { MimeTypes } from '#x/MimeTypes';
 
 /**
  * Responder to an HTTP request. This class holds all the information needed to
- * perform a response, along with the functionality to produce it.
+ * perform a response, along with the functionality to produce it. This class is
+ * mostly in the "mechanism not policy" camp, except that (a) it _does_ enforce
+ * consistency / unambiguity of use, and (b) it refuses to send responses that
+ * are (reasonably believed to be) contrary to the HTTP (etc.) specification.
  *
  * **Note:** This class is designed so that clients can ignore the special
  * response behavior required by the `HEAD` request method. Specifically, even
