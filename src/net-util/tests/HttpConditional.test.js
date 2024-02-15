@@ -6,7 +6,12 @@ import fs from 'node:fs/promises';
 import { HttpConditional, HttpHeaders } from '@this/net-util';
 
 
-describe('isContentFresh()', () => {
+// Common tests for argument type errors and basic argument acceptance.
+describe.each`
+methodName
+${'isContentFresh'}
+${'isRangeFresh'}
+`('$methodName()', ({ methodName }) => {
   // Convenient stats objects.
   let statsNum;
   let statsBig;
@@ -16,35 +21,48 @@ describe('isContentFresh()', () => {
     statsBig = await fs.stat('/', { bigint: true });
   });
 
+  const doCall = (...args) => HttpConditional[methodName](...args);
+
   test('rejects non-string `requestMethod`', () => {
-    expect(() => HttpConditional.isContentFresh(123, new HttpHeaders(), new HttpHeaders(), statsNum)).toThrow();
+    expect(() => doCall(123, new HttpHeaders(), new HttpHeaders(), statsNum)).toThrow();
   });
 
   // TODO: Check `requestHeaders` once its type has been tightened.
 
   test('accepts `responseHeaders === null`', () => {
-    expect(() => HttpConditional.isContentFresh('x', new HttpHeaders(), null, statsNum)).not.toThrow();
+    expect(() => doCall('x', new HttpHeaders(), null, statsNum)).not.toThrow();
   });
 
   test('rejects incorrect `responseHeaders`', () => {
-    expect(() => HttpConditional.isContentFresh('x', new HttpHeaders(), 1234, statsNum)).toThrow();
-    expect(() => HttpConditional.isContentFresh('x', new HttpHeaders(), new Headers(), statsNum)).toThrow();
+    expect(() => doCall('x', new HttpHeaders(), 1234, statsNum)).toThrow();
+    expect(() => doCall('x', new HttpHeaders(), new Headers(), statsNum)).toThrow();
   });
 
   test('rejects incorrect `stats`', () => {
-    expect(() => HttpConditional.isContentFresh('x', new HttpHeaders(), new HttpHeaders(), 123)).toThrow();
+    expect(() => doCall('x', new HttpHeaders(), new HttpHeaders(), 123)).toThrow();
   });
 
   test('accepts `stats === null`', () => {
-    expect(() => HttpConditional.isContentFresh('x', new HttpHeaders(), new HttpHeaders(), null)).not.toThrow();
+    expect(() => doCall('x', new HttpHeaders(), new HttpHeaders(), null)).not.toThrow();
   });
 
   test('accepts old-style `stats`', () => {
-    expect(() => HttpConditional.isContentFresh('x', new HttpHeaders(), new HttpHeaders(), statsNum)).not.toThrow();
+    expect(() => doCall('x', new HttpHeaders(), new HttpHeaders(), statsNum)).not.toThrow();
   });
 
   test('accepts bigint `stats`', () => {
-    expect(() => HttpConditional.isContentFresh('x', new HttpHeaders(), new HttpHeaders(), statsBig)).not.toThrow();
+    expect(() => doCall('x', new HttpHeaders(), new HttpHeaders(), statsBig)).not.toThrow();
+  });
+});
+
+describe('isContentFresh()', () => {
+  // Convenient stats objects.
+  let statsNum;
+  let statsBig;
+
+  beforeAll(async () => {
+    statsNum = await fs.stat('/');
+    statsBig = await fs.stat('/', { bigint: true });
   });
 
   test.each`
