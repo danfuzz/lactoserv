@@ -12,6 +12,7 @@ import { MustBe } from '@this/typey';
 
 import { HttpHeaders } from '#x/HttpHeaders';
 import { HttpUtil } from '#x/HttpUtil';
+import { MimeTypes } from '#x/MimeTypes';
 
 /**
  * Responder to an HTTP request. This class holds all the information needed to
@@ -179,6 +180,37 @@ export class HttpResponse {
       length: finalLength,
       lastModified
     };
+  }
+
+  /**
+   * Sets the response body to be based on a string. The MIME content type must
+   * be specified. If the content type includes a `charset`, it must be valid
+   * and usable by Node to encode the string. If the content type _does not_
+   * include a `charset`, then `utf-8` will be used (which will also be reported
+   * on the ultimate response).
+   *
+   * @param {string} body The full body.
+   * @param {string} contentType The MIME content type, or file extension to
+   *   derive it from (see {@link MimeTypes#typeFromExtensionOrType}).
+   */
+  setBodyString(body, contentType) {
+    MustBe.string(body);
+
+    contentType =
+      MimeTypes.typeFromExtensionOrType(contentType, { charSet: 'utf-8', isText: true });
+
+    const charSet = MimeTypes.charSetFromType(contentType);
+
+    if (charSet === 'utf8') {
+      // This is the one incorrect value that Node accepts and which we also
+      // really care about complaining about. (This project prefers enforcing
+      // caller consistency over creeping DWIM-isms.)
+      throw new Error('The IETF says that the UTF-8 encoding is called `utf-8`.');
+    }
+
+    const buffer = Buffer.from(body, charSet);
+
+    this.#body = { type: 'buffer', buffer };
   }
 
   /**
