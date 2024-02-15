@@ -165,7 +165,7 @@ export class HttpConditional {
     switch (requestMethod) {
       case 'get': case 'head':
       case 'GET': case 'HEAD': {
-        // Possibly fresh.
+        // Possibly applicable.
         break;
       }
       default: {
@@ -176,14 +176,14 @@ export class HttpConditional {
     const ifRange = HttpHeaders.get(requestHeaders, 'if-range');
 
     if (!ifRange) {
-      // This isn't a conditional range request, so it is de facto "fresh."
+      // This isn't a conditional range request, so it is de facto applicable.
       return true;
     }
 
     if (ifRange.startsWith('"')) {
-      // It's an etag conditional. Note: It is invalid per spec to use a weak
-      // etag (form `W/"..."`) in this case, so we don't recognize that form in
-      // the `if` above.
+      // It's an etag condition. Note: It is invalid per spec to use a weak etag
+      // (form `W/"..."`) in this case, so we don't recognize them in the `if`
+      // above.
       const responseEtag = responseHeaders?.get('etag') ?? null;
 
       if (!responseEtag || (responseEtag === '')) {
@@ -192,9 +192,7 @@ export class HttpConditional {
 
       return (ifRange === responseEtag);
     } else {
-      // Try to parse it as a date. If it can be parsed, this is a date
-      // conditional which is asking the same question as an
-      // `if-unmodified-since` header would.
+      // Try to parse it as a date.
       const ifUnmodifiedSince = HttpUtil.msecFromDateString(ifRange);
 
       if (!ifUnmodifiedSince) {
