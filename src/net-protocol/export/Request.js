@@ -7,7 +7,6 @@ import * as http2 from 'node:http2';
 
 import express from 'express';
 import rangeParser from 'range-parser';
-import statuses from 'statuses';
 
 import { ManualPromise } from '@this/async';
 import { TreePathKey } from '@this/collections';
@@ -518,8 +517,7 @@ export class Request {
     const { bodyBuffer, bodyHeaders } = Request.#makeBody({
       ...options,
       body,
-      contentType,
-      isMetaResponse: false // So a client can't confuse `makeBody()`.
+      contentType
     });
 
     // Start with the headers that will be used for any non-error response. All
@@ -1071,82 +1069,39 @@ export class Request {
    * @param {object} options Options for body generation.
    * @param {Buffer|string|null} options.body Body to send. Required for
    *   non-meta responses.
-   * @param {?string} options.bodyExtra For meta responses with no `body`, extra
-   *   detail to append to the default body.
    * @param {string} options.contentType Content type.
-   * @param {?boolean} options.isMetaResponse Is this a meta (non-content)
-   *   response? If so, it's valid to omit `body` and optional to use
-   *   `bodyExtra`.
    * @param {?number} options.status Status code. Required for meta responses.
    * @returns {{ bodyBuffer: Buffer, bodyHeaders: HttpHeaders }} The details
    *   needed for the ultimate response.
    */
   static #makeBody(options) {
-    const { body: origBody, contentType: origContentType, isMetaResponse } = options;
+    const { body, contentType: origContentType } = options;
 
-    if (origBody && !origContentType) {
+    if (!origContentType) {
       throw new Error('Missing `contentType`.');
     }
 
-    let body;
-    let contentType;
-
-    if (isMetaResponse) {
-      const { bodyExtra, status } = options;
-
-      if (!status) {
-        throw new Error('Missing `status`.');
-      }
-
-      if (origBody) {
-        if (bodyExtra) {
-          throw new Error('Cannot use both `body` and `bodyExtra`.');
-        }
-
-        body        = origBody;
-        contentType = origContentType;
-      } else {
-        const statusStr  = statuses(status);
-        const bodyHeader = `${status} ${statusStr}`;
-
-        if (((bodyExtra ?? '') === '') || (bodyExtra === statusStr)) {
-          body = `${bodyHeader}\n`;
-        } else {
-          const finalNl = (bodyExtra.endsWith('\n')) ? '' : '\n';
-          body = `${bodyHeader}:\n\n${bodyExtra}${finalNl}`;
-        }
-
-        contentType = 'text/plain';
-      }
-    } else {
-      if (origBody === null) {
-        // This is an unusual case, and it's not worth doing anything
-        // particularly special for it (e.g. pre-allocating an empty buffer).
-        bodyBuffer = Buffer.alloc(0);
-      } else if (!origBody) {
-        throw new Error('Missing `body`.');
-      }
-
-      body        = origBody;
-      contentType = MustBe.string(origContentType);
-    }
-
     let bodyBuffer;
-    let stringBody = false;
+    let isText = false;
 
     if (typeof body === 'string') {
       bodyBuffer = Buffer.from(body, 'utf-8');
-      stringBody = true;
+      isText = true;
     } else if (body instanceof Buffer) {
       bodyBuffer = body;
+    } else if (body === null) {
+      // This is an unusual case, and it's not worth doing anything
+      // particularly special for it (e.g. pre-allocating an empty buffer).
+      bodyBuffer = Buffer.alloc(0);
+
+    } else if (!body) {
+      throw new Error('Missing `body`.');
     } else {
       throw new Error('`body` must be a string, a `Buffer`, or `null`.');
     }
 
-    contentType = MimeTypes.typeFromExtensionOrType(contentType, { charSet: 'utf-8' });
-    if (stringBody || /^text[/]/.test(contentType)) {
-      contentType = `${contentType}; charset=utf-8`;
-    }
+    const contentType = MimeTypes.typeFromExtensionOrType(
+      origContentType, { charSet: 'utf-8', isText });
 
     return {
       bodyBuffer,
