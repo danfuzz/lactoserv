@@ -236,7 +236,9 @@ export class HttpResponse {
    *   * Checking that no content-related headers are present.
    * * If there is a content body:
    *   * Checking that `status` allows a body.
-   *   * Checking that a `content-type` header is present.
+   *   * Checking that a `content-type` header is present _or_ {@link
+   *     #setBodyString} was used (which includes an explicit `contentType`
+   *     argument).
    *   * Checking that a `content-length` header is _not_ present (because this
    *     class will generate it).
    * * If there is a "message" (meta-information) body:
