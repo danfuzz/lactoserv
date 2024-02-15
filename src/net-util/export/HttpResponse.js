@@ -120,7 +120,7 @@ export class HttpResponse {
 
     if (contentType && !(body instanceof Buffer)) {
       throw new Error('Can only specify `contentType` when passing `body` as a `Buffer`.');
-    } else if (body instanceof Buffer) {
+    } else if (!contentType && (body instanceof Buffer)) {
       throw new Error('Must specify `contentType` when passing `body` as a `Buffer`.');
     }
 
