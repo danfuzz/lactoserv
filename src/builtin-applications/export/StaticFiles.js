@@ -102,7 +102,7 @@ export class StaticFiles extends BaseApplication {
       this.#notFoundOptions = {
         ...(StaticFiles.#SEND_OPTIONS),
         body:        await fs.readFile(notFoundPath),
-        contentType: MimeTypes.typeFromPathExtension(notFoundPath)
+        contentType: MimeTypes.typeFromPathExtension(notFoundPath, { charSet: 'utf-8' })
       };
     }
   }

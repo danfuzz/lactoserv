@@ -108,18 +108,32 @@ export class HttpResponse {
    * body is sent as content type `text/plain` with encoding `utf-8`.
    *
    * @param {?object} [options] Options to control the response body.
-   * @param {?string} [options.body] Complete body content to include.
+   * @param {?string|Buffer} [options.body] Complete body content to include.
    * @param {?string} [options.bodyExtra] Extra body content to include, in
-   *   addition to the default body.
+   *   addition to the default body. Either this or `options.body` is allowed,
+   *   but not both.
+   * @param {?string} [options.contentType] Content type of `options.body`.
+   *   Required if `options.body` is a `Buffer`. Disallowed in all other cases.
    */
   setBodyMessage(options = null) {
-    const { body = null, bodyExtra = null } = options ?? {};
+    const { body = null, bodyExtra = null, contentType = null } = options ?? {};
+
+    if (contentType && !(body instanceof Buffer)) {
+      throw new Error('Can only specify `contentType` when passing `body` as a `Buffer`.');
+    } else if (!contentType && (body instanceof Buffer)) {
+      throw new Error('Must specify `contentType` when passing `body` as a `Buffer`.');
+    }
 
     if (body !== null) {
       if (bodyExtra !== null) {
         throw new Error('Cannot specify both `body` and `bodyExtra`.');
       }
-      this.#body = { type: 'message', message: MustBe.string(body) };
+
+      if (body instanceof Buffer) {
+        this.#body = { type: 'message', messageBuffer: body, contentType };
+      } else {
+        this.#body = { type: 'message', message: MustBe.string(body) };
+      }
     } else if (bodyExtra !== null) {
       this.#body = { type: 'message', messageExtra: MustBe.string(bodyExtra) };
     }
@@ -179,17 +193,23 @@ export class HttpResponse {
    *
    * * Checking that {@link #status} is set.
    * * Checking that one of the body-setup methods has been called (that is, one
-   *   of {@link #setBodyBuffer}, {@link #setBodyFile}, or {@link #setNoBody}).
+   *   of {@link #setBodyBuffer}, {@link #setBodyFile}, {@link #setBodyMessage},
+   *   or {@link #setNoBody}).
    *
    * And, depending on the body:
    *
-   * * If `body !== null`:
+   * * If there is no body:
+   *   * Checking that no content-related headers are present.
+   * * If there is a content body:
    *   * Checking that `status` allows a body.
    *   * Checking that a `content-type` header is present.
    *   * Checking that a `content-length` header is _not_ present (because this
    *     class will generate it).
-   * * If `body === null`:
-   *   * Checking that no content-related headers are present.
+   * * If there is a "message" (meta-information) body:
+   *   * Checking that `status` doesn't imply application content.
+   *   * Checking that `status` _does_ allow a body.
+   *   * Checking that no content-related headers are present. (They are
+   *     generated automatically.)
    *
    * To be clear, this is far from an exhaustive list of possible error checks.
    * It is meant to catch the most common and blatant client problems.
@@ -241,6 +261,12 @@ export class HttpResponse {
       }
 
       case 'message': {
+        if (HttpUtil.responseBodyIsApplicationContentFor(status)) {
+          throw new Error(`Message response is inappropriate with status ${status}.`);
+        } else if (!HttpUtil.responseBodyIsAllowedFor('get', status)) {
+          throw new Error(`Message response is incompatible with status ${status}.`);
+        }
+
         for (const h of HttpResponse.#CONTENT_HEADERS) {
           if (headers.get(h)) {
             throw new Error(`Message response cannot use header \`${h}\`.`);
@@ -417,7 +443,12 @@ export class HttpResponse {
    * @throws {Error} Any error reported by `res`.
    */
   async #writeBodyMessage(res, shouldSendBody) {
-    const { message, messageExtra } = this.#body;
+    const {
+      contentType: bufferContentType,
+      message,
+      messageBuffer,
+      messageExtra
+    } = this.#body;
 
     if (!shouldSendBody) {
       // Note: Because message response content isn't ever supposed to get
@@ -429,11 +460,16 @@ export class HttpResponse {
     }
 
     let body;
+    let bodyBuffer  = null;
+    let contentType = 'text/plain; charset=utf-8';
 
     if (message) {
       body = message.endsWith('\n')
         ? message
         : `message\n`;
+    } else if (messageBuffer) {
+      bodyBuffer  = messageBuffer;
+      contentType = bufferContentType;
     } else {
       const { status } = this;
       const statusStr  = statuses(status);
@@ -447,9 +483,9 @@ export class HttpResponse {
       }
     }
 
-    const bodyBuffer = Buffer.from(body, 'utf-8');
+    bodyBuffer ??= Buffer.from(body, 'utf-8');
 
-    res.setHeader('Content-Type',   'text/plain; charset=utf-8');
+    res.setHeader('Content-Type',   contentType);
     res.setHeader('Content-length', bodyBuffer.length);
     res.end(bodyBuffer);
 
