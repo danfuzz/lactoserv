@@ -243,6 +243,8 @@ export class HttpResponse {
       case 'message': {
         if (HttpUtil.responseBodyIsApplicationContentFor(status)) {
           throw new Error(`Message response is inappropriate with status ${status}.`);
+        } else if (!HttpUtil.responseBodyIsAllowedFor('get', status)) {
+          throw new Error(`Message response is incompatible with status ${status}.`);
         }
 
         for (const h of HttpResponse.#CONTENT_HEADERS) {
