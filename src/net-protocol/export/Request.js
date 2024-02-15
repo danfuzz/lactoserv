@@ -1090,7 +1090,6 @@ export class Request {
       // This is an unusual case, and it's not worth doing anything
       // particularly special for it (e.g. pre-allocating an empty buffer).
       bodyBuffer = Buffer.alloc(0);
-
     } else if (!body) {
       throw new Error('Missing `body`.');
     } else {
