@@ -123,6 +123,92 @@ export class HttpConditional {
   }
 
   /**
+   * Checks to see if a response with the given headers would be considered
+   * valid to send as a `206` range response.
+   *
+   * A range request is considered to be fresh:
+   * * The request method is `HEAD` or `GET`.
+   * * Either:
+   *   * The request does not have a range condition at all.
+   *   * The request has an `if-range` header with a matching etag.
+   *   * The request has an `if-range` header with a sufficiently-late date.
+   *
+   * This assumes that the response would have a sans-check status code that is
+   * acceptable for conversion to status `206` ("Partial Content").
+   *
+   * @param {string} requestMethod The request method (e.g., `get`), in either
+   *   lowercase or all-caps.
+   * @param {HttpHeaders|object} requestHeaders Request headers which possibly
+   *   contain range conditionals. The header that matters in this regard is
+   *   `if-range`.
+   * @param {?HttpHeaders} responseHeaders Would-be response headers for a
+   *   content-bearing response, or `null` to _just_ use `stats`. The headers
+   *   that matter in this regard are `etag` and `last-modified`.
+   * @param {?StatsBase} [stats] File stats from which to derive a last-modified
+   *   date, or `null` if no stats are available. If non-`null`, this takes
+   *   precedence over a header value.
+   * @returns {boolean} `true` iff the request is to be considered "fresh."
+   */
+  static isRangeFresh(requestMethod, requestHeaders, responseHeaders, stats = null) {
+    MustBe.string(requestMethod);
+    // MustBe.instanceOf(requestHeaders, HttpHeaders); TODO: Make it true.
+    if (responseHeaders !== null) {
+      MustBe.instanceOf(responseHeaders, HttpHeaders);
+    }
+    if (stats !== null) {
+      MustBe.instanceOf(stats, StatsBase);
+    }
+
+    switch (requestMethod) {
+      case 'get': case 'head':
+      case 'GET': case 'HEAD': {
+        // Possibly fresh.
+        break;
+      }
+      default: {
+        return false;
+      }
+    }
+
+    const ifRange = HttpHeaders.get(requestHeaders, 'if-range');
+
+    if (!ifRange) {
+      // This isn't a conditional range request, so it is de facto "fresh."
+      return true;
+    }
+
+    if (ifRange.startsWith('"')) {
+      // It's an etag conditional. Note: It is invalid per spec to use a weak
+      // etag (form `W/"..."`) in this case, so we don't recognize that form in
+      // the `if` above.
+      const responseEtag = responseHeaders?.get('etag') ?? null;
+
+      if (!responseEtag || (responseEtag === '')) {
+        return false;
+      }
+
+      return (ifRange === responseEtag);
+    } else {
+      // Try to parse it as a date. If it can be parsed, this is a date
+      // conditional which is asking the same question as an
+      // `if-unmodified-since` header would.
+      const ifUnmodifiedSince = HttpUtil.msecFromDateString(ifRange);
+
+      if (!ifUnmodifiedSince) {
+        return false;
+      }
+
+      const lastModified = this.#msecTimeFrom(responseHeaders, stats);
+
+      if (!lastModified) {
+        return false;
+      }
+
+      return (lastModified <= ifUnmodifiedSince);
+    }
+  }
+
+  /**
    * Gets a seconds-precision modification time from a stats or from a
    * `last-modified` header, with stats taking priority (because it's more
    * efficient, and it should be overwhelmingly more common to end up here with

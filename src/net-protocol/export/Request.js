@@ -10,7 +10,7 @@ import rangeParser from 'range-parser';
 
 import { ManualPromise } from '@this/async';
 import { TreePathKey } from '@this/collections';
-import { Paths } from '@this/fs-util';
+import { Paths, StatsBase } from '@this/fs-util';
 import { FormatUtils, IntfLogger } from '@this/loggy';
 import { Cookies, HostInfo, HttpConditional, HttpHeaders, HttpResponse,
   HttpUtil, MimeTypes } from '@this/net-util';
@@ -618,7 +618,7 @@ export class Request {
     // At this point, we need to make a "non-fresh" response (that is, send
     // content, assuming no header parsing issues).
 
-    const rangeInfo = this.#rangeInfo(stats.size, headers);
+    const rangeInfo = this.#rangeInfo(stats.size, headers, stats);
     if (rangeInfo.error) {
       // Note: We _don't_ use the for-success `headers` here.
       const errOptions = {
@@ -912,9 +912,12 @@ export class Request {
    *   basic no-range-request success response.
    * @param {?HttpHeaders} [responseHeaders] Response headers to-be. Not used
    *   when passing `null` for `bodyBuffer`.
+   * @param {?StatsBase} [stats] File stats from which to derive a last-modified
+   *   date, or `null` if no stats are available. If non-`null`, this takes
+   *   precedence over a header value.
    * @returns {object} Disposition info.
    */
-  #rangeInfo(bodyBufferOrLength = null, responseHeaders = null) {
+  #rangeInfo(bodyBufferOrLength = null, responseHeaders = null, stats = null) {
     const RANGE_UNIT = 'bytes';
 
     if (bodyBufferOrLength === null) {
@@ -938,10 +941,15 @@ export class Request {
       };
     }
 
-    const { 'if-range': ifRange, range } = this.headers;
+    const { range } = this.headers;
 
     if (!range) {
       // Not a range request.
+      return status200();
+    }
+
+    if (!HttpConditional.isRangeFresh(this.method, this.headers, responseHeaders, stats)) {
+      // There was a range conditional which didn't match.
       return status200();
     }
 
@@ -955,24 +963,6 @@ export class Request {
         status:  416,
         headers: { 'content-range': `${RANGE_UNIT} */${bodyLength}` }
       };
-    }
-
-    if (ifRange) {
-      if (/"/.test(ifRange)) {
-        // The range request is conditional on an etag match.
-        const etagHeader = responseHeaders.get('etag');
-        if (etagHeader !== ifRange) {
-          return status200(); // _Not_ matched.
-        }
-      } else {
-        // The range request is a last-modified date.
-        const lastModified = responseHeaders.get('last-modified');
-        const lmDate       = HttpUtil.msecFromDateString(lastModified);
-        const ifDate       = HttpUtil.msecFromDateString(ifRange);
-        if ((lmDate === null) || (ifDate === null) || (lmDate > ifDate)) {
-          return status200(); // _Not_ matched.
-        }
-      }
     }
 
     if (ranges.length !== 1) {
