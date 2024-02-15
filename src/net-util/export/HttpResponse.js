@@ -12,10 +12,14 @@ import { MustBe } from '@this/typey';
 
 import { HttpHeaders } from '#x/HttpHeaders';
 import { HttpUtil } from '#x/HttpUtil';
+import { MimeTypes } from '#x/MimeTypes';
 
 /**
  * Responder to an HTTP request. This class holds all the information needed to
- * perform a response, along with the functionality to produce it.
+ * perform a response, along with the functionality to produce it. This class is
+ * mostly in the "mechanism not policy" camp, except that (a) it _does_ enforce
+ * consistency / unambiguity of use, and (b) it refuses to send responses that
+ * are (reasonably believed to be) contrary to the HTTP (etc.) specification.
  *
  * **Note:** This class is designed so that clients can ignore the special
  * response behavior required by the `HEAD` request method. Specifically, even
@@ -182,6 +186,40 @@ export class HttpResponse {
   }
 
   /**
+   * Sets the response body to be based on a string. The MIME content type must
+   * be specified. If the content type includes a `charset`, it must be valid
+   * and usable by Node to encode the string. If the content type _does not_
+   * include a `charset`, then `utf-8` will be used (which will also be reported
+   * on the ultimate response).
+   *
+   * When this method is used, the headers of this instance must not _also_ have
+   * a `content-type`.
+   *
+   * @param {string} body The full body.
+   * @param {string} contentType The MIME content type, or file extension to
+   *   derive it from (see {@link MimeTypes#typeFromExtensionOrType}).
+   */
+  setBodyString(body, contentType) {
+    MustBe.string(body);
+
+    contentType =
+      MimeTypes.typeFromExtensionOrType(contentType, { charSet: 'utf-8', isText: true });
+
+    const charSet = MimeTypes.charSetFromType(contentType);
+
+    if (charSet === 'utf8') {
+      // This is the one incorrect value that Node accepts and which we also
+      // really care about complaining about. (This project prefers enforcing
+      // caller consistency over creeping DWIM-isms.)
+      throw new Error('The IETF says that the UTF-8 encoding is called `utf-8`.');
+    }
+
+    const buffer = Buffer.from(body, charSet);
+
+    this.#body = { type: 'buffer', buffer, contentType };
+  }
+
+  /**
    * Indicates unambiguously that this instance is to have no response body.
    */
   setNoBody() {
@@ -193,8 +231,7 @@ export class HttpResponse {
    *
    * * Checking that {@link #status} is set.
    * * Checking that one of the body-setup methods has been called (that is, one
-   *   of {@link #setBodyBuffer}, {@link #setBodyFile}, {@link #setBodyMessage},
-   *   or {@link #setNoBody}).
+   *   of `setBody*()` or {@link #setNoBody}).
    *
    * And, depending on the body:
    *
@@ -202,7 +239,9 @@ export class HttpResponse {
    *   * Checking that no content-related headers are present.
    * * If there is a content body:
    *   * Checking that `status` allows a body.
-   *   * Checking that a `content-type` header is present.
+   *   * Checking that a `content-type` header is present _or_ {@link
+   *     #setBodyString} was used (which includes an explicit `contentType`
+   *     argument).
    *   * Checking that a `content-length` header is _not_ present (because this
    *     class will generate it).
    * * If there is a "message" (meta-information) body:
@@ -247,10 +286,20 @@ export class HttpResponse {
       case 'file': {
         if (!HttpUtil.responseBodyIsAllowedFor('get', status)) {
           throw new Error(`Body-bearing response is incompatible with status ${status}.`);
-        } else if (headers.get('content-length')) {
-          throw new Error('Body-bearing response must not have `content-length` header pre-set.');
+        }
+
+        const contentType = body.contentType;
+
+        if (contentType) {
+          if (headers.get('content-type')) {
+            throw new Error('Must not use specified `contentType` with `content-type` header pre-set.');
+          }
         } else if (!headers.get('content-type')) {
           throw new Error('Body-bearing response must have `content-type` header pre-set.');
+        }
+
+        if (headers.get('content-length')) {
+          throw new Error('Body-bearing response must not have `content-length` header pre-set.');
         }
 
         if (body.lastModified && headers.get('last-modified')) {
@@ -356,7 +405,11 @@ export class HttpResponse {
    * @throws {Error} Any error reported by `res`.
    */
   async #writeBodyBuffer(res, shouldSendBody) {
-    const buffer = this.#body.buffer;
+    const { buffer, contentType } = this.#body.buffer;
+
+    if (contentType) {
+      res.setHeader('Content-Type', contentType);
+    }
 
     res.setHeader('Content-Length', buffer.length);
 

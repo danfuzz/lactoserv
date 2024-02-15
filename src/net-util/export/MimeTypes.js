@@ -15,6 +15,25 @@ import { MustBe } from '@this/typey';
  */
 export class MimeTypes {
   /**
+   * Gets the `charset`, if any, from the given MIME type. This method assumes
+   * that the given type is syntactically valid.
+   *
+   * @param {string} mimeType The MIME type to inspect.
+   * @returns {?string} The `charset` value of `type`, or `null` if it does not
+   *   have one.
+   */
+  static charSetFromType(mimeType) {
+    MustBe.string(mimeType);
+
+    // RFC2978 says charset names have to be 40 characters or less and also
+    // specifies the allowed symbols.
+    const found =
+      mimeType.match(/; *charset=(?<charSet>[-~_'`!#$%&+^{}A-Za-z0-9]{1,40}) *(?:;|$)/);
+
+    return found?.groups.charSet ?? null;
+  }
+
+  /**
    * Gets the MIME type for the filename extension on the given absolute path.
    * This returns `'application/octet-stream'` if nothing better can be
    * determined.

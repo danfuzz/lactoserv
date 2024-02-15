@@ -10,14 +10,20 @@ Breaking changes:
 * Tweaked the contract of `contentType` bindings in configurations, to help
   avoid ambiguity and confusion. Specifically, file extensions now need to start
   with a dot.
+* Significant rework of the API of `net-protocol.Request`.
 
 Other notable changes:
 * New integration test setup, along with a handful of tests.
-* New class `HttpConditional` to take over from the old npm module `fresh`.
-* New class `HttpResponse` to encapsulate data required to make an HTTP(ish)
-  response and to handle much of the mechanics of actually producing a response.
-* Rewrote `Request.sendFile()` to no longer use Express-specific functionality.
-* Expanded `MimeTypes` to handle character set stuff.
+* Module `net-util`:
+  * Expanded `MimeTypes` to handle character set stuff.
+  * New class `HttpConditional` to take over from the old npm module `fresh`.
+  * New class `HttpResponse` to encapsulate data required to make an HTTP(ish)
+    response and to handle much of the mechanics of actually producing a
+    response.
+* `net-protocol.Request`:
+  * Reworked it to use `HttpResponse`.
+  * Specifically, rewrote `sendFile()` to no longer use Express-specific
+    functionality.
 
 ###  v0.6.5 -- 2024-02-09
 

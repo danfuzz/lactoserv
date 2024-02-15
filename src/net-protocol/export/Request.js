@@ -473,6 +473,22 @@ export class Request {
   }
 
   /**
+   * Sends a response to this request, by asking the given response object to
+   * write itself to this isntance's underlying `http.ServerResponse` object (or
+   * similar).
+   *
+   * @param {HttpResponse} response The response to send.
+   * @returns {boolean} `true` when the response is completed.
+   * @throws {Error} Thrown if there is any trouble sending the response.
+   */
+  respond(response) {
+    const result = response.writeTo(this.#expressResponse);
+
+    this.#responsePromise.resolve(result);
+    return result;
+  }
+
+  /**
    * Issues a successful response, with the given body contents or with an empty
    * body as appropriate. The actual reported status will be one of:
    *
@@ -629,9 +645,7 @@ export class Request {
         length: rangeInfo.bodyLength
       });
 
-      const result = response.writeTo(this.#expressResponse);
-      this.#responsePromise.resolve(result);
-      return result;
+      return this.respond(response);
     }
   }
 
@@ -679,9 +693,7 @@ export class Request {
 
     response.setBodyMessage(options);
 
-    const result = response.writeTo(this.#expressResponse);
-    this.#responsePromise.resolve(result);
-    return result;
+    return this.respond(response);
   }
 
   /**
@@ -748,27 +760,6 @@ export class Request {
     options.headers['location'] = target;
 
     return this.sendMetaResponse(options.status, options);
-  }
-
-  /**
-   * Issues a redirect response targeted at the original request's referrer. If
-   * there was no referrer, this redirects to `/`.
-   *
-   * Calling this method results in this request being considered complete, and
-   * as such no additional response-related methods will work.
-   *
-   * @param {?object} [options] Options to control response behavior. See class
-   *   header comment for more details.
-   * @param {?number} [options.status] The status code to report. Defaults to
-   *   `302` ("Found").
-   * @returns {boolean} `true` when the response is completed.
-   */
-  async sendRedirectBack(options = null) {
-    // Note: Express lets you ask for `referrer` (spelled properly), but the
-    // actual header that's supposed to be sent is `referer` (which is of course
-    // misspelled).
-    const target = this.getHeaderOrNull('referer') ?? '/';
-    return this.sendRedirect(target, options);
   }
 
   /**
@@ -1022,10 +1013,7 @@ export class Request {
       response.setNoBody();
     }
 
-    const result = response.writeTo(this.#expressResponse);
-
-    this.#responsePromise.resolve(result);
-    return result;
+    return this.respond(response);
   }
 
 
