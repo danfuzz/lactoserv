@@ -114,8 +114,8 @@ export class HttpResponse {
    * @param {?object} [options] Options to control the response body.
    * @param {?string|Buffer} [options.body] Complete body content to include.
    * @param {?string} [options.bodyExtra] Extra body content to include, in
-   *   addition to the default body. Either this or `options.body` is allowed,
-   *   but not both.
+   *   addition to the default body. One of this or `options.body` is must be
+   *   passed, but not both.
    * @param {?string} [options.contentType] Content type of `options.body`.
    *   Required if `options.body` is a `Buffer`. Disallowed in all other cases.
    */
@@ -140,6 +140,8 @@ export class HttpResponse {
       }
     } else if (bodyExtra !== null) {
       this.#body = { type: 'message', messageExtra: MustBe.string(bodyExtra) };
+    } else {
+      throw new Error('Must specify either `body` or `bodyExtra`.');
     }
   }
 
