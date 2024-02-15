@@ -123,15 +123,18 @@ export class HttpConditional {
   }
 
   /**
-   * Checks to see if a response with the given headers would be considered
-   * valid to send as a `206` range response.
+   * Checks to see if a range request would be applicable in light of any
+   * conditional range request headers. This returns `true` if it is valid to
+   * send a `206` ("Partial Content") response.
    *
-   * A range request is considered to be fresh:
+   * A range request is considered to be applicable if:
    * * The request method is `HEAD` or `GET`.
-   * * Either:
+   * * One of:
    *   * The request does not have a range condition at all.
    *   * The request has an `if-range` header with a matching etag.
    *   * The request has an `if-range` header with a sufficiently-late date.
+   *     This form is akin to the `if-unmodified-since` header for non-range
+   *     requests.
    *
    * This assumes that the response would have a sans-check status code that is
    * acceptable for conversion to status `206` ("Partial Content").
@@ -149,7 +152,7 @@ export class HttpConditional {
    *   precedence over a header value.
    * @returns {boolean} `true` iff the request is to be considered "fresh."
    */
-  static isRangeFresh(requestMethod, requestHeaders, responseHeaders, stats = null) {
+  static isRangeApplicable(requestMethod, requestHeaders, responseHeaders, stats = null) {
     MustBe.string(requestMethod);
     // MustBe.instanceOf(requestHeaders, HttpHeaders); TODO: Make it true.
     if (responseHeaders !== null) {

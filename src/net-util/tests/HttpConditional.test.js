@@ -10,7 +10,7 @@ import { HttpConditional, HttpHeaders } from '@this/net-util';
 describe.each`
 methodName
 ${'isContentFresh'}
-${'isRangeFresh'}
+${'isRangeApplicable'}
 `('$methodName()', ({ methodName }) => {
   // Convenient stats objects.
   let statsNum;
@@ -213,7 +213,7 @@ describe('isContentFresh()', () => {
   });
 });
 
-describe('isRangeFresh()', () => {
+describe('isRangeApplicable()', () => {
   // Convenient stats objects.
   let statsNum;
   let statsBig;
@@ -236,7 +236,7 @@ describe('isRangeFresh()', () => {
     reqHead.set('if-range', '"xyz"');
     resHead.set('etag',     '"xyz"');
 
-    expect(HttpConditional.isRangeFresh(requestMethod, reqHead, resHead)).toBeFalse();
+    expect(HttpConditional.isRangeApplicable(requestMethod, reqHead, resHead)).toBeFalse();
   });
 
   describe.each`
@@ -253,9 +253,9 @@ describe('isRangeFresh()', () => {
       resHead.set('etag', '"xyz"');
       resHead.set('last-modified', statsNum.mtime.toUTCString());
 
-      expect(HttpConditional.isRangeFresh(requestMethod, reqHead, resHead)).toBeTrue();
-      expect(HttpConditional.isRangeFresh(requestMethod, reqHead, resHead, statsNum)).toBeTrue();
-      expect(HttpConditional.isRangeFresh(requestMethod, reqHead, resHead, statsBig)).toBeTrue();
+      expect(HttpConditional.isRangeApplicable(requestMethod, reqHead, resHead)).toBeTrue();
+      expect(HttpConditional.isRangeApplicable(requestMethod, reqHead, resHead, statsNum)).toBeTrue();
+      expect(HttpConditional.isRangeApplicable(requestMethod, reqHead, resHead, statsBig)).toBeTrue();
     });
 
     test('finds a fresh etag', () => {
@@ -265,7 +265,7 @@ describe('isRangeFresh()', () => {
       reqHead.set('if-range', '"xyz"');
       resHead.set('etag',     '"xyz"');
 
-      expect(HttpConditional.isRangeFresh(requestMethod, reqHead, resHead)).toBeTrue();
+      expect(HttpConditional.isRangeApplicable(requestMethod, reqHead, resHead)).toBeTrue();
     });
 
     test('does not consider a non-matching etag to be fresh', () => {
@@ -275,7 +275,7 @@ describe('isRangeFresh()', () => {
       reqHead.set('if-range', '"xyz"');
       resHead.set('etag',     '"abc"');
 
-      expect(HttpConditional.isRangeFresh(requestMethod, reqHead, resHead)).toBeFalse();
+      expect(HttpConditional.isRangeApplicable(requestMethod, reqHead, resHead)).toBeFalse();
     });
 
     test('finds a fresh last-modified date as a header', () => {
@@ -287,7 +287,7 @@ describe('isRangeFresh()', () => {
       reqHead.set('if-range',      modTime);
       resHead.set('last-modified', modTime);
 
-      expect(HttpConditional.isRangeFresh(requestMethod, reqHead, resHead)).toBeTrue();
+      expect(HttpConditional.isRangeApplicable(requestMethod, reqHead, resHead)).toBeTrue();
     });
 
     test('finds a fresh last-modified date via a stats', () => {
@@ -297,8 +297,8 @@ describe('isRangeFresh()', () => {
 
       reqHead.set('if-range', modTime);
 
-      expect(HttpConditional.isRangeFresh(requestMethod, reqHead, null, statsNum)).toBeTrue();
-      expect(HttpConditional.isRangeFresh(requestMethod, reqHead, null, statsBig)).toBeTrue();
+      expect(HttpConditional.isRangeApplicable(requestMethod, reqHead, null, statsNum)).toBeTrue();
+      expect(HttpConditional.isRangeApplicable(requestMethod, reqHead, null, statsBig)).toBeTrue();
     });
 
     test('understands a later last-modified date (as a header) to make things un-fresh', () => {
@@ -312,7 +312,7 @@ describe('isRangeFresh()', () => {
       reqHead.set('if-range',      modTime);
       resHead.set('last-modified', laterTime.toUTCString());
 
-      expect(HttpConditional.isRangeFresh(requestMethod, reqHead, resHead)).toBeFalse();
+      expect(HttpConditional.isRangeApplicable(requestMethod, reqHead, resHead)).toBeFalse();
     });
 
     test('understands a later last-modified date (via a stats) to make things un-fresh', async () => {
@@ -326,7 +326,7 @@ describe('isRangeFresh()', () => {
 
       reqHead.set('if-range', modTime);
 
-      expect(HttpConditional.isRangeFresh(requestMethod, reqHead, resHead, laterStats)).toBeFalse();
+      expect(HttpConditional.isRangeApplicable(requestMethod, reqHead, resHead, laterStats)).toBeFalse();
     });
   });
 });

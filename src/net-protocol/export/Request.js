@@ -948,8 +948,8 @@ export class Request {
       return status200();
     }
 
-    if (!HttpConditional.isRangeFresh(this.method, this.headers, responseHeaders, stats)) {
-      // There was a range conditional which didn't match.
+    if (!HttpConditional.isRangeApplicable(this.method, this.headers, responseHeaders, stats)) {
+      // There was a range condition which didn't match.
       return status200();
     }
 
