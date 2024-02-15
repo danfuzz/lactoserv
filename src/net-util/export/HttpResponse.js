@@ -114,8 +114,8 @@ export class HttpResponse {
    * @param {?object} [options] Options to control the response body.
    * @param {?string|Buffer} [options.body] Complete body content to include.
    * @param {?string} [options.bodyExtra] Extra body content to include, in
-   *   addition to the default body. Either this or `options.body` is allowed,
-   *   but not both.
+   *   addition to the default body. One of this or `options.body` is must be
+   *   passed, but not both.
    * @param {?string} [options.contentType] Content type of `options.body`.
    *   Required if `options.body` is a `Buffer`. Disallowed in all other cases.
    */
@@ -140,6 +140,8 @@ export class HttpResponse {
       }
     } else if (bodyExtra !== null) {
       this.#body = { type: 'message', messageExtra: MustBe.string(bodyExtra) };
+    } else {
+      throw new Error('Must specify either `body` or `bodyExtra`.');
     }
   }
 
@@ -236,7 +238,8 @@ export class HttpResponse {
    * And, depending on the body:
    *
    * * If there is no body:
-   *   * Checking that no content-related headers are present.
+   *   * Checking that no content-related headers are present. One exception:
+   *     Status `416` ("Range Not Satisfiable") allows `content-range`.
    * * If there is a content body:
    *   * Checking that `status` allows a body.
    *   * Checking that a `content-type` header is present _or_ {@link
@@ -273,8 +276,10 @@ export class HttpResponse {
           throw new Error(`Non-body response is incompatible with status ${status}.`);
         }
 
+        const headerExceptions = HttpResponse.#CONTENT_HEADER_EXCEPTIONS[status];
+
         for (const h of HttpResponse.#CONTENT_HEADERS) {
-          if (headers.get(h)) {
+          if (!headerExceptions?.has(h) && headers.get(h)) {
             throw new Error(`Non-body response cannot use header \`${h}\`.`);
           }
         }
@@ -563,8 +568,8 @@ export class HttpResponse {
   //
 
   /**
-   * @type {Array<string>} Array of header names associated with non-empty
-   * bodies.
+   * @type {Array<string>} Array of header names associated with content (that
+   * is, non-empty bodies that represent high-level application content).
    */
   static #CONTENT_HEADERS = Object.freeze([
     'content-encoding',
@@ -578,10 +583,23 @@ export class HttpResponse {
   ]);
 
   /**
+   * @type {...} Excpetions to restrictions of {@link #CONTENT_HEADERS}.
+   */
+  static #CONTENT_HEADER_EXCEPTIONS = Object.freeze({
+    416: new Set(['content-range'])
+  });
+
+  /**
    * @type {number} Chunk size to use when reading a file and writing it as a
    * response.
    */
   static #READ_CHUNK_SIZE = 64 * 1024; // 64k
+
+  /**
+   * @type {symbol} Key to use on response objects to hold a result from
+   * {@link #whenResponseDone}. See comment at use site for more explanation.
+   */
+  static #RESPONSE_DONE_SYMBOL = Symbol('HttpResponseDone');
 
   /**
    * Adjusts an incoming index value (e.g. bytes into a buffer or file), per
@@ -656,40 +674,59 @@ export class HttpResponse {
    * @throws {Error} Any error reported by the underlying response object.
    */
   static async #whenResponseDone(res) {
+    // What's happening here: Unfortunately, once a response is finished, the
+    // low-level Node library will set the `socket` to `undefined` -- at least
+    // in some cases -- and when it does so, there is no other built-in way to
+    // see if the response got closed due to an error. That would make it unsafe
+    // to call this method after the response is over... if we don't do anything
+    // extra. So, what we do is arrange to return from subsequent calls whatever
+    // the first call does, by storing a promise for the result in a "secret"
+    // property on the response. That said, this only works if at least _one_
+    // call to this method is made while the socket is still around.
+    const already = res[this.#RESPONSE_DONE_SYMBOL];
+    if (already) {
+      return already;
+    }
+
     function makeProperError(error) {
       return (error instanceof Error)
         ? error
         : new Error(`non-error object: ${error}`);
     }
 
-    // Note: It's not correct to also check for `.writableEnded` here (as an
-    // earlier version of this code did), because that becomes `true` _before_
-    // the outgoing data is believed to be actually made it to the networking
-    // stack to be sent out.
-    if (res.closed || res.destroyed) {
-      const error = res.errored;
-      if (error) {
-        throw makeProperError(error);
-      }
-      return true;
-    }
-
+    const socket   = res.socket;
     const resultMp = new ManualPromise();
 
-    res.once('error', (error) => {
+    if (!socket) {
+      throw new Error('Response socket already gone. Alas!');
+    } else if (socket.closed || socket.destroyed) {
+      // Note: It's not correct to also check for `.writableEnded` here (as an
+      // earlier version of this code did), because that becomes `true` _before_
+      // the outgoing data is believed to be actually made it to the networking
+      // stack to be sent out.
+      const error = socket.errored;
       if (error) {
         resultMp.reject(makeProperError(error));
       } else {
         resultMp.resolve(true);
       }
-    });
+    } else {
+      socket.once('error', (error) => {
+        if (error) {
+          resultMp.reject(makeProperError(error));
+        } else {
+          resultMp.resolve(true);
+        }
+      });
 
-    res.once('close', () => {
-      if (!resultMp.isSettled()) {
-        resultMp.resolve(true);
-      }
-    });
+      socket.once('close', () => {
+        if (!resultMp.isSettled()) {
+          resultMp.resolve(true);
+        }
+      });
+    }
 
+    res[this.#RESPONSE_DONE_SYMBOL] = resultMp.promise;
     return resultMp.promise;
   }
 }
