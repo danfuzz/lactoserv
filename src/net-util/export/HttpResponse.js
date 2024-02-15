@@ -197,13 +197,18 @@ export class HttpResponse {
    *
    * And, depending on the body:
    *
-   * * If `body !== null`:
+   * * If there is no body:
+   *   * Checking that no content-related headers are present.
+   * * If there is a content body:
    *   * Checking that `status` allows a body.
    *   * Checking that a `content-type` header is present.
    *   * Checking that a `content-length` header is _not_ present (because this
    *     class will generate it).
-   * * If `body === null`:
-   *   * Checking that no content-related headers are present.
+   * * If there is a "message" (meta-information) body:
+   *   * Checking that `status` doesn't imply application content.
+   *   * Checking that `status` _does_ allow a body.
+   *   * Checking that no content-related headers are present. (They are
+   *     generated automatically.)
    *
    * To be clear, this is far from an exhaustive list of possible error checks.
    * It is meant to catch the most common and blatant client problems.
