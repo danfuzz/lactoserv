@@ -189,6 +189,9 @@ export class HttpResponse {
    * include a `charset`, then `utf-8` will be used (which will also be reported
    * on the ultimate response).
    *
+   * When this method is used, the headers of this instance must not _also_ have
+   * a `content-type`.
+   *
    * @param {string} body The full body.
    * @param {string} contentType The MIME content type, or file extension to
    *   derive it from (see {@link MimeTypes#typeFromExtensionOrType}).
@@ -210,7 +213,7 @@ export class HttpResponse {
 
     const buffer = Buffer.from(body, charSet);
 
-    this.#body = { type: 'buffer', buffer };
+    this.#body = { type: 'buffer', buffer, contentType };
   }
 
   /**
@@ -279,10 +282,20 @@ export class HttpResponse {
       case 'file': {
         if (!HttpUtil.responseBodyIsAllowedFor('get', status)) {
           throw new Error(`Body-bearing response is incompatible with status ${status}.`);
-        } else if (headers.get('content-length')) {
-          throw new Error('Body-bearing response must not have `content-length` header pre-set.');
+        }
+
+        const contentType = body.contentType;
+
+        if (contentType) {
+          if (headers.get('content-type')) {
+            throw new Error('Must not use specified `contentType` with `content-type` header pre-set.');
+          }
         } else if (!headers.get('content-type')) {
           throw new Error('Body-bearing response must have `content-type` header pre-set.');
+        }
+
+        if (headers.get('content-length')) {
+          throw new Error('Body-bearing response must not have `content-length` header pre-set.');
         }
 
         if (body.lastModified && headers.get('last-modified')) {
@@ -388,7 +401,11 @@ export class HttpResponse {
    * @throws {Error} Any error reported by `res`.
    */
   async #writeBodyBuffer(res, shouldSendBody) {
-    const buffer = this.#body.buffer;
+    const { buffer, contentType } = this.#body.buffer;
+
+    if (contentType) {
+      res.setHeader('Content-Type', contentType);
+    }
 
     res.setHeader('Content-Length', buffer.length);
 
