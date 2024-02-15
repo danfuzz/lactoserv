@@ -16,7 +16,8 @@ Other notable changes:
 * New integration test setup, along with a handful of tests.
 * Module `net-util`:
   * Expanded `MimeTypes` to handle character set stuff.
-  * New class `HttpConditional` to take over from the old npm module `fresh`.
+  * New class `HttpConditional` to take over from the old npm module `fresh` as
+    well as hold our (already existing) range conditional implementation.
   * New class `HttpResponse` to encapsulate data required to make an HTTP(ish)
     response and to handle much of the mechanics of actually producing a
     response.
