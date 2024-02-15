@@ -228,8 +228,7 @@ export class HttpResponse {
    *
    * * Checking that {@link #status} is set.
    * * Checking that one of the body-setup methods has been called (that is, one
-   *   of {@link #setBodyBuffer}, {@link #setBodyFile}, {@link #setBodyMessage},
-   *   or {@link #setNoBody}).
+   *   of `setBody*()` or {@link #setNoBody}).
    *
    * And, depending on the body:
    *
