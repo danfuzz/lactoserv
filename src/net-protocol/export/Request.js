@@ -473,6 +473,22 @@ export class Request {
   }
 
   /**
+   * Sends a response to this request, by asking the given response object to
+   * write itself to this isntance's underlying `http.ServerResponse` object (or
+   * similar).
+   *
+   * @param {HttpResponse} response The response to send.
+   * @returns {boolean} `true` when the response is completed.
+   * @throws {Error} Thrown if there is any trouble sending the response.
+   */
+  respond(response) {
+    const result = response.writeTo(this.#expressResponse);
+
+    this.#responsePromise.resolve(result);
+    return result;
+  }
+
+  /**
    * Issues a successful response, with the given body contents or with an empty
    * body as appropriate. The actual reported status will be one of:
    *
@@ -629,9 +645,7 @@ export class Request {
         length: rangeInfo.bodyLength
       });
 
-      const result = response.writeTo(this.#expressResponse);
-      this.#responsePromise.resolve(result);
-      return result;
+      return this.respond(response);
     }
   }
 
@@ -679,9 +693,7 @@ export class Request {
 
     response.setBodyMessage(options);
 
-    const result = response.writeTo(this.#expressResponse);
-    this.#responsePromise.resolve(result);
-    return result;
+    return this.respond(response);
   }
 
   /**
@@ -1022,10 +1034,7 @@ export class Request {
       response.setNoBody();
     }
 
-    const result = response.writeTo(this.#expressResponse);
-
-    this.#responsePromise.resolve(result);
-    return result;
+    return this.respond(response);
   }
 
 
