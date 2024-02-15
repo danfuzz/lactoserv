@@ -10,6 +10,7 @@ Breaking changes:
 * Tweaked the contract of `contentType` bindings in configurations, to help
   avoid ambiguity and confusion. Specifically, file extensions now need to start
   with a dot.
+* Significant rework of the API of `net-protocol.Request`.
 
 Other notable changes:
 * New integration test setup, along with a handful of tests.
