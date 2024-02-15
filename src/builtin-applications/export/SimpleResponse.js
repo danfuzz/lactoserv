@@ -139,12 +139,12 @@ export class SimpleResponse extends BaseApplication {
         }
 
         this.#body        = body;
-        this.#contentType = MimeTypes.typeFromExtensionOrType(contentType);
+        this.#contentType = MimeTypes.typeFromExtensionOrType(contentType, { charSet: 'utf-8' });
       } else if (filePath !== null) {
         this.#filePath    = Paths.checkAbsolutePath(filePath);
         this.#contentType = (contentType === null)
-          ? MimeTypes.typeFromPathExtension(filePath)
-          : MimeTypes.typeFromExtensionOrType(contentType);
+          ? MimeTypes.typeFromPathExtension(filePath, { charSet: 'utf-8' })
+          : MimeTypes.typeFromExtensionOrType(contentType, { charSet: 'utf-8' });
       } else {
         // It's an empty body.
         if (contentType !== null) {
