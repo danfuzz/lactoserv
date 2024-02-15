@@ -164,7 +164,7 @@ describe('isContentFresh()', () => {
       expect(HttpConditional.isContentFresh(requestMethod, reqHead, null, statsBig)).toBeTrue();
     });
 
-    test('understands a later last-modification date (as a header) to make things un-fresh', () => {
+    test('understands a later last-modified date (as a header) to make things un-fresh', () => {
       const reqHead = new HttpHeaders();
       const resHead = new HttpHeaders();
 
@@ -178,7 +178,7 @@ describe('isContentFresh()', () => {
       expect(HttpConditional.isContentFresh(requestMethod, reqHead, resHead)).toBeFalse();
     });
 
-    test('understands a later last-modification date (via a stats) to make things un-fresh', async () => {
+    test('understands a later last-modified date (via a stats) to make things un-fresh', async () => {
       const reqHead = new HttpHeaders();
       const resHead = new HttpHeaders();
 
@@ -209,6 +209,124 @@ describe('isContentFresh()', () => {
 
       reqHead.set('if-none-match', '"abc"');
       expect(HttpConditional.isContentFresh(requestMethod, reqHead, resHead)).toBeFalse();
+    });
+  });
+});
+
+describe('isRangeFresh()', () => {
+  // Convenient stats objects.
+  let statsNum;
+  let statsBig;
+
+  beforeAll(async () => {
+    statsNum = await fs.stat('/');
+    statsBig = await fs.stat('/', { bigint: true });
+  });
+
+  test.each`
+  requestMethod
+  ${'post'}
+  ${'POST'}
+  ${'put'}
+  ${'PUT'}
+  `('never treats request method $requestMethod as fresh', ({ requestMethod }) => {
+    const reqHead = new HttpHeaders();
+    const resHead = new HttpHeaders();
+
+    reqHead.set('if-range', '"xyz"');
+    resHead.set('etag',     '"xyz"');
+
+    expect(HttpConditional.isRangeFresh(requestMethod, reqHead, resHead)).toBeFalse();
+  });
+
+  describe.each`
+  requestMethod
+  ${'get'}
+  ${'GET'}
+  ${'head'}
+  ${'HEAD'}
+  `('for request method $requestMethod', ({ requestMethod }) => {
+    test('returns `true` for an unconditional request', () => {
+      const reqHead = new HttpHeaders();
+      const resHead = new HttpHeaders();
+
+      resHead.set('etag', '"xyz"');
+      resHead.set('last-modified', statsNum.mtime.toUTCString());
+
+      expect(HttpConditional.isRangeFresh(requestMethod, reqHead, resHead)).toBeTrue();
+      expect(HttpConditional.isRangeFresh(requestMethod, reqHead, resHead, statsNum)).toBeTrue();
+      expect(HttpConditional.isRangeFresh(requestMethod, reqHead, resHead, statsBig)).toBeTrue();
+    });
+
+    test('finds a fresh etag', () => {
+      const reqHead = new HttpHeaders();
+      const resHead = new HttpHeaders();
+
+      reqHead.set('if-range', '"xyz"');
+      resHead.set('etag',     '"xyz"');
+
+      expect(HttpConditional.isRangeFresh(requestMethod, reqHead, resHead)).toBeTrue();
+    });
+
+    test('does not consider a non-matching etag to be fresh', () => {
+      const reqHead = new HttpHeaders();
+      const resHead = new HttpHeaders();
+
+      reqHead.set('if-range', '"xyz"');
+      resHead.set('etag',     '"abc"');
+
+      expect(HttpConditional.isRangeFresh(requestMethod, reqHead, resHead)).toBeFalse();
+    });
+
+    test('finds a fresh last-modified date as a header', () => {
+      const reqHead = new HttpHeaders();
+      const resHead = new HttpHeaders();
+
+      const modTime = statsNum.mtime.toUTCString();
+
+      reqHead.set('if-range',      modTime);
+      resHead.set('last-modified', modTime);
+
+      expect(HttpConditional.isRangeFresh(requestMethod, reqHead, resHead)).toBeTrue();
+    });
+
+    test('finds a fresh last-modified date via a stats', () => {
+      const reqHead = new HttpHeaders();
+
+      const modTime = statsNum.mtime.toUTCString();
+
+      reqHead.set('if-range', modTime);
+
+      expect(HttpConditional.isRangeFresh(requestMethod, reqHead, null, statsNum)).toBeTrue();
+      expect(HttpConditional.isRangeFresh(requestMethod, reqHead, null, statsBig)).toBeTrue();
+    });
+
+    test('understands a later last-modified date (as a header) to make things un-fresh', () => {
+      const reqHead = new HttpHeaders();
+      const resHead = new HttpHeaders();
+
+      const modTime   = statsNum.mtime.toUTCString();
+      const laterTime = new Date(statsNum.mtime);
+      laterTime.setSeconds(laterTime.seconds + 2);
+
+      reqHead.set('if-range',      modTime);
+      resHead.set('last-modified', laterTime.toUTCString());
+
+      expect(HttpConditional.isRangeFresh(requestMethod, reqHead, resHead)).toBeFalse();
+    });
+
+    test('understands a later last-modified date (via a stats) to make things un-fresh', async () => {
+      const reqHead = new HttpHeaders();
+      const resHead = new HttpHeaders();
+
+      const modTime    = statsNum.mtime.toUTCString();
+      const laterStats = await fs.stat('/');
+      laterStats.mtime.setSeconds(laterStats.mtime.getSeconds() + 1);
+      laterStats.mtimeMs = laterStats.mtime.getTime();
+
+      reqHead.set('if-range', modTime);
+
+      expect(HttpConditional.isRangeFresh(requestMethod, reqHead, resHead, laterStats)).toBeFalse();
     });
   });
 });
