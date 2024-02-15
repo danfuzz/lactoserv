@@ -596,6 +596,12 @@ export class HttpResponse {
   static #READ_CHUNK_SIZE = 64 * 1024; // 64k
 
   /**
+   * @type {Symbol} Key to use on response objects to hold a result from
+   * {@link #whenResponseDone}. See comment at use site for more explanation.
+   */
+  static #RESPONSE_DONE_SYMBOL = Symbol('HttpResponseDone');
+
+  /**
    * Adjusts an incoming index value (e.g. bytes into a buffer or file), per
    * this class's contracts.
    *
@@ -668,40 +674,59 @@ export class HttpResponse {
    * @throws {Error} Any error reported by the underlying response object.
    */
   static async #whenResponseDone(res) {
+    // What's happening here: Unfortunately, once a response is finished, the
+    // low-level Node library will set the `socket` to `undefined` -- at least
+    // in some cases -- and when it does so, there is no other built-in way to
+    // see if the response got closed due to an error. That would make it unsafe
+    // to call this method after the response is over... if we don't do anything
+    // extra. So, what we do is arrange to return from subsequent calls whatever
+    // the first call does, by storing a promise for the result in a "secret"
+    // property on the response. That said, this only works if at least _one_
+    // call to this method is made while the socket is still around.
+    const already = res[this.#RESPONSE_DONE_SYMBOL];
+    if (already) {
+      return already;
+    }
+
     function makeProperError(error) {
       return (error instanceof Error)
         ? error
         : new Error(`non-error object: ${error}`);
     }
 
-    // Note: It's not correct to also check for `.writableEnded` here (as an
-    // earlier version of this code did), because that becomes `true` _before_
-    // the outgoing data is believed to be actually made it to the networking
-    // stack to be sent out.
-    if (res.closed || res.destroyed) {
-      const error = res.errored;
-      if (error) {
-        throw makeProperError(error);
-      }
-      return true;
-    }
-
+    const socket   = res.socket;
     const resultMp = new ManualPromise();
 
-    res.once('error', (error) => {
+    if (!socket) {
+      throw new Error('Response socket already gone. Alas!');
+    } else if (socket.closed || socket.destroyed) {
+      // Note: It's not correct to also check for `.writableEnded` here (as an
+      // earlier version of this code did), because that becomes `true` _before_
+      // the outgoing data is believed to be actually made it to the networking
+      // stack to be sent out.
+      const error = socket.errored;
       if (error) {
         resultMp.reject(makeProperError(error));
       } else {
         resultMp.resolve(true);
       }
-    });
+    } else {
+      socket.once('error', (error) => {
+        if (error) {
+          resultMp.reject(makeProperError(error));
+        } else {
+          resultMp.resolve(true);
+        }
+      });
 
-    res.once('close', () => {
-      if (!resultMp.isSettled()) {
-        resultMp.resolve(true);
-      }
-    });
+      socket.once('close', () => {
+        if (!resultMp.isSettled()) {
+          resultMp.resolve(true);
+        }
+      });
+    }
 
+    res[this.#RESPONSE_DONE_SYMBOL] = resultMp.promise;
     return resultMp.promise;
   }
 }
