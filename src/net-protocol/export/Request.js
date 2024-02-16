@@ -6,14 +6,13 @@ import { ClientRequest, ServerResponse } from 'node:http';
 import * as http2 from 'node:http2';
 
 import express from 'express';
-import rangeParser from 'range-parser';
 
 import { ManualPromise } from '@this/async';
 import { TreePathKey } from '@this/collections';
-import { Paths, StatsBase } from '@this/fs-util';
+import { Paths } from '@this/fs-util';
 import { FormatUtils, IntfLogger } from '@this/loggy';
-import { Cookies, HostInfo, HttpConditional, HttpHeaders, HttpResponse,
-  HttpUtil, MimeTypes } from '@this/net-util';
+import { Cookies, HostInfo, HttpConditional, HttpHeaders, HttpRange,
+  HttpResponse, HttpUtil, MimeTypes } from '@this/net-util';
 import { AskIf, MustBe } from '@this/typey';
 
 import { WranglerContext } from '#x/WranglerContext';
@@ -541,8 +540,7 @@ export class Request {
     const headers = this.#makeResponseHeaders('cacheable', options);
 
     if (HttpConditional.isContentFresh(this.method, this.headers, headers)) {
-      // `rangeInfo()` is just to get basic range-support headers.
-      headers.setAll(this.#rangeInfo().headers);
+      HttpRange.setBasicResponseHeaders(headers);
       headers.deleteContent();
       return this.#writeCompleteResponse(304, headers);
     }
@@ -552,8 +550,17 @@ export class Request {
 
     headers.setAll(bodyHeaders);
 
-    const rangeInfo = this.#rangeInfo(bodyBuffer, headers);
-    if (rangeInfo.error) {
+    const response = new HttpResponse();
+
+    response.status  = 200;
+    response.headers = headers;
+
+    const rangeInfo = HttpRange.rangeInfo(this.method, this.headers, headers, bodyBuffer.length);
+
+    if (!rangeInfo) {
+      HttpRange.setBasicResponseHeaders(headers);
+      await response.setBodyBuffer(bodyBuffer);
+    } else if (rangeInfo.error) {
       // Note: We _don't_ use the for-success `headers` here.
       const errOptions = {
         ...options,
@@ -561,10 +568,13 @@ export class Request {
         headers: rangeInfo.headers
       };
       return this.sendMetaResponse(rangeInfo.status, errOptions);
+    } else {
+      headers.setAll(rangeInfo.headers);
+      response.status = rangeInfo.status;
+      response.setBodyBuffer(bodyBuffer.subarray(rangeInfo.start, rangeInfo.end));
     }
 
-    headers.setAll(rangeInfo.headers);
-    return this.#writeCompleteResponse(rangeInfo.status, headers, rangeInfo.bodyBuffer);
+    return this.respond(response);
   }
 
   /**
@@ -609,8 +619,7 @@ export class Request {
     });
 
     if (HttpConditional.isContentFresh(this.method, this.headers, headers, stats)) {
-      // `rangeInfo()` is just to get basic range-support headers.
-      headers.setAll(this.#rangeInfo().headers);
+      HttpRange.setBasicResponseHeaders(headers);
       headers.deleteContent();
       return this.#writeCompleteResponse(304, headers);
     }
@@ -618,8 +627,17 @@ export class Request {
     // At this point, we need to make a "non-fresh" response (that is, send
     // content, assuming no header parsing issues).
 
-    const rangeInfo = this.#rangeInfo(stats.size, headers, stats);
-    if (rangeInfo.error) {
+    const response = new HttpResponse();
+
+    response.status  = 200;
+    response.headers = headers;
+
+    const rangeInfo = HttpRange.rangeInfo(this.method, this.headers, headers, stats);
+
+    if (!rangeInfo) {
+      HttpRange.setBasicResponseHeaders(headers);
+      await response.setBodyFile(path, { stats });
+    } else if (rangeInfo.error) {
       // Note: We _don't_ use the for-success `headers` here.
       const errOptions = {
         ...options,
@@ -627,26 +645,17 @@ export class Request {
         headers: rangeInfo.headers
       };
       return this.sendMetaResponse(rangeInfo.status, errOptions);
-    }
-
-    headers.setAll(rangeInfo.headers);
-
-    if (this.#requestMethod === 'head') {
-      return this.#writeCompleteResponse(rangeInfo.status, headers, null);
     } else {
-      const response = new HttpResponse();
-
-      response.status  = rangeInfo.status;
-      response.headers = headers;
-
+      headers.setAll(rangeInfo.headers);
+      response.status = rangeInfo.status;
       await response.setBodyFile(path, {
         stats,
-        offset: rangeInfo.bodyOffset,
-        length: rangeInfo.bodyLength
+        offset: rangeInfo.start,
+        length: rangeInfo.length
       });
-
-      return this.respond(response);
     }
+
+    return this.respond(response);
   }
 
   /**
@@ -900,90 +909,6 @@ export class Request {
     }
 
     return result;
-  }
-
-  /**
-   * Given an original response body-or-length and pending response headers,
-   * parses range-related request headers, if any, and and returns sufficient
-   * info for making the ultimate response.
-   *
-   * @param {?Buffer|number} [bodyBufferOrLength] The original response body if
-   *   available, or its length in bytes. If `null`, this method just returns a
-   *   basic no-range-request success response.
-   * @param {?HttpHeaders} [responseHeaders] Response headers to-be. Not used
-   *   when passing `null` for `bodyBuffer`.
-   * @param {?StatsBase} [stats] File stats from which to derive a last-modified
-   *   date, or `null` if no stats are available. If non-`null`, this takes
-   *   precedence over a header value.
-   * @returns {object} Disposition info.
-   */
-  #rangeInfo(bodyBufferOrLength = null, responseHeaders = null, stats = null) {
-    const RANGE_UNIT = 'bytes';
-
-    if (bodyBufferOrLength === null) {
-      return {
-        status:  200,
-        headers: { 'accept-ranges': RANGE_UNIT },
-      };
-    }
-
-    const [bodyBuffer, bodyLength] = (typeof bodyBufferOrLength === 'number')
-      ? [null, bodyBufferOrLength]
-      : [bodyBufferOrLength, bodyBufferOrLength.length];
-
-    function status200() {
-      return {
-        status:  200,
-        headers: { 'accept-ranges': RANGE_UNIT },
-        bodyBuffer,
-        bodyOffset: 0,
-        bodyLength
-      };
-    }
-
-    const { range } = this.headers;
-
-    if (!range) {
-      // Not a range request.
-      return status200();
-    }
-
-    if (!HttpConditional.isRangeApplicable(this.method, this.headers, responseHeaders, stats)) {
-      // There was a range condition which didn't match.
-      return status200();
-    }
-
-    // Note: The package `range-parser` is pretty lenient about the syntax it
-    // accepts. TODO: Replace with something stricter.
-    const ranges = rangeParser(bodyLength, range, { combine: true });
-    if ((ranges === -1) || (ranges === -2) || (ranges.type !== RANGE_UNIT)) {
-      // Couldn't parse at all, not satisfiable, or wrong unit.
-      return {
-        error:   true,
-        status:  416,
-        headers: { 'content-range': `${RANGE_UNIT} */${bodyLength}` }
-      };
-    }
-
-    if (ranges.length !== 1) {
-      // We don't deal with non-overlapping ranges.
-      return status200();
-    }
-
-    const { start, end } = ranges[0];
-    const finalLength    = (end - start) + 1; // Note: `end` is inclusive.
-    const finalBuffer    = bodyBuffer?.subarray(start, end + 1) ?? null;
-
-    return {
-      status:     206,
-      headers: {
-        'accept-ranges': RANGE_UNIT,
-        'content-range': `${RANGE_UNIT} ${start}-${end}/${bodyLength}`
-      },
-      bodyBuffer: finalBuffer,
-      bodyOffset: start,
-      bodyLength: finalLength
-    };
   }
 
   /**
