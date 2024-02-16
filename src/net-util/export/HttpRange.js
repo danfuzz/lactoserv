@@ -22,6 +22,17 @@ export class HttpRange {
    * parses range-related request headers, if any, and and returns sufficient
    * info for making the ultimate response.
    *
+   * A non-`null` response is an object of either:
+   *
+   * * In case of a valid range:
+   *   * `headers` -- Headers to add to the response.
+   *   * `status` -- Status code.
+   *   * `start`, `end`, `endInclusive`, `length` -- Extent of the range.
+   * * In case of a problem to report to the client:
+   *   * `error` -- `true`
+   *   * `headers` -- Headers to add to the response.
+   *   * `status` -- Status code.
+   *
    * @param {string} requestMethod The request method (e.g., `get`), in either
    *   lowercase or all-caps.
    * @param {HttpHeaders|object} requestHeaders Request headers which possibly
