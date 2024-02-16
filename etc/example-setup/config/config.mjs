@@ -137,6 +137,7 @@ const applications = [
     name:          'myStaticFunNo404',
     class:         'StaticFiles',
     siteDirectory: filePath('../site'),
+    cacheControl:  { public: true, maxAge: '5 min' },
   },
   {
     name:         'responseEmptyBody',
