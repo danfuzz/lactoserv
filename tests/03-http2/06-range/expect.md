@@ -36,7 +36,9 @@ Body is as expected.
 
 ### Body
 
-(no body)
+```
+416 Range Not Satisfiable
+```
 
 ## Not Satisfiable 2
 
@@ -46,4 +48,6 @@ Body is as expected.
 
 ### Body
 
-(no body)
+```
+416 Range Not Satisfiable
+```

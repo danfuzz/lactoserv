@@ -155,3 +155,146 @@ describe('.ZERO', () => {
     expect(Duration.ZERO.sec).toBe(0);
   });
 });
+
+describe.each`
+methodName    | returns
+${'parse'}    | ${'object'}
+${'parseSec'} | ${'number'}
+`('$methodName()', ({ methodName, returns }) => {
+  // Error: Wrong argument type.
+  test.each`
+  arg
+  ${undefined}
+  ${null}
+  ${false}
+  ${123}
+  ${['123s']}
+  ${new Map()}
+  ${new Duration(10)}
+  `('throws given $arg', ({ arg }) => {
+    expect(() => Duration[methodName](arg)).toThrow();
+  });
+
+  // Error: Syntax error / unknown unit.
+  test.each`
+  arg
+  ${''}
+  ${'123'}       // No unit.
+  ${'hr'}        // No number.
+  ${'1 x'}       // Unknown unit.
+  ${'1 s_ec'}    // Unknown unit.
+  ${'1z sec'}    // Invalid character in number.
+  ${'$1 sec'}    // Ditto.
+  ${'1  sec'}    // Too many spaces after number.
+  ${'1 2 sec'}   // No spaces in number.
+  ${'_1 sec'}    // Leading underscore not allowed.
+  ${'1_ sec'}    // Trailing underscore not allowed (with space after).
+  ${'1__2 sec'}  // Double underscores not allowed in number.
+  ${'3__sec'}    // Double underscores not allowed after number.
+  ${'1._2 sec'}  // Underscore not allowed next to dot.
+  ${'1_.2 sec'}  // Ditto.
+  ${'1e2e3 sec'} // At most one exponent.
+  ${'1e1.2 sec'} // No fractional exponent.
+  ${'. sec'}     // Generally invalid number syntax, as are all the rest...
+  ${'..1 sec'}
+  ${'1.. sec'}
+  ${'1..2 sec'}
+  ${'e1 sec'}
+  ${'E1 sec'}
+  ${'.e sec'}
+  ${'.e1 sec'}
+  ${'1ee1 sec'}
+  ${'++1 sec'}
+  ${'--1 sec'}
+  ${'+-1 sec'}
+  ${'-+1 sec'}
+  ${'1+ sec'}
+  ${'1- sec'}
+  ${'1+1 sec'}
+  ${'1-1 sec'}
+  ${'1e sec'}
+  ${'1E sec'}
+  ${'1e+ sec'}
+  ${'1E- sec'}
+  ${'1e+ sec'}
+  ${'1E- sec'}
+  ${'1e++1 sec'}
+  ${'1e--1 sec'}
+  ${'1e1+ sec'}
+  ${'1e1- sec'}
+  ${'1e1+1 sec'}
+  ${'1e1-1 sec'}
+  `('returns `null` given $arg', ({ arg }) => {
+    expect(Duration[methodName](arg)).toBeNull();
+  });
+
+  // Success cases
+  test.each`
+  arg                     | expected
+  ${'0 nsec'}             | ${0}
+  ${'0 ns'}               | ${0}
+  ${'0 usec'}             | ${0}
+  ${'0 us'}               | ${0}
+  ${'0 msec'}             | ${0}
+  ${'0 ms'}               | ${0}
+  ${'0 sec'}              | ${0}
+  ${'0 s'}                | ${0}
+  ${'0 min'}              | ${0}
+  ${'0 m'}                | ${0}
+  ${'0 hr'}               | ${0}
+  ${'0 h'}                | ${0}
+  ${'0 day'}              | ${0}
+  ${'0 d'}                | ${0}
+  ${'0 sec'}              | ${0}
+  ${'1_000_000_000 nsec'} | ${1}
+  ${'1_000_000_000 ns'}   | ${1}
+  ${'1_000_000 usec'}     | ${1}
+  ${'1_000_000 us'}       | ${1}
+  ${'1_000 msec'}         | ${1}
+  ${'1_000 ms'}           | ${1}
+  ${'1 sec'}              | ${1}
+  ${'1 s'}                | ${1}
+  ${'1 min'}              | ${60}
+  ${'1 m'}                | ${60}
+  ${'1 hr'}               | ${3600}
+  ${'1 h'}                | ${3600}
+  ${'1 day'}              | ${86400}
+  ${'1 d'}                | ${86400}
+  ${'234.567_nsec'}       | ${0.000000234567}
+  ${'234.567_ns'}         | ${0.000000234567}
+  ${'234.567_usec'}       | ${0.000234567}
+  ${'234.567_us'}         | ${0.000234567}
+  ${'234.567_msec'}       | ${234.567 * (1 / 1000)} // Hooray for floating point!
+  ${'234.567_ms'}         | ${234.567 * (1 / 1000)}
+  ${'234.567_sec'}        | ${234.567}
+  ${'234.567_s'}          | ${234.567}
+  ${'234.567_min'}        | ${234.567 * 60}
+  ${'234.567_m'}          | ${234.567 * 60}
+  ${'234.567_hr'}         | ${234.567 * 60 * 60}
+  ${'234.567_h'}          | ${234.567 * 60 * 60}
+  ${'234.567_day'}        | ${234.567 * 60 * 60 * 24}
+  ${'234.567_d'}          | ${234.567 * 60 * 60 * 24}
+  ${'023 s'}              | ${23}
+  ${'0.1 s'}              | ${0.1}
+  ${'123.1 s'}            | ${123.1}
+  ${'-1 s'}               | ${-1}
+  ${'-2.987 s'}           | ${-2.987}
+  ${'+3 s'}               | ${3}
+  ${'+4.567_890 s'}       | ${4.56789}
+  ${'2e1 s'}              | ${20}
+  ${'2e+1 s'}             | ${20}
+  ${'2e+02 s'}            | ${200}
+  ${'2e-1 s'}             | ${0.2}
+  ${'2e+0 s'}             | ${2}
+  ${'2e-0 s'}             | ${2}
+  `('returns $expected given $arg', ({ arg, expected }) => {
+    const result = Duration[methodName](arg);
+
+    if (returns === 'object') {
+      expect(result).toBeInstanceOf(Duration);
+      expect(result.sec).toBe(expected);
+    } else {
+      expect(result).toBe(expected);
+    }
+  });
+});

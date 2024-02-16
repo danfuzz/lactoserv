@@ -1,19 +1,16 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import * as fs from 'node:fs/promises';
 import { ClientRequest, ServerResponse } from 'node:http';
 import * as http2 from 'node:http2';
 
 import express from 'express';
-import rangeParser from 'range-parser';
 
 import { ManualPromise } from '@this/async';
 import { TreePathKey } from '@this/collections';
-import { Paths, StatsBase } from '@this/fs-util';
 import { FormatUtils, IntfLogger } from '@this/loggy';
-import { Cookies, HostInfo, HttpConditional, HttpHeaders, HttpResponse,
-  HttpUtil, MimeTypes } from '@this/net-util';
+import { Cookies, HostInfo, HttpHeaders, HttpResponse, HttpUtil, MimeTypes }
+  from '@this/net-util';
 import { AskIf, MustBe } from '@this/typey';
 
 import { WranglerContext } from '#x/WranglerContext';
@@ -489,167 +486,6 @@ export class Request {
   }
 
   /**
-   * Issues a successful response, with the given body contents or with an empty
-   * body as appropriate. The actual reported status will be one of:
-   *
-   * * `200` -- A `body` was passed (even if empty), and there were no
-   *   conditional request parameters (e.g., `if-none-match`) which indicate
-   *   that the body shouldn't be sent. The body is sent in this case, unless
-   *   the request method was `HEAD`.
-   * * `204` -- No `body` was passed. (And no body is sent in response.)
-   * * `206` -- A body is being returned, and a range request matches which can
-   *   be satisfied with a single range result. (Multiple disjoint range matches
-   *   are treated like non-range requests.)
-   * * `304` -- There was at least one conditional request parameter which
-   *   matched. No body is sent.
-   * * `416` -- A range request couldn't be satisfied. The original body isn't
-   *   sent, but an error message body _is_ sent.
-   *
-   * If the request method was `HEAD`, this does _not_ send the `body`.
-   *
-   * In all successful cases, this method always responds with a `Cache-Control`
-   * header.
-   *
-   * In all successful cases where a `body` is passed (even if empty), this
-   * always reponds with the headers `Accept-Ranges` and `ETag`.
-   *
-   * This method honors range requests, and will reject ones that cannot be
-   * satisfied.
-   *
-   * @param {string|Buffer|null} body Complete body to send, with `null`
-   *   indicating a zero-length response (which, to be clear is different than
-   *   not sending a body at all). If passed as a `string`, it is encoded as
-   *   UTF-8, and the content type of the response will list that as the
-   *   charset.
-   * @param {string} contentType Content type for the body, in a form as
-   *   described by this class's header comment.
-   * @param {object} [options] Options to control response behavior. See class
-   *   header comment for more details. Header-related options are only used
-   *   for non-error responses.
-   * @returns {boolean} `true` when the response is completed.
-   * @throws {Error} Thrown if there is any trouble sending the response.
-   */
-  async sendContent(body, contentType, options = {}) {
-    const { bodyBuffer, bodyHeaders } = Request.#makeBody({
-      ...options,
-      body,
-      contentType
-    });
-
-    // Start with the headers that will be used for any non-error response. All
-    // such responses are cacheable, per spec.
-    const headers = this.#makeResponseHeaders('cacheable', options);
-
-    if (HttpConditional.isContentFresh(this.method, this.headers, headers)) {
-      // `rangeInfo()` is just to get basic range-support headers.
-      headers.setAll(this.#rangeInfo().headers);
-      headers.deleteContent();
-      return this.#writeCompleteResponse(304, headers);
-    }
-
-    // At this point, we need to make a "non-fresh" response (that is, send
-    // content, assuming no header parsing issues).
-
-    headers.setAll(bodyHeaders);
-
-    const rangeInfo = this.#rangeInfo(bodyBuffer, headers);
-    if (rangeInfo.error) {
-      // Note: We _don't_ use the for-success `headers` here.
-      const errOptions = {
-        ...options,
-        cookies: null,
-        headers: rangeInfo.headers
-      };
-      return this.sendMetaResponse(rangeInfo.status, errOptions);
-    }
-
-    headers.setAll(rangeInfo.headers);
-    return this.#writeCompleteResponse(rangeInfo.status, headers, rangeInfo.bodyBuffer);
-  }
-
-  /**
-   * Issues a successful response, with the contents of the given file or with
-   * an empty body as appropriate. The actual reported status will vary, with
-   * the same possibilities as with {@link #sendContent}.
-   *
-   * This method throws an error if the given `path` does not correspond to a
-   * readable non-directory file. That is, this method is not in the business of
-   * handling directory redirection, higher level not-found reporting, etc. That
-   * sort of stuff should be handled _before_ calling this method.
-   *
-   * @param {string} path Absolute path to the file to send.
-   * @param {object} options Options to control response behavior.
-   *   Header-related options are only used for non-error responses. See class
-   *   header comment for more details.
-   * @param {string} [options.contentType] Content type for the response. If
-   *   not present or `null`, the content type will be derived from the suffix
-   *   of the final file name of `path`.
-   * @returns {boolean} `true` when the response is completed.
-   * @throws {Error} Thrown if there is any trouble sending the response.
-   */
-  async sendFile(path, options = {}) {
-    Paths.checkAbsolutePath(path);
-    MustBe.object(options);
-
-    const {
-      contentType: origContentType = null
-    } = options;
-
-    const contentType = origContentType
-      ? MimeTypes.typeFromExtensionOrType(origContentType, { charSet: 'utf-8' })
-      : MimeTypes.typeFromPathExtension(path, { charSet: 'utf-8' });
-
-    const stats = await fs.stat(path);
-    if (stats.isDirectory()) {
-      throw new Error(`Cannot send directory: ${path}`);
-    }
-
-    const headers = this.#makeResponseHeaders('cacheable', options, {
-      'content-type': contentType
-    });
-
-    if (HttpConditional.isContentFresh(this.method, this.headers, headers, stats)) {
-      // `rangeInfo()` is just to get basic range-support headers.
-      headers.setAll(this.#rangeInfo().headers);
-      headers.deleteContent();
-      return this.#writeCompleteResponse(304, headers);
-    }
-
-    // At this point, we need to make a "non-fresh" response (that is, send
-    // content, assuming no header parsing issues).
-
-    const rangeInfo = this.#rangeInfo(stats.size, headers, stats);
-    if (rangeInfo.error) {
-      // Note: We _don't_ use the for-success `headers` here.
-      const errOptions = {
-        ...options,
-        cookies: null,
-        headers: rangeInfo.headers
-      };
-      return this.sendMetaResponse(rangeInfo.status, errOptions);
-    }
-
-    headers.setAll(rangeInfo.headers);
-
-    if (this.#requestMethod === 'head') {
-      return this.#writeCompleteResponse(rangeInfo.status, headers, null);
-    } else {
-      const response = new HttpResponse();
-
-      response.status  = rangeInfo.status;
-      response.headers = headers;
-
-      await response.setBodyFile(path, {
-        stats,
-        offset: rangeInfo.bodyOffset,
-        length: rangeInfo.bodyLength
-      });
-
-      return this.respond(response);
-    }
-  }
-
-  /**
    * Issues a non-content meta-ish response, with optional body. "Non-content
    * meta-ish" here means that the status code _doesn't_ indicate that the body
    * is meant to be higher-level application content, which furthermore means
@@ -698,28 +534,6 @@ export class Request {
     }
 
     return this.respond(response);
-  }
-
-  /**
-   * Issues a successful response, with no body. The reported status will always
-   * be `204` ("No content"), and the response always includes a `Cache-Control`
-   * header.
-   *
-   * This method ignores range requests entirely.
-   *
-   * **Note:** What this method does is different than calling {@link
-   * #sendContent} with a zero-length body.
-   *
-   * @param {object} options Options to control response behavior. See class
-   *   header comment for more details.
-   * @returns {boolean} `true` when the response is completed.
-   * @throws {Error} Thrown if there is any trouble sending the response.
-   */
-  async sendNoBodyResponse(options = {}) {
-    const status  = 204;
-    const headers = this.#makeResponseHeaders(status, options);
-
-    return this.#writeCompleteResponse(status, headers);
   }
 
   /**
@@ -900,90 +714,6 @@ export class Request {
     }
 
     return result;
-  }
-
-  /**
-   * Given an original response body-or-length and pending response headers,
-   * parses range-related request headers, if any, and and returns sufficient
-   * info for making the ultimate response.
-   *
-   * @param {?Buffer|number} [bodyBufferOrLength] The original response body if
-   *   available, or its length in bytes. If `null`, this method just returns a
-   *   basic no-range-request success response.
-   * @param {?HttpHeaders} [responseHeaders] Response headers to-be. Not used
-   *   when passing `null` for `bodyBuffer`.
-   * @param {?StatsBase} [stats] File stats from which to derive a last-modified
-   *   date, or `null` if no stats are available. If non-`null`, this takes
-   *   precedence over a header value.
-   * @returns {object} Disposition info.
-   */
-  #rangeInfo(bodyBufferOrLength = null, responseHeaders = null, stats = null) {
-    const RANGE_UNIT = 'bytes';
-
-    if (bodyBufferOrLength === null) {
-      return {
-        status:  200,
-        headers: { 'accept-ranges': RANGE_UNIT },
-      };
-    }
-
-    const [bodyBuffer, bodyLength] = (typeof bodyBufferOrLength === 'number')
-      ? [null, bodyBufferOrLength]
-      : [bodyBufferOrLength, bodyBufferOrLength.length];
-
-    function status200() {
-      return {
-        status:  200,
-        headers: { 'accept-ranges': RANGE_UNIT },
-        bodyBuffer,
-        bodyOffset: 0,
-        bodyLength
-      };
-    }
-
-    const { range } = this.headers;
-
-    if (!range) {
-      // Not a range request.
-      return status200();
-    }
-
-    if (!HttpConditional.isRangeApplicable(this.method, this.headers, responseHeaders, stats)) {
-      // There was a range condition which didn't match.
-      return status200();
-    }
-
-    // Note: The package `range-parser` is pretty lenient about the syntax it
-    // accepts. TODO: Replace with something stricter.
-    const ranges = rangeParser(bodyLength, range, { combine: true });
-    if ((ranges === -1) || (ranges === -2) || (ranges.type !== RANGE_UNIT)) {
-      // Couldn't parse at all, not satisfiable, or wrong unit.
-      return {
-        error:   true,
-        status:  416,
-        headers: { 'content-range': `${RANGE_UNIT} */${bodyLength}` }
-      };
-    }
-
-    if (ranges.length !== 1) {
-      // We don't deal with non-overlapping ranges.
-      return status200();
-    }
-
-    const { start, end } = ranges[0];
-    const finalLength    = (end - start) + 1; // Note: `end` is inclusive.
-    const finalBuffer    = bodyBuffer?.subarray(start, end + 1) ?? null;
-
-    return {
-      status:     206,
-      headers: {
-        'accept-ranges': RANGE_UNIT,
-        'content-range': `${RANGE_UNIT} ${start}-${end}/${bodyLength}`
-      },
-      bodyBuffer: finalBuffer,
-      bodyOffset: start,
-      bodyLength: finalLength
-    };
   }
 
   /**

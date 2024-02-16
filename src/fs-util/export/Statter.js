@@ -68,13 +68,13 @@ export class Statter {
    * which ought to be a directory) exists but is _not_ a directory.
    *
    * @param {string} path Path to check.
-   * @returns {?fs.BigIntStats} The stats, if the path exists, or `null` if not.
+   * @returns {?fs.Stats} The stats, if the path exists, or `null` if not.
    */
   static async statOrNull(path) {
     MustBe.string(path);
 
     try {
-      return await fs.stat(path, true);
+      return await fs.stat(path);
     } catch (e) {
       // Return `null` for errors which indicate that the file wasn't found.
       switch (e.code) {

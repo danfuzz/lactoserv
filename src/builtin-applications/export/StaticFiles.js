@@ -6,7 +6,8 @@ import fs from 'node:fs/promises';
 import { Paths, Statter } from '@this/fs-util';
 import { IntfLogger } from '@this/loggy';
 import { DispatchInfo } from '@this/net-protocol';
-import { EtagGenerator, MimeTypes } from '@this/net-util';
+import { EtagGenerator, HttpResponse, HttpUtil, MimeTypes }
+  from '@this/net-util';
 import { ApplicationConfig } from '@this/sys-config';
 import { BaseApplication } from '@this/sys-framework';
 
@@ -26,15 +27,21 @@ export class StaticFiles extends BaseApplication {
   #siteDirectory;
 
   /**
+   * @type {?string} `cache-control` header to automatically include, or
+   * `null` not to do that.
+   */
+  #cacheControl = null;
+
+  /**
    * @type {?EtagGenerator} Etag generator to use, or `null` if not using one.
    */
   #etagGenerator = null;
 
   /**
-   * @type {?object} Options to use when issuing a not-found response, or `null`
-   * if not yet calculated (including if not handling not-found errors).
+   * @type {?HttpResponse} Not-found response to issue, or `null` if either not
+   * yet calculated or if this instance isn't handling not-found errors.
    */
-  #notFoundOptions = null;
+  #notFoundResponse = null;
 
   /**
    * Constructs an instance.
@@ -45,10 +52,11 @@ export class StaticFiles extends BaseApplication {
   constructor(config, logger) {
     super(config, logger);
 
-    const { etagOptions, notFoundPath, siteDirectory } = config;
+    const { cacheControl, etagOptions, notFoundPath, siteDirectory } = config;
 
     this.#notFoundPath  = notFoundPath;
     this.#siteDirectory = siteDirectory;
+    this.#cacheControl  = cacheControl;
     this.#etagGenerator = etagOptions ? new EtagGenerator(etagOptions) : null;
   }
 
@@ -57,8 +65,8 @@ export class StaticFiles extends BaseApplication {
     const resolved = await this.#resolvePath(dispatch);
 
     if (!resolved) {
-      if (this.#notFoundOptions) {
-        return request.sendNotFound(this.#notFoundOptions);
+      if (this.#notFoundResponse) {
+        return request.respond(this.#notFoundResponse);
       } else {
         return false;
       }
@@ -69,15 +77,29 @@ export class StaticFiles extends BaseApplication {
 
       return request.sendRedirect(redirectTo, { status: 301 });
     } else if (resolved.path) {
-      const options = { ...StaticFiles.#SEND_OPTIONS };
+      const contentType =
+        MimeTypes.typeFromPathExtension(resolved.path, { charSet: 'utf-8' });
 
-      if (this.#etagGenerator) {
-        options.headers = {
-          'etag': await this.#etagGenerator.etagFromFile(resolved.path)
-        };
+      const rawResponse = new HttpResponse();
+
+      rawResponse.status = 200;
+      rawResponse.headers.set('content-type', contentType);
+      await rawResponse.setBodyFile(resolved.path);
+
+      if (this.#cacheControl) {
+        rawResponse.cacheControl = this.#cacheControl;
       }
 
-      return await request.sendFile(resolved.path, options);
+      if (this.#etagGenerator) {
+        rawResponse.headers.set('etag',
+          await this.#etagGenerator.etagFromFile(resolved.path));
+      }
+
+      const { headers, method } = request;
+      const response = rawResponse.adjustFor(
+        method, headers, { conditional: true, range: true });
+
+      return await request.respond(response);
     } else {
       // Shouldn't happen. If we get here, it's a bug in this class.
       throw new Error('Shouldn\'t happen.');
@@ -99,11 +121,18 @@ export class StaticFiles extends BaseApplication {
         throw new Error(`Not found or not a file: ${notFoundPath}`);
       }
 
-      this.#notFoundOptions = {
-        ...(StaticFiles.#SEND_OPTIONS),
-        body:        await fs.readFile(notFoundPath),
-        contentType: MimeTypes.typeFromPathExtension(notFoundPath, { charSet: 'utf-8' })
-      };
+      const response = new HttpResponse();
+
+      response.status       = 404;
+      response.cacheControl = this.#cacheControl;
+
+      const body        = await fs.readFile(notFoundPath);
+      const contentType = MimeTypes.typeFromPathExtension(notFoundPath, { charSet: 'utf-8' });
+
+      response.setBodyBuffer(body);
+      response.headers.set('content-type', contentType);
+
+      this.#notFoundResponse = response;
     }
   }
 
@@ -213,11 +242,6 @@ export class StaticFiles extends BaseApplication {
   // Static members
   //
 
-  /** @type {object} File sending/serving configuration options. */
-  static #SEND_OPTIONS = Object.freeze({
-    maxAgeMsec: 5 * 60 * 1000 // 5 minutes.
-  });
-
   /** @override */
   static get CONFIG_CLASS() {
     return this.#Config;
@@ -237,10 +261,16 @@ export class StaticFiles extends BaseApplication {
     #siteDirectory;
 
     /**
+     * @type {?string} `cache-control` header to automatically include, or
+     * `null` not to do that.
+     */
+    #cacheControl = null;
+
+    /**
      * @type {?object} Etag configuration options, or `null` not to generate
      * etags.
      */
-    #etagOptions;
+    #etagOptions = null;
 
     /**
      * Constructs an instance.
@@ -251,7 +281,8 @@ export class StaticFiles extends BaseApplication {
       super(config);
 
       const {
-        etag = null,
+        cacheControl = null,
+        etag         = null,
         notFoundPath = null,
         siteDirectory
       } = config;
@@ -260,9 +291,28 @@ export class StaticFiles extends BaseApplication {
         ? null
         : Paths.checkAbsolutePath(notFoundPath);
       this.#siteDirectory = Paths.checkAbsolutePath(siteDirectory);
-      this.#etagOptions = ((etag === null) || (etag === false))
-        ? null
-        : EtagGenerator.expandOptions(etag);
+
+      if ((cacheControl !== null) && (cacheControl !== false)) {
+        this.#cacheControl = (typeof cacheControl === 'string')
+          ? cacheControl
+          : HttpUtil.cacheControlHeader(cacheControl);
+        if (!this.#cacheControl) {
+          throw new Error('Invalid `cacheControl` option.');
+        }
+      }
+
+      if ((etag !== null) && (etag !== false)) {
+        this.#etagOptions =
+          EtagGenerator.expandOptions((etag === true) ? {} : etag);
+      }
+    }
+
+    /**
+     * @returns {?string} `cache-control` header to automatically include, or
+     * `null` not to do that.
+     */
+    get cacheControl() {
+      return this.#cacheControl;
     }
 
     /**

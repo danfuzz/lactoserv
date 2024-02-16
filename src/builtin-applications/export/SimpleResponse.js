@@ -4,7 +4,7 @@
 import fs from 'node:fs/promises';
 
 import { Paths, Statter } from '@this/fs-util';
-import { EtagGenerator, HttpUtil, MimeTypes } from '@this/net-util';
+import { EtagGenerator, HttpResponse, HttpUtil, MimeTypes } from '@this/net-util';
 import { ApplicationConfig } from '@this/sys-config';
 import { BaseApplication } from '@this/sys-framework';
 import { MustBe } from '@this/typey';
@@ -15,56 +15,66 @@ import { MustBe } from '@this/typey';
  */
 export class SimpleResponse extends BaseApplication {
   /**
-   * @type {?function(Request): Promise} Function to call to issue a response.
+   * @type {HttpResponse} Response template to clone for all actual responses.
    */
-  #respondFunc = null;
+  #response = null;
 
   // Note: The default contructor is fine for this class.
 
   /** @override */
   async _impl_handleRequest(request, dispatch_unused) {
-    return await this.#respondFunc(request);
+    const { headers, method } = request;
+    const response = this.#response.adjustFor(
+      method, headers, { conditional: true, range: true });
+
+    return await request.respond(response);
   }
 
   /** @override */
   async _impl_start(isReload_unused) {
-    if (this.#respondFunc) {
+    if (this.#response) {
       return;
     }
 
-    const { body, contentType, etagOptions, filePath } = this.config;
-    let finalBody = body;
+    const { body, contentType, cacheControl, etagOptions, filePath } = this.config;
 
-    const sendOptions = {
-      ...SimpleResponse.#SEND_OPTIONS,
-      headers: {
-        'last-modified': HttpUtil.dateStringFromMsec(Date.now())
-      }
-    };
+    const response  = new HttpResponse();
+    const headers   = response.headers;
 
     if (filePath) {
-      if (!await Statter.fileExists(filePath)) {
+      const stats = await Statter.statOrNull(filePath);
+      if (!stats || stats.isDirectory()) {
         throw new Error(`Not found or not a non-directory file: ${filePath}`);
       }
+      response.setBodyBuffer(await fs.readFile(filePath));
+      headers.set('content-type', contentType);
+      headers.set('last-modified', HttpUtil.dateStringFromStatsMtime(stats));
+      response.status = 200;
+    } else if (body) {
+      if (typeof body === 'string') {
+        response.setBodyString(body, contentType);
+      } else {
+        response.setBodyBuffer(body);
+        headers.set('content-type', contentType);
+      }
+      headers.set('last-modified', HttpUtil.dateStringFromMsec(Date.now()));
+      response.status = 200;
+    } else {
+      response.setNoBody();
+      response.status = 204; // "No Content."
+    }
 
-      finalBody = await fs.readFile(filePath);
+    if (cacheControl) {
+      response.cacheControl = cacheControl;
     }
 
     if (etagOptions) {
       const etagGen = new EtagGenerator(etagOptions);
-      const etag    = await etagGen.etagFromData(finalBody ?? '');
-      sendOptions.headers['etag'] = etag;
+      const etag    = await etagGen.etagFromData(response.bodyBuffer ?? '');
+      headers.set('etag', etag);
     }
 
-    if (finalBody) {
-      this.#respondFunc = (request) => {
-        return request.sendContent(finalBody, contentType, sendOptions);
-      };
-    } else {
-      this.#respondFunc = (request) => {
-        return request.sendNoBodyResponse(sendOptions);
-      };
-    }
+    this.#response = response;
   }
 
   /** @override */
@@ -76,11 +86,6 @@ export class SimpleResponse extends BaseApplication {
   //
   // Static members
   //
-
-  /** @type {object} File sending/serving configuration options. */
-  static #SEND_OPTIONS = Object.freeze({
-    maxAgeMsec: 5 * 60 * 1000 // 5 minutes.
-  });
 
   /** @override */
   static get CONFIG_CLASS() {
@@ -103,6 +108,12 @@ export class SimpleResponse extends BaseApplication {
      */
     #body = null;
 
+    /**
+     * @type {?string} `cache-control` header to automatically include, or
+     * `null` not to do that.
+     */
+    #cacheControl = null;
+
     /** @type {?object} Etag-generating options, or `null` not to do that. */
     #etagOptions = null;
 
@@ -121,10 +132,11 @@ export class SimpleResponse extends BaseApplication {
       super(config);
 
       const {
-        body        = null,
-        contentType = null,
-        etag        = null,
-        filePath    = null
+        body         = null,
+        contentType  = null,
+        cacheControl = null,
+        etag         = null,
+        filePath     = null
       } = config;
 
       if (body !== null) {
@@ -138,8 +150,11 @@ export class SimpleResponse extends BaseApplication {
           throw new Error('Cannot specify both `body` and `filePath`.');
         }
 
+        const isText = typeof body === 'string';
+
         this.#body        = body;
-        this.#contentType = MimeTypes.typeFromExtensionOrType(contentType, { charSet: 'utf-8' });
+        this.#contentType =
+          MimeTypes.typeFromExtensionOrType(contentType, { charSet: 'utf-8', isText });
       } else if (filePath !== null) {
         this.#filePath    = Paths.checkAbsolutePath(filePath);
         this.#contentType = (contentType === null)
@@ -149,6 +164,15 @@ export class SimpleResponse extends BaseApplication {
         // It's an empty body.
         if (contentType !== null) {
           throw new Error('Cannot supply `contentType` with empty body.');
+        }
+      }
+
+      if ((cacheControl !== null) && (cacheControl !== false)) {
+        this.#cacheControl = (typeof cacheControl === 'string')
+          ? cacheControl
+          : HttpUtil.cacheControlHeader(cacheControl);
+        if (!this.#cacheControl) {
+          throw new Error('Invalid `cacheControl` option.');
         }
       }
 
@@ -164,6 +188,14 @@ export class SimpleResponse extends BaseApplication {
      */
     get body() {
       return this.#body;
+    }
+
+    /**
+     * @returns {?string} `cache-control` header to automatically include, or
+     * `null` not to do that.
+     */
+    get cacheControl() {
+      return this.#cacheControl;
     }
 
     /**

@@ -7,10 +7,13 @@ import http from 'node:http';
 import statuses from 'statuses';
 
 import { ManualPromise } from '@this/async';
+import { Moment } from '@this/data-values';
 import { Paths, StatsBase } from '@this/fs-util';
 import { MustBe } from '@this/typey';
 
+import { HttpConditional } from '#x/HttpConditional';
 import { HttpHeaders } from '#x/HttpHeaders';
+import { HttpRange } from '#x/HttpRange';
 import { HttpUtil } from '#x/HttpUtil';
 import { MimeTypes } from '#x/MimeTypes';
 
@@ -46,10 +49,34 @@ export class HttpResponse {
   #cacheControl = null;
 
   /**
-   * Constructs an instance. It is initially empty / unset.
+   * Constructs an instance.
+   *
+   * @param {HttpResponse} [orig] Original instance to copy, or `null` to start
+   *   the instance out with nothing set.
    */
-  constructor() {
-    // Nothing to do here. (This method exists at all just for the doc comment.)
+  constructor(orig = null) {
+    if (orig) {
+      MustBe.instanceOf(orig, HttpResponse);
+      this.#status       = orig.#status;
+      this.#headers      = orig.#headers ? new HttpHeaders(orig.headers) : null;
+      this.#body         = orig.#body;
+      this.#cacheControl = orig.#cacheControl;
+    }
+  }
+
+  /**
+   * @returns {?Buffer} Buffer containing all response data, or `null` if this
+   * instance never had immediate data set. Specifically, this is only
+   * non-`null` after either {@link #setBodyBuffer} or {@link #setBodyString}
+   * has been called (and not overwritten by another body-setting call).
+   *
+   * **Note:** The returned buffer is shared with this instance. As such, it's
+   * generally ill-advised to modify its contents.
+   */
+  get bodyBuffer() {
+    const { type, buffer } = this.#body;
+
+    return (type === 'buffer') ? buffer : null;
   }
 
   /**
@@ -69,7 +96,11 @@ export class HttpResponse {
    * error to include `cache-control` in {@link #headers}.
    */
   set cacheControl(value) {
-    this.#cacheControl = MustBe.string(value, /./);
+    if (value !== null) {
+      MustBe.string(value, /./);
+    }
+
+    this.#cacheControl = value;
   }
 
   /**
@@ -108,6 +139,99 @@ export class HttpResponse {
   }
 
   /**
+   * Adjusts the state of this response, based on the nature of the given
+   * request. Returns a new instance with adjustments as necessary, or returns
+   * this instance if no adjustments were required. Options -- all `boolean` --
+   * indicate which adjustments to make, and include:
+   *
+   * * `conditional` -- Handle the conditional "freshness" headers
+   *   `if-none-match` and `if-modified-since`.
+   * * `range` -- Handle range-related headers `range` and `if-range`.
+   *
+   * This method always returns `this` if `status` is set to something other
+   * than `200`.
+   *
+   * @param {string} requestMethod The original request method.
+   * @param {HttpHeaders|object} requestHeaders The request headers.
+   * @param {object} options Options indicating which adjustments to make.
+   * @returns {HttpResponse} New response instance containing adjustments, or
+   *   `this` if no adjustments were required.
+   */
+  adjustFor(requestMethod, requestHeaders, options) {
+    const { headers, status } = this;
+
+    if (status !== 200) {
+      if (status === null) {
+        throw new Error('Cannot adjust until `status` is set.');
+      }
+      return this;
+    }
+
+    if (this.#body === null) {
+      throw new Error('Cannot adjust until body is set.');
+    }
+
+    const { conditional, range } = options;
+
+    if (conditional) {
+      const { type, stats } = this.#body;
+
+      let isFresh;
+      if (type === 'file') {
+        isFresh = HttpConditional.isContentFresh(requestMethod, requestHeaders, headers, stats);
+      } else {
+        isFresh = HttpConditional.isContentFresh(requestMethod, requestHeaders, headers);
+      }
+
+      if (isFresh) {
+        const result = new HttpResponse(this);
+        if (range) {
+          HttpRange.setBasicResponseHeaders(result.headers);
+        }
+        result.headers.deleteContent();
+        result.status = 304; // "Not Modified."
+        result.setNoBody();
+
+        return result;
+      }
+    }
+
+    if (range) {
+      const { type, buffer, stats } = this.#body;
+
+      let rangeInfo;
+      if (type === 'buffer') {
+        rangeInfo = HttpRange.rangeInfo(requestMethod, requestHeaders, headers, buffer.length);
+      } else if (type === 'file') {
+        rangeInfo = HttpRange.rangeInfo(requestMethod, requestHeaders, headers, stats);
+      } else {
+        rangeInfo = null;
+      }
+
+      if (!rangeInfo) {
+        const result = new HttpResponse(this);
+        HttpRange.setBasicResponseHeaders(result.headers);
+        return result;
+      } else if (rangeInfo.error) {
+        // Note: We _don't_ use the for-success `headers` here.
+        const result = new HttpResponse();
+        result.headers = new HttpHeaders(rangeInfo.headers); // TODO: Fix this when `rangeInfo` changes.
+        result.status  = rangeInfo.status;
+        result.setBodyMessage();
+        return result;
+      } else {
+        const result = new HttpResponse(this);
+        result.headers.setAll(rangeInfo.headers);
+        result.status = rangeInfo.status;
+        result.sliceBody(rangeInfo.start, rangeInfo.end);
+        return result;
+      }
+    }
+
+    return this;
+  }
+
+  /**
    * Sets the response body to be based on a buffer.
    *
    * @param {Buffer} body The full body.
@@ -127,48 +251,7 @@ export class HttpResponse {
       ? body
       : body.subarray(finalOffset, finalOffset + finalLength);
 
-    this.#body = { type: 'buffer', buffer };
-  }
-
-  /**
-   * Sets the response body to be a diagnostic message of some sort. This is
-   * meant to be used for non-content responses (anything other than status
-   * `2xx` and _some_ `3xx`). If no `options` are given, a simple default
-   * message is produced based on the status code. In all cases, the response
-   * body is sent as content type `text/plain` with encoding `utf-8`.
-   *
-   * @param {?object} [options] Options to control the response body.
-   * @param {?string|Buffer} [options.body] Complete body content to include.
-   * @param {?string} [options.bodyExtra] Extra body content to include, in
-   *   addition to the default body. One of this or `options.body` is must be
-   *   passed, but not both.
-   * @param {?string} [options.contentType] Content type of `options.body`.
-   *   Required if `options.body` is a `Buffer`. Disallowed in all other cases.
-   */
-  setBodyMessage(options = null) {
-    const { body = null, bodyExtra = null, contentType = null } = options ?? {};
-
-    if (contentType && !(body instanceof Buffer)) {
-      throw new Error('Can only specify `contentType` when passing `body` as a `Buffer`.');
-    } else if (!contentType && (body instanceof Buffer)) {
-      throw new Error('Must specify `contentType` when passing `body` as a `Buffer`.');
-    }
-
-    if (body !== null) {
-      if (bodyExtra !== null) {
-        throw new Error('Cannot specify both `body` and `bodyExtra`.');
-      }
-
-      if (body instanceof Buffer) {
-        this.#body = { type: 'message', messageBuffer: body, contentType };
-      } else {
-        this.#body = { type: 'message', message: MustBe.string(body) };
-      }
-    } else if (bodyExtra !== null) {
-      this.#body = { type: 'message', messageExtra: MustBe.string(bodyExtra) };
-    } else {
-      throw new Error('Must specify either `body` or `bodyExtra`.');
-    }
+    this.#body = Object.freeze({ type: 'buffer', buffer });
   }
 
   /**
@@ -199,18 +282,65 @@ export class HttpResponse {
     } = options ?? {};
 
     const stats = await HttpResponse.#adjustStats(maybeStats, absolutePath);
+    const lmMoment = lastModified
+      ? { lastModified: Moment.fromMsec(Number(stats.mtimeMs)) }
+      : null;
 
     const fileLength  = stats.size;
     const finalOffset = HttpResponse.#adjustByteIndex(offset ?? 0, fileLength);
     const finalLength = HttpResponse.#adjustByteIndex(length, fileLength - finalOffset);
 
-    this.#body = {
+    this.#body = Object.freeze({
       type:   'file',
       path:   absolutePath,
       offset: finalOffset,
       length: finalLength,
-      lastModified
-    };
+      stats,
+      ...lmMoment
+    });
+  }
+
+  /**
+   * Sets the response body to be a diagnostic message of some sort. This is
+   * meant to be used for non-content responses (anything other than status
+   * `2xx` and _some_ `3xx`). If no `options` are given, a simple default
+   * message is produced based on the status code (once set). In all cases, the
+   * response body is sent as content type `text/plain` with encoding `utf-8`.
+   *
+   * @param {?object} [options] Options to control the response body.
+   * @param {?string|Buffer} [options.body] Complete body content to include.
+   * @param {?string} [options.bodyExtra] Extra body content to include, in
+   *   addition to the default body. At most one of this or `options.body` may
+   *   be passed, but not both.
+   * @param {?string} [options.contentType] Content type of `options.body`.
+   *   Required if `options.body` is a `Buffer`. Disallowed in all other cases.
+   */
+  setBodyMessage(options = null) {
+    const { body = null, bodyExtra = null, contentType = null } = options ?? {};
+
+    if (contentType && !(body instanceof Buffer)) {
+      throw new Error('Can only specify `contentType` when passing `body` as a `Buffer`.');
+    } else if (!contentType && (body instanceof Buffer)) {
+      throw new Error('Must specify `contentType` when passing `body` as a `Buffer`.');
+    }
+
+    if (body !== null) {
+      if (bodyExtra !== null) {
+        throw new Error('Cannot specify both `body` and `bodyExtra`.');
+      }
+
+      if (body instanceof Buffer) {
+        this.#body = { type: 'message', messageBuffer: body, contentType };
+      } else {
+        this.#body = { type: 'message', message: MustBe.string(body) };
+      }
+    } else if (bodyExtra !== null) {
+      this.#body = { type: 'message', messageExtra: MustBe.string(bodyExtra) };
+    } else {
+      this.#body = { type: 'message' };
+    }
+
+    Object.freeze(this.#body);
   }
 
   /**
@@ -244,14 +374,60 @@ export class HttpResponse {
 
     const buffer = Buffer.from(body, charSet);
 
-    this.#body = { type: 'buffer', buffer, contentType };
+    this.#body = Object.freeze({ type: 'buffer', buffer, contentType });
   }
 
   /**
    * Indicates unambiguously that this instance is to have no response body.
    */
   setNoBody() {
-    this.#body = { type: 'none' };
+    this.#body = Object.freeze({ type: 'none' });
+  }
+
+  /**
+   * "Slices" the body, in the style of `Buffer.slice()`. This is only valid
+   * when the body is set to regular content, that is, by {@link #setBodyBuffer}
+   * or {@link #setBodyString}.
+   *
+   * @param {number} start Start index, inclusive.
+   * @param {number} endExclusive End index, exclusive.
+   */
+  sliceBody(start, endExclusive) {
+    MustBe.number(start, { safeInteger: true, minInclusive: 0 });
+    MustBe.number(endExclusive, { safeInteger: true, minInclusive: start });
+
+    const body = this.#body;
+
+    if (!body) {
+      throw new Error('Cannot slice until body is set.');
+    }
+
+    const { type, buffer, offset, length } = body;
+
+    switch (type) {
+      case 'buffer': {
+        MustBe.number(start, { maxInclusive: buffer.length });
+        MustBe.number(endExclusive, { maxInclusive: buffer.length });
+        this.#body = Object.freeze({
+          ...body,
+          buffer: buffer.subarray(start, endExclusive)
+        });
+        break;
+      }
+      case 'file': {
+        MustBe.number(start, { maxInclusive: length });
+        MustBe.number(endExclusive, { maxInclusive: length });
+        this.#body = Object.freeze({
+          ...body,
+          offset: offset + start,
+          length: endExclusive - start
+        });
+        break;
+      }
+      default: {
+        throw new Error('Cannot slice unless body is set to known data.');
+      }
+    }
   }
 
   /**
@@ -351,8 +527,10 @@ export class HttpResponse {
           throw new Error(`Message response is incompatible with status ${status}.`);
         }
 
+        const headerExceptions = HttpResponse.#CONTENT_HEADER_EXCEPTIONS[status];
+
         for (const h of HttpResponse.#CONTENT_HEADERS) {
-          if (headers.get(h)) {
+          if (!headerExceptions?.has(h) && headers.get(h)) {
             throw new Error(`Message response cannot use header \`${h}\`.`);
           }
         }
@@ -384,7 +562,7 @@ export class HttpResponse {
 
     const { cacheControl, headers, status } = this;
     const { type: bodyType }                = this.#body;
-    const requestMethod                     = res.method; // Note: This is in all-caps.
+    const requestMethod                     = res.req.method; // Note: This is in all-caps.
 
     const shouldSendBody = (bodyType !== 'none')
       && HttpUtil.responseBodyIsAllowedFor(requestMethod, status);
@@ -444,7 +622,7 @@ export class HttpResponse {
    * @throws {Error} Any error reported by `res`.
    */
   async #writeBodyBuffer(res, shouldSendBody) {
-    const { buffer, contentType } = this.#body.buffer;
+    const { buffer, contentType } = this.#body;
 
     if (contentType) {
       res.setHeader('Content-Type', contentType);
@@ -476,8 +654,7 @@ export class HttpResponse {
     res.setHeader('Content-Length', length);
 
     if (lastModified) {
-      const stats = await fs.stat(path, { bigint: true });
-      res.setHeader('Last-Modified', HttpUtil.dateStringFromStatsMtime(stats));
+      res.setHeader('Last-Modified', lastModified.toHttpString());
     }
 
     if (!shouldSendBody) {
@@ -578,7 +755,7 @@ export class HttpResponse {
     bodyBuffer ??= Buffer.from(body, 'utf-8');
 
     res.setHeader('Content-Type',   contentType);
-    res.setHeader('Content-length', bodyBuffer.length);
+    res.setHeader('Content-Length', bodyBuffer.length);
     res.end(bodyBuffer);
 
     return HttpResponse.#whenResponseDone(res);
@@ -660,7 +837,7 @@ export class HttpResponse {
    */
   static async #adjustStats(value, path) {
     if (value === null) {
-      value = await fs.stat(path, { bigint: true });
+      value = await fs.stat(path);
     } else {
       MustBe.instanceOf(value, StatsBase);
     }

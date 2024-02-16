@@ -30,7 +30,7 @@ and to enable straightforward custom applications.
   applications.
 * Several built-in applications:
   * Simple response server (approximately a single-file static server).
-  * Static file server (uses `express.response.sendFile()`).
+  * Static file server.
   * Redirect server.
   * More to come! TODO!
 * Path-hierarchy specificity-based endpoint configuration, for endpoints that
