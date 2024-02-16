@@ -102,6 +102,7 @@ export class HttpRange {
     const ranges = rangeParser(bodyLength, range, { combine: true });
     if ((ranges === -1) || (ranges === -2) || (ranges.type !== this.#UNIT)) {
       // Couldn't parse at all, not satisfiable, or wrong unit.
+      // TODO: Headers should be an `HttpHeaders` object.
       return {
         error:   true,
         status:  416,
@@ -116,6 +117,7 @@ export class HttpRange {
 
     const { start, end } = ranges[0];
 
+    // TODO: Headers should be an `HttpHeaders` object.
     return {
       headers: {
         'accept-ranges': this.#UNIT,
