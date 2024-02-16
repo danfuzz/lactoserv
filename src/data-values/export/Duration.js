@@ -81,6 +81,83 @@ export class Duration {
   static ZERO = new Duration(0);
 
   /**
+   * @type {Map<string, number>} Multipliers for each named unit to convert to
+   * seconds.
+   */
+  static #SEC_PER_UNIT = new Map(Object.entries({
+    'ns':   (1 / 1_000_000_000),
+    'nsec': (1 / 1_000_000_000),
+    'us':   (1 / 1_000_000),
+    'usec': (1 / 1_000_000),
+    'ms':   (1 / 1_000),
+    'msec': (1 / 1_000),
+    's':    1,
+    'sec':  1,
+    'm':    60,
+    'min':  60,
+    'h':    (60 * 60),
+    'hr':   (60 * 60),
+    'd':    (60 * 60 * 24),
+    'day':  (60 * 60 * 24)
+  }));
+
+  /**
+   * Parses a string representing a duration, returning an instance of this
+   * class. The given value may have arbitrary spaces around it, and either a
+   * space or an underscore (or nothing) is accepted between the number and unit
+   * name. The number is allowed to be any regular floating point value
+   * (including exponents), with underscores allowed in the middle of it (for
+   * ease of reading, as with normal JavaScript constants). The allowed units
+   * are:
+   *
+   * * `ns` or `nsec` -- microseconds
+   * * `us` or `usec` -- microseconds
+   * * `ms` or `msec` -- milliseconds
+   * * `s` or `sec` -- seconds
+   * * `m` or `min` -- minutes
+   * * `h` or `hr` -- hours
+   * * `d` or `day` -- days (defined as exactly 24 hours)
+   *
+   * @param {string} value The value to parse.
+   * @returns {?Duration} The parsed duration, or `null` if the value could not
+   *   be parsed.
+   */
+  static parse(value) {
+    const sec = this.parseSec(value);
+
+    return (sec === null) ? null : new Duration(sec);
+  }
+
+  /**
+   * Parses a string representing a duration, returning a number of seconds.
+   * See {@link #parse} for details about the accepted formats.
+   *
+   * @param {string} value The value to parse.
+   * @returns {?number} The parsed number of seconds, or `null` if the value
+   *   could not be parsed.
+   */
+  static parseSec(value) {
+    MustBe.string(value);
+
+    const match =
+      value.match(/^ *(?<num>[-+.0-9][-+._0-9eE]*)[ ]?(?<name>[a-zA-Z]{1,10}) *$/);
+
+    if (!match) {
+      return null;
+    }
+
+    const { num: numStr, name } = match.groups;
+    const num                   = Number(numStr.replaceAll(/_/g, ''));
+    const mult = this.#SEC_PER_UNIT.get(name.toLowerCase());
+
+    if (isNaN(num) || !mult) {
+      return null;
+    }
+
+    return num * mult;
+  }
+
+  /**
    * Makes a friendly plain object representing a time duration, with both an
    * exact number of seconds (the original value) and a human-oriented string
    * whose format varies based on the magnitude of the duration and which
