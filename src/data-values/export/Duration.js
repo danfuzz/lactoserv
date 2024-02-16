@@ -140,7 +140,7 @@ export class Duration {
     MustBe.string(value);
 
     const match =
-      value.match(/^ *(?<num>[-+.0-9][-+._0-9eE]*)[ ]?(?<name>[a-zA-Z]{1,10}) *$/);
+      value.match(/^ *(?<num>(?:[-+.0-9eE]+|[0-9]+_[0-9]+)+)[ _]?(?<name>[a-zA-Z]{1,10}) *$/);
 
     if (!match) {
       return null;
