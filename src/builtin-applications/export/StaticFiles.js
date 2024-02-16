@@ -74,8 +74,13 @@ export class StaticFiles extends BaseApplication {
 
     if (resolved.redirect) {
       const redirectTo = resolved.redirect;
+      const response   = HttpResponse.makeRedirect(redirectTo, 308);
 
-      return request.sendRedirect(redirectTo, { status: 301 });
+      if (this.#cacheControl) {
+        response.cacheControl = this.#cacheControl;
+      }
+
+      return await request.respond(response);
     } else if (resolved.path) {
       const contentType =
         MimeTypes.typeFromPathExtension(resolved.path, { charSet: 'utf-8' });
