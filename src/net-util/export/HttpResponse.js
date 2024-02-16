@@ -10,7 +10,9 @@ import { ManualPromise } from '@this/async';
 import { Paths, StatsBase } from '@this/fs-util';
 import { MustBe } from '@this/typey';
 
+import { HttpConditional } from '#x/HttpConditional';
 import { HttpHeaders } from '#x/HttpHeaders';
+import { HttpRange } from '#x/HttpRange';
 import { HttpUtil } from '#x/HttpUtil';
 import { MimeTypes } from '#x/MimeTypes';
 
@@ -132,6 +134,89 @@ export class HttpResponse {
   }
 
   /**
+   * Adjusts the state of this response, based on the nature of the given
+   * request. Returns a new instance with adjustments as necessary, or returns
+   * this instance if no adjustments were required. Options -- all `boolean` --
+   * indicate which adjustments to make, and include:
+   *
+   * * `conditional` -- Handle the conditional "freshness" headers
+   *   `if-none-match` and `if-modified-since`.
+   * * `range` -- Handle range-related headers `range` and `if-range`.
+   *
+   * This method always returns `this` if `status` is set to something other
+   * than `200`.
+   *
+   * @param {string} requestMethod The original request method.
+   * @param {HttpHeaders|object} requestHeaders The request headers.
+   * @param {object} options Options indicating which adjustments to make.
+   * @returns {HttpResponse} New response instance containing adjustments, or
+   *   `this` if no adjustments were required.
+   */
+  adjustFor(requestMethod, requestHeaders, options) {
+    const { headers, status } = this;
+
+    if (status !== 200) {
+      if (status === null) {
+        throw new Error('Cannot adjust until `status` is set.');
+      }
+      return this;
+    }
+
+    if (this.#body === null) {
+      throw new Error('Cannot adjust until body is set.');
+    }
+
+    const { conditional, range } = options;
+
+    if (conditional) {
+      if (HttpConditional.isContentFresh(requestMethod, requestHeaders, headers)) {
+        const result = new HttpResponse(this);
+        if (range) {
+          HttpRange.setBasicResponseHeaders(result.headers);
+        }
+        result.headers.deleteContent();
+        result.status = 304; // "Not Modified."
+
+        return result;
+      }
+    }
+
+    if (range) {
+      const { type, buffer, length } = this.#body;
+
+      let rangeInfo;
+      if (type === 'buffer') {
+        rangeInfo = HttpRange.rangeInfo(requestMethod, requestHeaders, headers, buffer.length);
+      } else if (type === 'file') {
+        rangeInfo = HttpRange.rangeInfo(requestMethod, requestHeaders, headers, length);
+      } else {
+        rangeInfo = null;
+      }
+
+      if (!rangeInfo) {
+        const result = new HttpResponse(this);
+        HttpRange.setBasicResponseHeaders(result.headers);
+        return result;
+      } else if (rangeInfo.error) {
+        // Note: We _don't_ use the for-success `headers` here.
+        const result = new HttpResponse();
+        result.headers = new HttpHeaders(rangeInfo.headers); // TODO: Fix this when `rangeInfo` changes.
+        result.status  = rangeInfo.status;
+        result.setBodyMessage();
+        return result;
+      } else {
+        const result = new HttpResponse(this);
+        result.headers.setAll(rangeInfo.headers);
+        result.status = rangeInfo.status;
+        result.sliceBody(rangeInfo.start, rangeInfo.end);
+        return result;
+      }
+    }
+
+    return this;
+  }
+
+  /**
    * Sets the response body to be based on a buffer.
    *
    * @param {Buffer} body The full body.
@@ -158,8 +243,8 @@ export class HttpResponse {
    * Sets the response body to be a diagnostic message of some sort. This is
    * meant to be used for non-content responses (anything other than status
    * `2xx` and _some_ `3xx`). If no `options` are given, a simple default
-   * message is produced based on the status code. In all cases, the response
-   * body is sent as content type `text/plain` with encoding `utf-8`.
+   * message is produced based on the status code (once set). In all cases, the
+   * response body is sent as content type `text/plain` with encoding `utf-8`.
    *
    * @param {?object} [options] Options to control the response body.
    * @param {?string|Buffer} [options.body] Complete body content to include.
@@ -278,6 +363,52 @@ export class HttpResponse {
    */
   setNoBody() {
     this.#body = Object.freeze({ type: 'none' });
+  }
+
+  /**
+   * "Slices" the body, in the style of `Buffer.slice()`. This is only valid
+   * when the body is set to regular content, that is, by {@link #setBodyBuffer}
+   * or {@link #setBodyString}.
+   *
+   * @param {number} start Start index, inclusive.
+   * @param {number} endExclusive End index, exclusive.
+   */
+  sliceBody(start, endExclusive) {
+    MustBe.number(start, { safeInteger: true, minInclusive: 0 });
+    MustBe.number(endExclusive, { safeInteger: true, minInclusive: start });
+
+    const body = this.#body;
+
+    if (!body) {
+      throw new Error('Cannot slice until body is set.');
+    }
+
+    const { type, buffer, offset, length } = body;
+
+    switch (type) {
+      case 'buffer': {
+        MustBe.number(start, { maxInclusive: buffer.length });
+        MustBe.number(endExclusive, { maxInclusive: buffer.length });
+        this.#body = Object.freeze({
+          ...body,
+          buffer: buffer.subarray(start, endExclusive)
+        });
+        break;
+      }
+      case 'file': {
+        MustBe.number(start, { maxInclusive: length });
+        MustBe.number(endExclusive, { maxInclusive: length });
+        this.#body = Object.freeze({
+          ...body,
+          offset: offset + start,
+          length: endExclusive - start
+        });
+        break;
+      }
+      default: {
+        throw new Error('Cannot slice unless body is set to known data.');
+      }
+    }
   }
 
   /**
