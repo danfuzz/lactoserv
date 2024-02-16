@@ -6,23 +6,6 @@ import fs from 'node:fs/promises';
 import { HttpUtil } from '@this/net-util';
 
 
-describe('modernHeaderNameFrom()', () => {
-  test.each`
-  arg                | expected
-  ${'Cache-Control'} | ${'cache-control'}
-  ${'cache-control'} | ${'cache-control'}
-  ${'cacHE-COntroL'} | ${'cache-control'}
-  ${'ETag'}          | ${'etag'}
-  ${'etag'}          | ${'etag'}
-  ${'ETAG'}          | ${'etag'}
-  ${'Beep-Boop-Bop'} | ${'beep-boop-bop'} // This one should get "synthesized."
-  ${'beep-boop-bop'} | ${'beep-boop-bop'}
-  ${'beep-BOOP-bop'} | ${'beep-boop-bop'}
-  `('returns $expected for $arg', ({ arg, expected }) => {
-    expect(HttpUtil.modernHeaderNameFrom(arg)).toBe(expected);
-  });
-});
-
 describe('classicHeaderNameFrom()', () => {
   test.each`
   arg                | expected
@@ -117,6 +100,23 @@ describe('dateStringFromStatsMtime()', () => {
     const stats    = await fs.stat(path, { bigint: true });
     const expected = HttpUtil.dateStringFromMsec(stats.mtimeMs);
     expect(HttpUtil.dateStringFromStatsMtime(stats)).toBe(expected);
+  });
+});
+
+describe('modernHeaderNameFrom()', () => {
+  test.each`
+  arg                | expected
+  ${'Cache-Control'} | ${'cache-control'}
+  ${'cache-control'} | ${'cache-control'}
+  ${'cacHE-COntroL'} | ${'cache-control'}
+  ${'ETag'}          | ${'etag'}
+  ${'etag'}          | ${'etag'}
+  ${'ETAG'}          | ${'etag'}
+  ${'Beep-Boop-Bop'} | ${'beep-boop-bop'} // This one should get "synthesized."
+  ${'beep-boop-bop'} | ${'beep-boop-bop'}
+  ${'beep-BOOP-bop'} | ${'beep-boop-bop'}
+  `('returns $expected for $arg', ({ arg, expected }) => {
+    expect(HttpUtil.modernHeaderNameFrom(arg)).toBe(expected);
   });
 });
 
