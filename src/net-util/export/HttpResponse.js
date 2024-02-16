@@ -382,9 +382,9 @@ export class HttpResponse {
   async writeTo(res) {
     this.validate();
 
-    const { headers, status } = this;
-    const { type: bodyType }  = this.#body;
-    const requestMethod       = res.method; // Note: This is in all-caps.
+    const { cacheControl, headers, status } = this;
+    const { type: bodyType }                = this.#body;
+    const requestMethod                     = res.method; // Note: This is in all-caps.
 
     const shouldSendBody = (bodyType !== 'none')
       && HttpUtil.responseBodyIsAllowedFor(requestMethod, status);
@@ -406,6 +406,10 @@ export class HttpResponse {
     const entries = headers.entriesForVersion(res.req.httpVersionMajor);
     for (const [name, value] of entries) {
       res.setHeader(name, value);
+    }
+
+    if (cacheControl && HttpUtil.responseIsCacheableFor(requestMethod, status)) {
+      res.setHeader('Cache-Control', cacheControl);
     }
 
     // Note: At this point, all headers have been set on `res` _except_
