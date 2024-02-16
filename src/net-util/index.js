@@ -6,6 +6,7 @@ export * from '#x/EtagGenerator';
 export * from '#x/HostInfo';
 export * from '#x/HttpConditional';
 export * from '#x/HttpHeaders';
+export * from '#x/HttpRange';
 export * from '#x/HttpResponse';
 export * from '#x/HttpUtil';
 export * from '#x/MimeTypes';
