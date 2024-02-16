@@ -24,7 +24,8 @@ export class SimpleResponse extends BaseApplication {
   /** @override */
   async _impl_handleRequest(request, dispatch_unused) {
     const { headers, method } = request;
-    const response = this.#response.adjustFor(method, headers, { conditional: true, range: true });
+    const response = this.#response.adjustFor(
+      method, headers, { conditional: true, range: true });
 
     return await request.respond(response);
   }
