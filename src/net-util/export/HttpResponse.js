@@ -735,7 +735,7 @@ export class HttpResponse {
     bodyBuffer ??= Buffer.from(body, 'utf-8');
 
     res.setHeader('Content-Type',   contentType);
-    res.setHeader('Content-length', bodyBuffer.length);
+    res.setHeader('Content-Length', bodyBuffer.length);
     res.end(bodyBuffer);
 
     return HttpResponse.#whenResponseDone(res);
