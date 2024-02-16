@@ -813,6 +813,32 @@ export class HttpResponse {
   static #RESPONSE_DONE_SYMBOL = Symbol('HttpResponseDone');
 
   /**
+   * Makes an instance of this class representing a redirect.
+   *
+   * **Note:** This method does _not_ do any URL-encoding on the given `target`.
+   * It is assumed to be valid and already encoded if necessary. (This is unlike
+   * Express which tries to be "smart" about encoding, which can ultimately be
+   * more like "confusing.")
+   *
+   * @param {string} target Possibly-relative target URL.
+   * @param {?number} [status] The status code to report. Defaults to `302`
+   *   ("Found").
+   * @returns {HttpResponse} Constructed instance.
+   */
+  static makeRedirect(target, status = 302) {
+    MustBe.string(target);
+
+    const result = new HttpResponse();
+
+    result.status = status;
+
+    result.headers.set('location', target);
+    result.setBodyMessage({ bodyExtra: target });
+
+    return result;
+  }
+
+  /**
    * Adjusts an incoming index value (e.g. bytes into a buffer or file), per
    * this class's contracts.
    *
