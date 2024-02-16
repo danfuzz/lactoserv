@@ -29,22 +29,22 @@ export class HttpUtil {
   /**
    * @type {Map<string, { name: string, type: string|Function, format:
    * ?Function }>} Map from each valid cache control option to its in-header
-   * name, type, and value formatter.
+   * name and value formatter / validator.
    */
   static #CACHE_CONTROL_OPTIONS = new Map(Object.entries({
-    immutable:            { name: 'immutable',              type: 'boolean', format: this.#ccBoolean },
-    maxAge:               { name: 'max-age',                type: Duration,  format: this.#ccSeconds },
-    mustRevalidate:       { name: 'must-revalidate',        type: 'boolean', format: this.#ccBoolean },
-    mustUnderstand:       { name: 'must-understand',        type: 'boolean', format: this.#ccBoolean },
-    noCache:              { name: 'no-cache',               type: 'boolean', format: this.#ccBoolean },
-    noStore:              { name: 'no-store',               type: 'boolean', format: this.#ccBoolean },
-    noTransform:          { name: 'no-transform',           type: 'boolean', format: this.#ccBoolean },
-    public:               { name: 'public',                 type: 'boolean', format: this.#ccBoolean },
-    private:              { name: 'private',                type: 'boolean', format: this.#ccBoolean },
-    proxyRevalidate:      { name: 'proxy-revalidate',       type: 'boolean', format: this.#ccBoolean },
-    sMaxAge:              { name: 's-max-age',              type: Duration,  format: this.#ccSeconds },
-    staleIfError:         { name: 'stale-if-error',         type: Duration,  format: this.#ccSeconds },
-    staleWhileRevalidate: { name: 'stale-while-revalidate', type: Duration,  format: this.#ccSeconds }
+    immutable:            { name: 'immutable',              format: this.#ccBoolean },
+    maxAge:               { name: 'max-age',                format: this.#ccSeconds },
+    mustRevalidate:       { name: 'must-revalidate',        format: this.#ccBoolean },
+    mustUnderstand:       { name: 'must-understand',        format: this.#ccBoolean },
+    noCache:              { name: 'no-cache',               format: this.#ccBoolean },
+    noStore:              { name: 'no-store',               format: this.#ccBoolean },
+    noTransform:          { name: 'no-transform',           format: this.#ccBoolean },
+    public:               { name: 'public',                 format: this.#ccBoolean },
+    private:              { name: 'private',                format: this.#ccBoolean },
+    proxyRevalidate:      { name: 'proxy-revalidate',       format: this.#ccBoolean },
+    sMaxAge:              { name: 's-max-age',              format: this.#ccSeconds },
+    staleIfError:         { name: 'stale-if-error',         format: this.#ccSeconds },
+    staleWhileRevalidate: { name: 'stale-while-revalidate', format: this.#ccSeconds }
   }));
 
   static {
@@ -80,7 +80,7 @@ export class HttpUtil {
    * to the same-named (except kabob-cased) items in a `cache-control` value.
    *
    * * `{boolean} immutable` -- Specify `immutable`.
-   * * `{Duration} maxAge` -- `max-age` value (seconds granularity).
+   * * `{Duration|string} maxAge` -- `max-age` value (seconds granularity).
    * * `{boolean} mustRevalidate` -- Specify `must-revalidate`.
    * * `{boolean} mustUnderstand` -- Specify `must-understand`.
    * * `{boolean} noCache` -- Specify `no-cache`.
@@ -89,11 +89,15 @@ export class HttpUtil {
    * * `{boolean} public` -- Specify `private`.
    * * `{boolean} private` -- Specify `private`.
    * * `{boolean} proxyRevalidate` -- Specify `proxy-revalidate`.
-   * * `{Duration} sMaxAge` -- `s-max-age` value (seconds granularity).
-   * * `{Duration} staleIfError` -- `stale-if-error` value (seconds
+   * * `{Duration|string} sMaxAge` -- `s-max-age` value (seconds granularity).
+   * * `{Duration|string} staleIfError` -- `stale-if-error` value (seconds
    *   granularity).
-   * * `{Duration} staleWhileRevalidate` -- `stale-while-revalidate` value
-   *   (seconds granularity).
+   * * `{Duration|string} staleWhileRevalidate` -- `stale-while-revalidate`
+   *   value (seconds granularity).
+   *
+   * For the options that take a `{Duration|string}`, the string is expected to
+   * be a duration value parsable via {@link Duration#parse} (see which for
+   * details on the syntax), e.g., `123 sec`.
    *
    * @param {?object} options Cache control options, or `null` to not use this
    *   mechanism for adding cache-control headers.
@@ -108,22 +112,13 @@ export class HttpUtil {
         throw new Error(`Unknown cache control option: ${k}`);
       }
 
-      const { name, type, format } = info;
+      const { name, format } = info;
+      const formatted        = format(name, v);
 
-      if (typeof type === 'string') {
-        if (typeof v !== type) {
-          throw new Error(`Wrong type for cache control option \`${k}\`; expected ${type}`);
-        }
+      if (typeof formatted === 'string') {
+        parts.push(formatted);
       } else {
-        if (!(v instanceof type)) {
-          throw new Error(`Wrong type for cache control option \`${k}\`; expected ${type.name}`);
-        }
-      }
-
-      const value = format(name, v);
-
-      if (value !== null) {
-        parts.push(value);
+        throw new Error(`Invalid value for cache control option \`${k}\`: ${formatted.error}`);
       }
     }
 
@@ -380,25 +375,42 @@ export class HttpUtil {
   }
 
   /**
-   * Helper for {@link #cacheControl}, which formats a boolean.
+   * Helper for {@link #cacheControl}, which validates and formats a boolean.
    *
    * @param {string} name The in-header name.
-   * @param {boolean} value The value.
+   * @param {*} value The value.
    * @returns {string} The formatted form.
    */
   static #ccBoolean(name, value) {
-    return value ? name : null;
+    if (typeof value === 'boolean') {
+      return value ? name : null;
+    } else {
+      return { error: 'Expected type `boolean`.' };
+    }
   }
 
   /**
-   * Helper for {@link #cacheControl}, which extracts a whole number of seconds
-   * from a {@link Duration}.
+   * Helper for {@link #cacheControl}, which validates a duration and extracts a
+   * whole number of seconds.
    *
    * @param {string} name The in-header name.
-   * @param {Duration} duration The duration.
+   * @param {*} duration The duration.
    * @returns {string} The formatted form.
    */
   static #ccSeconds(name, duration) {
-    return `${name}=${Math.floor(duration.sec)}`;
+    let sec;
+
+    if (typeof duration === 'string') {
+      sec = Duration.parseSec(duration);
+      if (sec === null) {
+        return { error: 'Expected duration string.' };
+      }
+    } else if (duration instanceof Duration) {
+      sec = duration.sec;
+    } else {
+      return { error: 'Expected type `string` or `Duration`.' };
+    }
+
+    return `${name}=${Math.floor(sec)}`;
   }
 }
