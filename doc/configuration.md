@@ -231,6 +231,8 @@ bindings:
   not specified but `filePath` is, then the type is inferred from the extension
   on the path. If neither `body` nor `filePath` is specified (that is, for an
   empty body), then this must not be specified either.
+* `cacheControl` &mdash; `cache-control` header definition. If present and not
+  `false`, every cacheable response comes with the specified header.
 * `etag` &mdash; ETag-generating options. If present and not `false`, the
   response comes with an `ETag` header. See "ETag Configuration" below for
   details.
@@ -274,6 +276,8 @@ following configuration bindings:
 * `etag` &mdash; ETag-generating options. If present and not `false`, the
   response comes with an `ETag` header. See "ETag Configuration" below for
   details.
+* `cacheControl` &mdash; `cache-control` header definition. If present and not
+  `false`, every cacheable response comes with the specified header.
 * `notFoundPath` &mdash; Optional filesystem path to the file to serve when a
   file/path is not found. The indicated file will get sent back along with a
   `404` ("Not Found") status code.
@@ -538,6 +542,30 @@ const services = [
 
 This section documents the configuration objects that are used within top-level
 configurations.
+
+### Cache control configuration: `cacheControl`
+
+Applications and services that might generate `cache-control` headers accept
+a `cacheControl` binding. When it is absent or `false`, no such headers are
+automatically generated. When it _is_ specified, then (generally speaking) the
+value is used as a response header value for `cache-control` whenever such a
+header is allowed.
+
+The `cacheControl` value can be specified as a simple string value for the
+header (e.g, `'public, max-age=86400'`), or it can be specified as an object
+with bindings for each of the values.
+
+In object form, property names are the `camelCase` versions of the in-header
+names (e.g. `noStore` for `no-store`). Values can be:
+
+* For present-vs-absent header values, such as `public` and `no-cache`:
+  * A `boolean`, in which case `true` includes the value and `false` omits it.
+* For duration values:
+  * An instance of the framework class `data-values.Duration`.
+  * A parsable string duration, e.g. `1 day`, `1_000ms` or `1200.5_min`. The
+    numeric portion is allowed to be any usual-format floating point number, including
+    internal underscores for readability. Available units are: `nsec`/`ns`
+    `usec`/`us` `msec`/`ms` `sec`/`s` `min`/`m` `hr`/`h` `day`/`d`.
 
 ### ETag Configuration: `etag`
 

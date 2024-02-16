@@ -130,6 +130,7 @@ const applications = [
     class:         'StaticFiles',
     siteDirectory: filePath('../site'),
     notFoundPath:  filePath('../site-extra/not-found.html'),
+    cacheControl:  { public: true, maxAge: '5 min' },
     etag:          { dataOnly: true, hashLength: 20 }
   },
   {
@@ -138,20 +139,23 @@ const applications = [
     siteDirectory: filePath('../site'),
   },
   {
-    name:     'responseEmptyBody',
-    class:    'SimpleResponse',
-    filePath: filePath('../site-extra/empty-file.txt')
+    name:         'responseEmptyBody',
+    class:        'SimpleResponse',
+    filePath:     filePath('../site-extra/empty-file.txt'),
+    cacheControl: 'public, immutable, max-age=600'
   },
   {
-    name:  'responseNoBody',
-    class: 'SimpleResponse',
-    etag:  true
+    name:         'responseNoBody',
+    class:        'SimpleResponse',
+    cacheControl: { public: true, immutable: true, maxAge: '11 min' },
+    etag:         true
   },
   {
-    name:        'responseOne',
-    class:       'SimpleResponse',
-    contentType: 'text/plain',
-    body:        'One!\n',
+    name:         'responseOne',
+    class:        'SimpleResponse',
+    contentType:  'text/plain',
+    body:         'One!\n',
+    cacheControl: { public: true, immutable: true, maxAge: '12 min'  },
     etag: {
       hashAlgorithm: 'sha1',
       hashLength:    12,
@@ -159,11 +163,12 @@ const applications = [
     }
   },
   {
-    name:        'responseTwo',
-    class:       'SimpleResponse',
-    contentType: 'text/html',
-    body:        '<html><body><h1>Two!</h1></body></html>\n',
-    etag:        true
+    name:         'responseTwo',
+    class:        'SimpleResponse',
+    contentType:  'text/html',
+    body:         '<html><body><h1>Two!</h1></body></html>\n',
+    cacheControl: { public: true, immutable: true, maxAge: '12 min'  },
+    etag:         true
   }
 ];
 
