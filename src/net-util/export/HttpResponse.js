@@ -46,10 +46,19 @@ export class HttpResponse {
   #cacheControl = null;
 
   /**
-   * Constructs an instance. It is initially empty / unset.
+   * Constructs an instance.
+   *
+   * @param {HttpResponse} [orig] Original instance to copy, or `null` to start
+   *   the instance out with nothing set.
    */
-  constructor() {
-    // Nothing to do here. (This method exists at all just for the doc comment.)
+  constructor(orig = null) {
+    if (orig) {
+      MustBe.instanceOf(orig, HttpResponse);
+      this.#status       = orig.#status;
+      this.#headers      = orig.#headers ? new HttpHeaders(orig.headers) : null;
+      this.#body         = orig.#body;
+      this.#cacheControl = orig.#cacheControl;
+    }
   }
 
   /**
@@ -57,6 +66,9 @@ export class HttpResponse {
    * instance never had immediate data set. Specifically, this is only
    * non-`null` after either {@link #setBodyBuffer} or {@link #setBodyString}
    * has been called (and not overwritten by another body-setting call).
+   *
+   * **Note:** The returned buffer is shared with this instance. As such, it's
+   * generally ill-advised to modify its contents.
    */
   get bodyBuffer() {
     const { type, buffer } = this.#body;
@@ -139,7 +151,7 @@ export class HttpResponse {
       ? body
       : body.subarray(finalOffset, finalOffset + finalLength);
 
-    this.#body = { type: 'buffer', buffer };
+    this.#body = Object.freeze({ type: 'buffer', buffer });
   }
 
   /**
@@ -181,6 +193,8 @@ export class HttpResponse {
     } else {
       throw new Error('Must specify either `body` or `bodyExtra`.');
     }
+
+    Object.freeze(this.#body);
   }
 
   /**
@@ -216,13 +230,13 @@ export class HttpResponse {
     const finalOffset = HttpResponse.#adjustByteIndex(offset ?? 0, fileLength);
     const finalLength = HttpResponse.#adjustByteIndex(length, fileLength - finalOffset);
 
-    this.#body = {
+    this.#body = Object.freeze({
       type:   'file',
       path:   absolutePath,
       offset: finalOffset,
       length: finalLength,
       lastModified
-    };
+    });
   }
 
   /**
@@ -256,14 +270,14 @@ export class HttpResponse {
 
     const buffer = Buffer.from(body, charSet);
 
-    this.#body = { type: 'buffer', buffer, contentType };
+    this.#body = Object.freeze({ type: 'buffer', buffer, contentType });
   }
 
   /**
    * Indicates unambiguously that this instance is to have no response body.
    */
   setNoBody() {
-    this.#body = { type: 'none' };
+    this.#body = Object.freeze({ type: 'none' });
   }
 
   /**
