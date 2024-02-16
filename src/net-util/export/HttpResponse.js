@@ -542,7 +542,7 @@ export class HttpResponse {
 
     const { cacheControl, headers, status } = this;
     const { type: bodyType }                = this.#body;
-    const requestMethod                     = res.method; // Note: This is in all-caps.
+    const requestMethod                     = res.req.method; // Note: This is in all-caps.
 
     const shouldSendBody = (bodyType !== 'none')
       && HttpUtil.responseBodyIsAllowedFor(requestMethod, status);
