@@ -176,6 +176,7 @@ export class HttpResponse {
         }
         result.headers.deleteContent();
         result.status = 304; // "Not Modified."
+        result.setNoBody();
 
         return result;
       }
