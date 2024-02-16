@@ -245,6 +245,48 @@ export class HttpResponse {
   }
 
   /**
+   * Sets the response body to be based on a file.
+   *
+   * Unless directed not to (by an option), this method will cause a
+   * `last-modified` header to be added to the response, based on the stats of
+   * the given file.
+   *
+   * @param {string} absolutePath Absolute path to the file.
+   * @param {?object} [options] Options.
+   * @param {?StatsBase} [options.stats] Stats for the file, if known. If not
+   *   known, then they are retrieved during this call.
+   * @param {?number} [options.offset] Offset in bytes from the start of `body`
+   *   of what to actually send. Defaults to `0` (that is, the start).
+   * @param {?number} [options.length] How many bytes to actually send, or
+   *   `null` to indicate the maximum amount possible. Defaults to `null`.
+   * @param {?boolean} [options.lastModified] Whether to send a `last-modified`
+   *   header based on the file's stats. Defaults to `true`.
+   */
+  async setBodyFile(absolutePath, options = null) {
+    Paths.checkAbsolutePath(absolutePath);
+    const {
+      offset = null,
+      length = null,
+      lastModified = true,
+      stats: maybeStats = null
+    } = options ?? {};
+
+    const stats = await HttpResponse.#adjustStats(maybeStats, absolutePath);
+
+    const fileLength  = stats.size;
+    const finalOffset = HttpResponse.#adjustByteIndex(offset ?? 0, fileLength);
+    const finalLength = HttpResponse.#adjustByteIndex(length, fileLength - finalOffset);
+
+    this.#body = Object.freeze({
+      type:   'file',
+      path:   absolutePath,
+      offset: finalOffset,
+      length: finalLength,
+      lastModified
+    });
+  }
+
+  /**
    * Sets the response body to be a diagnostic message of some sort. This is
    * meant to be used for non-content responses (anything other than status
    * `2xx` and _some_ `3xx`). If no `options` are given, a simple default
@@ -285,48 +327,6 @@ export class HttpResponse {
     }
 
     Object.freeze(this.#body);
-  }
-
-  /**
-   * Sets the response body to be based on a file.
-   *
-   * Unless directed not to (by an option), this method will cause a
-   * `last-modified` header to be added to the response, based on the stats of
-   * the given file.
-   *
-   * @param {string} absolutePath Absolute path to the file.
-   * @param {?object} [options] Options.
-   * @param {?StatsBase} [options.stats] Stats for the file, if known. If not
-   *   known, then they are retrieved during this call.
-   * @param {?number} [options.offset] Offset in bytes from the start of `body`
-   *   of what to actually send. Defaults to `0` (that is, the start).
-   * @param {?number} [options.length] How many bytes to actually send, or
-   *   `null` to indicate the maximum amount possible. Defaults to `null`.
-   * @param {?boolean} [options.lastModified] Whether to send a `last-modified`
-   *   header based on the file's stats. Defaults to `true`.
-   */
-  async setBodyFile(absolutePath, options = null) {
-    Paths.checkAbsolutePath(absolutePath);
-    const {
-      offset = null,
-      length = null,
-      lastModified = true,
-      stats: maybeStats = null
-    } = options ?? {};
-
-    const stats = await HttpResponse.#adjustStats(maybeStats, absolutePath);
-
-    const fileLength  = stats.size;
-    const finalOffset = HttpResponse.#adjustByteIndex(offset ?? 0, fileLength);
-    const finalLength = HttpResponse.#adjustByteIndex(length, fileLength - finalOffset);
-
-    this.#body = Object.freeze({
-      type:   'file',
-      path:   absolutePath,
-      offset: finalOffset,
-      length: finalLength,
-      lastModified
-    });
   }
 
   /**
