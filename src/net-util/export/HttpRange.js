@@ -71,10 +71,10 @@ export class HttpRange {
     } else if (statsOrLength instanceof StatsBase) {
       stats      = statsOrLength;
       bodyLength = Number(stats.size);
-    } else if (typeof stats === 'number') {
+    } else if (typeof statsOrLength === 'number') {
       stats      = null;
       bodyLength = statsOrLength;
-    } else if (typeof stats === 'bigint') {
+    } else if (typeof statsOrLength === 'bigint') {
       stats      = null;
       bodyLength = Number(statsOrLength);
     } else {
