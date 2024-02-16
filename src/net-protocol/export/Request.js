@@ -1,7 +1,6 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import * as fs from 'node:fs/promises';
 import { ClientRequest, ServerResponse } from 'node:http';
 import * as http2 from 'node:http2';
 
@@ -9,10 +8,9 @@ import express from 'express';
 
 import { ManualPromise } from '@this/async';
 import { TreePathKey } from '@this/collections';
-import { Paths } from '@this/fs-util';
 import { FormatUtils, IntfLogger } from '@this/loggy';
-import { Cookies, HostInfo, HttpConditional, HttpHeaders, HttpRange,
-  HttpResponse, HttpUtil, MimeTypes } from '@this/net-util';
+import { Cookies, HostInfo, HttpHeaders, HttpResponse, HttpUtil, MimeTypes }
+  from '@this/net-util';
 import { AskIf, MustBe } from '@this/typey';
 
 import { WranglerContext } from '#x/WranglerContext';
