@@ -77,6 +77,43 @@ export class AskIf {
     return true;
   }
 
+  /**
+   * Checks for type `bigint`, which may optionally be restricted further.
+   *
+   * @param {*} value Arbitrary value.
+   * @param {?object} [options] Options for restrictions.
+   * @param {?bigint} [options.maxExclusive] Exclusive maximum value.
+   *   That is, require `value < maxExclusive`.
+   * @param {?bigint} [options.maxInclusive] Inclusive maximum value.
+   *   That is, require `value <= maxInclusive`.
+   * @param {?bigint} [options.minExclusive] Exclusive minimum value.
+   *   That is, require `value > minExclusive`.
+   * @param {?bigint} [options.minInclusive] Inclusive minimum value.
+   *   That is, require `value >= minInclusive`.
+   * @returns {boolean} `true` iff `value` is of the indicated type.
+   */
+  static bigint(value, options = null) {
+    if (typeof value !== 'bigint') {
+      return false;
+    }
+
+    const {
+      maxExclusive = null,
+      maxInclusive = null,
+      minExclusive = null,
+      minInclusive = null,
+    } = options ?? {};
+
+    if (!(   ((minExclusive === null) || (value > minExclusive))
+          && ((minInclusive === null) || (value >= minInclusive))
+          && ((maxExclusive === null) || (value < maxExclusive))
+          && ((maxInclusive === null) || (value <= maxInclusive)))) {
+      return false;
+    }
+
+    return true;
+  }
+
   // Note: No method `boolean()`, because of the standard `typeof v ===
   // 'boolean'`.
 

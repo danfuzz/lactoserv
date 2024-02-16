@@ -65,6 +65,29 @@ export class MustBe {
   }
 
   /**
+   * Checks for type `bigint`, which may optionally be restricted further.
+   *
+   * @param {*} value Arbitrary value.
+   * @param {?object} [options] Options for restrictions. See {@link
+   * AskIf#number} for details.
+   * @returns {bigint} `value` if it is of the indicated type.
+   * @throws {Error} Thrown if `value` is of any other type or does not meet the
+   *   optional restrictions.
+   */
+  static bigint(value, options = null) {
+    if (AskIf.bigint(value, options)) {
+      return value;
+    }
+
+    if (options) {
+      const optStr = util.inspect(options);
+      throw new Error(`Must be of type \`bigint\`, with restrictions: ${optStr}`);
+    } else {
+      throw new Error('Must be of type `bigint`.');
+    }
+  }
+
+  /**
    * Checks for type `boolean`.
    *
    * @param {*} value Arbitrary value.
