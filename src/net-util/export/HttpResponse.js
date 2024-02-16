@@ -40,10 +40,36 @@ export class HttpResponse {
   #body = null;
 
   /**
+   * @type {?string} `cache-control` header to automatically use when
+   * appropriate, or `null` not to do that.
+   */
+  #cacheControl = null;
+
+  /**
    * Constructs an instance. It is initially empty / unset.
    */
   constructor() {
     // Nothing to do here. (This method exists at all just for the doc comment.)
+  }
+
+  /**
+   * @returns {?string} The automatic `cache-control` header value, or `null` if
+   * not configured to do that.
+   */
+  get cacheControl() {
+    return this.#cacheControl;
+  }
+
+  /**
+   * @type {?string} A `cache-control` header to include in any response
+   * whose status code indicates that a response is possibly cacheable, using a
+   * request method that also allows for caching, or `null` not to do automatic
+   * `cache-control` header insertion. (See {@link
+   * HttpUtil#responseIsCacheableFor}.) If this is non-`null`, then it is an
+   * error to include `cache-control` in {@link #headers}.
+   */
+  set cacheControl(value) {
+    this.#cacheControl = MustBe.string(value, /./);
   }
 
   /**
@@ -257,13 +283,17 @@ export class HttpResponse {
    * It is meant to catch the most common and blatant client problems.
    */
   validate() {
-    const { headers, status } = this;
-    const body                = this.#body;
+    const { cacheControl, headers, status } = this;
+    const body                              = this.#body;
 
     if (status === null) {
       throw new Error('`.status` not set.');
     } else if (body === null) {
       throw new Error('Body (or lack thereof) not defined.');
+    }
+
+    if (cacheControl && headers.get('cache-control')) {
+      throw new Error('Must not use automatic `cacheControl` with `cache-control` header pre-set.');
     }
 
     // Why `get` as the method for the tests below? Because this class wants all
@@ -352,9 +382,9 @@ export class HttpResponse {
   async writeTo(res) {
     this.validate();
 
-    const { headers, status } = this;
-    const { type: bodyType }  = this.#body;
-    const requestMethod       = res.method; // Note: This is in all-caps.
+    const { cacheControl, headers, status } = this;
+    const { type: bodyType }                = this.#body;
+    const requestMethod                     = res.method; // Note: This is in all-caps.
 
     const shouldSendBody = (bodyType !== 'none')
       && HttpUtil.responseBodyIsAllowedFor(requestMethod, status);
@@ -376,6 +406,10 @@ export class HttpResponse {
     const entries = headers.entriesForVersion(res.req.httpVersionMajor);
     for (const [name, value] of entries) {
       res.setHeader(name, value);
+    }
+
+    if (cacheControl && HttpUtil.responseIsCacheableFor(requestMethod, status)) {
+      res.setHeader('Cache-Control', cacheControl);
     }
 
     // Note: At this point, all headers have been set on `res` _except_

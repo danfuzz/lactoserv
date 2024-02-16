@@ -3,23 +3,19 @@
 
 import fs from 'node:fs/promises';
 
+import { Duration } from '@this/data-values';
 import { HttpUtil } from '@this/net-util';
 
-
-describe('modernHeaderNameFrom()', () => {
+describe('cacheControlHeader()', () => {
   test.each`
-  arg                | expected
-  ${'Cache-Control'} | ${'cache-control'}
-  ${'cache-control'} | ${'cache-control'}
-  ${'cacHE-COntroL'} | ${'cache-control'}
-  ${'ETag'}          | ${'etag'}
-  ${'etag'}          | ${'etag'}
-  ${'ETAG'}          | ${'etag'}
-  ${'Beep-Boop-Bop'} | ${'beep-boop-bop'} // This one should get "synthesized."
-  ${'beep-boop-bop'} | ${'beep-boop-bop'}
-  ${'beep-BOOP-bop'} | ${'beep-boop-bop'}
+  arg                                            | expected
+  ${{ noCache: true }}                           | ${'no-cache'}
+  ${{ noStore: true }}                           | ${'no-store'}
+  ${{ public: true }}                            | ${'public'}
+  ${{ maxAge: new Duration(123) }}               | ${'max-age=123'}
+  ${{ public: true, maxAge: new Duration(123) }} | ${'public, max-age=123'}
   `('returns $expected for $arg', ({ arg, expected }) => {
-    expect(HttpUtil.modernHeaderNameFrom(arg)).toBe(expected);
+    expect(HttpUtil.cacheControlHeader(arg)).toBe(expected);
   });
 });
 
@@ -117,6 +113,23 @@ describe('dateStringFromStatsMtime()', () => {
     const stats    = await fs.stat(path, { bigint: true });
     const expected = HttpUtil.dateStringFromMsec(stats.mtimeMs);
     expect(HttpUtil.dateStringFromStatsMtime(stats)).toBe(expected);
+  });
+});
+
+describe('modernHeaderNameFrom()', () => {
+  test.each`
+  arg                | expected
+  ${'Cache-Control'} | ${'cache-control'}
+  ${'cache-control'} | ${'cache-control'}
+  ${'cacHE-COntroL'} | ${'cache-control'}
+  ${'ETag'}          | ${'etag'}
+  ${'etag'}          | ${'etag'}
+  ${'ETAG'}          | ${'etag'}
+  ${'Beep-Boop-Bop'} | ${'beep-boop-bop'} // This one should get "synthesized."
+  ${'beep-boop-bop'} | ${'beep-boop-bop'}
+  ${'beep-BOOP-bop'} | ${'beep-boop-bop'}
+  `('returns $expected for $arg', ({ arg, expected }) => {
+    expect(HttpUtil.modernHeaderNameFrom(arg)).toBe(expected);
   });
 });
 
