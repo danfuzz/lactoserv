@@ -53,6 +53,18 @@ export class HttpResponse {
   }
 
   /**
+   * @returns {?Buffer} Buffer containing all response data, or `null` if this
+   * instance never had immediate data set. Specifically, this is only
+   * non-`null` after either {@link #setBodyBuffer} or {@link #setBodyString}
+   * has been called (and not overwritten by another body-setting call).
+   */
+  get bodyBuffer() {
+    const { type, buffer } = this.#body;
+
+    return (type === 'buffer') ? buffer : null;
+  }
+
+  /**
    * @returns {?string} The automatic `cache-control` header value, or `null` if
    * not configured to do that.
    */
