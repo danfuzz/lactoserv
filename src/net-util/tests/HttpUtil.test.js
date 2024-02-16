@@ -3,8 +3,21 @@
 
 import fs from 'node:fs/promises';
 
+import { Duration } from '@this/data-values';
 import { HttpUtil } from '@this/net-util';
 
+describe('cacheControlHeader()', () => {
+  test.each`
+  arg                                            | expected
+  ${{ noCache: true }}                           | ${'no-cache'}
+  ${{ noStore: true }}                           | ${'no-store'}
+  ${{ public: true }}                            | ${'public'}
+  ${{ maxAge: new Duration(123) }}               | ${'max-age=123'}
+  ${{ public: true, maxAge: new Duration(123) }} | ${'public, max-age=123'}
+  `('returns $expected for $arg', ({ arg, expected }) => {
+    expect(HttpUtil.cacheControlHeader(arg)).toBe(expected);
+  });
+});
 
 describe('classicHeaderNameFrom()', () => {
   test.each`

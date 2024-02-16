@@ -3,6 +3,7 @@
 
 import fs from 'node:fs/promises';
 
+import { Duration } from '@this/data-values';
 import { StatsBase } from '@this/fs-util';
 import { MustBe } from '@this/typey';
 
@@ -24,6 +25,27 @@ export class HttpUtil {
    * Seeded proactively and then lazily accumulated.
    */
   static #ANY_TO_CLASSIC = new Map();
+
+  /**
+   * @type {Map<string, { name: string, type: string|Function, format:
+   * ?Function }>} Map from each valid cache control option to its in-header
+   * name, type, and value formatter.
+   */
+  static #CACHE_CONTROL_OPTIONS = new Map(Object.entries({
+    immutable:            { name: 'immutable',              type: 'boolean', format: this.#ccBoolean },
+    maxAge:               { name: 'max-age',                type: Duration,  format: this.#ccSeconds },
+    mustRevalidate:       { name: 'must-revalidate',        type: 'boolean', format: this.#ccBoolean },
+    mustUnderstand:       { name: 'must-understand',        type: 'boolean', format: this.#ccBoolean },
+    noCache:              { name: 'no-cache',               type: 'boolean', format: this.#ccBoolean },
+    noStore:              { name: 'no-store',               type: 'boolean', format: this.#ccBoolean },
+    noTransform:          { name: 'no-transform',           type: 'boolean', format: this.#ccBoolean },
+    public:               { name: 'public',                 type: 'boolean', format: this.#ccBoolean },
+    private:              { name: 'private',                type: 'boolean', format: this.#ccBoolean },
+    proxyRevalidate:      { name: 'proxy-revalidate',       type: 'boolean', format: this.#ccBoolean },
+    sMaxAge:              { name: 's-max-age',              type: Duration,  format: this.#ccSeconds },
+    staleIfError:         { name: 'stale-if-error',         type: Duration,  format: this.#ccSeconds },
+    staleWhileRevalidate: { name: 'stale-while-revalidate', type: Duration,  format: this.#ccSeconds }
+  }));
 
   static {
     const add = (classic) => {
@@ -48,6 +70,68 @@ export class HttpUtil {
     add('Location');
     add('Server');
     add('Set-Cookie');
+  }
+
+  /**
+   * Constructs a `cache-control` header value, based on options with names and
+   * values that are friendly to this project.
+   *
+   * The following configuration options are accepted, and generally correspond
+   * to the same-named (except kabob-cased) items in a `cache-control` value.
+   *
+   * * `{boolean} immutable` -- Specify `immutable`.
+   * * `{Duration} maxAge` -- `max-age` value (seconds granularity).
+   * * `{boolean} mustRevalidate` -- Specify `must-revalidate`.
+   * * `{boolean} mustUnderstand` -- Specify `must-understand`.
+   * * `{boolean} noCache` -- Specify `no-cache`.
+   * * `{boolean} noStore` -- Specify `no-store`.
+   * * `{boolean} noTransform` -- Specify `no-transform`.
+   * * `{boolean} public` -- Specify `private`.
+   * * `{boolean} private` -- Specify `private`.
+   * * `{boolean} proxyRevalidate` -- Specify `proxy-revalidate`.
+   * * `{Duration} sMaxAge` -- `s-max-age` value (seconds granularity).
+   * * `{Duration} staleIfError` -- `stale-if-error` value (seconds
+   *   granularity).
+   * * `{Duration} staleWhileRevalidate` -- `stale-while-revalidate` value
+   *   (seconds granularity).
+   *
+   * @param {?object} options Cache control options, or `null` to not use this
+   *   mechanism for adding cache-control headers.
+   * @returns {string} The corresponding header value.
+   */
+  static cacheControlHeader(options) {
+    const parts = [];
+
+    for (const [k, v] of Object.entries(options)) {
+      const info = this.#CACHE_CONTROL_OPTIONS.get(k);
+      if (!info) {
+        throw new Error(`Unknown cache control option: ${k}`);
+      }
+
+      const { name, type, format } = info;
+
+      if (typeof type === 'string') {
+        if (typeof v !== type) {
+          throw new Error(`Wrong type for cache control option \`${k}\`; expected ${type}`);
+        }
+      } else {
+        if (!(v instanceof type)) {
+          throw new Error(`Wrong type for cache control option \`${k}\`; expected ${type.name}`);
+        }
+      }
+
+      const value = format(name, v);
+
+      if (value !== null) {
+        parts.push(value);
+      }
+    }
+
+    if (parts.length === 0) {
+      throw new Error('Must specify at least one option.');
+    }
+
+    return parts.join(', ');
   }
 
   /**
@@ -293,5 +377,28 @@ export class HttpUtil {
     }
 
     return false;
+  }
+
+  /**
+   * Helper for {@link #cacheControl}, which formats a boolean.
+   *
+   * @param {string} name The in-header name.
+   * @param {boolean} value The value.
+   * @returns {string} The formatted form.
+   */
+  static #ccBoolean(name, value) {
+    return value ? name : null;
+  }
+
+  /**
+   * Helper for {@link #cacheControl}, which extracts a whole number of seconds
+   * from a {@link Duration}.
+   *
+   * @param {string} name The in-header name.
+   * @param {Duration} duration The duration.
+   * @returns {string} The formatted form.
+   */
+  static #ccSeconds(name, duration) {
+    return `${name}=${Math.floor(duration.sec)}`;
   }
 }
