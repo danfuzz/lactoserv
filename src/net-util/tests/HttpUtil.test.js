@@ -11,9 +11,12 @@ describe('cacheControlHeader()', () => {
   arg                                            | expected
   ${{ noCache: true }}                           | ${'no-cache'}
   ${{ noStore: true }}                           | ${'no-store'}
+  ${{ noCache: true, noStore: true }}            | ${'no-cache, no-store'}
   ${{ public: true }}                            | ${'public'}
   ${{ maxAge: new Duration(123) }}               | ${'max-age=123'}
   ${{ public: true, maxAge: new Duration(123) }} | ${'public, max-age=123'}
+  ${{ maxAge: '123 sec' }}                       | ${'max-age=123'}
+  ${{ public: true, maxAge: '123_min' }}         | ${'public, max-age=7380'}
   `('returns $expected for $arg', ({ arg, expected }) => {
     expect(HttpUtil.cacheControlHeader(arg)).toBe(expected);
   });
