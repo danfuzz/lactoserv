@@ -7,6 +7,7 @@ import http from 'node:http';
 import statuses from 'statuses';
 
 import { ManualPromise } from '@this/async';
+import { Moment } from '@this/data-values';
 import { Paths, StatsBase } from '@this/fs-util';
 import { MustBe } from '@this/typey';
 
@@ -173,7 +174,16 @@ export class HttpResponse {
     const { conditional, range } = options;
 
     if (conditional) {
-      if (HttpConditional.isContentFresh(requestMethod, requestHeaders, headers)) {
+      const { type, stats } = this.#body;
+
+      let isFresh;
+      if (type === 'file') {
+        isFresh = HttpConditional.isContentFresh(requestMethod, requestHeaders, headers, stats);
+      } else {
+        isFresh = HttpConditional.isContentFresh(requestMethod, requestHeaders, headers);
+      }
+
+      if (isFresh) {
         const result = new HttpResponse(this);
         if (range) {
           HttpRange.setBasicResponseHeaders(result.headers);
@@ -187,13 +197,13 @@ export class HttpResponse {
     }
 
     if (range) {
-      const { type, buffer, length } = this.#body;
+      const { type, buffer, stats } = this.#body;
 
       let rangeInfo;
       if (type === 'buffer') {
         rangeInfo = HttpRange.rangeInfo(requestMethod, requestHeaders, headers, buffer.length);
       } else if (type === 'file') {
-        rangeInfo = HttpRange.rangeInfo(requestMethod, requestHeaders, headers, length);
+        rangeInfo = HttpRange.rangeInfo(requestMethod, requestHeaders, headers, stats);
       } else {
         rangeInfo = null;
       }
@@ -272,6 +282,9 @@ export class HttpResponse {
     } = options ?? {};
 
     const stats = await HttpResponse.#adjustStats(maybeStats, absolutePath);
+    const lmMoment = lastModified
+      ? { lastModified: Moment.fromMsec(Number(stats.mtimeMs)) }
+      : null;
 
     const fileLength  = stats.size;
     const finalOffset = HttpResponse.#adjustByteIndex(offset ?? 0, fileLength);
@@ -282,7 +295,8 @@ export class HttpResponse {
       path:   absolutePath,
       offset: finalOffset,
       length: finalLength,
-      lastModified
+      stats,
+      ...lmMoment
     });
   }
 
@@ -296,8 +310,8 @@ export class HttpResponse {
    * @param {?object} [options] Options to control the response body.
    * @param {?string|Buffer} [options.body] Complete body content to include.
    * @param {?string} [options.bodyExtra] Extra body content to include, in
-   *   addition to the default body. One of this or `options.body` is must be
-   *   passed, but not both.
+   *   addition to the default body. At most one of this or `options.body` may
+   *   be passed, but not both.
    * @param {?string} [options.contentType] Content type of `options.body`.
    *   Required if `options.body` is a `Buffer`. Disallowed in all other cases.
    */
@@ -323,7 +337,7 @@ export class HttpResponse {
     } else if (bodyExtra !== null) {
       this.#body = { type: 'message', messageExtra: MustBe.string(bodyExtra) };
     } else {
-      throw new Error('Must specify either `body` or `bodyExtra`.');
+      this.#body = { type: 'message' };
     }
 
     Object.freeze(this.#body);
@@ -513,8 +527,10 @@ export class HttpResponse {
           throw new Error(`Message response is incompatible with status ${status}.`);
         }
 
+        const headerExceptions = HttpResponse.#CONTENT_HEADER_EXCEPTIONS[status];
+
         for (const h of HttpResponse.#CONTENT_HEADERS) {
-          if (headers.get(h)) {
+          if (!headerExceptions?.has(h) && headers.get(h)) {
             throw new Error(`Message response cannot use header \`${h}\`.`);
           }
         }
@@ -638,8 +654,7 @@ export class HttpResponse {
     res.setHeader('Content-Length', length);
 
     if (lastModified) {
-      const stats = await fs.stat(path);
-      res.setHeader('Last-Modified', HttpUtil.dateStringFromStatsMtime(stats));
+      res.setHeader('Last-Modified', lastModified.toHttpString());
     }
 
     if (!shouldSendBody) {
