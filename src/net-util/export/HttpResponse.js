@@ -283,13 +283,17 @@ export class HttpResponse {
    * It is meant to catch the most common and blatant client problems.
    */
   validate() {
-    const { headers, status } = this;
-    const body                = this.#body;
+    const { cacheControl, headers, status } = this;
+    const body                              = this.#body;
 
     if (status === null) {
       throw new Error('`.status` not set.');
     } else if (body === null) {
       throw new Error('Body (or lack thereof) not defined.');
+    }
+
+    if (cacheControl && headers.get('cache-control')) {
+      throw new Error('Must not use automatic `cacheControl` with `cache-control` header pre-set.');
     }
 
     // Why `get` as the method for the tests below? Because this class wants all
