@@ -167,7 +167,7 @@ const applications = [
     class:        'SimpleResponse',
     contentType:  'text/html',
     body:         '<html><body><h1>Two!</h1></body></html>\n',
-    cacheControl: { public: true, immutable: true, maxAge: '12 min'  },
+    cacheControl: { public: true, immutable: true, maxAge: '13 min'  },
     etag:         true
   }
 ];
