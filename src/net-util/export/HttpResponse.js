@@ -638,7 +638,7 @@ export class HttpResponse {
     res.setHeader('Content-Length', length);
 
     if (lastModified) {
-      const stats = await fs.stat(path, { bigint: true });
+      const stats = await fs.stat(path);
       res.setHeader('Last-Modified', HttpUtil.dateStringFromStatsMtime(stats));
     }
 
@@ -822,7 +822,7 @@ export class HttpResponse {
    */
   static async #adjustStats(value, path) {
     if (value === null) {
-      value = await fs.stat(path, { bigint: true });
+      value = await fs.stat(path);
     } else {
       MustBe.instanceOf(value, StatsBase);
     }
