@@ -95,7 +95,11 @@ export class HttpResponse {
    * error to include `cache-control` in {@link #headers}.
    */
   set cacheControl(value) {
-    this.#cacheControl = MustBe.string(value, /./);
+    if (value !== null) {
+      MustBe.string(value, /./);
+    }
+
+    this.#cacheControl = value;
   }
 
   /**
