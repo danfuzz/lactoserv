@@ -629,28 +629,6 @@ export class Request {
   }
 
   /**
-   * Issues a successful response, with no body. The reported status will always
-   * be `204` ("No content"), and the response always includes a `Cache-Control`
-   * header.
-   *
-   * This method ignores range requests entirely.
-   *
-   * **Note:** What this method does is different than calling {@link
-   * #sendContent} with a zero-length body.
-   *
-   * @param {object} options Options to control response behavior. See class
-   *   header comment for more details.
-   * @returns {boolean} `true` when the response is completed.
-   * @throws {Error} Thrown if there is any trouble sending the response.
-   */
-  async sendNoBodyResponse(options = {}) {
-    const status  = 204;
-    const headers = this.#makeResponseHeaders(status, options);
-
-    return this.#writeCompleteResponse(status, headers);
-  }
-
-  /**
    * Issues a "not found" (status `404`) response, with optional body. This is
    * just a convenient shorthand for `sendMetaResponse(404, ...)`.
    *
