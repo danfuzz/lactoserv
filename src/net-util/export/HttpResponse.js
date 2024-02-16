@@ -601,7 +601,7 @@ export class HttpResponse {
    * @throws {Error} Any error reported by `res`.
    */
   async #writeBodyBuffer(res, shouldSendBody) {
-    const { buffer, contentType } = this.#body.buffer;
+    const { buffer, contentType } = this.#body;
 
     if (contentType) {
       res.setHeader('Content-Type', contentType);
