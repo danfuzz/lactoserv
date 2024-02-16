@@ -40,10 +40,36 @@ export class HttpResponse {
   #body = null;
 
   /**
+   * @type {?string} `cache-control` header to automatically use when
+   * appropriate, or `null` not to do that.
+   */
+  #cacheControl = null;
+
+  /**
    * Constructs an instance. It is initially empty / unset.
    */
   constructor() {
     // Nothing to do here. (This method exists at all just for the doc comment.)
+  }
+
+  /**
+   * @returns {?string} The automatic `cache-control` header value, or `null` if
+   * not configured to do that.
+   */
+  get cacheControl() {
+    return this.#cacheControl;
+  }
+
+  /**
+   * @type {?string} A `cache-control` header to include in any response
+   * whose status code indicates that a response is possibly cacheable, using a
+   * request method that also allows for caching, or `null` not to do automatic
+   * `cache-control` header insertion. (See {@link
+   * HttpUtil#responseIsCacheableFor}.) If this is non-`null`, then it is an
+   * error to include `cache-control` in {@link #headers}.
+   */
+  set cacheControl(value) {
+    this.#cacheControl = MustBe.string(value, /./);
   }
 
   /**
