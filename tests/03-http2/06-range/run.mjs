@@ -113,8 +113,9 @@ await checkResponse(response5, {
   statusText: 'Range Not Satisfiable',
   headers: {
     'connection':     /./,
-    'content-length': '0', // This is getting added by Node at a lower level.
+    'content-length': /./,
     'content-range':  `bytes */${bodyText.length}`,
+    'content-type':   'text/plain; charset=utf-8',
     'date':           /./,
     'server':         /./
   }
@@ -136,8 +137,9 @@ await checkResponse(response6, {
   statusText: 'Range Not Satisfiable',
   headers: {
     'connection':     /./,
-    'content-length': '0', // This is getting added by Node at a lower level.
+    'content-length': /./,
     'content-range':  `bytes */${bodyText.length}`,
+    'content-type':   'text/plain; charset=utf-8',
     'date':           /./,
     'server':         /./
   }
