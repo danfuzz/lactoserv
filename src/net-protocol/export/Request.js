@@ -34,37 +34,6 @@ import { WranglerContext } from '#x/WranglerContext';
  * behind a reverse proxy. That said, as of this writing there isn't anything
  * that actually does that. See
  * <https://github.com/danfuzz/lactoserv/issues/213>.
- *
- * #### `options` on `send*()` methods
- *
- * The `send*()` methods accept an `options` object argument, which accepts the
- * following properties (with exceptions as noted).
- *
- * * `{Buffer|string|null} body` -- Body content to include. If passed as a
- *   `string`, the actual body gets encoded as UTF-8, and the `contentType` is
- *   adjusted if necessary to indicate that fact. This property is only
- *   available on methods that (a) could conceivably send a body, and (b) don't
- *   have any other way to specify a body (e.g. through other arguments).
- * * `{?string} bodyExtra` -- Extra body content to include when wanting to
- *   _mostly_ use a default body. This is only available on {@link
- *   #sendMetaResponse}.
- * * `{?string} contentType` -- Content type of the body, in the form expected
- *   by {@link MimeTypes#typeFromExtensionOrType}. Required if `body` is present
- *   and ignored in all other cases. If this value starts with `text/` and/or
- *   the `body` is passed as a string, then the actual `Content-Type` header
- *   will indicate a charset of `utf-8`.
- * * `{?Cookies} cookies` -- Cookies to include (via `Set-Cookie` headers) in
- *   the response, if any.
- * * `{?object} headers` -- Extra headers to include in the response, if any.
- *   If specified, this can be any of the types accepted by the standard
- *   `Headers` constructor. Note that this system defines a useful `Headers`
- *   subclass, {@link HttpHeaders}.
- * * `{?number} maxAgeMsec` -- Value to send back in the `max-age` property of
- *   the `Cache-Control` response header. Defaults to `0`.
- * * `{?number} status` -- Response status code. This is only available on a
- *   couple methods (as noted in their documentation) which (a) don't strongly
- *   imply a status (or possible set thereof), and (b) don't have any other way
- *   to specify a status (e.g. through other arguments).
  */
 export class Request {
   /**
@@ -483,57 +452,6 @@ export class Request {
 
     this.#responsePromise.resolve(result);
     return result;
-  }
-
-  /**
-   * Issues a non-content meta-ish response, with optional body. "Non-content
-   * meta-ish" here means that the status code _doesn't_ indicate that the body
-   * is meant to be higher-level application content, which furthermore means
-   * that it is possibly appropriate to use the body for a diagnostic message.
-   * And indeed, this method will use it for that when appropriate, that is,
-   * when the method/status combo allows it.
-   *
-   * If the status code is allowed to be cached (per HTTP spec), the response
-   * will always have a standard `Cache-Control` header.
-   *
-   * If a body is not supplied and _is_ appropriate to send, this method
-   * constructs a `text/plain` body in a standard form which includes the
-   * status code, a short form of the status message (the same as the short
-   * message part of an HTTP1 response), and the original target (that is,
-   * typically the path) of the request.
-   *
-   * This method is intended to be used for all meta-ish non-content responses,
-   * including all error and ephemeral (`1xx`) responses, and _most_ redirect
-   * (`3xx`) responses (but notably not `300` or `304`). It is meant to help the
-   * application provide a consistent form of response (though with some
-   * flexibility).
-   *
-   * This method will report an error if the status code is never allowed to
-   * have an associated body (e.g., `304`), or if the response body is only
-   * supposed to contain higher-level application content (e.g., `200` or
-   * `300`), as opposed to content produced by the server infrastructure.
-   *
-   * @param {number} status The status code.
-   * @param {?object} [options] Options to control response behavior. See class
-   *   header comment for more details.
-   * @returns {boolean} `true` when the response is completed.
-   * @throws {Error} Thrown if there is any trouble sending the response.
-   */
-  async sendMetaResponse(status, options = {}) {
-    MustBe.number(status, { safeInteger: true, minInclusive: 100, maxInclusive: 599 });
-
-    const response = new HttpResponse();
-
-    response.status  = status;
-    response.headers = this.#makeResponseHeaders(status, options);
-
-    if (options.body || options.bodyExtra) {
-      response.setBodyMessage(options);
-    } else {
-      response.setNoBody();
-    }
-
-    return this.respond(response);
   }
 
   /**
