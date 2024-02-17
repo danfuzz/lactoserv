@@ -14,53 +14,71 @@ define-usage --with-help $'
     ${name} [<opt> ...] [--]
 
     Runs all the tests.
+
+    --run-server
+    Start the server with the integration testing config before running the
+    tests, and stop it afterwards.
 '
+
+opt-toggle --var=runServer run-server
 
 process-args "$@" || exit "$?"
 
 
 #
+# Helper functions
+#
+
+# Actually runs the tests.
+function run-tests {
+    local testsDir && testsDir="$(this-cmd-dir)" || return "$?"
+
+    # Test directories are identified as directories that have a file called `run`
+    # or `run.*` in them.
+    local allRunScripts
+    jset-array --raw allRunScripts "$(
+        lib ls-files --output=array --sort \
+            --cd="${testsDir}" --include='^[0-9][-/a-z0-9]+/run(\.[a-z]+)?$' \
+        || echo '["error"]'
+    )" \
+    || exit "$?"
+
+    if [[ ${allRunScripts[0]} == 'error' ]]; then
+        return 1
+    fi
+
+    local errors=()
+    local run
+    for run in "${allRunScripts[@]}"; do
+        local testName="${run%/run*}"
+        "${testsDir}/run-one" "${testName}" \
+        || errors+=("${testName}")
+    done
+
+    local errorCount="${#errors[@]}"
+
+    echo ''
+
+    if (( errorCount == 0 )); then
+        echo 'All passed. Yay!'
+    else
+        echo 'Problems with:'
+
+        local e
+        for e in "${errors[@]}"; do
+            echo "  ${e}"
+        done
+
+        (( errorCount == 1 )) && noun=error || noun=errors
+        echo ''
+        echo "${errorCount} ${noun}. Alas."
+
+        return 1
+    fi
+}
+
+#
 # Main script
 #
 
-testsDir="$(this-cmd-dir)"
-
-# Test directories are identified as directories that have a file called `run`
-# or `run.*` in them.
-jset-array --raw allRunScripts "$(
-    lib ls-files --output=array --sort \
-        --cd="${testsDir}" --include='^[0-9][-/a-z0-9]+/run(\.[a-z]+)?$' \
-    || echo '["error"]'
-)" \
-|| exit "$?"
-
-if [[ ${allRunScripts[0]} == 'error' ]]; then
-    exit 1
-fi
-
-errors=()
-for run in "${allRunScripts[@]}"; do
-    testName="${run%/run*}"
-    "${testsDir}/run-one" "${testName}" \
-    || errors+=("${testName}")
-done
-
-errorCount="${#errors[@]}"
-
-echo ''
-
-if (( errorCount == 0 )); then
-    echo 'All passed. Yay!'
-else
-    echo 'Problems with:'
-
-    for e in "${errors[@]}"; do
-        echo "  ${e}"
-    done
-
-    (( errorCount == 1 )) && noun=error || noun=errors
-    echo ''
-    echo "${errorCount} ${noun}. Alas."
-
-    exit 1
-fi
+run-tests
