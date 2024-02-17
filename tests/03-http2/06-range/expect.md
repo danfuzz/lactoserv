@@ -28,7 +28,7 @@ Body is as expected.
 
 Body is as expected.
 
-## Not Satisfiable 1
+## Not Satisfiable (wrong unit)
 
 ### Metadata
 
@@ -40,7 +40,7 @@ Body is as expected.
 416 Range Not Satisfiable
 ```
 
-## Not Satisfiable 2
+## Not Satisfiable (inverted range)
 
 ### Metadata
 

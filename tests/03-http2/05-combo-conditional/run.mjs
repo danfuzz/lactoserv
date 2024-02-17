@@ -1,14 +1,14 @@
 // Copyright 2022-2024 the Bashy-lib Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { checkResponse } from '@this/integration-testing';
+import { requestAndCheck, usualFetch } from '@this/integration-testing';
 
 const theUrl = 'https://localhost:8443/';
 
 // First, get the response without a conditional check, and note the salient
 // headers.
 
-const response1 = await fetch(theUrl);
+const response1 = await usualFetch({ url: theUrl });
 const lastMod   = new Date(Date.parse(response1.headers.get('last-modified')));
 const etag      = response1.headers.get('etag');
 
@@ -17,31 +17,26 @@ const etag      = response1.headers.get('etag');
 // _not_. The HTTP spec says that in this case the etag match should be the only
 // thing that matters.
 
-console.log('## Match\n');
-
 const earlierDate = new Date(lastMod);
 earlierDate.setSeconds(-1);
 
-const response2 = await fetch(theUrl,
+await requestAndCheck(
+  'Match',
   {
-    // Note: Node's `fetch()` puts in a conditional-busting `cache-control:
-    // no-cache` header unless we put our own in.
+    url: theUrl,
     headers: {
-      'cache-control': 'max-age=0',
       'if-modified-since': earlierDate.toUTCString(),
-      'if-none-match': etag
+      'if-none-match':     etag
+    }
+  }, {
+    status: 304,
+    statusText: 'Not Modified',
+    headers: {
+      'accept-ranges':  'bytes',
+      'cache-control':  /./,
+      'connection':     /./,
+      'date':           /./,
+      'etag':           /^"[-0-9a-zA-Z]+"$/,
+      'server':         /./
     }
   });
-
-await checkResponse(response2, {
-  status: 304,
-  statusText: 'Not Modified',
-  headers: {
-    'accept-ranges':  'bytes',
-    'cache-control':  /./,
-    'connection':     /./,
-    'date':           /./,
-    'etag':           /^"[-0-9a-zA-Z]+"$/,
-    'server':         /./
-  }
-});
