@@ -61,6 +61,8 @@ and to enable straightforward custom applications.
   * Only modest use of external module dependencies (via `npm`).
 * Built to be installed as a normal POSIX-ish service (though _without_ Node
   bundled into the installation).
+* Developed using automated unit and integration tests. (No coverage stats
+  available, but probably would indicate that more testing is apropos.)
 
 - - - - - - - - - -
 
