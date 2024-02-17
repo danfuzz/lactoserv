@@ -537,19 +537,6 @@ export class Request {
   }
 
   /**
-   * Issues a "not found" (status `404`) response, with optional body. This is
-   * just a convenient shorthand for `sendMetaResponse(404, ...)`.
-   *
-   * @param {?object} [options] Options to control response behavior. See class
-   *   header comment for more details.
-   * @returns {boolean} `true` when the response is completed.
-   * @throws {Error} Thrown if there is any trouble sending the response.
-   */
-  async sendNotFound(options = null) {
-    return this.sendMetaResponse(404, options);
-  }
-
-  /**
    * Returns when the underlying response has been closed successfully (after
    * all of the response is believed to be sent) or has errored. Returns `true`
    * for a normal close, or throws whatever error the response reports.
