@@ -699,12 +699,7 @@ export class HttpResponse {
    * @throws {Error} Any error reported by `res`.
    */
   async #writeBodyMessage(res, shouldSendBody) {
-    const {
-      contentType: bufferContentType,
-      message,
-      messageBuffer,
-      messageExtra
-    } = this.#body;
+    const { message, messageExtra } = this.#body;
 
     if (!shouldSendBody) {
       // Note: Because message response content isn't ever supposed to get
