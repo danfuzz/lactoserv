@@ -813,6 +813,20 @@ export class HttpResponse {
   static #RESPONSE_DONE_SYMBOL = Symbol('HttpResponseDone');
 
   /**
+   * Makes an instance of this class representing a not-found response (status
+   * `404`).
+   *
+   * @returns {HttpResponse} Constructed instance.
+   */
+  static makeNotFound() {
+    const result = new HttpResponse();
+
+    result.status = 404;
+
+    return result;
+  }
+
+  /**
    * Makes an instance of this class representing a redirect.
    *
    * **Note:** This method does _not_ do any URL-encoding on the given `target`.
