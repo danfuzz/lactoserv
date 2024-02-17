@@ -33,8 +33,8 @@ process-args "$@" || exit "$?"
 function run-tests {
     local testsDir && testsDir="$(this-cmd-dir)" || return "$?"
 
-    # Test directories are identified as directories that have a file called `run`
-    # or `run.*` in them.
+    # Test directories are identified as directories that have a file called
+    # `run` or `run.*` in them.
     local allRunScripts
     jset-array --raw allRunScripts "$(
         lib ls-files --output=array --sort \
