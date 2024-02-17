@@ -813,17 +813,47 @@ export class HttpResponse {
   static #RESPONSE_DONE_SYMBOL = Symbol('HttpResponseDone');
 
   /**
+   * Makes an instance of this class representing a non-content meta-ish
+   * response. "Non-content meta-ish" here means that the status code _doesn't_
+   * indicate that the body is meant to be higher-level application content,
+   * which furthermore means that it is possibly appropriate to use the body for
+   * a diagnostic message. And indeed, this method will use it for that when
+   * appropriate, that is, when the request method / status combo allows it.
+   *
+   * @param {number} status The status code to report.
+   * @param {?object} [messageOptions] Options to pass to {@link
+   *   #setBodyMessage}.
+   * @returns {HttpResponse} Constructed instance.
+   */
+  static makeMetaResponse(status, messageOptions = null) {
+    const result = new HttpResponse();
+
+    result.status = status;
+
+    // Why `get` as the method for the test below? Because we don't yet know
+    // the request method, and it's okay to set a message even if the method
+    // turns out the be `head`.
+
+    if (HttpUtil.responseBodyIsAllowedFor('get', status)
+        && !HttpUtil.responseBodyIsApplicationContentFor(status)) {
+      result.setBodyMessage(messageOptions);
+    } else {
+      result.setNoBody();
+    }
+
+    return result;
+  }
+
+  /**
    * Makes an instance of this class representing a not-found response (status
    * `404`).
    *
+   * @param {?object} [messageOptions] Options to pass to {@link
+   *   #setBodyMessage}.
    * @returns {HttpResponse} Constructed instance.
    */
-  static makeNotFound() {
-    const result = new HttpResponse();
-
-    result.status = 404;
-
-    return result;
+  static makeNotFound(messageOptions = null) {
+    return this.makeMetaResponse(404, messageOptions);
   }
 
   /**
@@ -840,14 +870,9 @@ export class HttpResponse {
    * @returns {HttpResponse} Constructed instance.
    */
   static makeRedirect(target, status = 302) {
-    MustBe.string(target);
-
-    const result = new HttpResponse();
-
-    result.status = status;
+    const result = this.makeMetaResponse(status, { bodyExtra: target });
 
     result.headers.set('location', target);
-    result.setBodyMessage({ bodyExtra: target });
 
     return result;
   }
