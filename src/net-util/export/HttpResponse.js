@@ -308,32 +308,19 @@ export class HttpResponse {
    * response body is sent as content type `text/plain` with encoding `utf-8`.
    *
    * @param {?object} [options] Options to control the response body.
-   * @param {?string|Buffer} [options.body] Complete body content to include.
+   * @param {?string} [options.body] Complete body content to include.
    * @param {?string} [options.bodyExtra] Extra body content to include, in
    *   addition to the default body. At most one of this or `options.body` may
    *   be passed, but not both.
-   * @param {?string} [options.contentType] Content type of `options.body`.
-   *   Required if `options.body` is a `Buffer`. Disallowed in all other cases.
    */
   setBodyMessage(options = null) {
-    const { body = null, bodyExtra = null, contentType = null } = options ?? {};
-
-    if (contentType && !(body instanceof Buffer)) {
-      throw new Error('Can only specify `contentType` when passing `body` as a `Buffer`.');
-    } else if (!contentType && (body instanceof Buffer)) {
-      throw new Error('Must specify `contentType` when passing `body` as a `Buffer`.');
-    }
+    const { body = null, bodyExtra = null } = options ?? {};
 
     if (body !== null) {
       if (bodyExtra !== null) {
         throw new Error('Cannot specify both `body` and `bodyExtra`.');
       }
-
-      if (body instanceof Buffer) {
-        this.#body = { type: 'message', messageBuffer: body, contentType };
-      } else {
-        this.#body = { type: 'message', message: MustBe.string(body) };
-      }
+      this.#body = { type: 'message', message: MustBe.string(body) };
     } else if (bodyExtra !== null) {
       this.#body = { type: 'message', messageExtra: MustBe.string(bodyExtra) };
     } else {
@@ -712,12 +699,7 @@ export class HttpResponse {
    * @throws {Error} Any error reported by `res`.
    */
   async #writeBodyMessage(res, shouldSendBody) {
-    const {
-      contentType: bufferContentType,
-      message,
-      messageBuffer,
-      messageExtra
-    } = this.#body;
+    const { message, messageExtra } = this.#body;
 
     if (!shouldSendBody) {
       // Note: Because message response content isn't ever supposed to get
@@ -729,16 +711,11 @@ export class HttpResponse {
     }
 
     let body;
-    let bodyBuffer  = null;
-    let contentType = 'text/plain; charset=utf-8';
 
     if (message) {
       body = message.endsWith('\n')
         ? message
         : `message\n`;
-    } else if (messageBuffer) {
-      bodyBuffer  = messageBuffer;
-      contentType = bufferContentType;
     } else {
       const { status } = this;
       const statusStr  = statuses(status);
@@ -752,9 +729,9 @@ export class HttpResponse {
       }
     }
 
-    bodyBuffer ??= Buffer.from(body, 'utf-8');
+    const bodyBuffer = Buffer.from(body, 'utf-8');
 
-    res.setHeader('Content-Type',   contentType);
+    res.setHeader('Content-Type',  'text/plain; charset=utf-8');
     res.setHeader('Content-Length', bodyBuffer.length);
     res.end(bodyBuffer);
 
