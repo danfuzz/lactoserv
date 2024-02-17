@@ -26,7 +26,8 @@ Other notable changes:
     response. Notably, it does _not_ use Express-specific functionality.
 * Changed all the built-in applications to construct `HttpResponse` objects
   instead of using higher-level response methods on `Request`.
-* Removed most of the higher-level response methods from `Request`.
+* Removed all of the response methods from `Request`, except for `respond()`
+  which just takes an `HttpResponse`. Even that may go away at some point.
 
 ###  v0.6.5 -- 2024-02-09
 
