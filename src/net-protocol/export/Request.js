@@ -550,37 +550,6 @@ export class Request {
   }
 
   /**
-   * Issues a redirect response. This ultimately calls through to {@link
-   * #sendMetaResponse}.
-   *
-   * **Note:** This method does _not_ do any URL-encoding on the given `target`.
-   * It is assumed to be valid and already encoded if necessary. (This is unlike
-   * Express which tries to be "smart" about encoding, which can ultimately be
-   * more like "confusing.")
-   *
-   * @param {string} target Possibly-relative target URL.
-   * @param {?object} [options] Options to control response behavior. See class
-   *   header comment for more details.
-   * @param {?number} [options.status] The status code to report. Defaults to
-   *   `302` ("Found").
-   * @returns {boolean} `true` when the response is completed.
-   */
-  async sendRedirect(target, options = null) {
-    MustBe.string(target);
-
-    // Arrange to merge in `options` or start fresh, as appropriate.
-    options = options ? { ...options } : {};
-
-    options.status    ??= 302;
-    options.bodyExtra ??= `${target}\n`;
-    options.headers   ??= {};
-
-    options.headers['location'] = target;
-
-    return this.sendMetaResponse(options.status, options);
-  }
-
-  /**
    * Returns when the underlying response has been closed successfully (after
    * all of the response is believed to be sent) or has errored. Returns `true`
    * for a normal close, or throws whatever error the response reports.
