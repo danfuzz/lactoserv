@@ -77,8 +77,67 @@ function run-tests {
     fi
 }
 
+# Starts the server.
+function start-server {
+    progress-msg 'Starting server...'
+
+    lib --exec run --no-log-to-stdout &
+
+    serverPid="$!"
+
+    progress-msg "Server started (pid is ${serverPid})."
+    progress-msg
+}
+
+# Stops the server.
+function stop-server {
+    local done=0
+
+    local n
+    for (( n = 0; n < 10; n++ )); do
+        if ! kill >/dev/null 2>&1 -0 "${serverPid}"; then
+            done=1
+            break
+        fi
+
+        if (( n == 0 )); then
+            progress-msg "Stopping server (pid ${serverPid})..."
+        fi
+
+        kill >/dev/null "${serverPid}"
+
+        if (( n != 0 )); then
+            sleep 1
+        fi
+    done
+
+    if (( n == 0 )); then
+        error-msg 'Server exited before tests ended.'
+        return 1
+    fi
+
+    if (( !done )); then
+        error-msg 'Server never exited.'
+        kill >/dev/null -9 "${serverPid}"
+        return 1
+    fi
+
+    progress-msg 'Server stopped.'
+}
+
 #
 # Main script
 #
 
+if (( runServer )); then
+    start-server || {
+        error-msg 'Trouble starting server!'
+        exit 1
+    }
+fi
+
 run-tests
+
+if (( runServer )); then
+    stop-server || exit 1
+fi
