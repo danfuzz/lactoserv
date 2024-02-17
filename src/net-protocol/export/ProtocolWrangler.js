@@ -11,6 +11,7 @@ import express from 'express';
 import { Threadlet } from '@this/async';
 import { ProductInfo } from '@this/host';
 import { IntfLogger } from '@this/loggy';
+import { HttpResponse } from '@this/net-util';
 import { Methods, MustBe } from '@this/typey';
 
 import { IntfHostManager } from '#x/IntfHostManager';
@@ -419,13 +420,13 @@ export class ProtocolWrangler {
       // echo $'GET * HTTP/1.1\r\nHost: milk.com\r\n\r' \
       //   | curl telnet://localhost:8080
       // ```
-      await request.sendMetaResponse(400); // "Bad Request."
+      await request.respond(HttpResponse.makeMetaResponse(400)); // "Bad Request."
       return;
     } else if (this.#rateLimiter) {
       const granted = await this.#rateLimiter.newRequest(reqLogger);
       if (!granted) {
         // Send the error response, and wait for it to be (believed to be) sent.
-        await request.sendMetaResponse(503); // "Service Unavailable."
+        await request.respond(HttpResponse.makeMetaResponse(503)); // "Service Unavailable."
 
         // ...and then just thwack the underlying socket. The hope is that the
         // waiting above will make it likely that the far side will actually see
