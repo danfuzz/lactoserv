@@ -49,3 +49,22 @@ jobs:
       #    echo "Workspace: ${GITHUB_WORKSPACE}"
       #    ls -alF "${GITHUB_WORKSPACE}"
       #    pwd
+
+  # Build the project!
+  integration-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Node.
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      # Note: Checks out into `$GITHUB_WORKSPACE`, which is also the `$CWD`.
+      - name: Clone repo.
+        uses: actions/checkout@v4
+
+      - name: Build.
+        run: ./scripts/ubik build --make-distro
+
+      - name: Run the integration tests.
+        run: ./scripts/ubik run-tests --type=integration
