@@ -59,9 +59,7 @@ function run-tests {
 
     echo ''
 
-    if (( errorCount == 0 )); then
-        echo 'All passed. Yay!'
-    else
+    if (( errorCount != 0 )); then
         echo 'Problems with:'
 
         local e
@@ -127,7 +125,6 @@ function stop-server {
         fi
 
         if (( n == 0 )); then
-            progress-msg ''
             progress-msg "Stopping server (pid ${serverPid})..."
         fi
 
@@ -150,6 +147,7 @@ function stop-server {
     fi
 
     progress-msg 'Server stopped.'
+    progress-msg ''
 }
 
 #
@@ -168,3 +166,5 @@ run-tests
 if (( runServer )); then
     stop-server || exit 1
 fi
+
+echo 'All passed. Yay!'
