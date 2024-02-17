@@ -4,7 +4,7 @@
 import { requestAndCheck } from '@this/integration-testing';
 
 await requestAndCheck(
-  'Redirect',
+  'Redirect: Empty path',
   {
     url: 'http://localhost:8080/'
   }, {
@@ -18,6 +18,25 @@ await requestAndCheck(
       'date':           /^[,: a-zA-Z0-9]+ GMT$/,
       'keep-alive':     'timeout=5',
       'location':       'https://localhost:8443/resp/',
+      'server':         /^lactoserv-[.0-9]+ [0-9a-f]+$/
+    }
+  });
+
+await requestAndCheck(
+  'Redirect: Non-empty path',
+  {
+    url: 'http://localhost:8080/beep/boop/bop'
+  }, {
+    status: 308,
+    statusText: 'Permanent Redirect',
+    headers: {
+      'cache-control':  'public, max-age=300',
+      'connection':     'keep-alive',
+      'content-length': /./,
+      'content-type':   'text/plain; charset=utf-8',
+      'date':           /^[,: a-zA-Z0-9]+ GMT$/,
+      'keep-alive':     'timeout=5',
+      'location':       'https://localhost:8443/resp/beep/boop/bop',
       'server':         /^lactoserv-[.0-9]+ [0-9a-f]+$/
     }
   });
