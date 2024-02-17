@@ -552,68 +552,6 @@ export class Request {
     return result;
   }
 
-  /**
-   * Makes a set of response headers based on the given status code and
-   * `options` (as per the class's public contract for same), along with a set
-   * of extra headers to potentially add. Extra headers are only added if the
-   * headers in `options` don't already specify them (that is, they're an
-   * _underlay_).
-   *
-   * @param {number|string} status The response status code, or `cacheable` to
-   *   indicate definite cacheability.
-   * @param {object} options Result-sending options, notably including `cookies`
-   *   and `headers` bindings.
-   * @param {?object} [extras] Any extra headers to overlay or underlay, in the
-   *   same form as accepted by {@link HttpHeaders#appendAll}.
-   * @returns {object} The response headers.
-   */
-  #makeResponseHeaders(status, options, extras) {
-    const { cookies = null, headers = null } = options ?? {};
-
-    const result = headers ? new HttpHeaders(headers) : new HttpHeaders();
-
-    if (cookies) {
-      result.appendSetCookie(cookies);
-    }
-
-    if ((status === 'cacheable')
-      || HttpUtil.responseIsCacheableFor(this.#requestMethod, status)) {
-      const maxAgeMsec = options.maxAgeMsec ?? 0;
-      result.append('cache-control',
-        `public, max-age=${Math.floor(maxAgeMsec / 1000)}`);
-    }
-
-    if (extras) {
-      result.appendAll(extras);
-    }
-
-    return result;
-  }
-
-  /**
-   * Writes and finishes a response that is either no-body or has already-known
-   * contents.
-   *
-   * @param {number} status The HTTP(ish) status code.
-   * @param {HttpHeaders} headers Response headers.
-   * @param {?Buffer} [body] Body, or `null` not to include one in the response.
-   * @returns {boolean} `true` when the response is completed.
-   */
-  async #writeCompleteResponse(status, headers, body = null) {
-    const response = new HttpResponse();
-
-    response.status  = status;
-    response.headers = headers;
-
-    if (body) {
-      response.setBodyBuffer(body);
-    } else {
-      response.setNoBody();
-    }
-
-    return this.respond(response);
-  }
-
 
   //
   // Static members
@@ -644,53 +582,6 @@ export class Request {
     }
 
     return 'err-unknown';
-  }
-
-  /**
-   * Helper for constructing a contentful response body. This is only
-   * appropriate to call in cases where a body really will be returned with a
-   * response (so, e.g., _not_ with a `204` status).
-   *
-   * @param {object} options Options for body generation.
-   * @param {Buffer|string|null} options.body Body to send.
-   * @param {string} options.contentType Content type.
-   * @returns {{ bodyBuffer: Buffer, bodyHeaders: HttpHeaders }} The details
-   *   needed for the ultimate response.
-   */
-  static #makeBody(options) {
-    const { body, contentType: origContentType } = options;
-
-    if (!origContentType) {
-      throw new Error('Missing `contentType`.');
-    }
-
-    let bodyBuffer;
-    let isText = false;
-
-    if (typeof body === 'string') {
-      bodyBuffer = Buffer.from(body, 'utf-8');
-      isText = true;
-    } else if (body instanceof Buffer) {
-      bodyBuffer = body;
-    } else if (body === null) {
-      // This is an unusual case, and it's not worth doing anything
-      // particularly special for it (e.g. pre-allocating an empty buffer).
-      bodyBuffer = Buffer.alloc(0);
-    } else if (!body) {
-      throw new Error('Missing `body`.');
-    } else {
-      throw new Error('`body` must be a string, a `Buffer`, or `null`.');
-    }
-
-    const contentType = MimeTypes.typeFromExtensionOrType(
-      origContentType, { charSet: 'utf-8', isText });
-
-    return {
-      bodyBuffer,
-      bodyHeaders: {
-        'content-type': contentType
-      }
-    };
   }
 
   /**
