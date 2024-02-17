@@ -205,14 +205,17 @@ It accepts the following configuration bindings:
   specified, it defaults to `301` ("Moved Permanently").
 * `target` &mdash; The base URL to redirect to. This is prepended to the partial
   path of each request to form the final redirection URL.
+* `cacheControl` &mdash; `cache-control` header definition. If present and not
+  `false`, every cacheable response comes with the specified header.
 
 ```js
 const applications = [
   {
-    name:       'myRedirector',
-    class:      'Redirector',
-    statusCode: 308,
-    target:     'https://example.com/boop/'
+    name:         'myRedirector',
+    class:        'Redirector',
+    statusCode:   308,
+    target:       'https://example.com/boop/',
+    cacheControl: { public: true, maxAge: '5 min' }
   }
 ];
 ```
@@ -254,12 +257,14 @@ const applications = [
     name:        'literal',
     class:       'SimpleResponse',
     contentType: 'text/plain',
-    body:        'Hello!\n'
+    body:        'Hello!\n',
+    cacheControl: { public: true, maxAge: '1_day' }
   },
   {
-    name:     'fromFile',
-    class:    'SimpleResponse',
-    filePath: '/etc/site/someFile.txt'
+    name:         'fromFile',
+    class:        'SimpleResponse',
+    filePath:     '/etc/site/someFile.txt',
+    cacheControl: 'immutable; max-age=100'
   },
   {
     name:  'empty',
