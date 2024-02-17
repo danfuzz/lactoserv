@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Bashy-lib Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { checkResponse, requestAndCheck, usualFetch } from '@this/integration-testing';
+import { requestAndCheck, usualFetch } from '@this/integration-testing';
 
 const theUrl = 'https://localhost:8443/';
 
