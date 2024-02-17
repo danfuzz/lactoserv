@@ -18,10 +18,7 @@ await requestAndCheck(
   'Match 1',
   {
     url: theUrl,
-    // Note: Node's `fetch()` puts in a conditional-busting `cache-control:
-    // no-cache` header unless we put our own in.
     headers: {
-      'cache-control': 'max-age=0',
       'if-none-match': etag
     }
   }, {
@@ -43,10 +40,7 @@ await requestAndCheck(
   'Match 2',
   {
     url: theUrl,
-    // Note: Node's `fetch()` puts in a conditional-busting `cache-control:
-    // no-cache` header unless we put our own in.
     headers: {
-      'cache-control': 'max-age=0',
       'if-none-match': `"XYZ", ${etag}, "PDQ"`
     }
   }, {
@@ -68,10 +62,7 @@ await requestAndCheck(
   'Miss 1',
   {
     url: theUrl,
-    // Note: Node's `fetch()` puts in a conditional-busting `cache-control:
-    // no-cache` header unless we put our own in.
     headers: {
-      'cache-control': 'max-age=0',
       'if-none-match': `"XYZ-${etag.slice(1, etag.length - 1)}"`
     }
   }, {
@@ -98,8 +89,6 @@ await requestAndCheck(
   'Miss 2',
   {
     url: theUrl,
-    // Note: Node's `fetch()` puts in a conditional-busting `cache-control:
-    // no-cache` header unless we put our own in.
     headers: {
       'cache-control': 'no-cache',
       'if-none-match': etag
