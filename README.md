@@ -77,7 +77,9 @@ To build:
 To run (versions as above):
 * Standard-ish POSIX operating environment.
   * Notably, it assumes `openssl` (or similar) is available in the runtime
-    environment.
+    environment. (This is only used when the system is asked to generate
+    self-signed certificates. If you don't need to do that, then Node's
+    built-in SSL implementation suffices.)
 * Recent-ish version of Bash.
 * Node v20 or later.
   * **Note:**: Lactoserv uses the relatively new `/v` flag on regular
