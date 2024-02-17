@@ -22,3 +22,22 @@ await requestAndCheck(
       'server':         /^lactoserv-[.0-9]+ [0-9a-f]+$/
     }
   });
+
+await requestAndCheck(
+  'Redirect from non-directory path',
+  {
+    url: 'https://localhost:8443/subdir'
+  }, {
+    status: 308,
+    statusText: 'Permanent Redirect',
+    headers: {
+      'cache-control':  'public, max-age=300',
+      'connection':     'keep-alive',
+      'content-length': /./,
+      'content-type':   'text/plain; charset=utf-8',
+      'date':           /^[,: a-zA-Z0-9]+ GMT$/,
+      'location':       'subdir/',
+      'server':         /^lactoserv-[.0-9]+ [0-9a-f]+$/
+    },
+    body: /^subdir[/]$/m
+  });
