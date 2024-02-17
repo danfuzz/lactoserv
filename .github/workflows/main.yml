@@ -39,6 +39,9 @@ jobs:
       - name: Run the unit tests.
         run: ./scripts/ubik run-tests
 
+      - name: Run the integration tests.
+        run: ./scripts/ubik run-tests --type=integration
+
       - name: Ensure the cert creator still works.
         run: ./scripts/ubik make-localhost-cert
 

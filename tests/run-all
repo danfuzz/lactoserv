@@ -14,53 +14,157 @@ define-usage --with-help $'
     ${name} [<opt> ...] [--]
 
     Runs all the tests.
+
+    --run-server
+    Start the server with the integration testing config before running the
+    tests, and stop it afterwards.
 '
+
+opt-toggle --var=runServer run-server
 
 process-args "$@" || exit "$?"
 
 
 #
+# Helper functions
+#
+
+# Actually runs the tests.
+function run-tests {
+    local testsDir && testsDir="$(this-cmd-dir)" || return "$?"
+
+    # Test directories are identified as directories that have a file called
+    # `run` or `run.*` in them.
+    local allRunScripts
+    jset-array --raw allRunScripts "$(
+        lib ls-files --output=array --sort \
+            --cd="${testsDir}" --include='^[0-9][-/a-z0-9]+/run(\.[a-z]+)?$' \
+        || echo '["error"]'
+    )" \
+    || exit "$?"
+
+    if [[ ${allRunScripts[0]} == 'error' ]]; then
+        return 1
+    fi
+
+    local errors=()
+    local run
+    for run in "${allRunScripts[@]}"; do
+        local testName="${run%/run*}"
+        "${testsDir}/run-one" "${testName}" \
+        || errors+=("${testName}")
+    done
+
+    local errorCount="${#errors[@]}"
+
+    echo ''
+
+    if (( errorCount != 0 )); then
+        echo 'Problems with:'
+
+        local e
+        for e in "${errors[@]}"; do
+            echo "  ${e}"
+        done
+
+        (( errorCount == 1 )) && noun=error || noun=errors
+        echo ''
+        echo "${errorCount} ${noun}. Alas."
+
+        return 1
+    fi
+}
+
+# Starts the server.
+function start-server {
+    progress-msg 'Starting server...'
+
+    lib --exec run --no-log-to-stdout &
+
+    serverPid="$!"
+
+    progress-msg "Server started (pid is ${serverPid})."
+    progress-msg
+
+    # Wait for it to be alive.
+    local done=0
+    local n
+    for (( n = 0; n < 10; n++ )); do
+        curl --silent -o /dev/null http://localhost:8080/
+        if (( $? == 0 )); then
+            done=1
+            break;
+        fi
+
+        if (( n == 0 )); then
+            progress-msg "Waiting for server to be responsive..."
+        fi
+
+        sleep 1
+    done
+
+    if (( !done )); then
+        error-msg 'Server never became active.'
+        kill >/dev/null -9 "${serverPid}"
+        return 1
+    fi
+
+    progress-msg 'Server is ready!'
+    progress-msg ''
+}
+
+# Stops the server.
+function stop-server {
+    local done=0
+
+    local n
+    for (( n = 0; n < 10; n++ )); do
+        if ! kill >/dev/null 2>&1 -0 "${serverPid}"; then
+            done=1
+            break
+        fi
+
+        if (( n == 0 )); then
+            progress-msg "Stopping server (pid ${serverPid})..."
+        fi
+
+        kill >/dev/null "${serverPid}"
+
+        if (( n != 0 )); then
+            sleep 1
+        fi
+    done
+
+    if (( n == 0 )); then
+        error-msg 'Server exited before tests ended.'
+        return 1
+    fi
+
+    if (( !done )); then
+        error-msg 'Server never exited.'
+        kill >/dev/null -9 "${serverPid}"
+        return 1
+    fi
+
+    progress-msg 'Server stopped.'
+    progress-msg ''
+}
+
+#
 # Main script
 #
 
-testsDir="$(this-cmd-dir)"
-
-# Test directories are identified as directories that have a file called `run`
-# or `run.*` in them.
-jset-array --raw allRunScripts "$(
-    lib ls-files --output=array --sort \
-        --cd="${testsDir}" --include='^[0-9][-/a-z0-9]+/run(\.[a-z]+)?$' \
-    || echo '["error"]'
-)" \
-|| exit "$?"
-
-if [[ ${allRunScripts[0]} == 'error' ]]; then
-    exit 1
+if (( runServer )); then
+    start-server || {
+        error-msg 'Trouble starting server!'
+        exit 1
+    }
 fi
 
-errors=()
-for run in "${allRunScripts[@]}"; do
-    testName="${run%/run*}"
-    "${testsDir}/run-one" "${testName}" \
-    || errors+=("${testName}")
-done
+run-tests
 
-errorCount="${#errors[@]}"
-
-echo ''
-
-if (( errorCount == 0 )); then
-    echo 'All passed. Yay!'
-else
-    echo 'Problems with:'
-
-    for e in "${errors[@]}"; do
-        echo "  ${e}"
-    done
-
-    (( errorCount == 1 )) && noun=error || noun=errors
-    echo ''
-    echo "${errorCount} ${noun}. Alas."
-
-    exit 1
+if (( runServer )); then
+    stop-server || exit 1
 fi
+
+echo 'All passed. Yay!'

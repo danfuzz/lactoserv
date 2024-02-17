@@ -110,7 +110,7 @@ function config-file-path {
 
 # Runs integration tests.
 function run-integration-tests {
-    "$(base-dir)/tests/run-all" "${args[@]}"
+    "$(base-dir)/tests/run-all" --run-server "${args[@]}"
 }
 
 # Runs unit tests.

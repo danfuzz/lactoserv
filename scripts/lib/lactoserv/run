@@ -26,6 +26,8 @@ define-usage --with-help $'
     --inspect[=...]
       Passes this option to the `node` invocation, to enable interactive
       debugging.
+    --[no]-log-to-stdout
+      Debugging option passed to the system. Defaults to yes-log.
     --max-run-time-sec=<num>
       Debugging option passed to the system.
     --out=<dir>
@@ -38,6 +40,7 @@ opt-value --var=action --default=run --enum[]='build clean run' do
 
 # Options passed directly to the main `run` script.
 opt-toggle --var=dryRun dry-run
+opt-toggle --var=logToStdout --default=1 log-to-stdout
 opt-toggle --var=earlyErrors early-errors
 opt-value --var=maxRunTimeSec max-run-time-sec
 
@@ -98,11 +101,13 @@ fi
 if (( earlyErrors )); then
     extraOpts+=(--early-errors)
 fi
+if (( logToStdout )); then
+    extraOpts+=(--log-to-stdout)
+fi
 if [[ ${maxRunTimeSec} != '' ]]; then
     extraOpts+=(--max-run-time-sec="${maxRunTimeSec}")
 fi
 
 exec "${outRun}" \
     "${extraOpts[@]}" \
-    --config="$(base-dir)/etc/example-setup/config/config.mjs" \
-    --log-to-stdout
+    --config="$(base-dir)/etc/example-setup/config/config.mjs"
