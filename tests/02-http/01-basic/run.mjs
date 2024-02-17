@@ -9,7 +9,7 @@ await checkResponse(response, {
   status: 308,
   statusText: 'Permanent Redirect',
   headers: {
-    'cache-control':  'public, max-age=0',
+    'cache-control':  'public, max-age=300',
     'connection':     'keep-alive',
     'content-length': '54',
     'content-type':   'text/plain; charset=utf-8',

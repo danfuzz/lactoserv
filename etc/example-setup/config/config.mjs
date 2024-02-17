@@ -120,10 +120,11 @@ const services = [
 // Application definitions.
 const applications = [
   {
-    name:       'myWackyRedirector',
-    class:      'Redirector',
-    statusCode: 308,
-    target:     'https://localhost:8443/resp/'
+    name:         'myWackyRedirector',
+    class:        'Redirector',
+    statusCode:   308,
+    target:       'https://localhost:8443/resp/',
+    cacheControl: { public: true, maxAge: '5 min' },
   },
   {
     name:          'myStaticFun',

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { IntfLogger } from '@this/loggy';
-import { Uris } from '@this/net-util';
+import { HttpResponse, HttpUtil, Uris } from '@this/net-util';
 import { ApplicationConfig } from '@this/sys-config';
 import { BaseApplication } from '@this/sys-framework';
 import { MustBe } from '@this/typey';
@@ -20,6 +20,12 @@ export class Redirector extends BaseApplication {
   #target;
 
   /**
+   * @type {?string} `cache-control` header to automatically include, or
+   * `null` not to do that.
+   */
+  #cacheControl = null;
+
+  /**
    * Constructs an instance.
    *
    * @param {ApplicationConfig} config Configuration for this application.
@@ -28,7 +34,8 @@ export class Redirector extends BaseApplication {
   constructor(config, logger) {
     super(config, logger);
 
-    this.#statusCode = config.statusCode;
+    this.#cacheControl = config.cacheControl;
+    this.#statusCode   = config.statusCode;
 
     // Drop the final slash from `target`, because we'll always be appending a
     // path that _starts_ with a slash.
@@ -37,9 +44,13 @@ export class Redirector extends BaseApplication {
 
   /** @override */
   async _impl_handleRequest(request, dispatch) {
-    return request.sendRedirect(
+    const response = HttpResponse.makeRedirect(
       `${this.#target}${dispatch.extraString}`,
-      { status: this.#statusCode });
+      this.#statusCode);
+
+    response.cacheControl = this.#cacheControl;
+
+    return await request.respond(response);
   }
 
   /** @override */
@@ -73,6 +84,12 @@ export class Redirector extends BaseApplication {
     #target;
 
     /**
+     * @type {?string} `cache-control` header to automatically include, or
+     * `null` not to do that.
+     */
+    #cacheControl = null;
+
+    /**
      * Constructs an instance.
      *
      * @param {object} config Configuration object.
@@ -80,11 +97,34 @@ export class Redirector extends BaseApplication {
     constructor(config) {
       super(config);
 
-      this.#statusCode = config.statusCode
-        ? MustBe.number(config.statusCode, { minInclusive: 300, maxInclusive: 399 })
+      const {
+        cacheControl = null,
+        statusCode = null,
+        target
+      } = config;
+
+      this.#statusCode = statusCode
+        ? MustBe.number(statusCode, { minInclusive: 300, maxInclusive: 399 })
         : 301;
 
-      this.#target = Uris.checkBasicUri(config.target);
+      this.#target = Uris.checkBasicUri(target);
+
+      if ((cacheControl !== null) && (cacheControl !== false)) {
+        this.#cacheControl = (typeof cacheControl === 'string')
+          ? cacheControl
+          : HttpUtil.cacheControlHeader(cacheControl);
+        if (!this.#cacheControl) {
+          throw new Error('Invalid `cacheControl` option.');
+        }
+      }
+    }
+
+    /**
+     * @returns {?string} `cache-control` header to automatically include, or
+     * `null` not to do that.
+     */
+    get cacheControl() {
+      return this.#cacheControl;
     }
 
     /** @returns {string} The target base URI. */
