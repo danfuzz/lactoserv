@@ -87,6 +87,32 @@ function start-server {
 
     progress-msg "Server started (pid is ${serverPid})."
     progress-msg
+
+    # Wait for it to be alive.
+    local done=0
+    local n
+    for (( n = 0; n < 10; n++ )); do
+        curl --silent -o /dev/null http://localhost:8080/
+        if (( $? == 0 )); then
+            done=1
+            break;
+        fi
+
+        if (( n == 0 )); then
+            progress-msg "Waiting for server to be responsive..."
+        fi
+
+        sleep 1
+    done
+
+    if (( !done )); then
+        error-msg 'Server never became active.'
+        kill >/dev/null -9 "${serverPid}"
+        return 1
+    fi
+
+    progress-msg 'Server is ready!'
+    progress-msg ''
 }
 
 # Stops the server.
@@ -101,6 +127,7 @@ function stop-server {
         fi
 
         if (( n == 0 )); then
+            progress-msg ''
             progress-msg "Stopping server (pid ${serverPid})..."
         fi
 
