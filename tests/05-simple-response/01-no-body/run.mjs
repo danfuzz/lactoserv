@@ -41,7 +41,7 @@ await requestAndCheck(
   {
     url: theUrl,
     headers: {
-      'if-none-match': result.headers.get('etag')
+      'if-none-match': etag
     }
   }, {
     status: 304,
