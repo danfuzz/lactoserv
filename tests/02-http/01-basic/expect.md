@@ -34,4 +34,14 @@ https://localhost:8443/resp/beep/boop/bop
 
 ### Body
 
-(no body)
+(no body, as expected)
+
+## Redirect: Non-empty path, HEAD request
+
+### Metadata
+
+* No problems.
+
+### Body
+
+(no body, as expected)

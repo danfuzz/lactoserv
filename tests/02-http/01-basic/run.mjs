@@ -42,8 +42,23 @@ await requestAndCheck(
     status: 308,
     statusText: 'Permanent Redirect',
     headers: {
-      'cache-control':  'public, max-age=300',
-      'location':       'https://localhost:8443/resp/'
+      'cache-control': 'public, max-age=300',
+      'location':      'https://localhost:8443/resp/'
+    },
+    body: null
+  });
+
+await requestAndCheck(
+  'Redirect: Non-empty path, HEAD request',
+  {
+    method: 'head',
+    url:    'http://localhost:8080/beep/boop/bop'
+  }, {
+    status: 308,
+    statusText: 'Permanent Redirect',
+    headers: {
+      'cache-control': 'public, max-age=300',
+      'location':      'https://localhost:8443/resp/beep/boop/bop'
     },
     body: null
   });
