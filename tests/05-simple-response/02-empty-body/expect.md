@@ -27,3 +27,15 @@ No body, as expected.
 ### Body
 
 Body is as expected.
+
+## Range request, which cannot possibly be satisfied (because empty!)
+
+### Metadata
+
+* No problems.
+
+### Body
+
+```
+416 Range Not Satisfiable
+```

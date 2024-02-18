@@ -64,3 +64,20 @@ await requestAndCheck(
     },
     body: ''
   });
+
+await requestAndCheck(
+  'Range request, which cannot possibly be satisfied (because empty!)',
+  {
+    url: theUrl,
+    headers: {
+      'range': 'bytes=0-0'
+    }
+  }, {
+    status: 416,
+    statusText: 'Range Not Satisfiable',
+    headers: {
+      'content-length': /./,
+      'content-range':  'bytes */0',
+      'content-type':   'text/plain; charset=utf-8',
+    }
+  });
