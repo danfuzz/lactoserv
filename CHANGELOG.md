@@ -13,7 +13,7 @@ Breaking changes:
 * Significant rework of the API of `net-protocol.Request`.
 
 Other notable changes:
-* New integration test setup, along with a handful of tests.
+* New integration test setup, along with a decent handful of tests.
 * Module `net-util`:
   * Expanded `MimeTypes` to handle character set stuff.
   * Extracted new class `HttpConditional` from `net-protocol.Request`, and
