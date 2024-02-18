@@ -34,7 +34,7 @@ await requestAndCheck(
     headers: {
       'accept-ranges': 'bytes',
       'cache-control': /./,
-      'etag':          /^"[-/0-9a-zA-Z]+"$/
+      'etag':          /^"[-+/0-9a-zA-Z]+"$/
     },
     body: null
   });

@@ -28,7 +28,7 @@ await requestAndCheck(
       'content-length': `${27 - 5 + 1}`,
       'content-range':  `bytes 5-27/${bodyText.length}`,
       'content-type':   'text/html; charset=utf-8',
-      'etag':           /^"[-/0-9a-zA-Z]+"$/,
+      'etag':           /^"[-+/0-9a-zA-Z]+"$/,
       'last-modified':  /./
     },
     body: bodyText.slice(5, 27 + 1)
@@ -52,7 +52,7 @@ await requestAndCheck(
       'content-length': `${bodyText.length - 200}`,
       'content-range':  `bytes 200-${bodyText.length - 1}/${bodyText.length}`,
       'content-type':   'text/html; charset=utf-8',
-      'etag':           /^"[-/0-9a-zA-Z]+"$/,
+      'etag':           /^"[-+/0-9a-zA-Z]+"$/,
       'last-modified':  /./
     },
     body: bodyText.slice(200)
@@ -76,7 +76,7 @@ await requestAndCheck(
       'content-length': '95',
       'content-range':  `bytes ${bodyText.length - 95}-${bodyText.length - 1}/${bodyText.length}`,
       'content-type':   'text/html; charset=utf-8',
-      'etag':           /^"[-/0-9a-zA-Z]+"$/,
+      'etag':           /^"[-+/0-9a-zA-Z]+"$/,
       'last-modified':  /./
     },
     body: bodyText.slice(bodyText.length - 95)

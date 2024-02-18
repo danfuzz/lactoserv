@@ -32,7 +32,7 @@ await requestAndCheck(
       'content-length': `${25 - 10 + 1}`,
       'content-range':  `bytes 10-25/${bodyText.length}`,
       'content-type':   'text/html; charset=utf-8',
-      'etag':           /^"[-/0-9a-zA-Z]+"$/,
+      'etag':           /^"[-+/0-9a-zA-Z]+"$/,
       'last-modified':  /./
     },
     body: bodyText.slice(10, 25 + 1)
@@ -58,7 +58,7 @@ await requestAndCheck(
       'content-length': `${51 - 20 + 1}`,
       'content-range':  `bytes 20-51/${bodyText.length}`,
       'content-type':   'text/html; charset=utf-8',
-      'etag':           /^"[-/0-9a-zA-Z]+"$/,
+      'etag':           /^"[-+/0-9a-zA-Z]+"$/,
       'last-modified':  /./
     },
     body: bodyText.slice(20, 51 + 1)
@@ -87,7 +87,7 @@ await requestAndCheck(
       'content-length': `${22 - 2 + 1}`,
       'content-range':  `bytes 2-22/${bodyText.length}`,
       'content-type':   'text/html; charset=utf-8',
-      'etag':           /^"[-/0-9a-zA-Z]+"$/,
+      'etag':           /^"[-+/0-9a-zA-Z]+"$/,
       'last-modified':  /./
     },
     body: bodyText.slice(2, 22 + 1)
@@ -112,7 +112,7 @@ await requestAndCheck(
       'cache-control':  /./,
       'content-length': /./,
       'content-type':   'text/html; charset=utf-8',
-      'etag':           /^"[-/0-9a-zA-Z]+"$/,
+      'etag':           /^"[-+/0-9a-zA-Z]+"$/,
       'last-modified':  /./
     },
     body: bodyText
@@ -137,7 +137,7 @@ await requestAndCheck(
       'cache-control':  /./,
       'content-length': /./,
       'content-type':   'text/html; charset=utf-8',
-      'etag':           /^"[-/0-9a-zA-Z]+"$/,
+      'etag':           /^"[-+/0-9a-zA-Z]+"$/,
       'last-modified':  /./
     },
     body: bodyText
