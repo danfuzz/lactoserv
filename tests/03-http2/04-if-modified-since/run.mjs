@@ -28,7 +28,8 @@ await requestAndCheck(
       'accept-ranges':  'bytes',
       'cache-control':  /./,
       'etag':           /^"[-0-9a-zA-Z]+"$/
-    }
+    },
+    body: null
   });
 
 // Try to get a match with a later date.
@@ -50,7 +51,8 @@ await requestAndCheck(
       'accept-ranges':  'bytes',
       'cache-control':  /./,
       'etag':           /^"[-0-9a-zA-Z]+"$/
-    }
+    },
+    body: null
   });
 
 // Try to get a miss, by virtue of passing a too-early date.

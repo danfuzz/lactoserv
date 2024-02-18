@@ -34,7 +34,7 @@ https://localhost:8443/resp/beep/boop/bop
 
 ### Body
 
-(no body, as expected)
+No body, as expected.
 
 ## Redirect: Non-empty path, HEAD request
 
@@ -44,4 +44,4 @@ https://localhost:8443/resp/beep/boop/bop
 
 ### Body
 
-(no body, as expected)
+No body, as expected.

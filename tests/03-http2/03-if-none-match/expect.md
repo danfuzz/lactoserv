@@ -6,7 +6,7 @@
 
 ### Body
 
-(no body)
+No body, as expected.
 
 ## Match 2
 
@@ -16,7 +16,7 @@
 
 ### Body
 
-(no body)
+No body, as expected.
 
 ## Miss 1
 
