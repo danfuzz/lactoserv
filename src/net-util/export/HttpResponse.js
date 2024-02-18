@@ -149,7 +149,7 @@ export class HttpResponse {
    * * `range` -- Handle range-related headers `range` and `if-range`.
    *
    * This method always returns `this` if `status` is set to something other
-   * than `200`.
+   * than `200` ("OK") or `204` ("No Content").
    *
    * @param {string} requestMethod The original request method.
    * @param {HttpHeaders|object} requestHeaders The request headers.
@@ -160,7 +160,7 @@ export class HttpResponse {
   adjustFor(requestMethod, requestHeaders, options) {
     const { headers, status } = this;
 
-    if (status !== 200) {
+    if ((status !== 200) && (status !== 204)) {
       if (status === null) {
         throw new Error('Cannot adjust until `status` is set.');
       }
@@ -171,7 +171,8 @@ export class HttpResponse {
       throw new Error('Cannot adjust until body is set.');
     }
 
-    const { conditional, range } = options;
+    const { conditional, range: origRange } = options;
+    const range = origRange && (status === 200); // Can't do a range on a `204`.
 
     if (conditional) {
       const { type, stats } = this.#body;
