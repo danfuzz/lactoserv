@@ -51,3 +51,38 @@
 ### Body
 
 Body is as expected.
+
+## Subdirectory index
+
+### Metadata
+
+* No problems.
+
+### Body
+
+```
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Subdir!</title>
+</head>
+
+<body>
+  <h1>Subdir!</h1>
+</body>
+
+</html>
+```
+
+## Subdirectory file
+
+### Metadata
+
+* No problems.
+
+### Body
+
+```
+one
+```
