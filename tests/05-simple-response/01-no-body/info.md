@@ -1,1 +1,1 @@
-Test of HTTP2 request basics.
+Test of the `SimpleResponse` app.
