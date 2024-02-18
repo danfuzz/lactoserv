@@ -96,14 +96,14 @@ const services = [
     name:        'limiter',
     class:       'RateLimiter',
     connections: {
-      maxBurstSize: 5,
-      flowRate:     1,
+      maxBurstSize: 10,
+      flowRate:     3,
       timeUnit:     'second',
-      maxQueueSize: 15
+      maxQueueSize: 25
     },
     requests: {
       maxBurstSize: 20,
-      flowRate:     5,
+      flowRate:     10,
       timeUnit:     'second',
       maxQueueSize: 100
     },
