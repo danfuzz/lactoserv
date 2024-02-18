@@ -7,6 +7,14 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
+* None.
+
+Other notable changes:
+* None.
+
+### v0.6.6 -- 2024-02-18
+
+Breaking changes:
 * Tweaked the contract of `contentType` bindings in configurations, to help
   avoid ambiguity and confusion. Specifically, file extensions now need to start
   with a dot.
