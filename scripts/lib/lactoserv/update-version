@@ -82,7 +82,7 @@ collecting && (count != 0) && /^###/ {
     print "Other notable changes:";
     print "* None.";
     print "";
-    print "###  " header;
+    print "### " header;
 
     if ((lines[2] == "* None.") && (lines[5] == "* None.")) {
         # There was already a fresh next-release section, so we are all done.
