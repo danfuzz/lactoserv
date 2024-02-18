@@ -14,7 +14,6 @@ await requestAndCheck(
       'cache-control':  'public, max-age=300',
       'content-length': '54',
       'content-type':   'text/plain; charset=utf-8',
-      'keep-alive':     'timeout=5',
       'location':       'https://localhost:8443/resp/'
     }
   });
@@ -30,7 +29,21 @@ await requestAndCheck(
       'cache-control':  'public, max-age=300',
       'content-length': /./,
       'content-type':   'text/plain; charset=utf-8',
-      'keep-alive':     'timeout=5',
       'location':       'https://localhost:8443/resp/beep/boop/bop'
     }
+  });
+
+await requestAndCheck(
+  'Redirect: Empty path, HEAD request',
+  {
+    method: 'head',
+    url:    'http://localhost:8080/'
+  }, {
+    status: 308,
+    statusText: 'Permanent Redirect',
+    headers: {
+      'cache-control':  'public, max-age=300',
+      'location':       'https://localhost:8443/resp/'
+    },
+    body: null
   });

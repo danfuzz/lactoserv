@@ -25,3 +25,13 @@ https://localhost:8443/resp/
 
 https://localhost:8443/resp/beep/boop/bop
 ```
+
+## Redirect: Empty path, HEAD request
+
+### Metadata
+
+* No problems.
+
+### Body
+
+(no body)
