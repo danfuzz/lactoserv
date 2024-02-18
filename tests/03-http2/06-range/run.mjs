@@ -31,8 +31,7 @@ await requestAndCheck(
       'content-type':   'text/html; charset=utf-8',
       'date':           /./,
       'etag':           /^"[-0-9a-zA-Z]+"$/,
-      'last-modified':  /./,
-      'server':         /./
+      'last-modified':  /./
     },
     body: bodyText.slice(5, 27 + 1)
   });
@@ -58,8 +57,7 @@ await requestAndCheck(
       'content-type':   'text/html; charset=utf-8',
       'date':           /./,
       'etag':           /^"[-0-9a-zA-Z]+"$/,
-      'last-modified':  /./,
-      'server':         /./
+      'last-modified':  /./
     },
     body: bodyText.slice(200)
   });
@@ -85,8 +83,7 @@ await requestAndCheck(
       'content-type':   'text/html; charset=utf-8',
       'date':           /./,
       'etag':           /^"[-0-9a-zA-Z]+"$/,
-      'last-modified':  /./,
-      'server':         /./
+      'last-modified':  /./
     },
     body: bodyText.slice(bodyText.length - 95)
   });
@@ -108,8 +105,7 @@ await requestAndCheck(
       'content-length': /./,
       'content-range':  `bytes */${bodyText.length}`,
       'content-type':   'text/plain; charset=utf-8',
-      'date':           /./,
-      'server':         /./
+      'date':           /./
     }
   });
 
@@ -130,7 +126,6 @@ await requestAndCheck(
       'content-length': /./,
       'content-range':  `bytes */${bodyText.length}`,
       'content-type':   'text/plain; charset=utf-8',
-      'date':           /./,
-      'server':         /./
+      'date':           /./
     }
   });

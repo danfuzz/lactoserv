@@ -35,8 +35,7 @@ await requestAndCheck(
       'content-type':   'text/html; charset=utf-8',
       'date':           /./,
       'etag':           /^"[-0-9a-zA-Z]+"$/,
-      'last-modified':  /./,
-      'server':         /./
+      'last-modified':  /./
     },
     body: bodyText.slice(10, 25 + 1)
   });
@@ -64,8 +63,7 @@ await requestAndCheck(
       'content-type':   'text/html; charset=utf-8',
       'date':           /./,
       'etag':           /^"[-0-9a-zA-Z]+"$/,
-      'last-modified':  /./,
-      'server':         /./
+      'last-modified':  /./
     },
     body: bodyText.slice(20, 51 + 1)
   });
@@ -96,8 +94,7 @@ await requestAndCheck(
       'content-type':   'text/html; charset=utf-8',
       'date':           /./,
       'etag':           /^"[-0-9a-zA-Z]+"$/,
-      'last-modified':  /./,
-      'server':         /./
+      'last-modified':  /./
     },
     body: bodyText.slice(2, 22 + 1)
   });
@@ -124,8 +121,7 @@ await requestAndCheck(
       'content-type':   'text/html; charset=utf-8',
       'date':           /./,
       'etag':           /^"[-0-9a-zA-Z]+"$/,
-      'last-modified':  /./,
-      'server':         /./
+      'last-modified':  /./
     },
     body: bodyText
   });
@@ -152,8 +148,7 @@ await requestAndCheck(
       'content-type':   'text/html; charset=utf-8',
       'date':           /./,
       'etag':           /^"[-0-9a-zA-Z]+"$/,
-      'last-modified':  /./,
-      'server':         /./
+      'last-modified':  /./
     },
     body: bodyText
   });

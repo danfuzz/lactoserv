@@ -15,8 +15,7 @@ await requestAndCheck(
       'connection':     'keep-alive',
       'content-length': /^[0-9]+$/,
       'content-type':   'text/html; charset=utf-8',
-      'date':           /^[,: a-zA-Z0-9]+ GMT$/,
-      'server':         /^lactoserv-[.0-9]+ [0-9a-f]+$/
+      'date':           /^[,: a-zA-Z0-9]+ GMT$/
     },
     body: /So sorry/
   });

@@ -29,8 +29,7 @@ await requestAndCheck(
       'cache-control':  /./,
       'connection':     /./,
       'date':           /./,
-      'etag':           /^"[-0-9a-zA-Z]+"$/,
-      'server':         /./
+      'etag':           /^"[-0-9a-zA-Z]+"$/
     }
   });
 
@@ -54,8 +53,7 @@ await requestAndCheck(
       'cache-control':  /./,
       'connection':     /./,
       'date':           /./,
-      'etag':           /^"[-0-9a-zA-Z]+"$/,
-      'server':         /./
+      'etag':           /^"[-0-9a-zA-Z]+"$/
     }
   });
 
@@ -82,8 +80,7 @@ await requestAndCheck(
       'content-type':   response1.headers.get('content-type'),
       'date':           /./,
       'last-modified':  response1.headers.get('last-modified'),
-      'etag':           /^"[-0-9a-zA-Z]+"$/,
-      'server':         /./
+      'etag':           /^"[-0-9a-zA-Z]+"$/
     },
     body: bodyText
   });
@@ -110,8 +107,7 @@ await requestAndCheck(
       'content-type':   response1.headers.get('content-type'),
       'date':           /./,
       'last-modified':  response1.headers.get('last-modified'),
-      'etag':           /^"[-0-9a-zA-Z]+"$/,
-      'server':         /./
+      'etag':           /^"[-0-9a-zA-Z]+"$/
     },
     body: bodyText
   });

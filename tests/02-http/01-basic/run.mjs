@@ -17,8 +17,7 @@ await requestAndCheck(
       'content-type':   'text/plain; charset=utf-8',
       'date':           /^[,: a-zA-Z0-9]+ GMT$/,
       'keep-alive':     'timeout=5',
-      'location':       'https://localhost:8443/resp/',
-      'server':         /^lactoserv-[.0-9]+ [0-9a-f]+$/
+      'location':       'https://localhost:8443/resp/'
     }
   });
 
@@ -36,7 +35,6 @@ await requestAndCheck(
       'content-type':   'text/plain; charset=utf-8',
       'date':           /^[,: a-zA-Z0-9]+ GMT$/,
       'keep-alive':     'timeout=5',
-      'location':       'https://localhost:8443/resp/beep/boop/bop',
-      'server':         /^lactoserv-[.0-9]+ [0-9a-f]+$/
+      'location':       'https://localhost:8443/resp/beep/boop/bop'
     }
   });

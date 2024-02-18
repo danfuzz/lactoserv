@@ -36,7 +36,6 @@ await requestAndCheck(
       'cache-control':  /./,
       'connection':     /./,
       'date':           /./,
-      'etag':           /^"[-0-9a-zA-Z]+"$/,
-      'server':         /./
+      'etag':           /^"[-0-9a-zA-Z]+"$/
     }
   });
