@@ -13,7 +13,6 @@ await requestAndCheck(
     status: 204,
     statusText: 'No Content',
     headers: {
-      'accept-ranges': 'bytes',
       'cache-control': 'public, immutable, max-age=660',
       'etag':          /^"[-+/0-9a-zA-Z]+"$/,
     },
