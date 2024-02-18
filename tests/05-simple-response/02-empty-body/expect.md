@@ -7,3 +7,23 @@
 ### Body
 
 Body is as expected.
+
+## Date conditional, matching
+
+### Metadata
+
+* No problems.
+
+### Body
+
+No body, as expected.
+
+## Date conditional, non-matching
+
+### Metadata
+
+* No problems.
+
+### Body
+
+Body is as expected.
