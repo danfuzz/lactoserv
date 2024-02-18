@@ -49,7 +49,9 @@ Body is as expected.
 ### Body
 
 ```
-ne```
+ne
+```
+(no newline at end)
 
 ## Range request, ETag conditional which should not match because the tag is weak
 
