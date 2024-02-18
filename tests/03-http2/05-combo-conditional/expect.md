@@ -6,4 +6,4 @@
 
 ### Body
 
-(no body)
+No body, as expected.
