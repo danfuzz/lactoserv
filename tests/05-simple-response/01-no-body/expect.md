@@ -8,6 +8,16 @@
 
 No body, as expected.
 
+## Unconditional, HEAD request
+
+### Metadata
+
+* No problems.
+
+### Body
+
+No body, as expected.
+
 ## ETag conditional, matching
 
 ### Metadata

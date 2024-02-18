@@ -25,6 +25,24 @@ const result = await requestAndCheck(
 const lastModified = result.headers.get('last-modified');
 
 await requestAndCheck(
+  'Unconditional, `HEAD` request',
+  {
+    method: 'head',
+    url:    theUrl
+  }, {
+    status: 200,
+    statusText: 'OK',
+    headers: {
+      'accept-ranges':  'bytes',
+      'cache-control':  'public, immutable, max-age=600',
+      'content-length': '0',
+      'content-type':   'text/plain; charset=utf-8',
+      'last-modified':  lastModified
+    },
+    body: null
+  });
+
+await requestAndCheck(
   'Date conditional, matching',
   {
     url: theUrl,

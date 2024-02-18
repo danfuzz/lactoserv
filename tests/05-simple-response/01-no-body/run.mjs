@@ -20,6 +20,21 @@ const result = await requestAndCheck(
   });
 
 await requestAndCheck(
+  'Unconditional, HEAD request',
+  {
+    method: 'head',
+    url:    theUrl
+  }, {
+    status: 204,
+    statusText: 'No Content',
+    headers: {
+      'cache-control': 'public, immutable, max-age=660',
+      'etag':          result.headers.get('etag')
+    },
+    body: null
+  });
+
+await requestAndCheck(
   'ETag conditional, matching',
   {
     url: theUrl,
