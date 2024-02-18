@@ -4,9 +4,14 @@ Integration Tests
 This directory is for integration tests. As of this writing, things here are a
 bit ad-hoc and not 100% automated.
 
-To run these tests, first build and run the system, and _then_ run the script
-`run-all` in this directory. You can also run it as `ubik run-tests
---type=integration`.
+To run these tests, first build the system. Then, either:
+
+* Run the tests fully standalone:
+  * Run `run-all --run-server` in this directory, or run `ubik run-tests
+    --type=integration`.
+* Run the tests while monitoring the log:
+  * Run the system, e.g. by `ubik run`.
+  * Run the tests with `run-all` in this directory (with no options).
 
 - - - - - - - - - -
 ```
