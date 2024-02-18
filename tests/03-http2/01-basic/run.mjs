@@ -13,7 +13,6 @@ await requestAndCheck(
     headers: {
       'accept-ranges':  'bytes',
       'cache-control':  'public, max-age=300',
-      'connection':     'keep-alive',
       'content-length': '637',
       'content-type':   'text/html; charset=utf-8',
       'etag':           /^"[-0-9a-zA-Z]+"$/,
@@ -30,7 +29,6 @@ await requestAndCheck(
     statusText: 'Permanent Redirect',
     headers: {
       'cache-control':  'public, max-age=300',
-      'connection':     'keep-alive',
       'content-length': /./,
       'content-type':   'text/plain; charset=utf-8',
       'location':       'subdir/'

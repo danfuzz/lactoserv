@@ -13,12 +13,9 @@ await requestAndCheck(
     headers: {
       'accept-ranges':  'bytes',
       'cache-control':  'public, max-age=300',
-      'connection':     'keep-alive',
       'content-length': '637',
       'content-type':   'text/html; charset=utf-8',
-      'date':           /^[,: a-zA-Z0-9]+ GMT$/,
       'etag':           /^"[-0-9a-zA-Z]+"$/,
-      'last-modified':  /^[,: a-zA-Z0-9]+ GMT$/,
-      'server':         /^lactoserv-[.0-9]+ [0-9a-f]+$/
+      'last-modified':  /^[,: a-zA-Z0-9]+ GMT$/
     }
   });

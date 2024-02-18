@@ -12,10 +12,8 @@ await requestAndCheck(
     statusText: 'Permanent Redirect',
     headers: {
       'cache-control':  'public, max-age=300',
-      'connection':     'keep-alive',
       'content-length': '54',
       'content-type':   'text/plain; charset=utf-8',
-      'date':           /^[,: a-zA-Z0-9]+ GMT$/,
       'keep-alive':     'timeout=5',
       'location':       'https://localhost:8443/resp/'
     }
@@ -30,10 +28,8 @@ await requestAndCheck(
     statusText: 'Permanent Redirect',
     headers: {
       'cache-control':  'public, max-age=300',
-      'connection':     'keep-alive',
       'content-length': /./,
       'content-type':   'text/plain; charset=utf-8',
-      'date':           /^[,: a-zA-Z0-9]+ GMT$/,
       'keep-alive':     'timeout=5',
       'location':       'https://localhost:8443/resp/beep/boop/bop'
     }

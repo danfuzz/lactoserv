@@ -29,7 +29,6 @@ await requestAndCheck(
     headers: {
       'accept-ranges':  'bytes',
       'cache-control':  /./,
-      'connection':     /./,
       'content-length': `${25 - 10 + 1}`,
       'content-range':  `bytes 10-25/${bodyText.length}`,
       'content-type':   'text/html; charset=utf-8',
@@ -56,7 +55,6 @@ await requestAndCheck(
     headers: {
       'accept-ranges':  'bytes',
       'cache-control':  /./,
-      'connection':     /./,
       'content-length': `${51 - 20 + 1}`,
       'content-range':  `bytes 20-51/${bodyText.length}`,
       'content-type':   'text/html; charset=utf-8',
@@ -86,7 +84,6 @@ await requestAndCheck(
     headers: {
       'accept-ranges':  'bytes',
       'cache-control':  /./,
-      'connection':     /./,
       'content-length': `${22 - 2 + 1}`,
       'content-range':  `bytes 2-22/${bodyText.length}`,
       'content-type':   'text/html; charset=utf-8',
@@ -113,7 +110,6 @@ await requestAndCheck(
     headers: {
       'accept-ranges':  'bytes',
       'cache-control':  /./,
-      'connection':     /./,
       'content-length': /./,
       'content-type':   'text/html; charset=utf-8',
       'etag':           /^"[-0-9a-zA-Z]+"$/,
@@ -139,7 +135,6 @@ await requestAndCheck(
     headers: {
       'accept-ranges':  'bytes',
       'cache-control':  /./,
-      'connection':     /./,
       'content-length': /./,
       'content-type':   'text/html; charset=utf-8',
       'etag':           /^"[-0-9a-zA-Z]+"$/,

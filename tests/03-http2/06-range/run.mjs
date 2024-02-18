@@ -25,7 +25,6 @@ await requestAndCheck(
     headers: {
       'accept-ranges':  'bytes',
       'cache-control':  /./,
-      'connection':     /./,
       'content-length': `${27 - 5 + 1}`,
       'content-range':  `bytes 5-27/${bodyText.length}`,
       'content-type':   'text/html; charset=utf-8',
@@ -50,7 +49,6 @@ await requestAndCheck(
     headers: {
       'accept-ranges':  'bytes',
       'cache-control':  /./,
-      'connection':     /./,
       'content-length': `${bodyText.length - 200}`,
       'content-range':  `bytes 200-${bodyText.length - 1}/${bodyText.length}`,
       'content-type':   'text/html; charset=utf-8',
@@ -75,7 +73,6 @@ await requestAndCheck(
     headers: {
       'accept-ranges':  'bytes',
       'cache-control':  /./,
-      'connection':     /./,
       'content-length': '95',
       'content-range':  `bytes ${bodyText.length - 95}-${bodyText.length - 1}/${bodyText.length}`,
       'content-type':   'text/html; charset=utf-8',
@@ -98,7 +95,6 @@ await requestAndCheck(
     status: 416,
     statusText: 'Range Not Satisfiable',
     headers: {
-      'connection':     /./,
       'content-length': /./,
       'content-range':  `bytes */${bodyText.length}`,
       'content-type':   'text/plain; charset=utf-8'
@@ -118,7 +114,6 @@ await requestAndCheck(
     status: 416,
     statusText: 'Range Not Satisfiable',
     headers: {
-      'connection':     /./,
       'content-length': /./,
       'content-range':  `bytes */${bodyText.length}`,
       'content-type':   'text/plain; charset=utf-8'

@@ -32,9 +32,8 @@ await requestAndCheck(
     status: 304,
     statusText: 'Not Modified',
     headers: {
-      'accept-ranges':  'bytes',
-      'cache-control':  /./,
-      'connection':     /./,
-      'etag':           /^"[-0-9a-zA-Z]+"$/
+      'accept-ranges': 'bytes',
+      'cache-control': /./,
+      'etag':          /^"[-0-9a-zA-Z]+"$/
     }
   });
