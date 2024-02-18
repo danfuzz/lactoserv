@@ -19,6 +19,8 @@ const result = await requestAndCheck(
     body: null
   });
 
+const etag = result.headers.get('etag');
+
 await requestAndCheck(
   'Unconditional, HEAD request',
   {
@@ -29,7 +31,7 @@ await requestAndCheck(
     statusText: 'No Content',
     headers: {
       'cache-control': 'public, immutable, max-age=660',
-      'etag':          result.headers.get('etag')
+      'etag':          etag
     },
     body: null
   });
@@ -46,7 +48,7 @@ await requestAndCheck(
     statusText: 'Not Modified',
     headers: {
       'cache-control': 'public, immutable, max-age=660',
-      'etag':          /^"[-+/0-9a-zA-Z]+"$/
+      'etag':          etag
     },
     body: null
   });
@@ -63,7 +65,7 @@ await requestAndCheck(
     statusText: 'No Content',
     headers: {
       'cache-control': 'public, immutable, max-age=660',
-      'etag':          result.headers.get('etag')
+      'etag':          etag
     },
     body: null
   });
