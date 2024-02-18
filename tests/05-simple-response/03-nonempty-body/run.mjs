@@ -107,3 +107,25 @@ await requestAndCheck(
       'last-modified':  lastModified
     }
   });
+
+await requestAndCheck(
+  'Range request, ETag conditional which should not match because the tag is weak',
+  {
+    url: theUrl,
+    headers: {
+      'range':    'bytes=1-2',
+      'if-range': etag
+    }
+  }, {
+    status: 200,
+    statusText: 'OK',
+    headers: {
+      'accept-ranges':  'bytes',
+      'cache-control':  'public, immutable, max-age=720',
+      'content-length': '5',
+      'content-type':   'text/plain; charset=utf-8',
+      'etag':           etag,
+      'last-modified':  lastModified
+    },
+    body: /./
+  });

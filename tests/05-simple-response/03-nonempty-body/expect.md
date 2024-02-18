@@ -50,3 +50,13 @@ Body is as expected.
 
 ```
 ne```
+
+## Range request, ETag conditional which should not match because the tag is weak
+
+### Metadata
+
+* No problems.
+
+### Body
+
+Body is as expected.
