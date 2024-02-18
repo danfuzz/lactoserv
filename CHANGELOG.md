@@ -29,7 +29,7 @@ Other notable changes:
 * Removed all of the response methods from `Request`, except for `respond()`
   which just takes an `HttpResponse`. Even that may go away at some point.
 
-###  v0.6.5 -- 2024-02-09
+### v0.6.5 -- 2024-02-09
 
 Breaking changes:
 * None.
