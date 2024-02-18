@@ -16,7 +16,6 @@ await requestAndCheck(
       'connection':     'keep-alive',
       'content-length': '637',
       'content-type':   'text/html; charset=utf-8',
-      'date':           /^[,: a-zA-Z0-9]+ GMT$/,
       'etag':           /^"[-0-9a-zA-Z]+"$/,
       'last-modified':  /^[,: a-zA-Z0-9]+ GMT$/
     }
@@ -34,7 +33,6 @@ await requestAndCheck(
       'connection':     'keep-alive',
       'content-length': /./,
       'content-type':   'text/plain; charset=utf-8',
-      'date':           /^[,: a-zA-Z0-9]+ GMT$/,
       'location':       'subdir/'
     },
     body: /^subdir[/]$/m

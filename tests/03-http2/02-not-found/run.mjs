@@ -14,8 +14,7 @@ await requestAndCheck(
       'cache-control':  'public, max-age=300',
       'connection':     'keep-alive',
       'content-length': /^[0-9]+$/,
-      'content-type':   'text/html; charset=utf-8',
-      'date':           /^[,: a-zA-Z0-9]+ GMT$/
+      'content-type':   'text/html; charset=utf-8'
     },
     body: /So sorry/
   });

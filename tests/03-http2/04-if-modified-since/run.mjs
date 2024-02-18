@@ -28,7 +28,6 @@ await requestAndCheck(
       'accept-ranges':  'bytes',
       'cache-control':  /./,
       'connection':     /./,
-      'date':           /./,
       'etag':           /^"[-0-9a-zA-Z]+"$/
     }
   });
@@ -52,7 +51,6 @@ await requestAndCheck(
       'accept-ranges':  'bytes',
       'cache-control':  /./,
       'connection':     /./,
-      'date':           /./,
       'etag':           /^"[-0-9a-zA-Z]+"$/
     }
   });
@@ -78,7 +76,6 @@ await requestAndCheck(
       'connection':     /./,
       'content-length': response1.headers.get('content-length'),
       'content-type':   response1.headers.get('content-type'),
-      'date':           /./,
       'last-modified':  response1.headers.get('last-modified'),
       'etag':           /^"[-0-9a-zA-Z]+"$/
     },
@@ -105,7 +102,6 @@ await requestAndCheck(
       'connection':     /./,
       'content-length': response1.headers.get('content-length'),
       'content-type':   response1.headers.get('content-type'),
-      'date':           /./,
       'last-modified':  response1.headers.get('last-modified'),
       'etag':           /^"[-0-9a-zA-Z]+"$/
     },

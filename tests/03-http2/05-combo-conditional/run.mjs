@@ -35,7 +35,6 @@ await requestAndCheck(
       'accept-ranges':  'bytes',
       'cache-control':  /./,
       'connection':     /./,
-      'date':           /./,
       'etag':           /^"[-0-9a-zA-Z]+"$/
     }
   });

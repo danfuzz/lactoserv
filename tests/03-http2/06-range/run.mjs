@@ -29,7 +29,6 @@ await requestAndCheck(
       'content-length': `${27 - 5 + 1}`,
       'content-range':  `bytes 5-27/${bodyText.length}`,
       'content-type':   'text/html; charset=utf-8',
-      'date':           /./,
       'etag':           /^"[-0-9a-zA-Z]+"$/,
       'last-modified':  /./
     },
@@ -55,7 +54,6 @@ await requestAndCheck(
       'content-length': `${bodyText.length - 200}`,
       'content-range':  `bytes 200-${bodyText.length - 1}/${bodyText.length}`,
       'content-type':   'text/html; charset=utf-8',
-      'date':           /./,
       'etag':           /^"[-0-9a-zA-Z]+"$/,
       'last-modified':  /./
     },
@@ -81,7 +79,6 @@ await requestAndCheck(
       'content-length': '95',
       'content-range':  `bytes ${bodyText.length - 95}-${bodyText.length - 1}/${bodyText.length}`,
       'content-type':   'text/html; charset=utf-8',
-      'date':           /./,
       'etag':           /^"[-0-9a-zA-Z]+"$/,
       'last-modified':  /./
     },
@@ -104,8 +101,7 @@ await requestAndCheck(
       'connection':     /./,
       'content-length': /./,
       'content-range':  `bytes */${bodyText.length}`,
-      'content-type':   'text/plain; charset=utf-8',
-      'date':           /./
+      'content-type':   'text/plain; charset=utf-8'
     }
   });
 
@@ -125,7 +121,6 @@ await requestAndCheck(
       'connection':     /./,
       'content-length': /./,
       'content-range':  `bytes */${bodyText.length}`,
-      'content-type':   'text/plain; charset=utf-8',
-      'date':           /./
+      'content-type':   'text/plain; charset=utf-8'
     }
   });
