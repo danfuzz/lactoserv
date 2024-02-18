@@ -17,7 +17,8 @@ define-usage --with-help $'
 '
 
 # Version number.
-positional-arg --var=versionNumber --filter='/^[0-9]+\.[0-9]+\.[0-9]+$/' version
+positional-arg --var=versionNumber --filter='/^v?[0-9]+\.[0-9]+\.[0-9]+$/' \
+    version
 
 process-args "$@" || exit "$?"
 
@@ -30,6 +31,11 @@ baseDir="$(base-dir)"
 mainModuleDir="${baseDir}/src/main-lactoserv"
 changelogPath="${baseDir}/CHANGELOG.md"
 tmpPath="${baseDir}/tmp.txt"
+
+if [[ ${versionNumber} =~ ^v(.*)$ ]]; then
+    # Drop the `v` prefix.
+    versionNumber="${BASH_REMATCH[1]}"
+fi
 
 for f in "${mainModuleDir}/package.json" "${mainModuleDir}/package-lock.json"; do
     progress-msg "Updating: ${f}"
