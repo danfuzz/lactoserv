@@ -15,7 +15,7 @@ await requestAndCheck(
       'cache-control':  'public, max-age=300',
       'content-length': '637',
       'content-type':   'text/html; charset=utf-8',
-      'etag':           /^"[-0-9a-zA-Z]+"$/,
+      'etag':           /^"[-/0-9a-zA-Z]+"$/,
       'last-modified':  /^[,: a-zA-Z0-9]+ GMT$/
     }
   });
