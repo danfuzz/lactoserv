@@ -100,6 +100,26 @@ describe('typeFromPathExtension()', () => {
     test('defaults to `application/octet-stream`', () => {
       expect(MimeTypes.typeFromPathExtension('/abc.abcdefgXYZ')).toBe('application/octet-stream');
     });
+
+    test('returns a value with `charset=utf-8` given a text type', () => {
+      expect(MimeTypes.typeFromPathExtension('/a/b/c.html')).toBe('text/html; charset=utf-8');
+    });
+  });
+
+  describe('with config `{ charSet: null }`', () => {
+    const config = { charSet: null };
+
+    test('does not impact a non-text extension', () => {
+      expect(MimeTypes.typeFromPathExtension('/foo.gif', config)).toBe('image/gif');
+    });
+
+    test('does not include a `charset` in the result from a text extension', () => {
+      expect(MimeTypes.typeFromPathExtension('/bar.text', config)).toBe('text/plain');
+    });
+
+    test('defaults to `application/octet-stream`', () => {
+      expect(MimeTypes.typeFromPathExtension('/florp.abcdefgXYZ', config)).toBe('application/octet-stream');
+    });
   });
 
   describe('with config `{ charSet: \'florp\' }`', () => {
@@ -121,23 +141,23 @@ describe('typeFromPathExtension()', () => {
   describe('with config `{ isText: true }`', () => {
     const config = { isText: true };
 
-    test('does not impact a non-text extension', () => {
-      expect(MimeTypes.typeFromPathExtension('/a/b.gif', config)).toBe('image/gif');
+    test('alters an otherwise non-text extension', () => {
+      expect(MimeTypes.typeFromPathExtension('/a/b.gif', config)).toBe('image/gif; charset=utf-8');
     });
 
     test('does not impact a text extension', () => {
-      expect(MimeTypes.typeFromPathExtension('/c/d/e.text', config)).toBe('text/plain');
+      expect(MimeTypes.typeFromPathExtension('/c/d/e.text', config)).toBe('text/plain; charset=utf-8');
     });
 
     test('defaults to `text/plain`', () => {
-      expect(MimeTypes.typeFromPathExtension('/bonk/.abcdefgXYZ', config)).toBe('text/plain');
+      expect(MimeTypes.typeFromPathExtension('/bonk/.abcdefgXYZ', config)).toBe('text/plain; charset=utf-8');
     });
   });
 
   describe('with config `{ charSet: \'boop\', isText: true }`', () => {
     const config = { charSet: 'boop', isText: true };
 
-    test('alters the result from a non0text extension', () => {
+    test('alters the result from a non-text extension', () => {
       expect(MimeTypes.typeFromPathExtension('/a.png', config)).toBe('image/png; charset=boop');
     });
 
