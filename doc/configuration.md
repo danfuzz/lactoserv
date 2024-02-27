@@ -404,8 +404,9 @@ optionally on a periodic basis. It accepts the following configuration bindings:
   still running.
 * `updatePeriod` &mdash; How long to wait between each file update, specified as
   a duration value, as described in [Specifying
-  durations](#specifying-durations). Optional and defaults to "never."
-  This is only meaningfully used when `multiprocess` is `true`.
+  durations](#specifying-durations), or `null` to indicate "never." Optional and
+  defaults to `null`. This is only meaningfully used when `multiprocess` is
+  `true`.
 
 ```js
 const services = [
@@ -431,7 +432,8 @@ configuration bindings:
   infixing the process ID.
 * `updatePeriod` &mdash; How long to wait between each file update while the
   system is running specified as a duration value, as described in [Specifying
-  durations](#specifying-durations). Optional and defaults to "never."
+  durations](#specifying-durations), or `null` to indicate "never." Optional and
+  defaults to `null`.
 * `save` &mdash; Optional file preservation configuration. If not specified, no
   file preservation is done.
 
