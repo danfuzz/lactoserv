@@ -83,7 +83,7 @@ export class StaticFiles extends BaseApplication {
       return await request.respond(response);
     } else if (resolved.path) {
       const contentType =
-        MimeTypes.typeFromPathExtension(resolved.path, { charSet: 'utf-8' });
+        MimeTypes.typeFromPathExtension(resolved.path);
 
       const rawResponse = new HttpResponse();
 
@@ -132,7 +132,7 @@ export class StaticFiles extends BaseApplication {
       response.cacheControl = this.#cacheControl;
 
       const body        = await fs.readFile(notFoundPath);
-      const contentType = MimeTypes.typeFromPathExtension(notFoundPath, { charSet: 'utf-8' });
+      const contentType = MimeTypes.typeFromPathExtension(notFoundPath);
 
       response.setBodyBuffer(body);
       response.headers.set('content-type', contentType);

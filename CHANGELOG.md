@@ -7,7 +7,10 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* None.
+* `net-util`:
+  * `MimeTypes` methods that return MIME type strings now default have the
+    default option `charSet: 'utf-8'`, which is about the most sensible default
+    these days.
 
 Other notable changes:
 * None.
