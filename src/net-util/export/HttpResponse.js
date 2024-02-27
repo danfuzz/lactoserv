@@ -348,8 +348,7 @@ export class HttpResponse {
   setBodyString(body, contentType) {
     MustBe.string(body);
 
-    contentType =
-      MimeTypes.typeFromExtensionOrType(contentType, { charSet: 'utf-8', isText: true });
+    contentType = MimeTypes.typeFromExtensionOrType(contentType, { isText: true });
 
     const charSet = MimeTypes.charSetFromType(contentType);
 
