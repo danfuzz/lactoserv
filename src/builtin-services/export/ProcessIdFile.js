@@ -18,16 +18,7 @@ import { MustBe } from '@this/typey';
  * just contain a simple process ID or list of same (in cases where multiple
  * processes are expected to write to the same file).
  *
- * Configuration object details:
- *
- * * Bindings as defined by the superclass configuration, {@link
- *   FileServiceConfig}.
- * * `{boolean} multiprocess` -- Allow multiple processes to be registered in a
- *   single file. Defaults to `false`.
- * * `{?number} updateSec` -- How often to update the file, in seconds, or
- *   `null` to not perform updates. Defaults to `null`. It is recommended to
- *   have this be non-`null` when `multiprocess` is used, to minimize the chance
- *   of a concurrency tragedy leaving a messed up file around.
+ * See `doc/configuration.md` for configuration object details.
  *
  * **Note:** See {@link #ProcessInfoFile} for a service which writes more
  * complete information about the system.

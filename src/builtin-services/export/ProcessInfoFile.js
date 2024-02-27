@@ -15,15 +15,9 @@ import { MustBe } from '@this/typey';
 
 
 /**
- * Service which writes process info files to the filesystem. Configuration
- * object details:
+ * Service which writes process info files to the filesystem.
  *
- * Configuration object details:
- *
- * * Bindings as defined by the superclass configuration, {@link
- *   FileServiceConfig}. Supports `save`.
- * * `{?number} updateSec` -- How often to update the file, in seconds, or
- *   `null` to not perform updates. Defaults to `null`.
+ * See `doc/configuration.md` for configuration object details.
  *
  * **Note:** See {@link #ProcessIdFile} for a service which writes minimal
  * information about active processes.

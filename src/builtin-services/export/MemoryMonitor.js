@@ -14,26 +14,9 @@ import { MustBe } from '@this/typey';
 
 /**
  * Service which monitors the system's memory usage and can initiate shutdown
- * before a memory problem becomes dire. Configuration object details:
+ * before a memory problem becomes dire.
  *
- * * `{?number} checkSec` -- How often to check things, in seconds, or `null`
- *   to use the default frequency. Minimum `1`. Defaults to `60` (once per
- *   minute).
- * * `{?number} gracePeriodSec` -- Once a memory limit has been reached, how
- *   long it is allowed to remain at or beyond the maximum before this service
- *   takes action, or `null` not to have a grace period at all (equivalent to
- *   `0`). When in the middle of a grace period, the system checks more often
- *   than `checkSec` so as not to miss a significant dip. Defaults to `null`.
- * * `{?number} maxHeapBytes` -- How many bytes of heap is considered "over
- *   limit," or `null` for no limit on this. The amount counted is `heapTotal +
- *   external` from `process.memoryUsage()`. Defaults to `null`. **Note:** In
- *   order to catch probably-unintentional misconfiguration, if a number, must
- *   be at least one megabyte.
- *   The amount counted is `heapTotal + external` from `process.memoryUsage()`.
- * * `{?number} maxRssBytes` -- How many bytes of RSS is considered "over
- *   limit," or `null` for no limit on this. Defaults to `null`. **Note:** In
- *   order to catch probably-unintentional misconfiguration, if non-`null`, must
- *   be at least one megabyte.
+ * See `doc/configuration.md` for configuration object details.
  */
 export class MemoryMonitor extends BaseService {
   /** @type {Threadlet} Threadlet which runs this service. */

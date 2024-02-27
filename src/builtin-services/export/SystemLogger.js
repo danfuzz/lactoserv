@@ -13,13 +13,7 @@ import { MustBe } from '@this/typey';
 /**
  * Service which writes the main log to the filesystem.
  *
- * Configuration object details:
- *
- * * Bindings as defined by the superclass configuration, {@link
- *   FileServiceConfig}. Supports `rotate`.
- * * `{string} format` -- The format to write. Must be one of the formats
- *   defined by {@link TextFileSink} (`json` or `human` as of this writing, but
- *   subject to change).
+ * See `doc/configuration.md` for configuration object details.
  */
 export class SystemLogger extends BaseFileService {
   /** @type {?Rotator} File rotator to use, if any. */
