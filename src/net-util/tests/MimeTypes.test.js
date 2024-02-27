@@ -48,129 +48,6 @@ describe('charSetFromType()', () => {
   });
 });
 
-describe('typeFromPathExtension()', () => {
-  // Failure cases: Wrong argument type.
-  test.each`
-  arg
-  ${null}
-  ${undefined}
-  ${false}
-  ${123}
-  ${['.x']}
-  ${{ a: 10 }}
-  ${new Map()}
-  `('throws given $arg', ({ arg }) => {
-    expect(() => MimeTypes.typeFromPathExtension(arg)).toThrow();
-  });
-
-  // Failure cases: Incorrect syntax (not an absolute path).
-  test.each`
-  arg
-  ${''}
-  ${'txt'}
-  ${'.txt'}
-  ${'foo.txt'}
-  ${'foo/bar.txt'}
-  ${'//foo.txt'}
-  ${'/foo//bar.txt'}
-  ${'/foo/./bar.txt'}
-  ${'/foo/../bar.txt'}
-  ${'/foo/bar.txt/'}
-  `('throws given $arg', ({ arg }) => {
-    expect(() => MimeTypes.typeFromPathExtension(arg)).toThrow(/^Not an absolute path/);
-  });
-
-  describe('with no config argument', () => {
-    test('finds the type given a zero-directory absolute path', () => {
-      expect(MimeTypes.typeFromPathExtension('/boop.tar')).toBe('application/x-tar');
-    });
-
-    test('finds the type given a one-directory absolute path', () => {
-      expect(MimeTypes.typeFromPathExtension('/x/blonk.json')).toBe('application/json');
-    });
-
-    test('finds the type given a zero-directory absolute path with a dot-file', () => {
-      expect(MimeTypes.typeFromPathExtension('/.boop.tar')).toBe('application/x-tar');
-    });
-
-    test('finds the type given a one-directory absolute path with a dot-file', () => {
-      expect(MimeTypes.typeFromPathExtension('/x/.blonk.json')).toBe('application/json');
-    });
-
-    test('defaults to `application/octet-stream`', () => {
-      expect(MimeTypes.typeFromPathExtension('/abc.abcdefgXYZ')).toBe('application/octet-stream');
-    });
-
-    test('returns a value with `charset=utf-8` given a text type', () => {
-      expect(MimeTypes.typeFromPathExtension('/a/b/c.html')).toBe('text/html; charset=utf-8');
-    });
-  });
-
-  describe('with config `{ charSet: null }`', () => {
-    const config = { charSet: null };
-
-    test('does not impact a non-text extension', () => {
-      expect(MimeTypes.typeFromPathExtension('/foo.gif', config)).toBe('image/gif');
-    });
-
-    test('does not include a `charset` in the result from a text extension', () => {
-      expect(MimeTypes.typeFromPathExtension('/bar.text', config)).toBe('text/plain');
-    });
-
-    test('defaults to `application/octet-stream`', () => {
-      expect(MimeTypes.typeFromPathExtension('/florp.abcdefgXYZ', config)).toBe('application/octet-stream');
-    });
-  });
-
-  describe('with config `{ charSet: \'florp\' }`', () => {
-    const config = { charSet: 'florp' };
-
-    test('does not impact a non-text extension', () => {
-      expect(MimeTypes.typeFromPathExtension('/foo.gif', config)).toBe('image/gif');
-    });
-
-    test('alters the result from a text extension', () => {
-      expect(MimeTypes.typeFromPathExtension('/bar.text', config)).toBe('text/plain; charset=florp');
-    });
-
-    test('defaults to `application/octet-stream`', () => {
-      expect(MimeTypes.typeFromPathExtension('/florp.abcdefgXYZ', config)).toBe('application/octet-stream');
-    });
-  });
-
-  describe('with config `{ isText: true }`', () => {
-    const config = { isText: true };
-
-    test('alters an otherwise non-text extension', () => {
-      expect(MimeTypes.typeFromPathExtension('/a/b.gif', config)).toBe('image/gif; charset=utf-8');
-    });
-
-    test('does not impact a text extension', () => {
-      expect(MimeTypes.typeFromPathExtension('/c/d/e.text', config)).toBe('text/plain; charset=utf-8');
-    });
-
-    test('defaults to `text/plain`', () => {
-      expect(MimeTypes.typeFromPathExtension('/bonk/.abcdefgXYZ', config)).toBe('text/plain; charset=utf-8');
-    });
-  });
-
-  describe('with config `{ charSet: \'boop\', isText: true }`', () => {
-    const config = { charSet: 'boop', isText: true };
-
-    test('alters the result from a non-text extension', () => {
-      expect(MimeTypes.typeFromPathExtension('/a.png', config)).toBe('image/png; charset=boop');
-    });
-
-    test('alters the result from a text extension', () => {
-      expect(MimeTypes.typeFromPathExtension('/bb.text', config)).toBe('text/plain; charset=boop');
-    });
-
-    test('defaults to `text/plain` with the configured charset', () => {
-      expect(MimeTypes.typeFromPathExtension('/cc.abcdefgXYZ', config)).toBe('text/plain; charset=boop');
-    });
-  });
-});
-
 describe('typeFromExtensionOrType()', () => {
   // Failure cases: Wrong argument type.
   test.each`
@@ -321,6 +198,129 @@ describe('typeFromExtensionOrType()', () => {
     test('preserves a charset if given', () => {
       const theType = 'text/plain; charset=utf-8';
       expect(MimeTypes.typeFromExtensionOrType(theType, config)).toBe(theType);
+    });
+  });
+});
+
+describe('typeFromPathExtension()', () => {
+  // Failure cases: Wrong argument type.
+  test.each`
+  arg
+  ${null}
+  ${undefined}
+  ${false}
+  ${123}
+  ${['.x']}
+  ${{ a: 10 }}
+  ${new Map()}
+  `('throws given $arg', ({ arg }) => {
+    expect(() => MimeTypes.typeFromPathExtension(arg)).toThrow();
+  });
+
+  // Failure cases: Incorrect syntax (not an absolute path).
+  test.each`
+  arg
+  ${''}
+  ${'txt'}
+  ${'.txt'}
+  ${'foo.txt'}
+  ${'foo/bar.txt'}
+  ${'//foo.txt'}
+  ${'/foo//bar.txt'}
+  ${'/foo/./bar.txt'}
+  ${'/foo/../bar.txt'}
+  ${'/foo/bar.txt/'}
+  `('throws given $arg', ({ arg }) => {
+    expect(() => MimeTypes.typeFromPathExtension(arg)).toThrow(/^Not an absolute path/);
+  });
+
+  describe('with no config argument', () => {
+    test('finds the type given a zero-directory absolute path', () => {
+      expect(MimeTypes.typeFromPathExtension('/boop.tar')).toBe('application/x-tar');
+    });
+
+    test('finds the type given a one-directory absolute path', () => {
+      expect(MimeTypes.typeFromPathExtension('/x/blonk.json')).toBe('application/json');
+    });
+
+    test('finds the type given a zero-directory absolute path with a dot-file', () => {
+      expect(MimeTypes.typeFromPathExtension('/.boop.tar')).toBe('application/x-tar');
+    });
+
+    test('finds the type given a one-directory absolute path with a dot-file', () => {
+      expect(MimeTypes.typeFromPathExtension('/x/.blonk.json')).toBe('application/json');
+    });
+
+    test('defaults to `application/octet-stream`', () => {
+      expect(MimeTypes.typeFromPathExtension('/abc.abcdefgXYZ')).toBe('application/octet-stream');
+    });
+
+    test('returns a value with `charset=utf-8` given a text type', () => {
+      expect(MimeTypes.typeFromPathExtension('/a/b/c.html')).toBe('text/html; charset=utf-8');
+    });
+  });
+
+  describe('with config `{ charSet: null }`', () => {
+    const config = { charSet: null };
+
+    test('does not impact a non-text extension', () => {
+      expect(MimeTypes.typeFromPathExtension('/foo.gif', config)).toBe('image/gif');
+    });
+
+    test('does not include a `charset` in the result from a text extension', () => {
+      expect(MimeTypes.typeFromPathExtension('/bar.text', config)).toBe('text/plain');
+    });
+
+    test('defaults to `application/octet-stream`', () => {
+      expect(MimeTypes.typeFromPathExtension('/florp.abcdefgXYZ', config)).toBe('application/octet-stream');
+    });
+  });
+
+  describe('with config `{ charSet: \'florp\' }`', () => {
+    const config = { charSet: 'florp' };
+
+    test('does not impact a non-text extension', () => {
+      expect(MimeTypes.typeFromPathExtension('/foo.gif', config)).toBe('image/gif');
+    });
+
+    test('alters the result from a text extension', () => {
+      expect(MimeTypes.typeFromPathExtension('/bar.text', config)).toBe('text/plain; charset=florp');
+    });
+
+    test('defaults to `application/octet-stream`', () => {
+      expect(MimeTypes.typeFromPathExtension('/florp.abcdefgXYZ', config)).toBe('application/octet-stream');
+    });
+  });
+
+  describe('with config `{ isText: true }`', () => {
+    const config = { isText: true };
+
+    test('alters an otherwise non-text extension', () => {
+      expect(MimeTypes.typeFromPathExtension('/a/b.gif', config)).toBe('image/gif; charset=utf-8');
+    });
+
+    test('does not impact a text extension', () => {
+      expect(MimeTypes.typeFromPathExtension('/c/d/e.text', config)).toBe('text/plain; charset=utf-8');
+    });
+
+    test('defaults to `text/plain`', () => {
+      expect(MimeTypes.typeFromPathExtension('/bonk/.abcdefgXYZ', config)).toBe('text/plain; charset=utf-8');
+    });
+  });
+
+  describe('with config `{ charSet: \'boop\', isText: true }`', () => {
+    const config = { charSet: 'boop', isText: true };
+
+    test('alters the result from a non-text extension', () => {
+      expect(MimeTypes.typeFromPathExtension('/a.png', config)).toBe('image/png; charset=boop');
+    });
+
+    test('alters the result from a text extension', () => {
+      expect(MimeTypes.typeFromPathExtension('/bb.text', config)).toBe('text/plain; charset=boop');
+    });
+
+    test('defaults to `text/plain` with the configured charset', () => {
+      expect(MimeTypes.typeFromPathExtension('/cc.abcdefgXYZ', config)).toBe('text/plain; charset=boop');
     });
   });
 });
