@@ -554,6 +554,27 @@ const services = [
 This section documents the configuration objects that are used within top-level
 configurations.
 
+### Specifying durations
+
+Several configurations are specified as time durations. These can either be an
+instance of the utility class `data-values.Duration` or a string in a format
+that includes a number followed by a unit name., e.g. `1 day`, `1_000ms`, or
+`1200.5_min`.
+
+For the string form, the numeric portion is allowed to be any usual-format
+floating point number, including exponents, and including internal underscores
+for readability. The number and unit can be separated with either a space or an
+underscore, or they can just be directly next to each other. The available units
+are:
+
+* `nsec` or `ns` &mdash; Nanoseconds.
+* `usec` or `us` &mdash; Microseconds.
+* `msec` or `ms` &mdash; Milliseconds.
+* `sec` or `s` &mdash; Seconds.
+* `min` or `m` &mdash; Minutes.
+* `hr` or `h` &mdash; Hours.
+* `day` or `d` &mdash; Days, where a "day" is defined to be exactly 24 hours.
+
 ### Cache control configuration: `cacheControl`
 
 Applications and services that might generate `cache-control` headers accept
@@ -572,11 +593,7 @@ names (e.g. `noStore` for `no-store`). Values can be:
 * For present-vs-absent header values, such as `public` and `no-cache`:
   * A `boolean`, in which case `true` includes the value and `false` omits it.
 * For duration values:
-  * An instance of the framework class `data-values.Duration`.
-  * A parsable string duration, e.g. `1 day`, `1_000ms` or `1200.5_min`. The
-    numeric portion is allowed to be any usual-format floating point number, including
-    internal underscores for readability. Available units are: `nsec`/`ns`
-    `usec`/`us` `msec`/`ms` `sec`/`s` `min`/`m` `hr`/`h` `day`/`d`.
+  * A duration as described in `Specifying durations`, above.
 
 ### ETag Configuration: `etag`
 
