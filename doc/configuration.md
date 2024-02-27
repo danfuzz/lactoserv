@@ -402,9 +402,10 @@ optionally on a periodic basis. It accepts the following configuration bindings:
   Optional and defaults to `false`. If `true`, whenever the file is written, it
   is read first and any process IDs found in it are kept if they are in fact
   still running.
-* `updateSec` &mdash; How long to wait between each file update, in seconds.
-  Optional and defaults to "never." This is only meaningfully used when
-  `multiprocess` is `true`.
+* `updatePeriod` &mdash; How long to wait between each file update, specified as
+  a duration value, as described in [Specifying
+  durations](#specifying-durations). Optional and defaults to "never."
+  This is only meaningfully used when `multiprocess` is `true`.
 
 ```js
 const services = [
@@ -413,7 +414,7 @@ const services = [
     class:        'ProcessIdFile',
     path:         '/path/to/var/run/process.txt',
     multiprocess: true,
-    updateSec:    60 * 60
+    updatePeriod: '1 hr'
   }
 ];
 ```
@@ -428,19 +429,20 @@ configuration bindings:
 
 * `path` &mdash; Path to the file, with the final path component modified by
   infixing the process ID.
-* `updateSec` &mdash; How many seconds to wait between each file update while
-  the system is running. Optional and defaults to "never."
+* `updatePeriod` &mdash; How long to wait between each file update while the
+  system is running specified as a duration value, as described in [Specifying
+  durations](#specifying-durations). Optional and defaults to "never."
 * `save` &mdash; Optional file preservation configuration. If not specified, no
   file preservation is done.
 
 ```js
 const services = [
   {
-    name:       'process',
-    class:      'ProcessInfoFile',
-    path:       '/path/to/var/run/process.json',
-    updateSec:  5 * 60,
-    save:       { /* ... */ }
+    name:         'process',
+    class:        'ProcessInfoFile',
+    path:         '/path/to/var/run/process.json',
+    updatePeriod: '5 min',
+    save:         { /* ... */ }
   }
 ];
 ```
@@ -593,7 +595,7 @@ names (e.g. `noStore` for `no-store`). Values can be:
 * For present-vs-absent header values, such as `public` and `no-cache`:
   * A `boolean`, in which case `true` includes the value and `false` omits it.
 * For duration values:
-  * A duration as described in `Specifying durations`, above.
+  * A duration as described in [Specifying durations](#specifying-durations).
 
 ### ETag Configuration: `etag`
 
