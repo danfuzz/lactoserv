@@ -119,11 +119,20 @@ export class Duration {
    * * `d` or `day` -- days (defined as exactly 24 hours)
    *
    * @param {string} value The value to parse.
+   * @param {object} [options] Options to control the allowed range of values.
+   * @param {?number} [options.maxExclusive] Exclusive maximum value.
+   *   That is, require `value < maxExclusive`.
+   * @param {?number} [options.maxInclusive] Inclusive maximum value.
+   *   That is, require `value <= maxInclusive`.
+   * @param {?number} [options.minExclusive] Exclusive minimum value.
+   *   That is, require `value > minExclusive`.
+   * @param {?number} [options.minInclusive] Inclusive minimum value.
+   *   That is, require `value >= minInclusive`.
    * @returns {?Duration} The parsed duration, or `null` if the value could not
    *   be parsed.
    */
-  static parse(value) {
-    const sec = this.parseSec(value);
+  static parse(value, options = null) {
+    const sec = this.parseSec(value, options);
 
     return (sec === null) ? null : new Duration(sec);
   }
@@ -133,10 +142,18 @@ export class Duration {
    * See {@link #parse} for details about the accepted formats.
    *
    * @param {string} value The value to parse.
+   * @param {?number} [options.maxExclusive] Exclusive maximum value.
+   *   That is, require `value < maxExclusive`.
+   * @param {?number} [options.maxInclusive] Inclusive maximum value.
+   *   That is, require `value <= maxInclusive`.
+   * @param {?number} [options.minExclusive] Exclusive minimum value.
+   *   That is, require `value > minExclusive`.
+   * @param {?number} [options.minInclusive] Inclusive minimum value.
+   *   That is, require `value >= minInclusive`.
    * @returns {?number} The parsed number of seconds, or `null` if the value
    *   could not be parsed.
    */
-  static parseSec(value) {
+  static parseSec(value, options = null) {
     MustBe.string(value);
 
     const match =
@@ -148,13 +165,33 @@ export class Duration {
 
     const { num: numStr, name } = match.groups;
     const num                   = Number(numStr.replaceAll(/_/g, ''));
-    const mult = this.#SEC_PER_UNIT.get(name.toLowerCase());
+    const mult                  = this.#SEC_PER_UNIT.get(name.toLowerCase());
 
     if (isNaN(num) || !mult) {
       return null;
     }
 
-    return num * mult;
+    const result = num * mult;
+
+    if (!options) {
+      return result;
+    }
+
+    const {
+      maxExclusive = null,
+      maxInclusive = null,
+      minExclusive = null,
+      minInclusive = null
+    } = options;
+
+    if (!(   ((minExclusive === null) || (result > minExclusive))
+          && ((minInclusive === null) || (result >= minInclusive))
+          && ((maxExclusive === null) || (result < maxExclusive))
+          && ((maxInclusive === null) || (result <= maxInclusive)))) {
+      return null;
+    }
+
+    return result;
   }
 
   /**
