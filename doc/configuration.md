@@ -305,19 +305,23 @@ There are a few notable things which _aren't_ configurable for this application.
 These may be configurable in a future version, if there is sufficient and
 reasonable demand:
 
+* Content types:
+  * The `Content-Type` headers are based on the file extensions of the files
+    being served.
+  * The mapping from extensions to MIME types is not configurable.
+  * Textual file types are always reported to have `charset=utf-8`.
 * Caching:
-  * The `Last-Modified`, `ETag`, and `Cache-Control` response headers are sent.
-  * The `max-age` property of the `Cache-Control` response header is _not_
-    configurable.
+  * The `Last-Modified` response header is always sent.
   * Conditional request headers are honored.
 * Ranges:
-  * The `Accept-Ranges` response header is sent.
-  * Range request headers are honored.
+  * The `Accept-Ranges` response header is always sent.
+  * Range request headers are honored, including conditional range requests.
 * Directory responses:
   * "Naked" directory paths (i.e. ones that do not end with a slash) are
     redirected to the same path with a final slash appended.
   * Directory paths are responded to with the contents of a file called
-    `index.html` in that directory. The index file name is not configurable.
+    `index.html` in that directory, if it exists. The index file name is not
+    configurable.
 * These "odd" URL paths all cause not-found responses:
   * Ones with a `..` that would "back out" of the site directory.
   * Ones with an _encoded_ slash in them, that is to say literally `%2F`. (It is
