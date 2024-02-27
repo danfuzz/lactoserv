@@ -233,7 +233,9 @@ bindings:
   dot, e.g., `.txt` or `.html`). This must be specified if `body` is. If this is
   not specified but `filePath` is, then the type is inferred from the extension
   on the path. If neither `body` nor `filePath` is specified (that is, for an
-  empty body), then this must not be specified either.
+  empty body), then this must not be specified either. In the MIME type form,
+  an explicit `charset` is honored (e.g. `text/plain; charset=iso-8859-1`), but
+  if not specified then `utf-8` is assumed for text types.
 * `cacheControl` &mdash; `cache-control` header definition. If present and not
   `false`, every cacheable response comes with the specified header.
 * `etag` &mdash; ETag-generating options. If present and not `false`, the
