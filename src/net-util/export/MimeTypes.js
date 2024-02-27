@@ -70,9 +70,9 @@ export class MimeTypes {
    * @param {?object} [options] Options.
    * @param {?string} [options.charSet] Character set to return _if_ the
    *   returned type has the prefix `text/` or is otherwise considered to be
-   *   text, and doesn't already come with a character set. Defaults to `null`,
-   *   that is, not to ever add a character set when given an extension, nor to
-   *   add a character set when given a MIME type without one.
+   *   text and doesn't already come with a character set, or `null` to _not_
+   *   add a `charset` to the result. Defaults to `'utf-8'`, that is, to include
+   *   `charset=utf-8` in the result for any textual type.
    * @param {?boolean} [options.isText] Indicates that the type is definitely
    *   text. If `true`, `options.charSet` is taken into account if present, and
    *   the default type if no other type can be ascertained is `text/plain`.
@@ -81,7 +81,7 @@ export class MimeTypes {
    */
   static typeFromExtensionOrType(extensionOrType, options = {}) {
     MustBe.string(extensionOrType);
-    const { charSet = null, isText = false } = MustBe.object(options);
+    const { charSet = 'utf-8', isText = false } = MustBe.object(options);
 
     if (/^\.[^./]{1,10}$/.test(extensionOrType)) {
       return this.#typeFromPathOrExtension(extensionOrType, charSet, isText);
