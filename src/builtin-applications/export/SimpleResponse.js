@@ -158,7 +158,7 @@ export class SimpleResponse extends BaseApplication {
       } else if (filePath !== null) {
         this.#filePath    = Paths.checkAbsolutePath(filePath);
         this.#contentType = (contentType === null)
-          ? MimeTypes.typeFromPathExtension(filePath, { charSet: 'utf-8' })
+          ? MimeTypes.typeFromPathExtension(filePath)
           : MimeTypes.typeFromExtensionOrType(contentType, { charSet: 'utf-8' });
       } else {
         // It's an empty body.
