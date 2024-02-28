@@ -167,6 +167,9 @@ export class UnitQuantity {
    * **Note:** The unit name `per` is not allowed, as it is reserved as the
    * word-equivalent of `/`.
    *
+   * **Note:** The range restriction options are only useful if the caller
+   * ends up requiring particular units.
+   *
    * @param {string|UnitQuantity} value The value to parse, or the value itself.
    * @param {object} [options] Options to control the allowed range of values.
    * @param {?boolean} [options.allowInstance] Accept instances of this class?
