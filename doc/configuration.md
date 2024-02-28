@@ -435,7 +435,7 @@ configuration bindings:
 * `path` &mdash; Path to the file, with the final path component modified by
   infixing the process ID.
 * `updatePeriod` &mdash; How long to wait between each file update while the
-  system is running specified as a duration value as described in [Specifying
+  system is running, specified as a duration value as described in [Specifying
   durations](#specifying-durations), or `null` to indicate "never." Optional and
   defaults to `null`. If specified, the value must be at least one second (so as
   to prevent excessive churn).
@@ -642,9 +642,12 @@ following bindings:
 * `atSize` &mdash; Rotate when the file becomes the given size (in bytes) or
   greater. Optional, and if not specified (or if `null`), does not rotate based
   on size.
-* `checkSec` &mdash; How often to check for a rotation condition, in seconds.
-  Optional, and if not specified (or if `null`), does not ever check at all.
-  This is only meaningful if `atSize` is also specified. Default `5 * 60`.
+* `checkPeriod` &mdash; How often to check for a rotation condition, specified
+  as a duration value as described in [Specifying
+  durations](#specifying-durations), or `null` to indicate "never check."
+  Optional and defaults to `5 min`. If specified, the value must be at least one
+  second (so as to prevent excessive churn). This is only meaningful if `atSize`
+  is also specified.
 * `maxOldBytes` &mdash; How many bytes' worth of old (post-rotation) files
   should be allowed, or `null` not to have a limit. The oldest files over the
   limit get deleted after a rotation.Optional, and defaults to `null`.

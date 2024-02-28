@@ -64,7 +64,7 @@ const services = [
       atSize:      1024 * 1024,
       onStart:     true,
       maxOldBytes: 10 * 1024 * 1024,
-      checkSec:    60
+      checkPeriod: '1 min'
     }
   },
   {
@@ -79,7 +79,7 @@ const services = [
       onStop:      true,
       maxOldBytes: 10 * 1024 * 1024,
       maxOldCount: 10,
-      checkSec:    60
+      checkPeriod: '1 min'
     }
   },
   {
@@ -89,7 +89,7 @@ const services = [
     rotate: {
       atSize:      10000,
       maxOldCount: 10,
-      checkSec:    60
+      checkPeriod: '1 min'
     }
   },
   {
