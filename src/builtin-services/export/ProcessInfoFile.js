@@ -300,7 +300,7 @@ export class ProcessInfoFile extends BaseFileService {
       const { updatePeriod = null } = config;
 
       if (updatePeriod) {
-        this.#updateSec = Duration.parseSec(updatePeriod, { minInclusive: 0 });
+        this.#updateSec = Duration.parseSec(updatePeriod, { minInclusive: 1 });
         if (!this.#updateSec) {
           throw new Error(`Could not parse \`updatePeriod\`: ${updatePeriod}`);
         }
