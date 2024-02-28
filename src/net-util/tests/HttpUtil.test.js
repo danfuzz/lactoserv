@@ -24,7 +24,7 @@ describe('cacheControlHeader()', () => {
 
   test('rejects negative `maxAge`', () => {
     expect(() => HttpUtil.cacheControlHeader({ maxAge: '-1 sec' })).toThrow();
-  })
+  });
 });
 
 describe('classicHeaderNameFrom()', () => {
