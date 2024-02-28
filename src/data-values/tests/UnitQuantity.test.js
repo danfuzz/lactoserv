@@ -120,6 +120,15 @@ describe('parse()', () => {
   ${'1e2e3 x'}   // At most one exponent.
   ${'1e1.2 bb'}  // No fractional exponent.
 
+  // Invalid characters in unit.
+  ${'1 b7b'}
+  ${'1 b@b'}
+  ${'1 b$b'}
+  ${'1 b/7'}
+  ${'1 b per 7'}
+  ${'1 per %'}
+  ${'1 per x*'}
+
   // Denominator problems, with slashes.
   ${'1 /'}       // No "naked" slash.
   ${'1/'}        // Ditto.
@@ -141,6 +150,9 @@ describe('parse()', () => {
   // Like the slash tests above, but with "per".
   ${'1 per'}
   ${'1per'}
+  ${'1per '}
+  ${'1per_'}
+  ${'1_per'}
   ${'1 b per c per d'}
   ${'1 b per c per'}
   ${'1 per c per'}
@@ -155,6 +167,9 @@ describe('parse()', () => {
   ${'1 b _per c'}
   ${'1 b per_ c'}
   ${'1 b per _c'}
+  ${'1 per per'}
+  ${'1 /per'}
+  ${'1 per/'}
 
   // Generally invalid number syntax, as are all the rest...
   ${'. z'}
@@ -211,6 +226,7 @@ describe('parse()', () => {
   ${'0 xyz'}              | ${[0, 'xyz', null]}
   ${'0 ABCXYZ'}           | ${[0, 'ABCXYZ', null]}
   ${' 0 x '}              | ${[0, 'x', null]}
+  ${'   0 x   '}          | ${[0, 'x', null]}
   ${'0_x'}                | ${[0, 'x', null]}
   ${'0z'}                 | ${[0, 'z', null]}
   ${'0 /x'}               | ${[0, null, 'x']}

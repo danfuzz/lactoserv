@@ -109,6 +109,9 @@ export class UnitQuantity {
    * This method _also_ optionally accepts `value` as an instance of this class,
    * (to make use of the method when parsing configurations a bit easier).
    *
+   * **Note:** The unit name `per` is not allowed, as it is reserved as the
+   * word-equivalent of `/`.
+   *
    * @param {string|UnitQuantity} value The value to parse, or the value itself.
    * @param {object} [options] Options to control the allowed range of values.
    * @param {?boolean} [options.allowInstance] Accept instances of this class.
@@ -198,6 +201,9 @@ export class UnitQuantity {
       : [unit, ''];
 
     if (!(/^\p{Letter}*$/v.test(numer) && /^\p{Letter}*$/v.test(denom))) {
+      return null;
+    } else if ((numer === 'per') || (denom === 'per')) {
+      // Disallowed to avoid confusion.
       return null;
     }
 
