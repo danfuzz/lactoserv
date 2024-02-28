@@ -297,9 +297,16 @@ export class ProcessInfoFile extends BaseFileService {
     constructor(config) {
       super(config);
 
-      this.#updateSec = config.updateSec
-        ? MustBe.number(config.updateSec, { finite: true, minInclusive: 1 })
-        : MustBe.null(config.updateSec ?? null);
+      const { updatePeriod = null } = config;
+
+      if (updatePeriod) {
+        this.#updateSec = Duration.parseSec(updatePeriod, { minInclusive: 0 });
+        if (!this.#updateSec) {
+          throw new Error(`Could not parse \`updatePeriod\`: ${updatePeriod}`);
+        }
+      } else {
+        this.#updateSec = MustBe.null(updatePeriod);
+      }
     }
 
     /**

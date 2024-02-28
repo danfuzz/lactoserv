@@ -38,10 +38,10 @@ const services = [
     maxRssBytes:    150 * 1024 * 1024
   },
   {
-    name:       'process',
-    class:      'ProcessInfoFile',
-    path:       `${RUN_DIR}/process.json`,
-    updateSec:  5 * 60,
+    name:         'process',
+    class:        'ProcessInfoFile',
+    path:         `${RUN_DIR}/process.json`,
+    updatePeriod: '5 min',
     save: {
       onStart:     true,
       onStop:      true,
@@ -53,7 +53,7 @@ const services = [
     class:        'ProcessIdFile',
     path:         `${RUN_DIR}/process.txt`,
     multiprocess: true,
-    updateSec:    5 * 60
+    updatePeriod: '5 min'
   },
   {
     name:   'syslog',

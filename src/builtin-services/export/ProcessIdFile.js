@@ -6,6 +6,7 @@ import * as process from 'node:process';
 import * as timers from 'node:timers/promises';
 
 import { Threadlet } from '@this/async';
+import { Duration } from '@this/data-values';
 import { Statter } from '@this/fs-util';
 import { ProcessUtil } from '@this/host';
 import { FileServiceConfig } from '@this/sys-config';
@@ -215,12 +216,20 @@ export class ProcessIdFile extends BaseFileService {
     constructor(config) {
       super(config);
 
-      this.#multiprocess = (typeof config.multiprocess === 'boolean')
-        ? config.multiprocess
-        : MustBe.null(config.multiprocess ?? null);
-      this.#updateSec = config.updateSec
-        ? MustBe.number(config.updateSec, { finite: true, minInclusive: 1 })
-        : MustBe.null(config.updateSec ?? null);
+      const { multiprocess = null, updatePeriod = null } = config;
+
+      this.#multiprocess = (typeof multiprocess === 'boolean')
+        ? multiprocess
+        : MustBe.null(multiprocess);
+
+      if (updatePeriod) {
+        this.#updateSec = Duration.parseSec(updatePeriod, { minInclusive: 0 });
+        if (!this.#updateSec) {
+          throw new Error(`Could not parse \`updatePeriod\`: ${updatePeriod}`);
+        }
+      } else {
+        this.#updateSec = MustBe.null(updatePeriod);
+      }
     }
 
     /** @returns {boolean} Allow multiple processes to be listed in the file? */
