@@ -40,6 +40,14 @@ describe('.sec', () => {
   });
 });
 
+describe('.sec', () => {
+  test('returns the value from the constructor times 1000', () => {
+    expect(new Duration(0).msec).toBe(0);
+    expect(new Duration(123).msec).toBe(123000);
+    expect(new Duration(456.789).msec).toBe(456789);
+  });
+});
+
 describe.each`
 method                  | isStatic  | returnsObject
 ${'stringFromSec'}      | ${true}   | ${false}

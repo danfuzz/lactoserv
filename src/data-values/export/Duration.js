@@ -28,6 +28,11 @@ export class Duration {
     Object.freeze(this);
   }
 
+  /** @returns {number} The number of milliseconds being represented. */
+  get msec() {
+    return this.#sec * 1000;
+  }
+
   /** @returns {number} The number of seconds being represented. */
   get sec() {
     return this.#sec;
