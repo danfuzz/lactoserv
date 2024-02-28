@@ -7,6 +7,10 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
+* Configuration:
+  * Most configurations that used to accept plain numbers as durations in
+    seconds now instead take either duration strings that include a unit name
+    _or_ instances of the class `data-values.Duration`.
 * `net-util`:
   * `MimeTypes` methods that return MIME type strings now default have the
     default option `charSet: 'utf-8'`, which is about the most sensible default
