@@ -50,14 +50,14 @@ const config = {
       protocol:  'http',
       hostnames: ['*'],
       interface: '*:8080',
-      mounts: [{ application: 'mySite', at: '//*/' }]
+      mounts:    [{ application: 'mySite', at: '//*/' }]
     },
     {
       name:      'secure',
       protocol:  'http2',
       hostnames: ['*'],
       interface: '*:8443',
-      mounts: [{ application: 'mySite', at: '//*/' }]
+      mounts:    [{ application: 'mySite', at: '//*/' }]
     }
   ]
 };
