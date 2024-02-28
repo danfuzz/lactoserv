@@ -5,7 +5,7 @@ import { memoryUsage } from 'node:process';
 import { setTimeout } from 'node:timers/promises';
 
 import { Threadlet } from '@this/async';
-import { Moment } from '@this/data-values';
+import { Duration, Moment } from '@this/data-values';
 import { Host } from '@this/host';
 import { ServiceConfig } from '@this/sys-config';
 import { BaseService } from '@this/sys-framework';
@@ -71,7 +71,7 @@ export class MemoryMonitor extends BaseService {
         || (maxRssBytes  && (snapshot.rss  >= maxRssBytes))) {
       if (!snapshot.troubleAt) {
         // We just transitioned to an "over limit" situation.
-        const actionAt = now.addSec(this.config.gracePeriodSec);
+        const actionAt = now.addSec(this.config.graceSec);
         snapshot.troubleAt = now;
         snapshot.actionAt  = actionAt;
         this.logger?.overLimit({ actionAt });
@@ -155,7 +155,7 @@ export class MemoryMonitor extends BaseService {
     #checkSec;
 
     /** @type {number} Grace period before triggering an action, in seconds. */
-    #gracePeriodSec;
+    #graceSec;
 
     /**
      * @type {?number} Maximum allowed size of heap usage, in bytes, or `null`
@@ -178,21 +178,26 @@ export class MemoryMonitor extends BaseService {
       super(config);
 
       const {
-        checkSec       = null,
-        gracePeriodSec = null,
-        maxHeapBytes   = null,
-        maxRssBytes    = null
+        checkPeriod  = null,
+        gracePeriod  = null,
+        maxHeapBytes = null,
+        maxRssBytes  = null
       } = config;
 
-      this.#checkSec = (checkSec === null)
-        ? 5 * 60
-        : MustBe.number(checkSec, { finite: true, minInclusive: 1 });
-      this.#gracePeriodSec = (gracePeriodSec === null)
-        ? 0
-        : MustBe.number(gracePeriodSec, { finite: true, minInclusive: 0 });
+      this.#checkSec = Duration.parseSec(checkPeriod ?? '5 min', { minInclusive: 1 });
+      if (this.#checkSec === null) {
+        throw new Error(`Could not parse \`checkPeriod\`: ${checkPeriod}`);
+      }
+
+      this.#graceSec = Duration.parseSec(gracePeriod ?? '0 sec', { minInclusive: 0 });
+      if (this.#graceSec === null) {
+        throw new Error(`Could not parse \`gracePeriod\`: ${gracePeriod}`);
+      }
+
       this.#maxHeapBytes = (maxHeapBytes === null)
         ? null
         : MustBe.number(maxHeapBytes, { finite: true, minInclusive: 1024 * 1024 });
+
       this.#maxRssBytes = (maxRssBytes === null)
         ? null
         : MustBe.number(maxRssBytes, { finite: true, minInclusive: 1024 * 1024 });
@@ -206,8 +211,8 @@ export class MemoryMonitor extends BaseService {
     /**
      * @returns {number} Grace period before triggering an action, in seconds.
      */
-    get gracePeriodSec() {
-      return this.#gracePeriodSec;
+    get graceSec() {
+      return this.#graceSec;
     }
 
     /**

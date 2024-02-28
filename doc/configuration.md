@@ -358,14 +358,17 @@ A service which occasionally checks the system's memory usage, and will force a
 period to allow momentary usage spikes. It accepts the following configuration
 bindings:
 
-* `checkSec` &mdash; How often to check for memory usage being over the
-  defined limit, in seconds. Optional. Minimum `1` (which is frankly way too
-  often). Default `5 * 60` (once every five minutes).
-* `gracePeriodSec` &mdash; Once a memory limit has been reached, how long, in
-  seconds, it is allowed to remain at or beyond the maximum before this service
-  takes action. `0` (or `null`) to not have a grace period at all. Default `0`.
-  **Note:**: When in the middle of a grace period, the service will check
-  memory usage more often than `checkSec` so as not to miss a significant dip.
+* `checkPeriod` &mdash; How often to check for memory usage being over the
+  defined limit, specified as a duration value as described in [Specifying
+  durations](#specifying-durations). Optional. Minimum `1` (which is frankly way
+  too often). Default `5 min` (that is, once every five minutes).
+* `gracePeriod` &mdash; Once a memory limit has been reached, how long it is
+  allowed to remain at or beyond the maximum before this service takes action,
+  specified as a duration value as described in [Specifying
+  durations](#specifying-durations). `0` (or `null`) to not have a grace period
+  at all. Default `0`. **Note:**: When in the middle of a grace period, the
+  service will check memory usage more often than `checkPeriod` so as not to
+  miss a significant dip.
 * `maxHeapBytes` &mdash; How many bytes of heap is considered "over limit," or
   `null` for no limit on this. The amount counted is `heapTotal + external` from
   `process.memoryUsage()`. Defaults to `null`. **Note:** In order to catch
@@ -379,12 +382,12 @@ bindings:
 ```js
 const services = [
   {
-    name:            'memory',
-    class:           'MemoryMonitor',
-    checkSec:        5 * 60,
-    gracePeriodSec:  60,
-    maxHeapBytes:    100 * 1024 * 1024,
-    maxRssBytes:     150 * 1024 * 1024
+    name:         'memory',
+    class:        'MemoryMonitor',
+    checkPeriod:  '5 min',
+    gracePeriod:  '1 min',
+    maxHeapBytes: 100 * 1024 * 1024,
+    maxRssBytes:  150 * 1024 * 1024
   }
 ];
 ```
