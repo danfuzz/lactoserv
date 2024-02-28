@@ -3,6 +3,7 @@
 
 import * as timers from 'node:timers/promises';
 
+import { Duration } from '@this/data-values';
 import { Statter } from '@this/fs-util';
 import { IntfLogger } from '@this/loggy';
 import { FileServiceConfig } from '@this/sys-config';
