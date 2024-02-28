@@ -118,26 +118,24 @@ export class Duration extends UnitQuantity {
    * @param {object} [options] Options to control the allowed range of values.
    * @param {?boolean} [options.allowInstance] Accept instances of this class?
    *   Defaults to `true`.
-   * @param {?number} [options.maxExclusive] Exclusive maximum value.
-   *   That is, require `value < maxExclusive`.
-   * @param {?number} [options.maxInclusive] Inclusive maximum value.
-   *   That is, require `value <= maxInclusive`.
-   * @param {?number} [options.minExclusive] Exclusive minimum value.
-   *   That is, require `value > minExclusive`.
-   * @param {?number} [options.minInclusive] Inclusive minimum value.
-   *   That is, require `value >= minInclusive`.
+   * @param {?number} [options.maxExclusive] Exclusive maximum value, in
+   *   seconds. That is, require `value < maxExclusive`.
+   * @param {?number} [options.maxInclusive] Inclusive maximum value, in
+   *   seconds. That is, require `value <= maxInclusive`.
+   * @param {?number} [options.minExclusive] Exclusive minimum value, in
+   *   seconds. That is, require `value > minExclusive`.
+   * @param {?number} [options.minInclusive] Inclusive minimum value, in
+   *   seconds. That is, require `value >= minInclusive`.
    * @returns {?Duration} The parsed duration, or `null` if the value could not
    *   be parsed.
    */
   static parse(value, options = null) {
     const result = UnitQuantity.parse(value, {
-      ...options,
-      requireUnit: true
+      allowInstance: options?.allowInstance ?? true,
+      requireUnit:   true
     });
 
-    if (result instanceof Duration) {
-      return result;
-    } else if (!result || result.denominatorUnit) {
+    if (!result || result.denominatorUnit) {
       return null;
     }
 
@@ -147,7 +145,25 @@ export class Duration extends UnitQuantity {
       return null;
     }
 
-    return new Duration(result.value * mult);
+    const resValue = result.value * mult;
+
+    const {
+      maxExclusive = null,
+      maxInclusive = null,
+      minExclusive = null,
+      minInclusive = null
+    } = options ?? {};
+
+    if (!(   ((minExclusive === null) || (resValue >  minExclusive))
+          && ((minInclusive === null) || (resValue >= minInclusive))
+          && ((maxExclusive === null) || (resValue <  maxExclusive))
+          && ((maxInclusive === null) || (resValue <= maxInclusive)))) {
+      return null;
+    }
+
+    return ((result === value) && (result instanceof Duration))
+      ? result
+      : new Duration(result.value * mult);
   }
 
   /**
