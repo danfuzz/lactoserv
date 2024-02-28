@@ -398,19 +398,18 @@ export class HttpUtil {
    * @returns {string} The formatted form.
    */
   static #ccSeconds(name, duration) {
-    let sec;
-
-    if (typeof duration === 'string') {
-      sec = Duration.parseSec(duration, { minInclusive: 0 });
-      if (sec === null) {
-        return { error: 'Expected duration string.' };
+    try {
+      duration = Duration.parse(duration, { minInclusive: 0 });
+    } catch {
+      if (typeof duration === 'string') {
+        return { error: 'Expected non-negative duration string.' };
+      } else if (duration instanceof Duration) {
+        return { error: 'Expected non-negative duration.' };
+      } else {
+        return { error: 'Expected type `string` or `Duration`.' };
       }
-    } else if (duration instanceof Duration) {
-      sec = duration.sec;
-    } else {
-      return { error: 'Expected type `string` or `Duration`.' };
     }
 
-    return `${name}=${Math.floor(sec)}`;
+    return `${name}=${Math.floor(duration.sec)}`;
   }
 }
