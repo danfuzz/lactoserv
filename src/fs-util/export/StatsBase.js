@@ -3,6 +3,7 @@
 
 import * as fs from 'node:fs';
 
+
 /**
  * @type {function(new: object)} The base class of {@link fs.Stats} and {@link
  * fs.BigIntStats}. Neither this class nor either of the concrete subclasses

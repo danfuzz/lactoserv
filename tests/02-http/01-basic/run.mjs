@@ -3,6 +3,7 @@
 
 import { requestAndCheck } from '@this/integration-testing';
 
+
 await requestAndCheck(
   'Redirect: Empty path',
   {
