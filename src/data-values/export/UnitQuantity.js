@@ -73,7 +73,7 @@ export class UnitQuantity {
    * @returns {Struct} Encoded form.
    */
   [BaseConverter.ENCODE]() {
-    return new Struct(UnitQuantity,
+    return new Struct(this.constructor, null,
       this.#value, this.#numeratorUnit, this.#denominatorUnit);
   }
 
