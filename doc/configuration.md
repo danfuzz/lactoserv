@@ -403,10 +403,11 @@ optionally on a periodic basis. It accepts the following configuration bindings:
   is read first and any process IDs found in it are kept if they are in fact
   still running.
 * `updatePeriod` &mdash; How long to wait between each file update, specified as
-  a duration value, as described in [Specifying
+  a duration value as described in [Specifying
   durations](#specifying-durations), or `null` to indicate "never." Optional and
-  defaults to `null`. This is only meaningfully used when `multiprocess` is
-  `true`.
+  defaults to `null`. If specified, the value must be at least one second (so as
+  to prevent excessive churn). This value is only meaningfully used when
+  `multiprocess` is `true`.
 
 ```js
 const services = [
@@ -431,9 +432,10 @@ configuration bindings:
 * `path` &mdash; Path to the file, with the final path component modified by
   infixing the process ID.
 * `updatePeriod` &mdash; How long to wait between each file update while the
-  system is running specified as a duration value, as described in [Specifying
+  system is running specified as a duration value as described in [Specifying
   durations](#specifying-durations), or `null` to indicate "never." Optional and
-  defaults to `null`.
+  defaults to `null`. If specified, the value must be at least one second (so as
+  to prevent excessive churn).
 * `save` &mdash; Optional file preservation configuration. If not specified, no
   file preservation is done.
 
