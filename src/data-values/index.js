@@ -11,3 +11,4 @@ export * from '#x/Ref';
 export * from '#x/SpecialConverters';
 export * from '#x/StackTrace';
 export * from '#x/Struct';
+export * from '#x/UnitQuantity';
