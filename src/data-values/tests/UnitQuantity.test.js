@@ -65,6 +65,63 @@ describe('.value', () => {
   });
 });
 
+describe.each`
+methodName
+${'add'}
+${'subtract'}
+`('$methodName()', ({ methodName }) => {
+  test.each`
+  arg
+  ${undefined}
+  ${null}
+  ${123}
+  ${['x']}
+  ${new Map()}
+  `('throws given $arg', ({ arg }) => {
+    const uq = new UnitQuantity(123, 'a', 'b');
+    expect(() => uq[methodName](arg)).toThrow();
+  });
+
+  test('throws if the numerator units do not match', () => {
+    const uq1 = new UnitQuantity(1, 'a', 'yes');
+    const uq2 = new UnitQuantity(1, 'b', 'yes');
+    expect(() => uq1[methodName](uq2)).toThrow();
+  });
+
+  test('throws if the denominator units do not match', () => {
+    const uq1 = new UnitQuantity(1, 'yes', 'x');
+    const uq2 = new UnitQuantity(1, 'yes', 'y');
+    expect(() => uq1[methodName](uq2)).toThrow();
+  });
+
+  test.each`
+  v1     | v2    | add    | subtract
+  ${100} | ${1}  | ${101} | ${99}
+  ${5}   | ${20} | ${25}  | ${-15}
+  `('works for $v1 and $v2', ({ v1, v2, ...expected }) => {
+    const uq1    = new UnitQuantity(v1, 'x', 'y');
+    const uq2    = new UnitQuantity(v2, 'x', 'y');
+    const result = uq1[methodName](uq2);
+
+    expect(result).toBeInstanceOf(UnitQuantity);
+    expect(result.numeratorUnit).toBe('x');
+    expect(result.denominatorUnit).toBe('y');
+    expect(result.value).toBe(expected[methodName]);
+  });
+
+  test('returns an instance of the same class as `this`', () => {
+    class UqSub extends UnitQuantity {
+      // This space intentionally left blank.
+    }
+
+    const uq1    = new UqSub(123, 'x', 'y');
+    const uq2    = new UnitQuantity(456, 'x', 'y');
+    const result = uq1[methodName](uq2);
+
+    expect(result).toBeInstanceOf(UqSub);
+  });
+});
+
 describe('inverse()', () => {
   test('returns an instance of this class', () => {
     const result = new UnitQuantity(123, 'x', 'y').inverse();

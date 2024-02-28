@@ -78,6 +78,28 @@ export class UnitQuantity {
   }
 
   /**
+   * Adds the value of this instance to another, returning a new instance of
+   * the same (possibly sub-) class as this. The other instance must have the
+   * same units as this one.
+   *
+   * @param {UnitQuantity} other Other instance to add.
+   * @returns {UnitQuantity} Summed result.
+   */
+  add(other) {
+    MustBe.instanceOf(other, UnitQuantity);
+
+    if (   (other.#numeratorUnit !== this.#numeratorUnit)
+        || (other.#denominatorUnit !== this.#denominatorUnit)) {
+      throw new Error('Mismatched units.');
+    }
+
+    return new this.constructor(
+      this.#value + other.#value,
+      this.#numeratorUnit,
+      this.#denominatorUnit);
+  }
+
+  /**
    * Returns the inverse of this instance, that is, `1 / value`, with numerator
    * and denominator swapped.
    *
@@ -87,6 +109,27 @@ export class UnitQuantity {
     return new UnitQuantity(1 / this.#value, this.#denominatorUnit, this.#numeratorUnit);
   }
 
+  /**
+   * Subtracts the value of another instance from this one, returning a new
+   * instance of the same (possibly sub-) class as this. The other instance must
+   * have the same units as this one.
+   *
+   * @param {UnitQuantity} other Other instance to add.
+   * @returns {UnitQuantity} Summed result.
+   */
+  subtract(other) {
+    MustBe.instanceOf(other, UnitQuantity);
+
+    if (   (other.#numeratorUnit !== this.#numeratorUnit)
+        || (other.#denominatorUnit !== this.#denominatorUnit)) {
+      throw new Error('Mismatched units.');
+    }
+
+    return new this.constructor(
+      this.#value - other.#value,
+      this.#numeratorUnit,
+      this.#denominatorUnit);
+  }
 
   //
   // Static members
