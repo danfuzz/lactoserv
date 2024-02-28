@@ -6,6 +6,7 @@ export * from '#x/BaseDataClass';
 export * from '#x/Converter';
 export * from '#x/ConverterConfig';
 export * from '#x/Duration';
+export * from '#x/Frequency';
 export * from '#x/Moment';
 export * from '#x/Ref';
 export * from '#x/SpecialConverters';
