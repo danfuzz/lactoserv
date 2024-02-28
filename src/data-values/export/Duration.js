@@ -130,31 +130,6 @@ export class Duration extends UnitQuantity {
    *   be parsed.
    */
   static parse(value, options = null) {
-    const sec = this.parseSec(value, options);
-
-    return (sec === null) ? null : new Duration(sec);
-  }
-
-  /**
-   * Parses a string representing a duration, returning a number of seconds.
-   * See {@link #parse} for details about the format and accepted units.
-   *
-   * @param {string|Duration} value The value to parse, or the value itself.
-   * @param {object} [options] Options to control the allowed range of values.
-   * @param {?boolean} [options.allowInstance] Accept instances of this class?
-   *   Defaults to `true`.
-   * @param {?number} [options.maxExclusive] Exclusive maximum value.
-   *   That is, require `value < maxExclusive`.
-   * @param {?number} [options.maxInclusive] Inclusive maximum value.
-   *   That is, require `value <= maxInclusive`.
-   * @param {?number} [options.minExclusive] Exclusive minimum value.
-   *   That is, require `value > minExclusive`.
-   * @param {?number} [options.minInclusive] Inclusive minimum value.
-   *   That is, require `value >= minInclusive`.
-   * @returns {?number} The parsed number of seconds, or `null` if the value
-   *   could not be parsed.
-   */
-  static parseSec(value, options = null) {
     const result = UnitQuantity.parse(value, {
       ...options,
       requireUnit: true
@@ -170,7 +145,7 @@ export class Duration extends UnitQuantity {
       return null;
     }
 
-    return result.value * mult;
+    return new Duration(result.value * mult);
   }
 
   /**

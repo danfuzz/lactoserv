@@ -164,11 +164,7 @@ describe('.ZERO', () => {
   });
 });
 
-describe.each`
-methodName    | returns
-${'parse'}    | ${'object'}
-${'parseSec'} | ${'number'}
-`('$methodName()', ({ methodName, returns }) => {
+describe('parse()', () => {
   // Error: Wrong argument type.
   test.each`
   arg
@@ -180,7 +176,7 @@ ${'parseSec'} | ${'number'}
   ${new Map()}
   ${new Moment(10)}
   `('throws given $arg', ({ arg }) => {
-    expect(() => Duration[methodName](arg)).toThrow();
+    expect(() => Duration.parse(arg)).toThrow();
   });
 
   // Error: Syntax error / unknown unit.
@@ -233,7 +229,7 @@ ${'parseSec'} | ${'number'}
   ${'1e1+1 sec'}
   ${'1e1-1 sec'}
   `('returns `null` given $value', ({ value }) => {
-    expect(Duration[methodName](value)).toBeNull();
+    expect(Duration.parse(value)).toBeNull();
   });
 
   // Success cases, no options.
@@ -297,14 +293,11 @@ ${'parseSec'} | ${'number'}
   ${'2e+0 s'}             | ${2}
   ${'2e-0 s'}             | ${2}
   `('returns $expected given $value', ({ value, expected }) => {
-    const result = Duration[methodName](value);
+    const result = Duration.parse(value);
 
-    if (returns === 'object') {
-      expect(result).toBeInstanceOf(Duration);
-      expect(result.sec).toBe(expected);
-    } else {
-      expect(result).toBe(expected);
-    }
+    expect(result).not.toBeNull();
+    expect(result).toBeInstanceOf(Duration);
+    expect(result.sec).toBe(expected);
   });
 
   // Success and failure cases, with options.
@@ -320,15 +313,14 @@ ${'parseSec'} | ${'number'}
   ${'-.001 s'}       | ${{ maxExclusive: 0 }}      | ${-0.001}
   ${new Duration(1)} | ${{ allowInstance: false }} | ${null}
   `('returns $expected given ($value, $options)', ({ value, options, expected }) => {
-    const result = Duration[methodName](value, options);
+    const result = Duration.parse(value, options);
 
     if (expected === null) {
       expect(result).toBeNull();
-    } else if (returns === 'object') {
+    } else {
+      expect(result).not.toBeNull();
       expect(result).toBeInstanceOf(Duration);
       expect(result.sec).toBe(expected);
-    } else {
-      expect(result).toBe(expected);
     }
   });
 });
