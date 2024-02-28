@@ -115,15 +115,17 @@ export class ProcessIdFile extends BaseFileService {
    * Runs the service thread.
    */
   async #run() {
+    const updateMsec = this.config.updatePeriod?.msec ?? null;
+
     while (!this.#runner.shouldStop()) {
       await this.#updateFile(true);
 
-      const { updateSec } = this.config;
-      const updateTimeout = updateSec
-        ? [timers.setTimeout(updateSec * 1000)]
-        : [];
-
-      await this.#runner.raceWhenStopRequested(updateTimeout);
+      if (updateMsec) {
+        const timeout = timers.setTimeout(updateMsec);
+        await this.#runner.raceWhenStopRequested([timeout]);
+      } else {
+        await this.#runner.whenStopRequested();
+      }
     }
 
     await this.#updateFile(false);
@@ -203,10 +205,10 @@ export class ProcessIdFile extends BaseFileService {
     #multiprocess;
 
     /**
-     * @type {?number} How often to update the info file, in seconds, or `null`
-     * to not perform updates.
+     * @type {?Duration} How often to update the info file, or `null` to not
+     * perform updates.
      */
-    #updateSec;
+    #updatePeriod;
 
     /**
      * Constructs an instance.
@@ -223,12 +225,12 @@ export class ProcessIdFile extends BaseFileService {
         : MustBe.null(multiprocess);
 
       if (updatePeriod) {
-        this.#updateSec = Duration.parseSec(updatePeriod, { minInclusive: 1 });
-        if (!this.#updateSec) {
+        this.#updatePeriod = Duration.parse(updatePeriod, { minInclusive: 1 });
+        if (!this.#updatePeriod) {
           throw new Error(`Could not parse \`updatePeriod\`: ${updatePeriod}`);
         }
       } else {
-        this.#updateSec = MustBe.null(updatePeriod);
+        this.#updatePeriod = MustBe.null(updatePeriod);
       }
     }
 
@@ -238,11 +240,11 @@ export class ProcessIdFile extends BaseFileService {
     }
 
     /**
-     * @returns {?number} How often to update the info file, in seconds, or
-     * `null` to not perform updates.
+     * @returns {?Duration} How often to update the info file, or `null` to not
+     * perform updates.
      */
-    get updateSec() {
-      return this.#updateSec;
+    get updatePeriod() {
+      return this.#updatePeriod;
     }
   };
 }
