@@ -22,6 +22,7 @@ Other notable changes:
 * `data-values`:
   * New class `UnitQuantity`, which generalizes over things like `Duration`.
   * Reworked `Duration` to be a subclass of `UnitQuantity`.
+  * New class `Frequency`, a subclass of `UnitQuantity`.
 
 ### v0.6.6 -- 2024-02-18
 
