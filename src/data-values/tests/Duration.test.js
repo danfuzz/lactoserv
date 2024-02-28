@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Duration } from '@this/data-values';
+import { Duration, Moment } from '@this/data-values';
 
 
 describe('constructor()', () => {
@@ -170,14 +170,14 @@ ${'parseSec'} | ${'number'}
   ${123}
   ${['123s']}
   ${new Map()}
-  ${new Duration(10)}
+  ${new Moment(10)}
   `('throws given $arg', ({ arg }) => {
     expect(() => Duration[methodName](arg)).toThrow();
   });
 
   // Error: Syntax error / unknown unit.
   test.each`
-  arg
+  value
   ${''}
   ${'123'}       // No unit.
   ${'hr'}        // No number.
@@ -224,13 +224,14 @@ ${'parseSec'} | ${'number'}
   ${'1e1- sec'}
   ${'1e1+1 sec'}
   ${'1e1-1 sec'}
-  `('returns `null` given $arg', ({ arg }) => {
-    expect(Duration[methodName](arg)).toBeNull();
+  `('returns `null` given $value', ({ value }) => {
+    expect(Duration[methodName](value)).toBeNull();
   });
 
-  // Success cases
+  // Success cases, no options.
   test.each`
-  arg                     | expected
+  value                   | expected
+  ${new Duration(12345)}  | ${12345}
   ${'0 nsec'}             | ${0}
   ${'0 ns'}               | ${0}
   ${'0 usec'}             | ${0}
@@ -287,10 +288,35 @@ ${'parseSec'} | ${'number'}
   ${'2e-1 s'}             | ${0.2}
   ${'2e+0 s'}             | ${2}
   ${'2e-0 s'}             | ${2}
-  `('returns $expected given $arg', ({ arg, expected }) => {
-    const result = Duration[methodName](arg);
+  `('returns $expected given $value', ({ value, expected }) => {
+    const result = Duration[methodName](value);
 
     if (returns === 'object') {
+      expect(result).toBeInstanceOf(Duration);
+      expect(result.sec).toBe(expected);
+    } else {
+      expect(result).toBe(expected);
+    }
+  });
+
+  // Success and failure cases, with options.
+  test.each`
+  value              | options                     | expected
+  ${'0 s'}           | ${{ minInclusive: 0 }}      | ${0}
+  ${'-.001 usec'}    | ${{ minInclusive: 0 }}      | ${null}
+  ${'0 s'}           | ${{ minExclusive: 0 }}      | ${null}
+  ${'0.001 s'}       | ${{ minExclusive: 0 }}      | ${0.001}
+  ${'0 s'}           | ${{ maxInclusive: 0 }}      | ${0}
+  ${'-0.1 sec'}      | ${{ maxInclusive: 0 }}      | ${-0.1}
+  ${'0 s'}           | ${{ maxExclusive: 0 }}      | ${null}
+  ${'-.001 s'}       | ${{ maxExclusive: 0 }}      | ${-0.001}
+  ${new Duration(1)} | ${{ allowDuration: false }} | ${null}
+  `('returns $expected given ($value, $options)', ({ value, options, expected }) => {
+    const result = Duration[methodName](value, options);
+
+    if (expected === null) {
+      expect(result).toBeNull();
+    } else if (returns === 'object') {
       expect(result).toBeInstanceOf(Duration);
       expect(result.sec).toBe(expected);
     } else {

@@ -358,14 +358,17 @@ A service which occasionally checks the system's memory usage, and will force a
 period to allow momentary usage spikes. It accepts the following configuration
 bindings:
 
-* `checkSec` &mdash; How often to check for memory usage being over the
-  defined limit, in seconds. Optional. Minimum `1` (which is frankly way too
-  often). Default `5 * 60` (once every five minutes).
-* `gracePeriodSec` &mdash; Once a memory limit has been reached, how long, in
-  seconds, it is allowed to remain at or beyond the maximum before this service
-  takes action. `0` (or `null`) to not have a grace period at all. Default `0`.
-  **Note:**: When in the middle of a grace period, the service will check
-  memory usage more often than `checkSec` so as not to miss a significant dip.
+* `checkPeriod` &mdash; How often to check for memory usage being over the
+  defined limit, specified as a duration value as described in [Specifying
+  durations](#specifying-durations). Optional. Minimum `1` (which is frankly way
+  too often). Default `5 min` (that is, once every five minutes).
+* `gracePeriod` &mdash; Once a memory limit has been reached, how long it is
+  allowed to remain at or beyond the maximum before this service takes action,
+  specified as a duration value as described in [Specifying
+  durations](#specifying-durations). `0` (or `null`) to not have a grace period
+  at all. Default `0`. **Note:**: When in the middle of a grace period, the
+  service will check memory usage more often than `checkPeriod` so as not to
+  miss a significant dip.
 * `maxHeapBytes` &mdash; How many bytes of heap is considered "over limit," or
   `null` for no limit on this. The amount counted is `heapTotal + external` from
   `process.memoryUsage()`. Defaults to `null`. **Note:** In order to catch
@@ -379,12 +382,12 @@ bindings:
 ```js
 const services = [
   {
-    name:            'memory',
-    class:           'MemoryMonitor',
-    checkSec:        5 * 60,
-    gracePeriodSec:  60,
-    maxHeapBytes:    100 * 1024 * 1024,
-    maxRssBytes:     150 * 1024 * 1024
+    name:         'memory',
+    class:        'MemoryMonitor',
+    checkPeriod:  '5 min',
+    gracePeriod:  '1 min',
+    maxHeapBytes: 100 * 1024 * 1024,
+    maxRssBytes:  150 * 1024 * 1024
   }
 ];
 ```
@@ -402,8 +405,11 @@ optionally on a periodic basis. It accepts the following configuration bindings:
   Optional and defaults to `false`. If `true`, whenever the file is written, it
   is read first and any process IDs found in it are kept if they are in fact
   still running.
-* `updateSec` &mdash; How long to wait between each file update, in seconds.
-  Optional and defaults to "never." This is only meaningfully used when
+* `updatePeriod` &mdash; How long to wait between each file update, specified as
+  a duration value as described in [Specifying
+  durations](#specifying-durations), or `null` to indicate "never." Optional and
+  defaults to `null`. If specified, the value must be at least one second (so as
+  to prevent excessive churn). This value is only meaningfully used when
   `multiprocess` is `true`.
 
 ```js
@@ -413,7 +419,7 @@ const services = [
     class:        'ProcessIdFile',
     path:         '/path/to/var/run/process.txt',
     multiprocess: true,
-    updateSec:    60 * 60
+    updatePeriod: '1 hr'
   }
 ];
 ```
@@ -428,19 +434,22 @@ configuration bindings:
 
 * `path` &mdash; Path to the file, with the final path component modified by
   infixing the process ID.
-* `updateSec` &mdash; How many seconds to wait between each file update while
-  the system is running. Optional and defaults to "never."
+* `updatePeriod` &mdash; How long to wait between each file update while the
+  system is running, specified as a duration value as described in [Specifying
+  durations](#specifying-durations), or `null` to indicate "never." Optional and
+  defaults to `null`. If specified, the value must be at least one second (so as
+  to prevent excessive churn).
 * `save` &mdash; Optional file preservation configuration. If not specified, no
   file preservation is done.
 
 ```js
 const services = [
   {
-    name:       'process',
-    class:      'ProcessInfoFile',
-    path:       '/path/to/var/run/process.json',
-    updateSec:  5 * 60,
-    save:       { /* ... */ }
+    name:         'process',
+    class:        'ProcessInfoFile',
+    path:         '/path/to/var/run/process.json',
+    updatePeriod: '5 min',
+    save:         { /* ... */ }
   }
 ];
 ```
@@ -554,6 +563,27 @@ const services = [
 This section documents the configuration objects that are used within top-level
 configurations.
 
+### Specifying durations
+
+Several configurations are specified as time durations. These can either be an
+instance of the utility class `data-values.Duration` or a string in a format
+that includes a number followed by a unit name., e.g. `1 day`, `1_000ms`, or
+`1200.5_min`.
+
+For the string form, the numeric portion is allowed to be any usual-format
+floating point number, including exponents, and including internal underscores
+for readability. The number and unit can be separated with either a space or an
+underscore, or they can just be directly next to each other. The available units
+are:
+
+* `nsec` or `ns` &mdash; Nanoseconds.
+* `usec` or `us` &mdash; Microseconds.
+* `msec` or `ms` &mdash; Milliseconds.
+* `sec` or `s` &mdash; Seconds.
+* `min` or `m` &mdash; Minutes.
+* `hr` or `h` &mdash; Hours.
+* `day` or `d` &mdash; Days, where a "day" is defined to be exactly 24 hours.
+
 ### Cache control configuration: `cacheControl`
 
 Applications and services that might generate `cache-control` headers accept
@@ -572,11 +602,7 @@ names (e.g. `noStore` for `no-store`). Values can be:
 * For present-vs-absent header values, such as `public` and `no-cache`:
   * A `boolean`, in which case `true` includes the value and `false` omits it.
 * For duration values:
-  * An instance of the framework class `data-values.Duration`.
-  * A parsable string duration, e.g. `1 day`, `1_000ms` or `1200.5_min`. The
-    numeric portion is allowed to be any usual-format floating point number, including
-    internal underscores for readability. Available units are: `nsec`/`ns`
-    `usec`/`us` `msec`/`ms` `sec`/`s` `min`/`m` `hr`/`h` `day`/`d`.
+  * A duration as described in [Specifying durations](#specifying-durations).
 
 ### ETag Configuration: `etag`
 
@@ -616,9 +642,12 @@ following bindings:
 * `atSize` &mdash; Rotate when the file becomes the given size (in bytes) or
   greater. Optional, and if not specified (or if `null`), does not rotate based
   on size.
-* `checkSec` &mdash; How often to check for a rotation condition, in seconds.
-  Optional, and if not specified (or if `null`), does not ever check at all.
-  This is only meaningful if `atSize` is also specified. Default `5 * 60`.
+* `checkPeriod` &mdash; How often to check for a rotation condition, specified
+  as a duration value as described in [Specifying
+  durations](#specifying-durations), or `null` to indicate "never check."
+  Optional and defaults to `5 min`. If specified, the value must be at least one
+  second (so as to prevent excessive churn). This is only meaningful if `atSize`
+  is also specified.
 * `maxOldBytes` &mdash; How many bytes' worth of old (post-rotation) files
   should be allowed, or `null` not to have a limit. The oldest files over the
   limit get deleted after a rotation.Optional, and defaults to `null`.

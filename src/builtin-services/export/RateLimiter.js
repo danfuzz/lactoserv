@@ -12,32 +12,9 @@ import { RateLimitedStream } from '#p/RateLimitedStream';
 
 
 /**
- * Service which can apply various rate limits to network traffic. Configuration
- * object details:
+ * Service which can apply various rate limits to network traffic.
  *
- * * `{object} connections` -- Optional connection rate limiter. The "token" for
- *   this is a single connection.
- * * `{object} data` -- Optional outgoing data rate limiter. The "token" for
- *   this is one byte.
- * * `{object} requests` -- Optional request rate limiter. The "token" for this
- *   is a single request.
- *
- * Each of the above, if specified, must be an object with these properties:
- *
- * * `{number} flowRate` -- The steady-state flow rate, in tokens per unit of
- *   time.
- * * `{number} maxBurstSize` -- The maximum possible size of a burst, in tokens.
- * * `{number} maxQueueGrantSize` -- Optional maximum possible size of a grant
- *   given to a requester in the wait queue, in tokens. If not specified, it is
- *   the same as the `maxBurstSize`. (It is really only meaningful for `data`
- *   limiting.)
- * * `{number} maxQueueSize` -- Optional maximum possible size of the wait
- *   queue, in tokens. This is the number of tokens that are allowed to be
- *   queued up for a grant, when there is insufficient burst capacity to satisfy
- *   all active clients.
- * * `{string} timeUnit` -- The unit of time by which `flowRate` is defined.
- *   Must be one of: `day` (defined here as 24 hours), `hour`, `minute`,
- *   `second`, or `msec` (millisecond).
+ * See `doc/configuration.md` for configuration object details.
  *
  * @implements {IntfRateLimiter}
  */

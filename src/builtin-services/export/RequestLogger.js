@@ -11,13 +11,9 @@ import { BaseFileService, Rotator } from '@this/sys-util';
 
 
 /**
- * Service which writes the access log to the filesystem. Configuration object
- * details:
+ * Service which writes the access log to the filesystem.
  *
- * Configuration object details:
- *
- * * Bindings as defined by the superclass configuration, {@link
- *   FileServiceConfig}. Supports `rotate`.
+ * See `doc/configuration.md` for configuration object details.
  *
  * @implements {IntfRequestLogger}
  */

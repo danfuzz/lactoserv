@@ -401,7 +401,7 @@ export class HttpUtil {
     let sec;
 
     if (typeof duration === 'string') {
-      sec = Duration.parseSec(duration);
+      sec = Duration.parseSec(duration, { minInclusive: 0 });
       if (sec === null) {
         return { error: 'Expected duration string.' };
       }

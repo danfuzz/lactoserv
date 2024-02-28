@@ -6,6 +6,7 @@ import * as process from 'node:process';
 import * as timers from 'node:timers/promises';
 
 import { Threadlet } from '@this/async';
+import { Duration } from '@this/data-values';
 import { Statter } from '@this/fs-util';
 import { ProcessUtil } from '@this/host';
 import { FileServiceConfig } from '@this/sys-config';
@@ -18,16 +19,7 @@ import { MustBe } from '@this/typey';
  * just contain a simple process ID or list of same (in cases where multiple
  * processes are expected to write to the same file).
  *
- * Configuration object details:
- *
- * * Bindings as defined by the superclass configuration, {@link
- *   FileServiceConfig}.
- * * `{boolean} multiprocess` -- Allow multiple processes to be registered in a
- *   single file. Defaults to `false`.
- * * `{?number} updateSec` -- How often to update the file, in seconds, or
- *   `null` to not perform updates. Defaults to `null`. It is recommended to
- *   have this be non-`null` when `multiprocess` is used, to minimize the chance
- *   of a concurrency tragedy leaving a messed up file around.
+ * See `doc/configuration.md` for configuration object details.
  *
  * **Note:** See {@link #ProcessInfoFile} for a service which writes more
  * complete information about the system.
@@ -224,12 +216,20 @@ export class ProcessIdFile extends BaseFileService {
     constructor(config) {
       super(config);
 
-      this.#multiprocess = (typeof config.multiprocess === 'boolean')
-        ? config.multiprocess
-        : MustBe.null(config.multiprocess ?? null);
-      this.#updateSec = config.updateSec
-        ? MustBe.number(config.updateSec, { finite: true, minInclusive: 1 })
-        : MustBe.null(config.updateSec ?? null);
+      const { multiprocess = null, updatePeriod = null } = config;
+
+      this.#multiprocess = (typeof multiprocess === 'boolean')
+        ? multiprocess
+        : MustBe.null(multiprocess);
+
+      if (updatePeriod) {
+        this.#updateSec = Duration.parseSec(updatePeriod, { minInclusive: 1 });
+        if (!this.#updateSec) {
+          throw new Error(`Could not parse \`updatePeriod\`: ${updatePeriod}`);
+        }
+      } else {
+        this.#updateSec = MustBe.null(updatePeriod);
+      }
     }
 
     /** @returns {boolean} Allow multiple processes to be listed in the file? */

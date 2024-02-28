@@ -118,12 +118,26 @@ export class Duration {
    * * `h` or `hr` -- hours
    * * `d` or `day` -- days (defined as exactly 24 hours)
    *
-   * @param {string} value The value to parse.
+   * This method _also_ optionally accepts `value` as an instance of this class,
+   * (to make use of the method when parsing configurations a bit easier).
+   *
+   * @param {string|Duration} value The value to parse, or the value itself.
+   * @param {object} [options] Options to control the allowed range of values.
+   * @param {?boolean} [options.allowDuration] Accept instances of this class.
+   *   Defaults to `true`.
+   * @param {?number} [options.maxExclusive] Exclusive maximum value.
+   *   That is, require `value < maxExclusive`.
+   * @param {?number} [options.maxInclusive] Inclusive maximum value.
+   *   That is, require `value <= maxInclusive`.
+   * @param {?number} [options.minExclusive] Exclusive minimum value.
+   *   That is, require `value > minExclusive`.
+   * @param {?number} [options.minInclusive] Inclusive minimum value.
+   *   That is, require `value >= minInclusive`.
    * @returns {?Duration} The parsed duration, or `null` if the value could not
    *   be parsed.
    */
-  static parse(value) {
-    const sec = this.parseSec(value);
+  static parse(value, options = null) {
+    const sec = this.parseSec(value, options);
 
     return (sec === null) ? null : new Duration(sec);
   }
@@ -132,29 +146,54 @@ export class Duration {
    * Parses a string representing a duration, returning a number of seconds.
    * See {@link #parse} for details about the accepted formats.
    *
-   * @param {string} value The value to parse.
+   * This method _also_ optionally accepts `value` as an instance of this class,
+   * (to make use of the method when parsing configurations a bit easier).
+   *
+   * @param {string|Duration} value The value to parse, or the value itself.
+   * @param {object} [options] Options to control the allowed range of values.
+   * @param {?boolean} [options.allowDuration] Accept instances of this class.
+   *   Defaults to `true`.
+   * @param {?number} [options.maxExclusive] Exclusive maximum value.
+   *   That is, require `value < maxExclusive`.
+   * @param {?number} [options.maxInclusive] Inclusive maximum value.
+   *   That is, require `value <= maxInclusive`.
+   * @param {?number} [options.minExclusive] Exclusive minimum value.
+   *   That is, require `value > minExclusive`.
+   * @param {?number} [options.minInclusive] Inclusive minimum value.
+   *   That is, require `value >= minInclusive`.
    * @returns {?number} The parsed number of seconds, or `null` if the value
    *   could not be parsed.
    */
-  static parseSec(value) {
-    MustBe.string(value);
+  static parseSec(value, options = null) {
+    const isString = (typeof value === 'string');
+    const result = isString
+      ? this.#parseSecString(value)
+      : MustBe.instanceOf(value, Duration).sec;
 
-    const match =
-      value.match(/^ *(?<num>(?:[-+.0-9eE]+|[0-9]+_[0-9]+)+)[ _]?(?<name>[a-zA-Z]{1,10}) *$/);
+    if (!options) {
+      return result;
+    }
 
-    if (!match) {
+    const {
+      allowDuration = true,
+      maxExclusive  = null,
+      maxInclusive  = null,
+      minExclusive  = null,
+      minInclusive  = null
+    } = options;
+
+    if (!isString && !allowDuration) {
       return null;
     }
 
-    const { num: numStr, name } = match.groups;
-    const num                   = Number(numStr.replaceAll(/_/g, ''));
-    const mult = this.#SEC_PER_UNIT.get(name.toLowerCase());
-
-    if (isNaN(num) || !mult) {
+    if (!(   ((minExclusive === null) || (result > minExclusive))
+          && ((minInclusive === null) || (result >= minInclusive))
+          && ((maxExclusive === null) || (result < maxExclusive))
+          && ((maxInclusive === null) || (result <= maxInclusive)))) {
       return null;
     }
 
-    return num * mult;
+    return result;
   }
 
   /**
@@ -260,5 +299,31 @@ export class Duration {
     }
 
     return parts.join('');
+  }
+
+  /**
+   * Helper for {@link #parseSec}, which does the actual string parsing work.
+   *
+   * @param {string} value Value to parse.
+   * @returns {?number} Parsed number of seconds, or `null` if it couldn't be
+   *   parsed.
+   */
+  static #parseSecString(value) {
+    const match =
+      value.match(/^ *(?<num>(?:[-+.0-9eE]+|[0-9]+_[0-9]+)+)[ _]?(?<name>[a-zA-Z]{1,10}) *$/);
+
+    if (!match) {
+      return null;
+    }
+
+    const { num: numStr, name } = match.groups;
+    const num                   = Number(numStr.replaceAll(/_/g, ''));
+    const mult                  = this.#SEC_PER_UNIT.get(name.toLowerCase());
+
+    if (isNaN(num) || !mult) {
+      return null;
+    }
+
+    return num * mult;
   }
 }
