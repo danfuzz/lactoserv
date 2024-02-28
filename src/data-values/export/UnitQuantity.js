@@ -127,7 +127,7 @@ export class UnitQuantity {
    * have the same units as this one.
    *
    * @param {UnitQuantity} other Other instance to add.
-   * @returns {UnitQuantity} Summed result.
+   * @returns {UnitQuantity} Difference result.
    */
   subtract(other) {
     MustBe.instanceOf(other, UnitQuantity);
