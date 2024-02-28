@@ -62,6 +62,18 @@ export class UnitQuantity {
     return this.#numeratorUnit;
   }
 
+  /**
+   * @returns {string} String in the form `numeratorUnit/denominatorUnit`,
+   * representing both units. If either (or both) is absent, the corresponding
+   * side of the `/` is empty. For a unitless instance, this is simply `/`.
+   */
+  get unitString() {
+    const numer = this.#numeratorUnit ?? '';
+    const denom = this.#denominatorUnit ?? '';
+
+    return `${numer}/${denom}`;
+  }
+
   /** @returns {number} The numeric value being represented. */
   get value() {
     return this.#value;

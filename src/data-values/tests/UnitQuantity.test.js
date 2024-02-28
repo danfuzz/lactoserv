@@ -57,6 +57,19 @@ describe('.numeratorUnit', () => {
   });
 });
 
+describe('.unitString', () => {
+  test.each`
+  numer    | denom      | expected
+  ${null}  | ${null}    | ${'/'}
+  ${'x'}   | ${null}    | ${'x/'}
+  ${null}  | ${'y'}     | ${'/y'}
+  ${'x'}   | ${'y'}     | ${'x/y'}
+  ${'bop'} | ${'zoopy'} | ${'bop/zoopy'}
+  `('returns $expected given ($numer, $denom)', ({ numer, denom, expected }) => {
+    expect(new UnitQuantity(0, numer, denom).unitString).toBe(expected);
+  });
+});
+
 describe('.value', () => {
   test('returns the value from the constructor', () => {
     expect(new UnitQuantity(0, 'x', 'y').value).toBe(0);
