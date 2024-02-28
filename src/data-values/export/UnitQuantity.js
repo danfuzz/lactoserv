@@ -114,7 +114,7 @@ export class UnitQuantity {
    *
    * @param {string|UnitQuantity} value The value to parse, or the value itself.
    * @param {object} [options] Options to control the allowed range of values.
-   * @param {?boolean} [options.allowInstance] Accept instances of this class.
+   * @param {?boolean} [options.allowInstance] Accept instances of this class?
    *   Defaults to `true`.
    * @param {?number} [options.maxExclusive] Exclusive maximum value.
    *   That is, require `value < maxExclusive`.

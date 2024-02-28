@@ -1,10 +1,9 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { MustBe } from '@this/typey';
-
 import { BaseConverter } from '#x/BaseConverter';
 import { Struct } from '#x/Struct';
+import { UnitQuantity } from '#x/UnitQuantity';
 
 
 /**
@@ -14,28 +13,24 @@ import { Struct } from '#x/Struct';
  *
  * Instances of this class are always frozen.
  */
-export class Duration {
-  /** @type {number} The number of seconds being represented. */
-  #sec;
-
+export class Duration extends UnitQuantity {
   /**
    * Constructs an instance.
    *
    * @param {number} sec The number of seconds to represent. Must be finite.
    */
   constructor(sec) {
-    this.#sec = MustBe.number(sec, { finite: true });
-    Object.freeze(this);
+    super(sec, 'sec', null);
   }
 
   /** @returns {number} The number of milliseconds being represented. */
   get msec() {
-    return this.#sec * 1000;
+    return this.value * 1000;
   }
 
   /** @returns {number} The number of seconds being represented. */
   get sec() {
-    return this.#sec;
+    return this.value;
   }
 
   /**
@@ -47,7 +42,7 @@ export class Duration {
    * @returns {object} Friendly compound object.
    */
   toPlainObject() {
-    return Duration.plainObjectFromSec(this.#sec);
+    return Duration.plainObjectFromSec(this.sec);
   }
 
   /**
@@ -60,7 +55,7 @@ export class Duration {
    * @returns {string} The friendly form.
    */
   toString(options = {}) {
-    return Duration.stringFromSec(this.#sec, options);
+    return Duration.stringFromSec(this.sec, options);
   }
 
   /**
@@ -72,9 +67,9 @@ export class Duration {
     // Note: This is included for the convenience of humans who happen to be
     // looking at logs (etc.), but is not actually used when reconstructing an
     // instance. TODO: Re-evaluate this tactic.
-    const str = Duration.stringFromSec(this.#sec);
+    const str = Duration.stringFromSec(this.sec);
 
-    return new Struct(Duration, null, this.#sec, str);
+    return new Struct(Duration, null, this.sec, str);
   }
 
 
@@ -108,12 +103,8 @@ export class Duration {
 
   /**
    * Parses a string representing a duration, returning an instance of this
-   * class. The given value may have arbitrary spaces around it, and either a
-   * space or an underscore (or nothing) is accepted between the number and unit
-   * name. The number is allowed to be any regular floating point value
-   * (including exponents), with underscores allowed in the middle of it (for
-   * ease of reading, as with normal JavaScript constants). The allowed units
-   * are:
+   * class. See {@link UnitQuantity#parse} for details on the allowed syntax.
+   * The allowed units are:
    *
    * * `ns` or `nsec` -- microseconds
    * * `us` or `usec` -- microseconds
@@ -123,12 +114,9 @@ export class Duration {
    * * `h` or `hr` -- hours
    * * `d` or `day` -- days (defined as exactly 24 hours)
    *
-   * This method _also_ optionally accepts `value` as an instance of this class,
-   * (to make use of the method when parsing configurations a bit easier).
-   *
    * @param {string|Duration} value The value to parse, or the value itself.
    * @param {object} [options] Options to control the allowed range of values.
-   * @param {?boolean} [options.allowInstance] Accept instances of this class.
+   * @param {?boolean} [options.allowInstance] Accept instances of this class?
    *   Defaults to `true`.
    * @param {?number} [options.maxExclusive] Exclusive maximum value.
    *   That is, require `value < maxExclusive`.
@@ -149,14 +137,11 @@ export class Duration {
 
   /**
    * Parses a string representing a duration, returning a number of seconds.
-   * See {@link #parse} for details about the accepted formats.
-   *
-   * This method _also_ optionally accepts `value` as an instance of this class,
-   * (to make use of the method when parsing configurations a bit easier).
+   * See {@link #parse} for details about the format and accepted units.
    *
    * @param {string|Duration} value The value to parse, or the value itself.
    * @param {object} [options] Options to control the allowed range of values.
-   * @param {?boolean} [options.allowInstance] Accept instances of this class.
+   * @param {?boolean} [options.allowInstance] Accept instances of this class?
    *   Defaults to `true`.
    * @param {?number} [options.maxExclusive] Exclusive maximum value.
    *   That is, require `value < maxExclusive`.
@@ -170,35 +155,22 @@ export class Duration {
    *   could not be parsed.
    */
   static parseSec(value, options = null) {
-    const isString = (typeof value === 'string');
-    const result = isString
-      ? this.#parseSecString(value)
-      : MustBe.instanceOf(value, Duration).sec;
+    const result = UnitQuantity.parse(value, {
+      ...options,
+      requireUnit: true
+    });
 
-    if (!options) {
-      return result;
-    }
-
-    const {
-      allowInstance = true,
-      maxExclusive  = null,
-      maxInclusive  = null,
-      minExclusive  = null,
-      minInclusive  = null
-    } = options;
-
-    if (!isString && !allowInstance) {
+    if (!result || result.denominatorUnit) {
       return null;
     }
 
-    if (!(   ((minExclusive === null) || (result > minExclusive))
-          && ((minInclusive === null) || (result >= minInclusive))
-          && ((maxExclusive === null) || (result < maxExclusive))
-          && ((maxInclusive === null) || (result <= maxInclusive)))) {
+    const mult = this.#SEC_PER_UNIT.get(result.numeratorUnit);
+
+    if (!mult) {
       return null;
     }
 
-    return result;
+    return result.value * mult;
   }
 
   /**
@@ -304,31 +276,5 @@ export class Duration {
     }
 
     return parts.join('');
-  }
-
-  /**
-   * Helper for {@link #parseSec}, which does the actual string parsing work.
-   *
-   * @param {string} value Value to parse.
-   * @returns {?number} Parsed number of seconds, or `null` if it couldn't be
-   *   parsed.
-   */
-  static #parseSecString(value) {
-    const match =
-      value.match(/^ *(?<num>(?:[-+.0-9eE]+|[0-9]+_[0-9]+)+)[ _]?(?<name>[a-zA-Z]{1,10}) *$/);
-
-    if (!match) {
-      return null;
-    }
-
-    const { num: numStr, name } = match.groups;
-    const num                   = Number(numStr.replaceAll(/_/g, ''));
-    const mult                  = this.#SEC_PER_UNIT.get(name.toLowerCase());
-
-    if (isNaN(num) || !mult) {
-      return null;
-    }
-
-    return num * mult;
   }
 }
