@@ -106,7 +106,7 @@ export class Duration extends UnitQuantity {
    * class. See {@link UnitQuantity#parse} for details on the allowed syntax.
    * The allowed units are:
    *
-   * * `ns` or `nsec` -- microseconds
+   * * `ns` or `nsec` -- nanoseconds
    * * `us` or `usec` -- microseconds
    * * `ms` or `msec` -- milliseconds
    * * `s` or `sec` -- seconds
