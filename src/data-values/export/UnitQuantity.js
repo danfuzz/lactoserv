@@ -181,14 +181,20 @@ export class UnitQuantity {
     // This matches both the number and possibly-combo unit, but in both cases
     // with loose matching which gets tightened up below.
     const overallMatch =
-      value.match(/^ *(?<num>(?:[\-+.0-9eE]+|[0-9]+_[0-9]+)+)[ _]?(?<unit>(?![ _])[ _\/\p{Letter}]{0,50}(?<![ _])) *$/v);
+      value.match(/^ *(?<num>[\-+._0-9eE]+(?<!_))[ _]?(?<unit>(?![ _])[ _\/\p{Letter}]{0,50}(?<![ _])) *$/v);
 
     if (!overallMatch) {
       return null;
     }
 
     const { num: numStr, unit } = overallMatch.groups;
-    const num                   = Number(numStr.replaceAll(/_/g, ''));
+
+    // Disallow underscores not surrounded by digits.
+    if (/^_|[^0-9]_|_[^0-9]/.test(numStr)) {
+      return null;
+    }
+
+    const num = Number(numStr.replaceAll(/_/g, ''));
 
     if (isNaN(num)) {
       return null;
