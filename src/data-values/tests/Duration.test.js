@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Duration, Moment } from '@this/data-values';
+import { Duration, Moment, UnitQuantity } from '@this/data-values';
 
 
 describe('constructor()', () => {
@@ -37,6 +37,14 @@ describe('.sec', () => {
     expect(new Duration(0).sec).toBe(0);
     expect(new Duration(123).sec).toBe(123);
     expect(new Duration(456.789).sec).toBe(456.789);
+  });
+});
+
+describe('.msec', () => {
+  test('returns the value from the constructor times 1000', () => {
+    expect(new Duration(0).msec).toBe(0);
+    expect(new Duration(123).msec).toBe(123000);
+    expect(new Duration(456.789).msec).toBe(456789);
   });
 });
 
@@ -156,11 +164,7 @@ describe('.ZERO', () => {
   });
 });
 
-describe.each`
-methodName    | returns
-${'parse'}    | ${'object'}
-${'parseSec'} | ${'number'}
-`('$methodName()', ({ methodName, returns }) => {
+describe('parse()', () => {
   // Error: Wrong argument type.
   test.each`
   arg
@@ -172,7 +176,7 @@ ${'parseSec'} | ${'number'}
   ${new Map()}
   ${new Moment(10)}
   `('throws given $arg', ({ arg }) => {
-    expect(() => Duration[methodName](arg)).toThrow();
+    expect(() => Duration.parse(arg)).toThrow();
   });
 
   // Error: Syntax error / unknown unit.
@@ -225,7 +229,7 @@ ${'parseSec'} | ${'number'}
   ${'1e1+1 sec'}
   ${'1e1-1 sec'}
   `('returns `null` given $value', ({ value }) => {
-    expect(Duration[methodName](value)).toBeNull();
+    expect(Duration.parse(value)).toBeNull();
   });
 
   // Success cases, no options.
@@ -289,14 +293,11 @@ ${'parseSec'} | ${'number'}
   ${'2e+0 s'}             | ${2}
   ${'2e-0 s'}             | ${2}
   `('returns $expected given $value', ({ value, expected }) => {
-    const result = Duration[methodName](value);
+    const result = Duration.parse(value);
 
-    if (returns === 'object') {
-      expect(result).toBeInstanceOf(Duration);
-      expect(result.sec).toBe(expected);
-    } else {
-      expect(result).toBe(expected);
-    }
+    expect(result).not.toBeNull();
+    expect(result).toBeInstanceOf(Duration);
+    expect(result.sec).toBe(expected);
   });
 
   // Success and failure cases, with options.
@@ -310,17 +311,35 @@ ${'parseSec'} | ${'number'}
   ${'-0.1 sec'}      | ${{ maxInclusive: 0 }}      | ${-0.1}
   ${'0 s'}           | ${{ maxExclusive: 0 }}      | ${null}
   ${'-.001 s'}       | ${{ maxExclusive: 0 }}      | ${-0.001}
-  ${new Duration(1)} | ${{ allowDuration: false }} | ${null}
+  ${'10 msec'}       | ${{ maxExclusive: 1 }}      | ${0.01}
+  ${new Duration(1)} | ${{ allowInstance: false }} | ${null}
   `('returns $expected given ($value, $options)', ({ value, options, expected }) => {
-    const result = Duration[methodName](value, options);
+    const result = Duration.parse(value, options);
 
     if (expected === null) {
       expect(result).toBeNull();
-    } else if (returns === 'object') {
+    } else {
+      expect(result).not.toBeNull();
       expect(result).toBeInstanceOf(Duration);
       expect(result.sec).toBe(expected);
-    } else {
-      expect(result).toBe(expected);
     }
+  });
+
+  test('returns the same instance as the one given', () => {
+    const dur = new Duration(123);
+    expect(Duration.parse(dur)).toBe(dur);
+  });
+
+  test('returns `null` given a `UnitQuantity` with an unrecognized unit', () => {
+    const uq = new UnitQuantity(123, 'zonks', null);
+    expect(Duration.parse(uq)).toBe(null);
+  });
+
+  test('returns an instance of this class given a `UnitQuantity` with a recognized unit', () => {
+    const uq     = new UnitQuantity(123, 'msec', null);
+    const result = Duration.parse(uq);
+
+    expect(result).toBeInstanceOf(Duration);
+    expect(result.sec).toBe(0.123);
   });
 });

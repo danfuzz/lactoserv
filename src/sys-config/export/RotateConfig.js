@@ -19,10 +19,9 @@ export class RotateConfig extends SaveConfig {
   #atSize;
 
   /**
-   * @type {?number} How often to check for rotation eligibility, in seconds, if
-   * at all.
+   * @type {?Duration} How often to check for rotation eligibility, if at all.
    */
-  #checkSec;
+  #checkPeriod;
 
   /**
    * Constructs an instance.
@@ -41,14 +40,14 @@ export class RotateConfig extends SaveConfig {
       ? null
       : MustBe.number(atSize, { finite: true, minInclusive: 1 });
 
-    this.#checkSec = Duration.parseSec(checkPeriod ?? '5 min', { minInclusive: 1 });
-    if (this.#checkSec === null) {
+    this.#checkPeriod = Duration.parse(checkPeriod ?? '5 min', { minInclusive: 1 });
+    if (!this.#checkPeriod) {
       throw new Error(`Could not parse \`checkPeriod\`: ${checkPeriod}`);
     }
 
     if (this.#atSize === null) {
       // `checkPeriod` is irrelevant in this case.
-      this.#checkSec = null;
+      this.#checkPeriod = null;
     }
   }
 
@@ -61,10 +60,10 @@ export class RotateConfig extends SaveConfig {
   }
 
   /**
-   * @returns {?number} How often to check for rotation eligibility, in seconds,
-   * or `null` not to ever check.
+   * @returns {?Duration} How often to check for rotation eligibility, or `null`
+   * not to ever check.
    */
-  get checkSec() {
-    return this.#checkSec;
+  get checkPeriod() {
+    return this.#checkPeriod;
   }
 }

@@ -15,9 +15,14 @@ Breaking changes:
   * `MimeTypes` methods that return MIME type strings now default have the
     default option `charSet: 'utf-8'`, which is about the most sensible default
     these days.
+* `data-values`: Removed `Duration.parseSec()`, in the ongoing effort to use
+  typed objects in preference to plain numbers.
 
 Other notable changes:
-* None.
+* `data-values`:
+  * New class `UnitQuantity`, which generalizes over things like `Duration`.
+  * Reworked `Duration` to be a subclass of `UnitQuantity`.
+  * New class `Frequency`, a subclass of `UnitQuantity`.
 
 ### v0.6.6 -- 2024-02-18
 

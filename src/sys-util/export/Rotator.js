@@ -3,6 +3,7 @@
 
 import * as timers from 'node:timers/promises';
 
+import { Duration } from '@this/data-values';
 import { Statter } from '@this/fs-util';
 import { IntfLogger } from '@this/loggy';
 import { FileServiceConfig } from '@this/sys-config';
@@ -19,10 +20,10 @@ export class Rotator extends BaseFilePreserver {
   #config;
 
   /**
-   * @type {?number} How long to wait between checks, in msec, if timed checks
-   * are to be done; or `null` not to do such checks.
+   * @type {?Duration} How long to wait between checks if timed checks are to be
+   * done, or `null` not to do such checks.
    */
-  #checkMsec;
+  #checkPeriod;
 
   /**
    * Constructs an instance.
@@ -33,11 +34,8 @@ export class Rotator extends BaseFilePreserver {
   constructor(config, logger) {
     super(config, logger);
 
-    this.#config = MustBe.instanceOf(config, FileServiceConfig);
-
-    this.#checkMsec = (config.rotate.checkSec === null)
-      ? null
-      : config.rotate.checkSec * 1000;
+    this.#config      = MustBe.instanceOf(config, FileServiceConfig);
+    this.#checkPeriod = config.rotate.checkPeriod;
   }
 
   /** @override */
@@ -45,7 +43,7 @@ export class Rotator extends BaseFilePreserver {
     // If this instance is configured for timed checks, then this is where the
     // checking is done. Otherwise, this method doesn't need to do anything.
 
-    if (!this.#checkMsec) {
+    if (!this.#checkPeriod) {
       // Not configured to do timed checks.
       return;
     }
@@ -66,8 +64,8 @@ export class Rotator extends BaseFilePreserver {
     // salient timeout is set up. Otherwise, this method doesn't need to do
     // anything.
 
-    return this.#checkMsec
-      ? timers.setTimeout(this.#checkMsec)
+    return this.#checkPeriod
+      ? timers.setTimeout(this.#checkPeriod.msec)
       : null;
   }
 }

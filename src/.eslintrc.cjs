@@ -15,7 +15,7 @@ const env = {
 
 const parserOptions = {
   sourceType: 'module',
-  ecmaVersion: '2022'
+  ecmaVersion: '2024'
 };
 
 const mainRules = {
