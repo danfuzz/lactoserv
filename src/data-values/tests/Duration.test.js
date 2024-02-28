@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Duration } from '@this/data-values';
+import { Duration, Moment } from '@this/data-values';
 
 
 describe('constructor()', () => {
@@ -170,7 +170,7 @@ ${'parseSec'} | ${'number'}
   ${123}
   ${['123s']}
   ${new Map()}
-  ${new Duration(10)}
+  ${new Moment(10)}
   `('throws given $arg', ({ arg }) => {
     expect(() => Duration[methodName](arg)).toThrow();
   });
@@ -231,6 +231,7 @@ ${'parseSec'} | ${'number'}
   // Success cases, no options.
   test.each`
   value                   | expected
+  ${new Duration(12345)}  | ${12345}
   ${'0 nsec'}             | ${0}
   ${'0 ns'}               | ${0}
   ${'0 usec'}             | ${0}
@@ -300,15 +301,16 @@ ${'parseSec'} | ${'number'}
 
   // Success and failure cases, with options.
   test.each`
-  value           | options                | expected
-  ${'0 s'}        | ${{ minInclusive: 0 }} | ${0}
-  ${'-.001 usec'} | ${{ minInclusive: 0 }} | ${null}
-  ${'0 s'}        | ${{ minExclusive: 0 }} | ${null}
-  ${'0.001 s'}    | ${{ minExclusive: 0 }} | ${0.001}
-  ${'0 s'}        | ${{ maxInclusive: 0 }} | ${0}
-  ${'-0.1 sec'}   | ${{ maxInclusive: 0 }} | ${-0.1}
-  ${'0 s'}        | ${{ maxExclusive: 0 }} | ${null}
-  ${'-.001 s'}    | ${{ maxExclusive: 0 }} | ${-0.001}
+  value              | options                     | expected
+  ${'0 s'}           | ${{ minInclusive: 0 }}      | ${0}
+  ${'-.001 usec'}    | ${{ minInclusive: 0 }}      | ${null}
+  ${'0 s'}           | ${{ minExclusive: 0 }}      | ${null}
+  ${'0.001 s'}       | ${{ minExclusive: 0 }}      | ${0.001}
+  ${'0 s'}           | ${{ maxInclusive: 0 }}      | ${0}
+  ${'-0.1 sec'}      | ${{ maxInclusive: 0 }}      | ${-0.1}
+  ${'0 s'}           | ${{ maxExclusive: 0 }}      | ${null}
+  ${'-.001 s'}       | ${{ maxExclusive: 0 }}      | ${-0.001}
+  ${new Duration(1)} | ${{ allowDuration: false }} | ${null}
   `('returns $expected given ($value, $options)', ({ value, options, expected }) => {
     const result = Duration[methodName](value, options);
 
