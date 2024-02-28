@@ -71,7 +71,7 @@ export class MemoryMonitor extends BaseService {
         || (maxRssBytes  && (snapshot.rss  >= maxRssBytes))) {
       if (!snapshot.troubleAt) {
         // We just transitioned to an "over limit" situation.
-        const actionAt = now.addSec(this.config.graceSec);
+        const actionAt = now.add(this.config.gracePeriod);
         snapshot.troubleAt = now;
         snapshot.actionAt  = actionAt;
         this.logger?.overLimit({ actionAt });
@@ -154,8 +154,8 @@ export class MemoryMonitor extends BaseService {
     /** @type {number} How often to check, in seconds. */
     #checkSec;
 
-    /** @type {number} Grace period before triggering an action, in seconds. */
-    #graceSec;
+    /** @type {Duration} Grace period before triggering an action. */
+    #gracePeriod;
 
     /**
      * @type {?number} Maximum allowed size of heap usage, in bytes, or `null`
@@ -189,8 +189,8 @@ export class MemoryMonitor extends BaseService {
         throw new Error(`Could not parse \`checkPeriod\`: ${checkPeriod}`);
       }
 
-      this.#graceSec = Duration.parseSec(gracePeriod ?? '0 sec', { minInclusive: 0 });
-      if (this.#graceSec === null) {
+      this.#gracePeriod = Duration.parse(gracePeriod ?? '0 sec', { minInclusive: 0 });
+      if (!this.#gracePeriod) {
         throw new Error(`Could not parse \`gracePeriod\`: ${gracePeriod}`);
       }
 
@@ -208,11 +208,9 @@ export class MemoryMonitor extends BaseService {
       return this.#checkSec;
     }
 
-    /**
-     * @returns {number} Grace period before triggering an action, in seconds.
-     */
-    get graceSec() {
-      return this.#graceSec;
+    /** @returns {Duration} Grace period before triggering an action. */
+    get gracePeriod() {
+      return this.#gracePeriod;
     }
 
     /**
