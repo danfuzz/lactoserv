@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Duration, Moment } from '@this/data-values';
+import { Duration, Moment, UnitQuantity } from '@this/data-values';
 
 
 describe('constructor()', () => {
@@ -322,5 +322,23 @@ describe('parse()', () => {
       expect(result).toBeInstanceOf(Duration);
       expect(result.sec).toBe(expected);
     }
+  });
+
+  test('returns the same instance as the one given', () => {
+    const dur = new Duration(123);
+    expect(Duration.parse(dur)).toBe(dur);
+  });
+
+  test('returns `null` given a `UnitQuantity` with an unrecognized unit', () => {
+    const uq = new UnitQuantity(123, 'zonks', null);
+    expect(Duration.parse(uq)).toBe(null);
+  });
+
+  test('returns an instance of this class given a `UnitQuantity` with a recognized unit', () => {
+    const uq     = new UnitQuantity(123, 'msec', null);
+    const result = Duration.parse(uq);
+
+    expect(result).toBeInstanceOf(Duration);
+    expect(result.sec).toBe(0.123);
   });
 });

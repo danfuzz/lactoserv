@@ -135,7 +135,9 @@ export class Duration extends UnitQuantity {
       requireUnit: true
     });
 
-    if (!result || result.denominatorUnit) {
+    if (result instanceof Duration) {
+      return result;
+    } else if (!result || result.denominatorUnit) {
       return null;
     }
 
