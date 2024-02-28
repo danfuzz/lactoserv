@@ -142,6 +142,7 @@ export class Duration {
    * See {@link #parse} for details about the accepted formats.
    *
    * @param {string} value The value to parse.
+   * @param {object} [options] Options to control the allowed range of values.
    * @param {?number} [options.maxExclusive] Exclusive maximum value.
    *   That is, require `value < maxExclusive`.
    * @param {?number} [options.maxInclusive] Inclusive maximum value.
