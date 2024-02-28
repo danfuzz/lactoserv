@@ -16,10 +16,15 @@ describe('cacheControlHeader()', () => {
   ${{ maxAge: new Duration(123) }}               | ${'max-age=123'}
   ${{ public: true, maxAge: new Duration(123) }} | ${'public, max-age=123'}
   ${{ maxAge: '123 sec' }}                       | ${'max-age=123'}
+  ${{ maxAge: '123.789 sec' }}                   | ${'max-age=123'} // Round down.
   ${{ public: true, maxAge: '123_min' }}         | ${'public, max-age=7380'}
   `('returns $expected for $arg', ({ arg, expected }) => {
     expect(HttpUtil.cacheControlHeader(arg)).toBe(expected);
   });
+
+  test('rejects negative `maxAge`', () => {
+    expect(() => HttpUtil.cacheControlHeader({ maxAge: '-1 sec' })).toThrow();
+  })
 });
 
 describe('classicHeaderNameFrom()', () => {
