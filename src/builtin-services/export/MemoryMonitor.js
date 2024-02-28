@@ -23,8 +23,9 @@ export class MemoryMonitor extends BaseService {
   #runner = new Threadlet(() => this.#run());
 
   /**
-   * @type {?{ heap: number, rss: number, troubleAtMsec: ?number }} Last memory
-   * snapshot (including trouble indicator), if any.
+   * @type {?{ heap: number, rss: number, at: Moment, troubleAt: ?Duration,
+   * actionAt: ?Moment }} Most recent memory snapshot (along with timing info),
+   * or `null` if a snapshot has not yet been taken.
    */
   #lastSnapshot = null;
 
@@ -93,7 +94,7 @@ export class MemoryMonitor extends BaseService {
    * Runs the service thread.
    */
   async #run() {
-    const checkMsec = this.config.checkSec * 1000;
+    const checkMsec = this.config.checkPeriod.msec;
 
     while (!this.#runner.shouldStop()) {
       const snapshot = this.#takeSnapshot();
@@ -151,8 +152,8 @@ export class MemoryMonitor extends BaseService {
    * Configuration item subclass for this (outer) class.
    */
   static #Config = class Config extends ServiceConfig {
-    /** @type {number} How often to check, in seconds. */
-    #checkSec;
+    /** @type {Duration} How often to check, in seconds. */
+    #checkPeriod;
 
     /** @type {Duration} Grace period before triggering an action. */
     #gracePeriod;
@@ -184,8 +185,8 @@ export class MemoryMonitor extends BaseService {
         maxRssBytes  = null
       } = config;
 
-      this.#checkSec = Duration.parseSec(checkPeriod ?? '5 min', { minInclusive: 1 });
-      if (this.#checkSec === null) {
+      this.#checkPeriod = Duration.parse(checkPeriod ?? '5 min', { minInclusive: 1 });
+      if (!this.#checkPeriod) {
         throw new Error(`Could not parse \`checkPeriod\`: ${checkPeriod}`);
       }
 
@@ -203,9 +204,9 @@ export class MemoryMonitor extends BaseService {
         : MustBe.number(maxRssBytes, { finite: true, minInclusive: 1024 * 1024 });
     }
 
-    /** @returns {number} How often to check, in seconds. */
-    get checkSec() {
-      return this.#checkSec;
+    /** @returns {Duration} How often to check. */
+    get checkPeriod() {
+      return this.#checkPeriod;
     }
 
     /** @returns {Duration} Grace period before triggering an action. */
