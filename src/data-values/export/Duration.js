@@ -128,7 +128,7 @@ export class Duration {
    *
    * @param {string|Duration} value The value to parse, or the value itself.
    * @param {object} [options] Options to control the allowed range of values.
-   * @param {?boolean} [options.allowDuration] Accept instances of this class.
+   * @param {?boolean} [options.allowInstance] Accept instances of this class.
    *   Defaults to `true`.
    * @param {?number} [options.maxExclusive] Exclusive maximum value.
    *   That is, require `value < maxExclusive`.
@@ -156,7 +156,7 @@ export class Duration {
    *
    * @param {string|Duration} value The value to parse, or the value itself.
    * @param {object} [options] Options to control the allowed range of values.
-   * @param {?boolean} [options.allowDuration] Accept instances of this class.
+   * @param {?boolean} [options.allowInstance] Accept instances of this class.
    *   Defaults to `true`.
    * @param {?number} [options.maxExclusive] Exclusive maximum value.
    *   That is, require `value < maxExclusive`.
@@ -180,14 +180,14 @@ export class Duration {
     }
 
     const {
-      allowDuration = true,
+      allowInstance = true,
       maxExclusive  = null,
       maxInclusive  = null,
       minExclusive  = null,
       minInclusive  = null
     } = options;
 
-    if (!isString && !allowDuration) {
+    if (!isString && !allowInstance) {
       return null;
     }
 

@@ -318,7 +318,7 @@ ${'parseSec'} | ${'number'}
   ${'-0.1 sec'}      | ${{ maxInclusive: 0 }}      | ${-0.1}
   ${'0 s'}           | ${{ maxExclusive: 0 }}      | ${null}
   ${'-.001 s'}       | ${{ maxExclusive: 0 }}      | ${-0.001}
-  ${new Duration(1)} | ${{ allowDuration: false }} | ${null}
+  ${new Duration(1)} | ${{ allowInstance: false }} | ${null}
   `('returns $expected given ($value, $options)', ({ value, options, expected }) => {
     const result = Duration[methodName](value, options);
 
