@@ -155,7 +155,7 @@ describe('inverse()', () => {
 
     class UqSub2 extends UnitQuantity {
       get [UnitQuantity.INVERSE]() {
-        return UqSub1
+        return UqSub1;
       }
     }
 
