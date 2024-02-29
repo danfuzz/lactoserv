@@ -7,6 +7,14 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
+* None.
+
+Other notable changes:
+* None.
+
+### v0.6.7 -- 2024-02-29
+
+Breaking changes:
 * Configuration:
   * Configurations that used to accept plain numbers as durations in seconds now
     instead take either duration strings that include a unit name (e.g.,
