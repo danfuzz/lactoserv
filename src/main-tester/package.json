@@ -14,7 +14,6 @@
   "dependencies": {
     "jest": "^29.7.0",
     "jest-extended": "^4.0.2",
-    "jest-light-runner": "^0.6.0",
     "trace-unhandled": "^2.0.1"
   }
 }

@@ -10,5 +10,9 @@ cmdName="${cmdName##*/}"
 baseDir="${cmdDir%/*}"
 
 # Call through to the `jest` that got built by the main Jest dependency.
-exec "${baseDir}/lib/node_modules/.bin/jest" \
-    "$@"
+# `--experimental-vm-modules` is needed by the Jest runner, and `--no-warnings`
+# is because we use our own warning printer (and suppress the warning from
+# using `--experimental-vm-modules`).
+NODE_OPTIONS='--experimental-vm-modules --no-warnings'  \
+    exec "${baseDir}/lib/node_modules/.bin/jest" \
+        "$@"
