@@ -133,7 +133,7 @@ export default {
   // ],
 
   // Allows you to use a custom runner instead of Jest's default test runner
-  runner: "jest-light-runner",
+  //runner: "jest-light-runner",
 
   // The paths to modules that run some code to configure or set up the testing environment before each test
   setupFiles: [
@@ -147,7 +147,8 @@ export default {
 
   // A list of paths to modules that run some code to configure or set up the testing framework before each test
   setupFilesAfterEnv: [
-    "../tester/lib/node_modules/jest-extended/all"
+    '../tester/lib/node_modules/jest-extended/all',
+    '../tester/lib/code/node_modules/@this/main-tester'
   ],
 
   // The number of seconds after which a test is considered as slow and reported as such in the results.
