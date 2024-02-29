@@ -101,11 +101,11 @@ export class TokenBucket {
    *   grant size when granting requests from the waiter queue, in tokens. No
    *   queued grant requests will ever return a larger grant, even if there is
    *   available "burst volume" to accommodate it. Must be a finite non-negative
-   *   number less than or equal to both `maxBurstSize` and `maxQueueSize`. If
-   *   `partialTokens === false`, then this is rounded down to an integer by
-   *   `Math.floor()`. If `0`, then this instance will only ever synchronously
-   *   grant tokens. Defaults to the smaller of `maxBurstSize` or
-   *   `maxQueueSize`.
+   *   number less than or equal to both `maxBurstSize` and `maxQueueSize`, or
+   *   `null` to indicate the default. If `partialTokens === false`, then the
+   *   value is rounded down to an integer by `Math.floor()`. If `0`, then this
+   *   instance will only ever synchronously grant tokens. Defaults to the
+   *   smaller of `maxBurstSize` or `maxQueueSize`.
    * @param {?number} [options.maxQueueSize] The maximum allowed waiter
    *   queue size, in tokens. Must be a finite non-negative number or `null`.
    *   If `null`, then there is no limit on the queue size. If `0`, then this
@@ -125,7 +125,7 @@ export class TokenBucket {
       flowRatePerSec,
       initialBurstSize  = options.maxBurstSize,
       maxBurstSize,
-      maxQueueGrantSize,
+      maxQueueGrantSize = null,
       maxQueueSize      = null,
       partialTokens     = false,
       timeSource        = TokenBucket.#DEFAULT_TIME_SOURCE
@@ -141,7 +141,7 @@ export class TokenBucket {
       : MustBe.number(maxQueueSize, { finite: true, minInclusive: 0 });
 
     const queueGrantLimit = Math.min(this.#maxBurstSize, this.#maxQueueSize);
-    if (maxQueueGrantSize === undefined) {
+    if (maxQueueGrantSize === null) {
       this.#maxQueueGrantSize = queueGrantLimit;
     } else {
       this.#maxQueueGrantSize = MustBe.number(maxQueueGrantSize,

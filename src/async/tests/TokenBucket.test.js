@@ -322,7 +322,6 @@ describe('constructor(<invalid>)', () => {
 
   test.each`
     maxQueueGrantSize
-    ${null}
     ${true}
     ${'123'}
     ${[123]}
