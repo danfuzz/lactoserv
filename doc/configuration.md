@@ -563,26 +563,39 @@ const services = [
 This section documents the configuration objects that are used within top-level
 configurations.
 
-### Specifying durations
+### Specifying durations and rates/frequencies
 
-Several configurations are specified as time durations. These can either be an
-instance of the utility class `data-values.Duration` or a string in a format
-that includes a number followed by a unit name., e.g. `1 day`, `1_000ms`, or
-`1200.5_min`.
+Several configurations are specified as either time durations or
+rates/frequencies. These can be specified as instances of the utility classes
+`data-values.Duration` and `data-values.Frequency` (respectively), or they can
+be specified as unit quantity strings, which include a number and a unit name,
+e.g. durations `1 day` or `1_000ms`, or frequencies `123 per sec` or `5/day`.
 
 For the string form, the numeric portion is allowed to be any usual-format
 floating point number, including exponents, and including internal underscores
 for readability. The number and unit can be separated with either a space or an
-underscore, or they can just be directly next to each other. The available units
-are:
+underscore, or they can just be directly next to each other. The frequency units
+can be indicated either with a leading slash (e.g., `5 / min`) or with the word
+`per` (e.g. `72 per hr`).
 
-* `nsec` or `ns` &mdash; Nanoseconds.
-* `usec` or `us` &mdash; Microseconds.
-* `msec` or `ms` &mdash; Milliseconds.
-* `sec` or `s` &mdash; Seconds.
-* `min` or `m` &mdash; Minutes.
-* `hr` or `h` &mdash; Hours.
-* `day` or `d` &mdash; Days, where a "day" is defined to be exactly 24 hours.
+The available units are:
+
+* Durations
+  * `nsec` or `ns` &mdash; Nanoseconds.
+  * `usec` or `us` &mdash; Microseconds.
+  * `msec` or `ms` &mdash; Milliseconds.
+  * `sec` or `s` &mdash; Seconds.
+  * `min` or `m` &mdash; Minutes.
+  * `hr` or `h` &mdash; Hours.
+  * `day` or `d` &mdash; Days, where a "day" is defined to be exactly 24 hours.
+* Frequencies
+  * `/nsec` or `/ns` &mdash; Per nanosecond.
+  * `/usec` or `/us` &mdash; Per microsecond.
+  * `/msec` or `/ms` &mdash; Per millisecond.
+  * `/sec` or `/s` &mdash; Per second.
+  * `/min` or `/m` &mdash; Per minute.
+  * `/hr` or `/h` &mdash; Per hour.
+  * `/day` or `/d` &mdash; Per (24-hour) day.
 
 ### Cache control configuration: `cacheControl`
 
