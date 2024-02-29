@@ -359,16 +359,15 @@ period to allow momentary usage spikes. It accepts the following configuration
 bindings:
 
 * `checkPeriod` &mdash; How often to check for memory usage being over the
-  defined limit, specified as a duration value as described in [Specifying
-  durations](#specifying-durations). Optional. Minimum `1` (which is frankly way
-  too often). Default `5 min` (that is, once every five minutes).
+  defined limit, specified as a duration value as described in
+  [Durations](#durations). Optional. Minimum `1` (which is frankly way too
+  often). Default `5 min` (that is, once every five minutes).
 * `gracePeriod` &mdash; Once a memory limit has been reached, how long it is
   allowed to remain at or beyond the maximum before this service takes action,
-  specified as a duration value as described in [Specifying
-  durations](#specifying-durations). `0` (or `null`) to not have a grace period
-  at all. Default `0`. **Note:**: When in the middle of a grace period, the
-  service will check memory usage more often than `checkPeriod` so as not to
-  miss a significant dip.
+  specified as a duration value as described in [Durations](#durations). `0` (or
+  `null`) to not have a grace period at all. Default `0`. **Note:**: When in the
+  middle of a grace period, the service will check memory usage more often than
+  `checkPeriod` so as not to miss a significant dip.
 * `maxHeapBytes` &mdash; How many bytes of heap is considered "over limit," or
   `null` for no limit on this. The amount counted is `heapTotal + external` from
   `process.memoryUsage()`. Defaults to `null`. **Note:** In order to catch
@@ -406,11 +405,10 @@ optionally on a periodic basis. It accepts the following configuration bindings:
   is read first and any process IDs found in it are kept if they are in fact
   still running.
 * `updatePeriod` &mdash; How long to wait between each file update, specified as
-  a duration value as described in [Specifying
-  durations](#specifying-durations), or `null` to indicate "never." Optional and
-  defaults to `null`. If specified, the value must be at least one second (so as
-  to prevent excessive churn). This value is only meaningfully used when
-  `multiprocess` is `true`.
+  a duration value as described in [Durations](#durations), or `null` to
+  indicate "never." Optional and defaults to `null`. If specified, the value
+  must be at least one second (so as to prevent excessive churn). This value is
+  only meaningfully used when `multiprocess` is `true`.
 
 ```js
 const services = [
@@ -435,10 +433,10 @@ configuration bindings:
 * `path` &mdash; Path to the file, with the final path component modified by
   infixing the process ID.
 * `updatePeriod` &mdash; How long to wait between each file update while the
-  system is running, specified as a duration value as described in [Specifying
-  durations](#specifying-durations), or `null` to indicate "never." Optional and
-  defaults to `null`. If specified, the value must be at least one second (so as
-  to prevent excessive churn).
+  system is running, specified as a duration value as described in
+  [Durations](#durations), or `null` to indicate "never." Optional and defaults
+  to `null`. If specified, the value must be at least one second (so as to
+  prevent excessive churn).
 * `save` &mdash; Optional file preservation configuration. If not specified, no
   file preservation is done.
 
@@ -470,10 +468,8 @@ a request), and `data` (token unit, a byte). Each of these is configured as an
 object with the following bindings:
 
 * `flowRate` &mdash; The rate of token flow once any burst capacity is
-  exhausted.
-* `timeUnit` &mdash; The time unit of `flowRate`. This can be any of the
-  following: `day` (defined here as 24 hours), `hour`, `minute`, `second`, or
-  `msec` (millisecond).
+  exhausted, specified as a frequency value as described in
+  [Frequencies](#frequencies).
 * `maxBurstSize` &mdash; The maximum allowed "burst" of tokens before
   rate-limiting takes effect.
 * `maxQueueSize` &mdash; Optional maximum possible size of the wait queue, in
@@ -493,8 +489,7 @@ const services = [
     class: 'RateLimiter',
     connections: {
       maxBurstSize: 5,
-      flowRate:     1,
-      timeUnit:     'second',
+      flowRate:     '1 per second',
       maxQueueSize: 15
     },
     requests: { /* ... */ },
@@ -563,10 +558,10 @@ const services = [
 This section documents the configuration objects that are used within top-level
 configurations.
 
-### Specifying durations and rates/frequencies
+### Specifying durations and frequencies/rates
 
 Several configurations are specified as either time durations or
-rates/frequencies. These can be specified as instances of the utility classes
+frequencies/rates. These can be specified as instances of the utility classes
 `data-values.Duration` and `data-values.Frequency` (respectively), or they can
 be specified as unit quantity strings, which include a number and a unit name,
 e.g. durations `1 day` or `1_000ms`, or frequencies `123 per sec` or `5/day`.
@@ -578,24 +573,29 @@ underscore, or they can just be directly next to each other. The frequency units
 can be indicated either with a leading slash (e.g., `5 / min`) or with the word
 `per` (e.g. `72 per hr`).
 
-The available units are:
+#### Durations
 
-* Durations
-  * `nsec` or `ns` &mdash; Nanoseconds.
-  * `usec` or `us` &mdash; Microseconds.
-  * `msec` or `ms` &mdash; Milliseconds.
-  * `sec` or `s` &mdash; Seconds.
-  * `min` or `m` &mdash; Minutes.
-  * `hr` or `h` &mdash; Hours.
-  * `day` or `d` &mdash; Days, where a "day" is defined to be exactly 24 hours.
-* Frequencies
-  * `/nsec` or `/ns` &mdash; Per nanosecond.
-  * `/usec` or `/us` &mdash; Per microsecond.
-  * `/msec` or `/ms` &mdash; Per millisecond.
-  * `/sec` or `/s` &mdash; Per second.
-  * `/min` or `/m` &mdash; Per minute.
-  * `/hr` or `/h` &mdash; Per hour.
-  * `/day` or `/d` &mdash; Per (24-hour) day.
+The available units for durations are:
+
+* `nsec` or `ns` &mdash; Nanoseconds.
+* `usec` or `us` &mdash; Microseconds.
+* `msec` or `ms` &mdash; Milliseconds.
+* `sec` or `s` &mdash; Seconds.
+* `min` or `m` &mdash; Minutes.
+* `hr` or `h` &mdash; Hours.
+* `day` or `d` &mdash; Days, where a "day" is defined to be exactly 24 hours.
+
+#### Frequencies
+
+The available units for frequencies are:
+
+* `/nsec` or `/ns` &mdash; Per nanosecond.
+* `/usec` or `/us` &mdash; Per microsecond.
+* `/msec` or `/ms` &mdash; Per millisecond.
+* `/sec` or `/s` &mdash; Per second.
+* `/min` or `/m` &mdash; Per minute.
+* `/hr` or `/h` &mdash; Per hour.
+* `/day` or `/d` &mdash; Per (24-hour) day.
 
 ### Cache control configuration: `cacheControl`
 
@@ -615,7 +615,7 @@ names (e.g. `noStore` for `no-store`). Values can be:
 * For present-vs-absent header values, such as `public` and `no-cache`:
   * A `boolean`, in which case `true` includes the value and `false` omits it.
 * For duration values:
-  * A duration as described in [Specifying durations](#specifying-durations).
+  * A duration as described in [Durations](#durations).
 
 ### ETag Configuration: `etag`
 
@@ -656,11 +656,10 @@ following bindings:
   greater. Optional, and if not specified (or if `null`), does not rotate based
   on size.
 * `checkPeriod` &mdash; How often to check for a rotation condition, specified
-  as a duration value as described in [Specifying
-  durations](#specifying-durations), or `null` to indicate "never check."
-  Optional and defaults to `5 min`. If specified, the value must be at least one
-  second (so as to prevent excessive churn). This is only meaningful if `atSize`
-  is also specified.
+  as a duration value as described in [Durations](#durations), or `null` to
+  indicate "never check." Optional and defaults to `5 min`. If specified, the
+  value must be at least one second (so as to prevent excessive churn). This is
+  only meaningful if `atSize` is also specified.
 * `maxOldBytes` &mdash; How many bytes' worth of old (post-rotation) files
   should be allowed, or `null` not to have a limit. The oldest files over the
   limit get deleted after a rotation.Optional, and defaults to `null`.
