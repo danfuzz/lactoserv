@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { TokenBucket } from '@this/async';
+import { Frequency } from '@this/data-values';
 import { IntfLogger } from '@this/loggy';
 import { IntfRateLimiter } from '@this/net-protocol';
 import { ServiceConfig } from '@this/sys-config';
@@ -169,26 +170,6 @@ export class RateLimiter extends BaseService {
     }
 
     /**
-     * Converts a specified-unit flow rate to one that is per-second.
-     *
-     * @param {number} flowRate The flow rate.
-     * @param {string} timeUnit The time unit for the given `flowRate`.
-     * @returns {number} `flowRate` converted to tokens per second.
-     */
-    static #flowRatePerSecFrom(flowRate, timeUnit) {
-      switch (timeUnit) {
-        case 'day':    return flowRate * (1 / (60 * 60 * 24));
-        case 'hour':   return flowRate * (1 / (60 * 60));
-        case 'minute': return flowRate * (1 / 60);
-        case 'second': return flowRate;               // No conversion needed.
-        case 'msec':   return flowRate * 1000;
-        default: {
-          throw new Error(`Unknown time unit: ${timeUnit}`);
-        }
-      }
-    }
-
-    /**
      * Parses the bucket configuration for a specific rate-limited entity.
      * Returns `null` if passed `null`.
      *
@@ -205,12 +186,9 @@ export class RateLimiter extends BaseService {
         maxBurstSize,
         maxQueueGrantSize = null,
         maxQueueSize      = null,
-        timeUnit
       } = config;
 
-      MustBe.number(origFlowRate, { minExclusive: 0, maxInclusive: 1e100 });
       MustBe.number(maxBurstSize, { minExclusive: 0, maxInclusive: 1e100 });
-      MustBe.string(timeUnit,     /^(day|hour|minute|second|msec)$/);
 
       if (maxQueueGrantSize !== null) {
         MustBe.number(maxQueueGrantSize, { minInclusive: 0, maxInclusive: 1e100 });
@@ -220,14 +198,17 @@ export class RateLimiter extends BaseService {
         MustBe.number(maxQueueSize, { minInclusive: 0, maxInclusive: 1e100 });
       }
 
-      const flowRatePerSec = Config.#flowRatePerSecFrom(origFlowRate, timeUnit);
-      const result   = { flowRatePerSec, maxBurstSize, maxQueueSize };
+      const flowRate = Frequency.parse(origFlowRate);
 
-      if (maxQueueGrantSize !== null) {
-        result.maxQueueGrantSize = maxQueueGrantSize;
+      if (flowRate === null) {
+        throw new Error(`Could not parse \`flowRate\`: ${origFlowRate}`);
+      } else if (flowRate.hertz === 0) {
+        throw new Error('`flowRate` must be positive');
       }
 
-      return Object.freeze(result);
+      return Object.freeze({
+        flowRate, maxBurstSize, maxQueueSize, maxQueueGrantSize
+      });
     }
   };
 }

@@ -97,22 +97,19 @@ const services = [
     class:       'RateLimiter',
     connections: {
       maxBurstSize: 10,
-      flowRate:     3,
-      timeUnit:     'second',
+      flowRate:     '3 per sec',
       maxQueueSize: 25
     },
     requests: {
       maxBurstSize: 20,
-      flowRate:     10,
-      timeUnit:     'second',
+      flowRate:     '600 per min',
       maxQueueSize: 100
     },
     data: {
-      maxBurstSize:      1024 * 1024,      // 1MB.
-      flowRate:          100 * 1024,       // 100kB.
-      timeUnit:          'second',
-      maxQueueGrantSize: 50 * 1024,       // 50kB.
-      maxQueueSize:      2 * 1024 * 1024  // 2MB.
+      maxBurstSize:      1024 * 1024,           // 1MB.
+      flowRate:          `${100 * 1024} / sec`, // 100kB.
+      maxQueueGrantSize: 50 * 1024,             // 50kB.
+      maxQueueSize:      2 * 1024 * 1024        // 2MB.
     }
   }
 ];

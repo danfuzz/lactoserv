@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { BaseConverter } from '#x/BaseConverter';
+import { Frequency } from '#x/Frequency';
 import { Struct } from '#x/Struct';
 import { UnitQuantity } from '#x/UnitQuantity';
 
@@ -21,6 +22,11 @@ export class Duration extends UnitQuantity {
    */
   constructor(sec) {
     super(sec, 'sec', null);
+  }
+
+  /** @override */
+  get [UnitQuantity.INVERSE]() {
+    return Frequency;
   }
 
   /** @returns {number} The number of milliseconds being represented. */

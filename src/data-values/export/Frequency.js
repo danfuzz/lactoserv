@@ -3,6 +3,7 @@
 
 import { MustBe } from '@this/typey';
 
+import { Duration } from '#x/Duration';
 import { UnitQuantity } from '#x/UnitQuantity';
 
 
@@ -21,6 +22,11 @@ export class Frequency extends UnitQuantity {
   constructor(hertz) {
     MustBe.number(hertz, { finite: true, minInclusive: 0 });
     super(hertz, null, 'sec');
+  }
+
+  /** @override */
+  get [UnitQuantity.INVERSE]() {
+    return Duration;
   }
 
   /**

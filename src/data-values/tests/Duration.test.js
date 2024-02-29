@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Duration, Moment, UnitQuantity } from '@this/data-values';
+import { Duration, Frequency, Moment, UnitQuantity } from '@this/data-values';
 
 
 describe('constructor()', () => {
@@ -32,6 +32,13 @@ describe('constructor()', () => {
   });
 });
 
+describe('[UnitQuantity.INVERSE]', () => {
+  test('is `Frequency`', () => {
+    const dur = new Duration(123);
+    expect(dur[UnitQuantity.INVERSE]).toBe(Frequency);
+  });
+});
+
 describe('.sec', () => {
   test('returns the value from the constructor', () => {
     expect(new Duration(0).sec).toBe(0);
@@ -45,6 +52,14 @@ describe('.msec', () => {
     expect(new Duration(0).msec).toBe(0);
     expect(new Duration(123).msec).toBe(123000);
     expect(new Duration(456.789).msec).toBe(456789);
+  });
+});
+
+describe('inverse()', () => {
+  test('returns an instance of `Frequency`', () => {
+    const result = new Duration(123).inverse();
+    expect(result).toBeInstanceOf(Frequency);
+    expect(result.hertz).toBe(1/123);
   });
 });
 

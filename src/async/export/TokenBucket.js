@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Duration, Moment } from '@this/data-values';
+import { Duration, Frequency, Moment } from '@this/data-values';
 import { IntfTimeSource, StdTimeSource } from '@this/metacomp';
 import { MustBe } from '@this/typey';
 
@@ -33,11 +33,8 @@ export class TokenBucket {
    */
   #maxBurstSize;
 
-  /**
-   * @type {number} Token flow rate (a/k/a bucket fill rate), in tokens per
-   * second.
-   */
-  #flowRatePerSec;
+  /** @type {Frequency} Token flow rate (a/k/a bucket fill rate). */
+  #flowRate;
 
   /** @type {number} Maximum grant size for a waiter in the queue, in tokens. */
   #maxQueueGrantSize;
@@ -84,64 +81,64 @@ export class TokenBucket {
    * Constructs an instance.
    *
    * @param {object} options Configuration options.
-   * @param {number} options.flowRatePerSec Token flow rate (a/k/a bucket fill
-   *   rate), that is, how quickly the bucket gets filled, in tokens per second.
-   *   This defines the steady state "flow rate" allowed by the instance. Must
-   *   be a finite positive number. This is a required "option."
-   * @param {number} [options.initialBurstSize] The
-   *   instantaneously available burst size, in tokens, at the moment of
-   *   construction. Defaults to `maxBurstSize` (that is, able to be maximally
-   *   "bursted" from the get-go).
+   * @param {Frequency} options.flowRate Token flow rate (a/k/a bucket fill
+   *   rate), that is, how quickly the bucket gets filled with tokens. This
+   *   defines the steady state "flow rate" allowed by the instance. Must be a
+   *   positive (non-zero and non-negative) value. This is a required "option."
+   * @param {number} [options.initialBurstSize] The instantaneously available
+   *   burst size, in tokens, at the moment of construction. Defaults to
+   *   `maxBurstSize` (that is, able to be maximally "bursted" from the get-go).
    * @param {number} options.maxBurstSize Maximum possible instantaneous burst
    *   size (that is, the total bucket capacity in the "leaky bucket as meter"
    *   metaphor), in tokens (arbitrary volume units). This defines the
    *   "burstiness" allowed by the instance. Must be a finite positive number.
    *   This is a required "option."
-   * @param {number} [options.maxQueueGrantSize] Maximum
-   *   grant size when granting requests from the waiter queue, in tokens. No
-   *   queued grant requests will ever return a larger grant, even if there is
-   *   available "burst volume" to accommodate it. Must be a finite non-negative
-   *   number less than or equal to both `maxBurstSize` and `maxQueueSize`. If
-   *   `partialTokens === false`, then this is rounded down to an integer by
-   *   `Math.floor()`. If `0`, then this instance will only ever synchronously
-   *   grant tokens. Defaults to the smaller of `maxBurstSize` or
-   *   `maxQueueSize`.
-   * @param {?number} [options.maxQueueSize] The maximum allowed waiter
-   *   queue size, in tokens. Must be a finite non-negative number or `null`.
-   *   If `null`, then there is no limit on the queue size. If `0`, then this
+   * @param {number} [options.maxQueueGrantSize] Maximum grant size when
+   *   granting requests from the waiter queue, in tokens. No queued grant
+   *   requests will ever return a larger grant, even if there is available
+   *   "burst volume" to accommodate it. Must be a finite non-negative number
+   *   less than or equal to both `maxBurstSize` and `maxQueueSize`, or `null`
+   *   to indicate the default. If `partialTokens === false`, then the value is
+   *   rounded down to an integer by `Math.floor()`. If `0`, then this instance
+   *   will only ever synchronously grant tokens. Defaults to the smaller of
+   *   `maxBurstSize` or `maxQueueSize`.
+   * @param {?number} [options.maxQueueSize] The maximum allowed waiter queue
+   *   size, in tokens. Must be a finite non-negative number or `null`. If
+   *   `null`, then there is no limit on the queue size. If `0`, then this
    *   instance will only ever synchronously grant tokens.
-   * @param {boolean} [options.partialTokens] If `true`, allows the
-   *   instance to provide partial tokens (e.g. give a client `1.25` tokens). If
-   *   `false`, all token handoffs from the instance are quantized to integer
-   *   values.
-   * @param {IntfTimeSource} options.timeSource What to use to
-   *   determine the passage of time. If not specified, the instance will use a
-   *   standard implementation which measures time in seconds (_not_ msec) and
-   *   bottoms out at the usual JavaScript / Node wall time interface (e.g.
+   * @param {boolean} [options.partialTokens] If `true`, allows the instance to
+   *   provide partial tokens (e.g. give a client `1.25` tokens). If `false`,
+   *   all token handoffs from the instance are quantized to integer values.
+   * @param {IntfTimeSource} options.timeSource What to use to determine the
+   *   passage of time. If not specified, the instance will use a standard
+   *   implementation which measures time in seconds (_not_ msec) and bottoms
+   *   out at the usual JavaScript / Node wall time interface (e.g.
    *   `Date.now()`, `timers.setTimeout()`).
    */
   constructor(options) {
     const {
-      flowRatePerSec,
+      flowRate,
       initialBurstSize  = options.maxBurstSize,
       maxBurstSize,
-      maxQueueGrantSize,
+      maxQueueGrantSize = null,
       maxQueueSize      = null,
       partialTokens     = false,
       timeSource        = TokenBucket.#DEFAULT_TIME_SOURCE
     } = options;
 
-    this.#maxBurstSize   = MustBe.number(maxBurstSize, { finite: true, minExclusive: 0 });
-    this.#flowRatePerSec = MustBe.number(flowRatePerSec, { finite: true, minExclusive: 0 });
-    this.#partialTokens  = MustBe.boolean(partialTokens);
-    this.#timeSource     = MustBe.instanceOf(timeSource, IntfTimeSource);
+    this.#flowRate = MustBe.instanceOf(flowRate, Frequency);
+    MustBe.number(flowRate.hertz, { minExclusive: 0 });
+
+    this.#maxBurstSize  = MustBe.number(maxBurstSize, { finite: true, minExclusive: 0 });
+    this.#partialTokens = MustBe.boolean(partialTokens);
+    this.#timeSource    = MustBe.instanceOf(timeSource, IntfTimeSource);
 
     this.#maxQueueSize = (maxQueueSize === null)
       ? Number.POSITIVE_INFINITY
       : MustBe.number(maxQueueSize, { finite: true, minInclusive: 0 });
 
     const queueGrantLimit = Math.min(this.#maxBurstSize, this.#maxQueueSize);
-    if (maxQueueGrantSize === undefined) {
+    if (maxQueueGrantSize === null) {
       this.#maxQueueGrantSize = queueGrantLimit;
     } else {
       this.#maxQueueGrantSize = MustBe.number(maxQueueGrantSize,
@@ -173,7 +170,7 @@ export class TokenBucket {
       ? null : this.#timeSource;
 
     return {
-      flowRatePerSec:    this.#flowRatePerSec,
+      flowRate:          this.#flowRate,
       maxBurstSize:      this.#maxBurstSize,
       maxQueueGrantSize: this.#maxQueueGrantSize,
       maxQueueSize,
@@ -392,7 +389,7 @@ export class TokenBucket {
 
     if (!result.done) {
       result.waitUntil =
-        result.waitUntil.addSec(this.#queueSize / this.#flowRatePerSec);
+        result.waitUntil.addSec(this.#queueSize / this.#flowRate.hertz);
     }
 
     return result;
@@ -457,7 +454,7 @@ export class TokenBucket {
     // would be.
     const waitedGrantSize = Math.min(maxInclusive, this.#maxQueueGrantSize);
     const waitedSize      = waitedGrantSize - this.#lastBurstSize;
-    const waitTimeSec     = waitedSize / this.#flowRatePerSec;
+    const waitTimeSec     = waitedSize / this.#flowRate.hertz;
     const waitUntil       = this.#lastNow.addSec(waitTimeSec);
 
     return { done: false, grant: 0, waitUntil };
@@ -576,7 +573,7 @@ export class TokenBucket {
 
     if (lastBurstSize < this.#maxBurstSize) {
       const elapsedTime   = now.subtract(this.#lastNow).sec;
-      const grant         = elapsedTime * this.#flowRatePerSec;
+      const grant         = elapsedTime * this.#flowRate.hertz;
       this.#lastBurstSize = Math.min(lastBurstSize + grant, this.#maxBurstSize);
     }
 

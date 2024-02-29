@@ -43,6 +43,13 @@ describe('constructor()', () => {
   });
 });
 
+describe('[UnitQuantity.INVERSE]', () => {
+  test('is this class', () => {
+    const uq = new UnitQuantity(1, 'x', 'y');
+    expect(uq[UnitQuantity.INVERSE]).toBe(UnitQuantity);
+  });
+});
+
 describe('.denominatorUnit', () => {
   test('returns the denominator unit from the constructor', () => {
     expect(new UnitQuantity(0, 'x', 'y').denominatorUnit).toBe('y');
@@ -136,9 +143,24 @@ ${'subtract'}
 });
 
 describe('inverse()', () => {
-  test('returns an instance of this class', () => {
+  test('returns an instance of this class, given a concrete `UnitQuantity`', () => {
     const result = new UnitQuantity(123, 'x', 'y').inverse();
     expect(result).toBeInstanceOf(UnitQuantity);
+  });
+
+  test('returns an instance of the preferred inverse class for a subclass that specifies it', () => {
+    class UqSub1 extends UnitQuantity {
+      // This space intentionally left blank.
+    }
+
+    class UqSub2 extends UnitQuantity {
+      get [UnitQuantity.INVERSE]() {
+        return UqSub1;
+      }
+    }
+
+    const result = new UqSub2(123, 'x', 'y').inverse();
+    expect(result).toBeInstanceOf(UqSub1);
   });
 
   test('inverts the value', () => {
@@ -153,6 +175,17 @@ describe('inverse()', () => {
 
     expect(result.numeratorUnit).toBe('y');
     expect(result.denominatorUnit).toBe('x');
+  });
+});
+
+
+//
+// Static members
+//
+
+describe('.INVERSE', () => {
+  test('is a symbol', () => {
+    expect(UnitQuantity.INVERSE).toBeSymbol();
   });
 });
 
@@ -174,8 +207,9 @@ describe('parse()', () => {
   test.each`
   value
   ${''}
-  ${'123'}       // No unit.
+  ${'123'}       // No unit. (Units are required by default.)
   ${' 123 '}     // Ditto.
+  ${'1 bop/bop'} // Ditto. (Identical units cancel out.)
   ${'a'}         // No number.
   ${'1z abc'}    // Invalid character in number.
   ${'$1 xyz'}    // Ditto.
@@ -287,6 +321,26 @@ describe('parse()', () => {
     const uq = new UnitQuantity(123, 'x', 'y');
 
     expect(UnitQuantity.parse(uq, { allowInstance: false })).toBeNull();
+  });
+
+  describe('with `{ requireUnit: false }`', () => {
+    test('allows unitless input', () => {
+      const uq = UnitQuantity.parse('123', { requireUnit: false });
+
+      expect(uq).toBeInstanceOf(UnitQuantity);
+      expect(uq.value).toBe(123);
+      expect(uq.numeratorUnit).toBeNull();
+      expect(uq.denominatorUnit).toBeNull();
+    });
+
+    test('returns a unitless instance when given identical numerator and denominator', () => {
+      const uq = UnitQuantity.parse('0.987 bop/bop', { requireUnit: false });
+
+      expect(uq).toBeInstanceOf(UnitQuantity);
+      expect(uq.value).toBe(0.987);
+      expect(uq.numeratorUnit).toBeNull();
+      expect(uq.denominatorUnit).toBeNull();
+    });
   });
 
   // Success cases, no options.
