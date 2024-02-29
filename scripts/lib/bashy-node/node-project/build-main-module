@@ -175,8 +175,12 @@ function commit-info {
     || return "$?"
 
     # If this repo's HEAD is on a branch, this will print it.
-    infoWords+=($(git rev-parse --abbrev-ref HEAD)) \
+    local headRef
+    headRef="$(git rev-parse --abbrev-ref HEAD)" \
     || return "$?"
+    if [[ ${headRef} != 'main' ]]; then
+        infoWords+=("${headRef}")
+    fi
 
     echo "${infoWords[*]}"
 }
