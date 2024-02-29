@@ -170,6 +170,8 @@ export class TopErrorHandler {
   static async #warning(warning) {
     if (warning.name === 'ExperimentalWarning') {
       if (/VM Modules/.test(warning.message)) {
+        // Suppress this one, because we totally know we're using it, and it's
+        // intentional, so the warning is pure noise.
         return;
       }
     }
