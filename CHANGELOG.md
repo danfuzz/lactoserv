@@ -23,9 +23,9 @@ Breaking changes:
     frequency string (e.g., `100 per hr` or `12/minute`) _or_ an instance of the
     class `data-values.Frequency`.
 * `net-util`:
-  * `MimeTypes` methods that return MIME type strings now default have the
-    default option `charSet: 'utf-8'`, which is about the most sensible default
-    these days.
+  * `MimeTypes` methods that return MIME type strings now have the option
+    `charSet: 'utf-8'` by default, which is about the most sensible choice these
+    days.
 * `data-values`: Removed `Duration.parseSec()`, in the ongoing effort to use
   typed objects in preference to plain numbers.
 
