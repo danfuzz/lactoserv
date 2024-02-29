@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Duration, Moment } from '@this/data-values';
+import { Duration, Frequency, Moment } from '@this/data-values';
 import { IntfTimeSource, StdTimeSource } from '@this/metacomp';
 import { MustBe } from '@this/typey';
 
@@ -33,11 +33,8 @@ export class TokenBucket {
    */
   #maxBurstSize;
 
-  /**
-   * @type {number} Token flow rate (a/k/a bucket fill rate), in tokens per
-   * second.
-   */
-  #flowRatePerSec;
+  /** @type {Frequency} Token flow rate (a/k/a bucket fill rate). */
+  #flowRate;
 
   /** @type {number} Maximum grant size for a waiter in the queue, in tokens. */
   #maxQueueGrantSize;
@@ -84,10 +81,10 @@ export class TokenBucket {
    * Constructs an instance.
    *
    * @param {object} options Configuration options.
-   * @param {number} options.flowRatePerSec Token flow rate (a/k/a bucket fill
-   *   rate), that is, how quickly the bucket gets filled, in tokens per second.
-   *   This defines the steady state "flow rate" allowed by the instance. Must
-   *   be a finite positive number. This is a required "option."
+   * @param {Frequency} options.flowRate Token flow rate (a/k/a bucket fill
+   *   rate), that is, how quickly the bucket gets filled with tokens. This
+   *   defines the steady state "flow rate" allowed by the instance. Must be a
+   *   positive (non-zero and non-negative) value. This is a required "option."
    * @param {number} [options.initialBurstSize] The instantaneously available
    *   burst size, in tokens, at the moment of construction. Defaults to
    *   `maxBurstSize` (that is, able to be maximally "bursted" from the get-go).
@@ -120,7 +117,7 @@ export class TokenBucket {
    */
   constructor(options) {
     const {
-      flowRatePerSec,
+      flowRate,
       initialBurstSize  = options.maxBurstSize,
       maxBurstSize,
       maxQueueGrantSize = null,
@@ -129,10 +126,12 @@ export class TokenBucket {
       timeSource        = TokenBucket.#DEFAULT_TIME_SOURCE
     } = options;
 
-    this.#maxBurstSize   = MustBe.number(maxBurstSize, { finite: true, minExclusive: 0 });
-    this.#flowRatePerSec = MustBe.number(flowRatePerSec, { finite: true, minExclusive: 0 });
-    this.#partialTokens  = MustBe.boolean(partialTokens);
-    this.#timeSource     = MustBe.instanceOf(timeSource, IntfTimeSource);
+    this.#flowRate = MustBe.instanceOf(flowRate, Frequency);
+    MustBe.number(flowRate.hertz, { minExclusive: 0 });
+
+    this.#maxBurstSize  = MustBe.number(maxBurstSize, { finite: true, minExclusive: 0 });
+    this.#partialTokens = MustBe.boolean(partialTokens);
+    this.#timeSource    = MustBe.instanceOf(timeSource, IntfTimeSource);
 
     this.#maxQueueSize = (maxQueueSize === null)
       ? Number.POSITIVE_INFINITY
@@ -171,7 +170,7 @@ export class TokenBucket {
       ? null : this.#timeSource;
 
     return {
-      flowRatePerSec:    this.#flowRatePerSec,
+      flowRate:          this.#flowRate,
       maxBurstSize:      this.#maxBurstSize,
       maxQueueGrantSize: this.#maxQueueGrantSize,
       maxQueueSize,
@@ -390,7 +389,7 @@ export class TokenBucket {
 
     if (!result.done) {
       result.waitUntil =
-        result.waitUntil.addSec(this.#queueSize / this.#flowRatePerSec);
+        result.waitUntil.addSec(this.#queueSize / this.#flowRate.hertz);
     }
 
     return result;
@@ -455,7 +454,7 @@ export class TokenBucket {
     // would be.
     const waitedGrantSize = Math.min(maxInclusive, this.#maxQueueGrantSize);
     const waitedSize      = waitedGrantSize - this.#lastBurstSize;
-    const waitTimeSec     = waitedSize / this.#flowRatePerSec;
+    const waitTimeSec     = waitedSize / this.#flowRate.hertz;
     const waitUntil       = this.#lastNow.addSec(waitTimeSec);
 
     return { done: false, grant: 0, waitUntil };
@@ -574,7 +573,7 @@ export class TokenBucket {
 
     if (lastBurstSize < this.#maxBurstSize) {
       const elapsedTime   = now.subtract(this.#lastNow).sec;
-      const grant         = elapsedTime * this.#flowRatePerSec;
+      const grant         = elapsedTime * this.#flowRate.hertz;
       this.#lastBurstSize = Math.min(lastBurstSize + grant, this.#maxBurstSize);
     }
 

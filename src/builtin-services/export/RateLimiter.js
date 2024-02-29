@@ -202,12 +202,12 @@ export class RateLimiter extends BaseService {
 
       if (flowRate === null) {
         throw new Error(`Could not parse \`flowRate\`: ${origFlowRate}`);
+      } else if (flowRate.hertz === 0) {
+        throw new Error('`flowRate` must be positive');
       }
 
-      const flowRatePerSec = flowRate.hertz;
-
       return Object.freeze({
-        flowRatePerSec, maxBurstSize, maxQueueSize, maxQueueGrantSize
+        flowRate, maxBurstSize, maxQueueSize, maxQueueGrantSize
       });
     }
   };
