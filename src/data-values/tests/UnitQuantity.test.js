@@ -207,8 +207,9 @@ describe('parse()', () => {
   test.each`
   value
   ${''}
-  ${'123'}       // No unit.
+  ${'123'}       // No unit. (Units are required by default.)
   ${' 123 '}     // Ditto.
+  ${'1 bop/bop'} // Ditto. (Identical units cancel out.)
   ${'a'}         // No number.
   ${'1z abc'}    // Invalid character in number.
   ${'$1 xyz'}    // Ditto.
@@ -320,6 +321,26 @@ describe('parse()', () => {
     const uq = new UnitQuantity(123, 'x', 'y');
 
     expect(UnitQuantity.parse(uq, { allowInstance: false })).toBeNull();
+  });
+
+  describe('with `{ requireUnit: false }`', () => {
+    test('allows unitless input', () => {
+      const uq = UnitQuantity.parse('123', { requireUnit: false });
+
+      expect(uq).toBeInstanceOf(UnitQuantity);
+      expect(uq.value).toBe(123);
+      expect(uq.numeratorUnit).toBeNull();
+      expect(uq.denominatorUnit).toBeNull();
+    });
+
+    test('returns a unitless instance when given identical numerator and denominator', () => {
+      const uq = UnitQuantity.parse('0.987 bop/bop', { requireUnit: false });
+
+      expect(uq).toBeInstanceOf(UnitQuantity);
+      expect(uq.value).toBe(0.987);
+      expect(uq.numeratorUnit).toBeNull();
+      expect(uq.denominatorUnit).toBeNull();
+    });
   });
 
   // Success cases, no options.

@@ -187,11 +187,13 @@ export class UnitQuantity {
    * This method _also_ optionally accepts `value` as an instance of this class,
    * (to make use of the method when parsing configurations a bit easier).
    *
-   * **Note:** The unit name `per` is not allowed, as it is reserved as the
-   * word-equivalent of `/`.
-   *
-   * **Note:** The range restriction options are only useful if the caller
-   * ends up requiring particular units.
+   * **Notes:**
+   * * If the numerator and denominator units are identical, the result is a
+   *   unitless instance.
+   * * The unit name `per` is not allowed, as it is reserved as the
+   *   word-equivalent of `/`.
+   * * The range restriction options are only useful if the caller ends up
+   *   requiring particular units.
    *
    * @param {string|UnitQuantity} value The value to parse, or the value itself.
    * @param {object} [options] Options to control the allowed range of values.
@@ -294,9 +296,9 @@ export class UnitQuantity {
       return null;
     }
 
-    return new UnitQuantity(
-      num,
-      (numer === '') ? null : numer,
-      (denom === '') ? null : denom);
+    const finalNumer = ((numer === '') || (numer == denom)) ? null : numer;
+    const finalDenom = ((denom === '') || (numer == denom)) ? null : denom;
+
+    return new UnitQuantity(num, finalNumer, finalDenom);
   }
 }
