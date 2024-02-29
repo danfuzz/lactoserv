@@ -26,6 +26,11 @@ Other notable changes:
   * New class `UnitQuantity`, which generalizes over things like `Duration`.
   * Reworked `Duration` to be a subclass of `UnitQuantity`.
   * New class `Frequency`, a subclass of `UnitQuantity`.
+* Testing:
+  * Moved to the latest version of Jest.
+  * Confirmed that Jest's default test runner does in fact support modern ES
+    modules, and so switched over to that from `jest-light-runner`. Notably,
+    this means it should be much easier to get test coverage reports working.
 
 ### v0.6.6 -- 2024-02-18
 
