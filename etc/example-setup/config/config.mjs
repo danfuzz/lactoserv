@@ -108,8 +108,8 @@ const services = [
       maxQueueSize: 100
     },
     data: {
-      maxBurstSize:      1024 * 1024,      // 1MB.
-      flowRate:          100 * 1024,       // 100kB.
+      maxBurstSize:      1024 * 1024,     // 1MB.
+      flowRate:          100 * 1024,      // 100kB.
       timeUnit:          'second',
       maxQueueGrantSize: 50 * 1024,       // 50kB.
       maxQueueSize:      2 * 1024 * 1024  // 2MB.
