@@ -296,8 +296,8 @@ export class UnitQuantity {
       return null;
     }
 
-    const finalNumer = ((numer === '') || (numer == denom)) ? null : numer;
-    const finalDenom = ((denom === '') || (numer == denom)) ? null : denom;
+    const finalNumer = ((numer === '') || (numer === denom)) ? null : numer;
+    const finalDenom = ((denom === '') || (numer === denom)) ? null : denom;
 
     return new UnitQuantity(num, finalNumer, finalDenom);
   }
