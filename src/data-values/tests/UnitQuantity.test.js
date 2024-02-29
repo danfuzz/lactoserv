@@ -43,6 +43,13 @@ describe('constructor()', () => {
   });
 });
 
+describe('[UnitQuantity.INVERSE]', () => {
+  test('is this class', () => {
+    const uq = new UnitQuantity(1, 'x', 'y');
+    expect(uq[UnitQuantity.INVERSE]).toBe(UnitQuantity);
+  });
+});
+
 describe('.denominatorUnit', () => {
   test('returns the denominator unit from the constructor', () => {
     expect(new UnitQuantity(0, 'x', 'y').denominatorUnit).toBe('y');
@@ -136,9 +143,24 @@ ${'subtract'}
 });
 
 describe('inverse()', () => {
-  test('returns an instance of this class', () => {
+  test('returns an instance of this class, given a concrete `UnitQuantity`', () => {
     const result = new UnitQuantity(123, 'x', 'y').inverse();
     expect(result).toBeInstanceOf(UnitQuantity);
+  });
+
+  test('returns an instance of the preferred inverse class for a subclass that specifies it', () => {
+    class UqSub1 extends UnitQuantity {
+      // This space intentionally left blank.
+    }
+
+    class UqSub2 extends UnitQuantity {
+      get [UnitQuantity.INVERSE]() {
+        return UqSub1
+      }
+    }
+
+    const result = new UqSub2(123, 'x', 'y').inverse();
+    expect(result).toBeInstanceOf(UqSub1);
   });
 
   test('inverts the value', () => {
@@ -153,6 +175,17 @@ describe('inverse()', () => {
 
     expect(result.numeratorUnit).toBe('y');
     expect(result.denominatorUnit).toBe('x');
+  });
+});
+
+
+//
+// Static members
+//
+
+describe('.INVERSE', () => {
+  test('is a symbol', () => {
+    expect(UnitQuantity.INVERSE).toBeSymbol();
   });
 });
 

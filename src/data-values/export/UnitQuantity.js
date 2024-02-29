@@ -7,6 +7,9 @@ import { BaseConverter } from '#x/BaseConverter';
 import { Struct } from '#x/Struct';
 
 
+/** @type {symbol} Value for the exposed {@link UnitQuantity#INVERSE}. */
+const INVERSE_SYMBOL = Symbol('UnitQuantity.INVERSE');
+
 /**
  * Representation of a numeric quantity with an associated named unit. The unit
  * is allowed to be either a numerator or a denominator or a combination of the
@@ -50,6 +53,15 @@ export class UnitQuantity {
     }
 
     Object.freeze(this);
+  }
+
+  /**
+   * @returns {function(new:UnitQuantity)} Class to use when constructing a new
+   * instance via {@link #inverse}. Defaults to this class. Subclasses can
+   * override this as necessary.
+   */
+  get [INVERSE_SYMBOL]() {
+    return UnitQuantity;
   }
 
   /** @returns {?string} The denominator unit, or `null` if none. */
@@ -118,7 +130,9 @@ export class UnitQuantity {
    * @returns {UnitQuantity} The inverse.
    */
   inverse() {
-    return new UnitQuantity(1 / this.#value, this.#denominatorUnit, this.#numeratorUnit);
+    const resultClass = this[INVERSE_SYMBOL];
+
+    return new resultClass(1 / this.#value, this.#denominatorUnit, this.#numeratorUnit);
   }
 
   /**
@@ -146,6 +160,15 @@ export class UnitQuantity {
   //
   // Static members
   //
+
+  /**
+   * @returns {symbol} Symbol used for a getter on subclass instances, whose
+   * value indicates the preferred class for the result of calls to {@link
+   * #inverse}.
+   */
+  static get INVERSE() {
+    return INVERSE_SYMBOL;
+  }
 
   /**
    * Parses a string representing a unit quantity, returning an instance of this
