@@ -134,7 +134,7 @@ function run-unit-tests {
     ln -s ../lactoserv/lib/code/node_modules .
     echo >package.json '{ "type": "module" }'
 
-    # TODO: Try this to see if Pulsar and/or Zed still mess up syntax highlighting.
+    # TODO: Try this to see if Pulsar still messes up syntax highlighting.
     #cat >package.json <<< '{ "type": "module" }'
 
     local dirsWithTests
