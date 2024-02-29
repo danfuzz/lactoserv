@@ -8,9 +8,12 @@ versioning principles. Unstable releases do not.
 
 Breaking changes:
 * Configuration:
-  * Most configurations that used to accept plain numbers as durations in
-    seconds now instead take either duration strings that include a unit name
-    _or_ instances of the class `data-values.Duration`.
+  * Configurations that used to accept plain numbers as durations in seconds now
+    instead take either duration strings that include a unit name (e.g.,
+    `5 min`) _or_ instances of the class `data-values.Duration`.
+  * Likewise, the `flowRate` for `RateLimiter` is now expected to be either a
+    frequency string (e.g., `100 per hr` or `12/minute`) _or_ an instance of the
+    class `data-values.Frequency`.
 * `net-util`:
   * `MimeTypes` methods that return MIME type strings now default have the
     default option `charSet: 'utf-8'`, which is about the most sensible default
