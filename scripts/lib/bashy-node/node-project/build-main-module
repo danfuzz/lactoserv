@@ -170,7 +170,12 @@ function commit-info {
     infoWords=("$(git rev-parse --short=8 HEAD)") \
     || return "$?"
 
+    # If this repo's HEAD is pegged to a tag, this will print it.
     infoWords+=($(git tag --points-at HEAD)) \
+    || return "$?"
+
+    # If this repo's HEAD is on a branch, this will print it.
+    infoWords+=($(git rev-parse --abbrev-ref HEAD)) \
     || return "$?"
 
     echo "${infoWords[*]}"
