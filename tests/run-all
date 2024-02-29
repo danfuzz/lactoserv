@@ -69,7 +69,7 @@ function run-tests {
 
         (( errorCount == 1 )) && noun=error || noun=errors
         echo ''
-        echo "${errorCount} ${noun}. Alas."
+        echo "${errorCount} ${noun}."
 
         return 1
     fi
@@ -125,6 +125,7 @@ function stop-server {
         fi
 
         if (( n == 0 )); then
+            progress-msg ''
             progress-msg "Stopping server (pid ${serverPid})..."
         fi
 
@@ -161,10 +162,15 @@ if (( runServer )); then
     }
 fi
 
-run-tests
+run-tests || error=1
 
 if (( runServer )); then
     stop-server || exit 1
 fi
 
-echo 'All passed. Yay!'
+if (( error )); then
+    echo 'Alas.'
+    exit 1
+else
+    echo 'All passed. Yay!'
+fi
