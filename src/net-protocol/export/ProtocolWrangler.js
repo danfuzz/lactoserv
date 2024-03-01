@@ -6,8 +6,6 @@ import { IncomingMessage, ServerResponse } from 'node:http';
 import { Http2ServerRequest, Http2ServerResponse } from 'node:http2';
 import * as net from 'node:net';
 
-import express from 'express';
-
 import { Threadlet } from '@this/async';
 import { ProductInfo } from '@this/host';
 import { IntfLogger } from '@this/loggy';
@@ -361,17 +359,13 @@ export class ProtocolWrangler {
 
   /**
    * "First licks" request handler during application dispatch. Parameters are
-   * as defined by the Express middleware spec. This method will call out to the
+   * as defined by the Node `http*` libraries. This method will call out to the
    * configured `requestHandler` when appropriate (e.g. not rate-limited, etc.).
    *
-   * @param {Http2ServerRequest|IncomingMessage|express.Request} req Request
-   *   object.
-   * @param {Http2ServerResponse|ServerResponse|express.Response} res Response
-   *   object.
-   * @param {?function(?*)} next Function which causes the next-bound middleware
-   *   to run, or `null` if Express isn't being used with this instance.
+   * @param {Http2ServerRequest|IncomingMessage} req Request object.
+   * @param {Http2ServerResponse|ServerResponse} res Response object.
    */
-  async #handleRequest(req, res, next) {
+  async #handleRequest(req, res) {
     const context   = WranglerContext.getNonNull(req.socket, req.stream?.session);
     const request   = new Request(context, req, res, this.#requestLogger);
     const reqLogger = request.logger;
@@ -423,8 +417,6 @@ export class ProtocolWrangler {
           // Gets caught immediately below.
           throw new Error('Response returned "successfully" without completing.');
         }
-      } else if (next) {
-        next();
       } else {
         // The configured `requestHandler` didn't actually handle the request.
         // Respond with a vanilla `404` error. (If the client wants something
@@ -433,13 +425,9 @@ export class ProtocolWrangler {
         await request.respond(HttpResponse.makeNotFound({ bodyExtra }));
       }
     } catch (e) {
-      if (next) {
-        next(e);
-      } else {
-        // `500` == "Internal Server Error."
-        const bodyExtra = e.stack ?? e.message ?? '<unknown>';
-        await request.respond(HttpResponse.makeMetaResponse(500, { bodyExtra }));
-      }
+      // `500` == "Internal Server Error."
+      const bodyExtra = e.stack ?? e.message ?? '<unknown>';
+      await request.respond(HttpResponse.makeMetaResponse(500, { bodyExtra }));
     }
   }
 
@@ -480,7 +468,7 @@ export class ProtocolWrangler {
         url
       });
 
-      this.#handleRequest(req, res, null);
+      this.#handleRequest(req, res);
     } catch (e) {
       // Note: This is theorized to occur in practice when the socket for a
       // request gets closed after the request was received but before it
