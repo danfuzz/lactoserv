@@ -77,6 +77,12 @@ export class Request {
   #parsedTargetObject = null;
 
   /**
+   * @type {?string} The value of {@link #urlForLogging}, or `null` if not yet
+   * calculated.
+   */
+  #urlForLogging = null;
+
+  /**
    * @type {ManualPromise<boolean>} Manual promise whose actual-promise resolves
    * to `true` when the response to this request is complete, or is rejected
    * with whatever error caused it to fail.
@@ -299,13 +305,17 @@ export class Request {
    * other more meaningful computation (hence the name).
    */
   get urlForLogging() {
-    const { host }               = this;
-    const { targetString, type } = this.#parsedTarget;
-    const prefix                 = `//${host.namePortString}`;
+    if (!this.#urlForLogging) {
+      const { host }               = this;
+      const { targetString, type } = this.#parsedTarget;
+      const prefix                 = `//${host.namePortString}`;
 
-    return (type === 'origin')
-      ? `${prefix}${targetString}`
-      : `${prefix}:${type}=${targetString}`;
+      this.#urlForLogging = (type === 'origin')
+        ? `${prefix}${targetString}`
+        : `${prefix}:${type}=${targetString}`;
+    }
+
+    return this.#urlForLogging;
   }
 
   /**
