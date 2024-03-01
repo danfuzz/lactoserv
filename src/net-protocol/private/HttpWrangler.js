@@ -16,7 +16,7 @@ export class HttpWrangler extends TcpWrangler {
   #logger;
 
   /** @type {http.Server} High-level protocol server. */
-  #protocolServer;
+  #protocolServer = null;
 
   /**
    * Constructs an instance.
@@ -26,8 +26,7 @@ export class HttpWrangler extends TcpWrangler {
   constructor(options) {
     super(options);
 
-    this.#logger         = options.logger?.http ?? null;
-    this.#protocolServer = http.createServer();
+    this.#logger = options.logger?.http ?? null;
   }
 
   /** @override */
@@ -51,7 +50,9 @@ export class HttpWrangler extends TcpWrangler {
 
   /** @override */
   async _impl_initialize() {
-    // Nothing needed here.
+    if (!this.#protocolServer) {
+      this.#protocolServer = http.createServer();
+    }
   }
 
   /** @override */
