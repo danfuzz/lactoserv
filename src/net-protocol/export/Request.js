@@ -18,12 +18,12 @@ import { WranglerContext } from '#x/WranglerContext';
  * data _and_ ways to send a response.
  *
  * Ultimately, this class wraps both the request and response objects that are
- * provided by Express, though it is intended to offer a simpler (less crufty)
- * and friendlier interface to them. That said and as of this writing, it is
- * possible to reach in and grab the underlying objects; the hope is that, over
- * time, this will be less and less necessary, and eventually the wrapped
- * objects will be able to be fully hidden from the interface presented by this
- * class.
+ * provided by the underlying Node libraries, though it is intended to offer a
+ * simpler (less crufty) and friendlier interface to them. That said and as of
+ * this writing, it is possible to reach in and grab the underlying objects; the
+ * hope is that, over time, this will be less and less necessary, and eventually
+ * the wrapped objects will be able to be fully hidden from the interface
+ * presented by this class.
  *
  * **Note:** This class does not implement any understanding of reverse proxy
  * headers. It is up to constructors of this class to pass appropriate
@@ -255,12 +255,10 @@ export class Request {
    * dotted version. This corresponds to the (unencrypted) protocol being used
    * over the (possibly encrypted) transport, and has nothing to do _per se_
    * with the port number which the remote side of this request connected to in
-   * order to send the request.
+   * order to send the request. That is, `https*` won't be the value of this
+   * property.
    */
   get protocolName() {
-    // Note: Express defines `.protocol` with fairly different semantics, as
-    // being either `http` or `https`, which is really more about the
-    // _transport_ than the protocol.
     return this.#protocolName;
   }
 
@@ -466,13 +464,6 @@ export class Request {
 
     // Note: Node calls the target the `.url`, but it's totes _not_ actually a
     // URL, bless their innocent hearts.
-    //
-    // Also note: Though this framework uses Express under the covers (as of
-    // this writing), and Express _does_ rewrite the underlying request's `.url`
-    // in some circumstances, the way we use Express should never cause it to do
-    // such rewriting. As such, it's appropriate for us to just use `.url`, and
-    // not the Express-specific `.originalUrl`. (Ultimately, the hope is to drop
-    // use of Express, as it provides little value to this project.)
     const targetString = this.#expressRequest.url;
     const result       = { targetString };
 
