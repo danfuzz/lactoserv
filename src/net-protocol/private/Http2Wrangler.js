@@ -4,9 +4,6 @@
 import * as http2 from 'node:http2';
 import * as timers from 'node:timers/promises';
 
-import express from 'express';
-import http2ExpressBridge from 'http2-express-bridge';
-
 import { Condition, PromiseUtil, Threadlet } from '@this/async';
 import { IntfLogger } from '@this/loggy';
 
@@ -20,9 +17,6 @@ import { WranglerContext } from '#x/WranglerContext';
 export class Http2Wrangler extends TcpWrangler {
   /** @type {?IntfLogger} Logger to use, or `null` to not do any logging. */
   #logger;
-
-  /** @type {express} Express-like application. */
-  #application;
 
   /** @type {?http2.Http2Server} High-level protocol server. */
   #protocolServer = null;
@@ -45,14 +39,11 @@ export class Http2Wrangler extends TcpWrangler {
     super(options);
 
     this.#logger = options.logger?.http2 ?? null;
-
-    // Express needs to be wrapped in order for it to use HTTP2.
-    this.#application = http2ExpressBridge(express);
   }
 
   /** @override */
   _impl_application() {
-    return this.#application;
+    return null;
   }
 
   /** @override */
