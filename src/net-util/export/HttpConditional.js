@@ -32,8 +32,6 @@ export class HttpConditional {
    * This assumes that the response would have a sans-check status code that is
    * acceptable for conversion to the not-modified status (`304`).
    *
-   * **Note:** This is akin to Express's `request.fresh` getter.
-   *
    * @param {string} requestMethod The request method (e.g., `get`), in either
    *   lowercase or all-caps.
    * @param {HttpHeaders|object} requestHeaders Request headers which possibly

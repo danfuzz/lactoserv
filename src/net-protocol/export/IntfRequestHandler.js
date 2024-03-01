@@ -18,20 +18,9 @@ export class IntfRequestHandler {
    * it, and provide a response. Returning / throwing from this method has the
    * following meaning:
    *
-   * * Returning `true` means that the request was fully handled. (In Express,
-   *   this is achieved by not-calling `next()` at all.)
-   * * Returning `false` means that the request was not handled. (In Express,
-   *   this is achieved by calling `next()` or `next('route')`, that is, with no
-   *   argument or the single literal argument `'route'`.)
-   * * Throwing an error means that the request failed fatally. (In Express,
-   *   this is achieved by calling `next(error)`, that is, passing it an `Error`
-   *   object.)
-   *
-   * **Note:** Express differentiates between `next()` and `next('route')`, but
-   * the nature of this system is that there is no distinction, because there
-   * are no sub-chained routes. To achieve that effect, a concrete
-   * implementation of this class would instead perform its own internal route
-   * chaining.
+   * * Returning `true` means that the request was fully handled.
+   * * Returning `false` means that the request was not handled.
+   * * Throwing an error means that the request failed fatally.
    *
    * @abstract
    * @param {Request} request Request object.

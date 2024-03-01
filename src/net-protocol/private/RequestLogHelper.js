@@ -5,7 +5,6 @@ import { FormatUtils } from '@this/loggy';
 
 import { IntfRequestLogger } from '#x/IntfRequestLogger';
 import { Request } from '#x/Request';
-import { WranglerContext } from '#x/WranglerContext';
 
 
 /**
@@ -29,15 +28,12 @@ export class RequestLogHelper {
    * logs various intermediate details to the `Request`'s _system_ logger.
    *
    * @param {Request} request Request object.
-   * @param {WranglerContext} context Connection or session context.
    */
-  async logRequest(request, context) {
+  async logRequest(request) {
     const logger    = request.logger;
     const startTime = this.#requestLogger.now();
     const reqInfo   = request.getLoggableRequestInfo();
 
-    context.logger?.newRequest(request.id);
-    logger?.opened(context.ids);
     logger?.request(reqInfo);
 
     // Note: This call isn't supposed to `throw`, even if there were errors

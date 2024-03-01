@@ -6,8 +6,6 @@ import { IncomingMessage, ServerResponse } from 'node:http';
 import { Http2ServerRequest, Http2ServerResponse } from 'node:http2';
 import * as net from 'node:net';
 
-import express from 'express';
-
 import { Threadlet } from '@this/async';
 import { ProductInfo } from '@this/host';
 import { IntfLogger } from '@this/loggy';
@@ -30,10 +28,10 @@ import { WranglerContext } from '#x/WranglerContext';
  * each use a separate instance of this class.
  *
  * Each instance manages a low-level server socket, whose connections ultimately
- * get plumbed to an (Express-like) application instance. This class is
- * responsible for constructing the application instance and getting it hooked
- * up to the rest of this class, but it does not do any configuration internally
- * to the application (which is up to the clients of this class).
+ * get plumbed to an external (to this class) request handler. This class is
+ * responsible for managing the server socket lifetime, plumbing requests
+ * through to its client, and providing simple default handling when the client
+ * fails to handle requests (or errors out while trying).
  */
 export class ProtocolWrangler {
   /** @type {?IntfLogger} Logger to use, or `null` to not do any logging. */
@@ -184,20 +182,9 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Gets the (Express-like) application instance.
-   *
-   * @abstract
-   * @returns {object} The (Express-like) application instance.
-   */
-  _impl_application() {
-    Methods.abstract();
-  }
-
-  /**
    * Performs starting actions specifically in service of the high-level
-   * protocol (e.g. HTTP2) and (Express-like) application that layers on top of
-   * it, in advance of it being handed connections. This should only
-   * async-return once the stack really is ready.
+   * protocol (e.g. HTTP2), in advance of it being handed connections. This
+   * should only async-return once the stack really is ready.
    *
    * @abstract
    * @param {boolean} isReload Is this action due to an in-process reload?
@@ -208,9 +195,8 @@ export class ProtocolWrangler {
 
   /**
    * Performs stop/shutdown actions specifically in service of the high-level
-   * protocol (e.g. HTTP2) and (Express-like) application that layers on top of
-   * it, after it is no longer being handed connections. This should only
-   * async-return once the stack really is stopped.
+   * protocol (e.g. HTTP2), after it is no longer being handed connections. This
+   * should only async-return once the stack really is stopped.
    *
    * @abstract
    * @param {boolean} willReload Is this action due to an in-process reload
@@ -222,9 +208,9 @@ export class ProtocolWrangler {
 
   /**
    * Initializes the instance. After this is called and (asynchronously)
-   * returns, both {@link #_impl_application} and {@link #_impl_server} should
-   * work without error. This can get called more than once; the second and
-   * subsequent times should be considered a no-op.
+   * returns without throwing, {@link #_impl_server} is expected to work without
+   * error. This can get called more than once; the second and subsequent times
+   # should be considered a no-op.
    *
    * @abstract
    */
@@ -370,46 +356,18 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Handles an error encountered during Express dispatch. Parameters are as
-   * defined by the Express middleware spec.
+   * Top-level of the asynchronous request handling flow. This method will call
+   * out to the configured `requestHandler` when appropriate (e.g. not
+   * rate-limited, etc.).
    *
-   * @param {Error} err The error.
-   * @param {express.Request} req Request object.
-   * @param {express.Response} res Response object.
-   * @param {function(?*)} next_unused Next-middleware function. Unused, but
-   *   required to be declared so that Express knows that this is an
-   *   error-handling function.
-   */
-  #handleError(err, req, res, next_unused) {
-    const logger = WranglerContext.get(req)?.logger;
-
-    logger?.topLevelError(err);
-    res.sendStatus(500);
-    res.end();
-  }
-
-  /**
-   * "First licks" request handler during Express dispatch. This gets added as
-   * the first middlware handler to the high-level application. Parameters are
-   * as defined by the Express middleware spec. This method will call out to the
-   * configured `requestHandler` when appropriate (e.g. not rate-limited, etc.).
+   * **Note:** There is nothing set up to catch errors thrown by this method.
    *
-   * @param {express.Request} req Request object.
-   * @param {express.Response} res Response object.
-   * @param {function(?*)} next Function which causes the next-bound middleware
-   *   to run.
+   * @param {Request} request Request object.
+   * @param {WranglerContext} reqCtx The context directly associated with
+   *   `request`.
    */
-  async #handleExpressRequest(req, res, next) {
-    const context   = WranglerContext.getNonNull(req.socket, req.stream?.session);
-    const request   = new Request(context, req, res, this.#requestLogger);
+  async #handleRequest(request, reqCtx) {
     const reqLogger = request.logger;
-
-    const reqCtx = WranglerContext.forRequest(context, request);
-    WranglerContext.bind(req, reqCtx);
-
-    this.#logHelper?.logRequest(request, context);
-
-    res.setHeader('Server', this.#serverHeader);
 
     if (!request.pathnameString) {
       // It's not an `origin` request. We don't handle any other type of
@@ -431,7 +389,7 @@ export class ProtocolWrangler {
         // ...and then just thwack the underlying socket. The hope is that the
         // waiting above will make it likely that the far side will actually see
         // the 503 response.
-        const csock = context.socket;
+        const csock = reqCtx.socket;
         csock.end();
         csock.once('finish', () => {
           csock.destroy();
@@ -446,36 +404,38 @@ export class ProtocolWrangler {
 
       if (result) {
         // Validate that the request was actually handled.
-        if (!res.writableEnded) {
+        if (!request.responseCompleted) {
           reqLogger?.responseNotActuallyHandled();
           // Gets caught immediately below.
           throw new Error('Response returned "successfully" without completing.');
         }
       } else {
-        next();
+        // The configured `requestHandler` didn't actually handle the request.
+        // Respond with a vanilla `404` error. (If the client wants something
+        // fancier, they can do it themselves.)
+        const bodyExtra = request.urlForLogging;
+        await request.respond(HttpResponse.makeNotFound({ bodyExtra }));
       }
     } catch (e) {
-      next(e);
+      // `500` == "Internal Server Error."
+      const bodyExtra = e.stack ?? e.message ?? '<unknown>';
+      await request.respond(HttpResponse.makeMetaResponse(500, { bodyExtra }));
     }
   }
 
   /**
    * Handles a request as received directly from the HTTP-ish server object.
-   * Note that the parameters here are regular `http.*` or `http2.*` objects and
-   * not Express wrappers.
+   * This performs everything that can be done synchronously as the event
+   * callback that this is, and then (assuming all's well) hands things off to
+   * our main `async` request handler.
    *
    * @param {Http2ServerRequest|IncomingMessage} req Request object.
    * @param {Http2ServerResponse|ServerResponse} res Response object.
    */
   #incomingRequest(req, res) {
-    let logger = this.#logger;
-    const {
-      socket,
-      stream,
-      url
-    } = req;
-
-    const context = WranglerContext.get(socket, stream?.session);
+    const { socket, stream, url } = req;
+    const context                 = WranglerContext.get(socket, stream?.session);
+    const logger                  = context?.logger ?? this.#logger;
 
     if (context === null) {
       // Shouldn't happen: We have no record of the socket.
@@ -488,16 +448,18 @@ export class ProtocolWrangler {
       return;
     }
 
-    logger = context.logger ?? logger;
-
     try {
-      logger?.incomingRequest({
-        ids: context.ids,
-        url
-      });
+      const request = new Request(context, req, res, this.#requestLogger);
+      const reqCtx  = WranglerContext.forRequest(context, request);
 
-      const application = this._impl_application();
-      application(req, res);
+      WranglerContext.bind(req, reqCtx);
+
+      logger?.incomingRequest({ ...reqCtx.ids, url: request.urlForLogging });
+
+      res.setHeader('Server', this.#serverHeader);
+
+      this.#logHelper?.logRequest(request);
+      this.#handleRequest(request, reqCtx);
     } catch (e) {
       // Note: This is theorized to occur in practice when the socket for a
       // request gets closed after the request was received but before it
@@ -529,42 +491,8 @@ export class ProtocolWrangler {
 
     await this._impl_initialize();
 
-    const application = this._impl_application();
-    const server      = this._impl_server();
+    const server = this._impl_server();
 
-    // Configure the top-level application properties.
-
-    // This means paths `/foo` and `/Foo` are different.
-    application.set('case sensitive routing', true);
-
-    // A/O/T `development`. Note: Per Express docs, this makes error messages be
-    // "less verbose," so it may be reasonable to turn it off when debugging
-    // things like Express routing weirdness etc. Or, maybe this project's needs
-    // are so modest that it's better to just leave it in `development` mode
-    // permanently.
-    application.set('env', 'production');
-
-    // Don't generate etags automatically. Particular apps -- e.g., notably
-    // `StaticFiles`, might still choose to generate them, though.
-    application.set('etag fn', false);
-
-    // This means paths `/foo` and `/foo/` are different.
-    application.set('strict routing', true);
-
-    // Do not strip off any parts from the parsed hostname.
-    application.set('subdomain offset', 0);
-
-    // This squelches the response header advertisement for Express.
-    application.set('x-powered-by', false);
-
-    // Set up high-level application routing, including getting the protocol
-    // server to hand requests off to the application.
-    //
-    // Note: Express uses the function argument shape (count of arguments) to
-    // determine behavior, so we can't just use `(...args)` for those.
-
-    application.use('/', (req, res, next) => this.#handleExpressRequest(req, res, next));
-    application.use('/', (err, req, res, next) => this.#handleError(err, req, res, next));
     server.on('request', (...args) => this.#incomingRequest(...args));
 
     // Set up an event handler to propagate the connection context. See

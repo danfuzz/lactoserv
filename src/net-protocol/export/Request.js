@@ -1,10 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { ClientRequest, ServerResponse } from 'node:http';
+import { IncomingMessage, ServerResponse } from 'node:http';
 import * as http2 from 'node:http2';
-
-import express from 'express';
 
 import { ManualPromise } from '@this/async';
 import { TreePathKey } from '@this/collections';
@@ -20,12 +18,8 @@ import { WranglerContext } from '#x/WranglerContext';
  * data _and_ ways to send a response.
  *
  * Ultimately, this class wraps both the request and response objects that are
- * provided by Express, though it is intended to offer a simpler (less crufty)
- * and friendlier interface to them. That said and as of this writing, it is
- * possible to reach in and grab the underlying objects; the hope is that, over
- * time, this will be less and less necessary, and eventually the wrapped
- * objects will be able to be fully hidden from the interface presented by this
- * class.
+ * provided by the underlying Node libraries, though it is intended to offer a
+ * simpler (less crufty) and friendlier interface to them.
  *
  * **Note:** This class does not implement any understanding of reverse proxy
  * headers. It is up to constructors of this class to pass appropriate
@@ -53,11 +47,11 @@ export class Request {
    */
   #outerContext;
 
-  /** @type {ClientRequest|express.Request} HTTP(ish) request object. */
-  #expressRequest;
+  /** @type {IncomingMessage} Underlying HTTP(ish) request object. */
+  #coreRequest;
 
-  /** @type {ServerResponse|express.Response} HTTP(ish) response object. */
-  #expressResponse;
+  /** @type {ServerResponse} Underlying HTTP(ish) response object. */
+  #coreResponse;
 
   /** @type {string} The protocol name. */
   #protocolName;
@@ -83,6 +77,12 @@ export class Request {
   #parsedTargetObject = null;
 
   /**
+   * @type {?string} The value of {@link #urlForLogging}, or `null` if not yet
+   * calculated.
+   */
+  #urlForLogging = null;
+
+  /**
    * @type {ManualPromise<boolean>} Manual promise whose actual-promise resolves
    * to `true` when the response to this request is complete, or is rejected
    * with whatever error caused it to fail.
@@ -94,11 +94,8 @@ export class Request {
    *
    * @param {WranglerContext} context Most-specific context that was responsible
    *   for constructing this instance.
-   * @param {ClientRequest|express.Request} request Request object. This is a
-   *   request object as used by Express to a middleware handler (or similar).
-   * @param {ServerResponse|express.Response} response Response object. This is
-   *   a response object as used by Express to a middleware handler (or
-   *   similar).
+   * @param {IncomingMessage} request Request object.
+   * @param {ServerResponse} response Response object.
    * @param {?IntfLogger} logger Logger to use as a base, or `null` to not do
    *   any logging. If passed as non-`null`, the actual logger instance will be
    *   one that includes an additional subtag representing a new unique(ish) ID
@@ -109,10 +106,10 @@ export class Request {
 
     // Note: It's impractical to do more thorough type checking here (and
     // probably not worth it anyway).
-    this.#expressRequest  = MustBe.object(request);
-    this.#expressResponse = MustBe.object(response);
-    this.#requestMethod   = request.method.toLowerCase();
-    this.#protocolName    = `http-${request.httpVersion}`;
+    this.#coreRequest   = MustBe.object(request);
+    this.#coreResponse  = MustBe.object(response);
+    this.#requestMethod = request.method.toLowerCase();
+    this.#protocolName  = `http-${request.httpVersion}`;
 
     if (logger) {
       this.#id     = logger.$meta.makeId();
@@ -138,28 +135,12 @@ export class Request {
   }
 
   /**
-   * @returns {ClientRequest|express.Request} The underlying Express(-like)
-   * request object.
-   */
-  get expressRequest() {
-    return this.#expressRequest;
-  }
-
-  /**
-   * @returns {ServerResponse|express.Response} The underlying Express(-like)
-   * response object.
-   */
-  get expressResponse() {
-    return this.#expressResponse;
-  }
-
-  /**
    * @returns {object} Map of all incoming headers to their values, as defined
    * by Node's `IncomingMessage.headers`.
    */
   get headers() {
     // TODO: This should be a `HttpHeaders` object.
-    return this.#expressRequest.headers;
+    return this.#coreRequest.headers;
   }
 
   /**
@@ -176,7 +157,7 @@ export class Request {
    */
   get host() {
     if (!this.#host) {
-      const req = this.#expressRequest;
+      const req = this.#coreRequest;
 
       // Note: `authority` is used by HTTP2.
       const { authority } = req;
@@ -266,13 +247,20 @@ export class Request {
    * dotted version. This corresponds to the (unencrypted) protocol being used
    * over the (possibly encrypted) transport, and has nothing to do _per se_
    * with the port number which the remote side of this request connected to in
-   * order to send the request.
+   * order to send the request. That is, `https*` won't be the value of this
+   * property.
    */
   get protocolName() {
-    // Note: Express defines `.protocol` with fairly different semantics, as
-    // being either `http` or `https`, which is really more about the
-    // _transport_ than the protocol.
     return this.#protocolName;
+  }
+
+  /**
+   * @returns {boolean} An indication of whether this instance believes the
+   * underlying response to have been completed (either successfully or not).
+   */
+  get responseCompleted() {
+    return this.#responsePromise.isSettled
+      && this.#coreResponse.writableEnded;
   }
 
   /**
@@ -317,13 +305,17 @@ export class Request {
    * other more meaningful computation (hence the name).
    */
   get urlForLogging() {
-    const { host }               = this;
-    const { targetString, type } = this.#parsedTarget;
-    const prefix                 = `//${host.namePortString}`;
+    if (!this.#urlForLogging) {
+      const { host }               = this;
+      const { targetString, type } = this.#parsedTarget;
+      const prefix                 = `//${host.namePortString}`;
 
-    return (type === 'origin')
-      ? `${prefix}${targetString}`
-      : `${prefix}:${type}=${targetString}`;
+      this.#urlForLogging = (type === 'origin')
+        ? `${prefix}${targetString}`
+        : `${prefix}:${type}=${targetString}`;
+    }
+
+    return this.#urlForLogging;
   }
 
   /**
@@ -334,7 +326,7 @@ export class Request {
    *   there was no such header.
    */
   getHeaderOrNull(name) {
-    return this.#expressRequest.headers[name] ?? null;
+    return this.#coreRequest.headers[name] ?? null;
   }
 
   /**
@@ -398,7 +390,7 @@ export class Request {
     }
 
     const connectionError = this.#outerContext.socket.errored ?? null;
-    const res             = this.#expressResponse;
+    const res             = this.#coreResponse;
     const statusCode      = res.statusCode;
     const headers         = res.getHeaders();
     const contentLength   = headers['content-length'] ?? 0;
@@ -447,7 +439,7 @@ export class Request {
    * @throws {Error} Thrown if there is any trouble sending the response.
    */
   respond(response) {
-    const result = response.writeTo(this.#expressResponse);
+    const result = response.writeTo(this.#coreResponse);
 
     this.#responsePromise.resolve(result);
     return result;
@@ -477,14 +469,7 @@ export class Request {
 
     // Note: Node calls the target the `.url`, but it's totes _not_ actually a
     // URL, bless their innocent hearts.
-    //
-    // Also note: Though this framework uses Express under the covers (as of
-    // this writing), and Express _does_ rewrite the underlying request's `.url`
-    // in some circumstances, the way we use Express should never cause it to do
-    // such rewriting. As such, it's appropriate for us to just use `.url`, and
-    // not the Express-specific `.originalUrl`. (Ultimately, the hope is to drop
-    // use of Express, as it provides little value to this project.)
-    const targetString = this.#expressRequest.url;
+    const targetString = this.#coreRequest.url;
     const result       = { targetString };
 
     if (targetString.startsWith('/')) {

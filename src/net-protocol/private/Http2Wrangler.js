@@ -4,9 +4,6 @@
 import * as http2 from 'node:http2';
 import * as timers from 'node:timers/promises';
 
-import express from 'express';
-import http2ExpressBridge from 'http2-express-bridge';
-
 import { Condition, PromiseUtil, Threadlet } from '@this/async';
 import { IntfLogger } from '@this/loggy';
 
@@ -20,9 +17,6 @@ import { WranglerContext } from '#x/WranglerContext';
 export class Http2Wrangler extends TcpWrangler {
   /** @type {?IntfLogger} Logger to use, or `null` to not do any logging. */
   #logger;
-
-  /** @type {express} Express-like application. */
-  #application;
 
   /** @type {?http2.Http2Server} High-level protocol server. */
   #protocolServer = null;
@@ -45,14 +39,6 @@ export class Http2Wrangler extends TcpWrangler {
     super(options);
 
     this.#logger = options.logger?.http2 ?? null;
-
-    // Express needs to be wrapped in order for it to use HTTP2.
-    this.#application = http2ExpressBridge(express);
-  }
-
-  /** @override */
-  _impl_application() {
-    return this.#application;
   }
 
   /** @override */
@@ -246,18 +232,4 @@ export class Http2Wrangler extends TcpWrangler {
    * before considering it "timed out" and telling it to close.
    */
   static #SESSION_TIMEOUT_MSEC = 1 * 60 * 1000; // One minute.
-
-  static {
-    // Various networking code (that we don't control) occasionally uses the
-    // `.statusMessage` setter, but HTTP2 doesn't actually have status messages,
-    // and Node "helpfully" warns about that. But in practice, the warnings are
-    // just an annoying reminder of dependencies that we can't in practice
-    // usefully tweak. So, it's reasonable to squelch the problem with this
-    // somewhat grotty patch.
-    const proto = http2.Http2ServerResponse.prototype;
-    Object.defineProperty(proto, 'statusMessage', {
-      get: () => '',
-      set: () => { /* Ignore it. */ }
-    });
-  }
 }

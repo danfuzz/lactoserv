@@ -34,8 +34,8 @@ and to enable straightforward custom applications.
   * Redirect server.
   * More to come! TODO!
 * Path-hierarchy specificity-based endpoint configuration, for endpoints that
-  serve multiple applications. (This is as opposed to, notably, Express's
-  built-in routing.)
+  serve multiple applications. This is as opposed to, notably, many (most?) of
+  the "competing" Node webapp frameworks, which just do linear dispatch.
 * Can serve all of HTTP, HTTPS, and HTTP2. (HTTP2 will automatically downgrade
   to HTTPS for clients that can't do HTTP2.)
 * Provides optional "token bucket" / "leaky bucket" rate limiting for
@@ -45,9 +45,8 @@ and to enable straightforward custom applications.
 * JS-based configuration file format, which isn't actually that awful!
 * For custom (non-built-in) applications, reasonably friendly `async`-forward
   application framework, which uses a friendly wrapper around the underlying
-  Node / Express request and response objects. Maximum ergonomics: Very
-  straightforward application logic bottoming out at a well-tested low-level
-  implementation.
+  Node request and response objects. Maximum ergonomics: Very straightforward
+  application logic bottoming out at a well-tested low-level implementation.
 
 ### Implementation features
 
@@ -56,9 +55,9 @@ and to enable straightforward custom applications.
   modules.)
   * Uses Node's standard library for low-level networking and protocol
     implementation (TCP, TLS, HTTP*).
-  * Uses Express for protocol handling on top of what Node provides (but with a
-    different routing implementation; see above).
   * Only modest use of external module dependencies (via `npm`).
+  * Notably, does _not_ depend on any other webapp framework (Express, Fastify,
+    etc.).
 * Built to be installed as a normal POSIX-ish service (though _without_ Node
   bundled into the installation).
 * Developed using automated unit and integration tests. (No coverage stats

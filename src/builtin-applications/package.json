@@ -18,7 +18,6 @@
     "@this/net-util": "*",
     "@this/sys-config": "*",
     "@this/sys-framework": "*",
-    "@this/typey": "*",
-    "express": "^4.18.2"
+    "@this/typey": "*"
   }
 }
