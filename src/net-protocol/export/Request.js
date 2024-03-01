@@ -19,11 +19,7 @@ import { WranglerContext } from '#x/WranglerContext';
  *
  * Ultimately, this class wraps both the request and response objects that are
  * provided by the underlying Node libraries, though it is intended to offer a
- * simpler (less crufty) and friendlier interface to them. That said and as of
- * this writing, it is possible to reach in and grab the underlying objects; the
- * hope is that, over time, this will be less and less necessary, and eventually
- * the wrapped objects will be able to be fully hidden from the interface
- * presented by this class.
+ * simpler (less crufty) and friendlier interface to them.
  *
  * **Note:** This class does not implement any understanding of reverse proxy
  * headers. It is up to constructors of this class to pass appropriate
@@ -130,16 +126,6 @@ export class Request {
     }
 
     return this.#cookies;
-  }
-
-  /** @returns {IncomingMessage} The underlying request object. */
-  get expressRequest() {
-    return this.#coreRequest;
-  }
-
-  /** @returns {ServerResponse} The underlying response object. */
-  get expressResponse() {
-    return this.#coreResponse;
   }
 
   /**
