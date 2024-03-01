@@ -356,24 +356,18 @@ export class ProtocolWrangler {
   }
 
   /**
-   * "First licks" request handler during application dispatch. Parameters are
-   * as defined by the Node `http*` libraries. This method will call out to the
-   * configured `requestHandler` when appropriate (e.g. not rate-limited, etc.).
+   * Top-level of the asynchronous request handling flow. This method will call
+   * out to the configured `requestHandler` when appropriate (e.g. not
+   * rate-limited, etc.).
    *
-   * @param {Http2ServerRequest|IncomingMessage} req Request object.
-   * @param {Http2ServerResponse|ServerResponse} res Response object.
+   * **Note:** There is nothing set up to catch errors thrown by this method.
+   *
+   * @param {Request} request Request object.
+   * @param {WranglerContext} reqCtx The context directly associated with
+   *   `request`.
    */
-  async #handleRequest(req, res) {
-    const context   = WranglerContext.getNonNull(req.socket, req.stream?.session);
-    const request   = new Request(context, req, res, this.#requestLogger);
+  async #handleRequest(request, reqCtx) {
     const reqLogger = request.logger;
-
-    const reqCtx = WranglerContext.forRequest(context, request);
-    WranglerContext.bind(req, reqCtx);
-
-    this.#logHelper?.logRequest(request, context);
-
-    res.setHeader('Server', this.#serverHeader);
 
     if (!request.pathnameString) {
       // It's not an `origin` request. We don't handle any other type of
@@ -395,7 +389,7 @@ export class ProtocolWrangler {
         // ...and then just thwack the underlying socket. The hope is that the
         // waiting above will make it likely that the far side will actually see
         // the 503 response.
-        const csock = context.socket;
+        const csock = reqCtx.socket;
         csock.end();
         csock.once('finish', () => {
           csock.destroy();
@@ -410,7 +404,7 @@ export class ProtocolWrangler {
 
       if (result) {
         // Validate that the request was actually handled.
-        if (!res.writableEnded) {
+        if (!request.responseCompleted) {
           reqLogger?.responseNotActuallyHandled();
           // Gets caught immediately below.
           throw new Error('Response returned "successfully" without completing.');
@@ -431,19 +425,17 @@ export class ProtocolWrangler {
 
   /**
    * Handles a request as received directly from the HTTP-ish server object.
+   * This performs everything that can be done synchronously as the event
+   * callback that this is, and then (assuming all's well) hands things off to
+   * our main `async` request handler.
    *
    * @param {Http2ServerRequest|IncomingMessage} req Request object.
    * @param {Http2ServerResponse|ServerResponse} res Response object.
    */
   #incomingRequest(req, res) {
-    let logger = this.#logger;
-    const {
-      socket,
-      stream,
-      url
-    } = req;
-
-    const context = WranglerContext.get(socket, stream?.session);
+    const { socket, stream, url } = req;
+    const context                 = WranglerContext.get(socket, stream?.session);
+    const logger                  = context?.logger ?? this.#logger;
 
     if (context === null) {
       // Shouldn't happen: We have no record of the socket.
@@ -456,15 +448,20 @@ export class ProtocolWrangler {
       return;
     }
 
-    logger = context.logger ?? logger;
-
     try {
       logger?.incomingRequest({
         ids: context.ids,
         url
       });
 
-      this.#handleRequest(req, res);
+      const request = new Request(context, req, res, this.#requestLogger);
+      const reqCtx  = WranglerContext.forRequest(context, request);
+
+      res.setHeader('Server', this.#serverHeader);
+
+      WranglerContext.bind(req, reqCtx);
+      this.#logHelper?.logRequest(request, context);
+      this.#handleRequest(request, reqCtx);
     } catch (e) {
       // Note: This is theorized to occur in practice when the socket for a
       // request gets closed after the request was received but before it
