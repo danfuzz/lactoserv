@@ -11,10 +11,10 @@ import { Request } from '#x/Request';
 /**
  * Dispatch information related to a {@link Request}.
  *
- * In Express, the non-`Request` information held by this class is bolted onto
- * the `express.Request` object. In this system, we instead keep it separate,
- * aiming for maximum immutability of the objects (even if we don't quite
- * achieve it).
+ * The idea here is that {@link Request} objects are treated in a way that's as
+ * immutable as possible (even if we don't quite achieve it), so we need
+ * somewhere -- that is, instances of this class -- to hold the ephemera of the
+ * request dispatch process.
  */
 export class DispatchInfo {
   /** @type {TreePathKey} The base path. */
