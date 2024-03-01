@@ -51,11 +51,11 @@ export class Request {
    */
   #outerContext;
 
-  /** @type {IncomingMessage} HTTP(ish) request object. */
-  #expressRequest;
+  /** @type {IncomingMessage} Underlying HTTP(ish) request object. */
+  #coreRequest;
 
-  /** @type {ServerResponse} HTTP(ish) response object. */
-  #expressResponse;
+  /** @type {ServerResponse} Underlying HTTP(ish) response object. */
+  #coreResponse;
 
   /** @type {string} The protocol name. */
   #protocolName;
@@ -104,10 +104,10 @@ export class Request {
 
     // Note: It's impractical to do more thorough type checking here (and
     // probably not worth it anyway).
-    this.#expressRequest  = MustBe.object(request);
-    this.#expressResponse = MustBe.object(response);
-    this.#requestMethod   = request.method.toLowerCase();
-    this.#protocolName    = `http-${request.httpVersion}`;
+    this.#coreRequest   = MustBe.object(request);
+    this.#coreResponse  = MustBe.object(response);
+    this.#requestMethod = request.method.toLowerCase();
+    this.#protocolName  = `http-${request.httpVersion}`;
 
     if (logger) {
       this.#id     = logger.$meta.makeId();
@@ -134,12 +134,12 @@ export class Request {
 
   /** @returns {IncomingMessage} The underlying request object. */
   get expressRequest() {
-    return this.#expressRequest;
+    return this.#coreRequest;
   }
 
   /** @returns {ServerResponse} The underlying response object. */
   get expressResponse() {
-    return this.#expressResponse;
+    return this.#coreResponse;
   }
 
   /**
@@ -148,7 +148,7 @@ export class Request {
    */
   get headers() {
     // TODO: This should be a `HttpHeaders` object.
-    return this.#expressRequest.headers;
+    return this.#coreRequest.headers;
   }
 
   /**
@@ -165,7 +165,7 @@ export class Request {
    */
   get host() {
     if (!this.#host) {
-      const req = this.#expressRequest;
+      const req = this.#coreRequest;
 
       // Note: `authority` is used by HTTP2.
       const { authority } = req;
@@ -321,7 +321,7 @@ export class Request {
    *   there was no such header.
    */
   getHeaderOrNull(name) {
-    return this.#expressRequest.headers[name] ?? null;
+    return this.#coreRequest.headers[name] ?? null;
   }
 
   /**
@@ -385,7 +385,7 @@ export class Request {
     }
 
     const connectionError = this.#outerContext.socket.errored ?? null;
-    const res             = this.#expressResponse;
+    const res             = this.#coreResponse;
     const statusCode      = res.statusCode;
     const headers         = res.getHeaders();
     const contentLength   = headers['content-length'] ?? 0;
@@ -434,7 +434,7 @@ export class Request {
    * @throws {Error} Thrown if there is any trouble sending the response.
    */
   respond(response) {
-    const result = response.writeTo(this.#expressResponse);
+    const result = response.writeTo(this.#coreResponse);
 
     this.#responsePromise.resolve(result);
     return result;
@@ -464,7 +464,7 @@ export class Request {
 
     // Note: Node calls the target the `.url`, but it's totes _not_ actually a
     // URL, bless their innocent hearts.
-    const targetString = this.#expressRequest.url;
+    const targetString = this.#coreRequest.url;
     const result       = { targetString };
 
     if (targetString.startsWith('/')) {
