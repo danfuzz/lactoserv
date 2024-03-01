@@ -184,16 +184,6 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Gets the (Express-like) application instance.
-   *
-   * @abstract
-   * @returns {object} The (Express-like) application instance.
-   */
-  _impl_application() {
-    Methods.abstract();
-  }
-
-  /**
    * Performs starting actions specifically in service of the high-level
    * protocol (e.g. HTTP2) and (Express-like) application that layers on top of
    * it, in advance of it being handed connections. This should only
@@ -222,9 +212,9 @@ export class ProtocolWrangler {
 
   /**
    * Initializes the instance. After this is called and (asynchronously)
-   * returns, both {@link #_impl_application} and {@link #_impl_server} should
-   * work without error. This can get called more than once; the second and
-   * subsequent times should be considered a no-op.
+   * returns without throwing, {@link #_impl_server} is expected to work without
+   * error. This can get called more than once; the second and subsequent times
+   # should be considered a no-op.
    *
    * @abstract
    */
@@ -509,12 +499,7 @@ export class ProtocolWrangler {
         url
       });
 
-      const application = this._impl_application();
-      if (application) {
-        application(req, res);
-      } else {
-        this.#handleExpressRequest(req, res, null);
-      }
+      this.#handleExpressRequest(req, res, null);
     } catch (e) {
       // Note: This is theorized to occur in practice when the socket for a
       // request gets closed after the request was received but before it
@@ -546,47 +531,9 @@ export class ProtocolWrangler {
 
     await this._impl_initialize();
 
-    const application = this._impl_application();
-    const server      = this._impl_server();
+    const server = this._impl_server();
 
-    if (application) {
-      // Configure the top-level application properties.
-
-      // This means paths `/foo` and `/Foo` are different.
-      application.set('case sensitive routing', true);
-
-      // A/O/T `development`. Note: Per Express docs, this makes error messages
-      // be "less verbose," so it may be reasonable to turn it off when
-      // debugging things like Express routing weirdness etc. Or, maybe this
-      // project's needs are so modest that it's better to just leave it in
-      // `development` mode permanently.
-      application.set('env', 'production');
-
-      // Don't generate etags automatically. Particular apps -- e.g., notably
-      // `StaticFiles`, might still choose to generate them, though.
-      application.set('etag fn', false);
-
-      // This means paths `/foo` and `/foo/` are different.
-      application.set('strict routing', true);
-
-      // Do not strip off any parts from the parsed hostname.
-      application.set('subdomain offset', 0);
-
-      // This squelches the response header advertisement for Express.
-      application.set('x-powered-by', false);
-
-      // Set up high-level application routing, including getting the protocol
-      // server to hand requests off to the application.
-      //
-      // Note: Express uses the function argument shape (count of arguments) to
-      // determine behavior, so we can't just use `(...args)` for those.
-
-      application.use('/', (req, res, next) => this.#handleExpressRequest(req, res, next));
-      application.use('/', (err, req, res, next) => this.#handleError(err, req, res, next));
-      server.on('request', (...args) => this.#incomingRequest(...args));
-    } else {
-      server.on('request', (...args) => this.#incomingRequest(...args));
-    }
+    server.on('request', (...args) => this.#incomingRequest(...args));
 
     // Set up an event handler to propagate the connection context. See
     // `_prot_newConnection()` for a treatise about what's going on.

@@ -42,11 +42,6 @@ export class Http2Wrangler extends TcpWrangler {
   }
 
   /** @override */
-  _impl_application() {
-    return null;
-  }
-
-  /** @override */
   async _impl_applicationStart(isReload_unused) {
     this.#runner.run();
   }

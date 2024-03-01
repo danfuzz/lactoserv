@@ -16,11 +16,6 @@ export class HttpsWrangler extends TcpWrangler {
   // Note: The default constructor suffices here.
 
   /** @override */
-  _impl_application() {
-    return null;
-  }
-
-  /** @override */
   async _impl_applicationStart(isReload_unused) {
     // Nothing to do in this case.
   }
