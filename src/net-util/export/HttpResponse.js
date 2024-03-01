@@ -842,9 +842,7 @@ export class HttpResponse {
    * Makes an instance of this class representing a redirect.
    *
    * **Note:** This method does _not_ do any URL-encoding on the given `target`.
-   * It is assumed to be valid and already encoded if necessary. (This is unlike
-   * Express which tries to be "smart" about encoding, which can ultimately be
-   * more like "confusing.")
+   * It is assumed to be valid and already encoded if necessary.
    *
    * @param {string} target Possibly-relative target URL.
    * @param {?number} [status] The status code to report. Defaults to `302`
