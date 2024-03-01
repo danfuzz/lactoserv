@@ -28,10 +28,10 @@ import { WranglerContext } from '#x/WranglerContext';
  * each use a separate instance of this class.
  *
  * Each instance manages a low-level server socket, whose connections ultimately
- * get plumbed to an (Express-like) application instance. This class is
- * responsible for constructing the application instance and getting it hooked
- * up to the rest of this class, but it does not do any configuration internally
- * to the application (which is up to the clients of this class).
+ * get plumbed to an external (to this class) request handler. This class is
+ * responsible for managing the server socket lifetime, plumbing requests
+ * through to its client, and providing simple default handling when the client
+ * fails to handle requests (or errors out while trying).
  */
 export class ProtocolWrangler {
   /** @type {?IntfLogger} Logger to use, or `null` to not do any logging. */
@@ -183,9 +183,8 @@ export class ProtocolWrangler {
 
   /**
    * Performs starting actions specifically in service of the high-level
-   * protocol (e.g. HTTP2) and (Express-like) application that layers on top of
-   * it, in advance of it being handed connections. This should only
-   * async-return once the stack really is ready.
+   * protocol (e.g. HTTP2), in advance of it being handed connections. This
+   * should only async-return once the stack really is ready.
    *
    * @abstract
    * @param {boolean} isReload Is this action due to an in-process reload?
@@ -196,9 +195,8 @@ export class ProtocolWrangler {
 
   /**
    * Performs stop/shutdown actions specifically in service of the high-level
-   * protocol (e.g. HTTP2) and (Express-like) application that layers on top of
-   * it, after it is no longer being handed connections. This should only
-   * async-return once the stack really is stopped.
+   * protocol (e.g. HTTP2), after it is no longer being handed connections. This
+   * should only async-return once the stack really is stopped.
    *
    * @abstract
    * @param {boolean} willReload Is this action due to an in-process reload
@@ -433,8 +431,6 @@ export class ProtocolWrangler {
 
   /**
    * Handles a request as received directly from the HTTP-ish server object.
-   * Note that the parameters here are regular `http.*` or `http2.*` objects and
-   * not Express wrappers.
    *
    * @param {Http2ServerRequest|IncomingMessage} req Request object.
    * @param {Http2ServerResponse|ServerResponse} res Response object.
