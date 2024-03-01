@@ -389,15 +389,16 @@ export class ProtocolWrangler {
   }
 
   /**
-   * "First licks" request handler during Express dispatch. This gets added as
-   * the first middlware handler to the high-level application. Parameters are
+   * "First licks" request handler during application dispatch. Parameters are
    * as defined by the Express middleware spec. This method will call out to the
    * configured `requestHandler` when appropriate (e.g. not rate-limited, etc.).
    *
-   * @param {express.Request} req Request object.
-   * @param {express.Response} res Response object.
-   * @param {function(?*)} next Function which causes the next-bound middleware
-   *   to run.
+   * @param {Http2ServerRequest|IncomingMessage|express.Request} req Request
+   *   object.
+   * @param {Http2ServerResponse|ServerResponse|express.Response} res Response
+   *   object.
+   * @param {?function(?*)} next Function which causes the next-bound middleware
+   *   to run, or `null` if Express isn't being used with this instance.
    */
   async #handleExpressRequest(req, res, next) {
     const context   = WranglerContext.getNonNull(req.socket, req.stream?.session);
@@ -451,11 +452,23 @@ export class ProtocolWrangler {
           // Gets caught immediately below.
           throw new Error('Response returned "successfully" without completing.');
         }
-      } else {
+      } else if (next) {
         next();
+      } else {
+        // The configured `requestHandler` didn't actually handle the request.
+        // Respond with a vanilla `404` error. (If the client wants something
+        // fancier, they can do it themselves.)
+        const bodyExtra = request.pathnameString;
+        await request.respond(HttpResponse.makeNotFound({ bodyExtra }));
       }
     } catch (e) {
-      next(e);
+      if (next) {
+        next(e);
+      } else {
+        // `500` == "Internal Server Error."
+        const bodyExtra = e.message;
+        await request.respond(HttpResponse.makeMetaResponse(500, { bodyExtra }));
+      }
     }
   }
 
@@ -497,7 +510,11 @@ export class ProtocolWrangler {
       });
 
       const application = this._impl_application();
-      application(req, res);
+      if (application) {
+        application(req, res);
+      } else {
+        this.#handleExpressRequest(req, res, null);
+      }
     } catch (e) {
       // Note: This is theorized to occur in practice when the socket for a
       // request gets closed after the request was received but before it
@@ -532,40 +549,44 @@ export class ProtocolWrangler {
     const application = this._impl_application();
     const server      = this._impl_server();
 
-    // Configure the top-level application properties.
+    if (application) {
+      // Configure the top-level application properties.
 
-    // This means paths `/foo` and `/Foo` are different.
-    application.set('case sensitive routing', true);
+      // This means paths `/foo` and `/Foo` are different.
+      application.set('case sensitive routing', true);
 
-    // A/O/T `development`. Note: Per Express docs, this makes error messages be
-    // "less verbose," so it may be reasonable to turn it off when debugging
-    // things like Express routing weirdness etc. Or, maybe this project's needs
-    // are so modest that it's better to just leave it in `development` mode
-    // permanently.
-    application.set('env', 'production');
+      // A/O/T `development`. Note: Per Express docs, this makes error messages be
+      // "less verbose," so it may be reasonable to turn it off when debugging
+      // things like Express routing weirdness etc. Or, maybe this project's needs
+      // are so modest that it's better to just leave it in `development` mode
+      // permanently.
+      application.set('env', 'production');
 
-    // Don't generate etags automatically. Particular apps -- e.g., notably
-    // `StaticFiles`, might still choose to generate them, though.
-    application.set('etag fn', false);
+      // Don't generate etags automatically. Particular apps -- e.g., notably
+      // `StaticFiles`, might still choose to generate them, though.
+      application.set('etag fn', false);
 
-    // This means paths `/foo` and `/foo/` are different.
-    application.set('strict routing', true);
+      // This means paths `/foo` and `/foo/` are different.
+      application.set('strict routing', true);
 
-    // Do not strip off any parts from the parsed hostname.
-    application.set('subdomain offset', 0);
+      // Do not strip off any parts from the parsed hostname.
+      application.set('subdomain offset', 0);
 
-    // This squelches the response header advertisement for Express.
-    application.set('x-powered-by', false);
+      // This squelches the response header advertisement for Express.
+      application.set('x-powered-by', false);
 
-    // Set up high-level application routing, including getting the protocol
-    // server to hand requests off to the application.
-    //
-    // Note: Express uses the function argument shape (count of arguments) to
-    // determine behavior, so we can't just use `(...args)` for those.
+      // Set up high-level application routing, including getting the protocol
+      // server to hand requests off to the application.
+      //
+      // Note: Express uses the function argument shape (count of arguments) to
+      // determine behavior, so we can't just use `(...args)` for those.
 
-    application.use('/', (req, res, next) => this.#handleExpressRequest(req, res, next));
-    application.use('/', (err, req, res, next) => this.#handleError(err, req, res, next));
-    server.on('request', (...args) => this.#incomingRequest(...args));
+      application.use('/', (req, res, next) => this.#handleExpressRequest(req, res, next));
+      application.use('/', (err, req, res, next) => this.#handleError(err, req, res, next));
+      server.on('request', (...args) => this.#incomingRequest(...args));
+    } else {
+      server.on('request', (...args) => this.#incomingRequest(...args));
+    }
 
     // Set up an event handler to propagate the connection context. See
     // `_prot_newConnection()` for a treatise about what's going on.
