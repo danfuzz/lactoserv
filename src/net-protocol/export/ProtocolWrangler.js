@@ -555,11 +555,11 @@ export class ProtocolWrangler {
       // This means paths `/foo` and `/Foo` are different.
       application.set('case sensitive routing', true);
 
-      // A/O/T `development`. Note: Per Express docs, this makes error messages be
-      // "less verbose," so it may be reasonable to turn it off when debugging
-      // things like Express routing weirdness etc. Or, maybe this project's needs
-      // are so modest that it's better to just leave it in `development` mode
-      // permanently.
+      // A/O/T `development`. Note: Per Express docs, this makes error messages
+      // be "less verbose," so it may be reasonable to turn it off when
+      // debugging things like Express routing weirdness etc. Or, maybe this
+      // project's needs are so modest that it's better to just leave it in
+      // `development` mode permanently.
       application.set('env', 'production');
 
       // Don't generate etags automatically. Particular apps -- e.g., notably
