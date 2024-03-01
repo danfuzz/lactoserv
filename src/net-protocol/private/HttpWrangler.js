@@ -3,8 +3,6 @@
 
 import * as http from 'node:http';
 
-import { IntfLogger } from '@this/loggy';
-
 import { TcpWrangler } from '#p/TcpWrangler';
 
 
@@ -12,9 +10,6 @@ import { TcpWrangler } from '#p/TcpWrangler';
  * Wrangler for `HttpServer`.
  */
 export class HttpWrangler extends TcpWrangler {
-  /** @type {?IntfLogger} Logger to use, or `null` to not do any logging. */
-  #logger;
-
   /** @type {http.Server} High-level protocol server. */
   #protocolServer = null;
 
@@ -25,8 +20,6 @@ export class HttpWrangler extends TcpWrangler {
    */
   constructor(options) {
     super(options);
-
-    this.#logger = options.logger?.http ?? null;
   }
 
   /** @override */

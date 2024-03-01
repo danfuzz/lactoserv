@@ -3,8 +3,6 @@
 
 import * as https from 'node:https';
 
-import { IntfLogger } from '@this/loggy';
-
 import { TcpWrangler } from '#p/TcpWrangler';
 
 
@@ -12,9 +10,6 @@ import { TcpWrangler } from '#p/TcpWrangler';
  * Wrangler for `HttpsServer`.
  */
 export class HttpsWrangler extends TcpWrangler {
-  /** @type {?IntfLogger} Logger to use, or `null` to not do any logging. */
-  #logger;
-
   /** @type {?https.Server} High-level protocol server. */
   #protocolServer = null;
 
@@ -25,8 +20,6 @@ export class HttpsWrangler extends TcpWrangler {
    */
   constructor(options) {
     super(options);
-
-    this.#logger = options.logger?.https ?? null;
   }
 
   /** @override */
