@@ -360,25 +360,6 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Handles an error encountered during Express dispatch. Parameters are as
-   * defined by the Express middleware spec.
-   *
-   * @param {Error} err The error.
-   * @param {express.Request} req Request object.
-   * @param {express.Response} res Response object.
-   * @param {function(?*)} next_unused Next-middleware function. Unused, but
-   *   required to be declared so that Express knows that this is an
-   *   error-handling function.
-   */
-  #handleError(err, req, res, next_unused) {
-    const logger = WranglerContext.get(req)?.logger;
-
-    logger?.topLevelError(err);
-    res.sendStatus(500);
-    res.end();
-  }
-
-  /**
    * "First licks" request handler during application dispatch. Parameters are
    * as defined by the Express middleware spec. This method will call out to the
    * configured `requestHandler` when appropriate (e.g. not rate-limited, etc.).
