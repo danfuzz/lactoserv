@@ -371,7 +371,7 @@ export class ProtocolWrangler {
    * @param {?function(?*)} next Function which causes the next-bound middleware
    *   to run, or `null` if Express isn't being used with this instance.
    */
-  async #handleExpressRequest(req, res, next) {
+  async #handleRequest(req, res, next) {
     const context   = WranglerContext.getNonNull(req.socket, req.stream?.session);
     const request   = new Request(context, req, res, this.#requestLogger);
     const reqLogger = request.logger;
@@ -480,7 +480,7 @@ export class ProtocolWrangler {
         url
       });
 
-      this.#handleExpressRequest(req, res, null);
+      this.#handleRequest(req, res, null);
     } catch (e) {
       // Note: This is theorized to occur in practice when the socket for a
       // request gets closed after the request was received but before it
