@@ -449,18 +449,16 @@ export class ProtocolWrangler {
     }
 
     try {
-      logger?.incomingRequest({
-        ids: context.ids,
-        url
-      });
-
       const request = new Request(context, req, res, this.#requestLogger);
       const reqCtx  = WranglerContext.forRequest(context, request);
 
+      WranglerContext.bind(req, reqCtx);
+
+      logger?.incomingRequest({ ...reqCtx.ids, url: request.urlForLogging });
+
       res.setHeader('Server', this.#serverHeader);
 
-      WranglerContext.bind(req, reqCtx);
-      this.#logHelper?.logRequest(request, context);
+      this.#logHelper?.logRequest(request);
       this.#handleRequest(request, reqCtx);
     } catch (e) {
       // Note: This is theorized to occur in practice when the socket for a
