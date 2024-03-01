@@ -232,18 +232,4 @@ export class Http2Wrangler extends TcpWrangler {
    * before considering it "timed out" and telling it to close.
    */
   static #SESSION_TIMEOUT_MSEC = 1 * 60 * 1000; // One minute.
-
-  static {
-    // Various networking code (that we don't control) occasionally uses the
-    // `.statusMessage` setter, but HTTP2 doesn't actually have status messages,
-    // and Node "helpfully" warns about that. But in practice, the warnings are
-    // just an annoying reminder of dependencies that we can't in practice
-    // usefully tweak. So, it's reasonable to squelch the problem with this
-    // somewhat grotty patch.
-    const proto = http2.Http2ServerResponse.prototype;
-    Object.defineProperty(proto, 'statusMessage', {
-      get: () => '',
-      set: () => { /* Ignore it. */ }
-    });
-  }
 }
