@@ -10,4 +10,5 @@ export * from '#x/HttpRange';
 export * from '#x/HttpResponse';
 export * from '#x/HttpUtil';
 export * from '#x/MimeTypes';
+export * from '#x/RequestContext';
 export * from '#x/Uris';
