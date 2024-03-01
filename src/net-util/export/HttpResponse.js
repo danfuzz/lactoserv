@@ -555,7 +555,16 @@ export class HttpResponse {
     const shouldSendBody = (bodyType !== 'none')
       && HttpUtil.responseBodyIsAllowedFor(requestMethod, status);
 
-    res.status(status);
+    if (res.status) {
+      // TODO: `status()` is Express-specific. Remove this clause once we drop
+      // use of Express.
+      res.status(status);
+    } else {
+      res.statusCode = status;
+      if (res.req.httpVersionMajor === 1) {
+        res.statusMessage = statuses(status);
+      }
+    }
 
     // We'd love to use `response.setHeaders()` here, but as of this writing
     // (checked on Node 21.4), there are three issues which prevent its use:
