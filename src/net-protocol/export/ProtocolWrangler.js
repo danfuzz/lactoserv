@@ -458,7 +458,7 @@ export class ProtocolWrangler {
         // The configured `requestHandler` didn't actually handle the request.
         // Respond with a vanilla `404` error. (If the client wants something
         // fancier, they can do it themselves.)
-        const bodyExtra = request.pathnameString;
+        const bodyExtra = request.urlForLogging;
         await request.respond(HttpResponse.makeNotFound({ bodyExtra }));
       }
     } catch (e) {
