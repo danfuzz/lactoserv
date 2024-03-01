@@ -466,7 +466,7 @@ export class ProtocolWrangler {
         next(e);
       } else {
         // `500` == "Internal Server Error."
-        const bodyExtra = e.message;
+        const bodyExtra = e.stack ?? e.message ?? '<unknown>';
         await request.respond(HttpResponse.makeMetaResponse(500, { bodyExtra }));
       }
     }
