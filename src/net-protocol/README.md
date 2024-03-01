@@ -11,8 +11,8 @@ From the point of view of a client of this module, the client gets to configure
 the network endpoint, the system support services (logging, etc.), and the
 "mount map" from hosts and (partial) URI paths to applications. In turn, the
 client sees calls into the applications. The client never has to deal directly
-with network connections, `http` or `tls` `Server` instances (and the like), or
-`express.Application` instances (and the like).
+with network connections, nor with `http` or `tls` `Server` instances (and the
+like).
 
 - - - - - - - - - -
 ```
