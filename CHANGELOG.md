@@ -10,7 +10,9 @@ Breaking changes:
 * None.
 
 Other notable changes:
-* None.
+* `net-protocol`: Stopped using Express as a layer between the Node `http*`
+    libraries and our application framework.
+* `net-util`: Removed the small amount of remaining Express-specific code.
 
 ### v0.6.7 -- 2024-02-29
 
