@@ -7,7 +7,6 @@ import * as stream from 'node:stream';
 import { IntfLogger } from '@this/loggy';
 
 import { ProtocolWrangler } from '#x/ProtocolWrangler';
-import { Request } from '#x/Request';
 
 
 /**
@@ -35,9 +34,6 @@ export class WranglerContext {
   /** @type {?IntfLogger} Logger for a session. */
   #sessionLogger = null;
 
-  /** @type {?Request} Request. */
-  #request = null;
-
   /**
    * Constructs an instance.
    *
@@ -52,7 +48,6 @@ export class WranglerContext {
       this.#connectionLogger = source.#connectionLogger;
       this.#sessionLogger    = source.#sessionLogger;
       this.#sessionId        = source.#sessionId;
-      this.#request          = source.#request;
     }
   }
 
@@ -68,14 +63,13 @@ export class WranglerContext {
 
   /** @returns {?string} Most-specific available id, if any. */
   get id() {
-    return this.requestId ?? this.#sessionId ?? this.#connectionId;
+    return this.#sessionId ?? this.#connectionId;
   }
 
   /** @returns {object} Plain object with all IDs in this context. */
   get ids() {
     const result = {};
 
-    if (this.requestId)     result.requestId    = this.requestId;
     if (this.#sessionId)    result.sessionId    = this.#sessionId;
     if (this.#connectionId) result.connectionId = this.#connectionId;
 
@@ -84,22 +78,7 @@ export class WranglerContext {
 
   /** @returns {?IntfLogger} Most-specific available logger, if any. */
   get logger() {
-    return this.requestLogger ?? this.#sessionLogger ?? this.#connectionLogger;
-  }
-
-  /** @returns {?Request} Request, if any. */
-  get request() {
-    return this.#request;
-  }
-
-  /** @returns {?string} ID of a request, if any. */
-  get requestId() {
-    return this.#request?.id;
-  }
-
-  /** @returns {?IntfLogger} Logger for a request, if any. */
-  get requestLogger() {
-    return this.#request?.logger;
+    return this.#sessionLogger ?? this.#connectionLogger;
   }
 
   /** @returns {?string} ID of a session. */
@@ -169,22 +148,6 @@ export class WranglerContext {
       ctx.#connectionLogger = logger;
       ctx.#connectionId     = logger.$meta.lastContext;
     }
-
-    return ctx;
-  }
-
-  /**
-   * Makes a new instance of this class for a request.
-   *
-   * @param {?WranglerContext} outerContext Instance of this class which has
-   *   outer context (for the connection and/or session), if any.
-   * @param {Request} request The request.
-   * @returns {WranglerContext} An appropriately-constructed instance.
-   */
-  static forRequest(outerContext, request) {
-    const ctx = new WranglerContext(outerContext);
-
-    ctx.#request = request;
 
     return ctx;
   }

@@ -369,10 +369,9 @@ export class ProtocolWrangler {
    * **Note:** There is nothing set up to catch errors thrown by this method.
    *
    * @param {Request} request Request object.
-   * @param {WranglerContext} reqCtx The context directly associated with
-   *   `request`.
+   * @param {WranglerContext} outerContext The outer context of `request`.
    */
-  async #handleRequest(request, reqCtx) {
+  async #handleRequest(request, outerContext) {
     const reqLogger = request.logger;
 
     if (!request.pathnameString) {
@@ -395,7 +394,7 @@ export class ProtocolWrangler {
         // ...and then just thwack the underlying socket. The hope is that the
         // waiting above will make it likely that the far side will actually see
         // the 503 response.
-        const csock = reqCtx.socket;
+        const csock = outerContext.socket;
         csock.end();
         csock.once('finish', () => {
           csock.destroy();
@@ -456,16 +455,17 @@ export class ProtocolWrangler {
 
     try {
       const request = new Request(context, req, res, this.#requestLogger);
-      const reqCtx  = WranglerContext.forRequest(context, request);
 
-      WranglerContext.bind(req, reqCtx);
-
-      logger?.incomingRequest({ ...reqCtx.ids, url: request.urlForLogging });
+      logger?.incomingRequest({
+        ...context.ids,
+        requestId: request.id,
+        url:       request.urlForLogging
+      });
 
       res.setHeader('Server', this.#serverHeader);
 
       this.#logHelper?.logRequest(request);
-      this.#handleRequest(request, reqCtx);
+      this.#handleRequest(request, context);
     } catch (e) {
       // Note: This is theorized to occur in practice when the socket for a
       // request gets closed after the request was received but before it
