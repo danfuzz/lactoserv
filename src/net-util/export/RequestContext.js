@@ -10,63 +10,51 @@ import { MustBe } from '@this/typey';
  */
 export class RequestContext {
   /**
-   * @type {string} The IP address that was `listen()`ed on in order to receive
-   * the request.
+   * @type {object} Information about the interface that was `listen()`ed on.
    */
-  #listenAddress;
+  #interface;
 
-  /**
-   * @type {number} The port number that was `listen()`ed on in order to
-   * receive the request.
-   */
-  #listenPort;
-
-  /** @type {string} The IP address that is sending the request. */
-  #remoteAddress;
-
-  /** @type {number} The port number that is sending the request. */
-  #remotePort;
+  /** @type {object} Information about the remote side of the connection. */
+  #remote;
 
   /**
    * Constructs an instance.
    *
-   * @param {string} listenAddress The IP address that was `listen()`ed on in
-   *   order to receive the request.
-   * @param {number} listenPort The port number that was `listen()`ed on in
-   *   order to receive the request.
-   * @param {string} remoteAddress The IP address that is sending the request.
-   * @param {number} remotePort The port number that is sending the request.
+   * @param {object} iface Information about the interface that was `listen()`ed
+   *   on. Must be a frozen object with expected properties.
+   * @param {object} remote Information about the remote side of the connection.
+   *   Must be a frozen object with expected properties.
    */
-  constructor(listenAddress, listenPort, remoteAddress, remotePort) {
-    this.#listenAddress = MustBe.string(listenAddress);
-    this.#listenPort    = MustBe.number(listenPort, { safeInteger: true });
-    this.#remoteAddress = MustBe.string(remoteAddress);
-    this.#remotePort    = MustBe.number(remotePort, { safeInteger: true });
+  constructor(iface, remote) {
+    MustBe.object(iface);
+    MustBe.object(remote);
+    MustBe.frozen(iface);
+    MustBe.frozen(remote);
+
+    MustBe.string(iface.address);
+    if (iface.fd) {
+      MustBe.number(iface.fd);
+    }
+    if (iface.port) {
+      MustBe.number(iface.port);
+    }
+
+    MustBe.string(remote.address);
+    MustBe.string(remote.port);
+
+    this.#interface = iface;
+    this.#remote    = remote;
   }
 
   /**
-   * @type {string} The IP address that was `listen()`ed on in order to receive
-   * the request.
+   * @type {object} Information about the interface that was `listen()`ed on.
    */
-  get listenAddress() {
-    return this.#listenAddress;
+  get interface() {
+    return this.#interface;
   }
 
-  /**
-   * @type {number} The port number that was `listen()`ed on in order to
-   * receive the request.
-   */
-  get listenPort() {
-    return this.#listenPort;
-  }
-
-  /** @type {string} The IP address that is sending the request. */
-  get remoteAddress() {
-    return this.#remoteAddress;
-  }
-
-  /** @type {number} The port number that is sending the request. */
-  get remotePort() {
-    return this.#remotePort;
+  /** @type {object} Information about the remote side of the connection. */
+  get remote() {
+    return this.#remote;
   }
 }
