@@ -6,6 +6,7 @@ import * as http2 from 'node:http2';
 
 import { ManualPromise } from '@this/async';
 import { TreePathKey } from '@this/collections';
+import { ErrorUtil } from '@this/data-values';
 import { FormatUtils, IntfLogger } from '@this/loggy';
 import { Cookies, HostInfo, HttpResponse } from '@this/net-util';
 import { AskIf, MustBe } from '@this/typey';
@@ -406,7 +407,7 @@ export class Request {
     let   errorStr   = null;
 
     if (responseError) {
-      const code = Request.#extractErrorCode(responseError);
+      const code = ErrorUtil.extractErrorCode(responseError);
 
       fullErrors.push(responseError);
       result.responseError = code;
@@ -414,7 +415,7 @@ export class Request {
     }
 
     if (connectionError) {
-      const code = Request.#extractErrorCode(connectionError);
+      const code = ErrorUtil.extractErrorCode(connectionError);
 
       fullErrors.push(connectionError);
       result.connectionError = code;
@@ -540,33 +541,6 @@ export class Request {
   //
   // Static members
   //
-
-  /**
-   * Extracts a string error code from the given `Error`, or returns a generic
-   * "unknown error" if there's nothing else reasonable.
-   *
-   * @param {*} error The error to extract from.
-   * @returns {string} The extracted code.
-   */
-  static #extractErrorCode(error) {
-    const shortenAndFormat = (str) => {
-      return str.slice(0, 32).toLowerCase()
-        .replaceAll(/[_ ]/g, '-')
-        .replaceAll(/[^-a-z0-9]/g, '');
-    };
-
-    if (error instanceof Error) {
-      if (error.code) {
-        return error.code.toLowerCase().replaceAll(/_/g, '-');
-      } else if (error.message) {
-        return shortenAndFormat(error.message);
-      }
-    } else if (AskIf.string(error)) {
-      return shortenAndFormat(error);
-    }
-
-    return 'err-unknown';
-  }
 
   /**
    * Cleans up request headers for logging.
