@@ -129,10 +129,16 @@ export class ProtocolWrangler {
     this.#logHelper      = requestLogger ? new RequestLogHelper(requestLogger) : null;
     this.#serverHeader   = ProtocolWrangler.#makeServerHeader();
 
-    this.#interfaceObject = Object.freeze({
-      address: interfaceConfig.address,
-      port:    interfaceConfig.port
-    });
+    const iface = {
+      address: interfaceConfig.address
+    };
+    if (interfaceConfig.fd) {
+      iface.fd = interfaceConfig.fd;
+    }
+    if (interfaceConfig.port) {
+      iface.port = interfaceConfig.port;
+    }
+    this.#interfaceObject = Object.freeze(iface);
 
     // Confusion alert!: This is not the same as the `requestLogger` (a "request
     // logger") per se) passed in as an option. This is the sub-logger of the
