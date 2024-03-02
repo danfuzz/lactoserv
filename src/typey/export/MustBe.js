@@ -135,6 +135,21 @@ export class MustBe {
   }
 
   /**
+   * Checks for frozenness.
+   *
+   * @param {*} value Arbitrary value.
+   * @returns {*} `value` if it is frozen.
+   * @throws {Error} Thrown if `value` is of any other type.
+   */
+  static frozen(value) {
+    if (Object.isFrozen(value)) {
+      return value;
+    }
+
+    throw new Error('Must be frozen.');
+  }
+
+  /**
    * Checks for type `function`.
    *
    * @param {*} value Arbitrary value.

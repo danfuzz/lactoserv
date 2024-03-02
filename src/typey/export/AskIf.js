@@ -212,6 +212,8 @@ export class AskIf {
     }
   }
 
+  // Note: No method `frozen()`, because of the standard `Object.isFrozen(v)`.
+
   // Note: No method `function()`, because of the standard `typeof v ===
   // 'function'`.
 
