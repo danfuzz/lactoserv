@@ -31,7 +31,8 @@ export class IntfRequestHandler {
    *   dispatch determination was made before calling this instance. (On any
    *   given instance -- depending on context -- it should be the case that it
    *   either _always_ or _never_ gets passed `null` for this parameter.)
-   * @returns {boolean} Was the request handled? Flag as described above.
+   * @returns {?Response|boolean} Result of handling the request, or `null` if
+   *   not handled by this instance.
    * @throws {Error} Thrown in case of fatal error.
    */
   async handleRequest(request, dispatch) {
