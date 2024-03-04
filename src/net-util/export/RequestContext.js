@@ -40,7 +40,7 @@ export class RequestContext {
     }
 
     MustBe.string(remote.address);
-    MustBe.string(remote.port);
+    MustBe.number(remote.port);
 
     this.#interface = iface;
     this.#remote    = remote;
