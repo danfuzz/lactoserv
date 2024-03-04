@@ -5,8 +5,7 @@ import fs from 'node:fs/promises';
 
 import { Paths, Statter } from '@this/fs-util';
 import { IntfLogger } from '@this/loggy';
-import { DispatchInfo, EtagGenerator, Response, HttpUtil, MimeTypes }
-  from '@this/net-util';
+import { DispatchInfo, EtagGenerator, HttpUtil, MimeTypes, Response } from '@this/net-util';
 import { ApplicationConfig } from '@this/sys-config';
 import { BaseApplication } from '@this/sys-framework';
 

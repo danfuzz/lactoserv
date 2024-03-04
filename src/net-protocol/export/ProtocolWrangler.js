@@ -9,8 +9,7 @@ import * as net from 'node:net';
 import { Threadlet } from '@this/async';
 import { ProductInfo } from '@this/host';
 import { IntfLogger } from '@this/loggy';
-import { IntfRequestHandler, RequestContext, Request, Response }
-  from '@this/net-util';
+import { IntfRequestHandler, Request, RequestContext, Response } from '@this/net-util';
 import { Methods, MustBe } from '@this/typey';
 
 import { IntfHostManager } from '#x/IntfHostManager';
