@@ -78,7 +78,7 @@ export class StaticFiles extends BaseApplication {
         response.cacheControl = this.#cacheControl;
       }
 
-      return await request.respond(response);
+      return await response;
     } else if (resolved.path) {
       const contentType =
         MimeTypes.typeFromPathExtension(resolved.path);
