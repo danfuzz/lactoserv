@@ -14,22 +14,25 @@ export class RequestContext {
    */
   #interface;
 
-  /** @type {object} Information about the remote side of the connection. */
-  #remote;
+  /**
+   * @type {object} Information about the origin (remote side) of the
+   * connection.
+   */
+  #origin;
 
   /**
    * Constructs an instance.
    *
    * @param {object} iface Information about the interface that was `listen()`ed
    *   on. Must be a frozen object with expected properties.
-   * @param {object} remote Information about the remote side of the connection.
-   *   Must be a frozen object with expected properties.
+   * @param {object} origin Information about the origin (remote side) of the
+   *   connection. Must be a frozen object with expected properties.
    */
-  constructor(iface, remote) {
+  constructor(iface, origin) {
     MustBe.object(iface);
-    MustBe.object(remote);
+    MustBe.object(origin);
     MustBe.frozen(iface);
-    MustBe.frozen(remote);
+    MustBe.frozen(origin);
 
     MustBe.string(iface.address);
     if (iface.fd) {
@@ -39,11 +42,11 @@ export class RequestContext {
       MustBe.number(iface.port);
     }
 
-    MustBe.string(remote.address);
-    MustBe.number(remote.port);
+    MustBe.string(origin.address);
+    MustBe.number(origin.port);
 
     this.#interface = iface;
-    this.#remote    = remote;
+    this.#origin    = origin;
   }
 
   /**
@@ -53,8 +56,11 @@ export class RequestContext {
     return this.#interface;
   }
 
-  /** @type {object} Information about the remote side of the connection. */
-  get remote() {
-    return this.#remote;
+  /**
+   * @type {object} Information about the origin (remote side) of the
+   * connection.
+   */
+  get origin() {
+    return this.#origin;
   }
 }
