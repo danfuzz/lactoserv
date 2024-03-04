@@ -84,7 +84,7 @@ export class BaseApplication extends BaseComponent {
 
     const finalResult = await result;
 
-    if ((typeof finalResult === 'boolean') || (finalResult instanceof Response)) {
+    if ((typeof finalResult === 'boolean') || (finalResult === null) || (finalResult instanceof Response)) {
       return finalResult;
     } else if (finalResult === undefined) {
       throw error('async-returned undefined; probably needs an explicit `return`');
