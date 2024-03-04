@@ -16,20 +16,6 @@ export class HttpsWrangler extends TcpWrangler {
   // Note: The default constructor suffices here.
 
   /** @override */
-  async _impl_applicationStart(isReload_unused) {
-    // Nothing to do in this case.
-  }
-
-  /** @override */
-  async _impl_applicationStop(willReload_unused) {
-    this.#protocolServer.close();
-    this.#protocolServer.closeIdleConnections();
-
-    // TODO: Consider tracking connections and forcing things closed after a
-    // timeout, similar to what's done with HTTP2.
-  }
-
-  /** @override */
   async _impl_initialize() {
     if (!this.#protocolServer) {
       const hostOptions = await this._prot_hostManager.getSecureServerOptions();
@@ -40,5 +26,19 @@ export class HttpsWrangler extends TcpWrangler {
   /** @override */
   _impl_server() {
     return this.#protocolServer;
+  }
+
+  /** @override */
+  async _impl_serverStart(isReload_unused) {
+    // Nothing to do in this case.
+  }
+
+  /** @override */
+  async _impl_serverStop(willReload_unused) {
+    this.#protocolServer.close();
+    this.#protocolServer.closeIdleConnections();
+
+    // TODO: Consider tracking connections and forcing things closed after a
+    // timeout, similar to what's done with HTTP2.
   }
 }

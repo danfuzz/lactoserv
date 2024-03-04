@@ -27,10 +27,11 @@ import { WranglerContext } from '#p/WranglerContext';
  * each use a separate instance of this class.
  *
  * Each instance manages a low-level server socket, whose connections ultimately
- * get plumbed to an external (to this class) request handler. This class is
- * responsible for managing the server socket lifetime, plumbing requests
- * through to its client, and providing simple default handling when the client
- * fails to handle requests (or errors out while trying).
+ * get plumbed to an external (to this class) request handler, typically via a
+ * built-in Node `http*` server class. _This_ class is responsible for managing
+ * the server socket lifetime, plumbing requests through to its client, and
+ * providing simple default handling when the client fails to handle requests
+ * (or errors out while trying).
  */
 export class ProtocolWrangler {
   /** @type {?IntfLogger} Logger to use, or `null` to not do any logging. */
@@ -187,31 +188,6 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Performs starting actions specifically in service of the high-level
-   * protocol (e.g. HTTP2), in advance of it being handed connections. This
-   * should only async-return once the stack really is ready.
-   *
-   * @abstract
-   * @param {boolean} isReload Is this action due to an in-process reload?
-   */
-  async _impl_applicationStart(isReload) {
-    Methods.abstract(isReload);
-  }
-
-  /**
-   * Performs stop/shutdown actions specifically in service of the high-level
-   * protocol (e.g. HTTP2), after it is no longer being handed connections. This
-   * should only async-return once the stack really is stopped.
-   *
-   * @abstract
-   * @param {boolean} willReload Is this action due to an in-process reload
-   *   being requested?
-   */
-  async _impl_applicationStop(willReload) {
-    Methods.abstract(willReload);
-  }
-
-  /**
    * Initializes the instance. After this is called and (asynchronously)
    * returns without throwing, {@link #_impl_server} is expected to work without
    * error. This can get called more than once; the second and subsequent times
@@ -245,13 +221,38 @@ export class ProtocolWrangler {
   }
 
   /**
+   * Performs starting actions specifically in service of the high-level
+   * protocol (e.g. HTTP2), in advance of it being handed connections. This
+   * should only async-return once the stack really is ready.
+   *
+   * @abstract
+   * @param {boolean} isReload Is this action due to an in-process reload?
+   */
+  async _impl_serverStart(isReload) {
+    Methods.abstract(isReload);
+  }
+
+  /**
+   * Performs stop/shutdown actions specifically in service of the high-level
+   * protocol (e.g. HTTP2), after it is no longer being handed connections. This
+   * should only async-return once the stack really is stopped.
+   *
+   * @abstract
+   * @param {boolean} willReload Is this action due to an in-process reload
+   *   being requested?
+   */
+  async _impl_serverStop(willReload) {
+    Methods.abstract(willReload);
+  }
+
+  /**
    * Starts the server socket, that is, gets it listening for connections. This
    * should only async-return once the socket is really listening.
    *
    * @abstract
    * @param {boolean} isReload Is this action due to an in-process reload?
    */
-  async _impl_serverSocketStart(isReload) {
+  async _impl_socketStart(isReload) {
     Methods.abstract(isReload);
   }
 
@@ -263,7 +264,7 @@ export class ProtocolWrangler {
    * @param {boolean} willReload Is this action due to an in-process reload
    *   being requested?
    */
-  async _impl_serverSocketStop(willReload) {
+  async _impl_socketStop(willReload) {
     Methods.abstract(willReload);
   }
 
@@ -537,8 +538,8 @@ export class ProtocolWrangler {
     // We do these in parallel, because there can be mutual dependencies, e.g.
     // the application might need to see the server stopping _and_ vice versa.
     await Promise.all([
-      this._impl_serverSocketStop(this.#reloading),
-      this._impl_applicationStop(this.#reloading)
+      this._impl_socketStop(this.#reloading),
+      this._impl_serverStop(this.#reloading)
     ]);
 
     if (this.#logger) {
@@ -555,8 +556,8 @@ export class ProtocolWrangler {
       this.#logger.starting(this._impl_loggableInfo());
     }
 
-    await this._impl_applicationStart(this.#reloading);
-    await this._impl_serverSocketStart(this.#reloading);
+    await this._impl_serverStart(this.#reloading);
+    await this._impl_socketStart(this.#reloading);
 
     if (this.#logger) {
       this.#logger.started(this._impl_loggableInfo());
