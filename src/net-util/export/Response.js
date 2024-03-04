@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import fs from 'node:fs/promises';
-import http from 'node:http';
+import { ServerResponse } from 'node:http';
+import { Http2ServerResponse } from 'node:http2';
 
 import statuses from 'statuses';
 
@@ -535,14 +536,15 @@ export class Response {
 
   /**
    * Sends this instance as a response to the request linked to the given core
-   * {@link http.ServerResponse} object (or similar).
+   * {@link ServerResponse} object (or similar).
    *
    * **Note:** This method takes into account if the given response corresponds
    * to a `HEAD` request, in which case it won't bother trying to send any body
    * data for a successful response (status `2xx` or `3xx`), even if this
    * instance has a body set.
    *
-   * @param {http.ServerResponse} res The response object to invoke.
+   * @param {ServerResponse|Http2ServerResponse} res The response object to
+   *   invoke.
    * @returns {boolean} `true` when the response is completed.
    */
   async writeTo(res) {
@@ -608,7 +610,7 @@ export class Response {
   /**
    * Writes the body from a buffer, and ends the response.
    *
-   * @param {http.ServerResponse} res The response object to use.
+   * @param {ServerResponse|Http2ServerResponse} res The response object to use.
    * @param {boolean} shouldSendBody Should the body actually be sent?
    * @returns {boolean} `true` when closed without error.
    * @throws {Error} Any error reported by `res`.
@@ -634,7 +636,7 @@ export class Response {
   /**
    * Writes the body from a file, and ends the response.
    *
-   * @param {http.ServerResponse} res The response object to use.
+   * @param {ServerResponse|Http2ServerResponse} res The response object to use.
    * @param {boolean} shouldSendBody Should the body actually be sent?
    * @returns {boolean} `true` when closed without error.
    * @throws {Error} Any error reported by `res`.
@@ -698,7 +700,7 @@ export class Response {
   /**
    * Writes the body for a diagnostic message, and ends the response.
    *
-   * @param {http.ServerResponse} res The response object to use.
+   * @param {ServerResponse|Http2ServerResponse} res The response object to use.
    * @param {boolean} shouldSendBody Should the body actually be sent?
    * @returns {boolean} `true` when closed without error.
    * @throws {Error} Any error reported by `res`.
@@ -746,7 +748,7 @@ export class Response {
   /**
    * Ends a response without writing a body.
    *
-   * @param {http.ServerResponse} res The response object to use.
+   * @param {ServerResponse|Http2ServerResponse} res The response object to use.
    * @returns {boolean} `true` when closed without error.
    * @throws {Error} Any error reported by `res`.
    */
@@ -925,7 +927,8 @@ export class Response {
    * all of the response is believed to be sent) or has errored. Returns `true`
    * for a normal close, or throws whatever error the response reports.
    *
-   * @param {http.ServerResponse} res The response object in question.
+   * @param {ServerResponse|Http2ServerResponse} res The response object in
+   *   question.
    * @returns {boolean} `true` when closed without error.
    * @throws {Error} Any error reported by the underlying response object.
    */
