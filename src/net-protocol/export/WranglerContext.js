@@ -35,6 +35,12 @@ export class WranglerContext {
   #sessionLogger = null;
 
   /**
+   * @type {?object} Result of {@link #remoteInfo}, or `null` if not yet
+   * calculated.
+   */
+  #remoteInfo = null;
+
+  /**
    * Constructs an instance.
    *
    * @param {WranglerContext} [source] Source instance to copy from, if any.
@@ -79,6 +85,31 @@ export class WranglerContext {
   /** @returns {?IntfLogger} Most-specific available logger, if any. */
   get logger() {
     return this.#sessionLogger ?? this.#connectionLogger;
+  }
+
+  /**
+   * @returns {object} Object representing the remote address/port of the
+   * {@link #socket}. It is always a frozen object.
+   */
+  get remoteInfo() {
+    if (!this.#remoteInfo) {
+      const socket = this.#socket;
+      if (socket) {
+        this.#remoteInfo = {
+          address: socket.remoteAddress,
+          port:    socket.remotePort
+        };
+      } else {
+        // Shouldn't happen in practice, but doing this is probably better than
+        // throwing an error.
+        this.logger?.unknownRemote(socket);
+        this.#remoteInfo = { address: '<unknown>', port: 0 };
+      }
+
+      Object.freeze(this.#remoteInfo);
+    }
+
+    return this.#remoteInfo;
   }
 
   /** @returns {?string} ID of a session. */
