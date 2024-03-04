@@ -1,10 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Request } from '@this/net-util';
+import { DispatchInfo, Request } from '@this/net-util';
 import { Methods } from '@this/typey';
-
-import { DispatchInfo } from '#x/DispatchInfo';
 
 
 /**
