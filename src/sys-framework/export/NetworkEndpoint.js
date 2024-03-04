@@ -122,8 +122,15 @@ export class NetworkEndpoint extends BaseComponent {
       });
 
       try {
-        if (await application.handleRequest(request, dispatch)) {
-          return true;
+        const result = await application.handleRequest(request, dispatch);
+        if ((result instanceof Response) || (result === true)) {
+          return result;
+        } else if ((result !== null) && (result !== false) && (result !== true)) {
+          // Caught immediately below.
+          const type = ((typeof result === 'object') || (typeof result === 'function'))
+            ? result.constructor.name
+            : typeof result;
+          throw new Error(`Unexpected result type from \`handleRequest\`: ${type}`);
         }
       } catch (e) {
         request.logger?.applicationError(e);

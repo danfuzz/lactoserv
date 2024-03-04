@@ -411,7 +411,9 @@ export class ProtocolWrangler {
     try {
       const result = await this.#requestHandler.handleRequest(request, null);
 
-      if (result) {
+      if (result instanceof Response) {
+        await request.respond(result);
+      } else if (result === true) {
         // Validate that the request was actually handled.
         if (!request.responseCompleted) {
           reqLogger?.responseNotActuallyHandled();
