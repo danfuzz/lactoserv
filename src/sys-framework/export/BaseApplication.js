@@ -72,24 +72,24 @@ export class BaseApplication extends BaseComponent {
       return new Error(`\`${this.name}._impl_handleRequest()\` ${msg}.`);
     };
 
-    if ((typeof result === 'boolean') || (result === null) || (result instanceof Response)) {
+    if ((result === null) || (result instanceof Response)) {
       return result;
     } else if (!(result instanceof Promise)) {
       if (result === undefined) {
         throw error('returned undefined; probably needs an explicit `return`');
       } else {
-        throw error('returned something other than a `Response`, a boolean, or a promise');
+        throw error('returned something other than a `Response`, `null`, or a promise');
       }
     }
 
     const finalResult = await result;
 
-    if ((typeof finalResult === 'boolean') || (finalResult === null) || (finalResult instanceof Response)) {
+    if ((finalResult === null) || (finalResult instanceof Response)) {
       return finalResult;
     } else if (finalResult === undefined) {
       throw error('async-returned undefined; probably needs an explicit `return`');
     } else {
-      throw error('async-returned something other than a `Response` or a boolean');
+      throw error('async-returned something other than a `Response` or `null`');
     }
   }
 

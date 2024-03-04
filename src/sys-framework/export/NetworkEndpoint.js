@@ -123,9 +123,9 @@ export class NetworkEndpoint extends BaseComponent {
 
       try {
         const result = await application.handleRequest(request, dispatch);
-        if ((result instanceof Response) || (result === true)) {
+        if ((result instanceof Response) || (result === null)) {
           return result;
-        } else if ((result !== null) && (result !== false) && (result !== true)) {
+        } else {
           // Caught immediately below.
           const type = ((typeof result === 'object') || (typeof result === 'function'))
             ? result.constructor.name
