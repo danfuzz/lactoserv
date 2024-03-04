@@ -27,10 +27,11 @@ import { WranglerContext } from '#p/WranglerContext';
  * each use a separate instance of this class.
  *
  * Each instance manages a low-level server socket, whose connections ultimately
- * get plumbed to an external (to this class) request handler. This class is
- * responsible for managing the server socket lifetime, plumbing requests
- * through to its client, and providing simple default handling when the client
- * fails to handle requests (or errors out while trying).
+ * get plumbed to an external (to this class) request handler, typically via a
+ * built-in Node `http*` server class. _This_ class is responsible for managing
+ * the server socket lifetime, plumbing requests through to its client, and
+ * providing simple default handling when the client fails to handle requests
+ * (or errors out while trying).
  */
 export class ProtocolWrangler {
   /** @type {?IntfLogger} Logger to use, or `null` to not do any logging. */
@@ -194,7 +195,7 @@ export class ProtocolWrangler {
    * @abstract
    * @param {boolean} isReload Is this action due to an in-process reload?
    */
-  async _impl_applicationStart(isReload) {
+  async _impl_serverStart(isReload) {
     Methods.abstract(isReload);
   }
 
@@ -207,7 +208,7 @@ export class ProtocolWrangler {
    * @param {boolean} willReload Is this action due to an in-process reload
    *   being requested?
    */
-  async _impl_applicationStop(willReload) {
+  async _impl_serverStop(willReload) {
     Methods.abstract(willReload);
   }
 
@@ -538,7 +539,7 @@ export class ProtocolWrangler {
     // the application might need to see the server stopping _and_ vice versa.
     await Promise.all([
       this._impl_socketStop(this.#reloading),
-      this._impl_applicationStop(this.#reloading)
+      this._impl_serverStop(this.#reloading)
     ]);
 
     if (this.#logger) {
@@ -555,7 +556,7 @@ export class ProtocolWrangler {
       this.#logger.starting(this._impl_loggableInfo());
     }
 
-    await this._impl_applicationStart(this.#reloading);
+    await this._impl_serverStart(this.#reloading);
     await this._impl_socketStart(this.#reloading);
 
     if (this.#logger) {
