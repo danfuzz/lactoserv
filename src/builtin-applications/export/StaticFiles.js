@@ -5,8 +5,8 @@ import fs from 'node:fs/promises';
 
 import { Paths, Statter } from '@this/fs-util';
 import { IntfLogger } from '@this/loggy';
-import { DispatchInfo } from '@this/net-protocol';
-import { EtagGenerator, HttpResponse, HttpUtil, MimeTypes } from '@this/net-util';
+import { DispatchInfo, EtagGenerator, Response, HttpUtil, MimeTypes }
+  from '@this/net-util';
 import { ApplicationConfig } from '@this/sys-config';
 import { BaseApplication } from '@this/sys-framework';
 
@@ -37,8 +37,8 @@ export class StaticFiles extends BaseApplication {
   #etagGenerator = null;
 
   /**
-   * @type {?HttpResponse} Not-found response to issue, or `null` if either not
-   * yet calculated or if this instance isn't handling not-found errors.
+   * @type {?Response} Not-found response to issue, or `null` if either not yet
+   * calculated or if this instance isn't handling not-found errors.
    */
   #notFoundResponse = null;
 
@@ -73,7 +73,7 @@ export class StaticFiles extends BaseApplication {
 
     if (resolved.redirect) {
       const redirectTo = resolved.redirect;
-      const response   = HttpResponse.makeRedirect(redirectTo, 308);
+      const response   = Response.makeRedirect(redirectTo, 308);
 
       if (this.#cacheControl) {
         response.cacheControl = this.#cacheControl;
@@ -84,7 +84,7 @@ export class StaticFiles extends BaseApplication {
       const contentType =
         MimeTypes.typeFromPathExtension(resolved.path);
 
-      const rawResponse = new HttpResponse();
+      const rawResponse = new Response();
 
       rawResponse.status = 200;
       rawResponse.headers.set('content-type', contentType);
@@ -125,7 +125,7 @@ export class StaticFiles extends BaseApplication {
         throw new Error(`Not found or not a file: ${notFoundPath}`);
       }
 
-      const response = new HttpResponse();
+      const response = new Response();
 
       response.status       = 404;
       response.cacheControl = this.#cacheControl;

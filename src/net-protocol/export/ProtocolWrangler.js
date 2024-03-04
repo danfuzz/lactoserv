@@ -9,16 +9,15 @@ import * as net from 'node:net';
 import { Threadlet } from '@this/async';
 import { ProductInfo } from '@this/host';
 import { IntfLogger } from '@this/loggy';
-import { HttpResponse } from '@this/net-util';
+import { IntfRequestHandler, RequestContext, Request, Response }
+  from '@this/net-util';
 import { Methods, MustBe } from '@this/typey';
 
 import { IntfHostManager } from '#x/IntfHostManager';
 import { IntfRateLimiter } from '#x/IntfRateLimiter';
-import { IntfRequestHandler } from '#x/IntfRequestHandler';
 import { IntfRequestLogger } from '#x/IntfRequestLogger';
-import { Request } from '#x/Request';
 import { RequestLogHelper } from '#p/RequestLogHelper';
-import { WranglerContext } from '#x/WranglerContext';
+import { WranglerContext } from '#p/WranglerContext';
 
 
 /**
@@ -129,10 +128,16 @@ export class ProtocolWrangler {
     this.#logHelper      = requestLogger ? new RequestLogHelper(requestLogger) : null;
     this.#serverHeader   = ProtocolWrangler.#makeServerHeader();
 
-    this.#interfaceObject = Object.freeze({
-      address: interfaceConfig.address,
-      port:    interfaceConfig.port
-    });
+    const iface = {
+      address: interfaceConfig.address
+    };
+    if (interfaceConfig.fd) {
+      iface.fd = interfaceConfig.fd;
+    }
+    if (interfaceConfig.port) {
+      iface.port = interfaceConfig.port;
+    }
+    this.#interfaceObject = Object.freeze(iface);
 
     // Confusion alert!: This is not the same as the `requestLogger` (a "request
     // logger") per se) passed in as an option. This is the sub-logger of the
@@ -363,10 +368,9 @@ export class ProtocolWrangler {
    * **Note:** There is nothing set up to catch errors thrown by this method.
    *
    * @param {Request} request Request object.
-   * @param {WranglerContext} reqCtx The context directly associated with
-   *   `request`.
+   * @param {WranglerContext} outerContext The outer context of `request`.
    */
-  async #handleRequest(request, reqCtx) {
+  async #handleRequest(request, outerContext) {
     const reqLogger = request.logger;
 
     if (!request.pathnameString) {
@@ -378,18 +382,18 @@ export class ProtocolWrangler {
       // echo $'GET * HTTP/1.1\r\nHost: milk.com\r\n\r' \
       //   | curl telnet://localhost:8080
       // ```
-      await request.respond(HttpResponse.makeMetaResponse(400)); // "Bad Request."
+      await request.respond(Response.makeMetaResponse(400)); // "Bad Request."
       return;
     } else if (this.#rateLimiter) {
       const granted = await this.#rateLimiter.newRequest(reqLogger);
       if (!granted) {
         // Send the error response, and wait for it to be (believed to be) sent.
-        await request.respond(HttpResponse.makeMetaResponse(503)); // "Service Unavailable."
+        await request.respond(Response.makeMetaResponse(503)); // "Service Unavailable."
 
         // ...and then just thwack the underlying socket. The hope is that the
         // waiting above will make it likely that the far side will actually see
         // the 503 response.
-        const csock = reqCtx.socket;
+        const csock = outerContext.socket;
         csock.end();
         csock.once('finish', () => {
           csock.destroy();
@@ -414,12 +418,12 @@ export class ProtocolWrangler {
         // Respond with a vanilla `404` error. (If the client wants something
         // fancier, they can do it themselves.)
         const bodyExtra = request.urlForLogging;
-        await request.respond(HttpResponse.makeNotFound({ bodyExtra }));
+        await request.respond(Response.makeNotFound({ bodyExtra }));
       }
     } catch (e) {
       // `500` == "Internal Server Error."
       const bodyExtra = e.stack ?? e.message ?? '<unknown>';
-      await request.respond(HttpResponse.makeMetaResponse(500, { bodyExtra }));
+      await request.respond(Response.makeMetaResponse(500, { bodyExtra }));
     }
   }
 
@@ -449,17 +453,19 @@ export class ProtocolWrangler {
     }
 
     try {
-      const request = new Request(context, req, res, this.#requestLogger);
-      const reqCtx  = WranglerContext.forRequest(context, request);
+      const requestContext = new RequestContext(this.interface, context.remoteInfo);
+      const request        = new Request(requestContext, req, res, this.#requestLogger);
 
-      WranglerContext.bind(req, reqCtx);
-
-      logger?.incomingRequest({ ...reqCtx.ids, url: request.urlForLogging });
+      logger?.incomingRequest({
+        ...context.ids,
+        requestId: request.id,
+        url:       request.urlForLogging
+      });
 
       res.setHeader('Server', this.#serverHeader);
 
-      this.#logHelper?.logRequest(request);
-      this.#handleRequest(request, reqCtx);
+      this.#logHelper?.logRequest(request, context);
+      this.#handleRequest(request, context);
     } catch (e) {
       // Note: This is theorized to occur in practice when the socket for a
       // request gets closed after the request was received but before it

@@ -1,10 +1,12 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { ErrorUtil } from '@this/data-values';
 import { FormatUtils } from '@this/loggy';
+import { Request } from '@this/net-util';
 
 import { IntfRequestLogger } from '#x/IntfRequestLogger';
-import { Request } from '#x/Request';
+import { WranglerContext } from '#p/WranglerContext';
 
 
 /**
@@ -28,8 +30,9 @@ export class RequestLogHelper {
    * logs various intermediate details to the `Request`'s _system_ logger.
    *
    * @param {Request} request Request object.
+   * @param {WranglerContext} context Outer context around `request`.
    */
-  async logRequest(request) {
+  async logRequest(request, context) {
     const logger    = request.logger;
     const startTime = this.#requestLogger.now();
     const reqInfo   = request.getLoggableRequestInfo();
@@ -43,39 +46,50 @@ export class RequestLogHelper {
     const endTime  = this.#requestLogger.now();
     const duration = endTime.subtract(startTime);
 
-    // Rearrange `info` into preferred loggable form.
+    // Rearrange `info` into preferred loggable form, and augment with
+    // connection error info if appropriate.
 
     const {
       contentLength,
       errors,
-      fullErrors,
-      headers: resHeaders,
+      errorCodes,
+      headers,
       statusCode
     } = info;
 
-    const code = errors ?? 'ok';
+    let { ok } = info;
 
+    const connectionError = context.socket.errored ?? null;
+
+    if (connectionError) {
+      const code = ErrorUtil.extractErrorCode(connectionError);
+
+      errors.connection = connectionError;
+      errorCodes.push(code);
+      ok = false;
+    }
+
+    const codeStr = ok ? 'ok' : errorCodes.join(',');
+
+    // This is to avoid redundancy and to end up with a specific propery order
+    // in `finalInfo` (for human readability).
     delete info.contentLength;
-    delete info.errors;
-    delete info.fullErrors;
+    delete info.errorCodes;
     delete info.headers;
     delete info.ok;
     delete info.statusCode;
 
     const finalInfo = {
-      code,
+      ok,
+      code: codeStr,
       duration,
       status: statusCode,
       contentLength,
-      headers: resHeaders,
+      headers,
       ...info
     };
 
     logger?.response(finalInfo);
-
-    if (fullErrors) {
-      logger?.errors(fullErrors);
-    }
 
     const requestLogLine = [
       endTime.toString({ decimals: 4 }),
@@ -86,7 +100,7 @@ export class RequestLogHelper {
       statusCode,
       FormatUtils.byteCountString(contentLength, { spaces: false }),
       duration.toString({ spaces: false }),
-      code
+      codeStr
     ].join(' ');
 
     logger?.requestLog(requestLogLine);

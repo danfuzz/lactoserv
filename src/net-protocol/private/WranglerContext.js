@@ -7,7 +7,6 @@ import * as stream from 'node:stream';
 import { IntfLogger } from '@this/loggy';
 
 import { ProtocolWrangler } from '#x/ProtocolWrangler';
-import { Request } from '#x/Request';
 
 
 /**
@@ -35,8 +34,11 @@ export class WranglerContext {
   /** @type {?IntfLogger} Logger for a session. */
   #sessionLogger = null;
 
-  /** @type {?Request} Request. */
-  #request = null;
+  /**
+   * @type {?object} Result of {@link #remoteInfo}, or `null` if not yet
+   * calculated.
+   */
+  #remoteInfo = null;
 
   /**
    * Constructs an instance.
@@ -52,7 +54,6 @@ export class WranglerContext {
       this.#connectionLogger = source.#connectionLogger;
       this.#sessionLogger    = source.#sessionLogger;
       this.#sessionId        = source.#sessionId;
-      this.#request          = source.#request;
     }
   }
 
@@ -68,14 +69,13 @@ export class WranglerContext {
 
   /** @returns {?string} Most-specific available id, if any. */
   get id() {
-    return this.requestId ?? this.#sessionId ?? this.#connectionId;
+    return this.#sessionId ?? this.#connectionId;
   }
 
   /** @returns {object} Plain object with all IDs in this context. */
   get ids() {
     const result = {};
 
-    if (this.requestId)     result.requestId    = this.requestId;
     if (this.#sessionId)    result.sessionId    = this.#sessionId;
     if (this.#connectionId) result.connectionId = this.#connectionId;
 
@@ -84,22 +84,32 @@ export class WranglerContext {
 
   /** @returns {?IntfLogger} Most-specific available logger, if any. */
   get logger() {
-    return this.requestLogger ?? this.#sessionLogger ?? this.#connectionLogger;
+    return this.#sessionLogger ?? this.#connectionLogger;
   }
 
-  /** @returns {?Request} Request, if any. */
-  get request() {
-    return this.#request;
-  }
+  /**
+   * @returns {object} Object representing the remote address/port of the
+   * {@link #socket}. It is always a frozen object.
+   */
+  get remoteInfo() {
+    if (!this.#remoteInfo) {
+      const socket = this.#socket;
+      if (socket) {
+        this.#remoteInfo = {
+          address: socket.remoteAddress,
+          port:    socket.remotePort
+        };
+      } else {
+        // Shouldn't happen in practice, but doing this is probably better than
+        // throwing an error.
+        this.logger?.unknownRemote(socket);
+        this.#remoteInfo = { address: '<unknown>', port: 0 };
+      }
 
-  /** @returns {?string} ID of a request, if any. */
-  get requestId() {
-    return this.#request?.id;
-  }
+      Object.freeze(this.#remoteInfo);
+    }
 
-  /** @returns {?IntfLogger} Logger for a request, if any. */
-  get requestLogger() {
-    return this.#request?.logger;
+    return this.#remoteInfo;
   }
 
   /** @returns {?string} ID of a session. */
@@ -169,22 +179,6 @@ export class WranglerContext {
       ctx.#connectionLogger = logger;
       ctx.#connectionId     = logger.$meta.lastContext;
     }
-
-    return ctx;
-  }
-
-  /**
-   * Makes a new instance of this class for a request.
-   *
-   * @param {?WranglerContext} outerContext Instance of this class which has
-   *   outer context (for the connection and/or session), if any.
-   * @param {Request} request The request.
-   * @returns {WranglerContext} An appropriately-constructed instance.
-   */
-  static forRequest(outerContext, request) {
-    const ctx = new WranglerContext(outerContext);
-
-    ctx.#request = request;
 
     return ctx;
   }

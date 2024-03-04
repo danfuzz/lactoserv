@@ -33,7 +33,7 @@ import { MimeTypes } from '#x/MimeTypes';
  * up a response body that won't get sent, and (c) _not_ actually sending a
  * response body.
  */
-export class HttpResponse {
+export class Response {
   /** @type {?number} The response status code, or `null` if not yet set. */
   #status = null;
 
@@ -52,12 +52,12 @@ export class HttpResponse {
   /**
    * Constructs an instance.
    *
-   * @param {HttpResponse} [orig] Original instance to copy, or `null` to start
-   *   the instance out with nothing set.
+   * @param {Response} [orig] Original instance to copy, or `null` to start the
+   *   instance out with nothing set.
    */
   constructor(orig = null) {
     if (orig) {
-      MustBe.instanceOf(orig, HttpResponse);
+      MustBe.instanceOf(orig, Response);
       this.#status       = orig.#status;
       this.#headers      = orig.#headers ? new HttpHeaders(orig.headers) : null;
       this.#body         = orig.#body;
@@ -89,8 +89,8 @@ export class HttpResponse {
   }
 
   /**
-   * @type {?string} A `cache-control` header to include in any response
-   * whose status code indicates that a response is possibly cacheable, using a
+   * @type {?string} A `cache-control` header to include in any response whose
+   * status code indicates that a response is possibly cacheable, using a
    * request method that also allows for caching, or `null` not to do automatic
    * `cache-control` header insertion. (See {@link
    * HttpUtil#responseIsCacheableFor}.) If this is non-`null`, then it is an
@@ -155,8 +155,8 @@ export class HttpResponse {
    * @param {string} requestMethod The original request method.
    * @param {HttpHeaders|object} requestHeaders The request headers.
    * @param {object} options Options indicating which adjustments to make.
-   * @returns {HttpResponse} New response instance containing adjustments, or
-   *   `this` if no adjustments were required.
+   * @returns {Response} New response instance containing adjustments, or `this`
+   *   if no adjustments were required.
    */
   adjustFor(requestMethod, requestHeaders, options) {
     const { headers, status } = this;
@@ -186,7 +186,7 @@ export class HttpResponse {
       }
 
       if (isFresh) {
-        const result = new HttpResponse(this);
+        const result = new Response(this);
         if (range) {
           HttpRange.setBasicResponseHeaders(result.headers);
         }
@@ -211,18 +211,18 @@ export class HttpResponse {
       }
 
       if (!rangeInfo) {
-        const result = new HttpResponse(this);
+        const result = new Response(this);
         HttpRange.setBasicResponseHeaders(result.headers);
         return result;
       } else if (rangeInfo.error) {
         // Note: We _don't_ use the for-success `headers` here.
-        const result = new HttpResponse();
+        const result = new Response();
         result.headers = new HttpHeaders(rangeInfo.headers); // TODO: Fix this when `rangeInfo` changes.
         result.status  = rangeInfo.status;
         result.setBodyMessage();
         return result;
       } else {
-        const result = new HttpResponse(this);
+        const result = new Response(this);
         result.headers.setAll(rangeInfo.headers);
         result.status = rangeInfo.status;
         result.sliceBody(rangeInfo.start, rangeInfo.end);
@@ -247,8 +247,8 @@ export class HttpResponse {
     MustBe.instanceOf(body, Buffer);
     const { offset = null, length = null } = options ?? {};
 
-    const finalOffset = HttpResponse.#adjustByteIndex(offset ?? 0, body.length);
-    const finalLength = HttpResponse.#adjustByteIndex(length, body.length - finalOffset);
+    const finalOffset = Response.#adjustByteIndex(offset ?? 0, body.length);
+    const finalLength = Response.#adjustByteIndex(length, body.length - finalOffset);
     const buffer = (finalLength === body.length)
       ? body
       : body.subarray(finalOffset, finalOffset + finalLength);
@@ -283,14 +283,14 @@ export class HttpResponse {
       stats: maybeStats = null
     } = options ?? {};
 
-    const stats = await HttpResponse.#adjustStats(maybeStats, absolutePath);
+    const stats = await Response.#adjustStats(maybeStats, absolutePath);
     const lmMoment = lastModified
       ? { lastModified: Moment.fromMsec(Number(stats.mtimeMs)) }
       : null;
 
     const fileLength  = stats.size;
-    const finalOffset = HttpResponse.#adjustByteIndex(offset ?? 0, fileLength);
-    const finalLength = HttpResponse.#adjustByteIndex(length, fileLength - finalOffset);
+    const finalOffset = Response.#adjustByteIndex(offset ?? 0, fileLength);
+    const finalLength = Response.#adjustByteIndex(length, fileLength - finalOffset);
 
     this.#body = Object.freeze({
       type:   'file',
@@ -470,9 +470,9 @@ export class HttpResponse {
           throw new Error(`Non-body response is incompatible with status ${status}.`);
         }
 
-        const headerExceptions = HttpResponse.#CONTENT_HEADER_EXCEPTIONS[status];
+        const headerExceptions = Response.#CONTENT_HEADER_EXCEPTIONS[status];
 
-        for (const h of HttpResponse.#CONTENT_HEADERS) {
+        for (const h of Response.#CONTENT_HEADERS) {
           if (!headerExceptions?.has(h) && headers.get(h)) {
             throw new Error(`Non-body response cannot use header \`${h}\`.`);
           }
@@ -515,9 +515,9 @@ export class HttpResponse {
           throw new Error(`Message response is incompatible with status ${status}.`);
         }
 
-        const headerExceptions = HttpResponse.#CONTENT_HEADER_EXCEPTIONS[status];
+        const headerExceptions = Response.#CONTENT_HEADER_EXCEPTIONS[status];
 
-        for (const h of HttpResponse.#CONTENT_HEADERS) {
+        for (const h of Response.#CONTENT_HEADERS) {
           if (!headerExceptions?.has(h) && headers.get(h)) {
             throw new Error(`Message response cannot use header \`${h}\`.`);
           }
@@ -535,14 +535,14 @@ export class HttpResponse {
 
   /**
    * Sends this instance as a response to the request linked to the given core
-   * {@link http.HttpResponse} object (or similar).
+   * {@link http.ServerResponse} object (or similar).
    *
    * **Note:** This method takes into account if the given response corresponds
    * to a `HEAD` request, in which case it won't bother trying to send any body
    * data for a successful response (status `2xx` or `3xx`), even if this
    * instance has a body set.
    *
-   * @param {http.HttpResponse} res The response object to invoke.
+   * @param {http.ServerResponse} res The response object to invoke.
    * @returns {boolean} `true` when the response is completed.
    */
   async writeTo(res) {
@@ -608,7 +608,7 @@ export class HttpResponse {
   /**
    * Writes the body from a buffer, and ends the response.
    *
-   * @param {http.HttpResponse} res The response object to use.
+   * @param {http.ServerResponse} res The response object to use.
    * @param {boolean} shouldSendBody Should the body actually be sent?
    * @returns {boolean} `true` when closed without error.
    * @throws {Error} Any error reported by `res`.
@@ -628,19 +628,19 @@ export class HttpResponse {
       res.end();
     }
 
-    return HttpResponse.#whenResponseDone(res);
+    return Response.#whenResponseDone(res);
   }
 
   /**
    * Writes the body from a file, and ends the response.
    *
-   * @param {http.HttpResponse} res The response object to use.
+   * @param {http.ServerResponse} res The response object to use.
    * @param {boolean} shouldSendBody Should the body actually be sent?
    * @returns {boolean} `true` when closed without error.
    * @throws {Error} Any error reported by `res`.
    */
   async #writeBodyFile(res, shouldSendBody) {
-    const CHUNK_SIZE = HttpResponse.#READ_CHUNK_SIZE;
+    const CHUNK_SIZE = Response.#READ_CHUNK_SIZE;
     const { path, offset, length, lastModified } = this.#body;
 
     res.setHeader('Content-Length', length);
@@ -651,16 +651,16 @@ export class HttpResponse {
 
     if (!shouldSendBody) {
       res.end();
-      return HttpResponse.#whenResponseDone(res);
+      return Response.#whenResponseDone(res);
     }
 
     if (length <= CHUNK_SIZE) {
       // It's a small enough length that we just send the response with a single
       // `write()`.
       const buffer =
-        await HttpResponse.#readFilePortion(path, offset, length);
+        await Response.#readFilePortion(path, offset, length);
       res.end(buffer);
-      return HttpResponse.#whenResponseDone(res);
+      return Response.#whenResponseDone(res);
     }
 
     let handle = null;
@@ -692,13 +692,13 @@ export class HttpResponse {
     }
 
     res.end();
-    return HttpResponse.#whenResponseDone(res);
+    return Response.#whenResponseDone(res);
   }
 
   /**
    * Writes the body for a diagnostic message, and ends the response.
    *
-   * @param {http.HttpResponse} res The response object to use.
+   * @param {http.ServerResponse} res The response object to use.
    * @param {boolean} shouldSendBody Should the body actually be sent?
    * @returns {boolean} `true` when closed without error.
    * @throws {Error} Any error reported by `res`.
@@ -712,7 +712,7 @@ export class HttpResponse {
       // `content-length` header value (and then not send the body). So we don't
       // do that here.
       res.end();
-      return HttpResponse.#whenResponseDone(res);
+      return Response.#whenResponseDone(res);
     }
 
     let body;
@@ -740,19 +740,19 @@ export class HttpResponse {
     res.setHeader('Content-Length', bodyBuffer.length);
     res.end(bodyBuffer);
 
-    return HttpResponse.#whenResponseDone(res);
+    return Response.#whenResponseDone(res);
   }
 
   /**
    * Ends a response without writing a body.
    *
-   * @param {http.HttpResponse} res The response object to use.
+   * @param {http.ServerResponse} res The response object to use.
    * @returns {boolean} `true` when closed without error.
    * @throws {Error} Any error reported by `res`.
    */
   async #writeNoBody(res) {
     res.end();
-    return HttpResponse.#whenResponseDone(res);
+    return Response.#whenResponseDone(res);
   }
 
 
@@ -805,10 +805,10 @@ export class HttpResponse {
    * @param {number} status The status code to report.
    * @param {?object} [messageOptions] Options to pass to {@link
    *   #setBodyMessage}.
-   * @returns {HttpResponse} Constructed instance.
+   * @returns {Response} Constructed instance.
    */
   static makeMetaResponse(status, messageOptions = null) {
-    const result = new HttpResponse();
+    const result = new Response();
 
     result.status = status;
 
@@ -832,7 +832,7 @@ export class HttpResponse {
    *
    * @param {?object} [messageOptions] Options to pass to {@link
    *   #setBodyMessage}.
-   * @returns {HttpResponse} Constructed instance.
+   * @returns {Response} Constructed instance.
    */
   static makeNotFound(messageOptions = null) {
     return this.makeMetaResponse(404, messageOptions);
@@ -847,7 +847,7 @@ export class HttpResponse {
    * @param {string} target Possibly-relative target URL.
    * @param {?number} [status] The status code to report. Defaults to `302`
    *   ("Found").
-   * @returns {HttpResponse} Constructed instance.
+   * @returns {Response} Constructed instance.
    */
   static makeRedirect(target, status = 302) {
     const result = this.makeMetaResponse(status, { bodyExtra: target });
@@ -925,7 +925,7 @@ export class HttpResponse {
    * all of the response is believed to be sent) or has errored. Returns `true`
    * for a normal close, or throws whatever error the response reports.
    *
-   * @param {http.HttpResponse} res The response object in question.
+   * @param {http.ServerResponse} res The response object in question.
    * @returns {boolean} `true` when closed without error.
    * @throws {Error} Any error reported by the underlying response object.
    */

@@ -3,9 +3,10 @@
 
 import { TreePathKey, TreePathMap } from '@this/collections';
 import { IntfLogger } from '@this/loggy';
-import { DispatchInfo, IntfRateLimiter, IntfRequestHandler, IntfRequestLogger,
-  ProtocolWrangler, ProtocolWranglers }
+import { IntfRateLimiter, IntfRequestLogger, ProtocolWrangler,
+  ProtocolWranglers }
   from '@this/net-protocol';
+import { DispatchInfo, IntfRequestHandler } from '@this/net-util';
 import { EndpointConfig, MountConfig } from '@this/sys-config';
 
 import { BaseApplication } from '#x/BaseApplication';
