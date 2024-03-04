@@ -16,6 +16,18 @@ export class HttpWrangler extends TcpWrangler {
   // Note: The default constructor suffices here.
 
   /** @override */
+  async _impl_initialize() {
+    if (!this.#protocolServer) {
+      this.#protocolServer = http.createServer();
+    }
+  }
+
+  /** @override */
+  _impl_server() {
+    return this.#protocolServer;
+  }
+
+  /** @override */
   async _impl_serverStart(isReload_unused) {
     // Nothing to do in this case.
   }
@@ -27,17 +39,5 @@ export class HttpWrangler extends TcpWrangler {
 
     // TODO: Consider tracking connections and forcing things closed after a
     // timeout, similar to what's done with HTTP2.
-  }
-
-  /** @override */
-  async _impl_initialize() {
-    if (!this.#protocolServer) {
-      this.#protocolServer = http.createServer();
-    }
-  }
-
-  /** @override */
-  _impl_server() {
-    return this.#protocolServer;
   }
 }

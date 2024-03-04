@@ -42,16 +42,6 @@ export class Http2Wrangler extends TcpWrangler {
   }
 
   /** @override */
-  async _impl_serverStart(isReload_unused) {
-    this.#runner.run();
-  }
-
-  /** @override */
-  async _impl_serverStop(willReload_unused) {
-    return this.#runner.stop();
-  }
-
-  /** @override */
   async _impl_initialize() {
     if (!this.#protocolServer) {
       const hostOptions = await this._prot_hostManager.getSecureServerOptions();
@@ -68,6 +58,16 @@ export class Http2Wrangler extends TcpWrangler {
   /** @override */
   _impl_server() {
     return this.#protocolServer;
+  }
+
+  /** @override */
+  async _impl_serverStart(isReload_unused) {
+    this.#runner.run();
+  }
+
+  /** @override */
+  async _impl_serverStop(willReload_unused) {
+    return this.#runner.stop();
   }
 
   /**

@@ -188,31 +188,6 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Performs starting actions specifically in service of the high-level
-   * protocol (e.g. HTTP2), in advance of it being handed connections. This
-   * should only async-return once the stack really is ready.
-   *
-   * @abstract
-   * @param {boolean} isReload Is this action due to an in-process reload?
-   */
-  async _impl_serverStart(isReload) {
-    Methods.abstract(isReload);
-  }
-
-  /**
-   * Performs stop/shutdown actions specifically in service of the high-level
-   * protocol (e.g. HTTP2), after it is no longer being handed connections. This
-   * should only async-return once the stack really is stopped.
-   *
-   * @abstract
-   * @param {boolean} willReload Is this action due to an in-process reload
-   *   being requested?
-   */
-  async _impl_serverStop(willReload) {
-    Methods.abstract(willReload);
-  }
-
-  /**
    * Initializes the instance. After this is called and (asynchronously)
    * returns without throwing, {@link #_impl_server} is expected to work without
    * error. This can get called more than once; the second and subsequent times
@@ -243,6 +218,31 @@ export class ProtocolWrangler {
    */
   _impl_server() {
     Methods.abstract();
+  }
+
+  /**
+   * Performs starting actions specifically in service of the high-level
+   * protocol (e.g. HTTP2), in advance of it being handed connections. This
+   * should only async-return once the stack really is ready.
+   *
+   * @abstract
+   * @param {boolean} isReload Is this action due to an in-process reload?
+   */
+  async _impl_serverStart(isReload) {
+    Methods.abstract(isReload);
+  }
+
+  /**
+   * Performs stop/shutdown actions specifically in service of the high-level
+   * protocol (e.g. HTTP2), after it is no longer being handed connections. This
+   * should only async-return once the stack really is stopped.
+   *
+   * @abstract
+   * @param {boolean} willReload Is this action due to an in-process reload
+   *   being requested?
+   */
+  async _impl_serverStop(willReload) {
+    Methods.abstract(willReload);
   }
 
   /**
