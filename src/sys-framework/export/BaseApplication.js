@@ -51,7 +51,7 @@ export class BaseApplication extends BaseComponent {
    * @abstract
    * @param {Request} request Request object.
    * @param {DispatchInfo} dispatch Dispatch information.
-   * @returns {?Response|boolean} Response to the request, as defined by
+   * @returns {?Response} Response to the request, if any, as defined by
    *   {@link IntfRequestHandler#handleRequest}.
    */
   async _impl_handleRequest(request, dispatch) {
@@ -63,7 +63,7 @@ export class BaseApplication extends BaseComponent {
    *
    * @param {Request} request Request object.
    * @param {DispatchInfo} dispatch Dispatch information.
-   * @returns {?Response|boolean} Result of handling the request, if any.
+   * @returns {?Response} Response to the request, if any.
    */
   async #callHandler(request, dispatch) {
     const result = this._impl_handleRequest(request, dispatch);
@@ -99,8 +99,8 @@ export class BaseApplication extends BaseComponent {
    *
    * @param {Request} request Request object.
    * @param {DispatchInfo} dispatch Dispatch information.
-   * @param {Promise<?Response|boolean>} result Promise for the handler result.
-   * @returns {?Response|boolean} Response to send, if any.
+   * @param {Promise<?Response>} result Promise for the handler response.
+   * @returns {?Response} Response to the request, if any.
    */
   async #logHandlerCall(request, dispatch, result) {
     const startTime = this.#loggingEnv.now();

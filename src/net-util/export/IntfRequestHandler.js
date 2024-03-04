@@ -16,14 +16,9 @@ import { Response } from '#x/Response';
 export class IntfRequestHandler {
   /**
    * Asks this instance to handle the given request; that is, parse it, act on
-   * it, and provide a response. Returning / throwing from this method has the
-   * following meaning:
-   *
-   * * Returning `true` means that the request was fully handled.
-   * * Returning `null` or `false` means that the request was not handled.
-   * * Throwing an error means that the request failed fatally.
-   * * Returning an instance of {@link Response} indicates the response to
-   *   ultimately send.
+   * it, and either provide a response to send (or which could possibly be
+   * modified by an intermediary) or return `null` to indicate that the request
+   * was not handled.
    *
    * @abstract
    * @param {Request} request Request object.
@@ -31,8 +26,8 @@ export class IntfRequestHandler {
    *   dispatch determination was made before calling this instance. (On any
    *   given instance -- depending on context -- it should be the case that it
    *   either _always_ or _never_ gets passed `null` for this parameter.)
-   * @returns {?Response|boolean} Result of handling the request, or `null` if
-   *   not handled by this instance.
+   * @returns {?Response} Response to send, or `null` if the request was not in
+   *   fact handled by this instance.
    * @throws {Error} Thrown in case of fatal error.
    */
   async handleRequest(request, dispatch) {
