@@ -12,6 +12,7 @@ Breaking changes:
     the latter.
   * Changed the constructor of `Request` to take a `RequestContext` instead of a
     `WranglerContext` (the latter which is a private class in `net-protocol`).
+  * Renamed `HttpResponse` to just `Response`.
 
 Other notable changes:
 * `net-protocol`: Stopped using Express as a layer between the Node `http*`
