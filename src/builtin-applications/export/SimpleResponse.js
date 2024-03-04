@@ -4,7 +4,7 @@
 import fs from 'node:fs/promises';
 
 import { Paths, Statter } from '@this/fs-util';
-import { EtagGenerator, HttpResponse, HttpUtil, MimeTypes } from '@this/net-util';
+import { EtagGenerator, Response, HttpUtil, MimeTypes } from '@this/net-util';
 import { ApplicationConfig } from '@this/sys-config';
 import { BaseApplication } from '@this/sys-framework';
 import { MustBe } from '@this/typey';
@@ -14,9 +14,7 @@ import { MustBe } from '@this/typey';
  * Simple response server. See docs for configuration object details.
  */
 export class SimpleResponse extends BaseApplication {
-  /**
-   * @type {HttpResponse} Response template to clone for all actual responses.
-   */
+  /** @type {Response} Response template to clone for all actual responses. */
   #response = null;
 
   // Note: The default contructor is fine for this class.
@@ -38,7 +36,7 @@ export class SimpleResponse extends BaseApplication {
 
     const { body, contentType, cacheControl, etagOptions, filePath } = this.config;
 
-    const response  = new HttpResponse();
+    const response  = new Response();
     const headers   = response.headers;
 
     if (filePath) {

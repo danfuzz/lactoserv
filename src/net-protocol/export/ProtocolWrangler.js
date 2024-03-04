@@ -9,7 +9,7 @@ import * as net from 'node:net';
 import { Threadlet } from '@this/async';
 import { ProductInfo } from '@this/host';
 import { IntfLogger } from '@this/loggy';
-import { HttpResponse, IntfRequestHandler, RequestContext, Request }
+import { IntfRequestHandler, RequestContext, Request, Response }
   from '@this/net-util';
 import { Methods, MustBe } from '@this/typey';
 
@@ -382,13 +382,13 @@ export class ProtocolWrangler {
       // echo $'GET * HTTP/1.1\r\nHost: milk.com\r\n\r' \
       //   | curl telnet://localhost:8080
       // ```
-      await request.respond(HttpResponse.makeMetaResponse(400)); // "Bad Request."
+      await request.respond(Response.makeMetaResponse(400)); // "Bad Request."
       return;
     } else if (this.#rateLimiter) {
       const granted = await this.#rateLimiter.newRequest(reqLogger);
       if (!granted) {
         // Send the error response, and wait for it to be (believed to be) sent.
-        await request.respond(HttpResponse.makeMetaResponse(503)); // "Service Unavailable."
+        await request.respond(Response.makeMetaResponse(503)); // "Service Unavailable."
 
         // ...and then just thwack the underlying socket. The hope is that the
         // waiting above will make it likely that the far side will actually see
@@ -418,12 +418,12 @@ export class ProtocolWrangler {
         // Respond with a vanilla `404` error. (If the client wants something
         // fancier, they can do it themselves.)
         const bodyExtra = request.urlForLogging;
-        await request.respond(HttpResponse.makeNotFound({ bodyExtra }));
+        await request.respond(Response.makeNotFound({ bodyExtra }));
       }
     } catch (e) {
       // `500` == "Internal Server Error."
       const bodyExtra = e.stack ?? e.message ?? '<unknown>';
-      await request.respond(HttpResponse.makeMetaResponse(500, { bodyExtra }));
+      await request.respond(Response.makeMetaResponse(500, { bodyExtra }));
     }
   }
 

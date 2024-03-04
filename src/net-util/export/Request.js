@@ -8,7 +8,7 @@ import { ManualPromise } from '@this/async';
 import { TreePathKey } from '@this/collections';
 import { ErrorUtil } from '@this/data-values';
 import { FormatUtils, IntfLogger } from '@this/loggy';
-import { Cookies, HostInfo, HttpResponse, RequestContext }
+import { Cookies, HostInfo, RequestContext, Response }
   from '@this/net-util';
 import { MustBe } from '@this/typey';
 
@@ -408,7 +408,7 @@ export class Request {
    * write itself to this isntance's underlying `http.ServerResponse` object (or
    * similar).
    *
-   * @param {HttpResponse} response The response to send.
+   * @param {Response} response The response to send.
    * @returns {boolean} `true` when the response is completed.
    * @throws {Error} Thrown if there is any trouble sending the response.
    */

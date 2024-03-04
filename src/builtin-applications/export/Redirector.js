@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { IntfLogger } from '@this/loggy';
-import { HttpResponse, HttpUtil, Uris } from '@this/net-util';
+import { HttpUtil, Response, Uris } from '@this/net-util';
 import { ApplicationConfig } from '@this/sys-config';
 import { BaseApplication } from '@this/sys-framework';
 import { MustBe } from '@this/typey';
@@ -44,7 +44,7 @@ export class Redirector extends BaseApplication {
 
   /** @override */
   async _impl_handleRequest(request, dispatch) {
-    const response = HttpResponse.makeRedirect(
+    const response = Response.makeRedirect(
       `${this.#target}${dispatch.extraString}`,
       this.#statusCode);
 
