@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { BaseLoggingEnvironment, IntfLogger } from '@this/loggy';
-import { DispatchInfo, IntfRequestHandler, Request } from '@this/net-protocol';
+import { DispatchInfo, IntfRequestHandler } from '@this/net-protocol';
+import { Request } from '@this/net-util';
 import { ApplicationConfig } from '@this/sys-config';
 import { Methods } from '@this/typey';
 

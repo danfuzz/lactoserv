@@ -3,9 +3,9 @@
 
 import { ErrorUtil } from '@this/data-values';
 import { FormatUtils } from '@this/loggy';
+import { Request } from '@this/net-util';
 
 import { IntfRequestLogger } from '#x/IntfRequestLogger';
-import { Request } from '#x/Request';
 import { WranglerContext } from '#x/WranglerContext';
 
 

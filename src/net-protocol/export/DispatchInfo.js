@@ -3,9 +3,8 @@
 
 import { TreePathKey } from '@this/collections';
 import { BaseConverter, Struct } from '@this/data-values';
+import { Request } from '@this/net-util';
 import { MustBe } from '@this/typey';
-
-import { Request } from '#x/Request';
 
 
 /**
