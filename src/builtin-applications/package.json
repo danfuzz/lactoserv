@@ -14,7 +14,6 @@
   "dependencies": {
     "@this/fs-util": "*",
     "@this/loggy": "*",
-    "@this/net-protocol": "*",
     "@this/net-util": "*",
     "@this/sys-config": "*",
     "@this/sys-framework": "*",
