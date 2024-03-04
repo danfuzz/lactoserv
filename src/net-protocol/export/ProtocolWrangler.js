@@ -516,7 +516,7 @@ export class ProtocolWrangler {
   async #respondToRequest(request, outerContext, res) {
     const reqLogger = request.logger;
 
-    let result;
+    let result      = null;
     let closeSocket = false;
 
     try {
@@ -532,7 +532,7 @@ export class ProtocolWrangler {
         }
       }
 
-      result = await this.#handleRequest(request, outerContext);
+      result ??= await this.#handleRequest(request, outerContext);
     } catch (e) {
       // `500` == "Internal Server Error."
       const bodyExtra = e.stack ?? e.message ?? '<unknown error>';
