@@ -8,10 +8,12 @@ import { ManualPromise } from '@this/async';
 import { TreePathKey } from '@this/collections';
 import { ErrorUtil } from '@this/data-values';
 import { FormatUtils, IntfLogger } from '@this/loggy';
-import { Cookies, HostInfo, RequestContext, Response }
-  from '@this/net-util';
 import { MustBe } from '@this/typey';
 
+import { Cookies } from '#x/Cookies';
+import { HostInfo } from '#x/HostInfo';
+import { RequestContext } from '#x/RequestContext';
+import { Response } from '#x/Response';
 
 /**
  * Representation of an in-progress HTTP(ish) request, including both request
