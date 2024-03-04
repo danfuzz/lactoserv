@@ -1,6 +1,9 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { ServerResponse } from 'node:http';
+import { Http2ServerResponse } from 'node:http2';
+
 import { FormatUtils } from '@this/loggy';
 import { Request, Response } from '@this/net-util';
 
@@ -30,6 +33,9 @@ export class RequestLogHelper {
    *
    * @param {Request} request Request object.
    * @param {WranglerContext} context Outer context around `request`.
+   * @param {ServerResponse|Http2ServerResponse} res Low-level response object.
+   * @param {Promise<boolean>} resSent Promise which resolves to `true` once the
+   *   response is considered complete.
    */
   async logRequest(request, context, res, resSent) {
     const startTime = this.#requestLogger.now();
@@ -39,7 +45,12 @@ export class RequestLogHelper {
 
     logger?.request(reqInfo);
 
-    await resSent;
+    try {
+      await resSent;
+    } catch {
+      // Ignore the error. `getLoggableResponseInfo()` should end up including
+      // it in its list of errors.
+    }
 
     const endTime   = this.#requestLogger.now();
     const duration  = endTime.subtract(startTime);
