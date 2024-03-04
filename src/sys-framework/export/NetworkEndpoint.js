@@ -104,7 +104,7 @@ export class NetworkEndpoint extends BaseComponent {
     if (!hostMatch) {
       // No matching host.
       request.logger?.hostNotFound(request.host.nameString);
-      return false;
+      return null;
     }
 
     // Iterate from most- to least-specific mounted path.
@@ -139,7 +139,7 @@ export class NetworkEndpoint extends BaseComponent {
 
     // No mounted path actually handled the request.
     request.logger?.pathNotFound(request.pathname);
-    return false;
+    return null;
   }
 
   /** @override */
