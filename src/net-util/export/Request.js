@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { IncomingMessage, ServerResponse } from 'node:http';
-import { sensitiveHeaders as Http2SensitiveHeaders } from 'node:http2';
+import { Http2ServerResponse, sensitiveHeaders as Http2SensitiveHeaders }
+  from 'node:http2';
 
 import { ManualPromise } from '@this/async';
 import { TreePathKey } from '@this/collections';
@@ -52,7 +53,10 @@ export class Request {
   /** @type {IncomingMessage} Underlying HTTP(ish) request object. */
   #coreRequest;
 
-  /** @type {ServerResponse} Underlying HTTP(ish) response object. */
+  /**
+   * @type {ServerResponse|Http2ServerResponse} Underlying HTTP(ish) response
+   * object.
+   */
   #coreResponse;
 
   /** @type {string} The protocol name. */
@@ -97,7 +101,7 @@ export class Request {
    * @param {RequestContext} context Information about the request not
    *   represented in `request`.
    * @param {IncomingMessage} request Request object.
-   * @param {ServerResponse} response Response object.
+   * @param {ServerResponse|Http2ServerResponse} response Response object.
    * @param {?IntfLogger} logger Logger to use as a base, or `null` to not do
    *   any logging. If passed as non-`null`, the actual logger instance will be
    *   one that includes an additional subtag representing a new unique(ish) ID
@@ -408,8 +412,8 @@ export class Request {
 
   /**
    * Sends a response to this request, by asking the given response object to
-   * write itself to this isntance's underlying `http.ServerResponse` object (or
-   * similar).
+   * write itself to this instance's underlying {@link ServerResponse} object
+   * (or similar).
    *
    * @param {Response} response The response to send.
    * @returns {boolean} `true` when the response is completed.
