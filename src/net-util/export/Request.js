@@ -260,15 +260,6 @@ export class Request {
   }
 
   /**
-   * @returns {boolean} An indication of whether this instance believes the
-   * underlying response to have been completed (either successfully or not).
-   */
-  get responseCompleted() {
-    return this.#responsePromise.isSettled
-      && this.#coreResponse.writableEnded;
-  }
-
-  /**
    * @returns {string} The search a/k/a query portion of {@link #targetString},
    * as an unparsed string, or `''` (the empty string) if there is no search
    * string. The result includes anything at or after the first question mark
