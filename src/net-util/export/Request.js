@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { IncomingMessage, ServerResponse } from 'node:http';
-import * as http2 from 'node:http2';
+import { sensitiveHeaders as Http2SensitiveHeaders } from 'node:http2';
 
 import { ManualPromise } from '@this/async';
 import { TreePathKey } from '@this/collections';
@@ -532,12 +532,12 @@ export class Request {
     delete result[':scheme'];
     delete result.host;
 
-    // Non-obvious: This deletes the symbol property `http2.sensitiveHeaders`
-    // from the result (whose array is a value of header names that, per Node
-    // docs, aren't supposed to be compressed due to poor interaction with
-    // desirable cryptography properties). This _isn't_ supposed to actually
-    // delete the headers _named_ by this value.
-    delete result[http2.sensitiveHeaders];
+    // Non-obvious: This deletes the symbol property `sensitiveHeaders` from the
+    // result (whose array is a value of header names that, per Node docs,
+    // aren't supposed to be compressed due to poor interaction with desirable
+    // cryptography properties). This _isn't_ supposed to actually delete th
+    // headers _named_ by this value.
+    delete result[Http2SensitiveHeaders];
 
     return result;
   }
