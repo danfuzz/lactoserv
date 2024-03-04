@@ -6,7 +6,7 @@ import { IntfLogger } from '@this/loggy';
 import { IntfRateLimiter, IntfRequestLogger, ProtocolWrangler,
   ProtocolWranglers }
   from '@this/net-protocol';
-import { DispatchInfo, IntfRequestHandler } from '@this/net-util';
+import { DispatchInfo, IntfRequestHandler, Response } from '@this/net-util';
 import { EndpointConfig, MountConfig } from '@this/sys-config';
 
 import { BaseApplication } from '#x/BaseApplication';
