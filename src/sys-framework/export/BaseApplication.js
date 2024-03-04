@@ -99,8 +99,8 @@ export class BaseApplication extends BaseComponent {
    *
    * @param {Request} request Request object.
    * @param {DispatchInfo} dispatch Dispatch information.
-   * @param {Promise<boolean>} result Promise for the handler result.
-   * @returns {boolean} Was the request handled?
+   * @param {Promise<?Response|boolean>} result Promise for the handler result.
+   * @returns {?Response|boolean} Response to send, if any.
    */
   async #logHandlerCall(request, dispatch, result) {
     const startTime = this.#loggingEnv.now();
