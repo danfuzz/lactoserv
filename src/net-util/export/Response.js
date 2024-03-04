@@ -4,11 +4,12 @@
 import fs from 'node:fs/promises';
 import { ServerResponse } from 'node:http';
 import { Http2ServerResponse } from 'node:http2';
+import { Duplex } from 'node:stream';
 
 import statuses from 'statuses';
 
 import { ManualPromise } from '@this/async';
-import { Moment } from '@this/data-values';
+import { ErrorUtil, Moment } from '@this/data-values';
 import { Paths, StatsBase } from '@this/fs-util';
 import { MustBe } from '@this/typey';
 
@@ -797,6 +798,56 @@ export class Response {
   static #RESPONSE_DONE_SYMBOL = Symbol('HttpResponseDone');
 
   /**
+   * Gets all reasonably-logged info about a lower-level response object that is
+   * (presumed to be) completed (written, sent, and ended). In case of an error
+   * in the response, this method aims to report the error-ish info via a normal
+   * return (not by `throw`ing).
+   *
+   * **Note:** The `headers` in the result omits anything that is redundant
+   * with respect to other parts of the return value. (E.g., the
+   * `content-length` header is always omitted, and the `:status` pseudo-header
+   * is omitted from HTTP2 response headers.)
+   *
+   * @param {ServerResponse|Http2ServerResponse} res The response object.
+   * @param {Duplex} connectionSocket The underlying socket for the connection.
+   * @returns {object} Loggable information about the response.
+   */
+  static getLoggableResponseInfo(res, connectionSocket) {
+    const connectionError = connectionSocket.errored;
+    const responseError   = res.errored;
+    const statusCode      = res.statusCode;
+    const headers         = res.getHeaders();
+    const contentLength   = headers['content-length'] ?? 0;
+
+    const result = {
+      ok:         true,
+      statusCode,
+      contentLength,
+      headers:    Response.#sanitizeResponseHeaders(headers),
+      errorCodes: [],
+      errors:     {}
+    };
+
+    if (responseError) {
+      const code = ErrorUtil.extractErrorCode(responseError);
+
+      result.ok              = false;
+      result.errorCodes      = [code];
+      result.errors.response = responseError;
+    }
+
+    if (connectionError) {
+      const code = ErrorUtil.extractErrorCode(connectionError);
+
+      result.ok                = false;
+      result.errorCodes        = [code];
+      result.errors.connection = connectionError;
+    }
+
+    return result;
+  }
+
+  /**
    * Makes an instance of this class representing a non-content meta-ish
    * response. "Non-content meta-ish" here means that the status code _doesn't_
    * indicate that the body is meant to be higher-level application content,
@@ -920,6 +971,21 @@ export class Response {
     }
 
     return buffer;
+  }
+
+  /**
+   * Cleans up response headers for logging.
+   *
+   * @param {object} headers Original response headers.
+   * @returns {object} Cleaned up version.
+   */
+  static #sanitizeResponseHeaders(headers) {
+    const result = { ...headers };
+
+    delete result[':status'];
+    delete result['content-length'];
+
+    return result;
   }
 
   /**
