@@ -424,6 +424,10 @@ export class Request {
    * @throws {Error} Thrown if there is any trouble sending the response.
    */
   respond(response) {
+    if (this.#responsePromise.isSettled()) {
+      throw new Error('Cannot double-respond!');
+    }
+
     const result = response.writeTo(this.#coreResponse);
 
     this.#responsePromise.resolve(result);
