@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { IncomingMessage, ServerResponse } from 'node:http';
-import { Http2ServerResponse, sensitiveHeaders as Http2SensitiveHeaders }
+import { Http2ServerRequest, Http2ServerResponse,
+  sensitiveHeaders as Http2SensitiveHeaders }
   from 'node:http2';
 
 import { ManualPromise } from '@this/async';
@@ -50,7 +51,10 @@ export class Request {
    */
   #requestContext;
 
-  /** @type {IncomingMessage} Underlying HTTP(ish) request object. */
+  /**
+   * @type {IncomingMessage|Http2ServerRequest} Underlying HTTP(ish) request
+   * object.
+   */
   #coreRequest;
 
   /**
@@ -100,7 +104,7 @@ export class Request {
    *
    * @param {RequestContext} context Information about the request not
    *   represented in `request`.
-   * @param {IncomingMessage} request Request object.
+   * @param {IncomingMessage|Http2ServerRequest} request Request object.
    * @param {ServerResponse|Http2ServerResponse} response Response object.
    * @param {?IntfLogger} logger Logger to use as a base, or `null` to not do
    *   any logging. If passed as non-`null`, the actual logger instance will be
@@ -142,7 +146,7 @@ export class Request {
 
   /**
    * @returns {object} Map of all incoming headers to their values, as defined
-   * by Node's `IncomingMessage.headers`.
+   * by Node's {@link IncomingMessage#headers}.
    */
   get headers() {
     // TODO: This should be a `HttpHeaders` object.
