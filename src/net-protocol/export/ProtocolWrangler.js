@@ -542,7 +542,7 @@ export class ProtocolWrangler {
     try {
       res.setHeader('Server', this.#serverHeader);
 
-      const responseSent = request.respond(result);
+      const responseSent = result.writeTo(res);
 
       if (this.#logHelper) {
         // Note: In order for it to be able to log the duration of the request
@@ -554,11 +554,20 @@ export class ProtocolWrangler {
 
       await responseSent;
     } catch (e) {
-      // Shouldn't happen, but we probably can't actually let the client know in
-      // any _good_ way, since the call to `respond()` probably already started
-      // the response. So we do what little we can that might help, and then
-      // just close the socket and hope for the best.
-      reqLogger?.errorDuringRespond(e);
+      // This can happen when the connection gets closed from the other side
+      // when in the middle of responding, in which case the error is ignorable
+      // here, as it'll show up as a connection error when logging the request.
+      // But other errors -- which probably shouldn't ever happen -- are worth
+      // logging, as possible bugs in this project.
+      //
+      // In any case, we probably can't actually let the remote side know about
+      // the problem in any _good_ way, since the call to `respond()` probably
+      // already started the response, or the connection is already closed. So
+      // we do what little we can that might help, and then just close the
+      // socket (if it isn't already), and hope for the best.
+      if (e.code !== 'ECONNRESET') {
+        reqLogger?.errorWhileWritingResponse(e);
+      }
       res.statusCode = 500; // "Internal Server Error."
       res.end();
       closeSocket = true;
