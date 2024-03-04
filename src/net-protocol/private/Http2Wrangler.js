@@ -8,7 +8,7 @@ import { Condition, PromiseUtil, Threadlet } from '@this/async';
 import { IntfLogger } from '@this/loggy';
 
 import { TcpWrangler } from '#p/TcpWrangler';
-import { WranglerContext } from '#x/WranglerContext';
+import { WranglerContext } from '#p/WranglerContext';
 
 
 /**

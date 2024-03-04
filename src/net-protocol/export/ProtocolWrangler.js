@@ -17,7 +17,7 @@ import { IntfHostManager } from '#x/IntfHostManager';
 import { IntfRateLimiter } from '#x/IntfRateLimiter';
 import { IntfRequestLogger } from '#x/IntfRequestLogger';
 import { RequestLogHelper } from '#p/RequestLogHelper';
-import { WranglerContext } from '#x/WranglerContext';
+import { WranglerContext } from '#p/WranglerContext';
 
 
 /**
