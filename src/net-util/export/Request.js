@@ -8,7 +8,6 @@ import { Http2ServerRequest, Http2ServerResponse,
 
 import { ManualPromise } from '@this/async';
 import { TreePathKey } from '@this/collections';
-import { ErrorUtil } from '@this/data-values';
 import { FormatUtils, IntfLogger } from '@this/loggy';
 import { MustBe } from '@this/typey';
 
@@ -260,15 +259,6 @@ export class Request {
   }
 
   /**
-   * @returns {boolean} An indication of whether this instance believes the
-   * underlying response to have been completed (either successfully or not).
-   */
-  get responseCompleted() {
-    return this.#responsePromise.isSettled
-      && this.#coreResponse.writableEnded;
-  }
-
-  /**
    * @returns {string} The search a/k/a query portion of {@link #targetString},
    * as an unparsed string, or `''` (the empty string) if there is no search
    * string. The result includes anything at or after the first question mark
@@ -369,52 +359,6 @@ export class Request {
   }
 
   /**
-   * Gets all reasonably-logged info about the response that was made. This
-   * method async-returns after the response has been completed, either
-   * successfully or with an error. In case of an error, this method aims to
-   * report the error-ish info via a normal return (not by `throw`ing).
-   *
-   * **Note:** The `headers` in the result omits anything that is redundant
-   * with respect to other parts of the return value. (E.g., the
-   * `content-length` header is always omitted, and the `:status` pseudo-header
-   * is omitted from HTTP2 response headers.)
-   *
-   * @returns {object} Loggable information about the response.
-   */
-  async getLoggableResponseInfo() {
-    let responseError = null;
-
-    try {
-      await this.whenResponseDone();
-    } catch (e) {
-      responseError = e;
-    }
-
-    const res           = this.#coreResponse;
-    const statusCode    = res.statusCode;
-    const headers       = res.getHeaders();
-    const contentLength = headers['content-length'] ?? 0;
-
-    const result = {
-      ok: !responseError,
-      statusCode,
-      contentLength,
-      headers:    Request.#sanitizeResponseHeaders(headers),
-      errorCodes: [],
-      errors:     {}
-    };
-
-    if (responseError) {
-      const code = ErrorUtil.extractErrorCode(responseError);
-
-      result.errorCodes = [code];
-      result.errors     = { response: responseError };
-    }
-
-    return result;
-  }
-
-  /**
    * Sends a response to this request, by asking the given response object to
    * write itself to this instance's underlying {@link ServerResponse} object
    * (or similar).
@@ -424,6 +368,10 @@ export class Request {
    * @throws {Error} Thrown if there is any trouble sending the response.
    */
   respond(response) {
+    if (this.#responsePromise.isSettled()) {
+      throw new Error('Cannot double-respond!');
+    }
+
     const result = response.writeTo(this.#coreResponse);
 
     this.#responsePromise.resolve(result);
@@ -547,21 +495,6 @@ export class Request {
     // cryptography properties). This _isn't_ supposed to actually delete th
     // headers _named_ by this value.
     delete result[Http2SensitiveHeaders];
-
-    return result;
-  }
-
-  /**
-   * Cleans up response headers for logging.
-   *
-   * @param {object} headers Original response headers.
-   * @returns {object} Cleaned up version.
-   */
-  static #sanitizeResponseHeaders(headers) {
-    const result = { ...headers };
-
-    delete result[':status'];
-    delete result['content-length'];
 
     return result;
   }

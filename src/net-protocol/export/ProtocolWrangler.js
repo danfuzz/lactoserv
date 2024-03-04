@@ -370,14 +370,13 @@ export class ProtocolWrangler {
    * out to the configured `requestHandler` when appropriate (e.g. not
    * rate-limited, etc.).
    *
-   * **Note:** There is nothing set up to catch errors thrown by this method.
+   * **Note:** There is nothing set up to catch errors thrown by this method. It
+   * is not supposed to `throw` (directly or indirectly).
    *
    * @param {Request} request Request object.
-   * @param {WranglerContext} outerContext The outer context of `request`.
+   * @returns {Response} The response to send.
    */
-  async #handleRequest(request, outerContext) {
-    const reqLogger = request.logger;
-
+  async #handleRequest(request) {
     if (!request.pathnameString) {
       // It's not an `origin` request. We don't handle any other type of
       // target... yet.
@@ -387,48 +386,28 @@ export class ProtocolWrangler {
       // echo $'GET * HTTP/1.1\r\nHost: milk.com\r\n\r' \
       //   | curl telnet://localhost:8080
       // ```
-      await request.respond(Response.makeMetaResponse(400)); // "Bad Request."
-      return;
-    } else if (this.#rateLimiter) {
-      const granted = await this.#rateLimiter.newRequest(reqLogger);
-      if (!granted) {
-        // Send the error response, and wait for it to be (believed to be) sent.
-        await request.respond(Response.makeMetaResponse(503)); // "Service Unavailable."
-
-        // ...and then just thwack the underlying socket. The hope is that the
-        // waiting above will make it likely that the far side will actually see
-        // the 503 response.
-        const csock = outerContext.socket;
-        csock.end();
-        csock.once('finish', () => {
-          csock.destroy();
-        });
-
-        return;
-      }
+      return Response.makeMetaResponse(400); // "Bad Request."
     }
 
     try {
       const result = await this.#requestHandler.handleRequest(request, null);
 
-      if (result) {
-        // Validate that the request was actually handled.
-        if (!request.responseCompleted) {
-          reqLogger?.responseNotActuallyHandled();
-          // Gets caught immediately below.
-          throw new Error('Response returned "successfully" without completing.');
-        }
-      } else {
+      if (result instanceof Response) {
+        return result;
+      } else if (result === null) {
         // The configured `requestHandler` didn't actually handle the request.
         // Respond with a vanilla `404` error. (If the client wants something
         // fancier, they can do it themselves.)
         const bodyExtra = request.urlForLogging;
-        await request.respond(Response.makeNotFound({ bodyExtra }));
+        return Response.makeNotFound({ bodyExtra });
+      } else {
+        // Caught by our direct caller, `#respondToRequest()`.
+        throw new Error(`Strange result from \`handleRequest\`: ${result}`);
       }
     } catch (e) {
       // `500` == "Internal Server Error."
       const bodyExtra = e.stack ?? e.message ?? '<unknown>';
-      await request.respond(Response.makeMetaResponse(500, { bodyExtra }));
+      return Response.makeMetaResponse(500, { bodyExtra });
     }
   }
 
@@ -467,14 +446,13 @@ export class ProtocolWrangler {
         url:       request.urlForLogging
       });
 
-      res.setHeader('Server', this.#serverHeader);
-
-      this.#logHelper?.logRequest(request, context);
-      this.#handleRequest(request, context);
+      this.#respondToRequest(request, context, res);
     } catch (e) {
-      // Note: This is theorized to occur in practice when the socket for a
-      // request gets closed after the request was received but before it
-      // managed to get dispatched.
+      // This probably indicates a bug in this project. That is, our goal is for
+      // this not to be possible. That said, as of this writing, this is
+      // theorized to occur in practice when the socket for a request gets
+      // closed after the request was received but before it managed to get
+      // dispatched.
       logger?.errorDuringIncomingRequest(url, e);
       const socketState = {
         closed:        socket.closed,
@@ -521,6 +499,78 @@ export class ProtocolWrangler {
     // Done!
 
     this.#initialized = true;
+  }
+
+  /**
+   * Top-level of the asynchronous request handling flow. When appropriate, this
+   * in turn calls to our response-creator, which is supposed to always return
+   * _something_ to use as a response. This method also handles request logging.
+   *
+   * **Note:** There is nothing set up to catch errors thrown by this method. It
+   * is not supposed to `throw` (directly or indirectly).
+   *
+   * @param {Request} request Request object.
+   * @param {WranglerContext} outerContext The outer context of `request`.
+   * @param {Http2ServerResponse|ServerResponse} res Low-level response object.
+   */
+  async #respondToRequest(request, outerContext, res) {
+    const reqLogger = request.logger;
+
+    let result;
+    let closeSocket = false;
+
+    try {
+      if (this.#rateLimiter) {
+        const granted = await this.#rateLimiter.newRequest(reqLogger);
+        if (!granted) {
+          // Send the error response, and wait for it to be (believed to be)
+          // sent. Then just thwack the underlying socket. The hope is that the
+          // waiting above will make it likely that the far side will actually
+          // see the 503 ("Service Unavailable") response.
+          result      = request.respond(Response.makeMetaResponse(503));
+          closeSocket = true;
+        }
+      }
+
+      result = await this.#handleRequest(request, outerContext);
+    } catch (e) {
+      // `500` == "Internal Server Error."
+      const bodyExtra = e.stack ?? e.message ?? '<unknown error>';
+      result = Response.makeMetaResponse(500, { bodyExtra });
+    }
+
+    try {
+      res.setHeader('Server', this.#serverHeader);
+
+      const responseSent = request.respond(result);
+
+      if (this.#logHelper) {
+        // Note: In order for it to be able to log the duration of the request
+        // with reasonable accuracy, the call to `logRequest()` has to happen
+        // early during dispatch, and definitely _not_ after the response has
+        // been sent!
+        this.#logHelper.logRequest(request, outerContext, res, responseSent);
+      }
+
+      await responseSent;
+    } catch (e) {
+      // Shouldn't happen, but we probably can't actually let the client know in
+      // any _good_ way, since the call to `respond()` probably already started
+      // the response. So we do what little we can that might help, and then
+      // just close the socket and hope for the best.
+      reqLogger?.errorDuringRespond(e);
+      res.statusCode = 500; // "Internal Server Error."
+      res.end();
+      closeSocket = true;
+    }
+
+    if (closeSocket) {
+      const csock = outerContext.socket;
+      csock.end();
+      csock.once('finish', () => {
+        csock.destroy();
+      });
+    }
   }
 
   /**

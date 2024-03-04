@@ -6,7 +6,7 @@ import { IntfLogger } from '@this/loggy';
 import { IntfRateLimiter, IntfRequestLogger, ProtocolWrangler,
   ProtocolWranglers }
   from '@this/net-protocol';
-import { DispatchInfo, IntfRequestHandler } from '@this/net-util';
+import { DispatchInfo, IntfRequestHandler, Response } from '@this/net-util';
 import { EndpointConfig, MountConfig } from '@this/sys-config';
 
 import { BaseApplication } from '#x/BaseApplication';
@@ -104,7 +104,7 @@ export class NetworkEndpoint extends BaseComponent {
     if (!hostMatch) {
       // No matching host.
       request.logger?.hostNotFound(request.host.nameString);
-      return false;
+      return null;
     }
 
     // Iterate from most- to least-specific mounted path.
@@ -122,8 +122,15 @@ export class NetworkEndpoint extends BaseComponent {
       });
 
       try {
-        if (await application.handleRequest(request, dispatch)) {
-          return true;
+        const result = await application.handleRequest(request, dispatch);
+        if ((result instanceof Response) || (result === null)) {
+          return result;
+        } else {
+          // Caught immediately below.
+          const type = ((typeof result === 'object') || (typeof result === 'function'))
+            ? result.constructor.name
+            : typeof result;
+          throw new Error(`Unexpected result type from \`handleRequest\`: ${type}`);
         }
       } catch (e) {
         request.logger?.applicationError(e);
@@ -132,7 +139,7 @@ export class NetworkEndpoint extends BaseComponent {
 
     // No mounted path actually handled the request.
     request.logger?.pathNotFound(request.pathname);
-    return false;
+    return null;
   }
 
   /** @override */

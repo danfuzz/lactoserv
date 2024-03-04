@@ -1,9 +1,11 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { ErrorUtil } from '@this/data-values';
+import { ServerResponse } from 'node:http';
+import { Http2ServerResponse } from 'node:http2';
+
 import { FormatUtils } from '@this/loggy';
-import { Request } from '@this/net-util';
+import { Request, Response } from '@this/net-util';
 
 import { IntfRequestLogger } from '#x/IntfRequestLogger';
 import { WranglerContext } from '#p/WranglerContext';
@@ -31,63 +33,47 @@ export class RequestLogHelper {
    *
    * @param {Request} request Request object.
    * @param {WranglerContext} context Outer context around `request`.
+   * @param {ServerResponse|Http2ServerResponse} res Low-level response object.
+   * @param {Promise<boolean>} resSent Promise which resolves to `true` once the
+   *   response is considered complete.
    */
-  async logRequest(request, context) {
-    const logger    = request.logger;
+  async logRequest(request, context, res, resSent) {
     const startTime = this.#requestLogger.now();
+
+    const logger    = request.logger;
     const reqInfo   = request.getLoggableRequestInfo();
 
     logger?.request(reqInfo);
 
+    try {
+      await resSent;
+    } catch {
+      // Ignore the error. `getLoggableResponseInfo()` should end up including
+      // it in its list of errors.
+    }
+
+    const endTime   = this.#requestLogger.now();
+    const duration  = endTime.subtract(startTime);
+
     // Note: This call isn't supposed to `throw`, even if there were errors
     // thrown during handling.
-    const info = await request.getLoggableResponseInfo();
-
-    const endTime  = this.#requestLogger.now();
-    const duration = endTime.subtract(startTime);
+    const info = await Response.getLoggableResponseInfo(res, context.socket);
 
     // Rearrange `info` into preferred loggable form, and augment with
     // connection error info if appropriate.
 
     const {
       contentLength,
-      errors,
       errorCodes,
-      headers,
+      ok,
       statusCode
     } = info;
-
-    let { ok } = info;
-
-    const connectionError = context.socket.errored ?? null;
-
-    if (connectionError) {
-      const code = ErrorUtil.extractErrorCode(connectionError);
-
-      errors.connection = connectionError;
-      errorCodes.push(code);
-      ok = false;
-    }
 
     const codeStr = ok ? 'ok' : errorCodes.join(',');
 
     // This is to avoid redundancy and to end up with a specific propery order
     // in `finalInfo` (for human readability).
-    delete info.contentLength;
-    delete info.errorCodes;
-    delete info.headers;
-    delete info.ok;
-    delete info.statusCode;
-
-    const finalInfo = {
-      ok,
-      code: codeStr,
-      duration,
-      status: statusCode,
-      contentLength,
-      headers,
-      ...info
-    };
+    const finalInfo = { ok, duration, ...info };
 
     logger?.response(finalInfo);
 

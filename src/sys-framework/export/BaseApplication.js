@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { BaseLoggingEnvironment, IntfLogger } from '@this/loggy';
-import { DispatchInfo, IntfRequestHandler, Request } from '@this/net-util';
+import { DispatchInfo, IntfRequestHandler, Request, Response }
+  from '@this/net-util';
 import { ApplicationConfig } from '@this/sys-config';
 import { Methods } from '@this/typey';
 
@@ -50,7 +51,7 @@ export class BaseApplication extends BaseComponent {
    * @abstract
    * @param {Request} request Request object.
    * @param {DispatchInfo} dispatch Dispatch information.
-   * @returns {boolean} Was the request handled? Flag as defined by the method
+   * @returns {?Response} Response to the request, if any, as defined by
    *   {@link IntfRequestHandler#handleRequest}.
    */
   async _impl_handleRequest(request, dispatch) {
@@ -62,7 +63,7 @@ export class BaseApplication extends BaseComponent {
    *
    * @param {Request} request Request object.
    * @param {DispatchInfo} dispatch Dispatch information.
-   * @returns {boolean} Was the request handled?
+   * @returns {?Response} Response to the request, if any.
    */
   async #callHandler(request, dispatch) {
     const result = this._impl_handleRequest(request, dispatch);
@@ -71,24 +72,24 @@ export class BaseApplication extends BaseComponent {
       return new Error(`\`${this.name}._impl_handleRequest()\` ${msg}.`);
     };
 
-    if (typeof result === 'boolean') {
+    if ((result === null) || (result instanceof Response)) {
       return result;
     } else if (!(result instanceof Promise)) {
       if (result === undefined) {
         throw error('returned undefined; probably needs an explicit `return`');
       } else {
-        throw error('returned something other than a boolean or a promise');
+        throw error('returned something other than a `Response`, `null`, or a promise');
       }
     }
 
     const finalResult = await result;
 
-    if (typeof finalResult === 'boolean') {
+    if ((finalResult === null) || (finalResult instanceof Response)) {
       return finalResult;
     } else if (finalResult === undefined) {
       throw error('async-returned undefined; probably needs an explicit `return`');
     } else {
-      throw error('async-returned something other than a boolean');
+      throw error('async-returned something other than a `Response` or `null`');
     }
   }
 
@@ -98,8 +99,8 @@ export class BaseApplication extends BaseComponent {
    *
    * @param {Request} request Request object.
    * @param {DispatchInfo} dispatch Dispatch information.
-   * @param {Promise<boolean>} result Promise for the handler result.
-   * @returns {boolean} Was the request handled?
+   * @param {Promise<?Response>} result Promise for the handler response.
+   * @returns {?Response} Response to the request, if any.
    */
   async #logHandlerCall(request, dispatch, result) {
     const startTime = this.#loggingEnv.now();

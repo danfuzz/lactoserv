@@ -64,9 +64,9 @@ export class StaticFiles extends BaseApplication {
 
     if (!resolved) {
       if (this.#notFoundResponse) {
-        return request.respond(this.#notFoundResponse);
+        return this.#notFoundResponse;
       } else {
-        return false;
+        return null;
       }
     }
 
@@ -78,7 +78,7 @@ export class StaticFiles extends BaseApplication {
         response.cacheControl = this.#cacheControl;
       }
 
-      return await request.respond(response);
+      return await response;
     } else if (resolved.path) {
       const contentType =
         MimeTypes.typeFromPathExtension(resolved.path);
@@ -102,7 +102,7 @@ export class StaticFiles extends BaseApplication {
       const response = rawResponse.adjustFor(
         method, headers, { conditional: true, range: true });
 
-      return await request.respond(response);
+      return response;
     } else {
       // Shouldn't happen. If we get here, it's a bug in this class.
       throw new Error('Shouldn\'t happen.');

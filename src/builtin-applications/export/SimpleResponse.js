@@ -25,7 +25,7 @@ export class SimpleResponse extends BaseApplication {
     const response = this.#response.adjustFor(
       method, headers, { conditional: true, range: true });
 
-    return await request.respond(response);
+    return response;
   }
 
   /** @override */
