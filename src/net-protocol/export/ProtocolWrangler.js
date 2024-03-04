@@ -446,8 +446,6 @@ export class ProtocolWrangler {
         url:       request.urlForLogging
       });
 
-      res.setHeader('Server', this.#serverHeader);
-
       this.#respondToRequest(request, context, res);
     } catch (e) {
       // This probably indicates a bug in this project. That is, our goal is for
@@ -542,6 +540,8 @@ export class ProtocolWrangler {
     }
 
     try {
+      res.setHeader('Server', this.#serverHeader);
+
       const responseSent = request.respond(result);
 
       if (this.#logHelper) {
