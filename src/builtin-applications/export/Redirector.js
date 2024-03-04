@@ -50,7 +50,7 @@ export class Redirector extends BaseApplication {
 
     response.cacheControl = this.#cacheControl;
 
-    return await request.respond(response);
+    return response;
   }
 
   /** @override */
