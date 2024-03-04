@@ -15,7 +15,7 @@ import { MustBe } from '@this/typey';
  * Utility class for doing some of the lowest-level server socket manipulation,
  * in a way that is `async`-friendly.
  */
-export class AsyncServer {
+export class AsyncServerSocket {
   /** @type {?IntfLogger} Logger to use, or `null` to not do any logging. */
   #logger;
 
@@ -113,7 +113,7 @@ export class AsyncServer {
     // In case of a reload, look for a stashed instance which is already set up
     // the same way.
     const found = isReload
-      ? AsyncServer.#unstashInstance(this.#interface)
+      ? AsyncServerSocket.#unstashInstance(this.#interface)
       : null;
 
     if (found) {
@@ -135,7 +135,7 @@ export class AsyncServer {
       // Either this isn't a reload, or it's a reload with an endpoint that
       // isn't configured the same way as one of the pre-reload ones.
       this.#serverSocket = netCreateServer(
-        AsyncServer.#extractConstructorOptions(this.#interface));
+        AsyncServerSocket.#extractConstructorOptions(this.#interface));
     }
 
     this.#serverSocket.on('connection', (...args) => {
@@ -159,7 +159,7 @@ export class AsyncServer {
     MustBe.boolean(willReload);
 
     if (willReload) {
-      AsyncServer.#stashInstance(this);
+      AsyncServerSocket.#stashInstance(this);
     } else {
       await this.#close();
     }
@@ -262,7 +262,7 @@ export class AsyncServer {
       serverSocket.on('listening', handleListening);
       serverSocket.on('error',     handleError);
 
-      serverSocket.listen(AsyncServer.#extractListenOptions(this.#interface));
+      serverSocket.listen(AsyncServerSocket.#extractListenOptions(this.#interface));
     });
   }
 
@@ -301,8 +301,9 @@ export class AsyncServer {
   static #STASH_TIMEOUT_MSEC = 5 * 1000;
 
   /**
-   * @type {Set<AsyncServer>} Set of stashed instances, for use during a reload.
-   * Such instances were left open and listening during a previous `stop()`.
+   * @type {Set<AsyncServerSocket>} Set of stashed instances, for use during a
+   * reload. Such instances were left open and listening during a previous
+   * call to {@link #stop}.
    */
   static #stashedInstances = new Set();
 
@@ -359,7 +360,7 @@ export class AsyncServer {
   /**
    * Stashes an instance for possible reuse during a reload.
    *
-   * @param {AsyncServer} instance The instance to stash.
+   * @param {AsyncServerSocket} instance The instance to stash.
    */
   static #stashInstance(instance) {
     // Remove any pre-existing matching instance. This shouldn't happen in the
@@ -383,7 +384,7 @@ export class AsyncServer {
    * during a reload. If found, it is removed from the stash.
    *
    * @param {object} iface The interface specification for the instance.
-   * @returns {?AsyncServer} The found instance, if any.
+   * @returns {?AsyncServerSocket} The found instance, if any.
    */
   static #unstashInstance(iface) {
     let found = null;

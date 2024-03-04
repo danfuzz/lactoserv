@@ -7,7 +7,7 @@ import * as timers from 'node:timers/promises';
 import { Condition, PromiseUtil, Threadlet } from '@this/async';
 import { FormatUtils, IntfLogger } from '@this/loggy';
 
-import { AsyncServer } from '#p/AsyncServer';
+import { AsyncServerSocket } from '#p/AsyncServerSocket';
 import { IntfRateLimiter } from '#x/IntfRateLimiter';
 import { ProtocolWrangler } from '#x/ProtocolWrangler';
 
@@ -24,7 +24,7 @@ export class TcpWrangler extends ProtocolWrangler {
   #rateLimiter;
 
   /**
-   * @type {AsyncServer} Underlying server socket, wrapped for `async`
+   * @type {AsyncServerSocket} Underlying server socket, wrapped for `async`
    * friendliness.
    */
   #asyncServer;
@@ -48,7 +48,7 @@ export class TcpWrangler extends ProtocolWrangler {
 
     this.#logger      = options.logger ?? null;
     this.#rateLimiter = options.rateLimiter ?? null;
-    this.#asyncServer = new AsyncServer(options.interface, options.protocol, this.#logger);
+    this.#asyncServer = new AsyncServerSocket(options.interface, options.protocol, this.#logger);
   }
 
   /** @override */
