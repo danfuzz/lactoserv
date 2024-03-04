@@ -8,7 +8,6 @@ import { Http2ServerRequest, Http2ServerResponse,
 
 import { ManualPromise } from '@this/async';
 import { TreePathKey } from '@this/collections';
-import { ErrorUtil } from '@this/data-values';
 import { FormatUtils, IntfLogger } from '@this/loggy';
 import { MustBe } from '@this/typey';
 
