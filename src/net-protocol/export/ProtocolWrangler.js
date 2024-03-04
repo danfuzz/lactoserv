@@ -303,6 +303,11 @@ export class ProtocolWrangler {
     // objects that our event handlers might eventually find themselves with.
     // The API for this (to the rest of the system) is the class
     // `WranglerContext`.
+    //
+    // Also, just to be clear: Even without the need to get the
+    // `WranglerContext` hooked up, we still need to emit a `connection` event
+    // here, since that's how the protocol server (`_impl_server()`) is informed
+    // in the first place about a connection.
 
     const connectionCtx = WranglerContext.forConnection(this, socket, logger);
 
