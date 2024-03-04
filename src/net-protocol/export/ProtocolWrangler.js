@@ -9,12 +9,12 @@ import * as net from 'node:net';
 import { Threadlet } from '@this/async';
 import { ProductInfo } from '@this/host';
 import { IntfLogger } from '@this/loggy';
-import { HttpResponse, RequestContext, Request } from '@this/net-util';
+import { HttpResponse, IntfRequestHandler, RequestContext, Request }
+  from '@this/net-util';
 import { Methods, MustBe } from '@this/typey';
 
 import { IntfHostManager } from '#x/IntfHostManager';
 import { IntfRateLimiter } from '#x/IntfRateLimiter';
-import { IntfRequestHandler } from '#x/IntfRequestHandler';
 import { IntfRequestLogger } from '#x/IntfRequestLogger';
 import { RequestLogHelper } from '#p/RequestLogHelper';
 import { WranglerContext } from '#x/WranglerContext';

@@ -4,6 +4,9 @@
 import { DispatchInfo, Request } from '@this/net-util';
 import { Methods } from '@this/typey';
 
+import { DispatchInfo } from '#x/DispatchInfo';
+import { Request } from '#x/DispatchInfo';
+
 
 /**
  * Interface for HTTP(ish) request handlers, as used by this module.
