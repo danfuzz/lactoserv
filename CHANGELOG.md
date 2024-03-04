@@ -13,6 +13,10 @@ Breaking changes:
   * Changed the constructor of `Request` to take a `RequestContext` instead of a
     `WranglerContext` (the latter which is a private class in `net-protocol`).
   * Renamed `HttpResponse` to just `Response`.
+  * Changed the `IntfRequestHandler` API so that the return value is the
+    response to send, instead of expecting the handler to do the sending. This
+    enables a pattern where a request handler can be "wrapped" by another one
+    which gets a chance to modify the response before bubbling it up further.
 
 Other notable changes:
 * `net-protocol`: Stopped using Express as a layer between the Node `http*`
