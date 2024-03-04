@@ -251,7 +251,7 @@ export class ProtocolWrangler {
    * @abstract
    * @param {boolean} isReload Is this action due to an in-process reload?
    */
-  async _impl_serverSocketStart(isReload) {
+  async _impl_socketStart(isReload) {
     Methods.abstract(isReload);
   }
 
@@ -263,7 +263,7 @@ export class ProtocolWrangler {
    * @param {boolean} willReload Is this action due to an in-process reload
    *   being requested?
    */
-  async _impl_serverSocketStop(willReload) {
+  async _impl_socketStop(willReload) {
     Methods.abstract(willReload);
   }
 
@@ -537,7 +537,7 @@ export class ProtocolWrangler {
     // We do these in parallel, because there can be mutual dependencies, e.g.
     // the application might need to see the server stopping _and_ vice versa.
     await Promise.all([
-      this._impl_serverSocketStop(this.#reloading),
+      this._impl_socketStop(this.#reloading),
       this._impl_applicationStop(this.#reloading)
     ]);
 
@@ -556,7 +556,7 @@ export class ProtocolWrangler {
     }
 
     await this._impl_applicationStart(this.#reloading);
-    await this._impl_serverSocketStart(this.#reloading);
+    await this._impl_socketStart(this.#reloading);
 
     if (this.#logger) {
       this.#logger.started(this._impl_loggableInfo());
