@@ -51,7 +51,7 @@ export class BaseApplication extends BaseComponent {
    * @abstract
    * @param {Request} request Request object.
    * @param {DispatchInfo} dispatch Dispatch information.
-   * @returns {boolean} Was the request handled? Flag as defined by the method
+   * @returns {?Response|boolean} Response to the request, as defined by
    *   {@link IntfRequestHandler#handleRequest}.
    */
   async _impl_handleRequest(request, dispatch) {
@@ -63,7 +63,7 @@ export class BaseApplication extends BaseComponent {
    *
    * @param {Request} request Request object.
    * @param {DispatchInfo} dispatch Dispatch information.
-   * @returns {Response|boolean} Result of handling the request, if any.
+   * @returns {?Response|boolean} Result of handling the request, if any.
    */
   async #callHandler(request, dispatch) {
     const result = this._impl_handleRequest(request, dispatch);
@@ -72,7 +72,7 @@ export class BaseApplication extends BaseComponent {
       return new Error(`\`${this.name}._impl_handleRequest()\` ${msg}.`);
     };
 
-    if ((typeof result === 'boolean') || (result instanceof Response)) {
+    if ((typeof result === 'boolean') || (result === null) || (result instanceof Response)) {
       return result;
     } else if (!(result instanceof Promise)) {
       if (result === undefined) {
