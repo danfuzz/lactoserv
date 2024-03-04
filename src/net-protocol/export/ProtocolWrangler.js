@@ -413,19 +413,15 @@ export class ProtocolWrangler {
 
       if (result instanceof Response) {
         await request.respond(result);
-      } else if (result === true) {
-        // Validate that the request was actually handled.
-        if (!request.responseCompleted) {
-          reqLogger?.responseNotActuallyHandled();
-          // Gets caught immediately below.
-          throw new Error('Response returned "successfully" without completing.');
-        }
-      } else {
+      } else if (result === null) {
         // The configured `requestHandler` didn't actually handle the request.
         // Respond with a vanilla `404` error. (If the client wants something
         // fancier, they can do it themselves.)
         const bodyExtra = request.urlForLogging;
         await request.respond(Response.makeNotFound({ bodyExtra }));
+      } else {
+        // Caught immediately below.
+        throw new Error(`Strange result from \`handleRequest\`: ${result}`);
       }
     } catch (e) {
       // `500` == "Internal Server Error."
