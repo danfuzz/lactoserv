@@ -20,7 +20,7 @@ export class IntfRequestHandler {
    * following meaning:
    *
    * * Returning `true` means that the request was fully handled.
-   * * Returning `false` means that the request was not handled.
+   * * Returning `null` or `false` means that the request was not handled.
    * * Throwing an error means that the request failed fatally.
    * * Returning an instance of {@link Response} indicates the response to
    *   ultimately send.
