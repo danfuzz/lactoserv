@@ -7,12 +7,18 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* None.
+* `net-protocol` / `net-util`:
+  * Moved `DispatchInfo`, `IntfRequestHandler`, and `Request` from the former to
+    the latter.
+  * Changed the constructor of `Request` to take a `RequestContext` instead of a
+    `WranglerContext` (the latter which is a private class in `net-protocol`).
 
 Other notable changes:
 * `net-protocol`: Stopped using Express as a layer between the Node `http*`
     libraries and our application framework.
-* `net-util`: Removed the small amount of remaining Express-specific code.
+* `net-util`:
+  * Removed the small amount of remaining Express-specific code.
+  * New class `RequestContext`.
 
 ### v0.6.7 -- 2024-02-29
 
