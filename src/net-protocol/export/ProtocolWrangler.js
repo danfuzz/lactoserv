@@ -527,7 +527,7 @@ export class ProtocolWrangler {
           // sent. Then just thwack the underlying socket. The hope is that the
           // waiting above will make it likely that the far side will actually
           // see the 503 ("Service Unavailable") response.
-          result      = request.respond(Response.makeMetaResponse(503));
+          result      = Response.makeMetaResponse(503);
           closeSocket = true;
         }
       }
