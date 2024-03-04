@@ -5,6 +5,7 @@ import { Methods } from '@this/typey';
 
 import { DispatchInfo } from '#x/DispatchInfo';
 import { Request } from '#x/Request';
+import { Response } from '#x/Response';
 
 
 /**
@@ -21,11 +22,15 @@ export class IntfRequestHandler {
    * * Returning `true` means that the request was fully handled.
    * * Returning `false` means that the request was not handled.
    * * Throwing an error means that the request failed fatally.
+   * * Returning an instance of {@link #Response} indicates the response to
+   *   ultimately send.
    *
    * @abstract
    * @param {Request} request Request object.
    * @param {?DispatchInfo} dispatch Dispatch information, or `null` if no
-   *   dispatch determination has yet been made.
+   *   dispatch determination was made before calling this instance. (On any
+   *   given instance -- depending on context -- it should be the case that it
+   *   either _always_ or _never_ gets passed `null` for this parameter.)
    * @returns {boolean} Was the request handled? Flag as described above.
    * @throws {Error} Thrown in case of fatal error.
    */
