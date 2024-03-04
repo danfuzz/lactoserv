@@ -8,10 +8,9 @@ import { ManualPromise } from '@this/async';
 import { TreePathKey } from '@this/collections';
 import { ErrorUtil } from '@this/data-values';
 import { FormatUtils, IntfLogger } from '@this/loggy';
-import { Cookies, HostInfo, HttpResponse } from '@this/net-util';
-import { AskIf, MustBe } from '@this/typey';
-
-import { WranglerContext } from '#x/WranglerContext';
+import { Cookies, HostInfo, HttpResponse, RequestContext }
+  from '@this/net-util';
+import { MustBe } from '@this/typey';
 
 
 /**
@@ -42,11 +41,10 @@ export class Request {
   #id = null;
 
   /**
-   * @type {WranglerContext} Most-specific outer context responsible for this
-   * instance. (This instance might also get directly associated with a context,
-   * but it doesn't get to find out about it.)
+   * @type {RequestContext} Information about the request not available from
+   * {@link #coreRequest}.
    */
-  #outerContext;
+  #requestContext;
 
   /** @type {IncomingMessage} Underlying HTTP(ish) request object. */
   #coreRequest;
@@ -93,8 +91,8 @@ export class Request {
   /**
    * Constructs an instance.
    *
-   * @param {WranglerContext} context Most-specific context that was responsible
-   *   for constructing this instance.
+   * @param {RequestContext} context Information about the request not
+   *   represented in `request`.
    * @param {IncomingMessage} request Request object.
    * @param {ServerResponse} response Response object.
    * @param {?IntfLogger} logger Logger to use as a base, or `null` to not do
@@ -103,7 +101,7 @@ export class Request {
    *   for the request.
    */
   constructor(context, request, response, logger) {
-    this.#outerContext = MustBe.instanceOf(context, WranglerContext);
+    this.#requestContext = MustBe.instanceOf(context, RequestContext);
 
     // Note: It's impractical to do more thorough type checking here (and
     // probably not worth it anyway).
@@ -162,7 +160,7 @@ export class Request {
 
       // Note: `authority` is used by HTTP2.
       const { authority } = req;
-      const localPort     = this.#outerContext.wrangler.interface.port;
+      const localPort     = this.#requestContext.interface.port;
 
       if (authority) {
         this.#host = HostInfo.safeParseHostHeader(authority, localPort);
@@ -203,15 +201,10 @@ export class Request {
 
   /**
    * @returns {?{ address: string, port: number }} The IP address and port of
-   * the origin (remote side) of the request, if known. `null` if not known.
+   * the origin (remote side) of the request.
    */
   get origin() {
-    const {
-      remoteAddress: address,
-      remotePort: port
-    } = this.#outerContext.socket ?? {};
-
-    return address ? { address, port } : null;
+    return this.#requestContext.origin;
   }
 
   /**
@@ -348,12 +341,8 @@ export class Request {
       urlForLogging
     } = this;
 
-    const originString = origin
-      ? FormatUtils.addressPortString(origin.address, origin.port)
-      : '<unknown>';
-
     const result = {
-      origin:   originString,
+      origin:   FormatUtils.addressPortString(origin.address, origin.port),
       protocol: this.protocolName,
       method,
       url:      urlForLogging,
@@ -390,41 +379,25 @@ export class Request {
       responseError = e;
     }
 
-    const connectionError = this.#outerContext.socket.errored ?? null;
-    const res             = this.#coreResponse;
-    const statusCode      = res.statusCode;
-    const headers         = res.getHeaders();
-    const contentLength   = headers['content-length'] ?? 0;
+    const res           = this.#coreResponse;
+    const statusCode    = res.statusCode;
+    const headers       = res.getHeaders();
+    const contentLength = headers['content-length'] ?? 0;
 
     const result = {
-      ok: !(responseError || connectionError),
-      contentLength,
+      ok: !responseError,
       statusCode,
-      headers: Request.#sanitizeResponseHeaders(headers),
+      contentLength,
+      headers:    Request.#sanitizeResponseHeaders(headers),
+      errorCodes: [],
+      errors:     {}
     };
-
-    const fullErrors = [];
-    let   errorStr   = null;
 
     if (responseError) {
       const code = ErrorUtil.extractErrorCode(responseError);
 
-      fullErrors.push(responseError);
-      result.responseError = code;
-      errorStr = code;
-    }
-
-    if (connectionError) {
-      const code = ErrorUtil.extractErrorCode(connectionError);
-
-      fullErrors.push(connectionError);
-      result.connectionError = code;
-      errorStr = errorStr ? `${errorStr},${code}` : code;
-    }
-
-    if (fullErrors.length !== 0) {
-      result.errors     = errorStr;
-      result.fullErrors = fullErrors;
+      result.errorCodes = [code];
+      result.errors     = { response: responseError };
     }
 
     return result;

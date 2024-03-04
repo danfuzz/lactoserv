@@ -9,7 +9,7 @@ import * as net from 'node:net';
 import { Threadlet } from '@this/async';
 import { ProductInfo } from '@this/host';
 import { IntfLogger } from '@this/loggy';
-import { HttpResponse } from '@this/net-util';
+import { HttpResponse, RequestContext } from '@this/net-util';
 import { Methods, MustBe } from '@this/typey';
 
 import { IntfHostManager } from '#x/IntfHostManager';
@@ -454,7 +454,8 @@ export class ProtocolWrangler {
     }
 
     try {
-      const request = new Request(context, req, res, this.#requestLogger);
+      const requestContext = new RequestContext(this.interface, context.remoteInfo);
+      const request        = new Request(requestContext, req, res, this.#requestLogger);
 
       logger?.incomingRequest({
         ...context.ids,
@@ -464,7 +465,7 @@ export class ProtocolWrangler {
 
       res.setHeader('Server', this.#serverHeader);
 
-      this.#logHelper?.logRequest(request);
+      this.#logHelper?.logRequest(request, context);
       this.#handleRequest(request, context);
     } catch (e) {
       // Note: This is theorized to occur in practice when the socket for a
