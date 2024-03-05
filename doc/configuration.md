@@ -326,6 +326,20 @@ const applications = [
 ];
 ```
 
+There are a few notable things which _aren't_ configurable for this application.
+These may be configurable in a future version, if there is sufficient and
+reasonable demand:
+
+* Content types:
+  * The mapping from extensions to MIME types is not configurable.
+* Caching:
+  * The `Last-Modified` response header is always sent when given a `filePath`,
+    and not sent when given a `body`.
+  * Conditional request headers are honored.
+* Ranges:
+  * The `Accept-Ranges` response header is always sent.
+  * Range request headers are honored, including conditional range requests.
+
 ### `StaticFiles`
 
 An application which serves static files from a local directory. In addition to
