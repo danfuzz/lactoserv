@@ -6,6 +6,14 @@ versioning principles. Unstable releases do not.
 
 ### [Unreleased]
 
+Breaking changes:
+* None.
+
+Other notable changes:
+* None.
+
+### v0.6.8 -- 2024-03-05
+
 This is the first release where Express is _not_ a project dependency. This
 release also changes our framework to no longer have a "callback-style" model,
 which has several benefits, including making the system much easier to test; no
