@@ -5,7 +5,7 @@ import { ServerResponse } from 'node:http';
 import { Http2ServerResponse } from 'node:http2';
 
 import { FormatUtils } from '@this/loggy';
-import { Request, Response } from '@this/net-util';
+import { IncomingRequest, Response } from '@this/net-util';
 
 import { IntfRequestLogger } from '#x/IntfRequestLogger';
 import { WranglerContext } from '#p/WranglerContext';
@@ -28,10 +28,11 @@ export class RequestLogHelper {
   }
 
   /**
-   * Causes the indicated {@link Request} to be logged once completed. Also
-   * logs various intermediate details to the `Request`'s _system_ logger.
+   * Causes the indicated {@link IncomingRequest} to be logged once completed.
+   * Also logs various intermediate details to the `IncomingRequest`'s _system_
+   * logger.
    *
-   * @param {Request} request Request object.
+   * @param {IncomingRequest} request Request object.
    * @param {WranglerContext} context Outer context around `request`.
    * @param {ServerResponse|Http2ServerResponse} res Low-level response object.
    * @param {Promise<boolean>} resSent Promise which resolves to `true` once the

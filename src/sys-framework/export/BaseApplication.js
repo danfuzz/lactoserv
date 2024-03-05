@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { BaseLoggingEnvironment, IntfLogger } from '@this/loggy';
-import { DispatchInfo, IntfRequestHandler, Request, Response }
+import { DispatchInfo, IntfRequestHandler, IncomingRequest, Response }
   from '@this/net-util';
 import { ApplicationConfig } from '@this/sys-config';
 import { Methods } from '@this/typey';
@@ -49,7 +49,7 @@ export class BaseApplication extends BaseComponent {
    * Handles a request, as defined by {@link IntfRequestHandler}.
    *
    * @abstract
-   * @param {Request} request Request object.
+   * @param {IncomingRequest} request Request object.
    * @param {DispatchInfo} dispatch Dispatch information.
    * @returns {?Response} Response to the request, if any, as defined by
    *   {@link IntfRequestHandler#handleRequest}.
@@ -61,7 +61,7 @@ export class BaseApplication extends BaseComponent {
   /**
    * Calls {@link #_impl_handleRequest}, and ensures a proper return value.
    *
-   * @param {Request} request Request object.
+   * @param {IncomingRequest} request Request object.
    * @param {DispatchInfo} dispatch Dispatch information.
    * @returns {?Response} Response to the request, if any.
    */
@@ -97,7 +97,7 @@ export class BaseApplication extends BaseComponent {
    * Logs a call to the handler, ultimately returning or throwing whatever the
    * given result settles to.
    *
-   * @param {Request} request Request object.
+   * @param {IncomingRequest} request Request object.
    * @param {DispatchInfo} dispatch Dispatch information.
    * @param {Promise<?Response>} result Promise for the handler response.
    * @returns {?Response} Response to the request, if any.

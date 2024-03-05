@@ -32,7 +32,7 @@ import { Response } from '#x/Response';
  * that actually does that. See
  * <https://github.com/danfuzz/lactoserv/issues/213>.
  */
-export class Request {
+export class IncomingRequest {
   /**
    * @type {?IntfLogger} Logger to use for this instance, or `null` if the
    * instance is not doing logging.
@@ -332,7 +332,7 @@ export class Request {
       protocol: this.protocolName,
       method,
       url:      urlForLogging,
-      headers:  Request.#sanitizeRequestHeaders(headers),
+      headers:  IncomingRequest.#sanitizeRequestHeaders(headers),
     };
 
     if (cookies.size !== 0) {

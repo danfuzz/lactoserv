@@ -9,7 +9,7 @@ import * as net from 'node:net';
 import { Threadlet } from '@this/async';
 import { ProductInfo } from '@this/host';
 import { IntfLogger } from '@this/loggy';
-import { IntfRequestHandler, Request, RequestContext, Response } from '@this/net-util';
+import { IntfRequestHandler, IncomingRequest, RequestContext, Response } from '@this/net-util';
 import { Methods, MustBe } from '@this/typey';
 
 import { IntfHostManager } from '#x/IntfHostManager';
@@ -37,9 +37,10 @@ export class ProtocolWrangler {
   #logger;
 
   /**
-   * @type {?IntfLogger} Logger to use for {@link Request}s, or `null` to not do
-   * any logging. This is passed into the {@link Request} constructor, which
-   * will end up making a sub-logger with a generated request ID.
+   * @type {?IntfLogger} Logger to use for {@link IncomingRequest}s, or `null`
+   * to not do any logging. This is passed into the {@link IncomingRequest}
+   * constructor, which will end up making a sub-logger with a generated request
+   * ID.
    */
   #requestLogger;
 
@@ -141,7 +142,8 @@ export class ProtocolWrangler {
 
     // Confusion alert!: This is not the same as the `requestLogger` (a "request
     // logger") per se) passed in as an option. This is the sub-logger of the
-    // _system_ logger, which is used for detailed logging inside `Request`.
+    // _system_ logger, which is used for detailed logging inside
+    // `IncomingRequest`.
     this.#requestLogger = logger?.req ?? null;
   }
 
@@ -373,7 +375,7 @@ export class ProtocolWrangler {
    * **Note:** There is nothing set up to catch errors thrown by this method. It
    * is not supposed to `throw` (directly or indirectly).
    *
-   * @param {Request} request Request object.
+   * @param {IncomingRequest} request Request object.
    * @returns {Response} The response to send.
    */
   async #handleRequest(request) {
@@ -438,7 +440,7 @@ export class ProtocolWrangler {
 
     try {
       const requestContext = new RequestContext(this.interface, context.remoteInfo);
-      const request        = new Request(requestContext, req, this.#requestLogger);
+      const request        = new IncomingRequest(requestContext, req, this.#requestLogger);
 
       logger?.incomingRequest({
         ...context.ids,
@@ -509,7 +511,7 @@ export class ProtocolWrangler {
    * **Note:** There is nothing set up to catch errors thrown by this method. It
    * is not supposed to `throw` (directly or indirectly).
    *
-   * @param {Request} request Request object.
+   * @param {IncomingRequest} request Request object.
    * @param {WranglerContext} outerContext The outer context of `request`.
    * @param {Http2ServerResponse|ServerResponse} res Low-level response object.
    */
