@@ -56,12 +56,6 @@ export class Request {
    */
   #coreRequest;
 
-  /**
-   * @type {ServerResponse|Http2ServerResponse} Underlying HTTP(ish) response
-   * object.
-   */
-  #coreResponse;
-
   /** @type {string} The protocol name. */
   #protocolName;
 
@@ -92,31 +86,22 @@ export class Request {
   #urlForLogging = null;
 
   /**
-   * @type {ManualPromise<boolean>} Manual promise whose actual-promise resolves
-   * to `true` when the response to this request is complete, or is rejected
-   * with whatever error caused it to fail.
-   */
-  #responsePromise = new ManualPromise();
-
-  /**
    * Constructs an instance.
    *
    * @param {RequestContext} context Information about the request not
    *   represented in `request`.
    * @param {IncomingMessage|Http2ServerRequest} request Request object.
-   * @param {ServerResponse|Http2ServerResponse} response Response object.
    * @param {?IntfLogger} logger Logger to use as a base, or `null` to not do
    *   any logging. If passed as non-`null`, the actual logger instance will be
    *   one that includes an additional subtag representing a new unique(ish) ID
    *   for the request.
    */
-  constructor(context, request, response, logger) {
+  constructor(context, request, logger) {
     this.#requestContext = MustBe.instanceOf(context, RequestContext);
 
     // Note: It's impractical to do more thorough type checking here (and
     // probably not worth it anyway).
     this.#coreRequest   = MustBe.object(request);
-    this.#coreResponse  = MustBe.object(response);
     this.#requestMethod = request.method.toLowerCase();
     this.#protocolName  = `http-${request.httpVersion}`;
 
@@ -356,38 +341,6 @@ export class Request {
     }
 
     return result;
-  }
-
-  /**
-   * Sends a response to this request, by asking the given response object to
-   * write itself to this instance's underlying {@link ServerResponse} object
-   * (or similar).
-   *
-   * @param {Response} response The response to send.
-   * @returns {boolean} `true` when the response is completed.
-   * @throws {Error} Thrown if there is any trouble sending the response.
-   */
-  respond(response) {
-    if (this.#responsePromise.isSettled()) {
-      throw new Error('Cannot double-respond!');
-    }
-
-    const result = response.writeTo(this.#coreResponse);
-
-    this.#responsePromise.resolve(result);
-    return result;
-  }
-
-  /**
-   * Returns when the underlying response has been closed successfully (after
-   * all of the response is believed to be sent) or has errored. Returns `true`
-   * for a normal close, or throws whatever error the response reports.
-   *
-   * @returns {boolean} `true` when closed without error.
-   * @throws {Error} Any error reported by the underlying response object.
-   */
-  async whenResponseDone() {
-    return this.#responsePromise.promise;
   }
 
   /**

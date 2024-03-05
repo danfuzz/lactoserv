@@ -438,7 +438,7 @@ export class ProtocolWrangler {
 
     try {
       const requestContext = new RequestContext(this.interface, context.remoteInfo);
-      const request        = new Request(requestContext, req, res, this.#requestLogger);
+      const request        = new Request(requestContext, req, this.#requestLogger);
 
       logger?.incomingRequest({
         ...context.ids,
