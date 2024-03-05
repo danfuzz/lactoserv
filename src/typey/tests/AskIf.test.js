@@ -237,6 +237,47 @@ describe('object()', () => {
   });
 });
 
+describe('string', () => {
+  test.each`
+  arg
+  ${undefined}
+  ${null}
+  ${true}
+  ${123}
+  ${123n}
+  ${Symbol('x')}
+  `('returns `false` given $arg', ({ arg }) => {
+    expect(AskIf.string(arg)).toBeFalse();
+  });
+
+  test.each`
+  arg
+  ${''}
+  ${'x'}
+  ${'floop!'}
+  `('returns `true` given string `$arg`', ({ arg }) => {
+    expect(AskIf.string(arg)).toBeTrue();
+  });
+
+  test('throws given an invalid match `match`', () => {
+    expect(() => AskIf.string('x', ['boop'])).toThrow();
+  });
+
+  test.each`
+  value     | match                        | expected
+  ${'x'}    | ${null}                      | ${true}
+  ${123}    | ${null}                      | ${false}
+  ${'xyz'}  | ${/y/}                       | ${true}
+  ${'xyz'}  | ${/w/}                       | ${false}
+  ${'abc'}  | ${'^ab'}                     | ${true}
+  ${'abc'}  | ${'z'}                       | ${false}
+  ${'boop'} | ${new Set(['beep', 'boop'])} | ${true}
+  ${'bop'}  | ${new Set(['zip', 'zap'])}   | ${false}
+  `('returns $expected given ($value, $match)', ({ value, match, expected }) => {
+    expect(AskIf.string(value, match)).toBe(expected);
+  });
+});
+
 describe('subclassOf()', () => {
   describe('on non-classes', () => {
     test.each`

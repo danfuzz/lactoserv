@@ -300,11 +300,11 @@ export class AskIf {
 
   /**
    * Checks for type `string`, optionally matching a particular regular
-   * expression.
+   * expression or set of values.
    *
    * @param {*} value Arbitrary value.
-   * @param {?RegExp|string} [match] Optional regular expression that
-   *  `value` must match.
+   * @param {?RegExp|string|Set<string>} [match] Optional regular expression
+   *  (either per se or as a string) or set of values that `value` must match.
    * @returns {boolean} `true` iff `value` is of the indicated type.
    */
   static string(value, match = null) {
@@ -312,13 +312,16 @@ export class AskIf {
       return false;
     }
 
-    if (match) {
-      if (typeof match === 'string') {
-        match = new RegExp(match);
-      }
-      if (!match.test(value)) {
-        return false;
-      }
+    if (match === null) {
+      return true;
+    } else if (typeof match === 'string') {
+      return new RegExp(match).test(value);
+    } else if (match instanceof RegExp) {
+      return match.test(value);
+    } else if (match instanceof Set) {
+      return match.has(value);
+    } else {
+      throw new Error('Unrecognized type for `match`.');
     }
 
     return true;
