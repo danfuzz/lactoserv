@@ -226,6 +226,17 @@ With regards to the other options, when a request is filtered out, the result is
 that the application simply _doesn't handle_ the request, meaning that the
 request will get re-dispatched to the next application in the chain (if any).
 
+```js
+const applications = [
+  {
+    name:          'myCustomApp',
+    class:         'SomeSubclass',
+    acceptQueries: false,
+    acceptMethods: ['delete', 'put']
+  }
+];
+```
+
 ### `Redirector`
 
 An application which responds to all requests with an HTTP "redirect" response.
@@ -242,11 +253,12 @@ it accepts the following bindings:
 ```js
 const applications = [
   {
-    name:         'myRedirector',
-    class:        'Redirector',
-    statusCode:   308,
-    target:       'https://example.com/boop/',
-    cacheControl: { public: true, maxAge: '5 min' }
+    name:          'myRedirector',
+    class:         'Redirector',
+    statusCode:    308,
+    target:        'https://example.com/boop/',
+    cacheControl:  { public: true, maxAge: '5 min' },
+    acceptMethods: ['head', 'get']
   }
 ];
 ```
@@ -288,11 +300,13 @@ by a `filePath` behaves.
 ```js
 const applications = [
   {
-    name:        'literal',
-    class:       'SimpleResponse',
-    contentType: 'text/plain',
-    body:        'Hello!\n',
-    cacheControl: { public: true, maxAge: '1_day' }
+    name:                'literal',
+    class:               'SimpleResponse',
+    contentType:         'text/plain',
+    body:                'Hello!\n',
+    cacheControl:        { public: true, maxAge: '1_day' },
+    maxPathLength:       0,
+    redirectDirectories: true
   },
   {
     name:         'fromFile',
