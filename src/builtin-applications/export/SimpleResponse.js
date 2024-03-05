@@ -130,7 +130,10 @@ export class SimpleResponse extends BaseApplication {
      * @param {object} config Configuration object.
      */
     constructor(config) {
-      super(config);
+      super({
+        acceptMethods: ['get', 'head'],
+        ...config
+      });
 
       const {
         body         = null,

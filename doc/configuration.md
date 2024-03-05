@@ -205,7 +205,7 @@ the following configuration bindings:
 * `acceptQueries` &mdash; Boolean indicating whether or not to accept requests
   that include a "query" (search) component. Defaults to `true`.
 * `acceptMethods` &mdash; Array of strings indicating which request methods to
-  accept. The array can include any of `connect`, `delete`, `head`, `get`,
+  accept. The array can include any of `connect`, `delete`, `get`, `head`,
   `options`, `patch`, `post`, `put`, and/or `trace`. Defaults to the entire set.
 * `maxPathLength` &mdash; Number indicating the maximum allowed length of a
   dispatched request path not including the mount point, and not including the
@@ -270,6 +270,8 @@ like `StaticFiles`, except just one file. In addition to the
 [`BaseApplication`](#baseapplication) configuration options, it accepts the
 following configuration bindings:
 
+* `acceptMethods` &mdash; `BaseApplication` configuration, but in this case the
+  default is `['get', 'head']`.
 * `body` &mdash; Optional body contents to respond with. If specified, this must
   be either a string or a Node `Buffer` object.
 * `contentType` &mdash; Content type to report. This can be either a MIME type
