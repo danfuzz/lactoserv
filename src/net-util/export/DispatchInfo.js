@@ -164,14 +164,9 @@ export class DispatchInfo {
     const base    = this.#base;
     const baseLen = base.length;
 
-    if (n < baseLen) {
-      return base.path[n];
-    }
-
-    const extra    = this.#extra;
-    const extraLen = extra.length;
-
-    return extra.path[n - baseLen];
+    return (n < baseLen)
+      ? base.path[n]
+      : this.#extra.path[n - baseLen];
   }
 
   /**
