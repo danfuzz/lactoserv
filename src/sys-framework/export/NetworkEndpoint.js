@@ -6,7 +6,8 @@ import { IntfLogger } from '@this/loggy';
 import { IntfRateLimiter, IntfRequestLogger, ProtocolWrangler,
   ProtocolWranglers }
   from '@this/net-protocol';
-import { DispatchInfo, IntfRequestHandler, Response } from '@this/net-util';
+import { DispatchInfo, IntfRequestHandler, OutgoingResponse }
+  from '@this/net-util';
 import { EndpointConfig, MountConfig } from '@this/sys-config';
 
 import { BaseApplication } from '#x/BaseApplication';
@@ -123,7 +124,7 @@ export class NetworkEndpoint extends BaseComponent {
 
       try {
         const result = await application.handleRequest(request, dispatch);
-        if ((result instanceof Response) || (result === null)) {
+        if ((result instanceof OutgoingResponse) || (result === null)) {
           return result;
         } else {
           // Caught immediately below.

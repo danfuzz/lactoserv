@@ -9,7 +9,8 @@ import * as net from 'node:net';
 import { Threadlet } from '@this/async';
 import { ProductInfo } from '@this/host';
 import { IntfLogger } from '@this/loggy';
-import { IntfRequestHandler, Request, RequestContext, Response } from '@this/net-util';
+import { IncomingRequest, IntfRequestHandler, OutgoingResponse, RequestContext }
+  from '@this/net-util';
 import { Methods, MustBe } from '@this/typey';
 
 import { IntfHostManager } from '#x/IntfHostManager';
@@ -37,9 +38,10 @@ export class ProtocolWrangler {
   #logger;
 
   /**
-   * @type {?IntfLogger} Logger to use for {@link Request}s, or `null` to not do
-   * any logging. This is passed into the {@link Request} constructor, which
-   * will end up making a sub-logger with a generated request ID.
+   * @type {?IntfLogger} Logger to use for {@link IncomingRequest}s, or `null`
+   * to not do any logging. This is passed into the {@link IncomingRequest}
+   * constructor, which will end up making a sub-logger with a generated request
+   * ID.
    */
   #requestLogger;
 
@@ -141,7 +143,8 @@ export class ProtocolWrangler {
 
     // Confusion alert!: This is not the same as the `requestLogger` (a "request
     // logger") per se) passed in as an option. This is the sub-logger of the
-    // _system_ logger, which is used for detailed logging inside `Request`.
+    // _system_ logger, which is used for detailed logging inside
+    // `IncomingRequest`.
     this.#requestLogger = logger?.req ?? null;
   }
 
@@ -373,8 +376,8 @@ export class ProtocolWrangler {
    * **Note:** There is nothing set up to catch errors thrown by this method. It
    * is not supposed to `throw` (directly or indirectly).
    *
-   * @param {Request} request Request object.
-   * @returns {Response} The response to send.
+   * @param {IncomingRequest} request Request object.
+   * @returns {OutgoingResponse} The response to send.
    */
   async #handleRequest(request) {
     if (!request.pathnameString) {
@@ -386,20 +389,20 @@ export class ProtocolWrangler {
       // echo $'GET * HTTP/1.1\r\nHost: milk.com\r\n\r' \
       //   | curl telnet://localhost:8080
       // ```
-      return Response.makeMetaResponse(400); // "Bad Request."
+      return OutgoingResponse.makeMetaResponse(400); // "Bad Request."
     }
 
     try {
       const result = await this.#requestHandler.handleRequest(request, null);
 
-      if (result instanceof Response) {
+      if (result instanceof OutgoingResponse) {
         return result;
       } else if (result === null) {
         // The configured `requestHandler` didn't actually handle the request.
         // Respond with a vanilla `404` error. (If the client wants something
         // fancier, they can do it themselves.)
         const bodyExtra = request.urlForLogging;
-        return Response.makeNotFound({ bodyExtra });
+        return OutgoingResponse.makeNotFound({ bodyExtra });
       } else {
         // Caught by our direct caller, `#respondToRequest()`.
         throw new Error(`Strange result from \`handleRequest\`: ${result}`);
@@ -407,7 +410,7 @@ export class ProtocolWrangler {
     } catch (e) {
       // `500` == "Internal Server Error."
       const bodyExtra = e.stack ?? e.message ?? '<unknown>';
-      return Response.makeMetaResponse(500, { bodyExtra });
+      return OutgoingResponse.makeMetaResponse(500, { bodyExtra });
     }
   }
 
@@ -438,7 +441,7 @@ export class ProtocolWrangler {
 
     try {
       const requestContext = new RequestContext(this.interface, context.remoteInfo);
-      const request        = new Request(requestContext, req, res, this.#requestLogger);
+      const request        = new IncomingRequest(requestContext, req, this.#requestLogger);
 
       logger?.incomingRequest({
         ...context.ids,
@@ -509,14 +512,14 @@ export class ProtocolWrangler {
    * **Note:** There is nothing set up to catch errors thrown by this method. It
    * is not supposed to `throw` (directly or indirectly).
    *
-   * @param {Request} request Request object.
+   * @param {IncomingRequest} request Request object.
    * @param {WranglerContext} outerContext The outer context of `request`.
    * @param {Http2ServerResponse|ServerResponse} res Low-level response object.
    */
   async #respondToRequest(request, outerContext, res) {
     const reqLogger = request.logger;
 
-    let result;
+    let result      = null;
     let closeSocket = false;
 
     try {
@@ -527,22 +530,22 @@ export class ProtocolWrangler {
           // sent. Then just thwack the underlying socket. The hope is that the
           // waiting above will make it likely that the far side will actually
           // see the 503 ("Service Unavailable") response.
-          result      = request.respond(Response.makeMetaResponse(503));
+          result      = OutgoingResponse.makeMetaResponse(503);
           closeSocket = true;
         }
       }
 
-      result = await this.#handleRequest(request, outerContext);
+      result ??= await this.#handleRequest(request, outerContext);
     } catch (e) {
       // `500` == "Internal Server Error."
       const bodyExtra = e.stack ?? e.message ?? '<unknown error>';
-      result = Response.makeMetaResponse(500, { bodyExtra });
+      result = OutgoingResponse.makeMetaResponse(500, { bodyExtra });
     }
 
     try {
       res.setHeader('Server', this.#serverHeader);
 
-      const responseSent = request.respond(result);
+      const responseSent = result.writeTo(res);
 
       if (this.#logHelper) {
         // Note: In order for it to be able to log the duration of the request
@@ -554,11 +557,20 @@ export class ProtocolWrangler {
 
       await responseSent;
     } catch (e) {
-      // Shouldn't happen, but we probably can't actually let the client know in
-      // any _good_ way, since the call to `respond()` probably already started
-      // the response. So we do what little we can that might help, and then
-      // just close the socket and hope for the best.
-      reqLogger?.errorDuringRespond(e);
+      // This can happen when the connection gets closed from the other side
+      // when in the middle of responding, in which case the error is ignorable
+      // here, as it'll show up as a connection error when logging the request.
+      // But other errors -- which probably shouldn't ever happen -- are worth
+      // logging, as possible bugs in this project.
+      //
+      // In any case, we probably can't actually let the remote side know about
+      // the problem in any _good_ way, since the call to `respond()` probably
+      // already started the response, or the connection is already closed. So
+      // we do what little we can that might help, and then just close the
+      // socket (if it isn't already), and hope for the best.
+      if (e.code !== 'ECONNRESET') {
+        reqLogger?.errorWhileWritingResponse(e);
+      }
       res.statusCode = 500; // "Internal Server Error."
       res.end();
       closeSocket = true;

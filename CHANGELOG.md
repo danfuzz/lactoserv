@@ -8,15 +8,20 @@ versioning principles. Unstable releases do not.
 
 Breaking changes:
 * `net-protocol` / `net-util`:
-  * Moved `DispatchInfo`, `IntfRequestHandler`, and `Request` from the former to
-    the latter.
-  * Changed the constructor of `Request` to take a `RequestContext` instead of a
-    `WranglerContext` (the latter which is a private class in `net-protocol`).
-  * Renamed `HttpResponse` to just `Response`.
+  * Moved `DispatchInfo`, `IntfRequestHandler`, and `Request` into `net-util`.
+  * Renamed `Request` to `IncomingRequest`, for ease of search and to avoid a
+    conflict with the Fetch API global `Request`.
+  * Renamed `HttpResponse` to `OutgoingResponse` to harmonize with
+    `IncomingRequest`.
+  * `IncomingRequest`:
+    * Changed the constructor of to take a `RequestContext` instead of a
+      `WranglerContext` (the latter which is a private class in `net-protocol`).
+    * Removed all the functionality related to responding.
   * Changed the `IntfRequestHandler` API so that the return value is the
     response to send, instead of expecting the handler to do the sending. This
     enables a pattern where a request handler can be "wrapped" by another one
-    which gets a chance to modify the response before bubbling it up further.
+    which gets a chance to modify the response before bubbling it up further. It
+    also makes handler implementations much easier to test; no mocking required!
 
 Other notable changes:
 * `net-protocol`: Stopped using Express as a layer between the Node `http*`

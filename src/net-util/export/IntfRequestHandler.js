@@ -4,8 +4,8 @@
 import { Methods } from '@this/typey';
 
 import { DispatchInfo } from '#x/DispatchInfo';
-import { Request } from '#x/Request';
-import { Response } from '#x/Response';
+import { IncomingRequest } from '#x/IncomingRequest';
+import { OutgoingResponse } from '#x/OutgoingResponse';
 
 
 /**
@@ -21,13 +21,13 @@ export class IntfRequestHandler {
    * was not handled.
    *
    * @abstract
-   * @param {Request} request Request object.
+   * @param {IncomingRequest} request Request object.
    * @param {?DispatchInfo} dispatch Dispatch information, or `null` if no
    *   dispatch determination was made before calling this instance. (On any
    *   given instance -- depending on context -- it should be the case that it
    *   either _always_ or _never_ gets passed `null` for this parameter.)
-   * @returns {?Response} Response to send, or `null` if the request was not in
-   *   fact handled by this instance.
+   * @returns {?OutgoingResponse} Response to send, or `null` if the request was
+   *   not in fact handled by this instance.
    * @throws {Error} Thrown in case of fatal error.
    */
   async handleRequest(request, dispatch) {

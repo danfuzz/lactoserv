@@ -3,7 +3,8 @@
 
 import * as timers from 'node:timers/promises';
 
-import { ManualPromise, PromiseState, PromiseUtil, Threadlet } from '@this/async';
+import { ManualPromise, PromiseState, PromiseUtil, Threadlet }
+  from '@this/async';
 
 
 describe('constructor(function)', () => {

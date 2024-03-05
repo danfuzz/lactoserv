@@ -178,7 +178,7 @@ function fixItems(items, withLocals, array, i, len, multiline) {
     }
 
     items = items " }";
-    if (multiline) {
+    if (multiline || (len > 50)) {
         items = items "\\n ";
     }
     return items;

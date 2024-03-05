@@ -5,16 +5,16 @@ import { TreePathKey } from '@this/collections';
 import { BaseConverter, Struct } from '@this/data-values';
 import { MustBe } from '@this/typey';
 
-import { Request } from '#x/Request';
+import { IncomingRequest } from '#x/IncomingRequest';
 
 
 /**
- * Dispatch information related to a {@link Request}.
+ * Dispatch information related to an {@link IncomingRequest}.
  *
- * The idea here is that {@link Request} objects are treated in a way that's as
- * immutable as possible (even if we don't quite achieve it), so we need
- * somewhere -- that is, instances of this class -- to hold the ephemera of the
- * request dispatch process.
+ * The idea here is that {@link IncomingRequest} objects are treated in a way
+ * that's as immutable as possible (even if we don't quite achieve it), so we
+ * need somewhere -- that is, instances of this class -- to hold the ephemera of
+ * the request dispatch process.
  */
 export class DispatchInfo {
   /** @type {TreePathKey} The base path. */
