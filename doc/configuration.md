@@ -229,7 +229,8 @@ request will get re-dispatched to the next application in the chain (if any).
 ### `Redirector`
 
 An application which responds to all requests with an HTTP "redirect" response.
-It accepts the following configuration bindings:
+In addition to the [`BaseApplication`](#baseapplication) configuration options,
+it accepts the following bindings:
 
 * `statusCode` &mdash; Optional HTTP status code to respond with. If not
   specified, it defaults to `301` ("Moved Permanently").
