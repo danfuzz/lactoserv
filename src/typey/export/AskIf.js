@@ -61,15 +61,17 @@ export class AskIf {
    * Checks for type `string[]`.
    *
    * @param {*} value Arbitrary value.
+   * @param {?RegExp|string|Set<string>} [match] Optional regular expression
+   *  (either per se or as a string) or set of values that `value` must match.
    * @returns {boolean} `true` iff `value` is of the indicated type.
    */
-  static arrayOfString(value) {
+  static arrayOfString(value, match = null) {
     if (!Array.isArray(value)) {
       return false;
     }
 
     for (const v of value) {
-      if (typeof v !== 'string') {
+      if (!AskIf.string(v, match)) {
         return false;
       }
     }
