@@ -8,7 +8,12 @@ versioning principles. Unstable releases do not.
 
 This is the first release where Express is _not_ a project dependency. This
 release also changes our framework to no longer have a "callback-style" model,
-which has several benefits.
+which has several benefits, including making the system much easier to test; no
+mocking required! Relatedly, it makes the system easier to reason about (and
+hence to debug). And it opens up some great possibilities for defining new
+request flows, including a pattern where a request handler can be "wrapped" by
+another one which gets a chance to replace (including effectively modify) the
+response before bubbling it up further.
 
 Breaking changes:
 * `net-protocol` / `net-util`:
@@ -22,11 +27,8 @@ Breaking changes:
       `WranglerContext` (the latter which is a private class in `net-protocol`).
     * Removed all the functionality related to responding.
   * Changed the `IntfRequestHandler` API so that the return value is the
-    response to send, instead of expecting the handler to do the sending. This
-    enables a pattern where a request handler can be "wrapped" by another one
-    which gets a chance to replace (including effectively modify) the response
-    before bubbling it up further. It also makes handler implementations much
-    easier to test; no mocking required!
+    response to send, instead of expecting the handler to do the sending. That
+    is, it no longer uses callbacks to send responses.
 
 Other notable changes:
 * `net-protocol`: Stopped using Express as a layer between the Node `http*`
