@@ -6,6 +6,10 @@ versioning principles. Unstable releases do not.
 
 ### [Unreleased]
 
+This is the first release where Express is _not_ a project dependency. This
+release also changes our framework to no longer be in a "callback-style" model,
+which has several benefits.
+
 Breaking changes:
 * `net-protocol` / `net-util`:
   * Moved `DispatchInfo`, `IntfRequestHandler`, and `Request` into `net-util`.
@@ -20,8 +24,9 @@ Breaking changes:
   * Changed the `IntfRequestHandler` API so that the return value is the
     response to send, instead of expecting the handler to do the sending. This
     enables a pattern where a request handler can be "wrapped" by another one
-    which gets a chance to modify the response before bubbling it up further. It
-    also makes handler implementations much easier to test; no mocking required!
+    which gets a chance to replace (including effictively modify) the response
+    before bubbling it up further. It also makes handler implementations much
+    easier to test; no mocking required!
 
 Other notable changes:
 * `net-protocol`: Stopped using Express as a layer between the Node `http*`
@@ -59,6 +64,10 @@ Other notable changes:
     this means it should be much easier to get test coverage reports working.
 
 ### v0.6.6 -- 2024-02-18
+
+This release represents a major step towards (a) switching away from a
+callback-based control flow for the request/response cycle, and (b) dropping
+Express as a dependency.
 
 Breaking changes:
 * Tweaked the contract of `contentType` bindings in configurations, to help
