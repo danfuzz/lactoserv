@@ -34,6 +34,9 @@ Other notable changes:
 * `net-util`:
   * Removed the small amount of remaining Express-specific code.
   * New class `RequestContext`.
+* `sys-framework` / `builtin-applications`: Added optional configuration of
+  `BaseApplication` to filter out (not respond to) or redirect requests based on
+  the incoming URI. Added this configuration to all of the built-in apps.
 
 ### v0.6.7 -- 2024-02-29
 
