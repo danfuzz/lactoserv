@@ -7,7 +7,7 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 This is the first release where Express is _not_ a project dependency. This
-release also changes our framework to no longer be in a "callback-style" model,
+release also changes our framework to no longer have a "callback-style" model,
 which has several benefits.
 
 Breaking changes:
