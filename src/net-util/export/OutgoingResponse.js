@@ -817,7 +817,7 @@ export class OutgoingResponse {
     const responseError   = res.errored;
     const statusCode      = res.statusCode;
     const headers         = res.getHeaders();
-    const contentLength   = headers['content-length'] ?? 0;
+    const contentLength   = headers['content-length'] ?? null;
 
     const result = {
       ok:         true,

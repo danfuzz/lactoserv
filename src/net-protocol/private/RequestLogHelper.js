@@ -78,6 +78,10 @@ export class RequestLogHelper {
 
     logger?.response(finalInfo);
 
+    const contentLengthStr = (contentLength === null)
+      ? 'no-body'
+      : FormatUtils.byteCountString(contentLength, { spaces: false });
+
     const requestLogLine = [
       endTime.toString({ decimals: 4 }),
       reqInfo.origin,
@@ -85,7 +89,7 @@ export class RequestLogHelper {
       reqInfo.method,
       JSON.stringify(reqInfo.url),
       statusCode,
-      FormatUtils.byteCountString(contentLength, { spaces: false }),
+      contentLengthStr,
       duration.toString({ spaces: false }),
       codeStr
     ].join(' ');
