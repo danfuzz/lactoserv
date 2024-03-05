@@ -121,7 +121,7 @@ const applications = [
     class:        'Redirector',
     statusCode:   308,
     target:       'https://localhost:8443/resp/',
-    cacheControl: { public: true, maxAge: '5 min' },
+    cacheControl: { public: true, maxAge: '5 min' }
   },
   {
     name:          'myStaticFun',
@@ -135,7 +135,7 @@ const applications = [
     name:          'myStaticFunNo404',
     class:         'StaticFiles',
     siteDirectory: filePath('../site'),
-    cacheControl:  { public: true, maxAge: '5 min' },
+    cacheControl:  { public: true, maxAge: '5 min' }
   },
   {
     name:         'responseEmptyBody',
