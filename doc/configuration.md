@@ -219,8 +219,11 @@ the following configuration bindings:
   not ending with an empty path component) should be automatically redirected to
   the directory version of the path. Defaults to `false`.
 
-With regards to the `redirect*` options, it is an error to specify both as
-`true`.
+With regards to the `redirect*` options:
+* It is an error to specify both as `true`.
+* The redirection (or not) is entirely based on the form of the path, not on any
+  file contents (for example). Notably, [`StaticFiles`](#staticfiles) does
+  _content_-driven redirection, which is different than what is done here.
 
 With regards to the other options, when a request is filtered out, the result is
 that the application simply _doesn't handle_ the request, meaning that the
@@ -325,9 +328,13 @@ const applications = [
 
 ### `StaticFiles`
 
-An application which serves static files from a local directory. It accepts the
-following configuration bindings:
+An application which serves static files from a local directory. In addition to
+most of the [`BaseApplication`](#baseapplication) configuration options (all
+but the `redirect*` options, which could cause chaos in this case), it accepts
+the following configuration bindings:
 
+* `acceptMethods` &mdash; `BaseApplication` configuration, but in this case the
+  default is `['get', 'head']`.
 * `etag` &mdash; ETag-generating options. If present and not `false`, the
   response comes with an `ETag` header. See "ETag Configuration" below for
   details.

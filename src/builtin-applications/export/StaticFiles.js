@@ -7,7 +7,6 @@ import { Paths, Statter } from '@this/fs-util';
 import { IntfLogger } from '@this/loggy';
 import { DispatchInfo, EtagGenerator, HttpUtil, MimeTypes, OutgoingResponse }
   from '@this/net-util';
-import { ApplicationConfig } from '@this/sys-config';
 import { BaseApplication } from '@this/sys-framework';
 
 
@@ -254,7 +253,7 @@ export class StaticFiles extends BaseApplication {
   /**
    * Configuration item subclass for this (outer) class.
    */
-  static #Config = class Config extends ApplicationConfig {
+  static #Config = class Config extends BaseApplication.FilterConfig {
     /**
      * @type {?string} Path to the file to serve for a not-found result, or
      * `null` if not-found handling shouldn't be done.
@@ -282,7 +281,14 @@ export class StaticFiles extends BaseApplication {
      * @param {object} config Configuration object.
      */
     constructor(config) {
-      super(config);
+      super({
+        acceptMethods: ['get', 'head'],
+        ...config,
+
+        // These are always disabled. See configuration docs for explanation.
+        redirectDirectories: false,
+        redirectFiles:       false
+      });
 
       const {
         cacheControl = null,
