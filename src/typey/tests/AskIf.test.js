@@ -6,6 +6,69 @@ import { AskIf } from '@this/typey';
 
 // TODO: Almost everything.
 
+describe('arrayOfString()', () => {
+  test.each`
+  arg
+  ${'x'}
+  ${undefined}
+  ${null}
+  ${true}
+  ${123}
+  ${123n}
+  ${{ x: 'x' }}
+  ${Symbol('x')}
+  ${[false]}
+  ${['x', null]}
+  ${[[], 'x']}
+  `('returns `false` given $arg', ({ arg }) => {
+    expect(AskIf.arrayOfString(arg)).toBeFalse();
+  });
+
+  test.each`
+  arg
+  ${[]}
+  ${['x']}
+  ${['floop!']}
+  ${['a', 'b', 'c']}
+  `('returns `true` given `$arg`', ({ arg }) => {
+    expect(AskIf.arrayOfString(arg)).toBeTrue();
+  });
+
+  test('throws given an invalid match `match`', () => {
+    expect(() => AskIf.arrayOfString(['x'], ['boop'])).toThrow();
+  });
+
+  test.each`
+  value               | match                        | expected
+  ${[]}               | ${null}                      | ${true}
+  ${['x']}            | ${null}                      | ${true}
+  ${['x', 'y']}       | ${null}                      | ${true}
+  ${123}              | ${null}                      | ${false}
+  ${123}              | ${/blorp/}                   | ${false}
+  ${123}              | ${new Set(['x'])}            | ${false}
+  ${[123]}            | ${null}                      | ${false}
+  ${[123]}            | ${/blorp/}                   | ${false}
+  ${[123]}            | ${new Set(['x'])}            | ${false}
+  ${['x', 123]}       | ${null}                      | ${false}
+  ${[123, 'b']}       | ${/b/}                       | ${false}
+  ${['x', 123]}       | ${new Set(['x'])}            | ${false}
+  ${['xyz']}          | ${/y/}                       | ${true}
+  ${['xyz', 'y']}     | ${/y/}                       | ${true}
+  ${['xyz']}          | ${/w/}                       | ${false}
+  ${['xyz', 'w']}     | ${/w/}                       | ${false}
+  ${['abc']}          | ${'^ab'}                     | ${true}
+  ${['abc', 'abd']}   | ${'^ab'}                     | ${true}
+  ${['abc']}          | ${'z'}                       | ${false}
+  ${['abc', 'z']}     | ${'z'}                       | ${false}
+  ${['boop']}         | ${new Set(['beep', 'boop'])} | ${true}
+  ${['boop', 'beep']} | ${new Set(['beep', 'boop'])} | ${true}
+  ${['bop']}          | ${new Set(['zip', 'zap'])}   | ${false}
+  ${['bop', 'zip']}   | ${new Set(['zip', 'zap'])}   | ${false}
+  `('returns $expected given ($value, $match)', ({ value, match, expected }) => {
+    expect(AskIf.arrayOfString(value, match)).toBe(expected);
+  });
+});
+
 describe('callableFunction()', () => {
   describe('non-functions', () => {
     test.each`
@@ -234,6 +297,51 @@ describe('object()', () => {
   ${new Map()}
   `('returns `true` given $value', ({ value }) => {
     expect(AskIf.object(value)).toBeTrue();
+  });
+});
+
+describe('string()', () => {
+  test.each`
+  arg
+  ${undefined}
+  ${null}
+  ${true}
+  ${123}
+  ${123n}
+  ${Symbol('x')}
+  ${['x']}
+  ${{ x: 'x' }}
+  `('returns `false` given $arg', ({ arg }) => {
+    expect(AskIf.string(arg)).toBeFalse();
+  });
+
+  test.each`
+  arg
+  ${''}
+  ${'x'}
+  ${'floop!'}
+  `('returns `true` given string `$arg`', ({ arg }) => {
+    expect(AskIf.string(arg)).toBeTrue();
+  });
+
+  test('throws given an invalid match `match`', () => {
+    expect(() => AskIf.string('x', ['boop'])).toThrow();
+  });
+
+  test.each`
+  value     | match                        | expected
+  ${'x'}    | ${null}                      | ${true}
+  ${123}    | ${null}                      | ${false}
+  ${123}    | ${/blorp/}                   | ${false}
+  ${123}    | ${new Set(['x'])}            | ${false}
+  ${'xyz'}  | ${/y/}                       | ${true}
+  ${'xyz'}  | ${/w/}                       | ${false}
+  ${'abc'}  | ${'^ab'}                     | ${true}
+  ${'abc'}  | ${'z'}                       | ${false}
+  ${'boop'} | ${new Set(['beep', 'boop'])} | ${true}
+  ${'bop'}  | ${new Set(['zip', 'zap'])}   | ${false}
+  `('returns $expected given ($value, $match)', ({ value, match, expected }) => {
+    expect(AskIf.string(value, match)).toBe(expected);
   });
 });
 

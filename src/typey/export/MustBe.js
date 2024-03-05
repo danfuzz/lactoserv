@@ -53,15 +53,21 @@ export class MustBe {
    * Checks for type `string[]`.
    *
    * @param {*} value Arbitrary value.
+   * @param {?RegExp|string|Set<string>} [match] Optional regular expression
+   *  (either per se or as a string) or set of values that `value` must match.
    * @returns {string[]} `value` if it is of the indicated type.
    * @throws {Error} Thrown if `value` is of any other type.
    */
-  static arrayOfString(value) {
-    if (AskIf.arrayOfString(value)) {
+  static arrayOfString(value, match = null) {
+    if (AskIf.arrayOfString(value, null)) {
       return value;
     }
 
-    throw new Error('Must be of type `string[]`.');
+    if (match) {
+      throw new Error(`Must be of type \`string[]\` and match: ${match}`);
+    } else {
+      throw new Error('Must be of type `string[]`.');
+    }
   }
 
   /**
@@ -253,11 +259,11 @@ export class MustBe {
 
   /**
    * Checks for type `string`, optionally matching a particular regular
-   * expression.
+   * expression or set of values.
    *
    * @param {*} value Arbitrary value.
-   * @param {?RegExp|string} [match] Optional regular expression that
-   *  `value` must match.
+   * @param {?RegExp|string|Set<string>} [match] Optional regular expression
+   *  (either per se or as a string) or set of values that `value` must match.
    * @returns {string} `value` if it is of the indicated type.
    * @throws {Error} Thrown if `value` is of any other type or doesn't match.
    */
@@ -267,7 +273,7 @@ export class MustBe {
     }
 
     if (match) {
-      throw new Error(`Must be of type \`string\` and match pattern: ${match}`);
+      throw new Error(`Must be of type \`string\` and match: ${match}`);
     } else {
       throw new Error('Must be of type `string`.');
     }

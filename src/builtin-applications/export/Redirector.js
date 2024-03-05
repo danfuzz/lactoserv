@@ -76,7 +76,7 @@ export class Redirector extends BaseApplication {
   /**
    * Configuration item subclass for this (outer) class.
    */
-  static #Config = class Config extends ApplicationConfig {
+  static #Config = class Config extends BaseApplication.FilterConfig {
     /** @type {number} The redirect status code to use. */
     #statusCode;
 

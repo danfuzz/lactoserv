@@ -121,7 +121,7 @@ const applications = [
     class:        'Redirector',
     statusCode:   308,
     target:       'https://localhost:8443/resp/',
-    cacheControl: { public: true, maxAge: '5 min' },
+    cacheControl: { public: true, maxAge: '5 min' }
   },
   {
     name:          'myStaticFun',
@@ -135,7 +135,7 @@ const applications = [
     name:          'myStaticFunNo404',
     class:         'StaticFiles',
     siteDirectory: filePath('../site'),
-    cacheControl:  { public: true, maxAge: '5 min' },
+    cacheControl:  { public: true, maxAge: '5 min' }
   },
   {
     name:         'responseEmptyBody',
@@ -159,15 +159,19 @@ const applications = [
       hashAlgorithm: 'sha1',
       hashLength:    12,
       tagForm:       'weak'
-    }
+    },
+    maxPathLength:       0,
+    redirectDirectories: true
   },
   {
-    name:         'responseTwo',
-    class:        'SimpleResponse',
-    contentType:  'text/html',
-    body:         '<html><body><h1>Two!</h1></body></html>\n',
-    cacheControl: { public: true, immutable: true, maxAge: '13 min'  },
-    etag:         true
+    name:                'responseTwo',
+    class:               'SimpleResponse',
+    contentType:         'text/html',
+    body:                '<html><body><h1>Two!</h1></body></html>\n',
+    cacheControl:        { public: true, immutable: true, maxAge: '13 min'  },
+    etag:                true,
+    maxPathLength:       0,
+    redirectDirectories: true
   }
 ];
 

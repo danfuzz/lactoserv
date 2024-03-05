@@ -196,10 +196,55 @@ hostname. (It will not fall back to less specific hostnames.)
 
 ## Built-in Applications
 
+### `BaseApplication`
+
+`BaseApplication` can be subclassed to implement custom behavior. In addition,
+it optionally provides request filtering for application subclasses. It accepts
+the following configuration bindings:
+
+* `acceptQueries` &mdash; Boolean indicating whether or not to accept requests
+  that include a "query" (search) component. Defaults to `true`.
+* `acceptMethods` &mdash; Array of strings indicating which request methods to
+  accept. The array can include any of `connect`, `delete`, `get`, `head`,
+  `options`, `patch`, `post`, `put`, and/or `trace`. Defaults to the entire set.
+* `maxPathLength` &mdash; Number indicating the maximum allowed length of a
+  dispatched request path not including the mount point, and not including the
+  empty path component at the end of a directory path. `null` indicates "no
+  limit." Defaults to `null`.
+* `redirectDirectories` &mdash; Boolean indicating whether or not directory
+  paths (those ending with an empty path component) should be automatically
+  redirected to the file (non-directory) version of the path. Defaults to
+  `false`.
+* `redirectFiles` &mdash; Boolean indicating whether or not file paths (those
+  not ending with an empty path component) should be automatically redirected to
+  the directory version of the path. Defaults to `false`.
+
+With regards to the `redirect*` options:
+* It is an error to specify both as `true`.
+* The redirection (or not) is entirely based on the form of the path, not on any
+  file contents (for example). Notably, [`StaticFiles`](#staticfiles) does
+  _content_-driven redirection, which is different than what is done here.
+
+With regards to the other options, when a request is filtered out, the result is
+that the application simply _doesn't handle_ the request, meaning that the
+request will get re-dispatched to the next application in the chain (if any).
+
+```js
+const applications = [
+  {
+    name:          'myCustomApp',
+    class:         'SomeSubclass',
+    acceptQueries: false,
+    acceptMethods: ['delete', 'put']
+  }
+];
+```
+
 ### `Redirector`
 
 An application which responds to all requests with an HTTP "redirect" response.
-It accepts the following configuration bindings:
+In addition to the [`BaseApplication`](#baseapplication) configuration options,
+it accepts the following bindings:
 
 * `statusCode` &mdash; Optional HTTP status code to respond with. If not
   specified, it defaults to `301` ("Moved Permanently").
@@ -211,11 +256,12 @@ It accepts the following configuration bindings:
 ```js
 const applications = [
   {
-    name:         'myRedirector',
-    class:        'Redirector',
-    statusCode:   308,
-    target:       'https://example.com/boop/',
-    cacheControl: { public: true, maxAge: '5 min' }
+    name:          'myRedirector',
+    class:         'Redirector',
+    statusCode:    308,
+    target:        'https://example.com/boop/',
+    cacheControl:  { public: true, maxAge: '5 min' },
+    acceptMethods: ['head', 'get']
   }
 ];
 ```
@@ -223,9 +269,12 @@ const applications = [
 ### `SimpleResponse`
 
 An application which only ever sends one particular response. It's approximately
-like `StaticFiles`, except just one file. It accepts the following configuration
-bindings:
+like `StaticFiles`, except just one file. In addition to the
+[`BaseApplication`](#baseapplication) configuration options, it accepts the
+following configuration bindings:
 
+* `acceptMethods` &mdash; `BaseApplication` configuration, but in this case the
+  default is `['get', 'head']`.
 * `body` &mdash; Optional body contents to respond with. If specified, this must
   be either a string or a Node `Buffer` object.
 * `contentType` &mdash; Content type to report. This can be either a MIME type
@@ -256,11 +305,13 @@ by a `filePath` behaves.
 ```js
 const applications = [
   {
-    name:        'literal',
-    class:       'SimpleResponse',
-    contentType: 'text/plain',
-    body:        'Hello!\n',
-    cacheControl: { public: true, maxAge: '1_day' }
+    name:                'literal',
+    class:               'SimpleResponse',
+    contentType:         'text/plain',
+    body:                'Hello!\n',
+    cacheControl:        { public: true, maxAge: '1_day' },
+    maxPathLength:       0,
+    redirectDirectories: true
   },
   {
     name:         'fromFile',
@@ -277,9 +328,13 @@ const applications = [
 
 ### `StaticFiles`
 
-An application which serves static files from a local directory. It accepts the
-following configuration bindings:
+An application which serves static files from a local directory. In addition to
+most of the [`BaseApplication`](#baseapplication) configuration options (all
+but the `redirect*` options, which could cause chaos in this case), it accepts
+the following configuration bindings:
 
+* `acceptMethods` &mdash; `BaseApplication` configuration, but in this case the
+  default is `['get', 'head']`.
 * `etag` &mdash; ETag-generating options. If present and not `false`, the
   response comes with an `ETag` header. See "ETag Configuration" below for
   details.
