@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { BaseLoggingEnvironment, IntfLogger } from '@this/loggy';
-import { DispatchInfo, IntfRequestHandler, IncomingRequest, Response }
+import { DispatchInfo, IntfRequestHandler, IncomingRequest, OutgoingResponse }
   from '@this/net-util';
 import { ApplicationConfig } from '@this/sys-config';
 import { Methods } from '@this/typey';
@@ -51,7 +51,7 @@ export class BaseApplication extends BaseComponent {
    * @abstract
    * @param {IncomingRequest} request Request object.
    * @param {DispatchInfo} dispatch Dispatch information.
-   * @returns {?Response} Response to the request, if any, as defined by
+   * @returns {?OutgoingResponse} Response to the request, if any, as defined by
    *   {@link IntfRequestHandler#handleRequest}.
    */
   async _impl_handleRequest(request, dispatch) {
@@ -63,7 +63,7 @@ export class BaseApplication extends BaseComponent {
    *
    * @param {IncomingRequest} request Request object.
    * @param {DispatchInfo} dispatch Dispatch information.
-   * @returns {?Response} Response to the request, if any.
+   * @returns {?OutgoingResponse} Response to the request, if any.
    */
   async #callHandler(request, dispatch) {
     const result = this._impl_handleRequest(request, dispatch);
@@ -72,24 +72,24 @@ export class BaseApplication extends BaseComponent {
       return new Error(`\`${this.name}._impl_handleRequest()\` ${msg}.`);
     };
 
-    if ((result === null) || (result instanceof Response)) {
+    if ((result === null) || (result instanceof OutgoingResponse)) {
       return result;
     } else if (!(result instanceof Promise)) {
       if (result === undefined) {
         throw error('returned undefined; probably needs an explicit `return`');
       } else {
-        throw error('returned something other than a `Response`, `null`, or a promise');
+        throw error('returned something other than a `OutgoingResponse`, `null`, or a promise');
       }
     }
 
     const finalResult = await result;
 
-    if ((finalResult === null) || (finalResult instanceof Response)) {
+    if ((finalResult === null) || (finalResult instanceof OutgoingResponse)) {
       return finalResult;
     } else if (finalResult === undefined) {
       throw error('async-returned undefined; probably needs an explicit `return`');
     } else {
-      throw error('async-returned something other than a `Response` or `null`');
+      throw error('async-returned something other than a `OutgoingResponse` or `null`');
     }
   }
 
@@ -99,8 +99,9 @@ export class BaseApplication extends BaseComponent {
    *
    * @param {IncomingRequest} request Request object.
    * @param {DispatchInfo} dispatch Dispatch information.
-   * @param {Promise<?Response>} result Promise for the handler response.
-   * @returns {?Response} Response to the request, if any.
+   * @param {Promise<?OutgoingResponse>} result Promise for the handler
+   *   response.
+   * @returns {?OutgoingResponse} Response to the request, if any.
    */
   async #logHandlerCall(request, dispatch, result) {
     const startTime = this.#loggingEnv.now();

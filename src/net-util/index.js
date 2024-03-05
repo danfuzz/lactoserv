@@ -12,6 +12,6 @@ export * from '#x/HttpUtil';
 export * from '#x/IncomingRequest';
 export * from '#x/IntfRequestHandler';
 export * from '#x/MimeTypes';
+export * from '#x/OutgoingResponse';
 export * from '#x/RequestContext';
-export * from '#x/Response';
 export * from '#x/Uris';

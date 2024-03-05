@@ -5,7 +5,7 @@ import { ServerResponse } from 'node:http';
 import { Http2ServerResponse } from 'node:http2';
 
 import { FormatUtils } from '@this/loggy';
-import { IncomingRequest, Response } from '@this/net-util';
+import { IncomingRequest, OutgoingResponse } from '@this/net-util';
 
 import { IntfRequestLogger } from '#x/IntfRequestLogger';
 import { WranglerContext } from '#p/WranglerContext';
@@ -58,7 +58,7 @@ export class RequestLogHelper {
 
     // Note: This call isn't supposed to `throw`, even if there were errors
     // thrown during handling.
-    const info = await Response.getLoggableResponseInfo(res, context.socket);
+    const info = await OutgoingResponse.getLoggableResponseInfo(res, context.socket);
 
     // Rearrange `info` into preferred loggable form, and augment with
     // connection error info if appropriate.
