@@ -24,7 +24,7 @@ Breaking changes:
   * Changed the `IntfRequestHandler` API so that the return value is the
     response to send, instead of expecting the handler to do the sending. This
     enables a pattern where a request handler can be "wrapped" by another one
-    which gets a chance to replace (including effictively modify) the response
+    which gets a chance to replace (including effectively modify) the response
     before bubbling it up further. It also makes handler implementations much
     easier to test; no mocking required!
 
