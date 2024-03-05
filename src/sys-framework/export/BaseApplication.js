@@ -62,7 +62,7 @@ export class BaseApplication extends BaseComponent {
       }
 
       if (maxPathLength !== null) {
-        const length = dispatch.fullPathLength - (dispatch.isDirectory() ? 1 : 0);
+        const length = dispatch.extra.length - (dispatch.isDirectory() ? 1 : 0);
         if (length > maxPathLength) {
           return null;
         }
