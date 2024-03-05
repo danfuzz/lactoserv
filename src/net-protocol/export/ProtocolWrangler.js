@@ -130,16 +130,11 @@ export class ProtocolWrangler {
     this.#logHelper      = requestLogger ? new RequestLogHelper(requestLogger) : null;
     this.#serverHeader   = ProtocolWrangler.#makeServerHeader();
 
-    const iface = {
-      address: interfaceConfig.address
-    };
-    if (interfaceConfig.fd) {
-      iface.fd = interfaceConfig.fd;
-    }
-    if (interfaceConfig.port) {
-      iface.port = interfaceConfig.port;
-    }
-    this.#interfaceObject = Object.freeze(iface);
+    this.#interfaceObject = Object.freeze({
+      address: interfaceConfig.address ?? null,
+      fd:      interfaceConfig.fd      ?? null,
+      port:    interfaceConfig.port    ?? null
+    });
 
     // Confusion alert!: This is not the same as the `requestLogger` (a "request
     // logger") per se) passed in as an option. This is the sub-logger of the
@@ -465,6 +460,10 @@ export class ProtocolWrangler {
         writableEnded: socket.writableEnded
       };
       logger?.socketState(url, socketState);
+
+      // In case the response was never finished, this might unwedge things.
+      res.statusCode = 500; // "Internal Server Error."
+      res.end();
     }
   }
 
@@ -571,6 +570,7 @@ export class ProtocolWrangler {
       if (e.code !== 'ECONNRESET') {
         reqLogger?.errorWhileWritingResponse(e);
       }
+
       res.statusCode = 500; // "Internal Server Error."
       res.end();
       closeSocket = true;

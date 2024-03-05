@@ -10,55 +10,72 @@ import { MustBe } from '@this/typey';
  */
 export class RequestContext {
   /**
-   * @type {object} Information about the interface that was `listen()`ed on.
+   * @type {{ address: ?string, port: ?number, fd: ?number }} Information about
+   * the interface that was `listen()`ed on.
    */
   #interface;
 
   /**
-   * @type {object} Information about the origin (remote side) of the
-   * connection.
+   * @type {{ address: string, port: number }}  Information about the origin
+   * (remote side) of the connection.
    */
   #origin;
 
   /**
    * Constructs an instance.
    *
-   * @param {object} iface Information about the interface that was `listen()`ed
-   *   on. Must be a frozen object with expected properties.
-   * @param {object} origin Information about the origin (remote side) of the
-   *   connection. Must be a frozen object with expected properties.
+   * @param {{ address: ?string, port: ?number, fd: ?number }} iface Information
+   *   about the interface that was `listen()`ed on. Must be a frozen object
+   *   with expected properties.
+   * @param {{ address: string, port: number }} origin Information about the
+   *   origin (remote side) of the connection. Must be a frozen object with
+   *   expected properties.
    */
   constructor(iface, origin) {
-    MustBe.object(iface);
-    MustBe.object(origin);
-    MustBe.frozen(iface);
-    MustBe.frozen(origin);
+    {
+      MustBe.object(iface);
+      MustBe.frozen(iface);
 
-    MustBe.string(iface.address);
-    if (iface.fd) {
-      MustBe.number(iface.fd);
-    }
-    if (iface.port) {
-      MustBe.number(iface.port);
+      const { address, fd, port } = iface;
+
+      if (address !== null) {
+        MustBe.string(address);
+      }
+
+      if (fd !== null) {
+        MustBe.number(fd);
+      }
+
+      if (port !== null) {
+        MustBe.number(port, { safeInteger: true, minInclusive: 0, maxInclusive: 65535 });
+      }
     }
 
-    MustBe.string(origin.address);
-    MustBe.number(origin.port);
+    {
+      MustBe.object(origin);
+      MustBe.frozen(origin);
+
+      const { address, port } = origin;
+
+      MustBe.string(address);
+      MustBe.number(port);
+    }
 
     this.#interface = iface;
     this.#origin    = origin;
   }
 
   /**
-   * @type {object} Information about the interface that was `listen()`ed on.
+   * @returns {{ address: ?string, port: ?number, fd: ?number }} Information
+   * about the interface that was `listen()`ed on. It is always a frozen object.
    */
   get interface() {
     return this.#interface;
   }
 
   /**
-   * @type {object} Information about the origin (remote side) of the
-   * connection.
+   * @returns {{ address: string, port: number }} Information about the origin
+   * (remote side) of the connection. It is always a frozen object.
    */
   get origin() {
     return this.#origin;
