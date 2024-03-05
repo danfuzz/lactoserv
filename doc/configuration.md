@@ -254,8 +254,9 @@ const applications = [
 ### `SimpleResponse`
 
 An application which only ever sends one particular response. It's approximately
-like `StaticFiles`, except just one file. It accepts the following configuration
-bindings:
+like `StaticFiles`, except just one file. In addition to the
+[`BaseApplication`](#baseapplication) configuration options, it accepts the
+following configuration bindings:
 
 * `body` &mdash; Optional body contents to respond with. If specified, this must
   be either a string or a Node `Buffer` object.
