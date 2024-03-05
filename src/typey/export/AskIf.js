@@ -325,8 +325,6 @@ export class AskIf {
     } else {
       throw new Error('Unrecognized type for `match`.');
     }
-
-    return true;
   }
 
   /**
