@@ -196,6 +196,36 @@ hostname. (It will not fall back to less specific hostnames.)
 
 ## Built-in Applications
 
+### `BaseApplication`
+
+`BaseApplication` can be subclassed to implement custom behavior. In addition,
+it optionally provides request filtering for application subclasses. It accepts
+the following configuration bindings:
+
+* `acceptQueries` &mdash; Boolean indicating whether or not to accept requests
+  that include a "query" (search) component. Defaults to `true`.
+* `acceptMethods` &mdash; Array of strings indicating which request methods to
+  accept. The array can include any of `connect`, `delete`, `head`, `get`,
+  `options`, `patch`, `post`, `put`, and/or `trace`. Defaults to the entire set.
+* `maxPathLength` &mdash; Number indicating the maximum allowed length of a
+  dispatched request path not including the mount point, and not including the
+  empty path component at the end of a directory path. `null` indicates "no
+  limit." Defaults to `null`.
+* `redirectDirectories` &mdash; Boolean indicating whether or not directory
+  paths (those ending with an empty path component) should be automatically
+  redirected to the file (non-directory) version of the path. Defaults to
+  `false`.
+* `redirectFiles` &mdash; Boolean indicating whether or not file paths (those
+  not ending with an empty path component) should be automatically redirected to
+  the directory version of the path. Defaults to `false`.
+
+With regards to the `redirect*` options, it is an error to specify both as
+`true`.
+
+With regards to the other options, when a request is filtered out, the result is
+that the application simply _doesn't handle_ the request, meaning that the
+request will get re-dispatched to the next application in the chain (if any).
+
 ### `Redirector`
 
 An application which responds to all requests with an HTTP "redirect" response.

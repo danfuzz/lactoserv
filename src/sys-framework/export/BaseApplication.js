@@ -5,7 +5,7 @@ import { BaseLoggingEnvironment, IntfLogger } from '@this/loggy';
 import { DispatchInfo, IncomingRequest, IntfRequestHandler, OutgoingResponse }
   from '@this/net-util';
 import { ApplicationConfig } from '@this/sys-config';
-import { Methods } from '@this/typey';
+import { Methods, MustBe } from '@this/typey';
 
 import { BaseComponent } from '#x/BaseComponent';
 
@@ -16,6 +16,12 @@ import { BaseComponent } from '#x/BaseComponent';
  * @implements {IntfRequestHandler}
  */
 export class BaseApplication extends BaseComponent {
+  /**
+   * @type {?BaseApplication.FilterConfig} Config instance, if it is an instance
+   * of this class's config class, or `null` if not.
+   */
+  #filterConfig;
+
   /**
    * @type {?BaseLoggingEnvironment} Logging environment, or `null` the instance
    * is not doing logging.
@@ -33,11 +39,50 @@ export class BaseApplication extends BaseComponent {
   constructor(config, logger) {
     super(config, logger);
 
-    this.#loggingEnv = this.logger?.$env ?? null;
+    this.#filterConfig = (config instanceof BaseApplication.FilterConfig) ? config : null;
+    this.#loggingEnv   = this.logger?.$env ?? null;
   }
 
   /** @override */
   async handleRequest(request, dispatch) {
+    const filterConfig = this.#filterConfig;
+
+    if (filterConfig) {
+      const {
+        acceptQueries, acceptMethods,
+        maxPathLength, redirectDirectories, redirectFiles
+      } = filterConfig;
+
+      if (!acceptQueries && (request.searchString !== '')) {
+        return null;
+      }
+
+      if (acceptMethods && !acceptMethods.has(request.method)) {
+        return null;
+      }
+
+      if (maxPathLength !== null) {
+        const length = dispatch.fullPathLength - (dispatch.isDirectory() ? 1 : 0);
+        if (length > maxPathLength) {
+          return null;
+        }
+      }
+
+      if (redirectDirectories) {
+        if (dispatch.isDirectory()) {
+          const redirect = dispatch.redirectToFileString;
+          // Don't redirect to `/`, because that would cause a redirect loop.
+          if (redirect !== '/') {
+            return OutgoingResponse.makeRedirect(redirect, 308);
+          }
+        }
+      } else if (redirectFiles) {
+        if (!dispatch.isDirectory()) {
+          return OutgoingResponse.makeRedirect(dispatch.redirectToDirectoryString, 308);
+        }
+      }
+    }
+
     const result = this.#callHandler(request, dispatch);
 
     return this.logger
@@ -131,8 +176,126 @@ export class BaseApplication extends BaseComponent {
   // Static members
   //
 
-  /** @override */
+  /**
+   * @returns {function(new:ApplicationConfig)} The class {ApplicationConfig}.
+   * This class defines a subclass of it, {@link #FilterConfig}, which can be
+   * used for automatic request filtering, but using it is entirely optional.
+   *
+   * @override
+   */
   static get CONFIG_CLASS() {
     return ApplicationConfig;
   }
+
+  /**
+   * Configuration item subclass for this (outer) class, which accepts URI
+   * filtering options.
+   *
+   * Subclasses of `BaseApplication` can use this directly as their
+   * configuration class, _or_ a subclass, _or_ something else entirely. If
+   * appropriate, subclasses can "pin" the configured values by modifying the
+   * incoming configuration object in the `super()` call in the constructor.
+   * Subclasses that do not use this config class will not have this (outer)
+   * class's filtering behavior.
+   */
+  static FilterConfig = class FilterConfig extends ApplicationConfig {
+    /** @type {boolean} Does the application accept query parameters? */
+    #acceptQueries;
+
+    /**
+     * @type {Set<string>} Set of request methods (e.g. `post`) that the
+     * application accepts.
+     */
+    #acceptMethods;
+
+    /**
+     * @type {?number} Maximum allowed dispatch `extra` path length, inclusive
+     * (in components), or `null` if there is no limit.
+     */
+    #maxPathLength;
+
+    /** @type {boolean} Redirect file paths to the corresponding directory? */
+    #redirectDirectories;
+
+    /** @type {boolean} Redirect directory paths to the corresponding file? */
+    #redirectFiles;
+
+    /**
+     * Constructs an instance.
+     *
+     * @param {object} config Configuration object.
+     */
+    constructor(config) {
+      super(config);
+
+      const {
+        acceptQueries       = true,
+        acceptMethods       = null,
+        maxPathLength       = null,
+        redirectDirectories = false,
+        redirectFiles       = false
+      } = config;
+
+      this.#redirectDirectories = MustBe.boolean(redirectDirectories);
+      this.#redirectFiles       = MustBe.boolean(redirectFiles);
+      this.#acceptQueries       = MustBe.boolean(acceptQueries);
+      this.#acceptMethods       = (acceptMethods === null)
+        ? null
+        : new Set(MustBe.arrayOfString(acceptMethods, FilterConfig.#METHODS));
+      this.#maxPathLength = (maxPathLength === null)
+        ? null
+        : MustBe.number(maxPathLength, { safeInteger: true, minInclusive: 0 });
+
+      if (redirectFiles && redirectDirectories) {
+        throw new Error('Cannot configure both `redirect*` values as `true`.');
+      }
+    }
+
+    /** @returns {boolean} Does the application accept query parameters? */
+    get acceptQueries() {
+      return this.#acceptQueries;
+    }
+
+    /**
+     * @returns {Set<string>} Set of request methods (e.g. `post`) that the
+     * application accepts.
+     */
+    get acceptMethods() {
+      return this.#acceptMethods;
+    }
+
+    /**
+     * @returns {?number} Maximum allowed dispatch `extra` path length,
+     * inclusive (in components), or `null` if there is no limit. The limit, if
+     * any, does not include the empty component at the end of a directory path.
+     */
+    get maxPathLength() {
+      return this.#maxPathLength;
+    }
+
+    /**
+     * @returns {boolean} Redirect file paths to the corresponding directory?
+     */
+    get redirectDirectories() {
+      return this.#redirectDirectories;
+    }
+
+    /**
+     * @returns {boolean} Redirect directory paths to the corresponding file?
+     */
+    get redirectFiles() {
+      return this.#redirectFiles;
+    }
+
+
+    //
+    // Static members.
+    //
+
+    /** @type {Set<string>} Allowed values for `methods`. */
+    static #METHODS = new Set([
+      'connect', 'delete', 'head', 'get', 'options',
+      'patch', 'post', 'put', 'trace'
+    ]);
+  };
 }
