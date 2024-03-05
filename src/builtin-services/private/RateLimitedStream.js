@@ -74,10 +74,21 @@ export class RateLimitedStream {
    * @param {boolean} [fromEvent] Was it from an `error` event?
    */
   #becomeBroken(error, fromEvent = false) {
-    if (fromEvent) {
-      this.#logger?.errorFromInner(error);
-    } else {
-      this.#logger?.error(error);
+    const logger = this.#logger;
+
+    if (logger) {
+      // `ECONNRESET` happens regularly and isn't worth spewing to the log as a
+      // full error. It happens when the remote side of a connection closes
+      // without warning.
+      const thingToLog = (error.code === 'ECONNRESET')
+        ? error.code
+        : error;
+
+      if (fromEvent) {
+        this.#logger?.errorFromInner(thingToLog);
+      } else {
+        this.#logger?.error(thingToLog);
+      }
     }
 
     if (!this.#error) {
@@ -85,12 +96,12 @@ export class RateLimitedStream {
     }
 
     if (!this.#outerStream.destroyed) {
-      this.#logger?.destroyingOuter();
+      logger?.destroyingOuter();
       this.#outerStream.destroy(error);
     }
 
     if (!this.#innerStream.destroyed) {
-      this.#logger?.destroyingInner();
+      logger?.destroyingInner();
       this.#innerStream.destroy(error);
     }
   }
