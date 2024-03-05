@@ -294,7 +294,7 @@ export class BaseApplication extends BaseComponent {
 
     /** @type {Set<string>} Allowed values for `methods`. */
     static #METHODS = new Set([
-      'connect', 'delete', 'head', 'get', 'options',
+      'connect', 'delete', 'get', 'head', 'options',
       'patch', 'post', 'put', 'trace'
     ]);
   };
