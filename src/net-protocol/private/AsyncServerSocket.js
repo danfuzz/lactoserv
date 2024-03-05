@@ -6,7 +6,8 @@ import { setTimeout } from 'node:timers/promises';
 
 import lodash from 'lodash';
 
-import { EventPayload, EventSource, LinkedEvent, PromiseUtil } from '@this/async';
+import { EventPayload, EventSource, LinkedEvent, PromiseUtil }
+  from '@this/async';
 import { FormatUtils, IntfLogger } from '@this/loggy';
 import { MustBe } from '@this/typey';
 
