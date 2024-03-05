@@ -192,7 +192,7 @@ export class IncomingRequest {
   }
 
   /**
-   * @returns {?{ address: string, port: number }} The IP address and port of
+   * @returns {{ address: string, port: number }} The IP address and port of
    * the origin (remote side) of the request.
    */
   get origin() {
