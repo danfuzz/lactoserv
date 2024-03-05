@@ -1,12 +1,10 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { IncomingMessage, ServerResponse } from 'node:http';
-import { Http2ServerRequest, Http2ServerResponse,
-  sensitiveHeaders as Http2SensitiveHeaders }
+import { IncomingMessage } from 'node:http';
+import { Http2ServerRequest, sensitiveHeaders as Http2SensitiveHeaders }
   from 'node:http2';
 
-import { ManualPromise } from '@this/async';
 import { TreePathKey } from '@this/collections';
 import { FormatUtils, IntfLogger } from '@this/loggy';
 import { MustBe } from '@this/typey';
@@ -14,7 +12,6 @@ import { MustBe } from '@this/typey';
 import { Cookies } from '#x/Cookies';
 import { HostInfo } from '#x/HostInfo';
 import { RequestContext } from '#x/RequestContext';
-import { Response } from '#x/Response';
 
 
 /**
