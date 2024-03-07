@@ -66,6 +66,36 @@ export class TreePathKey {
   }
 
   /**
+   * Concatenates any number of components, arrays of components, or other
+   * keys' paths onto this one, returning a new instance with the same
+   * wildcard value as this one. If all of the given arguments are empty, this
+   * method returns `this`.
+   *
+   * @param {Array<string|Array<string>|TreePathKey>} others Values to
+   *   concatenate to `this`.
+   * @returns {TreePathKey} Instance with all of `others` concatenated.
+   */
+  concat(...others) {
+    const path = [...this.#path];
+
+    for (const o of others) {
+      if (typeof o === 'string') {
+        path.push(o);
+      } else if (Array.isArray(o)) {
+        path.push(...o);
+      } else if (o instanceof TreePathKey) {
+        path.push(...o.#path);
+      } else {
+        throw new Error('Invalid `other` argument.');
+      }
+    }
+
+    return (path.length === this.#path.length)
+      ? this
+      : new TreePathKey(Object.freeze(path), this.#wildcard);
+  }
+
+  /**
    * Checks to see if this instance is equal to another of the same class. Path
    * components and wildcard flag must match for equality.
    *

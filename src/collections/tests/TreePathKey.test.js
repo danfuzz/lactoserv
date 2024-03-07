@@ -116,6 +116,55 @@ describe('.EMPTY', () => {
   });
 });
 
+describe('concat()', () => {
+  test('returns `this` given no arguments', () => {
+    const key = new TreePathKey(['x'], false);
+    expect(key.concat()).toBe(key);
+  });
+
+  test('returns `this` given an empty array', () => {
+    const key = new TreePathKey(['x'], false);
+    expect(key.concat([])).toBe(key);
+  });
+
+  test('returns `this` given an empty key', () => {
+    const key = new TreePathKey(['x'], false);
+    expect(key.concat(new TreePathKey([], true))).toBe(key);
+  });
+
+  test('concats one string', () => {
+    const key    = new TreePathKey(['x'], false);
+    const result = key.concat('y');
+
+    expect(result.wildcard).toBe(key.wildcard);
+    expect(result.path).toStrictEqual(['x', 'y']);
+  });
+
+  test('concats one array', () => {
+    const key    = new TreePathKey(['x', 'y'], true);
+    const result = key.concat(['z', 'a']);
+
+    expect(result.wildcard).toBe(key.wildcard);
+    expect(result.path).toStrictEqual(['x', 'y', 'z', 'a']);
+  });
+
+  test('concats one key', () => {
+    const key    = new TreePathKey(['x'], true);
+    const result = key.concat(new TreePathKey(['y', 'z', 'a'], false));
+
+    expect(result.wildcard).toBe(key.wildcard);
+    expect(result.path).toStrictEqual(['x', 'y', 'z', 'a']);
+  });
+
+  test('concats one of everything', () => {
+    const key    = new TreePathKey(['x'], true);
+    const result = key.concat('y', ['z'], new TreePathKey(['a', 'b'], false));
+
+    expect(result.wildcard).toBe(key.wildcard);
+    expect(result.path).toStrictEqual(['x', 'y', 'z', 'a', 'b']);
+  });
+});
+
 describe('equals()', () => {
   test('is false given a non-key', () => {
     const key = new TreePathKey(['foo'], false);
