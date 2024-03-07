@@ -187,8 +187,7 @@ export class ProtocolWrangler {
   /**
    * Initializes the instance. After this is called and (asynchronously)
    * returns without throwing, {@link #_impl_server} is expected to work without
-   * error. This can get called more than once; the second and subsequent times
-   # should be considered a no-op.
+   * error.
    *
    * @abstract
    */
@@ -494,6 +493,7 @@ export class ProtocolWrangler {
         WranglerContext.bind(socket, ctx);
       } else {
         this.#logger?.missingContext('secureConnection');
+        throw new Error('Shouldn\'t happen: Missing context during secure connection setup.');
       }
     });
 
