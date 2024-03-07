@@ -160,7 +160,7 @@ export class AsyncServerSocket {
     this.#removeListenersFunc = () => {
       this.#serverSocket.removeListener('connection', onConnection);
       this.#serverSocket.removeListener('drop',       onDrop);
-    }
+    };
 
     await this.#listen();
   }
