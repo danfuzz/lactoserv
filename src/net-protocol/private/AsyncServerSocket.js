@@ -222,7 +222,6 @@ export class AsyncServerSocket {
       }
       eventHead = eventHead.nextNow;
     }
-
   }
 
   /**
