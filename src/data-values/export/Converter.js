@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import * as util from 'node:util';
+import { inspect, types } from 'node:util';
 
 import { AskIf, MustBe } from '@this/typey';
 
@@ -101,12 +101,18 @@ export class Converter extends BaseConverter {
       }
 
       case 'function': {
-        return this.#performReplacement(orig, config.functionAction);
+        if (types.isProxy(orig)) {
+          return new Ref(orig);
+        } else {
+          return this.#performReplacement(orig, config.functionAction);
+        }
       }
 
       case 'object': {
         if (orig === null) {
           return null;
+        } else if (types.isProxy(orig)) {
+          return new Ref(orig);
         } else if (Array.isArray(orig)) {
           return this.#objectOrArrayToData(orig, true);
         } else if (AskIf.plainObject(orig)) {
@@ -201,7 +207,7 @@ export class Converter extends BaseConverter {
   #performReplacement(orig, action) {
     switch (action) {
       case 'error':     throw new Error('Encountered non-data.');
-      case 'inspect':   return util.inspect(orig, Converter.#INSPECT_OPTIONS);
+      case 'inspect':   return inspect(orig, Converter.#INSPECT_OPTIONS);
       case 'omit':      return BaseConverter.OMIT;
       case 'asObject':  return this.#objectOrArrayToData(orig, false);
       case 'unhandled': return BaseConverter.UNHANDLED;
