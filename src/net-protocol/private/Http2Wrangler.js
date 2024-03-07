@@ -166,14 +166,15 @@ export class Http2Wrangler extends TcpWrangler {
 
       allClosed = true;
       for (const s of this.#sessions) {
-        const ctx = WranglerContext.get(s);
+        const ctx    = WranglerContext.get(s);
+        const logger = ctx?.logger ?? this.#logger?.['unknown-session'];
 
         if (s.closed) {
-          ctx.logger?.alreadyClosed(op);
+          logger?.alreadyClosed(op);
           continue;
         }
 
-        ctx.logger?.shuttingDown(op);
+        logger?.shuttingDown(op);
         s[op]();
         allClosed = false;
       }
