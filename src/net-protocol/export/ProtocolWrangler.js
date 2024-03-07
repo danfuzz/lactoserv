@@ -324,7 +324,7 @@ export class ProtocolWrangler {
    * (Note: As of this writing, this is only useful to be called from HTTP2
    * wrangling code.)
    *
-   * @param {object} session The (`http2.Http2Session`-like) instance.
+   * @param {object} session The (`http2.ServerHttp2Session`-like) instance.
    * @returns {WranglerContext} Context associated with this session.
    */
   _prot_newSession(session) {
