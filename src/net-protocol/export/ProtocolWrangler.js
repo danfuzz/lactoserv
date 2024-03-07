@@ -488,7 +488,6 @@ export class ProtocolWrangler {
 
     // Set up an event handler to propagate the connection context. See
     // `_prot_newConnection()` for a treatise about what's going on.
-
     server.on('secureConnection', (socket) => {
       const ctx = this.#perConnectionStorage.getStore();
       if (ctx) {
@@ -497,8 +496,6 @@ export class ProtocolWrangler {
         this.#logger?.missingContext('secureConnection');
       }
     });
-
-    // Done!
 
     this.#initialized = true;
   }
