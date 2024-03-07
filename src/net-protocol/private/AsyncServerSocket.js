@@ -32,6 +32,12 @@ export class AsyncServerSocket {
    */
   #serverSocket = null;
 
+  /**
+   * @type {function()} Function to call to remove all of the listeners on
+   * {@link #serverSocket}.
+   */
+  #removeListenersFunc = null;
+
   /** @type {EventSource} Event source for `connection` and `drop` events. */
   #eventSource = new EventSource();
 
@@ -117,10 +123,10 @@ export class AsyncServerSocket {
       ? AsyncServerSocket.#unstashInstance(this.#interface)
       : null;
 
-    if (found) {
+    if (found?.#serverSocket) {
       // Inherit the "guts" of the now-unstashed instance.
       this.#serverSocket = found.#serverSocket;
-      this.#serverSocket.removeAllListeners();
+      found.#removeListenersFunc();
 
       // Transfer any unhandled events to the new instance.
       found.#eventSource.emit(new EventPayload('done'));
@@ -134,17 +140,27 @@ export class AsyncServerSocket {
       }
     } else {
       // Either this isn't a reload, or it's a reload with an endpoint that
-      // isn't configured the same way as one of the pre-reload ones.
+      // isn't configured the same way as one of the pre-reload ones, or it's a
+      // reload but the found instance didn't actually have a socket.
       this.#serverSocket = netCreateServer(
         AsyncServerSocket.#extractConstructorOptions(this.#interface));
     }
 
-    this.#serverSocket.on('connection', (...args) => {
+    const onConnection = (...args) => {
       this.#eventSource.emit(new EventPayload('connection', ...args));
-    });
-    this.#serverSocket.on('drop', (...args) => {
+    };
+
+    const onDrop = (...args) => {
       this.#eventSource.emit(new EventPayload('drop', ...args));
-    });
+    };
+
+    this.#serverSocket.on('connection', onConnection);
+    this.#serverSocket.on('drop', onDrop);
+
+    this.#removeListenersFunc = () => {
+      this.#serverSocket.removeListener('connection', onConnection);
+      this.#serverSocket.removeListener('drop',       onDrop);
+    }
 
     await this.#listen();
   }
