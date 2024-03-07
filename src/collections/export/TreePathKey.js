@@ -96,6 +96,30 @@ export class TreePathKey {
   }
 
   /**
+   * Slices out a portion of this instance, returning an instance with the
+   * resulting elements. The result is never marked as a wildcard. If `this` is
+   * not a wildcard instance and `start..end` covers the entire instance, then
+   * this method returns `this`.
+   *
+   * @param {number} start Start index, inclusive.
+   * @param {number} [end] End index, exclusive. Defaults to {@link #length}.
+   * @returns {TreePathKey} The sliced-out value.
+   */
+  slice(start, end = null) {
+    const path   = this.#path;
+    const length = path.length;
+
+    end ??= length;
+
+    MustBe.number(start, { safeInteger: true, minInclusive: 0,     maxInclusive: length });
+    MustBe.number(end,   { safeInteger: true, minInclusive: start, maxInclusive: length });
+
+    return ((start === 0) && (end === length) && !this.#wildcard)
+      ? this
+      : new TreePathKey(Object.freeze(path.slice(start, end)), false);
+  }
+
+  /**
    * Gets the string form of this instance, interpreted as a hostname, where the
    * TLD is the initial path component. That is, the result renders the path in
    * reverse.

@@ -181,6 +181,97 @@ describe('equals()', () => {
   }
 });
 
+describe('slice()', () => {
+  test('returns `this` given (0, 0) on an empty non-wildcard instance', () => {
+    const key = new TreePathKey([], false);
+    expect(key.slice(0, 0)).toBe(key);
+  });
+
+  test('returns a new empty instance given (0, 0) on an empty wildcard instance', () => {
+    const key    = new TreePathKey([], true);
+    const result = key.slice(0, 0);
+
+    expect(result).not.toBe(key);
+    expect(result.wildcard).toBeFalse();
+    expect(result.path).toStrictEqual([]);
+  });
+
+  test('returns `this` given full coverage on a non-empty non-wildcard instance', () => {
+    const key = new TreePathKey(['x', 'y', 'z'], false);
+    expect(key.slice(0, 3)).toBe(key);
+  });
+
+  test('returns a new instance given full coverage on a non-empty wildcard instance', () => {
+    const key    = new TreePathKey(['x', 'y', 'z'], true);
+    const result = key.slice(0, 3);
+
+    expect(result).not.toBe(key);
+    expect(result.wildcard).toBeFalse();
+    expect(result.path).toStrictEqual(key.path);
+  });
+
+  test('returns a new empty instance given (0, 0) on an empty wildcard instance', () => {
+    const key    = new TreePathKey([], true);
+    const result = key.slice(0, 0);
+
+    expect(result).not.toBe(key);
+    expect(result.wildcard).toBeFalse();
+    expect(result.path).toStrictEqual([]);
+  });
+
+  test('slices elements at the start', () => {
+    const key    = new TreePathKey(['a', 'b', 'c', 'd', 'e'], true);
+    const result = key.slice(0, 2);
+
+    expect(result.wildcard).toBeFalse();
+    expect(result.path).toStrictEqual(['a', 'b']);
+  });
+
+  test('slices elements in the middle', () => {
+    const key    = new TreePathKey(['a', 'b', 'c', 'd', 'e'], true);
+    const result = key.slice(1, 3);
+
+    expect(result.wildcard).toBeFalse();
+    expect(result.path).toStrictEqual(['b', 'c']);
+  });
+
+  test('slices elements at the end, when passing `end` explicitly as `length`', () => {
+    const key    = new TreePathKey(['a', 'b', 'c', 'd', 'e'], true);
+    const result = key.slice(1, 5);
+
+    expect(result.wildcard).toBeFalse();
+    expect(result.path).toStrictEqual(['b', 'c', 'd', 'e']);
+  });
+
+  test('slices elements at the end, when not passing `end`', () => {
+    const key    = new TreePathKey(['a', 'b', 'c', 'd', 'e'], true);
+    const result = key.slice(2);
+
+    expect(result.wildcard).toBeFalse();
+    expect(result.path).toStrictEqual(['c', 'd', 'e']);
+  });
+
+  test('rejects a too-low start', () => {
+    const key = new TreePathKey(['a', 'b', 'c', 'd', 'e'], true);
+    expect(() => key.slice(-1, 2)).toThrow();
+  });
+
+  test('rejects a too-high start', () => {
+    const key = new TreePathKey(['a', 'b', 'c', 'd', 'e'], true);
+    expect(() => key.slice(6)).toThrow();
+  });
+
+  test('rejects a too-low end', () => {
+    const key = new TreePathKey(['a', 'b', 'c', 'd', 'e'], true);
+    expect(() => key.slice(2, 1)).toThrow();
+  });
+
+  test('rejects a too-high end', () => {
+    const key = new TreePathKey(['a', 'b', 'c', 'd', 'e'], true);
+    expect(() => key.slice(5, 6)).toThrow();
+  });
+});
+
 describe('toString()', () => {
   describe('with default options', () => {
     test.each`
