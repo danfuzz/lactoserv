@@ -100,18 +100,9 @@ export class Http2Wrangler extends TcpWrangler {
     WranglerContext.bind(session.socket, sessionCtx);
 
     connectionLogger?.newSession(sessionCtx.sessionId);
-
-    if (sessionLogger) {
-      sessionLogger.opened({
-        connectionId: connectionCtx.connectionId ?? '<unknown-id>'
-      });
-
-      session.once('close',      () => sessionLogger.closed('ok'));
-      session.on(  'error',      (e) => sessionLogger.closed('error', e));
-      session.once('goaway',     (code) => sessionLogger.closed('goaway', code));
-      session.once('frameError', (type, code, id) =>
-        sessionLogger.closed('frameError', type, code, id));
-    }
+    sessionLogger?.opened({
+      connectionId: connectionCtx.connectionId ?? '<unknown-id>'
+    });
 
     sessions.add(session);
     connectionLogger?.totalSessions(sessions.size);
@@ -126,12 +117,22 @@ export class Http2Wrangler extends TcpWrangler {
       }
     };
 
-    // Note: `ProtocolWrangler` logs each of these events, so no need to do that
-    // here.
-    session.on('close',      removeSession);
-    session.on('error',      removeSession);
-    session.on('frameError', removeSession);
-    session.on('goaway',     removeSession);
+    session.once('close', () => {
+      removeSession();
+      sessionLogger.closed('ok');
+    });
+    session.on('error', (e) => {
+      removeSession();
+      sessionLogger.closed('error', e)
+    });
+    session.once('goaway', (code) => {
+      removeSession();
+      sessionLogger.closed('goaway', code)
+    });
+    session.once('frameError', (type, code, id) => {
+      removeSession();
+      sessionLogger.closed('frameError', type, code, id)
+    });
 
     // What's going on: If the underlying socket was closed and we didn't do
     // anything here (that is, if this event handler weren't added), the HTTP2
