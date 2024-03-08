@@ -2,6 +2,4 @@
 // SPDX-License-Identifier: Apache-2.0
 
 export * from '#x/BaseProxyHandler';
-export * from '#x/IntfTimeSource';
 export * from '#x/PropertyCacheProxyHandler';
-export * from '#x/StdTimeSource';

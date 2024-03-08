@@ -4,8 +4,8 @@
 import * as timers from 'node:timers/promises';
 
 import { ManualPromise, PromiseState, TokenBucket } from '@this/async';
+import { IntfTimeSource, StdTimeSource } from '@this/clocks';
 import { Duration, Frequency, Moment } from '@this/data-values';
-import { IntfTimeSource, StdTimeSource } from '@this/metacomp';
 
 
 /** @type {Frequency} One per second, used as a `flowRate`. */
