@@ -47,6 +47,26 @@ describe('encode()', () => {
       expect(data.value).toBe(florp);
     });
 
+    test('wraps proxies of regular objects', () => {
+      const florp = { a: 123 };
+      const proxy = new Proxy(florp, {});
+      const conv  = new Converter();
+      const data  = conv.encode(proxy);
+
+      expect(data).toBeInstanceOf(Ref);
+      expect(data.value).toBe(proxy);
+    });
+
+    test('wraps proxies of functions', () => {
+      const florp = () => 123;
+      const proxy = new Proxy(florp, {});
+      const conv  = new Converter();
+      const data  = conv.encode(proxy);
+
+      expect(data).toBeInstanceOf(Ref);
+      expect(data.value).toBe(proxy);
+    });
+
     test('wraps unspecial instances', () => {
       class Florp {
         like = 123;

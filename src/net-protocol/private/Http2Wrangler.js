@@ -1,6 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { AsyncLocalStorage } from 'node:async_hooks';
 import * as http2 from 'node:http2';
 import * as timers from 'node:timers/promises';
 
@@ -31,6 +32,12 @@ export class Http2Wrangler extends TcpWrangler {
   #runner = new Threadlet(() => this.#run());
 
   /**
+   * @type {AsyncLocalStorage} Per-connection storage, used to plumb connection
+   * context through to the various objects that use the connection.
+   */
+  #perConnectionStorage = new AsyncLocalStorage();
+
+  /**
    * Constructs an instance.
    *
    * @param {object} options Construction options, per the base class spec.
@@ -38,7 +45,7 @@ export class Http2Wrangler extends TcpWrangler {
   constructor(options) {
     super(options);
 
-    this.#logger = options.logger?.http2 ?? null;
+    this.#logger = options.logger;
   }
 
   /** @override */
@@ -83,29 +90,49 @@ export class Http2Wrangler extends TcpWrangler {
       return;
     }
 
-    const ctx      = this._prot_newSession(session);
-    const sessions = this.#sessions;
+    const connectionCtx    = this._prot_connectionContext;
+    const connectionLogger = connectionCtx.connectionLogger;
+    const sessionLogger    = this.#logger?.sess.$newId;
+    const sessionCtx       = WranglerContext.forSession(connectionCtx, sessionLogger);
+    const sessions         = this.#sessions;
+
+    WranglerContext.bind(session, sessionCtx);
+    WranglerContext.bind(session.socket, sessionCtx);
+
+    connectionLogger?.newSession(sessionCtx.sessionId);
+    sessionLogger?.opened({
+      connectionId: connectionCtx.connectionId ?? '<unknown-id>'
+    });
 
     sessions.add(session);
+    connectionLogger?.totalSessions(sessions.size);
     this.#anySessions.value = true;
-
-    ctx.connectionLogger?.totalSessions(sessions.size);
 
     const removeSession = () => {
       if (sessions.delete(session)) {
         if (sessions.size === 0) {
           this.#anySessions.value = false;
         }
-        ctx.connectionLogger?.totalSessions(sessions.size);
+        connectionLogger?.totalSessions(sessions.size);
       }
     };
 
-    // Note: `ProtocolWrangler` logs each of these events, so no need to do that
-    // here.
-    session.on('close',      removeSession);
-    session.on('error',      removeSession);
-    session.on('frameError', removeSession);
-    session.on('goaway',     removeSession);
+    session.once('close', () => {
+      removeSession();
+      sessionLogger.closed('ok');
+    });
+    session.on('error', (e) => {
+      removeSession();
+      sessionLogger.closed('error', e);
+    });
+    session.once('goaway', (code) => {
+      removeSession();
+      sessionLogger.closed('goaway', code);
+    });
+    session.once('frameError', (type, code, id) => {
+      removeSession();
+      sessionLogger.closed('frameError', type, code, id);
+    });
 
     // What's going on: If the underlying socket was closed and we didn't do
     // anything here (that is, if this event handler weren't added), the HTTP2
@@ -119,7 +146,7 @@ export class Http2Wrangler extends TcpWrangler {
     // Salient issues in Node:
     //   * <https://github.com/nodejs/node/issues/35695>
     //   * <https://github.com/nodejs/node/issues/46094>
-    ctx.socket.on('close', () => {
+    sessionCtx.socket.on('close', () => {
       if (!session.closed) {
         session.close();
 
@@ -130,9 +157,9 @@ export class Http2Wrangler extends TcpWrangler {
     });
 
     session.setTimeout(Http2Wrangler.#SESSION_TIMEOUT_MSEC, () => {
-      ctx.sessionLogger?.idleTimeout();
+      sessionLogger?.idleTimeout();
       if (session.closed) {
-        ctx.sessionLogger?.alreadyClosed();
+        sessionLogger?.alreadyClosed();
       } else {
         session.close();
       }
@@ -166,14 +193,15 @@ export class Http2Wrangler extends TcpWrangler {
 
       allClosed = true;
       for (const s of this.#sessions) {
-        const ctx = WranglerContext.get(s);
+        const ctx    = WranglerContext.get(s);
+        const logger = ctx?.logger ?? this.#logger?.['unknown-session'];
 
         if (s.closed) {
-          ctx.logger?.alreadyClosed(op);
+          logger?.alreadyClosed(op);
           continue;
         }
 
-        ctx.logger?.shuttingDown(op);
+        logger?.shuttingDown(op);
         s[op]();
         allClosed = false;
       }
