@@ -14,7 +14,6 @@
   "dependencies": {
     "@this/clocks": "*",
     "@this/data-values": "*",
-    "@this/metacomp": "*",
     "@this/typey": "*"
   }
 }
