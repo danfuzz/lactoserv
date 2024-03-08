@@ -4,7 +4,7 @@
 import * as process from 'node:process';
 
 import { WallClock } from '@this/clocks';
-import { Moment } from '@this/data-values';
+import { Duration, Moment } from '@this/data-values';
 import { FormatUtils } from '@this/loggy';
 
 import { ThisModule } from '#p/ThisModule';
@@ -26,7 +26,7 @@ export class ProcessInfo {
   /** @type {?object} All the fixed-at-startup info, if calculated. */
   static #fixedInfo = null;
 
-  /** @returns {object} All process info. */
+  /** @returns {object} All process info, as a JSON-encodable object. */
   static get allInfo() {
     this.#makeFixedInfo();
 
@@ -36,16 +36,29 @@ export class ProcessInfo {
     };
   }
 
-  /** @returns {object} Process info which varies over time. */
+  /**
+   * @returns {object} Process info which varies over time, as a JSON-encodable
+   * object.
+   */
   static get ephemeralInfo() {
     const memoryUsage = process.memoryUsage();
     for (const [key, value] of Object.entries(memoryUsage)) {
       memoryUsage[key] = FormatUtils.byteCountString(value);
     }
 
-    const uptime = WallClock.now().subtract(this.#startedAt).toPlainObject();
+    const uptime = this.uptime.toPlainObject();
 
     return { memoryUsage, uptime };
+  }
+
+  /** @returns {Moment} The moment that the process started. */
+  static get startedAt() {
+    return this.#startedAt;
+  }
+
+  /** @returns {Duration} The process uptime. */
+  static get uptime() {
+    return WallClock.now().subtract(this.#startedAt);
   }
 
   /**

@@ -124,6 +124,8 @@ export class ProcessInfoFile extends BaseFileService {
       ...ProcessInfo.allInfo
     };
 
+    delete contents.uptime; // Ends up in `disposition`.
+
     const fileContents = await this.#readFile();
 
     if (fileContents?.pid === contents.pid) {
@@ -246,16 +248,16 @@ export class ProcessInfoFile extends BaseFileService {
    * Updates {@link #contents} to reflect the latest conditions.
    */
   #updateContents() {
-    const updatedAt = WallClock.now();
-    const uptimeSec = updatedAt.atSec - this.#contents.startedAt.atSec;
-
     this.#contents.disposition = {
       running:   true,
-      updatedAt: updatedAt.toPlainObject(),
-      uptime:    Duration.plainObjectFromSec(uptimeSec)
+      updatedAt: WallClock.now().toPlainObject(),
+      uptime:    ProcessInfo.uptime.toPlainObject()
     };
 
-    Object.assign(this.#contents, ProcessInfo.ephemeralInfo);
+    const ephemera = ProcessInfo.ephemeralInfo;
+    delete ephemera.uptime; // Redundant with what we put into `disposition`.
+
+    Object.assign(this.#contents, ephemera);
   }
 
   /**
