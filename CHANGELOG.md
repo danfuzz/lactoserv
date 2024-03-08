@@ -7,12 +7,13 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* None.
+* `clocks`:
+  * New module!
+  * Moved time-related classes to here from `metacomp`.
+  * New class `WallClock`, extracted from `StdLoggingEnvironment`, so that other
+    stuff can get sub-msec wall times.
 
 Other notable changes:
-* `clocks`:
-  * New module, with class `WallClock`, extracted from `StdLoggingEnvironment`,
-    so that other stuff can get sub-msec wall times.
 * `builtin-services`:
   * `RequestLogger` now logs sub-msec request durations.
 * `net-util`:
