@@ -1,6 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import * as process from 'node:process';
+
 import { WallClock } from '@this/clocks';
 import { Moment } from '@this/data-values';
 import { FormatUtils } from '@this/loggy';
@@ -14,6 +16,13 @@ import { ThisModule } from '#p/ThisModule';
  * ID) _and_ live-updated info (such as the current amount of memory used).
  */
 export class ProcessInfo {
+  /**
+   * @type {?Moment} The moment that the process started.
+   *
+   * **Note:** `process.uptime()` returns a number of seconds.
+   */
+  static #startedAt = new Moment(WallClock.now().atSec - process.uptime());
+
   /** @type {?object} All the fixed-at-startup info, if calculated. */
   static #fixedInfo = null;
 
@@ -34,7 +43,9 @@ export class ProcessInfo {
       memoryUsage[key] = FormatUtils.byteCountString(value);
     }
 
-    return { memoryUsage };
+    const uptime = WallClock.now().subtract(this.#startedAt).toPlainObject();
+
+    return { memoryUsage, uptime };
   }
 
   /**
@@ -52,15 +63,10 @@ export class ProcessInfo {
       return;
     }
 
-    // Note: `process.uptime()` returns a number of seconds.
-    const startedAtSec = WallClock.now().atSec - process.uptime();
-    const pid          = process.pid;
-    const ppid         = process.ppid;
-
     this.#fixedInfo = {
-      pid,
-      ppid,
-      startedAt: Moment.plainObjectFromSec(startedAtSec)
+      pid:       process.pid,
+      ppid:      process.ppid,
+      startedAt: this.#startedAt.toPlainObject()
     };
 
     ThisModule.logger?.processInfo(this.#fixedInfo);
