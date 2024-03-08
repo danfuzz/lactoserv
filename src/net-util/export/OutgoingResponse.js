@@ -1037,10 +1037,25 @@ export class OutgoingResponse {
       }
     } else {
       socket.once('error', (error) => {
-        if (error) {
-          resultMp.reject(makeProperError(error));
-        } else {
-          resultMp.resolve(true);
+        if (!resultMp.isSettled()) {
+          if (error) {
+            resultMp.reject(makeProperError(error));
+          } else {
+            resultMp.resolve(true);
+          }
+        } else if (error) {
+          // The result promise was already settled, and _then_ an `error` got
+          // emitted. This has been observed to happen in production, but (as of
+          // this writing) it is unclear what's going on).
+          if (resultMp.isFulfilled()) {
+            const value = resultMp.fulfilledValue;
+            throw new Error('Response error after promise was already fulfilled. ' +
+              `Original value: ${value}. New reason: ${error}`);
+          } else {
+            const reason = resultMp.rejectedReason;
+            throw new Error('Response error after promise was already rejected. ' +
+              `Original reason: ${reason}. New reason: ${error}`);
+          }
         }
       });
 
