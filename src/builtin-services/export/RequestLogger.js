@@ -4,7 +4,6 @@
 import * as fs from 'node:fs/promises';
 
 import { WallClock } from '@this/clocks';
-import { Moment } from '@this/data-values';
 import { IntfLogger } from '@this/loggy';
 import { IntfRequestLogger } from '@this/net-protocol';
 import { FileServiceConfig } from '@this/sys-config';
