@@ -10,7 +10,10 @@ Breaking changes:
 * None.
 
 Other notable changes:
-* None.
+* `net-util`:
+  * Added a bit to `OutgoingResponse` to add detail when it would otherwise try
+    to double-resolve its "when-completed" promise. This seems to be happening
+    in production, and it isn't yet clear why.
 
 ### v0.6.8 -- 2024-03-05
 
