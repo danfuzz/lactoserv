@@ -87,7 +87,6 @@ export class ProtocolWrangler {
    */
   #reloading = false;
 
-
   /**
    * Constructs an instance.
    *
@@ -264,6 +263,24 @@ export class ProtocolWrangler {
     Methods.abstract(willReload);
   }
 
+  /**
+   * @returns {WranglerContext} The contextually-current wrangler context for
+   * the connection. This can expected to work in any "descendant" callback made
+   * from the original `connection` event from a server socket. See
+   * {@link #_prot_newConnection} for a treatise about what's going on.
+   */
+  get _prot_connectionContext() {
+    const ctx = this.#perConnectionStorage.getStore();
+
+    if (!ctx) {
+      // Shouldn't happen (see doc comment).
+      this.#logger?.missingContext();
+      throw new Error('Shouldn\'t happen: Missing connection context.');
+    }
+
+    return ctx;
+  }
+
   /** @returns {?IntfHostManager} The host manager, if any. */
   get _prot_hostManager() {
     return this.#hostManager;
@@ -316,50 +333,6 @@ export class ProtocolWrangler {
     // Note: The code responsible for handing us the connection also does
     // logging for it, so there's no need for additional connection logging
     // here.
-  }
-
-  /**
-   * Informs the higher-level stack of session creation from the lower-level
-   * stack. This "protected" method is expected to be called by subclass code.
-   * (Note: As of this writing, this is only useful to be called from HTTP2
-   * wrangling code.)
-   *
-   * @param {object} session The (`http2.ServerHttp2Session`-like) instance.
-   * @returns {WranglerContext} Context associated with this session.
-   */
-  _prot_newSession(session) {
-    // Propagate the connection context. See `_prot_newConnection()` for a
-    // treatise about what's going on.
-
-    const ctx = this.#perConnectionStorage.getStore();
-
-    if (!ctx) {
-      // Shouldn't happen.
-      this.#logger?.missingContext('session');
-      throw new Error('Shouldn\'t happen: Missing context during session setup.');
-    }
-
-    const sessionLogger = this.#logger?.sess.$newId;
-    const sessionCtx    = WranglerContext.forSession(ctx, sessionLogger);
-
-    WranglerContext.bind(session, sessionCtx);
-    WranglerContext.bind(session.socket, sessionCtx);
-
-    ctx.connectionLogger?.newSession(sessionCtx.sessionId);
-
-    if (sessionLogger) {
-      sessionLogger.opened({
-        connectionId: ctx.connectionId ?? '<unknown-id>'
-      });
-
-      session.once('close',      () => sessionLogger.closed('ok'));
-      session.on(  'error',      (e) => sessionLogger.closed('error', e));
-      session.once('goaway',     (code) => sessionLogger.closed('goaway', code));
-      session.once('frameError', (type, code, id) =>
-        sessionLogger.closed('frameError', type, code, id));
-    }
-
-    return sessionCtx;
   }
 
   /**
