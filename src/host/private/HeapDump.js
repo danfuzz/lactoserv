@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import fs from 'node:fs/promises';
-import inspector from 'node:inspector';
+import { Session } from 'node:inspector/promises';
 import path from 'node:path';
 import { promisify } from 'node:util';
 
@@ -62,7 +62,7 @@ export class HeapDump {
 
     const source = new EventSource();
     const sink   = new EventSink(writeChunk, source.currentEvent);
-    const sess   = new inspector.Session();
+    const sess   = new Session();
 
     await sink.start();
     sess.connect();
@@ -71,10 +71,7 @@ export class HeapDump {
       source.emit(new EventPayload('chunk', msg.params.chunk));
     });
 
-    // TODO: Use 'node:inspector/promises' once this project starts requiring
-    // Node v19+.
-    const post = promisify((...args) => sess.post(...args));
-    await post('HeapProfiler.takeHeapSnapshot', null);
+    await sess.post('HeapProfiler.takeHeapSnapshot', null);
     await sink.drainAndStop();
 
     this.#logger?.wrote({ bytes: byteCount, chunks: chunkCount });
