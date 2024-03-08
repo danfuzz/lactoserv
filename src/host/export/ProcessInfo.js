@@ -1,6 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { WallClock } from '@this/clocks';
 import { Moment } from '@this/data-values';
 import { FormatUtils } from '@this/loggy';
 
@@ -51,14 +52,15 @@ export class ProcessInfo {
       return;
     }
 
-    const startSec = (Date.now() - (process.uptime() * 1000)) / 1000;
-    const pid      = process.pid;
-    const ppid     = process.ppid;
+    // Note: `process.uptime()` returns a number of seconds.
+    const startedAtSec = WallClock.now().atSec - process.uptime();
+    const pid          = process.pid;
+    const ppid         = process.ppid;
 
     this.#fixedInfo = {
       pid,
       ppid,
-      startedAt: new Moment(startSec).toPlainObject()
+      startedAt: Moment.plainObjectFromSec(startedAtSec)
     };
 
     ThisModule.logger?.processInfo(this.#fixedInfo);
