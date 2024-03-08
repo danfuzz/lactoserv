@@ -8,7 +8,6 @@ import { promisify } from 'node:util';
 
 import { EventPayload, EventSink, EventSource } from '@this/async';
 import { WallClock } from '@this/clocks';
-import { Moment } from '@this/data-values';
 import { IntfLogger } from '@this/loggy';
 
 import { ThisModule } from '#p/ThisModule';

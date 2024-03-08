@@ -3,8 +3,6 @@
 
 import * as timers from 'node:timers/promises';
 
-import { Moment } from '@this/data-values';
-
 import { IntfTimeSource } from '#x/IntfTimeSource';
 import { WallClock } from '#x/WallClock';
 
