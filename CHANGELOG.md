@@ -10,6 +10,11 @@ Breaking changes:
 * None.
 
 Other notable changes:
+* `clocks`:
+  * New module, with class `WallClock`, extracted from `StdLoggingEnvironment`,
+    so that other stuff can get sub-msec wall times.
+* `builtin-services`:
+  * `RequestLogger` now logs sub-msec request durations.
 * `net-util`:
   * Added a bit to `OutgoingResponse` to add detail when it would otherwise try
     to double-resolve its "when-completed" promise. This seems to be happening
