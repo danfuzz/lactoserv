@@ -5,6 +5,7 @@ import { memoryUsage } from 'node:process';
 import { setTimeout } from 'node:timers/promises';
 
 import { Threadlet } from '@this/async';
+import { WallClock } from '@this/clocks';
 import { Duration, Moment } from '@this/data-values';
 import { Host } from '@this/host';
 import { ServiceConfig } from '@this/sys-config';
@@ -49,7 +50,7 @@ export class MemoryMonitor extends BaseService {
    */
   #takeSnapshot() {
     const rawUsage = memoryUsage();
-    const now      = Moment.fromMsec(Date.now());
+    const now      = WallClock.now();
 
     // Note: Per Node docs, `external` includes the `arrayBuffers` value in it.
     const usage = {

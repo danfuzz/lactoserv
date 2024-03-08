@@ -4,7 +4,6 @@
 import * as timers from 'node:timers/promises';
 
 import { Threadlet } from '@this/async';
-import { Duration } from '@this/data-values';
 import { IntfLogger } from '@this/loggy';
 
 import { ProcessInfo } from '#x/ProcessInfo';
@@ -66,8 +65,6 @@ export class KeepRunning {
    * stop.
    */
   async #keepRunning() {
-    const startedAtSec = ProcessInfo.allInfo.startedAt.atSec;
-
     this.#logger?.running();
 
     // This is a standard-ish trick to keep a Node process alive: Repeatedly set
@@ -78,8 +75,7 @@ export class KeepRunning {
         timers.setTimeout(KeepRunning.#MSEC_PER_DAY)
       ]);
 
-      const uptimeSec = (Date.now() / 1000) - startedAtSec;
-      this.#logger?.uptime(new Duration(uptimeSec));
+      this.#logger?.uptime(ProcessInfo.uptime);
     }
 
     this.#logger?.stopped();

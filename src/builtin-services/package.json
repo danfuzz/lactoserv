@@ -13,6 +13,7 @@
 
   "dependencies": {
     "@this/async": "*",
+    "@this/clocks": "*",
     "@this/data-values": "*",
     "@this/fs-util": "*",
     "@this/host": "*",

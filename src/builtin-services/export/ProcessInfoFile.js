@@ -5,7 +5,8 @@ import * as fs from 'node:fs/promises';
 import * as timers from 'node:timers/promises';
 
 import { Threadlet } from '@this/async';
-import { Duration, Moment } from '@this/data-values';
+import { WallClock } from '@this/clocks';
+import { Duration } from '@this/data-values';
 import { Statter } from '@this/fs-util';
 import { Host, ProcessInfo, ProcessUtil, ProductInfo }
   from '@this/host';
@@ -123,6 +124,8 @@ export class ProcessInfoFile extends BaseFileService {
       ...ProcessInfo.allInfo
     };
 
+    delete contents.uptime; // Ends up in `disposition`.
+
     const fileContents = await this.#readFile();
 
     if (fileContents?.pid === contents.pid) {
@@ -147,7 +150,7 @@ export class ProcessInfoFile extends BaseFileService {
       // `ProcessInfo` (which will appear in the earliest of the `earlierRuns`)
       // is kinda moot. Instead, substitute the current time, that is, the
       // _reload_ time.
-      contents.startedAt = new Moment(Date.now() / 1000).toPlainObject();
+      contents.startedAt = WallClock.now().toPlainObject();
     }
 
     return contents;
@@ -212,9 +215,9 @@ export class ProcessInfoFile extends BaseFileService {
    * @param {boolean} willReload Is the system going to be reloaded in-process?
    */
   async #stop(willReload) {
-    const contents     = this.#contents;
-    const stoppedAtSec = Date.now() / 1000;
-    const uptimeSec    = stoppedAtSec - contents.startedAt.atSec;
+    const contents  = this.#contents;
+    const stoppedAt = WallClock.now();
+    const uptimeSec = stoppedAt.atSec - contents.startedAt.atSec;
 
     if (willReload) {
       contents.disposition = { reloading: true };
@@ -227,8 +230,8 @@ export class ProcessInfoFile extends BaseFileService {
         };
     }
 
-    contents.disposition.stoppedAt = new Moment(stoppedAtSec).toPlainObject();
-    contents.disposition.uptime    = new Duration(uptimeSec).toPlainObject();
+    contents.disposition.stoppedAt = stoppedAt.toPlainObject();
+    contents.disposition.uptime    = Duration.plainObjectFromSec(uptimeSec);
 
     // Try to get `earlierRuns` to be at the end of the object when it gets
     // encoded to JSON, for easier (human) reading.
@@ -245,15 +248,16 @@ export class ProcessInfoFile extends BaseFileService {
    * Updates {@link #contents} to reflect the latest conditions.
    */
   #updateContents() {
-    const updatedAtSec = Date.now() / 1000;
-
     this.#contents.disposition = {
       running:   true,
-      updatedAt: new Moment(updatedAtSec).toPlainObject(),
-      uptime:    new Duration(updatedAtSec - this.#contents.startedAt.atSec).toPlainObject()
+      updatedAt: WallClock.now().toPlainObject(),
+      uptime:    ProcessInfo.uptime.toPlainObject()
     };
 
-    Object.assign(this.#contents, ProcessInfo.ephemeralInfo);
+    const ephemera = ProcessInfo.ephemeralInfo;
+    delete ephemera.uptime; // Redundant with what we put into `disposition`.
+
+    Object.assign(this.#contents, ephemera);
   }
 
   /**

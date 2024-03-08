@@ -7,7 +7,7 @@ import path from 'node:path';
 import { promisify } from 'node:util';
 
 import { EventPayload, EventSink, EventSource } from '@this/async';
-import { Moment } from '@this/data-values';
+import { WallClock } from '@this/clocks';
 import { IntfLogger } from '@this/loggy';
 
 import { ThisModule } from '#p/ThisModule';
@@ -94,7 +94,7 @@ export class HeapDump {
    */
   static async #openDumpFile(fileName) {
     if (!fileName.endsWith('.heapsnapshot')) {
-      const nowStr = Moment.stringFromSec(Date.now() / 1000, { colons: false });
+      const nowStr = WallClock.now().toString({ colons: false });
       fileName += `-${nowStr}.heapsnapshot`;
     }
 

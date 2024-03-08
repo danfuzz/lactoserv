@@ -3,21 +3,20 @@
 
 import * as timers from 'node:timers/promises';
 
-import { Moment } from '@this/data-values';
-
 import { IntfTimeSource } from '#x/IntfTimeSource';
+import { WallClock } from '#x/WallClock';
 
 
 /**
- * Standard implementation of {@link #IntfTimeSource}, which uses "wall time"
- * as provided by the JavaScript / Node implementation.
+ * Standard implementation of {@link #IntfTimeSource}, which uses
+ * {@link WallClock} as the underlying source of time.
  */
 export class StdTimeSource extends IntfTimeSource {
   // Note: The default constructor is fine.
 
   /** @override */
   now() {
-    return new Moment(Date.now() * StdTimeSource.#SECS_PER_MSEC);
+    return WallClock.now();
   }
 
   /** @override */
@@ -28,7 +27,7 @@ export class StdTimeSource extends IntfTimeSource {
         break;
       }
 
-      const delayMsec = delay * StdTimeSource.#MSEC_PER_SEC;
+      const delayMsec = delay * 1000;
       await timers.setTimeout(delayMsec);
     }
   }
@@ -37,12 +36,6 @@ export class StdTimeSource extends IntfTimeSource {
   //
   // Static members
   //
-
-  /** @type {number} The number of milliseconds in a second. */
-  static #MSEC_PER_SEC = 1000;
-
-  /** @type {number} The number of seconds in a millisecond. */
-  static #SECS_PER_MSEC = 1 / 1000;
 
   /** @type {StdTimeSource} Standard instance of this class. */
   static #INSTANCE = new StdTimeSource();

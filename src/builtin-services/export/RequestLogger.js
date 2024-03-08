@@ -3,7 +3,7 @@
 
 import * as fs from 'node:fs/promises';
 
-import { Moment } from '@this/data-values';
+import { WallClock } from '@this/clocks';
 import { IntfLogger } from '@this/loggy';
 import { IntfRequestLogger } from '@this/net-protocol';
 import { FileServiceConfig } from '@this/sys-config';
@@ -40,7 +40,7 @@ export class RequestLogger extends BaseFileService {
 
   /** @override */
   now() {
-    return Moment.fromMsec(Date.now());
+    return WallClock.now();
   }
 
   /** @override */

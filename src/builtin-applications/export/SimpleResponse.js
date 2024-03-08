@@ -3,6 +3,7 @@
 
 import fs from 'node:fs/promises';
 
+import { WallClock } from '@this/clocks';
 import { Paths, Statter } from '@this/fs-util';
 import { EtagGenerator, HttpUtil, MimeTypes, OutgoingResponse }
   from '@this/net-util';
@@ -58,7 +59,7 @@ export class SimpleResponse extends BaseApplication {
         response.setBodyBuffer(body);
         headers.set('content-type', contentType);
       }
-      headers.set('last-modified', HttpUtil.dateStringFromMsec(Date.now()));
+      headers.set('last-modified', WallClock.now().toHttpString());
       response.status = 200;
     } else {
       response.setNoBody();

@@ -1,5 +1,5 @@
 {
-  "name": "@this/builtin-applications",
+  "name": "@this/clocks",
   "version": "0.0.1",
   "type": "module",
   "private": true,
@@ -12,12 +12,7 @@
   },
 
   "dependencies": {
-    "@this/clocks": "*",
-    "@this/fs-util": "*",
-    "@this/loggy": "*",
-    "@this/net-util": "*",
-    "@this/sys-config": "*",
-    "@this/sys-framework": "*",
+    "@this/data-values": "*",
     "@this/typey": "*"
   }
 }

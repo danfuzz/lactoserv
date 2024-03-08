@@ -1,7 +1,10 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Moment } from '@this/data-values';
+import * as process from 'node:process';
+
+import { WallClock } from '@this/clocks';
+import { Duration, Moment } from '@this/data-values';
 import { FormatUtils } from '@this/loggy';
 
 import { ThisModule } from '#p/ThisModule';
@@ -13,10 +16,17 @@ import { ThisModule } from '#p/ThisModule';
  * ID) _and_ live-updated info (such as the current amount of memory used).
  */
 export class ProcessInfo {
+  /**
+   * @type {?Moment} The moment that the process started.
+   *
+   * **Note:** `process.uptime()` returns a number of seconds.
+   */
+  static #startedAt = new Moment(WallClock.now().atSec - process.uptime());
+
   /** @type {?object} All the fixed-at-startup info, if calculated. */
   static #fixedInfo = null;
 
-  /** @returns {object} All process info. */
+  /** @returns {object} All process info, as a JSON-encodable object. */
   static get allInfo() {
     this.#makeFixedInfo();
 
@@ -26,14 +36,29 @@ export class ProcessInfo {
     };
   }
 
-  /** @returns {object} Process info which varies over time. */
+  /**
+   * @returns {object} Process info which varies over time, as a JSON-encodable
+   * object.
+   */
   static get ephemeralInfo() {
     const memoryUsage = process.memoryUsage();
     for (const [key, value] of Object.entries(memoryUsage)) {
       memoryUsage[key] = FormatUtils.byteCountString(value);
     }
 
-    return { memoryUsage };
+    const uptime = this.uptime.toPlainObject();
+
+    return { memoryUsage, uptime };
+  }
+
+  /** @returns {Moment} The moment that the process started. */
+  static get startedAt() {
+    return this.#startedAt;
+  }
+
+  /** @returns {Duration} The process uptime. */
+  static get uptime() {
+    return WallClock.now().subtract(this.#startedAt);
   }
 
   /**
@@ -51,14 +76,10 @@ export class ProcessInfo {
       return;
     }
 
-    const startSec = (Date.now() - (process.uptime() * 1000)) / 1000;
-    const pid      = process.pid;
-    const ppid     = process.ppid;
-
     this.#fixedInfo = {
-      pid,
-      ppid,
-      startedAt: new Moment(startSec).toPlainObject()
+      pid:       process.pid,
+      ppid:      process.ppid,
+      startedAt: this.#startedAt.toPlainObject()
     };
 
     ThisModule.logger?.processInfo(this.#fixedInfo);
