@@ -12,6 +12,7 @@
   },
 
   "dependencies": {
+    "@this/clocks": "*",
     "@this/fs-util": "*",
     "@this/loggy": "*",
     "@this/net-util": "*",
