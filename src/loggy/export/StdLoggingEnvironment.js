@@ -63,7 +63,8 @@ export class StdLoggingEnvironment extends BaseLoggingEnvironment {
   }
 
   /**
-   * Gets the "now" moment as a plain number of seconds since the Unix Epoch.
+   * Gets the "now" moment as a {@link Moment}, which represents (fractional)
+   * seconds since the Unix Epoch.
    *
    * @returns {Moment} "Now."
    */
