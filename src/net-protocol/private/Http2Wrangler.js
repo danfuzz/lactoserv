@@ -123,15 +123,15 @@ export class Http2Wrangler extends TcpWrangler {
     });
     session.on('error', (e) => {
       removeSession();
-      sessionLogger.closed('error', e)
+      sessionLogger.closed('error', e);
     });
     session.once('goaway', (code) => {
       removeSession();
-      sessionLogger.closed('goaway', code)
+      sessionLogger.closed('goaway', code);
     });
     session.once('frameError', (type, code, id) => {
       removeSession();
-      sessionLogger.closed('frameError', type, code, id)
+      sessionLogger.closed('frameError', type, code, id);
     });
 
     // What's going on: If the underlying socket was closed and we didn't do
