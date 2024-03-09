@@ -68,8 +68,9 @@ and to enable straightforward custom applications.
 ### Requirements
 
 To build:
-* Standard-ish POSIX command-line environment (works on macOS and probably
-  whatever flavor of Linux you happen to like).
+* Standard-ish POSIX command-line environment. (It is known to build on recent
+  versions of macOS and at least one flavor of Linux. It _might_ build on
+  Windows, but if it does nobody has told anyone on the project.)
 * Recent-ish version of Bash (works with what macOS ships, which is about as
   old a version as you'll find on any up-to-date OS).
 * Node v20 or later (tested regularly on v20 and v21).
