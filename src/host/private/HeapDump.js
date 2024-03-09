@@ -4,7 +4,6 @@
 import fs from 'node:fs/promises';
 import { Session } from 'node:inspector/promises';
 import path from 'node:path';
-import { promisify } from 'node:util';
 
 import { EventPayload, EventSink, EventSource } from '@this/async';
 import { WallClock } from '@this/clocks';
