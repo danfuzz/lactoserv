@@ -70,9 +70,9 @@ export class Duration extends UnitQuantity {
    * @returns {Struct} Encoded form.
    */
   [BaseConverter.ENCODE]() {
-    // Note: This is included for the convenience of humans who happen to be
-    // looking at logs (etc.), but is not actually used when reconstructing an
-    // instance. TODO: Re-evaluate this tactic.
+    // Note: This string is included for the convenience of humans who happen to
+    // be looking at logs (etc.), but is not actually used when reconstructing
+    // an instance.
     const str = Duration.stringFromSec(this.sec);
 
     return new Struct(Duration, null, this.sec, str);

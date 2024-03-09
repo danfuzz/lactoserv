@@ -168,9 +168,9 @@ export class Moment {
    * @returns {Struct} Encoded form.
    */
   [BaseConverter.ENCODE]() {
-    // Note: This is included for the convenience of humans who happen to be
-    // looking at logs (etc.), but is not actually used when reconstructing an
-    // instance. TODO: Re-evaluate this tactic.
+    // Note: This string is included for the convenience of humans who happen to
+    // be looking at logs (etc.), but is not actually used when reconstructing
+    // an instance.
     const str = this.toString({ decimals: 6 });
 
     return new Struct(Moment, null, this.#atSec, str);
