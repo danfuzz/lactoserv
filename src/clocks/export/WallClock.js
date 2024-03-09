@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import * as process from 'node:process';
-import { setTimeout } as timers from 'node:timers/promises';
+import { setTimeout } from 'node:timers/promises';
 
 import { Moment } from '@this/data-values';
 
@@ -88,13 +88,26 @@ export class WallClock {
    * @returns {null} `null`, always.
    */
   static async waitFor(dur) {
-    const msec = dur.msec;
+    return this.waitForMsec(dur.msec);
+  }
 
-    if (msec <= 0) {
+  /**
+   * Like {@link #waitFor}, but takes a plain number of milliseconds.
+   *
+   * **Note:** This is meant to be a _direct_ replacement for the various
+   * versions and bindings of `setTimeout()` provided by Node.
+   *
+   * @param {number} durMsec How much time to wait before this method is to
+   *   async-return, as a number of milliseconds. If zero or negative, this
+   *   method simply does not wait before returning.
+   * @returns {null} `null`, always.
+   */
+  static async waitForMsec(durMsec) {
+    if (durMsec <= 0) {
       return;
     }
 
-    return setTimeout(msec, null);
+    return setTimeout(durMsec, null);
   }
 
   /**
