@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { memoryUsage } from 'node:process';
-import { setTimeout } from 'node:timers/promises';
 
 import { Threadlet } from '@this/async';
 import { WallClock } from '@this/clocks';
@@ -122,7 +121,7 @@ export class MemoryMonitor extends BaseService {
       }
 
       await this.#runner.raceWhenStopRequested([
-        setTimeout(timeoutMsec)
+        WallClock.waitForMsec(timeoutMsec)
       ]);
     }
   }

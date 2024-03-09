@@ -3,9 +3,9 @@
 
 import * as fs from 'node:fs/promises';
 import * as process from 'node:process';
-import * as timers from 'node:timers/promises';
 
 import { Threadlet } from '@this/async';
+import { WallClock } from '@this/clocks';
 import { Duration } from '@this/data-values';
 import { Statter } from '@this/fs-util';
 import { ProcessUtil } from '@this/host';
@@ -121,7 +121,7 @@ export class ProcessIdFile extends BaseFileService {
       await this.#updateFile(true);
 
       if (updateMsec) {
-        const timeout = timers.setTimeout(updateMsec);
+        const timeout = WallClock.waitForMsec(updateMsec);
         await this.#runner.raceWhenStopRequested([timeout]);
       } else {
         await this.#runner.whenStopRequested();
@@ -166,13 +166,13 @@ export class ProcessIdFile extends BaseFileService {
       // we wrote (but only if `running === true`, because if we're about to
       // shut down, we can rely on "partner" processes to ultimately do the
       // right thing).
-      await timers.setTimeout(ProcessIdFile.#PRE_CHECK_DELAY_MSEC);
+      await WallClock.waitForMsec(ProcessIdFile.#PRE_CHECK_DELAY_MSEC);
       const readBack = await this.#readFile();
       if (readBack === contents) {
         return;
       }
 
-      await timers.setTimeout(ProcessIdFile.#RETRY_DELAY_MSEC);
+      await WallClock.waitForMsec(ProcessIdFile.#RETRY_DELAY_MSEC);
     }
 
     this.logger?.writeContention({ attempt: maxAttempts, gaveUp: true });
