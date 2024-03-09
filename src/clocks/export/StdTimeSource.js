@@ -30,6 +30,8 @@ export class StdTimeSource extends IntfTimeSource {
       const delayMsec = delay * 1000;
       await timers.setTimeout(delayMsec);
     }
+
+    return null;
   }
 
 
