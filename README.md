@@ -82,9 +82,11 @@ To run (versions as above):
     self-signed certificates. If you don't need to do that, then Node's
     built-in SSL implementation suffices.)
 * Recent-ish version of Bash.
-* Node v20 or later.
-  * **Note:**: Lactoserv uses the relatively new `/v` flag on regular
-    expressions, which became available as of v20.
+* Node v20 or later. This is required because the project uses:
+  * The relatively new `/v` flag on regular expressions, which became available
+    as of v20.
+  * The module `inspector/promises` (for heap dumps), which became available as
+    of v19.
 
 - - - - - - - - - -
 ```
