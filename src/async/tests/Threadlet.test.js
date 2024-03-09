@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import * as timers from 'node:timers/promises';
+import { setImmediate } from 'node:timers/promises';
 
 import { ManualPromise, PromiseState, PromiseUtil, Threadlet }
   from '@this/async';
@@ -45,7 +45,7 @@ describe('constructor(function)', () => {
     });
 
     expect(called).toBeFalse();
-    await timers.setImmediate();
+    await setImmediate();
     expect(called).toBeFalse();
   });
 });
@@ -87,13 +87,13 @@ describe('isRunning()', () => {
     let shouldRun = true;
     const thread = new Threadlet(async () => {
       while (shouldRun) {
-        await timers.setImmediate();
+        await setImmediate();
       }
     });
 
     const runResult = thread.run();
     for (let i = 0; i < 10; i++) {
-      await timers.setImmediate();
+      await setImmediate();
       expect(thread.isRunning()).toBeTrue();
     }
 
@@ -105,18 +105,18 @@ describe('isRunning()', () => {
     let shouldRun = true;
     const thread = new Threadlet(async () => {
       while (shouldRun) {
-        await timers.setImmediate();
+        await setImmediate();
       }
     });
 
     const runResult = thread.run();
-    await timers.setImmediate();
+    await setImmediate();
     expect(thread.isRunning()).toBeTrue(); // Baseline expectation.
 
     // The actual test.
     thread.stop();
     expect(thread.isRunning()).toBeTrue();
-    await timers.setImmediate();
+    await setImmediate();
     expect(thread.isRunning()).toBeTrue();
 
     shouldRun = false;
@@ -128,20 +128,20 @@ describe('isRunning()', () => {
     let stopped   = false;
     const thread = new Threadlet(async () => {
       while (shouldRun) {
-        await timers.setImmediate();
+        await setImmediate();
       }
       stopped = true;
     });
 
     const runResult = thread.run();
-    await timers.setImmediate();
+    await setImmediate();
     expect(thread.isRunning()).toBeTrue(); // Baseline expectation.
 
     // The actual test.
 
     shouldRun = false;
     for (let i = 0; (i < 10) && !stopped; i++) {
-      await timers.setImmediate();
+      await setImmediate();
     }
 
     expect(thread.isRunning()).toBeFalse();
@@ -156,7 +156,7 @@ describe('raceWhenStopRequested()', () => {
     let shouldRun = true;
     const thread = new Threadlet(async () => {
       while (shouldRun) {
-        await timers.setImmediate();
+        await setImmediate();
       }
     });
 
@@ -164,7 +164,7 @@ describe('raceWhenStopRequested()', () => {
     const result    = thread.raceWhenStopRequested([Promise.resolve('boop')]);
 
     expect(PromiseState.isSettled(result)).toBeFalse();
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(result)).toBeTrue();
     expect(await result).toBeFalse();
 
@@ -176,7 +176,7 @@ describe('raceWhenStopRequested()', () => {
     let shouldRun = true;
     const thread = new Threadlet(async () => {
       while (shouldRun) {
-        await timers.setImmediate();
+        await setImmediate();
       }
     });
 
@@ -186,7 +186,7 @@ describe('raceWhenStopRequested()', () => {
 
     PromiseUtil.handleRejection(result);
     expect(PromiseState.isSettled(result)).toBeFalse();
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(result)).toBeTrue();
     await expect(result).toReject();
 
@@ -198,7 +198,7 @@ describe('raceWhenStopRequested()', () => {
     let shouldRun = true;
     const thread = new Threadlet(async () => {
       while (shouldRun) {
-        await timers.setImmediate();
+        await setImmediate();
       }
     });
 
@@ -208,7 +208,7 @@ describe('raceWhenStopRequested()', () => {
 
     expect(PromiseState.isSettled(result)).toBeFalse();
     mp.resolve('boop');
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(result)).toBeTrue();
     expect(await result).toBeFalse();
 
@@ -220,7 +220,7 @@ describe('raceWhenStopRequested()', () => {
     let shouldRun = true;
     const thread = new Threadlet(async () => {
       while (shouldRun) {
-        await timers.setImmediate();
+        await setImmediate();
       }
     });
 
@@ -231,7 +231,7 @@ describe('raceWhenStopRequested()', () => {
     PromiseUtil.handleRejection(result);
     expect(PromiseState.isSettled(result)).toBeFalse();
     mp.reject(new Error('eep!'));
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(result)).toBeTrue();
     await expect(result).toReject();
 
@@ -243,7 +243,7 @@ describe('raceWhenStopRequested()', () => {
     const thread = new Threadlet(() => null);
     const result = thread.raceWhenStopRequested([]);
 
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(result)).toBeTrue();
     expect(await result).toBeTrue();
   });
@@ -253,7 +253,7 @@ describe('raceWhenStopRequested()', () => {
     const mp     = new ManualPromise();
     const result = thread.raceWhenStopRequested([mp.promise]);
 
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(result)).toBeTrue();
     expect(await result).toBeTrue();
   });
@@ -276,7 +276,7 @@ describe('run()', () => {
       });
 
       const runResult = thread.run();
-      await timers.setImmediate();
+      await setImmediate();
       expect(called).toBeTrue();
 
       await expect(runResult).toResolve();
@@ -290,7 +290,7 @@ describe('run()', () => {
 
       const runResult = thread.run();
       expect(called).toBeFalse();
-      await timers.setImmediate();
+      await setImmediate();
       expect(called).toBeTrue();
 
       await expect(runResult).toResolve();
@@ -303,7 +303,7 @@ describe('run()', () => {
       });
 
       const runResult = thread.run();
-      await timers.setImmediate();
+      await setImmediate();
       expect(gotArgs).toStrictEqual([thread]);
 
       await expect(runResult).toResolve();
@@ -316,7 +316,7 @@ describe('run()', () => {
       });
 
       const runResult = thread.run();
-      await timers.setImmediate();
+      await setImmediate();
       expect(gotThis).toBeUndefined();
 
       await expect(runResult).toResolve();
@@ -347,20 +347,20 @@ describe('run()', () => {
         const thread = new Threadlet(...startArg, async () => {
           count++;
           while (shouldRun) {
-            await timers.setImmediate();
+            await setImmediate();
           }
         });
 
         const runResult1 = thread.run();
-        await timers.setImmediate();
+        await setImmediate();
         expect(count).toBe(1);
 
         const runResult2 = thread.run();
-        await timers.setImmediate();
+        await setImmediate();
         expect(count).toBe(1);
 
         const runResult3 = thread.run();
-        await timers.setImmediate();
+        await setImmediate();
         expect(count).toBe(1);
 
         shouldRun = false;
@@ -377,7 +377,7 @@ describe('run()', () => {
           count++;
           const result = `count-was-${count}`;
           while (shouldRun) {
-            await timers.setImmediate();
+            await setImmediate();
           }
 
           return result;
@@ -385,7 +385,7 @@ describe('run()', () => {
 
         const runResult1 = thread.run();
         const runResult2 = thread.run();
-        await timers.setImmediate();
+        await setImmediate();
         const runResult3 = thread.run();
 
         shouldRun = false;
@@ -401,24 +401,24 @@ describe('run()', () => {
           count++;
           const result = `count-was-${count}`;
           while (shouldRun) {
-            await timers.setImmediate();
+            await setImmediate();
           }
 
           return result;
         });
 
         const runResult1 = thread.run();
-        await timers.setImmediate();
+        await setImmediate();
         shouldRun = false;
-        await timers.setImmediate();
+        await setImmediate();
         expect(thread.isRunning()).toBeFalse(); // Baseline expectation.
 
         shouldRun = true;
         const runResult2 = thread.run();
-        await timers.setImmediate();
+        await setImmediate();
         expect(thread.isRunning()).toBeTrue();
         shouldRun = false;
-        await timers.setImmediate();
+        await setImmediate();
         expect(thread.isRunning()).toBeFalse();
 
         expect(await runResult1).toBe('count-was-1');
@@ -438,7 +438,7 @@ describe('run()', () => {
 
       const runResult = thread.run();
       expect(called).toBeFalse();
-      await timers.setImmediate();
+      await setImmediate();
       expect(called).toBeTrue();
 
       await expect(runResult).toResolve();
@@ -449,7 +449,7 @@ describe('run()', () => {
       const thread = new Threadlet((...args) => { gotArgs = args; }, () => null);
 
       const runResult = thread.run();
-      await timers.setImmediate();
+      await setImmediate();
       expect(gotArgs).toStrictEqual([thread]);
 
       await expect(runResult).toResolve();
@@ -460,7 +460,7 @@ describe('run()', () => {
       const thread = new Threadlet(function () { gotThis = this; }, () => null);
 
       const runResult = thread.run();
-      await timers.setImmediate();
+      await setImmediate();
       expect(gotThis).toBeUndefined();
 
       await expect(runResult).toResolve();
@@ -485,21 +485,21 @@ describe('run()', () => {
         const startFn = async () => {
           count++;
           while (shouldRun) {
-            await timers.setImmediate();
+            await setImmediate();
           }
         };
         const thread = new Threadlet(startFn, () => null);
 
         const runResult1 = thread.run();
-        await timers.setImmediate();
+        await setImmediate();
         expect(count).toBe(1);
 
         const runResult2 = thread.run();
-        await timers.setImmediate();
+        await setImmediate();
         expect(count).toBe(1);
 
         const runResult3 = thread.run();
-        await timers.setImmediate();
+        await setImmediate();
         expect(count).toBe(1);
 
         shouldRun = false;
@@ -532,13 +532,13 @@ describe('shouldStop()', () => {
     let shouldRun = true;
     const thread = new Threadlet(async () => {
       while (shouldRun) {
-        await timers.setImmediate();
+        await setImmediate();
       }
     });
 
     const runResult = thread.run();
     for (let i = 0; i < 10; i++) {
-      await timers.setImmediate();
+      await setImmediate();
       expect(thread.shouldStop()).toBeFalse();
     }
 
@@ -551,20 +551,20 @@ describe('shouldStop()', () => {
     let stopped   = false;
     const thread = new Threadlet(async () => {
       while (shouldRun) {
-        await timers.setImmediate();
+        await setImmediate();
       }
       stopped = true;
     });
 
     const runResult = thread.run();
-    await timers.setImmediate();
+    await setImmediate();
     expect(thread.shouldStop()).toBeFalse(); // Baseline expectation.
 
     // The actual test.
 
     shouldRun = false;
     for (let i = 0; (i < 10) && !stopped; i++) {
-      await timers.setImmediate();
+      await setImmediate();
     }
 
     expect(thread.shouldStop()).toBeTrue();
@@ -591,7 +591,7 @@ describe('start()', () => {
       });
 
       const result = thread.start();
-      await timers.setImmediate();
+      await setImmediate();
       expect(called).toBeTrue();
 
       await expect(result).toResolve();
@@ -601,12 +601,12 @@ describe('start()', () => {
       let shouldRun = true;
       const thread = new Threadlet(...startArg, async () => {
         while (shouldRun) {
-          await timers.setImmediate();
+          await setImmediate();
         }
       });
 
       const result = thread.start();
-      await timers.setImmediate();
+      await setImmediate();
       expect(PromiseState.isFulfilled(result)).toBeTrue();
 
       shouldRun = false;
@@ -652,20 +652,20 @@ describe('stop()', () => {
     let stopped = false;
     const thread = new Threadlet(async () => {
       while (!thread.shouldStop()) {
-        await timers.setImmediate();
+        await setImmediate();
       }
       stopped = true;
     });
 
     const runResult = thread.run();
-    await timers.setImmediate();
+    await setImmediate();
     expect(thread.shouldStop()).toBeFalse(); // Baseline expectation.
 
     // The actual test.
 
     thread.stop();
     expect(thread.shouldStop()).toBeTrue();
-    await timers.setImmediate();
+    await setImmediate();
     expect(thread.shouldStop()).toBeTrue();
     expect(stopped).toBeTrue();
 
@@ -679,7 +679,7 @@ describe('stop()', () => {
 
     const runResult     = thread.run();
     const resultPromise = thread.whenStopRequested();
-    await timers.setImmediate();
+    await setImmediate();
 
     // Baseline expectation.
     expect(PromiseState.isSettled(resultPromise)).toBeFalse();
@@ -687,7 +687,7 @@ describe('stop()', () => {
     // The actual test.
 
     thread.stop();
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(resultPromise)).toBeTrue();
 
     await expect(runResult).toResolve();
@@ -697,12 +697,12 @@ describe('stop()', () => {
     let shouldRun = true;
     const thread = new Threadlet(async () => {
       while (shouldRun) {
-        await timers.setImmediate();
+        await setImmediate();
       }
     });
 
     const runResult = thread.run();
-    await timers.setImmediate();
+    await setImmediate();
     expect(thread.isRunning()).toBeTrue(); // Baseline expectation.
 
     // The actual test.
@@ -710,7 +710,7 @@ describe('stop()', () => {
     thread.stop();
     for (let i = 0; i < 10; i++) {
       expect(thread.isRunning()).toBeTrue();
-      await timers.setImmediate();
+      await setImmediate();
     }
 
     shouldRun = false;
@@ -724,7 +724,7 @@ describe('stop()', () => {
     const runResult = thread.run();
     const result    = thread.stop();
 
-    await timers.setImmediate();
+    await setImmediate();
     await expect(runResult).toResolve();
     expect(await result).toBe(value);
   });
@@ -739,7 +739,7 @@ describe('stop()', () => {
     PromiseUtil.handleRejection(runResult);
     PromiseUtil.handleRejection(result);
 
-    await timers.setImmediate();
+    await setImmediate();
     await expect(runResult).toReject();
     await expect(result).rejects.toThrow(error);
   });
@@ -777,14 +777,14 @@ describe('whenStarted()', () => {
       let shouldRun = true;
       const thread = new Threadlet(...startArg, async () => {
         while (shouldRun) {
-          await timers.setImmediate();
+          await setImmediate();
         }
       });
 
       const runResult = thread.run();
       for (let i = 0; i < 10; i++) {
         const result = thread.whenStarted();
-        await timers.setImmediate();
+        await setImmediate();
         expect(PromiseState.isSettled(result)).toBeTrue();
       }
 
@@ -796,18 +796,18 @@ describe('whenStarted()', () => {
       let shouldRun = true;
       const thread = new Threadlet(...startArg, async () => {
         while (shouldRun) {
-          await timers.setImmediate();
+          await setImmediate();
         }
       });
 
       const runResult = thread.run();
-      await timers.setImmediate();
+      await setImmediate();
       await expect(thread.whenStarted()).toResolve(); // Baseline expectation.
 
       // The actual test.
       thread.stop();
       const result1 = thread.whenStarted();
-      await timers.setImmediate();
+      await setImmediate();
       const result2 = thread.whenStarted();
 
       await expect(result1).toResolve();
@@ -823,20 +823,20 @@ describe('whenStarted()', () => {
       let stopped   = false;
       const thread = new Threadlet(...startArg, async () => {
         while (shouldRun) {
-          await timers.setImmediate();
+          await setImmediate();
         }
         stopped = true;
       });
 
       const runResult = thread.run();
-      await timers.setImmediate();
+      await setImmediate();
       await expect(thread.whenStarted()).toResolve(); // Baseline expectation.
 
       // The actual test.
 
       shouldRun = false;
       for (let i = 0; (i < 10) && !stopped; i++) {
-        await timers.setImmediate();
+        await setImmediate();
       }
 
       const result = thread.whenStarted();
@@ -852,26 +852,26 @@ describe('whenStarted()', () => {
         let shouldRunStart = true;
         const startFn = async () => {
           while (shouldRunStart) {
-            await timers.setImmediate();
+            await setImmediate();
           }
         };
         let shouldRunMain = true;
         const mainFn = async () => {
           while (shouldRunMain) {
-            await timers.setImmediate();
+            await setImmediate();
           }
         };
         const thread = new Threadlet(startFn, mainFn);
 
         const runResult = thread.run();
-        await timers.setImmediate();
+        await setImmediate();
         expect(thread.isRunning()).toBeTrue(); // Baseline expectation.
 
         // Actual test.
         const result = thread.whenStarted();
         expect(PromiseState.isSettled(result)).toBeFalse();
         shouldRunStart = false;
-        await timers.setImmediate();
+        await setImmediate();
         expect(PromiseState.isFulfilled(result)).toBeTrue();
         await expect(result).toResolve();
 
@@ -885,7 +885,7 @@ describe('whenStarted()', () => {
         const runResult = thread.run();
         const result    = thread.whenStarted();
 
-        await timers.setImmediate();
+        await setImmediate();
         expect(PromiseState.isSettled(result)).toBeTrue();
         expect(await result).toBe(123);
 
@@ -902,7 +902,7 @@ describe('whenStarted()', () => {
         PromiseUtil.handleRejection(result);
         PromiseUtil.handleRejection(runResult);
 
-        await timers.setImmediate();
+        await setImmediate();
         expect(PromiseState.isSettled(result)).toBeTrue();
         await expect(result).rejects.toThrow(error);
 
@@ -915,14 +915,14 @@ describe('whenStarted()', () => {
         const thread = new Threadlet(async () => {
           isRunning = true;
           while (shouldRun) {
-            await timers.setImmediate();
+            await setImmediate();
           }
         });
 
         const runResult = thread.run();
         const result = thread.whenStarted();
         while (!isRunning) {
-          await timers.setImmediate();
+          await setImmediate();
         }
         expect(PromiseState.isFulfilled(result)).toBeTrue();
         shouldRun = false;
@@ -937,7 +937,7 @@ describe('whenStarted()', () => {
         const runResult = thread.run();
         const result    = thread.whenStarted();
 
-        await timers.setImmediate();
+        await setImmediate();
         expect(PromiseState.isSettled(result)).toBeTrue();
         expect(await result).toBeNull();
 
@@ -959,7 +959,7 @@ describe('whenStopRequested()', () => {
     let shouldRun = true;
     const thread = new Threadlet(async () => {
       while (shouldRun) {
-        await timers.setImmediate();
+        await setImmediate();
       }
     });
 
@@ -967,7 +967,7 @@ describe('whenStopRequested()', () => {
     const result    = thread.whenStopRequested();
 
     expect(PromiseState.isPending(result)).toBeTrue();
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isPending(result)).toBeTrue();
 
     shouldRun = false;
@@ -978,7 +978,7 @@ describe('whenStopRequested()', () => {
     let shouldRun = true;
     const thread = new Threadlet(async () => {
       while (shouldRun) {
-        await timers.setImmediate();
+        await setImmediate();
       }
     });
 
@@ -989,7 +989,7 @@ describe('whenStopRequested()', () => {
 
     // The actual test.
     thread.stop();
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isFulfilled(result)).toBeTrue();
 
     shouldRun = false;

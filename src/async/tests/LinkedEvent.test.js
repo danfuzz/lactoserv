@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import * as timers from 'node:timers/promises';
+import { setImmediate } from 'node:timers/promises';
 
 import { EventPayload, LinkedEvent, ManualPromise, PromiseState }
   from '@this/async';
@@ -29,7 +29,7 @@ describe.each`
   test('has an unsettled `nextPromise`', async () => {
     const event = new LinkedEvent(...args);
 
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(event.nextPromise)).toBeFalse();
   });
 
@@ -95,7 +95,7 @@ describe('constructor(payload, next: Promise)', () => {
     const mp    = new ManualPromise();
     const event = new LinkedEvent(payload1, mp.promise);
 
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(event.nextPromise)).toBeFalse();
   });
 
@@ -306,7 +306,7 @@ describe('.nextPromise', () => {
   test('is an unsettled promise if there is no next event', async () => {
     const event = new LinkedEvent(payload1);
 
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(event.nextPromise)).toBeFalse();
   });
 
@@ -314,7 +314,11 @@ describe('.nextPromise', () => {
     const event = new LinkedEvent(payload1);
 
     (async () => {
-      await timers.setTimeout(10);
+      await setImmediate();
+      await setImmediate();
+      await setImmediate();
+      await setImmediate();
+      await setImmediate();
       event.emitter(payload2);
     })();
 
@@ -431,7 +435,7 @@ describe('withPayload()', () => {
     const event  = new LinkedEvent(payload1);
     const result = event.withPayload(payload2);
 
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(event.nextPromise)).toBeFalse();
 
     event.emitter(payload3);

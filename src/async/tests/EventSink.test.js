@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import * as timers from 'node:timers/promises';
+import { setImmediate } from 'node:timers/promises';
 
 import { EventPayload, EventSink, LinkedEvent, ManualPromise, PromiseState,
   PromiseUtil }
@@ -74,7 +74,7 @@ describe('.currentEvent', () => {
     const sink  = new EventSink(() => true, event);
 
     const runResult = sink.run();
-    await timers.setImmediate();
+    await setImmediate();
     const stopResult = sink.drainAndStop();
     await expect(runResult).toResolve();
     await expect(stopResult).toResolve();
@@ -83,7 +83,7 @@ describe('.currentEvent', () => {
     expect(PromiseState.isPending(got)).toBeTrue();
     event.emitter(payload2);
     const event2 = event.nextNow;
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isFulfilled(got)).toBeTrue();
     expect((await got).payload).toBe(event2.payload);
   });
@@ -99,7 +99,7 @@ describe('drainAndStop()', () => {
     let runProcessor = false;
     const processor = async () => {
       while (!runProcessor) {
-        await timers.setImmediate();
+        await setImmediate();
       }
       callCount++;
       runProcessor = false;
@@ -109,11 +109,11 @@ describe('drainAndStop()', () => {
     const sink = new EventSink(processor, mp.promise);
 
     const runResult = sink.run();
-    await timers.setImmediate();
+    await setImmediate();
     mp.resolve(event1);
     runProcessor = true;
     while (callCount === 0) {
-      await timers.setImmediate();
+      await setImmediate();
     }
     expect(callCount).toBe(1); // Baseline expectation.
 
@@ -121,7 +121,7 @@ describe('drainAndStop()', () => {
     const result = sink.drainAndStop();
     while (callCount < 3) {
       runProcessor = true;
-      await timers.setImmediate();
+      await setImmediate();
     }
     expect(PromiseState.isFulfilled(result)).toBeTrue();
 
@@ -141,7 +141,7 @@ describe('drainAndStop()', () => {
     const sink = new EventSink(processor, mp.promise);
 
     const runResult = sink.run();
-    await timers.setImmediate();
+    await setImmediate();
 
     // At this point, the run loop should be stuck waiting for either an event
     // or a stop request. The point of this test is to see that an available
@@ -152,7 +152,7 @@ describe('drainAndStop()', () => {
     expect(callCount).toBe(0);           // Baseline expectation.
     expect(sink.isRunning()).toBeTrue(); // Likewise.
 
-    await timers.setImmediate();
+    await setImmediate();
     expect(callCount).toBe(2);
     expect(sink.isRunning()).toBeFalse();
 
@@ -168,7 +168,7 @@ describe('drainAndStop()', () => {
     let runProcessor = false;
     const processor = async () => {
       while (!runProcessor) {
-        await timers.setImmediate();
+        await setImmediate();
       }
       callCount++;
       runProcessor = false;
@@ -179,17 +179,17 @@ describe('drainAndStop()', () => {
 
     // The setup: Do a first run that ends with a call to drain.
     const runResult1 = sink.run();
-    await timers.setImmediate();
+    await setImmediate();
     await expect(sink.drainAndStop()).toResolve();
     await expect(runResult1).toResolve();
 
     // The actual test.
     const runResult2 = sink.run();
-    await timers.setImmediate();
+    await setImmediate();
     mp.resolve(event1);
     runProcessor = true;
     while (callCount === 0) {
-      await timers.setImmediate();
+      await setImmediate();
     }
     expect(callCount).toBe(1); // Baseline expectation.
 
@@ -197,7 +197,7 @@ describe('drainAndStop()', () => {
     const result = sink.stop();
     while (PromiseState.isPending(result)) {
       runProcessor = true;
-      await timers.setImmediate();
+      await setImmediate();
     }
     expect(PromiseState.isFulfilled(result)).toBeTrue();
     expect(callCount).toBe(2); // The crux of the test: _not_ 3!
@@ -220,7 +220,7 @@ describe('run()', () => {
 
     const runResult = sink.run();
 
-    await timers.setImmediate();
+    await setImmediate();
     expect(callCount).toBe(1);
     expect(callGot).toBe(event);
 
@@ -241,7 +241,7 @@ describe('run()', () => {
 
     const runResult = sink.run();
 
-    await timers.setImmediate();
+    await setImmediate();
     expect(callCount).toBe(1);
     expect(callGot).toBe(event);
 
@@ -261,7 +261,7 @@ describe('run()', () => {
     const runResult = sink.run();
     PromiseUtil.handleRejection(runResult);
 
-    await timers.setImmediate();
+    await setImmediate();
     expect(callCount).toBe(0);
 
     sink.stop();
@@ -284,7 +284,7 @@ describe('run()', () => {
     const runResult = sink.run();
     PromiseUtil.handleRejection(runResult);
 
-    await timers.setImmediate();
+    await setImmediate();
     expect(callCount).toBe(1);
     expect(callGot).toBe(event);
 
@@ -316,7 +316,7 @@ describe('run()', () => {
     const sink  = new EventSink(processor, events[0]);
 
     const runResult = sink.run();
-    await timers.setImmediate();
+    await setImmediate();
     expect(callCount).toBe(events.length);
 
     sink.stop();
@@ -340,12 +340,12 @@ describe('run()', () => {
 
     for (let i = 1; i < 10; i++) {
       expect(callCount).toBe(i - 1);
-      await timers.setImmediate();
+      await setImmediate();
       expect(callCount).toBe(i);
       emitter = emitter(new EventPayload('num', i));
     }
 
-    await timers.setImmediate();
+    await setImmediate();
     expect(callCount).toBe(10);
 
     sink.stop();
@@ -365,7 +365,7 @@ describe('run()', () => {
 
     // Baseline expectations.
     const runResult1 = sink.run();
-    await timers.setImmediate();
+    await setImmediate();
     expect(callCount).toBe(1);
     expect(callGot).toBe(event1);
     sink.stop();
@@ -377,7 +377,7 @@ describe('run()', () => {
     const event2 = event1.nextNow;
 
     const runResult2 = sink.run();
-    await timers.setImmediate();
+    await setImmediate();
     expect(callCount).toBe(2);
     expect(callGot).toBe(event2);
     sink.stop();
@@ -395,7 +395,7 @@ describe('stop()', () => {
     const sink = new EventSink(processor, new LinkedEvent(payload1));
 
     sink.stop();
-    await timers.setImmediate();
+    await setImmediate();
     expect(callCount).toBe(0);
   });
 
@@ -409,7 +409,7 @@ describe('stop()', () => {
 
     const runResult = sink.run();
     sink.stop();
-    await timers.setImmediate();
+    await setImmediate();
     expect(callCount).toBe(0);
 
     expect (await runResult).toBeUndefined();
@@ -428,7 +428,7 @@ describe('processor function calling', () => {
 
     const runResult = sink.run();
 
-    await timers.setImmediate();
+    await setImmediate();
     expect(callGot).toStrictEqual([event]);
 
     sink.stop();
@@ -446,7 +446,7 @@ describe('processor function calling', () => {
 
     const runResult = sink.run();
 
-    await timers.setImmediate();
+    await setImmediate();
     expect(callGot).toStrictEqual([event]);
 
     sink.stop();
@@ -464,7 +464,7 @@ describe('processor function calling', () => {
 
     const runResult = sink.run();
 
-    await timers.setImmediate();
+    await setImmediate();
     expect(callGotThis).toBeNull();
 
     sink.stop();

@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import * as timers from 'node:timers/promises';
+import { setImmediate } from 'node:timers/promises';
 
 import { EventPayload, EventSource, LinkedEvent, PromiseState }
   from '@this/async';
@@ -43,7 +43,7 @@ describe.each`
   test('produces an instance whose `currentEvent` is unsettled', async () => {
     const source = new EventSource(...argFn());
 
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(source.currentEvent)).toBeFalse();
   });
 
@@ -55,7 +55,7 @@ describe.each`
   test('produces an instance whose `earliestEvent` is unsettled', async () => {
     const source = new EventSource(...argFn());
 
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(source.earliestEvent)).toBeFalse();
   });
 

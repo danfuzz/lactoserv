@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import * as timers from 'node:timers/promises';
+import { setImmediate } from 'node:timers/promises';
 
 import { ManualPromise, PromiseState, TokenBucket } from '@this/async';
 import { IntfTimeSource, StdTimeSource } from '@this/clocks';
@@ -413,7 +413,7 @@ describe('denyAllRequests()', () => {
     const result1 = bucket.requestGrant(1);
     const result2 = bucket.requestGrant(2);
     const result3 = bucket.requestGrant(3);
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isPending(result1)).toBeTrue();
     expect(PromiseState.isPending(result2)).toBeTrue();
     expect(PromiseState.isPending(result3)).toBeTrue();
@@ -423,7 +423,7 @@ describe('denyAllRequests()', () => {
     const result = bucket.denyAllRequests();
     time._setTime(10987);
     expect(PromiseState.isPending(result)).toBeTrue();
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isFulfilled(result)).toBeTrue();
 
     expect(PromiseState.isFulfilled(result1)).toBeTrue();
@@ -508,7 +508,7 @@ describe('requestGrant()', () => {
       // The actual test.
       const request2 = bucket.requestGrant({ minInclusive: 0, maxInclusive: 123 });
       expect(bucket.latestState().waiterCount).toBe(1);
-      await timers.setImmediate();
+      await setImmediate();
       expect(PromiseState.isPending(request1)).toBeTrue();
       expect(PromiseState.isFulfilled(request2)).toBeTrue();
 
@@ -535,7 +535,7 @@ describe('requestGrant()', () => {
       // The actual test.
       const request2 = bucket.requestGrant(1);
       expect(bucket.latestState().waiterCount).toBe(1);
-      await timers.setImmediate();
+      await setImmediate();
       expect(PromiseState.isFulfilled(request2)).toBeTrue();
       await checkGrant(request2, { done: false, grant: 0, reason: 'full', waitTime: 0 });
 
@@ -560,7 +560,7 @@ describe('requestGrant()', () => {
       // The actual test.
       const request2 = bucket.requestGrant(2);
       expect(bucket.latestState().waiterCount).toBe(1);
-      await timers.setImmediate();
+      await setImmediate();
       expect(PromiseState.isFulfilled(request2)).toBeTrue();
       await checkGrant(request2, { done: false, grant: 0, reason: 'full', waitTime: 0 });
 
@@ -581,7 +581,7 @@ describe('requestGrant()', () => {
       const request = bucket.requestGrant({ minInclusive: 25, maxInclusive: 50 });
       expect(bucket.latestState().waiterCount).toBe(1);
       time._setTime(nowSec + 321);
-      await timers.setImmediate();
+      await setImmediate();
       expect(PromiseState.isFulfilled(request)).toBeTrue();
       await checkGrant(request, { done: true, grant: 50, reason: 'grant', waitTime: 321 });
 
@@ -598,7 +598,7 @@ describe('requestGrant()', () => {
       const request = bucket.requestGrant({ minInclusive: 50, maxInclusive: 150 });
       expect(bucket.latestState().waiterCount).toBe(1);
       time._setTime(nowSec + 90909);
-      await timers.setImmediate();
+      await setImmediate();
       expect(PromiseState.isFulfilled(request)).toBeTrue();
       await checkGrant(request, { done: true, grant: 100, reason: 'grant', waitTime: 90909 });
 
@@ -621,19 +621,19 @@ describe('requestGrant()', () => {
       expect(PromiseState.isPending(request3)).toBeTrue();
 
       time._setTime(nowSec + 10);
-      await timers.setImmediate();
+      await setImmediate();
       expect(PromiseState.isFulfilled(request1)).toBeTrue();
       expect(PromiseState.isPending(request2)).toBeTrue();
       expect(PromiseState.isPending(request3)).toBeTrue();
 
       time._setTime(nowSec + 10 + 20);
-      await timers.setImmediate();
+      await setImmediate();
       expect(PromiseState.isFulfilled(request1)).toBeTrue();
       expect(PromiseState.isFulfilled(request2)).toBeTrue();
       expect(PromiseState.isPending(request3)).toBeTrue();
 
       time._setTime(nowSec + 10 + 20 + 30);
-      await timers.setImmediate();
+      await setImmediate();
       expect(PromiseState.isFulfilled(request1)).toBeTrue();
       expect(PromiseState.isFulfilled(request2)).toBeTrue();
       expect(PromiseState.isFulfilled(request3)).toBeTrue();
@@ -669,7 +669,7 @@ describe('requestGrant()', () => {
         maxQueueGrantSize: 10, initialBurstSize: 0, timeSource: time });
 
       const resultPromise = bucket.requestGrant({ minInclusive: 1.5, maxInclusive: 2.5 });
-      await timers.setImmediate();
+      await setImmediate();
       expect(PromiseState.isPending(resultPromise)).toBeTrue();
       time._setTime(nowSec + 10);
       const result = await resultPromise;
@@ -704,7 +704,7 @@ describe('requestGrant()', () => {
         maxQueueGrantSize: grant, initialBurstSize: 0, timeSource: time });
 
       const resultPromise = bucket.requestGrant({ minInclusive: 1, maxInclusive: 10 });
-      await timers.setImmediate();
+      await setImmediate();
       expect(PromiseState.isPending(resultPromise)).toBeTrue();
       time._setTime(nowSec + 10);
       const result = await resultPromise;
@@ -770,14 +770,14 @@ describe('latestState()', () => {
     expect(bucket.latestState().availableQueueSize).toBe(1000 - 10 - 15 - 100);
 
     time._setTime(1025); // Enough for the first two requests to get granted.
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isFulfilled(result1)).toBeTrue();
     expect(PromiseState.isFulfilled(result2)).toBeTrue();
     expect(bucket.latestState().waiterCount).toBe(1);
     expect(bucket.latestState().availableQueueSize).toBe(1000 - 100);
 
     time._setTime(1125); // Enough for the last request to get granted.
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isFulfilled(result3)).toBeTrue();
     expect(bucket.latestState().waiterCount).toBe(0);
     expect(bucket.latestState().availableQueueSize).toBe(1000);
@@ -937,7 +937,7 @@ describe('takeNow()', () => {
 
       // Setup / baseline assumptions.
       const requestResult = bucket.requestGrant(1300);
-      await timers.setImmediate();
+      await setImmediate();
       expect(PromiseState.isPending(requestResult)).toBeTrue();
 
       // The actual test.
@@ -961,7 +961,7 @@ describe('takeNow()', () => {
 
       // Setup / baseline assumptions.
       const requestResult = bucket.requestGrant(300);
-      await timers.setImmediate();
+      await setImmediate();
       expect(PromiseState.isPending(requestResult)).toBeTrue();
 
       // The actual test.
@@ -985,7 +985,7 @@ describe('takeNow()', () => {
 
       // Setup / baseline assumptions.
       const requestResult = bucket.requestGrant(300);
-      await timers.setImmediate();
+      await setImmediate();
       expect(PromiseState.isPending(requestResult)).toBeTrue();
 
       // The actual test.
@@ -1013,7 +1013,7 @@ describe('takeNow()', () => {
       expect(bucket.latestState().waiterCount).toBe(1);
       const now1 = nowSec + 3;
       time._setTime(now1);
-      await timers.setImmediate();
+      await setImmediate();
       expect(PromiseState.isFulfilled(requestResult)).toBeTrue();
       expect(bucket.latestState().waiterCount).toBe(0);
       expect(bucket.latestState().availableBurstSize).toBe(2);
