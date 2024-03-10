@@ -3,6 +3,7 @@
 
 import * as fs from 'node:fs/promises';
 
+import { WallClock } from '@this/clocks';
 import { Statter } from '@this/fs-util';
 import { FileServiceConfig } from '@this/sys-config';
 import { BaseService } from '@this/sys-framework';
@@ -34,7 +35,7 @@ export class BaseFileService extends BaseService {
 
     if (await Statter.pathExists(path)) {
       // File already exists; just update the modification time.
-      const dateNow = new Date();
+      const dateNow = WallClock.now().toDate();
       await fs.utimes(path, dateNow, dateNow);
     } else {
       await fs.appendFile(path, '');
