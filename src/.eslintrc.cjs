@@ -170,6 +170,13 @@ const disallowedFunctionality = {
       property: 'now',
       message:  'Use module `clocks` from this project.'
     }
+  ],
+  'no-restricted-syntax': [
+    'error',
+    {
+      selector: 'NewExpression[callee.name=\'Date\'][arguments.length!=1]',
+      message:  'Use module `clocks` or class `data-values.Moment`.'
+    }
   ]
 };
 
