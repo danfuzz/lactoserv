@@ -107,6 +107,16 @@ describe('subtract()', () => {
   });
 });
 
+describe('toDate()', () => {
+  test('converts to a `Date`', () => {
+    const valueMsec = 12345;
+    const result    = new Moment(valueMsec / 1000).toDate();
+
+    expect(result).toBeInstanceOf(Date);
+    expect(result.valueOf()).toBe(valueMsec);
+  });
+});
+
 describe.each`
 method                 | isStatic
 ${'httpStringFromSec'} | ${true}

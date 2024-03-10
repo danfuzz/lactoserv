@@ -127,6 +127,15 @@ export class Moment {
   }
 
   /**
+   * Returns a `Date` instance that represents the same moment as `this`.
+   *
+   * @returns {Date} The corresponding `Date`.
+   */
+  toDate() {
+    return new Date(this.atMsec)
+  }
+
+  /**
    * Makes a string representing this instance, in the standard HTTP format.
    * See {@link #httpStringFromSec} for more details.
    *
