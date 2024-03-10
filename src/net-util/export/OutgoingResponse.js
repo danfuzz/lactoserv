@@ -1045,8 +1045,12 @@ export class OutgoingResponse {
           }
         } else if (error) {
           // The result promise was already settled, and _then_ an `error` got
-          // emitted. This has been observed to happen in production, but (as of
-          // this writing) it is unclear what's going on).
+          // emitted. This has been observed to happen in production. Near as I
+          // (@danfuzz) can tell, if the underlying socket gets closed from the
+          // other side (`ECONNRESET`), a `TLSSocket` that is using it will end
+          // up emitting an `error` with the message `write ECANCELED` _after_
+          // it already emitted a `close` event. And `error` after `close` goes
+          // against the Node stream spec.
           if (resultMp.isFulfilled()) {
             const value = resultMp.fulfilledValue;
             throw new Error('Response error after promise was already fulfilled. ' +
