@@ -95,15 +95,24 @@ export class RateLimitedStream {
       this.#error = error;
     }
 
-    if (!this.#outerStream.destroyed) {
-      logger?.destroyingOuter();
-      this.#outerStream.destroy(error);
-    }
+    // Destroys the given stream, with appropriate safeguards so as to follow
+    // the stream contract. Specifically, there is no point in `destroy()`ing a
+    // stream that's already been destroyed, and if a stream is already closed,
+    // then it's invalid to have it emit an `error`.
+    const destroyStream = (stream, logName) => {
+      logger?.[logName]();
+      if (stream.destroyed) {
+        logger?.suppressingError('afterDestroy');
+      } else if (stream.closed) {
+        logger?.suppressingError('afterClose');
+        stream.destroy();
+      } else {
+        stream.destroy(error);
+      }
+    };
 
-    if (!this.#innerStream.destroyed) {
-      logger?.destroyingInner();
-      this.#innerStream.destroy(error);
-    }
+    destroyStream(this.#outerStream, 'destroyingOuter');
+    destroyStream(this.#innerStream, 'destroyingInner');
   }
 
   /**
