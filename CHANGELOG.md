@@ -27,7 +27,7 @@ Other notable changes:
     core library arguably _should_ be preventing this from happening, but
     _maybe_ it isn't.
 * Spring cleaning: Perhaps inspired by the semi-annual DST switch, did a
-  consistency pass in re timing-related functionality.
+  consistency pass around timing-related functionality.
 
 ### v0.6.8 -- 2024-03-05
 
