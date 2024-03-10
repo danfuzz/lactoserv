@@ -132,7 +132,7 @@ export class Moment {
    * @returns {Date} The corresponding `Date`.
    */
   toDate() {
-    return new Date(this.atMsec)
+    return new Date(this.atMsec);
   }
 
   /**
