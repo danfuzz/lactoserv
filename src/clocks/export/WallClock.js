@@ -1,6 +1,9 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+// This is the one file where it's okay to use `node:timers/promises`.
+/* eslint-disable no-restricted-imports */
+
 import * as process from 'node:process';
 import { setTimeout } from 'node:timers/promises';
 
