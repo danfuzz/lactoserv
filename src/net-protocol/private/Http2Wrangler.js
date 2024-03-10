@@ -119,20 +119,31 @@ export class Http2Wrangler extends TcpWrangler {
 
     session.once('close', () => {
       removeSession();
-      sessionLogger.closed('ok');
+      sessionLogger?.closed('ok');
     });
     session.on('error', (e) => {
       removeSession();
-      sessionLogger.closed('error', e);
+      sessionLogger?.closed('error', e);
     });
     session.once('goaway', (code) => {
       removeSession();
-      sessionLogger.closed('goaway', code);
+      sessionLogger?.closed('goaway', code);
     });
     session.once('frameError', (type, code, id) => {
       removeSession();
-      sessionLogger.closed('frameError', type, code, id);
+      sessionLogger?.closed('frameError', type, code, id);
     });
+
+    // If we want to support the HTTP-2 protocol directly, this is where the
+    // implementation would go. As things stand, we use the HTTP-1 compatibility
+    // layer.
+    /*
+    session.on('stream', (stream, headers, flags, rawHeaders) => {
+      connectionLogger?.streamOpened(rawHeaders, flags);
+      stream.once('error', (e) => sessionLogger?.streamError(e));
+      stream.once('close', () => sessionLogger?.streamClosed());
+    });
+    */
 
     // What's going on: If the underlying socket was closed and we didn't do
     // anything here (that is, if this event handler weren't added), the HTTP2
