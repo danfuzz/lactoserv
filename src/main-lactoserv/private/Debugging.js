@@ -1,6 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { setImmediate as setImmediateCallback } from 'node:timers';
 import { setImmediate } from 'node:timers/promises';
 
 import { WallClock } from '@this/clocks';
@@ -67,13 +68,16 @@ export class Debugging {
       // Wait a moment before continuing with the actually-uncaught examples.
       await WallClock.waitForMsec(1000);
 
-      // The timeout here is meant to jibe with `TopErrorHandler`'s grace period
-      // given for unhandled promise rejections.
-      setTimeout(() => {
-        const error = new Error('I am an uncaught exception (from a callback).');
-        error.beep = 'boop';
-        throw error;
-      }, 50);
+      // The wait time here is meant to jibe with `TopErrorHandler`'s grace
+      // period given for unhandled promise rejections.
+      (async () => {
+        await WallClock.waitForMsec(50);
+        setImmediateCallback(() => {
+          const error = new Error('I am an uncaught exception (from a callback).');
+          error.beep = 'boop';
+          throw error;
+        });
+      })();
 
       const cause = new TypeError('I am a cause.');
       cause.name = 'CausewayError';
