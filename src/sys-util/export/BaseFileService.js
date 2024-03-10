@@ -28,7 +28,7 @@ export class BaseFileService extends BaseService {
   }
 
   /**
-   * "Touches" (creates if necessary) the file at {@link #path}.
+   * "Touches" (and creates if necessary) the file at {@link #path}.
    */
   async _prot_touchPath() {
     const path = this.config.path;
