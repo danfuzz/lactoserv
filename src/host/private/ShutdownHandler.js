@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import process from 'node:process'; // Need to import as such, for `.on*()`.
-import * as timers from 'node:timers/promises';
 
 import { Threadlet } from '@this/async';
+import { WallClock } from '@this/clocks';
 import { IntfLogger } from '@this/loggy';
 
 import { CallbackList } from '#p/CallbackList';
@@ -109,7 +109,7 @@ export class ShutdownHandler {
 
     this.#logger?.bye(this.#exitCode);
 
-    await timers.setTimeout(this.#PRE_EXIT_DELAY_MSEC);
+    await WallClock.waitForMsec(this.#PRE_EXIT_DELAY_MSEC);
 
     const problems = TopErrorHandler.problems;
 

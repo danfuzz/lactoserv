@@ -1,9 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import * as timers from 'node:timers/promises';
-
 import { Threadlet } from '@this/async';
+import { WallClock } from '@this/clocks';
 import { IntfLogger } from '@this/loggy';
 
 import { ProcessInfo } from '#x/ProcessInfo';
@@ -72,7 +71,7 @@ export class KeepRunning {
     // (one way or another) when it's okay for the process to exit.
     while (!this.#thread.shouldStop()) {
       await this.#thread.raceWhenStopRequested([
-        timers.setTimeout(KeepRunning.#MSEC_PER_DAY)
+        WallClock.waitForMsec(KeepRunning.#MSEC_PER_DAY)
       ]);
 
       this.#logger?.uptime(ProcessInfo.uptime);
