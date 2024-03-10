@@ -1,8 +1,9 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import * as timers from 'node:timers/promises';
+import { setImmediate } from 'node:timers/promises';
 
+import { WallClock } from '@this/clocks';
 import { Duration } from '@this/data-values';
 import { Host } from '@this/host';
 import { IntfLogger } from '@this/loggy';
@@ -54,7 +55,7 @@ export class Debugging {
       // but few enough that it's slow-but-handled as far as `TopErrorHandler`
       // is concerned.
       for (let i = 1; i <= 5; i++) {
-        await timers.setImmediate();
+        await setImmediate();
       }
 
       try {
@@ -64,7 +65,7 @@ export class Debugging {
       }
 
       // Wait a moment before continuing with the actually-uncaught examples.
-      await timers.setTimeout(1000);
+      await WallClock.waitForMsec(1000);
 
       // The timeout here is meant to jibe with `TopErrorHandler`'s grace period
       // given for unhandled promise rejections.
@@ -102,7 +103,7 @@ export class Debugging {
 
       let remainingSec = maxRunTimeSec;
       if (maxRunTimeSec > 60) {
-        await timers.setTimeout((maxRunTimeSec - 60) * 1000);
+        await WallClock.waitForMsec((maxRunTimeSec - 60) * 1000);
         remainingSec = 60;
       }
 
@@ -119,7 +120,7 @@ export class Debugging {
           waitSec = HALF_FREQ_SECS + (remainingSec % HALF_FREQ_SECS);
         }
 
-        await timers.setTimeout(waitSec * 1000);
+        await WallClock.waitForMsec(waitSec * 1000);
         remainingSec -= waitSec;
       }
 

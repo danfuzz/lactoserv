@@ -2,9 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import process from 'node:process'; // Need to import as such, for `.on*()`.
-import * as timers from 'node:timers/promises';
+import { setImmediate } from 'node:timers/promises';
 import * as util from 'node:util';
 
+import { WallClock } from '@this/clocks';
 import { IntfLogger } from '@this/loggy';
 
 import { ShutdownHandler } from '#p/ShutdownHandler';
@@ -111,7 +112,7 @@ export class TopErrorHandler {
     // Give the system a moment, so it has a chance to actually flush the log,
     // then attempt first a clean then an abrupt exit.
 
-    await timers.setTimeout(250); // 0.25 second.
+    await WallClock.waitForMsec(250); // 0.25 second.
 
     try {
       // This shouldn't return...
@@ -152,7 +153,7 @@ export class TopErrorHandler {
     this.#unhandledRejections.set(promise, reason);
 
     for (let i = 1; i <= this.#PROMISE_REJECTION_GRACE_PERIOD_TICKS; i++) {
-      await timers.setImmediate();
+      await setImmediate();
       if (!this.#unhandledRejections.has(promise)) {
         this.#logger?.rejectionHandledSlowly(reason, { afterTicks: i });
         return;
