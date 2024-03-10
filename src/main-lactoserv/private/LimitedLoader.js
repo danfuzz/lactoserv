@@ -192,13 +192,7 @@ export class LimitedLoader {
     let result;
 
     if (specifier.startsWith('node:')) {
-      const orig = await import(specifier);
-      const keys = Reflect.ownKeys(orig).filter((k) => typeof k === 'string');
-      result = new SyntheticModule(keys, () => {
-        for (const k of keys) {
-          result.setExport(k, orig[k]);
-        }
-      }, this.#defaultOptions());
+      result = this.#synthesizeImport(specifier);
     } else if (specifier.startsWith('file:///')) {
       const text = await fs.readFile(new URL(specifier), 'utf-8');
       result = new SourceTextModule(text, {
@@ -208,6 +202,11 @@ export class LimitedLoader {
           meta.url = specifier;
         }
       });
+    } else if (specifier.startsWith('@lactoserv/')) {
+      // `@lactoserv/` in a config file turns into a `@this/` (this-project)
+      // import.
+      const thisSpec = specifier.replace(/^@[^/]+/, '@this');
+      result = this.#synthesizeImport(thisSpec);
     } else {
       // This very well may be a legit case! If you find yourself looking at
       // this message, then please consider adding code to reasonably handle the
@@ -219,6 +218,28 @@ export class LimitedLoader {
     this.#logger?.imported(specifier);
 
     this.#cache.set(specifier, result);
+    return result;
+  }
+
+  /**
+   * Helper for {@link #importModule}, which performs a dynamic `import` from
+   * _this_ class, and produces a usable `SyntheticModule` as required by
+   * Node's internals.
+   *
+   * @param {string} specifier The `import` specifier.
+   * @returns {SyntheticModule} The module to be bound in the loadee's
+   *   namespace.
+   */
+  async #synthesizeImport(specifier) {
+    const realModule = await import(specifier);
+    const keys       = Reflect.ownKeys(realModule).filter((k) => typeof k === 'string');
+
+    const result = new SyntheticModule(keys, () => {
+      for (const k of keys) {
+        result.setExport(k, realModule[k]);
+      }
+    }, this.#defaultOptions());
+
     return result;
   }
 }

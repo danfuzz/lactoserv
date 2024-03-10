@@ -28,6 +28,8 @@ Other notable changes:
     _maybe_ it isn't.
 * Spring cleaning: Perhaps inspired by the semi-annual DST switch, did a
   consistency pass around timing-related functionality.
+* Configuration: Add support to `import` project modules from configuration
+  files via module names of the form `@lactoserv/<name>`.
 
 ### v0.6.8 -- 2024-03-05
 
