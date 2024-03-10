@@ -270,7 +270,7 @@ describe('set()', () => {
       ${{ expires: true }}
       ${{ expires: 123 }}
       ${{ expires: 'boop' }}
-      ${{ expires: new Date() }}
+      ${{ expires: new Date(123) }}
       ${{ httpOnly: 123 }}
       ${{ httpOnly: 'boop' }}
       ${{ maxAge: true }}

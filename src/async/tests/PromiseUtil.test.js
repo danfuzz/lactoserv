@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import process from 'node:process';
-import * as timers from 'node:timers/promises';
+import { setImmediate } from 'node:timers/promises';
 
 import { ManualPromise, PromiseState, PromiseUtil } from '@this/async';
 
@@ -21,11 +21,11 @@ const wasHandled = async (promise) => {
   };
 
   process.on('unhandledRejection', listener);
-  await timers.setImmediate();
-  await timers.setImmediate();
-  await timers.setImmediate();
-  await timers.setImmediate();
-  await timers.setImmediate();
+  await setImmediate();
+  await setImmediate();
+  await setImmediate();
+  await setImmediate();
+  await setImmediate();
   process.removeListener('unhandledRejection', listener);
 
   return !gotCalled;
@@ -62,7 +62,7 @@ describe('race()', () => {
     const result = PromiseUtil.race([]);
 
     expect(PromiseState.isSettled(result)).toBeFalse();
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(result)).toBeFalse();
   });
 
@@ -75,7 +75,7 @@ describe('race()', () => {
     const result = PromiseUtil.race([value]);
 
     expect(PromiseState.isSettled(result)).toBeFalse();
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(result)).toBeTrue();
     expect(await result).toBe(value);
   });
@@ -93,7 +93,7 @@ describe('race()', () => {
     ]);
 
     expect(PromiseState.isSettled(result)).toBeFalse();
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(result)).toBeTrue();
     expect(await result).toBe(value);
   });
@@ -103,7 +103,7 @@ describe('race()', () => {
     const result = PromiseUtil.race([Promise.resolve(value)]);
 
     expect(PromiseState.isSettled(result)).toBeFalse();
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(result)).toBeTrue();
     expect(await result).toBe(value);
   });
@@ -117,7 +117,7 @@ describe('race()', () => {
     ]);
 
     expect(PromiseState.isSettled(result)).toBeFalse();
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(result)).toBeTrue();
     expect(await result).toBe(value);
   });
@@ -132,7 +132,7 @@ describe('race()', () => {
 
     PromiseUtil.handleRejection(result);
     expect(PromiseState.isSettled(result)).toBeFalse();
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(result)).toBeTrue();
     await expect(result).toReject();
   });
@@ -143,7 +143,7 @@ describe('race()', () => {
 
     PromiseUtil.handleRejection(result);
     expect(PromiseState.isSettled(result)).toBeFalse();
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(result)).toBeTrue();
     await expect(result).toReject();
   });
@@ -159,7 +159,7 @@ describe('race()', () => {
 
     expect(PromiseState.isSettled(result)).toBeFalse();
     mp.resolve(value);
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(result)).toBeTrue();
     expect(await result).toBe(value);
   });
@@ -176,7 +176,7 @@ describe('race()', () => {
     PromiseUtil.handleRejection(result);
     expect(PromiseState.isSettled(result)).toBeFalse();
     mp.rejectAndHandle(error);
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(result)).toBeTrue();
     await expect(result).toReject();
   });
@@ -188,7 +188,7 @@ describe('race()', () => {
 
     expect(PromiseState.isSettled(result)).toBeFalse();
     mp.resolve(value);
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(result)).toBeTrue();
     expect(await result).toBe(value);
   });
@@ -201,7 +201,7 @@ describe('race()', () => {
     PromiseUtil.handleRejection(result);
     expect(PromiseState.isSettled(result)).toBeFalse();
     mp.rejectAndHandle(error);
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(result)).toBeTrue();
     await expect(result).toReject();
   });
@@ -214,7 +214,7 @@ describe('race()', () => {
     ]);
 
     expect(PromiseState.isSettled(result)).toBeFalse();
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(result)).toBeTrue();
     expect(await result).toBe(value);
   });
@@ -227,7 +227,7 @@ describe('race()', () => {
     ]);
 
     expect(PromiseState.isSettled(result)).toBeFalse();
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(result)).toBeTrue();
     expect(await result).toBe(value);
   });

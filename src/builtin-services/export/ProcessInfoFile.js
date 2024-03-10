@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import * as fs from 'node:fs/promises';
-import * as timers from 'node:timers/promises';
 
 import { Threadlet } from '@this/async';
 import { WallClock } from '@this/clocks';
@@ -194,7 +193,7 @@ export class ProcessInfoFile extends BaseFileService {
       await this.#writeFile();
 
       if (updateMsec) {
-        const timeout = timers.setTimeout(updateMsec);
+        const timeout = WallClock.waitForMsec(updateMsec);
         await this.#runner.raceWhenStopRequested([timeout]);
       } else {
         await this.#runner.whenStopRequested();

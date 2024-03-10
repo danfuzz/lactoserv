@@ -1,9 +1,15 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import * as process from 'node:process';
+// This is the one file where it's okay to use `node:timers/promises`,
+// `process.hrtime`, and `Date.now()`.
+/* eslint-disable no-restricted-imports */
+/* eslint-disable no-restricted-properties */
 
-import { Moment } from '@this/data-values';
+import * as process from 'node:process';
+import { setTimeout } from 'node:timers/promises';
+
+import { Duration, Moment } from '@this/data-values';
 
 
 /**
@@ -72,5 +78,69 @@ export class WallClock {
 
     const nowSec = Number(nowNsec) * WallClock.#SECS_PER_NSEC;
     return new Moment(nowSec);
+  }
+
+  /**
+   * Async-returns `null` after a specified amount of time, with the hope that
+   * the actual time waited will be reasonably close to the request.
+   *
+   * **Note:** This is meant to be a replacement for the various versions and
+   * bindings of `setTimeout()` provided by Node.
+   *
+   * @param {Duration} dur How much time to wait before this method is to
+   *   async-return. If zero or negative, this method simply does not wait
+   *   before returning.
+   * @param {object} [options] Timeout options. This is the same as with
+   *   `node:timers/promises.setTimeout()`.
+   * @returns {null} `null`, always.
+   */
+  static async waitFor(dur, options = undefined) {
+    return this.waitForMsec(dur.msec, options);
+  }
+
+  /**
+   * Like {@link #waitFor}, but takes a plain number of milliseconds.
+   *
+   * **Note:** This is meant to be a _direct_ replacement for the various
+   * versions and bindings of `setTimeout()` provided by Node.
+   *
+   * @param {number} durMsec How much time to wait before this method is to
+   *   async-return, as a number of milliseconds. If zero or negative, this
+   *   method simply does not wait before returning.
+   * @param {object} [options] Timeout options. This is the same as with
+   *   `node:timers/promises.setTimeout()`.
+   * @returns {null} `null`, always.
+   */
+  static async waitForMsec(durMsec, options = undefined) {
+    if (durMsec <= 0) {
+      return null;
+    }
+
+    return setTimeout(durMsec, null, options);
+  }
+
+  /**
+   * Async-returns `null` when {@link #now} would return a value at or beyond
+   * the given time, with the hope that the actual time will be reasonably
+   * close.
+   *
+   * **Note:** Unlike `setTimeout()`, this method takes the actual time value,
+   * not a duration.
+   *
+   * @param {Moment} time The time after which this method is to async-return.
+   * @returns {null} `null`, always.
+   */
+  static async waitUntil(time) {
+    for (;;) {
+      const delay = time.atSec - this.now().atSec;
+      if ((delay <= 0) || !Number.isFinite(delay)) {
+        break;
+      }
+
+      const delayMsec = delay * 1000;
+      await setTimeout(delayMsec);
+    }
+
+    return null;
   }
 }

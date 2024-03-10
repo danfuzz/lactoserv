@@ -1,9 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import * as timers from 'node:timers/promises';
-
 import { EventTracker, LinkedEvent } from '@this/async';
+import { WallClock } from '@this/clocks';
 import { IntfLogger, Loggy, TextFileSink } from '@this/loggy';
 import { FileServiceConfig } from '@this/sys-config';
 import { BaseFileService, Rotator } from '@this/sys-util';
@@ -60,7 +59,7 @@ export class SystemLogger extends BaseFileService {
     // Wait briefly, so that there's a decent chance that this instance catches
     // most or all of the other stop-time messages before doing its own final
     // message.
-    await timers.setTimeout(100); // 100msec
+    await WallClock.waitForMsec(100); // 100msec
 
     // Note: Upon construction, instances of this class look for an event of the
     // form being logged here, and will start just past it if found. This is to

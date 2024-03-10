@@ -1,7 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import * as process from 'node:process';
+import { memoryUsage, pid as processPid, ppid as processPpid, uptime }
+  from 'node:process';
 
 import { WallClock } from '@this/clocks';
 import { Duration, Moment } from '@this/data-values';
@@ -21,7 +22,7 @@ export class ProcessInfo {
    *
    * **Note:** `process.uptime()` returns a number of seconds.
    */
-  static #startedAt = new Moment(WallClock.now().atSec - process.uptime());
+  static #startedAt = new Moment(WallClock.now().atSec - uptime());
 
   /** @type {?object} All the fixed-at-startup info, if calculated. */
   static #fixedInfo = null;
@@ -41,14 +42,14 @@ export class ProcessInfo {
    * object.
    */
   static get ephemeralInfo() {
-    const memoryUsage = process.memoryUsage();
-    for (const [key, value] of Object.entries(memoryUsage)) {
-      memoryUsage[key] = FormatUtils.byteCountString(value);
+    const memoryInfo = memoryUsage();
+    for (const [key, value] of Object.entries(memoryInfo)) {
+      memoryInfo[key] = FormatUtils.byteCountString(value);
     }
 
-    const uptime = this.uptime.toPlainObject();
+    const uptimeInfo = this.uptime.toPlainObject();
 
-    return { memoryUsage, uptime };
+    return { memoryUsage: memoryInfo, uptime: uptimeInfo };
   }
 
   /** @returns {Moment} The moment that the process started. */
@@ -77,8 +78,8 @@ export class ProcessInfo {
     }
 
     this.#fixedInfo = {
-      pid:       process.pid,
-      ppid:      process.ppid,
+      pid:       processPid,
+      ppid:      processPpid,
       startedAt: this.#startedAt.toPlainObject()
     };
 

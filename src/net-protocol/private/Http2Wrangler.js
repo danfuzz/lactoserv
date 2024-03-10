@@ -3,9 +3,9 @@
 
 import { AsyncLocalStorage } from 'node:async_hooks';
 import * as http2 from 'node:http2';
-import * as timers from 'node:timers/promises';
 
 import { Condition, PromiseUtil, Threadlet } from '@this/async';
+import { WallClock } from '@this/clocks';
 import { IntfLogger } from '@this/loggy';
 
 import { TcpWrangler } from '#p/TcpWrangler';
@@ -212,7 +212,7 @@ export class Http2Wrangler extends TcpWrangler {
 
       await PromiseUtil.race([
         this.#anySessions.whenFalse(),
-        timers.setTimeout(Http2Wrangler.#STOP_GRACE_PERIOD_MSEC)
+        WallClock.waitForMsec(Http2Wrangler.#STOP_GRACE_PERIOD_MSEC)
       ]);
     }
 

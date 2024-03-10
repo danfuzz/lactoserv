@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Socket } from 'node:net';
-import * as timers from 'node:timers/promises';
 
 import { Condition, PromiseUtil, Threadlet } from '@this/async';
+import { WallClock } from '@this/clocks';
 import { FormatUtils, IntfLogger } from '@this/loggy';
 
 import { AsyncServerSocket } from '#p/AsyncServerSocket';
@@ -229,7 +229,7 @@ export class TcpWrangler extends ProtocolWrangler {
 
     await PromiseUtil.race([
       closedCond.whenTrue(),
-      timers.setTimeout(TcpWrangler.#SOCKET_TIMEOUT_CLOSE_GRACE_PERIOD_MSEC)
+      WallClock.waitForMsec(TcpWrangler.#SOCKET_TIMEOUT_CLOSE_GRACE_PERIOD_MSEC)
     ]);
 
     if (socket.destroyed) {
@@ -242,7 +242,7 @@ export class TcpWrangler extends ProtocolWrangler {
 
     await PromiseUtil.race([
       closedCond.whenTrue(),
-      timers.setTimeout(TcpWrangler.#SOCKET_TIMEOUT_CLOSE_GRACE_PERIOD_MSEC)
+      WallClock.waitForMsec(TcpWrangler.#SOCKET_TIMEOUT_CLOSE_GRACE_PERIOD_MSEC)
     ]);
 
     if (socket.destroyed) {

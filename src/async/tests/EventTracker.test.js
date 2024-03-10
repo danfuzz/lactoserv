@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import * as timers from 'node:timers/promises';
+import { setImmediate } from 'node:timers/promises';
 
 import { EventPayload, EventTracker, LinkedEvent, ManualPromise, PromiseState }
   from '@this/async';
@@ -112,12 +112,12 @@ describe('.headPromise', () => {
     tracker.advance(1);
 
     expect(tracker.headNow).toBeNull();
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(tracker.headPromise)).toBeFalse();
 
     event1.emitter(payload2);
     const event2 = event1.nextNow;
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(tracker.headPromise)).toBeTrue();
 
     expect(await tracker.headPromise).toBe(event2);
@@ -130,7 +130,7 @@ describe('.headPromise', () => {
     expect(await tracker.headPromise).toBe(event);
     tracker.advance(1);
 
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(tracker.headPromise)).toBeFalse();
   });
 
@@ -159,7 +159,7 @@ describe('.headNow', () => {
     expect(tracker.headNow).toBeNull();
     mp.resolve(event);
 
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(tracker.headPromise)).toBeTrue();
     expect(await tracker.headPromise).toBe(event);
   });
@@ -279,19 +279,19 @@ describe('advance(type)', () => {
 
     const event1 = new LinkedEvent(payload1);
     mp.resolve(event1);
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(result)).toBeFalse();
 
     const emitter2 = event1.emitter(payload2);
     const event2 = event1.nextNow;
     expect(tracker.headNow).toBeNull();
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(result)).toBeFalse();
 
     emitter2(new EventPayload(type));
     const event3 = event2.nextNow;
     expect(tracker.headNow).toBeNull();
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(result)).toBeTrue();
     expect(await result).toBe(event3);
 
@@ -388,7 +388,7 @@ describe('advance(count)', () => {
         expect(await result).toBe(events[advanceCount]);
       } else {
         expect(tracker.headNow).toBeNull();
-        await timers.setImmediate();
+        await setImmediate();
         expect(PromiseState.isSettled(result)).toBeFalse();
       }
     });
@@ -406,11 +406,11 @@ describe('advance(count)', () => {
       expect(tracker.headNow).toBeNull();
 
       if (advanceCount < startCount) {
-        await timers.setImmediate();
+        await setImmediate();
         expect(PromiseState.isSettled(result)).toBeTrue();
         expect(await result).toBe(events[advanceCount]);
       } else {
-        await timers.setImmediate();
+        await setImmediate();
         expect(PromiseState.isSettled(result)).toBeFalse();
 
         let emitter = events[startCount - 1].emitter;
@@ -419,7 +419,7 @@ describe('advance(count)', () => {
           events.push(events[i - 1].nextNow);
         }
 
-        await timers.setImmediate();
+        await setImmediate();
         expect(PromiseState.isSettled(result)).toBeTrue();
         expect(await result).toBe(events[advanceCount]);
       }
@@ -441,13 +441,13 @@ describe('advance(count)', () => {
         let emitter = events[startCount - 1].emitter;
         for (let i = startCount; i <= advanceCount; i++) {
           expect(tracker.headNow).toBeNull();
-          await timers.setImmediate();
+          await setImmediate();
           expect(PromiseState.isSettled(result)).toBeFalse();
           emitter = emitter(new EventPayload('at', i));
           events.push(events[i - 1].nextNow);
         }
 
-        await timers.setImmediate();
+        await setImmediate();
         expect(PromiseState.isSettled(result)).toBeTrue();
         expect(tracker.headNow).toBe(events[advanceCount]);
         expect(await result).toBe(events[advanceCount]);
@@ -535,22 +535,22 @@ describe('advance(function)', () => {
     const result = tracker.advance((e) => e.payload === payload3);
 
     expect(tracker.headNow).toBeNull();
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(result)).toBeFalse();
     mp1.resolve(event1);
 
     expect(tracker.headNow).toBeNull();
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(result)).toBeFalse();
     mp2.resolve(event2);
 
     expect(tracker.headNow).toBeNull();
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(result)).toBeFalse();
     mp3.resolve(event3);
 
     expect(tracker.headNow).toBeNull();
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(result)).toBeTrue();
     expect(await result).toBe(event3);
 
@@ -573,19 +573,19 @@ describe('advance(function)', () => {
       return e.payload === payload3;
     });
 
-    await timers.setImmediate();
+    await setImmediate();
     expect(callCount).toBe(0);
     mp1.resolve(event1);
 
-    await timers.setImmediate();
+    await setImmediate();
     expect(callCount).toBe(1);
     mp2.resolve(event2);
 
-    await timers.setImmediate();
+    await setImmediate();
     expect(callCount).toBe(2);
     mp3.resolve(event3);
 
-    await timers.setImmediate();
+    await setImmediate();
     expect(callCount).toBe(3);
     expect(await result).toBe(event3);
   });
@@ -619,14 +619,14 @@ describe('advance() breakage scenarios', () => {
       const tracker = new EventTracker(Promise.resolve('not-an-event-1'));
 
       expect(tracker.headNow).toBeNull(); // Not yet broken!
-      await timers.setImmediate();
+      await setImmediate();
       await expect(() => tracker.advance(1)).rejects.toThrow();
     });
 
     test('remains broken', async () => {
       const tracker = new EventTracker(Promise.resolve('not-an-event-2'));
 
-      await timers.setImmediate();
+      await setImmediate();
       await expect(() => tracker.advance()).rejects.toThrow();
       await expect(() => tracker.advance(1)).rejects.toThrow();
       await expect(() => tracker.advance('eep')).rejects.toThrow();
@@ -782,7 +782,7 @@ describe('advanceSync()', () => {
 
     expect(tracker.advanceSync(2)).toBeNull();
     expect(tracker.headNow).toBeNull();
-    await timers.setImmediate();
+    await setImmediate();
     expect(tracker.headNow).toBe(event3);
   });
 
@@ -794,7 +794,7 @@ describe('advanceSync()', () => {
 
     const result1 = tracker.advance(1);
     expect(tracker.advanceSync(1)).toBeNull();
-    await timers.setImmediate();
+    await setImmediate();
     expect(tracker.headNow).toBe(event3);
     expect(await result1).toBe(event2);
   });
@@ -812,7 +812,7 @@ describe('advanceSync()', () => {
     expect(tracker.advanceSync(1)).toBe(null);
     expect(tracker.headNow).toBe(null);
     mp.reject(new Error('Oh noes!'));
-    await timers.setImmediate();
+    await setImmediate();
     expect(() => tracker.headNow).toThrow();
   });
 });
@@ -841,7 +841,7 @@ describe('advanceSync() on a broken instance', () => {
     const tracker = new EventTracker(Promise.resolve('not-an-event-3'));
 
     expect(tracker.headNow).toBeNull(); // Not yet broken!
-    await timers.setImmediate();
+    await setImmediate();
     expect(() => tracker.headNow).toThrow(); // Now broken!
     expect(tracker.advanceSync()).toBeNull();
   });
@@ -850,7 +850,7 @@ describe('advanceSync() on a broken instance', () => {
     const tracker = new EventTracker(Promise.resolve('not-an-event-4'));
 
     expect(tracker.headNow).toBeNull(); // Not yet broken!
-    await timers.setImmediate();
+    await setImmediate();
     expect(() => tracker.headNow).toThrow(); // Now broken!
     expect(tracker.advanceSync()).toBeNull();
     expect(tracker.advanceSync(1)).toBeNull();
@@ -901,7 +901,7 @@ describe.each`
     event3.emitter(payload4);
     const event4 = event3.nextNow;
 
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(result4)).toBeTrue();
 
     expect(await result4).toBe(event4);
@@ -929,7 +929,7 @@ describe('next(predicate)', () => {
     const emitter5 = event3.emitter(toFind);
     const event4   = event3.nextNow;
 
-    await timers.setImmediate();
+    await setImmediate();
 
     // If this expectation fails, it's because the implementation of `next()` is
     // waiting for the event after this one to get settled (which is 100% for
@@ -942,7 +942,7 @@ describe('next(predicate)', () => {
     emitter5(payload2);
     const event5 = event4.nextNow;
 
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(result3)).toBeTrue();
     expect(await result3).toBe(event5);
   });
@@ -958,7 +958,7 @@ describe('next(predicate)', () => {
 
     expect(await result1).toBe(event1);
 
-    await timers.setImmediate();
+    await setImmediate();
     expect(PromiseState.isSettled(result2)).toBeTrue();
     expect(await result2).toBe(event2);
   });

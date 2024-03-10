@@ -4,6 +4,7 @@
 import * as fs from 'node:fs/promises';
 
 import { Condition, Threadlet } from '@this/async';
+import { WallClock } from '@this/clocks';
 import { Statter } from '@this/fs-util';
 import { IntfLogger } from '@this/loggy';
 import { FileServiceConfig } from '@this/sys-config';
@@ -188,7 +189,7 @@ export class BaseFilePreserver {
     } = options;
 
     const { directory, filePrefix, fileSuffix } = this.#config.pathParts;
-    const todayStr = BaseFilePreserver.#makeInfix(new Date());
+    const todayStr = BaseFilePreserver.#makeInfix(WallClock.now().toDate());
     const contents = await fs.readdir(directory);
     const result   = [];
 

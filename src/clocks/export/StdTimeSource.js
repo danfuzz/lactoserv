@@ -1,8 +1,6 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import * as timers from 'node:timers/promises';
-
 import { IntfTimeSource } from '#x/IntfTimeSource';
 import { WallClock } from '#x/WallClock';
 
@@ -21,15 +19,7 @@ export class StdTimeSource extends IntfTimeSource {
 
   /** @override */
   async waitUntil(time) {
-    for (;;) {
-      const delay = time.atSec - this.now().atSec;
-      if ((delay <= 0) || !Number.isFinite(delay)) {
-        break;
-      }
-
-      const delayMsec = delay * 1000;
-      await timers.setTimeout(delayMsec);
-    }
+    return WallClock.waitUntil(time);
   }
 
 

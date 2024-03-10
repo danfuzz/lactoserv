@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Server, createServer as netCreateServer } from 'node:net';
-import { setTimeout } from 'node:timers/promises';
 
 import lodash from 'lodash';
 
 import { EventPayload, EventSource, LinkedEvent, PromiseUtil }
   from '@this/async';
+import { WallClock } from '@this/clocks';
 import { FormatUtils, IntfLogger } from '@this/loggy';
 import { MustBe } from '@this/typey';
 
@@ -387,7 +387,7 @@ export class AsyncServerSocket {
     instance.#logger?.stashed();
 
     (async () => {
-      await setTimeout(this.#STASH_TIMEOUT_MSEC);
+      await WallClock.waitForMsec(this.#STASH_TIMEOUT_MSEC);
       if (this.#stashedInstances.delete(instance)) {
         instance.#logger?.stashTimeout();
         await instance.#close();

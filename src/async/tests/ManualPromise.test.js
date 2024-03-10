@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import * as timers from 'node:timers/promises';
+import { setImmediate } from 'node:timers/promises';
 
 import { ManualPromise, PromiseUtil } from '@this/async';
 
@@ -217,7 +217,7 @@ describe('resolve(Promise)', () => {
     expect(mp.isRejected()).toBeFalse();
     expect(mp.isSettled()).toBeFalse();
 
-    await timers.setImmediate();
+    await setImmediate();
 
     // Now fulfilled!
     expect(mp.isFulfilled()).toBeTrue();
@@ -249,7 +249,7 @@ describe('resolve(Promise)', () => {
     expect(mp.isRejected()).toBeFalse();
     expect(mp.isSettled()).toBeFalse();
 
-    await timers.setImmediate();
+    await setImmediate();
 
     // Now rejected!
     expect(mp.isFulfilled()).toBeFalse();

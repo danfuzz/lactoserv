@@ -1,8 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import * as timers from 'node:timers/promises';
-
+import { WallClock } from '@this/clocks';
 import { Duration } from '@this/data-values';
 import { Statter } from '@this/fs-util';
 import { IntfLogger } from '@this/loggy';
@@ -65,7 +64,7 @@ export class Rotator extends BaseFilePreserver {
     // anything.
 
     return this.#checkPeriod
-      ? timers.setTimeout(this.#checkPeriod.msec)
+      ? WallClock.waitForMsec(this.#checkPeriod.msec)
       : null;
   }
 }
