@@ -22,6 +22,23 @@ for reference: First, while this guide is intended to be accurate, the example
 configuration is actually tested regularly. Second, the example uses some of the
 tactics which are mentioned here, so you can see them "in action."
 
+## `import`s
+
+All core Node libraries are available for `import` in a configuration file,
+but they _must_ be imported using the `node:` prefix form (not just plain
+names), e.g.:
+
+```js
+import { readFile } from 'node:fs/promises';
+```
+
+In addition, all of Lactoserv's framework classes are available for import,
+using the module namespace prefix `@lactoserv/`, e.g.:
+
+```js
+import { Moment } from '@lactoserv/data-values';
+```
+
 ## Configuration object bindings
 
 The following are the bindings that are expected at the top level of the
