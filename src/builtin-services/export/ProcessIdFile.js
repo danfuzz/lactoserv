@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import * as fs from 'node:fs/promises';
-import * as process from 'node:process';
+import { pid as processPid } from 'node:process';
 
 import { Threadlet } from '@this/async';
 import { WallClock } from '@this/clocks';
@@ -49,7 +49,7 @@ export class ProcessIdFile extends BaseFileService {
    * @returns {string} The file contents.
    */
   async #makeContents(running) {
-    const pid = process.pid;
+    const pid = processPid;
 
     if (!this.config.multiprocess) {
       // Easy case when not handling multiple processes.

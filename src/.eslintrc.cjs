@@ -138,6 +138,11 @@ const disallowedFunctionality = {
     {
       paths: [
         {
+          name:        'node:process',
+          importNames: ['hrtime'],
+          message:     'Use module `clocks` from this project.'
+        },
+        {
           name:        'node:timers',
           importNames: ['clearTimeout', 'clearInterval', 'setTimeout', 'setInterval'],
           message:     'Use module `clocks` from this project.'
