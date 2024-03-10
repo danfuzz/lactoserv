@@ -104,7 +104,7 @@ export class WallClock {
    */
   static async waitForMsec(durMsec) {
     if (durMsec <= 0) {
-      return;
+      return null;
     }
 
     return setTimeout(durMsec, null);
