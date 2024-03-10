@@ -101,16 +101,63 @@ const mainRules = {
   'symbol-description': 'error'
 };
 
-// Overrides for testing files.
-const testOverrides = {
-  files: ['**/tests/*.test.js'],
-  plugins: ['jest'],
-  env: {
-    'jest/globals': true
-  },
-  rules: {
-    'jsdoc/require-jsdoc': ['off']
-  }
+// Specific classes, methods, functions, etc. that we don't want to use in this
+// project.
+
+const allNodeCoreModules = [
+  'assert', 'async_hooks', 'buffer', 'child_process', 'cluster',
+  'console', 'constants', 'crypto', 'dgram', 'diagnostics_channel',
+  'dns', 'domain', 'events', 'fs', 'http', 'http2', 'https',
+  'inspector', 'module', 'net', 'os', 'path', 'perf_hooks', 'process',
+  'punycode', 'querystring', 'readline', 'repl', 'stream',
+  'string_decoder', 'timers', 'tls', 'trace_events', 'tty', 'url',
+  'util', 'v8', 'vm', 'wasi', 'worker_threads', 'zlib'
+];
+const disallowedFunctionality = {
+  'no-restricted-globals': [
+    'error',
+    {
+      name:    'setImmediate',
+      message: 'Use `setImmediate()` in `node:timers` or `node:timers/promises`.'
+    },
+    {
+      name:    'setInterval',
+      message: 'Use `clocks.WallClock` (or a different time source if appropriate).'
+    },
+    {
+      name:    'setTimeout',
+      message: 'Use `clocks.WallClock` (or a different time source if appropriate).'
+    },
+    {
+      name:    'timers',
+      message: 'Use `clocks` module from this project.'
+    }
+  ],
+  'no-restricted-imports': [
+    'error',
+    {
+      paths: [
+        {
+          name:        'node:timers',
+          importNames: ['clearTimeout', 'clearInterval', 'setTimeout', 'setInterval'],
+          message:     'Use module `clocks` from this project.'
+        },
+        {
+          name:        'node:timers/promises',
+          importNames: ['setTimeout', 'setInterval', 'scheduler'],
+          message:     'Use module `clocks` from this project.'
+        },
+      ],
+      patterns: [
+        ...allNodeCoreModules.map((name) => {
+          return {
+            group: [`^${name}$`, `^${name}/`],
+            message: 'Use \`node:\` prefix on core Node module imports.'
+          };
+        })
+      ]
+    }
+  ]
 };
 
 // Handy links:
@@ -151,6 +198,18 @@ const jsdocRules = {
   ]
 };
 
+// Overrides for testing files.
+const testOverrides = {
+  files: ['**/tests/*.test.js'],
+  plugins: ['jest'],
+  env: {
+    'jest/globals': true
+  },
+  rules: {
+    'jsdoc/require-jsdoc': ['off']
+  }
+};
+
 const jsdocSettings = {
   mode: 'jsdoc'
 };
@@ -161,7 +220,7 @@ module.exports = {
   extends: extendsList,
   env,
   parserOptions,
-  rules: {...mainRules, ...jsdocRules},
+  rules: { ...mainRules, ...jsdocRules, ...disallowedFunctionality },
   settings: {
     jsdoc: jsdocSettings
   },
