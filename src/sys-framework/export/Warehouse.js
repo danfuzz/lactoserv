@@ -1,9 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import * as timers from 'node:timers/promises';
-
 import { PromiseUtil } from '@this/async';
+import { WallClock } from '@this/clocks';
 import { WarehouseConfig } from '@this/sys-config';
 import { MustBe } from '@this/typey';
 
@@ -106,13 +105,13 @@ export class Warehouse extends BaseControllable {
 
     await PromiseUtil.race([
       endpointsStopped,
-      timers.setTimeout(Warehouse.#ENDPOINT_STOP_GRACE_PERIOD_MSEC)
+      WallClock.waitForMsec(Warehouse.#ENDPOINT_STOP_GRACE_PERIOD_MSEC)
     ]);
 
     const applicationsStopped = this.#applicationManager.stop(willReload);
     await PromiseUtil.race([
       applicationsStopped,
-      timers.setTimeout(Warehouse.#APPLICATION_STOP_GRACE_PERIOD_MSEC)
+      WallClock.waitForMsec(Warehouse.#APPLICATION_STOP_GRACE_PERIOD_MSEC)
     ]);
 
     await Promise.all([
