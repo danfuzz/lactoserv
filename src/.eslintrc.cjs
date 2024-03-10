@@ -162,6 +162,14 @@ const disallowedFunctionality = {
         })
       ]
     }
+  ],
+  'no-restricted-properties': [
+    'error',
+    {
+      object:   'Date',
+      property: 'now',
+      message:  'Use module `clocks` from this project.'
+    }
   ]
 };
 
