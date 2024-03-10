@@ -1,9 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import * as timers from 'node:timers/promises';
-
 import { Condition } from '@this/async';
+import { WallClock } from '@this/clocks';
 import { IntfLogger } from '@this/loggy';
 
 import { ThisModule } from '#p/ThisModule';
@@ -99,10 +98,8 @@ export class CallbackList {
     })();
 
     const timeoutProm = (async () => {
-      const timeout = timers.setTimeout(
-        this.#maxRunMsec, null, { signal: abortCtrl.signal });
       try {
-        await timeout;
+        await WallClock.waitForMsec(this.#maxRunMsec, { signal: abortCtrl.signal });
       } catch (e) {
         // If the timeout was aborted, just swallow the "error", and let the
         // system continue to run in peace. But for anything else, rethrow,
