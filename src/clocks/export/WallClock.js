@@ -88,10 +88,12 @@ export class WallClock {
    * @param {Duration} dur How much time to wait before this method is to
    *   async-return. If zero or negative, this method simply does not wait
    *   before returning.
+   * @param {object} [options] Timeout options. This is the same as with
+   *   `node:timers/promises.setTimeout()`.
    * @returns {null} `null`, always.
    */
-  static async waitFor(dur) {
-    return this.waitForMsec(dur.msec);
+  static async waitFor(dur, options = undefined) {
+    return this.waitForMsec(dur.msec, options);
   }
 
   /**
@@ -103,14 +105,16 @@ export class WallClock {
    * @param {number} durMsec How much time to wait before this method is to
    *   async-return, as a number of milliseconds. If zero or negative, this
    *   method simply does not wait before returning.
+   * @param {object} [options] Timeout options. This is the same as with
+   *   `node:timers/promises.setTimeout()`.
    * @returns {null} `null`, always.
    */
-  static async waitForMsec(durMsec) {
+  static async waitForMsec(durMsec, options = undefined) {
     if (durMsec <= 0) {
       return null;
     }
 
-    return setTimeout(durMsec, null);
+    return setTimeout(durMsec, null, options);
   }
 
   /**
