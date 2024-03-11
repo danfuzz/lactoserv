@@ -111,7 +111,18 @@ export class RateLimitedStream {
       }
     };
 
+    // This is to help diagnose the noted production issue.
+    const innerErrored1 = this.#innerStream.errored;
+
     destroyStream(this.#outerStream, 'destroyingOuter');
+
+    const innerErrored2 = this.#innerStream.errored;
+    if (innerErrored1) {
+      logger?.innerWasAlreadyErrored();
+    } else if (!innerErrored1 && innerErrored2) {
+      logger?.destroyingOuterCausedInnerError();
+    }
+
     destroyStream(this.#innerStream, 'destroyingInner');
   }
 
