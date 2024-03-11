@@ -71,9 +71,10 @@ export class RateLimitedStream {
    * within this class.
    *
    * @param {Error} error The error.
-   * @param {boolean} [fromEvent] Was it from an `error` event?
+   * @param {boolean} [fromInnerEvent] Was it from an `error` event already
+   *   emitted on {@link #innerStream}?
    */
-  #becomeBroken(error, fromEvent = false) {
+  #becomeBroken(error, fromInnerEvent = false) {
     const logger = this.#logger;
 
     if (logger) {
@@ -84,7 +85,7 @@ export class RateLimitedStream {
         ? error.code
         : error;
 
-      if (fromEvent) {
+      if (fromInnerEvent) {
         this.#logger?.errorFromInner(thingToLog);
       } else {
         this.#logger?.error(thingToLog);
@@ -115,20 +116,13 @@ export class RateLimitedStream {
       }
     };
 
-    // This is to help diagnose the noted production issue.
-    const innerErrored1 = this.#innerStream.errored;
-
-    destroyStream(this.#outerStream, 'destroyingOuter');
-
-    // Likewise. We probably don't want to have this spew long-term.
-    const innerErrored2 = this.#innerStream.errored;
-    if (innerErrored1) {
-      logger?.innerWasAlreadyErrored();
-    } else if (!innerErrored1 && innerErrored2) {
-      logger?.destroyingOuterCausedInnerError();
+    if (!fromInnerEvent) {
+      // Only do the `destroy()` work on `#innerStream` if we didn't end up here
+      // because of a response to an already-emitted `error`.
+      destroyStream(this.#innerStream, 'destroyingInner');
     }
 
-    destroyStream(this.#innerStream, 'destroyingInner');
+    destroyStream(this.#outerStream, 'destroyingOuter');
   }
 
   /**
