@@ -102,7 +102,7 @@ export class RateLimitedStream {
     const destroyStream = (stream, logName) => {
       logger?.[logName]();
       if (stream.destroyed) {
-        logger?.suppressingError('afterDestroy');
+        logger?.suppressingError('afterDestroy', stream.errored);
       } else if (stream.closed) {
         logger?.suppressingError('afterClose');
         stream.destroy();
