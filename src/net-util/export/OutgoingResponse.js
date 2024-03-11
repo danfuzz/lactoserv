@@ -1019,24 +1019,21 @@ export class OutgoingResponse {
         : new Error(`non-error object: ${error}`);
     }
 
-    const socket   = res.socket;
     const resultMp = new ManualPromise();
 
-    if (!socket) {
-      throw new Error('Response socket already gone. Alas!');
-    } else if (socket.closed || socket.destroyed) {
+    if (res.closed || res.destroyed) {
       // Note: It's not correct to also check for `.writableEnded` here (as an
       // earlier version of this code did), because that becomes `true` _before_
       // the outgoing data is believed to have actually made it to the
       // networking stack to be sent out.
-      const error = socket.errored;
+      const error = res.errored;
       if (error) {
         resultMp.reject(makeProperError(error));
       } else {
         resultMp.resolve(true);
       }
     } else {
-      socket.once('error', (error) => {
+      res.once('error', (error) => {
         if (!resultMp.isSettled()) {
           if (error) {
             resultMp.reject(makeProperError(error));
@@ -1045,7 +1042,13 @@ export class OutgoingResponse {
           }
         } else if (error) {
           // The result promise was already settled, and _then_ an `error` got
-          // emitted. This has been observed to happen in production. Near as I
+          // emitted. This has been observed to happen in production, and
+          // ultimately indicates that some class isn't implementing the Node
+          // `Stream` API correctly.
+          //
+          // The actual case that prompted this extra bit of code _might_ be
+          // resolved now (at least here), because it was misbehavior of a
+          // `TLSSocket` (which we're no longer looking at here). Near as I
           // (@danfuzz) can tell, if the underlying socket gets closed from the
           // other side (`ECONNRESET`), a `TLSSocket` that is using it will end
           // up emitting an `error` with the message `write ECANCELED` _after_
@@ -1063,7 +1066,7 @@ export class OutgoingResponse {
         }
       });
 
-      socket.once('close', () => {
+      res.once('close', () => {
         if (!resultMp.isSettled()) {
           resultMp.resolve(true);
         }
