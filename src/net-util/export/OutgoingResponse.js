@@ -795,7 +795,14 @@ export class OutgoingResponse {
    * @type {symbol} Key to use on response objects to hold a result from
    * {@link #whenResponseDone}. See comment at use site for more explanation.
    */
-  static #RESPONSE_DONE_SYMBOL = Symbol('HttpResponseDone');
+  static #RESPONSE_DONE_SYMBOL = Symbol('OutgoingResponse.HttpResponseDone');
+
+  /**
+   * @type {symbol} Key to use on response objects to hold a "secret" copy of
+   * its `.socket`. Set by {@link #whenResponseDone}, see comment in which for
+   * for more explanation.
+   */
+  static #RESPONSE_SOCKET_SYMBOL = Symbol('OutgoingResponse.HttpResponseSocket');
 
   /**
    * Gets all reasonably-logged info about a lower-level response object that is
@@ -828,21 +835,22 @@ export class OutgoingResponse {
       errors:     {}
     };
 
-    if (responseError) {
-      const code = ErrorUtil.extractErrorCode(responseError);
+    const addErrorIfAny = (label, stream) => {
+      const error = stream?.errored;
+      if (error) {
+        const code = ErrorUtil.extractErrorCode(responseError);
 
-      result.ok              = false;
-      result.errorCodes      = [code];
-      result.errors.response = responseError;
+        result.ok = false;
+        result.errorCodes.push(ErrorUtil.extractErrorCode(error));
+        result.errors[label] = error;
+      }
     }
 
-    if (connectionError) {
-      const code = ErrorUtil.extractErrorCode(connectionError);
-
-      result.ok                = false;
-      result.errorCodes        = [code];
-      result.errors.connection = connectionError;
-    }
+    addErrorIfAny('connection',     connectionSocket);
+    addErrorIfAny('request',        res.req);
+    addErrorIfAny('requestSocket',  res.req?.socket);
+    addErrorIfAny('response',       res);
+    addErrorIfAny('responseSocket', res[this.#RESPONSE_SOCKET_SYMBOL]);
 
     return result;
   }
@@ -1002,15 +1010,20 @@ export class OutgoingResponse {
     // What's happening here: Unfortunately, once a response is finished, the
     // low-level Node library will set the `socket` to `undefined` -- at least
     // in some cases -- and when it does so, there is no other built-in way to
-    // see if the response got closed due to an error. That would make it unsafe
-    // to call this method after the response is over... if we don't do anything
-    // extra. So, what we do is arrange to return from subsequent calls whatever
-    // the first call does, by storing a promise for the result in a "secret"
-    // property on the response. That said, this only works if at least _one_
-    // call to this method is made while the socket is still around.
+    // see if the response socket got closed due to an error. That leads to a
+    // possible loss of useful info once the response is completed... if we
+    // don't do anything extra. What we do is stash the socket away in a
+    // "secret" property (effectively the "weakmap" pattern), for
+    // `.getLoggableResponseInfo()` to find. And, because we don't want to
+    // duplicate all the work of this method, we _also_ stash away our own
+    // return value in a similar way.
     const already = res[this.#RESPONSE_DONE_SYMBOL];
     if (already) {
       return already;
+    }
+
+    if (res.socket) {
+      res[this.#RESPONSE_SOCKET_SYMBOL] = res.socket;
     }
 
     function makeProperError(error) {
