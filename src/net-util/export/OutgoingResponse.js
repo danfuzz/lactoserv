@@ -1027,8 +1027,8 @@ export class OutgoingResponse {
     } else if (socket.closed || socket.destroyed) {
       // Note: It's not correct to also check for `.writableEnded` here (as an
       // earlier version of this code did), because that becomes `true` _before_
-      // the outgoing data is believed to be actually made it to the networking
-      // stack to be sent out.
+      // the outgoing data is believed to have actually made it to the
+      // networking stack to be sent out.
       const error = socket.errored;
       if (error) {
         resultMp.reject(makeProperError(error));
