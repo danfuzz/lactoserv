@@ -17,10 +17,15 @@ Other notable changes:
 * `builtin-services`:
   * `RequestLogger` now logs sub-msec request durations.
 * `net-util`, `builtin-services`:
-  * Added a bit to `OutgoingResponse` to add detail when it would otherwise try
-    to double-resolve its "when-completed" promise. This seems to be happening
-    in production, specifically when an `error` event is getting emitted by a
-    socket _after_ it has already emitted `close`.
+  * `OutgoingResponse`:
+    * Changed `getLoggableResponseInfo()` to report errors (if any) on all the
+      stream-like things it can get ahold of.
+    * Fixed `#whenResponseDone()` to promptly return once the response is
+      actually done.
+    * In `#whenResponseDone()` added detail when it would otherwise try to
+      double-resolve its "when-completed" promise. This seems to be happening
+      in production, specifically when an `error` event is getting emitted by a
+      socket _after_ it has already emitted `close`.
   * Added a bit of logic to `RateLimitedStream` to try to hew more closely to
     the Node Streams API, specifically _not_ attempting to do anything that
     would cause an `error` event to be emitted after a `close` event. The Node
