@@ -116,6 +116,7 @@ export class RateLimitedStream {
 
     destroyStream(this.#outerStream, 'destroyingOuter');
 
+    // Likewise. We probably don't want to have this spew long-term.
     const innerErrored2 = this.#innerStream.errored;
     if (innerErrored1) {
       logger?.innerWasAlreadyErrored();
