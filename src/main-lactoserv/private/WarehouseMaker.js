@@ -82,8 +82,7 @@ export class WarehouseMaker {
    * @returns {object} The result of loading.
    */
   async #loadConfig() {
-    const context   = Object.assign(Object.create(global));
-    const loader    = new LimitedLoader(context, this.#logger);
+    const loader    = new LimitedLoader(null, this.#logger);
     const configUrl = this.#configUrl;
 
     let module;
@@ -102,13 +101,7 @@ export class WarehouseMaker {
       throw e;
     }
 
-    const rawResult = module.namespace.default;
-
-    // We need to do this because the config file was evaluated in a different
-    // context from the default one, which means that its primordial objects /
-    // classes aren't `===` to the default ones, which can lead to weirdness.
-    // `structuredClone()` returns "normal" objects.
-    return structuredClone(rawResult);
+    return module.namespace.default;
   }
 
   /**
