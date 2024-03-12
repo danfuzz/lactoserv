@@ -11,7 +11,8 @@ Breaking changes:
   spaces or non-ASCII in them, as they are logged in url-encoded form.)
 
 Other notable changes:
-* None.
+* Development:
+  * `build` script renamed to `dev`, in advance of acquiring new abilities.
 
 ### v0.6.9 -- 2024-03-12
 
