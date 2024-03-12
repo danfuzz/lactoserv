@@ -1,10 +1,9 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { IntfLogger, LogTag } from '@this/loggy-intf';
+import { IntfLogger, IntfLoggingEnvironment, LogTag } from '@this/loggy-intf';
 import { PropertyCacheProxyHandler } from '@this/metacomp';
 
-import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
 import { Loggy } from '#x/Loggy';
 
 
@@ -24,7 +23,7 @@ export class LogProxyHandler extends PropertyCacheProxyHandler {
    */
   #typeOrNextTag;
 
-  /** @type {BaseLoggingEnvironment} Logging environment to use. */
+  /** @type {IntfLoggingEnvironment} Logging environment to use. */
   #environment;
 
   /**
@@ -41,7 +40,7 @@ export class LogProxyHandler extends PropertyCacheProxyHandler {
    *
    * @param {LogTag} tag Tag to use.
    * @param {?string} typeOrNextTag Event type or next tag.
-   * @param {BaseLoggingEnvironment} environment Logging environment to use.
+   * @param {IntfLoggingEnvironment} environment Logging environment to use.
    */
   constructor(tag, typeOrNextTag, environment) {
     super();
@@ -191,7 +190,7 @@ export class LogProxyHandler extends PropertyCacheProxyHandler {
    * @param {?LogTag|string|string[]} tag Tag to use on all logged events, or
    *   constructor arguments for same. If `null`, the instance will have no
    *   context tag.
-   * @param {BaseLoggingEnvironment} environment Logging environment to use.
+   * @param {IntfLoggingEnvironment} environment Logging environment to use.
    * @returns {IntfLogger} A logger, as described.
    */
   static makeInstance(tag, environment) {
