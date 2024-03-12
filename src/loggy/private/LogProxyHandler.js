@@ -1,11 +1,11 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { LogTag } from '@this/loggy-intf';
 import { PropertyCacheProxyHandler } from '@this/metacomp';
 
 import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
 import { IntfLogger } from '#x/IntfLogger';
-import { LogTag } from '#x/LogTag';
 import { Loggy } from '#x/Loggy';
 
 

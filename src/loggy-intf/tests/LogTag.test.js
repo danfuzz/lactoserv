@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { BaseConverter, Struct } from '@this/data-values';
-import { LogTag } from '@this/loggy';
+import { LogTag } from '@this/loggy-intf';
 
 
 describe('constructor()', () => {

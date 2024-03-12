@@ -5,9 +5,8 @@ import * as util from 'node:util';
 
 import { EventPayload, EventSource } from '@this/async';
 import { BaseConverter, Moment, StackTrace, Struct } from '@this/data-values';
+import { LogTag } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';
-
-import { LogTag } from '#x/LogTag';
 
 
 /**

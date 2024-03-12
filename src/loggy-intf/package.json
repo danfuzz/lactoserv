@@ -1,5 +1,5 @@
 {
-  "name": "@this/loggy",
+  "name": "@this/loggy-intf",
   "version": "0.0.1",
   "type": "module",
   "private": true,
@@ -12,11 +12,7 @@
   },
 
   "dependencies": {
-    "@this/async": "*",
-    "@this/clocks": "*",
     "@this/data-values": "*",
-    "@this/loggy-intf": "*",
-    "@this/metacomp": "*",
     "@this/typey": "*"
   }
 }
