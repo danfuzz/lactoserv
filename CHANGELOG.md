@@ -12,6 +12,10 @@ Breaking changes:
   * Moved time-related classes to here from `metacomp`.
   * New class `WallClock`, extracted from `StdLoggingEnvironment`, so that other
     stuff can get sub-msec wall times.
+* `loggy`, `loggy-intf`:
+  * Split out the more "interfacey" bits of `loggy` into a new module.
+  * Extracted `IntfLoggingEnvironment` as the interface for
+    `BaseLoggingEnvironment`.
 
 Other notable changes:
 * `builtin-services`:
@@ -36,8 +40,9 @@ Other notable changes:
 * Configuration:
   * Add support to `import` project modules from configuration files via module
     names of the form `@lactoserv/<name>`.
-  * Stop loading configuration files in separate VM contexts. It'd be a
-    decent idea if inter-context "communication" were seamless, but it's not.
+  * Stop loading configuration files in separate VM contexts. Doing this _would_
+    be a decent idea if inter-context "communication" were seamless, but it's
+    not.
 
 ### v0.6.8 -- 2024-03-05
 
