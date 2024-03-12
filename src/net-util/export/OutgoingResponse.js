@@ -820,11 +820,9 @@ export class OutgoingResponse {
    * @returns {object} Loggable information about the response.
    */
   static getLoggableResponseInfo(res, connectionSocket) {
-    const connectionError = connectionSocket.errored;
-    const responseError   = res.errored;
-    const statusCode      = res.statusCode;
-    const headers         = res.getHeaders();
-    const contentLength   = headers['content-length'] ?? null;
+    const statusCode    = res.statusCode;
+    const headers       = res.getHeaders();
+    const contentLength = headers['content-length'] ?? null;
 
     const result = {
       ok:         true,
@@ -838,13 +836,11 @@ export class OutgoingResponse {
     const addErrorIfAny = (label, stream) => {
       const error = stream?.errored;
       if (error) {
-        const code = ErrorUtil.extractErrorCode(responseError);
-
         result.ok = false;
         result.errorCodes.push(ErrorUtil.extractErrorCode(error));
         result.errors[label] = error;
       }
-    }
+    };
 
     addErrorIfAny('connection',     connectionSocket);
     addErrorIfAny('request',        res.req);
