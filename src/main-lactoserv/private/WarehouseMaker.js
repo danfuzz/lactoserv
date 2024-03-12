@@ -6,7 +6,7 @@ import * as child_process from 'node:child_process';
 import { Condition } from '@this/async';
 import { BuiltinApplications } from '@this/builtin-applications';
 import { BuiltinServices } from '@this/builtin-services';
-import { IntfLogger } from '@this/loggy';
+import { IntfLogger } from '@this/loggy-intf';
 import { LimitedLoader } from '@this/metacomp';
 import { ComponentRegistry, Warehouse } from '@this/sys-framework';
 import { MustBe } from '@this/typey';

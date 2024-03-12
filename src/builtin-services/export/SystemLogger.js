@@ -3,7 +3,8 @@
 
 import { EventTracker, LinkedEvent } from '@this/async';
 import { WallClock } from '@this/clocks';
-import { IntfLogger, Loggy, TextFileSink } from '@this/loggy';
+import { Loggy, TextFileSink } from '@this/loggy';
+import { IntfLogger } from '@this/loggy-intf';
 import { FileServiceConfig } from '@this/sys-config';
 import { BaseFileService, Rotator } from '@this/sys-util';
 import { MustBe } from '@this/typey';

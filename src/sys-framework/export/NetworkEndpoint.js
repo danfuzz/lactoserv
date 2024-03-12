@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { TreePathKey, TreePathMap } from '@this/collections';
-import { IntfLogger } from '@this/loggy';
+import { IntfLogger } from '@this/loggy-intf';
 import { IntfRateLimiter, IntfRequestLogger, ProtocolWrangler,
   ProtocolWranglers }
   from '@this/net-protocol';

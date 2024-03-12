@@ -3,7 +3,7 @@
 
 import { TokenBucket } from '@this/async';
 import { Frequency } from '@this/data-values';
-import { IntfLogger } from '@this/loggy';
+import { IntfLogger } from '@this/loggy-intf';
 import { IntfRateLimiter } from '@this/net-protocol';
 import { ServiceConfig } from '@this/sys-config';
 import { BaseService } from '@this/sys-framework';

@@ -6,7 +6,7 @@ import * as http2 from 'node:http2';
 
 import { Condition, PromiseUtil, Threadlet } from '@this/async';
 import { WallClock } from '@this/clocks';
-import { IntfLogger } from '@this/loggy';
+import { IntfLogger } from '@this/loggy-intf';
 
 import { TcpWrangler } from '#p/TcpWrangler';
 import { WranglerContext } from '#p/WranglerContext';

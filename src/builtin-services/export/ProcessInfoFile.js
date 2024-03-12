@@ -9,7 +9,7 @@ import { Duration } from '@this/data-values';
 import { Statter } from '@this/fs-util';
 import { Host, ProcessInfo, ProcessUtil, ProductInfo }
   from '@this/host';
-import { IntfLogger } from '@this/loggy';
+import { IntfLogger } from '@this/loggy-intf';
 import { FileServiceConfig } from '@this/sys-config';
 import { BaseFileService, Saver } from '@this/sys-util';
 import { MustBe } from '@this/typey';

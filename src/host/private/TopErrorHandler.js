@@ -6,7 +6,7 @@ import { setImmediate } from 'node:timers/promises';
 import * as util from 'node:util';
 
 import { WallClock } from '@this/clocks';
-import { IntfLogger } from '@this/loggy';
+import { IntfLogger } from '@this/loggy-intf';
 
 import { ShutdownHandler } from '#p/ShutdownHandler';
 import { ThisModule } from '#p/ThisModule';

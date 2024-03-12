@@ -3,7 +3,7 @@
 
 import { Threadlet } from '@this/async';
 import { WallClock } from '@this/clocks';
-import { IntfLogger } from '@this/loggy';
+import { IntfLogger } from '@this/loggy-intf';
 
 import { ProcessInfo } from '#x/ProcessInfo';
 import { ThisModule } from '#p/ThisModule';

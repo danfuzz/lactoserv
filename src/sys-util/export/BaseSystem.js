@@ -3,7 +3,7 @@
 
 import { Condition, Threadlet } from '@this/async';
 import { Host } from '@this/host';
-import { IntfLogger } from '@this/loggy';
+import { IntfLogger } from '@this/loggy-intf';
 import { Methods } from '@this/typey';
 
 

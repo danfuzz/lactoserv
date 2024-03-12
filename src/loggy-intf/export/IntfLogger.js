@@ -1,10 +1,11 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { LogPayload, LogTag } from '@this/loggy-intf';
 import { Methods } from '@this/typey';
 
-import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
+import { IntfLoggingEnvironment } from '#x/IntfLoggingEnvironment';
+import { LogPayload } from '#x/LogPayload';
+import { LogTag } from '#x/LogTag';
 
 
 /**
@@ -55,7 +56,7 @@ import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
  */
 export class IntfLogger {
   /**
-   * @returns {BaseLoggingEnvironment} The logging environment used by this
+   * @returns {IntfLoggingEnvironment} The logging environment used by this
    * instance.
    */
   get $env() {
@@ -86,7 +87,7 @@ export class IntfLogger {
    */
   static Meta = class Meta {
     /**
-     * @returns {BaseLoggingEnvironment} The logging environment used by the
+     * @returns {IntfLoggingEnvironment} The logging environment used by the
      * logger.
      */
     get $env() {

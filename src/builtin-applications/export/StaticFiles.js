@@ -4,7 +4,7 @@
 import fs from 'node:fs/promises';
 
 import { Paths, Statter } from '@this/fs-util';
-import { IntfLogger } from '@this/loggy';
+import { IntfLogger } from '@this/loggy-intf';
 import { DispatchInfo, EtagGenerator, HttpUtil, MimeTypes, OutgoingResponse }
   from '@this/net-util';
 import { ApplicationConfig } from '@this/sys-config';

@@ -6,7 +6,7 @@ import { Http2ServerRequest, sensitiveHeaders as Http2SensitiveHeaders }
   from 'node:http2';
 
 import { TreePathKey } from '@this/collections';
-import { IntfLogger } from '@this/loggy';
+import { IntfLogger } from '@this/loggy-intf';
 import { FormatUtils } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';
 

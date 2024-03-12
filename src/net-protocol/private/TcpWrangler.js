@@ -5,7 +5,7 @@ import { Socket } from 'node:net';
 
 import { Condition, PromiseUtil, Threadlet } from '@this/async';
 import { WallClock } from '@this/clocks';
-import { IntfLogger } from '@this/loggy';
+import { IntfLogger } from '@this/loggy-intf';
 import { FormatUtils } from '@this/loggy-intf';
 
 import { AsyncServerSocket } from '#p/AsyncServerSocket';

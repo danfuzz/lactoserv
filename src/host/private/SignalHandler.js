@@ -3,7 +3,7 @@
 
 import process from 'node:process'; // Need to import as such, for `.on*()`.
 
-import { IntfLogger } from '@this/loggy';
+import { IntfLogger } from '@this/loggy-intf';
 
 import { CallbackList } from '#p/CallbackList';
 import { HeapDump } from '#p/HeapDump';

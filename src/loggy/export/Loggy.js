@@ -2,10 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { EventSource, LinkedEvent } from '@this/async';
-import { LogTag } from '@this/loggy-intf';
+import { IntfLogger, LogTag } from '@this/loggy-intf';
 
 import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
-import { IntfLogger } from '#x/IntfLogger';
 import { LogProxyHandler } from '#p/LogProxyHandler';
 import { ThisModule } from '#p/ThisModule';
 

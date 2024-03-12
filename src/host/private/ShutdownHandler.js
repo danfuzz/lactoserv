@@ -5,7 +5,7 @@ import process from 'node:process'; // Need to import as such, for `.on*()`.
 
 import { Threadlet } from '@this/async';
 import { WallClock } from '@this/clocks';
-import { IntfLogger } from '@this/loggy';
+import { IntfLogger } from '@this/loggy-intf';
 
 import { CallbackList } from '#p/CallbackList';
 import { ThisModule } from '#p/ThisModule';
