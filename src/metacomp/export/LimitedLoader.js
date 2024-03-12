@@ -6,7 +6,6 @@ import { default as vm, Module, SourceTextModule, SyntheticModule }
   from 'node:vm';
 
 //import { IntfLogger } from '@this/loggy';
-import { MustBe } from '@this/typey';
 
 
 /**
