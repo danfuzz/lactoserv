@@ -12,6 +12,7 @@
   },
 
   "dependencies": {
+    "@this/async": "*",
     "@this/data-values": "*",
     "@this/typey": "*"
   }

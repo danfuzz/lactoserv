@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { LogTag } from '@this/loggy-intf';
+import { LogPayload, LogTag } from '@this/loggy-intf';
 import { Methods } from '@this/typey';
 
 import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
@@ -19,7 +19,7 @@ import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
  * `logger.someName(1, 2, 'three')` logs the structured message `someName(1, 2,
  * 'three')` to whatever source the logger is attached to. The method name --
  * called the "event type" in this context -- along with the arguments and other
- * context from the logger instance become part of a `LogPayload` in a
+ * context from the logger instance become part of a {@link LogPayload} in a
  * `LinkedEvent`.
  *
  * Every logger has a "tag" which gets associated with each event logged through

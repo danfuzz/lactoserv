@@ -3,10 +3,8 @@
 
 import { Converter, ConverterConfig, Moment, StackTrace }
   from '@this/data-values';
-import { LogTag } from '@this/loggy-intf';
+import { LogPayload, LogTag } from '@this/loggy-intf';
 import { Methods, MustBe } from '@this/typey';
-
-import { LogPayload } from '#x/LogPayload';
 
 
 /**

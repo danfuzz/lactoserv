@@ -6,9 +6,9 @@ import * as path from 'node:path';
 
 import { EventSink, LinkedEvent } from '@this/async';
 import { BaseConverter, Converter, ConverterConfig } from '@this/data-values';
+import { LogPayload } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';
 
-import { LogPayload } from '#x/LogPayload';
 
 
 /**
