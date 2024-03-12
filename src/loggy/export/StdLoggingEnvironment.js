@@ -4,10 +4,10 @@
 import { EventSource } from '@this/async';
 import { WallClock } from '@this/clocks';
 import { StackTrace } from '@this/data-values';
+import { IdGenerator } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';
 
 import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
-import { IdGenerator } from '#x/IdGenerator';
 
 
 /**

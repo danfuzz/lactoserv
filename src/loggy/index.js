@@ -3,7 +3,6 @@
 
 export * from '#x/BaseLoggingEnvironment';
 export * from '#x/FormatUtils';
-export * from '#x/IdGenerator';
 export * from '#x/IntfLogger';
 export * from '#x/Loggy';
 export * from '#x/StdLoggingEnvironment';
