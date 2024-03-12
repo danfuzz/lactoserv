@@ -13,8 +13,10 @@
 
   "dependencies": {
     "@this/async": "*",
+    "@this/clocks": "*",
     "@this/collections": "*",
     "@this/loggy": "*",
+    "@this/loggy-intf": "*",
     "@this/net-protocol": "*",
     "@this/net-util": "*",
     "@this/sys-config": "*",

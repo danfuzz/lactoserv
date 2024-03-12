@@ -16,7 +16,7 @@
     "@this/collections": "*",
     "@this/data-values": "*",
     "@this/fs-util": "*",
-    "@this/loggy": "*",
+    "@this/loggy-intf": "*",
     "@this/typey": "*",
     "mime": "^4.0.1",
     "range-parser": "^1.2.1",

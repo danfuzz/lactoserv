@@ -14,6 +14,7 @@
   "dependencies": {
     "@this/async": "*",
     "@this/data-values": "*",
+    "@this/loggy-intf": "*",
     "@this/typey": "*"
   }
 }
