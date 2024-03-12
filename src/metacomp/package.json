@@ -12,6 +12,7 @@
   },
 
   "dependencies": {
+    "@this/loggy-intf": "*",
     "@this/typey": "*"
   }
 }

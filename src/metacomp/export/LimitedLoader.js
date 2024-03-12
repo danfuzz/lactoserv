@@ -5,7 +5,7 @@ import * as fs from 'node:fs/promises';
 import { default as vm, Module, SourceTextModule, SyntheticModule }
   from 'node:vm';
 
-//import { IntfLogger } from '@this/loggy-intf';
+import { IntfLogger } from '@this/loggy-intf';
 
 
 /**
