@@ -57,7 +57,7 @@ process-args "$@" || exit "$?"
 function build-if-necessary {
     local action="$1"
 
-    local buildCmd=(lib build --out="${outDir}")
+    local buildCmd=(lib dev --out="${outDir}")
     local doBuild=0
 
     case "${action}" in
@@ -65,7 +65,7 @@ function build-if-necessary {
             doBuild=1
             ;;
         clean)
-            buildCmd+=(--clean)
+            buildCmd+=(clean)
             doBuild=1
             ;;
         run)
@@ -77,7 +77,7 @@ function build-if-necessary {
 
     if (( doBuild )); then
         progress-msg 'Building...'
-        "${buildCmd[@]}" || return "$?"
+        "${buildCmd[@]}" build || return "$?"
         progress-msg
         progress-msg 'Running...'
         progress-msg

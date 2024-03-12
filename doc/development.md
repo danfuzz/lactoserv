@@ -65,15 +65,23 @@ This will run the system using the example configuration defined in
 _might_ satisfy your local web browser.
 
 ```sh
-$ ubik run
+$ ubik dev run
 ...
 ```
 
-The `run` script takes other options; `run --help` for details. TLDR common
-options:
-* `run --do=build` -- Do a build first, for convenience.
-* `run --inspect` or `run --inspect=<arg>` -- Pass an `inspect` option to Node
-  (to start the inspector/debugger immediately).
+The `run` target of `dev` lets you pass arbitrary arguments to the server, by
+using the `--run-args[]` option. TLDR very useful:
+
+* `dev --run-args[]='--inspect' run` or `dev --run-args[]=--inspect=<arg> run`
+  &mdash; Pass an `inspect` option to Node (to start the inspector/debugger
+  immediately).
+
+You can also do a build first:
+
+```sh
+$ ubik dev build run
+...
+```
 
 Recognized signals:
 * `SIGHUP` -- Does an in-process system reload. (The system shuts down and then

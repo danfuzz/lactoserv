@@ -79,7 +79,7 @@ function run-tests {
 function start-server {
     progress-msg 'Starting server...'
 
-    lib --exec run --no-log-to-stdout &
+    lib --exec dev --run-args[]="$(vals --no-log-to-stdout)" run &
 
     serverPid="$!"
 
