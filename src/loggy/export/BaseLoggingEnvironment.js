@@ -1,40 +1,30 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { LinkedEvent } from '@this/async';
 import { Converter, ConverterConfig, Moment, StackTrace }
   from '@this/data-values';
-import { LogPayload, LogTag } from '@this/loggy-intf';
+import { IntfLoggingEnvironment, LogPayload, LogTag } from '@this/loggy-intf';
 import { Methods, MustBe } from '@this/typey';
 
 
 /**
- * Abstract class representing a provider of a "logging environment." This class
- * exists so that the rest of the logging system doesn't have to _directly_
- * depend on system-specific services, nor tacitly refer to effectively-global
- * variables (which are awkward to stub/mock out for testing).
+ * Abstract class which implements {@link IntfLoggingEnvironment}, leaving holes
+ * for concrete subclasses to fill in.
  *
  * Subclasses are expected to override the `_impl_*` methods, while leaving the
  * other (unmarked) methods alone. The latter provide type safety and other
  * sanity checks in both directions.
+ *
+ * @implements {IntfLoggingEnvironment}
  */
-export class BaseLoggingEnvironment {
+export class BaseLoggingEnvironment extends IntfLoggingEnvironment {
   /** @type {Converter} Data converter to use for encoding payload arguments. */
   #dataConverter = new Converter(ConverterConfig.makeLoggingInstance());
 
   // Note: The default constructor is fine here.
 
-  /**
-   * Logs a {@link #LogPayload}, which is constructed from the arguments passed
-   * to this method along with a timestamp and stack trace as implemented by the
-   * concrete subclass. The so-constructed payload is then emitted, as if by
-   * {@link #logPayload}, see which for further details.
-   *
-   * @param {number} omitCount The number of caller frames to omit from the
-   *   stack trace.
-   * @param {LogTag} tag The log tag.
-   * @param {string} type The event type.
-   * @param {...*} args Event arguments.
-   */
+  /** @override */
   log(omitCount, tag, type, ...args) {
     MustBe.number(omitCount, { minInclusive: 0, safeInteger: true });
     MustBe.instanceOf(tag, LogTag);
@@ -45,48 +35,18 @@ export class BaseLoggingEnvironment {
     this._impl_logPayload(payload);
   }
 
-  /**
-   * Logs a pre-constructed {@link #LogPayload}. Typically, this ends up
-   * emitting a {@link #LinkedEvent} from an event source of some sort (which
-   * is, for example, what the standard concrete subclass of this class does),
-   * but it is not _necessarily_ what happens (that is, it depends on the
-   * concrete subclass).
-   *
-   * @param {LogPayload} payload What to log.
-   */
+  /** @override */
   logPayload(payload) {
     MustBe.instanceOf(payload, LogPayload);
     this._impl_logPayload(payload);
   }
 
-  /**
-   * Makes an ID string suitable for use as a log tag or other context-ish
-   * thing. ID strings are meant to be non-empty, relatively short (20
-   * chararacters or less) and, while not absolutely unique, unique _enough_ to
-   * disambiguate what's happening in the logs given other context.
-   *
-   * @returns {string} A short-ish unique-ish ID string.
-   */
+  /** @override */
   makeId() {
     return MustBe.string(this._impl_makeId(), /^.{1,20}$/);
   }
 
-  /**
-   * Makes a `LogPayload` instance, processing arguments as needed for the
-   * ultimate destination.
-   *
-   * For example and in particular, non-JSON-encodable values may want to be
-   * tweaked. The standard concrete implementation of this method takes care of
-   * that, but there is more than one reasonable way to accomplish this. Hence
-   * this "hook."
-   *
-   * @param {number} omitCount The number of caller frames to omit from the
-   *   stack trace.
-   * @param {LogTag} tag The payload tag.
-   * @param {string} type Event type.
-   * @param {...*} args Event arguments.
-   * @returns {LogPayload} The constructed payload.
-   */
+  /** @override */
   makePayload(omitCount, tag, type, ...args) {
     MustBe.number(omitCount, { minInclusive: 0, safeInteger: true });
     MustBe.instanceOf(tag, LogTag);
@@ -96,15 +56,7 @@ export class BaseLoggingEnvironment {
     return this.#makePayloadUnchecked(omitCount + 1, tag, type, ...args);
   }
 
-  /**
-   * Makes a {@link StackTrace} representing the current call site (that is, the
-   * caller of this method), less the given number of additional inner frames.
-   * If this instance is configured to not include call site stack traces, then
-   * this method returns `null`.
-   *
-   * @param {number} [omitCount] The number of caller frames to omit.
-   * @returns {?StackTrace} An appropriately-constructed instance.
-   */
+  /** @override */
   makeStackTrace(omitCount = 0) {
     MustBe.number(omitCount, { minInclusive: 0, safeInteger: true });
 
@@ -114,11 +66,7 @@ export class BaseLoggingEnvironment {
     return (result === null) ? null : MustBe.instanceOf(result, StackTrace);
   }
 
-  /**
-   * Gets a moment representing "now."
-   *
-   * @returns {Moment} The moment "now."
-   */
+  /** @override */
   now() {
     const result = MustBe.instanceOf(this._impl_now(), Moment);
     const atSec = result.atSec;
@@ -134,8 +82,8 @@ export class BaseLoggingEnvironment {
 
   /**
    * Outputs the given payload to its ultimate destination. For example, the
-   * standard concrete implementation of this method emits a {@link
-   * #LinkedEvent} with `payload` as the payload.
+   * standard concrete implementation of this method emits a {@link LinkedEvent}
+   * with `payload` as the payload.
    *
    * @abstract
    * @param {LogPayload} payload What to log.
