@@ -10,7 +10,6 @@ import { LogPayload } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';
 
 
-
 /**
  * Logging sink, which processes events by writing them in human-readable form
  * to a text file of some sort.
