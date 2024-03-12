@@ -2,8 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Moment, StackTrace } from '@this/data-values';
-import { LogPayload, LogTag } from '@this/loggy-intf';
 import { Methods } from '@this/typey';
+
+import { LogPayload } from '#x/LogPayload';
+import { LogTag } from '#x/LogTag';
 
 
 /**
