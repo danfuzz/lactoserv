@@ -7,6 +7,14 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
+* None.
+
+Other notable changes:
+* None.
+
+### v0.6.9 -- 2024-03-12
+
+Breaking changes:
 * `clocks`:
   * New module!
   * Moved time-related classes to here from `metacomp`.
