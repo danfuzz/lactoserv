@@ -8,7 +8,8 @@ import lodash from 'lodash';
 import { EventPayload, EventSource, LinkedEvent, PromiseUtil }
   from '@this/async';
 import { WallClock } from '@this/clocks';
-import { FormatUtils, IntfLogger } from '@this/loggy';
+import { IntfLogger } from '@this/loggy';
+import { FormatUtils } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';
 
 

@@ -6,7 +6,7 @@ import { memoryUsage, pid as processPid, ppid as processPpid, uptime }
 
 import { WallClock } from '@this/clocks';
 import { Duration, Moment } from '@this/data-values';
-import { FormatUtils } from '@this/loggy';
+import { FormatUtils } from '@this/loggy-intf';
 
 import { ThisModule } from '#p/ThisModule';
 
