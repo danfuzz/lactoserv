@@ -13,7 +13,8 @@
 define-usage --with-help $'
     ${name} [<opt> ...] [<target> ...]
 
-    Builds the project. By default, this executes the target `build`.
+    Does various development-time actions for the project. By default, this
+    executes the target `build`.
 
     Available targets: `clean` `build` `distro`
 
