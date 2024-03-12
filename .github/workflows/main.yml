@@ -34,7 +34,7 @@ jobs:
         run: ./scripts/ubik lint
 
       - name: Actually build.
-        run: ./scripts/ubik build --make-distro
+        run: ./scripts/ubik build distro
 
       - name: Run the unit tests.
         run: ./scripts/ubik run-tests

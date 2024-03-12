@@ -11,27 +11,25 @@
 #
 
 define-usage --with-help $'
-    ${name} [<opt> ...]
+    ${name} [<opt> ...] [<target> ...]
 
-    Builds the project.
+    Builds the project. By default, this executes the target `build`.
 
-    --clean
-      Do a clean build.
-    --make-distro
-      Create a distribution tarball.
+    Available targets: `clean` `build` `distro`
+
     --out=<dir>
       Directory where built output goes. Defaults to `out` directly under the
       main product directory.
 '
-
-# Clean build?
-opt-toggle --var=doClean clean
 
 # Make a distribution tarball?
 opt-toggle --var=doDistro make-distro
 
 # Built output directory.
 opt-value --var=outDir out
+
+# Build targets.
+rest-arg --var=targets --filter='/^[a-z]+/' target
 
 process-args "$@" || exit "$?"
 
@@ -40,9 +38,15 @@ process-args "$@" || exit "$?"
 # Build targets
 #
 
+# Target: `clean`
+function target-clean {
+    rm -rf "${outDir}"
+    mkdir -p "${outDir}"
+}
+
 # Target: `distro`
 function target-distro {
-    satisfy-target main \
+    satisfy-target build \
     || return "$?"
 
     progress-msg 'Making distribution tarball...'
@@ -50,8 +54,8 @@ function target-distro {
     lib buildy make-distro --out="${outDir}" "${outDir}/lactoserv"
 }
 
-# Target: `main`
-function target-main {
+# Target: `build`
+function target-build {
     # Run in a subshell so that `env-minimize` has no lasting effect.
     (
         true \
@@ -74,13 +78,11 @@ trap "rm -rf \"${tmpDir}\"" EXIT
 
 include-lib buildy-help --tmp-dir="${tmpDir}"
 
-outDir="$(set-up-out-dir --out="${outDir}" --clean="${doClean}")" || exit "$?"
+outDir="$(set-up-out-dir --out="${outDir}")" || exit "$?"
 srcDir="$(base-dir)/src"
 
-targets=(main)
-
-if (( doDistro )); then
-    targets+=(distro)
+if (( ${#targets[@]} == 0 )); then
+    targets=(build)
 fi
 
 satisfy-all-targets "${targets[@]}"
