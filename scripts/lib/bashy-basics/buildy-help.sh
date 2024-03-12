@@ -44,8 +44,6 @@ function satisfy-all-targets {
         || (( errors++ ))
     done
 
-    progress-msg
-
     if (( ${errors} != 0 )); then
         plural=''
         if (( ${errors} != 1 )); then
@@ -96,13 +94,15 @@ function satisfy-target {
             result=1
         else
             _build_targetStack+=" ${target} "
-            echo "Building target ${target}..."
+            echo "Target ${target}: Building..."
             "${targetFunc}" 2>&1 | _buildyHelp_indent '  '
             result="${PIPESTATUS[0]}"
             if (( ${result} == 0 )); then
                 echo "Target ${target}: Succeeded!"
+                echo ''
             else
                 echo "Target ${target}: Failed with ${result}."
+                echo ''
             fi
         fi
     else
