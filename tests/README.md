@@ -10,7 +10,7 @@ To run these tests, first build the system. Then, either:
   * Run `run-all --run-server` in this directory, or run `ubik run-tests
     --type=integration`.
 * Run the tests while monitoring the log:
-  * Run the system, e.g. by `ubik run`.
+  * Run the system, e.g. by `ubik dev run`.
   * Run the tests with `run-all` in this directory (with no options).
 
 - - - - - - - - - -
