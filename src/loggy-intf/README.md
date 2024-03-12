@@ -2,9 +2,9 @@
 ================
 
 Interface for the logging system. This includes (approximately / nearly)
-behavior-free classes and interfaces. The distinction between the logger
-interface and it implementation is meant to provide tactical help in avoiding
-module dependency cycles.
+behavior-free classes and interfaces, along with some low-dependency utility
+classes. The distinction between interface and implementation modules is meant
+to provide tactical help in avoiding module dependency cycles.
 
 - - - - - - - - - -
 ```
