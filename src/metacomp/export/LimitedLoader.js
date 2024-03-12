@@ -199,9 +199,9 @@ export class LimitedLoader {
           meta.url = specifier;
         }
       });
-    } else if (specifier.startsWith('@lactoserv/')) {
+    } else if (/^@lactoserv[/](?!main-)/.test(specifier)) {
       // `@lactoserv/` in a config file turns into a `@this/` (this-project)
-      // import.
+      // import, but we _don't_ allow imporing of `main-*`.
       const thisSpec = specifier.replace(/^@[^/]+/, '@this');
       result = this.#synthesizeImport(thisSpec);
     } else {
