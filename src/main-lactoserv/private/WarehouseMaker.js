@@ -7,10 +7,10 @@ import { Condition } from '@this/async';
 import { BuiltinApplications } from '@this/builtin-applications';
 import { BuiltinServices } from '@this/builtin-services';
 import { IntfLogger } from '@this/loggy';
+import { LimitedLoader } from '@this/metacomp';
 import { ComponentRegistry, Warehouse } from '@this/sys-framework';
 import { MustBe } from '@this/typey';
 
-import { LimitedLoader } from '#p/LimitedLoader';
 import { ThisModule } from '#p/ThisModule';
 
 

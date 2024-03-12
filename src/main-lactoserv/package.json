@@ -18,6 +18,7 @@
     "@this/data-values": "*",
     "@this/host": "*",
     "@this/loggy": "*",
+    "@this/metacomp": "*",
     "@this/sys-framework": "*",
     "@this/sys-util": "*",
     "@this/typey": "*",

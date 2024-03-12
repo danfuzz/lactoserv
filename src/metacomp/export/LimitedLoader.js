@@ -5,7 +5,7 @@ import * as fs from 'node:fs/promises';
 import { default as vm, Module, SourceTextModule, SyntheticModule }
   from 'node:vm';
 
-import { IntfLogger } from '@this/loggy';
+//import { IntfLogger } from '@this/loggy';
 import { MustBe } from '@this/typey';
 
 
@@ -64,9 +64,7 @@ export class LimitedLoader {
    */
   constructor(context = null, logger = null) {
     this.#context = context;
-    this.#logger  = (logger === null)
-      ? null
-      : MustBe.instanceOf(logger, IntfLogger);
+    this.#logger  = logger;
 
     if (context && !vm.isContext(context)) {
       vm.createContext(context);
