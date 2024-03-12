@@ -12,7 +12,7 @@ Breaking changes:
 
 Other notable changes:
 * Development:
-  * `build` script renamed to `dev`, in advance of acquiring new abilities.
+  * `build` script renamed to `dev`, and merged `run` into it.
 
 ### v0.6.9 -- 2024-03-12
 
