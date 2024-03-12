@@ -6,7 +6,7 @@ import * as fs from 'node:fs/promises';
 import { Condition, Threadlet } from '@this/async';
 import { WallClock } from '@this/clocks';
 import { Statter } from '@this/fs-util';
-import { IntfLogger } from '@this/loggy';
+import { IntfLogger } from '@this/loggy-intf';
 import { FileServiceConfig } from '@this/sys-config';
 import { Methods, MustBe } from '@this/typey';
 

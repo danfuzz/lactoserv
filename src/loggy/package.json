@@ -15,6 +15,7 @@
     "@this/async": "*",
     "@this/clocks": "*",
     "@this/data-values": "*",
+    "@this/loggy-intf": "*",
     "@this/metacomp": "*",
     "@this/typey": "*"
   }

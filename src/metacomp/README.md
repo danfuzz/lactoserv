@@ -1,7 +1,8 @@
 @this/metacomp
 ==============
 
-Metacomputation-ish stuff, notably including proxy implementations.
+Metacomputation-ish stuff, notably including proxy implementations and a
+custom VM module loader.
 
 - - - - - - - - - -
 ```

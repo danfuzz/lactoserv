@@ -4,7 +4,7 @@
 import { ServerResponse } from 'node:http';
 import { Http2ServerResponse } from 'node:http2';
 
-import { FormatUtils } from '@this/loggy';
+import { FormatUtils } from '@this/loggy-intf';
 import { IncomingRequest, OutgoingResponse } from '@this/net-util';
 
 import { IntfRequestLogger } from '#x/IntfRequestLogger';

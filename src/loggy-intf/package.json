@@ -1,5 +1,5 @@
 {
-  "name": "@this/builtin-services",
+  "name": "@this/loggy-intf",
   "version": "0.0.1",
   "type": "module",
   "private": true,
@@ -13,16 +13,7 @@
 
   "dependencies": {
     "@this/async": "*",
-    "@this/clocks": "*",
     "@this/data-values": "*",
-    "@this/fs-util": "*",
-    "@this/host": "*",
-    "@this/loggy": "*",
-    "@this/loggy-intf": "*",
-    "@this/net-protocol": "*",
-    "@this/sys-config": "*",
-    "@this/sys-framework": "*",
-    "@this/sys-util": "*",
     "@this/typey": "*"
   }
 }

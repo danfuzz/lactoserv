@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { FormatUtils } from '@this/loggy';
+import { FormatUtils } from '@this/loggy-intf';
 
 
 describe('addressPortString()', () => {

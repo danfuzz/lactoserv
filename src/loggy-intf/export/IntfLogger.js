@@ -3,7 +3,8 @@
 
 import { Methods } from '@this/typey';
 
-import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
+import { IntfLoggingEnvironment } from '#x/IntfLoggingEnvironment';
+import { LogPayload } from '#x/LogPayload';
 import { LogTag } from '#x/LogTag';
 
 
@@ -19,7 +20,7 @@ import { LogTag } from '#x/LogTag';
  * `logger.someName(1, 2, 'three')` logs the structured message `someName(1, 2,
  * 'three')` to whatever source the logger is attached to. The method name --
  * called the "event type" in this context -- along with the arguments and other
- * context from the logger instance become part of a `LogPayload` in a
+ * context from the logger instance become part of a {@link LogPayload} in a
  * `LinkedEvent`.
  *
  * Every logger has a "tag" which gets associated with each event logged through
@@ -55,7 +56,7 @@ import { LogTag } from '#x/LogTag';
  */
 export class IntfLogger {
   /**
-   * @returns {BaseLoggingEnvironment} The logging environment used by this
+   * @returns {IntfLoggingEnvironment} The logging environment used by this
    * instance.
    */
   get $env() {
@@ -86,7 +87,7 @@ export class IntfLogger {
    */
   static Meta = class Meta {
     /**
-     * @returns {BaseLoggingEnvironment} The logging environment used by the
+     * @returns {IntfLoggingEnvironment} The logging environment used by the
      * logger.
      */
     get $env() {

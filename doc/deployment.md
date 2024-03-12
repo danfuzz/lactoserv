@@ -24,6 +24,26 @@ system service. When running in the foreground, you will probably want to
 pass the option `--log-to-stdout`, to produce logs on `stdout` (in addition to
 whatever logging you may have configured).
 
+#### Signals
+
+As with many POSIX-ish services, Lactoserv can be controlled in part by sending
+it signals. It responds to the following:
+
+* `SIGINT` or `SIGTERM` &mdash; Cleanly shut down the system and exit. Shutting
+  down _can_ take a long time if remote connections aren't behaving well. As
+  such, after a timeout period the system will exit itself more forcefully. In
+  addition, sending four of the signal in sequence &mdash; for example, typing
+  `ctrl-c` four times at a terminal to which the system is attached &mdash; will
+  cause the system to give up and just exit.
+* `SIGHUP` &mdash; Make the system reload its configuration and then use it.
+  The system will keep using the old configuration if there was a problem
+  loading the new one. Note, however, since configuration files are just code,
+  it is possible for a failed configuration load to affect the system, depending
+  on its details.
+* `SIGUSR2` &mdash; Make the system perform a heap dump. If the `CWD` the
+  system is running in is writable, the dump file will be written there. If not,
+  it will use the `HOME` directory, the `TMPDIR`, or simply `/tmp`.
+
 ### Using `systemd`
 
 The system can be run under `systemd`. Here is an example `systemd` service

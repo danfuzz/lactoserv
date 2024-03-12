@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseLoggingEnvironment, IntfLogger } from '@this/loggy';
+import { IntfLogger, IntfLoggingEnvironment } from '@this/loggy-intf';
 import { DispatchInfo, IncomingRequest, IntfRequestHandler, OutgoingResponse }
   from '@this/net-util';
 import { ApplicationConfig } from '@this/sys-config';
@@ -23,7 +23,7 @@ export class BaseApplication extends BaseComponent {
   #filterConfig;
 
   /**
-   * @type {?BaseLoggingEnvironment} Logging environment, or `null` the instance
+   * @type {?IntfLoggingEnvironment} Logging environment, or `null` the instance
    * is not doing logging.
    */
   #loggingEnv;

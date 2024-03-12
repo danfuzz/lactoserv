@@ -4,7 +4,7 @@
 import { WallClock } from '@this/clocks';
 import { Duration } from '@this/data-values';
 import { Statter } from '@this/fs-util';
-import { IntfLogger } from '@this/loggy';
+import { IntfLogger } from '@this/loggy-intf';
 import { FileServiceConfig } from '@this/sys-config';
 import { MustBe } from '@this/typey';
 

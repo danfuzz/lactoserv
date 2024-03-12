@@ -2,11 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 export * from '#x/BaseLoggingEnvironment';
-export * from '#x/FormatUtils';
-export * from '#x/IdGenerator';
-export * from '#x/IntfLogger';
-export * from '#x/LogPayload';
-export * from '#x/LogTag';
 export * from '#x/Loggy';
 export * from '#x/StdLoggingEnvironment';
 export * from '#x/TextFileSink';

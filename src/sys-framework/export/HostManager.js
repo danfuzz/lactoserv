@@ -4,7 +4,7 @@
 import { SecureContext } from 'node:tls';
 
 import { TreePathKey, TreePathMap } from '@this/collections';
-import { IntfLogger } from '@this/loggy';
+import { IntfLogger } from '@this/loggy-intf';
 import { IntfHostManager } from '@this/net-protocol';
 import { Uris } from '@this/net-util';
 import { HostConfig } from '@this/sys-config';

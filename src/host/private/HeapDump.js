@@ -7,7 +7,7 @@ import path from 'node:path';
 
 import { EventPayload, EventSink, EventSource } from '@this/async';
 import { WallClock } from '@this/clocks';
-import { IntfLogger } from '@this/loggy';
+import { IntfLogger } from '@this/loggy-intf';
 
 import { ThisModule } from '#p/ThisModule';
 

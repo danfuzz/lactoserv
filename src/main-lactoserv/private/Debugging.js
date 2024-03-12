@@ -7,7 +7,7 @@ import { setImmediate } from 'node:timers/promises';
 import { WallClock } from '@this/clocks';
 import { Duration } from '@this/data-values';
 import { Host } from '@this/host';
-import { IntfLogger } from '@this/loggy';
+import { IntfLogger } from '@this/loggy-intf';
 
 import { ThisModule } from '#p/ThisModule';
 import { UsualSystem } from '#p/UsualSystem';
