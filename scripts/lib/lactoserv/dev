@@ -16,11 +16,13 @@ define-usage --with-help $'
     Does various development-time actions for the project. By default, this
     executes the target `build`.
 
-    Available targets: `clean` `build` `distro`
+    Available targets: `clean` `build` `distro` `run`
 
     --out=<dir>
       Directory where built output goes. Defaults to `out` directly under the
       main product directory.
+    --run-args[]=<arg> ...
+      Arguments to pass to the system when `run`ning.
 '
 
 # Make a distribution tarball?
@@ -28,6 +30,9 @@ opt-toggle --var=doDistro make-distro
 
 # Built output directory.
 opt-value --var=outDir out
+
+# Arguments for running.
+opt-multi --var=runArgs run-args
 
 # Build targets.
 rest-arg --var=targets --filter='/^[a-z]+/' target
@@ -68,6 +73,16 @@ function target-build {
     )
 }
 
+# Target: `run`
+function target-run {
+    # See below for where the system is actually run. What we do here is just
+    # ensure that it's built.
+    if [[ ! -x ${outRun} ]]; then
+        satisfy-target build \
+        || return "$?"
+    fi
+}
+
 
 #
 # Main script
@@ -79,11 +94,25 @@ trap "rm -rf \"${tmpDir}\"" EXIT
 
 include-lib buildy-help --tmp-dir="${tmpDir}"
 
-outDir="$(set-up-out-dir --out="${outDir}")" || exit "$?"
 srcDir="$(base-dir)/src"
+outDir="$(set-up-out-dir --out="${outDir}")" || exit "$?"
+outRun="${outDir}/lactoserv/bin/run"
 
 if (( ${#targets[@]} == 0 )); then
     targets=(build)
 fi
 
-satisfy-all-targets "${targets[@]}"
+satisfy-all-targets "${targets[@]}" \
+|| exit "$?"
+
+if [[ " ${targets[*]} " =~ ' run ' ]]; then
+    # We don't run inside `satisfy-all-targets`, because that would have the
+    # build step capturing the run output (and indenting it, etc. etc.). So, we
+    # just check here if that was a target, and use it to trigger a run.
+    progress-msg
+    progress-msg 'Running the system...'
+    exec "${outRun}" \
+        --log-to-stdout \
+        --config="$(base-dir)/etc/example-setup/config/config.mjs" \
+        "${runArgs[@]}"
+fi
