@@ -10,20 +10,20 @@ import { MustBe } from '@this/typey';
 
 
 /**
- * "Limited loader" which enables the loading of files as modules in a loader
- * context that limits what's available in terms of further `import` and which
- * maintains its own independent cache of what's been loaded. This is used to
- * load configuration files without exposing implementation details of the
- * system, and (by instantiating different instances of this class) to enable
- * re-loading of the same config file (e.g. because the user indicates it has
- * been changed).
+ * "Limited loader" which enables the loading/importing of files as modules in
+ * a module loading environment which limits what's available in terms of
+ * further `import`s and which maintains its own independent cache of what's
+ * been loaded. The environment can either use any VM "context" including the
+ * default (i.e., usual Node globals), one shared with other loaders, or an
+ * entirely separate one.
  *
  * About "contexts:" See the Node and V8 documentation about details, but TLDR:
  * If you want to run in a non-default context but have the system behave at
- * least mostly-normal, set up your context as an object which has the default
- * `global` as its prototype, like this: `Object.assign(Object.create(global))`
- * Be aware, though, that the "primordial" types -- such as `Object` and `Array`
- * -- in a non-default context are not `===` to the ones in the default context.
+ * least mostly-normal, you need to set up your context as an object which has
+ * the default `global` as its prototype, like this:
+ * `Object.assign(Object.create(global))` Be aware, though, that the
+ * "primordial" objects -- such as `Object` and `Array` -- in a non-default
+ * context are not `===` to the ones in the default context.
  *
  * **Note:** There are lots of _incidental_ limitations in terms of what can be
  * loaded via this class. The intention is to expand the capabilities of this
