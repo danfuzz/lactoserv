@@ -87,7 +87,7 @@ export class RequestLogHelper {
       reqInfo.origin,
       reqInfo.protocol,
       reqInfo.method,
-      JSON.stringify(reqInfo.url),
+      reqInfo.url,
       statusCode,
       contentLengthStr,
       duration.toString({ spaces: false }),
