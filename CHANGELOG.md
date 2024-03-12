@@ -7,7 +7,7 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* request logging: Stopped quoting URLs, as there was no need. (They won't have
+* Request logging: Stopped quoting URLs, as there was no need. (They won't have
   spaces or non-ASCII in them, as they are logged in url-encoded form.)
 
 Other notable changes:
