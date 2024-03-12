@@ -23,7 +23,7 @@ Build the system:
 $ git clone git@github.com:danfuzz/lactoserv
 ...
 $ cd lactoserv
-$ ./scripts/ubik build
+$ ./scripts/ubik dev build
 ...
 ```
 

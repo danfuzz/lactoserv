@@ -11,17 +11,17 @@ which for helpful advice about integrating it into your shell environment.
 ### Building
 
 ```sh
-$ ubik build
+$ ubik dev build
 ...
 Build complete!
 $
 ```
 
-By default, `build` deposits both a runnable build and a distribution tarball in
-the directory `out` directly under the top-level source directory. The script
-takes other options; `build --help` for details.
+By default, `dev build` deposits both a runnable build and a distribution
+tarball in the directory `out` directly under the top-level source directory.
+The script takes other options; `dev --help` for details.
 
-`ubik clean` does what you (presumably) expect.
+`ubik dev clean` does what you (presumably) expect.
 
 ### Linting Etc.
 
