@@ -1,6 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import globals from 'globals';
 import jestPlugin from 'eslint-plugin-jest';
 import js from '@eslint/js';
 import jsdocPlugin from 'eslint-plugin-jsdoc';
@@ -224,7 +225,11 @@ export default [
   jsdocPlugin.configs['flat/recommended'],
   {
     languageOptions: {
-      ecmaVersion: 2024
+      ecmaVersion: 2024,
+      globals: {
+        ...globals.node,
+        ...globals.es2024
+      }
     },
     plugins: {
       jsdoc:        jsdocPlugin,
@@ -260,12 +265,7 @@ export default [
       jest: jestPlugin
     },
     languageOptions: {
-      globals: {
-        beforeAll: 'readonly',
-        describe:  'readonly',
-        expect:    'readonly',
-        test:      'readonly'
-      }
+      globals: globals.jest
     },
     rules: {
       'jsdoc/require-jsdoc': ['off']
