@@ -13,6 +13,8 @@ Breaking changes:
 Other notable changes:
 * Development:
   * `build` script renamed to `dev`, and merged `run` into it.
+  * Switched to the modern ESLint "flat" configuration format. (It was a pain in
+    the butt.)
 
 ### v0.6.9 -- 2024-03-12
 

@@ -20,6 +20,31 @@ configFile=''
 # Helper functions
 #
 
+# Copies a config file to a directory, giving it a unique name, and prints out
+# the full path.
+function copy-config-file {
+    local srcPath="$1"
+    local destDir="$2"
+
+    local baseName="$(basename "${srcPath}")"
+    local prefix="$(date +%s)"
+    (( prefix = (prefix + $$) % 10000 ))
+
+    local destPath
+    while true; do
+        destPath="${destDir}/${prefix}-${baseName}"
+        if [[ ! -x "${destPath}" ]]; then
+            break
+        fi
+        (( prefix++ ))
+    done
+
+    cp "${srcPath}" "${destPath}" \
+    || return "$?"
+
+    echo "${destPath}"
+}
+
 # Finds the argument which specifies the config file, stashes it in a global
 # as an absolute path, and drops it from the arguments.
 function find-config-arg {
@@ -73,19 +98,12 @@ if [[ ${configFile} =~ (^|/)eslint[.]config[.] ]]; then
     srcDir="$(dirname "${configFile}")"
     cd "${srcDir}"
 
-    # TEMP: Should do this in a concurrent-safe way.
-    newConfigFile="${baseDir}/lib/$(basename "${configFile}")"
-    cp "${configFile}" "${newConfigFile}"
-
-    echo \
-    ESLINT_USE_FLAT_CONFIG=true \
-    exec "${baseDir}/lib/node_modules/.bin/eslint" \
-        --cache --cache-location "${baseDir}/cache" \
-        --config "${newConfigFile}" \
-        "${args[@]}"
+    newConfigFile="$(copy-config-file "${configFile}" "${baseDir}/lib")" \
+    || exit "$?"
+    trap "rm -rf \"${newConfigFile}\"" EXIT
 
     ESLINT_USE_FLAT_CONFIG=true \
-    exec "${baseDir}/lib/node_modules/.bin/eslint" \
+    "${baseDir}/lib/node_modules/.bin/eslint" \
         --cache --cache-location "${baseDir}/cache" \
         --config "${newConfigFile}" \
         "${args[@]}"

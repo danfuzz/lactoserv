@@ -433,7 +433,7 @@ function suspect-file-check {
 # Main script
 #
 
-progress-msg "Building Node project ${projectName}..."
+progress-msg "Building Node project \`${projectName}\`..."
 
 outDir="$(lib buildy out-dir --out="${outDir}" --create --print --quiet)"
 
@@ -462,4 +462,4 @@ if [[ ${runnerScript} != '' ]]; then
 fi
 
 progress-msg
-progress-msg "Built Node project ${projectName}."
+progress-msg "Built Node project \`${projectName}\`."

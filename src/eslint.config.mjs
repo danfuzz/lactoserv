@@ -1,22 +1,11 @@
-const plugins = [
-  'jsdoc',
-  '@stylistic'
-];
+// Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
+// SPDX-License-Identifier: Apache-2.0
 
-const extendsList = [
-  'eslint:recommended',
-  'plugin:jsdoc/recommended'
-];
-
-const env = {
-  es2020: true,
-  node: true
-};
-
-const parserOptions = {
-  sourceType: 'module',
-  ecmaVersion: '2024'
-};
+import globals from 'globals';
+import jestPlugin from 'eslint-plugin-jest';
+import js from '@eslint/js';
+import jsdocPlugin from 'eslint-plugin-jsdoc';
+import stylisticPlugin from '@stylistic/eslint-plugin';
 
 const mainRules = {
   'array-bracket-spacing': 'error',
@@ -157,7 +146,7 @@ const disallowedFunctionality = {
         ...allNodeCoreModules.map((name) => {
           return {
             group: [`^${name}$`, `^${name}/`],
-            message: 'Use \`node:\` prefix on core Node module imports.'
+            message: 'Use `node:` prefix on core Node module imports.'
           };
         })
       ]
@@ -218,31 +207,58 @@ const jsdocRules = {
   ]
 };
 
-// Overrides for testing files.
-const testOverrides = {
-  files: ['**/tests/*.test.js'],
-  plugins: ['jest'],
-  env: {
-    'jest/globals': true
+export default [
+  // Overall config.
+  js.configs.recommended,
+  jsdocPlugin.configs['flat/recommended'],
+  {
+    languageOptions: {
+      ecmaVersion: 2024,
+      globals: {
+        ...globals.node,
+        ...globals.es2024
+      }
+    },
+    plugins: {
+      jsdoc:        jsdocPlugin,
+      '@stylistic': stylisticPlugin
+    },
+    rules: {
+      ...mainRules,
+      ...jsdocRules,
+      ...disallowedFunctionality
+    },
+    settings: {
+      jsdoc: {
+        mode: 'jsdoc'
+      }
+    }
   },
-  rules: {
-    'jsdoc/require-jsdoc': ['off']
+
+  // Exempt files.
+  {
+    ignores: ['**/jest.config.mjs']
+  },
+
+  // Non-testing files.
+  {
+    files:   ['**/*.{js,mjs,cjs}'],
+    ignores: ['**/tests/**/*.test.{js,mjs,cjs}']
+  },
+
+  // Testing files.
+  {
+    files: ['**/tests/**/*.test.{js,mjs,cjs}'],
+    ...jestPlugin.configs['flat/recommended'],
+    plugins: {
+      jest: jestPlugin
+    },
+    languageOptions: {
+      globals: globals.jest
+    },
+    rules: {
+      'jsdoc/require-jsdoc': ['off'],
+      'jest/no-disabled-tests': ['error']
+    }
   }
-};
-
-const jsdocSettings = {
-  mode: 'jsdoc'
-};
-
-module.exports = {
-  root: true,
-  plugins,
-  extends: extendsList,
-  env,
-  parserOptions,
-  rules: { ...mainRules, ...jsdocRules, ...disallowedFunctionality },
-  settings: {
-    jsdoc: jsdocSettings
-  },
-  overrides: [testOverrides]
-};
+];
