@@ -207,18 +207,6 @@ const jsdocRules = {
   ]
 };
 
-// Overrides for testing files.
-const testOverrides = {
-  files: ['**/tests/*.test.js'],
-  plugins: ['jest'],
-  env: {
-    'jest/globals': true
-  },
-  rules: {
-    'jsdoc/require-jsdoc': ['off']
-  }
-};
-
 export default [
   // Overall config.
   js.configs.recommended,
@@ -261,6 +249,7 @@ export default [
   // Testing files.
   {
     files: ['**/tests/**/*.test.{js,mjs,cjs}'],
+    ...jestPlugin.configs['flat/recommended'],
     plugins: {
       jest: jestPlugin
     },
@@ -268,7 +257,8 @@ export default [
       globals: globals.jest
     },
     rules: {
-      'jsdoc/require-jsdoc': ['off']
+      'jsdoc/require-jsdoc': ['off'],
+      'jest/no-disabled-tests': ['error']
     }
   }
 ];
