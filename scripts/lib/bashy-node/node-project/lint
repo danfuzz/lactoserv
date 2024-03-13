@@ -16,6 +16,9 @@ define-usage --with-help $'
     Runs the linter. With no specific files listed, this will run the linter on
     all source files found.
 
+    --build-linter
+      Build (or rebuild) the linter. Useful while developing the linter itself,
+      but typically unnecessary.
     --fix
       Fix whatever issues are fixable.
     --out=<dir>
@@ -25,6 +28,9 @@ define-usage --with-help $'
       Path to the base directory of source files. This tool expects to find a
       linter configuration file there. Defaults to the base project directory.
 '
+
+# (Re)build the linter?
+opt-toggle --var=doBuildLinter build-linter
 
 # Perform fixes?
 opt-toggle --var=doFix fix
@@ -52,7 +58,8 @@ function config-file-path {
 
     configFile=($(
         lib ls-files --output=lines \
-            --cd="${srcDir}" --full-paths --depth=1 --include='^\.eslintrc'
+            --cd="${srcDir}" --full-paths --depth=1 \
+                --include='^(\.eslintrc(\..+)?|eslint\.config\..+)$'
     )) \
     || return "$?"
 
@@ -77,7 +84,9 @@ function linter-path {
 
     # Build the linter, if necessary.
     local needBuild=0
-    if [[ ! -x ${toolPath} ]]; then
+    if (( doBuildLinter )); then
+        needBuild=1
+    elif [[ ! -x ${toolPath} ]]; then
         needBuild=1
     else
         local mainSrc="${srcDir}/main-linter"
@@ -104,6 +113,10 @@ function linter-path {
 
 if [[ ${srcDir} == '' ]]; then
     srcDir="$(base-dir)"
+elif [[ -d ${srcDir} && -x ${srcDir} ]]; then
+    srcDir="$(readlink -f "${srcDir}")"
+else
+    error-msg "Could not read source directory: ${srcDir}"
 fi
 
 outDir="$(lib buildy out-dir --out="${outDir}")" \

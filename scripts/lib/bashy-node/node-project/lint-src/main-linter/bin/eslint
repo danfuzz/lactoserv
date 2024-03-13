@@ -9,10 +9,91 @@ cmdDir="${cmdName%/*}"
 cmdName="${cmdName##*/}"
 baseDir="${cmdDir%/*}"
 
-# Call through to the `eslint` that got built by the main ESLint dependency,
-# prepending options to get it to find the plugins it was built with and to
-# put its cache in an appropriate place.
-exec "${baseDir}/lib/node_modules/.bin/eslint" \
-    --resolve-plugins-relative-to "${baseDir}/lib" \
-    --cache --cache-location "${baseDir}/cache" \
-    "$@"
+# Grab arguments, for later tweakage.
+args=("$@")
+
+# The absolute path to the config file (set in `fix-config-arg`).
+configFile=''
+
+
+#
+# Helper functions
+#
+
+# Finds the argument which specifies the config file, stashes it in a global
+# as an absolute path, and drops it from the arguments.
+function find-config-arg {
+    local n path
+
+    for (( n = 0; n < "${#args[@]}"; n++ )); do
+        arg="${args[n]}"
+        if [[ ${arg} =~ --config=(.+)$ ]]; then
+            configFile="${BASH_REMATCH[1]}"
+            configFile="$(resolve-config-file "${configFile}")" || return "$?"
+            unset args[n]
+            break
+        elif [[ ${arg} == --config ]]; then
+            configFile="${args[n+1]}"
+            configFile="$(resolve-config-file "${configFile}")" || return "$?"
+            unset args[n]
+            unset args[n+1]
+            break
+        elif [[ -r ${arg} ]]; then
+            # It's a readable file. Make it absolute.
+            path="$(readlink -f "${arg}")" \
+            && arg[n]="${path}"
+        fi
+    done
+}
+
+# Resolves a config file to an absolute path.
+function resolve-config-file {
+    local path="$1"
+
+    if [[ ! -r ${path} ]]; then
+        echo 1>&2 "Configuration file not readable: ${path}"
+        exit 1
+    fi
+
+    readlink -f "${path}"
+}
+
+
+#
+# Main script
+#
+
+find-config-arg \
+|| exit "$?"
+
+# Call through to the `eslint` that got built by the main ESLint dependency.
+
+if [[ ${configFile} =~ (^|/)eslint[.]config[.] ]]; then
+    # It's a modern "flat" config file.
+    srcDir="$(dirname "${configFile}")"
+    cd "${srcDir}"
+
+    # TEMP: Should do this in a concurrent-safe way.
+    newConfigFile="${baseDir}/lib/$(basename "${configFile}")"
+    cp "${configFile}" "${newConfigFile}"
+
+    echo \
+    ESLINT_USE_FLAT_CONFIG=true \
+    exec "${baseDir}/lib/node_modules/.bin/eslint" \
+        --cache --cache-location "${baseDir}/cache" \
+        --config "${newConfigFile}" \
+        "${args[@]}"
+
+    ESLINT_USE_FLAT_CONFIG=true \
+    exec "${baseDir}/lib/node_modules/.bin/eslint" \
+        --cache --cache-location "${baseDir}/cache" \
+        --config "${newConfigFile}" \
+        "${args[@]}"
+else
+    # It's an old-style (pre-ESLint 8) config file.
+    exec "${baseDir}/lib/node_modules/.bin/eslint" \
+        --resolve-plugins-relative-to "${baseDir}/lib" \
+        --cache --cache-location "${baseDir}/cache" \
+        --config "${configFile}" \
+        "${args[@]}"
+fi
