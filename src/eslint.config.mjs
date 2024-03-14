@@ -23,10 +23,10 @@ const stylisticRules = {
     'error',
     2,
     {
-      'FunctionDeclaration': { 'parameters': 2 },
-      'FunctionExpression':  { 'parameters': 2 },
-      'SwitchCase':          1,
-      'ignoredNodes':        ['TemplateLiteral *']
+      FunctionDeclaration: { parameters: 2 },
+      FunctionExpression:  { parameters: 2 },
+      SwitchCase:          1,
+      ignoredNodes:        ['TemplateLiteral *']
     }
   ],
   '@stylistic/key-spacing': [
@@ -48,13 +48,13 @@ const stylisticRules = {
   '@stylistic/max-len': [
     'error',
     {
-      'code': 120,
-      'comments': 80,
-      'ignoreRegExpLiterals': true,
-      'ignoreStrings': true,
-      'ignoreTemplateLiterals': true,
-      'ignoreUrls': true,
-      'tabWidth': 8
+      code:                   120,
+      comments:               80,
+      ignoreRegExpLiterals:   true,
+      ignoreStrings:          true,
+      ignoreTemplateLiterals: true,
+      ignoreUrls:             true,
+      tabWidth:               8
     }
   ],
   '@stylistic/max-statements-per-line': 'off',
@@ -81,8 +81,8 @@ const stylisticRules = {
     'error',
     'single',
     {
-      'avoidEscape':           true,
-      'allowTemplateLiterals': true
+      avoidEscape:           true,
+      allowTemplateLiterals: true
     }
   ],
   '@stylistic/semi': ['error', 'always'],
@@ -90,9 +90,9 @@ const stylisticRules = {
   '@stylistic/space-before-function-paren': [
     'error',
     {
-      'anonymous':  'always',
-      'named':      'never',
-      'asyncArrow': 'always'
+      anonymous:  'always',
+      named:      'never',
+      asyncArrow: 'always'
     }
   ],
   '@stylistic/space-in-parens': 'off',
@@ -122,10 +122,10 @@ const semanticRules = {
   'no-unused-vars': [
     'error',
     {
-      'vars': 'all',
-      'args': 'all',
-      'varsIgnorePattern': '_unused$',
-      'argsIgnorePattern': '_unused$'
+      vars: 'all',
+      args: 'all',
+      varsIgnorePattern: '_unused$',
+      argsIgnorePattern: '_unused$'
     }
   ],
   'no-var': 'error',
