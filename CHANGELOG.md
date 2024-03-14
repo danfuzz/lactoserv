@@ -13,8 +13,11 @@ Breaking changes:
 Other notable changes:
 * Development:
   * `build` script renamed to `dev`, and merged `run` into it.
-  * Switched to the modern ESLint "flat" configuration format. (It was a pain in
-    the butt.)
+  * Linting:
+    * Switched to the modern ESLint "flat" configuration format. (It was a pain
+      in the butt.)
+    * Enabled some rules that weren't on before, and tweaked a couple others.
+      Fixed a couple dozen or so errors that got reported as a result.
 
 ### v0.6.9 -- 2024-03-12
 
