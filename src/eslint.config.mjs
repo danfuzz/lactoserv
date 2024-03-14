@@ -97,7 +97,14 @@ const stylisticRules = {
   ],
   '@stylistic/space-in-parens': 'off',
   '@stylistic/space-infix-ops': 'off',
-  '@stylistic/spaced-comment': 'off'
+  '@stylistic/spaced-comment': 'off',
+  '@stylistic/yield-star-spacing': [
+    'error',
+    {
+      before: false,
+      after:  true
+    }
+  ]
 };
 
 // Semantic rules, non-project-specific.
