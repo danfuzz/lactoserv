@@ -29,6 +29,7 @@ const stylisticRules = {
       ignoredNodes:        ['TemplateLiteral *']
     }
   ],
+  '@stylistic/indent-binary-ops': 'off',
   '@stylistic/key-spacing': [
     'error',
     {
