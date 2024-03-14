@@ -281,15 +281,25 @@ export default [
     }
   },
 
-  // Exempt files.
-  {
-    ignores: ['**/jest.config.mjs']
-  },
-
-  // Non-testing files.
+  // Normal source files.
   {
     files:   ['**/*.{js,mjs,cjs}'],
     ignores: ['**/tests/**/*.test.{js,mjs,cjs}']
+  },
+
+  // Config files.
+  {
+    files: ['**/*.config.{js,mjs,cjs}'],
+    rules: {
+      '@stylistic/max-len': [
+        'error',
+        {
+          ...stylisticRules['@stylistic/max-len'][1],
+          comments: 250
+        }
+      ],
+      '@stylistic/quote-props': 'off'
+    }
   },
 
   // Testing files.
@@ -303,8 +313,8 @@ export default [
       globals: globals.jest
     },
     rules: {
-      'jsdoc/require-jsdoc':    ['off'],
-      'jest/no-disabled-tests': ['error']
+      'jsdoc/require-jsdoc':    'off',
+      'jest/no-disabled-tests': 'error'
     }
   }
 ];
