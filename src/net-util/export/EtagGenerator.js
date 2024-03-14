@@ -244,7 +244,9 @@ export class EtagGenerator {
    * @returns {string} The raw hash result.
    */
   #rawHashFromData(data) {
-    return this.#newHasher().update(data, 'utf-8').digest('base64');
+    return this.#newHasher()
+      .update(data, 'utf-8')
+      .digest('base64');
   }
 
 

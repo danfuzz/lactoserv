@@ -254,8 +254,10 @@ describe('etagFromFileStats()', () => {
 
     const toBeHashed = `${shortFilePath}|${hex(mtime)}|${hex(size)}`;
 
-    fullHash = crypto.createHash('sha1').update(toBeHashed).digest('base64');
-    fullHash = fullHash.slice(0, 27);
+    fullHash = crypto.createHash('sha1')
+      .update(toBeHashed)
+      .digest('base64')
+      .slice(0, 27);
   });
 
   test('generates the full hash in the expected way', async () => {
