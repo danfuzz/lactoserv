@@ -167,7 +167,8 @@ export class TokenBucket {
       : this.#maxQueueSize;
 
     const timeSource = (this.#timeSource === TokenBucket.#DEFAULT_TIME_SOURCE)
-      ? null : this.#timeSource;
+      ? null
+      : this.#timeSource;
 
     return {
       flowRate:          this.#flowRate,
