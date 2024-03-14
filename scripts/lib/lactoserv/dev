@@ -14,7 +14,7 @@ define-usage --with-help $'
     ${name} [<opt> ...] [<target> ...]
 
     Does various development-time actions for the project. By default, this
-    executes the target `build`.
+    executes the target `build` unless otherwise overridden by options.
 
     Available targets: `clean` `build` `distro` `run`
 
@@ -22,7 +22,8 @@ define-usage --with-help $'
       Directory where built output goes. Defaults to `out` directly under the
       main product directory.
     --run-args[]=<arg> ...
-      Arguments to pass to the system when `run`ning.
+      Arguments to pass to the system when `run`ning. This makes the default
+      target be `run`.
 '
 
 # Make a distribution tarball?
@@ -99,7 +100,11 @@ outDir="$(set-up-out-dir --out="${outDir}")" || exit "$?"
 outRun="${outDir}/lactoserv/bin/run"
 
 if (( ${#targets[@]} == 0 )); then
-    targets=(build)
+    if (( ${#runArgs[@]} != 0 )); then
+        targets=(run)
+    else
+        targets=(build)
+    fi
 fi
 
 satisfy-all-targets "${targets[@]}" \
