@@ -9,6 +9,7 @@ import stylisticPlugin from '@stylistic/eslint-plugin';
 
 // "Stylistic" rules (indentation, semicolon hygiene, etc.).
 const stylisticRules = {
+  '@stylistic/arrow-parens': ['error', 'always'],
   '@stylistic/brace-style': [
     'error',
     '1tbs',
