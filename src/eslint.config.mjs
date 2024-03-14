@@ -117,13 +117,13 @@ const semanticRules = {
   'no-empty-function': 'error',
   'no-eval': 'error',
   'no-extend-native': 'error',
-  'no-fallthrough': ['error', { 'commentPattern': 'fall ?through' }],
+  'no-fallthrough': ['error', { commentPattern: 'fall ?through' }],
   'no-implied-eval': 'error',
   'no-nested-ternary': 'error',
   'no-new-func': 'error',
   'no-new-object': 'error',
   'no-regex-spaces': 'off',
-  'no-self-assign': ['error', { 'props': true }],
+  'no-self-assign': ['error', { props: true }],
   'no-shadow': 'error',
   'no-undef': 'error',
   'no-unsafe-negation': 'error',
@@ -276,7 +276,7 @@ export default [
       }
     },
     plugins: {
-      jsdoc:        jsdocPlugin,
+      'jsdoc':      jsdocPlugin,
       '@stylistic': stylisticPlugin
     },
     rules: {
@@ -308,8 +308,7 @@ export default [
           ...stylisticRules['@stylistic/max-len'][1],
           comments: 250
         }
-      ],
-      '@stylistic/quote-props': 'off'
+      ]
     }
   },
 
