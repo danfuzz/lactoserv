@@ -103,7 +103,7 @@ export class AskIf {
       maxExclusive = null,
       maxInclusive = null,
       minExclusive = null,
-      minInclusive = null,
+      minInclusive = null
     } = options ?? {};
 
     if (!(   ((minExclusive === null) || (value > minExclusive))
