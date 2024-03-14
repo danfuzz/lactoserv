@@ -9,6 +9,14 @@ import stylisticPlugin from '@stylistic/eslint-plugin';
 
 // "Stylistic" rules (indentation, semicolon hygiene, etc.).
 const stylisticRules = {
+  '@stylistic/brace-style': [
+    'error',
+    '1tbs',
+    {
+      allowSingleLine: true
+    }
+  ],
+  '@stylistic/comma-dangle': ['error', 'never'],
   '@stylistic/eol-last': 'error',
   '@stylistic/indent': [
     'error',
@@ -18,6 +26,21 @@ const stylisticRules = {
       'FunctionExpression':  { 'parameters': 2 },
       'SwitchCase':          1,
       'ignoredNodes':        ['TemplateLiteral *']
+    }
+  ],
+  '@stylistic/key-spacing': [
+    'error',
+    {
+      multiLine: {
+        beforeColon: false,
+        afterColon:  true,
+        mode:        'minimum'
+      },
+      singleLine: {
+        afterColon:  true,
+        beforeColon: false,
+        mode:        'strict'
+      }
     }
   ],
   '@stylistic/keyword-spacing': 'error',
@@ -33,10 +56,25 @@ const stylisticRules = {
       'tabWidth': 8
     }
   ],
+  '@stylistic/max-statements-per-line': 'off',
+  '@stylistic/multiline-ternary': [
+    'error',
+    'always-multiline'
+  ],
   '@stylistic/new-parens': 'error',
   '@stylistic/no-floating-decimal': 'error',
+  '@stylistic/no-multi-spaces': 'off',
+  '@stylistic/no-multiple-empty-lines': [
+    'error',
+    {
+      max: 2,
+      maxBOF: 0,
+      maxEOF: 0
+    }
+  ],
   '@stylistic/no-trailing-spaces': 'error',
   '@stylistic/object-curly-spacing': ['error', 'always'],
+  '@stylistic/operator-linebreak': 'off',
   '@stylistic/quotes': [
     'error',
     'single',
@@ -54,7 +92,9 @@ const stylisticRules = {
       'named':      'never',
       'asyncArrow': 'always'
     }
-  ]
+  ],
+  '@stylistic/space-infix-ops': 'off',
+  '@stylistic/spaced-comment': 'off'
 };
 
 // Semantic rules, non-project-specific.
@@ -215,7 +255,7 @@ export default [
   js.configs.recommended,
   jsdocPlugin.configs['flat/recommended'],
   stylisticPlugin.configs['disable-legacy'],
-  //stylisticPlugin.configs['recommended-flat'],
+  stylisticPlugin.configs['recommended-flat'],
   {
     languageOptions: {
       ecmaVersion: 2024,
