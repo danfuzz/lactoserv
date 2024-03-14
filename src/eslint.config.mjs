@@ -93,6 +93,7 @@ const stylisticRules = {
       'asyncArrow': 'always'
     }
   ],
+  '@stylistic/space-in-parens': 'off',
   '@stylistic/space-infix-ops': 'off',
   '@stylistic/spaced-comment': 'off'
 };
