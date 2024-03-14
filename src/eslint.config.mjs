@@ -63,6 +63,7 @@ const stylisticRules = {
     'always-multiline'
   ],
   '@stylistic/new-parens': 'error',
+  '@stylistic/no-extra-parens': 'off',
   '@stylistic/no-floating-decimal': 'error',
   '@stylistic/no-multi-spaces': 'off',
   '@stylistic/no-multiple-empty-lines': [
