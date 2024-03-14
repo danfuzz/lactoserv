@@ -31,7 +31,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run the linter.
-        run: ./scripts/ubik lint
+        run: ./scripts/ubik dev lint
 
       - name: Actually build.
         run: ./scripts/ubik dev build distro

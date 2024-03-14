@@ -26,8 +26,8 @@ The script takes other options; `dev --help` for details.
 ### Linting Etc.
 
 ```sh
-$ ubik lint
-
+$ ubik dev lint
+...
 No linter errors! Yay!
 $
 ```
