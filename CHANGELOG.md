@@ -14,6 +14,8 @@ Other notable changes:
 * Development:
   * `build` script renamed to `dev`, and merged `run` into it.
   * Linting:
+    * Added `lint` target to `dev` (see above), and removed the separate `lint`
+      script.
     * Switched to the modern ESLint "flat" configuration format. (It was a pain
       in the butt.)
     * Enabled some rules that weren't on before, and tweaked a couple others.
