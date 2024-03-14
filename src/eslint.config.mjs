@@ -302,7 +302,10 @@ export default [
   // Normal source files.
   {
     files:   ['**/*.{js,mjs,cjs}'],
-    ignores: ['**/tests/**/*.test.{js,mjs,cjs}']
+    ignores: [
+      '**/tests/**/*.test.{js,mjs,cjs}',
+      '**/*.config.{js,mjs,cjs}'
+    ]
   },
 
   // Config files.
