@@ -7,86 +7,147 @@ import js from '@eslint/js';
 import jsdocPlugin from 'eslint-plugin-jsdoc';
 import stylisticPlugin from '@stylistic/eslint-plugin';
 
-const mainRules = {
-  'array-bracket-spacing': 'error',
-  'arrow-parens': 'error',
-  'consistent-return': 'error',
-  'eol-last': 'error',
-  'eqeqeq': 'error',
-  'indent': [
+// "Stylistic" rules (indentation, semicolon hygiene, etc.).
+const stylisticRules = {
+  '@stylistic/arrow-parens': ['error', 'always'],
+  '@stylistic/brace-style': [
+    'error',
+    '1tbs',
+    {
+      allowSingleLine: true
+    }
+  ],
+  '@stylistic/comma-dangle': ['error', 'never'],
+  '@stylistic/dot-location': ['error', 'property'],
+  '@stylistic/eol-last': 'error',
+  '@stylistic/indent': [
     'error',
     2,
     {
-      'FunctionDeclaration': { 'parameters': 2 },
-      'FunctionExpression':  { 'parameters': 2 },
-      'SwitchCase':          1,
-      'ignoredNodes':        ['TemplateLiteral *']
+      FunctionDeclaration: { parameters: 2 },
+      FunctionExpression:  { parameters: 2 },
+      SwitchCase:          1,
+      ignoredNodes:        ['TemplateLiteral *']
     }
   ],
-  'keyword-spacing': 'error',
-  'max-len': [
+  '@stylistic/indent-binary-ops': 'off',
+  '@stylistic/key-spacing': [
     'error',
     {
-      'code': 120,
-      'comments': 80,
-      'ignoreRegExpLiterals': true,
-      'ignoreStrings': true,
-      'ignoreTemplateLiterals': true,
-      'ignoreUrls': true,
-      'tabWidth': 8
+      multiLine: {
+        beforeColon: false,
+        afterColon:  true,
+        mode:        'minimum'
+      },
+      singleLine: {
+        afterColon:  true,
+        beforeColon: false,
+        mode:        'strict'
+      }
     }
   ],
-  'new-parens': 'error',
+  '@stylistic/keyword-spacing': 'error',
+  '@stylistic/max-len': [
+    'error',
+    {
+      code:                   120,
+      comments:               80,
+      ignoreRegExpLiterals:   true,
+      ignoreStrings:          true,
+      ignoreTemplateLiterals: true,
+      ignoreUrls:             true,
+      tabWidth:               8
+    }
+  ],
+  '@stylistic/max-statements-per-line': 'off',
+  '@stylistic/multiline-ternary': [
+    'error',
+    'always-multiline'
+  ],
+  '@stylistic/new-parens': 'error',
+  '@stylistic/newline-per-chained-call': [
+    'error',
+    {
+      ignoreChainWithDepth: 3
+    }
+  ],
+  '@stylistic/no-extra-parens': 'off',
+  '@stylistic/no-floating-decimal': 'error',
+  '@stylistic/no-multi-spaces': 'off',
+  '@stylistic/no-multiple-empty-lines': [
+    'error',
+    {
+      max: 2,
+      maxBOF: 0,
+      maxEOF: 0
+    }
+  ],
+  '@stylistic/no-trailing-spaces': 'error',
+  '@stylistic/object-curly-spacing': ['error', 'always'],
+  '@stylistic/operator-linebreak': 'off',
+  '@stylistic/quotes': [
+    'error',
+    'single',
+    {
+      avoidEscape:           true,
+      allowTemplateLiterals: true
+    }
+  ],
+  '@stylistic/semi': ['error', 'always'],
+  '@stylistic/space-before-blocks': ['error', 'always'],
+  '@stylistic/space-before-function-paren': [
+    'error',
+    {
+      anonymous:  'always',
+      named:      'never',
+      asyncArrow: 'always'
+    }
+  ],
+  '@stylistic/space-in-parens': 'off',
+  '@stylistic/space-infix-ops': 'off',
+  '@stylistic/spaced-comment': 'off',
+  '@stylistic/yield-star-spacing': [
+    'error',
+    {
+      before: false,
+      after:  true
+    }
+  ]
+};
+
+// Semantic rules, non-project-specific.
+const semanticRules = {
+  'eqeqeq': 'error',
+  'consistent-return': 'error',
   'no-alert': 'warn',
   'no-array-constructor': 'error',
   'no-empty-function': 'error',
   'no-eval': 'error',
   'no-extend-native': 'error',
-  'no-fallthrough': ['error', { 'commentPattern': 'fall ?through' }],
-  'no-floating-decimal': 'error',
+  'no-fallthrough': ['error', { commentPattern: 'fall ?through' }],
   'no-implied-eval': 'error',
   'no-nested-ternary': 'error',
   'no-new-func': 'error',
   'no-new-object': 'error',
   'no-regex-spaces': 'off',
-  'no-self-assign': ['error', { 'props': true }],
+  'no-self-assign': ['error', { props: true }],
   'no-shadow': 'error',
-  'no-trailing-spaces': 'error',
   'no-undef': 'error',
   'no-unsafe-negation': 'error',
   'no-unused-vars': [
     'error',
     {
-      'vars': 'all',
-      'args': 'all',
-      'varsIgnorePattern': '_unused$',
-      'argsIgnorePattern': '_unused$'
+      vars: 'all',
+      args: 'all',
+      varsIgnorePattern: '_unused$',
+      argsIgnorePattern: '_unused$'
     }
   ],
   'no-var': 'error',
-  'object-curly-spacing': ['error', 'always'],
   'object-shorthand': ['error', 'always'],
   'prefer-const': 'error',
   'prefer-rest-params': 'error',
   'prefer-spread': 'error',
-  'quotes': [
-    'error',
-    'single',
-    {
-      'avoidEscape':           true,
-      'allowTemplateLiterals': true
-    }
-  ],
-  'semi': ['error', 'always'],
-  'space-before-blocks': ['error', 'always'],
-  'space-before-function-paren': [
-    'error',
-    {
-      'anonymous':  'always',
-      'named':      'never',
-      'asyncArrow': 'always'
-    }
-  ],
   'symbol-description': 'error'
 };
 
@@ -140,7 +201,7 @@ const disallowedFunctionality = {
           name:        'node:timers/promises',
           importNames: ['setTimeout', 'setInterval', 'scheduler'],
           message:     'Use module `clocks` from this project.'
-        },
+        }
       ],
       patterns: [
         ...allNodeCoreModules.map((name) => {
@@ -211,6 +272,8 @@ export default [
   // Overall config.
   js.configs.recommended,
   jsdocPlugin.configs['flat/recommended'],
+  stylisticPlugin.configs['disable-legacy'],
+  stylisticPlugin.configs['recommended-flat'],
   {
     languageOptions: {
       ecmaVersion: 2024,
@@ -220,13 +283,14 @@ export default [
       }
     },
     plugins: {
-      jsdoc:        jsdocPlugin,
+      'jsdoc':      jsdocPlugin,
       '@stylistic': stylisticPlugin
     },
     rules: {
-      ...mainRules,
-      ...jsdocRules,
-      ...disallowedFunctionality
+      ...stylisticRules,
+      ...semanticRules,
+      ...disallowedFunctionality,
+      ...jsdocRules
     },
     settings: {
       jsdoc: {
@@ -235,15 +299,24 @@ export default [
     }
   },
 
-  // Exempt files.
-  {
-    ignores: ['**/jest.config.mjs']
-  },
-
-  // Non-testing files.
+  // Normal source files.
   {
     files:   ['**/*.{js,mjs,cjs}'],
     ignores: ['**/tests/**/*.test.{js,mjs,cjs}']
+  },
+
+  // Config files.
+  {
+    files: ['**/*.config.{js,mjs,cjs}'],
+    rules: {
+      '@stylistic/max-len': [
+        'error',
+        {
+          ...stylisticRules['@stylistic/max-len'][1],
+          comments: 250
+        }
+      ]
+    }
   },
 
   // Testing files.
@@ -257,8 +330,9 @@ export default [
       globals: globals.jest
     },
     rules: {
-      'jsdoc/require-jsdoc': ['off'],
-      'jest/no-disabled-tests': ['error']
+      'jsdoc/require-jsdoc':    'off',
+      'jest/no-disabled-tests': 'error'
+      //'@stylistic/quote-props': 'off'
     }
   }
 ];

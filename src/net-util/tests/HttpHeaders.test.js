@@ -39,7 +39,7 @@ ${'setAll()'}    | ${'setAll'}
     }
   }
 
-  const aPlainObj1 = { foo: 'bar', 'florp': ['um', 'yeah'] };
+  const aPlainObj1 = { foo: 'bar', florp: ['um', 'yeah'] };
   const aMap1      = new Map([['foo', 'bar'], ['florp', 'um, yeah']]);
   const aHeaders1  = new Headers();
   const anotherHH1 = new HttpHeaders();
@@ -83,7 +83,7 @@ ${'setAll()'}    | ${'setAll'}
   });
 
   test('includes all values in an array', () => {
-    const hh = prep({ 'foo': ['bar', 'baz'] });
+    const hh = prep({ foo: ['bar', 'baz'] });
     expect([...hh]).toEqual([['foo', 'bar, baz']]);
   });
 
@@ -98,7 +98,7 @@ describe('appendAll()', () => {
     const hh = new HttpHeaders();
 
     hh.set('a', 'b');
-    hh.appendAll({ 'x': 'y' });
+    hh.appendAll({ x: 'y' });
 
     expect([...hh]).toIncludeSameMembers([['a', 'b'], ['x', 'y']]);
   });
@@ -107,7 +107,7 @@ describe('appendAll()', () => {
     const hh = new HttpHeaders();
 
     hh.set('a', 'b');
-    hh.appendAll({ 'x': ['y', 'z'] });
+    hh.appendAll({ x: ['y', 'z'] });
 
     expect([...hh]).toIncludeSameMembers([['a', 'b'], ['x', 'y, z']]);
   });
@@ -117,7 +117,7 @@ describe('appendAll()', () => {
 
     hh.set('a', 'b');
     hh.set('x', 'y');
-    hh.appendAll({ 'x': 'z' });
+    hh.appendAll({ x: 'z' });
 
     expect([...hh]).toIncludeSameMembers([['a', 'b'], ['x', 'y, z']]);
   });
@@ -128,7 +128,7 @@ describe('appendAll()', () => {
     hh.set('a', 'b');
     hh.set('x', 'y');
     hh.append('x', 'z');
-    hh.appendAll({ 'x': ['z1', 'z2'] });
+    hh.appendAll({ x: ['z1', 'z2'] });
 
     expect([...hh]).toIncludeSameMembers([
       ['a', 'b'], ['x', 'y, z, z1, z2']
@@ -167,7 +167,7 @@ describe('appendAll()', () => {
   test('uses an underlay function when it would not add to a pre-existing header', () => {
     const hh = new HttpHeaders();
 
-    hh.appendAll({ 'blorp': () => 'beep-boop' });
+    hh.appendAll({ blorp: () => 'beep-boop' });
 
     expect([...hh]).toEqual([['blorp', 'beep-boop']]);
   });
@@ -179,7 +179,7 @@ describe('appendAll()', () => {
     hh.set('foo', 'bar');
 
     hh.appendAll({
-      'foo': () => {
+      foo: () => {
         overlayCalled = true;
         return 'beeeeeeeep!!!!!';
       }
@@ -326,11 +326,11 @@ describe('extract()', () => {
 describe('deleteContent()', () => {
   test('deletes all `content-*` headers', () => {
     const hh = new HttpHeaders({
-      'a': 'aa',
-      'content-type': 'florp',
+      'a':              'aa',
+      'content-type':   'florp',
       'content-length': 'floop',
-      'content-zorch': 'flongle',
-      'z': 'zz'
+      'content-zorch':  'flongle',
+      'z':              'zz'
     });
 
     hh.deleteContent();
@@ -341,9 +341,9 @@ describe('deleteContent()', () => {
 
   test('does not delete non-`content-*` headers', () => {
     const hh = new HttpHeaders({
-      'a': 'aa',
+      'a':            'aa',
       'content-type': 'florp',
-      'z': 'zz'
+      'z':            'zz'
     });
 
     hh.deleteContent();
@@ -389,7 +389,7 @@ describe('setAll()', () => {
     const hh = new HttpHeaders();
 
     hh.set('a', 'b');
-    hh.setAll({ 'x': 'y' });
+    hh.setAll({ x: 'y' });
 
     expect([...hh]).toIncludeSameMembers([['a', 'b'], ['x', 'y']]);
   });
@@ -398,7 +398,7 @@ describe('setAll()', () => {
     const hh = new HttpHeaders();
 
     hh.set('a', 'b');
-    hh.setAll({ 'x': ['y', 'z'] });
+    hh.setAll({ x: ['y', 'z'] });
 
     expect([...hh]).toIncludeSameMembers([['a', 'b'], ['x', 'y, z']]);
   });
@@ -408,7 +408,7 @@ describe('setAll()', () => {
 
     hh.set('a', 'b');
     hh.set('x', 'y');
-    hh.setAll({ 'x': 'z' });
+    hh.setAll({ x: 'z' });
 
     expect([...hh]).toIncludeSameMembers([['a', 'b'], ['x', 'z']]);
   });
@@ -419,7 +419,7 @@ describe('setAll()', () => {
     hh.set('a', 'b');
     hh.set('x', 'y');
     hh.append('x', 'z');
-    hh.setAll({ 'x': ['z1', 'z2'] });
+    hh.setAll({ x: ['z1', 'z2'] });
 
     expect([...hh]).toIncludeSameMembers([
       ['a', 'b'], ['x', 'z1, z2']
@@ -456,7 +456,7 @@ describe('setAll()', () => {
   test('uses an underlay function when it would not replace to a pre-existing header', () => {
     const hh = new HttpHeaders();
 
-    hh.setAll({ 'blorp': () => 'beep-boop' });
+    hh.setAll({ blorp: () => 'beep-boop' });
 
     expect([...hh]).toEqual([['blorp', 'beep-boop']]);
   });
@@ -468,7 +468,7 @@ describe('setAll()', () => {
     hh.set('foo', 'bar');
 
     hh.setAll({
-      'foo': () => {
+      foo: () => {
         overlayCalled = true;
         return 'beeeeeeeep!!!!!';
       }

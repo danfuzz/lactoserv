@@ -179,7 +179,7 @@ export class ComponentManager extends BaseControllable {
       throw new Error(`Not an appropriate component class: ${cls.name}, expected ${this.#baseClass.name}`);
     }
 
-    if (! (component instanceof cls)) {
+    if (!(component instanceof cls)) {
       throw new Error(`Wrong class for component: ${component.constructor.name}, expected ${cls.name}`);
     }
   }

@@ -330,7 +330,7 @@ export class IncomingRequest {
       protocol: this.protocolName,
       method,
       url:      urlForLogging,
-      headers:  IncomingRequest.#sanitizeRequestHeaders(headers),
+      headers:  IncomingRequest.#sanitizeRequestHeaders(headers)
     };
 
     if (cookies.size !== 0) {

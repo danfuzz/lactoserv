@@ -1,7 +1,7 @@
-@this/main-lint
-====================
+@this/main-tester
+=================
 
-This is the main module for the linter.
+This is the main module for the unit test harness.
 
 - - - - - - - - - -
 ```

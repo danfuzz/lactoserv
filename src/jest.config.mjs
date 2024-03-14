@@ -22,20 +22,20 @@ export default {
 
   // An array of glob patterns indicating a set of files for which coverage information should be collected
   collectCoverageFrom: [
-    "!**/tests/**",
-    "!**/node_modules/**",
-    "**/@this/**",
+    '!**/tests/**',
+    '!**/node_modules/**',
+    '**/@this/**'
   ],
 
   // The directory where Jest should output its coverage files
-  coverageDirectory: "../../out/coverage",
+  coverageDirectory: '../../out/coverage',
 
   // An array of regexp pattern strings used to skip coverage collection
   coveragePathIgnorePatterns: [],
 
   // Indicates which provider should be used to instrument code for coverage
   //coverageProvider: "babel",
-  coverageProvider: "v8",
+  coverageProvider: 'v8',
 
   // A list of reporter names that Jest uses when writing coverage reports
   // coverageReporters: [
@@ -149,7 +149,7 @@ export default {
   setupFilesAfterEnv: [
     '../tester/lib/node_modules/jest-extended/all',
     '../tester/lib/code/node_modules/@this/main-tester'
-  ],
+  ]
 
   // The number of seconds after which a test is considered as slow and reported as such in the results.
   // slowTestThreshold: 5,

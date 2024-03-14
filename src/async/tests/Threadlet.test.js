@@ -815,7 +815,6 @@ describe('whenStarted()', () => {
 
       shouldRun = false;
       await expect(runResult).toResolve();
-
     });
 
     test('becomes synchronously fulfilled as `null` after the main function runs to completion', async () => {

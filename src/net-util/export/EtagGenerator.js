@@ -244,7 +244,9 @@ export class EtagGenerator {
    * @returns {string} The raw hash result.
    */
   #rawHashFromData(data) {
-    return this.#newHasher().update(data, 'utf-8').digest('base64');
+    return this.#newHasher()
+      .update(data, 'utf-8')
+      .digest('base64');
   }
 
 
@@ -257,9 +259,9 @@ export class EtagGenerator {
 
   /** @type {object} Per-algorithm length maximums. */
   static #MAX_HASH_LENGTHS = {
-    'sha1':   27,
-    'sha256': 43,
-    'sha512': 86
+    sha1:   27,
+    sha256: 43,
+    sha512: 86
   };
 
   /**
