@@ -16,8 +16,11 @@ define-usage --with-help $'
     Does various development-time actions for the project. By default, this
     executes the target `build` unless otherwise overridden by options.
 
-    Available targets: `clean` `build` `distro` `run`
+    Available targets: `build` `clean` `distro` `lint` `run`
 
+    --lint[]=<arg> ...
+      Arguments to pass to the system when `lint`ning. This makes the default
+      target be `lint`.
     --out=<dir>
       Directory where built output goes. Defaults to `out` directly under the
       main product directory.
@@ -31,6 +34,9 @@ opt-toggle --var=doDistro make-distro
 
 # Built output directory.
 opt-value --var=outDir out
+
+# Arguments for linting.
+opt-multi --var=lintArgs lint
 
 # Arguments for running.
 opt-multi --var=runArgs run
@@ -59,6 +65,11 @@ function target-distro {
     progress-msg 'Making distribution tarball...'
 
     lib buildy make-distro --out="${outDir}" "${outDir}/lactoserv"
+}
+
+# Target: `lint`
+function target-lint {
+    : # Nothing to do. See below for where the linter is actually run.
 }
 
 # Target: `build`
@@ -100,9 +111,13 @@ outDir="$(set-up-out-dir --out="${outDir}")" || exit "$?"
 outRun="${outDir}/lactoserv/bin/run"
 
 if (( ${#targets[@]} == 0 )); then
+    if (( ${#lintArgs[@]} != 0 )); then
+        targets+=(lint)
+    fi
     if (( ${#runArgs[@]} != 0 )); then
-        targets=(run)
-    else
+        targets+=(run)
+    fi
+    if (( ${#targets[@]} == 0 )); then
         targets=(build)
     fi
 fi
@@ -110,10 +125,19 @@ fi
 satisfy-all-targets "${targets[@]}" \
 || exit "$?"
 
-if [[ " ${targets[*]} " =~ ' run ' ]]; then
-    # We don't run inside `satisfy-all-targets`, because that would have the
+if [[ " ${targets[*]} " =~ ' lint ' ]]; then
+    # We don't lint inside `satisfy-all-targets`, because that would have the
     # build step capturing the run output (and indenting it, etc. etc.). So, we
-    # just check here if that was a target, and use it to trigger a run.
+    # just check here if that was a target, and use it to trigger the call-out.
+    progress-msg
+    progress-msg 'Linting...'
+    lib node-project lint \
+        --out="${outDir}" --src="${srcDir}" \
+        "${lintArgs[@]}"
+fi
+
+if [[ " ${targets[*]} " =~ ' run ' ]]; then
+    # Same deal as with `lint` above.
     progress-msg
     progress-msg 'Running the system...'
     exec "${outRun}" \
