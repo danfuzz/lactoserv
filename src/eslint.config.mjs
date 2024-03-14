@@ -18,6 +18,7 @@ const stylisticRules = {
     }
   ],
   '@stylistic/comma-dangle': ['error', 'never'],
+  '@stylistic/dot-location': ['error', 'property'],
   '@stylistic/eol-last': 'error',
   '@stylistic/indent': [
     'error',
