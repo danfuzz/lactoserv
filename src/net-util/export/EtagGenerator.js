@@ -257,9 +257,9 @@ export class EtagGenerator {
 
   /** @type {object} Per-algorithm length maximums. */
   static #MAX_HASH_LENGTHS = {
-    'sha1':   27,
-    'sha256': 43,
-    'sha512': 86
+    sha1:   27,
+    sha256: 43,
+    sha512: 86
   };
 
   /**

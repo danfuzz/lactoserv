@@ -51,7 +51,7 @@ export class TreePathNode {
   add(key, value) {
     const { path, wildcard } = key;
 
-    if (! (key instanceof TreePathKey)) {
+    if (!(key instanceof TreePathKey)) {
       MustBe.arrayOfString(path);
       MustBe.boolean(wildcard);
     }
@@ -111,7 +111,7 @@ export class TreePathNode {
   find(key, wantNextChain) {
     const { path, wildcard } = key;
 
-    if (! (key instanceof TreePathKey)) {
+    if (!(key instanceof TreePathKey)) {
       TreePathKey.checkArguments(path, wildcard);
     }
 
@@ -175,7 +175,7 @@ export class TreePathNode {
   findSubtree(key, add) {
     const { path, wildcard } = key;
 
-    if (! (key instanceof TreePathKey)) {
+    if (!(key instanceof TreePathKey)) {
       TreePathKey.checkArguments(path, wildcard);
     }
 
@@ -220,7 +220,7 @@ export class TreePathNode {
   get(key, ifNotFound) {
     const { path, wildcard } = key;
 
-    if (! (key instanceof TreePathKey)) {
+    if (!(key instanceof TreePathKey)) {
       TreePathKey.checkArguments(path, wildcard);
     }
 
