@@ -335,7 +335,6 @@ export default [
     rules: {
       'jsdoc/require-jsdoc':    'off',
       'jest/no-disabled-tests': 'error'
-      //'@stylistic/quote-props': 'off'
     }
   }
 ];
