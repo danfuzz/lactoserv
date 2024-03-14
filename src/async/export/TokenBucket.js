@@ -214,7 +214,7 @@ export class TokenBucket {
       availableBurstSize: this.#lastBurstSize,
       availableQueueSize: this.#maxQueueSize - this.#queueSize,
       now:                this.#lastNow,
-      waiterCount:        this.#waiters.length,
+      waiterCount:        this.#waiters.length
     };
   }
 

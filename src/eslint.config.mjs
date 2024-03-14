@@ -186,7 +186,7 @@ const disallowedFunctionality = {
           name:        'node:timers/promises',
           importNames: ['setTimeout', 'setInterval', 'scheduler'],
           message:     'Use module `clocks` from this project.'
-        },
+        }
       ],
       patterns: [
         ...allNodeCoreModules.map((name) => {

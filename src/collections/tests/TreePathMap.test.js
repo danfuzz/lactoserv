@@ -787,7 +787,7 @@ describe('findSubtree()', () => {
       [new TreePathKey(['in', 'here', 'a', 'b', 'c'], false), 'five'],
       [new TreePathKey(['in', 'here', 'a', 'b'], true), 'six'],
       [new TreePathKey(['in', 'here', 'a', 'x', 'y'], false), 'seven'],
-      [new TreePathKey(['in', 'here', 'a', 'z'], true), 'eight'],
+      [new TreePathKey(['in', 'here', 'a', 'z'], true), 'eight']
     ]);
     const extraBindings = new Map([
       [new TreePathKey([], false), 'one'],

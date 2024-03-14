@@ -31,7 +31,7 @@ describe('constructor()', () => {
       ['boop'],
       [123],
       [new Set()],
-      [[true]],
+      [[true]]
     ])('throws given %p', (value) => {
       expect(() => new TreePathKey([], value)).toThrow();
     });

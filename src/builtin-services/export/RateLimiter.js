@@ -185,7 +185,7 @@ export class RateLimiter extends BaseService {
         flowRate: origFlowRate,
         maxBurstSize,
         maxQueueGrantSize = null,
-        maxQueueSize      = null,
+        maxQueueSize      = null
       } = config;
 
       MustBe.number(maxBurstSize, { minExclusive: 0, maxInclusive: 1e100 });

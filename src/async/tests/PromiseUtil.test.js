@@ -223,7 +223,7 @@ describe('race()', () => {
     const value  = ['florp'];
     const result = PromiseUtil.race([
       value,
-      Promise.resolve(['beep', 'boop']),
+      Promise.resolve(['beep', 'boop'])
     ]);
 
     expect(PromiseState.isSettled(result)).toBeFalse();
