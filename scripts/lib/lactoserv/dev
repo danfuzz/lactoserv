@@ -21,7 +21,7 @@ define-usage --with-help $'
     --out=<dir>
       Directory where built output goes. Defaults to `out` directly under the
       main product directory.
-    --run-args[]=<arg> ...
+    --run[]=<arg> ...
       Arguments to pass to the system when `run`ning. This makes the default
       target be `run`.
 '
@@ -33,7 +33,7 @@ opt-toggle --var=doDistro make-distro
 opt-value --var=outDir out
 
 # Arguments for running.
-opt-multi --var=runArgs run-args
+opt-multi --var=runArgs run
 
 # Build targets.
 rest-arg --var=targets --filter='/^[a-z]+/' target

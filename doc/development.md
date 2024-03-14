@@ -70,9 +70,10 @@ $ ubik dev run
 ```
 
 The `run` target of `dev` lets you pass arbitrary arguments to the server, by
-using the `--run-args[]` option. TLDR very useful:
+using the `--run[]` option, and it also makes the default `dev` target be `run`.
+TLDR very useful:
 
-* `dev --run-args[]='--inspect' run` or `dev --run-args[]=--inspect=<arg> run`
+* `dev --run[]='--inspect'` or `dev --run[]='--inspect=<arg>'`
   &mdash; Pass an `inspect` option to Node (to start the inspector/debugger
   immediately).
 
