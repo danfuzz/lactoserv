@@ -7,13 +7,10 @@ import js from '@eslint/js';
 import jsdocPlugin from 'eslint-plugin-jsdoc';
 import stylisticPlugin from '@stylistic/eslint-plugin';
 
-const mainRules = {
-  'array-bracket-spacing': 'error',
-  'arrow-parens': 'error',
-  'consistent-return': 'error',
-  'eol-last': 'error',
-  'eqeqeq': 'error',
-  'indent': [
+// "Stylistic" rules (indentation, semicolon hygiene, etc.).
+const stylisticRules = {
+  '@stylistic/eol-last': 'error',
+  '@stylistic/indent': [
     'error',
     2,
     {
@@ -23,8 +20,8 @@ const mainRules = {
       'ignoredNodes':        ['TemplateLiteral *']
     }
   ],
-  'keyword-spacing': 'error',
-  'max-len': [
+  '@stylistic/keyword-spacing': 'error',
+  '@stylistic/max-len': [
     'error',
     {
       'code': 120,
@@ -36,14 +33,40 @@ const mainRules = {
       'tabWidth': 8
     }
   ],
-  'new-parens': 'error',
+  '@stylistic/new-parens': 'error',
+  '@stylistic/no-floating-decimal': 'error',
+  '@stylistic/no-trailing-spaces': 'error',
+  '@stylistic/object-curly-spacing': ['error', 'always'],
+  '@stylistic/quotes': [
+    'error',
+    'single',
+    {
+      'avoidEscape':           true,
+      'allowTemplateLiterals': true
+    }
+  ],
+  '@stylistic/semi': ['error', 'always'],
+  '@stylistic/space-before-blocks': ['error', 'always'],
+  '@stylistic/space-before-function-paren': [
+    'error',
+    {
+      'anonymous':  'always',
+      'named':      'never',
+      'asyncArrow': 'always'
+    }
+  ]
+};
+
+// Semantic rules, non-project-specific.
+const semanticRules = {
+  'eqeqeq': 'error',
+  'consistent-return': 'error',
   'no-alert': 'warn',
   'no-array-constructor': 'error',
   'no-empty-function': 'error',
   'no-eval': 'error',
   'no-extend-native': 'error',
   'no-fallthrough': ['error', { 'commentPattern': 'fall ?through' }],
-  'no-floating-decimal': 'error',
   'no-implied-eval': 'error',
   'no-nested-ternary': 'error',
   'no-new-func': 'error',
@@ -51,7 +74,6 @@ const mainRules = {
   'no-regex-spaces': 'off',
   'no-self-assign': ['error', { 'props': true }],
   'no-shadow': 'error',
-  'no-trailing-spaces': 'error',
   'no-undef': 'error',
   'no-unsafe-negation': 'error',
   'no-unused-vars': [
@@ -64,29 +86,10 @@ const mainRules = {
     }
   ],
   'no-var': 'error',
-  'object-curly-spacing': ['error', 'always'],
   'object-shorthand': ['error', 'always'],
   'prefer-const': 'error',
   'prefer-rest-params': 'error',
   'prefer-spread': 'error',
-  'quotes': [
-    'error',
-    'single',
-    {
-      'avoidEscape':           true,
-      'allowTemplateLiterals': true
-    }
-  ],
-  'semi': ['error', 'always'],
-  'space-before-blocks': ['error', 'always'],
-  'space-before-function-paren': [
-    'error',
-    {
-      'anonymous':  'always',
-      'named':      'never',
-      'asyncArrow': 'always'
-    }
-  ],
   'symbol-description': 'error'
 };
 
@@ -211,6 +214,8 @@ export default [
   // Overall config.
   js.configs.recommended,
   jsdocPlugin.configs['flat/recommended'],
+  stylisticPlugin.configs['disable-legacy'],
+  //stylisticPlugin.configs['recommended-flat'],
   {
     languageOptions: {
       ecmaVersion: 2024,
@@ -224,9 +229,10 @@ export default [
       '@stylistic': stylisticPlugin
     },
     rules: {
-      ...mainRules,
-      ...jsdocRules,
-      ...disallowedFunctionality
+      ...stylisticRules,
+      ...semanticRules,
+      ...disallowedFunctionality,
+      ...jsdocRules
     },
     settings: {
       jsdoc: {
@@ -257,7 +263,7 @@ export default [
       globals: globals.jest
     },
     rules: {
-      'jsdoc/require-jsdoc': ['off'],
+      'jsdoc/require-jsdoc':    ['off'],
       'jest/no-disabled-tests': ['error']
     }
   }
