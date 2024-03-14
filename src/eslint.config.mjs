@@ -65,6 +65,12 @@ const stylisticRules = {
     'always-multiline'
   ],
   '@stylistic/new-parens': 'error',
+  '@stylistic/newline-per-chained-call': [
+    'error',
+    {
+      ignoreChainWithDepth: 3
+    }
+  ],
   '@stylistic/no-extra-parens': 'off',
   '@stylistic/no-floating-decimal': 'error',
   '@stylistic/no-multi-spaces': 'off',
