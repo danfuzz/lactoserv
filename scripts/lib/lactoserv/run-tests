@@ -19,8 +19,8 @@ define-usage --with-help $'
       `build` -- Always build, even if there is something already built.
       `clean` -- Always do a clean build.
       `run` -- Build only if there is nothing yet built. This is the default.
-    --type=<type> :: `integration` `unit`
-      Test type to run. By default, runs unit tests.
+    --type=<type> :: `integration` `unit` `unit-coverage`
+      Test type to run. By default, runs unit tests (without coverage reporting).
     --out=<dir>
       Directory where built output goes. Defaults to `out` directly under the
       main product directory.
@@ -30,7 +30,7 @@ define-usage --with-help $'
 opt-value --var=action --default=run --enum[]='build clean run' do
 
 # Test type.
-opt-value --var=testType --enum[]='integration unit' type
+opt-value --var=testType --default=unit --enum[]='integration unit unit-coverage' type
 
 # Built output directory.
 opt-value --var=outDir out
@@ -107,6 +107,8 @@ function run-integration-tests {
 
 # Runs unit tests.
 function run-unit-tests {
+    local jestArgs=("$@")
+
     local configFile
     configFile="$(config-file-path)" \
     || exit "$?"
@@ -115,44 +117,7 @@ function run-unit-tests {
     toolPath="$(tester-path)" \
     || exit "$?"
 
-    # Find the tests, and generally set up the testing directory.
-
-    local testsDir="${outDir}/tests"
-
-    rm -rf "${testsDir}"
-    mkdir -p "${testsDir}"
-    cd "${testsDir}"
-    rm -rf node_modules
-    ln -s ../lactoserv/lib/code/node_modules .
-    echo >package.json '{ "type": "module" }'
-
-    # TODO: Try this to see if Pulsar still messes up syntax highlighting.
-    #cat >package.json <<< '{ "type": "module" }'
-
-    local dirsWithTests
-    dirsWithTests="$(
-        lib ls-files --output=array --cd="${srcDir}" --dirs --full-paths \
-            --include='/tests$')" \
-    || exit "$?"
-
-    while IFS='' read -r -d $'\0' dir; do
-        [[ ${dir} =~ /([^/]+)/tests$ ]] || {
-            error-msg "Weird directory name: ${dir}"
-            exit 1
-        }
-
-        local moduleName="${BASH_REMATCH[1]}"
-        cp -r "${dir}" "${testsDir}/${moduleName}"
-    done < <(jget --output=raw0 "${dirsWithTests}" '.[]')
-
-    # Copy the config file into place, where it will be found when the test
-    # harness is run.
-    cp "${configFile}" "${testsDir}"
-    configFile="${testsDir}/$(basename "${configFile}")"
-
-    # Run the tool!
-
-    "${toolPath}" --config="${configFile}" "${args[@]}" \
+    "${toolPath}" --config="${configFile}" "${jestArgs[@]}" "${args[@]}" \
     || return "$?"
 }
 
@@ -160,7 +125,7 @@ function run-unit-tests {
 function tester-path {
     local toolModule=tester
     local toolDir="${outDir}/${toolModule}"
-    local toolPath="${toolDir}/bin/tester"
+    local toolPath="${toolDir}/bin/jest"
 
     # Build the tester, if necessary.
     if [[ ! -x ${toolPath} ]]; then
@@ -185,11 +150,22 @@ outDir="$(lib buildy out-dir --out="${outDir}")" \
 build-if-necessary "${action}" \
 || exit "$?"
 
-if [[ ${testType} == integration ]]; then
-    run-integration-tests
-else
-    run-unit-tests
-fi
+case "${testType}" in
+    integration)
+        run-integration-tests
+        ;;
+    unit)
+        run-unit-tests
+        ;;
+    unit-coverage)
+        run-unit-tests --coverage
+        ;;
+    *)
+        # Shouldn't happen. Bug in this script.
+        error-msg "Unknown type: ${testType}"
+        false
+        ;;
+esac
 
 status="$?"
 

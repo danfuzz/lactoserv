@@ -13,6 +13,9 @@ Breaking changes:
 Other notable changes:
 * Development:
   * `build` script renamed to `dev`, and merged `run` into it.
+  * Testing:
+    * Simplified how the unit tests get set up and run.
+    * Got coverage reporting to work.
   * Linting:
     * Added `lint` target to `dev` (see above), and removed the separate `lint`
       script.

@@ -316,7 +316,7 @@ export default [
         'error',
         {
           ...stylisticRules['@stylistic/max-len'][1],
-          comments: 250
+          comments: 120
         }
       ]
     }
