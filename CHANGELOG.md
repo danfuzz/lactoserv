@@ -14,6 +14,8 @@ Other notable changes:
 
 ### v0.6.10 -- 2024-03-15
 
+It's Fast(ish) Follow Friday!
+
 Breaking changes:
 * Request logging: Stopped quoting URLs, as there was no need. (They won't have
   spaces or non-ASCII in them, as they are logged in url-encoded form.)
