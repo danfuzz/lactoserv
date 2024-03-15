@@ -115,45 +115,6 @@ function run-unit-tests {
     toolPath="$(tester-path)" \
     || exit "$?"
 
-    # Find the tests, and generally set up the testing directory.
-
-    local testsDir="${outDir}/tests"
-
-    rm -rf "${testsDir}"
-    mkdir -p "${testsDir}"
-    cd "${testsDir}"
-    rm -rf node_modules
-    ln -s ../lactoserv/lib/code/node_modules .
-    echo >package.json '{ "type": "module" }'
-
-    # TODO: Try this to see if Pulsar still messes up syntax highlighting.
-    #cat >package.json <<< '{ "type": "module" }'
-
-    local dirsWithTests
-    dirsWithTests="$(
-        lib ls-files --output=array --cd="${srcDir}" --dirs --full-paths \
-            --include='/tests$')" \
-    || exit "$?"
-
-    while IFS='' read -r -d $'\0' dir; do
-        [[ ${dir} =~ /([^/]+)/tests$ ]] || {
-            error-msg "Weird directory name: ${dir}"
-            exit 1
-        }
-
-        local moduleName="${BASH_REMATCH[1]}"
-        cp -r "${dir}" "${testsDir}/${moduleName}"
-    done < <(jget --output=raw0 "${dirsWithTests}" '.[]')
-
-    # Copy the config file into place, where it will be found when the test
-    # harness is run.
-    cp "${configFile}" "${testsDir}"
-    #configFile="${testsDir}/$(basename "${configFile}")"
-
-    # Run the tool!
-
-    echo "${toolPath}" --config="${configFile}" "${args[@]}"
-
     "${toolPath}" --config="${configFile}" "${args[@]}" \
     || return "$?"
 }
