@@ -93,16 +93,12 @@ function start-server {
     local n
     for (( n = 0; n < 10; n++ )); do
         if (( needHttp )); then
-            curl --silent -o /dev/null http://localhost:8080/
-            if (( $? == 0 )); then
-                needHttp=0
-            fi
+            curl --silent -o /dev/null http://localhost:8080/ \
+            && needHttp=0
         fi
         if (( needHttps )); then
-            curl --silent -o /dev/null --insecure https://localhost:8443/
-            if (( $? == 0 )); then
-                needHttps=0
-            fi
+            curl --silent -o /dev/null --insecure https://localhost:8443/ \
+            && needHttps=0
         fi
         if (( !needHttp && !needHttps )); then
             done=1
