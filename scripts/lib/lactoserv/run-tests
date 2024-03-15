@@ -148,9 +148,11 @@ function run-unit-tests {
     # Copy the config file into place, where it will be found when the test
     # harness is run.
     cp "${configFile}" "${testsDir}"
-    configFile="${testsDir}/$(basename "${configFile}")"
+    #configFile="${testsDir}/$(basename "${configFile}")"
 
     # Run the tool!
+
+    echo "${toolPath}" --config="${configFile}" "${args[@]}"
 
     "${toolPath}" --config="${configFile}" "${args[@]}" \
     || return "$?"

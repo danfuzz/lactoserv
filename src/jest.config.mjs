@@ -1,8 +1,7 @@
-/*
- * For a detailed explanation regarding each configuration property, visit:
- * https://jestjs.io/docs/configuration
+/**
+ * Find documentation for all the possible properties here:
+ * * <https://jestjs.io/docs/configuration>
  */
-
 export default {
   // All imported modules in your tests should be mocked automatically
   // automock: false,
@@ -17,14 +16,12 @@ export default {
   clearMocks: true,
 
   // Indicates whether the coverage information should be collected while executing the test
-  //collectCoverage: true,
   collectCoverage: false,
 
   // An array of glob patterns indicating a set of files for which coverage information should be collected
   collectCoverageFrom: [
-    '!**/tests/**',
-    '!**/node_modules/**',
-    '**/@this/**'
+    '**/code/node_modules/**',
+    '!**/*.test.*'
   ],
 
   // The directory where Jest should output its coverage files
@@ -34,7 +31,7 @@ export default {
   coveragePathIgnorePatterns: [],
 
   // Indicates which provider should be used to instrument code for coverage
-  //coverageProvider: "babel",
+  //coverageProvider: 'babel',
   coverageProvider: 'v8',
 
   // A list of reporter names that Jest uses when writing coverage reports
@@ -60,7 +57,7 @@ export default {
   // },
 
   // Force coverage collection from ignored files using an array of glob patterns
-  // forceCoverageMatch: [],
+  forceCoverageMatch: ['**/@this/**'],
 
   // A path to a module which exports an async function that is triggered once before all test suites
   // globalSetup: undefined,
@@ -70,6 +67,12 @@ export default {
 
   // A set of global variables that need to be available in all test environments
   // globals: {},
+
+  // Without this, there is a "secret" ignore pattern which prevents any files
+  // under a `node_modules` directory from being found.
+  haste: {
+    retainAllFiles: true
+  },
 
   // The maximum amount of workers used to run your tests. Can be specified as % or a number. E.g. maxWorkers: 10% will use 10% of your CPU amount + 1 as the maximum worker number. maxWorkers: 2 will use a maximum of 2 workers.
   // maxWorkers: "50%",
@@ -125,12 +128,13 @@ export default {
   // restoreMocks: false,
 
   // The root directory that Jest should scan for tests and modules within
-  //rootDir: '.',
+  rootDir: '../out/tester',
 
   // A list of paths to directories that Jest should use to search for files in
-  // roots: [
-  //   "<rootDir>"
-  // ],
+  roots: [
+     "<rootDir>",
+     new URL('../out/lactoserv/lib', import.meta.url).pathname
+  ],
 
   // Allows you to use a custom runner instead of Jest's default test runner
   //runner: "jest-light-runner",
@@ -149,7 +153,7 @@ export default {
   setupFilesAfterEnv: [
     '../tester/lib/node_modules/jest-extended/all',
     '../tester/lib/code/node_modules/@this/main-tester'
-  ]
+  ],
 
   // The number of seconds after which a test is considered as slow and reported as such in the results.
   // slowTestThreshold: 5,
@@ -166,19 +170,14 @@ export default {
   // Adds a location field to test results
   // testLocationInResults: false,
 
-  // The glob patterns Jest uses to detect test files
-  // testMatch: [
-  //   "**/__tests__/**/*.[jt]s?(x)",
-  //   "**/?(*.)+(spec|test).[tj]s?(x)"
-  // ],
+  // Glob patterns that match all test files.
+  testMatch: [
+    '**/code/node_modules/**/tests/**/*.test.{js,cjs,mjs}'
+  ],
 
-  // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
-  // testPathIgnorePatterns: [
-  //   "/node_modules/"
-  // ],
-
-  // The regexp pattern or array of patterns that Jest uses to detect test files
-  // testRegex: [],
+  // Without explicitly setting this to an empty array, `**/node_modules/**`
+  // would be ignored (which is exactly where all our tests are).
+  testPathIgnorePatterns: [],
 
   // This option allows the use of a custom results processor
   // testResultsProcessor: undefined,
