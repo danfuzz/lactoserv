@@ -9,40 +9,19 @@ const OUT_PROJECT_DIR = `${OUT_DIR}/lactoserv`;
  */
 export default {
   // Coverage-related options.
-
-  collectCoverage: false,
-
-  // An array of glob patterns indicating a set of files for which coverage information should be collected
-  collectCoverageFrom: [
-    '**/code/node_modules/**',
-    '!**/*.test.*'
-  ],
-
-  // The directory where Jest should output its coverage files
-  coverageDirectory: `${OUT_DIR}/coverage`,
-
-  // An array of regexp pattern strings used to skip coverage collection
-  coveragePathIgnorePatterns: [],
-
-  // Indicates which provider should be used to instrument code for coverage
-  //coverageProvider: 'babel',
-  coverageProvider: 'v8',
-
-  // A list of reporter names that Jest uses when writing coverage reports
-  // coverageReporters: [
-  //   "json",
-  //   "text",
-  //   "lcov",
-  //   "clover"
-  // ],
-
-  // An object that configures minimum threshold enforcement for coverage results
-  // coverageThreshold: undefined,
-
-  // Force coverage collection from ignored files using an array of glob patterns
-  forceCoverageMatch: ['**/@this/**'],
-
-
+  ... {
+    collectCoverage: false,
+    collectCoverageFrom: [
+      '**/code/node_modules/**',
+      '!**/*.test.*'
+    ],
+    coverageDirectory: `${OUT_DIR}/coverage`,
+    coveragePathIgnorePatterns: [],
+    coverageProvider: 'v8' /* or 'babel' */,
+    // coverageReporters: [...],
+    // coverageThreshold: { ... },
+    forceCoverageMatch: ['**/@this/**']
+  },
 
   // Make calling deprecated APIs throw helpful error messages
   // errorOnDeprecated: false,
