@@ -42,7 +42,7 @@ export default {
     },
 
     // This allows Jest to find the Jest-related modules that are used in the
-    // testing environment (e.g. `jest-extended`).
+    // testing environment (e.g., `jest-extended`).
     modulePaths: [
       `${TESTER_DIR}/lib/node_modules`
     ],
@@ -63,7 +63,6 @@ export default {
   // A path to a module which exports an async function that is triggered once after all test suites
   // globalTeardown: undefined,
 
-
   // The paths to modules that run some code to configure or set up the testing environment before each test
   setupFiles: [
     // Uncomment this only temporarily, when debugging issues with unhandled
@@ -71,7 +70,7 @@ export default {
     // changes to / hooks into the underlying system that it can't truly be
     // trusted to be an accurate representation of what's going on when _not_
     // doing testing.
-    //`${TESTER_DIR}/lib/node_modules/trace-unhandled/register`
+    // `${TESTER_DIR}/lib/node_modules/trace-unhandled/register`
   ],
 
   // A list of paths to modules that run some code to configure or set up the testing framework before each test
