@@ -56,14 +56,8 @@ export default {
   // A path to a custom resolver
   // resolver: undefined,
 
-  // The root directory for the project's tests and modules.
-  rootDir: `${OUT_DIR}/lactoserv/lib`,
-
-  // A list of paths to directories that Jest should use to search for files in
-  roots: [
-     '<rootDir>',
-     //`${OUT_DIR}/lactoserv/lib`
-  ],
+  rootDir: `${OUT_DIR}/lactoserv/lib`, // That is, point at the built output.
+  // roots: ['<rootDir>'] // Has needed adjustment in the past.
 
   // The paths to modules that run some code to configure or set up the testing environment before each test
   setupFiles: [
