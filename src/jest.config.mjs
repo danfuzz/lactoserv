@@ -4,6 +4,7 @@ const OUT_PROJECT_DIR = `${OUT_DIR}/lactoserv`;
 
 /**
  * Find documentation for all the possible properties here:
+ *
  * * <https://jestjs.io/docs/configuration>
  */
 export default {
@@ -53,28 +54,22 @@ export default {
     // roots: ['<rootDir>']
   },
 
-  // Make calling deprecated APIs throw helpful error messages
-  // errorOnDeprecated: false,
+  // Environment-setup options.
+  ...{
+    // These get run before each test.
+    setupFiles: [
+      // Uncomment this only temporarily, when debugging issues with unhandled
+      // promise rejections. Reason: When this is used, there are enough oddball
+      // changes to / hooks into the underlying system that it can't truly be
+      // trusted to be an accurate representation of what's going on when _not_
+      // doing testing.
+      // `${TESTER_DIR}/lib/node_modules/trace-unhandled/register`
+    ],
 
-  // A path to a module which exports an async function that is triggered once before all test suites
-  // globalSetup: undefined,
-
-  // A path to a module which exports an async function that is triggered once after all test suites
-  // globalTeardown: undefined,
-
-  // The paths to modules that run some code to configure or set up the testing environment before each test
-  setupFiles: [
-    // Uncomment this only temporarily, when debugging issues with unhandled
-    // promise rejections. Reason: When this is used, there are enough oddball
-    // changes to / hooks into the underlying system that it can't truly be
-    // trusted to be an accurate representation of what's going on when _not_
-    // doing testing.
-    // `${TESTER_DIR}/lib/node_modules/trace-unhandled/register`
-  ],
-
-  // A list of paths to modules that run some code to configure or set up the testing framework before each test
-  setupFilesAfterEnv: [
-    `${TESTER_DIR}/lib/node_modules/jest-extended/all`,
-    `${TESTER_DIR}/lib/code/node_modules/@this/main-tester`
-  ]
+    // A list of paths to modules that run some code to configure or set up the testing framework before each test
+    setupFilesAfterEnv: [
+      `${TESTER_DIR}/lib/node_modules/jest-extended/all`,
+      `${TESTER_DIR}/lib/code/node_modules/@this/main-tester`
+    ]
+  }
 };
