@@ -1,3 +1,6 @@
+// Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
+// SPDX-License-Identifier: Apache-2.0
+
 const OUT_DIR         = new URL('../out', import.meta.url).pathname;
 const TESTER_DIR      = `${OUT_DIR}/tester`;
 const OUT_PROJECT_DIR = `${OUT_DIR}/lactoserv`;
