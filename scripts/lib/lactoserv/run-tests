@@ -123,7 +123,7 @@ function run-unit-tests {
 function tester-path {
     local toolModule=tester
     local toolDir="${outDir}/${toolModule}"
-    local toolPath="${toolDir}/bin/tester"
+    local toolPath="${toolDir}/bin/jest"
 
     # Build the tester, if necessary.
     if [[ ! -x ${toolPath} ]]; then
