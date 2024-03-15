@@ -9,7 +9,7 @@ const OUT_PROJECT_DIR = `${OUT_DIR}/lactoserv`;
  */
 export default {
   // Coverage-related options.
-  ... {
+  ...{
     collectCoverage: false,
     collectCoverageFrom: [
       '**/code/node_modules/**',
