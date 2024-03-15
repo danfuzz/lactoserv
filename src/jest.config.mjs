@@ -8,7 +8,8 @@ const OUT_PROJECT_DIR = `${OUT_DIR}/lactoserv`;
  * * <https://jestjs.io/docs/configuration>
  */
 export default {
-  // Indicates whether the coverage information should be collected while executing the test
+  // Coverage-related options.
+
   collectCoverage: false,
 
   // An array of glob patterns indicating a set of files for which coverage information should be collected
@@ -38,11 +39,13 @@ export default {
   // An object that configures minimum threshold enforcement for coverage results
   // coverageThreshold: undefined,
 
-  // Make calling deprecated APIs throw helpful error messages
-  // errorOnDeprecated: false,
-
   // Force coverage collection from ignored files using an array of glob patterns
   forceCoverageMatch: ['**/@this/**'],
+
+
+
+  // Make calling deprecated APIs throw helpful error messages
+  // errorOnDeprecated: false,
 
   // A path to a module which exports an async function that is triggered once before all test suites
   // globalSetup: undefined,
@@ -64,19 +67,23 @@ export default {
   // A map from regular expressions to module names or to arrays of module names that allow to stub out resources with a single module
   // moduleNameMapper: {},
 
+  modulePaths: [
+    `${TESTER_DIR}/lib/node_modules`
+  ],
+
   // An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader
   // modulePathIgnorePatterns: [],
 
   // A path to a custom resolver
   // resolver: undefined,
 
-  // The root directory that Jest should scan for tests and modules within
-  rootDir: TESTER_DIR,
+  // The root directory for the project's tests and modules.
+  rootDir: `${OUT_DIR}/lactoserv/lib`,
 
   // A list of paths to directories that Jest should use to search for files in
   roots: [
      '<rootDir>',
-     `${OUT_DIR}/lactoserv/lib`
+     //`${OUT_DIR}/lactoserv/lib`
   ],
 
   // The paths to modules that run some code to configure or set up the testing environment before each test
@@ -86,7 +93,7 @@ export default {
     // changes to / hooks into the underlying system that it can't truly be
     // trusted to be an accurate representation of what's going on when _not_
     // doing testing.
-    //"../tester/node_modules/trace-unhandled/register"
+    //`${TESTER_DIR}/lib/node_modules/trace-unhandled/register`
   ],
 
   // A list of paths to modules that run some code to configure or set up the testing framework before each test
