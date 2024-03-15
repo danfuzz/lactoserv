@@ -1,3 +1,8 @@
+const THIS_DIR        = new URL('.', import.meta.url).pathname;
+const OUT_DIR         = new URL('../out', import.meta.url).pathname;
+const TESTER_DIR      = `${OUT_DIR}/tester`;
+const OUT_PROJECT_DIR = `${OUT_DIR}/lactoserv`;
+
 /**
  * Find documentation for all the possible properties here:
  * * <https://jestjs.io/docs/configuration>
@@ -25,7 +30,7 @@ export default {
   ],
 
   // The directory where Jest should output its coverage files
-  coverageDirectory: '../../out/coverage',
+  coverageDirectory: `${OUT_DIR}/coverage`,
 
   // An array of regexp pattern strings used to skip coverage collection
   coveragePathIgnorePatterns: [],
@@ -97,6 +102,10 @@ export default {
   // A map from regular expressions to module names or to arrays of module names that allow to stub out resources with a single module
   // moduleNameMapper: {},
 
+  modulePaths: [
+
+  ],
+
   // An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader
   // modulePathIgnorePatterns: [],
 
@@ -128,12 +137,12 @@ export default {
   // restoreMocks: false,
 
   // The root directory that Jest should scan for tests and modules within
-  rootDir: '../out/tester',
+  rootDir: TESTER_DIR,
 
   // A list of paths to directories that Jest should use to search for files in
   roots: [
-     "<rootDir>",
-     new URL('../out/lactoserv/lib', import.meta.url).pathname
+     '<rootDir>',
+     `${OUT_DIR}/lactoserv/lib`
   ],
 
   // Allows you to use a custom runner instead of Jest's default test runner
@@ -151,8 +160,8 @@ export default {
 
   // A list of paths to modules that run some code to configure or set up the testing framework before each test
   setupFilesAfterEnv: [
-    '../tester/lib/node_modules/jest-extended/all',
-    '../tester/lib/code/node_modules/@this/main-tester'
+    `${TESTER_DIR}/lib/node_modules/jest-extended/all`,
+    `${TESTER_DIR}/lib/code/node_modules/@this/main-tester`
   ],
 
   // The number of seconds after which a test is considered as slow and reported as such in the results.
