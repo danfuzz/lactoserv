@@ -19,7 +19,6 @@ export default {
     coverageProvider: 'v8' /* or 'babel' */,
     // coverageReporters: [...],
     // coverageThreshold: { ... },
-    forceCoverageMatch: ['**/@this/**']
   },
 
   // Test-finding options.
