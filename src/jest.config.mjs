@@ -1,4 +1,3 @@
-const THIS_DIR        = new URL('.', import.meta.url).pathname;
 const OUT_DIR         = new URL('../out', import.meta.url).pathname;
 const TESTER_DIR      = `${OUT_DIR}/tester`;
 const OUT_PROJECT_DIR = `${OUT_DIR}/lactoserv`;
@@ -38,26 +37,14 @@ export default {
     retainAllFiles: true
   },
 
-  // An array of directory names to be searched recursively up from the requiring module's location
-  // moduleDirectories: [
-  //   "node_modules"
-  // ],
-
-  // A map from regular expressions to module names or to arrays of module names that allow to stub out resources with a single module
-  // moduleNameMapper: {},
-
+  // This allows Jest to find the Jest-related modules that are used in the
+  // testing environment (e.g. `jest-extended`).
   modulePaths: [
     `${TESTER_DIR}/lib/node_modules`
   ],
 
-  // An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader
-  // modulePathIgnorePatterns: [],
-
-  // A path to a custom resolver
-  // resolver: undefined,
-
-  rootDir: `${OUT_DIR}/lactoserv/lib`, // That is, point at the built output.
-  // roots: ['<rootDir>'] // Has needed adjustment in the past.
+  rootDir: `${OUT_PROJECT_DIR}/lib`, // That is, point at the built output.
+  // roots: ['<rootDir>'] // This has needed adjustment in the past.
 
   // The paths to modules that run some code to configure or set up the testing environment before each test
   setupFiles: [
