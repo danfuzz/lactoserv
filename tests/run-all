@@ -83,17 +83,30 @@ function start-server {
 
     serverPid="$!"
 
-    progress-msg "Server started (pid is ${serverPid})."
+    progress-msg "Server started (pid ${serverPid})."
     progress-msg
 
     # Wait for it to be alive.
     local done=0
+    local needHttp=1
+    local needHttps=1
     local n
     for (( n = 0; n < 10; n++ )); do
-        curl --silent -o /dev/null http://localhost:8080/
-        if (( $? == 0 )); then
+        if (( needHttp )); then
+            curl --silent -o /dev/null http://localhost:8080/
+            if (( $? == 0 )); then
+                needHttp=0
+            fi
+        fi
+        if (( needHttps )); then
+            curl --silent -o /dev/null --insecure https://localhost:8443/
+            if (( $? == 0 )); then
+                needHttps=0
+            fi
+        fi
+        if (( !needHttp && !needHttps )); then
             done=1
-            break;
+            break
         fi
 
         if (( n == 0 )); then
