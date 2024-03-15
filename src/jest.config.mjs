@@ -16,7 +16,7 @@ export default {
     ],
     coverageDirectory: `${OUT_DIR}/coverage`,
     coveragePathIgnorePatterns: [],
-    coverageProvider: 'v8' /* or 'babel' */,
+    coverageProvider: 'v8' // or 'babel'
     // coverageReporters: [...],
     // coverageThreshold: { ... },
   },
@@ -47,7 +47,7 @@ export default {
     ],
 
     // That is, point at the built code, which includes external dependencies.
-    rootDir: `${OUT_PROJECT_DIR}/lib`,
+    rootDir: `${OUT_PROJECT_DIR}/lib`
 
     // This has needed adjustment in the past.
     // roots: ['<rootDir>']
