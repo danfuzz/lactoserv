@@ -78,11 +78,12 @@ export class RateLimitedStream {
     const logger = this.#logger;
 
     if (logger) {
-      // `ECONNRESET` happens regularly and isn't worth spewing to the log as a
-      // full error. It happens when the remote side of a connection closes
-      // without warning.
-      const thingToLog = (error.code === 'ECONNRESET')
-        ? error.code
+      // Check for errors that don't particularly warrant including a stack
+      // trace. (The `HPE*` errors come from the HTTP protocol parser.)
+      const isMilquetoast =
+        error.code && /^(ECONNRESET|HPE_)/.test(error.code);
+      const thingToLog = isMilquetoast
+        ? `${error.code}: ${error.message}`
         : error;
 
       if (fromInnerEvent) {
@@ -103,13 +104,13 @@ export class RateLimitedStream {
     const destroyStream = (stream, logName) => {
       logger?.[logName]();
       if (stream.destroyed) {
-        if (stream.errored === error) {
-          logger?.sameError('afterDestroy');
-        } else {
-          logger?.suppressingError('afterDestroy', stream.errored);
+        if (stream.errored && (stream.errored !== error)) {
+          // The stream in question was already errored, but with a different
+          // error than the one we're trying to `destroy()` with.
+          logger?.suppressingError('afterDestroy', error, stream.errored);
         }
       } else if (stream.closed) {
-        logger?.suppressingError('afterClose');
+        logger?.suppressingError('afterClose', error);
         stream.destroy();
       } else {
         stream.destroy(error);
