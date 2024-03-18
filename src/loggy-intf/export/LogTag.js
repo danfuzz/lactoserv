@@ -1,6 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import chalk from 'chalk';
+
 import { BaseConverter, Struct } from '@this/data-values';
 import { MustBe } from '@this/typey';
 
@@ -19,8 +21,8 @@ export class LogTag {
   /** @type {string[]} Context strings. */
   #context;
 
-  /** @type {?string[]} Precomputed "human form" strings, if available. */
-  #humanStrings = null;
+  /** @type {object} Precomputed "human form" strings, if available. */
+  #humanStrings = {};
 
   /**
    * Constructs an instance.
@@ -99,34 +101,36 @@ export class LogTag {
    * Gets a string representation of this instance intended for maximally-easy
    * human consumption.
    *
-   * @param {boolean} [addSeparator] Should a separator character be
-   *   appended at the end? If so, it is ` ` (space) for a top-level tag (no
-   *   context) or `.` for a tag with context.
+   * @param {boolean} [colorize] Colorize the result?
    * @returns {string} The "human form" string.
    */
-  toHuman(addSeparator = false) {
-    if (!this.#humanStrings) {
+  toHuman(colorize = false) {
+    const objKey = colorize ? 'color' : 'noColor';
+
+    if (!this.#humanStrings[objKey]) {
       const parts = [
-        '<',
-        this.#main,
-        '>'
+        colorize ? chalk.bold.dim(this.#main) : this.#main
       ];
 
-      let firstContext = true;
-      for (const c of this.#context) {
-        parts.push(firstContext ? ' ' : '.', c);
-        firstContext = false;
+      const ctx = this.#context;
+      for (let n = 0; n < ctx.length; n++) {
+        parts.push('.');
+
+        let color = null;
+        if (colorize) {
+          switch (n) {
+            case 0: color = chalk.bold.green; break;
+            case 1: color = chalk.green;      break;
+          }
+        }
+
+        parts.push(color ? color(ctx[n]) : ctx[n]);
       }
 
-      const sansSep = parts.join('');
-      const avecSep = (this.#context.length === 0)
-        ? `${sansSep} `
-        : `${sansSep}.`;
-
-      this.#humanStrings = Object.freeze([sansSep, avecSep]);
+      this.#humanStrings[objKey] = parts.join('');
     }
 
-    return this.#humanStrings[addSeparator ? 1 : 0];
+    return this.#humanStrings[objKey];
   }
 
   /**

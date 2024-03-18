@@ -78,7 +78,7 @@ export class LogPayload extends EventPayload {
       parts = [
         chalk.blue.bold(this.#when.toString({ decimals: 4 })),
         ' ',
-        this.#tag.toHuman(false)
+        this.#tag.toHuman(true)
       ];
     } else {
       parts = [
