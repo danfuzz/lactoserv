@@ -23,14 +23,6 @@ export class ThisModule {
   static #logger = Loggy.loggerFor('framework');
 
   /**
-   * @returns {?IntfLogger} Base logger for this module' subsystems, or `null`
-   * not to do any logging.
-   */
-  static get logger() {
-    return this.#logger;
-  }
-
-  /**
    * Gets a logger for a particular cohort. A "cohort" is a set of similar
    * items of some sort, e.g. "applications" or "services."
    *
