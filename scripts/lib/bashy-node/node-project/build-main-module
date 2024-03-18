@@ -116,8 +116,10 @@ function build-project {
     || return 1
     local srcPackageJson="${srcMainModule}/package.json"
     local srcPackageLockJson="${srcMainModule}/package-lock.json"
+    local destLibPackageJson="${destLibDir}/package.json"
+    local destLibPackageNewJson="${destLibDir}/package-new.json"
 
-    jget >"${destLibDir}/package.json" \
+    jget >"${destLibPackageNewJson}" \
         --file="${srcPackageJson}" \
         localCodeDirName="${localCodeDirName}" \
         deps:json="${deps}" \
@@ -151,8 +153,19 @@ function build-project {
     && copy-scripts "${srcMainModule}" "${destDir}" \
     && copy-local-modules "${destLocalModules}" "${deps}" \
     && remove-dead-local-modules "${destLocalModules}" "${deps}" \
-    && npm-install "${destLibDir}" \
     || return "$?"
+
+    # Do `npm install`, but only if it hasn't yet been done _or_ the top-level
+    # `package.json` file has changed since the last time it was run.
+    if [[ ! -d "${destLibDir}/node_modules" ]] \
+            || ! cmp --silent "${destLibPackageNewJson}" "${destLibPackageJson}"; then
+        mv "${destLibPackageNewJson}" "${destLibPackageJson}"
+        npm-install "${destLibDir}" || {
+            error="$?"
+            rm -rf "${destLibDir}/node_modules"
+            return "${error}"
+        }
+    fi
 
     cp "${destLibDir}/package-lock.json" "${srcPackageLockJson}"
 }

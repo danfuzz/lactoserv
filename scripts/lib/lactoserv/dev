@@ -16,10 +16,16 @@ define-usage --with-help $'
     Does various development-time actions for the project. By default, this
     executes the target `build` unless otherwise overridden by options.
 
-    Available targets: `build` `clean` `distro` `lint` `run`
+    Available targets:
+    `build` -- Do a full build.
+    `clean` -- Remove the built-output directory.
+    `distro` -- Build a distro tarball.
+    `lint` -- Run the linter.
+    `run` -- Run the system, with the standard example config in
+      `etc/example-setup`.
 
     --lint[]=<arg> ...
-      Arguments to pass to the system when `lint`ning. This makes the default
+      Arguments to pass to the system when `lint`ing. This makes the default
       target be `lint`.
     --out=<dir>
       Directory where built output goes. Defaults to `out` directly under the
@@ -51,6 +57,19 @@ process-args "$@" || exit "$?"
 # Build targets
 #
 
+# Target: `build`
+function target-build {
+    # Run in a subshell so that `env-minimize` has no lasting effect.
+    (
+        true \
+        && env-minimize \
+        && lib node-project build-main-module \
+            --out="${outDir}" --modules-dirs="${srcDir}" \
+            --runner-script=run --runner-versions[]='20 21' \
+            lactoserv
+    )
+}
+
 # Target: `clean`
 function target-clean {
     rm -rf "${outDir}"
@@ -70,19 +89,6 @@ function target-distro {
 # Target: `lint`
 function target-lint {
     : # Nothing to do. See below for where the linter is actually run.
-}
-
-# Target: `build`
-function target-build {
-    # Run in a subshell so that `env-minimize` has no lasting effect.
-    (
-        true \
-        && env-minimize \
-        && lib node-project build-main-module \
-            --out="${outDir}" --modules-dirs="${srcDir}" \
-            --runner-script=run --runner-versions[]='20 21' \
-            lactoserv
-    )
 }
 
 # Target: `run`

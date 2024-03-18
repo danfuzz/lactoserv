@@ -100,8 +100,9 @@ export class TextFileSink extends EventSink {
    * corresponding formatter methods.
    */
   static #FORMATTERS = new Map(Object.entries({
-    human: (payload) => this.#formatHuman(payload),
-    json:  (payload) => this.#formatJson(payload)
+    human:      (payload) => this.#formatHuman(payload, false),
+    humanColor: (payload) => this.#formatHuman(payload, true),
+    json:       (payload) => this.#formatJson(payload)
   }));
 
   /**
@@ -119,15 +120,16 @@ export class TextFileSink extends EventSink {
    *
    * @param {?LogPayload} payload Payload to convert, or `null` if this is to be
    *   a "first write" marker.
+   * @param {boolean} [colorize] Colorize the result?
    * @returns {string} Converted form.
    */
-  static #formatHuman(payload) {
+  static #formatHuman(payload, colorize) {
     if (payload === null) {
       // This is a "page break" written to non-console files.
       return `\n\n${'- '.repeat(38)}-\n\n\n`;
     }
 
-    return payload.toHuman();
+    return payload.toHuman(colorize);
   }
 
   /**

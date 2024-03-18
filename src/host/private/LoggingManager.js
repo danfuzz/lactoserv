@@ -1,6 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import process from 'node:process';
+
 import { Loggy, TextFileSink } from '@this/loggy';
 
 
@@ -20,8 +22,10 @@ export class LoggingManager {
       return;
     }
 
-    const event = Loggy.earliestEvent;
-    this.#stdoutSink = new TextFileSink('human', '/dev/stdout', event);
+    const event     = Loggy.earliestEvent;
+    const formatter = process.stdout.isTTY ? 'humanColor' : 'human';
+
+    this.#stdoutSink = new TextFileSink(formatter, '/dev/stdout', event);
     this.#stdoutSink.run();
   }
 }

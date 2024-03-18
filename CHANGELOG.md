@@ -14,6 +14,8 @@ Other notable changes:
 * Logging:
   * Dropped `framework` as the top-level logging tag from "cohorts" of items,
     such as "applications" and "services."
+  * Added ANSI coloring / styling to the "human" (non-JSON) logs that go to
+    `stdout`, when it's a TTY.
 
 ### v0.6.10 -- 2024-03-15
 

@@ -1,6 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import stripAnsi from 'strip-ansi';
+
 import { BaseConverter, Struct } from '@this/data-values';
 import { LogTag } from '@this/loggy-intf';
 
@@ -10,6 +12,7 @@ describe('constructor()', () => {
     test.each([
       ['a'],
       ['florp'],
+      ['flippyFlop'],
       ['zorch-splat'],
       ['__florp99__'],
       ['2.44.123']
@@ -41,7 +44,12 @@ describe('constructor()', () => {
   describe('valid context strings', () => {
     test.each([
       ['a'],
+      ['beep'],
+      ['beepBoop'],
       ['beep boop'],
+      ['beep-boop'],
+      ['beep_boop'],
+      ['0123456789'],
       ['@#$%^&*']
     ])('accepts %p', (v) => {
       expect(() => new LogTag('x', v)).not.toThrow();
@@ -145,46 +153,57 @@ describe('equals()', () => {
 });
 
 describe.each`
-  label        | args       | endingMain | endingOther
-  ${'<empty>'} | ${[]}      | ${''}      | ${''}
-  ${'false'}   | ${[false]} | ${''}      | ${''}
-  ${'true'}    | ${[true]}  | ${' '}     | ${'.'}
-`('toHuman($label)', ({ args, endingMain, endingOther }) => {
+  label        | args       | expectColor
+  ${'<empty>'} | ${[]}      | ${false}
+  ${'false'}   | ${[false]} | ${false}
+  ${'true'}    | ${[true]}  | ${true}
+`('toHuman($label)', ({ args, expectColor }) => {
+  function checkResult(tag, expected) {
+    const got = tag.toHuman(...args);
+
+    if (expectColor) {
+      expect(got).not.toBe(expected);
+      expect(stripAnsi(got)).toBe(expected);
+    } else {
+      expect(got).toBe(expected);
+    }
+  }
+
   test('works with just a main tag (no context strings)', () => {
-    const tag      = new LogTag('just-main');
-    const expected = `<just-main>${endingMain}`;
-    expect(tag.toHuman(...args)).toBe(expected);
+    checkResult(
+      new LogTag('justMain'),
+      'justMain');
   });
 
   test('works with a single context string', () => {
-    const tag = new LogTag('main-and', 'one');
-    const expected = `<main-and> one${endingOther}`;
-    expect(tag.toHuman(...args)).toBe(expected);
+    checkResult(
+      new LogTag('mainAnd', 'one'),
+      'mainAnd.one');
   });
 
   test('works with two context strings', () => {
-    const tag = new LogTag('oho', 'florp', 'zorp');
-    const expected = `<oho> florp.zorp${endingOther}`;
-    expect(tag.toHuman(...args)).toBe(expected);
+    checkResult(
+      new LogTag('oho', 'florp', 'zorp'),
+      'oho.florp.zorp');
   });
 
   test('works with 10 context strings', () => {
-    const tag = new LogTag('whee', '1', '2', '3', '4', '5', '6', 'seven', '8', '9', 'ten');
-    const expected = `<whee> 1.2.3.4.5.6.seven.8.9.ten${endingOther}`;
-    expect(tag.toHuman(...args)).toBe(expected);
+    checkResult(
+      new LogTag('whee', '1', '2', '3', '4', '5', '6', 'seven', '8', '9', 'ten'),
+      'whee.1.2.3.4.5.6.seven.8.9.ten');
   });
 });
 
 describe('toHuman()', () => {
-  test('does not get stuck on ending-separator vs. not (that is, no overzealous caching)', () => {
+  test('does not get stuck on color vs. not (that is, no overzealous caching)', () => {
     const tag1    = new LogTag('oho', 'flop', 'zop');
-    const expect1 = '<oho> flop.zop';
+    const expect1 = 'oho.flop.zop';
     expect(tag1.toHuman(false)).toBe(expect1);
-    expect(tag1.toHuman(true)).toBe(`${expect1}.`);
+    expect(tag1.toHuman(true)).not.toBe(expect1);
 
     const tag2    = new LogTag('aha', 'bloop', 'zoop', 'moop');
-    const expect2 = '<aha> bloop.zoop.moop';
-    expect(tag2.toHuman(true)).toBe(`${expect2}.`);
+    const expect2 = 'aha.bloop.zoop.moop';
+    expect(tag2.toHuman(true)).not.toBe(expect2);
     expect(tag2.toHuman(false)).toBe(expect2);
   });
 });
@@ -201,7 +220,7 @@ describe('[BaseConverter.ENCODE]()', () => {
   };
 
   test('works with just a main tag (no context strings)', () => {
-    testOne('simply-this');
+    testOne('simplyThis');
   });
 
   test('works with a single context string', () => {

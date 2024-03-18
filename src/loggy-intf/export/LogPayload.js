@@ -5,10 +5,14 @@ import * as util from 'node:util';
 
 import { EventPayload, EventSource } from '@this/async';
 import { BaseConverter, Moment, StackTrace, Struct } from '@this/data-values';
+import { Chalk } from '@this/text';
 import { MustBe } from '@this/typey';
 
 import { LogTag } from '#x/LogTag';
 
+
+/** @type {Chalk} Always-on `Chalk` instance. */
+const chalk = Chalk.ON;
 
 /**
  * The thing which is logged; it is the payload class used for events
@@ -64,23 +68,6 @@ export class LogPayload extends EventPayload {
   }
 
   /**
-   * Gets a string representation of this instance intended for maximally-easy
-   * human consumption.
-   *
-   * @returns {string} The "human form" string.
-   */
-  toHuman() {
-    const parts = [
-      this.#when.toString({ decimals: 4 }),
-      ' ',
-      this.#tag.toHuman(true),
-      ...this.#toHumanPayload()
-    ];
-
-    return parts.join('');
-  }
-
-  /**
    * Implementation of `data-values` custom-encode protocol.
    *
    * @returns {Struct} Encoded form.
@@ -96,18 +83,50 @@ export class LogPayload extends EventPayload {
   }
 
   /**
-   * Gets the human form of {@link #payload}, as an array of parts to join.
+   * Gets a string representation of this instance intended for maximally-easy
+   * human consumption.
    *
-   * @returns {string[]} The "human form" string parts.
+   * @param {boolean} [colorize] Colorize the result?
+   * @returns {string} The "human form" string.
    */
-  #toHumanPayload() {
+  toHuman(colorize = false) {
+    const whenString = this.#when.toString({ decimals: 4 });
+
     const parts = [
-      this.type,
-      '('
+      colorize ? chalk.bold.blue(whenString) : whenString,
+      ' ',
+      this.#tag.toHuman(colorize),
+      ' '
     ];
 
+    this.#appendHumanPayload(parts, colorize);
+
+    return parts.join('');
+  }
+
+  /**
+   * Appends the human form of {@link #payload} to the given array of parts (to
+   * ultimately `join()`).
+   *
+   * @param {string[]} parts Parts to append to.
+   * @param {boolean} colorize Colorize the result?
+   */
+  #appendHumanPayload(parts, colorize) {
+    const args = this.args;
+
+    if (args.length === 0) {
+      // Avoid extra work in the easy zero-args case.
+      const text = `${this.type}()`;
+      parts.push(colorize ? chalk.bold(text) : text);
+      return;
+    }
+
+    const opener = `${this.type}(`;
+
+    parts.push(colorize ? chalk.bold(opener) : opener);
+
     let first = true;
-    for (const a of this.args) {
+    for (const a of args) {
       if (first) {
         first = false;
       } else {
@@ -118,9 +137,7 @@ export class LogPayload extends EventPayload {
       parts.push(util.inspect(a, LogPayload.#HUMAN_INSPECT_OPTIONS));
     }
 
-    parts.push(')');
-
-    return parts;
+    parts.push(colorize ? chalk.bold(')') : ')');
   }
 
 
