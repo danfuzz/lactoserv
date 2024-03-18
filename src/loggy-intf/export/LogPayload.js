@@ -88,7 +88,8 @@ export class LogPayload extends EventPayload {
       ];
     }
 
-    parts.push(' ', ...this.#toHumanPayload(colorize));
+    parts.push(' ');
+    this.#appendHumanPayload(parts, colorize);
 
     return parts.join('');
   }
@@ -109,22 +110,25 @@ export class LogPayload extends EventPayload {
   }
 
   /**
-   * Gets the human form of {@link #payload}, as an array of parts to join.
+   * Appends the human form of {@link #payload} to the given array of parts (to
+   * ultimately `join()`).
    *
-   * @param {boolean} [colorize] Colorize the result?
-   * @returns {string[]} The "human form" string parts.
+   * @param {string[]} parts Parts to append to.
+   * @param {boolean} colorize Colorize the result?
    */
-  #toHumanPayload(colorize) {
+  #appendHumanPayload(parts, colorize) {
     const args = this.args;
 
     if (args.length === 0) {
       // Avoid extra work in the easy zero-args case.
       const text = `${this.type}()`;
-      return colorize ? chalk.bold(text) : text;
+      parts.push(colorize ? chalk.bold(text) : text);
+      return;
     }
 
     const opener = `${this.type}(`;
-    const parts = [colorize ? chalk.bold(opener) : opener];
+
+    parts.push(colorize ? chalk.bold(opener) : opener);
 
     let first = true;
     for (const a of args) {
@@ -139,8 +143,6 @@ export class LogPayload extends EventPayload {
     }
 
     parts.push(colorize ? chalk.bold(')') : ')');
-
-    return parts;
   }
 
 
