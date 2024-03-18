@@ -25,7 +25,7 @@ define-usage --with-help $'
       `etc/example-setup`.
 
     --lint[]=<arg> ...
-      Arguments to pass to the system when `lint`ning. This makes the default
+      Arguments to pass to the system when `lint`ing. This makes the default
       target be `lint`.
     --out=<dir>
       Directory where built output goes. Defaults to `out` directly under the
