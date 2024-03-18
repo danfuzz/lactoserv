@@ -32,7 +32,7 @@ export class HostManager {
    * @type {?IntfLogger} Logger for this class, or `null` not to do any
    * logging.
    */
-  #logger = ThisModule.logger?.hosts;
+  #logger = ThisModule.subsystemLogger('hosts');
 
   /**
    * Constructs an instance.
