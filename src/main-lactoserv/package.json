@@ -24,6 +24,6 @@
     "@this/sys-framework": "*",
     "@this/sys-util": "*",
     "@this/typey": "*",
-    "yargs": "^17.6.0"
+    "yargs": "^17.7.2"
   }
 }
