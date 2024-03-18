@@ -65,6 +65,21 @@ export class LogPayload extends EventPayload {
   }
 
   /**
+   * Implementation of `data-values` custom-encode protocol.
+   *
+   * @returns {Struct} Encoded form.
+   */
+  [BaseConverter.ENCODE]() {
+    return new Struct(LogPayload, {
+      when:  this.#when,
+      tag:   this.#tag,
+      stack: this.#stack,
+      type:  this.type,
+      args:  this.args
+    });
+  }
+
+  /**
    * Gets a string representation of this instance intended for maximally-easy
    * human consumption.
    *
@@ -92,21 +107,6 @@ export class LogPayload extends EventPayload {
     this.#appendHumanPayload(parts, colorize);
 
     return parts.join('');
-  }
-
-  /**
-   * Implementation of `data-values` custom-encode protocol.
-   *
-   * @returns {Struct} Encoded form.
-   */
-  [BaseConverter.ENCODE]() {
-    return new Struct(LogPayload, {
-      when:  this.#when,
-      tag:   this.#tag,
-      stack: this.#stack,
-      type:  this.type,
-      args:  this.args
-    });
   }
 
   /**
