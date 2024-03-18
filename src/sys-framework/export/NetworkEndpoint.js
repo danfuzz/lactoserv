@@ -13,7 +13,6 @@ import { EndpointConfig, MountConfig } from '@this/sys-config';
 import { BaseApplication } from '#x/BaseApplication';
 import { BaseComponent } from '#x/BaseComponent';
 import { HostManager } from '#x/HostManager';
-import { ThisModule } from '#p/ThisModule';
 
 
 /**
@@ -55,7 +54,7 @@ export class NetworkEndpoint extends BaseComponent {
    *   `rateLimiter` (service instance, not just a name).
    */
   constructor(config, extraConfig) {
-    const { interface: iface, mounts, name, protocol } = config;
+    const { interface: iface, mounts, protocol } = config;
     const { applicationMap, hostManager, logger, rateLimiter, requestLogger } = extraConfig;
 
     super(config, logger);
