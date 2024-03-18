@@ -33,8 +33,12 @@ Other notable changes:
       in the butt.)
     * Enabled some rules that weren't on before, and tweaked a couple others.
       Fixed a couple dozen or so errors that got reported as a result.
-* Squelched some of the less interesting error spew (e.g., don't bother printing
-  stack traces when the HTTP parser encounters invalid network input).
+* Logging:
+  * Dropped `framework` as the top-level logging tag from "cohorts" of items,
+    such as "applications" and "services."
+  * Squelched some of the less interesting error spew (e.g., don't bother
+    printing stack traces when the HTTP parser encounters invalid network
+    input).
 
 ### v0.6.9 -- 2024-03-12
 
