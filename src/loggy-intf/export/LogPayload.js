@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import * as util from 'node:util';
+import chalk from 'chalk';
 
 import { EventPayload, EventSource } from '@this/async';
 import { BaseConverter, Moment, StackTrace, Struct } from '@this/data-values';
@@ -67,15 +68,27 @@ export class LogPayload extends EventPayload {
    * Gets a string representation of this instance intended for maximally-easy
    * human consumption.
    *
+   * @param {boolean} [colorize] Colorize the result?
    * @returns {string} The "human form" string.
    */
-  toHuman() {
-    const parts = [
-      this.#when.toString({ decimals: 4 }),
-      ' ',
-      this.#tag.toHuman(true),
-      ...this.#toHumanPayload()
-    ];
+  toHuman(colorize = false) {
+    let parts;
+
+    if (colorize) {
+      parts = [
+        chalk.blue.bold(this.#when.toString({ decimals: 4 })),
+        ' ',
+        this.#tag.toHuman(false)
+      ];
+    } else {
+      parts = [
+        this.#when.toString({ decimals: 4 }),
+        ' ',
+        this.#tag.toHuman(false)
+      ];
+    }
+
+    parts.push(' ', ...this.#toHumanPayload());
 
     return parts.join('');
   }
