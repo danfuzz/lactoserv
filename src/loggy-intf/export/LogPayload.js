@@ -88,7 +88,7 @@ export class LogPayload extends EventPayload {
       ];
     }
 
-    parts.push(' ', ...this.#toHumanPayload());
+    parts.push(' ', ...this.#toHumanPayload(colorize));
 
     return parts.join('');
   }
@@ -111,16 +111,23 @@ export class LogPayload extends EventPayload {
   /**
    * Gets the human form of {@link #payload}, as an array of parts to join.
    *
+   * @param {boolean} [colorize] Colorize the result?
    * @returns {string[]} The "human form" string parts.
    */
-  #toHumanPayload() {
-    const parts = [
-      this.type,
-      '('
-    ];
+  #toHumanPayload(colorize) {
+    const args = this.args;
+
+    if (args.length === 0) {
+      // Avoid extra work in the easy zero-args case.
+      const text = `${this.type}()`;
+      return colorize ? chalk.bold(text) : text;
+    }
+
+    const opener = `${this.type}(`;
+    const parts = [colorize ? chalk.bold(opener) : opener];
 
     let first = true;
-    for (const a of this.args) {
+    for (const a of args) {
       if (first) {
         first = false;
       } else {
@@ -131,7 +138,7 @@ export class LogPayload extends EventPayload {
       parts.push(util.inspect(a, LogPayload.#HUMAN_INSPECT_OPTIONS));
     }
 
-    parts.push(')');
+    parts.push(colorize ? chalk.bold(')') : ')');
 
     return parts;
   }
