@@ -1,11 +1,13 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import chalk from 'chalk';
-
 import { BaseConverter, Struct } from '@this/data-values';
+import { Chalk } from '@this/text';
 import { MustBe } from '@this/typey';
 
+
+/** @type {Chalk} Always-on `Chalk` instance. */
+const chalk = Chalk.ON;
 
 /**
  * Structured "tag" information for log records. Each instance consists of a

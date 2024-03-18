@@ -2,14 +2,17 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import * as util from 'node:util';
-import chalk from 'chalk';
 
 import { EventPayload, EventSource } from '@this/async';
 import { BaseConverter, Moment, StackTrace, Struct } from '@this/data-values';
+import { Chalk } from '@this/text';
 import { MustBe } from '@this/typey';
 
 import { LogTag } from '#x/LogTag';
 
+
+/** @type {Chalk} Always-on `Chalk` instance. */
+const chalk = Chalk.ON;
 
 /**
  * The thing which is logged; it is the payload class used for events
