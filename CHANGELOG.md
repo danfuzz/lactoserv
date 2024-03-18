@@ -10,6 +10,7 @@ Breaking changes:
 * None.
 
 Other notable changes:
+* Got rid of `lodash` as a dependency.
 * Logging:
   * Dropped `framework` as the top-level logging tag from "cohorts" of items,
     such as "applications" and "services."
