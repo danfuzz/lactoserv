@@ -10,7 +10,9 @@ Breaking changes:
 * None.
 
 Other notable changes:
-* None.
+* Logging:
+  * Dropped `framework` as the top-level logging tag from "cohorts" of items,
+    such as "applications" and "services."
 
 ### v0.6.10 -- 2024-03-15
 
@@ -34,8 +36,6 @@ Other notable changes:
     * Enabled some rules that weren't on before, and tweaked a couple others.
       Fixed a couple dozen or so errors that got reported as a result.
 * Logging:
-  * Dropped `framework` as the top-level logging tag from "cohorts" of items,
-    such as "applications" and "services."
   * Squelched some of the less interesting error spew (e.g., don't bother
     printing stack traces when the HTTP parser encounters invalid network
     input).
