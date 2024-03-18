@@ -87,23 +87,15 @@ export class LogPayload extends EventPayload {
    * @returns {string} The "human form" string.
    */
   toHuman(colorize = false) {
-    let parts;
+    const whenString = this.#when.toString({ decimals: 4 });
 
-    if (colorize) {
-      parts = [
-        chalk.blue.bold(this.#when.toString({ decimals: 4 })),
-        ' ',
-        this.#tag.toHuman(true)
-      ];
-    } else {
-      parts = [
-        this.#when.toString({ decimals: 4 }),
-        ' ',
-        this.#tag.toHuman(false)
-      ];
-    }
+    const parts = [
+      colorize ? chalk.bold.blue(whenString) : whenString,
+      ' ',
+      this.#tag.toHuman(colorize),
+      ' '
+    ];
 
-    parts.push(' ');
     this.#appendHumanPayload(parts, colorize);
 
     return parts.join('');
