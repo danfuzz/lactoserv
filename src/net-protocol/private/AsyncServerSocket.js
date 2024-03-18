@@ -3,8 +3,6 @@
 
 import { Server, createServer as netCreateServer } from 'node:net';
 
-import lodash from 'lodash';
-
 import { EventPayload, EventSource, LinkedEvent, PromiseUtil }
   from '@this/async';
 import { WallClock } from '@this/clocks';
@@ -375,6 +373,38 @@ export class AsyncServerSocket {
   }
 
   /**
+   * Checks to see if two "interface" specification objects are the same. This
+   * is just a shallow `isEqual()`ish check of the two objects, with `===` for
+   * value comparison.
+   *
+   * @param {object} iface1 Interface specification to compare.
+   * @param {object} iface2 Interface specification to compare.
+   * @returns {boolean} `true` if they represent the same interface, or `false`
+   *   if not.
+   */
+  static #sameInterface(iface1, iface2) {
+    let entries1 = Object.entries(iface1);
+    let entries2 = Object.entries(iface2);
+
+    if (entries1.length !== entries2.length) {
+      return false;
+    }
+
+    entries1 = entries1.sort(([key1], [key2]) => (key1 < key2) ? -1 : 1);
+    entries2 = entries2.sort(([key1], [key2]) => (key1 < key2) ? -1 : 1);
+
+    for (let i = 0; i < entries1.length; i++) {
+      const [key1, value1] = entries1[i];
+      const [key2, value2] = entries2[i];
+      if ((key1 !== key2) || (value1 !== value2)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
    * Stashes an instance for possible reuse during a reload.
    *
    * @param {AsyncServerSocket} instance The instance to stash.
@@ -406,7 +436,7 @@ export class AsyncServerSocket {
   static #unstashInstance(iface) {
     let found = null;
     for (const si of this.#stashedInstances) {
-      if (lodash.isEqual(iface, si.#interface)) {
+      if (this.#sameInterface(iface, si.#interface)) {
         found = si;
         break;
       }

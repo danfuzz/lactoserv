@@ -49,7 +49,7 @@ const services = [
     }
   },
   {
-    name:         'process-id',
+    name:         'processId',
     class:        'ProcessIdFile',
     path:         `${RUN_DIR}/process.txt`,
     multiprocess: true,
@@ -68,7 +68,7 @@ const services = [
     }
   },
   {
-    name:   'syslog-json',
+    name:   'syslogJson',
     class:  'SystemLogger',
     path:   `${LOG_DIR}/system-log.json`,
     format: 'json',

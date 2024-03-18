@@ -18,7 +18,6 @@
     "@this/host": "*",
     "@this/loggy-intf": "*",
     "@this/net-util": "*",
-    "@this/typey": "*",
-    "lodash": "^4.17.21"
+    "@this/typey": "*"
   }
 }

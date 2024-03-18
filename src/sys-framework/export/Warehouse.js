@@ -47,21 +47,21 @@ export class Warehouse extends BaseControllable {
     MustBe.plainObject(config);
     MustBe.instanceOf(registry, ComponentRegistry);
 
-    super(ThisModule.logger?.warehouse);
+    super(ThisModule.subsystemLogger('warehouse'));
 
     const parsed = new WarehouseConfig(config, registry.configClassMapper);
 
     this.#applicationManager = new ComponentManager(parsed.applications, {
       baseClass:     BaseApplication,
-      baseSublogger: ThisModule.logger?.app,
-      logger:        ThisModule.logger?.apps,
+      baseSublogger: ThisModule.cohortLogger('app'),
+      logger:        ThisModule.subsystemLogger('apps'),
       registry
     });
 
     this.#serviceManager = new ComponentManager(parsed.services, {
       baseClass:     BaseService,
-      baseSublogger: ThisModule.logger?.service,
-      logger:        ThisModule.logger?.services,
+      baseSublogger: ThisModule.cohortLogger('service'),
+      logger:        ThisModule.subsystemLogger('services'),
       registry
     });
 

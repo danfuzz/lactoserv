@@ -60,8 +60,8 @@ and to enable straightforward custom applications.
     etc.).
 * Built to be installed as a normal POSIX-ish service (though _without_ Node
   bundled into the installation).
-* Developed using automated unit and integration tests. (No coverage stats
-  available, but probably would indicate that more testing is apropos.)
+* Developed using automated unit and integration tests. (As of this writing,
+  test coverage stats indicate _decent_ but not _outstanding_ coverage.)
 
 - - - - - - - - - -
 
