@@ -215,6 +215,9 @@ export class IncomingRequest {
    * single-element key with empty value, that is `['']`, and _not_ an empty
    * key. This preserves the invariant that the keys for all directory-like
    * requests end with an empty path element.
+   *
+   * **Note:** The name of this field matches the equivalent field of the
+   * standard `URL` class.
    */
   get pathname() {
     return this.#parsedTarget.pathname ?? null;
@@ -226,9 +229,6 @@ export class IncomingRequest {
    * is, the kind that includes a path). This starts with a slash (`/`) and
    * omits the search a/k/a query (`?...`), if any. This also includes
    * "resolving" away any `.` or `..` components.
-   *
-   * **Note:** The name of this field matches the equivalent field of the
-   * standard `URL` class.
    */
   get pathnameString() {
     return this.#parsedTarget.pathnameString ?? null;
