@@ -521,7 +521,23 @@ export class ProtocolWrangler {
         // with reasonable accuracy, the call to `logRequest()` has to happen
         // early during dispatch, and definitely _not_ after the response has
         // been sent!
-        this.#logHelper.logRequest(request, outerContext, res, responseSent);
+
+        const responsePromise = (async () => {
+          try {
+            await responseSent;
+          } catch {
+            // Ignore the error, if any. Any error will ultimately get revealed
+            // via `getLoggableResponseInfo()` as will also get logged below.
+          }
+          return result;
+        })();
+
+        const networkInfo = {
+          connectionSocket: outerContext.socket,
+          nodeRequest:      res.req,
+          nodeResponse:     res
+        };
+        this.#logHelper.logRequest(request, responsePromise, networkInfo);
       }
 
       await responseSent;

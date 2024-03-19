@@ -4,14 +4,15 @@
 import * as fs from 'node:fs/promises';
 
 import { WallClock } from '@this/clocks';
-import { IntfLogger } from '@this/loggy-intf';
+import { FormatUtils, IntfLogger } from '@this/loggy-intf';
 import { IntfRequestLogger } from '@this/net-protocol';
+import { OutgoingResponse } from '@this/net-util';
 import { FileServiceConfig } from '@this/sys-config';
 import { BaseFileService, Rotator } from '@this/sys-util';
 
 
 /**
- * Service which writes the access log to the filesystem.
+ * Service which writes the request/response log to the filesystem.
  *
  * See `doc/configuration.md` for configuration object details.
  *
@@ -35,7 +36,7 @@ export class RequestLogger extends BaseFileService {
 
   /** @override */
   async logCompletedRequest(line) {
-    await fs.appendFile(this.config.path, `${line}\n`);
+    await this.#logLine(line);
   }
 
   /** @override */
@@ -44,13 +45,39 @@ export class RequestLogger extends BaseFileService {
   }
 
   /** @override */
-  async requestStarted(timingInfo_unused, requestInfo_unused) {
+  async requestStarted(networkInfo_unused, timingInfo_unused, request_unused) {
     // This class does not do start-of-request logging.
   }
 
   /** @override */
-  async requestEnded(timingInfo_unused, requestInfo_unused, responseInfo_unused) {
-    // TODO
+  async requestEnded(networkInfo, timingInfo, request, response_unused) {
+    const { method, origin, protocol, url }  = request.getLoggableRequestInfo();
+    const { duration, end }                  = timingInfo;
+    const { connectionSocket, nodeResponse } = networkInfo;
+
+    // Note: The call to `getLoggableResponseInfo()` isn't supposed to `throw`,
+    // even if there were errors thrown during handling.
+    const { contentLength, errorCodes, ok, statusCode } =
+      await OutgoingResponse.getLoggableResponseInfo(nodeResponse, connectionSocket);
+
+    const codeStr          = ok ? 'ok' : errorCodes.join(',');
+    const contentLengthStr = (contentLength === null)
+      ? 'no-body'
+      : FormatUtils.byteCountString(contentLength, { spaces: false });
+
+    const requestLogLine = [
+      end.toString({ decimals: 4 }),
+      origin,
+      protocol,
+      method,
+      url,
+      statusCode,
+      contentLengthStr,
+      duration.toString({ spaces: false }),
+      codeStr
+    ].join(' ');
+
+    await this.#logLine(requestLogLine);
   }
 
   /** @override */
@@ -63,6 +90,15 @@ export class RequestLogger extends BaseFileService {
   /** @override */
   async _impl_stop(willReload) {
     await this.#rotator?.stop(willReload);
+  }
+
+  /**
+   * Logs a complete reqeust/response line.
+   *
+   * @param {string} line The line to log.
+   */
+  async #logLine(line) {
+    await fs.appendFile(this.config.path, `${line}\n`);
   }
 
 

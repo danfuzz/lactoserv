@@ -1,15 +1,10 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { ServerResponse } from 'node:http';
-import { Http2ServerResponse } from 'node:http2';
-
-import { FormatUtils } from '@this/loggy-intf';
 import { IncomingRequest, OutgoingResponse } from '@this/net-util';
 import { MustBe } from '@this/typey';
 
 import { IntfRequestLogger } from '#x/IntfRequestLogger';
-import { WranglerContext } from '#p/WranglerContext';
 
 
 /**
@@ -34,72 +29,23 @@ export class RequestLogHelper {
    * logger.
    *
    * @param {IncomingRequest} request Request object.
-   * @param {WranglerContext} context Outer context around `request`.
-   * @param {ServerResponse|Http2ServerResponse} res Low-level response object.
-   * @param {Promise<boolean>} resSent Promise which resolves to `true` once the
-   *   response is considered complete.
+   * @param {Promise<OutgoingResponse>} responsePromise Promise for the
+   *   response which was sent, which becomes resolved after it is believed to
+   *   have been sent.
+   * @param {object} networkInfo Miscellaneous network info. See {@link
+   *   IntfRequestLogger#requestStarted}.
    */
-  async logRequest(request, context, res, resSent) {
+  async logRequest(request, responsePromise, networkInfo) {
     const reqLogger  = this.#requestLogger;
     const timingInfo = { start: reqLogger.now() };
 
-    const logger    = request.logger;
-    const reqInfo   = request.getLoggableRequestInfo();
+    reqLogger.requestStarted(networkInfo, timingInfo, request);
 
-    reqLogger.requestStarted(timingInfo, reqInfo);
-    logger?.request(reqInfo);
-
-    try {
-      await resSent;
-    } catch {
-      // Ignore the error. `getLoggableResponseInfo()` should end up including
-      // it in its list of errors.
-    }
+    const response = await responsePromise;
 
     timingInfo.end      = this.#requestLogger.now();
     timingInfo.duration = timingInfo.end.subtract(timingInfo.start);
 
-    // Note: This call isn't supposed to `throw`, even if there were errors
-    // thrown during handling.
-    const resInfo = await OutgoingResponse.getLoggableResponseInfo(res, context.socket);
-
-    reqLogger.requestEnded(timingInfo, reqInfo, resInfo);
-
-    // Rearrange `info` into preferred loggable form, and augment with
-    // connection error info if appropriate.
-
-    const {
-      contentLength,
-      errorCodes,
-      ok,
-      statusCode
-    } = resInfo;
-
-    const codeStr = ok ? 'ok' : errorCodes.join(',');
-
-    // This is to avoid redundancy and to end up with a specific propery order
-    // in `finalInfo` (for human readability).
-    const finalInfo = { ok, duration: timingInfo.duration, ...resInfo };
-
-    logger?.response(finalInfo);
-
-    const contentLengthStr = (contentLength === null)
-      ? 'no-body'
-      : FormatUtils.byteCountString(contentLength, { spaces: false });
-
-    const requestLogLine = [
-      timingInfo.end.toString({ decimals: 4 }),
-      reqInfo.origin,
-      reqInfo.protocol,
-      reqInfo.method,
-      reqInfo.url,
-      statusCode,
-      contentLengthStr,
-      timingInfo.duration.toString({ spaces: false }),
-      codeStr
-    ].join(' ');
-
-    logger?.requestLog(requestLogLine);
-    this.#requestLogger.logCompletedRequest(requestLogLine);
+    reqLogger.requestEnded(networkInfo, timingInfo, request, response);
   }
 }
