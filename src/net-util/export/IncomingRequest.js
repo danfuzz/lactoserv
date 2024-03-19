@@ -78,6 +78,12 @@ export class IncomingRequest {
   #parsedTargetObject = null;
 
   /**
+   * @type {?object} The result of {@link #getLoggableRequestInfo}, or `null` if
+   * not yet calculated.
+   */
+  #loggableRequestInfo = null;
+
+  /**
    * @type {?string} The value of {@link #urlForLogging}, or `null` if not yet
    * calculated.
    */
@@ -314,31 +320,37 @@ export class IncomingRequest {
    * with respect to other parts of the return value. (E.g., the `cookie` header
    * is omitted if it was able to be parsed.)
    *
-   * @returns {object} Loggable information about the request.
+   * @returns {object} Loggable information about the request. The result is
+   *   always frozen.
    */
   getLoggableRequestInfo() {
-    const {
-      cookies,
-      headers,
-      method,
-      origin,
-      urlForLogging
-    } = this;
+    if (!this.#loggableRequestInfo) {
+      const {
+        cookies,
+        headers,
+        method,
+        origin,
+        urlForLogging
+      } = this;
 
-    const result = {
-      origin:   FormatUtils.addressPortString(origin.address, origin.port),
-      protocol: this.protocolName,
-      method,
-      url:      urlForLogging,
-      headers:  IncomingRequest.#sanitizeRequestHeaders(headers)
-    };
+      const result = {
+        origin:   FormatUtils.addressPortString(origin.address, origin.port),
+        protocol: this.protocolName,
+        method,
+        url:      urlForLogging,
+        headers:  IncomingRequest.#sanitizeRequestHeaders(headers)
+      };
 
-    if (cookies.size !== 0) {
-      result.cookies = Object.fromEntries(cookies);
-      delete result.headers.cookie;
+      if (cookies.size !== 0) {
+        result.cookies = Object.freeze(Object.fromEntries(cookies));
+        delete result.headers.cookie;
+      }
+
+      Object.freeze(result.headers);
+      this.#loggableRequestInfo = Object.freeze(result);
     }
 
-    return result;
+    return this.#loggableRequestInfo;
   }
 
   /**
@@ -439,6 +451,17 @@ export class IncomingRequest {
     delete result[':path'];
     delete result[':scheme'];
     delete result.host;
+
+    // Non-obvious: Though not a request header, there's nothing stopping a
+    // client from sending one or more `Set-Cookie` headers, and Node always
+    // reports these as an array. (This is the only header which gets that
+    // special treatment.) The caller of this method ultimately wants a
+    // deep-frozen result, and it makes more sense to deal with the so-required
+    // special case here.
+    const setCookie = result['set-cookie'];
+    if (setCookie) {
+      result['set-cookie'] = Object.freeze([...setCookie]);
+    }
 
     // Non-obvious: This deletes the symbol property `sensitiveHeaders` from the
     // result (whose value is an array of header names that, per Node docs,
