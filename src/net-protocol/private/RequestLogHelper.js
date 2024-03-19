@@ -58,7 +58,7 @@ export class RequestLogHelper {
 
     // Note: This call isn't supposed to `throw`, even if there were errors
     // thrown during handling.
-    const info = await OutgoingResponse.getLoggableResponseInfo(res, context.socket);
+    const resInfo = await OutgoingResponse.getLoggableResponseInfo(res, context.socket);
 
     // Rearrange `info` into preferred loggable form, and augment with
     // connection error info if appropriate.
@@ -68,13 +68,13 @@ export class RequestLogHelper {
       errorCodes,
       ok,
       statusCode
-    } = info;
+    } = resInfo;
 
     const codeStr = ok ? 'ok' : errorCodes.join(',');
 
     // This is to avoid redundancy and to end up with a specific propery order
     // in `finalInfo` (for human readability).
-    const finalInfo = { ok, duration, ...info };
+    const finalInfo = { ok, duration, ...resInfo };
 
     logger?.response(finalInfo);
 
