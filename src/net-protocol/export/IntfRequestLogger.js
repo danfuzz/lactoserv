@@ -74,7 +74,8 @@ export class IntfRequestLogger {
    *   {@link #now} on this instance.
    * @param {Duration} timingInfo.duration The difference `end - start`.
    * @param {IncomingRequest} request The incoming request.
-   * @param {OutgoingResponse} response The response that was sent.
+   * @param {OutgoingResponse} response The response that was sent (or at least
+   *   attempted).
    */
   async requestEnded(networkInfo, timingInfo, request, response) {
     Methods.abstract(networkInfo, timingInfo, request, response);

@@ -6,7 +6,7 @@ import { IncomingMessage, ServerResponse } from 'node:http';
 import { Http2ServerRequest, Http2ServerResponse } from 'node:http2';
 import * as net from 'node:net';
 
-import { Threadlet } from '@this/async';
+import { ManualPromise, Threadlet } from '@this/async';
 import { ProductInfo } from '@this/host';
 import { IntfLogger } from '@this/loggy-intf';
 import { IncomingRequest, IntfRequestHandler, OutgoingResponse, RequestContext }
@@ -416,7 +416,11 @@ export class ProtocolWrangler {
         url:       request.urlForLogging
       });
 
-      this.#respondToRequest(request, context, res);
+      if (this.#logHelper) {
+        this.#respondToRequestUsingLogHelper(request, context, res);
+      } else {
+        this.#respondToRequest(request, context, res);
+      }
     } catch (e) {
       // This probably indicates a bug in this project. That is, our goal is for
       // this not to be possible. That said, as of this writing, this is
@@ -484,6 +488,8 @@ export class ProtocolWrangler {
    * @param {IncomingRequest} request Request object.
    * @param {WranglerContext} outerContext The outer context of `request`.
    * @param {Http2ServerResponse|ServerResponse} res Low-level response object.
+   * @returns {OutgoingResponse} The response object that was ultimately sent
+   *   (or was at least ulitmately attempted to be sent).
    */
   async #respondToRequest(request, outerContext, res) {
     const reqLogger = request.logger;
@@ -514,33 +520,7 @@ export class ProtocolWrangler {
     try {
       res.setHeader('Server', this.#serverHeader);
 
-      const responseSent = result.writeTo(res);
-
-      if (this.#logHelper) {
-        // Note: In order for it to be able to log the duration of the request
-        // with reasonable accuracy, the call to `logRequest()` has to happen
-        // early during dispatch, and definitely _not_ after the response has
-        // been sent!
-
-        const responsePromise = (async () => {
-          try {
-            await responseSent;
-          } catch {
-            // Ignore the error, if any. Any error will ultimately get revealed
-            // via `getLoggableResponseInfo()` as will also get logged below.
-          }
-          return result;
-        })();
-
-        const networkInfo = {
-          connectionSocket: outerContext.socket,
-          nodeRequest:      res.req,
-          nodeResponse:     res
-        };
-        this.#logHelper.logRequest(request, responsePromise, networkInfo);
-      }
-
-      await responseSent;
+      await result.writeTo(res);
     } catch (e) {
       // This can happen when the connection gets closed from the other side
       // when in the middle of responding, in which case the error is ignorable
@@ -569,6 +549,45 @@ export class ProtocolWrangler {
         csock.destroy();
       });
     }
+
+    return result;
+  }
+
+  /**
+   * Wrapper around {@link #respondToRequest}, which is used when {link
+   * #logHelper} is non-`null`. This is what arranges for request/response
+   * logging to happen. Notably, the call into `#logHelper` has to be made early
+   * during request dispatch so that the timing measurements will be maximally
+   * accurate. And in fact, this method (right here) gets called at about as
+   * good a spot as can be managed.
+   *
+   * **Note:** There is nothing set up to catch errors thrown by this method. It
+   * is not supposed to `throw` (directly or indirectly).
+   *
+   * @param {IncomingRequest} request Request object.
+   * @param {WranglerContext} outerContext The outer context of `request`.
+   * @param {Http2ServerResponse|ServerResponse} res Low-level response object.
+   * @returns {OutgoingResponse} The response object that was ultimately sent
+   *   (or was at least ulitmately attempted to be sent).
+   */
+  async #respondToRequestUsingLogHelper(request, outerContext, res) {
+    const networkInfo = {
+      connectionSocket: outerContext.socket,
+      nodeRequest:      res.req,
+      nodeResponse:     res
+    };
+
+    // We use a `ManualPromise` here so that the very first call we make is to
+    // the `#logHelper`. If we didn't do that, we could end up doing a
+    // significant amount of the work of request handling synchronously before
+    // `#logHelper` had a chance to start its work.
+    const responseMp = new ManualPromise();
+    this.#logHelper.logRequest(request, responseMp.promise, networkInfo);
+
+    const result = this.#respondToRequest(request, outerContext, res);
+    responseMp.resolve(result);
+
+    return result;
   }
 
   /**

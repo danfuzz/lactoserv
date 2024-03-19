@@ -16,6 +16,8 @@ Other notable changes:
     such as "applications" and "services."
   * Added ANSI coloring / styling to the "human" (non-JSON) logs that go to
     `stdout`, when it's a TTY.
+  * Fixed request logging so that it gets a more accurate (earlier) start time
+    for requests.
 
 ### v0.6.10 -- 2024-03-15
 
