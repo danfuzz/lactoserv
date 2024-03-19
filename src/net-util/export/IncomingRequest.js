@@ -137,7 +137,7 @@ export class IncomingRequest {
    * by Node's {@link IncomingMessage#headers}.
    */
   get headers() {
-    // TODO: This should be a `HttpHeaders` object.
+    // TODO: This should be an `HttpHeaders` object.
     return this.#coreRequest.headers;
   }
 
