@@ -441,7 +441,7 @@ export class IncomingRequest {
     delete result.host;
 
     // Non-obvious: This deletes the symbol property `sensitiveHeaders` from the
-    // result (whose array is a value of header names that, per Node docs,
+    // result (whose value is an array of header names that, per Node docs,
     // aren't supposed to be compressed due to poor interaction with desirable
     // cryptography properties). This _isn't_ supposed to actually delete th
     // headers _named_ by this value.
