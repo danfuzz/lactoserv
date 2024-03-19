@@ -44,6 +44,16 @@ export class RequestLogger extends BaseFileService {
   }
 
   /** @override */
+  async requestStarted(timingInfo_unused, requestInfo_unused) {
+    // This class does not do start-of-request logging.
+  }
+
+  /** @override */
+  async requestEnded(timingInfo_unused, requestInfo_unused, responseInfo_unused) {
+    // TODO
+  }
+
+  /** @override */
   async _impl_start(isReload) {
     await this._prot_createDirectoryIfNecessary();
     await this._prot_touchPath();

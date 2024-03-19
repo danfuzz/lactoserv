@@ -6,6 +6,7 @@ import { Http2ServerResponse } from 'node:http2';
 
 import { FormatUtils } from '@this/loggy-intf';
 import { IncomingRequest, OutgoingResponse } from '@this/net-util';
+import { MustBe } from '@this/typey';
 
 import { IntfRequestLogger } from '#x/IntfRequestLogger';
 import { WranglerContext } from '#p/WranglerContext';
@@ -24,7 +25,7 @@ export class RequestLogHelper {
    * @param {IntfRequestLogger} requestLogger Request logger service to use.
    */
   constructor(requestLogger) {
-    this.#requestLogger = requestLogger;
+    this.#requestLogger = MustBe.object(requestLogger);
   }
 
   /**
@@ -39,11 +40,13 @@ export class RequestLogHelper {
    *   response is considered complete.
    */
   async logRequest(request, context, res, resSent) {
-    const startTime = this.#requestLogger.now();
+    const reqLogger  = this.#requestLogger;
+    const timingInfo = { start: reqLogger.now() };
 
     const logger    = request.logger;
     const reqInfo   = request.getLoggableRequestInfo();
 
+    reqLogger.requestStarted(timingInfo, reqInfo);
     logger?.request(reqInfo);
 
     try {
@@ -53,12 +56,14 @@ export class RequestLogHelper {
       // it in its list of errors.
     }
 
-    const endTime   = this.#requestLogger.now();
-    const duration  = endTime.subtract(startTime);
+    timingInfo.end      = this.#requestLogger.now();
+    timingInfo.duration = timingInfo.end.subtract(timingInfo.start);
 
     // Note: This call isn't supposed to `throw`, even if there were errors
     // thrown during handling.
     const resInfo = await OutgoingResponse.getLoggableResponseInfo(res, context.socket);
+
+    reqLogger.requestEnded(timingInfo, reqInfo, resInfo);
 
     // Rearrange `info` into preferred loggable form, and augment with
     // connection error info if appropriate.
@@ -74,7 +79,7 @@ export class RequestLogHelper {
 
     // This is to avoid redundancy and to end up with a specific propery order
     // in `finalInfo` (for human readability).
-    const finalInfo = { ok, duration, ...resInfo };
+    const finalInfo = { ok, duration: timingInfo.duration, ...resInfo };
 
     logger?.response(finalInfo);
 
@@ -83,18 +88,18 @@ export class RequestLogHelper {
       : FormatUtils.byteCountString(contentLength, { spaces: false });
 
     const requestLogLine = [
-      endTime.toString({ decimals: 4 }),
+      timingInfo.end.toString({ decimals: 4 }),
       reqInfo.origin,
       reqInfo.protocol,
       reqInfo.method,
       reqInfo.url,
       statusCode,
       contentLengthStr,
-      duration.toString({ spaces: false }),
+      timingInfo.duration.toString({ spaces: false }),
       codeStr
     ].join(' ');
 
     logger?.requestLog(requestLogLine);
-    this.#requestLogger?.logCompletedRequest(requestLogLine);
+    this.#requestLogger.logCompletedRequest(requestLogLine);
   }
 }
