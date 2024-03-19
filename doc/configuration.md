@@ -609,6 +609,22 @@ const services = [
 ];
 ```
 
+### `RequestSyslogger`
+
+A service which logs very detailed information about HTTP-ish requests to the
+_system_ log. Such logging in turn goes to wherever the system log goes (e.g.,
+into a file). It does not accept any configuration bindings beyond the basics
+of any service.
+
+```js
+const services = [
+  {
+    name:  'requestSyslog',
+    class: 'RequestSyslogger'
+  }
+];
+```
+
 ### `SystemLogger`
 
 A service which logs system activity either in a human-friendly or JSON form. It

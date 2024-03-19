@@ -93,6 +93,10 @@ const services = [
     }
   },
   {
+    name:  'requestSyslog',
+    class: 'RequestSyslogger'
+  },
+  {
     name:        'limiter',
     class:       'RateLimiter',
     connections: {

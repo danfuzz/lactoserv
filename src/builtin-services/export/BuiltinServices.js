@@ -8,6 +8,7 @@ import { ProcessIdFile } from '#x/ProcessIdFile';
 import { ProcessInfoFile } from '#x/ProcessInfoFile';
 import { RateLimiter } from '#x/RateLimiter';
 import { RequestLogger } from '#x/RequestLogger';
+import { RequestSyslogger } from '#x/RequestSyslogger';
 import { SystemLogger } from '#x/SystemLogger';
 
 
@@ -27,6 +28,7 @@ export class BuiltinServices {
       ProcessInfoFile,
       RateLimiter,
       RequestLogger,
+      RequestSyslogger,
       SystemLogger
     ];
   }
