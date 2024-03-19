@@ -7,4 +7,5 @@ export * from '#x/ProcessIdFile';
 export * from '#x/ProcessInfoFile';
 export * from '#x/RateLimiter';
 export * from '#x/RequestLogger';
+export * from '#x/RequestSyslogger';
 export * from '#x/SystemLogger';

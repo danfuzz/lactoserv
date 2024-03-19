@@ -78,6 +78,12 @@ export class IncomingRequest {
   #parsedTargetObject = null;
 
   /**
+   * @type {?object} The result of {@link #getLoggableRequestInfo}, or `null` if
+   * not yet calculated.
+   */
+  #loggableRequestInfo = null;
+
+  /**
    * @type {?string} The value of {@link #urlForLogging}, or `null` if not yet
    * calculated.
    */
@@ -131,7 +137,7 @@ export class IncomingRequest {
    * by Node's {@link IncomingMessage#headers}.
    */
   get headers() {
-    // TODO: This should be a `HttpHeaders` object.
+    // TODO: This should be an `HttpHeaders` object.
     return this.#coreRequest.headers;
   }
 
@@ -209,6 +215,9 @@ export class IncomingRequest {
    * single-element key with empty value, that is `['']`, and _not_ an empty
    * key. This preserves the invariant that the keys for all directory-like
    * requests end with an empty path element.
+   *
+   * **Note:** The name of this field matches the equivalent field of the
+   * standard `URL` class.
    */
   get pathname() {
     return this.#parsedTarget.pathname ?? null;
@@ -220,9 +229,6 @@ export class IncomingRequest {
    * is, the kind that includes a path). This starts with a slash (`/`) and
    * omits the search a/k/a query (`?...`), if any. This also includes
    * "resolving" away any `.` or `..` components.
-   *
-   * **Note:** The name of this field matches the equivalent field of the
-   * standard `URL` class.
    */
   get pathnameString() {
     return this.#parsedTarget.pathnameString ?? null;
@@ -314,31 +320,37 @@ export class IncomingRequest {
    * with respect to other parts of the return value. (E.g., the `cookie` header
    * is omitted if it was able to be parsed.)
    *
-   * @returns {object} Loggable information about the request.
+   * @returns {object} Loggable information about the request. The result is
+   *   always frozen.
    */
   getLoggableRequestInfo() {
-    const {
-      cookies,
-      headers,
-      method,
-      origin,
-      urlForLogging
-    } = this;
+    if (!this.#loggableRequestInfo) {
+      const {
+        cookies,
+        headers,
+        method,
+        origin,
+        urlForLogging
+      } = this;
 
-    const result = {
-      origin:   FormatUtils.addressPortString(origin.address, origin.port),
-      protocol: this.protocolName,
-      method,
-      url:      urlForLogging,
-      headers:  IncomingRequest.#sanitizeRequestHeaders(headers)
-    };
+      const result = {
+        origin:   FormatUtils.addressPortString(origin.address, origin.port),
+        protocol: this.protocolName,
+        method,
+        url:      urlForLogging,
+        headers:  IncomingRequest.#sanitizeRequestHeaders(headers)
+      };
 
-    if (cookies.size !== 0) {
-      result.cookies = Object.fromEntries(cookies);
-      delete result.headers.cookie;
+      if (cookies.size !== 0) {
+        result.cookies = Object.freeze(Object.fromEntries(cookies));
+        delete result.headers.cookie;
+      }
+
+      Object.freeze(result.headers);
+      this.#loggableRequestInfo = Object.freeze(result);
     }
 
-    return result;
+    return this.#loggableRequestInfo;
   }
 
   /**
@@ -440,10 +452,21 @@ export class IncomingRequest {
     delete result[':scheme'];
     delete result.host;
 
+    // Non-obvious: Though not a request header, there's nothing stopping a
+    // client from sending one or more `Set-Cookie` headers, and Node always
+    // reports these as an array. (This is the only header which gets that
+    // special treatment.) The caller of this method ultimately wants a
+    // deep-frozen result, and it makes more sense to deal with the so-required
+    // special case here.
+    const setCookie = result['set-cookie'];
+    if (setCookie) {
+      result['set-cookie'] = Object.freeze([...setCookie]);
+    }
+
     // Non-obvious: This deletes the symbol property `sensitiveHeaders` from the
-    // result (whose array is a value of header names that, per Node docs,
+    // result (whose value is an array of header names that, per Node docs,
     // aren't supposed to be compressed due to poor interaction with desirable
-    // cryptography properties). This _isn't_ supposed to actually delete th
+    // cryptography properties). This _isn't_ supposed to actually delete the
     // headers _named_ by this value.
     delete result[Http2SensitiveHeaders];
 

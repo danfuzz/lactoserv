@@ -90,7 +90,12 @@ const services = [
       atSize:      10000,
       maxOldCount: 10,
       checkPeriod: '1 min'
-    }
+    },
+    sendToSystemLog: true
+  },
+  {
+    name:  'requestSyslog',
+    class: 'RequestSyslogger'
   },
   {
     name:        'limiter',
