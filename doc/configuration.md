@@ -597,14 +597,18 @@ the following configuration bindings:
 * `rotate` &mdash; Optional file rotation configuration. If not specified, no
   file rotation is done. See "File Rotation and Preservation" below for
   configuration details.
+* `sendToSystemLog` &mdash; Boolean which, if `true`, causes requests and
+  responses to _also_ get sent to the system log. (It's like getting an instance
+  of `RequestSyslogger` for free.)
 
 ```js
 const services = [
   {
-    name:   'requests',
-    class:  'RequestLogger',
-    path:   '/path/to/var/log/request-log.txt',
-    rotate: { /* ... */ }
+    name:            'requests',
+    class:           'RequestLogger',
+    path:            '/path/to/var/log/request-log.txt',
+    rotate:          { /* ... */ },
+    sendToSystemLog: true
   }
 ];
 ```

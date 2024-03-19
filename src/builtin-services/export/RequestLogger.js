@@ -9,6 +9,7 @@ import { IntfRequestLogger } from '@this/net-protocol';
 import { OutgoingResponse } from '@this/net-util';
 import { FileServiceConfig } from '@this/sys-config';
 import { BaseFileService, Rotator } from '@this/sys-util';
+import { MustBe } from '@this/typey';
 
 
 /**
@@ -22,6 +23,9 @@ export class RequestLogger extends BaseFileService {
   /** @type {?Rotator} File rotator to use, if any. */
   #rotator;
 
+  /** @type {boolean} Also log to the system log? */
+  #doSyslog;
+
   /**
    * Constructs an instance.
    *
@@ -31,7 +35,8 @@ export class RequestLogger extends BaseFileService {
   constructor(config, logger) {
     super(config, logger);
 
-    this.#rotator = config.rotate ? new Rotator(config, this.logger) : null;
+    this.#rotator  = config.rotate ? new Rotator(config, this.logger) : null;
+    this.#doSyslog = config.doSyslog;
   }
 
   /** @override */
@@ -45,20 +50,28 @@ export class RequestLogger extends BaseFileService {
   }
 
   /** @override */
-  async requestStarted(networkInfo_unused, timingInfo_unused, request_unused) {
-    // This class does not do start-of-request logging.
+  async requestStarted(networkInfo_unused, timingInfo_unused, request) {
+    if (this.#doSyslog) {
+      request.logger?.request(request.getLoggableRequestInfo());
+    }
   }
 
   /** @override */
   async requestEnded(networkInfo, timingInfo, request, response_unused) {
-    const { method, origin, protocol, url }  = request.getLoggableRequestInfo();
-    const { duration, end }                  = timingInfo;
+    // Note: This call isn't ever supposed to `throw`, even if there were errors
+    // thrown during request/response handling.
     const { connectionSocket, nodeResponse } = networkInfo;
-
-    // Note: The call to `getLoggableResponseInfo()` isn't supposed to `throw`,
-    // even if there were errors thrown during handling.
-    const { contentLength, errorCodes, ok, statusCode } =
+    const responseInfo =
       await OutgoingResponse.getLoggableResponseInfo(nodeResponse, connectionSocket);
+
+    if (this.#doSyslog) {
+      request.logger?.response(responseInfo);
+      request.logger?.timing(timingInfo);
+    }
+
+    const { method, origin, protocol, url }             = request.getLoggableRequestInfo();
+    const { duration, end }                             = timingInfo;
+    const { contentLength, errorCodes, ok, statusCode } = responseInfo;
 
     const codeStr          = ok ? 'ok' : errorCodes.join(',');
     const contentLengthStr = (contentLength === null)
@@ -108,6 +121,32 @@ export class RequestLogger extends BaseFileService {
 
   /** @override */
   static get CONFIG_CLASS() {
-    return FileServiceConfig;
+    return this.#Config;
   }
+
+  /**
+   * Configuration item subclass for this (outer) class.
+   */
+  static #Config = class Config extends FileServiceConfig {
+    /** @type {boolean} Also log to the system log? */
+    #doSyslog;
+
+    /**
+     * Constructs an instance.
+     *
+     * @param {object} config Configuration object.
+     */
+    constructor(config) {
+      super(config);
+
+      const { sendToSystemLog = false } = config;
+
+      this.#doSyslog = MustBe.boolean(sendToSystemLog);
+    }
+
+    /** @returns {boolean} Also log to the system log? */
+    get doSyslog() {
+      return this.#doSyslog;
+    }
+  };
 }
