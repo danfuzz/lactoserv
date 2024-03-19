@@ -443,7 +443,7 @@ export class IncomingRequest {
     // Non-obvious: This deletes the symbol property `sensitiveHeaders` from the
     // result (whose value is an array of header names that, per Node docs,
     // aren't supposed to be compressed due to poor interaction with desirable
-    // cryptography properties). This _isn't_ supposed to actually delete th
+    // cryptography properties). This _isn't_ supposed to actually delete the
     // headers _named_ by this value.
     delete result[Http2SensitiveHeaders];
 
