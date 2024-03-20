@@ -47,7 +47,7 @@ export class Warehouse extends BaseControllable {
 
     const context = new ControlContext('world', ThisModule.subsystemLogger('warehouse'));
     super(context);
-    context.linkWorld(this);
+    context.linkWorld(this); // See comment in `ControlContext` for explanation.
 
     const parsed = new WarehouseConfig(config);
 
