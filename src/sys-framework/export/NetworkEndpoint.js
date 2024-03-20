@@ -144,6 +144,11 @@ export class NetworkEndpoint extends BaseComponent {
   }
 
   /** @override */
+  async _impl_init(isReload_unused) {
+    // Nothing needed here for this class.
+  }
+
+  /** @override */
   async _impl_start(isReload) {
     await this.#wrangler.start(isReload);
   }

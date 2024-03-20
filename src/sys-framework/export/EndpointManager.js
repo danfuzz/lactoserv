@@ -5,6 +5,7 @@ import { EndpointConfig, MountConfig } from '@this/sys-config';
 
 import { BaseApplication } from '#x/BaseApplication';
 import { BaseControllable } from '#x/BaseControllable';
+import { ControlContext } from '#x/ControlContext';
 import { NetworkEndpoint } from '#x/NetworkEndpoint';
 import { ThisModule } from '#p/ThisModule';
 import { Warehouse } from '#x/Warehouse';
@@ -68,9 +69,22 @@ export class EndpointManager extends BaseControllable {
   }
 
   /** @override */
+  async _impl_init(isReload) {
+    const endpoints = this.getAll();
+
+    const results = endpoints.map((e) => {
+      const logger  = ThisModule.cohortLogger('endpoint')?.[e.name];
+      const context = new ControlContext(this.context.world, logger);
+      return e.init(context, isReload);
+    });
+
+    await Promise.all(results);
+  }
+
+  /** @override */
   async _impl_start(isReload) {
     const endpoints = this.getAll();
-    const results   = endpoints.map((s) => s.start(isReload));
+    const results   = endpoints.map((e) => e.start(isReload));
 
     await Promise.all(results);
   }
@@ -78,7 +92,7 @@ export class EndpointManager extends BaseControllable {
   /** @override */
   async _impl_stop(willReload) {
     const endpoints = this.getAll();
-    const results = endpoints.map((s) => s.stop(willReload));
+    const results = endpoints.map((e) => e.stop(willReload));
 
     await Promise.all(results);
   }

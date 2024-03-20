@@ -4,29 +4,78 @@
 import { IntfLogger } from '@this/loggy-intf';
 import { Methods, MustBe } from '@this/typey';
 
+import { ControlContext } from '#x/ControlContext';
+
 
 /**
  * Base class for "controllable" things in the framework.
  *
- * TLDR: Concrete subclasses (a) have an associated (but optional) logger and
- * know how to `start()` and `stop()` themselves.
+ * TLDR: Concrete subclasses (a) have an associated context, and (b) have a set
+ * of lifecycle methods.
  */
 export class BaseControllable {
+  /** @type {boolean} Has {@link #_impl_init} been called? */
+  #initialized = false;
+
+  /**
+   * @type {?ControlContext} Associated context. Becomes non-`null` during
+   * {@link #init}.
+   */
+  #context = null;
+
   /** @type {?IntfLogger} Logger to use, or `null` to not do any logging. */
-  #logger;
+  #logger = null;
 
   /**
    * Constructs an instance.
    *
-   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
+   * @param {?ControlContext|IntfLogger} contextOrLogger Associated context or
+   *   logger to use, or `null` to not do any context-related setup (yet).
    */
-  constructor(logger) {
-    this.#logger = logger;
+  constructor(contextOrLogger) {
+    if (contextOrLogger instanceof ControlContext) {
+      this.#context = contextOrLogger;
+    } else if (contextOrLogger !== null) {
+      this.#logger = contextOrLogger;
+    }
+  }
+
+  /**
+   * @returns {?ControlContext} Associated context, or `null` if not yet set up.
+   */
+  get context() {
+    return this.#context;
   }
 
   /** @returns {?IntfLogger} Logger to use, or `null` to not do any logging. */
   get logger() {
     return this.#logger;
+  }
+
+  /**
+   * Initializes this instance, indicating it is now linked to the given
+   * context.
+   *
+   * @param {ControlContext} context Context that indicates this instance's
+   *   active environment.
+   * @param {boolean} [isReload] Is this action due to an in-process
+   *   reload?
+   */
+  async init(context, isReload = false) {
+    MustBe.boolean(isReload);
+
+    if (this.#initialized) {
+      throw new Error('Already initialized.');
+    } else if (this.#context === null) {
+      this.#context = MustBe.instanceOf(context, ControlContext);
+      this.#logger  = context.logger;
+    }
+
+    this.#initialized = true;
+
+    BaseControllable.logInitializing(this.#logger);
+    await this._impl_init(isReload);
+    BaseControllable.logInitialized(this.#logger);
   }
 
   /**
@@ -37,6 +86,13 @@ export class BaseControllable {
    */
   async start(isReload = false) {
     MustBe.boolean(isReload);
+
+    if (!this.#initialized) {
+      if (this.#context === null) {
+        throw new Error('No associated context set up in constructor or `init()`.');
+      }
+      await this.init(null, isReload);
+    }
 
     BaseControllable.logStarting(this.#logger, isReload);
     await this._impl_start(isReload);

@@ -10,6 +10,7 @@ import { BaseApplication } from '#x/BaseApplication';
 import { BaseControllable } from '#x/BaseControllable';
 import { BaseService } from '#x/BaseService';
 import { ComponentManager } from '#x/ComponentManager';
+import { ControlContext } from '#x/ControlContext';
 import { EndpointManager } from '#x/EndpointManager';
 import { HostManager } from '#x/HostManager';
 import { ThisModule } from '#p/ThisModule';
@@ -44,7 +45,9 @@ export class Warehouse extends BaseControllable {
   constructor(config) {
     MustBe.plainObject(config);
 
-    super(ThisModule.subsystemLogger('warehouse'));
+    const context = new ControlContext('world', ThisModule.subsystemLogger('warehouse'));
+    super(context);
+    context.linkWorld(this);
 
     const parsed = new WarehouseConfig(config);
 
@@ -85,6 +88,19 @@ export class Warehouse extends BaseControllable {
   /** @returns {ComponentManager} Service manager. */
   get serviceManager() {
     return this.#serviceManager;
+  }
+
+  /** @override */
+  async _impl_init(isReload) {
+    const makeCc = (name) => new ControlContext(this, ThisModule.subsystemLogger(name));
+
+    const results = [
+      this.#serviceManager.init(makeCc('services'), isReload),
+      this.#applicationManager.init(makeCc('applications'), isReload),
+      this.#endpointManager.init(makeCc('endpoints'), isReload)
+    ];
+
+    await Promise.all(results);
   }
 
   /** @override */

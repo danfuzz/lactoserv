@@ -7,6 +7,7 @@ import { AskIf, MustBe } from '@this/typey';
 
 import { BaseComponent } from '#x/BaseComponent';
 import { BaseControllable } from '#x/BaseControllable';
+import { ControlContext } from '#x/ControlContext';
 
 
 /**
@@ -113,9 +114,22 @@ export class ComponentManager extends BaseControllable {
   }
 
   /** @override */
+  async _impl_init(isReload) {
+    const instances = this.getAll();
+
+    const results = instances.map((c) => {
+      const logger  = this.#baseSublogger[c.name];
+      const context = new ControlContext(this.context.world, logger);
+      return c.init(context, isReload);
+    });
+
+    await Promise.all(results);
+  }
+
+  /** @override */
   async _impl_start(isReload) {
     const instances = this.getAll();
-    const results   = instances.map((s) => s.start(isReload));
+    const results   = instances.map((c) => c.start(isReload));
 
     await Promise.all(results);
   }
@@ -123,7 +137,7 @@ export class ComponentManager extends BaseControllable {
   /** @override */
   async _impl_stop(willReload) {
     const instances = this.getAll();
-    const results   = instances.map((s) => s.stop(willReload));
+    const results   = instances.map((c) => c.stop(willReload));
 
     await Promise.all(results);
   }
