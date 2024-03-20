@@ -115,8 +115,8 @@ export class ShutdownHandler {
 
     for (const { type, problem } of problems) {
       let label = ({
-        uncaughtException:  'uncaught exception',
-        unhandledRejection: 'unhandled rejection'
+        uncaughtException:  'Uncaught exception',
+        unhandledRejection: 'Unhandled rejection'
       })[type] ?? type;
 
       let p;
@@ -131,6 +131,10 @@ export class ShutdownHandler {
         console.log('\n%s:\n%s', label, p.stack);
         console.log('%o', p);
       }
+    }
+
+    if (problems) {
+      console.log('\n%o', ProductInfo.allInfo);
     }
 
     if (this.#exitCode !== 0) {
