@@ -134,11 +134,8 @@ export class ShutdownHandler {
       }
     }
 
-    if (problems) {
-      console.log('\n%o', ProductInfo.allInfo);
-    }
-
     if (this.#exitCode !== 0) {
+      console.log('\n%o', ProductInfo.allInfo);
       console.log('\nExiting with code: %o', this.#exitCode);
     }
 
