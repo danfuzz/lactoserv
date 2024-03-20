@@ -1,13 +1,11 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { default as CONFIG } from './config.mjs';
+import { default as CONFIG } from './config-framework.mjs';
 
-import { BuiltinApplications } from '@this/builtin-applications';
-import { BuiltinServices } from '@this/builtin-services';
 import { Host, KeepRunning } from '@this/host';
 import { Loggy } from '@this/loggy';
-import { ComponentRegistry, Warehouse } from '@this/sys-framework';
+import { Warehouse } from '@this/sys-framework';
 import { BaseSystem } from '@this/sys-util';
 
 
@@ -28,12 +26,7 @@ class UsualSystem extends BaseSystem {
 
   /** @override */
   async _impl_init(forReload_unused) {
-    const classes = [
-      ...BuiltinApplications.getAll(),
-      ...BuiltinServices.getAll()
-    ];
-    const registry = new ComponentRegistry(classes);
-    return new Warehouse(CONFIG, registry);
+    return new Warehouse(CONFIG);
   }
 
   /** @override */

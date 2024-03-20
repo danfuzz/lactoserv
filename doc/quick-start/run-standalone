@@ -25,4 +25,4 @@ if [[ ! -x "${serverBin}" ]]; then
 fi
 
 # Run the system.
-"${serverBin}" --config="${cmdDir}/code/config.mjs" --log-to-stdout
+"${serverBin}" --config="${cmdDir}/code/config-standalone.mjs" --log-to-stdout
