@@ -1,7 +1,6 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { IntfLogger } from '@this/loggy-intf';
 import { HttpUtil, OutgoingResponse, Uris } from '@this/net-util';
 import { ApplicationConfig } from '@this/sys-config';
 import { BaseApplication } from '@this/sys-framework';
@@ -29,10 +28,9 @@ export class Redirector extends BaseApplication {
    * Constructs an instance.
    *
    * @param {ApplicationConfig} config Configuration for this application.
-   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    */
-  constructor(config, logger) {
-    super(config, logger);
+  constructor(config) {
+    super(config);
 
     this.#cacheControl = config.cacheControl;
     this.#statusCode   = config.statusCode;
@@ -51,6 +49,11 @@ export class Redirector extends BaseApplication {
     response.cacheControl = this.#cacheControl;
 
     return response;
+  }
+
+  /** @override */
+  async _impl_init(isReload_unused) {
+    // Nothing needed here for this class.
   }
 
   /** @override */

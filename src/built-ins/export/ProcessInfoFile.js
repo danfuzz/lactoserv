@@ -9,7 +9,6 @@ import { Duration } from '@this/data-values';
 import { Statter } from '@this/fs-util';
 import { Host, ProcessInfo, ProcessUtil, ProductInfo }
   from '@this/host';
-import { IntfLogger } from '@this/loggy-intf';
 import { FileServiceConfig } from '@this/sys-config';
 import { BaseFileService, Saver } from '@this/sys-util';
 import { MustBe } from '@this/typey';
@@ -28,7 +27,7 @@ export class ProcessInfoFile extends BaseFileService {
   #contents = null;
 
   /** @type {?Saver} File saver (preserver) to use, if any. */
-  #saver;
+  #saver = null;
 
   /** @type {Threadlet} Threadlet which runs this service. */
   #runner = new Threadlet(() => this.#start(), () => this.#run());
@@ -37,11 +36,14 @@ export class ProcessInfoFile extends BaseFileService {
    * Constructs an instance.
    *
    * @param {FileServiceConfig} config Configuration for this service.
-   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    */
-  constructor(config, logger) {
-    super(config, logger);
+  constructor(config) {
+    super(config);
+  }
 
+  /** @override */
+  async _impl_init(isReload_unused) {
+    const { config } = this;
     this.#saver = config.save ? new Saver(config, this.logger) : null;
   }
 

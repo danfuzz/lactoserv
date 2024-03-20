@@ -4,7 +4,7 @@
 import * as fs from 'node:fs/promises';
 
 import { WallClock } from '@this/clocks';
-import { FormatUtils, IntfLogger } from '@this/loggy-intf';
+import { FormatUtils } from '@this/loggy-intf';
 import { IntfRequestLogger } from '@this/net-protocol';
 import { OutgoingResponse } from '@this/net-util';
 import { FileServiceConfig } from '@this/sys-config';
@@ -21,7 +21,7 @@ import { MustBe } from '@this/typey';
  */
 export class RequestLogger extends BaseFileService {
   /** @type {?Rotator} File rotator to use, if any. */
-  #rotator;
+  #rotator = null;
 
   /** @type {boolean} Also log to the system log? */
   #doSyslog;
@@ -30,12 +30,10 @@ export class RequestLogger extends BaseFileService {
    * Constructs an instance.
    *
    * @param {FileServiceConfig} config Configuration for this service.
-   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    */
-  constructor(config, logger) {
-    super(config, logger);
+  constructor(config) {
+    super(config);
 
-    this.#rotator  = config.rotate ? new Rotator(config, this.logger) : null;
     this.#doSyslog = config.doSyslog;
   }
 
@@ -91,6 +89,12 @@ export class RequestLogger extends BaseFileService {
     ].join(' ');
 
     await this.#logLine(requestLogLine);
+  }
+
+  /** @override */
+  async _impl_init(isReload_unused) {
+    const { config } = this;
+    this.#rotator = config.rotate ? new Rotator(config, this.logger) : null;
   }
 
   /** @override */

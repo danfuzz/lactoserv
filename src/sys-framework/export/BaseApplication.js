@@ -1,7 +1,6 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { IntfLogger, IntfLoggingEnvironment } from '@this/loggy-intf';
 import { DispatchInfo, IncomingRequest, IntfRequestHandler, OutgoingResponse }
   from '@this/net-util';
 import { ApplicationConfig } from '@this/sys-config';
@@ -23,24 +22,14 @@ export class BaseApplication extends BaseComponent {
   #filterConfig;
 
   /**
-   * @type {?IntfLoggingEnvironment} Logging environment, or `null` the instance
-   * is not doing logging.
-   */
-  #loggingEnv;
-
-  /**
    * Constructs an instance.
    *
    * @param {ApplicationConfig} config Configuration for this application.
-   * @param {?IntfLogger} logger Logger to use at the application layer
-   *   (incoming requests have their own logger), or `null` to not do any
-   *   logging.
    */
-  constructor(config, logger) {
-    super(config, logger);
+  constructor(config) {
+    super(config);
 
     this.#filterConfig = (config instanceof BaseApplication.FilterConfig) ? config : null;
-    this.#loggingEnv   = this.logger?.$env ?? null;
   }
 
   /** @override */
@@ -149,14 +138,15 @@ export class BaseApplication extends BaseComponent {
    * @returns {?OutgoingResponse} Response to the request, if any.
    */
   async #logHandlerCall(request, dispatch, result) {
-    const startTime = this.#loggingEnv.now();
-    const logger    = this.logger;
-    const id        = request.id;
+    const loggingEnv = this.logger.$env;
+    const startTime  = loggingEnv.now();
+    const logger     = this.logger;
+    const id         = request.id;
 
     logger?.handling(id, dispatch.extraString);
 
     const done = (fate, ...error) => {
-      const endTime  = this.#loggingEnv.now();
+      const endTime  = loggingEnv.now();
       const duration = endTime.subtract(startTime);
       logger[fate](id, duration, ...error);
     };

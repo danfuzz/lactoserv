@@ -7,6 +7,7 @@ import { AskIf, MustBe } from '@this/typey';
 
 import { BaseComponent } from '#x/BaseComponent';
 import { BaseControllable } from '#x/BaseControllable';
+import { ControlContext } from '#x/ControlContext';
 
 
 /**
@@ -50,17 +51,14 @@ export class ComponentManager extends BaseControllable {
    *   the same as passing `BaseComponent`.
    * @param {?IntfLogger} [options.baseSublogger] Base sublogger to use
    *   for instantiated components, or `null` not to do any logging.
-   * @param {?IntfLogger} [options.logger] Logger to use for this
-   *   instance, or `null` not to do any logging.
    */
   constructor(configs, options) {
     const {
       baseClass = null,
-      baseSublogger = null,
-      logger = null
+      baseSublogger = null
     } = options;
 
-    super(logger);
+    super();
 
     this.#baseClass = (baseClass === null)
       ? BaseComponent
@@ -113,9 +111,22 @@ export class ComponentManager extends BaseControllable {
   }
 
   /** @override */
+  async _impl_init(isReload) {
+    const instances = this.getAll();
+
+    const results = instances.map((c) => {
+      const logger  = this.#baseSublogger[c.name];
+      const context = new ControlContext(this.context.world, logger);
+      return c.init(context, isReload);
+    });
+
+    await Promise.all(results);
+  }
+
+  /** @override */
   async _impl_start(isReload) {
     const instances = this.getAll();
-    const results   = instances.map((s) => s.start(isReload));
+    const results   = instances.map((c) => c.start(isReload));
 
     await Promise.all(results);
   }
@@ -123,7 +134,7 @@ export class ComponentManager extends BaseControllable {
   /** @override */
   async _impl_stop(willReload) {
     const instances = this.getAll();
-    const results   = instances.map((s) => s.stop(willReload));
+    const results   = instances.map((c) => c.stop(willReload));
 
     await Promise.all(results);
   }
@@ -143,11 +154,8 @@ export class ComponentManager extends BaseControllable {
       throw new Error(`Duplicate component: ${name}`);
     }
 
-    const sublogger = this.#baseSublogger[name];
-    const instance  = new config.class(config, sublogger);
-
+    const instance = new config.class(config);
     this.#instances.set(name, instance);
-    this.logger?.bound(name);
   }
 
   /**

@@ -45,6 +45,11 @@ export class RequestSyslogger extends BaseService {
   }
 
   /** @override */
+  async _impl_init(isReload_unused) {
+    // Nothing needed here for this class.
+  }
+
+  /** @override */
   async _impl_start(isReload_unused) {
     // No need to do anything.
   }

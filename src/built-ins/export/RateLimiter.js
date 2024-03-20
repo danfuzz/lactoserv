@@ -33,10 +33,9 @@ export class RateLimiter extends BaseService {
    * Constructs an instance.
    *
    * @param {ServiceConfig} config Configuration for this service.
-   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    */
-  constructor(config, logger) {
-    super(config, logger);
+  constructor(config) {
+    super(config);
 
     const { connections, data, requests } = config;
 
@@ -62,6 +61,11 @@ export class RateLimiter extends BaseService {
     }
 
     return RateLimitedStream.wrapWriter(this.#data, stream, logger);
+  }
+
+  /** @override */
+  async _impl_init(isReload_unused) {
+    // Nothing needed here for this class.
   }
 
   /** @override */
