@@ -149,7 +149,6 @@ export class ProtocolWrangler {
    * Initializes this instance as needed prior to getting `start()`ed, including
    * optionally setting up a logger to use.
    *
-   *
    * @param {?IntfLogger} logger System logger to use, or `null` if to not do
    *   logging.
    * @param {boolean} isReload Is this action due to an in-process reload?
