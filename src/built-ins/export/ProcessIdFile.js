@@ -31,6 +31,11 @@ export class ProcessIdFile extends BaseFileService {
   // Note: Default constructor is fine for this class.
 
   /** @override */
+  async _impl_init(isReload_unused) {
+    // Nothing needed here for this class.
+  }
+
+  /** @override */
   async _impl_start(isReload_unused) {
     await this.#runner.start();
   }

@@ -94,6 +94,11 @@ export class RequestLogger extends BaseFileService {
   }
 
   /** @override */
+  async _impl_init(isReload_unused) {
+    // Nothing needed here for this class.
+  }
+
+  /** @override */
   async _impl_start(isReload) {
     await this._prot_createDirectoryIfNecessary();
     await this._prot_touchPath();

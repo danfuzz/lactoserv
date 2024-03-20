@@ -46,6 +46,11 @@ export class ProcessInfoFile extends BaseFileService {
   }
 
   /** @override */
+  async _impl_init(isReload_unused) {
+    // Nothing needed here for this class.
+  }
+
+  /** @override */
   async _impl_start(isReload) {
     if (this.#saver) {
       if (!isReload) {

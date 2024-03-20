@@ -54,6 +54,11 @@ export class Redirector extends BaseApplication {
   }
 
   /** @override */
+  async _impl_init(isReload_unused) {
+    // Nothing needed here for this class.
+  }
+
+  /** @override */
   async _impl_start(isReload_unused) {
     // Nothing to do here.
   }

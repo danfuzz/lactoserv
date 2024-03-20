@@ -59,6 +59,21 @@ export class BaseControllable {
   }
 
   /**
+   * Subclass-specific implementation of {@link #init}. By the time this is
+   * called, the {@link #context} will have been set.
+   *
+   * **Note:** It is not appropriate to take any overt external action in this
+   * method (such as writing files to the filesystem or opening a network
+   * connection) beyond "sensing" (e.g., reading a file).
+   *
+   * @abstract
+   * @param {boolean} isReload Is this action due to an in-process reload?
+   */
+  async _impl_init(isReload) {
+    Methods.abstract(isReload);
+  }
+
+  /**
    * Subclass-specific implementation of {@link #start}.
    *
    * @abstract
@@ -85,6 +100,28 @@ export class BaseControllable {
   //
 
   /**
+   * Logs a message about an item (component, etc.) completing an `init()`
+   * action.
+   *
+   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
+   * @param {boolean} isReload Is this a system reload (vs. first-time init)?
+   */
+  static logInitialized(logger, isReload) {
+    logger?.initialized(isReload ? 'reload' : 'boot');
+  }
+
+  /**
+   * Logs a message about an item (component, etc.) starting an `init()`
+   * action.
+   *
+   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
+   * @param {boolean} isReload Is this a system reload (vs. first-time init)?
+   */
+  static logInitializing(logger, isReload) {
+    logger?.initializing(isReload ? 'reload' : 'boot');
+  }
+
+  /**
    * Logs a message about an item (component, etc.) completing a `start()`
    * action.
    *
@@ -92,7 +129,7 @@ export class BaseControllable {
    * @param {boolean} isReload Is this a system reload (vs. first-time init)?
    */
   static logStarted(logger, isReload) {
-    logger?.started(isReload ? 'reload' : 'init');
+    logger?.started(isReload ? 'reload' : 'boot');
   }
 
   /**
@@ -103,7 +140,7 @@ export class BaseControllable {
    * @param {boolean} isReload Is this a system reload (vs. first-time init)?
    */
   static logStarting(logger, isReload) {
-    logger?.starting(isReload ? 'reload' : 'init');
+    logger?.starting(isReload ? 'reload' : 'boot');
   }
 
   /**
