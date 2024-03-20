@@ -74,7 +74,7 @@ export class EndpointManager extends BaseControllable {
 
     const results = endpoints.map((e) => {
       const logger  = ThisModule.cohortLogger('endpoint')?.[e.name];
-      const context = new ControlContext(this.context.world, logger);
+      const context = new ControlContext(e, this, logger);
       return e.init(context, isReload);
     });
 

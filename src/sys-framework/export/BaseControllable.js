@@ -28,8 +28,8 @@ export class BaseControllable {
    *
    * @param {?ControlContext} [context] Associated context, or `null` to not
    *   start out with a context. This is typically `null` _except_ when creating
-   *   the instance of this class which represents an entire "world" of
-   *   controllable items.
+   *   the instance of this class which represents the root of a controllable
+   *   hierarchy.
    */
   constructor(context = null) {
     this.#context = (context === null)

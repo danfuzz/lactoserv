@@ -10,33 +10,59 @@ import { BaseControllable } from '#x/BaseControllable';
 /**
  * "Context" in which a {@link BaseControllable} is situated. Instances of this
  * class are handed to controllables via {@link BaseControllable#init}, which
- * gets called when they become hooked into a "world" (an environment that
- * contains and manages all the controllable instances).
+ * gets called when they become hooked into a hierarchy of instances.
  */
 export class ControlContext {
   /** @type {?IntfLogger} Logger to use, or `null` to not do any logging. */
   #logger;
 
   /**
-   * @type {?BaseControllable} Instance which represents the entire world of
-   * controllable instances, or `null` if this instance's associated instance
-   * _is_ the "world."
+   * @type {?BaseControllable} Associated controllable instance. Is only ever
+   * `null` for the context of the root instance itself, and only briefly while
+   * it gets bootstrapped.
    */
-  #world;
+  #associate;
+
+  /**
+   * @type {?ControlContext} Instance which represents the parent (container)
+   * of this instance's associated controllable, or `null` if this instance has
+   * no parent (that is, is the root of the containership hierarchy).
+   */
+  #parent;
+
+  /**
+   * @type {ControlContext} Instance which represents the root of the
+   * containership hierarchy.
+   */
+  #root;
 
   /**
    * Constructs an instance.
    *
-   * @param {BaseControllable|string} world Instance which represents the entire
-   *   world of controllable instances, or the string `world` if this instance
-   *   itself is to be the context of the "world" instance.
+   * @param {BaseControllable|string} associate Associated controllable
+   *   instance, or the string `root` if this instance is to represent the root
+   *   instance.
+   * @param {?BaseControllable} parent Parent of `associate`, or `null` if this
+   *   instance is to represent the root instance.
    * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    */
-  constructor(world, logger) {
-    this.#world  = (world === 'world')
-      ? null
-      : MustBe.instanceOf(world, BaseControllable);
+  constructor(associate, parent, logger) {
     this.#logger = logger;
+
+    if (associate === 'root') {
+      this.#associate = null; // Gets set in `linkRoot()`.
+      this.#parent    = null; // ...and it stays that way.
+      this.#root      = this;
+    } else {
+      this.#associate = MustBe.instanceOf(associate, BaseControllable);
+      this.#parent    = MustBe.instanceOf(parent, BaseControllable).context;
+      this.#root      = this.#parent.#root;
+    }
+  }
+
+  /** @returns {BaseControllable} Associated controllable instance. */
+  get associate() {
+    return this.#associate;
   }
 
   /** @returns {?IntfLogger} Logger to use, or `null` to not do any logging. */
@@ -45,31 +71,46 @@ export class ControlContext {
   }
 
   /**
-   * @returns {BaseControllable} Instance which represents the entire world of
-   * controllable instances.
+   * @returns {?ControlContext} Instance which represents the parent of this
+   * instance's {@link #associate}, or `null` if this instance represents the
+   * root of the containership hierarchy.
    */
-  get world() {
-    if (this.#world === null) {
-      throw new Error('Incomplete "world" context.');
-    }
-
-    return this.#world;
+  get parent() {
+    return this.#parent;
   }
 
   /**
-   * Sets up the loopback of this instance to the actual "world" object. This
-   * is needed because it's impossible to name the world during its own
-   * construction (due to JavaScript rules around references to `this`).
-   *
-   * @param {BaseControllable} world The actual "world" instance.
+   * @returns {ControlContext} Instance which represents the root of the
+   * containership hierarchy.
    */
-  linkWorld(world) {
-    if (this.#world !== null) {
-      throw new Error('Already linked to a world.');
-    } else if (world.context !== this) {
+  get root() {
+    if (this.#root === null) {
+      throw new Error('Root setup was incomplete.');
+    }
+
+    return this.#root;
+  }
+
+  /**
+   * Sets up the {@link #associate} of this instance to be the indicated object.
+   * This method is needed because it's impossible for the root to refer to
+   * itself when trying to construct an instance of this class before calling
+   * `super()` in its `constructor()` (due to JavaScript rules around references
+   * to `this` in that context).
+   *
+   * @param {BaseControllable} root The actual "root" instance.
+   */
+  linkRoot(root) {
+    MustBe.instanceOf(root, BaseControllable);
+
+    if (this.#root !== this) {
+      throw new Error('Not a root instance.');
+    } else if (this.#associate !== null) {
+      throw new Error('Already linked.');
+    } else if (root.context !== this) {
       throw new Error('Context mismatch.');
     }
 
-    this.#world = world;
+    this.#associate = root;
   }
 }
