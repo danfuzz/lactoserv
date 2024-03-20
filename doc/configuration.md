@@ -40,8 +40,7 @@ import { Moment } from '@lactoserv/data-values';
 ```
 
 And in order to use any of the built-in applications or services, you will need
-to import them from `@lactoserv/builtin-applications` or `@builtin-services`
-(respectively).
+to import them from `@lactoserv/built-ins`.
 
 ## Configuration object bindings
 
@@ -108,7 +107,7 @@ for a list of all built-in system services. The `name` is used both when logging
 activity (to the system log) and when hooking services up.
 
 ```js
-import { ServiceClass } from '@lactoserv/builtin-services';
+import { ServiceClass } from '@lactoserv/built-ins';
 
 const services = [
   {
@@ -486,7 +485,7 @@ bindings:
   megabyte.
 
 ```js
-import { MemoryMonitor } from '@lactoserv/builtin-services';
+import { MemoryMonitor } from '@lactoserv/built-ins';
 
 const services = [
   {
@@ -520,7 +519,7 @@ optionally on a periodic basis. It accepts the following configuration bindings:
   only meaningfully used when `multiprocess` is `true`.
 
 ```js
-import { ProcessIdFile } from '@lactoserv/builtin-services';
+import { ProcessIdFile } from '@lactoserv/built-ins';
 
 const services = [
   {
@@ -552,7 +551,7 @@ configuration bindings:
   file preservation is done.
 
 ```js
-import { ProcessInfoFile } from '@lactoserv/builtin-services';
+import { ProcessInfoFile } from '@lactoserv/built-ins';
 
 const services = [
   {
@@ -596,7 +595,7 @@ object with the following bindings:
   `connections` and `requests` are only requested one at a time.)
 
 ```js
-import { RateLimiter } from '@lactoserv/builtin-services';
+import { RateLimiter } from '@lactoserv/built-ins';
 
 const services = [
   {
@@ -631,7 +630,7 @@ the following configuration bindings:
   of `RequestSyslogger` for free.)
 
 ```js
-import { RequestLogger } from '@lactoserv/builtin-services';
+import { RequestLogger } from '@lactoserv/built-ins';
 
 const services = [
   {
@@ -652,7 +651,7 @@ into a file). It does not accept any configuration bindings beyond the basics
 of any service.
 
 ```js
-import { RequestSyslogger } from '@lactoserv/builtin-services';
+import { RequestSyslogger } from '@lactoserv/built-ins';
 
 const services = [
   {
@@ -681,7 +680,7 @@ highly advisable to set up sane limits on the amount of storage used by
 configuring `rotate`.
 
 ```js
-import { SystemLogger } from '@lactoserv/builtin-services';
+import { SystemLogger } from '@lactoserv/built-ins';
 
 const services = [
   {

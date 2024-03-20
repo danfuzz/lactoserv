@@ -6,7 +6,7 @@ import * as fs from 'node:fs/promises';
 import { Redirector, SimpleResponse, StaticFiles }
   from '@lactoserv/builtin-applications';
 import { MemoryMonitor, ProcessIdFile, ProcessInfoFile, RateLimiter,
-  RequestLogger, SystemLogger } from '@lactoserv/builtin-services';
+  RequestLogger, SystemLogger } from '@lactoserv/built-ins';
 
 
 const fileUrl  = (path) => new URL(path, import.meta.url);

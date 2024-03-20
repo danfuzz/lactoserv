@@ -1,7 +1,8 @@
-@this/builtin-services
-======================
+@this/built-ins
+===============
 
-This module contains all the built-in high-level system service implementations.
+This module contains all the built-in high-level application and system service
+classes.
 
 - - - - - - - - - -
 ```
