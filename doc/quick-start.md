@@ -34,12 +34,14 @@ self-signed certificate.
 
 ```bash
 $ cat >my-config.mjs <<EOF
+import { StaticFiles } from '@lactoserv/builtin-applications';
+
 const config = {
   hosts: [{ hostnames: ['localhost'], selfSigned: true }],
   applications: [
     {
       name:          'mySite',
-      class:         'StaticFiles',
+      class:         StaticFiles,
       siteDirectory: filePath('/usr/share/website'),
       etag:          true
     }
@@ -80,12 +82,19 @@ Browse! Use your web browser or `curl` to visit `http://localhost:8080` or
 ## Framework
 
 The framework example can be found in the directory
-[quick-start/code](./quick-start/code), including a configuration class which
-is shared with the standalone example.
+[quick-start/code](./quick-start/code).
 
 This example can be run using the script `./doc/quick-start/run-standalone`,
 which will even build the system for you if you haven't done that yet.
 
+## Compare and contrast
+
+The only difference between the configuration files of the standalone vs. the
+framework versions is the names of the modules that are `import`ed from: In
+the standalone version, modules use the naming scope `@lactoserv` &mdash; the
+"published" name of the project &mdash; while the framework version uses the
+scope `@this`, which is the internal name used by the project to mean "this
+project's modules."
 
 - - - - - - - - - -
 ```
