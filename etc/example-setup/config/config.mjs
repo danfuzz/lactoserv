@@ -3,9 +3,9 @@
 
 import * as fs from 'node:fs/promises';
 
-import { Redirector, SimpleResponse, StaticFiles,
-  MemoryMonitor, ProcessIdFile, ProcessInfoFile, RateLimiter,
-  RequestLogger, SystemLogger } from '@lactoserv/built-ins';
+import { MemoryMonitor, ProcessIdFile, ProcessInfoFile, RateLimiter,
+  Redirector, RequestLogger, SimpleResponse, StaticFiles, SystemLogger }
+  from '@lactoserv/built-ins';
 
 
 const fileUrl  = (path) => new URL(path, import.meta.url);

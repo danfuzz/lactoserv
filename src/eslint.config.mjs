@@ -1,11 +1,12 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import globals from 'globals';
-import jestPlugin from 'eslint-plugin-jest';
 import js from '@eslint/js';
-import jsdocPlugin from 'eslint-plugin-jsdoc';
 import stylisticPlugin from '@stylistic/eslint-plugin';
+import jestPlugin from 'eslint-plugin-jest';
+import jsdocPlugin from 'eslint-plugin-jsdoc';
+import globals from 'globals';
+
 
 // "Stylistic" rules (indentation, semicolon hygiene, etc.).
 const stylisticRules = {

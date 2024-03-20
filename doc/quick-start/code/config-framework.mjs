@@ -1,5 +1,6 @@
 import { StaticFiles } from '@this/built-ins';
 
+
 const SITE_DIR = new URL('../website', import.meta.url).pathname;
 
 const config = {
