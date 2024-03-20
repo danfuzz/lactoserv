@@ -39,6 +39,10 @@ using the module namespace prefix `@lactoserv/`, e.g.:
 import { Moment } from '@lactoserv/data-values';
 ```
 
+And in order to use any of the built-in applications or services, you will need
+to import them from `@lactoserv/builtin-applications` or `@builtin-services`
+(respectively).
+
 ## Configuration object bindings
 
 The following are the bindings that are expected at the top level of the
@@ -104,10 +108,12 @@ for a list of all built-in system services. The `name` is used both when logging
 activity (to the system log) and when hooking services up.
 
 ```js
+import { ServiceClass } from '@lactoserv/builtin-services';
+
 const services = [
   {
     name:       'someService',
-    class:      'ServiceClass',
+    class:      ServiceClass,
     // ... class-specific configuration ...
   },
   // ... more ...
@@ -129,10 +135,12 @@ both when logging activity (to the system log) and when hooking applications up
 to endpoints.
 
 ```js
+import { ApplicationClass } from '@lactoserv/builtin-applications';
+
 const applications = [
   {
     name:       'someApplication',
-    class:      'ApplicationClass',
+    class:      ApplicationClass,
     // ... class-specific configuration ...
   },
   // ... more ...
@@ -216,8 +224,9 @@ hostname. (It will not fall back to less specific hostnames.)
 ### `BaseApplication`
 
 `BaseApplication` can be subclassed to implement custom behavior. In addition,
-it optionally provides request filtering for application subclasses. It accepts
-the following configuration bindings:
+it optionally provides request filtering for application subclasses in general,
+including the built-in applications. It accepts the following configuration
+bindings:
 
 * `acceptQueries` &mdash; Boolean indicating whether or not to accept requests
   that include a "query" (search) component. Defaults to `true`.
@@ -247,10 +256,16 @@ that the application simply _doesn't handle_ the request, meaning that the
 request will get re-dispatched to the next application in the chain (if any).
 
 ```js
+import { BaseApplication } from '@lactoserv/sys-framework';
+
+class MyApplication extends BaseApplication {
+  // ... more ...
+}
+
 const applications = [
   {
     name:          'myCustomApp',
-    class:         'SomeSubclass',
+    class:         MyApplication,
     acceptQueries: false,
     acceptMethods: ['delete', 'put']
   }
@@ -271,10 +286,12 @@ it accepts the following bindings:
   `false`, every cacheable response comes with the specified header.
 
 ```js
+import { Redirector } from '@lactoserv/builtin-applications';
+
 const applications = [
   {
     name:          'myRedirector',
-    class:         'Redirector',
+    class:         Redirector,
     statusCode:    308,
     target:        'https://example.com/boop/',
     cacheControl:  { public: true, maxAge: '5 min' },
@@ -320,10 +337,12 @@ zero-length but contentful, e.g. a regular successful response will be status
 by a `filePath` behaves.
 
 ```js
+import { SimpleResponse } from '@lactoserv/builtin-applications';
+
 const applications = [
   {
     name:                'literal',
-    class:               'SimpleResponse',
+    class:               SimpleResponse,
     contentType:         'text/plain',
     body:                'Hello!\n',
     cacheControl:        { public: true, maxAge: '1_day' },
@@ -377,10 +396,12 @@ the following configuration bindings:
 * `siteDirectory` &mdash; Filesystem directory root for the files to serve.
 
 ```js
+import { StaticFiles } from '@lactoserv/builtin-applications';
+
 const applications = [
   {
     name:          'mySite',
-    class:         'StaticFiles',
+    class:         StaticFiles,
     siteDirectory: '/path/to/site',
     notFoundPath:  '/path/to/404.html'
   }
@@ -465,10 +486,12 @@ bindings:
   megabyte.
 
 ```js
+import { MemoryMonitor } from '@lactoserv/builtin-services';
+
 const services = [
   {
     name:         'memory',
-    class:        'MemoryMonitor',
+    class:        MemoryMonitor,
     checkPeriod:  '5 min',
     gracePeriod:  '1 min',
     maxHeapBytes: 100 * 1024 * 1024,
@@ -497,10 +520,12 @@ optionally on a periodic basis. It accepts the following configuration bindings:
   only meaningfully used when `multiprocess` is `true`.
 
 ```js
+import { ProcessIdFile } from '@lactoserv/builtin-services';
+
 const services = [
   {
     name:         'process-id',
-    class:        'ProcessIdFile',
+    class:        ProcessIdFile,
     path:         '/path/to/var/run/process.txt',
     multiprocess: true,
     updatePeriod: '1 hr'
@@ -527,10 +552,12 @@ configuration bindings:
   file preservation is done.
 
 ```js
+import { ProcessInfoFile } from '@lactoserv/builtin-services';
+
 const services = [
   {
     name:         'process',
-    class:        'ProcessInfoFile',
+    class:        ProcessInfoFile,
     path:         '/path/to/var/run/process.json',
     updatePeriod: '5 min',
     save:         { /* ... */ }
@@ -569,10 +596,12 @@ object with the following bindings:
   `connections` and `requests` are only requested one at a time.)
 
 ```js
+import { RateLimiter } from '@lactoserv/builtin-services';
+
 const services = [
   {
     name:  'limiter',
-    class: 'RateLimiter',
+    class: RateLimiter,
     connections: {
       maxBurstSize: 5,
       flowRate:     '1 per second',
@@ -602,10 +631,12 @@ the following configuration bindings:
   of `RequestSyslogger` for free.)
 
 ```js
+import { RequestLogger } from '@lactoserv/builtin-services';
+
 const services = [
   {
     name:            'requests',
-    class:           'RequestLogger',
+    class:           RequestLogger,
     path:            '/path/to/var/log/request-log.txt',
     rotate:          { /* ... */ },
     sendToSystemLog: true
@@ -621,10 +652,12 @@ into a file). It does not accept any configuration bindings beyond the basics
 of any service.
 
 ```js
+import { RequestSyslogger } from '@lactoserv/builtin-services';
+
 const services = [
   {
     name:  'requestSyslog',
-    class: 'RequestSyslogger'
+    class: RequestSyslogger
   }
 ];
 ```
@@ -648,10 +681,12 @@ highly advisable to set up sane limits on the amount of storage used by
 configuring `rotate`.
 
 ```js
+import { SystemLogger } from '@lactoserv/builtin-services';
+
 const services = [
   {
     name:   'syslog-json',
-    class:  'SystemLogger',
+    class:  SystemLogger,
     path:   '/path/to/var/log/system-log.json',
     format: 'json',
     rotate: { /* ... */ }
@@ -798,9 +833,11 @@ have any meaning.
 
 ## Custom Applications and Services
 
-As of this writing, there is no way to use the configuration file to add new
-classes of application or service. The intention is for that to be added in the
-future.
+Custom applications and classes are simply new subclasses of the framework
+classes `BaseApplication` or `BaseService` in the module
+`@lactoserv/sys-framework`. Refer to the documentation of these base classes
+for more details, and look to any of the built-in applications or services for
+implementation patterns which can be copied and altered to fit your needs.
 
 - - - - - - - - - -
 ```
