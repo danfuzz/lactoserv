@@ -3,6 +3,11 @@
 
 import * as fs from 'node:fs/promises';
 
+import { Redirector, SimpleResponse, StaticFiles }
+  from '@lactoserv/builtin-applications';
+import { MemoryMonitor, ProcessIdFile, ProcessInfoFile, RateLimiter,
+  RequestLogger, SystemLogger } from '@lactoserv/builtin-services';
+
 
 const fileUrl  = (path) => new URL(path, import.meta.url);
 const filePath = (path) => fileUrl(path).pathname;
@@ -31,7 +36,7 @@ const hosts = [
 const services = [
   {
     name:         'memory',
-    class:        'MemoryMonitor',
+    class:        MemoryMonitor,
     checkPeriod:  '10 min',
     gracePeriod:  '1 min',
     maxHeapBytes: 100 * 1024 * 1024,
@@ -39,7 +44,7 @@ const services = [
   },
   {
     name:         'process',
-    class:        'ProcessInfoFile',
+    class:        ProcessInfoFile,
     path:         `${RUN_DIR}/process.json`,
     updatePeriod: '5 min',
     save: {
@@ -50,14 +55,14 @@ const services = [
   },
   {
     name:         'processId',
-    class:        'ProcessIdFile',
+    class:        ProcessIdFile,
     path:         `${RUN_DIR}/process.txt`,
     multiprocess: true,
     updatePeriod: '5 min'
   },
   {
     name:   'syslog',
-    class:  'SystemLogger',
+    class:  SystemLogger,
     path:   `${LOG_DIR}/system-log.txt`,
     format: 'human',
     rotate: {
@@ -69,7 +74,7 @@ const services = [
   },
   {
     name:   'syslogJson',
-    class:  'SystemLogger',
+    class:  SystemLogger,
     path:   `${LOG_DIR}/system-log.json`,
     format: 'json',
     rotate: {
@@ -84,7 +89,7 @@ const services = [
   },
   {
     name:  'requests',
-    class: 'RequestLogger',
+    class: RequestLogger,
     path:  `${LOG_DIR}/request-log.txt`,
     rotate: {
       atSize:      10000,
@@ -94,12 +99,8 @@ const services = [
     sendToSystemLog: true
   },
   {
-    name:  'requestSyslog',
-    class: 'RequestSyslogger'
-  },
-  {
     name:        'limiter',
-    class:       'RateLimiter',
+    class:       RateLimiter,
     connections: {
       maxBurstSize: 10,
       flowRate:     '3 per sec',
@@ -123,14 +124,14 @@ const services = [
 const applications = [
   {
     name:         'myWackyRedirector',
-    class:        'Redirector',
+    class:        Redirector,
     statusCode:   308,
     target:       'https://localhost:8443/resp/',
     cacheControl: { public: true, maxAge: '5 min' }
   },
   {
     name:          'myStaticFun',
-    class:         'StaticFiles',
+    class:         StaticFiles,
     siteDirectory: filePath('../site'),
     notFoundPath:  filePath('../site-extra/not-found.html'),
     cacheControl:  { public: true, maxAge: '5 min' },
@@ -138,25 +139,25 @@ const applications = [
   },
   {
     name:          'myStaticFunNo404',
-    class:         'StaticFiles',
+    class:         StaticFiles,
     siteDirectory: filePath('../site'),
     cacheControl:  { public: true, maxAge: '5 min' }
   },
   {
     name:         'responseEmptyBody',
-    class:        'SimpleResponse',
+    class:        SimpleResponse,
     filePath:     filePath('../site-extra/empty-file.txt'),
     cacheControl: 'public, immutable, max-age=600'
   },
   {
     name:         'responseNoBody',
-    class:        'SimpleResponse',
+    class:        SimpleResponse,
     cacheControl: { public: true, immutable: true, maxAge: '11 min' },
     etag:         true
   },
   {
     name:         'responseOne',
-    class:        'SimpleResponse',
+    class:        SimpleResponse,
     contentType:  'text/plain',
     body:         'One!\n',
     cacheControl: { public: true, immutable: true, maxAge: '12 min'  },
@@ -170,7 +171,7 @@ const applications = [
   },
   {
     name:                'responseTwo',
-    class:               'SimpleResponse',
+    class:               SimpleResponse,
     contentType:         'text/html',
     body:                '<html><body><h1>Two!</h1></body></html>\n',
     cacheControl:        { public: true, immutable: true, maxAge: '13 min'  },

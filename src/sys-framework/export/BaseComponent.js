@@ -23,6 +23,7 @@ export class BaseComponent extends BaseControllable {
    */
   constructor(config, logger) {
     super(logger);
+    console.log('###################################', config, config.name);
     this.#config = MustBe.instanceOf(config, this.constructor.CONFIG_CLASS);
   }
 

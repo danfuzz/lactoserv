@@ -5,7 +5,6 @@ import { TreePathKey } from '@this/collections';
 import { Uris } from '@this/net-util';
 
 import { BaseConfig } from '#x/BaseConfig';
-import { ConfigClassMapper } from '#x/ConfigClassMapper';
 import { EndpointConfig } from '#x/EndpointConfig';
 import { Names } from '#x/Names';
 
@@ -89,22 +88,15 @@ export class MountConfig extends BaseConfig {
    *
    * @override
    * @param {object|object[]} items Configuration object or array of same.
-   * @param {?ConfigClassMapper} [configClassMapper] Optional mapper from
-   *   configuration objects to corresponding configuration classes. In this
-   *   case it is required to be `null`.
    * @returns {MountConfig[]} Frozen array of instances of the called class, if
    *   successfully parsed.
    * @throws {Error} Thrown if there was any trouble.
    */
-  static parseArray(items, configClassMapper = null) {
+  static parseArray(items) {
     if (items === null) {
       throw new Error('`items` must be non-null.');
     } else if (!Array.isArray(items)) {
       items = [items];
-    }
-
-    if (configClassMapper !== null) {
-      throw new Error('Non-null `configClassMapper` not supported.');
     }
 
     const result = [];

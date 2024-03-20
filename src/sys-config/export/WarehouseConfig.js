@@ -3,7 +3,6 @@
 
 import { ApplicationConfig } from '#x/ApplicationConfig';
 import { BaseConfig } from '#x/BaseConfig';
-import { ConfigClassMapper } from '#x/ConfigClassMapper';
 import { EndpointConfig } from '#x/EndpointConfig';
 import { HostConfig } from '#x/HostConfig';
 import { ServiceConfig } from '#x/ServiceConfig';
@@ -40,11 +39,8 @@ export class WarehouseConfig extends BaseConfig {
    * Constructs an instance.
    *
    * @param {object} config Configuration object. See class header for details.
-   * @param {?ConfigClassMapper} [configClassMapper] Optional mapper from
-   *   configuration objects to corresponding configuration classes, or `null`
-   *   to not do mapping. (See {@link BaseConfig#parseArray}.)
    */
-  constructor(config, configClassMapper = null) {
+  constructor(config) {
     super(config);
 
     const {
@@ -54,10 +50,10 @@ export class WarehouseConfig extends BaseConfig {
       services = []
     } = config;
 
-    this.#applications = ApplicationConfig.parseArray(applications, configClassMapper);
-    this.#hosts        = HostConfig.parseArray(hosts, configClassMapper);
-    this.#endpoints    = EndpointConfig.parseArray(endpoints, configClassMapper);
-    this.#services     = ServiceConfig.parseArray(services, configClassMapper);
+    this.#applications = ApplicationConfig.parseArray(applications);
+    this.#hosts        = HostConfig.parseArray(hosts);
+    this.#endpoints    = EndpointConfig.parseArray(endpoints);
+    this.#services     = ServiceConfig.parseArray(services);
   }
 
   /** @returns {ApplicationConfig[]} Application configuration objects. */

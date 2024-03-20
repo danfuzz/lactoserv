@@ -4,11 +4,9 @@
 import * as child_process from 'node:child_process';
 
 import { Condition } from '@this/async';
-import { BuiltinApplications } from '@this/builtin-applications';
-import { BuiltinServices } from '@this/builtin-services';
 import { IntfLogger } from '@this/loggy-intf';
 import { LimitedLoader } from '@this/metacomp';
-import { ComponentRegistry, Warehouse } from '@this/sys-framework';
+import { Warehouse } from '@this/sys-framework';
 import { MustBe } from '@this/typey';
 
 import { ThisModule } from '#p/ThisModule';
@@ -57,17 +55,9 @@ export class WarehouseMaker {
       throw e;
     }
 
-    // Note: This would be where non-builtin component classes get set up and
-    // registered, if and when that becomes a thing.
-    const classes = [
-      ...BuiltinApplications.getAll(),
-      ...BuiltinServices.getAll()
-    ];
-    const registry = new ComponentRegistry(classes);
-
     try {
       this.#logger?.constructingWarehouse();
-      const result = new Warehouse(config, registry);
+      const result = new Warehouse(config);
       this.#logger?.constructedWarehouse();
       return result;
     } catch (e) {

@@ -1,9 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { AskIf, MustBe } from '@this/typey';
-
-import { ConfigClassMapper } from '#x/ConfigClassMapper';
+import { MustBe } from '@this/typey';
 
 
 /**
@@ -34,10 +32,9 @@ export class BaseConfig {
    * plain object suitable for passing to a constructor which produces an
    * instance of the called class (or a subclass).
    *
-   * If the optional second argument is _not_ passed, then all constructor calls
-   * are made on the called class. With the second argument `classMapper`, each
-   * non-instance item is passed to that function, which is expected to return
-   * the class which should be constructed from the item.
+   * Items which have a `class` property expect that property to refer to a
+   * component class which itself defines a `CONFIG_CLASS` property, the latter
+   * which is used as the class of the resulting configuration object.
    *
    * (This method is defined on the base class and acts on behalf of all its
    * subclasses.)
@@ -45,13 +42,11 @@ export class BaseConfig {
    * @param {*} items Single configuration object or array of them.
    *   Configuration objects are required to be as described by the called
    *   class's (or subclasses') constructor(s).
-   * @param {?ConfigClassMapper} [configClassMapper] Optional mapper from
-   *   configuration objects to corresponding configuration classes.
    * @returns {BaseConfig[]} Frozen array of instances of the called class, if
    *   successfully parsed.
    * @throws {Error} Thrown if there was any trouble.
    */
-  static parseArray(items, configClassMapper = null) {
+  static parseArray(items) {
     if (items === null) {
       throw new Error('`items` must be non-null.');
     } else if (!Array.isArray(items)) {
@@ -61,16 +56,16 @@ export class BaseConfig {
     const result = items.map((item) => {
       if (item instanceof this) {
         return item;
-      } else if (!configClassMapper) {
-        return new this(item);
-      } else {
-        const cls = configClassMapper(item, this);
-        if (AskIf.subclassOf(cls, this)) {
-          return new cls(item);
-        } else {
-          throw new Error('Configuration mapped to non-subclass.');
-        }
       }
+
+      const itemClass   = item.class;
+      const configClass = itemClass ? itemClass.CONFIG_CLASS : this;
+
+      if (!configClass) {
+        throw new Error('Item\'s `class` missing `CONFIG_CLASS` property.');
+      }
+
+      return new configClass(item);
     });
 
     return Object.freeze(result);
@@ -81,16 +76,15 @@ export class BaseConfig {
    * `items === null`.
    *
    * @param {*} items Array of configuration objects, or `null`.
-   * @param {?ConfigClassMapper} [configClassMapper] Optional mapper.
    * @returns {?BaseConfig[]} Frozen array of instances, or `null` if
    *   `items === null`.
    * @throws {Error} Thrown if there was any trouble.
    */
-  static parseArrayOrNull(items, configClassMapper = null) {
+  static parseArrayOrNull(items) {
     if (items === null) {
       return null;
     }
 
-    return this.parseArray(items, configClassMapper);
+    return this.parseArray(items);
   }
 }
