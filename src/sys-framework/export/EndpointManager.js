@@ -33,7 +33,7 @@ export class EndpointManager extends BaseControllable {
    * @param {Warehouse} warehouse The warehouse this instance is in.
    */
   constructor(configs, warehouse) {
-    super(ThisModule.subsystemLogger('endpoints'));
+    super();
 
     this.#warehouse = warehouse;
 
@@ -138,7 +138,6 @@ export class EndpointManager extends BaseControllable {
     const instance = new NetworkEndpoint(config, extraConfig);
 
     this.#instances.set(name, instance);
-    this.logger?.bound(name);
   }
 
   /**

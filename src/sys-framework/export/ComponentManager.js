@@ -51,17 +51,14 @@ export class ComponentManager extends BaseControllable {
    *   the same as passing `BaseComponent`.
    * @param {?IntfLogger} [options.baseSublogger] Base sublogger to use
    *   for instantiated components, or `null` not to do any logging.
-   * @param {?IntfLogger} [options.logger] Logger to use for this
-   *   instance, or `null` not to do any logging.
    */
   constructor(configs, options) {
     const {
       baseClass = null,
-      baseSublogger = null,
-      logger = null
+      baseSublogger = null
     } = options;
 
-    super(logger);
+    super();
 
     this.#baseClass = (baseClass === null)
       ? BaseComponent
@@ -161,7 +158,6 @@ export class ComponentManager extends BaseControllable {
     const instance  = new config.class(config, sublogger);
 
     this.#instances.set(name, instance);
-    this.logger?.bound(name);
   }
 
   /**

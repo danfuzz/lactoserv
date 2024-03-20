@@ -53,14 +53,12 @@ export class Warehouse extends BaseControllable {
 
     this.#applicationManager = new ComponentManager(parsed.applications, {
       baseClass:     BaseApplication,
-      baseSublogger: ThisModule.cohortLogger('app'),
-      logger:        ThisModule.subsystemLogger('apps')
+      baseSublogger: ThisModule.cohortLogger('app')
     });
 
     this.#serviceManager = new ComponentManager(parsed.services, {
       baseClass:     BaseService,
-      baseSublogger: ThisModule.cohortLogger('service'),
-      logger:        ThisModule.subsystemLogger('services')
+      baseSublogger: ThisModule.cohortLogger('service')
     });
 
     this.#hostManager     = new HostManager(parsed.hosts);
@@ -96,7 +94,7 @@ export class Warehouse extends BaseControllable {
 
     const results = [
       this.#serviceManager.init(makeCc('services'), isReload),
-      this.#applicationManager.init(makeCc('applications'), isReload),
+      this.#applicationManager.init(makeCc('apps'), isReload),
       this.#endpointManager.init(makeCc('endpoints'), isReload)
     ];
 
