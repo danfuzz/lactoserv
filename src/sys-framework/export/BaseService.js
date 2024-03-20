@@ -1,7 +1,6 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { IntfLogger } from '@this/loggy-intf';
 import { ServiceConfig } from '@this/sys-config';
 
 import { BaseComponent } from '#x/BaseComponent';
@@ -15,10 +14,9 @@ export class BaseService extends BaseComponent {
    * Constructs an instance.
    *
    * @param {ServiceConfig} config Configuration for this service.
-   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    */
-  constructor(config, logger) {
-    super(config, logger);
+  constructor(config) {
+    super(config);
   }
 
 

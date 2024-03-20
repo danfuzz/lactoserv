@@ -154,9 +154,7 @@ export class ComponentManager extends BaseControllable {
       throw new Error(`Duplicate component: ${name}`);
     }
 
-    const sublogger = this.#baseSublogger[name];
-    const instance  = new config.class(config, sublogger);
-
+    const instance = new config.class(config);
     this.#instances.set(name, instance);
   }
 

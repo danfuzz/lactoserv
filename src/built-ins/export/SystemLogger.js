@@ -17,7 +17,7 @@ import { MustBe } from '@this/typey';
  */
 export class SystemLogger extends BaseFileService {
   /** @type {?Rotator} File rotator to use, if any. */
-  #rotator;
+  #rotator = null;
 
   /**
    * @type {?TextFileSink} Event sink which does the actual writing, or `null`
@@ -29,21 +29,21 @@ export class SystemLogger extends BaseFileService {
    * Constructs an instance.
    *
    * @param {FileServiceConfig} config Configuration for this service.
-   * @param {IntfLogger} logger Logger to use. Required for this class!
    */
-  constructor(config, logger) {
-    // Note: Loggers are all supposed to be callable functions. The interface
-    // type `IntfLogger` (above) should also be true, but interfaces aren't
-    // actually reified in the JavaScript runtime, so we can't easily check it.
-    MustBe.function(logger);
-    super(config, logger);
-
-    this.#rotator = config.rotate ? new Rotator(config, this.logger) : null;
+  constructor(config) {
+    super(config);
   }
 
   /** @override */
   async _impl_init(isReload_unused) {
-    // Nothing needed here for this class.
+    // Having a logger available is optional for most classes, but for this one
+    // it is essential!
+    if (!this.logger) {
+      throw new Error('Cannot use this class without a logger.');
+    };
+
+    const { config } = this;
+    this.#rotator = config.rotate ? new Rotator(config, this.logger) : null;
   }
 
 

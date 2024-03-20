@@ -23,21 +23,18 @@ export class BaseControllable {
    */
   #context = null;
 
-  /** @type {?IntfLogger} Logger to use, or `null` to not do any logging. */
-  #logger = null;
-
   /**
    * Constructs an instance.
    *
-   * @param {?ControlContext|IntfLogger} contextOrLogger Associated context or
-   *   logger to use, or `null` to not do any context-related setup (yet).
+   * @param {?ControlContext} [context] Associated context, or `null` to not
+   *   start out with a context. This is typically `null` _except_ when creating
+   *   the instance of this class which represents an entire "world" of
+   *   controllable items.
    */
-  constructor(contextOrLogger) {
-    if (contextOrLogger instanceof ControlContext) {
-      this.#context = contextOrLogger;
-    } else if (contextOrLogger !== null) {
-      this.#logger = contextOrLogger;
-    }
+  constructor(context = null) {
+    this.#context = (context === null)
+      ? null
+      : MustBe.instanceOf(context, ControlContext);
   }
 
   /**
@@ -49,7 +46,7 @@ export class BaseControllable {
 
   /** @returns {?IntfLogger} Logger to use, or `null` to not do any logging. */
   get logger() {
-    return this.#logger;
+    return this.#context?.logger;
   }
 
   /**
@@ -68,14 +65,13 @@ export class BaseControllable {
       throw new Error('Already initialized.');
     } else if (this.#context === null) {
       this.#context = MustBe.instanceOf(context, ControlContext);
-      this.#logger  = context.logger;
     }
 
     this.#initialized = true;
 
-    BaseControllable.logInitializing(this.#logger);
+    BaseControllable.logInitializing(this.logger);
     await this._impl_init(isReload);
-    BaseControllable.logInitialized(this.#logger);
+    BaseControllable.logInitialized(this.logger);
   }
 
   /**
@@ -94,9 +90,9 @@ export class BaseControllable {
       await this.init(null, isReload);
     }
 
-    BaseControllable.logStarting(this.#logger, isReload);
+    BaseControllable.logStarting(this.logger, isReload);
     await this._impl_start(isReload);
-    BaseControllable.logStarted(this.#logger, isReload);
+    BaseControllable.logStarted(this.logger, isReload);
   }
 
   /**
@@ -109,9 +105,9 @@ export class BaseControllable {
   async stop(willReload = false) {
     MustBe.boolean(willReload);
 
-    BaseControllable.logStopping(this.#logger, willReload);
+    BaseControllable.logStopping(this.logger, willReload);
     await this._impl_stop(willReload);
-    BaseControllable.logStopped(this.#logger, willReload);
+    BaseControllable.logStopped(this.logger, willReload);
   }
 
   /**

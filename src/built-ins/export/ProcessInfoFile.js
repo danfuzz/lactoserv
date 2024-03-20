@@ -28,7 +28,7 @@ export class ProcessInfoFile extends BaseFileService {
   #contents = null;
 
   /** @type {?Saver} File saver (preserver) to use, if any. */
-  #saver;
+  #saver = null;
 
   /** @type {Threadlet} Threadlet which runs this service. */
   #runner = new Threadlet(() => this.#start(), () => this.#run());
@@ -37,17 +37,15 @@ export class ProcessInfoFile extends BaseFileService {
    * Constructs an instance.
    *
    * @param {FileServiceConfig} config Configuration for this service.
-   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    */
-  constructor(config, logger) {
-    super(config, logger);
-
-    this.#saver = config.save ? new Saver(config, this.logger) : null;
+  constructor(config) {
+    super(config);
   }
 
   /** @override */
   async _impl_init(isReload_unused) {
-    // Nothing needed here for this class.
+    const { config } = this;
+    this.#saver = config.save ? new Saver(config, this.logger) : null;
   }
 
   /** @override */
