@@ -34,8 +34,10 @@ import { WranglerContext } from '#p/WranglerContext';
  * (or errors out while trying).
  */
 export class ProtocolWrangler {
-  /** @type {?IntfLogger} Logger to use, or `null` to not do any logging. */
-  #logger;
+  /**
+   * @type {?IntfLogger} System logger to use, or `null` to not do any logging.
+   */
+  #logger = null;
 
   /**
    * @type {?IntfLogger} Logger to use for {@link IncomingRequest}s, or `null`
@@ -43,7 +45,7 @@ export class ProtocolWrangler {
    * constructor, which will end up making a sub-logger with a generated request
    * ID.
    */
-  #requestLogger;
+  #requestLogger = null;
 
   /**
    * @type {?IntfHostManager} Optional host manager; only needed for some
@@ -99,8 +101,6 @@ export class ProtocolWrangler {
    *   required.
    * @param {IntfRequestLogger} options.requestLogger Request logger to send to.
    *   If not specified, the instance won't do request logging.
-   * @param {?IntfLogger} options.logger Logger to use to emit events about what
-   *   the instance is doing. If not specified, the instance won't do logging.
    * @param {string} options.protocol The name of the protocol to use.
    * @param {object} options.interface  Options to use for creation of and/or
    *   listening on the low-level server socket. See docs for
@@ -116,13 +116,11 @@ export class ProtocolWrangler {
     const {
       hostManager,
       interface: interfaceConfig,
-      logger,
       rateLimiter,
       requestHandler,
       requestLogger
     } = options;
 
-    this.#logger         = logger ?? null;
     this.#hostManager    = hostManager ?? null;
     this.#rateLimiter    = rateLimiter ?? null;
     this.#requestHandler = MustBe.object(requestHandler);
@@ -134,12 +132,6 @@ export class ProtocolWrangler {
       fd:      interfaceConfig.fd      ?? null,
       port:    interfaceConfig.port    ?? null
     });
-
-    // Confusion alert!: This is not the same as the `requestLogger` (a "request
-    // logger") per se) passed in as an option. This is the sub-logger of the
-    // _system_ logger, which is used for detailed logging inside
-    // `IncomingRequest`.
-    this.#requestLogger = logger?.req ?? null;
   }
 
   /**
@@ -154,6 +146,28 @@ export class ProtocolWrangler {
   }
 
   /**
+   * Initializes this instance as needed prior to getting `start()`ed, including
+   * optionally setting up a logger to use.
+   *
+   *
+   * @param {?IntfLogger} logger System logger to use, or `null` if to not do
+   *   logging.
+   * @param {boolean} isReload Is this action due to an in-process reload?
+   */
+  async init(logger, isReload) {
+    this.#logger    = logger;
+    this.#reloading = isReload;
+
+    // Confusion alert!: This is not the same as the `requestLogger` (a "request
+    // logger") per se) passed in as an option. This is the sub-logger of the
+    // _system_ logger, which is used for detailed logging inside
+    // `IncomingRequest`.
+    this.#requestLogger = logger?.req ?? null;
+
+    await this.#initialize();
+  }
+
+  /**
    * Starts this instance listening for connections and dispatching them to
    * the high-level application. This method async-returns once the instance has
    * actually gotten started.
@@ -162,8 +176,10 @@ export class ProtocolWrangler {
    * @throws {Error} Thrown if there was any trouble starting up.
    */
   async start(isReload) {
-    this.#reloading = isReload;
-    await this.#initialize();
+    if (isReload !== this.#reloading) {
+      throw new Error('`isReload` mismatch.');
+    }
+
     await this.#runner.start();
   }
 

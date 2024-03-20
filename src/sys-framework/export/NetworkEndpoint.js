@@ -46,8 +46,6 @@ export class NetworkEndpoint extends BaseComponent {
    * @param {Map<string, BaseApplication>} extraConfig.applicationMap Map of
    *   names to applications, for use in building the active mount map.
    * @param {?HostManager} extraConfig.hostManager Replacement for `hostnames`.
-   * @param {?IntfLogger} extraConfig.logger Logger to use for reporting network
-   *   activity, or `null not to do any logging.
    * @param {?IntfRateLimiter} extraConfig.rateLimiter Replacement for
    *   `rateLimiter` (service instance, not just a name).
    * @param {?IntfRequestLogger} extraConfig.requestLogger Replacement for
@@ -55,9 +53,9 @@ export class NetworkEndpoint extends BaseComponent {
    */
   constructor(config, extraConfig) {
     const { interface: iface, mounts, protocol } = config;
-    const { applicationMap, hostManager, logger, rateLimiter, requestLogger } = extraConfig;
+    const { applicationMap, hostManager, rateLimiter, requestLogger } = extraConfig;
 
-    super(config, logger);
+    super(config);
 
     this.#mountMap = NetworkEndpoint.#makeMountMap(mounts, applicationMap);
 
@@ -65,7 +63,6 @@ export class NetworkEndpoint extends BaseComponent {
       rateLimiter,
       requestHandler: this,
       requestLogger,
-      logger,
       protocol,
       interface: iface,
       ...(
@@ -129,8 +126,10 @@ export class NetworkEndpoint extends BaseComponent {
   }
 
   /** @override */
-  async _impl_init(isReload_unused) {
+  async _impl_init(isReload) {
     const logger = this.logger;
+
+    await this.#wrangler.init(logger, isReload);
 
     if (logger) {
       const mountMap = {};

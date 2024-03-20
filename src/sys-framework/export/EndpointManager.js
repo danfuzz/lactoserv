@@ -130,7 +130,6 @@ export class EndpointManager extends BaseControllable {
     const extraConfig = {
       applicationMap: this.#makeApplicationMap(mounts),
       hostManager:    hmSubset,
-      logger:         ThisModule.cohortLogger('endpoint')?.[name],
       rateLimiter,
       requestLogger
     };
