@@ -10,7 +10,6 @@ import { BaseApplication } from '#x/BaseApplication';
 import { BaseControllable } from '#x/BaseControllable';
 import { BaseService } from '#x/BaseService';
 import { ComponentManager } from '#x/ComponentManager';
-import { ComponentRegistry } from '#x/ComponentRegistry';
 import { EndpointManager } from '#x/EndpointManager';
 import { HostManager } from '#x/HostManager';
 import { ThisModule } from '#p/ThisModule';
@@ -41,28 +40,24 @@ export class Warehouse extends BaseControllable {
    * Constructs an instance.
    *
    * @param {object} config Configuration object.
-   * @param {ComponentRegistry} registry Registry of component classes.
    */
-  constructor(config, registry) {
+  constructor(config) {
     MustBe.plainObject(config);
-    MustBe.instanceOf(registry, ComponentRegistry);
 
     super(ThisModule.subsystemLogger('warehouse'));
 
-    const parsed = new WarehouseConfig(config, registry.configClassMapper);
+    const parsed = new WarehouseConfig(config);
 
     this.#applicationManager = new ComponentManager(parsed.applications, {
       baseClass:     BaseApplication,
       baseSublogger: ThisModule.cohortLogger('app'),
-      logger:        ThisModule.subsystemLogger('apps'),
-      registry
+      logger:        ThisModule.subsystemLogger('apps')
     });
 
     this.#serviceManager = new ComponentManager(parsed.services, {
       baseClass:     BaseService,
       baseSublogger: ThisModule.cohortLogger('service'),
-      logger:        ThisModule.subsystemLogger('services'),
-      registry
+      logger:        ThisModule.subsystemLogger('services')
     });
 
     this.#hostManager     = new HostManager(parsed.hosts);

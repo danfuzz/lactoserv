@@ -7,7 +7,6 @@ import { AskIf, MustBe } from '@this/typey';
 
 import { BaseComponent } from '#x/BaseComponent';
 import { BaseControllable } from '#x/BaseControllable';
-import { ComponentRegistry } from '#x/ComponentRegistry';
 
 
 /**
@@ -35,9 +34,6 @@ export class ComponentManager extends BaseControllable {
    */
   #baseSublogger;
 
-  /** @type {ComponentRegistry} Registry of component classes. */
-  #registry;
-
   /**
    * @type {Map<string, BaseComponent>} Map from each bound name to the
    * corresponding instance.
@@ -56,14 +52,12 @@ export class ComponentManager extends BaseControllable {
    *   for instantiated components, or `null` not to do any logging.
    * @param {?IntfLogger} [options.logger] Logger to use for this
    *   instance, or `null` not to do any logging.
-   * @param {ComponentRegistry} options.registry Registry of component classes.
    */
   constructor(configs, options) {
     const {
       baseClass = null,
       baseSublogger = null,
-      logger = null,
-      registry
+      logger = null
     } = options;
 
     super(logger);
@@ -77,11 +71,11 @@ export class ComponentManager extends BaseControllable {
     this.#baseSublogger = (baseSublogger === null)
       ? null
       : MustBe.instanceOf(baseSublogger, IntfLogger);
-    this.#registry = MustBe.instanceOf(registry, ComponentRegistry);
 
     MustBe.array(configs);
     for (const config of configs) {
       MustBe.instanceOf(config, this.#configBaseClass);
+      MustBe.subclassOf(config.class, this.#baseClass);
       this.#addInstanceFor(config);
     }
   }
@@ -90,9 +84,9 @@ export class ComponentManager extends BaseControllable {
    * Gets the {@link BaseComponent} instance bound to a given name.
    *
    * @param {string} name Instantiated component name to look for.
-   * @param {?string|function(new:BaseComponent)} cls Class or (string) class
-   *   name that the named component must be an instance of, or `null` to not
-   *   have any restriction.
+   * @param {?string|function(new:BaseComponent)} [cls] Class that the named
+   *   component must be an instance of, or `null` to not have any restriction
+   *   (beyond the baseline class restriction of this instance).
    * @returns {BaseComponent} The associated instance.
    * @throws {Error} Thrown if there is no instance with the given name, or it
    *   does not match the given `cls`.
@@ -150,9 +144,7 @@ export class ComponentManager extends BaseControllable {
     }
 
     const sublogger = this.#baseSublogger[name];
-    const instance  = this.#registry.makeInstance(config, sublogger);
-
-    MustBe.instanceOf(instance, this.#baseClass);
+    const instance  = new config.class(config, sublogger);
 
     this.#instances.set(name, instance);
     this.logger?.bound(name);
@@ -163,8 +155,8 @@ export class ComponentManager extends BaseControllable {
    * restriction.
    *
    * @param {BaseComponent} component The instance to check.
-   * @param {?string|function(new:BaseComponent)} cls Class or (string) class
-   *   name that `component` must be, or `null` to not have any restriction.
+   * @param {?function(new:BaseComponent)} cls Class that `component` must be,
+   *   or `null` to not have any restriction.
    * @throws {Error} Thrown if `component` is not an instance of an appropriate
    *   class.
    */
@@ -173,8 +165,6 @@ export class ComponentManager extends BaseControllable {
       // No restriction per se, but it had still better match this instance's
       // overall class restriction.
       cls = this.#baseClass;
-    } else if (typeof cls === 'string') {
-      cls = this.#registry.get(cls, { class: this.#baseClass });
     } else if (!AskIf.subclassOf(cls, this.#baseClass)) {
       throw new Error(`Not an appropriate component class: ${cls.name}, expected ${this.#baseClass.name}`);
     }

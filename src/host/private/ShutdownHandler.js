@@ -8,6 +8,7 @@ import { WallClock } from '@this/clocks';
 import { IntfLogger } from '@this/loggy-intf';
 
 import { CallbackList } from '#p/CallbackList';
+import { ProductInfo } from '#x/ProductInfo';
 import { ThisModule } from '#p/ThisModule';
 import { TopErrorHandler } from '#p/TopErrorHandler';
 
@@ -115,8 +116,8 @@ export class ShutdownHandler {
 
     for (const { type, problem } of problems) {
       let label = ({
-        uncaughtException:  'uncaught exception',
-        unhandledRejection: 'unhandled rejection'
+        uncaughtException:  'Uncaught exception',
+        unhandledRejection: 'Unhandled rejection'
       })[type] ?? type;
 
       let p;
@@ -134,6 +135,7 @@ export class ShutdownHandler {
     }
 
     if (this.#exitCode !== 0) {
+      console.log('\n%o', ProductInfo.allInfo);
       console.log('\nExiting with code: %o', this.#exitCode);
     }
 

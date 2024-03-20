@@ -1,8 +1,9 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { MustBe } from '@this/typey';
+
 import { NamedConfig } from '#x/NamedConfig';
-import { Names } from '#x/Names';
 
 
 /**
@@ -13,10 +14,10 @@ import { Names } from '#x/Names';
  * Accepted configuration bindings (in the constructor). All are required:
  *
  * * Bindings as defined by the superclass, {@link NamedConfig}.
- * * `{string} class` -- The (name of the) class of the item.
+ * * `{function(new:object)} class` -- The class of the item to create.
  */
 export class ClassedConfig extends NamedConfig {
-  /** @type {string} The (name of the) class of the item. */
+  /** @type {function(new:object)} The class of the item to create. */
   #class;
 
   /**
@@ -27,10 +28,12 @@ export class ClassedConfig extends NamedConfig {
   constructor(config) {
     super(config);
 
-    this.#class = Names.checkType(config.class);
+    const { class: cls } = config;
+
+    this.#class = MustBe.constructorFunction(cls);
   }
 
-  /** @returns {string} The (name of the) type of the item. */
+  /** @returns {function(new:object)} The class of the item to create. */
   get class() {
     return this.#class;
   }

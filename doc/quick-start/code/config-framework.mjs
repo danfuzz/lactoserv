@@ -1,3 +1,6 @@
+import { StaticFiles } from '@this/built-ins';
+
+
 const SITE_DIR = new URL('../website', import.meta.url).pathname;
 
 const config = {
@@ -5,7 +8,7 @@ const config = {
   applications: [
     {
       name:          'mySite',
-      class:         'StaticFiles',
+      class:         StaticFiles,
       siteDirectory: SITE_DIR,
       etag:          true
     }

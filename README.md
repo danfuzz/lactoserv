@@ -43,10 +43,11 @@ and to enable straightforward custom applications.
 * Optionally produces request logs, in a standard-ish form.
 * Optionally produces detailed system activity logs.
 * JS-based configuration file format, which isn't actually that awful!
-* For custom (non-built-in) applications, reasonably friendly `async`-forward
-  application framework, which uses a friendly wrapper around the underlying
-  Node request and response objects. Maximum ergonomics: Very straightforward
-  application logic bottoming out at a well-tested low-level implementation.
+* For custom (non-built-in) applications, reasonably modern `async`-forward
+  application framework, which uses wrappers around the underlying Node request
+  and response objects, providing a friendly and approachable API. Maximum
+  ergonomics: Very straightforward application logic bottoming out at a
+  well-tested low-level implementation.
 
 ### Implementation features
 
