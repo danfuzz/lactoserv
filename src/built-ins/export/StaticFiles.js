@@ -4,7 +4,6 @@
 import fs from 'node:fs/promises';
 
 import { Paths, Statter } from '@this/fs-util';
-import { IntfLogger } from '@this/loggy-intf';
 import { DispatchInfo, EtagGenerator, HttpUtil, MimeTypes, OutgoingResponse }
   from '@this/net-util';
 import { ApplicationConfig } from '@this/sys-config';
@@ -46,10 +45,9 @@ export class StaticFiles extends BaseApplication {
    * Constructs an instance.
    *
    * @param {ApplicationConfig} config Configuration for this application.
-   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    */
-  constructor(config, logger) {
-    super(config, logger);
+  constructor(config) {
+    super(config);
 
     const { cacheControl, etagOptions, notFoundPath, siteDirectory } = config;
 
