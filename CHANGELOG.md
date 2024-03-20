@@ -7,7 +7,11 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* None.
+* Configuration:
+  * Stopped using a component registry to find applications and services.
+    Instead, just let the (Node / JavaScript) module system be that. Simplifies
+    a lot of stuff! (Doing this had become possible once the configuration file
+    loader was expanded to allow access to framework classes.)
 
 Other notable changes:
 * Got rid of `lodash` as a dependency.
