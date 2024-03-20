@@ -12,6 +12,16 @@ Breaking changes:
     Instead, just let the (Node / JavaScript) module system be that. Simplifies
     a lot of stuff! (Doing this had become possible once the configuration file
     loader was expanded to allow access to framework classes.)
+* `sys-framework`:
+  * Added new class `ControlContext`, which gets associated with each concrete
+    instance of `BaseControllable` (the superclass of all app and service
+    classes, among other things). This is now where an instance's `logger` is
+    found. This will _eventually_ be the key mechanism for treating a set of
+    components holistically in a reasonably general way. (Right now there's a
+    lot of ad-hoc arrangement.)
+  * Added new lifecycle method `init()` (and abstract implementation method
+    `_impl_init()`) to `BaseControllable`, which is where the above contexts get
+    hooked up.
 
 Other notable changes:
 * Got rid of `lodash` as a dependency.
