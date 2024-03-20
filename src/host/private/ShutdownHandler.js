@@ -8,6 +8,7 @@ import { WallClock } from '@this/clocks';
 import { IntfLogger } from '@this/loggy-intf';
 
 import { CallbackList } from '#p/CallbackList';
+import { ProductInfo } from '#x/ProductInfo';
 import { ThisModule } from '#p/ThisModule';
 import { TopErrorHandler } from '#p/TopErrorHandler';
 
