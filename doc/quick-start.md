@@ -34,7 +34,7 @@ self-signed certificate.
 
 ```bash
 $ cat >my-config.mjs <<EOF
-import { StaticFiles } from '@lactoserv/builtin-applications';
+import { StaticFiles } from '@lactoserv/built-ins';
 
 const config = {
   hosts: [{ hostnames: ['localhost'], selfSigned: true }],

@@ -20,6 +20,7 @@
     "@this/loggy": "*",
     "@this/loggy-intf": "*",
     "@this/net-protocol": "*",
+    "@this/net-util": "*",
     "@this/sys-config": "*",
     "@this/sys-framework": "*",
     "@this/sys-util": "*",

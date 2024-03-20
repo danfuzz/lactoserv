@@ -3,9 +3,8 @@
 
 import * as fs from 'node:fs/promises';
 
-import { Redirector, SimpleResponse, StaticFiles }
-  from '@lactoserv/builtin-applications';
-import { MemoryMonitor, ProcessIdFile, ProcessInfoFile, RateLimiter,
+import { Redirector, SimpleResponse, StaticFiles,
+  MemoryMonitor, ProcessIdFile, ProcessInfoFile, RateLimiter,
   RequestLogger, SystemLogger } from '@lactoserv/built-ins';
 
 

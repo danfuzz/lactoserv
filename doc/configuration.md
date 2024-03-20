@@ -134,7 +134,7 @@ both when logging activity (to the system log) and when hooking applications up
 to endpoints.
 
 ```js
-import { ApplicationClass } from '@lactoserv/builtin-applications';
+import { ApplicationClass } from '@lactoserv/built-ins';
 
 const applications = [
   {
@@ -285,7 +285,7 @@ it accepts the following bindings:
   `false`, every cacheable response comes with the specified header.
 
 ```js
-import { Redirector } from '@lactoserv/builtin-applications';
+import { Redirector } from '@lactoserv/built-ins';
 
 const applications = [
   {
@@ -336,7 +336,7 @@ zero-length but contentful, e.g. a regular successful response will be status
 by a `filePath` behaves.
 
 ```js
-import { SimpleResponse } from '@lactoserv/builtin-applications';
+import { SimpleResponse } from '@lactoserv/built-ins';
 
 const applications = [
   {
@@ -395,7 +395,7 @@ the following configuration bindings:
 * `siteDirectory` &mdash; Filesystem directory root for the files to serve.
 
 ```js
-import { StaticFiles } from '@lactoserv/builtin-applications';
+import { StaticFiles } from '@lactoserv/built-ins';
 
 const applications = [
   {

@@ -13,7 +13,6 @@
 
   "dependencies": {
     "@this/async": "*",
-    "@this/builtin-applications": "*",
     "@this/built-ins": "*",
     "@this/clocks": "*",
     "@this/data-values": "*",
