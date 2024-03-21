@@ -130,8 +130,17 @@ const applications = [
     target:       'https://localhost:8443/resp/',
     cacheControl: { public: true, maxAge: '5 min' }
   },
+
   {
     name:  'mySite',
+    class: HostRouter,
+    hosts: {
+      '*':         'myPaths',
+      '127.0.0.1': 'myStaticFun'
+    }
+  },
+  {
+    name:  'myPaths',
     class: PathRouter,
     paths: {
       '/*':                 'myStaticFun',
