@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { TreePathKey, TreePathMap } from '@this/collections';
-import { DispatchInfo, HttpUtil } from '@this/net-util';
+import { DispatchInfo } from '@this/net-util';
 import { Names } from '@this/sys-config';
 import { BaseApplication } from '@this/sys-framework';
 import { MustBe } from '@this/typey';
