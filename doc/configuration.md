@@ -152,10 +152,6 @@ naming and configuring one of them. Each element has the following bindings:
 
 * `name` &mdash; The name of the endpoint. This is just used for logging and
   related informational purposes.
-* `application`: &mdash; The name of the application which this endpoint should
-  send requests to. **Note:** In order to serve multiple leaf applications, the
-  one named here will have to be a routing application of some sort (such as
-  [`PathRouter`](#pathrouter), for example).
 * `hostnames` &mdash; A list of one or more hostnames to recognize, each name
   in the same form as accepted in the `hosts` section of the configuration. In
   most cases, it will suffice to just specify this as `['*']`.
@@ -177,6 +173,10 @@ naming and configuring one of them. Each element has the following bindings:
   roles are recognized:
   * `rateLimiter` &mdash; A request/data rate limiter.
   * `requestLogger` &mdash; A request logger.
+* `application`: &mdash; The name of the application which this endpoint should
+  send requests to. **Note:** In order to serve multiple leaf applications, the
+  one named here will have to be a routing application of some sort (such as
+  [`PathRouter`](#pathrouter), for example).
 
 ```js
 const endpoints = [
@@ -191,17 +191,7 @@ const endpoints = [
       rateLimiter:   'limiter',
       requestLogger: 'requests'
     },
-    mounts: [
-      {
-        application: 'mainSite',
-        at:          ['//*/', '//weird-mount/just/for/example/'
-      },
-      {
-        application: 'control',
-        at:          '//*/.control/'
-      },
-      // ... more ...
-    ]
+    application: 'mySite'
   },
 ```
 
