@@ -13,7 +13,7 @@ import { ThisModule } from '#p/ThisModule';
  * hierarchy.
  */
 export class RootControlContext extends ControlContext {
-  /** @type {Set<BaseControllable>} Set of all descendants. */
+  /** @type {Set<ControlContext>} Set of all descendants. */
   #descendants = new Set();
 
   /**
@@ -28,7 +28,7 @@ export class RootControlContext extends ControlContext {
   /**
    * Registers a descendant with this instance.
    *
-   * @param {BaseControllable} descendant The descendant.
+   * @param {ControlContext} descendant The descendant.
    */
   [ThisModule.SYM_addDescendant](descendant) {
     if (this.#descendants.has(descendant)) {

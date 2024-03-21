@@ -58,6 +58,8 @@ export class ControlContext {
       this.#associate = MustBe.instanceOf(associate, BaseControllable);
       this.#parent    = MustBe.instanceOf(parent, BaseControllable).context;
       this.#root      = MustBe.instanceOf(this.#parent.#root, ControlContext);
+
+      this.#root[ThisModule.SYM_addDescendant](this);
     }
   }
 
