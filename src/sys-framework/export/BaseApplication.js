@@ -77,7 +77,7 @@ export class BaseApplication extends BaseComponent {
     const result = this.#callHandler(request, dispatch);
 
     return this.logger
-      ? this.#logHandlerCall(request, dispatch, result)
+      ? this.#logHandlerCall(request, result)
       : result;
   }
 
@@ -134,12 +134,11 @@ export class BaseApplication extends BaseComponent {
    * given result settles to.
    *
    * @param {IncomingRequest} request Request object.
-   * @param {DispatchInfo} dispatch Dispatch information.
    * @param {Promise<?OutgoingResponse>} result Promise for the handler
    *   response.
    * @returns {?OutgoingResponse} Response to the request, if any.
    */
-  async #logHandlerCall(request, dispatch, result) {
+  async #logHandlerCall(request, result) {
     const loggingEnv = this.logger.$env;
     const startTime  = loggingEnv.now();
     const logger     = this.logger;
