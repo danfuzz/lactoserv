@@ -46,10 +46,10 @@ export class Warehouse extends BaseControllable {
   constructor(config) {
     MustBe.plainObject(config);
 
-    // See comment in `BaseControllable` for an explanation about this setup.
+    // Note: `super()` is called with an argument exactly because this instance
+    // is the root of its hierarchy.
     const context = new RootControlContext(ThisModule.subsystemLogger('warehouse'));
     super(context);
-    this.linkRoot();
 
     const parsed = new WarehouseConfig(config);
 

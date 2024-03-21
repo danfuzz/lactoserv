@@ -33,7 +33,10 @@ export class BaseControllable {
    */
   constructor(context = null) {
     if (context !== null) {
+      // Note: We wrap `#context` here, so that it is recognized as
+      // "uninitialized" by the time `start()` gets called.
       this.#context = { nascentRoot: MustBe.instanceOf(context, ControlContext) };
+      context[ThisModule.SYM_linkRoot](this);
     }
   }
 
@@ -72,29 +75,6 @@ export class BaseControllable {
     BaseControllable.logInitializing(this.logger);
     await this._impl_init(isReload);
     BaseControllable.logInitialized(this.logger);
-  }
-
-  /**
-   * Links this instance up to its context, as a root. This needs to be called
-   * after the `super()` call in the constructor of a root instance, either in
-   * the constructor itself or soon after it completes. This method must not be
-   * called in any other case.
-   *
-   * This method is needed because it's impossible for the root to refer to
-   * itself when trying to construct an instance of this class before calling
-   * `super()` in its `constructor()` (due to JavaScript rules around references
-   * to `this` in that context).
-   */
-  linkRoot() {
-    if (this.#initialized) {
-      throw new Error('Already initialized.');
-    } else if (this.#context === null) {
-      throw new Error('Not an uninitialized root.');
-    }
-
-    // Note: We don't actually set `#context` here, so that it is still
-    // considered "uninitialized" by the time `start()` gets called.
-    this.#context.nascentRoot[ThisModule.SYM_linkRoot](this);
   }
 
   /**
