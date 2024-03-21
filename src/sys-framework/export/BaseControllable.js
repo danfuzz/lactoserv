@@ -31,12 +31,12 @@ export class BaseControllable {
    *   instance is to be the root of its control hierarchy, or `null` for any
    *   other instance.
    */
-  constructor(context = null) {
-    if (context !== null) {
+  constructor(rootContext = null) {
+    if (rootContext !== null) {
       // Note: We wrap `#context` here, so that it is recognized as
       // "uninitialized" by the time `start()` gets called.
-      this.#context = { nascentRoot: MustBe.instanceOf(context, RootControlContext) };
-      context[ThisModule.SYM_linkRoot](this);
+      this.#context = { nascentRoot: MustBe.instanceOf(rootContext, RootControlContext) };
+      rootContext[ThisModule.SYM_linkRoot](this);
     }
   }
 
