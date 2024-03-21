@@ -5,6 +5,8 @@ import { IntfLogger } from '@this/loggy-intf';
 import { Methods, MustBe } from '@this/typey';
 
 import { ControlContext } from '#x/ControlContext';
+import { RootControlContext } from '#x/RootControlContext';
+import { ThisModule } from '#p/ThisModule';
 
 
 /**
@@ -14,39 +16,40 @@ import { ControlContext } from '#x/ControlContext';
  * of lifecycle methods.
  */
 export class BaseControllable {
-  /** @type {boolean} Has {@link #_impl_init} been called? */
-  #initialized = false;
-
   /**
-   * @type {?ControlContext} Associated context. Becomes non-`null` during
-   * {@link #init}.
+   * @type {?ControlContext|{ nascentRoot: RootControlContext }} Associated
+   * context, if known, possibly wrapped in an object for the special case of
+   * the root context before this instance is considered initialized. If `null`
+   * or wrapped, will get set (to a proper instance) during {@link #init}.
    */
   #context = null;
 
   /**
    * Constructs an instance.
    *
-   * @param {?ControlContext} [context] Associated context, or `null` to not
-   *   start out with a context. This is typically `null` _except_ when creating
-   *   the instance of this class which represents the root of a controllable
-   *   hierarchy.
+   * @param {?RootControlContext} [rootContext] Associated context if this
+   *   instance is to be the root of its control hierarchy, or `null` for any
+   *   other instance.
    */
   constructor(context = null) {
-    this.#context = (context === null)
-      ? null
-      : MustBe.instanceOf(context, ControlContext);
+    if (context !== null) {
+      // Note: We wrap `#context` here, so that it is recognized as
+      // "uninitialized" by the time `start()` gets called.
+      this.#context = { nascentRoot: MustBe.instanceOf(context, RootControlContext) };
+      context[ThisModule.SYM_linkRoot](this);
+    }
   }
 
   /**
    * @returns {?ControlContext} Associated context, or `null` if not yet set up.
    */
   get context() {
-    return this.#context;
+    return (this.#initialized ? this.#context : this.#context?.nascentRoot) ?? null;
   }
 
   /** @returns {?IntfLogger} Logger to use, or `null` to not do any logging. */
   get logger() {
-    return this.#context?.logger;
+    return this.context?.logger ?? null;
   }
 
   /**
@@ -55,19 +58,19 @@ export class BaseControllable {
    *
    * @param {ControlContext} context Context that indicates this instance's
    *   active environment.
-   * @param {boolean} [isReload] Is this action due to an in-process
-   *   reload?
+   * @param {boolean} [isReload] Is this action due to an in-process reload?
    */
   async init(context, isReload = false) {
+    MustBe.instanceOf(context, ControlContext);
     MustBe.boolean(isReload);
 
     if (this.#initialized) {
       throw new Error('Already initialized.');
-    } else if (this.#context === null) {
-      this.#context = MustBe.instanceOf(context, ControlContext);
+    } else if ((this.#context !== null) && (this.#context.nascentRoot !== context)) {
+      throw new Error('Inconsistent context setup.');
     }
 
-    this.#initialized = true;
+    this.#context = context;
 
     BaseControllable.logInitializing(this.logger);
     await this._impl_init(isReload);
@@ -75,19 +78,20 @@ export class BaseControllable {
   }
 
   /**
-   * Starts this instance.
+   * Starts this instance. It is only valid to call this after {@link #init} has
+   * been called, _except_ if this instance is the root, in which case this
+   * method will call {@link #init} itself before doing the start-per-se.
    *
-   * @param {boolean} [isReload] Is this action due to an in-process
-   *   reload?
+   * @param {boolean} [isReload] Is this action due to an in-process reload?
    */
   async start(isReload = false) {
     MustBe.boolean(isReload);
 
     if (!this.#initialized) {
       if (this.#context === null) {
-        throw new Error('No associated context set up in constructor or `init()`.');
+        throw new Error('No context was set up in constructor or `init()`.');
       }
-      await this.init(null, isReload);
+      await this.init(this.#context.nascentRoot, isReload);
     }
 
     BaseControllable.logStarting(this.logger, isReload);
@@ -99,8 +103,8 @@ export class BaseControllable {
    * Stops this this instance. This method returns when the instance is fully
    * stopped.
    *
-   * @param {boolean} [willReload] Is this action due to an in-process
-   *   reload being requested?
+   * @param {boolean} [willReload] Is this action due to an in-process reload
+   *   being requested?
    */
   async stop(willReload = false) {
     MustBe.boolean(willReload);
@@ -144,6 +148,11 @@ export class BaseControllable {
    */
   async _impl_stop(willReload) {
     Methods.abstract(willReload);
+  }
+
+  /** @returns {boolean} Whether or not this instance is initialized. */
+  get #initialized() {
+    return this.#context instanceof ControlContext;
   }
 
 
