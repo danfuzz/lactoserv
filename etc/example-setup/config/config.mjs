@@ -139,6 +139,7 @@ const applications = [
       '/florp/*':         'myStaticFunNo404',
       '/resp/empty-body': 'responseEmptyBody',
       '/resp/no-body/*':  'responseNoBody',
+      '/resp/dir-only/':  'responseDirOnly',
       '/resp/one':        'responseOne',
       '/resp/two':        'responseTwo'
     }
@@ -170,6 +171,14 @@ const applications = [
     name:         'responseNoBody',
     class:        SimpleResponse,
     cacheControl: { public: true, immutable: true, maxAge: '11 min' },
+    etag:         true
+  },
+  {
+    name:         'responseDirOnly',
+    class:        SimpleResponse,
+    contentType:  'text/plain',
+    body:         'I am a directory!\n',
+    cacheControl: { public: true, immutable: true, maxAge: '12 min'  },
     etag:         true
   },
   {
@@ -228,7 +237,7 @@ const endpoints = [
     mounts: [
       {
         application: 'mySite',
-        at:          ['//*/']
+        at:          '//*/'
       }
     ]
   },
