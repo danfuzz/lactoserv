@@ -28,9 +28,7 @@ export class DispatchInfo {
    *
    * @param {TreePathKey} base The base path (that is, the path prefix) to which
    *   the request is being dispatched. This is expected to already have `.` and
-   *   `..` components resolved away. This must not end with an empty component,
-   *   though it _can_ be entirely empty (which corresponds to a dispatched
-   *   mount point at the root of a host).
+   *   `..` components resolved away.
    * @param {TreePathKey} extra The remaining suffix portion of the original
    *   path, after removing `base`. This is expected to already have `.` and
    *   `..` components resolved away.
@@ -38,12 +36,6 @@ export class DispatchInfo {
   constructor(base, extra) {
     this.#base  = MustBe.instanceOf(base, TreePathKey);
     this.#extra = MustBe.instanceOf(extra, TreePathKey);
-
-    const baseLen = base.length;
-
-    if ((baseLen !== 0) && (base.path[baseLen - 1] === '')) {
-      throw new Error('`base` must not end with an empty component.');
-    }
   }
 
   /**
