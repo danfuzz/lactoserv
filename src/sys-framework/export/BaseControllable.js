@@ -5,6 +5,7 @@ import { IntfLogger } from '@this/loggy-intf';
 import { Methods, MustBe } from '@this/typey';
 
 import { ControlContext } from '#x/ControlContext';
+import { RootControlContext } from '#x/RootControlContext';
 import { ThisModule } from '#p/ThisModule';
 
 
@@ -16,26 +17,25 @@ import { ThisModule } from '#p/ThisModule';
  */
 export class BaseControllable {
   /**
-   * @type {?ControlContext|{ nascentRoot: ControlContext}} Associated context,
-   * possibly wrapped in an object for the special case of the root object
-   * before the instance is considered initialized. Becomes non-`null` (and a
-   * regular instance) during {@link #init}.
+   * @type {?ControlContext|{ nascentRoot: RootControlContext}} Associated
+   * context, if known, possibly wrapped in an object for the special case of
+   * the root context before this instance is considered initialized. If `null`
+   * or wrapped, will get set (to a proper instance) during {@link #init}.
    */
   #context = null;
 
   /**
    * Constructs an instance.
    *
-   * @param {?ControlContext} [context] Associated context, or `null` to not
-   *   start out with a context. This should be `null` _except_ when creating
-   *   the instance of this class which represents the root of a controllable
-   *   hierarchy.
+   * @param {?RootControlContext} [rootContext] Associated context if this
+   *   instance is to be the root of its control hierarchy, or `null` for any
+   *   other instance.
    */
   constructor(context = null) {
     if (context !== null) {
       // Note: We wrap `#context` here, so that it is recognized as
       // "uninitialized" by the time `start()` gets called.
-      this.#context = { nascentRoot: MustBe.instanceOf(context, ControlContext) };
+      this.#context = { nascentRoot: MustBe.instanceOf(context, RootControlContext) };
       context[ThisModule.SYM_linkRoot](this);
     }
   }
