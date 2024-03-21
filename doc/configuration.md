@@ -540,7 +540,7 @@ bindings:
 
 * `checkPeriod` &mdash; How often to check for memory usage being over the
   defined limit, specified as a duration value as described in
-  [Durations](#durations). Optional. Minimum `1` (which is frankly way too
+  [Durations](#durations). Optional. Minimum `1 sec` (which is frankly way too
   often). Default `5 min` (that is, once every five minutes).
 * `gracePeriod` &mdash; Once a memory limit has been reached, how long it is
   allowed to remain at or beyond the maximum before this service takes action,
