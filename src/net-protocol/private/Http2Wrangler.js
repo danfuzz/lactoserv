@@ -6,7 +6,6 @@ import * as http2 from 'node:http2';
 
 import { Condition, PromiseUtil, Threadlet } from '@this/async';
 import { WallClock } from '@this/clocks';
-import { IntfLogger } from '@this/loggy-intf';
 
 import { TcpWrangler } from '#p/TcpWrangler';
 import { WranglerContext } from '#p/WranglerContext';
@@ -16,9 +15,6 @@ import { WranglerContext } from '#p/WranglerContext';
  * Wrangler for `Http2SecureServer`.
  */
 export class Http2Wrangler extends TcpWrangler {
-  /** @type {?IntfLogger} Logger to use, or `null` to not do any logging. */
-  #logger;
-
   /** @type {?http2.Http2Server} High-level protocol server. */
   #protocolServer = null;
 
@@ -37,16 +33,7 @@ export class Http2Wrangler extends TcpWrangler {
    */
   #perConnectionStorage = new AsyncLocalStorage();
 
-  /**
-   * Constructs an instance.
-   *
-   * @param {object} options Construction options, per the base class spec.
-   */
-  constructor(options) {
-    super(options);
-
-    this.#logger = options.logger;
-  }
+  // The default constructor is fine for this class.
 
   /** @override */
   async _impl_initialize() {
@@ -92,7 +79,7 @@ export class Http2Wrangler extends TcpWrangler {
 
     const connectionCtx    = this._prot_connectionContext;
     const connectionLogger = connectionCtx.connectionLogger;
-    const sessionLogger    = this.#logger?.sess.$newId;
+    const sessionLogger    = this.logger?.sess.$newId;
     const sessionCtx       = WranglerContext.forSession(connectionCtx, sessionLogger);
     const sessions         = this.#sessions;
 
@@ -200,12 +187,12 @@ export class Http2Wrangler extends TcpWrangler {
         break;
       }
 
-      this.#logger?.shuttingDown(op, this.#sessions.size);
+      this.logger?.shuttingDown(op, this.#sessions.size);
 
       allClosed = true;
       for (const s of this.#sessions) {
         const ctx    = WranglerContext.get(s);
-        const logger = ctx?.logger ?? this.#logger?.['unknown-session'];
+        const logger = ctx?.logger ?? this.logger?.['unknown-session'];
 
         if (s.closed) {
           logger?.alreadyClosed(op);
@@ -243,7 +230,7 @@ export class Http2Wrangler extends TcpWrangler {
       }
 
       if (undeadCount !== 0) {
-        this.#logger?.undeadSessions(undeadCount);
+        this.logger?.undeadSessions(undeadCount);
         if (undeadCount === this.#sessions.size) {
           allClosed = true;
         }

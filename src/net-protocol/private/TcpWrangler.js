@@ -18,17 +18,20 @@ import { ProtocolWrangler } from '#x/ProtocolWrangler';
  * them... but HTTP3 will be here before we know it!).
  */
 export class TcpWrangler extends ProtocolWrangler {
-  /** @type {?IntfLogger} Logger to use, or `null` to not do any logging. */
-  #logger;
-
   /** @type {?IntfRateLimiter} Rate limiter service to use, if any. */
   #rateLimiter;
 
   /**
-   * @type {AsyncServerSocket} Underlying server socket, wrapped for `async`
-   * friendliness.
+   * @type {Array<*>} Arguments to pass to the {@link AsyncServerSocket}
+   * constructor.
    */
-  #asyncServer;
+  #asyncServerArgs;
+
+  /**
+   * @type {?AsyncServerSocket} Underlying server socket, wrapped for `async`
+   * friendliness. Set in {@link #_impl_socketStart}.
+   */
+  #asyncServer = null;
 
   /** @type {Condition} Are there currently any open sockets? */
   #anySockets = new Condition();
@@ -47,9 +50,15 @@ export class TcpWrangler extends ProtocolWrangler {
   constructor(options) {
     super(options);
 
-    this.#logger      = options.logger ?? null;
-    this.#rateLimiter = options.rateLimiter ?? null;
-    this.#asyncServer = new AsyncServerSocket(options.interface, options.protocol, this.#logger);
+    this.#rateLimiter     = options.rateLimiter ?? null;
+    this.#asyncServerArgs = [options.interface, options.protocol];
+  }
+
+  /** @override */
+  async init(logger, isReload) {
+    this.#asyncServer = new AsyncServerSocket(...this.#asyncServerArgs, this.logger);
+
+    await super.init(logger, isReload);
   }
 
   /** @override */
@@ -91,9 +100,9 @@ export class TcpWrangler extends ProtocolWrangler {
       return;
     }
 
-    const connLogger = this.#logger?.conn.$newId ?? null;
+    const connLogger = this.logger?.conn.$newId ?? null;
 
-    this.#logger?.newConnection(connLogger.$meta.lastContext);
+    this.logger?.newConnection(connLogger.$meta.lastContext);
 
     if (connLogger) {
       try {
@@ -202,7 +211,7 @@ export class TcpWrangler extends ProtocolWrangler {
    * @param {object} data Information about the dropped connection.
    */
   #handleDrop(data) {
-    this.#logger?.droppedConnection(data);
+    this.logger?.droppedConnection(data);
   }
 
   /**

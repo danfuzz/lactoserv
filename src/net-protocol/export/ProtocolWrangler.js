@@ -145,6 +145,11 @@ export class ProtocolWrangler {
     return this.#interfaceObject;
   }
 
+  /** @returns {?IntfLogger} The logger for this instance. */
+  get logger() {
+    return this.#logger;
+  }
+
   /**
    * Initializes this instance as needed prior to getting `start()`ed, including
    * optionally setting up a logger to use.
