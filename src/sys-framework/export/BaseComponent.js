@@ -8,7 +8,10 @@ import { BaseControllable } from '#x/BaseControllable';
 
 
 /**
- * Base class for major "components" of the framework.
+ * Base class for major "components" of the framework. Notably, instances of
+ * this class must always have (string) names, and those names must be unique
+ * within the instances' hierarchies. The base class of this class, {@link
+ * BaseControllable} does not do instance naming at all.
  */
 export class BaseComponent extends BaseControllable {
   /** @type {BaseConfig} Configuration for this component. */
