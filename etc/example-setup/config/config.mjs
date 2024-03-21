@@ -134,13 +134,13 @@ const applications = [
     name:  'mySite',
     class: PathRouter,
     paths: {
-      '/':                 'myStaticFun',
-      '/bonk/':            'myStaticFun',
-      '/florp/':           'myStaticFunNo404',
-      '/resp/empty-body/': 'responseEmptyBody',
-      '/resp/no-body/':    'responseNoBody',
-      '/resp/one/':        'responseOne',
-      '/resp/two/':        'responseTwo'
+      '/*':               'myStaticFun',
+      '/bonk/*':          'myStaticFun',
+      '/florp/*':         'myStaticFunNo404',
+      '/resp/empty-body': 'responseEmptyBody',
+      '/resp/no-body/*':  'responseNoBody',
+      '/resp/one':        'responseOne',
+      '/resp/two':        'responseTwo'
     }
   },
 
