@@ -226,12 +226,7 @@ const endpoints = [
       rateLimiter:   'limiter',
       requestLogger: 'requests'
     },
-    mounts: [
-      {
-        application: 'myWackyRedirector',
-        at:          '//*/'
-      }
-    ]
+    application: 'myWackyRedirector'
   },
   {
     name:      'secure',
@@ -242,12 +237,7 @@ const endpoints = [
       rateLimiter:   'limiter',
       requestLogger: 'requests'
     },
-    mounts: [
-      {
-        application: 'mySite',
-        at:          '//*/'
-      }
-    ]
+    application: 'mySite'
   },
   {
     name: 'alsoSecure',
@@ -257,12 +247,7 @@ const endpoints = [
     services: {
       requestLogger: 'requests'
     },
-    mounts: [
-      {
-        application: 'mySite',
-        at:          '//*/'
-      }
-    ]
+    application: 'mySite'
   }
 ];
 
