@@ -36,6 +36,8 @@ export class BaseApplication extends BaseComponent {
   async handleRequest(request, dispatch) {
     const filterConfig = this.#filterConfig;
 
+    this.logger?.handling(request.id, dispatch.extraString);
+
     if (filterConfig) {
       const {
         acceptQueries, acceptMethods,
@@ -142,8 +144,6 @@ export class BaseApplication extends BaseComponent {
     const startTime  = loggingEnv.now();
     const logger     = this.logger;
     const id         = request.id;
-
-    logger?.handling(id, dispatch.extraString);
 
     const done = (fate, ...error) => {
       const endTime  = loggingEnv.now();
