@@ -46,9 +46,10 @@ export class Warehouse extends BaseControllable {
   constructor(config) {
     MustBe.plainObject(config);
 
+    // See comment in `BaseControllable` for an explanation about this setup.
     const context = new RootControlContext(ThisModule.subsystemLogger('warehouse'));
     super(context);
-    context.linkRoot(this); // See comment in `RootControlContext` for explanation.
+    this.linkRoot();
 
     const parsed = new WarehouseConfig(config);
 

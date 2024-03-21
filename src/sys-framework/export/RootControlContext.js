@@ -4,7 +4,6 @@
 import { IntfLogger } from '@this/loggy-intf';
 
 import { BaseComponent } from '#x/BaseComponent';
-import { BaseControllable } from '#x/BaseControllable';
 import { ControlContext } from '#x/ControlContext';
 import { ThisModule } from '#p/ThisModule';
 
@@ -53,18 +52,5 @@ export class RootControlContext extends ControlContext {
     }
 
     this.#descendants.add(descendant);
-  }
-
-  /**
-   * Sets up the {@link #associate} of this instance to be the indicated object.
-   * This method is needed because it's impossible for the root to refer to
-   * itself when trying to construct an instance of this class before calling
-   * `super()` in its `constructor()` (due to JavaScript rules around references
-   * to `this` in that context).
-   *
-   * @param {BaseControllable} root The actual "root" instance.
-   */
-  linkRoot(root) {
-    this[ThisModule.SYM_linkRoot](root);
   }
 }

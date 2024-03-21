@@ -95,9 +95,9 @@ export class ControlContext {
   }
 
   /**
-   * Underlying implementation of the method `linkRoot()` in subclass
-   * `RootControlContext`. This is a module-private method here so that it
-   * doesn't get exposed on non-root instances.
+   * Underlying implementation of the method `BaseControllable.linkRoot()`. This
+   * is a module-private method, so that it can only be called when appropriate
+   * (and thus avoid inconsistent state).
    *
    * @param {BaseControllable} root The actual "root" instance.
    */
@@ -106,10 +106,10 @@ export class ControlContext {
 
     if (this.#root !== this) {
       throw new Error('Not a root instance.');
-    } else if (this.#associate !== null) {
-      throw new Error('Already linked.');
     } else if (root.context !== this) {
       throw new Error('Context mismatch.');
+    } else if (this.#associate !== null) {
+      throw new Error('Already linked.');
     }
 
     this.#associate = root;
