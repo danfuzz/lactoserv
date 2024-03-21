@@ -3,8 +3,8 @@
 
 import { Uris } from '@this/net-util';
 
-import { MountConfig } from '#x/MountConfig';
 import { NamedConfig } from '#x/NamedConfig';
+import { Names } from '#x/Names';
 import { ServiceUseConfig } from '#x/ServiceUseConfig';
 import { Util } from '#x/Util';
 
@@ -17,6 +17,9 @@ import { Util } from '#x/Util';
  * See `doc/configuration.md` for configuration object details.
  */
 export class EndpointConfig extends NamedConfig {
+  /** @type {string} Name of the application to send requests to. */
+  #application;
+
   /** @type {string[]} The hostnames in question. */
   #hostnames;
 
@@ -28,9 +31,6 @@ export class EndpointConfig extends NamedConfig {
 
   /** @type {string} High-level protocol to speak. */
   #protocol;
-
-  /** @type {MountConfig[]} Array of application mounts. */
-  #mounts;
 
   /** @type {ServiceUseConfig} Role-to-service mappings. */
   #services;
@@ -46,7 +46,7 @@ export class EndpointConfig extends NamedConfig {
     const {
       hostnames = '*',
       interface: iface, // `interface` is a reserved word.
-      mounts,
+      application,
       protocol,
       services = {}
     } = config;
@@ -55,10 +55,15 @@ export class EndpointConfig extends NamedConfig {
       hostnames,
       (item) => Uris.checkHostname(item, true));
 
-    this.#interface = Object.freeze(Uris.parseInterface(iface));
-    this.#mounts    = MountConfig.parseArray(mounts);
-    this.#protocol  = Uris.checkProtocol(protocol);
-    this.#services  = new ServiceUseConfig(services);
+    this.#interface   = Object.freeze(Uris.parseInterface(iface));
+    this.#application = Names.checkName(application);
+    this.#protocol    = Uris.checkProtocol(protocol);
+    this.#services    = new ServiceUseConfig(services);
+  }
+
+  /** @returns {string} Name of the application to send requests to. */
+  get application() {
+    return this.#application;
   }
 
   /**
@@ -75,11 +80,6 @@ export class EndpointConfig extends NamedConfig {
    */
   get interface() {
     return this.#interface;
-  }
-
-  /** @returns {MountConfig[]} Array of application mounts. */
-  get mounts() {
-    return this.#mounts;
   }
 
   /** @returns {string} High-level protocol to speak. */

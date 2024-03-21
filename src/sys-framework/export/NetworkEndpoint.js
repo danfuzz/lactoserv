@@ -25,10 +25,10 @@ import { HostManager } from '#x/HostManager';
  */
 export class NetworkEndpoint extends BaseComponent {
   /**
-   * @type {TreePathMap<TreePathMap<BaseApplication>>} Map from hostnames to
-   * map from paths to applications. See {@link #makeMountMap} for details.
+   * @type {?BaseApplication} Application to send requests to. Becomes
+   * non-`null` during {@link #_impl_start()}.
    */
-  #mountMap;
+  #application = null;
 
   /** @type {ProtocolWrangler} Protocol-specific "wrangler." */
   #wrangler;
@@ -51,12 +51,10 @@ export class NetworkEndpoint extends BaseComponent {
    *   `rateLimiter` (service instance, not just a name).
    */
   constructor(config, extraConfig) {
-    const { interface: iface, mounts, protocol } = config;
-    const { applicationMap, hostManager, rateLimiter, requestLogger } = extraConfig;
+    const { interface: iface, protocol } = config;
+    const { hostManager, rateLimiter, requestLogger } = extraConfig;
 
     super(config);
-
-    this.#mountMap = NetworkEndpoint.#makeMountMap(mounts, applicationMap);
 
     const wranglerOptions = {
       rateLimiter,
@@ -80,74 +78,39 @@ export class NetworkEndpoint extends BaseComponent {
    * @override
    */
   async handleRequest(request, dispatch_unused) {
-    // Find the mount map for the most-specific matching host.
-    const hostMatch = this.#mountMap.find(request.host.nameKey);
-    if (!hostMatch) {
-      // No matching host.
-      request.logger?.hostNotFound(request.host.nameString);
-      return null;
-    }
+    const application = this.#application;
+    const dispatch    = new DispatchInfo(TreePathKey.EMPTY, request.pathname);
 
-    // Iterate from most- to least-specific mounted path.
-    for (let pathMatch = hostMatch.value.find(request.pathname, true);
-      pathMatch;
-      pathMatch = pathMatch.next) {
-      const application = pathMatch.value;
-      const dispatch = new DispatchInfo(pathMatch.key, pathMatch.keyRemainder);
+    request.logger?.dispatching(application.name);
 
-      request.logger?.dispatching({
-        application: application.name,
-        host:        hostMatch.key.toHostnameString(),
-        base:        dispatch.baseString,
-        extra:       dispatch.extraString
-      });
-
-      try {
-        const result = await application.handleRequest(request, dispatch);
-        if (result instanceof OutgoingResponse) {
-          return result;
-        } else if (result !== null) {
-          // Caught immediately below.
-          const type = ((typeof result === 'object') || (typeof result === 'function'))
-            ? result.constructor.name
-            : typeof result;
-          throw new Error(`Unexpected result type from \`handleRequest\`: ${type}`);
-        }
-        // `result === null`, so we iterate to try the next handler (if any).
-      } catch (e) {
-        request.logger?.applicationError(e);
+    try {
+      const result = await application.handleRequest(request, dispatch);
+      if ((result === null) || (result instanceof OutgoingResponse)) {
+        return result;
+      } else {
+        // Caught immediately below.
+        const type = ((typeof result === 'object') || (typeof result === 'function'))
+          ? result.constructor.name
+          : typeof result;
+        throw new Error(`Unexpected result type from \`handleRequest()\`: ${type}`);
       }
+    } catch (e) {
+      request.logger?.applicationError(e);
     }
 
-    // No mounted path actually handled the request.
-    request.logger?.pathNotFound(request.pathname);
     return null;
   }
 
   /** @override */
   async _impl_init(isReload) {
-    const logger = this.logger;
-
-    await this.#wrangler.init(logger, isReload);
-
-    if (logger) {
-      const mountMap = {};
-
-      for (const [host, hostMounts] of this.#mountMap) {
-        const hostString = host.toHostnameString();
-        const paths      = {};
-        for (const [path, app] of hostMounts) {
-          paths[path.toUriPathString(true)] = app.name;
-        }
-        mountMap[hostString] = paths;
-      }
-
-      logger?.mounts(mountMap);
-    }
+    await this.#wrangler.init(this.logger, isReload);
   }
 
   /** @override */
   async _impl_start(isReload) {
+    this.#application =
+      this.context.getComponent(this.config.application, BaseApplication);
+
     await this.#wrangler.start(isReload);
   }
 
