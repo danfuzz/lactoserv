@@ -29,7 +29,7 @@ export class TcpWrangler extends ProtocolWrangler {
 
   /**
    * @type {?AsyncServerSocket} Underlying server socket, wrapped for `async`
-   * friendliness. Set in {@link #_impl_socketStart}.
+   * friendliness. Set in {@link #init}.
    */
   #asyncServer = null;
 
