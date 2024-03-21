@@ -11,26 +11,10 @@ import { Util } from '#x/Util';
 
 /**
  * Configuration representation for an endpoint item, that is, the thing that
- * answers network requests and routes them to one or more applications, and
- * which can also be hooked up to one or more auxiliary services.
+ * answers network requests and routes them to an application, and which can
+ * also be hooked up to one or more auxiliary services.
  *
- * Accepted configuration bindings (in the constructor). All are required,
- * except as noted:
- *
- * * Bindings as defined by the superclass, {@link NamedConfig}.
- * * `{string|string[]} hostnames` -- Hostnames which this endpoint should
- *   accept as valid. Can include subdomain or complete wildcards. Defaults to
- *   `*` (that is, accepts all hostnames as valid).
- * * `{string} interface` -- Physical interface that the endpoint is to listen
- *   on. Must be an object of a form suitable for parsing by {@link
- *   Uris#parseInterface}.
- * * `{string} protocol` -- Protocol that the endpoint is to speak. Must be one
- *   of `http`, `http2`, or `https`.
- * * `{object[]} mounts` -- Array of application mounts, each of a form suitable
- *   for passing to the {@link MountConfig} constructor.
- * * `{object} services` -- Mapping of service roles to the names of services
- *   which are to fill those roles, suitable for passing to the {@link
- *   ServiceUseConfig} constructor.
+ * See `doc/configuration.md` for configuration object details.
  */
 export class EndpointConfig extends NamedConfig {
   /** @type {string[]} The hostnames in question. */
