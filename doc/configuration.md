@@ -509,8 +509,8 @@ reasonable demand:
     implementable in a non-wacky unambiguous way.)
   * Ones with an internal empty path component, e.g. with `//` somewhere in
     them. Many filesystems will "collapse" multiple slashes away, but we choose
-    to err on the side of being conservative and report this as an error than
-    wade blithely into DWIM territory.
+    to err on the side of being conservative and report this as an error rather
+    than wade blithely into DWIM territory.
   * End with an empty path component (that is, end with a slash), when the path
     does not in fact correspond to a directory.
 * The bodies of error and other non-content responses, other than `404`s, are
