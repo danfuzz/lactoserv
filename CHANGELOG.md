@@ -45,9 +45,8 @@ Other notable changes:
     for requests.
 * `built-ins`:
   * New class `HostRouter` which does what you probably expect from the name.
-  * Likewise, new class `PathRouter`. This and its buddy are intended to be
-    replacements for the routing implementation currently baked into
-    `EndpointManager`.
+  * Likewise, new class `PathRouter`. This and its buddy are the replacements
+    for the routing implementation that used to be baked into `EndpointManager`.
 
 ### v0.6.10 -- 2024-03-15
 
