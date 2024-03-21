@@ -3,9 +3,9 @@
 
 import * as fs from 'node:fs/promises';
 
-import { MemoryMonitor, ProcessIdFile, ProcessInfoFile, RateLimiter,
-  Redirector, RequestLogger, SimpleResponse, StaticFiles, SystemLogger }
-  from '@lactoserv/built-ins';
+import { MemoryMonitor, PathRouter, ProcessIdFile, ProcessInfoFile,
+  RateLimiter, Redirector, RequestLogger, SimpleResponse, StaticFiles,
+  SystemLogger } from '@lactoserv/built-ins';
 
 
 const fileUrl  = (path) => new URL(path, import.meta.url);
@@ -121,6 +121,8 @@ const services = [
 
 // Application definitions.
 const applications = [
+  // Main apps.
+
   {
     name:         'myWackyRedirector',
     class:        Redirector,
@@ -128,6 +130,22 @@ const applications = [
     target:       'https://localhost:8443/resp/',
     cacheControl: { public: true, maxAge: '5 min' }
   },
+  {
+    name:  'mySite',
+    class: PathRouter,
+    paths: {
+      '/':                 'myStaticFun',
+      '/bonk/':            'myStaticFun',
+      '/florp/':           'myStaticFunNo404',
+      '/resp/empty-body/': 'responseEmptyBody',
+      '/resp/no-body/':    'responseNoBody',
+      '/resp/one/':        'responseOne',
+      '/resp/two/':        'responseTwo'
+    }
+  },
+
+  // Component apps used by the above.
+
   {
     name:          'myStaticFun',
     class:         StaticFiles,
@@ -209,28 +227,8 @@ const endpoints = [
     },
     mounts: [
       {
-        application: 'myStaticFun',
-        at:          ['//*/', '//*/bonk/']
-      },
-      {
-        application: 'myStaticFunNo404',
-        at:          ['//*/florp/']
-      },
-      {
-        application: 'responseEmptyBody',
-        at:          ['//*/resp/empty-body/']
-      },
-      {
-        application: 'responseNoBody',
-        at:          ['//*/resp/no-body/']
-      },
-      {
-        application: 'responseOne',
-        at:          ['//*/resp/one/']
-      },
-      {
-        application: 'responseTwo',
-        at:          ['//*/resp/two/']
+        application: 'mySite',
+        at:          ['//*/']
       }
     ]
   },
