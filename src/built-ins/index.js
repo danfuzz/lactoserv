@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 export * from '#x/MemoryMonitor';
+export * from '#x/PathRouter';
 export * from '#x/ProcessIdFile';
 export * from '#x/ProcessInfoFile';
 export * from '#x/RateLimiter';
