@@ -14,6 +14,12 @@ Breaking changes:
     Instead, just let the (Node / JavaScript) module system be that. Simplifies
     a lot of stuff! (Doing this had become possible once the configuration file
     loader was expanded to allow access to framework classes.)
+  * Dropped application mounting / routing setup from the endpoint
+    configuration. Instead of `mounts`, the endpoint configuration takes just
+    a single application name, for the application which is to handle all
+    requests. If routing is needed, there are now routing applications which
+    can be set up; but if not, there's no longer a performance penalty to do
+    what amount to no-op lookups.
 * `sys-framework`:
   * Added new class `ControlContext`, which gets associated with each concrete
     instance of `BaseControllable` (the superclass of all app and service
@@ -39,9 +45,8 @@ Other notable changes:
     for requests.
 * `built-ins`:
   * New class `HostRouter` which does what you probably expect from the name.
-  * Likewise, new class `PathRouter`. This and its buddy are intended to be
-    replacements for the routing implementation currently baked into
-    `EndpointManager`.
+  * Likewise, new class `PathRouter`. This and its buddy are the replacements
+    for the routing implementation that used to be baked into `EndpointManager`.
 
 ### v0.6.10 -- 2024-03-15
 

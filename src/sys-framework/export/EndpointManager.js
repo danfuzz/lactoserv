@@ -1,9 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { EndpointConfig, MountConfig } from '@this/sys-config';
+import { EndpointConfig } from '@this/sys-config';
 
-import { BaseApplication } from '#x/BaseApplication';
 import { BaseControllable } from '#x/BaseControllable';
 import { ControlContext } from '#x/ControlContext';
 import { NetworkEndpoint } from '#x/NetworkEndpoint';
@@ -106,7 +105,6 @@ export class EndpointManager extends BaseControllable {
   #addInstanceFor(config) {
     const {
       hostnames,
-      mounts,
       name,
       services: { rateLimiter: limName, requestLogger: logName }
     } = config;
@@ -128,8 +126,7 @@ export class EndpointManager extends BaseControllable {
       : null;
 
     const extraConfig = {
-      applicationMap: this.#makeApplicationMap(mounts),
-      hostManager:    hmSubset,
+      hostManager: hmSubset,
       rateLimiter,
       requestLogger
     };
@@ -137,27 +134,5 @@ export class EndpointManager extends BaseControllable {
     const instance = new NetworkEndpoint(config, extraConfig);
 
     this.#instances.set(name, instance);
-  }
-
-  /**
-   * Makes an `applicationMap` map suitable for use in constructing a {@link
-   * NetworkEndpoint}, by also using the {@link #warehouse} to look up
-   * application name bindings.
-   *
-   * @param {MountConfig[]} mounts Original `mounts` configuration item.
-   * @returns {Map<string, BaseApplication>} Corresponding map.
-   */
-  #makeApplicationMap(mounts) {
-    const applicationManager = this.#warehouse.applicationManager;
-    const result             = new Map();
-
-    for (const { application } of mounts) {
-      if (!result.has(application)) {
-        const found = applicationManager.get(application);
-        result.set(application, found);
-      }
-    }
-
-    return result;
   }
 }

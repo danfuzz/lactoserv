@@ -139,7 +139,8 @@ if [[ " ${targets[*]} " =~ ' lint ' ]]; then
     progress-msg 'Linting...'
     lib node-project lint \
         --out="${outDir}" --src="${srcDir}" \
-        "${lintArgs[@]}"
+        "${lintArgs[@]}" \
+    || exit "$?"
 fi
 
 if [[ " ${targets[*]} " =~ ' run ' ]]; then
