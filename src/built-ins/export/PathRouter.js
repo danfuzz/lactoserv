@@ -39,7 +39,7 @@ export class PathRouter extends BaseApplication {
         extra:       subDispatch.extraString
       });
 
-      const result = await application.handleRequest(request, dispatch);
+      const result = await application.handleRequest(request, subDispatch);
       if (result !== null) {
         return result;
       }
