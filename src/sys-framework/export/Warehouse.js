@@ -48,8 +48,7 @@ export class Warehouse extends BaseControllable {
 
     // Note: `super()` is called with an argument exactly because this instance
     // is the root of its hierarchy.
-    const context = new RootControlContext(ThisModule.subsystemLogger('warehouse'));
-    super(context);
+    super(new RootControlContext(ThisModule.subsystemLogger('warehouse')));
 
     const parsed = new WarehouseConfig(config);
 
