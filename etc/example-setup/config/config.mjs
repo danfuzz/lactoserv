@@ -134,14 +134,14 @@ const applications = [
     name:  'mySite',
     class: PathRouter,
     paths: {
-      '/*':               'myStaticFun',
-      '/bonk/*':          'myStaticFun',
-      '/florp/*':         'myStaticFunNo404',
-      '/resp/empty-body': 'responseEmptyBody',
-      '/resp/no-body/*':  'responseNoBody',
-      '/resp/dir-only/':  'responseDirOnly',
-      '/resp/one':        'responseOne',
-      '/resp/two':        'responseTwo'
+      '/*':                 'myStaticFun',
+      '/bonk/*':            'myStaticFun',
+      '/florp/*':           'myStaticFunNo404',
+      '/resp/empty-body/*': 'responseEmptyBody',
+      '/resp/no-body/*':    'responseNoBody',
+      '/resp/dir-only/':    'responseDirOnly',
+      '/resp/one':          'responseOne',
+      '/resp/two':          'responseTwo'
     }
   },
 
@@ -162,16 +162,19 @@ const applications = [
     cacheControl:  { public: true, maxAge: '5 min' }
   },
   {
-    name:         'responseEmptyBody',
-    class:        SimpleResponse,
-    filePath:     filePath('../site-extra/empty-file.txt'),
-    cacheControl: 'public, immutable, max-age=600'
+    name:                'responseEmptyBody',
+    class:               SimpleResponse,
+    filePath:            filePath('../site-extra/empty-file.txt'),
+    cacheControl:        'public, immutable, max-age=600',
+    maxPathLength:       2,
+    redirectDirectories: true
   },
   {
-    name:         'responseNoBody',
-    class:        SimpleResponse,
-    cacheControl: { public: true, immutable: true, maxAge: '11 min' },
-    etag:         true
+    name:          'responseNoBody',
+    class:         SimpleResponse,
+    cacheControl:  { public: true, immutable: true, maxAge: '11 min' },
+    etag:          true,
+    maxPathLength: 2,
   },
   {
     name:         'responseDirOnly',
@@ -191,9 +194,7 @@ const applications = [
       hashAlgorithm: 'sha1',
       hashLength:    12,
       tagForm:       'weak'
-    },
-    maxPathLength:       0,
-    redirectDirectories: true
+    }
   },
   {
     name:                'responseTwo',
@@ -201,9 +202,7 @@ const applications = [
     contentType:         'text/html',
     body:                '<html><body><h1>Two!</h1></body></html>\n',
     cacheControl:        { public: true, immutable: true, maxAge: '13 min'  },
-    etag:                true,
-    maxPathLength:       0,
-    redirectDirectories: true
+    etag:                true
   }
 ];
 
