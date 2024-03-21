@@ -3,7 +3,7 @@
 
 import * as fs from 'node:fs/promises';
 
-import { MemoryMonitor, PathRouter, ProcessIdFile, ProcessInfoFile,
+import { HostRouter, MemoryMonitor, PathRouter, ProcessIdFile, ProcessInfoFile,
   RateLimiter, Redirector, RequestLogger, SimpleResponse, StaticFiles,
   SystemLogger } from '@lactoserv/built-ins';
 
@@ -259,7 +259,7 @@ const endpoints = [
     },
     mounts: [
       {
-        application: 'myStaticFun',
+        application: 'mySite',
         at:          '//*/'
       }
     ]
