@@ -17,7 +17,7 @@ import { ThisModule } from '#p/ThisModule';
  */
 export class BaseControllable {
   /**
-   * @type {?ControlContext|{ nascentRoot: RootControlContext}} Associated
+   * @type {?ControlContext|{ nascentRoot: RootControlContext }} Associated
    * context, if known, possibly wrapped in an object for the special case of
    * the root context before this instance is considered initialized. If `null`
    * or wrapped, will get set (to a proper instance) during {@link #init}.
