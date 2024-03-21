@@ -1,13 +1,13 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { TreePathKey, TreePathMap } from '@this/collections';
+import { TreePathKey } from '@this/collections';
 import { IntfRateLimiter, IntfRequestLogger, ProtocolWrangler,
   ProtocolWranglers }
   from '@this/net-protocol';
 import { DispatchInfo, IntfRequestHandler, OutgoingResponse }
   from '@this/net-util';
-import { EndpointConfig, MountConfig } from '@this/sys-config';
+import { EndpointConfig } from '@this/sys-config';
 
 import { BaseApplication } from '#x/BaseApplication';
 import { BaseComponent } from '#x/BaseComponent';
@@ -132,34 +132,5 @@ export class NetworkEndpoint extends BaseComponent {
   /** @override */
   static get CONFIG_CLASS() {
     return EndpointConfig;
-  }
-
-  /**
-   * Makes the map from each (possibly wildcarded) hostname that this endpoint
-   * handles to the map from each (typically wildcarded) path (that is, a path
-   * _prefix_ when wildcarded) to the application which handles it.
-   *
-   * @param {MountConfig[]} mounts Configured application mounts.
-   * @param {Map<string, BaseApplication>} applicationMap Map from application
-   *   names to corresponding instances.
-   * @returns {TreePathMap<TreePathMap<BaseApplication>>} The constructed mount
-   *   map.
-   */
-  static #makeMountMap(mounts, applicationMap) {
-    const result = new TreePathMap(TreePathKey.hostnameStringFrom);
-
-    for (const mount of mounts) {
-      const { application, hostname, path } = mount;
-
-      let hostMounts = result.get(hostname);
-      if (!hostMounts) {
-        hostMounts = new TreePathMap(TreePathKey.uriPathStringFrom);
-        result.add(hostname, hostMounts);
-      }
-
-      hostMounts.add(path, applicationMap.get(application));
-    }
-
-    return result;
   }
 }
