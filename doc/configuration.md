@@ -152,6 +152,10 @@ naming and configuring one of them. Each element has the following bindings:
 
 * `name` &mdash; The name of the endpoint. This is just used for logging and
   related informational purposes.
+* `application`: &mdash; The name of the application which this endpoint should
+  send requests to. **Note:** In order to serve multiple leaf applications, the
+  one named here will have to be a routing application of some sort (such as
+  [`PathRouter`](#pathrouter), for example).
 * `hostnames` &mdash; A list of one or more hostnames to recognize, each name
   in the same form as accepted in the `hosts` section of the configuration. In
   most cases, it will suffice to just specify this as `['*']`.
@@ -168,15 +172,6 @@ naming and configuring one of them. Each element has the following bindings:
     descriptors.
 * `protocol` &mdash; The protocol to speak. This can be any of `http`, `https`,
   or `http2`. `http2` includes fallback to `https`.
-* `mounts` &mdash; A list of application mount points, each of which is an
-  object with the following bindings:
-  * `application` &mdash; The name of the application to mount.
-  * `at` &mdash; The mount point(s) of the application, in the form of a
-    protocol-less URI path, of the form `//hostname/base/path/` or a list of
-    same, where `hostname` is a hostname in the same form as accepted in the
-    `hosts` section of the configuration (including partial and full wildcards),
-    and `base/path/` (which must end with a slash) is the base path under that
-    hostname at which the application is to respond.
 * `services` &mdash; An object which binds roles to system services by name.
   This binding is optional, and if present all roles are optional. The following
   roles are recognized:
