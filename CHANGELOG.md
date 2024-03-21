@@ -20,6 +20,8 @@ Breaking changes:
     instances. This will _eventually_ be the key mechanism for treating a set of
     components holistically in a reasonably general way. (Right now there's a
     lot of ad-hoc arrangement.)
+  * Added related new class `RootControlContext`, a subclass of `ControlContext`
+    which specifically represents the root of a hierarchy.
   * Added new lifecycle method `init()` (and abstract implementation method
     `_impl_init()`) to `BaseControllable`, which is where the above contexts get
     hooked up.
