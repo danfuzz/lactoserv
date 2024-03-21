@@ -42,7 +42,12 @@ export class HostRouter extends BaseApplication {
 
   /** @override */
   async _impl_init(isReload_unused) {
-    // Nothing needed here for this class.
+    const routes = {};
+    for (const [host, name] of this.config.routeTree) {
+      routes[host.toHostnameString()] = name;
+    }
+
+    this.logger?.routes(routes);
   }
 
   /** @override */
