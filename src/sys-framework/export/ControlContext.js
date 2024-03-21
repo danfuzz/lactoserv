@@ -5,6 +5,7 @@ import { IntfLogger } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';
 
 import { BaseControllable } from '#x/BaseControllable';
+import { ThisModule } from '#p/ThisModule';
 
 
 /**
@@ -56,7 +57,7 @@ export class ControlContext {
     } else {
       this.#associate = MustBe.instanceOf(associate, BaseControllable);
       this.#parent    = MustBe.instanceOf(parent, BaseControllable).context;
-      this.#root      = this.#parent.#root;
+      this.#root      = MustBe.instanceOf(this.#parent.#root, ControlContext);
     }
   }
 
@@ -92,15 +93,13 @@ export class ControlContext {
   }
 
   /**
-   * Sets up the {@link #associate} of this instance to be the indicated object.
-   * This method is needed because it's impossible for the root to refer to
-   * itself when trying to construct an instance of this class before calling
-   * `super()` in its `constructor()` (due to JavaScript rules around references
-   * to `this` in that context).
+   * Underlying implementation of the method `linkRoot()` in subclass
+   * `RootControlContext`. This is a module-private method here so that it
+   * doesn't get exposed on non-root instances.
    *
    * @param {BaseControllable} root The actual "root" instance.
    */
-  linkRoot(root) {
+  [ThisModule.SYM_linkRoot](root) {
     MustBe.instanceOf(root, BaseControllable);
 
     if (this.#root !== this) {

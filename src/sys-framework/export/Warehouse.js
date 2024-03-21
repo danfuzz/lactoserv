@@ -13,6 +13,7 @@ import { ComponentManager } from '#x/ComponentManager';
 import { ControlContext } from '#x/ControlContext';
 import { EndpointManager } from '#x/EndpointManager';
 import { HostManager } from '#x/HostManager';
+import { RootControlContext } from '#x/RootControlContext';
 import { ThisModule } from '#p/ThisModule';
 
 
@@ -45,9 +46,9 @@ export class Warehouse extends BaseControllable {
   constructor(config) {
     MustBe.plainObject(config);
 
-    const context = new ControlContext('root', null, ThisModule.subsystemLogger('warehouse'));
+    const context = new RootControlContext(ThisModule.subsystemLogger('warehouse'));
     super(context);
-    context.linkRoot(this); // See comment in `ControlContext` for explanation.
+    context.linkRoot(this); // See comment in `RootControlContext` for explanation.
 
     const parsed = new WarehouseConfig(config);
 
