@@ -116,7 +116,7 @@ export class ComponentManager extends BaseControllable {
 
     const results = instances.map((c) => {
       const logger  = this.#baseSublogger[c.name];
-      const context = new ControlContext(this.context.world, logger);
+      const context = new ControlContext(c, this, logger);
       return c.init(context, isReload);
     });
 

@@ -10,4 +10,5 @@ export * from '#x/ControlContext';
 export * from '#x/EndpointManager';
 export * from '#x/HostManager';
 export * from '#x/NetworkEndpoint';
+export * from '#x/RootControlContext';
 export * from '#x/Warehouse';

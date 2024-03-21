@@ -16,9 +16,12 @@ Breaking changes:
   * Added new class `ControlContext`, which gets associated with each concrete
     instance of `BaseControllable` (the superclass of all app and service
     classes, among other things). This is now where an instance's `logger` is
-    found. This will _eventually_ be the key mechanism for treating a set of
+    found, and it also keeps track of the parent/child relationships between
+    instances. This will _eventually_ be the key mechanism for treating a set of
     components holistically in a reasonably general way. (Right now there's a
     lot of ad-hoc arrangement.)
+  * Added related new class `RootControlContext`, a subclass of `ControlContext`
+    which specifically represents the root of a hierarchy.
   * Added new lifecycle method `init()` (and abstract implementation method
     `_impl_init()`) to `BaseControllable`, which is where the above contexts get
     hooked up.

@@ -13,6 +13,7 @@ import { ComponentManager } from '#x/ComponentManager';
 import { ControlContext } from '#x/ControlContext';
 import { EndpointManager } from '#x/EndpointManager';
 import { HostManager } from '#x/HostManager';
+import { RootControlContext } from '#x/RootControlContext';
 import { ThisModule } from '#p/ThisModule';
 
 
@@ -45,9 +46,9 @@ export class Warehouse extends BaseControllable {
   constructor(config) {
     MustBe.plainObject(config);
 
-    const context = new ControlContext('world', ThisModule.subsystemLogger('warehouse'));
+    const context = new RootControlContext(ThisModule.subsystemLogger('warehouse'));
     super(context);
-    context.linkWorld(this); // See comment in `ControlContext` for explanation.
+    context.linkRoot(this); // See comment in `RootControlContext` for explanation.
 
     const parsed = new WarehouseConfig(config);
 
@@ -90,12 +91,15 @@ export class Warehouse extends BaseControllable {
 
   /** @override */
   async _impl_init(isReload) {
-    const makeCc = (name) => new ControlContext(this, ThisModule.subsystemLogger(name));
+    const callInit = (name, obj) => {
+      const context = new ControlContext(obj, this, ThisModule.subsystemLogger(name));
+      return obj.init(context, isReload);
+    };
 
     const results = [
-      this.#serviceManager.init(makeCc('services'), isReload),
-      this.#applicationManager.init(makeCc('apps'), isReload),
-      this.#endpointManager.init(makeCc('endpoints'), isReload)
+      callInit('services',  this.#serviceManager),
+      callInit('apps',      this.#applicationManager),
+      callInit('endpoints', this.#endpointManager)
     ];
 
     await Promise.all(results);
