@@ -21,18 +21,21 @@ It is also intended as a solid foundation for prototyping high-level OS system
 services.
 
 More concretely, Lactoserv is a web application server which knows how to serve
-a handful of different types of built-in "application," with plans to add more
-and to enable straightforward custom applications.
+a handful of different types of built-in "application," with plans to add more.
+It is also possible to define your own applications to be served within the
+framework.
 
 ### Features
 
 * Can run multiple network endpoints, each serving a different set of high-level
   applications.
 * Several built-in applications:
+  * A small handful of request routing applications, to cover basic routing
+    needs.
   * Simple response server (approximately a single-file static server).
-  * Static file server.
+  * Static file (directory tree) server.
   * Redirect server.
-  * More to come! TODO!
+  * More to come!
 * Path-hierarchy specificity-based endpoint configuration, for endpoints that
   serve multiple applications. This is as opposed to, notably, many (most?) of
   the "competing" Node webapp frameworks, which just do linear dispatch.
