@@ -4,9 +4,17 @@
 import { IntfLogger } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';
 
+import { BaseComponent } from '#x/BaseComponent';
 import { BaseControllable } from '#x/BaseControllable';
 import { ThisModule } from '#p/ThisModule';
 
+/**
+ * Forward declaration of this subclass, because `import`ing it would cause a
+ * circular dependency while loading.
+ *
+ * @typedef RootControlContext
+ * @type {ControlContext}
+ */
 
 /**
  * "Context" in which a {@link BaseControllable} is situated. Instances of this
@@ -32,7 +40,7 @@ export class ControlContext {
   #parent;
 
   /**
-   * @type {ControlContext} Instance which represents the root of the
+   * @type {RootControlContext} Instance which represents the root of the
    * containership hierarchy.
    */
   #root;
@@ -92,6 +100,20 @@ export class ControlContext {
     }
 
     return this.#root;
+  }
+
+  /**
+   * Gets a named component that has the same root as this instance, which must
+   * also optionally be of a specific class (including a base class).
+   *
+   * @param {string} name Name of the component.
+   * @param {?function(new:BaseComponent)} [cls] Class which the result must be
+   *   an instance of, or `null` to not have a class restriction.
+   * @returns {BaseComponent} Found instance.
+   * @throws {Error} Thrown if a suitable instance was not found.
+   */
+  getComponent(name, cls) {
+    return this.#root.getComponent(name, cls);
   }
 
   /**
