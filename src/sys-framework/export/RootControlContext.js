@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { IntfLogger } from '@this/loggy-intf';
+import { MustBe } from '@this/typey';
 
 import { BaseComponent } from '#x/BaseComponent';
 import { ControlContext } from '#x/ControlContext';
@@ -30,6 +31,22 @@ export class RootControlContext extends ControlContext {
    */
   constructor(logger) {
     super('root', null, logger);
+  }
+
+  /** @override */
+  getComponent(name, cls) {
+    MustBe.string(name);
+    cls = (cls === null) ? BaseComponent : MustBe.constructorFunction(cls);
+
+    const found = this.#components.get(name)?.associate;
+
+    if (!found) {
+      throw new Error(`No such component: ${name}`);
+    } else if (!(found instanceof cls)) {
+      throw new Error(`Component not of class ${cls.name}: ${name}`);
+    }
+
+    return found;
   }
 
   /**

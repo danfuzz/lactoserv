@@ -1,7 +1,9 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+export * from '#x/HostRouter';
 export * from '#x/MemoryMonitor';
+export * from '#x/PathRouter';
 export * from '#x/ProcessIdFile';
 export * from '#x/ProcessInfoFile';
 export * from '#x/RateLimiter';

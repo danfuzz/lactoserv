@@ -7,6 +7,8 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
+* Merged all the built-in applications and services into a unified module
+  called `built-ins`.
 * Configuration:
   * Stopped using a component registry to find applications and services.
     Instead, just let the (Node / JavaScript) module system be that. Simplifies
@@ -35,6 +37,11 @@ Other notable changes:
     `stdout`, when it's a TTY.
   * Fixed request logging so that it gets a more accurate (earlier) start time
     for requests.
+* `built-ins`:
+  * New class `HostRouter` which does what you probably expect from the name.
+  * Likewise, new class `PathRouter`. This and its buddy are intended to be
+    replacements for the routing implementation currently baked into
+    `EndpointManager`.
 
 ### v0.6.10 -- 2024-03-15
 

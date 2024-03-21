@@ -271,6 +271,95 @@ const applications = [
 ];
 ```
 
+### `HostRouter`
+
+An application which can route requests to another application, based on the
+`host` (or equivalent) header in the requests. In addition to the
+[`BaseApplication`](#baseapplication) configuration options, it accepts the
+following bindings:
+
+* `hosts` &mdash; A plain object with possibly-wildcarded hostnames as keys, and
+  the _names_ of other applications as values. A wildcard only covers the prefix
+  of a hostname and cannot be used for hostnames identified by numeric IP
+  address.
+
+**Note:** Unlike `PathRouter`, this application does not do fallback to
+less-and-less specific routes; it just finds (at most) one to route to.
+
+```js
+import { HostRouter } from '@lactoserv/built-ins';
+
+const applications = [
+  {
+    name:  'myHosts',
+    class: HostRouter,
+    hosts: {
+      '*':             'myCatchAllApp',
+      '127.0.0.1':     'myLocalhostApp',
+      'localhost':     'myLocalhostApp',
+      '*.example.com': 'myExampleApp'
+    }
+  },
+  {
+    name: 'myCatchallApp',
+    // ... more ...
+  },
+  {
+    name: 'myExampleApp',
+    // ... more ...
+  },
+  {
+    name: 'myLocalhostApp',
+    // ... more ...
+  }
+];
+```
+
+### `PathRouter`
+
+An application which can route requests to another application, based on the
+path of the requests. In addition to the [`BaseApplication`](#baseapplication)
+configuration options, it accepts the following bindings:
+
+* `paths` &mdash; A plain object with possibly-wildcarded paths as keys, and
+  the _names_ of other applications as values. A wildcard only covers the suffix
+  of a path; it cannot be used for prefixes or infixes.
+
+The routing works by starting with the most specific match to the path of an
+incoming request. If that app does not try to handle the request &mdash;
+note that it counts as a "try" to end up `throw`ing out of the handler &mdash;
+the next most specific match is asked, and so on, until there are no path
+matches left.
+
+```js
+import { HostRouter } from '@lactoserv/built-ins';
+
+const applications = [
+  {
+    name:  'myHosts',
+    class: HostRouter,
+    hosts: {
+      '*':             'myCatchAllApp',
+      '127.0.0.1':     'myLocalhostApp',
+      'localhost':     'myLocalhostApp',
+      '*.example.com': 'myExampleApp'
+    }
+  },
+  {
+    name: 'myCatchallApp',
+    // ... more ...
+  },
+  {
+    name: 'myExampleApp',
+    // ... more ...
+  },
+  {
+    name: 'myLocalhostApp',
+    // ... more ...
+  }
+];
+```
+
 ### `Redirector`
 
 An application which responds to all requests with an HTTP "redirect" response.

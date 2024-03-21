@@ -3,9 +3,9 @@
 
 import * as fs from 'node:fs/promises';
 
-import { MemoryMonitor, ProcessIdFile, ProcessInfoFile, RateLimiter,
-  Redirector, RequestLogger, SimpleResponse, StaticFiles, SystemLogger }
-  from '@lactoserv/built-ins';
+import { HostRouter, MemoryMonitor, PathRouter, ProcessIdFile, ProcessInfoFile,
+  RateLimiter, Redirector, RequestLogger, SimpleResponse, StaticFiles,
+  SystemLogger } from '@lactoserv/built-ins';
 
 
 const fileUrl  = (path) => new URL(path, import.meta.url);
@@ -121,6 +121,8 @@ const services = [
 
 // Application definitions.
 const applications = [
+  // Main apps.
+
   {
     name:         'myWackyRedirector',
     class:        Redirector,
@@ -128,6 +130,32 @@ const applications = [
     target:       'https://localhost:8443/resp/',
     cacheControl: { public: true, maxAge: '5 min' }
   },
+
+  {
+    name:  'mySite',
+    class: HostRouter,
+    hosts: {
+      '*':         'myPaths',
+      '127.0.0.1': 'myStaticFun'
+    }
+  },
+  {
+    name:  'myPaths',
+    class: PathRouter,
+    paths: {
+      '/*':                 'myStaticFun',
+      '/bonk/*':            'myStaticFun',
+      '/florp/*':           'myStaticFunNo404',
+      '/resp/empty-body/*': 'responseEmptyBody',
+      '/resp/no-body/*':    'responseNoBody',
+      '/resp/dir-only/':    'responseDirOnly',
+      '/resp/one':          'responseOne',
+      '/resp/two':          'responseTwo'
+    }
+  },
+
+  // Component apps used by the above.
+
   {
     name:          'myStaticFun',
     class:         StaticFiles,
@@ -143,15 +171,26 @@ const applications = [
     cacheControl:  { public: true, maxAge: '5 min' }
   },
   {
-    name:         'responseEmptyBody',
-    class:        SimpleResponse,
-    filePath:     filePath('../site-extra/empty-file.txt'),
-    cacheControl: 'public, immutable, max-age=600'
+    name:                'responseEmptyBody',
+    class:               SimpleResponse,
+    filePath:            filePath('../site-extra/empty-file.txt'),
+    cacheControl:        'public, immutable, max-age=600',
+    maxPathLength:       2,
+    redirectDirectories: true
   },
   {
-    name:         'responseNoBody',
+    name:          'responseNoBody',
+    class:         SimpleResponse,
+    cacheControl:  { public: true, immutable: true, maxAge: '11 min' },
+    etag:          true,
+    maxPathLength: 2,
+  },
+  {
+    name:         'responseDirOnly',
     class:        SimpleResponse,
-    cacheControl: { public: true, immutable: true, maxAge: '11 min' },
+    contentType:  'text/plain',
+    body:         'I am a directory!\n',
+    cacheControl: { public: true, immutable: true, maxAge: '12 min'  },
     etag:         true
   },
   {
@@ -164,9 +203,7 @@ const applications = [
       hashAlgorithm: 'sha1',
       hashLength:    12,
       tagForm:       'weak'
-    },
-    maxPathLength:       0,
-    redirectDirectories: true
+    }
   },
   {
     name:                'responseTwo',
@@ -174,9 +211,7 @@ const applications = [
     contentType:         'text/html',
     body:                '<html><body><h1>Two!</h1></body></html>\n',
     cacheControl:        { public: true, immutable: true, maxAge: '13 min'  },
-    etag:                true,
-    maxPathLength:       0,
-    redirectDirectories: true
+    etag:                true
   }
 ];
 
@@ -209,28 +244,8 @@ const endpoints = [
     },
     mounts: [
       {
-        application: 'myStaticFun',
-        at:          ['//*/', '//*/bonk/']
-      },
-      {
-        application: 'myStaticFunNo404',
-        at:          ['//*/florp/']
-      },
-      {
-        application: 'responseEmptyBody',
-        at:          ['//*/resp/empty-body/']
-      },
-      {
-        application: 'responseNoBody',
-        at:          ['//*/resp/no-body/']
-      },
-      {
-        application: 'responseOne',
-        at:          ['//*/resp/one/']
-      },
-      {
-        application: 'responseTwo',
-        at:          ['//*/resp/two/']
+        application: 'mySite',
+        at:          '//*/'
       }
     ]
   },
@@ -244,7 +259,7 @@ const endpoints = [
     },
     mounts: [
       {
-        application: 'myStaticFun',
+        application: 'mySite',
         at:          '//*/'
       }
     ]
