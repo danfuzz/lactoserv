@@ -21,6 +21,8 @@ Breaking changes:
     can be set up; but if not, there's no longer a performance penalty to do
     what amount to no-op lookups.
 * `sys-framework`:
+  * Reworked `BaseApplication` configuration `acceptQueries` to instead be
+    `maxQueryLength` (and all that the name change implies).
   * Added new class `ControlContext`, which gets associated with each concrete
     instance of `BaseControllable` (the superclass of all app and service
     classes, among other things). This is now where an instance's `logger` is
