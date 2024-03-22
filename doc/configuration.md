@@ -153,8 +153,8 @@ naming and configuring one of them. Each element has the following bindings:
 * `name` &mdash; The name of the endpoint. This is just used for logging and
   related informational purposes.
 * `hostnames` &mdash; A list of one or more hostnames to recognize, each name
-  in the same form as accepted in the `hosts` section of the configuration. In
-  most cases, it will suffice to just specify this as `['*']`.
+  in the same form as accepted in the `hosts` section of the configuration.
+  Defaults to `['*']`, which should suffice in most cases.
 * `interface` &mdash; The network interface to listen on. This is a string which
   can take one of two forms:
   * `<address>:<port>` &mdash; Specifies a normal network-attached interface.

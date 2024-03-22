@@ -237,7 +237,6 @@ const endpoints = [
   {
     name:      'insecure',
     protocol:  'http',
-    hostnames: ['*'],
     interface: '*:8080',
     services: {
       rateLimiter:   'limiter',
