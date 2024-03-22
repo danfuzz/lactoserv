@@ -403,6 +403,10 @@ following configuration bindings:
   details.
 * `filePath` &mdash; Optional absolute filesystem path to the file to respond
   with.
+* `statusCode` &mdash; Optional fixed status code to report. If present and not
+  `null`, this is the numeric status code that will be used for all responses.
+  Setting this also prevents range requests and not-modified responses from
+  being generated.
 
 It is valid to specify neither `body` nor `filePath`; this indicates that the
 application should only ever produce no-content (status `204`) responses. It is
@@ -424,13 +428,14 @@ const applications = [
     body:                'Hello!\n',
     cacheControl:        { public: true, maxAge: '1_day' },
     maxPathLength:       0,
-    redirectDirectories: true
+    redirectDirectories: true,
   },
   {
     name:         'fromFile',
     class:        'SimpleResponse',
-    filePath:     '/etc/site/someFile.txt',
-    cacheControl: 'immutable; max-age=100'
+    filePath:     '/etc/site/notFoundMessage.txt',
+    cacheControl: 'immutable; max-age=1000',
+    statusCode:   404
   },
   {
     name:  'empty',
@@ -448,10 +453,12 @@ reasonable demand:
 * Caching:
   * The `Last-Modified` response header is always sent when given a `filePath`,
     and not sent when given a `body`.
-  * Conditional request headers are honored.
+  * Unless `statusCode` is set in the configuration, conditional request headers
+    are honored.
 * Ranges:
-  * The `Accept-Ranges` response header is always sent.
-  * Range request headers are honored, including conditional range requests.
+  * Unless `statusCode` is set in the configuration:
+    * The `Accept-Ranges` response header is always sent.
+    * Range request headers are honored, including conditional range requests.
 
 ### `StaticFiles`
 

@@ -51,6 +51,8 @@ Other notable changes:
   * New class `HostRouter` which does what you probably expect from the name.
   * Likewise, new class `PathRouter`. This and its buddy are the replacements
     for the routing implementation that used to be baked into `EndpointManager`.
+  * Added `statusCode` configuration to `SimpleResponse`. Notably, it can now be
+    used to define simple `404` responses.
 
 ### v0.6.10 -- 2024-03-15
 

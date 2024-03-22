@@ -193,7 +193,7 @@ const applications = [
     etag:        false,
     body :       'Sorry! Not found!\n',
     contentType: 'text/plain',
-    statusCode:  404 // TODO: Implement `statusCode` on `SimpleResponse`.
+    statusCode:  404
   },
   {
     name:          'responseNoBody',
