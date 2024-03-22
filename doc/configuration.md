@@ -10,7 +10,18 @@ configuration. Very skeletally (and reductively):
 
 ```js
 const config = {
-  // ... configuration ...
+  services: [
+    // ... configuration ...
+  ],
+  hosts: [
+    // ... configuration ...
+  ],
+  endpoints: [
+    // ... configuration ...
+  ],
+  applications: [
+    // ... configuration ...
+  ]
 };
 
 export default config;
