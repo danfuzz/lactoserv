@@ -34,21 +34,35 @@ export class BaseApplication extends BaseComponent {
 
   /** @override */
   async handleRequest(request, dispatch) {
-    const filterConfig = this.#filterConfig;
+    const logger    = this.logger;
+    const requestId = logger ? request.id : null;
+    const startTime = logger?.$env.now();
 
-    this.logger?.handling(request.id, dispatch.extraString);
+    const logDone = (fate, ...error) => {
+      if (logger) {
+        const endTime  = logger.$env.now();
+        const duration = endTime.subtract(startTime);
+        logger[fate](requestId, duration, ...error);
+      }
+    };
+
+    logger?.handling(requestId, dispatch.extraString);
 
     const filterResult = this.#applyFilters(request, dispatch);
 
     if (filterResult !== false) {
+      logDone(filterResult ? 'filterHandled' : 'filteredOut');
       return filterResult;
     }
 
-    const result = this.#callHandler(request, dispatch);
-
-    return this.logger
-      ? this.#logHandlerCall(request, result)
-      : result;
+    try {
+      const result = await this.#callHandler(request, dispatch);
+      logDone(result ? 'handled' : 'notHandled');
+      return result;
+    } catch (e) {
+      logDone('threw', e);
+      throw e;
+    }
   }
 
   /**
@@ -150,37 +164,6 @@ export class BaseApplication extends BaseComponent {
       throw error('async-returned undefined; probably needs an explicit `return`');
     } else {
       throw error('async-returned something other than a `OutgoingResponse` or `null`');
-    }
-  }
-
-  /**
-   * Logs a call to the handler, ultimately returning or throwing whatever the
-   * given result settles to.
-   *
-   * @param {IncomingRequest} request Request object.
-   * @param {Promise<?OutgoingResponse>} result Promise for the handler
-   *   response.
-   * @returns {?OutgoingResponse} Response to the request, if any.
-   */
-  async #logHandlerCall(request, result) {
-    const loggingEnv = this.logger.$env;
-    const startTime  = loggingEnv.now();
-    const logger     = this.logger;
-    const id         = request.id;
-
-    const done = (fate, ...error) => {
-      const endTime  = loggingEnv.now();
-      const duration = endTime.subtract(startTime);
-      logger[fate](id, duration, ...error);
-    };
-
-    try {
-      const finalResult = await result;
-      done(finalResult ? 'handled' : 'notHandled');
-      return finalResult;
-    } catch (e) {
-      done('threw', e);
-      throw e;
     }
   }
 
