@@ -82,8 +82,6 @@ export class NetworkEndpoint extends BaseComponent {
     const application = this.#application;
     const dispatch    = new DispatchInfo(TreePathKey.EMPTY, request.pathname);
 
-    request.logger?.dispatching(application.name);
-
     try {
       const result = await application.handleRequest(request, dispatch);
       if ((result === null) || (result instanceof OutgoingResponse)) {
