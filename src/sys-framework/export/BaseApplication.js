@@ -269,8 +269,8 @@ export class BaseApplication extends BaseComponent {
     }
 
     /**
-     * @returns {?number} Maximum allowed query (search string) length in octets,
-     * inclusive, or `null` if there is no limit.
+     * @returns {?number} Maximum allowed query (search string) length in
+     * octets, inclusive, or `null` if there is no limit.
      */
     get maxQueryLength() {
       return this.#maxQueryLength;
