@@ -122,10 +122,10 @@ export class HostManager {
     let   foundCtx = null;
 
     if (found) {
-      this.#logger?.foundMatchFor(serverName, found.config.hostnames);
+      this.#logger?.found(serverName, found.config.hostnames);
       foundCtx = await found.getSecureContext();
     } else {
-      this.#logger?.noMatchFor(serverName);
+      this.#logger?.notFound(serverName);
     }
 
     try {

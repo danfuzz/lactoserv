@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { TreePathKey } from '@this/collections';
+import { FormatUtils } from '@this/loggy-intf';
 import { IntfRateLimiter, IntfRequestLogger, ProtocolWrangler,
   ProtocolWranglers }
   from '@this/net-protocol';
@@ -81,8 +82,6 @@ export class NetworkEndpoint extends BaseComponent {
     const application = this.#application;
     const dispatch    = new DispatchInfo(TreePathKey.EMPTY, request.pathname);
 
-    request.logger?.dispatching(application.name);
-
     try {
       const result = await application.handleRequest(request, dispatch);
       if ((result === null) || (result instanceof OutgoingResponse)) {
@@ -103,6 +102,18 @@ export class NetworkEndpoint extends BaseComponent {
 
   /** @override */
   async _impl_init(isReload) {
+    const {
+      application,
+      interface: iface,
+      protocol
+    } = this.config;
+
+    this.logger?.routing({
+      protocol,
+      interface: FormatUtils.networkInterfaceString(iface),
+      application
+    });
+
     await this.#wrangler.init(this.logger, isReload);
   }
 

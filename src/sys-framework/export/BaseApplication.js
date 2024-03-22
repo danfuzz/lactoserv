@@ -34,51 +34,35 @@ export class BaseApplication extends BaseComponent {
 
   /** @override */
   async handleRequest(request, dispatch) {
-    const filterConfig = this.#filterConfig;
+    const logger    = this.logger;
+    const requestId = logger ? request.id : null;
+    const startTime = logger?.$env.now();
 
-    this.logger?.handling(request.id, dispatch.extraString);
-
-    if (filterConfig) {
-      const {
-        acceptQueries, acceptMethods,
-        maxPathLength, redirectDirectories, redirectFiles
-      } = filterConfig;
-
-      if (!acceptQueries && (request.searchString !== '')) {
-        return null;
+    const logDone = (fate, ...error) => {
+      if (logger) {
+        const endTime  = logger.$env.now();
+        const duration = endTime.subtract(startTime);
+        logger[fate](requestId, duration, ...error);
       }
+    };
 
-      if (acceptMethods && !acceptMethods.has(request.method)) {
-        return null;
-      }
+    logger?.handling(requestId, dispatch.extraString);
 
-      if (maxPathLength !== null) {
-        const length = dispatch.extra.length - (dispatch.isDirectory() ? 1 : 0);
-        if (length > maxPathLength) {
-          return null;
-        }
-      }
+    const filterResult = this.#applyFilters(request, dispatch);
 
-      if (redirectDirectories) {
-        if (dispatch.isDirectory()) {
-          const redirect = dispatch.redirectToFileString;
-          // Don't redirect to `/`, because that would cause a redirect loop.
-          if (redirect !== '/') {
-            return OutgoingResponse.makeRedirect(redirect, 308);
-          }
-        }
-      } else if (redirectFiles) {
-        if (!dispatch.isDirectory()) {
-          return OutgoingResponse.makeRedirect(dispatch.redirectToDirectoryString, 308);
-        }
-      }
+    if (filterResult !== false) {
+      logDone(filterResult ? 'filterHandled' : 'filteredOut');
+      return filterResult;
     }
 
-    const result = this.#callHandler(request, dispatch);
-
-    return this.logger
-      ? this.#logHandlerCall(request, result)
-      : result;
+    try {
+      const result = await this.#callHandler(request, dispatch);
+      logDone(result ? 'handled' : 'notHandled');
+      return result;
+    } catch (e) {
+      logDone('threw', e);
+      throw e;
+    }
   }
 
   /**
@@ -92,6 +76,60 @@ export class BaseApplication extends BaseComponent {
    */
   async _impl_handleRequest(request, dispatch) {
     Methods.abstract(request, dispatch);
+  }
+
+  /**
+   * Performs request / dispatch filtering, if the instance is configured to do
+   * that. Does nothing (returns `false`) if not.
+   *
+   * @param {IncomingRequest} request Request object.
+   * @param {DispatchInfo} dispatch Dispatch information.
+   * @returns {?OutgoingResponse|false} A response indicator (including `null`
+   *   to indicate "not handled"), or `false` to indicate that no filtering was
+   *   applied.
+   */
+  #applyFilters(request, dispatch) {
+    const filterConfig = this.#filterConfig;
+
+    if (!filterConfig) {
+      return false;
+    }
+
+    const {
+      acceptMethods, maxPathLength, maxQueryLength,
+      redirectDirectories, redirectFiles
+    } = filterConfig;
+
+    if (acceptMethods && !acceptMethods.has(request.method)) {
+      return null;
+    }
+
+    if (maxPathLength !== null) {
+      const length = dispatch.extra.length - (dispatch.isDirectory() ? 1 : 0);
+      if (length > maxPathLength) {
+        return null;
+      }
+    }
+
+    if ((maxQueryLength !== null) && (request.searchString.length > maxQueryLength)) {
+      return null;
+    }
+
+    if (redirectDirectories) {
+      if (dispatch.isDirectory()) {
+        const redirect = dispatch.redirectToFileString;
+        // Don't redirect to `/`, because that would cause a redirect loop.
+        if (redirect !== '/') {
+          return OutgoingResponse.makeRedirect(redirect, 308);
+        }
+      }
+    } else if (redirectFiles) {
+      if (!dispatch.isDirectory()) {
+        return OutgoingResponse.makeRedirect(dispatch.redirectToDirectoryString, 308);
+      }
+    }
+
+    return false;
   }
 
   /**
@@ -129,37 +167,6 @@ export class BaseApplication extends BaseComponent {
     }
   }
 
-  /**
-   * Logs a call to the handler, ultimately returning or throwing whatever the
-   * given result settles to.
-   *
-   * @param {IncomingRequest} request Request object.
-   * @param {Promise<?OutgoingResponse>} result Promise for the handler
-   *   response.
-   * @returns {?OutgoingResponse} Response to the request, if any.
-   */
-  async #logHandlerCall(request, result) {
-    const loggingEnv = this.logger.$env;
-    const startTime  = loggingEnv.now();
-    const logger     = this.logger;
-    const id         = request.id;
-
-    const done = (fate, ...error) => {
-      const endTime  = loggingEnv.now();
-      const duration = endTime.subtract(startTime);
-      logger[fate](id, duration, ...error);
-    };
-
-    try {
-      const finalResult = await result;
-      done(finalResult ? 'handled' : 'notHandled');
-      return finalResult;
-    } catch (e) {
-      done('threw', e);
-      throw e;
-    }
-  }
-
 
   //
   // Static members
@@ -188,9 +195,6 @@ export class BaseApplication extends BaseComponent {
    * class's filtering behavior.
    */
   static FilterConfig = class FilterConfig extends ApplicationConfig {
-    /** @type {boolean} Does the application accept query parameters? */
-    #acceptQueries;
-
     /**
      * @type {Set<string>} Set of request methods (e.g. `post`) that the
      * application accepts.
@@ -198,10 +202,16 @@ export class BaseApplication extends BaseComponent {
     #acceptMethods;
 
     /**
-     * @type {?number} Maximum allowed dispatch `extra` path length, inclusive
-     * (in components), or `null` if there is no limit.
+     * @type {?number} Maximum allowed dispatch `extra` path length (in
+     * components), inclusive, or `null` if there is no limit.
      */
     #maxPathLength;
+
+    /**
+     * @type {?number} Maximum allowed query (search string) length in octets,
+     * inclusive, or `null` if there is no limit.
+     */
+    #maxQueryLength;
 
     /** @type {boolean} Redirect file paths to the corresponding directory? */
     #redirectDirectories;
@@ -218,31 +228,28 @@ export class BaseApplication extends BaseComponent {
       super(config);
 
       const {
-        acceptQueries       = true,
         acceptMethods       = null,
         maxPathLength       = null,
+        maxQueryLength      = null,
         redirectDirectories = false,
         redirectFiles       = false
       } = config;
 
       this.#redirectDirectories = MustBe.boolean(redirectDirectories);
       this.#redirectFiles       = MustBe.boolean(redirectFiles);
-      this.#acceptQueries       = MustBe.boolean(acceptQueries);
       this.#acceptMethods       = (acceptMethods === null)
         ? null
         : new Set(MustBe.arrayOfString(acceptMethods, FilterConfig.#METHODS));
       this.#maxPathLength = (maxPathLength === null)
         ? null
         : MustBe.number(maxPathLength, { safeInteger: true, minInclusive: 0 });
+      this.#maxQueryLength = (maxQueryLength === null)
+        ? null
+        : MustBe.number(maxQueryLength, { safeInteger: true, minInclusive: 0 });
 
       if (redirectFiles && redirectDirectories) {
         throw new Error('Cannot configure both `redirect*` values as `true`.');
       }
-    }
-
-    /** @returns {boolean} Does the application accept query parameters? */
-    get acceptQueries() {
-      return this.#acceptQueries;
     }
 
     /**
@@ -254,12 +261,19 @@ export class BaseApplication extends BaseComponent {
     }
 
     /**
-     * @returns {?number} Maximum allowed dispatch `extra` path length,
-     * inclusive (in components), or `null` if there is no limit. The limit, if
-     * any, does not include the empty component at the end of a directory path.
+     * @returns {?number} Maximum allowed dispatch `extra` path length (in
+     * components), inclusive, or `null` if there is no limit.
      */
     get maxPathLength() {
       return this.#maxPathLength;
+    }
+
+    /**
+     * @returns {?number} Maximum allowed query (search string) length in
+     * octets, inclusive, or `null` if there is no limit.
+     */
+    get maxQueryLength() {
+      return this.#maxQueryLength;
     }
 
     /**

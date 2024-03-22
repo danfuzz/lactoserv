@@ -98,7 +98,10 @@ export class Redirector extends BaseApplication {
      * @param {object} config Configuration object.
      */
     constructor(config) {
-      super(config);
+      super({
+        acceptMethods: ['delete', 'get', 'head', 'patch', 'post', 'put'],
+        ...config
+      });
 
       const {
         cacheControl = null,

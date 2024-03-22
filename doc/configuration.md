@@ -212,15 +212,17 @@ it optionally provides request filtering for application subclasses in general,
 including the built-in applications. It accepts the following configuration
 bindings:
 
-* `acceptQueries` &mdash; Boolean indicating whether or not to accept requests
-  that include a "query" (search) component. Defaults to `true`.
 * `acceptMethods` &mdash; Array of strings indicating which request methods to
   accept. The array can include any of `connect`, `delete`, `get`, `head`,
   `options`, `patch`, `post`, `put`, and/or `trace`. Defaults to the entire set.
-* `maxPathLength` &mdash; Number indicating the maximum allowed length of a
-  dispatched request path not including the mount point, and not including the
-  empty path component at the end of a directory path. `null` indicates "no
-  limit." Defaults to `null`.
+* `maxPathLength` &mdash; Number indicating the maximum (inclusive) allowed
+  length _in path components_ of a dispatched request path not including the
+  mount point, and not including the empty path component at the end of a
+  directory path. `null` indicates "no limit." Defaults to `null`.
+* `maxQueryLength` &mdash; Number indicating the maximum (inclusive) allowed
+  length of the query (a/k/a "search") portion of a request URI _in octets_,
+  including the leading question mark (`?`). `null` indicates "no limit." `0`
+  indicates that queries are not ever accepted. Defaults to `null`.
 * `redirectDirectories` &mdash; Boolean indicating whether or not directory
   paths (those ending with an empty path component) should be automatically
   redirected to the file (non-directory) version of the path. Defaults to
@@ -248,10 +250,10 @@ class MyApplication extends BaseApplication {
 
 const applications = [
   {
-    name:          'myCustomApp',
-    class:         MyApplication,
-    acceptQueries: false,
-    acceptMethods: ['delete', 'put']
+    name:           'myCustomApp',
+    class:          MyApplication,
+    acceptMethods:  ['delete', 'put'],
+    maxQueryLength: 0
   }
 ];
 ```
@@ -351,6 +353,8 @@ An application which responds to all requests with an HTTP "redirect" response.
 In addition to the [`BaseApplication`](#baseapplication) configuration options,
 it accepts the following bindings:
 
+* `acceptMethods` &mdash; `BaseApplication` configuration, but in this case the
+  default is `['delete', 'get', 'head', 'patch', 'post', 'put']`.
 * `statusCode` &mdash; Optional HTTP status code to respond with. If not
   specified, it defaults to `301` ("Moved Permanently").
 * `target` &mdash; The base URL to redirect to. This is prepended to the partial

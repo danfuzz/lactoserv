@@ -7,8 +7,10 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* Merged all the built-in applications and services into a unified module
-  called `built-ins`.
+* `built-ins`:
+  * Merged all the built-in applications and services into a unified module
+    called `built-ins`.
+  * Changed default `acceptMethods` in `Redirector` to be more sensible.
 * Configuration:
   * Stopped using a component registry to find applications and services.
     Instead, just let the (Node / JavaScript) module system be that. Simplifies
@@ -21,6 +23,8 @@ Breaking changes:
     can be set up; but if not, there's no longer a performance penalty to do
     what amount to no-op lookups.
 * `sys-framework`:
+  * Reworked `BaseApplication` configuration `acceptQueries` to instead be
+    `maxQueryLength` (and all that the name change implies).
   * Added new class `ControlContext`, which gets associated with each concrete
     instance of `BaseControllable` (the superclass of all app and service
     classes, among other things). This is now where an instance's `logger` is
