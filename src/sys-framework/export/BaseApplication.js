@@ -38,40 +38,10 @@ export class BaseApplication extends BaseComponent {
 
     this.logger?.handling(request.id, dispatch.extraString);
 
-    if (filterConfig) {
-      const {
-        acceptMethods, maxPathLength, maxQueryLength,
-        redirectDirectories, redirectFiles
-      } = filterConfig;
+    const filterResult = this.#applyFilters(request, dispatch);
 
-      if (acceptMethods && !acceptMethods.has(request.method)) {
-        return null;
-      }
-
-      if (maxPathLength !== null) {
-        const length = dispatch.extra.length - (dispatch.isDirectory() ? 1 : 0);
-        if (length > maxPathLength) {
-          return null;
-        }
-      }
-
-      if ((maxQueryLength !== null) && (request.searchString.length > maxQueryLength)) {
-        return null;
-      }
-
-      if (redirectDirectories) {
-        if (dispatch.isDirectory()) {
-          const redirect = dispatch.redirectToFileString;
-          // Don't redirect to `/`, because that would cause a redirect loop.
-          if (redirect !== '/') {
-            return OutgoingResponse.makeRedirect(redirect, 308);
-          }
-        }
-      } else if (redirectFiles) {
-        if (!dispatch.isDirectory()) {
-          return OutgoingResponse.makeRedirect(dispatch.redirectToDirectoryString, 308);
-        }
-      }
+    if (filterResult !== false) {
+      return filterResult;
     }
 
     const result = this.#callHandler(request, dispatch);
@@ -92,6 +62,60 @@ export class BaseApplication extends BaseComponent {
    */
   async _impl_handleRequest(request, dispatch) {
     Methods.abstract(request, dispatch);
+  }
+
+  /**
+   * Performs request / dispatch filtering, if the instance is configured to do
+   * that. Does nothing (returns `false`) if not.
+   *
+   * @param {IncomingRequest} request Request object.
+   * @param {DispatchInfo} dispatch Dispatch information.
+   * @returns {?OutgoingResponse|false} A response indicator (including `null`
+   *   to indicate "not handled"), or `false` to indicate that no filtering was
+   *   applied.
+   */
+  #applyFilters(request, dispatch) {
+    const filterConfig = this.#filterConfig;
+
+    if (!filterConfig) {
+      return false;
+    }
+
+    const {
+      acceptMethods, maxPathLength, maxQueryLength,
+      redirectDirectories, redirectFiles
+    } = filterConfig;
+
+    if (acceptMethods && !acceptMethods.has(request.method)) {
+      return null;
+    }
+
+    if (maxPathLength !== null) {
+      const length = dispatch.extra.length - (dispatch.isDirectory() ? 1 : 0);
+      if (length > maxPathLength) {
+        return null;
+      }
+    }
+
+    if ((maxQueryLength !== null) && (request.searchString.length > maxQueryLength)) {
+      return null;
+    }
+
+    if (redirectDirectories) {
+      if (dispatch.isDirectory()) {
+        const redirect = dispatch.redirectToFileString;
+        // Don't redirect to `/`, because that would cause a redirect loop.
+        if (redirect !== '/') {
+          return OutgoingResponse.makeRedirect(redirect, 308);
+        }
+      }
+    } else if (redirectFiles) {
+      if (!dispatch.isDirectory()) {
+        return OutgoingResponse.makeRedirect(dispatch.redirectToDirectoryString, 308);
+      }
+    }
+
+    return false;
   }
 
   /**
