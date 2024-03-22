@@ -10,6 +10,7 @@ export * from '#x/RateLimiter';
 export * from '#x/Redirector';
 export * from '#x/RequestLogger';
 export * from '#x/RequestSyslogger';
+export * from '#x/SerialRouter';
 export * from '#x/SimpleResponse';
 export * from '#x/StaticFiles';
 export * from '#x/SystemLogger';
