@@ -7,6 +7,14 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
+* None.
+
+Other notable changes:
+* None.
+
+### v0.6.11 -- 2024-03-22
+
+Breaking changes:
 * `built-ins`:
   * Merged all the built-in applications and services into a unified module
     called `built-ins`.
@@ -17,11 +25,11 @@ Breaking changes:
     a lot of stuff! (Doing this had become possible once the configuration file
     loader was expanded to allow access to framework classes.)
   * Dropped application mounting / routing setup from the endpoint
-    configuration. Instead of `mounts`, the endpoint configuration takes just
-    a single application name, for the application which is to handle all
-    requests. If routing is needed, there are now routing applications which
-    can be set up; but if not, there's no longer a performance penalty to do
-    what amount to no-op lookups.
+    configuration. Instead of `mounts`, the endpoint configuration just takes a
+    single application name, for the application which is to handle all
+    requests. If routing is needed, routing applications are now available; but
+    if not, there's no longer a performance penalty to do what amount to no-op
+    lookups.
 * `sys-framework`:
   * Reworked `BaseApplication` configuration `acceptQueries` to instead be
     `maxQueryLength` (and all that the name change implies).
@@ -48,8 +56,10 @@ Other notable changes:
   * Fixed request logging so that it gets a more accurate (earlier) start time
     for requests.
 * `built-ins`:
+  * New class `SerialRouter`, which does "classic" linear-order routing to
+    a list of applications.
   * New class `HostRouter` which does what you probably expect from the name.
-  * Likewise, new class `PathRouter`. This and its buddy are the replacements
+  * Likewise, new class `PathRouter`. This and its buddies are the replacements
     for the routing implementation that used to be baked into `EndpointManager`.
   * Added `statusCode` configuration to `SimpleResponse`. Notably, it can now be
     used to define simple `404` responses.
