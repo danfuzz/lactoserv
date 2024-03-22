@@ -205,12 +205,12 @@ hostname. (It will not fall back to less specific hostnames.)
 
 ## Built-in Applications
 
-### `BaseApplication`
+### Common Application Configuration
 
-`BaseApplication` can be subclassed to implement custom behavior. In addition,
-it optionally provides request filtering for application subclasses in general,
-including the built-in applications. It accepts the following configuration
-bindings:
+Most built-in applications implement a set of common configuration options,
+which are generally about filtering out or automatically responding to certain
+kinds of requests. Exceptions to the use of these configurations are noted in
+the documentation of applications, as appropriate. Here are the options:
 
 * `acceptMethods` &mdash; Array of strings indicating which request methods to
   accept. The array can include any of `connect`, `delete`, `get`, `head`,
@@ -239,7 +239,8 @@ With regards to the `redirect*` options:
 
 With regards to the other options, when a request is filtered out, the result is
 that the application simply _doesn't handle_ the request, meaning that the
-request will get re-dispatched to the next application in the chain (if any).
+request will get re-dispatched to the next application in its routing chain (if
+any).
 
 ```js
 import { BaseApplication } from '@lactoserv/sys-framework';
@@ -262,8 +263,8 @@ const applications = [
 
 An application which can route requests to another application, based on the
 `host` (or equivalent) header in the requests. In addition to the
-[`BaseApplication`](#baseapplication) configuration options, it accepts the
-following bindings:
+[common application configuration](#common-application-configuration) options,
+it accepts the following bindings:
 
 * `hosts` &mdash; A plain object with possibly-wildcarded hostnames as keys, and
   the _names_ of other applications as values. A wildcard only covers the prefix
@@ -305,8 +306,9 @@ const applications = [
 ### `PathRouter`
 
 An application which can route requests to another application, based on the
-path of the requests. In addition to the [`BaseApplication`](#baseapplication)
-configuration options, it accepts the following bindings:
+path of the requests. In addition to the
+[common application configuration](#common-application-configuration) options,
+it accepts the following bindings:
 
 * `paths` &mdash; A plain object with possibly-wildcarded paths as keys, and
   the _names_ of other applications as values. A wildcard only covers the suffix
@@ -354,10 +356,11 @@ const applications = [
 ### `Redirector`
 
 An application which responds to all requests with an HTTP "redirect" response.
-In addition to the [`BaseApplication`](#baseapplication) configuration options,
-it accepts the following bindings:
+In addition to the
+[common application configuration](#common-application-configuration)
+options, it accepts the following bindings:
 
-* `acceptMethods` &mdash; `BaseApplication` configuration, but in this case the
+* `acceptMethods` &mdash; Common configuration option, but in this case the
   default is `['delete', 'get', 'head', 'patch', 'post', 'put']`.
 * `statusCode` &mdash; Optional HTTP status code to respond with. If not
   specified, it defaults to `301` ("Moved Permanently").
@@ -386,8 +389,8 @@ const applications = [
 An application which routes requests to one of a list of applications, which are
 tried in order. (This is the default / built-in routing strategy of the most
 common Node web application frameworks.) In addition to the
-[`BaseApplication`](#baseapplication) configuration options, it accepts the
-following bindings:
+[common application configuration](#common-application-configuration) options,
+it accepts the following bindings:
 
 * `applications` &mdash; An array listing the _names_ of other applications as
   values.
@@ -422,10 +425,10 @@ const applications = [
 
 An application which only ever sends one particular response. It's approximately
 like `StaticFiles`, except just one file. In addition to the
-[`BaseApplication`](#baseapplication) configuration options, it accepts the
-following configuration bindings:
+[common application configuration](#common-application-configuration) options,
+it accepts the following configuration bindings:
 
-* `acceptMethods` &mdash; `BaseApplication` configuration, but in this case the
+* `acceptMethods` &mdash; Common configuration option, but in this case the
   default is `['get', 'head']`.
 * `body` &mdash; Optional body contents to respond with. If specified, this must
   be either a string or a Node `Buffer` object.
@@ -504,11 +507,12 @@ reasonable demand:
 ### `StaticFiles`
 
 An application which serves static files from a local directory. In addition to
-most of the [`BaseApplication`](#baseapplication) configuration options (all
-but the `redirect*` options, which could cause chaos in this case), it accepts
-the following configuration bindings:
+most of the
+[common application configuration](#common-application-configuration) options
+(all but the `redirect*` options, which could cause chaos in this case), it
+accepts the following configuration bindings:
 
-* `acceptMethods` &mdash; `BaseApplication` configuration, but in this case the
+* `acceptMethods` &mdash; Common configuration option, but in this case the
   default is `['get', 'head']`.
 * `etag` &mdash; ETag-generating options. If present and not `false`, the
   response comes with an `ETag` header. See "ETag Configuration" below for
