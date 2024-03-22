@@ -27,30 +27,36 @@ framework.
 
 ### Features
 
-* Can run multiple network endpoints, each serving a different set of high-level
-  applications.
+* Networking:
+  * Can run multiple network endpoints, each serving a different application or
+    set thereof.
+  * Can serve all of HTTP, HTTPS, and HTTP2. (HTTP2 will automatically downgrade
+    to HTTPS for clients that can't do HTTP2.)
+  * Provides optional "token bucket" / "leaky bucket" rate limiting for
+    connections, requests, and/or sent data (bytes / bandwidth).
+  * Optionally produces request logs, in a standard-ish form.
 * Several built-in applications:
-  * A small handful of request routing applications, to cover basic routing
-    needs.
-  * Simple response server (approximately a single-file static server).
+  * Several request routing applications, to cover most routing needs:
+    * `HostRouter`, which dispatches to an application depending on the `host`
+      (or equivalent) header of requests.
+    * `PathRouter`, which dispatches based on matching the path prefix in a
+      hierarchical fashion, falling back to less-specific path matches until
+      finding one which responds.
+    * `SerialRouter`, which dispatches to a list of applications in order,
+      stopping at the first one which responds. (This is the "classic" style of
+      routing as implemented by most popular Node web application frameworks.)
+  * Simple response server (approximately a single-file static server), which
+    can be used for both normal and error responses.
   * Static file (directory tree) server.
   * Redirect server.
   * More to come!
-* Path-hierarchy specificity-based endpoint configuration, for endpoints that
-  serve multiple applications. This is as opposed to, notably, many (most?) of
-  the "competing" Node webapp frameworks, which just do linear dispatch.
-* Can serve all of HTTP, HTTPS, and HTTP2. (HTTP2 will automatically downgrade
-  to HTTPS for clients that can't do HTTP2.)
-* Provides optional "token bucket" / "leaky bucket" rate limiting for
-  connections, requests, and/or sent data (bytes / bandwidth).
-* Optionally produces request logs, in a standard-ish form.
+* The ability to define custom applications, using a reasonably modern
+  `async`-forward application framework. Instead of directly dealing with the
+  quirky core Node request and response objects, this framework exposes a more
+  friendly and approachable API. Maximum ergonomics: Very straightforward
+  application logic bottoms out at a well-tested low-level implementation.
 * Optionally produces detailed system activity logs.
 * JS-based configuration file format, which isn't actually that awful!
-* For custom (non-built-in) applications, reasonably modern `async`-forward
-  application framework, which uses wrappers around the underlying Node request
-  and response objects, providing a friendly and approachable API. Maximum
-  ergonomics: Very straightforward application logic bottoming out at a
-  well-tested low-level implementation.
 
 ### Implementation features
 
@@ -59,9 +65,9 @@ framework.
   modules.)
   * Uses Node's standard library for low-level networking and protocol
     implementation (TCP, TLS, HTTP*).
-  * Only modest use of external module dependencies (via `npm`).
-  * Notably, does _not_ depend on any other webapp framework (Express, Fastify,
-    etc.).
+  * Only sparingly uses external module dependencies (via `npm`).
+  * Notably, does _not_ depend on any other web application framework (Express,
+    Fastify, etc.).
 * Built to be installed as a normal POSIX-ish service (though _without_ Node
   bundled into the installation).
 * Developed using automated unit and integration tests. (As of this writing,

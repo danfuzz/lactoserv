@@ -15,6 +15,9 @@ import { MustBe } from '@this/typey';
  * Simple response server. See docs for configuration object details.
  */
 export class SimpleResponse extends BaseApplication {
+  /** @type {boolean} Allow response adjustment? */
+  #allowAdjustment = true;
+
   /**
    * @type {OutgoingResponse} Response template to clone for all actual
    * responses.
@@ -26,10 +29,13 @@ export class SimpleResponse extends BaseApplication {
   /** @override */
   async _impl_handleRequest(request, dispatch_unused) {
     const { headers, method } = request;
-    const response = this.#response.adjustFor(
-      method, headers, { conditional: true, range: true });
+    const response            = this.#response;
 
-    return response;
+    if (this.#allowAdjustment) {
+      return response.adjustFor(method, headers, { conditional: true, range: true });
+    } else {
+      return response;
+    }
   }
 
   /** @override */
@@ -43,7 +49,9 @@ export class SimpleResponse extends BaseApplication {
       return;
     }
 
-    const { body, contentType, cacheControl, etagOptions, filePath } = this.config;
+    const {
+      body, contentType, cacheControl, etagOptions, filePath, statusCode
+    } = this.config;
 
     const response  = new OutgoingResponse();
     const headers   = response.headers;
@@ -81,6 +89,11 @@ export class SimpleResponse extends BaseApplication {
       headers.set('etag', etag);
     }
 
+    if (statusCode !== null) {
+      response.status = statusCode;
+      this.#allowAdjustment = false;
+    }
+
     this.#response = response;
   }
 
@@ -103,6 +116,12 @@ export class SimpleResponse extends BaseApplication {
    * Configuration item subclass for this (outer) class.
    */
   static #Config = class Config extends BaseApplication.FilterConfig {
+    /**
+     * @type {?number} Predefined status code of the response, or `null` to use
+     * the most appropriate "success" status code (most typically `200`).
+     */
+    #statusCode = null;
+
     /**
      * @type {?string} Content type of the response, or `null` to infer it from
      * {@link #filePath}.
@@ -146,7 +165,8 @@ export class SimpleResponse extends BaseApplication {
         contentType  = null,
         cacheControl = null,
         etag         = null,
-        filePath     = null
+        filePath     = null,
+        statusCode   = null
       } = config;
 
       if (body !== null) {
@@ -189,6 +209,15 @@ export class SimpleResponse extends BaseApplication {
         this.#etagOptions =
           EtagGenerator.expandOptions((etag === true) ? {} : etag);
       }
+
+      if (statusCode !== null) {
+        this.#statusCode =
+          MustBe.number(statusCode, {
+            safeInteger:  true,
+            minInclusive: 100,
+            maxInclusive: 599
+          });
+      }
     }
 
     /**
@@ -226,6 +255,14 @@ export class SimpleResponse extends BaseApplication {
      */
     get filePath() {
       return this.#filePath;
+    }
+
+    /**
+     * @type {?number} Predefined status code of the response, or `null` to use
+     * the most appropriate "success" status code (most typically `200`).
+     */
+    get statusCode() {
+      return this.#statusCode;
     }
   };
 }

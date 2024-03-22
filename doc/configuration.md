@@ -10,7 +10,18 @@ configuration. Very skeletally (and reductively):
 
 ```js
 const config = {
-  // ... configuration ...
+  services: [
+    // ... configuration ...
+  ],
+  hosts: [
+    // ... configuration ...
+  ],
+  endpoints: [
+    // ... configuration ...
+  ],
+  applications: [
+    // ... configuration ...
+  ]
 };
 
 export default config;
@@ -153,8 +164,8 @@ naming and configuring one of them. Each element has the following bindings:
 * `name` &mdash; The name of the endpoint. This is just used for logging and
   related informational purposes.
 * `hostnames` &mdash; A list of one or more hostnames to recognize, each name
-  in the same form as accepted in the `hosts` section of the configuration. In
-  most cases, it will suffice to just specify this as `['*']`.
+  in the same form as accepted in the `hosts` section of the configuration.
+  Defaults to `['*']`, which should suffice in most cases.
 * `interface` &mdash; The network interface to listen on. This is a string which
   can take one of two forms:
   * `<address>:<port>` &mdash; Specifies a normal network-attached interface.
@@ -205,12 +216,12 @@ hostname. (It will not fall back to less specific hostnames.)
 
 ## Built-in Applications
 
-### `BaseApplication`
+### Common Application Configuration
 
-`BaseApplication` can be subclassed to implement custom behavior. In addition,
-it optionally provides request filtering for application subclasses in general,
-including the built-in applications. It accepts the following configuration
-bindings:
+Most built-in applications implement a set of common configuration options,
+which are generally about filtering out or automatically responding to certain
+kinds of requests. Exceptions to the use of these configurations are noted in
+the documentation of applications, as appropriate. Here are the options:
 
 * `acceptMethods` &mdash; Array of strings indicating which request methods to
   accept. The array can include any of `connect`, `delete`, `get`, `head`,
@@ -239,7 +250,8 @@ With regards to the `redirect*` options:
 
 With regards to the other options, when a request is filtered out, the result is
 that the application simply _doesn't handle_ the request, meaning that the
-request will get re-dispatched to the next application in the chain (if any).
+request will get re-dispatched to the next application in its routing chain (if
+any).
 
 ```js
 import { BaseApplication } from '@lactoserv/sys-framework';
@@ -262,8 +274,8 @@ const applications = [
 
 An application which can route requests to another application, based on the
 `host` (or equivalent) header in the requests. In addition to the
-[`BaseApplication`](#baseapplication) configuration options, it accepts the
-following bindings:
+[common application configuration](#common-application-configuration) options,
+it accepts the following bindings:
 
 * `hosts` &mdash; A plain object with possibly-wildcarded hostnames as keys, and
   the _names_ of other applications as values. A wildcard only covers the prefix
@@ -305,8 +317,9 @@ const applications = [
 ### `PathRouter`
 
 An application which can route requests to another application, based on the
-path of the requests. In addition to the [`BaseApplication`](#baseapplication)
-configuration options, it accepts the following bindings:
+path of the requests. In addition to the
+[common application configuration](#common-application-configuration) options,
+it accepts the following bindings:
 
 * `paths` &mdash; A plain object with possibly-wildcarded paths as keys, and
   the _names_ of other applications as values. A wildcard only covers the suffix
@@ -319,17 +332,17 @@ the next most specific match is asked, and so on, until there are no path
 matches left.
 
 ```js
-import { HostRouter } from '@lactoserv/built-ins';
+import { PathRouter } from '@lactoserv/built-ins';
 
 const applications = [
   {
-    name:  'myHosts',
-    class: HostRouter,
-    hosts: {
-      '*':             'myCatchAllApp',
-      '127.0.0.1':     'myLocalhostApp',
-      'localhost':     'myLocalhostApp',
-      '*.example.com': 'myExampleApp'
+    name:  'myPaths',
+    class: PathRouter,
+    paths: {
+      '/*':         'myCatchAllApp',
+      '/file':      'myFileApp',
+      '/dir/':      'myDirApp',
+      '/general/*': 'myGeneralApp',
     }
   },
   {
@@ -337,11 +350,15 @@ const applications = [
     // ... more ...
   },
   {
-    name: 'myExampleApp',
+    name: 'myFileApp',
     // ... more ...
   },
   {
-    name: 'myLocalhostApp',
+    name: 'myDirApp',
+    // ... more ...
+  },
+  {
+    name: 'myGeneralApp',
     // ... more ...
   }
 ];
@@ -350,10 +367,11 @@ const applications = [
 ### `Redirector`
 
 An application which responds to all requests with an HTTP "redirect" response.
-In addition to the [`BaseApplication`](#baseapplication) configuration options,
-it accepts the following bindings:
+In addition to the
+[common application configuration](#common-application-configuration)
+options, it accepts the following bindings:
 
-* `acceptMethods` &mdash; `BaseApplication` configuration, but in this case the
+* `acceptMethods` &mdash; Common configuration option, but in this case the
   default is `['delete', 'get', 'head', 'patch', 'post', 'put']`.
 * `statusCode` &mdash; Optional HTTP status code to respond with. If not
   specified, it defaults to `301` ("Moved Permanently").
@@ -377,14 +395,51 @@ const applications = [
 ];
 ```
 
+### `SerialRouter`
+
+An application which routes requests to one of a list of applications, which are
+tried in order. (This is the default / built-in routing strategy of the most
+common Node web application frameworks.) In addition to the
+[common application configuration](#common-application-configuration) options,
+it accepts the following bindings:
+
+* `applications` &mdash; An array listing the _names_ of other applications as
+  values.
+
+The routing works by starting with the first element of `applications`, asking
+it to handle an incoming request. If that app does not try to handle the request
+&mdash; note that it counts as a "try" to end up `throw`ing out of the handler
+&mdash; the next application in the list is asked, and so on, until the final
+one has been tried.
+
+```js
+import { SerialRouter } from '@lactoserv/built-ins';
+
+const applications = [
+  {
+    name:         'mySeries',
+    class:        SerialRouter,
+    applications: ['firstApp', 'secondApp']
+  },
+  {
+    name: 'firstApp',
+    // ... more ...
+  },
+  {
+    name: 'secondApp',
+    // ... more ...
+  }
+];
+```
+
 ### `SimpleResponse`
 
 An application which only ever sends one particular response. It's approximately
 like `StaticFiles`, except just one file. In addition to the
-[`BaseApplication`](#baseapplication) configuration options, it accepts the
-following configuration bindings:
+[common application configuration](#common-application-configuration) options,
+it accepts the following configuration bindings:
 
-* `acceptMethods` &mdash; `BaseApplication` configuration, but in this case the
+* `acceptMethods` &mdash; Common configuration option, but in this case the
   default is `['get', 'head']`.
 * `body` &mdash; Optional body contents to respond with. If specified, this must
   be either a string or a Node `Buffer` object.
@@ -403,6 +458,10 @@ following configuration bindings:
   details.
 * `filePath` &mdash; Optional absolute filesystem path to the file to respond
   with.
+* `statusCode` &mdash; Optional fixed status code to report. If present and not
+  `null`, this is the numeric status code that will be used for all responses.
+  Setting this also prevents range requests and not-modified responses from
+  being generated.
 
 It is valid to specify neither `body` nor `filePath`; this indicates that the
 application should only ever produce no-content (status `204`) responses. It is
@@ -424,13 +483,14 @@ const applications = [
     body:                'Hello!\n',
     cacheControl:        { public: true, maxAge: '1_day' },
     maxPathLength:       0,
-    redirectDirectories: true
+    redirectDirectories: true,
   },
   {
     name:         'fromFile',
     class:        'SimpleResponse',
-    filePath:     '/etc/site/someFile.txt',
-    cacheControl: 'immutable; max-age=100'
+    filePath:     '/etc/site/notFoundMessage.txt',
+    cacheControl: 'immutable; max-age=1000',
+    statusCode:   404
   },
   {
     name:  'empty',
@@ -448,19 +508,22 @@ reasonable demand:
 * Caching:
   * The `Last-Modified` response header is always sent when given a `filePath`,
     and not sent when given a `body`.
-  * Conditional request headers are honored.
+  * Unless `statusCode` is set in the configuration, conditional request headers
+    are honored.
 * Ranges:
-  * The `Accept-Ranges` response header is always sent.
-  * Range request headers are honored, including conditional range requests.
+  * Unless `statusCode` is set in the configuration:
+    * The `Accept-Ranges` response header is always sent.
+    * Range request headers are honored, including conditional range requests.
 
 ### `StaticFiles`
 
 An application which serves static files from a local directory. In addition to
-most of the [`BaseApplication`](#baseapplication) configuration options (all
-but the `redirect*` options, which could cause chaos in this case), it accepts
-the following configuration bindings:
+most of the
+[common application configuration](#common-application-configuration) options
+(all but the `redirect*` options, which could cause chaos in this case), it
+accepts the following configuration bindings:
 
-* `acceptMethods` &mdash; `BaseApplication` configuration, but in this case the
+* `acceptMethods` &mdash; Common configuration option, but in this case the
   default is `['get', 'head']`.
 * `etag` &mdash; ETag-generating options. If present and not `false`, the
   response comes with an `ETag` header. See "ETag Configuration" below for

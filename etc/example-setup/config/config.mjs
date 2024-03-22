@@ -4,8 +4,8 @@
 import * as fs from 'node:fs/promises';
 
 import { HostRouter, MemoryMonitor, PathRouter, ProcessIdFile, ProcessInfoFile,
-  RateLimiter, Redirector, RequestLogger, SimpleResponse, StaticFiles,
-  SystemLogger } from '@lactoserv/built-ins';
+  RateLimiter, Redirector, RequestLogger, SerialRouter, SimpleResponse,
+  StaticFiles, SystemLogger } from '@lactoserv/built-ins';
 
 
 const fileUrl  = (path) => new URL(path, import.meta.url);
@@ -136,7 +136,7 @@ const applications = [
     class: HostRouter,
     hosts: {
       '*':         'myPaths',
-      '127.0.0.1': 'myStaticFun'
+      '127.0.0.1': 'mySeries'
     }
   },
   {
@@ -152,6 +152,14 @@ const applications = [
       '/resp/one':          'responseOne',
       '/resp/two':          'responseTwo'
     }
+  },
+  {
+    name:  'mySeries',
+    class: SerialRouter,
+    applications: [
+      'myStaticFunNo404',
+      'responseNotFound'
+    ]
   },
 
   // Component apps used by the above.
@@ -169,7 +177,8 @@ const applications = [
     name:          'myStaticFunNo404',
     class:         StaticFiles,
     siteDirectory: filePath('../site'),
-    cacheControl:  { public: true, maxAge: '5 min' }
+    cacheControl:  { public: true, maxAge: '5 min' },
+    etag:          { dataOnly: true, hashLength: 20 }
   },
   {
     name:                'responseEmptyBody',
@@ -178,6 +187,14 @@ const applications = [
     cacheControl:        'public, immutable, max-age=600',
     maxPathLength:       2,
     redirectDirectories: true
+  },
+  {
+    name:        'responseNotFound',
+    class:       SimpleResponse,
+    etag:        false,
+    body :       'Sorry! Not found!\n',
+    contentType: 'text/plain',
+    statusCode:  404
   },
   {
     name:          'responseNoBody',
@@ -221,7 +238,6 @@ const endpoints = [
   {
     name:      'insecure',
     protocol:  'http',
-    hostnames: ['*'],
     interface: '*:8080',
     services: {
       rateLimiter:   'limiter',
@@ -248,7 +264,7 @@ const endpoints = [
     services: {
       requestLogger: 'requests'
     },
-    application: 'mySite'
+    application: 'mySeries'
   }
 ];
 
