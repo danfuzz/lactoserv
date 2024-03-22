@@ -381,6 +381,44 @@ const applications = [
 ];
 ```
 
+### `SerialRouter`
+
+An application which routes requests to one of a list of applications, which are
+tried in order. (This is the default / built-in routing strategy of the most
+common Node web application frameworks.) In addition to the
+[`BaseApplication`](#baseapplication) configuration options, it accepts the
+following bindings:
+
+* `applications` &mdash; An array listing the _names_ of other applications as
+  values.
+
+The routing works by starting with the first element of `applications`, asking
+it to handle an incoming request. If that app does not try to handle the request
+&mdash; note that it counts as a "try" to end up `throw`ing out of the handler
+&mdash; the next application in the list is asked, and so on, until the final
+one has been tried.
+
+```js
+import { SerialRouter } from '@lactoserv/built-ins';
+
+const applications = [
+  {
+    name:         'mySeries',
+    class:        SerialRouter,
+    applications: ['firstApp', 'secondApp']
+  },
+  {
+    name: 'firstApp',
+    // ... more ...
+  },
+  {
+    name: 'secondApp',
+    // ... more ...
+  }
+];
+```
+
+
 ### `SimpleResponse`
 
 An application which only ever sends one particular response. It's approximately
