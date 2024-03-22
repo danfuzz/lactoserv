@@ -351,6 +351,8 @@ An application which responds to all requests with an HTTP "redirect" response.
 In addition to the [`BaseApplication`](#baseapplication) configuration options,
 it accepts the following bindings:
 
+* `acceptMethods` &mdash; `BaseApplication` configuration, but in this case the
+  default is `['delete', 'get', 'head', 'patch', 'post', 'put']`.
 * `statusCode` &mdash; Optional HTTP status code to respond with. If not
   specified, it defaults to `301` ("Moved Permanently").
 * `target` &mdash; The base URL to redirect to. This is prepended to the partial
