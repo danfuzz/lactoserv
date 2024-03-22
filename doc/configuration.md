@@ -319,17 +319,17 @@ the next most specific match is asked, and so on, until there are no path
 matches left.
 
 ```js
-import { HostRouter } from '@lactoserv/built-ins';
+import { PathRouter } from '@lactoserv/built-ins';
 
 const applications = [
   {
-    name:  'myHosts',
-    class: HostRouter,
-    hosts: {
-      '*':             'myCatchAllApp',
-      '127.0.0.1':     'myLocalhostApp',
-      'localhost':     'myLocalhostApp',
-      '*.example.com': 'myExampleApp'
+    name:  'myPaths',
+    class: PathRouter,
+    paths: {
+      '/*':         'myCatchAllApp',
+      '/file':      'myFileApp',
+      '/dir/':      'myDirApp',
+      '/general/*': 'myGeneralApp',
     }
   },
   {
@@ -337,11 +337,15 @@ const applications = [
     // ... more ...
   },
   {
-    name: 'myExampleApp',
+    name: 'myFileApp',
     // ... more ...
   },
   {
-    name: 'myLocalhostApp',
+    name: 'myDirApp',
+    // ... more ...
+  },
+  {
+    name: 'myGeneralApp',
     // ... more ...
   }
 ];
