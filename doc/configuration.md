@@ -418,7 +418,6 @@ const applications = [
 ];
 ```
 
-
 ### `SimpleResponse`
 
 An application which only ever sends one particular response. It's approximately
