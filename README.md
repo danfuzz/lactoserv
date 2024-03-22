@@ -65,9 +65,9 @@ framework.
   modules.)
   * Uses Node's standard library for low-level networking and protocol
     implementation (TCP, TLS, HTTP*).
-  * Only modest use of external module dependencies (via `npm`).
-  * Notably, does _not_ depend on any other webapp framework (Express, Fastify,
-    etc.).
+  * Only sparingly uses external module dependencies (via `npm`).
+  * Notably, does _not_ depend on any other web application framework (Express,
+    Fastify, etc.).
 * Built to be installed as a normal POSIX-ish service (though _without_ Node
   bundled into the installation).
 * Developed using automated unit and integration tests. (As of this writing,
