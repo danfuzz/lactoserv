@@ -20,10 +20,11 @@ of public-facing websites.**
 It is also intended as a solid foundation for prototyping high-level OS system
 services.
 
-More concretely, Lactoserv is a web application server which knows how to serve
-a handful of different types of built-in "application," with plans to add more.
-It is also possible to define your own applications to be served within the
-framework.
+More concretely, Lactoserv is a web server which knows how to serve a handful of
+different types of built-in "application," with plans to add more. And it
+provides a programming framework for defining custom applications either
+standalone or together with others, including both built-in and other custom
+applications.
 
 ### Features
 
