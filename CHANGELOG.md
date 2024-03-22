@@ -7,8 +7,10 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* Merged all the built-in applications and services into a unified module
-  called `built-ins`.
+* `built-ins`:
+  * Merged all the built-in applications and services into a unified module
+    called `built-ins`.
+  * Changed default `acceptMethods` in `Redirector` to be more sensible.
 * Configuration:
   * Stopped using a component registry to find applications and services.
     Instead, just let the (Node / JavaScript) module system be that. Simplifies
