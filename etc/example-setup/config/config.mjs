@@ -157,12 +157,13 @@ const applications = [
   // Component apps used by the above.
 
   {
-    name:          'myStaticFun',
-    class:         StaticFiles,
-    siteDirectory: filePath('../site'),
-    notFoundPath:  filePath('../site-extra/not-found.html'),
-    cacheControl:  { public: true, maxAge: '5 min' },
-    etag:          { dataOnly: true, hashLength: 20 }
+    name:           'myStaticFun',
+    class:          StaticFiles,
+    siteDirectory:  filePath('../site'),
+    notFoundPath:   filePath('../site-extra/not-found.html'),
+    cacheControl:   { public: true, maxAge: '5 min' },
+    etag:           { dataOnly: true, hashLength: 20 },
+    maxQueryLength: 20
   },
   {
     name:          'myStaticFunNo404',

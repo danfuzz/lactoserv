@@ -40,13 +40,9 @@ export class BaseApplication extends BaseComponent {
 
     if (filterConfig) {
       const {
-        acceptQueries, acceptMethods,
-        maxPathLength, redirectDirectories, redirectFiles
+        acceptMethods, maxPathLength, maxQueryLength,
+        redirectDirectories, redirectFiles
       } = filterConfig;
-
-      if (!acceptQueries && (request.searchString !== '')) {
-        return null;
-      }
 
       if (acceptMethods && !acceptMethods.has(request.method)) {
         return null;
@@ -57,6 +53,10 @@ export class BaseApplication extends BaseComponent {
         if (length > maxPathLength) {
           return null;
         }
+      }
+
+      if ((maxQueryLength !== null) && (request.searchString.length > maxQueryLength)) {
+        return null;
       }
 
       if (redirectDirectories) {
@@ -188,9 +188,6 @@ export class BaseApplication extends BaseComponent {
    * class's filtering behavior.
    */
   static FilterConfig = class FilterConfig extends ApplicationConfig {
-    /** @type {boolean} Does the application accept query parameters? */
-    #acceptQueries;
-
     /**
      * @type {Set<string>} Set of request methods (e.g. `post`) that the
      * application accepts.
@@ -198,10 +195,16 @@ export class BaseApplication extends BaseComponent {
     #acceptMethods;
 
     /**
-     * @type {?number} Maximum allowed dispatch `extra` path length, inclusive
-     * (in components), or `null` if there is no limit.
+     * @type {?number} Maximum allowed dispatch `extra` path length (in
+     * components), inclusive, or `null` if there is no limit.
      */
     #maxPathLength;
+
+    /**
+     * @type {?number} Maximum allowed query (search string) length in octets,
+     * inclusive, or `null` if there is no limit.
+     */
+    #maxQueryLength;
 
     /** @type {boolean} Redirect file paths to the corresponding directory? */
     #redirectDirectories;
@@ -218,31 +221,28 @@ export class BaseApplication extends BaseComponent {
       super(config);
 
       const {
-        acceptQueries       = true,
         acceptMethods       = null,
         maxPathLength       = null,
+        maxQueryLength      = null,
         redirectDirectories = false,
         redirectFiles       = false
       } = config;
 
       this.#redirectDirectories = MustBe.boolean(redirectDirectories);
       this.#redirectFiles       = MustBe.boolean(redirectFiles);
-      this.#acceptQueries       = MustBe.boolean(acceptQueries);
       this.#acceptMethods       = (acceptMethods === null)
         ? null
         : new Set(MustBe.arrayOfString(acceptMethods, FilterConfig.#METHODS));
       this.#maxPathLength = (maxPathLength === null)
         ? null
         : MustBe.number(maxPathLength, { safeInteger: true, minInclusive: 0 });
+      this.#maxQueryLength = (maxQueryLength === null)
+        ? null
+        : MustBe.number(maxQueryLength, { safeInteger: true, minInclusive: 0 });
 
       if (redirectFiles && redirectDirectories) {
         throw new Error('Cannot configure both `redirect*` values as `true`.');
       }
-    }
-
-    /** @returns {boolean} Does the application accept query parameters? */
-    get acceptQueries() {
-      return this.#acceptQueries;
     }
 
     /**
@@ -254,12 +254,19 @@ export class BaseApplication extends BaseComponent {
     }
 
     /**
-     * @returns {?number} Maximum allowed dispatch `extra` path length,
-     * inclusive (in components), or `null` if there is no limit. The limit, if
-     * any, does not include the empty component at the end of a directory path.
+     * @returns {?number} Maximum allowed dispatch `extra` path length (in
+     * components), inclusive, or `null` if there is no limit.
      */
     get maxPathLength() {
       return this.#maxPathLength;
+    }
+
+    /**
+     * @returns {?number} Maximum allowed query (search string) length in octets,
+     * inclusive, or `null` if there is no limit.
+     */
+    get maxQueryLength() {
+      return this.#maxQueryLength;
     }
 
     /**

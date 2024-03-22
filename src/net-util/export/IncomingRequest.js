@@ -251,7 +251,8 @@ export class IncomingRequest {
    * @returns {string} The search a/k/a query portion of {@link #targetString},
    * as an unparsed string, or `''` (the empty string) if there is no search
    * string. The result includes anything at or after the first question mark
-   * (`?`) in the URL.
+   * (`?`) in the URL. In the case of a "degenerate" search of _just_ a question
+   * mark with nothing after, this returns `''`.
    *
    * **Note:** The name of this field matches the equivalent field of the
    * standard `URL` class.
