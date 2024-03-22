@@ -17,14 +17,12 @@ const config = {
     {
       name:        'insecure',
       protocol:    'http',
-      hostnames:   ['*'],
       interface:   '*:8080',
       application: 'mySite'
     },
     {
       name:        'secure',
       protocol:    'http2',
-      hostnames:   ['*'],
       interface:   '*:8443',
       application: 'mySite'
     }
