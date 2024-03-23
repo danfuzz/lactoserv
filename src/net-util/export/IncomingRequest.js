@@ -16,12 +16,11 @@ import { RequestContext } from '#x/RequestContext';
 
 
 /**
- * Representation of an in-progress HTTP(ish) request, including both request
- * data _and_ ways to send a response.
+ * Representation of an in-progress HTTP(ish) request.
  *
- * Ultimately, this class wraps both the request and response objects that are
- * provided by the underlying Node libraries, though it is intended to offer a
- * simpler (less crufty) and friendlier interface to them.
+ * Ultimately, this class wraps the request object that comes from the
+ * underlying Node libraries, though it is intended to offer a simpler (less
+ * crufty) and friendlier interface to them.
  *
  * **Note:** This class does not implement any understanding of reverse proxy
  * headers. It is up to constructors of this class to pass appropriate
