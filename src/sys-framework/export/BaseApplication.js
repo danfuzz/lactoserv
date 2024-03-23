@@ -1,8 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { DispatchInfo, IncomingRequest, IntfRequestHandler, OutgoingResponse }
-  from '@this/net-util';
+import { DispatchInfo, IntfIncomingRequest, IntfRequestHandler,
+  OutgoingResponse } from '@this/net-util';
 import { ApplicationConfig } from '@this/sys-config';
 import { Methods, MustBe } from '@this/typey';
 
@@ -69,7 +69,7 @@ export class BaseApplication extends BaseComponent {
    * Handles a request, as defined by {@link IntfRequestHandler}.
    *
    * @abstract
-   * @param {IncomingRequest} request Request object.
+   * @param {IntfIncomingRequest} request Request object.
    * @param {DispatchInfo} dispatch Dispatch information.
    * @returns {?OutgoingResponse} Response to the request, if any, as defined by
    *   {@link IntfRequestHandler#handleRequest}.
@@ -82,7 +82,7 @@ export class BaseApplication extends BaseComponent {
    * Performs request / dispatch filtering, if the instance is configured to do
    * that. Does nothing (returns `false`) if not.
    *
-   * @param {IncomingRequest} request Request object.
+   * @param {IntfIncomingRequest} request Request object.
    * @param {DispatchInfo} dispatch Dispatch information.
    * @returns {?OutgoingResponse|false} A response indicator (including `null`
    *   to indicate "not handled"), or `false` to indicate that no filtering was
@@ -145,7 +145,7 @@ export class BaseApplication extends BaseComponent {
   /**
    * Calls {@link #_impl_handleRequest}, and ensures a proper return value.
    *
-   * @param {IncomingRequest} request Request object.
+   * @param {IntfIncomingRequest} request Request object.
    * @param {DispatchInfo} dispatch Dispatch information.
    * @returns {?OutgoingResponse} Response to the request, if any.
    */
