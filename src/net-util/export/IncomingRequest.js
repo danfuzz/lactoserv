@@ -16,7 +16,8 @@ import { RequestContext } from '#x/RequestContext';
 
 
 /**
- * Representation of an in-progress HTTP(ish) request.
+ * Representation of an in-progress HTTP(ish) request, which is being serviced
+ * by Node's low-level networking code.
  *
  * Ultimately, this class wraps the request object that comes from the
  * underlying Node libraries, though it is intended to offer a simpler (less
