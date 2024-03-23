@@ -10,7 +10,12 @@ Breaking changes:
 * None.
 
 Other notable changes:
-* None.
+* `net-util`:
+  * Extracted interface `IntfIncomingRequest` from concrete implementation
+    `IncomingRequest`.
+* `sys-framework`:
+  * Renamed filter config `maxPathLength` to `maxPathDepth`, and made a new
+    `maxPathLength` which filters based on the octet count of a path.
 
 ### v0.6.11 -- 2024-03-22
 
