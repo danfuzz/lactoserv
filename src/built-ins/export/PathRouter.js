@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { TreePathKey, TreePathMap } from '@this/collections';
-import { DispatchInfo } from '@this/net-util';
+import { DispatchInfo, IntfRequestHandler } from '@this/net-util';
 import { Names } from '@this/sys-config';
 import { BaseApplication } from '@this/sys-framework';
 import { MustBe } from '@this/typey';
@@ -15,8 +15,9 @@ import { MustBe } from '@this/typey';
  */
 export class PathRouter extends BaseApplication {
   /**
-   * @type {?TreePathMap<BaseApplication>} Map which goes from a path prefix to
-   * an app which should handle that prefix. Gets set in {@link #_impl_start}.
+   * @type {?TreePathMap<IntfRequestHandler>} Map which goes from a path prefix
+   * to a handler (typically a {@link BaseApplication}) which should handle that
+   * prefix. Gets set in {@link #_impl_start}.
    */
   #routeTree = null;
 
@@ -97,7 +98,7 @@ export class PathRouter extends BaseApplication {
   static #Config = class Config extends BaseApplication.FilterConfig {
     /**
      * @type {TreePathMap<string>} Like the outer `routeTree` except with names
-     * instead of application instances.
+     * instead of handler instances.
      */
     #routeTree;
 
@@ -126,7 +127,7 @@ export class PathRouter extends BaseApplication {
 
     /**
      * @returns {TreePathMap<string>} Like the outer `routeTree` except with
-     * names instead of application instances.
+     * names instead of handler instances.
      */
     get routeTree() {
       return this.#routeTree;

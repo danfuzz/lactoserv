@@ -1,6 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { IntfRequestHandler } from '@this/net-util';
 import { Names } from '@this/sys-config';
 import { BaseApplication } from '@this/sys-framework';
 import { MustBe } from '@this/typey';
@@ -13,8 +14,8 @@ import { MustBe } from '@this/typey';
  */
 export class SerialRouter extends BaseApplication {
   /**
-   * @type {Array<BaseApplication>} List of applications to route to. Gets set
-   * in {@link #_impl_start}.
+   * @type {Array<IntfRequestHandler>} List of handlers (typically instances of
+   * {@link BaseApplication}) to route to. Gets set in {@link #_impl_start}.
    */
   #routeList = null;
 
