@@ -114,7 +114,7 @@ export class BaseApplication extends BaseComponent {
     if (maxPathLength !== null) {
       // TODO!!!!! FIXME!!! Change how dispatch path stringifies so that there
       // is not necessarily a leading slash on extra. Check what happens with
-      // path bindings `/` vs `/x` vs `/x/` vs `/x/*`.
+      // path bindings `/` vs `/*` vs `/x` vs `/x/` vs `/x/*`.
       const extraString = dispatch.extra.toUriPathString();
       if (extraString.length > maxPathLength) {
         return null;
