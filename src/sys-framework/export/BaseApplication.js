@@ -112,11 +112,16 @@ export class BaseApplication extends BaseComponent {
     }
 
     if (maxPathLength !== null) {
-      // TODO!!!!! FIXME!!! Change how dispatch path stringifies so that there
-      // is not necessarily a leading slash on extra. Check what happens with
-      // path bindings `/` vs `/*` vs `/x` vs `/x/` vs `/x/*`.
-      const extraString = dispatch.extra.toUriPathString();
-      if (extraString.length > maxPathLength) {
+      // Note: We calculate this based on how the `extra` would get converted
+      // back to a path string if it were the entire `pathname` of the URL. This
+      // is arguably the most sensible tactic, in that if this instance actually
+      // is the one that was immediately dispatched to from an endpoint, `extra`
+      // will in fact be the same as `pathname`.
+      const extra  = dispatch.extra;
+      const length =
+        extra.length +    // One octet per slash if it were `pathname`.
+        extra.charLength; // Total count of characters in all components.
+      if (length > maxPathLength) {
         return null;
       }
     }
