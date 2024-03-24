@@ -216,24 +216,26 @@ export class TreePathKey {
    *   `false`.
    * @param {boolean} [options.reverse] Render in back-to-front order? Default
    *   `false`.
+   * @param {boolean} [options.separatePrefix] Use the separator between the
+   *   prefix and first component? Default `false`.
    * @param {string} [options.separator] Separator between path components.
    *   Default `'/'`.
    * @param {string} [options.suffix] Suffix for the result. Default empty
    *   (`''`).
-   * @param {string|boolean} [options.wildcard] Wildcard indicator. If
-   *   `false`, then a wildcard key is represented as if it were non-wildcard.
-   *   (This is different than if this is `''` (the empty string)). Default
-   *   `'*'`.
+   * @param {string|boolean} [options.wildcard] Wildcard indicator. If `false`,
+   *   then a wildcard key is represented as if it were non-wildcard. (This is
+   *   different than if this is `''` (the empty string)). Default `'*'`.
    * @returns {string} String form of the instance.
    */
   toString(options = null) {
     const defaultOptions = {
-      prefix:    '/',
-      quote:     false,
-      reverse:   false,
-      separator: '/',
-      suffix:    '',
-      wildcard:  '*'
+      prefix:         '/',
+      quote:          false,
+      reverse:        false,
+      separatePrefix: false,
+      separator:      '/',
+      suffix:         '',
+      wildcard:       '*'
     };
 
     options = options ? { ...defaultOptions, ...options } : defaultOptions;
@@ -252,7 +254,7 @@ export class TreePathKey {
 
     const result = [options.prefix];
     for (const p of path) {
-      if (result.length !== 1) {
+      if (options.separatePrefix || (result.length !== 1)) {
         result.push(options.separator);
       }
       result.push(p);

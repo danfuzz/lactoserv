@@ -405,6 +405,33 @@ describe('toString()', () => {
     });
   });
 
+  describe('with option `separatePrefix`', () => {
+    test.each`
+    separatePrefix | path           | wildcard | expected
+    ${false}       | ${[]}          | ${false} | ${'#'}
+    ${false}       | ${[]}          | ${true}  | ${'#*'}
+    ${true}        | ${[]}          | ${false} | ${'#'}
+    ${true}        | ${[]}          | ${true}  | ${'#:*'}
+    ${false}       | ${['a']}       | ${false} | ${'#a'}
+    ${false}       | ${['a']}       | ${true}  | ${'#a:*'}
+    ${true}        | ${['a']}       | ${false} | ${'#:a'}
+    ${true}        | ${['a']}       | ${true}  | ${'#:a:*'}
+    ${false}       | ${['']}        | ${false} | ${'#'}
+    ${false}       | ${['']}        | ${true}  | ${'#:*'}
+    ${true}        | ${['']}        | ${false} | ${'#:'}
+    ${true}        | ${['']}        | ${true}  | ${'#::*'}
+    ${false}       | ${['', 'abc']} | ${false} | ${'#:abc'}
+    ${false}       | ${['', 'abc']} | ${true}  | ${'#:abc:*'}
+    ${true}        | ${['', 'abc']} | ${false} | ${'#::abc'}
+    ${true}        | ${['', 'abc']} | ${true}  | ${'#::abc:*'}
+    `('on { path: $path, wildcard: $wildcard }, with $separatePrefix', ({ separatePrefix, path, wildcard, expected }) => {
+      // Note: We use `prefix` and `separator` options here to make sure we can
+      // distinguish what's going on.
+      const key = new TreePathKey(path, wildcard);
+      expect(key.toString({ separatePrefix, prefix: '#', separator: ':' })).toBe(expected);
+    });
+  });
+
   describe('with option `separator`', () => {
     test.each`
     separator | path                  | wildcard | expected
