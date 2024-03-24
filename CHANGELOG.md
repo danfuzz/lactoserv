@@ -7,7 +7,9 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* None.
+* `collections`:
+  * Changed contract of `TreePathKey` methods `toUriPathString()` and
+    `uriPathStringFrom()`.
 
 Other notable changes:
 * `net-util`:

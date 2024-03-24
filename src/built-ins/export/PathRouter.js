@@ -54,7 +54,7 @@ export class PathRouter extends BaseApplication {
   async _impl_init(isReload_unused) {
     const routes = {};
     for (const [path, name] of this.config.routeTree) {
-      routes[path.toUriPathString(true)] = name;
+      routes[path.toUriPathString()] = name;
     }
 
     this.logger?.routes(routes);

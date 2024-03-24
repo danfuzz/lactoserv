@@ -565,47 +565,43 @@ ${'hostnameStringFrom'} | ${true}
 });
 
 describe.each`
-name  |  isStatic
+name                   |  isStatic
 ${'toUriPathString'}   | ${false}
 ${'uriPathStringFrom'} | ${true}
 `('$name()', ({ name, isStatic }) => {
   describe.each`
-  wildArg   | label
-  ${[]}     | ${'without `showWildcard` passed (defaults to `true`)'}
-  ${[true]} | ${'with `showWildcard` passed as `true`'}
-  `('$label', ({ wildArg }) => {
+  relArg     | label
+  ${[]}      | ${'without `relative` passed (defaults to `false`)'}
+  ${[false]} | ${'with `relative` passed as `false`'}
+  ${[true]}  | ${'with `relative` passed as `true`'}
+  `('$label', ({ relArg }) => {
     test.each`
     path                     | wildcard | expected
     ${[]}                    | ${false} | ${'/'}
     ${[]}                    | ${true}  | ${'/*'}
-    ${['a']}                 | ${false} | ${'/a'}
-    ${['a']}                 | ${true}  | ${'/a/*'}
+    ${['']}                  | ${false} | ${'/'}
+    ${['']}                  | ${true}  | ${'//*'}
+    ${['xyz']}               | ${false} | ${'/xyz'}
+    ${['xyz']}               | ${true}  | ${'/xyz/*'}
+    ${['a', '']}             | ${false} | ${'/a/'}
+    ${['a', '']}             | ${true}  | ${'/a//*'}
+    ${['a', '', 'bc']}       | ${false} | ${'/a//bc'}
+    ${['a', '', 'bc']}       | ${true}  | ${'/a//bc/*'}
     ${['foo', 'bar', 'baz']} | ${false} | ${'/foo/bar/baz'}
     ${['foo', 'bar', 'baz']} | ${true}  | ${'/foo/bar/baz/*'}
     `('on { path: $path, wildcard: $wildcard }', ({ path, wildcard, expected }) => {
       const key    = new TreePathKey(path, wildcard);
       const result = isStatic
-        ? TreePathKey[name](key, ...wildArg)
-        : key[name](...wildArg);
+        ? TreePathKey[name](key, ...relArg)
+        : key[name](...relArg);
 
-      expect(result).toBe(expected);
-    });
-  });
-
-  describe('with `showWildcard` passed as `false`', () => {
-    test.each`
-    path                     | wildcard | expected
-    ${[]}                    | ${false} | ${'/'}
-    ${[]}                    | ${true}  | ${'/'}
-    ${['a']}                 | ${false} | ${'/a'}
-    ${['a']}                 | ${true}  | ${'/a'}
-    ${['foo', 'bar', 'baz']} | ${false} | ${'/foo/bar/baz'}
-    ${['foo', 'bar', 'baz']} | ${true}  | ${'/foo/bar/baz'}
-    `('on { path: $path, wildcard: $wildcard }', ({ path, wildcard, expected }) => {
-      const key = new TreePathKey(path, wildcard);
-      const result = isStatic
-        ? TreePathKey[name](key, false)
-        : key[name](false);
+      if (relArg[0] === true) {
+        // Expectation is special for `relative === true` on a non-wildcard
+        // empty path.
+        expected = ((key.length === 0) && !key.wildcard)
+          ? '.'
+          : `.${expected}`;
+      }
 
       expect(result).toBe(expected);
     });

@@ -189,21 +189,22 @@ export class TreePathKey {
   }
 
   /**
-   * Gets the string form of this instance, interpreted as an absolute URI path,
-   * that is, the part of a URI after the hostname. The result always includes
-   * an initial slash (`/`) and never includes a final slash (or more accurately
-   * a final slash indicates an empty path component at the end).
+   * Gets the string form of this instance as a URI path, that is, the part of a
+   * URI after the hostname. The result is in absolute form by default (prefixed
+   * with `/`), and is optionally in relative form (prefixed with `./`). Empty
+   * components are represented as one might expect, with no characters between
+   * two slashes for an empty component in the middle of a path or with a
+   * trailing slash for an empty component at the end of the path.
    *
-   * @param {boolean} [showWildcard] Represent a wildcard key as a final `/*`?
-   *   If `false`, then the result is as if `key` were created with `wildcard
-   *   === false`.
+   * @param {boolean} [relative] Make the result relative (with `./` as the
+   *   prefix).
    * @returns {string} The string form.
    */
-  toUriPathString(showWildcard = true) {
+  toUriPathString(relative = false) {
     return this.toString({
-      prefix:    '/',
-      separator: '/',
-      wildcard:  showWildcard ? '*' : null
+      prefix:         relative ? '.' : '/',
+      separatePrefix: relative,
+      separator:      '/'
     });
   }
 
@@ -308,10 +309,11 @@ export class TreePathKey {
    * convenient use as a stringifier function, e.g. in `TreePathMap`.
    *
    * @param {TreePathKey} key The key to convert.
-   * @param {boolean} [showWildcard] Represent a wildcard key as such?
+   * @param {boolean} [relative] Make the result relative (with `./` as the
+   *   prefix).
    * @returns {string} The string form.
    */
-  static uriPathStringFrom(key, showWildcard = true) {
-    return key.toUriPathString(showWildcard);
+  static uriPathStringFrom(key, relative = false) {
+    return key.toUriPathString(relative);
   }
 }

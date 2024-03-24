@@ -60,10 +60,14 @@ export class DispatchInfo {
    * @returns {string} {@link #base}, as a path string. It is always prefixed
    * with a slash (`/`) and only ends with a slash if the final path component
    * is empty.
+   *
+   * **Note:** It is strongly recommended to _only_ use this property for
+   * logging/debugging purposes. {@link #base} is a better choice when doing
+   * calculations.
    */
   get baseString() {
-    // `false` == don't append `/*` for a wildcard `TreePathKey` instance.
-    return this.#base.toUriPathString(false);
+    // `true` == relative form.
+    return this.#base.toUriPathString();
   }
 
   /**
@@ -76,12 +80,15 @@ export class DispatchInfo {
 
   /**
    * @returns {string} {@link #extra}, as a path string. It is always prefixed
-   * with a slash (`/`) and only ends with a slash if the final path component
-   * is empty.
+   * with a dot-slash (`./`) and only ends with a slash if the final path
+   * component is empty.
+   *
+   * **Note:** It is strongly recommended to _only_ use this property for
+   * logging/debugging purposes. {@link #base} is a better choice when doing
+   * calculations.
    */
   get extraString() {
-    // `false` == don't append `/*` for a wildcard `TreePathKey` instance.
-    return this.#extra.toUriPathString(false);
+    return this.#extra.toUriPathString();
   }
 
   /**
