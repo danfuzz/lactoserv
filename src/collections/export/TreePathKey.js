@@ -21,6 +21,12 @@ export class TreePathKey {
   #wildcard;
 
   /**
+   * @type {?number} The result of {@link #charLength}, or `null` if not yet
+   * calculated.
+   */
+  #charLength = null;
+
+  /**
    * Constructs an instance from the given two components.
    *
    * **Note:** If not already frozen, the `path` is copied internally, in order
@@ -38,8 +44,26 @@ export class TreePathKey {
   }
 
   /**
-   * @returns {number} The length of the path, that is, a shorthand for
-   * `this.path.length`.
+   * @returns {number} The length of the path in total characters of all path
+   * components combined. This does not include any count for (would-be) path
+   * component separators or any wildcard indicators.
+   */
+  get charLength() {
+    if (this.#charLength === null) {
+      let result = 0;
+      for (const p of this.#path) {
+        result += p.length;
+      }
+
+      this.#charLength = result;
+    }
+
+    return this.#charLength;
+  }
+
+  /**
+   * @returns {number} The length of the path in components, that is, a
+   * shorthand for `this.path.length`.
    */
   get length() {
     return this.#path.length;

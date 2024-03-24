@@ -50,6 +50,46 @@ describe('constructor()', () => {
   });
 });
 
+describe('.charLength', () => {
+  test('returns `0` for an empty no-wildcard instance', () => {
+    const key = new TreePathKey([], false);
+    expect(key.charLength).toBe(0);
+  });
+
+  test('returns `0` for an empty wildcard instance', () => {
+    const key = new TreePathKey([], true);
+    expect(key.charLength).toBe(0);
+  });
+
+  test('returns the length of the sole component of a length-1 instance', () => {
+    const key1 = new TreePathKey(['x'], false);
+    expect(key1.charLength).toBe(1);
+
+    const key2 = new TreePathKey(['xyz-pdq'], true);
+    expect(key2.charLength).toBe(7);
+
+    const key3 = new TreePathKey([''], false);
+    expect(key3.charLength).toBe(0);
+  });
+
+  test('returns the total length of both components of a length-2 instance', () => {
+    const key1 = new TreePathKey(['x', 'ab'], false);
+    expect(key1.charLength).toBe(3);
+
+    const key2 = new TreePathKey(['abc', 'defgh'], true);
+    expect(key2.charLength).toBe(8);
+  });
+
+  // This is meant to verify that caching doesn't mess things up.
+  test('returns the same value from repeated calls', () => {
+    const key = new TreePathKey(['ab', 'cde', 'f', 'ghijklmn'], false);
+
+    expect(key.charLength).toBe(14);
+    expect(key.charLength).toBe(14);
+    expect(key.charLength).toBe(14);
+  })
+});
+
 describe('.length', () => {
   for (let len = 0; len < 4; len++) {
     for (let wild = 0; wild < 2; wild++) {
