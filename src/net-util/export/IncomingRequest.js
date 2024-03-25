@@ -8,7 +8,6 @@ import { IntfLogger } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';
 
 import { BaseIncomingRequest } from '#x/BaseIncomingRequest';
-import { HostInfo } from '#x/HostInfo';
 import { RequestContext } from '#x/RequestContext';
 
 
@@ -32,12 +31,6 @@ export class IncomingRequest extends BaseIncomingRequest {
 
   /** @type {string} The request method, downcased. */
   #requestMethod;
-
-  /**
-   * @type {HostInfo} The host header(ish) info, or `null` if not yet figured
-   * out.
-   */
-  #host = null;
 
   /**
    * Constructs an instance.
@@ -70,25 +63,5 @@ export class IncomingRequest extends BaseIncomingRequest {
   get headers() {
     // TODO: This should be an `HttpHeaders` object.
     return this.#coreRequest.headers;
-  }
-
-  /** @override */
-  get host() {
-    if (!this.#host) {
-      // Note: `authority` is used by HTTP2.
-      const { authority } = this.#coreRequest;
-      const localPort     = this.context.interface.port;
-
-      if (authority) {
-        this.#host = HostInfo.safeParseHostHeader(authority, localPort);
-      } else {
-        const host = this.getHeaderOrNull('host');
-        this.#host = host
-          ? HostInfo.safeParseHostHeader(host, localPort)
-          : HostInfo.localhostInstance(localPort);
-      }
-    }
-
-    return this.#host;
   }
 }

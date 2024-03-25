@@ -9,6 +9,7 @@ import { IntfLogger } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';
 
 import { Cookies } from '#x/Cookies';
+import { HostInfo } from '#x/HostInfo';
 import { IntfIncomingRequest } from '#x/IntfIncomingRequest';
 import { RequestContext } from '#x/RequestContext';
 
@@ -48,6 +49,12 @@ export class BaseIncomingRequest {
 
   /** @type {?Cookies} The parsed cookies, or `null` if not yet figured out. */
   #cookies = null;
+
+  /**
+   * @type {HostInfo} The host (a/k/a "authority") info, or `null` if not yet
+   * figured out.
+   */
+  #hostInfo = null;
 
   /**
    * @type {{ targetString: string, type: ?string, pathname: ?TreePathKey,
@@ -123,6 +130,29 @@ export class BaseIncomingRequest {
     }
 
     return this.#cookies;
+  }
+
+  /** @override */
+  get host() {
+    if (!this.#hostInfo) {
+      // Note: Node's `http2` library provides automatic fallback along the
+      // lines of what we do here, but by the time we're here we aren't using a
+      // Node library object at all, so we have to do our own fallback.
+
+      const authority = this.getHeaderOrNull(':authority');
+      const localPort = this.#requestContext.interface.port;
+
+      if (authority) {
+        this.#hostInfo = HostInfo.safeParseHostHeader(authority, localPort);
+      } else {
+        const host = this.getHeaderOrNull('host');
+        this.#hostInfo = host
+          ? HostInfo.safeParseHostHeader(host, localPort)
+          : HostInfo.localhostInstance(localPort);
+      }
+    }
+
+    return this.#hostInfo;
   }
 
   /** @override */
