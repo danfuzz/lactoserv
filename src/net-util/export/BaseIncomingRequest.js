@@ -44,9 +44,9 @@ export class BaseIncomingRequest {
   #protocolName;
 
   /**
-   * @type {?HttpHeaders} Any HTTP-2-ish "pseudo-headers" that came with the
-   * request or were synthesized from an HTTP-1-ish request, with keys stripped
-   * of their colon (`:`) prefixes.
+   * @type {HttpHeaders} HTTP-2-ish "pseudo-headers" that came with the request
+   * or were synthesized from an HTTP-1-ish request, with keys stripped of their
+   * colon (`:`) prefixes.
    */
   #pseudoHeaders;
 
@@ -97,11 +97,9 @@ export class BaseIncomingRequest {
    * @param {string} config.protocolName The protocol name. This is expected
    *   to be a lowercase name followed by a dash and a version, e.g.
    *   `http-1.1`.
-   * @param {?HttpHeaders} [config.pseudoHeaders] HTTP-2-ish "pseudo-headers"
+   * @param {HttpHeaders} config.pseudoHeaders HTTP-2-ish "pseudo-headers"
    *   that came with the request or were synthesized based on an HTTP-1-ish
    *   request, with keys stripped of their colon (`:`) prefixes.
-   * @param {string} config.requestMethod The request method. This is expected
-   *   to be a lowercase HTTP method name, e.g. `get` or `post`.
    * @param {string} config.targetString Target string of the request. This is
    *   the thing that Node calls the `url` (bless their innocent hearts), but it
    *   is typically an absolute path string and not actually a full URL, and
@@ -110,15 +108,14 @@ export class BaseIncomingRequest {
    */
   constructor(config) {
     const {
-      context, logger = null, protocolName, pseudoHeaders = null, requestMethod,
-      targetString
+      context, logger = null, protocolName, pseudoHeaders, targetString
     } = config;
 
     this.#parsedTargetObject = { targetString: MustBe.string(targetString), type: null };
     this.#protocolName       = MustBe.string(protocolName);
-    this.#pseudoHeaders      = (pseudoHeaders === null) ? null : MustBe.instanceOf(pseudoHeaders, HttpHeaders);
+    this.#pseudoHeaders      = MustBe.instanceOf(pseudoHeaders, HttpHeaders);
     this.#requestContext     = MustBe.instanceOf(context, RequestContext);
-    this.#requestMethod      = MustBe.string(requestMethod);
+    this.#requestMethod      = MustBe.string(pseudoHeaders.get('method')).toLowerCase();
 
     if (logger) {
       this.#id     = logger.$meta.makeId();
@@ -146,21 +143,15 @@ export class BaseIncomingRequest {
   /** @override */
   get host() {
     if (!this.#hostInfo) {
-      // Note: Node's `http2` library provides automatic fallback along the
-      // lines of what we do here, but by the time we're here we aren't using a
-      // Node library object at all, so we have to do our own fallback.
+      // Note: We use `#pseudoHeaders` to hold the `Host` header of an
+      // HTTP-1-ish request.
 
-      const authority = this.#pseudoHeaders?.get('authority') ?? null;
+      const authority = this.#pseudoHeaders.get('authority') ?? null;
       const localPort = this.#requestContext.interface.port;
 
-      if (authority) {
-        this.#hostInfo = HostInfo.safeParseHostHeader(authority, localPort);
-      } else {
-        const host = this.getHeaderOrNull('host');
-        this.#hostInfo = host
-          ? HostInfo.safeParseHostHeader(host, localPort)
-          : HostInfo.localhostInstance(localPort);
-      }
+      this.#hostInfo = authority
+        ? HostInfo.safeParseHostHeader(authority, localPort)
+        : HostInfo.localhostInstance(localPort);
     }
 
     return this.#hostInfo;
@@ -343,7 +334,7 @@ export class BaseIncomingRequest {
     const result    = {};
     const setCookie = [];
 
-    for (const [name, value] of this.#pseudoHeaders ?? []) {
+    for (const [name, value] of this.#pseudoHeaders) {
       switch (name) {
         case 'authority':
         case 'method':

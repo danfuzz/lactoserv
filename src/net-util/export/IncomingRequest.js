@@ -79,7 +79,7 @@ export class IncomingRequest extends BaseIncomingRequest {
   static #extractHeadersFrom(request) {
     const modernHttp    = (request.httpVersionMajor >= 2);
     const headers       = new HttpHeaders();
-    const pseudoHeaders = modernHttp ? new HttpHeaders() : null;
+    const pseudoHeaders = new HttpHeaders();
 
     let pendingKey = null;
     for (const s of request.rawHeaders) {
@@ -94,13 +94,23 @@ export class IncomingRequest extends BaseIncomingRequest {
         switch (key) {
           case 'age': case 'authorization': case 'content-length':
           case 'content-type': case 'etag': case 'expires': case 'from':
-          case 'host': case 'if-modified-since': case 'if-unmodified-since':
+          case 'if-modified-since': case 'if-unmodified-since':
           case 'last-modified': case 'location': case 'max-forwards':
           case 'proxy-authorization': case 'referer': case 'retry-after':
           case 'server': case 'user-agent': {
             // Duplicates of these headers are discarded (not combined), per
             // docs for `IncomingMessage.headers`.
             headers.set(key, s);
+            break;
+          }
+          case 'host': {
+            // Like above, duplicates are discarded. But in addition, for
+            // HTTP-1-ish requests, this becomes the synthesized `:authority`
+            // pseudo-header.
+            headers.set(key, s);
+            if (!modernHttp) {
+              pseudoHeaders.set('authority', s);
+            }
             break;
           }
           default: {
@@ -112,6 +122,13 @@ export class IncomingRequest extends BaseIncomingRequest {
           }
         }
       }
+    }
+
+    // Fill in the other pseudo-headers when given an HTTP-1-ish request.
+    if (!modernHttp) {
+      pseudoHeaders.set('method', request.method);
+      pseudoHeaders.set('path',   request.url);
+      // Note: No way to determine `:scheme` for these requests.
     }
 
     Object.freeze(headers);
