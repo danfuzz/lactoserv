@@ -87,7 +87,7 @@ describe('.charLength', () => {
     expect(key.charLength).toBe(14);
     expect(key.charLength).toBe(14);
     expect(key.charLength).toBe(14);
-  })
+  });
 });
 
 describe('.length', () => {
