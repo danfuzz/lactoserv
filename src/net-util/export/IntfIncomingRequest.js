@@ -9,14 +9,27 @@ import { Methods } from '@this/typey';
 
 import { Cookies } from '#x/Cookies';
 import { HostInfo } from '#x/HostInfo';
+import { RequestContext } from '#x/RequestContext';
 
 
 /**
- * Representation of an in-progress HTTP(ish) request.
+ * Representation of a received and in-progress HTTP(ish) request.
+ *
+ * **Note:** This interface does not define its API to have any understanding of
+ * running a system behind a reverse proxy. For example, `Forwarded` and related
+ * headers have no special meaning to this interface.
  *
  * @interface
  */
 export class IntfIncomingRequest {
+  /**
+   * @returns {RequestContext} Information about the context in which this
+   * instance was received.
+   */
+  get context() {
+    throw Methods.abstract();
+  }
+
   /**
    * @returns {Cookies} Cookies that have been parsed from the request, if any.
    * This is an empty instance if there were no cookies (or at least no
