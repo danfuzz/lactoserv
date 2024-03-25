@@ -35,9 +35,9 @@ export class HttpRange {
    *
    * @param {string} requestMethod The request method (e.g., `get`), in either
    *   lowercase or all-caps.
-   * @param {HttpHeaders|object} requestHeaders Request headers which possibly
-   *   indicate a range request. The headers that matter in this regard are
-   *   `range` and `if-range`.
+   * @param {HttpHeaders} requestHeaders Request headers which possibly indicate
+   *   a range request. The headers that matter in this regard are `range` and
+   *   `if-range`.
    * @param {?HttpHeaders} responseHeaders Would-be response headers for a
    *   content-bearing response, or `null` to _just_ use `stats`. The headers
    *   that matter in this regard are `content-length`, `etag`, and
@@ -56,7 +56,7 @@ export class HttpRange {
       MustBe.instanceOf(responseHeaders, HttpHeaders);
     }
 
-    const range = HttpHeaders.get(requestHeaders, 'range');
+    const range = requestHeaders.get('range');
 
     if (!range) {
       // Not a range request.
