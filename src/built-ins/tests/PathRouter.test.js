@@ -93,7 +93,7 @@ class MockRequest {
     this.#pathString = pathString;
 
     // `slice(1)` to avoid having an empty component as the first element. And
-    // Freezing `parts` lets `new TreePathKey()` avoid making a copy.
+    // freezing `parts` lets `new TreePathKey()` avoid making a copy.
     const pathParts = Object.freeze(pathString.slice(1).split('/'));
     this.#pathKey = new TreePathKey(pathParts, false);
   }

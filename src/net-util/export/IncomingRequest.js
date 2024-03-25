@@ -291,7 +291,7 @@ export class IncomingRequest {
       const pathnameString = (urlObj.pathname === '') ? '/' : urlObj.pathname;
 
       // `slice(1)` to avoid having an empty component as the first element. And
-      // Freezing `parts` lets `new TreePathKey()` avoid making a copy.
+      // freezing `parts` lets `new TreePathKey()` avoid making a copy.
       const pathParts = Object.freeze(pathnameString.slice(1).split('/'));
 
       result.type           = 'origin';
