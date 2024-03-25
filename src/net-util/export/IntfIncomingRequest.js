@@ -14,7 +14,9 @@ import { RequestContext } from '#x/RequestContext';
 
 
 /**
- * Representation of a received and in-progress HTTP(ish) request.
+ * Representation of a received and in-progress HTTP(ish) request. This is meant
+ * as a replacement for the data-bearing aspects of Node's built-in request
+ * objects, offering a cleaner / friendlier interface.
  *
  * **Note:** This interface does not define its API to have any understanding of
  * running a system behind a reverse proxy. For example, `Forwarded` and related
