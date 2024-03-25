@@ -42,9 +42,6 @@ export class BaseIncomingRequest {
    */
   #requestContext;
 
-  /** @type {string} The request target string. */
-  #targetString;
-
   /** @type {?Cookies} The parsed cookies, or `null` if not yet figured out. */
   #cookies = null;
 
@@ -202,9 +199,10 @@ export class BaseIncomingRequest {
   }
 
   /**
-   * @returns {object} The parsed version of {@link #targetString}. This is a
-   * private getter because the return value is pretty ad-hoc, and we don't want
-   * to expose it as part of this class's API.
+   * @returns {object} {@link #parsedTargetObject}, filling it out first if it
+   * had not already been set up. This is a private getter because the return
+   * value is pretty ad-hoc, and we don't want to expose it as part of this
+   * class's API.
    */
   get #parsedTarget() {
     const target = this.#parsedTargetObject;
