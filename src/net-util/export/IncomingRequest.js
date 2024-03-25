@@ -21,8 +21,12 @@ import { RequestContext } from '#x/RequestContext';
  * to offer a simpler (less crufty) and friendlier interface to them.
  */
 export class IncomingRequest extends BaseIncomingRequest {
+  //
+  // Static members
+  //
+
   /**
-   * Constructs an instance.
+   * Constructs an instance based on a low-level Node HTTP-ish request object.
    *
    * @param {RequestContext} context Information about the request not
    *   represented in `request`.
@@ -31,15 +35,17 @@ export class IncomingRequest extends BaseIncomingRequest {
    *   any logging. If passed as non-`null`, the actual logger instance will be
    *   one that includes an additional subtag representing a new unique(ish) ID
    *   for the request.
+   * @returns {IncomingRequest} Instance with data based on a low-level Node
+   *   request (etc.).
    */
-  constructor(context, request, logger) {
+  static fromNodeRequest(request, context, logger) {
     // Note: It's impractical to do more thorough type checking here (and
     // probably not worth it anyway).
     MustBe.object(request);
 
     const { pseudoHeaders, headers } = IncomingRequest.#extractHeadersFrom(request);
 
-    super({
+    return new IncomingRequest({
       context,
       headers,
       logger,
@@ -47,11 +53,6 @@ export class IncomingRequest extends BaseIncomingRequest {
       pseudoHeaders
     });
   }
-
-
-  //
-  // Static members
-  //
 
   /**
    * Extracts the two sets of headers from a low-level request object.
