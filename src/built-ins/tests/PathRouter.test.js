@@ -3,8 +3,8 @@
 
 import { TreePathKey } from '@this/collections';
 import { PathRouter } from '@this/built-ins';
-import { DispatchInfo, IntfIncomingRequest, IntfRequestHandler,
-  OutgoingResponse } from '@this/net-util';
+import { DispatchInfo, HttpHeaders, IncomingRequest, IntfRequestHandler,
+  OutgoingResponse, RequestContext } from '@this/net-util';
 import { BaseApplication, BaseControllable, ControlContext, RootControlContext }
   from '@this/sys-framework';
 
@@ -82,96 +82,22 @@ class MockApp extends BaseApplication {
   }
 }
 
-/**
- * @implements {IntfIncomingRequest}
- */
-class MockRequest {
-  #pathString;
-  #pathKey;
-
-  constructor(pathString) {
-    this.#pathString = pathString;
-
-    // `slice(1)` to avoid having an empty component as the first element. And
-    // freezing `parts` lets `new TreePathKey()` avoid making a copy.
-    const pathParts = Object.freeze(pathString.slice(1).split('/'));
-    this.#pathKey = new TreePathKey(pathParts, false);
-  }
-
-  /** @override */
-  get cookies() {
-    throw new Error('Not expected to be called.');
-  }
-
-  /** @override */
-  get headers() {
-    throw new Error('Not expected to be called.');
-  }
-
-  /** @override */
-  get host() {
-    throw new Error('Not expected to be called.');
-  }
-
-  /** @override */
-  get id() {
-    throw new Error('Not expected to be called.');
-  }
-
-  /** @override */
-  get logger() {
-    return null;
-  }
-
-  /** @override */
-  get method() {
-    throw new Error('Not expected to be called.');
-  }
-
-  /** @override */
-  get origin() {
-    throw new Error('Not expected to be called.');
-  }
-
-  /** @override */
-  get pathname() {
-    return this.#pathKey;
-  }
-
-  /** @override */
-  get pathnameString() {
-    return this.#pathString;
-  }
-
-  /** @override */
-  get protocolName() {
-    throw new Error('Not expected to be called.');
-  }
-
-  /** @override */
-  get searchString() {
-    throw new Error('Not expected to be called.');
-  }
-
-  /** @override */
-  get targetString() {
-    throw new Error('Not expected to be called.');
-  }
-
-  /** @override */
-  get urlForLogging() {
-    throw new Error('Not expected to be called.');
-  }
-
-  /** @override */
-  getHeaderOrNull(name_unused) {
-    throw new Error('Not expected to be called.');
-  }
-
-  /** @override */
-  getLoggableRequestInfo() {
-    throw new Error('Not expected to be called.');
-  }
+function makeRequest(path) {
+  return new IncomingRequest({
+    context: new RequestContext(
+      Object.freeze({ address: 'localhost', port: 12345 }),
+      Object.freeze({ address: 'awayhost',  port: 54321 })),
+    headers: new HttpHeaders({
+      'some-header': 'something'
+    }),
+    protocolName: 'http-2',
+    pseudoHeaders: new HttpHeaders({
+      authority: 'your.host',
+      method:    'get',
+      path,
+      scheme:    'https'
+    })
+  });
 }
 
 describe('_impl_handleRequest()', () => {
@@ -270,7 +196,7 @@ describe('_impl_handleRequest()', () => {
         { appName: 'mockApp1', basePath: [],              extraPath: ['x', 'y', 'z'] }
       ]}
       `('calls correct handler chain for $label', async ({ requestPath, expectInfo }) => {
-        const request = new MockRequest(requestPath);
+        const request = makeRequest(requestPath);
         const result  = await pr.handleRequest(request, new DispatchInfo(TreePathKey.EMPTY, request.pathname));
 
         // Fill in the `reqPathStr` for the expectation.
@@ -332,7 +258,7 @@ describe('_impl_handleRequest()', () => {
         { appName: 'mockApp2', basePath: ['x'],           extraPath: ['y', 'z'] }
       ]}
       `('calls correct handler chain for $label', async ({ requestPath, expectInfo }) => {
-        const request = new MockRequest(requestPath);
+        const request = makeRequest(requestPath);
         const result  = await pr.handleRequest(request, new DispatchInfo(TreePathKey.EMPTY, request.pathname));
 
         // Fill in the `reqPathStr` for the expectation.
@@ -359,7 +285,7 @@ describe('_impl_handleRequest()', () => {
 
     MockApp.mockCalls = [];
 
-    const request = new MockRequest('/x/y/z');
+    const request = makeRequest('/x/y/z');
     const result  = await pr.handleRequest(request, new DispatchInfo(TreePathKey.EMPTY, request.pathname));
 
     expect(result).not.toBeNull();
@@ -371,7 +297,7 @@ describe('_impl_handleRequest()', () => {
 
   test('matches on `dispatch.extra` (not `request.pathname`)', async () => {
     const pr      = await makeInstance({ '/florp/floop/*': 'mockApp1' });
-    const request = new MockRequest('/x/y/z');
+    const request = makeRequest('/x/y/z');
     const result  = await pr.handleRequest(request,
       new DispatchInfo(TreePathKey.EMPTY, new TreePathKey(['florp', 'floop', 'bop'], false)));
 
@@ -386,7 +312,7 @@ describe('_impl_handleRequest()', () => {
 
   test('forms new `dispatch` by shifting items from `extra` to `base`', async () => {
     const pr      = await makeInstance({ '/zonk/*': 'mockApp1' });
-    const request = new MockRequest('/x/y/z');
+    const request = makeRequest('/x/y/z');
     const result  = await pr.handleRequest(request,
       new DispatchInfo(
         new TreePathKey(['beep'], false),

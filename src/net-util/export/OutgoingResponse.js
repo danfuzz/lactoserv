@@ -155,7 +155,7 @@ export class OutgoingResponse {
    * than `200` ("OK") or `204` ("No Content").
    *
    * @param {string} requestMethod The original request method.
-   * @param {HttpHeaders|object} requestHeaders The request headers.
+   * @param {HttpHeaders} requestHeaders The request headers.
    * @param {object} options Options indicating which adjustments to make.
    * @returns {OutgoingResponse} New response instance containing adjustments,
    *   or `this` if no adjustments were required.

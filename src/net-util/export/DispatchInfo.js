@@ -5,13 +5,13 @@ import { TreePathKey } from '@this/collections';
 import { BaseConverter, Struct } from '@this/data-values';
 import { MustBe } from '@this/typey';
 
-import { IntfIncomingRequest } from '#x/IntfIncomingRequest';
+import { IncomingRequest } from '#x/IncomingRequest';
 
 
 /**
- * Dispatch information related to an {@link IntfIncomingRequest}.
+ * Dispatch information related to an {@link IncomingRequest}.
  *
- * The idea here is that {@link IntfIncomingRequest} objects are treated in a
+ * The idea here is that {@link IncomingRequest} objects are treated in a
  * way that's as immutable as possible (even if we don't quite achieve it), so
  * we need somewhere -- that is, instances of this class -- to hold the ephemera
  * of the request dispatch process.

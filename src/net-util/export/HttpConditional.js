@@ -34,8 +34,8 @@ export class HttpConditional {
    *
    * @param {string} requestMethod The request method (e.g., `get`), in either
    *   lowercase or all-caps.
-   * @param {HttpHeaders|object} requestHeaders Request headers which possibly
-   *   contain content conditionals. The headers that matter in this regard are
+   * @param {HttpHeaders} requestHeaders Request headers which possibly contain
+   *   content conditionals. The headers that matter in this regard are
    *   `cache-control`, `if-none-match`, and `if-modified-since`.
    * @param {?HttpHeaders} responseHeaders Would-be response headers for a
    *   content-bearing response, or `null` to _just_ use `stats`. The headers
@@ -47,7 +47,7 @@ export class HttpConditional {
    */
   static isContentFresh(requestMethod, requestHeaders, responseHeaders, stats = null) {
     MustBe.string(requestMethod);
-    // MustBe.instanceOf(requestHeaders, HttpHeaders); TODO: Make it true.
+    MustBe.instanceOf(requestHeaders, HttpHeaders);
     if (responseHeaders !== null) {
       MustBe.instanceOf(responseHeaders, HttpHeaders);
     }
@@ -66,13 +66,13 @@ export class HttpConditional {
       }
     }
 
-    const cacheControl = HttpHeaders.get(requestHeaders, 'cache-control');
+    const cacheControl = requestHeaders.get('cache-control');
 
     if (cacheControl && this.#NO_CACHE_REGEX.test(cacheControl)) {
       return false;
     }
 
-    const ifNoneMatch = HttpHeaders.get(requestHeaders, 'if-none-match');
+    const ifNoneMatch = requestHeaders.get('if-none-match');
 
     if (ifNoneMatch) {
       const responseEtag = responseHeaders?.get('etag') ?? null;
@@ -93,7 +93,7 @@ export class HttpConditional {
       return true;
     }
 
-    const ifModifiedSince = HttpHeaders.get(requestHeaders, 'if-modified-since');
+    const ifModifiedSince = requestHeaders.get('if-modified-since');
 
     if (ifModifiedSince) {
       const modifiedSince = HttpUtil.msecFromDateString(ifModifiedSince);
@@ -139,9 +139,8 @@ export class HttpConditional {
    *
    * @param {string} requestMethod The request method (e.g., `get`), in either
    *   lowercase or all-caps.
-   * @param {HttpHeaders|object} requestHeaders Request headers which possibly
-   *   contain range conditionals. The header that matters in this regard is
-   *   `if-range`.
+   * @param {HttpHeaders} requestHeaders Request headers which possibly contain
+   *   range conditionals. The header that matters in this regard is `if-range`.
    * @param {?HttpHeaders} responseHeaders Would-be response headers for a
    *   content-bearing response, or `null` to _just_ use `stats`. The headers
    *   that matter in this regard are `etag` and `last-modified`.
@@ -152,7 +151,7 @@ export class HttpConditional {
    */
   static isRangeApplicable(requestMethod, requestHeaders, responseHeaders, stats = null) {
     MustBe.string(requestMethod);
-    // MustBe.instanceOf(requestHeaders, HttpHeaders); TODO: Make it true.
+    MustBe.instanceOf(requestHeaders, HttpHeaders);
     if (responseHeaders !== null) {
       MustBe.instanceOf(responseHeaders, HttpHeaders);
     }
@@ -171,7 +170,7 @@ export class HttpConditional {
       }
     }
 
-    const ifRange = HttpHeaders.get(requestHeaders, 'if-range');
+    const ifRange = requestHeaders.get('if-range');
 
     if (!ifRange) {
       // This isn't a conditional range request, so it is de facto applicable.
