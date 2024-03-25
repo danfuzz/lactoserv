@@ -10,7 +10,6 @@ export * from '#x/HttpHeaders';
 export * from '#x/HttpRange';
 export * from '#x/HttpUtil';
 export * from '#x/IncomingRequest';
-export * from '#x/IntfIncomingRequest';
 export * from '#x/IntfRequestHandler';
 export * from '#x/MimeTypes';
 export * from '#x/OutgoingResponse';
