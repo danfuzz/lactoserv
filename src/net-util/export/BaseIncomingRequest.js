@@ -19,8 +19,6 @@ import { RequestContext } from '#x/RequestContext';
  * Subclasses must implement:
  * * {@link IntfIncomingRequest#headers}
  * * {@link IntfIncomingRequest#host}
- * * {@link IntfIncomingRequest#method}
- * * {@link IntfIncomingRequest#protocolName}
  *
  * @implements {IntfIncomingRequest}
  */
@@ -41,6 +39,12 @@ export class BaseIncomingRequest {
    * request.
    */
   #requestContext;
+
+  /** @type {string} The protocol name. */
+  #protocolName;
+
+  /** @type {string} The request method, downcased. */
+  #requestMethod;
 
   /** @type {?Cookies} The parsed cookies, or `null` if not yet figured out. */
   #cookies = null;
@@ -77,17 +81,26 @@ export class BaseIncomingRequest {
    *   not do any logging. If passed as non-`null`, the actual logger instance
    *   will be one that includes an additional subtag representing a new
    *   unique(ish) ID for the request.
-   * @param {string} [config.targetString] Target string of the request. This is
+   * @param {string} config.protocolName The protocol name. This is expected
+   *   to be a lowercase name followed by a dash and a version, e.g.
+   *   `http-1.1`.
+   * @param {string} config.requestMethod The request method. This is expected
+   *   to be a lowercase HTTP method name, e.g. `get` or `post`.
+   * @param {string} config.targetString Target string of the request. This is
    *   the thing that Node calls the `url` (bless their innocent hearts), but it
    *   is typically an absolute path string and not actually a full URL, and
    *   furthermore (depending on the request method) it doesn't necessarily even
    *   have the syntax of a URL at all.
    */
   constructor(config) {
-    const { context, logger = null, targetString } = config;
+    const {
+      context, logger = null, protocolName, requestMethod, targetString
+    } = config;
 
-    this.#requestContext     = MustBe.instanceOf(context, RequestContext);
     this.#parsedTargetObject = { targetString: MustBe.string(targetString), type: null };
+    this.#protocolName       = MustBe.string(protocolName);
+    this.#requestContext     = MustBe.instanceOf(context, RequestContext);
+    this.#requestMethod      = MustBe.string(requestMethod);
 
     if (logger) {
       this.#id     = logger.$meta.makeId();
@@ -123,6 +136,11 @@ export class BaseIncomingRequest {
   }
 
   /** @override */
+  get method() {
+    return this.#requestMethod;
+  }
+
+  /** @override */
   get origin() {
     return this.#requestContext.origin;
   }
@@ -135,6 +153,11 @@ export class BaseIncomingRequest {
   /** @override */
   get pathnameString() {
     return this.#parsedTarget.pathnameString ?? null;
+  }
+
+  /** @override */
+  get protocolName() {
+    return this.#protocolName;
   }
 
   /** @override */

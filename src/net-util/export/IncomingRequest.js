@@ -55,11 +55,15 @@ export class IncomingRequest extends BaseIncomingRequest {
     // probably not worth it anyway).
     MustBe.object(request);
 
-    super({ context, logger, targetString: request.url });
+    super({
+      context,
+      logger,
+      protocolName:  `http-${request.httpVersion}`,
+      requestMethod: request.method.toLowerCase(),
+      targetString:  request.url
+    });
 
-    this.#coreRequest   = request;
-    this.#requestMethod = request.method.toLowerCase();
-    this.#protocolName  = `http-${request.httpVersion}`;
+    this.#coreRequest = request;
   }
 
   /** @override */
@@ -86,15 +90,5 @@ export class IncomingRequest extends BaseIncomingRequest {
     }
 
     return this.#host;
-  }
-
-  /** @override */
-  get method() {
-    return this.#requestMethod;
-  }
-
-  /** @override */
-  get protocolName() {
-    return this.#protocolName;
   }
 }
