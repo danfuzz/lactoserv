@@ -51,10 +51,8 @@ export class IncomingRequest extends BaseIncomingRequest {
     super({
       context,
       logger,
-      protocolName:  `http-${request.httpVersion}`,
-      pseudoHeaders,
-      requestMethod: request.method.toLowerCase(),
-      targetString:  request.url
+      protocolName: `http-${request.httpVersion}`,
+      pseudoHeaders
     });
 
     this.#requestHeaders = headers;

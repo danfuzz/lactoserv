@@ -65,8 +65,9 @@ export class BaseIncomingRequest {
   /**
    * @type {{ targetString: string, type: ?string, pathname: ?TreePathKey,
    * pathnameString: ?string, searchString: ?string }} The target string of the
-   * request (the thing that Node calls a `url` despite it not really being one)
-   * along with a type indicator and parsed components depending on the type.
+   * request (the thing that Node calls a `url` despite it not really being one,
+   * bless their innocent hearts), along with a type indicator and parsed
+   * components depending on the type.
    */
   #parsedTargetObject = null;
 
@@ -100,22 +101,19 @@ export class BaseIncomingRequest {
    * @param {HttpHeaders} config.pseudoHeaders HTTP-2-ish "pseudo-headers"
    *   that came with the request or were synthesized based on an HTTP-1-ish
    *   request, with keys stripped of their colon (`:`) prefixes.
-   * @param {string} config.targetString Target string of the request. This is
-   *   the thing that Node calls the `url` (bless their innocent hearts), but it
-   *   is typically an absolute path string and not actually a full URL, and
-   *   furthermore (depending on the request method) it doesn't necessarily even
-   *   have the syntax of a URL at all.
    */
   constructor(config) {
     const {
-      context, logger = null, protocolName, pseudoHeaders, targetString
+      context, logger = null, protocolName, pseudoHeaders
     } = config;
 
-    this.#parsedTargetObject = { targetString: MustBe.string(targetString), type: null };
-    this.#protocolName       = MustBe.string(protocolName);
-    this.#pseudoHeaders      = MustBe.instanceOf(pseudoHeaders, HttpHeaders);
-    this.#requestContext     = MustBe.instanceOf(context, RequestContext);
-    this.#requestMethod      = MustBe.string(pseudoHeaders.get('method')).toLowerCase();
+    this.#protocolName   = MustBe.string(protocolName);
+    this.#pseudoHeaders  = MustBe.instanceOf(pseudoHeaders, HttpHeaders);
+    this.#requestContext = MustBe.instanceOf(context, RequestContext);
+    this.#requestMethod  = MustBe.string(pseudoHeaders.get('method')).toLowerCase();
+
+    const targetString = MustBe.string(pseudoHeaders.get('path'));
+    this.#parsedTargetObject = { targetString, type: null };
 
     if (logger) {
       this.#id     = logger.$meta.makeId();
