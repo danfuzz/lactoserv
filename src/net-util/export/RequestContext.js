@@ -36,7 +36,7 @@ export class RequestContext {
       MustBe.object(iface);
       MustBe.frozen(iface);
 
-      const { address, fd, port } = iface;
+      const { address = null, fd = null, port = null } = iface;
 
       if (address !== null) {
         MustBe.string(address);
