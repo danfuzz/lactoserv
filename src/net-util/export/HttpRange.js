@@ -56,7 +56,7 @@ export class HttpRange {
       MustBe.instanceOf(responseHeaders, HttpHeaders);
     }
 
-    const { range } = requestHeaders;
+    const range = HttpHeaders.get(requestHeaders, 'range');
 
     if (!range) {
       // Not a range request.
