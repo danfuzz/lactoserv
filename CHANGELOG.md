@@ -10,11 +10,11 @@ Breaking changes:
 * `collections`:
   * Changed contract of `TreePathKey` methods `toUriPathString()` and
     `uriPathStringFrom()`.
+* `net-util`:
+  * Major rework of `IncomingRequest`, so it no longer has to be constructed
+    from a low-level Node request object.
 
 Other notable changes:
-* `net-util`:
-  * Extracted interface `IntfIncomingRequest` from concrete implementation
-    `IncomingRequest`.
 * `sys-framework`:
   * Renamed filter config `maxPathLength` to `maxPathDepth`, and made a new
     `maxPathLength` which filters based on the octet count of a path.
