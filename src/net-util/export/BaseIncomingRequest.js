@@ -40,6 +40,9 @@ export class BaseIncomingRequest {
    */
   #requestContext;
 
+  /** @type {HttpHeaders} Request headers. */
+  #requestHeaders;
+
   /** @type {string} The protocol name. */
   #protocolName;
 
@@ -91,6 +94,7 @@ export class BaseIncomingRequest {
    * @param {RequestContext} config.context Information about the incoming
    *   "context" of a request. (This information isn't provided by the standard
    *   Node HTTP-ish libraries.)
+   * @param {HttpHeaders} config.headers Headers that came with the request.
    * @param {?IntfLogger} [config.logger] Logger to use as a base, or `null` to
    *   not do any logging. If passed as non-`null`, the actual logger instance
    *   will be one that includes an additional subtag representing a new
@@ -104,12 +108,13 @@ export class BaseIncomingRequest {
    */
   constructor(config) {
     const {
-      context, logger = null, protocolName, pseudoHeaders
+      context, headers, logger = null, protocolName, pseudoHeaders
     } = config;
 
     this.#protocolName   = MustBe.string(protocolName);
     this.#pseudoHeaders  = MustBe.instanceOf(pseudoHeaders, HttpHeaders);
     this.#requestContext = MustBe.instanceOf(context, RequestContext);
+    this.#requestHeaders = MustBe.instanceOf(headers, HttpHeaders);
     this.#requestMethod  = MustBe.string(pseudoHeaders.get('method')).toLowerCase();
 
     const targetString = MustBe.string(pseudoHeaders.get('path'));
@@ -136,6 +141,11 @@ export class BaseIncomingRequest {
     }
 
     return this.#cookies;
+  }
+
+  /** @override */
+  get headers() {
+    return this.#requestHeaders;
   }
 
   /** @override */

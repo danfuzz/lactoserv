@@ -21,15 +21,6 @@ import { RequestContext } from '#x/RequestContext';
  * to offer a simpler (less crufty) and friendlier interface to them.
  */
 export class IncomingRequest extends BaseIncomingRequest {
-  /** @type {HttpHeaders} Incoming request headers. */
-  #requestHeaders;
-
-  /** @type {string} The protocol name. */
-  #protocolName;
-
-  /** @type {string} The request method, downcased. */
-  #requestMethod;
-
   /**
    * Constructs an instance.
    *
@@ -50,18 +41,13 @@ export class IncomingRequest extends BaseIncomingRequest {
 
     super({
       context,
+      headers,
       logger,
       protocolName: `http-${request.httpVersion}`,
       pseudoHeaders
     });
-
-    this.#requestHeaders = headers;
   }
 
-  /** @override */
-  get headers() {
-    return this.#requestHeaders;
-  }
 
   //
   // Static members
