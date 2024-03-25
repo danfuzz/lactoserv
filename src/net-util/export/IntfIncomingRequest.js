@@ -9,6 +9,7 @@ import { Methods } from '@this/typey';
 
 import { Cookies } from '#x/Cookies';
 import { HostInfo } from '#x/HostInfo';
+import { HttpHeaders } from '#x/HttpHeaders';
 import { RequestContext } from '#x/RequestContext';
 
 
@@ -40,11 +41,7 @@ export class IntfIncomingRequest {
     throw Methods.abstract();
   }
 
-  /**
-   * @returns {object} Map of all incoming headers to their values, as defined
-   * by Node's {@link IncomingMessage#headers}. TODO: This should be an
-   * `HttpHeaders` object.
-   */
+  /** @returns {HttpHeaders} Incoming headers of the request. */
   get headers() {
     throw Methods.abstract();
   }

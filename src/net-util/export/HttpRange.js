@@ -51,7 +51,7 @@ export class HttpRange {
    */
   static rangeInfo(requestMethod, requestHeaders, responseHeaders, statsOrLength = null) {
     MustBe.string(requestMethod);
-    // MustBe.instanceOf(requestHeaders, HttpHeaders); TODO: Make it true.
+    MustBe.instanceOf(requestHeaders, HttpHeaders);
     if (responseHeaders !== null) {
       MustBe.instanceOf(responseHeaders, HttpHeaders);
     }

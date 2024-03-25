@@ -34,8 +34,8 @@ export class HttpConditional {
    *
    * @param {string} requestMethod The request method (e.g., `get`), in either
    *   lowercase or all-caps.
-   * @param {HttpHeaders|object} requestHeaders Request headers which possibly
-   *   contain content conditionals. The headers that matter in this regard are
+   * @param {HttpHeaders} requestHeaders Request headers which possibly contain
+   *   content conditionals. The headers that matter in this regard are
    *   `cache-control`, `if-none-match`, and `if-modified-since`.
    * @param {?HttpHeaders} responseHeaders Would-be response headers for a
    *   content-bearing response, or `null` to _just_ use `stats`. The headers
@@ -47,7 +47,7 @@ export class HttpConditional {
    */
   static isContentFresh(requestMethod, requestHeaders, responseHeaders, stats = null) {
     MustBe.string(requestMethod);
-    // MustBe.instanceOf(requestHeaders, HttpHeaders); TODO: Make it true.
+    MustBe.instanceOf(requestHeaders, HttpHeaders);
     if (responseHeaders !== null) {
       MustBe.instanceOf(responseHeaders, HttpHeaders);
     }

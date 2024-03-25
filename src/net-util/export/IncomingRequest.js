@@ -8,6 +8,7 @@ import { IntfLogger } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';
 
 import { BaseIncomingRequest } from '#x/BaseIncomingRequest';
+import { HttpHeaders } from '#x/HttpHeaders';
 import { RequestContext } from '#x/RequestContext';
 
 
@@ -20,11 +21,8 @@ import { RequestContext } from '#x/RequestContext';
  * to offer a simpler (less crufty) and friendlier interface to them.
  */
 export class IncomingRequest extends BaseIncomingRequest {
-  /**
-   * @type {IncomingMessage|Http2ServerRequest} Underlying HTTP(ish) request
-   * object.
-   */
-  #coreRequest;
+  /** @type {HttpHeaders} Incoming request headers. */
+  #requestHeaders;
 
   /** @type {string} The protocol name. */
   #protocolName;
@@ -56,12 +54,11 @@ export class IncomingRequest extends BaseIncomingRequest {
       targetString:  request.url
     });
 
-    this.#coreRequest = request;
+    this.#requestHeaders = new HttpHeaders(request.headers);
   }
 
   /** @override */
   get headers() {
-    // TODO: This should be an `HttpHeaders` object.
-    return this.#coreRequest.headers;
+    return this.#requestHeaders;
   }
 }
