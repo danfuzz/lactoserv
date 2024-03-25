@@ -10,6 +10,8 @@ import { HttpUtil } from '#x/HttpUtil';
 /**
  * Subclass of the standard global class `Headers`, with extra functionality
  * found to be useful in practice.
+ *
+ * TODO: Make `Object.freeze()` actually work.
  */
 export class HttpHeaders extends Headers {
   /**
