@@ -8,8 +8,8 @@ import { DispatchInfo, IntfIncomingRequest, IntfRequestHandler,
 import { BaseApplication, BaseControllable, ControlContext, RootControlContext }
   from '@this/sys-framework';
 
-// TODO: This contains a lot of mock implementation that should be extracted for
-// reuse.
+// TODO: This file contains a lot of mock implementation that should be
+// extracted for reuse.
 
 /**
  * Minimal concrete subclass of `BaseControllable`, which has no-op
