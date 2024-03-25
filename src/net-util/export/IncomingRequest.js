@@ -46,19 +46,76 @@ export class IncomingRequest extends BaseIncomingRequest {
     // probably not worth it anyway).
     MustBe.object(request);
 
+    const { pseudoHeaders, headers } = IncomingRequest.#extractHeadersFrom(request);
+
     super({
       context,
       logger,
       protocolName:  `http-${request.httpVersion}`,
+      pseudoHeaders,
       requestMethod: request.method.toLowerCase(),
       targetString:  request.url
     });
 
-    this.#requestHeaders = new HttpHeaders(request.headers);
+    this.#requestHeaders = headers;
   }
 
   /** @override */
   get headers() {
     return this.#requestHeaders;
+  }
+
+  //
+  // Static members
+  //
+
+  /**
+   * Extracts the two sets of headers from a low-level request object.
+   *
+   * @param {IncomingMessage|Http2ServerRequest} request Request object.
+   * @returns {{ headers: HttpHeaders, pseudoHeaders: ?HttpHeaders }} The
+   *   extracted headers.
+   */
+  static #extractHeadersFrom(request) {
+    const modernHttp    = (request.httpVersionMajor >= 2);
+    const headers       = new HttpHeaders();
+    const pseudoHeaders = modernHttp ? new HttpHeaders() : null;
+
+    let pendingKey = null;
+    for (const s of request.rawHeaders) {
+      if (pendingKey === null) {
+        pendingKey = s;
+      } else if (pendingKey[0] === ':') {
+        pseudoHeaders.set(pendingKey.slice(1), s);
+        pendingKey = null;
+      } else {
+        const key = modernHttp ? pendingKey : pendingKey.toLowerCase();
+        pendingKey = null;
+        switch (key) {
+          case 'age': case 'authorization': case 'content-length':
+          case 'content-type': case 'etag': case 'expires': case 'from':
+          case 'host': case 'if-modified-since': case 'if-unmodified-since':
+          case 'last-modified': case 'location': case 'max-forwards':
+          case 'proxy-authorization': case 'referer': case 'retry-after':
+          case 'server': case 'user-agent': {
+            // Duplicates of these headers are discarded (not combined), per
+            // docs for `IncomingMessage.headers`.
+            headers.set(key, s);
+            break;
+          }
+          default: {
+            // Everything else gets appended. There are special rules for
+            // handling `cookie` and `set-cookie` headers, but those are taken
+            // care of for us by `HttpHeaders`.
+            headers.append(key, s);
+            break;
+          }
+        }
+      }
+    }
+
+    Object.freeze(headers);
+    Object.freeze(pseudoHeaders);
+    return { headers, pseudoHeaders };
   }
 }

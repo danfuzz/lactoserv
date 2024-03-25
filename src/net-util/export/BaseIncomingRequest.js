@@ -1,8 +1,6 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { sensitiveHeaders as Http2SensitiveHeaders } from 'node:http2';
-
 import { TreePathKey } from '@this/collections';
 import { FormatUtils } from '@this/loggy-intf';
 import { IntfLogger } from '@this/loggy-intf';
@@ -10,6 +8,7 @@ import { MustBe } from '@this/typey';
 
 import { Cookies } from '#x/Cookies';
 import { HostInfo } from '#x/HostInfo';
+import { HttpHeaders } from '#x/HttpHeaders';
 import { IntfIncomingRequest } from '#x/IntfIncomingRequest';
 import { RequestContext } from '#x/RequestContext';
 
@@ -43,6 +42,13 @@ export class BaseIncomingRequest {
 
   /** @type {string} The protocol name. */
   #protocolName;
+
+  /**
+   * @type {?HttpHeaders} Any HTTP-2-ish "pseudo-headers" that came with the
+   * request or were synthesized from an HTTP-1-ish request, with keys stripped
+   * of their colon (`:`) prefixes.
+   */
+  #pseudoHeaders;
 
   /** @type {string} The request method, downcased. */
   #requestMethod;
@@ -91,6 +97,9 @@ export class BaseIncomingRequest {
    * @param {string} config.protocolName The protocol name. This is expected
    *   to be a lowercase name followed by a dash and a version, e.g.
    *   `http-1.1`.
+   * @param {?HttpHeaders} [config.pseudoHeaders] HTTP-2-ish "pseudo-headers"
+   *   that came with the request or were synthesized based on an HTTP-1-ish
+   *   request, with keys stripped of their colon (`:`) prefixes.
    * @param {string} config.requestMethod The request method. This is expected
    *   to be a lowercase HTTP method name, e.g. `get` or `post`.
    * @param {string} config.targetString Target string of the request. This is
@@ -101,11 +110,13 @@ export class BaseIncomingRequest {
    */
   constructor(config) {
     const {
-      context, logger = null, protocolName, requestMethod, targetString
+      context, logger = null, protocolName, pseudoHeaders = null, requestMethod,
+      targetString
     } = config;
 
     this.#parsedTargetObject = { targetString: MustBe.string(targetString), type: null };
     this.#protocolName       = MustBe.string(protocolName);
+    this.#pseudoHeaders      = (pseudoHeaders === null) ? null : MustBe.instanceOf(pseudoHeaders, HttpHeaders);
     this.#requestContext     = MustBe.instanceOf(context, RequestContext);
     this.#requestMethod      = MustBe.string(requestMethod);
 
@@ -139,7 +150,7 @@ export class BaseIncomingRequest {
       // lines of what we do here, but by the time we're here we aren't using a
       // Node library object at all, so we have to do our own fallback.
 
-      const authority = this.getHeaderOrNull(':authority');
+      const authority = this.#pseudoHeaders?.get('authority') ?? null;
       const localPort = this.#requestContext.interface.port;
 
       if (authority) {
@@ -223,20 +234,14 @@ export class BaseIncomingRequest {
   /** @override */
   getLoggableRequestInfo() {
     if (!this.#loggableRequestInfo) {
-      const {
-        cookies,
-        headers,
-        method,
-        origin,
-        urlForLogging
-      } = this;
+      const { cookies, method, origin, urlForLogging } = this;
 
       const result = {
         origin:   FormatUtils.addressPortString(origin.address, origin.port),
         protocol: this.protocolName,
         method,
         url:      urlForLogging,
-        headers:  BaseIncomingRequest.#sanitizeRequestHeaders(headers)
+        headers:  this.#sanitizeRequestHeaders()
       };
 
       if (cookies.size !== 0) {
@@ -327,44 +332,63 @@ export class BaseIncomingRequest {
     return Object.freeze(target);
   }
 
-
-  //
-  // Static members
-  //
-
   /**
-   * Cleans up request headers for logging.
+   * Transforms and cleans up request headers for logging.
    *
-   * @param {object} headers Original request headers.
-   * @returns {object} Cleaned up version.
+   * @returns {object} Cleaned up headers, as a deeply frozen plain object.
    */
-  static #sanitizeRequestHeaders(headers) {
-    const result = { ...headers };
+  #sanitizeRequestHeaders() {
+    const { headers }   = this;
 
-    delete result[':authority'];
-    delete result[':method'];
-    delete result[':path'];
-    delete result[':scheme'];
-    delete result.host;
+    const result    = {};
+    const setCookie = [];
 
-    // Non-obvious: Though not a request header, there's nothing stopping a
-    // client from sending one or more `Set-Cookie` headers, and Node always
-    // reports these as an array. (This is the only header which gets that
-    // special treatment.) The caller of this method ultimately wants a
-    // deep-frozen result, and it makes more sense to deal with the so-required
-    // special case here.
-    const setCookie = result['set-cookie'];
-    if (setCookie) {
-      result['set-cookie'] = Object.freeze([...setCookie]);
+    for (const [name, value] of this.#pseudoHeaders ?? []) {
+      switch (name) {
+        case 'authority':
+        case 'method':
+        case 'path':
+        case 'scheme': {
+          // These are all headers to ignore for the purposes of logging,
+          // because they're redundant in the larger context.
+          continue;
+        }
+        default: {
+          result[`:${name}`] = value;
+        }
+      }
     }
 
-    // Non-obvious: This deletes the symbol property `sensitiveHeaders` from the
-    // result (whose value is an array of header names that, per Node docs,
-    // aren't supposed to be compressed due to poor interaction with desirable
-    // cryptography properties). This _isn't_ supposed to actually delete the
-    // headers _named_ by this value.
-    delete result[Http2SensitiveHeaders];
+    for (const [name, value] of headers.entries()) {
+      switch (name) {
+        case 'host': {
+          // As above, ignore because it's redundant.
+          continue;
+        }
+        case 'set-cookie': {
+          // Non-obvious: Though not a request header, there's nothing stopping
+          // a client from sending one or more `Set-Cookie` headers, and the
+          // `Headers` class (the base class of `HttpHeaders`) always treats
+          // these specially and can end up reporting more than one when
+          // iterating. (This is the only header which gets that special
+          // treatment.)
+          if (setCookie.length === 0) {
+            result[name] = setCookie;
+          }
+          setCookie.push(value);
+          break;
+        }
+        default: {
+          result[name] = value;
+          break;
+        }
+      }
+    }
 
-    return result;
+    if (setCookie.length !== 0) {
+      Object.freeze(setCookie);
+    }
+
+    return Object.freeze(result);
   }
 }
