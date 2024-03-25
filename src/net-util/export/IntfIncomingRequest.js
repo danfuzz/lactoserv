@@ -50,13 +50,15 @@ export class IntfIncomingRequest {
   }
 
   /**
-   * @returns {HostInfo} Info about the `Host` header (or equivalent). If there
-   * is no header (etc.), it is treated as if it were specified as just
-   * `localhost`.
+   * @returns {HostInfo} Info about the host (a/k/a the "authority") being asked
+   * to respond to this request. This is the value of the synthetic `:authority`
+   * header of an HTTP-2 request if available, or the regular `Host` header of
+   * an HTTP-1 request. If there is no authority information present in the
+   * request, it is treated as if it were specified as just `localhost`.
    *
    * The `port` of the returned object is as follows:
    *
-   * * If the `Host` header has a port, use that.
+   * * If the `:authority` or `Host` header has a port, use that.
    * * If the connection has a "declared listening port," use that.
    * * If the connection has a known listening port, use that.
    * * Otherwise, use `0` for the port.
