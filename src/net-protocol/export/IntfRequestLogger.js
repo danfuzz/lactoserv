@@ -5,7 +5,7 @@ import { IncomingMessage, ServerResponse } from 'node:http';
 import { Http2ServerRequest, Http2ServerResponse } from 'node:http2';
 
 import { Duration, Moment } from '@this/data-values';
-import { IncomingRequest, OutgoingResponse } from '@this/net-util';
+import { IntfIncomingRequest, OutgoingResponse } from '@this/net-util';
 import { Methods } from '@this/typey';
 
 
@@ -54,7 +54,7 @@ export class IntfRequestLogger {
    *   handled (or at least a reasonably close moment to that). This can be
    *   expected to be a value returned from a call to {@link #now} on this
    *   instance.
-   * @param {IncomingRequest} request The incoming request.
+   * @param {IntfIncomingRequest} request The incoming request.
    */
   async requestStarted(networkInfo, timingInfo, request) {
     Methods.abstract(networkInfo, timingInfo, request);
@@ -73,7 +73,7 @@ export class IntfRequestLogger {
    *   complete. This can be expected to be a value returned from a call to
    *   {@link #now} on this instance.
    * @param {Duration} timingInfo.duration The difference `end - start`.
-   * @param {IncomingRequest} request The incoming request.
+   * @param {IntfIncomingRequest} request The incoming request.
    * @param {OutgoingResponse} response The response that was sent (or at least
    *   attempted).
    */

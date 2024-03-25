@@ -12,16 +12,17 @@ import { MustBe } from '@this/typey';
 
 import { Cookies } from '#x/Cookies';
 import { HostInfo } from '#x/HostInfo';
+import { IntfIncomingRequest } from '#x/IntfIncomingRequest';
 import { RequestContext } from '#x/RequestContext';
 
 
 /**
- * Representation of an in-progress HTTP(ish) request, including both request
- * data _and_ ways to send a response.
+ * Representation of an in-progress HTTP(ish) request, which is being serviced
+ * by Node's low-level networking code.
  *
- * Ultimately, this class wraps both the request and response objects that are
- * provided by the underlying Node libraries, though it is intended to offer a
- * simpler (less crufty) and friendlier interface to them.
+ * Ultimately, this class wraps the request object that comes from the
+ * underlying Node libraries, though it is intended to offer a simpler (less
+ * crufty) and friendlier interface to them.
  *
  * **Note:** This class does not implement any understanding of reverse proxy
  * headers. It is up to constructors of this class to pass appropriate
@@ -29,6 +30,8 @@ import { RequestContext } from '#x/RequestContext';
  * behind a reverse proxy. That said, as of this writing there isn't anything
  * that actually does that. See
  * <https://github.com/danfuzz/lactoserv/issues/213>.
+ *
+ * @implements {IntfIncomingRequest}
  */
 export class IncomingRequest {
   /**
@@ -115,12 +118,7 @@ export class IncomingRequest {
     }
   }
 
-  /**
-   * @returns {Cookies} Cookies that have been parsed from the request, if any.
-   * This is an empty instance if there were no cookies (or at least no
-   * syntactically correct cookies). Whether or not empty, the instance is
-   * always frozen.
-   */
+  /** @override */
   get cookies() {
     if (!this.#cookies) {
       const cookieStr = this.getHeaderOrNull('cookie');
@@ -132,27 +130,13 @@ export class IncomingRequest {
     return this.#cookies;
   }
 
-  /**
-   * @returns {object} Map of all incoming headers to their values, as defined
-   * by Node's {@link IncomingMessage#headers}.
-   */
+  /** @override */
   get headers() {
     // TODO: This should be an `HttpHeaders` object.
     return this.#coreRequest.headers;
   }
 
-  /**
-   * @returns {HostInfo} Info about the `Host` header (or equivalent). If there
-   * is no header (etc.), it is treated as if it were specified as just
-   * `localhost`.
-   *
-   * The `port` of the returned object is as follows:
-   *
-   * * If the `Host` header has a port, use that.
-   * * If the connection has a "declared listening port," use that.
-   * * If the connection has a known listening port, use that.
-   * * Otherwise, use `0` for the port.
-   */
+  /** @override */
   get host() {
     if (!this.#host) {
       const req = this.#coreRequest;
@@ -174,121 +158,52 @@ export class IncomingRequest {
     return this.#host;
   }
 
-  /**
-   * @returns {?string} The unique-ish request ID, or `null` if there is none
-   * (which will happen if there is no associated logger).
-   */
+  /** @override */
   get id() {
     return this.#id;
   }
 
-  /**
-   * @returns {?IntfLogger} The logger to use with this instance, or `null` if
-   * the instance is not doing any logging.
-   */
+  /** @override */
   get logger() {
     return this.#logger;
   }
 
-  /**
-   * @returns {string} The HTTP(ish) request method, downcased, e.g. commonly
-   * one of `'get'`, `'head'`, or `'post'`.
-   */
+  /** @override */
   get method() {
     return this.#requestMethod;
   }
 
-  /**
-   * @returns {{ address: string, port: number }} The IP address and port of
-   * the origin (remote side) of the request.
-   */
+  /** @override */
   get origin() {
     return this.#requestContext.origin;
   }
 
-  /**
-   * @returns {?TreePathKey} Parsed path key form of {@link #pathnameString}, or
-   * `null` if this instance doesn't represent a usual `origin` request.
-   *
-   * **Note:** If the original incoming pathname was just `'/'` (e.g., it was
-   * from an HTTP request of literally `GET /`), then the value here is a
-   * single-element key with empty value, that is `['']`, and _not_ an empty
-   * key. This preserves the invariant that the keys for all directory-like
-   * requests end with an empty path element.
-   *
-   * **Note:** The name of this field matches the equivalent field of the
-   * standard `URL` class.
-   */
+  /** @override */
   get pathname() {
     return this.#parsedTarget.pathname ?? null;
   }
 
-  /**
-   * @returns {?string} The path portion of {@link #targetString}, as a string,
-   * or `null` if this instance doesn't represent a usual `origin` request (that
-   * is, the kind that includes a path). This starts with a slash (`/`) and
-   * omits the search a/k/a query (`?...`), if any. This also includes
-   * "resolving" away any `.` or `..` components.
-   */
+  /** @override */
   get pathnameString() {
     return this.#parsedTarget.pathnameString ?? null;
   }
 
-  /**
-   * @returns {string} The name of the protocol which this instance is using.
-   * This is generally a string starting with `http-` and ending with the
-   * dotted version. This corresponds to the (unencrypted) protocol being used
-   * over the (possibly encrypted) transport, and has nothing to do _per se_
-   * with the port number which the remote side of this request connected to in
-   * order to send the request. That is, `https*` won't be the value of this
-   * property.
-   */
+  /** @override */
   get protocolName() {
     return this.#protocolName;
   }
 
-  /**
-   * @returns {string} The search a/k/a query portion of {@link #targetString},
-   * as an unparsed string, or `''` (the empty string) if there is no search
-   * string. The result includes anything at or after the first question mark
-   * (`?`) in the URL. In the case of a "degenerate" search of _just_ a question
-   * mark with nothing after, this returns `''`.
-   *
-   * **Note:** The name of this field matches the equivalent field of the
-   * standard `URL` class.
-   */
+  /** @override */
   get searchString() {
     return this.#parsedTarget.searchString;
   }
 
-  /**
-   * @returns {string} The unparsed target that was passed in to the original
-   * HTTP(ish) request. In the common case of the target being a path to a
-   * resource, colloquially speaking, this is the suffix of the URL-per-se
-   * starting at the first slash (`/`) after the host identifier. That said,
-   * there are other non-path forms for a target. See
-   * <https://www.rfc-editor.org/rfc/rfc7230#section-5.3> for the excruciating
-   * details.
-   *
-   * For example, for the requested URL
-   * `https://example.com:123/foo/bar?baz=10`, this would be `/foo/bar?baz=10`.
-   * This property name corresponds to the standard Node field
-   * `IncomingRequest.url`, even though it's not actually a URL per se. We chose
-   * to diverge from Node for the sake of clarity.
-   */
+  /** @override */
   get targetString() {
     return this.#parsedTarget.targetString;
   }
 
-  /**
-   * @returns {string} A reasonably-suggestive but possibly incomplete
-   * representation of the incoming request including both the host and target,
-   * in the form of a protocol-less URL in most cases (and something vaguely
-   * URL-like when the target isn't the usual `origin` type).
-   *
-   * This value is meant for logging, and specifically _not_ for any routing or
-   * other more meaningful computation (hence the name).
-   */
+  /** @override */
   get urlForLogging() {
     if (!this.#urlForLogging) {
       const { host }               = this;
@@ -303,27 +218,12 @@ export class IncomingRequest {
     return this.#urlForLogging;
   }
 
-  /**
-   * Gets a request header, by name.
-   *
-   * @param {string} name The header name.
-   * @returns {?string|Array<string>} The corresponding value, or `null` if
-   *   there was no such header.
-   */
+  /** @override */
   getHeaderOrNull(name) {
     return this.#coreRequest.headers[name] ?? null;
   }
 
-  /**
-   * Gets all reasonably-logged info about the request that was made.
-   *
-   * **Note:** The `headers` in the result omits anything that is redundant
-   * with respect to other parts of the return value. (E.g., the `cookie` header
-   * is omitted if it was able to be parsed.)
-   *
-   * @returns {object} Loggable information about the request. The result is
-   *   always frozen.
-   */
+  /** @override */
   getLoggableRequestInfo() {
     if (!this.#loggableRequestInfo) {
       const {
@@ -391,7 +291,7 @@ export class IncomingRequest {
       const pathnameString = (urlObj.pathname === '') ? '/' : urlObj.pathname;
 
       // `slice(1)` to avoid having an empty component as the first element. And
-      // Freezing `parts` lets `new TreePathKey()` avoid making a copy.
+      // freezing `parts` lets `new TreePathKey()` avoid making a copy.
       const pathParts = Object.freeze(pathnameString.slice(1).split('/'));
 
       result.type           = 'origin';

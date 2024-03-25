@@ -21,6 +21,12 @@ export class TreePathKey {
   #wildcard;
 
   /**
+   * @type {?number} The result of {@link #charLength}, or `null` if not yet
+   * calculated.
+   */
+  #charLength = null;
+
+  /**
    * Constructs an instance from the given two components.
    *
    * **Note:** If not already frozen, the `path` is copied internally, in order
@@ -38,8 +44,26 @@ export class TreePathKey {
   }
 
   /**
-   * @returns {number} The length of the path, that is, a shorthand for
-   * `this.path.length`.
+   * @returns {number} The length of the path in total characters of all path
+   * components combined. This does not include any count for (would-be) path
+   * component separators or any wildcard indicators.
+   */
+  get charLength() {
+    if (this.#charLength === null) {
+      let result = 0;
+      for (const p of this.#path) {
+        result += p.length;
+      }
+
+      this.#charLength = result;
+    }
+
+    return this.#charLength;
+  }
+
+  /**
+   * @returns {number} The length of the path in components, that is, a
+   * shorthand for `this.path.length`.
    */
   get length() {
     return this.#path.length;
@@ -165,21 +189,22 @@ export class TreePathKey {
   }
 
   /**
-   * Gets the string form of this instance, interpreted as an absolute URI path,
-   * that is, the part of a URI after the hostname. The result always includes
-   * an initial slash (`/`) and never includes a final slash (or more accurately
-   * a final slash indicates an empty path component at the end).
+   * Gets the string form of this instance as a URI path, that is, the part of a
+   * URI after the hostname. The result is in absolute form by default (prefixed
+   * with `/`), and is optionally in relative form (prefixed with `./`). Empty
+   * components are represented as one might expect, with no characters between
+   * two slashes for an empty component in the middle of a path or with a
+   * trailing slash for an empty component at the end of the path.
    *
-   * @param {boolean} [showWildcard] Represent a wildcard key as a final `/*`?
-   *   If `false`, then the result is as if `key` were created with `wildcard
-   *   === false`.
+   * @param {boolean} [relative] Make the result relative (with `./` as the
+   *   prefix).
    * @returns {string} The string form.
    */
-  toUriPathString(showWildcard = true) {
+  toUriPathString(relative = false) {
     return this.toString({
-      prefix:    '/',
-      separator: '/',
-      wildcard:  showWildcard ? '*' : null
+      prefix:         relative ? '.' : '/',
+      separatePrefix: relative,
+      separator:      '/'
     });
   }
 
@@ -187,25 +212,31 @@ export class TreePathKey {
    * Gets a human-useful string form of this instance.
    *
    * @param {?object} [options] Formatting options.
-   * @param {string} [options.prefix] Prefix for the result.
-   * @param {boolean} [options.quote] Quote components as strings?
-   * @param {boolean} [options.reverse] Render in back-to-front order?
-   * @param {string} [options.separator] Separator between path
-   *   components.
-   * @param {string} [options.suffix] Suffix for the result.
-   * @param {string|boolean} [options.wildcard] Wildcard indicator. If
-   *   `false`, then a wildcard key is represented as if it were non-wildcard.
-   *   (This is different than if this is `''` (the empty string)).
+   * @param {string} [options.prefix] Prefix for the result. Default `'/'`.
+   * @param {boolean} [options.quote] Quote components as strings? Defalt
+   *   `false`.
+   * @param {boolean} [options.reverse] Render in back-to-front order? Default
+   *   `false`.
+   * @param {boolean} [options.separatePrefix] Use the separator between the
+   *   prefix and first component? Default `false`.
+   * @param {string} [options.separator] Separator between path components.
+   *   Default `'/'`.
+   * @param {string} [options.suffix] Suffix for the result. Default empty
+   *   (`''`).
+   * @param {string|boolean} [options.wildcard] Wildcard indicator. If `false`,
+   *   then a wildcard key is represented as if it were non-wildcard. (This is
+   *   different than if this is `''` (the empty string)). Default `'*'`.
    * @returns {string} String form of the instance.
    */
   toString(options = null) {
     const defaultOptions = {
-      prefix:    '/',
-      quote:     false,
-      reverse:   false,
-      separator: '/',
-      suffix:    '',
-      wildcard:  '*'
+      prefix:         '/',
+      quote:          false,
+      reverse:        false,
+      separatePrefix: false,
+      separator:      '/',
+      suffix:         '',
+      wildcard:       '*'
     };
 
     options = options ? { ...defaultOptions, ...options } : defaultOptions;
@@ -224,7 +255,7 @@ export class TreePathKey {
 
     const result = [options.prefix];
     for (const p of path) {
-      if (result.length !== 1) {
+      if (options.separatePrefix || (result.length !== 1)) {
         result.push(options.separator);
       }
       result.push(p);
@@ -278,10 +309,11 @@ export class TreePathKey {
    * convenient use as a stringifier function, e.g. in `TreePathMap`.
    *
    * @param {TreePathKey} key The key to convert.
-   * @param {boolean} [showWildcard] Represent a wildcard key as such?
+   * @param {boolean} [relative] Make the result relative (with `./` as the
+   *   prefix).
    * @returns {string} The string form.
    */
-  static uriPathStringFrom(key, showWildcard = true) {
-    return key.toUriPathString(showWildcard);
+  static uriPathStringFrom(key, relative = false) {
+    return key.toUriPathString(relative);
   }
 }

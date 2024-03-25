@@ -1,8 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { DispatchInfo, IncomingRequest, IntfRequestHandler, OutgoingResponse }
-  from '@this/net-util';
+import { DispatchInfo, IntfIncomingRequest, IntfRequestHandler,
+  OutgoingResponse } from '@this/net-util';
 import { ApplicationConfig } from '@this/sys-config';
 import { Methods, MustBe } from '@this/typey';
 
@@ -69,7 +69,7 @@ export class BaseApplication extends BaseComponent {
    * Handles a request, as defined by {@link IntfRequestHandler}.
    *
    * @abstract
-   * @param {IncomingRequest} request Request object.
+   * @param {IntfIncomingRequest} request Request object.
    * @param {DispatchInfo} dispatch Dispatch information.
    * @returns {?OutgoingResponse} Response to the request, if any, as defined by
    *   {@link IntfRequestHandler#handleRequest}.
@@ -82,7 +82,7 @@ export class BaseApplication extends BaseComponent {
    * Performs request / dispatch filtering, if the instance is configured to do
    * that. Does nothing (returns `false`) if not.
    *
-   * @param {IncomingRequest} request Request object.
+   * @param {IntfIncomingRequest} request Request object.
    * @param {DispatchInfo} dispatch Dispatch information.
    * @returns {?OutgoingResponse|false} A response indicator (including `null`
    *   to indicate "not handled"), or `false` to indicate that no filtering was
@@ -96,7 +96,7 @@ export class BaseApplication extends BaseComponent {
     }
 
     const {
-      acceptMethods, maxPathLength, maxQueryLength,
+      acceptMethods, maxPathDepth, maxPathLength, maxQueryLength,
       redirectDirectories, redirectFiles
     } = filterConfig;
 
@@ -104,8 +104,23 @@ export class BaseApplication extends BaseComponent {
       return null;
     }
 
+    if (maxPathDepth !== null) {
+      const depth = dispatch.extra.length - (dispatch.isDirectory() ? 1 : 0);
+      if (depth > maxPathDepth) {
+        return null;
+      }
+    }
+
     if (maxPathLength !== null) {
-      const length = dispatch.extra.length - (dispatch.isDirectory() ? 1 : 0);
+      // Note: We calculate this based on how the `extra` would get converted
+      // back to a path string if it were the entire `pathname` of the URL. This
+      // is arguably the most sensible tactic, in that if this instance actually
+      // is the one that was immediately dispatched to from an endpoint, `extra`
+      // will in fact be the same as `pathname`.
+      const extra  = dispatch.extra;
+      const length =
+        extra.length +    // One octet per slash if it were `pathname`.
+        extra.charLength; // Total count of characters in all components.
       if (length > maxPathLength) {
         return null;
       }
@@ -135,7 +150,7 @@ export class BaseApplication extends BaseComponent {
   /**
    * Calls {@link #_impl_handleRequest}, and ensures a proper return value.
    *
-   * @param {IncomingRequest} request Request object.
+   * @param {IntfIncomingRequest} request Request object.
    * @param {DispatchInfo} dispatch Dispatch information.
    * @returns {?OutgoingResponse} Response to the request, if any.
    */
@@ -202,14 +217,20 @@ export class BaseApplication extends BaseComponent {
     #acceptMethods;
 
     /**
-     * @type {?number} Maximum allowed dispatch `extra` path length (in
-     * components), inclusive, or `null` if there is no limit.
+     * @type {?number} Maximum allowed dispatch `extra` path length in
+     * slash-separated components (inclusive), or `null` if there is no limit.
+     */
+    #maxPathDepth;
+
+    /**
+     * @type {?number} Maximum allowed dispatch `extra` path length in octets
+     * (inclusive), or `null` if there is no limit.
      */
     #maxPathLength;
 
     /**
-     * @type {?number} Maximum allowed query (search string) length in octets,
-     * inclusive, or `null` if there is no limit.
+     * @type {?number} Maximum allowed query (search string) length in octets
+     * (inclusive), or `null` if there is no limit.
      */
     #maxQueryLength;
 
@@ -229,6 +250,7 @@ export class BaseApplication extends BaseComponent {
 
       const {
         acceptMethods       = null,
+        maxPathDepth        = null,
         maxPathLength       = null,
         maxQueryLength      = null,
         redirectDirectories = false,
@@ -240,6 +262,9 @@ export class BaseApplication extends BaseComponent {
       this.#acceptMethods       = (acceptMethods === null)
         ? null
         : new Set(MustBe.arrayOfString(acceptMethods, FilterConfig.#METHODS));
+      this.#maxPathDepth = (maxPathDepth === null)
+        ? null
+        : MustBe.number(maxPathDepth, { safeInteger: true, minInclusive: 0 });
       this.#maxPathLength = (maxPathLength === null)
         ? null
         : MustBe.number(maxPathLength, { safeInteger: true, minInclusive: 0 });
@@ -261,16 +286,24 @@ export class BaseApplication extends BaseComponent {
     }
 
     /**
-     * @returns {?number} Maximum allowed dispatch `extra` path length (in
-     * components), inclusive, or `null` if there is no limit.
+     * @type {?number} Maximum allowed dispatch `extra` path length in
+     * slash-separated components (inclusive), or `null` if there is no limit.
+     */
+    get maxPathDepth() {
+      return this.#maxPathDepth;
+    }
+
+    /**
+     * @type {?number} Maximum allowed dispatch `extra` path length in octets
+     * (inclusive), or `null` if there is no limit.
      */
     get maxPathLength() {
       return this.#maxPathLength;
     }
 
     /**
-     * @returns {?number} Maximum allowed query (search string) length in
-     * octets, inclusive, or `null` if there is no limit.
+     * @type {?number} Maximum allowed query (search string) length in octets
+     * (inclusive), or `null` if there is no limit.
      */
     get maxQueryLength() {
       return this.#maxQueryLength;

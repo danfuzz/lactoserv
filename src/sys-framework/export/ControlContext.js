@@ -53,9 +53,10 @@ export class ControlContext {
    *   instance.
    * @param {?BaseControllable} parent Parent of `associate`, or `null` if this
    *   instance is to represent the root instance.
-   * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
+   * @param {?IntfLogger} [logger] Logger to use, or `null` to not do any
+   *   logging.
    */
-  constructor(associate, parent, logger) {
+  constructor(associate, parent, logger = null) {
     this.#logger = logger;
 
     if (associate === 'root') {

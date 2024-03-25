@@ -226,10 +226,14 @@ the documentation of applications, as appropriate. Here are the options:
 * `acceptMethods` &mdash; Array of strings indicating which request methods to
   accept. The array can include any of `connect`, `delete`, `get`, `head`,
   `options`, `patch`, `post`, `put`, and/or `trace`. Defaults to the entire set.
-* `maxPathLength` &mdash; Number indicating the maximum (inclusive) allowed
+* `maxPathDepth` &mdash; Number indicating the maximum (inclusive) allowed
   length _in path components_ of a dispatched request path not including the
   mount point, and not including the empty path component at the end of a
   directory path. `null` indicates "no limit." Defaults to `null`.
+* `maxPathLength` &mdash; Number indicating the maximum (inclusive) allowed
+  length of the dispatched request path _in octets_. `null` indicates "no
+  limit." `0` indicates that no additional path is ever accepted (including even
+  a directory slash). Defaults to `null`.
 * `maxQueryLength` &mdash; Number indicating the maximum (inclusive) allowed
   length of the query (a/k/a "search") portion of a request URI _in octets_,
   including the leading question mark (`?`). `null` indicates "no limit." `0`
@@ -482,7 +486,7 @@ const applications = [
     contentType:         'text/plain',
     body:                'Hello!\n',
     cacheControl:        { public: true, maxAge: '1_day' },
-    maxPathLength:       0,
+    maxPathDepth:        0,
     redirectDirectories: true,
   },
   {

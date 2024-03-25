@@ -50,6 +50,46 @@ describe('constructor()', () => {
   });
 });
 
+describe('.charLength', () => {
+  test('returns `0` for an empty no-wildcard instance', () => {
+    const key = new TreePathKey([], false);
+    expect(key.charLength).toBe(0);
+  });
+
+  test('returns `0` for an empty wildcard instance', () => {
+    const key = new TreePathKey([], true);
+    expect(key.charLength).toBe(0);
+  });
+
+  test('returns the length of the sole component of a length-1 instance', () => {
+    const key1 = new TreePathKey(['x'], false);
+    expect(key1.charLength).toBe(1);
+
+    const key2 = new TreePathKey(['xyz-pdq'], true);
+    expect(key2.charLength).toBe(7);
+
+    const key3 = new TreePathKey([''], false);
+    expect(key3.charLength).toBe(0);
+  });
+
+  test('returns the total length of both components of a length-2 instance', () => {
+    const key1 = new TreePathKey(['x', 'ab'], false);
+    expect(key1.charLength).toBe(3);
+
+    const key2 = new TreePathKey(['abc', 'defgh'], true);
+    expect(key2.charLength).toBe(8);
+  });
+
+  // This is meant to verify that caching doesn't mess things up.
+  test('returns the same value from repeated calls', () => {
+    const key = new TreePathKey(['ab', 'cde', 'f', 'ghijklmn'], false);
+
+    expect(key.charLength).toBe(14);
+    expect(key.charLength).toBe(14);
+    expect(key.charLength).toBe(14);
+  });
+});
+
 describe('.length', () => {
   for (let len = 0; len < 4; len++) {
     for (let wild = 0; wild < 2; wild++) {
@@ -365,6 +405,33 @@ describe('toString()', () => {
     });
   });
 
+  describe('with option `separatePrefix`', () => {
+    test.each`
+    separatePrefix | path           | wildcard | expected
+    ${false}       | ${[]}          | ${false} | ${'#'}
+    ${false}       | ${[]}          | ${true}  | ${'#*'}
+    ${true}        | ${[]}          | ${false} | ${'#'}
+    ${true}        | ${[]}          | ${true}  | ${'#:*'}
+    ${false}       | ${['a']}       | ${false} | ${'#a'}
+    ${false}       | ${['a']}       | ${true}  | ${'#a:*'}
+    ${true}        | ${['a']}       | ${false} | ${'#:a'}
+    ${true}        | ${['a']}       | ${true}  | ${'#:a:*'}
+    ${false}       | ${['']}        | ${false} | ${'#'}
+    ${false}       | ${['']}        | ${true}  | ${'#:*'}
+    ${true}        | ${['']}        | ${false} | ${'#:'}
+    ${true}        | ${['']}        | ${true}  | ${'#::*'}
+    ${false}       | ${['', 'abc']} | ${false} | ${'#:abc'}
+    ${false}       | ${['', 'abc']} | ${true}  | ${'#:abc:*'}
+    ${true}        | ${['', 'abc']} | ${false} | ${'#::abc'}
+    ${true}        | ${['', 'abc']} | ${true}  | ${'#::abc:*'}
+    `('on { path: $path, wildcard: $wildcard }, with $separatePrefix', ({ separatePrefix, path, wildcard, expected }) => {
+      // Note: We use `prefix` and `separator` options here to make sure we can
+      // distinguish what's going on.
+      const key = new TreePathKey(path, wildcard);
+      expect(key.toString({ separatePrefix, prefix: '#', separator: ':' })).toBe(expected);
+    });
+  });
+
   describe('with option `separator`', () => {
     test.each`
     separator | path                  | wildcard | expected
@@ -498,47 +565,43 @@ ${'hostnameStringFrom'} | ${true}
 });
 
 describe.each`
-name  |  isStatic
+name                   |  isStatic
 ${'toUriPathString'}   | ${false}
 ${'uriPathStringFrom'} | ${true}
 `('$name()', ({ name, isStatic }) => {
   describe.each`
-  wildArg   | label
-  ${[]}     | ${'without `showWildcard` passed (defaults to `true`)'}
-  ${[true]} | ${'with `showWildcard` passed as `true`'}
-  `('$label', ({ wildArg }) => {
+  relArg     | label
+  ${[]}      | ${'without `relative` passed (defaults to `false`)'}
+  ${[false]} | ${'with `relative` passed as `false`'}
+  ${[true]}  | ${'with `relative` passed as `true`'}
+  `('$label', ({ relArg }) => {
     test.each`
     path                     | wildcard | expected
     ${[]}                    | ${false} | ${'/'}
     ${[]}                    | ${true}  | ${'/*'}
-    ${['a']}                 | ${false} | ${'/a'}
-    ${['a']}                 | ${true}  | ${'/a/*'}
+    ${['']}                  | ${false} | ${'/'}
+    ${['']}                  | ${true}  | ${'//*'}
+    ${['xyz']}               | ${false} | ${'/xyz'}
+    ${['xyz']}               | ${true}  | ${'/xyz/*'}
+    ${['a', '']}             | ${false} | ${'/a/'}
+    ${['a', '']}             | ${true}  | ${'/a//*'}
+    ${['a', '', 'bc']}       | ${false} | ${'/a//bc'}
+    ${['a', '', 'bc']}       | ${true}  | ${'/a//bc/*'}
     ${['foo', 'bar', 'baz']} | ${false} | ${'/foo/bar/baz'}
     ${['foo', 'bar', 'baz']} | ${true}  | ${'/foo/bar/baz/*'}
     `('on { path: $path, wildcard: $wildcard }', ({ path, wildcard, expected }) => {
       const key    = new TreePathKey(path, wildcard);
       const result = isStatic
-        ? TreePathKey[name](key, ...wildArg)
-        : key[name](...wildArg);
+        ? TreePathKey[name](key, ...relArg)
+        : key[name](...relArg);
 
-      expect(result).toBe(expected);
-    });
-  });
-
-  describe('with `showWildcard` passed as `false`', () => {
-    test.each`
-    path                     | wildcard | expected
-    ${[]}                    | ${false} | ${'/'}
-    ${[]}                    | ${true}  | ${'/'}
-    ${['a']}                 | ${false} | ${'/a'}
-    ${['a']}                 | ${true}  | ${'/a'}
-    ${['foo', 'bar', 'baz']} | ${false} | ${'/foo/bar/baz'}
-    ${['foo', 'bar', 'baz']} | ${true}  | ${'/foo/bar/baz'}
-    `('on { path: $path, wildcard: $wildcard }', ({ path, wildcard, expected }) => {
-      const key = new TreePathKey(path, wildcard);
-      const result = isStatic
-        ? TreePathKey[name](key, false)
-        : key[name](false);
+      if (relArg[0] === true) {
+        // Expectation is special for `relative === true` on a non-wildcard
+        // empty path.
+        expected = ((key.length === 0) && !key.wildcard)
+          ? '.'
+          : `.${expected}`;
+      }
 
       expect(result).toBe(expected);
     });

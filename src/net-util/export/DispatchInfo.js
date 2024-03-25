@@ -5,16 +5,16 @@ import { TreePathKey } from '@this/collections';
 import { BaseConverter, Struct } from '@this/data-values';
 import { MustBe } from '@this/typey';
 
-import { IncomingRequest } from '#x/IncomingRequest';
+import { IntfIncomingRequest } from '#x/IntfIncomingRequest';
 
 
 /**
- * Dispatch information related to an {@link IncomingRequest}.
+ * Dispatch information related to an {@link IntfIncomingRequest}.
  *
- * The idea here is that {@link IncomingRequest} objects are treated in a way
- * that's as immutable as possible (even if we don't quite achieve it), so we
- * need somewhere -- that is, instances of this class -- to hold the ephemera of
- * the request dispatch process.
+ * The idea here is that {@link IntfIncomingRequest} objects are treated in a
+ * way that's as immutable as possible (even if we don't quite achieve it), so
+ * we need somewhere -- that is, instances of this class -- to hold the ephemera
+ * of the request dispatch process.
  */
 export class DispatchInfo {
   /** @type {TreePathKey} The base path. */
@@ -60,10 +60,14 @@ export class DispatchInfo {
    * @returns {string} {@link #base}, as a path string. It is always prefixed
    * with a slash (`/`) and only ends with a slash if the final path component
    * is empty.
+   *
+   * **Note:** It is strongly recommended to _only_ use this property for
+   * logging/debugging purposes. {@link #base} is a better choice when doing
+   * calculations.
    */
   get baseString() {
-    // `false` == don't append `/*` for a wildcard `TreePathKey` instance.
-    return this.#base.toUriPathString(false);
+    // `true` == relative form.
+    return this.#base.toUriPathString();
   }
 
   /**
@@ -76,12 +80,15 @@ export class DispatchInfo {
 
   /**
    * @returns {string} {@link #extra}, as a path string. It is always prefixed
-   * with a slash (`/`) and only ends with a slash if the final path component
-   * is empty.
+   * with a dot-slash (`./`) and only ends with a slash if the final path
+   * component is empty.
+   *
+   * **Note:** It is strongly recommended to _only_ use this property for
+   * logging/debugging purposes. {@link #base} is a better choice when doing
+   * calculations.
    */
   get extraString() {
-    // `false` == don't append `/*` for a wildcard `TreePathKey` instance.
-    return this.#extra.toUriPathString(false);
+    return this.#extra.toUriPathString();
   }
 
   /**
