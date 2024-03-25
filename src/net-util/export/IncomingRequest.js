@@ -139,10 +139,8 @@ export class IncomingRequest {
   /** @override */
   get host() {
     if (!this.#host) {
-      const req = this.#coreRequest;
-
       // Note: `authority` is used by HTTP2.
-      const { authority } = req;
+      const { authority } = this.#coreRequest;
       const localPort     = this.#requestContext.interface.port;
 
       if (authority) {
@@ -220,7 +218,7 @@ export class IncomingRequest {
 
   /** @override */
   getHeaderOrNull(name) {
-    return this.#coreRequest.headers[name] ?? null;
+    return this.headers[name] ?? null;
   }
 
   /** @override */
