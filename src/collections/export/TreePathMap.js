@@ -161,34 +161,6 @@ export class TreePathMap {
   }
 
   /**
-   * Gets a generator which produces bindings which match the given path, from
-   * most- to least-specific.
-   *
-   * Note that, given the same path, a non-wildcard binding is considered more
-   * specific than a wildcard binding.
-   *
-   * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to look
-   *   up. If `.wildcard` is `true`, then this method will only find bindings
-   *   which are wildcards, though they might be more general than the `.path`
-   *   being looked for.
-   * @yields {{key: TreePathKey, keyRemainder: TreePathKey, value: *}} One
-   *   result of the search.
-   *   * `{TreePathKey} key` -- The key that was matched; this is a wildcard key
-   *     if the match was in fact a wildcard match, and likewise it is a
-   *     non-wildcard key for an exact match. Furthermore, this is an object
-   *     that was `add()`ed to this instance (and not, e.g., a "reconstructed"
-   *     key).
-   *   * `{TreePathKey} keyRemainder` -- The portion of the originally-given
-   *     `key.path` that was matched by a wildcard, if this was in fact a
-   *     wildcard match, in the form of a non-wildcard key. For non-wildcard
-   *     matches, this is always an empty-path key.
-   *   * `{*} value` -- The value bound to `key`.
-   */
-  *findWithFallback(key) {
-    yield* this.#rootNode.findWithFallback(key);
-  }
-
-  /**
    * Returns a new instance which is just like this one, except it will only
    * find keys which themselves match a given key. In the common case of passing
    * a wildcard key, this returns the subtree rooted at the given key, with the
@@ -215,6 +187,34 @@ export class TreePathMap {
 
     this.#rootNode.findSubtree(key, (k, v) => result.add(k, v));
     return result;
+  }
+
+  /**
+   * Gets a generator which produces bindings which match the given path, from
+   * most- to least-specific.
+   *
+   * Note that, given the same path, a non-wildcard binding is considered more
+   * specific than a wildcard binding.
+   *
+   * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to look
+   *   up. If `.wildcard` is `true`, then this method will only find bindings
+   *   which are wildcards, though they might be more general than the `.path`
+   *   being looked for.
+   * @yields {{key: TreePathKey, keyRemainder: TreePathKey, value: *}} One
+   *   result of the search.
+   *   * `{TreePathKey} key` -- The key that was matched; this is a wildcard key
+   *     if the match was in fact a wildcard match, and likewise it is a
+   *     non-wildcard key for an exact match. Furthermore, this is an object
+   *     that was `add()`ed to this instance (and not, e.g., a "reconstructed"
+   *     key).
+   *   * `{TreePathKey} keyRemainder` -- The portion of the originally-given
+   *     `key.path` that was matched by a wildcard, if this was in fact a
+   *     wildcard match, in the form of a non-wildcard key. For non-wildcard
+   *     matches, this is always an empty-path key.
+   *   * `{*} value` -- The value bound to `key`.
+   */
+  *findWithFallback(key) {
+    yield* this.#rootNode.findWithFallback(key);
   }
 
   /**
