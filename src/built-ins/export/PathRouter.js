@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { TreePathKey, TreePathMap } from '@this/collections';
-import { DispatchInfo, IntfRequestHandler } from '@this/net-util';
+import { DispatchInfo, IntfRequestHandler, Uris } from '@this/net-util';
 import { Names } from '@this/sys-config';
 import { BaseApplication } from '@this/sys-framework';
 import { MustBe } from '@this/typey';
@@ -54,7 +54,7 @@ export class PathRouter extends BaseApplication {
   async _impl_init(isReload_unused) {
     const routes = {};
     for (const [path, name] of this.config.routeTree) {
-      routes[path.toUriPathString()] = name;
+      routes[Uris.pathStringFrom(path)] = name;
     }
 
     this.logger?.routes(routes);
