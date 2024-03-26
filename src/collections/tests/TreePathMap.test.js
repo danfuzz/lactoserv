@@ -154,7 +154,7 @@ describe('add()', () => {
       const map = new TreePathMap();
 
       map.add(key, 'x');
-      expect(() => map.add(key, 'x')).toThrow(/^[^:]+: [/]a[/]b$/);
+      expect(() => map.add(key, 'x')).toThrow(/^[^:]+: \[a, b\]$/);
     });
 
     test('uses the default key renderer when `null` was specified upon construction', () => {
@@ -162,7 +162,7 @@ describe('add()', () => {
       const map = new TreePathMap(null);
 
       map.add(key, 'x');
-      expect(() => map.add(key, 'x')).toThrow(/^[^:]+: [/]a[/]b[/][*]$/);
+      expect(() => map.add(key, 'x')).toThrow(/^[^:]+: \[a, b, \*\]$/);
     });
 
     test('uses the key renderer specified upon construction', () => {
@@ -911,23 +911,23 @@ describe('stringFromKey()', () => {
 
     const key1 = new TreePathKey([], true);
     const s1   = map.stringFromKey(key1);
-    expect(s1).toBe('/*');
+    expect(s1).toBe(key1.toString());
 
     const key2 = new TreePathKey(['foo', 'bar'], false);
     const s2   = map.stringFromKey(key2);
-    expect(s2).toBe('/foo/bar');
+    expect(s2).toBe(key2.toString());
   });
 
   test('uses the default function when `null` was specified in the constructor', () => {
     const map = new TreePathMap(null);
 
-    const key1 = new TreePathKey(['x'], true);
+    const key1 = new TreePathKey(['x', 'y', 'zonk'], true);
     const s1   = map.stringFromKey(key1);
-    expect(s1).toBe('/x/*');
+    expect(s1).toBe(key1.toString());
 
-    const key2 = new TreePathKey([], false);
+    const key2 = new TreePathKey(['florp'], false);
     const s2   = map.stringFromKey(key2);
-    expect(s2).toBe('/');
+    expect(s2).toBe(key2.toString());
   });
 
   test('uses the function specified in the constructor', () => {

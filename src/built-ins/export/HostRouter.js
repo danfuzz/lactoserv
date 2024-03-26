@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { TreePathMap } from '@this/collections';
-import { IntfRequestHandler, UriUtil } from '@this/net-util';
+import { HostUtil, IntfRequestHandler } from '@this/net-util';
 import { Names } from '@this/sys-config';
 import { BaseApplication } from '@this/sys-framework';
 import { MustBe } from '@this/typey';
@@ -45,7 +45,7 @@ export class HostRouter extends BaseApplication {
   async _impl_init(isReload_unused) {
     const routes = {};
     for (const [host, name] of this.config.routeTree) {
-      routes[host.toHostnameString()] = name;
+      routes[HostUtil.hostnameStringFrom(host)] = name;
     }
 
     this.logger?.routes(routes);
@@ -109,7 +109,7 @@ export class HostRouter extends BaseApplication {
 
       for (const [host, name] of Object.entries(hosts)) {
         Names.checkName(name);
-        const key = UriUtil.parseHostname(host, true);
+        const key = HostUtil.parseHostname(host, true);
         routeTree.add(key, name);
       }
 

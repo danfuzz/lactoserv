@@ -8,13 +8,16 @@ versioning principles. Unstable releases do not.
 
 Breaking changes:
 * `collections`:
-  * Removed `TreePathKey` methods `toUriPathString()` and `uriPathStringFrom()`.
+  * Removed net-related `TreePathKey` methods (rendering as URI paths and
+    hostname strings).
+  * Made `TreePathKey.toString()` less "net-centric" by default.
 * `net-util`:
   * Major rework of `IncomingRequest`, so it no longer has to be constructed
     from a low-level Node request object.
-  * Renamed `Uris` to `UriUtil`.
+  * Split `Uris` into two classes, `UriUtil` and `HostUtil`.
   * Pulled `uriPathStringFrom()` from `TreePathKey` into `UriUtil`, renaming it
     to `pathStringFrom()` and tweaking its contract.
+  * Pulled `hostnameStringFrom()` from `TreePathKey` into `HostUtil`.
   * Replaced `DispatchInfo.{base,extra}String` properties with a single combined
     property `infoForLog`, which avoids an "attractive nuisance" with the old
     scheme (which in fact caused a bug).

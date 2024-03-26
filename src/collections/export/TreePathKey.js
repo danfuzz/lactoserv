@@ -174,35 +174,19 @@ export class TreePathKey {
   }
 
   /**
-   * Gets the string form of this instance, interpreted as a hostname, where the
-   * TLD is the initial path component. That is, the result renders the path in
-   * reverse.
-   *
-   * @returns {string} The string form.
-   */
-  toHostnameString() {
-    return this.toString({
-      prefix:    '',
-      separator: '.',
-      reverse:   true
-    });
-  }
-
-  /**
    * Gets a human-useful string form of this instance.
    *
    * @param {?object} [options] Formatting options.
-   * @param {string} [options.prefix] Prefix for the result. Default `'/'`.
-   * @param {boolean} [options.quote] Quote components as strings? Defalt
+   * @param {string} [options.prefix] Prefix for the result. Default `'['`.
+   * @param {boolean} [options.quote] Quote components as strings? Default
    *   `false`.
    * @param {boolean} [options.reverse] Render in back-to-front order? Default
    *   `false`.
    * @param {boolean} [options.separatePrefix] Use the separator between the
    *   prefix and first component? Default `false`.
    * @param {string} [options.separator] Separator between path components.
-   *   Default `'/'`.
-   * @param {string} [options.suffix] Suffix for the result. Default empty
-   *   (`''`).
+   *   Default `', '`.
+   * @param {string} [options.suffix] Suffix for the result. Default `']'`.
    * @param {string|boolean} [options.wildcard] Wildcard indicator. If `false`,
    *   then a wildcard key is represented as if it were non-wildcard. (This is
    *   different than if this is `''` (the empty string)). Default `'*'`.
@@ -210,12 +194,12 @@ export class TreePathKey {
    */
   toString(options = null) {
     const defaultOptions = {
-      prefix:         '/',
+      prefix:         '[',
       quote:          false,
       reverse:        false,
       separatePrefix: false,
-      separator:      '/',
-      suffix:         '',
+      separator:      ', ',
+      suffix:         ']',
       wildcard:       '*'
     };
 
@@ -271,16 +255,5 @@ export class TreePathKey {
   static checkArguments(path, wildcard) {
     MustBe.arrayOfString(path);
     MustBe.boolean(wildcard);
-  }
-
-  /**
-   * The same as {@link #toHostnameString}, except as a `static` method, for
-   * convenient use as a stringifier function, e.g. in `TreePathMap`.
-   *
-   * @param {TreePathKey} key The key to convert.
-   * @returns {string} The string form.
-   */
-  static hostnameStringFrom(key) {
-    return key.toHostnameString();
   }
 }

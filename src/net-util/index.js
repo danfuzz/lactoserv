@@ -5,6 +5,7 @@ export * from '#x/Cookies';
 export * from '#x/DispatchInfo';
 export * from '#x/EtagGenerator';
 export * from '#x/HostInfo';
+export * from '#x/HostUtil';
 export * from '#x/HttpConditional';
 export * from '#x/HttpHeaders';
 export * from '#x/HttpRange';

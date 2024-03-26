@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { UriUtil } from '@this/net-util';
+import { HostUtil, UriUtil } from '@this/net-util';
 
 import { NamedConfig } from '#x/NamedConfig';
 import { Names } from '#x/Names';
@@ -53,9 +53,9 @@ export class EndpointConfig extends NamedConfig {
 
     this.#hostnames = Util.checkAndFreezeStrings(
       hostnames,
-      (item) => UriUtil.checkHostname(item, true));
+      (item) => HostUtil.checkHostname(item, true));
 
-    this.#interface   = Object.freeze(UriUtil.parseInterface(iface));
+    this.#interface   = Object.freeze(HostUtil.parseInterface(iface));
     this.#application = Names.checkName(application);
     this.#protocol    = UriUtil.checkProtocol(protocol);
     this.#services    = new ServiceUseConfig(services);
