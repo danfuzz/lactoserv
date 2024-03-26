@@ -21,9 +21,9 @@ export class TreePathMap {
   #rootNode = new TreePathNode();
 
   /**
-   * @type {number} Total number of bindings. This is only maintained on a
-   * root (publicly exposed) instance of this class (not on the instances that
-   * are used internally in {@link #subtrees}).
+   * @type {number} Total number of bindings. This defined here instead of on
+   * {@link TreePathNode}, because internal nodes don't need to keep track of
+   * their overall size.
    */
   #size = 0;
 
