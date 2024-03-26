@@ -64,7 +64,7 @@ export class AsyncServerSocket {
    * @returns {object} Loggable info about this instance, including interface
    * address and current-listening info.
    */
-  get loggableInfo() {
+  get infoForLog() {
     const address = this.#serverSocket?.address();
     const iface   = FormatUtils.networkInterfaceString(this.#interface);
 

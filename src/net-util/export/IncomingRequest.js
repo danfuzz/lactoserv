@@ -80,16 +80,16 @@ export class IncomingRequest {
   #parsedTargetObject = null;
 
   /**
-   * @type {?object} The result of {@link #getLoggableRequestInfo}, or `null` if
-   * not yet calculated.
-   */
-  #loggableRequestInfo = null;
-
-  /**
-   * @type {?string} The value of {@link #urlForLogging}, or `null` if not yet
+   * @type {?object} The result of {@link #infoForLog}, or `null` if not yet
    * calculated.
    */
-  #urlForLogging = null;
+  #infoForLog = null;
+
+  /**
+   * @type {?string} The value of {@link #urlForLog}, or `null` if not yet
+   * calculated.
+   */
+  #urlForLog = null;
 
   /**
    * Constructs an instance.
@@ -200,6 +200,40 @@ export class IncomingRequest {
   }
 
   /**
+   * Gets all reasonably-logged info about the request that was made.
+   *
+   * **Note:** The `headers` in the result omits anything that is redundant with
+   * respect to other parts of the return value. (E.g., the `cookie` header is
+   * omitted if it was able to be parsed.)
+   *
+   * @returns {object} Loggable information about the request. The result is
+   *   always frozen.
+   */
+  get infoForLog() {
+    if (!this.#infoForLog) {
+      const { cookies, method, origin, urlForLog } = this;
+
+      const result = {
+        origin:   FormatUtils.addressPortString(origin.address, origin.port),
+        protocol: this.protocolName,
+        method,
+        url:      urlForLog,
+        headers:  this.#sanitizeRequestHeaders()
+      };
+
+      if (cookies.size !== 0) {
+        result.cookies = Object.freeze(Object.fromEntries(cookies));
+        delete result.headers.cookie;
+      }
+
+      Object.freeze(result.headers);
+      this.#infoForLog = Object.freeze(result);
+    }
+
+    return this.#infoForLog;
+  }
+
+  /**
    * @returns {?IntfLogger} The logger to use with this instance, or `null` if
    * the instance is not doing any logging.
    */
@@ -306,18 +340,18 @@ export class IncomingRequest {
    * This value is meant for logging, and specifically _not_ for any routing or
    * other more meaningful computation (hence the name).
    */
-  get urlForLogging() {
-    if (!this.#urlForLogging) {
+  get urlForLog() {
+    if (!this.#urlForLog) {
       const { host }               = this;
       const { targetString, type } = this.#parsedTarget;
       const prefix                 = `//${host.namePortString}`;
 
-      this.#urlForLogging = (type === 'origin')
+      this.#urlForLog = (type === 'origin')
         ? `${prefix}${targetString}`
         : `${prefix}:${type}=${targetString}`;
     }
 
-    return this.#urlForLogging;
+    return this.#urlForLog;
   }
 
   /**
@@ -329,40 +363,6 @@ export class IncomingRequest {
    */
   getHeaderOrNull(name) {
     return this.headers[name] ?? null;
-  }
-
-  /**
-   * Gets all reasonably-logged info about the request that was made.
-   *
-   * **Note:** The `headers` in the result omits anything that is redundant
-   * with respect to other parts of the return value. (E.g., the `cookie` header
-   * is omitted if it was able to be parsed.)
-   *
-   * @returns {object} Loggable information about the request. The result is
-   *   always frozen.
-   */
-  getLoggableRequestInfo() {
-    if (!this.#loggableRequestInfo) {
-      const { cookies, method, origin, urlForLogging } = this;
-
-      const result = {
-        origin:   FormatUtils.addressPortString(origin.address, origin.port),
-        protocol: this.protocolName,
-        method,
-        url:      urlForLogging,
-        headers:  this.#sanitizeRequestHeaders()
-      };
-
-      if (cookies.size !== 0) {
-        result.cookies = Object.freeze(Object.fromEntries(cookies));
-        delete result.headers.cookie;
-      }
-
-      Object.freeze(result.headers);
-      this.#loggableRequestInfo = Object.freeze(result);
-    }
-
-    return this.#loggableRequestInfo;
   }
 
   /**

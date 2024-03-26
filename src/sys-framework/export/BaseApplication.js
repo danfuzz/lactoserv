@@ -46,7 +46,7 @@ export class BaseApplication extends BaseComponent {
       }
     };
 
-    logger?.handling(requestId, dispatch.extraString);
+    logger?.handling(requestId, dispatch.infoForLog);
 
     const filterResult = this.#applyFilters(request, dispatch);
 

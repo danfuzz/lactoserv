@@ -204,6 +204,16 @@ export class ProtocolWrangler {
   }
 
   /**
+   * @abstract
+   * @returns {object} A plain object with properties containing reasonably info
+   *   about this instance, suitable for logging, particularly the low-level
+   *   socket state.
+   */
+  get _impl_infoForLog() {
+    return Methods.abstract();
+  }
+
+  /**
    * Initializes the instance. After this is called and (asynchronously)
    * returns without throwing, {@link #_impl_server} is expected to work without
    * error.
@@ -211,17 +221,6 @@ export class ProtocolWrangler {
    * @abstract
    */
   async _impl_initialize() {
-    Methods.abstract();
-  }
-
-  /**
-   * Gets an object with bindings for reasonably-useful for logging about this
-   * instance, particularly the low-level socket state.
-   *
-   * @abstract
-   * @returns {object} Object with interesting stuff about the server socket.
-   */
-  _impl_loggableInfo() {
     Methods.abstract();
   }
 
@@ -388,7 +387,7 @@ export class ProtocolWrangler {
         // The configured `requestHandler` didn't actually handle the request.
         // Respond with a vanilla `404` error. (If the client wants something
         // fancier, they can do it themselves.)
-        const bodyExtra = request.urlForLogging;
+        const bodyExtra = request.urlForLog;
         return OutgoingResponse.makeNotFound({ bodyExtra });
       } else {
         // Caught by our direct caller, `#respondToRequest()`.
@@ -433,7 +432,7 @@ export class ProtocolWrangler {
       logger?.incomingRequest({
         ...context.ids,
         requestId: request.id,
-        url:       request.urlForLogging
+        url:       request.urlForLog
       });
 
       if (this.#logHelper) {
@@ -623,7 +622,7 @@ export class ProtocolWrangler {
     await this.#runner.whenStopRequested();
 
     if (this.#logger) {
-      this.#logger.stopping(this._impl_loggableInfo());
+      this.#logger.stopping(this._impl_infoForLog);
     }
 
     // We do these in parallel, because there can be mutual dependencies, e.g.
@@ -634,7 +633,7 @@ export class ProtocolWrangler {
     ]);
 
     if (this.#logger) {
-      this.#logger.stopped(this._impl_loggableInfo());
+      this.#logger.stopped(this._impl_infoForLog);
     }
   }
 
@@ -644,14 +643,14 @@ export class ProtocolWrangler {
    */
   async #startNetwork() {
     if (this.#logger) {
-      this.#logger.starting(this._impl_loggableInfo());
+      this.#logger.starting(this._impl_infoForLog);
     }
 
     await this._impl_serverStart(this.#reloading);
     await this._impl_socketStart(this.#reloading);
 
     if (this.#logger) {
-      this.#logger.started(this._impl_loggableInfo());
+      this.#logger.started(this._impl_infoForLog);
     }
   }
 

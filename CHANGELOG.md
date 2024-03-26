@@ -15,12 +15,19 @@ Breaking changes:
   * Renamed `Uris` to `UriUtil`.
   * Pulled `uriPathStringFrom()` from `TreePathKey` into `UriUtil`, renaming it
     to `pathStringFrom()` and tweaking its contract.
-  * Make `DispatchInfo.extraString` be a relative path, not an absolute one.
-
-Other notable changes:
+  * Replaced `DispatchInfo.{base,extra}String` properties with a single combined
+    property `infoForLog`, which avoids an "attractive nuisance" with the old
+    scheme (which in fact caused a bug).
+  * In harmony, renamed method `IncomingRequest.getLoggableRequestInfo()` to
+    property `infoForLog`.
+  * Likewise, renamed `OutgoingResponse.getLoggableResponseInfo()` to
+    `getInfoForLog()` (still a method because it needs arguments).
 * `sys-framework`:
   * Renamed filter config `maxPathLength` to `maxPathDepth`, and made a new
     `maxPathLength` which filters based on the octet count of a path.
+
+Other notable changes:
+* None.
 
 ### v0.6.11 -- 2024-03-22
 

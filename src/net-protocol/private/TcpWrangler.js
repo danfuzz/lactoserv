@@ -62,8 +62,8 @@ export class TcpWrangler extends ProtocolWrangler {
   }
 
   /** @override */
-  _impl_loggableInfo() {
-    return this.#asyncServer.loggableInfo;
+  get _impl_infoForLog() {
+    return this.#asyncServer.infoForLog;
   }
 
   /** @override */

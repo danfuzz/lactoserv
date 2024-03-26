@@ -819,7 +819,7 @@ export class OutgoingResponse {
    * @param {Duplex} connectionSocket The underlying socket for the connection.
    * @returns {object} Loggable information about the response.
    */
-  static getLoggableResponseInfo(res, connectionSocket) {
+  static getInfoForLog(res, connectionSocket) {
     const statusCode    = res.statusCode;
     const headers       = res.getHeaders();
     const contentLength = headers['content-length'] ?? null;
@@ -1010,9 +1010,9 @@ export class OutgoingResponse {
     // possible loss of useful info once the response is completed... if we
     // don't do anything extra. What we do is stash the socket away in a
     // "secret" property (effectively the "weakmap" pattern), for
-    // `.getLoggableResponseInfo()` to find. And, because we don't want to
-    // duplicate all the work of this method, we _also_ stash away our own
-    // return value in a similar way.
+    // `getInfoForLog()` to find. And, because we don't want to duplicate all
+    // the work of this method, we _also_ stash away our own return value in a
+    // similar way.
     const already = res[this.#RESPONSE_DONE_SYMBOL];
     if (already) {
       return already;
