@@ -43,7 +43,7 @@ export class Redirector extends BaseApplication {
   /** @override */
   async _impl_handleRequest(request_unused, dispatch) {
     const response = OutgoingResponse.makeRedirect(
-      `${this.#target}${dispatch.extraString}`,
+      `${this.#target}${UriUtil.pathStringFrom(dispatch.extra)}`,
       this.#statusCode);
 
     response.cacheControl = this.#cacheControl;
