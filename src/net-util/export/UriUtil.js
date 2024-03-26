@@ -128,7 +128,8 @@ export class UriUtil {
     return key.toString({
       prefix:         relative ? '.' : '/',
       separatePrefix: relative,
-      separator:      '/'
+      separator:      '/',
+      suffix:         ''
     });
   }
 }

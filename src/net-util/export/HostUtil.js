@@ -334,6 +334,7 @@ export class HostUtil {
     return key.toString({
       prefix:    '',
       separator: '.',
+      suffix:    '',
       reverse:   true
     });
   }
