@@ -549,29 +549,40 @@ export class IncomingRequest {
     const headers       = new HttpHeaders();
     const pseudoHeaders = new HttpHeaders();
 
+    // We use `request.rawHeaders` here, which is a flat array of strings, with
+    // alternating header names (keys) and values. Notably, the low-level Node
+    // library only bothers creating its own non-raw headers objects if
+    // explicitly asked (and we don't), so our "manual" work here should end up
+    // saving a bit of overall work (because we don't have to let Node construct
+    // a `headers` object only to rework it into the two objects we actually
+    // need).
+
     let pendingKey = null;
     for (const s of request.rawHeaders) {
       if (pendingKey === null) {
         pendingKey = s;
-      } else if (pendingKey[0] === ':') {
-        // Handle the small handful of expected keys directly, and `slice()` the
-        // rest.
+        continue;
+      }
+
+      let key = modernHttp ? pendingKey : pendingKey.toLowerCase();
+      pendingKey = null;
+
+      if (modernHttp && (key[0] === ':')) {
+        // Handle the small handful of expected pseudo-header keys directly, and
+        // `slice()` the rest.
         switch (pendingKey) {
-          case ':authority': { pendingKey = 'authority'; break; }
-          case ':method':    { pendingKey = 'method';    break; }
-          case ':path':      { pendingKey = 'path';      break; }
-          case ':scheme':    { pendingKey = 'scheme';    break; }
-          case ':status':    { pendingKey = 'status';    break; }
+          case ':authority': { key = 'authority'; break; }
+          case ':method':    { key = 'method';    break; }
+          case ':path':      { key = 'path';      break; }
+          case ':scheme':    { key = 'scheme';    break; }
+          case ':status':    { key = 'status';    break; }
           default: {
-            pendingKey = pendingKey.slice(1);
+            key = key.slice(1);
             break;
           }
         }
-        pseudoHeaders.set(pendingKey, s);
-        pendingKey = null;
+        pseudoHeaders.set(key, s);
       } else {
-        const key = modernHttp ? pendingKey : pendingKey.toLowerCase();
-        pendingKey = null;
         switch (key) {
           case 'age': case 'authorization': case 'content-length':
           case 'content-type': case 'etag': case 'expires': case 'from':
