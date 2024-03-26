@@ -101,10 +101,10 @@ export class TreePathNode {
    * Underlying implementation of `TreePathMap.find()`, see which for detailed
    * docs.
    *
-   * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to look
-   *   up.
+   * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to search
+   *   for.
    * @returns {?{key: TreePathKey, keyRemainder: TreePathKey, value: *}} The
-   *   found result, or `null` if there was no match.
+   *   most specific match, or `null` if there was no match at all.
    */
   find(key) {
     return this.findWithFallback(key).next().value ?? null;
@@ -115,7 +115,7 @@ export class TreePathNode {
    * for detailed docs.
    *
    * @param {TreePathKey|{path: string[], wildcard: boolean}} keyToFind Key to
-   *   find (natch).
+   *   search for.
    * @yields {{key: TreePathKey, keyRemainder: TreePathKey, value: *}} One
    *   result.
    */

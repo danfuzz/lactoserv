@@ -105,59 +105,17 @@ export class TreePathMap {
   }
 
   /**
-   * Finds the most-specific binding for the given path. Optionally produces
-   * a chain of `next` results for less-and-less-specific bindings.
-   *
-   * Note that, given the same path, a non-wildcard binding is considered more
-   * specific than a wildcard binding.
+   * Finds the most specific binding for the given path. This is equivalent to
+   * getting the first result from {@link #findWithFallback} or `null` if there
+   * are no matching bindings.
    *
    * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to look
-   *   up. If `.wildcard` is `true`, then this method will only find bindings
-   *   which are wildcards, though they might be more general than the `.path`
-   *   being looked for.
-   * @param {boolean} [wantNextChain] Should the return value have a
-   *   `next` binding indicating the next-most-specific binding? If so,
-   *   `next.next` will be similarly bound, and so on. The final element of the
-   *   chain will have no binding for `next` (not even `null`).
+   *   for.
    * @returns {?{key: TreePathKey, keyRemainder: TreePathKey, value: *}} The
-   *   found result, or `null` if there was no match.
-   *   * `{TreePathKey} key` -- The key that was matched; this is a wildcard key
-   *     if the match was in fact a wildcard match, and likewise it is a
-   *     non-wildcard key for an exact match. Furthermore, this is an object
-   *     that was `add()`ed to this instance (and not, e.g., a "reconstructed"
-   *     key).
-   *   * `{TreePathKey} keyRemainder` -- The portion of the originally-given
-   *     `key.path` that was matched by a wildcard, if this was in fact a
-   *     wildcard match, in the form of a non-wildcard key. For non-wildcard
-   *     matches, this is always an empty-path key.
-   *   * `{object} next` -- The next-most-specific result, with bindings as
-   *     described here. Only present if (a) `wantNextChain` was passed as
-   *     `true` _and_ (b) there is in fact a next-most-specific result.
-   *   * `{*} value` -- The value bound to `key`.
+   *   most specific match, or `null` if there was no match at all.
    */
-  find(key, wantNextChain = false) {
-    const found = this.#rootNode.findWithFallback(key);
-
-    if (!wantNextChain) {
-      const result = found.next();
-      return result.done ? null : result.value;
-    }
-
-    // TEMP: Implement the old behavior in terms of the new method.
-
-    let result = null;
-    let at     = null;
-    for (const r of found) {
-      if (!result) {
-        result = r;
-        at     = r;
-      } else {
-        at.next = r;
-        at = r;
-      }
-    }
-
-    return result;
+  find(key) {
+    return this.#rootNode.find(key);
   }
 
   /**
@@ -196,8 +154,8 @@ export class TreePathMap {
    * Note that, given the same path, a non-wildcard binding is considered more
    * specific than a wildcard binding.
    *
-   * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to look
-   *   up. If `.wildcard` is `true`, then this method will only find bindings
+   * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to search
+   *   for. If `.wildcard` is `true`, then this method will only find bindings
    *   which are wildcards, though they might be more general than the `.path`
    *   being looked for.
    * @yields {{key: TreePathKey, keyRemainder: TreePathKey, value: *}} One
@@ -208,9 +166,9 @@ export class TreePathMap {
    *     that was `add()`ed to this instance (and not, e.g., a "reconstructed"
    *     key).
    *   * `{TreePathKey} keyRemainder` -- The portion of the originally-given
-   *     `key.path` that was matched by a wildcard, if this was in fact a
-   *     wildcard match, in the form of a non-wildcard key. For non-wildcard
-   *     matches, this is always an empty-path key.
+   *     `key.path` that was matched by the wildcard portion of the key, if this
+   *     was in fact a wildcard match, in the form of a non-wildcard key. For
+   *     non-wildcard matches, this is always an empty-path key.
    *   * `{*} value` -- The value bound to `key`.
    */
   *findWithFallback(key) {
