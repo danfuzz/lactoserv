@@ -111,6 +111,51 @@ export class TreePathNode {
   }
 
   /**
+   * Underlying implementation of `TreePathMap.findSubtree()`, see which for
+   * detailed docs.
+   *
+   * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to look
+   *   up.
+   * @param {function(TreePathKey, *)} add Function to call to add an entry to
+   *   the result. This is used instead of constructing a result instance
+   *   directly here, so as to avoid a circular dependency on `TreePathMap`.
+   */
+  findSubtree(key, add) {
+    const { path, wildcard } = key;
+
+    if (!(key instanceof TreePathKey)) {
+      TreePathKey.checkArguments(path, wildcard);
+    }
+
+    if (!wildcard) {
+      // Non-wildcard is easy, because `find()` already does the right thing.
+      const found = this.find(key);
+      if (found !== null) {
+        add(key, found.value);
+      }
+      return;
+    }
+
+    // Wildcard case: Walk `subtrees` down to the one we want, and then -- if
+    // found -- iterate over it to build up the result.
+
+    let subtree = this;
+
+    for (const p of path) {
+      subtree = subtree.#subtrees.get(p);
+      if (!subtree) {
+        // No bindings match the given key. `result` is already empty; nothing
+        // more to do.
+        return;
+      }
+    }
+
+    for (const [k, v] of subtree.#iteratorAt(path)) {
+      add(k, v);
+    }
+  }
+
+  /**
    * Underlying implementation of `TreePathMap.findWithFallback()`, see which
    * for detailed docs.
    *
@@ -168,51 +213,6 @@ export class TreePathNode {
         result.keyRemainder = new TreePathKey(pathRemainder, false);
       }
       yield result;
-    }
-  }
-
-  /**
-   * Underlying implementation of `TreePathMap.findSubtree()`, see which for
-   * detailed docs.
-   *
-   * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to look
-   *   up.
-   * @param {function(TreePathKey, *)} add Function to call to add an entry to
-   *   the result. This is used instead of constructing a result instance
-   *   directly here, so as to avoid a circular dependency on `TreePathMap`.
-   */
-  findSubtree(key, add) {
-    const { path, wildcard } = key;
-
-    if (!(key instanceof TreePathKey)) {
-      TreePathKey.checkArguments(path, wildcard);
-    }
-
-    if (!wildcard) {
-      // Non-wildcard is easy, because `find()` already does the right thing.
-      const found = this.find(key);
-      if (found !== null) {
-        add(key, found.value);
-      }
-      return;
-    }
-
-    // Wildcard case: Walk `subtrees` down to the one we want, and then -- if
-    // found -- iterate over it to build up the result.
-
-    let subtree = this;
-
-    for (const p of path) {
-      subtree = subtree.#subtrees.get(p);
-      if (!subtree) {
-        // No bindings match the given key. `result` is already empty; nothing
-        // more to do.
-        return;
-      }
-    }
-
-    for (const [k, v] of subtree.#iteratorAt(path)) {
-      add(k, v);
     }
   }
 
