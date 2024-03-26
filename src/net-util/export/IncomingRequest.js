@@ -165,12 +165,14 @@ export class IncomingRequest {
    * @returns {HostInfo} Info about the host (a/k/a the "authority") being asked
    * to respond to this request. This is the value of the synthetic `:authority`
    * header of an HTTP-2 request if available, or the regular `Host` header of
-   * an HTTP-1 request. If there is no authority information present in the
-   * request, it is treated as if it were specified as just `localhost`.
+   * an HTTP-1 request, plus port information. If there is no authority
+   * information present in the request, it is treated as if it were specified
+   * as just `localhost`.
    *
-   * The `port` of the returned object is as follows:
+   * The `port` of the returned object is as follows (in order):
    *
    * * If the `:authority` or `Host` header has a port, use that.
+   * * If the `:scheme` is present and recognized, use its standard port.
    * * If the connection has a "declared listening port," use that.
    * * If the connection has a known listening port, use that.
    * * Otherwise, use `0` for the port.
@@ -181,11 +183,25 @@ export class IncomingRequest {
       // HTTP-1-ish request.
 
       const authority = this.#pseudoHeaders.get('authority') ?? null;
-      const localPort = this.#requestContext.interface.port;
+      const scheme    = this.#pseudoHeaders.get('scheme')    ?? null;
+
+      // If there's a `scheme` we recognize, we can use it to know the port to
+      // use in case `authority` didn't come with one. If not, we just use the
+      // request context. (Note: We should always have a `scheme` for HTTP-2-ish
+      // requests.)
+      let fallbackPort;
+      switch (scheme) {
+        case 'http':  { fallbackPort = 80;  break; }
+        case 'https': { fallbackPort = 443; break; }
+        default: {
+          fallbackPort = this.#requestContext.interface.port;
+          break;
+        }
+      }
 
       this.#hostInfo = authority
-        ? HostInfo.safeParseHostHeader(authority, localPort)
-        : HostInfo.localhostInstance(localPort);
+        ? HostInfo.safeParseHostHeader(authority, fallbackPort)
+        : HostInfo.localhostInstance(fallbackPort);
     }
 
     return this.#hostInfo;
