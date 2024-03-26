@@ -534,9 +534,13 @@ export class Uris {
   }
 
   /**
-   * The same as {@link TreePathKey#toUriPathString}, except as a `static`
-   * method, for convenient use as a stringifier function, e.g. in
-   * `TreePathMap`.
+   * Gets the string form of a {@link TreePathKey} as a URI path, that is, the
+   * part of a URI after the hostname. The result is in absolute form by default
+   * (prefixed with `/`), or is optionally in relative form (prefixed with
+   * `./`). Empty components are represented as one might expect, with no
+   * characters between two slashes for an empty component in the middle of a
+   * path or with a trailing slash for an empty component at the end of the
+   * path.
    *
    * @param {TreePathKey} key The key to convert.
    * @param {boolean} [relative] Make the result relative (with `./` as the
@@ -545,6 +549,11 @@ export class Uris {
    */
   static pathStringFrom(key, relative = false) {
     MustBe.instanceOf(key, TreePathKey);
-    return key.toUriPathString(relative);
+
+    return key.toString({
+      prefix:         relative ? '.' : '/',
+      separatePrefix: relative,
+      separator:      '/'
+    });
   }
 }
