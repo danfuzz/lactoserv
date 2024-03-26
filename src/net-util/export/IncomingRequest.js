@@ -541,7 +541,7 @@ export class IncomingRequest {
    * Extracts the two sets of headers from a low-level request object.
    *
    * @param {IncomingMessage|Http2ServerRequest} request Request object.
-   * @returns {{ headers: HttpHeaders, pseudoHeaders: ?HttpHeaders }} The
+   * @returns {{ headers: HttpHeaders, pseudoHeaders: HttpHeaders }} The
    *   extracted headers.
    */
   static #extractHeadersFrom(request) {
