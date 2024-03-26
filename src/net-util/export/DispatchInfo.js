@@ -3,10 +3,10 @@
 
 import { TreePathKey } from '@this/collections';
 import { BaseConverter, Struct } from '@this/data-values';
-import { UriUtil } from '@this/net-util';
 import { MustBe } from '@this/typey';
 
 import { IncomingRequest } from '#x/IncomingRequest';
+import { UriUtil } from '#x/UriUtil';
 
 
 /**
