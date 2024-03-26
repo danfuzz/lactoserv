@@ -11,6 +11,8 @@ Breaking changes:
   * Removed net-related `TreePathKey` methods (rendering as URI paths and
     hostname strings).
   * Made `TreePathKey.toString()` less "net-centric" by default.
+  * Added new method `TreePathMap.findWithFallback()` to replace `find()` with
+    `wantNextChain == true`. Removed the second argument from `find()`.
 * `net-util`:
   * Major rework of `IncomingRequest`, so it no longer has to be constructed
     from a low-level Node request object.

@@ -88,91 +88,15 @@ export class TreePathNode {
   }
 
   /**
-   * Underlying implementation of `TreePathMap.entries()`, see which for
-   * detailed docs.
-   *
-   * @returns {object} Iterator over the entries of this instance.
-   */
-  entries() {
-    return this.#iteratorAt([]);
-  }
-
-  /**
-   * Underlying implementation of `TreePathMap.find()`, see which for detailed
-   * docs.
-   *
-   * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to look
-   *   up.
-   * @param {boolean} wantNextChain Should the return value have `next` as
-   *   appropriate?
-   * @returns {?{key: TreePathKey, keyRemainder: TreePathKey, value: *}} The
-   *   found result, or `null` if there was no match.
-   */
-  find(key, wantNextChain) {
-    const { path, wildcard } = key;
-
-    if (!(key instanceof TreePathKey)) {
-      TreePathKey.checkArguments(path, wildcard);
-    }
-
-    let subtree = this;
-    let result  = null;
-
-    const updateResult = (k, value, keyRemainder = null) => {
-      result = (wantNextChain && result)
-        ? { key: k, keyRemainder, value, next: result }
-        : { key: k, keyRemainder, value };
-    };
-
-    let at;
-    for (at = 0; at < path.length; at++) {
-      if (subtree.#wildcardKey) {
-        // Placeholder for `keyRemainder`, only calculated if needed.
-        updateResult(subtree.#wildcardKey, subtree.#wildcardValue);
-      }
-      subtree = subtree.#subtrees.get(path[at]);
-      if (!subtree) {
-        break;
-      }
-    }
-
-    if (at === path.length) {
-      if (subtree.#wildcardKey) {
-        // There's a matching wildcard at the end of the path.
-        updateResult(subtree.#wildcardKey, subtree.#wildcardValue, TreePathKey.EMPTY);
-      }
-
-      if (subtree.#emptyKey && !wildcard) {
-        // There's an exact non-wildcard match for the path.
-        updateResult(subtree.#emptyKey, subtree.#emptyValue, TreePathKey.EMPTY);
-      }
-    }
-
-    if (result !== null) {
-      // Calculate `keyRemainder` for the result(s), if necessary.
-      for (let r = result; r; r = r.next) {
-        if (r.keyRemainder === null) {
-          const foundAt       = r.key.path.length;
-          const pathRemainder = Object.freeze(path.slice(foundAt));
-          r.keyRemainder = new TreePathKey(pathRemainder, false);
-        }
-      }
-    }
-
-    return result;
-  }
-
-  /**
    * Underlying implementation of `TreePathMap.findSubtree()`, see which for
    * detailed docs.
    *
-   * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to look
+   * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to search
    *   up.
-   * @param {function(TreePathKey, *)} add Function to call to add an entry to
-   *   the result. This is used instead of constructing a result instance
-   *   directly here, so as to avoid a circular dependency on `TreePathMap`.
+   * @param {object} result Result to add to. (It's a `TreePathMap`, but we
+   *   don't name the type here to avoid a circular dependency.)
    */
-  findSubtree(key, add) {
+  addSubtree(key, result) {
     const { path, wildcard } = key;
 
     if (!(key instanceof TreePathKey)) {
@@ -181,9 +105,9 @@ export class TreePathNode {
 
     if (!wildcard) {
       // Non-wildcard is easy, because `find()` already does the right thing.
-      const found  = this.find(key);
+      const found = this.find(key);
       if (found !== null) {
-        add(key, found.value);
+        result.add(key, found.value);
       }
       return;
     }
@@ -203,7 +127,91 @@ export class TreePathNode {
     }
 
     for (const [k, v] of subtree.#iteratorAt(path)) {
-      add(k, v);
+      result.add(k, v);
+    }
+  }
+
+  /**
+   * Underlying implementation of `TreePathMap.entries()`, see which for
+   * detailed docs.
+   *
+   * @returns {object} Iterator over the entries of this instance.
+   */
+  entries() {
+    return this.#iteratorAt([]);
+  }
+
+  /**
+   * Underlying implementation of `TreePathMap.find()`, see which for detailed
+   * docs.
+   *
+   * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to search
+   *   for.
+   * @returns {?{key: TreePathKey, keyRemainder: TreePathKey, value: *}} The
+   *   most specific match, or `null` if there was no match at all.
+   */
+  find(key) {
+    return this.findWithFallback(key).next().value ?? null;
+  }
+
+  /**
+   * Underlying implementation of `TreePathMap.findWithFallback()`, see which
+   * for detailed docs.
+   *
+   * @param {TreePathKey|{path: string[], wildcard: boolean}} keyToFind Key to
+   *   search for.
+   * @yields {{key: TreePathKey, keyRemainder: TreePathKey, value: *}} One
+   *   result.
+   */
+  *findWithFallback(keyToFind) {
+    const { path, wildcard } = keyToFind;
+
+    if (!(keyToFind instanceof TreePathKey)) {
+      TreePathKey.checkArguments(path, wildcard);
+    }
+
+    // In order to find the most-specific result, we end up having to find all
+    // the intermediate results first. So we build a list of results as a stack,
+    // then pop and `yield` them as demanded.
+
+    const results = [];
+
+    const addResult = (key, value, keyRemainder = null) => {
+      results.push({ key, keyRemainder, value });
+    };
+
+    let subtree = this;
+    let at;
+    for (at = 0; at < path.length; at++) {
+      if (subtree.#wildcardKey) {
+        addResult(subtree.#wildcardKey, subtree.#wildcardValue);
+      }
+      subtree = subtree.#subtrees.get(path[at]);
+      if (!subtree) {
+        break;
+      }
+    }
+
+    if (at === path.length) {
+      if (subtree.#wildcardKey) {
+        // There's a matching wildcard at the end of the path.
+        addResult(subtree.#wildcardKey, subtree.#wildcardValue, TreePathKey.EMPTY);
+      }
+
+      if (subtree.#emptyKey && !wildcard) {
+        // There's an exact non-wildcard match for the path.
+        addResult(subtree.#emptyKey, subtree.#emptyValue, TreePathKey.EMPTY);
+      }
+    }
+
+    while (results.length !== 0) {
+      const result = results.pop();
+      if (result.keyRemainder === null) {
+        const foundAt       = result.key.path.length;
+        const pathRemainder = Object.freeze(path.slice(foundAt));
+        result.keyRemainder = new TreePathKey(pathRemainder, false);
+      }
+      yield result;
     }
   }
 
