@@ -532,4 +532,19 @@ export class Uris {
 
     return { address, port };
   }
+
+  /**
+   * The same as {@link TreePathKey#toUriPathString}, except as a `static`
+   * method, for convenient use as a stringifier function, e.g. in
+   * `TreePathMap`.
+   *
+   * @param {TreePathKey} key The key to convert.
+   * @param {boolean} [relative] Make the result relative (with `./` as the
+   *   prefix).
+   * @returns {string} The string form.
+   */
+  static pathStringFrom(key, relative = false) {
+    MustBe.instanceOf(key, TreePathKey);
+    return key.toUriPathString(relative);
+  }
 }

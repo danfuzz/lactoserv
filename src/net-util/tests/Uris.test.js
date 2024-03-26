@@ -1,6 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { TreePathKey } from '@this/collections';
 import { Uris } from '@this/net-util';
 
 
@@ -593,5 +594,43 @@ describe('parseInterface()', () => {
 
     const got2 = Uris.parseInterface('/dev/fd/65535');
     expect(got2).toStrictEqual({ fd: 65535 });
+  });
+});
+
+describe('pathStringFrom()', () => {
+  describe.each`
+  relArg     | label
+  ${[]}      | ${'without `relative` passed (defaults to `false`)'}
+  ${[false]} | ${'with `relative` passed as `false`'}
+  ${[true]}  | ${'with `relative` passed as `true`'}
+  `('$label', ({ relArg }) => {
+    test.each`
+    path                     | wildcard | expected
+    ${[]}                    | ${false} | ${'/'}
+    ${[]}                    | ${true}  | ${'/*'}
+    ${['']}                  | ${false} | ${'/'}
+    ${['']}                  | ${true}  | ${'//*'}
+    ${['xyz']}               | ${false} | ${'/xyz'}
+    ${['xyz']}               | ${true}  | ${'/xyz/*'}
+    ${['a', '']}             | ${false} | ${'/a/'}
+    ${['a', '']}             | ${true}  | ${'/a//*'}
+    ${['a', '', 'bc']}       | ${false} | ${'/a//bc'}
+    ${['a', '', 'bc']}       | ${true}  | ${'/a//bc/*'}
+    ${['foo', 'bar', 'baz']} | ${false} | ${'/foo/bar/baz'}
+    ${['foo', 'bar', 'baz']} | ${true}  | ${'/foo/bar/baz/*'}
+    `('on { path: $path, wildcard: $wildcard }', ({ path, wildcard, expected }) => {
+      const key    = new TreePathKey(path, wildcard);
+      const result = Uris.pathStringFrom(key, ...relArg);
+
+      if (relArg[0] === true) {
+        // Expectation is special for `relative === true` on a non-wildcard
+        // empty path.
+        expected = ((key.length === 0) && !key.wildcard)
+          ? '.'
+          : `.${expected}`;
+      }
+
+      expect(result).toBe(expected);
+    });
   });
 });
