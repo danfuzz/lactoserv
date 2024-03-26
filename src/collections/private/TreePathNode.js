@@ -114,13 +114,12 @@ export class TreePathNode {
    * Underlying implementation of `TreePathMap.findSubtree()`, see which for
    * detailed docs.
    *
-   * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to look
+   * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to search
    *   up.
-   * @param {function(TreePathKey, *)} add Function to call to add an entry to
-   *   the result. This is used instead of constructing a result instance
-   *   directly here, so as to avoid a circular dependency on `TreePathMap`.
+   * @param {object} result Result to add to. (It's a `TreePathMap`, but we
+   *   don't name the type here to avoid a circular dependency.)
    */
-  findSubtree(key, add) {
+  addSubtree(key, result) {
     const { path, wildcard } = key;
 
     if (!(key instanceof TreePathKey)) {
@@ -131,7 +130,7 @@ export class TreePathNode {
       // Non-wildcard is easy, because `find()` already does the right thing.
       const found = this.find(key);
       if (found !== null) {
-        add(key, found.value);
+        result.add(key, found.value);
       }
       return;
     }
@@ -151,7 +150,7 @@ export class TreePathNode {
     }
 
     for (const [k, v] of subtree.#iteratorAt(path)) {
-      add(k, v);
+      result.add(k, v);
     }
   }
 

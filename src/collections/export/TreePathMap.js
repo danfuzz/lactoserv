@@ -109,7 +109,7 @@ export class TreePathMap {
    * getting the first result from {@link #findWithFallback} or `null` if there
    * are no matching bindings.
    *
-   * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to look
+   * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to search
    *   for.
    * @returns {?{key: TreePathKey, keyRemainder: TreePathKey, value: *}} The
    *   most specific match, or `null` if there was no match at all.
@@ -133,17 +133,15 @@ export class TreePathMap {
    * wildcard key with a non-empty path, then this method will only return
    * bindings with keys at or under that path.
    *
-   * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to look
+   * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to search
    *   up.
    * @returns {TreePathMap} Map of matched bindings.
    */
   findSubtree(key) {
-    // See the note in docs of `TreePathNode.findSubtree()` for an explanation
-    // about what's going on here.
-
     const result = new TreePathMap();
 
-    this.#rootNode.findSubtree(key, (k, v) => result.add(k, v));
+    this.#rootNode.addSubtree(key, result);
+
     return result;
   }
 
