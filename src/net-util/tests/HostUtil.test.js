@@ -380,7 +380,7 @@ ${'parseHostnameOrNull'} | ${false} | ${'path'}
 
       expect(got.wildcard).toBe(expectWildcard);
       expect(got.length).toBe(expectLength);
-      expect(got.toHostnameString()).toBe(hostname);
+      expect(HostUtil.hostnameStringFrom(got)).toBe(hostname);
     }
   };
 

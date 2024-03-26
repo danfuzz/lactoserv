@@ -174,21 +174,6 @@ export class TreePathKey {
   }
 
   /**
-   * Gets the string form of this instance, interpreted as a hostname, where the
-   * TLD is the initial path component. That is, the result renders the path in
-   * reverse.
-   *
-   * @returns {string} The string form.
-   */
-  toHostnameString() {
-    return this.toString({
-      prefix:    '',
-      separator: '.',
-      reverse:   true
-    });
-  }
-
-  /**
    * Gets a human-useful string form of this instance.
    *
    * @param {?object} [options] Formatting options.
@@ -271,16 +256,5 @@ export class TreePathKey {
   static checkArguments(path, wildcard) {
     MustBe.arrayOfString(path);
     MustBe.boolean(wildcard);
-  }
-
-  /**
-   * The same as {@link #toHostnameString}, except as a `static` method, for
-   * convenient use as a stringifier function, e.g. in `TreePathMap`.
-   *
-   * @param {TreePathKey} key The key to convert.
-   * @returns {string} The string form.
-   */
-  static hostnameStringFrom(key) {
-    return key.toHostnameString();
   }
 }

@@ -540,26 +540,3 @@ describe('checkArguments()', () => {
     expect(() => TreePathKey.checkArguments(['x'], true)).not.toThrow();
   });
 });
-
-describe.each`
-name  |  isStatic
-${'toHostnameString'}   | ${false}
-${'hostnameStringFrom'} | ${true}
-`('$name()', ({ name, isStatic }) => {
-  test.each`
-  path                     | wildcard | expected
-  ${[]}                    | ${false} | ${''}
-  ${[]}                    | ${true}  | ${'*'}
-  ${['a']}                 | ${false} | ${'a'}
-  ${['a']}                 | ${true}  | ${'*.a'}
-  ${['foo', 'bar', 'baz']} | ${false} | ${'baz.bar.foo'}
-  ${['foo', 'bar', 'baz']} | ${true}  | ${'*.baz.bar.foo'}
-  `('on { path: $path, wildcard: $wildcard }', ({ path, wildcard, expected }) => {
-    const key    = new TreePathKey(path, wildcard);
-    const result = isStatic
-      ? TreePathKey[name](key)
-      : key[name]();
-
-    expect(result).toBe(expected);
-  });
-});

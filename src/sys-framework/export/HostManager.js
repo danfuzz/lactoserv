@@ -3,7 +3,7 @@
 
 import { SecureContext } from 'node:tls';
 
-import { TreePathKey, TreePathMap } from '@this/collections';
+import { TreePathMap } from '@this/collections';
 import { IntfLogger } from '@this/loggy-intf';
 import { IntfHostManager } from '@this/net-protocol';
 import { HostUtil } from '@this/net-util';
@@ -26,7 +26,7 @@ export class HostManager {
    * @type {TreePathMap<HostItem>} Map from each componentized hostname to
    * the {@link HostItem} that should be used for it.
    */
-  #items = new TreePathMap(TreePathKey.hostnameStringFrom);
+  #items = new TreePathMap(HostUtil.hostnameStringFrom);
 
   /**
    * @type {?IntfLogger} Logger for this class, or `null` not to do any
