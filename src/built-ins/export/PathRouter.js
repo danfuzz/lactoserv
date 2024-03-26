@@ -26,9 +26,7 @@ export class PathRouter extends BaseApplication {
   /** @override */
   async _impl_handleRequest(request, dispatch) {
     // Iterate from most- to least-specific mounted path.
-    for (let pathMatch = this.#routeTree.find(dispatch.extra, true);
-      pathMatch;
-      pathMatch = pathMatch.next) {
+    for (const pathMatch of this.#routeTree.findWithFallback(dispatch.extra)) {
       const application = pathMatch.value;
       const subDispatch = new DispatchInfo(
         dispatch.base.concat(pathMatch.key),
