@@ -11,6 +11,7 @@ import { IntfLogger } from '@this/loggy-intf';
 import { AsyncServerSocket } from '#p/AsyncServerSocket';
 import { IntfRateLimiter } from '#x/IntfRateLimiter';
 import { ProtocolWrangler } from '#x/ProtocolWrangler';
+import { WranglerContext } from '#p/WranglerContext';
 
 
 /**
@@ -100,7 +101,9 @@ export class TcpWrangler extends ProtocolWrangler {
       return;
     }
 
-    const connLogger = this.logger?.conn.$newId ?? null;
+    const connLogger    = this.logger?.conn.$newId ?? null;
+    const connectionCtx = WranglerContext.forConnection(this, socket, connLogger);
+    WranglerContext.bind(socket, connectionCtx);
 
     this.logger?.newConnection(connLogger.$meta.lastContext);
 
@@ -196,7 +199,7 @@ export class TcpWrangler extends ProtocolWrangler {
       logClose();
     });
 
-    this._prot_newConnection(socket, connLogger);
+    connectionCtx.emitInContext(this._impl_server(), 'connection', socket);
   }
 
   /**

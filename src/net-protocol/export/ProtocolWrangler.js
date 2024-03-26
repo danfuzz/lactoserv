@@ -165,7 +165,7 @@ export class ProtocolWrangler {
     server.on('request', (...args) => this.#incomingRequest(...args));
 
     // Set up an event handler to propagate the connection context. See
-    // `_prot_newConnection()` for a treatise about what's going on.
+    // `WranglerContext.emitInContext()` for a treatise about what's going on.
     server.on('secureConnection', (socket) => WranglerContext.bindCurrent(socket));
   }
 
@@ -283,52 +283,6 @@ export class ProtocolWrangler {
   /** @returns {?IntfHostManager} The host manager, if any. */
   get _prot_hostManager() {
     return this.#hostManager;
-  }
-
-  /**
-   * Informs the higher-level stack of a connection received by the lower-level
-   * stack. This "protected" method is expected to be called by subclass code.
-   *
-   * @param {net.Socket} socket Socket representing the newly-made connection.
-   * @param {?IntfLogger} logger Logger to use for the connection, if any.
-   */
-  _prot_newConnection(socket, logger) {
-    // What's going on here:
-    //
-    // The layers of protocol implementation inside Node "conspire" to hide the
-    // original socket of the `connection` event from the request and response
-    // objects that ultimately get emitted as part of a `request` event, but we
-    // want to actually be able to track a request back to the connection. This
-    // is used for logging in two ways: (a) to map a request ID to a connection
-    // ID, and (b) to get the remote address of a connection. On that last part,
-    // Node makes some effort to expose "safe" socket operations through all the
-    // wrapped layers, but at least in our use case (maybe because we ourselves
-    // wrap the raw socket, and that messes with an `instanceof` check in the
-    // guts of Node's networking code) the punch-through doesn't actually work.
-    //
-    // Thankfully, Node has an "async local storage" mechanism which is geared
-    // towards exactly this sort of use case. By emitting the `connection` event
-    // with our connection context as the designated "async storage," handlers
-    // for downstream events can retrieve that same context. Instead of exposing
-    // this async storage stuff more widely, we use it _just_ in this class to
-    // attach the connection info (via a `WeakMap`) to all the downstream
-    // objects that our event handlers might eventually find themselves with.
-    // The API for this (to the rest of the system) is the class
-    // `WranglerContext`.
-    //
-    // Also, just to be clear: Even without the need to get the
-    // `WranglerContext` hooked up, we still need to emit a `connection` event
-    // here, since that's how the protocol server (`_impl_server()`) is informed
-    // in the first place about a connection.
-
-    const connectionCtx = WranglerContext.forConnection(this, socket, logger);
-
-    WranglerContext.bind(socket, connectionCtx);
-    connectionCtx.emitInContext(this._impl_server(), 'connection', socket);
-
-    // Note: The code responsible for handing us the connection also does
-    // logging for it, so there's no need for additional connection logging
-    // here.
   }
 
   /**

@@ -145,6 +145,26 @@ export class WranglerContext {
    * instance, which can be recovered in follow-on event handlers by {@link
    * #currentInstance}.
    *
+   * ### What's going on here?
+   *
+   * The layers of protocol implementation inside Node "conspire" to hide the
+   * original socket of a `connection` event from the request and response
+   * objects that ultimately get emitted as part of a `request` event, but we
+   * want to actually be able to track a request back to the connection. This
+   * is used in a few ways, including for recovering local-listener information
+   * (see `IncomingRequest.host`) and logging. Node makes some effort to expose
+   * "safe" socket operations through all the wrapped layers, but at least in
+   * our use case (maybe because we ourselves wrap the raw socket, and that
+   * messes with an `instanceof` check in the guts of Node's networking code)
+   * the punch-through doesn't actually work.
+   *
+   * Thankfully, Node has an "async local storage" mechanism which is geared
+   * towards exactly this sort of use case. By emitting the salient events with
+   * an instance of this class as the designated "async storage," handlers for
+   * downstream events can retrieve that same instance. Instead of exposing this
+   * async storage stuff more widely, we use it tactically _just_ in this class,
+   * in the hope that it won't leak out and make things confusing.
+   *
    * @param {EventEmitter} emitter Event emitter to send from.
    * @param {string|symbol} eventName The event name.
    * @param {...*} args Arbitrary event arguments.
