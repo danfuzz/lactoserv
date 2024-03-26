@@ -189,26 +189,6 @@ export class TreePathKey {
   }
 
   /**
-   * Gets the string form of this instance as a URI path, that is, the part of a
-   * URI after the hostname. The result is in absolute form by default (prefixed
-   * with `/`), and is optionally in relative form (prefixed with `./`). Empty
-   * components are represented as one might expect, with no characters between
-   * two slashes for an empty component in the middle of a path or with a
-   * trailing slash for an empty component at the end of the path.
-   *
-   * @param {boolean} [relative] Make the result relative (with `./` as the
-   *   prefix).
-   * @returns {string} The string form.
-   */
-  toUriPathString(relative = false) {
-    return this.toString({
-      prefix:         relative ? '.' : '/',
-      separatePrefix: relative,
-      separator:      '/'
-    });
-  }
-
-  /**
    * Gets a human-useful string form of this instance.
    *
    * @param {?object} [options] Formatting options.
@@ -302,18 +282,5 @@ export class TreePathKey {
    */
   static hostnameStringFrom(key) {
     return key.toHostnameString();
-  }
-
-  /**
-   * The same as {@link #toUriPathString}, except as a `static` method, for
-   * convenient use as a stringifier function, e.g. in `TreePathMap`.
-   *
-   * @param {TreePathKey} key The key to convert.
-   * @param {boolean} [relative] Make the result relative (with `./` as the
-   *   prefix).
-   * @returns {string} The string form.
-   */
-  static uriPathStringFrom(key, relative = false) {
-    return key.toUriPathString(relative);
   }
 }

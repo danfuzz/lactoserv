@@ -12,7 +12,6 @@
   },
 
   "dependencies": {
-    "@this/collections": "*",
     "@this/data-values": "*",
     "@this/fs-util": "*",
     "@this/net-util": "*",

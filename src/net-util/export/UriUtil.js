@@ -8,7 +8,7 @@ import { AskIf, MustBe } from '@this/typey';
 /**
  * Utilities for parsing various URIs and components thereof.
  */
-export class Uris {
+export class UriUtil {
   /**
    * @returns {string} Regex pattern which matches a possibly-wildcarded
    * hostname, but _not_ anchored to only match a full string.
@@ -531,5 +531,29 @@ export class Uris {
     }
 
     return { address, port };
+  }
+
+  /**
+   * Gets the string form of a {@link TreePathKey} as a URI path, that is, the
+   * part of a URI after the hostname. The result is in absolute form by default
+   * (prefixed with `/`), or is optionally in relative form (prefixed with
+   * `./`). Empty components are represented as one might expect, with no
+   * characters between two slashes for an empty component in the middle of a
+   * path or with a trailing slash for an empty component at the end of the
+   * path.
+   *
+   * @param {TreePathKey} key The key to convert.
+   * @param {boolean} [relative] Make the result relative (with `./` as the
+   *   prefix).
+   * @returns {string} The string form.
+   */
+  static pathStringFrom(key, relative = false) {
+    MustBe.instanceOf(key, TreePathKey);
+
+    return key.toString({
+      prefix:         relative ? '.' : '/',
+      separatePrefix: relative,
+      separator:      '/'
+    });
   }
 }

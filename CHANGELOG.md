@@ -8,11 +8,14 @@ versioning principles. Unstable releases do not.
 
 Breaking changes:
 * `collections`:
-  * Changed contract of `TreePathKey` methods `toUriPathString()` and
-    `uriPathStringFrom()`.
+  * Removed `TreePathKey` methods `toUriPathString()` and `uriPathStringFrom()`.
 * `net-util`:
   * Major rework of `IncomingRequest`, so it no longer has to be constructed
     from a low-level Node request object.
+  * Renamed `Uris` to `UriUtil`.
+  * Pulled `uriPathStringFrom()` from `TreePathKey` into `UriUtil`, renaming it
+    to `pathStringFrom()` and tweaking its contract.
+  * Make `DispatchInfo.extraString` be a relative path, not an absolute one.
 
 Other notable changes:
 * `sys-framework`:

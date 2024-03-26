@@ -1,7 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Uris } from '@this/net-util';
+import { TreePathKey } from '@this/collections';
+import { UriUtil } from '@this/net-util';
 
 
 const LONGEST_COMPONENT = 'x'.repeat(63);
@@ -25,7 +26,7 @@ describe('checkAbsolutePath()', () => {
   ${'hash fragment'}                  | ${'/foo#123/'}
   ${'character needing `%`-encoding'} | ${'/foo/b ar/'}
   `('fails for $label', ({ path }) => {
-    expect(() => Uris.checkAbsolutePath(path)).toThrow();
+    expect(() => UriUtil.checkAbsolutePath(path)).toThrow();
   });
 
   // Success cases.
@@ -36,7 +37,7 @@ describe('checkAbsolutePath()', () => {
   ${'/foo/bar/'}
   ${'/foo/b%20ar/'}
   `('succeeds for $path', ({ path }) => {
-    expect(Uris.checkAbsolutePath(path)).toBe(path);
+    expect(UriUtil.checkAbsolutePath(path)).toBe(path);
   });
 });
 
@@ -63,7 +64,7 @@ describe('checkBasicUri()', () => {
   ${'username and password'}          | ${'https://user:pass@foo/bar/'}
   ${'invalid hostname'}               | ${'https://foo .bar/'}
   `('fails for $label', ({ path }) => {
-    expect(() => Uris.checkBasicUri(path)).toThrow();
+    expect(() => UriUtil.checkBasicUri(path)).toThrow();
   });
 
   // Success cases.
@@ -74,7 +75,7 @@ describe('checkBasicUri()', () => {
   ${'https://foo.bar/baz/'}
   ${'https://foo.bar/b%20az/'}
   `('succeeds for $path', ({ path }) => {
-    expect(Uris.checkBasicUri(path)).toBe(path);
+    expect(UriUtil.checkBasicUri(path)).toBe(path);
   });
 });
 
@@ -120,7 +121,7 @@ describe('checkInterfaceAddress()', () => {
   ${'IPv6 with extra at start'}            | ${'xaa:bc::1:2:34'}
   ${'IPv6 with extra at end'}              | ${'aa:bc::1:2:34z'}
   `('fails for $label', ({ iface }) => {
-    expect(() => Uris.checkInterfaceAddress(iface)).toThrow();
+    expect(() => UriUtil.checkInterfaceAddress(iface)).toThrow();
   });
 
   // Success cases that are given in canonical form.
@@ -149,7 +150,7 @@ describe('checkInterfaceAddress()', () => {
   ${`${LONGEST_COMPONENT}.${LONGEST_COMPONENT}`}
   ${LONGEST_NAME}
   `('succeeds for $iface', ({ iface }) => {
-    const got      = Uris.checkInterfaceAddress(iface);
+    const got      = UriUtil.checkInterfaceAddress(iface);
     const expected = iface.replace(/\[|\]/g, '');
     expect(got).toBe(expected);
   });
@@ -166,7 +167,7 @@ describe('checkInterfaceAddress()', () => {
   ${'[1:2:3:4:5:6:7:8]'}  | ${'1:2:3:4:5:6:7:8'}
   ${'[12:Ab::34:cD]'}     | ${'12:ab::34:cd'}
   `('succeeds for $iface', ({ iface, expected }) => {
-    const got = Uris.checkInterfaceAddress(iface);
+    const got = UriUtil.checkInterfaceAddress(iface);
     expect(got).toBe(expected);
   });
 });
@@ -188,8 +189,8 @@ ${'checkIpAddressOrNull'} | ${false}
   ${['a', 'b']}
   ${{ a: 'florp' }}
   `('throws for $addr', ({ addr }) => {
-    expect(() => Uris[method](addr, false)).toThrow();
-    expect(() => Uris[method](addr, true)).toThrow();
+    expect(() => UriUtil[method](addr, false)).toThrow();
+    expect(() => UriUtil[method](addr, true)).toThrow();
   });
 
   // Failure cases.
@@ -225,11 +226,11 @@ ${'checkIpAddressOrNull'} | ${false}
   ${'IPv6 with extra at end'}              | ${'aa:bc::1:2:34z'}
   `('fails for $label', ({ addr }) => {
     if (throws) {
-      expect(() => Uris[method](addr, false)).toThrow();
-      expect(() => Uris[method](addr, true)).toThrow();
+      expect(() => UriUtil[method](addr, false)).toThrow();
+      expect(() => UriUtil[method](addr, true)).toThrow();
     } else {
-      expect(Uris[method](addr, false)).toBeNull();
-      expect(Uris[method](addr, true)).toBeNull();
+      expect(UriUtil[method](addr, false)).toBeNull();
+      expect(UriUtil[method](addr, true)).toBeNull();
     }
   });
 
@@ -252,8 +253,8 @@ ${'checkIpAddressOrNull'} | ${false}
   ${'abcd::ef'}
   ${'::abcd'}
   `('succeeds for $addr', ({ addr }) => {
-    expect(Uris[method](addr, false)).toBe(addr);
-    expect(Uris[method](addr, true)).toBe(addr);
+    expect(UriUtil[method](addr, false)).toBe(addr);
+    expect(UriUtil[method](addr, true)).toBe(addr);
   });
 
   // Success cases that are given in non-canonical form.
@@ -288,8 +289,8 @@ ${'checkIpAddressOrNull'} | ${false}
   ${'[1234::]'}                                | ${'1234::'}
   ${'[12:ab::34:cd]'}                          | ${'12:ab::34:cd'}
   `('succeeds for $addr', ({ addr, expected }) => {
-    expect(Uris[method](addr, false)).toBe(expected);
-    expect(Uris[method](addr, true)).toBe(expected);
+    expect(UriUtil[method](addr, false)).toBe(expected);
+    expect(UriUtil[method](addr, true)).toBe(expected);
   });
 
   // Tests for "any" addresses. These should succeed if `allowAny === true` and
@@ -315,12 +316,12 @@ ${'checkIpAddressOrNull'} | ${false}
     ${'000.000.000.000'} | ${'0.0.0.0'}
     `(`${verb} for $addr`, ({ addr, expected }) => {
       if (allowAny) {
-        const got = Uris[method](addr, true);
+        const got = UriUtil[method](addr, true);
         expect(got).toBe(expected);
       } else if (throws) {
-        expect(() => Uris[method](addr, false)).toThrow();
+        expect(() => UriUtil[method](addr, false)).toThrow();
       } else {
-        expect(Uris[method](addr, false)).toBeNull();
+        expect(UriUtil[method](addr, false)).toBeNull();
       }
     });
   });
@@ -328,38 +329,38 @@ ${'checkIpAddressOrNull'} | ${false}
 
 describe('checkPort()', () => {
   test('works for `*` when `allowWildcard === true`', () => {
-    expect(Uris.checkPort('*', true)).toBe(0);
+    expect(UriUtil.checkPort('*', true)).toBe(0);
   });
 
   test('fails for `*` when `allowWildcard === false`', () => {
-    expect(() => Uris.checkPort('*', false)).toThrow();
+    expect(() => UriUtil.checkPort('*', false)).toThrow();
   });
 
   test('works for minimum valid value (1)', () => {
-    expect(Uris.checkPort(1, false)).toBe(1);
-    expect(Uris.checkPort(1, true)).toBe(1);
-    expect(Uris.checkPort('1', false)).toBe(1);
-    expect(Uris.checkPort('1', true)).toBe(1);
+    expect(UriUtil.checkPort(1, false)).toBe(1);
+    expect(UriUtil.checkPort(1, true)).toBe(1);
+    expect(UriUtil.checkPort('1', false)).toBe(1);
+    expect(UriUtil.checkPort('1', true)).toBe(1);
   });
 
   test('works for maximum valid value (65535)', () => {
-    expect(Uris.checkPort(65535, false)).toBe(65535);
-    expect(Uris.checkPort(65535, true)).toBe(65535);
-    expect(Uris.checkPort('65535', false)).toBe(65535);
-    expect(Uris.checkPort('65535', true)).toBe(65535);
+    expect(UriUtil.checkPort(65535, false)).toBe(65535);
+    expect(UriUtil.checkPort(65535, true)).toBe(65535);
+    expect(UriUtil.checkPort('65535', false)).toBe(65535);
+    expect(UriUtil.checkPort('65535', true)).toBe(65535);
   });
 
   test('works for all valid port numbers (non-exhaustive)', () => {
     for (let p = 2; p <= 65534; p += 1235) {
-      expect(Uris.checkPort(p, false)).toBe(p);
-      expect(Uris.checkPort(p, true)).toBe(p);
+      expect(UriUtil.checkPort(p, false)).toBe(p);
+      expect(UriUtil.checkPort(p, true)).toBe(p);
     }
   });
 
   test('works for all valid port numbers as strings (non-exhaustive)', () => {
     for (let p = 2; p <= 65534; p += 1111) {
-      expect(Uris.checkPort(`${p}`, false)).toBe(p);
-      expect(Uris.checkPort(`${p}`, true)).toBe(p);
+      expect(UriUtil.checkPort(`${p}`, false)).toBe(p);
+      expect(UriUtil.checkPort(`${p}`, true)).toBe(p);
     }
   });
 
@@ -376,7 +377,7 @@ describe('checkPort()', () => {
   ${'-1'}                                   | ${-1}
   ${'65536'}                                | ${65536}
   `('fails for $label', ({ port }) => {
-    expect(() => Uris.checkPort(port)).toThrow();
+    expect(() => UriUtil.checkPort(port)).toThrow();
   });
 });
 
@@ -388,7 +389,7 @@ describe('checkProtocol()', () => {
   ${'non-string'}       | ${123}
   ${'invalid protocol'} | ${'ftp'}
   `('fails for $label', ({ protocol }) => {
-    expect(() => Uris.checkProtocol(protocol)).toThrow();
+    expect(() => UriUtil.checkProtocol(protocol)).toThrow();
   });
 
   // Success cases.
@@ -398,7 +399,7 @@ describe('checkProtocol()', () => {
   ${'https'}
   ${'http2'}
   `('succeeds for $protocol', ({ protocol }) => {
-    expect(Uris.checkProtocol(protocol)).toBe(protocol);
+    expect(UriUtil.checkProtocol(protocol)).toBe(protocol);
   });
 });
 
@@ -421,8 +422,8 @@ ${'parseHostnameOrNull'} | ${false} | ${'path'}
   ${['a', 'b']}
   ${{ a: 'florp' }}
   `('throws for $hostname', ({ hostname }) => {
-    expect(() => Uris[method](hostname, false)).toThrow();
-    expect(() => Uris[method](hostname, true)).toThrow();
+    expect(() => UriUtil[method](hostname, false)).toThrow();
+    expect(() => UriUtil[method](hostname, true)).toThrow();
   });
 
   // Failure cases.
@@ -445,16 +446,16 @@ ${'parseHostnameOrNull'} | ${false} | ${'path'}
   ${'IPv6 "any" address'}     | ${'::'}
   `('fails for $label', ({ hostname }) => {
     if (throws) {
-      expect(() => Uris[method](hostname, false)).toThrow();
-      expect(() => Uris[method](hostname, true)).toThrow();
+      expect(() => UriUtil[method](hostname, false)).toThrow();
+      expect(() => UriUtil[method](hostname, true)).toThrow();
     } else {
-      expect(Uris[method](hostname, false)).toBeNull();
-      expect(Uris[method](hostname, true)).toBeNull();
+      expect(UriUtil[method](hostname, false)).toBeNull();
+      expect(UriUtil[method](hostname, true)).toBeNull();
     }
   });
 
   const checkAnswer = (hostname, got) => {
-    const canonicalIp = Uris.checkIpAddressOrNull(hostname, false);
+    const canonicalIp = UriUtil.checkIpAddressOrNull(hostname, false);
     if (returns === 'string') {
       if (canonicalIp) {
         // Expect IP addresses to be canonicalized.
@@ -502,8 +503,8 @@ ${'parseHostnameOrNull'} | ${false} | ${'path'}
   ${`${LONGEST_COMPONENT}.${LONGEST_COMPONENT}`}
   ${LONGEST_NAME}
   `('succeeds for $hostname', ({ hostname }) => {
-    checkAnswer(hostname, Uris[method](hostname, false));
-    checkAnswer(hostname, Uris[method](hostname, true));
+    checkAnswer(hostname, UriUtil[method](hostname, false));
+    checkAnswer(hostname, UriUtil[method](hostname, true));
   });
 
   // Wildcard success cases.
@@ -515,12 +516,12 @@ ${'parseHostnameOrNull'} | ${false} | ${'path'}
   ${'*.beep.boop.blork'}
   `('succeeds for $hostname only when `allowWildcard === true`', ({ hostname }) => {
     if (throws) {
-      expect(() => Uris[method](hostname, false)).toThrow();
+      expect(() => UriUtil[method](hostname, false)).toThrow();
     } else {
-      expect(Uris[method](hostname, false)).toBeNull();
+      expect(UriUtil[method](hostname, false)).toBeNull();
     }
 
-    checkAnswer(hostname, Uris[method](hostname, true));
+    checkAnswer(hostname, UriUtil[method](hostname, true));
   });
 });
 
@@ -557,41 +558,79 @@ describe('parseInterface()', () => {
   ${'too-large fd'}                     | ${'/dev/fd/65536'}
   ${'much too-large fd'}                | ${'/dev/fd/999999999999999999999'}
   `('fails for $label', ({ mount }) => {
-    expect(() => Uris.parseInterface(mount)).toThrow();
+    expect(() => UriUtil.parseInterface(mount)).toThrow();
   });
 
   // "Smokey" success tests.
 
   test('parses an interface with IPv4 address as expected', () => {
-    const got = Uris.parseInterface('12.34.56.78:123');
+    const got = UriUtil.parseInterface('12.34.56.78:123');
     expect(got).toStrictEqual({ address: '12.34.56.78', port: 123 });
   });
 
   test('parses an interface with IPv6 address as expected', () => {
-    const got = Uris.parseInterface('[abc::123:4567]:999');
+    const got = UriUtil.parseInterface('[abc::123:4567]:999');
     expect(got).toStrictEqual({ address: 'abc::123:4567', port: 999 });
   });
 
   test('parses an interface with wildcard address as expected', () => {
-    const got = Uris.parseInterface('*:17777');
+    const got = UriUtil.parseInterface('*:17777');
     expect(got).toStrictEqual({ address: '*', port: 17777 });
   });
 
   test('parses an FD interface with no port as expected', () => {
-    const got = Uris.parseInterface('/dev/fd/109');
+    const got = UriUtil.parseInterface('/dev/fd/109');
     expect(got).toStrictEqual({ fd: 109 });
   });
 
   test('parses an FD interface with port as expected', () => {
-    const got = Uris.parseInterface('/dev/fd/109:914');
+    const got = UriUtil.parseInterface('/dev/fd/109:914');
     expect(got).toStrictEqual({ fd: 109, port: 914 });
   });
 
   test('accepts the minimum and maximum allowed FD numbers', () => {
-    const got1 = Uris.parseInterface('/dev/fd/0');
+    const got1 = UriUtil.parseInterface('/dev/fd/0');
     expect(got1).toStrictEqual({ fd: 0 });
 
-    const got2 = Uris.parseInterface('/dev/fd/65535');
+    const got2 = UriUtil.parseInterface('/dev/fd/65535');
     expect(got2).toStrictEqual({ fd: 65535 });
+  });
+});
+
+describe('pathStringFrom()', () => {
+  describe.each`
+  relArg     | label
+  ${[]}      | ${'without `relative` passed (defaults to `false`)'}
+  ${[false]} | ${'with `relative` passed as `false`'}
+  ${[true]}  | ${'with `relative` passed as `true`'}
+  `('$label', ({ relArg }) => {
+    test.each`
+    path                     | wildcard | expected
+    ${[]}                    | ${false} | ${'/'}
+    ${[]}                    | ${true}  | ${'/*'}
+    ${['']}                  | ${false} | ${'/'}
+    ${['']}                  | ${true}  | ${'//*'}
+    ${['xyz']}               | ${false} | ${'/xyz'}
+    ${['xyz']}               | ${true}  | ${'/xyz/*'}
+    ${['a', '']}             | ${false} | ${'/a/'}
+    ${['a', '']}             | ${true}  | ${'/a//*'}
+    ${['a', '', 'bc']}       | ${false} | ${'/a//bc'}
+    ${['a', '', 'bc']}       | ${true}  | ${'/a//bc/*'}
+    ${['foo', 'bar', 'baz']} | ${false} | ${'/foo/bar/baz'}
+    ${['foo', 'bar', 'baz']} | ${true}  | ${'/foo/bar/baz/*'}
+    `('on { path: $path, wildcard: $wildcard }', ({ path, wildcard, expected }) => {
+      const key    = new TreePathKey(path, wildcard);
+      const result = UriUtil.pathStringFrom(key, ...relArg);
+
+      if (relArg[0] === true) {
+        // Expectation is special for `relative === true` on a non-wildcard
+        // empty path.
+        expected = ((key.length === 0) && !key.wildcard)
+          ? '.'
+          : `.${expected}`;
+      }
+
+      expect(result).toBe(expected);
+    });
   });
 });

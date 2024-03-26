@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Uris } from '@this/net-util';
+import { UriUtil } from '@this/net-util';
 
 import { NamedConfig } from '#x/NamedConfig';
 import { Names } from '#x/Names';
@@ -25,7 +25,7 @@ export class EndpointConfig extends NamedConfig {
 
   /**
    * @type {object} Physical interface to listen on; this is the result of a
-   * call to {@link Uris#parseInterface}.
+   * call to {@link UriUtil#parseInterface}.
    */
   #interface;
 
@@ -53,11 +53,11 @@ export class EndpointConfig extends NamedConfig {
 
     this.#hostnames = Util.checkAndFreezeStrings(
       hostnames,
-      (item) => Uris.checkHostname(item, true));
+      (item) => UriUtil.checkHostname(item, true));
 
-    this.#interface   = Object.freeze(Uris.parseInterface(iface));
+    this.#interface   = Object.freeze(UriUtil.parseInterface(iface));
     this.#application = Names.checkName(application);
-    this.#protocol    = Uris.checkProtocol(protocol);
+    this.#protocol    = UriUtil.checkProtocol(protocol);
     this.#services    = new ServiceUseConfig(services);
   }
 
@@ -76,7 +76,7 @@ export class EndpointConfig extends NamedConfig {
 
   /**
    * @returns {object} Parsed interface. This is a frozen return value from
-   * {@link Uris#parseInterface}.
+   * {@link UriUtil#parseInterface}.
    */
   get interface() {
     return this.#interface;

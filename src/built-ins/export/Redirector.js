@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { HttpUtil, OutgoingResponse, Uris } from '@this/net-util';
+import { HttpUtil, OutgoingResponse, UriUtil } from '@this/net-util';
 import { ApplicationConfig } from '@this/sys-config';
 import { BaseApplication } from '@this/sys-framework';
 import { MustBe } from '@this/typey';
@@ -43,7 +43,7 @@ export class Redirector extends BaseApplication {
   /** @override */
   async _impl_handleRequest(request_unused, dispatch) {
     const response = OutgoingResponse.makeRedirect(
-      `${this.#target}${dispatch.extraString}`,
+      `${this.#target}${UriUtil.pathStringFrom(dispatch.extra)}`,
       this.#statusCode);
 
     response.cacheControl = this.#cacheControl;
@@ -113,7 +113,7 @@ export class Redirector extends BaseApplication {
         ? MustBe.number(statusCode, { minInclusive: 300, maxInclusive: 399 })
         : 301;
 
-      this.#target = Uris.checkBasicUri(target);
+      this.#target = UriUtil.checkBasicUri(target);
 
       if ((cacheControl !== null) && (cacheControl !== false)) {
         this.#cacheControl = (typeof cacheControl === 'string')
