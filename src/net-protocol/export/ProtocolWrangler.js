@@ -210,7 +210,7 @@ export class ProtocolWrangler {
    *   socket state.
    */
   get _impl_infoForLog() {
-    Methods.abstract();
+    return Methods.abstract();
   }
 
   /**
