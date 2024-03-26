@@ -103,7 +103,6 @@ export class TcpWrangler extends ProtocolWrangler {
 
     const connLogger    = this.logger?.conn.$newId ?? null;
     const connectionCtx = WranglerContext.forConnection(this, socket, connLogger);
-    WranglerContext.bind(socket, connectionCtx);
 
     this.logger?.newConnection(connLogger.$meta.lastContext);
 
@@ -130,6 +129,7 @@ export class TcpWrangler extends ProtocolWrangler {
       }
 
       socket = this.#rateLimiter.wrapWriter(socket, connLogger);
+      WranglerContext.bind(socket, connectionCtx);
     }
 
     this.#sockets.add(socket);
@@ -199,6 +199,8 @@ export class TcpWrangler extends ProtocolWrangler {
       logClose();
     });
 
+    // Note: The `socket` we use here might either be the original incoming one
+    // _or_ one wrapped in a rate limiter.
     connectionCtx.emitInContext(this._impl_server(), 'connection', socket);
   }
 

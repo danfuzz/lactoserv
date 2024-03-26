@@ -230,7 +230,7 @@ export class WranglerContext {
   }
 
   /**
-   * Makes a new instance of this class for a connection.
+   * Makes a new instance of this class for a connection and {@link #bind}s it.
    *
    * @param {ProtocolWrangler} wrangler The wrangler instance which is managing
    *   the `socket`.
@@ -248,6 +248,8 @@ export class WranglerContext {
       ctx.#connectionLogger = logger;
       ctx.#connectionId     = logger.$meta.lastContext;
     }
+
+    this.bind(socket, ctx);
 
     return ctx;
   }
