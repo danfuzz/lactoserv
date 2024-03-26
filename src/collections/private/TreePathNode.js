@@ -88,29 +88,6 @@ export class TreePathNode {
   }
 
   /**
-   * Underlying implementation of `TreePathMap.entries()`, see which for
-   * detailed docs.
-   *
-   * @returns {object} Iterator over the entries of this instance.
-   */
-  entries() {
-    return this.#iteratorAt([]);
-  }
-
-  /**
-   * Underlying implementation of `TreePathMap.find()`, see which for detailed
-   * docs.
-   *
-   * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to search
-   *   for.
-   * @returns {?{key: TreePathKey, keyRemainder: TreePathKey, value: *}} The
-   *   most specific match, or `null` if there was no match at all.
-   */
-  find(key) {
-    return this.findWithFallback(key).next().value ?? null;
-  }
-
-  /**
    * Underlying implementation of `TreePathMap.findSubtree()`, see which for
    * detailed docs.
    *
@@ -152,6 +129,29 @@ export class TreePathNode {
     for (const [k, v] of subtree.#iteratorAt(path)) {
       result.add(k, v);
     }
+  }
+
+  /**
+   * Underlying implementation of `TreePathMap.entries()`, see which for
+   * detailed docs.
+   *
+   * @returns {object} Iterator over the entries of this instance.
+   */
+  entries() {
+    return this.#iteratorAt([]);
+  }
+
+  /**
+   * Underlying implementation of `TreePathMap.find()`, see which for detailed
+   * docs.
+   *
+   * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to search
+   *   for.
+   * @returns {?{key: TreePathKey, keyRemainder: TreePathKey, value: *}} The
+   *   most specific match, or `null` if there was no match at all.
+   */
+  find(key) {
+    return this.findWithFallback(key).next().value ?? null;
   }
 
   /**
