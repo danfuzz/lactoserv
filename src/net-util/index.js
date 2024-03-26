@@ -14,4 +14,4 @@ export * from '#x/IntfRequestHandler';
 export * from '#x/MimeTypes';
 export * from '#x/OutgoingResponse';
 export * from '#x/RequestContext';
-export * from '#x/Uris';
+export * from '#x/UriUtil';

@@ -8,7 +8,7 @@ import { AskIf, MustBe } from '@this/typey';
 /**
  * Utilities for parsing various URIs and components thereof.
  */
-export class Uris {
+export class UriUtil {
   /**
    * @returns {string} Regex pattern which matches a possibly-wildcarded
    * hostname, but _not_ anchored to only match a full string.

@@ -4,7 +4,7 @@
 import { TreePathKey } from '@this/collections';
 import { AskIf, MustBe } from '@this/typey';
 
-import { Uris } from '#x/Uris';
+import { UriUtil } from '#x/UriUtil';
 
 
 /**
@@ -194,7 +194,7 @@ export class HostInfo {
     const { hostname, port } = topParse;
 
     // Refined `hostname` check, along with IP address canonicalization.
-    const canonicalHostname = Uris.checkHostnameOrNull(hostname, false);
+    const canonicalHostname = UriUtil.checkHostnameOrNull(hostname, false);
 
     if (!canonicalHostname) {
       return null;

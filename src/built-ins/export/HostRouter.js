@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { TreePathMap } from '@this/collections';
-import { IntfRequestHandler, Uris } from '@this/net-util';
+import { IntfRequestHandler, UriUtil } from '@this/net-util';
 import { Names } from '@this/sys-config';
 import { BaseApplication } from '@this/sys-framework';
 import { MustBe } from '@this/typey';
@@ -109,7 +109,7 @@ export class HostRouter extends BaseApplication {
 
       for (const [host, name] of Object.entries(hosts)) {
         Names.checkName(name);
-        const key = Uris.parseHostname(host, true);
+        const key = UriUtil.parseHostname(host, true);
         routeTree.add(key, name);
       }
 
