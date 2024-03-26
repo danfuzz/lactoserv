@@ -554,7 +554,20 @@ export class IncomingRequest {
       if (pendingKey === null) {
         pendingKey = s;
       } else if (pendingKey[0] === ':') {
-        pseudoHeaders.set(pendingKey.slice(1), s);
+        // Handle the small handful of expected keys directly, and `slice()` the
+        // rest.
+        switch (pendingKey) {
+          case ':authority': { pendingKey = 'authority'; break; }
+          case ':method':    { pendingKey = 'method';    break; }
+          case ':path':      { pendingKey = 'path';      break; }
+          case ':scheme':    { pendingKey = 'scheme';    break; }
+          case ':status':    { pendingKey = 'status';    break; }
+          default: {
+            pendingKey = pendingKey.slice(1);
+            break;
+          }
+        }
+        pseudoHeaders.set(pendingKey, s);
         pendingKey = null;
       } else {
         const key = modernHttp ? pendingKey : pendingKey.toLowerCase();
@@ -582,9 +595,10 @@ export class IncomingRequest {
             break;
           }
           default: {
-            // Everything else gets appended. There are special rules for
-            // handling `cookie` and `set-cookie` headers, but those are taken
-            // care of for us by `HttpHeaders`.
+            // Everything else gets `append()`ed, meaning that duplicates are
+            // combined. There are special rules for handling `cookie` and
+            // `set-cookie` headers, but those are taken care of for us by
+            // `HttpHeaders`.
             headers.append(key, s);
             break;
           }
