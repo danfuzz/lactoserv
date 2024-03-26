@@ -58,9 +58,8 @@ export class DispatchInfo {
   }
 
   /**
-   * @returns {string} {@link #base}, as a path string. It is always prefixed
-   * with a slash (`/`) and only ends with a slash if the final path component
-   * is empty.
+   * @returns {string} {@link #base}, as an absolute path string. (See
+   * {@link UriUtil#pathStringFrom}).
    *
    * **Note:** It is strongly recommended to _only_ use this property for
    * logging/debugging purposes. {@link #base} is a better choice when doing
@@ -80,16 +79,15 @@ export class DispatchInfo {
   }
 
   /**
-   * @returns {string} {@link #extra}, as a path string. It is always prefixed
-   * with a dot-slash (`./`) and only ends with a slash if the final path
-   * component is empty.
+   * @returns {string} {@link #extra}, as a relative path string. (See
+   * {@link UriUtil#pathStringFrom}).
    *
    * **Note:** It is strongly recommended to _only_ use this property for
-   * logging/debugging purposes. {@link #base} is a better choice when doing
+   * logging/debugging purposes. {@link #extra} is a better choice when doing
    * calculations.
    */
   get extraString() {
-    return UriUtil.pathStringFrom(this.#extra);
+    return UriUtil.pathStringFrom(this.#extra, true);
   }
 
   /**
