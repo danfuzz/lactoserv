@@ -138,7 +138,7 @@ export class TreePathMap {
    * @returns {TreePathMap} Map of matched bindings.
    */
   findSubtree(key) {
-    const result = new TreePathMap();
+    const result = new TreePathMap(this.#keyStringFunc);
 
     this.#rootNode.addSubtree(key, result);
 

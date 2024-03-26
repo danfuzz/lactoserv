@@ -555,6 +555,15 @@ describe('find()', () => {
 });
 
 describe('findSubtree()', () => {
+  test('returns an instance with the same `keyStringFunc`.', () => {
+    const ksf    = (k) => 'florp';
+    const key    = new TreePathKey(['x'], true);
+    const map    = new TreePathMap(ksf);
+    const result = map.findSubtree(key);
+
+    expect(result.stringFromKey(key)).toBe('florp');
+  });
+
   describe('given an empty-path wildcard key', () => {
     const key = new TreePathKey([], true);
 
