@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { UriUtil } from '@this/net-util';
+import { HostUtil } from '@this/net-util';
 import { MustBe } from '@this/typey';
 
 import { BaseConfig } from '#x/BaseConfig';
@@ -52,7 +52,7 @@ export class HostConfig extends BaseConfig {
 
     this.#hostnames = Util.checkAndFreezeStrings(
       hostnames,
-      (item) => UriUtil.checkHostname(item, true));
+      (item) => HostUtil.checkHostname(item, true));
 
     this.#selfSigned = MustBe.boolean(selfSigned);
 

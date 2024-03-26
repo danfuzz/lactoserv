@@ -6,7 +6,7 @@ import { SecureContext } from 'node:tls';
 import { TreePathKey, TreePathMap } from '@this/collections';
 import { IntfLogger } from '@this/loggy-intf';
 import { IntfHostManager } from '@this/net-protocol';
-import { UriUtil } from '@this/net-util';
+import { HostUtil } from '@this/net-util';
 import { HostConfig } from '@this/sys-config';
 
 import { HostItem } from '#p/HostItem';
@@ -88,7 +88,7 @@ export class HostManager {
     const result = new HostManager();
 
     for (const name of names) {
-      const key   = UriUtil.parseHostname(name, true);
+      const key   = HostUtil.parseHostname(name, true);
       const found = this.#items.findSubtree(key);
       if (found.size === 0) {
         throw new Error(`No bindings found for hostname: ${name}`);
@@ -146,7 +146,7 @@ export class HostManager {
     const item = new HostItem(hostItem);
 
     for (const name of item.config.hostnames) {
-      const key = UriUtil.parseHostname(name, true);
+      const key = HostUtil.parseHostname(name, true);
       this.#items.add(key, item);
       this.#logger?.bound(name);
     }
@@ -163,7 +163,7 @@ export class HostManager {
    *   found.
    */
   #findItem(name, allowWildcard) {
-    const key = UriUtil.parseHostnameOrNull(name, allowWildcard);
+    const key = HostUtil.parseHostnameOrNull(name, allowWildcard);
 
     if (key === null) {
       this.#logger?.invalidHostname(name);
