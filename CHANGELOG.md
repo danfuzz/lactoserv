@@ -22,11 +22,12 @@ Breaking changes:
     property `infoForLog`.
   * Likewise, renamed `OutgoingResponse.getLoggableResponseInfo()` to
     `getInfoForLog()` (still a method because it needs arguments).
-
-Other notable changes:
 * `sys-framework`:
   * Renamed filter config `maxPathLength` to `maxPathDepth`, and made a new
     `maxPathLength` which filters based on the octet count of a path.
+
+Other notable changes:
+* None.
 
 ### v0.6.11 -- 2024-03-22
 
