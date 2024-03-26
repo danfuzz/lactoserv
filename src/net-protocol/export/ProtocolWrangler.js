@@ -80,9 +80,6 @@ export class ProtocolWrangler {
   /** @type {Threadlet} Threadlet which runs the "network stack." */
   #runner = new Threadlet(() => this.#startNetwork(), () => this.#runNetwork());
 
-  /** @type {boolean} Has initialization been finished? */
-  #initialized = false;
-
   /**
    * @type {boolean} Is a system reload in progress (either during start or
    * stop)?
@@ -168,7 +165,23 @@ export class ProtocolWrangler {
     // `IncomingRequest`.
     this.#requestLogger = logger?.req ?? null;
 
-    await this.#initialize();
+    await this._impl_initialize();
+
+    const server = this._impl_server();
+
+    server.on('request', (...args) => this.#incomingRequest(...args));
+
+    // Set up an event handler to propagate the connection context. See
+    // `_prot_newConnection()` for a treatise about what's going on.
+    server.on('secureConnection', (socket) => {
+      const ctx = this.#perConnectionStorage.getStore();
+      if (ctx) {
+        WranglerContext.bind(socket, ctx);
+      } else {
+        this.#logger?.missingContext('secureConnection');
+        throw new Error('Shouldn\'t happen: Missing context during secure connection setup.');
+      }
+    });
   }
 
   /**
@@ -460,40 +473,6 @@ export class ProtocolWrangler {
       res.statusCode = 500; // "Internal Server Error."
       res.end();
     }
-  }
-
-  /**
-   * Finishes initialization of the instance, by setting up all the event and
-   * route handlers on the protocol server and high-level application instance.
-   * We can't do this in the constructor, because at the time this (base class)
-   * constructor runs, the concrete class constructor hasn't finished, and it's
-   * only after it's finished that we can grab the objects that it's responsible
-   * for creating.
-   */
-  async #initialize() {
-    if (this.#initialized) {
-      return;
-    }
-
-    await this._impl_initialize();
-
-    const server = this._impl_server();
-
-    server.on('request', (...args) => this.#incomingRequest(...args));
-
-    // Set up an event handler to propagate the connection context. See
-    // `_prot_newConnection()` for a treatise about what's going on.
-    server.on('secureConnection', (socket) => {
-      const ctx = this.#perConnectionStorage.getStore();
-      if (ctx) {
-        WranglerContext.bind(socket, ctx);
-      } else {
-        this.#logger?.missingContext('secureConnection');
-        throw new Error('Shouldn\'t happen: Missing context during secure connection setup.');
-      }
-    });
-
-    this.#initialized = true;
   }
 
   /**
