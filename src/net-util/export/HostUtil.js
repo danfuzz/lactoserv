@@ -321,6 +321,24 @@ export class HostUtil {
   }
 
   /**
+   * Gets the string form of a {@link TreePathKey}, interpreted as a hostname,
+   * where the TLD is the initial path component. That is, the result renders
+   * the key in reverse.
+   *
+   * @param {TreePathKey} key The key to convert.
+   * @returns {string} The hostname string form.
+   */
+  static hostnameStringFrom(key) {
+    MustBe.instanceOf(key, TreePathKey);
+
+    return key.toString({
+      prefix:    '',
+      separator: '.',
+      reverse:   true
+    });
+  }
+
+  /**
    * Parses a possibly-wildcarded hostname into a {@link TreePathKey}. This
    * accepts both DNS names and IP addresses. In the case of an IP address, the
    * result is a single-component path key.
