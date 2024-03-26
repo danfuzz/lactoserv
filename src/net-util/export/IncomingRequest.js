@@ -80,10 +80,10 @@ export class IncomingRequest {
   #parsedTargetObject = null;
 
   /**
-   * @type {?object} The result of {@link #getLoggableRequestInfo}, or `null` if
-   * not yet calculated.
+   * @type {?object} The result of {@link #infoForLogging}, or `null` if not yet
+   * calculated.
    */
-  #loggableRequestInfo = null;
+  #infoForLogging = null;
 
   /**
    * @type {?string} The value of {@link #urlForLogging}, or `null` if not yet
@@ -197,6 +197,40 @@ export class IncomingRequest {
    */
   get id() {
     return this.#id;
+  }
+
+  /**
+   * Gets all reasonably-logged info about the request that was made.
+   *
+   * **Note:** The `headers` in the result omits anything that is redundant with
+   * respect to other parts of the return value. (E.g., the `cookie` header is
+   * omitted if it was able to be parsed.)
+   *
+   * @returns {object} Loggable information about the request. The result is
+   *   always frozen.
+   */
+  get infoForLogging() {
+    if (!this.#infoForLogging) {
+      const { cookies, method, origin, urlForLogging } = this;
+
+      const result = {
+        origin:   FormatUtils.addressPortString(origin.address, origin.port),
+        protocol: this.protocolName,
+        method,
+        url:      urlForLogging,
+        headers:  this.#sanitizeRequestHeaders()
+      };
+
+      if (cookies.size !== 0) {
+        result.cookies = Object.freeze(Object.fromEntries(cookies));
+        delete result.headers.cookie;
+      }
+
+      Object.freeze(result.headers);
+      this.#infoForLogging = Object.freeze(result);
+    }
+
+    return this.#infoForLogging;
   }
 
   /**
@@ -329,40 +363,6 @@ export class IncomingRequest {
    */
   getHeaderOrNull(name) {
     return this.headers[name] ?? null;
-  }
-
-  /**
-   * Gets all reasonably-logged info about the request that was made.
-   *
-   * **Note:** The `headers` in the result omits anything that is redundant
-   * with respect to other parts of the return value. (E.g., the `cookie` header
-   * is omitted if it was able to be parsed.)
-   *
-   * @returns {object} Loggable information about the request. The result is
-   *   always frozen.
-   */
-  getLoggableRequestInfo() {
-    if (!this.#loggableRequestInfo) {
-      const { cookies, method, origin, urlForLogging } = this;
-
-      const result = {
-        origin:   FormatUtils.addressPortString(origin.address, origin.port),
-        protocol: this.protocolName,
-        method,
-        url:      urlForLogging,
-        headers:  this.#sanitizeRequestHeaders()
-      };
-
-      if (cookies.size !== 0) {
-        result.cookies = Object.freeze(Object.fromEntries(cookies));
-        delete result.headers.cookie;
-      }
-
-      Object.freeze(result.headers);
-      this.#loggableRequestInfo = Object.freeze(result);
-    }
-
-    return this.#loggableRequestInfo;
   }
 
   /**

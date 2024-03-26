@@ -50,7 +50,7 @@ export class RequestLogger extends BaseFileService {
   /** @override */
   async requestStarted(networkInfo_unused, timingInfo_unused, request) {
     if (this.#doSyslog) {
-      request.logger?.request(request.getLoggableRequestInfo());
+      request.logger?.request(request.infoForLogging);
     }
   }
 
@@ -67,7 +67,7 @@ export class RequestLogger extends BaseFileService {
       request.logger?.timing(timingInfo);
     }
 
-    const { method, origin, protocol, url }             = request.getLoggableRequestInfo();
+    const { method, origin, protocol, url }             = request.infoForLogging;
     const { duration, end }                             = timingInfo;
     const { contentLength, errorCodes, ok, statusCode } = responseInfo;
 

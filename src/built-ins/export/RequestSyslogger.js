@@ -30,7 +30,7 @@ export class RequestSyslogger extends BaseService {
 
   /** @override */
   async requestStarted(networkInfo_unused, timingInfo_unused, request) {
-    request.logger?.request(request.getLoggableRequestInfo());
+    request.logger?.request(request.infoForLogging);
   }
 
   /** @override */

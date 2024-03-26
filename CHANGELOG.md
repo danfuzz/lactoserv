@@ -18,6 +18,8 @@ Breaking changes:
   * Replaced `DispatchInfo.{base,extra}String` properties with a single combined
     property `infoForLogging`, which avoids an "attractive nuisance" with the
     old scheme (which in fact caused a bug).
+  * In harmony, renamed method `IncomingRequest.getLoggableRequestInfo()` to
+    property `infoForLogging`.
 
 Other notable changes:
 * `sys-framework`:
