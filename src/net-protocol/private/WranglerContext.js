@@ -1,6 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { AsyncLocalStorage } from 'node:async_hooks';
+import { EventEmitter } from 'node:events';
 import * as net from 'node:net';
 import * as stream from 'node:stream';
 
@@ -138,6 +140,22 @@ export class WranglerContext {
     return this.#wrangler;
   }
 
+  /**
+   * Emits an event with an {@link AsyncLocalStorage} instance bound to this
+   * instance, which can be recovered in follow-on event handlers by {@link
+   * #currentInstance}.
+   *
+   * @param {EventEmitter} emitter Event emitter to send from.
+   * @param {string|symbol} eventName The event name.
+   * @param {...*} args Arbitrary event arguments.
+   * @returns {boolean} Standard result from {@link EventEmitter#emit}.
+   */
+  emitInContext(emitter, eventName, ...args) {
+    const callback = () => emitter.emit(eventName, ...args);
+
+    return WranglerContext.#perWranglerStorage.run(this, callback);
+  }
+
 
   //
   // Static members
@@ -150,6 +168,28 @@ export class WranglerContext {
   static #CONTEXT_MAP = new WeakMap();
 
   /**
+   * @type {AsyncLocalStorage} Async storage that can be bound to instances of
+   * this class, to enable plumbing contexts through event chains that don't
+   * otherwise bear enough information to recover the contexts.
+   */
+  static #perWranglerStorage = new AsyncLocalStorage();
+
+  /**
+   * @returns {WranglerContext} The instance that was bound most-closely by
+   *   {@link #emitInContext}, if any.
+   * @throws {Error} Thrown if there is no currently-bound instance.
+   */
+  static get currentInstance() {
+    const ctx = this.#perWranglerStorage.getStore();
+
+    if (!ctx) {
+      throw new Error('No "current" context.');
+    }
+
+    return ctx;
+  }
+
+  /**
    * Binds an instance of this class to the given external related object.
    *
    * @param {object} obj The object to bind from.
@@ -158,6 +198,15 @@ export class WranglerContext {
    */
   static bind(obj, context) {
     this.#CONTEXT_MAP.set(obj, context);
+  }
+
+  /**
+   * Binds an arbitrary external object to the {@link #currentInstance}.
+   *
+   * @param {object} obj The object to bind.
+   */
+  static bindCurrent(obj) {
+    this.bind(obj, this.currentInstance);
   }
 
   /**

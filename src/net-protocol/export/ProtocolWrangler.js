@@ -1,7 +1,6 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { AsyncLocalStorage } from 'node:async_hooks';
 import { IncomingMessage, ServerResponse } from 'node:http';
 import { Http2ServerRequest, Http2ServerResponse } from 'node:http2';
 import * as net from 'node:net';
@@ -67,12 +66,6 @@ export class ProtocolWrangler {
 
   /** @type {object} Return value for {@link #interface}. */
   #interfaceObject;
-
-  /**
-   * @type {AsyncLocalStorage} Per-connection storage, used to plumb connection
-   * context through to the various objects that use the connection.
-   */
-  #perConnectionStorage = new AsyncLocalStorage();
 
   /** @type {string} Value to use for the `Server` HTTP-ish response header. */
   #serverHeader;
@@ -173,15 +166,7 @@ export class ProtocolWrangler {
 
     // Set up an event handler to propagate the connection context. See
     // `_prot_newConnection()` for a treatise about what's going on.
-    server.on('secureConnection', (socket) => {
-      const ctx = this.#perConnectionStorage.getStore();
-      if (ctx) {
-        WranglerContext.bind(socket, ctx);
-      } else {
-        this.#logger?.missingContext('secureConnection');
-        throw new Error('Shouldn\'t happen: Missing context during secure connection setup.');
-      }
-    });
+    server.on('secureConnection', (socket) => WranglerContext.bindCurrent(socket));
   }
 
   /**
@@ -295,24 +280,6 @@ export class ProtocolWrangler {
     Methods.abstract(willReload);
   }
 
-  /**
-   * @returns {WranglerContext} The contextually-current wrangler context for
-   * the connection. This can expected to work in any "descendant" callback made
-   * from the original `connection` event from a server socket. See
-   * {@link #_prot_newConnection} for a treatise about what's going on.
-   */
-  get _prot_connectionContext() {
-    const ctx = this.#perConnectionStorage.getStore();
-
-    if (!ctx) {
-      // Shouldn't happen (see doc comment).
-      this.#logger?.missingContext();
-      throw new Error('Shouldn\'t happen: Missing connection context.');
-    }
-
-    return ctx;
-  }
-
   /** @returns {?IntfHostManager} The host manager, if any. */
   get _prot_hostManager() {
     return this.#hostManager;
@@ -357,10 +324,7 @@ export class ProtocolWrangler {
     const connectionCtx = WranglerContext.forConnection(this, socket, logger);
 
     WranglerContext.bind(socket, connectionCtx);
-
-    this.#perConnectionStorage.run(connectionCtx, () => {
-      this._impl_server().emit('connection', socket);
-    });
+    connectionCtx.emitInContext(this._impl_server(), 'connection', socket);
 
     // Note: The code responsible for handing us the connection also does
     // logging for it, so there's no need for additional connection logging
