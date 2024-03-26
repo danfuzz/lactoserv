@@ -365,12 +365,12 @@ describe('toString()', () => {
   describe('with default options', () => {
     test.each`
     path                     | wildcard | expected
-    ${[]}                    | ${false} | ${'/'}
-    ${[]}                    | ${true}  | ${'/*'}
-    ${['a']}                 | ${false} | ${'/a'}
-    ${['a']}                 | ${true}  | ${'/a/*'}
-    ${['foo', 'bar', 'baz']} | ${false} | ${'/foo/bar/baz'}
-    ${['blort', 'zorch']}    | ${true}  | ${'/blort/zorch/*'}
+    ${[]}                    | ${false} | ${'[]'}
+    ${[]}                    | ${true}  | ${'[*]'}
+    ${['a']}                 | ${false} | ${'[a]'}
+    ${['a']}                 | ${true}  | ${'[a, *]'}
+    ${['foo', 'bar', 'baz']} | ${false} | ${'[foo, bar, baz]'}
+    ${['blort', 'zorch']}    | ${true}  | ${'[blort, zorch, *]'}
     `('on { path: $path, wildcard: $wildcard }', ({ path, wildcard, expected }) => {
       const key = new TreePathKey(path, wildcard);
       expect(key.toString()).toBe(expected);
@@ -380,11 +380,11 @@ describe('toString()', () => {
   describe('with option `prefix`', () => {
     test.each`
     prefix   | path                  | wildcard | expected
-    ${''}    | ${[]}                 | ${false} | ${''}
-    ${''}    | ${[]}                 | ${true}  | ${'*'}
-    ${'X'}   | ${['a']}              | ${false} | ${'Xa'}
-    ${'@@@'} | ${['z']}              | ${true}  | ${'@@@z/*'}
-    ${'_:'}  | ${['aa', 'bb', 'cc']} | ${true}  | ${'_:aa/bb/cc/*'}
+    ${''}    | ${[]}                 | ${false} | ${']'}
+    ${''}    | ${[]}                 | ${true}  | ${'*]'}
+    ${'X'}   | ${['a']}              | ${false} | ${'Xa]'}
+    ${'@@@'} | ${['z']}              | ${true}  | ${'@@@z, *]'}
+    ${'_:'}  | ${['aa', 'bb', 'cc']} | ${true}  | ${'_:aa, bb, cc, *]'}
     `('on { path: $path, wildcard: $wildcard }, with $prefix', ({ prefix, path, wildcard, expected }) => {
       const key = new TreePathKey(path, wildcard);
       expect(key.toString({ prefix })).toBe(expected);
@@ -394,11 +394,11 @@ describe('toString()', () => {
   describe('with option `suffix`', () => {
     test.each`
     suffix   | path                  | wildcard | expected
-    ${''}    | ${[]}                 | ${false} | ${'/'}
-    ${''}    | ${[]}                 | ${true}  | ${'/*'}
-    ${'X'}   | ${['a']}              | ${false} | ${'/aX'}
-    ${'@@@'} | ${['z']}              | ${true}  | ${'/z/*@@@'}
-    ${'!!'}  | ${['aa', 'bb', 'cc']} | ${true}  | ${'/aa/bb/cc/*!!'}
+    ${''}    | ${[]}                 | ${false} | ${'['}
+    ${''}    | ${[]}                 | ${true}  | ${'[*'}
+    ${'X'}   | ${['a']}              | ${false} | ${'[aX'}
+    ${'@@@'} | ${['z']}              | ${true}  | ${'[z, *@@@'}
+    ${'!!'}  | ${['aa', 'bb', 'cc']} | ${true}  | ${'[aa, bb, cc, *!!'}
     `('on { path: $path, wildcard: $wildcard }, with $suffix', ({ suffix, path, wildcard, expected }) => {
       const key = new TreePathKey(path, wildcard);
       expect(key.toString({ suffix })).toBe(expected);
@@ -408,38 +408,38 @@ describe('toString()', () => {
   describe('with option `separatePrefix`', () => {
     test.each`
     separatePrefix | path           | wildcard | expected
-    ${false}       | ${[]}          | ${false} | ${'#'}
-    ${false}       | ${[]}          | ${true}  | ${'#*'}
-    ${true}        | ${[]}          | ${false} | ${'#'}
-    ${true}        | ${[]}          | ${true}  | ${'#:*'}
-    ${false}       | ${['a']}       | ${false} | ${'#a'}
-    ${false}       | ${['a']}       | ${true}  | ${'#a:*'}
-    ${true}        | ${['a']}       | ${false} | ${'#:a'}
-    ${true}        | ${['a']}       | ${true}  | ${'#:a:*'}
-    ${false}       | ${['']}        | ${false} | ${'#'}
-    ${false}       | ${['']}        | ${true}  | ${'#:*'}
-    ${true}        | ${['']}        | ${false} | ${'#:'}
-    ${true}        | ${['']}        | ${true}  | ${'#::*'}
-    ${false}       | ${['', 'abc']} | ${false} | ${'#:abc'}
-    ${false}       | ${['', 'abc']} | ${true}  | ${'#:abc:*'}
-    ${true}        | ${['', 'abc']} | ${false} | ${'#::abc'}
-    ${true}        | ${['', 'abc']} | ${true}  | ${'#::abc:*'}
+    ${false}       | ${[]}          | ${false} | ${'#!'}
+    ${false}       | ${[]}          | ${true}  | ${'#*!'}
+    ${true}        | ${[]}          | ${false} | ${'#!'}
+    ${true}        | ${[]}          | ${true}  | ${'#:*!'}
+    ${false}       | ${['a']}       | ${false} | ${'#a!'}
+    ${false}       | ${['a']}       | ${true}  | ${'#a:*!'}
+    ${true}        | ${['a']}       | ${false} | ${'#:a!'}
+    ${true}        | ${['a']}       | ${true}  | ${'#:a:*!'}
+    ${false}       | ${['']}        | ${false} | ${'#!'}
+    ${false}       | ${['']}        | ${true}  | ${'#:*!'}
+    ${true}        | ${['']}        | ${false} | ${'#:!'}
+    ${true}        | ${['']}        | ${true}  | ${'#::*!'}
+    ${false}       | ${['', 'abc']} | ${false} | ${'#:abc!'}
+    ${false}       | ${['', 'abc']} | ${true}  | ${'#:abc:*!'}
+    ${true}        | ${['', 'abc']} | ${false} | ${'#::abc!'}
+    ${true}        | ${['', 'abc']} | ${true}  | ${'#::abc:*!'}
     `('on { path: $path, wildcard: $wildcard }, with $separatePrefix', ({ separatePrefix, path, wildcard, expected }) => {
       // Note: We use `prefix` and `separator` options here to make sure we can
-      // distinguish what's going on.
+      // distinguish what's going on. We use `suffix` just for clarity.
       const key = new TreePathKey(path, wildcard);
-      expect(key.toString({ separatePrefix, prefix: '#', separator: ':' })).toBe(expected);
+      expect(key.toString({ separatePrefix, prefix: '#', separator: ':', suffix: '!' })).toBe(expected);
     });
   });
 
   describe('with option `separator`', () => {
     test.each`
     separator | path                  | wildcard | expected
-    ${''}     | ${[]}                 | ${false} | ${'/'}
-    ${''}     | ${[]}                 | ${true}  | ${'/*'}
-    ${'X'}    | ${['a']}              | ${false} | ${'/a'}
-    ${'@@@'}  | ${['a', 'z']}         | ${true}  | ${'/a@@@z@@@*'}
-    ${'!!'}   | ${['aa', 'bb', 'cc']} | ${false} | ${'/aa!!bb!!cc'}
+    ${''}     | ${[]}                 | ${false} | ${'[]'}
+    ${''}     | ${[]}                 | ${true}  | ${'[*]'}
+    ${'X'}    | ${['a']}              | ${false} | ${'[a]'}
+    ${'@@@'}  | ${['a', 'z']}         | ${true}  | ${'[a@@@z@@@*]'}
+    ${'!!'}   | ${['aa', 'bb', 'cc']} | ${false} | ${'[aa!!bb!!cc]'}
     `('on { path: $path, wildcard: $wildcard }, with $separator', ({ separator, path, wildcard, expected }) => {
       const key = new TreePathKey(path, wildcard);
       expect(key.toString({ separator })).toBe(expected);
@@ -449,15 +449,15 @@ describe('toString()', () => {
   describe('with option `wildcard`', () => {
     test.each`
     wildcard | path                  | keyWild  | expected
-    ${''}    | ${[]}                 | ${false} | ${'/'}
-    ${''}    | ${[]}                 | ${true}  | ${'/'}
-    ${''}    | ${['a']}              | ${false} | ${'/a'}
-    ${''}    | ${['a']}              | ${true}  | ${'/a/'}
-    ${null}  | ${['a']}              | ${false} | ${'/a'}
-    ${null}  | ${['a']}              | ${true}  | ${'/a'}
-    ${'X'}   | ${['a']}              | ${false} | ${'/a'}
-    ${'X'}   | ${['a']}              | ${true}  | ${'/a/X'}
-    ${'!!'}  | ${['aa', 'bb', 'cc']} | ${true}  | ${'/aa/bb/cc/!!'}
+    ${''}    | ${[]}                 | ${false} | ${'[]'}
+    ${''}    | ${[]}                 | ${true}  | ${'[]'}
+    ${''}    | ${['a']}              | ${false} | ${'[a]'}
+    ${''}    | ${['a']}              | ${true}  | ${'[a, ]'}
+    ${null}  | ${['a']}              | ${false} | ${'[a]'}
+    ${null}  | ${['a']}              | ${true}  | ${'[a]'}
+    ${'X'}   | ${['a']}              | ${false} | ${'[a]'}
+    ${'X'}   | ${['a']}              | ${true}  | ${'[a, X]'}
+    ${'!!'}  | ${['aa', 'bb', 'cc']} | ${true}  | ${'[aa, bb, cc, !!]'}
     `('on { path: $path, wildcard: $keyWild }, with $wildcard', ({ wildcard, path, keyWild, expected }) => {
       const key = new TreePathKey(path, keyWild);
       expect(key.toString({ wildcard })).toBe(expected);
@@ -467,17 +467,17 @@ describe('toString()', () => {
   describe('with option `quote`', () => {
     test.each`
     quote    | path                     | wildcard | expected
-    ${false} | ${[]}                    | ${false} | ${'/'}
-    ${false} | ${[]}                    | ${true}  | ${'/*'}
-    ${true}  | ${[]}                    | ${false} | ${'/'}
-    ${true}  | ${[]}                    | ${true}  | ${'/*'}
-    ${false} | ${['a']}                 | ${false} | ${'/a'}
-    ${false} | ${['b']}                 | ${true}  | ${'/b/*'}
-    ${true}  | ${['c']}                 | ${false} | ${"/'c'"}
-    ${true}  | ${['d']}                 | ${true}  | ${"/'d'/*"}
-    ${true}  | ${['aaa', "b'c", 'd"e']} | ${false} | ${"/'aaa'/\"b'c\"/'d\"e'"}
-    ${true}  | ${['a\'b"c', '\n']}      | ${false} | ${"/`a'b\"c`/'\\n'"}
-    ${true}  | ${['a\'b"c`d']}          | ${true}  | ${"/'a\\'b\"c`d'/*"}
+    ${false} | ${[]}                    | ${false} | ${'[]'}
+    ${false} | ${[]}                    | ${true}  | ${'[*]'}
+    ${true}  | ${[]}                    | ${false} | ${'[]'}
+    ${true}  | ${[]}                    | ${true}  | ${'[*]'}
+    ${false} | ${['a']}                 | ${false} | ${'[a]'}
+    ${false} | ${['b']}                 | ${true}  | ${'[b, *]'}
+    ${true}  | ${['c']}                 | ${false} | ${"['c']"}
+    ${true}  | ${['d']}                 | ${true}  | ${"['d', *]"}
+    ${true}  | ${['aaa', "b'c", 'd"e']} | ${false} | ${"['aaa', \"b'c\", 'd\"e']"}
+    ${true}  | ${['a\'b"c', '\n']}      | ${false} | ${"[`a'b\"c`, '\\n']"}
+    ${true}  | ${['a\'b"c`d']}          | ${true}  | ${"['a\\'b\"c`d', *]"}
     `('on { path: $path, wildcard: $wildcard }, with $quote', ({ quote, path, wildcard, expected }) => {
       const key = new TreePathKey(path, wildcard);
       expect(key.toString({ quote })).toBe(expected);
@@ -487,18 +487,18 @@ describe('toString()', () => {
   describe('with option `reverse`', () => {
     test.each`
     reverse  | path            | wildcard | expected
-    ${false} | ${[]}           | ${false} | ${'/'}
-    ${false} | ${[]}           | ${true}  | ${'/*'}
-    ${false} | ${['a']}        | ${false} | ${'/a'}
-    ${false} | ${['a']}        | ${true}  | ${'/a/*'}
-    ${false} | ${['az', 'bc']} | ${false} | ${'/az/bc'}
-    ${false} | ${['az', 'bc']} | ${true}  | ${'/az/bc/*'}
-    ${true}  | ${[]}           | ${false} | ${'/'}
-    ${true}  | ${[]}           | ${true}  | ${'/*'}
-    ${true}  | ${['a']}        | ${false} | ${'/a'}
-    ${true}  | ${['a']}        | ${true}  | ${'/*/a'}
-    ${true}  | ${['az', 'bc']} | ${false} | ${'/bc/az'}
-    ${true}  | ${['az', 'bc']} | ${true}  | ${'/*/bc/az'}
+    ${false} | ${[]}           | ${false} | ${'[]'}
+    ${false} | ${[]}           | ${true}  | ${'[*]'}
+    ${false} | ${['a']}        | ${false} | ${'[a]'}
+    ${false} | ${['a']}        | ${true}  | ${'[a, *]'}
+    ${false} | ${['az', 'bc']} | ${false} | ${'[az, bc]'}
+    ${false} | ${['az', 'bc']} | ${true}  | ${'[az, bc, *]'}
+    ${true}  | ${[]}           | ${false} | ${'[]'}
+    ${true}  | ${[]}           | ${true}  | ${'[*]'}
+    ${true}  | ${['a']}        | ${false} | ${'[a]'}
+    ${true}  | ${['a']}        | ${true}  | ${'[*, a]'}
+    ${true}  | ${['az', 'bc']} | ${false} | ${'[bc, az]'}
+    ${true}  | ${['az', 'bc']} | ${true}  | ${'[*, bc, az]'}
     `('on { path: $path, wildcard: $wildcard }, with $reverse', ({ reverse, path, wildcard, expected }) => {
       const key = new TreePathKey(path, wildcard);
       expect(key.toString({ reverse })).toBe(expected);
@@ -509,7 +509,7 @@ describe('toString()', () => {
       // other defaults.
       const key = new TreePathKey(['abc', '123', 'xyz'], true);
       const str = key.toString({ reverse: true, prefix: '[[<', suffix: '>]]' });
-      expect(str).toBe('[[<*/xyz/123/abc>]]');
+      expect(str).toBe('[[<*, xyz, 123, abc>]]');
     });
   });
 });
