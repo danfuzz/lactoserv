@@ -66,7 +66,6 @@ export class DispatchInfo {
    * calculations.
    */
   get baseString() {
-    // `true` == relative form.
     return UriUtil.pathStringFrom(this.#base);
   }
 
@@ -87,6 +86,7 @@ export class DispatchInfo {
    * calculations.
    */
   get extraString() {
+    // `true` == relative form.
     return UriUtil.pathStringFrom(this.#extra, true);
   }
 
