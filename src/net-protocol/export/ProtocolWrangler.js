@@ -387,7 +387,7 @@ export class ProtocolWrangler {
         // The configured `requestHandler` didn't actually handle the request.
         // Respond with a vanilla `404` error. (If the client wants something
         // fancier, they can do it themselves.)
-        const bodyExtra = request.urlForLogging;
+        const bodyExtra = request.urlForLog;
         return OutgoingResponse.makeNotFound({ bodyExtra });
       } else {
         // Caught by our direct caller, `#respondToRequest()`.
@@ -432,7 +432,7 @@ export class ProtocolWrangler {
       logger?.incomingRequest({
         ...context.ids,
         requestId: request.id,
-        url:       request.urlForLogging
+        url:       request.urlForLog
       });
 
       if (this.#logHelper) {

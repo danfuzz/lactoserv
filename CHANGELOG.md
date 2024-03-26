@@ -16,12 +16,12 @@ Breaking changes:
   * Pulled `uriPathStringFrom()` from `TreePathKey` into `UriUtil`, renaming it
     to `pathStringFrom()` and tweaking its contract.
   * Replaced `DispatchInfo.{base,extra}String` properties with a single combined
-    property `infoForLogging`, which avoids an "attractive nuisance" with the
-    old scheme (which in fact caused a bug).
+    property `infoForLog`, which avoids an "attractive nuisance" with the old
+    scheme (which in fact caused a bug).
   * In harmony, renamed method `IncomingRequest.getLoggableRequestInfo()` to
-    property `infoForLogging`.
+    property `infoForLog`.
   * Likewise, renamed `OutgoingResponse.getLoggableResponseInfo()` to
-    `getInfoForLogging()` (still a method because it needs arguments).
+    `getInfoForLog()` (still a method because it needs arguments).
 
 Other notable changes:
 * `sys-framework`:

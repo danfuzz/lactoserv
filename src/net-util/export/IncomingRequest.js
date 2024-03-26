@@ -80,16 +80,16 @@ export class IncomingRequest {
   #parsedTargetObject = null;
 
   /**
-   * @type {?object} The result of {@link #infoForLogging}, or `null` if not yet
+   * @type {?object} The result of {@link #infoForLog}, or `null` if not yet
    * calculated.
    */
-  #infoForLogging = null;
+  #infoForLog = null;
 
   /**
-   * @type {?string} The value of {@link #urlForLogging}, or `null` if not yet
+   * @type {?string} The value of {@link #urlForLog}, or `null` if not yet
    * calculated.
    */
-  #urlForLogging = null;
+  #urlForLog = null;
 
   /**
    * Constructs an instance.
@@ -209,15 +209,15 @@ export class IncomingRequest {
    * @returns {object} Loggable information about the request. The result is
    *   always frozen.
    */
-  get infoForLogging() {
-    if (!this.#infoForLogging) {
-      const { cookies, method, origin, urlForLogging } = this;
+  get infoForLog() {
+    if (!this.#infoForLog) {
+      const { cookies, method, origin, urlForLog } = this;
 
       const result = {
         origin:   FormatUtils.addressPortString(origin.address, origin.port),
         protocol: this.protocolName,
         method,
-        url:      urlForLogging,
+        url:      urlForLog,
         headers:  this.#sanitizeRequestHeaders()
       };
 
@@ -227,10 +227,10 @@ export class IncomingRequest {
       }
 
       Object.freeze(result.headers);
-      this.#infoForLogging = Object.freeze(result);
+      this.#infoForLog = Object.freeze(result);
     }
 
-    return this.#infoForLogging;
+    return this.#infoForLog;
   }
 
   /**
@@ -340,18 +340,18 @@ export class IncomingRequest {
    * This value is meant for logging, and specifically _not_ for any routing or
    * other more meaningful computation (hence the name).
    */
-  get urlForLogging() {
-    if (!this.#urlForLogging) {
+  get urlForLog() {
+    if (!this.#urlForLog) {
       const { host }               = this;
       const { targetString, type } = this.#parsedTarget;
       const prefix                 = `//${host.namePortString}`;
 
-      this.#urlForLogging = (type === 'origin')
+      this.#urlForLog = (type === 'origin')
         ? `${prefix}${targetString}`
         : `${prefix}:${type}=${targetString}`;
     }
 
-    return this.#urlForLogging;
+    return this.#urlForLog;
   }
 
   /**

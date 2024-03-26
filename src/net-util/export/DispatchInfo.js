@@ -88,7 +88,7 @@ export class DispatchInfo {
    * the face of unusual input, because paths are rendered as slash-separated
    * strings.
    */
-  get infoForLogging() {
+  get infoForLog() {
     return {
       base:  UriUtil.pathStringFrom(this.#base),
       extra: UriUtil.pathStringFrom(this.#extra, true) // `true` == relative.

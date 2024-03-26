@@ -36,7 +36,7 @@ export class PathRouter extends BaseApplication {
 
       request.logger?.dispatchingPath({
         application: application.name,
-        ...(subDispatch.infoForLogging)
+        ...(subDispatch.infoForLog)
       });
 
       const result = await application.handleRequest(request, subDispatch);
