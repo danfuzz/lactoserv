@@ -816,6 +816,97 @@ describe('findSubtree()', () => {
   });
 });
 
+describe('findWithFallback()', () => {
+  test('finds multiple matches in the expected order', () => {
+    const key1 = new TreePathKey([], true);
+    const key2 = new TreePathKey(['x'], true);
+    const key3 = new TreePathKey(['x', 'y'], true);
+    const key4 = new TreePathKey(['x', 'y'], false);
+
+    const map = new TreePathMap();
+    map.add(key1, 'a');
+    map.add(key2, 'b');
+    map.add(key3, 'c');
+    map.add(key4, 'd');
+
+    const result = [...map.findWithFallback(key4)];
+    expect(result).toBeArrayOfSize(4);
+
+    expect(result[0].key).toBe(key4);
+    expect(result[0].value).toBe('d');
+    expect(result[0].keyRemainder.path).toStrictEqual([]);
+
+    expect(result[1].key).toBe(key3);
+    expect(result[1].value).toBe('c');
+    expect(result[1].keyRemainder.path).toStrictEqual([]);
+
+    expect(result[2].key).toBe(key2);
+    expect(result[2].value).toBe('b');
+    expect(result[2].keyRemainder.path).toStrictEqual(['y']);
+
+    expect(result[3].key).toBe(key1);
+    expect(result[3].value).toBe('a');
+    expect(result[3].keyRemainder.path).toStrictEqual(['x', 'y']);
+  });
+
+  test('correctly finds a single match', () => {
+    const key1 = new TreePathKey([], false);
+    const key2 = new TreePathKey(['x'], false);
+    const key3 = new TreePathKey(['x', 'y'], false);
+    const key4 = new TreePathKey(['x', 'y', 'z'], false);
+
+    const map = new TreePathMap();
+    map.add(key1, 'a');
+    map.add(key2, 'b');
+    map.add(key3, 'c');
+    map.add(key4, 'd');
+
+    const result = [...map.findWithFallback(key3)];
+    expect(result).toBeArrayOfSize(1);
+
+    expect(result[0].key).toBe(key3);
+    expect(result[0].keyRemainder.path).toStrictEqual([]);
+    expect(result[0].value).toBe('c');
+  });
+
+  test('returns an immediately `done` generator if there is no match', () => {
+    const key1 = new TreePathKey([], false);
+    const key2 = new TreePathKey(['x'], false);
+    const key3 = new TreePathKey(['x', 'y'], false);
+
+    const map = new TreePathMap();
+    map.add(key1, 'a');
+    map.add(key2, 'b');
+
+    const result = map.findWithFallback(key3).next();
+    expect(result).toContainKey('done');
+    expect(result.done).toBeTrue();
+    expect(result.value).toBeUndefined();
+  });
+
+  test('does not find a non-wildcard prefix match', () => {
+    const key1 = new TreePathKey([], true);
+    const key2 = new TreePathKey(['x'], false);
+    const key3 = new TreePathKey(['x', 'y'], true);
+
+    const map = new TreePathMap();
+    map.add(key1, 'a');
+    map.add(key2, 'b');
+    map.add(key3, 'c');
+
+    const result = [...map.findWithFallback(key3)];
+    expect(result).toBeArrayOfSize(2);
+
+    expect(result[0].key).toBe(key3);
+    expect(result[0].keyRemainder.path).toStrictEqual([]);
+    expect(result[0].value).toBe('c');
+
+    expect(result[1].key).toBe(key1);
+    expect(result[1].keyRemainder.path).toStrictEqual(['x', 'y']);
+    expect(result[1].value).toBe('a');
+  });
+});
+
 describe('get()', () => {
   test('returns `null` when a key is not found, if `ifNotFound` was not passed', () => {
     const map = new TreePathMap();
