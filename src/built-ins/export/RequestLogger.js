@@ -60,7 +60,7 @@ export class RequestLogger extends BaseFileService {
     // thrown during request/response handling.
     const { connectionSocket, nodeResponse } = networkInfo;
     const responseInfo =
-      await OutgoingResponse.getLoggableResponseInfo(nodeResponse, connectionSocket);
+      await OutgoingResponse.getInfoForLogging(nodeResponse, connectionSocket);
 
     if (this.#doSyslog) {
       request.logger?.response(responseInfo);

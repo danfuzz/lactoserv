@@ -20,6 +20,8 @@ Breaking changes:
     old scheme (which in fact caused a bug).
   * In harmony, renamed method `IncomingRequest.getLoggableRequestInfo()` to
     property `infoForLogging`.
+  * Likewise, renamed `OutgoingResponse.getLoggableResponseInfo()` to
+    `getInfoForLogging()` (still a method because it needs arguments).
 
 Other notable changes:
 * `sys-framework`:
