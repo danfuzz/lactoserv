@@ -147,12 +147,12 @@ export class TreePathMap {
    * this method returns the same value as {@link #find} would have, except in
    * the form of a single-binding instance of this class.
    *
-   * For example, if passed a top-level wildcard key (e.g., `/*` in
-   * filesystem-like syntax), then this method will effectively return a clone
-   * of this instance because all bindings of this instance could potentially be
-   * found by a key which matches the given key (which is to say, any key). If
-   * instead passed a wildcard key with a non-empty path, then this method will
-   * only return bindings with keys at or under that path.
+   * For example, if passed a top-level wildcard key (i.e., `[*]` in array-like
+   * syntax), then this method will effectively return a clone of this instance
+   * because all bindings of this instance could potentially be found by a key
+   * which matches the given key (which is to say, any key). If instead passed a
+   * wildcard key with a non-empty path, then this method will only return
+   * bindings with keys at or under that path.
    *
    * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to look
    *   up.
