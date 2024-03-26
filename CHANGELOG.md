@@ -15,7 +15,9 @@ Breaking changes:
   * Renamed `Uris` to `UriUtil`.
   * Pulled `uriPathStringFrom()` from `TreePathKey` into `UriUtil`, renaming it
     to `pathStringFrom()` and tweaking its contract.
-  * Make `DispatchInfo.extraString` be a relative path, not an absolute one.
+  * Replaced `DispatchInfo.{base,extra}String` properties with a single combined
+    property `infoForLogging`, which avoids an "attractive nuisance" with the
+    old scheme (which in fact caused a bug).
 
 Other notable changes:
 * `sys-framework`:

@@ -58,36 +58,11 @@ export class DispatchInfo {
   }
 
   /**
-   * @returns {string} {@link #base}, as an absolute path string. (See
-   * {@link UriUtil#pathStringFrom}).
-   *
-   * **Note:** It is strongly recommended to _only_ use this property for
-   * logging/debugging purposes. {@link #base} is a better choice when doing
-   * calculations.
-   */
-  get baseString() {
-    return UriUtil.pathStringFrom(this.#base);
-  }
-
-  /**
    * @returns {TreePathKey} The remaining suffix portion of the path, after
    * removing {@link #base}.
    */
   get extra() {
     return this.#extra;
-  }
-
-  /**
-   * @returns {string} {@link #extra}, as a relative path string. (See
-   * {@link UriUtil#pathStringFrom}).
-   *
-   * **Note:** It is strongly recommended to _only_ use this property for
-   * logging/debugging purposes. {@link #extra} is a better choice when doing
-   * calculations.
-   */
-  get extraString() {
-    // `true` == relative form.
-    return UriUtil.pathStringFrom(this.#extra, true);
   }
 
   /**
@@ -105,6 +80,19 @@ export class DispatchInfo {
     const length = this.fullPathLength;
 
     return (length === 0) ? null : this.getFullPathComponent(length - 1);
+  }
+
+  /**
+   * @returns {object} Contents of this instance as a plain object with simple
+   * data properties, suitable for logging. The result is slightly ambiguous in
+   * the face of unusual input, because paths are rendered as slash-separated
+   * strings.
+   */
+  get infoForLogging() {
+    return {
+      base:  UriUtil.pathStringFrom(this.#base),
+      extra: UriUtil.pathStringFrom(this.#extra, true) // `true` == relative.
+    };
   }
 
   /**
