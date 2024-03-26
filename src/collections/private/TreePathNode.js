@@ -103,32 +103,44 @@ export class TreePathNode {
    *
    * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to look
    *   up.
-   * @param {boolean} wantNextChain Should the return value have `next` as
-   *   appropriate?
    * @returns {?{key: TreePathKey, keyRemainder: TreePathKey, value: *}} The
    *   found result, or `null` if there was no match.
    */
-  find(key, wantNextChain) {
-    const { path, wildcard } = key;
+  find(key) {
+    return this.findWithFallback(key).next().value ?? null;
+  }
 
-    if (!(key instanceof TreePathKey)) {
+  /**
+   * Underlying implementation of `TreePathMap.findWithFallback()`, see which
+   * for detailed docs.
+   *
+   * @param {TreePathKey|{path: string[], wildcard: boolean}} keyToFind Key to
+   *   find (natch).
+   * @yields {{key: TreePathKey, keyRemainder: TreePathKey, value: *}} One
+   *   result.
+   */
+  *findWithFallback(keyToFind) {
+    const { path, wildcard } = keyToFind;
+
+    if (!(keyToFind instanceof TreePathKey)) {
       TreePathKey.checkArguments(path, wildcard);
     }
 
-    let subtree = this;
-    let result  = null;
+    // In order to find the most-specific result, we end up having to find all
+    // the intermediate results first. So we build a list of results as a stack,
+    // then pop and `yield` them as demanded.
 
-    const updateResult = (k, value, keyRemainder = null) => {
-      result = (wantNextChain && result)
-        ? { key: k, keyRemainder, value, next: result }
-        : { key: k, keyRemainder, value };
+    const results = [];
+
+    const addResult = (key, value, keyRemainder = null) => {
+      results.push({ key, keyRemainder, value });
     };
 
+    let subtree = this;
     let at;
     for (at = 0; at < path.length; at++) {
       if (subtree.#wildcardKey) {
-        // Placeholder for `keyRemainder`, only calculated if needed.
-        updateResult(subtree.#wildcardKey, subtree.#wildcardValue);
+        addResult(subtree.#wildcardKey, subtree.#wildcardValue);
       }
       subtree = subtree.#subtrees.get(path[at]);
       if (!subtree) {
@@ -139,27 +151,24 @@ export class TreePathNode {
     if (at === path.length) {
       if (subtree.#wildcardKey) {
         // There's a matching wildcard at the end of the path.
-        updateResult(subtree.#wildcardKey, subtree.#wildcardValue, TreePathKey.EMPTY);
+        addResult(subtree.#wildcardKey, subtree.#wildcardValue, TreePathKey.EMPTY);
       }
 
       if (subtree.#emptyKey && !wildcard) {
         // There's an exact non-wildcard match for the path.
-        updateResult(subtree.#emptyKey, subtree.#emptyValue, TreePathKey.EMPTY);
+        addResult(subtree.#emptyKey, subtree.#emptyValue, TreePathKey.EMPTY);
       }
     }
 
-    if (result !== null) {
-      // Calculate `keyRemainder` for the result(s), if necessary.
-      for (let r = result; r; r = r.next) {
-        if (r.keyRemainder === null) {
-          const foundAt       = r.key.path.length;
-          const pathRemainder = Object.freeze(path.slice(foundAt));
-          r.keyRemainder = new TreePathKey(pathRemainder, false);
-        }
+    while (results.length !== 0) {
+      const result = results.pop();
+      if (result.keyRemainder === null) {
+        const foundAt       = result.key.path.length;
+        const pathRemainder = Object.freeze(path.slice(foundAt));
+        result.keyRemainder = new TreePathKey(pathRemainder, false);
       }
+      yield result;
     }
-
-    return result;
   }
 
   /**
@@ -181,7 +190,7 @@ export class TreePathNode {
 
     if (!wildcard) {
       // Non-wildcard is easy, because `find()` already does the right thing.
-      const found  = this.find(key);
+      const found = this.find(key);
       if (found !== null) {
         add(key, found.value);
       }
