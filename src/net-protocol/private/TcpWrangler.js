@@ -129,7 +129,7 @@ export class TcpWrangler extends ProtocolWrangler {
       }
 
       socket = this.#rateLimiter.wrapWriter(socket, connLogger);
-      WranglerContext.bind(socket, connectionCtx);
+      connectionCtx.bind(socket);
     }
 
     this.#sockets.add(socket);

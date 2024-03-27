@@ -141,6 +141,15 @@ export class WranglerContext {
   }
 
   /**
+   * Binds the given object to this instance.
+   *
+   * @param {object} obj The object to bind from.
+   */
+  bind(obj) {
+    WranglerContext.#CONTEXT_MAP.set(obj, this);
+  }
+
+  /**
    * Emits an event with an {@link AsyncLocalStorage} instance bound to this
    * instance, which can be recovered in follow-on event handlers by {@link
    * #currentInstance}.
@@ -210,23 +219,12 @@ export class WranglerContext {
   }
 
   /**
-   * Binds an instance of this class to the given external related object.
-   *
-   * @param {object} obj The object to bind from.
-   * @param {WranglerContext} context Instance of this class with salient
-   *   context.
-   */
-  static bind(obj, context) {
-    this.#CONTEXT_MAP.set(obj, context);
-  }
-
-  /**
    * Binds an arbitrary external object to the {@link #currentInstance}.
    *
    * @param {object} obj The object to bind.
    */
   static bindCurrent(obj) {
-    this.bind(obj, this.currentInstance);
+    this.currentInstance.bind(obj);
   }
 
   /**
@@ -249,7 +247,7 @@ export class WranglerContext {
       ctx.#connectionId     = logger.$meta.lastContext;
     }
 
-    this.bind(socket, ctx);
+    ctx.bind(socket);
 
     return ctx;
   }
@@ -271,8 +269,8 @@ export class WranglerContext {
       ctx.#sessionId     = logger.$meta.lastContext;
     }
 
-    this.bind(session, ctx);
-    this.bind(session.socket, ctx);
+    ctx.bind(session);
+    ctx.bind(session.socket);
 
     return ctx;
   }
