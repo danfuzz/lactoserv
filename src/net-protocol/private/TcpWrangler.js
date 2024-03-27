@@ -117,7 +117,10 @@ export class TcpWrangler extends ProtocolWrangler {
           remote: FormatUtils.addressPortString(socket.remoteAddress, socket.remotePort)
         });
       } catch (e) {
-        connLogger.error(e);
+        // Shouldn't happen. Almost certainly indicative of a bug in this
+        // project. Nonetheless, we don't want this failure to take the whole
+        // system down, so we just "meta-log" and keep going.
+        connLogger.errorWhileLogging(e);
       }
     }
 
@@ -151,7 +154,7 @@ export class TcpWrangler extends ProtocolWrangler {
     // network sockets are generally created in "allow half open" mode, which is
     // why we have to explicitly close our side. And, to be clear, we _don't_
     // want to disable half-open, because we ourselves want to be able to close
-    // our side without worrying about how the remote side reacts.
+    // our side without forcing the other side to close too.
     socket.once('end', () => {
       connLogger?.remoteClosed();
       socket.destroySoon(); // "Soon" means "after all pending data is written."
@@ -171,8 +174,8 @@ export class TcpWrangler extends ProtocolWrangler {
       }
 
       if (args.length === 0) {
-        // Only log a non-error close once, and only if no error close has been
-        // reported.
+        // Only log a non-error close once, and only if no errorful close has
+        // been reported.
         if (!loggedClose) {
           connLogger.closed('ok');
         }
