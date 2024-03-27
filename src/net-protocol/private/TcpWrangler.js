@@ -121,8 +121,8 @@ export class TcpWrangler extends ProtocolWrangler {
     // is done (if that was configured). That is, `socket` at this point is
     // either the original one that came as an argument to this method _or_ the
     // rate-limiter wrapper that was just constructed.
-    const connectionCtx = WranglerContext.forConnection(this, socket, connLogger);
-    connectionCtx.emitInContext(this._impl_server(), 'connection', socket);
+    WranglerContext.forConnection(this, socket, connLogger)
+      .emitInContext(this._impl_server(), 'connection', socket);
 
     // Note: Doing a socket timeout is a good idea in general. But beyond that,
     // as of this writing, there's a bug in Node which causes it to consistently
