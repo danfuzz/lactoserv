@@ -441,14 +441,19 @@ export class RateLimitedStream {
     destroySoon() {
       if (!this.destroyed) {
         if (this.closed) {
-          // This wrapper has already been closed, just not destroyed. The only
-          // thing to do is destroy it.
+          // The wrapper has already been closed. No need to wait before
+          // proceeding with destruction.
           this.destroy();
         } else {
-          // The wrapper hasn't yet been closed, so recapitulate the expected
-          // behavior from `Socket`, namely to `end()` the stream and then
-          // `destroy()` it once pending data has been flushed.
-          this.end(() => {
+          // The wrapper hasn't been closed yet.
+          if (!this.writableEnded) {
+            // Nothing has even asked for it to close yet, so it's on us to do
+            // that.
+            this.end();
+          }
+          // Wait for the wrapper to actually be closed, and then proceed with
+          // destruction.
+          this.once('close', () => {
             this.destroy();
           });
         }
