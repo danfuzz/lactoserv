@@ -77,14 +77,11 @@ export class Http2Wrangler extends TcpWrangler {
       return;
     }
 
-    const connectionCtx    = this._prot_connectionContext;
+    const connectionCtx    = WranglerContext.currentInstance;
     const connectionLogger = connectionCtx.connectionLogger;
     const sessionLogger    = this.logger?.sess.$newId;
-    const sessionCtx       = WranglerContext.forSession(connectionCtx, sessionLogger);
+    const sessionCtx       = WranglerContext.forSession(connectionCtx, session, sessionLogger);
     const sessions         = this.#sessions;
-
-    WranglerContext.bind(session, sessionCtx);
-    WranglerContext.bind(session.socket, sessionCtx);
 
     connectionLogger?.newSession(sessionCtx.sessionId);
     sessionLogger?.opened({

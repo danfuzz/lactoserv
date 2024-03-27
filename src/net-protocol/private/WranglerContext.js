@@ -1,6 +1,9 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { AsyncLocalStorage } from 'node:async_hooks';
+import { EventEmitter } from 'node:events';
+import * as http2 from 'node:http2';
 import * as net from 'node:net';
 import * as stream from 'node:stream';
 
@@ -138,6 +141,51 @@ export class WranglerContext {
     return this.#wrangler;
   }
 
+  /**
+   * Binds the given object to this instance.
+   *
+   * @param {object} obj The object to bind from.
+   */
+  bind(obj) {
+    WranglerContext.#CONTEXT_MAP.set(obj, this);
+  }
+
+  /**
+   * Emits an event with an {@link AsyncLocalStorage} instance bound to this
+   * instance, which can be recovered in follow-on event handlers by {@link
+   * #currentInstance}.
+   *
+   * ### What's going on here?
+   *
+   * The layers of protocol implementation inside Node "conspire" to hide the
+   * original socket of a `connection` event from the request and response
+   * objects that ultimately get emitted as part of a `request` event, but we
+   * want to actually be able to track a request back to the connection. This
+   * is used in a few ways, including for recovering local-listener information
+   * (see `IncomingRequest.host`) and logging. Node makes some effort to expose
+   * "safe" socket operations through all the wrapped layers, but at least in
+   * our use case (maybe because we ourselves wrap the raw socket, and that
+   * messes with an `instanceof` check in the guts of Node's networking code)
+   * the punch-through doesn't actually work.
+   *
+   * Thankfully, Node has an "async local storage" mechanism which is geared
+   * towards exactly this sort of use case. By emitting the salient events with
+   * an instance of this class as the designated "async storage," handlers for
+   * downstream events can retrieve that same instance. Instead of exposing this
+   * async storage stuff more widely, we use it tactically _just_ in this class,
+   * in the hope that it won't leak out and make things confusing.
+   *
+   * @param {EventEmitter} emitter Event emitter to send from.
+   * @param {string|symbol} eventName The event name.
+   * @param {...*} args Arbitrary event arguments.
+   * @returns {boolean} Standard result from {@link EventEmitter#emit}.
+   */
+  emitInContext(emitter, eventName, ...args) {
+    const callback = () => emitter.emit(eventName, ...args);
+
+    return WranglerContext.#perWranglerStorage.run(this, callback);
+  }
+
 
   //
   // Static members
@@ -150,18 +198,38 @@ export class WranglerContext {
   static #CONTEXT_MAP = new WeakMap();
 
   /**
-   * Binds an instance of this class to the given external related object.
-   *
-   * @param {object} obj The object to bind from.
-   * @param {WranglerContext} context Instance of this class with salient
-   *   context.
+   * @type {AsyncLocalStorage} Async storage that can be bound to instances of
+   * this class, to enable plumbing contexts through event chains that don't
+   * otherwise bear enough information to recover the contexts.
    */
-  static bind(obj, context) {
-    this.#CONTEXT_MAP.set(obj, context);
+  static #perWranglerStorage = new AsyncLocalStorage();
+
+  /**
+   * @returns {WranglerContext} The instance that was bound most-closely by
+   *   {@link #emitInContext}, if any.
+   * @throws {Error} Thrown if there is no currently-bound instance.
+   */
+  static get currentInstance() {
+    const ctx = this.#perWranglerStorage.getStore();
+
+    if (!ctx) {
+      throw new Error('No "current" context.');
+    }
+
+    return ctx;
   }
 
   /**
-   * Makes a new instance of this class for a connection.
+   * Binds an arbitrary external object to the {@link #currentInstance}.
+   *
+   * @param {object} obj The object to bind.
+   */
+  static bindCurrent(obj) {
+    this.currentInstance.bind(obj);
+  }
+
+  /**
+   * Makes a new instance of this class for a connection and {@link #bind}s it.
    *
    * @param {ProtocolWrangler} wrangler The wrangler instance which is managing
    *   the `socket`.
@@ -180,24 +248,30 @@ export class WranglerContext {
       ctx.#connectionId     = logger.$meta.lastContext;
     }
 
+    ctx.bind(socket);
+
     return ctx;
   }
 
   /**
-   * Makes a new instance of this class for a session.
+   * Makes a new instance of this class for a session, and {@link #bind}s it.
    *
    * @param {?WranglerContext} outerContext Instance of this class which has
    *   outer context (for the connection), if any.
+   * @param {http2.ServerHttp2Session} session The session.
    * @param {?IntfLogger} logger The request logger, if any.
    * @returns {WranglerContext} An appropriately-constructed instance.
    */
-  static forSession(outerContext, logger) {
+  static forSession(outerContext, session, logger) {
     const ctx = new WranglerContext(outerContext);
 
     if (logger) {
       ctx.#sessionLogger = logger;
       ctx.#sessionId     = logger.$meta.lastContext;
     }
+
+    ctx.bind(session);
+    ctx.bind(session.socket);
 
     return ctx;
   }
