@@ -67,6 +67,16 @@ export class RateLimitedStream {
   }
 
   /**
+   * @returns {boolean} Indication of whether it's reasonable to try writing
+   * to {@link #innerStream}.
+   */
+  get #canWriteInner() {
+    const { closed, destroyed, writableEnded } = this.#innerStream;
+
+    return (this.#error === null) && !(closed || destroyed || writableEnded);
+  }
+
+  /**
    * Reacts to an error that was received as an event or determined directly
    * within this class.
    *
@@ -172,8 +182,16 @@ export class RateLimitedStream {
    *   finished.
    */
   #destroy(error, callback) {
-    this.#innerStream.destroy(error);
-    callback();
+    // Note: We don't propagate the error to `#innerStream`, because it would
+    // just end up re-emerging as a redundant `error` event and confusing the
+    // innards of this class as well.
+    this.#innerStream.destroy();
+
+    if (error) {
+      callback(error);
+    } else {
+      callback();
+    }
   }
 
   /**
@@ -256,7 +274,7 @@ export class RateLimitedStream {
     }
 
     const length = chunk.length;
-    for (let at = 0; (at < length) && !this.#error; /*at*/) {
+    for (let at = 0; (at < length) && this.#canWriteInner; /*at*/) {
       const remaining   = length - at;
       const grantResult = await this.#bucket.requestGrant(
         { minInclusive: 1, maxInclusive: remaining });
@@ -283,8 +301,12 @@ export class RateLimitedStream {
         ? chunk
         : chunk.subarray(at, at + grantResult.grant);
 
+      // The state check after the `write()` call are to prevent us from waiting
+      // for a `drain` event that would never get emitted.
       const keepGoing = this.#innerStream.write(subChunk)
-        || this.#innerStream.closed;
+        || !this.#canWriteInner;
+
+      at += grantResult.grant;
 
       if (!keepGoing) {
         // The inner stream wants us to wait for a `drain` event. Oblige!
@@ -294,14 +316,14 @@ export class RateLimitedStream {
         await mp.promise;
         this.#logger?.drained();
       }
-
-      at += grantResult.grant;
     }
 
-    if (this.#error) {
-      setImmediate(callback, this.#error);
-    } else {
-      setImmediate(callback);
+    if (callback) {
+      if (this.#error) {
+        setImmediate(callback, this.#error);
+      } else {
+        setImmediate(callback);
+      }
     }
   }
 
@@ -419,14 +441,19 @@ export class RateLimitedStream {
     destroySoon() {
       if (!this.destroyed) {
         if (this.closed) {
-          // This wrapper has already been closed, just not destroyed. The only
-          // thing to do is destroy it.
+          // The wrapper has already been closed. No need to wait before
+          // proceeding with destruction.
           this.destroy();
         } else {
-          // The wrapper hasn't yet been closed, so recapitulate the expected
-          // behavior from `Socket`, namely to `end()` the stream and then
-          // `destroy()` it.
-          this.end(() => {
+          // The wrapper hasn't been closed yet.
+          if (!this.writableEnded) {
+            // Nothing has even asked for it to close yet, so it's on us to do
+            // that.
+            this.end();
+          }
+          // Wait for the wrapper to actually be closed, and then proceed with
+          // destruction.
+          this.once('close', () => {
             this.destroy();
           });
         }
@@ -468,6 +495,11 @@ export class RateLimitedStream {
     constructor(outerThis) {
       super();
       this.#outerThis = outerThis;
+    }
+
+    /** @override */
+    _destroy(...args) {
+      this.#outerThis.#destroy(...args);
     }
 
     /** @override */
