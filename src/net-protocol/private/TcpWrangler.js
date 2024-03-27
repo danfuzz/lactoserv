@@ -102,27 +102,7 @@ export class TcpWrangler extends ProtocolWrangler {
       return;
     }
 
-    const connLogger = this.logger?.conn.$newId ?? null;
-
-    this.logger?.newConnection(connLogger.$meta.lastContext);
-
-    if (connLogger) {
-      try {
-        if (rest.length !== 0) {
-          // The event is only supposed to have the one argument.
-          connLogger.weirdConnectionEvent(socket, ...rest);
-        }
-        connLogger.opened({
-          local:  FormatUtils.addressPortString(socket.localAddress, socket.localPort),
-          remote: FormatUtils.addressPortString(socket.remoteAddress, socket.remotePort)
-        });
-      } catch (e) {
-        // Shouldn't happen. Almost certainly indicative of a bug in this
-        // project. Nonetheless, we don't want this failure to take the whole
-        // system down, so we just "meta-log" and keep going.
-        connLogger.errorWhileLogging(e);
-      }
-    }
+    const connLogger = this.#makeConnectionLogger(socket, ...rest);
 
     if (this.#rateLimiter) {
       const granted = await this.#rateLimiter.newConnection(connLogger);
@@ -275,6 +255,46 @@ export class TcpWrangler extends ProtocolWrangler {
     } else {
       logger?.givingUp();
     }
+  }
+
+  /**
+   * Makes a new connection logger, and does initial logging about the
+   * connection; or does nothing if this instance isn't doing logging.
+   *
+   * @param {Socket} socket Socket for the newly-opened connection.
+   * @param {...*} rest Any other arguments that happened to be be part of the
+   *   `connection` event.
+   * @returns {?IntfLogger} Connection logger to use, or `null` if not to do
+   *   logging.
+   */
+  #makeConnectionLogger(socket, ...rest) {
+    const logger = this.logger;
+
+    if (!logger) {
+      return null;
+    }
+
+    const connLogger = logger.conn.$newId;
+
+    logger.newConnection(connLogger.$meta.lastContext);
+
+    try {
+      if (rest.length !== 0) {
+        // The event is only supposed to have the one argument.
+        connLogger.weirdConnectionEvent(socket, ...rest);
+      }
+      connLogger.opened({
+        local:  FormatUtils.addressPortString(socket.localAddress, socket.localPort),
+        remote: FormatUtils.addressPortString(socket.remoteAddress, socket.remotePort)
+      });
+    } catch (e) {
+      // Shouldn't happen. Almost certainly indicative of a bug in this
+      // project. Nonetheless, we don't want this failure to take the whole
+      // system down, so we just "meta-log" and keep going.
+      connLogger.errorWhileLogging(e);
+    }
+
+    return connLogger;
   }
 
   /**
