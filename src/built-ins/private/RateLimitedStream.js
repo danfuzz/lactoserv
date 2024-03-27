@@ -182,8 +182,16 @@ export class RateLimitedStream {
    *   finished.
    */
   #destroy(error, callback) {
-    this.#innerStream.destroy(error);
-    callback();
+    // Note: We don't propagate the error to `#innerStream`, because it would
+    // just end up re-emerging as a redundant `error` event and confusing the
+    // innards of this class as well.
+    this.#innerStream.destroy();
+
+    if (error) {
+      callback(error);
+    } else {
+      callback();
+    }
   }
 
   /**
