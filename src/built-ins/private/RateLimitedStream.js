@@ -427,7 +427,7 @@ export class RateLimitedStream {
         } else {
           // The wrapper hasn't yet been closed, so recapitulate the expected
           // behavior from `Socket`, namely to `end()` the stream and then
-          // `destroy()` it.
+          // `destroy()` it once pending data has been flushed.
           this.end(() => {
             this.destroy();
           });
@@ -470,6 +470,11 @@ export class RateLimitedStream {
     constructor(outerThis) {
       super();
       this.#outerThis = outerThis;
+    }
+
+    /** @override */
+    _destroy(...args) {
+      this.#outerThis.#destroy(...args);
     }
 
     /** @override */
