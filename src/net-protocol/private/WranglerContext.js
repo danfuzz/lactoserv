@@ -3,7 +3,7 @@
 
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { EventEmitter } from 'node:events';
-import { ServerHttp2Session } from 'node:http2';
+import * as http2 from 'node:http2';
 import * as net from 'node:net';
 import * as stream from 'node:stream';
 
@@ -258,7 +258,7 @@ export class WranglerContext {
    *
    * @param {?WranglerContext} outerContext Instance of this class which has
    *   outer context (for the connection), if any.
-   * @param {ServerHttp2Session} session The session.
+   * @param {http2.ServerHttp2Session} session The session.
    * @param {?IntfLogger} logger The request logger, if any.
    * @returns {WranglerContext} An appropriately-constructed instance.
    */
