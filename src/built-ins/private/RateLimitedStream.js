@@ -67,6 +67,16 @@ export class RateLimitedStream {
   }
 
   /**
+   * @returns {boolean} Indication of whether it's reasonable to try writing
+   * to {@link #innerStream}.
+   */
+  get #canWriteInner() {
+    const { closed, destroyed, writableEnded } = this.#innerStream;
+
+    return (this.#error === null) && !(closed || destroyed || writableEnded);
+  }
+
+  /**
    * Reacts to an error that was received as an event or determined directly
    * within this class.
    *
@@ -256,7 +266,7 @@ export class RateLimitedStream {
     }
 
     const length = chunk.length;
-    for (let at = 0; (at < length) && !this.#error; /*at*/) {
+    for (let at = 0; (at < length) && this.#canWriteInner; /*at*/) {
       const remaining   = length - at;
       const grantResult = await this.#bucket.requestGrant(
         { minInclusive: 1, maxInclusive: remaining });
@@ -283,8 +293,12 @@ export class RateLimitedStream {
         ? chunk
         : chunk.subarray(at, at + grantResult.grant);
 
+      // The state check after the `write()` call are to prevent us from waiting
+      // for a `drain` event that would never get emitted.
       const keepGoing = this.#innerStream.write(subChunk)
-        || this.#innerStream.closed;
+        || !this.#canWriteInner;
+
+      at += grantResult.grant;
 
       if (!keepGoing) {
         // The inner stream wants us to wait for a `drain` event. Oblige!
@@ -294,8 +308,6 @@ export class RateLimitedStream {
         await mp.promise;
         this.#logger?.drained();
       }
-
-      at += grantResult.grant;
     }
 
     if (callback) {
