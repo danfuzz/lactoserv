@@ -298,10 +298,12 @@ export class RateLimitedStream {
       at += grantResult.grant;
     }
 
-    if (this.#error) {
-      setImmediate(callback, this.#error);
-    } else {
-      setImmediate(callback);
+    if (callback) {
+      if (this.#error) {
+        setImmediate(callback, this.#error);
+      } else {
+        setImmediate(callback);
+      }
     }
   }
 
