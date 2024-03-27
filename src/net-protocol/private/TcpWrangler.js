@@ -1,6 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import * as timers from 'node:timers/promises';
 import { Socket } from 'node:net';
 
 import { Condition, PromiseUtil, Threadlet } from '@this/async';
@@ -133,12 +134,15 @@ export class TcpWrangler extends ProtocolWrangler {
       socket = this.#rateLimiter.wrapWriter(socket, connLogger);
     }
 
-    // We can only set up the connection context once the rate-limiter wrapping
-    // is done (if that was configured).
-    const connectionCtx = WranglerContext.forConnection(this, socket, connLogger);
-
     this.#sockets.add(socket);
     this.#anySockets.value = true;
+
+    // We can only set up the connection context once the rate-limiter wrapping
+    // is done (if that was configured). That is, `socket` at this point is
+    // either the original one that came as an argument to this method _or_ the
+    // rate-limiter wrapper that was just constructed.
+    const connectionCtx = WranglerContext.forConnection(this, socket, connLogger);
+    connectionCtx.emitInContext(this._impl_server(), 'connection', socket);
 
     // Note: Doing a socket timeout is a good idea in general. But beyond that,
     // as of this writing, there's a bug in Node which causes it to consistently
@@ -152,14 +156,19 @@ export class TcpWrangler extends ProtocolWrangler {
     });
 
     // The `end` event is what a socket gets when the far side proactively
-    // closes the connection. We react by just closing our side. Note that
-    // network sockets are generally created in "allow half open" mode, which is
-    // why we have to explicitly close our side. And, to be clear, we _don't_
-    // want to disable half-open, because we ourselves want to be able to close
-    // our side without forcing the other side to close too.
-    socket.once('end', () => {
+    // closes the connection. We react by just closing our side, after a very
+    // small delay; the delay is to give the protocol layer a chance to cleanly
+    // react to the event before we fully close the socket. Note that network
+    // sockets are generally created in "allow half-open" mode, which is why we
+    // have to explicitly close our side. And, to be clear, we _don't_ want to
+    // disable half-open, because we ourselves want to be able to close our side
+    // without forcing the other side to close too.
+    socket.once('end', async () => {
       connLogger?.remoteClosed();
-      socket.destroySoon(); // "Soon" means "after all pending data is written."
+      await timers.setTimeout(TcpWrangler.#SOCKET_WAIT_TIME_AFTER_HALF_CLOSE_MSEC);
+
+      // "Soon" means "after all pending data has been written and flushed."
+      socket.destroySoon();
     });
 
     let loggedClose = false;
@@ -203,10 +212,6 @@ export class TcpWrangler extends ProtocolWrangler {
 
       logClose();
     });
-
-    // Note: The `socket` we use here might either be the original incoming one
-    // _or_ one wrapped in a rate limiter.
-    connectionCtx.emitInContext(this._impl_server(), 'connection', socket);
   }
 
   /**
@@ -314,4 +319,11 @@ export class TcpWrangler extends ProtocolWrangler {
    * timeout, before doing it more forcefully.
    */
   static #SOCKET_TIMEOUT_CLOSE_GRACE_PERIOD_MSEC = 250; // Quarter of a second.
+
+  /**
+   * @type {number} Grace period in msec after receiving an `end` event from
+   * a raw socket (which indicates that the readable side was closed), before
+   * reacting by closing the writable side.
+   */
+  static #SOCKET_WAIT_TIME_AFTER_HALF_CLOSE_MSEC = 10;
 }
