@@ -3,6 +3,7 @@
 
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { EventEmitter } from 'node:events';
+import { ServerHttp2Session } from 'node:http2';
 import * as net from 'node:net';
 import * as stream from 'node:stream';
 

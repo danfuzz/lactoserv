@@ -3,7 +3,6 @@
 
 import { IncomingMessage, ServerResponse } from 'node:http';
 import { Http2ServerRequest, Http2ServerResponse } from 'node:http2';
-import * as net from 'node:net';
 
 import { ManualPromise, Threadlet } from '@this/async';
 import { ProductInfo } from '@this/host';
