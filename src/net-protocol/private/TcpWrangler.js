@@ -1,7 +1,6 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import * as timers from 'node:timers/promises';
 import { Socket } from 'node:net';
 
 import { Condition, PromiseUtil, Threadlet } from '@this/async';
@@ -145,7 +144,7 @@ export class TcpWrangler extends ProtocolWrangler {
     // without forcing the other side to close too.
     socket.once('end', async () => {
       connLogger?.remoteClosed();
-      await timers.setTimeout(TcpWrangler.#SOCKET_WAIT_TIME_AFTER_HALF_CLOSE_MSEC);
+      await WallClock.waitForMsec(TcpWrangler.#SOCKET_WAIT_TIME_AFTER_HALF_CLOSE_MSEC);
 
       // "Soon" means "after all pending data has been written and flushed."
       socket.destroySoon();
