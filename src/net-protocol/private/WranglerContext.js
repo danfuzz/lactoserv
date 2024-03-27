@@ -255,20 +255,24 @@ export class WranglerContext {
   }
 
   /**
-   * Makes a new instance of this class for a session.
+   * Makes a new instance of this class for a session, and {@link #bind}s it.
    *
    * @param {?WranglerContext} outerContext Instance of this class which has
    *   outer context (for the connection), if any.
+   * @param {ServerHttp2Session} session The session.
    * @param {?IntfLogger} logger The request logger, if any.
    * @returns {WranglerContext} An appropriately-constructed instance.
    */
-  static forSession(outerContext, logger) {
+  static forSession(outerContext, session, logger) {
     const ctx = new WranglerContext(outerContext);
 
     if (logger) {
       ctx.#sessionLogger = logger;
       ctx.#sessionId     = logger.$meta.lastContext;
     }
+
+    this.bind(session, ctx);
+    this.bind(session.socket, ctx);
 
     return ctx;
   }
