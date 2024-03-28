@@ -18,8 +18,7 @@ import { UsualSystem } from '#p/UsualSystem';
  */
 export class Debugging {
   /**
-   * Logger for this class, or `null` not to do any
-   * logging.
+   * Logger for this class, or `null` not to do any logging.
    *
    * @type {?IntfLogger}
    */

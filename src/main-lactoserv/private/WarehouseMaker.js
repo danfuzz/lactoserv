@@ -26,8 +26,7 @@ export class WarehouseMaker {
   #configUrl = null;
 
   /**
-   * Logger for this instance, or `null` not to do any
-   * logging.
+   * Logger for this instance, or `null` not to do any logging.
    *
    * @type {?IntfLogger}
    */
@@ -101,9 +100,9 @@ export class WarehouseMaker {
   }
 
   /**
-   * Helper for {@link #loadConfig}, which handles the case of a syntax error
-   * in the config file (or something it in turn loads). This uses `fork()` to
-   * try loading the configuration in a subprocess and then captures stdout and
+   * Helper for {@link #loadConfig}, which handles the case of a syntax error in
+   * the config file (or something it in turn loads). This uses `fork()` to try
+   * loading the configuration in a subprocess and then captures stdout and
    * stderr to replay to the main process (for the presumed user reading the
    * logs or what-have-you). This all is done because -- as of this writing --
    * Node doesn't provide line/column information about where a syntax error
