@@ -28,8 +28,7 @@ import { FileServiceConfig } from '#x/FileServiceConfig';
  */
 export class SaveConfig extends BaseConfig {
   /**
-   * The maximum number of old-file bytes to allow, if so
-   * limited.
+   * The maximum number of old-file bytes to allow, if so limited.
    *
    * @type {?number}
    */

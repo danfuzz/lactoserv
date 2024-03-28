@@ -50,8 +50,7 @@ export class Frequency extends UnitQuantity {
   static ZERO = new Frequency(0);
 
   /**
-   * Multipliers for each named unit to convert to
-   * hertz.
+   * Multipliers for each named unit to convert to hertz.
    *
    * @type {Map<string, number>}
    */

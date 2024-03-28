@@ -27,16 +27,15 @@ export class TcpWrangler extends ProtocolWrangler {
   #rateLimiter;
 
   /**
-   * Arguments to pass to the {@link AsyncServerSocket}
-   * constructor.
+   * Arguments to pass to the {@link AsyncServerSocket} constructor.
    *
    * @type {Array<*>}
    */
   #asyncServerArgs;
 
   /**
-   * Underlying server socket, wrapped for `async`
-   * friendliness. Set in {@link #init}.
+   * Underlying server socket, wrapped for `async` friendliness. Set in {@link
+   * #init}.
    *
    * @type {?AsyncServerSocket}
    */
@@ -317,8 +316,8 @@ export class TcpWrangler extends ProtocolWrangler {
   }
 
   /**
-   * Runs the low-level stack. This is called as the main function of the
-   * {@link #runner}.
+   * Runs the low-level stack. This is called as the main function of the {@link
+   * #runner}.
    */
   async #run() {
     while (!this.#runner.shouldStop()) {
@@ -347,26 +346,26 @@ export class TcpWrangler extends ProtocolWrangler {
   //
 
   /**
-   * How long in msec to wait before considering a connected
-   * socket (a/o/t a server socket doing a `listen()`) to be "timed out." When
-   * timed out, a socket is closed proactively.
+   * How long in msec to wait before considering a connected socket (a/o/t a
+   * server socket doing a `listen()`) to be "timed out." When timed out, a
+   * socket is closed proactively.
    *
    * @type {number}
    */
   static #SOCKET_TIMEOUT_MSEC = 3 * 60 * 1000; // Three minutes.
 
   /**
-   * Grace period in msec after trying to close a socket due to
-   * timeout, before doing it more forcefully.
+   * Grace period in msec after trying to close a socket due to timeout, before
+   * doing it more forcefully.
    *
    * @type {number}
    */
   static #SOCKET_TIMEOUT_CLOSE_GRACE_PERIOD_MSEC = 250; // Quarter of a second.
 
   /**
-   * Grace period in msec after receiving an `end` event from
-   * a raw socket (which indicates that the readable side was closed), before
-   * reacting by closing the writable side.
+   * Grace period in msec after receiving an `end` event from a raw socket
+   * (which indicates that the readable side was closed), before reacting by
+   * closing the writable side.
    *
    * @type {number}
    */

@@ -44,8 +44,8 @@ export class Http2Wrangler extends TcpWrangler {
   #runner = new Threadlet(() => this.#run());
 
   /**
-   * Per-connection storage, used to plumb connection
-   * context through to the various objects that use the connection.
+   * Per-connection storage, used to plumb connection context through to the
+   * various objects that use the connection.
    *
    * @type {AsyncLocalStorage}
    */
@@ -263,16 +263,16 @@ export class Http2Wrangler extends TcpWrangler {
   //
 
   /**
-   * How long in msec to wait when stopping, after telling
-   * sessions to close before closing with more extreme prejudice.
+   * How long in msec to wait when stopping, after telling sessions to close
+   * before closing with more extreme prejudice.
    *
    * @type {number}
    */
   static #STOP_GRACE_PERIOD_MSEC = 250;
 
   /**
-   * How long in msec to wait for a session to have activity
-   * before considering it "timed out" and telling it to close.
+   * How long in msec to wait for a session to have activity before considering
+   * it "timed out" and telling it to close.
    *
    * @type {number}
    */

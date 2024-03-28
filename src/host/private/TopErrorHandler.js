@@ -15,22 +15,20 @@ import { ThisModule } from '#p/ThisModule';
 /**
  * Top-level error handling. This is what handles errors (thrown exceptions and
  * rejected promises) that percolate to the main event loop without having been
- * handled. It also handles warnings (which always just get emitted directly,
- * no percolation required).
+ * handled. It also handles warnings (which always just get emitted directly, no
+ * percolation required).
  */
 export class TopErrorHandler {
   /**
-   * How many ticks to wait after receiving an
-   * `unhandledRejection` event before considering a promise rejection
-   * _actually_ unhandled.
+   * How many ticks to wait after receiving an `unhandledRejection` event before
+   * considering a promise rejection _actually_ unhandled.
    *
    * @type {number}
    */
   static #PROMISE_REJECTION_GRACE_PERIOD_TICKS = 10;
 
   /**
-   * Logger for this class, or `null` not to do any
-   * logging.
+   * Logger for this class, or `null` not to do any logging.
    *
    * @type {?IntfLogger}
    */

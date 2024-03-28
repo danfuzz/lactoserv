@@ -1,0 +1,186 @@
+#!/bin/bash
+#
+# Copyright 2022-2024 the Bashy-lib Authors (Dan Bornstein et alia).
+# SPDX-License-Identifier: Apache-2.0
+
+. "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"
+
+
+#
+# Argument parsing
+#
+
+define-usage --with-help $'
+    ${name} [<opt> ...] <version>
+
+    Reflows all JSDoc comments in the source, in a way that is imperfect yet
+    sufficiently decent to be reasonably human-vetted.
+'
+
+process-args "$@" || exit "$?"
+
+
+#
+# Helper functions
+#
+
+# Awk script which performs reflowing on a single file.
+REFLOW_SCRIPT='
+# Start of doc comment block.
+/^ *\/[*][*]$/ {
+  inDoc = 1;
+  count = 0;
+  indent = "";
+  firstIndent = "";
+  print;
+  next;
+}
+
+# Code quote block: Suppress!
+inDoc && /^ *[*] ```/ {
+  if (inCodeQuote) {
+    inCodeQuote = 0;
+    print;
+    next;
+  } else {
+    autoflowLines();
+    inCodeQuote = 1;
+  }
+}
+inCodeQuote {
+  print;
+  next;
+}
+
+# End of doc comment block.
+inDoc && /^ *[*]\/$/ {
+  autoflowLines();
+  inDoc = 0;
+}
+
+# Paragraph separator.
+inDoc && /^ *[*]$/ {
+  autoflowLines();
+  print;
+  next;
+}
+
+# Additional line in current paragraph, or start of new paragraph (if
+# indentation changes).
+inDoc {
+  thisIndent = matchIndent($0);
+  if ((indent == "") || (indent != thisIndent)) {
+    autoflowLines();
+    firstIndent = thisIndent;
+    indent = calcIndent(firstIndent);
+    indentLength = length(firstIndent);
+  } else {
+    # Expected the-rest-indent.
+    indentLength = length(indent);
+  }
+
+  lines[count] = substr($0, indentLength + 1);
+  count++;
+  next;
+}
+
+{ print; }
+
+# Matches any of the allowed "indent" patterns (which also includes `@tag`s for
+# block tags).
+function matchIndent(line) {
+  match(line, /^ *[*] ([ *]*|@[a-zA-Z]+ +)/);
+  return substr(line, RSTART, RLENGTH);
+}
+
+# Convert a first-indent into a the-rest-indent.
+function calcIndent(firstIndent, _locals_, result) {
+  result = firstIndent;
+  match(result, /^ *[*] /);
+  result = substr(result, RSTART, RLENGTH);
+  while (length(result) < length(firstIndent)) result = result " ";
+  return result;
+}
+
+# Emit one paragraph of comment.
+function autoflowLines(_locals_, curIndent, i, line, text) {
+  if (count == 0) return;
+
+  text = "";
+  for (i = 0; i < count; i++) {
+    line = lines[i];
+    sub(/^ */, "", line);
+    if (i == 0) text = line;
+    else text = text " " line;
+  }
+
+  curIndent = firstIndent;
+
+  while (text != "") {
+    if (length(text) + length(curIndent) <= 80) {
+      i = length(text);
+    } else {
+      for (i = 81 - length(curIndent); i > 0; i--) {
+        if (substr(text, i, 1) == " ") break;
+      }
+      if (i == 0) {
+        # Very long word. Just emit it on its own line.
+        match(text, /^[^ ]+/);
+        i = RLENGTH;
+      }
+    }
+
+    line = substr(text, 1, i);
+    sub(/^ */, "", line);
+    sub(/ *$/, "", line);
+    print curIndent line;
+    curIndent = indent;
+
+    text = substr(text, i + 1);
+  }
+
+  count = 0;
+  indent = "";
+  firstIndent = "";
+}
+'
+
+# Processes a single file.
+function process-file {
+    local path="$1"
+
+    local origText && origText="$(cat "${path}")" \
+    || return "$?"
+
+    local fixedText && fixedText="$(awk <<<"${origText}" "${REFLOW_SCRIPT}")" \
+    || return "$?"
+
+    cat <<<"${fixedText}" >"${path}" \
+    || return "$?"
+}
+
+
+#
+# Main script
+#
+
+baseDir="$(base-dir)"
+
+sourceArray="$(
+    lib buildy ls-files --output=array --full-paths --include='\.(js|mjs|cjs)'
+)" \
+|| exit "$?"
+
+jset-array --raw sources "${sourceArray}" \
+|| exit "$?"
+
+for file in "${sources[@]}"; do
+    progress-msg "${file}..."
+    process-file "${file}" \
+    || {
+        error-msg "Trouble processing file: ${file}"
+        exit 1
+    }
+done
+
+progress-msg 'Done!'

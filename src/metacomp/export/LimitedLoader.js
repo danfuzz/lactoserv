@@ -9,12 +9,12 @@ import { IntfLogger } from '@this/loggy-intf';
 
 
 /**
- * "Limited loader" which enables the loading/importing of files as modules in
- * a module loading environment which limits what's available in terms of
- * further `import`s and which maintains its own independent cache of what's
- * been loaded. The environment can either use any VM "context" including the
- * default (i.e., usual Node globals), one shared with other loaders, or an
- * entirely separate one.
+ * "Limited loader" which enables the loading/importing of files as modules in a
+ * module loading environment which limits what's available in terms of further
+ * `import`s and which maintains its own independent cache of what's been
+ * loaded. The environment can either use any VM "context" including the default
+ * (i.e., usual Node globals), one shared with other loaders, or an entirely
+ * separate one.
  *
  * About "contexts:" See the Node and V8 documentation about details, but TLDR:
  * If you want to run in a non-default context but have the system behave at
@@ -30,8 +30,7 @@ import { IntfLogger } from '@this/loggy-intf';
  */
 export class LimitedLoader {
   /**
-   * "Contextified" object which is bound as `global` in loaded
-   * modules.
+   * "Contextified" object which is bound as `global` in loaded modules.
    *
    * @type {?object}
    */
@@ -45,16 +44,15 @@ export class LimitedLoader {
   #logger;
 
   /**
-   * Map from each specifier that has been loaded to
-   * the resulting module instance.
+   * Map from each specifier that has been loaded to the resulting module
+   * instance.
    *
    * @type {Map<string, Module>}
    */
   #cache = new Map();
 
   /**
-   * Linker function, passed to
-   * `module.link()`.
+   * Linker function, passed to `module.link()`.
    *
    * @type {function(string, Module, object)}
    */
@@ -230,8 +228,8 @@ export class LimitedLoader {
 
   /**
    * Helper for {@link #importModule}, which performs a dynamic `import` from
-   * _this_ class, and produces a usable `SyntheticModule` as required by
-   * Node's internals.
+   * _this_ class, and produces a usable `SyntheticModule` as required by Node's
+   * internals.
    *
    * @param {string} specifier The `import` specifier.
    * @returns {SyntheticModule} The module to be bound in the loadee's

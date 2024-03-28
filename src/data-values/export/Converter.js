@@ -17,8 +17,8 @@ import { Ref } from '#x/Ref';
 // arrays, as opposed to using `Object.entries()` and the like.
 
 /**
- * Primary concrete implementation of the {@link BaseConverter} protocol.
- * See the module `README.md` for a bit more detail.
+ * Primary concrete implementation of the {@link BaseConverter} protocol. See
+ * the module `README.md` for a bit more detail.
  */
 export class Converter extends BaseConverter {
   /**
@@ -146,8 +146,8 @@ export class Converter extends BaseConverter {
   }
 
   /**
-   * Helper for {@link #encode0}, which performs conversion of arrays and
-   * plain objects.
+   * Helper for {@link #encode0}, which performs conversion of arrays and plain
+   * objects.
    *
    * @param {*} orig Value to convert.
    * @param {boolean} isArray Is `orig` an array?
@@ -201,8 +201,8 @@ export class Converter extends BaseConverter {
   }
 
   /**
-   * Helper for {@link #encode0}, which performs a replacement action as
-   * defined by one of the configured actions.
+   * Helper for {@link #encode0}, which performs a replacement action as defined
+   * by one of the configured actions.
    *
    * @param {*} orig Value to convert.
    * @param {string|function(*): *} action The action option value to use.

@@ -4,12 +4,12 @@
 /**
  * Base class for proxy handlers, which implements all methods in the most
  * "no-oppy" way possible. By default, if a proxy handler doesn't implement a
- * method, the equivalent operation is attempted on the proxy target. This
- * class explicitly implements _all_ proxy handler methods, so subclasses can be
- * sure that the target is only accessed if code in the subclass explicitly
- * allows it. The _one_ exception is that {@link #getPrototypeOf} per spec needs
- * to return the prototype of the target when {@link #isExtensible} returns
- * `false` (which it does on this class), so that's what's implemented.
+ * method, the equivalent operation is attempted on the proxy target. This class
+ * explicitly implements _all_ proxy handler methods, so subclasses can be sure
+ * that the target is only accessed if code in the subclass explicitly allows
+ * it. The _one_ exception is that {@link #getPrototypeOf} per spec needs to
+ * return the prototype of the target when {@link #isExtensible} returns `false`
+ * (which it does on this class), so that's what's implemented.
  *
  * In addition, this class provides a static method {@link #makeProxy} for
  * convenient proxy construction.
@@ -180,9 +180,9 @@ export class BaseProxyHandler {
   //
 
   /**
-   * Constructs and returns a proxy which wraps an instance of this class,
-   * and with a frozen no-op function as the target. The instance of this class
-   * is constructed with whatever arguments get passed to this method.
+   * Constructs and returns a proxy which wraps an instance of this class, and
+   * with a frozen no-op function as the target. The instance of this class is
+   * constructed with whatever arguments get passed to this method.
    *
    * @param {...*} args Construction arguments to pass to this class's
    *   constructor.
@@ -197,8 +197,8 @@ export class BaseProxyHandler {
   }
 
   /**
-   * Constructs and returns a proxy which wraps an instance of this class,
-   * and with a frozen pseudo-instance of the given class as the target which is
+   * Constructs and returns a proxy which wraps an instance of this class, and
+   * with a frozen pseudo-instance of the given class as the target which is
    * also considered to be a callable function. The instance of this class is
    * constructed with whatever arguments get passed to this method.
    *
@@ -221,8 +221,8 @@ export class BaseProxyHandler {
   }
 
   /**
-   * Constructs and returns a proxy which wraps an instance of this class,
-   * and with a frozen pseudo-instance of the given class as the target. The
+   * Constructs and returns a proxy which wraps an instance of this class, and
+   * with a frozen pseudo-instance of the given class as the target. The
    * instance of this class is constructed with whatever arguments get passed to
    * this method.
    *
@@ -242,9 +242,9 @@ export class BaseProxyHandler {
   }
 
   /**
-   * Constructs and returns a proxy which wraps an instance of this class,
-   * and with a frozen empty object as the target. The instance of this class
-   * is constructed with whatever arguments get passed to this method.
+   * Constructs and returns a proxy which wraps an instance of this class, and
+   * with a frozen empty object as the target. The instance of this class is
+   * constructed with whatever arguments get passed to this method.
    *
    * @param {...*} args Construction arguments to pass to this class's
    *   constructor.

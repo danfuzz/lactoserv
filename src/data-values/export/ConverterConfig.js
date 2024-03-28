@@ -24,9 +24,9 @@ import { Struct } from '#x/Struct';
  *    a non-empty string, or with `<no-name>` if it is unbound or anything else.
  *    This is most useful for functions (both regular and constructors).
  * * `omit` -- Omit the value in question. If the value would be returned
- *   directly, instead `undefined` is returned. If the value would be
- *   incluided in a plain object or array, the key it would be bound to is
- *   omitted (possibly causing an array to be sparse).
+ *   directly, instead `undefined` is returned. If the value would be incluided
+ *   in a plain object or array, the key it would be bound to is omitted
+ *   (possibly causing an array to be sparse).
  * * `unhandled` -- Treat the value conversion as "unhandled." The return value
  *   from `encode()` will in fact be {@link BaseConverter#UNHANDLED}.
  * * `wrap` -- Wrap the value in question inside an instance of {@link Ref}, a
@@ -37,8 +37,7 @@ import { Struct } from '#x/Struct';
  */
 export class ConverterConfig {
   /**
-   * Classes whose instances are treated as data
-   * values.
+   * Classes whose instances are treated as data values.
    *
    * @type {Array<function(new:*)>}
    */
@@ -52,8 +51,7 @@ export class ConverterConfig {
   #freeze;
 
   /**
-   * Action to take when asked to encode a
-   * function.
+   * Action to take when asked to encode a function.
    *
    * @type {string|(function(*): *)}
    */
@@ -67,9 +65,8 @@ export class ConverterConfig {
   #honorEncodeMethod;
 
   /**
-   * Action to take when asked to encode an
-   * instance (object with a class) which is not otherwise covered by other
-   * configuration options.
+   * Action to take when asked to encode an instance (object with a class) which
+   * is not otherwise covered by other configuration options.
    *
    * @type {string|(function(*): *)}
    */
@@ -82,8 +79,8 @@ export class ConverterConfig {
   #specialCases;
 
   /**
-   * Action to take when encountering a symbol-keyed object or
-   * array property. Allowed to be either `error` or `omit`.
+   * Action to take when encountering a symbol-keyed object or array property.
+   * Allowed to be either `error` or `omit`.
    *
    * @type {string}
    */
@@ -181,8 +178,8 @@ export class ConverterConfig {
    * precedence over other configuration options, or `null` if there are no
    * special cases.
    *
-   * Default value if not passed during construction:
-   * {@link SpecialConverters#STANDARD}.
+   * Default value if not passed during construction: {@link
+   * SpecialConverters#STANDARD}.
    */
   get specialCases() {
     return this.#specialCases;

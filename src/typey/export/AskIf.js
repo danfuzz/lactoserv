@@ -6,8 +6,8 @@ import { MustBe } from '#x/MustBe';
 
 /**
  * Simple type checks. Each one is a predicate (boolean-returning function).
- * These are all similar to the name-named methods in {@link MustBe}, except
- * the latter are assertions.
+ * These are all similar to the name-named methods in {@link MustBe}, except the
+ * latter are assertions.
  *
  * **Note:** The intention is that this class and {@link MustBe} contain all the
  * same methods, except where a method in this class would be redundant with a
@@ -126,12 +126,12 @@ export class AskIf {
    * called (they can only be used as constructors).
    *
    * **Note:** Unfortunately, JavaScript (a) is loosey-goosey about what sorts
-   * of functions can be called, and (b) doesn't provide a way
-   * to distinguish the various cases _except_ to look at the string conversion
-   * of functions. This method errs on the side of over-acceptance.
+   * of functions can be called, and (b) doesn't provide a way to distinguish
+   * the various cases _except_ to look at the string conversion of functions.
+   * This method errs on the side of over-acceptance.
    *
-   * **Further note:** There is a TC39 proposal that would address this
-   * problem: <https://github.com/caitp/TC39-Proposals/blob/HEAD/tc39-reflect-isconstructor-iscallable.md>
+   * **Further note:** There is a TC39 proposal that would address this problem:
+   * <https://github.com/caitp/TC39-Proposals/blob/HEAD/tc39-reflect-isconstructor-iscallable.md>
    * Unfortunately it is not (as of this writing) close to being accepted.
    *
    * @param {*} value Arbitrary value.

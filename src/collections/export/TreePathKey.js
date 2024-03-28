@@ -29,8 +29,7 @@ export class TreePathKey {
   #wildcard;
 
   /**
-   * The result of {@link #charLength}, or `null` if not yet
-   * calculated.
+   * The result of {@link #charLength}, or `null` if not yet calculated.
    *
    * @type {?number}
    */
@@ -100,10 +99,10 @@ export class TreePathKey {
   }
 
   /**
-   * Concatenates any number of components, arrays of components, or other
-   * keys' paths onto this one, returning a new instance with the same
-   * wildcard value as this one. If all of the given arguments are empty, this
-   * method returns `this`.
+   * Concatenates any number of components, arrays of components, or other keys'
+   * paths onto this one, returning a new instance with the same wildcard value
+   * as this one. If all of the given arguments are empty, this method returns
+   * `this`.
    *
    * @param {Array<string|Array<string>|TreePathKey>} others Values to
    *   concatenate to `this`.

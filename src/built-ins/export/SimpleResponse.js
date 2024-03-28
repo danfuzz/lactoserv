@@ -23,8 +23,7 @@ export class SimpleResponse extends BaseApplication {
   #allowAdjustment = true;
 
   /**
-   * Response template to clone for all actual
-   * responses.
+   * Response template to clone for all actual responses.
    *
    * @type {OutgoingResponse}
    */
@@ -123,32 +122,31 @@ export class SimpleResponse extends BaseApplication {
    */
   static #Config = class Config extends BaseApplication.FilterConfig {
     /**
-     * Predefined status code of the response, or `null` to use
-     * the most appropriate "success" status code (most typically `200`).
+     * Predefined status code of the response, or `null` to use the most
+     * appropriate "success" status code (most typically `200`).
      *
      * @type {?number}
      */
     #statusCode = null;
 
     /**
-     * Content type of the response, or `null` to infer it from
-     * {@link #filePath}.
+     * Content type of the response, or `null` to infer it from {@link
+     * #filePath}.
      *
      * @type {?string}
      */
     #contentType = null;
 
     /**
-     * Body contents of the response, or `null` to
-     * use {@link #filePath}.
+     * Body contents of the response, or `null` to use {@link #filePath}.
      *
      * @type {?(string|Buffer)}
      */
     #body = null;
 
     /**
-     * `cache-control` header to automatically include, or
-     * `null` not to do that.
+     * `cache-control` header to automatically include, or `null` not to do
+     * that.
      *
      * @type {?string}
      */
@@ -162,8 +160,8 @@ export class SimpleResponse extends BaseApplication {
     #etagOptions = null;
 
     /**
-     * Absolute path to a file for the body contents, or `null`
-     * if {@link #body} is supplied directly.
+     * Absolute path to a file for the body contents, or `null` if {@link #body}
+     * is supplied directly.
      *
      * @type {?string}
      */
@@ -278,8 +276,8 @@ export class SimpleResponse extends BaseApplication {
     }
 
     /**
-     * Predefined status code of the response, or `null` to use
-     * the most appropriate "success" status code (most typically `200`).
+     * Predefined status code of the response, or `null` to use the most
+     * appropriate "success" status code (most typically `200`).
      *
      * @type {?number}
      */

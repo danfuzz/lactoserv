@@ -19,17 +19,16 @@ export class EventOrPromise {
   #eventNow;
 
   /**
-   * Promise for {@link #eventNow}, when that
-   * property isn't synchronously known _or_ when it's known but something has
-   * asked for the promise anyway.
+   * Promise for {@link #eventNow}, when that property isn't synchronously known
+   * _or_ when it's known but something has asked for the promise anyway.
    *
    * @type {?Promise<LinkedEvent>}
    */
   #eventPromise;
 
   /**
-   * The reason why {@link #eventPromise} was rejected, if it was
-   * indeed rejected.
+   * The reason why {@link #eventPromise} was rejected, if it was indeed
+   * rejected.
    *
    * @type {?Error}
    */
@@ -84,8 +83,8 @@ export class EventOrPromise {
    * cases _except_ when this instance was constructed with a promise and that
    * promise has yet to settle. This class guarantees that, if this promise is
    * fulfilled (not rejected), then it will indeed be an instance of {@link
-   * LinkedEvent}. This class also guarantees that, if this promise is
-   * rejected, then {@link #rejectedReason} is non-`null`.
+   * LinkedEvent}. This class also guarantees that, if this promise is rejected,
+   * then {@link #rejectedReason} is non-`null`.
    */
   get eventPromise() {
     if (this.#eventPromise === null) {
@@ -200,8 +199,7 @@ export class EventOrPromise {
 
   /**
    * Checks an alleged event instance to see if it is (a) actually an instance
-   * of `LinkedEvent` and optionally an instance of a specific subclass
-   * thereof.
+   * of `LinkedEvent` and optionally an instance of a specific subclass thereof.
    *
    * @param {LinkedEvent} event The event in question.
    * @param {?function(new:LinkedEvent)} subclass Class to check for, or `null`

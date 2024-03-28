@@ -31,8 +31,7 @@ export class MainArgs {
   #parsedArgs = null;
 
   /**
-   * Warehouse maker, based on the passed configuration
-   * URL.
+   * Warehouse maker, based on the passed configuration URL.
    *
    * @type {?WarehouseMaker}
    */
@@ -64,8 +63,7 @@ export class MainArgs {
   }
 
   /**
-   * Warehouse maker, based on the passed configuration
-   * location.
+   * Warehouse maker, based on the passed configuration location.
    *
    * @type {WarehouseMaker}
    */

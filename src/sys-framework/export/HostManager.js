@@ -23,16 +23,15 @@ import { ThisModule } from '#p/ThisModule';
  */
 export class HostManager {
   /**
-   * Map from each componentized hostname to
-   * the {@link HostItem} that should be used for it.
+   * Map from each componentized hostname to the {@link HostItem} that should be
+   * used for it.
    *
    * @type {TreePathMap<HostItem>}
    */
   #items = new TreePathMap(HostUtil.hostnameStringFrom);
 
   /**
-   * Logger for this class, or `null` not to do any
-   * logging.
+   * Logger for this class, or `null` not to do any logging.
    *
    * @type {?IntfLogger}
    */
@@ -77,8 +76,8 @@ export class HostManager {
   }
 
   /**
-   * Makes an instance with the given subset of bindings. Wildcard hostnames
-   * in `names` are matched as wildcards with the existing bindings, so, for
+   * Makes an instance with the given subset of bindings. Wildcard hostnames in
+   * `names` are matched as wildcards with the existing bindings, so, for
    * example, passing a complete wildcard hostname will produce a clone of this
    * instance.
    *
@@ -113,7 +112,8 @@ export class HostManager {
    * `SNICallback` configured in the options of a call to (something like)
    * `http2.createSecureServer()`.
    *
-   * See <https://nodejs.org/dist/latest-v18.x/docs/api/tls.html#tlscreateserveroptions-secureconnectionlistener>
+   * See
+   * <https://nodejs.org/dist/latest-v18.x/docs/api/tls.html#tlscreateserveroptions-secureconnectionlistener>
    * for details.
    *
    * @param {string} serverName Name of the host to find, or `*` to

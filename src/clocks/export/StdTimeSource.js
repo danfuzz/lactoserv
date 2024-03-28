@@ -6,8 +6,8 @@ import { WallClock } from '#x/WallClock';
 
 
 /**
- * Standard implementation of {@link #IntfTimeSource}, which uses
- * {@link WallClock} as the underlying source of time.
+ * Standard implementation of {@link #IntfTimeSource}, which uses {@link
+ * WallClock} as the underlying source of time.
  */
 export class StdTimeSource extends IntfTimeSource {
   // Note: The default constructor is fine.

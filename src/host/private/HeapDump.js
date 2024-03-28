@@ -24,8 +24,7 @@ export class HeapDump {
   static #REPORT_INTERVAL_BYTES = 4_000_000;
 
   /**
-   * Logger for this class, or `null` not to do any
-   * logging.
+   * Logger for this class, or `null` not to do any logging.
    *
    * @type {?IntfLogger}
    */
@@ -35,8 +34,8 @@ export class HeapDump {
    * Performs a heap dump.
    *
    * @param {string} fileName Where to write the dump to. If given a simple
-   *   name, the system will try several reasonable directories to write to.
-   *   If not already suffixed with `.heapsnapshot` (which is required for
+   *   name, the system will try several reasonable directories to write to. If
+   *   not already suffixed with `.heapsnapshot` (which is required for
    *   recognition by downstream tooling), it will be appended along with a
    *   timestamp.
    */

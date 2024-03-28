@@ -11,16 +11,14 @@ import { MustBe } from '@this/typey';
  */
 export class ThisModule {
   /**
-   * Map of all loggers returned from {@link
-   * #loggerFor}.
+   * Map of all loggers returned from {@link #loggerFor}.
    *
    * @type {Map<string, IntfLogger>}
    */
   static #loggers = new Map();
 
   /**
-   * Base logger for this module's subsystems, or `null` not
-   * to do any logging.
+   * Base logger for this module's subsystems, or `null` not to do any logging.
    *
    * @type {?IntfLogger}
    */
@@ -41,8 +39,8 @@ export class ThisModule {
   static SYM_linkRoot = Symbol('sys-framework.linkRoot');
 
   /**
-   * Gets a logger for a particular cohort. A "cohort" is a set of similar
-   * items of some sort, e.g. "applications" or "services."
+   * Gets a logger for a particular cohort. A "cohort" is a set of similar items
+   * of some sort, e.g. "applications" or "services."
    *
    * @param {string} name Name of the cohort.
    * @returns {?IntfLogger} Logger for the cohort, or `null` if it is not to be
@@ -64,8 +62,8 @@ export class ThisModule {
   }
 
   /**
-   * Gets a logger for a particular subsystem or cohort. (A "cohort" is a set
-   * of loggers for similar items, e.g. "applications" or "services.")
+   * Gets a logger for a particular subsystem or cohort. (A "cohort" is a set of
+   * loggers for similar items, e.g. "applications" or "services.")
    *
    * @param {string} name Name of the subsystem or cohort.
    * @param {boolean} isCohort Is this a cohort?

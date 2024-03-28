@@ -46,9 +46,8 @@ import { TypeEventPredicate } from '#x/TypeEventPredicate';
  */
 export class EventTracker {
   /**
-   * Head of (the first event on) the chain. This also
-   * represents an instance of this class being broken by itself being in a
-   * "rejected" state.
+   * Head of (the first event on) the chain. This also represents an instance of
+   * this class being broken by itself being in a "rejected" state.
    *
    * @type {EventOrPromise}
    */
@@ -96,8 +95,8 @@ export class EventTracker {
    *
    * Though this method is `async`, if the request can be satisfied
    * synchronously, it will. In such cases, the return value will still be a
-   * promise (as it must be given this method is declared `async`), but
-   * {@link #headNow} will synchronously reflect the updated state of affairs.
+   * promise (as it must be given this method is declared `async`), but {@link
+   * #headNow} will synchronously reflect the updated state of affairs.
    *
    * **Note:** If the predicate throws an error -- even synchronously -- the
    * error becomes manifest by the state of the instance becoming broken.
@@ -335,24 +334,22 @@ export class EventTracker {
  */
 class AdvanceAction {
   /**
-   * Event chain head from the perspective of the
-   * in-progress operation.
+   * Event chain head from the perspective of the in-progress operation.
    *
    * @type {EventOrPromise}
    */
   #head;
 
   /**
-   * Predicate which an event needs to
-   * satisfy, for the operation to be considered complete.
+   * Predicate which an event needs to satisfy, for the operation to be
+   * considered complete.
    *
    * @type {function(LinkedEvent): boolean}
    */
   #predicate;
 
   /**
-   * Ultimate result of this operation, if indeed it has
-   * completed.
+   * Ultimate result of this operation, if indeed it has completed.
    *
    * @type {?EventOrPromise}
    */

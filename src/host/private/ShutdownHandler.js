@@ -19,25 +19,24 @@ import { TopErrorHandler } from '#p/TopErrorHandler';
  */
 export class ShutdownHandler {
   /**
-   * Maximum amount of time to wait for callbacks to complete,
-   * while shutting down.
+   * Maximum amount of time to wait for callbacks to complete, while shutting
+   * down.
    *
    * @type {number}
    */
   static #MAX_SHUTDOWN_MSEC = 10 * 1000;
 
   /**
-   * Amount of time to wait just before calling `process.exit()`,
-   * intended to allow shutdown-time log messages to get flushed before the
-   * process actually goes away.
+   * Amount of time to wait just before calling `process.exit()`, intended to
+   * allow shutdown-time log messages to get flushed before the process actually
+   * goes away.
    *
    * @type {number}
    */
   static #PRE_EXIT_DELAY_MSEC = 250;
 
   /**
-   * Logger for this class, or `null` not to do any
-   * logging.
+   * Logger for this class, or `null` not to do any logging.
    *
    * @type {?IntfLogger}
    */

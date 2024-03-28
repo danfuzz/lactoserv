@@ -60,8 +60,7 @@ export class WranglerContext {
   #sessionLogger = null;
 
   /**
-   * Result of {@link #remoteInfo}, or `null` if not yet
-   * calculated.
+   * Result of {@link #remoteInfo}, or `null` if not yet calculated.
    *
    * @type {?object}
    */
@@ -184,8 +183,8 @@ export class WranglerContext {
    * The layers of protocol implementation inside Node "conspire" to hide the
    * original socket of a `connection` event from the request and response
    * objects that ultimately get emitted as part of a `request` event, but we
-   * want to actually be able to track a request back to the connection. This
-   * is used in a few ways, including for recovering local-listener information
+   * want to actually be able to track a request back to the connection. This is
+   * used in a few ways, including for recovering local-listener information
    * (see `IncomingRequest.host`) and logging. Node makes some effort to expose
    * "safe" socket operations through all the wrapped layers, but at least in
    * our use case (maybe because we ourselves wrap the raw socket, and that
@@ -216,17 +215,16 @@ export class WranglerContext {
   //
 
   /**
-   * Weak map from the "various
-   * objects" to instances of this class.
+   * Weak map from the "various objects" to instances of this class.
    *
    * @type {WeakMap<object, WranglerContext>}
    */
   static #CONTEXT_MAP = new WeakMap();
 
   /**
-   * Async storage that can be bound to instances of
-   * this class, to enable plumbing contexts through event chains that don't
-   * otherwise bear enough information to recover the contexts.
+   * Async storage that can be bound to instances of this class, to enable
+   * plumbing contexts through event chains that don't otherwise bear enough
+   * information to recover the contexts.
    *
    * @type {AsyncLocalStorage}
    */

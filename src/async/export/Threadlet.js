@@ -32,34 +32,33 @@ export class Threadlet {
   #mainFunction;
 
   /**
-   * Intended current state of whether or not this instance is
-   * running.
+   * Intended current state of whether or not this instance is running.
    *
    * @type {Condition}
    */
   #runCondition = new Condition();
 
   /**
-   * Promised result of the currently-executing {@link #run},
-   * if the instance is currently running.
+   * Promised result of the currently-executing {@link #run}, if the instance is
+   * currently running.
    *
    * @type {?Promise}
    */
   #runResult = null;
 
   /**
-   * Promised result of calling {@link #start}, if the instance
-   * is currently running (at all, not just in the start function). `null` if
-   * not running or if the instance doesn't have a start function.
+   * Promised result of calling {@link #start}, if the instance is currently
+   * running (at all, not just in the start function). `null` if not running or
+   * if the instance doesn't have a start function.
    *
    * @type {?Promise}
    */
   #startResult = null;
 
   /**
-   * Has the current {@link #runResult} been returned "publicly"
-   * from this instance? This is used to figure out whether to force a failed
-   * run to become an unhandled promise rejection.
+   * Has the current {@link #runResult} been returned "publicly" from this
+   * instance? This is used to figure out whether to force a failed run to
+   * become an unhandled promise rejection.
    *
    * @type {boolean}
    */
@@ -204,13 +203,12 @@ export class Threadlet {
   }
 
   /**
-   * Gets a promise that becomes settled when this instance is running and
-   * after its start function has completed. It becomes _fulfilled_ with the
-   * result of calling the start function, if the start function returned
-   * without error. It becomes _rejected_ with the same reason as whatever the
-   * start function threw, if the start function indeed threw an error. If
-   * `isRunning() === false` when this method is called, it async-returns
-   * `null` promptly.
+   * Gets a promise that becomes settled when this instance is running and after
+   * its start function has completed. It becomes _fulfilled_ with the result of
+   * calling the start function, if the start function returned without error.
+   * It becomes _rejected_ with the same reason as whatever the start function
+   * threw, if the start function indeed threw an error. If `isRunning() ===
+   * false` when this method is called, it async-returns `null` promptly.
    *
    * @returns {*} Whatever was returned by the start function, with exceptions
    *   as noted above.
@@ -237,8 +235,8 @@ export class Threadlet {
   }
 
   /**
-   * Properly wraps a function so it can be called with no arguments in
-   * {@link #run}.
+   * Properly wraps a function so it can be called with no arguments in {@link
+   * #run}.
    *
    * @param {function(*)} func Function to wrap.
    * @returns {function(*)} Wrapped version.

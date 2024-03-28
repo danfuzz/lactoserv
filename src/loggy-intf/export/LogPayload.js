@@ -55,8 +55,8 @@ export class LogPayload extends EventPayload {
    * @param {LogTag} tag Tag for the instance, that is, component name and
    *   optional context.
    * @param {string} type "Type" of the instance, e.g. think of this as
-   *   something like a constructor class name if log records could be
-   *   "invoked" (which... they kinda might be able to be at some point).
+   *   something like a constructor class name if log records could be "invoked"
+   *   (which... they kinda might be able to be at some point).
    * @param {...*} args Arbitrary arguments of the instance, whose meaning
    *   depends on the type.
    */

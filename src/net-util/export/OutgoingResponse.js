@@ -58,8 +58,8 @@ export class OutgoingResponse {
   #body = null;
 
   /**
-   * `cache-control` header to automatically use when
-   * appropriate, or `null` not to do that.
+   * `cache-control` header to automatically use when appropriate, or `null` not
+   * to do that.
    *
    * @type {?string}
    */
@@ -105,12 +105,12 @@ export class OutgoingResponse {
   }
 
   /**
-   * A `cache-control` header to include in any response whose
-   * status code indicates that a response is possibly cacheable, using a
-   * request method that also allows for caching, or `null` not to do automatic
-   * `cache-control` header insertion. (See {@link
-   * HttpUtil#responseIsCacheableFor}.) If this is non-`null`, then it is an
-   * error to include `cache-control` in {@link #headers}.
+   * A `cache-control` header to include in any response whose status code
+   * indicates that a response is possibly cacheable, using a request method
+   * that also allows for caching, or `null` not to do automatic `cache-control`
+   * header insertion. (See {@link HttpUtil#responseIsCacheableFor}.) If this is
+   * non-`null`, then it is an error to include `cache-control` in {@link
+   * #headers}.
    *
    * @type {?string}
    */
@@ -780,8 +780,8 @@ export class OutgoingResponse {
   //
 
   /**
-   * Array of header names associated with content (that
-   * is, non-empty bodies that represent high-level application content).
+   * Array of header names associated with content (that is, non-empty bodies
+   * that represent high-level application content).
    *
    * @type {Array<string>}
    */
@@ -806,25 +806,24 @@ export class OutgoingResponse {
   });
 
   /**
-   * Chunk size to use when reading a file and writing it as a
-   * response.
+   * Chunk size to use when reading a file and writing it as a response.
    *
    * @type {number}
    */
   static #READ_CHUNK_SIZE = 64 * 1024; // 64k
 
   /**
-   * Key to use on response objects to hold a result from
-   * {@link #whenResponseDone}. See comment at use site for more explanation.
+   * Key to use on response objects to hold a result from {@link
+   * #whenResponseDone}. See comment at use site for more explanation.
    *
    * @type {symbol}
    */
   static #RESPONSE_DONE_SYMBOL = Symbol('OutgoingResponse.HttpResponseDone');
 
   /**
-   * Key to use on response objects to hold a "secret" copy of
-   * its `.socket`. Set by {@link #whenResponseDone}, see comment in which for
-   * for more explanation.
+   * Key to use on response objects to hold a "secret" copy of its `.socket`.
+   * Set by {@link #whenResponseDone}, see comment in which for for more
+   * explanation.
    *
    * @type {symbol}
    */
@@ -836,10 +835,10 @@ export class OutgoingResponse {
    * in the response, this method aims to report the error-ish info via a normal
    * return (not by `throw`ing).
    *
-   * **Note:** The `headers` in the result omits anything that is redundant
-   * with respect to other parts of the return value. (E.g., the
-   * `content-length` header is always omitted, and the `:status` pseudo-header
-   * is omitted from HTTP2 response headers.)
+   * **Note:** The `headers` in the result omits anything that is redundant with
+   * respect to other parts of the return value. (E.g., the `content-length`
+   * header is always omitted, and the `:status` pseudo-header is omitted from
+   * HTTP2 response headers.)
    *
    * @param {ServerResponse|Http2ServerResponse} res The response object.
    * @param {Duplex} connectionSocket The underlying socket for the connection.
@@ -1019,9 +1018,9 @@ export class OutgoingResponse {
   }
 
   /**
-   * Returns when an underlying response has been closed successfully (after
-   * all of the response is believed to be sent) or has errored. Returns `true`
-   * for a normal close, or throws whatever error the response reports.
+   * Returns when an underlying response has been closed successfully (after all
+   * of the response is believed to be sent) or has errored. Returns `true` for
+   * a normal close, or throws whatever error the response reports.
    *
    * @param {ServerResponse|Http2ServerResponse} res The response object in
    *   question.

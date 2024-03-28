@@ -29,8 +29,8 @@ import { RequestContext } from '#x/RequestContext';
  */
 export class IncomingRequest {
   /**
-   * Logger to use for this instance, or `null` if the
-   * instance is not doing logging.
+   * Logger to use for this instance, or `null` if the instance is not doing
+   * logging.
    *
    * @type {?IntfLogger}
    */
@@ -44,8 +44,7 @@ export class IncomingRequest {
   #id = null;
 
   /**
-   * Information about the incoming "context" of a
-   * request.
+   * Information about the incoming "context" of a request.
    *
    * @type {RequestContext}
    */
@@ -66,9 +65,9 @@ export class IncomingRequest {
   #protocolName;
 
   /**
-   * HTTP-2-ish "pseudo-headers" that came with the request
-   * or were synthesized from an HTTP-1-ish request, with keys stripped of their
-   * colon (`:`) prefixes.
+   * HTTP-2-ish "pseudo-headers" that came with the request or were synthesized
+   * from an HTTP-1-ish request, with keys stripped of their colon (`:`)
+   * prefixes.
    *
    * @type {HttpHeaders}
    */
@@ -89,8 +88,7 @@ export class IncomingRequest {
   #cookies = null;
 
   /**
-   * The host (a/k/a "authority") info, or `null` if not yet
-   * figured out.
+   * The host (a/k/a "authority") info, or `null` if not yet figured out.
    *
    * @type {HostInfo}
    */
@@ -105,16 +103,14 @@ export class IncomingRequest {
   #parsedTargetObject = null;
 
   /**
-   * The result of {@link #infoForLog}, or `null` if not yet
-   * calculated.
+   * The result of {@link #infoForLog}, or `null` if not yet calculated.
    *
    * @type {?object}
    */
   #infoForLog = null;
 
   /**
-   * The value of {@link #urlForLog}, or `null` if not yet
-   * calculated.
+   * The value of {@link #urlForLog}, or `null` if not yet calculated.
    *
    * @type {?string}
    */
@@ -134,8 +130,7 @@ export class IncomingRequest {
    *   will be one that includes an additional subtag representing a new
    *   unique(ish) ID for the request.
    * @param {string} config.protocolName The protocol name. This is expected
-   *   to be a lowercase name followed by a dash and a version, e.g.
-   *   `http-1.1`.
+   *   to be a lowercase name followed by a dash and a version, e.g. `http-1.1`.
    * @param {HttpHeaders} config.pseudoHeaders HTTP-2-ish "pseudo-headers"
    *   that came with the request or were synthesized based on an HTTP-1-ish
    *   request, with keys stripped of their colon (`:`) prefixes.
@@ -332,12 +327,11 @@ export class IncomingRequest {
 
   /**
    * @returns {string} The name of the protocol which this instance is using.
-   * This is generally a string starting with `http-` and ending with the
-   * dotted version. This corresponds to the (unencrypted) protocol being used
-   * over the (possibly encrypted) transport, and has nothing to do _per se_
-   * with the port number which the remote side of this request connected to in
-   * order to send the request. That is, `https*` won't be the value of this
-   * property.
+   * This is generally a string starting with `http-` and ending with the dotted
+   * version. This corresponds to the (unencrypted) protocol being used over the
+   * (possibly encrypted) transport, and has nothing to do _per se_ with the
+   * port number which the remote side of this request connected to in order to
+   * send the request. That is, `https*` won't be the value of this property.
    */
   get protocolName() {
     return this.#protocolName;
@@ -368,9 +362,9 @@ export class IncomingRequest {
    *
    * For example, for the requested URL
    * `https://example.com:123/foo/bar?baz=10`, this would be `/foo/bar?baz=10`.
-   * This property name corresponds to the standard Node field
-   * {@link IncomingMessage#url}, even though it's not actually a URL per se. We
-   * chose to diverge from Node for the sake of clarity.
+   * This property name corresponds to the standard Node field {@link
+   * IncomingMessage#url}, even though it's not actually a URL per se. We chose
+   * to diverge from Node for the sake of clarity.
    */
   get targetString() {
     return this.#parsedTarget.targetString;
