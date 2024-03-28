@@ -40,8 +40,10 @@ export class WallClock {
   static #lastHrtimeNsec = -1n;
 
   /**
-   * @type {bigint} Last "now" measured by {@link #now}, as a `bigint`
+   * Last "now" measured by {@link #now}, as a `bigint`
    * representing a nanosecond-based Unix Epoch time.
+   *
+   * @type {bigint}
    */
   static #lastNowNsec = -1n;
 

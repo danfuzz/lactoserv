@@ -10,8 +10,10 @@ import { IntfLogger } from '@this/loggy-intf';
  */
 export class ThisModule {
   /**
-   * @type {?IntfLogger} Logger for this module, or `null` not to do any
+   * Logger for this module, or `null` not to do any
    * logging.
+   *
+   * @type {?IntfLogger}
    */
   static #logger = Loggy.loggerFor('main');
 

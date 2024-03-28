@@ -31,8 +31,10 @@ export class MainArgs {
   #parsedArgs = null;
 
   /**
-   * @type {?WarehouseMaker} Warehouse maker, based on the passed configuration
+   * Warehouse maker, based on the passed configuration
    * URL.
+   *
+   * @type {?WarehouseMaker}
    */
   #warehouseMaker = null;
 
@@ -62,8 +64,10 @@ export class MainArgs {
   }
 
   /**
-   * @type {WarehouseMaker} Warehouse maker, based on the passed configuration
+   * Warehouse maker, based on the passed configuration
    * location.
+   *
+   * @type {WarehouseMaker}
    */
   get warehouseMaker() {
     return this.#warehouseMaker;

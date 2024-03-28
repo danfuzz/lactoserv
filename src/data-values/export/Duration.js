@@ -91,8 +91,10 @@ export class Duration extends UnitQuantity {
   static ZERO = new Duration(0);
 
   /**
-   * @type {Map<string, number>} Multipliers for each named unit to convert to
+   * Multipliers for each named unit to convert to
    * seconds.
+   *
+   * @type {Map<string, number>}
    */
   static #SEC_PER_UNIT = new Map(Object.entries({
     ns:   (1 / 1_000_000_000),

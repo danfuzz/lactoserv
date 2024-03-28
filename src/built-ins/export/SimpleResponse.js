@@ -23,8 +23,10 @@ export class SimpleResponse extends BaseApplication {
   #allowAdjustment = true;
 
   /**
-   * @type {OutgoingResponse} Response template to clone for all actual
+   * Response template to clone for all actual
    * responses.
+   *
+   * @type {OutgoingResponse}
    */
   #response = null;
 
@@ -121,26 +123,34 @@ export class SimpleResponse extends BaseApplication {
    */
   static #Config = class Config extends BaseApplication.FilterConfig {
     /**
-     * @type {?number} Predefined status code of the response, or `null` to use
+     * Predefined status code of the response, or `null` to use
      * the most appropriate "success" status code (most typically `200`).
+     *
+     * @type {?number}
      */
     #statusCode = null;
 
     /**
-     * @type {?string} Content type of the response, or `null` to infer it from
+     * Content type of the response, or `null` to infer it from
      * {@link #filePath}.
+     *
+     * @type {?string}
      */
     #contentType = null;
 
     /**
-     * @type {?(string|Buffer)} Body contents of the response, or `null` to
+     * Body contents of the response, or `null` to
      * use {@link #filePath}.
+     *
+     * @type {?(string|Buffer)}
      */
     #body = null;
 
     /**
-     * @type {?string} `cache-control` header to automatically include, or
+     * `cache-control` header to automatically include, or
      * `null` not to do that.
+     *
+     * @type {?string}
      */
     #cacheControl = null;
 
@@ -152,8 +162,10 @@ export class SimpleResponse extends BaseApplication {
     #etagOptions = null;
 
     /**
-     * @type {?string} Absolute path to a file for the body contents, or `null`
+     * Absolute path to a file for the body contents, or `null`
      * if {@link #body} is supplied directly.
+     *
+     * @type {?string}
      */
     #filePath = null;
 
@@ -266,8 +278,10 @@ export class SimpleResponse extends BaseApplication {
     }
 
     /**
-     * @type {?number} Predefined status code of the response, or `null` to use
+     * Predefined status code of the response, or `null` to use
      * the most appropriate "success" status code (most typically `200`).
+     *
+     * @type {?number}
      */
     get statusCode() {
       return this.#statusCode;

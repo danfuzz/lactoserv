@@ -32,28 +32,36 @@ export class Threadlet {
   #mainFunction;
 
   /**
-   * @type {Condition} Intended current state of whether or not this instance is
+   * Intended current state of whether or not this instance is
    * running.
+   *
+   * @type {Condition}
    */
   #runCondition = new Condition();
 
   /**
-   * @type {?Promise} Promised result of the currently-executing {@link #run},
+   * Promised result of the currently-executing {@link #run},
    * if the instance is currently running.
+   *
+   * @type {?Promise}
    */
   #runResult = null;
 
   /**
-   * @type {?Promise} Promised result of calling {@link #start}, if the instance
+   * Promised result of calling {@link #start}, if the instance
    * is currently running (at all, not just in the start function). `null` if
    * not running or if the instance doesn't have a start function.
+   *
+   * @type {?Promise}
    */
   #startResult = null;
 
   /**
-   * @type {boolean} Has the current {@link #runResult} been returned "publicly"
+   * Has the current {@link #runResult} been returned "publicly"
    * from this instance? This is used to figure out whether to force a failed
    * run to become an unhandled promise rejection.
+   *
+   * @type {boolean}
    */
   #runResultExposed = false;
 

@@ -37,8 +37,10 @@ import { Struct } from '#x/Struct';
  */
 export class ConverterConfig {
   /**
-   * @type {(function(new:*))[]} Classes whose instances are treated as data
+   * Classes whose instances are treated as data
    * values.
+   *
+   * @type {(function(new:*))[]}
    */
   #dataClasses;
 
@@ -50,8 +52,10 @@ export class ConverterConfig {
   #freeze;
 
   /**
-   * @type {string|(function(*): *)} Action to take when asked to encode a
+   * Action to take when asked to encode a
    * function.
+   *
+   * @type {string|(function(*): *)}
    */
   #functionAction;
 
@@ -63,9 +67,11 @@ export class ConverterConfig {
   #honorEncodeMethod;
 
   /**
-   * @type {string|(function(*): *)} Action to take when asked to encode an
+   * Action to take when asked to encode an
    * instance (object with a class) which is not otherwise covered by other
    * configuration options.
+   *
+   * @type {string|(function(*): *)}
    */
   #instanceAction;
 
@@ -76,8 +82,10 @@ export class ConverterConfig {
   #specialCases;
 
   /**
-   * @type {string} Action to take when encountering a symbol-keyed object or
+   * Action to take when encountering a symbol-keyed object or
    * array property. Allowed to be either `error` or `omit`.
+   *
+   * @type {string}
    */
   #symbolKeyAction;
 

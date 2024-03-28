@@ -58,8 +58,10 @@ export class OutgoingResponse {
   #body = null;
 
   /**
-   * @type {?string} `cache-control` header to automatically use when
+   * `cache-control` header to automatically use when
    * appropriate, or `null` not to do that.
+   *
+   * @type {?string}
    */
   #cacheControl = null;
 
@@ -103,12 +105,14 @@ export class OutgoingResponse {
   }
 
   /**
-   * @type {?string} A `cache-control` header to include in any response whose
+   * A `cache-control` header to include in any response whose
    * status code indicates that a response is possibly cacheable, using a
    * request method that also allows for caching, or `null` not to do automatic
    * `cache-control` header insertion. (See {@link
    * HttpUtil#responseIsCacheableFor}.) If this is non-`null`, then it is an
    * error to include `cache-control` in {@link #headers}.
+   *
+   * @type {?string}
    */
   set cacheControl(value) {
     if (value !== null) {
@@ -776,8 +780,10 @@ export class OutgoingResponse {
   //
 
   /**
-   * @type {Array<string>} Array of header names associated with content (that
+   * Array of header names associated with content (that
    * is, non-empty bodies that represent high-level application content).
+   *
+   * @type {Array<string>}
    */
   static #CONTENT_HEADERS = Object.freeze([
     'content-encoding',
@@ -791,28 +797,36 @@ export class OutgoingResponse {
   ]);
 
   /**
-   * @type {...} Excpetions to restrictions of {@link #CONTENT_HEADERS}.
+   * Excpetions to restrictions of {@link #CONTENT_HEADERS}.
+   *
+   * @type {...}
    */
   static #CONTENT_HEADER_EXCEPTIONS = Object.freeze({
     416: new Set(['content-range'])
   });
 
   /**
-   * @type {number} Chunk size to use when reading a file and writing it as a
+   * Chunk size to use when reading a file and writing it as a
    * response.
+   *
+   * @type {number}
    */
   static #READ_CHUNK_SIZE = 64 * 1024; // 64k
 
   /**
-   * @type {symbol} Key to use on response objects to hold a result from
+   * Key to use on response objects to hold a result from
    * {@link #whenResponseDone}. See comment at use site for more explanation.
+   *
+   * @type {symbol}
    */
   static #RESPONSE_DONE_SYMBOL = Symbol('OutgoingResponse.HttpResponseDone');
 
   /**
-   * @type {symbol} Key to use on response objects to hold a "secret" copy of
+   * Key to use on response objects to hold a "secret" copy of
    * its `.socket`. Set by {@link #whenResponseDone}, see comment in which for
    * for more explanation.
+   *
+   * @type {symbol}
    */
   static #RESPONSE_SOCKET_SYMBOL = Symbol('OutgoingResponse.HttpResponseSocket');
 

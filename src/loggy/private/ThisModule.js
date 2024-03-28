@@ -12,7 +12,9 @@ import { StdLoggingEnvironment } from '#x/StdLoggingEnvironment';
  */
 export class ThisModule {
   /**
-   * @type {number} Number of old events that {@link #DEFAULT_LOG_SOURCE} keeps.
+   * Number of old events that {@link #DEFAULT_LOG_SOURCE} keeps.
+   *
+   * @type {number}
    */
   static #DEFAULT_KEEP_COUNT = 100;
 

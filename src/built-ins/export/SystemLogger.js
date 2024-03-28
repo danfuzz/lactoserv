@@ -23,8 +23,10 @@ export class SystemLogger extends BaseFileService {
   #rotator = null;
 
   /**
-   * @type {?TextFileSink} Event sink which does the actual writing, or `null`
+   * Event sink which does the actual writing, or `null`
    * if not yet set up.
+   *
+   * @type {?TextFileSink}
    */
   #sink = null;
 

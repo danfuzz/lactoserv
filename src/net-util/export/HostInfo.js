@@ -34,8 +34,10 @@ export class HostInfo {
   #portString = null;
 
   /**
-   * @type {?boolean} Is the hostname actually an IP address? `null` if not yet
+   * Is the hostname actually an IP address? `null` if not yet
    * calculated.
+   *
+   * @type {?boolean}
    */
   #nameIsIp = null;
 

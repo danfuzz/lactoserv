@@ -13,14 +13,18 @@ import { TreePathMap } from '#x/TreePathMap';
  */
 export class TreePathNode {
   /**
-   * @type {Map<string, TreePathNode>} Bindings from each initial path component
+   * Bindings from each initial path component
    * to a {@link TreePathNode} which contains mappings for that component.
+   *
+   * @type {Map<string, TreePathNode>}
    */
   #subtrees = new Map();
 
   /**
-   * @type {TreePathKey} Non-wildcard key (from the root), if there is an
+   * Non-wildcard key (from the root), if there is an
    * empty-path binding to this instance.
+   *
+   * @type {TreePathKey}
    */
   #emptyKey = null;
 
@@ -32,8 +36,10 @@ export class TreePathNode {
   #emptyValue = null;
 
   /**
-   * @type {TreePathKey} Wildcard key (from the root), if there is a wildcard
+   * Wildcard key (from the root), if there is a wildcard
    * binding to this instance.
+   *
+   * @type {TreePathKey}
    */
   #wildcardKey = null;
 

@@ -13,16 +13,20 @@ import { ManualPromise } from '#x/ManualPromise';
  */
 export class Mutex {
   /**
-   * @type {?symbol} Unique symbol representing the current lock holder, or
+   * Unique symbol representing the current lock holder, or
    * `null` if the lock is not currently held. This symbol serves as the "key"
    * for unlocking, such that only the current lock holder can unlock the
    * instance.
+   *
+   * @type {?symbol}
    */
   #lockedBy = null;
 
   /**
-   * @type {(function())[]} Array of "release" functions, each of which
+   * Array of "release" functions, each of which
    * represents a waiters for lock acquisition, in FIFO order.
+   *
+   * @type {(function())[]}
    */
   #waiters = [];
 

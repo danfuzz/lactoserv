@@ -33,21 +33,27 @@ import { WranglerContext } from '#p/WranglerContext';
  */
 export class ProtocolWrangler {
   /**
-   * @type {?IntfLogger} System logger to use, or `null` to not do any logging.
+   * System logger to use, or `null` to not do any logging.
+   *
+   * @type {?IntfLogger}
    */
   #logger = null;
 
   /**
-   * @type {?IntfLogger} Logger to use for {@link IncomingRequest}s, or `null`
+   * Logger to use for {@link IncomingRequest}s, or `null`
    * to not do any logging. This is passed into the {@link IncomingRequest}
    * constructor, which will end up making a sub-logger with a generated request
    * ID.
+   *
+   * @type {?IntfLogger}
    */
   #requestLogger = null;
 
   /**
-   * @type {?IntfHostManager} Optional host manager; only needed for some
+   * Optional host manager; only needed for some
    * protocols.
+   *
+   * @type {?IntfHostManager}
    */
   #hostManager;
 
@@ -66,8 +72,10 @@ export class ProtocolWrangler {
   #requestHandler;
 
   /**
-   * @type {?RequestLogHelper} Helper for HTTP-ish request logging, or `null`
+   * Helper for HTTP-ish request logging, or `null`
    * to not do any such logging.
+   *
+   * @type {?RequestLogHelper}
    */
   #logHelper;
 
@@ -93,8 +101,10 @@ export class ProtocolWrangler {
   #runner = new Threadlet(() => this.#startNetwork(), () => this.#runNetwork());
 
   /**
-   * @type {boolean} Is a system reload in progress (either during start or
+   * Is a system reload in progress (either during start or
    * stop)?
+   *
+   * @type {boolean}
    */
   #reloading = false;
 

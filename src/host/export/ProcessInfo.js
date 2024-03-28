@@ -18,9 +18,11 @@ import { ThisModule } from '#p/ThisModule';
  */
 export class ProcessInfo {
   /**
-   * @type {?Moment} The moment that the process started.
+   * The moment that the process started.
    *
    * **Note:** `process.uptime()` returns a number of seconds.
+   *
+   * @type {?Moment}
    */
   static #startedAt = new Moment(WallClock.now().atSec - uptime());
 

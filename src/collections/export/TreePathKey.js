@@ -29,8 +29,10 @@ export class TreePathKey {
   #wildcard;
 
   /**
-   * @type {?number} The result of {@link #charLength}, or `null` if not yet
+   * The result of {@link #charLength}, or `null` if not yet
    * calculated.
+   *
+   * @type {?number}
    */
   #charLength = null;
 

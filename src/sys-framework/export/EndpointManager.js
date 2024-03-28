@@ -24,8 +24,10 @@ export class EndpointManager extends BaseControllable {
   #warehouse;
 
   /**
-   * @type {Map<string, NetworkEndpoint>} Map from each endpoint name to the
+   * Map from each endpoint name to the
    * {@link NetworkEndpoint} object with that name.
+   *
+   * @type {Map<string, NetworkEndpoint>}
    */
   #instances = new Map();
 

@@ -26,8 +26,10 @@ export class WarehouseMaker {
   #configUrl = null;
 
   /**
-   * @type {?IntfLogger} Logger for this instance, or `null` not to do any
+   * Logger for this instance, or `null` not to do any
    * logging.
+   *
+   * @type {?IntfLogger}
    */
   #logger = ThisModule.logger?.system;
 

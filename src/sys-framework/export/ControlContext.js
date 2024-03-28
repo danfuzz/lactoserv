@@ -31,22 +31,28 @@ export class ControlContext {
   #logger;
 
   /**
-   * @type {?BaseControllable} Associated controllable instance. Is only ever
+   * Associated controllable instance. Is only ever
    * `null` for the context of the root instance itself, and only briefly while
    * it gets bootstrapped.
+   *
+   * @type {?BaseControllable}
    */
   #associate;
 
   /**
-   * @type {?ControlContext} Instance which represents the parent (container)
+   * Instance which represents the parent (container)
    * of this instance's associated controllable, or `null` if this instance has
    * no parent (that is, is the root of the containership hierarchy).
+   *
+   * @type {?ControlContext}
    */
   #parent;
 
   /**
-   * @type {RootControlContext} Instance which represents the root of the
+   * Instance which represents the root of the
    * containership hierarchy.
+   *
+   * @type {RootControlContext}
    */
   #root;
 

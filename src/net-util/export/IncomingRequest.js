@@ -29,19 +29,25 @@ import { RequestContext } from '#x/RequestContext';
  */
 export class IncomingRequest {
   /**
-   * @type {?IntfLogger} Logger to use for this instance, or `null` if the
+   * Logger to use for this instance, or `null` if the
    * instance is not doing logging.
+   *
+   * @type {?IntfLogger}
    */
   #logger = null;
 
   /**
-   * @type {?string} Request ID, or `null` if the instance is not doing logging.
+   * Request ID, or `null` if the instance is not doing logging.
+   *
+   * @type {?string}
    */
   #id = null;
 
   /**
-   * @type {RequestContext} Information about the incoming "context" of a
+   * Information about the incoming "context" of a
    * request.
+   *
+   * @type {RequestContext}
    */
   #requestContext;
 
@@ -60,9 +66,11 @@ export class IncomingRequest {
   #protocolName;
 
   /**
-   * @type {HttpHeaders} HTTP-2-ish "pseudo-headers" that came with the request
+   * HTTP-2-ish "pseudo-headers" that came with the request
    * or were synthesized from an HTTP-1-ish request, with keys stripped of their
    * colon (`:`) prefixes.
+   *
+   * @type {HttpHeaders}
    */
   #pseudoHeaders;
 
@@ -81,13 +89,14 @@ export class IncomingRequest {
   #cookies = null;
 
   /**
-   * @type {HostInfo} The host (a/k/a "authority") info, or `null` if not yet
+   * The host (a/k/a "authority") info, or `null` if not yet
    * figured out.
+   *
+   * @type {HostInfo}
    */
   #hostInfo = null;
 
   /**
-   * @type {{ targetString: string, type: ?string, pathname: ?TreePathKey,
    * pathnameString: ?string, searchString: ?string }} The target string of the
    * request (the thing that Node calls a `url` despite it not really being one,
    * bless their innocent hearts), along with a type indicator and parsed
@@ -96,14 +105,18 @@ export class IncomingRequest {
   #parsedTargetObject = null;
 
   /**
-   * @type {?object} The result of {@link #infoForLog}, or `null` if not yet
+   * The result of {@link #infoForLog}, or `null` if not yet
    * calculated.
+   *
+   * @type {?object}
    */
   #infoForLog = null;
 
   /**
-   * @type {?string} The value of {@link #urlForLog}, or `null` if not yet
+   * The value of {@link #urlForLog}, or `null` if not yet
    * calculated.
+   *
+   * @type {?string}
    */
   #urlForLog = null;
 

@@ -30,8 +30,10 @@ import { IntfLogger } from '@this/loggy-intf';
  */
 export class LimitedLoader {
   /**
-   * @type {?object} "Contextified" object which is bound as `global` in loaded
+   * "Contextified" object which is bound as `global` in loaded
    * modules.
+   *
+   * @type {?object}
    */
   #context;
 
@@ -43,14 +45,18 @@ export class LimitedLoader {
   #logger;
 
   /**
-   * @type {Map<string, Module>} Map from each specifier that has been loaded to
+   * Map from each specifier that has been loaded to
    * the resulting module instance.
+   *
+   * @type {Map<string, Module>}
    */
   #cache = new Map();
 
   /**
-   * @type {function(string, Module, object)} Linker function, passed to
+   * Linker function, passed to
    * `module.link()`.
+   *
+   * @type {function(string, Module, object)}
    */
   #linker = (specifier, refModule_unused, extra) => {
     return this.#importModule(specifier, extra);

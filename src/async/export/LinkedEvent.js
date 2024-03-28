@@ -35,8 +35,10 @@ export class LinkedEvent {
   #payload;
 
   /**
-   * @type {?EventOrPromise} Next event in the chain, if there is in fact either
+   * Next event in the chain, if there is in fact either
    * a concrete next event or promise for same.
+   *
+   * @type {?EventOrPromise}
    */
   #next;
 
@@ -48,9 +50,11 @@ export class LinkedEvent {
   #hasEmitter;
 
   /**
-   * @type {?function(*)} Function which can be called to resolve the (promise
+   * Function which can be called to resolve the (promise
    * inside the) value of {@link #next}. `null` if {@link #next} is itself
    * `null` _or_ if the resolver got used.
+   *
+   * @type {?function(*)}
    */
   #resolveNext = null;
 

@@ -24,14 +24,18 @@ export class EventSink extends Threadlet {
   #processor;
 
   /**
-   * @type {EventOrPromise} Head of the event chain, representing the earliest
+   * Head of the event chain, representing the earliest
    * event which has not yet been processed.
+   *
+   * @type {EventOrPromise}
    */
   #head;
 
   /**
-   * @type {boolean} Is this instance eagerly "draining" all synchronously-known
+   * Is this instance eagerly "draining" all synchronously-known
    * events?
+   *
+   * @type {boolean}
    */
   #draining = false;
 

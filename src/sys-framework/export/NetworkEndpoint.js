@@ -26,8 +26,10 @@ import { HostManager } from '#x/HostManager';
  */
 export class NetworkEndpoint extends BaseComponent {
   /**
-   * @type {?BaseApplication} Application to send requests to. Becomes
+   * Application to send requests to. Becomes
    * non-`null` during {@link #_impl_start()}.
+   *
+   * @type {?BaseApplication}
    */
   #application = null;
 

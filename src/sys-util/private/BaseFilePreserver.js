@@ -41,8 +41,10 @@ export class BaseFilePreserver {
   #lastInfix = null;
 
   /**
-   * @type {?string} Count (in the infix) used for the most recently preserved
+   * Count (in the infix) used for the most recently preserved
    * file.
+   *
+   * @type {?string}
    */
   #lastInfixCount = 0;
 
@@ -72,8 +74,10 @@ export class BaseFilePreserver {
   }
 
   /**
-   * @type {?IntfLogger} Logger used by this instance. This is mostly for the
+   * Logger used by this instance. This is mostly for the
    * benefit of subclasses.
+   *
+   * @type {?IntfLogger}
    */
   get logger() {
     return this.#logger;

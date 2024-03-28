@@ -16,8 +16,10 @@ import { BaseApplication } from '@this/sys-framework';
  */
 export class StaticFiles extends BaseApplication {
   /**
-   * @type {?string} Path to the file to serve for a not-found result, or
+   * Path to the file to serve for a not-found result, or
    * `null` if not-found handling shouldn't be done.
+   *
+   * @type {?string}
    */
   #notFoundPath;
 
@@ -29,19 +31,25 @@ export class StaticFiles extends BaseApplication {
   #siteDirectory;
 
   /**
-   * @type {?string} `cache-control` header to automatically include, or
+   * `cache-control` header to automatically include, or
    * `null` not to do that.
+   *
+   * @type {?string}
    */
   #cacheControl = null;
 
   /**
-   * @type {?EtagGenerator} Etag generator to use, or `null` if not using one.
+   * Etag generator to use, or `null` if not using one.
+   *
+   * @type {?EtagGenerator}
    */
   #etagGenerator = null;
 
   /**
-   * @type {?OutgoingResponse} Not-found response to issue, or `null` if either
+   * Not-found response to issue, or `null` if either
    * not yet calculated or if this instance isn't handling not-found errors.
+   *
+   * @type {?OutgoingResponse}
    */
   #notFoundResponse = null;
 
@@ -263,8 +271,10 @@ export class StaticFiles extends BaseApplication {
    */
   static #Config = class Config extends BaseApplication.FilterConfig {
     /**
-     * @type {?string} Path to the file to serve for a not-found result, or
+     * Path to the file to serve for a not-found result, or
      * `null` if not-found handling shouldn't be done.
+     *
+     * @type {?string}
      */
     #notFoundPath;
 
@@ -276,14 +286,18 @@ export class StaticFiles extends BaseApplication {
     #siteDirectory;
 
     /**
-     * @type {?string} `cache-control` header to automatically include, or
+     * `cache-control` header to automatically include, or
      * `null` not to do that.
+     *
+     * @type {?string}
      */
     #cacheControl = null;
 
     /**
-     * @type {?object} Etag configuration options, or `null` not to generate
+     * Etag configuration options, or `null` not to generate
      * etags.
+     *
+     * @type {?object}
      */
     #etagOptions = null;
 

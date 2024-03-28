@@ -20,15 +20,19 @@ import { ThisModule } from '#p/ThisModule';
  */
 export class TopErrorHandler {
   /**
-   * @type {number} How many ticks to wait after receiving an
+   * How many ticks to wait after receiving an
    * `unhandledRejection` event before considering a promise rejection
    * _actually_ unhandled.
+   *
+   * @type {number}
    */
   static #PROMISE_REJECTION_GRACE_PERIOD_TICKS = 10;
 
   /**
-   * @type {?IntfLogger} Logger for this class, or `null` not to do any
+   * Logger for this class, or `null` not to do any
    * logging.
+   *
+   * @type {?IntfLogger}
    */
   static #logger = ThisModule.logger?.topError;
 

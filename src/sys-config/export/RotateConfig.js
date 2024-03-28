@@ -23,7 +23,9 @@ export class RotateConfig extends SaveConfig {
   #atSize;
 
   /**
-   * @type {?Duration} How often to check for rotation eligibility, if at all.
+   * How often to check for rotation eligibility, if at all.
+   *
+   * @type {?Duration}
    */
   #checkPeriod;
 

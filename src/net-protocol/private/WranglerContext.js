@@ -18,7 +18,9 @@ import { ProtocolWrangler } from '#x/ProtocolWrangler';
  */
 export class WranglerContext {
   /**
-   * @type {ProtocolWrangler} Wrangler instance responsible for this context.
+   * Wrangler instance responsible for this context.
+   *
+   * @type {ProtocolWrangler}
    */
   #wrangler = null;
 
@@ -58,8 +60,10 @@ export class WranglerContext {
   #sessionLogger = null;
 
   /**
-   * @type {?object} Result of {@link #remoteInfo}, or `null` if not yet
+   * Result of {@link #remoteInfo}, or `null` if not yet
    * calculated.
+   *
+   * @type {?object}
    */
   #remoteInfo = null;
 
@@ -212,15 +216,19 @@ export class WranglerContext {
   //
 
   /**
-   * @type {WeakMap<object, WranglerContext>} Weak map from the "various
+   * Weak map from the "various
    * objects" to instances of this class.
+   *
+   * @type {WeakMap<object, WranglerContext>}
    */
   static #CONTEXT_MAP = new WeakMap();
 
   /**
-   * @type {AsyncLocalStorage} Async storage that can be bound to instances of
+   * Async storage that can be bound to instances of
    * this class, to enable plumbing contexts through event chains that don't
    * otherwise bear enough information to recover the contexts.
+   *
+   * @type {AsyncLocalStorage}
    */
   static #perWranglerStorage = new AsyncLocalStorage();
 

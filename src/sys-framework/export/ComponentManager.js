@@ -18,26 +18,34 @@ import { ControlContext } from '#x/ControlContext';
  */
 export class ComponentManager extends BaseControllable {
   /**
-   * @type {function(new:BaseComponent)} Base class of all components to be
+   * Base class of all components to be
    * managed by this instance.
+   *
+   * @type {function(new:BaseComponent)}
    */
   #baseClass;
 
   /**
-   * @type {function(new:ClassedConfig)} Base class of all component
+   * Base class of all component
    * configuration classes to be used by this instance.
+   *
+   * @type {function(new:ClassedConfig)}
    */
   #configBaseClass;
 
   /**
-   * @type {?IntfLogger} Base sublogger to use for instantiated components, or
+   * Base sublogger to use for instantiated components, or
    * `null` not to do any logging.
+   *
+   * @type {?IntfLogger}
    */
   #baseSublogger;
 
   /**
-   * @type {Map<string, BaseComponent>} Map from each bound name to the
+   * Map from each bound name to the
    * corresponding instance.
+   *
+   * @type {Map<string, BaseComponent>}
    */
   #instances = new Map();
 

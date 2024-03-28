@@ -27,14 +27,18 @@ export class TcpWrangler extends ProtocolWrangler {
   #rateLimiter;
 
   /**
-   * @type {Array<*>} Arguments to pass to the {@link AsyncServerSocket}
+   * Arguments to pass to the {@link AsyncServerSocket}
    * constructor.
+   *
+   * @type {Array<*>}
    */
   #asyncServerArgs;
 
   /**
-   * @type {?AsyncServerSocket} Underlying server socket, wrapped for `async`
+   * Underlying server socket, wrapped for `async`
    * friendliness. Set in {@link #init}.
+   *
+   * @type {?AsyncServerSocket}
    */
   #asyncServer = null;
 
@@ -343,22 +347,28 @@ export class TcpWrangler extends ProtocolWrangler {
   //
 
   /**
-   * @type {number} How long in msec to wait before considering a connected
+   * How long in msec to wait before considering a connected
    * socket (a/o/t a server socket doing a `listen()`) to be "timed out." When
    * timed out, a socket is closed proactively.
+   *
+   * @type {number}
    */
   static #SOCKET_TIMEOUT_MSEC = 3 * 60 * 1000; // Three minutes.
 
   /**
-   * @type {number} Grace period in msec after trying to close a socket due to
+   * Grace period in msec after trying to close a socket due to
    * timeout, before doing it more forcefully.
+   *
+   * @type {number}
    */
   static #SOCKET_TIMEOUT_CLOSE_GRACE_PERIOD_MSEC = 250; // Quarter of a second.
 
   /**
-   * @type {number} Grace period in msec after receiving an `end` event from
+   * Grace period in msec after receiving an `end` event from
    * a raw socket (which indicates that the readable side was closed), before
    * reacting by closing the writable side.
+   *
+   * @type {number}
    */
   static #SOCKET_WAIT_TIME_AFTER_HALF_CLOSE_MSEC = 10;
 }

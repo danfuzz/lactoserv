@@ -27,8 +27,10 @@ export class Redirector extends BaseApplication {
   #target;
 
   /**
-   * @type {?string} `cache-control` header to automatically include, or
+   * `cache-control` header to automatically include, or
    * `null` not to do that.
+   *
+   * @type {?string}
    */
   #cacheControl = null;
 
@@ -103,8 +105,10 @@ export class Redirector extends BaseApplication {
     #target;
 
     /**
-     * @type {?string} `cache-control` header to automatically include, or
+     * `cache-control` header to automatically include, or
      * `null` not to do that.
+     *
+     * @type {?string}
      */
     #cacheControl = null;
 

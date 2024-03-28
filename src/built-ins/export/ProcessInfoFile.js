@@ -304,8 +304,10 @@ export class ProcessInfoFile extends BaseFileService {
    */
   static #Config = class Config extends FileServiceConfig {
     /**
-     * @type {?Duration} How often to update the info file, or `null` to not
+     * How often to update the info file, or `null` to not
      * perform updates.
+     *
+     * @type {?Duration}
      */
     #updatePeriod;
 

@@ -32,8 +32,10 @@ export class EndpointConfig extends NamedConfig {
   #hostnames;
 
   /**
-   * @type {object} Physical interface to listen on; this is the result of a
+   * Physical interface to listen on; this is the result of a
    * call to {@link UriUtil#parseInterface}.
+   *
+   * @type {object}
    */
   #interface;
 

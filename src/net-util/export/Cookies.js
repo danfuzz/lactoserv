@@ -13,9 +13,11 @@ import { MustBe } from '@this/typey';
  */
 export class Cookies {
   /**
-   * @type {Map<string, object>} Map from each cookie name to its attributes,
+   * Map from each cookie name to its attributes,
    * including attributes per se for use as `Set-Cookie` headers, but also
    * properties `name` and `value`.
+   *
+   * @type {Map<string, object>}
    */
   #attributes = new Map();
 
@@ -184,16 +186,20 @@ export class Cookies {
   //
 
   /**
-   * @type {RegExp} Regex which matches a cookie name. This is derived from the
+   * Regex which matches a cookie name. This is derived from the
    * definition of `cookie-name` in RFC6265, which is in terms of the definition
    * of `token` in RFC2616.
+   *
+   * @type {RegExp}
    */
   static #NAME_REGEX;
 
   /**
-   * @type {RegExp} Regex which matches a cookie value, either with or without
+   * Regex which matches a cookie value, either with or without
    * surrounding quotes. This is derived from the definition of `cookie-value`
    * in RFC6265.
+   *
+   * @type {RegExp}
    */
   static #VALUE_REGEX;
 

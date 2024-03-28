@@ -39,7 +39,9 @@ export class RateLimitedStream {
   #logger;
 
   /**
-   * @type {Duplex|Writable} The outer (exposed wrapper) stream.
+   * The outer (exposed wrapper) stream.
+   *
+   * @type {Duplex|Writable}
    */
   #outerStream;
 
@@ -51,8 +53,10 @@ export class RateLimitedStream {
   #bytesWritten = 0;
 
   /**
-   * @type {?Error} Error received via `error` event from {@link #innerStream}
+   * Error received via `error` event from {@link #innerStream}
    * or produced internally, if any.
+   *
+   * @type {?Error}
    */
   #error = null;
 

@@ -24,8 +24,10 @@ export class KeepRunning {
   #thread;
 
   /**
-   * @type {?IntfLogger} Logger for this class, or `null` not to do any
+   * Logger for this class, or `null` not to do any
    * logging.
+   *
+   * @type {?IntfLogger}
    */
   #logger = ThisModule.logger?.keepRunning;
 

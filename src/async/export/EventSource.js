@@ -35,9 +35,11 @@ import { LinkedEvent } from '#x/LinkedEvent';
  */
 export class EventSource {
   /**
-   * @type {number} The number of already-emitted events to keep track of,
+   * The number of already-emitted events to keep track of,
    * not including the one referenced by {@link #currentEvent}. If infinite,
    * then this instance keeps the entire event chain.
+   *
+   * @type {number}
    */
   #keepCount;
 
@@ -49,25 +51,31 @@ export class EventSource {
   #emittedCount = 0;
 
   /**
-   * @type {LinkedEvent} Earliest (furthest in the past) event emitted by this
+   * Earliest (furthest in the past) event emitted by this
    * instance which is intentionally being kept by this instance. If this
    * instance has never emitted, then -- as with {@link #currentEvent} -- this
    * is the kickoff event. If this instance isn't keeping any history, then this
    * is always going to be the same as {@link #currentEvent}.
+   *
+   * @type {LinkedEvent}
    */
   #earliestEvent;
 
   /**
-   * @type {LinkedEvent} Current (Latest / most recent) event emitted by this
+   * Current (Latest / most recent) event emitted by this
    * instance. If this instance has never emitted, this is an initial "kickoff
    * event" which is suitable for `await`ing in {@link #currentEvent}. (This
    * arrangement makes the logic in {@link #emit} particularly simple.)
+   *
+   * @type {LinkedEvent}
    */
   #currentEvent;
 
   /**
-   * @type {function(*)} Function to call in order to emit the next event on the
+   * Function to call in order to emit the next event on the
    * chain.
+   *
+   * @type {function(*)}
    */
   #emitNext;
 

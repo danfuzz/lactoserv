@@ -35,8 +35,10 @@ import { BaseProxyHandler } from '#x/BaseProxyHandler';
  */
 export class PropertyCacheProxyHandler extends BaseProxyHandler {
   /**
-   * @type {Map<string, *>} Cached property values, as a map from name to
+   * Cached property values, as a map from name to
    * handler.
+   *
+   * @type {Map<string, *>}
    */
   #properties = new Map();
 

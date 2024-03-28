@@ -13,21 +13,24 @@ import { MustBe } from '@this/typey';
  */
 export class HttpUtil {
   /**
-   * @type {Map<string, string>} Mapping from arbitrarily-cased header names to
+   * Mapping from arbitrarily-cased header names to
    * their modern (downcased) versions. Seeded proactively and then lazily
    * accumulated.
+   *
+   * @type {Map<string, string>}
    */
   static #ANY_TO_MODERN = new Map();
 
   /**
-   * @type {Map<string, string>} Mapping from arbitrarily-cased header names to
+   * Mapping from arbitrarily-cased header names to
    * their classic version (mostly capitalized though with some exceptions).
    * Seeded proactively and then lazily accumulated.
+   *
+   * @type {Map<string, string>}
    */
   static #ANY_TO_CLASSIC = new Map();
 
   /**
-   * @type {Map<string, { name: string, type: string|Function, format:
    * ?Function }>} Map from each valid cache control option to its in-header
    * name and value formatter / validator.
    */
