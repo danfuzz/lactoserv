@@ -19,7 +19,11 @@ import { Methods, MustBe } from '@this/typey';
  * @implements {IntfLoggingEnvironment}
  */
 export class BaseLoggingEnvironment extends IntfLoggingEnvironment {
-  /** @type {Converter} Data converter to use for encoding payload arguments. */
+  /**
+   * Data converter to use for encoding payload arguments.
+   *
+   * @type {Converter}
+   */
   #dataConverter = new Converter(ConverterConfig.makeLoggingInstance());
 
   // Note: The default constructor is fine here.
@@ -151,9 +155,17 @@ export class BaseLoggingEnvironment extends IntfLoggingEnvironment {
   // Static members
   //
 
-  /** @type {number} Lower bound for "reasonable" timestamps. */
+  /**
+   * Lower bound for "reasonable" timestamps.
+   *
+   * @type {number}
+   */
   static #MIN_REASONABLE_NOW_SEC = 900_000_000; // The late 1990s.
 
-  /** @type {number} Upper bound for "reasonable" timestamps. */
+  /**
+   * Upper bound for "reasonable" timestamps.
+   *
+   * @type {number}
+   */
   static #MAX_REASONABLE_NOW_SEC = 4_200_000_000; // The early 22nd century.
 }

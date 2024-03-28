@@ -14,7 +14,11 @@ import { BaseDataClass } from '#x/BaseDataClass';
  * Instances of this class are always frozen.
  */
 export class Ref extends BaseDataClass {
-  /** @type {*} The wrapped value. */
+  /**
+   * The wrapped value.
+   *
+   * @type {*}
+   */
   #value;
 
   /**

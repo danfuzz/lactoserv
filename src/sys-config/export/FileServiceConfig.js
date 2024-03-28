@@ -30,16 +30,32 @@ import { ServiceConfig } from '#x/ServiceConfig';
  * configured values.
  */
 export class FileServiceConfig extends ServiceConfig {
-  /** @type {string} The absolute path to use. */
+  /**
+   * The absolute path to use.
+   *
+   * @type {string}
+   */
   #path;
 
-  /** @type {?object} Path parts, or `null` if not yet calculated. */
+  /**
+   * Path parts, or `null` if not yet calculated.
+   *
+   * @type {?object}
+   */
   #pathParts = null;
 
-  /** @type {?RotateConfig} Rotation configuration, if any. */
+  /**
+   * Rotation configuration, if any.
+   *
+   * @type {?RotateConfig}
+   */
   #rotate;
 
-  /** @type {?SaveConfig} Preservation configuration, if any. */
+  /**
+   * Preservation configuration, if any.
+   *
+   * @type {?SaveConfig}
+   */
   #save;
 
   /**

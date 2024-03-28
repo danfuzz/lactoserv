@@ -17,7 +17,11 @@ import { TreePathNode } from '#p/TreePathNode';
  * attempt to provide a useful and familiar interface.
  */
 export class TreePathMap {
-  /** @type {TreePathNode} The actual tree structure. */
+  /**
+   * The actual tree structure.
+   *
+   * @type {TreePathNode}
+   */
   #rootNode = new TreePathNode();
 
   /**

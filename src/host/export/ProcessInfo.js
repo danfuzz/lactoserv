@@ -24,7 +24,11 @@ export class ProcessInfo {
    */
   static #startedAt = new Moment(WallClock.now().atSec - uptime());
 
-  /** @type {?object} All the fixed-at-startup info, if calculated. */
+  /**
+   * All the fixed-at-startup info, if calculated.
+   *
+   * @type {?object}
+   */
   static #fixedInfo = null;
 
   /** @returns {object} All process info, as a JSON-encodable object. */

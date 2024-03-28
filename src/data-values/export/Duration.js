@@ -83,7 +83,11 @@ export class Duration extends UnitQuantity {
   // Static members
   //
 
-  /** @type {Duration} Instance with value of `0`. */
+  /**
+   * Instance with value of `0`.
+   *
+   * @type {Duration}
+   */
   static ZERO = new Duration(0);
 
   /**

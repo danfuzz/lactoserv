@@ -12,16 +12,32 @@ import { ThisModule } from '#p/ThisModule';
  * List of callbacks to be managed and (perhaps) actually run.
  */
 export class CallbackList {
-  /** @type {?IntfLogger} Logger to use, or `null` not to do any logging. */
+  /**
+   * Logger to use, or `null` not to do any logging.
+   *
+   * @type {?IntfLogger}
+   */
   #logger;
 
-  /** @type {number} Maximum time for running all callbacks, in msec. */
+  /**
+   * Maximum time for running all callbacks, in msec.
+   *
+   * @type {number}
+   */
   #maxRunMsec;
 
-  /** @type {(function())[]} Callbacks to invoke when requested. */
+  /**
+   * Callbacks to invoke when requested.
+   *
+   * @type {(function())[]}
+   */
   #callbacks = [];
 
-  /** @type {Condition} Callbacks currently in-progress? */
+  /**
+   * Callbacks currently in-progress?
+   *
+   * @type {Condition}
+   */
   #inProgress = new Condition();
 
   /**

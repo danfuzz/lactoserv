@@ -17,10 +17,18 @@ import { PromiseUtil } from '#x/PromiseUtil';
  * on the instance of this class that it is called with.
  */
 export class Threadlet {
-  /** @type {?function(Threadlet): *} Start function to run, if any */
+  /**
+   * Start function to run, if any
+   *
+   * @type {?function(Threadlet): *}
+   */
   #startFunction;
 
-  /** @type {function(Threadlet): *} Main function to run. */
+  /**
+   * Main function to run.
+   *
+   * @type {function(Threadlet): *}
+   */
   #mainFunction;
 
   /**

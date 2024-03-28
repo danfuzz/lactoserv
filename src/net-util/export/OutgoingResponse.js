@@ -36,13 +36,25 @@ import { MimeTypes } from '#x/MimeTypes';
  * response body.
  */
 export class OutgoingResponse {
-  /** @type {?number} The response status code, or `null` if not yet set. */
+  /**
+   * The response status code, or `null` if not yet set.
+   *
+   * @type {?number}
+   */
   #status = null;
 
-  /** @type {?HttpHeaders} The response headers, or `null` if not yet set. */
+  /**
+   * The response headers, or `null` if not yet set.
+   *
+   * @type {?HttpHeaders}
+   */
   #headers = null;
 
-  /** @type {?object} Information about the body, or `null` if not yet set. */
+  /**
+   * Information about the body, or `null` if not yet set.
+   *
+   * @type {?object}
+   */
   #body = null;
 
   /**

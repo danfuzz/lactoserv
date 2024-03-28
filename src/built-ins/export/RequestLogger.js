@@ -20,10 +20,18 @@ import { MustBe } from '@this/typey';
  * @implements {IntfRequestLogger}
  */
 export class RequestLogger extends BaseFileService {
-  /** @type {?Rotator} File rotator to use, if any. */
+  /**
+   * File rotator to use, if any.
+   *
+   * @type {?Rotator}
+   */
   #rotator = null;
 
-  /** @type {boolean} Also log to the system log? */
+  /**
+   * Also log to the system log?
+   *
+   * @type {boolean}
+   */
   #doSyslog;
 
   /**
@@ -132,7 +140,11 @@ export class RequestLogger extends BaseFileService {
    * Configuration item subclass for this (outer) class.
    */
   static #Config = class Config extends FileServiceConfig {
-    /** @type {boolean} Also log to the system log? */
+    /**
+     * Also log to the system log?
+     *
+     * @type {boolean}
+     */
     #doSyslog;
 
     /**

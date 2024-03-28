@@ -16,7 +16,11 @@ import { Threadlet } from '#x/Threadlet';
  * for new events to be emitted on the chain they track.
  */
 export class EventSink extends Threadlet {
-  /** @type {function(LinkedEvent)} Function to call, to process each event. */
+  /**
+   * Function to call, to process each event.
+   *
+   * @type {function(LinkedEvent)}
+   */
   #processor;
 
   /**

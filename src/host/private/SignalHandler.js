@@ -28,10 +28,18 @@ export class SignalHandler {
    */
   static #logger = ThisModule.logger?.signal;
 
-  /** @type {boolean} Initialized? */
+  /**
+   * Initialized?
+   *
+   * @type {boolean}
+   */
   static #initDone = false;
 
-  /** @type {CallbackList} Callbacks to invoke when asked to "reload." */
+  /**
+   * Callbacks to invoke when asked to "reload."
+   *
+   * @type {CallbackList}
+   */
   static #reloadCallbacks = new CallbackList('reload', this.#MAX_RELOAD_MSEC);
 
   /**

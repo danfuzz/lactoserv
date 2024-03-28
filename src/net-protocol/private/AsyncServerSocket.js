@@ -16,13 +16,25 @@ import { MustBe } from '@this/typey';
  * in a way that is `async`-friendly.
  */
 export class AsyncServerSocket {
-  /** @type {?IntfLogger} Logger to use, or `null` to not do any logging. */
+  /**
+   * Logger to use, or `null` to not do any logging.
+   *
+   * @type {?IntfLogger}
+   */
   #logger;
 
-  /** @type {object} Parsed server socket `interface` specification. */
+  /**
+   * Parsed server socket `interface` specification.
+   *
+   * @type {object}
+   */
   #interface;
 
-  /** @type {string} The protocol name; just used for logging. */
+  /**
+   * The protocol name; just used for logging.
+   *
+   * @type {string}
+   */
   #protocol;
 
   /**
@@ -37,7 +49,11 @@ export class AsyncServerSocket {
    */
   #removeListenersFunc = null;
 
-  /** @type {EventSource} Event source for `connection` and `drop` events. */
+  /**
+   * Event source for `connection` and `drop` events.
+   *
+   * @type {EventSource}
+   */
   #eventSource = new EventSource();
 
   /**

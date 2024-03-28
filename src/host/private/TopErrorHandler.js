@@ -32,16 +32,32 @@ export class TopErrorHandler {
    */
   static #logger = ThisModule.logger?.topError;
 
-  /** @type {boolean} Initialized? */
+  /**
+   * Initialized?
+   *
+   * @type {boolean}
+   */
   static #initDone = false;
 
-  /** @type {Map<Promise, *>} Map of unhandled rejections. */
+  /**
+   * Map of unhandled rejections.
+   *
+   * @type {Map<Promise, *>}
+   */
   static #unhandledRejections = new Map();
 
-  /** @type {boolean} Currently trying to shut down? */
+  /**
+   * Currently trying to shut down?
+   *
+   * @type {boolean}
+   */
   static #shuttingDown = false;
 
-  /** @type {object[]} Actual object behind {@link #problems}. */
+  /**
+   * Actual object behind {@link #problems}.
+   *
+   * @type {object[]}
+   */
   static #problems = [];
 
   /**

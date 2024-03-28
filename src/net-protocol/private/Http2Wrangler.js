@@ -15,16 +15,32 @@ import { WranglerContext } from '#p/WranglerContext';
  * Wrangler for `Http2SecureServer`.
  */
 export class Http2Wrangler extends TcpWrangler {
-  /** @type {?http2.Http2Server} High-level protocol server. */
+  /**
+   * High-level protocol server.
+   *
+   * @type {?http2.Http2Server}
+   */
   #protocolServer = null;
 
-  /** @type {Condition} Are there currently any sessions? */
+  /**
+   * Are there currently any sessions?
+   *
+   * @type {Condition}
+   */
   #anySessions = new Condition();
 
-  /** @type {Set} Set of all currently-known sessions. */
+  /**
+   * Set of all currently-known sessions.
+   *
+   * @type {Set}
+   */
   #sessions = new Set();
 
-  /** @type {Threadlet} Thread which runs the high-level stack. */
+  /**
+   * Thread which runs the high-level stack.
+   *
+   * @type {Threadlet}
+   */
   #runner = new Threadlet(() => this.#run());
 
   /**

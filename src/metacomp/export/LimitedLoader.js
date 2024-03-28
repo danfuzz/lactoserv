@@ -35,7 +35,11 @@ export class LimitedLoader {
    */
   #context;
 
-  /** @type {?IntfLogger} Logger to use, or `null` not to do any logging. */
+  /**
+   * Logger to use, or `null` not to do any logging.
+   *
+   * @type {?IntfLogger}
+   */
   #logger;
 
   /**

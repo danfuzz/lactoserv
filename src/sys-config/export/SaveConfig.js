@@ -38,13 +38,25 @@ export class SaveConfig extends BaseConfig {
    */
   #maxOldCount;
 
-  /** @type {boolean} Rotate when reloading the system? */
+  /**
+   * Rotate when reloading the system?
+   *
+   * @type {boolean}
+   */
   #onReload;
 
-  /** @type {boolean} Rotate when starting the system? */
+  /**
+   * Rotate when starting the system?
+   *
+   * @type {boolean}
+   */
   #onStart;
 
-  /** @type {boolean} Rotate when stopping the system? */
+  /**
+   * Rotate when stopping the system?
+   *
+   * @type {boolean}
+   */
   #onStop;
 
   /**

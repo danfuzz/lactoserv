@@ -8,22 +8,46 @@ import { IntfTimeSource, StdTimeSource } from '@this/clocks';
 import { Duration, Frequency, Moment } from '@this/data-values';
 
 
-/** @type {Frequency} One per second, used as a `flowRate`. */
+/**
+ * One per second, used as a `flowRate`.
+ *
+ * @type {Frequency}
+ */
 const FLOW_1 = new Frequency(1);
 
-/** @type {Frequency} Five per second, used as a `flowRate`. */
+/**
+ * Five per second, used as a `flowRate`.
+ *
+ * @type {Frequency}
+ */
 const FLOW_5 = new Frequency(5);
 
-/** @type {Frequency} Ten per second, used as a `flowRate`. */
+/**
+ * Ten per second, used as a `flowRate`.
+ *
+ * @type {Frequency}
+ */
 const FLOW_10 = new Frequency(10);
 
-/** @type {Frequency} 13 per second, used as a `flowRate`. */
+/**
+ * 13 per second, used as a `flowRate`.
+ *
+ * @type {Frequency}
+ */
 const FLOW_13 = new Frequency(13);
 
-/** @type {Frequency} Tiny value, used as a `flowRate`. */
+/**
+ * Tiny value, used as a `flowRate`.
+ *
+ * @type {Frequency}
+ */
 const FLOW_TINY = new Frequency(0.00001);
 
-/** @type {Frequency} Big value, used as a `flowRate`. */
+/**
+ * Big value, used as a `flowRate`.
+ *
+ * @type {Frequency}
+ */
 const FLOW_BIG = new Frequency(321 * 1024 * 1024);
 
 /**

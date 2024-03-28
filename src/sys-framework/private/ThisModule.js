@@ -27,7 +27,11 @@ export class ThisModule {
    */
   static SYM_addDescendant = Symbol('sys-framework.addDescendant');
 
-  /** @type {symbol} Symbol used for the module-private method `linkRoot`. */
+  /**
+   * Symbol used for the module-private method `linkRoot`.
+   *
+   * @type {symbol}
+   */
   static SYM_linkRoot = Symbol('sys-framework.linkRoot');
 
   /**

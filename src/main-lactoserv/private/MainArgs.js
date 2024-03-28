@@ -16,10 +16,18 @@ import { WarehouseMaker } from '#p/WarehouseMaker';
  * Parser and container for top-level arguments and options.
  */
 export class MainArgs {
-  /** @type {string[]} Value of `process.argv` (or equivalent). */
+  /**
+   * Value of `process.argv` (or equivalent).
+   *
+   * @type {string[]}
+   */
   #argv;
 
-  /** @type {?object} Parsed arguments. */
+  /**
+   * Parsed arguments.
+   *
+   * @type {?object}
+   */
   #parsedArgs = null;
 
   /**

@@ -6,7 +6,11 @@ import { Chalk } from '@this/text';
 import { MustBe } from '@this/typey';
 
 
-/** @type {Chalk} Always-on `Chalk` instance. */
+/**
+ * Always-on `Chalk` instance.
+ *
+ * @type {Chalk}
+ */
 const chalk = Chalk.ON;
 
 /**
@@ -17,13 +21,25 @@ const chalk = Chalk.ON;
  * by the component being so represented).
  */
 export class LogTag {
-  /** @type {string} Main tag. */
+  /**
+   * Main tag.
+   *
+   * @type {string}
+   */
   #main;
 
-  /** @type {string[]} Context strings. */
+  /**
+   * Context strings.
+   *
+   * @type {string[]}
+   */
   #context;
 
-  /** @type {object} Precomputed "human form" strings, if available. */
+  /**
+   * Precomputed "human form" strings, if available.
+   *
+   * @type {object}
+   */
   #humanStrings = {};
 
   /**

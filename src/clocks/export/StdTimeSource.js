@@ -27,7 +27,11 @@ export class StdTimeSource extends IntfTimeSource {
   // Static members
   //
 
-  /** @type {StdTimeSource} Standard instance of this class. */
+  /**
+   * Standard instance of this class.
+   *
+   * @type {StdTimeSource}
+   */
   static #INSTANCE = new StdTimeSource();
   static {
     Object.freeze(this.#INSTANCE);

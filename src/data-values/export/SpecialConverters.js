@@ -111,10 +111,18 @@ export class SpecialConverters extends BaseConverter {
   // Static members
   //
 
-  /** @type {?SpecialConverters} Standard instance, if known. */
+  /**
+   * Standard instance, if known.
+   *
+   * @type {?SpecialConverters}
+   */
   static #STANDARD = null;
 
-  /** @type {?SpecialConverters} Standard logging instance, if known. */
+  /**
+   * Standard logging instance, if known.
+   *
+   * @type {?SpecialConverters}
+   */
   static #STANDARD_FOR_LOGGING = null;
 
   /**

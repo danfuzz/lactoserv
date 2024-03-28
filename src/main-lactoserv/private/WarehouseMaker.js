@@ -18,7 +18,11 @@ import { ThisModule } from '#p/ThisModule';
  * instances from it.
  */
 export class WarehouseMaker {
-  /** @type {?URL} Configuration URL. */
+  /**
+   * Configuration URL.
+   *
+   * @type {?URL}
+   */
   #configUrl = null;
 
   /**

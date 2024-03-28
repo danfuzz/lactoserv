@@ -15,7 +15,11 @@ import { MustBe } from '@this/typey';
  * to a text file of some sort.
  */
 export class TextFileSink extends EventSink {
-  /** @type {string} Absolute path of the file to write to. */
+  /**
+   * Absolute path of the file to write to.
+   *
+   * @type {string}
+   */
   #filePath;
 
   /**
@@ -24,7 +28,11 @@ export class TextFileSink extends EventSink {
    */
   #formatter;
 
-  /** @type {boolean} Has this instance ever written to the file? */
+  /**
+   * Has this instance ever written to the file?
+   *
+   * @type {boolean}
+   */
   #everWritten = false;
 
   /**

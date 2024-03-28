@@ -42,7 +42,11 @@ export class Frequency extends UnitQuantity {
   // Static members
   //
 
-  /** @type {Frequency} Instance with value of `0`. */
+  /**
+   * Instance with value of `0`.
+   *
+   * @type {Frequency}
+   */
   static ZERO = new Frequency(0);
 
   /**

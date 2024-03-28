@@ -41,7 +41,11 @@ export class EventSource {
    */
   #keepCount;
 
-  /** @type {number} How many events has this instance ever emitted. */
+  /**
+   * How many events has this instance ever emitted.
+   *
+   * @type {number}
+   */
   #emittedCount = 0;
 
   /**

@@ -17,7 +17,11 @@ import { TopErrorHandler } from '#p/TopErrorHandler';
  * systems.
  */
 export class Host {
-  /** @type {boolean} Initialized? */
+  /**
+   * Initialized?
+   *
+   * @type {boolean}
+   */
   static #initDone = false;
 
   /**

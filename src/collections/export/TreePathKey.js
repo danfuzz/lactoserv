@@ -14,10 +14,18 @@ import { TreePathMap } from '#x/TreePathMap';
  * are strongly type-checked.
  */
 export class TreePathKey {
-  /** @type {string[]} Path portion of the key. */
+  /**
+   * Path portion of the key.
+   *
+   * @type {string[]}
+   */
   #path;
 
-  /** @type {boolean} Wildcard indicator. */
+  /**
+   * Wildcard indicator.
+   *
+   * @type {boolean}
+   */
   #wildcard;
 
   /**
@@ -234,7 +242,11 @@ export class TreePathKey {
   // Static members
   //
 
-  /** @type {TreePathKey} A non-wildcard empty-path instance. */
+  /**
+   * A non-wildcard empty-path instance.
+   *
+   * @type {TreePathKey}
+   */
   static #EMPTY = Object.freeze(new TreePathKey(Object.freeze([]), false));
 
   /** @returns {TreePathKey} A non-wildcard empty-path instance. */

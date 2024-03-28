@@ -26,16 +26,32 @@ import { ThisModule } from '#p/ThisModule';
  * press on with the `stop()` actions if an earlier layer is taking too long.
  */
 export class Warehouse extends BaseControllable {
-  /** @type {ComponentManager} Application manager. */
+  /**
+   * Application manager.
+   *
+   * @type {ComponentManager}
+   */
   #applicationManager;
 
-  /** @type {?HostManager} Host manager, if configured. */
+  /**
+   * Host manager, if configured.
+   *
+   * @type {?HostManager}
+   */
   #hostManager;
 
-  /** @type {EndpointManager} Endpoint manager, for all endpoint bindings. */
+  /**
+   * Endpoint manager, for all endpoint bindings.
+   *
+   * @type {EndpointManager}
+   */
   #endpointManager;
 
-  /** @type {ComponentManager} Service manager. */
+  /**
+   * Service manager.
+   *
+   * @type {ComponentManager}
+   */
   #serviceManager;
 
   /**

@@ -24,7 +24,11 @@ export class TreePathNode {
    */
   #emptyKey = null;
 
-  /** @type {*} Empty-path binding. */
+  /**
+   * Empty-path binding.
+   *
+   * @type {*}
+   */
   #emptyValue = null;
 
   /**
@@ -33,7 +37,11 @@ export class TreePathNode {
    */
   #wildcardKey = null;
 
-  /** @type {*} Wildcard binding. */
+  /**
+   * Wildcard binding.
+   *
+   * @type {*}
+   */
   #wildcardValue = null;
 
   // Note: The default constructor is fine here.

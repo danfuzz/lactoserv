@@ -14,7 +14,11 @@ import { HostConfig } from '@this/sys-config';
  * multiple different hostnames.
  */
 export class HostItem {
-  /** @type {HostConfig} Configuration which defined this instance. */
+  /**
+   * Configuration which defined this instance.
+   *
+   * @type {HostConfig}
+   */
   #config;
 
   /**

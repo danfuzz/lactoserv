@@ -11,7 +11,11 @@ import { PromiseUtil } from '#x/PromiseUtil';
  * package.
  */
 export class EventOrPromise {
-  /** @type {?LinkedEvent} The actual event, if synchronously known. */
+  /**
+   * The actual event, if synchronously known.
+   *
+   * @type {?LinkedEvent}
+   */
   #eventNow;
 
   /**

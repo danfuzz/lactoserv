@@ -27,7 +27,11 @@ import { ManualPromise } from '#x/ManualPromise';
  *   actual subclass when appending (emitting / linking) events.
  */
 export class LinkedEvent {
-  /** @type {EventPayload} The event payload. */
+  /**
+   * The event payload.
+   *
+   * @type {EventPayload}
+   */
   #payload;
 
   /**
@@ -36,7 +40,11 @@ export class LinkedEvent {
    */
   #next;
 
-  /** @type {boolean} Is the emitter available for hand-off? */
+  /**
+   * Is the emitter available for hand-off?
+   *
+   * @type {boolean}
+   */
   #hasEmitter;
 
   /**

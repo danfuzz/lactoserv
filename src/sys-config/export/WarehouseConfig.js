@@ -23,16 +23,32 @@ import { ServiceConfig } from '#x/ServiceConfig';
  *   If not present, no services are configured.
  */
 export class WarehouseConfig extends BaseConfig {
-  /** @type {ApplicationConfig[]} Application configuration objects. */
+  /**
+   * Application configuration objects.
+   *
+   * @type {ApplicationConfig[]}
+   */
   #applications;
 
-  /** @type {HostConfig[]} Host configuration objects. */
+  /**
+   * Host configuration objects.
+   *
+   * @type {HostConfig[]}
+   */
   #hosts;
 
-  /** @type {EndpointConfig[]} Endpoint configuration objects. */
+  /**
+   * Endpoint configuration objects.
+   *
+   * @type {EndpointConfig[]}
+   */
   #endpoints;
 
-  /** @type {ServiceConfig[]} Service configuration objects. */
+  /**
+   * Service configuration objects.
+   *
+   * @type {ServiceConfig[]}
+   */
   #services;
 
   /**

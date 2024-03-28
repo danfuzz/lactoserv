@@ -33,10 +33,18 @@ export class TokenBucket {
    */
   #maxBurstSize;
 
-  /** @type {Frequency} Token flow rate (a/k/a bucket fill rate). */
+  /**
+   * Token flow rate (a/k/a bucket fill rate).
+   *
+   * @type {Frequency}
+   */
   #flowRate;
 
-  /** @type {number} Maximum grant size for a waiter in the queue, in tokens. */
+  /**
+   * Maximum grant size for a waiter in the queue, in tokens.
+   *
+   * @type {number}
+   */
   #maxQueueGrantSize;
 
   /**
@@ -46,13 +54,25 @@ export class TokenBucket {
    */
   #maxQueueSize;
 
-  /** @type {boolean} Provide partial (non-integral / fractional) tokens? */
+  /**
+   * Provide partial (non-integral / fractional) tokens?
+   *
+   * @type {boolean}
+   */
   #partialTokens;
 
-  /** @type {IntfTimeSource} Time measurement implementation. */
+  /**
+   * Time measurement implementation.
+   *
+   * @type {IntfTimeSource}
+   */
   #timeSource;
 
-  /** @type {Moment} Most recently measured time. */
+  /**
+   * Most recently measured time.
+   *
+   * @type {Moment}
+   */
   #lastNow;
 
   /**
@@ -74,7 +94,11 @@ export class TokenBucket {
    */
   #queueSize = 0;
 
-  /** @type {Threadlet} Servicer thread for the {@link #waiters}. */
+  /**
+   * Servicer thread for the {@link #waiters}.
+   *
+   * @type {Threadlet}
+   */
   #waiterThread = new Threadlet(() => this.#serviceWaiters());
 
   /**
@@ -598,6 +622,10 @@ export class TokenBucket {
   // Static members
   //
 
-  /** @type {StdTimeSource} Default time source. */
+  /**
+   * Default time source.
+   *
+   * @type {StdTimeSource}
+   */
   static #DEFAULT_TIME_SOURCE = StdTimeSource.INSTANCE;
 }

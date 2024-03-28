@@ -42,7 +42,11 @@ export class ConverterConfig {
    */
   #dataClasses;
 
-  /** @type {boolean} Are converted data values to be frozen? */
+  /**
+   * Are converted data values to be frozen?
+   *
+   * @type {boolean}
+   */
   #freeze;
 
   /**
@@ -51,7 +55,11 @@ export class ConverterConfig {
    */
   #functionAction;
 
-  /** @type {boolean} Should instance-defined `ENCODE()` methods be honored? */
+  /**
+   * Should instance-defined `ENCODE()` methods be honored?
+   *
+   * @type {boolean}
+   */
   #honorEncodeMethod;
 
   /**

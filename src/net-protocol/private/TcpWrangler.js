@@ -19,7 +19,11 @@ import { WranglerContext } from '#p/WranglerContext';
  * them... but HTTP3 will be here before we know it!).
  */
 export class TcpWrangler extends ProtocolWrangler {
-  /** @type {?IntfRateLimiter} Rate limiter service to use, if any. */
+  /**
+   * Rate limiter service to use, if any.
+   *
+   * @type {?IntfRateLimiter}
+   */
   #rateLimiter;
 
   /**
@@ -34,13 +38,25 @@ export class TcpWrangler extends ProtocolWrangler {
    */
   #asyncServer = null;
 
-  /** @type {Condition} Are there currently any open sockets? */
+  /**
+   * Are there currently any open sockets?
+   *
+   * @type {Condition}
+   */
   #anySockets = new Condition();
 
-  /** @type {Set} Set of all currently-known sockets. */
+  /**
+   * Set of all currently-known sockets.
+   *
+   * @type {Set}
+   */
   #sockets = new Set();
 
-  /** @type {Threadlet} Thread which runs the low-level of the stack. */
+  /**
+   * Thread which runs the low-level of the stack.
+   *
+   * @type {Threadlet}
+   */
   #runner = new Threadlet(() => this.#run());
 
   /**

@@ -12,10 +12,18 @@ import { MustBe } from '@this/typey';
  * etc. See docs for configuration object details.
  */
 export class Redirector extends BaseApplication {
-  /** @type {number} The redirect status code to use. */
+  /**
+   * The redirect status code to use.
+   *
+   * @type {number}
+   */
   #statusCode;
 
-  /** @type {string} The target base URI. */
+  /**
+   * The target base URI.
+   *
+   * @type {string}
+   */
   #target;
 
   /**
@@ -80,10 +88,18 @@ export class Redirector extends BaseApplication {
    * Configuration item subclass for this (outer) class.
    */
   static #Config = class Config extends BaseApplication.FilterConfig {
-    /** @type {number} The redirect status code to use. */
+    /**
+     * The redirect status code to use.
+     *
+     * @type {number}
+     */
     #statusCode;
 
-    /** @type {string} The target base URI. */
+    /**
+     * The target base URI.
+     *
+     * @type {string}
+     */
     #target;
 
     /**

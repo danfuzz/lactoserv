@@ -12,13 +12,25 @@ import { HostUtil } from '#x/HostUtil';
  * facilities for same.
  */
 export class HostInfo {
-  /** @type {string} The (fully qualified) name string. */
+  /**
+   * The (fully qualified) name string.
+   *
+   * @type {string}
+   */
   #nameString;
 
-  /** @type {number} The port number. */
+  /**
+   * The port number.
+   *
+   * @type {number}
+   */
   #portNumber;
 
-  /** @type {?string} The string form of {@link #portNumber}, if calculated. */
+  /**
+   * The string form of {@link #portNumber}, if calculated.
+   *
+   * @type {?string}
+   */
   #portString = null;
 
   /**
@@ -27,7 +39,11 @@ export class HostInfo {
    */
   #nameIsIp = null;
 
-  /** @type {?TreePathKey} A path key representing {@link #nameString}. */
+  /**
+   * A path key representing {@link #nameString}.
+   *
+   * @type {?TreePathKey}
+   */
   #nameKey = null;
 
   /**

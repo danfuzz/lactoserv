@@ -103,7 +103,11 @@ export class PropertyCacheProxyHandler extends BaseProxyHandler {
   // Static members
   //
 
-  /** @type {Set<string>} Set of methods which never get proxied. */
+  /**
+   * Set of methods which never get proxied.
+   *
+   * @type {Set<string>}
+   */
   static #VERBOTEN_METHODS = new Set([
     // Standard constructor method name.
     'constructor',
@@ -121,7 +125,11 @@ export class PropertyCacheProxyHandler extends BaseProxyHandler {
    * indicate that they shouldn't be cached.
    */
   static NoCache = class NoCache {
-    /** @type {*} The property value to not-cache. */
+    /**
+     * The property value to not-cache.
+     *
+     * @type {*}
+     */
     #value;
 
     /**

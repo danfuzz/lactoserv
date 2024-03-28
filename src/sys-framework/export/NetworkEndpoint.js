@@ -31,7 +31,11 @@ export class NetworkEndpoint extends BaseComponent {
    */
   #application = null;
 
-  /** @type {ProtocolWrangler} Protocol-specific "wrangler." */
+  /**
+   * Protocol-specific "wrangler."
+   *
+   * @type {ProtocolWrangler}
+   */
   #wrangler;
 
 

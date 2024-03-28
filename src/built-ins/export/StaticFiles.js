@@ -21,7 +21,11 @@ export class StaticFiles extends BaseApplication {
    */
   #notFoundPath;
 
-  /** @type {string} Absolute path to the base directory of files to serve. */
+  /**
+   * Absolute path to the base directory of files to serve.
+   *
+   * @type {string}
+   */
   #siteDirectory;
 
   /**
@@ -264,7 +268,11 @@ export class StaticFiles extends BaseApplication {
      */
     #notFoundPath;
 
-    /** @type {string} The base directory for the site files. */
+    /**
+     * The base directory for the site files.
+     *
+     * @type {string}
+     */
     #siteDirectory;
 
     /**

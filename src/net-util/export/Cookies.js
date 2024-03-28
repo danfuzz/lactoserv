@@ -197,7 +197,11 @@ export class Cookies {
    */
   static #VALUE_REGEX;
 
-  /** @type {RegExp} Regex which matches a cookie assignment, unanchored. */
+  /**
+   * Regex which matches a cookie assignment, unanchored.
+   *
+   * @type {RegExp}
+   */
   static #ASSIGN_REGEX;
 
   static {
@@ -220,7 +224,11 @@ export class Cookies {
         + `(?: *;| *$)`, 'gv'));
   }
 
-  /** @type {Cookies} Standard frozen empty instance of this class. */
+  /**
+   * Standard frozen empty instance of this class.
+   *
+   * @type {Cookies}
+   */
   static #EMPTY = new Cookies();
   static {
     Object.freeze(this.#EMPTY);

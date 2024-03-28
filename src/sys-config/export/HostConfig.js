@@ -28,16 +28,32 @@ import { Util } from '#x/Util';
  *   use a self-signed certificate.
  */
 export class HostConfig extends BaseConfig {
-  /** @type {string[]} The hostnames in question. */
+  /**
+   * The hostnames in question.
+   *
+   * @type {string[]}
+   */
   #hostnames;
 
-  /** @type {string} The certificate, as PEM-encoded data. */
+  /**
+   * The certificate, as PEM-encoded data.
+   *
+   * @type {string}
+   */
   #certificate;
 
-  /** @type {string} The private key, as PEM-encoded data. */
+  /**
+   * The private key, as PEM-encoded data.
+   *
+   * @type {string}
+   */
   #privateKey;
 
-  /** @type {boolean} Is this to be a self-signed certificate? */
+  /**
+   * Is this to be a self-signed certificate?
+   *
+   * @type {boolean}
+   */
   #selfSigned;
 
   /**

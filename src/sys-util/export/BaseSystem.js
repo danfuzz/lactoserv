@@ -14,10 +14,18 @@ import { Methods } from '@this/typey';
  * action.
  */
 export class BaseSystem extends Threadlet {
-  /** @type {boolean} Initialized? */
+  /**
+   * Initialized?
+   *
+   * @type {boolean}
+   */
   #initDone = false;
 
-  /** @type {Condition} Was a reload requested? */
+  /**
+   * Was a reload requested?
+   *
+   * @type {Condition}
+   */
   #reloadRequested = new Condition();
 
   /**

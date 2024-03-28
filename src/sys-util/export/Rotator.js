@@ -15,7 +15,11 @@ import { BaseFilePreserver } from '#p/BaseFilePreserver';
  * Configurable file "rotator" for doing log rotation and the like.
  */
 export class Rotator extends BaseFilePreserver {
-  /** @type {FileServiceConfig} Configuration to use. */
+  /**
+   * Configuration to use.
+   *
+   * @type {FileServiceConfig}
+   */
   #config;
 
   /**

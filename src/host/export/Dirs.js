@@ -5,7 +5,11 @@
  * Utilities for getting at various local directories.
  */
 export class Dirs {
-  /** @type {URL} URL representing the base directory, if known. */
+  /**
+   * URL representing the base directory, if known.
+   *
+   * @type {URL}
+   */
   static #baseDirUrl = null;
 
   /** @returns {string} The base directory of the application installation. */

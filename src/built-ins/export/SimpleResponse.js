@@ -15,7 +15,11 @@ import { MustBe } from '@this/typey';
  * Simple response server. See docs for configuration object details.
  */
 export class SimpleResponse extends BaseApplication {
-  /** @type {boolean} Allow response adjustment? */
+  /**
+   * Allow response adjustment?
+   *
+   * @type {boolean}
+   */
   #allowAdjustment = true;
 
   /**
@@ -140,7 +144,11 @@ export class SimpleResponse extends BaseApplication {
      */
     #cacheControl = null;
 
-    /** @type {?object} Etag-generating options, or `null` not to do that. */
+    /**
+     * Etag-generating options, or `null` not to do that.
+     *
+     * @type {?object}
+     */
     #etagOptions = null;
 
     /**

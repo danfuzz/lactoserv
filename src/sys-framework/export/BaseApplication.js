@@ -234,10 +234,18 @@ export class BaseApplication extends BaseComponent {
      */
     #maxQueryLength;
 
-    /** @type {boolean} Redirect file paths to the corresponding directory? */
+    /**
+     * Redirect file paths to the corresponding directory?
+     *
+     * @type {boolean}
+     */
     #redirectDirectories;
 
-    /** @type {boolean} Redirect directory paths to the corresponding file? */
+    /**
+     * Redirect directory paths to the corresponding file?
+     *
+     * @type {boolean}
+     */
     #redirectFiles;
 
     /**
@@ -328,7 +336,11 @@ export class BaseApplication extends BaseComponent {
     // Static members.
     //
 
-    /** @type {Set<string>} Allowed values for `methods`. */
+    /**
+     * Allowed values for `methods`.
+     *
+     * @type {Set<string>}
+     */
     static #METHODS = new Set([
       'connect', 'delete', 'get', 'head', 'options',
       'patch', 'post', 'put', 'trace'

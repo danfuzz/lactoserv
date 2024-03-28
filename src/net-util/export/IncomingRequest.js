@@ -45,10 +45,18 @@ export class IncomingRequest {
    */
   #requestContext;
 
-  /** @type {HttpHeaders} Request headers. */
+  /**
+   * Request headers.
+   *
+   * @type {HttpHeaders}
+   */
   #requestHeaders;
 
-  /** @type {string} The protocol name. */
+  /**
+   * The protocol name.
+   *
+   * @type {string}
+   */
   #protocolName;
 
   /**
@@ -58,10 +66,18 @@ export class IncomingRequest {
    */
   #pseudoHeaders;
 
-  /** @type {string} The request method, downcased. */
+  /**
+   * The request method, downcased.
+   *
+   * @type {string}
+   */
   #requestMethod;
 
-  /** @type {?Cookies} The parsed cookies, or `null` if not yet figured out. */
+  /**
+   * The parsed cookies, or `null` if not yet figured out.
+   *
+   * @type {?Cookies}
+   */
   #cookies = null;
 
   /**

@@ -51,10 +51,18 @@ export class ProtocolWrangler {
    */
   #hostManager;
 
-  /** @type {?IntfRateLimiter} Rate limiter service to use, if any. */
+  /**
+   * Rate limiter service to use, if any.
+   *
+   * @type {?IntfRateLimiter}
+   */
   #rateLimiter;
 
-  /** @type {IntfRequestHandler} Request handler. */
+  /**
+   * Request handler.
+   *
+   * @type {IntfRequestHandler}
+   */
   #requestHandler;
 
   /**
@@ -63,13 +71,25 @@ export class ProtocolWrangler {
    */
   #logHelper;
 
-  /** @type {object} Return value for {@link #interface}. */
+  /**
+   * Return value for {@link #interface}.
+   *
+   * @type {object}
+   */
   #interfaceObject;
 
-  /** @type {string} Value to use for the `Server` HTTP-ish response header. */
+  /**
+   * Value to use for the `Server` HTTP-ish response header.
+   *
+   * @type {string}
+   */
   #serverHeader;
 
-  /** @type {Threadlet} Threadlet which runs the "network stack." */
+  /**
+   * Threadlet which runs the "network stack."
+   *
+   * @type {Threadlet}
+   */
   #runner = new Threadlet(() => this.#startNetwork(), () => this.#runNetwork());
 
   /**

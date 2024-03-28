@@ -23,13 +23,25 @@ import { MustBe } from '@this/typey';
  * information about active processes.
  */
 export class ProcessInfoFile extends BaseFileService {
-  /** @type {?object} Current info file contents, if known. */
+  /**
+   * Current info file contents, if known.
+   *
+   * @type {?object}
+   */
   #contents = null;
 
-  /** @type {?Saver} File saver (preserver) to use, if any. */
+  /**
+   * File saver (preserver) to use, if any.
+   *
+   * @type {?Saver}
+   */
   #saver = null;
 
-  /** @type {Threadlet} Threadlet which runs this service. */
+  /**
+   * Threadlet which runs this service.
+   *
+   * @type {Threadlet}
+   */
   #runner = new Threadlet(() => this.#start(), () => this.#run());
 
   /**

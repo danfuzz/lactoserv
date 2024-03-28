@@ -22,19 +22,39 @@ export class WranglerContext {
    */
   #wrangler = null;
 
-  /** @type {?net.Socket} Unencrypted socket associated with a connection. */
+  /**
+   * Unencrypted socket associated with a connection.
+   *
+   * @type {?net.Socket}
+   */
   #socket = null;
 
-  /** @type {?string} ID of a connection. */
+  /**
+   * ID of a connection.
+   *
+   * @type {?string}
+   */
   #connectionId = null;
 
-  /** @type {?IntfLogger} Logger for a connection. */
+  /**
+   * Logger for a connection.
+   *
+   * @type {?IntfLogger}
+   */
   #connectionLogger = null;
 
-  /** @type {?string} ID of a session. */
+  /**
+   * ID of a session.
+   *
+   * @type {?string}
+   */
   #sessionId = null;
 
-  /** @type {?IntfLogger} Logger for a session. */
+  /**
+   * Logger for a session.
+   *
+   * @type {?IntfLogger}
+   */
   #sessionLogger = null;
 
   /**

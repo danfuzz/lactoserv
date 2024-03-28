@@ -19,7 +19,11 @@ import { MustBe } from '@this/typey';
  * See `doc/configuration.md` for configuration object details.
  */
 export class MemoryMonitor extends BaseService {
-  /** @type {Threadlet} Threadlet which runs this service. */
+  /**
+   * Threadlet which runs this service.
+   *
+   * @type {Threadlet}
+   */
   #runner = new Threadlet(() => this.#run());
 
   /**
@@ -157,10 +161,18 @@ export class MemoryMonitor extends BaseService {
    * Configuration item subclass for this (outer) class.
    */
   static #Config = class Config extends ServiceConfig {
-    /** @type {Duration} How often to check, in seconds. */
+    /**
+     * How often to check, in seconds.
+     *
+     * @type {Duration}
+     */
     #checkPeriod;
 
-    /** @type {Duration} Grace period before triggering an action. */
+    /**
+     * Grace period before triggering an action.
+     *
+     * @type {Duration}
+     */
     #gracePeriod;
 
     /**

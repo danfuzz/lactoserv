@@ -37,16 +37,32 @@ export class ShutdownHandler {
    */
   static #logger = ThisModule.logger?.shutdown;
 
-  /** @type {CallbackList} Callbacks to invoke before shutting down. */
+  /**
+   * Callbacks to invoke before shutting down.
+   *
+   * @type {CallbackList}
+   */
   static #callbacks = new CallbackList('shutdown', this.#MAX_SHUTDOWN_MSEC);
 
-  /** @type {boolean} Is the system shutting down? */
+  /**
+   * Is the system shutting down?
+   *
+   * @type {boolean}
+   */
   static #shuttingDown = false;
 
-  /** @type {number} Ultimate exit code. */
+  /**
+   * Ultimate exit code.
+   *
+   * @type {number}
+   */
   static #exitCode = 0;
 
-  /** @type {Threadlet} Thread that handles shutdown sequencing. */
+  /**
+   * Thread that handles shutdown sequencing.
+   *
+   * @type {Threadlet}
+   */
   static #thread = new Threadlet(() => this.#run());
 
   /** @returns {?number} Exit code, if in fact in the middle of exiting. */

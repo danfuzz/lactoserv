@@ -16,7 +16,11 @@ import { Warehouse } from '#x/Warehouse';
  * **Note:** `start()`ing and `stop()`ing acts on all the endpoints.
  */
 export class EndpointManager extends BaseControllable {
-  /** @type {Warehouse} The warehouse this instance is in. */
+  /**
+   * The warehouse this instance is in.
+   *
+   * @type {Warehouse}
+   */
   #warehouse;
 
   /**

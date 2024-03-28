@@ -23,7 +23,11 @@ import { ThisModule } from '#p/ThisModule';
  * gets called when they become hooked into a hierarchy of instances.
  */
 export class ControlContext {
-  /** @type {?IntfLogger} Logger to use, or `null` to not do any logging. */
+  /**
+   * Logger to use, or `null` to not do any logging.
+   *
+   * @type {?IntfLogger}
+   */
   #logger;
 
   /**

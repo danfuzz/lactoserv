@@ -21,7 +21,11 @@ export class RootControlContext extends ControlContext {
    */
   #components = new Map();
 
-  /** @type {Set<ControlContext>} Set of all descendants. */
+  /**
+   * Set of all descendants.
+   *
+   * @type {Set<ControlContext>}
+   */
   #descendants = new Set();
 
   /**
