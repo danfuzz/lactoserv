@@ -36,6 +36,22 @@ REFLOW_SCRIPT='
   next;
 }
 
+# Code quote block: Suppress!
+inDoc && /^ *[*] ```/ {
+  if (inCodeQuote) {
+    inCodeQuote = 0;
+    print;
+    next;
+  } else {
+    autoflowLines();
+    inCodeQuote = 1;
+  }
+}
+inCodeQuote {
+  print;
+  next;
+}
+
 # Paragraph separator.
 inDoc && /^ *[*]$/ {
   autoflowLines();
