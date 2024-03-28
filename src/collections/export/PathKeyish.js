@@ -13,4 +13,4 @@ import { TreePathMap } from '#x/TreePathMap';
  *
  * @typedef {TreePathKey|{ path: Array<string>, wildcard: boolean }} PathKeyish
  */
-export const PathKeyish = Symbol('Keyish');
+export const PathKeyish = Symbol('PathKeyish');
