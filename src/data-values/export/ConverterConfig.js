@@ -40,7 +40,7 @@ export class ConverterConfig {
    * Classes whose instances are treated as data
    * values.
    *
-   * @type {(function(new:*))[]}
+   * @type {Array<function(new:*)>}
    */
   #dataClasses;
 
@@ -123,8 +123,8 @@ export class ConverterConfig {
   }
 
   /**
-   * @returns {(function(new:*))[]} Classes whose instances are treated as data
-   * values.
+   * @returns {Array<function(new:*)>} Classes whose instances are treated as
+   * data values.
    *
    * Default value if not passed during construction: `[Ref, Struct]`.
    *

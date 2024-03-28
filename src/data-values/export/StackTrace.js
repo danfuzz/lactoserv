@@ -24,7 +24,7 @@ export class StackTrace {
   /**
    * The frames of the stack trace.
    *
-   * @type {{ name: ?string, file: string, line: ?number, col: ?number }[]}
+   * @type {Array<{ name: ?string, file: string, line: ?number, col: ?number }>}
    */
   #frames;
 
@@ -38,8 +38,8 @@ export class StackTrace {
    * [omitCount, [maxCount]])`. That is, `original` does not have to be passed
    * at all, even if passing the later arguments.
    *
-   * @param {string|StackTrace|{ message: string, stack: string }|{ name:
-   *   ?string, file: string, line: ?number, col: ?number }[]} [original]
+   * @param {string|StackTrace|{ message: string, stack: string }|Array<{ name:
+   *   ?string, file: string, line: ?number, col: ?number }>} [original]
    *   Source for the stack frames. If passed as `null` or omitted, this
    *   constructs an instance based on the current call (to this constructor),
    *   with the actual call to this method omitted from the result.
@@ -69,8 +69,8 @@ export class StackTrace {
   }
 
   /**
-   * @returns {{ name: ?string, file: string, line: ?number, col: ?number }[]}
-   * Array of stack frames.
+   * @returns {Array<{ name: ?string, file: string, line: ?number, col: ?number
+   * }>} Array of stack frames.
    */
   get frames() {
     return this.#frames;
@@ -106,8 +106,8 @@ export class StackTrace {
    *   (not including the one for this method call, which is _always_ omitted).
    * @param {?number} [maxCount] Maximum number of frames to include, or
    *   `null` to have no limit.
-   * @returns {{ name: ?string, file: string, line: ?number, col: ?number }[]}
-   *   The stack trace.
+   * @returns {Array<{ name: ?string, file: string, line: ?number, col: ?number
+   *   }>} The stack trace.
    */
   static framesFrom(original, omitCount = 0, maxCount = null) {
     maxCount ??= Number.POSITIVE_INFINITY;
