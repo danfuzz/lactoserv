@@ -54,8 +54,8 @@ export class EtagGenerator {
    *   defaults.
    * @param {boolean} [options.dataOnly] Only ever hash based on entity data,
    *   not metadata such as path and modification time. If `true`, this disables
-   *   {@link #etagFromFileStats} and makes {@link #etagFromFile} use
-   *   {@link #etagFromFileData}. Defaults to `false`.
+   *   {@link #etagFromFileStats} and makes {@link #etagFromFile} use {@link
+   *   #etagFromFileData}. Defaults to `false`.
    * @param {?string} [options.hashAlgorithm] Algorithm to use to generate
    *   hashes. Allowed to be `sha1`, `sha256`, or `sha512`. Defaults to
    *  `sha256`.

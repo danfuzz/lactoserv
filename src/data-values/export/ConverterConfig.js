@@ -178,8 +178,8 @@ export class ConverterConfig {
    * precedence over other configuration options, or `null` if there are no
    * special cases.
    *
-   * Default value if not passed during construction:
-   * {@link SpecialConverters#STANDARD}.
+   * Default value if not passed during construction: {@link
+   * SpecialConverters#STANDARD}.
    */
   get specialCases() {
     return this.#specialCases;

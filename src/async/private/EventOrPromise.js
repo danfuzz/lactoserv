@@ -83,8 +83,8 @@ export class EventOrPromise {
    * cases _except_ when this instance was constructed with a promise and that
    * promise has yet to settle. This class guarantees that, if this promise is
    * fulfilled (not rejected), then it will indeed be an instance of {@link
-   * LinkedEvent}. This class also guarantees that, if this promise is
-   * rejected, then {@link #rejectedReason} is non-`null`.
+   * LinkedEvent}. This class also guarantees that, if this promise is rejected,
+   * then {@link #rejectedReason} is non-`null`.
    */
   get eventPromise() {
     if (this.#eventPromise === null) {

@@ -83,8 +83,8 @@ export class EventSource {
    *
    * @param {?object} [options] Construction options.
    * @param {number} [options.keepCount] Number of past events to keep
-   *   (remember), not including the current (most-recently emitted) event.
-   *   Must be a whole number or positive infinity.
+   *   (remember), not including the current (most-recently emitted) event. Must
+   *   be a whole number or positive infinity.
    * @param {?LinkedEvent} [options.kickoffEvent] "Kickoff" event, or
    *   `null` to use `options.kickoffPayload` (below). It is not valid to
    *   specify both this and `kickoffPayload`.
