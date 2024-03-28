@@ -27,8 +27,8 @@ export class MemoryMonitor extends BaseService {
   #runner = new Threadlet(() => this.#run());
 
   /**
-   * Most recent memory snapshot (along with timing info),
-   * or `null` if a snapshot has not yet been taken.
+   * Most recent memory snapshot (along with timing info), or `null` if a
+   * snapshot has not yet been taken.
    *
    * @type {?{ heap: number, rss: number, at: Moment, troubleAt: ?Duration,
    * actionAt: ?Moment }}
@@ -143,16 +143,16 @@ export class MemoryMonitor extends BaseService {
   //
 
   /**
-   * Minimum amount of time in msec between checks, when dealing
-   * with an "over limit" situation.
+   * Minimum amount of time in msec between checks, when dealing with an "over
+   * limit" situation.
    *
    * @type {number}
    */
   static #MIN_TROUBLE_CHECK_MSEC = 1000;
 
   /**
-   * Fraction of time between "now" and when action needs to
-   * happen, when the next check should take place in an "over limit" situation.
+   * Fraction of time between "now" and when action needs to happen, when the
+   * next check should take place in an "over limit" situation.
    *
    * @type {number}
    */

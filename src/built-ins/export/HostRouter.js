@@ -14,9 +14,9 @@ import { MustBe } from '@this/typey';
  */
 export class HostRouter extends BaseApplication {
   /**
-   * Map which goes from a host prefix
-   * to a handler (typically a {@link BaseApplication}) which should handle that
-   * prefix. Gets set in {@link #_impl_start}.
+   * Map which goes from a host prefix to a handler (typically a {@link
+   * BaseApplication}) which should handle that prefix. Gets set in {@link
+   * #_impl_start}.
    *
    * @type {?TreePathMap<IntfRequestHandler>}
    */
@@ -90,8 +90,8 @@ export class HostRouter extends BaseApplication {
    */
   static #Config = class Config extends BaseApplication.FilterConfig {
     /**
-     * Like the outer `routeTree` except with names
-     * instead of handler instances.
+     * Like the outer `routeTree` except with names instead of handler
+     * instances.
      *
      * @type {TreePathMap<string>}
      */

@@ -26,17 +26,16 @@ export class TreePathMap {
   #rootNode = new TreePathNode();
 
   /**
-   * Total number of bindings. This defined here instead of on
-   * {@link TreePathNode}, because internal nodes don't need to keep track of
-   * their overall size.
+   * Total number of bindings. This defined here instead of on {@link
+   * TreePathNode}, because internal nodes don't need to keep track of their
+   * overall size.
    *
    * @type {number}
    */
   #size = 0;
 
   /**
-   * Function which renders keys into
-   * strings.
+   * Function which renders keys into strings.
    *
    * @type {function(TreePathKey): string}
    */

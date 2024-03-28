@@ -53,8 +53,8 @@ export class RateLimitedStream {
   #bytesWritten = 0;
 
   /**
-   * Error received via `error` event from {@link #innerStream}
-   * or produced internally, if any.
+   * Error received via `error` event from {@link #innerStream} or produced
+   * internally, if any.
    *
    * @type {?Error}
    */
@@ -244,8 +244,8 @@ export class RateLimitedStream {
   }
 
   /**
-   * Handles the `end` event from the inner stream, which is an indication
-   * that the reading side has closed.
+   * Handles the `end` event from the inner stream, which is an indication that
+   * the reading side has closed.
    */
   #readableOnEnd() {
     // `push(null)` is the spec-defined way to indicate to a `Readable` wrapper
@@ -263,8 +263,8 @@ export class RateLimitedStream {
   }
 
   /**
-   * Handles the `close` event from the inner stream, which indicates that
-   * (for any number of reasons) the writing side of the stream has closed.
+   * Handles the `close` event from the inner stream, which indicates that (for
+   * any number of reasons) the writing side of the stream has closed.
    */
   #writableOnClose() {
     this.#logger?.writableClose();

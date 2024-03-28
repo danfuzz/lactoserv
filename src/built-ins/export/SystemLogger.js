@@ -23,8 +23,7 @@ export class SystemLogger extends BaseFileService {
   #rotator = null;
 
   /**
-   * Event sink which does the actual writing, or `null`
-   * if not yet set up.
+   * Event sink which does the actual writing, or `null` if not yet set up.
    *
    * @type {?TextFileSink}
    */
@@ -86,10 +85,10 @@ export class SystemLogger extends BaseFileService {
   }
 
   /**
-   * Figures out which event to actually write out first. When a system is
-   * first starting up, this will be the actual earliest recored event. However,
-   * in the case of a same-process restart, this method attempts to find the
-   * event just after the last one expected to have been logged by a predecessor
+   * Figures out which event to actually write out first. When a system is first
+   * starting up, this will be the actual earliest recored event. However, in
+   * the case of a same-process restart, this method attempts to find the event
+   * just after the last one expected to have been logged by a predecessor
    * instance.
    *
    * @returns {LinkedEvent|Promise<LinkedEvent>} First event to log.

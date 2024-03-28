@@ -16,8 +16,8 @@ import { BaseApplication } from '@this/sys-framework';
  */
 export class StaticFiles extends BaseApplication {
   /**
-   * Path to the file to serve for a not-found result, or
-   * `null` if not-found handling shouldn't be done.
+   * Path to the file to serve for a not-found result, or `null` if not-found
+   * handling shouldn't be done.
    *
    * @type {?string}
    */
@@ -31,8 +31,7 @@ export class StaticFiles extends BaseApplication {
   #siteDirectory;
 
   /**
-   * `cache-control` header to automatically include, or
-   * `null` not to do that.
+   * `cache-control` header to automatically include, or `null` not to do that.
    *
    * @type {?string}
    */
@@ -46,8 +45,8 @@ export class StaticFiles extends BaseApplication {
   #etagGenerator = null;
 
   /**
-   * Not-found response to issue, or `null` if either
-   * not yet calculated or if this instance isn't handling not-found errors.
+   * Not-found response to issue, or `null` if either not yet calculated or if
+   * this instance isn't handling not-found errors.
    *
    * @type {?OutgoingResponse}
    */
@@ -271,8 +270,8 @@ export class StaticFiles extends BaseApplication {
    */
   static #Config = class Config extends BaseApplication.FilterConfig {
     /**
-     * Path to the file to serve for a not-found result, or
-     * `null` if not-found handling shouldn't be done.
+     * Path to the file to serve for a not-found result, or `null` if not-found
+     * handling shouldn't be done.
      *
      * @type {?string}
      */
@@ -286,16 +285,15 @@ export class StaticFiles extends BaseApplication {
     #siteDirectory;
 
     /**
-     * `cache-control` header to automatically include, or
-     * `null` not to do that.
+     * `cache-control` header to automatically include, or `null` not to do
+     * that.
      *
      * @type {?string}
      */
     #cacheControl = null;
 
     /**
-     * Etag configuration options, or `null` not to generate
-     * etags.
+     * Etag configuration options, or `null` not to generate etags.
      *
      * @type {?object}
      */

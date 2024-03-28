@@ -230,8 +230,7 @@ export class ProcessIdFile extends BaseFileService {
     #multiprocess;
 
     /**
-     * How often to update the info file, or `null` to not
-     * perform updates.
+     * How often to update the info file, or `null` to not perform updates.
      *
      * @type {?Duration}
      */

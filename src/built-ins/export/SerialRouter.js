@@ -14,8 +14,8 @@ import { MustBe } from '@this/typey';
  */
 export class SerialRouter extends BaseApplication {
   /**
-   * List of handlers (typically instances of
-   * {@link BaseApplication}) to route to. Gets set in {@link #_impl_start}.
+   * List of handlers (typically instances of {@link BaseApplication}) to route
+   * to. Gets set in {@link #_impl_start}.
    *
    * @type {Array<IntfRequestHandler>}
    */
@@ -81,8 +81,8 @@ export class SerialRouter extends BaseApplication {
    */
   static #Config = class Config extends BaseApplication.FilterConfig {
     /**
-     * Like the outer `routeList` except with names
-     * instead of application instances.
+     * Like the outer `routeList` except with names instead of application
+     * instances.
      *
      * @type {Array<string>}
      */
