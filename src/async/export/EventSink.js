@@ -38,8 +38,8 @@ export class EventSink extends Threadlet {
   /**
    * Constructs an instance. It is initally _not_ running.
    *
-   * @param {function(LinkedEvent)} processor Function to call, to process
-   *   each event. This function is always called asynchronously.
+   * @param {function(LinkedEvent)} processor Function to call, to process each
+   *   event. This function is always called asynchronously.
    * @param {LinkedEvent|Promise<LinkedEvent>} firstEvent First event to be
    *   processed by the instance, or promise for same.
    */
