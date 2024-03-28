@@ -4,7 +4,7 @@
 import { IntfLogger } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';
 
-import { BaseComponent } from '#x/BaseComponent';
+import { BaseNamedComponent } from '#x/BaseNamedComponent';
 import { BaseControllable } from '#x/BaseControllable';
 import { ThisModule } from '#p/ThisModule';
 
@@ -117,9 +117,9 @@ export class ControlContext {
    * also optionally be of a specific class (including a base class).
    *
    * @param {string} name Name of the component.
-   * @param {?function(new:BaseComponent)} [cls] Class which the result must be
+   * @param {?function(new:BaseNamedComponent)} [cls] Class which the result must be
    *   an instance of, or `null` to not have a class restriction.
-   * @returns {BaseComponent} Found instance.
+   * @returns {BaseNamedComponent} Found instance.
    * @throws {Error} Thrown if a suitable instance was not found.
    */
   getComponent(name, cls) {

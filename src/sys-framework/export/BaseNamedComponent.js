@@ -13,7 +13,7 @@ import { BaseControllable } from '#x/BaseControllable';
  * within the instances' hierarchies. The base class of this class, {@link
  * BaseControllable} does not do instance naming at all.
  */
-export class BaseComponent extends BaseControllable {
+export class BaseNamedComponent extends BaseControllable {
   /**
    * Configuration for this component.
    *

@@ -11,7 +11,7 @@ import { DispatchInfo, IntfRequestHandler, OutgoingResponse }
 import { EndpointConfig } from '@this/sys-config';
 
 import { BaseApplication } from '#x/BaseApplication';
-import { BaseComponent } from '#x/BaseComponent';
+import { BaseNamedComponent } from '#x/BaseNamedComponent';
 import { HostManager } from '#x/HostManager';
 
 
@@ -24,7 +24,7 @@ import { HostManager } from '#x/HostManager';
  *
  * @implements {IntfRequestHandler}
  */
-export class NetworkEndpoint extends BaseComponent {
+export class NetworkEndpoint extends BaseNamedComponent {
   /**
    * Application to send requests to. Becomes non-`null` during {@link
    * #_impl_start()}.

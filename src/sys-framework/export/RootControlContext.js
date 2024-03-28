@@ -4,7 +4,7 @@
 import { IntfLogger } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';
 
-import { BaseComponent } from '#x/BaseComponent';
+import { BaseNamedComponent } from '#x/BaseNamedComponent';
 import { ControlContext } from '#x/ControlContext';
 import { ThisModule } from '#p/ThisModule';
 
@@ -42,7 +42,7 @@ export class RootControlContext extends ControlContext {
   /** @override */
   getComponent(name, cls) {
     MustBe.string(name);
-    cls = (cls === null) ? BaseComponent : MustBe.constructorFunction(cls);
+    cls = (cls === null) ? BaseNamedComponent : MustBe.constructorFunction(cls);
 
     const found = this.#components.get(name)?.associate;
 
@@ -66,7 +66,7 @@ export class RootControlContext extends ControlContext {
     }
 
     const associate = descendant.associate;
-    if (associate instanceof BaseComponent) {
+    if (associate instanceof BaseNamedComponent) {
       const name = associate.name;
       if (this.#components.has(name)) {
         throw new Error('Cannot register two different components with the same name.');

@@ -3,13 +3,13 @@
 
 import { ServiceConfig } from '@this/sys-config';
 
-import { BaseComponent } from '#x/BaseComponent';
+import { BaseNamedComponent } from '#x/BaseNamedComponent';
 
 
 /**
  * Base class for system services.
  */
-export class BaseService extends BaseComponent {
+export class BaseService extends BaseNamedComponent {
   /**
    * Constructs an instance.
    *

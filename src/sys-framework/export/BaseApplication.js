@@ -6,7 +6,7 @@ import { DispatchInfo, IncomingRequest, IntfRequestHandler, OutgoingResponse }
 import { ApplicationConfig } from '@this/sys-config';
 import { Methods, MustBe } from '@this/typey';
 
-import { BaseComponent } from '#x/BaseComponent';
+import { BaseNamedComponent } from '#x/BaseNamedComponent';
 
 
 /**
@@ -14,7 +14,7 @@ import { BaseComponent } from '#x/BaseComponent';
  *
  * @implements {IntfRequestHandler}
  */
-export class BaseApplication extends BaseComponent {
+export class BaseApplication extends BaseNamedComponent {
   /**
    * Config instance, if it is an instance of this class's config class, or
    * `null` if not.
