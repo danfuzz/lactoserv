@@ -52,7 +52,7 @@ export class ComponentManager extends BaseControllable {
   /**
    * Constructs an instance.
    *
-   * @param {ClassedConfig[]} configs Configuration objects.
+   * @param {Array<ClassedConfig>} configs Configuration objects.
    * @param {object} options Instantiation options.
    * @param {?function(new:BaseComponent)} [options.baseClass] Base class
    *   of all components to be managed by this instance. `null` (the default) is
@@ -112,7 +112,7 @@ export class ComponentManager extends BaseControllable {
   /**
    * Gets a list of all component instances managed by this (manager) instance.
    *
-   * @returns {BaseComponent[]} All the instances.
+   * @returns {Array<BaseComponent>} All the instances.
    */
   getAll() {
     return [...this.#instances.values()];

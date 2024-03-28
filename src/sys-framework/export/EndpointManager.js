@@ -34,7 +34,7 @@ export class EndpointManager extends BaseControllable {
   /**
    * Constructs an instance.
    *
-   * @param {EndpointConfig[]} configs Configuration objects.
+   * @param {Array<EndpointConfig>} configs Configuration objects.
    * @param {Warehouse} warehouse The warehouse this instance is in.
    */
   constructor(configs, warehouse) {
@@ -67,7 +67,7 @@ export class EndpointManager extends BaseControllable {
   /**
    * Gets a list of all endpoints managed by this instance.
    *
-   * @returns {NetworkEndpoint[]} All the endpoints.
+   * @returns {Array<NetworkEndpoint>} All the endpoints.
    */
   getAll() {
     return [...this.#instances.values()];

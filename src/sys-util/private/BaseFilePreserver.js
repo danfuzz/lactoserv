@@ -202,7 +202,8 @@ export class BaseFilePreserver {
    * @param {boolean} [options.pastDays] Find files from previous days (UTC)?
    * @param {?string} [options.dateStr] Find files infixed with the given date
    *   string?
-   * @returns {object[]} Array of useful information about each matched file.
+   * @returns {Array<object>} Array of useful information about each matched
+   *   file.
    */
   async #findFiles(options = {}) {
     const {

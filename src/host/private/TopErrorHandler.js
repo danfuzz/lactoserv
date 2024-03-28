@@ -60,7 +60,7 @@ export class TopErrorHandler {
   /**
    * Actual object behind {@link #problems}.
    *
-   * @type {object[]}
+   * @type {Array<object>}
    */
   static #problems = [];
 

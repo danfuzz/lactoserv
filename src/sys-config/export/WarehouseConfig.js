@@ -26,28 +26,28 @@ export class WarehouseConfig extends BaseConfig {
   /**
    * Application configuration objects.
    *
-   * @type {ApplicationConfig[]}
+   * @type {Array<ApplicationConfig>}
    */
   #applications;
 
   /**
    * Host configuration objects.
    *
-   * @type {HostConfig[]}
+   * @type {Array<HostConfig>}
    */
   #hosts;
 
   /**
    * Endpoint configuration objects.
    *
-   * @type {EndpointConfig[]}
+   * @type {Array<EndpointConfig>}
    */
   #endpoints;
 
   /**
    * Service configuration objects.
    *
-   * @type {ServiceConfig[]}
+   * @type {Array<ServiceConfig>}
    */
   #services;
 
@@ -72,22 +72,22 @@ export class WarehouseConfig extends BaseConfig {
     this.#services     = ServiceConfig.parseArray(services);
   }
 
-  /** @returns {ApplicationConfig[]} Application configuration objects. */
+  /** @returns {Array<ApplicationConfig>} Application configuration objects. */
   get applications() {
     return this.#applications;
   }
 
-  /** @returns {HostConfig[]} Host configuration objects. */
+  /** @returns {Array<HostConfig>} Host configuration objects. */
   get hosts() {
     return this.#hosts;
   }
 
-  /** @returns {EndpointConfig[]} Endpoint configuration objects. */
+  /** @returns {Array<EndpointConfig>} Endpoint configuration objects. */
   get endpoints() {
     return this.#endpoints;
   }
 
-  /** @returns {ServiceConfig[]} Service configuration objects. */
+  /** @returns {Array<ServiceConfig>} Service configuration objects. */
   get services() {
     return this.#services;
   }

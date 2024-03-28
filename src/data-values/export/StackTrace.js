@@ -312,8 +312,8 @@ export class StackTrace {
    * Constructs a known-valid frames array from a possibly-valid one.
    *
    * @param {Array<*>} original Original value.
-   * @returns {object[]} Frame array, in the form expected by the rest of this
-   *   class.
+   * @returns {Array<object>} Frame array, in the form expected by the rest of
+   *   this class.
    */
   static #framesFromArray(original) {
     // Optimistic assumption to begin with, but might be revised!
