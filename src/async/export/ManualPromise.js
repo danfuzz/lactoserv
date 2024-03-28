@@ -90,8 +90,8 @@ export class ManualPromise {
   }
 
   /**
-   * Gets an indicator of whether or not the underlying promise has been
-   * settled as fulfilled.
+   * Gets an indicator of whether or not the underlying promise has been settled
+   * as fulfilled.
    *
    * @returns {boolean} Whenter (`true`) or not (`false`) the underlying
    *   promise is settled as fulfilled.
@@ -101,8 +101,8 @@ export class ManualPromise {
   }
 
   /**
-   * Gets an indicator of whether or not the underlying promise has been
-   * settled as rejected.
+   * Gets an indicator of whether or not the underlying promise has been settled
+   * as rejected.
    *
    * @returns {boolean} Whenter (`true`) or not (`false`) the underlying
    *   promise is settled as rejected.
@@ -112,8 +112,8 @@ export class ManualPromise {
   }
 
   /**
-   * Gets an indicator of whether or not the underlying promise has been
-   * settled (either as fulfilled or rejected).
+   * Gets an indicator of whether or not the underlying promise has been settled
+   * (either as fulfilled or rejected).
    *
    * @returns {boolean} Whenter (`true`) or not (`false`) the underlying
    *   promise is settled.

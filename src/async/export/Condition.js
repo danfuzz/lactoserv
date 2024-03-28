@@ -75,9 +75,9 @@ export class Condition {
   }
 
   /**
-   * Instantaneously switches the condition to `true` and then immediately
-   * back to `false`. This will cause all promises to resolve, no matter which
-   * state they were waiting for.
+   * Instantaneously switches the condition to `true` and then immediately back
+   * to `false`. This will cause all promises to resolve, no matter which state
+   * they were waiting for.
    */
   onOff() {
     this.value = true;

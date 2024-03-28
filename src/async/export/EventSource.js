@@ -8,8 +8,8 @@ import { LinkedEvent } from '#x/LinkedEvent';
 
 
 /**
- * Event source for a chain of {@link LinkedEvent} instances. It is instances
- * of this class which are generally set up to manage and add new events to a
+ * Event source for a chain of {@link LinkedEvent} instances. It is instances of
+ * this class which are generally set up to manage and add new events to a
  * chain, that is, this class represents the authority to emit events on a
  * particular chain (as opposed to it being functionality exposed on
  * `LinkedEvent` itself).
@@ -35,9 +35,9 @@ import { LinkedEvent } from '#x/LinkedEvent';
  */
 export class EventSource {
   /**
-   * The number of already-emitted events to keep track of,
-   * not including the one referenced by {@link #currentEvent}. If infinite,
-   * then this instance keeps the entire event chain.
+   * The number of already-emitted events to keep track of, not including the
+   * one referenced by {@link #currentEvent}. If infinite, then this instance
+   * keeps the entire event chain.
    *
    * @type {number}
    */
@@ -51,29 +51,28 @@ export class EventSource {
   #emittedCount = 0;
 
   /**
-   * Earliest (furthest in the past) event emitted by this
-   * instance which is intentionally being kept by this instance. If this
-   * instance has never emitted, then -- as with {@link #currentEvent} -- this
-   * is the kickoff event. If this instance isn't keeping any history, then this
-   * is always going to be the same as {@link #currentEvent}.
+   * Earliest (furthest in the past) event emitted by this instance which is
+   * intentionally being kept by this instance. If this instance has never
+   * emitted, then -- as with {@link #currentEvent} -- this is the kickoff
+   * event. If this instance isn't keeping any history, then this is always
+   * going to be the same as {@link #currentEvent}.
    *
    * @type {LinkedEvent}
    */
   #earliestEvent;
 
   /**
-   * Current (Latest / most recent) event emitted by this
-   * instance. If this instance has never emitted, this is an initial "kickoff
-   * event" which is suitable for `await`ing in {@link #currentEvent}. (This
-   * arrangement makes the logic in {@link #emit} particularly simple.)
+   * Current (Latest / most recent) event emitted by this instance. If this
+   * instance has never emitted, this is an initial "kickoff event" which is
+   * suitable for `await`ing in {@link #currentEvent}. (This arrangement makes
+   * the logic in {@link #emit} particularly simple.)
    *
    * @type {LinkedEvent}
    */
   #currentEvent;
 
   /**
-   * Function to call in order to emit the next event on the
-   * chain.
+   * Function to call in order to emit the next event on the chain.
    *
    * @type {function(*)}
    */

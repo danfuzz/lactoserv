@@ -9,11 +9,11 @@ import { Threadlet } from '#x/Threadlet';
 
 
 /**
- * Event sink for {@link LinkedEvent}. Instances of this class "consume"
- * events, calling on a specified processing function for each. Instances can be
- * started and stopped (this class is a sublcass of {@link Threadlet}), and
- * while running they are always either processing existing events or waiting
- * for new events to be emitted on the chain they track.
+ * Event sink for {@link LinkedEvent}. Instances of this class "consume" events,
+ * calling on a specified processing function for each. Instances can be started
+ * and stopped (this class is a sublcass of {@link Threadlet}), and while
+ * running they are always either processing existing events or waiting for new
+ * events to be emitted on the chain they track.
  */
 export class EventSink extends Threadlet {
   /**
@@ -24,16 +24,15 @@ export class EventSink extends Threadlet {
   #processor;
 
   /**
-   * Head of the event chain, representing the earliest
-   * event which has not yet been processed.
+   * Head of the event chain, representing the earliest event which has not yet
+   * been processed.
    *
    * @type {EventOrPromise}
    */
   #head;
 
   /**
-   * Is this instance eagerly "draining" all synchronously-known
-   * events?
+   * Is this instance eagerly "draining" all synchronously-known events?
    *
    * @type {boolean}
    */

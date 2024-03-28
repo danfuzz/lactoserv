@@ -28,8 +28,8 @@ import { Threadlet } from '#x/Threadlet';
  */
 export class TokenBucket {
   /**
-   * Maximum allowed instantaneous burst, in tokens. This is the
-   * "bucket capacity" in the "leaky bucket as meter" metaphor.
+   * Maximum allowed instantaneous burst, in tokens. This is the "bucket
+   * capacity" in the "leaky bucket as meter" metaphor.
    *
    * @type {number}
    */
@@ -50,9 +50,9 @@ export class TokenBucket {
   #maxQueueGrantSize;
 
   /**
-   * The maximum allowed wait queue size, in tokens. That is,
-   * this is the sum of all grants to be made from waiters in the queue.
-   * `Number.POSITIVE_INFINITY` is used represent "no limit."
+   * The maximum allowed wait queue size, in tokens. That is, this is the sum of
+   * all grants to be made from waiters in the queue. `Number.POSITIVE_INFINITY`
+   * is used represent "no limit."
    *
    * @type {number}
    */
@@ -234,8 +234,8 @@ export class TokenBucket {
    *   is, the quantity of tokens currently in the bucket.
    * * `{number} availableQueueSize` -- The currently-available queue size, that
    *   is, the quantity of tokens that could potentially be reserved for new
-   *   grant waiters. If this instance has no limit on the queue size, then
-   *   this is `Number.POSITIVE_INFINITY`.
+   *   grant waiters. If this instance has no limit on the queue size, then this
+   *   is `Number.POSITIVE_INFINITY`.
    * * `{Moment} now` -- The time as of the snapshot, according to this
    *   instance's time source.
    * * `{number} waiterCount` -- The number of queued (awaited) grant requests.
@@ -268,8 +268,8 @@ export class TokenBucket {
    * * `{number} maxInclusive` -- Maximum quantity of tokens to be granted.
    *   Defaults to `0`. Invalid if negative, and clamped to `minInclusive` as a
    *   minimum. If this instance was constructed with `partialTokens === false`,
-   *   then it is rounded down (`Math.floor()`) when not a whole number. This
-   *   is allowed to be larger than `maxBurstSize`, but this method will never
+   *   then it is rounded down (`Math.floor()`) when not a whole number. This is
+   *   allowed to be larger than `maxBurstSize`, but this method will never
    *   actually grant more than that.
    *
    * The actual granting of tokens proceeds as follows (in order):
@@ -277,20 +277,20 @@ export class TokenBucket {
    * * If there is no contention (no queued waiters) and the available burst
    *   size can accommodate a grant of at least `minInclusive` tokens, then this
    *   method promptly succeeds with the maximum-possible requested grant.
-   * * If `minInclusive` is `0`, then this method promptly succeeds with a
-   *   grant of `0` tokens.
+   * * If `minInclusive` is `0`, then this method promptly succeeds with a grant
+   *   of `0` tokens.
    * * If there is insufficient available waiter queue size to accommodate a
    *   grant of at least `minInclusive`, then this method promptly fails, with
    *   `done === false` and a grant of `0` tokens.
-   * * The request is queued up as an awaited grant. When the request is
-   *   finally dequeued, the grant will be for the smaller of `maxInclusive` or
+   * * The request is queued up as an awaited grant. When the request is finally
+   *   dequeued, the grant will be for the smaller of `maxInclusive` or
    *   `maxQueueGrantSize` tokens (even if the available burst size happens to
    *   be larger at the moment of granting).
    *
    * This method returns an object with bindings as follows:
    *
-   * * `{boolean} done` -- `true` if the grant was actually made. This can be
-   *   be `true` even if `grant === 0`, in the case where the minimum requested
+   * * `{boolean} done` -- `true` if the grant was actually made. This can be be
+   *   `true` even if `grant === 0`, in the case where the minimum requested
    *   grant is in fact `0`.
    * * `{number} grant` -- The quantity of tokens granted to the caller. This is
    *   `0` if `done === false`, and can also be a successful grant of `0`, if
@@ -371,8 +371,8 @@ export class TokenBucket {
    * * `{number} maxInclusive` -- Maximum quantity of tokens to be granted.
    *   Defaults to `0`. Invalid if negative, and clamped to `minInclusive` as a
    *   minimum. If this instance was constructed with `partialTokens === false`,
-   *   then it is rounded down (`Math.floor()`) when not a whole number. This
-   *   is allowed to be larger than `maxBurstSize`, but this method will never
+   *   then it is rounded down (`Math.floor()`) when not a whole number. This is
+   *   allowed to be larger than `maxBurstSize`, but this method will never
    *   actually grant more than that.
    *
    * This method returns an object with bindings as follows:
@@ -382,11 +382,11 @@ export class TokenBucket {
    *   grant is in fact `0`.
    * * `{number} grant` -- The quantity of tokens granted to the caller. This is
    *   `0` if the minimum requested grant cannot be made.
-   * * `{Moment} waitUntil` -- The time to `waitUntil()` on this instance's
-   *   time source until the request would be expected to be granted, if this
-   *   were an asynchronously-requested grant, as if by {@link #requestGrant}
-   *   (see which). If `done === true`, then this will be a time at or before
-   *   the time source's `now()`.
+   * * `{Moment} waitUntil` -- The time to `waitUntil()` on this instance's time
+   *   source until the request would be expected to be granted, if this were an
+   *   asynchronously-requested grant, as if by {@link #requestGrant} (see
+   *   which). If `done === true`, then this will be a time at or before the
+   *   time source's `now()`.
    *
    * If the `minInclusive` request is non-zero, then this method will only ever
    * return `done === true` if there is no immediate contention for tokens
