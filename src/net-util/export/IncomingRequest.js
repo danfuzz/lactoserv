@@ -29,8 +29,8 @@ import { RequestContext } from '#x/RequestContext';
  */
 export class IncomingRequest {
   /**
-   * Logger to use for this instance, or `null` if the
-   * instance is not doing logging.
+   * Logger to use for this instance, or `null` if the instance is not doing
+   * logging.
    *
    * @type {?IntfLogger}
    */
@@ -44,8 +44,7 @@ export class IncomingRequest {
   #id = null;
 
   /**
-   * Information about the incoming "context" of a
-   * request.
+   * Information about the incoming "context" of a request.
    *
    * @type {RequestContext}
    */
@@ -66,9 +65,9 @@ export class IncomingRequest {
   #protocolName;
 
   /**
-   * HTTP-2-ish "pseudo-headers" that came with the request
-   * or were synthesized from an HTTP-1-ish request, with keys stripped of their
-   * colon (`:`) prefixes.
+   * HTTP-2-ish "pseudo-headers" that came with the request or were synthesized
+   * from an HTTP-1-ish request, with keys stripped of their colon (`:`)
+   * prefixes.
    *
    * @type {HttpHeaders}
    */
@@ -89,8 +88,7 @@ export class IncomingRequest {
   #cookies = null;
 
   /**
-   * The host (a/k/a "authority") info, or `null` if not yet
-   * figured out.
+   * The host (a/k/a "authority") info, or `null` if not yet figured out.
    *
    * @type {HostInfo}
    */
@@ -105,16 +103,14 @@ export class IncomingRequest {
   #parsedTargetObject = null;
 
   /**
-   * The result of {@link #infoForLog}, or `null` if not yet
-   * calculated.
+   * The result of {@link #infoForLog}, or `null` if not yet calculated.
    *
    * @type {?object}
    */
   #infoForLog = null;
 
   /**
-   * The value of {@link #urlForLog}, or `null` if not yet
-   * calculated.
+   * The value of {@link #urlForLog}, or `null` if not yet calculated.
    *
    * @type {?string}
    */

@@ -40,18 +40,16 @@ export class ProtocolWrangler {
   #logger = null;
 
   /**
-   * Logger to use for {@link IncomingRequest}s, or `null`
-   * to not do any logging. This is passed into the {@link IncomingRequest}
-   * constructor, which will end up making a sub-logger with a generated request
-   * ID.
+   * Logger to use for {@link IncomingRequest}s, or `null` to not do any
+   * logging. This is passed into the {@link IncomingRequest} constructor, which
+   * will end up making a sub-logger with a generated request ID.
    *
    * @type {?IntfLogger}
    */
   #requestLogger = null;
 
   /**
-   * Optional host manager; only needed for some
-   * protocols.
+   * Optional host manager; only needed for some protocols.
    *
    * @type {?IntfHostManager}
    */
@@ -72,8 +70,7 @@ export class ProtocolWrangler {
   #requestHandler;
 
   /**
-   * Helper for HTTP-ish request logging, or `null`
-   * to not do any such logging.
+   * Helper for HTTP-ish request logging, or `null` to not do any such logging.
    *
    * @type {?RequestLogHelper}
    */
@@ -101,8 +98,7 @@ export class ProtocolWrangler {
   #runner = new Threadlet(() => this.#startNetwork(), () => this.#runNetwork());
 
   /**
-   * Is a system reload in progress (either during start or
-   * stop)?
+   * Is a system reload in progress (either during start or stop)?
    *
    * @type {boolean}
    */
@@ -199,8 +195,8 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Starts this instance listening for connections and dispatching them to
-   * the high-level application. This method async-returns once the instance has
+   * Starts this instance listening for connections and dispatching them to the
+   * high-level application. This method async-returns once the instance has
    * actually gotten started.
    *
    * @param {boolean} isReload Is this action due to an in-process reload?
@@ -216,10 +212,9 @@ export class ProtocolWrangler {
 
   /**
    * Stops this instance from listening for any more connections. This method
-   * async-returns once the instance has actually stopped. If there was an
-   * error thrown while running, that error in turn gets thrown by this method.
-   * If this instance wasn't running in the first place, this method does
-   * nothing.
+   * async-returns once the instance has actually stopped. If there was an error
+   * thrown while running, that error in turn gets thrown by this method. If
+   * this instance wasn't running in the first place, this method does nothing.
    *
    * @param {boolean} willReload Is this action due to an in-process reload
    *   being requested?
@@ -241,9 +236,8 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Initializes the instance. After this is called and (asynchronously)
-   * returns without throwing, {@link #_impl_server} is expected to work without
-   * error.
+   * Initializes the instance. After this is called and (asynchronously) returns
+   * without throwing, {@link #_impl_server} is expected to work without error.
    *
    * @abstract
    */
@@ -536,8 +530,8 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Runs the "network stack." This is called as the main function of the
-   * {@link #runner}.
+   * Runs the "network stack." This is called as the main function of the {@link
+   * #runner}.
    */
   async #runNetwork() {
     // As things stand, there isn't actually anything to do other than wait for

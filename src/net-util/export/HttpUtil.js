@@ -13,18 +13,17 @@ import { MustBe } from '@this/typey';
  */
 export class HttpUtil {
   /**
-   * Mapping from arbitrarily-cased header names to
-   * their modern (downcased) versions. Seeded proactively and then lazily
-   * accumulated.
+   * Mapping from arbitrarily-cased header names to their modern (downcased)
+   * versions. Seeded proactively and then lazily accumulated.
    *
    * @type {Map<string, string>}
    */
   static #ANY_TO_MODERN = new Map();
 
   /**
-   * Mapping from arbitrarily-cased header names to
-   * their classic version (mostly capitalized though with some exceptions).
-   * Seeded proactively and then lazily accumulated.
+   * Mapping from arbitrarily-cased header names to their classic version
+   * (mostly capitalized though with some exceptions). Seeded proactively and
+   * then lazily accumulated.
    *
    * @type {Map<string, string>}
    */

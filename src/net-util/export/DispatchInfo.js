@@ -12,10 +12,10 @@ import { UriUtil } from '#x/UriUtil';
 /**
  * Dispatch information related to an {@link IncomingRequest}.
  *
- * The idea here is that {@link IncomingRequest} objects are treated in a
- * way that's as immutable as possible (even if we don't quite achieve it), so
- * we need somewhere -- that is, instances of this class -- to hold the ephemera
- * of the request dispatch process.
+ * The idea here is that {@link IncomingRequest} objects are treated in a way
+ * that's as immutable as possible (even if we don't quite achieve it), so we
+ * need somewhere -- that is, instances of this class -- to hold the ephemera of
+ * the request dispatch process.
  */
 export class DispatchInfo {
   /**
@@ -119,11 +119,11 @@ export class DispatchInfo {
   }
 
   /**
-   * Gets a relative redirect path which refers to {@link #extra} as a
-   * file. This property is always `../<last>` where `<last>` is the last
-   * file component of the full path, _except_ if the full path is entirely
-   * empty, in which case it is `/`, which is about as good as we can do (even
-   * though it is in directory form).
+   * Gets a relative redirect path which refers to {@link #extra} as a file.
+   * This property is always `../<last>` where `<last>` is the last file
+   * component of the full path, _except_ if the full path is entirely empty, in
+   * which case it is `/`, which is about as good as we can do (even though it
+   * is in directory form).
    *
    * @returns {string} The relative redirect string, as described above.
    */

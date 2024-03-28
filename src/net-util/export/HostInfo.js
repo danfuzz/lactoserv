@@ -34,8 +34,7 @@ export class HostInfo {
   #portString = null;
 
   /**
-   * Is the hostname actually an IP address? `null` if not yet
-   * calculated.
+   * Is the hostname actually an IP address? `null` if not yet calculated.
    *
    * @type {?boolean}
    */
@@ -51,8 +50,8 @@ export class HostInfo {
   /**
    * Constructs an instance.
    *
-   * **Note:** You are probably better off constructing an instance using one
-   * of the static methods on this class.
+   * **Note:** You are probably better off constructing an instance using one of
+   * the static methods on this class.
    *
    * @param {string} nameString The name string.
    * @param {string|number} portNumber The port number, as either a number per
@@ -163,10 +162,10 @@ export class HostInfo {
   }
 
   /**
-   * Constructs an instance of this class by parsing a string in the format
-   * used by the `Host` header of an HTTP(ish) request. The local port number,
-   * if provided, is used when there is no explicit port number in `hostString`;
-   * if needed and not provided, it is treated as if it is `0`.
+   * Constructs an instance of this class by parsing a string in the format used
+   * by the `Host` header of an HTTP(ish) request. The local port number, if
+   * provided, is used when there is no explicit port number in `hostString`; if
+   * needed and not provided, it is treated as if it is `0`.
    *
    * @param {string} hostString The `Host` header string to parse.
    * @param {?number} [localPort] Local port being listened on, if known.

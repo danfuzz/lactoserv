@@ -13,8 +13,8 @@ import { HttpUtil } from '#x/HttpUtil';
  */
 export class HttpConditional {
   /**
-   * Regex which matches a `cache-control` header that specifies
-   * `no-cache` somewhere in it.
+   * Regex which matches a `cache-control` header that specifies `no-cache`
+   * somewhere in it.
    *
    * @type {RegExp}
    */

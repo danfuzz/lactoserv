@@ -27,16 +27,14 @@ export class EtagGenerator {
   #hashAlgorithm;
 
   /**
-   * The number of characters to use from the hash for strong
-   * etags.
+   * The number of characters to use from the hash for strong etags.
    *
    * @type {?number}
    */
   #hashLengthStrong;
 
   /**
-   * The number of characters to use from the hash for weak
-   * etags.
+   * The number of characters to use from the hash for weak etags.
    *
    * @type {?number}
    */

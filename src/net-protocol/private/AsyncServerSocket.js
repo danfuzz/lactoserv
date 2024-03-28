@@ -38,16 +38,14 @@ export class AsyncServerSocket {
   #protocol;
 
   /**
-   * The underlying server socket instance (Node library class),
-   * if constructed.
+   * The underlying server socket instance (Node library class), if constructed.
    *
    * @type {?Server}
    */
   #serverSocket = null;
 
   /**
-   * Function to call to remove all of the listeners on
-   * {@link #serverSocket}.
+   * Function to call to remove all of the listeners on {@link #serverSocket}.
    *
    * @type {function()}
    */
@@ -61,8 +59,7 @@ export class AsyncServerSocket {
   #eventSource = new EventSource();
 
   /**
-   * Promise for the next event which will need
-   * action.
+   * Promise for the next event which will need action.
    *
    * @type {Promise<LinkedEvent>}
    */
@@ -308,8 +305,8 @@ export class AsyncServerSocket {
   //
 
   /**
-   * "Prototype" of server socket creation options. See
-   * `ProtocolWrangler` class doc for details.
+   * "Prototype" of server socket creation options. See `ProtocolWrangler` class
+   * doc for details.
    *
    * @type {object}
    */
@@ -322,8 +319,8 @@ export class AsyncServerSocket {
   });
 
   /**
-   * "Prototype" of server listen options. See `ProtocolWrangler`
-   * class doc for details.
+   * "Prototype" of server listen options. See `ProtocolWrangler` class doc for
+   * details.
    *
    * @type {object}
    */
@@ -336,17 +333,15 @@ export class AsyncServerSocket {
   });
 
   /**
-   * How long in msec to allow a stashed instance to remain
-   * stashed.
+   * How long in msec to allow a stashed instance to remain stashed.
    *
    * @type {number}
    */
   static #STASH_TIMEOUT_MSEC = 5 * 1000;
 
   /**
-   * Set of stashed instances, for use during a
-   * reload. Such instances were left open and listening during a previous
-   * call to {@link #stop}.
+   * Set of stashed instances, for use during a reload. Such instances were left
+   * open and listening during a previous call to {@link #stop}.
    *
    * @type {Set<AsyncServerSocket>}
    */
@@ -375,8 +370,8 @@ export class AsyncServerSocket {
   }
 
   /**
-   * Trims down and "fixes" `options` using the given prototype. This is used
-   * to convert from our incoming `interface` form to what's expected by Node's
+   * Trims down and "fixes" `options` using the given prototype. This is used to
+   * convert from our incoming `interface` form to what's expected by Node's
    * `Server` construction and `listen()` methods.
    *
    * @param {object} options Original options.

@@ -126,9 +126,8 @@ export class HttpHeaders extends Headers {
 
   /**
    * Extracts a subset of the headers. Names which aren't found are not listed
-   * in the result, and don't cause an error. Extracted values are always
-   * simple (pre-combined) strings, except for `Set-Cookies`, which is always
-   * an array.
+   * in the result, and don't cause an error. Extracted values are always simple
+   * (pre-combined) strings, except for `Set-Cookies`, which is always an array.
    *
    * @param {...string} names Names of headers to extract.
    * @returns {object} The extracted subset, as a mapping from the given `names`

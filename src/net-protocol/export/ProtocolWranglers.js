@@ -12,8 +12,7 @@ import { ProtocolWrangler } from '#x/ProtocolWrangler';
  */
 export class ProtocolWranglers {
   /**
-   * Map from each protocol name to
-   * the wrangler subclass that handles it.
+   * Map from each protocol name to the wrangler subclass that handles it.
    *
    * @type {Map<string, function(new:*, ...*)>}
    */
