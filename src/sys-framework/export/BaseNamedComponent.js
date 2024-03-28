@@ -8,10 +8,9 @@ import { BaseComponent } from '#x/BaseComponent';
 
 
 /**
- * Base class for major "components" of the framework. Notably, instances of
- * this class must always have (string) names, and those names must be unique
- * within the instances' hierarchies. The base class of this class, {@link
- * BaseComponent} does not do instance naming at all.
+ * Base class for components that must have (string) names, where those names
+ * must be unique within the instances' hierarchies. The base class of this
+ * class, {@link BaseComponent} does not do instance naming at all.
  */
 export class BaseNamedComponent extends BaseComponent {
   /**

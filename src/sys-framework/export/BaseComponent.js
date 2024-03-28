@@ -10,7 +10,8 @@ import { ThisModule } from '#p/ThisModule';
 
 
 /**
- * Base class for "controllable" things in the framework.
+ * Base class for controllable components, which live in a tree-ish arrangement
+ * with other such components.
  *
  * TLDR: Concrete subclasses (a) have an associated context, and (b) have a set
  * of lifecycle methods.
