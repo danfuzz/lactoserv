@@ -32,8 +32,11 @@ Breaking changes:
     `maxPathLength` which filters based on the octet count of a path.
 
 Other notable changes:
-* Cleaned up a bunch of JSDoc syntax problems. Notably, the type definitions of
-  non-method class properties was very wrong.
+* Documentation comments:
+  * Cleaned up a bunch of JSDoc syntax problems. Notably, the type definitions
+    of non-method class properties was very wrong.
+  * Did a comment reflow pass over all the code, using a newly-written utility.
+    Tidy code is happy code!
 
 ### v0.6.11 -- 2024-03-22
 
