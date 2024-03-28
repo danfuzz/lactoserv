@@ -4,6 +4,7 @@
 import { AskIf, MustBe } from '@this/typey';
 
 import { BaseConverter } from '#x/BaseConverter';
+import { StackFrame } from '#x/StackFrame';
 import { Struct } from '#x/Struct';
 
 
@@ -24,7 +25,7 @@ export class StackTrace {
   /**
    * The frames of the stack trace.
    *
-   * @type {Array<{ name: ?string, file: string, line: ?number, col: ?number }>}
+   * @type {Array<StackFrame>}
    */
   #frames;
 
@@ -38,11 +39,11 @@ export class StackTrace {
    * [omitCount, [maxCount]])`. That is, `original` does not have to be passed
    * at all, even if passing the later arguments.
    *
-   * @param {string|StackTrace|{ message: string, stack: string }|Array<{ name:
-   *   ?string, file: string, line: ?number, col: ?number }>} [original]
-   *   Source for the stack frames. If passed as `null` or omitted, this
-   *   constructs an instance based on the current call (to this constructor),
-   *   with the actual call to this method omitted from the result.
+   * @param {string|StackTrace|{ message: string, stack: string }|
+   *   Array<StackFrame>} [original] Source for the stack frames. If passed as
+   *   `null` or omitted, this constructs an instance based on the current call
+   *   (to this constructor), with the actual call to this method omitted from
+   *   the result.
    * @param {number} [omitCount] The number of innermost stack frames to
    *   omit.
    * @param {?number} [maxCount] Maximum number of frames to include, or
@@ -69,8 +70,7 @@ export class StackTrace {
   }
 
   /**
-   * @returns {Array<{ name: ?string, file: string, line: ?number, col: ?number
-   * }>} Array of stack frames.
+   * @returns {Array<StackFrame>} Array of stack frames.
    */
   get frames() {
     return this.#frames;
@@ -99,15 +99,13 @@ export class StackTrace {
    * **Note:** The result only represents the direct stack of the `Error`, not
    * any error(s) referenced via `.cause`.
    *
-   * @param {string|StackTrace|{ message: string, stack: string }|Array<{ name:
-   *   ?string, file: string, line: ?number, col: ?number }>} original Source
-   *   for the stack frames.
+   * @param {string|StackTrace|{ message: string, stack: string }|
+   *   Array<StackFrame>} original Source for the stack frames.
    * @param {number} [omitCount] Number of innermost stack frames to omit
    *   (not including the one for this method call, which is _always_ omitted).
    * @param {?number} [maxCount] Maximum number of frames to include, or
    *   `null` to have no limit.
-   * @returns {Array<{ name: ?string, file: string, line: ?number, col: ?number
-   *   }>} The stack trace.
+   * @returns {Array<StackFrame>} The stack trace.
    */
   static framesFrom(original, omitCount = 0, maxCount = null) {
     maxCount ??= Number.POSITIVE_INFINITY;
@@ -164,8 +162,7 @@ export class StackTrace {
    *   (not including the one for this method call, which is _always_ omitted).
    * @param {?number} [maxCount] Maximum number of frames to include, or
    *   `null` to have no limit.
-   * @returns {Array<{ name: ?string, file: string, line: ?number, col: ?number
-   *   }>} The stack trace.
+   * @returns {Array<StackFrame>} The stack trace.
    */
   static framesNow(omitCount = 0, maxCount = null) {
     const error = this._impl_newError();
