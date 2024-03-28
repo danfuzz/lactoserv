@@ -107,7 +107,7 @@ function calcIndent(firstIndent, _locals_, result) {
 }
 
 # Emit one paragraph of comment.
-function autoflowLines(_locals_, i, line, text) {
+function autoflowLines(_locals_, curIndent, i, line, text) {
   if (count == 0) return;
 
   #print "INDENTS: <" firstIndent "> <" indent ">";
@@ -120,11 +120,13 @@ function autoflowLines(_locals_, i, line, text) {
     else text = text " " line;
   }
 
+  curIndent = firstIndent;
+
   while (text != "") {
-    if (length(text) + length(indent) <= 80) {
+    if (length(text) + length(curIndent) <= 80) {
       i = length(text);
     } else {
-      for (i = 81 - length(indent); i > 0; i--) {
+      for (i = 81 - length(curIndent); i > 0; i--) {
         if (substr(text, i, 1) == " ") break;
       }
       if (i == 0) {
@@ -137,18 +139,15 @@ function autoflowLines(_locals_, i, line, text) {
     line = substr(text, 1, i);
     sub(/^ */, "", line);
     sub(/ *$/, "", line);
-    if (firstIndent != "") {
-      print firstIndent line;
-      firstIndent = "";
-    } else {
-      print indent line;
-    }
+    print curIndent line;
+    curIndent = indent;
 
     text = substr(text, i + 1);
   }
 
   count = 0;
   indent = "";
+  firstIndent = "";
 }
 '
 
