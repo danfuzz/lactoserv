@@ -17,27 +17,41 @@ import { ThisModule } from '#p/ThisModule';
  */
 export class SignalHandler {
   /**
-   * @type {number} Maximum amount of time to wait for callbacks to complete,
+   * Maximum amount of time to wait for callbacks to complete,
    * while reloading the system.
+   *
+   * @type {number}
    */
   static #MAX_RELOAD_MSEC = 10 * 1000;
 
   /**
-   * @type {?IntfLogger} Logger for this class, or `null` not to do any
+   * Logger for this class, or `null` not to do any
    * logging.
+   *
+   * @type {?IntfLogger}
    */
   static #logger = ThisModule.logger?.signal;
 
-  /** @type {boolean} Initialized? */
+  /**
+   * Initialized?
+   *
+   * @type {boolean}
+   */
   static #initDone = false;
 
-  /** @type {CallbackList} Callbacks to invoke when asked to "reload." */
+  /**
+   * Callbacks to invoke when asked to "reload."
+   *
+   * @type {CallbackList}
+   */
   static #reloadCallbacks = new CallbackList('reload', this.#MAX_RELOAD_MSEC);
 
   /**
-   * @type {number} Number of times the exit signal has been received. Used to
+   * Number of times the exit signal has been received. Used to
    * force a non-clean exit when the (human) user seems to be adamant about
    * shutting things down.
+   *
+   * @type {number}
    */
   static #exitSignalCount = 0;
 

@@ -9,22 +9,40 @@ import { PromiseUtil } from '#x/PromiseUtil';
  * `reject()` methods, and synchronous accessors of state.
  */
 export class ManualPromise {
-  /** @type {Promise} The underlying promise. */
+  /**
+   * The underlying promise.
+   *
+   * @type {Promise}
+   */
   #promise;
 
-  /** @type {function(*)} The `resolve()` function. */
+  /**
+   * The `resolve()` function.
+   *
+   * @type {function(*)}
+   */
   #resolve;
 
-  /** @type {function(*)} The `reject()` function. */
+  /**
+   * The `reject()` function.
+   *
+   * @type {function(*)}
+   */
   #reject;
 
-  /** @type {boolean} Has a rejection been handled? */
+  /**
+   * Has a rejection been handled?
+   *
+   * @type {boolean}
+   */
   #rejectionHandled = false;
 
   /**
+   * The resolution, if the underlying promise has settled or become a
+   * forwarding target.
+   *
    * @type {?({ fulfilled: true, value: * }|{ rejected: true, reason: * }|
-   * { forwarded: true, from: Promise })} The resolution, if the underlying
-   * promise has settled or become a forwarding target.
+   * { forwarded: true, from: Promise })}
    */
   #resolution = null;
 

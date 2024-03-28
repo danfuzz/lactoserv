@@ -20,35 +20,55 @@ import { ThisModule } from '#p/ThisModule';
  */
 export class TopErrorHandler {
   /**
-   * @type {number} How many ticks to wait after receiving an
+   * How many ticks to wait after receiving an
    * `unhandledRejection` event before considering a promise rejection
    * _actually_ unhandled.
+   *
+   * @type {number}
    */
   static #PROMISE_REJECTION_GRACE_PERIOD_TICKS = 10;
 
   /**
-   * @type {?IntfLogger} Logger for this class, or `null` not to do any
+   * Logger for this class, or `null` not to do any
    * logging.
+   *
+   * @type {?IntfLogger}
    */
   static #logger = ThisModule.logger?.topError;
 
-  /** @type {boolean} Initialized? */
+  /**
+   * Initialized?
+   *
+   * @type {boolean}
+   */
   static #initDone = false;
 
-  /** @type {Map<Promise, *>} Map of unhandled rejections. */
+  /**
+   * Map of unhandled rejections.
+   *
+   * @type {Map<Promise, *>}
+   */
   static #unhandledRejections = new Map();
 
-  /** @type {boolean} Currently trying to shut down? */
+  /**
+   * Currently trying to shut down?
+   *
+   * @type {boolean}
+   */
   static #shuttingDown = false;
 
-  /** @type {object[]} Actual object behind {@link #problems}. */
+  /**
+   * Actual object behind {@link #problems}.
+   *
+   * @type {Array<object>}
+   */
   static #problems = [];
 
   /**
-   * @returns {{type: string, problem: Error}[]} List of all unhandled problems
-   * that are precipitating shutdown. Typically no more than one element, but if
-   * an error happens during error-related shutdown then there can be more. Each
-   * element is an object which binds `type` and `problem`.
+   * @returns {Array<{ type: string, problem: Error }>} List of all unhandled
+   * problems that are precipitating shutdown. Typically no more than one
+   * element, but if an error happens during error-related shutdown then there
+   * can be more. Each element is an object which binds `type` and `problem`.
    */
   static get problems() {
     const problems = [];

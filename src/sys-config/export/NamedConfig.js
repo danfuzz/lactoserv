@@ -16,7 +16,11 @@ import { Names } from '#x/Names';
  * Subclasses define additional configuration bindings.
  */
 export class NamedConfig extends BaseConfig {
-  /** @type {string} The item's name. */
+  /**
+   * The item's name.
+   *
+   * @type {string}
+   */
   #name;
 
   /**

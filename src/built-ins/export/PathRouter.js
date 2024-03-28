@@ -15,9 +15,11 @@ import { MustBe } from '@this/typey';
  */
 export class PathRouter extends BaseApplication {
   /**
-   * @type {?TreePathMap<IntfRequestHandler>} Map which goes from a path prefix
+   * Map which goes from a path prefix
    * to a handler (typically a {@link BaseApplication}) which should handle that
    * prefix. Gets set in {@link #_impl_start}.
+   *
+   * @type {?TreePathMap<IntfRequestHandler>}
    */
   #routeTree = null;
 
@@ -94,8 +96,10 @@ export class PathRouter extends BaseApplication {
    */
   static #Config = class Config extends BaseApplication.FilterConfig {
     /**
-     * @type {TreePathMap<string>} Like the outer `routeTree` except with names
+     * Like the outer `routeTree` except with names
      * instead of handler instances.
+     *
+     * @type {TreePathMap<string>}
      */
     #routeTree;
 

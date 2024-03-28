@@ -12,25 +12,41 @@ import { MustBe } from '@this/typey';
  * Configurable etag generator (e.g. for `ETag` headers).
  */
 export class EtagGenerator {
-  /** @type {boolean} Is this a data-only instance? */
+  /**
+   * Is this a data-only instance?
+   *
+   * @type {boolean}
+   */
   #dataOnly;
 
-  /** @type {string} The hash algorithm. */
+  /**
+   * The hash algorithm.
+   *
+   * @type {string}
+   */
   #hashAlgorithm;
 
   /**
-   * @type {?number} The number of characters to use from the hash for strong
+   * The number of characters to use from the hash for strong
    * etags.
+   *
+   * @type {?number}
    */
   #hashLengthStrong;
 
   /**
-   * @type {?number} The number of characters to use from the hash for weak
+   * The number of characters to use from the hash for weak
    * etags.
+   *
+   * @type {?number}
    */
   #hashLengthWeak;
 
-  /** @type {string} The generated tag form. */
+  /**
+   * The generated tag form.
+   *
+   * @type {string}
+   */
   #tagForm;
 
   /**
@@ -254,10 +270,18 @@ export class EtagGenerator {
   // Static members
   //
 
-  /** @type {number} Largest file to read in a single call. */
+  /**
+   * Largest file to read in a single call.
+   *
+   * @type {number}
+   */
   static #MAX_FILE_SIZE_TO_READ_ATOMICALLY = 1024 * 1024; // One megabyte.
 
-  /** @type {object} Per-algorithm length maximums. */
+  /**
+   * Per-algorithm length maximums.
+   *
+   * @type {object}
+   */
   static #MAX_HASH_LENGTHS = {
     sha1:   27,
     sha256: 43,

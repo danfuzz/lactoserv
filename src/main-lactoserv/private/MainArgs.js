@@ -16,22 +16,32 @@ import { WarehouseMaker } from '#p/WarehouseMaker';
  * Parser and container for top-level arguments and options.
  */
 export class MainArgs {
-  /** @type {string[]} Value of `process.argv` (or equivalent). */
+  /**
+   * Value of `process.argv` (or equivalent).
+   *
+   * @type {Array<string>}
+   */
   #argv;
 
-  /** @type {?object} Parsed arguments. */
+  /**
+   * Parsed arguments.
+   *
+   * @type {?object}
+   */
   #parsedArgs = null;
 
   /**
-   * @type {?WarehouseMaker} Warehouse maker, based on the passed configuration
+   * Warehouse maker, based on the passed configuration
    * URL.
+   *
+   * @type {?WarehouseMaker}
    */
   #warehouseMaker = null;
 
   /**
    * Constructs an instance.
    *
-   * @param {string[]} argv Value of `process.argv` (or equivalent).
+   * @param {Array<string>} argv Value of `process.argv` (or equivalent).
    */
   constructor(argv) {
     this.#argv = MustBe.arrayOfString(argv);
@@ -54,8 +64,10 @@ export class MainArgs {
   }
 
   /**
-   * @type {WarehouseMaker} Warehouse maker, based on the passed configuration
+   * Warehouse maker, based on the passed configuration
    * location.
+   *
+   * @type {WarehouseMaker}
    */
   get warehouseMaker() {
     return this.#warehouseMaker;

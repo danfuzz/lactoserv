@@ -16,8 +16,10 @@ import { BaseComponent } from '#x/BaseComponent';
  */
 export class BaseApplication extends BaseComponent {
   /**
-   * @type {?BaseApplication.FilterConfig} Config instance, if it is an instance
+   * Config instance, if it is an instance
    * of this class's config class, or `null` if not.
+   *
+   * @type {?BaseApplication.FilterConfig}
    */
   #filterConfig;
 
@@ -211,33 +213,49 @@ export class BaseApplication extends BaseComponent {
    */
   static FilterConfig = class FilterConfig extends ApplicationConfig {
     /**
-     * @type {Set<string>} Set of request methods (e.g. `post`) that the
+     * Set of request methods (e.g. `post`) that the
      * application accepts.
+     *
+     * @type {Set<string>}
      */
     #acceptMethods;
 
     /**
-     * @type {?number} Maximum allowed dispatch `extra` path length in
+     * Maximum allowed dispatch `extra` path length in
      * slash-separated components (inclusive), or `null` if there is no limit.
+     *
+     * @type {?number}
      */
     #maxPathDepth;
 
     /**
-     * @type {?number} Maximum allowed dispatch `extra` path length in octets
+     * Maximum allowed dispatch `extra` path length in octets
      * (inclusive), or `null` if there is no limit.
+     *
+     * @type {?number}
      */
     #maxPathLength;
 
     /**
-     * @type {?number} Maximum allowed query (search string) length in octets
+     * Maximum allowed query (search string) length in octets
      * (inclusive), or `null` if there is no limit.
+     *
+     * @type {?number}
      */
     #maxQueryLength;
 
-    /** @type {boolean} Redirect file paths to the corresponding directory? */
+    /**
+     * Redirect file paths to the corresponding directory?
+     *
+     * @type {boolean}
+     */
     #redirectDirectories;
 
-    /** @type {boolean} Redirect directory paths to the corresponding file? */
+    /**
+     * Redirect directory paths to the corresponding file?
+     *
+     * @type {boolean}
+     */
     #redirectFiles;
 
     /**
@@ -286,24 +304,30 @@ export class BaseApplication extends BaseComponent {
     }
 
     /**
-     * @type {?number} Maximum allowed dispatch `extra` path length in
+     * Maximum allowed dispatch `extra` path length in
      * slash-separated components (inclusive), or `null` if there is no limit.
+     *
+     * @type {?number}
      */
     get maxPathDepth() {
       return this.#maxPathDepth;
     }
 
     /**
-     * @type {?number} Maximum allowed dispatch `extra` path length in octets
+     * Maximum allowed dispatch `extra` path length in octets
      * (inclusive), or `null` if there is no limit.
+     *
+     * @type {?number}
      */
     get maxPathLength() {
       return this.#maxPathLength;
     }
 
     /**
-     * @type {?number} Maximum allowed query (search string) length in octets
+     * Maximum allowed query (search string) length in octets
      * (inclusive), or `null` if there is no limit.
+     *
+     * @type {?number}
      */
     get maxQueryLength() {
       return this.#maxQueryLength;
@@ -328,7 +352,11 @@ export class BaseApplication extends BaseComponent {
     // Static members.
     //
 
-    /** @type {Set<string>} Allowed values for `methods`. */
+    /**
+     * Allowed values for `methods`.
+     *
+     * @type {Set<string>}
+     */
     static #METHODS = new Set([
       'connect', 'delete', 'get', 'head', 'options',
       'patch', 'post', 'put', 'trace'

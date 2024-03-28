@@ -21,7 +21,11 @@ import { Ref } from '#x/Ref';
  * See the module `README.md` for a bit more detail.
  */
 export class Converter extends BaseConverter {
-  /** @type {ConverterConfig} Configuration to use. */
+  /**
+   * Configuration to use.
+   *
+   * @type {ConverterConfig}
+   */
   #config;
 
   /**
@@ -231,7 +235,11 @@ export class Converter extends BaseConverter {
   // Static members
   //
 
-  /** @type {object} Inspection options for `inspect` actions. */
+  /**
+   * Inspection options for `inspect` actions.
+   *
+   * @type {object}
+   */
   static #INSPECT_OPTIONS = Object.freeze({
     depth:       10,
     breakLength: 120,

@@ -18,13 +18,19 @@ import { ThisModule } from '#p/ThisModule';
  */
 export class ProcessInfo {
   /**
-   * @type {?Moment} The moment that the process started.
+   * The moment that the process started.
    *
    * **Note:** `process.uptime()` returns a number of seconds.
+   *
+   * @type {?Moment}
    */
   static #startedAt = new Moment(WallClock.now().atSec - uptime());
 
-  /** @type {?object} All the fixed-at-startup info, if calculated. */
+  /**
+   * All the fixed-at-startup info, if calculated.
+   *
+   * @type {?object}
+   */
   static #fixedInfo = null;
 
   /** @returns {object} All process info, as a JSON-encodable object. */

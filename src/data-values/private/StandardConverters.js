@@ -9,10 +9,18 @@ import { SpecialConverters } from '#x/SpecialConverters';
  * Utility class that knows all the standard special-case converters.
  */
 export class StandardConverters {
-  /** @type {?SpecialConverters} Standard instance, if initialized. */
+  /**
+   * Standard instance, if initialized.
+   *
+   * @type {?SpecialConverters}
+   */
   static #STANDARD;
 
-  /** @type {?SpecialConverters} Standard logging instance, if initialized. */
+  /**
+   * Standard logging instance, if initialized.
+   *
+   * @type {?SpecialConverters}
+   */
   static #STANDARD_FOR_LOGGING;
 
   /** @returns {SpecialConverters} Standard instance. */

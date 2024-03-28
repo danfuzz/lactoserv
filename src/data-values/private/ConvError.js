@@ -15,7 +15,11 @@ import { Struct } from '#x/Struct';
  * order to be converted from instances to data.
  */
 export class ConvError extends BaseConverter {
-  /** @type {boolean} Should stacks be parsed? */
+  /**
+   * Should stacks be parsed?
+   *
+   * @type {boolean}
+   */
   #parseStacks;
 
   /**

@@ -42,12 +42,18 @@ export class Frequency extends UnitQuantity {
   // Static members
   //
 
-  /** @type {Frequency} Instance with value of `0`. */
+  /**
+   * Instance with value of `0`.
+   *
+   * @type {Frequency}
+   */
   static ZERO = new Frequency(0);
 
   /**
-   * @type {Map<string, number>} Multipliers for each named unit to convert to
+   * Multipliers for each named unit to convert to
    * hertz.
+   *
+   * @type {Map<string, number>}
    */
   static #UNIT_PER_SEC = new Map(Object.entries({
     '/ns':    1_000_000_000,

@@ -19,25 +19,47 @@ import { Methods, MustBe } from '@this/typey';
  * filled in (with no-ops in the case of `Saver`).
  */
 export class BaseFilePreserver {
-  /** @type {FileServiceConfig} Configuration to use. */
+  /**
+   * Configuration to use.
+   *
+   * @type {FileServiceConfig}
+   */
   #config;
 
-  /** @type {?IntfLogger} Logger to use, or `null` to not do any logging. */
+  /**
+   * Logger to use, or `null` to not do any logging.
+   *
+   * @type {?IntfLogger}
+   */
   #logger;
 
-  /** @type {?string} Infix used for the most recently preserved file. */
+  /**
+   * Infix used for the most recently preserved file.
+   *
+   * @type {?string}
+   */
   #lastInfix = null;
 
   /**
-   * @type {?string} Count (in the infix) used for the most recently preserved
+   * Count (in the infix) used for the most recently preserved
    * file.
+   *
+   * @type {?string}
    */
   #lastInfixCount = 0;
 
-  /** @type {Threadlet} Thread which runs this instance. */
+  /**
+   * Thread which runs this instance.
+   *
+   * @type {Threadlet}
+   */
   #runner = new Threadlet(() => this.#run());
 
-  /** @type {Condition} Condition which indicates a need to save now. */
+  /**
+   * Condition which indicates a need to save now.
+   *
+   * @type {Condition}
+   */
   #saveNow = new Condition();
 
   /**
@@ -52,8 +74,10 @@ export class BaseFilePreserver {
   }
 
   /**
-   * @type {?IntfLogger} Logger used by this instance. This is mostly for the
+   * Logger used by this instance. This is mostly for the
    * benefit of subclasses.
+   *
+   * @type {?IntfLogger}
    */
   get logger() {
     return this.#logger;
@@ -178,7 +202,8 @@ export class BaseFilePreserver {
    * @param {boolean} [options.pastDays] Find files from previous days (UTC)?
    * @param {?string} [options.dateStr] Find files infixed with the given date
    *   string?
-   * @returns {object[]} Array of useful information about each matched file.
+   * @returns {Array<object>} Array of useful information about each matched
+   *   file.
    */
   async #findFiles(options = {}) {
     const {

@@ -7,7 +7,11 @@ import { BaseConverter } from '#x/BaseConverter';
 import { Struct } from '#x/Struct';
 
 
-/** @type {symbol} Value for the exposed {@link UnitQuantity#INVERSE}. */
+/**
+ * Value for the exposed {@link UnitQuantity#INVERSE}.
+ *
+ * @type {symbol}
+ */
 const INVERSE_SYMBOL = Symbol('UnitQuantity.INVERSE');
 
 /**
@@ -25,13 +29,25 @@ const INVERSE_SYMBOL = Symbol('UnitQuantity.INVERSE');
  * Instances of this class are always frozen.
  */
 export class UnitQuantity {
-  /** @type {number} The numeric value being represented. */
+  /**
+   * The numeric value being represented.
+   *
+   * @type {number}
+   */
   #value;
 
-  /** @type {?string} The numerator unit, if any. */
+  /**
+   * The numerator unit, if any.
+   *
+   * @type {?string}
+   */
   #numeratorUnit = null;
 
-  /** @type {?string} The denominator unit, if any. */
+  /**
+   * The denominator unit, if any.
+   *
+   * @type {?string}
+   */
   #denominatorUnit = null;
 
   /**

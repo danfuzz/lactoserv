@@ -12,17 +12,27 @@ import { StdLoggingEnvironment } from '#x/StdLoggingEnvironment';
  */
 export class ThisModule {
   /**
-   * @type {number} Number of old events that {@link #DEFAULT_LOG_SOURCE} keeps.
+   * Number of old events that {@link #DEFAULT_LOG_SOURCE} keeps.
+   *
+   * @type {number}
    */
   static #DEFAULT_KEEP_COUNT = 100;
 
-  /** @type {EventSource} Global default log source. */
+  /**
+   * Global default log source.
+   *
+   * @type {EventSource}
+   */
   static #DEFAULT_LOG_SOURCE = new EventSource({
     keepCount:      this.#DEFAULT_KEEP_COUNT,
     kickoffPayload: LogPayload.makeKickoffInstance()
   });
 
-  /** @type {StdLoggingEnvironment} Global default logging environment. */
+  /**
+   * Global default logging environment.
+   *
+   * @type {StdLoggingEnvironment}
+   */
   static #DEFAULT_ENVIRONMENT =
     new StdLoggingEnvironment(this.#DEFAULT_LOG_SOURCE);
 

@@ -28,53 +28,86 @@ import { Threadlet } from '#x/Threadlet';
  */
 export class TokenBucket {
   /**
-   * @type {number} Maximum allowed instantaneous burst, in tokens. This is the
+   * Maximum allowed instantaneous burst, in tokens. This is the
    * "bucket capacity" in the "leaky bucket as meter" metaphor.
+   *
+   * @type {number}
    */
   #maxBurstSize;
 
-  /** @type {Frequency} Token flow rate (a/k/a bucket fill rate). */
+  /**
+   * Token flow rate (a/k/a bucket fill rate).
+   *
+   * @type {Frequency}
+   */
   #flowRate;
 
-  /** @type {number} Maximum grant size for a waiter in the queue, in tokens. */
+  /**
+   * Maximum grant size for a waiter in the queue, in tokens.
+   *
+   * @type {number}
+   */
   #maxQueueGrantSize;
 
   /**
-   * @type {number} The maximum allowed wait queue size, in tokens. That is,
+   * The maximum allowed wait queue size, in tokens. That is,
    * this is the sum of all grants to be made from waiters in the queue.
    * `Number.POSITIVE_INFINITY` is used represent "no limit."
+   *
+   * @type {number}
    */
   #maxQueueSize;
 
-  /** @type {boolean} Provide partial (non-integral / fractional) tokens? */
+  /**
+   * Provide partial (non-integral / fractional) tokens?
+   *
+   * @type {boolean}
+   */
   #partialTokens;
 
-  /** @type {IntfTimeSource} Time measurement implementation. */
+  /**
+   * Time measurement implementation.
+   *
+   * @type {IntfTimeSource}
+   */
   #timeSource;
 
-  /** @type {Moment} Most recently measured time. */
+  /**
+   * Most recently measured time.
+   *
+   * @type {Moment}
+   */
   #lastNow;
 
   /**
-   * @type {number} The number of tokens available for a burst, at time {@link
-   * #lastNow).
+   * The number of tokens available for a burst, at time {@link #lastNow).
+   *
+   * @type {number}
    */
   #lastBurstSize;
 
   /**
-   * @type {{ grant: number, startTime: Moment, doGrant: function(number) }[]}
    * Array of grant waiters.
+   *
+   * @type {Array<{ grant: number, startTime: Moment, doGrant: function(number)
+   * }>}
    */
   #waiters = [];
 
   /**
-   * @type {number} The current waiter queue size, in tokens. This is the sum of
+   * The current waiter queue size, in tokens. This is the sum of
    * `.#waiters[*].grant` and represents how many tokens must be granted in
    * order to to clear out the waiters.
+   *
+   * @type {number}
    */
   #queueSize = 0;
 
-  /** @type {Threadlet} Servicer thread for the {@link #waiters}. */
+  /**
+   * Servicer thread for the {@link #waiters}.
+   *
+   * @type {Threadlet}
+   */
   #waiterThread = new Threadlet(() => this.#serviceWaiters());
 
   /**
@@ -598,6 +631,10 @@ export class TokenBucket {
   // Static members
   //
 
-  /** @type {StdTimeSource} Default time source. */
+  /**
+   * Default time source.
+   *
+   * @type {StdTimeSource}
+   */
   static #DEFAULT_TIME_SOURCE = StdTimeSource.INSTANCE;
 }

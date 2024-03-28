@@ -16,33 +16,55 @@ import { MustBe } from '@this/typey';
  * in a way that is `async`-friendly.
  */
 export class AsyncServerSocket {
-  /** @type {?IntfLogger} Logger to use, or `null` to not do any logging. */
+  /**
+   * Logger to use, or `null` to not do any logging.
+   *
+   * @type {?IntfLogger}
+   */
   #logger;
 
-  /** @type {object} Parsed server socket `interface` specification. */
+  /**
+   * Parsed server socket `interface` specification.
+   *
+   * @type {object}
+   */
   #interface;
 
-  /** @type {string} The protocol name; just used for logging. */
+  /**
+   * The protocol name; just used for logging.
+   *
+   * @type {string}
+   */
   #protocol;
 
   /**
-   * @type {?Server} The underlying server socket instance (Node library class),
+   * The underlying server socket instance (Node library class),
    * if constructed.
+   *
+   * @type {?Server}
    */
   #serverSocket = null;
 
   /**
-   * @type {function()} Function to call to remove all of the listeners on
+   * Function to call to remove all of the listeners on
    * {@link #serverSocket}.
+   *
+   * @type {function()}
    */
   #removeListenersFunc = null;
 
-  /** @type {EventSource} Event source for `connection` and `drop` events. */
+  /**
+   * Event source for `connection` and `drop` events.
+   *
+   * @type {EventSource}
+   */
   #eventSource = new EventSource();
 
   /**
-   * @type {Promise<LinkedEvent>} Promise for the next event which will need
+   * Promise for the next event which will need
    * action.
+   *
+   * @type {Promise<LinkedEvent>}
    */
   #eventHead = this.#eventSource.earliestEvent;
 
@@ -286,8 +308,10 @@ export class AsyncServerSocket {
   //
 
   /**
-   * @type {object} "Prototype" of server socket creation options. See
+   * "Prototype" of server socket creation options. See
    * `ProtocolWrangler` class doc for details.
+   *
+   * @type {object}
    */
   static #CREATE_PROTO = Object.freeze({
     allowHalfOpen:         { default: true },
@@ -298,8 +322,10 @@ export class AsyncServerSocket {
   });
 
   /**
-   * @type {object} "Prototype" of server listen options. See `ProtocolWrangler`
+   * "Prototype" of server listen options. See `ProtocolWrangler`
    * class doc for details.
+   *
+   * @type {object}
    */
   static #LISTEN_PROTO = Object.freeze({
     address:   { map: (v) => ({ host: (v === '*') ? '::' : v }) },
@@ -310,15 +336,19 @@ export class AsyncServerSocket {
   });
 
   /**
-   * @type {number} How long in msec to allow a stashed instance to remain
+   * How long in msec to allow a stashed instance to remain
    * stashed.
+   *
+   * @type {number}
    */
   static #STASH_TIMEOUT_MSEC = 5 * 1000;
 
   /**
-   * @type {Set<AsyncServerSocket>} Set of stashed instances, for use during a
+   * Set of stashed instances, for use during a
    * reload. Such instances were left open and listening during a previous
    * call to {@link #stop}.
+   *
+   * @type {Set<AsyncServerSocket>}
    */
   static #stashedInstances = new Set();
 

@@ -18,8 +18,10 @@ import { UsualSystem } from '#p/UsualSystem';
  */
 export class Debugging {
   /**
-   * @type {?IntfLogger} Logger for this class, or `null` not to do any
+   * Logger for this class, or `null` not to do any
    * logging.
+   *
+   * @type {?IntfLogger}
    */
   static #logger = ThisModule.logger?.debug;
 

@@ -18,12 +18,18 @@ import { ThisModule } from '#p/ThisModule';
  * instances from it.
  */
 export class WarehouseMaker {
-  /** @type {?URL} Configuration URL. */
+  /**
+   * Configuration URL.
+   *
+   * @type {?URL}
+   */
   #configUrl = null;
 
   /**
-   * @type {?IntfLogger} Logger for this instance, or `null` not to do any
+   * Logger for this instance, or `null` not to do any
    * logging.
+   *
+   * @type {?IntfLogger}
    */
   #logger = ThisModule.logger?.system;
 

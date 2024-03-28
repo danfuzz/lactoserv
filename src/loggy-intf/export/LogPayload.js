@@ -11,7 +11,11 @@ import { MustBe } from '@this/typey';
 import { LogTag } from '#x/LogTag';
 
 
-/** @type {Chalk} Always-on `Chalk` instance. */
+/**
+ * Always-on `Chalk` instance.
+ *
+ * @type {Chalk}
+ */
 const chalk = Chalk.ON;
 
 /**
@@ -21,13 +25,25 @@ const chalk = Chalk.ON;
  * logging-specific properties.
  */
 export class LogPayload extends EventPayload {
-  /** @type {?StackTrace} Stack trace, if available. */
+  /**
+   * Stack trace, if available.
+   *
+   * @type {?StackTrace}
+   */
   #stack;
 
-  /** @type {Moment} Moment in time that this instance represents. */
+  /**
+   * Moment in time that this instance represents.
+   *
+   * @type {Moment}
+   */
   #when;
 
-  /** @type {LogTag} Tag. */
+  /**
+   * Tag.
+   *
+   * @type {LogTag}
+   */
   #tag;
 
   /**
@@ -108,7 +124,7 @@ export class LogPayload extends EventPayload {
    * Appends the human form of {@link #payload} to the given array of parts (to
    * ultimately `join()`).
    *
-   * @param {string[]} parts Parts to append to.
+   * @param {Array<string>} parts Parts to append to.
    * @param {boolean} colorize Colorize the result?
    */
   #appendHumanPayload(parts, colorize) {
@@ -145,7 +161,11 @@ export class LogPayload extends EventPayload {
   // Static members
   //
 
-  /** @type {object} Inspection options for {@link #toHumanPayload}. */
+  /**
+   * Inspection options for {@link #toHumanPayload}.
+   *
+   * @type {object}
+   */
   static #HUMAN_INSPECT_OPTIONS = Object.freeze({
     depth:       10,
     breakLength: 120,
@@ -153,13 +173,25 @@ export class LogPayload extends EventPayload {
     getters:     true
   });
 
-  /** @type {Moment} Moment to use for "kickoff" instances. */
+  /**
+   * Moment to use for "kickoff" instances.
+   *
+   * @type {Moment}
+   */
   static #KICKOFF_MOMENT = new Moment(0);
 
-  /** @type {string} Default event type to use for "kickoff" instances. */
+  /**
+   * Default event type to use for "kickoff" instances.
+   *
+   * @type {string}
+   */
   static #KICKOFF_TYPE = 'kickoff';
 
-  /** @type {LogTag} Default tag to use for "kickoff" instances. */
+  /**
+   * Default tag to use for "kickoff" instances.
+   *
+   * @type {LogTag}
+   */
   static #KICKOFF_TAG = new LogTag('kickoff');
 
   /**

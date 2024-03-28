@@ -15,12 +15,18 @@ import { BaseFilePreserver } from '#p/BaseFilePreserver';
  * Configurable file "rotator" for doing log rotation and the like.
  */
 export class Rotator extends BaseFilePreserver {
-  /** @type {FileServiceConfig} Configuration to use. */
+  /**
+   * Configuration to use.
+   *
+   * @type {FileServiceConfig}
+   */
   #config;
 
   /**
-   * @type {?Duration} How long to wait between checks if timed checks are to be
+   * How long to wait between checks if timed checks are to be
    * done, or `null` not to do such checks.
+   *
+   * @type {?Duration}
    */
   #checkPeriod;
 

@@ -11,6 +11,7 @@ export * from '#x/Frequency';
 export * from '#x/Moment';
 export * from '#x/Ref';
 export * from '#x/SpecialConverters';
+export * from '#x/StackFrame';
 export * from '#x/StackTrace';
 export * from '#x/Struct';
 export * from '#x/UnitQuantity';

@@ -13,9 +13,17 @@ import { default as chalk, Chalk as OrigChalk } from 'chalk';
  * styling even when `stdout` isn't a (color) TTY.
  */
 export class Chalk {
-  /** @type {Chalk} Always-enabled instance. */
+  /**
+   * Always-enabled instance.
+   *
+   * @type {Chalk}
+   */
   static ON = new OrigChalk({ level: 3 });
 
-  /** @type {Chalk} Instance which is enabled appropriately for `stdout`. */
+  /**
+   * Instance which is enabled appropriately for `stdout`.
+   *
+   * @type {Chalk}
+   */
   static STDOUT = chalk;
 }

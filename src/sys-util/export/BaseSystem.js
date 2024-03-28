@@ -14,27 +14,41 @@ import { Methods } from '@this/typey';
  * action.
  */
 export class BaseSystem extends Threadlet {
-  /** @type {boolean} Initialized? */
+  /**
+   * Initialized?
+   *
+   * @type {boolean}
+   */
   #initDone = false;
 
-  /** @type {Condition} Was a reload requested? */
+  /**
+   * Was a reload requested?
+   *
+   * @type {Condition}
+   */
   #reloadRequested = new Condition();
 
   /**
-   * @type {?IntfLogger} Logger for this instance, or `null` not to do any
+   * Logger for this instance, or `null` not to do any
    * logging.
+   *
+   * @type {?IntfLogger}
    */
   #logger = null;
 
   /**
-   * @type {*} Value returned from {@link #_impl_init} which is currently being
+   * Value returned from {@link #_impl_init} which is currently being
    * used.
+   *
+   * @type {*}
    */
   #initValue = null;
 
   /**
-   * @type {*} Value returned from {@link #_impl_init} which is to be used on
+   * Value returned from {@link #_impl_init} which is to be used on
    * the next start (including a restart).
+   *
+   * @type {*}
    */
   #nextInitValue = null;
 

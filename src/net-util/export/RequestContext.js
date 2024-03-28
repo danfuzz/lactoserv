@@ -10,14 +10,16 @@ import { MustBe } from '@this/typey';
  */
 export class RequestContext {
   /**
-   * @type {{ address: ?string, port: ?number, fd: ?number }} Information about
-   * the interface that was `listen()`ed on.
+   * Information about the interface that was `listen()`ed on.
+   *
+   * @type {{ address: ?string, port: ?number, fd: ?number }}
    */
   #interface;
 
   /**
-   * @type {{ address: string, port: number }}  Information about the origin
-   * (remote side) of the connection.
+   * Information about the origin (remote side) of the connection.
+   *
+   * @type {{ address: string, port: number }}
    */
   #origin;
 

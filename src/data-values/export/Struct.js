@@ -17,13 +17,25 @@ import { BaseDataClass } from '#x/BaseDataClass';
  * plain arrays and objects do.
  */
 export class Struct extends BaseDataClass {
-  /** @type {*} Value representing the type (or class) of the structure. */
+  /**
+   * Value representing the type (or class) of the structure.
+   *
+   * @type {*}
+   */
   #type;
 
-  /** @type {?object} Named "options" of the structure. */
+  /**
+   * Named "options" of the structure.
+   *
+   * @type {?object}
+   */
   #options;
 
-  /** @type {*[]} Positional "arguments" of the structure. */
+  /**
+   * Positional "arguments" of the structure.
+   *
+   * @type {Array<*>}
+   */
   #args;
 
 
@@ -45,8 +57,8 @@ export class Struct extends BaseDataClass {
   }
 
   /**
-   * @returns {*[]} Positional "arguments" of the structure. This is always a
-   * frozen array.
+   * @returns {Array<*>} Positional "arguments" of the structure. This is always
+   * a frozen array.
    */
   get args() {
     return this.#args;
@@ -56,7 +68,7 @@ export class Struct extends BaseDataClass {
    * Sets the positional "arguments." This is only allowed if this instance is
    * not frozen.
    *
-   * @param {*[]} args The new arguments.
+   * @param {Array<*>} args The new arguments.
    */
   set args(args) {
     this.#frozenCheck();

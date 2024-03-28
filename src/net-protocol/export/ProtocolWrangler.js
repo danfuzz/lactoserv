@@ -33,48 +33,78 @@ import { WranglerContext } from '#p/WranglerContext';
  */
 export class ProtocolWrangler {
   /**
-   * @type {?IntfLogger} System logger to use, or `null` to not do any logging.
+   * System logger to use, or `null` to not do any logging.
+   *
+   * @type {?IntfLogger}
    */
   #logger = null;
 
   /**
-   * @type {?IntfLogger} Logger to use for {@link IncomingRequest}s, or `null`
+   * Logger to use for {@link IncomingRequest}s, or `null`
    * to not do any logging. This is passed into the {@link IncomingRequest}
    * constructor, which will end up making a sub-logger with a generated request
    * ID.
+   *
+   * @type {?IntfLogger}
    */
   #requestLogger = null;
 
   /**
-   * @type {?IntfHostManager} Optional host manager; only needed for some
+   * Optional host manager; only needed for some
    * protocols.
+   *
+   * @type {?IntfHostManager}
    */
   #hostManager;
 
-  /** @type {?IntfRateLimiter} Rate limiter service to use, if any. */
+  /**
+   * Rate limiter service to use, if any.
+   *
+   * @type {?IntfRateLimiter}
+   */
   #rateLimiter;
 
-  /** @type {IntfRequestHandler} Request handler. */
+  /**
+   * Request handler.
+   *
+   * @type {IntfRequestHandler}
+   */
   #requestHandler;
 
   /**
-   * @type {?RequestLogHelper} Helper for HTTP-ish request logging, or `null`
+   * Helper for HTTP-ish request logging, or `null`
    * to not do any such logging.
+   *
+   * @type {?RequestLogHelper}
    */
   #logHelper;
 
-  /** @type {object} Return value for {@link #interface}. */
+  /**
+   * Return value for {@link #interface}.
+   *
+   * @type {object}
+   */
   #interfaceObject;
 
-  /** @type {string} Value to use for the `Server` HTTP-ish response header. */
+  /**
+   * Value to use for the `Server` HTTP-ish response header.
+   *
+   * @type {string}
+   */
   #serverHeader;
 
-  /** @type {Threadlet} Threadlet which runs the "network stack." */
+  /**
+   * Threadlet which runs the "network stack."
+   *
+   * @type {Threadlet}
+   */
   #runner = new Threadlet(() => this.#startNetwork(), () => this.#runNetwork());
 
   /**
-   * @type {boolean} Is a system reload in progress (either during start or
+   * Is a system reload in progress (either during start or
    * stop)?
+   *
+   * @type {boolean}
    */
   #reloading = false;
 

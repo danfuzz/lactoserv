@@ -46,9 +46,11 @@ import { TypeEventPredicate } from '#x/TypeEventPredicate';
  */
 export class EventTracker {
   /**
-   * @type {EventOrPromise} Head of (the first event on) the chain. This also
+   * Head of (the first event on) the chain. This also
    * represents an instance of this class being broken by itself being in a
    * "rejected" state.
+   *
+   * @type {EventOrPromise}
    */
   #head = null;
 
@@ -333,20 +335,26 @@ export class EventTracker {
  */
 class AdvanceAction {
   /**
-   * @type {EventOrPromise} Event chain head from the perspective of the
+   * Event chain head from the perspective of the
    * in-progress operation.
+   *
+   * @type {EventOrPromise}
    */
   #head;
 
   /**
-   * @type {function(LinkedEvent): boolean} Predicate which an event needs to
+   * Predicate which an event needs to
    * satisfy, for the operation to be considered complete.
+   *
+   * @type {function(LinkedEvent): boolean}
    */
   #predicate;
 
   /**
-   * @type {?EventOrPromise} Ultimate result of this operation, if indeed it has
+   * Ultimate result of this operation, if indeed it has
    * completed.
+   *
+   * @type {?EventOrPromise}
    */
   #result = null;
 

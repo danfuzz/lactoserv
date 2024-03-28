@@ -11,7 +11,11 @@ import { ThisModule } from '#p/ThisModule';
  * Utilities for getting at top-level product info.
  */
 export class ProductInfo {
-  /** @type {?object} Info extracted from `product-info.json`. */
+  /**
+   * Info extracted from `product-info.json`.
+   *
+   * @type {?object}
+   */
   static #info = null;
 
   /** @returns {object} All product info. */

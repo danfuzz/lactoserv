@@ -14,21 +14,33 @@ import { Loggy } from '#x/Loggy';
  * See {@link IntfLogger} and {@link Loggy#loggerFor} for details.
  */
 export class LogProxyHandler extends PropertyCacheProxyHandler {
-  /** @type {LogTag} Tag to use on all logged events. */
+  /**
+   * Tag to use on all logged events.
+   *
+   * @type {LogTag}
+   */
   #tag;
 
   /**
-   * @type {?string} Type to use when emitting events, or the tag to append to
+   * Type to use when emitting events, or the tag to append to
    * the context, for the next layer of proxy.
+   *
+   * @type {?string}
    */
   #typeOrNextTag;
 
-  /** @type {IntfLoggingEnvironment} Logging environment to use. */
+  /**
+   * Logging environment to use.
+   *
+   * @type {IntfLoggingEnvironment}
+   */
   #environment;
 
   /**
-   * @type {?LogTag} The tag to use for instances directly "under" this one, if
+   * The tag to use for instances directly "under" this one, if
    * already computed.
+   *
+   * @type {?LogTag}
    */
   #cachedSubTag = null;
 
@@ -128,16 +140,32 @@ export class LogProxyHandler extends PropertyCacheProxyHandler {
   // Static members
   //
 
-  /** @type {string} Property name for requesting the logging environment. */
+  /**
+   * Property name for requesting the logging environment.
+   *
+   * @type {string}
+   */
   static #PROP_ENV = '$env';
 
-  /** @type {string} Property name for requesting metainformation. */
+  /**
+   * Property name for requesting metainformation.
+   *
+   * @type {string}
+   */
   static #PROP_META = '$meta';
 
-  /** @type {string} Property name to indicate dynamic ID construction. */
+  /**
+   * Property name to indicate dynamic ID construction.
+   *
+   * @type {string}
+   */
   static #PROP_NEW_ID = '$newId';
 
-  /** @type {string} Main tag name to use for the top level. */
+  /**
+   * Main tag name to use for the top level.
+   *
+   * @type {string}
+   */
   static #TOP_TAG_NAME = '(top)';
 
   /**
@@ -145,7 +173,11 @@ export class LogProxyHandler extends PropertyCacheProxyHandler {
    * accessing the property `$meta` on logger instances.
    */
   static Meta = class Meta extends IntfLogger.Meta {
-    /** @type {LogProxyHandler} The subject handler instance. */
+    /**
+     * The subject handler instance.
+     *
+     * @type {LogProxyHandler}
+     */
     #handler;
 
     /**
@@ -187,8 +219,8 @@ export class LogProxyHandler extends PropertyCacheProxyHandler {
    * wrapped in a proxy -- either for the top level (no context tag) or for an
    * arbitrary starting context.
    *
-   * @param {?LogTag|string|string[]} tag Tag to use on all logged events, or
-   *   constructor arguments for same. If `null`, the instance will have no
+   * @param {?LogTag|string|Array<string>} tag Tag to use on all logged events,
+   *   or constructor arguments for same. If `null`, the instance will have no
    *   context tag.
    * @param {IntfLoggingEnvironment} environment Logging environment to use.
    * @returns {IntfLogger} A logger, as described.

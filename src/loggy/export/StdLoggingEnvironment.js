@@ -14,10 +14,18 @@ import { BaseLoggingEnvironment } from '#x/BaseLoggingEnvironment';
  * Standard logging environment, which is hooked up to the "real world."
  */
 export class StdLoggingEnvironment extends BaseLoggingEnvironment {
-  /** @type {EventSource} Log source attached to {@link #log}. */
+  /**
+   * Log source attached to {@link #log}.
+   *
+   * @type {EventSource}
+   */
   #source;
 
-  /** @type {IdGenerator} ID generator to use. */
+  /**
+   * ID generator to use.
+   *
+   * @type {IdGenerator}
+   */
   #idGenerator = new IdGenerator();
 
   /**

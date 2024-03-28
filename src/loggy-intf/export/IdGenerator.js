@@ -19,10 +19,18 @@ import { Moment } from '@this/data-values';
  *   items in a minute than will fit in that, in which case it expands.
  */
 export class IdGenerator {
-  /** @type {number} Current minute number. */
+  /**
+   * Current minute number.
+   *
+   * @type {number}
+   */
   #minuteNumber = -1;
 
-  /** @type {number} Next sequence number to use. */
+  /**
+   * Next sequence number to use.
+   *
+   * @type {number}
+   */
   #sequenceNumber = 0;
 
   // The default constructor is fine here.
@@ -76,9 +84,17 @@ export class IdGenerator {
     return `${char1}${char2}`;
   }
 
-  /** @type {number} The Unicode codepoint for lowercase `a`. */
+  /**
+   * The Unicode codepoint for lowercase `a`.
+   *
+   * @type {number}
+   */
   static #LOWERCASE_A = 'a'.charCodeAt(0);
 
-  /** @type {number} The number of minutes in a second. */
+  /**
+   * The number of minutes in a second.
+   *
+   * @type {number}
+   */
   static #MINS_PER_SEC = 1 / 60;
 }

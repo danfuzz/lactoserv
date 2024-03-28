@@ -14,7 +14,11 @@ import { BaseSystem } from '@this/sys-util';
  * production-like way.
  */
 class UsualSystem extends BaseSystem {
-  /** @type {?Warehouse} Warehouse of parts. */
+  /**
+   * Warehouse of parts.
+   *
+   * @type {?Warehouse}
+   */
   #warehouse = null;
 
   /**

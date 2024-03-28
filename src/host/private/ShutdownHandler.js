@@ -19,34 +19,56 @@ import { TopErrorHandler } from '#p/TopErrorHandler';
  */
 export class ShutdownHandler {
   /**
-   * @type {number} Maximum amount of time to wait for callbacks to complete,
+   * Maximum amount of time to wait for callbacks to complete,
    * while shutting down.
+   *
+   * @type {number}
    */
   static #MAX_SHUTDOWN_MSEC = 10 * 1000;
 
   /**
-   * @type {number} Amount of time to wait just before calling `process.exit()`,
+   * Amount of time to wait just before calling `process.exit()`,
    * intended to allow shutdown-time log messages to get flushed before the
    * process actually goes away.
+   *
+   * @type {number}
    */
   static #PRE_EXIT_DELAY_MSEC = 250;
 
   /**
-   * @type {?IntfLogger} Logger for this class, or `null` not to do any
+   * Logger for this class, or `null` not to do any
    * logging.
+   *
+   * @type {?IntfLogger}
    */
   static #logger = ThisModule.logger?.shutdown;
 
-  /** @type {CallbackList} Callbacks to invoke before shutting down. */
+  /**
+   * Callbacks to invoke before shutting down.
+   *
+   * @type {CallbackList}
+   */
   static #callbacks = new CallbackList('shutdown', this.#MAX_SHUTDOWN_MSEC);
 
-  /** @type {boolean} Is the system shutting down? */
+  /**
+   * Is the system shutting down?
+   *
+   * @type {boolean}
+   */
   static #shuttingDown = false;
 
-  /** @type {number} Ultimate exit code. */
+  /**
+   * Ultimate exit code.
+   *
+   * @type {number}
+   */
   static #exitCode = 0;
 
-  /** @type {Threadlet} Thread that handles shutdown sequencing. */
+  /**
+   * Thread that handles shutdown sequencing.
+   *
+   * @type {Threadlet}
+   */
   static #thread = new Threadlet(() => this.#run());
 
   /** @returns {?number} Exit code, if in fact in the middle of exiting. */

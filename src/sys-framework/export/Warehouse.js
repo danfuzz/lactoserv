@@ -26,16 +26,32 @@ import { ThisModule } from '#p/ThisModule';
  * press on with the `stop()` actions if an earlier layer is taking too long.
  */
 export class Warehouse extends BaseControllable {
-  /** @type {ComponentManager} Application manager. */
+  /**
+   * Application manager.
+   *
+   * @type {ComponentManager}
+   */
   #applicationManager;
 
-  /** @type {?HostManager} Host manager, if configured. */
+  /**
+   * Host manager, if configured.
+   *
+   * @type {?HostManager}
+   */
   #hostManager;
 
-  /** @type {EndpointManager} Endpoint manager, for all endpoint bindings. */
+  /**
+   * Endpoint manager, for all endpoint bindings.
+   *
+   * @type {EndpointManager}
+   */
   #endpointManager;
 
-  /** @type {ComponentManager} Service manager. */
+  /**
+   * Service manager.
+   *
+   * @type {ComponentManager}
+   */
   #serviceManager;
 
   /**
@@ -140,16 +156,20 @@ export class Warehouse extends BaseControllable {
   //
 
   /**
-   * @type {number} Grace period after asking all applications to stop before
+   * Grace period after asking all applications to stop before
    * asking services to shut down. (If the applications stop more promptly, then
    * the system will immediately move on.)
+   *
+   * @type {number}
    */
   static #APPLICATION_STOP_GRACE_PERIOD_MSEC = 250;
 
   /**
-   * @type {number} Grace period after asking all endpoints to stop before
+   * Grace period after asking all endpoints to stop before
    * asking applications and services to shut down. (If the endpoints stop more
    * promptly, then the system will immediately move on.)
+   *
+   * @type {number}
    */
   static #ENDPOINT_STOP_GRACE_PERIOD_MSEC = 250;
 }

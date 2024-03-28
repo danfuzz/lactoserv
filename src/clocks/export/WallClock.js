@@ -18,18 +18,32 @@ import { Duration, Moment } from '@this/data-values';
  * like.
  */
 export class WallClock {
-  /** @type {number} The number of seconds in a nanosecond. */
+  /**
+   * The number of seconds in a nanosecond.
+   *
+   * @type {number}
+   */
   static #SECS_PER_NSEC = 1 / 1_000_000_000;
 
-  /** @type {bigint} The number of milliseconds in a nanosecond. */
+  /**
+   * The number of milliseconds in a nanosecond.
+   *
+   * @type {bigint}
+   */
   static #MSEC_PER_NSEC = 1_000_000n;
 
-  /** @type {bigint} Last result from `process.hrtime.bigint()`. */
+  /**
+   * Last result from `process.hrtime.bigint()`.
+   *
+   * @type {bigint}
+   */
   static #lastHrtimeNsec = -1n;
 
   /**
-   * @type {bigint} Last "now" measured by {@link #now}, as a `bigint`
+   * Last "now" measured by {@link #now}, as a `bigint`
    * representing a nanosecond-based Unix Epoch time.
+   *
+   * @type {bigint}
    */
   static #lastNowNsec = -1n;
 

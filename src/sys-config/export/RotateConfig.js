@@ -15,11 +15,17 @@ import { SaveConfig } from '#x/SaveConfig';
  * See `doc/configuration.md` for configuration object details.
  */
 export class RotateConfig extends SaveConfig {
-  /** @type {?number} The file size at which to rotate, if ever. */
+  /**
+   * The file size at which to rotate, if ever.
+   *
+   * @type {?number}
+   */
   #atSize;
 
   /**
-   * @type {?Duration} How often to check for rotation eligibility, if at all.
+   * How often to check for rotation eligibility, if at all.
+   *
+   * @type {?Duration}
    */
   #checkPeriod;
 

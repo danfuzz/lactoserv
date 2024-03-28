@@ -30,8 +30,8 @@ export class Loggy {
    * Constructs a logger instance. See {@link IntfLogger} for details on how to
    * use a logger instance.
    *
-   * @param {?LogTag|string|string[]} tag Tag to use on all logged events, or
-   *   constructor arguments for same. If `null`, the instance will have no
+   * @param {?LogTag|string|Array<string>} tag Tag to use on all logged events,
+   *   or constructor arguments for same. If `null`, the instance will have no
    *   context tag.
    * @param {IntfLoggingEnvironment} [environment] Logging environment to
    *   use (it's the source for timestamps and stack traces, and what initially

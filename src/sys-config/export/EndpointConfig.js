@@ -17,22 +17,40 @@ import { Util } from '#x/Util';
  * See `doc/configuration.md` for configuration object details.
  */
 export class EndpointConfig extends NamedConfig {
-  /** @type {string} Name of the application to send requests to. */
+  /**
+   * Name of the application to send requests to.
+   *
+   * @type {string}
+   */
   #application;
 
-  /** @type {string[]} The hostnames in question. */
+  /**
+   * The hostnames in question.
+   *
+   * @type {Array<string>}
+   */
   #hostnames;
 
   /**
-   * @type {object} Physical interface to listen on; this is the result of a
+   * Physical interface to listen on; this is the result of a
    * call to {@link UriUtil#parseInterface}.
+   *
+   * @type {object}
    */
   #interface;
 
-  /** @type {string} High-level protocol to speak. */
+  /**
+   * High-level protocol to speak.
+   *
+   * @type {string}
+   */
   #protocol;
 
-  /** @type {ServiceUseConfig} Role-to-service mappings. */
+  /**
+   * Role-to-service mappings.
+   *
+   * @type {ServiceUseConfig}
+   */
   #services;
 
   /**
@@ -67,8 +85,8 @@ export class EndpointConfig extends NamedConfig {
   }
 
   /**
-   * @returns {string[]} List of hostnames, including possibly subdomain and/or
-   * full wildcards.
+   * @returns {Array<string>} List of hostnames, including possibly subdomain
+   * and/or full wildcards.
    */
   get hostnames() {
     return this.#hostnames;
