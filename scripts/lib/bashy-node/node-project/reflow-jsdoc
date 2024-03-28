@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
+# Copyright 2022-2024 the Bashy-lib Authors (Dan Bornstein et alia).
 # SPDX-License-Identifier: Apache-2.0
 
 . "$(dirname "$(readlink -f "$0")")/_init.sh" || exit "$?"
@@ -52,6 +52,12 @@ inCodeQuote {
   next;
 }
 
+# End of doc comment block.
+inDoc && /^ *[*]\/$/ {
+  autoflowLines();
+  inDoc = 0;
+}
+
 # Paragraph separator.
 inDoc && /^ *[*]$/ {
   autoflowLines();
@@ -59,14 +65,8 @@ inDoc && /^ *[*]$/ {
   next;
 }
 
-# Start of a tag. (Should be handled, but not yet implemented.)
+# Start of a block tag. (Should be handled, but not yet implemented.)
 inDoc && /^ *[*] *@/ {
-  autoflowLines();
-  inDoc = 0;
-}
-
-# End of doc comment block.
-inDoc && /^ *[*]\/$/ {
   autoflowLines();
   inDoc = 0;
 }
