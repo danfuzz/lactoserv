@@ -23,8 +23,7 @@ import { Struct } from '#x/Struct';
  */
 export class Moment {
   /**
-   * The moment being represented, in the form of seconds since
-   * the Unix Epoch.
+   * The moment being represented, in the form of seconds since the Unix Epoch.
    *
    * @type {number}
    */
@@ -138,8 +137,8 @@ export class Moment {
   }
 
   /**
-   * Makes a string representing this instance, in the standard HTTP format.
-   * See {@link #httpStringFromSec} for more details.
+   * Makes a string representing this instance, in the standard HTTP format. See
+   * {@link #httpStringFromSec} for more details.
    *
    * @returns {string} The HTTP standard form.
    */

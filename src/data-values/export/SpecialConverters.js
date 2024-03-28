@@ -13,8 +13,8 @@ import { StandardConverters } from '#p/StandardConverters';
  */
 export class SpecialConverters extends BaseConverter {
   /**
-   * Map from each
-   * specially-handled class to the converter to use on that class.
+   * Map from each specially-handled class to the converter to use on that
+   * class.
    *
    * @type {Map<function(new:object, ...*), BaseConverter>}
    */

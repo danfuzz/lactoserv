@@ -10,10 +10,10 @@ import { ThisModule } from '#p/ThisModule';
 
 
 /**
- * Utility to guarantee that this process doesn't stop running. By default,
- * Node proactively exits when the event loop quiesces and there do not seem
- * to be any pending actions. However, some systems still want to be able to
- * keep the process up, for whatever reason.
+ * Utility to guarantee that this process doesn't stop running. By default, Node
+ * proactively exits when the event loop quiesces and there do not seem to be
+ * any pending actions. However, some systems still want to be able to keep the
+ * process up, for whatever reason.
  */
 export class KeepRunning {
   /**
@@ -24,8 +24,7 @@ export class KeepRunning {
   #thread;
 
   /**
-   * Logger for this class, or `null` not to do any
-   * logging.
+   * Logger for this class, or `null` not to do any logging.
    *
    * @type {?IntfLogger}
    */

@@ -17,8 +17,8 @@ const chalk = Chalk.ON;
  * Structured "tag" information for log records. Each instance consists of a
  * main tag and zero or more additional "context" strings. The main tag is
  * typically a high-level system component of some sort, e.g. and typically a
- * module. The context strings, if any, are specific to the main tag (defined
- * by the component being so represented).
+ * module. The context strings, if any, are specific to the main tag (defined by
+ * the component being so represented).
  */
 export class LogTag {
   /**
@@ -82,8 +82,8 @@ export class LogTag {
   }
 
   /**
-   * Compares this instance to another for equality, that is, whether the
-   * main tag and context are all the same.
+   * Compares this instance to another for equality, that is, whether the main
+   * tag and context are all the same.
    *
    * @param {*} other Instance to compare to.
    * @returns {boolean} `true` iff `other` is an instance of this class with the

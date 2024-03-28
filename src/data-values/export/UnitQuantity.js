@@ -118,9 +118,9 @@ export class UnitQuantity {
   }
 
   /**
-   * Adds the value of this instance to another, returning a new instance of
-   * the same (possibly sub-) class as this. The other instance must have the
-   * same units as this one.
+   * Adds the value of this instance to another, returning a new instance of the
+   * same (possibly sub-) class as this. The other instance must have the same
+   * units as this one.
    *
    * @param {UnitQuantity} other Other instance to add.
    * @returns {UnitQuantity} Summed result.

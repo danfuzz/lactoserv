@@ -23,8 +23,7 @@ export class TextFileSink extends EventSink {
   #filePath;
 
   /**
-   * Function to convert an event
-   * into writable form.
+   * Function to convert an event into writable form.
    *
    * @type {function(LogPayload): Buffer|string}
    */
@@ -99,8 +98,8 @@ export class TextFileSink extends EventSink {
   //
 
   /**
-   * Data converter to use for encoding payload arguments,
-   * specifically for the `json` format.
+   * Data converter to use for encoding payload arguments, specifically for the
+   * `json` format.
    *
    * @type {Converter}
    */
@@ -108,8 +107,7 @@ export class TextFileSink extends EventSink {
     new Converter(ConverterConfig.makeLoggingInstance({ freeze: false }));
 
   /**
-   * Map from names to
-   * corresponding formatter methods.
+   * Map from names to corresponding formatter methods.
    *
    * @type {Map<string, function(LogPayload): Buffer|string>}
    */

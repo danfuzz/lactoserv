@@ -22,8 +22,8 @@ export class LogProxyHandler extends PropertyCacheProxyHandler {
   #tag;
 
   /**
-   * Type to use when emitting events, or the tag to append to
-   * the context, for the next layer of proxy.
+   * Type to use when emitting events, or the tag to append to the context, for
+   * the next layer of proxy.
    *
    * @type {?string}
    */
@@ -37,8 +37,8 @@ export class LogProxyHandler extends PropertyCacheProxyHandler {
   #environment;
 
   /**
-   * The tag to use for instances directly "under" this one, if
-   * already computed.
+   * The tag to use for instances directly "under" this one, if already
+   * computed.
    *
    * @type {?LogTag}
    */

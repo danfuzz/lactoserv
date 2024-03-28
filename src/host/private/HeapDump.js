@@ -24,8 +24,7 @@ export class HeapDump {
   static #REPORT_INTERVAL_BYTES = 4_000_000;
 
   /**
-   * Logger for this class, or `null` not to do any
-   * logging.
+   * Logger for this class, or `null` not to do any logging.
    *
    * @type {?IntfLogger}
    */
