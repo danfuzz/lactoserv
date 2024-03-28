@@ -19,13 +19,19 @@ import { MustBe } from '@this/typey';
  * See `doc/configuration.md` for configuration object details.
  */
 export class MemoryMonitor extends BaseService {
-  /** @type {Threadlet} Threadlet which runs this service. */
+  /**
+   * Threadlet which runs this service.
+   *
+   * @type {Threadlet}
+   */
   #runner = new Threadlet(() => this.#run());
 
   /**
-   * @type {?{ heap: number, rss: number, at: Moment, troubleAt: ?Duration,
-   * actionAt: ?Moment }} Most recent memory snapshot (along with timing info),
+   * Most recent memory snapshot (along with timing info),
    * or `null` if a snapshot has not yet been taken.
+   *
+   * @type {?{ heap: number, rss: number, at: Moment, troubleAt: ?Duration,
+   * actionAt: ?Moment }}
    */
   #lastSnapshot = null;
 
@@ -137,14 +143,18 @@ export class MemoryMonitor extends BaseService {
   //
 
   /**
-   * @type {number} Minimum amount of time in msec between checks, when dealing
+   * Minimum amount of time in msec between checks, when dealing
    * with an "over limit" situation.
+   *
+   * @type {number}
    */
   static #MIN_TROUBLE_CHECK_MSEC = 1000;
 
   /**
-   * @type {number} Fraction of time between "now" and when action needs to
+   * Fraction of time between "now" and when action needs to
    * happen, when the next check should take place in an "over limit" situation.
+   *
+   * @type {number}
    */
   static #TROUBLE_CHECK_FRACTION = 0.4;
 
@@ -157,21 +167,31 @@ export class MemoryMonitor extends BaseService {
    * Configuration item subclass for this (outer) class.
    */
   static #Config = class Config extends ServiceConfig {
-    /** @type {Duration} How often to check, in seconds. */
+    /**
+     * How often to check, in seconds.
+     *
+     * @type {Duration}
+     */
     #checkPeriod;
 
-    /** @type {Duration} Grace period before triggering an action. */
+    /**
+     * Grace period before triggering an action.
+     *
+     * @type {Duration}
+     */
     #gracePeriod;
 
     /**
-     * @type {?number} Maximum allowed size of heap usage, in bytes, or `null`
-     * for no limit.
+     * Maximum allowed size of heap usage, in bytes, or `null` for no limit.
+     *
+     * @type {?number}
      */
     #maxHeapBytes;
 
     /**
-     * @type {?number} Maximum allowed size of RSS, in bytes, or `null` for no
-     * limit.
+     * Maximum allowed size of RSS, in bytes, or `null` for no limit.
+     *
+     * @type {?number}
      */
     #maxRssBytes;
 

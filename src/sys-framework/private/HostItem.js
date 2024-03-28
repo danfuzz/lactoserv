@@ -14,24 +14,32 @@ import { HostConfig } from '@this/sys-config';
  * multiple different hostnames.
  */
 export class HostItem {
-  /** @type {HostConfig} Configuration which defined this instance. */
+  /**
+   * Configuration which defined this instance.
+   *
+   * @type {HostConfig}
+   */
   #config;
 
   /**
-   * @type {?{certificate: string, privateKey: string}} The certificate and
-   * for this instance, if known.
+   * The certificate and for this instance, if known.
+   *
+   * @type {?{certificate: string, privateKey: string}}
    */
   #parameters = null;
 
   /**
-   * @type {Promise} Promise for value of {@link #parameters}, if it is not yet
-   * (effectively) resolved.
+   * Promise for value of {@link #parameters}, if it is not yet (effectively)
+   * resolved.
+   *
+   * @type {Promise}
    */
   #parametersPromise = null;
 
   /**
-   * @type {?tls.SecureContext} TLS context representing this instance's info,
-   * lazily initialized.
+   * TLS context representing this instance's info, lazily initialized.
+   *
+   * @type {?tls.SecureContext}
    */
   #secureContext = null;
 

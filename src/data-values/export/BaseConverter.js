@@ -49,13 +49,25 @@ export class BaseConverter {
   // Static members
   //
 
-  /** @type {symbol} Value for the exposed {@link #ENCODE}. */
+  /**
+   * Value for the exposed {@link #ENCODE}.
+   *
+   * @type {symbol}
+   */
   static #ENCODE = Symbol('BaseConverter.ENCODE');
 
-  /** @type {symbol} Value for the exposed {@link #OMIT}. */
+  /**
+   * Value for the exposed {@link #OMIT}.
+   *
+   * @type {symbol}
+   */
   static #OMIT = Symbol('BaseConverter.OMIT');
 
-  /** @type {symbol} Value for the exposed {@link #UNHANDLED}. */
+  /**
+   * Value for the exposed {@link #UNHANDLED}.
+   *
+   * @type {symbol}
+   */
   static #UNHANDLED = Symbol('BaseConverter.UNHANDLED');
 
   /**

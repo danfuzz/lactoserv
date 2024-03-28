@@ -14,25 +14,41 @@ import { ServiceConfig } from '#x/ServiceConfig';
  * Accepted configuration bindings (in the constructor). All are required,
  * except as noted:
  *
- * * `{object|object[]} applications` -- Application configuration.
- * * `{object|object[]} endpoints` -- Endpoint configuration.
- * * `{object|object[]} hosts` -- Optional host / certificate configuration.
- *   Required only if any endpoints are configured to listen for secure
- *   connections.
- * * `{object|object[]} services` -- Optional system service configuration.
+ * * `{object|Array<object>} applications` -- Application configuration.
+ * * `{object|Array<object>} endpoints` -- Endpoint configuration.
+ * * `{object|Array<object>} hosts` -- Optional host / certificate
+ *   configuration. Required only if any endpoints are configured to listen for
+ *   secure connections.
+ * * `{object|Array<object>} services` -- Optional system service configuration.
  *   If not present, no services are configured.
  */
 export class WarehouseConfig extends BaseConfig {
-  /** @type {ApplicationConfig[]} Application configuration objects. */
+  /**
+   * Application configuration objects.
+   *
+   * @type {Array<ApplicationConfig>}
+   */
   #applications;
 
-  /** @type {HostConfig[]} Host configuration objects. */
+  /**
+   * Host configuration objects.
+   *
+   * @type {Array<HostConfig>}
+   */
   #hosts;
 
-  /** @type {EndpointConfig[]} Endpoint configuration objects. */
+  /**
+   * Endpoint configuration objects.
+   *
+   * @type {Array<EndpointConfig>}
+   */
   #endpoints;
 
-  /** @type {ServiceConfig[]} Service configuration objects. */
+  /**
+   * Service configuration objects.
+   *
+   * @type {Array<ServiceConfig>}
+   */
   #services;
 
   /**
@@ -56,22 +72,22 @@ export class WarehouseConfig extends BaseConfig {
     this.#services     = ServiceConfig.parseArray(services);
   }
 
-  /** @returns {ApplicationConfig[]} Application configuration objects. */
+  /** @returns {Array<ApplicationConfig>} Application configuration objects. */
   get applications() {
     return this.#applications;
   }
 
-  /** @returns {HostConfig[]} Host configuration objects. */
+  /** @returns {Array<HostConfig>} Host configuration objects. */
   get hosts() {
     return this.#hosts;
   }
 
-  /** @returns {EndpointConfig[]} Endpoint configuration objects. */
+  /** @returns {Array<EndpointConfig>} Endpoint configuration objects. */
   get endpoints() {
     return this.#endpoints;
   }
 
-  /** @returns {ServiceConfig[]} Service configuration objects. */
+  /** @returns {Array<ServiceConfig>} Service configuration objects. */
   get services() {
     return this.#services;
   }

@@ -14,7 +14,11 @@ import { HttpHeaders } from '#x/HttpHeaders';
  * Utility class for HTTP range handling.
  */
 export class HttpRange {
-  /** @type {string} The range unit which is recognized. */
+  /**
+   * The range unit which is recognized.
+   *
+   * @type {string}
+   */
   static #UNIT = 'bytes';
 
   /**

@@ -20,13 +20,25 @@ import { RateLimitedStream } from '#p/RateLimitedStream';
  * @implements {IntfRateLimiter}
  */
 export class RateLimiter extends BaseService {
-  /** @type {?TokenBucket} Connection rate limiter, if any. */
+  /**
+   * Connection rate limiter, if any.
+   *
+   * @type {?TokenBucket}
+   */
   #connections = null;
 
-  /** @type {?TokenBucket} Outgoing data rate limiter, if any. */
+  /**
+   * Outgoing data rate limiter, if any.
+   *
+   * @type {?TokenBucket}
+   */
   #data = null;
 
-  /** @type {?TokenBucket} Request rate limiter, if any. */
+  /**
+   * Request rate limiter, if any.
+   *
+   * @type {?TokenBucket}
+   */
   #requests = null;
 
   /**
@@ -134,13 +146,25 @@ export class RateLimiter extends BaseService {
    * Configuration item subclass for this (outer) class.
    */
   static #Config = class Config extends ServiceConfig {
-    /** @type {?object} Configuration for connection rate limiting. */
+    /**
+     * Configuration for connection rate limiting.
+     *
+     * @type {?object}
+     */
     #connections;
 
-    /** @type {?object} Configuration for data rate limiting. */
+    /**
+     * Configuration for data rate limiting.
+     *
+     * @type {?object}
+     */
     #data;
 
-    /** @type {?object} Configuration for request rate limiting. */
+    /**
+     * Configuration for request rate limiting.
+     *
+     * @type {?object}
+     */
     #requests;
 
     /**

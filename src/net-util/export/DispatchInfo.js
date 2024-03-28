@@ -18,10 +18,18 @@ import { UriUtil } from '#x/UriUtil';
  * of the request dispatch process.
  */
 export class DispatchInfo {
-  /** @type {TreePathKey} The base path. */
+  /**
+   * The base path.
+   *
+   * @type {TreePathKey}
+   */
   #base;
 
-  /** @type {TreePathKey} The remaining suffix portion of the path. */
+  /**
+   * The remaining suffix portion of the path.
+   *
+   * @type {TreePathKey}
+   */
   #extra;
 
   /**

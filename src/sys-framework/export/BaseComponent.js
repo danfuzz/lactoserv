@@ -14,7 +14,11 @@ import { BaseControllable } from '#x/BaseControllable';
  * BaseControllable} does not do instance naming at all.
  */
 export class BaseComponent extends BaseControllable {
-  /** @type {BaseConfig} Configuration for this component. */
+  /**
+   * Configuration for this component.
+   *
+   * @type {BaseConfig}
+   */
   #config;
 
   /**

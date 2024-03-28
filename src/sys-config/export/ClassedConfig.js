@@ -17,7 +17,11 @@ import { NamedConfig } from '#x/NamedConfig';
  * * `{function(new:object)} class` -- The class of the item to create.
  */
 export class ClassedConfig extends NamedConfig {
-  /** @type {function(new:object)} The class of the item to create. */
+  /**
+   * The class of the item to create.
+   *
+   * @type {function(new:object)}
+   */
   #class;
 
   /**

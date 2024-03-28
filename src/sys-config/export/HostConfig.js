@@ -15,10 +15,10 @@ import { Util } from '#x/Util';
  *
  * Accepted configuration bindings (in the constructor).
  *
- * * `{string|string[]} hostnames` -- Names of the hosts associated with this
- *   entry. Names can in the form `*.<name>` to match any subdomain of `<name>`,
- *   or `*` to be a complete wildcard (that is, matches any name not otherwise
- *   mentioned). Required.
+ * * `{string|Array<string>} hostnames` -- Names of the hosts associated with
+ *   this entry. Names can in the form `*.<name>` to match any subdomain of
+ *   `<name>`, `*` to be a complete wildcard (that is, matches any name not
+ *   otherwise mentioned). Required.
  * * `{string|Buffer} certificate` -- The certificate chain for `hostnames`, as
  *   PEM-encoded data. Required if `selfSigned` is absent or `false`.
  * * `{string|Buffer} privateKey` -- The private key associated with
@@ -28,16 +28,32 @@ import { Util } from '#x/Util';
  *   use a self-signed certificate.
  */
 export class HostConfig extends BaseConfig {
-  /** @type {string[]} The hostnames in question. */
+  /**
+   * The hostnames in question.
+   *
+   * @type {Array<string>}
+   */
   #hostnames;
 
-  /** @type {string} The certificate, as PEM-encoded data. */
+  /**
+   * The certificate, as PEM-encoded data.
+   *
+   * @type {string}
+   */
   #certificate;
 
-  /** @type {string} The private key, as PEM-encoded data. */
+  /**
+   * The private key, as PEM-encoded data.
+   *
+   * @type {string}
+   */
   #privateKey;
 
-  /** @type {boolean} Is this to be a self-signed certificate? */
+  /**
+   * Is this to be a self-signed certificate?
+   *
+   * @type {boolean}
+   */
   #selfSigned;
 
   /**
@@ -74,8 +90,8 @@ export class HostConfig extends BaseConfig {
   }
 
   /**
-   * @returns {string[]} List of hostnames, including possibly subdomain and/or
-   * full wildcards.
+   * @returns {Array<string>} List of hostnames, including possibly subdomain
+   * and/or full wildcards.
    */
   get hostnames() {
     return this.#hostnames;

@@ -22,7 +22,7 @@ export class BaseProxyHandler {
    *
    * @param {object} target_unused The proxy target.
    * @param {object} thisArg_unused The `this` argument passed to the call.
-   * @param {*[]} args_unused List of arguments passed to the call.
+   * @param {Array<*>} args_unused List of arguments passed to the call.
    */
   apply(target_unused, thisArg_unused, args_unused) {
     throw new Error('Unsupported proxy operation.');
@@ -32,7 +32,7 @@ export class BaseProxyHandler {
    * Standard `Proxy` handler method.
    *
    * @param {object} target_unused The proxy target.
-   * @param {*[]} args_unused List of arguments passed to the constructor.
+   * @param {Array<*>} args_unused List of arguments passed to the constructor.
    * @param {object} newTarget_unused The constructor that was originally
    *   called, which is to say, the proxy object.
    */
@@ -134,7 +134,7 @@ export class BaseProxyHandler {
    * Standard `Proxy` handler method.
    *
    * @param {object} target_unused The proxy target.
-   * @returns {string[]} `[]`, always.
+   * @returns {Array<string>} `[]`, always.
    */
   ownKeys(target_unused) {
     return [];

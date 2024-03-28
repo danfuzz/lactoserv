@@ -11,7 +11,11 @@ import { IntfRequestLogger } from '#x/IntfRequestLogger';
  * Logger for HTTP-ish requests.
  */
 export class RequestLogHelper {
-  /** @type {IntfRequestLogger} Request logger service to use. */
+  /**
+   * Request logger service to use.
+   *
+   * @type {IntfRequestLogger}
+   */
   #requestLogger;
 
   /**

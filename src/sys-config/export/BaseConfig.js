@@ -42,8 +42,8 @@ export class BaseConfig {
    * @param {*} items Single configuration object or array of them.
    *   Configuration objects are required to be as described by the called
    *   class's (or subclasses') constructor(s).
-   * @returns {BaseConfig[]} Frozen array of instances of the called class, if
-   *   successfully parsed.
+   * @returns {Array<BaseConfig>} Frozen array of instances of the called class,
+   *   if successfully parsed.
    * @throws {Error} Thrown if there was any trouble.
    */
   static parseArray(items) {
@@ -76,7 +76,7 @@ export class BaseConfig {
    * `items === null`.
    *
    * @param {*} items Array of configuration objects, or `null`.
-   * @returns {?BaseConfig[]} Frozen array of instances, or `null` if
+   * @returns {Array<?BaseConfig>} Frozen array of instances, or `null` if
    *   `items === null`.
    * @throws {Error} Thrown if there was any trouble.
    */

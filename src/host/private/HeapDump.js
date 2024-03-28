@@ -16,12 +16,18 @@ import { ThisModule } from '#p/ThisModule';
  * All the stuff needed to do heap dumps.
  */
 export class HeapDump {
-  /** @type {number} Minimum number of bytes between intra-dump reports. */
+  /**
+   * Minimum number of bytes between intra-dump reports.
+   *
+   * @type {number}
+   */
   static #REPORT_INTERVAL_BYTES = 4_000_000;
 
   /**
-   * @type {?IntfLogger} Logger for this class, or `null` not to do any
+   * Logger for this class, or `null` not to do any
    * logging.
+   *
+   * @type {?IntfLogger}
    */
   static #logger = ThisModule.logger['heap-dump'];
 

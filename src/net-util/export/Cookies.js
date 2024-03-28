@@ -13,9 +13,11 @@ import { MustBe } from '@this/typey';
  */
 export class Cookies {
   /**
-   * @type {Map<string, object>} Map from each cookie name to its attributes,
+   * Map from each cookie name to its attributes,
    * including attributes per se for use as `Set-Cookie` headers, but also
    * properties `name` and `value`.
+   *
+   * @type {Map<string, object>}
    */
   #attributes = new Map();
 
@@ -58,7 +60,7 @@ export class Cookies {
    * Gets a map-like iterator of cookie values. Each yielded entry is a
    * two-element array of a name and corresponding value.
    *
-   * @yields {string[]} Name-value pair.
+   * @yields {Array<string>} Name-value pair.
    */
   *entries() {
     for (const [name, attribs] of this.#attributes) {
@@ -184,20 +186,28 @@ export class Cookies {
   //
 
   /**
-   * @type {RegExp} Regex which matches a cookie name. This is derived from the
+   * Regex which matches a cookie name. This is derived from the
    * definition of `cookie-name` in RFC6265, which is in terms of the definition
    * of `token` in RFC2616.
+   *
+   * @type {RegExp}
    */
   static #NAME_REGEX;
 
   /**
-   * @type {RegExp} Regex which matches a cookie value, either with or without
+   * Regex which matches a cookie value, either with or without
    * surrounding quotes. This is derived from the definition of `cookie-value`
    * in RFC6265.
+   *
+   * @type {RegExp}
    */
   static #VALUE_REGEX;
 
-  /** @type {RegExp} Regex which matches a cookie assignment, unanchored. */
+  /**
+   * Regex which matches a cookie assignment, unanchored.
+   *
+   * @type {RegExp}
+   */
   static #ASSIGN_REGEX;
 
   static {
@@ -220,7 +230,11 @@ export class Cookies {
         + `(?: *;| *$)`, 'gv'));
   }
 
-  /** @type {Cookies} Standard frozen empty instance of this class. */
+  /**
+   * Standard frozen empty instance of this class.
+   *
+   * @type {Cookies}
+   */
   static #EMPTY = new Cookies();
   static {
     Object.freeze(this.#EMPTY);

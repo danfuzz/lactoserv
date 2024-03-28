@@ -15,12 +15,18 @@ import { MustBe } from '@this/typey';
  * See `doc/configuration.md` for configuration object details.
  */
 export class SystemLogger extends BaseFileService {
-  /** @type {?Rotator} File rotator to use, if any. */
+  /**
+   * File rotator to use, if any.
+   *
+   * @type {?Rotator}
+   */
   #rotator = null;
 
   /**
-   * @type {?TextFileSink} Event sink which does the actual writing, or `null`
+   * Event sink which does the actual writing, or `null`
    * if not yet set up.
+   *
+   * @type {?TextFileSink}
    */
   #sink = null;
 
@@ -106,7 +112,11 @@ export class SystemLogger extends BaseFileService {
   // Static members
   //
 
-  /** @type {string} Event type that marks the end of logging. */
+  /**
+   * Event type that marks the end of logging.
+   *
+   * @type {string}
+   */
   static #END_EVENT_TYPE = 'finalLoggedEvent';
 
   /** @override */
@@ -118,7 +128,11 @@ export class SystemLogger extends BaseFileService {
    * Configuration item subclass for this (outer) class.
    */
   static #Config = class Config extends FileServiceConfig {
-    /** @type {string} The output format name. */
+    /**
+     * The output format name.
+     *
+     * @type {string}
+     */
     #format;
 
     /**

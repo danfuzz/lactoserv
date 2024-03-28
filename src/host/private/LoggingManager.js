@@ -10,7 +10,11 @@ import { Loggy, TextFileSink } from '@this/loggy';
  * Stuff to deal with logging.
  */
 export class LoggingManager {
-  /** @type {?TextFileSink} The logging event sink which writes to `stdout`. */
+  /**
+   * The logging event sink which writes to `stdout`.
+   *
+   * @type {?TextFileSink}
+   */
   static #stdoutSink = null;
 
   /**

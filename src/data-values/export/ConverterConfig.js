@@ -37,27 +37,41 @@ import { Struct } from '#x/Struct';
  */
 export class ConverterConfig {
   /**
-   * @type {(function(new:*))[]} Classes whose instances are treated as data
+   * Classes whose instances are treated as data
    * values.
+   *
+   * @type {Array<function(new:*)>}
    */
   #dataClasses;
 
-  /** @type {boolean} Are converted data values to be frozen? */
+  /**
+   * Are converted data values to be frozen?
+   *
+   * @type {boolean}
+   */
   #freeze;
 
   /**
-   * @type {string|(function(*): *)} Action to take when asked to encode a
+   * Action to take when asked to encode a
    * function.
+   *
+   * @type {string|(function(*): *)}
    */
   #functionAction;
 
-  /** @type {boolean} Should instance-defined `ENCODE()` methods be honored? */
+  /**
+   * Should instance-defined `ENCODE()` methods be honored?
+   *
+   * @type {boolean}
+   */
   #honorEncodeMethod;
 
   /**
-   * @type {string|(function(*): *)} Action to take when asked to encode an
+   * Action to take when asked to encode an
    * instance (object with a class) which is not otherwise covered by other
    * configuration options.
+   *
+   * @type {string|(function(*): *)}
    */
   #instanceAction;
 
@@ -68,8 +82,10 @@ export class ConverterConfig {
   #specialCases;
 
   /**
-   * @type {string} Action to take when encountering a symbol-keyed object or
+   * Action to take when encountering a symbol-keyed object or
    * array property. Allowed to be either `error` or `omit`.
+   *
+   * @type {string}
    */
   #symbolKeyAction;
 
@@ -107,8 +123,8 @@ export class ConverterConfig {
   }
 
   /**
-   * @returns {(function(new:*))[]} Classes whose instances are treated as data
-   * values.
+   * @returns {Array<function(new:*)>} Classes whose instances are treated as
+   * data values.
    *
    * Default value if not passed during construction: `[Ref, Struct]`.
    *

@@ -17,35 +17,51 @@ import { PromiseUtil } from '#x/PromiseUtil';
  * on the instance of this class that it is called with.
  */
 export class Threadlet {
-  /** @type {?function(Threadlet): *} Start function to run, if any */
+  /**
+   * Start function to run, if any
+   *
+   * @type {?function(Threadlet): *}
+   */
   #startFunction;
 
-  /** @type {function(Threadlet): *} Main function to run. */
+  /**
+   * Main function to run.
+   *
+   * @type {function(Threadlet): *}
+   */
   #mainFunction;
 
   /**
-   * @type {Condition} Intended current state of whether or not this instance is
+   * Intended current state of whether or not this instance is
    * running.
+   *
+   * @type {Condition}
    */
   #runCondition = new Condition();
 
   /**
-   * @type {?Promise} Promised result of the currently-executing {@link #run},
+   * Promised result of the currently-executing {@link #run},
    * if the instance is currently running.
+   *
+   * @type {?Promise}
    */
   #runResult = null;
 
   /**
-   * @type {?Promise} Promised result of calling {@link #start}, if the instance
+   * Promised result of calling {@link #start}, if the instance
    * is currently running (at all, not just in the start function). `null` if
    * not running or if the instance doesn't have a start function.
+   *
+   * @type {?Promise}
    */
   #startResult = null;
 
   /**
-   * @type {boolean} Has the current {@link #runResult} been returned "publicly"
+   * Has the current {@link #runResult} been returned "publicly"
    * from this instance? This is used to figure out whether to force a failed
    * run to become an unhandled promise rejection.
+   *
+   * @type {boolean}
    */
   #runResultExposed = false;
 
@@ -98,7 +114,8 @@ export class Threadlet {
    * Runs a `Promise.race()` between the result of {@link #whenStopRequested}
    * and the given additional promises.
    *
-   * @param {*[]} promises Array (or iterable in general) of promises to race.
+   * @param {Array<*>} promises Array (or iterable in general) of promises to
+   *   race.
    * @returns {boolean} `true` iff this instance has been asked to stop
    *  (as with {@link #shouldStop}), if the race was won by a non-rejected
    *  promise.

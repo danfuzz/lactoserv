@@ -12,8 +12,10 @@ import { ProtocolWrangler } from '#x/ProtocolWrangler';
  */
 export class ProtocolWranglers {
   /**
-   * @type {Map<string, function(new:*, ...*)>} Map from each protocol name to
+   * Map from each protocol name to
    * the wrangler subclass that handles it.
+   *
+   * @type {Map<string, function(new:*, ...*)>}
    */
   static #WRANGLER_CLASSES = new Map(Object.entries({
     http:  HttpWrangler,

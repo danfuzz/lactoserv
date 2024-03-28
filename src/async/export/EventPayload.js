@@ -10,10 +10,18 @@ import { EventSource } from '#x/EventSource';
  * Standard minimal event payload.
  */
 export class EventPayload {
-  /** @type {string} Event "type." */
+  /**
+   * Event "type."
+   *
+   * @type {string}
+   */
   #type;
 
-  /** @type {*[]} Event arguments. */
+  /**
+   * Event arguments.
+   *
+   * @type {Array<*>}
+   */
   #args;
 
   /**
@@ -30,7 +38,10 @@ export class EventPayload {
     this.#args = Object.freeze([...args]);
   }
 
-  /** @returns {*[]} Event arguments, whose meaning depends on {@link #type}. */
+  /**
+   * @returns {Array<*>} Event arguments, whose meaning depends on {@link
+   * #type}.
+   */
   get args() {
     return this.#args;
   }
@@ -45,7 +56,11 @@ export class EventPayload {
   // Static members
   //
 
-  /** @type {string} Default event type to use for "kickoff" instances. */
+  /**
+   * Default event type to use for "kickoff" instances.
+   *
+   * @type {string}
+   */
   static #KICKOFF_TYPE = 'kickoff';
 
   /**

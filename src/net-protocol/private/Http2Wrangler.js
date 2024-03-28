@@ -15,21 +15,39 @@ import { WranglerContext } from '#p/WranglerContext';
  * Wrangler for `Http2SecureServer`.
  */
 export class Http2Wrangler extends TcpWrangler {
-  /** @type {?http2.Http2Server} High-level protocol server. */
+  /**
+   * High-level protocol server.
+   *
+   * @type {?http2.Http2Server}
+   */
   #protocolServer = null;
 
-  /** @type {Condition} Are there currently any sessions? */
+  /**
+   * Are there currently any sessions?
+   *
+   * @type {Condition}
+   */
   #anySessions = new Condition();
 
-  /** @type {Set} Set of all currently-known sessions. */
+  /**
+   * Set of all currently-known sessions.
+   *
+   * @type {Set}
+   */
   #sessions = new Set();
 
-  /** @type {Threadlet} Thread which runs the high-level stack. */
+  /**
+   * Thread which runs the high-level stack.
+   *
+   * @type {Threadlet}
+   */
   #runner = new Threadlet(() => this.#run());
 
   /**
-   * @type {AsyncLocalStorage} Per-connection storage, used to plumb connection
+   * Per-connection storage, used to plumb connection
    * context through to the various objects that use the connection.
+   *
+   * @type {AsyncLocalStorage}
    */
   #perConnectionStorage = new AsyncLocalStorage();
 
@@ -245,14 +263,18 @@ export class Http2Wrangler extends TcpWrangler {
   //
 
   /**
-   * @type {number} How long in msec to wait when stopping, after telling
+   * How long in msec to wait when stopping, after telling
    * sessions to close before closing with more extreme prejudice.
+   *
+   * @type {number}
    */
   static #STOP_GRACE_PERIOD_MSEC = 250;
 
   /**
-   * @type {number} How long in msec to wait for a session to have activity
+   * How long in msec to wait for a session to have activity
    * before considering it "timed out" and telling it to close.
+   *
+   * @type {number}
    */
   static #SESSION_TIMEOUT_MSEC = 1 * 60 * 1000; // One minute.
 }

@@ -17,26 +17,46 @@ import { MustBe } from '@this/typey';
  * has (compared to a generic {@link Duplex} stream).
  */
 export class RateLimitedStream {
-  /** @type {TokenBucket} Underlying rate limiting provider. */
+  /**
+   * Underlying rate limiting provider.
+   *
+   * @type {TokenBucket}
+   */
   #bucket;
 
-  /** @type {Duplex|Writable} The inner (wrapped) stream. */
+  /**
+   * The inner (wrapped) stream.
+   *
+   * @type {Duplex|Writable}
+   */
   #innerStream;
 
-  /** @type {?IntfLogger} Logger to use, or `null` to not do any logging. */
+  /**
+   * Logger to use, or `null` to not do any logging.
+   *
+   * @type {?IntfLogger}
+   */
   #logger;
 
   /**
-   * @type {Duplex|Writable} The outer (exposed wrapper) stream.
+   * The outer (exposed wrapper) stream.
+   *
+   * @type {Duplex|Writable}
    */
   #outerStream;
 
-  /** @type {number} Count of total bytes written. */
+  /**
+   * Count of total bytes written.
+   *
+   * @type {number}
+   */
   #bytesWritten = 0;
 
   /**
-   * @type {?Error} Error received via `error` event from {@link #innerStream}
+   * Error received via `error` event from {@link #innerStream}
    * or produced internally, if any.
+   *
+   * @type {?Error}
    */
   #error = null;
 
@@ -336,7 +356,11 @@ export class RateLimitedStream {
    * Wrapper for {@link Duplex} instances.
    */
   static #DuplexWrapper = class DuplexWrapper extends Duplex {
-    /** @type {RateLimitedStream} Outer instance. */
+    /**
+     * Outer instance.
+     *
+     * @type {RateLimitedStream}
+     */
     #outerThis;
 
     /**
@@ -391,7 +415,11 @@ export class RateLimitedStream {
    * Wrapper for {@link Socket} instances.
    */
   static #SocketWrapper = class SocketWrapper extends this.#DuplexWrapper {
-    /** @type {RateLimitedStream} Outer instance. */
+    /**
+     * Outer instance.
+     *
+     * @type {RateLimitedStream}
+     */
     #outerThis;
 
     /**
@@ -484,7 +512,11 @@ export class RateLimitedStream {
    * Wrapper for (non-{@link Duplex}) {@link Writable} instances.
    */
   static #WritableWrapper = class WritableWrapper extends Writable {
-    /** @type {RateLimitedStream} Outer instance. */
+    /**
+     * Outer instance.
+     *
+     * @type {RateLimitedStream}
+     */
     #outerThis;
 
     /**

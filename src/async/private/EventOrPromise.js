@@ -11,19 +11,27 @@ import { PromiseUtil } from '#x/PromiseUtil';
  * package.
  */
 export class EventOrPromise {
-  /** @type {?LinkedEvent} The actual event, if synchronously known. */
+  /**
+   * The actual event, if synchronously known.
+   *
+   * @type {?LinkedEvent}
+   */
   #eventNow;
 
   /**
-   * @type {?Promise<LinkedEvent>} Promise for {@link #eventNow}, when that
+   * Promise for {@link #eventNow}, when that
    * property isn't synchronously known _or_ when it's known but something has
    * asked for the promise anyway.
+   *
+   * @type {?Promise<LinkedEvent>}
    */
   #eventPromise;
 
   /**
-   * @type {?Error} The reason why {@link #eventPromise} was rejected, if it was
+   * The reason why {@link #eventPromise} was rejected, if it was
    * indeed rejected.
+   *
+   * @type {?Error}
    */
   #rejectedReason = null;
 

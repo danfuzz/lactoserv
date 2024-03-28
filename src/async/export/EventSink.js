@@ -16,26 +16,34 @@ import { Threadlet } from '#x/Threadlet';
  * for new events to be emitted on the chain they track.
  */
 export class EventSink extends Threadlet {
-  /** @type {function(LinkedEvent)} Function to call, to process each event. */
+  /**
+   * Function to call, to process each event.
+   *
+   * @type {function(LinkedEvent)}
+   */
   #processor;
 
   /**
-   * @type {EventOrPromise} Head of the event chain, representing the earliest
+   * Head of the event chain, representing the earliest
    * event which has not yet been processed.
+   *
+   * @type {EventOrPromise}
    */
   #head;
 
   /**
-   * @type {boolean} Is this instance eagerly "draining" all synchronously-known
+   * Is this instance eagerly "draining" all synchronously-known
    * events?
+   *
+   * @type {boolean}
    */
   #draining = false;
 
   /**
    * Constructs an instance. It is initally _not_ running.
    *
-   * @param {function(LinkedEvent)} processor Function to call, to process
-   *   each event. This function is always called asynchronously.
+   * @param {function(LinkedEvent)} processor Function to call, to process each
+   *   event. This function is always called asynchronously.
    * @param {LinkedEvent|Promise<LinkedEvent>} firstEvent First event to be
    *   processed by the instance, or promise for same.
    */

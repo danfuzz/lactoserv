@@ -14,15 +14,25 @@ import { TreePathMap } from '#x/TreePathMap';
  * are strongly type-checked.
  */
 export class TreePathKey {
-  /** @type {string[]} Path portion of the key. */
+  /**
+   * Path portion of the key.
+   *
+   * @type {Array<string>}
+   */
   #path;
 
-  /** @type {boolean} Wildcard indicator. */
+  /**
+   * Wildcard indicator.
+   *
+   * @type {boolean}
+   */
   #wildcard;
 
   /**
-   * @type {?number} The result of {@link #charLength}, or `null` if not yet
+   * The result of {@link #charLength}, or `null` if not yet
    * calculated.
+   *
+   * @type {?number}
    */
   #charLength = null;
 
@@ -32,7 +42,7 @@ export class TreePathKey {
    * **Note:** If not already frozen, the `path` is copied internally, in order
    * to maintain the immutability guarantee for instances.
    *
-   * @param {string[]} path Path to the value.
+   * @param {Array<string>} path Path to the value.
    * @param {boolean} wildcard Wildcard indicator. This means different (though
    *   related) things, depending on the context in which an instance is used.
    */
@@ -69,7 +79,7 @@ export class TreePathKey {
     return this.#path.length;
   }
 
-  /** @returns {string[]} The path. */
+  /** @returns {Array<string>} The path. */
   get path() {
     return this.#path;
   }
@@ -234,7 +244,11 @@ export class TreePathKey {
   // Static members
   //
 
-  /** @type {TreePathKey} A non-wildcard empty-path instance. */
+  /**
+   * A non-wildcard empty-path instance.
+   *
+   * @type {TreePathKey}
+   */
   static #EMPTY = Object.freeze(new TreePathKey(Object.freeze([]), false));
 
   /** @returns {TreePathKey} A non-wildcard empty-path instance. */

@@ -21,7 +21,11 @@ import { Names } from '#x/Names';
  * * `requestLogger` -- Request logging service.
  */
 export class ServiceUseConfig extends BaseConfig {
-  /** @type {Map<string, string>} The role-to-service mapping. */
+  /**
+   * The role-to-service mapping.
+   *
+   * @type {Map<string, string>}
+   */
   #map;
 
   /**
@@ -63,7 +67,11 @@ export class ServiceUseConfig extends BaseConfig {
   // Static members
   //
 
-  /** @type {Set<string>} Set of allowed role names. */
+  /**
+   * Set of allowed role names.
+   *
+   * @type {Set<string>}
+   */
   static #ROLES = Object.freeze(new Set([
     'rateLimiter',
     'requestLogger'

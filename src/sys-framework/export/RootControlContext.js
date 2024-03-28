@@ -15,13 +15,19 @@ import { ThisModule } from '#p/ThisModule';
  */
 export class RootControlContext extends ControlContext {
   /**
-   * @type {Map<string, ControlContext>} For each context which represents a
+   * For each context which represents a
    * component (all of which have `name`s), a mapping from its name to the
    * context. This represents a subset of all descendants.
+   *
+   * @type {Map<string, ControlContext>}
    */
   #components = new Map();
 
-  /** @type {Set<ControlContext>} Set of all descendants. */
+  /**
+   * Set of all descendants.
+   *
+   * @type {Set<ControlContext>}
+   */
   #descendants = new Set();
 
   /**

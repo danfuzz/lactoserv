@@ -3,6 +3,7 @@
 
 import { MustBe } from '@this/typey';
 
+import { PathKeyish } from '#x/PathKeyish';
 import { TreePathKey } from '#x/TreePathKey';
 import { TreePathMap } from '#x/TreePathMap';
 
@@ -13,27 +14,41 @@ import { TreePathMap } from '#x/TreePathMap';
  */
 export class TreePathNode {
   /**
-   * @type {Map<string, TreePathNode>} Bindings from each initial path component
-   * to a {@link TreePathNode} which contains mappings for that component.
+   * Bindings from each initial path component to a {@link TreePathNode} which
+   * contains mappings for that component.
+   *
+   * @type {Map<string, TreePathNode>}
    */
   #subtrees = new Map();
 
   /**
-   * @type {TreePathKey} Non-wildcard key (from the root), if there is an
-   * empty-path binding to this instance.
+   * Non-wildcard key (from the root), if there is an empty-path binding to this
+   * instance.
+   *
+   * @type {TreePathKey}
    */
   #emptyKey = null;
 
-  /** @type {*} Empty-path binding. */
+  /**
+   * Empty-path binding.
+   *
+   * @type {*}
+   */
   #emptyValue = null;
 
   /**
-   * @type {TreePathKey} Wildcard key (from the root), if there is a wildcard
-   * binding to this instance.
+   * Wildcard key (from the root), if there is a wildcard binding to this
+   * instance.
+   *
+   * @type {TreePathKey}
    */
   #wildcardKey = null;
 
-  /** @type {*} Wildcard binding. */
+  /**
+   * Wildcard binding.
+   *
+   * @type {*}
+   */
   #wildcardValue = null;
 
   // Note: The default constructor is fine here.
@@ -43,7 +58,7 @@ export class TreePathNode {
    * docs. Note the different return-vs-throw behavior compared to the exposed
    * method.
    *
-   * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to bind.
+   * @param {PathKeyish} key Key to bind.
    * @param {*} value Value to bind at `key`.
    * @returns {boolean} `true` if the binding was added, or `false` if there was
    *   already a binding for `key`.
@@ -91,8 +106,7 @@ export class TreePathNode {
    * Underlying implementation of `TreePathMap.findSubtree()`, see which for
    * detailed docs.
    *
-   * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to search
-   *   up.
+   * @param {PathKeyish} key Key to search for.
    * @param {object} result Result to add to. (It's a `TreePathMap`, but we
    *   don't name the type here to avoid a circular dependency.)
    */
@@ -145,8 +159,7 @@ export class TreePathNode {
    * Underlying implementation of `TreePathMap.find()`, see which for detailed
    * docs.
    *
-   * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to search
-   *   for.
+   * @param {PathKeyish} key Key to search for.
    * @returns {?{key: TreePathKey, keyRemainder: TreePathKey, value: *}} The
    *   most specific match, or `null` if there was no match at all.
    */
@@ -158,8 +171,7 @@ export class TreePathNode {
    * Underlying implementation of `TreePathMap.findWithFallback()`, see which
    * for detailed docs.
    *
-   * @param {TreePathKey|{path: string[], wildcard: boolean}} keyToFind Key to
-   *   search for.
+   * @param {PathKeyish} keyToFind Key to search for.
    * @yields {{key: TreePathKey, keyRemainder: TreePathKey, value: *}} One
    *   result.
    */
@@ -219,8 +231,7 @@ export class TreePathNode {
    * Underlying implementation of `TreePathMap.get()`, see which for detailed
    * docs.
    *
-   * @param {TreePathKey|{path: string[], wildcard: boolean}} key Key to look
-   *   up.
+   * @param {PathKeyish} key Key to look up.
    * @param {*} ifNotFound What to return if a binding is not found.
    * @returns {*} The value bound for the given `key`, or `ifNotFound` if there
    *   is no such binding.
@@ -253,8 +264,8 @@ export class TreePathNode {
    * all bindings of this instance, yielding entries where the `path` part of
    * the key is prepended with the given `path` value.
    *
-   * @param {string[]} pathPrefix Path to prepend to the `path` part of the key
-   *   in all yielded results.
+   * @param {Array<string>} pathPrefix Path to prepend to the `path` part of the
+   *   key in all yielded results.
    * @yields {object} The next binding of this instance, with key modified as
    *   described above.
    */

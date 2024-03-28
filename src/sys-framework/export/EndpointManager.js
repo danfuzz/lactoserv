@@ -16,19 +16,25 @@ import { Warehouse } from '#x/Warehouse';
  * **Note:** `start()`ing and `stop()`ing acts on all the endpoints.
  */
 export class EndpointManager extends BaseControllable {
-  /** @type {Warehouse} The warehouse this instance is in. */
+  /**
+   * The warehouse this instance is in.
+   *
+   * @type {Warehouse}
+   */
   #warehouse;
 
   /**
-   * @type {Map<string, NetworkEndpoint>} Map from each endpoint name to the
+   * Map from each endpoint name to the
    * {@link NetworkEndpoint} object with that name.
+   *
+   * @type {Map<string, NetworkEndpoint>}
    */
   #instances = new Map();
 
   /**
    * Constructs an instance.
    *
-   * @param {EndpointConfig[]} configs Configuration objects.
+   * @param {Array<EndpointConfig>} configs Configuration objects.
    * @param {Warehouse} warehouse The warehouse this instance is in.
    */
   constructor(configs, warehouse) {
@@ -61,7 +67,7 @@ export class EndpointManager extends BaseControllable {
   /**
    * Gets a list of all endpoints managed by this instance.
    *
-   * @returns {NetworkEndpoint[]} All the endpoints.
+   * @returns {Array<NetworkEndpoint>} All the endpoints.
    */
   getAll() {
     return [...this.#instances.values()];

@@ -13,8 +13,10 @@ import { StandardConverters } from '#p/StandardConverters';
  */
 export class SpecialConverters extends BaseConverter {
   /**
-   * @type {Map<function(new:object, ...*), BaseConverter>} Map from each
+   * Map from each
    * specially-handled class to the converter to use on that class.
+   *
+   * @type {Map<function(new:object, ...*), BaseConverter>}
    */
   #converters = new Map();
 
@@ -111,10 +113,18 @@ export class SpecialConverters extends BaseConverter {
   // Static members
   //
 
-  /** @type {?SpecialConverters} Standard instance, if known. */
+  /**
+   * Standard instance, if known.
+   *
+   * @type {?SpecialConverters}
+   */
   static #STANDARD = null;
 
-  /** @type {?SpecialConverters} Standard logging instance, if known. */
+  /**
+   * Standard logging instance, if known.
+   *
+   * @type {?SpecialConverters}
+   */
   static #STANDARD_FOR_LOGGING = null;
 
   /**

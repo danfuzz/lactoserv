@@ -11,23 +11,33 @@ import { MustBe } from '@this/typey';
  */
 export class ThisModule {
   /**
-   * @type {Map<string, IntfLogger>} Map of all loggers returned from {@link
+   * Map of all loggers returned from {@link
    * #loggerFor}.
+   *
+   * @type {Map<string, IntfLogger>}
    */
   static #loggers = new Map();
 
   /**
-   * @type {?IntfLogger} Base logger for this module's subsystems, or `null` not
+   * Base logger for this module's subsystems, or `null` not
    * to do any logging.
+   *
+   * @type {?IntfLogger}
    */
   static #logger = Loggy.loggerFor('framework');
 
   /**
-   * @type {symbol} Symbol used for the module-private method `addDescendant`.
+   * Symbol used for the module-private method `addDescendant`.
+   *
+   * @type {symbol}
    */
   static SYM_addDescendant = Symbol('sys-framework.addDescendant');
 
-  /** @type {symbol} Symbol used for the module-private method `linkRoot`. */
+  /**
+   * Symbol used for the module-private method `linkRoot`.
+   *
+   * @type {symbol}
+   */
   static SYM_linkRoot = Symbol('sys-framework.linkRoot');
 
   /**

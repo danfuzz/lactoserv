@@ -23,21 +23,25 @@ import { ThisModule } from '#p/ThisModule';
  */
 export class HostManager {
   /**
-   * @type {TreePathMap<HostItem>} Map from each componentized hostname to
+   * Map from each componentized hostname to
    * the {@link HostItem} that should be used for it.
+   *
+   * @type {TreePathMap<HostItem>}
    */
   #items = new TreePathMap(HostUtil.hostnameStringFrom);
 
   /**
-   * @type {?IntfLogger} Logger for this class, or `null` not to do any
+   * Logger for this class, or `null` not to do any
    * logging.
+   *
+   * @type {?IntfLogger}
    */
   #logger = ThisModule.subsystemLogger('hosts');
 
   /**
    * Constructs an instance.
    *
-   * @param {HostConfig[]} [configs] Configuration objects.
+   * @param {Array<HostConfig>} [configs] Configuration objects.
    */
   constructor(configs = []) {
     for (const config of configs) {
@@ -78,8 +82,8 @@ export class HostManager {
    * example, passing a complete wildcard hostname will produce a clone of this
    * instance.
    *
-   * @param {string[]} names Hostnames (including wildcards) which are to be
-   *   included in the subset.
+   * @param {Array<string>} names Hostnames (including wildcards) which are to
+   *   be included in the subset.
    * @returns {HostManager} Subsetted instance.
    * @throws {Error} Thrown if any of the `names` is found not to match any
    *   bindings in this instance.

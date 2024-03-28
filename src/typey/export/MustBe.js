@@ -21,7 +21,7 @@ export class MustBe {
    * Checks for type `*[]` (array of anything).
    *
    * @param {*} value Arbitrary value.
-   * @returns {*[]} `value` if it is of the indicated type.
+   * @returns {Array<*>} `value` if it is of the indicated type.
    * @throws {Error} Thrown if `value` is of any other type.
    */
   static array(value) {
@@ -38,7 +38,7 @@ export class MustBe {
    *
    * @param {*} value Arbitrary value.
    * @param {function(*): boolean} predicate Predicate to match.
-   * @returns {*[]} `value` if it is of the indicated type.
+   * @returns {Array<*>} `value` if it is of the indicated type.
    * @throws {Error} Thrown if `value` is of any other type.
    */
   static arrayOf(value, predicate) {
@@ -55,7 +55,7 @@ export class MustBe {
    * @param {*} value Arbitrary value.
    * @param {?RegExp|string|Set<string>} [match] Optional regular expression
    *  (either per se or as a string) or set of values that `value` must match.
-   * @returns {string[]} `value` if it is of the indicated type.
+   * @returns {Array<string>} `value` if it is of the indicated type.
    * @throws {Error} Thrown if `value` is of any other type.
    */
   static arrayOfString(value, match = null) {

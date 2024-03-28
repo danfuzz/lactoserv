@@ -13,10 +13,18 @@ import { ThisModule } from '#p/ThisModule';
  * production-like way.
  */
 export class UsualSystem extends BaseSystem {
-  /** @type {MainArgs} Command-line arguments. */
+  /**
+   * Command-line arguments.
+   *
+   * @type {MainArgs}
+   */
   #args;
 
-  /** @type {?Warehouse} Warehouse of parts. */
+  /**
+   * Warehouse of parts.
+   *
+   * @type {?Warehouse}
+   */
   #warehouse = null;
 
   /**

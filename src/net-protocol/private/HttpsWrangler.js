@@ -10,7 +10,11 @@ import { TcpWrangler } from '#p/TcpWrangler';
  * Wrangler for `HttpsServer`.
  */
 export class HttpsWrangler extends TcpWrangler {
-  /** @type {?https.Server} High-level protocol server. */
+  /**
+   * High-level protocol server.
+   *
+   * @type {?https.Server}
+   */
   #protocolServer = null;
 
   // Note: The default constructor suffices here.

@@ -16,12 +16,18 @@ import { ThisModule } from '#p/ThisModule';
  * keep the process up, for whatever reason.
  */
 export class KeepRunning {
-  /** @type {Threadlet} Thread that runs {@link #keepRunning}. */
+  /**
+   * Thread that runs {@link #keepRunning}.
+   *
+   * @type {Threadlet}
+   */
   #thread;
 
   /**
-   * @type {?IntfLogger} Logger for this class, or `null` not to do any
+   * Logger for this class, or `null` not to do any
    * logging.
+   *
+   * @type {?IntfLogger}
    */
   #logger = ThisModule.logger?.keepRunning;
 
@@ -85,6 +91,10 @@ export class KeepRunning {
   // Static members
   //
 
-  /** @type {number} The number of milliseconds in a day. */
+  /**
+   * The number of milliseconds in a day.
+   *
+   * @type {number}
+   */
   static #MSEC_PER_DAY = 1000 * 60 * 60 * 24;
 }

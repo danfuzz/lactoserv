@@ -25,7 +25,11 @@ import { MustBe } from '@this/typey';
  * complete information about the system.
  */
 export class ProcessIdFile extends BaseFileService {
-  /** @type {Threadlet} Threadlet which runs this service. */
+  /**
+   * Threadlet which runs this service.
+   *
+   * @type {Threadlet}
+   */
   #runner = new Threadlet(() => this.#run());
 
   // Note: Default constructor is fine for this class.
@@ -188,13 +192,25 @@ export class ProcessIdFile extends BaseFileService {
   // Static members
   //
 
-  /** @type {number} How many attempts should be made to write the file? */
+  /**
+   * How many attempts should be made to write the file?
+   *
+   * @type {number}
+   */
   static #MAX_WRITE_ATTEMPTS = 5;
 
-  /** @type {number} How long to wait after writing before checking, in msec. */
+  /**
+   * How long to wait after writing before checking, in msec.
+   *
+   * @type {number}
+   */
   static #PRE_CHECK_DELAY_MSEC = 250;
 
-  /** @type {number} How long to wait before retrying a write, in msec. */
+  /**
+   * How long to wait before retrying a write, in msec.
+   *
+   * @type {number}
+   */
   static #RETRY_DELAY_MSEC = 500;
 
   /** @override */
@@ -206,12 +222,18 @@ export class ProcessIdFile extends BaseFileService {
    * Configuration item subclass for this (outer) class.
    */
   static #Config = class Config extends FileServiceConfig {
-    /** @type {boolean} Allow multiple processes to be listed in the file? */
+    /**
+     * Allow multiple processes to be listed in the file?
+     *
+     * @type {boolean}
+     */
     #multiprocess;
 
     /**
-     * @type {?Duration} How often to update the info file, or `null` to not
+     * How often to update the info file, or `null` to not
      * perform updates.
+     *
+     * @type {?Duration}
      */
     #updatePeriod;
 

@@ -23,8 +23,10 @@ import { Struct } from '#x/Struct';
  */
 export class Moment {
   /**
-   * @type {number} The moment being represented, in the form of seconds since
+   * The moment being represented, in the form of seconds since
    * the Unix Epoch.
+   *
+   * @type {number}
    */
   #atSec;
 
