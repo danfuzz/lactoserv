@@ -5,6 +5,11 @@
 
 // Note: As of JSDoc v4.0.2, it only accepts CJS-style JavaScript configs, not
 // modern modules.
+//
+// Also note: As of the same version, JSDoc has trouble with private property
+// defintions and inner classes.
+// * <https://github.com/jsdoc/jsdoc/issues/1516>
+// * <https://github.com/jsdoc/jsdoc/issues/2091>
 
 const THIS_DIR = module.path;
 
