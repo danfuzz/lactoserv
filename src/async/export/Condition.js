@@ -8,21 +8,29 @@ import { MustBe } from '@this/typey';
  * Boolean condition with promise-attached level triggers.
  */
 export class Condition {
-  /** @type {boolean} Current value. */
+  /**
+   * Current value.
+   *
+   * @type {boolean}
+   */
   #value;
 
   /**
-   * @type {Promise<boolean>[]} Promises which get resolved when {@link #value}
-   * is `false` (index `0`) or `true` (index `1`). Will be `null` for both
-   * indexes when there are no waiters. Will only ever be non-null for one index
-   * at a time. When non-null, the corresponding element of {@link #trigger} is
-   * the resolver for the promise.
+   * Promises which get resolved when {@link #value} is `false` (index `0`) or
+   * `true` (index `1`). Will be `null` for both indexes when there are no
+   * waiters. Will only ever be non-null for one index at a time. When non-null,
+   * the corresponding element of {@link #trigger} is the resolver for the
+   * promise.
+   *
+   * @type {Promise<boolean>[]}
    */
   #became = [null, null];
 
   /**
-   * @type {(function())[]} Trigger functions corresponding to {@link #became}.
-   * Elements are only non-null when there is a corresponding waiter.
+   * Trigger functions corresponding to {@link #became}. Elements are only
+   * non-null when there is a corresponding waiter.
+   *
+   * @type {(function())[]}
    */
   #trigger = [null, null];
 

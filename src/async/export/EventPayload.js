@@ -10,10 +10,18 @@ import { EventSource } from '#x/EventSource';
  * Standard minimal event payload.
  */
 export class EventPayload {
-  /** @type {string} Event "type." */
+  /**
+   * Event "type."
+   *
+   * @type {string}
+   */
   #type;
 
-  /** @type {*[]} Event arguments. */
+  /**
+   * Event arguments.
+   *
+   * @type {*[]}
+   */
   #args;
 
   /**
@@ -45,7 +53,11 @@ export class EventPayload {
   // Static members
   //
 
-  /** @type {string} Default event type to use for "kickoff" instances. */
+  /**
+   * Default event type to use for "kickoff" instances.
+   *
+   * @type {string}
+   */
   static #KICKOFF_TYPE = 'kickoff';
 
   /**
