@@ -127,7 +127,11 @@ function autoflowLines(_locals_, i, line, text) {
       for (i = 81 - length(indent); i > 0; i--) {
         if (substr(text, i, 1) == " ") break;
       }
-      if (i == 0) i = 80 - length(indent);
+      if (i == 0) {
+        # Very long word. Just emit it on its own line.
+        match(text, /^[^ ]+/);
+        i = RLENGTH;
+      }
     }
 
     line = substr(text, 1, i);
