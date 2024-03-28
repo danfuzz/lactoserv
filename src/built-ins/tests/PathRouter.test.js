@@ -6,7 +6,7 @@ import { TreePathKey } from '@this/collections';
 import { DispatchInfo, HttpHeaders, IncomingRequest, IntfRequestHandler,
   OutgoingResponse, RequestContext }
   from '@this/net-util';
-import { BaseApplication, BaseControllable, ControlContext, RootControlContext }
+import { BaseApplication, BaseComponent, ControlContext, RootControlContext }
   from '@this/sys-framework';
 
 
@@ -14,10 +14,10 @@ import { BaseApplication, BaseControllable, ControlContext, RootControlContext }
 // extracted for reuse.
 
 /**
- * Minimal concrete subclass of `BaseControllable`, which has no-op
+ * Minimal concrete subclass of `BaseComponent`, which has no-op
  * implementations for all `_impl_*` methods.
  */
-export class NopControllable extends BaseControllable {
+export class NopControllable extends BaseComponent {
   // The default constructor is fine for this class.
 
   /** @override */

@@ -7,7 +7,7 @@ import { WarehouseConfig } from '@this/sys-config';
 import { MustBe } from '@this/typey';
 
 import { BaseApplication } from '#x/BaseApplication';
-import { BaseControllable } from '#x/BaseControllable';
+import { BaseComponent } from '#x/BaseComponent';
 import { BaseService } from '#x/BaseService';
 import { ComponentManager } from '#x/ComponentManager';
 import { ControlContext } from '#x/ControlContext';
@@ -25,7 +25,7 @@ import { ThisModule } from '#p/ThisModule';
  * Similarly, when `stop()`ping, the order is reversed, though the system will
  * press on with the `stop()` actions if an earlier layer is taking too long.
  */
-export class Warehouse extends BaseControllable {
+export class Warehouse extends BaseComponent {
   /**
    * Application manager.
    *

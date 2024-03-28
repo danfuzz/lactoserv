@@ -6,7 +6,7 @@ import { ClassedConfig } from '@this/sys-config';
 import { AskIf, MustBe } from '@this/typey';
 
 import { BaseNamedComponent } from '#x/BaseNamedComponent';
-import { BaseControllable } from '#x/BaseControllable';
+import { BaseComponent } from '#x/BaseComponent';
 import { ControlContext } from '#x/ControlContext';
 
 
@@ -16,7 +16,7 @@ import { ControlContext } from '#x/ControlContext';
  *
  * **Note:** `start()`ing and `stop()`ing acts on all the component instances.
  */
-export class ComponentManager extends BaseControllable {
+export class ComponentManager extends BaseComponent {
   /**
    * Base class of all components to be managed by this instance.
    *

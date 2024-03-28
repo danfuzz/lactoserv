@@ -15,7 +15,7 @@ import { ThisModule } from '#p/ThisModule';
  * TLDR: Concrete subclasses (a) have an associated context, and (b) have a set
  * of lifecycle methods.
  */
-export class BaseControllable {
+export class BaseComponent {
   /**
    * Associated context, if known, possibly wrapped in an object for the special
    * case of the root context before this instance is considered initialized. If
@@ -74,9 +74,9 @@ export class BaseControllable {
 
     this.#context = context;
 
-    BaseControllable.logInitializing(this.logger);
+    BaseComponent.logInitializing(this.logger);
     await this._impl_init(isReload);
-    BaseControllable.logInitialized(this.logger);
+    BaseComponent.logInitialized(this.logger);
   }
 
   /**
@@ -96,9 +96,9 @@ export class BaseControllable {
       await this.init(this.#context.nascentRoot, isReload);
     }
 
-    BaseControllable.logStarting(this.logger, isReload);
+    BaseComponent.logStarting(this.logger, isReload);
     await this._impl_start(isReload);
-    BaseControllable.logStarted(this.logger, isReload);
+    BaseComponent.logStarted(this.logger, isReload);
   }
 
   /**
@@ -111,9 +111,9 @@ export class BaseControllable {
   async stop(willReload = false) {
     MustBe.boolean(willReload);
 
-    BaseControllable.logStopping(this.logger, willReload);
+    BaseComponent.logStopping(this.logger, willReload);
     await this._impl_stop(willReload);
-    BaseControllable.logStopped(this.logger, willReload);
+    BaseComponent.logStopped(this.logger, willReload);
   }
 
   /**

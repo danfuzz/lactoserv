@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 export * from '#x/BaseApplication';
-export * from '#x/BaseControllable';
+export * from '#x/BaseComponent';
 export * from '#x/BaseNamedComponent';
 export * from '#x/BaseService';
 export * from '#x/ComponentManager';
