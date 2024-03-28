@@ -26,7 +26,7 @@ export class Mutex {
    * Array of "release" functions, each of which
    * represents a waiters for lock acquisition, in FIFO order.
    *
-   * @type {(function())[]}
+   * @type {Array<function()>}
    */
   #waiters = [];
 

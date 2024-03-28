@@ -59,8 +59,8 @@ export class PromiseUtil {
    * * <https://github.com/nodejs/node/issues/17469#issuecomment-685216777>
    * * <https://bugs.chromium.org/p/v8/issues/detail?id=9858>
    *
-   * @param {*[]} contenders Promises (or, degenerately, arbitrary objects) to
-   *   race.
+   * @param {Array<*>} contenders Promises (or, degenerately, arbitrary objects)
+   *   to race.
    * @returns {*} The resolved result from the first of `promises` to settle, if
    *   the first to settle becomes resolved.
    * @throws {*} The rejected result from the first of `promises` to settle, if

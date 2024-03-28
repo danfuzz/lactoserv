@@ -20,7 +20,7 @@ export class EventPayload {
   /**
    * Event arguments.
    *
-   * @type {*[]}
+   * @type {Array<*>}
    */
   #args;
 
@@ -38,7 +38,10 @@ export class EventPayload {
     this.#args = Object.freeze([...args]);
   }
 
-  /** @returns {*[]} Event arguments, whose meaning depends on {@link #type}. */
+  /**
+   * @returns {Array<*>} Event arguments, whose meaning depends on {@link
+   * #type}.
+   */
   get args() {
     return this.#args;
   }

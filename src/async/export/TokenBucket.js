@@ -89,7 +89,8 @@ export class TokenBucket {
   /**
    * Array of grant waiters.
    *
-   * @type {{ grant: number, startTime: Moment, doGrant: function(number) }[]}
+   * @type {Array<{ grant: number, startTime: Moment, doGrant: function(number)
+   * }>}
    */
   #waiters = [];
 

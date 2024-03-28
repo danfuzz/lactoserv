@@ -88,7 +88,7 @@ export class LinkedEvent {
   }
 
   /**
-   * @returns {*[]} The event's argument list, as defined by the {@link
+   * @returns {Array<*>} The event's argument list, as defined by the {@link
    * #payload}. This just passes through to `.args` on the payload, and
    * guarantees the return type.
    */

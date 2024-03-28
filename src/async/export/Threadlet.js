@@ -114,7 +114,8 @@ export class Threadlet {
    * Runs a `Promise.race()` between the result of {@link #whenStopRequested}
    * and the given additional promises.
    *
-   * @param {*[]} promises Array (or iterable in general) of promises to race.
+   * @param {Array<*>} promises Array (or iterable in general) of promises to
+   *   race.
    * @returns {boolean} `true` iff this instance has been asked to stop
    *  (as with {@link #shouldStop}), if the race was won by a non-rejected
    *  promise.

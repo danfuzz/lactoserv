@@ -22,7 +22,7 @@ export class Condition {
    * the corresponding element of {@link #trigger} is the resolver for the
    * promise.
    *
-   * @type {Promise<boolean>[]}
+   * @type {Array<?Promise<boolean>>}
    */
   #became = [null, null];
 
@@ -30,7 +30,7 @@ export class Condition {
    * Trigger functions corresponding to {@link #became}. Elements are only
    * non-null when there is a corresponding waiter.
    *
-   * @type {(function())[]}
+   * @type {Array<?function()>}
    */
   #trigger = [null, null];
 
