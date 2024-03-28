@@ -1,5 +1,5 @@
 {
-  "name": "@this/sys-framework",
+  "name": "@this/sys-compote",
   "version": "0.0.1",
   "type": "module",
   "private": true,
@@ -13,15 +13,10 @@
 
   "dependencies": {
     "@this/async": "*",
-    "@this/clocks": "*",
     "@this/collections": "*",
     "@this/loggy": "*",
     "@this/loggy-intf": "*",
-    "@this/net-protocol": "*",
-    "@this/net-util": "*",
-    "@this/sys-compote": "*",
     "@this/sys-config": "*",
-    "@this/typey": "*",
-    "pem": "^1.14.8"
+    "@this/typey": "*"
   }
 }

@@ -8,10 +8,10 @@ import { IntfRateLimiter, IntfRequestLogger, ProtocolWrangler,
   from '@this/net-protocol';
 import { DispatchInfo, IntfRequestHandler, OutgoingResponse }
   from '@this/net-util';
+import { BaseNamedComponent } from '@this/sys-compote';
 import { EndpointConfig } from '@this/sys-config';
 
 import { BaseApplication } from '#x/BaseApplication';
-import { BaseNamedComponent } from '#x/BaseNamedComponent';
 import { HostManager } from '#x/HostManager';
 
 

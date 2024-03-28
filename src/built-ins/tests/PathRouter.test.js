@@ -6,8 +6,9 @@ import { TreePathKey } from '@this/collections';
 import { DispatchInfo, HttpHeaders, IncomingRequest, IntfRequestHandler,
   OutgoingResponse, RequestContext }
   from '@this/net-util';
-import { BaseApplication, BaseComponent, ControlContext, RootControlContext }
-  from '@this/sys-framework';
+import { BaseApplication } from '@this/sys-framework';
+import { BaseComponent, ControlContext, RootControlContext }
+  from '@this/sys-compote';
 
 
 // TODO: This file contains a lot of mock implementation that should be

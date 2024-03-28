@@ -3,17 +3,16 @@
 
 import { PromiseUtil } from '@this/async';
 import { WallClock } from '@this/clocks';
+import { BaseComponent, ControlContext, RootControlContext }
+  from '@this/sys-compote';
 import { WarehouseConfig } from '@this/sys-config';
 import { MustBe } from '@this/typey';
 
 import { BaseApplication } from '#x/BaseApplication';
-import { BaseComponent } from '#x/BaseComponent';
 import { BaseService } from '#x/BaseService';
 import { ComponentManager } from '#x/ComponentManager';
-import { ControlContext } from '#x/ControlContext';
 import { EndpointManager } from '#x/EndpointManager';
 import { HostManager } from '#x/HostManager';
-import { RootControlContext } from '#x/RootControlContext';
 import { ThisModule } from '#p/ThisModule';
 
 
