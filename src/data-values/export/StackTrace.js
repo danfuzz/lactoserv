@@ -22,8 +22,9 @@ import { Struct } from '#x/Struct';
  */
 export class StackTrace {
   /**
-   * @type {{ name: ?string, file: string, line: ?number, col: ?number }[]} The
-   * frames of the stack trace.
+   * The frames of the stack trace.
+   *
+   * @type {{ name: ?string, file: string, line: ?number, col: ?number }[]}
    */
   #frames;
 

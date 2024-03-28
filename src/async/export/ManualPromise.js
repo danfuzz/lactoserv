@@ -38,9 +38,11 @@ export class ManualPromise {
   #rejectionHandled = false;
 
   /**
+   * The resolution, if the underlying promise has settled or become a
+   * forwarding target.
+   *
    * @type {?({ fulfilled: true, value: * }|{ rejected: true, reason: * }|
-   * { forwarded: true, from: Promise })} The resolution, if the underlying
-   * promise has settled or become a forwarding target.
+   * { forwarded: true, from: Promise })}
    */
   #resolution = null;
 

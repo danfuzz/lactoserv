@@ -9,12 +9,13 @@ import { MustBe } from '@this/typey';
  */
 export class PromiseUtil {
   /**
-   * @type {WeakMap<Promise, {races: Set<{resolve, reject}>, settled:
-   * boolean}>} Weak map, which links contenders passed to {@link #race} to all
+   * Weak map, which links contenders passed to {@link #race} to all
    * the races those contenders are involved in, along with a `settled` flag
    * indicating the promise state of the contender. (Note: When an
    * already-settled contender is first added to the map, its `settled` flag
    * will be incorrect until the immediately-subsequent `await`.)
+   *
+   * @type {WeakMap<Promise, {races: Set<{resolve, reject}>, settled: boolean}>}
    */
   static #raceMap = new WeakMap();
 

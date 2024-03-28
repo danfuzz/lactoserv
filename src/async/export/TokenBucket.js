@@ -28,8 +28,10 @@ import { Threadlet } from '#x/Threadlet';
  */
 export class TokenBucket {
   /**
-   * @type {number} Maximum allowed instantaneous burst, in tokens. This is the
+   * Maximum allowed instantaneous burst, in tokens. This is the
    * "bucket capacity" in the "leaky bucket as meter" metaphor.
+   *
+   * @type {number}
    */
   #maxBurstSize;
 
@@ -48,9 +50,11 @@ export class TokenBucket {
   #maxQueueGrantSize;
 
   /**
-   * @type {number} The maximum allowed wait queue size, in tokens. That is,
+   * The maximum allowed wait queue size, in tokens. That is,
    * this is the sum of all grants to be made from waiters in the queue.
    * `Number.POSITIVE_INFINITY` is used represent "no limit."
+   *
+   * @type {number}
    */
   #maxQueueSize;
 
@@ -76,21 +80,25 @@ export class TokenBucket {
   #lastNow;
 
   /**
-   * @type {number} The number of tokens available for a burst, at time {@link
-   * #lastNow).
+   * The number of tokens available for a burst, at time {@link #lastNow).
+   *
+   * @type {number}
    */
   #lastBurstSize;
 
   /**
-   * @type {{ grant: number, startTime: Moment, doGrant: function(number) }[]}
    * Array of grant waiters.
+   *
+   * @type {{ grant: number, startTime: Moment, doGrant: function(number) }[]}
    */
   #waiters = [];
 
   /**
-   * @type {number} The current waiter queue size, in tokens. This is the sum of
+   * The current waiter queue size, in tokens. This is the sum of
    * `.#waiters[*].grant` and represents how many tokens must be granted in
    * order to to clear out the waiters.
+   *
+   * @type {number}
    */
   #queueSize = 0;
 

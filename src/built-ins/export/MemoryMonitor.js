@@ -141,14 +141,18 @@ export class MemoryMonitor extends BaseService {
   //
 
   /**
-   * @type {number} Minimum amount of time in msec between checks, when dealing
+   * Minimum amount of time in msec between checks, when dealing
    * with an "over limit" situation.
+   *
+   * @type {number}
    */
   static #MIN_TROUBLE_CHECK_MSEC = 1000;
 
   /**
-   * @type {number} Fraction of time between "now" and when action needs to
+   * Fraction of time between "now" and when action needs to
    * happen, when the next check should take place in an "over limit" situation.
+   *
+   * @type {number}
    */
   static #TROUBLE_CHECK_FRACTION = 0.4;
 
