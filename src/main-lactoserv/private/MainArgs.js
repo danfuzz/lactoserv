@@ -19,7 +19,7 @@ export class MainArgs {
   /**
    * Value of `process.argv` (or equivalent).
    *
-   * @type {string[]}
+   * @type {Array<string>}
    */
   #argv;
 
@@ -41,7 +41,7 @@ export class MainArgs {
   /**
    * Constructs an instance.
    *
-   * @param {string[]} argv Value of `process.argv` (or equivalent).
+   * @param {Array<string>} argv Value of `process.argv` (or equivalent).
    */
   constructor(argv) {
     this.#argv = MustBe.arrayOfString(argv);

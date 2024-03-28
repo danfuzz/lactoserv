@@ -267,8 +267,8 @@ export class TreePathNode {
    * all bindings of this instance, yielding entries where the `path` part of
    * the key is prepended with the given `path` value.
    *
-   * @param {string[]} pathPrefix Path to prepend to the `path` part of the key
-   *   in all yielded results.
+   * @param {Array<string>} pathPrefix Path to prepend to the `path` part of the
+   *   key in all yielded results.
    * @yields {object} The next binding of this instance, with key modified as
    *   described above.
    */

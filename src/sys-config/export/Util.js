@@ -15,7 +15,7 @@ export class Util {
    * @param {*} items Items to check.
    * @param {string|RegExp|function(string): string} patternOrFilter Pattern or
    *   filter/checker function which must match all the items.
-   * @returns {string[]} Frozen copy of the `items` if a `string[]`, frozen
+   * @returns {Array<string>} Frozen copy of the `items` if a `string[]`, frozen
    *   array of just `items` if a simple `string`. If given a filter, the return
    *   value is a frozen array of all the results from calls to the filter.
    * @throws {Error} Thrown if `items` is neither a `string` nor a `string[]`,

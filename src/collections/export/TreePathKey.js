@@ -17,7 +17,7 @@ export class TreePathKey {
   /**
    * Path portion of the key.
    *
-   * @type {string[]}
+   * @type {Array<string>}
    */
   #path;
 
@@ -42,7 +42,7 @@ export class TreePathKey {
    * **Note:** If not already frozen, the `path` is copied internally, in order
    * to maintain the immutability guarantee for instances.
    *
-   * @param {string[]} path Path to the value.
+   * @param {Array<string>} path Path to the value.
    * @param {boolean} wildcard Wildcard indicator. This means different (though
    *   related) things, depending on the context in which an instance is used.
    */
@@ -79,7 +79,7 @@ export class TreePathKey {
     return this.#path.length;
   }
 
-  /** @returns {string[]} The path. */
+  /** @returns {Array<string>} The path. */
   get path() {
     return this.#path;
   }

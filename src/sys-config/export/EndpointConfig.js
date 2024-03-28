@@ -27,7 +27,7 @@ export class EndpointConfig extends NamedConfig {
   /**
    * The hostnames in question.
    *
-   * @type {string[]}
+   * @type {Array<string>}
    */
   #hostnames;
 
@@ -85,8 +85,8 @@ export class EndpointConfig extends NamedConfig {
   }
 
   /**
-   * @returns {string[]} List of hostnames, including possibly subdomain and/or
-   * full wildcards.
+   * @returns {Array<string>} List of hostnames, including possibly subdomain
+   * and/or full wildcards.
    */
   get hostnames() {
     return this.#hostnames;

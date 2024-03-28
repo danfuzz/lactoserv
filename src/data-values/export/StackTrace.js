@@ -311,7 +311,7 @@ export class StackTrace {
   /**
    * Constructs a known-valid frames array from a possibly-valid one.
    *
-   * @param {*[]} original Original value.
+   * @param {Array<*>} original Original value.
    * @returns {object[]} Frame array, in the form expected by the rest of this
    *   class.
    */

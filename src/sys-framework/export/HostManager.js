@@ -41,7 +41,7 @@ export class HostManager {
   /**
    * Constructs an instance.
    *
-   * @param {HostConfig[]} [configs] Configuration objects.
+   * @param {Array<HostConfig>} [configs] Configuration objects.
    */
   constructor(configs = []) {
     for (const config of configs) {
@@ -82,8 +82,8 @@ export class HostManager {
    * example, passing a complete wildcard hostname will produce a clone of this
    * instance.
    *
-   * @param {string[]} names Hostnames (including wildcards) which are to be
-   *   included in the subset.
+   * @param {Array<string>} names Hostnames (including wildcards) which are to
+   *   be included in the subset.
    * @returns {HostManager} Subsetted instance.
    * @throws {Error} Thrown if any of the `names` is found not to match any
    *   bindings in this instance.

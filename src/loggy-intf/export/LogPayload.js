@@ -124,7 +124,7 @@ export class LogPayload extends EventPayload {
    * Appends the human form of {@link #payload} to the given array of parts (to
    * ultimately `join()`).
    *
-   * @param {string[]} parts Parts to append to.
+   * @param {Array<string>} parts Parts to append to.
    * @param {boolean} colorize Colorize the result?
    */
   #appendHumanPayload(parts, colorize) {

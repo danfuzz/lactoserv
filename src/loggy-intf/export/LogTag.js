@@ -31,7 +31,7 @@ export class LogTag {
   /**
    * Context strings.
    *
-   * @type {string[]}
+   * @type {Array<string>}
    */
   #context;
 
@@ -60,7 +60,7 @@ export class LogTag {
     this.#context = Object.freeze(context);
   }
 
-  /** @returns {string[]} Context strings. Always a frozen array. */
+  /** @returns {Array<string>} Context strings. Always a frozen array. */
   get context() {
     return this.#context;
   }

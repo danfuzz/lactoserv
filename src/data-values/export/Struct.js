@@ -34,7 +34,7 @@ export class Struct extends BaseDataClass {
   /**
    * Positional "arguments" of the structure.
    *
-   * @type {*[]}
+   * @type {Array<*>}
    */
   #args;
 
@@ -57,8 +57,8 @@ export class Struct extends BaseDataClass {
   }
 
   /**
-   * @returns {*[]} Positional "arguments" of the structure. This is always a
-   * frozen array.
+   * @returns {Array<*>} Positional "arguments" of the structure. This is always
+   * a frozen array.
    */
   get args() {
     return this.#args;
@@ -68,7 +68,7 @@ export class Struct extends BaseDataClass {
    * Sets the positional "arguments." This is only allowed if this instance is
    * not frozen.
    *
-   * @param {*[]} args The new arguments.
+   * @param {Array<*>} args The new arguments.
    */
   set args(args) {
     this.#frozenCheck();
