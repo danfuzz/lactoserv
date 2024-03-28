@@ -156,18 +156,18 @@ export class Warehouse extends BaseControllable {
   //
 
   /**
-   * Grace period after asking all applications to stop before
-   * asking services to shut down. (If the applications stop more promptly, then
-   * the system will immediately move on.)
+   * Grace period after asking all applications to stop before asking services
+   * to shut down. (If the applications stop more promptly, then the system will
+   * immediately move on.)
    *
    * @type {number}
    */
   static #APPLICATION_STOP_GRACE_PERIOD_MSEC = 250;
 
   /**
-   * Grace period after asking all endpoints to stop before
-   * asking applications and services to shut down. (If the endpoints stop more
-   * promptly, then the system will immediately move on.)
+   * Grace period after asking all endpoints to stop before asking applications
+   * and services to shut down. (If the endpoints stop more promptly, then the
+   * system will immediately move on.)
    *
    * @type {number}
    */

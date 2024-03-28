@@ -29,24 +29,22 @@ export class BaseSystem extends Threadlet {
   #reloadRequested = new Condition();
 
   /**
-   * Logger for this instance, or `null` not to do any
-   * logging.
+   * Logger for this instance, or `null` not to do any logging.
    *
    * @type {?IntfLogger}
    */
   #logger = null;
 
   /**
-   * Value returned from {@link #_impl_init} which is currently being
-   * used.
+   * Value returned from {@link #_impl_init} which is currently being used.
    *
    * @type {*}
    */
   #initValue = null;
 
   /**
-   * Value returned from {@link #_impl_init} which is to be used on
-   * the next start (including a restart).
+   * Value returned from {@link #_impl_init} which is to be used on the next
+   * start (including a restart).
    *
    * @type {*}
    */

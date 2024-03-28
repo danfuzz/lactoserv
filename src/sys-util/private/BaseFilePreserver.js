@@ -41,8 +41,7 @@ export class BaseFilePreserver {
   #lastInfix = null;
 
   /**
-   * Count (in the infix) used for the most recently preserved
-   * file.
+   * Count (in the infix) used for the most recently preserved file.
    *
    * @type {?string}
    */
@@ -74,8 +73,7 @@ export class BaseFilePreserver {
   }
 
   /**
-   * Logger used by this instance. This is mostly for the
-   * benefit of subclasses.
+   * Logger used by this instance. This is mostly for the benefit of subclasses.
    *
    * @type {?IntfLogger}
    */

@@ -8,8 +8,8 @@ import { Names } from '#x/Names';
 
 /**
  * Class for indicating a mapping from service roles (by name) to corresponding
- * services (also by name) that are to be used for those roles. (See
- * {@link EndpointConfig}.)
+ * services (also by name) that are to be used for those roles. (See {@link
+ * EndpointConfig}.)
  *
  * Accepted configuration (in the constructor) is an object with role names for
  * keys and service names for values. Only specific recognized role names are

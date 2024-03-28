@@ -5,8 +5,8 @@ import { ClassedConfig } from '#x/ClassedConfig';
 
 
 /**
- * Class for configuration of services. Accepted configuration bindings (in
- * the constructor) are entirely as defined by the superclass, {@link
+ * Class for configuration of services. Accepted configuration bindings (in the
+ * constructor) are entirely as defined by the superclass, {@link
  * ClassedConfig}.
  */
 export class ServiceConfig extends ClassedConfig {

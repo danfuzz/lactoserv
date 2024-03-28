@@ -16,8 +16,8 @@ import { BaseComponent } from '#x/BaseComponent';
  */
 export class BaseApplication extends BaseComponent {
   /**
-   * Config instance, if it is an instance
-   * of this class's config class, or `null` if not.
+   * Config instance, if it is an instance of this class's config class, or
+   * `null` if not.
    *
    * @type {?BaseApplication.FilterConfig}
    */
@@ -213,32 +213,31 @@ export class BaseApplication extends BaseComponent {
    */
   static FilterConfig = class FilterConfig extends ApplicationConfig {
     /**
-     * Set of request methods (e.g. `post`) that the
-     * application accepts.
+     * Set of request methods (e.g. `post`) that the application accepts.
      *
      * @type {Set<string>}
      */
     #acceptMethods;
 
     /**
-     * Maximum allowed dispatch `extra` path length in
-     * slash-separated components (inclusive), or `null` if there is no limit.
+     * Maximum allowed dispatch `extra` path length in slash-separated
+     * components (inclusive), or `null` if there is no limit.
      *
      * @type {?number}
      */
     #maxPathDepth;
 
     /**
-     * Maximum allowed dispatch `extra` path length in octets
-     * (inclusive), or `null` if there is no limit.
+     * Maximum allowed dispatch `extra` path length in octets (inclusive), or
+     * `null` if there is no limit.
      *
      * @type {?number}
      */
     #maxPathLength;
 
     /**
-     * Maximum allowed query (search string) length in octets
-     * (inclusive), or `null` if there is no limit.
+     * Maximum allowed query (search string) length in octets (inclusive), or
+     * `null` if there is no limit.
      *
      * @type {?number}
      */
@@ -304,8 +303,8 @@ export class BaseApplication extends BaseComponent {
     }
 
     /**
-     * Maximum allowed dispatch `extra` path length in
-     * slash-separated components (inclusive), or `null` if there is no limit.
+     * Maximum allowed dispatch `extra` path length in slash-separated
+     * components (inclusive), or `null` if there is no limit.
      *
      * @type {?number}
      */
@@ -314,8 +313,8 @@ export class BaseApplication extends BaseComponent {
     }
 
     /**
-     * Maximum allowed dispatch `extra` path length in octets
-     * (inclusive), or `null` if there is no limit.
+     * Maximum allowed dispatch `extra` path length in octets (inclusive), or
+     * `null` if there is no limit.
      *
      * @type {?number}
      */
@@ -324,8 +323,8 @@ export class BaseApplication extends BaseComponent {
     }
 
     /**
-     * Maximum allowed query (search string) length in octets
-     * (inclusive), or `null` if there is no limit.
+     * Maximum allowed query (search string) length in octets (inclusive), or
+     * `null` if there is no limit.
      *
      * @type {?number}
      */

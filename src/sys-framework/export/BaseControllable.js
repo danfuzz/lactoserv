@@ -174,8 +174,7 @@ export class BaseControllable {
   }
 
   /**
-   * Logs a message about an item (component, etc.) starting an `init()`
-   * action.
+   * Logs a message about an item (component, etc.) starting an `init()` action.
    *
    * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    * @param {boolean} isReload Is this a system reload (vs. first-time init)?

@@ -15,9 +15,9 @@ import { ThisModule } from '#p/ThisModule';
  */
 export class RootControlContext extends ControlContext {
   /**
-   * For each context which represents a
-   * component (all of which have `name`s), a mapping from its name to the
-   * context. This represents a subset of all descendants.
+   * For each context which represents a component (all of which have `name`s),
+   * a mapping from its name to the context. This represents a subset of all
+   * descendants.
    *
    * @type {Map<string, ControlContext>}
    */

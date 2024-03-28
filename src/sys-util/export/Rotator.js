@@ -23,8 +23,8 @@ export class Rotator extends BaseFilePreserver {
   #config;
 
   /**
-   * How long to wait between checks if timed checks are to be
-   * done, or `null` not to do such checks.
+   * How long to wait between checks if timed checks are to be done, or `null`
+   * not to do such checks.
    *
    * @type {?Duration}
    */
