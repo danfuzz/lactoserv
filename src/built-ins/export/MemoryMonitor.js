@@ -27,9 +27,11 @@ export class MemoryMonitor extends BaseService {
   #runner = new Threadlet(() => this.#run());
 
   /**
-   * @type {?{ heap: number, rss: number, at: Moment, troubleAt: ?Duration,
-   * actionAt: ?Moment }} Most recent memory snapshot (along with timing info),
+   * Most recent memory snapshot (along with timing info),
    * or `null` if a snapshot has not yet been taken.
+   *
+   * @type {?{ heap: number, rss: number, at: Moment, troubleAt: ?Duration,
+   * actionAt: ?Moment }}
    */
   #lastSnapshot = null;
 
@@ -180,14 +182,16 @@ export class MemoryMonitor extends BaseService {
     #gracePeriod;
 
     /**
-     * @type {?number} Maximum allowed size of heap usage, in bytes, or `null`
-     * for no limit.
+     * Maximum allowed size of heap usage, in bytes, or `null` for no limit.
+     *
+     * @type {?number}
      */
     #maxHeapBytes;
 
     /**
-     * @type {?number} Maximum allowed size of RSS, in bytes, or `null` for no
-     * limit.
+     * Maximum allowed size of RSS, in bytes, or `null` for no limit.
+     *
+     * @type {?number}
      */
     #maxRssBytes;
 
