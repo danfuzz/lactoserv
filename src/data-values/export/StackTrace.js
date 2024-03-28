@@ -99,8 +99,8 @@ export class StackTrace {
    * **Note:** The result only represents the direct stack of the `Error`, not
    * any error(s) referenced via `.cause`.
    *
-   * @param {string|StackTrace|{ message: string, stack: string }|{ name:
-   *   ?string, file: string, line: ?number, col: ?number }[]} original Source
+   * @param {string|StackTrace|{ message: string, stack: string }|Array<{ name:
+   *   ?string, file: string, line: ?number, col: ?number }>} original Source
    *   for the stack frames.
    * @param {number} [omitCount] Number of innermost stack frames to omit
    *   (not including the one for this method call, which is _always_ omitted).
@@ -164,8 +164,8 @@ export class StackTrace {
    *   (not including the one for this method call, which is _always_ omitted).
    * @param {?number} [maxCount] Maximum number of frames to include, or
    *   `null` to have no limit.
-   * @returns {{ name: ?string, file: string, line: ?number, col: ?number }[]}
-   *   The stack trace.
+   * @returns {Array<{ name: ?string, file: string, line: ?number, col: ?number
+   *   }>} The stack trace.
    */
   static framesNow(omitCount = 0, maxCount = null) {
     const error = this._impl_newError();

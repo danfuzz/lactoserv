@@ -14,12 +14,12 @@ import { ServiceConfig } from '#x/ServiceConfig';
  * Accepted configuration bindings (in the constructor). All are required,
  * except as noted:
  *
- * * `{object|object[]} applications` -- Application configuration.
- * * `{object|object[]} endpoints` -- Endpoint configuration.
- * * `{object|object[]} hosts` -- Optional host / certificate configuration.
- *   Required only if any endpoints are configured to listen for secure
- *   connections.
- * * `{object|object[]} services` -- Optional system service configuration.
+ * * `{object|Array<object>} applications` -- Application configuration.
+ * * `{object|Array<object>} endpoints` -- Endpoint configuration.
+ * * `{object|Array<object>} hosts` -- Optional host / certificate
+ *   configuration. Required only if any endpoints are configured to listen for
+ *   secure connections.
+ * * `{object|Array<object>} services` -- Optional system service configuration.
  *   If not present, no services are configured.
  */
 export class WarehouseConfig extends BaseConfig {

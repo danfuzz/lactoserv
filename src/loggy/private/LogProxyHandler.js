@@ -219,8 +219,8 @@ export class LogProxyHandler extends PropertyCacheProxyHandler {
    * wrapped in a proxy -- either for the top level (no context tag) or for an
    * arbitrary starting context.
    *
-   * @param {?LogTag|string|string[]} tag Tag to use on all logged events, or
-   *   constructor arguments for same. If `null`, the instance will have no
+   * @param {?LogTag|string|Array<string>} tag Tag to use on all logged events,
+   *   or constructor arguments for same. If `null`, the instance will have no
    *   context tag.
    * @param {IntfLoggingEnvironment} environment Logging environment to use.
    * @returns {IntfLogger} A logger, as described.

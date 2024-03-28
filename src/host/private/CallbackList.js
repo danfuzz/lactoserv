@@ -29,7 +29,7 @@ export class CallbackList {
   /**
    * Callbacks to invoke when requested.
    *
-   * @type {(function())[]}
+   * @type {Array<function()>}
    */
   #callbacks = [];
 
