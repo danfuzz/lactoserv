@@ -133,10 +133,12 @@ export class ControlContext {
 
   /**
    * Like {@link #getComponent}, but returns `null` if there is no component
-   * with the indicated name. If there _is_ a component with the name but its
-   * class doesn't match, that's still an error.
+   * with the indicated name or if `name` was passed as `null` or `undefined`.
+   * If there _is_ a component with the name but its class doesn't match, that's
+   * still an error.
    *
-   * @param {string} name Name of the component.
+   * @param {?string} name Name of the component, or `null`-ish to always
+   *   not-find an instance.
    * @param {?function(new:IntfComponent)} [cls] Class which the result must be
    *   an instance of, or `null` to not have a class restriction.
    * @returns {?IntfComponent} Found instance, or `null` if there was none.

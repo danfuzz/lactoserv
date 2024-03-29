@@ -40,7 +40,11 @@ export class RootControlContext extends ControlContext {
   }
 
   /** @override */
-  getComponentOrNull(name, cls) {
+  getComponentOrNull(name, cls = null) {
+    if ((name === null) || (name === undefined)) {
+      return null;
+    }
+
     MustBe.string(name);
     cls = (cls === null) ? Object : MustBe.constructorFunction(cls);
 
