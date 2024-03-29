@@ -14,7 +14,10 @@ Breaking changes:
     the exported API.
 
 Other notable changes:
-* None.
+* `sys-framework`:
+  * Made it possible to pass application and service _instances_ into the
+   `Warehouse` constructor, instead of having to pass plain objects in. This
+   makes for much nicer ergonomics when using the system as a framework.
 
 ### v0.6.12 -- 2024-03-28
 
