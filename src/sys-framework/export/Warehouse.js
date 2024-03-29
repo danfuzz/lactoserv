@@ -231,7 +231,7 @@ export class Warehouse extends BaseComponent {
       this.#services     = BaseService.evalArray(services);
     }
 
-    /** @returns {Array<BaseApplication>} Application objects. */
+    /** @returns {Array<BaseApplication>} Application instances. */
     get applications() {
       return this.#applications;
     }
@@ -246,7 +246,7 @@ export class Warehouse extends BaseComponent {
       return this.#endpoints;
     }
 
-    /** @returns {Array<BaseService>} Service objects. */
+    /** @returns {Array<BaseService>} Service instances. */
     get services() {
       return this.#services;
     }
