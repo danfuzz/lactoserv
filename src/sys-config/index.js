@@ -9,7 +9,6 @@ export * from '#x/EndpointConfig';
 export * from '#x/FileServiceConfig';
 export * from '#x/HostConfig';
 export * from '#x/NamedConfig';
-export * from '#x/Names';
 export * from '#x/RotateConfig';
 export * from '#x/SaveConfig';
 export * from '#x/ServiceConfig';

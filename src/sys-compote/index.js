@@ -5,4 +5,5 @@ export * from '#x/BaseComponent';
 export * from '#x/BaseNamedComponent';
 export * from '#x/ControlContext';
 export * from '#x/IntfComponent';
+export * from '#x/Names';
 export * from '#x/RootControlContext';
