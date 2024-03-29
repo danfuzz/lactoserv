@@ -93,8 +93,8 @@ export class ManualPromise {
    * Gets an indicator of whether or not the underlying promise has been settled
    * as fulfilled.
    *
-   * @returns {boolean} Whenter (`true`) or not (`false`) the underlying
-   *   promise is settled as fulfilled.
+   * @returns {boolean} Whenter (`true`) or not (`false`) the underlying promise
+   *   is settled as fulfilled.
    */
   isFulfilled() {
     return this.#resolution?.fulfilled ?? false;
@@ -104,8 +104,8 @@ export class ManualPromise {
    * Gets an indicator of whether or not the underlying promise has been settled
    * as rejected.
    *
-   * @returns {boolean} Whenter (`true`) or not (`false`) the underlying
-   *   promise is settled as rejected.
+   * @returns {boolean} Whenter (`true`) or not (`false`) the underlying promise
+   *   is settled as rejected.
    */
   isRejected() {
     return this.#resolution?.rejected ?? false;
@@ -115,8 +115,8 @@ export class ManualPromise {
    * Gets an indicator of whether or not the underlying promise has been settled
    * (either as fulfilled or rejected).
    *
-   * @returns {boolean} Whenter (`true`) or not (`false`) the underlying
-   *   promise is settled.
+   * @returns {boolean} Whenter (`true`) or not (`false`) the underlying promise
+   *   is settled.
    */
   isSettled() {
     return (this.#resolution !== null)

@@ -113,7 +113,6 @@ export class EtagGenerator {
    * `dataOnly` configuration option.
    *
    * @param {string} absolutePath Absolute path to the file in question.
-   *   entity data.
    * @returns {?string} The corresponding etag, or `null` if the file does not
    *   exist.
    */

@@ -44,8 +44,8 @@ export class TreePathMap {
   /**
    * Constructs an empty instance.
    *
-   * @param {?function(TreePathKey): string} [keyStringFunc] The function
-   *   to use to render keys into strings. If `null`, this uses {@link
+   * @param {?function(TreePathKey): string} [keyStringFunc] The function to use
+   *   to render keys into strings. If `null`, this uses {@link
    *   TreePathKey#toString} with no arguments.
    */
   constructor(keyStringFunc = null) {

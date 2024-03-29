@@ -53,8 +53,8 @@ export class ComponentManager extends BaseComponent {
    * @param {?function(new:BaseNamedComponent)} [options.baseClass] Base class
    *   of all components to be managed by this instance. `null` (the default) is
    *   the same as passing `BaseNamedComponent`.
-   * @param {?IntfLogger} [options.baseSublogger] Base sublogger to use
-   *   for instantiated components, or `null` not to do any logging.
+   * @param {?IntfLogger} [options.baseSublogger] Base sublogger to use for
+   *   instantiated components, or `null` not to do any logging.
    */
   constructor(configs, options) {
     const {

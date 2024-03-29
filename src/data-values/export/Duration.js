@@ -200,8 +200,8 @@ export class Duration extends UnitQuantity {
    *
    * @param {number} durationSec Duration in seconds.
    * @param {object} [options] Formatting options.
-   * @param {boolean} [options.spaces] Use spaces to separate the number
-   *   from the units? If `false` an underscore is used.
+   * @param {boolean} [options.spaces] Use spaces to separate the number from
+   *   the units? If `false` an underscore is used.
    * @returns {string} The friendly form.
    */
   static stringFromSec(durationSec, options = {}) {

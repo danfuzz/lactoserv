@@ -374,8 +374,8 @@ export class BaseFilePreserver {
    *
    * @param {Date|string} date Date to derive the (UTC) date label for the file,
    *   or an already-derived date string.
-   * @param {?count} [count] Count to include in the result, or `null` to
-   *   not include a count.
+   * @param {?count} [count] Count to include in the result, or `null` to not
+   *   include a count.
    * @returns {string} The infix.
    */
   static #makeInfix(date, count = null) {

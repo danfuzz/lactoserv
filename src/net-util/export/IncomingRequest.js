@@ -129,11 +129,11 @@ export class IncomingRequest {
    *   not do any logging. If passed as non-`null`, the actual logger instance
    *   will be one that includes an additional subtag representing a new
    *   unique(ish) ID for the request.
-   * @param {string} config.protocolName The protocol name. This is expected
-   *   to be a lowercase name followed by a dash and a version, e.g. `http-1.1`.
-   * @param {HttpHeaders} config.pseudoHeaders HTTP-2-ish "pseudo-headers"
-   *   that came with the request or were synthesized based on an HTTP-1-ish
-   *   request, with keys stripped of their colon (`:`) prefixes.
+   * @param {string} config.protocolName The protocol name. This is expected to
+   *   be a lowercase name followed by a dash and a version, e.g. `http-1.1`.
+   * @param {HttpHeaders} config.pseudoHeaders HTTP-2-ish "pseudo-headers" that
+   *   came with the request or were synthesized based on an HTTP-1-ish request,
+   *   with keys stripped of their colon (`:`) prefixes.
    */
   constructor(config) {
     const {

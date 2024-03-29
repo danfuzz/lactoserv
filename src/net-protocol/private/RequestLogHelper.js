@@ -33,9 +33,9 @@ export class RequestLogHelper {
    * logger.
    *
    * @param {IncomingRequest} request Request object.
-   * @param {Promise<OutgoingResponse>} responsePromise Promise for the
-   *   response which was sent, which becomes resolved after it is believed to
-   *   have been sent.
+   * @param {Promise<OutgoingResponse>} responsePromise Promise for the response
+   *   which was sent, which becomes resolved after it is believed to have been
+   *   sent.
    * @param {object} networkInfo Miscellaneous network info. See {@link
    *   IntfRequestLogger#requestStarted}.
    */

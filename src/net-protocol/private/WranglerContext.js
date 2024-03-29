@@ -69,8 +69,8 @@ export class WranglerContext {
   /**
    * Constructs an instance.
    *
-   * @param {WranglerContext} [source] Source instance to copy from, if any.
-   *   If `null`, the new instance is empty.
+   * @param {WranglerContext} [source] Source instance to copy from, if any. If
+   *   `null`, the new instance is empty.
    */
   constructor(source = null) {
     if (source) {

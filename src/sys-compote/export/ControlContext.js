@@ -18,8 +18,8 @@ import { ThisModule } from '#p/ThisModule';
 
 /**
  * "Context" in which a {@link IntfComponent} is situated. Instances of this
- * class are handed to controllables via {@link IntfComponent#init}, which
- * gets called when they become hooked into a hierarchy of instances.
+ * class are handed to controllables via {@link IntfComponent#init}, which gets
+ * called when they become hooked into a hierarchy of instances.
  */
 export class ControlContext {
   /**
@@ -56,9 +56,8 @@ export class ControlContext {
   /**
    * Constructs an instance.
    *
-   * @param {IntfComponent|string} associate Associated component
-   *   instance, or the string `root` if this instance is to represent the root
-   *   instance.
+   * @param {IntfComponent|string} associate Associated component instance, or
+   *   the string `root` if this instance is to represent the root instance.
    * @param {?IntfComponent} parent Parent of `associate`, or `null` if this
    *   instance is to represent the root instance.
    * @param {?IntfLogger} [logger] Logger to use, or `null` to not do any
@@ -127,8 +126,8 @@ export class ControlContext {
   }
 
   /**
-   * Underlying implementation of the method `BaseComponent.linkRoot()`. This
-   * is a module-private method, so that it can only be called when appropriate
+   * Underlying implementation of the method `BaseComponent.linkRoot()`. This is
+   * a module-private method, so that it can only be called when appropriate
    * (and thus avoid inconsistent state).
    *
    * @param {IntfComponent} root The actual "root" instance.

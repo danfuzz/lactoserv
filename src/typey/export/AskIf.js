@@ -84,14 +84,14 @@ export class AskIf {
    *
    * @param {*} value Arbitrary value.
    * @param {?object} [options] Options for restrictions.
-   * @param {?bigint} [options.maxExclusive] Exclusive maximum value.
-   *   That is, require `value < maxExclusive`.
-   * @param {?bigint} [options.maxInclusive] Inclusive maximum value.
-   *   That is, require `value <= maxInclusive`.
-   * @param {?bigint} [options.minExclusive] Exclusive minimum value.
-   *   That is, require `value > minExclusive`.
-   * @param {?bigint} [options.minInclusive] Inclusive minimum value.
-   *   That is, require `value >= minInclusive`.
+   * @param {?bigint} [options.maxExclusive] Exclusive maximum value. That is,
+   *   require `value < maxExclusive`.
+   * @param {?bigint} [options.maxInclusive] Inclusive maximum value. That is,
+   *   require `value <= maxInclusive`.
+   * @param {?bigint} [options.minExclusive] Exclusive minimum value. That is,
+   *   require `value > minExclusive`.
+   * @param {?bigint} [options.minInclusive] Inclusive minimum value. That is,
+   *   require `value >= minInclusive`.
    * @returns {boolean} `true` iff `value` is of the indicated type.
    */
   static bigint(value, options = null) {
@@ -230,17 +230,17 @@ export class AskIf {
    * @param {*} value Arbitrary value.
    * @param {?object} [options] Options for restrictions.
    * @param {boolean} [options.finite] Must `value` be finite?
-   * @param {?number} [options.maxExclusive] Exclusive maximum value.
-   *   That is, require `value < maxExclusive`.
-   * @param {?number} [options.maxInclusive] Inclusive maximum value.
-   *   That is, require `value <= maxInclusive`.
-   * @param {?number} [options.minExclusive] Exclusive minimum value.
-   *   That is, require `value > minExclusive`.
-   * @param {?number} [options.minInclusive] Inclusive minimum value.
-   *   That is, require `value >= minInclusive`.
-   * @param {boolean} [options.safeInteger] Must `value` be a safe
-   *   integer (exactly representable integer as a regular JavaScript number).
-   *   Implies `options.finite: true`.
+   * @param {?number} [options.maxExclusive] Exclusive maximum value. That is,
+   *   require `value < maxExclusive`.
+   * @param {?number} [options.maxInclusive] Inclusive maximum value. That is,
+   *   require `value <= maxInclusive`.
+   * @param {?number} [options.minExclusive] Exclusive minimum value. That is,
+   *   require `value > minExclusive`.
+   * @param {?number} [options.minInclusive] Inclusive minimum value. That is,
+   *   require `value >= minInclusive`.
+   * @param {boolean} [options.safeInteger] Must `value` be a safe integer
+   *   (exactly representable integer as a regular JavaScript number). Implies
+   *   `options.finite: true`.
    * @returns {boolean} `true` iff `value` is of the indicated type.
    */
   static number(value, options = null) {
