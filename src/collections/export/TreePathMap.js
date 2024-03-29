@@ -3,7 +3,7 @@
 
 import { MustBe } from '@this/typey';
 
-import { PathKeyish } from '#x/PathKeyish';
+import { TypePathKey } from '#x/TypePathKey';
 import { TreePathKey } from '#x/TreePathKey';
 import { TreePathNode } from '#p/TreePathNode';
 
@@ -77,7 +77,7 @@ export class TreePathMap {
    * binding. Note that it is valid for there to be both wildcard and
    * non-wildcard bindings simultaneously for any given path.
    *
-   * @param {PathKeyish} key Key to bind. If `.wildcard` is `false`, then this
+   * @param {TypePathKey} key Key to bind. If `.wildcard` is `false`, then this
    *   method only binds the `.path`. If `key.wildcard` is `true`, then this
    *   method binds all paths with `.path` as a prefix, including `.path`
    *   itself.
@@ -117,7 +117,7 @@ export class TreePathMap {
    * getting the first result from {@link #findWithFallback} or `null` if there
    * are no matching bindings.
    *
-   * @param {PathKeyish} key Key to search for.
+   * @param {TypePathKey} key Key to search for.
    * @returns {?{key: TreePathKey, keyRemainder: TreePathKey, value: *}} The
    *   most specific match, or `null` if there was no match at all.
    */
@@ -140,7 +140,7 @@ export class TreePathMap {
    * wildcard key with a non-empty path, then this method will only return
    * bindings with keys at or under that path.
    *
-   * @param {PathKeyish} key Key to search for.
+   * @param {TypePathKey} key Key to search for.
    * @returns {TreePathMap} Map of matched bindings.
    */
   findSubtree(key) {
@@ -158,7 +158,7 @@ export class TreePathMap {
    * Note that, given the same path, a non-wildcard binding is considered more
    * specific than a wildcard binding.
    *
-   * @param {PathKeyish} key Key to search for. If `.wildcard` is `true`, then
+   * @param {TypePathKey} key Key to search for. If `.wildcard` is `true`, then
    *   this method will only find bindings which are wildcards, though they
    *   might be more general than the `.path` being looked for.
    * @yields {{key: TreePathKey, keyRemainder: TreePathKey, value: *}} One
@@ -185,7 +185,7 @@ export class TreePathMap {
    * as it is because its functionality is the same as with the standard
    * JavaScript method on `Map` with the same name.
    *
-   * @param {PathKeyish} key Key to look up.
+   * @param {TypePathKey} key Key to look up.
    * @param {*} [ifNotFound] What to return if a binding is not found.
    * @returns {*} The value bound for the given `key`, or `ifNotFound` if there
    *   is no such binding.

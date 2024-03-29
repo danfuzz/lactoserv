@@ -11,6 +11,6 @@ import { TreePathMap } from '#x/TreePathMap';
  * but it is generally okay to pass in plain objects with the expected
  * properties.
  *
- * @typedef {TreePathKey|{ path: Array<string>, wildcard: boolean }} PathKeyish
+ * @typedef {TreePathKey|{ path: Array<string>, wildcard: boolean }} TypePathKey
  */
-export const PathKeyish = Symbol('PathKeyish');
+export const TypePathKey = Symbol('TypePathKey');
