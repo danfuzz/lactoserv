@@ -44,12 +44,20 @@ export class BaseComponent {
    * configuration object for the instance at that point (not just a plain
    * object).
    *
+   * **Note:** When passing `rawConfig` as a plain object, this constructor
+   * will attempt to construct the concrete class's defined {@link
+   * #CONFIG_CLASS}, and then set that as the final {@link #config}. When doing
+   * so, the constructor is passed the given `rawConfig` augmented with the
+   * additional binding of `class` to the concrete class being constructed (that
+   * is, the concrete subclass of this class whose constructor call landed
+   * here).
+   *
    * @param {?object} [rawConfig] "Raw" (not guaranteed to be parsed and
    *   correct) configuration for this instance, or `null` if it has no
    *   associated configuration. If `null` then the class must define {@link
    *   #CONFIG_CLASS} as `null`. If non-`null`, then it must either be an
-   *   instance of {@link #CONFIG_CLASS} _or_ must be a valid plain object value
-   *   to pass to the constructor of {@link #CONFIG_CLASS}.
+   *   instance of {@link #CONFIG_CLASS} _or_ must be a plain object which is
+   *   acceptable to the constructor of {@link #CONFIG_CLASS}.
    * @param {?RootControlContext} [rootContext] Associated context if this
    *   instance is to be the root of its control hierarchy, or `null` for any
    *   other instance.
@@ -66,6 +74,14 @@ export class BaseComponent {
     } else if (rawConfig instanceof configClass) {
       this.#config = rawConfig;
     } else if (AskIf.plainObject(rawConfig)) {
+      const thisClass = this.constructor;
+      if (rawConfig.class) {
+        if (rawConfig.class !== thisClass) {
+          throw new Error('Mismatch on configuration property `class`.');
+        }
+      } else {
+        rawConfig = { ...rawConfig, class: thisClass };
+      }
       this.#config = new configClass(rawConfig);
     } else {
       throw new Error('Expected plain object or config instance for `config`.');
