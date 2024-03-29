@@ -86,9 +86,9 @@ export class ComponentManager extends BaseComponent {
    * Gets the {@link BaseNamedComponent} instance bound to a given name.
    *
    * @param {string} name Instantiated component name to look for.
-   * @param {?string|function(new:BaseNamedComponent)} [cls] Class that the named
-   *   component must be an instance of, or `null` to not have any restriction
-   *   (beyond the baseline class restriction of this instance).
+   * @param {?string|function(new:BaseNamedComponent)} [cls] Class that the
+   *   named component must be an instance of, or `null` to not have any
+   *   restriction (beyond the baseline class restriction of this instance).
    * @returns {BaseNamedComponent} The associated instance.
    * @throws {Error} Thrown if there is no instance with the given name, or it
    *   does not match the given `cls`.
@@ -144,8 +144,8 @@ export class ComponentManager extends BaseComponent {
   }
 
   /**
-   * Constructs a {@link BaseNamedComponent} based on the given information, and adds
-   * a mapping to {@link #instances} so it can be found.
+   * Constructs a {@link BaseNamedComponent} based on the given information, and
+   * adds a mapping to {@link #instances} so it can be found.
    *
    * @param {ClassedConfig} config Parsed configuration item.
    */
@@ -167,8 +167,8 @@ export class ComponentManager extends BaseComponent {
    * restriction.
    *
    * @param {BaseNamedComponent} component The instance to check.
-   * @param {?function(new:BaseNamedComponent)} cls Class that `component` must be,
-   *   or `null` to not have any restriction.
+   * @param {?function(new:BaseNamedComponent)} cls Class that `component` must
+   *   be, or `null` to not have any restriction.
    * @throws {Error} Thrown if `component` is not an instance of an appropriate
    *   class.
    */

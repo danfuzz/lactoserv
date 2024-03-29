@@ -13,7 +13,7 @@ import { ThisModule } from '#p/ThisModule';
 /**
  * Abstract base class which implements {@link IntfComponent}.
  *
- * @implements IntfComponent
+ * @implements {IntfComponent}
  */
 export class BaseComponent {
   /**
