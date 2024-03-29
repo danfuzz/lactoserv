@@ -44,14 +44,7 @@ export class ProcessInfoFile extends BaseFileService {
    */
   #runner = new Threadlet(() => this.#start(), () => this.#run());
 
-  /**
-   * Constructs an instance.
-   *
-   * @param {FileServiceConfig} config Configuration for this service.
-   */
-  constructor(config) {
-    super(config);
-  }
+  // Note: The default constructor is fine for this class.
 
   /** @override */
   async _impl_init(isReload_unused) {
