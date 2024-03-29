@@ -1,5 +1,5 @@
 @this/compote
-=================
+=============
 
 This module implements the low level "component system" upon which the rest of
 the framework is built.
