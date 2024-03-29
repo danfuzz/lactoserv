@@ -15,7 +15,7 @@ import { BaseNamedConfig } from '#x/BaseNamedConfig';
  * * Bindings as defined by the superclass, {@link BaseNamedConfig}.
  * * `{function(new:object)} class` -- The class of the item to create.
  */
-export class ClassedConfig extends BaseNamedConfig {
+export class BaseClassedConfig extends BaseNamedConfig {
   /**
    * The class of the item to create.
    *
