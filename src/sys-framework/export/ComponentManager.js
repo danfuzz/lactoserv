@@ -1,8 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseComponent, BaseNamedComponent, ControlContext }
-  from '@this/compote';
+import { BaseComponent, ControlContext } from '@this/compote';
 import { IntfLogger } from '@this/loggy-intf';
 import { ClassedConfig } from '@this/sys-config';
 import { AskIf, MustBe } from '@this/typey';
@@ -18,7 +17,7 @@ export class ComponentManager extends BaseComponent {
   /**
    * Base class of all components to be managed by this instance.
    *
-   * @type {function(new:BaseNamedComponent)}
+   * @type {function(new:BaseComponent)}
    */
   #baseClass;
 
@@ -41,7 +40,7 @@ export class ComponentManager extends BaseComponent {
   /**
    * Map from each bound name to the corresponding instance.
    *
-   * @type {Map<string, BaseNamedComponent>}
+   * @type {Map<string, BaseComponent>}
    */
   #instances = new Map();
 
@@ -50,9 +49,9 @@ export class ComponentManager extends BaseComponent {
    *
    * @param {Array<ClassedConfig>} configs Configuration objects.
    * @param {object} options Instantiation options.
-   * @param {?function(new:BaseNamedComponent)} [options.baseClass] Base class
+   * @param {?function(new:BaseComponent)} [options.baseClass] Base class
    *   of all components to be managed by this instance. `null` (the default) is
-   *   the same as passing `BaseNamedComponent`.
+   *   the same as passing `BaseComponent`.
    * @param {?IntfLogger} [options.baseSublogger] Base sublogger to use for
    *   instantiated components, or `null` not to do any logging.
    */
@@ -65,8 +64,8 @@ export class ComponentManager extends BaseComponent {
     super();
 
     this.#baseClass = (baseClass === null)
-      ? BaseNamedComponent
-      : MustBe.subclassOf(baseClass, BaseNamedComponent);
+      ? BaseComponent
+      : MustBe.subclassOf(baseClass, BaseComponent);
     this.#configBaseClass = (baseClass === null)
       ? ClassedConfig
       : baseClass.CONFIG_CLASS;
@@ -83,13 +82,13 @@ export class ComponentManager extends BaseComponent {
   }
 
   /**
-   * Gets the {@link BaseNamedComponent} instance bound to a given name.
+   * Gets the {@link BaseComponent} instance bound to a given name.
    *
    * @param {string} name Instantiated component name to look for.
-   * @param {?string|function(new:BaseNamedComponent)} [cls] Class that the
+   * @param {?string|function(new:BaseComponent)} [cls] Class that the
    *   named component must be an instance of, or `null` to not have any
    *   restriction (beyond the baseline class restriction of this instance).
-   * @returns {BaseNamedComponent} The associated instance.
+   * @returns {BaseComponent} The associated instance.
    * @throws {Error} Thrown if there is no instance with the given name, or it
    *   does not match the given `cls`.
    */
@@ -108,7 +107,7 @@ export class ComponentManager extends BaseComponent {
   /**
    * Gets a list of all component instances managed by this (manager) instance.
    *
-   * @returns {Array<BaseNamedComponent>} All the instances.
+   * @returns {Array<BaseComponent>} All the instances.
    */
   getAll() {
     return [...this.#instances.values()];
@@ -144,7 +143,7 @@ export class ComponentManager extends BaseComponent {
   }
 
   /**
-   * Constructs a {@link BaseNamedComponent} based on the given information, and
+   * Constructs a {@link BaseComponent} based on the given information, and
    * adds a mapping to {@link #instances} so it can be found.
    *
    * @param {ClassedConfig} config Parsed configuration item.
@@ -163,11 +162,11 @@ export class ComponentManager extends BaseComponent {
   }
 
   /**
-   * Checks that a {@link BaseNamedComponent} instance fits the given class
+   * Checks that a {@link BaseComponent} instance fits the given class
    * restriction.
    *
-   * @param {BaseNamedComponent} component The instance to check.
-   * @param {?function(new:BaseNamedComponent)} cls Class that `component` must
+   * @param {BaseComponent} component The instance to check.
+   * @param {?function(new:BaseComponent)} cls Class that `component` must
    *   be, or `null` to not have any restriction.
    * @throws {Error} Thrown if `component` is not an instance of an appropriate
    *   class.
