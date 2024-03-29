@@ -3,11 +3,11 @@
 
 import { PathRouter } from '@this/built-ins';
 import { TreePathKey } from '@this/collections';
+import { BaseComponent, ControlContext, RootControlContext }
+  from '@this/compote';
 import { DispatchInfo, HttpHeaders, IncomingRequest, IntfRequestHandler,
   OutgoingResponse, RequestContext }
   from '@this/net-util';
-import { BaseComponent, ControlContext, RootControlContext }
-  from '@this/compote';
 import { BaseApplication } from '@this/sys-framework';
 
 

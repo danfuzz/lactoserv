@@ -2,13 +2,13 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { TreePathKey } from '@this/collections';
+import { BaseNamedComponent } from '@this/compote';
 import { FormatUtils } from '@this/loggy-intf';
 import { IntfRateLimiter, IntfRequestLogger, ProtocolWrangler,
   ProtocolWranglers }
   from '@this/net-protocol';
 import { DispatchInfo, IntfRequestHandler, OutgoingResponse }
   from '@this/net-util';
-import { BaseNamedComponent } from '@this/compote';
 import { EndpointConfig } from '@this/sys-config';
 
 import { BaseApplication } from '#x/BaseApplication';

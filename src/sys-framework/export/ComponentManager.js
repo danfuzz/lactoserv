@@ -1,9 +1,9 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { IntfLogger } from '@this/loggy-intf';
 import { BaseComponent, BaseNamedComponent, ControlContext }
   from '@this/compote';
+import { IntfLogger } from '@this/loggy-intf';
 import { ClassedConfig } from '@this/sys-config';
 import { AskIf, MustBe } from '@this/typey';
 

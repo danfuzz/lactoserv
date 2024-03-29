@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { TreePathMap } from '@this/collections';
-import { HostUtil, IntfRequestHandler } from '@this/net-util';
 import { Names } from '@this/compote';
+import { HostUtil, IntfRequestHandler } from '@this/net-util';
 import { BaseApplication } from '@this/sys-framework';
 import { MustBe } from '@this/typey';
 
