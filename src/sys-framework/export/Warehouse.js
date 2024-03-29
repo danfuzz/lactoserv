@@ -3,9 +3,9 @@
 
 import { PromiseUtil } from '@this/async';
 import { WallClock } from '@this/clocks';
-import { BaseComponent, ControlContext, RootControlContext }
+import { BaseComponent, BaseConfig, ControlContext, RootControlContext }
   from '@this/compote';
-import { WarehouseConfig } from '@this/sys-config';
+import { EndpointConfig, HostConfig } from '@this/sys-config';
 
 import { BaseApplication } from '#x/BaseApplication';
 import { BaseService } from '#x/BaseService';
@@ -55,27 +55,27 @@ export class Warehouse extends BaseComponent {
   /**
    * Constructs an instance.
    *
-   * @param {object} config Configuration object.
+   * @param {object} rawConfig Raw configuration object.
    */
-  constructor(config) {
+  constructor(rawConfig) {
     // Note: `super()` is called with a second argument exactly because this
     // instance is the root of its hierarchy.
-    super(config, new RootControlContext(ThisModule.subsystemLogger('warehouse')));
+    super(rawConfig, new RootControlContext(ThisModule.subsystemLogger('warehouse')));
 
-    const parsed = new WarehouseConfig(config);
+    const { applications, endpoints, hosts, services } = this.config;
 
-    this.#applicationManager = new ComponentManager(parsed.applications, {
+    this.#applicationManager = new ComponentManager(applications, {
       baseClass:     BaseApplication,
       baseSublogger: ThisModule.cohortLogger('app')
     });
 
-    this.#serviceManager = new ComponentManager(parsed.services, {
+    this.#serviceManager = new ComponentManager(services, {
       baseClass:     BaseService,
       baseSublogger: ThisModule.cohortLogger('service')
     });
 
-    this.#hostManager     = new HostManager(parsed.hosts);
-    this.#endpointManager = new EndpointManager(parsed.endpoints, this);
+    this.#hostManager     = new HostManager(hosts);
+    this.#endpointManager = new EndpointManager(endpoints, this);
   }
 
   /** @returns {ComponentManager} Application manager. */
@@ -171,6 +171,81 @@ export class Warehouse extends BaseComponent {
 
   /** @override */
   static get CONFIG_CLASS() {
-    return WarehouseConfig;
+    return this.#Config;
   }
+
+  /**
+   * Configuration item subclass for this (outer) class.
+   */
+  static #Config = class Config extends BaseConfig {
+    /**
+     * Application instances.
+     *
+     * @type {Array<BaseApplication>}
+     */
+    #applications;
+
+    /**
+     * Host configuration objects.
+     *
+     * @type {Array<HostConfig>}
+     */
+    #hosts;
+
+    /**
+     * Endpoint configuration objects.
+     *
+     * @type {Array<EndpointConfig>}
+     */
+    #endpoints;
+
+    /**
+     * Service instances.
+     *
+     * @type {Array<BaseService>}
+     */
+    #services;
+
+    /**
+     * Constructs an instance.
+     *
+     * @param {object} rawConfig Configuration object. See class header for
+     *   details.
+     */
+    constructor(rawConfig) {
+      super(rawConfig);
+
+      const {
+        applications,
+        endpoints,
+        hosts = [],
+        services = []
+      } = rawConfig;
+
+      this.#applications = BaseApplication.evalArray(applications);
+      this.#hosts        = HostConfig.parseArray(hosts);
+      this.#endpoints    = EndpointConfig.parseArray(endpoints);
+      this.#services     = BaseService.evalArray(services);
+    }
+
+    /** @returns {Array<BaseApplication>} Application objects. */
+    get applications() {
+      return this.#applications;
+    }
+
+    /** @returns {Array<HostConfig>} Host configuration objects. */
+    get hosts() {
+      return this.#hosts;
+    }
+
+    /** @returns {Array<EndpointConfig>} Endpoint configuration objects. */
+    get endpoints() {
+      return this.#endpoints;
+    }
+
+    /** @returns {Array<BaseService>} Service objects. */
+    get services() {
+      return this.#services;
+    }
+  };
 }

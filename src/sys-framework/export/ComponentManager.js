@@ -8,8 +8,8 @@ import { AskIf, MustBe } from '@this/typey';
 
 
 /**
- * Manager for dealing with all the instantiable / instantiated components to be
- * run in a particular configuration.
+ * Manager for dealing with a set of related (same general role) named
+ * components.
  *
  * **Note:** `start()`ing and `stop()`ing acts on all the component instances.
  */
@@ -20,14 +20,6 @@ export class ComponentManager extends BaseComponent {
    * @type {function(new:BaseComponent)}
    */
   #baseClass;
-
-  /**
-   * Base class of all component configuration classes to be used by this
-   * instance.
-   *
-   * @type {function(new:ClassedConfig)}
-   */
-  #configBaseClass;
 
   /**
    * Base sublogger to use for instantiated components, or `null` not to do any
@@ -47,7 +39,7 @@ export class ComponentManager extends BaseComponent {
   /**
    * Constructs an instance.
    *
-   * @param {Array<ClassedConfig>} configs Configuration objects.
+   * @param {Array<BaseComponent>} instances All the instances to manage.
    * @param {object} options Instantiation options.
    * @param {?function(new:BaseComponent)} [options.baseClass] Base class
    *   of all components to be managed by this instance. `null` (the default) is
@@ -55,7 +47,7 @@ export class ComponentManager extends BaseComponent {
    * @param {?IntfLogger} [options.baseSublogger] Base sublogger to use for
    *   instantiated components, or `null` not to do any logging.
    */
-  constructor(configs, options) {
+  constructor(instances, options) {
     const {
       baseClass = null,
       baseSublogger = null
@@ -66,18 +58,13 @@ export class ComponentManager extends BaseComponent {
     this.#baseClass = (baseClass === null)
       ? BaseComponent
       : MustBe.subclassOf(baseClass, BaseComponent);
-    this.#configBaseClass = (baseClass === null)
-      ? ClassedConfig
-      : baseClass.CONFIG_CLASS;
     this.#baseSublogger = (baseSublogger === null)
       ? null
       : MustBe.instanceOf(baseSublogger, IntfLogger);
 
-    MustBe.array(configs);
-    for (const config of configs) {
-      MustBe.instanceOf(config, this.#configBaseClass);
-      MustBe.subclassOf(config.class, this.#baseClass);
-      this.#addInstanceFor(config);
+    MustBe.array(instances);
+    for (const instance of instances) {
+      this.#addInstance(instance);
     }
   }
 
@@ -143,21 +130,21 @@ export class ComponentManager extends BaseComponent {
   }
 
   /**
-   * Constructs a {@link BaseComponent} based on the given information, and
-   * adds a mapping to {@link #instances} so it can be found.
+   * Validates the given instance, and adds it to {@link #instances}.
    *
-   * @param {ClassedConfig} config Parsed configuration item.
+   * @param {BaseComponent} instance Instance to add.
    */
-  #addInstanceFor(config) {
-    MustBe.instanceOf(config, this.#configBaseClass);
+  #addInstance(instance) {
+    MustBe.instanceOf(instance, this.#baseClass);
 
-    const name = config.name;
+    const name = instance.name;
 
-    if (this.#instances.has(name)) {
+    if (!name) {
+      throw new Error('Component is missing `name`.');
+    } else if (this.#instances.has(name)) {
       throw new Error(`Duplicate component: ${name}`);
     }
 
-    const instance = new config.class(config);
     this.#instances.set(name, instance);
   }
 
