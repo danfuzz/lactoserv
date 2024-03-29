@@ -4,6 +4,7 @@
 import { SecureContext } from 'node:tls';
 
 import { TreePathMap } from '@this/collections';
+import { BaseComponent, BaseNamedConfig } from '@this/compote';
 import { IntfLogger } from '@this/loggy-intf';
 import { IntfHostManager } from '@this/net-protocol';
 import { HostUtil } from '@this/net-util';
@@ -21,7 +22,7 @@ import { ThisModule } from '#p/ThisModule';
  *
  * @implements {IntfHostManager}
  */
-export class HostManager {
+export class HostManager extends BaseComponent {
   /**
    * Map from each componentized hostname to the {@link HostItem} that should be
    * used for it.
@@ -43,6 +44,9 @@ export class HostManager {
    * @param {Array<HostConfig>} [configs] Configuration objects.
    */
   constructor(configs = []) {
+    // TODO: This is probably too ad-hoc.
+    super({ name: 'hostManager' });
+
     for (const config of configs) {
       this.#addItemFor(config);
     }
@@ -140,6 +144,21 @@ export class HostManager {
     }
   }
 
+  /** @override */
+  async _impl_init(isReload_unused) {
+    // Nothing needed for this class.
+  }
+
+  /** @override */
+  async _impl_start(isReload_unused) {
+    // Nothing needed for this class.
+  }
+
+  /** @override */
+  async _impl_stop(willReload_unused) {
+    // Nothing needed for this class.
+  }
+
   /**
    * Constructs a {@link HostItem} based on the given information, and adds
    * mappings to {@link #items} so it can be found.
@@ -176,5 +195,15 @@ export class HostManager {
 
     const found = this.#items.find(key);
     return found ? found.value : null;
+  }
+
+
+  //
+  // Static members
+  //
+
+  /** @override */
+  static get CONFIG_CLASS() {
+    return BaseNamedConfig;
   }
 }

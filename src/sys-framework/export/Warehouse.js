@@ -111,6 +111,7 @@ export class Warehouse extends BaseComponent {
     const results = [
       callInit('services',  this.#serviceManager),
       callInit('apps',      this.#applicationManager),
+      callInit('hosts',     this.#hostManager),
       callInit('endpoints', this.#endpointManager)
     ];
 
