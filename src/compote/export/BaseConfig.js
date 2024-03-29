@@ -75,21 +75,4 @@ export class BaseConfig {
 
     return Object.freeze(result);
   }
-
-  /**
-   * Exactly like {@link #parseArray}, except will return `null` if passed
-   * `items === null`.
-   *
-   * @param {*} items Array of configuration objects, or `null`.
-   * @returns {Array<?BaseConfig>} Frozen array of instances, or `null` if
-   *   `items === null`.
-   * @throws {Error} Thrown if there was any trouble.
-   */
-  static parseArrayOrNull(items) {
-    if (items === null) {
-      return null;
-    }
-
-    return this.parseArray(items);
-  }
 }
