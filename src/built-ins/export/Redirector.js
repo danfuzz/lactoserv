@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { HttpUtil, OutgoingResponse, UriUtil } from '@this/net-util';
-import { ApplicationConfig } from '@this/sys-config';
 import { BaseApplication } from '@this/sys-framework';
 import { MustBe } from '@this/typey';
 

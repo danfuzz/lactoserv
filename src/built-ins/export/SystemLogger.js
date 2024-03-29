@@ -29,14 +29,7 @@ export class SystemLogger extends BaseFileService {
    */
   #sink = null;
 
-  /**
-   * Constructs an instance.
-   *
-   * @param {FileServiceConfig} config Configuration for this service.
-   */
-  constructor(config) {
-    super(config);
-  }
+  // Note: The default constructor is fine for this class.
 
   /** @override */
   async _impl_init(isReload_unused) {
@@ -49,7 +42,6 @@ export class SystemLogger extends BaseFileService {
     const { config } = this;
     this.#rotator = config.rotate ? new Rotator(config, this.logger) : null;
   }
-
 
   /** @override */
   async _impl_start(isReload) {
