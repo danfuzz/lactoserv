@@ -9,14 +9,7 @@ import { ServiceConfig } from '@this/sys-config';
  * Base class for system services.
  */
 export class BaseService extends BaseNamedComponent {
-  /**
-   * Constructs an instance.
-   *
-   * @param {ServiceConfig} config Configuration for this service.
-   */
-  constructor(config) {
-    super(config);
-  }
+  // Note: The default constructor is fine for this class.
 
 
   //

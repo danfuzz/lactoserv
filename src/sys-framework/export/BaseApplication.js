@@ -25,12 +25,14 @@ export class BaseApplication extends BaseNamedComponent {
   /**
    * Constructs an instance.
    *
-   * @param {ApplicationConfig} config Configuration for this application.
+   * @param {object} rawConfig Raw configuration object.
    */
-  constructor(config) {
-    super(config);
+  constructor(rawConfig) {
+    super(rawConfig);
 
-    this.#filterConfig = (config instanceof BaseApplication.FilterConfig) ? config : null;
+    const config = this.config;
+    this.#filterConfig =
+      (config instanceof BaseApplication.FilterConfig) ? config : null;
   }
 
   /** @override */
