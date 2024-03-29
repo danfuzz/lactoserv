@@ -23,19 +23,4 @@ export class Names {
     const pattern = /^(?!-)[-a-zA-Z0-9]+(?<!-)$/;
     return MustBe.string(value, pattern);
   }
-
-  /**
-   * Checks that a given value is a string which can be used as a "type of
-   * something" in this system. The allowed pattern is the same as {@link
-   * #checkName}; the difference in method name is meant to help signal intent
-   * at use sites.
-   *
-   * @param {*} value Value in question.
-   * @returns {string} `value` if it is a string which matches the stated
-   *   pattern.
-   * @throws {Error} Thrown if `value` does not match.
-   */
-  static checkType(value) {
-    return this.checkName(value);
-  }
 }
