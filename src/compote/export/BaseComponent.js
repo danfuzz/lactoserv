@@ -258,7 +258,7 @@ export class BaseComponent {
           if (AskIf.subclassOf(item.class, this)) {
             return new (item.class)(item);
           } else {
-            throw new ('Item\'s `.class` is not this class (or a subclass).');
+            throw new Error('Item\'s `.class` is not this class (or a subclass).');
           }
         } else {
           return new this(item);
