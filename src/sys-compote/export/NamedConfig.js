@@ -8,13 +8,12 @@ import { BaseConfig } from '#x/BaseConfig';
 
 /**
  * Base class for configuration representations of things that are each
- * identified by a unique-to-its-domain name.
+ * identified by a unique-within-its-hierarchy name.
  *
- * Accepted configuration bindings (in the constructor). All are required:
+ * This class requires passed `config` objects to include a `name` binding,
+ * with a value that passes {@link Names#checkName}.
  *
- * * `{string} name` -- The name of the item.
- *
- * Subclasses define additional configuration bindings.
+ * Subclasses can of course define additional configuration bindings.
  */
 export class NamedConfig extends BaseConfig {
   /**
