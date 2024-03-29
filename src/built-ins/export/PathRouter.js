@@ -106,12 +106,12 @@ export class PathRouter extends BaseApplication {
     /**
      * Constructs an instance.
      *
-     * @param {object} config Configuration object.
+     * @param {object} rawConfig Raw configuration object.
      */
-    constructor(config) {
-      super(config);
+    constructor(rawConfig) {
+      super(rawConfig);
 
-      const { paths } = config;
+      const { paths } = rawConfig;
 
       MustBe.plainObject(paths);
 

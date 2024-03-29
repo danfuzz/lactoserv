@@ -114,19 +114,19 @@ export class Redirector extends BaseApplication {
     /**
      * Constructs an instance.
      *
-     * @param {object} config Configuration object.
+     * @param {object} rawConfig Raw configuration object.
      */
-    constructor(config) {
+    constructor(rawConfig) {
       super({
         acceptMethods: ['delete', 'get', 'head', 'patch', 'post', 'put'],
-        ...config
+        ...rawConfig
       });
 
       const {
         cacheControl = null,
         statusCode = null,
         target
-      } = config;
+      } = rawConfig;
 
       this.#statusCode = statusCode
         ? MustBe.number(statusCode, { minInclusive: 300, maxInclusive: 399 })

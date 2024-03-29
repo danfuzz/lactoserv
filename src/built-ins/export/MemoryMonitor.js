@@ -198,17 +198,17 @@ export class MemoryMonitor extends BaseService {
     /**
      * Constructs an instance.
      *
-     * @param {object} config Configuration object.
+     * @param {object} rawConfig Raw configuration object.
      */
-    constructor(config) {
-      super(config);
+    constructor(rawConfig) {
+      super(rawConfig);
 
       const {
         checkPeriod  = null,
         gracePeriod  = null,
         maxHeapBytes = null,
         maxRssBytes  = null
-      } = config;
+      } = rawConfig;
 
       this.#checkPeriod = Duration.parse(checkPeriod ?? '5 min', { minInclusive: 1 });
       if (!this.#checkPeriod) {

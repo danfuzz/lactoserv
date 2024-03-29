@@ -100,12 +100,12 @@ export class HostRouter extends BaseApplication {
     /**
      * Constructs an instance.
      *
-     * @param {object} config Configuration object.
+     * @param {object} rawConfig Raw configuration object.
      */
-    constructor(config) {
-      super(config);
+    constructor(rawConfig) {
+      super(rawConfig);
 
-      const { hosts } = config;
+      const { hosts } = rawConfig;
 
       MustBe.plainObject(hosts);
 

@@ -239,12 +239,12 @@ export class ProcessIdFile extends BaseFileService {
     /**
      * Constructs an instance.
      *
-     * @param {object} config Configuration object.
+     * @param {object} rawConfig Raw configuration object.
      */
-    constructor(config) {
-      super(config);
+    constructor(rawConfig) {
+      super(rawConfig);
 
-      const { multiprocess = null, updatePeriod = null } = config;
+      const { multiprocess = null, updatePeriod = null } = rawConfig;
 
       this.#multiprocess = (typeof multiprocess === 'boolean')
         ? multiprocess

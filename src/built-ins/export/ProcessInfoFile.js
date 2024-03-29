@@ -313,12 +313,12 @@ export class ProcessInfoFile extends BaseFileService {
     /**
      * Constructs an instance.
      *
-     * @param {object} config Configuration object.
+     * @param {object} rawConfig Raw configuration object.
      */
-    constructor(config) {
-      super(config);
+    constructor(rawConfig) {
+      super(rawConfig);
 
-      const { updatePeriod = null } = config;
+      const { updatePeriod = null } = rawConfig;
 
       if (updatePeriod) {
         this.#updatePeriod = Duration.parse(updatePeriod, { minInclusive: 1 });
