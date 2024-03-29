@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { IntfRequestHandler } from '@this/net-util';
-import { Names } from '@this/sys-compote';
+import { Names } from '@this/compote';
 import { BaseApplication } from '@this/sys-framework';
 import { MustBe } from '@this/typey';
 

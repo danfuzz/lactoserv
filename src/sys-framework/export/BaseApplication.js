@@ -3,7 +3,7 @@
 
 import { DispatchInfo, IncomingRequest, IntfRequestHandler, OutgoingResponse }
   from '@this/net-util';
-import { BaseNamedComponent } from '@this/sys-compote';
+import { BaseNamedComponent } from '@this/compote';
 import { ApplicationConfig } from '@this/sys-config';
 import { Methods, MustBe } from '@this/typey';
 

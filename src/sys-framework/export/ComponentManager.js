@@ -3,7 +3,7 @@
 
 import { IntfLogger } from '@this/loggy-intf';
 import { BaseComponent, BaseNamedComponent, ControlContext }
-  from '@this/sys-compote';
+  from '@this/compote';
 import { ClassedConfig } from '@this/sys-config';
 import { AskIf, MustBe } from '@this/typey';
 

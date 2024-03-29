@@ -22,7 +22,7 @@
     "@this/loggy-intf": "*",
     "@this/net-protocol": "*",
     "@this/net-util": "*",
-    "@this/sys-compote": "*",
+    "@this/compote": "*",
     "@this/sys-config": "*",
     "@this/sys-framework": "*",
     "@this/sys-util": "*",

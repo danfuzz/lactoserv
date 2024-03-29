@@ -7,7 +7,7 @@ import { DispatchInfo, HttpHeaders, IncomingRequest, IntfRequestHandler,
   OutgoingResponse, RequestContext }
   from '@this/net-util';
 import { BaseComponent, ControlContext, RootControlContext }
-  from '@this/sys-compote';
+  from '@this/compote';
 import { BaseApplication } from '@this/sys-framework';
 
 

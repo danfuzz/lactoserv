@@ -1,4 +1,4 @@
-@this/sys-compote
+@this/compote
 =================
 
 This module implements the low level "component system" upon which the rest of

@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseComponent, ControlContext } from '@this/sys-compote';
+import { BaseComponent, ControlContext } from '@this/compote';
 import { EndpointConfig } from '@this/sys-config';
 
 import { NetworkEndpoint } from '#x/NetworkEndpoint';

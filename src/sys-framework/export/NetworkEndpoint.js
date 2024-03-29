@@ -8,7 +8,7 @@ import { IntfRateLimiter, IntfRequestLogger, ProtocolWrangler,
   from '@this/net-protocol';
 import { DispatchInfo, IntfRequestHandler, OutgoingResponse }
   from '@this/net-util';
-import { BaseNamedComponent } from '@this/sys-compote';
+import { BaseNamedComponent } from '@this/compote';
 import { EndpointConfig } from '@this/sys-config';
 
 import { BaseApplication } from '#x/BaseApplication';

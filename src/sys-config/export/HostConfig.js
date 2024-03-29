@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { HostUtil } from '@this/net-util';
-import { BaseConfig } from '@this/sys-compote';
+import { BaseConfig } from '@this/compote';
 import { MustBe } from '@this/typey';
 
 import { Certificates } from '#x/Certificates';
