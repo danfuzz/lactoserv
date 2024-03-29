@@ -6,18 +6,19 @@ import { TreePathKey } from '@this/collections';
 import { DispatchInfo, HttpHeaders, IncomingRequest, IntfRequestHandler,
   OutgoingResponse, RequestContext }
   from '@this/net-util';
-import { BaseApplication, BaseControllable, ControlContext, RootControlContext }
-  from '@this/sys-framework';
+import { BaseApplication } from '@this/sys-framework';
+import { BaseComponent, ControlContext, RootControlContext }
+  from '@this/sys-compote';
 
 
 // TODO: This file contains a lot of mock implementation that should be
 // extracted for reuse.
 
 /**
- * Minimal concrete subclass of `BaseControllable`, which has no-op
+ * Minimal concrete subclass of `BaseComponent`, which has no-op
  * implementations for all `_impl_*` methods.
  */
-export class NopControllable extends BaseControllable {
+export class NopControllable extends BaseComponent {
   // The default constructor is fine for this class.
 
   /** @override */

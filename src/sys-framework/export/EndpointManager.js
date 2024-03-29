@@ -1,10 +1,9 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { BaseComponent, ControlContext } from '@this/sys-compote';
 import { EndpointConfig } from '@this/sys-config';
 
-import { BaseControllable } from '#x/BaseControllable';
-import { ControlContext } from '#x/ControlContext';
 import { NetworkEndpoint } from '#x/NetworkEndpoint';
 import { ThisModule } from '#p/ThisModule';
 import { Warehouse } from '#x/Warehouse';
@@ -15,7 +14,7 @@ import { Warehouse } from '#x/Warehouse';
  *
  * **Note:** `start()`ing and `stop()`ing acts on all the endpoints.
  */
-export class EndpointManager extends BaseControllable {
+export class EndpointManager extends BaseComponent {
   /**
    * The warehouse this instance is in.
    *

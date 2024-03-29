@@ -3,10 +3,9 @@
 
 import { DispatchInfo, IncomingRequest, IntfRequestHandler, OutgoingResponse }
   from '@this/net-util';
+import { BaseNamedComponent } from '@this/sys-compote';
 import { ApplicationConfig } from '@this/sys-config';
 import { Methods, MustBe } from '@this/typey';
-
-import { BaseComponent } from '#x/BaseComponent';
 
 
 /**
@@ -14,7 +13,7 @@ import { BaseComponent } from '#x/BaseComponent';
  *
  * @implements {IntfRequestHandler}
  */
-export class BaseApplication extends BaseComponent {
+export class BaseApplication extends BaseNamedComponent {
   /**
    * Config instance, if it is an instance of this class's config class, or
    * `null` if not.

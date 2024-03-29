@@ -25,20 +25,6 @@ export class ThisModule {
   static #logger = Loggy.loggerFor('framework');
 
   /**
-   * Symbol used for the module-private method `addDescendant`.
-   *
-   * @type {symbol}
-   */
-  static SYM_addDescendant = Symbol('sys-framework.addDescendant');
-
-  /**
-   * Symbol used for the module-private method `linkRoot`.
-   *
-   * @type {symbol}
-   */
-  static SYM_linkRoot = Symbol('sys-framework.linkRoot');
-
-  /**
    * Gets a logger for a particular cohort. A "cohort" is a set of similar items
    * of some sort, e.g. "applications" or "services."
    *

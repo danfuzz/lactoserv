@@ -4,16 +4,15 @@
 import { BaseConfig } from '@this/sys-config';
 import { MustBe } from '@this/typey';
 
-import { BaseControllable } from '#x/BaseControllable';
+import { BaseComponent } from '#x/BaseComponent';
 
 
 /**
- * Base class for major "components" of the framework. Notably, instances of
- * this class must always have (string) names, and those names must be unique
- * within the instances' hierarchies. The base class of this class, {@link
- * BaseControllable} does not do instance naming at all.
+ * Base class for components that must have (string) names, where those names
+ * must be unique within the instances' hierarchies. The base class of this
+ * class, {@link BaseComponent} does not do instance naming at all.
  */
-export class BaseComponent extends BaseControllable {
+export class BaseNamedComponent extends BaseComponent {
   /**
    * Configuration for this component.
    *
@@ -36,7 +35,7 @@ export class BaseComponent extends BaseControllable {
     return this.#config;
   }
 
-  /** @returns {string} Component name. */
+  /** @override */
   get name() {
     return this.#config.name;
   }

@@ -2,12 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { IntfLogger } from '@this/loggy-intf';
+import { BaseComponent, BaseNamedComponent, ControlContext }
+  from '@this/sys-compote';
 import { ClassedConfig } from '@this/sys-config';
 import { AskIf, MustBe } from '@this/typey';
-
-import { BaseComponent } from '#x/BaseComponent';
-import { BaseControllable } from '#x/BaseControllable';
-import { ControlContext } from '#x/ControlContext';
 
 
 /**
@@ -16,11 +14,11 @@ import { ControlContext } from '#x/ControlContext';
  *
  * **Note:** `start()`ing and `stop()`ing acts on all the component instances.
  */
-export class ComponentManager extends BaseControllable {
+export class ComponentManager extends BaseComponent {
   /**
    * Base class of all components to be managed by this instance.
    *
-   * @type {function(new:BaseComponent)}
+   * @type {function(new:BaseNamedComponent)}
    */
   #baseClass;
 
@@ -43,7 +41,7 @@ export class ComponentManager extends BaseControllable {
   /**
    * Map from each bound name to the corresponding instance.
    *
-   * @type {Map<string, BaseComponent>}
+   * @type {Map<string, BaseNamedComponent>}
    */
   #instances = new Map();
 
@@ -52,9 +50,9 @@ export class ComponentManager extends BaseControllable {
    *
    * @param {Array<ClassedConfig>} configs Configuration objects.
    * @param {object} options Instantiation options.
-   * @param {?function(new:BaseComponent)} [options.baseClass] Base class
+   * @param {?function(new:BaseNamedComponent)} [options.baseClass] Base class
    *   of all components to be managed by this instance. `null` (the default) is
-   *   the same as passing `BaseComponent`.
+   *   the same as passing `BaseNamedComponent`.
    * @param {?IntfLogger} [options.baseSublogger] Base sublogger to use
    *   for instantiated components, or `null` not to do any logging.
    */
@@ -67,8 +65,8 @@ export class ComponentManager extends BaseControllable {
     super();
 
     this.#baseClass = (baseClass === null)
-      ? BaseComponent
-      : MustBe.subclassOf(baseClass, BaseComponent);
+      ? BaseNamedComponent
+      : MustBe.subclassOf(baseClass, BaseNamedComponent);
     this.#configBaseClass = (baseClass === null)
       ? ClassedConfig
       : baseClass.CONFIG_CLASS;
@@ -85,13 +83,13 @@ export class ComponentManager extends BaseControllable {
   }
 
   /**
-   * Gets the {@link BaseComponent} instance bound to a given name.
+   * Gets the {@link BaseNamedComponent} instance bound to a given name.
    *
    * @param {string} name Instantiated component name to look for.
-   * @param {?string|function(new:BaseComponent)} [cls] Class that the named
-   *   component must be an instance of, or `null` to not have any restriction
-   *   (beyond the baseline class restriction of this instance).
-   * @returns {BaseComponent} The associated instance.
+   * @param {?string|function(new:BaseNamedComponent)} [cls] Class that the
+   *   named component must be an instance of, or `null` to not have any
+   *   restriction (beyond the baseline class restriction of this instance).
+   * @returns {BaseNamedComponent} The associated instance.
    * @throws {Error} Thrown if there is no instance with the given name, or it
    *   does not match the given `cls`.
    */
@@ -110,7 +108,7 @@ export class ComponentManager extends BaseControllable {
   /**
    * Gets a list of all component instances managed by this (manager) instance.
    *
-   * @returns {Array<BaseComponent>} All the instances.
+   * @returns {Array<BaseNamedComponent>} All the instances.
    */
   getAll() {
     return [...this.#instances.values()];
@@ -146,8 +144,8 @@ export class ComponentManager extends BaseControllable {
   }
 
   /**
-   * Constructs a {@link BaseComponent} based on the given information, and adds
-   * a mapping to {@link #instances} so it can be found.
+   * Constructs a {@link BaseNamedComponent} based on the given information, and
+   * adds a mapping to {@link #instances} so it can be found.
    *
    * @param {ClassedConfig} config Parsed configuration item.
    */
@@ -165,12 +163,12 @@ export class ComponentManager extends BaseControllable {
   }
 
   /**
-   * Checks that a {@link BaseComponent} instance fits the given class
+   * Checks that a {@link BaseNamedComponent} instance fits the given class
    * restriction.
    *
-   * @param {BaseComponent} component The instance to check.
-   * @param {?function(new:BaseComponent)} cls Class that `component` must be,
-   *   or `null` to not have any restriction.
+   * @param {BaseNamedComponent} component The instance to check.
+   * @param {?function(new:BaseNamedComponent)} cls Class that `component` must
+   *   be, or `null` to not have any restriction.
    * @throws {Error} Thrown if `component` is not an instance of an appropriate
    *   class.
    */
