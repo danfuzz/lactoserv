@@ -4,17 +4,16 @@
 import { IntfLogger } from '@this/loggy-intf';
 import { Methods, MustBe } from '@this/typey';
 
+import { IntfComponent } from '#x/IntfComponent';
 import { ControlContext } from '#x/ControlContext';
 import { RootControlContext } from '#x/RootControlContext';
 import { ThisModule } from '#p/ThisModule';
 
 
 /**
- * Base class for controllable components, which live in a tree-ish arrangement
- * with other such components.
+ * Abstract base class which implements {@link IntfComponent}.
  *
- * TLDR: Concrete subclasses (a) have an associated context, and (b) have a set
- * of lifecycle methods.
+ * @implements IntfComponent
  */
 export class BaseComponent {
   /**
@@ -43,26 +42,22 @@ export class BaseComponent {
     }
   }
 
-  /**
-   * @returns {?ControlContext} Associated context, or `null` if not yet set up.
-   */
+  /** @override */
   get context() {
     return (this.#initialized ? this.#context : this.#context?.nascentRoot) ?? null;
   }
 
-  /** @returns {?IntfLogger} Logger to use, or `null` to not do any logging. */
+  /** @override */
   get logger() {
     return this.context?.logger ?? null;
   }
 
-  /**
-   * Initializes this instance, indicating it is now linked to the given
-   * context.
-   *
-   * @param {ControlContext} context Context that indicates this instance's
-   *   active environment.
-   * @param {boolean} [isReload] Is this action due to an in-process reload?
-   */
+  /** @override */
+  get name() {
+    return null;
+  }
+
+  /** @override */
   async init(context, isReload = false) {
     MustBe.instanceOf(context, ControlContext);
     MustBe.boolean(isReload);
@@ -80,13 +75,7 @@ export class BaseComponent {
     BaseComponent.logInitialized(this.logger);
   }
 
-  /**
-   * Starts this instance. It is only valid to call this after {@link #init} has
-   * been called, _except_ if this instance is the root, in which case this
-   * method will call {@link #init} itself before doing the start-per-se.
-   *
-   * @param {boolean} [isReload] Is this action due to an in-process reload?
-   */
+  /** @override */
   async start(isReload = false) {
     MustBe.boolean(isReload);
 
@@ -102,13 +91,7 @@ export class BaseComponent {
     BaseComponent.logStarted(this.logger, isReload);
   }
 
-  /**
-   * Stops this this instance. This method returns when the instance is fully
-   * stopped.
-   *
-   * @param {boolean} [willReload] Is this action due to an in-process reload
-   *   being requested?
-   */
+  /** @override */
   async stop(willReload = false) {
     MustBe.boolean(willReload);
 

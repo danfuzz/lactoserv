@@ -4,8 +4,7 @@
 import { IntfLogger } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';
 
-import { BaseNamedComponent } from '#x/BaseNamedComponent';
-import { BaseComponent } from '#x/BaseComponent';
+import { IntfComponent } from '#x/IntfComponent';
 import { ThisModule } from '#p/ThisModule';
 
 
@@ -18,8 +17,8 @@ import { ThisModule } from '#p/ThisModule';
  */
 
 /**
- * "Context" in which a {@link BaseComponent} is situated. Instances of this
- * class are handed to controllables via {@link BaseComponent#init}, which
+ * "Context" in which a {@link IntfComponent} is situated. Instances of this
+ * class are handed to controllables via {@link IntfComponent#init}, which
  * gets called when they become hooked into a hierarchy of instances.
  */
 export class ControlContext {
@@ -34,7 +33,7 @@ export class ControlContext {
    * Associated controllable instance. Is only ever `null` for the context of
    * the root instance itself, and only briefly while it gets bootstrapped.
    *
-   * @type {?BaseComponent}
+   * @type {?IntfComponent}
    */
   #associate;
 
@@ -57,10 +56,10 @@ export class ControlContext {
   /**
    * Constructs an instance.
    *
-   * @param {BaseComponent|string} associate Associated controllable
+   * @param {IntfComponent|string} associate Associated component
    *   instance, or the string `root` if this instance is to represent the root
    *   instance.
-   * @param {?BaseComponent} parent Parent of `associate`, or `null` if this
+   * @param {?IntfComponent} parent Parent of `associate`, or `null` if this
    *   instance is to represent the root instance.
    * @param {?IntfLogger} [logger] Logger to use, or `null` to not do any
    *   logging.
@@ -73,15 +72,16 @@ export class ControlContext {
       this.#parent    = null; // ...and it stays that way.
       this.#root      = this;
     } else {
-      this.#associate = MustBe.instanceOf(associate, BaseComponent);
-      this.#parent    = MustBe.instanceOf(parent, BaseComponent).context;
-      this.#root      = MustBe.instanceOf(this.#parent.#root, ControlContext);
+      // TODO: We should figure out how to type-check interfaces.
+      this.#associate = associate;
+      this.#parent    = MustBe.instanceOf(parent.context, ControlContext);
+      this.#root      = MustBe.instanceOf(this.#parent.#root, /*Root*/ControlContext);
 
       this.#root[ThisModule.SYM_addDescendant](this);
     }
   }
 
-  /** @returns {BaseComponent} Associated controllable instance. */
+  /** @returns {IntfComponent} Associated controllable instance. */
   get associate() {
     return this.#associate;
   }
@@ -117,9 +117,9 @@ export class ControlContext {
    * also optionally be of a specific class (including a base class).
    *
    * @param {string} name Name of the component.
-   * @param {?function(new:BaseNamedComponent)} [cls] Class which the result must be
+   * @param {?function(new:IntfComponent)} [cls] Class which the result must be
    *   an instance of, or `null` to not have a class restriction.
-   * @returns {BaseNamedComponent} Found instance.
+   * @returns {IntfComponent} Found instance.
    * @throws {Error} Thrown if a suitable instance was not found.
    */
   getComponent(name, cls) {
@@ -131,10 +131,11 @@ export class ControlContext {
    * is a module-private method, so that it can only be called when appropriate
    * (and thus avoid inconsistent state).
    *
-   * @param {BaseComponent} root The actual "root" instance.
+   * @param {IntfComponent} root The actual "root" instance.
    */
   [ThisModule.SYM_linkRoot](root) {
-    MustBe.instanceOf(root, BaseComponent);
+    // TODO: We should figure out how to type-check interfaces.
+    // MustBe.instanceOf(root, IntfComponent);
 
     if (this.#root !== this) {
       throw new Error('Not a root instance.');

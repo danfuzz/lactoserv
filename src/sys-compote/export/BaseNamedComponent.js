@@ -35,7 +35,7 @@ export class BaseNamedComponent extends BaseComponent {
     return this.#config;
   }
 
-  /** @returns {string} Component name. */
+  /** @override */
   get name() {
     return this.#config.name;
   }
