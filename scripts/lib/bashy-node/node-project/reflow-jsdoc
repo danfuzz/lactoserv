@@ -98,7 +98,14 @@ function calcIndent(firstIndent, _locals_, result) {
   result = firstIndent;
   match(result, /^ *[*] /);
   result = substr(result, RSTART, RLENGTH);
-  while (length(result) < length(firstIndent)) result = result " ";
+
+  if (index(firstIndent, "@") != 0) {
+    # We have a block tag. Just drop the tag-per-se and make follow-on lines
+    # have two-space indents.
+    result = result "  ";
+  } else {
+    while (length(result) < length(firstIndent)) result = result " ";
+  }
   return result;
 }
 
