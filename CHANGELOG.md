@@ -9,7 +9,8 @@ versioning principles. Unstable releases do not.
 Breaking changes:
 * `sys-compote` / `sys-framework`:
   * Extracted the lower layer of classes from `sys-framework` into new module
-    `sys-compote`.
+    `sys-compote`. Renamed the classes for better harmony, and extracted a new
+    interface `IntfComponent`.
 
 Other notable changes:
 * None.
