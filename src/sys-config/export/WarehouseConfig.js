@@ -55,17 +55,18 @@ export class WarehouseConfig extends BaseConfig {
   /**
    * Constructs an instance.
    *
-   * @param {object} config Configuration object. See class header for details.
+   * @param {object} rawConfig Configuration object. See class header for
+   *   details.
    */
-  constructor(config) {
-    super(config);
+  constructor(rawConfig) {
+    super(rawConfig);
 
     const {
       applications,
       endpoints,
       hosts = [],
       services = []
-    } = config;
+    } = rawConfig;
 
     this.#applications = ApplicationConfig.parseArray(applications);
     this.#hosts        = HostConfig.parseArray(hosts);

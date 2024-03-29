@@ -31,12 +31,13 @@ export class ServiceUseConfig extends BaseConfig {
   /**
    * Constructs an instance.
    *
-   * @param {object} config Configuration object. See class header for details.
+   * @param {object} rawConfig Configuration object. See class header for
+   *   details.
    */
-  constructor(config) {
-    super(config);
+  constructor(rawConfig) {
+    super(rawConfig);
 
-    this.#map = Object.freeze(new Map(Object.entries(config)));
+    this.#map = Object.freeze(new Map(Object.entries(rawConfig)));
 
     for (const [role, name] of this.#map) {
       Names.checkName(role);
