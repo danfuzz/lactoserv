@@ -116,8 +116,8 @@ export class HostManager {
    * <https://nodejs.org/dist/latest-v18.x/docs/api/tls.html#tlscreateserveroptions-secureconnectionlistener>
    * for details.
    *
-   * @param {string} serverName Name of the host to find, or `*` to
-   *   explicitly request the wildcard / fallback context.
+   * @param {string} serverName Name of the host to find, or `*` to explicitly
+   *   request the wildcard / fallback context.
    * @param {function(?object, ?SecureContext)} callback Callback to present
    *   with the results.
    */
