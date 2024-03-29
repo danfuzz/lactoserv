@@ -23,7 +23,7 @@ export class PathRouter extends BaseApplication {
    */
   #routeTree = null;
 
-  // Note: The default constructor is fine for this class.
+  // @defaultConstructor
 
   /** @override */
   async _impl_handleRequest(request, dispatch) {
@@ -106,12 +106,12 @@ export class PathRouter extends BaseApplication {
     /**
      * Constructs an instance.
      *
-     * @param {object} config Configuration object.
+     * @param {object} rawConfig Raw configuration object.
      */
-    constructor(config) {
-      super(config);
+    constructor(rawConfig) {
+      super(rawConfig);
 
-      const { paths } = config;
+      const { paths } = rawConfig;
 
       MustBe.plainObject(paths);
 

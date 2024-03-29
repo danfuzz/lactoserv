@@ -14,7 +14,7 @@ import { BaseService } from '@this/sys-framework';
  * (including subclasses).
  */
 export class BaseFileService extends BaseService {
-  // Note: Default constructor is fine for this class.
+  // @defaultConstructor
 
   /**
    * Creates the directory of `config.path`, if it doesn't already exist.

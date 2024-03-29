@@ -22,7 +22,7 @@ export class HostRouter extends BaseApplication {
    */
   #routeTree = null;
 
-  // Note: The default constructor is fine for this class.
+  // @defaultConstructor
 
   /** @override */
   async _impl_handleRequest(request, dispatch) {
@@ -100,12 +100,12 @@ export class HostRouter extends BaseApplication {
     /**
      * Constructs an instance.
      *
-     * @param {object} config Configuration object.
+     * @param {object} rawConfig Raw configuration object.
      */
-    constructor(config) {
-      super(config);
+    constructor(rawConfig) {
+      super(rawConfig);
 
-      const { hosts } = config;
+      const { hosts } = rawConfig;
 
       MustBe.plainObject(hosts);
 

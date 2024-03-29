@@ -18,10 +18,11 @@ export class BaseConfig {
   /**
    * Constructs an instance.
    *
-   * @param {object} config Configuration object. See class header for details.
+   * @param {object} rawConfig Raw configuration object. See class header for
+   *   details.
    */
-  constructor(config) {
-    MustBe.plainObject(config);
+  constructor(rawConfig) {
+    MustBe.plainObject(rawConfig);
   }
 
 

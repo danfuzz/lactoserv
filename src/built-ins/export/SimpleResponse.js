@@ -170,12 +170,12 @@ export class SimpleResponse extends BaseApplication {
     /**
      * Constructs an instance.
      *
-     * @param {object} config Configuration object.
+     * @param {object} rawConfig Raw configuration object.
      */
-    constructor(config) {
+    constructor(rawConfig) {
       super({
         acceptMethods: ['get', 'head'],
-        ...config
+        ...rawConfig
       });
 
       const {
@@ -185,7 +185,7 @@ export class SimpleResponse extends BaseApplication {
         etag         = null,
         filePath     = null,
         statusCode   = null
-      } = config;
+      } = rawConfig;
 
       if (body !== null) {
         if (!(body instanceof Buffer)) {

@@ -32,7 +32,7 @@ export class ProcessIdFile extends BaseFileService {
    */
   #runner = new Threadlet(() => this.#run());
 
-  // Note: Default constructor is fine for this class.
+  // @defaultConstructor
 
   /** @override */
   async _impl_init(isReload_unused) {
@@ -239,12 +239,12 @@ export class ProcessIdFile extends BaseFileService {
     /**
      * Constructs an instance.
      *
-     * @param {object} config Configuration object.
+     * @param {object} rawConfig Raw configuration object.
      */
-    constructor(config) {
-      super(config);
+    constructor(rawConfig) {
+      super(rawConfig);
 
-      const { multiprocess = null, updatePeriod = null } = config;
+      const { multiprocess = null, updatePeriod = null } = rawConfig;
 
       this.#multiprocess = (typeof multiprocess === 'boolean')
         ? multiprocess

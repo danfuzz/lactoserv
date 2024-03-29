@@ -6,7 +6,6 @@ import fs from 'node:fs/promises';
 import { Paths, Statter } from '@this/fs-util';
 import { DispatchInfo, EtagGenerator, HttpUtil, MimeTypes, OutgoingResponse }
   from '@this/net-util';
-import { ApplicationConfig } from '@this/sys-config';
 import { BaseApplication } from '@this/sys-framework';
 
 
@@ -55,12 +54,12 @@ export class StaticFiles extends BaseApplication {
   /**
    * Constructs an instance.
    *
-   * @param {ApplicationConfig} config Configuration for this application.
+   * @param {object} rawConfig Raw configuration object.
    */
-  constructor(config) {
-    super(config);
+  constructor(rawConfig) {
+    super(rawConfig);
 
-    const { cacheControl, etagOptions, notFoundPath, siteDirectory } = config;
+    const { cacheControl, etagOptions, notFoundPath, siteDirectory } = this.config;
 
     this.#notFoundPath  = notFoundPath;
     this.#siteDirectory = siteDirectory;
@@ -302,12 +301,12 @@ export class StaticFiles extends BaseApplication {
     /**
      * Constructs an instance.
      *
-     * @param {object} config Configuration object.
+     * @param {object} rawConfig Raw configuration object.
      */
-    constructor(config) {
+    constructor(rawConfig) {
       super({
         acceptMethods: ['get', 'head'],
-        ...config,
+        ...rawConfig,
 
         // These are always disabled. See configuration docs for explanation.
         redirectDirectories: false,
@@ -319,7 +318,7 @@ export class StaticFiles extends BaseApplication {
         etag         = null,
         notFoundPath = null,
         siteDirectory
-      } = config;
+      } = rawConfig;
 
       this.#notFoundPath = (notFoundPath === null)
         ? null

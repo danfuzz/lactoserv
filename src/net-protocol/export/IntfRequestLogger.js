@@ -28,16 +28,6 @@ export class IntfRequestLogger {
   }
 
   /**
-   * Logs a completed request.
-   *
-   * @abstract
-   * @param {string} line Line representing the completed request.
-   */
-  async logCompletedRequest(line) {
-    Methods.abstract(line);
-  }
-
-  /**
    * Indicates to this instance that a request has started.
    *
    * @abstract

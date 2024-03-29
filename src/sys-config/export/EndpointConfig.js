@@ -55,10 +55,10 @@ export class EndpointConfig extends BaseNamedConfig {
   /**
    * Constructs an instance.
    *
-   * @param {object} config Configuration object. See class header for details.
+   * @param {object} rawConfig Raw configuration object.
    */
-  constructor(config) {
-    super(config);
+  constructor(rawConfig) {
+    super(rawConfig);
 
     const {
       hostnames = '*',
@@ -66,7 +66,7 @@ export class EndpointConfig extends BaseNamedConfig {
       application,
       protocol,
       services = {}
-    } = config;
+    } = rawConfig;
 
     this.#hostnames = Util.checkAndFreezeStrings(
       hostnames,

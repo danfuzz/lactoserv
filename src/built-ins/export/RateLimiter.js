@@ -44,12 +44,12 @@ export class RateLimiter extends BaseService {
   /**
    * Constructs an instance.
    *
-   * @param {ServiceConfig} config Configuration for this service.
+   * @param {object} rawConfig Raw configuration object.
    */
-  constructor(config) {
-    super(config);
+  constructor(rawConfig) {
+    super(rawConfig);
 
-    const { connections, data, requests } = config;
+    const { connections, data, requests } = this.config;
 
     this.#connections = RateLimiter.#makeBucket(connections);
     this.#data        = RateLimiter.#makeBucket(data);
@@ -170,12 +170,12 @@ export class RateLimiter extends BaseService {
     /**
      * Constructs an instance.
      *
-     * @param {object} config Configuration object.
+     * @param {object} rawConfig Raw configuration object.
      */
-    constructor(config) {
-      super(config);
+    constructor(rawConfig) {
+      super(rawConfig);
 
-      const { connections, data, requests } = config;
+      const { connections, data, requests } = rawConfig;
 
       this.#connections = Config.#parseOneBucket(connections);
       this.#data        = Config.#parseOneBucket(data);

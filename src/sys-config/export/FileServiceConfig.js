@@ -61,18 +61,21 @@ export class FileServiceConfig extends ServiceConfig {
   /**
    * Constructs an instance.
    *
-   * @param {object} config Configuration object. See class header for details.
+   * @param {object} rawConfig Raw configuration object. See class header for
+   *   details.
    */
-  constructor(config) {
-    super(config);
+  constructor(rawConfig) {
+    super(rawConfig);
 
-    if (config.rotate && config.save) {
+    const { path, rotate, save } = rawConfig;
+
+    if (rotate && save) {
       throw new Error('Cannot specify both `rotate` and `save`.');
     }
 
-    this.#path   = Paths.checkAbsolutePath(config.path);
-    this.#rotate = config.rotate ? new RotateConfig(config.rotate) : null;
-    this.#save   = config.save ? new SaveConfig(config.save) : null;
+    this.#path   = Paths.checkAbsolutePath(path);
+    this.#rotate = rotate ? new RotateConfig(rotate) : null;
+    this.#save   = save ? new SaveConfig(save) : null;
   }
 
   /**

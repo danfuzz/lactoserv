@@ -44,14 +44,7 @@ export class ProcessInfoFile extends BaseFileService {
    */
   #runner = new Threadlet(() => this.#start(), () => this.#run());
 
-  /**
-   * Constructs an instance.
-   *
-   * @param {FileServiceConfig} config Configuration for this service.
-   */
-  constructor(config) {
-    super(config);
-  }
+  // @defaultConstructor
 
   /** @override */
   async _impl_init(isReload_unused) {
@@ -313,12 +306,12 @@ export class ProcessInfoFile extends BaseFileService {
     /**
      * Constructs an instance.
      *
-     * @param {object} config Configuration object.
+     * @param {object} rawConfig Raw configuration object.
      */
-    constructor(config) {
-      super(config);
+    constructor(rawConfig) {
+      super(rawConfig);
 
-      const { updatePeriod = null } = config;
+      const { updatePeriod = null } = rawConfig;
 
       if (updatePeriod) {
         this.#updatePeriod = Duration.parse(updatePeriod, { minInclusive: 1 });

@@ -29,7 +29,7 @@ export class Mutex {
    */
   #waiters = [];
 
-  // Note: The default constructor is fine for this class.
+  // @defaultConstructor
 
   /**
    * Acquires the mutual exclusion lock. This method returns only after the lock

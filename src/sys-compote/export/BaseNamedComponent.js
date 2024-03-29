@@ -18,12 +18,12 @@ export class BaseNamedComponent extends BaseComponent {
   /**
    * Constructs an instance.
    *
-   * @param {object} config Configuration for this component.
+   * @param {object} rawConfig Raw configuration for this component.
    */
-  constructor(config) {
-    super(config);
+  constructor(rawConfig) {
+    super(rawConfig);
 
-    Names.checkName(config.name);
+    Names.checkName(this.config.name);
   }
 
   /** @override */

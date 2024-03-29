@@ -9,22 +9,8 @@ import { FileServiceConfig } from '#x/FileServiceConfig';
 
 /**
  * Configuration representation for file preservation, used in configuring some
- * file-writing services. (See {@link FileServiceConfig}.)
- *
- * Accepted configuration bindings (in the constructor). All are optional.
- *
- * * `{?number} maxOldBytes` -- How many bytes' worth of old (post-rotation)
- *   files should be allowed, or `null` not to have a limit. The oldest files
- *   over the limit get deleted after a rotation. Default `null`.
- * * `{?number} maxOldCount` -- How many old (post-rotation) files should be
- *   allowed, or `null` not to have a limit. The oldest files over the limit get
- *   deleted after a rotation. Default `null`.
- * * `{?boolean} onReload` -- Rotate when the system is reloaded (restarted
- *   in-process). Default `false`.
- * * `{?boolean} onStart` -- Rotate when the system is first started? Default
- *   `false`.
- * * `{?boolean} onStop` -- Rotate when the system is about to be stopped?
- *   Default `false`.
+ * file-writing services. (See {@link FileServiceConfig}.) See
+ * `doc/configuration.md` for configuration object details.
  */
 export class SaveConfig extends BaseConfig {
   /**
@@ -65,10 +51,10 @@ export class SaveConfig extends BaseConfig {
   /**
    * Constructs an instance.
    *
-   * @param {object} config Configuration object. See class header for details.
+   * @param {object} rawConfig Configuration object.
    */
-  constructor(config) {
-    super(config);
+  constructor(rawConfig) {
+    super(rawConfig);
 
     const {
       maxOldBytes = null,
@@ -76,7 +62,7 @@ export class SaveConfig extends BaseConfig {
       onReload    = false,
       onStart     = false,
       onStop      = false
-    } = config;
+    } = rawConfig;
 
     this.#maxOldBytes = (maxOldBytes === null)
       ? null

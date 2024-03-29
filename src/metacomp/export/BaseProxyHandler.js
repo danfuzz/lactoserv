@@ -15,7 +15,7 @@
  * convenient proxy construction.
  */
 export class BaseProxyHandler {
-  // Note: The default constructor suffices here.
+  // @defaultConstructor
 
   /**
    * Standard `Proxy` handler method.

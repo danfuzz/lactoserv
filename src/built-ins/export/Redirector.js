@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { HttpUtil, OutgoingResponse, UriUtil } from '@this/net-util';
-import { ApplicationConfig } from '@this/sys-config';
 import { BaseApplication } from '@this/sys-framework';
 import { MustBe } from '@this/typey';
 
@@ -36,17 +35,19 @@ export class Redirector extends BaseApplication {
   /**
    * Constructs an instance.
    *
-   * @param {ApplicationConfig} config Configuration for this application.
+   * @param {object} rawConfig Raw configuration object.
    */
-  constructor(config) {
-    super(config);
+  constructor(rawConfig) {
+    super(rawConfig);
 
-    this.#cacheControl = config.cacheControl;
-    this.#statusCode   = config.statusCode;
+    const { cacheControl, statusCode, target } = this.config;
+
+    this.#cacheControl = cacheControl;
+    this.#statusCode   = statusCode;
 
     // Drop the final slash from `target`, because we'll always be appending a
     // path that _starts_ with a slash.
-    this.#target = config.target.match(/^(?<target>.*)[/]$/).groups.target;
+    this.#target = target.match(/^(?<target>.*)[/]$/).groups.target;
   }
 
   /** @override */
@@ -114,19 +115,19 @@ export class Redirector extends BaseApplication {
     /**
      * Constructs an instance.
      *
-     * @param {object} config Configuration object.
+     * @param {object} rawConfig Raw configuration object.
      */
-    constructor(config) {
+    constructor(rawConfig) {
       super({
         acceptMethods: ['delete', 'get', 'head', 'patch', 'post', 'put'],
-        ...config
+        ...rawConfig
       });
 
       const {
         cacheControl = null,
         statusCode = null,
         target
-      } = config;
+      } = rawConfig;
 
       this.#statusCode = statusCode
         ? MustBe.number(statusCode, { minInclusive: 300, maxInclusive: 399 })

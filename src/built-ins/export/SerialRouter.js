@@ -21,7 +21,7 @@ export class SerialRouter extends BaseApplication {
    */
   #routeList = null;
 
-  // Note: The default constructor is fine for this class.
+  // @defaultConstructor
 
   /** @override */
   async _impl_handleRequest(request, dispatch) {
@@ -91,12 +91,12 @@ export class SerialRouter extends BaseApplication {
     /**
      * Constructs an instance.
      *
-     * @param {object} config Configuration object.
+     * @param {object} rawConfig Raw configuration object.
      */
-    constructor(config) {
-      super(config);
+    constructor(rawConfig) {
+      super(rawConfig);
 
-      const { applications } = config;
+      const { applications } = rawConfig;
 
       MustBe.arrayOfString(applications);
 

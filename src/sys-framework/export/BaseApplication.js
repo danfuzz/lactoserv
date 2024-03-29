@@ -25,12 +25,14 @@ export class BaseApplication extends BaseNamedComponent {
   /**
    * Constructs an instance.
    *
-   * @param {ApplicationConfig} config Configuration for this application.
+   * @param {object} rawConfig Raw configuration object.
    */
-  constructor(config) {
-    super(config);
+  constructor(rawConfig) {
+    super(rawConfig);
 
-    this.#filterConfig = (config instanceof BaseApplication.FilterConfig) ? config : null;
+    const { config } = this;
+    this.#filterConfig =
+      (config instanceof BaseApplication.FilterConfig) ? config : null;
   }
 
   /** @override */
@@ -259,10 +261,10 @@ export class BaseApplication extends BaseNamedComponent {
     /**
      * Constructs an instance.
      *
-     * @param {object} config Configuration object.
+     * @param {object} rawConfig Raw configuration object.
      */
-    constructor(config) {
-      super(config);
+    constructor(rawConfig) {
+      super(rawConfig);
 
       const {
         acceptMethods       = null,
@@ -271,7 +273,7 @@ export class BaseApplication extends BaseNamedComponent {
         maxQueryLength      = null,
         redirectDirectories = false,
         redirectFiles       = false
-      } = config;
+      } = rawConfig;
 
       this.#redirectDirectories = MustBe.boolean(redirectDirectories);
       this.#redirectFiles       = MustBe.boolean(redirectFiles);

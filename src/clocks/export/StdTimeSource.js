@@ -10,7 +10,7 @@ import { WallClock } from '#x/WallClock';
  * WallClock} as the underlying source of time.
  */
 export class StdTimeSource extends IntfTimeSource {
-  // Note: The default constructor is fine.
+  // @defaultConstructor
 
   /** @override */
   now() {
