@@ -199,10 +199,10 @@ export class LogPayload extends EventPayload {
    * payload for a "kickoff" event passed to the {@link EventSource}
    * constructor.
    *
-   * @param {?LogTag} [tag] Tag to use for the instance, or `null` to use
-   *   a default.
-   * @param {?string} [type] Type to use for the instance, or `null` to
-   *   use a default.
+   * @param {?LogTag} [tag] Tag to use for the instance, or `null` to use a
+   *   default.
+   * @param {?string} [type] Type to use for the instance, or `null` to use a
+   *   default.
    * @returns {LogPayload} A minimal instance for "kickoff."
    */
   static makeKickoffInstance(tag = null, type = null) {

@@ -63,9 +63,9 @@ export class LimitedLoader {
   /**
    * Constructs an instance.
    *
-   * @param {?object} [context] Context to use. This is the object which
-   *   becomes the `global` of any loaded code. If `null`, this uses the same
-   *   context that this class is run in.
+   * @param {?object} [context] Context to use. This is the object which becomes
+   *   the `global` of any loaded code. If `null`, this uses the same context
+   *   that this class is run in.
    * @param {?IntfLogger} [logger] Logger to use, or `null` not to do any
    *   logging.
    */
@@ -174,8 +174,8 @@ export class LimitedLoader {
    * returns the previously-constructed instance.
    *
    * @param {string} specifier The module specifier.
-   * @param {object} [extra] Extra options that came with the import
-   *   request, or `null` if there were none.
+   * @param {object} [extra] Extra options that came with the import request, or
+   *   `null` if there were none.
    * @returns {Module} The (nascently) imported module
    */
   async #importModule(specifier, extra = null) {

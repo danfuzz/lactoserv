@@ -78,8 +78,7 @@ export class HostUtil {
    * IP addresses.
    *
    * @param {string} name Hostname to parse.
-   * @param {boolean} [allowWildcard] Is a wildcard form allowed for
-   *   `name`?
+   * @param {boolean} [allowWildcard] Is a wildcard form allowed for `name`?
    * @returns {string} `value` if it is a string which matches the stated
    *   pattern, canonicalized if it is an IP address.
    * @throws {Error} Thrown if `value` does not match.
@@ -105,8 +104,7 @@ export class HostUtil {
    * error.
    *
    * @param {string} name Hostname to parse.
-   * @param {boolean} [allowWildcard] Is a wildcard form allowed for
-   *   `name`?
+   * @param {boolean} [allowWildcard] Is a wildcard form allowed for `name`?
    * @returns {?string} `value` if it is a string which matches the stated
    *   pattern, canonicalized if it is an IP address. Returns `null` to indicate
    *   a parsing error.
@@ -349,8 +347,7 @@ export class HostUtil {
    * contains the name components in back-to-front order.
    *
    * @param {string} name Hostname to parse.
-   * @param {boolean} [allowWildcard] Is a wildcard form allowed for
-   *   `name`?
+   * @param {boolean} [allowWildcard] Is a wildcard form allowed for `name`?
    * @returns {TreePathKey} Parsed key.
    * @throws {Error} Thrown if `name` is invalid.
    */
@@ -370,8 +367,7 @@ export class HostUtil {
    * hostname.
    *
    * @param {string} name Hostname to parse.
-   * @param {boolean} [allowWildcard] Is a wildcard form allowed for
-   *   `name`?
+   * @param {boolean} [allowWildcard] Is a wildcard form allowed for `name`?
    * @returns {?TreePathKey} Parsed key, or `null` if `name` is invalid.
    */
   static parseHostnameOrNull(name, allowWildcard = false) {

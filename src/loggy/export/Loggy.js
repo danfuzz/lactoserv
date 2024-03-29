@@ -33,8 +33,8 @@ export class Loggy {
    * @param {?LogTag|string|Array<string>} tag Tag to use on all logged events,
    *   or constructor arguments for same. If `null`, the instance will have no
    *   context tag.
-   * @param {IntfLoggingEnvironment} [environment] Logging environment to
-   *   use (it's the source for timestamps and stack traces, and what initially
+   * @param {IntfLoggingEnvironment} [environment] Logging environment to use
+   *   (it's the source for timestamps and stack traces, and what initially
    *   receives all logged events), or `null` to use the default one which is
    *   hooked up to the "real world."
    * @returns {IntfLogger} A logger, as described.
