@@ -21,10 +21,9 @@ export class BaseConverter {
    *
    * @abstract
    * @param {*} data The data value to convert.
-   * @returns {*} The converted form, or the special value
-   *   {@link BaseConverter#UNHANDLED} if `data` is not convertible by this
-   *   instance and the instance is not configured to throw errors in such
-   *   cases.
+   * @returns {*} The converted form, or the special value {@link
+   *   BaseConverter#UNHANDLED} if `data` is not convertible by this instance
+   *   and the instance is not configured to throw errors in such cases.
    */
   decode(data) {
     throw Methods.abstract(data);
@@ -35,10 +34,9 @@ export class BaseConverter {
    *
    * @abstract
    * @param {*} value The value to convert.
-   * @returns {*} The converted form, or the special value
-   *   {@link BaseConverter#UNHANDLED} if `value` is not convertible by this
-   *   instance and the instance is not configured to throw errors in such
-   *   cases.
+   * @returns {*} The converted form, or the special value {@link
+   *   BaseConverter#UNHANDLED} if `value` is not convertible by this instance
+   *   and the instance is not configured to throw errors in such cases.
    */
   encode(value) {
     throw Methods.abstract(value);

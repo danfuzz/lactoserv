@@ -68,8 +68,8 @@ export class EventPayload {
    * payload for a "kickoff" event passed to the {@link EventSource}
    * constructor.
    *
-   * @param {?string} [type] Type to use for the instance, or `null` to
-   *   use a default.
+   * @param {?string} [type] Type to use for the instance, or `null` to use a
+   *   default.
    * @returns {EventPayload} A minimal instance for "kickoff."
    */
   static makeKickoffInstance(type = null) {

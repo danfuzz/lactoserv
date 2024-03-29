@@ -15,8 +15,8 @@ import { BaseComponent, ControlContext, RootControlContext }
 // extracted for reuse.
 
 /**
- * Minimal concrete subclass of `BaseComponent`, which has no-op
- * implementations for all `_impl_*` methods.
+ * Minimal concrete subclass of `BaseComponent`, which has no-op implementations
+ * for all `_impl_*` methods.
  */
 export class NopControllable extends BaseComponent {
   // The default constructor is fine for this class.

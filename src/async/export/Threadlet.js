@@ -83,9 +83,9 @@ export class Threadlet {
    *
    * @param {function(Threadlet): *} function1 First function to call (start
    *   function or main function).
-   * @param {?function(Threadlet): *} [mainFunction] Main function, or
-   *   `null` if `function1` is actually the main function (and there is no
-   *   start function).
+   * @param {?function(Threadlet): *} [mainFunction] Main function, or `null` if
+   *   `function1` is actually the main function (and there is no start
+   *   function).
    */
   constructor(function1, mainFunction = null) {
     MustBe.callableFunction(function1);
@@ -212,8 +212,8 @@ export class Threadlet {
    *
    * @returns {*} Whatever was returned by the start function, with exceptions
    *   as noted above.
-   * @throws {Error} The same error as thrown by the start function, if it
-   *   threw an error.
+   * @throws {Error} The same error as thrown by the start function, if it threw
+   *   an error.
    */
   async whenStarted() {
     if (!this.isRunning()) {
@@ -249,8 +249,8 @@ export class Threadlet {
    * Runs the thread if it's not already running, or just returns the promise
    * for the current run-in-progress.
    *
-   * @param {boolean} [exposed] Should the returned promise be
-   *   considered "exposed" to the client of this instance?
+   * @param {boolean} [exposed] Should the returned promise be considered
+   *   "exposed" to the client of this instance?
    * @returns {Promise} The (eventual) result of the run.
    */
   #run(exposed = false) {

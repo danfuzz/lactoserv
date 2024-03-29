@@ -44,10 +44,9 @@ export class StackTrace {
    *   `null` or omitted, this constructs an instance based on the current call
    *   (to this constructor), with the actual call to this method omitted from
    *   the result.
-   * @param {number} [omitCount] The number of innermost stack frames to
-   *   omit.
-   * @param {?number} [maxCount] Maximum number of frames to include, or
-   *   `null` to have no limit.
+   * @param {number} [omitCount] The number of innermost stack frames to omit.
+   * @param {?number} [maxCount] Maximum number of frames to include, or `null`
+   *   to have no limit.
    */
   constructor(original = null, omitCount, maxCount) {
     // Deal with the variadic nature of this method.
@@ -101,10 +100,10 @@ export class StackTrace {
    *
    * @param {string|StackTrace|{ message: string, stack: string }|
    *   Array<StackFrame>} original Source for the stack frames.
-   * @param {number} [omitCount] Number of innermost stack frames to omit
-   *   (not including the one for this method call, which is _always_ omitted).
-   * @param {?number} [maxCount] Maximum number of frames to include, or
-   *   `null` to have no limit.
+   * @param {number} [omitCount] Number of innermost stack frames to omit (not
+   *   including the one for this method call, which is _always_ omitted).
+   * @param {?number} [maxCount] Maximum number of frames to include, or `null`
+   *   to have no limit.
    * @returns {Array<StackFrame>} The stack trace.
    */
   static framesFrom(original, omitCount = 0, maxCount = null) {
@@ -158,10 +157,10 @@ export class StackTrace {
    * frame. The result is a simple compound object, not an instance of this
    * class. The result is always deeply frozen.
    *
-   * @param {number} [omitCount] Number of innermost stack frames to omit
-   *   (not including the one for this method call, which is _always_ omitted).
-   * @param {?number} [maxCount] Maximum number of frames to include, or
-   *   `null` to have no limit.
+   * @param {number} [omitCount] Number of innermost stack frames to omit (not
+   *   including the one for this method call, which is _always_ omitted).
+   * @param {?number} [maxCount] Maximum number of frames to include, or `null`
+   *   to have no limit.
    * @returns {Array<StackFrame>} The stack trace.
    */
   static framesNow(omitCount = 0, maxCount = null) {

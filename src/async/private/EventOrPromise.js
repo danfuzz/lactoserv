@@ -45,9 +45,9 @@ export class EventOrPromise {
    * result just from constructing an instance.
    *
    * @param {LinkedEvent|Promise<LinkedEvent>} event Event or promise to wrap.
-   * @param {?function(new:LinkedEvent)} [subclass] Subclass which
-   *   `event` (or the resolved promise for it) must be an instance of, or
-   *   `null` not to require a specific subclass.
+   * @param {?function(new:LinkedEvent)} [subclass] Subclass which `event` (or
+   *   the resolved promise for it) must be an instance of, or `null` not to
+   *   require a specific subclass.
    */
   constructor(event, subclass = null) {
     if (event instanceof Promise) {

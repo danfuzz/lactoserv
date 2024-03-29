@@ -102,8 +102,8 @@ export class EventTracker {
    * error becomes manifest by the state of the instance becoming broken.
    *
    * @param {TypeEventPredicate} [predicate] Predicate to satisfy.
-   * @returns {LinkedEvent} What {@link #headNow} is (or would have been) at
-   *   the moment the operation is complete.
+   * @returns {LinkedEvent} What {@link #headNow} is (or would have been) at the
+   *   moment the operation is complete.
    * @throws {Error} Thrown if there was any trouble. If so, and the trouble was
    *   anything other than an invalid `predicate`, the instance will also become
    *   permanently broken, with most methods also throwing.
@@ -208,8 +208,8 @@ export class EventTracker {
    * of a bug in this class.)
    *
    * @param {TypeEventPredicate} [predicate] Predicate to satisfy.
-   * @returns {LinkedEvent} The event just _behind_ {@link #headNow} at the
-   *   the moment the operation is complete.
+   * @returns {LinkedEvent} The event just _behind_ {@link #headNow} at the the
+   *   moment the operation is complete.
    * @throws {Error} Thrown if there was any trouble _before_ attempting to
    *   advance over the found event (see note above). If so, and the trouble was
    *   anything other than an invalid `predicate`, the instance will also become
@@ -247,8 +247,8 @@ export class EventTracker {
    * equivalent to just accessing {@link #headPromise}.
    *
    * @param {TypeEventPredicate} [predicate] Predicate to satisfy.
-   * @returns {LinkedEvent} The earliest event on the tracked chain that
-   *   matches `predicate`.
+   * @returns {LinkedEvent} The earliest event on the tracked chain that matches
+   *   `predicate`.
    * @throws {Error} Thrown if there was any trouble. Unlike {@link #advance},
    *   {@link #next}, etc., because this method does not affect the state of the
    *   instance, a thrown error here doesn't indicate that the instance is
@@ -270,8 +270,8 @@ export class EventTracker {
    * because the method is called in contexts where throwing would inevitably
    * result in an unhandled promise rejection.
    *
-   * @param {EventOrPromise|LinkedEvent|Promise<LinkedEvent>} event New head
-   *   of the chain.
+   * @param {EventOrPromise|LinkedEvent|Promise<LinkedEvent>} event New head of
+   *   the chain.
    * @throws {Error} Thrown if `event` is not a valid value.
    */
   #setHead(event) {
