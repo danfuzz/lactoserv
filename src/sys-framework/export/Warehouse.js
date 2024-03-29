@@ -6,7 +6,6 @@ import { WallClock } from '@this/clocks';
 import { BaseComponent, ControlContext, RootControlContext }
   from '@this/sys-compote';
 import { WarehouseConfig } from '@this/sys-config';
-import { MustBe } from '@this/typey';
 
 import { BaseApplication } from '#x/BaseApplication';
 import { BaseService } from '#x/BaseService';
@@ -59,11 +58,9 @@ export class Warehouse extends BaseComponent {
    * @param {object} config Configuration object.
    */
   constructor(config) {
-    MustBe.plainObject(config);
-
-    // Note: `super()` is called with an argument exactly because this instance
-    // is the root of its hierarchy.
-    super(new RootControlContext(ThisModule.subsystemLogger('warehouse')));
+    // Note: `super()` is called with a second argument exactly because this
+    // instance is the root of its hierarchy.
+    super(config, new RootControlContext(ThisModule.subsystemLogger('warehouse')));
 
     const parsed = new WarehouseConfig(config);
 
@@ -171,4 +168,9 @@ export class Warehouse extends BaseComponent {
    * @type {number}
    */
   static #ENDPOINT_STOP_GRACE_PERIOD_MSEC = 250;
+
+  /** @override */
+  static get CONFIG_CLASS() {
+    return WarehouseConfig;
+  }
 }

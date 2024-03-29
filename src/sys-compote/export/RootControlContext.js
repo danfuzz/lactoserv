@@ -5,6 +5,7 @@ import { IntfLogger } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';
 
 import { ControlContext } from '#x/ControlContext';
+import { Names } from '#x/Names';
 import { ThisModule } from '#p/ThisModule';
 
 
@@ -68,6 +69,7 @@ export class RootControlContext extends ControlContext {
     const name      = associate.name;
 
     if (name !== null) {
+      Names.checkName(name);
       if (this.#components.has(name)) {
         throw new Error('Cannot register two different components with the same name.');
       }

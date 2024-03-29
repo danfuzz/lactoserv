@@ -5,10 +5,14 @@ import { MustBe } from '@this/typey';
 
 
 /**
- * Base class for all configuration representation classes. Each subclass
- * defines specific configuration bindings which are to be passed to the
- * constructor. This class makes no requirement other than that the passed
- * configuration be a plain object.
+ * Base class for configuration representation classes. Component subclasses
+ * that use configuration objects _may_ but _do not have to_ use subclasses of
+ * this class for their configuration; it is meant to be an attractive but not
+ * necessary choice.
+ *
+ * Each subclass of this class defines specific configuration bindings which are
+ * to be passed to the constructor. This class makes no requirement other than
+ * that the configuration passed to the constructor be a plain object.
  */
 export class BaseConfig {
   /**

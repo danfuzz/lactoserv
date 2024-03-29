@@ -6,9 +6,9 @@ import { TreePathKey } from '@this/collections';
 import { DispatchInfo, HttpHeaders, IncomingRequest, IntfRequestHandler,
   OutgoingResponse, RequestContext }
   from '@this/net-util';
-import { BaseApplication } from '@this/sys-framework';
 import { BaseComponent, ControlContext, RootControlContext }
   from '@this/sys-compote';
+import { BaseApplication } from '@this/sys-framework';
 
 
 // TODO: This file contains a lot of mock implementation that should be
@@ -105,7 +105,7 @@ function makeRequest(path) {
 
 describe('_impl_handleRequest()', () => {
   async function makeInstance(paths, { appCount = 1, handlerFunc = null } = {}) {
-    const root = new NopControllable(new RootControlContext(null));
+    const root = new NopControllable(null, new RootControlContext(null));
     await root.start();
 
     for (let i = 1; i <= appCount; i++) {
