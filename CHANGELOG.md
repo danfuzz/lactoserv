@@ -7,7 +7,9 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* None.
+* `sys-compote` / `sys-framework`:
+  * Extracted the lower layer of classes from `sys-framework` into new module
+    `sys-compote`.
 
 Other notable changes:
 * None.
