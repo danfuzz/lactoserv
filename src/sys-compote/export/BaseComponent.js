@@ -4,8 +4,8 @@
 import { IntfLogger } from '@this/loggy-intf';
 import { AskIf, Methods, MustBe } from '@this/typey';
 
-import { IntfComponent } from '#x/IntfComponent';
 import { ControlContext } from '#x/ControlContext';
+import { IntfComponent } from '#x/IntfComponent';
 import { RootControlContext } from '#x/RootControlContext';
 import { ThisModule } from '#p/ThisModule';
 
