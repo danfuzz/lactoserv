@@ -31,8 +31,8 @@ export class NetworkEndpoint extends BaseComponent {
   #application = null;
 
   /**
-   * Protocol-specific "wrangler" or `null` if not yet set up. This gets set
-   * in {@link #_impl_start}.
+   * Protocol-specific "wrangler" or `null` if not yet set up. This gets set in
+   * {@link #_impl_start}.
    *
    * @type {?ProtocolWrangler}
    */

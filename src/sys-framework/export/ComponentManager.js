@@ -40,9 +40,9 @@ export class ComponentManager extends BaseComponent {
    *
    * @param {Array<BaseComponent>} instances All the instances to manage.
    * @param {object} options Instantiation options.
-   * @param {?function(new:BaseComponent)} [options.baseClass] Base class
-   *   of all components to be managed by this instance. `null` (the default) is
-   *   the same as passing `BaseComponent`.
+   * @param {?function(new:BaseComponent)} [options.baseClass] Base class of all
+   *   components to be managed by this instance. `null` (the default) is the
+   *   same as passing `BaseComponent`.
    * @param {?IntfLogger} [options.baseSublogger] Base sublogger to use for
    *   instantiated components, or `null` not to do any logging.
    */
@@ -71,9 +71,9 @@ export class ComponentManager extends BaseComponent {
    * Gets the {@link BaseComponent} instance bound to a given name.
    *
    * @param {string} name Instantiated component name to look for.
-   * @param {?string|function(new:BaseComponent)} [cls] Class that the
-   *   named component must be an instance of, or `null` to not have any
-   *   restriction (beyond the baseline class restriction of this instance).
+   * @param {?string|function(new:BaseComponent)} [cls] Class that the named
+   *   component must be an instance of, or `null` to not have any restriction
+   *   (beyond the baseline class restriction of this instance).
    * @returns {BaseComponent} The associated instance.
    * @throws {Error} Thrown if there is no instance with the given name, or it
    *   does not match the given `cls`.
@@ -152,8 +152,8 @@ export class ComponentManager extends BaseComponent {
    * restriction.
    *
    * @param {BaseComponent} component The instance to check.
-   * @param {?function(new:BaseComponent)} cls Class that `component` must
-   *   be, or `null` to not have any restriction.
+   * @param {?function(new:BaseComponent)} cls Class that `component` must be,
+   *   or `null` to not have any restriction.
    * @throws {Error} Thrown if `component` is not an instance of an appropriate
    *   class.
    */
