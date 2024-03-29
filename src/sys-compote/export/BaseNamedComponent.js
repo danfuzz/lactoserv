@@ -10,6 +10,9 @@ import { BaseComponent } from '#x/BaseComponent';
  * Base class for components that must have (string) names, where those names
  * must be unique within the instances' hierarchies. The base class of this
  * class, {@link BaseComponent} does not do instance naming at all.
+ *
+ * This class requires that its concrete subclasses implement a configuration
+ * class that includes a readable `name` property.
  */
 export class BaseNamedComponent extends BaseComponent {
   /**
