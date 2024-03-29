@@ -40,15 +40,13 @@ export class RootControlContext extends ControlContext {
   }
 
   /** @override */
-  getComponent(name, cls) {
+  getComponentOrNull(name, cls) {
     MustBe.string(name);
     cls = (cls === null) ? Object : MustBe.constructorFunction(cls);
 
     const found = this.#components.get(name)?.associate;
 
-    if (!found) {
-      throw new Error(`No such component: ${name}`);
-    } else if (!(found instanceof cls)) {
+    if (found && !(found instanceof cls)) {
       throw new Error(`Component not of class ${cls.name}: ${name}`);
     }
 

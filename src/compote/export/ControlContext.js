@@ -122,7 +122,28 @@ export class ControlContext {
    * @throws {Error} Thrown if a suitable instance was not found.
    */
   getComponent(name, cls) {
-    return this.#root.getComponent(name, cls);
+    const result = this.#root.getComponentOrNull(name, cls);
+
+    if (result === null) {
+      throw new Error(`No such component: ${name}`);
+    }
+
+    return result;
+  }
+
+  /**
+   * Like {@link #getComponent}, but returns `null` if there is no component
+   * with the indicated name. If there _is_ a component with the name but its
+   * class doesn't match, that's still an error.
+   *
+   * @param {string} name Name of the component.
+   * @param {?function(new:IntfComponent)} [cls] Class which the result must be
+   *   an instance of, or `null` to not have a class restriction.
+   * @returns {?IntfComponent} Found instance, or `null` if there was none.
+   * @throws {Error} Thrown if a suitable instance was not found.
+   */
+  getComponentOrNull(name, cls) {
+    return this.#root.getComponentOrNull(name, cls);
   }
 
   /**
