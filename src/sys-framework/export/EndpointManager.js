@@ -2,26 +2,20 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { BaseComponent, ControlContext } from '@this/compote';
-import { EndpointConfig } from '@this/sys-config';
 
 import { NetworkEndpoint } from '#x/NetworkEndpoint';
 import { ThisModule } from '#p/ThisModule';
-import { Warehouse } from '#x/Warehouse';
 
 
 /**
  * Manager for dealing with all the network-bound endpoints of a system.
  *
  * **Note:** `start()`ing and `stop()`ing acts on all the endpoints.
+ *
+ * TODO: This class can probably be replaced by just another instance of
+ * `ComponentManager`.
  */
 export class EndpointManager extends BaseComponent {
-  /**
-   * The warehouse this instance is in.
-   *
-   * @type {Warehouse}
-   */
-  #warehouse;
-
   /**
    * Map from each endpoint name to the {@link NetworkEndpoint} object with that
    * name.
@@ -33,16 +27,13 @@ export class EndpointManager extends BaseComponent {
   /**
    * Constructs an instance.
    *
-   * @param {Array<EndpointConfig>} configs Configuration objects.
-   * @param {Warehouse} warehouse The warehouse this instance is in.
+   * @param {Array<NetworkEndpoint>} endpoints Endpoint instances.
    */
-  constructor(configs, warehouse) {
+  constructor(endpoints) {
     super();
 
-    this.#warehouse = warehouse;
-
-    for (const config of configs) {
-      this.#addInstanceFor(config);
+    for (const endpoint of endpoints) {
+      this.#addInstance(endpoint);
     }
   }
 
@@ -102,42 +93,17 @@ export class EndpointManager extends BaseComponent {
   }
 
   /**
-   * Constructs a {@link NetworkEndpoint} based on the given information, and
-   * adds a mapping to {@link #instances} so it can be found.
+   * Validates the given instance, and adds it to {@link #instances}.
    *
-   * @param {EndpointConfig} config Parsed configuration item.
+   * @param {NetworkEndpoint} endpoint Endpoint instance.
    */
-  #addInstanceFor(config) {
-    const {
-      hostnames,
-      name,
-      services: { rateLimiter: limName, requestLogger: logName }
-    } = config;
+  #addInstance(endpoint) {
+    const name = endpoint.name;
 
     if (this.#instances.has(name)) {
-      throw new Error(`Duplicate endpoint name: ${name}`);
+      throw new Error(`Duplicate endpoint: ${name}`);
     }
 
-    const { hostManager, serviceManager } = this.#warehouse;
-
-    const hmSubset = config.requiresCertificates()
-      ? hostManager.makeSubset(hostnames)
-      : null;
-    const rateLimiter = limName
-      ? serviceManager.get(limName)
-      : null;
-    const requestLogger = logName
-      ? serviceManager.get(logName)
-      : null;
-
-    const extraConfig = {
-      hostManager: hmSubset,
-      rateLimiter,
-      requestLogger
-    };
-
-    const instance = new NetworkEndpoint(config, extraConfig);
-
-    this.#instances.set(name, instance);
+    this.#instances.set(name, endpoint);
   }
 }

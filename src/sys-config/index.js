@@ -3,7 +3,6 @@
 
 export * from '#x/ApplicationConfig';
 export * from '#x/Certificates';
-export * from '#x/EndpointConfig';
 export * from '#x/FileServiceConfig';
 export * from '#x/HostConfig';
 export * from '#x/RotateConfig';

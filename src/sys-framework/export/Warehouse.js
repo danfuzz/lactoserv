@@ -5,13 +5,14 @@ import { PromiseUtil } from '@this/async';
 import { WallClock } from '@this/clocks';
 import { BaseComponent, BaseConfig, ControlContext, RootControlContext }
   from '@this/compote';
-import { EndpointConfig, HostConfig } from '@this/sys-config';
+import { HostConfig } from '@this/sys-config';
 
 import { BaseApplication } from '#x/BaseApplication';
 import { BaseService } from '#x/BaseService';
 import { ComponentManager } from '#x/ComponentManager';
 import { EndpointManager } from '#x/EndpointManager';
 import { HostManager } from '#x/HostManager';
+import { NetworkEndpoint } from '#x/NetworkEndpoint';
 import { ThisModule } from '#p/ThisModule';
 
 
@@ -75,7 +76,7 @@ export class Warehouse extends BaseComponent {
     });
 
     this.#hostManager     = new HostManager(hosts);
-    this.#endpointManager = new EndpointManager(endpoints, this);
+    this.#endpointManager = new EndpointManager(endpoints);
   }
 
   /** @returns {ComponentManager} Application manager. */
@@ -196,9 +197,9 @@ export class Warehouse extends BaseComponent {
     #hosts;
 
     /**
-     * Endpoint configuration objects.
+     * Endpoint instances.
      *
-     * @type {Array<EndpointConfig>}
+     * @type {Array<NetworkEndpoint>}
      */
     #endpoints;
 
@@ -227,7 +228,7 @@ export class Warehouse extends BaseComponent {
 
       this.#applications = BaseApplication.evalArray(applications);
       this.#hosts        = HostConfig.parseArray(hosts);
-      this.#endpoints    = EndpointConfig.parseArray(endpoints);
+      this.#endpoints    = NetworkEndpoint.evalArray(endpoints);
       this.#services     = BaseService.evalArray(services);
     }
 
@@ -241,7 +242,7 @@ export class Warehouse extends BaseComponent {
       return this.#hosts;
     }
 
-    /** @returns {Array<EndpointConfig>} Endpoint configuration objects. */
+    /** @returns {Array<NetworkEndpoint>} Endpoint instances. */
     get endpoints() {
       return this.#endpoints;
     }
