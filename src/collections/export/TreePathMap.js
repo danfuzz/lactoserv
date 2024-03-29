@@ -3,9 +3,9 @@
 
 import { MustBe } from '@this/typey';
 
-import { TypePathKey } from '#x/TypePathKey';
 import { TreePathKey } from '#x/TreePathKey';
 import { TreePathNode } from '#p/TreePathNode';
+import { TypePathKey } from '#x/TypePathKey';
 
 
 /**
