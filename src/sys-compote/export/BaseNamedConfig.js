@@ -14,7 +14,7 @@ import { Names } from '#x/Names';
  *
  * Subclasses can of course define additional configuration bindings.
  */
-export class NamedConfig extends BaseConfig {
+export class BaseNamedConfig extends BaseConfig {
   /**
    * The item's name.
    *

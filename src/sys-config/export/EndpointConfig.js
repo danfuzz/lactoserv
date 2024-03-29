@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { HostUtil, UriUtil } from '@this/net-util';
-import { NamedConfig, Names } from '@this/sys-compote';
+import { BaseNamedConfig, Names } from '@this/sys-compote';
 
 import { ServiceUseConfig } from '#x/ServiceUseConfig';
 import { Util } from '#x/Util';
@@ -15,7 +15,7 @@ import { Util } from '#x/Util';
  *
  * See `doc/configuration.md` for configuration object details.
  */
-export class EndpointConfig extends NamedConfig {
+export class EndpointConfig extends BaseNamedConfig {
   /**
    * Name of the application to send requests to.
    *

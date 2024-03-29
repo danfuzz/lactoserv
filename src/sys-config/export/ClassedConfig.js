@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { NamedConfig } from '@this/sys-compote';
+import { BaseNamedConfig } from '@this/sys-compote';
 import { MustBe } from '@this/typey';
 
 
@@ -12,10 +12,10 @@ import { MustBe } from '@this/typey';
  *
  * Accepted configuration bindings (in the constructor). All are required:
  *
- * * Bindings as defined by the superclass, {@link NamedConfig}.
+ * * Bindings as defined by the superclass, {@link BaseNamedConfig}.
  * * `{function(new:object)} class` -- The class of the item to create.
  */
-export class ClassedConfig extends NamedConfig {
+export class ClassedConfig extends BaseNamedConfig {
   /**
    * The class of the item to create.
    *
