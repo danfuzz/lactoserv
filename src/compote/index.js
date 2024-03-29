@@ -3,7 +3,6 @@
 
 export * from '#x/BaseComponent';
 export * from '#x/BaseConfig';
-export * from '#x/BaseNamedComponent';
 export * from '#x/BaseNamedConfig';
 export * from '#x/ControlContext';
 export * from '#x/IntfComponent';

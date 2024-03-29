@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { TreePathKey } from '@this/collections';
-import { BaseNamedComponent } from '@this/compote';
+import { BaseComponent } from '@this/compote';
 import { FormatUtils } from '@this/loggy-intf';
 import { IntfRateLimiter, IntfRequestLogger, ProtocolWrangler,
   ProtocolWranglers }
@@ -24,7 +24,7 @@ import { HostManager } from '#x/HostManager';
  *
  * @implements {IntfRequestHandler}
  */
-export class NetworkEndpoint extends BaseNamedComponent {
+export class NetworkEndpoint extends BaseComponent {
   /**
    * Application to send requests to. Becomes non-`null` during {@link
    * #_impl_start()}.
