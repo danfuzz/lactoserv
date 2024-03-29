@@ -4,6 +4,7 @@
 export * from '#x/BaseComponent';
 export * from '#x/BaseConfig';
 export * from '#x/BaseNamedConfig';
+export * from '#x/ClassedConfig';
 export * from '#x/ControlContext';
 export * from '#x/IntfComponent';
 export * from '#x/Names';
