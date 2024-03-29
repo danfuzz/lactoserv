@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { BaseComponent } from '#x/BaseComponent';
-import { BaseConfig } from '#x/BaseConfig';
+import { Names } from '#x/Names';
 
 
 /**
@@ -11,7 +11,8 @@ import { BaseConfig } from '#x/BaseConfig';
  * class, {@link BaseComponent} does not do instance naming at all.
  *
  * This class requires that its concrete subclasses implement a configuration
- * class that includes a readable `name` property.
+ * class that includes a readable `name` property which abides by the contract
+ * of {@link Names#checkName}.
  */
 export class BaseNamedComponent extends BaseComponent {
   /**
@@ -21,23 +22,12 @@ export class BaseNamedComponent extends BaseComponent {
    */
   constructor(config) {
     super(config);
+
+    Names.checkName(config.name);
   }
 
   /** @override */
   get name() {
     return this.config.name;
-  }
-
-
-  //
-  // Static members
-  //
-
-  /**
-   * @returns {function(new:BaseConfig)} The configuration class for this
-   * component.
-   */
-  static get CONFIG_CLASS() {
-    return BaseConfig;
   }
 }
