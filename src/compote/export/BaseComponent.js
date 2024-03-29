@@ -6,6 +6,7 @@ import { AskIf, Methods, MustBe } from '@this/typey';
 
 import { ControlContext } from '#x/ControlContext';
 import { IntfComponent } from '#x/IntfComponent';
+import { Names } from '#x/Names';
 import { RootControlContext } from '#x/RootControlContext';
 import { ThisModule } from '#p/ThisModule';
 
@@ -15,6 +16,10 @@ import { ThisModule } from '#p/ThisModule';
  * handles the possibility of configuring instances using a configuration class;
  * configuration is part of this base class specifically (not exposed by {@link
  * IntfComponent}).
+ *
+ * **Note:** If a concrete subclass uses a configuration object with a `name`
+ * property, then this class requires that that name honor the contract of
+ * {@link Names#checkName}.
  *
  * @implements {IntfComponent}
  */
@@ -88,6 +93,11 @@ export class BaseComponent {
       this.#config = new configClass(rawConfig);
     } else {
       throw new Error('Expected plain object or config instance for `rawConfig`.');
+    }
+
+    const name = this.#config?.name;
+    if (name) {
+      Names.checkName(name);
     }
 
     if (rootContext !== null) {
