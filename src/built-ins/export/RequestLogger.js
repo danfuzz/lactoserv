@@ -27,23 +27,7 @@ export class RequestLogger extends BaseFileService {
    */
   #rotator = null;
 
-  /**
-   * Also log to the system log?
-   *
-   * @type {boolean}
-   */
-  #doSyslog;
-
-  /**
-   * Constructs an instance.
-   *
-   * @param {FileServiceConfig} config Configuration for this service.
-   */
-  constructor(config) {
-    super(config);
-
-    this.#doSyslog = config.doSyslog;
-  }
+  // Note: The default constructor is fine for this class.
 
   /** @override */
   async logCompletedRequest(line) {
@@ -57,7 +41,7 @@ export class RequestLogger extends BaseFileService {
 
   /** @override */
   async requestStarted(networkInfo_unused, timingInfo_unused, request) {
-    if (this.#doSyslog) {
+    if (this.config.doSyslog) {
       request.logger?.request(request.infoForLog);
     }
   }
@@ -70,7 +54,7 @@ export class RequestLogger extends BaseFileService {
     const responseInfo =
       await OutgoingResponse.getInfoForLog(nodeResponse, connectionSocket);
 
-    if (this.#doSyslog) {
+    if (this.config.doSyslog) {
       request.logger?.response(responseInfo);
       request.logger?.timing(timingInfo);
     }

@@ -36,17 +36,19 @@ export class Redirector extends BaseApplication {
   /**
    * Constructs an instance.
    *
-   * @param {ApplicationConfig} config Configuration for this application.
+   * @param {object} rawConfig Raw configuration object.
    */
-  constructor(config) {
-    super(config);
+  constructor(rawConfig) {
+    super(rawConfig);
 
-    this.#cacheControl = config.cacheControl;
-    this.#statusCode   = config.statusCode;
+    const { cacheControl, statusCode, target } = this.config;
+
+    this.#cacheControl = cacheControl;
+    this.#statusCode   = statusCode;
 
     // Drop the final slash from `target`, because we'll always be appending a
     // path that _starts_ with a slash.
-    this.#target = config.target.match(/^(?<target>.*)[/]$/).groups.target;
+    this.#target = target.match(/^(?<target>.*)[/]$/).groups.target;
   }
 
   /** @override */
