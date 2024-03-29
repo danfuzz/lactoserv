@@ -119,7 +119,7 @@ export class BaseComponent {
 
   /** @override */
   get name() {
-    return null;
+    return this.#config?.name ?? null;
   }
 
   /** @override */

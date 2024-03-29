@@ -25,9 +25,4 @@ export class BaseNamedComponent extends BaseComponent {
 
     Names.checkName(this.config.name);
   }
-
-  /** @override */
-  get name() {
-    return this.config.name;
-  }
 }
