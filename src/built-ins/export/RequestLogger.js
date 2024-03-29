@@ -30,11 +30,6 @@ export class RequestLogger extends BaseFileService {
   // Note: The default constructor is fine for this class.
 
   /** @override */
-  async logCompletedRequest(line) {
-    await this.#logLine(line);
-  }
-
-  /** @override */
   now() {
     return WallClock.now();
   }
