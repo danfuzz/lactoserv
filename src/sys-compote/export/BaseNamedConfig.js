@@ -25,12 +25,13 @@ export class BaseNamedConfig extends BaseConfig {
   /**
    * Constructs an instance.
    *
-   * @param {object} config Configuration object. See class header for details.
+   * @param {object} rawConfig Raw configuration object. See class header for
+   *   details.
    */
-  constructor(config) {
-    super(config);
+  constructor(rawConfig) {
+    super(rawConfig);
 
-    this.#name = Names.checkName(config.name);
+    this.#name = Names.checkName(rawConfig.name);
   }
 
   /** @returns {string} The item's name. */

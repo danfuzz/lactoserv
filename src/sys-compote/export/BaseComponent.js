@@ -39,28 +39,33 @@ export class BaseComponent {
   /**
    * Constructs an instance.
    *
-   * @param {?object} [config] Configuration for this instance, or `null` if it
-   *   has no associated configuration. If `null` then the class must define
-   *   {@link #CONFIG_CLASS} as `null`. If non-`null`, then it must either be an
-   *   instance of {@link #CONFIG_CLASS} _or_ must be a valid plain object value
-   *   to pass to the constructor of {@link #CONFIG_CLASS}.
+   * After this constructor returns, it is safe for configuration-bearing
+   * subclass instances to use {@link #config}, which will be a bona fide
+   * configuration object for the instance at that point (not just a plain
+   * object).
+   *
+   * @param {?object} [rawConfig] "Raw" configuration for this instance, or
+   *   `null` if it has no associated configuration. If `null` then the class
+   *   must define {@link #CONFIG_CLASS} as `null`. If non-`null`, then it must
+   *   either be an instance of {@link #CONFIG_CLASS} _or_ must be a valid plain
+   *   object value to pass to the constructor of {@link #CONFIG_CLASS}.
    * @param {?RootControlContext} [rootContext] Associated context if this
    *   instance is to be the root of its control hierarchy, or `null` for any
    *   other instance.
    */
-  constructor(config = null, rootContext = null) {
+  constructor(rawConfig = null, rootContext = null) {
     const configClass = this.constructor.CONFIG_CLASS;
-    if (config === null) {
+    if (rawConfig === null) {
       if (configClass !== null) {
         throw new Error('Expected object argument for `config`.');
       }
       this.#config = null;
     } else if (configClass === null) {
       throw new Error('Expected `null` argument for `config`.');
-    } else if (config instanceof configClass) {
-      this.#config = config;
-    } else if (AskIf.plainObject(config)) {
-      this.#config = new configClass(config);
+    } else if (rawConfig instanceof configClass) {
+      this.#config = rawConfig;
+    } else if (AskIf.plainObject(rawConfig)) {
+      this.#config = new configClass(rawConfig);
     } else {
       throw new Error('Expected plain object or config instance for `config`.');
     }
