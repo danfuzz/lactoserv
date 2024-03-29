@@ -13,7 +13,6 @@
 
   "dependencies": {
     "@this/loggy-intf": "*",
-    "@this/sys-config": "*",
     "@this/typey": "*"
   }
 }

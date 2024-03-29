@@ -15,6 +15,7 @@
     "@this/data-values": "*",
     "@this/fs-util": "*",
     "@this/net-util": "*",
+    "@this/sys-compote": "*",
     "@this/typey": "*"
   }
 }
