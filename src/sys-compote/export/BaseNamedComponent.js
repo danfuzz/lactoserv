@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { BaseConfig } from '@this/sys-config';
-import { MustBe } from '@this/typey';
 
 import { BaseComponent } from '#x/BaseComponent';
 
@@ -14,30 +13,17 @@ import { BaseComponent } from '#x/BaseComponent';
  */
 export class BaseNamedComponent extends BaseComponent {
   /**
-   * Configuration for this component.
-   *
-   * @type {BaseConfig}
-   */
-  #config;
-
-  /**
    * Constructs an instance.
    *
    * @param {BaseConfig} config Configuration for this component.
    */
   constructor(config) {
-    super();
-    this.#config = MustBe.instanceOf(config, this.constructor.CONFIG_CLASS);
-  }
-
-  /** @returns {BaseConfig} Configuration for this instance. */
-  get config() {
-    return this.#config;
+    super(config);
   }
 
   /** @override */
   get name() {
-    return this.#config.name;
+    return this.config.name;
   }
 
 

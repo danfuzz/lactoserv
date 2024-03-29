@@ -105,7 +105,7 @@ function makeRequest(path) {
 
 describe('_impl_handleRequest()', () => {
   async function makeInstance(paths, { appCount = 1, handlerFunc = null } = {}) {
-    const root = new NopControllable(new RootControlContext(null));
+    const root = new NopControllable(null, new RootControlContext(null));
     await root.start();
 
     for (let i = 1; i <= appCount; i++) {

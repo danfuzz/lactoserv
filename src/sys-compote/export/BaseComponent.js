@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { IntfLogger } from '@this/loggy-intf';
-import { Methods, MustBe } from '@this/typey';
+import { AskIf, Methods, MustBe } from '@this/typey';
 
 import { IntfComponent } from '#x/IntfComponent';
 import { ControlContext } from '#x/ControlContext';
@@ -11,11 +11,21 @@ import { ThisModule } from '#p/ThisModule';
 
 
 /**
- * Abstract base class which implements {@link IntfComponent}.
+ * Abstract base class which implements {@link IntfComponent}. This class also
+ * handles the possibility of configuring instances using a configuration class;
+ * configuration is part of this base class specifically (not exposed by
+ * {@link IntfComponent}).
  *
  * @implements {IntfComponent}
  */
 export class BaseComponent {
+  /**
+   * Configuration for this component, or `null` if it does not have one.
+   *
+   * @type {?object}
+   */
+  #config;
+
   /**
    * Associated context, if known, possibly wrapped in an object for the special
    * case of the root context before this instance is considered initialized. If
@@ -29,17 +39,47 @@ export class BaseComponent {
   /**
    * Constructs an instance.
    *
+   * @param {?object} [config] Configuration for this instance, or `null` if it
+   *   has no associated configuration. If `null` then the class must define
+   *   {@link #CONFIG_CLASS} as `null`. If non-`null`, then it must either be an
+   *   instance of {@link #CONFIG_CLASS} _or_ must be a valid plain object value
+   *   to pass to the constructor of {@link #CONFIG_CLASS}.
    * @param {?RootControlContext} [rootContext] Associated context if this
    *   instance is to be the root of its control hierarchy, or `null` for any
    *   other instance.
    */
-  constructor(rootContext = null) {
+  constructor(config = null, rootContext = null) {
+    const configClass = this.constructor.CONFIG_CLASS;
+    if (config === null) {
+      if (configClass !== null) {
+        throw new Error('Expected object argument for `config`.');
+      }
+      this.#config = null;
+    } else if (configClass === null) {
+      throw new Error('Expected `null` argument for `config`.');
+    } else if (config instanceof configClass) {
+      this.#config = config;
+    } else if (AskIf.plainObject(config)) {
+      this.#config = new configClass(config);
+    } else {
+      throw new Error('Expected plain object or config instance for `config`.');
+    }
+
     if (rootContext !== null) {
       // Note: We wrap `#context` here, so that it is recognized as
       // "uninitialized" by the time `start()` gets called.
       this.#context = { nascentRoot: MustBe.instanceOf(rootContext, RootControlContext) };
       rootContext[ThisModule.SYM_linkRoot](this);
     }
+  }
+
+  /**
+   * @returns {?object} Configuration object for this instance, or `null` if it
+   * has no associated configuration. If non-`null`, this is an instance of
+   * {@link #CONFIG_CLASS}.
+   */
+  get config() {
+    return this.#config;
   }
 
   /** @override */
@@ -145,6 +185,15 @@ export class BaseComponent {
   //
   // Static members
   //
+
+  /**
+   * @returns {?function(new:object, object)} The expected configuration class
+   * for this class, or `null` if this class does not use a configuration class.
+   * Defaults to `null`. Subclasses are expected to override this as necessary.
+   */
+  static get CONFIG_CLASS() {
+    return null;
+  }
 
   /**
    * Logs a message about an item (component, etc.) completing an `init()`
