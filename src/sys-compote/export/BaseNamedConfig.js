@@ -9,8 +9,8 @@ import { Names } from '#x/Names';
  * Base class for configuration representations of things that are each
  * identified by a unique-within-its-hierarchy name.
  *
- * This class requires passed `config` objects to include a `name` binding,
- * with a value that passes {@link Names#checkName}.
+ * This class requires passed `config` objects to include a `name` binding, with
+ * a value that passes {@link Names#checkName}.
  *
  * Subclasses can of course define additional configuration bindings.
  */

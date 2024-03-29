@@ -13,8 +13,8 @@ import { ThisModule } from '#p/ThisModule';
 /**
  * Abstract base class which implements {@link IntfComponent}. This class also
  * handles the possibility of configuring instances using a configuration class;
- * configuration is part of this base class specifically (not exposed by
- * {@link IntfComponent}).
+ * configuration is part of this base class specifically (not exposed by {@link
+ * IntfComponent}).
  *
  * @implements {IntfComponent}
  */
