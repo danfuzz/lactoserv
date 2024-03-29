@@ -22,7 +22,7 @@ export class HostRouter extends BaseApplication {
    */
   #routeTree = null;
 
-  // Note: The default constructor is fine for this class.
+  // @defaultConstructor
 
   /** @override */
   async _impl_handleRequest(request, dispatch) {

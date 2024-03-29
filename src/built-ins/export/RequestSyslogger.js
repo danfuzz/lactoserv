@@ -16,7 +16,7 @@ import { BaseService } from '@this/sys-framework';
  * @implements {IntfRequestLogger}
  */
 export class RequestSyslogger extends BaseService {
-  // Note: The default constructor is fine for this class.
+  // @defaultConstructor
 
   /** @override */
   now() {

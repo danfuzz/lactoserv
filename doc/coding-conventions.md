@@ -58,6 +58,15 @@ export class Florp {
 }
 ```
 
+#### Default constructors
+
+In order to make it clear that the omission of a constructor is intentional,
+use the following comment in place of an intentionally omitted constructor:
+
+```js
+  // @defaultConstructor
+```
+
 ### Class naming (and details)
 
 * `Base<Name>` -- An abstract base class. Method bodies should use

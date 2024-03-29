@@ -11,7 +11,7 @@ import { Methods } from '@this/typey';
  * @interface
  */
 export class IntfTimeSource {
-  // Note: The default constructor is fine.
+  // @defaultConstructor
 
   /**
    * Gets the current time.

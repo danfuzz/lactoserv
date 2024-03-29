@@ -33,7 +33,7 @@ export class IdGenerator {
    */
   #sequenceNumber = 0;
 
-  // The default constructor is fine here.
+  // @defaultConstructor
 
   /**
    * Makes a new ID.

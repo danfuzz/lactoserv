@@ -26,7 +26,7 @@ export class BaseLoggingEnvironment extends IntfLoggingEnvironment {
    */
   #dataConverter = new Converter(ConverterConfig.makeLoggingInstance());
 
-  // Note: The default constructor is fine here.
+  // @defaultConstructor
 
   /** @override */
   log(omitCount, tag, type, ...args) {

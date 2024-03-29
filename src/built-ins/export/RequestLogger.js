@@ -27,7 +27,7 @@ export class RequestLogger extends BaseFileService {
    */
   #rotator = null;
 
-  // Note: The default constructor is fine for this class.
+  // @defaultConstructor
 
   /** @override */
   now() {

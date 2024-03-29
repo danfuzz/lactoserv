@@ -51,7 +51,7 @@ export class Http2Wrangler extends TcpWrangler {
    */
   #perConnectionStorage = new AsyncLocalStorage();
 
-  // The default constructor is fine for this class.
+  // @defaultConstructor
 
   /** @override */
   async _impl_initialize() {

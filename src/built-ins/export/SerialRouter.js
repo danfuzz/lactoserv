@@ -21,7 +21,7 @@ export class SerialRouter extends BaseApplication {
    */
   #routeList = null;
 
-  // Note: The default constructor is fine for this class.
+  // @defaultConstructor
 
   /** @override */
   async _impl_handleRequest(request, dispatch) {

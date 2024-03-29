@@ -51,7 +51,7 @@ export class TreePathNode {
    */
   #wildcardValue = null;
 
-  // Note: The default constructor is fine here.
+  // @defaultConstructor
 
   /**
    * Underlying implementation of `TreePathMap.add()`, see which for detailed

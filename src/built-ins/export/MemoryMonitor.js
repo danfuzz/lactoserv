@@ -35,7 +35,7 @@ export class MemoryMonitor extends BaseService {
    */
   #lastSnapshot = null;
 
-  // Note: Default constructor is fine for this class.
+  // @defaultConstructor
 
   /** @override */
   async _impl_init(isReload_unused) {

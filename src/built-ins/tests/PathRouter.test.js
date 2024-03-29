@@ -19,7 +19,7 @@ import { BaseApplication } from '@this/sys-framework';
  * for all `_impl_*` methods.
  */
 export class NopControllable extends BaseComponent {
-  // The default constructor is fine for this class.
+  // @defaultConstructor
 
   /** @override */
   async _impl_init(isReload_unused) {
@@ -43,7 +43,7 @@ export class NopControllable extends BaseComponent {
 class MockApp extends BaseApplication {
   static mockCalls = [];
 
-  // The default constructor is fine for this class.
+  // @defaultConstructor
 
   /** @override */
   async _impl_handleRequest(request, dispatch) {

@@ -32,7 +32,7 @@ export class ProcessIdFile extends BaseFileService {
    */
   #runner = new Threadlet(() => this.#run());
 
-  // Note: Default constructor is fine for this class.
+  // @defaultConstructor
 
   /** @override */
   async _impl_init(isReload_unused) {

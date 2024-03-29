@@ -17,7 +17,7 @@ export class HttpWrangler extends TcpWrangler {
    */
   #protocolServer = null;
 
-  // Note: The default constructor suffices here.
+  // @defaultConstructor
 
   /** @override */
   async _impl_initialize() {

@@ -29,7 +29,7 @@ export class SystemLogger extends BaseFileService {
    */
   #sink = null;
 
-  // Note: The default constructor is fine for this class.
+  // @defaultConstructor
 
   /** @override */
   async _impl_init(isReload_unused) {

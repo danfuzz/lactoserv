@@ -14,7 +14,7 @@ import { Methods } from '@this/typey';
  * special value {@link BaseConverter#UNHANDLED}.
  */
 export class BaseConverter {
-  // Note: The default constructor is fine here.
+  // @defaultConstructor
 
   /**
    * Decodes a data value into an arbitrary value.

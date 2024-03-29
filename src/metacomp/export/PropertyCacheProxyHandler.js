@@ -41,7 +41,7 @@ export class PropertyCacheProxyHandler extends BaseProxyHandler {
    */
   #properties = new Map();
 
-  // Note: The default constructor suffices here.
+  // @defaultConstructor
 
   /**
    * Standard `Proxy` handler method. This defers to {@link #_impl_valueFor} to
