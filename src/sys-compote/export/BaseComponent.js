@@ -44,11 +44,12 @@ export class BaseComponent {
    * configuration object for the instance at that point (not just a plain
    * object).
    *
-   * @param {?object} [rawConfig] "Raw" configuration for this instance, or
-   *   `null` if it has no associated configuration. If `null` then the class
-   *   must define {@link #CONFIG_CLASS} as `null`. If non-`null`, then it must
-   *   either be an instance of {@link #CONFIG_CLASS} _or_ must be a valid plain
-   *   object value to pass to the constructor of {@link #CONFIG_CLASS}.
+   * @param {?object} [rawConfig] "Raw" (not guaranteed to be parsed and
+   *   correct) configuration for this instance, or `null` if it has no
+   *   associated configuration. If `null` then the class must define {@link
+   *   #CONFIG_CLASS} as `null`. If non-`null`, then it must either be an
+   *   instance of {@link #CONFIG_CLASS} _or_ must be a valid plain object value
+   *   to pass to the constructor of {@link #CONFIG_CLASS}.
    * @param {?RootControlContext} [rootContext] Associated context if this
    *   instance is to be the root of its control hierarchy, or `null` for any
    *   other instance.
