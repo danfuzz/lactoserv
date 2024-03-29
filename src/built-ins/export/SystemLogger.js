@@ -137,15 +137,17 @@ export class SystemLogger extends BaseFileService {
     /**
      * Constructs an instance.
      *
-     * @param {object} config Configuration object.
+     * @param {object} rawConfig Raw configuration object.
      */
-    constructor(config) {
-      super(config);
+    constructor(rawConfig) {
+      super(rawConfig);
 
-      this.#format = MustBe.string(config.format);
+      const { format } = rawConfig;
 
-      if (!TextFileSink.isValidFormat(this.#format)) {
-        throw new Error(`Unknown log format: ${this.#format}`);
+      this.#format = MustBe.string(format);
+
+      if (!TextFileSink.isValidFormat(format)) {
+        throw new Error(`Unknown log format: ${format}`);
       }
     }
 

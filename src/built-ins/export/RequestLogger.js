@@ -150,12 +150,12 @@ export class RequestLogger extends BaseFileService {
     /**
      * Constructs an instance.
      *
-     * @param {object} config Configuration object.
+     * @param {object} rawConfig Raw configuration object.
      */
-    constructor(config) {
-      super(config);
+    constructor(rawConfig) {
+      super(rawConfig);
 
-      const { sendToSystemLog = false } = config;
+      const { sendToSystemLog = false } = rawConfig;
 
       this.#doSyslog = MustBe.boolean(sendToSystemLog);
     }
