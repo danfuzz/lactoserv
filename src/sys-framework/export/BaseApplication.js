@@ -30,7 +30,7 @@ export class BaseApplication extends BaseNamedComponent {
   constructor(rawConfig) {
     super(rawConfig);
 
-    const config = this.config;
+    const { config } = this;
     this.#filterConfig =
       (config instanceof BaseApplication.FilterConfig) ? config : null;
   }
