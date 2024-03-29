@@ -66,25 +66,28 @@ export class BaseComponent {
     const configClass = this.constructor.CONFIG_CLASS;
     if (rawConfig === null) {
       if (configClass !== null) {
-        throw new Error('Expected object argument for `config`.');
+        throw new Error('Expected object argument for `rawConfig`.');
       }
       this.#config = null;
     } else if (configClass === null) {
-      throw new Error('Expected `null` argument for `config`.');
+      throw new Error('Expected `null` argument for `rawConfig`.');
     } else if (rawConfig instanceof configClass) {
       this.#config = rawConfig;
     } else if (AskIf.plainObject(rawConfig)) {
       const thisClass = this.constructor;
-      if (rawConfig.class) {
-        if (rawConfig.class !== thisClass) {
-          throw new Error('Mismatch on configuration property `class`.');
+      const rawClass  = rawConfig.class;
+      if (rawClass) {
+        if (!AskIf.constructorFunction(rawClass)) {
+          throw new Error('Expected class for `rawConfig.class`.');
+        } else if (rawConfig.class !== thisClass) {
+          throw new Error(`Mismatch on \`rawConfig.class\`: this ${thisClass.name}, got ${rawClass.name}`);
         }
       } else {
         rawConfig = { ...rawConfig, class: thisClass };
       }
       this.#config = new configClass(rawConfig);
     } else {
-      throw new Error('Expected plain object or config instance for `config`.');
+      throw new Error('Expected plain object or config instance for `rawConfig`.');
     }
 
     if (rootContext !== null) {
@@ -216,6 +219,58 @@ export class BaseComponent {
   static get CONFIG_CLASS() {
     return null;
   }
+
+  /**
+   * Evaluates a single value, or an array consisting of a heterogeneous mix of
+   * values, producing an array of instances of this class, where "this class"
+   * is the concrete class that this method was called on. (This *`static`*
+   * method is implemented in the base class on behalf of all subclasses.)
+   *
+   * The result array elements are derived as follows:
+   *
+   * * Instances of this class become result elements directly.
+   * * Plain objects and instances of this class's {@link #CONFIG_CLASS} are
+   *   used to construct instances of this class, which then become result
+   *   elements.
+   * * All other values are rejected, causing an `Error` to be `throw`n.
+   *
+   * @param {*} items Single instance or configuration, or array thereof.
+   * @returns {Array<BaseComponent>} Frozen array of instances of the called
+   *   class.
+   * @throws {Error} Thrown if there was any trouble.
+   */
+  static evalArray(items) {
+    if (items === null) {
+      throw new Error('`items` must be non-null.');
+    } else if (!Array.isArray(items)) {
+      items = [items];
+    }
+
+    const result = items.map((item) => {
+      if ((typeof item !== 'object') || (item === null)) {
+        throw new Error('Item must be an object of some sort.');
+      } else if (item instanceof this) {
+        return item;
+      } else if (item instanceof BaseComponent) {
+        throw new Error('Item is not an instance of this class (or a subclass).');
+      } else if ((item instanceof this.CONFIG_CLASS) || AskIf.plainObject(item)) {
+        if (AskIf.constructorFunction(item.class)) {
+          if (AskIf.subclassOf(item.class, this)) {
+            return new (item.class)(item);
+          } else {
+            throw new ('Item\'s `.class` is not this class (or a subclass).');
+          }
+        } else {
+          return new this(item);
+        }
+      } else {
+        throw new Error('Cannot construct component from item.');
+      }
+    });
+
+    return Object.freeze(result);
+  }
+
 
   /**
    * Logs a message about an item (component, etc.) completing an `init()`
