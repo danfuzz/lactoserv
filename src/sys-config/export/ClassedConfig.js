@@ -26,12 +26,13 @@ export class ClassedConfig extends BaseNamedConfig {
   /**
    * Constructs an instance.
    *
-   * @param {object} config Configuration object. See class header for details.
+   * @param {object} rawConfig Raw configuration object. See class header for
+   *   details.
    */
-  constructor(config) {
-    super(config);
+  constructor(rawConfig) {
+    super(rawConfig);
 
-    const { class: cls } = config;
+    const { class: cls } = rawConfig;
 
     this.#class = MustBe.constructorFunction(cls);
   }

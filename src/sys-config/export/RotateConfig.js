@@ -32,15 +32,15 @@ export class RotateConfig extends SaveConfig {
   /**
    * Constructs an instance.
    *
-   * @param {object} config Configuration object. See class header for details.
+   * @param {object} rawConfig Configuration object.
    */
-  constructor(config) {
-    super(config);
+  constructor(rawConfig) {
+    super(rawConfig);
 
     const {
       atSize      = null,
       checkPeriod = null
-    } = config;
+    } = rawConfig;
 
     this.#atSize = (atSize === null)
       ? null

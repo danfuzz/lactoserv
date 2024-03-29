@@ -12,20 +12,7 @@ import { Util } from '#x/Util';
 /**
  * Configuration representation for a "host" item, that is, a thing that defines
  * the mapping from one or more names to a certificate / key pair.
- *
- * Accepted configuration bindings (in the constructor).
- *
- * * `{string|Array<string>} hostnames` -- Names of the hosts associated with
- *   this entry. Names can in the form `*.<name>` to match any subdomain of
- *   `<name>`, `*` to be a complete wildcard (that is, matches any name not
- *   otherwise mentioned). Required.
- * * `{string|Buffer} certificate` -- The certificate chain for `hostnames`, as
- *   PEM-encoded data. Required if `selfSigned` is absent or `false`.
- * * `{string|Buffer} privateKey` -- The private key associated with
- *   `certificate`, as PEM-encoded data. Required if `selfSigned` is absent or
- *   `false`.
- * * `{boolean} selfSigned` -- Optional indicator of whether this entry should
- *   use a self-signed certificate.
+ * See `doc/configuration.md` for configuration object details.
  */
 export class HostConfig extends BaseConfig {
   /**
@@ -59,12 +46,12 @@ export class HostConfig extends BaseConfig {
   /**
    * Constructs an instance.
    *
-   * @param {object} config Configuration object. See class header for details.
+   * @param {object} rawConfig Raw configuration object.
    */
-  constructor(config) {
-    super(config);
+  constructor(rawConfig) {
+    super(rawConfig);
 
-    const { hostnames, certificate, privateKey, selfSigned = false } = config;
+    const { hostnames, certificate, privateKey, selfSigned = false } = rawConfig;
 
     this.#hostnames = Util.checkAndFreezeStrings(
       hostnames,
