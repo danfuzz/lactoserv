@@ -1,8 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { BaseNamedConfig, Names } from '@this/compote';
 import { HostUtil, UriUtil } from '@this/net-util';
-import { BaseNamedConfig, Names } from '@this/sys-compote';
 
 import { ServiceUseConfig } from '#x/ServiceUseConfig';
 import { Util } from '#x/Util';

@@ -1,9 +1,9 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { BaseNamedComponent } from '@this/compote';
 import { DispatchInfo, IncomingRequest, IntfRequestHandler, OutgoingResponse }
   from '@this/net-util';
-import { BaseNamedComponent } from '@this/sys-compote';
 import { ApplicationConfig } from '@this/sys-config';
 import { Methods, MustBe } from '@this/typey';
 

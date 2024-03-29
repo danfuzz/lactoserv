@@ -4,7 +4,7 @@
 import { PromiseUtil } from '@this/async';
 import { WallClock } from '@this/clocks';
 import { BaseComponent, ControlContext, RootControlContext }
-  from '@this/sys-compote';
+  from '@this/compote';
 import { WarehouseConfig } from '@this/sys-config';
 
 import { BaseApplication } from '#x/BaseApplication';

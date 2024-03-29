@@ -15,11 +15,11 @@
     "@this/async": "*",
     "@this/clocks": "*",
     "@this/collections": "*",
+    "@this/compote": "*",
     "@this/loggy": "*",
     "@this/loggy-intf": "*",
     "@this/net-protocol": "*",
     "@this/net-util": "*",
-    "@this/sys-compote": "*",
     "@this/sys-config": "*",
     "@this/typey": "*",
     "pem": "^1.14.8"
