@@ -122,6 +122,7 @@ export class Warehouse extends BaseComponent {
   async _impl_start(isReload = false) {
     await this.#serviceManager.start(isReload);
     await this.#applicationManager.start(isReload);
+    await this.#hostManager.start(isReload);
     await this.#endpointManager.start(isReload);
   }
 
@@ -143,7 +144,8 @@ export class Warehouse extends BaseComponent {
     await Promise.all([
       endpointsStopped,
       applicationsStopped,
-      this.#serviceManager.stop(willReload)
+      this.#serviceManager.stop(willReload),
+      this.#hostManager.stop(willReload)
     ]);
   }
 
