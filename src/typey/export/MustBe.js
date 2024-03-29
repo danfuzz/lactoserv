@@ -263,7 +263,7 @@ export class MustBe {
    *
    * @param {*} value Arbitrary value.
    * @param {?RegExp|string|Set<string>} [match] Optional regular expression
-   *  (either per se or as a string) or set of values that `value` must match.
+   *   (either per se or as a string) or set of values that `value` must match.
    * @returns {string} `value` if it is of the indicated type.
    * @throws {Error} Thrown if `value` is of any other type or doesn't match.
    */
