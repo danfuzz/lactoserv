@@ -6,6 +6,7 @@ import { AskIf, Methods, MustBe } from '@this/typey';
 
 import { ControlContext } from '#x/ControlContext';
 import { IntfComponent } from '#x/IntfComponent';
+import { Names } from '#x/Names';
 import { RootControlContext } from '#x/RootControlContext';
 import { ThisModule } from '#p/ThisModule';
 
@@ -15,6 +16,10 @@ import { ThisModule } from '#p/ThisModule';
  * handles the possibility of configuring instances using a configuration class;
  * configuration is part of this base class specifically (not exposed by {@link
  * IntfComponent}).
+ *
+ * **Note:** If a concrete subclass uses a configuration object with a `name`
+ * property, then this class requires that that name honor the contract of
+ * {@link Names#checkName}.
  *
  * @implements {IntfComponent}
  */
@@ -44,12 +49,20 @@ export class BaseComponent {
    * configuration object for the instance at that point (not just a plain
    * object).
    *
+   * **Note:** When passing `rawConfig` as a plain object, this constructor
+   * will attempt to construct the concrete class's defined {@link
+   * #CONFIG_CLASS}, and then set that as the final {@link #config}. When doing
+   * so, the constructor is passed the given `rawConfig` augmented with the
+   * additional binding of `class` to the concrete class being constructed (that
+   * is, the concrete subclass of this class whose constructor call landed
+   * here).
+   *
    * @param {?object} [rawConfig] "Raw" (not guaranteed to be parsed and
    *   correct) configuration for this instance, or `null` if it has no
    *   associated configuration. If `null` then the class must define {@link
    *   #CONFIG_CLASS} as `null`. If non-`null`, then it must either be an
-   *   instance of {@link #CONFIG_CLASS} _or_ must be a valid plain object value
-   *   to pass to the constructor of {@link #CONFIG_CLASS}.
+   *   instance of {@link #CONFIG_CLASS} _or_ must be a plain object which is
+   *   acceptable to the constructor of {@link #CONFIG_CLASS}.
    * @param {?RootControlContext} [rootContext] Associated context if this
    *   instance is to be the root of its control hierarchy, or `null` for any
    *   other instance.
@@ -58,17 +71,33 @@ export class BaseComponent {
     const configClass = this.constructor.CONFIG_CLASS;
     if (rawConfig === null) {
       if (configClass !== null) {
-        throw new Error('Expected object argument for `config`.');
+        throw new Error('Expected object argument for `rawConfig`.');
       }
       this.#config = null;
     } else if (configClass === null) {
-      throw new Error('Expected `null` argument for `config`.');
+      throw new Error('Expected `null` argument for `rawConfig`.');
     } else if (rawConfig instanceof configClass) {
       this.#config = rawConfig;
     } else if (AskIf.plainObject(rawConfig)) {
+      const thisClass = this.constructor;
+      const rawClass  = rawConfig.class;
+      if (rawClass) {
+        if (!AskIf.constructorFunction(rawClass)) {
+          throw new Error('Expected class for `rawConfig.class`.');
+        } else if (rawConfig.class !== thisClass) {
+          throw new Error(`Mismatch on \`rawConfig.class\`: this ${thisClass.name}, got ${rawClass.name}`);
+        }
+      } else {
+        rawConfig = { ...rawConfig, class: thisClass };
+      }
       this.#config = new configClass(rawConfig);
     } else {
-      throw new Error('Expected plain object or config instance for `config`.');
+      throw new Error('Expected plain object or config instance for `rawConfig`.');
+    }
+
+    const name = this.#config?.name;
+    if (name) {
+      Names.checkName(name);
     }
 
     if (rootContext !== null) {
@@ -100,7 +129,7 @@ export class BaseComponent {
 
   /** @override */
   get name() {
-    return null;
+    return this.#config?.name ?? null;
   }
 
   /** @override */
@@ -200,6 +229,58 @@ export class BaseComponent {
   static get CONFIG_CLASS() {
     return null;
   }
+
+  /**
+   * Evaluates a single value, or an array consisting of a heterogeneous mix of
+   * values, producing an array of instances of this class, where "this class"
+   * is the concrete class that this method was called on. (This *`static`*
+   * method is implemented in the base class on behalf of all subclasses.)
+   *
+   * The result array elements are derived as follows:
+   *
+   * * Instances of this class become result elements directly.
+   * * Plain objects and instances of this class's {@link #CONFIG_CLASS} are
+   *   used to construct instances of this class, which then become result
+   *   elements.
+   * * All other values are rejected, causing an `Error` to be `throw`n.
+   *
+   * @param {*} items Single instance or configuration, or array thereof.
+   * @returns {Array<BaseComponent>} Frozen array of instances of the called
+   *   class.
+   * @throws {Error} Thrown if there was any trouble.
+   */
+  static evalArray(items) {
+    if (items === null) {
+      throw new Error('`items` must be non-null.');
+    } else if (!Array.isArray(items)) {
+      items = [items];
+    }
+
+    const result = items.map((item) => {
+      if ((typeof item !== 'object') || (item === null)) {
+        throw new Error('Item must be an object of some sort.');
+      } else if (item instanceof this) {
+        return item;
+      } else if (item instanceof BaseComponent) {
+        throw new Error('Item is not an instance of this class (or a subclass).');
+      } else if ((item instanceof this.CONFIG_CLASS) || AskIf.plainObject(item)) {
+        if (AskIf.constructorFunction(item.class)) {
+          if (AskIf.subclassOf(item.class, this)) {
+            return new (item.class)(item);
+          } else {
+            throw new Error('Item\'s `.class` is not this class (or a subclass).');
+          }
+        } else {
+          return new this(item);
+        }
+      } else {
+        throw new Error('Cannot construct component from item.');
+      }
+    });
+
+    return Object.freeze(result);
+  }
+
 
   /**
    * Logs a message about an item (component, etc.) completing an `init()`

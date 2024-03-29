@@ -1,16 +1,14 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseComponent, BaseNamedComponent, ControlContext }
-  from '@this/compote';
+import { BaseComponent, ControlContext } from '@this/compote';
 import { IntfLogger } from '@this/loggy-intf';
-import { ClassedConfig } from '@this/sys-config';
 import { AskIf, MustBe } from '@this/typey';
 
 
 /**
- * Manager for dealing with all the instantiable / instantiated components to be
- * run in a particular configuration.
+ * Manager for dealing with a set of related (same general role) named
+ * components.
  *
  * **Note:** `start()`ing and `stop()`ing acts on all the component instances.
  */
@@ -18,17 +16,9 @@ export class ComponentManager extends BaseComponent {
   /**
    * Base class of all components to be managed by this instance.
    *
-   * @type {function(new:BaseNamedComponent)}
+   * @type {function(new:BaseComponent)}
    */
   #baseClass;
-
-  /**
-   * Base class of all component configuration classes to be used by this
-   * instance.
-   *
-   * @type {function(new:ClassedConfig)}
-   */
-  #configBaseClass;
 
   /**
    * Base sublogger to use for instantiated components, or `null` not to do any
@@ -41,22 +31,22 @@ export class ComponentManager extends BaseComponent {
   /**
    * Map from each bound name to the corresponding instance.
    *
-   * @type {Map<string, BaseNamedComponent>}
+   * @type {Map<string, BaseComponent>}
    */
   #instances = new Map();
 
   /**
    * Constructs an instance.
    *
-   * @param {Array<ClassedConfig>} configs Configuration objects.
+   * @param {Array<BaseComponent>} instances All the instances to manage.
    * @param {object} options Instantiation options.
-   * @param {?function(new:BaseNamedComponent)} [options.baseClass] Base class
-   *   of all components to be managed by this instance. `null` (the default) is
-   *   the same as passing `BaseNamedComponent`.
+   * @param {?function(new:BaseComponent)} [options.baseClass] Base class of all
+   *   components to be managed by this instance. `null` (the default) is the
+   *   same as passing `BaseComponent`.
    * @param {?IntfLogger} [options.baseSublogger] Base sublogger to use for
    *   instantiated components, or `null` not to do any logging.
    */
-  constructor(configs, options) {
+  constructor(instances, options) {
     const {
       baseClass = null,
       baseSublogger = null
@@ -65,31 +55,26 @@ export class ComponentManager extends BaseComponent {
     super();
 
     this.#baseClass = (baseClass === null)
-      ? BaseNamedComponent
-      : MustBe.subclassOf(baseClass, BaseNamedComponent);
-    this.#configBaseClass = (baseClass === null)
-      ? ClassedConfig
-      : baseClass.CONFIG_CLASS;
+      ? BaseComponent
+      : MustBe.subclassOf(baseClass, BaseComponent);
     this.#baseSublogger = (baseSublogger === null)
       ? null
       : MustBe.instanceOf(baseSublogger, IntfLogger);
 
-    MustBe.array(configs);
-    for (const config of configs) {
-      MustBe.instanceOf(config, this.#configBaseClass);
-      MustBe.subclassOf(config.class, this.#baseClass);
-      this.#addInstanceFor(config);
+    MustBe.array(instances);
+    for (const instance of instances) {
+      this.#addInstance(instance);
     }
   }
 
   /**
-   * Gets the {@link BaseNamedComponent} instance bound to a given name.
+   * Gets the {@link BaseComponent} instance bound to a given name.
    *
    * @param {string} name Instantiated component name to look for.
-   * @param {?string|function(new:BaseNamedComponent)} [cls] Class that the
-   *   named component must be an instance of, or `null` to not have any
-   *   restriction (beyond the baseline class restriction of this instance).
-   * @returns {BaseNamedComponent} The associated instance.
+   * @param {?string|function(new:BaseComponent)} [cls] Class that the named
+   *   component must be an instance of, or `null` to not have any restriction
+   *   (beyond the baseline class restriction of this instance).
+   * @returns {BaseComponent} The associated instance.
    * @throws {Error} Thrown if there is no instance with the given name, or it
    *   does not match the given `cls`.
    */
@@ -108,7 +93,7 @@ export class ComponentManager extends BaseComponent {
   /**
    * Gets a list of all component instances managed by this (manager) instance.
    *
-   * @returns {Array<BaseNamedComponent>} All the instances.
+   * @returns {Array<BaseComponent>} All the instances.
    */
   getAll() {
     return [...this.#instances.values()];
@@ -144,31 +129,31 @@ export class ComponentManager extends BaseComponent {
   }
 
   /**
-   * Constructs a {@link BaseNamedComponent} based on the given information, and
-   * adds a mapping to {@link #instances} so it can be found.
+   * Validates the given instance, and adds it to {@link #instances}.
    *
-   * @param {ClassedConfig} config Parsed configuration item.
+   * @param {BaseComponent} instance Instance to add.
    */
-  #addInstanceFor(config) {
-    MustBe.instanceOf(config, this.#configBaseClass);
+  #addInstance(instance) {
+    MustBe.instanceOf(instance, this.#baseClass);
 
-    const name = config.name;
+    const name = instance.name;
 
-    if (this.#instances.has(name)) {
+    if (!name) {
+      throw new Error('Component is missing `name`.');
+    } else if (this.#instances.has(name)) {
       throw new Error(`Duplicate component: ${name}`);
     }
 
-    const instance = new config.class(config);
     this.#instances.set(name, instance);
   }
 
   /**
-   * Checks that a {@link BaseNamedComponent} instance fits the given class
+   * Checks that a {@link BaseComponent} instance fits the given class
    * restriction.
    *
-   * @param {BaseNamedComponent} component The instance to check.
-   * @param {?function(new:BaseNamedComponent)} cls Class that `component` must
-   *   be, or `null` to not have any restriction.
+   * @param {BaseComponent} component The instance to check.
+   * @param {?function(new:BaseComponent)} cls Class that `component` must be,
+   *   or `null` to not have any restriction.
    * @throws {Error} Thrown if `component` is not an instance of an appropriate
    *   class.
    */

@@ -6,12 +6,11 @@ const SITE_DIR = new URL('../website', import.meta.url).pathname;
 const config = {
   hosts: [{ hostnames: ['localhost'], selfSigned: true }],
   applications: [
-    {
+    new StaticFiles({
       name:          'mySite',
-      class:         StaticFiles,
       siteDirectory: SITE_DIR,
       etag:          true
-    }
+    })
   ],
   endpoints: [
     {

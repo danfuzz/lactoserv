@@ -89,12 +89,17 @@ which will even build the system for you if you haven't done that yet.
 
 ## Compare and contrast
 
-The only difference between the configuration files of the standalone vs. the
-framework versions is the names of the modules that are `import`ed from: In
-the standalone version, modules use the naming scope `@lactoserv` &mdash; the
-"published" name of the project &mdash; while the framework version uses the
-scope `@this`, which is the internal name used by the project to mean "this
-project's modules."
+The differences between the configuration files of the standalone vs. the
+framework versions are:
+
+* The names of the modules that are `import`ed from: In the standalone version,
+  modules use the naming scope `@lactoserv` &mdash; the "published" name of the
+  project &mdash; while the framework version uses the scope `@this`, which is
+  the internal name used by the project to mean "this project's modules."
+* How the application is instantiated: In the standalone version, the
+  configuration specifies a plain object which includes a `class` binding. In
+  the framework version, the class `StaticFiles` is simply constructed with
+  `new`.
 
 - - - - - - - - - -
 ```

@@ -1,21 +1,21 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseNamedConfig } from '@this/compote';
 import { MustBe } from '@this/typey';
+
+import { BaseNamedConfig } from '#x/BaseNamedConfig';
 
 
 /**
  * Class for configuration representations of things that each have a
- * unique-to-its-domain name and a not-necessarily-unique class/type
- * (represented as a class _name_).
+ * unique-to-its-domain name and a not-necessarily-unique class/type.
  *
  * Accepted configuration bindings (in the constructor). All are required:
  *
  * * Bindings as defined by the superclass, {@link BaseNamedConfig}.
  * * `{function(new:object)} class` -- The class of the item to create.
  */
-export class ClassedConfig extends BaseNamedConfig {
+export class BaseClassedConfig extends BaseNamedConfig {
   /**
    * The class of the item to create.
    *

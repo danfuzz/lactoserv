@@ -2,21 +2,18 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { TreePathKey } from '@this/collections';
-import { BaseNamedComponent } from '@this/compote';
+import { BaseComponent, BaseNamedConfig, Names } from '@this/compote';
 import { FormatUtils } from '@this/loggy-intf';
-import { IntfRateLimiter, IntfRequestLogger, ProtocolWrangler,
-  ProtocolWranglers }
-  from '@this/net-protocol';
-import { DispatchInfo, IntfRequestHandler, OutgoingResponse }
+import { ProtocolWrangler, ProtocolWranglers } from '@this/net-protocol';
+import { DispatchInfo, HostUtil, IntfRequestHandler, OutgoingResponse, UriUtil }
   from '@this/net-util';
-import { EndpointConfig } from '@this/sys-config';
+import { ServiceUseConfig, Util } from '@this/sys-config';
 
 import { BaseApplication } from '#x/BaseApplication';
-import { HostManager } from '#x/HostManager';
 
 
 /**
- * Component (in the sense of this module) which completely handles a single
+ * Component (in the sense of `compote`) which completely handles a single
  * network endpoint. Instances of this class have a {@link ProtocolWrangler} to
  * deal with the lower-level networking details and a map from mount points to
  * {@link BaseApplication} instances. This class is the connection between these
@@ -24,7 +21,7 @@ import { HostManager } from '#x/HostManager';
  *
  * @implements {IntfRequestHandler}
  */
-export class NetworkEndpoint extends BaseNamedComponent {
+export class NetworkEndpoint extends BaseComponent {
   /**
    * Application to send requests to. Becomes non-`null` during {@link
    * #_impl_start()}.
@@ -34,49 +31,14 @@ export class NetworkEndpoint extends BaseNamedComponent {
   #application = null;
 
   /**
-   * Protocol-specific "wrangler."
+   * Protocol-specific "wrangler" or `null` if not yet set up. This gets set in
+   * {@link #_impl_start}.
    *
-   * @type {ProtocolWrangler}
+   * @type {?ProtocolWrangler}
    */
-  #wrangler;
+  #wrangler = null;
 
-
-  /**
-   * Constructs an instance. The `extraConfig` argument contains additional
-   * bindings, to serve as "environment-bound" values that serve as replacements
-   * for what was passed in the original (but unbound) `config` (along with
-   * other bits):
-   *
-   * @param {EndpointConfig} config Parsed configuration item.
-   * @param {object} extraConfig Additional configuration.
-   * @param {Map<string, BaseApplication>} extraConfig.applicationMap Map of
-   *   names to applications, for use in building the active mount map.
-   * @param {?HostManager} extraConfig.hostManager Replacement for `hostnames`.
-   * @param {?IntfRateLimiter} extraConfig.rateLimiter Replacement for
-   *   `rateLimiter` (service instance, not just a name).
-   * @param {?IntfRequestLogger} extraConfig.requestLogger Replacement for
-   *   `rateLimiter` (service instance, not just a name).
-   */
-  constructor(config, extraConfig) {
-    const { interface: iface, protocol } = config;
-    const { hostManager, rateLimiter, requestLogger } = extraConfig;
-
-    super(config);
-
-    const wranglerOptions = {
-      rateLimiter,
-      requestHandler: this,
-      requestLogger,
-      protocol,
-      interface: iface,
-      ...(
-        hostManager
-          ? { hostManager }
-          : {})
-    };
-
-    this.#wrangler = ProtocolWranglers.make(wranglerOptions);
-  }
+  // @defaultConstructor
 
   /**
    * **Note:** The second argument (`dispatch`) is expected to always be passed
@@ -107,7 +69,7 @@ export class NetworkEndpoint extends BaseNamedComponent {
   }
 
   /** @override */
-  async _impl_init(isReload) {
+  async _impl_init(isReload_unused) {
     const {
       application,
       interface: iface,
@@ -119,15 +81,45 @@ export class NetworkEndpoint extends BaseNamedComponent {
       interface: FormatUtils.networkInterfaceString(iface),
       application
     });
-
-    await this.#wrangler.init(this.logger, isReload);
   }
 
   /** @override */
   async _impl_start(isReload) {
-    this.#application =
-      this.context.getComponent(this.config.application, BaseApplication);
+    const context = this.context;
 
+    const {
+      application,
+      hostnames,
+      interface: iface,
+      protocol,
+      services: {
+        rateLimiter:   rateLimiterName = null,
+        requestLogger: requestLoggerName = null
+      }
+    } = this.config;
+
+    const rateLimiter   = context.getComponentOrNull(rateLimiterName);
+    const requestLogger = context.getComponentOrNull(requestLoggerName);
+
+    const hmOpt = {};
+    if (this.config.requiresCertificates()) {
+      const hostManager = this.context.getComponent('hostManager');
+      hmOpt.hostManager = hostManager.makeSubset(hostnames);
+    }
+
+    const wranglerOptions = {
+      rateLimiter,
+      requestHandler: this,
+      requestLogger,
+      protocol,
+      interface: iface,
+      ...hmOpt
+    };
+
+    this.#application = context.getComponent(application, BaseApplication);
+    this.#wrangler    = ProtocolWranglers.make(wranglerOptions);
+
+    await this.#wrangler.init(this.logger, isReload);
     await this.#wrangler.start(isReload);
   }
 
@@ -148,6 +140,113 @@ export class NetworkEndpoint extends BaseNamedComponent {
 
   /** @override */
   static get CONFIG_CLASS() {
-    return EndpointConfig;
+    return this.#Config;
   }
+
+  /**
+   * Configuration item subclass for this (outer) class.
+   */
+  static #Config = class Config extends BaseNamedConfig {
+    /**
+     * Name of the application to send requests to.
+     *
+     * @type {string}
+     */
+    #application;
+
+    /**
+     * The hostnames in question.
+     *
+     * @type {Array<string>}
+     */
+    #hostnames;
+
+    /**
+     * Physical interface to listen on; this is the result of a call to {@link
+     * UriUtil#parseInterface}.
+     *
+     * @type {object}
+     */
+    #interface;
+
+    /**
+     * High-level protocol to speak.
+     *
+     * @type {string}
+     */
+    #protocol;
+
+    /**
+     * Role-to-service mappings.
+     *
+     * @type {ServiceUseConfig}
+     */
+    #services;
+
+    /**
+     * Constructs an instance.
+     *
+     * @param {object} rawConfig Raw configuration object.
+     */
+    constructor(rawConfig) {
+      super(rawConfig);
+
+      const {
+        hostnames = '*',
+        interface: iface, // `interface` is a reserved word.
+        application,
+        protocol,
+        services = {}
+      } = rawConfig;
+
+      this.#hostnames = Util.checkAndFreezeStrings(
+        hostnames,
+        (item) => HostUtil.checkHostname(item, true));
+
+      this.#interface   = Object.freeze(HostUtil.parseInterface(iface));
+      this.#application = Names.checkName(application);
+      this.#protocol    = UriUtil.checkProtocol(protocol);
+      this.#services    = new ServiceUseConfig(services);
+    }
+
+    /** @returns {string} Name of the application to send requests to. */
+    get application() {
+      return this.#application;
+    }
+
+    /**
+     * @returns {Array<string>} List of hostnames, including possibly subdomain
+     * and/or full wildcards.
+     */
+    get hostnames() {
+      return this.#hostnames;
+    }
+
+    /**
+     * @returns {object} Parsed interface. This is a frozen return value from
+     * {@link UriUtil#parseInterface}.
+     */
+    get interface() {
+      return this.#interface;
+    }
+
+    /** @returns {string} High-level protocol to speak. */
+    get protocol() {
+      return this.#protocol;
+    }
+
+    /** @returns {ServiceUseConfig} Role-to-service configuration. */
+    get services() {
+      return this.#services;
+    }
+
+    /**
+     * Indicates whether the protocol requires host certificate configuration.
+     *
+     * @returns {boolean} `true` iff certificates are required.
+     */
+    requiresCertificates() {
+      return this.#protocol !== 'http';
+    }
+  };
 }
