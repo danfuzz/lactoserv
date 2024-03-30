@@ -269,7 +269,9 @@ export class OutgoingResponse {
   getInfoForLog(res, connectionSocket) {
     const statusCode    = res.statusCode;
     const headers       = res.getHeaders();
-    const contentLength = headers['content-length'] ?? null;
+    const contentLength = this.#shouldSendBody(res)
+      ? (headers['content-length'] ?? null)
+      : null;
 
     const result = {
       ok:         true,
@@ -1028,8 +1030,13 @@ export class OutgoingResponse {
   static #sanitizeResponseHeaders(headers) {
     const result = { ...headers };
 
+    // Note: We used to exclude `Content-Length` here, on the theory that it was
+    // redundant with the `contentLength` included with the full response log
+    // info. However, in the case of a `HEAD` request, it's not actually
+    // redundant, because `contentLength` will be `null` while nonetheless there
+    // _can_ be a `Content-Length` header.
+
     delete result[':status'];
-    delete result['content-length'];
 
     return result;
   }

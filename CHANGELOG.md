@@ -12,6 +12,9 @@ Breaking changes:
     into new module `compote`. Renamed the classes for better harmony, extracted
     a new interface `IntfComponent`, and generally improved the ergonomics of
     the exported API.
+* `net-util`:
+  * Made `getLogInfo()` an instance (not `static`) method, and fixed its
+    reporting of `contentLength`.
 
 Other notable changes:
 * `sys-framework`:
