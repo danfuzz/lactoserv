@@ -3,7 +3,6 @@
 
 import { WallClock } from '@this/clocks';
 import { IntfRequestLogger } from '@this/net-protocol';
-import { OutgoingResponse } from '@this/net-util';
 import { BaseService } from '@this/sys-framework';
 
 

@@ -6,7 +6,6 @@ import * as fs from 'node:fs/promises';
 import { WallClock } from '@this/clocks';
 import { FormatUtils } from '@this/loggy-intf';
 import { IntfRequestLogger } from '@this/net-protocol';
-import { OutgoingResponse } from '@this/net-util';
 import { FileServiceConfig } from '@this/sys-config';
 import { BaseFileService, Rotator } from '@this/sys-util';
 import { MustBe } from '@this/typey';
