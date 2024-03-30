@@ -252,6 +252,53 @@ export class OutgoingResponse {
   }
 
   /**
+   * Gets all reasonably-logged info about a lower-level response object that is
+   * (presumed to be) completed (written, sent, and ended). In case of an error
+   * in the response, this method aims to report the error-ish info via a normal
+   * return (not by `throw`ing).
+   *
+   * **Note:** The `headers` in the result omits anything that is redundant with
+   * respect to other parts of the return value. (E.g., the `content-length`
+   * header is always omitted, and the `:status` pseudo-header is omitted from
+   * HTTP2 response headers.)
+   *
+   * @param {ServerResponse|Http2ServerResponse} res The response object.
+   * @param {Duplex} connectionSocket The underlying socket for the connection.
+   * @returns {object} Loggable information about the response.
+   */
+  getInfoForLog(res, connectionSocket) {
+    const statusCode    = res.statusCode;
+    const headers       = res.getHeaders();
+    const contentLength = headers['content-length'] ?? null;
+
+    const result = {
+      ok:         true,
+      statusCode,
+      contentLength,
+      headers:    OutgoingResponse.#sanitizeResponseHeaders(headers),
+      errorCodes: [],
+      errors:     {}
+    };
+
+    const addErrorIfAny = (label, stream) => {
+      const error = stream?.errored;
+      if (error) {
+        result.ok = false;
+        result.errorCodes.push(ErrorUtil.extractErrorCode(error));
+        result.errors[label] = error;
+      }
+    };
+
+    addErrorIfAny('connection',     connectionSocket);
+    addErrorIfAny('request',        res.req);
+    addErrorIfAny('requestSocket',  res.req?.socket);
+    addErrorIfAny('response',       res);
+    addErrorIfAny('responseSocket', res[OutgoingResponse.#RESPONSE_SOCKET_SYMBOL]);
+
+    return result;
+  }
+
+  /**
    * Sets the response body to be based on a buffer.
    *
    * @param {Buffer} body The full body.
@@ -828,53 +875,6 @@ export class OutgoingResponse {
    * @type {symbol}
    */
   static #RESPONSE_SOCKET_SYMBOL = Symbol('OutgoingResponse.HttpResponseSocket');
-
-  /**
-   * Gets all reasonably-logged info about a lower-level response object that is
-   * (presumed to be) completed (written, sent, and ended). In case of an error
-   * in the response, this method aims to report the error-ish info via a normal
-   * return (not by `throw`ing).
-   *
-   * **Note:** The `headers` in the result omits anything that is redundant with
-   * respect to other parts of the return value. (E.g., the `content-length`
-   * header is always omitted, and the `:status` pseudo-header is omitted from
-   * HTTP2 response headers.)
-   *
-   * @param {ServerResponse|Http2ServerResponse} res The response object.
-   * @param {Duplex} connectionSocket The underlying socket for the connection.
-   * @returns {object} Loggable information about the response.
-   */
-  static getInfoForLog(res, connectionSocket) {
-    const statusCode    = res.statusCode;
-    const headers       = res.getHeaders();
-    const contentLength = headers['content-length'] ?? null;
-
-    const result = {
-      ok:         true,
-      statusCode,
-      contentLength,
-      headers:    OutgoingResponse.#sanitizeResponseHeaders(headers),
-      errorCodes: [],
-      errors:     {}
-    };
-
-    const addErrorIfAny = (label, stream) => {
-      const error = stream?.errored;
-      if (error) {
-        result.ok = false;
-        result.errorCodes.push(ErrorUtil.extractErrorCode(error));
-        result.errors[label] = error;
-      }
-    };
-
-    addErrorIfAny('connection',     connectionSocket);
-    addErrorIfAny('request',        res.req);
-    addErrorIfAny('requestSocket',  res.req?.socket);
-    addErrorIfAny('response',       res);
-    addErrorIfAny('responseSocket', res[this.#RESPONSE_SOCKET_SYMBOL]);
-
-    return result;
-  }
 
   /**
    * Makes an instance of this class representing a non-content meta-ish

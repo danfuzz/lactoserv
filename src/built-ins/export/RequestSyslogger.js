@@ -29,10 +29,10 @@ export class RequestSyslogger extends BaseService {
   }
 
   /** @override */
-  async requestEnded(networkInfo, timingInfo, request, response_unused) {
+  async requestEnded(networkInfo, timingInfo, request, response) {
     // Note: This call isn't supposed to `throw`, even if there were errors
     // thrown during handling.
-    const resInfo = await OutgoingResponse.getInfoForLog(
+    const resInfo = await response.getInfoForLog(
       networkInfo.nodeResponse, networkInfo.connectionSocket);
 
     request.logger?.response(resInfo);

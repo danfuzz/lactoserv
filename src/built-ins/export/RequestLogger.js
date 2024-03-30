@@ -42,12 +42,11 @@ export class RequestLogger extends BaseFileService {
   }
 
   /** @override */
-  async requestEnded(networkInfo, timingInfo, request, response_unused) {
+  async requestEnded(networkInfo, timingInfo, request, response) {
     // Note: This call isn't ever supposed to `throw`, even if there were errors
     // thrown during request/response handling.
     const { connectionSocket, nodeResponse } = networkInfo;
-    const responseInfo =
-      await OutgoingResponse.getInfoForLog(nodeResponse, connectionSocket);
+    const responseInfo = await response.getInfoForLog(nodeResponse, connectionSocket);
 
     if (this.config.doSyslog) {
       request.logger?.response(responseInfo);
