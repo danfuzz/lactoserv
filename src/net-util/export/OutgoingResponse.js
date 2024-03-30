@@ -617,13 +617,11 @@ export class OutgoingResponse {
     const { cacheControl, headers, status } = this;
     const { type: bodyType }                = this.#body;
     const requestMethod                     = res.req.method; // Note: This is in all-caps.
-
-    const shouldSendBody = (bodyType !== 'none')
-      && HttpUtil.responseBodyIsAllowedFor(requestMethod, status);
+    const shouldSendBody                    = this.#shouldSendBody(res);
 
     res.statusCode = status;
     if (res.req.httpVersionMajor === 1) {
-      // HTTP2 doesn't use status messages.
+      // Only do this for HTTP1, because HTTP2 doesn't use status messages.
       res.statusMessage = statuses(status);
     }
 
@@ -669,6 +667,25 @@ export class OutgoingResponse {
         throw new Error(`Shouldn't happen: Weird body type: ${bodyType}.`);
       }
     }
+  }
+
+  /**
+   * Should we send a body in response to the given request? This takes into
+   * account the request method and whether the status code allows bodies.
+   *
+   * @param {ServerResponse|Http2ServerResponse} res The low-level Node response
+   *   object.
+   * @returns {boolean} `true` if a body should be sent, or `false` if not.
+   */
+  #shouldSendBody(res) {
+    if (this.#body.bodyType === 'none') {
+      return false;
+    };
+
+    const { status }    = this;
+    const requestMethod = res.req.method; // Note: This is in all-caps.
+
+    return HttpUtil.responseBodyIsAllowedFor(requestMethod, status);
   }
 
   /**
