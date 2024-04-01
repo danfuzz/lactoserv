@@ -17,9 +17,9 @@ Build complete!
 $
 ```
 
-By default, `dev build` deposits both a runnable build and a distribution
-tarball in the directory `out` directly under the top-level source directory.
-The script takes other options; `dev --help` for details.
+By default, `dev build` deposits a runnable build in the directory `out`,
+directly under the top-level source directory. The script takes other options;
+`dev --help` for details.
 
 `ubik dev clean` does what you (presumably) expect.
 
