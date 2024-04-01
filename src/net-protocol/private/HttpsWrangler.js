@@ -40,11 +40,6 @@ export class HttpsWrangler extends TcpWrangler {
   }
 
   /** @override */
-  _impl_server() {
-    return this.#protocolServer;
-  }
-
-  /** @override */
   async _impl_serverStart(isReload_unused) {
     // Nothing to do in this case.
   }

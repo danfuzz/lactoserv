@@ -226,22 +226,11 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Initializes the instance. After this is called and (asynchronously) returns
-   * without throwing, {@link #_impl_server} is expected to work without error.
+   * Initializes the instance.
    *
    * @abstract
    */
   async _impl_init() {
-    Methods.abstract();
-  }
-
-  /**
-   * Gets the (`HttpServer`-like) protocol server instance.
-   *
-   * @abstract
-   * @returns {object} The (`HttpServer`-like) protocol server instance.
-   */
-  _impl_server() {
     Methods.abstract();
   }
 
