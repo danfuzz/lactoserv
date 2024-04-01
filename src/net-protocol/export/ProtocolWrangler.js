@@ -182,14 +182,6 @@ export class ProtocolWrangler {
     this.#requestLogger = logger?.req ?? null;
 
     await this._impl_init();
-
-    const server = this._impl_server();
-
-    server.on('request', (...args) => this._prot_incomingRequest(...args));
-
-    // Set up an event handler to propagate the connection context. See
-    // `WranglerContext.emitInContext()` for a treatise about what's going on.
-    server.on('secureConnection', (socket) => WranglerContext.bindCurrent(socket));
   }
 
   /**

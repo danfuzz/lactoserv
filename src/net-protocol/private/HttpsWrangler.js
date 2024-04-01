@@ -4,6 +4,7 @@
 import * as https from 'node:https';
 
 import { TcpWrangler } from '#p/TcpWrangler';
+import { WranglerContext } from '#p/WranglerContext';
 
 
 /**
@@ -21,10 +22,16 @@ export class HttpsWrangler extends TcpWrangler {
 
   /** @override */
   async _impl_init() {
-    if (!this.#protocolServer) {
-      const hostOptions = this._prot_hostManager.getSecureServerOptions();
-      this.#protocolServer = https.createServer(hostOptions);
-    }
+    const hostOptions = this._prot_hostManager.getSecureServerOptions();
+    const server      = https.createServer(hostOptions);
+
+    server.on('request', (...args) => this._prot_incomingRequest(...args));
+
+    // Set up an event handler to propagate the connection context. See
+    // `WranglerContext.emitInContext()` for a treatise about what's going on.
+    server.on('secureConnection', (socket) => WranglerContext.bindCurrent(socket));
+
+    this.#protocolServer = server;
   }
 
   /** @override */

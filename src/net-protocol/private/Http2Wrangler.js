@@ -55,16 +55,22 @@ export class Http2Wrangler extends TcpWrangler {
 
   /** @override */
   async _impl_init() {
-    if (!this.#protocolServer) {
-      const hostOptions = this._prot_hostManager.getSecureServerOptions();
-      const serverOptions = {
-        ...hostOptions,
-        allowHTTP1: true
-      };
+    const hostOptions = this._prot_hostManager.getSecureServerOptions();
+    const serverOptions = {
+      ...hostOptions,
+      allowHTTP1: true
+    };
 
-      this.#protocolServer = http2.createSecureServer(serverOptions);
-      this.#protocolServer.on('session', (session) => this.#addSession(session));
-    }
+    const server = http2.createSecureServer(serverOptions);
+
+    server.on('session', (session) => this.#addSession(session));
+    server.on('request', (...args) => this._prot_incomingRequest(...args));
+
+    // Set up an event handler to propagate the connection context. See
+    // `WranglerContext.emitInContext()` for a treatise about what's going on.
+    server.on('secureConnection', (socket) => WranglerContext.bindCurrent(socket));
+
+    this.#protocolServer = server;
   }
 
   /** @override */
