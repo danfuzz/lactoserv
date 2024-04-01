@@ -21,14 +21,16 @@ export class HttpWrangler extends TcpWrangler {
 
   /** @override */
   async _impl_init() {
-    if (!this.#protocolServer) {
-      this.#protocolServer = http.createServer();
-    }
+    const server = http.createServer();
+
+    server.on('request', (...args) => this._prot_incomingRequest(...args));
+
+    this.#protocolServer = server;
   }
 
   /** @override */
-  _impl_server() {
-    return this.#protocolServer;
+  async _impl_newConnection(context) {
+    context.emitInContext(this.#protocolServer, 'connection', context.socket);
   }
 
   /** @override */

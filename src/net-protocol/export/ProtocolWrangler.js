@@ -1,13 +1,11 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { IncomingMessage, ServerResponse } from 'node:http';
-import { Http2ServerRequest, Http2ServerResponse } from 'node:http2';
-
 import { ManualPromise, Threadlet } from '@this/async';
 import { ProductInfo } from '@this/host';
 import { IntfLogger } from '@this/loggy-intf';
-import { IncomingRequest, IntfRequestHandler, OutgoingResponse, RequestContext }
+import { IncomingRequest, IntfRequestHandler, OutgoingResponse, RequestContext,
+  TypeNodeRequest, TypeNodeResponse }
   from '@this/net-util';
 import { Methods, MustBe } from '@this/typey';
 
@@ -184,14 +182,6 @@ export class ProtocolWrangler {
     this.#requestLogger = logger?.req ?? null;
 
     await this._impl_init();
-
-    const server = this._impl_server();
-
-    server.on('request', (...args) => this.#incomingRequest(...args));
-
-    // Set up an event handler to propagate the connection context. See
-    // `WranglerContext.emitInContext()` for a treatise about what's going on.
-    server.on('secureConnection', (socket) => WranglerContext.bindCurrent(socket));
   }
 
   /**
@@ -236,22 +226,11 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Initializes the instance. After this is called and (asynchronously) returns
-   * without throwing, {@link #_impl_server} is expected to work without error.
+   * Initializes the instance.
    *
    * @abstract
    */
   async _impl_init() {
-    Methods.abstract();
-  }
-
-  /**
-   * Gets the (`HttpServer`-like) protocol server instance.
-   *
-   * @abstract
-   * @returns {object} The (`HttpServer`-like) protocol server instance.
-   */
-  _impl_server() {
     Methods.abstract();
   }
 
@@ -309,61 +288,18 @@ export class ProtocolWrangler {
   }
 
   /**
-   * Top-level of the asynchronous request handling flow. This method will call
-   * out to the configured `requestHandler` when appropriate (e.g. not
-   * rate-limited, etc.).
+   * Asks the base class to handle a request as received directly from the
+   * protocol server object. This method should be called by the concrete
+   * subclass in response to receiving a request.
    *
-   * **Note:** There is nothing set up to catch errors thrown by this method. It
-   * is not supposed to `throw` (directly or indirectly).
-   *
-   * @param {IncomingRequest} request Request object.
-   * @returns {OutgoingResponse} The response to send.
+   * @param {TypeNodeRequest} req Request object.
+   * @param {TypeNodeResponse} res Response object.
    */
-  async #handleRequest(request) {
-    if (!request.pathnameString) {
-      // It's not an `origin` request. We don't handle any other type of
-      // target... yet.
-      //
-      // Handy command for testing this code path:
-      // ```
-      // echo $'GET * HTTP/1.1\r\nHost: milk.com\r\n\r' \
-      //   | curl telnet://localhost:8080
-      // ```
-      return OutgoingResponse.makeMetaResponse(400); // "Bad Request."
-    }
+  _prot_incomingRequest(req, res) {
+    // This method performs everything that can be done synchronously as the
+    // event callback that this is, and then (assuming all's well) hands things
+    // off to our main `async` request handler.
 
-    try {
-      const result = await this.#requestHandler.handleRequest(request, null);
-
-      if (result instanceof OutgoingResponse) {
-        return result;
-      } else if (result === null) {
-        // The configured `requestHandler` didn't actually handle the request.
-        // Respond with a vanilla `404` error. (If the client wants something
-        // fancier, they can do it themselves.)
-        const bodyExtra = request.urlForLog;
-        return OutgoingResponse.makeNotFound({ bodyExtra });
-      } else {
-        // Caught by our direct caller, `#respondToRequest()`.
-        throw new Error(`Strange result from \`handleRequest\`: ${result}`);
-      }
-    } catch (e) {
-      // `500` == "Internal Server Error."
-      const bodyExtra = e.stack ?? e.message ?? '<unknown>';
-      return OutgoingResponse.makeMetaResponse(500, { bodyExtra });
-    }
-  }
-
-  /**
-   * Handles a request as received directly from the HTTP-ish server object.
-   * This performs everything that can be done synchronously as the event
-   * callback that this is, and then (assuming all's well) hands things off to
-   * our main `async` request handler.
-   *
-   * @param {Http2ServerRequest|IncomingMessage} req Request object.
-   * @param {Http2ServerResponse|ServerResponse} res Response object.
-   */
-  #incomingRequest(req, res) {
     const { socket, stream, url } = req;
     const context                 = WranglerContext.get(socket, stream?.session);
     const logger                  = context?.logger ?? this.#logger;
@@ -417,6 +353,52 @@ export class ProtocolWrangler {
   }
 
   /**
+   * Top-level of the asynchronous request handling flow. This method will call
+   * out to the configured `requestHandler` when appropriate (e.g. not
+   * rate-limited, etc.).
+   *
+   * **Note:** There is nothing set up to catch errors thrown by this method. It
+   * is not supposed to `throw` (directly or indirectly).
+   *
+   * @param {IncomingRequest} request Request object.
+   * @returns {OutgoingResponse} The response to send.
+   */
+  async #handleRequest(request) {
+    if (!request.pathnameString) {
+      // It's not an `origin` request. We don't handle any other type of
+      // target... yet.
+      //
+      // Handy command for testing this code path:
+      // ```
+      // echo $'GET * HTTP/1.1\r\nHost: milk.com\r\n\r' \
+      //   | curl telnet://localhost:8080
+      // ```
+      return OutgoingResponse.makeMetaResponse(400); // "Bad Request."
+    }
+
+    try {
+      const result = await this.#requestHandler.handleRequest(request, null);
+
+      if (result instanceof OutgoingResponse) {
+        return result;
+      } else if (result === null) {
+        // The configured `requestHandler` didn't actually handle the request.
+        // Respond with a vanilla `404` error. (If the client wants something
+        // fancier, they can do it themselves.)
+        const bodyExtra = request.urlForLog;
+        return OutgoingResponse.makeNotFound({ bodyExtra });
+      } else {
+        // Caught by our direct caller, `#respondToRequest()`.
+        throw new Error(`Strange result from \`handleRequest\`: ${result}`);
+      }
+    } catch (e) {
+      // `500` == "Internal Server Error."
+      const bodyExtra = e.stack ?? e.message ?? '<unknown>';
+      return OutgoingResponse.makeMetaResponse(500, { bodyExtra });
+    }
+  }
+
+  /**
    * Top-level of the asynchronous request handling flow. When appropriate, this
    * in turn calls to our response-creator, which is supposed to always return
    * _something_ to use as a response. This method also handles request logging.
@@ -426,7 +408,7 @@ export class ProtocolWrangler {
    *
    * @param {IncomingRequest} request Request object.
    * @param {WranglerContext} outerContext The outer context of `request`.
-   * @param {Http2ServerResponse|ServerResponse} res Low-level response object.
+   * @param {TypeNodeResponse} res Low-level response object.
    * @returns {OutgoingResponse} The response object that was ultimately sent
    *   (or was at least ulitmately attempted to be sent).
    */
@@ -505,7 +487,7 @@ export class ProtocolWrangler {
    *
    * @param {IncomingRequest} request Request object.
    * @param {WranglerContext} outerContext The outer context of `request`.
-   * @param {Http2ServerResponse|ServerResponse} res Low-level response object.
+   * @param {TypeNodeResponse} res Low-level response object.
    * @returns {OutgoingResponse} The response object that was ultimately sent
    *   (or was at least ulitmately attempted to be sent).
    */

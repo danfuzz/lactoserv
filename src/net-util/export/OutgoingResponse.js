@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import fs from 'node:fs/promises';
-import { ServerResponse } from 'node:http';
-import { Http2ServerResponse } from 'node:http2';
 import { Duplex } from 'node:stream';
 
 import statuses from 'statuses';
@@ -18,6 +16,7 @@ import { HttpHeaders } from '#x/HttpHeaders';
 import { HttpRange } from '#x/HttpRange';
 import { HttpUtil } from '#x/HttpUtil';
 import { MimeTypes } from '#x/MimeTypes';
+import { TypeNodeResponse } from '#x/TypeNodeResponse';
 
 
 /**
@@ -262,7 +261,7 @@ export class OutgoingResponse {
    * header is always omitted, and the `:status` pseudo-header is omitted from
    * HTTP2 response headers.)
    *
-   * @param {ServerResponse|Http2ServerResponse} res The response object.
+   * @param {TypeNodeResponse} res The response object.
    * @param {Duplex} connectionSocket The underlying socket for the connection.
    * @returns {object} Loggable information about the response.
    */
@@ -601,16 +600,15 @@ export class OutgoingResponse {
   }
 
   /**
-   * Sends this instance as a response to the request linked to the given core
-   * {@link ServerResponse} object (or similar).
+   * Sends this instance as a response to the request linked to the given
+   * low-level Node response object.
    *
    * **Note:** This method takes into account if the given response corresponds
    * to a `HEAD` request, in which case it won't bother trying to send any body
    * data for a successful response (status `2xx` or `3xx`), even if this
    * instance has a body set.
    *
-   * @param {ServerResponse|Http2ServerResponse} res The response object to
-   *   invoke.
+   * @param {TypeNodeResponse} res The low-level response object to respond via.
    * @returns {boolean} `true` when the response is completed.
    */
   async writeTo(res) {
@@ -675,8 +673,7 @@ export class OutgoingResponse {
    * Should we send a body in response to the given request? This takes into
    * account the request method and whether the status code allows bodies.
    *
-   * @param {ServerResponse|Http2ServerResponse} res The low-level Node response
-   *   object.
+   * @param {TypeNodeResponse} res The low-level response object to check.
    * @returns {boolean} `true` if a body should be sent, or `false` if not.
    */
   #shouldSendBody(res) {
@@ -693,7 +690,7 @@ export class OutgoingResponse {
   /**
    * Writes the body from a buffer, and ends the response.
    *
-   * @param {ServerResponse|Http2ServerResponse} res The response object to use.
+   * @param {TypeNodeResponse} res The low-level response object to write to.
    * @param {boolean} shouldSendBody Should the body actually be sent?
    * @returns {boolean} `true` when closed without error.
    * @throws {Error} Any error reported by `res`.
@@ -719,7 +716,7 @@ export class OutgoingResponse {
   /**
    * Writes the body from a file, and ends the response.
    *
-   * @param {ServerResponse|Http2ServerResponse} res The response object to use.
+   * @param {TypeNodeResponse} res The low-level response object to write to.
    * @param {boolean} shouldSendBody Should the body actually be sent?
    * @returns {boolean} `true` when closed without error.
    * @throws {Error} Any error reported by `res`.
@@ -783,7 +780,7 @@ export class OutgoingResponse {
   /**
    * Writes the body for a diagnostic message, and ends the response.
    *
-   * @param {ServerResponse|Http2ServerResponse} res The response object to use.
+   * @param {TypeNodeResponse} res The low-level response object to write to.
    * @param {boolean} shouldSendBody Should the body actually be sent?
    * @returns {boolean} `true` when closed without error.
    * @throws {Error} Any error reported by `res`.
@@ -831,7 +828,7 @@ export class OutgoingResponse {
   /**
    * Ends a response without writing a body.
    *
-   * @param {ServerResponse|Http2ServerResponse} res The response object to use.
+   * @param {TypeNodeResponse} res The low-level response object to write to.
    * @returns {boolean} `true` when closed without error.
    * @throws {Error} Any error reported by `res`.
    */
@@ -1046,8 +1043,7 @@ export class OutgoingResponse {
    * of the response is believed to be sent) or has errored. Returns `true` for
    * a normal close, or throws whatever error the response reports.
    *
-   * @param {ServerResponse|Http2ServerResponse} res The response object in
-   *   question.
+   * @param {TypeNodeResponse} res The low-level response object to check.
    * @returns {boolean} `true` when closed without error.
    * @throws {Error} Any error reported by the underlying response object.
    */

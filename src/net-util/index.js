@@ -16,4 +16,6 @@ export * from '#x/IntfRequestHandler';
 export * from '#x/MimeTypes';
 export * from '#x/OutgoingResponse';
 export * from '#x/RequestContext';
+export * from '#x/TypeNodeRequest';
+export * from '#x/TypeNodeResponse';
 export * from '#x/UriUtil';

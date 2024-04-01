@@ -1,11 +1,9 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { IncomingMessage, ServerResponse } from 'node:http';
-import { Http2ServerRequest, Http2ServerResponse } from 'node:http2';
-
 import { Duration, Moment } from '@this/data-values';
-import { IncomingRequest, OutgoingResponse } from '@this/net-util';
+import { IncomingRequest, OutgoingResponse, TypeNodeRequest, TypeNodeResponse }
+  from '@this/net-util';
 import { Methods } from '@this/typey';
 
 
@@ -35,10 +33,9 @@ export class IntfRequestLogger {
    * @param {object} networkInfo.connectionSocket The socket (or socket-like
    *   object) used by the lowest level of the connection that the request is
    *   running on.
-   * @param {IncomingMessage|Http2ServerRequest} networkInfo.nodeRequest
-   *   Low-level request object.
-   * @param {ServerResponse|Http2ServerResponse} networkInfo.nodeResponse
-   *   Low-level response object.
+   * @param {TypeNodeRequest} networkInfo.nodeRequest Low-level request object.
+   * @param {TypeNodeResponse} networkInfo.nodeResponse Low-level response
+   *   object.
    * @param {object} timingInfo Information about request timing.
    * @param {Moment} timingInfo.start The moment the request started getting
    *   handled (or at least a reasonably close moment to that). This can be
