@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { IntfLogger } from '@this/loggy-intf';
-import { MustBe } from '@this/typey';
+import { AskIf, MustBe } from '@this/typey';
 
 import { ControlContext } from '#x/ControlContext';
 import { Names } from '#x/Names';
@@ -40,18 +40,32 @@ export class RootControlContext extends ControlContext {
   }
 
   /** @override */
-  getComponentOrNull(name, cls = null) {
+  getComponentOrNull(name, ...classes) {
     if ((name === null) || (name === undefined)) {
       return null;
     }
 
     MustBe.string(name);
-    cls = (cls === null) ? Object : MustBe.constructorFunction(cls);
+    MustBe.arrayOf(classes, AskIf.constructorFunction);
 
     const found = this.#components.get(name)?.associate;
 
-    if (found && !(found instanceof cls)) {
-      throw new Error(`Component not of class ${cls.name}: ${name}`);
+    if (!found) {
+      return null;
+    }
+
+    if (classes.length !== 0) {
+      const ifaces = found.IMPLEMENTED_INTERFACES;
+      for (const c of classes) {
+        if (!((found instanceof c) || ifaces.includes(c))) {
+          if (classes.length === 1) {
+            throw new Error(`Component \`${name}\` not of expected class: ${classes[0].name}`);
+          } else {
+            const names = `[${classes.map((c) => c.name).join(', ')}]`;
+            throw new Error(`Component \`${name}\` not of expected classes: ${names}`);
+          }
+        }
+      }
     }
 
     return found;

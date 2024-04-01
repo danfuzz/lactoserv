@@ -116,13 +116,14 @@ export class ControlContext {
    * also optionally be of a specific class (including a base class).
    *
    * @param {string} name Name of the component.
-   * @param {?function(new:IntfComponent)} [cls] Class which the result must be
-   *   an instance of, or `null` to not have a class restriction.
+   * @param {...function(new:IntfComponent)} [classes] List of classes and/or
+   *   interfaces which the result must be an instance of or implement
+   *   (respectively).
    * @returns {IntfComponent} Found instance.
    * @throws {Error} Thrown if a suitable instance was not found.
    */
-  getComponent(name, cls) {
-    const result = this.#root.getComponentOrNull(name, cls);
+  getComponent(name, ...classes) {
+    const result = this.#root.getComponentOrNull(name, ...classes);
 
     if (result === null) {
       throw new Error(`No such component: ${name}`);
@@ -139,13 +140,14 @@ export class ControlContext {
    *
    * @param {?string} name Name of the component, or `null`-ish to always
    *   not-find an instance.
-   * @param {?function(new:IntfComponent)} [cls] Class which the result must be
-   *   an instance of, or `null` to not have a class restriction.
+   * @param {...function(new:IntfComponent)} [classes] List of classes and/or
+   *   interfaces which the result must be an instance of or implement
+   *   (respectively).
    * @returns {?IntfComponent} Found instance, or `null` if there was none.
    * @throws {Error} Thrown if a suitable instance was not found.
    */
-  getComponentOrNull(name, cls) {
-    return this.#root.getComponentOrNull(name, cls);
+  getComponentOrNull(name, ...classes) {
+    return this.#root.getComponentOrNull(name, ...classes);
   }
 
   /**
