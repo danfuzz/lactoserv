@@ -20,7 +20,7 @@ export class HttpWrangler extends TcpWrangler {
   // @defaultConstructor
 
   /** @override */
-  async _impl_initialize() {
+  async _impl_init() {
     if (!this.#protocolServer) {
       this.#protocolServer = http.createServer();
     }

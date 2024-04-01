@@ -183,7 +183,7 @@ export class ProtocolWrangler {
     // `IncomingRequest`.
     this.#requestLogger = logger?.req ?? null;
 
-    await this._impl_initialize();
+    await this._impl_init();
 
     const server = this._impl_server();
 
@@ -241,7 +241,7 @@ export class ProtocolWrangler {
    *
    * @abstract
    */
-  async _impl_initialize() {
+  async _impl_init() {
     Methods.abstract();
   }
 

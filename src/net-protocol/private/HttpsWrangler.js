@@ -20,7 +20,7 @@ export class HttpsWrangler extends TcpWrangler {
   // @defaultConstructor
 
   /** @override */
-  async _impl_initialize() {
+  async _impl_init() {
     if (!this.#protocolServer) {
       const hostOptions = this._prot_hostManager.getSecureServerOptions();
       this.#protocolServer = https.createServer(hostOptions);
