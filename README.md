@@ -33,11 +33,9 @@ applications.
     set thereof.
   * Can serve all of HTTP, HTTPS, and HTTP2. (HTTP2 will automatically downgrade
     to HTTPS for clients that can't do HTTP2.)
-  * Provides optional "token bucket" / "leaky bucket" rate limiting for
-    connections, requests, and/or sent data (bytes / bandwidth).
-  * Optionally produces request logs, in a standard-ish form.
+* JS-based configuration file format, which isn't actually that awful!
 * Several built-in applications:
-  * Several request routing applications, to cover most routing needs:
+  * Three request routing applications, to cover most routing needs:
     * `HostRouter`, which dispatches to an application depending on the `host`
       (or equivalent) header of requests.
     * `PathRouter`, which dispatches based on matching the path prefix in a
@@ -51,13 +49,16 @@ applications.
   * Static file (directory tree) server.
   * Redirect server.
   * More to come!
-* The ability to define custom applications, using a reasonably modern
-  `async`-forward application framework. Instead of directly dealing with the
-  quirky core Node request and response objects, this framework exposes a more
-  friendly and approachable API. Maximum ergonomics: Very straightforward
+* Several built-in services:
+  * "Token bucket" / "leaky bucket" rate limiting for connections, requests,
+    and/or sent data (bytes / bandwidth).
+  * Request logging ("access log"), in a standard-ish form.
+  * Detailed system activity logging, in a couple of different formats.
+* The ability to define custom applications and services, using a reasonably
+  modern promise-based application framework. Instead of directly dealing with
+  the quirky core Node request and response objects, this framework exposes a
+  friendlier and more approachable API. Maximum ergonomics: Very straightforward
   application logic bottoms out at a well-tested low-level implementation.
-* Optionally produces detailed system activity logs.
-* JS-based configuration file format, which isn't actually that awful!
 
 ### Implementation features
 
