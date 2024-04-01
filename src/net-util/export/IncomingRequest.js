@@ -1,9 +1,6 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { IncomingMessage } from 'node:http';
-import { Http2ServerRequest } from 'node:http2';
-
 import { TreePathKey } from '@this/collections';
 import { FormatUtils, IntfLogger } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';
@@ -12,7 +9,7 @@ import { Cookies } from '#x/Cookies';
 import { HostInfo } from '#x/HostInfo';
 import { HttpHeaders } from '#x/HttpHeaders';
 import { RequestContext } from '#x/RequestContext';
-
+import { TypeNodeRequest } from '#x/TypeNodeRequest';
 
 /**
  * Representation of a received and in-progress HTTP(ish) request. This is meant
@@ -362,9 +359,9 @@ export class IncomingRequest {
    *
    * For example, for the requested URL
    * `https://example.com:123/foo/bar?baz=10`, this would be `/foo/bar?baz=10`.
-   * This property name corresponds to the standard Node field {@link
-   * IncomingMessage#url}, even though it's not actually a URL per se. We chose
-   * to diverge from Node for the sake of clarity.
+   * This property name corresponds to the standard Node field `request.url`,
+   * even though it's not actually a URL per se. We chose to diverge from Node
+   * for the sake of clarity.
    */
   get targetString() {
     return this.#parsedTarget.targetString;
@@ -550,7 +547,7 @@ export class IncomingRequest {
   /**
    * Constructs an instance based on a low-level Node HTTP-ish request object.
    *
-   * @param {IncomingMessage|Http2ServerRequest} request Request object.
+   * @param {TypeNodeRequest} request Request object.
    * @param {RequestContext} context Information about the request not
    *   represented in `request`.
    * @param {?IntfLogger} logger Logger to use as a base, or `null` to not do
@@ -579,7 +576,7 @@ export class IncomingRequest {
   /**
    * Extracts the two sets of headers from a low-level request object.
    *
-   * @param {IncomingMessage|Http2ServerRequest} request Request object.
+   * @param {TypeNodeRequest} request Request object.
    * @returns {{ headers: HttpHeaders, pseudoHeaders: HttpHeaders }} The
    *   extracted headers.
    */

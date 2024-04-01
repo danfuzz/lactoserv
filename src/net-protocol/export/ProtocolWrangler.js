@@ -1,13 +1,11 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { IncomingMessage, ServerResponse } from 'node:http';
-import { Http2ServerRequest, Http2ServerResponse } from 'node:http2';
-
 import { ManualPromise, Threadlet } from '@this/async';
 import { ProductInfo } from '@this/host';
 import { IntfLogger } from '@this/loggy-intf';
-import { IncomingRequest, IntfRequestHandler, OutgoingResponse, RequestContext }
+import { IncomingRequest, IntfRequestHandler, OutgoingResponse, RequestContext,
+  TypeNodeRequest, TypeNodeResponse }
   from '@this/net-util';
 import { Methods, MustBe } from '@this/typey';
 
@@ -313,8 +311,8 @@ export class ProtocolWrangler {
    * protocol server object. This method should be called by the concrete
    * subclass in response to receiving a request.
    *
-   * @param {Http2ServerRequest|IncomingMessage} req Request object.
-   * @param {Http2ServerResponse|ServerResponse} res Response object.
+   * @param {TypeNodeRequest} req Request object.
+   * @param {TypeNodeResponse} res Response object.
    */
   _prot_incomingRequest(req, res) {
     // This method performs everything that can be done synchronously as the
@@ -429,7 +427,7 @@ export class ProtocolWrangler {
    *
    * @param {IncomingRequest} request Request object.
    * @param {WranglerContext} outerContext The outer context of `request`.
-   * @param {Http2ServerResponse|ServerResponse} res Low-level response object.
+   * @param {TypeNodeResponse} res Low-level response object.
    * @returns {OutgoingResponse} The response object that was ultimately sent
    *   (or was at least ulitmately attempted to be sent).
    */
@@ -508,7 +506,7 @@ export class ProtocolWrangler {
    *
    * @param {IncomingRequest} request Request object.
    * @param {WranglerContext} outerContext The outer context of `request`.
-   * @param {Http2ServerResponse|ServerResponse} res Low-level response object.
+   * @param {TypeNodeResponse} res Low-level response object.
    * @returns {OutgoingResponse} The response object that was ultimately sent
    *   (or was at least ulitmately attempted to be sent).
    */
