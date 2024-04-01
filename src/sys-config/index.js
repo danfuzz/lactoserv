@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 export * from '#x/ApplicationConfig';
-export * from '#x/Certificates';
 export * from '#x/FileServiceConfig';
 export * from '#x/RotateConfig';
 export * from '#x/SaveConfig';

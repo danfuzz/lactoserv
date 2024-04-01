@@ -7,8 +7,8 @@ import * as tls from 'node:tls';
 import pem from 'pem';
 
 import { BaseComponent, BaseConfig } from '@this/compote';
-import { HostUtil } from '@this/net-util';
-import { Certificates, Util } from '@this/sys-config';
+import { CertUtil, HostUtil } from '@this/net-util';
+import { Util } from '@this/sys-config';
 import { MustBe } from '@this/typey';
 
 
@@ -266,9 +266,9 @@ export class NetworkHost extends BaseComponent {
         this.#privateKey  = null;
       } else {
         this.#certificate =
-          Certificates.checkCertificateChain(NetworkHost.#bufferFilter(certificate));
+          CertUtil.checkCertificateChain(NetworkHost.#bufferFilter(certificate));
         this.#privateKey =
-          Certificates.checkPrivateKey(NetworkHost.#bufferFilter(privateKey));
+          CertUtil.checkPrivateKey(NetworkHost.#bufferFilter(privateKey));
       }
     }
 
