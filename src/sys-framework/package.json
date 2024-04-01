@@ -20,7 +20,6 @@
     "@this/loggy-intf": "*",
     "@this/net-protocol": "*",
     "@this/net-util": "*",
-    "@this/sys-config": "*",
     "@this/typey": "*",
     "pem": "^1.14.8"
   }
