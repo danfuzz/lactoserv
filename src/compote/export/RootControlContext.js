@@ -56,8 +56,8 @@ export class RootControlContext extends ControlContext {
 
     if (classes.length !== 0) {
       const ifaces = found.constructor.IMPLEMENTED_INTERFACES ?? [];
-      for (const c of classes) {
-        if (!((found instanceof c) || ifaces.includes(c))) {
+      for (const cls of classes) {
+        if (!((found instanceof cls) || ifaces.includes(cls))) {
           if (classes.length === 1) {
             throw new Error(`Component \`${name}\` not of expected class: ${classes[0].name}`);
           } else {
