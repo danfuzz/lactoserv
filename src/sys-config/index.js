@@ -7,4 +7,3 @@ export * from '#x/RotateConfig';
 export * from '#x/SaveConfig';
 export * from '#x/ServiceConfig';
 export * from '#x/ServiceUseConfig';
-export * from '#x/Util';
