@@ -4,13 +4,12 @@
 import { Duration } from '@this/data-values';
 import { MustBe } from '@this/typey';
 
-import { FileServiceConfig } from '#x/FileServiceConfig';
 import { SaveConfig } from '#x/SaveConfig';
 
 
 /**
  * Configuration representation for file rotation, used in configuring some
- * file-writing services. (See {@link FileServiceConfig}.)
+ * file-writing services.
  *
  * See `doc/configuration` for configuration object details.
  */

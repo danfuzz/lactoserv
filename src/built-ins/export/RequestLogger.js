@@ -6,7 +6,6 @@ import * as fs from 'node:fs/promises';
 import { WallClock } from '@this/clocks';
 import { FormatUtils } from '@this/loggy-intf';
 import { IntfRequestLogger } from '@this/net-protocol';
-import { FileServiceConfig } from '@this/sys-config';
 import { BaseFileService, Rotator } from '@this/sys-util';
 import { MustBe } from '@this/typey';
 
@@ -121,7 +120,7 @@ export class RequestLogger extends BaseFileService {
   /**
    * Configuration item subclass for this (outer) class.
    */
-  static #Config = class Config extends FileServiceConfig {
+  static #Config = class Config extends BaseFileService.Config {
     /**
      * Also log to the system log?
      *
