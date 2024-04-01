@@ -79,7 +79,7 @@ export class HostManager extends BaseComponent {
   /** @override */
   async getSecureServerOptions() {
     const result = {
-      SNICallback: (serverName, cb) => this.sniCallback(serverName, cb)
+      SNICallback: (serverName, cb) => this.#sniCallback(serverName, cb)
     };
 
     // The wildcard here is for cases when the (network) client doesn't invoke
@@ -127,39 +127,6 @@ export class HostManager extends BaseComponent {
     }
 
     return result;
-  }
-
-  /**
-   * Like {@link #findContext}, except in the exact form that is expected as an
-   * `SNICallback` configured in the options of a call to (something like)
-   * `http2.createSecureServer()`.
-   *
-   * See
-   * <https://nodejs.org/dist/latest-v18.x/docs/api/tls.html#tlscreateserveroptions-secureconnectionlistener>
-   * for details.
-   *
-   * @param {string} serverName Name of the host to find, or `*` to explicitly
-   *   request the wildcard / fallback context.
-   * @param {function(?object, ?SecureContext)} callback Callback to present
-   *   with the results.
-   */
-  sniCallback(serverName, callback) {
-    const found    = this.#findItem(serverName, false);
-    let   foundCtx = null;
-
-    if (found) {
-      this.#logger?.found(serverName, found.config.hostnames);
-      foundCtx = found.getSecureContext();
-    } else {
-      this.#logger?.notFound(serverName);
-    }
-
-    try {
-      callback(null, foundCtx);
-    } catch (e) {
-      this.#logger?.errorDuringCallback(e);
-      callback(e, null);
-    }
   }
 
   /** @override */
@@ -229,6 +196,39 @@ export class HostManager extends BaseComponent {
 
     const found = this.#items.find(key);
     return found ? found.value : null;
+  }
+
+  /**
+   * Like {@link #findContext}, except in the exact form that is expected as an
+   * `SNICallback` configured in the options of a call to (something like)
+   * `http2.createSecureServer()`.
+   *
+   * See
+   * <https://nodejs.org/dist/latest-v18.x/docs/api/tls.html#tlscreateserveroptions-secureconnectionlistener>
+   * for details.
+   *
+   * @param {string} serverName Name of the host to find, or `*` to explicitly
+   *   request the wildcard / fallback context.
+   * @param {function(?object, ?SecureContext)} callback Callback to present
+   *   with the results.
+   */
+  #sniCallback(serverName, callback) {
+    const found    = this.#findItem(serverName, false);
+    let   foundCtx = null;
+
+    if (found) {
+      this.#logger?.found(serverName, found.config.hostnames);
+      foundCtx = found.getSecureContext();
+    } else {
+      this.#logger?.notFound(serverName);
+    }
+
+    try {
+      callback(null, foundCtx);
+    } catch (e) {
+      this.#logger?.errorDuringCallback(e);
+      callback(e, null);
+    }
   }
 
 
