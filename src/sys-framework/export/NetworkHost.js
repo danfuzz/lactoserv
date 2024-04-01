@@ -135,8 +135,8 @@ export class NetworkHost extends BaseComponent {
    * as-is.
    *
    * @param {*} value Value in question.
-   * @returns {*} `value` converted to a string if it was a `Buffer`,
-   *   otherwise `value`.
+   * @returns {*} `value` converted to a string if it was a `Buffer`, otherwise
+   *   `value`.
    */
   static #bufferFilter(value) {
     if (value instanceof Uint8Array) {
