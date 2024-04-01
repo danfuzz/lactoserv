@@ -55,7 +55,7 @@ export class RootControlContext extends ControlContext {
     }
 
     if (classes.length !== 0) {
-      const ifaces = found.IMPLEMENTED_INTERFACES;
+      const ifaces = found.constructor.IMPLEMENTED_INTERFACES ?? [];
       for (const c of classes) {
         if (!((found instanceof c) || ifaces.includes(c))) {
           if (classes.length === 1) {

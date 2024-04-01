@@ -222,12 +222,12 @@ export class BaseComponent {
   //
 
   /**
-   * The return value from {@link #IMPLEMENTED_INTERFACES}, or `null` if not yet
-   * calculated.
+   * Map from each subclass to its return value for {@link
+   * #IMPLEMENTED_INTERFACES}, lazily filled in.
    *
-   * @type {?Array<function(new:object)>}
+   * @type {Map<function(new:BaseComponent),Array<function(new:object)>>}
    */
-  #IMPLEMENTED_INTERFACES = null;
+  static #implementedInterfaces = new Map();
 
   /**
    * @returns {?function(new:object, object)} The expected configuration class
@@ -243,13 +243,19 @@ export class BaseComponent {
    * class claims to implement. Alwaysa frozen object.
    */
   static get IMPLEMENTED_INTERFACES() {
-    if (this.#IMPLEMENTED_INTERFACES === null) {
-      const ifaces = this._impl_implementedInterfaces();
-      MustBe.arrayOf(ifaces, AskIf.constructorFunction);
-      this.#IMPLEMENTED_INTERFACES = Object.freeze(ifaces);
+    const already = BaseComponent.#implementedInterfaces.get(this);
+
+    if (already) {
+      return already;
     }
 
-    return this.#IMPLEMENTED_INTERFACES;
+    const ifaces = this._impl_implementedInterfaces();
+
+    MustBe.arrayOf(ifaces, AskIf.constructorFunction);
+    Object.freeze(ifaces);
+    BaseComponent.#implementedInterfaces.set(this, ifaces);
+
+    return ifaces;
   }
 
   /**
