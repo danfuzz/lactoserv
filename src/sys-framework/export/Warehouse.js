@@ -5,7 +5,6 @@ import { PromiseUtil } from '@this/async';
 import { WallClock } from '@this/clocks';
 import { BaseComponent, BaseConfig, ControlContext, RootControlContext }
   from '@this/compote';
-import { HostConfig } from '@this/sys-config';
 
 import { BaseApplication } from '#x/BaseApplication';
 import { BaseService } from '#x/BaseService';
@@ -13,6 +12,7 @@ import { ComponentManager } from '#x/ComponentManager';
 import { EndpointManager } from '#x/EndpointManager';
 import { HostManager } from '#x/HostManager';
 import { NetworkEndpoint } from '#x/NetworkEndpoint';
+import { NetworkHost } from '#x/NetworkHost';
 import { ThisModule } from '#p/ThisModule';
 
 
@@ -190,9 +190,9 @@ export class Warehouse extends BaseComponent {
     #applications;
 
     /**
-     * Host configuration objects.
+     * Host handling instances.
      *
-     * @type {Array<HostConfig>}
+     * @type {Array<NetworkHost>}
      */
     #hosts;
 
@@ -227,7 +227,7 @@ export class Warehouse extends BaseComponent {
       } = rawConfig;
 
       this.#applications = BaseApplication.evalArray(applications);
-      this.#hosts        = HostConfig.parseArray(hosts);
+      this.#hosts        = NetworkHost.evalArray(hosts);
       this.#endpoints    = NetworkEndpoint.evalArray(endpoints);
       this.#services     = BaseService.evalArray(services);
     }
@@ -237,7 +237,7 @@ export class Warehouse extends BaseComponent {
       return this.#applications;
     }
 
-    /** @returns {Array<HostConfig>} Host configuration objects. */
+    /** @returns {Array<NetworkHost>} Host handling instances. */
     get hosts() {
       return this.#hosts;
     }

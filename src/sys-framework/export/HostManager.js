@@ -4,13 +4,12 @@
 import { SecureContext } from 'node:tls';
 
 import { TreePathMap } from '@this/collections';
-import { BaseComponent, BaseNamedConfig } from '@this/compote';
+import { BaseComponent, BaseNamedConfig, ControlContext } from '@this/compote';
 import { IntfLogger } from '@this/loggy-intf';
 import { IntfHostManager } from '@this/net-protocol';
 import { HostUtil } from '@this/net-util';
-import { HostConfig } from '@this/sys-config';
 
-import { HostItem } from '#p/HostItem';
+import { NetworkHost } from '#x/NetworkHost';
 import { ThisModule } from '#p/ThisModule';
 
 
@@ -24,10 +23,17 @@ import { ThisModule } from '#p/ThisModule';
  */
 export class HostManager extends BaseComponent {
   /**
-   * Map from each componentized hostname to the {@link HostItem} that should be
-   * used for it.
+   * List of all host objects.
    *
-   * @type {TreePathMap<HostItem>}
+   * @type {Array<NetworkHost>}
+   */
+  #allHosts;
+
+  /**
+   * Map from each componentized hostname to the {@link NetworkHost} that should
+   * be used for it.
+   *
+   * @type {TreePathMap<NetworkHost>}
    */
   #items = new TreePathMap(HostUtil.hostnameStringFrom);
 
@@ -41,14 +47,16 @@ export class HostManager extends BaseComponent {
   /**
    * Constructs an instance.
    *
-   * @param {Array<HostConfig>} [configs] Configuration objects.
+   * @param {Array<NetworkHost>} [hosts] Host handler objects.
    */
-  constructor(configs = []) {
+  constructor(hosts = []) {
     // TODO: This is probably too ad-hoc.
     super({ name: 'hostManager' });
 
-    for (const config of configs) {
-      this.#addItemFor(config);
+    this.#allHosts = hosts;
+
+    for (const host of hosts) {
+      this.#addInstance(host);
     }
   }
 
@@ -56,6 +64,16 @@ export class HostManager extends BaseComponent {
   async findContext(name) {
     const item = this.#findItem(name, true);
     return item ? await item.getSecureContext() : null;
+  }
+
+  /**
+   * Gets a list of all host instances managed by this instance.
+   *
+   * @returns {Array<NetworkHost>} All the host instances.
+   */
+  getAll() {
+    // Make a copy so as not to expose our innards.
+    return [...this.#allHosts];
   }
 
   /** @override */
@@ -145,8 +163,16 @@ export class HostManager extends BaseComponent {
   }
 
   /** @override */
-  async _impl_init(isReload_unused) {
-    // Nothing needed for this class.
+  async _impl_init(isReload) {
+    const hosts = this.getAll();
+
+    const results = hosts.map((h) => {
+      const logger  = ThisModule.cohortLogger('host')?.[h.name];
+      const context = new ControlContext(h, this, logger);
+      return h.init(context, isReload);
+    });
+
+    await Promise.all(results);
   }
 
   /** @override */
@@ -160,30 +186,32 @@ export class HostManager extends BaseComponent {
   }
 
   /**
-   * Constructs a {@link HostItem} based on the given information, and adds
-   * mappings to {@link #items} so it can be found.
+   * Validates the given instance, and adds it to {@link #items}.
    *
-   * @param {HostConfig} hostItem Parsed configuration item.
+   * @param {NetworkHost} host Host instance.
    */
-  #addItemFor(hostItem) {
-    const item = new HostItem(hostItem);
-
-    for (const name of item.config.hostnames) {
+  #addInstance(host) {
+    for (const name of host.config.hostnames) {
       const key = HostUtil.parseHostname(name, true);
-      this.#items.add(key, item);
+
+      if (this.#items.has(key)) {
+        throw new Error(`Duplicate hostname: ${name}`);
+      }
+
+      this.#items.add(key, host);
       this.#logger?.bound(name);
     }
   }
 
   /**
-   * Finds the most-specific {@link HostItem} for a given hostname. In case of
-   * an invalid hostname, this logs the problem but does not throw an error.
+   * Finds the most-specific {@link NetworkHost} for a given hostname. In case
+   * of an invalid hostname, this logs the problem but does not throw an error.
    *
    * @param {string} name Hostname to look for.
    * @param {boolean} allowWildcard Is `name` allowed to be a wildcard (partial
    *   or full)?
-   * @returns {?HostItem} The associated item, or `null` if nothing suitable is
-   *   found.
+   * @returns {?NetworkHost} The associated item, or `null` if nothing suitable
+   *   is found.
    */
   #findItem(name, allowWildcard) {
     const key = HostUtil.parseHostnameOrNull(name, allowWildcard);
