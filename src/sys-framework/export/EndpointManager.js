@@ -38,23 +38,6 @@ export class EndpointManager extends BaseComponent {
   }
 
   /**
-   * Finds the {@link NetworkEndpoint} for a given name.
-   *
-   * @param {string} name Endpoint name to look for.
-   * @returns {NetworkEndpoint} The associated endpoint.
-   * @throws {Error} Thrown if there is no endpoint with the given name.
-   */
-  findServer(name) {
-    const instance = this.#instances.get(name);
-
-    if (!instance) {
-      throw new Error(`No such endpoint: ${name}`);
-    }
-
-    return instance;
-  }
-
-  /**
    * Gets a list of all endpoints managed by this instance.
    *
    * @returns {Array<NetworkEndpoint>} All the endpoints.
