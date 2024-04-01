@@ -21,7 +21,7 @@ export class IntfHostManager {
    * @returns {?SecureContext} The associated {@link SecureContext}, or `null`
    *   if no hostname match is found.
    */
-  async findContext(name) {
+  findContext(name) {
     Methods.abstract(name);
   }
 
@@ -31,7 +31,7 @@ export class IntfHostManager {
    *
    * @returns {object} Options for secure server/context construction.
    */
-  async getSecureServerOptions() {
+  getSecureServerOptions() {
     Methods.abstract();
   }
 }

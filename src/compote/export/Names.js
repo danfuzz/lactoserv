@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { MustBe } from '@this/typey';
+import { AskIf } from '@this/typey';
 
 
 /**
@@ -11,7 +11,7 @@ export class Names {
   /**
    * Checks that a given value is a string which can be used as a "name of
    * something" in this system. Allowed strings must be non-empty and consist
-   * only of alphanumerics plus `-`, `_`, or `.`, and furthermore must start and
+   * only of alphanumerics plus any of `-_.+`, and furthermore must start and
    * end with an alphanumeric character or `_`.
    *
    * @param {*} value Value in question.
@@ -20,7 +20,12 @@ export class Names {
    * @throws {Error} Thrown if `value` does not match.
    */
   static checkName(value) {
-    const pattern = /^(?![-.])[-_.a-zA-Z0-9]+(?<![-.])$/;
-    return MustBe.string(value, pattern);
+    const pattern = /^(?![-.])[-_.+a-zA-Z0-9]+(?<![-.])$/;
+
+    if (AskIf.string(value, pattern)) {
+      return value;
+    } else {
+      throw new Error(`Invalid component name: ${value}`);
+    }
   }
 }

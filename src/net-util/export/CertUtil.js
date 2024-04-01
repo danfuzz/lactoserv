@@ -7,7 +7,7 @@ import { MustBe } from '@this/typey';
 /**
  * Utilities for parsing various sorts of certificatey stuff.
  */
-export class Certificates {
+export class CertUtil {
   /**
    * Checks that a given value is a string containing a standard-form PEM
    * certificate chain file.

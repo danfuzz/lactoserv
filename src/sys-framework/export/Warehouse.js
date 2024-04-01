@@ -5,24 +5,24 @@ import { PromiseUtil } from '@this/async';
 import { WallClock } from '@this/clocks';
 import { BaseComponent, BaseConfig, ControlContext, RootControlContext }
   from '@this/compote';
-import { HostConfig } from '@this/sys-config';
 
 import { BaseApplication } from '#x/BaseApplication';
 import { BaseService } from '#x/BaseService';
 import { ComponentManager } from '#x/ComponentManager';
-import { EndpointManager } from '#x/EndpointManager';
 import { HostManager } from '#x/HostManager';
 import { NetworkEndpoint } from '#x/NetworkEndpoint';
+import { NetworkHost } from '#x/NetworkHost';
 import { ThisModule } from '#p/ThisModule';
 
 
 /**
  * "Warehouse" of bits and pieces created from a top-level configuration.
  *
- * **Note:** When `start()`ing, this operates in the order services then
- * applications then endpoints, so as to start dependencies before dependants.
- * Similarly, when `stop()`ping, the order is reversed, though the system will
- * press on with the `stop()` actions if an earlier layer is taking too long.
+ * **Note:** When `start()`ing, this operates in the order hosts then services
+ * then applications then endpoints, so as to start dependencies before
+ * dependants. Similarly, when `stop()`ping, the order is reversed, though the
+ * system will press on with the `stop()` actions if an earlier layer is taking
+ * too long.
  */
 export class Warehouse extends BaseComponent {
   /**
@@ -42,7 +42,7 @@ export class Warehouse extends BaseComponent {
   /**
    * Endpoint manager, for all endpoint bindings.
    *
-   * @type {EndpointManager}
+   * @type {ComponentManager}
    */
   #endpointManager;
 
@@ -75,8 +75,12 @@ export class Warehouse extends BaseComponent {
       baseSublogger: ThisModule.cohortLogger('service')
     });
 
-    this.#hostManager     = new HostManager(hosts);
-    this.#endpointManager = new EndpointManager(endpoints);
+    this.#endpointManager = new ComponentManager(endpoints, {
+      baseClass:     NetworkEndpoint,
+      baseSublogger: ThisModule.cohortLogger('endpoint')
+    });
+
+    this.#hostManager = new HostManager(hosts);
   }
 
   /** @returns {ComponentManager} Application manager. */
@@ -92,7 +96,7 @@ export class Warehouse extends BaseComponent {
     return this.#hostManager;
   }
 
-  /** @returns {EndpointManager} Server manager. */
+  /** @returns {ComponentManager} Endpoint manager. */
   get endpointManager() {
     return this.#endpointManager;
   }
@@ -121,9 +125,9 @@ export class Warehouse extends BaseComponent {
 
   /** @override */
   async _impl_start(isReload = false) {
+    await this.#hostManager.start(isReload);
     await this.#serviceManager.start(isReload);
     await this.#applicationManager.start(isReload);
-    await this.#hostManager.start(isReload);
     await this.#endpointManager.start(isReload);
   }
 
@@ -190,9 +194,9 @@ export class Warehouse extends BaseComponent {
     #applications;
 
     /**
-     * Host configuration objects.
+     * Host handling instances.
      *
-     * @type {Array<HostConfig>}
+     * @type {Array<NetworkHost>}
      */
     #hosts;
 
@@ -227,7 +231,7 @@ export class Warehouse extends BaseComponent {
       } = rawConfig;
 
       this.#applications = BaseApplication.evalArray(applications);
-      this.#hosts        = HostConfig.parseArray(hosts);
+      this.#hosts        = NetworkHost.evalArray(hosts);
       this.#endpoints    = NetworkEndpoint.evalArray(endpoints);
       this.#services     = BaseService.evalArray(services);
     }
@@ -237,7 +241,7 @@ export class Warehouse extends BaseComponent {
       return this.#applications;
     }
 
-    /** @returns {Array<HostConfig>} Host configuration objects. */
+    /** @returns {Array<NetworkHost>} Host handling instances. */
     get hosts() {
       return this.#hosts;
     }

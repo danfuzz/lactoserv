@@ -4,3 +4,4 @@
 export * from '#x/AskIf';
 export * from '#x/Methods';
 export * from '#x/MustBe';
+export * from '#x/StringUtil';

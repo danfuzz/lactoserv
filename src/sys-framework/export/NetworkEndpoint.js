@@ -5,10 +5,12 @@ import { TreePathKey } from '@this/collections';
 import { BaseComponent, BaseNamedConfig, Names } from '@this/compote';
 import { FormatUtils } from '@this/loggy-intf';
 import { IntfRateLimiter, IntfRequestLogger, ProtocolWrangler,
-  ProtocolWranglers } from '@this/net-protocol';
+  ProtocolWranglers }
+  from '@this/net-protocol';
 import { DispatchInfo, HostUtil, IntfRequestHandler, OutgoingResponse, UriUtil }
   from '@this/net-util';
-import { ServiceUseConfig, Util } from '@this/sys-config';
+import { ServiceUseConfig } from '@this/sys-config';
+import { StringUtil } from '@this/typey';
 
 import { BaseApplication } from '#x/BaseApplication';
 import { BaseService } from '#x/BaseService';
@@ -201,7 +203,7 @@ export class NetworkEndpoint extends BaseComponent {
         services = {}
       } = rawConfig;
 
-      this.#hostnames = Util.checkAndFreezeStrings(
+      this.#hostnames = StringUtil.checkAndFreezeStrings(
         hostnames,
         (item) => HostUtil.checkHostname(item, true));
 
