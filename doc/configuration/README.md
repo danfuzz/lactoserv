@@ -238,7 +238,7 @@ naming and configuring one of them. Each element has the following bindings:
 * `application`: &mdash; The name of the application which this endpoint should
   send requests to. **Note:** In order to serve multiple leaf applications, the
   one named here will have to be a routing application of some sort (such as
-  [`PathRouter`](#pathrouter), for example).
+  [`PathRouter`](./4-built-in-applications.md#pathrouter), for example).
 
 ```js
 const endpoints = [
