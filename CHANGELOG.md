@@ -12,6 +12,9 @@ Breaking changes:
     into new module `compote`. Renamed the classes for better harmony, extracted
     a new interface `IntfComponent`, and generally improved the ergonomics of
     the exported API.
+  * Moved the higher layer of classes from `sys-config` to be inner classes of
+    the things-they-are-configuring.
+  * (Per the previous two items) Removed the now-empty module `sys-config`.
   * Added `_impl_implementedInterfaces()` as an overridable `static` method on
     `BaseComponent`, to allow for runtime declaration and validation of
     component interfaces.
@@ -24,8 +27,10 @@ Breaking changes:
 Other notable changes:
 * `sys-framework`:
   * Made it possible to pass application and service _instances_ into the
-   `Warehouse` constructor, instead of having to pass plain objects in. This
-   makes for much nicer ergonomics when using the system as a framework.
+    `Warehouse` constructor, instead of having to pass plain objects in. This
+    makes for much nicer ergonomics when using the system as a framework.
+  * Did a major rework of how hosts and endpoints are managed, simplifying the
+    code a lot in the process.
 
 ### v0.6.12 -- 2024-03-28
 
