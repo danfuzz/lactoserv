@@ -111,7 +111,7 @@ export class SystemLogger extends BaseFileService {
   static #END_EVENT_TYPE = 'finalLoggedEvent';
 
   /** @override */
-  static get CONFIG_CLASS() {
+  static _impl_configClass() {
     return this.#Config;
   }
 

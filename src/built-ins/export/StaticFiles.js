@@ -260,7 +260,7 @@ export class StaticFiles extends BaseApplication {
   //
 
   /** @override */
-  static get CONFIG_CLASS() {
+  static _impl_configClass() {
     return this.#Config;
   }
 

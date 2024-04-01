@@ -159,7 +159,7 @@ export class MemoryMonitor extends BaseService {
   static #TROUBLE_CHECK_FRACTION = 0.4;
 
   /** @override */
-  static get CONFIG_CLASS() {
+  static _impl_configClass() {
     return this.#Config;
   }
 

@@ -100,7 +100,7 @@ export class RateLimiter extends BaseService {
   //
 
   /** @override */
-  static get CONFIG_CLASS() {
+  static _impl_configClass() {
     return this.#Config;
   }
 

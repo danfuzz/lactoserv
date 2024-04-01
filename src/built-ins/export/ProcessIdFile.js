@@ -214,7 +214,7 @@ export class ProcessIdFile extends BaseFileService {
   static #RETRY_DELAY_MSEC = 500;
 
   /** @override */
-  static get CONFIG_CLASS() {
+  static _impl_configClass() {
     return this.#Config;
   }
 
