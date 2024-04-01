@@ -9,7 +9,6 @@ import { BaseComponent, BaseConfig, ControlContext, RootControlContext }
 import { BaseApplication } from '#x/BaseApplication';
 import { BaseService } from '#x/BaseService';
 import { ComponentManager } from '#x/ComponentManager';
-import { EndpointManager } from '#x/EndpointManager';
 import { HostManager } from '#x/HostManager';
 import { NetworkEndpoint } from '#x/NetworkEndpoint';
 import { NetworkHost } from '#x/NetworkHost';
@@ -43,7 +42,7 @@ export class Warehouse extends BaseComponent {
   /**
    * Endpoint manager, for all endpoint bindings.
    *
-   * @type {EndpointManager}
+   * @type {ComponentManager}
    */
   #endpointManager;
 
@@ -76,8 +75,12 @@ export class Warehouse extends BaseComponent {
       baseSublogger: ThisModule.cohortLogger('service')
     });
 
-    this.#hostManager     = new HostManager(hosts);
-    this.#endpointManager = new EndpointManager(endpoints);
+    this.#endpointManager = new ComponentManager(endpoints, {
+      baseClass:     NetworkEndpoint,
+      baseSublogger: ThisModule.cohortLogger('endpoint')
+    });
+
+    this.#hostManager = new HostManager(hosts);
   }
 
   /** @returns {ComponentManager} Application manager. */
@@ -93,7 +96,7 @@ export class Warehouse extends BaseComponent {
     return this.#hostManager;
   }
 
-  /** @returns {EndpointManager} Server manager. */
+  /** @returns {ComponentManager} Endpoint manager. */
   get endpointManager() {
     return this.#endpointManager;
   }

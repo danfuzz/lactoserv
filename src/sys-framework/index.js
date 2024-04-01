@@ -4,7 +4,6 @@
 export * from '#x/BaseApplication';
 export * from '#x/BaseService';
 export * from '#x/ComponentManager';
-export * from '#x/EndpointManager';
 export * from '#x/HostManager';
 export * from '#x/NetworkEndpoint';
 export * from '#x/Warehouse';
