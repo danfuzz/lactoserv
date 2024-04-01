@@ -19,7 +19,7 @@ import { MustBe } from '@this/typey';
  * just contain a simple process ID or list of same (in cases where multiple
  * processes are expected to write to the same file).
  *
- * See `doc/configuration.md` for configuration object details.
+ * See `doc/configuration` for configuration object details.
  *
  * **Note:** See {@link #ProcessInfoFile} for a service which writes more
  * complete information about the system.

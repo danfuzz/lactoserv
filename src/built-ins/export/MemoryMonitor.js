@@ -16,7 +16,7 @@ import { MustBe } from '@this/typey';
  * Service which monitors the system's memory usage and can initiate shutdown
  * before a memory problem becomes dire.
  *
- * See `doc/configuration.md` for configuration object details.
+ * See `doc/configuration` for configuration object details.
  */
 export class MemoryMonitor extends BaseService {
   /**

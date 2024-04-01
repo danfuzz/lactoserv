@@ -15,7 +15,7 @@ import { RateLimitedStream } from '#p/RateLimitedStream';
 /**
  * Service which can apply various rate limits to network traffic.
  *
- * See `doc/configuration.md` for configuration object details.
+ * See `doc/configuration` for configuration object details.
  *
  * @implements {IntfRateLimiter}
  */

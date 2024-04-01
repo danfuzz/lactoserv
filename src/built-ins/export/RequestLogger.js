@@ -14,7 +14,7 @@ import { MustBe } from '@this/typey';
 /**
  * Service which writes the request/response log to the filesystem.
  *
- * See `doc/configuration.md` for configuration object details.
+ * See `doc/configuration` for configuration object details.
  *
  * @implements {IntfRequestLogger}
  */
