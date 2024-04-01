@@ -4,7 +4,8 @@
 import { TreePathKey } from '@this/collections';
 import { BaseComponent, BaseNamedConfig, Names } from '@this/compote';
 import { FormatUtils } from '@this/loggy-intf';
-import { ProtocolWrangler, ProtocolWranglers } from '@this/net-protocol';
+import { IntfRateLimiter, IntfRequestLogger, ProtocolWrangler,
+  ProtocolWranglers } from '@this/net-protocol';
 import { DispatchInfo, HostUtil, IntfRequestHandler, OutgoingResponse, UriUtil }
   from '@this/net-util';
 import { ServiceUseConfig, Util } from '@this/sys-config';
@@ -99,8 +100,8 @@ export class NetworkEndpoint extends BaseComponent {
       }
     } = this.config;
 
-    const rateLimiter   = context.getComponentOrNull(rateLimiterName, BaseService);
-    const requestLogger = context.getComponentOrNull(requestLoggerName, BaseService);
+    const rateLimiter   = context.getComponentOrNull(rateLimiterName,   BaseService, IntfRateLimiter);
+    const requestLogger = context.getComponentOrNull(requestLoggerName, BaseService, IntfRequestLogger);
 
     const hmOpt = {};
     if (this.config.requiresCertificates()) {
