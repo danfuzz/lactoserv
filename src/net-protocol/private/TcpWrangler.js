@@ -5,8 +5,8 @@ import { Socket } from 'node:net';
 
 import { Condition, PromiseUtil, Threadlet } from '@this/async';
 import { WallClock } from '@this/clocks';
-import { FormatUtils } from '@this/loggy-intf';
-import { IntfLogger } from '@this/loggy-intf';
+import { FormatUtils, IntfLogger } from '@this/loggy-intf';
+import { Methods } from '@this/typey';
 
 import { AsyncServerSocket } from '#p/AsyncServerSocket';
 import { IntfRateLimiter } from '#x/IntfRateLimiter';
@@ -86,6 +86,19 @@ export class TcpWrangler extends ProtocolWrangler {
     return this.#asyncServer.infoForLog;
   }
 
+  /**
+   * Hands a new connection off to the high-level protocol layer. It is expected
+   * to arrange for the connection to be appropriately tracked, and for requests
+   * that come in on that connection to get reported to the base class via
+   * {@link #_prot_incomingRequest}.
+   *
+   * @param {WranglerContext} context The context for the connection, which
+   *   notably includes a reference to the underlying network socket.
+   */
+  async _impl_newConnection(context) {
+    throw Methods.abstract(context);
+  }
+
   /** @override */
   async _impl_socketStart(isReload) {
     await this.#runner.start();
@@ -134,13 +147,6 @@ export class TcpWrangler extends ProtocolWrangler {
 
     this.#sockets.add(socket);
     this.#anySockets.value = true;
-
-    // We can only set up the connection context once the rate-limiter wrapping
-    // is done (if that was configured). That is, `socket` at this point is
-    // either the original one that came as an argument to this method _or_ the
-    // rate-limiter wrapper that was just constructed.
-    WranglerContext.forConnection(this, socket, connLogger)
-      .emitInContext(this._impl_server(), 'connection', socket);
 
     // Note: Doing a socket timeout is a good idea in general. But beyond that,
     // as of this writing, there's a bug in Node which causes it to consistently
@@ -210,6 +216,12 @@ export class TcpWrangler extends ProtocolWrangler {
 
       logClose();
     });
+
+    // Set up the context, and then call down to our concrete subclass to do the
+    // last bit of connection setup. We intentionally only do this after we've
+    // set up everything we can at this layer.
+    const context = WranglerContext.forConnection(this, socket, connLogger);
+    await this._impl_newConnection(context);
   }
 
   /**

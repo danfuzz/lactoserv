@@ -29,6 +29,11 @@ export class HttpWrangler extends TcpWrangler {
   }
 
   /** @override */
+  async _impl_newConnection(context) {
+    context.emitInContext(this.#protocolServer, 'connection', context.socket);
+  }
+
+  /** @override */
   _impl_server() {
     return this.#protocolServer;
   }
