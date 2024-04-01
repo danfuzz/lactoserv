@@ -32,14 +32,19 @@ No linter errors! Yay!
 $
 ```
 
-There are also two tools which adjust source files to be in a standardized form:
+There are also some tools which adjust source files to be in a standardized
+form:
 
-* `ubik node-project fix-package-json` -- Derives intra-project dependencies
-  from the actual source files, and updates each module's `package.json` to
-  match. It actually entirely rewrites the file with project-standard
-  boilerplate and formatting.
-* `ubik node-project sort-imports` -- Sorts and arranges `import` lines into a
-  project-standard form.
+* `ubik node-project fix-package-json` &mdash; Derives intra-project
+  dependencies from the actual source files, and updates each module's
+  `package.json` to match. It actually entirely rewrites the file with
+  project-standard boilerplate and formatting.
+* `ubik node-project reflow-jsdoc` &mdash; Reflows (fixes line breaks on) all
+  the documentation comments in the source tree. **Note:** After running this,
+  please double-check the results before committing, as this tool might produce
+  results that indicate a need for it to be improved.
+* `ubik node-project sort-imports` &mdash; Sorts and arranges `import` lines
+  into a project-standard form.
 
 ### Testing
 
@@ -54,7 +59,10 @@ No errors! Yay!
 ```
 
 The `run-tests` script takes other options; `run-tests --help` for details.
-TLDR: `run-tests --do=build` to do a build first, for convenience.
+TLDR:
+
+* `run-tests --do=build` to do a build first, for convenience.
+* `run-tests --type=unit-coverage` to generate a coverage report.
 
 ### Running
 
