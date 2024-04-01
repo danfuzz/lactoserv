@@ -113,6 +113,11 @@ export class RequestLogger extends BaseFileService {
     return this.#Config;
   }
 
+  /** @override */
+  static _impl_implementedInterfaces() {
+    return [IntfRequestLogger];
+  }
+
   /**
    * Configuration item subclass for this (outer) class.
    */

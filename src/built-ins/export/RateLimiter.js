@@ -104,6 +104,11 @@ export class RateLimiter extends BaseService {
     return this.#Config;
   }
 
+  /** @override */
+  static _impl_implementedInterfaces() {
+    return [IntfRateLimiter];
+  }
+
   /**
    * Makes a bucket instance based on the given configuration, or returns `null`
    * if given `null`.
