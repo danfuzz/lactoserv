@@ -53,6 +53,49 @@ import { Moment } from '@lactoserv/data-values';
 And in order to use any of the built-in applications or services, you will need
 to import them from `@lactoserv/built-ins`.
 
+## Component instantiation
+
+Lactoserv configuration boils down to defining a tree of "component" objects.
+These objects can be in one of two forms:
+
+* A configuration object &mdash; a plain object &mdash; with all the required
+  bindings of the component in question, along with an extra property `class`
+  which indicates the class of the object (as a class object / constructor
+  function, _not_ just a string name).
+* A directly instantiated object, using the usual `new ClassName(...)` syntax,
+  passing it a plain object of its configuration bindings.
+
+In the rest of this guide, we use the plain object form, which arguably feels
+more natural for a configuration file per se. When using Lactoserv as a
+framework, though, the direct instantiation form is probably to be preferred.
+
+```js
+// Plain object form.
+const config = {
+  applications: [
+    {
+      class: StaticFiles,
+      // ... more ....
+    },
+    // ... more ...
+  ],
+  // ... more ...
+};
+```
+
+```js
+// Direct instantiation form.
+const warehouse = new Warehouse({
+  applications: [
+    new StaticFiles({
+      // ... more ...
+    }),
+    // ... more ...
+  ],
+  // ... more ...
+});
+```
+
 ## Configuration object bindings
 
 The following are the bindings that are expected at the top level of the
