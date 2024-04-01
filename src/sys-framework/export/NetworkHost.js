@@ -59,15 +59,14 @@ export class NetworkHost extends BaseComponent {
   }
 
   /**
-   * Gets the TLS context. **Note:** This is `async` and not just a getter,
-   * because in some cases the context can only be generated asynchronously.
+   * Gets the TLS context.
    *
    * **Note:** This is only valid to use after the instance has been
    * `start()`ed.
    *
    * @returns {tls.SecureContext} The TLS context.
    */
-  async getSecureContext() {
+  getSecureContext() {
     if (!this.#secureContext) {
       const params = this.getParameters();
       this.#secureContext = tls.createSecureContext({
