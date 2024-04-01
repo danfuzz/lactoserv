@@ -61,7 +61,7 @@ export class HostManager extends BaseComponent {
   }
 
   /** @override */
-  async findContext(name) {
+  findContext(name) {
     const item = this.#findItem(name, true);
     return item ? item.getSecureContext() : null;
   }
@@ -77,7 +77,7 @@ export class HostManager extends BaseComponent {
   }
 
   /** @override */
-  async getSecureServerOptions() {
+  getSecureServerOptions() {
     const result = {
       SNICallback: (serverName, cb) => this.#sniCallback(serverName, cb)
     };
