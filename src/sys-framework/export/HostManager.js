@@ -176,13 +176,19 @@ export class HostManager extends BaseComponent {
   }
 
   /** @override */
-  async _impl_start(isReload_unused) {
-    // Nothing needed for this class.
+  async _impl_start(isReload) {
+    const hosts   = this.getAll();
+    const results = hosts.map((h) => h.start(isReload));
+
+    await Promise.all(results);
   }
 
   /** @override */
-  async _impl_stop(willReload_unused) {
-    // Nothing needed for this class.
+  async _impl_stop(willReload) {
+    const hosts   = this.getAll();
+    const results = hosts.map((h) => h.stop(willReload));
+
+    await Promise.all(results);
   }
 
   /**
