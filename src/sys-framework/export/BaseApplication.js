@@ -198,7 +198,7 @@ export class BaseApplication extends BaseComponent {
    * @override
    */
   static _impl_configClass() {
-    return this.Config;
+    return BaseApplication.Config;
   }
 
   /**
