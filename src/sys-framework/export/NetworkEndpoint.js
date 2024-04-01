@@ -10,6 +10,7 @@ import { DispatchInfo, HostUtil, IntfRequestHandler, OutgoingResponse, UriUtil }
 import { ServiceUseConfig, Util } from '@this/sys-config';
 
 import { BaseApplication } from '#x/BaseApplication';
+import { BaseService } from '#x/BaseService';
 
 
 /**
@@ -98,8 +99,8 @@ export class NetworkEndpoint extends BaseComponent {
       }
     } = this.config;
 
-    const rateLimiter   = context.getComponentOrNull(rateLimiterName);
-    const requestLogger = context.getComponentOrNull(requestLoggerName);
+    const rateLimiter   = context.getComponentOrNull(rateLimiterName, BaseService);
+    const requestLogger = context.getComponentOrNull(requestLoggerName, BaseService);
 
     const hmOpt = {};
     if (this.config.requiresCertificates()) {
