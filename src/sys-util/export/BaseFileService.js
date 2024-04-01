@@ -7,7 +7,6 @@ import { WallClock } from '@this/clocks';
 import { BaseConfig } from '@this/compote';
 import { Duration } from '@this/data-values';
 import { Paths, Statter } from '@this/fs-util';
-import { ServiceConfig } from '@this/sys-config';
 import { BaseService } from '@this/sys-framework';
 import { MustBe } from '@this/typey';
 
@@ -61,7 +60,7 @@ export class BaseFileService extends BaseService {
   /**
    * Configuration class for this (outer) class.
    */
-  static Config = class Config extends ServiceConfig {
+  static Config = class Config extends BaseService.Config {
     /**
      * The absolute path to use.
      *

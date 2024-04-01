@@ -5,7 +5,6 @@ import { TokenBucket } from '@this/async';
 import { Frequency } from '@this/data-values';
 import { IntfLogger } from '@this/loggy-intf';
 import { IntfRateLimiter } from '@this/net-protocol';
-import { ServiceConfig } from '@this/sys-config';
 import { BaseService } from '@this/sys-framework';
 import { MustBe } from '@this/typey';
 
@@ -150,7 +149,7 @@ export class RateLimiter extends BaseService {
   /**
    * Configuration item subclass for this (outer) class.
    */
-  static #Config = class Config extends ServiceConfig {
+  static #Config = class Config extends BaseService.Config {
     /**
      * Configuration for connection rate limiting.
      *
