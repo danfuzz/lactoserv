@@ -17,7 +17,7 @@ import { MustBe } from '@this/typey';
 /**
  * Service which writes process info files to the filesystem.
  *
- * See `doc/configuration.md` for configuration object details.
+ * See `doc/configuration` for configuration object details.
  *
  * **Note:** See {@link #ProcessIdFile} for a service which writes minimal
  * information about active processes.
@@ -288,7 +288,7 @@ export class ProcessInfoFile extends BaseFileService {
   //
 
   /** @override */
-  static get CONFIG_CLASS() {
+  static _impl_configClass() {
     return this.#Config;
   }
 

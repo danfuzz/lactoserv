@@ -12,7 +12,7 @@ import { SaveConfig } from '#x/SaveConfig';
  * Configuration representation for file rotation, used in configuring some
  * file-writing services. (See {@link FileServiceConfig}.)
  *
- * See `doc/configuration.md` for configuration object details.
+ * See `doc/configuration` for configuration object details.
  */
 export class RotateConfig extends SaveConfig {
   /**

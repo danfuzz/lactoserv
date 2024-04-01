@@ -5,7 +5,7 @@
 
 Documentation:
 * [`doc` directory](./doc), notably:
-  * [Configuration Guide](./doc/configuration.md)
+  * [Configuration Guide](./doc/configuration/README.md)
   * [Deployment Guide](./doc/deployment.md)
   * [Development Guide](./doc/development.md)
   * [**Quick Start Guide**](./doc/quick-start.md)

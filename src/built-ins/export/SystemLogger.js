@@ -12,7 +12,7 @@ import { MustBe } from '@this/typey';
 /**
  * Service which writes the main log to the filesystem.
  *
- * See `doc/configuration.md` for configuration object details.
+ * See `doc/configuration` for configuration object details.
  */
 export class SystemLogger extends BaseFileService {
   /**
@@ -111,7 +111,7 @@ export class SystemLogger extends BaseFileService {
   static #END_EVENT_TYPE = 'finalLoggedEvent';
 
   /** @override */
-  static get CONFIG_CLASS() {
+  static _impl_configClass() {
     return this.#Config;
   }
 

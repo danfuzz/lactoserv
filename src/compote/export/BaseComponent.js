@@ -222,12 +222,62 @@ export class BaseComponent {
   //
 
   /**
+   * Map from each subclass to its return value for {@link #CONFIG_CLASS},
+   * lazily filled in.
+   *
+   * @type {Map<function(new:BaseComponent),?function(new:object)>}
+   */
+  static #configClass = new Map();
+
+  /**
+   * Map from each subclass to its return value for {@link
+   * #IMPLEMENTED_INTERFACES}, lazily filled in.
+   *
+   * @type {Map<function(new:BaseComponent),Array<function(new:object)>>}
+   */
+  static #implementedInterfaces = new Map();
+
+  /**
    * @returns {?function(new:object, object)} The expected configuration class
    * for this class, or `null` if this class does not use a configuration class.
    * Defaults to `null`. Subclasses are expected to override this as necessary.
    */
   static get CONFIG_CLASS() {
-    return null;
+    const already = BaseComponent.#configClass.get(this);
+
+    if (already) {
+      return already;
+    }
+
+    const configClass = this._impl_configClass();
+
+    if (configClass !== null) {
+      MustBe.constructorFunction(configClass);
+    }
+
+    BaseComponent.#configClass.set(this, configClass);
+
+    return configClass;
+  }
+
+  /**
+   * @returns {Array<function(new:object)>} Array of interface classes that this
+   * class claims to implement. Always a frozen object.
+   */
+  static get IMPLEMENTED_INTERFACES() {
+    const already = BaseComponent.#implementedInterfaces.get(this);
+
+    if (already) {
+      return already;
+    }
+
+    const ifaces = this._impl_implementedInterfaces();
+
+    MustBe.arrayOf(ifaces, AskIf.constructorFunction);
+    Object.freeze(ifaces);
+    BaseComponent.#implementedInterfaces.set(this, ifaces);
+
+    return ifaces;
   }
 
   /**
@@ -280,7 +330,6 @@ export class BaseComponent {
 
     return Object.freeze(result);
   }
-
 
   /**
    * Logs a message about an item (component, etc.) completing an `init()`
@@ -347,5 +396,26 @@ export class BaseComponent {
    */
   static logStopping(logger, willReload) {
     logger?.stopping(willReload ? 'willReload' : 'shutdown');
+  }
+
+  /**
+   * @returns {Array<function(new:object)>} Array of interface classes that this
+   * class claims to implement. The base class calls this exactly once to get
+   * the value to return from {@link #IMPLEMENTED_INTERFACES}. Defaults to `[]`.
+   * Subclasses are expected to override this as necessary.
+   */
+  static _impl_implementedInterfaces() {
+    return [];
+  }
+
+  /**
+   * @returns {?function(new:object, object)} The expected configuration class
+   * for this class, or `null` if this class does not use a configuration class.
+   * The base class calls this exactly once to get the value to return from
+   * {@link #CONFIG_CLASS} Defaults to `null`. Subclasses are expected to
+   * override this as necessary.
+   */
+  static _impl_configClass() {
+    return null;
   }
 }

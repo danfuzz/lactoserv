@@ -4,8 +4,8 @@ Quick Start Guide
 Lactoserv is meant to be usable both as a standalone webserver application and
 as a framework for building higher-level applications that use web protocols for
 communication. This guide has a short "starter" example for each style. For more
-complete directions, please see the [Configuration Guide](./configuration.md)
-and the [Deployment Guide](./deployment.md).
+complete directions, please see the [Configuration
+Guide](./configuration/README.md) and the [Deployment Guide](./deployment.md).
 
 ## Standalone
 

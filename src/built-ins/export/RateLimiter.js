@@ -15,7 +15,7 @@ import { RateLimitedStream } from '#p/RateLimitedStream';
 /**
  * Service which can apply various rate limits to network traffic.
  *
- * See `doc/configuration.md` for configuration object details.
+ * See `doc/configuration` for configuration object details.
  *
  * @implements {IntfRateLimiter}
  */
@@ -100,8 +100,13 @@ export class RateLimiter extends BaseService {
   //
 
   /** @override */
-  static get CONFIG_CLASS() {
+  static _impl_configClass() {
     return this.#Config;
+  }
+
+  /** @override */
+  static _impl_implementedInterfaces() {
+    return [IntfRateLimiter];
   }
 
   /**

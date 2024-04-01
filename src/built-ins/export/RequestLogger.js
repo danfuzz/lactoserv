@@ -14,7 +14,7 @@ import { MustBe } from '@this/typey';
 /**
  * Service which writes the request/response log to the filesystem.
  *
- * See `doc/configuration.md` for configuration object details.
+ * See `doc/configuration` for configuration object details.
  *
  * @implements {IntfRequestLogger}
  */
@@ -109,8 +109,13 @@ export class RequestLogger extends BaseFileService {
   //
 
   /** @override */
-  static get CONFIG_CLASS() {
+  static _impl_configClass() {
     return this.#Config;
+  }
+
+  /** @override */
+  static _impl_implementedInterfaces() {
+    return [IntfRequestLogger];
   }
 
   /**

@@ -10,7 +10,7 @@ import { FileServiceConfig } from '#x/FileServiceConfig';
 /**
  * Configuration representation for file preservation, used in configuring some
  * file-writing services. (See {@link FileServiceConfig}.) See
- * `doc/configuration.md` for configuration object details.
+ * `doc/configuration` for configuration object details.
  */
 export class SaveConfig extends BaseConfig {
   /**
