@@ -5,7 +5,8 @@ import { TreePathKey } from '@this/collections';
 import { BaseComponent, BaseNamedConfig, Names } from '@this/compote';
 import { FormatUtils } from '@this/loggy-intf';
 import { IntfRateLimiter, IntfRequestLogger, ProtocolWrangler,
-  ProtocolWranglers } from '@this/net-protocol';
+  ProtocolWranglers }
+  from '@this/net-protocol';
 import { DispatchInfo, HostUtil, IntfRequestHandler, OutgoingResponse, UriUtil }
   from '@this/net-util';
 import { ServiceUseConfig } from '@this/sys-config';
