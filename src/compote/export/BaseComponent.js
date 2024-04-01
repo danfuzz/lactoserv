@@ -222,12 +222,34 @@ export class BaseComponent {
   //
 
   /**
+   * The return value from {@link #IMPLEMENTED_INTERFACES}, or `null` if not yet
+   * calculated.
+   *
+   * @type {?Array<function(new:object)>}
+   */
+  #IMPLEMENTED_INTERFACES = null;
+
+  /**
    * @returns {?function(new:object, object)} The expected configuration class
    * for this class, or `null` if this class does not use a configuration class.
    * Defaults to `null`. Subclasses are expected to override this as necessary.
    */
   static get CONFIG_CLASS() {
     return null;
+  }
+
+  /**
+   * @returns {Array<function(new:object)>} Array of interface classes that this
+   * class claims to implement. Alwaysa frozen object.
+   */
+  static get IMPLEMENTED_INTERFACES() {
+    if (this.#IMPLEMENTED_INTERFACES === null) {
+      const ifaces = this._impl_implementedInterfaces();
+      MustBe.arrayOf(ifaces, AskIf.constructorFunction);
+      this.#IMPLEMENTED_INTERFACES = Object.freeze(ifaces);
+    }
+
+    return this.#IMPLEMENTED_INTERFACES;
   }
 
   /**
@@ -280,7 +302,6 @@ export class BaseComponent {
 
     return Object.freeze(result);
   }
-
 
   /**
    * Logs a message about an item (component, etc.) completing an `init()`
@@ -347,5 +368,15 @@ export class BaseComponent {
    */
   static logStopping(logger, willReload) {
     logger?.stopping(willReload ? 'willReload' : 'shutdown');
+  }
+
+  /**
+   * @returns {Array<function(new:object)>} Array of interface classes that this
+   * class claims to implement. The base class calls this exactly once to get
+   * the value to return from {@link #IMPLEMENTED_INTERFACES}. Defaults to `[]`.
+   * Subclasses are expected to override this as necessary.
+   */
+  static _impl_implementedInterfaces() {
+    return [];
   }
 }
