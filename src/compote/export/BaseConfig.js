@@ -38,8 +38,8 @@ export class BaseConfig {
    * instance of the called class (or a subclass).
    *
    * Items which have a `class` property expect that property to refer to a
-   * component class which itself defines a `CONFIG_CLASS` property, the latter
-   * which is used as the class of the resulting configuration object.
+   * component class which defines a non-`null` configuration class, via an
+   * appropriate override of the `static` method `_impl_configClass()`.
    *
    * (This method is defined on the base class and acts on behalf of all its
    * subclasses.)

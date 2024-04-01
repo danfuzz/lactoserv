@@ -197,7 +197,7 @@ export class BaseApplication extends BaseComponent {
    *
    * @override
    */
-  static get CONFIG_CLASS() {
+  static _impl_configClass() {
     return ApplicationConfig;
   }
 

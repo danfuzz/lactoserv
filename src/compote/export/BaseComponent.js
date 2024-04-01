@@ -222,6 +222,14 @@ export class BaseComponent {
   //
 
   /**
+   * Map from each subclass to its return value for {@link #CONFIG_CLASS},
+   * lazily filled in.
+   *
+   * @type {Map<function(new:BaseComponent),?function(new:object)>}
+   */
+  static #configClass = new Map();
+
+  /**
    * Map from each subclass to its return value for {@link
    * #IMPLEMENTED_INTERFACES}, lazily filled in.
    *
@@ -235,12 +243,26 @@ export class BaseComponent {
    * Defaults to `null`. Subclasses are expected to override this as necessary.
    */
   static get CONFIG_CLASS() {
-    return null;
+    const already = BaseComponent.#configClass.get(this);
+
+    if (already) {
+      return already;
+    }
+
+    const configClass = this._impl_configClass();
+
+    if (configClass !== null) {
+      MustBe.constructorFunction(configClass);
+    }
+
+    BaseComponent.#configClass.set(this, configClass);
+
+    return configClass;
   }
 
   /**
    * @returns {Array<function(new:object)>} Array of interface classes that this
-   * class claims to implement. Alwaysa frozen object.
+   * class claims to implement. Always a frozen object.
    */
   static get IMPLEMENTED_INTERFACES() {
     const already = BaseComponent.#implementedInterfaces.get(this);
@@ -384,5 +406,16 @@ export class BaseComponent {
    */
   static _impl_implementedInterfaces() {
     return [];
+  }
+
+  /**
+   * @returns {?function(new:object, object)} The expected configuration class
+   * for this class, or `null` if this class does not use a configuration class.
+   * The base class calls this exactly once to get the value to return from
+   * {@link #CONFIG_CLASS} Defaults to `null`. Subclasses are expected to
+   * override this as necessary.
+   */
+  static _impl_configClass() {
+    return null;
   }
 }

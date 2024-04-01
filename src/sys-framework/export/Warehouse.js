@@ -174,7 +174,7 @@ export class Warehouse extends BaseComponent {
   static #ENDPOINT_STOP_GRACE_PERIOD_MSEC = 250;
 
   /** @override */
-  static get CONFIG_CLASS() {
+  static _impl_configClass() {
     return this.#Config;
   }
 
