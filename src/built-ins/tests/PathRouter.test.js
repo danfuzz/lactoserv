@@ -109,8 +109,7 @@ describe('_impl_handleRequest()', () => {
     await root.start();
 
     for (let i = 1; i <= appCount; i++) {
-      const app = new MockApp(
-        new MockApp.CONFIG_CLASS({ name: `mockApp${i}`, class: MockApp }));
+      const app = new MockApp({ name: `mockApp${i}` });
       if (handlerFunc) {
         app.mockHandler = handlerFunc;
       }
@@ -118,12 +117,7 @@ describe('_impl_handleRequest()', () => {
       await app.start();
     }
 
-    const pr = new PathRouter(
-      new PathRouter.CONFIG_CLASS({
-        name: 'myRouter',
-        class: PathRouter,
-        paths
-      }));
+    const pr = new PathRouter({ name: 'myRouter', paths });
 
     await pr.init(new ControlContext(pr, root, null));
     await pr.start();
