@@ -805,6 +805,73 @@ describe('findWithFallback()', () => {
   });
 });
 
+// Common tests for both `get()` and `find()`.
+describe.each`
+methodName | expectBoolean
+${'get'}   | ${false}
+${'has'}   | ${true}
+`('$methodName()', ({ methodName, expectBoolean }) => {
+  function expectFound(map, key, value) {
+    const got = map[methodName](key);
+    if (expectBoolean) {
+      expect(got).toBeTrue();
+    } else {
+      expect(got).toBe(value);
+    }
+  }
+
+  function expectNotFound(map, key) {
+    const got = map[methodName](key);
+    if (expectBoolean) {
+      expect(got).toBeFalse();
+    } else {
+      expect(got).toBeNull();
+    }
+  }
+
+  test('finds an already-added key, when passed as a `TreePathKey`', () => {
+    const key1  = new TreePathKey(['1', '2', '3'], false);
+    const key2  = new TreePathKey(['1', '2', '3'], false);
+    const value = ['yes', 'a value'];
+    const map   = new TreePathMap();
+
+    map.add(key1, value);
+    expectFound(map, key1, value);
+    expectFound(map, key2, value);
+  });
+
+  test('finds an already-added key, when passed as a key-like plain object', () => {
+    const key1  = { path: ['yo', 'there'], wildcard: true };
+    const key2  = { path: ['yo', 'there'], wildcard: true };
+    const value = ['yeppers', 'still a value'];
+    const map   = new TreePathMap();
+
+    map.add(key1, value);
+    expectFound(map, key1, value);
+    expectFound(map, key2, value);
+  });
+
+  test('does not find an added wildcard key, when passed a non-wildcard', () => {
+    const key1  = new TreePathKey(['1'], true);
+    const key2  = new TreePathKey(['1'], false);
+    const value = ['yo there'];
+    const map   = new TreePathMap();
+
+    map.add(key1, value);
+    expectNotFound(map, key2);
+  });
+
+  test('does not find an added non-wildcard key, when passed a wildcard', () => {
+    const key1  = new TreePathKey(['1'], true);
+    const key2  = new TreePathKey(['1'], false);
+    const value = ['yo there'];
+    const map   = new TreePathMap();
+
+    map.add(key2, value);
+    expectNotFound(map, key1);
+  });
+});
+
 describe('get()', () => {
   test('returns `null` when a key is not found, if `ifNotFound` was not passed', () => {
     const map = new TreePathMap();
@@ -815,48 +882,6 @@ describe('get()', () => {
     const map   = new TreePathMap();
     const value = ['whatever'];
     expect(map.get(new TreePathKey([], true), value)).toBe(value);
-  });
-
-  test('finds an already-added key, when passed as a `TreePathKey`', () => {
-    const key1  = new TreePathKey(['1', '2', '3'], false);
-    const key2  = new TreePathKey(['1', '2', '3'], false);
-    const value = ['yes', 'a value'];
-    const map   = new TreePathMap();
-
-    map.add(key1, value);
-    expect(map.get(key1)).toBe(value);
-    expect(map.get(key2)).toBe(value);
-  });
-
-  test('finds an already-added key, when passed as a key-like plain object', () => {
-    const key1  = { path: ['yo', 'there'], wildcard: true };
-    const key2  = { path: ['yo', 'there'], wildcard: true };
-    const value = ['yeppers', 'still a value'];
-    const map   = new TreePathMap();
-
-    map.add(key1, value);
-    expect(map.get(key1)).toBe(value);
-    expect(map.get(key2)).toBe(value);
-  });
-
-  test('does not find an added wildcard key, when passed a non-wildcard', () => {
-    const key1  = new TreePathKey(['1'], true);
-    const key2  = new TreePathKey(['1'], false);
-    const value = ['yo there'];
-    const map   = new TreePathMap();
-
-    map.add(key1, value);
-    expect(map.get(key2)).toBeNull();
-  });
-
-  test('does not find an added non-wildcard key, when passed a wildcard', () => {
-    const key1  = new TreePathKey(['1'], true);
-    const key2  = new TreePathKey(['1'], false);
-    const value = ['yo there'];
-    const map   = new TreePathMap();
-
-    map.add(key2, value);
-    expect(map.get(key1)).toBeNull();
   });
 
   describe('nullish values', () => {
@@ -889,6 +914,40 @@ describe('get()', () => {
 
         const result = map.get(key, notFound);
         expect(result).toBe(value);
+      });
+    });
+  });
+});
+
+describe('has()', () => {
+  describe('nullish values', () => {
+    describe.each([
+      [undefined],
+      [null],
+      [false],
+      [0],
+      [''],
+      [[]],
+      [{}]
+    ])('for %p', (value) => {
+      test('finds it when bound to a wildcard', () => {
+        const map = new TreePathMap();
+        const key = new TreePathKey(['abc'], true);
+
+        map.add(key, value);
+
+        const result = map.has(key);
+        expect(result).toBeTrue();
+      });
+
+      test('finds it when bound to a non-wildcard', () => {
+        const map = new TreePathMap();
+        const key = new TreePathKey(['abc'], false);
+
+        map.add(key, value);
+
+        const result = map.has(key);
+        expect(result).toBeTrue();
       });
     });
   });

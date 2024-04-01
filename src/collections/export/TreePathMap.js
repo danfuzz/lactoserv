@@ -195,6 +195,20 @@ export class TreePathMap {
   }
 
   /**
+   * Indicates whether or not this instance has a binding with the given key.
+   * This is the same as calling {@link #get} and checking to see if the result
+   * is non-`null`, except also handling the (unusual) case where the key is
+   * bound to `null` per se.
+   *
+   * @param {TypePathKey} key Key to look up.
+   * @returns {boolean} `true` if this instance has a binding for `key`, or
+   *   `false` if not.
+   */
+  has(key) {
+    return this.#rootNode.has(key);
+  }
+
+  /**
    * Gets the string form of a key, as defined by the `keyStringFunc` passed in
    * (or implied by) the constructor call that created this instance.
    *

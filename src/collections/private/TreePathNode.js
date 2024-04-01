@@ -260,6 +260,22 @@ export class TreePathNode {
   }
 
   /**
+   * Underlying implementation of `TreePathMap.has()`, see which for detailed
+   * docs.
+   *
+   * @param {TypePathKey} key Key to look up.
+   * @returns {boolean} `true` if this instance has a binding for `key`, or
+   *   `false` if not.
+   */
+  has(key) {
+    // Slightly cheeky: In order (a) to tell if `null` is found but (b) not have
+    // to construct a special `ifNotFound` object, we just use this instance
+    // itself as the `ifNotFound` object, because due to the nature of this
+    // class it can never appear as a bound value.
+    return this.get(key, this) !== this;
+  }
+
+  /**
    * Helper for the iteration methods: Returns a generator which iterates over
    * all bindings of this instance, yielding entries where the `path` part of
    * the key is prepended with the given `path` value.
