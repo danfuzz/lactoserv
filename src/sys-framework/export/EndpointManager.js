@@ -87,7 +87,7 @@ export class EndpointManager extends BaseComponent {
   /** @override */
   async _impl_stop(willReload) {
     const endpoints = this.getAll();
-    const results = endpoints.map((e) => e.stop(willReload));
+    const results   = endpoints.map((e) => e.stop(willReload));
 
     await Promise.all(results);
   }
