@@ -12,6 +12,11 @@ Breaking changes:
     into new module `compote`. Renamed the classes for better harmony, extracted
     a new interface `IntfComponent`, and generally improved the ergonomics of
     the exported API.
+  * Added `_impl_implementedInterfaces()` as an overridable `static` method on
+    `BaseComponent`, to allow for runtime declaration and validation of
+    component interfaces.
+  * Reworked `static` property `CONFIG_CLASS` to be `_impl_configClass()`, to
+    match how the project usually does overridable members.
 * `net-util`:
   * Made `getLogInfo()` an instance (not `static`) method, and fixed its
     reporting of `contentLength`.
