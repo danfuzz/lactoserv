@@ -1,13 +1,14 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { AskIf, MustBe } from '@this/typey';
+import { AskIf } from '#x/AskIf';
+import { MustBe } from '#x/MustBe';
 
 
 /**
- * General utilities for configuration parsing.
+ * General utilities for strings.
  */
-export class Util {
+export class StringUtil {
   /**
    * Takes either a string or array of strings, and checks that each one matches
    * a given pattern or passes a given filter.

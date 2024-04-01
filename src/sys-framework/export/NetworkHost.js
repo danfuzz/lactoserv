@@ -8,8 +8,7 @@ import pem from 'pem';
 
 import { BaseComponent, BaseConfig } from '@this/compote';
 import { CertUtil, HostUtil } from '@this/net-util';
-import { Util } from '@this/sys-config';
-import { MustBe } from '@this/typey';
+import { MustBe, StringUtil } from '@this/typey';
 
 
 /**
@@ -239,7 +238,7 @@ export class NetworkHost extends BaseComponent {
 
       const { hostnames, certificate, privateKey, selfSigned = false } = rawConfig;
 
-      this.#hostnames = Util.checkAndFreezeStrings(
+      this.#hostnames = StringUtil.checkAndFreezeStrings(
         hostnames,
         (item) => HostUtil.checkHostname(item, true));
 
