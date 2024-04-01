@@ -35,14 +35,6 @@ export class NetworkHost extends BaseComponent {
   #parameters = null;
 
   /**
-   * Promise for value of {@link #parameters}, if it is not yet (effectively)
-   * resolved.
-   *
-   * @type {Promise}
-   */
-  #parametersPromise = null;
-
-  /**
    * TLS context representing this instance's info, lazily initialized.
    *
    * @type {?tls.SecureContext}
@@ -70,11 +62,14 @@ export class NetworkHost extends BaseComponent {
    * Gets the TLS context. **Note:** This is `async` and not just a getter,
    * because in some cases the context can only be generated asynchronously.
    *
+   * **Note:** This is only valid to use after the instance has been
+   * `start()`ed.
+   *
    * @returns {tls.SecureContext} The TLS context.
    */
   async getSecureContext() {
     if (!this.#secureContext) {
-      const params = await this.getParameters();
+      const params = this.getParameters();
       this.#secureContext = tls.createSecureContext({
         cert: params.certificate,
         key:  params.privateKey
@@ -86,13 +81,21 @@ export class NetworkHost extends BaseComponent {
 
   /**
    * Gets the resolved parameters -- specifically, the certificate and key --
-   * for this instance. **Note:** This is `async` and not just a getter, because
-   * in some cases the context is only generated asynchronously.
+   * for this instance.
+   *
+   * **Note:** This is only valid to use after the instance has been
+   * `start()`ed.
    *
    * @returns {{certificate: string, privateKey: string}} The parameters.
    */
-  async getParameters() {
-    return this.#parameters ?? await this.#parametersPromise;
+  getParameters() {
+    const result = this.#parameters;
+
+    if (!result) {
+      throw new Error(`Host ${this.name} not yet started.`);
+    }
+
+    return result;
   }
 
   /** @override */

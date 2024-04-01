@@ -89,7 +89,7 @@ export class HostManager extends BaseComponent {
     const wildcardItem = this.#findItem('*', true);
 
     if (wildcardItem) {
-      const { certificate, privateKey } = await wildcardItem.getParameters();
+      const { certificate, privateKey } = wildcardItem.getParameters();
       result.cert = certificate;
       result.key  = privateKey;
     }
