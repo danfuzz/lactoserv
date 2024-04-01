@@ -19,10 +19,11 @@ import { ThisModule } from '#p/ThisModule';
 /**
  * "Warehouse" of bits and pieces created from a top-level configuration.
  *
- * **Note:** When `start()`ing, this operates in the order services then
- * applications then endpoints, so as to start dependencies before dependants.
- * Similarly, when `stop()`ping, the order is reversed, though the system will
- * press on with the `stop()` actions if an earlier layer is taking too long.
+ * **Note:** When `start()`ing, this operates in the order hosts then services
+ * then applications then endpoints, so as to start dependencies before
+ * dependants. Similarly, when `stop()`ping, the order is reversed, though the
+ * system will press on with the `stop()` actions if an earlier layer is taking
+ * too long.
  */
 export class Warehouse extends BaseComponent {
   /**
@@ -121,9 +122,9 @@ export class Warehouse extends BaseComponent {
 
   /** @override */
   async _impl_start(isReload = false) {
+    await this.#hostManager.start(isReload);
     await this.#serviceManager.start(isReload);
     await this.#applicationManager.start(isReload);
-    await this.#hostManager.start(isReload);
     await this.#endpointManager.start(isReload);
   }
 
