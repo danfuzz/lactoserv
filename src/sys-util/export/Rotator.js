@@ -5,10 +5,10 @@ import { WallClock } from '@this/clocks';
 import { Duration } from '@this/data-values';
 import { Statter } from '@this/fs-util';
 import { IntfLogger } from '@this/loggy-intf';
-import { FileServiceConfig } from '@this/sys-config';
 import { MustBe } from '@this/typey';
 
 import { BaseFilePreserver } from '#p/BaseFilePreserver';
+import { BaseFileService } from '#x/BaseFileService';
 
 
 /**
@@ -18,7 +18,7 @@ export class Rotator extends BaseFilePreserver {
   /**
    * Configuration to use.
    *
-   * @type {FileServiceConfig}
+   * @type {BaseFileService.Config}
    */
   #config;
 
@@ -33,13 +33,13 @@ export class Rotator extends BaseFilePreserver {
   /**
    * Constructs an instance.
    *
-   * @param {FileServiceConfig} config Configuration to use.
+   * @param {BaseFileService.Config} config Configuration to use.
    * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    */
   constructor(config, logger) {
     super(config, logger);
 
-    this.#config      = MustBe.instanceOf(config, FileServiceConfig);
+    this.#config      = MustBe.instanceOf(config, BaseFileService.Config);
     this.#checkPeriod = config.rotate.checkPeriod;
   }
 

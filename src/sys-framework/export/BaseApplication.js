@@ -1,10 +1,9 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseComponent } from '@this/compote';
+import { BaseClassedConfig, BaseComponent } from '@this/compote';
 import { DispatchInfo, IncomingRequest, IntfRequestHandler, OutgoingResponse }
   from '@this/net-util';
-import { ApplicationConfig } from '@this/sys-config';
 import { Methods, MustBe } from '@this/typey';
 
 
@@ -191,15 +190,29 @@ export class BaseApplication extends BaseComponent {
   //
 
   /**
-   * @returns {function(new:ApplicationConfig)} The class {ApplicationConfig}.
-   * This class defines a subclass of it, {@link #FilterConfig}, which can be
-   * used for automatic request filtering, but using it is entirely optional.
+   * @returns {function(new:BaseApplication.Config)} The class {@link #Config}.
+   * This class _also_ defines a subclass of it, {@link #FilterConfig}, which
+   * can be used for automatic request filtering, but using it is entirely
+   * optional.
    *
    * @override
    */
   static _impl_configClass() {
-    return ApplicationConfig;
+    return BaseApplication.Config;
   }
+
+  /**
+   * Default configuration subclass for this (outer) class, which adds no
+   * options beyond `class`.
+   *
+   * This class only really exists to be an easy target to use when subclasses
+   * want to define configuration classes in the usual way, without having to
+   * remember the persnickety detail of which actual class in the `compote`
+   * module is the most appropriate one to derive from.
+   */
+  static Config = class Config extends BaseClassedConfig {
+    // @defaultConstructor
+  };
 
   /**
    * Configuration item subclass for this (outer) class, which accepts URI
@@ -212,7 +225,7 @@ export class BaseApplication extends BaseComponent {
    * Subclasses that do not use this config class will not have this (outer)
    * class's filtering behavior.
    */
-  static FilterConfig = class FilterConfig extends ApplicationConfig {
+  static FilterConfig = class FilterConfig extends BaseApplication.Config {
     /**
      * Set of request methods (e.g. `post`) that the application accepts.
      *

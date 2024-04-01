@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { IntfLogger } from '@this/loggy-intf';
-import { FileServiceConfig } from '@this/sys-config';
 
 import { BaseFilePreserver } from '#p/BaseFilePreserver';
+import { BaseFileService } from '#x/BaseFileService';
 
 
 /**
@@ -14,7 +14,7 @@ export class Saver extends BaseFilePreserver {
   /**
    * Constructs an instance.
    *
-   * @param {FileServiceConfig} config Configuration to use.
+   * @param {BaseFileService.Config} config Configuration to use.
    * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    */
   constructor(config, logger) {

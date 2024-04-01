@@ -7,8 +7,9 @@ import { Condition, Threadlet } from '@this/async';
 import { WallClock } from '@this/clocks';
 import { Statter } from '@this/fs-util';
 import { IntfLogger } from '@this/loggy-intf';
-import { FileServiceConfig } from '@this/sys-config';
 import { Methods, MustBe } from '@this/typey';
+
+import { BaseFileService } from '#x/BaseFileService';
 
 
 /**
@@ -22,7 +23,7 @@ export class BaseFilePreserver {
   /**
    * Configuration to use.
    *
-   * @type {FileServiceConfig}
+   * @type {BaseFileService.Config}
    */
   #config;
 
@@ -64,11 +65,11 @@ export class BaseFilePreserver {
   /**
    * Constructs an instance.
    *
-   * @param {FileServiceConfig} config Configuration to use.
+   * @param {BaseFileService.Config} config Configuration to use.
    * @param {?IntfLogger} logger Logger to use, or `null` to not do any logging.
    */
   constructor(config, logger) {
-    this.#config = MustBe.instanceOf(config, FileServiceConfig);
+    this.#config = MustBe.instanceOf(config, BaseFileService.Config);
     this.#logger = logger?.saver;
   }
 

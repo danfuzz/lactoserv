@@ -9,11 +9,11 @@ import { IntfRateLimiter, IntfRequestLogger, ProtocolWrangler,
   from '@this/net-protocol';
 import { DispatchInfo, HostUtil, IntfRequestHandler, OutgoingResponse, UriUtil }
   from '@this/net-util';
-import { ServiceUseConfig } from '@this/sys-config';
 import { StringUtil } from '@this/typey';
 
 import { BaseApplication } from '#x/BaseApplication';
 import { BaseService } from '#x/BaseService';
+import { ServiceUseConfig } from '#p/ServiceUseConfig';
 
 
 /**

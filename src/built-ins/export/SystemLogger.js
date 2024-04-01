@@ -4,7 +4,6 @@
 import { EventTracker, LinkedEvent } from '@this/async';
 import { WallClock } from '@this/clocks';
 import { Loggy, TextFileSink } from '@this/loggy';
-import { FileServiceConfig } from '@this/sys-config';
 import { BaseFileService, Rotator } from '@this/sys-util';
 import { MustBe } from '@this/typey';
 
@@ -118,7 +117,7 @@ export class SystemLogger extends BaseFileService {
   /**
    * Configuration item subclass for this (outer) class.
    */
-  static #Config = class Config extends FileServiceConfig {
+  static #Config = class Config extends BaseFileService.Config {
     /**
      * The output format name.
      *

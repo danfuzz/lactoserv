@@ -7,7 +7,6 @@ import { Threadlet } from '@this/async';
 import { WallClock } from '@this/clocks';
 import { Duration, Moment } from '@this/data-values';
 import { Host } from '@this/host';
-import { ServiceConfig } from '@this/sys-config';
 import { BaseService } from '@this/sys-framework';
 import { MustBe } from '@this/typey';
 
@@ -166,7 +165,7 @@ export class MemoryMonitor extends BaseService {
   /**
    * Configuration item subclass for this (outer) class.
    */
-  static #Config = class Config extends ServiceConfig {
+  static #Config = class Config extends BaseService.Config {
     /**
      * How often to check, in seconds.
      *

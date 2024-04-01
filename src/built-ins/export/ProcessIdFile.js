@@ -9,7 +9,6 @@ import { WallClock } from '@this/clocks';
 import { Duration } from '@this/data-values';
 import { Statter } from '@this/fs-util';
 import { ProcessUtil } from '@this/host';
-import { FileServiceConfig } from '@this/sys-config';
 import { BaseFileService } from '@this/sys-util';
 import { MustBe } from '@this/typey';
 
@@ -221,7 +220,7 @@ export class ProcessIdFile extends BaseFileService {
   /**
    * Configuration item subclass for this (outer) class.
    */
-  static #Config = class Config extends FileServiceConfig {
+  static #Config = class Config extends BaseFileService.Config {
     /**
      * Allow multiple processes to be listed in the file?
      *

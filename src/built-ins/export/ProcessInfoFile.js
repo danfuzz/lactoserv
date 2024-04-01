@@ -9,7 +9,6 @@ import { Duration } from '@this/data-values';
 import { Statter } from '@this/fs-util';
 import { Host, ProcessInfo, ProcessUtil, ProductInfo }
   from '@this/host';
-import { FileServiceConfig } from '@this/sys-config';
 import { BaseFileService, Saver } from '@this/sys-util';
 import { MustBe } from '@this/typey';
 
@@ -295,7 +294,7 @@ export class ProcessInfoFile extends BaseFileService {
   /**
    * Configuration item subclass for this (outer) class.
    */
-  static #Config = class Config extends FileServiceConfig {
+  static #Config = class Config extends BaseFileService.Config {
     /**
      * How often to update the info file, or `null` to not perform updates.
      *
