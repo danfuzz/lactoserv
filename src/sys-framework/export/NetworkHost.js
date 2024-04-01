@@ -49,27 +49,7 @@ export class NetworkHost extends BaseComponent {
    */
   #secureContext = null;
 
-  /**
-   * Constructs an instance.
-   *
-   * @param {object} rawConfig Raw configuration object.
-   */
-  constructor(rawConfig) {
-    super(rawConfig);
-
-    const { config } = this;
-    const { certificate, privateKey, selfSigned } = config;
-
-    if (selfSigned) {
-      this.#parametersPromise = NetworkHost.#makeSelfSignedParameters(config);
-      (async () => {
-        this.#parameters        = await this.#parametersPromise;
-        this.#parametersPromise = null;
-      })();
-    } else {
-      this.#parameters = { certificate, privateKey };
-    }
-  }
+  // @defaultConstructor
 
   /** @override */
   get name() {
@@ -122,7 +102,15 @@ export class NetworkHost extends BaseComponent {
 
   /** @override */
   async _impl_start(isReload_unused) {
-    // No need to do anything.
+    const { config } = this;
+    const { selfSigned } = config;
+
+    if (selfSigned) {
+      this.#parameters = await NetworkHost.#makeSelfSignedParameters(config);
+    } else {
+      const { certificate, privateKey } = config;
+      this.#parameters = { certificate, privateKey };
+    }
   }
 
   /** @override */
