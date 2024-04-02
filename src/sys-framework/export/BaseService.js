@@ -26,6 +26,8 @@ export class BaseService extends BaseComponent {
    * @param {EventPayload} payload The event payload.
    * @returns {boolean} `true` if this instance handled the event, or `false` if
    *   not.
+   * @throws {Error} Any error thrown while handling the event. (That is, errors
+   *   are not suppressed.)
    */
   async handleEvent(payload) {
     try {
@@ -43,6 +45,21 @@ export class BaseService extends BaseComponent {
       this.logger?.threw(e);
       throw e;
     }
+  }
+
+  /**
+   * Sends an event to this instance. This simply wraps up the arguments in
+   * a payload object, and hands them to {@link #handleEvent}.
+   *
+   * @param {string} type The event type.
+   * @param {...*} args Arbitrary event arguments.
+   * @returns {boolean} `true` if this instance handled the event, or `false` if
+   *   not.
+   * @throws {Error} Any error thrown while handling the event. (That is, errors
+   *   are not suppressed.)
+   */
+  async send(type, ...args) {
+    return this.handleEvent(new EventPayload(type, ...args));
   }
 
   /**
