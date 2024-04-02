@@ -42,6 +42,13 @@ export class BaseComponent {
   #context = null;
 
   /**
+   * Value for {@link #implementedInterfaces}, or `null` if not yet calculated.
+   *
+   * @type {Array<function(new:object)>}
+   */
+  #implementedInterfaces = null;
+
+  /**
    * Constructs an instance.
    *
    * After this constructor returns, it is safe for configuration-bearing
@@ -120,6 +127,23 @@ export class BaseComponent {
   /** @override */
   get context() {
     return (this.#initialized ? this.#context : this.#context?.nascentRoot) ?? null;
+  }
+
+  /**
+   * @returns {Array<function(new:object)>} Array of interface classes that this
+   * class claims to implement. Always a frozen object.
+   */
+  get implementedInterfaces() {
+    if (this.#implementedInterfaces === null) {
+      const ifaces = this.constructor._impl_implementedInterfaces();
+
+      MustBe.arrayOf(ifaces, AskIf.constructorFunction);
+      Object.freeze(ifaces);
+
+      this.#implementedInterfaces = ifaces;
+    }
+
+    return this.#implementedInterfaces;
   }
 
   /** @override */
@@ -230,14 +254,6 @@ export class BaseComponent {
   static #configClass = new Map();
 
   /**
-   * Map from each subclass to its return value for {@link
-   * #IMPLEMENTED_INTERFACES}, lazily filled in.
-   *
-   * @type {Map<function(new:BaseComponent),Array<function(new:object)>>}
-   */
-  static #implementedInterfaces = new Map();
-
-  /**
    * @returns {?function(new:object, object)} The expected configuration class
    * for this class, or `null` if this class does not use a configuration class.
    * Defaults to `null`. Subclasses are expected to override this as necessary.
@@ -258,26 +274,6 @@ export class BaseComponent {
     BaseComponent.#configClass.set(this, configClass);
 
     return configClass;
-  }
-
-  /**
-   * @returns {Array<function(new:object)>} Array of interface classes that this
-   * class claims to implement. Always a frozen object.
-   */
-  static get IMPLEMENTED_INTERFACES() {
-    const already = BaseComponent.#implementedInterfaces.get(this);
-
-    if (already) {
-      return already;
-    }
-
-    const ifaces = this._impl_implementedInterfaces();
-
-    MustBe.arrayOf(ifaces, AskIf.constructorFunction);
-    Object.freeze(ifaces);
-    BaseComponent.#implementedInterfaces.set(this, ifaces);
-
-    return ifaces;
   }
 
   /**
@@ -401,7 +397,7 @@ export class BaseComponent {
   /**
    * @returns {Array<function(new:object)>} Array of interface classes that this
    * class claims to implement. The base class calls this exactly once to get
-   * the value to return from {@link #IMPLEMENTED_INTERFACES}. Defaults to `[]`.
+   * the value to return from {@link #implementedInterfaces}. Defaults to `[]`.
    * Subclasses are expected to override this as necessary.
    */
   static _impl_implementedInterfaces() {
