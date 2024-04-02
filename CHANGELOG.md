@@ -33,6 +33,9 @@ Other notable changes:
     code a lot in the process.
   * Added general event-reporting and service-calling methods to `BaseService`,
     as a way to eventually enable metaprogramming with services.
+* `built-ins`:
+  * New service `EventFan`, to do parallel fan-out of events. Notably, this is
+    useful for sending network request logs to multiple loggers.
 
 ### v0.6.12 -- 2024-03-28
 
