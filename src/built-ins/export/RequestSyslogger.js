@@ -18,7 +18,7 @@ export class RequestSyslogger extends BaseService {
   // @defaultConstructor
 
   /** @override */
-  async requestStarted(networkInfo, request) {
+  async requestStarted(request, networkInfo) {
     request.logger?.request(request.infoForLog);
 
     // Call `requestEnded()`, but don't `await` it, because we want to promptly
@@ -29,7 +29,7 @@ export class RequestSyslogger extends BaseService {
   }
 
   /** @override */
-  async requestEnded(networkInfo, request, response) {
+  async requestEnded(request, response, networkInfo) {
     // TODO: Remove this method.
   }
 

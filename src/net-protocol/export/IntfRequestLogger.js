@@ -19,6 +19,7 @@ export class IntfRequestLogger {
    * Indicates to this instance that a request has started.
    *
    * @abstract
+   * @param {IncomingRequest} request The incoming request.
    * @param {object} networkInfo Information about the network environment.
    * @param {object} networkInfo.connectionSocket The socket (or socket-like
    *   object) used by the lowest level of the connection that the request is
@@ -29,10 +30,9 @@ export class IntfRequestLogger {
    * @param {Promise<OutgoingResponse>} networkInfo.responsePromise Promise for
    *   the response object which was sent, which becomes resolved after the
    *   response is believed to have been sent.
-   * @param {IncomingRequest} request The incoming request.
    */
-  async requestStarted(networkInfo, request) {
-    Methods.abstract(networkInfo, request);
+  async requestStarted(request, networkInfo) {
+    Methods.abstract(request, networkInfo);
   }
 
   /**
@@ -40,13 +40,13 @@ export class IntfRequestLogger {
    * has been sent).
    *
    * @abstract
-   * @param {object} networkInfo Information about the network environment. See
-   *   {@link #requestStarted} for details.
    * @param {IncomingRequest} request The incoming request.
    * @param {OutgoingResponse} response The response that was sent (or at least
    *   attempted).
+   * @param {object} networkInfo Information about the network environment. See
+   *   {@link #requestStarted} for details.
    */
-  async requestEnded(networkInfo, request, response) {
-    Methods.abstract(networkInfo, request, response);
+  async requestEnded(request, response, networkInfo) {
+    Methods.abstract(request, response, networkInfo);
   }
 }

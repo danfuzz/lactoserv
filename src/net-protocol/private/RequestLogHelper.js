@@ -39,10 +39,10 @@ export class RequestLogHelper {
   async logRequest(request, networkInfo) {
     const reqLogger  = this.#requestLogger;
 
-    reqLogger.requestStarted(networkInfo, request);
+    reqLogger.requestStarted(request, networkInfo);
 
     const response = await networkInfo.responsePromise;
 
-    reqLogger.requestEnded(networkInfo, request, response);
+    reqLogger.requestEnded(request, response, networkInfo);
   }
 }
