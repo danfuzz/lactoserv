@@ -42,6 +42,11 @@ export class RequestSyslogger extends BaseService {
   }
 
   /** @override */
+  _impl_implementedInterfaces() {
+    return [IntfRequestLogger];
+  }
+
+  /** @override */
   async _impl_init(isReload_unused) {
     // Nothing needed here for this class.
   }
@@ -54,14 +59,5 @@ export class RequestSyslogger extends BaseService {
   /** @override */
   async _impl_stop(willReload_unused) {
     // No need to do anything.
-  }
-
-  //
-  // Static members
-  //
-
-  /** @override */
-  static _impl_implementedInterfaces() {
-    return [IntfRequestLogger];
   }
 }

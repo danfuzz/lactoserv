@@ -15,7 +15,7 @@ Breaking changes:
   * Moved the higher layer of classes from `sys-config` to be inner classes of
     the things-they-are-configuring.
   * (Per the previous two items) Removed the now-empty module `sys-config`.
-  * Added `_impl_implementedInterfaces()` as an overridable `static` method on
+  * Added `_impl_implementedInterfaces()` as an overridable instance method on
     `BaseComponent`, to allow for runtime declaration and validation of
     component interfaces.
   * Reworked `static` property `CONFIG_CLASS` to be `_impl_configClass()`, to

@@ -135,7 +135,7 @@ export class BaseComponent {
    */
   get implementedInterfaces() {
     if (this.#implementedInterfaces === null) {
-      const ifaces = this.constructor._impl_implementedInterfaces();
+      const ifaces = this._impl_implementedInterfaces();
 
       MustBe.arrayOf(ifaces, AskIf.constructorFunction);
       Object.freeze(ifaces);
@@ -197,6 +197,16 @@ export class BaseComponent {
     BaseComponent.logStopping(this.logger, willReload);
     await this._impl_stop(willReload);
     BaseComponent.logStopped(this.logger, willReload);
+  }
+
+  /**
+   * @returns {Array<function(new:object)>} Array of interface classes that this
+   * instance claims to implement. The base class calls this exactly once to get
+   * the value to return from {@link #implementedInterfaces}. Defaults to `[]`.
+   * Subclasses are expected to override this as necessary.
+   */
+  _impl_implementedInterfaces() {
+    return [];
   }
 
   /**
@@ -392,16 +402,6 @@ export class BaseComponent {
    */
   static logStopping(logger, willReload) {
     logger?.stopping(willReload ? 'willReload' : 'shutdown');
-  }
-
-  /**
-   * @returns {Array<function(new:object)>} Array of interface classes that this
-   * class claims to implement. The base class calls this exactly once to get
-   * the value to return from {@link #implementedInterfaces}. Defaults to `[]`.
-   * Subclasses are expected to override this as necessary.
-   */
-  static _impl_implementedInterfaces() {
-    return [];
   }
 
   /**

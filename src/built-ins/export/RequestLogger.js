@@ -107,6 +107,11 @@ export class RequestLogger extends BaseFileService {
   }
 
   /** @override */
+  _impl_implementedInterfaces() {
+    return [IntfRequestLogger];
+  }
+
+  /** @override */
   async _impl_init(isReload_unused) {
     const { config } = this;
     this.#rotator = config.rotate ? new Rotator(config, this.logger) : null;
@@ -160,11 +165,6 @@ export class RequestLogger extends BaseFileService {
   /** @override */
   static _impl_configClass() {
     return this.#Config;
-  }
-
-  /** @override */
-  static _impl_implementedInterfaces() {
-    return [IntfRequestLogger];
   }
 
   /**
