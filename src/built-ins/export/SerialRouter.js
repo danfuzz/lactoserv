@@ -49,7 +49,6 @@ export class SerialRouter extends BaseApplication {
     // the case that all of the referenced apps have already been added when
     // that runs.
 
-
     const context   = this.context;
     const routeList = [];
 
