@@ -421,7 +421,7 @@ export class ProtocolWrangler {
 
     try {
       if (this.#rateLimiter) {
-        const granted = await this.#rateLimiter.newRequest(reqLogger);
+        const granted = await this.#rateLimiter.call('newRequest', reqLogger);
         if (!granted) {
           // Send the error response, and wait for it to be (believed to be)
           // sent. Then just thwack the underlying socket. The hope is that the

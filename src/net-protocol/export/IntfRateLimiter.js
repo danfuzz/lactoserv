@@ -19,7 +19,7 @@ export class IntfRateLimiter {
    * @param {?IntfLogger} logger Logger to use for this action.
    * @returns {boolean} Was a connection actually granted?
    */
-  async newConnection(logger) {
+  async _impl_handleCall_newConnection(logger) {
     Methods.abstract(logger);
   }
 
@@ -31,7 +31,7 @@ export class IntfRateLimiter {
    * @param {?IntfLogger} logger Logger to use for this action.
    * @returns {boolean} Was a request actually granted?
    */
-  async newRequest(logger) {
+  async _impl_handleCall_newRequest(logger) {
     Methods.abstract(logger);
   }
 
@@ -47,7 +47,7 @@ export class IntfRateLimiter {
    * @returns {object} An appropriately-wrapped instance, or the original
    *   `stream` if this instance has no data rate limiter.
    */
-  wrapWriter(stream, logger) {
+  async _impl_handleCall_wrapWriter(stream, logger) {
     Methods.abstract(stream, logger);
   }
 }
