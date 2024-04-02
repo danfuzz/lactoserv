@@ -31,7 +31,7 @@ export class IntfRequestLogger {
    *   the response object which was sent, which becomes resolved after the
    *   response is believed to have been sent.
    */
-  async requestStarted(request, networkInfo) {
+  async _impl_event_requestStarted(request, networkInfo) {
     Methods.abstract(request, networkInfo);
   }
 
@@ -46,7 +46,7 @@ export class IntfRequestLogger {
    * @param {object} networkInfo Information about the network environment. See
    *   {@link #requestStarted} for details.
    */
-  async requestEnded(request, response, networkInfo) {
+  async _impl_event_requestEnded(request, response, networkInfo) {
     Methods.abstract(request, response, networkInfo);
   }
 }
