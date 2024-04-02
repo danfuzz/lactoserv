@@ -87,7 +87,7 @@ export class EventFan extends BaseService {
 
   /** @override */
   async _impl_stop(willReload_unused) {
-    // No need to do anything.
+    // @emptyBlock
   }
 
 
