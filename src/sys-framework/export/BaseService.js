@@ -32,14 +32,12 @@ export class BaseService extends BaseComponent {
   async handleEvent(payload) {
     try {
       const result = await this._impl_handleEvent(payload);
+
       if (typeof result !== 'boolean') {
         // Caught, logged, and rethrown immediately below.
-        if (result === undefined) {
-          throw new Error('`_impl_handleEvent()` returned `undefined`. Maybe missing a `return` statement?');
-        } else {
-          throw new Error('`_impl_handleEvent()` did not return a `boolean`.');
-        }
+        throw BaseService.#makeResultError(payload, result);
       }
+
       return result;
     } catch (e) {
       this.logger?.threw(e);
@@ -79,9 +77,18 @@ export class BaseService extends BaseComponent {
     // that wouldn't let us distinguish between unimplemented and implemented
     // when the implemented method mistakenly failed to return a value (or
     // returned `undefined` explicitly).
-    return this[handlerName]
-      ? await this[handlerName](...payload.args)
-      : false;
+    if (!this[handlerName]) {
+      return false;
+    }
+
+    const result = await this[handlerName](...payload.args);
+
+    if (typeof result !== 'boolean') {
+      // Caught, logged, and rethrown in `handleEvent()` above.
+      throw BaseService.#makeResultError(handlerName, result);
+    }
+
+    return result;
   }
 
 
@@ -119,6 +126,26 @@ export class BaseService extends BaseComponent {
 
     this.#EVENT_TYPE_TO_HANDLER_MAP.set(type, result);
     return result;
+  }
+
+  /**
+   * Makes an `Error` for an invalid handler result.
+   *
+   * @param {EventPayload|string} methodOrPayload The name of the method or the
+   *   event type was problematic.
+   * @param {*} result The result of the call to the method.
+   * @returns {Error} The error to throw.
+   */
+  static #makeResultError(methodOrPayload, result) {
+    const verbPhrase = (result === undefined)
+      ? 'returned `undefined`. Maybe missing a `return` statement?'
+      : 'did not return a `boolean`.';
+
+    const methodStr = (methodOrPayload instanceof EventPayload)
+      ? `_impl_handleEvent({ type: '${methodOrPayload.type}' })`
+      : `${methodOrPayload}()`;
+
+    return new Error(`${methodStr} ${verbPhrase}`);
   }
 
   /**
