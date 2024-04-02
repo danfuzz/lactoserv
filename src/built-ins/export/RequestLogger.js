@@ -4,6 +4,7 @@
 import * as fs from 'node:fs/promises';
 
 import { WallClock } from '@this/clocks';
+import { Moment } from '@this/data-values';
 import { FormatUtils } from '@this/loggy-intf';
 import { IntfRequestLogger } from '@this/net-protocol';
 import { BaseFileService, Rotator } from '@this/sys-util';
@@ -28,31 +29,59 @@ export class RequestLogger extends BaseFileService {
   // @defaultConstructor
 
   /** @override */
-  now() {
-    return WallClock.now();
-  }
+  async _impl_handleEvent_requestStarted(request) {
+    request[RequestLogger.#SYM_startTime] = this.#now();
 
-  /** @override */
-  async requestStarted(networkInfo_unused, timingInfo_unused, request) {
     if (this.config.doSyslog) {
       request.logger?.request(request.infoForLog);
     }
+
+    return true;
   }
 
   /** @override */
-  async requestEnded(networkInfo, timingInfo, request, response) {
-    // Note: This call isn't ever supposed to `throw`, even if there were errors
-    // thrown during request/response handling.
-    const { connectionSocket, nodeResponse } = networkInfo;
-    const responseInfo = await response.getInfoForLog(nodeResponse, connectionSocket);
+  async _impl_handleEvent_requestEnded(request, response, networkInfo) {
+    let requestInfo  = null;
+    let responseInfo = null;
+    try {
+      const { connectionSocket, nodeResponse } = networkInfo;
+      requestInfo  = request.infoForLog;
+      responseInfo = await response.getInfoForLog(nodeResponse, connectionSocket);
+    } catch (e) {
+      // Shouldn't happen, but if it does, it's better to log and move on than
+      // to let the system crash. Note, in particular, these calls (above) are
+      // never supposed to throw, even if the handling of the request caused
+      // some sort of error to be thrown.
+      this.logger?.errorWhileGettingInfo(e);
+
+      if (!requestInfo) {
+        requestInfo = {
+          method:   '<unknown>',
+          origin:   '<unknown>',
+          protocol: '<unknown>',
+          url:      '<unknown>'
+        };
+      }
+
+      if (!responseInfo) {
+        responseInfo = {
+          contentLength: null,
+          errorCodes:    ['could-not-get-info'],
+          ok:            false,
+          statusCode:    599
+        };
+      }
+    }
+
+    const startTime = request[RequestLogger.#SYM_startTime];
+    const endTime   = this.#now();
+    const duration  = endTime.subtract(startTime);
 
     if (this.config.doSyslog) {
       request.logger?.response(responseInfo);
-      request.logger?.timing(timingInfo);
     }
 
-    const { method, origin, protocol, url }             = request.infoForLog;
-    const { duration, end }                             = timingInfo;
+    const { method, origin, protocol, url }             = requestInfo;
     const { contentLength, errorCodes, ok, statusCode } = responseInfo;
 
     const codeStr          = ok ? 'ok' : errorCodes.join(',');
@@ -61,7 +90,7 @@ export class RequestLogger extends BaseFileService {
       : FormatUtils.byteCountString(contentLength, { spaces: false });
 
     const requestLogLine = [
-      end.toString({ decimals: 4 }),
+      endTime.toString({ decimals: 4 }),
       origin,
       protocol,
       method,
@@ -73,6 +102,8 @@ export class RequestLogger extends BaseFileService {
     ].join(' ');
 
     await this.#logLine(requestLogLine);
+
+    return true;
   }
 
   /** @override */
@@ -102,10 +133,29 @@ export class RequestLogger extends BaseFileService {
     await fs.appendFile(this.config.path, `${line}\n`);
   }
 
+  /**
+   * Gets the current time, as far as this instance is concerned. This method
+   * exists to make it easier to refine our idea of time in this class without
+   * having to change both places that need figure out when "now" is.
+   *
+   * @returns {Moment} "Now."
+   */
+  #now() {
+    return WallClock.now();
+  }
+
 
   //
   // Static members
   //
+
+  /**
+   * Symbol name for private property added to request objects, to record the
+   * start time.
+   *
+   * @type {symbol}
+   */
+  static #SYM_startTime = Symbol('RequestLogger.startTime');
 
   /** @override */
   static _impl_configClass() {

@@ -56,17 +56,17 @@ export class RateLimiter extends BaseService {
   }
 
   /** @override */
-  async newConnection(logger) {
+  async _impl_handleCall_newConnection(logger) {
     return RateLimiter.#requestOneToken(this.#connections, logger);
   }
 
   /** @override */
-  async newRequest(logger) {
+  async _impl_handleCall_newRequest(logger) {
     return RateLimiter.#requestOneToken(this.#requests, logger);
   }
 
   /** @override */
-  wrapWriter(stream, logger) {
+  async _impl_handleCall_wrapWriter(stream, logger) {
     if (this.#data === null) {
       return stream;
     }

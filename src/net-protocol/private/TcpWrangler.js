@@ -136,13 +136,13 @@ export class TcpWrangler extends ProtocolWrangler {
     const connLogger = this.#makeConnectionLogger(socket, ...rest);
 
     if (this.#rateLimiter) {
-      const granted = await this.#rateLimiter.newConnection(connLogger);
+      const granted = await this.#rateLimiter.call('newConnection', connLogger);
       if (!granted) {
         socket.destroy();
         return;
       }
 
-      socket = this.#rateLimiter.wrapWriter(socket, connLogger);
+      socket = await this.#rateLimiter.call('wrapWriter', socket, connLogger);
     }
 
     this.#sockets.add(socket);

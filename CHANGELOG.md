@@ -31,6 +31,8 @@ Other notable changes:
     makes for much nicer ergonomics when using the system as a framework.
   * Did a major rework of how hosts and endpoints are managed, simplifying the
     code a lot in the process.
+  * Added general event-reporting and service-calling methods to `BaseService`,
+    as a way to eventually enable metaprogramming with services.
 
 ### v0.6.12 -- 2024-03-28
 
