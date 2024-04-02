@@ -49,7 +49,7 @@ form:
 ### Testing
 
 Unit test files live in directories named `tests` directly under each local
-package. They use Jest for both test definitons (`describe(...)`, `test(...)`)
+package. They use Jest for both test definitions (`describe(...)`, `test(...)`)
 and assertions (`expect(...)...`).
 
 ```sh
