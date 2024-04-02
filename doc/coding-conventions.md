@@ -114,6 +114,14 @@ meant to record them, in order to keep track of them and maintain consistency.
   historically prefers `'utf8'`, but web standards seem to prefer `'utf-8'`.
   Node generally accepts both, and so we go with the latter.
 
+* If a code block (including a full method body) is intentionally empty, and
+  there's no more-specific comment to be made, the block should include a single
+  line with the following comment:
+
+  ```js
+  // @emptyBlock
+  ```
+
 - - - - - - - - - -
 ```
 Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
