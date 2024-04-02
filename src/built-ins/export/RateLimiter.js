@@ -75,6 +75,11 @@ export class RateLimiter extends BaseService {
   }
 
   /** @override */
+  _impl_implementedInterfaces() {
+    return [IntfRateLimiter];
+  }
+
+  /** @override */
   async _impl_init(isReload_unused) {
     // Nothing needed here for this class.
   }
@@ -101,11 +106,6 @@ export class RateLimiter extends BaseService {
   /** @override */
   static _impl_configClass() {
     return this.#Config;
-  }
-
-  /** @override */
-  static _impl_implementedInterfaces() {
-    return [IntfRateLimiter];
   }
 
   /**

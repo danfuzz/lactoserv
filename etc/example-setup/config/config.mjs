@@ -3,9 +3,9 @@
 
 import * as fs from 'node:fs/promises';
 
-import { HostRouter, MemoryMonitor, PathRouter, ProcessIdFile, ProcessInfoFile,
-  RateLimiter, Redirector, RequestLogger, SerialRouter, SimpleResponse,
-  StaticFiles, SystemLogger }
+import { EventFan, HostRouter, MemoryMonitor, PathRouter, ProcessIdFile,
+  ProcessInfoFile, RateLimiter, Redirector, RequestLogger, RequestSyslogger,
+  SerialRouter, SimpleResponse, StaticFiles, SystemLogger }
   from '@lactoserv/built-ins';
 
 
@@ -88,15 +88,23 @@ const services = [
     }
   },
   {
-    name:  'requests',
+    name:  'requestFile',
     class: RequestLogger,
     path:  `${LOG_DIR}/request-log.txt`,
     rotate: {
       atSize:      10000,
       maxOldCount: 10,
       checkPeriod: '1 min'
-    },
-    sendToSystemLog: true
+    }
+  },
+  {
+    name:  'requestSyslog',
+    class: RequestSyslogger
+  },
+  {
+    name:     'requests',
+    class:    EventFan,
+    services: ['requestFile', 'requestSyslog']
   },
   {
     name:        'limiter',

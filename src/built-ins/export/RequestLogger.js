@@ -8,7 +8,6 @@ import { Moment } from '@this/data-values';
 import { FormatUtils } from '@this/loggy-intf';
 import { IntfRequestLogger } from '@this/net-protocol';
 import { BaseFileService, Rotator } from '@this/sys-util';
-import { MustBe } from '@this/typey';
 
 
 /**
@@ -31,10 +30,6 @@ export class RequestLogger extends BaseFileService {
   /** @override */
   async _impl_handleEvent_requestStarted(request) {
     request[RequestLogger.#SYM_startTime] = this.#now();
-
-    if (this.config.doSyslog) {
-      request.logger?.request(request.infoForLog);
-    }
 
     return true;
   }
@@ -77,10 +72,6 @@ export class RequestLogger extends BaseFileService {
     const endTime   = this.#now();
     const duration  = endTime.subtract(startTime);
 
-    if (this.config.doSyslog) {
-      request.logger?.response(responseInfo);
-    }
-
     const { method, origin, protocol, url }             = requestInfo;
     const { contentLength, errorCodes, ok, statusCode } = responseInfo;
 
@@ -104,6 +95,11 @@ export class RequestLogger extends BaseFileService {
     await this.#logLine(requestLogLine);
 
     return true;
+  }
+
+  /** @override */
+  _impl_implementedInterfaces() {
+    return [IntfRequestLogger];
   }
 
   /** @override */
@@ -156,44 +152,4 @@ export class RequestLogger extends BaseFileService {
    * @type {symbol}
    */
   static #SYM_startTime = Symbol('RequestLogger.startTime');
-
-  /** @override */
-  static _impl_configClass() {
-    return this.#Config;
-  }
-
-  /** @override */
-  static _impl_implementedInterfaces() {
-    return [IntfRequestLogger];
-  }
-
-  /**
-   * Configuration item subclass for this (outer) class.
-   */
-  static #Config = class Config extends BaseFileService.Config {
-    /**
-     * Also log to the system log?
-     *
-     * @type {boolean}
-     */
-    #doSyslog;
-
-    /**
-     * Constructs an instance.
-     *
-     * @param {object} rawConfig Raw configuration object.
-     */
-    constructor(rawConfig) {
-      super(rawConfig);
-
-      const { sendToSystemLog = false } = rawConfig;
-
-      this.#doSyslog = MustBe.boolean(sendToSystemLog);
-    }
-
-    /** @returns {boolean} Also log to the system log? */
-    get doSyslog() {
-      return this.#doSyslog;
-    }
-  };
 }

@@ -101,6 +101,37 @@ const services = [
 ];
 ```
 
+## `EventFan`
+
+A service which "fans out" any events it receives to a set of other services, in
+parallel. It accepts the following configuration bindings:
+
+* `services` &mdash; An array listing the _names_ of other services as values.
+
+An instance of this service can be used, for example, to get two different
+network request loggers to be attached to a single network endpoint. (This is
+done in the example configuration file, for reference.)
+
+```js
+import { EventFan } from '@lactoserv/built-ins';
+
+const services = [
+  {
+    name:     'myFan',
+    class:    EventFan,
+    services: ['goHere', 'goThere']
+  },
+  {
+    name: 'goHere',
+    // ... more ...
+  },
+  {
+    name: 'goThere',
+    // ... more ...
+  }
+];
+```
+
 ## `ProcessIdFile`
 
 A service which writes a simple text file containing the process ID (number) of
@@ -229,20 +260,16 @@ the following configuration bindings:
 * `rotate` &mdash; Optional file rotation configuration. If not specified, no
   file rotation is done. See "File Rotation and Preservation" below for
   configuration details.
-* `sendToSystemLog` &mdash; Boolean which, if `true`, causes requests and
-  responses to _also_ get sent to the system log. (It's like getting an instance
-  of `RequestSyslogger` for free.)
 
 ```js
 import { RequestLogger } from '@lactoserv/built-ins';
 
 const services = [
   {
-    name:            'requests',
-    class:           RequestLogger,
-    path:            '/path/to/var/log/request-log.txt',
-    rotate:          { /* ... */ },
-    sendToSystemLog: true
+    name:   'requests',
+    class:  RequestLogger,
+    path:   '/path/to/var/log/request-log.txt',
+    rotate: { /* ... */ }
   }
 ];
 ```
