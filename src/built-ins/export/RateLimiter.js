@@ -86,7 +86,7 @@ export class RateLimiter extends BaseService {
 
   /** @override */
   async _impl_start(isReload_unused) {
-    // Nothing to do here.
+    // @emptyBlock
   }
 
   /** @override */
