@@ -32,10 +32,6 @@ export class RequestLogger extends BaseFileService {
   async _impl_handleEvent_requestStarted(request) {
     request[RequestLogger.#SYM_startTime] = this.#now();
 
-    if (this.config.doSyslog) {
-      request.logger?.request(request.infoForLog);
-    }
-
     return true;
   }
 
@@ -76,10 +72,6 @@ export class RequestLogger extends BaseFileService {
     const startTime = request[RequestLogger.#SYM_startTime];
     const endTime   = this.#now();
     const duration  = endTime.subtract(startTime);
-
-    if (this.config.doSyslog) {
-      request.logger?.response(responseInfo);
-    }
 
     const { method, origin, protocol, url }             = requestInfo;
     const { contentLength, errorCodes, ok, statusCode } = responseInfo;
@@ -161,39 +153,4 @@ export class RequestLogger extends BaseFileService {
    * @type {symbol}
    */
   static #SYM_startTime = Symbol('RequestLogger.startTime');
-
-  /** @override */
-  static _impl_configClass() {
-    return this.#Config;
-  }
-
-  /**
-   * Configuration item subclass for this (outer) class.
-   */
-  static #Config = class Config extends BaseFileService.Config {
-    /**
-     * Also log to the system log?
-     *
-     * @type {boolean}
-     */
-    #doSyslog;
-
-    /**
-     * Constructs an instance.
-     *
-     * @param {object} rawConfig Raw configuration object.
-     */
-    constructor(rawConfig) {
-      super(rawConfig);
-
-      const { sendToSystemLog = false } = rawConfig;
-
-      this.#doSyslog = MustBe.boolean(sendToSystemLog);
-    }
-
-    /** @returns {boolean} Also log to the system log? */
-    get doSyslog() {
-      return this.#doSyslog;
-    }
-  };
 }
