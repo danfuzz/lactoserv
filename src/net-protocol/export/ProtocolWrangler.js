@@ -492,18 +492,21 @@ export class ProtocolWrangler {
    *   (or was at least ulitmately attempted to be sent).
    */
   async #respondToRequestUsingLogHelper(request, outerContext, res) {
+    // We use a `ManualPromise` here so that we can call `logRequest()` before
+    // proceeding with any actual response work. If we didn't do that, we could
+    // end up doing a significant amount of the work of request handling
+    // synchronously before `#logHelper` had a chance to start _its_ work (which
+    // notably typically involves getting the current time).
+    const responseMp = new ManualPromise();
+
     const networkInfo = {
       connectionSocket: outerContext.socket,
       nodeRequest:      res.req,
-      nodeResponse:     res
+      nodeResponse:     res,
+      responsePromise:  responseMp.promise
     };
 
-    // We use a `ManualPromise` here so that the very first call we make is to
-    // the `#logHelper`. If we didn't do that, we could end up doing a
-    // significant amount of the work of request handling synchronously before
-    // `#logHelper` had a chance to start its work.
-    const responseMp = new ManualPromise();
-    this.#logHelper.logRequest(request, responseMp.promise, networkInfo);
+    this.#logHelper.logRequest(request, networkInfo);
 
     const result = this.#respondToRequest(request, outerContext, res);
     responseMp.resolve(result);

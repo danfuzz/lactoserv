@@ -33,19 +33,16 @@ export class RequestLogHelper {
    * logger.
    *
    * @param {IncomingRequest} request Request object.
-   * @param {Promise<OutgoingResponse>} responsePromise Promise for the response
-   *   which was sent, which becomes resolved after it is believed to have been
-   *   sent.
    * @param {object} networkInfo Miscellaneous network info. See {@link
    *   IntfRequestLogger#requestStarted}.
    */
-  async logRequest(request, responsePromise, networkInfo) {
+  async logRequest(request, networkInfo) {
     const reqLogger  = this.#requestLogger;
     const timingInfo = { start: reqLogger.now() };
 
     reqLogger.requestStarted(networkInfo, timingInfo, request);
 
-    const response = await responsePromise;
+    const response = await networkInfo.responsePromise;
 
     timingInfo.end      = this.#requestLogger.now();
     timingInfo.duration = timingInfo.end.subtract(timingInfo.start);

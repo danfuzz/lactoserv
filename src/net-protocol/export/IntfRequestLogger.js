@@ -36,6 +36,9 @@ export class IntfRequestLogger {
    * @param {TypeNodeRequest} networkInfo.nodeRequest Low-level request object.
    * @param {TypeNodeResponse} networkInfo.nodeResponse Low-level response
    *   object.
+   * @param {Promise<OutgoingResponse>} networkInfo.responsePromise Promise for
+   *   the response object which was sent, which becomes resolved after the
+   *   response is believed to have been sent.
    * @param {object} timingInfo Information about request timing.
    * @param {Moment} timingInfo.start The moment the request started getting
    *   handled (or at least a reasonably close moment to that). This can be
