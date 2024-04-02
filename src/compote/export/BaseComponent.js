@@ -288,9 +288,10 @@ export class BaseComponent {
 
   /**
    * Evaluates a single value, or an array consisting of a heterogeneous mix of
-   * values, producing an array of instances of this class, where "this class"
-   * is the concrete class that this method was called on. (This *`static`*
-   * method is implemented in the base class on behalf of all subclasses.)
+   * values, producing an array of instances of this class (including
+   * subclasses), where "this class" is the class that this method was called
+   * on. (This _`static`_ method is implemented in the base class on behalf of
+   * all subclasses.)
    *
    * The result array elements are derived as follows:
    *
