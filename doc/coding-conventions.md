@@ -89,14 +89,14 @@ use the following comment in place of an intentionally omitted constructor:
 
 ### Member naming (and details)
 
-* `_impl_<name>` -- Declared in base classes, _either_ as abstract and left for
-  subclasses to fill in (as specified by the base class), or with a reasonable
-  default implementation. _Not_ supposed to be called except by the defining
-  base class (not even subclasses). These are more or less `protected` and
-  (mostly) `abstract` methods declared by a base class.
+* `_impl_<name>` &mdash; Declared in base classes, _either_ as abstract and left
+  for subclasses to fill in (as specified by the base class), or with a
+  reasonable default implementation. _Not_ supposed to be called except by the
+  defining base class (not even subclasses). These are more or less `protected`
+  and (mostly) `abstract` methods declared by a base class.
 
-* `_prot_<name>` -- Defined in base classes and _not_ to be overridden. To be
-  called by subclasses; _not_ supposed to be used outside of the class. These
+* `_prot_<name>` &mdash; Defined in base classes and _not_ to be overridden. To
+  be called by subclasses; _not_ supposed to be used outside of the class. These
   are more or less `protected final` methods defined by a base class.
 
 With very few exceptions, members _not_ marked with `_impl_` should be treated
