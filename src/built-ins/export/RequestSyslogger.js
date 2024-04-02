@@ -1,7 +1,6 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { WallClock } from '@this/clocks';
 import { IntfRequestLogger } from '@this/net-protocol';
 import { IncomingRequest } from '@this/net-util';
 import { BaseService } from '@this/sys-framework';
@@ -17,11 +16,6 @@ import { BaseService } from '@this/sys-framework';
  */
 export class RequestSyslogger extends BaseService {
   // @defaultConstructor
-
-  /** @override */
-  now() {
-    return WallClock.now();
-  }
 
   /** @override */
   async requestStarted(networkInfo, request) {

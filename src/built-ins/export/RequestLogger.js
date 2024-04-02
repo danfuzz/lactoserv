@@ -30,11 +30,6 @@ export class RequestLogger extends BaseFileService {
   // @defaultConstructor
 
   /** @override */
-  now() {
-    return WallClock.now();
-  }
-
-  /** @override */
   async requestStarted(networkInfo, request) {
     const startTime = this.#now();
 
