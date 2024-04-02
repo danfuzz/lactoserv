@@ -42,7 +42,7 @@ form:
 * `ubik node-project reflow-jsdoc` &mdash; Reflows (fixes line breaks on) all
   the documentation comments in the source tree. **Note:** After running this,
   please double-check the results before committing, as this tool might produce
-  results that indicate a need for it to be improved.
+  results that indicate a need for the tool itself to be improved.
 * `ubik node-project sort-imports` &mdash; Sorts and arranges `import` lines
   into a project-standard form.
 
