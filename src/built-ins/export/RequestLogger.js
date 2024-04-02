@@ -6,7 +6,6 @@ import * as fs from 'node:fs/promises';
 import { WallClock } from '@this/clocks';
 import { Moment } from '@this/data-values';
 import { FormatUtils } from '@this/loggy-intf';
-import { IncomingRequest } from '@this/net-util';
 import { IntfRequestLogger } from '@this/net-protocol';
 import { BaseFileService, Rotator } from '@this/sys-util';
 import { MustBe } from '@this/typey';
@@ -30,22 +29,80 @@ export class RequestLogger extends BaseFileService {
   // @defaultConstructor
 
   /** @override */
-  async _impl_handleEvent_requestStarted(request, networkInfo) {
-    const startTime = this.#now();
+  async _impl_handleEvent_requestStarted(request, networkInfo_unused) {
+    request[RequestLogger.#SYM_startTime] = this.#now();
 
     if (this.config.doSyslog) {
       request.logger?.request(request.infoForLog);
     }
-
-    // Call `requestEnded()`, but don't `await` it, because we want to promptly
-    // indicate to our caller that we did in fact handle the service event.
-    this.#logWhenRequestEnds(request, networkInfo, startTime);
 
     return true;
   }
 
   /** @override */
   async _impl_handleEvent_requestEnded(request, response, networkInfo) {
+    let requestInfo  = null;
+    let responseInfo = null;
+    try {
+      const { connectionSocket, nodeResponse } = networkInfo;
+      requestInfo  = request.infoForLog;
+      responseInfo = await response.getInfoForLog(nodeResponse, connectionSocket);
+    } catch (e) {
+      // Shouldn't happen, but if it does, it's better to log and move on than
+      // to let the system crash. Note, in particular, these calls (above) are
+      // never supposed to throw, even if the handling of the request caused
+      // some sort of error to be thrown.
+      this.logger?.errorWhileGettingInfo(e);
+
+      if (!requestInfo) {
+        requestInfo = {
+          method:   '<unknown>',
+          origin:   '<unknown>',
+          protocol: '<unknown>',
+          url:      '<unknown>'
+        };
+      }
+
+      if (!responseInfo) {
+        responseInfo = {
+          contentLength: null,
+          errorCodes:    ['could-not-get-info'],
+          ok:            false,
+          statusCode:    599
+        };
+      }
+    }
+
+    const startTime = request[RequestLogger.#SYM_startTime];
+    const endTime   = this.#now();
+    const duration  = endTime.subtract(startTime);
+
+    if (this.config.doSyslog) {
+      request.logger?.response(responseInfo);
+    }
+
+    const { method, origin, protocol, url }             = requestInfo;
+    const { contentLength, errorCodes, ok, statusCode } = responseInfo;
+
+    const codeStr          = ok ? 'ok' : errorCodes.join(',');
+    const contentLengthStr = (contentLength === null)
+      ? 'no-body'
+      : FormatUtils.byteCountString(contentLength, { spaces: false });
+
+    const requestLogLine = [
+      endTime.toString({ decimals: 4 }),
+      origin,
+      protocol,
+      method,
+      url,
+      statusCode,
+      contentLengthStr,
+      duration.toString({ spaces: false }),
+      codeStr
+    ].join(' ');
+
+    await this.#logLine(requestLogLine);
+
     return true;
   }
 
@@ -77,65 +134,6 @@ export class RequestLogger extends BaseFileService {
   }
 
   /**
-   * Waits for the request to end, and then logs information about it.
-   *
-   * @param {IncomingRequest} request The incoming request.
-   * @param {object} networkInfo Miscellaneous network-ish info.
-   * @param {Moment} startTime The start time of the request.
-   */
-  async #logWhenRequestEnds(request, networkInfo, startTime) {
-    // Note: Nothing will catch errors thrown from this method. (See call site
-    // above.)
-
-    try {
-      const { connectionSocket, nodeResponse, responsePromise } = networkInfo;
-      const response     = await responsePromise;
-      const responseInfo = await response.getInfoForLog(nodeResponse, connectionSocket);
-
-      const endTime    = this.#now();
-      const timingInfo = {
-        start:    startTime,
-        end:      endTime,
-        duration: endTime.subtract(startTime)
-      };
-
-      if (this.config.doSyslog) {
-        request.logger?.response(responseInfo);
-        request.logger?.timing(timingInfo);
-      }
-
-      const { method, origin, protocol, url }             = request.infoForLog;
-      const { duration, end }                             = timingInfo;
-      const { contentLength, errorCodes, ok, statusCode } = responseInfo;
-
-      const codeStr          = ok ? 'ok' : errorCodes.join(',');
-      const contentLengthStr = (contentLength === null)
-        ? 'no-body'
-        : FormatUtils.byteCountString(contentLength, { spaces: false });
-
-      const requestLogLine = [
-        end.toString({ decimals: 4 }),
-        origin,
-        protocol,
-        method,
-        url,
-        statusCode,
-        contentLengthStr,
-        duration.toString({ spaces: false }),
-        codeStr
-      ].join(' ');
-
-      await this.#logLine(requestLogLine);
-    } catch (e) {
-      // Shouldn't happen, but if it does, it's better to log and move on than
-      // to let the system crash. Note, in particular, the call to
-      // `getInfoForLog()` (above) is never supposed to throw, even if the
-      // request or response caused some sort of error to be thrown.
-      this.logger?.errorWhileLoggingRequest(e);
-    }
-  }
-
-  /**
    * Gets the current time, as far as this instance is concerned. This method
    * exists to make it easier to refine our idea of time in this class without
    * having to change both places that need figure out when "now" is.
@@ -150,6 +148,14 @@ export class RequestLogger extends BaseFileService {
   //
   // Static members
   //
+
+  /**
+   * Symbol name for private property added to request objects, to record the
+   * start time.
+   *
+   * @type {symbol}
+   */
+  static #SYM_startTime = Symbol('RequestLogger.startTime');
 
   /** @override */
   static _impl_configClass() {
