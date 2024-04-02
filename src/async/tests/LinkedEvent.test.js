@@ -265,7 +265,7 @@ describe('.emitter', () => {
 
   test('returns a function which requires the payload to be an `instanceof` this class\'s payload', () => {
     class SomePayload extends EventPayload {
-      // This space intentionally left blank.
+      // @emptyBlock
     }
 
     const event   = new LinkedEvent(new SomePayload('beep', 1, 2, 3));
@@ -461,7 +461,7 @@ describe('withPayload()', () => {
 
   test('fails if the given payload does not match the class of the existing payload', () => {
     class SomePayload extends EventPayload {
-      // This space intentionally left blank.
+      // @emptyBlock
     }
 
     const event = new LinkedEvent(new SomePayload('boop'));
@@ -506,7 +506,7 @@ describe('withPushedHead()', () => {
 
   test('fails if the given payload does not match the class of the existing payload', () => {
     class SomePayload extends EventPayload {
-      // This space intentionally left blank.
+      // @emptyBlock
     }
 
     const event = new LinkedEvent(new SomePayload('boop'));
@@ -517,7 +517,7 @@ describe('withPushedHead()', () => {
 
 describe('subclass behavior', () => {
   class FlorpEvent extends LinkedEvent {
-    // This space intentionally left blank.
+    // @emptyBlock
   }
 
   test('constructs instances of the subclass when emitting', () => {

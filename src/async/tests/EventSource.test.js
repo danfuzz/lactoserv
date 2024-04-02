@@ -9,12 +9,12 @@ import { EventPayload, EventSource, LinkedEvent, PromiseState }
 
 // For testing subclass scenarios.
 class ZanyEvent extends LinkedEvent {
-  // This space intentionally left blank.
+  // @emptyBlock
 }
 
 // For testing subclass scenarios.
 class ZanyPayload extends EventPayload {
-  // This space intentionally left blank.
+  // @emptyBlock
 }
 
 

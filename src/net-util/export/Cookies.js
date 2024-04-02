@@ -24,7 +24,7 @@ export class Cookies {
    * Constructs an empty instance.
    */
   constructor() {
-    // This space intentionally left blank.
+    // @emptyBlock
   }
 
   /** @returns {number} How many cookies are in this instance. */
