@@ -19,6 +19,10 @@ export class BaseService extends BaseComponent {
    * subclasses to override either {@link #_impl_handleEvent} or the
    * event-type-specific methods.
    *
+   * **Note:** When an event-type-specific method is called, it is passed the
+   * payload arguments directly as arguments, and not just a single payload
+   * object argument.
+   *
    * @param {EventPayload} payload The event payload.
    * @returns {boolean} `true` if this instance handled the event, or `false` if
    *   not.
@@ -59,7 +63,7 @@ export class BaseService extends BaseComponent {
     // when the implemented method mistakenly failed to return a value (or
     // returned `undefined` explicitly).
     return this[handlerName]
-      ? await this[handlerName](payload)
+      ? await this[handlerName](...payload.args)
       : false;
   }
 
