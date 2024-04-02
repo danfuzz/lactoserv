@@ -17,7 +17,7 @@ export class RequestSyslogger extends BaseService {
   // @defaultConstructor
 
   /** @override */
-  async _impl_handleEvent_requestStarted(request, networkInfo_unused) {
+  async _impl_handleEvent_requestStarted(request) {
     request.logger?.request(request.infoForLog);
 
     return true;

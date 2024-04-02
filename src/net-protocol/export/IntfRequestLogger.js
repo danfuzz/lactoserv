@@ -20,20 +20,10 @@ export class IntfRequestLogger {
    *
    * @abstract
    * @param {IncomingRequest} request The incoming request.
-   * @param {object} networkInfo Information about the network environment.
-   * @param {object} networkInfo.connectionSocket The socket (or socket-like
-   *   object) used by the lowest level of the connection that the request is
-   *   running on.
-   * @param {TypeNodeRequest} networkInfo.nodeRequest Low-level request object.
-   * @param {TypeNodeResponse} networkInfo.nodeResponse Low-level response
-   *   object.
-   * @param {Promise<OutgoingResponse>} networkInfo.responsePromise Promise for
-   *   the response object which was sent, which becomes resolved after the
-   *   response is believed to have been sent.
    * @returns {boolean} Whether or not the event was handled.
    */
-  async _impl_handleEvent_requestStarted(request, networkInfo) {
-    throw Methods.abstract(request, networkInfo);
+  async _impl_handleEvent_requestStarted(request) {
+    throw Methods.abstract(request);
   }
 
   /**
@@ -44,8 +34,13 @@ export class IntfRequestLogger {
    * @param {IncomingRequest} request The incoming request.
    * @param {OutgoingResponse} response The response that was sent (or at least
    *   attempted).
-   * @param {object} networkInfo Information about the network environment. See
-   *   {@link #requestStarted} for details.
+   * @param {object} networkInfo Information about the network environment.
+   * @param {object} networkInfo.connectionSocket The socket (or socket-like
+   *   object) used by the lowest level of the connection that the request is
+   *   running on.
+   * @param {TypeNodeRequest} networkInfo.nodeRequest Low-level request object.
+   * @param {TypeNodeResponse} networkInfo.nodeResponse Low-level response
+   *   object.
    * @returns {boolean} Whether or not the event was handled.
    */
   async _impl_handleEvent_requestEnded(request, response, networkInfo) {

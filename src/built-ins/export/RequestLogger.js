@@ -29,7 +29,7 @@ export class RequestLogger extends BaseFileService {
   // @defaultConstructor
 
   /** @override */
-  async _impl_handleEvent_requestStarted(request, networkInfo_unused) {
+  async _impl_handleEvent_requestStarted(request) {
     request[RequestLogger.#SYM_startTime] = this.#now();
 
     if (this.config.doSyslog) {

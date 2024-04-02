@@ -39,7 +39,7 @@ export class RequestLogHelper {
   async logRequest(request, networkInfo) {
     const reqLogger  = this.#requestLogger;
 
-    await reqLogger.send('requestStarted', request, networkInfo);
+    await reqLogger.send('requestStarted', request);
 
     const response = await networkInfo.responsePromise;
 
