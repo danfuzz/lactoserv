@@ -35,7 +35,7 @@ export class RequestLogger extends BaseFileService {
   }
 
   /** @override */
-  async requestStarted(networkInfo, timingInfo_unused, request) {
+  async requestStarted(networkInfo, request) {
     const startTime = this.#now();
 
     if (this.config.doSyslog) {
@@ -50,7 +50,7 @@ export class RequestLogger extends BaseFileService {
   }
 
   /** @override */
-  async requestEnded(networkInfo, timingInfo, request, response) {
+  async requestEnded(networkInfo, request, response) {
     // TODO: Remove this method.
   }
 

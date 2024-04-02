@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Duration, Moment } from '@this/data-values';
+import { Moment } from '@this/data-values';
 import { IncomingRequest, OutgoingResponse, TypeNodeRequest, TypeNodeResponse }
   from '@this/net-util';
 import { Methods } from '@this/typey';
@@ -39,15 +39,10 @@ export class IntfRequestLogger {
    * @param {Promise<OutgoingResponse>} networkInfo.responsePromise Promise for
    *   the response object which was sent, which becomes resolved after the
    *   response is believed to have been sent.
-   * @param {object} timingInfo Information about request timing.
-   * @param {Moment} timingInfo.start The moment the request started getting
-   *   handled (or at least a reasonably close moment to that). This can be
-   *   expected to be a value returned from a call to {@link #now} on this
-   *   instance.
    * @param {IncomingRequest} request The incoming request.
    */
-  async requestStarted(networkInfo, timingInfo, request) {
-    Methods.abstract(networkInfo, timingInfo, request);
+  async requestStarted(networkInfo, request) {
+    Methods.abstract(networkInfo, request);
   }
 
   /**
@@ -57,17 +52,11 @@ export class IntfRequestLogger {
    * @abstract
    * @param {object} networkInfo Information about the network environment. See
    *   {@link #requestStarted} for details.
-   * @param {object} timingInfo Information about request timing.
-   * @param {Moment} timingInfo.start Same as with {@link #requestStarted}.
-   * @param {Moment} timingInfo.end The moment the request was considered
-   *   complete. This can be expected to be a value returned from a call to
-   *   {@link #now} on this instance.
-   * @param {Duration} timingInfo.duration The difference `end - start`.
    * @param {IncomingRequest} request The incoming request.
    * @param {OutgoingResponse} response The response that was sent (or at least
    *   attempted).
    */
-  async requestEnded(networkInfo, timingInfo, request, response) {
-    Methods.abstract(networkInfo, timingInfo, request, response);
+  async requestEnded(networkInfo, request, response) {
+    Methods.abstract(networkInfo, request, response);
   }
 }

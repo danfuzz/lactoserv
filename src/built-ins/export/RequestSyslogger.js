@@ -3,6 +3,7 @@
 
 import { WallClock } from '@this/clocks';
 import { IntfRequestLogger } from '@this/net-protocol';
+import { IncomingRequest } from '@this/net-util';
 import { BaseService } from '@this/sys-framework';
 
 
@@ -23,7 +24,7 @@ export class RequestSyslogger extends BaseService {
   }
 
   /** @override */
-  async requestStarted(networkInfo, timingInfo_unused, request) {
+  async requestStarted(networkInfo, request) {
     request.logger?.request(request.infoForLog);
 
     // Call `requestEnded()`, but don't `await` it, because we want to promptly
@@ -34,7 +35,7 @@ export class RequestSyslogger extends BaseService {
   }
 
   /** @override */
-  async requestEnded(networkInfo, timingInfo, request, response) {
+  async requestEnded(networkInfo, request, response) {
     // TODO: Remove this method.
   }
 

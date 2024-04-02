@@ -38,15 +38,11 @@ export class RequestLogHelper {
    */
   async logRequest(request, networkInfo) {
     const reqLogger  = this.#requestLogger;
-    const timingInfo = { start: reqLogger.now() };
 
-    reqLogger.requestStarted(networkInfo, timingInfo, request);
+    reqLogger.requestStarted(networkInfo, request);
 
     const response = await networkInfo.responsePromise;
 
-    timingInfo.end      = this.#requestLogger.now();
-    timingInfo.duration = timingInfo.end.subtract(timingInfo.start);
-
-    reqLogger.requestEnded(networkInfo, timingInfo, request, response);
+    reqLogger.requestEnded(networkInfo, request, response);
   }
 }
