@@ -52,7 +52,8 @@ applications.
 * Several built-in services:
   * "Token bucket" / "leaky bucket" rate limiting for connections, requests,
     and/or sent data (bytes / bandwidth).
-  * Request logging ("access log"), in a standard-ish form.
+  * Request logging (that is, network request "access logs"), in a standard-ish
+    form.
   * Detailed system activity logging, in a couple of different formats.
 * The ability to define custom applications and services, using a reasonably
   modern promise-based application framework. Instead of directly dealing with
