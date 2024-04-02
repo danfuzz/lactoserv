@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { IncomingRequest, OutgoingResponse, TypeNodeRequest, TypeNodeResponse }
+import { IncomingRequest, OutgoingResponse, TypeNodeResponse }
   from '@this/net-util';
 import { Methods } from '@this/typey';
 
@@ -38,7 +38,6 @@ export class IntfRequestLogger {
    * @param {object} networkInfo.connectionSocket The socket (or socket-like
    *   object) used by the lowest level of the connection that the request is
    *   running on.
-   * @param {TypeNodeRequest} networkInfo.nodeRequest Low-level request object.
    * @param {TypeNodeResponse} networkInfo.nodeResponse Low-level response
    *   object.
    * @returns {boolean} Whether or not the event was handled.

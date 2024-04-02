@@ -510,7 +510,6 @@ export class ProtocolWrangler {
     try {
       const networkInfo = {
         connectionSocket: outerContext.socket,
-        nodeRequest:      res.req,
         nodeResponse:     res
       };
       await service.send('requestEnded', request, response, networkInfo);
