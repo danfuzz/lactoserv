@@ -95,8 +95,8 @@ export class BaseService extends BaseComponent {
   }
 
   /**
-   * Sends an event to this instance. This simply wraps up the arguments in
-   * a payload object, and hands them to {@link #handleEvent}.
+   * Sends an event to this instance. This simply wraps up the arguments in a
+   * payload object, and hands them to {@link #handleEvent}.
    *
    * @param {string} type The event type.
    * @param {...*} args Arbitrary event arguments.
