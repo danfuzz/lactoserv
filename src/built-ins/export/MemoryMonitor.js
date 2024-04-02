@@ -38,7 +38,7 @@ export class MemoryMonitor extends BaseService {
 
   /** @override */
   async _impl_init(isReload_unused) {
-    // Nothing needed here for this class.
+    // @emptyBlock
   }
 
   /** @override */
