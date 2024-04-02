@@ -224,8 +224,8 @@ object with the following bindings:
   grant, when there is insufficient burst capacity to satisfy all active
   clients. Attempts to queue up more result in token denials (e.g. network
   connections closed instead of sending bytes).
-* `maxQueueGrantSize` -- Optional maximum possible size of a grant given to a
-  requester in the wait queue, in tokens. If not specified, it is the same as
+* `maxQueueGrantSize` &mdash; Optional maximum possible size of a grant given to
+  a requester in the wait queue, in tokens. If not specified, it is the same as
   the `maxBurstSize`. (It is really only meaningful for `data` limiting, because
   `connections` and `requests` are only requested one at a time.)
 
