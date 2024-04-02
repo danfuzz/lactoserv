@@ -30,9 +30,10 @@ export class IntfRequestLogger {
    * @param {Promise<OutgoingResponse>} networkInfo.responsePromise Promise for
    *   the response object which was sent, which becomes resolved after the
    *   response is believed to have been sent.
+   * @returns {boolean} Whether or not the event was handled.
    */
-  async _impl_event_requestStarted(request, networkInfo) {
-    Methods.abstract(request, networkInfo);
+  async _impl_handleEvent_requestStarted(request, networkInfo) {
+    throw Methods.abstract(request, networkInfo);
   }
 
   /**
@@ -45,8 +46,9 @@ export class IntfRequestLogger {
    *   attempted).
    * @param {object} networkInfo Information about the network environment. See
    *   {@link #requestStarted} for details.
+   * @returns {boolean} Whether or not the event was handled.
    */
-  async _impl_event_requestEnded(request, response, networkInfo) {
-    Methods.abstract(request, response, networkInfo);
+  async _impl_handleEvent_requestEnded(request, response, networkInfo) {
+    throw Methods.abstract(request, response, networkInfo);
   }
 }
