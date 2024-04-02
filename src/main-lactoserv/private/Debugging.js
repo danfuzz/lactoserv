@@ -63,7 +63,7 @@ export class Debugging {
       try {
         await problem;
       } catch {
-        // Ignore.
+        // @emptyBlock
       }
 
       // Wait a moment before continuing with the actually-uncaught examples.

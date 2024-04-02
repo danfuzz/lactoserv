@@ -17,7 +17,7 @@ promRejected.testState  = 'rejected';
   try {
     await promRejected;
   } catch {
-    // Ignore it.
+    // @emptyBlock
   }
 })();
 

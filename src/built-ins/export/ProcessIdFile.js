@@ -35,7 +35,7 @@ export class ProcessIdFile extends BaseFileService {
 
   /** @override */
   async _impl_init(isReload_unused) {
-    // Nothing needed here for this class.
+    // @emptyBlock
   }
 
   /** @override */

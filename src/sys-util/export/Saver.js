@@ -23,7 +23,7 @@ export class Saver extends BaseFilePreserver {
 
   /** @override */
   async _impl_doWork() {
-    // Nothing to do here.
+    // @emptyBlock
   }
 
   /** @override */

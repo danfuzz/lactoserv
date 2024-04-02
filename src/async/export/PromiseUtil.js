@@ -31,7 +31,7 @@ export class PromiseUtil {
       try {
         await maybePromise;
       } catch {
-        // Ignore it.
+        // @emptyBlock
       }
     })();
   }

@@ -23,17 +23,17 @@ export class NopControllable extends BaseComponent {
 
   /** @override */
   async _impl_init(isReload_unused) {
-    // This space intentionally left blank.
+    // @emptyBlock
   }
 
   /** @override */
   async _impl_start(isReload_unused) {
-    // This space intentionally left blank.
+    // @emptyBlock
   }
 
   /** @override */
   async _impl_stop(willReload_unused) {
-    // This space intentionally left blank.
+    // @emptyBlock
   }
 }
 
@@ -71,17 +71,17 @@ class MockApp extends BaseApplication {
 
   /** @override */
   async _impl_init(isReload_unused) {
-    // This space intentionally left blank.
+    // @emptyBlock
   }
 
   /** @override */
   async _impl_start(isReload_unused) {
-    // This space intentionally left blank.
+    // @emptyBlock
   }
 
   /** @override */
   async _impl_stop(willReload_unused) {
-    // This space intentionally left blank.
+    // @emptyBlock
   }
 }
 

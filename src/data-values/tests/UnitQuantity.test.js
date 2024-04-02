@@ -131,7 +131,7 @@ ${'subtract'}
 
   test('returns an instance of the same class as `this`', () => {
     class UqSub extends UnitQuantity {
-      // This space intentionally left blank.
+      // @emptyBlock
     }
 
     const uq1    = new UqSub(123, 'x', 'y');
@@ -150,7 +150,7 @@ describe('inverse()', () => {
 
   test('returns an instance of the preferred inverse class for a subclass that specifies it', () => {
     class UqSub1 extends UnitQuantity {
-      // This space intentionally left blank.
+      // @emptyBlock
     }
 
     class UqSub2 extends UnitQuantity {

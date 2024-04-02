@@ -44,7 +44,7 @@ export class UriUtil {
         return value;
       }
     } catch {
-      // Fall through.
+      // Fall through to throw the error.
     }
 
     throw new Error('Must be an absolute URI path.');

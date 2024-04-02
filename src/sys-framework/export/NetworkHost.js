@@ -98,7 +98,7 @@ export class NetworkHost extends BaseComponent {
 
   /** @override */
   async _impl_init(isReload_unused) {
-    // No need to do anything.
+    // @emptyBlock
   }
 
   /** @override */
@@ -116,7 +116,7 @@ export class NetworkHost extends BaseComponent {
 
   /** @override */
   async _impl_stop(willReload_unused) {
-    // No need to do anything.
+    // @emptyBlock
   }
 
 

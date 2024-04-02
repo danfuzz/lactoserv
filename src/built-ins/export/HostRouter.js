@@ -72,7 +72,7 @@ export class HostRouter extends BaseApplication {
 
   /** @override */
   async _impl_stop(willReload_unused) {
-    // Nothing to do here.
+    // @emptyBlock
   }
 
 

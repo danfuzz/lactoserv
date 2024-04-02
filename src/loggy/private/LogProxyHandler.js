@@ -231,7 +231,7 @@ export class LogProxyHandler extends PropertyCacheProxyHandler {
     } else if (typeof tag === 'string') {
       tag = new LogTag(tag);
     } else if (tag instanceof LogTag) {
-      // Nothing to do here.
+      // @emptyBlock
     } else {
       // Assume array of string. (The constructor will do a thorough check.)
       tag = new LogTag(...tag);
