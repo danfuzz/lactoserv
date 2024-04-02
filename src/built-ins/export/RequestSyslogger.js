@@ -23,19 +23,19 @@ export class RequestSyslogger extends BaseService {
   }
 
   /** @override */
-  async requestStarted(networkInfo_unused, timingInfo_unused, request) {
+  async requestStarted(networkInfo, timingInfo_unused, request) {
     request.logger?.request(request.infoForLog);
+
+    // Call `requestEnded()`, but don't `await` it, because we want to promptly
+    // indicate to our caller that we did in fact handle the service event.
+    this.#logWhenRequestEnds(request, networkInfo);
+
+    return true;
   }
 
   /** @override */
   async requestEnded(networkInfo, timingInfo, request, response) {
-    // Note: This call isn't supposed to `throw`, even if there were errors
-    // thrown during handling.
-    const resInfo = await response.getInfoForLog(
-      networkInfo.nodeResponse, networkInfo.connectionSocket);
-
-    request.logger?.response(resInfo);
-    request.logger?.timing(timingInfo);
+    // TODO: Remove this method.
   }
 
   /** @override */
@@ -53,6 +53,30 @@ export class RequestSyslogger extends BaseService {
     // No need to do anything.
   }
 
+  /**
+   * Waits for the request to end, and then logs information about it.
+   *
+   * @param {IncomingRequest} request The incoming request.
+   * @param {object} networkInfo Miscellaneous network-ish info.
+   */
+  async #logWhenRequestEnds(request, networkInfo) {
+    // Note: Nothing will catch errors thrown from this method. (See call site
+    // above.)
+
+    try {
+      const { connectionSocket, nodeResponse, responsePromise } = networkInfo;
+      const response     = await responsePromise;
+      const responseInfo = await response.getInfoForLog(nodeResponse, connectionSocket);
+
+      request.logger?.response(responseInfo);
+    } catch (e) {
+      // Shouldn't happen, but if it does, it's better to log and move on than
+      // to let the system crash. Note, in particular, the call to
+      // `getInfoForLog()` (above) is never supposed to throw, even if the
+      // request or response caused some sort of error to be thrown.
+      this.logger?.errorWhileLoggingRequest(e);
+    }
+  }
 
   //
   // Static members

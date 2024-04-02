@@ -4,7 +4,9 @@
 import * as fs from 'node:fs/promises';
 
 import { WallClock } from '@this/clocks';
+import { Moment } from '@this/data-values';
 import { FormatUtils } from '@this/loggy-intf';
+import { IncomingRequest } from '@this/net-util';
 import { IntfRequestLogger } from '@this/net-protocol';
 import { BaseFileService, Rotator } from '@this/sys-util';
 import { MustBe } from '@this/typey';
@@ -33,46 +35,23 @@ export class RequestLogger extends BaseFileService {
   }
 
   /** @override */
-  async requestStarted(networkInfo_unused, timingInfo_unused, request) {
+  async requestStarted(networkInfo, timingInfo_unused, request) {
+    const startTime = this.#now();
+
     if (this.config.doSyslog) {
       request.logger?.request(request.infoForLog);
     }
+
+    // Call `requestEnded()`, but don't `await` it, because we want to promptly
+    // indicate to our caller that we did in fact handle the service event.
+    this.#logWhenRequestEnds(request, networkInfo, startTime);
+
+    return true;
   }
 
   /** @override */
   async requestEnded(networkInfo, timingInfo, request, response) {
-    // Note: This call isn't ever supposed to `throw`, even if there were errors
-    // thrown during request/response handling.
-    const { connectionSocket, nodeResponse } = networkInfo;
-    const responseInfo = await response.getInfoForLog(nodeResponse, connectionSocket);
-
-    if (this.config.doSyslog) {
-      request.logger?.response(responseInfo);
-      request.logger?.timing(timingInfo);
-    }
-
-    const { method, origin, protocol, url }             = request.infoForLog;
-    const { duration, end }                             = timingInfo;
-    const { contentLength, errorCodes, ok, statusCode } = responseInfo;
-
-    const codeStr          = ok ? 'ok' : errorCodes.join(',');
-    const contentLengthStr = (contentLength === null)
-      ? 'no-body'
-      : FormatUtils.byteCountString(contentLength, { spaces: false });
-
-    const requestLogLine = [
-      end.toString({ decimals: 4 }),
-      origin,
-      protocol,
-      method,
-      url,
-      statusCode,
-      contentLengthStr,
-      duration.toString({ spaces: false }),
-      codeStr
-    ].join(' ');
-
-    await this.#logLine(requestLogLine);
+    // TODO: Remove this method.
   }
 
   /** @override */
@@ -100,6 +79,76 @@ export class RequestLogger extends BaseFileService {
    */
   async #logLine(line) {
     await fs.appendFile(this.config.path, `${line}\n`);
+  }
+
+  /**
+   * Waits for the request to end, and then logs information about it.
+   *
+   * @param {IncomingRequest} request The incoming request.
+   * @param {object} networkInfo Miscellaneous network-ish info.
+   * @param {Moment} startTime The start time of the request.
+   */
+  async #logWhenRequestEnds(request, networkInfo, startTime) {
+    // Note: Nothing will catch errors thrown from this method. (See call site
+    // above.)
+
+    try {
+      const { connectionSocket, nodeResponse, responsePromise } = networkInfo;
+      const response     = await responsePromise;
+      const responseInfo = await response.getInfoForLog(nodeResponse, connectionSocket);
+
+      const endTime    = this.#now();
+      const timingInfo = {
+        start:    startTime,
+        end:      endTime,
+        duration: endTime.subtract(startTime)
+      };
+
+      if (this.config.doSyslog) {
+        request.logger?.response(responseInfo);
+        request.logger?.timing(timingInfo);
+      }
+
+      const { method, origin, protocol, url }             = request.infoForLog;
+      const { duration, end }                             = timingInfo;
+      const { contentLength, errorCodes, ok, statusCode } = responseInfo;
+
+      const codeStr          = ok ? 'ok' : errorCodes.join(',');
+      const contentLengthStr = (contentLength === null)
+        ? 'no-body'
+        : FormatUtils.byteCountString(contentLength, { spaces: false });
+
+      const requestLogLine = [
+        end.toString({ decimals: 4 }),
+        origin,
+        protocol,
+        method,
+        url,
+        statusCode,
+        contentLengthStr,
+        duration.toString({ spaces: false }),
+        codeStr
+      ].join(' ');
+
+      await this.#logLine(requestLogLine);
+    } catch (e) {
+      // Shouldn't happen, but if it does, it's better to log and move on than
+      // to let the system crash. Note, in particular, the call to
+      // `getInfoForLog()` (above) is never supposed to throw, even if the
+      // request or response caused some sort of error to be thrown.
+      this.logger?.errorWhileLoggingRequest(e);
+    }
+  }
+
+  /**
+   * Gets the current time, as far as this instance is concerned. This method
+   * exists to make it easier to refine our idea of time in this class without
+   * having to change both places that need figure out when "now" is.
+   *
+   * @returns {Moment} "Now."
+   */
+  #now() {
+    return WallClock.now();
   }
 
 
