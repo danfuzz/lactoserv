@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { ManualPromise, Threadlet } from '@this/async';
+import { Threadlet } from '@this/async';
 import { ProductInfo } from '@this/host';
 import { IntfLogger } from '@this/loggy-intf';
 import { IncomingRequest, IntfRequestHandler, OutgoingResponse, RequestContext,
@@ -12,7 +12,6 @@ import { Methods, MustBe } from '@this/typey';
 import { IntfHostManager } from '#x/IntfHostManager';
 import { IntfRateLimiter } from '#x/IntfRateLimiter';
 import { IntfRequestLogger } from '#x/IntfRequestLogger';
-import { RequestLogHelper } from '#p/RequestLogHelper';
 import { WranglerContext } from '#p/WranglerContext';
 
 
@@ -68,11 +67,13 @@ export class ProtocolWrangler {
   #requestHandler;
 
   /**
-   * Helper for HTTP-ish request logging, or `null` to not do any such logging.
+   * _Service_ which logs HTTP-ish requests, or `null` to not do any such
+   * logging. **Note:** This is for "access log" style logging, as opposed to
+   * {@link #requestLogger}, which does system logging for requests.
    *
-   * @type {?RequestLogHelper}
+   * @type {?IntfRequestLogger}
    */
-  #logHelper;
+  #requestLogService;
 
   /**
    * Return value for {@link #interface}.
@@ -134,11 +135,11 @@ export class ProtocolWrangler {
       requestLogger
     } = options;
 
-    this.#hostManager    = hostManager ?? null;
-    this.#rateLimiter    = rateLimiter ?? null;
-    this.#requestHandler = MustBe.object(requestHandler);
-    this.#logHelper      = requestLogger ? new RequestLogHelper(requestLogger) : null;
-    this.#serverHeader   = ProtocolWrangler.#makeServerHeader();
+    this.#hostManager       = hostManager ?? null;
+    this.#rateLimiter       = rateLimiter ?? null;
+    this.#requestHandler    = MustBe.object(requestHandler);
+    this.#requestLogService = requestLogger ?? null;
+    this.#serverHeader      = ProtocolWrangler.#makeServerHeader();
 
     this.#interfaceObject = Object.freeze({
       address: interfaceConfig.address ?? null,
@@ -325,8 +326,8 @@ export class ProtocolWrangler {
         url:       request.urlForLog
       });
 
-      if (this.#logHelper) {
-        this.#respondToRequestUsingLogHelper(request, context, res);
+      if (this.#requestLogService) {
+        this.#logAndRespondToRequest(request, context, res);
       } else {
         this.#respondToRequest(request, context, res);
       }
@@ -476,11 +477,8 @@ export class ProtocolWrangler {
 
   /**
    * Wrapper around {@link #respondToRequest}, which is used when {link
-   * #logHelper} is non-`null`. This is what arranges for request/response
-   * logging to happen. Notably, the call into `#logHelper` has to be made early
-   * during request dispatch so that the timing measurements will be maximally
-   * accurate. And in fact, this method (right here) gets called at about as
-   * good a spot as can be managed.
+   * #requestLogService} is non-`null`. This is what arranges for "access log"
+   * style request logging to happen.
    *
    * **Note:** There is nothing set up to catch errors thrown by this method. It
    * is not supposed to `throw` (directly or indirectly).
@@ -491,27 +489,37 @@ export class ProtocolWrangler {
    * @returns {OutgoingResponse} The response object that was ultimately sent
    *   (or was at least ulitmately attempted to be sent).
    */
-  async #respondToRequestUsingLogHelper(request, outerContext, res) {
-    // We use a `ManualPromise` here so that we can call `logRequest()` before
-    // proceeding with any actual response work. If we didn't do that, we could
-    // end up doing a significant amount of the work of request handling
-    // synchronously before `#logHelper` had a chance to start _its_ work (which
-    // notably typically involves getting the current time).
-    const responseMp = new ManualPromise();
+  async #logAndRespondToRequest(request, outerContext, res) {
+    const service = this.#requestLogService;
 
-    const networkInfo = {
-      connectionSocket: outerContext.socket,
-      nodeRequest:      res.req,
-      nodeResponse:     res,
-      responsePromise:  responseMp.promise
-    };
+    // We send `requestStarted` and wait for it to return before proceeding with
+    // any actual response work. Sending this event has to be done as early as
+    // reasonably possible during request dispatch so that timing measurements
+    // will be maximally accurate. And in fact, this method (right here) gets
+    // called at about as good a spot as can be managed.
 
-    this.#logHelper.logRequest(request, networkInfo);
+    try {
+      await service.send('requestStarted', request);
+    } catch (e) {
+      // Log it and move on rather than letting the system crash.
+      this.logger?.errorWhileLoggingRequest(e);
+    }
 
-    const result = this.#respondToRequest(request, outerContext, res);
-    responseMp.resolve(result);
+    const response = await this.#respondToRequest(request, outerContext, res);
 
-    return result;
+    try {
+      const networkInfo = {
+        connectionSocket: outerContext.socket,
+        nodeRequest:      res.req,
+        nodeResponse:     res
+      };
+      await service.send('requestEnded', request, response, networkInfo);
+    } catch (e) {
+      // Log it and move on rather than letting the system crash.
+      this.logger?.errorWhileLoggingRequest(e);
+    }
+
+    return response;
   }
 
   /**
