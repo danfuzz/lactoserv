@@ -72,8 +72,9 @@ use the following comment in place of an intentionally omitted constructor:
 
 ### Class naming (and details)
 
-* `Base<Name>` &mdash; An abstract base class. Method bodies should use
-  `Methods.abstract(...)` to avoid accidental direct instantiation.
+* `Base<Name>` &mdash; An abstract base class. Method bodies to be filled in
+  by subclasses (see `_impl_<name>` below) should make calls to
+  `Methods.abstract(...)` to avoid improper subclassing.
 
 * `Intf<Name>` &mdash; An interface, just to be used with `@interface` and
   `@implements` annotations, and declared as the types of variables and
