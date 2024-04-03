@@ -6,6 +6,7 @@ import * as fs from 'node:fs/promises';
 import { WallClock } from '@this/clocks';
 import { Moment } from '@this/data-values';
 import { FormatUtils } from '@this/loggy-intf';
+import { IncomingRequest } from '@this/net-util';
 import { IntfRequestLogger } from '@this/net-protocol';
 import { BaseFileService, Rotator } from '@this/sys-util';
 
@@ -25,11 +26,19 @@ export class RequestLogger extends BaseFileService {
    */
   #rotator = null;
 
+  /**
+   * Weak map which keeps track of the start time of requests that have not
+   * yet been ended.
+   *
+   * @type {WeakMap<IncomingRequest, Moment>}
+   */
+  #startTimes = new WeakMap();
+
   // @defaultConstructor
 
   /** @override */
   async _impl_handleEvent_requestStarted(request) {
-    request[RequestLogger.#SYM_startTime] = this.#now();
+    this.#startTimes.set(request, this.#now());
 
     return true;
   }
@@ -68,9 +77,11 @@ export class RequestLogger extends BaseFileService {
       }
     }
 
-    const startTime = request[RequestLogger.#SYM_startTime];
+    const startTime = this.#startTimes.get(request);
     const endTime   = this.#now();
     const duration  = endTime.subtract(startTime);
+
+    this.#startTimes.delete(request);
 
     const { method, origin, protocol, url }             = requestInfo;
     const { contentLength, errorCodes, ok, statusCode } = responseInfo;
@@ -139,17 +150,4 @@ export class RequestLogger extends BaseFileService {
   #now() {
     return WallClock.now();
   }
-
-
-  //
-  // Static members
-  //
-
-  /**
-   * Symbol name for private property added to request objects, to record the
-   * start time.
-   *
-   * @type {symbol}
-   */
-  static #SYM_startTime = Symbol('RequestLogger.startTime');
 }
