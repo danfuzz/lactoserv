@@ -186,10 +186,10 @@ export class IncomingRequest {
   /**
    * @returns {HostInfo} Info about the host (a/k/a the "authority") being asked
    * to respond to this request. This is the value of the synthetic `:authority`
-   * header of an HTTP2 request if available, or the regular `Host` header of
-   * an HTTP1 request, plus port information. If there is no authority
-   * information present in the request, it is treated as if it were specified
-   * as just `localhost`.
+   * header of an HTTP2 request if available, or the regular `Host` header of an
+   * HTTP1 request, plus port information. If there is no authority information
+   * present in the request, it is treated as if it were specified as just
+   * `localhost`.
    *
    * The `port` of the returned object is as follows (in order):
    *

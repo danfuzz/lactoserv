@@ -257,8 +257,8 @@ export class HttpUtil {
   }
 
   /**
-   * Given an HTTP-ish response request method and status code, indicates if
-   * the corresponding response _is allowed to_ include a body.
+   * Given an HTTP-ish response request method and status code, indicates if the
+   * corresponding response _is allowed to_ include a body.
    *
    * @param {string} method Request method, either downcased or all-caps.
    * @param {number} status Status code.
@@ -312,8 +312,8 @@ export class HttpUtil {
   }
 
   /**
-   * Given an HTTP-ish response request method and status code, indicates if
-   * the corresponding response _is required to_ include a body.
+   * Given an HTTP-ish response request method and status code, indicates if the
+   * corresponding response _is required to_ include a body.
    *
    * @param {string} method Request method, either downcased or all-caps.
    * @param {number} status Status code.
@@ -336,8 +336,8 @@ export class HttpUtil {
   }
 
   /**
-   * Given an HTTP-ish response request method and status code, indicates if
-   * the response is allowed to be cached.
+   * Given an HTTP-ish response request method and status code, indicates if the
+   * response is allowed to be cached.
    *
    * @param {string} method Request method, either downcased or all-caps.
    * @param {number} status Status code.
