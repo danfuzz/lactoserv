@@ -3,12 +3,15 @@
 
 [![Build](https://github.com/danfuzz/lactoserv/actions/workflows/main.yml/badge.svg)](https://github.com/danfuzz/lactoserv/actions/workflows/main.yml)
 
-Documentation:
-* [`doc` directory](./doc), notably:
-  * [Configuration Guide](./doc/configuration/README.md)
-  * [Deployment Guide](./doc/deployment.md)
-  * [Development Guide](./doc/development.md)
-  * [**Quick Start Guide**](./doc/quick-start.md)
+See also:
+* Documentation:
+  * [`doc` directory](./doc), notably:
+    * [Configuration Guide](./doc/configuration/README.md)
+    * [Deployment Guide](./doc/deployment.md)
+    * [Development Guide](./doc/development.md)
+    * [**Quick Start Guide**](./doc/quick-start.md)
+* [Recent Changes](./CHANGELOG.md)
+* [Stable Releases](./RELEASES.md)
 
 - - - - - - - - - -
 

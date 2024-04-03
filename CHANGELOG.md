@@ -1,8 +1,9 @@
-Changelog
-=========
+Changelog: Recent Changes
+=========================
 
 See also:
 * [Old Changelogs](./doc/old-changelogs)
+* [Stable Releases](./RELEASES.md)
 
 **Note:** Version numbers for _stable_ (so marked) releases follow semantic
 versioning principles. Unstable releases do not.
