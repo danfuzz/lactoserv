@@ -11,6 +11,17 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
+* None.
+
+Other notable changes:
+* None.
+
+### v0.6.13 -- 2024-04-03
+
+Nearing stability: Though probably not _the_ last unstable release in the v0.6
+series, this is probably _one of_ the last before declaring v0.6 stable.
+
+Breaking changes:
 * `compote` / `sys-config` / `sys-framework`:
   * Extracted the lower layer of classes from `sys-config` and `sys-framework`
     into new module `compote`. Renamed the classes for better harmony, extracted
