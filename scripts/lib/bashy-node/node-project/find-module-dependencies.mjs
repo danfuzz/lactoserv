@@ -83,10 +83,12 @@ const processed = new Set();
 /** The graph of local module dependencies, as a list of edges. */
 let graph = [];
 
+/** Map from external dependency names to sets of all encountered versions. */
+const extDeps = new Map();
+
 const state = {
   localDeps:   new Set(),
-  localDirs:   new Map(),
-  extDeps:     new Map()
+  localDirs:   new Map()
 };
 
 while (unprocessed.size > 0) {
@@ -130,10 +132,10 @@ while (unprocessed.size > 0) {
       }
       graph.push({ from: oneDep, to: key });
     } else {
-      let extSet = state.extDeps.get(key);
+      let extSet = extDeps.get(key);
       if (!extSet) {
         extSet = new Set();
-        state.extDeps.set(key, extSet);
+        extDeps.set(key, extSet);
       }
       extSet.add(value);
     }
@@ -146,7 +148,7 @@ const result = {
   main:      `@this/${mainModule}`,
   localDeps: [...state.localDeps].sort(),
   localDirs: sortObject(Object.fromEntries(state.localDirs.entries())),
-  extDeps:   sortObject(Object.fromEntries(state.extDeps.entries()))
+  extDeps:   sortObject(Object.fromEntries(extDeps.entries()))
 };
 
 // `extDeps` has sets for values. Reduce them to single elements, and report an
