@@ -181,6 +181,21 @@ for (;;) {
     }
   }
 
+  if (anyRemoved) {
+    continue;
+  }
+
+  // Check for self-dependency. If found, report the error, remove the nodes,
+  // and keep checking.
+  for (const { from, to } of graph) {
+    if (from === to) {
+      errors.push(`Local module self-dependency: ${from}`);
+      graph = graph.filter(({ from: f }) => (from !== f));
+      fromNodes.delete(from);
+      anyRemoved = true;
+    }
+  }
+
   if (!anyRemoved) {
     break;
   }
