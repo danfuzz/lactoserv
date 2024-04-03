@@ -37,8 +37,8 @@ define-usage --with-help $'
       than one of the given paths, the first-listed path\'s one "wins."
 '
 
-# Try the new hotness out?
-opt-toggle --var=newImpl new-impl
+# Use the old version?
+opt-toggle --var=oldImpl old-impl
 
 # Paths to all module directories.
 opt-multi --required --var=modulesDirs --filter='/./' modules-dirs
@@ -53,7 +53,7 @@ process-args "$@" || exit "$?"
 # Main script
 #
 
-if (( newImpl )); then
+if (( !oldImpl )); then
     node "$(this-cmd-dir)/find-module-dependencies.mjs" \
         "$(jval \
             mainModule="${moduleName}" \
