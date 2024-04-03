@@ -24,10 +24,12 @@ Breaking changes:
   * Made `getLogInfo()` an instance (not `static`) method, and fixed its
     reporting of `contentLength`.
 * `built-ins`:
-  * Renamed network access log services to use the name `AccessLog*`, instead
-    of `RequestLogger` (or similar). This is to avoid confusion with system
-    logging stuff, which more or less has a lock on the term "logger" in this
-    project.
+  * Renamed network access log services to use the class name `AccessLogTo*`,
+    instead of `RequestLogger` (or similar). This is to avoid confusion with the
+    objects used to emit system logging messages, which more or less have a lock
+    on the term name `*loggger` in this project.
+  * Renamed `SystemLogger` to `SyslogToFile`, to match the analogous access log
+    class name.
 * Configuration:
   * As with `built-ins`, renamed the service role name for access logging from
     `requestLogger` to `accessLog`.
