@@ -12,7 +12,7 @@ should have no particular expectation about when particular stable releases will
 get updated.
 
 **Note:** Version numbers for _stable_ releases follow semantic versioning
-principles. Unstable releases (that is, anything not marked "stable") do not.
+principles. Unstable releases do not.
 
 ## List of stable releases
 
