@@ -4,7 +4,7 @@
 import * as fs from 'node:fs/promises';
 
 import { EventFan, HostRouter, MemoryMonitor, PathRouter, ProcessIdFile,
-  ProcessInfoFile, RateLimiter, Redirector, RequestLogger, RequestSyslogger,
+  ProcessInfoFile, RateLimiter, Redirector, AccessLogFile, RequestSyslogger,
   SerialRouter, SimpleResponse, StaticFiles, SystemLogger }
   from '@lactoserv/built-ins';
 
@@ -88,9 +88,9 @@ const services = [
     }
   },
   {
-    name:  'requestFile',
-    class: RequestLogger,
-    path:  `${LOG_DIR}/request-log.txt`,
+    name:  'accessLogFile',
+    class: AccessLogFile,
+    path:  `${LOG_DIR}/access-log.txt`,
     rotate: {
       atSize:      10000,
       maxOldCount: 10,
@@ -102,9 +102,9 @@ const services = [
     class: RequestSyslogger
   },
   {
-    name:     'requests',
+    name:     'accessLog',
     class:    EventFan,
-    services: ['requestFile', 'requestSyslog']
+    services: ['accessLogFile', 'requestSyslog']
   },
   {
     name:        'limiter',
@@ -250,7 +250,7 @@ const endpoints = [
     interface: '*:8080',
     services: {
       rateLimiter:   'limiter',
-      requestLogger: 'requests'
+      requestLogger: 'accessLog'
     },
     application: 'myWackyRedirector'
   },
@@ -261,7 +261,7 @@ const endpoints = [
     interface: '*:8443',
     services: {
       rateLimiter:   'limiter',
-      requestLogger: 'requests'
+      requestLogger: 'accessLog'
     },
     application: 'mySite'
   },
@@ -271,7 +271,7 @@ const endpoints = [
     hostnames: ['*'],
     interface: '*:8444',
     services: {
-      requestLogger: 'requests'
+      requestLogger: 'accessLog'
     },
     application: 'mySeries'
   }

@@ -57,6 +57,33 @@ the ones that are used by `save`:
 Note that at least one of the `on*` bindings need to be provided for a `save` to
 have any meaning.
 
+## `AccessLogFile`
+
+A service which logs information about HTTP-ish requests in a textual form
+meant to be similar to (though not identical to) what is commonly produced by
+other webservers (out in the world). As of this writing, the exact format is
+_not_ configurable. It accepts the following configuration bindings:
+
+* `path` &mdash; Path to the log file(s) to write. When rotation is performed, a
+  date stamp and (if necessary) sequence number are "infixed" into the final
+  path component.
+* `rotate` &mdash; Optional file rotation configuration. If not specified, no
+  file rotation is done. See "File Rotation and Preservation" below for
+  configuration details.
+
+```js
+import { AccessLogFile } from '@lactoserv/built-ins';
+
+const services = [
+  {
+    name:   'accessLog',
+    class:  AccessLogFile,
+    path:   '/path/to/var/log/access-log.txt',
+    rotate: { /* ... */ }
+  }
+];
+```
+
 ## `MemoryMonitor`
 
 A service which occasionally checks the system's memory usage, and will force a
@@ -243,33 +270,6 @@ const services = [
     },
     requests: { /* ... */ },
     data: { /* ... */ }
-  }
-];
-```
-
-## `RequestLogger`
-
-A service which logs HTTP-ish requests in a textual form meant to be similar to
-(though not identical to) what is often produced by other webservers (out in the
-world). As of this writing, the exact format is _not_ configurable. It accepts
-the following configuration bindings:
-
-* `path` &mdash; Path to the log file(s) to write. When rotation is performed, a
-  date stamp and (if necessary) sequence number are "infixed" into the final
-  path component.
-* `rotate` &mdash; Optional file rotation configuration. If not specified, no
-  file rotation is done. See "File Rotation and Preservation" below for
-  configuration details.
-
-```js
-import { RequestLogger } from '@lactoserv/built-ins';
-
-const services = [
-  {
-    name:   'requests',
-    class:  RequestLogger,
-    path:   '/path/to/var/log/request-log.txt',
-    rotate: { /* ... */ }
   }
 ];
 ```

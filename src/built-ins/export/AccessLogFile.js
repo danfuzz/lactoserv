@@ -12,13 +12,14 @@ import { BaseFileService, Rotator } from '@this/sys-util';
 
 
 /**
- * Service which writes the request/response log to the filesystem.
+ * Service which writes an access log to the filesystem in a human-friendly
+ * format.
  *
  * See `doc/configuration` for configuration object details.
  *
  * @implements {IntfAccessLog}
  */
-export class RequestLogger extends BaseFileService {
+export class AccessLogFile extends BaseFileService {
   /**
    * File rotator to use, if any.
    *
