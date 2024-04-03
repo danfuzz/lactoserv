@@ -7,14 +7,15 @@ import { Methods } from '@this/typey';
 
 
 /**
- * Interface for (HTTP-ish) request loggers, as used by this module. Instances
- * of this interface get an opportunity to perform logging at the start of
- * requests and when the request/response cycle has ended. It is of course
- * a-okay for instances to choose to ignore one or the other.
+ * Interface for network access loggers, as in the things that record the
+ * details of network requests and responses. Instances of this interface get an
+ * opportunity to perform logging at the start of requests and when the
+ * request/response cycle has ended. It is of course a-okay for instances to
+ * choose to ignore one or the other.
  *
  * @interface
  */
-export class IntfRequestLogger {
+export class IntfAccessLog {
   /**
    * Indicates to this instance that a request has started.
    *

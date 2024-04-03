@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { IntfRequestLogger } from '@this/net-protocol';
+import { IntfAccessLog } from '@this/net-protocol';
 import { BaseService } from '@this/sys-framework';
 
 
@@ -11,7 +11,7 @@ import { BaseService } from '@this/sys-framework';
  *
  * See `doc/configuration` for configuration object details.
  *
- * @implements {IntfRequestLogger}
+ * @implements {IntfAccessLog}
  */
 export class RequestSyslogger extends BaseService {
   // @defaultConstructor
@@ -43,7 +43,7 @@ export class RequestSyslogger extends BaseService {
 
   /** @override */
   _impl_implementedInterfaces() {
-    return [IntfRequestLogger];
+    return [IntfAccessLog];
   }
 
   /** @override */

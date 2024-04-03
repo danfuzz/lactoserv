@@ -7,7 +7,7 @@ import { WallClock } from '@this/clocks';
 import { Moment } from '@this/data-values';
 import { FormatUtils } from '@this/loggy-intf';
 import { IncomingRequest } from '@this/net-util';
-import { IntfRequestLogger } from '@this/net-protocol';
+import { IntfAccessLog } from '@this/net-protocol';
 import { BaseFileService, Rotator } from '@this/sys-util';
 
 
@@ -16,7 +16,7 @@ import { BaseFileService, Rotator } from '@this/sys-util';
  *
  * See `doc/configuration` for configuration object details.
  *
- * @implements {IntfRequestLogger}
+ * @implements {IntfAccessLog}
  */
 export class RequestLogger extends BaseFileService {
   /**
@@ -110,7 +110,7 @@ export class RequestLogger extends BaseFileService {
 
   /** @override */
   _impl_implementedInterfaces() {
-    return [IntfRequestLogger];
+    return [IntfAccessLog];
   }
 
   /** @override */

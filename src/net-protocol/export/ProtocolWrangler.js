@@ -11,7 +11,7 @@ import { Methods, MustBe } from '@this/typey';
 
 import { IntfHostManager } from '#x/IntfHostManager';
 import { IntfRateLimiter } from '#x/IntfRateLimiter';
-import { IntfRequestLogger } from '#x/IntfRequestLogger';
+import { IntfAccessLog } from '#x/IntfAccessLog';
 import { WranglerContext } from '#p/WranglerContext';
 
 
@@ -71,7 +71,7 @@ export class ProtocolWrangler {
    * logging. **Note:** This is for "access log" style logging, as opposed to
    * {@link #requestLogger}, which does system logging for requests.
    *
-   * @type {?IntfRequestLogger}
+   * @type {?IntfAccessLog}
    */
   #requestLogService;
 
@@ -113,7 +113,7 @@ export class ProtocolWrangler {
    *   specified, the instance won't do rate limiting.
    * @param {IntfRequestHandler} options.requestHandler Request handler. This is
    *   required.
-   * @param {IntfRequestLogger} options.requestLogger Request logger to send to.
+   * @param {IntfAccessLog} options.requestLogger Request logger to send to.
    *   If not specified, the instance won't do request logging.
    * @param {string} options.protocol The name of the protocol to use.
    * @param {object} options.interface  Options to use for creation of and/or
