@@ -86,16 +86,17 @@ let graph = [];
 /** Map from external dependency names to sets of all encountered versions. */
 const extDeps = new Map();
 
-const state = {
-  localDeps:   new Set(),
-  localDirs:   new Map()
-};
+/** The names of all local modules encountered as dependencies. */
+const localDeps = new Set();
+
+/** The path to each local module directory. */
+const localDirs = new Map();
 
 while (unprocessed.size > 0) {
   const oneDep = setPop(unprocessed);
 
   processed.add(oneDep);
-  state.localDeps.add(oneDep);
+  localDeps.add(oneDep);
 
   // Trim `@this/` off of `oneDep`.
   const oneDepName = oneDep.match(/(?<=[/])[^/]+$/)?.[0];
@@ -123,7 +124,7 @@ while (unprocessed.size > 0) {
     continue;
   }
 
-  state.localDirs.set(oneDep, moduleDir);
+  localDirs.set(oneDep, moduleDir);
 
   for (const [key, value] of Object.entries(packageObj.dependencies ?? {})) {
     if (key.startsWith('@this/')) {
@@ -146,8 +147,8 @@ while (unprocessed.size > 0) {
 
 const result = {
   main:      `@this/${mainModule}`,
-  localDeps: [...state.localDeps].sort(),
-  localDirs: sortObject(Object.fromEntries(state.localDirs.entries())),
+  localDeps: [...localDeps].sort(),
+  localDirs: sortObject(Object.fromEntries(localDirs.entries())),
   extDeps:   sortObject(Object.fromEntries(extDeps.entries()))
 };
 
