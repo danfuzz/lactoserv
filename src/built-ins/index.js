@@ -14,4 +14,4 @@ export * from '#x/Redirector';
 export * from '#x/SerialRouter';
 export * from '#x/SimpleResponse';
 export * from '#x/StaticFiles';
-export * from '#x/SystemLogger';
+export * from '#x/SyslogToFile';
