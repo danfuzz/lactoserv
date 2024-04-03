@@ -84,8 +84,7 @@ const state = {
   graph:       [],
   localDeps:   new Set(),
   localDirs:   new Map(),
-  extDeps:     new Map(),
-  main:        mainModule
+  extDeps:     new Map()
 };
 
 while (unprocessed.size > 0) {
