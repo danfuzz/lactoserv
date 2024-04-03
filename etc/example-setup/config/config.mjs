@@ -3,9 +3,9 @@
 
 import * as fs from 'node:fs/promises';
 
-import { EventFan, HostRouter, MemoryMonitor, PathRouter, ProcessIdFile,
-  ProcessInfoFile, RateLimiter, Redirector, AccessLogToFile, AccessLogToSyslog,
-  SerialRouter, SimpleResponse, StaticFiles, SystemLogger }
+import { AccessLogToFile, AccessLogToSyslog, EventFan, HostRouter,
+  MemoryMonitor, PathRouter, ProcessIdFile, ProcessInfoFile, RateLimiter,
+  Redirector, SerialRouter, SimpleResponse, StaticFiles, SystemLogger }
   from '@lactoserv/built-ins';
 
 

@@ -9,9 +9,9 @@ import { IncomingRequest, IntfRequestHandler, OutgoingResponse, RequestContext,
   from '@this/net-util';
 import { Methods, MustBe } from '@this/typey';
 
+import { IntfAccessLog } from '#x/IntfAccessLog';
 import { IntfHostManager } from '#x/IntfHostManager';
 import { IntfRateLimiter } from '#x/IntfRateLimiter';
-import { IntfAccessLog } from '#x/IntfAccessLog';
 import { WranglerContext } from '#p/WranglerContext';
 
 
