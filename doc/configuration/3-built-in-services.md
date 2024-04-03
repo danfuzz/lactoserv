@@ -84,6 +84,24 @@ const services = [
 ];
 ```
 
+## `AccessLogToSyslog`
+
+A service which logs very detailed information about HTTP-ish requests to the
+_system_ log. Such logging in turn goes to wherever the system log goes (e.g.,
+into a file). It does not accept any configuration bindings beyond the basics
+of any service.
+
+```js
+import { AccessLogToSyslog } from '@lactoserv/built-ins';
+
+const services = [
+  {
+    name:  'accessSyslog',
+    class: AccessLogToSyslog
+  }
+];
+```
+
 ## `EventFan`
 
 A service which "fans out" any events it receives to a set of other services, in
@@ -270,24 +288,6 @@ const services = [
     },
     requests: { /* ... */ },
     data: { /* ... */ }
-  }
-];
-```
-
-## `RequestSyslogger`
-
-A service which logs very detailed information about HTTP-ish requests to the
-_system_ log. Such logging in turn goes to wherever the system log goes (e.g.,
-into a file). It does not accept any configuration bindings beyond the basics
-of any service.
-
-```js
-import { RequestSyslogger } from '@lactoserv/built-ins';
-
-const services = [
-  {
-    name:  'requestSyslog',
-    class: RequestSyslogger
   }
 ];
 ```

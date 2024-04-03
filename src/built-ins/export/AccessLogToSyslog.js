@@ -6,14 +6,14 @@ import { BaseService } from '@this/sys-framework';
 
 
 /**
- * Service which writes the request/response log to the system log (which itself
- * might in turn be written to several possible locations).
+ * Service which writes access log info to the system log (which itself might in
+ * turn get output in one or more forms).
  *
  * See `doc/configuration` for configuration object details.
  *
  * @implements {IntfAccessLog}
  */
-export class RequestSyslogger extends BaseService {
+export class AccessLogToSyslog extends BaseService {
   // @defaultConstructor
 
   /** @override */
