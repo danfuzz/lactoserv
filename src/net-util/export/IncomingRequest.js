@@ -63,8 +63,8 @@ export class IncomingRequest {
   #protocolName;
 
   /**
-   * HTTP-2-ish "pseudo-headers" that came with the request or were synthesized
-   * from an HTTP-1-ish request, with keys stripped of their colon (`:`)
+   * HTTP2-ish "pseudo-headers" that came with the request or were synthesized
+   * from an HTTP1-ish request, with keys stripped of their colon (`:`)
    * prefixes.
    *
    * @type {HttpHeaders}
@@ -129,8 +129,8 @@ export class IncomingRequest {
    *   unique(ish) ID for the request.
    * @param {string} config.protocolName The protocol name. This is expected to
    *   be a lowercase name followed by a dash and a version, e.g. `http-1.1`.
-   * @param {HttpHeaders} config.pseudoHeaders HTTP-2-ish "pseudo-headers" that
-   *   came with the request or were synthesized based on an HTTP-1-ish request,
+   * @param {HttpHeaders} config.pseudoHeaders HTTP2-ish "pseudo-headers" that
+   *   came with the request or were synthesized based on an HTTP1-ish request,
    *   with keys stripped of their colon (`:`) prefixes.
    */
   constructor(config) {
@@ -186,8 +186,8 @@ export class IncomingRequest {
   /**
    * @returns {HostInfo} Info about the host (a/k/a the "authority") being asked
    * to respond to this request. This is the value of the synthetic `:authority`
-   * header of an HTTP-2 request if available, or the regular `Host` header of
-   * an HTTP-1 request, plus port information. If there is no authority
+   * header of an HTTP2 request if available, or the regular `Host` header of
+   * an HTTP1 request, plus port information. If there is no authority
    * information present in the request, it is treated as if it were specified
    * as just `localhost`.
    *
@@ -202,14 +202,14 @@ export class IncomingRequest {
   get host() {
     if (!this.#hostInfo) {
       // Note: We use `#pseudoHeaders` to hold the `Host` header of an
-      // HTTP-1-ish request.
+      // HTTP1-ish request.
 
       const authority = this.#pseudoHeaders.get('authority') ?? null;
       const scheme    = this.#pseudoHeaders.get('scheme')    ?? null;
 
       // If there's a `scheme` we recognize, we can use it to know the port to
       // use in case `authority` didn't come with one. If not, we just use the
-      // request context. (Note: We should always have a `scheme` for HTTP-2-ish
+      // request context. (Note: We should always have a `scheme` for HTTP2-ish
       // requests.)
       let fallbackPort;
       switch (scheme) {
@@ -634,7 +634,7 @@ export class IncomingRequest {
           }
           case 'host': {
             // Like above, duplicates are discarded. But in addition, for
-            // HTTP-1-ish requests, this becomes the synthesized `:authority`
+            // HTTP1-ish requests, this becomes the synthesized `:authority`
             // pseudo-header.
             headers.set(key, s);
             if (!modernHttp) {
@@ -654,7 +654,7 @@ export class IncomingRequest {
       }
     }
 
-    // Fill in the other pseudo-headers when given an HTTP-1-ish request.
+    // Fill in the other pseudo-headers when given an HTTP1-ish request.
     if (!modernHttp) {
       pseudoHeaders.set('method', request.method);
       pseudoHeaders.set('path',   request.url);

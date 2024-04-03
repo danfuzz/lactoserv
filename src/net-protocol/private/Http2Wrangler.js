@@ -142,8 +142,8 @@ export class Http2Wrangler extends TcpWrangler {
       sessionLogger?.closed('frameError', type, code, id);
     });
 
-    // If we want to support the HTTP-2 protocol directly, this is where the
-    // implementation would go. As things stand, we use the HTTP-1 compatibility
+    // If we want to support the HTTP2 protocol directly, this is where the
+    // implementation would go. As things stand, we use the HTTP1 compatibility
     // layer.
     /*
     session.on('stream', (stream, headers, flags, rawHeaders) => {
