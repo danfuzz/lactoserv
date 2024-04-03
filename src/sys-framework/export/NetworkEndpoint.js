@@ -97,13 +97,13 @@ export class NetworkEndpoint extends BaseComponent {
       interface: iface,
       protocol,
       services: {
-        rateLimiter:   rateLimiterName = null,
-        requestLogger: requestLoggerName = null
+        accessLog:   accessLogName = null,
+        rateLimiter: rateLimiterName = null
       }
     } = this.config;
 
-    const rateLimiter   = context.getComponentOrNull(rateLimiterName,   BaseService, IntfRateLimiter);
-    const requestLogger = context.getComponentOrNull(requestLoggerName, BaseService, IntfAccessLog);
+    const rateLimiter = context.getComponentOrNull(rateLimiterName, BaseService, IntfRateLimiter);
+    const accessLog   = context.getComponentOrNull(accessLogName,   BaseService, IntfAccessLog);
 
     const hmOpt = {};
     if (this.config.requiresCertificates()) {
@@ -112,9 +112,9 @@ export class NetworkEndpoint extends BaseComponent {
     }
 
     const wranglerOptions = {
+      accessLog,
       rateLimiter,
       requestHandler: this,
-      requestLogger,
       protocol,
       interface: iface,
       ...hmOpt

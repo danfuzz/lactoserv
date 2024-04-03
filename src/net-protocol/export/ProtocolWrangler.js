@@ -113,8 +113,8 @@ export class ProtocolWrangler {
    *   specified, the instance won't do rate limiting.
    * @param {IntfRequestHandler} options.requestHandler Request handler. This is
    *   required.
-   * @param {IntfAccessLog} options.requestLogger Request logger to send to.
-   *   If not specified, the instance won't do request logging.
+   * @param {IntfAccessLog} options.accessLog Network access logger to send to.
+   *   If not specified, the instance won't do access logging.
    * @param {string} options.protocol The name of the protocol to use.
    * @param {object} options.interface  Options to use for creation of and/or
    *   listening on the low-level server socket. See docs for
@@ -128,17 +128,17 @@ export class ProtocolWrangler {
    */
   constructor(options) {
     const {
+      accessLog,
       hostManager,
       interface: interfaceConfig,
       rateLimiter,
-      requestHandler,
-      requestLogger
+      requestHandler
     } = options;
 
     this.#hostManager       = hostManager ?? null;
     this.#rateLimiter       = rateLimiter ?? null;
     this.#requestHandler    = MustBe.object(requestHandler);
-    this.#requestLogService = requestLogger ?? null;
+    this.#requestLogService = accessLog ?? null;
     this.#serverHeader      = ProtocolWrangler.#makeServerHeader();
 
     this.#interfaceObject = Object.freeze({

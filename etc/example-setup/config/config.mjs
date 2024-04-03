@@ -249,8 +249,8 @@ const endpoints = [
     protocol:  'http',
     interface: '*:8080',
     services: {
-      rateLimiter:   'limiter',
-      requestLogger: 'accessLog'
+      accessLog:   'accessLog',
+      rateLimiter: 'limiter'
     },
     application: 'myWackyRedirector'
   },
@@ -260,8 +260,8 @@ const endpoints = [
     hostnames: ['*'],
     interface: '*:8443',
     services: {
-      rateLimiter:   'limiter',
-      requestLogger: 'accessLog'
+      accessLog:   'accessLog',
+      rateLimiter: 'limiter'
     },
     application: 'mySite'
   },
@@ -271,7 +271,7 @@ const endpoints = [
     hostnames: ['*'],
     interface: '*:8444',
     services: {
-      requestLogger: 'accessLog'
+      accessLog: 'accessLog'
     },
     application: 'mySeries'
   }
