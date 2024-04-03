@@ -138,7 +138,7 @@ while (state.unprocessed.size > 0) {
 // Build up the final result.
 
 const result = {
-  main:      mainModule,
+  main:      `@this/${mainModule}`,
   localDeps: [...state.localDeps].sort(),
   localDirs: sortObject(Object.fromEntries(state.localDirs.entries())),
   extDeps:   sortObject(Object.fromEntries(state.extDeps.entries()))
