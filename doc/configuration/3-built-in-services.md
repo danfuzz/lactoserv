@@ -84,6 +84,37 @@ const services = [
 ];
 ```
 
+## `EventFan`
+
+A service which "fans out" any events it receives to a set of other services, in
+parallel. It accepts the following configuration bindings:
+
+* `services` &mdash; An array listing the _names_ of other services as values.
+
+An instance of this service can be used, for example, to get two different
+network request loggers to be attached to a single network endpoint. (This is
+done in the example configuration file, for reference.)
+
+```js
+import { EventFan } from '@lactoserv/built-ins';
+
+const services = [
+  {
+    name:     'myFan',
+    class:    EventFan,
+    services: ['goHere', 'goThere']
+  },
+  {
+    name: 'goHere',
+    // ... more ...
+  },
+  {
+    name: 'goThere',
+    // ... more ...
+  }
+];
+```
+
 ## `MemoryMonitor`
 
 A service which occasionally checks the system's memory usage, and will force a
@@ -124,37 +155,6 @@ const services = [
     gracePeriod:  '1 min',
     maxHeapBytes: 100 * 1024 * 1024,
     maxRssBytes:  150 * 1024 * 1024
-  }
-];
-```
-
-## `EventFan`
-
-A service which "fans out" any events it receives to a set of other services, in
-parallel. It accepts the following configuration bindings:
-
-* `services` &mdash; An array listing the _names_ of other services as values.
-
-An instance of this service can be used, for example, to get two different
-network request loggers to be attached to a single network endpoint. (This is
-done in the example configuration file, for reference.)
-
-```js
-import { EventFan } from '@lactoserv/built-ins';
-
-const services = [
-  {
-    name:     'myFan',
-    class:    EventFan,
-    services: ['goHere', 'goThere']
-  },
-  {
-    name: 'goHere',
-    // ... more ...
-  },
-  {
-    name: 'goThere',
-    // ... more ...
   }
 ];
 ```
