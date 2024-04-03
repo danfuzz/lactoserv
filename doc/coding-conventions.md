@@ -127,6 +127,7 @@ meant to record them, in order to keep track of them and maintain consistency.
   * Use "HTTP1" or "HTTP1-ish" to refer to the HTTP1 family of protocols. (No
     other punctuation variants.)
   * Similarly, use "HTTP2" or "HTTP2-ish" for the HTTP2 protocol.
+  * Likewise, use "HTTP-ish" to refer to any HTTP protocol (or similar).
 
 - - - - - - - - - -
 ```

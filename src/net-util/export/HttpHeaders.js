@@ -95,7 +95,7 @@ export class HttpHeaders extends Headers {
    * appropriately for the indicated HTTP version. In addition, most values
    * returned are strings, but `Set-Cookie` values are always arrays of strings.
    *
-   * This method is meant to make it easy to call `setHeader()` on an HTTP(ish)
+   * This method is meant to make it easy to call `setHeader()` on an HTTP-ish
    * response object.
    *
    * @param {string|number} httpVersion HTTP version string (e.g. `'1.1'` or

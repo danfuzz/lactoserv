@@ -142,14 +142,14 @@ export class OutgoingResponse {
   }
 
   /**
-   * @returns {number} The HTTP(ish) response status code.
+   * @returns {number} The HTTP-ish response status code.
    */
   get status() {
     return this.#status;
   }
 
   /**
-   * @param {number} value The HTTP(ish) response status code.
+   * @param {number} value The HTTP-ish response status code.
    */
   set status(value) {
     this.#status =

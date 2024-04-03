@@ -13,7 +13,7 @@ import { TypeNodeRequest } from '#x/TypeNodeRequest';
 
 
 /**
- * Representation of a received and in-progress HTTP(ish) request. This is meant
+ * Representation of a received and in-progress HTTP-ish request. This is meant
  * as a replacement for the data-bearing aspects of Node's built-in request
  * objects, offering a cleaner / friendlier interface.
  *
@@ -280,7 +280,7 @@ export class IncomingRequest {
   }
 
   /**
-   * @returns {string} The HTTP(ish) request method, downcased, e.g. commonly
+   * @returns {string} The HTTP-ish request method, downcased, e.g. commonly
    * one of `'get'`, `'head'`, or `'post'`.
    */
   get method() {
@@ -351,7 +351,7 @@ export class IncomingRequest {
 
   /**
    * @returns {string} The unparsed target that was passed in to the original
-   * HTTP(ish) request. In the common case of the target being a path to a
+   * HTTP-ish request. In the common case of the target being a path to a
    * resource, colloquially speaking, this is the suffix of the URL-per-se
    * starting at the first slash (`/`) after the host identifier. That said,
    * there are other non-path forms for a target. See

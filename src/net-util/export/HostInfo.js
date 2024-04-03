@@ -163,7 +163,7 @@ export class HostInfo {
 
   /**
    * Constructs an instance of this class by parsing a string in the format used
-   * by the `Host` header of an HTTP(ish) request. The local port number, if
+   * by the `Host` header of an HTTP-ish request. The local port number, if
    * provided, is used when there is no explicit port number in `hostString`; if
    * needed and not provided, it is treated as if it is `0`.
    *

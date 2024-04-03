@@ -5,7 +5,7 @@ import { MustBe } from '@this/typey';
 
 
 /**
- * Information about an HTTP(ish) request that is not available through the
+ * Information about an HTTP-ish request that is not available through the
  * standard Node `IncomingMessage` class.
  */
 export class RequestContext {

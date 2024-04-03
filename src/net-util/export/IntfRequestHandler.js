@@ -9,7 +9,7 @@ import { OutgoingResponse } from '#x/OutgoingResponse';
 
 
 /**
- * Interface for HTTP(ish) request handlers, as used by this module.
+ * Interface for HTTP-ish request handlers, as used by this module.
  *
  * @interface
  */
