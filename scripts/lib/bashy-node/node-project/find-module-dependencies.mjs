@@ -46,6 +46,22 @@ function setPop(set) {
   throw new Error('Empty `Set`.');
 }
 
+/**
+ * Sorts the entries of a plain object by key, returning a sorted version.
+ *
+ * @param {object} orig Object to sort.
+ * @returns {object} Sorted version.
+ */
+function sortObject(orig) {
+  const result = {};
+
+  for (const key of Object.keys(orig).sort()) {
+    result[key] = orig[key];
+  }
+
+  return result;
+}
+
 
 //
 // Main script
@@ -123,9 +139,9 @@ while (state.unprocessed.size > 0) {
 
 const result = {
   main:      mainModule,
-  localDeps: [...state.localDeps],
-  localDirs: Object.fromEntries(state.localDirs.entries()),
-  extDeps:   Object.fromEntries(state.extDeps.entries())
+  localDeps: [...state.localDeps].sort(),
+  localDirs: sortObject(Object.fromEntries(state.localDirs.entries())),
+  extDeps:   sortObject(Object.fromEntries(state.extDeps.entries()))
 };
 
 // `extDeps` has sets for values. Reduce them to single elements, and report an
@@ -133,8 +149,10 @@ const result = {
 
 for (const [key, value] of Object.entries(result.extDeps)) {
   if (value.size !== 1) {
-    const versions = [...value].join(', ');
-    errors.push(`Conflicting versions of external dependency \`${key}\`: ${versions}`);
+    errors.push(`Conflicting versions of external dependency \`${key}\`:`);
+    for (const v of value) {
+      errors.push(`  ${v}`);
+    }
   } else {
     result.extDeps[key] = setPop(value);
   }
