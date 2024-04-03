@@ -74,20 +74,24 @@ const errors = [];
 // start with the main subproject as the sole element of the to-be-processed
 // queue.
 
+/** The names of all as-yet unprocessed local modules. */
+const unprocessed = new Set([`@this/${mainModule}`]);
+
+/** The names of all already-processed local modules. */
+const processed = new Set();
+
 const state = {
-  unprocessed: new Set([`@this/${mainModule}`]),
   graph:       [],
   localDeps:   new Set(),
   localDirs:   new Map(),
   extDeps:     new Map(),
-  processed:   new Set(),
   main:        mainModule
 };
 
-while (state.unprocessed.size > 0) {
-  const oneDep = setPop(state.unprocessed);
+while (unprocessed.size > 0) {
+  const oneDep = setPop(unprocessed);
 
-  state.processed.add(oneDep);
+  processed.add(oneDep);
   state.localDeps.add(oneDep);
 
   // Trim `@this/` off of `oneDep`.
@@ -120,8 +124,8 @@ while (state.unprocessed.size > 0) {
 
   for (const [key, value] of Object.entries(packageObj.dependencies ?? {})) {
     if (key.startsWith('@this/')) {
-      if (!state.processed.has(key)) {
-        state.unprocessed.add(key);
+      if (!processed.has(key)) {
+        unprocessed.add(key);
       }
       state.graph.push({ from: oneDep, to: key });
     } else {
