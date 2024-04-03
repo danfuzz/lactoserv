@@ -14,8 +14,8 @@ import { BaseConfig, Names } from '@this/compote';
  *
  * Allowed roles:
  *
- * * `rateLimiter` -- Rate limiter service.
  * * `accessLog` -- Network access logging service.
+ * * `rateLimiter` -- Rate limiter service.
  */
 export class ServiceUseConfig extends BaseConfig {
   /**
