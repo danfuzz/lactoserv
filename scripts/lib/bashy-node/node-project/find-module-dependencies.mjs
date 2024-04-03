@@ -175,7 +175,7 @@ for (;;) {
 
   for (const f of fromNodes) {
     if (!toNodes.has(f)) {
-      graph = graph.filter(({ from, to }) => (from === f));
+      graph = graph.filter(({ from, to }) => (from !== f));
       fromNodes.delete(f);
       anyRemoved = true;
     }
