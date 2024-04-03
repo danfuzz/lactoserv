@@ -80,8 +80,10 @@ const unprocessed = new Set([`@this/${mainModule}`]);
 /** The names of all already-processed local modules. */
 const processed = new Set();
 
+/** The graph of local module dependencies, as a list of edges. */
+let graph = [];
+
 const state = {
-  graph:       [],
   localDeps:   new Set(),
   localDirs:   new Map(),
   extDeps:     new Map()
@@ -126,7 +128,7 @@ while (unprocessed.size > 0) {
       if (!processed.has(key)) {
         unprocessed.add(key);
       }
-      state.graph.push({ from: oneDep, to: key });
+      graph.push({ from: oneDep, to: key });
     } else {
       let extSet = state.extDeps.get(key);
       if (!extSet) {
@@ -169,7 +171,6 @@ for (const [key, value] of Object.entries(result.extDeps)) {
 // facto they are not involved in a cycle). Once no more edges can be removed,
 // any remaining ones are involved in cycles.
 
-let   graph     = state.graph;
 const fromNodes = new Set(graph.map(({ from }) => from));
 
 for (;;) {
