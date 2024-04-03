@@ -46,6 +46,16 @@ export class ProtocolWrangler {
   #requestLogger = null;
 
   /**
+   * Service which logs network access (requests and responses), or `null` to
+   * not do any such logging. **Note:** This is for "access log" style logging,
+   * as opposed to {@link #requestLogger}, which does system logging for
+   * requests.
+   *
+   * @type {?IntfAccessLog}
+   */
+  #accessLog;
+
+  /**
    * Optional host manager; only needed for some protocols.
    *
    * @type {?IntfHostManager}
@@ -53,7 +63,7 @@ export class ProtocolWrangler {
   #hostManager;
 
   /**
-   * Rate limiter service to use, if any.
+   * Rate limiter service to use, or `null` not to do any rate limiting.
    *
    * @type {?IntfRateLimiter}
    */
@@ -65,15 +75,6 @@ export class ProtocolWrangler {
    * @type {IntfRequestHandler}
    */
   #requestHandler;
-
-  /**
-   * _Service_ which logs HTTP-ish requests, or `null` to not do any such
-   * logging. **Note:** This is for "access log" style logging, as opposed to
-   * {@link #requestLogger}, which does system logging for requests.
-   *
-   * @type {?IntfAccessLog}
-   */
-  #requestLogService;
 
   /**
    * Return value for {@link #interface}.
@@ -135,11 +136,11 @@ export class ProtocolWrangler {
       requestHandler
     } = options;
 
-    this.#hostManager       = hostManager ?? null;
-    this.#rateLimiter       = rateLimiter ?? null;
-    this.#requestHandler    = MustBe.object(requestHandler);
-    this.#requestLogService = accessLog ?? null;
-    this.#serverHeader      = ProtocolWrangler.#makeServerHeader();
+    this.#accessLog      = accessLog ?? null;
+    this.#hostManager    = hostManager ?? null;
+    this.#rateLimiter    = rateLimiter ?? null;
+    this.#requestHandler = MustBe.object(requestHandler);
+    this.#serverHeader   = ProtocolWrangler.#makeServerHeader();
 
     this.#interfaceObject = Object.freeze({
       address: interfaceConfig.address ?? null,
@@ -326,7 +327,7 @@ export class ProtocolWrangler {
         url:       request.urlForLog
       });
 
-      if (this.#requestLogService) {
+      if (this.#accessLog) {
         this.#logAndRespondToRequest(request, context, res);
       } else {
         this.#respondToRequest(request, context, res);
@@ -477,8 +478,7 @@ export class ProtocolWrangler {
 
   /**
    * Wrapper around {@link #respondToRequest}, which is used when {link
-   * #requestLogService} is non-`null`. This is what arranges for "access log"
-   * style request logging to happen.
+   * #accessLog} is non-`null`.
    *
    * **Note:** There is nothing set up to catch errors thrown by this method. It
    * is not supposed to `throw` (directly or indirectly).
@@ -490,7 +490,7 @@ export class ProtocolWrangler {
    *   (or was at least ulitmately attempted to be sent).
    */
   async #logAndRespondToRequest(request, outerContext, res) {
-    const service = this.#requestLogService;
+    const accessLog = this.#accessLog;
 
     // We send `requestStarted` and wait for it to return before proceeding with
     // any actual response work. Sending this event has to be done as early as
@@ -499,7 +499,7 @@ export class ProtocolWrangler {
     // called at about as good a spot as can be managed.
 
     try {
-      await service.send('requestStarted', request);
+      await accessLog.send('requestStarted', request);
     } catch (e) {
       // Log it and move on rather than letting the system crash.
       this.logger?.errorWhileLoggingRequest(e);
@@ -512,7 +512,7 @@ export class ProtocolWrangler {
         connectionSocket: outerContext.socket,
         nodeResponse:     res
       };
-      await service.send('requestEnded', request, response, networkInfo);
+      await accessLog.send('requestEnded', request, response, networkInfo);
     } catch (e) {
       // Log it and move on rather than letting the system crash.
       this.logger?.errorWhileLoggingRequest(e);
