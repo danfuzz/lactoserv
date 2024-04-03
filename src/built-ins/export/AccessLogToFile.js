@@ -28,8 +28,8 @@ export class AccessLogToFile extends BaseFileService {
   #rotator = null;
 
   /**
-   * Weak map which keeps track of the start time of requests that have not
-   * yet been ended.
+   * Weak map which keeps track of the start time of requests that have not yet
+   * been ended.
    *
    * @type {WeakMap<IncomingRequest, Moment>}
    */
