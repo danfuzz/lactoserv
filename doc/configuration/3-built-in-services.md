@@ -57,7 +57,7 @@ the ones that are used by `save`:
 Note that at least one of the `on*` bindings need to be provided for a `save` to
 have any meaning.
 
-## `AccessLogFile`
+## `AccessLogToFile`
 
 A service which logs information about HTTP-ish requests in a textual form
 meant to be similar to (though not identical to) what is commonly produced by
@@ -72,12 +72,12 @@ _not_ configurable. It accepts the following configuration bindings:
   configuration details.
 
 ```js
-import { AccessLogFile } from '@lactoserv/built-ins';
+import { AccessLogToFile } from '@lactoserv/built-ins';
 
 const services = [
   {
     name:   'accessLog',
-    class:  AccessLogFile,
+    class:  AccessLogToFile,
     path:   '/path/to/var/log/access-log.txt',
     rotate: { /* ... */ }
   }

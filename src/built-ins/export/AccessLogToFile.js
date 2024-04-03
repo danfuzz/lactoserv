@@ -19,7 +19,7 @@ import { BaseFileService, Rotator } from '@this/sys-util';
  *
  * @implements {IntfAccessLog}
  */
-export class AccessLogFile extends BaseFileService {
+export class AccessLogToFile extends BaseFileService {
   /**
    * File rotator to use, if any.
    *

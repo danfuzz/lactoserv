@@ -4,7 +4,7 @@
 import * as fs from 'node:fs/promises';
 
 import { EventFan, HostRouter, MemoryMonitor, PathRouter, ProcessIdFile,
-  ProcessInfoFile, RateLimiter, Redirector, AccessLogFile, AccessLogToSyslog,
+  ProcessInfoFile, RateLimiter, Redirector, AccessLogToFile, AccessLogToSyslog,
   SerialRouter, SimpleResponse, StaticFiles, SystemLogger }
   from '@lactoserv/built-ins';
 
@@ -89,7 +89,7 @@ const services = [
   },
   {
     name:  'accessFile',
-    class: AccessLogFile,
+    class: AccessLogToFile,
     path:  `${LOG_DIR}/access-log.txt`,
     rotate: {
       atSize:      10000,
