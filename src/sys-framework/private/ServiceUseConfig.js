@@ -14,8 +14,8 @@ import { BaseConfig, Names } from '@this/compote';
  *
  * Allowed roles:
  *
+ * * `accessLog` -- Network access logging service.
  * * `rateLimiter` -- Rate limiter service.
- * * `requestLogger` -- Request logging service.
  */
 export class ServiceUseConfig extends BaseConfig {
   /**
@@ -45,6 +45,11 @@ export class ServiceUseConfig extends BaseConfig {
     }
   }
 
+  /** @returns {?string} Service name for `accessLog` role, if any. */
+  get accessLog() {
+    return this.#map.get('accessLog') ?? null;
+  }
+
   /** @returns {Map<string, string>} The map of roles to service names. */
   get map() {
     return this.#map;
@@ -53,11 +58,6 @@ export class ServiceUseConfig extends BaseConfig {
   /** @returns {?string} Service name for `rateLimiter` role, if any. */
   get rateLimiter() {
     return this.#map.get('rateLimiter') ?? null;
-  }
-
-  /** @returns {?string} Service name for `requestLogger` role, if any. */
-  get requestLogger() {
-    return this.#map.get('requestLogger') ?? null;
   }
 
 
@@ -71,7 +71,7 @@ export class ServiceUseConfig extends BaseConfig {
    * @type {Set<string>}
    */
   static #ROLES = Object.freeze(new Set([
-    'rateLimiter',
-    'requestLogger'
+    'accessLog',
+    'rateLimiter'
   ]));
 }

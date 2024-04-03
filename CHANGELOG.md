@@ -23,6 +23,14 @@ Breaking changes:
 * `net-util`:
   * Made `getLogInfo()` an instance (not `static`) method, and fixed its
     reporting of `contentLength`.
+* `built-ins`:
+  * Renamed network access log services to use the name `AccessLog*`, instead
+    of `RequestLogger` (or similar). This is to avoid confusion with system
+    logging stuff, which more or less has a lock on the term "logger" in this
+    project.
+* Configuration:
+  * As with `built-ins`, renamed the service role name for access logging from
+    `requestLogger` to `accessLog`.
 
 Other notable changes:
 * `sys-framework`:

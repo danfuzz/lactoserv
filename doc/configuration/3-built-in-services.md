@@ -57,6 +57,82 @@ the ones that are used by `save`:
 Note that at least one of the `on*` bindings need to be provided for a `save` to
 have any meaning.
 
+## `AccessLogToFile`
+
+A service which logs information about HTTP-ish requests in a textual form
+meant to be similar to (though not identical to) what is commonly produced by
+other webservers (out in the world). As of this writing, the exact format is
+_not_ configurable. It accepts the following configuration bindings:
+
+* `path` &mdash; Path to the log file(s) to write. When rotation is performed, a
+  date stamp and (if necessary) sequence number are "infixed" into the final
+  path component.
+* `rotate` &mdash; Optional file rotation configuration. If not specified, no
+  file rotation is done. See "File Rotation and Preservation" below for
+  configuration details.
+
+```js
+import { AccessLogToFile } from '@lactoserv/built-ins';
+
+const services = [
+  {
+    name:   'accessLog',
+    class:  AccessLogToFile,
+    path:   '/path/to/var/log/access-log.txt',
+    rotate: { /* ... */ }
+  }
+];
+```
+
+## `AccessLogToSyslog`
+
+A service which logs very detailed information about HTTP-ish requests to the
+_system_ log. Such logging in turn goes to wherever the system log goes (e.g.,
+into a file). It does not accept any configuration bindings beyond the basics
+of any service.
+
+```js
+import { AccessLogToSyslog } from '@lactoserv/built-ins';
+
+const services = [
+  {
+    name:  'accessSyslog',
+    class: AccessLogToSyslog
+  }
+];
+```
+
+## `EventFan`
+
+A service which "fans out" any events it receives to a set of other services, in
+parallel. It accepts the following configuration bindings:
+
+* `services` &mdash; An array listing the _names_ of other services as values.
+
+An instance of this service can be used, for example, to get two different
+network request loggers to be attached to a single network endpoint. (This is
+done in the example configuration file, for reference.)
+
+```js
+import { EventFan } from '@lactoserv/built-ins';
+
+const services = [
+  {
+    name:     'myFan',
+    class:    EventFan,
+    services: ['goHere', 'goThere']
+  },
+  {
+    name: 'goHere',
+    // ... more ...
+  },
+  {
+    name: 'goThere',
+    // ... more ...
+  }
+];
+```
+
 ## `MemoryMonitor`
 
 A service which occasionally checks the system's memory usage, and will force a
@@ -97,37 +173,6 @@ const services = [
     gracePeriod:  '1 min',
     maxHeapBytes: 100 * 1024 * 1024,
     maxRssBytes:  150 * 1024 * 1024
-  }
-];
-```
-
-## `EventFan`
-
-A service which "fans out" any events it receives to a set of other services, in
-parallel. It accepts the following configuration bindings:
-
-* `services` &mdash; An array listing the _names_ of other services as values.
-
-An instance of this service can be used, for example, to get two different
-network request loggers to be attached to a single network endpoint. (This is
-done in the example configuration file, for reference.)
-
-```js
-import { EventFan } from '@lactoserv/built-ins';
-
-const services = [
-  {
-    name:     'myFan',
-    class:    EventFan,
-    services: ['goHere', 'goThere']
-  },
-  {
-    name: 'goHere',
-    // ... more ...
-  },
-  {
-    name: 'goThere',
-    // ... more ...
   }
 ];
 ```
@@ -243,51 +288,6 @@ const services = [
     },
     requests: { /* ... */ },
     data: { /* ... */ }
-  }
-];
-```
-
-## `RequestLogger`
-
-A service which logs HTTP-ish requests in a textual form meant to be similar to
-(though not identical to) what is often produced by other webservers (out in the
-world). As of this writing, the exact format is _not_ configurable. It accepts
-the following configuration bindings:
-
-* `path` &mdash; Path to the log file(s) to write. When rotation is performed, a
-  date stamp and (if necessary) sequence number are "infixed" into the final
-  path component.
-* `rotate` &mdash; Optional file rotation configuration. If not specified, no
-  file rotation is done. See "File Rotation and Preservation" below for
-  configuration details.
-
-```js
-import { RequestLogger } from '@lactoserv/built-ins';
-
-const services = [
-  {
-    name:   'requests',
-    class:  RequestLogger,
-    path:   '/path/to/var/log/request-log.txt',
-    rotate: { /* ... */ }
-  }
-];
-```
-
-## `RequestSyslogger`
-
-A service which logs very detailed information about HTTP-ish requests to the
-_system_ log. Such logging in turn goes to wherever the system log goes (e.g.,
-into a file). It does not accept any configuration bindings beyond the basics
-of any service.
-
-```js
-import { RequestSyslogger } from '@lactoserv/built-ins';
-
-const services = [
-  {
-    name:  'requestSyslog',
-    class: RequestSyslogger
   }
 ];
 ```
