@@ -35,28 +35,22 @@ export class Florp {
     publicMethod() { ... }
     ...
 
+    _impl_method() { ... }
+    ...
+    _prot_method() { ... }
+    ...
+
     get #privateAccessor() { ... }
     #privateMethod() { ... }
     ...
-
 
     //
     // Static members
     //
 
-    static #privateField;
-    ...
+    ... same order as instance members, plus ...
 
-    static get publicAccessor() { ... }
-    ...
-
-    static publicMethod() { ... }
-    ...
-
-    static get #privateAccessor() { ... }
-    ...
-
-    static #privateMethod() { ... }
+    static InnerClass = class InnerClass { ... }
     ...
 }
 ```
