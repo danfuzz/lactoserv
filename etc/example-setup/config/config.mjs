@@ -5,7 +5,7 @@ import * as fs from 'node:fs/promises';
 
 import { AccessLogToFile, AccessLogToSyslog, EventFan, HostRouter,
   MemoryMonitor, PathRouter, ProcessIdFile, ProcessInfoFile, RateLimiter,
-  Redirector, SerialRouter, SimpleResponse, StaticFiles, SystemLogger }
+  Redirector, SerialRouter, SimpleResponse, StaticFiles, SyslogToFile }
   from '@lactoserv/built-ins';
 
 
@@ -62,7 +62,7 @@ const services = [
   },
   {
     name:   'syslog',
-    class:  SystemLogger,
+    class:  SyslogToFile,
     path:   `${LOG_DIR}/system-log.txt`,
     format: 'human',
     rotate: {
@@ -74,7 +74,7 @@ const services = [
   },
   {
     name:   'syslogJson',
-    class:  SystemLogger,
+    class:  SyslogToFile,
     path:   `${LOG_DIR}/system-log.json`,
     format: 'json',
     rotate: {

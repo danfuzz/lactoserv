@@ -13,7 +13,7 @@ import { MustBe } from '@this/typey';
  *
  * See `doc/configuration` for configuration object details.
  */
-export class SystemLogger extends BaseFileService {
+export class SyslogToFile extends BaseFileService {
   /**
    * File rotator to use, if any.
    *
@@ -69,7 +69,7 @@ export class SystemLogger extends BaseFileService {
     // during a same-process system restart (e.g. in response to a restart
     // signal). In particular, this is an attempt to minimize double-logging
     // events.
-    this.logger[SystemLogger.#END_EVENT_TYPE]();
+    this.logger[SyslogToFile.#END_EVENT_TYPE]();
 
     await this.#sink.drainAndStop();
     await this.#rotator?.stop(willReload);
@@ -90,7 +90,7 @@ export class SystemLogger extends BaseFileService {
     const tagToFind     = this.logger.$meta.tag;
 
     const found = tracker.advanceSync((event) => {
-      return (event.type === SystemLogger.#END_EVENT_TYPE)
+      return (event.type === SyslogToFile.#END_EVENT_TYPE)
         && (event.payload.tag.equals(tagToFind));
     });
 

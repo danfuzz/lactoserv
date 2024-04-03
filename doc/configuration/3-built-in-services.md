@@ -292,10 +292,10 @@ const services = [
 ];
 ```
 
-## `SystemLogger`
+## `SyslogToFile`
 
-A service which logs system activity either in a human-friendly or JSON form. It
-accepts the following configuration bindings:
+A service which writes system activity logis either in a human-friendly or JSON
+form, to a (filesystem) file. It accepts the following configuration bindings:
 
 * `path` &mdash; Path to the log file(s) to write. When rotation is performed, a
   date stamp and (if necessary) sequence number are "infixed" into the final
@@ -311,12 +311,12 @@ highly advisable to set up sane limits on the amount of storage used by
 configuring `rotate`.
 
 ```js
-import { SystemLogger } from '@lactoserv/built-ins';
+import { SyslogToFile } from '@lactoserv/built-ins';
 
 const services = [
   {
     name:   'syslog-json',
-    class:  SystemLogger,
+    class:  SyslogToFile,
     path:   '/path/to/var/log/system-log.json',
     format: 'json',
     rotate: { /* ... */ }
