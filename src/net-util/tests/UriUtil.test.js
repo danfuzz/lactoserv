@@ -135,3 +135,81 @@ describe('pathStringFrom()', () => {
     });
   });
 });
+
+describe('isPathComponent()', () => {
+  // Failure cases: Bad arguments
+  test.each`
+  value
+  ${undefined}
+  ${null}
+  ${true}
+  ${123}
+  ${['x']}
+  ${{ a: 'x' }}
+  ${new Map()}
+  `('throws given $value', ({ value }) => {
+    expect(() => UriUtil.isPathComponent(value)).toThrow();
+  });
+
+  // `false` cases.
+  test.each`
+  label                               | value
+  ${'path navigation'}                | ${'.'}
+  ${'path navigation'}                | ${'..'}
+  ${'space'}                          | ${'bip bop'}
+  ${'slash'}                          | ${'x/y'}
+  ${'query'}                          | ${'foo?query'}
+  ${'fragment'}                       | ${'bar#fragment'}
+  ${'invalid %-encoding'}             | ${'foo%%bar'}
+  ${'invalid %-encoding'}             | ${'foo%XYbar'}
+  ${'invalid %-encoding (lowercase)'} | ${'foo%aabar'}
+  ${'incomplete %-encoding'}          | ${'foo%'}
+  ${'incomplete %-encoding'}          | ${'foo%1'}
+  ${'non-ASCII'}                      | ${'\u{a1}'}
+  ${'non-ASCII'}                      | ${'\u{1a1}'}
+  ${'non-ASCII'}                      | ${'\u{1a10}'}
+  `('returns `false` for `$value` ($label)', ({ value }) => {
+    expect(UriUtil.isPathComponent(value)).toBeFalse();
+  });
+
+  test('returns `false` for all ASCII control characters', () => {
+    for (let n = 0; n <= 31; n++) {
+      const ch = String.fromCodePoint(n);
+      expect(UriUtil.isPathComponent(`x${ch}y`)).toBeFalse();
+    }
+  });
+
+  test('returns `false` for all disallowed ASCII printables', () => {
+    for (let n = 32; n <= 127; n++) {
+      const ch = String.fromCodePoint(n);
+      if (!/[-_.~!$&'()*+,;=:@%A-Za-z0-9]/.test(ch)) {
+        expect(UriUtil.isPathComponent(`x${ch}y`)).toBeFalse();
+      }
+    }
+  });
+
+  // `true` cases.
+  test.each`
+  value
+  ${''}
+  ${'a'}
+  ${'abcdefghijklmnopqrstuvwxyz'}
+  ${'ABCDEFGHIJKLMNOPQRSTUVWXYZ'}
+  ${'0123456789'}
+  ${"-._~!$&'()*+,;=:@"}
+  ${'...'}
+  ${'.florp'}
+  ${'foo.'}
+  ${'zonk..'}
+  ${'x.y'}
+  ${'x..y'}
+  ${'%01'}
+  ${'%AB'}
+  ${'%23%45'}
+  ${'x%67%89y'}
+  ${'-%AB-%CD-%EF-'}
+  ${'%F0...%9C'}
+  `('returns `true` for `$value`', ({ value }) => {
+    expect(UriUtil.isPathComponent(value)).toBeTrue();
+  });
+});
