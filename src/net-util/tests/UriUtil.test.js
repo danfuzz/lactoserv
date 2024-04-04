@@ -43,28 +43,6 @@ describe('checkBasicUri()', () => {
   });
 });
 
-describe('checkProtocol()', () => {
-  // Failure cases.
-  test.each`
-  label                 | protocol
-  ${'null'}             | ${null}
-  ${'non-string'}       | ${123}
-  ${'invalid protocol'} | ${'ftp'}
-  `('fails for $label', ({ protocol }) => {
-    expect(() => UriUtil.checkProtocol(protocol)).toThrow();
-  });
-
-  // Success cases.
-  test.each`
-  protocol
-  ${'http'}
-  ${'https'}
-  ${'http2'}
-  `('succeeds for $protocol', ({ protocol }) => {
-    expect(UriUtil.checkProtocol(protocol)).toBe(protocol);
-  });
-});
-
 describe('pathStringFrom()', () => {
   describe.each`
   relArg     | label

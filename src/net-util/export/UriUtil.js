@@ -55,20 +55,6 @@ export class UriUtil {
   }
 
   /**
-   * Checks that a given value is a string representing a protocol name (as
-   * allowed by this system).
-   *
-   * @param {*} value Value in question.
-   * @returns {string} `value` if it is a string which matches the stated
-   *   pattern.
-   * @throws {Error} Thrown if `value` does not match.
-   */
-  static checkProtocol(value) {
-    const pattern = /^(http|https|http2)$/;
-    return MustBe.string(value, pattern);
-  }
-
-  /**
    * Checks if a given string is syntactically valid as a received URI path
    * component (thing between slashes or at the end of a path before queries,
    * etc.), per RFC 3986. The caveat "received" is that `.` and `..` are
