@@ -415,6 +415,10 @@ export class OutgoingResponse {
   setBodyString(body, contentType) {
     MustBe.string(body);
 
+    if (typeof contentType !== 'string') {
+      throw new Error('Missing `contentType` argument.');
+    }
+
     contentType = MimeTypes.typeFromExtensionOrType(contentType, { isText: true });
 
     const charSet = MimeTypes.charSetFromType(contentType);
