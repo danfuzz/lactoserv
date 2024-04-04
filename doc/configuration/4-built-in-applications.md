@@ -172,12 +172,20 @@ it accepts the following bindings:
 
 * `paths` &mdash; A plain object with possibly-wildcarded paths as keys, and
   the _names_ of other applications as values. A wildcard only covers the suffix
-  of a path; it cannot be used for prefixes or infixes.
+  of a path; it cannot be used for prefixes or infixes. Wildcards are indicated
+  with the path suffix `/*`.
 
 The keys in `paths` must start with a slash (`/`). (The idea is that they are
 _absolute_ paths within the scope of the router, even though they are
 effectively _relative_ paths with respect to whatever the router is mounted
 within.)
+
+The components within paths are required to adhere to the normal syntax of URIs,
+with the one additional restriction that path components consisting solely of
+one or more asterisks (`*`) are not allowed (to avoid confusion with wildcards).
+See [RFC 3986
+section 3.3](https://datatracker.ietf.org/doc/html/rfc3986#section-3.3) for the
+details.
 
 The routing works by starting with the most specific match to the path of an
 incoming request. If that app does not try to handle the request &mdash;
