@@ -167,20 +167,27 @@ export class PathRouter extends BaseApplication {
       }
 
       for (const p of parts) {
+        const error = (detail) => {
+          detail = detail ? ` (${detail})` : '';
+          return new Error(`Invalid path component \`${p}\`${detail} in: ${path}`);
+        };
+
         switch (p) {
           case '': {
-            throw new Error(`Empty path component in: ${path}`);
+            throw error('empty');
           }
           case '.':
           case '..': {
-            throw new Error(`Invalid path component \`${p}\` in: ${path}`);
+            throw error('navigation');
           }
           case '*': {
-            throw new Error(`Non-final \`*\` in path: ${path}`);
+            throw error('non-final wildcard');
           }
           default: {
-            if (!/^[-_.a-zA-Z0-9]+$/.test(p)) {
-              throw new Error(`Invalid path component \`${p}\` in: ${path}`);
+            if (/^[*]+$/.test(p)) {
+              throw error();
+            } else if (!UriUtil.isPathComponent(p)) {
+              throw error();
             }
           }
         }

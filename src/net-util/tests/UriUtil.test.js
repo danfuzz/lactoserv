@@ -5,39 +5,6 @@ import { TreePathKey } from '@this/collections';
 import { UriUtil } from '@this/net-util';
 
 
-describe('checkAbsolutePath()', () => {
-  // Failure cases.
-  test.each`
-  label                               | path
-  ${'null'}                           | ${null}
-  ${'non-string'}                     | ${123}
-  ${'no slash at start'}              | ${'foo/bar/'}
-  ${'no slash at end'}                | ${'/foo/bar'}
-  ${'double slash at start'}          | ${'//foo/bar/'}
-  ${'double slash in middle'}         | ${'/foo//bar/'}
-  ${'double slash at end'}            | ${'/foo/bar//'}
-  ${'triple slash'}                   | ${'/foo///bar/'}
-  ${'`.` component'}                  | ${'/foo/./bar/'}
-  ${'`..` component'}                 | ${'/foo/../bar/'}
-  ${'query'}                          | ${'/foo?x=123/'}
-  ${'hash fragment'}                  | ${'/foo#123/'}
-  ${'character needing `%`-encoding'} | ${'/foo/b ar/'}
-  `('fails for $label', ({ path }) => {
-    expect(() => UriUtil.checkAbsolutePath(path)).toThrow();
-  });
-
-  // Success cases.
-  test.each`
-  path
-  ${'/'}
-  ${'/foo/'}
-  ${'/foo/bar/'}
-  ${'/foo/b%20ar/'}
-  `('succeeds for $path', ({ path }) => {
-    expect(UriUtil.checkAbsolutePath(path)).toBe(path);
-  });
-});
-
 describe('checkBasicUri()', () => {
   // Failure cases.
   test.each`
@@ -76,28 +43,6 @@ describe('checkBasicUri()', () => {
   });
 });
 
-describe('checkProtocol()', () => {
-  // Failure cases.
-  test.each`
-  label                 | protocol
-  ${'null'}             | ${null}
-  ${'non-string'}       | ${123}
-  ${'invalid protocol'} | ${'ftp'}
-  `('fails for $label', ({ protocol }) => {
-    expect(() => UriUtil.checkProtocol(protocol)).toThrow();
-  });
-
-  // Success cases.
-  test.each`
-  protocol
-  ${'http'}
-  ${'https'}
-  ${'http2'}
-  `('succeeds for $protocol', ({ protocol }) => {
-    expect(UriUtil.checkProtocol(protocol)).toBe(protocol);
-  });
-});
-
 describe('pathStringFrom()', () => {
   describe.each`
   relArg     | label
@@ -133,5 +78,83 @@ describe('pathStringFrom()', () => {
 
       expect(result).toBe(expected);
     });
+  });
+});
+
+describe('isPathComponent()', () => {
+  // Failure cases: Bad arguments
+  test.each`
+  value
+  ${undefined}
+  ${null}
+  ${true}
+  ${123}
+  ${['x']}
+  ${{ a: 'x' }}
+  ${new Map()}
+  `('throws given $value', ({ value }) => {
+    expect(() => UriUtil.isPathComponent(value)).toThrow();
+  });
+
+  // `false` cases.
+  test.each`
+  label                               | value
+  ${'path navigation'}                | ${'.'}
+  ${'path navigation'}                | ${'..'}
+  ${'space'}                          | ${'bip bop'}
+  ${'slash'}                          | ${'x/y'}
+  ${'query'}                          | ${'foo?query'}
+  ${'fragment'}                       | ${'bar#fragment'}
+  ${'invalid %-encoding'}             | ${'foo%%bar'}
+  ${'invalid %-encoding'}             | ${'foo%XYbar'}
+  ${'invalid %-encoding (lowercase)'} | ${'foo%aabar'}
+  ${'incomplete %-encoding'}          | ${'foo%'}
+  ${'incomplete %-encoding'}          | ${'foo%1'}
+  ${'non-ASCII'}                      | ${'\u{a1}'}
+  ${'non-ASCII'}                      | ${'\u{1a1}'}
+  ${'non-ASCII'}                      | ${'\u{1a10}'}
+  `('returns `false` for `$value` ($label)', ({ value }) => {
+    expect(UriUtil.isPathComponent(value)).toBeFalse();
+  });
+
+  test('returns `false` for all ASCII control characters', () => {
+    for (let n = 0; n <= 31; n++) {
+      const ch = String.fromCodePoint(n);
+      expect(UriUtil.isPathComponent(`x${ch}y`)).toBeFalse();
+    }
+  });
+
+  test('returns `false` for all disallowed ASCII printables', () => {
+    for (let n = 32; n <= 127; n++) {
+      const ch = String.fromCodePoint(n);
+      if (!/[-_.~!$&'()*+,;=:@%A-Za-z0-9]/.test(ch)) {
+        expect(UriUtil.isPathComponent(`x${ch}y`)).toBeFalse();
+      }
+    }
+  });
+
+  // `true` cases.
+  test.each`
+  value
+  ${''}
+  ${'a'}
+  ${'abcdefghijklmnopqrstuvwxyz'}
+  ${'ABCDEFGHIJKLMNOPQRSTUVWXYZ'}
+  ${'0123456789'}
+  ${"-._~!$&'()*+,;=:@"}
+  ${'...'}
+  ${'.florp'}
+  ${'foo.'}
+  ${'zonk..'}
+  ${'x.y'}
+  ${'x..y'}
+  ${'%01'}
+  ${'%AB'}
+  ${'%23%45'}
+  ${'x%67%89y'}
+  ${'-%AB-%CD-%EF-'}
+  ${'%F0...%9C'}
+  `('returns `true` for `$value`', ({ value }) => {
+    expect(UriUtil.isPathComponent(value)).toBeTrue();
   });
 });

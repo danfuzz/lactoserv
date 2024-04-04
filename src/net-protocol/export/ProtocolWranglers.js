@@ -1,6 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { MustBe } from '@this/typey';
+
 import { Http2Wrangler } from '#p/Http2Wrangler';
 import { HttpWrangler } from '#p/HttpWrangler';
 import { HttpsWrangler } from '#p/HttpsWrangler';
@@ -40,5 +42,23 @@ export class ProtocolWranglers {
     }
 
     return new cls(options);
+  }
+
+  /**
+   * Checks that this module knows of a protocol by the given name.
+   *
+   * @param {string} name Protocol name.
+   * @returns {string} `name` if it is a known protocol.
+   * @throws {Error} Thrown if `name` is not a known protocol (or is not a
+   *   string).
+   */
+  static checkProtocol(name) {
+    MustBe.string(name);
+
+    if (!this.#WRANGLER_CLASSES.has(name)) {
+      throw new Error(`Unknown protocol: ${name}`);
+    }
+
+    return name;
   }
 }

@@ -14,7 +14,8 @@ Breaking changes:
 * None.
 
 Other notable changes:
-* None.
+* `built-ins`:
+  * Loosened restrictions on path component syntax in `PathRouter`.
 
 ### v0.6.13 -- 2024-04-03
 

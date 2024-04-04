@@ -103,6 +103,51 @@ function makeRequest(path) {
   });
 }
 
+describe('constructor', () => {
+  test('accepts some syntactically valid `paths`', () => {
+    const paths = {
+      '/':             'a',
+      '/*':            'b',
+      '/x':            'c',
+      '/x/*':          'd',
+      '/x/y/zorp':     'e',
+      '/:foo:':        'f',
+      '/beep/@$floop': 'g'
+    };
+    expect(() => new PathRouter({ name: 'x', paths })).not.toThrow();
+  });
+
+  test.each`
+  path
+  ${'//'}             // No empty components.
+  ${'/foo//'}
+  ${'/foo//bar'}
+  ${'/./x'}           // No navigation components.
+  ${'/x/.'}
+  ${'/x/y/../z'}
+  ${'/x/y/..'}
+  ${'/*/x'}           // Wildcards only at end.
+  ${'/a/*/x'}
+  ${'/*/'}
+  ${'/foo/bar?query'} // Queries not allowed.
+  ${'/foo/bar#hash'}  // Fragments not allowed.
+  ${'/foo/**/bar'}    // No star-only components.
+  ${'/foo/a%/bar'}    // Invalid %-encoding.
+  ${'/foo/b%1/bar'}
+  ${'/foo/c%1z/bar'}
+  ${'/foo/d%x5/bar'}
+  ${'/foo/e%ab/bar'}  // (Must be uppercase hex.)
+  ${'/\u{1234}'}      // Non-ASCII should be %-encoded.
+  `('throws given path `$path`', ({ path }) => {
+    const paths = {
+      '/a': 'a',
+      ...path,
+      '/z': 'z'
+    };
+    expect(() => new PathRouter({ name: 'x', paths })).toThrow();
+  });
+});
+
 describe('_impl_handleRequest()', () => {
   async function makeInstance(paths, { appCount = 1, handlerFunc = null } = {}) {
     const root = new NopControllable(null, new RootControlContext(null));
