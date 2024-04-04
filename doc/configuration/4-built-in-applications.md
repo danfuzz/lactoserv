@@ -178,14 +178,17 @@ it accepts the following bindings:
 The keys in `paths` must start with a slash (`/`). (The idea is that they are
 _absolute_ paths within the scope of the router, even though they are
 effectively _relative_ paths with respect to whatever the router is mounted
-within.)
+within.) The components within paths are required to adhere to the normal syntax of URIs,
+with the following additional restrictions:
 
-The components within paths are required to adhere to the normal syntax of URIs,
-with the one additional restriction that path components consisting solely of
-one or more asterisks (`*`) are not allowed (to avoid confusion with wildcards).
-See [RFC 3986
-section 3.3](https://datatracker.ietf.org/doc/html/rfc3986#section-3.3) for the
-details.
+* No path components consisting solely of one or more asterisks (`*`), to avoid
+  confusion with wildcards.
+* No empty path components (`...//...`). It's too confusing.
+* No "directory navigation" components, that is, `.` or `..`. They couldn't
+  ever be matched anyway, because of URI canonicalization.
+
+See [RFC 3986 section 3.3](https://datatracker.ietf.org/doc/html/rfc3986#section-3.3)
+for the full syntax of URI paths.
 
 The routing works by starting with the most specific match to the path of an
 incoming request. If that app does not try to handle the request &mdash;
