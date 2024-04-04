@@ -170,6 +170,11 @@ it accepts the following bindings:
   the _names_ of other applications as values. A wildcard only covers the suffix
   of a path; it cannot be used for prefixes or infixes.
 
+The keys in `paths` must start with a slash (`/`). (The idea is that they are
+_absolute_ paths within the scope of the router, even though they are
+effectively _relative_ paths with respect to whatever the router is mounted
+within.)
+
 The routing works by starting with the most specific match to the path of an
 incoming request. If that app does not try to handle the request &mdash;
 note that it counts as a "try" to end up `throw`ing out of the handler &mdash;
