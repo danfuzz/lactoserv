@@ -208,7 +208,7 @@ export class NetworkEndpoint extends BaseComponent {
 
       this.#interface   = Object.freeze(HostUtil.parseInterface(iface));
       this.#application = Names.checkName(application);
-      this.#protocol    = UriUtil.checkProtocol(protocol);
+      this.#protocol    = ProtocolWranglers.checkProtocol(protocol);
       this.#services    = new ServiceUseConfig(services);
     }
 
