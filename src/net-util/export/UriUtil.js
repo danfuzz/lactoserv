@@ -11,46 +11,6 @@ import { MustBe } from '@this/typey';
  */
 export class UriUtil {
   /**
-   * Checks that a given value is a string which can be interpreted as an
-   * absolute URI path (no protocol, host, etc.). It must:
-   *
-   * * Start with a slash (`/`).
-   * * End with a slash (`/`).
-   * * Not contain double (or more) slashes.
-   * * Not contain `.` or `..` path components.
-   * * Not contain a query or hash fragment.
-   * * Not contain characters that need `%`-encoding. (It is expected to be
-   *   pre-encoded.)
-   *
-   * @param {*} value Value in question.
-   * @returns {string} `value` if it is a string which matches the pattern.
-   * @throws {Error} Thrown if `value` does not match.
-   */
-  static checkAbsolutePath(value) {
-    // Basic constraints.
-    const pattern =
-      '^' +
-      '(?=[/])' +              // Must start with a slash.
-      '(?!.*[/][.]{0,2}[/])' + // No empty, `.`, or `..` components.
-      '.*/$';                  // Must end with a slash.
-
-    MustBe.string(value, pattern);
-
-    // Check the rest of the constraints by parsing and only accepting it if
-    // a successfully-parsed path is the same as the given one.
-    try {
-      const url = new URL(`http://x${value}`);
-      if (url.pathname === value) {
-        return value;
-      }
-    } catch {
-      // Fall through to throw the error.
-    }
-
-    throw new Error('Must be an absolute URI path.');
-  }
-
-  /**
    * Checks that a given value is a string which can be interpreted as a "basic"
    * absolute URI. It must:
    *

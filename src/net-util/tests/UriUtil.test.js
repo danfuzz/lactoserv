@@ -5,39 +5,6 @@ import { TreePathKey } from '@this/collections';
 import { UriUtil } from '@this/net-util';
 
 
-describe('checkAbsolutePath()', () => {
-  // Failure cases.
-  test.each`
-  label                               | path
-  ${'null'}                           | ${null}
-  ${'non-string'}                     | ${123}
-  ${'no slash at start'}              | ${'foo/bar/'}
-  ${'no slash at end'}                | ${'/foo/bar'}
-  ${'double slash at start'}          | ${'//foo/bar/'}
-  ${'double slash in middle'}         | ${'/foo//bar/'}
-  ${'double slash at end'}            | ${'/foo/bar//'}
-  ${'triple slash'}                   | ${'/foo///bar/'}
-  ${'`.` component'}                  | ${'/foo/./bar/'}
-  ${'`..` component'}                 | ${'/foo/../bar/'}
-  ${'query'}                          | ${'/foo?x=123/'}
-  ${'hash fragment'}                  | ${'/foo#123/'}
-  ${'character needing `%`-encoding'} | ${'/foo/b ar/'}
-  `('fails for $label', ({ path }) => {
-    expect(() => UriUtil.checkAbsolutePath(path)).toThrow();
-  });
-
-  // Success cases.
-  test.each`
-  path
-  ${'/'}
-  ${'/foo/'}
-  ${'/foo/bar/'}
-  ${'/foo/b%20ar/'}
-  `('succeeds for $path', ({ path }) => {
-    expect(UriUtil.checkAbsolutePath(path)).toBe(path);
-  });
-});
-
 describe('checkBasicUri()', () => {
   // Failure cases.
   test.each`
