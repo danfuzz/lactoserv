@@ -53,7 +53,7 @@ export class BaseFilePreserver {
    *
    * @type {Threadlet}
    */
-  #runner = new Threadlet(() => this.#run());
+  #runner = new Threadlet((ra) => this.#run(ra));
 
   /**
    * Condition which indicates a need to save now.
@@ -292,9 +292,11 @@ export class BaseFilePreserver {
 
   /**
    * Main function of the threadlet for this instance.
+   *
+   * @param {Threadlet.RunnerAccess} runnerAccess Thread runner access object.
    */
-  async #run() {
-    while (!this.#runner.shouldStop()) {
+  async #run(runnerAccess) {
+    while (!runnerAccess.shouldStop()) {
       await this._impl_doWork();
 
       if (this.#saveNow.value === true) {
@@ -308,7 +310,7 @@ export class BaseFilePreserver {
         ...(subclassPromise ? [subclassPromise] : [])
       ];
 
-      await this.#runner.raceWhenStopRequested(racers);
+      await runnerAccess.raceWhenStopRequested(racers);
     }
 
     // Give the subclass one last opportunity to request a save.

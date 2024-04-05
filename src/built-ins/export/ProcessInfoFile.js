@@ -41,7 +41,7 @@ export class ProcessInfoFile extends BaseFileService {
    *
    * @type {Threadlet}
    */
-  #runner = new Threadlet(() => this.#start(), () => this.#run());
+  #runner = new Threadlet(() => this.#start(), (ra) => this.#run(ra));
 
   // @defaultConstructor
 
@@ -190,19 +190,21 @@ export class ProcessInfoFile extends BaseFileService {
 
   /**
    * Runs the service thread.
+   *
+   * @param {Threadlet.RunnerAccess} runnerAccess Thread runner access object.
    */
-  async #run() {
+  async #run(runnerAccess) {
     const updateMsec = this.config.updatePeriod?.msec ?? null;
 
-    while (!this.#runner.shouldStop()) {
+    while (!runnerAccess.shouldStop()) {
       this.#updateContents();
       await this.#writeFile();
 
       if (updateMsec) {
         const timeout = WallClock.waitForMsec(updateMsec);
-        await this.#runner.raceWhenStopRequested([timeout]);
+        await runnerAccess.raceWhenStopRequested([timeout]);
       } else {
-        await this.#runner.whenStopRequested();
+        await runnerAccess.whenStopRequested();
       }
     }
   }

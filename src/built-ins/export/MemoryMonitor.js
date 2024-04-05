@@ -23,7 +23,7 @@ export class MemoryMonitor extends BaseService {
    *
    * @type {Threadlet}
    */
-  #runner = new Threadlet(() => this.#run());
+  #runner = new Threadlet((ra) => this.#run(ra));
 
   /**
    * Most recent memory snapshot (along with timing info), or `null` if a
@@ -102,11 +102,13 @@ export class MemoryMonitor extends BaseService {
 
   /**
    * Runs the service thread.
+   *
+   * @param {Threadlet.RunnerAccess} runnerAccess Thread runner access object.
    */
-  async #run() {
+  async #run(runnerAccess) {
     const checkMsec = this.config.checkPeriod.msec;
 
-    while (!this.#runner.shouldStop()) {
+    while (!runnerAccess.shouldStop()) {
       const snapshot = this.#takeSnapshot();
 
       if (snapshot.actionAt && (snapshot.actionAt.atSec < snapshot.at.atSec)) {
@@ -130,7 +132,7 @@ export class MemoryMonitor extends BaseService {
         timeoutMsec = msecUntilCheck;
       }
 
-      await this.#runner.raceWhenStopRequested([
+      await runnerAccess.raceWhenStopRequested([
         WallClock.waitForMsec(timeoutMsec)
       ]);
     }

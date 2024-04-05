@@ -4,6 +4,7 @@
 import { MustBe } from '@this/typey';
 
 import { Condition } from '#x/Condition';
+import { IntfThreadlike } from '#x/IntfThreadlike';
 import { PromiseUtil } from '#x/PromiseUtil';
 
 
@@ -15,6 +16,8 @@ import { PromiseUtil } from '#x/PromiseUtil';
  * function is responsible for proactively figuring out when to stop. It can do
  * this by using the methods {@link #shouldStop} and {@link #whenStopRequested}
  * on the instance of this class that it is called with.
+ *
+ * @implements {IntfThreadlike}
  */
 export class Threadlet {
   /**
@@ -32,11 +35,20 @@ export class Threadlet {
   #mainFunction;
 
   /**
-   * Intended current state of whether or not this instance is running.
+   * Access instance passed to {@link #startFunction} and {@link #mainFunction}.
+   *
+   * @type {Threadlet.RunnerAccess}
+   */
+  #runnerAccess;
+
+  /**
+   * Intended current state of whether or not this instance is running. That is,
+   * it answers the question "Should we be running?" and not "Are we actually
+   * running?"
    *
    * @type {Condition}
    */
-  #runCondition = new Condition();
+  #runningCondition = new Condition();
 
   /**
    * Promised result of the currently-executing {@link #run}, if the instance is
@@ -81,99 +93,48 @@ export class Threadlet {
    * to a call to {@link #run}). When called, the functions are passed as an
    * argument the instance of this class that is calling them.
    *
-   * @param {function(Threadlet): *} function1 First function to call (start
-   *   function or main function).
-   * @param {?function(Threadlet): *} [mainFunction] Main function, or `null` if
-   *   `function1` is actually the main function (and there is no start
-   *   function).
+   * @param {function(Threadlet.RunnerAccess): *} function1 First function to
+   *   call (start function or main function).
+   * @param {?function(Threadlet.RunnerAccess): *} [mainFunction] Main function,
+   *   or `null` if `function1` is actually the main function (and there is no
+   *   start function).
    */
   constructor(function1, mainFunction = null) {
     MustBe.callableFunction(function1);
 
     if (mainFunction) {
       MustBe.callableFunction(mainFunction);
-      this.#startFunction = this.#wrapFunction(function1);
-      this.#mainFunction  = this.#wrapFunction(mainFunction);
+      this.#startFunction = function1;
+      this.#mainFunction  = mainFunction;
     } else {
       this.#startFunction = null;
-      this.#mainFunction  = this.#wrapFunction(function1);
+      this.#mainFunction  = function1;
     }
+
+    this.#runnerAccess = new Threadlet.RunnerAccess(this);
   }
 
-  /**
-   * Is this instance currently running?
-   *
-   * @returns {boolean} The answer.
-   */
+  /** @override */
   isRunning() {
     return this.#runResult !== null;
   }
 
   /**
-   * Runs a `Promise.race()` between the result of {@link #whenStopRequested}
-   * and the given additional promises.
-   *
-   * @param {Array<*>} promises Array (or iterable in general) of promises to
-   *   race.
-   * @returns {boolean} `true` iff this instance has been asked to stop
-   *  (as with {@link #shouldStop}), if the race was won by a non-rejected
-   *  promise.
-   * @throws {*} The rejected result of the promise that won the race.
-   */
-  async raceWhenStopRequested(promises) {
-    if (this.shouldStop()) {
-      return true;
-    }
-
-    // List our stop condition last, because it is likely to be unresolved; we
-    // thus might get to avoid some work in the call to `race()`.
-    const allProms = [...promises, this.#runCondition.whenFalse()];
-
-    await PromiseUtil.race(allProms);
-
-    return this.shouldStop();
-  }
-
-  /**
-   * Starts this instance running, if it isn't already.  All processing in the
-   * thread happens asynchronously with respect to the caller of this method.
-   * The async-return value or exception thrown from this method is (in order):
+   * As a clarification to the interface's contract for this method, the
+   * async-return value or exception thrown from this method is (in order):
    *
    * * The exception thrown by the start function, if this instance has a start
    *   function which threw.
    * * The exception thrown by the main function, if it threw.
    * * The return value from the main function.
    *
-   * **Note:** To be clear, if the instance was already running when this method
-   * was called, the return value from this method will be the same value as
-   * returned (or the same exception thrown) from the call which actually
-   * started the instance running.
-   *
-   * @returns {*} Whatever is returned by the main function.
-   * @throws {Error} Whatever was thrown by either the start function or the
-   *   main function.
+   * @override
    */
   async run() {
     return this.#run(true);
   }
 
-  /**
-   * Should the current run stop? This method is primarily intended for use by
-   * the main function, so it can behave cooperatively.
-   *
-   * @returns {boolean} `true` iff this instance has been asked to stop.
-   */
-  shouldStop() {
-    return this.#runCondition.value === false;
-  }
-
-  /**
-   * Starts this instance running as with {@link #run}, except that it
-   * async-returns once the instance is _started_ as with {@link #whenStarted}.
-   *
-   * @returns {*} Return value from {@link #whenStarted} (see which).
-   * @throws {Error} Error thrown by {@link #whenStarted} (see which).
-   */
+  /** @override */
   async start() {
     // Squelch any error from `run()`, because otherwise it will turn into an
     // impossible-to-actually-handle promise rejection. It's up to clients to
@@ -183,66 +144,23 @@ export class Threadlet {
     return this.whenStarted();
   }
 
-  /**
-   * Requests that this instance stop running as soon as possible. This method
-   * async-returns the same return value as the call to {@link #run} which
-   * started instance. If the instance isn't running when this method is called,
-   * it promptly returns `null` (and _not_, e.g., the result of an earlier run).
-   *
-   * @returns {*} Whatever is returned by the main function.
-   * @throws {Error} Whatever was thrown by either the start function or the
-   *   main function.
-   */
+  /** @override */
   async stop() {
     if (!this.isRunning()) {
       return null;
     }
 
-    this.#runCondition.value = false;
+    this.#runningCondition.value = false;
     return this.#run(true);
   }
 
-  /**
-   * Gets a promise that becomes settled when this instance is running and after
-   * its start function has completed. It becomes _fulfilled_ with the result of
-   * calling the start function, if the start function returned without error.
-   * It becomes _rejected_ with the same reason as whatever the start function
-   * threw, if the start function indeed threw an error. If `isRunning() ===
-   * false` when this method is called, it async-returns `null` promptly.
-   *
-   * @returns {*} Whatever was returned by the start function, with exceptions
-   *   as noted above.
-   * @throws {Error} The same error as thrown by the start function, if it threw
-   *   an error.
-   */
+  /** @override */
   async whenStarted() {
     if (!this.isRunning()) {
       return null;
     }
 
     return this.#startResult;
-  }
-
-  /**
-   * Gets a promise that becomes fulfilled when this instance has been asked to
-   * stop (or when it is already stopped). This method is primarily intended for
-   * use by the main function, so it can behave cooperatively.
-   *
-   * @returns {Promise} A promise as described.
-   */
-  whenStopRequested() {
-    return this.#runCondition.whenFalse();
-  }
-
-  /**
-   * Properly wraps a function so it can be called with no arguments in {@link
-   * #run}.
-   *
-   * @param {function(*)} func Function to wrap.
-   * @returns {function(*)} Wrapped version.
-   */
-  #wrapFunction(func) {
-    return () => func(this);
   }
 
   /**
@@ -255,8 +173,8 @@ export class Threadlet {
    */
   #run(exposed = false) {
     if (!this.isRunning()) {
-      this.#runCondition.value = true;
-      this.#runResult          = this.#run0();
+      this.#runningCondition.value = true;
+      this.#runResult              = this.#run0();
     }
 
     this.#runResultExposed ||= exposed;
@@ -288,7 +206,8 @@ export class Threadlet {
       await this.#startResult;
       started = true;
 
-      return await this.#mainFunction();
+      // `func ?? null` is a tactic to call it without binding `this`.
+      return await (this.#mainFunction ?? null)(this.#runnerAccess);
     } catch (error) {
       if (started && !this.#runResultExposed) {
         // There was an exception while running, and `#runResult` was never
@@ -307,10 +226,10 @@ export class Threadlet {
       // as of the end of this method (which will be happening synchronously),
       // running will have stopped. Similar logic applies to the other
       // properties.
-      this.#startResult        = null;
-      this.#runResultExposed   = false;
-      this.#runResult          = null;
-      this.#runCondition.value = false;
+      this.#startResult            = null;
+      this.#runResultExposed       = false;
+      this.#runResult              = null;
+      this.#runningCondition.value = false;
     }
   }
 
@@ -329,9 +248,98 @@ export class Threadlet {
       // guarantee is specified by this class.)
       await null;
 
-      return this.#startFunction(this);
+      // `func ?? null` is a tactic to call it without binding `this`.
+      return (this.#startFunction ?? null)(this.#runnerAccess);
     } else {
       return null;
     }
   }
+
+
+  //
+  // Static members
+  //
+
+  /**
+   * Class that provides access to internal state in a form that's useful for
+   * `start()` and `run()` functions.
+   */
+  static RunnerAccess = class RunnerAccess {
+    /**
+     * The outer instance.
+     *
+     * @type {Threadlet}
+     */
+    #outerThis;
+
+    /**
+     * The `#runningCondition` from {@link #outerThis}.
+     *
+     * @type {Condition}
+     */
+    #outerRunCond;
+
+    /**
+     * Constructs an instance.
+     *
+     * @param {Threadlet} outerThis The outer instance.
+     */
+    constructor(outerThis) {
+      this.#outerThis    = outerThis;
+      this.#outerRunCond = outerThis.#runningCondition;
+      Object.freeze(this);
+    }
+
+    /**
+     * @returns {Threadlet} The `Threadlet` instance which this instance
+     *   provides access to.
+     */
+    get threadlet() {
+      return this.#outerThis;
+    }
+
+    /**
+     * Runs a `Promise.race()` between the result of {@link #whenStopRequested}
+     * and the given additional promises.
+     *
+     * @param {Array<*>} promises Array (or iterable in general) of promises to
+     *   race.
+     * @returns {boolean} `true` iff this instance has been asked to stop
+     *  (as with {@link #shouldStop}), if the race was won by a non-rejected
+     *  promise.
+     * @throws {*} The rejected result of the promise that won the race.
+     */
+    async raceWhenStopRequested(promises) {
+      if (this.shouldStop()) {
+        return true;
+      }
+
+      // List our stop condition last, because it is likely to be unresolved; we
+      // thus might get to avoid some work in the call to `race()`.
+      const allProms = [...promises, this.#outerRunCond.whenFalse()];
+
+      await PromiseUtil.race(allProms);
+
+      return this.shouldStop();
+    }
+
+    /**
+     * Should the current run stop?
+     *
+     * @returns {boolean} `true` iff this instance has been asked to stop.
+     */
+    shouldStop() {
+      return this.#outerRunCond.value === false;
+    }
+
+    /**
+     * Gets a promise that becomes fulfilled when this instance has been asked
+     * to stop (or when it is already stopped).
+     *
+     * @returns {Promise} A promise as described.
+     */
+    whenStopRequested() {
+      return this.#outerRunCond.whenFalse();
+    }
+  };
 }

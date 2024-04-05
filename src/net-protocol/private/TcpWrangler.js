@@ -60,7 +60,7 @@ export class TcpWrangler extends ProtocolWrangler {
    *
    * @type {Threadlet}
    */
-  #runner = new Threadlet(() => this.#run());
+  #runner = new Threadlet((ra) => this.#run(ra));
 
   /**
    * Constructs an instance.
@@ -126,7 +126,7 @@ export class TcpWrangler extends ProtocolWrangler {
    *   `connection` event.
    */
   async #handleConnection(socket, ...rest) {
-    if (this.#runner.shouldStop()) {
+    if (this._prot_isStopping()) {
       // Immediately close a socket that managed to slip in while we're trying
       // to stop.
       socket.close();
@@ -330,11 +330,13 @@ export class TcpWrangler extends ProtocolWrangler {
   /**
    * Runs the low-level stack. This is called as the main function of the {@link
    * #runner}.
+   *
+   * @param {Threadlet.RunnerAccess} runnerAccess Thread runner access object.
    */
-  async #run() {
-    while (!this.#runner.shouldStop()) {
+  async #run(runnerAccess) {
+    while (!runnerAccess.shouldStop()) {
       const event =
-        await this.#asyncServer.accept(this.#runner.whenStopRequested());
+        await this.#asyncServer.accept(runnerAccess.whenStopRequested());
       if (event) {
         switch (event.type) {
           case 'connection': {

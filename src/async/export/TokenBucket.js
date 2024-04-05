@@ -108,7 +108,7 @@ export class TokenBucket {
    *
    * @type {Threadlet}
    */
-  #waiterThread = new Threadlet(() => this.#serviceWaiters());
+  #waiterThread = new Threadlet((runnerAccess) => this.#serviceWaiters(runnerAccess));
 
   /**
    * Constructs an instance.
@@ -561,9 +561,11 @@ export class TokenBucket {
   /**
    * Services {@link #waiters}. This gets run in {@link #waiterThread} whenever
    * {@link #waiters} is non-empty, and stops once it becomes empty.
+   *
+   * @param {Threadlet.RunnerAccess} runnerAccess Thread runner access object.
    */
-  async #serviceWaiters() {
-    while (!this.#waiterThread.shouldStop()) {
+  async #serviceWaiters(runnerAccess) {
+    while (!runnerAccess.shouldStop()) {
       const info = this.#waiters[0];
       if (!info) {
         break;
@@ -578,13 +580,13 @@ export class TokenBucket {
         const waitTime = this.#lastNow.subtract(info.startTime);
         info.doGrant(this.#requestGrantResult(got.grant, 'grant', waitTime));
       } else {
-        await this.#waiterThread.raceWhenStopRequested([
+        await runnerAccess.raceWhenStopRequested([
           this.#waitUntil(got.waitUntil)
         ]);
       }
     }
 
-    if (this.#waiterThread.shouldStop()) {
+    if (runnerAccess.shouldStop()) {
       // The thread was asked to stop, which only happens in this class when
       // `denyAllRequests()` was called. So, deny all requests.
       this.#topUpBucket(); // Makes `#lastTime` be current.

@@ -3,6 +3,7 @@
 
 import { MustBe } from '@this/typey';
 
+import { BaseExposedThreadlet } from '#x/BaseExposedThreadlet';
 import { EventOrPromise } from '#p/EventOrPromise';
 import { LinkedEvent } from '#x/LinkedEvent';
 import { Threadlet } from '#x/Threadlet';
@@ -15,7 +16,7 @@ import { Threadlet } from '#x/Threadlet';
  * running they are always either processing existing events or waiting for new
  * events to be emitted on the chain they track.
  */
-export class EventSink extends Threadlet {
+export class EventSink extends BaseExposedThreadlet {
   /**
    * Function to call, to process each event.
    *
@@ -47,7 +48,7 @@ export class EventSink extends Threadlet {
    *   processed by the instance, or promise for same.
    */
   constructor(processor, firstEvent) {
-    super(() => this.#run());
+    super();
 
     this.#processor = MustBe.callableFunction(processor).bind(null);
     this.#head      = new EventOrPromise(firstEvent);
@@ -72,6 +73,20 @@ export class EventSink extends Threadlet {
     await this.stop();
   }
 
+  /** @override */
+  async _impl_threadRun() {
+    // Main thread body: Processes events as they become available, until a
+    // problem is encountered or we're requested to stop.
+
+    this.#draining = false;
+
+    for (;;) {
+      if (await this.#runStep()) {
+        break;
+      }
+    }
+  }
+
   /**
    * Gets the current head event -- possibly waiting for it -- or returns `null`
    * if the instance has been asked to stop.
@@ -80,14 +95,16 @@ export class EventSink extends Threadlet {
    * @throws {Error} Thrown if there is any trouble getting the event.
    */
   async #headEvent() {
+    const runnerAccess = this._prot_runnerAccess();
+
     for (let pass = 1; pass <= 2; pass++) {
       if (pass === 2) {
         // On the second pass, wait for something salient to happen. (On the
         // first pass, waiting would achieve nothing but inefficiency.)
-        await this.raceWhenStopRequested([this.#head.eventPromise]);
+        await runnerAccess.raceWhenStopRequested([this.#head.eventPromise]);
       }
 
-      if (!this.#draining && this.shouldStop()) {
+      if (!this.#draining && runnerAccess.shouldStop()) {
         return null;
       }
 
@@ -103,21 +120,8 @@ export class EventSink extends Threadlet {
   }
 
   /**
-   * Main thread body: Processes events as they become available, until a
-   * problem is encountered or we're requested to stop.
-   */
-  async #run() {
-    this.#draining = false;
-
-    for (;;) {
-      if (await this.#runStep()) {
-        break;
-      }
-    }
-  }
-
-  /**
-   * Helper for {@link #run}, which performs one iteration of the inner loop.
+   * Helper for {@link #_impl_run}, which performs one iteration of the inner
+   * loop.
    *
    * @returns {boolean} Done flag: if `true`, the caller of this method should
    *   itself return.

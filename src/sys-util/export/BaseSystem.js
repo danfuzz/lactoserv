@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Condition, Threadlet } from '@this/async';
+import { Condition, BaseExposedThreadlet } from '@this/async';
 import { Host } from '@this/host';
 import { IntfLogger } from '@this/loggy-intf';
 import { Methods } from '@this/typey';
@@ -13,7 +13,7 @@ import { Methods } from '@this/typey';
  * implementation holes for a concrete subclass to take appropriate app-specific
  * action.
  */
-export class BaseSystem extends Threadlet {
+export class BaseSystem extends BaseExposedThreadlet {
   /**
    * Initialized?
    *
@@ -56,9 +56,7 @@ export class BaseSystem extends Threadlet {
    * @param {?IntfLogger} logger The logger to use, if any.
    */
   constructor(logger) {
-    super(
-      () => this.#start(),
-      () => this.#run());
+    super();
 
     this.#logger = logger;
   }
@@ -78,7 +76,7 @@ export class BaseSystem extends Threadlet {
   }
 
   /**
-   * Helper for {@link #run}, which performs a system reload.
+   * Helper for {@link #_impl_threadRun}, which performs a system reload.
    */
   async #reload() {
     this.#logger?.reloading();
@@ -111,28 +109,6 @@ export class BaseSystem extends Threadlet {
       // down).
       this.#logger?.reload('ignoring');
     }
-  }
-
-  /**
-   * Main thread body: Runs the system.
-   */
-  async #run() {
-    if (this.#initValue === null) {
-      throw new Error('Shouldn\'t happen: No initialization value.');
-    }
-
-    while (!this.shouldStop()) {
-      if (this.#reloadRequested.value === true) {
-        await this.#reload();
-        this.#reloadRequested.value = false;
-      }
-
-      await this.raceWhenStopRequested([
-        this.#reloadRequested.whenTrue()
-      ]);
-    }
-
-    await this.#stop();
   }
 
   /**
@@ -214,5 +190,30 @@ export class BaseSystem extends Threadlet {
    */
   async _impl_stop(forReload, initValue) {
     Methods.abstract(forReload, initValue);
+  }
+
+  /** @override */
+  async _impl_threadStart() {
+    return this.#start();
+  }
+
+  /** @override */
+  async _impl_threadRun(runnerAccess) {
+    if (this.#initValue === null) {
+      throw new Error('Shouldn\'t happen: No initialization value.');
+    }
+
+    while (!runnerAccess.shouldStop()) {
+      if (this.#reloadRequested.value === true) {
+        await this.#reload();
+        this.#reloadRequested.value = false;
+      }
+
+      await runnerAccess.raceWhenStopRequested([
+        this.#reloadRequested.whenTrue()
+      ]);
+    }
+
+    await this.#stop();
   }
 }

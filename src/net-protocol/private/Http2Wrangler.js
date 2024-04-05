@@ -41,7 +41,7 @@ export class Http2Wrangler extends TcpWrangler {
    *
    * @type {Threadlet}
    */
-  #runner = new Threadlet(() => this.#run());
+  #runner = new Threadlet((ra) => this.#run(ra));
 
   /**
    * Per-connection storage, used to plumb connection context through to the
@@ -94,7 +94,7 @@ export class Http2Wrangler extends TcpWrangler {
    * @param {http2.ServerHttp2Session} session The new session.
    */
   #addSession(session) {
-    if (this.#runner.shouldStop()) {
+    if (this._prot_isStopping()) {
       // Immediately close a session that managed to slip in while we're trying
       // to stop.
       session.close();
@@ -187,11 +187,13 @@ export class Http2Wrangler extends TcpWrangler {
 
   /**
    * Runs the high-level stack.
+   *
+   * @param {Threadlet.RunnerAccess} runnerAccess Thread runner access object.
    */
-  async #run() {
+  async #run(runnerAccess) {
     // As things stand, there isn't actually anything to do other than wait for
     // the stop request and then shut things down.
-    await this.#runner.whenStopRequested();
+    await runnerAccess.whenStopRequested();
 
     this.#protocolServer.close();
 

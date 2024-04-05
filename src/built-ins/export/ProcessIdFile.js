@@ -29,7 +29,7 @@ export class ProcessIdFile extends BaseFileService {
    *
    * @type {Threadlet}
    */
-  #runner = new Threadlet(() => this.#run());
+  #runner = new Threadlet((ra) => this.#run(ra));
 
   // @defaultConstructor
 
@@ -121,18 +121,20 @@ export class ProcessIdFile extends BaseFileService {
 
   /**
    * Runs the service thread.
+   *
+   * @param {Threadlet.RunnerAccess} runnerAccess Thread runner access object.
    */
-  async #run() {
+  async #run(runnerAccess) {
     const updateMsec = this.config.updatePeriod?.msec ?? null;
 
-    while (!this.#runner.shouldStop()) {
+    while (!runnerAccess.shouldStop()) {
       await this.#updateFile(true);
 
       if (updateMsec) {
         const timeout = WallClock.waitForMsec(updateMsec);
-        await this.#runner.raceWhenStopRequested([timeout]);
+        await runnerAccess.raceWhenStopRequested([timeout]);
       } else {
-        await this.#runner.whenStopRequested();
+        await runnerAccess.whenStopRequested();
       }
     }
 
