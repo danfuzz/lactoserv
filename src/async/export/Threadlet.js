@@ -362,19 +362,45 @@ export class Threadlet {
       Object.freeze(this);
     }
 
+    /**
+     * @returns {Threadlet} The `Threadlet` instance which this instance
+     *   provides access to.
+     */
     get threadlet() {
       return this.#outerThis;
     }
 
+    /**
+     * Runs a `Promise.race()` between the result of {@link #whenStopRequested}
+     * and the given additional promises.
+     *
+     * @param {Array<*>} promises Array (or iterable in general) of promises to
+     *   race.
+     * @returns {boolean} `true` iff this instance has been asked to stop
+     *  (as with {@link #shouldStop}), if the race was won by a non-rejected
+     *  promise.
+     * @throws {*} The rejected result of the promise that won the race.
+     */
     async raceWhenStopRequested(promises) {
       return this.#outerThis.raceWhenStopRequested(promises);
     }
 
+    /**
+     * Should the current run stop?
+     *
+     * @returns {boolean} `true` iff this instance has been asked to stop.
+     */
     shouldStop() {
       return this.#outerThis.shouldStop();
     }
 
-    async whenStopRequested() {
+    /**
+     * Gets a promise that becomes fulfilled when this instance has been asked
+     * to stop (or when it is already stopped).
+     *
+     * @returns {Promise} A promise as described.
+     */
+    whenStopRequested() {
       return this.#outerThis.whenStopRequested();
     }
   };
