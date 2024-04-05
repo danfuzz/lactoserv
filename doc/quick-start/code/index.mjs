@@ -29,19 +29,19 @@ class UsualSystem extends BaseSystem {
   }
 
   /** @override */
-  async _impl_init(forReload_unused) {
+  async _impl_init(isReload_unused) {
     return new Warehouse(CONFIG);
   }
 
   /** @override */
-  async _impl_start(forReload, initValue) {
+  async _impl_start(isReload, initValue) {
     this.#warehouse = initValue;
-    await this.#warehouse.start(forReload);
+    await this.#warehouse.start(isReload);
   }
 
   /** @override */
-  async _impl_stop(forReload, initValue_unused) {
-    await this.#warehouse.stop(forReload);
+  async _impl_stop(willReload, initValue_unused) {
+    await this.#warehouse.stop(willReload);
     this.#warehouse = null;
   }
 }
