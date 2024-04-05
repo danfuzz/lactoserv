@@ -784,7 +784,7 @@ describe('whenStarted()', () => {
 
 describe('`RunnerAccess` class', () => {
   test('is consistently the same instance for a given threadlet', async () => {
-    let got = [];
+    const got = [];
 
     const thread = new Threadlet((ra) => got.push(ra), (ra) => got.push(ra));
     await thread.run();
@@ -941,8 +941,8 @@ describe('`RunnerAccess` class', () => {
     });
 
     test('returns `false` while running and not asked to stop', async () => {
-      let got       = [];
-      let shouldRun = true;
+      const got       = [];
+      let   shouldRun = true;
       const thread = new Threadlet(async (ra) => {
         while (shouldRun) {
           got.push(ra.shouldStop());
@@ -1061,7 +1061,7 @@ describe('`RunnerAccess` class', () => {
 
       await thread.run();
 
-      const result = thread.whenStopRequested();
+      const result = runnerAccess.whenStopRequested();
 
       expect(PromiseState.isFulfilled(result)).toBeTrue();
     });
