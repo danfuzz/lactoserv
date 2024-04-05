@@ -61,10 +61,11 @@ const services = [
     updatePeriod: '5 min'
   },
   {
-    name:   'syslog',
-    class:  SyslogToFile,
-    path:   `${LOG_DIR}/system-log.txt`,
-    format: 'human',
+    name:         'syslog',
+    class:        SyslogToFile,
+    path:         `${LOG_DIR}/system-log.txt`,
+    format:       'human',
+    bufferPeriod: '0.25 sec',
     rotate: {
       atSize:      1024 * 1024,
       onStart:     true,
@@ -73,10 +74,11 @@ const services = [
     }
   },
   {
-    name:   'syslogJson',
-    class:  SyslogToFile,
-    path:   `${LOG_DIR}/system-log.json`,
-    format: 'json',
+    name:         'syslogJson',
+    class:        SyslogToFile,
+    path:         `${LOG_DIR}/system-log.json`,
+    format:       'json',
+    bufferPeriod: '0.25 sec',
     rotate: {
       atSize:      2 * 1024 * 1024,
       onStart:     true,
@@ -91,10 +93,11 @@ const services = [
     name:  'accessFile',
     class: AccessLogToFile,
     path:  `${LOG_DIR}/access-log.txt`,
+    bufferPeriod: '0.25 sec',
     rotate: {
-      atSize:      10000,
-      maxOldCount: 10,
-      checkPeriod: '1 min'
+      atSize:       10000,
+      maxOldCount:  10,
+      checkPeriod:  '1 min'
     }
   },
   {

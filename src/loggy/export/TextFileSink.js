@@ -1,11 +1,10 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import * as fs from 'node:fs/promises';
-import * as path from 'node:path';
-
 import { EventSink, LinkedEvent } from '@this/async';
-import { BaseConverter, Converter, ConverterConfig } from '@this/data-values';
+import { BaseConverter, Converter, ConverterConfig, Duration }
+  from '@this/data-values';
+import { FileAppender } from '@this/fs-util';
 import { LogPayload } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';
 
@@ -15,6 +14,13 @@ import { MustBe } from '@this/typey';
  * to a text file of some sort or to the console.
  */
 export class TextFileSink extends EventSink {
+  /**
+   * File appender.
+   *
+   * @type {FileAppender}
+   */
+  #appender;
+
   /**
    * Absolute path of the file to write to.
    *
@@ -40,12 +46,13 @@ export class TextFileSink extends EventSink {
    * Constructs an instance.
    *
    * @param {string} format Name of the formatter to use.
-   * @param {string} filePath File to write to. It is immediately resolved to an
-   *   absolute path.
+   * @param {string} filePath Absolute path of the file to write to.
    * @param {LinkedEvent|Promise<LinkedEvent>} firstEvent First event to be
    *   processed by the instance, or promise for same.
+   * @param {?Duration} [bufferPeriod] How long to buffer writes for, or `null`
+   *   not to do buffering.
    */
-  constructor(format, filePath, firstEvent) {
+  constructor(format, filePath, firstEvent, bufferPeriod = null) {
     MustBe.string(format);
     MustBe.string(filePath);
 
@@ -56,7 +63,19 @@ export class TextFileSink extends EventSink {
     super((event) => this.#process(event), firstEvent);
 
     this.#formatter = TextFileSink.#FORMATTERS.get(format);
-    this.#filePath  = path.resolve(filePath);
+    this.#filePath  = filePath;
+    this.#appender  = new FileAppender(filePath, bufferPeriod);
+  }
+
+  /**
+   * In addition to the superclass behavior, this flushes any pending output to
+   * the file.
+   *
+   * @override
+   */
+  async drainAndStop() {
+    await super.drainAndStop();
+    await this.#appender.flush();
   }
 
   /**
@@ -71,8 +90,7 @@ export class TextFileSink extends EventSink {
     const text = (this.#formatter ?? null)(payload);
 
     if (text !== null) {
-      const finalText = text.endsWith('\n') ? text : `${text}\n`;
-      await fs.appendFile(this.#filePath, finalText);
+      await this.#appender.appendText(text, true);
     }
   }
 

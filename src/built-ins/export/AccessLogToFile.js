@@ -1,14 +1,14 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import * as fs from 'node:fs/promises';
-
 import { WallClock } from '@this/clocks';
-import { Moment } from '@this/data-values';
+import { Duration, Moment } from '@this/data-values';
+import { FileAppender } from '@this/fs-util';
 import { FormatUtils } from '@this/loggy-intf';
 import { IntfAccessLog } from '@this/net-protocol';
 import { IncomingRequest } from '@this/net-util';
 import { BaseFileService, Rotator } from '@this/sys-util';
+import { MustBe } from '@this/typey';
 
 
 /**
@@ -20,6 +20,13 @@ import { BaseFileService, Rotator } from '@this/sys-util';
  * @implements {IntfAccessLog}
  */
 export class AccessLogToFile extends BaseFileService {
+  /**
+   * File appender.
+   *
+   * @type {FileAppender}
+   */
+  #appender;
+
   /**
    * File rotator to use, if any.
    *
@@ -117,7 +124,10 @@ export class AccessLogToFile extends BaseFileService {
   /** @override */
   async _impl_init(isReload_unused) {
     const { config } = this;
-    this.#rotator = config.rotate ? new Rotator(config, this.logger) : null;
+    const { bufferPeriod, path, rotate } = config;
+
+    this.#appender = new FileAppender(path, bufferPeriod);
+    this.#rotator  = rotate ? new Rotator(config, this.logger) : null;
   }
 
   /** @override */
@@ -138,7 +148,7 @@ export class AccessLogToFile extends BaseFileService {
    * @param {string} line The line to log.
    */
   async #logLine(line) {
-    await fs.appendFile(this.config.path, `${line}\n`);
+    await this.#appender.appendText(line, true);
   }
 
   /**
@@ -151,4 +161,57 @@ export class AccessLogToFile extends BaseFileService {
   #now() {
     return WallClock.now();
   }
+
+
+  //
+  // Static members
+  //
+
+  /** @override */
+  static _impl_configClass() {
+    return this.#Config;
+  }
+
+  /**
+   * Configuration item subclass for this (outer) class.
+   */
+  static #Config = class Config extends BaseFileService.Config {
+    /**
+     * How long to buffer updates for, or `null` to not do any buffering.
+     *
+     * @type {?Duration}
+     */
+    #bufferPeriod;
+
+    /**
+     * Constructs an instance.
+     *
+     * @param {object} rawConfig Raw configuration object.
+     */
+    constructor(rawConfig) {
+      super(rawConfig);
+
+      const { bufferPeriod = null } = rawConfig;
+
+      if (bufferPeriod) {
+        this.#bufferPeriod = Duration.parse(bufferPeriod, { minInclusive: 0 });
+        if (!this.#bufferPeriod) {
+          throw new Error(`Could not parse \`bufferPeriod\`: ${bufferPeriod}`);
+        }
+        if (this.#bufferPeriod === 0) {
+          this.#bufferPeriod = null;
+        }
+      } else {
+        this.#bufferPeriod = MustBe.null(bufferPeriod);
+      }
+    }
+
+    /**
+     * @returns {?Duration} How long to buffer updates for, or `null` to not do
+     * any buffering.
+     */
+    get bufferPeriod() {
+      return this.#bufferPeriod;
+    }
+  };
 }

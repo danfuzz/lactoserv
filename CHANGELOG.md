@@ -18,8 +18,13 @@ Breaking changes:
     said methods removed from the public API of `Threadlet` itself.
 
 Other notable changes:
+* `fs-util`:
+  * New class `FileAppender`, which does a modicum of buffering. This is used to
+    moderate filesystem calls when logging.
 * `built-ins`:
   * Loosened restrictions on path component syntax in `PathRouter`.
+  * Added `bufferPeriod` configuration option to `AccessLogToFile` and
+    `SyslogToFile`.
 
 ### v0.6.13 -- 2024-04-03
 

@@ -3,6 +3,7 @@
 
 import { EventTracker, LinkedEvent } from '@this/async';
 import { WallClock } from '@this/clocks';
+import { Duration } from '@this/data-values';
 import { Loggy, TextFileSink } from '@this/loggy';
 import { BaseFileService, Rotator } from '@this/sys-util';
 import { MustBe } from '@this/typey';
@@ -48,9 +49,9 @@ export class SyslogToFile extends BaseFileService {
     await this._prot_touchPath();
     await this.#rotator?.start(isReload);
 
-    const { format, name, path } = this.config;
+    const { bufferPeriod, format, name, path } = this.config;
     const earliestEvent = this.#findEarliestEventToLog(name);
-    this.#sink = new TextFileSink(format, path, earliestEvent);
+    this.#sink = new TextFileSink(format, path, earliestEvent, bufferPeriod);
 
     await this.#sink.start();
     this.logger.running();
@@ -119,6 +120,13 @@ export class SyslogToFile extends BaseFileService {
    */
   static #Config = class Config extends BaseFileService.Config {
     /**
+     * How long to buffer updates for, or `null` to not do any buffering.
+     *
+     * @type {?Duration}
+     */
+    #bufferPeriod;
+
+    /**
      * The output format name.
      *
      * @type {string}
@@ -133,13 +141,33 @@ export class SyslogToFile extends BaseFileService {
     constructor(rawConfig) {
       super(rawConfig);
 
-      const { format } = rawConfig;
+      const { bufferPeriod = null, format } = rawConfig;
+
+      if (bufferPeriod) {
+        this.#bufferPeriod = Duration.parse(bufferPeriod, { minInclusive: 0 });
+        if (!this.#bufferPeriod) {
+          throw new Error(`Could not parse \`bufferPeriod\`: ${bufferPeriod}`);
+        }
+        if (this.#bufferPeriod === 0) {
+          this.#bufferPeriod = null;
+        }
+      } else {
+        this.#bufferPeriod = MustBe.null(bufferPeriod);
+      }
 
       this.#format = MustBe.string(format);
 
       if (!TextFileSink.isValidFormat(format)) {
         throw new Error(`Unknown log format: ${format}`);
       }
+    }
+
+    /**
+     * @returns {?Duration} How long to buffer updates for, or `null` to not do
+     * any buffering.
+     */
+    get bufferPeriod() {
+      return this.#bufferPeriod;
     }
 
     /** @returns {string} The output format name. */

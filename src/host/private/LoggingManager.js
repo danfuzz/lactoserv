@@ -3,7 +3,10 @@
 
 import process from 'node:process';
 
+import { Duration } from '@this/data-values';
 import { Loggy, TextFileSink } from '@this/loggy';
+
+import { ShutdownHandler } from '#p/ShutdownHandler';
 
 
 /**
@@ -26,10 +29,15 @@ export class LoggingManager {
       return;
     }
 
-    const event     = Loggy.earliestEvent;
-    const formatter = process.stdout.isTTY ? 'humanColor' : 'human';
+    const bufferPeriod = Duration.parse('0.1 sec');
+    const event        = Loggy.earliestEvent;
+    const formatter    = process.stdout.isTTY ? 'humanColor' : 'human';
 
-    this.#stdoutSink = new TextFileSink(formatter, '/dev/stdout', event);
+    this.#stdoutSink = new TextFileSink(formatter, '/dev/stdout', event, bufferPeriod);
     this.#stdoutSink.run();
+
+    ShutdownHandler.registerCallback(() => {
+      this.#stdoutSink.drainAndStop();
+    });
   }
 }

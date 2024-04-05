@@ -14,7 +14,6 @@
   "dependencies": {
     "@this/async": "*",
     "@this/clocks": "*",
-    "@this/data-values": "*",
     "@this/host": "*",
     "@this/loggy-intf": "*",
     "@this/net-util": "*",

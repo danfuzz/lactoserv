@@ -64,6 +64,10 @@ meant to be similar to (though not identical to) what is commonly produced by
 other webservers (out in the world). As of this writing, the exact format is
 _not_ configurable. It accepts the following configuration bindings:
 
+* `bufferPeriod` &mdash; Duration indicating how long to buffer up log entries
+  before writing them to the file, specified as a duration value as described in
+  [Durations](./2-common-configuration.md#durations), or `null` to indicate
+  "never check." Optional and defaults to `null`.
 * `path` &mdash; Path to the log file(s) to write. When rotation is performed, a
   date stamp and (if necessary) sequence number are "infixed" into the final
   path component.
@@ -76,9 +80,10 @@ import { AccessLogToFile } from '@lactoserv/built-ins';
 
 const services = [
   {
-    name:   'accessLog',
-    class:  AccessLogToFile,
-    path:   '/path/to/var/log/access-log.txt',
+    name:         'accessLog',
+    class:        AccessLogToFile,
+    path:         '/path/to/var/log/access-log.txt',
+    bufferPeriod: '0.25 sec',
     rotate: { /* ... */ }
   }
 ];
@@ -297,10 +302,14 @@ const services = [
 A service which writes system activity logis either in a human-friendly or JSON
 form, to a (filesystem) file. It accepts the following configuration bindings:
 
+* `bufferPeriod` &mdash; Duration indicating how long to buffer up log entries
+  before writing them to the file, specified as a duration value as described in
+  [Durations](./2-common-configuration.md#durations), or `null` to indicate
+  "never check." Optional and defaults to `null`.
+* `format` &mdash; Either `human` or `json`.
 * `path` &mdash; Path to the log file(s) to write. When rotation is performed, a
   date stamp and (if necessary) sequence number are "infixed" into the final
   path component.
-* `format` &mdash; Either `human` or `json`.
 * `rotate` &mdash; Optional file rotation configuration. If not specified, no
   file rotation is done. See "File Rotation and Preservation" below for
   configuration details.
