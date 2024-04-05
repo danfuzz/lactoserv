@@ -74,7 +74,7 @@ export class EventSink extends BaseExposedThreadlet {
   }
 
   /** @override */
-  async _impl_run() {
+  async _impl_threadRun() {
     // Main thread body: Processes events as they become available, until a
     // problem is encountered or we're requested to stop.
 

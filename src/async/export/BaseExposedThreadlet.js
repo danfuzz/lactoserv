@@ -66,7 +66,7 @@ export class BaseExposedThreadlet {
    * @returns {*} Arbitrary result of starting.
    * @throws {Error} Arbitrary error from starting.
    */
-  async _impl_start(runnerAccess) { // eslint-disable-line no-unused-vars
+  async _impl_threadStart(runnerAccess) { // eslint-disable-line no-unused-vars
     return null;
   }
 
@@ -80,7 +80,7 @@ export class BaseExposedThreadlet {
    * @returns {*} Arbitrary result of starting.
    * @throws {Error} Arbitrary error from starting.
    */
-  async _impl_run(runnerAccess) { // eslint-disable-line no-unused-vars
+  async _impl_threadRun(runnerAccess) { // eslint-disable-line no-unused-vars
     return null;
   }
 
@@ -102,13 +102,13 @@ export class BaseExposedThreadlet {
    */
   async #start(runnerAccess) {
     this.#runnerAccess = runnerAccess;
-    return this._impl_start(runnerAccess);
+    return this._impl_threadStart(runnerAccess);
   }
 
   /**
    * Threadlet main function.
    */
   async #main() {
-    return this._impl_run(this.#runnerAccess);
+    return this._impl_threadRun(this.#runnerAccess);
   }
 }
