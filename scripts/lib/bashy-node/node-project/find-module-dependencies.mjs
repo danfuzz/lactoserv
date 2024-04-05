@@ -3,7 +3,6 @@
 
 import * as fs from 'node:fs';
 
-
 //
 // Argument parsing
 //
@@ -183,7 +182,7 @@ for (;;) {
 
   for (const f of fromNodes) {
     if (!toNodes.has(f)) {
-      graph = graph.filter(({ from, to }) => (from !== f));
+      graph = graph.filter(({ from }) => (from !== f));
       fromNodes.delete(f);
       anyRemoved = true;
     }
