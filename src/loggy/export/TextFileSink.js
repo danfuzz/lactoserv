@@ -12,7 +12,7 @@ import { MustBe } from '@this/typey';
 
 /**
  * Logging sink, which processes events by writing them in human-readable form
- * to a text file of some sort.
+ * to a text file of some sort or to the console.
  */
 export class TextFileSink extends EventSink {
   /**
