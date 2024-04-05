@@ -95,7 +95,15 @@ export class ProtocolWrangler {
    *
    * @type {Threadlet}
    */
-  #runner = new Threadlet(() => this.#startNetwork(), () => this.#runNetwork());
+  #runner = new Threadlet(() => this.#startNetwork(), (ra) => this.#runNetwork(ra));
+
+  /**
+   * Are we stopping (or stopped)?
+   *
+   * @type {boolean}
+   */
+  #stopping = true;
+
 
   /**
    * Is a system reload in progress (either during start or stop)?
@@ -199,6 +207,7 @@ export class ProtocolWrangler {
       throw new Error('`isReload` mismatch.');
     }
 
+    this.#stopping = false;
     await this.#runner.start();
   }
 
@@ -214,6 +223,7 @@ export class ProtocolWrangler {
    */
   async stop(willReload) {
     this.#reloading = willReload;
+    this.#stopping  = true;
     await this.#runner.stop();
   }
 
@@ -352,6 +362,18 @@ export class ProtocolWrangler {
       res.statusCode = 500; // "Internal Server Error."
       res.end();
     }
+  }
+
+  /**
+   * Is this instance trying to stop (or has it already stopped)? This is meant
+   * for subclasses to call when figuring out whether or not to allow new
+   * connections, requests, etc.
+   *
+   * @returns {boolean} `true` if the instance is stopping or stopped, or
+   *   `false` if it is running.
+   */
+  _prot_isStopping() {
+    return this.#stopping;
   }
 
   /**
@@ -524,14 +546,16 @@ export class ProtocolWrangler {
   /**
    * Runs the "network stack." This is called as the main function of the {@link
    * #runner}.
+   *
+   * @param {Threadlet.RunnerAccess} runnerAccess Thread runner access object.
    */
-  async #runNetwork() {
+  async #runNetwork(runnerAccess) {
     // As things stand, there isn't actually anything to do other than wait for
     // the stop request and then shut things down. (This would change in the
     // future if we switched to using async-events instead of Node callbacks at
     // this layer.)
 
-    await this.#runner.whenStopRequested();
+    await runnerAccess.whenStopRequested();
 
     if (this.#logger) {
       this.#logger.stopping(this._impl_infoForLog);
