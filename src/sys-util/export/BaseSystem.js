@@ -123,16 +123,16 @@ export class BaseSystem extends BaseExposedThreadlet {
    * System start function. Used as the thread start function and also during
    * requested reloads.
    *
-   * @param {boolean} [forReload] Is this for a reload?
+   * @param {boolean} [isReload] Is the system being reloaded?
    */
-  async #start(forReload = false) {
-    const logArg = forReload ? 'reload' : 'init';
+  async #start(isReload = false) {
+    const logArg = isReload ? 'reload' : 'init';
 
     this.#init();
 
     this.#logger?.starting(logArg);
 
-    if (!forReload) {
+    if (!isReload) {
       await this.#keepRunning.start();
       try {
         this.#nextInitValue = await this._impl_init(false);
@@ -144,7 +144,7 @@ export class BaseSystem extends BaseExposedThreadlet {
 
     this.#initValue     = this.#nextInitValue;
     this.#nextInitValue = null;
-    await this._impl_start(forReload, this.#initValue);
+    await this._impl_start(isReload, this.#initValue);
 
     this.#logger?.started(logArg);
   }
@@ -153,16 +153,16 @@ export class BaseSystem extends BaseExposedThreadlet {
    * System stop function. Used when the system is shutting down on the way to
    * exiting, and also used during requested reloads.
    *
-   * @param {boolean} [forReload] Is this for a reload?
+   * @param {boolean} [willReload] Will the system be reloaded?
    */
-  async #stop(forReload = false) {
-    const logArg = forReload ? 'willReload' : 'shutdown';
+  async #stop(willReload = false) {
+    const logArg = willReload ? 'willReload' : 'shutdown';
 
     this.#logger?.stopping(logArg);
-    await this._impl_stop(forReload, this.#initValue);
+    await this._impl_stop(willReload, this.#initValue);
     this.#logger?.stopped(logArg);
 
-    if (!forReload) {
+    if (!willReload) {
       await this.#keepRunning.stop();
     }
 
@@ -171,38 +171,38 @@ export class BaseSystem extends BaseExposedThreadlet {
 
   /**
    * Initializes any concrete-subclass-related bits, in preparation for running
-   * the system. If `forReload` is passed as `true`, the system is _already_
+   * the system. If `isReload` is passed as `true`, the system is _already_
    * running, and care should be taken not to disturb that. In particular, this
    * method is allowed to throw, and that will cause reloading to fail while
    * leaving the already-running system alone.
    *
    * @abstract
-   * @param {boolean} forReload Is this for a reload?
+   * @param {boolean} isReload Is the system being reloaded?
    * @returns {*} Value to pass to {@link #_impl_start}, once it is time to
    *   (re-)start the system.
    */
-  async _impl_init(forReload) {
-    Methods.abstract(forReload);
+  async _impl_init(isReload) {
+    Methods.abstract(isReload);
   }
 
   /**
    * Starts the system, in a subclass-specific way.
    *
-   * @param {boolean} forReload Is this for a reload?
+   * @param {boolean} isReload Is the system being reloaded?
    * @param {*} initValue Value previously returned from {@link #_impl_init}.
    */
-  async _impl_start(forReload, initValue) {
-    Methods.abstract(forReload, initValue);
+  async _impl_start(isReload, initValue) {
+    Methods.abstract(isReload, initValue);
   }
 
   /**
    * Stops the system, in a subclass-specific way.
    *
-   * @param {boolean} forReload Is this for a reload?
+   * @param {boolean} [willReload] Will the system be reloaded?
    * @param {*} initValue Value previously returned from {@link #_impl_init}.
    */
-  async _impl_stop(forReload, initValue) {
-    Methods.abstract(forReload, initValue);
+  async _impl_stop(willReload, initValue) {
+    Methods.abstract(willReload, initValue);
   }
 
   /** @override */
