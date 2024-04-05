@@ -20,6 +20,9 @@ Breaking changes:
 Other notable changes:
 * `built-ins`:
   * Loosened restrictions on path component syntax in `PathRouter`.
+* `fs-util`:
+  * New class `FileAppender`, which does a modicum of buffering. This is used to
+    moderate filesystem calls when logging.
 
 ### v0.6.13 -- 2024-04-03
 
