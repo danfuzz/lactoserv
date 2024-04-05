@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Threadlet } from '@this/async';
+import { BaseExposedThreadlet } from '@this/async';
 import { WallClock } from '@this/clocks';
 import { IntfLogger } from '@this/loggy-intf';
 
@@ -13,16 +13,9 @@ import { ThisModule } from '#p/ThisModule';
  * Utility to guarantee that this process doesn't stop running. By default, Node
  * proactively exits when the event loop quiesces and there do not seem to be
  * any pending actions. However, some systems still want to be able to keep the
- * process up, for whatever reason.
+ * process up, for some reason or other.
  */
-export class KeepRunning {
-  /**
-   * Thread that runs {@link #keepRunning}.
-   *
-   * @type {Threadlet}
-   */
-  #thread;
-
+export class KeepRunning extends BaseExposedThreadlet {
   /**
    * Logger for this class, or `null` not to do any logging.
    *
@@ -30,39 +23,7 @@ export class KeepRunning {
    */
   #logger = ThisModule.logger?.keepRunning;
 
-
-  /**
-   * Constructs an instance.
-   */
-  constructor() {
-    this.#thread = new Threadlet((ra) => this.#keepRunning(ra));
-  }
-
-  /**
-   * Initiates the actions required to keep the system running.
-   */
-  run() {
-    if (this.#thread.isRunning()) {
-      this.#logger?.run('ignored');
-      return;
-    }
-
-    this.#logger?.run();
-    this.#thread.run();
-  }
-
-  /**
-   * No longer keep the system running.
-   */
-  stop() {
-    if (!this.#thread.isRunning()) {
-      this.#logger?.stop('ignored');
-      return;
-    }
-
-    this.#logger?.stop();
-    this.#thread.stop();
-  }
+  // @defaultConstructor
 
   /**
    * Remains running and mostly waiting for a recurring timeout, until asked to
@@ -70,7 +31,7 @@ export class KeepRunning {
    *
    * @param {Threadlet.RunnerAccess} runnerAccess Thread runner access object.
    */
-  async #keepRunning(runnerAccess) {
+  async _impl_threadRun(runnerAccess) {
     this.#logger?.running();
 
     // This is a standard-ish trick to keep a Node process alive: Repeatedly set

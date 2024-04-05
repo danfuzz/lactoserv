@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Condition, BaseExposedThreadlet } from '@this/async';
-import { Host } from '@this/host';
+import { Host, KeepRunning } from '@this/host';
 import { IntfLogger } from '@this/loggy-intf';
 import { Methods } from '@this/typey';
 
@@ -34,6 +34,14 @@ export class BaseSystem extends BaseExposedThreadlet {
    * @type {?IntfLogger}
    */
   #logger = null;
+
+  /**
+   * Thing that prevents the system from exiting, and logs occasionally about
+   * that fact.
+   *
+   * @type {KeepRunning}
+   */
+  #keepRunning = new KeepRunning();
 
   /**
    * Value returned from {@link #_impl_init} which is currently being used.
