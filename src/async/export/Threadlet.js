@@ -39,7 +39,7 @@ export class Threadlet {
    *
    * @type {Threadlet.RunnerAccess}
    */
-  #runnerAccess = new Threadlet.RunnerAccess(this);
+  #runnerAccess;
 
   /**
    * Intended current state of whether or not this instance is running. That is,
@@ -110,36 +110,13 @@ export class Threadlet {
       this.#startFunction = null;
       this.#mainFunction  = function1;
     }
+
+    this.#runnerAccess = new Threadlet.RunnerAccess(this);
   }
 
   /** @override */
   isRunning() {
     return this.#runResult !== null;
-  }
-
-  /**
-   * Runs a `Promise.race()` between the result of {@link #whenStopRequested}
-   * and the given additional promises.
-   *
-   * @param {Array<*>} promises Array (or iterable in general) of promises to
-   *   race.
-   * @returns {boolean} `true` iff this instance has been asked to stop
-   *  (as with {@link #shouldStop}), if the race was won by a non-rejected
-   *  promise.
-   * @throws {*} The rejected result of the promise that won the race.
-   */
-  async raceWhenStopRequested(promises) {
-    if (this.shouldStop()) {
-      return true;
-    }
-
-    // List our stop condition last, because it is likely to be unresolved; we
-    // thus might get to avoid some work in the call to `race()`.
-    const allProms = [...promises, this.#runningCondition.whenFalse()];
-
-    await PromiseUtil.race(allProms);
-
-    return this.shouldStop();
   }
 
   /**
@@ -155,16 +132,6 @@ export class Threadlet {
    */
   async run() {
     return this.#run(true);
-  }
-
-  /**
-   * Should the current run stop? This method is primarily intended for use by
-   * the main function, so it can behave cooperatively.
-   *
-   * @returns {boolean} `true` iff this instance has been asked to stop.
-   */
-  shouldStop() {
-    return this.#runningCondition.value === false;
   }
 
   /** @override */
@@ -194,17 +161,6 @@ export class Threadlet {
     }
 
     return this.#startResult;
-  }
-
-  /**
-   * Gets a promise that becomes fulfilled when this instance has been asked to
-   * stop (or when it is already stopped). This method is primarily intended for
-   * use by the main function, so it can behave cooperatively.
-   *
-   * @returns {Promise} A promise as described.
-   */
-  whenStopRequested() {
-    return this.#runningCondition.whenFalse();
   }
 
   /**
@@ -317,12 +273,20 @@ export class Threadlet {
     #outerThis;
 
     /**
+     * The `#runningCondition` from {@link #outerThis}.
+     *
+     * @type {Condition}
+     */
+    #outerRunCond;
+
+    /**
      * Constructs an instance.
      *
      * @param {Threadlet} outerThis The outer instance.
      */
     constructor(outerThis) {
-      this.#outerThis = outerThis;
+      this.#outerThis    = outerThis;
+      this.#outerRunCond = outerThis.#runningCondition;
       Object.freeze(this);
     }
 
@@ -346,7 +310,17 @@ export class Threadlet {
      * @throws {*} The rejected result of the promise that won the race.
      */
     async raceWhenStopRequested(promises) {
-      return this.#outerThis.raceWhenStopRequested(promises);
+      if (this.shouldStop()) {
+        return true;
+      }
+
+      // List our stop condition last, because it is likely to be unresolved; we
+      // thus might get to avoid some work in the call to `race()`.
+      const allProms = [...promises, this.#outerRunCond.whenFalse()];
+
+      await PromiseUtil.race(allProms);
+
+      return this.shouldStop();
     }
 
     /**
@@ -355,7 +329,7 @@ export class Threadlet {
      * @returns {boolean} `true` iff this instance has been asked to stop.
      */
     shouldStop() {
-      return this.#outerThis.shouldStop();
+      return this.#outerRunCond.value === false;
     }
 
     /**
@@ -365,7 +339,7 @@ export class Threadlet {
      * @returns {Promise} A promise as described.
      */
     whenStopRequested() {
-      return this.#outerThis.whenStopRequested();
+      return this.#outerRunCond.whenFalse();
     }
   };
 }
