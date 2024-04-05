@@ -36,7 +36,7 @@ export class Threadlet {
    *
    * @type {Condition}
    */
-  #runCondition = new Condition();
+  #runningCondition = new Condition();
 
   /**
    * Promised result of the currently-executing {@link #run}, if the instance is
@@ -127,7 +127,7 @@ export class Threadlet {
 
     // List our stop condition last, because it is likely to be unresolved; we
     // thus might get to avoid some work in the call to `race()`.
-    const allProms = [...promises, this.#runCondition.whenFalse()];
+    const allProms = [...promises, this.#runningCondition.whenFalse()];
 
     await PromiseUtil.race(allProms);
 
@@ -164,7 +164,7 @@ export class Threadlet {
    * @returns {boolean} `true` iff this instance has been asked to stop.
    */
   shouldStop() {
-    return this.#runCondition.value === false;
+    return this.#runningCondition.value === false;
   }
 
   /**
@@ -198,7 +198,7 @@ export class Threadlet {
       return null;
     }
 
-    this.#runCondition.value = false;
+    this.#runningCondition.value = false;
     return this.#run(true);
   }
 
@@ -231,7 +231,7 @@ export class Threadlet {
    * @returns {Promise} A promise as described.
    */
   whenStopRequested() {
-    return this.#runCondition.whenFalse();
+    return this.#runningCondition.whenFalse();
   }
 
   /**
@@ -255,8 +255,8 @@ export class Threadlet {
    */
   #run(exposed = false) {
     if (!this.isRunning()) {
-      this.#runCondition.value = true;
-      this.#runResult          = this.#run0();
+      this.#runningCondition.value = true;
+      this.#runResult              = this.#run0();
     }
 
     this.#runResultExposed ||= exposed;
@@ -307,10 +307,10 @@ export class Threadlet {
       // as of the end of this method (which will be happening synchronously),
       // running will have stopped. Similar logic applies to the other
       // properties.
-      this.#startResult        = null;
-      this.#runResultExposed   = false;
-      this.#runResult          = null;
-      this.#runCondition.value = false;
+      this.#startResult            = null;
+      this.#runResultExposed       = false;
+      this.#runResult              = null;
+      this.#runningCondition.value = false;
     }
   }
 
