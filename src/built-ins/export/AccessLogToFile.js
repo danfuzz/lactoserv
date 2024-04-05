@@ -8,6 +8,7 @@ import { FormatUtils } from '@this/loggy-intf';
 import { IntfAccessLog } from '@this/net-protocol';
 import { IncomingRequest } from '@this/net-util';
 import { BaseFileService, Rotator } from '@this/sys-util';
+import { MustBe } from '@this/typey';
 
 
 /**
@@ -123,8 +124,10 @@ export class AccessLogToFile extends BaseFileService {
   /** @override */
   async _impl_init(isReload_unused) {
     const { config } = this;
-    this.#appender = new FileAppender(this.config.path, Duration.parse('0.25 sec'));
-    this.#rotator  = config.rotate ? new Rotator(config, this.logger) : null;
+    const { bufferPeriod, path, rotate } = config;
+
+    this.#appender = new FileAppender(path, bufferPeriod);
+    this.#rotator  = rotate ? new Rotator(config, this.logger) : null;
   }
 
   /** @override */
@@ -158,4 +161,57 @@ export class AccessLogToFile extends BaseFileService {
   #now() {
     return WallClock.now();
   }
+
+
+  //
+  // Static members
+  //
+
+  /** @override */
+  static _impl_configClass() {
+    return this.#Config;
+  }
+
+  /**
+   * Configuration item subclass for this (outer) class.
+   */
+  static #Config = class Config extends BaseFileService.Config {
+    /**
+     * How long to buffer updates for, or `null` to not do any buffering.
+     *
+     * @type {?Duration}
+     */
+    #bufferPeriod;
+
+    /**
+     * Constructs an instance.
+     *
+     * @param {object} rawConfig Raw configuration object.
+     */
+    constructor(rawConfig) {
+      super(rawConfig);
+
+      const { bufferPeriod = null } = rawConfig;
+
+      if (bufferPeriod) {
+        this.#bufferPeriod = Duration.parse(bufferPeriod, { minInclusive: 0 });
+        if (!this.#bufferPeriod) {
+          throw new Error(`Could not parse \`bufferPeriod\`: ${bufferPeriod}`);
+        }
+        if (this.#bufferPeriod === 0) {
+          this.#bufferPeriod = null;
+        }
+      } else {
+        this.#bufferPeriod = MustBe.null(bufferPeriod);
+      }
+    }
+
+    /**
+     * @returns {?Duration} How long to buffer updates for, or `null` to not do
+     * any buffering.
+     */
+    get bufferPeriod() {
+      return this.#bufferPeriod;
+    }
+  };
 }
