@@ -48,8 +48,10 @@ export class TextFileSink extends EventSink {
    * @param {string} filePath Absolute path of the file to write to.
    * @param {LinkedEvent|Promise<LinkedEvent>} firstEvent First event to be
    *   processed by the instance, or promise for same.
+   * @param {?Duration} [bufferPeriod] How long to buffer writes for, or `null`
+   *   not to do buffering.
    */
-  constructor(format, filePath, firstEvent) {
+  constructor(format, filePath, firstEvent, bufferPeriod = null) {
     MustBe.string(format);
     MustBe.string(filePath);
 
@@ -61,7 +63,7 @@ export class TextFileSink extends EventSink {
 
     this.#formatter = TextFileSink.#FORMATTERS.get(format);
     this.#filePath  = filePath;
-    this.#appender  = new FileAppender(filePath, Duration.parse('0.25 sec'));
+    this.#appender  = new FileAppender(filePath, bufferPeriod);
   }
 
   /**
