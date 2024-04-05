@@ -12,6 +12,7 @@
   },
 
   "dependencies": {
+    "@this/clocks": "*",
     "@this/typey": "*"
   }
 }
