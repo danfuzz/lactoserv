@@ -296,7 +296,7 @@ describe('run()', () => {
       await expect(runResult).toResolve();
     });
 
-    test('causes the main function to be called, with the thread as its argument', async () => {
+    test('causes the main function to be called, with an appropriate access object as its argument', async () => {
       let gotArgs = null;
       const thread = new Threadlet(...startArg, (...args) => {
         gotArgs = args;
@@ -304,7 +304,10 @@ describe('run()', () => {
 
       const runResult = thread.run();
       await setImmediate();
-      expect(gotArgs).toStrictEqual([thread]);
+      expect(gotArgs).toBeArrayOfSize(1);
+      const gotArg = gotArgs[0];
+      expect(gotArg).toBeInstanceOf(Threadlet.RunnerAccess);
+      expect(gotArg.threadlet).toBe(thread);
 
       await expect(runResult).toResolve();
     });
@@ -444,13 +447,16 @@ describe('run()', () => {
       await expect(runResult).toResolve();
     });
 
-    test('causes the start function to be called, with the thread as its argument', async () => {
+    test('causes the start function to be called, with an appropriate access object as its argument', async () => {
       let gotArgs = null;
       const thread = new Threadlet((...args) => { gotArgs = args; }, () => null);
 
       const runResult = thread.run();
       await setImmediate();
-      expect(gotArgs).toStrictEqual([thread]);
+      expect(gotArgs).toBeArrayOfSize(1);
+      const gotArg = gotArgs[0];
+      expect(gotArg).toBeInstanceOf(Threadlet.RunnerAccess);
+      expect(gotArg.threadlet).toBe(thread);
 
       await expect(runResult).toResolve();
     });

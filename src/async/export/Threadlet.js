@@ -32,6 +32,13 @@ export class Threadlet {
   #mainFunction;
 
   /**
+   * Access instance passed to {@link #startFunction} and {@link #mainFunction}.
+   *
+   * @type {Threadlet.RunnerAccess}
+   */
+  #runnerAccess = new Threadlet.RunnerAccess(this);
+
+  /**
    * Intended current state of whether or not this instance is running. That is,
    * it answers the question "Should we be running?" and not "Are we actually
    * running?"
@@ -83,22 +90,22 @@ export class Threadlet {
    * to a call to {@link #run}). When called, the functions are passed as an
    * argument the instance of this class that is calling them.
    *
-   * @param {function(Threadlet): *} function1 First function to call (start
-   *   function or main function).
-   * @param {?function(Threadlet): *} [mainFunction] Main function, or `null` if
-   *   `function1` is actually the main function (and there is no start
-   *   function).
+   * @param {function(Threadlet.RunnerAccess): *} function1 First function to
+   *   call (start function or main function).
+   * @param {?function(Threadlet.RunnerAccess): *} [mainFunction] Main function,
+   *   or `null` if `function1` is actually the main function (and there is no
+   *   start function).
    */
   constructor(function1, mainFunction = null) {
     MustBe.callableFunction(function1);
 
     if (mainFunction) {
       MustBe.callableFunction(mainFunction);
-      this.#startFunction = this.#wrapFunction(function1);
-      this.#mainFunction  = this.#wrapFunction(mainFunction);
+      this.#startFunction = function1;
+      this.#mainFunction  = mainFunction;
     } else {
       this.#startFunction = null;
-      this.#mainFunction  = this.#wrapFunction(function1);
+      this.#mainFunction  = function1;
     }
   }
 
@@ -290,7 +297,8 @@ export class Threadlet {
       await this.#startResult;
       started = true;
 
-      return await this.#mainFunction();
+      // `func ?? null` is a tactic to call it without binding `this`.
+      return await (this.#mainFunction ?? null)(this.#runnerAccess);
     } catch (error) {
       if (started && !this.#runResultExposed) {
         // There was an exception while running, and `#runResult` was never
@@ -331,9 +339,54 @@ export class Threadlet {
       // guarantee is specified by this class.)
       await null;
 
-      return this.#startFunction(this);
+      // `func ?? null` is a tactic to call it without binding `this`.
+      return (this.#startFunction ?? null)(this.#runnerAccess);
     } else {
       return null;
     }
   }
+
+
+  //
+  // Static members
+  //
+
+  /**
+   * Class that provides access to internal state in a form that's useful for
+   * `start()` and `run()` functions.
+   */
+  static RunnerAccess = class RunnerAccess {
+    /**
+     * The outer instance.
+     *
+     * @type {Threadlet}
+     */
+    #outerThis;
+
+    /**
+     * Constructs an instance.
+     *
+     * @param {Threadlet} outerThis The outer instance.
+     */
+    constructor(outerThis) {
+      this.#outerThis = outerThis;
+      Object.freeze(this);
+    }
+
+    get threadlet() {
+      return this.#outerThis;
+    }
+
+    async raceWhenStopRequested(promises) {
+      return this.#outerThis.raceWhenStopRequested(promises);
+    }
+
+    shouldStop() {
+      return this.#outerThis.shouldStop();
+    }
+
+    async whenStopRequested() {
+      return this.#outerThis.whenStopRequested();
+    }
+  };
 }
