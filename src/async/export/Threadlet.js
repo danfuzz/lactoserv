@@ -4,6 +4,7 @@
 import { MustBe } from '@this/typey';
 
 import { Condition } from '#x/Condition';
+import { IntfThreadlike } from '#x/IntfThreadlike';
 import { PromiseUtil } from '#x/PromiseUtil';
 
 
@@ -15,6 +16,8 @@ import { PromiseUtil } from '#x/PromiseUtil';
  * function is responsible for proactively figuring out when to stop. It can do
  * this by using the methods {@link #shouldStop} and {@link #whenStopRequested}
  * on the instance of this class that it is called with.
+ *
+ * @implements {IntfThreadlike}
  */
 export class Threadlet {
   /**
@@ -109,11 +112,7 @@ export class Threadlet {
     }
   }
 
-  /**
-   * Is this instance currently running?
-   *
-   * @returns {boolean} The answer.
-   */
+  /** @override */
   isRunning() {
     return this.#runResult !== null;
   }
@@ -144,23 +143,15 @@ export class Threadlet {
   }
 
   /**
-   * Starts this instance running, if it isn't already.  All processing in the
-   * thread happens asynchronously with respect to the caller of this method.
-   * The async-return value or exception thrown from this method is (in order):
+   * As a clarification to the interface's contract for this method, the
+   * async-return value or exception thrown from this method is (in order):
    *
    * * The exception thrown by the start function, if this instance has a start
    *   function which threw.
    * * The exception thrown by the main function, if it threw.
    * * The return value from the main function.
    *
-   * **Note:** To be clear, if the instance was already running when this method
-   * was called, the return value from this method will be the same value as
-   * returned (or the same exception thrown) from the call which actually
-   * started the instance running.
-   *
-   * @returns {*} Whatever is returned by the main function.
-   * @throws {Error} Whatever was thrown by either the start function or the
-   *   main function.
+   * @override
    */
   async run() {
     return this.#run(true);
@@ -176,13 +167,7 @@ export class Threadlet {
     return this.#runningCondition.value === false;
   }
 
-  /**
-   * Starts this instance running as with {@link #run}, except that it
-   * async-returns once the instance is _started_ as with {@link #whenStarted}.
-   *
-   * @returns {*} Return value from {@link #whenStarted} (see which).
-   * @throws {Error} Error thrown by {@link #whenStarted} (see which).
-   */
+  /** @override */
   async start() {
     // Squelch any error from `run()`, because otherwise it will turn into an
     // impossible-to-actually-handle promise rejection. It's up to clients to
@@ -192,16 +177,7 @@ export class Threadlet {
     return this.whenStarted();
   }
 
-  /**
-   * Requests that this instance stop running as soon as possible. This method
-   * async-returns the same return value as the call to {@link #run} which
-   * started instance. If the instance isn't running when this method is called,
-   * it promptly returns `null` (and _not_, e.g., the result of an earlier run).
-   *
-   * @returns {*} Whatever is returned by the main function.
-   * @throws {Error} Whatever was thrown by either the start function or the
-   *   main function.
-   */
+  /** @override */
   async stop() {
     if (!this.isRunning()) {
       return null;
@@ -211,19 +187,7 @@ export class Threadlet {
     return this.#run(true);
   }
 
-  /**
-   * Gets a promise that becomes settled when this instance is running and after
-   * its start function has completed. It becomes _fulfilled_ with the result of
-   * calling the start function, if the start function returned without error.
-   * It becomes _rejected_ with the same reason as whatever the start function
-   * threw, if the start function indeed threw an error. If `isRunning() ===
-   * false` when this method is called, it async-returns `null` promptly.
-   *
-   * @returns {*} Whatever was returned by the start function, with exceptions
-   *   as noted above.
-   * @throws {Error} The same error as thrown by the start function, if it threw
-   *   an error.
-   */
+  /** @override */
   async whenStarted() {
     if (!this.isRunning()) {
       return null;
