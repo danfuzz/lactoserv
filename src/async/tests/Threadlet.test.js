@@ -151,114 +151,6 @@ describe('isRunning()', () => {
   });
 });
 
-describe('raceWhenStopRequested()', () => {
-  test('when running, promptly returns `false` if there is an already-resolved argument', async () => {
-    let shouldRun = true;
-    const thread = new Threadlet(async () => {
-      while (shouldRun) {
-        await setImmediate();
-      }
-    });
-
-    const runResult = thread.run();
-    const result    = thread.raceWhenStopRequested([Promise.resolve('boop')]);
-
-    expect(PromiseState.isSettled(result)).toBeFalse();
-    await setImmediate();
-    expect(PromiseState.isSettled(result)).toBeTrue();
-    expect(await result).toBeFalse();
-
-    shouldRun = false;
-    await expect(runResult).toResolve();
-  });
-
-  test('when running, promptly throws if there is an already-rejected argument', async () => {
-    let shouldRun = true;
-    const thread = new Threadlet(async () => {
-      while (shouldRun) {
-        await setImmediate();
-      }
-    });
-
-    const runResult = thread.run();
-    const rejected  = PromiseUtil.rejectAndHandle(new Error('oy!'));
-    const result    = thread.raceWhenStopRequested([rejected]);
-
-    PromiseUtil.handleRejection(result);
-    expect(PromiseState.isSettled(result)).toBeFalse();
-    await setImmediate();
-    expect(PromiseState.isSettled(result)).toBeTrue();
-    await expect(result).toReject();
-
-    shouldRun = false;
-    await expect(runResult).toResolve();
-  });
-
-  test('when running, returns `false` when an argument becomes resolved', async () => {
-    let shouldRun = true;
-    const thread = new Threadlet(async () => {
-      while (shouldRun) {
-        await setImmediate();
-      }
-    });
-
-    const runResult = thread.run();
-    const mp        = new ManualPromise();
-    const result    = thread.raceWhenStopRequested([mp.promise]);
-
-    expect(PromiseState.isSettled(result)).toBeFalse();
-    mp.resolve('boop');
-    await setImmediate();
-    expect(PromiseState.isSettled(result)).toBeTrue();
-    expect(await result).toBeFalse();
-
-    shouldRun = false;
-    await expect(runResult).toResolve();
-  });
-
-  test('when running, throws when an argument becomes rejected', async () => {
-    let shouldRun = true;
-    const thread = new Threadlet(async () => {
-      while (shouldRun) {
-        await setImmediate();
-      }
-    });
-
-    const runResult = thread.run();
-    const mp        = new ManualPromise();
-    const result    = thread.raceWhenStopRequested([mp.promise]);
-
-    PromiseUtil.handleRejection(result);
-    expect(PromiseState.isSettled(result)).toBeFalse();
-    mp.reject(new Error('eep!'));
-    await setImmediate();
-    expect(PromiseState.isSettled(result)).toBeTrue();
-    await expect(result).toReject();
-
-    shouldRun = false;
-    await expect(runResult).toResolve();
-  });
-
-  test('when not running, promptly returns `true` when given no other arguments', async () => {
-    const thread = new Threadlet(() => null);
-    const result = thread.raceWhenStopRequested([]);
-
-    await setImmediate();
-    expect(PromiseState.isSettled(result)).toBeTrue();
-    expect(await result).toBeTrue();
-  });
-
-  test('when not running, promptly returns `true` even given an unsettled argument', async () => {
-    const thread = new Threadlet(() => null);
-    const mp     = new ManualPromise();
-    const result = thread.raceWhenStopRequested([mp.promise]);
-
-    await setImmediate();
-    expect(PromiseState.isSettled(result)).toBeTrue();
-    expect(await result).toBeTrue();
-  });
-});
-
 describe('run()', () => {
   describe.each`
     useStartFunc | label
@@ -515,68 +407,6 @@ describe('run()', () => {
         expect(count).toBe(1);
       });
     });
-  });
-});
-
-describe('shouldStop()', () => {
-  test('returns `true` before being started', async () => {
-    const thread = new Threadlet(() => null);
-    expect(thread.shouldStop()).toBeTrue();
-  });
-
-  test('returns `false` immediately after being started', async () => {
-    const thread = new Threadlet(() => null);
-
-    const runResult = thread.run();
-    expect(thread.shouldStop()).toBeFalse();
-    thread.stop();
-
-    await expect(runResult).toResolve();
-  });
-
-  test('returns `false` while running and not asked to stop', async () => {
-    let shouldRun = true;
-    const thread = new Threadlet(async () => {
-      while (shouldRun) {
-        await setImmediate();
-      }
-    });
-
-    const runResult = thread.run();
-    for (let i = 0; i < 10; i++) {
-      await setImmediate();
-      expect(thread.shouldStop()).toBeFalse();
-    }
-
-    shouldRun = false;
-    await expect(runResult).toResolve();
-  });
-
-  test('returns `true` after the main function runs to completion', async () => {
-    let shouldRun = true;
-    let stopped   = false;
-    const thread = new Threadlet(async () => {
-      while (shouldRun) {
-        await setImmediate();
-      }
-      stopped = true;
-    });
-
-    const runResult = thread.run();
-    await setImmediate();
-    expect(thread.shouldStop()).toBeFalse(); // Baseline expectation.
-
-    // The actual test.
-
-    shouldRun = false;
-    for (let i = 0; (i < 10) && !stopped; i++) {
-      await setImmediate();
-    }
-
-    expect(thread.shouldStop()).toBeTrue();
-    expect(stopped).toBeTrue();
-
-    await expect(runResult).toResolve();
   });
 });
 
@@ -952,52 +782,224 @@ describe('whenStarted()', () => {
   });
 });
 
-describe('whenStopRequested()', () => {
-  test('is a pre-resolved promise when not running', () => {
-    const thread = new Threadlet(() => null);
-    const result = thread.whenStopRequested();
+describe('`RunnerAccess` class', () => {
+  describe('raceWhenStopRequested()', () => {
+    test('when running, promptly returns `false` if there is an already-resolved argument', async () => {
+      let shouldRun = true;
+      const thread = new Threadlet(async () => {
+        while (shouldRun) {
+          await setImmediate();
+        }
+      });
 
-    expect(PromiseState.isFulfilled(result)).toBeTrue();
-  });
+      const runResult = thread.run();
+      const result    = thread.raceWhenStopRequested([Promise.resolve('boop')]);
 
-  test('is a pending promise when running, before being asked to stop', async () => {
-    let shouldRun = true;
-    const thread = new Threadlet(async () => {
-      while (shouldRun) {
-        await setImmediate();
-      }
+      expect(PromiseState.isSettled(result)).toBeFalse();
+      await setImmediate();
+      expect(PromiseState.isSettled(result)).toBeTrue();
+      expect(await result).toBeFalse();
+
+      shouldRun = false;
+      await expect(runResult).toResolve();
     });
 
-    const runResult = thread.run();
-    const result    = thread.whenStopRequested();
+    test('when running, promptly throws if there is an already-rejected argument', async () => {
+      let shouldRun = true;
+      const thread = new Threadlet(async () => {
+        while (shouldRun) {
+          await setImmediate();
+        }
+      });
 
-    expect(PromiseState.isPending(result)).toBeTrue();
-    await setImmediate();
-    expect(PromiseState.isPending(result)).toBeTrue();
+      const runResult = thread.run();
+      const rejected  = PromiseUtil.rejectAndHandle(new Error('oy!'));
+      const result    = thread.raceWhenStopRequested([rejected]);
 
-    shouldRun = false;
-    await expect(runResult).toResolve();
-  });
+      PromiseUtil.handleRejection(result);
+      expect(PromiseState.isSettled(result)).toBeFalse();
+      await setImmediate();
+      expect(PromiseState.isSettled(result)).toBeTrue();
+      await expect(result).toReject();
 
-  test('is promise which resolves, after being asked to stop', async () => {
-    let shouldRun = true;
-    const thread = new Threadlet(async () => {
-      while (shouldRun) {
-        await setImmediate();
-      }
+      shouldRun = false;
+      await expect(runResult).toResolve();
     });
 
-    const runResult = thread.run();
-    const result    = thread.whenStopRequested();
+    test('when running, returns `false` when an argument becomes resolved', async () => {
+      let shouldRun = true;
+      const thread = new Threadlet(async () => {
+        while (shouldRun) {
+          await setImmediate();
+        }
+      });
 
-    expect(PromiseState.isPending(result)).toBeTrue(); // Baseline expectation.
+      const runResult = thread.run();
+      const mp        = new ManualPromise();
+      const result    = thread.raceWhenStopRequested([mp.promise]);
 
-    // The actual test.
-    thread.stop();
-    await setImmediate();
-    expect(PromiseState.isFulfilled(result)).toBeTrue();
+      expect(PromiseState.isSettled(result)).toBeFalse();
+      mp.resolve('boop');
+      await setImmediate();
+      expect(PromiseState.isSettled(result)).toBeTrue();
+      expect(await result).toBeFalse();
 
-    shouldRun = false;
-    await expect(runResult).toResolve();
+      shouldRun = false;
+      await expect(runResult).toResolve();
+    });
+
+    test('when running, throws when an argument becomes rejected', async () => {
+      let shouldRun = true;
+      const thread = new Threadlet(async () => {
+        while (shouldRun) {
+          await setImmediate();
+        }
+      });
+
+      const runResult = thread.run();
+      const mp        = new ManualPromise();
+      const result    = thread.raceWhenStopRequested([mp.promise]);
+
+      PromiseUtil.handleRejection(result);
+      expect(PromiseState.isSettled(result)).toBeFalse();
+      mp.reject(new Error('eep!'));
+      await setImmediate();
+      expect(PromiseState.isSettled(result)).toBeTrue();
+      await expect(result).toReject();
+
+      shouldRun = false;
+      await expect(runResult).toResolve();
+    });
+
+    test('when not running, promptly returns `true` when given no other arguments', async () => {
+      const thread = new Threadlet(() => null);
+      const result = thread.raceWhenStopRequested([]);
+
+      await setImmediate();
+      expect(PromiseState.isSettled(result)).toBeTrue();
+      expect(await result).toBeTrue();
+    });
+
+    test('when not running, promptly returns `true` even given an unsettled argument', async () => {
+      const thread = new Threadlet(() => null);
+      const mp     = new ManualPromise();
+      const result = thread.raceWhenStopRequested([mp.promise]);
+
+      await setImmediate();
+      expect(PromiseState.isSettled(result)).toBeTrue();
+      expect(await result).toBeTrue();
+    });
+  });
+
+  describe('shouldStop()', () => {
+    test('returns `true` before being started', async () => {
+      const thread = new Threadlet(() => null);
+      expect(thread.shouldStop()).toBeTrue();
+    });
+
+    test('returns `false` immediately after being started', async () => {
+      const thread = new Threadlet(() => null);
+
+      const runResult = thread.run();
+      expect(thread.shouldStop()).toBeFalse();
+      thread.stop();
+
+      await expect(runResult).toResolve();
+    });
+
+    test('returns `false` while running and not asked to stop', async () => {
+      let shouldRun = true;
+      const thread = new Threadlet(async () => {
+        while (shouldRun) {
+          await setImmediate();
+        }
+      });
+
+      const runResult = thread.run();
+      for (let i = 0; i < 10; i++) {
+        await setImmediate();
+        expect(thread.shouldStop()).toBeFalse();
+      }
+
+      shouldRun = false;
+      await expect(runResult).toResolve();
+    });
+
+    test('returns `true` after the main function runs to completion', async () => {
+      let shouldRun = true;
+      let stopped   = false;
+      const thread = new Threadlet(async () => {
+        while (shouldRun) {
+          await setImmediate();
+        }
+        stopped = true;
+      });
+
+      const runResult = thread.run();
+      await setImmediate();
+      expect(thread.shouldStop()).toBeFalse(); // Baseline expectation.
+
+      // The actual test.
+
+      shouldRun = false;
+      for (let i = 0; (i < 10) && !stopped; i++) {
+        await setImmediate();
+      }
+
+      expect(thread.shouldStop()).toBeTrue();
+      expect(stopped).toBeTrue();
+
+      await expect(runResult).toResolve();
+    });
+  });
+
+  describe('whenStopRequested()', () => {
+    test('is a pre-resolved promise when not running', () => {
+      const thread = new Threadlet(() => null);
+      const result = thread.whenStopRequested();
+
+      expect(PromiseState.isFulfilled(result)).toBeTrue();
+    });
+
+    test('is a pending promise when running, before being asked to stop', async () => {
+      let shouldRun = true;
+      const thread = new Threadlet(async () => {
+        while (shouldRun) {
+          await setImmediate();
+        }
+      });
+
+      const runResult = thread.run();
+      const result    = thread.whenStopRequested();
+
+      expect(PromiseState.isPending(result)).toBeTrue();
+      await setImmediate();
+      expect(PromiseState.isPending(result)).toBeTrue();
+
+      shouldRun = false;
+      await expect(runResult).toResolve();
+    });
+
+    test('is promise which resolves, after being asked to stop', async () => {
+      let shouldRun = true;
+      const thread = new Threadlet(async () => {
+        while (shouldRun) {
+          await setImmediate();
+        }
+      });
+
+      const runResult = thread.run();
+      const result    = thread.whenStopRequested();
+
+      expect(PromiseState.isPending(result)).toBeTrue(); // Baseline expectation.
+
+      // The actual test.
+      thread.stop();
+      await setImmediate();
+      expect(PromiseState.isFulfilled(result)).toBeTrue();
+
+      shouldRun = false;
+      await expect(runResult).toResolve();
+    });
   });
 });
