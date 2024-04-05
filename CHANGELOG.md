@@ -11,7 +11,11 @@ versioning principles. Unstable releases do not.
 ### [Unreleased]
 
 Breaking changes:
-* None.
+* `async`:
+  * Reworked the `Threadlet` class to not expose its innards quite so much. As
+    a result, the argument it passes to the thread "start" and "main" functions
+    is now an object which has a handful of "just for the runners" methods, with
+    said methods removed from the public API of `Threadlet` itself.
 
 Other notable changes:
 * `built-ins`:
