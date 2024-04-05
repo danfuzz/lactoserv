@@ -929,25 +929,23 @@ describe('`RunnerAccess` class', () => {
   });
 
   describe('shouldStop()', () => {
-    test('returns `true` before being started', async () => {
-      const thread = new Threadlet(() => null);
-      expect(thread.shouldStop()).toBeTrue();
-    });
-
     test('returns `false` immediately after being started', async () => {
-      const thread = new Threadlet(() => null);
+      let got = null;
+      const thread = new Threadlet(
+        (ra) => { got = ra.shouldStop(); },
+        () => null);
 
-      const runResult = thread.run();
-      expect(thread.shouldStop()).toBeFalse();
+      await thread.run();
+      expect(got).toBeFalse();
       thread.stop();
-
-      await expect(runResult).toResolve();
     });
 
     test('returns `false` while running and not asked to stop', async () => {
+      let got       = [];
       let shouldRun = true;
-      const thread = new Threadlet(async () => {
+      const thread = new Threadlet(async (ra) => {
         while (shouldRun) {
+          got.push(ra.shouldStop());
           await setImmediate();
         }
       });
@@ -958,14 +956,21 @@ describe('`RunnerAccess` class', () => {
         expect(thread.shouldStop()).toBeFalse();
       }
 
+      expect(got.length).not.toBe(0);
+      for (const g of got) {
+        expect(g).toBe(false);
+      }
+
       shouldRun = false;
       await expect(runResult).toResolve();
     });
 
     test('returns `true` after the main function runs to completion', async () => {
-      let shouldRun = true;
-      let stopped   = false;
-      const thread = new Threadlet(async () => {
+      let runnerAccess = null;
+      let shouldRun    = true;
+      let stopped      = false;
+      const thread = new Threadlet(async (ra) => {
+        runnerAccess = ra;
         while (shouldRun) {
           await setImmediate();
         }
@@ -973,8 +978,12 @@ describe('`RunnerAccess` class', () => {
       });
 
       const runResult = thread.run();
-      await setImmediate();
-      expect(thread.shouldStop()).toBeFalse(); // Baseline expectation.
+
+      while (!runnerAccess) {
+        await setImmediate();
+      }
+
+      expect(runnerAccess.shouldStop()).toBeFalse(); // Baseline expectation.
 
       // The actual test.
 
@@ -983,7 +992,7 @@ describe('`RunnerAccess` class', () => {
         await setImmediate();
       }
 
-      expect(thread.shouldStop()).toBeTrue();
+      expect(runnerAccess.shouldStop()).toBeTrue();
       expect(stopped).toBeTrue();
 
       await expect(runResult).toResolve();
