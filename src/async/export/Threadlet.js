@@ -244,17 +244,6 @@ export class Threadlet {
   }
 
   /**
-   * Properly wraps a function so it can be called with no arguments in {@link
-   * #run}.
-   *
-   * @param {function(*)} func Function to wrap.
-   * @returns {function(*)} Wrapped version.
-   */
-  #wrapFunction(func) {
-    return () => func(this);
-  }
-
-  /**
    * Runs the thread if it's not already running, or just returns the promise
    * for the current run-in-progress.
    *
