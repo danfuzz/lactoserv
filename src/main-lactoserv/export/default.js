@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import * as builtIns from '@this/built-ins';
-import { Host, KeepRunning } from '@this/host';
+import { Host } from '@this/host';
 
 import { Debugging } from '#p/Debugging';
 import { MainArgs } from '#p/MainArgs';
@@ -36,14 +36,10 @@ export default async function main() {
     await Host.exit(exitCode);
   }
 
-  const system      = new UsualSystem(args);
-  const keepRunning = new KeepRunning();
+  const system = new UsualSystem(args);
 
-  keepRunning.run();
   Debugging.handleDebugArgs(args.debugArgs, system);
   await system.run();
-
-  keepRunning.stop();
 
   // This `await` is not ever supposed to return.
   await Host.exit();

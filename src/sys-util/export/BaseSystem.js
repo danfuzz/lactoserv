@@ -133,6 +133,7 @@ export class BaseSystem extends BaseExposedThreadlet {
     this.#logger?.starting(logArg);
 
     if (!forReload) {
+      await this.#keepRunning.start();
       try {
         this.#nextInitValue = await this._impl_init(false);
       } catch (e) {
@@ -160,6 +161,10 @@ export class BaseSystem extends BaseExposedThreadlet {
     this.#logger?.stopping(logArg);
     await this._impl_stop(forReload, this.#initValue);
     this.#logger?.stopped(logArg);
+
+    if (!forReload) {
+      await this.#keepRunning.stop();
+    }
 
     this.#initValue = null;
   }
