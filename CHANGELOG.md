@@ -23,7 +23,8 @@ Other notable changes:
     moderate filesystem calls when logging.
 * `built-ins`:
   * Loosened restrictions on path component syntax in `PathRouter`.
-  * Added `bufferPeriod` configuration option to `AccessLogToFile`.
+  * Added `bufferPeriod` configuration option to `AccessLogToFile` and
+    `SyslogToFile`.
 
 ### v0.6.13 -- 2024-04-03
 
