@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { EventSink, LinkedEvent } from '@this/async';
-import { BaseConverter, Converter, ConverterConfig } from '@this/data-values';
+import { BaseConverter, Converter, ConverterConfig, Duration } from '@this/data-values';
 import { FileAppender } from '@this/fs-util';
 import { LogPayload } from '@this/loggy-intf';
 import { MustBe } from '@this/typey';
@@ -61,7 +61,18 @@ export class TextFileSink extends EventSink {
 
     this.#formatter = TextFileSink.#FORMATTERS.get(format);
     this.#filePath  = filePath;
-    this.#appender  = new FileAppender(filePath);
+    this.#appender  = new FileAppender(filePath, new Duration(0.25));
+  }
+
+  /**
+   * In addition to the superclass behavior, this flushes any pending output to
+   * the file.
+   *
+   * @override
+   */
+  async drainAndStop() {
+    await super.drainAndStop();
+    await this.#appender.flush();
   }
 
   /**

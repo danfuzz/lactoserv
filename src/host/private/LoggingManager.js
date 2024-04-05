@@ -5,6 +5,8 @@ import process from 'node:process';
 
 import { Loggy, TextFileSink } from '@this/loggy';
 
+import { ShutdownHandler } from '#p/ShutdownHandler';
+
 
 /**
  * Stuff to deal with logging.
@@ -31,5 +33,9 @@ export class LoggingManager {
 
     this.#stdoutSink = new TextFileSink(formatter, '/dev/stdout', event);
     this.#stdoutSink.run();
+
+    ShutdownHandler.registerCallback(() => {
+      this.#stdoutSink.drainAndStop();
+    });
   }
 }
