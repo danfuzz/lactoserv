@@ -61,7 +61,7 @@ export class TextFileSink extends EventSink {
 
     this.#formatter = TextFileSink.#FORMATTERS.get(format);
     this.#filePath  = filePath;
-    this.#appender  = new FileAppender(filePath, new Duration(0.25));
+    this.#appender  = new FileAppender(filePath, Duration.parse('0.25 sec'));
   }
 
   /**
