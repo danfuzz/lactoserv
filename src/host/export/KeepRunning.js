@@ -35,7 +35,7 @@ export class KeepRunning {
    * Constructs an instance.
    */
   constructor() {
-    this.#thread = new Threadlet(() => this.#keepRunning());
+    this.#thread = new Threadlet((ra) => this.#keepRunning(ra));
   }
 
   /**
@@ -67,15 +67,17 @@ export class KeepRunning {
   /**
    * Remains running and mostly waiting for a recurring timeout, until asked to
    * stop.
+   *
+   * @param {Threadlet.RunnerAccess} runnerAccess Thread runner access object.
    */
-  async #keepRunning() {
+  async #keepRunning(runnerAccess) {
     this.#logger?.running();
 
     // This is a standard-ish trick to keep a Node process alive: Repeatedly set
     // a timeout (or, alternatively, set a recurring timeout), and cancel it
     // (one way or another) when it's okay for the process to exit.
-    while (!this.#thread.shouldStop()) {
-      await this.#thread.raceWhenStopRequested([
+    while (!runnerAccess.shouldStop()) {
+      await runnerAccess.raceWhenStopRequested([
         WallClock.waitForMsec(KeepRunning.#MSEC_PER_DAY)
       ]);
 
