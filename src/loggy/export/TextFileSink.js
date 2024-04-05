@@ -168,8 +168,5 @@ export class TextFileSink extends EventSink {
 
     encoded.args = encodedPayload.options.args;
     return JSON.stringify(encoded);
-
-    //const finalObj      = { ...encoded, args: encodedRecord.options.args };
-    //return JSON.stringify(finalObj);
   }
 }
