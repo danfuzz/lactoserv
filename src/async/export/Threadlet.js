@@ -32,7 +32,9 @@ export class Threadlet {
   #mainFunction;
 
   /**
-   * Intended current state of whether or not this instance is running.
+   * Intended current state of whether or not this instance is running. That is,
+   * it answers the question "Should we be running?" and not "Are we actually
+   * running?"
    *
    * @type {Condition}
    */
