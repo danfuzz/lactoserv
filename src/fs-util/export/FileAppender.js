@@ -54,14 +54,14 @@ export class FileAppender {
    * Constructs an instance.
    *
    * @param {string} filePath Absolute path of the file to append to.
-   * @param {Duration} [maxBufferTime] Maximum amount of time to buffer up stuff
-   *   to write. Defaults to 250msec.
+   * @param {?Duration} [maxBufferTime] Maximum amount of time to buffer up
+   *   stuff to write, or `null` not to do any buffering.
    */
   constructor(filePath, maxBufferTime = null) {
     this.#filePath = Paths.checkAbsolutePath(filePath);
     this.#maxBufferTime = maxBufferTime
       ? MustBe.instanceOf(maxBufferTime, Duration)
-      : new Duration(0.25);
+      : Duration.ZERO;
   }
 
   /**
@@ -127,7 +127,10 @@ export class FileAppender {
    */
   async #waitAndFlush() {
     try {
-      await WallClock.waitFor(this.#maxBufferTime);
+      if (this.#maxBufferTime.sec > 0) {
+        await WallClock.waitFor(this.#maxBufferTime);
+      }
+
       // The loop is so that `#nowWaiting` can't possibly end up telling a lie.
       while ((this.#buffered.length !== 0) && !this.#writeError) {
         await this.#writeNow();
