@@ -59,7 +59,7 @@ import { Moment } from '@lactoserv/data-values';
 ```
 
 And in order to use any of the built-in applications or services, you will need
-to import them from `@lactoserv/built-ins`.
+to import them from `@lactoserv/webapp-builtins`.
 
 ## Component instantiation
 
@@ -169,7 +169,7 @@ for a list of all built-in system services. The `name` is used both when logging
 activity (to the system log) and when hooking services up.
 
 ```js
-import { ServiceClass } from '@lactoserv/built-ins';
+import { ServiceClass } from '@lactoserv/webapp-builtins';
 
 const services = [
   {
@@ -196,7 +196,7 @@ both when logging activity (to the system log) and when hooking applications up
 to endpoints.
 
 ```js
-import { ApplicationClass } from '@lactoserv/built-ins';
+import { ApplicationClass } from '@lactoserv/webapp-builtins';
 
 const applications = [
   {

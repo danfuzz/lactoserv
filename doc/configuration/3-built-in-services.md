@@ -76,7 +76,7 @@ _not_ configurable. It accepts the following configuration bindings:
   configuration details.
 
 ```js
-import { AccessLogToFile } from '@lactoserv/built-ins';
+import { AccessLogToFile } from '@lactoserv/webapp-builtins';
 
 const services = [
   {
@@ -97,7 +97,7 @@ into a file). It does not accept any configuration bindings beyond the basics
 of any service.
 
 ```js
-import { AccessLogToSyslog } from '@lactoserv/built-ins';
+import { AccessLogToSyslog } from '@lactoserv/webapp-builtins';
 
 const services = [
   {
@@ -119,7 +119,7 @@ network request loggers to be attached to a single network endpoint. (This is
 done in the example configuration file, for reference.)
 
 ```js
-import { EventFan } from '@lactoserv/built-ins';
+import { EventFan } from '@lactoserv/webapp-builtins';
 
 const services = [
   {
@@ -168,7 +168,7 @@ bindings:
   megabyte.
 
 ```js
-import { MemoryMonitor } from '@lactoserv/built-ins';
+import { MemoryMonitor } from '@lactoserv/webapp-builtins';
 
 const services = [
   {
@@ -203,7 +203,7 @@ optionally on a periodic basis. It accepts the following configuration bindings:
   only meaningfully used when `multiprocess` is `true`.
 
 ```js
-import { ProcessIdFile } from '@lactoserv/built-ins';
+import { ProcessIdFile } from '@lactoserv/webapp-builtins';
 
 const services = [
   {
@@ -236,7 +236,7 @@ configuration bindings:
   file preservation is done.
 
 ```js
-import { ProcessInfoFile } from '@lactoserv/built-ins';
+import { ProcessInfoFile } from '@lactoserv/webapp-builtins';
 
 const services = [
   {
@@ -280,7 +280,7 @@ object with the following bindings:
   `connections` and `requests` are only requested one at a time.)
 
 ```js
-import { RateLimiter } from '@lactoserv/built-ins';
+import { RateLimiter } from '@lactoserv/webapp-builtins';
 
 const services = [
   {
@@ -320,7 +320,7 @@ highly advisable to set up sane limits on the amount of storage used by
 configuring `rotate`.
 
 ```js
-import { SyslogToFile } from '@lactoserv/built-ins';
+import { SyslogToFile } from '@lactoserv/webapp-builtins';
 
 const services = [
   {

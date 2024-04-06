@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { PathRouter } from '@this/built-ins';
+import { PathRouter } from '@this/webapp-builtins';
 import { TreePathKey } from '@this/collections';
 import { BaseComponent, ControlContext, RootControlContext }
   from '@this/compote';

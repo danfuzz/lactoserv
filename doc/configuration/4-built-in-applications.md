@@ -135,7 +135,7 @@ it accepts the following bindings:
 less-and-less specific routes; it just finds (at most) one to route to.
 
 ```js
-import { HostRouter } from '@lactoserv/built-ins';
+import { HostRouter } from '@lactoserv/webapp-builtins';
 
 const applications = [
   {
@@ -197,7 +197,7 @@ the next most specific match is asked, and so on, until there are no path
 matches left.
 
 ```js
-import { PathRouter } from '@lactoserv/built-ins';
+import { PathRouter } from '@lactoserv/webapp-builtins';
 
 const applications = [
   {
@@ -246,7 +246,7 @@ options, it accepts the following bindings:
   `false`, every cacheable response comes with the specified header.
 
 ```js
-import { Redirector } from '@lactoserv/built-ins';
+import { Redirector } from '@lactoserv/webapp-builtins';
 
 const applications = [
   {
@@ -278,7 +278,7 @@ it to handle an incoming request. If that app does not try to handle the request
 one has been tried.
 
 ```js
-import { SerialRouter } from '@lactoserv/built-ins';
+import { SerialRouter } from '@lactoserv/webapp-builtins';
 
 const applications = [
   {
@@ -338,7 +338,7 @@ zero-length but contentful, e.g. a regular successful response will be status
 by a `filePath` behaves.
 
 ```js
-import { SimpleResponse } from '@lactoserv/built-ins';
+import { SimpleResponse } from '@lactoserv/webapp-builtins';
 
 const applications = [
   {
@@ -401,7 +401,7 @@ accepts the following configuration bindings:
 * `siteDirectory` &mdash; Filesystem directory root for the files to serve.
 
 ```js
-import { StaticFiles } from '@lactoserv/built-ins';
+import { StaticFiles } from '@lactoserv/webapp-builtins';
 
 const applications = [
   {

@@ -1,8 +1,8 @@
-@this/built-ins
-===============
+@this/webapp-builtins
+=====================
 
 This module contains all the built-in high-level application and system service
-classes.
+classes in support of implementing a webapp (web application server).
 
 - - - - - - - - - -
 ```
