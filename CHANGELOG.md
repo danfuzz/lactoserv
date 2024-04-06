@@ -20,7 +20,7 @@ Breaking changes:
   * Renamed the modules specifically concerned with webapp (web application)
     implementation to have the prefix `webapp-`:
     * `built-ins` -> `webapp-builtins`
-    * `sys-framework` -> `webapp-framework`
+    * `sys-framework` -> `webapp-core`
     * `sys-util` -> `webapp-util`
   * Renamed class `Warehouse` (a name I (@danfuzz) never really liked) to now be
     `WebappRoot`, which reflects both its high level role and the fact that it
