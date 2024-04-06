@@ -17,8 +17,8 @@ import { ThisModule } from '#p/ThisModule';
 
 /**
  * Root component which contains all the subcomponents required to operate a
- * specific web application. Instances of this class can reasonably be called
- * "webapps" per se.
+ * specific webapp. Instances of this class can reasonably be called "webapps"
+ * per se.
  *
  * **Note:** When `start()`ing, this operates in the order hosts then services
  * then applications then endpoints, so as to start dependencies before

@@ -15,7 +15,7 @@ import { BaseSystem } from '@this/webapp-util';
  */
 class UsualSystem extends BaseSystem {
   /**
-   * Root component for the overall web application.
+   * The web application, or `null` if not yet constructed.
    *
    * @type {?WebappRoot}
    */
