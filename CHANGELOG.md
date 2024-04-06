@@ -22,9 +22,9 @@ Breaking changes:
     * `built-ins` -> `webapp-builtins`
     * `sys-framework` -> `webapp-core`
     * `sys-util` -> `webapp-util`
-  * Renamed class `Warehouse` (a name I (@danfuzz) never really liked) to now be
-    `WebappRoot`, which reflects both its high level role and the fact that it
-    is the root component in its component hierarchy.
+  * Renamed class `Warehouse` -- a name that @danfuzz never really liked -- to
+    now be `WebappRoot`, which reflects both its high level role and the fact
+    that it is the root component in its component hierarchy.
 
 Other notable changes:
 * `fs-util`:
