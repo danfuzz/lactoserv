@@ -21,7 +21,7 @@
     "@this/loggy-intf": "*",
     "@this/metacomp": "*",
     "@this/sys-framework": "*",
-    "@this/sys-util": "*",
+    "@this/webapp-util": "*",
     "@this/typey": "*",
     "yargs": "^17.7.2"
   }

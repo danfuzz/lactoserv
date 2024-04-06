@@ -7,7 +7,7 @@ import { FileAppender } from '@this/fs-util';
 import { FormatUtils } from '@this/loggy-intf';
 import { IntfAccessLog } from '@this/net-protocol';
 import { IncomingRequest } from '@this/net-util';
-import { BaseFileService, Rotator } from '@this/sys-util';
+import { BaseFileService, Rotator } from '@this/webapp-util';
 import { MustBe } from '@this/typey';
 
 

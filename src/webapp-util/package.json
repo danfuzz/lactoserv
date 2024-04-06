@@ -1,5 +1,5 @@
 {
-  "name": "@this/sys-util",
+  "name": "@this/webapp-util",
   "version": "0.0.1",
   "type": "module",
   "private": true,

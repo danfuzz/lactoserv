@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Warehouse } from '@this/sys-framework';
-import { BaseSystem } from '@this/sys-util';
+import { BaseSystem } from '@this/webapp-util';
 
 import { MainArgs } from '#p/MainArgs';
 import { ThisModule } from '#p/ThisModule';
