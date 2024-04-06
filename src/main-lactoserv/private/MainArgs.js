@@ -31,7 +31,8 @@ export class MainArgs {
   #parsedArgs = null;
 
   /**
-   * Warehouse maker, based on the passed configuration URL.
+   * Constructor of complete web application instances, based on the passed
+   * configuration URL.
    *
    * @type {?WarehouseMaker}
    */
@@ -63,7 +64,8 @@ export class MainArgs {
   }
 
   /**
-   * Warehouse maker, based on the passed configuration location.
+   * Constructor of complete web application instances, based on the passed
+   * configuration URL.
    *
    * @type {WarehouseMaker}
    */

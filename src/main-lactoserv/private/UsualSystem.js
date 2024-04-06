@@ -21,7 +21,7 @@ export class UsualSystem extends BaseSystem {
   #args;
 
   /**
-   * Warehouse of parts.
+   * Root component for the overall web application.
    *
    * @type {?WebappRoot}
    */

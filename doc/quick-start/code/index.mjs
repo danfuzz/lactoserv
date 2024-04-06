@@ -15,7 +15,7 @@ import { BaseSystem } from '@this/webapp-util';
  */
 class UsualSystem extends BaseSystem {
   /**
-   * Warehouse of parts.
+   * Root component for the overall web application.
    *
    * @type {?WebappRoot}
    */
