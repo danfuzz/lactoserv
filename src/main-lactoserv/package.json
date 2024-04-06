@@ -13,16 +13,16 @@
 
   "dependencies": {
     "@this/async": "*",
-    "@this/webapp-builtins": "*",
     "@this/clocks": "*",
     "@this/data-values": "*",
     "@this/host": "*",
     "@this/loggy": "*",
     "@this/loggy-intf": "*",
     "@this/metacomp": "*",
+    "@this/typey": "*",
+    "@this/webapp-builtins": "*",
     "@this/webapp-core": "*",
     "@this/webapp-util": "*",
-    "@this/typey": "*",
     "yargs": "^17.7.2"
   }
 }
