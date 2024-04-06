@@ -61,12 +61,12 @@ export class WebappMaker {
     }
 
     try {
-      this.#logger?.constructingWarehouse();
+      this.#logger?.constructingWebapp();
       const result = new WebappRoot(config);
-      this.#logger?.constructedWarehouse();
+      this.#logger?.constructedWebapp();
       return result;
     } catch (e) {
-      this.#logger?.warehouseConstructionError(e);
+      this.#logger?.webappConstructionError(e);
       throw e;
     }
   }
