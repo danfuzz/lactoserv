@@ -14,8 +14,8 @@ import { ThisModule } from '#p/ThisModule';
 
 /**
  * Maker of {@link WebappRoot} instances. It is configured with a permanent URL
- * to the config file, and can then create or re-(re-...)create webapp
- * instances from it.
+ * to the config file, and can then create or re-(re-...)create webapp instances
+ * from it.
  */
 export class WebappMaker {
   /**
