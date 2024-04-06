@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Warehouse } from '@this/webapp-core';
+import { WebappRoot } from '@this/webapp-core';
 import { BaseSystem } from '@this/webapp-util';
 
 import { MainArgs } from '#p/MainArgs';
@@ -23,7 +23,7 @@ export class UsualSystem extends BaseSystem {
   /**
    * Warehouse of parts.
    *
-   * @type {?Warehouse}
+   * @type {?WebappRoot}
    */
   #warehouse = null;
 

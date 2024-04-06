@@ -6,14 +6,14 @@ import * as child_process from 'node:child_process';
 import { Condition } from '@this/async';
 import { IntfLogger } from '@this/loggy-intf';
 import { LimitedLoader } from '@this/metacomp';
-import { Warehouse } from '@this/webapp-core';
+import { WebappRoot } from '@this/webapp-core';
 import { MustBe } from '@this/typey';
 
 import { ThisModule } from '#p/ThisModule';
 
 
 /**
- * Maker of {@link Warehouse} instances. It is configured with a permanent URL
+ * Maker of {@link WebappRoot} instances. It is configured with a permanent URL
  * to the config file, and can then create or re-(re-...)create warehouse
  * instances from it.
  */
@@ -45,7 +45,7 @@ export class WarehouseMaker {
    * Makes a warehouse based on the `configUrl` passed in on construction, or
    * reports the error trying to do same.
    *
-   * @returns {Warehouse} The constructed warehouse.
+   * @returns {WebappRoot} The constructed warehouse.
    * @throws {Error} Thrown if there's any trouble.
    */
   async make() {
@@ -62,7 +62,7 @@ export class WarehouseMaker {
 
     try {
       this.#logger?.constructingWarehouse();
-      const result = new Warehouse(config);
+      const result = new WebappRoot(config);
       this.#logger?.constructedWarehouse();
       return result;
     } catch (e) {

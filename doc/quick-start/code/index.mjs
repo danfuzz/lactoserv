@@ -5,7 +5,7 @@ import { default as CONFIG } from './config-framework.mjs';
 
 import { Host, KeepRunning } from '@this/host';
 import { Loggy } from '@this/loggy';
-import { Warehouse } from '@this/webapp-core';
+import { WebappRoot } from '@this/webapp-core';
 import { BaseSystem } from '@this/webapp-util';
 
 
@@ -17,7 +17,7 @@ class UsualSystem extends BaseSystem {
   /**
    * Warehouse of parts.
    *
-   * @type {?Warehouse}
+   * @type {?WebappRoot}
    */
   #warehouse = null;
 
@@ -30,7 +30,7 @@ class UsualSystem extends BaseSystem {
 
   /** @override */
   async _impl_init(isReload_unused) {
-    return new Warehouse(CONFIG);
+    return new WebappRoot(CONFIG);
   }
 
   /** @override */

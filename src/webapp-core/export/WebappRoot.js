@@ -16,7 +16,8 @@ import { ThisModule } from '#p/ThisModule';
 
 
 /**
- * "Warehouse" of bits and pieces created from a top-level configuration.
+ * Root component which contains all the subcomponents required to operate a
+ * specific web application.
  *
  * **Note:** When `start()`ing, this operates in the order hosts then services
  * then applications then endpoints, so as to start dependencies before
@@ -24,7 +25,7 @@ import { ThisModule } from '#p/ThisModule';
  * system will press on with the `stop()` actions if an earlier layer is taking
  * too long.
  */
-export class Warehouse extends BaseComponent {
+export class WebappRoot extends BaseComponent {
   /**
    * Application manager.
    *
@@ -137,13 +138,13 @@ export class Warehouse extends BaseComponent {
 
     await PromiseUtil.race([
       endpointsStopped,
-      WallClock.waitForMsec(Warehouse.#ENDPOINT_STOP_GRACE_PERIOD_MSEC)
+      WallClock.waitForMsec(WebappRoot.#ENDPOINT_STOP_GRACE_PERIOD_MSEC)
     ]);
 
     const applicationsStopped = this.#applicationManager.stop(willReload);
     await PromiseUtil.race([
       applicationsStopped,
-      WallClock.waitForMsec(Warehouse.#APPLICATION_STOP_GRACE_PERIOD_MSEC)
+      WallClock.waitForMsec(WebappRoot.#APPLICATION_STOP_GRACE_PERIOD_MSEC)
     ]);
 
     await Promise.all([
