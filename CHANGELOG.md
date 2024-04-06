@@ -16,12 +16,21 @@ Breaking changes:
     a result, the argument it passes to the thread "start" and "main" functions
     is now an object which has a handful of "just for the runners" methods, with
     said methods removed from the public API of `Threadlet` itself.
+* `webapp-*`:
+  * Renamed the modules specifically concerned with webapp (web application)
+    implementation to have the prefix `webapp-`:
+    * `built-ins` -> `webapp-builtins`
+    * `sys-framework` -> `webapp-framework`
+    * `sys-util` -> `webapp-util`
+  * Renamed class `Warehouse` (a name I (@danfuzz) never really liked) to now be
+    `WebappRoot`, which reflects both its high level role and the fact that it
+    is the root component in its component hierarchy.
 
 Other notable changes:
 * `fs-util`:
   * New class `FileAppender`, which does a modicum of buffering. This is used to
     moderate filesystem calls when logging.
-* `built-ins`:
+* `webapp-builtins`:
   * Loosened restrictions on path component syntax in `PathRouter`.
   * Added `bufferPeriod` configuration option to `AccessLogToFile` and
     `SyslogToFile`.

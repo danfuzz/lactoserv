@@ -6,7 +6,7 @@ import * as fs from 'node:fs/promises';
 import { AccessLogToFile, AccessLogToSyslog, EventFan, HostRouter,
   MemoryMonitor, PathRouter, ProcessIdFile, ProcessInfoFile, RateLimiter,
   Redirector, SerialRouter, SimpleResponse, StaticFiles, SyslogToFile }
-  from '@lactoserv/built-ins';
+  from '@lactoserv/webapp-builtins';
 
 
 const fileUrl  = (path) => new URL(path, import.meta.url);

@@ -9,7 +9,7 @@ import { hideBin } from 'yargs/helpers';
 import { ProductInfo } from '@this/host';
 import { MustBe } from '@this/typey';
 
-import { WarehouseMaker } from '#p/WarehouseMaker';
+import { WebappMaker } from '#p/WebappMaker';
 
 
 /**
@@ -31,11 +31,12 @@ export class MainArgs {
   #parsedArgs = null;
 
   /**
-   * Warehouse maker, based on the passed configuration URL.
+   * Constructor of complete web application instances, based on the passed
+   * configuration URL.
    *
-   * @type {?WarehouseMaker}
+   * @type {?WebappMaker}
    */
-  #warehouseMaker = null;
+  #webappMaker = null;
 
   /**
    * Constructs an instance.
@@ -63,12 +64,13 @@ export class MainArgs {
   }
 
   /**
-   * Warehouse maker, based on the passed configuration location.
+   * Constructor of complete web application instances, based on the passed
+   * configuration URL.
    *
-   * @type {WarehouseMaker}
+   * @type {WebappMaker}
    */
-  get warehouseMaker() {
-    return this.#warehouseMaker;
+  get webappMaker() {
+    return this.#webappMaker;
   }
 
   /**
@@ -78,8 +80,8 @@ export class MainArgs {
   parse() {
     const args = this.#parse0();
 
-    this.#warehouseMaker = new WarehouseMaker(args.configUrl);
-    this.#parsedArgs     = args;
+    this.#webappMaker = new WebappMaker(args.configUrl);
+    this.#parsedArgs  = args;
   }
 
   /**

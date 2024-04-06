@@ -1,8 +1,8 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { Warehouse } from '@this/sys-framework';
-import { BaseSystem } from '@this/sys-util';
+import { WebappRoot } from '@this/webapp-core';
+import { BaseSystem } from '@this/webapp-util';
 
 import { MainArgs } from '#p/MainArgs';
 import { ThisModule } from '#p/ThisModule';
@@ -21,11 +21,11 @@ export class UsualSystem extends BaseSystem {
   #args;
 
   /**
-   * Warehouse of parts.
+   * The web application, or `null` if not yet constructed.
    *
-   * @type {?Warehouse}
+   * @type {?WebappRoot}
    */
-  #warehouse = null;
+  #webapp = null;
 
   /**
    * Constructs an instance.
@@ -40,18 +40,18 @@ export class UsualSystem extends BaseSystem {
 
   /** @override */
   async _impl_init(isReload_unused) {
-    return await this.#args.warehouseMaker.make();
+    return await this.#args.webappMaker.make();
   }
 
   /** @override */
   async _impl_start(isReload, initValue) {
-    this.#warehouse = initValue;
-    await this.#warehouse.start(isReload);
+    this.#webapp = initValue;
+    await this.#webapp.start(isReload);
   }
 
   /** @override */
   async _impl_stop(willReload, initValue_unused) {
-    await this.#warehouse.stop(willReload);
-    this.#warehouse = null;
+    await this.#webapp.stop(willReload);
+    this.#webapp = null;
   }
 }

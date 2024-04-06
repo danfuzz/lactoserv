@@ -1,4 +1,4 @@
-import { StaticFiles } from '@this/built-ins';
+import { StaticFiles } from '@this/webapp-builtins';
 
 
 const SITE_DIR = new URL('../website', import.meta.url).pathname;

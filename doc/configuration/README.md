@@ -59,7 +59,7 @@ import { Moment } from '@lactoserv/data-values';
 ```
 
 And in order to use any of the built-in applications or services, you will need
-to import them from `@lactoserv/built-ins`.
+to import them from `@lactoserv/webapp-builtins`.
 
 ## Component instantiation
 
@@ -93,7 +93,7 @@ const config = {
 
 ```js
 // Direct instantiation form.
-const warehouse = new Warehouse({
+const webapp = new WebappRoot({
   applications: [
     new StaticFiles({
       // ... more ...
@@ -169,7 +169,7 @@ for a list of all built-in system services. The `name` is used both when logging
 activity (to the system log) and when hooking services up.
 
 ```js
-import { ServiceClass } from '@lactoserv/built-ins';
+import { ServiceClass } from '@lactoserv/webapp-builtins';
 
 const services = [
   {
@@ -196,7 +196,7 @@ both when logging activity (to the system log) and when hooking applications up
 to endpoints.
 
 ```js
-import { ApplicationClass } from '@lactoserv/built-ins';
+import { ApplicationClass } from '@lactoserv/webapp-builtins';
 
 const applications = [
   {
@@ -261,7 +261,7 @@ const endpoints = [
 
 Custom applications and classes are simply new subclasses of the framework
 classes `BaseApplication` or `BaseService` in the module
-`@lactoserv/sys-framework`. Refer to the documentation of these base classes
+`@lactoserv/webapp-core`. Refer to the documentation of these base classes
 for more details, and look to any of the built-in applications or services for
 implementation patterns which can be copied and altered to fit your needs.
 

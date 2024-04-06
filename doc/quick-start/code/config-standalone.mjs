@@ -1,4 +1,4 @@
-import { StaticFiles } from '@lactoserv/built-ins';
+import { StaticFiles } from '@lactoserv/webapp-builtins';
 
 
 const SITE_DIR = new URL('../website', import.meta.url).pathname;
