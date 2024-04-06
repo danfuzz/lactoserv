@@ -19,7 +19,7 @@ class UsualSystem extends BaseSystem {
    *
    * @type {?WebappRoot}
    */
-  #warehouse = null;
+  #webapp = null;
 
   /**
    * Constructs an instance.
@@ -35,14 +35,14 @@ class UsualSystem extends BaseSystem {
 
   /** @override */
   async _impl_start(isReload, initValue) {
-    this.#warehouse = initValue;
-    await this.#warehouse.start(isReload);
+    this.#webapp = initValue;
+    await this.#webapp.start(isReload);
   }
 
   /** @override */
   async _impl_stop(willReload, initValue_unused) {
-    await this.#warehouse.stop(willReload);
-    this.#warehouse = null;
+    await this.#webapp.stop(willReload);
+    this.#webapp = null;
   }
 }
 

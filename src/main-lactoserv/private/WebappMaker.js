@@ -14,7 +14,7 @@ import { ThisModule } from '#p/ThisModule';
 
 /**
  * Maker of {@link WebappRoot} instances. It is configured with a permanent URL
- * to the config file, and can then create or re-(re-...)create warehouse
+ * to the config file, and can then create or re-(re-...)create webapp
  * instances from it.
  */
 export class WebappMaker {
@@ -42,10 +42,10 @@ export class WebappMaker {
   }
 
   /**
-   * Makes a warehouse based on the `configUrl` passed in on construction, or
+   * Makes a webapp based on the `configUrl` passed in on construction, or
    * reports the error trying to do same.
    *
-   * @returns {WebappRoot} The constructed warehouse.
+   * @returns {WebappRoot} The constructed webapp.
    * @throws {Error} Thrown if there's any trouble.
    */
   async make() {

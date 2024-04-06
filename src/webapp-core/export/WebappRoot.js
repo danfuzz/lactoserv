@@ -17,7 +17,8 @@ import { ThisModule } from '#p/ThisModule';
 
 /**
  * Root component which contains all the subcomponents required to operate a
- * specific web application.
+ * specific web application. Instances of this class can reasonably be called
+ * "webapps" per se.
  *
  * **Note:** When `start()`ing, this operates in the order hosts then services
  * then applications then endpoints, so as to start dependencies before
@@ -62,7 +63,7 @@ export class WebappRoot extends BaseComponent {
   constructor(rawConfig) {
     // Note: `super()` is called with a second argument exactly because this
     // instance is the root of its hierarchy.
-    super(rawConfig, new RootControlContext(ThisModule.subsystemLogger('warehouse')));
+    super(rawConfig, new RootControlContext(ThisModule.subsystemLogger('webapp')));
 
     const { applications, endpoints, hosts, services } = this.config;
 

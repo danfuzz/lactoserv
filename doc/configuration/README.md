@@ -93,7 +93,7 @@ const config = {
 
 ```js
 // Direct instantiation form.
-const warehouse = new WebappRoot({
+const webapp = new WebappRoot({
   applications: [
     new StaticFiles({
       // ... more ...
