@@ -7,8 +7,8 @@ import { WallClock } from '@this/clocks';
 import { BaseConfig } from '@this/compote';
 import { Duration } from '@this/data-values';
 import { Paths, Statter } from '@this/fs-util';
-import { BaseService } from '@this/webapp-core';
 import { MustBe } from '@this/typey';
+import { BaseService } from '@this/webapp-core';
 
 
 /**

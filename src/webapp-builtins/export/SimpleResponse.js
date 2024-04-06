@@ -7,8 +7,8 @@ import { WallClock } from '@this/clocks';
 import { Paths, Statter } from '@this/fs-util';
 import { EtagGenerator, HttpUtil, MimeTypes, OutgoingResponse }
   from '@this/net-util';
-import { BaseApplication } from '@this/webapp-core';
 import { MustBe } from '@this/typey';
+import { BaseApplication } from '@this/webapp-core';
 
 
 /**

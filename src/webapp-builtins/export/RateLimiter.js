@@ -5,8 +5,8 @@ import { TokenBucket } from '@this/async';
 import { Frequency } from '@this/data-values';
 import { IntfLogger } from '@this/loggy-intf';
 import { IntfRateLimiter } from '@this/net-protocol';
-import { BaseService } from '@this/webapp-core';
 import { MustBe } from '@this/typey';
+import { BaseService } from '@this/webapp-core';
 
 import { RateLimitedStream } from '#p/RateLimitedStream';
 

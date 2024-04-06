@@ -7,8 +7,8 @@ import { Threadlet } from '@this/async';
 import { WallClock } from '@this/clocks';
 import { Duration, Moment } from '@this/data-values';
 import { Host } from '@this/host';
-import { BaseService } from '@this/webapp-core';
 import { MustBe } from '@this/typey';
+import { BaseService } from '@this/webapp-core';
 
 
 /**

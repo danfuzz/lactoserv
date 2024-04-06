@@ -6,8 +6,8 @@ import * as child_process from 'node:child_process';
 import { Condition } from '@this/async';
 import { IntfLogger } from '@this/loggy-intf';
 import { LimitedLoader } from '@this/metacomp';
-import { WebappRoot } from '@this/webapp-core';
 import { MustBe } from '@this/typey';
+import { WebappRoot } from '@this/webapp-core';
 
 import { ThisModule } from '#p/ThisModule';
 
