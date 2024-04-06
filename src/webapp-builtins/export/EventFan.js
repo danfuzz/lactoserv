@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Names } from '@this/compote';
-import { BaseService } from '@this/sys-framework';
+import { BaseService } from '@this/webapp-core';
 import { MustBe } from '@this/typey';
 
 

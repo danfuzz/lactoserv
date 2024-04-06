@@ -20,7 +20,7 @@
     "@this/loggy": "*",
     "@this/loggy-intf": "*",
     "@this/metacomp": "*",
-    "@this/sys-framework": "*",
+    "@this/webapp-core": "*",
     "@this/webapp-util": "*",
     "@this/typey": "*",
     "yargs": "^17.7.2"

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { IntfAccessLog } from '@this/net-protocol';
-import { BaseService } from '@this/sys-framework';
+import { BaseService } from '@this/webapp-core';
 
 
 /**

@@ -56,7 +56,7 @@ request will get re-dispatched to the next application in its routing chain (if
 any).
 
 ```js
-import { BaseApplication } from '@lactoserv/sys-framework';
+import { BaseApplication } from '@lactoserv/webapp-core';
 
 class MyApplication extends BaseApplication {
   // ... more ...

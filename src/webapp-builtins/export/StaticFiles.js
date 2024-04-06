@@ -6,7 +6,7 @@ import fs from 'node:fs/promises';
 import { Paths, Statter } from '@this/fs-util';
 import { DispatchInfo, EtagGenerator, HttpUtil, MimeTypes, OutgoingResponse }
   from '@this/net-util';
-import { BaseApplication } from '@this/sys-framework';
+import { BaseApplication } from '@this/webapp-core';
 
 
 /**

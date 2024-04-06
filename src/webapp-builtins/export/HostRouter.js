@@ -4,7 +4,7 @@
 import { TreePathMap } from '@this/collections';
 import { Names } from '@this/compote';
 import { HostUtil, IntfRequestHandler } from '@this/net-util';
-import { BaseApplication } from '@this/sys-framework';
+import { BaseApplication } from '@this/webapp-core';
 import { MustBe } from '@this/typey';
 
 

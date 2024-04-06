@@ -6,7 +6,7 @@ import * as child_process from 'node:child_process';
 import { Condition } from '@this/async';
 import { IntfLogger } from '@this/loggy-intf';
 import { LimitedLoader } from '@this/metacomp';
-import { Warehouse } from '@this/sys-framework';
+import { Warehouse } from '@this/webapp-core';
 import { MustBe } from '@this/typey';
 
 import { ThisModule } from '#p/ThisModule';

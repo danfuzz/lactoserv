@@ -23,7 +23,7 @@
     "@this/loggy-intf": "*",
     "@this/net-protocol": "*",
     "@this/net-util": "*",
-    "@this/sys-framework": "*",
+    "@this/webapp-core": "*",
     "@this/webapp-util": "*",
     "@this/typey": "*"
   }

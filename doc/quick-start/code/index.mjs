@@ -5,7 +5,7 @@ import { default as CONFIG } from './config-framework.mjs';
 
 import { Host, KeepRunning } from '@this/host';
 import { Loggy } from '@this/loggy';
-import { Warehouse } from '@this/sys-framework';
+import { Warehouse } from '@this/webapp-core';
 import { BaseSystem } from '@this/webapp-util';
 
 

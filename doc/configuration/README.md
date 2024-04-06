@@ -261,7 +261,7 @@ const endpoints = [
 
 Custom applications and classes are simply new subclasses of the framework
 classes `BaseApplication` or `BaseService` in the module
-`@lactoserv/sys-framework`. Refer to the documentation of these base classes
+`@lactoserv/webapp-core`. Refer to the documentation of these base classes
 for more details, and look to any of the built-in applications or services for
 implementation patterns which can be copied and altered to fit your needs.
 

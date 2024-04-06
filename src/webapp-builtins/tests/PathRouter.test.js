@@ -8,7 +8,7 @@ import { BaseComponent, ControlContext, RootControlContext }
 import { DispatchInfo, HttpHeaders, IncomingRequest, IntfRequestHandler,
   OutgoingResponse, RequestContext }
   from '@this/net-util';
-import { BaseApplication } from '@this/sys-framework';
+import { BaseApplication } from '@this/webapp-core';
 
 
 // TODO: This file contains a lot of mock implementation that should be
