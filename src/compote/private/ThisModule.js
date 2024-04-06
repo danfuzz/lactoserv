@@ -11,12 +11,12 @@ export class ThisModule {
    *
    * @type {symbol}
    */
-  static SYM_addDescendant = Symbol('sys-framework.addDescendant');
+  static SYM_addDescendant = Symbol('compote.addDescendant');
 
   /**
    * Symbol used for the module-private method `linkRoot`.
    *
    * @type {symbol}
    */
-  static SYM_linkRoot = Symbol('sys-framework.linkRoot');
+  static SYM_linkRoot = Symbol('compote.linkRoot');
 }
