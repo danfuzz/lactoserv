@@ -11,8 +11,9 @@ import { UsualSystem } from '#p/UsualSystem';
 
 export default async function main() {
   // This is just a nominal reference to keep the build system from thinking
-  // that the `webapp-builtins` module is unused. (It _isn't_ used in the framework,
-  // but it still needs to be available when loading configuration files.)
+  // that the `webapp-builtins` module is unused. (It _isn't_ used in the
+  // framework, but it still needs to be available when loading configuration
+  // files.)
   if (builtIns === null) {
     throw new Error('Something is very wrong.');
   }
