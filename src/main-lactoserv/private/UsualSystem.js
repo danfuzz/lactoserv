@@ -40,7 +40,7 @@ export class UsualSystem extends BaseSystem {
 
   /** @override */
   async _impl_init(isReload_unused) {
-    return await this.#args.warehouseMaker.make();
+    return await this.#args.webappMaker.make();
   }
 
   /** @override */

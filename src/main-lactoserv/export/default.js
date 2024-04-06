@@ -26,7 +26,7 @@ export default async function main() {
     let exitCode = 0;
 
     try {
-      await args.warehouseMaker.make();
+      await args.webappMaker.make();
       console.log('Configuration file is valid.');
     } catch (e) {
       console.log('Configuration file trouble:\n%s\n\n%s', e.message, e.stack);

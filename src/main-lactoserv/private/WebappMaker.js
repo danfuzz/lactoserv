@@ -17,7 +17,7 @@ import { ThisModule } from '#p/ThisModule';
  * to the config file, and can then create or re-(re-...)create warehouse
  * instances from it.
  */
-export class WarehouseMaker {
+export class WebappMaker {
   /**
    * Configuration URL.
    *
