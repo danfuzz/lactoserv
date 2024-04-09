@@ -87,8 +87,8 @@ export class BaseApplication extends BaseComponent {
    *
    * @param {IncomingRequest} request Request object.
    * @param {DispatchInfo} dispatch Dispatch information.
-   * @returns {?TypeResponse|false} A response indicator (including `null`
-   *   to indicate "not handled"), or `false` to indicate that no filtering was
+   * @returns {?TypeResponse|false} A response indicator (including `null` to
+   *   indicate "not handled"), or `false` to indicate that no filtering was
    *   applied.
    */
   #applyFilters(request, dispatch) {

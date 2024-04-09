@@ -6,8 +6,8 @@ import { StatusResponse } from '#x/StatusResponse';
 
 
 /**
- * Type definition for the sorts of values allowed when responding to
- * network requests, when using the classes in this module.
+ * Type definition for the sorts of values allowed when responding to network
+ * requests, when using the classes in this module.
  *
  * * {@link FullResponse} -- A complete response.
  * * {@link StatusResponse} -- A response which _just_ notes the status code.

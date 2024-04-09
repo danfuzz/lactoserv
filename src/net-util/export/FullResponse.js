@@ -67,8 +67,8 @@ export class FullResponse {
   /**
    * Constructs an instance.
    *
-   * @param {FullResponse} [orig] Original instance to copy, or `null` to
-   *   start the instance out with nothing set.
+   * @param {FullResponse} [orig] Original instance to copy, or `null` to start
+   *   the instance out with nothing set.
    */
   constructor(orig = null) {
     if (orig) {
@@ -172,8 +172,8 @@ export class FullResponse {
    * @param {string} requestMethod The original request method.
    * @param {HttpHeaders} requestHeaders The request headers.
    * @param {object} options Options indicating which adjustments to make.
-   * @returns {FullResponse} New response instance containing adjustments,
-   *   or `this` if no adjustments were required.
+   * @returns {FullResponse} New response instance containing adjustments, or
+   *   `this` if no adjustments were required.
    */
   adjustFor(requestMethod, requestHeaders, options) {
     const { headers, status } = this;

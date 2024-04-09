@@ -434,8 +434,8 @@ export class ProtocolWrangler {
    * @param {IncomingRequest} request Request object.
    * @param {WranglerContext} outerContext The outer context of `request`.
    * @param {TypeNodeResponse} res Low-level response object.
-   * @returns {FullResponse} The response object that was ultimately sent
-   *   (or was at least ulitmately attempted to be sent).
+   * @returns {FullResponse} The response object that was ultimately sent (or
+   *   was at least ulitmately attempted to be sent).
    */
   async #respondToRequest(request, outerContext, res) {
     const reqLogger = request.logger;
@@ -509,8 +509,8 @@ export class ProtocolWrangler {
    * @param {IncomingRequest} request Request object.
    * @param {WranglerContext} outerContext The outer context of `request`.
    * @param {TypeNodeResponse} res Low-level response object.
-   * @returns {FullResponse} The response object that was ultimately sent
-   *   (or was at least ulitmately attempted to be sent).
+   * @returns {FullResponse} The response object that was ultimately sent (or
+   *   was at least ulitmately attempted to be sent).
    */
   async #logAndRespondToRequest(request, outerContext, res) {
     const accessLog = this.#accessLog;
