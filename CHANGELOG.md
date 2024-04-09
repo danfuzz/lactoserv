@@ -30,6 +30,10 @@ Other notable changes:
 * `fs-util`:
   * New class `FileAppender`, which does a modicum of buffering. This is used to
     moderate filesystem calls when logging.
+* `net-util`:
+  * New class `StatusResponse`, to allow applications to indicate a response of
+    _just_ a status code, letting the main protocol implementation fill it out
+    as necessary.
 * `webapp-builtins`:
   * Loosened restrictions on path component syntax in `PathRouter`.
   * Added `bufferPeriod` configuration option to `AccessLogToFile` and

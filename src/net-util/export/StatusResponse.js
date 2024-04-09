@@ -73,6 +73,13 @@ export class StatusResponse {
   #INSTANCES = new Map();
 
   /**
+   * @returns {StatusResponse} The "not found" (`404`) instance.
+   */
+  get NOT_FOUND() {
+    return this.fromStatus(404);
+  }
+
+  /**
    * Gets an instance for the given status. This method returns cached
    * instances; no more than one instance per status is created by this method.
    *
