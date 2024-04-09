@@ -6,7 +6,7 @@ import { BaseComponent, BaseNamedConfig, Names } from '@this/compote';
 import { FormatUtils } from '@this/loggy-intf';
 import { IntfAccessLog, IntfRateLimiter, ProtocolWrangler, ProtocolWranglers }
   from '@this/net-protocol';
-import { DispatchInfo, HostUtil, IntfRequestHandler, FullResponse, UriUtil }
+import { DispatchInfo, FullResponse, HostUtil, IntfRequestHandler, UriUtil }
   from '@this/net-util';
 import { StringUtil } from '@this/typey';
 

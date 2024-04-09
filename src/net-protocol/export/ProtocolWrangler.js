@@ -6,7 +6,7 @@ import { inspect } from 'node:util';
 import { Threadlet } from '@this/async';
 import { ProductInfo } from '@this/host';
 import { IntfLogger } from '@this/loggy-intf';
-import { IncomingRequest, IntfRequestHandler, FullResponse, RequestContext,
+import { FullResponse, IncomingRequest, IntfRequestHandler, RequestContext,
   StatusResponse, TypeNodeRequest, TypeNodeResponse }
   from '@this/net-util';
 import { Methods, MustBe } from '@this/typey';

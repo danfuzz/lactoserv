@@ -4,7 +4,7 @@
 import fs from 'node:fs/promises';
 
 import { Paths, Statter } from '@this/fs-util';
-import { DispatchInfo, EtagGenerator, HttpUtil, MimeTypes, FullResponse }
+import { DispatchInfo, EtagGenerator, FullResponse, HttpUtil, MimeTypes }
   from '@this/net-util';
 import { BaseApplication } from '@this/webapp-core';
 

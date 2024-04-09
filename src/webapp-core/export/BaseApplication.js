@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { BaseClassedConfig, BaseComponent } from '@this/compote';
-import { DispatchInfo, IncomingRequest, IntfRequestHandler, FullResponse,
+import { DispatchInfo, FullResponse, IncomingRequest, IntfRequestHandler,
   StatusResponse, TypeResponse }
   from '@this/net-util';
 import { Methods, MustBe } from '@this/typey';

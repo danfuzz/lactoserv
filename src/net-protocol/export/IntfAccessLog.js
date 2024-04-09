@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { IncomingRequest, FullResponse, TypeNodeResponse }
+import { FullResponse, IncomingRequest, TypeNodeResponse }
   from '@this/net-util';
 import { Methods } from '@this/typey';
 
