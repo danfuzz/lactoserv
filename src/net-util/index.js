@@ -18,4 +18,5 @@ export * from '#x/OutgoingResponse';
 export * from '#x/RequestContext';
 export * from '#x/TypeNodeRequest';
 export * from '#x/TypeNodeResponse';
+export * from '#x/TypeResponse';
 export * from '#x/UriUtil';

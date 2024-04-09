@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { BaseClassedConfig, BaseComponent } from '@this/compote';
-import { DispatchInfo, IncomingRequest, IntfRequestHandler, OutgoingResponse }
+import { DispatchInfo, IncomingRequest, IntfRequestHandler, OutgoingResponse,
+  TypeResponse }
   from '@this/net-util';
 import { Methods, MustBe } from '@this/typey';
 
@@ -73,7 +74,7 @@ export class BaseApplication extends BaseComponent {
    * @abstract
    * @param {IncomingRequest} request Request object.
    * @param {DispatchInfo} dispatch Dispatch information.
-   * @returns {?OutgoingResponse} Response to the request, if any, as defined by
+   * @returns {?TypeResponse} Response to the request, if any, as defined by
    *   {@link IntfRequestHandler#handleRequest}.
    */
   async _impl_handleRequest(request, dispatch) {
@@ -86,7 +87,7 @@ export class BaseApplication extends BaseComponent {
    *
    * @param {IncomingRequest} request Request object.
    * @param {DispatchInfo} dispatch Dispatch information.
-   * @returns {?OutgoingResponse|false} A response indicator (including `null`
+   * @returns {?TypeResponse|false} A response indicator (including `null`
    *   to indicate "not handled"), or `false` to indicate that no filtering was
    *   applied.
    */
@@ -154,7 +155,7 @@ export class BaseApplication extends BaseComponent {
    *
    * @param {IncomingRequest} request Request object.
    * @param {DispatchInfo} dispatch Dispatch information.
-   * @returns {?OutgoingResponse} Response to the request, if any.
+   * @returns {?TypeResponse} Response to the request, if any.
    */
   async #callHandler(request, dispatch) {
     const result = this._impl_handleRequest(request, dispatch);
@@ -169,7 +170,7 @@ export class BaseApplication extends BaseComponent {
       if (result === undefined) {
         throw error('returned undefined; probably needs an explicit `return`');
       } else {
-        throw error('returned something other than a `OutgoingResponse`, `null`, or a promise');
+        throw error('returned something other than an `OutgoingResponse`, `null`, or a promise');
       }
     }
 
@@ -180,7 +181,7 @@ export class BaseApplication extends BaseComponent {
     } else if (finalResult === undefined) {
       throw error('async-returned undefined; probably needs an explicit `return`');
     } else {
-      throw error('async-returned something other than a `OutgoingResponse` or `null`');
+      throw error('async-returned something other than an `OutgoingResponse` or `null`');
     }
   }
 
