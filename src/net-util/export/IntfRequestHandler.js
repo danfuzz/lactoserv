@@ -5,7 +5,7 @@ import { Methods } from '@this/typey';
 
 import { DispatchInfo } from '#x/DispatchInfo';
 import { IncomingRequest } from '#x/IncomingRequest';
-import { TypeResponse } from '#x/TypeResponse';
+import { TypeOutgoingResponse } from '#x/TypeOutgoingResponse';
 
 
 /**
@@ -26,7 +26,7 @@ export class IntfRequestHandler {
    *   dispatch determination was made before calling this instance. (On any
    *   given instance -- depending on context -- it should be the case that it
    *   either _always_ or _never_ gets passed `null` for this parameter.)
-   * @returns {?TypeResponse} Response to send.
+   * @returns {?TypeOutgoingResponse} Response to send.
    * @throws {Error} Thrown in case of fatal error.
    */
   async handleRequest(request, dispatch) {

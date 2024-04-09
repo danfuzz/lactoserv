@@ -19,5 +19,5 @@ export * from '#x/RequestContext';
 export * from '#x/StatusResponse';
 export * from '#x/TypeNodeRequest';
 export * from '#x/TypeNodeResponse';
-export * from '#x/TypeResponse';
+export * from '#x/TypeOutgoingResponse';
 export * from '#x/UriUtil';

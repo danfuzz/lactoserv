@@ -16,6 +16,6 @@ import { StatusResponse } from '#x/StatusResponse';
  * * `null` -- Indicator that the request was not handled (which is different
  *   than being handled with a result of "not found").
  *
- * @typedef {FullResponse|StatusResponse|null} TypeResponse
+ * @typedef {FullResponse|StatusResponse|null} TypeOutgoingResponse
  */
-export const TypeResponse = Symbol('TypeResponse');
+export const TypeOutgoingResponse = Symbol('TypeOutgoingResponse');

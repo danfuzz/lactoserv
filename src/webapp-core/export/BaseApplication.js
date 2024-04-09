@@ -3,7 +3,7 @@
 
 import { BaseClassedConfig, BaseComponent } from '@this/compote';
 import { DispatchInfo, FullResponse, IncomingRequest, IntfRequestHandler,
-  StatusResponse, TypeResponse }
+  StatusResponse, TypeOutgoingResponse }
   from '@this/net-util';
 import { Methods, MustBe } from '@this/typey';
 
@@ -74,8 +74,8 @@ export class BaseApplication extends BaseComponent {
    * @abstract
    * @param {IncomingRequest} request Request object.
    * @param {DispatchInfo} dispatch Dispatch information.
-   * @returns {?TypeResponse} Response to the request, if any, as defined by
-   *   {@link IntfRequestHandler#handleRequest}.
+   * @returns {?TypeOutgoingResponse} Response to the request, if any, as
+   *   defined by {@link IntfRequestHandler#handleRequest}.
    */
   async _impl_handleRequest(request, dispatch) {
     Methods.abstract(request, dispatch);
@@ -87,9 +87,9 @@ export class BaseApplication extends BaseComponent {
    *
    * @param {IncomingRequest} request Request object.
    * @param {DispatchInfo} dispatch Dispatch information.
-   * @returns {?TypeResponse|false} A response indicator (including `null` to
-   *   indicate "not handled"), or `false` to indicate that no filtering was
-   *   applied.
+   * @returns {?TypeOutgoingResponse|false} A response indicator (including
+   *   `null` to indicate "not handled"), or `false` to indicate that no
+   *   filtering was applied.
    */
   #applyFilters(request, dispatch) {
     const filterConfig = this.#filterConfig;
@@ -155,7 +155,7 @@ export class BaseApplication extends BaseComponent {
    *
    * @param {IncomingRequest} request Request object.
    * @param {DispatchInfo} dispatch Dispatch information.
-   * @returns {?TypeResponse} Response to the request, if any.
+   * @returns {?TypeOutgoingResponse} Response to the request, if any.
    */
   async #callHandler(request, dispatch) {
     const result = this._impl_handleRequest(request, dispatch);
