@@ -3,7 +3,7 @@
 
 import { BaseClassedConfig, BaseComponent } from '@this/compote';
 import { DispatchInfo, IncomingRequest, IntfRequestHandler, OutgoingResponse,
-  TypeResponse }
+  StatusResponse, TypeResponse }
   from '@this/net-util';
 import { Methods, MustBe } from '@this/typey';
 
@@ -164,24 +164,28 @@ export class BaseApplication extends BaseComponent {
       return new Error(`\`${this.name}._impl_handleRequest()\` ${msg}.`);
     };
 
-    if ((result === null) || (result instanceof OutgoingResponse)) {
+    if ((result === null)
+        || (result instanceof OutgoingResponse)
+        || (result instanceof StatusResponse)) {
       return result;
     } else if (!(result instanceof Promise)) {
       if (result === undefined) {
-        throw error('returned undefined; probably needs an explicit `return`');
+        throw error('returned `undefined`; probably needs an explicit `return`');
       } else {
-        throw error('returned something other than an `OutgoingResponse`, `null`, or a promise');
+        throw error('returned something other than a valid response object, `null`, or a promise');
       }
     }
 
     const finalResult = await result;
 
-    if ((finalResult === null) || (finalResult instanceof OutgoingResponse)) {
+    if ((finalResult === null)
+        || (finalResult instanceof OutgoingResponse)
+        || (finalResult instanceof StatusResponse)) {
       return finalResult;
     } else if (finalResult === undefined) {
-      throw error('async-returned undefined; probably needs an explicit `return`');
+      throw error('async-returned `undefined`; probably needs an explicit `return`');
     } else {
-      throw error('async-returned something other than an `OutgoingResponse` or `null`');
+      throw error('async-returned something other than a valid response object or `null`');
     }
   }
 
