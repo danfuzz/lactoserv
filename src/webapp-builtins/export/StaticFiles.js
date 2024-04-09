@@ -4,7 +4,7 @@
 import fs from 'node:fs/promises';
 
 import { Paths, Statter } from '@this/fs-util';
-import { DispatchInfo, EtagGenerator, HttpUtil, MimeTypes, OutgoingResponse }
+import { DispatchInfo, EtagGenerator, HttpUtil, MimeTypes, FullResponse }
   from '@this/net-util';
 import { BaseApplication } from '@this/webapp-core';
 
@@ -47,7 +47,7 @@ export class StaticFiles extends BaseApplication {
    * Not-found response to issue, or `null` if either not yet calculated or if
    * this instance isn't handling not-found errors.
    *
-   * @type {?OutgoingResponse}
+   * @type {?FullResponse}
    */
   #notFoundResponse = null;
 
@@ -81,7 +81,7 @@ export class StaticFiles extends BaseApplication {
 
     if (resolved.redirect) {
       const redirectTo = resolved.redirect;
-      const response   = OutgoingResponse.makeRedirect(redirectTo, 308);
+      const response   = FullResponse.makeRedirect(redirectTo, 308);
 
       if (this.#cacheControl) {
         response.cacheControl = this.#cacheControl;
@@ -92,7 +92,7 @@ export class StaticFiles extends BaseApplication {
       const contentType =
         MimeTypes.typeFromPathExtension(resolved.path);
 
-      const rawResponse = new OutgoingResponse();
+      const rawResponse = new FullResponse();
 
       rawResponse.status = 200;
       rawResponse.headers.set('content-type', contentType);
@@ -138,7 +138,7 @@ export class StaticFiles extends BaseApplication {
         throw new Error(`Not found or not a file: ${notFoundPath}`);
       }
 
-      const response = new OutgoingResponse();
+      const response = new FullResponse();
 
       response.status       = 404;
       response.cacheControl = this.#cacheControl;

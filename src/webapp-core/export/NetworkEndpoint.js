@@ -6,7 +6,7 @@ import { BaseComponent, BaseNamedConfig, Names } from '@this/compote';
 import { FormatUtils } from '@this/loggy-intf';
 import { IntfAccessLog, IntfRateLimiter, ProtocolWrangler, ProtocolWranglers }
   from '@this/net-protocol';
-import { DispatchInfo, HostUtil, IntfRequestHandler, OutgoingResponse, UriUtil }
+import { DispatchInfo, HostUtil, IntfRequestHandler, FullResponse, UriUtil }
   from '@this/net-util';
 import { StringUtil } from '@this/typey';
 
@@ -55,7 +55,7 @@ export class NetworkEndpoint extends BaseComponent {
 
     try {
       const result = await application.handleRequest(request, dispatch);
-      if ((result === null) || (result instanceof OutgoingResponse)) {
+      if ((result === null) || (result instanceof FullResponse)) {
         return result;
       } else {
         // Caught immediately below.

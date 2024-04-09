@@ -6,7 +6,7 @@ import { inspect } from 'node:util';
 import { Threadlet } from '@this/async';
 import { ProductInfo } from '@this/host';
 import { IntfLogger } from '@this/loggy-intf';
-import { IncomingRequest, IntfRequestHandler, OutgoingResponse, RequestContext,
+import { IncomingRequest, IntfRequestHandler, FullResponse, RequestContext,
   StatusResponse, TypeNodeRequest, TypeNodeResponse }
   from '@this/net-util';
 import { Methods, MustBe } from '@this/typey';
@@ -387,7 +387,7 @@ export class ProtocolWrangler {
    * is not supposed to `throw` (directly or indirectly).
    *
    * @param {IncomingRequest} request Request object.
-   * @returns {OutgoingResponse} The response to send.
+   * @returns {FullResponse} The response to send.
    */
   async #handleRequest(request) {
     if (!request.pathnameString) {
@@ -399,12 +399,12 @@ export class ProtocolWrangler {
       // echo $'GET * HTTP/1.1\r\nHost: milk.com\r\n\r' \
       //   | curl telnet://localhost:8080
       // ```
-      return OutgoingResponse.makeMetaResponse(400); // "Bad Request."
+      return FullResponse.makeMetaResponse(400); // "Bad Request."
     }
 
     const result = await this.#requestHandler.handleRequest(request, null);
 
-    if (result instanceof OutgoingResponse) {
+    if (result instanceof FullResponse) {
       return result;
     } else if (result instanceof StatusResponse) {
       return result.responseFor(request);
@@ -434,7 +434,7 @@ export class ProtocolWrangler {
    * @param {IncomingRequest} request Request object.
    * @param {WranglerContext} outerContext The outer context of `request`.
    * @param {TypeNodeResponse} res Low-level response object.
-   * @returns {OutgoingResponse} The response object that was ultimately sent
+   * @returns {FullResponse} The response object that was ultimately sent
    *   (or was at least ulitmately attempted to be sent).
    */
   async #respondToRequest(request, outerContext, res) {
@@ -451,7 +451,7 @@ export class ProtocolWrangler {
           // sent. Then just thwack the underlying socket. The hope is that the
           // waiting above will make it likely that the far side will actually
           // see the 503 ("Service Unavailable") response.
-          result      = OutgoingResponse.makeMetaResponse(503);
+          result      = FullResponse.makeMetaResponse(503);
           closeSocket = true;
         }
       }
@@ -460,7 +460,7 @@ export class ProtocolWrangler {
     } catch (e) {
       // `500` == "Internal Server Error."
       const bodyExtra = e.stack ?? e.message ?? '<unknown>';
-      result = OutgoingResponse.makeMetaResponse(500, { bodyExtra });
+      result = FullResponse.makeMetaResponse(500, { bodyExtra });
     }
 
     try {
@@ -509,7 +509,7 @@ export class ProtocolWrangler {
    * @param {IncomingRequest} request Request object.
    * @param {WranglerContext} outerContext The outer context of `request`.
    * @param {TypeNodeResponse} res Low-level response object.
-   * @returns {OutgoingResponse} The response object that was ultimately sent
+   * @returns {FullResponse} The response object that was ultimately sent
    *   (or was at least ulitmately attempted to be sent).
    */
   async #logAndRespondToRequest(request, outerContext, res) {

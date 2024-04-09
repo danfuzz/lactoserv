@@ -5,7 +5,7 @@ import fs from 'node:fs/promises';
 
 import { WallClock } from '@this/clocks';
 import { Paths, Statter } from '@this/fs-util';
-import { EtagGenerator, HttpUtil, MimeTypes, OutgoingResponse }
+import { EtagGenerator, HttpUtil, MimeTypes, FullResponse }
   from '@this/net-util';
 import { MustBe } from '@this/typey';
 import { BaseApplication } from '@this/webapp-core';
@@ -25,7 +25,7 @@ export class SimpleResponse extends BaseApplication {
   /**
    * Response template to clone for all actual responses.
    *
-   * @type {OutgoingResponse}
+   * @type {FullResponse}
    */
   #response = null;
 
@@ -58,7 +58,7 @@ export class SimpleResponse extends BaseApplication {
       body, contentType, cacheControl, etagOptions, filePath, statusCode
     } = this.config;
 
-    const response  = new OutgoingResponse();
+    const response  = new FullResponse();
     const headers   = response.headers;
 
     if (filePath) {

@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { IncomingRequest, OutgoingResponse, TypeNodeResponse }
+import { IncomingRequest, FullResponse, TypeNodeResponse }
   from '@this/net-util';
 import { Methods } from '@this/typey';
 
@@ -33,7 +33,7 @@ export class IntfAccessLog {
    *
    * @abstract
    * @param {IncomingRequest} request The incoming request.
-   * @param {OutgoingResponse} response The response that was sent (or at least
+   * @param {FullResponse} response The response that was sent (or at least
    *   attempted).
    * @param {object} networkInfo Information about the network environment.
    * @param {object} networkInfo.connectionSocket The socket (or socket-like

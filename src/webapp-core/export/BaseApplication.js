@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { BaseClassedConfig, BaseComponent } from '@this/compote';
-import { DispatchInfo, IncomingRequest, IntfRequestHandler, OutgoingResponse,
+import { DispatchInfo, IncomingRequest, IntfRequestHandler, FullResponse,
   StatusResponse, TypeResponse }
   from '@this/net-util';
 import { Methods, MustBe } from '@this/typey';
@@ -138,12 +138,12 @@ export class BaseApplication extends BaseComponent {
         const redirect = dispatch.redirectToFileString;
         // Don't redirect to `/`, because that would cause a redirect loop.
         if (redirect !== '/') {
-          return OutgoingResponse.makeRedirect(redirect, 308);
+          return FullResponse.makeRedirect(redirect, 308);
         }
       }
     } else if (redirectFiles) {
       if (!dispatch.isDirectory()) {
-        return OutgoingResponse.makeRedirect(dispatch.redirectToDirectoryString, 308);
+        return FullResponse.makeRedirect(dispatch.redirectToDirectoryString, 308);
       }
     }
 
@@ -165,7 +165,7 @@ export class BaseApplication extends BaseComponent {
     };
 
     if ((result === null)
-        || (result instanceof OutgoingResponse)
+        || (result instanceof FullResponse)
         || (result instanceof StatusResponse)) {
       return result;
     } else if (!(result instanceof Promise)) {
@@ -179,7 +179,7 @@ export class BaseApplication extends BaseComponent {
     const finalResult = await result;
 
     if ((finalResult === null)
-        || (finalResult instanceof OutgoingResponse)
+        || (finalResult instanceof FullResponse)
         || (finalResult instanceof StatusResponse)) {
       return finalResult;
     } else if (finalResult === undefined) {

@@ -4,7 +4,7 @@
 import { MustBe } from '@this/typey';
 
 import { IncomingRequest } from '#x/IncomingRequest';
-import { OutgoingResponse } from '#x/OutgoingResponse';
+import { FullResponse } from '#x/FullResponse';
 
 
 /**
@@ -47,16 +47,16 @@ export class StatusResponse {
    * request it is to respond to.
    *
    * @param {IncomingRequest} request Request to respond to.
-   * @returns {OutgoingResponse} The full response to send.
+   * @returns {FullResponse} The full response to send.
    */
   responseFor(request) {
     const status = this.#status;
 
     if (status === 404) {
       const bodyExtra = request.urlForLog;
-      return OutgoingResponse.makeNotFound({ bodyExtra });
+      return FullResponse.makeNotFound({ bodyExtra });
     } else {
-      return OutgoingResponse.makeMetaResponse(status);
+      return FullResponse.makeMetaResponse(status);
     }
   }
 
