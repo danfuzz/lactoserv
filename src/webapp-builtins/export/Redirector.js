@@ -1,7 +1,7 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
-import { HttpUtil, OutgoingResponse, UriUtil } from '@this/net-util';
+import { FullResponse, HttpUtil, UriUtil } from '@this/net-util';
 import { MustBe } from '@this/typey';
 import { BaseApplication } from '@this/webapp-core';
 
@@ -52,7 +52,7 @@ export class Redirector extends BaseApplication {
 
   /** @override */
   async _impl_handleRequest(request_unused, dispatch) {
-    const response = OutgoingResponse.makeRedirect(
+    const response = FullResponse.makeRedirect(
       `${this.#target}${UriUtil.pathStringFrom(dispatch.extra)}`,
       this.#statusCode);
 

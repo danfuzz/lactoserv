@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { BaseClassedConfig, BaseComponent } from '@this/compote';
-import { DispatchInfo, IncomingRequest, IntfRequestHandler, OutgoingResponse }
+import { DispatchInfo, FullResponse, IncomingRequest, IntfRequestHandler,
+  StatusResponse, TypeOutgoingResponse }
   from '@this/net-util';
 import { Methods, MustBe } from '@this/typey';
 
@@ -73,8 +74,8 @@ export class BaseApplication extends BaseComponent {
    * @abstract
    * @param {IncomingRequest} request Request object.
    * @param {DispatchInfo} dispatch Dispatch information.
-   * @returns {?OutgoingResponse} Response to the request, if any, as defined by
-   *   {@link IntfRequestHandler#handleRequest}.
+   * @returns {?TypeOutgoingResponse} Response to the request, if any, as
+   *   defined by {@link IntfRequestHandler#handleRequest}.
    */
   async _impl_handleRequest(request, dispatch) {
     Methods.abstract(request, dispatch);
@@ -86,9 +87,9 @@ export class BaseApplication extends BaseComponent {
    *
    * @param {IncomingRequest} request Request object.
    * @param {DispatchInfo} dispatch Dispatch information.
-   * @returns {?OutgoingResponse|false} A response indicator (including `null`
-   *   to indicate "not handled"), or `false` to indicate that no filtering was
-   *   applied.
+   * @returns {?TypeOutgoingResponse|false} A response indicator (including
+   *   `null` to indicate "not handled"), or `false` to indicate that no
+   *   filtering was applied.
    */
   #applyFilters(request, dispatch) {
     const filterConfig = this.#filterConfig;
@@ -137,12 +138,12 @@ export class BaseApplication extends BaseComponent {
         const redirect = dispatch.redirectToFileString;
         // Don't redirect to `/`, because that would cause a redirect loop.
         if (redirect !== '/') {
-          return OutgoingResponse.makeRedirect(redirect, 308);
+          return FullResponse.makeRedirect(redirect, 308);
         }
       }
     } else if (redirectFiles) {
       if (!dispatch.isDirectory()) {
-        return OutgoingResponse.makeRedirect(dispatch.redirectToDirectoryString, 308);
+        return FullResponse.makeRedirect(dispatch.redirectToDirectoryString, 308);
       }
     }
 
@@ -154,7 +155,7 @@ export class BaseApplication extends BaseComponent {
    *
    * @param {IncomingRequest} request Request object.
    * @param {DispatchInfo} dispatch Dispatch information.
-   * @returns {?OutgoingResponse} Response to the request, if any.
+   * @returns {?TypeOutgoingResponse} Response to the request, if any.
    */
   async #callHandler(request, dispatch) {
     const result = this._impl_handleRequest(request, dispatch);
@@ -163,24 +164,28 @@ export class BaseApplication extends BaseComponent {
       return new Error(`\`${this.name}._impl_handleRequest()\` ${msg}.`);
     };
 
-    if ((result === null) || (result instanceof OutgoingResponse)) {
+    if ((result === null)
+        || (result instanceof FullResponse)
+        || (result instanceof StatusResponse)) {
       return result;
     } else if (!(result instanceof Promise)) {
       if (result === undefined) {
-        throw error('returned undefined; probably needs an explicit `return`');
+        throw error('returned `undefined`; probably needs an explicit `return`');
       } else {
-        throw error('returned something other than a `OutgoingResponse`, `null`, or a promise');
+        throw error('returned something other than a valid response object, `null`, or a promise');
       }
     }
 
     const finalResult = await result;
 
-    if ((finalResult === null) || (finalResult instanceof OutgoingResponse)) {
+    if ((finalResult === null)
+        || (finalResult instanceof FullResponse)
+        || (finalResult instanceof StatusResponse)) {
       return finalResult;
     } else if (finalResult === undefined) {
-      throw error('async-returned undefined; probably needs an explicit `return`');
+      throw error('async-returned `undefined`; probably needs an explicit `return`');
     } else {
-      throw error('async-returned something other than a `OutgoingResponse` or `null`');
+      throw error('async-returned something other than a valid response object or `null`');
     }
   }
 

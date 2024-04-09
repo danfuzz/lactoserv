@@ -1,11 +1,13 @@
 // Copyright 2022-2024 the Lactoserv Authors (Dan Bornstein et alia).
 // SPDX-License-Identifier: Apache-2.0
 
+import { inspect } from 'node:util';
+
 import { Threadlet } from '@this/async';
 import { ProductInfo } from '@this/host';
 import { IntfLogger } from '@this/loggy-intf';
-import { IncomingRequest, IntfRequestHandler, OutgoingResponse, RequestContext,
-  TypeNodeRequest, TypeNodeResponse }
+import { FullResponse, IncomingRequest, IntfRequestHandler, RequestContext,
+  StatusResponse, TypeNodeRequest, TypeNodeResponse }
   from '@this/net-util';
 import { Methods, MustBe } from '@this/typey';
 
@@ -385,7 +387,7 @@ export class ProtocolWrangler {
    * is not supposed to `throw` (directly or indirectly).
    *
    * @param {IncomingRequest} request Request object.
-   * @returns {OutgoingResponse} The response to send.
+   * @returns {FullResponse} The response to send.
    */
   async #handleRequest(request) {
     if (!request.pathnameString) {
@@ -397,28 +399,27 @@ export class ProtocolWrangler {
       // echo $'GET * HTTP/1.1\r\nHost: milk.com\r\n\r' \
       //   | curl telnet://localhost:8080
       // ```
-      return OutgoingResponse.makeMetaResponse(400); // "Bad Request."
+      return FullResponse.makeMetaResponse(400); // "Bad Request."
     }
 
-    try {
-      const result = await this.#requestHandler.handleRequest(request, null);
+    const result = await this.#requestHandler.handleRequest(request, null);
 
-      if (result instanceof OutgoingResponse) {
-        return result;
-      } else if (result === null) {
-        // The configured `requestHandler` didn't actually handle the request.
-        // Respond with a vanilla `404` error. (If the client wants something
-        // fancier, they can do it themselves.)
-        const bodyExtra = request.urlForLog;
-        return OutgoingResponse.makeNotFound({ bodyExtra });
-      } else {
-        // Caught by our direct caller, `#respondToRequest()`.
-        throw new Error(`Strange result from \`handleRequest\`: ${result}`);
-      }
-    } catch (e) {
-      // `500` == "Internal Server Error."
-      const bodyExtra = e.stack ?? e.message ?? '<unknown>';
-      return OutgoingResponse.makeMetaResponse(500, { bodyExtra });
+    if (result instanceof FullResponse) {
+      return result;
+    } else if (result instanceof StatusResponse) {
+      return result.responseFor(request);
+    } else if (result === null) {
+      // The configured `requestHandler` didn't actually handle the request.
+      // Respond with a simple "not found". (If the client wants something
+      // fancier, they can do it themselves.)
+      return StatusResponse.NOT_FOUND.responseFor(request);
+    } else {
+      // The error thrown here is caught by our direct caller,
+      // `#respondToRequest()`.
+      const type      = typeof result;
+      const inspected = inspect(result);
+      throw new Error(
+        `Strange result (type \`${type}\` from \`handleRequest\`:\n${inspected}\n`);
     }
   }
 
@@ -433,8 +434,8 @@ export class ProtocolWrangler {
    * @param {IncomingRequest} request Request object.
    * @param {WranglerContext} outerContext The outer context of `request`.
    * @param {TypeNodeResponse} res Low-level response object.
-   * @returns {OutgoingResponse} The response object that was ultimately sent
-   *   (or was at least ulitmately attempted to be sent).
+   * @returns {FullResponse} The response object that was ultimately sent (or
+   *   was at least ulitmately attempted to be sent).
    */
   async #respondToRequest(request, outerContext, res) {
     const reqLogger = request.logger;
@@ -450,7 +451,7 @@ export class ProtocolWrangler {
           // sent. Then just thwack the underlying socket. The hope is that the
           // waiting above will make it likely that the far side will actually
           // see the 503 ("Service Unavailable") response.
-          result      = OutgoingResponse.makeMetaResponse(503);
+          result      = FullResponse.makeMetaResponse(503);
           closeSocket = true;
         }
       }
@@ -458,8 +459,8 @@ export class ProtocolWrangler {
       result ??= await this.#handleRequest(request, outerContext);
     } catch (e) {
       // `500` == "Internal Server Error."
-      const bodyExtra = e.stack ?? e.message ?? '<unknown error>';
-      result = OutgoingResponse.makeMetaResponse(500, { bodyExtra });
+      const bodyExtra = e.stack ?? e.message ?? '<unknown>';
+      result = FullResponse.makeMetaResponse(500, { bodyExtra });
     }
 
     try {
@@ -508,8 +509,8 @@ export class ProtocolWrangler {
    * @param {IncomingRequest} request Request object.
    * @param {WranglerContext} outerContext The outer context of `request`.
    * @param {TypeNodeResponse} res Low-level response object.
-   * @returns {OutgoingResponse} The response object that was ultimately sent
-   *   (or was at least ulitmately attempted to be sent).
+   * @returns {FullResponse} The response object that was ultimately sent (or
+   *   was at least ulitmately attempted to be sent).
    */
   async #logAndRespondToRequest(request, outerContext, res) {
     const accessLog = this.#accessLog;

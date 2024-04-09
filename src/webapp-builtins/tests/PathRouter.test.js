@@ -4,8 +4,8 @@
 import { TreePathKey } from '@this/collections';
 import { BaseComponent, ControlContext, RootControlContext }
   from '@this/compote';
-import { DispatchInfo, HttpHeaders, IncomingRequest, IntfRequestHandler,
-  OutgoingResponse, RequestContext }
+import { DispatchInfo, FullResponse, HttpHeaders, IncomingRequest,
+  IntfRequestHandler, RequestContext }
   from '@this/net-util';
 import { PathRouter } from '@this/webapp-builtins';
 import { BaseApplication } from '@this/webapp-core';
@@ -61,7 +61,7 @@ class MockApp extends BaseApplication {
     }
 
     if (succeed) {
-      const result = new OutgoingResponse();
+      const result = new FullResponse();
       result.mockInfo = callInfo;
       return result;
     } else {

@@ -16,6 +16,9 @@ Breaking changes:
     a result, the argument it passes to the thread "start" and "main" functions
     is now an object which has a handful of "just for the runners" methods, with
     said methods removed from the public API of `Threadlet` itself.
+* `net-util`:
+  * Renamed `OutgoingResponse` to `FullResponse`, to allow "semantic space" for
+    `StatusResponse`.
 * `webapp-*`:
   * Renamed the modules specifically concerned with webapp (web application)
     implementation to have the prefix `webapp-`:
@@ -30,6 +33,11 @@ Other notable changes:
 * `fs-util`:
   * New class `FileAppender`, which does a modicum of buffering. This is used to
     moderate filesystem calls when logging.
+* `net-util`:
+  * New class `StatusResponse`, to allow applications to indicate a response of
+    _just_ a status code, letting the main protocol implementation fill it out
+    as necessary.
+  * New typedef `TypeOutgoingResponse`, which covers all valid response types.
 * `webapp-builtins`:
   * Loosened restrictions on path component syntax in `PathRouter`.
   * Added `bufferPeriod` configuration option to `AccessLogToFile` and
