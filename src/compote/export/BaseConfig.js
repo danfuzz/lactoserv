@@ -16,6 +16,14 @@ import { MustBe } from '@this/typey';
  */
 export class BaseConfig {
   /**
+   * Log tag (name) to use for the configured instance, or `null` for this
+   * instance to not have a predefined tag.
+   *
+   * @type {string}
+   */
+  #logTag;
+
+  /**
    * Constructs an instance.
    *
    * @param {object} rawConfig Raw configuration object. See class header for
@@ -23,5 +31,19 @@ export class BaseConfig {
    */
   constructor(rawConfig) {
     MustBe.plainObject(rawConfig);
+
+    const { logTag = null } = rawConfig;
+
+    this.#logTag = (logTag === null)
+      ? null
+      : MustBe.string(logTag);
+  }
+
+  /**
+   * @returns {string} Log tag (name) to use for the configured instance, or
+   * `null` for this instance to not have a predefined tag.
+   */
+  get logTag() {
+    return this.#logTag;
   }
 }

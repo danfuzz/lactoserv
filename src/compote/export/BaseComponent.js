@@ -257,6 +257,41 @@ export class BaseComponent {
     Methods.abstract(willReload);
   }
 
+  /**
+   * Adds a child to this instance. This is a protected method which is
+   * intended to only be called by an instance to modify itself.
+   *
+   * @param {BaseComponent} child Child component to add.
+   * @param {boolean} [isReload] Is the system being reloaded?
+   */
+  async _prot_addChild(child, isReload = false) {
+    MustBe.instanceOf(child, BaseComponent);
+
+    if (!this.#initialized) {
+      throw new Error('Cannot add child to uninitialized component.');
+    } else if (child.#initialized) {
+      throw new Error('Child already initialized; cannot add to different parent.');
+    }
+
+    const { logger }       = this;
+    const { logTag, name } = child.config;
+
+    let subLogger = logger;
+    if (logTag) {
+      subLogger = logger?.[logTag];
+    } else if (name) {
+      subLogger = logger?.[name];
+    }
+
+    const context = new ControlContext(child, this, subLogger);
+    await child.init(context, isReload);
+
+    if (this.state === 'running') {
+      // Get the child running, so as to match the parent.
+      await child.start(isReload);
+    }
+  }
+
   /** @returns {boolean} Whether or not this instance is initialized. */
   get #initialized() {
     return this.#context instanceof ControlContext;
