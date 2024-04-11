@@ -42,6 +42,8 @@ Other notable changes:
   * Loosened restrictions on path component syntax in `PathRouter`.
   * Added `bufferPeriod` configuration option to `AccessLogToFile` and
     `SyslogToFile`.
+  * New class `RequestFilter` to take over the duties of the former "filtering
+    for free" behavior of `BaseApplication`.
 
 ### v0.6.13 -- 2024-04-03
 
